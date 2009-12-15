@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 Bio::Pfam::Scan::PfamScan
@@ -23,7 +22,7 @@ package Bio::Pfam::Scan::PfamScan;
 
 =head1 DESCRIPTION
 
-$Id: PfamScan.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
+$Id: PfamScan.pm,v 1.3 2009-12-15 14:36:12 jt6 Exp $
 
 =cut
 
@@ -77,7 +76,7 @@ sub new {
   my $self = {};
   bless $self, $class;
 
-# To avoid hard coding the location for the binary, we assume it will be on the path.....
+  # To avoid hard coding the location for the binary, we assume it will be on the path.....
   $self->{_HMMSCAN} = 'hmmscan';
 
   # handle arguments, if we were given any here
@@ -120,8 +119,8 @@ sub search {
     }
     else {
       $pfamB      = 1;
-      $seq_evalue = "0.001";
-      $dom_evalue = "0.001";
+      $seq_evalue = 0.001;
+      $dom_evalue = 0.001;
 
       # It's a pfamB search so use some default cut off values
       push @hmmscan_cut_off, '-E', $seq_evalue, '--domE', $dom_evalue;
@@ -132,13 +131,13 @@ sub search {
     push @{ $self->{_header} }, "#        searching against: " 
                                 . $self->{_dir} . "/$hmmlib, with cut off " 
                                 . join( " ", @hmmscan_cut_off ) . "\n";
-   my @params;   
+    my @params;   
    if($self->{_cpu}) {
-	@params = ( 'hmmscan', 
+      @params = ( 'hmmscan', 
                    '--notextw', '--cpu', $self->{_cpu}, @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );   
     }
     else {
-	@params = ( 'hmmscan', '--notextw', @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );
+      @params = ( 'hmmscan', '--notextw', @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );
     
     }    
 
@@ -146,7 +145,7 @@ sub search {
     print STDERR 'PfamScan::search: sequence: |' . $self->{_sequence} . "|\n" if $ENV{DEBUG};
 
     my $run = start \@params, '<pipe', \*IN, '>pipe', \*OUT, '2>pipe', \*ERR
-      or die "Error running hmmscan; IPC::Run returned '$?'";
+      or croak qq(FATAL: error running hmmscan; IPC::Run returned '$?');
 
     # print IN $self->{_sequence}; ;
     close IN;
@@ -162,7 +161,7 @@ sub search {
     close ERR;
 
     finish $run
-      or die "Error running hmmscan ($err); ipc returned '$?'";
+      or croak qq|FATAL: error running hmmscan ($err); ipc returned '$?'|;
 
     unless ( $hmmlib =~ /Pfam\-B/ ) {
 
@@ -214,12 +213,12 @@ sub search {
     foreach my $AllResult ( keys %AllResults ) { 
 
       foreach my $seq_id ( keys %{ $self->{_seq_hash} } ) {
-	      
-	      my $flag;
-	      
-	      #If seq exists in both, add all units from $AllResult to $firstResult
-	      foreach my $result ( @{$firstResult} ) {
-		  
+            
+        my $flag;
+            
+        #If seq exists in both, add all units from $AllResult to $firstResult
+        foreach my $result ( @{$firstResult} ) {
+            
           if( $result->seqName eq $seq_id ) {
             $flag = 1;
 
@@ -235,16 +234,16 @@ sub search {
               }
             }
           }
-	      }
-	      
-	      #If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
-	      unless ($flag) {
+        }
+            
+        #If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
+        unless ($flag) {
           foreach my $result2 ( @{ $AllResults{$AllResult} } ) {
             if ( $result2->seqName eq $seq_id ) {
-              push @{$firstResult}, $result2;			  
+              push @{$firstResult}, $result2;                    
             }
           }
-	      }	      
+        }            
       }
     }
     $self->{_all_results} = $firstResult;
@@ -254,10 +253,10 @@ sub search {
   push @{ $self->{_header} }, "# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n#\n";
 
   if ( $self->{_as} ) {
-	  push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>\n";
+    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>\n";
   }
   else {
-	  push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>\n";
+    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>\n";
   }
 }
 
@@ -376,36 +375,36 @@ sub _process_args {
 
   $self->{_hmmscan_cutoff} = ();
   if ( $args->{-e_seq} ) {
-    die
-qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
+    croak qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
       unless $args->{-e_seq} > 0;
 
-    push( @{ $self->{_hmmscan_cutoff} }, '-E', $args->{-e_seq} );
+    push @{ $self->{_hmmscan_cutoff} }, '-E', $args->{-e_seq};
   }
 
   if ( $args->{-e_dom} ) {
-    die
-qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
+    croak q(FATAL: if you supply "-e_dom" you must also supply "-e_seq")
+      unless $args->{-e_seq};
+
+    croak qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
       unless $args->{-e_dom} > 0;
 
-    if ( $args->{-e_seq} ) {
-      push( @{ $self->{_hmmscan_cutoff} }, '--domE', $args->{-e_dom} );
-    }
-
-
+    push @{ $self->{_hmmscan_cutoff} }, '--domE', $args->{-e_dom};
   }
+
   if ( $args->{-b_seq} ) {
-    push( @{ $self->{_hmmscan_cutoff} }, '-T', $args->{-b_seq} );
-  }
-  if ( $args->{-b_dom} ) {
-    if ( $args->{-b_seq} ) {
-      push( @{ $self->{_hmmscan_cutoff} }, '--domT', $args->{-b_dom} );
-    }
-  }
-  unless ( $self->{_hmmscan_cutoff} ) {
-    push( @{ $self->{_hmmscan_cutoff} }, '--cut_ga' );
+    push @{ $self->{_hmmscan_cutoff} }, '-T', $args->{-b_seq};
   }
 
+  if ( $args->{-b_dom} ) {
+    croak q(FATAL: if you supply "-b_dom" you must also supply "-b_seq")
+      unless $args->{-b_seq};
+
+    push @{ $self->{_hmmscan_cutoff} }, '--domT', $args->{-b_dom};
+  }
+
+  unless ( $self->{_hmmscan_cutoff} ) {
+    push @{ $self->{_hmmscan_cutoff} }, '--cut_ga';
+  }
 
   # make sure we have a valid directory for the HMM data files
   croak qq(FATAL: directory "$args->{-dir}" does not exist)
@@ -421,17 +420,17 @@ qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero
   $self->{_sequence}     = $args->{-sequence};
   $self->{_cpu}          = $args->{-cpu};
 
-
+  $self->{_hmmlib} = [];
   if ( $args->{-hmmlib} ) {
-      if(ref $args->{-hmmlib} eq 'ARRAY') {
-	  push(@{ $self->{_hmmlib} }, @{$args->{-hmmlib}});
+      if( ref $args->{-hmmlib} eq 'ARRAY') {
+        push @{ $self->{_hmmlib} }, @{$args->{-hmmlib}};
       }
       else {
-	  push(@{ $self->{_hmmlib} }, $args->{-hmmlib});
+        push @{ $self->{_hmmlib} }, $args->{-hmmlib};
       }
   }
   else {
-    push( @{ $self->{_hmmlib} }, "Pfam-A.hmm" );
+    push @{ $self->{_hmmlib} }, "Pfam-A.hmm";
   }
 
   # Now check that the library exists in the data dir!
@@ -439,12 +438,12 @@ qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero
 
     croak
       qq(FATAL: can't find $hmmlib and/or $hmmlib binaries in "$args->{-dir}")
-      unless ( -s "$self->{_dir}/$hmmlib"
-      and -s $self->{_dir} . "/$hmmlib.h3f"
-      and -s $self->{_dir} . "/$hmmlib.h3i"
-      and -s $self->{_dir} . "/$hmmlib.h3m"
-      and -s $self->{_dir} . "/$hmmlib.h3p"
-      and -s $self->{_dir} . "/$hmmlib.dat" );
+      unless ( -s $self->{_dir} , "/$hmmlib" and 
+               -s $self->{_dir} . "/$hmmlib.h3f" and 
+               -s $self->{_dir} . "/$hmmlib.h3i" and 
+               -s $self->{_dir} . "/$hmmlib.h3m" and 
+               -s $self->{_dir} . "/$hmmlib.h3p" and 
+               -s $self->{_dir} . "/$hmmlib.dat" );
 
     # read the necessary data, if it's not been read already
     $self->_read_pfam_data
