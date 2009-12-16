@@ -16,7 +16,7 @@
 //
 // jt6 20090803 WTSI
 //
-// $Id: results.js,v 1.4 2009-10-27 14:23:54 jt6 Exp $
+// $Id: results.js,v 1.5 2009-12-16 16:03:24 jt6 Exp $
 // 
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -173,7 +173,9 @@ var Results = Class.create( {
     // if we're using the gathering threshold, hide the insignificant hits and
     // the front of the table title too
     if ( this._config.options.ga ) {
-      $("pfamASummaryI").hide();
+      if( $("pfamASummaryI") ) {
+        $("pfamASummaryI").hide();
+      }
       this._updateEl.select(".titlePrefix").invoke( "hide");
     }
 
