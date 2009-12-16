@@ -1,5 +1,8 @@
 #!/software/bin/perl -w
 
+#rfmake.pl - a script designed to process the results of rfsearch.pl. 
+# $Id: rfmake.pl,v 1.57 2009-12-16 13:34:55 pg5 Exp $
+
 use strict;
 use Getopt::Long;
 use Cwd;
@@ -50,31 +53,19 @@ if( $help ) {
 # make sure files are writable by group
 umask(002);
 
+
+#Setting/getting io files:
+$inxfile = $Rfam::rfamseq      if not defined $inxfile;
+$inxfile = $Rfam::rfamseq_farm if defined $farm;
+$output  = "out.list"          if not defined $output;
+
 #Futsing around trying to get blastdb's sorted out:
 my @blastdb;
-if (defined($incldb)){
-    push(@blastdb,glob( "$Rfam::rfamseq_current_dir/$incldb/*.xnd"));
-}
-
-not $inxfile and $inxfile = $Rfam::rfamseq;
-#Setting/getting io files:
-$output = "out.list" if not defined($output);
-
-if (defined($farm)){
-    $inxfile = $Rfam::rfamseq_farm;
-}
-
 push(@blastdb,$inxfile);
-
-my (@tmparray, @seqinx);
-foreach my $bdb (@blastdb) {
-    if ($bdb !~ /rfamseq.fa.xnd/){
-	$bdb =~ s/\.xnd$//;
-	push(@tmparray, $bdb);
-    }
+push(@blastdb,glob( "$Rfam::rfamseq_current_dir/$incldb/*.xnd")) if defined $incldb;
+for( my $i=0; $i<@blastdb; $i++) {
+	$blastdb[$i] =~ s/\.xnd$//;
 }
-@blastdb = @tmparray;
-
 
 ######################################################################
 #DESC file:
@@ -93,15 +84,18 @@ if (-s 'DESC'){
 	};
     }
 }
-elsif (not -s 'DESC') {
+else {
     $desc = RfamUtils::generateDesc();
 }
 
 $list = 1 if not defined $thr;
+my (@family_terms, %family_terms, @forbidden_terms);
+my (%seedseqs_start,%seedseqs_end, %seedseqs_strand, %seedseqs_found, %seen_id);
+if ($list){
+    
+#Make into a function:
 ######################################################################
 #Sorting out forbidden terms, family terms, etc.
-my (@family_terms, %family_terms, @forbidden_terms);
-if ($list){
     foreach my $tag ( qw(ID DE PI TP)  ){
 	next if not defined $desc->{$tag};
 	my @terms = split(/[\_\s+\/\;\(\)\-\,\.\'\"\:]/,$desc->{$tag});
@@ -126,16 +120,9 @@ if ($list){
 	push(@forbidden_terms, @extra_forbidden_terms);
     }
 
-#my $family_terms = join(", ",@family_terms);
-#print STDERR "Using family terms: $family_terms\n";
-#my $forbidden_terms = join(", ",@forbidden_terms);
-#print STDERR "Using forbidden terms: $forbidden_terms, Jennifer\n";
-}
-
+#Make into a function:
 ######################################################################
 #Make hashes for checking overlaps with seeds:
-my (%seedseqs_start,%seedseqs_end, %seedseqs_strand, %seedseqs_found, %seen_id);
-if( $list ) {
     open( SEED, "< SEED" ) or die "Can't open SEED to determine overlapping hits\n";
     while( <SEED> ) {
 	/^(\S+)\/(\d+)\-(\d+)\s+\S+/ and do {
@@ -163,7 +150,7 @@ if( $list ) {
 	};
     }
     close(SEED);
-}
+
 
 ######################################################################
 
@@ -172,7 +159,7 @@ die "FATAL: $file either doesn't exist or is empty!\n" if not -s $file;
 
 my $prevBits=99999.00;
 my $prevExponent=-1;
-if( $list ) {
+    
     
     #printf STDERR "Parsing infernal TABFILE -- creating $output and species supplementary files\n";
     
@@ -223,6 +210,7 @@ if( $list ) {
     
     my %store; #Used to store N/S-E's for overlap checks
     my $printedThresh;
+    my $printedExponentChange=0;
   TABFILE: while (my $tabline = <F>){
       if($tabline=~/(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+(\S+)\s+\d+/){
 	  my ($idline,$tStart,$tEnd,$qStart,$qEnd,$bits,$evalue)=($1,$2,$3,$4,$5,$6,$7);
@@ -270,7 +258,7 @@ if( $list ) {
 		  $taxString .= $row->[1];
 		  $ncbiId .= $row->[2];
 	      }
-	      $shortSpecies  = species2shortspecies($species);
+	      $shortSpecies  = RfamUtils::species2shortspecies($species);
 	      $domainKingdom = tax2kingdom($taxString . '; ' . $species . ';');
 	      $kingdomCounts{$domainKingdom}=0 if not defined $kingdomCounts{$domainKingdom};
 	      $kingdomCounts{$domainKingdom}++;
@@ -303,9 +291,10 @@ if( $list ) {
 	  
 	  my $exponent = 1;
 	  $exponent = -1 if $evalue =~ /\d+e\-\d+/;
-	  if ($exponent > 0 && $prevExponent < 0){
+	  if ($exponent > 0 && $prevExponent < 0 && not $printedExponentChange){
 	      printf OUT  "#***********THE EXPONENT HAS CHANGED SIGN***********#\n";
 	      printf SPEC "#***********THE EXPONENT HAS CHANGED SIGN***********#\n";
+	      $printedExponentChange=1;
 	  }
 	  $prevExponent=$exponent;
 	  
@@ -333,7 +322,7 @@ if( $list ) {
     close(RIN);
     close(RINc);
     #Hard-coded paths are naughty!!! Here are 2:
-    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~pg5/scripts/make/plot_outlist.R") and warn "WARNING: system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n[/software/R-2.6.0/bin/R CMD BATCH --no-save ~pg5/scripts/make/plot_outlist.R]\n";
+    system("/software/R-2.9.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and warn "WARNING: system call for /software/R-2.9.0/bin/R failed. Check binary exists and is executable.\n[/software/R-2.6.0/bin/R CMD BATCH --no-save ~pg5/scripts/make/plot_outlist.R]\n";
     
     #Complain loudly if seed sequences are missing from the output:
     foreach my $n (keys %seedseqs_found){
@@ -373,7 +362,11 @@ if( not defined $global ) {
 
 #Complain if cmalign bits scores are negative:
 open (CMAO, "> cmalign.out") or die "FATAL: failed to open cmalign.out\n[$!]";
-open (CMA, "/usr/bin/time -f \'\%S \%U\' -o cmalign.time cmalign $options CM $$.fa | ") or die "FATAL: failed to run [cmalign $options CM $$.fa]\n[$!]";
+# bsub -q hugemem -o $HOME/cmalign.out /usr/bin/time -f '%S %U' -o cmalign.time cmalign -o ALIGN CM 23848.fa
+# rm $HOME/cmalign.out; bsub -q hugemem -o $HOME/cmalign.out -M13000000 -R'select[type==X86_64 && mem>13000] rusage[mem=13000]' /usr/bin/time -f '%S %U' -o $HOME/data/rfam/RF00177/cmalign.time cmalign -o $HOME/data/rfam/RF00177/ALIGN $HOME/data/rfam/RF00177/CM $HOME/data/rfam/RF00177/23848.fa
+my $cmalignCommand = "/usr/bin/time -f \'\%S \%U\' -o cmalign.time cmalign $options CM $$.fa";
+print "RUN:\n$cmalignCommand\n" if defined $verbose;
+open (CMA, "$cmalignCommand | ") or die "FATAL: failed to run [cmalign $options CM $$.fa]\n[$!]";
 while (my $cma = <CMA>){
     if($cma =~ /\s+\d+\s+\S+\s+\d+\s+(-\d+\.\d+)/){
 	#Print warning if cmalign bit score is significantly different from the cmsearch bit score?
@@ -555,10 +548,11 @@ sub outlist2fetchSeqsHashes {
     my ($outlist,$threshold) = @_;
     open(OL, "< $outlist") or die "FATAL: failed to open $outlist\n[$!]";
     open( SC, ">scores" )  or die "FATAL: failed to open scores\n[$!]";
+    open( SCE, ">scores.evalue" )  or die "FATAL: failed to open scores.evalue\n[$!]";
     my (%forward, %reverse);
     while (<OL>){
-	if(/(\S+)\s+\S+\s+(SEED\.\d+|SEED|ALIGN|NOT)\s+(\S+)\s+(\d+)\s+(\d+)/){
-	    my ($bits,$id,$start,$end)=($1,$3,$4,$5);
+	if(/(\S+)\s+(\S+)\s+(SEED\.\d+|SEED|ALIGN|NOT)\s+(\S+)\s+(\d+)\s+(\d+)/){
+	    my ($bits,$evalue,$id,$start,$end)=($1,$2,$4,$5,$6);
 	    last if $bits < $threshold;
 	    
 	    if ($start < $end){
@@ -572,6 +566,7 @@ sub outlist2fetchSeqsHashes {
 					    'strand' => -1} );
 	    }
 	    print SC $bits, " $id/$start-$end\n";
+	    print SCE "$bits $evalue $id/$start-$end\n";
 	}
     }
     close(OL);
@@ -580,37 +575,6 @@ sub outlist2fetchSeqsHashes {
     return (\%forward, \%reverse);
 }
 
-######################################################################
-#
-sub species2shortspecies {
-    my $species = shift;
-    my $shortSpecies;
-    
-    if ($species=~/(\S+)\s+sp\./){
-	$shortSpecies = $1;
-    }
-    elsif ($species=~/metagenome/i){
-	$species=~s/metagenome/metag\./g;
-	my @w = split(/\s+/,$species);
-	if(scalar(@w)>2){
-	    foreach my $w (@w){
-		$shortSpecies .= substr($w, 0, 5) . '.';
-	    }
-	}
-	else {
-	    $shortSpecies = $species;
-	    $shortSpecies =~ s/\s+/_/g;
-	}
-    }
-    elsif($species=~/(\S+)\s+(\S+)/){
-	$shortSpecies = substr($1,0,1) . "." . $2; 
-    }
-    else {
-	$shortSpecies = $species;
-    }
-    
-    return $shortSpecies;
-}
 ######################################################################
 #
 sub tax2kingdom {
@@ -645,7 +609,7 @@ Options:    MAJOR MODES:
 	    
             I/O
 	    -file <infernal output file> Use an alternative cmsearch output [Default: OUTPUT].
-	    -d <blastdb>                 Use a different blast database for sesquence fetching.
+	    -d <blastdb>                 Use a different blast database for sequence fetching.
 	    -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
 	    
 	    THRESHOLDs/PLOTs 
@@ -668,7 +632,7 @@ To add:
 -add source eg. EMBL;STD;ENV to out.list &/or species?
 -add a check for overlaps with existing families -- add to the seqLabel column?
 -print threshold label when there are no low scoring hits...
--shortSpeciesName fails on AAXH01001154.1 (RF01269)
+-shortSpeciesName fails on AAXH01001154.1 (RF01269) -- Influenza A -- RF01099
 -account for the extent of overlap!
 -write nse2array & nvse2array functions!
 
