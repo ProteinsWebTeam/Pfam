@@ -19,6 +19,163 @@ use vars qw( @ISA
 @ISA    = qw( Exporter );
 
 ######################################################################
+
+######################################################################
+#make_pair_table: takes a structure string and returns an array/pair_table.
+#                 pair_table[0] contains the length of the string.
+#                 pair_table[1..pair_table[0]] contains 0's if no basepair exists 
+#                 for this position, otherwise it contains the index for the 
+#                 corresponding pair.
+#                 Eg. make_pair_table(".((...))") returns:
+#                 (8,0,8,7,0,0,0,3,2)
+######################################################################
+sub make_pair_table {
+
+    my $str = shift;
+        
+    my (%bpsymbs_posns, @pair_table, $prime5, $prime3, %bpsymbs3p5p, %bpsymbs3p5p_counts);
+    my ($count, $unbalanced) = (0,0);
+
+    #Match up the 5' and 3' basepair simbols:
+    my %bpsymbs5p3p = (
+	'(' => ')',
+	'<' => '>',
+	'[' => ']',
+	'{' => '}',
+	A => 'a',
+	B => 'b',
+	C => 'c',
+	D => 'd',
+	E => 'e',
+	F => 'f',
+	G => 'g',
+	H => 'h',
+	I => 'i'
+	);
+
+    my %bpsymbs5p3p_counts = (
+	'(' => 0,
+	'<' => 0,
+	'[' => 0,
+	'{' => 0,
+	A => 0,
+	B => 0,
+	C => 0,
+	D => 0,
+	E => 0,
+	F => 0,
+	G => 0,
+	H => 0,
+	I => 0
+	);
+    
+    #We also need the reverse of the above hashes (ie. Match the 3' symbols with the 5'):
+    foreach my $symb5p (keys %bpsymbs5p3p){
+	my $symb3p = $bpsymbs5p3p{$symb5p};
+	$bpsymbs3p5p{$symb3p} = $symb5p;
+	$bpsymbs3p5p_counts{$symb3p} = 0;
+    }
+    
+    my %unpairedsymbs = (
+	'.' => 1,
+	',' => 2,
+	'-' => 3,
+	':' => 4,
+	'_' => 5
+	);
+    
+    my @ss = split(//,$str);
+    $pair_table[0]  = length($str);
+    
+    my $j=0;
+    foreach my $char (@ss){
+	$j++;
+	$pair_table[$j] = 0;
+	
+	if ( defined( $unpairedsymbs{$char} ) ) {
+	    next; #Boring unpaired region.
+	}
+	elsif ( defined( $bpsymbs5p3p{$char}) ){#Record position of open bps:
+	    push( @{ $bpsymbs_posns{$char} }, $j);
+	    ++$count;
+	    $bpsymbs5p3p_counts{$char}++;
+	}
+	elsif ( defined( $bpsymbs3p5p{$char}) ){#close bp, save positions of matches in pair_table:
+	    my $mchar = $bpsymbs3p5p{$char};
+	    $prime5 = pop( @{ $bpsymbs_posns{$mchar} } );
+	    $prime3 = $j;
+	    $pair_table[$prime3] = $prime5;
+	    $pair_table[$prime5] = $prime3;
+	    --$count;
+	    $bpsymbs3p5p_counts{$char}++;
+	}
+       	else {
+	    printf STDERR "Strange character \"$char\" in secondary structure:\n$str\n";
+	}
+    }
+    
+    #Check basepair symbols are all matched:
+    foreach my $symb5p (keys %bpsymbs5p3p_counts){
+	my $symb3p = $bpsymbs5p3p{$symb5p};
+	my $diff = $bpsymbs5p3p_counts{$symb5p} - $bpsymbs3p5p_counts{$symb3p};
+	if ($diff!=0){
+	    printf STDERR "BAD EVIL AND NASTY: Unbalanced brackets in secondary structure:\n$bpsymbs5p3p_counts{$symb5p}x\'$symb5p\' and $bpsymbs3p5p_counts{$symb3p}x\'$symb3p\'\n";
+	    $unbalanced = 1;
+	}
+    }
+    
+    
+    if ($count != 0 || $unbalanced){
+	printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
+	return ();
+    }    
+    else {
+	return \@pair_table;
+    }
+    
+}
+######################################################################
+#species2shortspecies: Given a species string eg. "Homo sapiens
+#                      (human)" generate a nicely formated short name
+#                      with no whitespace eg. "H.sapiens".
+sub species2shortspecies {
+    my $species = shift;
+    my $shortSpecies;
+    
+    if ($species=~/(.*)\s+sp\./){
+	$shortSpecies = $1;
+    }
+    elsif ($species=~/metagenome/i or $species=~/uncultured/i){
+	$species=~s/metagenome/metag\./gi;
+	$species=~s/uncultured/uncult\./gi;
+	my @w = split(/\s+/,$species);
+	if(scalar(@w)>2){
+	    foreach my $w (@w){
+		$shortSpecies .= substr($w, 0, 5) . '.';
+	    }
+	}
+	else {
+	    $shortSpecies = $species;
+	    $shortSpecies =~ s/\s+/_/g;
+	}
+    }#lots of conditions here. Need else you get some ridiculous species names.
+    elsif($species=~/^(\S+)\s+(\S{4,})/ && $species!~/[\/\-\_0-9]/ && $species!~/^[a-z]/ && $species!~/\svirus$/ && $species!~/\svirus\s/ && $species!~/^Plasmid\s/i && $species!~/\splasmid\s/i){
+	$shortSpecies = substr($1,0,1) . "." . $2; 
+    }
+    else {
+	$shortSpecies = $species;
+    }
+    
+    $shortSpecies =~ s/\s+/_/g;
+    $shortSpecies =~ s/[\'\(\)\:\/]//g;
+    $shortSpecies = substr($shortSpecies,0,20) if (length($shortSpecies) > 20);
+    
+#   H.P 
+    return $shortSpecies;
+}
+
+
+######################################################################
 #returns true if input character is a nucleotide (IUPAC codes):
 sub is_nucleotide {
     my $a = shift;
@@ -409,18 +566,14 @@ RT
 	if(/^RN\s+\[(\d+)\]/){
 	    $refNo=int($1)-1 if defined $1 && $1>0 && length($1)>0;
 	}
-	elsif(/^(R\S)\s+(.+)/ && defined $refNo){#	elsif((/^(R\S)\s+(.+)\s+/ || /^(R\S)\s+(.+)/) && defined $refNo){
-	    #print "desc{RN}{$refNo}{$1}.=$2;\n";
+	elsif(/^(R\S)\s+(.+)/ && defined $refNo){
 	    next if length($refNo) == 0 or length($1) == 0 or length($2) == 0;
-	    #$refs[$refNo]{$1}='' if not defined $refs[$refNo]{$1};
-	    if (not defined $refs[$refNo]{$1}){# || length($refs[$refNo]{$1}) == 0){
+	    if (not defined $refs[$refNo]{$1}){
 		$refs[$refNo]{$1} = $2;
 	    }
 	    else {
 		$refs[$refNo]{$1} .= "\n$1   " . $2;
 	    }
-	    #$desc{'RN'}{$refNo}{$1} = '' if not defined $desc{'RN'}{$refNo}{$1};
-	    #$desc{'RN'}{$refNo}{$1}.=$2 if defined $1 && defined $2 && defined $refNo && length($1)>0 && length($2)>0 && length($refNo)>0;
 	}
 	elsif(/^(R\S)\s+(.+)/ && not defined $refNo){
 	    print STDERR "WARNING: your references are munged, you need an RN line first!\n";
@@ -436,11 +589,17 @@ RT
 	}
     }
     print STDERR "WARNING: your DESC file contains no references!\n" if not defined $refNo;
+    print STDERR "WARNING: your DESC file is missing SO DR lines!\n" if ($desc{'DR'} !~ /SO/);
+    print STDERR "WARNING: your DESC file is missing GO DR lines!\n" if ($desc{'DR'} !~ /GO/);
+    print STDERR "WARNING: your DESC file is missing a WK entry!\n\tFORMAT is \47DR   http://en.wikipedia.org/wiki/RNA\47\n" if  $desc{'WK'} !~ /http:\/\/en.wikipedia.org\/wiki\/(\S+)/;
+    
+    
     $desc{'RN'}=\@refs if defined $refNo;
     return \%desc;
 }
 
 ###################################
+#Add a check that essential tags have been written:
 sub writeDesc {
     my $desc = shift;
     my $fp = shift;
@@ -514,6 +673,113 @@ RT
 	}
     }
 }
+
+###################################
+#Add a check that essential tags have been written:
+sub writeDescString {
+    my $desc = shift;
+    my $string='';
+    my @tags = qw(
+AC
+ID
+DE
+PI
+AU
+SE
+SS
+GA
+TC
+NC
+TP
+BM
+DR
+RN
+CC
+WK
+);
+
+    my @litTags = qw(
+RA
+RL
+RM
+RT
+);
+    my %allowed;
+    foreach my $t (@tags, @litTags){
+	$allowed{$t}='';
+    }
+    
+    my %seen; 
+    foreach my $t (@tags){
+	
+	$seen{$t}=1;
+	#References are awkward:
+	if ($t eq 'RN' && defined $desc->{'RN'} && length($desc->{'RN'}) > 0){
+	    for (my $i=0; $i< scalar(@{$desc->{'RN'}}); $i++ ){
+		my $ref = ${$desc->{'RN'}}[int($i)];
+		$string .= sprintf "#=GF RN   [%d]\n", $i+1;
+		foreach my $rTag (qw(RM RT RA RL) ){
+		    if (defined $ref->{$rTag} && length($ref->{$rTag})>0){
+			$ref->{$rTag} =~ s/\t/ /g;
+			
+			my @rT = split(/\n$rTag\s+/, $ref->{$rTag});
+			foreach my $rT (@rT){
+			    $string .= "#=GF $rTag   " . $rT . "\n";
+			}
+			print STDERR "WARNING: a tab character or a terminal whitespace is screwing up one of your $rTag lines in your DESC file!\n" if ($ref->{$rTag}=~/\s$/ || $ref->{$rTag}=~/\t/);
+		    }
+		    else {
+			printf STDERR "WARNING: no $rTag entry for reference [%d]\n", $i+1;
+		    }
+		}
+	    }
+	}
+	else {
+	    #All the other tags are fairly easy to take care of:
+	    if (defined $desc->{$t} && length($desc->{$t})>0){
+		$desc->{$t} =~ s/\t/ /g;
+		if ($t eq 'GA' || $t eq 'TC' || $t eq 'NC'){#Thresholds are slightly awkward:
+		    if(isNumeric($desc->{$t})){
+			$string .= sprintf "#=GF $t   %0.2f\n", $desc->{$t};
+		    }
+		    else {
+			$string .= "#=GF $t   " . $desc->{$t} . "\n";
+		    }
+		}
+		else {
+		    my @descT = split(/\n$t\s+/, $desc->{$t});
+		    foreach my $descT (@descT){
+			$string .= "#=GF $t   " . $descT . "\n";
+		    }
+		}
+		print STDERR "WARNING: a tab character or a terminal whitespace is screwing up one of your $t lines in your DESC file!\n" if ($desc->{$t}=~/\s$/ || $desc->{$t}=~/\t/);
+	    }
+	}
+    }
+    
+    my @compulsoryTags = qw(
+AC
+ID
+DE
+AU
+SE
+SS
+GA
+TC
+NC
+TP
+BM
+DR
+WK
+);
+    
+    foreach my $tag (@compulsoryTags){
+	print STDERR "WARNING: you are missing the compulsory tag: [$tag] in your DESC file!" if not defined $seen{$tag};
+    }
+    
+    return $string;
+}
+
 
 ###################################
 sub generateDesc {
