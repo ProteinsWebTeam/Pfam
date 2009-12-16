@@ -1,6 +1,6 @@
 #!/software/bin/perl
 
-# $Id: pfam_scan.pl,v 1.26 2009-12-16 11:28:18 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.27 2009-12-16 11:44:16 jm14 Exp $
 
 use strict;
 use warnings;
@@ -166,6 +166,7 @@ Additonal options:
   -json [pretty]  : write results in JSON format. If the optional value "pretty" is given,
                     the JSON output will be formatted using the "pretty" option in the JSON
                     module
+  -cpu <n>        : number of parallel CPU workers to use for multithreads (default all)
 
   * Please note that the Pfam-B HMMs are of much lower quality than
     Pfam-A HMMs, and matches to Pfam-B families should always be treated
@@ -245,6 +246,10 @@ Search for active sites on Pfam-A matches [default: false]
 =item B<-json> [I<pretty>]
 
 Write the results in JSON format [default: false]
+
+=item B<-cpu>
+
+Number of parallel CPU workers to use for multithreads [default: all]
 
 =item B<-h>
 
