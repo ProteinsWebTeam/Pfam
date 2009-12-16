@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.14 2009-10-07 13:59:26 jt6 Exp $
+# $Id: batch.tt,v 1.15 2009-12-16 14:55:39 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -114,14 +114,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <h3>File size</h3>
         
       <p>
-        Files must have fewer than<strong> 10,000</strong> lines and fewer than 
-        <strong>1000</strong> sequences.  
+        Files must have fewer than<strong> 500,000</strong> lines and fewer than 
+        <strong>5000</strong> sequences.  
       </p>
 
       <h3>Sequence length</h3>
       
       <p>
-        Each sequence must be no longer than <strong>2000</strong> amino-acids. 
+        Each sequence must be no longer than <strong>20000</strong> amino-acids. 
       </p>
       
       <h3>Sequence variation</h3>
