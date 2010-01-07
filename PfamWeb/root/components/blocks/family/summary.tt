@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.50 2009-11-30 15:16:31 jt6 Exp $
+# $Id: summary.tt,v 1.51 2010-01-07 13:54:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -205,6 +205,7 @@ PROCESS components/links.tt; %]
         "siph", 
         "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
         { evalScripts: true,
+          method: 'get',
           onSuccess: function( response ) {
             $("siph").show();
           }
