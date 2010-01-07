@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.26 2009-10-07 13:38:32 jt6 Exp $
+# $Id: domains.tt,v 1.27 2010-01-07 13:54:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
@@ -85,6 +85,7 @@
         "dgph",
         "[% c.uri_for( '/domaingraphics', acc ) %]",
         {
+          method:      'get',
           evalScripts: true,
           onFailure:   function() {
             $("dgph").update( "Domain graphics loading failed." );

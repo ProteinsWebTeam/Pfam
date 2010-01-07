@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.25 2009-10-07 22:03:06 jt6 Exp $
+# $Id: phylo.tt,v 1.26 2010-01-07 13:54:20 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -134,7 +134,9 @@ treeUri = c.uri_for( "/family/tree" );
           // associated <img>
           var r = new Ajax.Request(
             '[% treeUri %]', 
-            { parameters: { acc:     '[% acc %]',
+            { 
+              method: 'get',
+              parameters: { acc:     '[% acc %]',
                             alnType: type },
               onComplete: function() {
                 $("treeSpinner").hide();
@@ -164,17 +166,17 @@ treeUri = c.uri_for( "/family/tree" );
       $("phyloForm").observe( "change", treeSubmitter );
 
       // fire the function on page load
-      Event.observe( window, 'load', treeSubmitter );
+      document.observe( "dom:loaded", treeSubmitter );
 
       // ]]>
     </script>
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc => acc } ) | html %]">seed</a>,
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc => acc } ) | html %]">full</a>,
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "ncbi", acc => acc } ) | html %]">NCBI</a> or
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "meta", acc => acc } ) | html %]">metagenomics</a>
+      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'seed', acc => acc } ) | html %]">seed</a>,
+      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'full', acc => acc } ) | html %]">full</a>,
+      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'ncbi', acc => acc } ) | html %]">NCBI</a> or
+      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'meta', acc => acc } ) | html %]">metagenomics</a>
       trees.
     </p>
 

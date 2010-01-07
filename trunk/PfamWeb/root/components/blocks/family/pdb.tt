@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.26 2009-10-07 13:41:10 jt6 Exp $
+# $Id: pdb.tt,v 1.27 2010-01-07 13:54:20 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -41,7 +41,9 @@ RETURN UNLESS summaryData.numStructures;
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Request( 
         "[% c.uri_for( '/family/structures/mapping' ) %]",
-        { parameters: { acc:"[% acc %]" },
+        { 
+          method: 'get',
+          parameters: { acc:"[% acc %]" },
           onSuccess: function ( oResponse ) {
 
             $("familyStructureTabHolder").update( oResponse.responseText );

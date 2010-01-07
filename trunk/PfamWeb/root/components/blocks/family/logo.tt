@@ -5,7 +5,7 @@
 #
 # block showing the HMM logo for this family.
 #
-# $Id: logo.tt,v 1.5 2009-10-07 14:08:22 jt6 Exp $
+# $Id: logo.tt,v 1.6 2010-01-07 13:54:20 jt6 Exp $
 %]
 
 <!-- start logo block -->
@@ -53,17 +53,20 @@
 
   <script type="text/javascript">
     // <![CDATA[
-    var r = new Ajax.Request( "[% c.uri_for( '/family/logo' ) %]",
-                               {
-                                 parameters: { acc: "[% acc %]" },
-                                 evalScripts: true,
-                                 onSuccess: function( oResponse ) {
-                                   $("logo").update( oResponse.responseText );
-                                 },
-                                 on204: function( oResponse ) {
-                                   $("logo").update( "We could not find a logo for this entry." );
-                                 }
-                               } );
+    var r = new Ajax.Request(
+      "[% c.uri_for( '/family/logo' ) %]",
+      {
+        method: 'get',
+        parameters: { acc: "[% acc %]" },
+        evalScripts: true,
+        onSuccess: function( oResponse ) {
+          $("logo").update( oResponse.responseText );
+        },
+        on204: function( oResponse ) {
+          $("logo").update( "We could not find a logo for this entry." );
+        }
+      }
+    );
     // ]]> 
   </script>
 
