@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.30 2009-11-16 16:05:42 jt6 Exp $
+# $Id: links.tt,v 1.31 2010-01-08 11:11:37 jt6 Exp $
 
 USE String;
 
@@ -146,7 +146,7 @@ BLOCK buildLink;
     [%- CASE "CATH" -%]
 <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
     [%- CASE "CAZY" -%]
-<a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
+<a class="ext" href="http://www.cazy.org/fam/[% id %].html">[% id %]</a>
     [%- CASE "COGS" -%]
 <a class="ext" href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
     [%- CASE "FUNSHIFT" -%]
