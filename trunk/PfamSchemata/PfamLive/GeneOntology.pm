@@ -1,4 +1,4 @@
-package PfamLive::Interpro;
+package PfamLive::GeneOntology;
 
 use strict;
 use warnings;
@@ -6,26 +6,32 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("interpro");
+__PACKAGE__->table("gene_ontology");
 __PACKAGE__->add_columns(
   "auto_pfama",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
-  "interpro_id",
+  "go_id",
   {
     data_type => "TINYTEXT",
     default_value => undef,
     is_nullable => 0,
     size => 255,
   },
-  "abstract",
+  "term",
   {
     data_type => "LONGTEXT",
     default_value => undef,
     is_nullable => 0,
     size => 4294967295,
   },
+  "category",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 0,
+    size => 255,
+  },
 );
-__PACKAGE__->add_unique_constraint("UQ_interpro_1", ["auto_pfama"]);
 __PACKAGE__->belongs_to(
   "auto_pfama",
   "PfamLive::Pfama",
@@ -34,7 +40,13 @@ __PACKAGE__->belongs_to(
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lI3rC1SwrkXzLdm5LNyuDA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Jm6+n4C9o84GVj7Le/o5w
+
+__PACKAGE__->has_one( pfama =>  'PfamLive::Pfama',
+                      { 'foreign.auto_pfama'  => 'self.auto_pfama' },
+                                            { proxy => [ qw( auto_pfama 
+                                                             pfama_acc
+                                                             pfama_id ) ] } );
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

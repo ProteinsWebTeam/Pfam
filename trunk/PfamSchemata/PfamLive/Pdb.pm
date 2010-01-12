@@ -1,52 +1,84 @@
-  
-# $Id: Pdb.pm,v 1.2 2008-05-16 15:23:16 jt6 Exp $
-#
-# $Author: jt6 $
-
 package PfamLive::Pdb;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
-__PACKAGE__->table( "pdb" );
-__PACKAGE__->add_columns( qw/auto_pdb pdb_id header title date resolution
-							 experiment_short experiment_long pubmed_id/ );
-__PACKAGE__->set_primary_key( "auto_pdb" );
+__PACKAGE__->load_components("Core");
+__PACKAGE__->table("pdb");
+__PACKAGE__->add_columns(
+  "pdb_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
+  "keywords",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "title",
+  {
+    data_type => "MEDIUMTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
+  "date",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "resolution",
+  {
+    data_type => "DECIMAL",
+    default_value => "0.00",
+    is_nullable => 1,
+    size => 5,
+  },
+  "method",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "pubmed_id",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+);
+__PACKAGE__->set_primary_key("pdb_id");
+__PACKAGE__->has_many(
+  "pdb_authors",
+  "PfamLive::PdbAuthor",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
+__PACKAGE__->has_many(
+  "pdb_images",
+  "PfamLive::PdbImage",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
+__PACKAGE__->has_many(
+  "pdb_pfama_regs",
+  "PfamLive::PdbPfamaReg",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
+__PACKAGE__->has_many(
+  "pdb_pfamb_regs",
+  "PfamLive::PdbPfambReg",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
+__PACKAGE__->has_many(
+  "pdb_residue_datas",
+  "PfamLive::PdbResidueData",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
 
-__PACKAGE__->has_many( "pdbAuthor" => "PfamLive::PdbAuthor",
-		       { "foreign.auto_pdb" => "self.auto_pdb" });
 
-__PACKAGE__->has_many( "pdbResidueData" => "PfamLive::Pdb_residue",
-		       { "foreign.auto_pdb" => "self.auto_pdb" });
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-18 18:25:15
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zuoHssnXw1lIyUTrfSBb/g
 
-__PACKAGE__->might_have( "image"  => "PfamLive::PdbImage",
-			 { "foreign.auto_pdb" => "self.auto_pdb" },
-			 { proxy => [ qw/pdb_image pdb_image_sml/ ] } );
 
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
-
-

@@ -1,60 +1,119 @@
-
-# $Id: Clans.pm,v 1.5 2008-05-16 15:23:16 jt6 Exp $
-#
-# $Author: jt6 $
-
 package PfamLive::Clans;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/); #Do we want to add DB
-__PACKAGE__->table("clans"); # This is how we define the table
-__PACKAGE__->add_columns( qw/auto_clan clan_acc clan_id clan_description clan_author clan_comment/); # The columns that we want to have access to
-__PACKAGE__->set_primary_key( "auto_clan" );
+__PACKAGE__->load_components("Core");
+__PACKAGE__->table("clans");
+__PACKAGE__->add_columns(
+  "auto_clan",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 4 },
+  "clan_acc",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 6 },
+  "clan_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 40 },
+  "previous_id",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 75,
+  },
+  "clan_description",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 100,
+  },
+  "clan_author",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "deposited_by",
+  {
+    data_type => "VARCHAR",
+    default_value => "anon",
+    is_nullable => 0,
+    size => 100,
+  },
+  "clan_comment",
+  {
+    data_type => "LONGTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
+  "updated",
+  {
+    data_type => "TIMESTAMP",
+    default_value => "CURRENT_TIMESTAMP",
+    is_nullable => 0,
+    size => 14,
+  },
+  "created",
+  {
+    data_type => "DATETIME",
+    default_value => undef,
+    is_nullable => 1,
+    size => 19,
+  },
+  "version",
+  {
+    data_type => "SMALLINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 5,
+  },
+  "number_structures",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 8 },
+  "number_archs",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 8 },
+  "number_species",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 8 },
+  "number_sequences",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 8 },
+  "competed",
+  { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 1 },
+);
+__PACKAGE__->set_primary_key("auto_clan");
+__PACKAGE__->add_unique_constraint("clan_id", ["clan_id"]);
+__PACKAGE__->add_unique_constraint("clan_acc", ["clan_acc"]);
+__PACKAGE__->has_many(
+  "clan_alignments_and_relationships",
+  "PfamLive::ClanAlignmentsAndRelationships",
+  { "foreign.auto_clan" => "self.auto_clan" },
+);
+__PACKAGE__->has_many(
+  "clan_architectures",
+  "PfamLive::ClanArchitecture",
+  { "foreign.auto_clan" => "self.auto_clan" },
+);
+__PACKAGE__->has_many(
+  "clan_database_links",
+  "PfamLive::ClanDatabaseLinks",
+  { "foreign.auto_clan" => "self.auto_clan" },
+);
+__PACKAGE__->has_many(
+  "clan_lit_refs",
+  "PfamLive::ClanLitRefs",
+  { "foreign.auto_clan" => "self.auto_clan" },
+);
+__PACKAGE__->has_many(
+  "clan_memberships",
+  "PfamLive::ClanMembership",
+  { "foreign.auto_clan" => "self.auto_clan" },
+);
 
-#Set up relationships
 
-#1 to many relationship
-__PACKAGE__->has_many( "clan_membership" => "PfamLive::Clan_membership",
-		       {"foreign.auto_clan"  => "self.auto_clan"});
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-07-24 17:53:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jZbO4jxrO72Hm7SP+C3Mcw
 
-__PACKAGE__->has_many( "clan_lit_refs" => "PfamLive::Clan_lit_refs",
-		       {"foreign.auto_clan"  => "self.auto_clan"});
 
-__PACKAGE__->has_many( "clan_database_links" => "PfamLive::Clan_database_links",
-		       {"foreign.auto_clan"  => "self.auto_clan"});
-
-__PACKAGE__->has_many( "clan_versions" => "PfamLive::Clan_versions",
-                      {"foreign.auto_clan" => "self.auto_clan"});
-
-__PACKAGE__->might_have( "clan_locks" => "Pfamlive::Clan_locks",
-                      {"foreign.auto_clan"  => "self.auto_clan"},
-                      {proxy => [qw/locked user type updated/],
-                      cascade_delete => 0});
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
-

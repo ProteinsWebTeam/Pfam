@@ -1,125 +1,174 @@
-
-# $Id: Pfamseq.pm,v 1.5 2008-05-16 15:23:16 jt6 Exp $
-#
-# $Author: jt6 $
 package PfamLive::Pfamseq;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components("Core");
+__PACKAGE__->table("pfamseq");
+__PACKAGE__->add_columns(
+  "auto_pfamseq",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  "pfamseq_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 12 },
+  "pfamseq_acc",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 6 },
+  "seq_version",
+  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
+  "crc64",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 16 },
+  "md5",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 32 },
+  "description",
+  { data_type => "TEXT", default_value => "", is_nullable => 0, size => 65535 },
+  "evidence",
+  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
+  "length",
+  { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
+  "species",
+  { data_type => "TEXT", default_value => "", is_nullable => 0, size => 65535 },
+  "taxonomy",
+  {
+    data_type => "MEDIUMTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
+  "is_fragment",
+  { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 1 },
+  "sequence",
+  { data_type => "BLOB", default_value => "", is_nullable => 0, size => 65535 },
+  "updated",
+  {
+    data_type => "TIMESTAMP",
+    default_value => "CURRENT_TIMESTAMP",
+    is_nullable => 0,
+    size => 14,
+  },
+  "created",
+  {
+    data_type => "DATETIME",
+    default_value => undef,
+    is_nullable => 1,
+    size => 19,
+  },
+  "ncbi_taxid",
+  { data_type => "INT", default_value => 0, is_nullable => 1, size => 10 },
+  "genome_seq",
+  { data_type => "TINYINT", default_value => 0, is_nullable => 1, size => 1 },
+  "auto_architecture",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "treefam_acc",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 8 },
+);
+__PACKAGE__->set_primary_key("auto_pfamseq");
+__PACKAGE__->add_unique_constraint("pfamseq_acc", ["pfamseq_acc"]);
+__PACKAGE__->has_many(
+  "context_pfam_regions",
+  "PfamLive::ContextPfamRegions",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "edits",
+  "PfamLive::Edits",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "genome_pfamseqs",
+  "PfamLive::GenomePfamseq",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "ncbi_maps",
+  "PfamLive::NcbiMap",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "nested_locations",
+  "PfamLive::NestedLocations",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "other_regs",
+  "PfamLive::OtherReg",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pdb_pfama_regs",
+  "PfamLive::PdbPfamaReg",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pdb_pfamb_regs",
+  "PfamLive::PdbPfambReg",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pdb_residue_datas",
+  "PfamLive::PdbResidueData",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfama_reg_full_insignificants",
+  "PfamLive::PfamaRegFullInsignificant",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfama_reg_full_significants",
+  "PfamLive::PfamaRegFullSignificant",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfama_reg_seeds",
+  "PfamLive::PfamaRegSeed",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfamb_regs",
+  "PfamLive::PfambReg",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfam_annseqs",
+  "PfamLive::PfamAnnseq",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->belongs_to(
+  "ncbi_taxid",
+  "PfamLive::NcbiTaxonomy",
+  { ncbi_taxid => "ncbi_taxid" },
+);
+__PACKAGE__->has_many(
+  "pfamseq_disulphides",
+  "PfamLive::PfamseqDisulphide",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "pfamseq_ncbis",
+  "PfamLive::PfamseqNcbi",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "proteome_regions",
+  "PfamLive::ProteomeRegions",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
+__PACKAGE__->has_many(
+  "secondary_pfamseq_accs",
+  "PfamLive::SecondaryPfamseqAcc",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
 
-#Set up the table
-__PACKAGE__->table( "pfamseq" );
 
-#Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment current non_cons sequence updated created seq_version ncbi_code/);
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-08-11 15:25:08
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UWrKamczCwlDaIyS7X17Gg
 
-#Set the the keys
-__PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id" );
+__PACKAGE__->has_many(
+  "pfamseq_markups",
+  "PfamLive::PfamseqMarkup",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
+);
 
-
-
-#Now Set up the relationships
-
-#Tables that pfamseq joins onto: pfamA_reg_full, pfamA_reg_seed, pfamB_reg,  context_pfam_regions, architecture, genome_pfamseq,  genome_seqs, pfamseq_architecture, pfam_annseq, pfamseq_disulphide, pfamseq_markup, pfamseq_ncbi, secondary_pfamseq_acc, seq_info, smart_regions, msd_data, other_reg
-
-
-#Do all of the annotated regions
-
-##pfamA_reg_full
-__PACKAGE__->has_many("pfamA_reg_full",  => "PfamLive::PfamA_reg_full",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-		      
-__PACKAGE__->has_many("pfamA_reg_full_significant",  => "PfamLive::PfamA_reg_full_significant",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-##pfamA_reg_seed
-__PACKAGE__->has_many("pfamA_reg_seed",  => "PfamLive::PfamA_reg_seed",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
-##pfamB_reg_seed
-__PACKAGE__->has_many("pfamB_reg",  => "PfamLive::PfamB_reg",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
-##smart_regions
-__PACKAGE__->has_many("smart_reg",  => "PfamLive::Smart_reg",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
-##context_pfam_regions
-__PACKAGE__->has_many("context",  => "PfamLive::Context_pfam_regions",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
-
-##other_reg
-__PACKAGE__->has_many("other_reg", => "PfamLive::Other_reg",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
-
-#Now Sequence features
-
-##pfamseq_disulphide
-__PACKAGE__->has_many("disulphide", => "PfamLive::Pfamseq_disulphide",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
-
-##pfamseq_markup
-__PACKAGE__->has_many("markup", => "PfamLive::Pfamseq_markup",
-		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
-
-#Now views
-
-##architecture
-__PACKAGE__->has_one("arch_eg", => "PfamLive::Architecture",
-		     {"foreign.type_example" => "self.auto_pfamseq"},
-		     {proxy => [qw/architecture type_example no_seqs/]});
-
-#pfam_annseq
-__PACKAGE__->has_one("annseq" => "PfamLive::Pfam_annseq",
-		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-		     {proxy => [qw/annseq_storable/]});
-#Other
-#msd_data
-__PACKAGE__->might_have( "pdb_residue" => "PfamLive::Pdb_residue",
-						 { "foreign.auto_pfamseq" => "self.auto_pfamseq" } );
-
-#Genome Stuff - todo
-
-__PACKAGE__->might_have( "genome_pfamseq" => "PfamLive::genome_pfamseq",
-			 { "foreign.auto_pfamseq" => "self.auto_pfamseq" });
-
-#Things that should be removed once some rationale is applied - We should then just be able to add the column name, but the call should be the same;
-##pfamseq_ncbi
-
-
-##pfamseq_architecture
-__PACKAGE__->has_one("arch" =>  "PfamLive::Pfamseq_architecture",
-		     {"foreign.type_example" => "self.auto_pfamseq"},
-		     { proxy => [qw/architecture/]});
-##Storable
-#'__PACKAGE__->has_one("pfamseqStorable" =>  "PfamLive::Pfam_annseq",
-#		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-#		     { proxy => [qw/annseq_storable/]});
-
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
