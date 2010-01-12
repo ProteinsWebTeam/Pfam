@@ -1,4 +1,4 @@
-package PfamLive::Interpro;
+package PfamLive::PfamaDatabaseLinks;
 
 use strict;
 use warnings;
@@ -6,26 +6,39 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("interpro");
+__PACKAGE__->table("pfamA_database_links");
 __PACKAGE__->add_columns(
   "auto_pfama",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
-  "interpro_id",
+  "db_id",
   {
     data_type => "TINYTEXT",
     default_value => undef,
     is_nullable => 0,
     size => 255,
   },
-  "abstract",
+  "comment",
   {
-    data_type => "LONGTEXT",
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "db_link",
+  {
+    data_type => "TINYTEXT",
     default_value => undef,
     is_nullable => 0,
-    size => 4294967295,
+    size => 255,
+  },
+  "other_params",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
   },
 );
-__PACKAGE__->add_unique_constraint("UQ_interpro_1", ["auto_pfama"]);
 __PACKAGE__->belongs_to(
   "auto_pfama",
   "PfamLive::Pfama",
@@ -34,7 +47,8 @@ __PACKAGE__->belongs_to(
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lI3rC1SwrkXzLdm5LNyuDA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ht1wS5jfVETJXr1LACja2g
+
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

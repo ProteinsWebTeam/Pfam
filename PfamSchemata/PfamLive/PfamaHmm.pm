@@ -1,4 +1,4 @@
-package PfamLive::Interpro;
+package PfamLive::PfamaHmm;
 
 use strict;
 use warnings;
@@ -6,26 +6,25 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("interpro");
+__PACKAGE__->table("pfamA_HMM");
 __PACKAGE__->add_columns(
   "auto_pfama",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
-  "interpro_id",
+  "hmm",
   {
-    data_type => "TINYTEXT",
+    data_type => "MEDIUMBLOB",
     default_value => undef,
-    is_nullable => 0,
-    size => 255,
+    is_nullable => 1,
+    size => 16777215,
   },
-  "abstract",
+  "logo",
   {
-    data_type => "LONGTEXT",
+    data_type => "MEDIUMBLOB",
     default_value => undef,
-    is_nullable => 0,
-    size => 4294967295,
+    is_nullable => 1,
+    size => 16777215,
   },
 );
-__PACKAGE__->add_unique_constraint("UQ_interpro_1", ["auto_pfama"]);
 __PACKAGE__->belongs_to(
   "auto_pfama",
   "PfamLive::Pfama",
@@ -34,7 +33,8 @@ __PACKAGE__->belongs_to(
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lI3rC1SwrkXzLdm5LNyuDA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZjiKVrRdqOcEOe1EVE9Krg
+__PACKAGE__->set_primary_key("auto_pfama");
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
