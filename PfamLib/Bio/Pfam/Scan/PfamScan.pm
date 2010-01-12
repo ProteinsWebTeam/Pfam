@@ -22,7 +22,7 @@ package Bio::Pfam::Scan::PfamScan;
 
 =head1 DESCRIPTION
 
-$Id: PfamScan.pm,v 1.3 2009-12-15 14:36:12 jt6 Exp $
+$Id: PfamScan.pm,v 1.4 2010-01-12 09:41:42 jm14 Exp $
 
 =cut
 

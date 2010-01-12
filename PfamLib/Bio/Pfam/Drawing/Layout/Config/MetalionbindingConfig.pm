@@ -1,10 +1,10 @@
 # Bio::Pfam::Drawing::Layout::Config::MetalionbindingConfig
 #
 # Author:        rdf
-# Maintainer:    $Id: MetalionbindingConfig.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: MetalionbindingConfig.pm,v 1.2 2010-01-12 09:41:42 jm14 Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Aug 10, 2009
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2010-01-12 09:41:42 $
 =head1 NAME
 
 Template - a short description of the class
@@ -17,7 +17,7 @@ package Bio::Pfam::Drawing::Layout::Config::MetalionbindingConfig;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: MetalionbindingConfig.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: MetalionbindingConfig.pm,v 1.2 2010-01-12 09:41:42 jm14 Exp $
 
 =head1 COPYRIGHT
 

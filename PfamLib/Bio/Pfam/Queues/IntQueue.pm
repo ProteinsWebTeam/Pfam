@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2009-10-08 12:27:28 $
-# Id:            $Id: IntQueue.pm,v 1.7 2009-10-08 12:27:28 jt6 Exp $
+# Last Modified: $Date: 2010-01-12 09:41:42 $
+# Id:            $Id: IntQueue.pm,v 1.8 2010-01-12 09:41:42 jm14 Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
