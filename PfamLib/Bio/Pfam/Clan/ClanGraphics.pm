@@ -5,11 +5,10 @@
 package Bio::Pfam::Clan::ClanGraphics;
 
 use strict;
-use warnings;
-
 use GraphViz;
 #use GraphViz::Small;
 use Getopt::Std;
+use Data::Dump qw(dump);
 #use Bio::Pfam;
 #use PDL::LiteF;
 use Log::Log4perl qw(get_logger :levels);
@@ -52,7 +51,7 @@ sub new
     }
     
     return 0 unless (@length); # Check that there is something in $length
-    
+    $logger->debug("LENGTH:".@length); 
     $self->{'evalues'} = [@length]; # Save the evalues before rescaling to 0-1
     
     my $max = $length[0][0]; # This should always exist
@@ -78,12 +77,16 @@ sub drawGraph
     my @names = @{$self->{'names'}};
     
     my %length;
-    @length{@names} = @{$self->{'length'}};
-    map {my @ar = @{$length{$_}}; $length{$_} = {}; @{$length{$_}}{@names} = @ar } @names;
     my %evalues;
-    @evalues{@names} = @{$self->{'evalues'}};
-    map {my @ar = @{$evalues{$_}}; $evalues{$_} = {}; @{$evalues{$_}}{@names} = @ar } @names;
-
+    $logger->debug(dump(@names)); 
+    $logger->debug("length:".dump($self->{'length'}));
+    if($self->{'length'}){
+      @length{@names} = @{$self->{'length'}};
+      $logger->debug("Ben's wiredness :".dump(%length));
+      map {my @ar = @{$length{$_}} if($length{$_}); $logger->debug($_.":".@ar); $length{$_} = {}; @{$length{$_}}{@names} = @ar } @names;
+      @evalues{@names} = @{$self->{'evalues'}};
+      map {my @ar = @{$evalues{$_}} if($evalues{$_}); $evalues{$_} = {}; @{$evalues{$_}}{@names} = @ar } @names;
+    }
     my %accs;
     @accs{@names} = @{$self->{'accs'}};
     
@@ -237,22 +240,20 @@ sub drawGraph
 
 =head1 COPYRIGHT
 
-Copyright (c) 2007: Genome Research Ltd.
+ Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+ This is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free Software
+ Foundation; either version 2 of the License, or (at your option) any later
+ version.
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ details.
 
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License along with
+ this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
