@@ -1,10 +1,10 @@
 # LayoutManager.pm
 #
 # Author:        rdf
-# Maintainer:    $Id: LayoutManager.pm,v 1.10 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.10 $
+# Maintainer:    $Id: LayoutManager.pm,v 1.11 2010-01-12 09:41:41 jm14 Exp $
+# Version:       $Revision: 1.11 $
 # Created:       Jul 16, 2009
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2010-01-12 09:41:41 $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ This is a new version of the LayoutManager. It builds the description of a
 Pfam-style domain graphic that is suitable for use with the new javascript
 domain graphics library.
 
-$Id: LayoutManager.pm,v 1.10 2009-10-08 12:27:28 jt6 Exp $
+$Id: LayoutManager.pm,v 1.11 2010-01-12 09:41:41 jm14 Exp $
 
 =cut
 

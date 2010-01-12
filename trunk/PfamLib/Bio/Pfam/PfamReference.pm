@@ -34,7 +34,6 @@ package Bio::Pfam::PfamReference;
 
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
-use warnings;
 use LWP;
 use Carp qw(cluck);
 use Text::Wrap;

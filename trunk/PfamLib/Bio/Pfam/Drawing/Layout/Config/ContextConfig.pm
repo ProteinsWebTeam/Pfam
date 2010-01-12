@@ -1,5 +1,5 @@
 
-# $Author: jt6 $
+# $Author: jm14 $
 
 
 package Bio::Pfam::Drawing::Layout::Config::ContextConfig;
