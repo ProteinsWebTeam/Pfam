@@ -1,10 +1,10 @@
-# HMM.pm
+ # HMM.pm
 #
 # Author:        finnr
-# Maintainer:    $Id: HMMIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: HMMIO.pm,v 1.2 2010-01-12 16:42:24 rdf Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Nov 24, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2010-01-12 16:42:24 $
 =head1 NAME
 
 Template - a short description of the class
@@ -17,7 +17,7 @@ package Bio::Pfam::HMM::HMMIO;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: HMMIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: HMMIO.pm,v 1.2 2010-01-12 16:42:24 rdf Exp $
 
 =head1 COPYRIGHT
 
@@ -251,8 +251,8 @@ sub writeHMM {
     open($hmm, ">$hmmFile") || confess("Could not open $hmmFile:[$!]");
   }
 
-  #print  $hmm $hmmObj->version."\n";
-  print  $hmm "HMMER3/b [3.0b2 | June 2009]\n";
+  print  $hmm $hmmObj->version."\n";
+  #print  $hmm "HMMER3/b [3.0b3 | November 2009]\n";
   printf $hmm ("%-5s %s\n", "NAME", $hmmObj->name);
   printf $hmm ("%-5s %s\n", "ACC",  $hmmObj->accession) if($hmmObj->accession);
   printf $hmm ("%-5s %s\n", "DESC", $hmmObj->description) if($hmmObj->description);
