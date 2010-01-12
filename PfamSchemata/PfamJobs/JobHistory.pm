@@ -1,13 +1,3 @@
-#
-# JobHistory
-# rdf 20070405 WTSI
-#
-# Model for the job_history table.
-#
-# $Id: JobHistory.pm,v 1.3 2008-05-16 15:23:16 jt6 Exp $
-#
-# $Author: jt6 $
-
 package PfamJobs::JobHistory;
 
 use strict;
@@ -15,58 +5,76 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw( Core ) );
+__PACKAGE__->load_components("Core");
+__PACKAGE__->table("job_history");
+__PACKAGE__->add_columns(
+  "id",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 0, size => 20 },
+  "job_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 40 },
+  "status",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
+  "lsf_id",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
+  "entity_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 20 },
+  "entity_acc",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 7 },
+  "entity_size",
+  {
+    data_type => "MEDIUMINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
+  "job_type",
+  { data_type => "ENUM", default_value => undef, is_nullable => 1, size => 6 },
+  "options",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+  "opened",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "closed",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "started",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "user_id",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+);
+__PACKAGE__->set_primary_key("id");
+__PACKAGE__->has_many(
+  "job_streams",
+  "PfamJobs::JobStream",
+  { "foreign.id" => "self.id" },
+);
 
-# set up the table
-__PACKAGE__->table( 'job_history' );
 
-# get the columns that we want to keep
-__PACKAGE__->add_columns( qw( id
-                              job_id
-                              status
-                              lsf_id
-                              family_id
-                              family_acc
-                              family_size
-                              job_type
-                              options
-                              opened
-                              closed
-                              started
-                              user_id )
-                        );
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-07-22 11:06:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N7z1gLorhA6OQScdkqokAA
 
-# set up the primary keys/contraints
-__PACKAGE__->set_primary_key( "id" );
-
-# relationships
-
-__PACKAGE__->has_one( job_stream => 'PfamJobs::JobStream',
-                      { 'foreign.id' => 'self.id' },
-                      { proxy            => [ qw( stdin
-                                                  stdout
-                                                  stderr ) ] }
-                    );
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
