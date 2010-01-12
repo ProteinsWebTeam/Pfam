@@ -1,10 +1,10 @@
  # HMM.pm
 #
 # Author:        finnr
-# Maintainer:    $Id: HMMIO.pm,v 1.2 2010-01-12 16:42:24 rdf Exp $
-# Version:       $Revision: 1.2 $
+# Maintainer:    $Id: HMMIO.pm,v 1.3 2010-01-12 17:00:26 jm14 Exp $
+# Version:       $Revision: 1.3 $
 # Created:       Nov 24, 2008
-# Last Modified: $Date: 2010-01-12 16:42:24 $
+# Last Modified: $Date: 2010-01-12 17:00:26 $
 =head1 NAME
 
 Template - a short description of the class
@@ -17,7 +17,7 @@ package Bio::Pfam::HMM::HMMIO;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: HMMIO.pm,v 1.2 2010-01-12 16:42:24 rdf Exp $
+$Id: HMMIO.pm,v 1.3 2010-01-12 17:00:26 jm14 Exp $
 
 =head1 COPYRIGHT
 
@@ -150,15 +150,6 @@ sub readHMM {
 	$objHash->{viterbiStats} = { mu => $viterbi_mu, lambda => $viterbi_lambda };
     }elsif( my ($forward_tau, $forward_lambda ) = $_ =~ /^STATS LOCAL FORWARD\s+(\S+)\s+(0\.\d+)/){
 	$objHash->{forwardStats} = {tau => $forward_tau, lambda => $forward_lambda};
-    }elsif( my ( $lambda ) = $_ =~ /^STATS LOCAL\s+VLAMBDA (0\.\d+)/){
-        $objHash->{viterbiStats}->{lambda} = $lambda;
-	$objHash->{msvStats}->{lambda} =  $lambda;
-	$objHash->{forwardStats}->{lambda} = $lambda;
-    }elsif( my ( $mu ) = $_ =~ /^STATS LOCAL\s+VMU (\S+)/){
-	$objHash->{msvStats}->{mu} = $mu;
-	$objHash->{viterbiStats}->{mu} = $mu;
-    }elsif( my ( $tau ) = $_ =~ /^STATS LOCAL\s+FTAU (\S+)/){
-	$objHash->{forwardStats}->{tau} = $tau; 
     }elsif( $_ =~ /^HMM\s+A/){
       last;
     }else{
