@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.10 2009-12-07 22:38:37 jt6 Exp $
+// $Id: domain_graphics.js,v 1.11 2010-01-13 13:47:39 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -638,10 +638,18 @@ var PfamGraphic = Class.create( {
    * (<code>[ width, height ]</code>) or as values in an object
    * (<code>{ width: 100, height: 100 }</code>). If called before the sequence
    * object has been supplied, this method returns <code>null</code>.
+   * <br />
+   * <strong>Note</strong> that these value are calculated when a new sequence
+   * object is added (e.g. via <code>setSequence()</code>). Because their values
+   * are affected by the image parameters, you should adjust the image 
+   * parameters, if necessary, <em>before</em> retrieving the dimensions.
    *
    * @returns {Object} array with two elements; first is width, second is 
    *   height
    */
+  // TODO need to flag the image params as clean/dirty, so that we can 
+  // recalculate the dimensions/mid-point of the graphic when requested,
+  // rather than only when a new sequence is given
   getDimensions: function() {
     if ( this._canvasWidth  === undefined ||
          this._canvasHeight === undefined ) { 
@@ -660,6 +668,24 @@ var PfamGraphic = Class.create( {
     dim.height = this._canvasHeight;
 
     return dim;
+  },
+
+  //----------------------------------------------------------------------------
+  /**
+   * Returns the mid-point of the sequence line, i.e. the Y-coordinate of the 
+   * middle of the domain graphic.
+   * <br />
+   * <strong>Note</strong> that this value is calculated when a new sequence
+   * object is added (e.g. via <code>setSequence()</code>). Because its value
+   * is affected by the image parameters, you should adjust the image 
+   * parameters, if necessary, <em>before</em> retrieving this value.
+   */
+  getBaseline: function() {
+    if ( this._baseline === undefined ) {
+      return null;
+    }
+    
+    return this._baseline;
   },
 
   //----------------------------------------------------------------------------
