@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.54 2009-12-04 22:58:31 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.55 2010-01-13 14:48:59 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb;
 
 This is the main class for the Pfam website catalyst application.
 
-$Id: PfamWeb.pm,v 1.54 2009-12-04 22:58:31 jt6 Exp $
+$Id: PfamWeb.pm,v 1.55 2010-01-13 14:48:59 jt6 Exp $
 
 =cut
 
@@ -28,7 +28,7 @@ use Config::General;
 
 use base 'PfamBase';
 
-our $VERSION = '1.6';
+our $VERSION = '1.7';
 
 #-------------------------------------------------------------------------------
 
@@ -60,7 +60,27 @@ __PACKAGE__->setup( qw(
                         Session
                         Session::Store::FastMmap
                         Session::State::Cookie
+                        PageCache
                       ) );
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 is_cache_enabled
+
+Returns true if the configuration parameter C<enable_cache> is defined and is
+set to a true value. Used by the PageCache plugin to decide if it should step
+in to cache a page/serve a page from cache.
+
+If C<enable_cache> is true, page caching will be enabled.
+
+=cut
+
+sub is_cache_enabled {
+  my ( $c ) = @_;
+  return ( exists $c->config->{enable_cache} and $c->config->{enable_cache} );
+}
 
 #-------------------------------------------------------------------------------
 
