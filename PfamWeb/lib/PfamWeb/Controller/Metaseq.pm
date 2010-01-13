@@ -2,7 +2,7 @@
 # Metaseq.pm
 # jt6 20071008 WTSI
 #
-# $Id: Metaseq.pm,v 1.6 2009-12-14 16:33:23 jt6 Exp $
+# $Id: Metaseq.pm,v 1.7 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Metaseq;
 
 Generates a page set for a metagenomics sequence.
 
-$Id: Metaseq.pm,v 1.6 2009-12-14 16:33:23 jt6 Exp $
+$Id: Metaseq.pm,v 1.7 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -49,6 +49,8 @@ Get the data from the database for the metaseq entry.
 
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
+
+  $c->cache_page( 604800 );
 
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
@@ -252,19 +254,8 @@ sub generate_pfam_graphic : Private {
 
   # encode and stash the sequences as a JSON string
   $c->stash->{layout} = $json->encode( $seqs );
-}
 
-#-------------------------------------------------------------------------------
-
-=head2 generateKey : Private
-
-Generates a data structure representing the key to the domain image, which 
-can be formatted sensibly by the view.
-
-=cut
-
-sub generateKey : Private {
-  my( $this, $c, $lm ) = @_;
+  #----------------------------------------
   
   # retrieve a hash of BioPerl objects indexed on sequence ID
   my %hash = $lm->seqHash;

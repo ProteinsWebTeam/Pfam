@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.11 2009-10-13 08:51:49 jt6 Exp $
+# $Id: Download.pm,v 1.12 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.11 2009-10-13 08:51:49 jt6 Exp $
+$Id: Download.pm,v 1.12 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -26,6 +26,8 @@ use warnings;
 
 use Compress::Zlib;
 use Text::Wrap;
+
+use Bio::Pfam::AlignPfam;
 
 use base 'PfamWeb::Controller::Family::Alignment';
 

@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.53 2009-11-16 16:05:30 jt6 Exp $
+# $Id: Family.pm,v 1.54 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.53 2009-11-16 16:05:30 jt6 Exp $
+$Id: Family.pm,v 1.54 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -66,6 +66,8 @@ either an ID or accession
 
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
+
+  $c->cache_page( 604800 );
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on

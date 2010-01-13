@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.33 2009-12-07 22:27:44 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.34 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated.
 
-$Id: DomainGraphics.pm,v 1.33 2009-12-07 22:27:44 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.34 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -59,6 +59,8 @@ method to retrieve the sequence or architecture data.
 
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
+
+  $c->cache_page( 604800 );
 
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||

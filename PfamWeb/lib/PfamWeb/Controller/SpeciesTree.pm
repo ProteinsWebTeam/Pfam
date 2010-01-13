@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.25 2009-12-07 22:26:43 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.26 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.25 2009-12-07 22:26:43 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.26 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -47,6 +47,8 @@ sub begin : Private {
   # do we have an accession ?
   return unless $c->req->param('acc');
   
+  $c->cache_page( 604800 );
+
   # yes; what type of accession is it ?
   if ( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
 

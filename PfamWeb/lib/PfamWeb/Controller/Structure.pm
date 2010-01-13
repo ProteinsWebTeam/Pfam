@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.21 2009-11-23 13:05:49 jt6 Exp $
+# $Id: Structure.pm,v 1.22 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.21 2009-11-23 13:05:49 jt6 Exp $
+$Id: Structure.pm,v 1.22 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -69,6 +69,8 @@ for that entry. Accepts various formats of URL:
 
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
+
+  $c->cache_page( 604800 );
 
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||  
