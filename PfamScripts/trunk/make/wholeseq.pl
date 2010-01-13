@@ -75,6 +75,7 @@ if($mcount !=1) {
 my %name;
 open(ALI, "$ali_file")||die "Can't open $ali_file\n";
 while(<ALI>){
+    next if(/^\/\//);
     if (/^(\S+)\//){
 	    $name{$1}=1;  # Assures seq is only used once!
     }
