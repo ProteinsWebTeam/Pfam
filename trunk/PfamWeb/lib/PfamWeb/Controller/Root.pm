@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.29 2009-10-07 12:09:06 jt6 Exp $
+# $Id: Root.pm,v 1.30 2010-01-13 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.29 2009-10-07 12:09:06 jt6 Exp $
+$Id: Root.pm,v 1.30 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
@@ -65,6 +65,27 @@ sub auto : Private {
   # call the "auto" method on the super-class, which will do the work of
   # picking the correct tab for us
   return $c->SUPER::auto( @_ );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 index : Private
+
+Generates the main site index page. This overrides the version from
+PfamBase::Root, so that we can use cache_page for PfamWeb.
+
+=cut
+
+sub index : Private {
+  my( $this, $c ) = @_;
+
+  # # set the page to be cached for one week
+  $c->cache_page( 604800 );
+
+  # tell the navbar where we are
+  $c->stash->{nav} = 'home';
+
+  $c->log->debug('PfamWeb::index: generating site index') if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
