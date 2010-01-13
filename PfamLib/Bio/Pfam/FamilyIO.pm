@@ -1,10 +1,10 @@
 # FamilyIO.pm
 #
 # Author:        rdf
-# Maintainer:    $Id: FamilyIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: FamilyIO.pm,v 1.2 2010-01-13 11:23:28 jm14 Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Nov 29, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2010-01-13 11:23:28 $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package Bio::Pfam::FamilyIO;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: FamilyIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: FamilyIO.pm,v 1.2 2010-01-13 11:23:28 jm14 Exp $
 
 =head1 COPYRIGHT
 
@@ -393,7 +393,7 @@ sub parseDESC {
         elsif ( $file[$i] =~ /^DR   (LOAD); (\S+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (CAZY); ((GH_|GT_|CBM_|PL_|CE_)\d+);$/ )
+        elsif ( $file[$i] =~ /^DR   (CAZY); ((GH|GT|CBM|PL|CE)\d+);$/ )
         {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
