@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.3 2008-12-01 10:16:39 jt6 Exp $
+# $Id: Help.pm,v 1.4 2010-01-19 09:58:19 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Displays the help pages for the PfamWeb site.
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.3 2008-12-01 10:16:39 jt6 Exp $
+$Id: Help.pm,v 1.4 2010-01-19 09:58:19 jt6 Exp $
 
 =cut
 
@@ -43,6 +43,8 @@ summary icons to "disabled".
 
 sub begin : Private {
   my( $this, $c ) = @_;
+
+  $c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'help';
