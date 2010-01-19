@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.27 2010-01-07 13:54:20 jt6 Exp $
+# $Id: pdb.tt,v 1.28 2010-01-19 10:30:42 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -22,7 +22,7 @@ RETURN UNLESS summaryData.numStructures;
       use the mapping between <a class="ext" 
         href="http://www.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
       systems from the <a class="ext" 
-        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+        href="http://www.ebi.ac.uk/pdbe/">PDBe</a> group, to allow us to map
       Pfam domains onto UniProt sequences and three-dimensional protein 
       structures. The table below
       shows the structures on which the <strong>[% pfam.pfama_id %]</strong>
