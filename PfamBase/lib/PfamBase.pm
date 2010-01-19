@@ -2,7 +2,7 @@
 # PfamBase.pm
 # jt 20080304 WTSI
 #
-# $Id: PfamBase.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: PfamBase.pm,v 1.3 2010-01-19 09:57:49 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,14 @@ This is the base class for catalyst web applications in the Pfam group. It's
 intended to set up the common features of the various sites, with site-specific
 configuration being done in sub-classes, one for each site.
 
-$Id: PfamBase.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: PfamBase.pm,v 1.3 2010-01-19 09:57:49 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use local::lib '/opt/perl5';
 
 use Config::General;
 
@@ -35,7 +37,6 @@ use Config::General;
 use Catalyst qw/
                  ConfigLoader
                  Cache
-                 PageCache
                /;
 # PageCache must be last in the list
 
