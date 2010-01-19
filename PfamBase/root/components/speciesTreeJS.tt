@@ -6,7 +6,7 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.4 2009-12-07 22:48:10 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.5 2010-01-19 10:00:08 jt6 Exp $
 
 stUri = c.uri_for( "/speciestree" );
 %]
@@ -125,7 +125,9 @@ stUri = c.uri_for( "/speciestree" );
     /* [%# override the test for IE and the "loadTree" check, to force tree loading -%] */
     var r = new Ajax.Request(
       "[% stUri %]/interactive",
-      { parameters: { acc:      "[% acc %]",
+      {
+        method:     'get',
+        parameters: { acc:      "[% acc %]",
                       ie:       false,
                       loadTree: 1 },
         onSuccess:  stSuccess,
@@ -146,7 +148,9 @@ stUri = c.uri_for( "/speciestree" );
   document.observe( "dom:loaded", function() {
     var r = new Ajax.Request(
       stUri,
-      { parameters: { acc: "[% acc %]",
+      {
+        method:     'get',
+        parameters: { acc: "[% acc %]",
                       ie:  Prototype.Browser.IE },
         onSuccess:  stSuccess,
         onFailure:  stFailure
