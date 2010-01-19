@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.55 2010-01-13 14:48:59 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.56 2010-01-19 09:45:09 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb;
 
 This is the main class for the Pfam website catalyst application.
 
-$Id: PfamWeb.pm,v 1.55 2010-01-13 14:48:59 jt6 Exp $
+$Id: PfamWeb.pm,v 1.56 2010-01-19 09:45:09 jt6 Exp $
 
 =cut
 
@@ -57,11 +57,14 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 # catalyst plugins
 __PACKAGE__->setup( qw(
                         HTML::Widget
-                        Session
-                        Session::Store::FastMmap
-                        Session::State::Cookie
                         PageCache
                       ) );
+
+                        # the session plugins were used by the protein features
+                        # viewer, but, since it's disabled...
+                        # Session
+                        # Session::Store::FastMmap
+                        # Session::State::Cookie
 
 #-------------------------------------------------------------------------------
 
