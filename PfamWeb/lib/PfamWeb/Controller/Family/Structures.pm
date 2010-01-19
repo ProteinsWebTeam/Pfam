@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.18 2009-10-07 10:36:33 jt6 Exp $
+# $Id: Structures.pm,v 1.19 2010-01-19 09:46:06 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.18 2009-10-07 10:36:33 jt6 Exp $
+$Id: Structures.pm,v 1.19 2010-01-19 09:46:06 jt6 Exp $
 
 =cut
 
@@ -82,19 +82,19 @@ sub structures : Path {
                                       { prefetch => 'pdb_image' } )
                             ->first;
 
-    # $c->log->debug( 'Family::Structure::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
+    # $c->log->debug( 'Family::Structures::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
     #   if $c->debug;
   }
 
   # retrieve the PDB entries for this family
   my @rs;
   if ( defined $c->stash->{pfam}->auto_pfama ) {
-    $c->log->debug( 'Family::Structure::structures: got an auto_pfama: ' . $c->stash->{pfam}->auto_pfama )
+    $c->log->debug( 'Family::Structures::structures: got an auto_pfama: ' . $c->stash->{pfam}->auto_pfama )
       if $c->debug;
     @rs = $c->model('PfamDB::PdbPfamaReg')
             ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
                       { prefetch   => [ qw( pdb_id pdb_image ) ] } );
-    $c->log->debug( 'Family::Structure::structures: got ' . scalar @rs . ' regions' )
+    $c->log->debug( 'Family::Structures::structures: got ' . scalar @rs . ' regions' )
       if $c->debug;
   }
 
