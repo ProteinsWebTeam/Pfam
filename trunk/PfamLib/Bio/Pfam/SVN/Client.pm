@@ -89,7 +89,8 @@ sub new {
  my $passWordRequest = sub {
     my $cred = shift;
     my $realm = shift;
-    my $default_username = shift;
+    my $status = shift;
+    my $auth = shift;
     my $may_save = shift;
     my $pool = shift;
 
@@ -97,8 +98,8 @@ sub new {
     print "Username: ";
     my $username = <>;
     chomp($username);
-    $cred->username($username);
-  
+
+    $cred->username($username); 
     my $password = read_password('password: ');  
     redo unless defined $password;
     $cred->password($password);
@@ -107,9 +108,31 @@ sub new {
   
   my $self;
   $self->{txn} = SVN::Client->new (
-              auth => [ SVN::Client::get_simple_provider(),
-                        SVN::Client::get_simple_prompt_provider($passWordRequest,1),
-                        SVN::Client::get_username_provider() ] );
+              auth => [ SVN::Client::get_simple_provider (),
+                        SVN::Client::get_ssl_server_trust_file_provider (),
+                        SVN::Client::get_username_provider (),
+                        SVN::Client::get_simple_prompt_provider($passWordRequest, 2),
+                        SVN::Client::get_ssl_server_trust_prompt_provider( \&_ssl_server_trust_prompt ),
+                       
+                        SVN::Client::get_ssl_server_trust_prompt_provider(
+                                         \&_ssl_server_trust_prompt
+                                      ),
+                        SVN::Client::get_ssl_client_cert_prompt_provider(
+                                         \&_ssl_client_cert_prompt, 2
+                                      ),
+                        SVN::Client::get_ssl_client_cert_pw_prompt_provider(
+                                 \&_ssl_client_cert_pw_prompt, 2
+                                ),
+                        SVN::Client::get_username_prompt_provider( \&_username_prompt, 2 ),
+                          
+                          
+                        #SVN::Client::get_simple_provider(),
+                        #SVN::Client::get_ssl_server_trust_prompt_provider($passWordRequest), 
+                        #SVN::Client::get_ssl_server_trust_file_provider(),
+                        #SVN::Client::get_ssl_server_trust_prompt_provider($passWordRequest), 
+                        #SVN::Client::get_ssl_client_cert_pw_prompt_provider($passWordRequest, 1)
+                        #SVN::Client::get_username_provider() 
+                        ] );
                         
   
   $self->{checkFile} = 
@@ -125,7 +148,79 @@ sub new {
 }
 
 
+sub _ssl_server_trust_prompt {
+    my ($cred, $realm, $failures, $cert_info, $may_save, $pool) = @_;
 
+    print "Error validating server certificate for '$realm':\n";
+
+    print " - The certificate is not issued by a trusted authority. Use the\n",
+          "   fingerprint to validate the certificate manually!\n"
+      if ($failures & $SVN::Auth::SSL::UNKNOWNCA);
+
+    print " - The certificate hostname does not match.\n"
+      if ($failures & $SVN::Auth::SSL::CNMISMATCH);
+
+    print " - The certificate is not yet valid.\n"
+      if ($failures & $SVN::Auth::SSL::NOTYETVALID);
+
+    print " - The certificate has expired.\n"
+      if ($failures & $SVN::Auth::SSL::EXPIRED);
+
+    print " - The certificate has an unknown error.\n"
+      if ($failures & $SVN::Auth::SSL::OTHER);
+
+    printf(
+        "Certificate information:\n".
+        " - Hostname: %s\n".
+        " - Valid: from %s until %s\n".
+        " - Issuer: %s\n".
+        " - Fingerprint: %s\n",
+        map $cert_info->$_, qw(hostname valid_from valid_until issuer_dname fingerprint)
+    );
+
+    print(
+        $may_save
+            ? "(R)eject, accept (t)emporarily or accept (p)ermanently? "
+            : "(R)eject or accept (t)emporarily? "
+    );
+
+    my $choice = lc(substr(<STDIN> || 'R', 0, 1));
+
+    if ($choice eq 't') {
+        $cred->may_save(0);
+        $cred->accepted_failures($failures);
+    }
+    elsif ($may_save and $choice eq 'p') {
+        $cred->may_save(1);
+        $cred->accepted_failures($failures);
+    }
+}
+
+sub _ssl_client_cert_prompt {
+    my ($cred, $realm, $may_save, $pool) = @_;
+    print "Client certificate filename: ";
+    chomp(my $filename = <STDIN>);
+    $cred->cert_file($filename);
+
+}
+
+sub _ssl_client_cert_pw_prompt {
+    my ($cred, $realm, $may_save, $pool) = @_;
+    my $password = read_password("Password for '%s': ");  
+    redo unless defined $password;
+    $cred->password(_read_password($password));
+}
+
+sub _username_prompt {
+    my ($cred, $realm, $may_save, $pool) = @_;
+
+    print "Authentication realm: $realm\n" if defined $realm and length $realm;
+    print "Username: ";
+    chomp(my $username = <STDIN>);
+    $username = '' unless defined $username;
+    $cred->username($username);
+
+}
 
 
 sub checkFamilyExists {
@@ -243,11 +338,12 @@ sub checkAllFamilyFiles {
   #Todo Change this for a call
   foreach my $file (keys %{ $self->{config}->{files}->{family} } ){
     eval{
-      $self->{txn}->info($url."/".$file, undef, $self->revision , $self->_checkFile, 0 );
+      #$self->{txn}->info($url."/".$file, undef, $self->revision , $self->_checkFile, 0 );
+      $self->{txn}->info($url."/".$file, undef, 'HEAD', $self->_checkFile, 0 );
     };  
     if($@){
       #Todo, should change this to confess
-       warn "$file for $family does not exist in the respository at $url.  This is very bad\n";
+       warn "$file for $family does not exist in the respository at $url.  This is very bad [$@]\n";
     }
   }
 }
@@ -274,7 +370,7 @@ sub checkoutFamily {
   my $url = $self->familyLocation."/".$family;
   
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
