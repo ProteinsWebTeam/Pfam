@@ -168,7 +168,7 @@ oe    = 0;
            summary="Links to external data sources">
       <tbody>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-          <td class="label"><acronym title="Protein DataBank">PDB</acronym></td>
+          <td class="label"><acronym title="Protein DataBank">RCSB PDB</acronym></td>
           <td>
             <a href="http://www.rcsb.org/pdb/explore/explore.do?structureId=[% pdbId %]"
                class="ext">[% pdbId %]</a>
