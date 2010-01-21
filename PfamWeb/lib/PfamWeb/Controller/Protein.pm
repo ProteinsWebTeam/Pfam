@@ -293,16 +293,21 @@ Gets the structure-to-sequence-to-family mapping.
 sub get_mapping : Private {
   my ( $this, $c ) = @_;
 
+  # note the use of the ref-to-scalar for the second part of the where clause.
+  # We need to make sure that that constraint gets interpreted as 
+  #
+  #     ... where pdb_res_start != pdb_res_end and ...
+  
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
-                              'pdb_res_start'             => { '!=' => 'pdb_res_end' } },
+                              'pdb_res_start'             => \'!= pdb_res_end' },
                             { prefetch => [ qw( auto_pfama
                                                 auto_pfamseq
                                                 pdb_id ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
 
-  $c->log->debug('Protein::begin: added the structure mapping to the stash')
+  $c->log->debug('Protein::get_mapping: added the structure mapping to the stash')
     if $c->debug;
 }
 
