@@ -69,7 +69,7 @@ oe = 0;
 
     <p class="small">
       <strong>Note:</strong> This mapping was provided by the 
-      <a class="ext" href="http://www.ebi.ac.uk/pdbe/">PDBe</a> group.
+      <a class="ext" href="http://www.ebi.ac.uk/pdbe/sifts/">PDBe</a> group.
     </p>
 
   </div>
