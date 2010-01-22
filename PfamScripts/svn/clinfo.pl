@@ -21,7 +21,7 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
 
 #Check that family exists in svn
 my $client = Bio::Pfam::SVN::Client->new;
-$client->checkClanExists($clan);
+$client->checkClanExists($clan, $config);
 $client->log($clan);
 $client->catFile( $clan, "CLANDESC" );
 
