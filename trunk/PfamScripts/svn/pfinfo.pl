@@ -47,7 +47,7 @@ if ( $family !~ /^(PF\d{5})$/ ) {
 
 #Check that family exists in svn
 my $client = Bio::Pfam::SVN::Client->new;
-$client->checkFamilyExists($family);
+$client->checkFamilyExists($family, $config);
 $client->log($family) if($revision);
 $client->catFile( $family, "DESC" );
 
