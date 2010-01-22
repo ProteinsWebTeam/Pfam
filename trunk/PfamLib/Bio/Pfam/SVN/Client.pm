@@ -224,7 +224,7 @@ sub _username_prompt {
 
 
 sub checkFamilyExists {
-  my( $self, $family ) = @_;    
+  my( $self, $family, $config ) = @_;    
  
   my $url = $self->familyLocation."/".$family;
   my $codeRef = sub {
@@ -238,7 +238,33 @@ sub checkFamilyExists {
   };
   
   if($@){
-     confess("$family does not exist in the respository at $url.\n[$@]\n");
+      #Check to see if the family has been killed, if so give details and exit
+      if($config and $config->location eq 'WTSI'){
+	  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+	  
+	  my @dead = $pfamDB->getSchema->resultset("DeadFamilies")->search({pfama_acc => $family });
+	  foreach my $dead (@dead) {
+	      
+	      print "$family (" . $dead->pfama_id . ") was killed by " . $dead->user . " on " . $dead->killed . "\n";
+	      
+	      if($dead->comment) {
+		  print "Comment: " . $dead->comment . "\n";
+	      }
+	      else {
+		  print "Comment:\n";
+	      }
+	      
+	      if($dead->forward_to) {
+		  print "Members of this family have been forwarded to " . $dead->forward_to   . "\n";
+	      }
+	      else {
+		  print "Members of this family have not been forwarded\n";
+	      }
+	      
+	      exit 0;
+	  }
+      }
+      confess("$family does not exist in the respository at $url.\n[$@]\n");
   }
 }
 
@@ -267,7 +293,7 @@ sub checkNewFamilyDoesNotExists {
 }
 
 sub checkClanExists {
-  my( $self, $clan ) = @_;    
+  my( $self, $clan, $config ) = @_;    
  
   my $url = $self->clanLocation."/".$clan;
   my $codeRef = sub {
@@ -281,7 +307,29 @@ sub checkClanExists {
   };
   
   if($@){
-     confess("$clan does not exist in the respository at $url.\n[$@]\n");
+      #Check to see if the clan has been killed, if so give details and exit
+      if($config and $config->location eq 'WTSI'){
+	  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+	  my @dead = $pfamDB->getSchema->resultset("DeadClans")->search({clan_acc => $clan });
+	  foreach my $dead (@dead) {
+	      print "$clan (" . $dead->clan_id . ") was killed by " . $dead->user . " on " . $dead->killed . "\n";
+	      if($dead->comment) {
+                 print "Comment: " . $dead->comment . "\n";
+              }
+	      else {
+		  print "Comment:\n";
+	      }
+	      
+	      if($dead->forward_to) {
+		  print "Members of this clan have been forwarded to " . $dead->forward_to   . "\n";
+	      }
+	      else {
+		  print "Members of this clan have not been forwarded\n";
+	      }
+	      exit 0;
+	  }
+      }
+      confess("$clan does not exist in the respository at $url.\n[$@]\n");
   }
 }
 
