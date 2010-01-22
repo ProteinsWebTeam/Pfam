@@ -16,6 +16,7 @@ use Bio::Pfam::AlignPfam;
 use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::SeqFetch;
 
 main(@ARGV) unless caller();
 
@@ -46,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $pfam,  $help,  $noOverlap, $local
+    $incDomT, $incDomE, $pfam,  $help,  $noOverlap, $local, $acc
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -61,6 +62,7 @@ sub main {
     "pfam"      => \$pfam,
     "noOverlap" => \$noOverlap,
     "local"     => \$local,
+    "acc=s"     => \$acc,
     "help"      => \$help
   );
 
@@ -71,10 +73,33 @@ sub main {
   
   $optCmds{'-N'} = $noIts;
 
+  die "Can't specify both accession and fasta file on the command line\n" if($fasta and $acc);
 
-  unless ( defined($fasta) and $fasta =~ /\S+/ ) {
-    warn "\n***** You need to specify a fasta file! *****\n\n";
-    $help = 1;
+  if($acc) {
+      my %seq;
+      push(@{ $seq{$acc} }, { whole => 1 });
+      open(FASTA, ">$acc.fasta") or die "Could not open $acc.fasta for writing, $!\n";
+      my $seq_fetch = Bio::Pfam::SeqFetch::fetchSeqs(\%seq,$config->pfamseqLoc."/pfamseq", \*FASTA);
+      unless($seq_fetch) {
+	  print STDERR "Couldn't find $acc in pfamseq, going to pfetch the sequence\n";
+	  open(PFETCH, "pfetch $acc |") or die "Couldn't open fh to pfetch $acc $!\n";
+	  while(<PFETCH>) {
+	      if(/no match/) {
+		  die "Couldn't find $acc using pfetch\n";
+	      }
+	      else {
+		  print FASTA $_;
+	      }
+	  }
+	  close PFETCH;
+       }
+      close FASTA;
+      $fasta = "$acc.fasta";
+  }
+  
+  unless($fasta and -s $fasta) {
+      warn "\n***** You need to specify a valid fasta file or a UniProt accession! *****\n\n";
+      $help = 1;
   }
 
   if ( !$incE and !$incDomT and !$incT ) {
@@ -161,7 +186,7 @@ sub main {
     }
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check );
   }
 
 }
@@ -259,7 +284,7 @@ sub runJackhmmer {
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -354,6 +379,7 @@ sub farmJackhmmer {
   $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
   $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
   $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
+  $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
 
   #Now clean up after ourselves on the farm
   $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
@@ -372,8 +398,8 @@ sub help {
 
   print <<EOF;
 
-usage: $0 -fa <fasta file> -db <sequence db>
-
+usage: $0 -fa <fasta file> -db <sequence db>  or $0 -acc <accession> -db <sequence db>
+ 
 The alignment in written into the file JALIGN and the list of hits into JOUT.
 
 You can control jackhmmer with the following options
@@ -394,8 +420,10 @@ or
 
 Script Options
 -fa           : The name of the fasta file that you want to run Jackhmmer on.
+-acc <acc>    : Accession of protein you want to run Jackhmmer on
 -pfam         : Product Pfam-style outputs. (Coming if we want them)
 -noOverlap    : Script 
+-local        : Run script on local machine
 -help         : Prints out this help message
 
 Options that you can not control 
