@@ -425,7 +425,7 @@ sub _readHeader {
       $hmmRes->randSeedNum($1);
     }elsif(/^Description:\s+(.*)/){
       $hmmRes->description($1);  
-    }elsif(/^# (phmmer|hmmsearch|hmmscan)/){
+    }elsif(/^# (phmmer|hmmsearch|hmmscan|jackhmmer)/){
       $hmmRes->program($1);
     }elsif (/(^#)|(^$)/) {
       next;
@@ -664,7 +664,7 @@ sub _readUnitData {
       $tmpSeqName =~ s/\|/\\|/g;
       $pattern1 = qr/^\s+$id\s+\d+\s+(\S+)\s+\d+/;
       $pattern2 = qr/^\s+$tmpSeqName\s+\d+\s+(\S+)\s+\d+/;
-    }elsif($seqName and $hmmRes->program eq 'phmmer'){
+    }elsif($seqName and ($hmmRes->program eq 'phmmer' or $hmmRes->program eq 'jackhmmer') ){
       $seqName =~ s/\|/\\|/g;
       $id =~ s/\|/\\|/g;
       $pattern1 = qr/^\s+$seqName\s+\d+\s+(\S+)\s+\d+/;
