@@ -13,6 +13,8 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
 use Data::Dumper;
 
+my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
+
 my ( $rev, $txn, $repos, $debug, $help );
 
 GetOptions(
@@ -49,12 +51,12 @@ unless ($msg) {
 my $config  = Bio::Pfam::Config->new;
 my $connect = $config->pfamlive;
 
-unless ( $ENV{DEBUG} ) {
+if ( $DEBUG ) {
   print STDERR Dumper($connect);
 }
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
-unless ( $ENV{DEBUG} ) {
+if ( $DEBUG ) {
   print STDERR "*** $msg ***\n";
 
   #$msg = "$msg";
