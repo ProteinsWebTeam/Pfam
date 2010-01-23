@@ -13,7 +13,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
 use Data::Dumper;
 
-my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
+my $DEBUG = defined( $ENV{DEBUG} ) ? $ENV{DEBUG} : 0;
 
 my ( $rev, $txn, $repos, $debug, $help );
 
@@ -51,12 +51,12 @@ unless ($msg) {
 my $config  = Bio::Pfam::Config->new;
 my $connect = $config->pfamlive;
 
-if ( $DEBUG ) {
+if ($DEBUG) {
   print STDERR Dumper($connect);
 }
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
-if ( $DEBUG ) {
+if ($DEBUG) {
   print STDERR "*** $msg ***\n";
 
   #$msg = "$msg";
@@ -80,35 +80,32 @@ if ( $DEBUG ) {
   }
 }
 
-
 #Make sure the database isn't locked
 my $lock = $txnlook->allowCommit($pfamDB);
 my $allow_commit;
-if($lock) {
-    #If it is locked, check to see if user is allowed to make commits
-    if( ($lock->locker eq $txnlook->author) and $lock->allowcommits){
-	$allow_commit = 1;
-    }
-    elsif($lock->alsoallow) {
-	my @allow = split(/\s+/, $lock->alsoallow);
+if ($lock) {
 
-	foreach my $user (@allow) {
-	    if($user eq $txnlook->author) {
-		$allow_commit=1;
-		last;
-	    }
-	}
+  #If it is locked, check to see if user is allowed to make commits
+  if ( ( $lock->locker eq $txnlook->author ) and $lock->allowcommits ) {
+    $allow_commit = 1;
+  }
+  elsif ( $lock->alsoallow ) {
+    my @allow = split( /\s+/, $lock->alsoallow );
+
+    foreach my $user (@allow) {
+      if ( $user eq $txnlook->author ) {
+        $allow_commit = 1;
+        last;
+      }
     }
+  }
 }
 else {
-    $allow_commit = 1;
+  $allow_commit = 1;
 }
-unless($allow_commit) {
-    die "The database is currently locked by " . $lock->locker . "\n";
+unless ($allow_commit) {
+  die "The database is currently locked by " . $lock->locker . "\n";
 }
-
-
-
 
 if ( $msg =~ /^PFCI:/ ) {
   $txnlook->commitFamily($pfamDB);
@@ -181,7 +178,7 @@ elsif ( $msg =~ /^PFKILL:/ ) {
   else {
     die "In PFKILL message, did not parse $msg\n";
   }
-  if ($msg =~ /PFKILLRMC:(CL\d{4})\:(PF\d{5})/) {
+  if ( $msg =~ /PFKILLRMC:(CL\d{4})\:(PF\d{5})/ ) {
     my ( $clan, $fam );
     $clan = $1;
     $fam  = $2;
@@ -208,6 +205,14 @@ elsif ( $msg =~ /^CLKILL:/ ) {
 
   #Remove the family from the clan membership in the database
   $txnlook->deleteClan( $pfamDB, $comment, $forward );
+}
+elsif ( $msg =~ /SEQUP/ ) {
+  foreach my $file ( $txnlook->updated() ) {
+    unless ( $file =~ /Sequences/ ) {
+      die "Got sequence update message, but the file ($file) does not look"
+        . " like it has come from the sequence part of the repository\n";
+    }
+  }
 }
 else {
   die "Do not know here this commit has come from, [$msg]!\n";
