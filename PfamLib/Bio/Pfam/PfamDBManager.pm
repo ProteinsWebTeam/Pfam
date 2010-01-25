@@ -146,7 +146,7 @@ sub getClanDataByPfam {
   }
 
   #Return something if we have found something
-  if ( $result && $result->clan_acc ) {
+  if ( $result && $result->auto_clan->clan_acc ) {
     carp("Found clan information for\n") if $self->{'debug'};
     return ($result);
   }
