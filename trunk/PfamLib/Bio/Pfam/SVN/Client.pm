@@ -99,10 +99,13 @@ sub new {
     my $username = <>;
     chomp($username);
 
+    $cred->may_save(1);
     $cred->username($username); 
     my $password = read_password('password: ');  
     redo unless defined $password;
     $cred->password($password);
+    
+    
   }; 
   
   
