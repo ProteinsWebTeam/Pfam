@@ -197,7 +197,7 @@ sub getClanMembership {
   elsif ( $clan =~ /\S{1,16}/ ) {
     carp("Looking up information for $clan. I think this is an id")
       if $self->{'debug'};
-    @clanData = $self->getSchema->resultset("Clan_membership")->search(
+    @clanData = $self->getSchema->resultset("ClanMembership")->search(
       { "auto_clan.clan_id" => $clan },
       {
         join     => qw( auto_clan auto_pfama ),
