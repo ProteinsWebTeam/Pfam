@@ -124,7 +124,7 @@ sub new {
                                  \&_ssl_client_cert_pw_prompt, 2
                                 ),
                         SVN::Client::get_username_prompt_provider( \&_username_prompt, 2 ),
-                          
+                        SVN::Client::get_ssl_server_trust_file_provider()  
                           
                         #SVN::Client::get_simple_provider(),
                         #SVN::Client::get_ssl_server_trust_prompt_provider($passWordRequest), 
@@ -431,7 +431,7 @@ sub checkoutAllFamilies {
   my $url = $self->familyLocation;
   
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -445,7 +445,7 @@ sub checkoutFamilyDESC {
   
   print STDERR "$url";  
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -458,7 +458,7 @@ sub checkoutClan {
   my $url = $self->clanLocation."/".$clan;
   my $destClan = $dest."/".$clan;
   eval{
-    $self->{txn}->checkout($url, $destClan, $self->revision, 1);
+    $self->{txn}->checkout($url, $destClan, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -472,7 +472,7 @@ sub checkoutAllClans {
   my $url = $self->clanLocation;
   
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -496,7 +496,7 @@ sub catFile {
   unless($fh){
     $fh = \*STDOUT;
   }
-  $self->{txn}->cat($fh, $url."/".$filename, defined($rev) ? $rev : $self->revision);
+  $self->{txn}->cat($fh, $url."/".$filename, defined($rev) ? $rev : ($self->revision ? $self->revision : 'HEAD') );
 }
 
 sub log {
@@ -566,7 +566,7 @@ sub addFamily {
   
   #Now check out the latest version the holding area. 
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -720,7 +720,7 @@ sub addClan {
   
   #Now check out the latest version the holding area. 
   eval{
-    $self->{txn}->checkout($url, $dest, $self->revision, 1);
+    $self->{txn}->checkout($url, $dest, $self->revision ? $self->revision : 'HEAD', 1);
   };
   
   if($@){
@@ -773,7 +773,7 @@ sub moveNewFamily {
   
   my $cinfo;
   eval{
-    $cinfo = $self->{txn}->move($oldUrl, defined($rev) ? $rev : $self->revision, $newUrl, 0);
+    $cinfo = $self->{txn}->move($oldUrl, defined($rev) ? $rev : ( $self->revision ? $self->revision : 'HEAD'), $newUrl, 0);
   };
   
   #Catch any error and report.
@@ -794,7 +794,7 @@ sub moveNewClan {
   my $cinfo;
   
   eval{
-    $cinfo = $self->{txn}->move($oldUrl, defined($rev) ? $rev : $self->revision, $newUrl, 0);
+    $cinfo = $self->{txn}->move($oldUrl, defined($rev) ? $rev : ( $self->revision ? $self->revision  : 'HEAD'), $newUrl, 0);
   };
                           
 #Catch any error and report.
@@ -811,7 +811,7 @@ sub moveFamily {
   my( $self, $oldFamily, $newFamily, $rev ) = @_;    
   my $oldUrl = $self->familyLocation."/".$oldFamily;
   my $newUrl = $self->familyLocation."/".$newFamily;
-  $self->{txn}->move($oldUrl, defined($rev) ? $rev : $self->revision, $newUrl, 0);
+  $self->{txn}->move($oldUrl, defined($rev) ? $rev : ($self->revision ? $self->revision : 'HEAD'), $newUrl, 0);
 }
 
 # Priavte methods that should not be used from outside this module
