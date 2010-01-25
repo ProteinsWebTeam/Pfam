@@ -379,8 +379,10 @@ sub farmJackhmmer {
   $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
   $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
   $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
+  $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > ALIGN \n"); #Create an ALIGN file
+  $fh->print("/usr/bin/scp ALIGN $phost:$pwd/ALIGN\n");
   $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
-
+  
   #Now clean up after ourselves on the farm
   $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   $fh->close();
