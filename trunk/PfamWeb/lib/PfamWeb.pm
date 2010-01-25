@@ -58,6 +58,7 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 __PACKAGE__->setup( qw(
                         HTML::Widget
                         PageCache
+                        GzipCompressor
                       ) );
 
                         # the session plugins were used by the protein features
