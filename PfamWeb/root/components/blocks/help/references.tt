@@ -20,6 +20,23 @@
     <div class="citation">
       <span class="title">
         <a class="ext" 
+           href="http://nar.oxfordjournals.org/cgi/content/full/38/suppl_1/D211">
+          The Pfam protein families database</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Mistry, J. Tate, P. Coggill, A. Heger, J.E. Pollington,
+        O.L. Gavin, P. Gunesekaran, G. Ceric, K. Forslund, L. Holm, E.L. 
+        Sonnhammer, S.R. Eddy, A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2010)
+        &nbsp;Database Issue 38:D211-222
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" 
            href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
           The Pfam protein families database</a>: 
       </span>
