@@ -54,7 +54,7 @@ use File::Copy;
 use File::Temp;
 
 use Bio::Pfam::Config;
-
+use Bio::Pfam::PfamLiveDBManager;
 
 #-------------------------------------------------------------------------------
 
