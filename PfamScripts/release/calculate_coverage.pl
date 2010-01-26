@@ -1,0 +1,90 @@
+#! /software/bin/perl -w
+
+use strict;
+use Getopt::Long;
+
+
+#length_file is in format auto, length,
+#regions_file is in format auto_pfamA, start, end, and is sorted by auto_pfamA
+
+
+my ($regions_file, $length_file);
+GetOptions( 'regions_file=s' => \$regions_file,
+	    'length_file=s' => \$length_file);
+
+unless($regions_file and -s $regions_file) {
+    die "Need to specify a regions file on the command line\n";
+}
+
+unless($length_file and -s $length_file) {
+    die "Need to specify a length file on the command line\n";
+}
+
+print STDERR "Parsing $length_file...";
+
+my $length=0;
+open(LEN, $length_file) or die "Couldn't open $length_file $!";
+while(<LEN>) {
+    if(/^\S+\s+(\S+)/) { 
+	$length+=$1;
+    }
+}
+close LEN;
+
+print STDERR "done\n";
+
+
+print STDERR "Parsing $regions_file...";
+
+my %reg;
+my $aa=0;
+open(REG, $regions_file) or die "Couldn't open $regions_file $!";
+
+my $a;
+while(<REG>) {
+    if(/^(\S+)\s+(\S+)\s+(\S+)/) {
+        my ($auto, $start, $end) = ($1, $2, $3);
+
+	if($a) {
+	    if($a ne $auto) {
+		$aa+=calculate(\%reg, $a);
+		$a=$auto;
+	    }
+	}
+	else {
+	    $a=$auto;
+	}
+
+        for(my $i=$start; $i <= $end; $i++) {
+	    $reg{$auto}[$i-1]=1;
+          
+	}
+    }
+}
+close REG;
+$aa+=calculate(\%reg, $a);
+
+close REG;
+
+print STDERR "done\n";
+
+
+print "Number of residues covered by Pfam-A:$aa\nTotal number of residues:$length\n";
+my $coverage = ($aa/$length)*100;
+print "Amino acid coverage is $coverage\%\n";
+
+sub calculate {
+    my ($reg, $auto)= @_;
+
+    my $aa;
+
+    foreach my $element (@{$reg{$auto}}) {
+	if($element) {
+	    $aa++;
+	}
+    }
+
+    delete $$reg{$auto};
+
+    return($aa);   
+}
