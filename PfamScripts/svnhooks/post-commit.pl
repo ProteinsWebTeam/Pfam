@@ -59,15 +59,17 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   
   my $pfamA = $pfamDB->getPfamData($family);
   
-  open(M, ">.default".$$."pfnewmove") or die "";
+  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $dest = $tmpDir->dirname;
+  chdir($dest) or die "Could not change into $dest dir:$!";
+  
+  open(M, ">.default".$$."pfnewmove") or die "Could not open $dest/.default".$$."pfnewmove:$!";
   print M "Moving from pending to main repository and fixing accession\n";
   close(M);
   $client->addPFNEWMOVELog;
   $client->moveNewFamily($pfamA->pfama_id, $pfamA->pfama_acc);
   
   #Now checkout and add the accession to the DESC file!
-  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
-  my $dest = $tmpDir->dirname;
   $client->checkoutFamily($pfamA->pfama_acc, $dest);
   #parse the DESC file
   my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -101,20 +103,22 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   
   my $clanData = $pfamDB->getClanData($clan);
   
-  open(M, ">.default".$$."clnewmove") or die "";
+  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $dest = $tmpDir->dirname;
+  chdir($dest) or die "Could not change into $dest dir:$!\n";
+ 
+  open(M, ">.default".$$."clnewmove") or die "Could not open  .default".$$."clnewmove: $!\n";
   print M "Moving from pending to main repository\n";
   close(M);
   $client->addCLNEWMOVELog;
   $client->moveNewClan($clanData->clan_id, $clanData->clan_acc);
   
-  open(M, ">.default".$$."clnewmove") or die "";
+  open(M, ">$dest/.default".$$."clnewmove") or die "Could not open  .default".$$."clnewmove: $!\n";
   print M "Automatically adding accession\n";
   close(M);
   $client->addCLNEWACCLog;
   
   #Now checkout and add the accession to the DESC file!
-  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 1 );
-  my $dest = $tmpDir->dirname;
   $client->checkoutClan($clanData->clan_acc, $dest);
   #parse the DESC file
   my $clanIO = Bio::Pfam::ClanIO->new;
@@ -180,6 +184,7 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
     #Now checkout and add the accession to the DESC file!
     my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
     my $dest = $tmpDir->dirname;
+    chdir($dest) or die "Could not change into $dest dir:$!";
 #TODO - tested up to here!!!
     $client->checkoutFamily($famAcc, $dest);
     #parse the DESC file
@@ -222,7 +227,7 @@ sub addToClan {
   my ( $clan, $fam ) = @_;  
   my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
   my $dest = $tmpDir->dirname;
-  
+  chdir($dest) or die "Could not chdir to $dest:$!\n"; 
   #Check out the clan!
   my $client = Bio::Pfam::SVN::Client->new;
   
@@ -254,6 +259,7 @@ sub removeFromClan {
   my ( $clan, $fam ) = @_;  
   my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
   my $dest = $tmpDir->dirname;
+  chdir($dest) or die "Could not change into $dest dir:$!";
   
   #Check out the clan!
   my $client = Bio::Pfam::SVN::Client->new;
