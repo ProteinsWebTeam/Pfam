@@ -54,20 +54,20 @@ sub getClanLockData {
 
   my $lockData;
   if ( $clan =~ /CL\d{4}/ ) {
-    $lockData = $self->getSchema->resultset("Clan_locks")->find(
-      { "clans.clan_acc" => $clan },
+    $lockData = $self->getSchema->resultset("ClanLocks")->find(
+      { "auto_clan.clan_acc" => $clan },
       {
-        join     => [qw/clans/],
-        prefetch => [qw/clans/]
+        join     => [qw/auto_clan/],
+        prefetch => [qw/auto_clan/]
       }
     );
   }
   elsif ( $clan =~ /\S{1,16}/ ) {
     $self->getSchema->resultset->find(
-      { "clans.clan_id" => $clan },
+      { "auto_clan.clan_id" => $clan },
       {
-        join     => [qw/clans/],
-        prefetch => [qw/clans/]
+        join     => [qw/auto_clan/],
+        prefetch => [qw/auto_clan/]
       }
     );
   }
@@ -112,7 +112,7 @@ sub removeFamilyFromClanMembership {
     "Removing family from clan membership: $autoClan, auto_pfamA: $autoPfamA")
     if ( $self->{'debug'} );
   if ( $autoClan && $autoPfamA ) {
-    $result = $self->getSchema->resultset('Clan_membership')->find(
+    $result = $self->getSchema->resultset('ClanMembership')->find(
       {
         auto_clan  => $autoClan,
         auto_pfamA => $autoPfamA
