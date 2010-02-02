@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl
 
+#Mark up alignment according to posterior probabilities.
+
 use strict;
 use warnings;
 use Getopt::Std;
