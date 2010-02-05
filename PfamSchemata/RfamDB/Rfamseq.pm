@@ -10,28 +10,8 @@ __PACKAGE__->table("rfamseq");
 __PACKAGE__->add_columns(
   "auto_rfamseq",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
-  "auto_taxid",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "rfamseq_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 50 },
   "rfamseq_acc",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 50,
-  },
-  "description",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 255 },
-  "species",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 100 },
-  "taxonomy",
-  {
-    data_type => "MEDIUMTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 13 },
   "version",
   {
     data_type => "VARCHAR",
@@ -39,6 +19,14 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 12,
   },
+  "ncbi_id",
+  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "mol_type",
+  { data_type => "ENUM", default_value => "", is_nullable => 0, size => 15 },
+  "length",
+  { data_type => "INT", default_value => 0, is_nullable => 1, size => 10 },
+  "description",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 250 },
   "previous_acc",
   {
     data_type => "MEDIUMTEXT",
@@ -46,13 +34,11 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16777215,
   },
-  "taxon",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
-  "length",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
+  "source",
+  { data_type => "CHAR", default_value => "", is_nullable => 0, size => 20 },
 );
 __PACKAGE__->set_primary_key("auto_rfamseq");
-__PACKAGE__->add_unique_constraint("rfamseq_id", ["rfamseq_id"]);
+__PACKAGE__->add_unique_constraint("rfamseq_acc", ["rfamseq_acc"]);
 __PACKAGE__->has_many(
   "chromosome_builds",
   "RfamDB::ChromosomeBuild",
@@ -68,15 +54,11 @@ __PACKAGE__->has_many(
   "RfamDB::RfamRegSeed",
   { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
 );
-__PACKAGE__->belongs_to(
-  "auto_taxid",
-  "RfamDB::Taxonomy",
-  { auto_taxid => "auto_taxid" },
-);
+__PACKAGE__->belongs_to("ncbi_id", "RfamDB::Taxonomy", { ncbi_id => "ncbi_id" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:694fuVXZ9ycFAt2M4xB9kg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vH/q40/opYB79MRpKbaA/g
 
 #-------------------------------------------------------------------------------
 
