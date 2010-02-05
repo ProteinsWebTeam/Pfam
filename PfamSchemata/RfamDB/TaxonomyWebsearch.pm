@@ -9,7 +9,7 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("taxonomy_websearch");
 __PACKAGE__->add_columns(
   "ncbi_code",
-  { data_type => "INT", default_value => 0, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "species",
   {
     data_type => "VARCHAR",
@@ -43,10 +43,16 @@ __PACKAGE__->add_columns(
     size => 100,
   },
 );
+__PACKAGE__->set_primary_key("ncbi_code");
+__PACKAGE__->has_many(
+  "rfam_ncbis",
+  "RfamDB::RfamNcbi",
+  { "foreign.ncbi_code" => "self.ncbi_code" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v3KzF9oHgmv35aYw3eeCvA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VtUucSeM2A0lypWDY4CZtA
 
 
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::RfamNcbi", 'ncbi_code' );
