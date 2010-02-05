@@ -78,6 +78,13 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 255,
   },
+  "cmsearch",
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
   "num_seed",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "num_full",
@@ -126,12 +133,45 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16777215,
   },
+  "full_structure",
+  {
+    data_type => "LONGTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
+  "reference_structure",
+  {
+    data_type => "LONGTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
+  "reference_sequence",
+  {
+    data_type => "LONGTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
+  "structure_annotations",
+  {
+    data_type => "LONGTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
 __PACKAGE__->has_many(
   "alignments_and_trees",
   "RfamDB::AlignmentsAndTrees",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "clan_memberships",
+  "RfamDB::ClanMembership",
   { "foreign.auto_rfam" => "self.auto_rfam" },
 );
 __PACKAGE__->has_many(
@@ -177,8 +217,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DLOrYACoR1TMtkTsiwFKew
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3ApIXss5kX4PoGzi5seYUg
 
 #-------------------------------------------------------------------------------
 
