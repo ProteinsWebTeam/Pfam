@@ -26,10 +26,16 @@ __PACKAGE__->has_many(
   "RfamDB::Rfam",
   { "foreign.auto_wiki" => "self.auto_wiki" },
 );
+__PACKAGE__->belongs_to("auto_wiki", "RfamDB::Wikitext", { auto_wiki => "auto_wiki" });
+__PACKAGE__->has_many(
+  "wikitexts",
+  "RfamDB::Wikitext",
+  { "foreign.auto_wiki" => "self.auto_wiki" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ufGGRKVHlKesmu1XjzOo5A
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cxBOTXCpcb8mm/R6IrnB7w
 
 #-------------------------------------------------------------------------------
 
