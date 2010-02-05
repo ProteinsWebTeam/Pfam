@@ -11,7 +11,7 @@ __PACKAGE__->add_columns(
   "auto_rfam",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "type",
-  { data_type => "ENUM", default_value => "", is_nullable => 0, size => 4 },
+  { data_type => "ENUM", default_value => "", is_nullable => 0, size => 7 },
   "alignment",
   {
     data_type => "LONGBLOB",
@@ -46,8 +46,8 @@ __PACKAGE__->set_primary_key("auto_rfam", "type");
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:47
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OmHaXgVYKVcKrtb05JfK4Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mamdKbJL6WvsDtoAqioiJQ
 
 #-------------------------------------------------------------------------------
 
