@@ -36,14 +36,19 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("auto_lit");
 __PACKAGE__->has_many(
+  "clan_literature_references",
+  "RfamDB::ClanLiteratureReferences",
+  { "foreign.auto_lit" => "self.auto_lit" },
+);
+__PACKAGE__->has_many(
   "rfam_literature_references",
   "RfamDB::RfamLiteratureReferences",
   { "foreign.auto_lit" => "self.auto_lit" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YHVb6r0G01Hi+VbUWof0RQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZHmeER3ECC7x8R4yolRa3g
 
 #-------------------------------------------------------------------------------
 
