@@ -20,11 +20,11 @@ __PACKAGE__->add_columns(
   "forward_to",
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 7 },
 );
-__PACKAGE__->set_primary_key("rfam_acc");
+__PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AlZm+D0LeATJ0iBYj+8EBA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WFS5mI7BQGu1IHkWhR3LtA
 
 #-------------------------------------------------------------------------------
 
