@@ -23,10 +23,15 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("ncbi_code", "auto_rfam");
+__PACKAGE__->belongs_to(
+  "ncbi_code",
+  "RfamDB::TaxonomyWebsearch",
+  { ncbi_code => "ncbi_code" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BHmzVWxTdKI0m4rio+mrBA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LsRi7VzSY2s/aOTfg/BYWQ
 
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_code' );
 
