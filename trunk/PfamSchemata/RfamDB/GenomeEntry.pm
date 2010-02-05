@@ -53,8 +53,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H0ED2JH5UbVPDDFXwBdRsg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1mjRIQBxbIo8Csh8Pf/9pw
 
 __PACKAGE__->has_one(
   "gff",
