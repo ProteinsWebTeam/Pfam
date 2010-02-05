@@ -24,18 +24,18 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 50,
   },
+  "regions",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "families",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "genome_size",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
-  "regions",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
 );
 __PACKAGE__->set_primary_key("ncbi_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cwj3F0HrXYLUh9TDLbO30w
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3jWwrEPNOkPHhvNfNuQ/og
 
 #-------------------------------------------------------------------------------
 
