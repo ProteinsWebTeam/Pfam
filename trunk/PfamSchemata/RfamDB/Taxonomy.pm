@@ -8,8 +8,6 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("taxonomy");
 __PACKAGE__->add_columns(
-  "auto_taxid",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "ncbi_id",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
   "species",
@@ -22,17 +20,16 @@ __PACKAGE__->add_columns(
     size => 16777215,
   },
 );
-__PACKAGE__->set_primary_key("auto_taxid");
-__PACKAGE__->add_unique_constraint("ncbi_id", ["ncbi_id"]);
+__PACKAGE__->set_primary_key("ncbi_id");
 __PACKAGE__->has_many(
   "rfamseqs",
   "RfamDB::Rfamseq",
-  { "foreign.auto_taxid" => "self.auto_taxid" },
+  { "foreign.ncbi_id" => "self.ncbi_id" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4yKw3tDtmwBKg60CHVSHDw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eWYdNXoHxj2z0TnzRf8ujA
 
 #-------------------------------------------------------------------------------
 
