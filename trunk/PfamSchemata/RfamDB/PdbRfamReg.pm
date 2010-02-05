@@ -58,8 +58,8 @@ __PACKAGE__->set_primary_key("auto_pdb_reg");
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RaNnsctsfITnNJgsOaajtQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8ZXdFps78DpxX4TZNs8gOg
 
 # in order to be able to use this table in a keyword search plugin, we need to
 # have access to three columns from the rfam table, so we add this extra
