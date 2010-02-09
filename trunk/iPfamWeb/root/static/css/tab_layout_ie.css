@@ -1,0 +1,61 @@
+
+/* tab_layout_ie.css
+   jt6 20060418 WTSI.
+
+   IE stylesheet to apply various fixes for IE inadequacies and bugs. This should
+   contain those styles that are targeted at IE6 and below
+   
+   $Id: tab_layout_ie.css,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/
+
+hr.short {
+  display: inline;
+  height: 1px;
+  border: none;
+  border-top-width: 1px;
+  border-top-style: solid;
+  width: 80%;
+}
+
+/* turn off the background for the active tab in the sidebar. The IE filter
+   just doesnt work... */
+#sidebar li.selected {
+  background-image: none;
+}
+
+/* we need a spacer div inside the wrapper around the content and sidebar, to 
+   avoid the IE peekaboo bug. In real browsers we can set the height of this to
+   zero and it will essentially disappear, but in IE it has to have height: auto
+   otherwise it disappears... taking the whole page contents with it. Dont you
+   just love IE ? */
+#spacer {
+  height: auto;
+}
+
+/* try to to overcome the IE "float drop" bug, which pushes the content block
+   down below the bottom of the sidebar if we show a large image, such as for a
+   long sequence in the "domain images" sections. */
+#content {
+  overflow-y: visible;
+  overflow-x: auto;
+}

@@ -1,0 +1,97 @@
+[%
+# jumpBox.tt
+# jt6 20061215 WTSI
+#
+# build a "jump box", consisting of a search field and submit button.
+#
+# $Id: jumpBox.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+
+META naked = 1;
+%]
+
+<!-- start of the jump box -->
+
+<div id="jumpBox" class="sidebarComponent">
+  <h1>
+    <span>Jump to...</span>
+    <a href="[% c.uri_for( "/help", { tab = "helpGetStartedBlock" } ) %]"
+       title="View help on the &quot;Jump to...&quot; search">
+      <img src="[% c.uri_for( "/shared/images/info.gif" ) %]" 
+           alt="View help on the &quot;Jump to...&quot; search" 
+           class="info" /></a>
+  </h1>
+
+  <form action="[% c.uri_for( '/search/jump' ) %]"
+        id="jumpForm"
+        onsubmit="return jump(this);">
+
+    <div>
+      <input class="entryField" 
+             type="text" 
+             onfocus="if(!jbCleared){this.value='';jbCleared=true;}"
+             size="10" 
+             name="entry" 
+             id="entry" />
+    </div>
+
+    <div onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}}"
+         class="glassButton goButton">&nbsp;</div>
+
+    <div style="display: none"
+         class="jumpSpinner">Searching...</div>
+
+    <div style="display: none"
+         class="jumpError"></div>
+
+  </form>
+  
+  <script type="text/javascript">
+    // <![CDATA[
+    $("entry").value = "enter ID/acc";
+    var jbCleared = false;
+    // ]]>
+  </script>
+  
+
+  <div class="cleaner"><!-- empty --></div>
+
+  <!-- [% IF c.req.param( "jumpErr" ) %]
+  <span class="error">Couldn't guess entry</span>
+  [% END %] -->
+
+</div>
+
+<!-- end of the jump box -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,216 @@
+
+/* family.css
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: family.css,v 1.5 2009-11-30 10:40:52 pg6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.blockContent ol {
+    margin-right: 210px;
+}
+
+#tableLabel {
+  padding-top: 0.4em;
+}
+
+#domainsBlock img {
+  display: block;
+  padding: 0.4em;
+}
+
+/* ---------------------------------------- */
+
+#interproTitle {
+    margin-top: 1.5em;
+}
+
+#alignmentTree {
+    margin: 0.4em 0;
+}
+
+#alignmentTree img {
+    border: 1px solid #CCC;
+}
+
+#structuresListTable {
+  background: #BBB;
+}
+
+#structuresListTable th {
+  padding: 0.4em;
+}
+
+#structuresListTable td {
+  padding: 0.2em 0.4em;
+}
+
+#structuresListTable tr.newRow td {
+  border-top: 1px solid #BBB;
+}
+
+#unpId {
+  width: 6em;
+}
+#unpRes {
+  width: 6em;
+}
+#pdbId {
+  width: 4em;
+}
+#chId {
+  width: 3em;
+}
+#pdbRes {
+  width: 6em;
+}
+
+.intNames {
+  text-align:  center;
+  line-height:  1.5em;
+  color: #AAAAAA;
+}
+
+/* ---------------------------------------- */
+/* styles for the "Pfam sequence viewer" */
+
+#alignmentKey {
+  width: 120px;
+  font-family: monospace;
+  overflow: auto;
+  float: left;
+}
+
+#alignmentKey span {
+  display: block;
+}
+
+#alignmentKey span.odd {
+  background: #BAB;
+}
+
+#alignmentKey span.even {
+  background: #CBC;
+}
+
+#alignmentData {
+  width: 600px;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+#alignmentData span {
+  white-space: nowrap;
+}
+
+/* the slider that controls the horizontal scrolling of the alignment.
+ * Note that the outer div is slightly wider than the inner one, which 
+ * actually forms the visible track for the slider, so that the handle can
+ * be aligned with the edges of the alignment */
+#slider {
+  float: left;
+  clear: both;
+  width: 610px;
+  height: 10px;
+  margin: 2px 0 0 110px;
+}
+
+#track {
+  float: left;
+  width: 600px;
+  height: 4px;
+  margin: 10px 0 0 10px;
+  background-color: #CCC;
+}
+
+/* slider handle */
+#handle {
+  width: 20px;
+  height: 20px;
+  cursor: move;
+}
+
+.sliderHandle {
+  background-image: url(/static/images/sliderHandle.png);
+}
+
+.disabledSliderHandle {
+  background-image: url(/static/images/disabledSliderHandle.png);
+}
+
+/* the form controls */
+.formRow {
+  margin: 1em 0;
+}
+
+.formRowElement {
+   float: left;
+   clear: both;
+}
+
+/* ---------------------------------------- */
+/* alignment tab */
+
+table.alignOpts td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+table.alignOpts td.label {
+  text-align: right;
+}
+
+table.alignOpts td span {
+  width: 14em;
+  display: block;
+  float: left;
+}
+
+/* ---------------------------------------- */
+/* ligand interactions tab*/
+
+#ligname {
+	padding: 0.8em 0 0 0.8em;	
+}
+
+/* ---------------------------------------- */
+/* Keyword search */
+
+.keyHead {
+  background:transparent none repeat scroll 0 0;
+  color:#006633;
+  font-size:large;
+  font-weight:bold;
+  margin:0.2em auto;
+  padding:0;
+}
+
+#search_contents {
+  text-align: left;
+}
+

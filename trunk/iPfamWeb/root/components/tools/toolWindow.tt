@@ -1,0 +1,27 @@
+[%
+# toolWindow.tt
+# jt6 20061004 WTSI
+# 
+# build a separate tool window
+#
+# $Id%
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+  <head>
+    <title>Pfam: [% title ? title : "Analysis tool" %]</title>
+    [% PROCESS components/head.tt %]
+  </head>
+
+  <body class="tool">
+
+    <!-- start of content -->
+    [% pageContent %]
+    <!-- end of content -->
+
+  </body>
+
+</html>

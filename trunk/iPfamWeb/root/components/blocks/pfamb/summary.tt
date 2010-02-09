@@ -1,0 +1,61 @@
+
+[%
+# summary.tt
+# jt6 20060406 WTSI
+# 
+# build the summary block for PfamB's
+#
+# $Id: summary.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# using the same styles/js as Pfam A family pages
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "family.js" );
+requirements.js.push( "pfamb.js" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<script type="text/javascript">
+  // <![CDATA[
+  Event.observe( window, "load", pfambPostLoad, false );
+  // ]]>
+</script>
+
+<!-- start summary block -->
+
+<div class="block" id="pfambSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+
+    <h1>PfamB [% pfam.pfamB_acc %]
+      <a href="[% base %]annotate?acc=[% pfam.pfamB_acc %]">
+        <img class="addAnnotation" 
+             alt="Add an annotation" 
+             src="[% base %]static/images/annotation.png" /></a>
+  	</h1>
+
+    <p>
+      This family was generated <em>automatically</em> from an alignment taken from
+  	  Prodom 2005.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
+      subtracting sequence segments already covered by Pfam-A.
+    </p>
+
+    [% PROCESS components/links.tt %]
+
+  </div>
+</div>
+
+<!-- end summary block -->
+

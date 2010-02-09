@@ -1,0 +1,50 @@
+
+[%
+# pageList.tt
+# jt6 20070427 WTSI
+# 
+# build the page selector for the browse pages
+#
+# $Id: pageList.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+META naked = 1;
+
+# arguments: pageURI - the base URI for the page links
+#            lcChar  - the first letter of the page that we are currently on
+#            encode  - if true, the URI is "uri encoded" to convert, for 
+#                      example, spaces into %20 before use
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+<table class="pageList" summary="Browse Pfam families by initial letter">
+  <tbody>
+    <tr>
+    [% FOREACH page IN pages;
+      pageR = page.replace( '\s', '&nbsp;' ) -%]
+      <td>
+      [%- IF page == lcChar %]
+        <span class="letter inactive">[%- pageR | ucfirst %]</span>
+      [% ELSE;
+        IF encode;
+          encodedURI = BLOCK; pageURI; page | uri; END;
+        ELSE;
+          encodedURI = BLOCK; pageURI; page; END;
+        END %]
+        <span class="letter">
+          <a href="[% encodedURI %]">[% pageR | ucfirst %]</a>
+        </span>
+      [% END -%]
+      </td>
+    [% END -%] 
+    </tr>
+  </tbody>
+</table>
+

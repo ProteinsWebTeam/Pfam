@@ -1,0 +1,17 @@
+[% META naked = 1 %]
+[% showTab="proteinGraphicsBlock" %]
+<html>
+<head>
+[% PROCESS components/head.tt %]
+</head>
+<body>
+<script type="text/javascript">
+  Event.observe( window, "load", proteinPostLoad, false );
+</script>
+<div id="wrap">
+<div id="content" style="border: none;">
+[% PROCESS components/blocks/protein/graphics.tt %]
+</div>
+</div>
+</body>
+</html>

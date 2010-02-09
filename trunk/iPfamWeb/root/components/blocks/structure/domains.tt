@@ -1,0 +1,35 @@
+
+[%
+# domains.tt
+# jt6 20060706 WTSI
+# 
+# build the structural domains block for structures
+#
+# $Id: domains.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+META naked = 1;
+-%]
+
+<!-- start domains block -->
+[% FOREACH image IN domainImages.each_image %]
+
+<div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+
+  [% IF seqMapping.${loop.index} -%]
+  <span class="graphicLabel">[% seqMapping.${loop.index} %]</span>
+  [% END -%]
+
+  <img class="domainImage"	
+       src="[% constants.tmp %]/[% image.file_location %]"
+       usemap="#graphicsMap[% loop.index %]"
+       alt="" />
+  <div class="cleaner">&nbsp;</div>
+
+  <map name="graphicsMap[% loop.index %]">
+    [% image.image_map %]
+  </map>		
+</div>
+
+[% END %]
+
+<!-- end domains block -->

@@ -1,0 +1,92 @@
+
+[%
+# seqView.tt
+# jt6 20061101 WTSI
+# 
+# build a page for viewing the sequences selected from a species tree. This
+# template uses an ajax call to hand off to a controller that generates domain
+# graphics for each of the selected sequences.
+#
+# $Id: seqViewGraphic.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
+# page here ourselves
+META naked = 1;
+
+pageContent = BLOCK;
+
+title = "View selected sequences"
+-%]
+
+<h1>Pfam graphics for your selected sequences</h1>
+
+<p>
+  You selected <strong>[% selectedSeqAccs.size %]</strong> sequences.
+  [% IF selectedSeqAccs.size >= 10 %]
+    <span onclick="reveal( this, 'extraAccs', false, true )"
+          class="moreLink">Show all accessions...</span>
+  [% END %]
+</p>
+<div id="selectedAccs">
+[% IF selectedSeqAccs.size >= 10 %]
+  <p>
+    [% i = 0;
+    WHILE i < 10 %]
+      <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+        [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+    <span>&hellip;</span>
+  </p>
+  <div class="cleaner"><!-- empty --></div>
+      
+  <div id="extraAccs" style="display: none">
+    [% i = 10;
+    WHILE i < selectedSeqAccs.size %]
+    <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+      [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+  </div>
+  <div class="cleaner"><!-- empty --></div>
+[% ELSE %]
+  <p>
+  [% FOREACH seq IN selectedSeqAccs %]
+    <a href="[% base %]protein?acc=[% seq %]">[% seq %]</a>
+  [% END %]
+  </p>
+[% END %]  
+</div>
+
+<div id="stdgph">
+  <p class="loading">
+  Loading domain graphics...
+  </p>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  seqAccs = [
+  [%- FOREACH seqAcc IN selectedSeqAccs %]
+     "[% seqAcc %]",
+  [%- END %]
+  ];
+  new Ajax.Request( "[% base %]domaingraphics",
+                    { method:     'get', 
+                      parameters: { seqAccs:  seqAccs,
+                                    subTree:  1 },
+                      onSuccess:  function( oResponse ) {
+                                    $("stdgph").update( oResponse.responseText );
+                                  },
+                      onFailure:  function( oResponse ) {
+                                    $("stdgph").update( "Domain graphics loading failed." );
+                                  }
+                    } );
+  // ]]>
+</script>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]

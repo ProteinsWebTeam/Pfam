@@ -1,0 +1,38 @@
+
+[%
+# domainGraphics.tt
+# rdf 20060927 WTSI
+# 
+# build the domainGraphics block for the help pages
+#
+# $Id: domainGraphics.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+# some URI shortcuts
+imgs   = "${base}static/images/help";
+family = "${base}family";
+%]
+
+<!-- start domain graphics block -->
+
+<div class="block" id="helpDomainGraphicsBlock">
+  <div class="handle">
+    
+  </div>
+  <div class="blockContent">
+
+   
+  </div>
+</div>
+
+<!-- end domain graphics block -->

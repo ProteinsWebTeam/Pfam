@@ -1,0 +1,55 @@
+
+[%
+# getDomains.tt
+# rdf 2006/08/24 WTSI
+# 
+# block for the structural domains data
+#
+# $Id: getDomains.tt,v 1.2 2009-12-01 10:52:22 pg6 Exp $
+-%]
+
+<!-- start structural domains block -->
+
+<div class="block" id="structureDomainsBlock">
+  <div class="handle">
+    <h1>Structural Domain Comparison</h1>
+  </div>
+  <div class="blockContent">
+
+  	<!-- start of Structural Domains graphics div -->
+    <div id="getDomph">
+      <p class="loading">
+        Getting Data from CATH and SCOP...
+      </p>
+    </div>
+    <!-- end of graphics div -->
+
+  </div>
+
+
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // set up the post-load AJAX call
+//  Event.observe(
+//    window,
+//    "load",
+//    function() {
+//      new Ajax.Request( "[% base %]structure/structuraldomains",
+//                        { method:     'get',
+//                          parameters: { id:     '[% pdbId %]' },
+//                          onSuccess:  function( oResponse ) {
+//                                        ("getDomph").update( oResponse.responseText );
+//                                      },
+//                          onFailure:  function( oResponse ) {
+//                                        ("getDomph").update( "Graphics loading failed." );
+//                                      }
+//                        } );
+//    },
+//    false );
+
+    // ]]>
+  </script> 
+
+</div> <!-- end structural domains block -->

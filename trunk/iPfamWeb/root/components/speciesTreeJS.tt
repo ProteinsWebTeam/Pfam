@@ -1,0 +1,37 @@
+
+[%
+# speciesTreeJS.tt
+# jt6 20070626 WTSI
+#
+# build the javascript boiler plate that controls loading of the species
+# tree
+#
+# $Id: speciesTreeJS.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+%]
+
+<script type="text/javascript">
+  // <![CDATA[
+  [%# the parameters for the initial ajax call to build the tree -%]
+  loadOptions.st.params  = { acc: "[% acc %]" };
+  loadOptions.st.uri     = "[% base %]speciestree/interactive";
+
+  [%# the URL to visit when the user selects nodes and wants to view the 
+    # selected sequences as domain graphics -%]
+  var selectGraphicsURI  = "[% base %]speciestree/selected";
+
+  [%# the URL to visit when the user selects nodes and wants to view the 
+    # selected sequences as an alignment -%]
+  var selectAlignmentURI = "[% base %]family/alignment/builder";
+
+  [%# a hash that maps between the ID of the summary node and the TaskNode object -%]
+  nodeMapping = {};
+
+  [%# a hash that maps between the ID of the summary node and string of sequence 
+    # accessions -%]
+  nodeSequences = {};
+
+  [%# hide the controls until the tree is loaded, to avoid them overlaying the footer %]
+  $("treeToolsContent").hide();
+
+  // ]]>
+</script>

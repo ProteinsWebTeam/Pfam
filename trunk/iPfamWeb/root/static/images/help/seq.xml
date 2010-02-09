@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0">
+    <sequence length="400" display_data="test all drawing features" name="TestSeq"/>
+</image>

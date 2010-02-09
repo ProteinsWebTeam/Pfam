@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1">
+  <sequence name="repeat" length="200" >
+    <region start="82" end="118" label="HEAT" >
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="straight" rightStyle="straight"/>
+    </region>
+    <region start="159" end="195" label="HEAT" >
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="straight" rightStyle="straight"/>
+    </region>
+		<region start="120" end="155" label="HEAT" >
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="straight" rightStyle="straight"/>
+    </region>
+    <region start="2" end="34" label="HEAT" >
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="straight" rightStyle="straight"/>
+    </region>
+  </sequence>
+</image>

@@ -1,0 +1,179 @@
+
+[%
+# sequence.tt
+# jt6 20070419 WTSI
+# 
+# build the sequence search block
+#
+# $Id: sequence.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# using styles from the help pages, plus the common styles for forms
+requirements.css.push( "help.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<!-- start sequence search block -->
+
+<div class="block" id="searchSequenceBlock">
+  <div class="handle">
+    <h1>Sequence search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Find Pfam families within your sequence of interest.
+      <span class="moreLink" onclick="reveal(this,'seqNotes',false, true)">More...</span>
+    </p>
+
+    <div id="seqNotes" style="display: none">
+      <p>
+        Paste your plain sequence into the box below. 
+      </p>
+      <p>
+        You can choose to search using either or both of the HMMs that we 
+        produce for each family. Choose <em>Global</em> to search against the 
+        HMM that is optimised to look for full length families, or 
+        <em>Local</em> to search against the HMM that is optimised to find 
+        fragments of Pfam families in a sequence. Choose <em>Both</em> to 
+        search both HMMs, but please note that will increase the search time. 
+      </p>
+      <p>
+        The default threshold for the HMM search is the <em>gathering 
+          threshold</em> for each HMM but you can also give an 
+        <em>E-value</em>, which will be used as the search cut-off.
+      </p>
+      <p>
+        By default the search will only look for Pfam A families on your 
+        sequence but, by checking the box below, you can also search for 
+        Pfam Bs.
+      </p>
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF seqSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% seqSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="proteinSeqSearchForm"
+            action="[% base %]search/sequence"
+            enctype="multipart/form-data">
+
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
+        </div>
+
+        <div class="row">
+          <label for="seqSearchSeqOpts">Search strategy</label>
+          <select name="seqOpts" id="seqSearchSeqOpts">
+            <option value="both">Global &amp; local (merged)</option>
+            <option value="bothNoMerge">Global &amp; local (separately)</option>
+            <option value="ls" selected="selected">Global</option>
+            <option value="fs">Local</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <span class="label">Cut-off</span>
+          <label for="gaButton" class="subLabel">
+            <input class="radio"
+                   type="radio" 
+                   name="ga" 
+                   id="gaButton" 
+                   value="1" 
+                   checked="checked" 
+                   onclick="$('evalue').disable()" />
+            Gathering threshold
+          </label>
+        </div>
+
+        <div class="row">
+          <span class="label blankLabel">Cut-off</span>
+          <label for="eButton" class="subLabel">
+            <input class="radio"
+                   type="radio" 
+                   name="ga" 
+                   id="eButton" 
+                   value="0"
+                   onclick="$('evalue').enable()" />
+            Use E-value
+          </label>
+        </div>
+        
+        <div class="row">
+          <label for="evalue">E-value</label>
+          <input type="text" 
+                 size="10" 
+                 maxlength="10" 
+                 value="1.0" 
+                 name="evalue" 
+                 id="evalue" 
+                 disabled="disabled" />
+        </div>
+  
+        <div class="row">
+          <label for="searchBs">Search for PfamBs</label>
+          <input class="radio"
+                 type="checkbox" 
+                 name="searchBs" 
+                 id="searchBs" 
+                 value="1" />
+        </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" type="submit" name="submit" value="Submit"
+                 onclick="if( ! $('seq').present() ){return false}"/>
+          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+          <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
+        </div>
+
+      </form>
+  
+    </div>
+    
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
+TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
+SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
+LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
+GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
+FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
+CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
+QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
+YSENDISNSIKNGILYLEDPVNHEWYPHYFVLTSSKIYYSEETSSDQGNEDEEEPKEASG\n\
+STELHSNEKWFHGKLGAGRDGRHIAERLLTEYCIETGAPDGSFLVRESETFVGDYTLSFW\n\
+RNGKVQHCRIHSRQDAGTPKFFLTDNLVFDSLYDLITHYQQVPLRCNEFEMRLSEPVPQT\n\
+NAHESKEWYHASLTRAQAEHMLMRVPRDGAFLVRKRNEPNSYAISFRAEGKIKHCRVQQE\n\
+GQTVMLGNSEFDSLVDLISYYEKHPLYRKMKLRYPINEEALEKIGTAEPDYGALYEGRNP\n\
+GFYVEANPMPTFKCAVKALFDYKAQREDELTFTKSAIIQNVEKQEGGWWRGDYGGKKQLW\n\
+FPSNYVEEMVSPAALEPEREHLDENSPLGDLLRGVLDVPACQIAVRPEGKNNRLFVFSIS\n\
+MASVAHWSLDVAADSQEELQDWVKKIREVAQTADARLTEGKMMERRKKIALELSELVVYC\n\
+RPVPFDEEKIGTERACYRDMSSFPETKAEKYVNKAKGKKFLQYNRLQLSRIYPKGQRLDS\n\
+SNYDPLPMWICGSQLVALNFQTPDKPMQMNQALFLAGGHCGYVLQPSVMRDEAFDPFDKS\n\
+SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
+PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
+ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
+FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+  // ]]>
+</script>
+
+<!-- end sequence search block -->

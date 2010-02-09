@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
+    targetNamespace="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="0.1">
+    <xs:element name="image">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="sequence" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="format" default="png">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="png"/>
+                        <xs:enumeration value="jpg"/>
+                        <xs:enumeration value="gif"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="layout" default="continuous">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="continuous"/>
+                        <xs:enumeration value="dicontinuous"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="scale_x" type="xs:float" default="1.0"/>
+            <xs:attribute name="scale_y" type="xs:float" default="1.0"/>
+            
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="sequence">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="region" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="markup" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="length" type="xs:integer"/>
+            <xs:attribute name="name" type="xs:string"/>
+            <xs:attribute name="display_data" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="region">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="colour1" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="colour"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="colour2" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="colour"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:choice>
+                    <xs:element name="bigShape">
+                        <xs:complexType>
+                            <xs:attribute name="leftStyle" default="curved">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="straight"/>
+                                        <xs:enumeration value="jagged"/>
+                                        <xs:enumeration value="curved"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                            <xs:attribute name="rightStyle" default="curved">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="straight"/>
+                                        <xs:enumeration value="jagged"/>
+                                        <xs:enumeration value="curved"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                        </xs:complexType>
+                    </xs:element>
+                    <xs:element name="medShape"/>
+                    <xs:element name="smlShape"/>
+                </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="start" type="xs:integer"/>
+            <xs:attribute name="end" type="xs:integer"/>
+            <xs:attribute name="label" type="xs:string"/>
+            <xs:attribute name="link_URL" type="xs:anyURI"/>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="colour">
+        <xs:complexType>
+            <xs:choice>
+                <xs:element name="hex">
+                    <xs:complexType>
+                        <xs:attribute name="hexcode" type="xs:string"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="RGB">
+                    <xs:complexType>
+                        <xs:attribute name="R" type="xs:integer"/>
+                        <xs:attribute name="G" type="xs:integer"/>
+                        <xs:attribute name="B" type="xs:integer"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="markup">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="line" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="colour"/>
+                        </xs:sequence>
+                        <xs:attribute name="style" default="bold">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="bold"/>
+                                    <xs:enumeration value="dashed"/>
+				    <xs:enumeration value="mixed"/>	
+				    <xs:enumeration value="straight"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="head" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element ref="colour"/>
+                        </xs:sequence>
+                        <xs:attribute name="style" default="diamond">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:enumeration value="circle"/>
+                                    <xs:enumeration value="square"/>
+			            <xs:enumeration value="diamond"/>
+			            <xs:enumeration value="arrow"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="start" type="xs:integer"/>
+            <xs:attribute name="end" type="xs:integer"/>
+            <xs:attribute name="label" type="xs:string"/>    
+            <xs:attribute name="v_align" default="bottom">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="bottom"/>
+                        <xs:enumeration value="top"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

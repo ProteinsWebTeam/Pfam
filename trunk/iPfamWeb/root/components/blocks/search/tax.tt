@@ -1,0 +1,27 @@
+
+[%
+# tax.tt
+# jt6 20061108 WTSI
+# 
+# build the taxonomy search block
+#
+# $Id: tax.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+%]
+
+<!-- start taxonomy search block -->
+
+<div class="block" id="searchTaxBlock">
+  <div class="handle">
+    <h1>Taxonomy search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p class="small">
+      <strong>Please note:</strong>
+      Taxonomy searches are currently unavailable. We hope to reinstate them shortly.
+    </p>
+  
+  </div>
+</div>
+
+<!-- end taxonomy search block -->

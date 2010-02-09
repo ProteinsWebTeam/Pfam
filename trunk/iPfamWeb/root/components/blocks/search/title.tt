@@ -1,0 +1,15 @@
+
+[%#
+# title.tt
+# jt6 20061108 WTSI
+#
+# build the titles for the search pages
+#
+# $Id: title.tt,v 1.2 2009-12-02 13:07:23 pg6 Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h1>Search <em>i</em>Pfam</h1>
+[% ELSIF titleType == "page" %]
+Search Pfam
+[% END %]

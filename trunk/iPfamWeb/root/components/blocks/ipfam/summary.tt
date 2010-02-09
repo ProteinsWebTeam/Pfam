@@ -1,0 +1,34 @@
+
+[%
+# summary.tt
+# jt6 20060424 WTSI
+# 
+# build the summary block for the iPfam pages
+#
+# $Id: summary.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "ipfam.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start ipfam summary block -->
+
+<div class="block" id="ipfamSummaryBlock">
+  <div class="handle">
+    <h1>Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Interactions...</h3>
+
+  </div>
+
+</div>
+
+<!-- end ipfam summary block -->

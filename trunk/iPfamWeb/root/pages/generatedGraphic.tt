@@ -1,0 +1,94 @@
+
+[%
+# generatedGraphic.tt
+# jt6 20070402 WTSI
+#
+# show the generated graphic for an uploaded XML file
+#
+# $Id: generatedGraphic.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+META title = "Generated Pfam graphic";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "graphicTools.css" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Your domain images</h1>
+
+<p>
+  This is the Pfam-style domain graphic described by the uploaded XML.
+  Beneath the graphic is the XML that was used to generate the image itself.    
+</p>
+ 
+<form method="post" 
+      action="[% c.uri_for( "/renderXML" ) %]" 
+      enctype="multipart/form-data">
+  <div id="form">
+    <strong>Generate another: </strong>
+  	<label for="uploadField">Upload your XML file:</label>
+  	<input type="file" 
+           name="XMLupload" 
+           tabindex="1"  
+           size="30" 
+           id="uploadField" />
+    <label>
+  	  <input type="checkbox" 
+             name="image_only" 
+             value="1" 
+             tabindex="2" />Image only
+    </label>
+  	<input type="submit" 
+           tabindex="3" 
+           name="upload" 
+           value="Upload" 
+           class="button" />
+    <input type="reset" 
+           tabindex="4" 
+           name="Reset" 
+           value="Reset" 
+           class="button" />
+  </div>
+</form>
+
+<script type="text/javascript">
+  // <![CDATA[
+  $("uploadField").focus();
+  // ]]>
+</script>
+
+<div id="generatedGraphic" class="graphicItem">
+
+  [% IF pfamseq.description %]
+  <p>[% pfamseq.description %]</p>
+  [% END %]
+  
+  <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/>
+  <div class="cleaner"><!-- empty --></div>        
+
+  <map id="singleImageMap">
+    [% image.image_map %]
+  </map>
+
+</div>
+
+<div id="generatedXml" class="graphicItem">
+
+  <span class="link" onclick="reveal( this, 'xmlFragment', true )">Hide XML</span>
+
+  <div id="xmlFragment">
+    <pre>
+[% xml | html %]
+    </pre>
+  </div>
+
+</div>

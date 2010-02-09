@@ -1,0 +1,61 @@
+[%
+# structure.tt
+# rdf 20070817 WTSI
+#
+# Get a list of the proteome structures;
+#
+# $Id: structure.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+RETURN UNLESS summaryData.numStructures;
+-%]
+
+<!-- start structure block -->
+
+<div class="block" id="proteomeStrucBlock">
+  <div class="handle">
+    <h1>Structures</h1>
+  </div>
+  <div class="blockContent">  
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      use the mapping between <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+      systems from the <a class="ext" 
+        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+      Pfam domains onto UniProt three-dimensional structures. The table below
+      shows the structures on which the <strong>x[% pfam.pfamA_id %]</strong>
+      domain has been found. 
+    </p>
+
+    <div id="structureTableDiv">
+      <p class="loading">Loading structure mapping table...</p>
+    </div>
+    
+    <script type="text/javascript">
+      // <![CDATA[
+      Event.observe(
+        window,
+        "load",
+        function() {
+          new Ajax.Request( "[% base %]proteome/structures",
+                            { method: 'get',
+                              evalScripts: true,
+                              parameters: { taxId: "[% taxId %]" },
+                              onSuccess:  function( oResponse ) {
+                                            $("structureTableDiv").update( oResponse.responseText );
+                                          },
+                              onFailure:  function( oResponse ) {
+                                            $("structureTableDiv").update( "There was a problem loading the structure mapping table." );
+                                          }
+                            }
+                          );
+        },
+        false );
+      // ]]>
+    </script>
+
+  </div>
+</div>
+
+<!-- end structure block -->

@@ -1,0 +1,843 @@
+
+/* pfam.css
+   jt6 20060406 WTSI
+
+   Stylesheet with generally applicable rules for the whole site.
+
+   $Id: pfam.css,v 1.5 2009-10-16 13:30:13 pg6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* global or widely used classes */
+
+body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: small;
+  color: #404040;
+  background: #FFF;
+  margin: 0;
+  padding: 0;
+}
+
+.cleaner {
+  clear: both;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+}
+
+ul, dl, ol {
+  position: relative;
+}
+
+.ext {
+  background: url(/static/images/external.gif) no-repeat center right;
+  padding-right: 12px;
+}
+
+a:link,
+a:visited,
+a:focus,
+a:active {
+  color: #063;
+}
+a:hover {
+  color: #666;
+}
+
+img {
+  border: none;
+}
+
+img.info {
+  vertical-align: middle;
+}
+
+.odd {
+  background: #f3f3f3;
+}
+
+.even {
+  background: #e7e7e7;
+}
+
+.small {
+  font-size: smaller;
+}
+
+h1 {
+  font-size: large;
+  margin: 0.8em 0;
+}
+h2 {
+  font-size: medium;
+  margin: 0.5em 0;
+}
+h3 {
+  font-size: small;
+  margin: 0.4em 0;
+}
+h4, h5, h6 {
+  font-size: small;
+  margin: 0.2em 0;
+}
+
+/* ========================================
+ * header classes
+ *
+ * the header is laid out using "The Holy Grail" method from ALA, with
+ * IE7 fixes from http://www.gerd-riesselmann.net/development/the-holy-grail-css-layout-fix-for-ie7
+ */
+
+#header {
+  padding: 0 250px 0 250px;
+  min-width: 400px;
+}
+
+#header .column {
+  position: relative;
+  float: left;
+}
+
+#navbar { /* centre */
+  width: 100%;
+}
+
+#siteLogoHolder { /* left */
+  width: 250px;
+  margin-left: -100%;
+  left: 250px;
+  padding: 10px 0 0 10px;
+}
+
+#pfamLogoHolder { /* right */
+  width: 245px;
+  margin-right: -245px;
+  padding: 10px 0 0 0;
+}
+
+#header > #siteLogoHolder {
+  left: -250px;
+}
+
+/* we need the right "column" to be the same width as the left in order to 
+ * centre the navbar, but then we need to push the contents of the right column
+ * back right to account for that */
+#pfamLogoHolder a,
+#pfamLogoHolder #searchBox {
+  margin-left: 30px;
+}
+
+#siteLogo {
+  background-image: url(/static/images/sanger_logo_light.png);
+/*  background-image: url(jfrc_gray_logo.gif); */
+  background-repeat: no-repeat;
+  width: 218px;
+  height: 70px;
+}
+
+#pfamLogo {
+  background: #FFF url(/static/images/ipfam_logo.gif) no-repeat;
+  width: 212px;
+  height: 50px;
+}
+
+/* tweak the site-wide search box so that it fits nicely under the Pfam logo */
+#siteSearchField {
+  width: 138px;
+  margin-left: 34px;
+}
+
+/* navbar styles */
+#navbar {
+  font-size: 0.9em;
+}
+
+#navbar ul {
+  margin: 40px 0 0 0;
+  padding: 0;
+  text-align: center;
+}
+
+#navbar li { 
+  display: inline;
+  letter-spacing: 2px;
+}
+
+#navbar span,
+#navbar a {
+  font-weight: bold;
+}
+
+#navbar a { 
+  text-decoration: none;
+}
+
+#navbar a.here { 
+  color: #666;
+}
+
+/* a little warning message */
+
+#jsWarning {
+  border: 2px solid #600;
+  background: #900;
+  color: #FFF;
+  margin: 0.4em auto;
+  width: 50%;
+  padding: 0.4em;
+}
+
+/* the "add annotation" button image */
+img.addAnnotation {
+	width: 100px;
+  height: 24px;
+	vertical-align: middle;
+  padding-bottom: 3px;
+	border-style: none;
+}
+
+/* widgets in the jump box */
+
+.entryField {
+  border: 1px inset #063;
+  background: #eeffee url(/static/images/search_gradient.png) repeat-x top left;
+  margin: 1px 0;
+  padding: 2px;
+  color: #063;
+  font-weight: bold;
+  font-size: x-small;
+  float: left;
+}
+.disabledEntryField {
+  background-color: #e7e7e7;
+  color: #666;
+}
+
+/* jump box styles */
+
+/* set the size of the field explicitly for the jumpBox */
+#jumpBox .entryField {
+  width: 110px; /* set to 145px for the right sidebar on the index page */
+}
+
+#jumpBox .error {
+  font-size: smaller;
+  font-weight: bold;
+  color: #600;
+}
+
+.glassButton {
+  border: none;
+  vertical-align: middle;
+  margin: 1px;
+  cursor: pointer;
+  float: left;
+  font-size: 1px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: right;
+}
+
+.goButton {
+  width: 29px;
+  height: 20px;
+  background-image: url(/static/images/go.png);
+}
+.disabledGoButton {
+  width: 29px;
+  height: 20px;
+  background-image: url(/static/images/disabledGo.png);
+}
+
+.exampleButton {
+  width: 66px;
+  height: 20px;
+  background-image: url(/static/images/exampleButton.png);  
+}
+
+/* ajax loading image */
+.loading {
+  background-image: url(/static/images/loading.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+  padding-left: 16px;
+}
+
+/* ---------------------------------------- */
+/* search errors page */
+
+.tips {
+	margin: 0.2em auto;
+  width: 60em;
+}
+
+.tips h2 {
+	margin-top: 1em;
+}
+
+.tips dt {
+  float: left;
+  font-weight: bold;
+	text-align: right;
+  width: 15em;
+}
+
+.tips dd {
+  margin-left: 16em;
+	margin-bottom: 0.4em;
+}
+
+.tips p.back {
+  text-align: center;
+	font-size: large;
+}
+
+.tips p.back a {
+	font-size: large;
+}
+
+/* ======================================== */
+/* the footer. We use a wrapper div (#contentContainer) for the content
+   when the page contains tabs, so add a separate style for that which 
+   adds the background image, etc. */
+
+#siteFooter {
+  margin: 0.4em 0 0 0;
+  text-align: center;
+  font-size: x-small;
+}
+
+#siteFooter a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#siteFooter p {
+  margin: 0.2em;
+}
+
+/* the footer for full page templates */
+#footer span {
+  margin: 0;
+  padding: 0 0.4em 0 0;
+}
+
+#siteFooter p.spaced,
+#footer p.spaced {
+  letter-spacing: 3px;  
+}
+
+/* the footer for tab-layout templates */
+#contentContainer #footer {
+  clear: both;
+  position: relative;
+  width: 85%;
+  float: right;
+  border: none;
+  border-top: 1px solid #063;
+  height: 4px;
+}
+
+/* ======================================== */
+/* error page styles */
+
+div.errorReport {
+  width: 50%;
+  margin: 1em auto;
+  background: #EEE;
+  border: 1px solid #CCC;
+}
+
+div.errorReport p {
+  padding: 0.5em;
+  margin: 0;
+}
+
+div.errorReport p.message {
+  font-weight: bold;
+  color: #833;
+  margin-left: 2em;
+}
+
+/* ---------------------------------------- */
+/* "details" table. Used in various places */
+
+table.details {  
+  margin: 0;
+  padding: 0;
+}
+
+table.details thead tr {
+  background: #BBB;
+}
+
+table.details th {
+  padding: 0.2em;
+/*  border: 2px solid #FFF; */
+}
+
+table.details td {
+  vertical-align: middle;
+  padding: 0.2em;
+  text-align: center;
+}
+
+table.details td.label {
+  width: 14em;
+  padding: 0.2em;
+  background: #CCC;
+  text-align: center;
+  font-weight: bold;
+}
+
+table.details tr.newRow td {
+  margin-top: 2px;
+  border-top: 1px solid #BBB;
+}
+
+table.details tr {
+  background: #DDD;
+}
+
+td.stripeHover {
+  background: #C1F0C1;
+}
+
+table.details tr.odd {
+  background: #CCC;
+}
+
+table.details tr.even {
+  background: #DDD;
+}
+
+/* these two rules are for the details table when it is split into
+   two separate columns */
+div.floatLeft {
+  float: left;
+  margin-right: 0.4em;
+}
+
+tr.continuation {
+  font-size: smaller;
+  background: none;
+}
+
+td.left {
+  text-align: left !important;
+}
+
+/* fix the width of some columns */
+table.details td.fixed {
+  width: 10em;
+}
+
+/* different flavours of details table... stop me when it's getting ridiculous */
+table.links td {
+  width: 30em;
+  text-align: left;
+}
+
+/* ======================================== */
+/* tool pages */
+
+body.tool {
+  padding: 80px 2px 2px 2px;
+  background: #FFF url(/static/images/about_back.png) left top no-repeat; 
+  color: #15538e;
+}
+
+a.closer {
+  background: url(/static/images/close.gif) no-repeat left;
+  padding-left: 11px;
+  margin: 0.2em;
+}
+
+body.tool h1 {
+  margin: 0;
+  padding: 0.4em 0;
+}
+
+/* ======================================== */
+/* search results */
+
+/* affects the whole page */
+
+#results tr.odd {
+    background: #CCC;
+}
+
+#results tr.even {
+    background: #DDD;
+}
+
+.sortarrow {
+  width: 11px;
+  height:  15px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  margin: 0 2px;
+  border-style: none;
+}
+
+.sortarrow.updown {
+  background-image: url(/static/images/updown.gif);
+}
+
+.sortarrow.down {
+  background-image: url(/static/images/downsimple.gif);
+}
+
+.sortarrow.up {
+  background-image: url(/static/images/upsimple.gif);
+}
+
+/* this is the auto-generated link for sorting the column */
+a.sortheader {
+  text-decoration: none;
+  display: block;
+}
+
+/* affects the key */
+
+#key {
+  padding: 4px;
+  margin: 8px 8px;
+  border: 1px solid #CCC;
+  background-color: #EEE;
+  text-align: center;
+}
+
+#key h2 {
+  color: #063;
+  text-align: left;
+  margin: 0.2em auto;
+  padding: 0;
+  font-size: large;
+  font-weight: bold;
+}
+
+#key p {
+  margin: 0.4em 0;
+  text-align: left;
+}
+
+/* the top and bottom of the colour gradient in the functional similarity
+   search results */
+#key .gradTop {
+  font-weight: bold;
+  color: #FFF;
+  background: #008000;
+  padding: 0 0.2em;
+}
+
+#key .gradBot {
+  font-weight: bold;
+  color: #FFF;
+  background: #C00000;  
+  padding: 0 0.2em;
+}
+
+/* affects the key table */
+
+#keyTable {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  width: 50%;
+  margin-left: 25%;
+  margin-right: 25%;
+}
+
+#keyTable thead {
+  background: #AAA ! important;
+  color: #FFF;
+  font-weight: bold;
+}
+
+/* affects the results table */
+
+.resultTable {
+  clear: both;
+/*   border: 1px solid #000070; */
+    margin: 0 auto;
+}
+
+.resultTable thead tr {
+   background: #063;
+   color: #FFF;
+   font-weight: bold;
+}
+.resultTable thead a {
+   color: #FFF;
+   font-weight: bold;
+}
+
+.resultTable .rowNum {
+  display: none;
+}
+
+.resultTable p {
+  display: none;
+}
+
+.resultTable .fixedWidth {
+  width: 6em;
+}
+
+.resultTable .desc {
+  text-align: left;
+}
+
+.resultTable th {
+  padding: 3px;
+}
+
+.resultTable td {
+  padding: 3px;
+  text-align: center;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url(/static/images/blank_tick.gif);
+}
+
+.resultTable td.ticked {
+  background-image: url(/static/images/tick.gif);
+}
+
+#results span.highlight,
+.resultTable tr.highlight {
+  background: #C1F0C1; /* #CBD */
+}
+
+/* ======================================== */
+/* rules that are common to several blocks */
+
+div.domain {
+  padding: 6px;
+}
+
+div.pdbImageFragment {
+  float: right;
+  margin: 0.2em;
+  padding: 0.3em;
+  width: 200px;
+  font-size: 0.8em;
+  overflow: hidden;
+  border: 1px solid #063;
+  background: #EFE;
+}
+
+div.pdbImageFragment h1 {
+  font-size: 1em;
+  text-decoration: underline;
+}
+
+img.pdbImage {
+  width: 200px;
+  height: 200px;
+}
+
+.pdbTitle  {
+  display: inline;
+  color: #063;
+  font-weight: bold;
+}
+
+hr {
+  background-color: #e7e7e7;
+  border: none;
+  height: 1px;
+  width: 60%;
+  margin: 2em auto;
+}
+
+hr.short {
+  display: none;
+}
+
+/* ---------------------------------------- */
+/* pfam graphics */
+
+div.graphicRow {
+  clear: both;
+  padding: 0.2em;
+}
+
+span.graphicLabel {
+  width: 24em;
+  margin: 0;
+  padding: 0;
+}
+
+div.graphicRow p,
+div.graphicRow h3 {
+  margin: 0.2em 0;
+  padding: 0;
+}
+
+img.graphicImage {
+  margin: 0.2em 0;
+  padding: 0;
+  float: left;
+}
+
+div.allSequences {
+  overflow: auto;
+  border: 1px solid #AAA;
+  margin: 0.6em;
+  max-height: 250px;
+}
+
+div.allSequences .odd {
+  background: #DED;
+}
+
+div.allSequences .even {
+  background: #CDC;
+}
+
+#selectedAccs {
+  width: 90%;
+  margin: 0 auto;
+}
+
+#selectedAccs a,
+#selectedAccs span {
+  width: 6em;
+  float: left;
+  margin-bottom: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* a list of items */
+
+span.listItem {
+  float: left;
+  padding-left: 0.8em;
+  width: 12em;
+}
+
+/* ---------------------------------------- */
+/* mimic a link using a span... */
+
+.link {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #063;
+}
+
+.moreLink {
+  cursor: pointer;
+  text-decoration: none;
+  color: #063;
+  font-weight: bold;
+}
+
+/* ---------------------------------------- */
+/* tooltip styles */
+
+.tooltip {
+  background: #cbdced;
+  border: 1px solid #063;
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+.tooltip .title {
+  background: #063;
+  color: #cbdced;
+  font-weight: bold;
+  padding: 0.1em;
+}
+
+.tooltip .content {
+  color: #063;
+  padding: 0.1em;
+}
+
+/* ---------------------------------------- */
+/* format the mirrors list and citation */
+
+/* the citation on the index page */
+#citation {
+  width: 100%;
+}
+
+#citation div.citation span.authors {
+  font-size: smaller ! important;
+}
+
+/* all other citations */
+
+div.citation {
+  padding-bottom: 0.8em;
+}
+
+div.citation span.title {
+  font-style: italic;
+}
+div.citation span.ref {
+  display: block;  
+  padding: 0.2em 0;
+}
+div.citation span.jrnl {
+  font-weight: bold;
+}
+
+/* mirrors list */
+
+ul.mirrors {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.mirrors li {
+  padding: 0.2em 0 ! important;
+}
+
+.flag {
+  padding-left: 14px;
+}
+
+.mirror {
+  padding-left: 14px;
+  background-position: left;
+  background-repeat: no-repeat;
+}
+
+/* the national flags */
+.us {
+  background-image: url(/static/images/flags/american_flag.gif);
+}
+.se {
+  background-image: url(/static/images/flags/swedish_flag.gif);
+}
+.kr {
+  background-image: url(/static/images/flags/south_korea.gif);
+}
+.fr {
+  background-image: url(/static/images/flags/french_flag.gif);
+}
+
+/* ======================================== */

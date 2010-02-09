@@ -1,0 +1,97 @@
+[%
+# graph_map.tt
+# jt6 20080206 WTSI
+# 
+# show the image map for the interaction graph
+#
+# $Id: graph_map.tt,v 1.9 2009-10-02 12:50:53 pg6 Exp $
+
+META naked = 1;
+
+USE dumper;
+
+#-------------------------------------------------------------------------------
+
+# when running on the dev/live servers, we need to add the map tags
+# for ourselves, because the archaic version of graphviz on the web servers
+# does not do it for us:
+# <map id="interactions_graph" name="interactions_graph">{% map %}</map
+%]
+
+<div id="image_map">	
+	<img id="image_map_image"
+       src="[% image_uri %]" 
+       alt="Interaction graph for Pfam family"
+       usemap="#interaction_graph" />
+  [% map -%]
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  // walk down the list of <area>s and add a listener to each one, which will
+  // call "nextMap" when clicked. To avoid the same click sending the browser
+  // off to that URL, we remove the contents of the href tag too
+  
+	$("interaction_graph")
+    .childElements()
+    .each( 
+      function( area ) {
+        Event.observe( area, 'click', nextMap.bindAsEventListener(area) );
+        area.href = "#";				      
+      }
+    );
+
+  // caching the image is the biggest problem,inorder to avoid it, the url is appended with 
+	// an extra argument called nocache with the current date and time, so that the browser 
+	// thinks it as a different image and requests everytime when a node is selected.
+  
+  var url = $( 'image_map_image' ).getAttribute( 'src') + '&nocache=' + new Date().getTime();
+  // console.debug( "the src attribute with time is "+url );
+  
+  $('image_map_image').setAttribute( 'src', url );
+  	
+	$("image_map_image").observe("load",function() {
+    
+		// console.debug( "image map image is loaded" );    
+		
+		// i need the mapping between the names and the datasource, so that i can create the link
+		// in tooltips based on the source
+		var ligSource = $H( {
+			[% FOREACH pair IN ligSource.pairs; 
+			   "'";pair.key;"': '";pair.value;"'";
+				 ', ' UNLESS loop.last;			
+      END %]     
+		} );
+		
+//		var dbmapping = new Hash();
+//		[% FOREACH pair IN mapping.pairs %]
+//     var tkey = '[% pair.key %]';
+//		 var tvalue = '[% pair.value %]';
+//		 alert( "the tkey si "+ tkey +" tvalue is "+ tvalue );
+//		 dbmapping.set( '[% pair.key %]', '[% pair.value %]');
+//     //alert( "'[% pair.key %]', '[% pair.value %]' " );
+//    [% END %]
+//    
+//		alert( "the dbmapping here is "+dbmapping.inspect() );
+		
+		addTooltips( ligSource );
+    
+//		addTooltips( );
+		var width =  $('image_map_image').width;
+		var height =  $('image_map_image').height;
+	  
+		// console.debug("The size of the image is "+ width+'|'+height );
+			
+		drawOverview( url, width, height );   
+    $( 'image_map_image' ).observe( 'mousemove', mouseMoveListener );	
+  } );	
+  
+	
+	function nextMap( e ) {
+ 
+    getMap( Event.element( e ).title );
+    
+  }
+	
+  // ]]>
+</script>

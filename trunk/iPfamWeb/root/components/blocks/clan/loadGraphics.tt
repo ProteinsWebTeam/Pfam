@@ -1,0 +1,83 @@
+[%
+# loadGraphics.tt
+# jt6 20060718 WTSI
+#
+# add post-loaded domain graphics for the clan domain organisation block
+#
+# $Id: loadGraphics.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+# tell the wrapper not to add a header or a footer
+META naked = 1;
+
+USE String
+-%]
+
+[%- FOREACH image IN imageset.each_image;
+  CALL image.print_image;
+  id = image.image_name;
+
+  archString = String.new;
+  archs = seqInfo.$id.arch 
+  prev = ""
+  i = 1;
+  USE archIter = iterator( archs );
+
+  FOREACH arch IN archIter;
+    IF arch != prev;
+
+      IF i > 1;
+        IF prev != "";
+          CALL archString.append( prev, " x $i, " );
+        END;
+      ELSE;
+        IF prev != "";
+          CALL archString.append( prev, ", " );
+        END;
+      END; # of IF i>1
+      prev = arch;
+      i = 1;
+
+    ELSE;
+      i = i + 1;
+    END; # of IF arch...
+
+    IF archIter.last;
+      IF i > 1;
+        CALL archString.append( arch, " x $i, " );
+      ELSE;
+        CALL archString.append( arch, ", " );
+      END;
+    END;
+
+  END; # of FOREACH arch in architer
+
+  CALL archString.trim.chop; %]
+
+  <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+
+    <h3>
+      There are [% seqInfo.$id.num %] sequences with the following 
+      [% archString.search( "," ) ? "architectures" : "architecture" %]: 
+      [% archString %]
+    </h3>
+
+    <span class="graphicLabel">
+	  <a href="[% c.uri_for( "/protein", id=image.image_name ) %]">
+        [% image.image_name %]</a>
+      [% image.image_info %]
+      ([% image.length / image.scale_x %] residues)
+    </span>
+
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#clanGraphicsMap[% loop.index %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="clanGraphicsMap[% loop.index %]">
+      [% image.image_map %]
+    </map>
+
+  </div>
+
+[%- END # of FOREACH image -%]

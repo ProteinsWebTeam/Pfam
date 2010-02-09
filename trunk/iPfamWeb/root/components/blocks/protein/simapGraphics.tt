@@ -1,0 +1,55 @@
+[%
+# simapGraphics.tt
+# jt6 20060503 WTSI
+#
+# contents of the protein graphics block. Called using an ajax request
+# via Protein::graphics and stuffed into a div in the existing page
+#
+# $Id: simapGraphics.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+META naked = 1
+%]
+
+<!-- start of features map -->
+
+<div id="simap">
+
+[% imageArray = imageset.each_image.list %]
+[% firstImage = imageArray.shift %]
+[% CALL firstImage.print_image %]
+
+<img class="domainImage"
+         src="[% constants.tmp %]/[% firstImage.file_location %]"
+         usemap="#firstGraphicsMap"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="firstGraphicsMap">
+      [% firstImage.image_map %]
+    </map>	
+[% FOREACH graph IN imageset.each_graph %]
+  [% CALL graph.print_image %]	
+  <img class="domainImage" src="[% constants.tmp %]/[% graph.file_location %]" alt=""/><br/>	
+[% END %]
+
+
+[% oe = 0 %]
+[% FOREACH image IN imageArray %]
+  [% CALL image.print_image %]
+
+     <img class="domainImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#graphicsMap[% oe %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="graphicsMap[% oe %]">
+      [% image.image_map %]
+    </map>		
+    [% oe = oe + 1 %]
+[% END %]
+
+
+</div>
+
+<!-- end of features map -->

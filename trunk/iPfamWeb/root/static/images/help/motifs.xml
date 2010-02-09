@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1">
+  <sequence name="Motifs" length="200">
+		<region start="1" end="27" label="Signal Peptide" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml">
+      <colour1>
+        <colour>
+          <hex hexcode="FF9C00"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="39" end="47" label="Low Complexity" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml">
+      <colour1>
+        <colour>
+          <hex hexcode="00FFFF"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="67" end="76" label="Low Complexity" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml">
+      <colour1>
+        <colour>
+          <hex hexcode="00FFFF"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="103" end="123" label="Coiled Coil">
+      <colour1>
+        <colour>
+          <hex hexcode="9CFF00"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="155" end="177" label="Transmembrane" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml">
+      <colour1>
+        <colour>
+          <hex hexcode="FF0000"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="180" end="195" label="Transmembrane" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml">
+      <colour1>
+        <colour>
+          <hex hexcode="FF0000"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+  </sequence>
+</image>

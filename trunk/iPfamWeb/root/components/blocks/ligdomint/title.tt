@@ -1,0 +1,22 @@
+
+[%#
+# title.tt
+# pg6 20090903
+#
+# builds the title for the domian-domain interaction pages
+# 
+# this one template should be able to generate two titles: the first ("tab") should
+# be the one that appears inside the page, as the label for the "tab" that forms
+# the page. This one can (and probably should) include HTML. The second title is the
+# one that goes into the header of the HTML and will appear as the title for the 
+# browser window or browser tab. This one shouldn't contain any HTML, and it will
+# be prefixed with "Pfam: " in the page wrapper template.
+#
+# $Id: title.tt,v 1.1 2009-10-16 13:36:41 pg6 Exp $   
+%]
+
+[% IF titleType == 'tab' %]
+<h1>[% from.type %]-[% to.type %] Interaction: [% from.from %]-[% to.to %]</h1>
+[% ELSIF pageType == 'page' %]
+[% from.type %]-[% to.type %] Interaction: [% from.from %]-[% to.to %]
+[% END  %]

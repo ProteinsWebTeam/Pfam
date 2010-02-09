@@ -1,0 +1,132 @@
+
+[%
+# loadGraphics.tt
+# jt6 20060503 WTSI
+#
+# contents of the protein graphics block. Called using an ajax request
+# via Protein::Graphics and stuffed into a div in the existing page
+#
+# $Id: loadGraphics.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+META naked = 1;
+-%]
+
+<!-- start of features map -->
+
+<div id="featuresMap">
+
+  <div id="overlay" style="display: none"></div>
+  <div id="cursor"></div>
+  
+  <form onsubmit="updateSubmitter();return false" 
+        method="post" 
+        action="[% base %]protein/graphics">    
+    <div>
+      <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+      <input type="hidden" name="reloadObjects" value="1" />
+    </div>
+  
+    [% i = 0;
+    FOREACH section IN sections %]
+
+      <table class="section" summary="Features">
+    	  <caption>
+    	    <p align="left">
+            [% section.system %] [% section.type %] ([% section.objects.size %])
+            <span class="link" 
+                  onclick="reveal(this,'checkboxes_[% section.id %]',false)">Show</span>
+          </p>
+    	  </caption>
+  	  
+        <!-- Object selection checkboxes -->
+        <tbody>
+          <tr>
+            <td colspan="2">
+        	    <div id="checkboxes_[% section.id %]" class="dasObjectCheckboxes" style="display: none;">
+              [% FOREACH subsection IN section.objects %]
+                <div class="source">
+            		  <input id="select_[% subsection.id %]" name="[% section.type %]//[% section.system %]//DO_[% subsection.object %]" type="checkbox" [% IF subsection.rows.size %]checked="1"[% END %] />
+                  <span class="checkboxLabel">[% subsection.object %]</span>
+       	        </div>
+              [% END %]
+          		  <input type="submit" value="Update" style="float: left; clear: left;"/>
+        		  <div class="cleaner">&nbsp;</div>
+      	    </div>
+        	  </td>
+          </tr>
+      	  
+      	  <!-- Images -->
+          [% FOREACH subsection IN section.objects;
+    	    IF subsection.rows.size %]
+    		    <tr>
+    		      <td colspan="2">
+    		        <p class="sectionLabel">
+    		          [% subsection.object %]
+                </p>
+              </td>
+            </tr>
+      			[% FOREACH row IN subsection.rows %]
+    			  <tr>
+    			    <td class="graphicsLabel">
+    			      <p class="featuresLabel" id="featuresLabel[% i %]">[% row.server %]</p>
+              </td>
+      				<td class="graphics">
+                <map name="featuresMap[% i %]" id="featuresMap[% i %]">
+                  [% row.map %]
+                </map>
+      				  <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% row.image %]" usemap="#featuresMap[% i %]" alt="" />
+              </td>
+    			  </tr>
+    			  [% i = i + 1;
+      			END;
+      		END;
+        END %]
+  
+        </tbody>
+    	</table>
+    [% END; # of FOREACH section %]
+  	
+    <div class="cleaner">&nbsp;</div>
+  
+  </form>
+
+</div>[%# end of "featuresMap" %]
+
+<div id="status">&nbsp;</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  // a function to submit the form and update the graphics
+  updateSubmitter = function() {
+    new Ajax.Updater( 'graphicsHolder', 
+                      '[% base %]protein/graphics',
+                      { parameters:   this.serialize(true),
+                        asynchronous: 1,
+                        evalScripts:  true
+                      }
+                    );
+  }
+
+  // move the cursor when the mouse moves and re-initialise it on window resizes 
+  Event.observe( "featuresMap", "mousemove", moveCursor );
+  Event.observe( window, "resize", initialiseCursor );
+  
+  // set the cursor as "uninitialised" when this page loads, so that it gets
+  // initialised after an update
+  cursorInitialised = false;
+
+  // add mouseover listeners to all features
+  var areas = $("featuresMap").getElementsByTagName( "area" );
+  $A( areas ).each( function( area ) {
+	  Event.observe( area, "mouseover", showOverlay );
+    }
+  );
+  
+  // move the overlay div according to mouseovers on features
+  Event.observe( "overlay", "mousemove", moveCursor );
+  Event.observe( "overlay", "mouseout",  removeOverlay ); 
+  Event.observe( "overlay", "click",     openOverlayURL );
+  // ]]>
+</script>
+
+<!-- end of features map -->

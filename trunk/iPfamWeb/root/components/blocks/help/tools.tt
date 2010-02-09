@@ -1,0 +1,27 @@
+[%
+# tools.tt
+# rdf 20060926 WTSI
+# 
+# build the scores block for the help pages
+#
+# $Id: tools.tt,v 1.2 2009-10-16 13:30:13 pg6 Exp $
+
+USE dumper;
+
+# figure out the location of the schema document
+controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
+schema = c.config.$controller.schemaURI;
+
+%]
+
+<!-- start the Tools block -->
+<div class="block" id="helpToolsBlock">
+  <div class="handle">
+    <h1>Guide to <em>i</em>Pfam tools and services</h1>
+  </div>
+  <div class="blockContent">
+
+   
+  </div>
+</div>
+

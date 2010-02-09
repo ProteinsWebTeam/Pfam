@@ -1,0 +1,38 @@
+[%
+# sequence.tt
+# jt6 20060706 WTSI
+# 
+# build the sequence block for structures
+#
+# $Id: sequence.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+# there will be no domain graphics if the mapping between structure and 
+# pfam exists
+RETURN UNLESS mapping.size;
+
+%]
+
+<!-- start sequence block -->
+
+<div class="block" id="structureSequenceBlock">
+  <div class="handle">
+    <h1>Domain organisation</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Many structures in the PDB are linked to one or more UniProt protein 
+      sequence entries. This section shows the Pfam domains which are found 
+      on the UniProt sequence(s) referred to by this structure.
+    </p>
+    
+  	<div id="structureGraphicsHolder">
+      <p id="sgph" class="loading">
+        Loading domain graphics...
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- end sequence block -->

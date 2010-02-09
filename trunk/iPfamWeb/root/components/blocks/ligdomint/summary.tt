@@ -1,0 +1,3 @@
+<div class="block" id="ligdomintSummaryBlock">
+  This is the summary page for the [% from.from %] interaction.
+</div>

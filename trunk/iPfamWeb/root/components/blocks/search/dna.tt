@@ -1,0 +1,148 @@
+
+[%
+# dna.tt
+# jt6 20061108 WTSI
+# 
+# build the dna search block
+#
+# $Id: dna.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# using styles from the help pages, plus the common styles for forms
+requirements.css.push( "help.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<!-- start dna search block -->
+
+<div class="block" id="searchDnaBlock">
+  <div class="handle">
+    <h1>DNA search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Search for Pfam domains on a DNA sequence.
+      <span onclick="reveal(this,'dnaNotes',false, true)"
+            class="moreLink">More...</span>
+    </p>    
+
+    <div id="dnaNotes" style="display: none">
+      <p>
+        This tool allows you to search DNA sequences of upto 80kb against Pfam
+        HMMs, using the 
+        <a href="http://www.ebi.ac.uk/wise2/">Wise2</a> package. You can see
+        more information about Wise2 at the 
+        <a href="http://www.ebi.ac.uk/Wise2/doc_wise2.html">homepage</a>.
+      </p>
+      <p>
+        Because these searches can be time consuming, we run the searches 
+        offline and mail the results to you. Please ensure that the email 
+        address that you enter is correct, as no checking is performed before 
+        the search is run.
+      </p>
+      <hr />
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF dnaSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% dnaSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="dnaSeqSearchForm"
+            action="[% base %]search/dna"
+            enctype="multipart/form-data"
+            onsubmit="return checkLength()">
+  
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <textarea cols="60" 
+                    rows="10"
+                    name="seq"
+                    id="dnaSeq"></textarea>
+        </div>
+  
+        <div class="row">
+          <label for="dEmail">Email address</label>
+          <input type="text" 
+                 size="20" 
+                 maxlength="100" 
+                 name="email" 
+                 id="dEmail" />
+        </div>
+    
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" 
+                 type="submit" 
+                 name="submit" 
+                 value="Submit"
+                 onclick="if( ! $('dnaSeq').present() ){return false}"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button"
+                 value="Example" 
+                 onclick="$('dnaSeq').value=exDNASeq" />
+        </div>
+  
+      </form>
+
+    </div>
+  
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // a little check on the sequence length...
+  var lengthWarning = false;
+  checkLength = function() {
+return true;
+
+    if( $F('dnaSeq').length > 80000 ) {
+      if( ! lengthWarning ) {
+        new Insertion.After( "dnaSeq",
+                             "<div class='error'>Your sequence must be &lt; 80kb<\/div>" );
+        lengthWarning = true;
+      }
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  var exDNASeq = "GCTCACAGCTGTGTCCTCCCCACCCCCTGGGACCACAAAGCTCCACCCCT\n\
+GCCACCCCCTGACATCCTCAAGCCAAGGAGCCTGACCCAGGGCTCAGGGT\n\
+GGGGTCACAAACCTGGGGGGGGTCTGATTTGCATGGATGGACTCTCCCCC\n\
+TCTCAGAGTATGAAGAAAGGGAGAGATTTGGGGGAAGCTCAGCTTCAGCT\n\
+GCGGGTAGAGAAGACAGGACTCAGGACAATCTCCAGCATGGCCTGGTCCC\n\
+CTCTCTTCCTCACCCTCATCACTCACTGTGCAGGGTCCTGGGCCCAGTCT\n\
+GTGCTGACTCAGCCACCCTCGGTGTCTGAAGCCCCCAGGCAGAGGGTCAC\n\
+CATCTCCTGTTCTGGAAGCAGCTCCAACATCGGAAATAATGCTGTAAACT\n\
+GGTACCAGCAGCTCCCAGGAAAGGCTCCCAAACTCCTCATCTATTATGAT\n\
+GATCTGCTGCCCTCAGGGGTCTCTGACCGATTCTCTGGCTCCAAGTCTGG\n\
+CACCTCAGCCTCCCTGGCCATCAGTGGGCTCCAGTCTGAGGATGAGGCTG\n\
+ATTATTACTGTGCAGCATGGGATGACAGCCTGAATGGTCCCACAGTGCTC\n\
+CAGGCCCAGGGGGAACAGAGACAAGAACCCCCTTCCTTTTCTGCCAGGAG\n\
+GTATAATGTTGACTATGGGTTTGAAAGAGTGGGCTTTTCTTACCATAAG";
+  // ]]>
+</script>
+
+<!-- end dna search block -->

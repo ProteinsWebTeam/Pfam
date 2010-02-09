@@ -1,0 +1,147 @@
+
+/* forms.css
+   jt6 20061020 WTSI
+
+   Stylesheet for various forms in the site.
+
+   $Id: forms.css,v 1.4 2009-12-09 15:46:17 pg6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* ---------------------------------------- */
+/* the annotation form */
+
+/* styles for the annotation form itself */
+.formWrapper fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.formWrapper .row {
+  width: 100%;
+  float: left;
+  clear: both;
+  margin: 0.2em;
+}
+
+.formWrapper .label,
+.formWrapper label {
+  font-weight: bold;
+  width: 14em;
+  text-align: right;
+  float: left;
+  padding: 0.2em 0.4em;
+  margin: 0em;
+}
+
+/* hide the dummy labels for the buttons, which we need to make things line
+   up as they should... */
+.formWrapper .blankLabel {
+  visibility: hidden;
+}
+
+.formWrapper .subLabel {
+  text-align: left;
+}
+
+.formWrapper input,
+.formWrapper textarea,
+.formWrapper select {
+  border: 1px solid #006633;
+  /*background: #f5faff;*/
+	background: #EEFFEE;
+  margin: 0;
+  padding: 0.2em;
+  vertical-align: middle;
+}
+
+.formWrapper input.submit {
+  background: #C1F0C1;
+  color: #006633;
+}
+
+#annForm input.submit,
+#annForm input.reset {
+  margin-left: 13.5em ! important;
+}
+
+/* error messages */
+.formWrapper span.error_messages {
+  float: left;
+  padding: 0;
+  margin: 0 0.1em 0.6em 14.9em;
+  color: #700;
+  font-weight: bold;
+}
+
+/* ---------------------------------------- */
+/* search forms */
+
+span.buttons {
+	float: left;
+}
+
+div.domainList {
+	float: left;
+  border: 1px solid #009;
+	background: #EEF;
+  padding: 0.2em;
+	margin: 0.5em;
+}
+
+div.domainList select {
+	border: 1px solid #006633;
+  background: #f5faff;
+}
+
+#idList {
+	background: #EEF;
+	border-color: #99D;
+}
+
+#haveList {
+	background: #C1F0C1;
+	border-color: #9D9;
+}
+
+#notList {
+	background: #FEE;
+	border-color: #D99;
+}
+
+/* ---------------------------------------- */
+/* sequence search */
+
+div.error {
+  border: 1px solid #900;
+  background: #f8e7e7;
+  color: #300;
+  width: 60%;
+  padding: 0.2em;
+  margin: 0.2em auto;
+}
+
+div.error h2 {
+  margin: 0.2em;
+}
+

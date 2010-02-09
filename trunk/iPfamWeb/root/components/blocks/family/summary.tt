@@ -1,0 +1,235 @@
+[%
+# summary.tt
+# jt6 20060406 WTSI
+# 
+# build the summary block for families
+#
+# $Id: summary.tt,v 1.16 2010-01-04 10:42:19 pg6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+#-------------------------------------------------------------------------------
+-%]
+
+<!-- start summary block -->
+
+<div class="block" id="familySummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+    
+		<!-- Interaction for the pfam family is displayed -->
+    <div class="pdbImageFragment" id="overviewImage" style="display:none">
+     
+      <div id="interactionImage">
+      </div>
+      <div id="imageLegend">
+      <strong> Domain Interactors:</strong>
+      Domains (<img id="legend" src="[% c.uri_for('static/images/domain.png')%]">) and Ligands(<img id="legend" src="[% c.uri_for('static/images/ligand.png')%]">) 
+       interacting with [% rest.pfam.pfama_id %]
+      <strong> Select an interactor to view in detail:</strong> 
+       
+       <form id='interactors' action='[% base %]' enctype='application/x-www-form-urlencoded' onsubmit="return false"> 
+        <select id="interactorsIdField" onchange="redirectPage()">
+          [% IF rest.DomainInteractions %]
+            <option class='intNames'>Explore</option>
+            <option class='intNames'>Domains</option>
+            
+            [% FOREACH interaction IN rest.DomainInteractions.sort( pfamA_id ) %]
+            <option value='dom[% interaction.pfamA_id %]'> [% interaction.pfamA_id %]
+            </option>
+            [% END %]
+          <!--[% END %]-->
+          
+          [% IF rest.ligInteractions %]
+            <option class='intNames'>Ligands</option>
+            [% FOREACH interaction IN rest.ligInteractions.sort( pfamA_id ) %]
+            <option value='lig[% interaction.three_letter_code %]'>
+              [% interaction.three_letter_code %]
+            </option>
+            [% END %]
+          [% END %]
+        </select>
+      </form>
+      </div>
+      
+     </div>
+    
+    <h1>
+      [% rest.pfam.description %]
+      <a href="http://pfam.sanger.ac.uk/family?acc=[% pfam.pfama_acc %]">
+        <img class="gotoPfam" 
+             alt="Go to Pfam" 
+             src="[% base %]static/images/annotation.png" /></a>
+    </h1>
+    <p><div id="comment">[% rest.pfam.comment IF rest.pfam.comment.defined %]</div></p> 
+		[% IF rest.pfam.interpro_id.defined %]
+		<h2 id="interproTitle">
+			Interpro Entry <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% rest.pfam.interpro_id %]">
+				  [% rest.pfam.interpro_id %]
+			</a>
+		</h2>
+		[% rest.pfam.interpro_abstract %]		
+		[% END %]
+		
+		[% IF rest.goTerms.size -%]
+
+      <h2>Gene Ontology</h2>
+
+      [% categories = {
+        function  => { label   => "Molecular function",
+                       goTerms => [] },
+        process   => { label   => "Biological process",
+                       goTerms => [] },
+        component => { label   => "Cellular component",
+                       goTerms => [] }
+      };
+
+      FOREACH goTerm IN rest.goTerms;
+        categories.${goTerm.category}.goTerms.push( goTerm );
+      END -%]
+
+      <table class="details links" summary="Gene ontology data">
+        <tbody>
+        [% FOREACH categoryName IN categories.keys.sort;
+          category = categories.${categoryName};
+          FOREACH goTerm IN category.goTerms -%]
+          <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+            [% IF loop.first -%]
+              <td class="label"[% IF loop.first %] rowspan="[% category.goTerms.size %]"[% END %]>
+                [% category.label %]
+              </td>
+            [% END -%]
+            <td>
+              <a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">
+                [% goTerm.term %]</a>
+              (<a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">[% goTerm.go_id %]</a>)
+            </td>
+          </tr>
+          [% END;
+        END -%]
+        </tbody>
+      </table>
+
+    [%- END %]  <!-- end of if go terms -->
+		</div>	
+<script type="text/javascript">
+  
+   document.observe( "dom:loaded", function() {
+
+//      var r = new Ajax.Updater( 
+//        "interactionImage", 
+//        "[% c.uri_for( '/family/interaction', rest.pfam.pfama_id ) %]",
+//        { evalScripts: true,
+//          onComplete: function( response ) {
+//						console.log( "the ajax request is finished adn returned the image");
+//					}
+//        }
+//      );
+      console.log( "dom gets loaded so making a new ajax request ");
+			var r = new Ajax.Request(
+			   "[% c.uri_for( '/interaction/getImage', rest.pfam.pfama_id ) %]",
+				 { 
+				    method : 'post',
+						evalScripts: true,
+				    onSuccess: function( response ) {
+							//console.log( "the ajax request is sucess" +response.responseText);
+							$( 'interactionImage' ).update( response.responseText );
+							$( 'intImage').observe( 'load', function( ){
+							   loadImage();
+							} );
+						},
+						onFailure: function(){
+							console.log( "the request failed" );
+						}
+				 }
+			);
+    } );
+  
+	// add an event listener for the image;
+	//$( 'intImage').observe( 'load', function( ){
+  function loadImage(){  
+    var image     = $('intImage');
+    var asp_ratio;
+    $('overviewImage').show();
+    var imgstatus = 0;
+    
+    
+    if( image.width > 200 && image.height > 200 ){
+      console.log( "interactionImages:: the size greater than 200 is "+image.width+'|'+image.height);
+			image.addClassName('pdbImage' );
+       imgstatus = 1;
+    }else if( image.width > 200  && image.height < 200 ){
+      var new_height = ( (200 * image.height ) /image.width );
+      console.log( "interactionImages:: the width greater than 200 is "+image.width+'|'+image.height);
+      image.setAttribute( 'width',200 );
+      image.setAttribute( 'height',new_height );
+      
+      imgstatus = 1;
+    }else if( image.width < 200 && image.height > 200 ){
+      var new_width = ( (200 * image.width ) /image.height);
+      console.log( "interactionImages:: the height greater than 200 is "+image.width+'|'+image.height);
+      image.setAttribute( 'width',new_width );
+      image.setAttribute( 'height',200 );
+      
+      imgstatus = 1;
+    }else if( image.width < 200  && image.height < 200 ){
+      image.setAttribute( 'width',image.width );
+      image.setAttribute( 'height', image.height );
+      imgstatus = 1;
+			console.log( "interactionImages:: the size lesser than 200 is "+image.width+'|'+image.height);
+    }else{
+			console.log( "no image found");
+		}
+    
+		if( imgstatus == 1){
+      $('overviewImage').show();
+    }else{
+      $('overviewImage').hide();
+    }
+		
+  }
+	
+  // add an event listernet to the form;
+  
+//  $( 'interactors' ).observe( 'change', function( e ) {
+  function redirectPage(){  
+    var uri = '[% base %]';
+    var name = $F( 'interactorsIdField' );
+    console.log( "user selected "+name );
+    switch( name ){
+      case '':
+        console.log( "empty legend "+name );
+        break;
+      case 'Domains':
+        console.log( "legend "+name );
+        break;
+      case 'Ligands':
+        console.log( "legend "+name );
+        break;
+      case 'Explore':
+        console.log( "legend "+name );
+        break;
+      default:
+        console.log( "nonlegend "+name );
+        if( name.match( /lig/ ) ){
+          
+          uri = uri + 'ligdominteraction?from=[% rest.pfam.pfama_acc %]&to='+name.replace( /lig/g,'' );;
+          document.location = uri;
+        }else{
+          uri = uri + 'domdominteraction?from=[% rest.pfam.pfama_acc %]&to='+name.replace( /dom/g,'' );;
+          document.location = uri;
+        }
+    }
+  };
+  
+</script>
+</div>
+<!-- end summary block -->

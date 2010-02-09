@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1">
+  <sequence name="ActiveSite" length="400">
+
+    <region start="48" end="104" label="Inhibitor_I29">
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="curved" rightStyle="curved"/>
+    </region>
+    <region start="134" end="343" label="Peptidase_C1">
+      <colour1>
+        <colour>
+          <hex hexcode="c00f0f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="e83737"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="curved" rightStyle="curved"/>
+    </region>
+    <region start="1" end="26" label="Signal Peptide" >
+      <colour1>
+        <colour>
+          <hex hexcode="FF9C00"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <markup start="155" end="196" v_align="top" label="Disulphide, 155-196">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+    </markup>
+    <markup start="189" end="228" v_align="top" label="Disulphide, 189-228">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+    </markup>
+    <markup start="286" end="333" v_align="top" label="Disulphide, 286-333">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+    </markup>
+    <markup start="158" v_align="bottom" label="Active site, C158">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+      <head style="diamond">
+        <colour>
+          <hex hexcode="FF3366"/>
+        </colour>
+      </head>
+    </markup>
+    <markup start="292" v_align="bottom" label="Pfam predicted active site, H292">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+      <head style="diamond">
+        <colour>
+          <hex hexcode="9900CC"/>
+        </colour>
+      </head>
+    </markup>
+    <markup start="308" v_align="bottom" label="SwissProt predicted active site, N308">
+      <line style="bold">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+      <head style="diamond">
+        <colour>
+          <hex hexcode="FF66FF"/>
+        </colour>
+      </head>
+    </markup>
+  </sequence>
+</image>

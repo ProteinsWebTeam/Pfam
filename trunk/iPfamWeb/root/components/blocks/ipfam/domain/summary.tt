@@ -1,0 +1,42 @@
+
+[%
+# summary.tt
+# jt6 20060424 WTSI
+# 
+# build the summary block for the iPfam pages
+#
+# $Id: summary.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "ipfam.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start ipfam summary block -->
+
+<div class="block" id="iDomainSummaryBlock">
+  <div class="handle">
+    <h1>Domain Interactions Summary</h1>
+  </div>	
+<div class="blockContent">	
+  <h3>[% pfam.description %]</h3>
+  <p>This domain interacts with [% domainInts.size %] other domains</p>
+  <p>This domain interacts with 0 ligands</p>
+
+  <h3>Family Summary</h3>	
+    [% IF pfam.comment.length %]
+    <p>[% pfam.comment %]</p>
+    [% ELSE %]
+    <p class="inactive">No further details</p>
+    [% END %]
+   </div>
+<hr class="short"/>
+
+</div>
+
+<!-- end ipfam summary block -->

@@ -1,0 +1,110 @@
+[%
+# allSequences.tt
+# jt6 20060410 WTSI
+#
+# This template generates a page fragment showing the sequences which exhibit
+# a given architecture. It should be called by the DomainGraphics controller,
+# via ajax.
+#
+# $Id: allSequences.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+META naked = 1;
+
+USE String;
+%]
+
+<div class="allSequences" id="arch[% auto_arch %]">
+
+  [% IF numRows < 1;
+    CALL c.log.error( "allSequences.tt: too few sequences" ); %]
+    <span>No sequences found.</span>
+    [% RETURN;
+  END;
+  
+  FOREACH image IN images.each_image;
+    CALL image.print_image;
+    id = image.image_name;
+  
+    archString = String.new;
+    archs = seqInfo.$id.arch;
+    prev = "";
+    i = 1;
+    USE archIter = iterator( archs );
+  
+    FOREACH arch IN archIter;
+      IF arch != prev;
+  
+        IF i > 1;
+          IF prev != "";
+            CALL archString.append( prev, " x $i, " );
+          END;
+        ELSE;
+          IF prev != "";
+            CALL archString.append( prev, ", " );
+          END;
+        END; # of IF i>1
+        prev = arch;
+        i = 1;
+  
+      ELSE;
+        i = i + 1;
+      END; # of IF arch...
+  
+      IF archIter.last;
+        IF i > 1;
+          CALL archString.append( arch, " x $i, " );
+        ELSE;
+          CALL archString.append( arch, ", " );
+        END;
+      END;
+  
+    END; # of "FOREACH arch"
+  
+    CALL archString.trim.chop; %]
+
+    <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+
+    <span class="graphicLabel">
+      <a href="[% base %]protein?id=[% image.image_name %]">
+        [% image.image_name %]</a>
+      [% image.image_info %]
+      ([% image.length / image.scale_x %] residues)
+    </span>
+
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#domainGraphicsMap[% auto_arch %][% loop.index %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="domainGraphicsMap[% auto_arch %][% loop.index %]">
+      [% image.image_map %]
+    </map>
+
+    [% # somewhere to stuff the post-post-loaded graphics... %]
+    <div id="domainArch[% auto_arch %][% loop.index %]">
+      <div id="adSpinner[% auto_arch %][% loop.index %]" 
+           style="display: none" 
+           class="loading">
+        Loading all sequences...
+      </div>
+    </div>
+
+  </div> <!-- end of graphics row -->
+
+  [% END; # of FOREACH image %]
+
+</div>
+
+[% # try to keep IE6 users happy by trying to limit the height of the 
+   # frame into which we just loaded all sequences %]   
+<!--[if lt IE 7 ]>
+<script type="text/javascript">
+  // <![CDATA[
+  if( Element.getHeight( "arch[% auto_arch %]" ) > 300 ) {
+    //alert( "setting height for 'auto[% auto_arch %]' to 250px" );
+    $("arch[% auto_arch %]").style.height = "250px";
+  }
+  // ]]>
+</script>
+<![endif]-->

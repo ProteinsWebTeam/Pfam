@@ -1,0 +1,80 @@
+
+[%
+# ligands.tt
+# jt6 20060717 WTSI
+# 
+# build a "browse" page for iPfam ligands
+#
+# $Id: ligands.tt,v 1.2 2009-11-09 16:44:33 pg6 Exp $
+
+META title = "Browse iPfam Ligands";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+# get the argument in lowercase, for comparison purposes
+lcChar = char | lower;
+
+# the pages to be offered 
+pages = [ "numbers",
+          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+# generate the list of browse pages, for inclusion at the top and bottom of 
+# the page
+
+# shortcuts for URIs
+ligandURI    = c.uri_for('/ligand');
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar, 
+                   pageURI = "${ligandURI}/browse?browse=",
+                   encode=1;
+%]
+
+<!-- start browse page -->
+
+<h1 class="pageHeader">Browse <em>i</em>Pfam Ligands</h1>
+
+[% pageList %]
+
+<table class="details browse" 
+       summary="Details of Pfam Ligands">
+  <thead>
+    <tr>
+      <th rowspan="2">ID</th>
+      <th rowspan="2">Accession</th>
+      <th colspan="1">Number of interactions</th>
+      <th rowspan="2">Description</th>
+    </tr>
+    <tr>
+      <th>Domain</th>      
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH pfam IN browse -%]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td>
+        <a href="[% ligandURI %]?acc=[% pfam.three_letter_code %]">[% pfam.three_letter_code %]</a>
+      </td>
+      <td>
+        <a href="[% ligandURI %]?acc=[% pfam.lig_code %]">[% pfam.lig_code %]</a>
+      </td>
+      <td>[% pfam.domcount %]</td>
+      <td class="left">[% pfam.name | html %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+  
+<!-- end browse page -->

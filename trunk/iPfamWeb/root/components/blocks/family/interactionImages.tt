@@ -1,0 +1,17 @@
+[%-
+# interactionImages.tt
+# pg6 20091118 WTSI
+# 
+# $Id: interactionImages.tt,v 1.4 2009-12-10 13:40:43 pg6 Exp $
+#
+# Template to create the html snipet corresponding to the domain inteaction image;
+
+META naked=1;
+%]
+
+[% url = c.uri_for( '/graph/image',{entry=pfam.pfama_id,database = ['lig','ipfam'] } ) %]
+
+<a href="[% c.uri_for( '/graph',{ acc => pfam.pfama_id } )%]">
+  <img id="intImage" src="[% url %]" alt="Domain interactions"/>
+</a>
+

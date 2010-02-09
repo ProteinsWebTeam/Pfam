@@ -1,0 +1,94 @@
+[%
+# header.tt
+# jt6 200670326 WTSI
+#
+# the slimmed down, re-vamped, googlized page header...
+#
+# $Id: header.tt,v 1.7 2010-01-04 14:48:22 pg6 Exp $
+
+# the names for the links in the page
+navNames = { 
+  home   = "HOME",
+  search = "SEARCH",
+  browse = "BROWSE",
+  graph  = "GRAPH",
+  ftp    = "FTP",
+  help   = "HELP",
+  about  = "ABOUT" };
+
+# the URIs for the links
+navLinks = {
+  home   = c.uri_for( "/" ),
+  search = c.uri_for( "/search/" ),
+  browse = c.uri_for( "/browse/" ),
+  graph  = c.uri_for( "/graph" ),
+  ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/iPfam",
+  help   = c.uri_for( "/help/" ),
+  about  = c.uri_for( "/about/" ) };
+
+# the order of the items in the navbar - these are the keys for the two
+# hashes above
+navItems = [ "home", "search", "browse", "graph", "ftp", "help" , "about" ];
+-%]
+
+<!-- header starts here -->
+
+<div id="header">
+
+  <div id="navbar" class="column">
+    <ul>
+    [% FOREACH navItem IN navItems %]
+      <li>
+        [% IF c.stash.nav == navItem -%]
+          <a class="here" href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+        [% ELSE -%]
+          <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+        [% END;
+        IF ! loop.last %]&nbsp;|&nbsp;[% END -%]
+      </li>
+    [% END %]
+    </ul>
+  </div>
+  
+  <div id="siteLogoHolder" class="column">
+    <a href="http://www.sanger.ac.uk/">
+      <img alt="Wellcome Trust Sanger Institute" 
+           id="siteLogo" 
+           src="[% base %]static/images/blank.gif" /></a>
+  </div>
+
+  <div id="pfamLogoHolder" class="column">
+    <a href="[% base %]">
+      <img alt="Pfam" 
+           id="pfamLogo" 
+           src="[% base %]static/images/blank.gif" /></a>
+    <form action="[% base %]search/keyword" 
+          method="get" 
+          id="siteSearchForm">
+      <div id="searchBox">
+        <input class="entryField"
+               type="text" 
+               onfocus="if(!ssCleared){this.value='';ssCleared=true}" 
+               name="query" 
+               id="siteSearchField" />
+        <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
+             class="glassButton goButton">&nbsp;</div>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<div class="cleaner"><!-- empty --></div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  $("siteSearchField").value = "keyword search";
+  var ssCleared = false;
+  // ]]>
+</script>
+
+<!-- header end -->
+
+  
+

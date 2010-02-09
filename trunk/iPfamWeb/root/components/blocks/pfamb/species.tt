@@ -1,0 +1,49 @@
+
+[%
+# species.tt
+# jt6 20060411 WTSI
+#
+# block showing the species tree for Pfam-Bs
+#
+# $Id: species.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# YUI stuff - this is for the tree viewer
+requirements.css.push( "tree.css" );
+requirements.js.push( "yui/yahoo.js" );
+requirements.js.push( "yui/dom.js" );
+requirements.js.push( "yui/event.js" );
+requirements.js.push( "yui/treeview.js" );
+requirements.js.push( "yui/TaskNode.js" );
+requirements.js.push( "treeTweak.js" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start species block -->
+
+<div class="block" id="pfambSpeciesBlock">
+  <div class="handle">
+    <h1>Species distribution</h1>
+  </div>
+  <div class="blockContent">
+
+    [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
+    
+    <!-- start of tree -->
+  	<div id="treeDiv">
+      <p id="stph" class="loading">Loading...</p>
+    </div>
+    <!-- end of tree -->
+
+    [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
+    
+  </div>
+</div>
+
+
+<!-- end of species block -->

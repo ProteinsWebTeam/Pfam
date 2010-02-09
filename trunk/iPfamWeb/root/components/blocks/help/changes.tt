@@ -1,0 +1,21 @@
+[%
+# changes.tt
+# rdf 20060927 WTSI
+# 
+# build the changes block for the help pages
+#
+# $Id: changes.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start changes block -->
+
+<div class="block" id="helpChangesBlock">
+  <div class="handle">
+    <h1><em>i</em>Pfam Changes</h1>
+  </div>
+  <div class="blockContent">
+  
+    BLOCK CONTENT COMES HERE
+  </div>
+</div>
+
