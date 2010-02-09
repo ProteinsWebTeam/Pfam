@@ -1527,6 +1527,7 @@ var PfamGraphic = Class.create( {
     // <area> for the head)
     var ys = [ y1, y2 ].sort(function( a, b ) { return a - b; } );
     var area = { start:    start,
+                 type:     "lollipop",
                  coords:   [ Math.floor( x1 ) - 1, ys[0] - 1, 
                              Math.floor( x1 ) + 1, ys[1] + 1 ] };
     this._areasList.push( area );
@@ -1606,7 +1607,9 @@ var PfamGraphic = Class.create( {
         this._context.fillStyle = colour || "red";
         this._context.fill();
         this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
                                 shape:    "circle",
+                                colour:   colour || "red",
                                 start:    start,
                                 coords:   [ x - r, y - r, x + r, y + r ] } );
         break;
@@ -1625,7 +1628,9 @@ var PfamGraphic = Class.create( {
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
         this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
                                 start:    start,
+                                colour:   colour || "rgb(100, 200, 9)",
                                 coords:   [ x - d, y - d, x + d, y + d ] } );
         break;
 
@@ -1643,8 +1648,10 @@ var PfamGraphic = Class.create( {
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
         this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
                                 shape:    "poly",
                                 start:    start,
+                                colour:   colour || "rgb(100, 200, 9)",
                                 coords:   [ x - d, y - d, x + d, y + d ] } );
         break;
 
@@ -1659,7 +1666,9 @@ var PfamGraphic = Class.create( {
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
         this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
                                 start:    start,
+                                colour:   colour || "rgb(50, 40, 255)",
                                 coords:   [ x - 1, y - d - 1,
                                             x + 1, y + d + 1 ] } );
         break;
@@ -1683,15 +1692,14 @@ var PfamGraphic = Class.create( {
           this._context.lineTo( x + d, y - d );
           coords = [ x - d, y - d, x + d, y ];
         }
-
+        this._context.strokeStyle = colour || "rgb(50, 40, 255)";
+        this._context.stroke();
         this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
+                                colour:   colour || "rgb(50, 40, 255)",
                                 start:    start,
                                 shape:    "poly",
                                 coords:   coords } );
-
-        this._context.strokeStyle = colour || "rgb(50, 40, 255)";
-        this._context.stroke();
-
         break;
     }
 
@@ -1780,16 +1788,22 @@ var PfamGraphic = Class.create( {
     // add <area> tags for each of the legs and the horizontal
     var ys = [ y1, y2 ].sort(function( a, b ) { return a - b; } );
     this._areasList.push( { start:  start,
+                            type:   "bridge-start",
+                            colour: colour,
                             end:    end,
                             tip:    tip,
                             coords: [ x1 - 1, ys[0] - 1, 
                                       x1 + 1, ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
+                            type:   "bridge-horizontal",
+                            colour: colour,
                             end:    end,
                             tip:    tip,
                             coords: [ x1 - 1, ys[1] - 1, 
                                       x2 + 1, ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
+                            type:   "bridge-end",
+                            colour: colour,
                             end:    end,
                             tip:    tip,
                             coords: [ x2 - 1, ys[0] - 1, 
@@ -1935,8 +1949,10 @@ var PfamGraphic = Class.create( {
     // build the area data
 
     var area = { text:     region.text,
+                 type:     "region",
                  start:    region.start,
                  end:      region.end,
+                 colour:   region.colour,
                  aliStart: region.aliStart,
                  aliEnd:   region.aliEnd,
                  coords:   [ x, y, x + width + 1, y + height ] };
@@ -2039,6 +2055,9 @@ var PfamGraphic = Class.create( {
     // save the current state of the canvas
     this._context.save();
 
+    // use the same slot for either a single or multiple colours
+    var motifColour;
+    
     // decide what we're drawing, based on the number of colours we're given
     if ( motif.colour instanceof Array ) {
 
@@ -2050,21 +2069,21 @@ var PfamGraphic = Class.create( {
       }
 
       // convert the colours from hex strings into "rgba()" values
-      var colours = [];
+      colour = [];
   
       var getRGBColour = this._getRGBColour.bind( this ),
           ip           = this._imageParams;
   
-      motif.colour.each( function( colour ) {
-        var rgbColour = getRGBColour( colour );
-        colours.push( { rgb:  "rgb("  + rgbColour.join(",") + ")",
-                        rgba: "rgba(" + rgbColour.join(",") + "," + ip.motifOpacity + ")" } );
+      motif.colour.each( function( c ) {
+        var rgbColour = getRGBColour( c );
+        colour.push( { rgb:  "rgb("  + rgbColour.join(",") + ")",
+                       rgba: "rgba(" + rgbColour.join(",") + "," + ip.motifOpacity + ")" } );
       } );
   
       // draw the three stripes
       var step   = Math.round( height / 3 );
       for ( var i = 0; i < 3; i = i + 1 ) {
-        this._context.fillStyle = colours[i].rgb;
+        this._context.fillStyle = colour[i].rgb;
         this._context.fillRect( x, y + ( step * i ), width, step );
       }
       
@@ -2073,7 +2092,7 @@ var PfamGraphic = Class.create( {
       // regular "motif"
 
       // convert the colour from a hex string into an "rgba()" value
-      var colour = this._getRGBColour( motif.colour );
+      colour = this._getRGBColour( motif.colour );
       var rgb  = "rgb(" + colour.join(",") + ")";
       var rgba = "rgba(" + colour.join(",") + "," + this._imageParams.motifOpacity + ")";
   
@@ -2090,9 +2109,11 @@ var PfamGraphic = Class.create( {
 
     // add the area
     var area = { text:   motif.metadata.identifier,
-                  start:  motif.aliStart,
-                  end:    motif.aliEnd,
-                  coords: [ x, y, x + width, y + height ] };
+                 type:   "motif",
+                 start:  motif.aliStart || motif.start,
+                 end:    motif.aliEnd   || motif.end,
+                 colour: colour,
+                 coords: [ x, y, x + width, y + height ] };
     this._areasList.push( area );
     this._areasHash.set( "motif_" + motif.metadata.identifier + "_" + motif.start + "_" + motif.end, area );
 
