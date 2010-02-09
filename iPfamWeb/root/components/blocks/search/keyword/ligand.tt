@@ -1,0 +1,46 @@
+[%
+# ligand.tt
+# pg6 20091126
+#
+# $Id: ligand.tt,v 1.1 2009-11-27 11:46:20 pg6 Exp $
+
+META naked=1;
+%]
+<h2>Search results for section <strong>Ligand</strong></h2><p/>
+<table class="sortable resultTable" id="ligandResultTable" summary="Search results">
+<thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Three Letter Code</th>
+        <th>Ligand Code</th>
+        <th>Formula</th>
+        <th class="nosort">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+      %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/ligand", acc=row.acc ) %]">[% row.acc %]</a></td>
+        <td><a href="[% c.uri_for( "/ligand", acc=row.acc ) %]">[% row.lig_code%]</a></td>
+        <td>[% row.formula %]</th>
+        <td class="desc">[% row.name %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+  
+  <script type="text/javascript">
+    updateResults ( [% hits %],'ligand' );
+    sortableTable( 'ligandResultTable' );
+//    // now update the contents of the result;
+//    $( 'ligandhits').update( "[% hits %]" );
+//    var ligandhits = [% hits %];
+//    
+//    if( ligandhits === 0 ){
+//      addResultStatus(  );
+//      console.log( "the noRes value in ligand is"+noRes);
+//    }    
+  </script>
+  

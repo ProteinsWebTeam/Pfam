@@ -1,0 +1,206 @@
+[%
+# searchResults.tt
+# pg6 20091125 WTSI
+# 
+# keyword search results page
+#
+# $Id: results.tt,v 1.3 2009-11-30 10:44:03 pg6 Exp $
+
+META title = "Keyword search results";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "tablekit.js" );
+#-------------------------------------------------------------------------------
+-%]
+
+<div id="results">
+
+  <div id="key">
+
+    <h2>Keyword search results</h2>
+    <p> 
+      Your query("[% rawQueryTerms %]") is searched in the following sections and in same order as in the table,
+      Please be patient till the search is finished and then you can select the "Show..." link to look at 
+      the unique results.
+    
+    </p>
+    [% rowNums = {};
+    hitsSummary = BLOCK;
+      hitPlugins = 0 %]
+      <table id="keyTable" summary="summary of search results">
+        <thead>
+          <tr>
+            <td>Section</td>
+            <td class="desc">Description</td>
+            <td>Number of hits</td>
+            <td>Unique Results</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="even">
+            <td>Pfam</td>
+            <td class="desc">Text fields for Pfam entries</td>
+            <td id='pfamhits'></td>
+            <td id='pfamres'><div id='pfam search' class="jumpSpinner">Searching...</div></td>
+          </tr>
+          
+          <tr class="odd">
+            <td>Pdb</td>
+            <td class="desc">HEADER and TITLE records from PDB entries</td>
+            <td id='pdbhits'></td>
+            <td id='pdbres'><div id='pdb search' class="jumpSpinner">Searching...</div></td>
+          </tr>
+          
+          <tr class="even">
+            <td>Protein</td>
+            <td class="desc">Text fields for sequence entries</td>
+            <td id='proteinhits'></td>
+            <td id='proteinres'><div id='protein search' class="jumpSpinner">Searching...</div></td>
+          </tr>
+          
+          <tr class="odd">
+            <td>Ligand</td>
+            <td class="desc">Ligand name(IUPAC), category and formula fields</td>
+            <td id='ligandhits'></td>
+            <td id='ligandres'><div id='ligand search' class="jumpSpinner">Searching...</div></td>  
+          </tr>
+          
+          <tr class="even">
+            <td>GO</td>
+            <td class="desc">Gene ontology IDs and terms</td>
+            <td id='gohits'></td>
+            <td id='gores'><div id='go search' class="jumpSpinner">Searching...</div></td>  
+          </tr>
+          
+          <tr class="odd">
+            <td>Interpro</td>
+            <td class="desc">InterPro entry abstracts</td>
+            <td id='interprohits'></td>
+            <td id='interprores'><div id='interpro search' class="jumpSpinner">Searching...</div></td>  
+          </tr>
+        </tbody>
+      </table>
+    [% END %]
+
+    [% hitsSummary %]
+    <p/>
+    <div id="search_contents" style="display:none" >
+      We found <strong><span id='totalHits'></span> </strong>hits for your query in </strong><span id="dbStatus"></span>
+      </strong>sections of the database, unique results are stored in a sortable table and please click the headers to sort the results.
+    </div>
+  </div> <!-- end of div "key" -->
+ <div id="tables">    
+    <div id='pfam results' style="display:none"></div>
+    <div id='pdb results' style="display:none"></div>
+    <div id='protein results' style="display:none"></div>
+    <div id='ligand results' style="display:none"></div>
+    <div id='go results' style="display:none"></div>
+    <div id='interpro results' style="display:none"></div>
+  <hr/>    
+</div>
+ 
+
+
+  <script type="text/javascript">
+    // create global array for use of other functions.
+    var plugins   = new Array('pfam','pdb','protein','ligand','go','interpro');  
+    var errStatus = 0;
+    var totalHits = 0;
+    var dbStatus  = 0;
+    var totalRes  = 0;
+    console.log( "the sixe of the array is "+plugins.size());
+    function updateResults( hits,plugin_name ){
+      
+      $( plugin_name+'hits' ).update( hits );
+      if( hits == 0 ){
+        errStatus += 1;
+        $( plugin_name+'res' ).update( 'No Results' );
+        console.log( "updateResults:the errstatus is "+errStatus );
+      }else{
+        dbStatus     += 1;
+        totalHits     = totalHits   + hits;
+        var func_name = "showTable('"+plugin_name+" results')";
+        
+        // create a new span element for showing the resutls;
+        var el      = new Element( 'span',
+                                   {
+                                      'class'  :  'falseLink',
+                                   } );
+        el.update( "Show...");
+        el.setAttribute( 'onClick',func_name );
+        
+        $( plugin_name+'res' ).update( el );
+        
+      }
+      // now add the errStatus and the dbStatus to get total completed request and if its 5 show the contents of the table;
+      totalRes = errStatus + dbStatus;
+      
+      // now check whether we have got the results are not;
+      if (errStatus == plugins.size()) {
+        var url = "[% c.uri_for( '/search/keyword/error' ) %]" + '?query=' + '[% rawQueryTerms %]';
+        console.log("the url is " + url);
+        document.location = url;
+      }else if( totalRes == plugins.size() ){
+        $('totalHits' ).update( totalHits );
+        $('dbStatus'  ).update( dbStatus );
+        $('search_contents').show();
+      }
+      
+    } // end of function updateResults;
+    
+    document.observe( "dom:loaded", function(){
+      plugins.each( function( plugin ){
+        //console.log( 'Ajax call to search for plugin '+plugin );
+        var results = plugin+' results';
+        var terms   = '[% rawQueryTerms %]';
+        var url     = '[% c.uri_for( "/search/keyword" ) %]';
+        url        += '/'+plugin+'?query='+terms ;
+        
+        // Ajax calls to search the results in the database;
+        var r = new Ajax.Updater( 
+                   results,
+                   url,
+                   {
+                     evalScripts: true, 
+                     onComplete: function( Response ){
+                  
+                       console.log( "the rquest is completed for " +plugin );
+                     } 
+                   }
+                 );     
+      } ); // end of each plugin;
+                 
+    } ); // end of document.observe  
+    
+    var tableShown;
+    function showTable( tableId ){
+      
+      if( tableShown !== undefined ){
+        $( tableShown ).hide();  
+      }
+      $( tableId ).show();
+      tableShown = tableId; 
+    } // end of function showTable
+    
+    // function to add sortable table for the results;
+    function sortableTable( tableId ){
+      
+      var sorter = new TableKit( tableId,
+                                {
+                                  editable: false,
+                                  resizable: false,
+                                  rowEvenClass: "even",
+                                  rowOddClass: "odd",
+                                  stripe: true
+                                } );   
+    }
+  </script>
+</div> <!-- end of div "results" -->

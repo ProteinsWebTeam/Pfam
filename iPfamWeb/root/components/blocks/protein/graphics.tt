@@ -1,0 +1,197 @@
+
+[%
+# graphics.tt
+# jt6 20060502 WTSI
+# 
+# block for graphics for the protein section
+#
+# the main contents of this block, the DAS sequence feature viewer, is loaded
+# via ajax, and the various DAS sources can be turned on or off using the 
+# form in this block. 
+#
+# When the form is submitted, rather than the new contents entirely overwriting 
+# the old contents, we reload just the graphics, so that the form and the JS 
+# that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
+# onComplete callbacks, which turn on and off the "loading" spinner, etc.
+#
+# $Id: graphics.tt,v 1.2 2009-10-16 13:30:13 pg6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# the tooltips script
+requirements.js.push( "prototip.js" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+-%]
+
+<!-- start protein graphics block -->
+
+<div class="block" id="proteinGraphicsBlock">
+  <div class="handle">
+    <h1>Sequence annotations</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This section shows a graphical representation of this sequence, with 
+      Pfam domains shown in the standard Pfam format. Under the Pfam domain
+      image we show various tracks, illustrating features on this sequence that 
+      we found in other databases. You can choose which databases to include 
+      using the drop-down panel under the image.
+      <span onclick="reveal( this, 'featuresNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="featuresNotes" style="display: none">
+      <p>
+        We generate the topmost image from data in the Pfam database, but
+        subsequent images are constructed on-the-fly using data retrieved from
+        other sources using the Distributed Annotation System (DAS). DAS is a 
+        system for sharing sequence annotations in a standard format
+        and we use it to find features and sequence information from a wide
+        variety of other sources, from <a class="ext" 
+          href="http://www.ebi.uniprot.org/">UniProt</a> to <a class="ext" 
+          href="http://www.ebi.ac.uk/interpro/">InterPro</a> to <a class="ext"
+          href="http://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/">Superfamily</a>.
+      </p>
+      <p>
+        Each DAS source is represented in a new track, although some sources
+        may generate more than one track, if they have features which overlap.
+        Each feature that we find is shown as a simple box, positioned according 
+        to its residue position on the sequence.
+      </p>
+      <p>
+        Moving your mouse over a feature in the display will highlight the 
+        feature and show a tooltip giving details of the feature. If the
+        DAS source supplied a URL, you can also click on the feature to visit
+        that URL. In some browsers you will also see a thin, vertical cursor,
+        which follows the mouse and shows the residue position within the
+        sequence.
+      </p>
+      <p>
+        You can turn DAS sources on and off using the control panel under the
+        sequence images. Check the boxes for the DAS sources that you want to
+        see; uncheck those that you are not interested in. Press <em>Update</em>
+        to query the new set of DAS sources and re-generate the image. Note that
+        if you have lots of sources turned on, the time taken to generate the
+        images will increase. You can see the homepage for each of the DAS
+        sources by clicking on its name in the update panel. The 
+        &quot;source&quot; link next to each source points directly at the DAS
+        source. Depending on how the source is configured, that link may return
+        some usage information or simply an XML fragment with the response to 
+        the empty query that you just made.
+      </p>
+      <p>
+        <strong>Please note:</strong> this is an experimental feature and there
+        are several known bugs and limitations. Please be patient as we improve
+        the tool.
+      </p>
+      <hr />      
+    </div>
+
+    <p class="small">
+      <strong>Note:</strong> it can take a few seconds for this image
+      to be generated and loaded.
+    </p>
+ 
+    <!-- start of graphics div -->
+    <div id="graphicsHolder">
+      <p id="pgph" class="loading">
+        Loading feature alignment...
+      </p>
+    </div>
+    <!-- end of graphics div -->
+
+    <script type="text/javascript">
+      // <![CDATA[
+      //loadOptions.pg.uri    = "[% base %]protein/graphics";
+      //loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]" };
+      // ]]>
+    </script>
+
+    <p><span class="link" onclick="reveal(this,'checkboxes',false)">Show</span>
+    sources update panel.</p>
+
+    <div id="updatePanel">
+  
+      <div id="checkboxes">
+  
+        <p>
+          Use the check-boxes below to select the sources that you wish to query, then
+          hit &quot;Update&quot; to re-generate the image. Please note that the data for the
+          image are retrieved from servers around the web and it may take a few seconds to 
+          collect the data and generate the image.
+        </p>
+  
+        <form action="[% base %]protein/graphics"
+              id="updateGraphicsForm"
+              onsubmit="graphicsSubmitter();return false">
+          <div>
+            <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+            <input type="hidden" name="reloadSources" value="1" />
+    
+            [% FOREACH section IN dasSourcesRs %]
+                <div id="[% section.id %]" class="section">
+                <p class="sectionLabel">[% section.system %] [% section.type %]</p>
+                [% FOREACH source IN section.servers.sort("name") -%]
+                        <div class="source">
+                          <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="checked"[% END %] />
+                            <span class="checkboxLabel ext">
+                            [% IF source.helper_url %]
+                                <a href="[% source.helper_url %]">[% source.name %]</a>
+                              [% ELSE %]
+                                [% source.name %]
+                              [% END %]
+                              (<a href="[% source.url %]">source</a>)
+                    </span>
+                        </div>
+                [% END -%]
+              </div>
+            [% END %]
+        
+            <input id="pgSubmitButton"
+                   name="submit"
+                   value="Update"
+                   type="submit"
+                   disabled="disabled" />
+                   
+            <div id="pgUpdateSpinner" style="display: none" class="loading">
+              Loading features...
+            </div>
+    
+          </div>
+        </form>
+
+        <script type="text/javascript">
+          // <![CDATA[
+//          graphicsSubmitter = function() {
+//            $("pgSubmitButton").disable();
+//            $("pgUpdateSpinner").show();
+//            new Ajax.Request( '[% base %]protein/graphics',
+//                              {
+//                                onSuccess:   pgSuccess,
+//                                onFailure:   pgFailure,
+//                                parameters:  $("updateGraphicsForm").serialize(true),
+//                                evalScripts: true
+//                              }
+//                            );
+//          }
+          // ]]>
+        </script>
+  
+        <div class="cleaner">&nbsp;</div>
+   
+      </div> <!-- end of "checkboxes" -->
+
+    </div> <!-- end of "updatePanel" -->
+
+  </div> <!-- end of "blockContent" -->
+
+</div> <!-- end of "block" -->
+
+<!-- end protein graphics block -->

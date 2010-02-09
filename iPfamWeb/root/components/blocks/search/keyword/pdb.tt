@@ -1,0 +1,46 @@
+[%
+# pdb.tt
+# pg6 20091126
+#
+# $Id: pdb.tt,v 1.1 2009-11-27 11:46:20 pg6 Exp $
+
+META naked=1;
+%]
+<h2>Search results for section <strong>PDB</strong></h2><p/>
+<table class="sortable resultTable" id="pdbResultTable" summary="Search results">
+<thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>PDB Id</th>
+        <th>Protein Id</th>
+        <th class="nosort">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+      %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/structure", acc=row.pdb_id ) %]">[% row.pdb_id %]</a></td>
+        <td><a href="[% c.uri_for( "/protein", acc=row.protein_id ) %]">[% row.protein_id %]</a></td>
+        <td class="desc">[% row.desc %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+  
+  
+  <script type="text/javascript">
+    updateResults ( [% hits %],'pdb' );
+    sortableTable( 'pdbResultTable' );
+//    
+//    // now update the contents of the result;
+//    $( 'pdbhits').update( "[% hits %]" );
+//    var pdbhits = [% hits %];
+//    
+//    if( pdbhits === 0 ){
+//      addResultStatus( );
+//      console.log( "the noRes value in pdb is"+noRes);
+//    }
+    
+  </script>

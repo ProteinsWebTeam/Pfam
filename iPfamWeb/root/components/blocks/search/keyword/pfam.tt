@@ -1,0 +1,43 @@
+[%
+# pfam.tt
+# pg6 20091126
+#
+# $Id: pfam.tt,v 1.1 2009-11-27 11:46:20 pg6 Exp $
+
+META naked=1;
+%]
+<h2>Search results for section <strong>Pfam</strong></h2><p/>
+<table class="sortable resultTable" id="pfamResultTable" summary="Search results">
+<thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th>Pfam Id</th>
+        <th class="nosort">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/family", acc=row.acc ) %]">[% row.acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc=row.acc ) %]">[% row.id %]</a></td>
+        <td class="desc">[% row.desc %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+   
+  <script type="text/javascript">
+    updateResults ( [% hits %],'pfam' );
+    sortableTable( 'pfamResultTable' );
+//    // now update the contents of the result;
+//    $( 'pfamhits').update( "[% hits %]" );
+//    var pfamhits = [% hits %];
+//    
+//    if( pfamhits === 0 ){
+//      addResultStatus(  );
+//      console.log( "the noRes value in pfam is"+noRes);
+//    }
+  </script>

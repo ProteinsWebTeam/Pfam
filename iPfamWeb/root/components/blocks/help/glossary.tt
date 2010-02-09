@@ -1,0 +1,20 @@
+[%
+# glossary.tt
+# rdf 20060927 WTSI
+# 
+# build the mirrors block for the help pages
+#
+# $Id: glossary.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start glossary.tt block -->
+
+<div class="block" id="helpGlossaryBlock">
+  <div class="handle">
+    <h1>Glossary of terms used in <em>i</em>Pfam</h1>
+  </div>
+  <div class="blockContent">
+
+
+  </div>
+</div>

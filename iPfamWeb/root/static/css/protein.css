@@ -1,0 +1,244 @@
+
+/* protein
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam protein pages.
+
+   $Id: protein.css,v 1.5 2010-02-03 16:25:52 pg6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.source {
+  float: left;
+  width: 18em;
+  padding: 0.2em;
+}
+
+div.source span.checkboxLabel {
+  float: left;
+}
+
+div.source input {
+  float: left;
+}
+
+/* ---------------------------------------- */
+/* DAS features */
+
+#updatePanel {
+  margin-top: 2em;
+  padding: 0;
+}
+
+#pgSubmitButton {
+  clear: left;
+  float: left;  
+}
+
+.dasObjectCheckboxes {
+  background: #e6f2ee;
+  margin: 0.5em;
+}
+
+.section {
+  border: 1px solid #CCC; 
+  float: left;
+  margin-bottom: 10px;
+  padding: 0;
+  width: 100%;
+}
+
+table.section td {
+  margin: 0;
+  padding: 0;
+  border-style: none;
+}
+
+td.graphicsLabel {
+  vertical-align: middle;
+  width: 6em;
+}
+
+td.graphics {
+}
+
+p.sectionLabel {
+  font-weight: bold;
+  padding: 0;
+  margin-top: 0;
+  text-align: left;
+}
+
+p.featuresLabel {
+  margin: 2px 0;
+  padding: 0;
+  border: 1px solid #CCC;
+  background: #EEE;
+}
+
+img.featuresImage {
+  margin: 0;
+  padding: 0;
+}
+
+#tracks {
+  border: none;
+}
+
+/* this is the div that is overlaid on areas in the features display when the 
+ * user moves the mouse over them */
+#overlay {
+  /* need this to avoid IE making the box way bigger than specified... */
+  font-size: 1px; 
+  background: #99F;
+  border: 1px solid #66C;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* change the pointer when there's a URL to be clicked */
+#overlay.linked {
+  background: #074987;
+  cursor: pointer;
+}
+
+#cursor {
+  font-size: 1px; 
+  background: #CCC;
+  display: none;
+  width: 1px;
+  height: 10px;
+  position: absolute;
+}
+
+#status {
+  padding: 2px;
+  border: 1px solid #CCC;
+/*  border-top: none; */
+  background: #EEE;
+}
+
+#pgUpdateSpinner {
+  display: inline;
+}
+
+div.sequenceLine {
+  margin: 0;
+  padding: 0;
+  clear: both;
+  font-family: monospace;
+  font-size: 0.8em;
+}
+
+div.leftAlignmentLabel {
+  margin: 0;
+  padding: 0.1em 0.4em;
+  float: left;
+  text-align: right;
+  width: 3em;
+}
+
+div.alignmentRow {  
+  margin: 0;
+  padding: 0.1em;
+  float: left;
+}
+
+div.rightAlignmentLabel {
+  margin: 0;
+  padding: 0.1em;
+  text-align: right;
+  float: left;
+  width: 3em;
+}
+
+#plainSequence {
+  font-family: monospace;
+  font-size: 0.8em;
+  margin: 0.2em;
+  padding: 0.2em;
+  border: 1px solid #CCC;
+  background: #DDD;
+  float: left;
+}
+
+div.summaryGraphic {
+  margin: 0.75em 0;
+}
+
+/* ---------------------------------------- */
+/* domain image and key */
+
+#imageKey {
+  float: left;
+  clear: left; 
+  margin-top: 0.6em; 
+}
+
+#imageKey td.pfamA {
+  font-weight: bold;
+}
+
+/* ---------------------------------------- */
+/* treefam section */
+
+#treeFamFrame {
+  width: 100%;
+  height: 500px;
+}
+
+/* ----------------------------------------- *
+/* Canvas css */
+
+#canvasEl {
+  position: absolute; /* mandatory as this canvas is laid at the background and the div is placed relative to this*/
+  z-index:  1; 
+}
+
+.resWindow {
+  background-color: #FFF;
+  float:            left;
+  z-index:          0;
+}
+
+#scroller {
+  border:   1px solid red;
+  position: absolute;
+  width:    1px;
+  z-index:  10;
+}
+
+#resCanvas {
+  background-color: #FFF;
+  /*visibility:       hidden;*/
+  border:           1px solid red;
+}

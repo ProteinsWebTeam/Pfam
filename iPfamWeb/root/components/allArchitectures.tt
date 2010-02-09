@@ -1,0 +1,178 @@
+[%
+# allArchitectures.tt
+# jt6 20060410 WTSI
+#
+# This template builds the post-loaded page fragment which shows the 
+# unique architectures for a given Pfam-A, Pfam-B or clan. Actually, 
+# the filename is a bit of a misnomer, because the controller only
+# generates the first X domain graphics and this template provides a 
+# control to allow the user to load the next block on demand.
+#
+# $Id: allArchitectures.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+META naked = 1;
+
+USE String;
+
+# an ugly catch-all...
+IF numRows < 1 %]
+  <span>No architectures found.</span>
+  [% RETURN;
+END;
+
+FOREACH image IN images.each_image;
+  CALL image.print_image;
+  id = image.image_name;
+
+  archString = String.new;
+  prev = "";
+  i = 1;
+
+  FOREACH arch IN seqInfo.$id.arch;
+    IF arch != prev;
+
+      IF i > 1;
+        IF prev != "";
+          CALL archString.append( prev, " x $i, " );
+        END;
+      ELSE;
+        IF prev != "";
+          CALL archString.append( prev, ", " );
+        END;
+      END; # of IF i>1
+      prev = arch;
+      i = 1;
+
+    ELSE;
+      i = i + 1;
+    END; # of IF arch...
+
+    IF loop.last;
+      IF i > 1;
+        CALL archString.append( arch, " x $i, " );
+      ELSE;
+        CALL archString.append( arch, ", " );
+      END;
+    END;
+
+  END; # of "FOREACH arch"
+
+  CALL archString.trim.chop; %]
+
+  <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+
+    [% # describe the architecture, if there is one
+    IF seqInfo.$id.num %]
+      <h3>
+        [% IF seqInfo.$id.num > 1 -%]
+          There are [% seqInfo.$id.num %] sequences
+        [%- ELSE # and this really ought to be just "1"... -%]
+          There is [% seqInfo.$id.num %] sequence
+        [%- END -%]
+        with the following architecture: 
+        [%- archString -%]
+      </h3>
+    [% END %]
+
+    <span class="graphicLabel">
+      <a href="[% base %]protein?id=[% image.image_name %]">
+        [% image.image_name %]</a>
+      [% image.image_info %]
+      ([% image.length / image.scale_x %] residues)
+    </span>
+
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#domainGraphicsMap[% loop.index %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="domainGraphicsMap[% loop.index %]">
+      [% image.image_map %]
+    </map>
+
+    [% # don't show the "show all sequences" link for this row unless there 
+       # is more than just one sequence 
+    IF seqInfo.$id.num.defined; 
+      IF seqInfo.$id.num != 1;
+        # switch to show/hide the domains %]
+        <span id="showHideArchs[% loop.index %]" style="display: none">
+          <span class="link" onclick="reveal(this,'domainArch[% loop.index %]',true)">Hide</span>
+          all sequences with this architecture.
+        </span>
+  
+        [% # switch to actually generate the domains and load them into a div -%]
+        <span id="loadSwitch[% loop.index %]">
+          <span class="link" 
+                onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]&amp;taxId=[% taxId %]', '[% seqInfo.$id.num %]' )">
+            Show</span> all sequences with this architecture.
+        </span>
+
+    [% END; # of "UNLESS seqInfo..."
+    END; # of "UNLESS seqInfo..."
+
+    # somewhere to stuff the post-post-loaded graphics... %]
+    <div id="domainArch[% loop.index %]">
+      <div id="adSpinner[% loop.index %]" 
+           style="display: none" 
+           class="loading">
+        Loading all sequences...
+      </div>
+    </div>
+
+  </div> <!-- end of graphics row -->
+
+[% END; # of FOREACH image 
+
+# N.B. this snippet of javascript will not appear in the page source or DOM 
+# tree after loading, because prototype will execute it but not store it
+%]
+<script type="text/javascript">
+  // <![CDATA[
+  getMore = function() {
+    $('loadingSpinner').show();
+    $('loadingButton').disable();
+    new Ajax.Request( 
+      '[% base %]domaingraphics',
+      {
+        method:     'get',
+        parameters: { acc:   '[% acc %]',
+                      taxId: '[% taxId %]',
+                      start: '[% last + 1 %]' },
+        onSuccess:  function( oResponse ) {
+                      $('next[% first %]').update( oResponse.responseText );
+                    },
+        onFailure:  function() {
+                      $('next[% first %]').innerHTML = 'There was a problem retrieving the next set of domain graphics';
+                    },
+      }
+    );
+  }  
+  // ]]>
+</script>
+
+[% IF first.defined AND last.defined;
+  IF ( last + 1 ) < numRows %]
+    <div id="next[% first %]">
+      <p>
+        Currently showing architectures 1 to [% last + 1 %], out of a
+        total of [% numRows %].
+      </p>
+      <input id="loadingButton"
+             type="button"
+             value="Show next [% count %]"
+             onclick="getMore()" />
+      <span id="loadingSpinner"
+            class="loading"
+            style="display: none">Loading next set...</span>
+    </div>
+  [% ELSE %]
+    <p>
+      [% IF numRows > 1 %]
+        Showing all [% numRows %] architectures.
+      [% ELSE %]
+        Showing the only architecture.
+      [% END %]
+    </p>
+  [% END;
+END %]

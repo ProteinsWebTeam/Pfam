@@ -1,0 +1,45 @@
+[%
+# go.tt
+# pg6 20091126
+#
+# $Id: go.tt,v 1.1 2009-11-27 11:46:20 pg6 Exp $
+
+META naked=1;
+%]
+<h2>Search results for section <strong>GO</strong></h2><p/>
+<table class="sortable resultTable" id="goResultTable" summary="Search results">
+<thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th>Pfam Id</th>
+        <th>GO Id</th>
+        <th class="nosort">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+      %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/family", acc=row.acc ) %]">[% row.acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc=row.acc ) %]">[% row.id %]</a></td>
+        <td>[% row.go_id %]</th>
+        <td class="desc">[% row.desc %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+ 
+  <script type="text/javascript">
+    updateResults ( [% hits %],'go' );
+    sortableTable( 'goResultTable' );
+//    // now update the contents of the result;
+//    $( 'gohits').update( "[% hits %]" );
+//    var gohits = [% hits %];
+//    
+//    if( gohits === 0 ){
+//      addResultStatus( );
+//      console.log( "the noRes value in go is"+noRes);
+//    }
+  </script>

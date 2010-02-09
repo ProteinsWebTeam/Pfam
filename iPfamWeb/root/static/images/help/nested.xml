@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1">
+  <sequence name="Nested" length="200">
+    <region start="5" end="80" label="IMPDH" link_URL="/">
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="curved" rightStyle="jagged"/>
+    </region>
+    <region start="81" end="135" label="CBS" link_URL="/cgi-bin/Pfam/getacc?PF00571">
+      <colour1>
+        <colour>
+          <hex hexcode="c00f0f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="e83737"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="curved" rightStyle="curved"/>
+    </region>
+    <region start="136" end="197" label="IMPDH" link_URL="/cgi-bin/Pfam/getacc?PF00478">
+      <colour1>
+        <colour>
+          <hex hexcode="1fc01f"/>
+        </colour>
+      </colour1>
+      <colour2>
+        <colour>
+          <hex hexcode="47e847"/>
+        </colour>
+      </colour2>
+      <bigShape leftStyle="jagged" rightStyle="curved"/>
+    </region>
+    <markup start="79" end="136" v_align="top" label="Discontinuous domain">
+      <line style="mixed">
+        <colour>
+          <hex hexcode="333333"/>
+        </colour>
+      </line>
+    </markup>
+  </sequence>
+</image>

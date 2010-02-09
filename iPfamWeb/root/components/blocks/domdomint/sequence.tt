@@ -1,0 +1,68 @@
+[%
+# sequence.tt
+# pg6 20091110
+# WTSI
+#
+# block for showing the sequences participating in the domain-domain interaction;
+# $Id: sequence.tt,v 1.3 2009-11-10 16:23:51 pg6 Exp $
+RETURN UNLESS seqData;
+
+requirements.js.push( "tablekit.js");
+
+-%]
+
+
+<div class="block" id="domdomintSequenceBlock">
+  <div class="handle">
+    <h1> Sequence </h1>
+  </div>
+  
+  <div class="blockContent">
+    
+    The following is the list of sequences which takes part in interaction between the two domains,
+    <p/>
+    <table border=1 id='domdomInt' class="details browse">
+      <thead> 
+        <tr>
+          <th colspan=3>[% from.pfama_id %]</th>
+          <th colspan=3>[% to.pfama_id %]</th>
+        </tr>
+        <tr>
+          <th>Protein accession</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Protein accession</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+        
+      </thead>
+      <tbody>
+        [%  FOREACH seq IN seqData %]
+        <tr>
+          <td>[% seq.proteinA %]</td>
+          <td>[% seq.startA %]</td>
+          <td>[% seq.endA %]</td>
+          <td>[% seq.proteinB %]</td>
+          <td>[% seq.startB %]</td>
+          <td>[% seq.endB %]</td>
+        </tr>
+        [% END %]
+      </tbody>
+    </table>
+    
+    <!-- Now add the javascript snipet to sort the table-->
+    <script type="text/javascript">
+     // now add the snippet which creates sortable table
+    var sortTable = new TableKit( 'domdomInt' ,
+                                {
+                                  editable: false,
+                                  resizable: false,
+                                  rowEvenClass: "even",
+                                  rowOddClass: "odd",
+                                  stripe: true  
+                                } );
+    </script>
+  </div>
+</div>
+

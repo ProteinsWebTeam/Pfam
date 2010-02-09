@@ -1,0 +1,132 @@
+[%
+# jmol.tt
+# jt6 20060728 WTSI
+# 
+# build a page for the Jmol applet
+#
+# $Id: jmol.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "Jmol.js" );
+
+#-------------------------------------------------------------------------------
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
+# page here ourselves
+META naked = 1;
+
+USE String;
+
+pageContent = BLOCK;
+
+title = "Jmol";
+
+script = String.new( "background [xe7e7e7]; load \"" );
+activeSites = String.new( "select none; " );
+
+CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) );
+CALL script.append( "\"; select all; cartoons on; cpk off; wireframe off; " );
+
+FOREACH m IN mapping;
+
+  CALL script.append( "select ${m.pdb_res_start}-${m.pdb_res_end}" );
+  IF m.chain;
+    CALL script.append( ":${m.chain}; " );
+  ELSE;
+    CALL script.append( "; " );
+  END;
+  IF m.hex_colour;
+    CALL script.append( "color [x${m.hex_colour}]; " );
+  END;
+
+  FOREACH markup IN markups;
+    CALL activeSites.append( "select ${markup.pdb_seq_number}" );
+    IF markup.chain;
+      CALL activeSites.append( ":${markup.chain}; " );
+    ELSE;
+      CALL activeSites.append( "; " );
+    END;
+
+    IF markup.auto_markup == 1;
+      CALL activeSites.append( "colour [255,51,102]; " );
+    ELSIF markup.auto_markup == 2;
+      CALL activeSites.append( "colour [153,0,204]; " );
+    END;
+
+    CALL activeSites.append( "wireframe 100; " );
+
+  END; # of FOREACH markup
+
+END; # of FOREACH mapping
+
+CALL script.append( activeSites );
+CALL script.append( "select none; select ligand; cpk on; color cpk; " );
+-%]
+
+<h1>PDB entry [% pdb.pdb_id %]</h1>
+
+<script type="text/javascript">
+  // <![CDATA[
+  // [%# we apparently need to set explicitly the name of the window, otherwise 
+  //   # it takes the name of the parent, so targetted links back to the parent
+  //   # will fail (stupid commenting to keep eclipse happy...) %]
+  window.name = "jmolWin";
+  jmolInitialize(" [% base %]static/jmol"); // REQUIRED
+  jmolSetAppletColor( "white" );
+  jmolApplet(500, '[% script %]');
+  // ]]>
+</script>
+
+<table class="details" summary="Mappings from PDB to UniProt to Pfam">
+  <thead>
+    <tr class="caption">
+      <th colspan="3">PDB</th>
+      <th colspan="3">UniProt</th>
+      <th rowspan="2">Pfam family</th>
+      <th rowspan="2">Colour</th>
+    </tr>
+    <tr class="caption">
+      <th>Chain</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>ID</th>
+      <th>Start</th>
+      <th>End</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% oe = 0;
+    FOREACH m IN mapping %]
+    <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+      <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+      <td>[% m.pdb_res_start %]</td>
+      <td>[% m.pdb_res_end %]</td>
+      <td>
+        <a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" 
+           target="pfamParentWin">[% m.pfamseq_id %]</a>
+      </td>
+      <td>[% m.seq_start %]</td>
+      <td>[% m.seq_end %]</td>
+      <td>
+        <a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">
+          [% m.pfamA_id %]</a>
+        (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" 
+            target="pfamParentWin">[% m.pfamA_acc %]</a>)
+      </td>
+      <td style="background: #[% m.hex_colour %]">&nbsp;</td>
+    </tr>
+    [% END %]
+  </tbody>
+</table>
+
+<div>
+  <a href="#" onclick="window.close()" class="closer">Close window</a>
+</div>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]

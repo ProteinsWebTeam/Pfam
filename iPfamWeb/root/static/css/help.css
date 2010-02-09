@@ -1,0 +1,184 @@
+
+/* family.css
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: help.css,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* ======================================== */
+/* general rules */
+
+hr {
+  width: 80%;
+  height: 1px;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.blockContent ol {
+    margin-right: 210px;
+}
+
+#tableLabel {
+  padding-top: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* getting started block */
+
+img.jumpTo {
+  float: right;
+  padding: 0.4em;
+}
+
+/* ---------------------------------------- */
+
+#alignmentTree img {
+    border: 1px solid #CCC;
+}
+
+#structuresListTable {
+  background: #BBB;
+}
+
+#structuresListTable th {
+  padding: 0.4em;
+}
+
+#structuresListTable td {
+  padding: 0.2em 0.4em;
+}
+
+#structuresListTable tr.newRow td {
+  border-top: 1px solid #BBB;
+}
+
+#unpId {
+  width: 6em;
+}
+#unpRes {
+  width: 6em;
+}
+#pdbId {
+  width: 4em;
+}
+#chId {
+  width: 3em;
+}
+#pdbRes {
+  width: 6em;
+}
+
+#alignmentData {
+  width: 55em;
+  font-family: monospace;
+  font-size: smaller;
+  overflow: auto;
+}
+#alignmentData span {
+  white-space: nowrap;
+}
+
+#alignmentKey {
+  width: 12em;
+  font-family: monospace;
+  font-size: smaller;
+  overflow: auto;
+  float: left;
+}
+#alignmentKey span {
+  display: block;
+}
+
+#alignmentKey span.odd {
+  background: #BAB;
+}
+#alignmentKey span.even {
+  background: #CBC;
+}
+
+#domainsBlock img {
+  display: block;
+  padding: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* domain graphics */
+
+div.xmlFragment {
+  margin: 0.2em;
+  padding: 0.2em;
+  border: 1px solid #666;
+  background: #e7e7e7;
+}
+
+div.xmlFragment pre {
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------------------------------------- */
+/* web services */
+
+pre.codeSnippet {
+  background: #EEE;
+  border: 1px solid #CCC;
+  padding: 0.8em;
+  margin: 1em 3em;
+}
+
+dl.methods dt {
+  float: left;
+  clear: left;
+  width: 15em;
+  text-align: right;
+  font-weight: bold;
+}
+
+dl.methods dd {
+  margin: 0.6em 16em;  
+}
+
+/* ---------------------------------------- */
+/* mirrors */
+
+ul.mirrors {
+  padding: 0 0 0 1em;
+}
+
+/* ---------------------------------------- */
+/* linking page */
+
+dl.sitesList dt {
+  text-align: right;
+  float: left;
+  width: 8em;
+}
+
+dl.sitesList dd {
+  margin-left: 8.2em;
+}

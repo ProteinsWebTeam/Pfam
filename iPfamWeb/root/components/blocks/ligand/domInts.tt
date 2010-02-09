@@ -1,0 +1,90 @@
+[%
+# domInts.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the family section
+#
+# $Id: domInts.tt,v 1.2 2010-01-04 13:15:12 pg6 Exp $
+
+RETURN UNLESS rest.summaryData.domInt;
+-%]
+
+<!-- start interactions block -->
+
+<div class="block" id="ligandInteractionsBlock">
+  <div class="handle">
+    <h1>Ligand-Domain Interactions</h1>
+  </div>
+  	
+	<div class="blockContent">
+   <p>
+      There [%- rest.summaryData.domInt > 1 ? "are " : "is " %]
+      <b>[% rest.summaryData.domInt %]</b> 
+      <!-- interaction[% rest.summaryData.numInt > 1 ? "s" : "" %] for this family. -->
+      interaction[% rest.summaryData.domInt > 1 ? "s" : "" %] for this family.
+			<span onclick="reveal( this, 'DomIntNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="DomIntNotes" style="display: none">
+      <p>
+        We determine these interactions using 
+        <a href="http://www.sanger.ac.uk/Software/Pfam/iPfam"><em>i</em>Pfam</a>, 
+        which considers the interactions between residues in three-dimensional 
+        protein structures and maps those interactions back to Pfam families. 
+        You can find more information about the <em>i</em>Pfam algorithm in  
+        <a href="http://bioinformatics.oupjournals.org/cgi/content/full/21/3/410">
+          journal article</a> that accompanies the website.
+      </p>
+      <hr />
+    </div>
+    
+		[%FOREACH interaction IN rest.DomainInteractions.sort( pfamA_id ) %]
+      <span class="listItem">
+        <a href="[% base %]ligdominteraction?to=[% interaction.pfamA_acc %]&from=[% rest.ligand.three_letter_code %]">
+          [% interaction.pfamA_id %]</a>
+      </span>
+    [% END %]
+
+  </div>
+</div>
+
+<!-- end interactions block -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

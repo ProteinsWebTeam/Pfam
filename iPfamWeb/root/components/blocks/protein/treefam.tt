@@ -1,0 +1,36 @@
+[%
+# treefam.tt
+# jt6 20061030 WTSI
+# 
+# block for treefam data
+#
+# $Id: treefam.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+RETURN UNLESS pfamseq.treefam_acc;
+-%]
+
+<!-- start treefam block -->
+
+<div class="block" id="proteinTreeFamBlock">
+  <div class="handle">
+    <h1>TreeFam</h1>
+  </div>
+  <div class="blockContent">
+  <div class="explanatoryText">
+    <p>
+      Below is a phylogenetic tree of animal genes, with ortholog and paralog 
+      assignments, from <a class="ext" href="http://www.treefam.org/">TreeFam</a>.
+    </p>
+  </div>
+
+  [%# there's no such thing as an iframe in the version of HTML that we're
+    # claiming to use, so this is pretty bad form... 
+    # TODO don't use an iframe %]
+  <iframe id="treeFamFrame" 
+          src="http://www.treefam.org/cgi-bin/treeview.pl?stype=clean&amp;ac=[% pfamseq.treefam_acc %]"
+          title="TreeFam entry [% pfamseq.treefam_acc %]"></iframe>
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end treefam block -->

@@ -1,0 +1,92 @@
+[%
+# mapping.tt
+# jt6 20070810 WTSI
+# 
+# build the table showing the mapping between this structure and UniProt/Pfam
+#
+# $Id: mapping.tt,v 1.2 2009-12-01 10:52:22 pg6 Exp $
+
+# there will be no rows in the table unless there is data in the mapping array
+RETURN UNLESS mapping.size; 
+
+# a counter for odd/even
+oe = 0;
+%]
+
+<!-- start mapping block -->
+
+<div class="block" id="structureMappingBlock">
+  <div class="handle">
+    <h1>Sequence mapping</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      use the mapping between <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+      systems from the <a class="ext" 
+        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+      Pfam domains onto UniProt three-dimensional structures. The table below
+      shows the sequences and Pfam domains that correspond to this structure.
+    </p>
+
+    <table id="structuresTable"
+           class="details" 
+           summary="Mapping to Uniprot and Pfam">
+      <thead>
+        <tr class="caption">
+          <th colspan="3">PDB</th>
+          <th colspan="3">UniProt</th>
+          <th rowspan="2">Pfam family</th>
+        </tr>
+        <tr class="caption">
+          <th>Chain</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>ID</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH m IN mapping -%]
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+          <td>[% m.pdb_res_start %]</td>
+          <td>[% m.pdb_res_end %]</td>
+          <td><a href="[% base %]protein?id=[% m.pfamseq_id %]">[% m.pfamseq_id %]</a></td>
+          <td>[% m.seq_start %]</td>
+          <td>[% m.seq_end %]</td>
+          <td><a href="[% base %]family?id=[% m.pfamA_id %]">[% m.pfamA_id %]</a> 
+            (<a href="[% base %]family?acc=[% m.pfamA_acc %]">[% m.pfamA_acc %]</a>)</td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
+
+    <p class="small">
+      <strong>Note:</strong> This mapping was provided by the 
+      <a class="ext" href="http://www.ebi.ac.uk/msd/">MSD</a> group.
+    </p>
+
+  </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // how many columns are there in the table ?
+  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+  var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+  // walk over all of the cells in the table and add listeners for mouseover and 
+  // mouseout events
+  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
+      }
+    );
+  // ]]>
+</script>
+
+</div><!-- end mapping block -->

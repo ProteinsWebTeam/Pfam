@@ -1,0 +1,158 @@
+[%
+# interactions.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the family section
+#
+# $Id: ligandInts.tt,v 1.10 2009-12-22 11:48:02 pg6 Exp $
+
+RETURN UNLESS rest.summaryData.ligInt;
+
+requirements.js.push( "prototip.js" );
+requirements.js.push( "tablekit.js");
+requirements.css.push( "prototip.css" );
+
+-%]
+<!-- start interactions block -->
+
+<!--<div class="block" id="ligandIntBlock">-->
+  <div class="block" id="familyLigandBlock">
+  <div class="handle">
+    <h1>Domain Small Ligand Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This page shows the ligand[%- rest.summaryData.ligInt > 1 ? "s " : " " %] which are found to be interacting
+      with family <strong>[% pfam.pfama_id %]</strong>. You can either look at the three-letter-code of the ligand or 
+      a sortable table showing the ligand name, formula and three-letter-code by clicking 
+      <span id="names" class="link" onclick="toggleNames( )">here</span>.
+        
+    </p>
+     
+		<div id="ligcode">
+		[% FOREACH interaction IN ligInteractions.sort( ligand_id ) %]
+        <span id="[% interaction.three_letter_code %]" class="listItem falseLink">
+      	  <a href="[% base %]ligdominteraction?from=[% pfam.pfama_acc %]&to=[% interaction.three_letter_code %]">
+      	    [% interaction.three_letter_code %]
+          </a>
+        </span>
+			<!--<a href="[% base %]ligdominteraction?from=[% pfam.pfama_acc %]&to=[% interaction.three_letter_code %]">
+      </a>-->
+    [% END %]
+		</div>
+		
+    <!-- Add a cleaner to clear the space-->
+    <div class="cleaner"></div>
+		
+    <div id="ligname" style="display:none">
+		
+    <table border="1" id="ligandName" class="details browse">
+		  <thead>
+		    <tr>
+		      <th>Three Letter Code</th>
+          <th>Formula</th>
+          <th>Ligand Name</th>
+		    </tr>
+		  </thead>
+      <tbody>
+        [% FOREACH interaction IN rest.ligInteractions.sort( ligand_id ) %]
+        <tr>
+          <td>[% interaction.three_letter_code %]</td>
+          <td>[% interaction.formula %]</td>
+          <td class="left"><a href="[% base %]ligdominteraction?from=[% pfam.pfama_acc %]&to=[% interaction.three_letter_code %]"> [% interaction.ligand_id %]</a></td>
+        </tr>
+        [% END %]
+      </tbody>
+		</table>
+    </div>
+    
+   <script type="text/javascript">
+    	
+			// options for building the tooltip
+			var tipOpts = $H( { 
+                   border: 1,
+                   borderColor: "#063",
+                   delay:  0.5,
+                   hideAfter: 0.5,
+                   hideOn: { element: "closeButton", event: "click" },
+                   hideOthers: true,
+                   hook:{ tip: 'bottomLeft'},
+                   stem: "bottomLeft",
+                   radius: 1,
+                   offset: { x:5, y:15},
+									 width:  '200px'                                
+                 } );
+			
+			// create a static url for directing to the domain -ligand interaction page which is specific to the pair.
+  		var uri = '[% base %]ligdominteraction?from=[% rest.pfam.pfama_acc %]&to=';
+			
+			// get the JSON object from the TT variable;
+			var ligdata = new Hash( '[% rest.ligdata %]'.evalJSON( true ) );
+			
+			//inspect the ligdata;
+			 console.log( "the ligdata is "+ligdata.inspect() );
+			
+			// walk down the span elements and based on its Id build the tool tip;
+      $( 'ligcode' ).childElements().each( function ( element ){ 
+        
+        // to avoid problems while creating JSON object, single quote has been replaced with @, 
+				// now find them and replace again.
+        if( ligdata.get( element.getAttribute( 'id' )).match( /@/) ){
+							
+					var chem_name = ligdata.get( element.getAttribute( 'id' ) ).replace( /@/g, "'" );
+					ligdata.set(element.getAttribute( 'id' ) , chem_name );
+					
+				}
+        
+        // now create a tooltip for the id;
+        new Tip( element, 
+                'IUPAC-Name :<a href='+uri+element.getAttribute( 'id' )+'>'+ligdata.get( element.getAttribute( 'id' ))+'</a>',
+                tipOpts.merge( {
+					                     title: 'Three Letter Code: '+ element.getAttribute( 'id' )
+				                     } ).toObject()  
+               );
+      } );  
+		
+		// function to toggle between the ligand names and code
+		
+		function toggleNames(  ) {
+			// console.log( "Function::toggleNames:called");
+			
+			// find out the whether the id is names or code;
+			
+			if( $( 'names' ) ){
+				
+				// console.log( "lig codes are displayed, have to change to names" );
+				var names = $( 'names' );
+				$( 'ligcode').hide();
+				names.setAttribute( 'id', 'code' );
+				$( 'ligname' ).show();
+				
+			}else	if( $( 'code' ) ){
+				// console.log( "lig names are displayed, have to change to code" );
+				var code = $( 'code' );
+				$( 'ligname' ).hide();
+				code.setAttribute( 'id', 'names' );
+				$( 'ligcode' ).show();
+			}
+			
+		}
+    
+    // now add the snippet which creates sortable table
+    var sortTable = new TableKit( 'ligandName' ,
+                                {
+                                  editable: false,
+                                  resizable: false,
+                                  rowEvenClass: "even",
+                                  rowOddClass: "odd",
+                                  stripe: true  
+                                } );
+						
+    </script>
+
+  </div>
+</div>
+
+
+<!-- end interactions block -->

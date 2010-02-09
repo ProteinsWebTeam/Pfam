@@ -1,0 +1,97 @@
+
+[%
+# browseIndex.tt
+# jt6 20070426 WTSI
+# 
+# build a "browse" index page
+#
+# $Id: index.tt,v 1.5 2009-11-09 16:51:31 pg6 Exp $
+
+META title = "Browse Pfam";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+alphabet =    [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+                "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+#familyPages = [ "new", "top twenty", "numbers" ];
+familyPages = [ "numbers" ];
+
+# shortcuts for URIs
+baseUri     = c.uri_for( "/" );
+familyURI   = "${baseUri}/family/browse";
+ligandURI   = "${baseUri}/ligand/browse";
+%]
+
+<!-- start of browse index page -->
+<div id="browseIndex">
+  
+  <h2>Browse <em>i</em>Pfam</h2>
+  
+  <p>
+    You can use the links below to find lists of Pfam families and ligands present in the <em>i</em>Pfam database,
+    which begin with the chosen letter (or number).
+  </p>
+  
+  <hr />
+  
+  <table summary="Browse the <em>i<em>Pfam database">
+    <tbody>
+      <tr>
+        <td class="type">FAMILIES</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet %]
+          <a href="[% familyURI %]?browse=[% letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+          <br />
+          [% FOREACH letter IN familyPages %]
+          <a href="[% familyURI %]?browse=[% letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+      <tr>
+        <td class="type">LIGANDS</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet %]
+          <a href="[% ligandURI %]?browse=[% letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+          <br />
+          [% FOREACH letter IN familyPages %]
+          <a href="[% ligandURI %]?browse=[% letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+    </tbody>
+  </table>  
+  
+  <hr />
+  
+</div>  
+<!-- end of browse index page -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -1,0 +1,28 @@
+[%
+# about.tt
+# pg6 20091113
+#
+# $Id: about.tt,v 1.1 2009-11-13 10:36:40 pg6 Exp $
+#
+
+META fullpage = 1;
+
+-%]
+
+<div id="about">
+  <h1> About <em>i</em>Pfam</h1>
+  
+  <p>
+    <em>i</em>Pfam is a child database of <a href="http://pfam.sanger.ac.uk">Pfam</a> utilizing the domain information from 
+    Pfam and mappings between the Uniprot sequences and PDB, we calculate the interactions between the domains using an
+    algorithm developed in <a href="http://www.sanger.ac.uk/Teams/Team120/">Bateman</a> group. For more information 
+    about paper and database details, please visit <a href="[% c.uri_for( '/help' ) %]">help</a> pages.
+  </p>
+  <p>
+    Sequence databases version and other details should come here.
+  </p>
+  <p>
+    <em>i</em>Pfam project is currently funded by ....( add funding details here ).
+  </p>
+  <hr/>
+</div>

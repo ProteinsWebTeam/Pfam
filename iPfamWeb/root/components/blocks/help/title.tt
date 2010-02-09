@@ -1,0 +1,14 @@
+[%
+# title.tt
+# jt6 20060925 WTSI
+#
+# build the titles for the help pages
+#
+# $Id: title.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h1><em>i</em>Pfam Help</h1>
+[% ELSIF titleType == "page" %]
+Help
+[% END %]

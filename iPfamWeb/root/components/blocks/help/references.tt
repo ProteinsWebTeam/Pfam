@@ -1,0 +1,22 @@
+[%
+# scores.tt
+# rdf 20060926 WTSI
+# 
+# build the references block for the help pages
+#
+# $Id: references.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start references block -->
+
+<div class="block" id="helpReferencesBlock">
+  <div class="handle">
+    <h1>References &amp; Bibliography</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3><em>i</em>Pfam References</h3>
+     
+
+  </div>
+</div>

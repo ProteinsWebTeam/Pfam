@@ -1,0 +1,40 @@
+
+[%#
+# summary.tt
+# rdf 20060821 WTSI
+# 
+# build the summary block for the domain-domain intercation pages
+#
+# $Id: summary.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+%]
+
+<!-- start domain summary block -->
+
+<div class="block" id="iDomainDomainSummaryBlock">
+  <div class="handle">
+    <h1>[% pfam_A.pfamA_id %]-[% pfam_B.pfamA_id %] Interaction Summary</h1>
+  </div>
+	<h3>Entry</h3>
+	<p>Acc: IPF:[% pfam_A.pfamA_acc %]-[% pfam_B.pfamA_acc %]</p>
+	<p>Id:  [% pfam_A.pfamA_id %]-[% pfam_B.pfamA_id %]</p>
+
+	<h3>Interaction Summary</h3>
+	<p>No. interchain interactions</p>
+	<p>No. intrachain interactions</p>
+
+	<p>Average number of interacting residues</p>
+	<p>Average Number of Interacting bonds</p>
+
+	<p>No. of domains regions</p>
+	<p>There are X examples of [% pfam_A.pfamA_id %]-[% pfam_B.pfamA_id %] found in Z strucutres<p>
+
+	<h5>Pie in the sky</h5>;
+	<p>No. Geometric groups</p>
+
+
+	<p>Other [% pfam_B.pfamA_id %] interactions</p>
+	<p>Go terms</p>
+	<p>Links to Pfam families<p>
+</div>
+
+<!-- end ipfam summary block -->

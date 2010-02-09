@@ -1,0 +1,61 @@
+
+[%
+# relationships.tt
+# jt6 20060424 WTSI
+#
+# $Id: relationships.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+-%]
+
+<!-- start relationships block -->
+
+<div class="block" id="clanRelationshipsBlock">
+  <div class="handle">
+    <h1>Family relationships</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This diagram shows the relationships between members of this clan.
+      <span onclick="reveal( this, 'relationshipNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="relationshipNotes" style="display: none">
+      <p>
+        Relationships between families in a clan are determined by a 
+        <a href="http://supfam.org/PRC/" class="ext">PRC</a>
+        alignment between family HMMs. Families are deemed to be closely
+        related if their E-value is less than 10<sup>-3</sup> and these 
+        relationships are shown with a solid line. Less closely related
+        family pairs, with an E-value of between 10<sup>-3</sup> and
+        10<sup>-1</sup>, are shown with a dashed line.
+      </p>
+      <p>
+        The E-value for each pair of closely or partially related families
+        is show next to the line linking the families. Clicking on the 
+        E-value will take you to the pairwise 
+        <a href="http://www.sanger.ac.uk/Software/analysis/logomat-p/"
+           class="ext">HMM-logo</a> for that relationship.
+        You can see the information regarding a Pfam family by clicking
+        on the family box.
+      </p>
+      <hr />
+    </div>
+
+    <img id="clanImage"
+         src="[% base %]clan/relationship/image?acc=[% acc %]"
+         alt=""
+         usemap="#clanMap" />
+    [% TRY %]
+	  <map name="clanMap" id="clanMap">
+      [% relationshipImageMap %]
+    </map>
+    [% CATCH;
+      CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}, $map" );
+    END %]
+
+  </div>
+
+</div>
+
+<!-- end relationships block -->

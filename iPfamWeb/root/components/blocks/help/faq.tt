@@ -1,0 +1,19 @@
+[%
+# faq.tt
+# rdf 20060927 WTSI
+# 
+# build the faq block for the help pages
+#
+# $Id: faq.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start faq block -->
+
+<div class="block" id="helpFAQBlock">
+  <div class="handle">
+    <h1><a name="faqTop">Frequently Asked Questions</a></h1>
+  </div>
+  <div class="blockContent">
+	
+  </div>
+</div>

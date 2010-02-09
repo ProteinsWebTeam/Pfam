@@ -1,0 +1,217 @@
+
+[%
+# summary.tt
+# jt6 20060427 WTSI
+# 
+# build the summary block for proteins
+#
+# $Id: summary.tt,v 1.3 2010-02-03 16:31:08 pg6 Exp $
+
+USE String;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "protein.css" );
+requirements.cssIeAll.push( "protein_all_ie.css" );
+
+#requirements.js.push( "protein.js" );
+requirements.js.push( "tablekit.js" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+#requirements.js.push( "domain_graphics_loader.js" );
+
+#-------------------------------------------------------------------------------
+
+# a row counter
+oe = 0;
+-%]
+<!--
+<script type="text/javascript">
+  // <![CDATA[
+ // Event.observe( window, "load", proteinPostLoad, false );
+  // ]]>
+</script>
+-->
+<!-- start protein summary block -->
+
+<div class="block" id="proteinSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+    
+    <h1>[% rest.protein.id %]</h1>
+    <p>
+      This is the summary of UniProt entry 
+      <a href="http://www.ebi.uniprot.org/entry/[% rest.protein.id %]"
+         class="ext">[% rest.protein.id %]</a>
+      (<a href="http://www.ebi.uniprot.org/entry/[% rest.protein.id %]"
+          class="ext">[% rest.protein.accession %]</a>).
+    </p>
+
+    <table class="layout" summary="Protein summary information">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Description:</td>
+          <td class="data">
+            "No description in iPfam DB, may be import the data from Pfam website"
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <!-- <td class="label">Source organism:</td>
+          <td class="data">
+          [% IF protein.ncbi_code %]
+           <span class="ext">
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% protein.ncbi_code %]">
+                [% protein.species %]</a> 
+              (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% protein.ncbi_code %]">
+                [% protein.ncbi_code %]</a>)
+            </span>
+            [% ELSE;  
+              protein.species;
+            END;
+            IF genomeCode %]
+              <br />
+              <a href="[% base %]proteome?taxId=[% genomeCode %]">View</a> Pfam genome data.
+            [% END %]
+          </td>-->
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Length:</td>
+          <td class="data">
+            [% rest.protein.length %] amino acids
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="small">
+      <strong>Please note:</strong> This release of iPfam relies on
+      Pfam database version 24.0 which inturn takes a copy of the
+      UniProt sequence database. This snapshot of 
+      UniProt forms the basis of the overview that you see here. It is 
+      important to note that although some UniProt entries may be removed 
+      <em>after</em> a Pfam release, these entries will not be removed from 
+      Pfam until the <em>next</em> Pfam data release, so it will remain in 
+      <em>i</em>Pfam and will change only when new release comes. 
+    </p>
+
+    <h2>Pfam domains</h2>
+    
+     <div id="pgdesc" style="display: none">
+      <p>
+        This image shows the arrangement of the Pfam domains that we found on 
+        this sequence. Clicking on a domain will take you to the page describing 
+        that Pfam entry. The table below gives the domain boundaries for each of 
+        the domains.
+      </p>
+    </div>
+
+    <div id="pgholder" class="pgholder"></div>
+
+    <table class="resultTable"
+           id="imageKey" 
+           class="details"
+           summary="Key for the Pfam domain image">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Domain</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+    <tbody>
+    </tbody>
+    </table>
+    [% USE Dumper;
+      Dumper.dump( rest.layout[0] );
+    %]
+    <script type="text/javascript">
+      // <![CDATA[
+
+      /* [%# retrieve the domain graphics description %] */
+      var layout = [% rest.layout || "[]" %];
+      var sequence = layout[0];
+      
+      /* [%# build the domain graphic %] */
+      var pg = new PfamGraphic( "pgholder", sequence);
+      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
+      pg.render();
+
+      /* [%# show the blurb about the image %] */
+      $("pgdesc").show();
+
+      /* [%# a base URI for the family links in the table %] */
+      var familyUri = "[% c.uri_for( '/family' ) %]";
+
+      /* [%# build the key table, giving the list of domains and their start/end points.
+           # If there are no regions, just hide the table instead %] */
+      if ( sequence.regions.size() > 0 ) {
+
+        var tbody = $("imageKey").down("tbody");
+        var oe = "odd";
+        [ sequence.regions, sequence.motifs ].flatten().each( function( hit ) {
+          var tr = new Element( "tr", { "class": oe } );
+          tbody.appendChild( tr );
+
+          var link = new Element( "a", { href: familyUri + "/" + hit.metadata.identifier } )
+                       .update( hit.metadata.identifier );
+
+          var source = new Element( "td" )
+                         .setStyle( { fontWeight: "bold" } );
+          if ( hit.type == "pfama" ) {
+            source.update( "Pfam A" )
+		              .setStyle( { color: hit.colour } );
+          } else if ( hit.type == "pfamb" ) {
+            source.update( "Pfam B" );
+          } else {
+            source.update( hit.type );
+          }
+
+          tr.appendChild( source );
+          tr.appendChild( new Element( "td" ).update( link ) );
+          tr.appendChild( new Element( "td" ).update( hit.metadata.start || hit.start ) );
+          tr.appendChild( new Element( "td" ).update( hit.metadata.end   || hit.end  ) );
+
+          oe = ( oe == "odd" ) ? "even" : "odd";
+        } );
+
+      } else {
+        $("imageKey").hide();
+      }
+
+      var sorter = new TableKit( "imageKey",
+                                 { editable:     false,
+                                   resizable:    false,
+                                   rowEvenClass: "even",
+                                   rowOddClass:  "odd",
+                                   stripe:       true } );
+      sorter.sort(3);
+
+      // ]]>
+    </script>
+    
+  </div> <!-- end of "blockContent" -->
+</div>
+
+<!-- end protein summary block -->

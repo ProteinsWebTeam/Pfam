@@ -1,0 +1,52 @@
+[%
+# interactions.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the family section
+#
+# $Id: ligandInts.tt,v 1.1 2008-01-15 13:29:43 rdf Exp $
+
+RETURN UNLESS summaryData.ligInt;
+-%]
+
+<!-- start interactions block -->
+
+<div class="block" id="structureLigandIntBlock">
+  <div class="handle">
+    <h1>Domain Small Ligand Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      There [%- summaryData.ligInt > 1 ? "are " : "is " %]
+      <b>[% summaryData.ligInt %]</b> 
+      interaction[% summaryData.ligInt > 1 ? "s" : "" %] for this family.
+      <span onclick="reveal( this, 'intNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="intNotes" style="display: none">
+      <p>
+        We determine these interactions using 
+        <a href="http://www.sanger.ac.uk/Software/Pfam/iPfam"><em>i</em>Pfam</a>, 
+        which considers the interactions between residues in three-dimensional 
+        protein structures and maps those interactions back to Pfam families. 
+        You can find more information about the <em>i</em>Pfam algorithm in  
+        <a href="http://bioinformatics.oupjournals.org/cgi/content/full/21/3/410">
+          journal article</a> that accompanies the website.
+      </p>
+      <hr />
+    </div>
+
+    
+    [%FOREACH interaction IN interactions.sort( pfamA_id ) %]
+      <span class="listItem">
+        <a href="[% base %]family?acc=[% interaction.pfamA_acc %]">
+          [% interaction.pfamA_id %]</a>
+      </span>
+    [% END %]
+
+  </div>
+</div>
+
+<!-- end interactions block -->

@@ -1,0 +1,43 @@
+[%
+# loadGraphics.tt
+# jt6 20060713 WTSI
+#
+# $Id: loadGraphics.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+# tell the wrapper not to add any header or footer
+META naked = 1;
+
+USE String;
+
+# we cheat and use "oe" as a counter as well as the usual odd or even token here
+oe = 0;
+-%]
+
+<div id="structureGraphics">
+
+[%- FOREACH chainIds IN chainsToUnp.keys.sort;
+
+  unp = chainsToUnp.$chainIds;
+  image = unpToImage.$unp;
+  chainLabel = String.new( chainIds );
+-%]
+  <div class="graphicRow [% oe % 2 ? "odd" : "even" %]">
+    <span class="graphicLabel">
+      Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %] 
+      (UniProt entry <a href="[% base %]protein?id=[% unp %]">[% unp %]</a>):
+    </span>
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#structureGraphicsMap[% oe %]"
+         alt=""/>
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="structureGraphicsMap[% oe; oe=oe+1 %]">
+      [% image.image_map %]
+    </map>
+
+  </div>
+
+[%- END -%]
+
+</div>

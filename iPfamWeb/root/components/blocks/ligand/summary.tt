@@ -1,0 +1,124 @@
+[%
+# summary.tt
+# pg6 20090725 WTSI
+# 
+# build the summary block for ligand
+#
+# $Id: summary.tt,v 1.5 2010-01-04 13:15:12 pg6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "ligand.css" );
+
+requirements.js.push( 'Jmol.js');
+#-------------------------------------------------------------------------------
+USE String;
+script      = String.new( 'background white; load ' );
+lig         = String.new( rest.ligand.three_letter_code);
+CALL lig.append( '.pdb');
+CALL script.append( c.uri_for( "/ligand/getpdb", { 'id'  => lig  } ) );
+CALL script.append( '; label on');
+CALL c.log.debug( script );
+-%]
+
+<!-- start summary block for ligands-->
+
+<div class="block" id="ligandSummaryBlock">
+  <div class="handle">
+	 	 <h1> Summary</h1>
+	</div>
+
+ <div class="blockContent">
+  [% oe = 0 %]
+
+    <table class="layout">
+  <tbody>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Name:</td>    
+        <td class="data"> 
+          [% rest.ligand.name %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Code:</td>    
+        <td class="data"> 
+          [% rest.ligand.three_letter_code %]
+          </td> 
+  </tr> 
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Formula:</td>   
+        <td class="data"> 
+          [% rest.ligand.formula %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Number of Atoms:</td>   
+        <td class="data"> 
+          [% rest.ligand.num_all_atoms %]
+            </td>
+    </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Molecular Weight:</td>    
+        <td class="data"> 
+          [% rest.ligand.molecular_weight %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Charge:</td>    
+        <td class="data"> 
+          [% rest.ligand.charge %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Ligand Class:</td>    
+        <td class="data"> 
+          [% rest.ligand.category %]
+          </td> 
+  </tr>
+  
+  
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Systematic Name:</td>
+    <td class="data"> 
+          [% rest.ligand.systematic_name %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Stereo Smile:</td>
+    <td class="data"> 
+          [% rest.ligand.stereo_smiles %]
+          </td> 
+  </tr>
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Non Stereo Smile:</td>
+    <td class="data"> 
+          [% rest.ligand.non_stereo_smiles %]
+          </td> 
+  </tr>
+
+
+
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td>Graphic</td>    
+        <td class="data"> 
+        <img src="http://www.ebi.ac.uk/msd-srv/msdchem/cgi-bin/ligand/GetGif?[% rest.ligand.three_letter_code %]" id="gifImage" >
+        <script type="text/javascript">
+            //window.name = "jmolWin";
+            jmolInitialize(" [% c.uri_for( '/shared/jmol' ) %]"); // REQUIRED
+            jmolSetAppletColor( 'cyan' );
+            jmolApplet( 350, "[% script %]");
+        </script>
+        </td>   
+  </tr>
+  </tbody>
+</table>
+  </div>
+
+</div>
+
+
+
+<!-- end summary block -->

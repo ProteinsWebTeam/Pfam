@@ -1,0 +1,492 @@
+[%
+# graph.tt
+# jt6 20080121 WTSI
+# 
+# build the page to show an interaction graph for an entry
+#
+# $Id: graph.tt,v 1.15 2009-12-02 16:21:50 pg6 Exp $
+
+META title = "Interaction graph";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+requirements.js.push( "stack.js" );
+
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+
+#-------------------------------------------------------------------------------
+
+USE dumper;
+
+server_tables = [];
+current_table = [];
+row = 0;
+FOREACH server_id IN servers_list;
+  IF row > 0 AND not ( row % 4 );
+    CALL c.log.debug( "graph.tt: starting a new table for $row" );
+    server_tables.push( current_table );
+    current_table = [];
+  END;
+  CALL c.log.debug( "graph.tt: adding row for server_id |${server_id}|" );
+  current_table.push( server_id );
+  row = row + 1;
+END;
+server_tables.push( current_table );
+
+CALL c.log.debug( "graph.tt: tables: ", dumper.dump( server_tables ) );
+
+-%]
+
+<div id="key">
+  
+	<div id="overview_div" style="display: none" class="graphImageFragment">
+    
+		<img id="image_overview"/>
+		<div id="overlay"></div>  
+  </div>
+	
+  <h2>Interaction graph</h2>
+  
+  <p>
+    This tool allows you to generate the interaction graph for a given Pfam
+    family. Enter a Pfam accession or ID to begin, or 
+    <a href="[% c.uri_for( "/graph" ) %]">clear</a> this graph and start again.
+  </p>
+  <p>
+    Once you have an interaction graph loaded, you can change the focus of the 
+    graph by clicking on a node.
+  </p>
+  
+  <form id="graph_control"
+        action="[% c.uri_for( "/graph" ) %]"
+        onsubmit="return getMap( $F('entry') );">
+    <p style="text-align: left">
+      <label for="entry">Pfam family accession/ID: 
+        <input type="text" 
+               id="entry" 
+               name="entry" />
+      </label>
+      <input type="submit" 
+             value="Generate" />
+      <input type="button" 
+             onclick="$('entry').value='AAA';$('entry').activate();" 
+             value="Example" />
+		</p>
+
+    <!-- for error messages and warnings about unchecked servers -->
+    <div id="error" style="text-align: left;color: red;font-weight: bolder"></div>
+
+    [% FOREACH table IN server_tables -%]
+    <table summary="Available interaction servers"
+           style="float: left">
+      <tbody>
+      [% FOREACH server_id IN table;
+        server = servers_hash.${server_id} -%]
+        <tr>
+          <td style="text-align: left">
+            <label for="cb_[% server_id %]">
+              <input id="cb_[% server_id %]"
+                     type="checkbox"
+                     name="database"
+                     onclick="check('cb_[% server_id %]');"
+                     [% IF server.default %]disabled="disabled" checked="checked"[% END -%]
+                     value="[% server_id %]" />
+              [% server.label %]
+            </label>
+          </td>
+          <td>
+            <div style="width: 1em; height: 1em; background-color: [% servers_hash.${server_id}.colour %]"></div>
+          </td>
+        </tr>
+      [% END -%]
+      </tbody>
+    </table>
+    [% END -%]
+
+    <div class="cleaner"><!-- empty --></div>
+  </form>
+
+</div> <!-- end of "key" -->
+
+<!-- loading notification -->
+<div id="spinner" style="display: none">
+  <span class="loading">Loading interaction graph</span>
+</div>
+
+<!-- the image map itself -->
+<div id="map" style="text-align: center"> 
+</div>
+
+
+<script type="text/javascript">
+  // <![CDATA[
+   
+  var families =[];
+  var ajaxStart = [% ajaxStart %];
+  // associative array to map checkbox element IDs to server labels
+  var servers = {
+  [% FOREACH server_id IN servers_hash.keys;
+    NEXT IF servers_hash.${server_id}.default;
+    "'cb_"; server_id; "': '"; servers_hash.${server_id}.label; "'";
+    ", " UNLESS loop.last;
+  END %]
+  };
+  
+  // a limited-height stack to keep track of active servers
+  var stack = new Stack;
+  stack.maxHeight( '[% max_servers %]' );
+
+  var tipOpts = $H( { 
+                   border: 1,
+									 borderColor: "#063",
+									 delay:  0.5,
+                   hideAfter: 0.1,
+                   hideOn: { element: "closeButton", event: "click" },
+									 hideOthers: true,
+									 hook: { target: "topRight", tip: "bottomLeft" },
+                   radius: 1,
+                   stem: "bottomLeft",
+								   offset: { x:2, y:2 }									               
+                 } );
+
+  var mapping = new Hash();
+  
+  // if entry button is clicked then the families array should be empty.
+		
+  Event.observe( 'entry', 'click', function( event) { 
+	     console.debug( "the entry is typed: so delete all the families in past ");
+			 families.clear();
+			 console.debug( "the families array is cleared " );
+		}); 
+   
+   if( ajaxStart > 0 ){
+     console.log ("fire off the request with entry [%  entry %]");
+     $( "entry" ).value = '[% entry %]';
+     families.clear();
+     getMap( '[% entry %]' );
+   }
+	
+  function addTooltips( ligSource ) {
+    
+		//console.debug( "teh ligSource is "+ligSource.inspect() );
+		// find the offset position for the image that is used by the image map
+    var offset_x = Number( $("image_map").down("img").positionedOffset()[0] );
+    var offset_y = Number( $("image_map").down("img").positionedOffset()[1] );
+    
+		// console.debug( "image offset: " + offset_x + " / " + offset_y );
+
+    $$("area").each( function( area ) {
+      // comment out the follwing line later
+			//console.debug( "The area title i got is " + area.title );
+			
+			// coords format has a space between pairs ('x1,y1' 'x2,y2') in mozilla;
+			// however, there is no space in between them in IE ( x1,y1,x2,y2 ) 
+			
+      var space = / /;
+			
+			var l,t,w,h;
+			
+			if( space.test( area.coords ) ){
+				//alert( "It is mozilla browser");
+			  var coords = area.coords.split(" ");
+				var edge_coords1 = coords[ 0 ].split( "," );
+	      var edge_coords2 = coords[ 1 ].split( "," );
+	      
+	      // console.log( "building the area for "+ area.title );
+	      // console.debug( "coords: " + area.coords );
+	      // console.debug( "coords: " + coords.inspect() );
+	      // console.debug( "edge_coords1 :"+edge_coords1.inspect() );
+	      // console.debug( "edge_coords2 :"+edge_coords2.inspect() );
+	      
+	      var tl_x = Number( edge_coords1[0] );
+	      var tl_y = Number( edge_coords1[1] );
+	      var br_x = Number( edge_coords2[0] );
+	      var br_y = Number( edge_coords2[1] );
+	      
+	      // console.debug( "coords:tl_x "+ tl_x + '|' + tl_y + '|' + br_x + '|' + br_y ); 
+	      
+	      l = tl_x + offset_x;
+	      t = tl_y + offset_y;
+	      	
+			}else{
+				//alert( "it is internet explorer");
+				var coords = area.coords.split( ',' );
+				l = Number( coords[ 0 ] ) + offset_x;
+				t = Number( coords[ 1 ] ) + offset_y;
+        //alert( ( area.title+": WxH+l+t: " + w + " | " + h + " | " + l + " | " + t ) );
+			}
+			      
+      // console.debug( area.title+": WxH+l+t: " + w + " | " + h + " | " + l + " | " + t );
+      // console.debug( area.title+": WxH+l+t: " + 69 + " | " + 34 + " | " + l + " | " + t );
+			
+      // build a dummy div that we'll use to target the tips
+//      var dummy = Element.extend( document.createElement( 'div' ) );
+//			dummy.setAttribute( 'id', area.title + "_dummy" );
+      var dummy = new Element( "div", { "id": area.title + "_dummy" } );
+      $("image_map").appendChild( dummy );
+      dummy.setStyle( {
+                      backgroundColor: "red",
+                      position:        "absolute",
+                      left:            l + "px",
+                      top:             t + "px",
+                      zIndex:          -1000
+//                      width:           w + "px",
+//                      height:          h + "px"
+                    } );
+      
+      // console.debug( "the value of the "+area.title+" in mapping hash is "+ mapping.get( area.title ) );
+			
+			var uri;
+			var pageType;
+			if( ligSource.get( area.title )  == 'lig' ){
+				//alert( "the area title is "+ area.title+" db is "+mapping.get( area.title ) );
+				uri = "[% c.uri_for( '/ligand' ) %]/";
+				pageType = 'iPfam Ligand page';
+			}else{
+				//alert( "the area title is "+ area.title+" db is "+mapping.get( area.title ) );
+				uri = "[% c.uri_for( '/family' ) %]/";
+				pageType = 'iPfam Family page';
+			}
+			// console.debug( "the uri for the area "+area.title+" is "+uri );
+      // build the tip ...
+      var el = new Element( "a", { href: uri + area.title  } )
+                 .update( pageType );
+      var tip = new Tip(
+                          area,
+                          el,
+                          tipOpts.merge( { title: area.title,
+                                           target: dummy
+																				 } ).toObject()
+                        );
+      
+			// a little hash to store information about this node
+      var nodeHash = new Hash();
+      nodeHash.set( "area", area );
+      nodeHash.set( "id", area.identify() );
+      nodeHash.set( "tip", tip );
+  
+      // stash the node information in the hash that maps it to the node title
+      mapping.set( area.title, nodeHash );
+
+      // console.debug( area.title + " => " + mapping.toSource() );
+    } );  
+  }
+
+  // take notice of a change in state for one of the checkboxes
+  function check( sId ) {
+
+    // add the ID of the newly checked checkbox to the stack and, if we get
+    // back the ID of another checkbox (the one that's pushed off the end of
+    // the stack), we'll uncheck that one and flash it
+    if ( $(sId).checked && stack.indexOf( sId ) < 0 ) {
+      var uncheck = stack.push( sId );
+      if ( $(uncheck) && $(uncheck).checked ) {
+        $(uncheck).checked = false;
+        var b = new Effect.Highlight( $(uncheck).parentNode, 
+                                      { startcolor: '#eeaaaa',
+                                        endcolor:   '#eeeeee' } );
+        $("error").update( "Note: unchecked server " + servers[sId] );
+      }
+    }
+
+    // and fire off the AJAX request
+    getMap( $F("entry") );
+  }
+
+ 
+  // fire an AJAX request to retrieve a new interaction graph
+  function getMap( sEntry ) {
+    
+		// console.debug( "the function getMap is called with entry "+sEntry );
+		// refuse to submit an empty form
+    if( ! $F("entry") ) {
+      return false;
+    }
+    
+		// console.debug( "the sentry is "+sEntry );
+		families.push( sEntry );
+      
+		var entries = [];
+		
+//		for( entry in families ){
+  	families.each( function(entry) {
+      //console.debug( "checking %s", entry );
+			if(  entry  == sEntry ){
+				//console.debug( sEntry +" is equal to "+ entry + " so exiting...");
+				entries.push( entry );				
+				throw $break;
+			}else{
+				//console.debug( sEntry +" is not equal to "+ entry + " so continuing...");
+        entries.push( entry );
+			}
+		} );
+		
+		// now copy the entries to families for next request;
+		families = entries;
+		
+		// console.debug( "the entries are "+entries );
+    
+		$( 'entry' ).value = sEntry;
+		
+    // get a handle on the checkboxes        
+    var form = $("graph_control");
+    var checkboxes = form.getInputs( "checkbox", "database" );
+
+    // parameters to hand to the AJAX request. Start off with the Pfam
+    // accession/ID and then add the checkbox values
+    
+		//var parameters = new Hash( { entry: sEntry } );
+    
+		var parameters = new Hash( { entry: entries.join("~") } );
+    
+    var databases  = new Array;
+    $A( checkboxes ).each( 
+      function ( cb ) {
+        if ( cb.getValue() ) {
+          databases.push( cb.getValue() );
+        }
+      }
+    );
+    parameters.set( 'database', databases.toArray() );
+    
+		// show a "loading" spinner
+    $("spinner").show();
+
+    // hide any error messages that we have from previous calls
+    $("error").hide();
+    
+		// console.log( "going to make a request");
+    // submit the request...    
+    var r = new Ajax.Request( "[% c.uri_for( '/graph/map' ) %]",
+                              {
+                                method:     'post',
+                                parameters: parameters.toObject(),
+																                              
+																onSuccess: function ( oResponse ){
+																	           $( "map" ).update( oResponse.responseText).show();																						 
+																           },
+                                onFailure:  function ( oResponse ) {
+                                              $("error")
+                                                .update( oResponse.responseText )
+                                                .show();
+                                              $("map").hide();  
+																							$('overview_div').hide();
+                                            },
+                                onComplete: function () {
+                                              //scaleImage();
+																							$("spinner").hide();
+                                              $("entry").activate();
+                                            }
+                              } );
+      
+
+    return false;
+		
+  }
+
+
+function drawOverview( uri, w , h){
+  
+	// console.debug( "the size of the image is "+w+' | '+h)
+	
+	if( $( 'image_overview').remove() ) {
+		// console.debug( "the previous overview image is deleted ");
+	}
+	
+	var overview_image = Element.extend( document.createElement('img') );
+  
+	// as ajax calls only update the page, its necessary to clear the contents of this div.                                      
+	
+	overview_image.setAttribute( 'id', 'image_overview' );
+  
+  // console.debug( "the uri for the image is "+uri );
+  overview_image.setAttribute( 'src', uri );
+  
+  overview_image.setStyle({
+    opacity:  1,
+    //position: 'absolute',
+		//float:  'right', //originally left, am changing to right
+    height: '200px',
+    width:  '200px'
+  });
+
+  $( 'overview_div' ).appendChild( overview_image );
+	
+	// now create the overlay div  
+	
+	if( $( 'overlay').remove() ) {
+    // console.debug( "the previous overlay div  is deleted ");
+  }
+	
+	var overlay = Element.extend( document.createElement( 'div' ) );
+	
+	overlay.setAttribute( 'id','overlay' );
+	overlay.hide();
+	$('overview_div').appendChild( overlay );
+	
+  if( w > 200  && h > 200 ){
+	 // console.debug( "image is showed for size "+w+'|'+h);
+	 $( 'overview_div').show();	
+	}else{
+		$( 'overview_div').hide();  
+		// console.debug( "image is not showed for size "+w+'|'+h);
+	}
+
+	// console.debug( "*******************************************************************************" );
+}
+
+function mouseMoveListener( e ){
+         
+   // console.debug("x = "+ e.pointerX() + " y = "+ e.pointerY() );
+         
+   //// console.debug( "The image size is "+$('image_map_image').width+'|'+$('image_map_image').height );
+   $('overlay' ).show();
+	       
+   var x_r = $('image_map_image').width/200;
+   var y_r = $('image_map_image').height/200;
+   //// console.debug( "the x and y ratio are "+x_r+'|'+y_r );
+         
+   var image_offset = $( 'image_map_image' ).cumulativeOffset(); 
+      
+   //// console.debug( "the image offset is "+ image_offset[ 0 ]+'|'+ image_offset[ 1 ] );
+        
+   var pos_x = Math.round( ( e.pointerX() - image_offset[ 0 ] )/ x_r );
+   var pos_y = Math.round( ( e.pointerY() -image_offset[ 1 ] )/ y_r );
+   
+	 // console.debug( "the position in the overview before calc is "+ pos_x+'|'+pos_y ); 
+	 
+	 if( pos_x >= 168 ){
+	 	pos_x = 138;
+	 }else if( pos_x <= 30 ){
+	 	pos_x = 0;
+	 }else{
+	 	pos_x = pos_x - 30;
+	 }
+	 
+	 if( pos_y >= 178 ){
+	 	pos_y = 158;
+	 }else if( pos_y <= 20 ){
+	 	pos_y = 0;
+	 }else{
+	 	pos_y = pos_y - 20;
+	 }
+	 
+	 // console.debug( "the position in the overview after calc is "+ pos_x+'|'+pos_y );        
+   
+      
+   // now pass the x and y values as arguments to the function which draws the 
+   // box and shows the position in the overview.
+   $( 'overlay' ).setStyle ({
+         left:  pos_x+'px',
+         top: pos_y+'px'            
+   } );  
+	    
+  }
+  
+  
+  // ]]>
+</script>

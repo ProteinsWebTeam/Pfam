@@ -1,0 +1,156 @@
+[%
+# renderTree.tt
+# jt6 20061012 WTSI
+#
+# build the javascript that will construct the interactive species tree in 
+# the browser
+#
+# $Id: speciesTree.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+META naked = 1;
+
+# build a block that will recurse through the tree
+
+BLOCK walkTree;
+    
+	IF tree.branches;
+
+		FOREACH node_name IN tree.branches.keys;
+
+			node = tree.branches.$node_name;
+			node_id = node_name.replace( '\W', '_' );
+
+			IF NOT node.branches OR node.branches.keys.size > 1 OR parent == "root"
+-%]
+				var summaryId = YAHOO.util.Dom.generateId();
+				var html = '\
+				  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
+				       id="' + summaryId +'">\
+				    <div class="specSum">[% node.species.size %]</div>\
+				    <div class="seqSum">[% node.sequences.size %]</div>\
+				    <div class="domSum">[% node.frequency %]</div>\
+				  </div>';
+
+				var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
+
+				nodeMapping[summaryId] = [% node_id %];
+[%
+			ELSE;
+-%]
+				var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
+[%
+			END;
+
+			IF node.branches;
+	 			INCLUDE walkTree tree=node parent=node_id;
+			ELSE
+-%]
+				nodeSequences[summaryId] = "[% node.sequences.keys.join(" ") %]";
+[%
+			END; # of if node.branches
+
+		END; # of FOREACH node_name
+
+	END; # of if tree.branches
+
+END; # BLOCK walkTree
+
+# the controller can decide not to retrieve tree data if there are too many
+# species. Check if we did get the data...
+
+IF rawTree;
+
+  INCLUDE walkTree tree=rawTree parent="root" -%]
+  
+  var dd = [];
+  
+  dd[dd.length] = '<form>';
+  dd[dd.length] = '<span>Expand to depth </span>';
+  dd[dd.length] = '<select id="depthSelector">';
+  for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
+  	dd[dd.length] = '<option value="' + i + '"';
+      if( i == [% rawTree.maxTreeDepth %] ) {
+        dd[dd.length] = ' selected="1"';
+      }
+  	dd[dd.length] = '>' + i + '</option>';
+  }
+  dd[dd.length] = '</select>';
+  dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
+  dd[dd.length] = '</form>';
+  
+  $("ddph").update( dd.join("") );
+  
+  [%-# make the tree controls visible once the tree is loaded %]
+  $("treeToolsContent").show();
+
+[%- ELSE;
+
+  # there was no tree in the stash so see which limit we hit when trying to
+  # generate it
+  IF numSpecies > limits.denyAllLimit
+  
+    # this tree is just too big to do anything with; all done %] 
+    <p>
+      This [% SWITCH entryType;
+        CASE "A"; "family";
+        CASE "B"; "Pfam-B";
+        CASE "C"; "clan";
+      END %] has [% numSpecies %] species, which means that displaying the 
+      tree is not feasible. If you really need to see a representation of
+      the tree for this entry, please contact us and we will be happy to 
+      discuss ways to generate it for you.
+    </p>
+
+  [% ELSIF numSpecies > limits.denyInteractiveLimit
+  
+    # this tree is too big to render as an interactive tree, but we can still
+    # generate a text representation %]
+    <p>
+      This [% SWITCH entryType;
+        CASE "A"; "family";
+        CASE "B"; "Pfam-B";
+        CASE "C"; "clan";
+      END %] has [% numSpecies %] species, which means that displaying the 
+      interactive tree is not feasible, but you can still 
+      <a href="[% base %]speciestree/text?acc=[% acc %]">download</a>
+      a text representation of the tree. Please note that, due to the 
+      volume of data involved, this can still be slow.
+    </p>
+
+  [% ELSIF numSpecies > limits.allowInteractiveLimit
+  
+    # this tree is pretty big, but we can still have a stab at generating
+    # the interactive tree if the user asks for it %]
+    <p>
+      This [% SWITCH entryType;
+        CASE "A"; "family";
+        CASE "B"; "Pfam-B";
+        CASE "C"; "clan";
+      END %] has [% numSpecies %] species, which means that generating and
+      displaying the interactive tree could take up to a minute or more, 
+      depending on your browser and the speed of your computer. You can 
+      <a href="[% base %]speciestree/text?acc=[% acc %]">download</a> a
+      text representation of the tree, which should be quicker, but if you
+      want to see the interactive tree, please use the button below.
+    </p>
+    <div>
+      <input id="generateButton"
+             type="button" 
+             value="Generate tree" 
+             onclick="forceLoad()" />
+      [% # we need a new spinner, since this template's contents was slapped
+         # over the top of the old one %]
+      <span id="secondaryLoadingSpinner"
+            class="loading"
+            style="display: none">Loading...</span>
+    </div>    
+    
+  [% ELSE 
+  
+    # a catch-all; we shouldn't really ever get here %]
+    <p>Tree generation failed.</p>
+
+  [% END; # of IF numSpecies
+
+END; # of IF rawTree %]
+ 

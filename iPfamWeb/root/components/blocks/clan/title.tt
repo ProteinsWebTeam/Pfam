@@ -1,0 +1,15 @@
+
+[%#
+# title.tt
+# jt6 20060424 WTSI
+#
+# build the tab title for the clan pages
+#
+# $Id: title.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h1>Clan: <em>[% clan.clan_id %]</em> ([% clan.clan_acc %])</h1>
+[% ELSIF titleType == "page" %]
+Clan: [% clan.clan_id %] ([% clan.clan_acc %])
+[% END %]

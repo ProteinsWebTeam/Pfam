@@ -1,0 +1,85 @@
+[%
+# theTeam.tt
+# rdf 20060927 WTSI
+# 
+# build the theTeam block for the help pages
+#
+# $Id: theTeam.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start theTeam block -->
+
+<div class="block" id="helpTheTeamBlock">
+  <div class="handle">
+    <h1>The Pfam Consortium</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      Pfam is maintained by an international consortium of researchers that has 
+      been borne out of its original development by Erik Sonnhammer, Sean Eddy 
+      and Richard Durbin. The current list of consortium members, their institutes 
+      and primary role is listed below.
+    </p>  
+  
+    <h3>Wellcome Trust Sanger Institute (UK)</h3>
+  
+    <ul>
+      <li>Alex Bateman - Co-ordinator of the Pfam, Merops and Rfam databases </li>
+      <li>Penny Coggill - Pfam database annotator</li>
+      <li>Rob Finn - Project leader</li>
+      <li>Jaina Mistry - Pfam research and development</li>
+      <li>Prasad Gunasekaran - Pfam development</li> 
+      <li>John Tate - Web development</li>
+    </ul>
+    
+    <h3>Janelia Farm Research Center (USA)</h3>
+  
+    <ul>
+      <li>Sean Eddy - Co-ordinator of Pfam-USA, founding developer and author of HMMER software</li>
+    </ul>
+    
+    <h3>Stockholm Bioinformatics Center (Sweden)</h3>
+  
+    <ul>
+      <li>Erik Sonnhammer - Co-ordinator of Pfam-Sweden and founding developer</li>
+    </ul>
+    
+    <h3>Mirror Sites</h3>
+  
+    <ul class="mirrors">
+    	<li class="se mirror"><a href="http://pfam.cgb.ki.se/" class="ext flag">Stockholm Bioinformatics Center, Sweden</a></li>
+    	<li class="us mirror"><a href="http://pfam.janelia.org/" class="ext flag">Janelia Farm Research Campus, USA</a></li>
+    	<li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">Institut National de la Recherche Agronomique, France</a></li>
+    	<li class="kr mirror"><a href="http://pfam.ccbb.re.kr/" class="ext flag">Center for Computational Biology &amp; Bioinformatics, South Korea</a></li>
+    </ul>	
+  
+    <h3>Previous contributors</h3>
+  
+    <ul>
+      <li>Matthew Bashton</li>
+      <li>Ewan Birney</li>
+      <li>Lorenzo Cerrutti</li>
+      <li>Lachlan Coin</li>
+      <li>Richard Durbin</li>
+      <li>Matthew Fenech</li>
+      <li>Sam Griffiths-Jones</li>
+      <li>Kevin Howe</li> 
+      <li>Nicola Kerrison</li>
+      <li>Mhairi Marshall</li>
+      <li>Nina Mian</li>
+      <li>William Mifsud</li>
+      <li>Simon Moxon</li>
+      <li>Stephen John Sammut</li>
+      <li>David Studholme</li>
+      <li>Corin Yeats</li>
+    </ul>
+  
+    <p>
+      Pfam is a collaborative venture and we hope to be able to interact
+      with as many people as possible to provide a quality database. Please
+      get into contact with any one of us for information. You can E-mail Pfam
+      using the address found at the bottom of the page.
+    </p>
+    
+  </div>
+</div>

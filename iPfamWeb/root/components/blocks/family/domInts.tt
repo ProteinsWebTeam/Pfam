@@ -1,0 +1,73 @@
+[%
+# domInts.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the family section
+#
+# $Id: domInts.tt,v 1.5 2009-12-22 11:48:02 pg6 Exp $
+
+RETURN UNLESS rest.summaryData.domInt;
+-%]
+
+<!-- start interactions block -->
+
+<div class="block" id="familyDomainsBlock">
+  <div class="handle">
+    <h1>Domain-Domain Interactions</h1>
+  </div>
+  	
+	<div class="blockContent">
+   <p>
+      Following list shows the domain[%- rest.summaryData.domInt > 1 ? "s " : "" %] and the total number of sequences
+      mentioned in brackets which are found to be interacting with family <strong>[% pfam.pfama_id %]</strong>,
+      
+   </p> 
+		[%FOREACH interaction IN rest.DomainInteractions.sort( pfamA_id ) %]
+      <span class="listItem">
+        <a href="[% base %]domdominteraction?from=[% pfam.pfama_acc%]&to=[% interaction.pfamA_acc %]">
+          [% interaction.pfamA_id %]</a> ([% interaction.totalSeq %])
+      </span>
+    [% END %]
+
+  </div>
+</div>
+
+<!-- end interactions block -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

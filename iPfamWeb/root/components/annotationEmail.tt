@@ -1,0 +1,15 @@
+[% META naked = 1 -%]
+
+[% IF acc AND id -%]
+Pfam entry:   [% id %] ([% acc %])
+[%- END %]
+Pfam version: [% relData.pfam_release %]
+
+Name:       [% user %]
+Email:      [% email %]
+Annotation:
+[% annotation %]
+
+[% IF refs -%]
+References: [% refs %]
+[%- END -%]

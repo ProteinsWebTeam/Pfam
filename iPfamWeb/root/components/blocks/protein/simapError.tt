@@ -1,0 +1,23 @@
+[%
+# simapError.tt
+# jt6 20060913 WTSI
+#
+# display an error message if we can't retrieve data from SIMAP.
+#
+# $Id: simapError.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+META naked = 1;
+
+USE date
+-%]
+
+<!-- start of simap error message -->
+
+<h3>SIMAP data unavailable</h3>
+
+<p>Data for this section are retrieved directly from SIMAP, but there appears
+to be a problem with the SIMAP web service.</p>
+
+<p>[% date.format %]</p>
+
+<!-- end of simap error message -->

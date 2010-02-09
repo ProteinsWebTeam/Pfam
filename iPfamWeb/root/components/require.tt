@@ -1,0 +1,16 @@
+
+[%
+# require.tt
+# jt6 20070313 WTSI
+# 
+# make sure that the "requirements" hash exists, along with all necessary arrays
+# within it
+#
+# $Id: require.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+UNLESS requirements;          requirements          = {}; END;
+UNLESS requirements.js;       requirements.js       = []; END;
+UNLESS requirements.css ;     requirements.css      = []; END;
+UNLESS requirements.cssIe ;   requirements.cssIe    = []; END;
+UNLESS requirements.cssIeAll; requirements.cssIeAll = []; END;
+%]

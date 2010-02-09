@@ -1,0 +1,22 @@
+[%
+# ftp.tt
+# jt6 20061205 WTSI
+# 
+# build the ftp block for the help pages
+#
+# $Id: ftp.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start ftp block -->
+
+<div class="block" id="helpFtpBlock">
+  <div class="handle">
+    <h1><em>i</em>Pfam FTP site</h1>
+  </div>
+  <div class="blockContent">
+
+
+  </div>
+</div>
+
+<!-- end ftp block -->

@@ -1,0 +1,147 @@
+
+[%
+# alignments.tt
+# jt6 20060424 WTSI
+#
+# $Id: alignments.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+# calculate the percentages for the table 
+totalFam = 0;
+totalSeq = 0;
+pfams = [];
+FOREACH pfam IN clanMembers.nsort("num_full").reverse;
+	totalFam = totalFam + 1;
+	totalSeq = totalSeq + pfam.num_full;
+	pfams.push( pfam );
+END;
+
+# a block to start the table. There may be two tables, placed side by side, if 
+# the number of rows gets too large to display comfortably in a single table,
+# hence the definition of a block build the table header 
+tableHeader = BLOCK -%]
+    <table class="details[% IF float %] [% float %][% END %]" summary="Details of alignments">
+      <thead>
+        <tr>
+          <th>Pfam family</th>
+          <th>Num. domains</th>
+          <th>Alignment</th>
+        </tr>
+      </thead>
+      <tbody>
+[% END;
+
+# a BLOCK to close off the table
+tableFooter = BLOCK -%]
+      </tbody>
+    </table>
+[%- END -%]
+
+<!-- start clan alignments block -->
+
+<div class="block" id="clanAlignmentsBlock">
+  <div class="handle">
+    <h1>Alignments</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      The table below shows the number of occurrences of each domain throughout
+      the sequence database.
+      <span onclick="reveal( this, 'alignmentsNotes', false, true )"
+            id="alignmentNotesSwitch"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="alignmentsNotes" style="display: none">
+      <p>
+        In brackets beside each number is the percentage of the total number of 
+        sequence hits for the clan that are represented by this domain. The 
+        rightmost column provides a link to the alignments tab for each domain.
+        Finally, the last row in the table provides a link to the HTML
+        representation of the alignment for the seed alignments for all members 
+        of this clan.
+      </p>
+      <p>
+        <strong>Please note:</strong> the clan alignment can be
+        <em>extremely</em> large and the resulting HTML file is often too large
+        to be rendered by web-browsers. Please consider downloading the 
+        alignment (by right-clicking the link) rather than viewing it in your
+        browser.
+      </p>
+    </div>
+
+    [% # work out if we're going to split the table in two. If we are, work out how long
+       # each column can get and wrap each in a div that will float it left
+  
+    maxLength = "";
+    IF clan.clan_membership.size > constants.tableLength;
+      maxLength = clanMembers.size / 2 -%]
+      <div class="floatLeft">
+    [%- END;
+    
+    # insert the table header
+    tableHeader;
+    
+    # and build the body
+    oe = 0;
+    split = 0;
+    FOREACH pfam IN pfams;
+    
+      IF NOT split AND maxLength AND loop.index > maxLength -%]
+        <tr class="continuation">
+          <td colspan="3">
+            <span class="inactive">continued</span>
+          </td>
+        </tr>
+        [%- tableFooter -%]
+        </div>
+        <div class="floatLeft">
+        [%- tableHeader;
+        split = 1;
+      END;
+    
+      percent = ( pfam.num_full / totalSeq ) * 100;
+      percentS = String.new(percent).format("%.1f") -%]
+
+      <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <td><a href="[% base %]family?id=[% pfam.pfamA_id %]">[% pfam.pfamA_id %]</a>
+          (<a href="[% base %]family?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_acc %]</a>)</td>
+        <td>[% pfam.num_full %] ([% percentS %]%)</td>
+        <td><a href="[% base %]family?id=[% pfam.pfamA_id %]&amp;tab=alignBlock">View</a></td>
+      </tr>
+    
+    [%- END # of FOREACH pfam -%]
+
+    <tr class="summaryRow">
+      <td><strong>Total:</strong> [% totalFam %]</td>
+      <td><strong>Total:</strong> [% totalSeq %]</td>
+      <td>
+        <strong>
+          <a href="[% base %]clan/alignment?acc=[% clan.clan_acc %]"
+             onclick="window.open( this.href );return false;">
+             Clan alignment</a>  
+        </strong>
+      </td>
+    </tr>
+  
+    [%- tableFooter;
+
+    # do we close the float div ?
+    IF clanMembers.size > constants.tableLength -%]
+      </div>
+    [%- END -%]
+
+    <div class="cleaner">&nbsp;</div>
+
+    <p class="small">
+      <strong>Please note:</strong> Clan alignments can be 
+      <strong>very</strong> large and can cause problems for some browsers.
+      Read the 
+      <span onclick="reveal( $('alignmentNotesSwitch'), 'alignmentsNotes', false, true );$('alignmentNotesSwitch').scrollTo()"
+            class="moreLink">note</span> above before viewing.
+    </p>
+
+  </div>
+</div>
+
+<!-- end clan alignments block -->

@@ -1,0 +1,22 @@
+[%
+# linking.tt
+# rdf 20060927 WTSI
+# 
+# build the linking block for the help pages
+#
+# $Id: linking.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start linking block -->
+
+<div class="block" id="helpLinkingBlock">
+  <div class="handle">
+    <h1>How to link to <em>i</em>Pfam?</h1>
+  </div>
+  <div class="blockContent">
+   
+    
+  </div>
+</div>
+
+<!-- end linking block -->

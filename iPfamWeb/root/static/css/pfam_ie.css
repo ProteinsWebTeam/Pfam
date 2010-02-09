@@ -1,0 +1,62 @@
+
+/* pfam_ie.css
+   jt6 20061107 WTSI.
+
+   stylesheet to apply various fixes for IE wrinkles. This should be those styles
+   which are applicable to IE6 and below
+   
+   $Id: pfam_ie.css,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/
+
+/* the shadow under the main content. Just turn it off for now, because the 
+   shadow under the tab doesnt work and it would be weird to have one but not
+   the other */
+#contentContainer #footer {
+  background-image: none;
+}
+
+/* re-position the image map for the RSS logo and email link */
+img.map {
+  position: relative;
+  top: 1px;
+}
+
+/* version data block. The main pfam.css stylesheet has a negative margin for this
+ * block, so that the titles of the three columns line up horizontally. For whatever
+ * reason, IE seems to require a positive margin here. Should really fix the layout to 
+ * avoid needing this, but hey... 
+ */
+#versionData {
+  margin-top: 0.55em;
+}
+
+/* fix the transparency on the "Go" button for the jump box and search form */
+.goButton {
+    background-image: none;
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/go.png",sizingMethod="crop");
+}
+
+/* serve a GIF to IE for the background in the search fields */
+.entryField {
+	background: #cbdced url(/static/images/search_gradient.gif) repeat-x top left;
+}

@@ -1,0 +1,32 @@
+[%
+# error.tt
+# jt6 20060918 WTSI
+#
+# show an error report for the protein page.
+#
+# $Id: error.tt,v 1.1.1.1 2007-10-26 13:00:57 rdf Exp $
+
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+%]
+
+[% message = BLOCK %]
+
+  [% IF c.error.size AND constants.debug %]
+
+    <p>There was a <em>system error</em> when loading the requested protein page:</p>
+    <p class="message">[% c.error.first %]</p>
+
+  [% ELSE %]
+
+    <p>There was a problem loading the requested protein page.</p>
+
+    [% IF errorMsg %]
+      <p class="message">[% errorMsg %]</p>
+    [% END %]
+
+  [% END # of IF DEBUG... %]
+
+[% END # of block %]
+
+[% PROCESS pages/sectionError.tt %]

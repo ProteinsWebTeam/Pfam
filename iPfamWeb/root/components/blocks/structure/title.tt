@@ -1,0 +1,15 @@
+
+[%#
+# title.tt
+# jt6 20060706 WTSI
+#
+# build the titles for the structure pages
+#
+# $Id: title.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h1>Structure: <em>[% pdb.pdb_id %]</em></h1>
+[% ELSIF titleType == "page" %]
+Structure: [% pdb.pdb_id %]
+[% END %]

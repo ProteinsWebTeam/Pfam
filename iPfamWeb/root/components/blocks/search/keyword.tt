@@ -1,0 +1,99 @@
+
+[%
+# keyword.tt
+# jt6 20061108 WTSI
+# 
+# build the keyword search block
+#
+# $Id: keyword.tt,v 1.3 2009-12-11 11:09:46 pg6 Exp $
+%]
+
+<!-- start keyword search block -->
+
+<div class="block" id="searchKeywordBlock">
+  <div class="handle">
+    <h1>Keyword search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Search for keywords within the textual data in the <em>i</em>Pfam database.
+      <span class="moreLink" onclick="reveal(this,'kwNotes',false, true)">More...</span>
+    </p>
+
+    <div id="kwNotes" style="display: none">
+      <p>
+        The search currently covers the following sections of the database:
+      </p>
+      <ul>
+        <li>text fields within Pfam entries, such as description and comments</li>
+        <li>sequence description fields</li>
+        <li>the HEADER and TITLE records from PDB files</li>
+        <li>IUPAC name, common name and formula for ligands</li> 
+        <li>Gene ontology (GO) IDs and terms</li>
+        <li>InterPro abstracts</li>
+      </ul>
+      <p>
+        You can perform the same search from anywhere within the <em>i</em>Pfam site, using
+        the keyword search box at the top right-hand side of every page.
+      </p>
+      <hr />
+    </div>
+
+    <div class="formWrapper">
+      
+      
+      <div class="error" id="kwSearchError" style="display:none;">
+      </div>
+      
+      <form method="get" 
+            id="keywordSearchForm"
+            action="[% base %]search/keyword" onsubmit="return checkForm('query','kwSearchError','keyword')">
+        <div>
+    	    <input type="hidden" name="queryType" value="unp" />
+        </div>
+
+  	    <div class="row">
+          <label for="query">Keyword(s)</label>
+  	      <input type="text" size="30" maxlength="100" name="query" id="KWquery" />
+        </div>
+  
+  	    <div class="row">
+          <label class="blankLabel">Submit</label>
+  	      <input class="submit"  type="submit" name="submit" value="Submit" />
+  	      <input class="reset"   type="reset"  name="reset"  value="Reset" />
+  	      <input class="example" type="button" value="Example" onclick="$('KWquery').value=exKw" />
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exKw = "apoptosis";
+  $("query").focus();
+  
+  function checkForm( id, error, word ){
+    var entry = $( id ).value;
+    console.log( "checkForm:this function is called "+entry);
+    
+    var msg = '<h2>Error</h2>';
+    msg += 'Please enter a valid '+word;
+    
+    if( entry === '' ){
+      console.log( "no input" );
+      $( error).update( msg );
+      $( error ).show();
+      return false;
+    }else{
+      return true;
+    }
+  }
+  
+  // ]]>
+</script>
+
+
+</div><!-- end keyword search block -->

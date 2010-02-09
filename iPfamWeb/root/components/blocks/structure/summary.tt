@@ -1,0 +1,213 @@
+
+[%
+# summary.tt
+# jt6 20060706 WTSI
+# 
+# build the summary block for structures
+#
+# $Id: summary.tt,v 1.3 2009-12-01 10:52:23 pg6 Exp $
+
+USE String;
+USE date;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "lightbox.css" );
+requirements.css.push( "structure.css" );
+
+requirements.js.push( "lightbox.js" );
+
+#-------------------------------------------------------------------------------
+
+pdbId = pdb.pdb_id;
+title = pdb.title;
+oe    = 0;
+%]
+
+<!-- start summary block -->
+
+<div class="block" id="structureSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+      
+    [% IF pdb.pdb_image %]
+      <div class="pdbImageFragment">
+        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
+           rel="lightbox" 
+           title="PDB entry [% pdbId %]">
+          <img class="pdbImage" 
+               src="[% c.uri_for( "/structure/getimage", { id = pdbId, size = "s" } ) | html %]"
+               alt="[% pdbId %]" /></a>
+        <br />
+        <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
+        <br />
+        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
+           rel="lightbox" 
+           title="PDB entry [% pdbId %]"
+           class="small">Enlarge</a> image.
+      </div>
+    [% END %]
+      
+    <h1>PDB entry [% pdb.pdb_id %]</h1>
+
+    <p>
+    [% IF title;
+      title | lower | ucfirst;
+    ELSE %]
+      This is the summary of <acronym title="Protein DataBank">PDB</acronym>
+      entry <strong>[% pdbId %]</strong>. 
+    [% END %]
+    </p>
+
+    <table class="layout narrow"
+           summary="Details of the structure">
+  	  <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Experiment type:</td>
+          <td class="data">
+            [% IF pdb.experiment_short == "TMODEL" %]
+            <span class="model">[% pdb.experiment_long %]</span>
+            [% ELSE;
+              pdb.experiment_long;
+            END;
+            IF pdb.resolution AND pdb.resolution > 0 %], resolution [% pdb.resolution %]&Aring;[% END %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+    		  <td class="label">Deposition date:</td>
+  	      <td class="data">
+            [% pdb.date %]
+          </td>
+    		</tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Authors:</td>
+          <td class="data">
+          [% FOREACH author IN authors;
+            lastName = String.new( author.last_name ) %]
+            <span class="authorName">[% lastName.lower.capital %], [% author.name_initials %]</span>[% UNLESS loop.last %], [% END %]
+          [% END # of foreach author %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+    		  <td class="label">Species:</td>
+  	      <td class="data">
+            [% collectedSpecies = {};
+              FOREACH m IN mapping;
+                collectedSpecies.${m.species} = m.ncbi_code;
+              END;
+              IF collectedSpecies.keys.size;
+                FOREACH species IN collectedSpecies.keys %]
+                <em><a href="http://www.ebi.ac.uk/newt/display?search=[% collectedSpecies.${species} %]">
+                  [% String.new(species).trim.chop; ", " UNLESS loop.last %]</a></em>
+                [% END;
+              ELSE %]
+              <span class="inactive">n/a</span>
+              [% END %]
+          </td>
+    		</tr>
+        [% IF pdb.pubmed_id != 0 %]
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+    		  <td class="label">PubMed reference:</td>
+  	      <td class="data">
+  	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% pdb.pubmed_id %]">
+  	          [% pdb.pubmed_id %]</a>
+          </td>
+    		</tr>
+        [% END %]
+      </tbody>
+  	</table>
+
+    <h2>External database links</h2>
+
+    [% oe = 0 %]
+    <table class="details links"
+           summary="Links to external data sources">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label"><acronym title="Protein DataBank">PDB</acronym></td>
+          <td>
+            <a href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label"><acronym title="Macromolecular Structure Database">MSD</acronym></td>
+          <td>
+            <a href="http://www.ebi.ac.uk/msd-srv/atlas?id=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">PDBsum</td>
+          <td>
+            <a href="http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">CATH</td>
+          <td>
+            <a href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/CATHSrch.pl?type=PDB&amp;query=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label"><acronym title="Structural Classifcation of Proteins">SCOP</acronym></td>
+          <td>
+            <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+ 
+  </div> <!--end of block content. -->
+
+[% # if there are any mappings between structure and family, we need to build a
+   # list of unique IDs, and we need to make an AJAX call to retrieve the
+   # domain graphics
+
+IF mapping.size;
+
+  # collect the unique uniprot IDs
+  unpIds = {};
+  FOREACH m IN mapping;
+    unp = m.pfamseq_id;
+    unpIds.$unp = m ;
+  END;
+  
+  unpIdList = unpIds.keys.join(",");
+%]
+<script type="text/javascript">
+  // <![CDATA[
+
+//  // set up the post-load AJAX call
+//  Event.observe(
+//    window,
+//    "load",
+//    function() {
+//      new Ajax.Request( "[% base %]structure/graphics",
+//                        { method:     'get',
+//                          parameters: { seqIds: '[% unpIdList %]',
+//                                        id:     '[% pdbId %]' },
+//                          onSuccess:  function( oResponse ) {
+//                                        $("structureGraphicsHolder").update( oResponse.responseText );
+//                                      },
+//                          onFailure:  function( oResponse ) {
+//                                        $("structureGraphicsHolder").update( "Graphics loading failed." );
+//                                      }
+//                        } );
+//    },
+//    false );
+
+  // ]]>
+</script>
+[% END; # of "if mapping.size" %]
+
+
+</div><!-- end summary block -->

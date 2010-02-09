@@ -1,0 +1,34 @@
+[%
+# protein.tt
+# pg6 20091126
+#
+# $Id: protein.tt,v 1.1 2009-12-01 12:04:20 pg6 Exp $
+
+META naked=1;
+%]
+<h2>Search results for section <strong>protein</strong></h2><p/>
+<table class="sortable resultTable" id="proteinResultTable" summary="Search results">
+<thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th class="nosort">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+      %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/protein", acc=row.acc ) %]">[% row.acc %]</a></td>
+        <td class="desc">[% row.desc %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+ 
+  <script type="text/javascript">
+    updateResults ( [% hits %],'protein' );
+    sortableTable( 'proteinResultTable' );
+
+  </script>

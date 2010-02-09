@@ -1,0 +1,21 @@
+[%
+# mirrors.tt
+# rdf 20060927 WTSI
+# 
+# build the mirrors block for the help pages
+#
+# $Id: database.tt,v 1.2 2009-10-16 13:30:12 pg6 Exp $
+%]
+
+<!-- start references block -->
+
+<div class="block" id="helpMirrorsBlock">
+  <div class="handle">
+    <h1><em>i</em>Pfam Mirrors</h1>
+  </div>
+  <div class="blockContent">
+
+  <h3>List</h3>
+  
+  </div>
+</div>

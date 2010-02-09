@@ -1,0 +1,462 @@
+
+/* tab_layout.css
+   jt6 20060418 WTSI
+
+   Base stylesheet for the tab-layout pages. Only colours should 
+   need to be tweaked for the specific pages.
+
+   $Id: tab_layout.css,v 1.11 2009-12-03 14:57:55 pg6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+    
+*/   
+
+/* ======================================== */
+/* page layout items */
+
+/* styles for the markup that forms the page tab */
+#pageType {
+  border-color: #006633;
+}
+
+#pageType h2 {
+  color: #006633;
+}
+
+#tabTitle {
+  color: #006633;
+}
+
+#tabTitle h1 {
+  font-size: x-large;
+	margin: 0; /* i commented this to make the title tobe centred in the tab*/
+	padding: 0.2em 0 0 0.2em;
+  float: left;
+}
+
+#loadingComponents {
+  float: left;
+  clear: left;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #006633;
+  font-size: smaller;
+  font-weight: bold;
+}
+
+#wrap {
+  background: url(/static/images/bg.gif) repeat-y 15% 0;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  border-right: 1px solid #006633;
+}
+
+/* the overview bar */
+#icons {
+  width: 50%;
+  float: right;
+  margin: -6px -5px 0 0; /*i commented this to make the icons fit inside the tab*/
+}
+
+#icons a,
+#icons span {
+  float: right;
+  outline: none;
+  color: #006633;
+  text-decoration: none;
+  padding: 24px 0 0 0;
+  text-align:center;
+  background-repeat: no-repeat;
+  background-position: top center;
+  font-size: x-small;
+  width: 33%;
+  overflow: hidden;
+}
+
+#icons span.inactive {
+  color: #666;
+  font-size: x-small;
+}
+
+#icons a:hover {
+  outline: none;
+  text-decoration: underline;
+}
+
+#icons a em,
+#icons span em {
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* the logos themselves */
+#seqIcon    { background-image: url(/static/images/logos/alignment.png) }
+#archIcon   { background-image: url(/static/images/logos/domains.png) }
+#structIcon { background-image: url(/static/images/logos/structure.png) }
+#domIntIcon  { background-image: url(/static/images/logos/ipfam.png) }
+#ligIntIcon  { background-image: url(/static/images/logos/ligint.png) }
+#naIntIcon  { background-image: url(/static/images/logos/naint.png) }
+#Icon  { background-image: url(/static/images/logos/ipfam.png) }
+#specIcon   { background-image: url(/static/images/logos/tree.png) }
+
+/* and versions for pages where we show the icons but they're disabled */
+div.disabled #seqIcon    { background-image: url(/static/images/logos/alignment_disabled.png) }
+div.disabled #archIcon   { background-image: url(/static/images/logos/domains_disabled.png) }
+div.disabled #structIcon { background-image: url(/static/images/logos/structure_disabled.png) }
+div.disabled #ipfamIcon  { background-image: url(/static/images/logos/ipfam_disabled.png) }
+div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disabled.png) }
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+#spacer {
+  background-color: #EFE; /* Prime 1 */
+  clear: both;
+  height: 0;
+  font-size: 1px;
+}
+
+#content {
+  border-top: 1px solid #006633;
+  width: 85%;
+  float: left;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+}
+
+#sidebar {
+  width: 15%;
+  float: left;
+  padding: 0.4em 0;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+/* I'd like to use this to stop the sidebar collapsing too far and breaking
+   the "jump box" but it looks like it breaks the tab layout, at least in
+   FF2...
+   min-width: 150px;
+ */
+}
+
+/* this is specifically for the "jump box" title */
+#sidebar h1 {
+	color: #006633;
+}
+
+/* the top border for the main content block in the tab layout */
+#topBorder {
+  height: 1px;
+  float: right;
+  width: 85%;
+  background: #006633;
+}
+
+/* ---------------------------------------- */
+
+#contentContainer {
+  background-color: #EFE; /* Prime 1 */
+  background-repeat: repeat-x;
+  background-position: bottom left;
+  padding: 0;
+}
+
+
+#sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#sidebar li {
+  padding: 0 0 5px 0;
+  display: block;
+  margin: 0 0 0 0.2em;
+}
+
+#sidebar li a {
+  color: #006633;
+  outline: none;
+  margin: 0;
+  padding: 0.2em 0.2em 0.2em 0.6em;
+  display: block;
+  text-decoration: none;
+  font-weight: bold;
+  height: 100%; /* only needed to convince IE to make the whole block clickable */
+}
+
+#sidebar li.selected {
+  background-repeat: no-repeat;
+  background-position: bottom left;
+}
+
+#sidebar li.selected a {
+  position: relative;
+  left: 1px;
+  outline: none;
+  border: 1px solid #006633;
+  border-right: none;
+  padding: 0.2em 0 0.2em 0.4em;
+  background-image: url(/static/images/selected_bg.gif);
+  text-decoration: none ! important;
+  color: #006633; ! important;
+  cursor: default;
+}
+
+#sidebar li.disabled a,
+#sidebar li.disabled a:hover {
+  color: #AAA ! important;
+  cursor: default;
+  text-decoration: none ! important;
+}
+
+#sidebar #jumpBox {
+	margin: 1em 0 0 0.4em;
+}
+
+#sidebar #entry {
+	width: 80px;
+}
+
+#sidebar h1 {
+	margin: 0.4em 0;
+	font-size: large;
+	font-weight: bold;
+}
+
+/* ======================================== */
+/* general styles for "blocks" */
+
+div.block {
+  margin: 0.4em;
+}
+
+div.handle {
+  background-color: #006633;
+  color: #fefefe;
+  padding: 0.2em;
+}
+
+div.handle h1 {
+  display: inline;
+  padding: 0.4em 0;
+  font-size: large;
+}
+
+div.blockContent {
+  padding: 0.4em;
+  border-top: none;
+  font-size: 0.9em;
+}
+
+h3.inset {
+  margin: 0.2em 0 0.4em 0;
+  padding-top: 1em;
+}
+
+div.blockContent dt.label {
+  font-weight: bold;
+  text-align: right;
+  text-decoration: underline;
+  width: 14em;
+  float: left;
+  padding: 0.2em;
+}
+
+div.blockContent dd.row {
+  margin-left: 0;
+  padding: 0.2em;
+  padding-left: 14.6em;
+  clear: left;
+}
+
+span.subLabel {
+  font-style: italic;
+  display: block;
+  width: 6em;
+  float: left;
+  padding-bottom: 0.2em;
+  clear: left;
+}
+
+span.subRowData {
+  display: block;
+  float: left;
+}
+
+p.small {
+	font-size: smaller;
+}
+
+.inactive {
+	color: #AAA;
+}
+
+table.layout {
+  border-spacing: 1px;
+  width: 100%;
+}
+table.layout td {
+  margin: 1px;
+}
+table.layout td.label {
+  width: 13.2em;
+  padding: 0.2em;
+  background: #CCC;
+  text-align: right;
+  font-weight: bold;
+  vertical-align: top;
+}
+
+table.layout td.data {
+  padding: 0.2em;
+  vertical-align: top;
+}
+
+#gifImage {
+  width: 350px; /* this is to avoid soem bigger images to shrink down*/
+}
+/* ======================================== */
+/* species tree styles */
+
+.highlightSeed {
+  background: #C1F0C1; /* #CBD */
+}
+
+td.nodeSummaryCell {
+  width: 16em;
+}
+
+div.nodeSummary {
+  margin-left: 0.2em;
+}
+
+div.nodeSummary div {
+  float: left;
+  border-width: 1px;
+  border-style: solid;
+  width: 3em;
+  height: 1.2em;
+  padding: 0.1em;
+  margin: 0.1em;
+  text-align: center;
+}
+
+.specSum {
+  background: #FDD;
+  border-color: #B99;
+}
+.seqSum {
+  background: #DFD;
+  border-color: #9B9;
+}
+.domSum {
+  background: #DDF;
+  border-color: #99B;
+}
+
+#treeDiv {
+  min-height: 31em;
+}
+
+#treeTools {
+  right: 2em;
+  width: 18em;
+  padding: 0.4em;
+  border: 1px solid #AAA;
+  background: #e8e8e8;
+  opacity: 0.75;
+}
+
+#speciesTreeDesc {
+  margin-right: 19em;
+}
+
+div.blockContent > #treeTools {
+  position: fixed;
+}
+
+#treeTools ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#treeTools li {
+  padding: 0.2em 0;
+}
+
+#treeTools h3 {
+  font-size: 1em;
+  padding: 0.4em 0 0.2em 0;
+  margin: 0;
+}
+
+#treeToolsHeader h3 {
+  margin: 0;
+  padding: 0.2em 0;
+  float: left;
+}
+
+#toolsToggle {
+  cursor: pointer;
+  float: right;
+  padding: 0.2em 0;
+}
+
+/* ======================================== */
+/* domain query rules */
+
+#nlUpdateSpinner {
+  margin: 0.2em;
+}
+
+#idList select,
+#haveList select,
+#notList select {
+  margin: 0.2em;
+}
+
+#idList,
+#haveList,
+#notList {
+  width: 30%;
+  margin: 0.2em;
+}
+
+#idList h3,
+#haveList h3,
+#notList h3 {
+  padding: 0.2em;
+  margin: 0;
+}
+
+#domainSearchButtons {
+  clear: both;
+}
+
+span.buttons {
+  padding: 0.2em;
+}
+
+p.domainQueryInstruction {
+  height: 5.2em;
+  float: left;
+  margin: 0;
+  padding: 0.2em;
+}
+
+#textResults {
+  margin: 0.4em 0.2em;
+}
+
+/* ======================================== */

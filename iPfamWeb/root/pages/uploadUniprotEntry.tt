@@ -1,0 +1,71 @@
+
+[%
+# uploadUniprotEntry.tt
+# jt6 20070417 WTSI
+#
+# builds the form for specifying a UniProt entry for which to show the graphics
+# XML.
+#
+# $Id: uploadUniprotEntry.tt,v 1.1.1.1 2007-10-26 13:00:58 rdf Exp $
+
+META title = "Generate domain images for UniProt entries";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "graphicTools.css" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Generate domain images for UniProt entries</h1>
+<p>
+	This tool allows you to generate domain images for a specific UniProt sequence
+  entry.
+</p>
+
+[% IF error %]
+<div class="error">
+  <h1>Error</h1>
+  <p>
+    [% error %]
+  </p>
+</div>
+[% END %]
+
+<form method="post" 
+      action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+  <div id="form">
+    <input type="hidden"
+           name="formSubmit"
+           value="yes" />
+  	<label for="seqId">UniProt accession or ID:</label>
+  	<input type="text"
+           name="entry"
+           tabindex="1"
+           size="10"
+           id="seqId" />
+  	<input type="submit" 
+           tabindex="2" 
+           name="upload" 
+           value="Generate graphic" 
+           class="button" />
+    <input type="reset" 
+           tabindex="3" 
+           name="Reset" 
+           value="Reset" 
+           class="button" />
+  </div>
+</form>
+
+<script type="text/javascript">
+  // <![CDATA[
+  $("seqId").focus();
+  // ]]>
+</script>

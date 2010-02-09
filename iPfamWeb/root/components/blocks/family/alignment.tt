@@ -1,0 +1,21 @@
+[%
+# alignment.tt
+# WTSI pg6 20091103
+#
+# block for the alignment data for the family pages,
+#
+# $Id: alignment.tt,v 1.1 2009-12-01 09:43:59 pg6 Exp $
+
+RETURN UNLESS summaryData.alignment;
+%]
+
+
+<div class="block" id="familyAlignmentBlock">
+  <div class="handle">
+    <h1>Alignment</h1>
+  </div>
+  <div class="blockContent">
+    
+  </div>
+
+</div>
