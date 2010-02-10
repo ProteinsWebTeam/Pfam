@@ -280,6 +280,20 @@ sub checkSoftware {
 }
 
 #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+=head2 svnCode 
+
+  Title    : svnCode
+  Usage    : svnCode(\$scalar, $pathOfNewOrExistingDir) 
+  Function : This sets up the SVN client and either upadtes the code base or 
+             checks out afresh.
+  Args     : scalar reference, path where different nodules are to be checked
+           : out into.
+  Returns  : Nothing.
+  
+=cut
+
 sub svnCode {
   my $ctxRef         = shift;
   my $pfamCodeDir = shift;
