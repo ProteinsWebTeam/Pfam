@@ -1,6 +1,24 @@
 #!/software/bin/perl -w
 
-#asign-genomes-part.
+=head1 NAME
+
+assign_genomes.pl
+
+=head1 DESCRIPTION
+
+Obtains the list of complete genomes for all domains (Euk, Prok etc) and looks up if 
+they are whole genomes sequence in our current rfamseq (RDB) or if we need to get it
+from the CON and ANN files.
+
+Outputs a file Genomes_assined needed for later code and a log file for info.
+ 
+=head1 PARAMETERS
+
+ ./assign_genomes.pl -rel 10.0 -db rfam_10_0
+
+=head1 AUTHOR jd7@sanger.ac.uk
+
+=cut
 
 use strict;
 use LWP;
@@ -286,7 +304,7 @@ sub checkRfamseq {
 sub help {
     print STDERR <<EOF;
 
-This gets the current list of genomes from ebi (eukaryote, prokaryote etc) and the list of ensemble(cmpara) genomes we are planning to annotate:
+This gets the current list of genomes from ebi (eukaryote, prokaryote etc)  we are planning to annotate:
 We use:
 
 -ebi genomes list for each phylo catagory (downloaded using http request)
@@ -296,7 +314,7 @@ We use:
 -these accs are then checked against the rfam rdb (ie do we have the complete genome seq in rfamseq?
 -else is it in the con files:
 -writes out a mapping for each genome-acc -> location where we will get the ag data from
--also adds the ebi_ncbi_tax id assigned with the acc
+-also adds the ebi_ncbi_tax id assigned with the acc and the ncbi_id we have for it in rfamseq.
 
 -this two stages is good for the moment but essentially this should be merged with the make_genomes_agp.pl
 -writes mapping out to file called 'Genomes_assigned' in release dir/Genomes
