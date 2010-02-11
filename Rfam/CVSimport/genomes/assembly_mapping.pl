@@ -1,12 +1,34 @@
 #!/usr/local/ensembl/bin/perl -w
 
-#
-# A simple script to print out the mapping from chr to contig
-# Written for Jennifer Daub 25/11/2008 but thought it could be useful for other people too
-#
+
+=head1 NAME
+
+assembly_mapping.pl
+
+=head1 DESCRIPTION
+
+# A simple script to print out the mapping from the largest fragment to the smallest
+fora a particular gene build
+
+#originally written by Bronwen-for H.sapiens it has been hacked a little to work for
+each species. It needs the lookup generated from getCooordSystem.pl.
+
+It outputs a mapping for each species in the format of an agp file (sort of)
+
+NOTE need to have the ensebml code in our path:
 
 #setenv PERL5LIB '/path/to/ensembl/modules:/path/to//ensembl-pipeline/modules:/path/to/ensembl-analysis/modules:/path/to/bioperl-1.4:/path/to/ensembl-analysis/scripts:/path/to/ensembl-analysis/scripts/buildchecks/'
-#
+
+I  have been using this:
+setenv PERL5LIB /nfs/acari/ba1/cvs_co_14Jul08/ensembl/modules:/nfs/acari/ba1/cvs_co_14Jul08//ensembl-pipeline/modules:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/modules:/nfs/acari/ba1/PerlCode/bioperl-1.4:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/scripts:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/scripts/buildchec
+
+=head1 AUTHOR
+
+Bronwen Akin ba1@sanger.ac.uk
+
+
+=cut
+
 use strict;
 use warnings;
 
