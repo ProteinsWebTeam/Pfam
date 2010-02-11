@@ -1,5 +1,31 @@
 #!/software/bin/perl -w
 
+
+=head1 NAME
+
+makeFastaSS.pl
+
+=head1 DESCRIPTION
+
+Takes the gff3 files and generates a stockholm format entry for each annotation. 
+It reads in the gff3 file but then gets the sequence region and sscons line from the RDB.
+It then parses these a baseat a time to remove any unused annotation from the ss line.
+
+it is slow.
+
+so-tend to run it in parallel- set it running on various subsets using prefix letter
+
+
+./makeFastaSS.pl -db rfam_10_0 -rel 10.0 -set CM
+
+
+=head1 AUTHOR
+
+jd7@sanger.ac.uk
+
+=cut
+
+
 use strict;
 
 use Rfam;
@@ -13,8 +39,7 @@ use File::Copy;
 my ($help, $release, $db, $set);
 &GetOptions( "rel=s" => \$release,
 	     'db=s' => \$db,
-	     'set=s' => \$set,
-             "h|help" => \$help );
+	     'set=s' => \$set );
 
 if (! $release){
     die "Need to specify the release version for location of gff files\n";
