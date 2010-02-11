@@ -1,5 +1,23 @@
 #!/software/bin/perl
 
+=head1 NAME
+
+getCoordSystem.pl
+
+=head1 DESCRIPTION
+
+Needs the list of databases to connect to.
+This code connects to each species database for a given release and 
+generates a lookup list for which mapping (coordinate) system is needed
+in order to get from the largest to the smallest seq fragment for each
+genome 
+
+=head1 AUTHOR
+
+jd7@sanger.ac.uk
+
+=cut
+
 use strict;
 use Getopt::Long;
 use Bio::SeqIO;
