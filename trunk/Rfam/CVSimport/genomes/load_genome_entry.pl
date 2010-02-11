@@ -1,6 +1,7 @@
 #!/software/bin/perl
 
 =head1 NAME
+
 load_genome_entry.pl 
 
 =head1 DESCRIPTION
@@ -8,15 +9,13 @@ load_genome_entry.pl
 Load in the agp data for the genomes we are going to annotate into the RDB and map the rfam
 region annotations onto it.
 
+-to do - some sort of flag to allow to replace existing data in RDB or check if data already in stop overwriting etc
+
 =head1 AUTHOR
 
 jd7@sanger.ac.uk
 
 =cut
-
-#possibly add more error checks:
-#(1) number of GP rows inserted = expected from GParray
-#error check when no entry in rfam_eg_full
 
 use strict;
 use Getopt::Long;
@@ -124,12 +123,14 @@ my $gsth = $dbh->prepare( 'UPDATE rfam_reg_full set auto_genome=?, genome_start=
 
 
 #-------------------------------------------------
+#maybe make this a flag option of some sort to warn but allow to insert 
+
 
 #check there is no data in either table before unless flagged
 #if (  &checkGenome_entry()) {
 #    die "WARNING: Care there is already data in the genome_entry table$!";
 #}
-#
+
 #if ( &checkChromosome_build()){
 #    die "WARNING: Care there is already data in the chromosme_build table$!";
 #}
@@ -440,7 +441,21 @@ sub loadReg_Full {
 
 sub help{
 
+     print STDERR <<EOF;
 
+./load_genome_entry.pl -release 10.0 -db rfam_10_0 -agp genome_agp_embl100.rfam
 
+This will read in the agp file and load the relevant data into the genome_entry, chromosome_build
+and rfam_reg_full data. In the rfam_reg_full table it will add which genome the annotation is on 
+in addition to adding in the co-ordinates on the genome fragment. Note in this case the co-ordinates
+reflect the orientation of the annotation. 
+
+Usage:  load_genome_entry.pl <options>
+Options:       -h          show this help
+               -release    e.g 10.0
+               -agp        agp file to parse and load
+               -db         e.g. rfam_10_0
+
+EOF
 
 }
