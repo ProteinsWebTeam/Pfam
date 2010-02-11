@@ -1,5 +1,21 @@
 #!/software/bin/perl
 
+=head1 NAME
+
+getENSdb.pl
+
+=head1 DESCRIPTION
+
+Basic query to get a list of all the current Ensembl databases for the given release.
+Note you need to specify which release. The output from this code is needed for getCoordSystem.pl
+
+=head1 AUTHOR
+
+jd7@sanger.ac.uk
+
+=cut
+
+
 use strict;
 use Getopt::Long;
 use Bio::SeqIO;
