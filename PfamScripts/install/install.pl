@@ -280,8 +280,6 @@ sub checkSoftware {
 }
 
 #-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
 =head2 svnCode 
 
   Title    : svnCode
@@ -295,10 +293,10 @@ sub checkSoftware {
 =cut
 
 sub svnCode {
-  my $ctxRef         = shift;
+  my $ctxRef      = shift;
   my $pfamCodeDir = shift;
-  
-  print STDERR "CTX is ".$ctxRef."\n"; 
+
+  #Build an SVN client object that do checkouts etc.  
   $$ctxRef = new SVN::Client(
     auth => [
       SVN::Client::get_simple_provider(),
@@ -459,6 +457,19 @@ sub _ssl_server_trust_prompt {
 }
 
 #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+=head2 determineShell 
+
+  Title    : determineShell
+  Usage    : ($shell, $filehandle) =  determineShell(); 
+  Function : Determines the flavourof a users shell, returning the flavour
+           : and a filehandle to a rc-like file for use later on 
+  Args     : None
+  Returns  : flavour of shell, filehandle for writing in to.
+  
+=cut
+
+
 sub determineShell {
 
   #Determine in the user is using a Bourne-like or C-like shell.
