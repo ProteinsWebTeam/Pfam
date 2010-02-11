@@ -1,8 +1,19 @@
 #!/software/bin/perl
 
-#possibly add more error checks:
-#(1) number of GP rows inserted = expected from GParray
-#error check when no entry in rfam_eg_full
+=head1 NAME
+
+load_genome_summary.pl
+
+=head1 DESCRIPTION
+
+Uses the RDB to collate the data for summary information on the species we annotate. Essentially it gets
+a unique list of ncbi_ids and collates the information and annotations for this species.
+
+=head1 AUTHOR
+
+jd7@sanger.ac.uk
+
+=cut
 
 use strict;
 use Getopt::Long;
@@ -184,25 +195,23 @@ exit(1);
 #SUBROUTINES
 
 
-# sub load_summary {
-#    my $v=shift;
-#    my ($tax, $sp, $k, $regions, $fams, $length)=@$v;
-#    
-#  #get all genome hits 
-#     $fsth->execute($tax, $sp, $k, $regions, $fams, $length) ;
-#     die "(EE) ERROR: error whilst getting data into genome_entry : " 
-# 	. $dbh->errstr . "\n" if $DBI::err;
-#    
-#    
-#    $fsth->finish();
-#   
-#}
+ sub load_summary {
+    my $v=shift;
+    my ($tax, $sp, $k, $regions, $fams, $length)=@$v;
+    
+     $fsth->execute($tax, $sp, $k, $regions, $fams, $length) ;
+     die "(EE) ERROR: error whilst getting data into genome_entry : " 
+	. $dbh->errstr . "\n" if $DBI::err;
+    
+    
+    $fsth->finish();
+   }
 
 
 sub get_distinct {
 
     my $auto_g=shift;
-    #get all genome hits 
+ 
     $esth->execute($auto_g) ;
     my  $rows=$esth->fetchall_arrayref();
     die "(EE) ERROR: error whilst getting data into genome_entry : " 
@@ -219,7 +228,7 @@ sub get_distinct {
 sub get_regions {
 
     my $auto_g=shift;
-    #get all genome hits 
+
     $dsth->execute($auto_g) ;
     my  $row=$dsth->fetchrow();
     die "(EE) ERROR: error whilst getting data into genome_entry : " 
@@ -235,7 +244,7 @@ sub get_regions {
 sub get_genomes {
     
     my $ncbi=shift;
-    #get all genomes bit 
+
     $csth->execute($ncbi) ;
     my  $rows=$csth->fetchall_arrayref();
     die "(EE) ERROR: error whilst getting data into genome_entry : " 
@@ -249,7 +258,7 @@ sub get_genomes {
 
 sub get_ncbi {
 
-    #get all genomes bit 
+
     $bsth->execute() ;
      my  $row=$bsth->fetchall_arrayref();
     die "(EE) ERROR: error whilst getting data into genome_entry : " 
@@ -279,3 +288,21 @@ sub get_species {
   
 }
 
+##################################################################################################
+sub help {
+    print STDERR <<EOF;
+
+Uses the RDB to collate information on each species we have genome annotations for.
+Gets a list of ncbi_ids, gets the species info  and then sums up the number of region hits 
+and distinct family annotations.
+
+loads into the genome_summary table
+
+Usage:  ./load_genome_summary.pl -rel 10.0 -db rfam_10_0 
+
+Options:       -h                  show this help
+               -rel                release identifier
+               -db                 database to look up rfamseqs
+EOF
+
+}
