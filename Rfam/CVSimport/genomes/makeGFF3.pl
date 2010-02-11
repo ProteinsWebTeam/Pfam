@@ -1,5 +1,21 @@
 #!/software/bin/perl -w
 
+=head1 NAME
+
+makeGFF3.pl
+
+=head1 DESCRIPTION
+
+Generates the gff3 files for each genome accession. Loads the gzip file into genome_gff table
+if specified.
+
+=head1 AUTHOR
+
+jd7@sanger.ac.uk
+
+=cut
+
+
 use strict;
 use DBI; 
 use Rfam;
@@ -271,15 +287,16 @@ sub help {
     print STDERR <<EOF;
 
 Replaces the old rfam2chrpl code and uses the RDB to make the rfam genome annotations
-Generates gg3 files in the RELEASE/Genomes dir
+Generates gg3 files in the release/Genomes dir and if specified loads the gzipped file into genoem_gff table.
 
-Makes a gff3 format file for all of the genomes we annotate:bug fixes
+Makes a gff3 format file for all of the genomes we annotate :
+
 -queries the rdb to 
 -get a list of all distinct genomes which we have rfam hit annotations to (rfam_reg_full)
 -in order makes a gff for each genome.
 -they are ordered on xsome start so hits should be in order..
 -each annotation:
-	-clone strand and hit orientation need to be resolved as the final annotation needs to be wrt to the genome. 
+	-clone strand and hit orientation need to be resolved as the final annotation needs to be wrt to the genome +ve 
 	-I converted the strings into -1 and +1 in order to allow -- to cancel itself out easily later on
 	-annotations that lie off the ends of the chromosome_builds are excluded using the same code as the old rfam2chr
 	-get the family information acc id etc from the RDB
@@ -288,9 +305,10 @@ Makes a gff3 format file for all of the genomes we annotate:bug fixes
  	-construct the annotation line
 
 	 
-Usage:  makeGFF.pl -db rfma_9_0_new -release 9.0 <options>
-Options:       -h                  show this help
+Usage:  ./makeGFF3.pl -db rfam_10_0 -rel 10.0 -load
 
+Options:       -h                  show this help
+               -load               load gff3 into genome_gff table
 
 EOF
 
