@@ -244,6 +244,45 @@ sub productionLoc {
   return $self->{productionLocation};
 }
 
+
+=head2 releaseLoc
+
+  Title    : releaseLoc
+  Usage    : $config->releaseLoc
+  Function : Returns the location of the release dir
+  Args     : None - read only operator
+  Returns  : string containing path to release dir
+  
+=cut
+
+sub releaseLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{releaseLocation};
+}
+
+
+=head2 archiveLoc
+
+  Title    : archiveLoc
+  Usage    : $config->archiveLoc
+  Function : Returns the location of the archive dir
+  Args     : None - read only operator
+  Returns  : string containing path to archive dir
+  
+=cut
+
+sub archiveLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{archiveLocation};
+}
+
+
 =head2 dbsize
 
   Title    : dbsize
@@ -498,6 +537,9 @@ sub dieIfNotWTSI {
       die "This script will not work outside WTSI\n";
   }
 }
+
+
+
 
 
 1;
