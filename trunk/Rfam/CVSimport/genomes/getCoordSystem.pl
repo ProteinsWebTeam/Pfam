@@ -10,7 +10,7 @@ Needs the list of databases to connect to.
 This code connects to each species database for a given release and 
 generates a lookup list for which mapping (coordinate) system is needed
 in order to get from the largest to the smallest seq fragment for each
-genome 
+genome. The out put of this code is needed for the assembly mapping code.
 
 =head1 AUTHOR
 
