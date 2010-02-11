@@ -2,23 +2,18 @@
 
 
 =head1 NAME
+
 make_genomes_agp.pl
 
 =head1 DESCRIPTION
 
-This generates the Golden Path mapping for all of the genomes we have annotations to
+This generates the Golden Path mapping for all of the complete genomes we are going to map to . Needs the Genomes-assigned file and the CON and ANN files. Should really be run on the farm for the big euk datsets.
 
 =head1 AUTHOR
 
 jd7@sanger.ac.uk
 
 =cut
-
-#to fix:
-#use rdb not pfetch
-#Rfam and COn by option
-#check CON working
-#version issues- use the old version
 
 use strict;
 use LWP;
@@ -428,27 +423,25 @@ sub read_cons {
 sub help {
     print STDERR <<EOF;
 
-
-
-make_genome_agp.pl
+make_genome_agp.pl -dataset rfam -release 10.0 -db rfam_10_0
 
 This generates the Golden Path mapping for all of the genomes we have annotations to:
 This happens differently for those that are whole genomes in Rfam and those that are CON files.
 
 Requires the Genomes_assigned file output from assign.genomes.pl
 In addition we need access to :
--need the confiles on the farm to run this
+-need the mini confiles files to run this
 -it obtains the information on each genome in Rfam using RDB
 -it gets the information from contig genomes from the CON files downloaded with the EMBL release 
 
 -it should output file of agp for all of the whole genome accessions and the CON
 
 Usage:  make_genome_agp.pl <options>
-Options:       -h                  show this help
-               -dataset   rfam | con -will parse datasets sepearately
-
-
-              
+Options:       -h          show this help
+               -release    e.g 10.0
+               -dataset    rfam | con -will parse datasets sepearately
+	       -db         e.g. rfam_10_0
+            
 
 EOF
 
