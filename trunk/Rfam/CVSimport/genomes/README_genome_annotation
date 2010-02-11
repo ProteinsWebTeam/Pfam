@@ -137,7 +137,7 @@ This is the old code I have for getting the ensembl mappings from the largest fr
 In the majority of cases this is NOT an embl accession and indeed by release 10_0 we didnt bother using this code at all. However for release 9_1 we did use for 4 genomes:
 Anyway here is the basic outline of what to do should it be needed:
 
-if want to look at rdb:
+if want to manually look at Ensembl rdb:
 
 mysql -uanonymous -hensembldb.ensembl.org -P5306
 use ensembl_compara_56;
@@ -152,22 +152,22 @@ need to set perl5lib to
 #echo $PERL5LIB
 /nfs/acari/ba1/cvs_co_14Jul08/ensembl/modules:/nfs/acari/ba1/cvs_co_14Jul08//ensembl-pipeline/modules:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/modules:/nfs/acari/ba1/PerlCode/bioperl-1.4:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/scripts:/nfs/acari/ba1/cvs_co_14Jul08/ensembl-analysis/scripts/buildchecks/
 
-This will generate the mapping file for each species:outputs a gp file for each species:
 #./runAssemblyMap.sh 
 (this runs the code: assembly_mapping.pl)
+This will generate the mapping file for each species:outputs a gp file for each species:
  
-Then need to make an agp file from this mapping file: and load into the rdb. However we didn't do any of this for release 10.0 so all the subsequent code was not maintained to allow for ensembl ids...
+Then need to make an agp file from this mapping file: and load into the rdb. However we didn't do any of this for release 10.0 so all the subsequent code was not maintained to allow for ensembl ids...so I havent documented any more of it as both RDB schema and code changed. However you would just need to write a hack of the make_genome_agp.pl and the load_genome.agp.pl
 
-However for release 10.0 we didnt end up using this using anything from ensembl. 
-For release 10.0 we wanted to use GRCh37 but couldnt get the coordinates from ensembl. So essentially went back to the EBI llist for eukaryotes and changed the accessions for the human 22 + xy in the accessions list to those for GRCh37. Note I manually curated this list: see file  'GRCh37' contains list of the accessions that were replaced. It would be good is this was automated.
 
-Integrate these changes into the Genomes_assigned file in order to use the new accessions
+However for release 10.0 we didnt end up using this using anything from Ensembl. 
+For release 10.0 we wanted to use GRCh37 but couldnt get the coordinates from Ensembl. So essentially went back to the EBI llist for eukaryotes.txt and changed the accessions for the human 22 + xy in the accessions list to those for GRCh37. Note I manually curated this list: see file  'GRCh37' contains list of the accessions that were replaced. It would be good is this was automated.
 
-perl ./change_genomes_GRCh37.pl Genomes_assigned_non_GRCh37set GRCh37 > & Genomes_assigned_resolved_2
+Integrate these changes into the Genomes_assigned file in order to use the new accessions for human and not those assigned by EBI.
 
-Then just needed to remake the human.agp file using the standard code (as in  3 above)
+Then I just needed to remake the human.agp file using the standard code (as in  3 above)-note set the ctype in the code to 'hum' and an exit so it doesnt regenerate files of all tax divisions.- this is referred to in 3 above.
 
 ./make_genome_agp.pl -dataset con -release 10.0 -db rfam_10_0 >>& agp.CON.repeats.out
+
 
 ****************
 
@@ -187,7 +187,8 @@ list of queries to keep track of loadings:
 
 release rfam_10_0
 
-QC checks:
+QC checks-by this point these numbers should mean something to you...:
+
 1 select min(auto_genome) from genome_entry; = 1
 2 select max(auto_genome) from genome_entry; = 4179
 3 select count(auto_genome) from chromosome_build;= 4179
@@ -236,3 +237,9 @@ this code will get the list of the accession beginning with CM in the genome_gff
 very quick-collates species data and annotation summaries for each ncbi id we have annotations on:
 
 perl ./load_genome_summary.pl -rel 10.0 -db rfam_10_0 
+
+tar them up for ftp site:
+
+tar -cvf genome.gff3.tar ./genome_gff/*.gff3
+
+tar -cvf genome.sscona.tar ./genome_sscons/*.sscons
