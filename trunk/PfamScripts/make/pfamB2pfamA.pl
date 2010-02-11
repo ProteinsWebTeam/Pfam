@@ -6,7 +6,7 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Config;
 use Log::Log4perl qw(:easy);
 use Bio::Pfam::PfamLiveDBManager;
-use Bio::Pfam::Config;
+
 
 #A script to build pfamA families from pfamB families.
 
@@ -17,10 +17,10 @@ my $logger = get_logger();
 
 my ($from, $to, $rel, $no_pfamA, $author, $help);
 
-
-my $rel_dir = "/lustre/pfam/pfam/Production/Pfam/RELEASES/";
-my $archive = "/lustre/pfam/pfam/Archive/Pfam/RELEASES/";
-
+my $config = Bio::Pfam::Config->new;
+  
+my $rel_dir = $config->releaseLoc;
+my $archive = $config->archiveLoc;
 
 &GetOptions('from=i' => \$from,
 	    'to=i' => \$to,
@@ -56,14 +56,14 @@ elsif(-s "$archive/$rel/Pfam-B") {
     $pfamB_file = "$archive/$rel/Pfam-B";
 }
 else {
-  $logger->logdie ("Can't find Pfam-B file, it's not in $rel_dir/$rel/ or $archive/$rel/ !");
+  $logger->logdie ("Can't find Pfam-B flatfile for release $rel, it's not in $rel_dir/$rel/ or $archive/$rel/");
 }
 
 
 #If no_pfamA option has been chosen, query rdb to find out which Pfam-B families have not associated Pfam-A families
 my %no_pfamA;
 if($no_pfamA) {
-    no_pfamA(\%no_pfamA);
+    no_pfamA(\%no_pfamA, $config);
 }   
 
 
@@ -191,12 +191,11 @@ sub create_desc {
 
 
 sub no_pfamA {
-    my ($hash) = @_;
+    my ($hash, $config) = @_;
 
     #Query rdb for all sequences in pfamB families that have no pfamA match
     $logger->info("Running the query on pfamlive to find out which pfamB families contain only sequences that have no pfamA matches (this usually takes approximately 35 minutes to run)");
 
-    my $config = Bio::Pfam::Config->new;
     my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
     
     my $dbh = $pfamDB->getSchema->storage->dbh;
