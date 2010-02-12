@@ -64,7 +64,8 @@ sub main {
     "local"     => \$local,
     "acc=s"     => \$acc,
     "help"      => \$help
-  );
+  ) or help();
+
 
   my %optCmds;
   unless ($noIts) {
@@ -139,14 +140,19 @@ sub main {
 
   help() if ($help);
 
+  my $c = "$$.chkpnt"; #Use this later for writing PFAMOUT file
   if ($check) {
-    $check = "$$.chkpnt" if ( $check !~ /\S+/ );
-    $optCmds{'--chkali'} = $check;
-    $optCmds{'--chkhmm'} = $check;
+      $optCmds{'--chkali'} = $check;
+      $optCmds{'--chkhmm'} = $check;
+      $c = $check;
   }
   else {
-    warn "\n***** Checkpoint has been turned off. *****\n\n";
+    warn "\n***** Checkpoint has been turned off. *****\n\n"; #We'll still going to run with check pointing, but we won't copy checkpointing files back
+    $optCmds{'--chkali'} = $c;
+    $optCmds{'--chkhmm'} = $c;
   }
+  
+
 
   unless ($seqDB) {
     $seqDB = $config->pfamseqLoc . "/pfamseq";
@@ -186,7 +192,7 @@ sub main {
     }
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check, $c );
   }
 
 }
@@ -284,7 +290,7 @@ sub runJackhmmer {
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check, $c ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -375,13 +381,22 @@ sub farmJackhmmer {
   #Execute the command we have built up.
   $fh->print("$cmd\n");
 
+  #Write a PFAMOUT style file
+  my $jout_file = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/JOUT";
+  $fh->print("pfjbuild_pfamout.pl $jout_file $c\n");
+
   #Bring back all of the files.
   $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
   $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
   $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
-  $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > ALIGN \n"); #Create an ALIGN file
-  $fh->print("/usr/bin/scp ALIGN $phost:$pwd/ALIGN\n");
+  $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > align \n"); #Create an ALIGN file
+  $fh->print("/usr/bin/scp align $phost:$pwd/align\n");
   $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
+
+  $fh->print("/usr/bin/scp HMM $phost:$pwd/HMM\n");
+  $fh->print("/usr/bin/scp PFAMOUT $phost:$pwd/PFAMOUT\n");
+  $fh->print("/usr/bin/scp DESC $phost:$pwd/DESC\n");
+
   
   #Now clean up after ourselves on the farm
   $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
