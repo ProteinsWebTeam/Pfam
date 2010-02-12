@@ -121,7 +121,7 @@ foreach my $acc ( @list ) {
 	      push( @tags, "DELETE" );
 	      undef $seq;
 	      $seq_change = 1;
-	      print STDERR "(EE) ERROR: no tax data in rfamlive for this $acc!\n";
+	      print STDERR "(EE) seq not in the RDB\n";
 	      last;
 	  }
 

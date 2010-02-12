@@ -1,7 +1,11 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 # first download all required .dat files to directory
 # then run this!
+
+## we need to look into having an updated version of BioPerl 
+use lib "/software/pfam/bioperl_1.5.2/";
+#use lib "/software/pfam/bioperl-cvs/";
 
 
 ##########
@@ -11,8 +15,8 @@
 use strict;
 use Getopt::Long;
 use Bio::SeqIO;
-use Bio::Index::Fasta;
-use Bio::Index::EMBL;
+#use Bio::Index::Fasta;
+#use Bio::Index::EMBL;
 
 
 my( $verbose, @filelist );
@@ -57,8 +61,7 @@ foreach my $file ( @filelist ) {
 }
 
 # make fasta bioperl index
-
-system "/pfam/db/Rfam/scripts/release/index_rfamseq.pl rfamseq.fa.bpi";
+#system "/pfam/db/Rfam/scripts/release/index_rfamseq.pl rfamseq.fa.bpi";
 
 # make embl_sv.txt
 open( F, ">embl_sv.txt" ) or die;

@@ -69,5 +69,7 @@ foreach my $acc ( @accs ) {
     if( $flatfile ) {
 	unlink( "$acc.seed" ) or die;
     }
+
 }
+unlink( "RF00017.seed" ) or die;
 
