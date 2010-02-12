@@ -50,8 +50,8 @@ rundbxref.sh
 
 -download the fasta seqs
 getEMBLseq.pl
-./makeIndex.pl
 ./checkSEQ.pl
+./makeIndex.pl
 
 -old code for  getting the tax string from mole (using the lft rgt stuff)- very slow.
  getEMBLtax_tree.pl
@@ -222,10 +222,13 @@ using code fixEMBL_dups.pl find the correct ncbi_ids
 
 this uses the input list 'Duplicate_ncbi_list' and 'GB_files.gb'
 
-Essentially for each accession where > 2 ncbi id- it assigns the first ncbi id from the Genbank file. If this ncbi id is already in the taxonomy table -(from the data already loaded)  fine- it will only generate an output for those ncbi_ids that are not already in the taxonomy table.outputs- resolved taxonomy mapping to file rfamseq/10/DATA/Duplicate_ncbi_list_resolved
-
-Dups_resolved_for_taxonomy_table
-sort -n it and load  into table: Dups_resolved_for_taxonomy_table_sorted
+it generates 2 outfiles
+(1)Duplicate_ncbi_list_resolved
+	in this file basically all problem accessions listed in teh Dups. files have the ncbi_id resolved by
+	a look up of the genbank file. Every accession is listed with the resolved ncbi_id
+(2)Dups_resolved_for_taxonomy_table
+	this contains a list of any of the ncbi_ids assigned in this process that are not already in the taxonomy
+        table-this is a nr list which will need to be loaded into the taxonmy table;
 
 
 *************************
@@ -240,10 +243,9 @@ copy to pfamdb2a/tmp
 LOAD DATA INFILE '/tmp/Dups_resolved_for_taxonomy_table_sorted' INTO TABLE taxonomy ( ncbi_id, species, tax_string);
 
 **************************
-(10) Generate and load in the dup accs to rfamseq (note all the duplicates are in the STD class none are WGS)
-need the new taxonomy data to be in the taxonomy table in rfamlive_seq10 before loading in these accessions
+(10) Generate and load in the dup accs DATA to rfamseq (note all the duplicates are in the STD class none are WGS)
+need the new taxonomy data generated in (8) and (9) above to be in the taxonomy table in rfamlive_seq10 before loading in these accessions
 generate the rfamseq data for the duplicate accessions using the file  rfamseq/10/DATA/Duplicate_ncbi_list_resolved
-
 ./getEMBLdata_dups.pl -rel 10 -ovr >& Data_download_log_STD_Duplicates
 
 this outputs the data for these seqs to file rfamseq/10/DATA/Data_STD_Duplicates/
@@ -349,7 +351,6 @@ scp-r /nfs/pfam_nfs/rfam/rfamsq/10/rfamseq* ./
 
 same on farm2-put all the db files in new dir
 /data/blastdb/Rfam/rfamseq/
-
 
 flip the CURRENT link in /nfs/pfam_nfs/rfam/rfamseq/
 in //nfs/pfam_nfs/rfam/rfamsq/10/
