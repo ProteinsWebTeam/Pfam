@@ -6,8 +6,8 @@ makeGFF3.pl
 
 =head1 DESCRIPTION
 
-Generates the gff3 files for each genome accession. Loads the gzip file into genome_gff table
-if specified.
+Generates the gff3 files for each genome accession from the RDB data. 
+Loads the gzip file into genome_gff table if specified.
 
 =head1 AUTHOR
 
