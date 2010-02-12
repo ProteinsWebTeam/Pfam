@@ -9,6 +9,19 @@ make_genomes_agp.pl
 
 This generates the Golden Path mapping for all of the complete genomes we are going to map to . Needs the Genomes-assigned file and the CON and ANN files. Should really be run on the farm for the big euk datsets.
 
+This code collates the following information for each accession
+
+-accession
+-DE line
+-ncbi_tax
+-tax string
+-species name
+-length
+-agp data 
+
+-for the Rfamseq sequences all this data is collated from the rfamseq table and the RDB
+-for the CON_ANN files all of this data is collated from the CON_ANN files (essentially as we dont have this data iaccessible in the RDB);
+
 =head1 AUTHOR
 
 jd7@sanger.ac.uk
