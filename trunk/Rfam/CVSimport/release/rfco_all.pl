@@ -18,7 +18,7 @@ if( $dir ) {
 
 my $db = Rfam::default_db();
 foreach my $acc ( $db->get_allacc() ) {
-    system "rfco $acc" and do {
+    system "rfco.pl $acc" and do {
 	warn "failed to checkout $acc";
 	next;
     };
