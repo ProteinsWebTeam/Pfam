@@ -6,10 +6,13 @@ load_genome_entry.pl
 
 =head1 DESCRIPTION
 
-Load in the agp data for the genomes we are going to annotate into the RDB and map the rfam
-region annotations onto it.
+Load in the agp files we have generated for each genome accession. Note we dont have annotations to them all
+but we put them into the genome_entry table anyway.
+It loads in the AGP data to the chromosome_build table.
+It then updates Rfam-reg_full with the relevant genome and genome_annotation co-ordinates,
 
--to do - some sort of flag to allow to replace existing data in RDB or check if data already in stop overwriting etc
+-to do - some sort of flag to allow to either replace existing data in RDB 
+       - or method to check if data already in database and prevent overwriting etc
 
 =head1 AUTHOR
 

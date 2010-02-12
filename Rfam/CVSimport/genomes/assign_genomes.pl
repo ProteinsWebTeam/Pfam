@@ -6,11 +6,13 @@ assign_genomes.pl
 
 =head1 DESCRIPTION
 
-Obtains the list of complete genomes for all domains (Euk, Prok etc) and looks up if 
-they are whole genomes sequence in our current rfamseq (RDB) or if we need to get it
-from the CON and ANN files.
+Obtains the list of completed genomes for all domains (Euk, Prok etc) from the EBI
+ http://www.ebi.ac.uk/genomes/.   It queries the RDB to see if these accessions are
+in our rfamseq database or if they are in one of the CON and ANN files. Note this list
+from the EBI is not related to the EMBL release so there is often several hundred 
+genomes available that we cant annotate as not in our current version of EMBL.
 
-Outputs a file Genomes_assined needed for later code and a log file for info.
+Outputs a lookup file 'Genomes_assigned' which is needed for later code and a log file for info.
  
 =head1 PARAMETERS
 
