@@ -1,0 +1,368 @@
+*Currently all these bits of code possibly need the directory paths and RDB info moved to Rfam.pm
+
+location for seq update downloads
+
+/nfs/pfam_nfs/rfam/rfamseq/release/
+e.g  /nfs/pfam_nfs/rfam/rfamseq/10/
+
+* all this written on the premise of loading into a temporary database e.g. rfamlive_seq10
+* and a copy of rfamlive made e.g  rfamlive_backup
+* correctly loaded data from the temporary db to an empty rfamlive
+
+* currently the method for dealing with seqs with duplicate ncbi_ids is crap.
+
+* alot of data is downloaded to flatfiles sorted by data class and tax division (ie in small sections). This may seem laborious but this makes checking data and dealing with crashes a *lot* easier.
+
+*******************************************************************
+Generic outline for retreiving data from mole and loading into RDB
+*******************************************************************
+(1) Download the CON And ANN files for later to /nfs/pfam_nfs/rfam/rfamseq/10/CON_ANN dir
+(2) Download the rfamseq data from rfamlive for STD an WGS
+(3) make a backup copy of rfamlive db (mysql dump and a copy 'rfamlive_BKUP' on curation)
+(4) Make an empty copy of the rfamlive db or a temp db to load into
+(5) Download and load in the data for rfamseq
+(6) Get the taxonomy info for all seqs with single ncbi_ids
+(7) Load the taxonomy data into taxonomy table 
+(8) Parse the duplicates-get the resolved mappings and taxonomy data
+(9) Load in the dups taxonomy
+(10) Generate and load in the dup accs to rfamseq
+data in rdb now ready to be used...
+(11) Move the data to rfamlive 
+(12) Generate and load the features data 
+(13) Download the actual fasta sequences.
+
+code:
+
+-download data for all accessions with a single ncbi_id
+getEMBLdata_all.pl
+runDownload.sh
+checkDATA.pl
+getEMBLtax_mfetch.pl
+checkTAX.pl
+
+-deal with the accessions with multiple ncbi ids
+getEMBLdata_dups.pl
+fixEMBL_dups.pl
+
+-download features
+getEMBL_dbxref.pl
+rundbxref.sh
+
+-download the fasta seqs
+getEMBLseq.pl
+./makeIndex.pl
+./checkSEQ.pl
+
+-old code for  getting the tax string from mole (using the lft rgt stuff)- very slow.
+ getEMBLtax_tree.pl
+
+Fasta sequence downloading:
+This is essentially a distinct process from loading the rdb but we do need 
+to get the SORTED list of sequence accessions and lengths for all STD and WGS seqs
+which we only really  have a hold of when all of the Data_STD and WGS data is downloaded.
+Currently this is a pain as it requires the singles to be downloaded
+and then the duplicates processed and included. This is fine-just a bit round about. 
+should be sorted (by someone else of course)
+
+Maybe next time write code to get them all, sort and then download?
+Get a list of accessions and lengths from the flat files or RDB.
+
+*******************
+
+(1) download the con and ann files to rfamseq/10/CON_ANN dir
+ncftpget 'ftp://ftp.ebi.ac.uk/pub/databases/embl/release/rel_ann_*.dat.gz'
+ncftpget 'ftp://ftp.ebi.ac.uk/pub/databases/embl/release/rel_con_*.dat.gz'
+
+*********************
+
+(2) Download the rfamseq data from mole for STD an WGS. NB this will be
+
+the accessions which have only single ncbi_id associated with it
+This data is written to flat files in rfamseq/10/DATA/
+
+The code to use is: getEMBLdata_all.pl
+You can set it running over each data class (WGS) and (STD) for all tax divisions using: runDownload.sh
+You just need to edit out which set to run.
+This ouputs one file per class & tax called ( Data_STD.ENV or Data_WGS.ENV for ENV, etc) which is nice for keeping track of numbers and/or things falling over
+Also oututs one file of duplicates per class:tax which are used later for resolving the dups  called : Dups.STD.ENV etc. 
+These Data_STD.ENV and 
+I usually capture the output from the runDownloads as it helps with checking problems-*there always are some* 
+
+runDownload.sh >& Data_download_log_STD_ALL
+
+
+the data can now be loaded into the rfamseq table.
+
+check the format of the Data_STD, Data_WGS files with checkDATA.pl -this basically just reports if any essential fields are missing this is actually useful and better than a bombed out mysql LOAD, However it doesnt check the format of the data in each field. I found 2 incorrectly formatted entries in the download for EMBL 100 which killed the databse loading- so it is useful to at least check.
+
+Remember all these sequences in the Data_STD and Data_WGS files are those with only one ncbi_id associated with them. Those with > 1 are listed in the Dups. files. We come back to them later.
+
+********************
+
+(3) make a mysql dump of rfamlive
+
+ssh pfamdb2a 
+cd /tmp
+mkdir rfamlive_dump_060809
+chmod 777 rfamlive_dump_060809
+mkdir rfamlive_dump_060809/tables
+mysqldump -h pfamdb2a -u pfamadmin -pmafpAdmin rfamlive -P 3303 -T rfamlive_dump_060809/
+mysqldump -h pfamdb2a -u pfamadmin -pmafpAdmin rfamlive --no-data -P 3303 > rfamlive_dump_060809/tables/tables.sql
+
+cp -r rfamlive_dump_060809/ ~/
+then to storage:
+cp -r rfamlive_dump_060809 /lustre/pfam/rfam/Production/Rfam/RELEASES/
+
+**********************
+
+(4) make a working backup of rfamlive on P3303  so that people can work off the current data:
+
+echo "create database rfamlive_backup;" | mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303
+
+I have tried to do this for the whole rdb but it tends to bomb out somwhere in the middle out so best do it a table at time..
+
+mysqldump -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 --opt rfamlive | mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 -C rfamlive_backup
+
+end up doing one tale at time:
+mysqldump --max_allowed_packet=200M -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 --opt  rfamlive taxonomy | mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 -C rfamlive_backup
+
+empty the data from all of the tables in rfamlive: various ways to do this-empty one at a time with:
+
+delete from rfamseq;
+
+reset the auto_increments on all those that need it:
+
+those are:
+genome_entry, literature_references, rfam, rfamseq, taxonomy, wikitext, ( and also the features table)
+
+ALTER TABLE rfamseq  AUTO_INCREMENT=1;
+
+The only data that needs to be carried over from the last rfamlive is the dead_families table:
+
+
+***********************
+
+(5) load rfamseq data into rdb -need to copy data to pfam2a/tmp in order to do this
+
+  cp -r release/DATA dir to ~/
+  ssh pfam2a
+  cd /tmp/
+  mv ~/DATA ./
+  cat   Data*STD.1 > STDdata
+  cat Data*WGS.1 > WGSdata
+ 
+  if the empty rfamlive is ready -log on with pfamAdmin and run
+  
+  LOAD DATA INFILE '/tmp/STDdata' INTO TABLE rfamseq (rfamseq_acc, version, ncbi_id, mol_type, length, description, previous_acc, source);
+
+   LOAD DATA INFILE '/tmp/WGSdata' INTO TABLE rfamseq (rfamseq_acc, version, ncbi_id, mol_type, length, description, previous_acc, source);
+
+
+this will take around 1.5 hours for the WGS and onl 5 mins or so for the STD data.
+
+
+
+***********************
+
+(6) Get the taxonomy info for all seqs with single ncbi_ids
+
+getEMBLtax_mfetch.pl
+
+(this code runs mfetch on each accession to get )
+this needs the data to be in rfamseq table. It generates two files: one is local :
+
+SQl_tax_data
+
+this file is the output from the rfamseq query used in the code. It is a slow  query 
+and too long to reproduce every time we want to look something up so I keep a copy
+to enable checking data.
+
+the Taxonomy data is put into flat file: rfamseq/10/DATA/TaxData
+this contains ncbi_id, species name and tax_string.
+this just needs to be sorted (sort -n) and is then ready for loading into taxonomy table;
+
+check this with this- sorted list and the file generated by getEMBLtax_mfetch.pl
+
+checkTAX.pl <TaxData_sorted> SQl_tax_data
+
+this only checks all rows have data and one in every 10,000 annotations is correct-not great really...
+but this could easily be expanded a bit. Again its worth checking the format of the TAX data rather than having the RDB load bomb.
+ 
+**************************
+
+(7) Load data for singletons into taxonomy table
+
+copy TaxData_sorted to pfamdb2a/tmp
+log on to database  with pfamAdmin and run
+LOAD DATA INFILE '/tmp/TaxData_sorted' INTO TABLE taxonomy ( ncbi_id, species, tax_string);
+
+is very quick.
+
+************************
+
+(8) Parse the duplicates-get the resolved mappings and taxonomy data
+
+the original getEMBLdata_all.pl from (2) above  outputs a list of all the problem accessions in individual files for 
+each tax in /DATA/Dups.STD.HUM etc.
+
+catenate all of these into: Duplicate_ncbi_list
+
+Need to download the genbank files for all of these accessions
+
+make a list of the accesions with an awk or something. move the file to somewhere local and run
+the batch entrez to download the genbank files.
+
+http://www.ncbi.nlm.nih.gov/sites/batchentrez?db=Nucleotide
+
+basically upload a list of Gbank accessions and ask for Genebank files back.
+saved as /DATA/GB_files.gb
+
+using code fixEMBL_dups.pl find the correct ncbi_ids
+./fixEMBL_dups.pl -rel 10 -ovr
+
+this uses the input list 'Duplicate_ncbi_list' and 'GB_files.gb'
+
+Essentially for each accession where > 2 ncbi id- it assigns the first ncbi id from the Genbank file. If this ncbi id is already in the taxonomy table -(from the data already loaded)  fine- it will only generate an output for those ncbi_ids that are not already in the taxonomy table.outputs- resolved taxonomy mapping to file rfamseq/10/DATA/Duplicate_ncbi_list_resolved
+
+Dups_resolved_for_taxonomy_table
+sort -n it and load  into table: Dups_resolved_for_taxonomy_table_sorted
+
+
+*************************
+
+(9) Load in the dups taxonomy
+
+sort -n Dups_resolved_for_taxonomy_table  > Dups_resolved_for_taxonomy_table_sorted
+load  into taxonomy table in rfamlive_seq10 : Dups_resolved_for_taxonomy_table_sorted
+copy to pfamdb2a/tmp
+
+-log on to database  with pfamAdmin and run
+LOAD DATA INFILE '/tmp/Dups_resolved_for_taxonomy_table_sorted' INTO TABLE taxonomy ( ncbi_id, species, tax_string);
+
+**************************
+(10) Generate and load in the dup accs to rfamseq (note all the duplicates are in the STD class none are WGS)
+need the new taxonomy data to be in the taxonomy table in rfamlive_seq10 before loading in these accessions
+generate the rfamseq data for the duplicate accessions using the file  rfamseq/10/DATA/Duplicate_ncbi_list_resolved
+
+./getEMBLdata_dups.pl -rel 10 -ovr >& Data_download_log_STD_Duplicates
+
+this outputs the data for these seqs to file rfamseq/10/DATA/Data_STD_Duplicates/
+again can check the file with checkDATA.pl
+copy the file to pfamdb2a/tmp and load
+
+LOAD DATA INFILE '/tmp/Data_STD_Duplicates' INTO TABLE rfamseq (rfamseq_acc, version, ncbi_id, mol_type, length, description, previous_acc, source);
+
+***************************
+
+data now ready to be used...
+
+(11) Copy the data to rfamlive from rfamlive-seq10
+
+mysqldump --max_allowed_packet=200M -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 --opt  rfamlive_seq10 rfamseq | mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 -C rfamlive
+
+mysqldump --max_allowed_packet=200M -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 --opt  rfamlive_seq10 taxonomy | mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 -C rfamlive
+ 
+only need to do this for the rfamseq and the taxonomy tables.
+all the rest of the tables should be empty
+
+******************************
+
+(12) Generate and load the features data whenever..
+
+run getEMBL_dbxref.pl
+run it for all STD with rundbxref.sh
+
+outputs individual files to the /DATA dir.
+one file per tax for the features data and a log file so we can go back and look at t
+
+catenate all into a single file and copy to pfamdb2a.
+
+load into table with:
+
+LOAD DATA INFILE '/tmp/DBXREF/alldbxdata' INTO TABLE features (auto_rfamseq, database_id, primary_id, secondary_id, feat_orient, feat_start,feat_end, quaternary_id);
+
+nb-can check data is vauely in correct format with checkdbxref.pl-not very clever but checks relevant data is in correct place-get problems of formmating in the quaternary.
+
+
+
+******************************
+SEQUENCE DOWNLOAD 
+******************************
+
+Download all seqs from mole to .fa files
+
+Get a list of accessions and lengths from the flat files or RDB 
+
+from the Data_STD and Data etc flat files:
+
+foreach file ( `ls Data_*` )
+perl -e 'while(<>) { @bits=split("\t", $_); print "$bits[0].$bits[1]\t$bits[4]\n"}' <  $file >> embl_sv.txt_unsorted
+end
+
+#need to sort and then use for seq fetching on length 
+
+sort embl_sv.txt_unsorted > embl_sv.txt
+(use this file to read in for the seq downloading)
+
+also need list of just the STD and WGS data
+
+for std and wgs-run it again
+foreach file ( `ls *STD.1` )  .... > embl_STD.txt
+foreach file ( `ls *WGS.1` )  .....> embl_WGS.txt
+
+kept these copies in rfamseq/10//DATA as I dont think any code uses them..
+
+Run the download with 
+
+./getEMBLseq.pl -rel 10
+
+nb it still has two hacks in for the problem HUM seqs. this will change with each release
+
+it outputs the .fa files (500,000,000 nucleotides) to the release dir. rfamseq/10/
+
+./checkSEQ.pl
+output from this is in SeqCheck.out
+reports each file- numb seqs and total seqs. wanted a check on the downloaded seqs.
+
+in the /rel dir where all the rfamseq10_001.fa etc files are
+make the rfamseq.fa database with this:
+
+xdformat  -I -n -o rfamseq.fa *.fa
+
+also catenate all the seqs into single fasta file(we arent sure if we acutally need this but making it anyway for now)
+
+make DBSIZE file in the /release dir.
+
+touch DBSIZE
+add this to file:
+169,604,735,232
+(number of basepairs in the database)
+
+
+copy the db files to the relevant locations
+
+on the farm (old farm)
+/lustre/blastdb/Rfam/rfamseq
+move the old one to rfamseq_9
+note the current one should always just be called 'rfamseq'
+scp-r /nfs/pfam_nfs/rfam/rfamsq/10/rfamseq* ./
+
+same on farm2-put all the db files in new dir
+/data/blastdb/Rfam/rfamseq/
+
+
+flip the CURRENT link in /nfs/pfam_nfs/rfam/rfamseq/
+in //nfs/pfam_nfs/rfam/rfamsq/10/
+rm CURRENT (link to 9)
+ln -s 10 CURRENT (make link to 10)
+
+Also had to generate a file of the 340 databases index for Paul for seq fetching.
+./makeIndex.pl
+will output file SeqIndex to  /nfs/pfam_nfs/rfam/rfamsq/10/DATA/
+next time this should be generated during the getemblSEQ.pl (need to edit this in)
+
+
+*************************
+
+
+
