@@ -6,11 +6,11 @@ Genome annotations overview:
 
 (1)make empty db (e.g rfam_10_0) on dev and copy over data from rfamlive
 
-(2)Get the list of completed genomes from the EBI and assign where to get them from (rfamseq or con file)
+(2)Get the list of accessions for completed genomes from the EBI and assign where to get them from (rfamseq or con file)
 
 (2a) Doctor the list of accessions to include the accessions we want to use ? -see section on ENSEMBL
 
-(3)Use the assigned list from 2 to generate the agp files for the con and Rfamseq genomes - (deal with ENSEMBL)
+(3)Use the Genomes_assigned list from 2 to generate the agp files for the con and Rfamseq genomes - (deal with ENSEMBL, check ncbi_id)
 
 (4)Load the agp data into the rdb 
 
@@ -35,7 +35,6 @@ ensembl-not used
 ./getCoordSystem.pl
 ./runAssemblyMap.sh 
 ./assembly_mapping.pl 
-./change_genomes_GRCh37.pl 
 
 ************
 
@@ -101,11 +100,12 @@ Number of genome seq accessions rejected (in ensembl) 0
 rfam=4258, confiles=689 unassigned=526
 
 Note the ensembl reference is now defunct so could be removed. 
-'Genomes_assigned' contains a list of each accession we need to annotate and wether to get it from Rfamseq or from the CON_ANN files. This file is needed for the make_genome_agp.pl code
+'Genomes_assigned' contains a list of each accession we need to annotate and wether to get it from Rfamseq or from the CON_ANN files. This file is needed for the make_genome_agp.pl code. It also records the ncbi_ids given by EBI.txt and what we have in rfamseq for this acc.
 
 ************
 
 (3) make the agp files
+
  
 should have made the reduced con and ann files by this time-they speed this bit up (up to 10x faster...)
 
@@ -128,6 +128,8 @@ outputs the files for each tax div to : /nfs/pfam_nfs/rfam/rfamseq/10/Genomes_10
 
 nb-this code keeps getting stuck on the last set 'rod'- easy enough to get it to run on one set at time-ended up doing this for the rod set.  Specify this in the code-line 241 and add an exit...- This should be tidied up to be an option if we want to do it this way. Ideally it should just run through all of the species. For various reasons I have had to go back and regenerat a specific set e.g. the rod or hum. so I guess options should be added...
 
+- comments on ncbi_id
+Note at this point when the agp files are made the ncbi_taxid is assigned to the genome. In the case of all of the Rfamseq accessions we use the ncbi_id we originally assigned in rfamseq not that given in the EBI.txt file (believe it or not they are not always the same for the same accession, ie. some differ slightly in not having the same level of strain etc...) However for the CON files we only have the option of using the ncbi_id assigned by EBI.txt. For release 10.0 I did do a lookup to check that all of the CON assigned ncbi_ids we used are actually in our taxonomy set and that all the tax_ids of the constituent AGP sequences were the same for one AGP. There were 7 ncbi_ids listed in the EBI set that were missing from out taxonomy set in rfamseq so I manually added them to our taxonomy table. Essentially every genome_entry ncbi_id in the must be in our taxonomy table.
 
 *************
 
@@ -135,6 +137,7 @@ ENSEMBL:
 
 This is the old code I have for getting the ensembl mappings from the largest fragment to the smallest they have.
 In the majority of cases this is NOT an embl accession and indeed by release 10_0 we didnt bother using this code at all. However for release 9_1 we did use for 4 genomes:
+
 Anyway here is the basic outline of what to do should it be needed:
 
 if want to manually look at Ensembl rdb:
@@ -143,7 +146,7 @@ mysql -uanonymous -hensembldb.ensembl.org -P5306
 use ensembl_compara_56;
 
 Need to get the list of the names for each species databases for this ensembl release:
-#perl ./getENSdb.p > ENS_56_dblist (list of genomes needed for the getCoordsytem code)
+#perl ./getENSdb.pl > ENS_56_dblist (list of genomes needed for the getCoordsytem code)
 
 Need to pre-generate a lookup for the species:coordinate mapping which is different for each species
 #perl ./getCoordSystem.pl -infile ./ENS_56_dblist
@@ -160,11 +163,11 @@ Then need to make an agp file from this mapping file: and load into the rdb. How
 
 
 However for release 10.0 we didnt end up using this using anything from Ensembl. 
-For release 10.0 we wanted to use GRCh37 but couldnt get the coordinates from Ensembl. So essentially went back to the EBI llist for eukaryotes.txt and changed the accessions for the human 22 + xy in the accessions list to those for GRCh37. Note I manually curated this list: see file  'GRCh37' contains list of the accessions that were replaced. It would be good is this was automated.
+For release 10.0 we wanted to use GRCh37 but couldnt get the coordinates from Ensembl. So essentially went back to the EBI list for eukaryotes.txt and changed the accessions for the human 22 + xy in the accessions list to those for GRCh37. Note I manually curated this list: see file  'GRCh37' contains list of the accessions that were replaced. It would be good is this was automated.
 
 Integrate these changes into the Genomes_assigned file in order to use the new accessions for human and not those assigned by EBI.
 
-Then I just needed to remake the human.agp file using the standard code (as in  3 above)-note set the ctype in the code to 'hum' and an exit so it doesnt regenerate files of all tax divisions.- this is referred to in 3 above.
+Then I just needed to remake the human.agp file using the standard code (as in  3 above)-note- set the ctype in the code to 'hum' and an exit so it doesnt regenerate files of all tax divisions- this is referred to in 3 above.
 
 ./make_genome_agp.pl -dataset con -release 10.0 -db rfam_10_0 >>& agp.CON.repeats.out
 
@@ -176,16 +179,19 @@ genome_entry
 chromosome_build
 rfam_reg_full tables.
 
-One entry per accession into genome_entry table. Then the agp data is loaded into the chromosome_build data and hence tied to rfaseq. Finally the annotations to each genome are recorded in the rfam_reg_full data. During this process the co-ordinates of the annotation on the genome are also resolved (in rfam_reg_full table)
+One entry per accession into genome_entry table. Then the agp data is loaded into the chromosome_build data and hence tied to rfamseq. Finally the annotations to each genome are recorded in the rfam_reg_full data. During this process the co-ordinates of the annotation on the genome are also resolved (in rfam_reg_full table)
 
 load the rfamseq genomes (where the genome frag is not a contig and is already in rfamseq)
+
 ./load_genome_entry.pl -release 10.0 -db rfam_10_0 -agp genome_agp_embl100.rfam >& load_genome_rfam_log
-load in the contig genome data for each species:
+
+load in the contig genome data for each species:e.g.
+
 ./load_genome_entry.pl -release 10.0 -db rfam_10_0 -agp genome_agp_embl100.con.env >& load_genome_con_log
 
 list of queries to keep track of loadings:
 
-release rfam_10_0
+Examples for release rfam_10_0
 
 QC checks-by this point these numbers should mean something to you...:
 
