@@ -97,7 +97,8 @@ sub browse_families : Path( '/family/browse' ) {
   my @res;
 
   if ( lc $c->req->param('browse') eq 'numbers' ) {
-    $c->log->debug( 'Browse::browse_families: browsing "numbers"...' );
+    $c->log->debug( 'Browse::browse_families: browsing "numbers"...' )
+      if $c->debug;
     $c->stash->{char} = 'numbers';
 
     # run the query to get back all families starting with a number
