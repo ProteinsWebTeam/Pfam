@@ -628,7 +628,6 @@ sub set_sprot_pred_active_site {
     return $self;
 }
 
-
 sub get_nse_version{
    my ($self,$char1,$char2) = @_;
 
@@ -637,11 +636,27 @@ sub get_nse_version{
    $self->throw("Attribute id not set") unless defined($self->id());
    $self->throw("Attribute start not set") unless defined($self->start());
    $self->throw("Attribute end not set") unless defined($self->end());
-   if($self->seq_version){
+   if($self->seq_version and $self->id() !~ m/_/ ){
     return $self->id() .".".$self->seq_version. $char1 . $self->start . $char2 . $self->end ;
    }else{
      return $self->id() . $char1 . $self->start . $char2 . $self->end ;
    }
+}
+
+# This is a clone of the method from BioPerl, but with the ".version" removed. 
+# Having it there was screwing up the printing of sequences using, for example,
+# write_Pfam.
+# jt6 20100214 WTSI
+
+sub get_nse{
+   my ($self,$char1,$char2) = @_;
+
+   $char1 ||= "/";
+   $char2 ||= "-";
+   $self->throw("Attribute id not set") unless defined($self->id());
+   $self->throw("Attribute start not set") unless defined($self->start());
+   $self->throw("Attribute end not set") unless defined($self->end());
+   return $self->id() . $char1 . $self->start . $char2 . $self->end ;
 }
 
 =head1 COPYRIGHT
