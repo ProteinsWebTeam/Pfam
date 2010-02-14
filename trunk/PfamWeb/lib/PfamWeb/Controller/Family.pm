@@ -124,7 +124,8 @@ sub begin : Private {
   #----------------------------------------
   
   # dead families are a special case...
-  if ( $c->stash->{entryType} eq 'D' ) {
+  if ( defined $c->stash->{entryType} and
+       $c->stash->{entryType} eq 'D' ) {
     
     $c->log->debug( 'Family::begin: got a dead family; setting a refresh URI' ) 
       if $c->debug;
@@ -144,7 +145,8 @@ sub begin : Private {
   #----------------------------------------
   
   # use a redirect page if the ID of the family has changed 
-  if ( $c->stash->{entryType} eq 'R' ) {
+  if ( defined $c->stash->{entryType} and
+       $c->stash->{entryType} eq 'R' ) {
     
     $c->log->debug( 'Family::begin: arrived at a family using a previous ID; setting a refresh URI' ) 
       if $c->debug;
