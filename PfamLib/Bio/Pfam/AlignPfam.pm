@@ -1785,6 +1785,69 @@ sub average_percentage_identity_per_column {
 
 }
 
+
+
+=head2 add_seq
+
+ Title     : add_seq
+ Usage     : $myalign->add_seq($newseq);
+ Function  : Adds another sequence to the alignment. *Does not* align
+             it - just adds it to the hashes.
+ Returns   : nothing
+ Args      : a Bio::LocatableSeq object
+             order (optional)
+
+See L<Bio::LocatableSeq> for more information
+
+B<Note>: this is a clone of the same method from BioPerl 1.6, required 
+because the method from 1.6.1 screws up printing of the alignment.
+jt6 20100214 WTSI
+
+=cut
+
+sub add_seq {
+    my $self = shift;
+    my $seq  = shift;
+    my $order = shift;
+    my ($name,$id,$start,$end);
+
+    if( ! ref $seq || ! $seq->isa('Bio::LocatableSeq') ) {
+	$self->throw("Unable to process non locatable sequences [". ref($seq). "]");
+    }
+
+    $id = $seq->id() ||$seq->display_id || $seq->primary_id;
+
+    # build the symbol list for this sequence,
+    # will prune out the gap and missing/match chars
+    # when actually asked for the symbol list in the
+    # symbol_chars
+    # map { $self->{'_symbols'}->{$_} = 1; } split(//,$seq->seq) if $seq->seq;
+
+    if( !defined $order ) {
+	$order = keys %{$self->{'_seq'}};
+    }
+    $name = $seq->get_nse;
+
+    if( $self->{'_seq'}->{$name} ) {
+	$self->warn("Replacing one sequence [$name]\n") unless $self->verbose < 0;
+    }
+    else {
+	$self->debug( "Assigning $name to $order\n");
+
+	$self->{'_order'}->{$order} = $name;
+
+	unless( exists( $self->{'_start_end_lists'}->{$id})) {
+	    $self->{'_start_end_lists'}->{$id} = [];
+	}
+	push @{$self->{'_start_end_lists'}->{$id}}, $seq;
+    }
+
+    $self->{'_seq'}->{$name} = $seq;
+
+}
+
+
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
