@@ -41,7 +41,8 @@ Serves the image file for the clan relationship diagram.
 sub image : Local {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'Clan::Relationship::image: serving clan relationship image' );
+  $c->log->debug( 'Clan::Relationship::image: serving clan relationship image' )
+    if $c->debug;
   
   if( defined $c->stash->{relationshipImage} ) {
     $c->res->content_type( 'image/gif' );
