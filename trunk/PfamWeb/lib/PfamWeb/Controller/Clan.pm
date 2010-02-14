@@ -243,7 +243,8 @@ sub get_summary_data : Private {
   $c->stash->{interactions} = \@interactions;
 
   $summaryData{numInt} = scalar @interactions;
-  $c->log->debug( 'Clan::get_summary_data: got ' . $summaryData{numInt} . ' interactions' );
+  $c->log->debug( 'Clan::get_summary_data: got ' . $summaryData{numInt} . ' interactions' )
+    if $c->debug;
   
   # number of structures known for the domain
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
@@ -253,7 +254,8 @@ sub get_summary_data : Private {
                             { join      => [ qw( clan_members ) ]} );
 
   my %pdb_unique = map {$_->pdb_id->pdb_id => 1} @mapping;
-  $c->log->debug( 'Clan::get_summary_data: got ' . scalar(@mapping) . ' pdb mappings' );
+  $c->log->debug( 'Clan::get_summary_data: got ' . scalar(@mapping) . ' pdb mappings' )
+    if $c->debug;
   $c->stash->{pdbUnique} = \%pdb_unique;
 
   # number of species
@@ -343,11 +345,13 @@ sub get_diagram : Private {
   my $map   = $c->cache->get( $cacheKeyRoot . 'map' );
 
   if ( defined $image and defined $map ) { 
-    $c->log->debug( 'Clan::Relationship::get_diagram: extracted image and map from cache' );
+    $c->log->debug( 'Clan::Relationship::get_diagram: extracted image and map from cache' )
+      if $c->debug;
   }
   else {
     $c->log->debug( 'Clan::Relationship::get_diagram: failed to extract both image '
-                    . 'and map from cache; going to DB' );
+                    . 'and map from cache; going to DB' )
+      if $c->debug;
 
     my $row = $c->model('PfamDB::ClanAlignmentsAndRelationships')
                 ->search( { auto_clan => $c->stash->{clan}->auto_clan }, {} )
