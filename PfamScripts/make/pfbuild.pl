@@ -41,7 +41,7 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db, $cpu );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
@@ -50,6 +50,7 @@ sub main {
                "local"      => \$local,
                "nobuild"    => \$nobuild,
                "split"      => \$split,
+               "cpu=i"      => \$cpu,
                "E=s"        => \$evalCut,
                "Z=s"        => \$dbsize,
                "max"        => \$max,
@@ -70,6 +71,8 @@ sub main {
   if($local){
     $split = 0; 
   }
+
+  $cpu = 4 unless($cpu); 
 
   #Check db and dbsize
   $db = "pfamseq" unless($db);
@@ -259,6 +262,8 @@ sub main {
   # Now build and search
   my %searchOptions;
   
+  $searchOptions{"--cpu"} = $cpu;
+
   # E-value cut off
   unless($evalCut){
     $evalCut = 1000;
@@ -413,7 +418,7 @@ sub main {
 
       unless($split){
         my $fh = IO::File->new();
-        $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -o /tmp/$$.log -Jhmmsearch$$");
+        $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -n $cpu -R \"span[hosts=1]\" -o /tmp/$$.log -Jhmmsearch$$");
         $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n");
         $fh->print("$cmd\n");
         
