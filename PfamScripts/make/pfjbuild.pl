@@ -140,7 +140,10 @@ sub main {
 
   help() if ($help);
 
-  my $c = "$$.chkpnt"; #Use this later for writing PFAMOUT file
+
+  #$check is true if the user requested the checkpoint files
+  #$c contains the name of the checkpoint files
+  my $c = "$$.chkpnt"; #Use $c later for writing PFAMOUT file
   if ($check) {
       $optCmds{'--chkali'} = $check;
       $optCmds{'--chkhmm'} = $check;
@@ -429,10 +432,11 @@ sub parseJackhmmer {
 
 
 sub writePFAMOUT {
+    #This subroutine is virtually identical to the pfjbuild_pfamout.pl script.  
+    #Should really put it in a module.
 
-    my ($check, $c) = @_;
-
-
+    my ($check, $c) = @_;  
+                           
     #Write results of final iteration to file
     my ($header, $header_complete, $flag);
     my $outfile = "JOUT.final";
@@ -501,6 +505,9 @@ sub help {
 usage: $0 -fa <fasta file> -db <sequence db>  or $0 -acc <accession> -db <sequence db>
  
 The alignment in written into the file JALIGN and the list of hits into JOUT.
+A PFAMOUT file is produced for the hits in the final iteration.
+An 'align' file is written which contains the alignment in the JALIGN file without 
+the posterior probabilities.
 
 You can control jackhmmer with the following options
 
