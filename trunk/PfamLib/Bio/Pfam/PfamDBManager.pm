@@ -42,8 +42,6 @@ sub new {
         . ". Error:[$@]\n" );
   }
 
-  print STDERR "HERE" . Dumper($self);
-
   return bless( $self, $caller );
 }
 
@@ -111,7 +109,6 @@ sub getVersion {
 #Try to find in the incoming family is part of a clan
 sub getClanDataByPfam {
   my ( $self, $family ) = @_;
-
   my $result;
   if ( $family =~ /PF\d+/ ) {
 
@@ -841,7 +838,36 @@ sub getPfambRegForSeq {
   return(\@pfamBRegions);
 }
 
-
+sub getScoopData {
+  my($self, $famDataObj, $score) = @_;
+  
+  $score = $score || '0.0';
+  # PfamA relationship based on SCOOP
+  my @ataSCOOP = $self->getSchema
+                       ->resultset('Pfama2pfamaScoopResults')
+                         ->search( { -and => [
+                                  -or => [
+                                    "pfamA1.auto_pfama" => $famDataObj->auto_pfama,
+                                    "pfamA2.auto_pfama" => $famDataObj->auto_pfama,
+                                  ],
+                               score       => { '>', $score } ]
+                               },
+                             { join        => [ qw( pfamA1 pfamA2 ) ],
+                               select      => [ qw( pfamA1.pfama_id 
+                                                    pfamA2.pfama_id
+                                                    pfamA1.pfama_acc
+                                                    pfamA2.pfama_acc
+                                                    score ) ],
+                               as          => [ qw( l_pfama_id
+                                                    r_pfama_id
+                                                    l_pfama_acc
+                                                    r_pfama_acc
+                                                    score ) ],
+                              order_by     => 'score DESC',
+                             } );
+  
+  return \@ataSCOOP 
+}
 
 #Specific insert/update methods should go here
 
