@@ -600,6 +600,13 @@ sub getPfamRegionsForSeq {
   carp("Did not find family information for $seq") if $self->{'debug'};
 }
 
+
+sub getPfamseqById {
+  my ($self, $id) = @_;
+  my $seqObj = $self->getSchema->resultset("Pfamseq")->find({ pfamseq_id => $id });   
+  return $seqObj;
+}
+
 sub getAllPfamseqAccsIds {
   my ($self) = @_;
   my @pfamseqData;
