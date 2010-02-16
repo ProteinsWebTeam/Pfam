@@ -1,0 +1,40 @@
+
+[%
+# require.tt
+# jt6 20070313 WTSI
+# 
+# make sure that the "requirements" hash exists, along with all necessary arrays
+# within it
+#
+# $Id: require.tt,v 1.1 2010-02-15 12:01:27 pg6 Exp $
+
+UNLESS       requirements;                requirements          = {}; END;
+UNLESS       requirements.js;             requirements.js       = []; END;
+UNLESS       requirements.jsIe;           requirements.jsIe     = []; END;
+UNLESS       requirements.css ;           requirements.css      = []; END;
+UNLESS       requirements.cssIe ;         requirements.cssIe    = []; END;
+UNLESS       requirements.cssIeAll;       requirements.cssIeAll = []; END;
+UNLESS sharedRequirements;          sharedRequirements          = {}; END;
+UNLESS sharedRequirements.js;       sharedRequirements.js       = []; END;
+UNLESS sharedRequirements.css ;     sharedRequirements.css      = []; END;
+UNLESS sharedRequirements.cssIe ;   sharedRequirements.cssIe    = []; END;
+UNLESS sharedRequirements.cssIeAll; sharedRequirements.cssIeAll = []; END;
+%]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
