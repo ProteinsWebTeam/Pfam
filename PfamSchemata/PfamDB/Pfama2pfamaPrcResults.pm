@@ -53,10 +53,10 @@ __PACKAGE__->add_columns(
 
 
 __PACKAGE__->has_one( pfamA1 => 'PfamDB::Pfama',
-                      { 'foreign.auto_pfamA' => 'self.auto_pfamA1' } );
+                      { 'foreign.auto_pfamA' => 'self.auto_pfama1' } );
 
 __PACKAGE__->has_one( pfamA2 => 'PfamDB::Pfama',
-                      { 'foreign.auto_pfamA' => 'self.auto_pfamA2' } );
+                      { 'foreign.auto_pfamA' => 'self.auto_pfama2' } );
 
 
 =head1 COPYRIGHT

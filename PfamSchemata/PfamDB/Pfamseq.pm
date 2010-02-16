@@ -182,7 +182,7 @@ __PACKAGE__->has_many(
 
 # this relationship needs to have the same name as the one that links 
 # PfamaArchitecture to Architecture
-__PACKAGE__->has_one(
+__PACKAGE__->belongs_to(
   "auto_architecture",
   "PfamDB::Architecture",
   { "foreign.auto_architecture" => "self.auto_architecture" },
