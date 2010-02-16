@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
   "pfamseq_acc",
   { data_type => "VARCHAR", default_value => 0, is_nullable => 0, size => 6 },
   "auto_pfamseq",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "seq_version",
   { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
   "pfamseq_res",
