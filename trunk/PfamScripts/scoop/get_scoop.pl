@@ -33,7 +33,7 @@ use Getopt::Long;
 use Cwd;
 
 use Bio::Pfam::Config;
-use Bio::Pfam::PfamDBManager;
+use Bio::Pfam::PfamLiveDBManager;
 
 unless ( scalar(@ARGV) ) { useage(); }
 
@@ -41,7 +41,7 @@ my $config = Bio::Pfam::Config->new;
 $config->dieIfNotWTSI;
 
 
-my $pfamDB = Bio::Pfam::PfamDBManager->new( %{ $config->pfamlive } );
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
 
 my $acc;
@@ -96,11 +96,17 @@ my $results = $pfamDB->getScoopData($famData, $score);
 
 #Print the results;
 print $fh sprintf("%-10s ", '#score').
-          sprintf("%-9s " , 'PfamA_Id').
-          sprintf("%-16s " , 'PfamA_acc').
-          sprintf("%-9s " , 'PfamA_Id').
-          sprintf("%-16s\n" , 'PfamA_acc');
-print $fh "#".("-" x 60)."\n";          
+          sprintf("%-9s " , 'PfamA_Acc').
+          sprintf("%-16s " , 'PfamA_Id').
+          sprintf("%-9s " , 'Clan_acc').
+          sprintf("%-16s " , 'Clan_Id').
+          sprintf("%-9s " , 'PfamA_Acc').
+          sprintf("%-16s " , 'PfamA_Id').
+          sprintf("%-9s " , 'Clan_acc').
+          sprintf("%-16s\n" , 'Clan_Id')
+          ;
+          
+print $fh "#".("-" x 110)."\n";          
 
 if($results and ref($results) eq 'ARRAY' and scalar(@$results)){
 foreach my $r (@$results){
@@ -108,13 +114,22 @@ foreach my $r (@$results){
   if($r->get_column('l_pfama_id') eq $famData->pfama_id){
     print $fh sprintf("%-9s " , $r->get_column('r_pfama_acc')).
               sprintf("%-16s ", $r->get_column('r_pfama_id')).
+              sprintf("%-9s " , $r->get_column('r_clan_acc') || '-').
+              sprintf("%-16s ", $r->get_column('r_clan_id') || '-').
               sprintf("%-9s " , $r->get_column('l_pfama_acc')).
-              sprintf("%-16s\n", $r->get_column('l_pfama_id'));  
+              sprintf("%-16s ", $r->get_column('l_pfama_id')).
+              sprintf("%-9s " , $r->get_column('l_clan_acc') || '-').
+              sprintf("%-16s\n", $r->get_column('l_clan_id') || '-');
   }else{
     print $fh sprintf("%-9s " , $r->get_column('l_pfama_acc')).
               sprintf("%-16s ", $r->get_column('l_pfama_id')).
+              sprintf("%-9s " , $r->get_column('l_clan_acc') || '-').
+              sprintf("%-16s ", $r->get_column('l_clan_id') || '-').
               sprintf("%-9s " , $r->get_column('r_pfama_acc')).
-              sprintf("%-16s\n", $r->get_column('r_pfama_id'));
+              sprintf("%-16s ", $r->get_column('r_pfama_id')).
+              sprintf("%-9s " , $r->get_column('r_clan_acc') || '-').
+              sprintf("%-16s\n", $r->get_column('r_clan_id') || '-');
+              ;
   } 
   
 }
