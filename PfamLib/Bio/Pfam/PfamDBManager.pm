@@ -859,16 +859,29 @@ sub getScoopData {
                                   ],
                                score       => { '>', $score } ]
                                },
-                             { join        => [ qw( pfamA1 pfamA2 ) ],
+                             { join        => { 'pfamA1' => {
+                                                    'clan_memberships' => 'auto_clan' },
+                                                'pfamA2' => {
+                                                    'clan_memberships' => 'auto_clan' },
+                                                  },
+                                #[ qw( pfamA1 pfamA2 ) ],
                                select      => [ qw( pfamA1.pfama_id 
                                                     pfamA2.pfama_id
                                                     pfamA1.pfama_acc
                                                     pfamA2.pfama_acc
+                                                    auto_clan.clan_acc
+                                                    auto_clan.clan_id
+                                                    auto_clan_2.clan_acc
+                                                    auto_clan_2.clan_id
                                                     score ) ],
                                as          => [ qw( l_pfama_id
                                                     r_pfama_id
                                                     l_pfama_acc
                                                     r_pfama_acc
+                                                    l_clan_acc
+                                                    l_clan_id
+                                                    r_clan_acc
+                                                    r_clan_id
                                                     score ) ],
                               order_by     => 'score DESC',
                              } );
