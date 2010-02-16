@@ -1,0 +1,63 @@
+[%
+# dasFeature.tt
+# pg6 20100215 WTSI
+# 
+# page wrapper for the feature viewer
+#
+# $Id: dasFeature.tt,v 1.1 2010-02-16 09:45:49 pg6 Exp $
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "livegrid.js" );
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
+requirements.js.push( "excanvas.js" );
+-%]
+
+<h2>Feature</h2>
+
+<div id="canvasWrapper">
+  <canvas id="canvasEl" width="700" height='300' style="border:1px red solid"></canvas>
+</div>    
+    
+<script type="text/javascript">
+  
+  var sources = $A( eval( [% json_sources %] ) );
+  
+  console.log('teh sources is '+sources );
+  
+  var graphicOffset = 0;
+  var imgParams     = {
+                          xscale: 1,
+                          yscale: 1,
+                          //residueWidth: resWidth,
+                          envOpacity:-1,
+                          sequenceEndPadding: 0
+                         };
+     
+  var features =  $H( eval( [% dasFeatures %] ) );
+    
+  sources.each( function( value ){
+    console.log( "the sources is "+value );
+    
+    var seq = features.get( value );
+//    var h = $H( seq );
+//    console.log( "teh seq is "+h.inspect() );
+//    
+    var pg1 = new PfamGraphic( "canvasWrapper" );
+     pg1.setCanvas( 'canvasEl' );
+     pg1.setNewCanvas( false );  
+     pg1.setImageParams( imgParams );
+     
+     pg1.setImageParams( imgParams );
+     pg1.setImageParams( { yOffset : graphicOffset } );
+     pg1.setSequence( seq );
+     
+     pg1.render();
+     
+     graphicOffset +=100;  
+  });
+  
+  // now define the pfam graphic object using the sequence;
+  
+</script>  

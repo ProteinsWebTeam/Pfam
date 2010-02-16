@@ -1,0 +1,19 @@
+<div id="feaureblock">
+  <form id="featureForm" enctype="multipart/form-data" action="[% c.uri_for( '/feature/getFeature' ) %]" method="post">
+    Enter the uniprot accession:<input type="textbox" id="accession" name="acc" size="25"/>
+    <p/>
+    <div id="das_source">
+      <!--<input type="checkbox" id="DS_241" name="DS_241" value="DS_241">Pfam</input>
+      <input type="checkbox" id="DS_446" name="DS_446" value="DS_446">Gene3D</input>
+      <input type="checkbox" id="DS_327" name="DS_327" value="DS_327">Interpro</input>
+      <input type="checkbox" id="DS_120" name="DS_120" value="DS_120">SuperFam</input>-->
+      <input type="checkbox" id="DS_241" name="Das" value="DS_241">Pfam</input>
+      <input type="checkbox" id="DS_446" name="Das" value="DS_446">Gene3D</input>
+      <input type="checkbox" id="DS_327" name="Das" value="DS_327">Interpro</input>
+      <input type="checkbox" id="DS_120" name="Das" value="DS_120">SuperFam</input>
+    </div>
+    <input type="reset" value="Reset"/>
+    <input type="submit" value="Submit"/>
+    
+  </form>
+</div>  

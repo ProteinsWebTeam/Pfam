@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <title>[% "DAS Alignment Viewer" %]</title>
+      
+      
+      <!-- prototype / scriptaculous -->
+      <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+      <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,builder,controls,slider"></script>
+      
+      [%-  # use uri_for to get the root for the static directory
+       staticUri = c.uri_for( "/static" );
+       sharedUri = c.uri_for( "/shared" ); -%]
+      
+            
+      [%-
+      allRequirements = { local  => { uri  => staticUri,
+                                      reqs => requirements },
+                          shared => { uri  => sharedUri,
+                                      reqs => sharedRequirements } };
+      
+      PROCESS "components/load_requirements.tt" -%]  
+    </head>
+      
+    <body>
+    
+    <div id="bodyblock">
+     <h1>[% "DAS Alignment Viewer" %]</h1>
+     <div id="menu">
+        Navigation:
+        <ul>
+            <li><a href="[% c.uri_for('/') %]">Home</a></li>
+            <li><a href="[% c.uri_for( '/feature') %]">Feature</a></li>
+            <li><a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
+        </ul>
+    </div><!-- end menu -->
+    
+    <div id="content">
+        [%# Status and error messages %]
+        <span class="message">[% status_msg %]</span>
+        <span class="error">[% error_msg %]</span>
+        [%# This is where TT will stick all of your template's contents. -%]
+        [% content %]
+    </div><!-- end content -->
+    </div><!-- end bodyblock -->
+    
+          
+    <div id="siteFooter">
+      <p>Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#103;&#54;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#103;&#54;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a></p>
+      <p class="spaced"><a href="http://www.wellcome.ac.uk/">The Wellcome Trust</a></p>
+    </div>
+    </body>
+    </html>
