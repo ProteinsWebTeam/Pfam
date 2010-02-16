@@ -1,0 +1,179 @@
+[%
+# grid.tt
+# jt6 20090205 WTSI
+# 
+# page wrapper for the grid tests
+#
+# $Id: alignment.tt,v 1.7 2010-02-13 10:45:37 pg6 Exp $
+
+META naked = 1;
+
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+ <html>
+
+  <head>
+    <title>Pfam Alignment viewer</title>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">google.load("prototype", "1.6.0.3");</script>
+    <link rel="stylesheet" type="text/css" href="[% c.uri_for( '/alignment.css' ) %]"></link> 
+    <script type="text/javascript" src="[% c.uri_for('/livegrid.js') %]"></script>
+
+    <style type="text/css">
+      
+      #grid {
+        white-space: nowrap;
+        float: left;
+        width: 1000px;
+        border: 1px solid #ababab;
+        border-right: none;
+        font-family: monospace;
+        position: relative;
+        overflow:hidden;
+      }
+/*
+      #grid .seq_acc {
+        float: left;
+        width: 10em;
+        position: fixed;
+      }
+*/
+      #grid .seq_acc {
+        width: 12em;
+      }
+      #accessions {
+        float:left;
+        background-color: #CCBBCC;
+      }
+      #sequences {
+        overflow-x:auto
+      }
+      /* #grid .seq_seq {
+        margin-left: 12em;
+      }
+      #grid .odd {
+        background-color: #EEE;
+      }
+      #grid .even {
+        background-color: #e0e0e0;
+      }
+      #grid .odd .seq_acc {
+        background-color: #eeddee;
+      }
+      #grid .even .seq_acc {
+        background-color: #e0d0e0;
+      } */
+      #sequences .odd {
+        background-color: #EEE;
+      }
+      #sequences .even {
+        background-color: #e0e0e0;
+      }
+      #spinner {
+        color: #FFF;
+        background-color: #F00;
+        padding: 1em;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <h1>Das Alignment Viewer</h1>
+		
+    <h2> <a href="[% c.uri_for('/') %]" >Home</a></h2>
+    
+		<h2>Prototype Live Grid Example</h2>
+    
+    <p>
+      <span class="loading" id="spinner" style="display: none">Loading alignment...</span>
+    </p>
+    		
+    <div id="gridWrapper">
+      <p id="gridResultRange"></p>
+      
+      <div id="grid" >
+        
+        <div id="accessions"></div>
+        <div id="sequences"></div>
+        
+      </div>
+    </div>
+    
+    <div id='error' style="color:red;width:500px;font-size:large;background-color:#EEE;display:none;">
+      [% errorMsg %]
+    </div>
+
+    <script type="text/javascript">
+      // <![CDATA[
+      var size = [% data.size %];
+      console.log( 'the total rows is  is '+size );
+      if (size > 0) {
+      
+        var myGridUpdater;
+        
+        Event.observe(window, "load", function(){
+          //function mygrid() {
+          var opts = {
+            requestParameters: {
+              accession: "[% data.acc %]",
+              dsn_name: "[% data.dsn_name %]",
+              max_rows: "[% data.size %]"
+            },
+            accessionsDiv: $('accessions'),
+            sequencesDiv: $('sequences'),
+            scrollvalue: 0,
+            prefetchBuffer: true,
+            onscroll: updateTopicsGridHeader,
+            onComplete: function(){
+              //console.log( "onComplete: hiding spinner" );
+              $("spinner").hide();
+            },
+            onLoading: function(){
+              //console.log( "onLoading: showing spinner" );
+              $("spinner").show();
+            },
+            onFirstContent: function(){
+              //console.log( "onFirstContent: updating row count" );
+              updateTopicsGridHeader(0);
+            }
+          };
+          
+          myGridUpdater = new LiveGrid('grid', 25, "[% data.size %]", "[% c.uri_for('/alignment/alignment') %]", opts);
+        });
+        
+        // called on the onscroll event
+        function updateTopicsGridHeader(offset){
+          //console.log( "updateTopicsGridHeader: offset: |" + offset + "|");
+          
+          if (myGridUpdater && myGridUpdater.metaData) {
+            var metaData = myGridUpdater.metaData;
+            
+            // in certain cases where pair-wise alignment is shown
+            var end = (offset + metaData.pageSize - 1);
+            if (end > metaData.getTotalRows()) {
+              end = metaData.getTotalRows();
+            }
+            
+            $('gridResultRange').innerHTML = 'Rows %1 from %2'.replace('%1', offset + ' - ' + end).replace('%2', metaData.getTotalRows());
+          }
+          
+        }
+        
+        // add an event listener to the sequences;
+        $('sequences').observe('scroll', function(){
+          myGridUpdater.options.scrollvalue = $('sequences').scrollLeft;
+        });
+      }else{
+        $('error').show();
+        $('gridWrapper').hide();
+      }
+      // ]]>
+    </script>
+
+  </body>     
+  
+</html>
