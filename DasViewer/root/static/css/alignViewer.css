@@ -1,0 +1,32 @@
+ #grid {
+  white-space: nowrap;
+  float: left;
+  width: 1000px;
+  border: 1px solid #ababab;
+  border-right: none;
+  font-family: monospace;
+  position: relative;
+  overflow:hidden;
+}
+#grid .seq_acc {
+  width: 12em;
+}
+#accessions {
+  float:left;
+  background-color: #CCBBCC;
+}
+#sequences {
+  overflow-x:auto
+}
+
+#sequences .odd {
+  background-color: #EEE;
+}
+#sequences .even {
+  background-color: #e0e0e0;
+}
+#spinner {
+  color: #FFF;
+  background-color: #F00;
+  padding: 1em;
+}
