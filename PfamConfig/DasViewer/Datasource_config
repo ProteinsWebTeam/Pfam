@@ -1,0 +1,59 @@
+
+<das_sources>
+
+ <"Pfam_Seed_Alignments">      
+      url       "http://das.sanger.ac.uk/das/pfamSeedAlign"
+      name      "Pfam Seed Alignments"
+      max 	1
+      consensus 1 
+      sequence  1     
+    </Pfam Seed Alignments>
+    
+    <"Pfam_Full_Alignments">      
+      url       "http://das.sanger.ac.uk/das/pfamFullAlign"
+      name      "Pfam Full Alignments"
+      max	1
+      consensus 1  
+      sequence  1    
+    </Pfam Full Alignments>
+    
+    <alig_pdb_sp>
+      url       "http://das.sanger.ac.uk/das/msdpdbsp"
+      name      "alig_pdb_sp"
+      uniprot_sequence  "http://das.sanger.ac.uk/das/biojavapdbuniprot"
+      pdb_sequence  "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=FASTA&structureId="  
+      consensus 0
+      max	0
+      sequence  0    
+    </alig_pdb_sp>
+    
+#    <biojavapdbuniprot>
+#      url       "http://das.sanger.ac.uk/das/biojavapdbuniprot"
+#      name      "biojavapdbuniprot"
+#      uniprot_sequence  "http://das.sanger.ac.uk/das/biojavapdbuniprot"
+#      pdb_sequence  "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=FASTA&structureId="
+#      consensus 0
+#    </biojavapdbuniprot>
+    
+    <alig_uniprot_ensp>
+      url       "http://das.sanger.ac.uk/das/aliguniprotensp"
+      name      "alig_uniprot_ensp"
+      uniprot_sequence  "http://das.sanger.ac.uk/das/biojavapdbuniprot"
+      ensembl_sequence  "http://das.sanger.ac.uk/das/hsa35pep"
+      uniprot_dbCoordSys"   "UniProt,Protein Sequence"
+      ensembl_dbCoordSys    "Ensembl,Protein Sequence"   
+      consensus 0
+      max	0
+      sequence  0				# means, we need to fetch the sequecn from the das source;
+    </alig_uniprot_ensp>
+    
+    <Cosmic_Protein_Mutation>
+    	url       "http://das.sanger.ac.uk/das/Cosmic_Protein_Mutation"
+      name      "Cosmic Protein Mutation"
+      max	0
+      consensus 0  
+      sequence  0    
+		</Cosmic_Protein_Mutation>
+</das_sources> 
+ 
+  
