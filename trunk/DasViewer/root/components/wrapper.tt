@@ -26,7 +26,7 @@
       
     <body>
     
-    <div id="bodyblock">
+    <div id="bodyblock" style="position:relative;">
      <h1>[% "DAS Alignment Viewer" %]</h1>
      <div id="menu">
         Navigation:
@@ -47,9 +47,9 @@
     </div><!-- end bodyblock -->
     
           
-    <div id="siteFooter">
+    <!--<div id="siteFooter" style="position:relative;">
       <p>Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#103;&#54;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#103;&#54;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a></p>
       <p class="spaced"><a href="http://www.wellcome.ac.uk/">The Wellcome Trust</a></p>
-    </div>
+    </div>-->
     </body>
     </html>
