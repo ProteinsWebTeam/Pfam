@@ -13,51 +13,131 @@ requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
 requirements.js.push( "excanvas.js" );
 -%]
+<div style="position:relative;">
 
-<h2>Feature</h2>
-
-<div id="canvasWrapper">
-  <canvas id="canvasEl" width="700" height='300' style="border:1px red solid"></canvas>
-</div>    
+  <h2>Feature Viewer: Uniprot accession: "[% acc %]"([% seqLength %] Aminoacids)</h2>
+  
+  <p/>
+  <div id="resNum"></div>
+  <div id="canvasWrapper" style="position:relative;">
+    <div id="scroller" style="width:2px;border:1px solid red;position:absolute;z-index:10"></div>
+    <canvas id="canvasEl" style="border:1px red solid;z-index:1;position:absolute;"></canvas>
+  </div>    
+      
+  <script type="text/javascript">
     
-<script type="text/javascript">
-  
-  var sources = $A( eval( [% json_sources %] ) );
-  
-  console.log('teh sources is '+sources );
-  
-  var graphicOffset = 0;
-  var imgParams     = {
-                          xscale: 1,
-                          yscale: 1,
-                          //residueWidth: resWidth,
-                          envOpacity:-1,
-                          sequenceEndPadding: 0
-                         };
-     
-  var features =  $H( eval( [% dasFeatures %] ) );
+    var graphicXOffset = 100;
+    var extraXspace    = 40;
     
-  sources.each( function( value ){
-    console.log( "the sources is "+value );
+    var canvasHeight = [% dasTracks %] * 50;
+    var resWidth     = 1;
+    console.log( "the canvas height ahs to be "+canvasHeight );
     
-    var seq = features.get( value );
-//    var h = $H( seq );
-//    console.log( "teh seq is "+h.inspect() );
-//    
-    var pg1 = new PfamGraphic( "canvasWrapper" );
-     pg1.setCanvas( 'canvasEl' );
-     pg1.setNewCanvas( false );  
-     pg1.setImageParams( imgParams );
-     
-     pg1.setImageParams( imgParams );
-     pg1.setImageParams( { yOffset : graphicOffset } );
-     pg1.setSequence( seq );
-     
-     pg1.render();
-     
-     graphicOffset +=100;  
-  });
-  
-  // now define the pfam graphic object using the sequence;
-  
-</script>  
+    // so to calculate the width of the canvas based on the reswidth,
+    var sequenceLength = (  [% seqLength %] * resWidth );
+    var canvasWidth    = sequenceLength + graphicXOffset + extraXspace; 
+    
+    // now set the canva height to be this value;
+    $('canvasEl').setAttribute( 'height', canvasHeight );
+    $('canvasEl').setAttribute( 'width', canvasWidth );
+    
+    // set the height of the scroller to the canvas height;
+    $('scroller').setAttribute( 'height', canvasHeight );
+  //  $('sources').setAttribute( 'width', canvasWidth );
+    
+    var sources = $A( eval( [% json_sources %] ) );
+    
+    console.log('teh sources is '+sources );
+    
+    var graphicYOffset = 0;
+    var imgParams     = {
+                            xscale: 1,
+                            yscale: 1,
+                            residueWidth: resWidth,
+                            envOpacity:-1,
+                            sequenceEndPadding: 0,
+                            xOffset: 100  // das source names were written using canvas;
+                           };
+       
+    var features =  $H( eval( [% dasFeatures %] ) );
+    
+    // I need the canvas for drwaing the text so get the canvas object;
+    var ctx;
+    
+    if( $('canvasEl').getContext ){
+      console.log( "canvas can be used in this browser" );
+      ctx = $( 'canvasEl' ).getContext( '2d' );
+      
+      ctx.font         = "bold 14px 'optimer'";
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth    = 2;
+    }
+    
+    // define the baseline here so that this value is used to calculate the scroller height;
+    var baseline;  
+    sources.each( function( ds_id ){
+      console.log( "the sources is "+ds_id );
+      
+      var seqObj = $A( features.get( ds_id ) );
+      
+      // now draw the track for each of the seqObject;
+      seqObj.each( function( seq ){
+        
+        // draw the grpahic using the sequnece;
+        var pg1 = new PfamGraphic( "canvasWrapper" );
+        pg1.setCanvas( 'canvasEl' );
+        pg1.setNewCanvas( false );  
+        pg1.setImageParams( imgParams );
+        pg1.setImageParams( { yOffset : graphicYOffset } );
+        pg1.setSequence( seq );
+        
+        baseline = pg1.getBaseline();
+        
+        // draw the text
+        ctx.strokeStyle = "#eeeeee";
+        ctx.strokeText( ds_id, 50, graphicYOffset+baseline );
+        ctx.strokeStyle = "#000000";
+            
+        // add the text here;
+        ctx.fillStyle = 'black';
+        ctx.fillText( ds_id, 50, graphicYOffset + baseline );
+        
+        pg1.render();
+        
+        graphicYOffset +=50; 
+      } );
+         
+    });
+    
+    
+    // now add an event listener to the canvasElement;
+    $( 'canvasEl' ).observe( 'mousemove' , function( e ){
+      //console.log( "the event is "+e );
+      // calculate the offset position of the element;
+      var offset = $('canvasEl').up().cumulativeOffset();
+      
+      // calulate the x position
+      var x = e.pointerX() - offset[ 0 ];
+      var y = e.pointerY() - offset[ 1 ];
+      
+      if( x > graphicXOffset && x < ( canvasWidth - extraXspace ) ){
+        //console.log( 'the x and y is |%d|%d|',x,y );  
+        
+        // now calculate the size of the scroller to be displayed
+        var height = graphicYOffset - 50 +baseline;
+        $('scroller').setStyle( {
+          'height': height+'px',
+          'left'  : x+'px'
+        } );
+        
+        // now update the resNum div to say which residue is currently shown;
+        var res = ( x / resWidth ) - graphicXOffset;
+        $('resNum').update( "Residue Number: "+ res ); 
+        
+      } // because we start to draw the sequence from 100px;
+      
+    });
+    
+  </script>  
+</div>
