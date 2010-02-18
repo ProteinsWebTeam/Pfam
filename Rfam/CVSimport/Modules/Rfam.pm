@@ -68,7 +68,7 @@ use Rfam::UpdateRDB;
 #mfetch -d version
 $embl = "embl_100";
 
-$root_dir       = "/lustre/pfam/rfam/Production/Rfam";
+$root_dir       = "/warehouse/pfam01/rfam/Production/Rfam";
 $current_dir    = "$root_dir/CURRENT";
 $accession_dir  = "$root_dir/ACCESSION";
 $releases_dir   = "$root_dir/RELEASES";
@@ -87,14 +87,14 @@ $rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
 $rfamseq             = "$rfamseq_current_dir/rfamseq.fa";
 $rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
 
-#RFAMSEQ On THE FARM:
-$rfamseq_farm_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
-$rfamseq_farm_current_dir = "$rfamseq_farm_root_dir/CURRENT";
-$rfamseq_farm_new_dir     = "$rfamseq_farm_root_dir/NEW";
-$rfamseq_farm_current_inx = "$rfamseq_farm_current_dir/rfamseq.fa.bpi";
-$rfamseq_farm_new_inx     = "$rfamseq_farm_new_dir/rfamseq.fa.bpi";
-$rfamseq_farm             = "$rfamseq_farm_current_dir/rfamseq.fa";
-$rfamseq_farm_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
+#RFAMSEQ On THE FARM:-redundant
+#$rfamseq_farm_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
+#$rfamseq_farm_current_dir = "$rfamseq_farm_root_dir/CURRENT";
+#$rfamseq_farm_new_dir     = "$rfamseq_farm_root_dir/NEW";
+#$rfamseq_farm_current_inx = "$rfamseq_farm_current_dir/rfamseq.fa.bpi";
+#$rfamseq_farm_new_inx     = "$rfamseq_farm_new_dir/rfamseq.fa.bpi";
+#$rfamseq_farm             = "$rfamseq_farm_current_dir/rfamseq.fa";
+#$rfamseq_farm_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
 
 #RFAMSEQ On FARM2:
 #$rfamseq_farm2_run_dir     = "/lustre/scratch103/blastdb/Rfam/rfamseq"; 
@@ -112,8 +112,8 @@ $hmmer3_path = "/software/pfam/src/hmmer-3.0b2/bin";
 
 ######################################################################
 #CLAN PATHS:
-$familyDir = "/lustre/pfam/rfam/Curation/RFSEQ10"; #Path to a directory containing all the families
-
+#$familyDir = "/lustre/pfam/rfam/Curation/RFSEQ10"; #Path to a directory containing all the families
+$familyDir = "/warehouse/pfam01/rfam/Curation/RFSEQ10"; #Path to a directory containing all the families
 #PRC:
 $hmmLib = "/nfs/pfam_nfs/rfam/HMMLIB";
 $prc_path = "/software/rfam/share/prc-1.5.4_nuc";
