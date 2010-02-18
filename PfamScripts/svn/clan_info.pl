@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 #
 # clan_info.pl  - fetches the latest clandesc file and revision information for the 
-# clan from the svn repository 
+# clan from the svn repository. 
 #
 # Author:        rdf
 # Maintainer:    $Id$
