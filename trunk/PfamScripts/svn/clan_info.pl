@@ -4,8 +4,8 @@
 # clan from the svn repository. 
 #
 # Author:        rdf
-# Maintainer:    $Id$
-# Version:       $Revision$
+# Maintainer:    $Author$
+# Version:       $Rev$
 # Created:       Feb 18, 2010
 # Last Modified: $Date$
 #
@@ -103,8 +103,8 @@ EOF
                   Enter the clan accession on the command line, entering nothing will 
                   print the help message. Finally, if you are lucky, it will try and work
                   out the clan accession if you pass in the identifier.
-                  
-$Id$
+
+  $Author$
 
 =head1 COPYRIGHT
 
