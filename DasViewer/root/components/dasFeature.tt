@@ -6,35 +6,39 @@
 #
 # $Id: dasFeature.tt,v 1.1 2010-02-16 09:45:49 pg6 Exp $
 
-PROCESS "components/require.tt";
+META naked = 1;
 
-requirements.js.push( "livegrid.js" );
-requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "domain_graphics_loader.js" );
-requirements.js.push( "excanvas.js" );
 -%]
 <div style="position:relative;">
 
-  <h2>Feature Viewer: Uniprot accession: "[% acc %]"([% seqLength %] Aminoacids)</h2>
+  <h2>Feature Viewer</h2>
+  <h3>Uniprot accession: "[% acc %]"([% seqLength %] Aminoacids)</h3>
   
-  <p/>
-  <div id="resNum"></div>
-  <div id="canvasWrapper" style="position:relative;">
-    <div id="scroller" style="width:2px;border:1px solid red;position:absolute;z-index:10"></div>
-    <canvas id="canvasEl" style="border:1px red solid;z-index:1;position:absolute;"></canvas>
+  <div id="canvasWrapper" style="float:left">
+    <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
+    <canvas id="canvasEl" style="border:1px black solid;z-index:1;"></canvas>
   </div>    
-      
+  
+  <div style="clear:both;"></div>  
+  <div id="resNum" style="color:#5828DC"></div>
+  <p/>
+        
   <script type="text/javascript">
+    
+    console.log("start of the response");
     
     var graphicXOffset = 100;
     var extraXspace    = 40;
-    
-    var canvasHeight = [% dasTracks %] * 50;
-    var resWidth     = 1;
-    console.log( "the canvas height ahs to be "+canvasHeight );
+    var Yincrement     = 20;
     
     // so to calculate the width of the canvas based on the reswidth,
+    var canvasHeight = [% dasTracks %] * Yincrement;
+    
+    var resWidth     = 1;
     var sequenceLength = (  [% seqLength %] * resWidth );
+    
+    console.log( "the canvas height ahs to be "+canvasHeight );
+    
     var canvasWidth    = sequenceLength + graphicXOffset + extraXspace; 
     
     // now set the canva height to be this value;
@@ -68,7 +72,7 @@ requirements.js.push( "excanvas.js" );
       console.log( "canvas can be used in this browser" );
       ctx = $( 'canvasEl' ).getContext( '2d' );
       
-      ctx.font         = "bold 14px 'optimer'";
+      ctx.font         = "bold 10px 'optimer'";
       ctx.textAlign    = "center";
       ctx.textBaseline = "middle";
       ctx.lineWidth    = 2;
@@ -105,10 +109,13 @@ requirements.js.push( "excanvas.js" );
         
         pg1.render();
         
-        graphicYOffset +=50; 
+        graphicYOffset +=Yincrement; 
       } );
-         
+      
+      // now show the other div sources;
+     // $( 'dasSources').show();   
     });
+    
     
     
     // now add an event listener to the canvasElement;
@@ -125,7 +132,7 @@ requirements.js.push( "excanvas.js" );
         //console.log( 'the x and y is |%d|%d|',x,y );  
         
         // now calculate the size of the scroller to be displayed
-        var height = graphicYOffset - 50 +baseline;
+        var height = graphicYOffset - Yincrement +baseline;
         $('scroller').setStyle( {
           'height': height+'px',
           'left'  : x+'px'
@@ -138,6 +145,13 @@ requirements.js.push( "excanvas.js" );
       } // because we start to draw the sequence from 100px;
       
     });
+   
+   // NOW GET THE error_sources;
+   var error_sources = $H( eval(  [% json_error_sources %] ) ); 
+   
+   if( error_sources !== undefined ){
+     colourSources( error_sources );
+   }
     
   </script>  
 </div>
