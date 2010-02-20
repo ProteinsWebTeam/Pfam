@@ -718,7 +718,28 @@ var LiveGrid = Class.create( {
 //      var seqDiv = new Element( "div", { id: "seq_"+i, "class": "seq_seq " + className } )
 //                   .update( row.seq );
       
-      var accDiv = new Element( "div" ).update( " " + row[0] );
+      // use the regular expressions in javascript and get the id and start and end coords;
+      var acc_id;
+      var regExp = /(\w+)\/\d+/;
+      
+      // check whether this is pfam source;
+      if( /(\w+)\/\d+/.test( rows[0] ) )
+      {
+        var matches = /(\w+)\/\d+/.exec( row[0] );
+        acc_id = matches[1];
+        
+      }else if( /(.*)\/\d+/.test( row[0] ) )
+      {
+        var matches = /(.*)\/\d+/.exec( row[0] );
+        acc_id = matches[1];
+        
+      }else
+      {
+        acc_id = row[0];  
+      }
+      
+      //console.log( 'the accession is '+acc_id );
+      var accDiv = new Element( "div",{ id: acc_id } ).update( " " + row[0] );
       var seqDiv = new Element( "div" ).update( " "+ row[1] );
       
       accessionsDiv.appendChild( accDiv );
