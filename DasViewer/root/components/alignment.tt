@@ -1,5 +1,5 @@
 [%
-# grid.tt
+# alignment.tt
 # jt6 20090205 WTSI
 # 
 # page wrapper for the grid tests
@@ -12,10 +12,11 @@ requirements.css.push( "alignment.css" );
 requirements.css.push( "alignViewer.css" );
 
 requirements.js.push( "livegrid.js" );
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
+requirements.js.push( "excanvas.js" );
+
 -%]
-    <p>
-      <span class="loading" id="spinner" style="display: none">Loading alignment...</span>
-    </p>
     
     <h2>Alignment</h2>
     <div id="gridWrapper">
@@ -28,6 +29,83 @@ requirements.js.push( "livegrid.js" );
         
       </div>
     </div>
+    
+    <p>
+      <span class="loading" id="spinner" style="display: none">Loading alignment...</span>
+    </p>
+    
+    <div id="featureWrapper">
+      <div id="features" style="display:none"></div>
+     
+     <div id="checkSources" style="display:none;"> 
+       <h3>Click on the Das sources:</h3>
+       <div id="sourceDesc" style="color:#FA5858;display:none;">Note:Sources which doesn't have features for the accession is displayed in red colour</div>
+       <p/>
+       <form id="feature_source" name="feature_source" action="[% c.uri_for('/feature/getFeature')%]" method="post">  
+        <span  class="listItem"><input type="checkbox" name="Das" value="DS_241" checked="checked"><span id="DS_241" >Pfam</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_446" checked="checked"><span id="DS_446">Gene3D</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_327" checked="checked"><span id="DS_327">Interpro</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_120" checked="checked"><span id="DS_120">SUPERFAMILY</span></input></span>
+        
+        <span class="listItem"><input type="checkbox" name="Das"  value="DS_704"><span id="DS_704">Cosmic Protein Mutations</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_109"><span id="DS_109">uniprot aristotle</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das"  value="DS_114"><span id="DS_114">signalp</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_118"><span id="DS_118">prop</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_121"><span id="DS_121">secretomep</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_133"><span id="DS_133">cbs_ptm</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_134"><span id="DS_134">cbs_func</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_168"><span id="DS_168">gtd</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_171"><span id="DS_171">PRIDE</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_187"><span id="DS_187">lipop</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_188"><span id="DS_188">netnes</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_406"><span id="DS_406">OMA</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_409"><span id="DS_409">uniprot</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_412"><span id="DS_412">UniProt GO Annotation</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_413"><span id="DS_413">UniProt Tryptic Peptvaluees</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_415"><span id="DS_415">RSBP Parts</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_449"><span id="DS_449">SPLIT 4.0 Transmembrane Predictions</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_518"><span id="DS_518">PHDacc</span></input></span>
+      	<span class="listItem"><input type="checkbox" name="Das" value="DS_708"><span id="DS_708">Integr8 mRNA</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_763"><span id="DS_763">VectorBase</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_766"><span id="DS_766">GO literature</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_767"><span id="DS_767">disease literature</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_817"><span id="DS_817">Prosite Features (matches)</span></input></span>
+        
+        <!--<input type="checkbox" name="Das" value="DS_241" checked="checked">Pfam</input>
+        <input type="checkbox" name="Das" value="DS_446" checked="checked">Gene3D</input>
+        <input type="checkbox" name="Das" value="DS_327" checked="checked">Interpro</input>
+        <input type="checkbox" name="Das" value="DS_120" checked="checked">SUPERFAMILY</input>
+        
+        <input type="checkbox" name="Das"  value="DS_704">Cosmic Protein Mutations</input>
+        <input type="checkbox" name="Das" value="DS_109">uniprot aristotle</input>
+        <input type="checkbox" name="Das"  value="DS_114">signalp</input>
+        <input type="checkbox" name="Das" value="DS_118">prop</input>
+        <input type="checkbox" name="Das" value="DS_121">secretomep</input>
+        <input type="checkbox" name="Das" value="DS_133">cbs_ptm</input>
+        <input type="checkbox" name="Das" value="DS_134">cbs_func</input>
+        <input type="checkbox" name="Das" value="DS_168">gtd</input>
+        <input type="checkbox" name="Das" value="DS_171">PRIDE</input>
+        <input type="checkbox" name="Das" value="DS_187">lipop</input>
+        <input type="checkbox" name="Das" value="DS_188">netnes</input>
+        <input type="checkbox" name="Das" value="DS_406">OMA</input>
+        <input type="checkbox" name="Das" value="DS_409">uniprot</input>
+        <input type="checkbox" name="Das" value="DS_412">UniProt GO Annotation</input>
+        <input type="checkbox" name="Das" value="DS_413">UniProt Tryptic Peptvaluees</input>
+        <input type="checkbox" name="Das" value="DS_415">RSBP Parts</input>
+        <input type="checkbox" name="Das" value="DS_449">SPLIT 4.0 Transmembrane Predictions</input>
+        <input type="checkbox" name="Das" value="DS_518">PHDacc</input>
+      	<input type="checkbox" name="Das" value="DS_708">Integr8 mRNA</input>
+        <input type="checkbox" name="Das" value="DS_763">VectorBase</input>
+        <input type="checkbox" name="Das" value="DS_766">GO literature</input>
+        <input type="checkbox" name="Das" value="DS_767">disease literature</input>
+        <input type="checkbox" name="Das" value="DS_817">Prosite Features (matches)</input>
+        -->
+        <div style="clear:both"/><p/>
+        <input type="button" id="getfeatures" value="GetFeatures" onclick="fetchFeatures( '',document.feature_source)"/>
+        <input type="reset" id="reset" value="Reset"/>
+        </form> 
+      </div>
+    </div>  
     
     <div id='error' style="color:red;width:500px;font-size:large;background-color:#EEE;display:none;">
       [% errorMsg %]
@@ -93,10 +171,104 @@ requirements.js.push( "livegrid.js" );
         $('sequences').observe('scroll', function(){
           myGridUpdater.options.scrollvalue = $('sequences').scrollLeft;
         });
+        
       }else{
         $('error').show();
         $('gridWrapper').hide();
       }
+      
+      // now add an event listener for the accession;
+      // when the accession is clikced, it showld fetch the features;
+      var acc;  // bcos when the form is submited again we need to track this,
+      
+      $( 'accessions' ).observe( 'click', function( e ){
+        console.log( 'the clikc is on '+acc);
+        
+        // previous acc background should be reverted back;
+        if( acc !== undefined ){
+           console.log( "reverting the color of acc "+acc );
+           $( acc ).setStyle({
+              "background":"#CCBBCC"
+            }); 
+        }
+        
+        var el = e.element();
+        
+        if( el.hasClassName('odd') || el.hasClassName('even') ){
+          console.log( 'the pfam source is selectd, so go one level up');
+          acc = el.up().getAttribute( 'id' );
+        }else{
+          acc = el.getAttribute( 'id' );
+        }
+        
+        // check whether the clicked element is an uniprot accession
+        if( acc.length == 6 ){
+          console.log( 'the accement is '+acc);
+          
+          // because pdb's have some dots;
+          if( /\./.test( acc ) ){}else{
+            // console.log( "its not a pdb id");
+            fetchFeatures( acc ,$( 'feature_source' ) );
+            
+            $( acc ).setStyle({
+              'background': "cyan"
+            });
+            
+          }
+          
+        }
+        
+      } );
+      
+      
+      // function to make an ajax call to fetch features;
+      function fetchFeatures( id , form ){
+        
+        if( id == ''){
+          console.log("teh previous acc is used for "+acc );
+          id = acc;
+        }
+        // all the clicked das sources
+        var das = [];
+        var allSources = form['Das'];
+        
+        for( var i = 0; i< allSources.length; i++){
+          if( allSources[i].checked ){
+            console.log( "the source is selected"+allSources[i].value+' | ' );
+            das[i] = allSources[i].value;
+          }
+        }
+        
+        var call = new Ajax.Request( "[% c.uri_for('/feature/getFeature') %]",
+                                     {
+                                       method:     'post',
+                                       parameters: { acc: id, Das: das  },
+                                       onComplete: function( oResponse ){
+																	           $( "features" ).update( oResponse.responseText).show();		
+                                             $( "checkSources" ).show();																				 
+																           },                        
+                                     } 
+        ); 
+        
+        return false; 
+      }
+    
+    function colourSources ( error_sources ){ 
+      
+      $('sourceDesc').show();
+      
+      error_sources.each( function( pair ){
+       
+       console.log( "the |%s| source hasnt got any feature ",pair.key );
+       
+       var el = pair.key;
+       
+       $( el ).setStyle({
+         'color': '#FA5858'
+       });
+       console.log( 'the element is '+$(el).toString() );
+      }); 
+    }
       // ]]>
     </script>
 
