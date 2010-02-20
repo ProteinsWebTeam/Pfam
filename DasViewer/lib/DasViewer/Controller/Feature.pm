@@ -46,6 +46,7 @@ sub getFeature : Local {
   # stash the names of the sources;
   my @source_names;
   foreach( @sources ){
+    #$c->log->debug( 'the source is '.$_ ."\n the dump of the objs is ".dump( $self->{ $_ } ) );
     push @source_names, $self->{ $_ }->{ name };
   }
   #$c->stash->{json_sources} = to_json( \@source_names );
@@ -57,6 +58,19 @@ sub getFeature : Local {
 
   # get the features of the protein;
   $c->forward('getDasFeatures');
+  
+  if( defined $c->stash->{ errorSources } ){
+    $c->stash->{ json_error_sources }  = to_json( $c->stash->{ errorSources } );
+  }else{
+    $c->stash->{ json_error_sources }  = to_json( { } );
+  }
+  
+  # check whether the totalError is equal to the total das sources requested,
+  if( defined $c->stash->{ totalError } ){
+    if( $c->stash->{ totalError } == scalar( @{ $c->stash->{sources} } ) ){
+      $c->stash->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." provided.";
+    } 
+  }
 
   $c->stash->{template} = 'components/dasFeature.tt';
 
@@ -78,15 +92,34 @@ sub getDasFeatures : Private {
   my $totalRows = 0;
 # get the feature for all the clicked sources and generate the seq object for giving it to the domain graphics;
   my $lite = $self->{daslite};
-  foreach my $ds_id ( @{ $c->stash->{sources} } ) {
+  
+SOURCE:  foreach my $ds_id ( @{ $c->stash->{sources} } ) {
 
     $lite->dsn( $self->{$ds_id}->{url} );
     my $featureResponse = $lite->features( $c->stash->{acc} );
     my ( $url, $features ) = each( %{$featureResponse} );
-
+    
+    unless( defined $features && ( ref $features eq 'ARRAY' ) && scalar( @{ $features } ) > 0 ){
+      $c->log->debug( "Feature::getDasFeatures:: cant get features for the source ".$self->{$ds_id}->{name});
+      #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is  ".dump( $features ) );
+      $c->stash->{ totalError }++;
+      #push( @{ $c->stash->{ errorSources } }, $ds_id );
+      $c->stash->{ errorSources }->{ $ds_id } = 1;
+      next SOURCE;
+    }
     # build the sequence object;
     my $resolvedFeature = $c->forward( 'resolveOverlaps', [$features] );
     
+    # add another check, to measure the resolved feature count should be more than zero;
+    if( scalar( @{ $resolvedFeature } ) == 0 ){
+      
+      $c->log->debug( "Feature::getDasFeatures:: got features for the source but they dont have start&end".scalar( @{ $resolvedFeature }) );
+      #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is ".dump( $features ) );
+      $c->stash->{ totalError }++;
+      $c->stash->{ errorSources }->{ $ds_id } = 1;
+      next SOURCE;
+      
+    } 
     # increment the total rows with the new one;
     $totalRows += scalar( @{ $resolvedFeature } );
     
@@ -94,17 +127,17 @@ sub getDasFeatures : Private {
     
   }    # end of foreach
   
-  $c->log->debug( 'The featuresets is '.dump( $dasFeatures ) );
+  #$c->log->debug( 'The featuresets is '.dump( $dasFeatures ) );
   # now stash the totalRows for defining the height of hte canvas;
   $c->stash->{ dasTracks }  = $totalRows;
-  $c->log->debug( "the toatl da tracks to be drawn are ". $c->stash->{ dasTracks } );
+  $c->log->debug( "the toatl das tracks to be drawn are ". $c->stash->{ dasTracks } );
   
   # now build the sequence object for giving it to domain graphics code;
   my $seqObject = $c->forward( 'buildSequence', [ $dasFeatures ] );
   
   $c->stash->{dasFeatures} = to_json( $seqObject );
 
-  $c->log->debug( 'Features:getDasFeatures: the dump of the result is '.dump( $c->stash->{ dasFeatures } ) );
+  #$c->log->debug( 'Features:getDasFeatures: the dump of the result is '.dump( $c->stash->{ dasFeatures } ) );
 
 }
 
@@ -218,6 +251,10 @@ sub resolveOverlaps : Private {
   
   FEATURE: for( my $i = 0; $i < scalar( @{ $features } ) ; $i++ ){
     
+    # check whether the start and end are greater than 0;
+    unless( ( $features->[$i]->{'start'} > 0 ) && ( $features->[$i]->{'end'} > 0 ) ){
+      next FEATURE;
+    }
     my $assignedToSet = 0;
     
     SET:  for( my $j = 0; $j < scalar( @$featureSets ) ; $j++ ){

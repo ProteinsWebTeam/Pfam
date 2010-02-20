@@ -47,7 +47,7 @@ sub view : Local {
     $args->{ input_params }->{ size } = $size;  
   }else{
     $args->{ input_params }->{ size } = 0;  
-    $c->stash->{ errorMsg } = "Invalid accession: ".$c->req->param('accession')." provided.";
+    $c->stash->{ errorMsg } = "Invalid accession or No alignment found for ".$c->req->param('accession')." provided.";
   }
   
   $c->log->debug( "Alignment::View:the sizw returned is ".$args->{ input_params }->{ size } );
