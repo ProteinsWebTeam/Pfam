@@ -30,3 +30,10 @@
   background-color: #F00;
   padding: 1em;
 }
+
+.listItem {
+  float:left;
+  padding-left:0.8em;
+  width:12em;
+  font-size:0.9em;
+}
