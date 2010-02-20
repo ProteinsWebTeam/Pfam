@@ -1,3 +1,10 @@
+[%
+
+  IF template.naked;
+    content;
+  ELSE;  
+  
+-%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -27,13 +34,10 @@
     <body>
     
     <div id="bodyblock" style="position:relative;">
-     <h1>[% "DAS Alignment Viewer" %]</h1>
+     <h1 style="text-align:center;text-decoration:underline;">[% "DAS Alignment Viewer" %]</h1>
      <div id="menu">
-        Navigation:
-        <ul>
-            <li><a href="[% c.uri_for('/') %]">Home</a></li>
-            <li><a href="[% c.uri_for( '/feature') %]">Feature</a></li>
-            <li><a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
+        <ul style="text-align:center;list-style-type:none; ">
+            <li><a href="[% c.uri_for('/') %]">Home</a> | <a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
         </ul>
     </div><!-- end menu -->
     
@@ -53,3 +57,4 @@
     </div>-->
     </body>
     </html>
+[% END # of "if template.naked" %]    
