@@ -1,5 +1,5 @@
 [% 
-# pfama_xml.tt
+# entry_xml.tt
 # jt6 20071123 WTSI
 #
 # template for serialising uniprot sequence data to XML format
@@ -32,8 +32,7 @@ baseUri = "http://pfam.sanger.ac.uk/";
     <sequence length="[% pfamseq.length %]" md5="[% pfamseq.md5 %]" crc64="[% pfamseq.crc64 %]" version="[% pfamseq.seq_version %]">[% pfamseq.sequence %]</sequence>
 [% IF pfama_regions.size OR pfamb_regions.size -%]
     <matches>
-[% FOREACH region IN pfama_regions;
-CALL c.log.debug( dumper.dump( region ) ) -%]
+[% FOREACH region IN pfama_regions -%]
       <match accession="[% region.auto_pfama.pfama_acc %]" id="[% region.auto_pfama.pfama_id %]" type="Pfam-A">
         <location start="[% region.seq_start %]" end="[% region.seq_end %]" ali_start="[% region.ali_start %]" ali_end="[% region.ali_end %]" hmm_start="[% region.model_start %]" hmm_end="[% region.model_end %]" evalue="[% region.domain_evalue_score %]" bitscore="[% region.domain_bits_score %]" />
       </match>
