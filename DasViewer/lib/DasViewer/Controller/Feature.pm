@@ -152,16 +152,22 @@ method to build sequence object so that its used to draw the graphics using doma
 sub buildSequence : Private {
   my ( $self, $c, $dasFeatures ) = @_;
   
-  my $length;
-  
   my $seqObject = {};
-  
-  my $length;
   
   # this is at top level getting all the features which are placed as separate values of an array
   # to avaoid overlpas;
   
-  foreach my $ds_id ( keys %{ $dasFeatures } ){
+  # we have to use the dasFeatures, but to define the length which is not present in some sources,
+  # I am walking down the sources array so that pfam would always return the end;
+  foreach my $ds_id ( @{ $c->stash->{ sources } } ){
+  #foreach my $ds_id ( sort keys %{ $dasFeatures } ){
+    
+    # there may be cases where the das sources might not return value and would be populated in error sources;
+    # so first check whether they exist in the response;
+    unless( exists  $dasFeatures->{ $ds_id } ){
+      $c->log->debug( " this is an error_source ".$ds_id );
+      next;
+    }
     
     $c->log->debug( "the total featureSets present for $ds_id is ".scalar( @{ $dasFeatures->{ $ds_id } }) );
     
@@ -176,19 +182,20 @@ sub buildSequence : Private {
       my $rowSeqObj = {};
       
       # all the features for that specific row;
-FEAT:      for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
+FEAT: for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
         
         my $feature = $featureRow->[ $j ];
         
-        unless( defined $length ){
-          
+        unless( defined $c->stash->{ seqLength } ){
+          #$c->log->debug( "The length of the sequence undefined so going to define t");
           if( exists $feature->{ segment_stop } ){
-            $length =  $feature->{ segment_stop };
+            $c->stash->{ seqLength } =  $feature->{ segment_stop };
           }
             
-        } # end of unless $length;  
+        } # end of unless $c->stash->{ seqLength };  
         
-        $rowSeqObj->{ length }   = $length;
+        #$c->log->debug( "The seqLength for $ds_id is ".$c->stash->{ seqLength } );
+        $rowSeqObj->{ length }   = $c->stash->{ seqLength };
         $rowSeqObj->{ tips }     = "true";
         $rowSeqObj->{ imageMap } = "true";
         $rowSeqObj->{ lables }   = "true";
@@ -219,14 +226,13 @@ FEAT:      for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
       } # end of $j
       
       push @{ $seqObject->{ $self->{ $ds_id }->{ name } } }, $rowSeqObj ;
-        
+      
+         
     } # for $i,$dasFeatures->{ $ds_id }; 
     
   } # end of foreach $dasFeatures;
   
-  #stash the length of th sequence so that can be used for defining canvas;
-  $c->stash->{ seqLength } = $length;
-  
+  #$c->log->debug( "dump fo the rowSeqObj is ".dump( $seqObject ) );
   return $seqObject;
 }
 
