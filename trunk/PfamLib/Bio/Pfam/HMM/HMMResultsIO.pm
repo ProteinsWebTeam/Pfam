@@ -657,16 +657,21 @@ sub _readUnitData {
 
     if($hmmName and $hmmRes->program eq 'hmmsearch'){
       $pattern1 = qr/^\s+$hmmName\s+\d+\s+(\S+)\s+\d+/;
-      $id =~ s/\|/\\|/g;
+      $id =~ s/\|/\\|/g;  #Escape '|', '[' and ']' characters
+      $id =~ s/\[/\\[/g;
+      $id =~ s/\]/\\]/g;
       $pattern2 = qr/^\s+$id\s+\d+\s+(\S+)\s+\d+/;
     }elsif($seqName and $hmmRes->program eq 'hmmscan'){
       my $tmpSeqName = $seqName;
-      $tmpSeqName =~ s/\|/\\|/g;
+      $tmpSeqName =~ s/\|/\\|/g; #Escape '|', '[' and ']' characters
+      $tmpSeqName =~ s/\[/\\[/g;  
+      $tmpSeqName =~ s/\]/\\]/g;
       $pattern1 = qr/^\s+$id\s+\d+\s+(\S+)\s+\d+/;
       $pattern2 = qr/^\s+$tmpSeqName\s+\d+\s+(\S+)\s+\d+/;
     }elsif($seqName and ($hmmRes->program eq 'phmmer' or $hmmRes->program eq 'jackhmmer') ){
-      $seqName =~ s/\|/\\|/g;
-      $id =~ s/\|/\\|/g;
+      $seqName =~ s/\|/\\|/g; #Escape '|', '[' and ']' characters
+      $seqName =~ s/\[/\\[/g;
+      $seqName =~ s/\]/\\]/g;
       $pattern1 = qr/^\s+$seqName\s+\d+\s+(\S+)\s+\d+/;
       $pattern2 = qr/^\s+$id\s+\d+\s+(\S+)\s+\d+/;
     }
