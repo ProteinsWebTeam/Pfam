@@ -16,7 +16,9 @@ META naked = 1;
   
   <div id="canvasWrapper" style="float:left">
     <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
+    <div id="backgroundDiv" style="background-color:#C7F3C5;position:absolute;z-index:-1"></div>
     <canvas id="canvasEl" style="border:1px black solid;z-index:1;"></canvas>
+    
   </div>    
   
   <div style="clear:both;"></div>  
@@ -27,7 +29,7 @@ META naked = 1;
     
     console.log("start of the response");
     
-    var graphicXOffset = 100;
+    var graphicXOffset = 150;
     var extraXspace    = 40;
     var Yincrement     = 20;
     
@@ -60,7 +62,7 @@ META naked = 1;
                             residueWidth: resWidth,
                             envOpacity:-1,
                             sequenceEndPadding: 0,
-                            xOffset: 100  // das source names were written using canvas;
+                            xOffset: graphicXOffset  // das source names were written using canvas;
                            };
        
     var features =  $H( eval( [% dasFeatures %] ) );
@@ -100,12 +102,12 @@ META naked = 1;
         
         // draw the text
         ctx.strokeStyle = "#eeeeee";
-        ctx.strokeText( ds_id, 50, graphicYOffset+baseline );
+        ctx.strokeText( ds_id, 75, graphicYOffset+baseline );
         ctx.strokeStyle = "#000000";
             
         // add the text here;
         ctx.fillStyle = 'black';
-        ctx.fillText( ds_id, 50, graphicYOffset + baseline );
+        ctx.fillText( ds_id, 75, graphicYOffset + baseline );
         
         pg1.render();
         
@@ -116,6 +118,16 @@ META naked = 1;
      // $( 'dasSources').show();   
     });
     
+    // now look for teh alignment start and end;
+    var diff_size = ( alignEnd - alignStart ) + 1 + 1;
+    var leftPos   = graphicXOffset + parseInt( alignStart ) + 1;
+    var divHeight = graphicYOffset - Yincrement +baseline;
+    
+    $('backgroundDiv').setStyle( {
+          'height': divHeight+'px',
+          'left'  : leftPos+'px',
+          'width' : diff_size+'px'
+        });
     
     
     // now add an event listener to the canvasElement;
