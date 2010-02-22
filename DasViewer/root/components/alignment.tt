@@ -17,8 +17,7 @@ requirements.js.push( "domain_graphics_loader.js" );
 requirements.js.push( "excanvas.js" );
 
 -%]
-    
-    <h2>Alignment</h2>
+    <h2>Alignment Viewer:</h2>
     <div id="gridWrapper">
       <p id="gridResultRange"></p>
       
@@ -30,8 +29,8 @@ requirements.js.push( "excanvas.js" );
       </div>
     </div>
     
-    <p>
-      <span class="loading" id="spinner" style="display: none">Loading alignment...</span>
+    <div style="clear:both"/><p/>
+      <p><span class="loading" id="spinner" class="hidden"></span>
     </p>
     
     <div id="featureWrapper">
@@ -134,11 +133,14 @@ requirements.js.push( "excanvas.js" );
             onscroll: updateTopicsGridHeader,
             onComplete: function(){
               //console.log( "onComplete: hiding spinner" );
-              $("spinner").hide();
+              $("spinner").removeClassName('visible');
+              $("spinner").addClassName('hidden');
             },
             onLoading: function(){
               //console.log( "onLoading: showing spinner" );
-              $("spinner").show();
+              $("spinner").update("Loading Alignment...");
+              $("spinner").removeClassName('hidden');
+              $("spinner").addClassName('visible');
             },
             onFirstContent: function(){
               //console.log( "onFirstContent: updating row count" );
@@ -180,6 +182,8 @@ requirements.js.push( "excanvas.js" );
       // now add an event listener for the accession;
       // when the accession is clikced, it showld fetch the features;
       var acc;  // bcos when the form is submited again we need to track this,
+      var alignStart , alignEnd ; // later the alignment start and end are used by the div to draw a rectangular bar behind the canvas;
+      var prev_error_sources;
       
       $( 'accessions' ).observe( 'click', function( e ){
         console.log( 'the clikc is on '+acc);
@@ -197,8 +201,34 @@ requirements.js.push( "excanvas.js" );
         if( el.hasClassName('odd') || el.hasClassName('even') ){
           console.log( 'the pfam source is selectd, so go one level up');
           acc = el.up().getAttribute( 'id' );
+          
+          // try to see whether they have the start and end of th alignment;
+          if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
+            
+            var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.innerHTML );
+            alignStart = data[2];
+            alignEnd   = data[3];
+            console.log( "the start and end are present which are |%s|%s| ",alignStart,alignEnd );
+              
+          }else{
+            alignStart = 0;
+            alignEnd   = 0;
+          }
+          
         }else{
           acc = el.getAttribute( 'id' );
+          if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
+            
+            var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.innerHTML );
+            alignStart = data[2];
+            alignEnd   = data[3];
+            console.log( "the start and end are present which are |%s|%s| ",alignStart,alignEnd );
+              
+          }else{
+            alignStart = 0;
+            alignEnd   = 0;
+          }
+          
         }
         
         // check whether the clicked element is an uniprot accession
@@ -206,7 +236,10 @@ requirements.js.push( "excanvas.js" );
           console.log( 'the accement is '+acc);
           
           // because pdb's have some dots;
-          if( /\./.test( acc ) ){}else{
+          if( /\./.test( acc ) ){
+            alert( 'Please click on Uniprot Accession');
+            $('featureWrapper').hide();
+          }else{
             // console.log( "its not a pdb id");
             fetchFeatures( acc ,$( 'feature_source' ) );
             
@@ -215,7 +248,9 @@ requirements.js.push( "excanvas.js" );
             });
             
           }
-          
+        }else{
+          alert( 'Please click on Uniprot Accession');
+          $('featureWrapper').hide();
         }
         
       } );
@@ -224,6 +259,19 @@ requirements.js.push( "excanvas.js" );
       // function to make an ajax call to fetch features;
       function fetchFeatures( id , form ){
         
+        // get teh prev_error_source and reset the color;
+        if( prev_error_sources !== undefined ){
+            
+          prev_error_sources.each( function( pair ){
+         
+            var el = pair.key;
+            $( el ).removeClassName( 'errorColor' );
+            
+            //console.log( 'the element is '+$(el).toString() );
+          });
+        }
+         
+        // if we dint get id then the user clicked the form;
         if( id == ''){
           console.log("teh previous acc is used for "+acc );
           id = acc;
@@ -243,9 +291,17 @@ requirements.js.push( "excanvas.js" );
                                      {
                                        method:     'post',
                                        parameters: { acc: id, Das: das  },
+                                       onLoading: function(){
+                                        //console.log( "onLoading: showing spinner" );
+                                        $("spinner").update("Loading Features...");
+                                        $("spinner").removeClassName('hidden');
+                                        $("spinner").addClassName('visible');
+                                      },
                                        onComplete: function( oResponse ){
 																	           $( "features" ).update( oResponse.responseText).show();		
-                                             $( "checkSources" ).show();																				 
+                                             $( "checkSources" ).show();	
+                                             $("spinner").removeClassName('visible');
+                                             $("spinner").addClassName('hidden');																			 
 																           },                        
                                      } 
         ); 
@@ -257,15 +313,14 @@ requirements.js.push( "excanvas.js" );
       
       $('sourceDesc').show();
       
+      prev_error_sources = error_sources;
+      
       error_sources.each( function( pair ){
        
        console.log( "the |%s| source hasnt got any feature ",pair.key );
        
        var el = pair.key;
-       
-       $( el ).setStyle({
-         'color': '#FA5858'
-       });
+       $( el ).addClassName( 'errorColor' );
        console.log( 'the element is '+$(el).toString() );
       }); 
     }
