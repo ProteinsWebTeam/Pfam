@@ -29,6 +29,15 @@
   color: #FFF;
   background-color: #F00;
   padding: 1em;
+  font-size:0.6em;
+}
+
+.visible {
+  visibility: visible;
+}
+
+.hidden {
+  visibility: hidden;  
 }
 
 .listItem {
@@ -36,4 +45,13 @@
   padding-left:0.8em;
   width:12em;
   font-size:0.9em;
+}
+
+/* Add the class name for error_colors;*/
+.errorColor {
+  color: #FA5858;
+}
+
+.resetColor {
+  color: #000;
 }
