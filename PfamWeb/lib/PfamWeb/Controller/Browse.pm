@@ -107,7 +107,8 @@ sub browse_families : Path( '/family/browse' ) {
                        { order_by => 'pfama_id ASC' } );
   }
   elsif ( lc $c->req->param('browse') =~ m/top.*?twenty/ ) {
-    $c->log->debug( 'Browse::browse_families: browsing "top twenty"...' );
+    $c->log->debug( 'Browse::browse_families: browsing "top twenty"...' )
+      if $c->debug;
     $c->stash->{char} = 'top twenty';
 
     # retrieve the top twenty largest families, ordered by number of
@@ -121,14 +122,16 @@ sub browse_families : Path( '/family/browse' ) {
   }
   else {
 
-    $c->log->debug( 'Browse::browse_families: not a number, not "top twenty"...' );
+    $c->log->debug( 'Browse::browse_families: not a number, not "top twenty"...' )
+      if $c->debug;
 
     # see if we should load the page for families starting with a given letter
     my $char;
     ( $char ) = $c->req->param('browse') =~ /^(\w{1})$/;
 
     if ( defined $char ) {
-      $c->log->debug( "Browse::browse_families: browsing for a character: |$char|" );
+      $c->log->debug( "Browse::browse_families: browsing for a character: |$char|" )
+        if $c->debug;
       $c->stash->{char} = uc $char;
   
       # run the query to get back all families starting with the
@@ -141,7 +144,8 @@ sub browse_families : Path( '/family/browse' ) {
 
       # either "new" specified, or no starting letter specified, so default 
       # to new families anyway
-      $c->log->debug( 'Browse::browse_families: browsing new entries' );
+      $c->log->debug( 'Browse::browse_families: browsing new entries' )
+        if $c->debug;
       $c->stash->{char} = 'new';
   
       @res = $c->model('PfamDB::Pfama')
