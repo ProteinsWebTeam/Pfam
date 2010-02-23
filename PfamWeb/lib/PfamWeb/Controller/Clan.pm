@@ -374,7 +374,7 @@ sub get_diagram : Private {
   
     $map = Compress::Zlib::memGunzip( $row->image_map );
     unless ( defined $map ) {
-      $c->log->warn( 'Clan::get-diagram: could not extract the relationship image map for '
+      $c->log->warn( 'Clan::get_diagram: could not extract the relationship image map for '
                      . $c->stash->{acc} );
       return;
     }
