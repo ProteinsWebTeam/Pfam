@@ -70,10 +70,12 @@ sub begin : Private {
   # build the email subject line based on the accession (if given)
 
   if ( $tainted_entry =~ m/^(P([FB])\d{5,6})$/i ) {
-    $c->log->debug( "Annotate::begin: found a Pfam entry ($1)" );
+    $c->log->debug( "Annotate::begin: found a Pfam entry ($1)" )
+      if $c->debug;
 
     if ( $2 eq 'F' ) {
-      $c->log->debug( 'Annotate::begin: got a pfam A entry' );
+      $c->log->debug( 'Annotate::begin: got a pfam A entry' )
+        if $c->debug;
 
       my $pfam = $c->model('PfamDB::Pfama')->find( { pfama_acc => $1 } );
 
@@ -86,7 +88,8 @@ sub begin : Private {
 
     }
      elsif ( $2 eq 'B' ) {
-      $c->log->debug( 'Annotate::begin: got a pfam B entry' );
+      $c->log->debug( 'Annotate::begin: got a pfam B entry' )
+        if $c->debug;
     
       $c->stash->{type} = 'B';
       $c->stash->{acc}  = $1;
@@ -96,7 +99,8 @@ sub begin : Private {
 
   } 
   elsif ( $tainted_entry =~ m/^(CL\d{4})$/i ) {
-    $c->log->debug( 'Annotate::begin: found a clan entry' );
+    $c->log->debug( 'Annotate::begin: found a clan entry' )
+      if $c->debug;
 
     my $clan = $c->model('PfamDB::Clans')->find( { clan_acc => $1 } )
       if defined $1;
@@ -110,13 +114,15 @@ sub begin : Private {
     
   }
   else {
-    $c->log->debug( 'Annotate::begin: did not find a recognised accession' );
+    $c->log->debug( 'Annotate::begin: did not find a recognised accession' )
+      if $c->debug;
     
     $c->stash->{subject} = 'Annotation submission';
   }
 
   $c->log->debug( 'Annotate::begin: subject will be: |'
-                  . $c->stash->{subject} . '|' );
+                  . $c->stash->{subject} . '|' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -171,7 +177,8 @@ sub getTs : Local {
   my $ts   = time;
 
   my $cs = md5_hex( $salt, $ts );
-  $c->log->debug( "Annotate::getTs: checksum: |$cs|, timestamp: |$ts|" );
+  $c->log->debug( "Annotate::getTs: checksum: |$cs|, timestamp: |$ts|" )
+    if $c->debug;
   
   # set the value of the cookie to be the checksum and make it expire in 
   # one hour, although we'll enforce that when we check the form submission
@@ -220,7 +227,8 @@ sub submit : Local {
   # on, we don't care what the input was  
   if ( $submissionFault ) {
 
-    $c->log->debug( 'Annotate::submit: fault with form submission' );
+    $c->log->debug( 'Annotate::submit: fault with form submission' )
+      if $c->debug;
 
     # drop the widget into the stash, along with the status value from the 
     # form submission check. That will be interpreted by the template, which
@@ -234,7 +242,8 @@ sub submit : Local {
     # the input parameters
 
     if ( $r->has_errors ) {
-      $c->log->debug( 'Annotate::submit: there were validation errors' );
+      $c->log->debug( 'Annotate::submit: there were validation errors' )
+        if $c->debug;
 
       # drop the widget into the stash, along with the status flag
       $c->stash->{widget} = $r;
@@ -242,7 +251,8 @@ sub submit : Local {
 
     }
     else {
-      $c->log->debug( 'Annotate::submit: no errors in the user input' );
+      $c->log->debug( 'Annotate::submit: no errors in the user input' )
+        if $c->debug;
 
       # the input parameters validated, so send an email. Check to
       # see if something went wrong
@@ -251,7 +261,8 @@ sub submit : Local {
         $c->stash->{submissionError} = SUBMISSION_EMAIL_FAILED;
       }
       else {
-        $c->log->debug( "Annotate::submit: submission was valid" );
+        $c->log->debug( "Annotate::submit: submission was valid" )
+          if $c->debug;
       
         # finally, if we got to here, it worked !
         $c->stash->{submissionError} = SUBMISSION_VALID;
