@@ -51,10 +51,12 @@ sub getPdbFile : Path {
 
   if( $c->stash->{pdbFile} = $c->cache->get( $cacheKey ) ) {
     $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieved |'
-                    . $c->stash->{pdbId} . '| from cache' ); 
+                    . $c->stash->{pdbId} . '| from cache' )
+      if $c->debug;
   } else {
     $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieving |'
-                    . $c->stash->{pdbId} . '| from remote site' ); 
+                    . $c->stash->{pdbId} . '| from remote site' )
+      if $c->debug;
   
     # right now we're just forwarding to the only method for retrieving a
     # PDB file, which gets it from a URL using LWP::Simple. Ideally we should
@@ -89,7 +91,8 @@ sub getPdbFileFromUrl : Private {
 
   # build the full URL
   my $url = $this->{pdbFileUrl} . 'pdb' . $c->stash->{pdbId} . '.ent';
-  $c->log->debug( "Structure::GetPdbFile::getPdbFileFromUrl: looking for file at: |$url|" );
+  $c->log->debug( "Structure::GetPdbFile::getPdbFileFromUrl: looking for file at: |$url|" )
+    if $c->debug;
 
   # retrieve the file itself
   my $pdbFile = get( $url );
