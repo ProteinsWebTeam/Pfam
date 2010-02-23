@@ -52,7 +52,8 @@ sub viewer : Path {
     $ap    = ( defined $map->auto_pfamseq->auto_pfamseq ) ? $map->auto_pfamseq->auto_pfamseq : '';
     $chain = ( defined $map->chain ) ? $map->chain : ''; # NOTE: could have a chain '0'
   
-    $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" );
+    $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" )
+      if $c->debug;
   
     next if $seenChainAutoPfamseq{$ap.$chain};
   
@@ -62,7 +63,8 @@ sub viewer : Path {
                                 pdb_id                       => $c->stash->{pdbId} },
                               { prefetch                     => [ 'pfamseqMarkup' ] } );
     $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
-                    . ' markups for mapping to ' . $ap );
+                    . ' markups for mapping to ' . $ap )
+      if $c->debug;
   
     $seenChainAutoPfamseq{$ap.$chain}++;
     push @allMarkups, @markups;
@@ -79,7 +81,8 @@ sub viewer : Path {
   $c->stash->{viewer} ||= 'jmol';
 
   $c->log->debug( 'Structure::Viewer::viewer: showing ' . $c->stash->{viewer}
-                  . ' for entry ' . $c->stash->{pdbId} );
+                  . ' for entry ' . $c->stash->{pdbId} )
+    if $c->debug;
 
   $c->stash->{template} = 'components/tools/' . $c->stash->{viewer} . '.tt';
 }
