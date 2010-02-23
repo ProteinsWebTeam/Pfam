@@ -649,6 +649,7 @@ sub update_rfam_reg_full {
        $stat,
        $full_ss,
        $full_structure,
+       $full_strucure_len,
        $counter,
        $rdb_acc, 
        $rdb_id, 
@@ -676,9 +677,11 @@ sub update_rfam_reg_full {
        $rdb_id = $en->id();
        $rdb_auto_num = $en->auto_rfam;
        
-       #this method loads in the full align!!
+       #care this method loads in the full align!!
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
+       $full_strucure_len=length($full_structure);
+
        #get the evalues
        $s_evalues=$en->scores_evalue();
        if (! $s_evalues) {
@@ -737,6 +740,12 @@ sub update_rfam_reg_full {
 	    if (!$rdb_full_string){
 	       print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the rdb_full_string data\n";
+	       last;
+	   }
+	   #this shoulb be the same length as the ss cons line
+	   if (length($rdb_full_string) != $full_structure_len){
+	        print STDERR "ERROR seq and cons are different lengths? check for gap columns", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       $error="Problem with the seqstring and cons are different lengths?\n";
 	       last;
 	   }
 
@@ -822,6 +831,7 @@ sub collate_large_fam_reg_full {
        $counter,
        $full_ss,
        $full_structure,
+       $full_structure_len,
        $rdb_acc, 
        $rdb_id, 
        $rdb_auto_num,
@@ -854,10 +864,12 @@ sub collate_large_fam_reg_full {
        $rdb_id = $en->id();
        $rdb_auto_num = $en->auto_rfam;
        $full_ss=$en->full_strings();
-       
        $full_structure=$full_ss->{'sscons'};
-       print STDERR $full_structure;
-        #get the evalues
+       $full_strucure_len=length($full_structure);
+
+       #print STDERR $full_structure;
+       
+       #get the evalues
        $s_evalues=$en->scores_evalue();
        if (! $s_evalues) {
 	   $error="Problem obtaining the data from scores_evalue;";
@@ -925,6 +937,13 @@ sub collate_large_fam_reg_full {
            if (!$rdb_full_string){
 	        print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the rdb_full_string data\n";
+	       last;
+	   }
+
+	   #this shoulb be the same length as the ss cons line
+	   if (length($rdb_full_string) != $full_structure_len){
+	        print STDERR "ERROR seq and cons are different lengths? check for gap columns", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       $error="Problem with the seqstring and cons are different lengths?\n";
 	       last;
 	   }
 
