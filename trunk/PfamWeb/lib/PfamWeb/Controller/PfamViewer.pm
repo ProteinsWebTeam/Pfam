@@ -68,7 +68,8 @@ sub showPfamViewer : Private {
                   . $c->stash->{paramString} . '|' ) if $c->debug;
 
   # hand off to the tool window template
-  $c->log->debug( 'PfamViewer::showPfamViewer: handing off to alignmentTool.tt' );
+  $c->log->debug( 'PfamViewer::showPfamViewer: handing off to alignmentTool.tt' )
+    if $c->debug;
   $c->stash->{template} = 'components/tools/pfamviewer/alignmentTool.tt';
 }
 
@@ -255,7 +256,8 @@ sub setPage : Private {
   $c->stash->{rows} = [ $pager->first, $pager->last ];
   $c->log->debug( 'PfamViewer::view: rows: |'
                   . $c->stash->{rows}->[0] . '| to |'
-                  . $c->stash->{rows}->[1] . '|' );
+                  . $c->stash->{rows}->[1] . '|' )
+    if $c->debug;
 
   # store the lists of page numbers before and after the current one, for use
   # by the template in generating the list of available pages
