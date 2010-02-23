@@ -27,7 +27,7 @@
       where the match has been probabilistically determined to lie, whereas the
       <em>alignment coordinates</em> delineate the region over which HMMER is
       confident that the alignment of the sequence to the profile HMM is
-      correct. Our full alignments contain the alignment co-ordinates from
+      correct. Our full alignments contain the envelope coordinates from
       HMMER3.
     </p>
 
