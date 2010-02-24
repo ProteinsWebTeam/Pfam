@@ -151,12 +151,10 @@ sub initiateFamilyViewProcess {
       }
     );
 
-
     my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id,
                                                               stdin => '',
                                                               stdout => '',
                                                               stderr => ''} );
-
 
   };
 
