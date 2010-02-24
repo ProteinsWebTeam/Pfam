@@ -93,7 +93,8 @@ sub get_sequences : Private {
   }
   
   $c->log->debug( 'Utils::get_sequences: found |' 
-                  . scalar @$accession_list . '| valid sequence accessions' );
+                  . scalar @$accession_list . '| valid sequence accessions' )
+    if $c->debug;
   $c->stash->{selectedSeqAccs} = $accession_list;
 
   # get each of the sequences in turn and turn them into FASTA format
