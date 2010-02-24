@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Data::UUID;
 use Mail::Mailer;
-use LSF::Job;
 
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
@@ -100,7 +99,13 @@ sub initiateClanViewProcess {
       }
     );
 
-    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
+
+    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id,
+                                                              stdin => '',
+                                                              stdout => '',
+                                                              stderr => ''} );
+
+
   };
 
   #Lets tran
@@ -146,7 +151,13 @@ sub initiateFamilyViewProcess {
       }
     );
 
-    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
+
+    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id,
+                                                              stdin => '',
+                                                              stdout => '',
+                                                              stderr => ''} );
+
+
   };
 
   #Lets tran
@@ -195,8 +206,12 @@ sub initiateAncillaryViewProcess {
         }
       );
 
-      my $s =
-        $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
+
+      my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id,
+                                                              stdin => '',
+                                                              stdout => '',
+                                                              stderr => ''} );
+
     };
 
     #Lets tran
@@ -236,7 +251,10 @@ sub killFamilyJob {
 }
 
 sub killJob {
+
   my ($job_id) = @_;
+
+  require LSF::Job;
 
   #Build the job oblect for the job_id
   my $lsfJob = LSF::Job->new($job_id);
