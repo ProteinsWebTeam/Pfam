@@ -28,7 +28,7 @@ jd7 (edits on the old rfci.pl code)
 
 
 BEGIN {
-   $rfam_mod_dir = "//software/rfam/scripts/Modules/";
+   $rfam_mod_dir = "/software/rfam/scripts/Modules/";
 }
 
 use lib $rfam_mod_dir;
@@ -153,9 +153,12 @@ $lock=$rdb->add_lock($user, $acc);
 if ($lock){
     if  ($lock->{'status'}){
 	print STDERR "Successful lock on the RDB to allow checkin by $user\n";
-    }else {
+    }elsif($lock->{'locker'} eq $user && $lock->{'family'} ne $acc){
+	die  "You already have the lock on the RDB for a different family", $lock->{'locker'},",", $lock->{'family'},"\n";
+    }
+    else {
 	#lock by someone else
-	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "-you cant check in right now.You if you know these locks can be removed use the -remove option at check in\n";
+	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "-you cant check in right now\n";
     }
 }
 else{
@@ -169,7 +172,8 @@ if ($updateRDB) {goto RDB;}
 my $oldid=$db->acc2id($acc);
 
 unless ($desc->{'ID'} eq $oldid){
-    print STDERR "ID line has changed\n";
+ 
+   print STDERR "ID line has changed\n";
     #check the new id-if its not valid-die and break the RDB lock
     if (my $acccheck= &RfamQC::id_exists($desc->{'ID'})){
 	if ($acccheck ne $desc->{'AC'}){
@@ -177,10 +181,12 @@ unless ($desc->{'ID'} eq $oldid){
 	    die "rfci: your new id already exists[$acccheck]-cant check in until you fix this\n";
 	}
     }
+
     #get the RCS lock-if not die and break the RDB lock
      if( my $ret = $db->_get_lock() ) {
 	$lock=$rdb->remove_my_lock($user, $lock);  
-	die "rfci: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
+	die "rfci: The accession lock has been grabbed by [$ret].\n".
+            "Accession locking should be short - try again in a couple of minutes\n";
     }
     #otherwise RDB and RCS family lock is on:
     #check the PI line hasnt already been updated by the submitter
@@ -266,7 +272,6 @@ if ($full_size > 6000){
     $rdb->update_rfam([$en]); #full obj change this:
     $rdb->update_rfam_reg_seed( [$en] );
 
-    #pass the full align obj?
     #dont do lock on this bit-connect not open_transaction
     my $data=$rdb->collate_large_fam_reg_full( [$en] ); #full obj plus sql queries
     if (!$data){
@@ -309,13 +314,13 @@ if ($full_size > 6000){
   
 }
 
-
 #Successful checkin remove the RDB lock
 if ( $lock=$rdb->remove_my_lock($user, $lock) ){
     print STDERR "Failed to remove the lock on RDB after successful checking";
 }else{
     print STDERR "Removed lock by $user\n";
 }
+
 
 my $end_time=time();
 my $rcs= $rcs_time - $start_time;
@@ -337,9 +342,9 @@ Options:    MAJOR MODES:
 
 To add:
 -die if the rqc-all.pl output file is not present
--an option to break the lock on the rdb if same user trying to recheckin the same family
 
 Some bumff on what this code does: 
+
 
 RCS checkin:
 -majority of this is the old rfci.pl code.
@@ -347,8 +352,11 @@ RCS checkin:
 -check the accession provided is an existing family (not a new one)
 -checks the correct files exist in the RCS for this family
 -checks family not already locked by someone else
--checks the sequences/id string etc are ok-doesnt check the seq against rfamseq anymore..this was commented out by someone else?? too slow?
+-checks the sequences/id string etc are ok-doesnt check the seq against rfamseq anymore..
+  this was commented out by someone else?? too slow?
 -slurps in the DESC file and checks for an AC tag
+-all ok so proceed to ci.
+-locks RDB 
 -checks the id for this acc -if its changed- warns if the new one already used by another family
   if needed it updates the DESC file with a PI line. 
 -only places the lock on the family during update of the ID:accmap
@@ -366,23 +374,25 @@ I have added the new data onto the Entry obj. Tables to be loaded
     -rfam_literature_references
     -rfam_database_links
 
-see help at end for further in
 Caveats for a big family greater than 6000 regions in ALIGN:
-All works the same as for small families except a different method is used to generate and load the data for rfam_reg_full
-This is done in two steps (1) the collating data stage(slow) does not use a lock as locks time out after 30 mins and this
-step may turn out to take longer than this for big fams (it requres one query for each seq). I am relying on the _lock table
-to prevent anyone doing any modifications to the database during this data collation. (2) collated data is written to a file,
- which is copied to pfamdb2a/tmp and loaded in. This method uses a differentuser as the priveleges to do this need to be higher.
-Otherwise the other tables are loaded using the same methods as for a normal family-except called individually. 
-This does mean that multiple connections are made/closed for one check in. However this shoould only happen for the top 20 or so families.
--each method will commit the data if successfully completed-this is distinct from the check_in_Entry which will only commit data if all the tables successfully load. For the most part this is fine-the only table that doesnt delete the exisiting data for family before loading is the rfam 
-    table. This update will update the table (1 row) if the family is already present. All the rest delete then load-so if data loading incomplete should be fixed on next loading.
+All works the same as for small families except a different method is used to 
+generate and load the data for rfam_reg_full. This is done in two steps (1) the
+ collating data stage(slow) does not use a lock as locks time out after 30 mins and this
+step may turn out to take longer than this for big fams (it requires one query for each seq).
+ I am relying on the _lock table to prevent anyone doing any modifications to the database 
+during this data collation. (2) collated data is written to a file in ./, which is copied to 
+pfamdb2a/tmp and loaded in. This loading uses a different RDB user/password as the priveleges
+ to do this need to be higher. Otherwise the other tables are loaded using the same methods
+ as for a small family-except called individually. This does mean that multiple connections are 
+made/closed for one check in. However this should only happen for the top 20 large families.
 
--If its is a small family less than 6000 seqs in full it uses the check_in_Entry which is the way the old code used to work.
-It runs the methods for all the tables in order, using transactions-which puts locks on all the tables and then does not commit data
-if an error has occurred. Ituses a single transaction. If there is an error with one method then I think all the tables roll back.
 
--remove lock flag  on rdb
+--If its is a small family less than 6000 seqs in full it uses the check_in_Entry which 
+  is the way the old code used to work. It runs the methods for all the tables in order, 
+  using transactions-which puts locks on all the tables and then does not commit data if
+  an error has occurred. 
+
+-remove lock flag on rdb
 
 EOF
 }
