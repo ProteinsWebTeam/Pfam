@@ -2,9 +2,14 @@
 
 #
 # author sgj
-# heavily stolen from Ewan's pfnew
+# modified heavily by jd7 to use new rfci code 
 #
 
+BEGIN {
+   $rfam_mod_dir = "/software/rfam/scripts/Modules/";
+}
+
+use lib $rfam_mod_dir;
 use strict;
 use Rfam;
 use RfamQC;
@@ -12,11 +17,39 @@ use RfamRCS;
 use Getopt::Long;
 use Rfam::UpdateRDB;
 use DBI;
+use DBD::mysql;
+use vars qw($opt_a);
+use DateTime;
+use RfamUtils;
+use Cwd;
+use File::Copy;
 
-if( $#ARGV == -1 ) {
-    &RfamRCS::show_rcs_help(\*STDOUT);
-    exit;
+
+my ($id, 
+    $message,
+    $updateRDB,
+    $help);
+
+&GetOptions(
+	    '-id=s'=> \$id,
+	    '-m:s' => \$message,
+	    '-updateRDB' => \$updateRDB,
+	    "h|help"         => \$help 
+	    );
+
+if( $help ) {
+    &help();
+    exit(1);
 }
+
+#get the user
+my $user =  getlogin() || getpwuid($<);
+
+#start checkin time:
+my $start_time=time();
+my $rcs_time;
+
+#check ID and lock #################
 
 my( $locked, $locker, $allow_ref ) = &RfamRCS::check_database_isnot_locked;
 if( $locked ) {
@@ -29,14 +62,16 @@ if( $locked ) {
     } 
 }
 
-my $id = shift;
+# check is new family
+if( ! $id ) {
+    die "rfnew: you must specifiy the name of the directory to checkin use `-id` option \n";
+}
 
 if( $id =~ /\/$/ ) {
     $id =~ s/\/$//g;
 }
 
-
-if( !(-d $id) ) {
+if(   !(-d $id) ) {
     die "rfnew: [$id] is not a current directory.\nMust be in the parent directory of the family to make a new family\n";
 }
 
@@ -45,11 +80,12 @@ if( &RfamQC::id_exists( $id ) ) {
 i\n";
 }
 
+################################
+
 if( ! open(DESC,"./$id/DESC") ) {
     die "rfnew: cannot open the desc file [./$id/DESC]. [$!]";
 }
 
-my $wikipedia;
 while(<DESC>) {
     chomp;
     if( /^AC/ ) {
@@ -60,21 +96,8 @@ while(<DESC>) {
 	die "rfnew: Your DESC file has a ID line [$_].\n";
     }
     
-    if (/^WK\s+(.+)/){
-	$wikipedia = $1;
-	#Should add some verification that this is a bona-fide wikipedia link:
-	#Strip off irrelevant info:
-	$wikipedia =~ s/en.wikipedia.org\/wiki\///;
-	$wikipedia =~ s/http:\/\///;
-	$wikipedia =~ s/\;//;
-    }
-}
+   }
 close(DESC);
-
-if (!defined($wikipedia)){
-    $wikipedia = 'Rfam';
-    print "WARNING: a wikipedia entry was not given. Using default ($wikipedia).\n"
-}
 
 my $comment = "New family";
 
@@ -82,34 +105,22 @@ unless( &RfamQC::valid_sequences( $id ) ) {
     die "rfnew: Your sequences don't all match the database\n";
 }
 
-#
-# Ok. Attempt to get the lock. If we fail a rather ungraceful exit.
-# 
+########################
 
-# dunno why we were doing this - allocate_new_accession gets the lock
-
-#my $ret = &RfamRCS::get_accession_lock();
-
-#if( !($ret =~ /^success/ ) ) {
-#    die "rfnew: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
-#}
+#RCS lock & update ################
 
 my $acc = &RfamRCS::allocate_new_accession($id);
 if( !defined $acc ) {
-#    &RfamRCS::release_accession_lock();
     die "rfnew: Unable to allocate new accession number. Check write permission to ACCESSION dir\n";
 }
 
 if( ! &RfamRCS::make_new_rcs_directory($acc) ) {
-#    &RfamRCS::release_accession_lock();
     die "rfnew: Cannot make a new directory for $id.\nCheck you have write permissions to RCS_MASTER\n";
 }
 
 open(LOCK,">$Rfam::rcs_master_dir/$acc/locked") or die "rfnew: cannot write to lock file\n";
 print LOCK "First lock due to rfnew\n";
 close(LOCK);
-
-#&RfamRCS::release_accession_lock();
 
 if( !open(DESC,"./$id/DESC") ) {
     die "rfnew: cannot open the desc file. Yikes!";
@@ -118,6 +129,7 @@ if( !open(DESC,"./$id/DESC") ) {
 if( !open(TEMP,">./$id/DESC.$$") ) {
     die "rfnew: cannot open a desc file to write to. Yikes!";
 }
+
 print TEMP "AC   $acc\n";
 print TEMP "ID   $id\n";
 while(<DESC>) {
@@ -149,72 +161,114 @@ if( &RfamRCS::update_current_directory($acc) == 0 ) {
     die "rfnew: Could not update current directory for $acc\n";
 }
 
-# rdb stuff when its ready
+#record rcs checkin
+$rcs_time=time();
+print STDERR "Finished RCS check in\n\n";
 
-## READY NOW!!! i hope
+###########################################
 
-print STDERR "\nChecking family into RDB\n";
+print STDERR "Starting RDB check in new family\n";
 
-eval {
-  my $rdb =  Rfam::live_rdb_update();
-  my $db = Rfam::default_db();
-  my $en = $db->get_Entry_by_acc( $acc);
-  my $id = $en->author();
-  $rdb->check_in_Entry( $en );
-  make_wiki_entry($acc,$wikipedia);
-};
+#All is apparently ok-proceed with a RCS checkin
 
-$@ and do {
-  print STDERR "rfnew: RDB update; Could not update relational database for family $acc [$@]\n";
-};
-print STDERR "RDB update succesful\n";
+#RCS database
+my $db = Rfam::default_db();
 
-&RfamRCS::make_view_files($acc); 
+#Rfamlive database
+my $rdb = Rfam::live_rdb_update(); 
+my $rdb_admin=Rfam::live_rdb_update_admin();
 
-print STDERR "\n\nChecked in family [$acc]\n";
+# #Lock RDB
+# #this opens a connection, adds lock to RDB table and then closes it
 
-exit(0);
+LOCK:
+my $lock;
+$lock=$rdb->add_lock($user, $acc);
 
-######################################################################
-#Nasty add on to fill the wiki table for the entry:
-sub make_wiki_entry {
-    my $wacc = shift;
-    my $wiki = shift;
-
-    my $rfquery = qq(
-select auto_rfam from rfam where rfam_acc = '$wacc'
-);
-
-# MySQL rfamlive connection details.
-    my $rfdatabase = "rfamlive";
-    my $rfhost     = "pfamdb2a";
-    my $rfuser     = "pfamadmin";
-    my $rfpw       = "mafpAdmin";
-    my $rfport     = 3303;
-
-    my ($rfdbh, $rfsth);
-# Create a connection to the database.
-    $rfdbh = DBI->connect(
-	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
-	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	    RaiseError => 1
-	}    );
-     
-# Prepare the query for execution.
-    $rfsth = $rfdbh->prepare($rfquery);
-    $rfsth->execute();
-          
-    my($temp_auto) = $rfsth->fetchrow;
-    $rfsth->finish();
-    my $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
-     
-    $rfquery = "
-insert into wiki (auto_rfam, rfam_acc, title) VALUES ($rdb_auto_num,'$wacc','$wiki')
-";
-    print "Prepare:\n$rfquery\n";
-    $rfsth = $rfdbh->prepare($rfquery);
-    $rfsth->execute();
-    $rfdbh->disconnect;
+if ($lock){
+    if  ($lock->{'status'}){
+	print STDERR "Successful lock on the RDB to allow checkin by $user\n";
+    }elsif($lock->{'locker'} eq $user && $lock->{'family'} ne $acc){
+	die  "You already have the lock on the RDB for a different family", $lock->{'locker'},",", $lock->{'family'},"\n";
+    }
+    else {
+	#lock by someone else
+	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "-you cant check in right now\n";
+    }
+}
+else{
+	die  "Problem obtaining lock on RDB for $user\n";
 }
 
+#get entry Obj from RCS
+my $en=$db->get_Entry_by_acc($acc);
+
+#this reads in the full scores file
+my $full_size=$en->num_seqs_in_full();
+
+print STDERR $full_size, " Seq regions in FULL for $acc\n";
+
+if ($full_size > 6000){
+ 
+    print STDERR "Doing large family upload for $acc\n";
+    eval{
+    $rdb->update_wikitext([$en]);
+    $rdb->update_rfam([$en]); #full obj change this:
+    $rdb->update_rfam_reg_seed( [$en] );
+
+    #dont do lock on this bit-connect not open_transaction
+    my $data=$rdb->collate_large_fam_reg_full( [$en] ); #full obj plus sql queries
+    if (!$data){
+	die "no data from collating rfam-reg_full";
+    }
+    
+    #have to remove this header line or it will kill the upload
+    my $auto_rfam=shift(@$data);
+    
+    #check the rows returned with rows expected in ALIGN
+    my $c=scalar(@$data);
+    print STDERR "Full align= $full_size and $c rows collated for rfam_reg_full\n";
+
+    #open and write to file
+    open(OUT, ">/tmp/$$.rfam.reg.full") || die "cant open the file to write to $!";
+    foreach my $r (@{$data}){
+	print OUT  "$r\n";
+    }
+    close OUT;
+
+    #copy file to correct location
+    system ("scp /tmp/$$.rfam.reg.full $user\@pfamdb2a:/tmp/") and die "cant copy the file to tmp $!";  
+    my $rows=$rdb_admin->load_rfam_reg_full_file_to_rdb("/tmp/$$.rfam.reg.full" , 'rfam_reg_full', $auto_rfam);
+    print $rows, " added to the rfam_reg_full table\n";
+    $rdb->update_literature_references( [$en] );
+    $rdb->update_rfam_database_links( [$en] );
+};  if ($@){
+    print STDERR "FAIL to BIG FAM check in $acc: LOCK left on until you deal with it [$@]"; exit;
+     }
+    
+}else{
+    print STDERR "Doing small family upload for $acc\n";
+    eval{
+    $rdb->check_in_Entry( $en );
+};  if ($@){
+    print STDERR "FAIL to SMALL FAM check in $acc: LOCK left on until you deal with it [$@]\n"; exit;
+    }
+  
+}
+
+#Successful checkin remove the RDB lock
+if ( $lock=$rdb->remove_my_lock($user, $lock) ){
+    print STDERR "Failed to remove the lock on RDB after successful checking";
+}else{
+    print STDERR "Removed lock by $user\n";
+}
+
+my $end_time=time();
+my $rcs= $rcs_time - $start_time;
+my $RCS_ci_time  = RfamUtils::secs2human($rcs);
+my $run_time= $end_time - $start_time;             
+my $RDB_ci_time  = RfamUtils::secs2human($run_time);
+print STDERR "COMPLETED RDB checkin for $acc: Time to check in= ",$RCS_ci_time,"|". $RDB_ci_time, "\n";
+
+exit(0);
 
