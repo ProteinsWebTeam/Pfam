@@ -133,32 +133,50 @@ sub markupAlignSingle {
   
   my ( $key, $value,$r, $R );
   
+  my ($id, $start, $end );
+  if( $acc =~ /([A-Za-z0-9\.]+)\/(\d+)\-(\d+)/ ){
+    ( $id, $start, $end ) = $acc =~ /([A-Za-z0-9\.]+)\/(\d+)\-(\d+)/;  
+  }else{
+    $start = 1;
+    $id = $acc;
+  }
+  
+  
   my $i = 0;
   
-  $key   = "<span class=\"" . ( $rowNum % 2 ? "odd" : "even" ) . "\">$acc</span>\n";
-	$value = "<span class=\"" . ( $rowNum++ % 2 ? "odd" : "even" ) . "\">";
+  my $col_count = 1;
+  my $res_count = $start;
+  
+  $key   = "<span id=\"$id\" class=\"" . ( $rowNum % 2 ? "odd" : "even" ) . "\">$acc</span>\n";
+	$value = "<span id=\"$id".'seq"'." class=\"" . ( $rowNum++ % 2 ? "odd" : "even" ) . "\">";
 
 	while( $seq ) {
 	  
 	  $r = substr( $seq, 0, 1, "" );
 	  $R = uc $r;
-    
+    #print STDERR "the r is $r|$R|\n";
     
 	  if( $R eq "." or $R eq "-" ) {
-		  $value .= $r;
-		  #print "$value|$R|$conRef->[$i]|\n";
+#		  $value .= $r;
+		  $value .= '<span class="C' . $col_count . qq(">$r</span>);
+		  
 	  } elsif( $R eq $conRef->[$i] ) {
-		  $value .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
-		  #print "$value|$R|$conRef->[$i]|\n";
+#		  $value .= "<span class=\"S" . $class->{$R} . "\" class=\"C" . $i . "\""." class=\"R" . $res_count .>$r</span>";
+		  $value .= '<span class="S' . $class->{$R} . ' C'. $col_count .' R'. $res_count.'">'.$r.'</span';
+		  $res_count++;
 	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
-		  $value .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
+		  $value .= '<span class="T' . $class->{$R} . ' C'. $col_count .' R'. $res_count.'">'.$r.'</span';
+		  $res_count++;
+#		  $value .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
 		  #print "$value|$R|$conRef->[$i]|\n";
 	  } else {
-		  $value .= $r;
+		  $value .= "<span class=\"C" . $col_count . " R" . $res_count . "\">$r</span>";
+		  $res_count++;
+#		  $value .= $r;
 		  #print "$value|$R|$conRef->[$i]|\n";
 	  }
 	  $i++;
-
+    $col_count++;
 	}
 
 	$value .= "<br /></span>\n";
@@ -166,52 +184,44 @@ sub markupAlignSingle {
   return $key,$value ;
 }
 
-# sub markupAlign2 {
-#   my( $alignRef, $conRef ) = @_;
-
-#   my( $r, $R );
-
-#   my $key = $cgi->start_div( { -class => "key" } );
-#   my $ali = $cgi->start_div( { -class => "align" } );
-
-#   my $rowNum = 0;
-#   foreach my $nse ( keys %$alignRef ){
-# 	my $nseLabel;
-# 	( $nseLabel = sprintf "%-20s", $nse ) =~ s/\s/\&nbsp;/g;
-# 	my $i = 0;
-
-# 	$key .= $cgi->span( { -class => "nse " . ( $rowNum % 2 ) ? "odd" : "even" }, $nseLabel );
-
-# 	$ali .= $cgi->start_span( { -class => "alirow " . ( $rowNum++ % 2 ) ? "odd" : "even" } );
-	
-# 	while( $alignRef->{$nse}) {
-# 	  $r = substr( $alignRef->{$nse}, 0, 1, "" );
-# 	  $R = uc $r;
-
-# 	  if( $R eq "." or $R eq "-" ) {
-# 		$ali .= $r;
-# 	  } elsif( $R eq $conRef->[$i] ) {
-# 		$ali .= $cgi->span( { -class => "S" . $class->{$R} }, $r );
-# 	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
-# 		$ali .= $cgi->span( { -class => "T" . $class->{$R} }, $r );
-# 	  } else {
-# 		$ali .= $r;
-# 	  }
-# 	  $i++;
-
-# 	}
-
-# 	$ali .= $cgi->end_span;
-#   }
-
-#   $key .= $cgi->end_div;
-#   $ali .= $cgi->end_div;
-
-#   print STDERR "key: |$key|\n";
-#   print STDERR "ali: |$ali|\n";
-
-#   return $key . $ali;
-# }
+# working version of this subroutine, I am making changes above;
+#sub markupAlignSingle {
+#  my( $acc, $seq, $conRef, $rowNum ) = @_;
+#  
+#  my ( $key, $value,$r, $R );
+#  
+#  my $i = 0;
+#  
+#  $key   = "<span class=\"" . ( $rowNum % 2 ? "odd" : "even" ) . "\">$acc</span>\n";
+#	$value = "<span class=\"" . ( $rowNum++ % 2 ? "odd" : "even" ) . "\">";
+#
+#	while( $seq ) {
+#	  
+#	  $r = substr( $seq, 0, 1, "" );
+#	  $R = uc $r;
+#    
+#    
+#	  if( $R eq "." or $R eq "-" ) {
+#		  $value .= $r;
+#		  #print "$value|$R|$conRef->[$i]|\n";
+#	  } elsif( $R eq $conRef->[$i] ) {
+#		  $value .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
+#		  #print "$value|$R|$conRef->[$i]|\n";
+#	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
+#		  $value .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
+#		  #print "$value|$R|$conRef->[$i]|\n";
+#	  } else {
+#		  $value .= $r;
+#		  #print "$value|$R|$conRef->[$i]|\n";
+#	  }
+#	  $i++;
+#
+#	}
+#
+#	$value .= "<br /></span>\n";
+#
+#  return $key,$value ;
+#}
 
 #These are build at compile time as it makes it faster running in modperl and
 #as they should not be altered.  I have put them down here to make the code a 
