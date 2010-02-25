@@ -277,7 +277,7 @@ sub open_transaction{
        $self->report_mode and print STDERR "Connecting to database...\n";
 
        $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host;mysql_server_prepare=1", $user, $password, {
-	   PrintError =>0,
+	   PrintError =>1,
 	   RaiseError =>1
 	   });
        
@@ -312,9 +312,10 @@ sub open_transaction{
 	   #$self->throw("Rfam::DB::RfamRDB->open_connection - failed to lock tables");
        }
    }
-   
-   $self->{'_transaction_count'}++;
+      
+   $self->{'_transaction_count'}++; 
    return $self->_database_handle;;
+
 }
 
 
