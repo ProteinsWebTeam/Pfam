@@ -75,7 +75,7 @@ sub get_alignment_size {
     
     return $size;
   }else{
-    print STDERR "these are not pfamdas source, so get eh alignment parse and find the total rows\n";
+    #print STDERR "these are not pfamdas source, so get eh alignment parse and find the total rows\n";
     
     my $rawAlignment = $self->{ daslite }->alignment({
       query =>  $acc,
@@ -86,8 +86,10 @@ sub get_alignment_size {
     
     my ( $source, $aliData) = each %$rawAlignment;
     
-    if( defined $aliData and exists $aliData->[ 0 ]->{ block } ){
-      return scalar( @$aliData ) + 1;
+    # if they dont have the total rows mentioned then use the total number of align objects as a request;
+    
+    if( defined $aliData and exists $aliData->[ 0 ]->{ alignobject } ){
+      return scalar( @{ $aliData->[0]->{ alignobject } } ) ;
     }else{
       print STDERR "the alidata is nto defined  \n";
       return 0;  
@@ -129,11 +131,22 @@ sub get_alignment {
   # check the dsn_name and set it for the Bio::DAs::lite obj;
   $self->{ daslite }->dsn( $dasParams->{ url } );
   
-  # now get the raw alignment;
-  my $rawAlignment = $self->{ daslite }->alignment({
-    query =>  $acc,
-    rows  =>  "$rows"    
-  });
+  # prosite doesnt support rows, so deal with that separately
+  my $rawAlignment;
+  if( $dsn eq 'Prosite' ){
+    print STDERR "teh das source is prosite\n";
+    $rawAlignment = $self->{ daslite }->alignment({
+      query =>  $acc,
+      #rows  =>  "$rows"    
+    });  
+  }else{
+    # now get the raw alignment;
+    print STDERR "teh das source is not prosite\n";
+    $rawAlignment = $self->{ daslite }->alignment({
+      query =>  $acc,
+      rows  =>  "$rows"    
+    });  
+  }
   
   # parse the alignment to get the source adn alignment data 
   my ( $source, $aliData ) = each %$rawAlignment;
@@ -155,10 +168,12 @@ sub get_alignment {
      
   }else{
     ( $alignment, $alignmentLengths ) = $self->reconstruct_alignment( $aliData );
+    #print STDERR "dump fo the alignmnet is ".dump( $alignment );
   }
   
   # check whether do we need to get the consensus string;
-  
+  my $label;
+  my $consensus = [];
   if( $dasParams->{ consensus } == 1 ){
     print STDERR " get the consensus string  and markup the alignment ";
     
@@ -167,26 +182,27 @@ sub get_alignment {
     my ( $source, $features ) = each %$features_hash;
     
     # now get the consensus string from the feature adn build the consensus array ;
-    my $label = $features->[0]->{feature_label};  
-    my $consensus = Bio::Pfam::ColourAlign::parseConsensus( $label );
+    $label = $features->[0]->{feature_label};  
+    $consensus = Bio::Pfam::ColourAlign::parseConsensus( $label );
+  }
     
     # now markup the alignment using this consensus;
     my $markups = $self->markup_alignment( $alignment, $consensus );
     
     return $markups;
     
-  }else{
-    my @rawAlignments;
-    
-    foreach my $pair ( @{ $alignment } ){
-      foreach( keys %{ $pair } ){
-        #$rawAlignments{ $_ } = $pair->{ $_ };
-        push @rawAlignments,[ $_, $pair->{ $_ } ];
-      }
-    }
-    #print STDERR "teh raw alignment is ".dump( \%rawAlignments )."\n";
-    return \@rawAlignments;
-  } # end of else
+#  }else{
+#    my @rawAlignments;
+#    
+#    foreach my $pair ( @{ $alignment } ){
+#      foreach( keys %{ $pair } ){
+#        #$rawAlignments{ $_ } = $pair->{ $_ };
+#        push @rawAlignments,[ $_, $pair->{ $_ } ];
+#      }
+#    }
+#    #print STDERR "teh raw alignment is ".dump( \%rawAlignments )."\n";
+#    return \@rawAlignments;
+#  } # end of else
   
 }
 
@@ -203,6 +219,10 @@ sub markup_alignment{
   my @markedUpAlignments;
       
   my $row_num = 0;
+#  
+#  unless ( defined $consensus ){
+#    $consensus = [];
+#  }
   
   foreach( keys %{ $alignment->[ 0 ] } ){
     
@@ -210,7 +230,7 @@ sub markup_alignment{
     #$markedUpAlignments{ $acc } = $align;
     push @markedUpAlignments ,[ $acc, $align ];
     $row_num++;
-    
+    #print STDERR "the dump of the acc in markupalignsinlge is $_\n";
   }
   
   return \@markedUpAlignments;
