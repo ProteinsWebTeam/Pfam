@@ -3,8 +3,9 @@
 			<select id="dsn_name" name="dsn_name">
 			  <option value="Pfam_Seed_Alignments" >Pfam Seed Alignments </option>
 			  <option value="Pfam_Full_Alignments" >Pfam Full Alignments </options>
-			  <option value="alig_pdb_sp" >alig_pdb_sp </option>
-			  <!--<option value="biojavapdbuniprot" >biojavapdbuniprot </option>-->
+			  <option value="Prosite" >Prosite</option>
+        <option value="alig_pdb_sp" >alig_pdb_sp </option>
+        <!--<option value="biojavapdbuniprot" >biojavapdbuniprot </option>-->
 			  <option value="alig_uniprot_ensp" >alig_uniprot_ensp </option>
 			  <option value="Cosmic_Protein_Mutation" >Cosmic Protein Mutation </option>
 			</select>
