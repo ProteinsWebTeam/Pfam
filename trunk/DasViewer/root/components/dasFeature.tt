@@ -14,7 +14,7 @@ META naked = 1;
   <h2>Feature Viewer</h2>
   <h3>Uniprot accession: "[% acc %]"([% seqLength %] Aminoacids)</h3>
   
-  <div id="canvasWrapper" style="float:left">
+  <div id="canvasWrapper" style="float:left;overflow-x:auto;width:1000px">
     <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
     <div id="backgroundDiv" style="background-color:#C7F3C5;position:absolute;z-index:-1"></div>
     <canvas id="canvasEl" style="border:1px black solid;z-index:1;"></canvas>
@@ -132,6 +132,17 @@ META naked = 1;
     
     // now add an event listener to the canvasElement;
     $( 'canvasEl' ).observe( 'mousemove' , function( e ){
+      
+      // if we have any columns with class columnColor remove it;
+      if( $$( '.columnColor' ) !== undefined ){
+        
+        $$( '.columnColor' ).each( function( element){ 
+                //console.log( "the element is "+element.identify() );
+                element.removeClassName( 'columnColor' );
+                
+              });
+      }
+      
       //console.log( "the event is "+e );
       // calculate the offset position of the element;
       var offset = $('canvasEl').up().cumulativeOffset();
@@ -153,6 +164,30 @@ META naked = 1;
         // now update the resNum div to say which residue is currently shown;
         var res = ( x / resWidth ) - graphicXOffset;
         $('resNum').update( "Residue Number: "+ res ); 
+        
+        // use the accession and residue number get the column number and change the color.
+        var seqEl = $( acc+'seq' ).getElementsByClassName( 'R'+res );
+        
+        if( seqEl[ 0 ] !== undefined ){
+          var classNames = $A( seqEl[0].classNames() );
+          
+          classNames.each( function( className ){
+            if( /C\d+/.test( className ) ){
+              //console.log( "the column number I am looking for is "+className );
+              
+              $$( '.'+className ).each( function( element){ 
+                //console.log( "the element is "+element.identify() );
+                element.addClassName( 'columnColor' );
+                
+              });
+              
+            }
+
+          });
+
+        }
+        //console.log( 'teh accessiosn whcih is cliked is '+seqEl[0].inspect() );
+        // get the seq coresponding to the acc,
         
       } // because we start to draw the sequence from 100px;
       
