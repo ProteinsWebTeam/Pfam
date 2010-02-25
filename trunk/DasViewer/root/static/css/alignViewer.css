@@ -55,3 +55,8 @@
 .resetColor {
   color: #000;
 }
+
+.columnColor {
+  background-color: #9074DE;
+  z-index: 10;
+}
