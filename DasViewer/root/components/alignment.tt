@@ -45,6 +45,7 @@ requirements.js.push( "excanvas.js" );
         <span class="listItem"><input type="checkbox" name="Das" value="DS_446" checked="checked"><span id="DS_446">Gene3D</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_327" checked="checked"><span id="DS_327">Interpro</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_120" checked="checked"><span id="DS_120">SUPERFAMILY</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_817" checked="checked"><span id="DS_817">Prosite Features (matches)</span></input></span>
         
         <span class="listItem"><input type="checkbox" name="Das"  value="DS_704"><span id="DS_704">Cosmic Protein Mutations</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_109"><span id="DS_109">uniprot aristotle</span></input></span>
@@ -68,37 +69,8 @@ requirements.js.push( "excanvas.js" );
         <span class="listItem"><input type="checkbox" name="Das" value="DS_763"><span id="DS_763">VectorBase</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_766"><span id="DS_766">GO literature</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_767"><span id="DS_767">disease literature</span></input></span>
-        <span class="listItem"><input type="checkbox" name="Das" value="DS_817"><span id="DS_817">Prosite Features (matches)</span></input></span>
         
-        <!--<input type="checkbox" name="Das" value="DS_241" checked="checked">Pfam</input>
-        <input type="checkbox" name="Das" value="DS_446" checked="checked">Gene3D</input>
-        <input type="checkbox" name="Das" value="DS_327" checked="checked">Interpro</input>
-        <input type="checkbox" name="Das" value="DS_120" checked="checked">SUPERFAMILY</input>
-        
-        <input type="checkbox" name="Das"  value="DS_704">Cosmic Protein Mutations</input>
-        <input type="checkbox" name="Das" value="DS_109">uniprot aristotle</input>
-        <input type="checkbox" name="Das"  value="DS_114">signalp</input>
-        <input type="checkbox" name="Das" value="DS_118">prop</input>
-        <input type="checkbox" name="Das" value="DS_121">secretomep</input>
-        <input type="checkbox" name="Das" value="DS_133">cbs_ptm</input>
-        <input type="checkbox" name="Das" value="DS_134">cbs_func</input>
-        <input type="checkbox" name="Das" value="DS_168">gtd</input>
-        <input type="checkbox" name="Das" value="DS_171">PRIDE</input>
-        <input type="checkbox" name="Das" value="DS_187">lipop</input>
-        <input type="checkbox" name="Das" value="DS_188">netnes</input>
-        <input type="checkbox" name="Das" value="DS_406">OMA</input>
-        <input type="checkbox" name="Das" value="DS_409">uniprot</input>
-        <input type="checkbox" name="Das" value="DS_412">UniProt GO Annotation</input>
-        <input type="checkbox" name="Das" value="DS_413">UniProt Tryptic Peptvaluees</input>
-        <input type="checkbox" name="Das" value="DS_415">RSBP Parts</input>
-        <input type="checkbox" name="Das" value="DS_449">SPLIT 4.0 Transmembrane Predictions</input>
-        <input type="checkbox" name="Das" value="DS_518">PHDacc</input>
-      	<input type="checkbox" name="Das" value="DS_708">Integr8 mRNA</input>
-        <input type="checkbox" name="Das" value="DS_763">VectorBase</input>
-        <input type="checkbox" name="Das" value="DS_766">GO literature</input>
-        <input type="checkbox" name="Das" value="DS_767">disease literature</input>
-        <input type="checkbox" name="Das" value="DS_817">Prosite Features (matches)</input>
-        -->
+      
         <div style="clear:both"/><p/>
         <input type="button" id="getfeatures" value="GetFeatures" onclick="fetchFeatures( '',document.feature_source)"/>
         <input type="reset" id="reset" value="Reset"/>
@@ -197,38 +169,17 @@ requirements.js.push( "excanvas.js" );
         }
         
         var el = e.element();
-        
-        if( el.hasClassName('odd') || el.hasClassName('even') ){
-          console.log( 'the pfam source is selectd, so go one level up');
-          acc = el.up().getAttribute( 'id' );
-          
-          // try to see whether they have the start and end of th alignment;
-          if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
+        acc    = el.getAttribute( 'id' );
+        if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
             
-            var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.innerHTML );
-            alignStart = data[2];
-            alignEnd   = data[3];
-            console.log( "the start and end are present which are |%s|%s| ",alignStart,alignEnd );
+          var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.innerHTML );
+          alignStart = data[2];
+          alignEnd   = data[3];
+          console.log( "the start and end are present which are |%s|%s| ",alignStart,alignEnd );
               
-          }else{
-            alignStart = 0;
-            alignEnd   = 0;
-          }
-          
         }else{
-          acc = el.getAttribute( 'id' );
-          if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
-            
-            var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.innerHTML );
-            alignStart = data[2];
-            alignEnd   = data[3];
-            console.log( "the start and end are present which are |%s|%s| ",alignStart,alignEnd );
-              
-          }else{
-            alignStart = 0;
-            alignEnd   = 0;
-          }
-          
+          alignStart = 0;
+          alignEnd   = 0;
         }
         
         // check whether the clicked element is an uniprot accession
