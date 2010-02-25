@@ -268,7 +268,7 @@ my $rcs= $rcs_time - $start_time;
 my $RCS_ci_time  = RfamUtils::secs2human($rcs);
 my $run_time= $end_time - $start_time;             
 my $RDB_ci_time  = RfamUtils::secs2human($run_time);
-print STDERR "COMPLETED RDB checkin for $acc: Time to check in= ",$RCS_ci_time,"|". $RDB_ci_time, "\n";
+print STDERR "COMPLETED checkin for $acc: Check in: RCS= ",$RCS_ci_time, " | RDB= ", $RDB_ci_time, "\n";
 
 exit(0);
 
