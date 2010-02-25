@@ -261,7 +261,7 @@ sub check_family_isnot_locked {
 	$locked = "$locker";
     }
 
-    open(RLOG,"rlog -L -h $Rfam::rcs_master_dir/$family/SEED|") || die "Could not open rlog pipe!";
+    open(RLOG,"rlog -L -h $Rfam::rcs_master_dir/$family/SEED|") || die "Could not open rlog pipe for $family!";
 
     while(<RLOG>) {
 	if( /^locks:/ ) {
@@ -486,7 +486,7 @@ sub get_info_on_family {
     }
 
     if( !open(INFO,"rlog -b $Rfam::rcs_master_dir/$family/DESC |") ) {
-	print("RCS: can't get any info on family [$family]\n");
+	print("RCS: can't get any info on family [$family] in $Rfam::rcs_master_dir/$family\n");
     }
 
     while (<INFO>) {
@@ -574,7 +574,7 @@ sub get_short_info_on_family {
     my $id = $db -> acc2id( $family );
 
     if( !open(INFO,"rlog -b $Rfam::rcs_master_dir/$family/DESC |") ) {
-	print("RCS: can't get any info on family [$family]\n");
+	print("RCS: can't get any short info on family [$family]\n");
     }
 
     while (<INFO>) {
