@@ -143,7 +143,7 @@ var LiveGridScroller = Class.create( {
       borderRight: "1px solid #ababab",
       position:    "relative",
       /* left:        Prototype.Browser.IE ? "-6px" : "-3px", */
-      width:       "16px",
+      width:       "19px",
       height:      visibleHeight + "px",
       overflow:    "auto"
     } );
@@ -719,27 +719,27 @@ var LiveGrid = Class.create( {
 //                   .update( row.seq );
       
       // use the regular expressions in javascript and get the id and start and end coords;
-      var acc_id;
-      var regExp = /(\w+)\/\d+/;
-      
-      // check whether this is pfam source;
-      if( /(\w+)\/\d+/.test( rows[0] ) )
-      {
-        var matches = /(\w+)\/\d+/.exec( row[0] );
-        acc_id = matches[1];
-        
-      }else if( /(.*)\/\d+/.test( row[0] ) )
-      {
-        var matches = /(.*)\/\d+/.exec( row[0] );
-        acc_id = matches[1];
-        
-      }else
-      {
-        acc_id = row[0];  
-      }
+//      var acc_id;
+//      var regExp = /(\w+)\/\d+/;
+//      
+//      // check whether this is pfam source;
+//      if( /(\w+)\/\d+/.test( rows[0] ) )
+//      {
+//        var matches = /(\w+)\/\d+/.exec( row[0] );
+//        acc_id = matches[1];
+//        
+//      }else if( /(.*)\/\d+/.test( row[0] ) )
+//      {
+//        var matches = /(.*)\/\d+/.exec( row[0] );
+//        acc_id = matches[1];
+//        
+//      }else
+//      {
+//        acc_id = row[0];  
+//      }
       
       //console.log( 'the accession is '+acc_id );
-      var accDiv = new Element( "div",{ id: acc_id } ).update( " " + row[0] );
+      var accDiv = new Element( "div" ).update( " " + row[0] );
       var seqDiv = new Element( "div" ).update( " "+ row[1] );
       
       accessionsDiv.appendChild( accDiv );
