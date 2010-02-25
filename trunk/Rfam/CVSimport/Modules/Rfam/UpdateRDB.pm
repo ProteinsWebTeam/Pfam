@@ -77,12 +77,13 @@ sub check_in_Entry {
   
   my ($dbh,
       @regions );
-  
+    
  
   $dbh = $self->open_transaction('wikitext', 'rfam', 'rfam_reg_seed', 'rfam_reg_full', 'rfamseq', 'rfam_literature_references', 'literature_references' , 'rfam_database_links');
   
     eval {
       foreach my $ent (@en) {
+
 	$self->update_wikitext( [$ent] );  
 	$self->update_rfam( [$ent] );	
 	$self->update_rfam_reg_seed( [$ent] );
@@ -315,12 +316,11 @@ sub delete_Entry {
 
 #soley to stop multiple checkins to RDB
 sub add_lock {
-    my ($self, $usr, $family)=@_;
+    my ($self, $qusr, $family)=@_;
     my ($lock,
 	$locker,
 	$error
 	);
-
     $dbh = $self->connect('_lock'); #error raising is on
 
     eval{
@@ -339,30 +339,38 @@ sub add_lock {
 	    $userlist.="\n";
 	}
 	$self->disconnect();
-	$error= "More than one lock on the lock table-this is BAD\n
-             $userlist If you know these locks can be removed use the -remove code? remove option at check in\n";
+	$error= "More than one lock on the lock table-this is BAD\n$userlist.\n";
+	
     }
         
     #should only be one entry;
     $user=$locker->[0];
-    
-    #if already locked-disconnect      
+         
+    #if already locked-disconnect
     if ($user->[0]){
-	$self->disconnect();
-	$lock->{'status'}=undef; #already locked
-	$lock->{'locker'}=$user->[0]; 
-	$lock->{'family'}=$user->[1];
-	return $lock;
+	if( $user->[0] ne $qusr && $user->[1] ne $family){
+	    $self->disconnect();
+	    $lock->{'status'}=undef; #already locked
+	    $lock->{'locker'}=$user->[0]; 
+	    $lock->{'family'}=$user->[1];
+	    return $lock;
+	}elsif($user->[0] eq $qusr && $user->[1] eq $family){
+    	    $self->disconnect();
+	    $lock->{'status'}=1; #locked and ready to go;
+	    $lock->{'locker'}=$qusr;
+	    $lock->{'family'}=$family;
+	    return $lock;
+	}
     }else{
 	eval{
 	    my $bsth=$dbh->prepare("Insert into _lock values (?,?)");
-	    $bsth->execute($usr, $family);
+	    $bsth->execute($qusr, $family);
 	}; if ($@){
-	    $error= "Failed to add lock to rdb for $usr $@";
+	    $error= "Failed to add lock to rdb for $qusr $@";
 	}else{
 	    $self->disconnect();
 	    $lock->{'status'}=1; #locked and ready to go;
-	    $lock->{'locker'}=$usr;
+	    $lock->{'locker'}=$qusr;
 	    $lock->{'family'}=$family;;
 	    return $lock;
 	}
@@ -370,6 +378,7 @@ sub add_lock {
     }
     $self->disconnect();
     print STDERR $error if $error;
+    
 }
 
 sub remove_my_lock {
@@ -403,9 +412,8 @@ sub update_wikitext{
 	$error
 	);
 
-   
     $dbh = $self->open_transaction( 'wikitext' );
-       
+
     #prepare the queries we will need
     my $asth;
     unless( $asth = $dbh->prepare("SELECT auto_wiki FROM wikitext where title=?") ){
@@ -429,16 +437,19 @@ sub update_wikitext{
 	    $asth->execute($wk_title);
 	    my ($temp_auto) = $asth->fetchrow();
 	    $asth->finish();
- 
+
             if (defined $temp_auto){
 		$status .= "Used an existing wiki title entry";
 		$rdb_auto_wiki = $temp_auto;
 	    }
 	    else{
+		print STDERR "here\n";
 		#insert and get the new auto_wiki number;
 		$bsth->execute($wk_title);
 		$bsth->finish();
+		
 		$status="Added new title to wikitext table";
+		
 	    }
  
 	}; #end of eval
@@ -649,11 +660,13 @@ sub update_rfam_reg_full {
        $stat,
        $full_ss,
        $full_structure,
-       $full_strucure_len,
        $counter,
        $rdb_acc, 
        $rdb_id, 
        $rdb_auto_num,
+       $rdb_auto_genome,
+       $rdb_genome_start,
+       $rdb_genome_end,
        $count,
        $rdb_mode,
        $rdb_significant,
@@ -680,7 +693,6 @@ sub update_rfam_reg_full {
        #care this method loads in the full align!!
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
-       $full_strucure_len=length($full_structure);
 
        #get the evalues
        $s_evalues=$en->scores_evalue();
@@ -742,8 +754,9 @@ sub update_rfam_reg_full {
 	       $error="Problem with the rdb_full_string data\n";
 	       last;
 	   }
+
 	   #this shoulb be the same length as the ss cons line
-	   if (length($rdb_full_string) != $full_structure_len){
+	   if (length($rdb_full_string) != length($full_structure)){
 	        print STDERR "ERROR seq and cons are different lengths? check for gap columns", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the seqstring and cons are different lengths?\n";
 	       last;
@@ -785,14 +798,14 @@ sub update_rfam_reg_full {
 	   eval {
 	       $stat->execute($rdb_auto_num,
 			      $rfamseq_auto,
-			      '',
+			      $rdb_auto_genome,
 			      $reg->from, 
 			      $reg->to,
 			      $reg->bits_score,
 			      $rdb_evalue,
 			      $rdb_type,
-			      '',
-			      '',
+			      $rdb_genome_start,
+			      $rdb_genome_end,
 			      $rdb_full_string
 			      );
 	           
@@ -831,10 +844,12 @@ sub collate_large_fam_reg_full {
        $counter,
        $full_ss,
        $full_structure,
-       $full_structure_len,
        $rdb_acc, 
        $rdb_id, 
        $rdb_auto_num,
+       $rdb_auto_genome,
+       $rdb_genome_start,
+       $rdb_genome_end,
        $count,
        $rdb_mode,
        $rdb_significant,
@@ -865,7 +880,6 @@ sub collate_large_fam_reg_full {
        $rdb_auto_num = $en->auto_rfam;
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
-       $full_strucure_len=length($full_structure);
 
        #print STDERR $full_structure;
        
@@ -941,7 +955,7 @@ sub collate_large_fam_reg_full {
 	   }
 
 	   #this shoulb be the same length as the ss cons line
-	   if (length($rdb_full_string) != $full_structure_len){
+	   if (length($rdb_full_string) != length($full_structure)){
 	        print STDERR "ERROR seq and cons are different lengths? check for gap columns", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the seqstring and cons are different lengths?\n";
 	       last;
@@ -973,7 +987,7 @@ sub collate_large_fam_reg_full {
 
 	   #generate the data structure to return;
 	   #empty values=auto_genome, genome_start, genome_end
- 	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, '',  '', $rdb_full_string);
+ 	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, $rdb_auto_genome, $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, $rdb_genome_start,  $rdb_genome_end, $rdb_full_string);
 	   push (@$data, $string);
        }#end of regions for $entry;
     
