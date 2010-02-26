@@ -85,6 +85,12 @@ if (!$acc){
 if( !(-d $acc) ) {
     die "rfci: [$acc] is not a current directory.\nMust be in the parent directory of the family to check in\n";
 }
+
+if( $acc =~ /\/$/ ) {
+    $acc=~ s/\/$//g;
+}
+
+
 #need to add in this for checking the qc has been done-dont allow ci otherwise.
 #    if (! -e "$acc/qc.passed") ){
 #    die "rfci: [$acc] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
