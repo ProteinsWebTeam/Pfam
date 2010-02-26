@@ -90,11 +90,11 @@ if( !&seed_align_is_OK( $family ) ) {
 
 open( LOG, ">$family/format" ) or die;   
 if( $error ) {
-    print STDERR "$family: Your family contains errors\n\n";
-    print LOG "$family: Your family contains errors\n\n";
+    print STDERR "$family: Your family contains errors: YOU CAN NOT CHECK THIS IN\n-deal with listed the errors\n\n";
+    print LOG "$family: Your family contains errors. YOU CAN NOT CHECK THIS IN-\ndeal with the listed errors\n\n";
     exit(1);
 }
-print STDERR "$family: No errors found\n";
+print STDERR "$family: No errors found. CHECK IT IN\n";
 
 
 
