@@ -38,6 +38,45 @@ my %TP_hash = (
 		    }
 		);
 
+my $SOsuggestions="Common SO mappings:
+         our standard for cis reg: 
+           DR   SO:0005836 SO:regulatory_region
+         our standard for gene:
+           DR   SO:0001263 SO:ncRNA_gene
+         riboswitches
+           DR   SO:0000035 SO:riboswitch
+         CRISPR:
+           DR   SO:0001459 SO:CRISPR
+         5' and 3' UTR elements
+           DR   SO:0000204 SO:five_prime_UTR
+           DR   SO:0000205 SO:three_prime_UTR
+         microRNA
+           DR   SO:0001244 SO:pre_miRNA
+         snoRNAs
+         CD and haca:
+           DR   SO:0000594 SO:H_ACA_box_snoRNA
+           DR   SO:0000593 SO:C_D_box_snoRNA
+         Cajal body:
+           DR   SO:0000275 SO:snoRNA
+         or look up:
+            http://www.sequenceontology.org/cgi-bin/miso.cgi
+        ";
+
+my $GOsuggestions="Common GO mappings:
+         microRNA:
+           DR   GO:0035195 GO:miRNA-mediated gene silencing
+           DR   GO:0035068 GO:micro-ribonucleoprotein complex
+         snoRNAs
+         CD and haca:
+           DR   GO:0006396 GO:RNA processing
+           DR   GO:0005730 GO:nucleolus
+         Cajal body:
+           DR   GO:0015030 GO:Cajal body
+         or look up: 
+           http://www.geneontology.org/
+        ";
+
+
 my $error;
 if( !&check_timestamps( $family ) ) {
     $error = 1;
@@ -51,8 +90,8 @@ if( !&seed_align_is_OK( $family ) ) {
 
 open( LOG, ">$family/format" ) or die;   
 if( $error ) {
-    print STDERR "$family: Your family contains errors\n";
-    print LOG "$family: Your family contains errors\n";
+    print STDERR "$family: Your family contains errors\n\n";
+    print LOG "$family: Your family contains errors\n\n";
     exit(1);
 }
 print STDERR "$family: No errors found\n";
@@ -533,12 +572,11 @@ sub desc_is_OK {
     }
  
     if (! defined $SOstring ){
-	warn "$family: There are no SO mappings for this family. SERIOUS ERROR\n";
+	warn "$family: There are no SO mappings for this family. SERIOUS ERROR\n$SOsuggestions\n\n";
 	$error=1;
     }
     if (! defined $GOstring ){
-	warn "$family: There are no GO mappings for this family. SERIOUS ERROR\n";
-	#$error=1;
+	warn "$family: There are no GO mappings for this family.\n$GOsuggestions\n\n";
     }
     
 
