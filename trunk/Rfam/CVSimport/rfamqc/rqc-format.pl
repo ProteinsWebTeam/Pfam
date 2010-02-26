@@ -94,7 +94,7 @@ if( $error ) {
     print LOG "$family: Your family contains errors. YOU CAN NOT CHECK THIS IN-\ndeal with the listed errors\n\n";
     exit(1);
 }
-print STDERR "$family: No errors found. CHECK IT IN\n";
+print STDERR "$family: No errors found\n";
 
 
 
