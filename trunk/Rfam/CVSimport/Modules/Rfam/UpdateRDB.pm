@@ -570,7 +570,9 @@ sub update_rfam{
 	   $rdb_GA = $en->gathering_cutoff();
 	   $rdb_TC = $en->trusted_cutoff();
 	   $rdb_NC = $en->noise_cutoff();
-	      
+	   if ( $rdb_NC eq 'undefined'){
+	      undef $rdb_NC; 
+	   }
 	   $rdb_previous_ids = $en->previous_ids();
 	   $rdb_source = $en->source();
 	   $rdb_structure_source = $en->structure_source();
