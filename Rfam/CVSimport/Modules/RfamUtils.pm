@@ -18,6 +18,7 @@ use vars qw( @ISA
 
 @ISA    = qw( Exporter );
 
+
 ######################################################################
 
 ######################################################################
@@ -645,6 +646,8 @@ RT
 		    if (defined $ref->{$rTag} && length($ref->{$rTag})>0){
 			$ref->{$rTag} =~ s/\t/ /g;
 			print $fp "$rTag   " . $ref->{$rTag} . "\n";
+			$ref->{$rTag}=~s/\s+$//g; #trailing spaces
+			$ref->{$rTag}=~s/\t+$//g; #trailing tabs
 			print STDERR "WARNING: a tab character or a terminal whitespace is screwing up one of your $rTag lines in your DESC file!\n" if ($ref->{$rTag}=~/\s$/ || $ref->{$rTag}=~/\t/);
 		    }
 		    else {
@@ -656,7 +659,9 @@ RT
 	else {
 	    #All the other tags are fairly easy to take care of:
 	    if (defined $desc->{$t} && length($desc->{$t})>0){
-		$desc->{$t} =~ s/\t/ /g;
+		$desc->{$t} =~s/\t/ /g;
+		$desc->{$t} =~s/\t$//g;
+		$desc->{$t} =~s/\s+$//g;
 		if ($t eq 'GA' || $t eq 'TC' || $t eq 'NC'){#Thresholds are slightly awkward:
 		    if(isNumeric($desc->{$t})){
 			printf $fp "$t   %0.2f\n", $desc->{$t};
