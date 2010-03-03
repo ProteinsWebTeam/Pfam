@@ -93,9 +93,7 @@ sub updateClanMembership {
         auto_clan  => $autoClan,
         auto_pfama => $autoPfamA
       },
-      { 
-        key => 'clanMembConst'
-      }
+      { key => 'clanMembConst' }
     );
   }
   else {
@@ -149,54 +147,57 @@ sub removeClan {
 
 #TODO
 sub updateClan {
-  my( $self, $clanObj) = @_;
-  
+  my ( $self, $clanObj ) = @_;
+
   unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
-  
-  my $clan = $self->getSchema
-                  ->resultset('Clans')->find( { clan_acc => $clanObj->DESC->AC } );
-  $clan->update({
-      clan_acc         => $clanObj->DESC->AC,
-      clan_id          => $clanObj->DESC->ID,
-      previous_id      => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+
+  my $clan =
+    $self->getSchema->resultset('Clans')
+    ->find( { clan_acc => $clanObj->DESC->AC } );
+  $clan->update(
+    {
+      clan_acc    => $clanObj->DESC->AC,
+      clan_id     => $clanObj->DESC->ID,
+      previous_id => defined( $clanObj->DESC->PI ) ? $clanObj->DESC->PI : '',
       clan_description => $clanObj->DESC->DE,
       clan_author      => $clanObj->DESC->AU,
-      clan_comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
-    });
-  
+      clan_comment => defined( $clanObj->DESC->CC ) ? $clanObj->DESC->CC : '',
+    }
+  );
+
   #Add the auto number to the clan Obj.
   $clanObj->rdb( { auto => $clan->auto_clan } );
 }
 
 sub createClan {
-  my( $self, $clanObj, $depositor) = @_;
-  
+  my ( $self, $clanObj, $depositor ) = @_;
+
   unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
-  
+
   my $clan = $self->getSchema->resultset('Clans')->create(
     {
-      clan_acc         => $clanObj->DESC->AC,
-      clan_id          => $clanObj->DESC->ID,
-      previous_id      => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+      clan_acc    => $clanObj->DESC->AC,
+      clan_id     => $clanObj->DESC->ID,
+      previous_id => defined( $clanObj->DESC->PI ) ? $clanObj->DESC->PI : '',
       clan_description => $clanObj->DESC->DE,
       clan_author      => $clanObj->DESC->AU,
       deposited_by     => $depositor,
-      clan_comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
-      created          => \'NOW()',
-      competed         => 0
-    });
-  
+      clan_comment => defined( $clanObj->DESC->CC ) ? $clanObj->DESC->CC : '',
+      created      => \'NOW()',
+      competed     => 0
+    }
+  );
+
   unless ( $clan and $clan->isa('PfamLive::Clans') ) {
     confess( 'Failed to get row for ' . $clanObj->DESC->ID . "....." );
   }
 
   #Add the auto number to the clan Obj.
   $clanObj->rdb( { auto => $clan->auto_clan } );
-  
 
 }
 
@@ -248,9 +249,9 @@ sub updatePfamA {
 
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
-  
-  if($famObj->DESC->CL){
-     $self->resetClanCompeteFlag($famObj->DESC->CL); 
+
+  if ( $famObj->DESC->CL ) {
+    $self->resetClanCompeteFlag( $famObj->DESC->CL );
   }
 
 }
@@ -294,17 +295,16 @@ sub createPfamA {
     }
   );
 
-
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
   }
 
   #Add the auto number to the famObj.
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
-  
-  #If the family is part of a 
-  if($famObj->DESC->CL){
-     $self->resetClanCompeteFlag($famObj->DESC->CL); 
+
+  #If the family is part of a
+  if ( $famObj->DESC->CL ) {
+    $self->resetClanCompeteFlag( $famObj->DESC->CL );
   }
 }
 
@@ -357,12 +357,12 @@ sub deleteClan {
     confess( 'Failed to get row for ' . $clanAcc . "( Got $clan )....." );
   }
   my $clanMembership = $self->getClanMembership($clanAcc);
-  
+
   my $memberString;
-  foreach my $mem (@$clanMembership){
-    $memberString .= $mem->auto_pfama->pfama_acc." ";    
+  foreach my $mem (@$clanMembership) {
+    $memberString .= $mem->auto_pfama->pfama_acc . " ";
   }
-  
+
   $clan->delete;
 
   #Now make the dead_clans entry
@@ -673,21 +673,19 @@ sub updateNcbiPfamA {
 
   my $auto;
 
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+  my $pfamA =
+    $self->getSchema->resultset('Pfama')
+    ->find( { pfamA_id => $famObj->DESC->ID } );
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
+  if ( $pfamA->pfama_id ) {
+    $auto = $pfamA->auto_pfama;
+  }
+  else {
+    confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+  }
 
-
-  $self->getSchema->resultset('NcbiPfamaReg')
-    ->search( { auto_pfama => $auto } )->delete;
-
+  $self->getSchema->resultset('NcbiPfamaReg')->search( { auto_pfama => $auto } )
+    ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
 
@@ -705,39 +703,28 @@ sub updateNcbiPfamA {
      domain_evalue_score,  
      sequence_bits_score,  
      sequence_evalue_score)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  );
 
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
 
-      if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
+    if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
 
+      foreach my $u ( @{ $seq->hmmUnits } ) {
 
-	  foreach my $u ( @{ $seq->hmmUnits } ) {
-	      
-	      #Is it significant dom?
-	      if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
-		  $upSth->execute(
-				  $auto,
-				  $seq->name,
-				  $u->envFrom,
-				  $u->envTo,
-				  $u->seqFrom,
-				  $u->seqTo,
-				  $u->hmmFrom,
-				  $u->hmmTo,
-				  $u->bits,
-				  $u->evalue,
-				  $seq->bits,
-				  $seq->evalue,				  				  				  
-				  );
-		  
-	      }	      	      	      
-	  }
-      }      
+        #Is it significant dom?
+        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+          $upSth->execute(
+            $auto,       $seq->name, $u->envFrom, $u->envTo,
+            $u->seqFrom, $u->seqTo,  $u->hmmFrom, $u->hmmTo,
+            $u->bits,    $u->evalue, $seq->bits,  $seq->evalue,
+          );
+
+        }
+      }
+    }
   }
 }
-
 
 sub updateMetaPfamA {
 
@@ -755,45 +742,44 @@ sub updateMetaPfamA {
 
   my $auto;
 
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+  my $pfamA =
+    $self->getSchema->resultset('Pfama')
+    ->find( { pfamA_id => $famObj->DESC->ID } );
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
+  if ( $pfamA->pfama_id ) {
+    $auto = $pfamA->auto_pfama;
+  }
+  else {
+    confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+  }
 
-
-
-  my @oldRegions =
-    $self->getSchema->resultset('MetaPfamaReg')->search ({ auto_pfama => $auto },
-    { select => [qw(me.auto_metaseq metaseq_acc)],
+  my @oldRegions = $self->getSchema->resultset('MetaPfamaReg')->search(
+    { auto_pfama => $auto },
+    {
+      select => [qw(me.auto_metaseq metaseq_acc)],
       as     => [qw( auto_metaseq metaseq_acc)],
       join   => [qw(auto_metaseq)]
     }
-    );
+  );
 
   #Get mapping of auto_metaseq to metaseq_acc
   my %seqacc2auto;
   foreach my $r (@oldRegions) {
-      $seqacc2auto{ $r->get_column('metaseq_acc') } = $r->get_column('auto_metaseq');
+    $seqacc2auto{ $r->get_column('metaseq_acc') } =
+      $r->get_column('auto_metaseq');
   }
- 
 
-  my $metaseq = $self->getSchema->resultset('Metaseq')
-      ->find( { metaseq_acc => $famObj->DESC->ID } );
+  my $metaseq =
+    $self->getSchema->resultset('Metaseq')
+    ->find( { metaseq_acc => $famObj->DESC->ID } );
 
-
-  $self->getSchema->resultset('MetaPfamaReg')
-    ->search( { auto_pfama => $auto } )->delete;
-
+  $self->getSchema->resultset('MetaPfamaReg')->search( { auto_pfama => $auto } )
+    ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
 
-  my $seq_sth = $dbh->prepare('select auto_metaseq from metaseq where metaseq_acc = ? ');
+  my $seq_sth =
+    $dbh->prepare('select auto_metaseq from metaseq where metaseq_acc = ? ');
 
   my $upSth = $dbh->prepare(
     'INSERT INTO meta_pfamA_reg
@@ -809,8 +795,8 @@ sub updateMetaPfamA {
      domain_evalue_score,  
      sequence_bits_score,  
      sequence_evalue_score)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+  );
 
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
 
@@ -823,40 +809,26 @@ sub updateMetaPfamA {
       $seq_sth->execute( $seq->name );
       my $row = $seq_sth->fetchrow_arrayref;
       unless ($row) {
-        confess( "Failed to find entry in metaseq for "
-            . $seq->name . "\n" );
+        confess( "Failed to find entry in metaseq for " . $seq->name . "\n" );
       }
       $sauto = $row->[0];
     }
 
+    if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
 
+      foreach my $u ( @{ $seq->hmmUnits } ) {
 
+        #Is it significant dom?
+        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+          $upSth->execute(
+            $auto,       $sauto,     $u->envFrom, $u->envTo,
+            $u->seqFrom, $u->seqTo,  $u->hmmFrom, $u->hmmTo,
+            $u->bits,    $u->evalue, $seq->bits,  $seq->evalue,
+          );
 
-      if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
-
-
-	  foreach my $u ( @{ $seq->hmmUnits } ) {
-	      
-	      #Is it significant dom?
-	      if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
-		  $upSth->execute(
-				  $auto,
-				  $sauto,
-				  $u->envFrom,
-				  $u->envTo,
-				  $u->seqFrom,
-				  $u->seqTo,
-				  $u->hmmFrom,
-				  $u->hmmTo,
-				  $u->bits,
-				  $u->evalue,
-				  $seq->bits,
-				  $seq->evalue,				  				  				  
-				  );
-		  
-	      }	      	      	      
-	  }
-      }      
+        }
+      }
+    }
   }
 }
 
@@ -1130,20 +1102,40 @@ sub updateEdits {
         'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
     }
 
-    $self->getSchema->resultset('Edits')->create(
-      {
-        auto_pfama     => $auto,
-        auto_pfamseq   => $seq->auto_pfamseq,
-        pfamseq_acc    => $seq->pfamseq_acc,
-        seq_version    => $seq->seq_version,
-        original_start => $n->{oldFrom},
-        original_end   => $n->{oldTo},
-        new_start      => $n->{newFrom} ? $n->{newFrom} : '\N',
-        new_end        => $n->{newTo} ? $n->{newTo} : '\N'
-      }
-    );
+    if (  $n->{newFrom}
+      and $n->{newTo}
+      and $n->{newFrom} >= 1
+      and $n->{newTo} > 1 )
+    {
+      $self->getSchema->resultset('Edits')->create(
+        {
+          auto_pfama     => $auto,
+          auto_pfamseq   => $seq->auto_pfamseq,
+          pfamseq_acc    => $seq->pfamseq_acc,
+          seq_version    => $seq->seq_version,
+          original_start => $n->{oldFrom},
+          original_end   => $n->{oldTo},
+          new_start      => $n->{newFrom},
+          new_end        => $n->{newTo}
+        }
+      );
+    }
+    else {
+      $self->getSchema->resultset('Edits')->create(
+        {
+          auto_pfama     => $auto,
+          auto_pfamseq   => $seq->auto_pfamseq,
+          pfamseq_acc    => $seq->pfamseq_acc,
+          seq_version    => $seq->seq_version,
+          original_start => $n->{oldFrom},
+          original_end   => $n->{oldTo},
+        }
+      );
+    }
+
   }
 }
+
 
 sub uploadPfamAHMM {
   my ( $self, $famObj, $hmmString ) = @_;
@@ -1235,8 +1227,6 @@ sub uploadAlignmentAndTrees {
   );
 
 }
-
-
 
 sub updateClanDbXrefs {
   my ( $self, $clanObj ) = @_;
@@ -1347,11 +1337,10 @@ sub updateClanLitRefs {
   }
 }
 
-
 sub uploadPfamAInternal {
   my ( $self, $famObj, $seedString, $fullString ) = @_;
-  
-  #-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
 #Check we have the correct object
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
@@ -1382,42 +1371,45 @@ sub uploadPfamAInternal {
   $self->getSchema->resultset('PfamaInternal')->update_or_create(
     {
       auto_pfama => $auto,
-      seed       => defined( $seedString ) ? Compress::Zlib::memGzip($seedString) : '',
-      full       => defined( $fullString ) ? Compress::Zlib::memGzip($fullString) : '',
+      seed => defined($seedString) ? Compress::Zlib::memGzip($seedString) : '',
+      full => defined($fullString) ? Compress::Zlib::memGzip($fullString) : '',
     }
   );
 }
 
 sub resetInFull {
-  my ( $self, $auto ) = @_;  
-  
+  my ( $self, $auto ) = @_;
+
   my @regions =
-    $self->getSchema->resultset('PfamaRegFullSignificant')->search(
-    { auto_pfama => $auto } );
-  
-  foreach my $r (@regions){
-    $r->update( {in_full => 1 });
+    $self->getSchema->resultset('PfamaRegFullSignificant')
+    ->search( { auto_pfama => $auto } );
+
+  foreach my $r (@regions) {
+    $r->update( { in_full => 1 } );
   }
-    
+
 }
 
 sub resetClanCompeteFlag {
-  my ($self, $clan) = @_;
-  
+  my ( $self, $clan ) = @_;
+
   my $clanData;
-  if($clan =~ /^(\d+)$/){
+  if ( $clan =~ /^(\d+)$/ ) {
+
     #Looks like an auto incremeneted key
-    my $clanData = $self->getSchema->resultset("Clans")->find( { "auto_clan" => $clan } );
-  }else{
+    my $clanData =
+      $self->getSchema->resultset("Clans")->find( { "auto_clan" => $clan } );
+  }
+  else {
     $clanData = $self->getClanData($clan);
-  } 
-  
-  unless($clanData->isa('PfamLive::Clans')){
+  }
+
+  unless ( $clanData->isa('PfamLive::Clans') ) {
     croak("Failed to get a clan row obkect for $clan");
   }
-  
-  $clanData->update({competed => 0});
-  
+
+  $clanData->update( { competed => 0 } );
+
 }
 
 =head1 COPYRIGHT
