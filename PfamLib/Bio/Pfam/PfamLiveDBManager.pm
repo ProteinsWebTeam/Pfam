@@ -1138,8 +1138,8 @@ sub updateEdits {
         seq_version    => $seq->seq_version,
         original_start => $n->{oldFrom},
         original_end   => $n->{oldTo},
-        new_start      => $n->{newFrom} ? $n->{newFrom} : '',
-        new_end        => $n->{newTo} ? $n->{newTo} : ''
+        new_start      => $n->{newFrom} ? $n->{newFrom} : '\N',
+        new_end        => $n->{newTo} ? $n->{newTo} : '\N'
       }
     );
   }
