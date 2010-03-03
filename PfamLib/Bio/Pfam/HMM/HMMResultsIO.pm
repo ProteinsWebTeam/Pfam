@@ -904,8 +904,8 @@ sub writeScoresFile {
     or confess "Could not open " . $self->scores . ":[$!]\n";
 
   my ( $lowSeq, $lowDom, $highSeq, $highDom );
-  $lowSeq  = $lowDom  = 1000000;
-  $highSeq = $highDom = -1000000;
+  $lowSeq  = $lowDom  =  999999.99;
+  $highSeq = $highDom = -999999.99;
   unless ( defined $hmmRes->domThr and defined $hmmRes->seqThr ) {
     warn "No threshold set, setting to 25.0 bits\n";
     $hmmRes->domThr("25.0");
