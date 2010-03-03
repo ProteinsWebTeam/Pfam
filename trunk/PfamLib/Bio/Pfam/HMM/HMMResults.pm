@@ -324,7 +324,7 @@ sub lowestTrue {
     }
     #Set it wildly high!
     my ($lowSeq, $lowDom);
-    $lowSeq = $lowDom = 1000000;  
+    $lowSeq = $lowDom = 999999.99;  
     
     foreach my $seqId (keys %{$self->seqs} ){ 
       if($self->seqs->{$seqId}->bits >= $self->seqThr){
@@ -371,7 +371,7 @@ sub highestNoise {
     
     #Set it wildly low
     my ($highSeq, $highDom);
-    $highSeq = $highDom = -1000000;  
+    $highSeq = $highDom = -999999.99;  
     
     foreach my $seqId (keys %{$self->seqs} ){
       
