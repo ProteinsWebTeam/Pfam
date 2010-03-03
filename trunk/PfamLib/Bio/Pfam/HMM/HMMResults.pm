@@ -423,7 +423,7 @@ sub applyEdits {
               }
             }else{
               #Set the score so low it will never get in the align
-              $u->bits(-1000000);
+              $u->bits(-999999.99);
             }
             last;    
           }  
