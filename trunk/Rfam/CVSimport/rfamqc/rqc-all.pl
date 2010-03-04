@@ -18,10 +18,10 @@ my ($full, $family);
 $family=shift;
 
 #rqc-passed file
-my $out="$pwd/$family/qc.passed";
+my $out="$pwd/$family/qcpassed";
 
 if (-e "$out"){
-    print STDERR "qc.passed file already exists-removing it\n";
+    print STDERR "qcpassed file already exists-removing it\n";
     copy($out, $out.'old') ;
     unlink("$out");
 }
@@ -71,7 +71,7 @@ if ($error){
     print STDERR "\n\n****Family failed rqc-all checks:YOU CANNOT CHECK IT IN****\n";
     close (ERR);
 }else{
-    open(OUT, ">$pwd/$family/qc.passed") || die "Cant open $pwd/$family/qc.passed $!";
+    open(OUT, ">$out") || die "Cant open $out $!";
     print OUT "\nFamily passed with no serious errors\n\n";
     print STDERR "\n\n===Report summaries for each check below===\n";
     open (ERR, "<$errlog") || die "Cant open the error logs\n";
