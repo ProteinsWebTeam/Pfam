@@ -58,6 +58,7 @@ if ( !(-e "$family_dir/$file")){
     exit(1);    
 }
 
+my $error;
 $file = "$family_dir/$file";
 open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
 
@@ -102,10 +103,29 @@ my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
 my @list = $seed->each_seq();
-my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
+
+open(SD, "<$file") || die "cant read in the seed file to get the sscons lines$!";
+my @seedlines=<SD>;
+chomp @seedlines;
+close(SD);
+
+my @cons=grep{/cons/} @seedlines;
+my $ss_cons;
+foreach my $c (@cons){
+    $c=~s/^.*\s+//g;
+    $ss_cons.=$c;
+}
+#dont use this as it removes the unbalanced base pairs from the ss_cons line
+#my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
+
 
 #Make a pair table & initialise hashes:
 my @table = make_pair_table($ss_cons);
+if (! @table){
+    print STDERR "Problem with making the basepair table;";
+    exit(1);
+}
+
 my $noseqs = scalar(@list);
 my $len = $table[0];
 my ($loop, $nopairs) = (0,0);
@@ -148,7 +168,8 @@ if ($nopairs==0){
 }
 
 if (scalar(@list)<2){
-    printf STDERR "WARNING: $shortname_family_dir is boring and less than two sequences! Computing base-pair stats only.\n";
+    printf STDERR "WARNING: $shortname_family_dir is boring and less than two sequences!\n";
+    exit(1);
 }
 
 my @list2 = @list;
@@ -257,6 +278,7 @@ foreach my $seqobj ( @list ) {
 	}
 	else {
 	    printf STDERR "WARNING: $shortname_family_dir $seqname has length \'$len1\' and $seqname2 has length \'$len2\' in $family_dir/SEED!\n";
+	    exit (1);
 	}
 	
 	$mean_pid += $pid;
@@ -378,7 +400,7 @@ if ($noseqs>0 && $nopairs>0){
 	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	else {
-	    printf "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
+	    printf STDERR "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	
 	if ($perbasepair{$bpposns}<$threshold){
@@ -398,7 +420,7 @@ if( ! defined $nolog ) {
     printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;    
 }
 else {
-    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
+    printf STDERR "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
 }
 
 close(LOGpb);
@@ -420,9 +442,9 @@ close(LOGps);
 #                 (8,0,8,7,0,0,0,3,2)
 ######################################################################
 sub make_pair_table {
-
-    my $str = shift;
     
+    my $str = shift;
+
     my $unbalanced = 0;
     my %bpsymbs5p3p = (
 	'(' => ')',
@@ -506,10 +528,11 @@ sub make_pair_table {
 	    $bpsymbs3p5p_counts{$char}++;
 	}
        	else {
+	    $unbalanced=1;
 	    printf STDERR "Strange character \"$char\" in secondary structure:\n$str\n";
 	}
     }
-    
+
     #Check basepair symbols are all matched:
     foreach my $symb5p (keys %bpsymbs5p3p_counts){
 	my $symb3p = $bpsymbs5p3p{$symb5p};
@@ -520,12 +543,13 @@ sub make_pair_table {
 	}
     }
     
-    
+
     if ($count != 0 || $unbalanced){
-	printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
+	printf STDERR "Unbalanced basepair symbols/or strange chars  in secondary structure:\n$str\n";
 	return ();
     }    
     else {
+	print STDERR "SScons is fine\n";
 	return @pair_table;
     }
     
