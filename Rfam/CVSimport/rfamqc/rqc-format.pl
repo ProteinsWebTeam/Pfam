@@ -45,6 +45,8 @@ my $SOsuggestions="Common SO mappings:
            DR   SO:0001263 SO:ncRNA_gene
          riboswitches
            DR   SO:0000035 SO:riboswitch
+         ribozyme
+           DR   SO:0000374 SO:ribozyme
          CRISPR:
            DR   SO:0001459 SO:CRISPR
          5' and 3' UTR elements
