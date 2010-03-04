@@ -90,11 +90,21 @@ if( $acc =~ /\/$/ ) {
     $acc=~ s/\/$//g;
 }
 
+my $dir=cwd;
 
 #need to add in this for checking the qc has been done-dont allow ci otherwise.
-#    if (! -e "$acc/qc.passed") ){
-#    die "rfci: [$acc] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
-#    }
+    if (! -e "$dir/$acc/qcpassed") {
+    die "rfci: [$acc] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
+    }
+#check qc.passed is older than the relevant files
+    
+ if( (-M "$dir/$acc/DESC" < -M "$dir/$acc/qcpassed") ||
+     (-M "$dir/$acc/SEED" < -M "$dir/$acc/qcpassed") ||
+     (-M "$dir/$acc/OUTPUT" < -M "$dir/$acc/qcpassed") ||
+     (-M "$dir/$acc/out.list" < -M "$dir/$acc/qcpassed")
+    ) {
+        die "You need to rerun the rqc-all.pl as at least one of DESC/SEED/OUTPUT/out.list has changed since you ran it last\n";
+ }
 
 ####
 
@@ -134,7 +144,6 @@ if( $haslocked == 0 ) {
 }
 
 #check the DESC 
-my $dir=cwd;
 my $DESC="$dir/$acc/DESC";
 my $desc;
 if (-s "$DESC"){
