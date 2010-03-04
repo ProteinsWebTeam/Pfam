@@ -187,9 +187,9 @@ sub get_alignment {
   }
     
     # now markup the alignment using this consensus;
-    my $markups = $self->markup_alignment( $alignment, $consensus );
+    my ( $storeAlignment, $markups ) = $self->markup_alignment( $alignment, $consensus );
     
-    return $markups;
+    return $storeAlignment, $markups;
     
 #  }else{
 #    my @rawAlignments;
@@ -223,17 +223,17 @@ sub markup_alignment{
 #  unless ( defined $consensus ){
 #    $consensus = [];
 #  }
-  
+  my %rawAlignments;
   foreach( keys %{ $alignment->[ 0 ] } ){
-    
+    $rawAlignments{ $_ } = $alignment->[0]->{ $_ };
     my( $acc, $align ) = Bio::Pfam::ColourAlign::markupAlignSingle( $_, $alignment->[0]->{ $_ }, $consensus, $row_num  );
     #$markedUpAlignments{ $acc } = $align;
     push @markedUpAlignments ,[ $acc, $align ];
     $row_num++;
-    #print STDERR "the dump of the acc in markupalignsinlge is $_\n";
+    print STDERR "the dump of the acc in markupalignsinlge is $_\n";
   }
   
-  return \@markedUpAlignments;
+  return \%rawAlignments, \@markedUpAlignments;
 }
 
 #------------------------------------------------------------------------------
