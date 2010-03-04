@@ -88,13 +88,12 @@ if( !&seed_align_is_OK( $family ) ) {
     $error = 1;
 }
 
-open( LOG, ">$family/format" ) or die;   
+#open( LOG, ">$family/format" ) or die;   
 if( $error ) {
-    print STDERR "$family: Your family contains errors: YOU CAN NOT CHECK THIS IN\n-deal with listed the errors\n\n";
-    print LOG "$family: Your family contains errors. YOU CAN NOT CHECK THIS IN-\ndeal with the listed errors\n\n";
+    print STDERR "FORMAT:$family: Serious format errors: YOU CAN NOT CHECK THIS IN-deal with listed the errors\n\n";
     exit(1);
 }
-print STDERR "$family: No errors found\n";
+print STDERR  "FORMAT:$family: No serious format errors found\n";
 
 
 
@@ -273,32 +272,38 @@ sub desc_is_OK {
 		if (/^TP   (\w+.*)/){
 		    $TP = "$1 ";
 		}
+	
+		if ($TP !~/\; $/){
+		    warn  "Failed TP line: no terminal semicolon";
+		}
+
 		my @TPline = split /; /, $TP;
+      
 		foreach my $element (@TPline){
 		    $i++;
 		}
 		if ($i == 1){
 		    unless (exists $TP_hash{$TPline[0]}){
-			print "$family: Invalid TP line: $TP\n";
+			warn "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
 		
 		elsif ($i == 2){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]} ){
-			print "$family: Invalid TP line: $TP\n";
+			warn "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
 		elsif ($i == 3){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
-			print "$family: Invalid TP line: $TP\n";
+			warn "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
 		elsif ($i == 4){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}->{$TPline[3]}){
-			print "$family: Invalid TP line: $TP\n";
+			warn "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
@@ -576,7 +581,7 @@ sub desc_is_OK {
 	$error=1;
     }
     if (! defined $GOstring ){
-	warn "$family: There are no GO mappings for this family.\n$GOsuggestions\n\n";
+	warn "Note:There are no GO mappings for this family-have you tried to add any?.\n$GOsuggestions\n\n";
     }
     
 
