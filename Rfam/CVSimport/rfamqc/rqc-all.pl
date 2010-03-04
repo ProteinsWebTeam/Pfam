@@ -42,12 +42,12 @@ if ($format){ $error=1; print STDERR "\t--errors" } else{ print STDERR "\t--form
 
 print STDERR "\n(2) OVERLAP CHECK - ignoring $family\n";
 system ("echo '\n**OVERLAP ERRS**\n' >> $errlog");
-my $overlap=system ("~rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
+my $overlap=system ("rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
 if ($overlap){ $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--overlap check completed with no major errors";}
 
 print STDERR "\n(3) STRUCTURE CHECK\n";
 system ("echo '\n**SSCONS ERRS**\n' >> $errlog");
-my $sscons=system ("~rqc-ss-cons.pl $family  1>> $outlog 2>> $errlog");
+my $sscons=system ("rqc-ss-cons.pl $family  1>> $outlog 2>> $errlog");
 if ($sscons) { $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--sscons check completed with no major errors";}
 
 print STDERR "\n(4) MISSING CHECK\n";
