@@ -37,27 +37,27 @@ my $outlog="$pwd/$family/format.stdout.$$";
 
 print STDERR "\n(1) FORMAT CHECK\n";
 system ("echo '\n**FORMAT ERRS**\n' > $errlog");
-$format=system("~/scripts/rfamqc/rqc-format.pl  $family 1>> $outlog 2>> $errlog");
+$format=system("rqc-format.pl  $family 1>> $outlog 2>> $errlog");
 if ($format){ $error=1; print STDERR "\t--errors" } else{ print STDERR "\t--format check completed with no major errors";}
 
 print STDERR "\n(2) OVERLAP CHECK - ignoring $family\n";
 system ("echo '\n**OVERLAP ERRS**\n' >> $errlog");
-my $overlap=system ("~/scripts/rfamqc/rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
+my $overlap=system ("~rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
 if ($overlap){ $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--overlap check completed with no major errors";}
 
 print STDERR "\n(3) STRUCTURE CHECK\n";
 system ("echo '\n**SSCONS ERRS**\n' >> $errlog");
-my $sscons=system ("~/scripts/rfamqc/rqc-ss-cons.pl $family  1>> $outlog 2>> $errlog");
+my $sscons=system ("~rqc-ss-cons.pl $family  1>> $outlog 2>> $errlog");
 if ($sscons) { $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--sscons check completed with no major errors";}
 
 print STDERR "\n(4) MISSING CHECK\n";
 system ("echo '\n**MISSING ERRS**\n' >> $errlog");
-my $missing=system ("~/scripts/rfamqc/rqc-check.pl $family  1>> $outlog 2>> $errlog");
+my $missing=system ("rqc-check.pl $family  1>> $outlog 2>> $errlog");
 if ($missing) { $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--missings check completed";}
 
 print STDERR "\n(45) SEQUENCE CHECK\n";
 system ("echo '\n**SEQUENCE ERRS**\n' >> $errlog");
-my $seqs=system ("~/scripts/rfamqc/rqc-seqs.pl $family  1>> $outlog 2>> $errlog");
+my $seqs=system ("rqc-seqs.pl $family  1>> $outlog 2>> $errlog");
 if ($seqs) { $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--sequence check completed with no major errors\n";}
 
 
