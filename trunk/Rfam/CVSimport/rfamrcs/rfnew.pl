@@ -79,6 +79,28 @@ if( &RfamQC::id_exists( $id ) ) {
     die "rfnew: Family [$id] already exists.\nIf this is an existing family, check in the revision using rfc
 i\n";
 }
+###############################
+#check for the qc.passed file
+
+my $dir=cwd;
+
+#need to add in this for checking the qc has been done-dont allow ci otherwise.
+    if (! -e "$dir/$id/qcpassed" ){
+    die "rfci: [$id] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
+    }
+#check qc.passed is older than the relevant files
+ 
+ if( (-M "$dir/$id/DESC" < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/SEED" < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/OUTPUT" < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/out.list" < -M "$dir/$id/qcpassed")
+    ) {
+        die "You need to rerun the rqc-all.pl as at least one of DESC/SEED/OUTPUT/out.list has changed since you ran it last\n";
+ }
+
+
+
+
 
 ################################
 
