@@ -31,7 +31,7 @@ var LiveGridMetaData = Class.create( {
     this.options = {
       largeBufferSize: 4.0,
       smallBufferSize: 1.0,
-      nearLimitFactor: 0.2
+      nearLimitFactor: 0.1
     }
     
     Object.extend( this.options, options || {} );
@@ -299,7 +299,8 @@ var LiveGridBuffer = Class.create( {
     this.metaData = metaData;
     this.rows     = new Array();
     this.updateInProgress = false;
-
+    
+    this.alignments = new Hash();
     // console.log( "(5)LiveGridBuffer.initialize: end" );
   },
 
@@ -312,6 +313,10 @@ var LiveGridBuffer = Class.create( {
     this.startPos = parseInt(start);
     this.rows     = ajaxResponse.responseJSON.json.rows;
     this.size     = this.rows.length;
+    
+    // now I am adding the alignments to the object for retrieving;
+    this.alignments = ajaxResponse.responseJSON.storeAlignments;
+    //console.log( "the alignments are "+this.alignments );
     // console.log( "(17.2.2) LiveGridBuffer.update: end the size is "+this.size );
 /*
     try { 
@@ -440,8 +445,10 @@ var LiveGridBuffer = Class.create( {
     return this.rows.slice( begPos, endPos );
 
     // // console.log( "LiveGridBuffer.getRows: end" );
-  }
+  },
 
+  //----------------------------------------------------------------------------
+  
 } );
 
 
@@ -692,7 +699,7 @@ var LiveGrid = Class.create( {
     // console.log( "(17.4.3) set the displayed pos from | %d | to | %d |", this.lastDisplayedStartPos, startPos );
     this.lastDisplayedStartPos = startPos;
     
-    var outputDiv = new Element( "div", { id: "output" } );
+//    var outputDiv = new Element( "div", { id: "output" } );
 //
 //    var accessionsDiv = new Element( "div", { id: "accessions" } );
 //    var sequencesDiv  = new Element( "div", { id: "sequences" } );
@@ -704,11 +711,11 @@ var LiveGrid = Class.create( {
     accessionsDiv.update();
     sequencesDiv.update();
     
-    outputDiv.appendChild( accessionsDiv );
-    outputDiv.appendChild( sequencesDiv );    
+//    outputDiv.appendChild( accessionsDiv );
+//    outputDiv.appendChild( sequencesDiv );    
     
     var rows = this.buffer.getRows( startPos, this.metaData.getPageSize() );
-
+    
     for (var i = 0, len = rows.length; i < len; ++i ) {
       var row = rows[i];
       var className = i % 2 ? "odd" : "even";
@@ -746,13 +753,16 @@ var LiveGrid = Class.create( {
       sequencesDiv.appendChild( seqDiv );
     }
     
-    this.grid.update( outputDiv );
+    //this.grid.update( outputDiv );
+    
+    // store the alignmnets here;
+    this.alignments = this.buffer.alignments;
     
     // we know the previous position of the scroller, set that so that user wouldnt find any difference in the grid;
     sequencesDiv.scrollLeft = this.options.scrollvalue;
     
     // // console.log( "LiveGrid.updateContent: end" );
-  }
+  },
 
   //----------------------------------------------------------------------------
 /*
@@ -789,6 +799,12 @@ var LiveGrid = Class.create( {
   }
 */
   //----------------------------------------------------------------------------
-
+  //----------------------------------------------------------------------------
+  
+  getAlignment : function(){
+    //console.log( "the buffer alignments are "+$H( this.alignments).inspect() );
+    return this.alignments;
+  }
+   //----------------------------------------------------------------------------
 } );
 
