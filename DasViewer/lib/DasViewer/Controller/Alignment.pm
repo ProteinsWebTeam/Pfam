@@ -74,7 +74,7 @@ sub alignment : Local {
   
   # using the values, get the row range to fetch the alignments;
   my $end = $offset + $page_size - 1;
-  
+  $c->log->debug("Alignment:alignment: rows to be fetched is |$offset|$page_size|$end|");
   if( $end > $max_rows ){
     $end = $max_rows ;
   }
@@ -94,8 +94,7 @@ sub alignment : Local {
   # get the datasource from the model;
   my $ds = $c->model('DasSource' )->getDataSource( $args );
   
-  my $alignment = $ds->get_alignment();
-  
+  my ( $storealignment, $alignment )= $ds->get_alignment();
   
   my $data = {
     offset    => $offset,
@@ -104,6 +103,7 @@ sub alignment : Local {
   };
   
   $c->stash->{json} = $data;
+  $c->stash->{ storeAlignments } = $storealignment;
   #$c->log->debug( 'ALignment:alignment: the dump of the alignment is '.dump( $data ) );
   $c->forward('DasViewer::View::JSON');
   
