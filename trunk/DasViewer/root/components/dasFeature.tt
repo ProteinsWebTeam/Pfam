@@ -14,22 +14,24 @@ META naked = 1;
   <h2>Feature Viewer</h2>
   <h3>Uniprot accession: "[% acc %]"([% seqLength %] Aminoacids)</h3>
   
-  <div id="canvasWrapper" style="float:left;overflow-x:auto;width:1000px">
-    <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
-    <div id="backgroundDiv" style="background-color:#C7F3C5;position:absolute;z-index:-1"></div>
-    <canvas id="canvasEl" style="border:1px black solid;z-index:1;"></canvas>
+  <div>
+    <canvas id="textEl" style="float:left;z-index:1;"></canvas>
+    
+    <div id="canvasWrapper" style="overflow-x:auto;width:auto">
+      <canvas id="canvasEl" style="float:left;z-index:1;"></canvas>
+      <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
+      <div id="backgroundDiv" style="background-color:#C7F3C5;position:relative;z-index:-1"></div>
+    </div>
     
   </div>    
   
   <div style="clear:both;"></div>  
   <div id="resNum" style="color:#5828DC"></div>
   <p/>
-        
+  
   <script type="text/javascript">
     
-    console.log("start of the response");
-    
-    var graphicXOffset = 150;
+    var graphicXOffset = 10;
     var extraXspace    = 40;
     var Yincrement     = 20;
     
@@ -46,6 +48,8 @@ META naked = 1;
     // now set the canva height to be this value;
     $('canvasEl').setAttribute( 'height', canvasHeight );
     $('canvasEl').setAttribute( 'width', canvasWidth );
+    $('textEl').setAttribute( 'height', canvasHeight );
+    $('textEl').setAttribute( 'width', 150 );
     
     // set the height of the scroller to the canvas height;
     $('scroller').setAttribute( 'height', canvasHeight );
@@ -68,18 +72,24 @@ META naked = 1;
     var features =  $H( eval( [% dasFeatures %] ) );
     
     // I need the canvas for drwaing the text so get the canvas object;
-    var ctx;
+    var ctx,ttx;
     
     if( $('canvasEl').getContext ){
       console.log( "canvas can be used in this browser" );
       ctx = $( 'canvasEl' ).getContext( '2d' );
-      
-      ctx.font         = "bold 10px 'optimer'";
-      ctx.textAlign    = "center";
-      ctx.textBaseline = "middle";
-      ctx.lineWidth    = 2;
     }
     
+    // get the context for text element;
+    if ( $('textEl').getContext ) {
+      console.log( "canvas can be used in this browser" );
+      ttx = $( 'textEl' ).getContext( '2d' );
+      
+      ttx.font = "bold 10px 'optimer'";
+      ttx.textAlign = "center";
+      ttx.textBaseline = "middle";
+      ttx.lineWidth = 2;
+      
+    }  
     // define the baseline here so that this value is used to calculate the scroller height;
     var baseline;  
     sources.each( function( ds_id ){
@@ -101,13 +111,13 @@ META naked = 1;
         baseline = pg1.getBaseline();
         
         // draw the text
-        ctx.strokeStyle = "#eeeeee";
-        ctx.strokeText( ds_id, 75, graphicYOffset+baseline );
-        ctx.strokeStyle = "#000000";
+        ttx.strokeStyle = "#eeeeee";
+        ttx.strokeText( ds_id, 75, graphicYOffset+baseline );
+        ttx.strokeStyle = "#000000";
             
         // add the text here;
-        ctx.fillStyle = 'black';
-        ctx.fillText( ds_id, 75, graphicYOffset + baseline );
+        ttx.fillStyle = 'black';
+        ttx.fillText( ds_id, 75, graphicYOffset + baseline );
         
         pg1.render();
         
@@ -120,74 +130,121 @@ META naked = 1;
     
     // now look for teh alignment start and end;
     var diff_size = ( alignEnd - alignStart ) + 1 + 1;
-    var leftPos   = graphicXOffset + parseInt( alignStart ) + 1;
-    var divHeight = graphicYOffset - Yincrement +baseline;
+    var divHeight = graphicYOffset - Yincrement + baseline;
     
+    var leftPos   = graphicXOffset + parseInt( alignStart  ) + 1;
     $('backgroundDiv').setStyle( {
           'height': divHeight+'px',
           'left'  : leftPos+'px',
           'width' : diff_size+'px'
         });
     
-    
-    // now add an event listener to the canvasElement;
-    $( 'canvasEl' ).observe( 'mousemove' , function( e ){
-      
-      // if we have any columns with class columnColor remove it;
-      if( $$( '.columnColor' ) !== undefined ){
-        
-        $$( '.columnColor' ).each( function( element){ 
-                //console.log( "the element is "+element.identify() );
-                element.removeClassName( 'columnColor' );
-                
-              });
-      }
-      
-      //console.log( "the event is "+e );
+   // now add an event listener to the canvasElement;
+   $( 'canvasEl' ).observe( 'mousemove' , function( e ){
+     
       // calculate the offset position of the element;
       var offset = $('canvasEl').up().cumulativeOffset();
       
       // calulate the x position
       var x = e.pointerX() - offset[ 0 ];
       var y = e.pointerY() - offset[ 1 ];
+      //console.log( 'the x and y is |%d|%d|',x,y );
       
       if( x > graphicXOffset && x < ( canvasWidth - extraXspace ) ){
         //console.log( 'the x and y is |%d|%d|',x,y );  
+        
+        // as the y are positioned using float:left, we need to consider the width of the text canvas;
+        var scrollerLeftPos = x + parseInt( $( 'textEl' ).getAttribute( 'width' ) );
         
         // now calculate the size of the scroller to be displayed
         var height = graphicYOffset - Yincrement +baseline;
         $('scroller').setStyle( {
           'height': height+'px',
-          'left'  : x+'px'
+          'left'  : scrollerLeftPos+'px'
         } );
         
         // now update the resNum div to say which residue is currently shown;
-        var res = ( x / resWidth ) - graphicXOffset;
+        var res = ( x / resWidth ) - graphicXOffset + parseInt( $('canvasWrapper').scrollLeft );
         $('resNum').update( "Residue Number: "+ res ); 
         
-        // use the accession and residue number get the column number and change the color.
-        var seqEl = $( acc+'seq' ).getElementsByClassName( 'R'+res );
-        
-        if( seqEl[ 0 ] !== undefined ){
-          var classNames = $A( seqEl[0].classNames() );
+        //if the resnumber falls between the alignmnet coordinates
+        if( ( res >= alignStart ) && ( res <= alignEnd ) ){
+          // use the accession and residue number get the column number and change the color.
+          var sequence = $A( alignments.get( acc ).toArray() );
+          //console.log( 'the start, end of alignment and the res is |%d|%d|',alignStart,alignEnd,res);
           
-          classNames.each( function( className ){
-            if( /C\d+/.test( className ) ){
-              //console.log( "the column number I am looking for is "+className );
-              
-              $$( '.'+className ).each( function( element){ 
-                //console.log( "the element is "+element.identify() );
-                element.addClassName( 'columnColor' );
+          var resNum = 0 ;
+          var columnNum;
+          sequence.each( function ( value, index ){
+            
+            // check whether we get residue or a
+            if( /[A-Z]+/.test( value) ){
+              //console.log('it is a residue '+ value );
+              if( ( parseInt(alignStart) + resNum ) == res ){
+                columnNum = index;
                 
-              });
-              
+                if( columnNum == 0 ){
+                  columnNum = 1;
+                }
+                
+                throw $break;
+              }
+              resNum++;  
             }
-
+            
+          });  
+          //console.log('the column number to be highlighted is '+columnNum );
+          
+          // now calculate the position of the div to be placed;
+         var accSize  = $('accessions').getWidth();
+         var seqSize  = $('sequences' ).getWidth();
+         
+         // get the width of the sequence % total residues to get pixel value for single residue;
+         var highlightLeftPos =  ( Math.round( ( $(acc+'seq').getWidth()/sequence.size() ) * columnNum ) );
+         //console.log( 'accsize|highlightLeftPos|seqsize|totalres|,|%d|%d|%d|%d|',accSize,highlightLeftPos,$(acc+'seq').getWidth(),sequence.size() );
+         
+         // get the total size we have moved;
+         var visibleWinStart = $('sequences').scrollLeft;
+         var visibleWinEnd = seqSize + $('sequences').scrollLeft ;
+         var diffPos = 0;
+         // if the total visible size is lesser than the residue to be highlighted,
+         //console.log( 'bef the windowstart,end,leftpos are |%d|%d|%d|',visibleWinStart,visibleWinEnd,highlightLeftPos);
+         console.log("the scrollLEft and highlightleftpos is |%d|%d|",$('sequences').scrollLeft, highlightLeftPos );
+         if ( ( highlightLeftPos > visibleWinEnd ) ){
+           // now set the new scrollLeft as the visibleWinEnd;
+           diffPos = highlightLeftPos - visibleWinEnd;
+           //$('sequences').scrollLeft = visibleWinEnd;
+           $('sequences').scrollLeft = $('sequences').scrollLeft + diffPos + 20;
+           diffPos = highlightLeftPos - diffPos -visibleWinStart - 20;
+         }
+          else if(  highlightLeftPos < visibleWinStart ){
+           diffPos = visibleWinStart - highlightLeftPos ;
+           $('sequences').scrollLeft = highlightLeftPos;
+           console.log( 'the highlightleftPos is lesser than windowStart|d '+diffPos);
+           
+         }else{
+           diffPos = highlightLeftPos - $('sequences').scrollLeft;
+         }
+         console.log( 'the diffPOs,accSize,div width |%d|%d|%d|',diffPos,accSize,$('highlightColumn').getWidth() );
+         // now add the accSize to display the correct residue;
+         highlightLeftPos = ( diffPos + accSize + $('highlightColumn').getWidth() );
+         console.log( 'aft the windowstart,end,leftpos are |%d|%d|%d|',visibleWinStart,visibleWinEnd,highlightLeftPos);
+         
+         $('highlightColumn').setStyle({
+           left: highlightLeftPos+'px',
+           height: $('accessions').getHeight()+'px'
+         });
+         
+         $('highlightColumn').setStyle({
+           'visibility' : 'visible'
+         });
+         
+        }else{
+          $('highlightColumn').setStyle({
+            'visibility' : 'hidden'
           });
-
+         
         }
-        //console.log( 'teh accessiosn whcih is cliked is '+seqEl[0].inspect() );
-        // get the seq coresponding to the acc,
         
       } // because we start to draw the sequence from 100px;
       
