@@ -88,6 +88,13 @@ for( my $seq = shift(@list); defined $seq; $seq = shift(@list) ) {
 
 close(LOG) if( ! defined $nolog );
  
+#true if file exists and has content (ie overlaps)
+if ( -s "$family_dir/overlap"){
+    exit(1);
+}else{
+    exit(0);
+}
+
 ###SUBROUTINES#######
     
 sub get_overlaps {
@@ -172,9 +179,9 @@ sub get_overlaps {
     
     if( $report ) {
 	if ($sscount ==0 && $opcount==0){
-	    print sprintf("Done Model %-25s\nNo overlaps found\n",$dir);
+	    print STDERR sprintf("OVERLAP:$dir:No overlaps found\n",$dir);
 	}else {
-	    print sprintf("Done Model %-25s\nFound %d same strand and %d opposite strand overlaps\n",$dir, $sscount, $opcount);
+	    print STDERR sprintf("OVERLAP:$dir:Found $sscount same strand and $opcount opposite strand overlaps. see overlap file\n");
 	}
     }
    #print out report for same strand and opp strand overlaps

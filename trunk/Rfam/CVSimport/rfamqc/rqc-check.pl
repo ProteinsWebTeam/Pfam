@@ -9,7 +9,7 @@
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/lustre/pfam/rfam/scripts/Modules";
+            ?$ENV{'RFAM_MODULES_DIR'}:"/software/rfam/scripts/Modules";
     $bioperl_dir =
         (defined $ENV{'BIOPERL_DIR'})
             ?$ENV{'BIOPERL_DIR'}:"/lustre/pfam/db/bioperl";
@@ -17,7 +17,6 @@ BEGIN {
 
 use lib $rfam_mod_dir;
 use lib $bioperl_dir;
-
 use strict;
 use Rfam;
 use Rfam::RfamAlign;
@@ -59,12 +58,12 @@ foreach my $acc (@ARGV) {
     # Check all SEED members in ALIGN
     foreach my $element (sort keys %edited_seed_names) {
 	if (! $edited_names{$element}) {
-	    print "SERIOUS ERROR: $element in SEED in not in ALIGN!\n";
+	    print STDERR "SERIOUS ERROR: $element in SEED in not in ALIGN!\n";
 	}
     }
 
     if( not $db->is_acc( $acc ) ) {
-	print "NEW FAMILY\n";
+	print STDERR "NEW FAMILY\n";
 	next;
     }
 
@@ -103,7 +102,11 @@ foreach my $acc (@ARGV) {
 	}
     }
     close (FOUND);
-    print "Lost $lost. Found $extra.\n";
+	if ($lost == 0 && $extra == 0){
+	    print STDERR "No change in SEED and ALIGN members\n";
+	}else{
+	    print STDERR "Lost $lost. Found $extra. See the missing and found files for details\n";
+	}
 }
 
 
