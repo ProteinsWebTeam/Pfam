@@ -445,7 +445,7 @@ var LiveGridBuffer = Class.create( {
     return this.rows.slice( begPos, endPos );
 
     // // console.log( "LiveGridBuffer.getRows: end" );
-  },
+  }
 
   //----------------------------------------------------------------------------
   
