@@ -185,8 +185,15 @@ sub valid_sequences {
 		print "$family/$alnfile: ".$seq->id." doesn't have a version\n";
 		$error = 1;
 	    }
+#	    print "id:    [" . $seq->id . "]\n";
+#	    print "start: [" . $seq->start . "]\n";
+#	    print "end:   [" . $seq->end . "]\n";
+#	    print "strand:[" . $seq->strand . "]\n";
+	    my( $start, $end ) = ( $seq->start, $seq->end );
+	    ( $start, $end ) = ( $seq->end, $seq->start  ) if $seq->strand < 0;
 
-	    my $rfamseq = $db -> get_rfamseq( $seq->id, $seq->start, $seq->end );
+#	    my $rfamseq = $db -> get_rfamseq( $seq->id, $seq->start, $seq->end );
+	    my $rfamseq = $db -> get_rfamseq( $seq->id, $start, $end );
 	    if( not $rfamseq ) {
 		print "$family/$alnfile: cannot find ".$seq->id." in rfamseq database\n";
 		$error = 1;
@@ -195,7 +202,6 @@ sub valid_sequences {
 	    my $str_ali = $seq -> seq();
 	    $str_ali =~ s/[.-]//g;
 	    $str_ali = uc( $str_ali );
-	    my( $start, $end ) = ( $seq->start, $seq->end );
 #	    if( $end > $rfamseq->length or $start > $rfamseq->length ) {
 #		print "$family/$alnfile: The sequence of ".$seq->id." does not match the rfamseq database\n";
 #		$error = 1;
