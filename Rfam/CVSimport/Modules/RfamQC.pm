@@ -190,7 +190,7 @@ sub valid_sequences {
 #	    print "end:   [" . $seq->end . "]\n";
 #	    print "strand:[" . $seq->strand . "]\n";
 	    my( $start, $end ) = ( $seq->start, $seq->end );
-	    ( $start, $end ) = ( $seq->end, $seq->start  ) if $seq->strand < 0;
+	    ( $start, $end ) = ( $seq->end, $seq->start  ) if defined $seq->strand && $seq->strand < 0;
 
 #	    my $rfamseq = $db -> get_rfamseq( $seq->id, $seq->start, $seq->end );
 	    my $rfamseq = $db -> get_rfamseq( $seq->id, $start, $end );
