@@ -1,8 +1,33 @@
-#!/nfs/team71/pfam/jt6/server/perl/bin/perl
+#!/software/bin/perl
 
 # a first attempt at a script to screen scrape Rfam wikipedia articles
 # and store them in a DB table.
 # jt6 20070524 WTSI.
+
+# to fix  a specific page run this:
+# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages list -acc RF00173  -update  -fill
+
+# to fix more than one  page just specify multiple -acc
+# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages list -acc RF00173 -acc RF00018 -update  -fill
+
+# to update all pages use this:
+# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages all  -update  -fill
+
+# *** the scrape code updates the RDB on dev- you then need to run this to copy the table over to live.******
+# ~jd7/WIKI/Code/updateLive.sh
+# *
+# nb
+# *the -update option has to be used otherwise it only reports changes that have been made and not actually update the RDB
+# *the -fill option downloads the latest version of the page no matter when it was last edited.
+# * to update only pages that have been edited in N days use -changes N instead of -fill
+
+# e.g
+# ./scrape_cronjob_all.pl -pages list -acc RF00173  -update  -changes 5
+# will update this page if edited in the last 5 days.
+# or
+# /scrape_cronjob_all.pl -pages all  -update  -changes 5
+#will update any of our pages if edited in the last 5 days. 
+
 
 use strict;
 use warnings;
@@ -17,10 +42,26 @@ use LWP;         # for making web requests
 use JSON;        # NOT CORE: parsing the responses from the wp api
 use URI::Escape; # NOT CORE: tidying up the URIs that we send to wp
 use DateTime;    #for getting time/formatting for cron job 
-
+use Getopt::Long;
 use HTML::Parser;
 
 $| = 1;
+
+
+
+my ($pages, @rfacc, $title,$fill, $changes, $help, $update);
+&GetOptions( "h|help" => \$help,
+             "pages=s" => \$pages,
+             "acc=s@" => \@rfacc,
+	     "title=s"  => \$title,
+             "fill" => \$fill,
+             "changes=s"  => \$changes,
+             "update" => \$update);
+
+if( $help) {
+    &help();
+    exit(1);
+}
 
 #-------------------------------------------------------------------------------
 # configuration
@@ -37,25 +78,25 @@ my $WP_API = 'http://en.wikipedia.org/w/api.php';
 # DB connection parameters
 my( $dbHost, $dbPort, $dbName, $dbUser, $dbPass );
 $dbHost = 'pfamdb2a';
-$dbPort = '3303'; # this will be different for the new different dbs..
-$dbName = 'rfamlive';
-$dbUser = 'pfamadmin';
-$dbPass = 'mafpAdmin';
+$dbPort = '3301'; # this will be different for the new different dbs..
+$dbName = 'rfam_9_1';
+$dbUser = 'pfam';
+$dbPass = 'mafp1';
 
 # the web proxy URL
 my $PROXY_URL = 'http://wwwcache.sanger.ac.uk:3128';
 
-#set datetime for cron job
-my $dt = DateTime->now;
-$dt->set_time_zone('UTC');
-$dt->subtract (days => 1);
-my $lastday=$dt->ymd;
+# #set datetime for cron job
+# my $dt = DateTime->now;
+# $dt->set_time_zone('UTC');
+# $dt->subtract (days => 1);
+# my $lastday=$dt->ymd;
 
 # counter for changed pages;
-my $changes=0;
+my $page_count=0;
 my $unchanged=0;
 my $checked=0;
-
+my $updated=0;
 #-------------------------------------------------------------------------------
 # set up the HTML parser. Most of the code that uses the parser is
 # taken straight from the examples in the module source package. And
@@ -156,12 +197,16 @@ my $dbh = DBI->connect( $dsn, $dbUser, $dbPass, $dbAttr )
 
 # prepare all the queries that we'll need
 
-# query for page titles
-my $qsth = $dbh->prepare( 'SELECT auto_rfam, title FROM wiki' )
+# query for all page titles
+my $qsth = $dbh->prepare( 'SELECT auto_wiki, title FROM wikitext' )
   or die '(EE) ERROR: couldn\'t prepare query to retrieve Rfam IDs: ' . $dbh->errstr;
 
-# query for auto_wiki number
-my $asth = $dbh->prepare( 'SELECT auto_wiki FROM wiki where auto_rfam=?' )
+# query for singe rfamacc
+my $psth = $dbh->prepare( 'select wt.auto_wiki, wt.title from wikitext as wt, rfam as r where wt.auto_wiki=r.auto_wiki and r.rfam_acc=?')
+  or die '(EE) ERROR: couldn\'t prepare query to retrieve Rfam IDs: ' . $dbh->errstr;
+
+# query for single page title
+my $rsth = $dbh->prepare( 'select auto_wiki, title from wikitext where title=?')
   or die '(EE) ERROR: couldn\'t prepare query to retrieve Rfam IDs: ' . $dbh->errstr;
 
 # insert HTML
@@ -170,91 +215,177 @@ my $hsth = $dbh->prepare( 'UPDATE wikitext SET text=? where auto_wiki=?' )
 
 
 #-------------------------------------------------------------------------------
+#sanity checks on pages to check..
+if (! $pages ){
+    die "You must specify option '-pages' to  update  should be  'all' or a 'list' of families\n";
+}
+
+if ($pages eq 'list' &&  ( (! @rfacc) && (!$title)) ){
+    die "You have spcified single family update but not specified which family (rfacc) to update\n";
+}
+if ($pages eq 'all' &&  ( (@rfacc) || ($title)) ) {
+    die "You have spcified to update all familes but also provided a list of family ids??\n";
+}
+#format of family id correct.
+if (@rfacc){
+    foreach my $f (@rfacc){
+        if ($f!~/RF\d{5}/) {
+            die "The family accession specified isnt in the correct format\n"; 
+        }
+    }
+}
+#format of title correct.
+if ($title){
+    if ($title=~/\s/) {
+	die "The page title specified has spaces-this isnt right-check it\n"; 
+    }
+}
+
+if (! $update){
+    warn  "\nNo update specified.\nYou will get a report but RDB won't be updated unless you specify the -update option\n\n"; 
+}
+
+#update single dat
+if ( ! $fill && ! $changes){
+    die "You need to specify a full update or number of days to update changes from??\n";  
+}
+
+# set the length of time to checkdate to check last 24 hours or last 100 days
+my $lastday;
+if ($changes){
+   if ($changes !~/\d+/){
+       die "You need to specify a number of days to check changes from??\n";
+   }else{
+       my $dt = DateTime->now;
+       $dt->set_time_zone('UTC');
+       $dt->subtract (days => $changes);
+       #$dt->subtract (year => $changes);
+       $lastday=$dt->ymd;
+       print STDERR "Updating ", join(",",@rfacc), " pages with edits since $lastday ($changes days)\n";
+   }
+}
+
+#get the rfamacc for this title
+
+
+
+# get the list of Rfams to update
+my $rfams;
+if ($pages eq 'list' && @rfacc){
+    $rfams=getOneRfam(\@rfacc);
+    print STDERR "Specified only wikipages for these families: ", join(",", @rfacc), " to be looked at\n\n";
+}elsif($pages eq 'list' && $title ){
+    print STDERR "Specified title \'$title\' to be looked at\n\n";
+    unless ($rfams=getOneTitle($title)){
+	print STDERR "This title '$title' does not appear to exist in the current RDB\n. Check the title\n\n"; exit(0);
+    }
+}elsif ($pages eq 'all'){
+    $rfams = getAllRfams();
+    print STDERR "Requesting pages for all families in the RDB are looked at\n\n";
+}else{
+    die "You need to specify pages as 'all' or  'list'\n";
+}
+
+
+
+#----------------------------------------------------------------------------
 # main
 
-# get the list of Rfams to check
-my $rfams = getRfams();
-
-foreach my $ar ( keys %$rfams ) {
+#list of one or many pages:
+#keys ($ar)= auto_wiki AND $desc=page title
+print STDERR "**********\n";
+TITLE:foreach my $ar ( keys %$rfams ) {
   my $desc = $rfams->{$ar};
-  my $title=$desc;
-  
+  my $rdbtitle=$desc;
+  print STDERR "\nChecking title $rdbtitle for auto_wiki $ar\n";   
   sleep 2;
   ++$checked;
   # work around slashes in the title...
   my $wpid = '';
-  foreach ( split "/", $title ) {
+  foreach ( split "/", $rdbtitle ) {
 	$wpid .= uri_escape( $_, q|^A-Za-z_-| ) . '/';
   }
   # bin the 
   chop $wpid;
-
   # test for the existence of a page
-  print STDERR "(ii) checking for existence of a WP article for $title  \"$wpid\"\n";
+  print STDERR "(ii) checking for existence of a WP article for title  \"$wpid\"\n";
   unless( entryFound( $wpid ) ) {
 	print STDERR "(EE) ERROR: no such entry for \"$desc\" (wp ID \"$wpid\")\n\n";
-	next;
+	   if ($title){
+	       exit(0);
+	   }else{ next;}
   }
-
-  # check if page has changed in last 24hours
-  print STDERR "(ii) check if page changed in last 24hours\n";
+ 
   my $revisions;
-  unless( $revisions = getChanges( $wpid ) ) {
-      ++$unchanged;
-	#print STDERR "(WW) WARNING: couldn't retrieve revisions for \"$title\" ( (wp ID \"$wpid\")\n\\n";
-	next;
-  }
-
-  #report on these revisions
-  #may be multiple revisions per page since last check.
-  #ONLY do the rest if the page has changed;
-  unless (! $revisions ){
-      ++$changes;
-  	  foreach my $a (@{$revisions}){
-	      if (!$a->{comment}) {$a->{comment}='No comment';}
-	      print join("\t", $desc, $a->{user},$a->{timestamp}, $a->{comment}),"\n";
-	  }
-
-      # scrape the HTML for this entry
-      print STDERR "(ii) getting annotations\n";
-      my $content;
-      unless( $content = getContent( $wpid ) ) {
-	  print STDERR "(WW) WARNING: couldn't retrieve content for \"$desc\"\n";
-	  next;
-        }
-
-       # edit the HTML
-      my $editedContent;
-      unless( $editedContent = editContent( $content ) ) {
-	  print STDERR "(WW) WARNING: couldn't edit HTML for \"$desc\"\n";
-	  next;
+  if ($changes){   
+      # check if page has changed in last '$update" days
+      print STDERR "(ii) check if page changed in last $changes days\n";
+      #my $revisions;
+      unless( $revisions = getChanges( $wpid ) ) {
+          ++$unchanged;
+          #print STDERR "(WW) WARNING: couldn't retrieve revisions for \"$title\" ( (wp ID \"$wpid\")\n\\n";
+          next;
       }
-      
-      #get the auto_wiki number for this title
-      print STDERR "(ii) getting auto_wiki for this auto_rfam id \"$ar\"\n";
-      my $aw;
-      unless( $aw = getMapping( $ar ) ) {
-	  print STDERR "(WW) WARNING: couldn't retrieve auto_wiki for autorfam  \"$ar\", \"$title\"\n";
-	  next;
-        }
 
-      #update the wikitext table
-      print STDERR "(ii) updating the text in wikitext table for auto_wiki \"$aw\", \"$title\" \n\n";
-      unless( storeContent( $editedContent, $aw ) ) {
-	  print STDERR "(WW) WARNING: couldn't update text in  auto_wiki for \"$aw\", \"$title\"\n";
-	  next;
-        }
-    
+      #report on these revisions
+      #may be multiple revisions per page since last check.
+      #ONLY do the rest if the page has changed;
+      unless (! $revisions ){
+          #++$page_count;
+          foreach my $a (@{$revisions}){
+              if (!$a->{comment}) {$a->{comment}='No comment';}
+              print "http://en.wikipedia.org/wiki/", $title, "\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
+          }
+       }   
+  }#end of $changes checking if page has changed and getting update
+
+  #unless specified to update the RDB, skip to the next page.
+  unless ($update){
+      ++$page_count;
+      next TITLE;
+  }
+  #if changed or want a full update
+      if ($revisions || $fill){
+          ++$page_count;
+          # scrape the HTML for this entry
+          print STDERR "(ii) getting annotations\n";
+          my $content;
+          unless( $content = getContent( $wpid ) ) {
+              print STDERR "(WW) WARNING: couldn't retrieve content for \"$desc\"\n";
+              next;
+          }
+
+          # edit the HTML
+          my $editedContent;
+          unless( $editedContent = editContent( $content ) ) {
+              print STDERR "(WW) WARNING: couldn't edit HTML for \"$desc\"\n";
+              next;
+          }
+          
+          #update the wikitext table
+          print STDERR "(ii) updating the text in wikitext table for auto_wiki \"$ar\", \"$title\" \n\n";
+          unless( storeContent( $editedContent, $ar ) ) {
+              print STDERR "(WW) WARNING: couldn't update text in  auto_wiki for \"$ar\", \"$title\"\n";
+              next;
+          }
+          
+      } #end of if revisions and or full update
+
+}#end of each rfam
+
+  if ($changes){
+      if ($page_count > 0) {
+          print "\n$page_count changed : $unchanged unchanged : $checked checked\n";
+          print "\n";
+      }else{
+          print "\nNo pages changed : $checked checked\n"
+          } 
+  }else{
+      print "\n$page_count pages checked/updated\n";
   }
 
-}
+print STDERR "**You should now update the live RDB with the new data. run the following command\n\n\/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_9_1 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_9_1\\n\n";
 
-if ($changes > 0) {
-    print "$changes changed : $unchanged changed : $checked checked\n";
-    print "\n";
-}else{
-    print "No pages changed : $checked checked\n"
-    } 
 
 exit;
 
@@ -269,7 +400,7 @@ sub getChanges {
      my $desc = shift;
   
      #last day includes willow 
-     my $url=  $WP_API . '?action=query&format=json&prop=revisions&format=json&titles='.$desc.'&rvdir=newer&rvstart='.$lastday.'T03:22:00Z&rvprop=timestamp|user|comment';
+     my $url=  $WP_API . '?action=query&format=json&prop=revisions&format=json&titles='.$desc.'&rvdir=newer&rvstart='.$lastday.'T03:22:00Z&rvprop=timestamp|user|comment&rvlimit=500';
  
     my $req = HTTP::Request->new( GET => $url );
     my $res = $ua->request( $req );
@@ -298,7 +429,7 @@ sub getChanges {
         # }
 
        	# parse it and get the resulting data structure using the JSON module
-	my $result = jsonToObj( $res->content );
+	my $result = from_json( $res->content );
 
 	# get the list of internal wp page IDs from the JSON
 	my @ids= keys %{$result->{query}->{pages}};
@@ -322,34 +453,6 @@ sub getChanges {
 
 
 #-------------------------------------------------------------------------------
-# retrieve the auto_wiki number for a given article title
-
-sub getMapping {
-  my $auto_rfam = shift;
-
-  # retrieve the auto_wiki number for a given entry title in the
-  # wikih table
-  $asth->execute($auto_rfam );
-
-  if( $DBI::err ) {
-	print STDERR "(WW) WARNING: error executing  query to get autowiki number for $auto_rfam: "
-	             . $dbh->errstr . "\n";
-	return;
-  }
-
-  # just pull the first (and what should be the only) row from the
-  # results and pop off the first element to get the auto_wiki number
-  my @row = $asth->fetchrow_array;
-  if( $asth->err ) {
-	print STDERR "(WW) WARNING: error whilst retrieving autowiki number from wiki \"$auto_rfam\": "
-	             . $dbh->errstr . "\n";
-	return;
-  }
-
-  return $row[0];
-}
-
-#-------------------------------------------------------------------------------
 # store the HTML content
 
 sub storeContent {
@@ -368,9 +471,8 @@ sub storeContent {
 #-------------------------------------------------------------------------------
 # retrieve a list of Rfams to check
 
-sub getRfams {
+sub getAllRfams {
 
-  # retrieve auto_rfam and description from the rfam table
   $qsth->execute;
 
   my %rfams;
@@ -382,6 +484,38 @@ sub getRfams {
 
   return \%rfams;
 }
+
+sub getOneTitle {
+    my $title=shift;
+    my %rfams;
+    $rsth->execute($title); 
+    my $row = $rsth->fetch() ;
+	die '(EE) ERROR: error whilst retrieving rfam acc: ' . $dbh->errstr . "\n"
+            if $DBI::err;
+    
+    if ($row){
+	$rfams{ $row->[0]} = $row->[1];
+	return \%rfams;
+    }else{
+	return;
+    }
+
+}
+
+sub getOneRfam {
+    my $rfams=shift;
+    my %rfams;
+    foreach my $rf (@$rfams){
+        $psth->execute($rf); 
+        while( my $row = $psth->fetchrow_arrayref) {
+            $rfams{ $row->[0] } = $row->[1]; #auto_wiki # title
+        }
+        die '(EE) ERROR: error whilst retrieving Rfam IDs: ' . $dbh->errstr . "\n"
+            if $DBI::err;
+     }   
+    return \%rfams;
+}
+
 
 #-------------------------------------------------------------------------------
 # retrieve the HTML for a given entry
@@ -448,7 +582,7 @@ sub entryFound {
 	# }
 	#
 	# parse it and get the resulting data structure using the JSON module
-	my $result = jsonToObj( $res->content );
+	my $result = from_json( $res->content );
 
 	# get the list of internal wp page IDs from the JSON
 	my @ids = keys %{ $result->{query}->{pages} };
@@ -568,5 +702,39 @@ sub _edit {
   s|^(/.*)|$WP_ROOT$1|g;
   $_;
 }
+
+sub help {
+    print STDERR <<EOF;
+
+Code currently being on the way to being production-doing everything we need it to.
+Currently can specify all families or a list.
+Specify to check for changes OR just do an fill.
+Can specify how far back (how many days..) to check for edits.
+Facility to check for changes & report but not update the RDB-default is report only 
+
+**need to add facily to 
+**note revisions wont report anything > 500 edits. 
+
+Usage:  ./scrape_cronjob_all.pl <options>
+Options:       -h               show this help
+		-pages		can be 'all' or 'list'
+		-acc		must be a family acc e. RF00648. can specify multiple.
+		-fill           for updating pages changed or not
+		-changes	update if changed in n (integer) days
+		-update		unless this option is specified the RDB is not updated.
+  
+e.g. check for changes in all pages in last 20 days update rdb
+ scrape_cronjob_all.pl -pages all -changes 20 -update 
+
+e.g. changes in pages for RF00648 and RF00122 in last 5 days
+ scrape_cronjob_all.pl -pages list -acc RF00648 -acc RF00122 -changes 5 -update 
+
+e.g.update the page for RF00648
+ scrape_cronjob_all.pl -pages list -acc RF00648 -fill
+
+EOF
+
+}
+
 
 #-------------------------------------------------------------------------------
