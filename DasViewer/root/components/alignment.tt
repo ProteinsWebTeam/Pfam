@@ -110,11 +110,11 @@ requirements.js.push( "excanvas.js" );
             prefetchBuffer: true,
             onscroll: updateTopicsGridHeader,
             onComplete: function(){
-              //console.log( "onComplete: hiding spinner" );
+              console.log( "onComplete: hiding spinner" );
               $("spinner").removeClassName('visible');
               $("spinner").addClassName('hidden');
               
-              alignments = $H(eval( myGridUpdater.getAlignment() ) );
+              //alignments = $H(eval( myGridUpdater.getAlignment() ) );
 //              console.log("alignment sis |"+alignments.inspect()+'|');
             },
             onLoading: function(){
@@ -124,7 +124,7 @@ requirements.js.push( "excanvas.js" );
               $("spinner").addClassName('visible');
             },
             onFirstContent: function(){
-              //console.log( "onFirstContent: updating row count" );
+              console.log( "onFirstContent: updating row count" );
               updateTopicsGridHeader(0);
             }
           };
@@ -140,9 +140,15 @@ requirements.js.push( "excanvas.js" );
           // on update we lost the color so retain it by adding the backgound;
           if( acc !== undefined ){
            //console.log( "reverting the color of acc "+acc );
-           $( acc ).setStyle({
-              "background":"cyan"
-            }); 
+            
+            if( $(acc) !== null ){ 
+              
+              $( acc ).setStyle({
+                "background":"cyan"
+              });
+               
+            }
+            
           }
           
           if (myGridUpdater && myGridUpdater.metaData) {
@@ -180,10 +186,16 @@ requirements.js.push( "excanvas.js" );
         console.log( 'the clikc is on '+acc);
         // previous acc background should be reverted back;
         if( acc !== undefined ){
-           console.log( "reverting the color of acc "+acc );
-           $( acc ).setStyle({
-              "background":"#CCBBCC"
-            }); 
+           //console.log( "reverting the color of acc "+acc );
+           
+           if( $(acc) !== null ){
+             
+             $( acc ).setStyle({
+                "background":"#CCBBCC"
+              });
+                
+           }
+            
         }
         
         var el = e.element();
