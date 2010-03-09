@@ -1,0 +1,62 @@
+notes for wikicronjob:
+
+scrape_cronjob.pl
+
+page options
+-pages list -acc <rfamacc>        single or multiple families using rfam_acc
+-pages list -title <title>        single page specifying title
+-pages all                        all pages
+
+options for these pages 
+-update -fill                      update rdb with latest version 
+-update -changes <number of days>  update only pages that have changed in n days
+
+fora  simple report of the changes in n days
+- dont use the -update option
+
+Examples:
+
+**USING RFAM ACC**
+To update a specific page run this:
+scrape_cronjob.pl -pages list -acc RF00173  -update  -fill
+
+To update more than one  page just specify multiple -acc
+scrape_cronjob.pl -pages list -acc RF00173 -acc RF00018 -update  -fill
+
+
+**USING WK PAGE TITLE**
+To update a specific page run this:
+scrape_cronjob.pl -pages list -title suhB -update  -fill
+
+nb-You can only update a single page using the title option
+
+**UPDATE ALL PAGES***
+To update all pages use this:
+scrape_cronjob.pl -pages all  -update  -fill
+
+**TO JUST GET A REPORT on all changed pages**
+scrape_cronjob.pl -pages all  -changes <n days>
+
+**TO JUST GET A REPORT on a single page**
+scrape_cronjob.pl -pages list -acc RF00518 -changes <n days>
+
+
+The -update option has to be used in order to update the rdb. Otherwise it only reports to STDERR
+*the -fill option downloads the latest version of the page no matter when it was last edited.
+*to update only pages that have been edited in N days use -changes N instead of -fill
+
+e.g
+
+scrape_cronjob.pl -pages list -acc RF00173  -update  -changes 5
+will update this page if edited in the last 5 days.
+
+
+scrape_cronjob.pl -pages all  -update  -changes 5
+will update any of our pages if edited in the last 5 days. 
+
+
+*** the scrape code updates the RDB on dev- you then need to run this to copy the table over to live.******
+
+/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_9_1 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_9_1\n
+
+
