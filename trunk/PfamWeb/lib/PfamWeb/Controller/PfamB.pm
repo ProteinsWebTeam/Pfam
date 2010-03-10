@@ -141,10 +141,28 @@ sub get_summary_data : Private {
   my $numArchs = 0;
   my %seenArch;
   foreach my $arch ( @archAndSpecies ) {
-    if( defined $arch->auto_architecture ) {
-      $numArchs++ unless $seenArch{$arch->auto_architecture->auto_architecture};
+    if ( $arch->get_column('auto_architecture') ) {
+      $c->log->debug( 'PfamB::get_summary_data: got an auto_architecture' )
+        if $c->debug;
+
+      $c->log->debug( 'PfamB::get_summary_data: auto_architecture (get_column): '
+                      . $arch->get_column('auto_architecture') )
+        if $c->debug;
+      # $c->log->debug( 'PfamB::get_summary_data: auto_architecture (from rel):   '
+      #                 . $arch->auto_architecture->auto_architecture )
+      #   if $c->debug;
+
+      $numArchs++ unless $seenArch{$arch->get_column('auto_architecture')};
+
       $seenArch{$arch->auto_architecture->auto_architecture}++;
-    } else {
+
+      $c->log->debug( 'PfamB::get_summary_data: seenArch now '
+                      . $seenArch{$arch->get_column('auto_architecture')} )
+        if $c->debug;
+    } 
+    else {
+      $c->log->debug( 'PfamB::get_summary_data: no architecture' )
+        if $c->debug;
       $numArchs++ unless $seenArch{nopfama};
       $seenArch{nopfama}++;
     }

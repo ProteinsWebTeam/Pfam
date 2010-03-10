@@ -459,7 +459,7 @@ sub get_family_data : Private {
     $seqInfo{$pfamseq_id}{num} = $row->auto_architecture->no_seqs;
 
     # store a mapping between the sequence and the auto_architecture
-    $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
+    $seqInfo{$pfamseq_id}{auto_arch} = $row->get_column('auto_architecture');
 
     # store the sequence description, species name and length of each 
     # individual sequence
@@ -575,8 +575,8 @@ sub get_pfamB_with_arch : Private {
     else {
       my @domains = split /\~/, $arch->auto_architecture->architecture;
       $seqInfo{$id}{arch}      = \@domains;
-      $seqInfo{$id}{auto_arch} = $arch->auto_architecture->auto_architecture;
-      $seqInfo{$id}{num}       = $seen_arch{$arch->auto_architecture->auto_architecture} ;
+      $seqInfo{$id}{auto_arch} = $arch->get_column('auto_architecture');
+      $seqInfo{$id}{num}       = $seen_arch{$arch->get_column('auto_architecture')} ;
     }
 
     $seqInfo{$id}{desc}    = $arch->description;
@@ -615,8 +615,8 @@ sub get_pfamB_no_arch : Private {
   my ( @rows, %seen_arch, %arch_store );
   foreach my $arch ( @all_archs ) {
 
-    my $aa = $arch->auto_architecture
-             ? $arch->auto_architecture->auto_architecture
+    my $aa = $arch->get_column('auto_architecture')
+             ? $arch->get_column('auto_architecture')
              : 'nopfama';
 
     if ( not $seen_arch{$aa} ) {
@@ -650,8 +650,8 @@ sub get_pfamB_no_arch : Private {
     my $id = $seq->pfamseq_id;
     push @ids, $id;
 
-    my $aa = $arch_store{$id}->auto_architecture 
-             ? $arch_store{$id}->auto_architecture->auto_architecture
+    my $aa = $arch_store{$id}->get_column('auto_architecture')
+             ? $arch_store{$id}->get_column('auto_architecture')
              : 'nopfama';
 
     $c->log->debug( "DomainGraphics::get_pfamB_no_arch: checking |$id|, architecture |$aa|" )
@@ -759,7 +759,7 @@ sub get_clan_data : Private {
 
     my @domains = split m/\~/, $row->auto_architecture->architecture;
     $seqInfo{$pfamseq_id}{arch}      = \@domains;
-    $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
+    $seqInfo{$pfamseq_id}{auto_arch} = $row->get_column('auto_architecture');
     $seqInfo{$pfamseq_id}{num}       = $row->auto_architecture->no_seqs;
 
     $seqInfo{$pfamseq_id}{desc}    = $seq->description;
@@ -813,8 +813,8 @@ sub get_selected_seqs : Private {
       if $c->debug;
     push @ids, $id;
 
-    my $aa = $seq->auto_architecture
-             ? $seq->auto_architecture->auto_architecture
+    my $aa = $seq->get_column('auto_architecture')
+             ? $seq->get_column('auto_architecture')
              : 'nopfama';
              
     $c->log->debug( "DomainGraphics::get_selected_seqs: checking |$id|, architecture |$aa|" )
@@ -985,7 +985,7 @@ sub get_proteome_data : Private {
       my $id = $row->get_column('pfamseq_id');
 
       $seqInfo{$id}{arch}      = \@domains;
-      $seqInfo{$id}{auto_arch} = $row->auto_architecture->auto_architecture;
+      $seqInfo{$id}{auto_arch} = $row->get_column('auto_architecture');
       $seqInfo{$id}{num}       = $row->get_column('numberArchs');
 
       $seqInfo{$id}{desc}    = $seq->metadata->description;
