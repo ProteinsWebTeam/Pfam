@@ -91,11 +91,17 @@ END; -%]
       <h2>Literature references</h2>
   
       <ol>
-        [% FOREACH ref_row IN clan.clan_lit_refs;
-          ref = ref_row.auto_lit %]
+        [% # hash the literature references on "order_added"... I'm sure we should be able to do
+           # this with a simple "sort", but it's screwing up somewhere...
+           litRefs = {};
+           FOREACH ref IN clan.clan_lit_refs;
+             litRefs.${ref.order_added} = ref;
+           END;
+           FOREACH refNum IN litRefs.keys.nsort;
+             ref = litRefs.$refNum; -%]
           <li>
-            [% ref.author %], [% ref.journal %]: [% ref.title %]
-            <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">[% ref.pmid %]</a>
+            [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
+            <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">[% ref.auto_lit.pmid %]</a>
           </li>
         [% END %]
       </ol>
