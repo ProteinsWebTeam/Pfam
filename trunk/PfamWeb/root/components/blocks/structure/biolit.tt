@@ -38,7 +38,7 @@ FOREACH article IN articles -%]
 
       <img rel="next"
            src="[% c.uri_for('/shared/images/blank.gif') %]"
-           class="switcherControl next" />
+           class="switcherControl next[% " disabled" UNLESS article.figures.size > 1 %]" />
 
       <div>
       [% FOREACH figure IN article.figures -%]
