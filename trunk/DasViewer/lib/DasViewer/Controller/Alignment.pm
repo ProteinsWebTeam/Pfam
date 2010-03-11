@@ -30,7 +30,7 @@ sub view : Local {
   
   # this is the initial request so we have only acc and dsn_name;
   # create a hash_ref for the input and pass it to the datasource module;
-  
+  $c->log->debug( 'the dump of the object is '.dump( $self ) );
   my $args = {
     input_params  =>{
       acc      =>  $c->req->param('accession'),
@@ -96,19 +96,34 @@ sub alignment : Local {
   
   my ( $storealignment, $alignment )= $ds->get_alignment();
   
+#  my $test = [ [1,2],[3,4],[5,6],[3,23],[23,54],[2,34],[4,65] ];
+#  
+#  $c->log->debug( 'the alignmnet is '.dump( $test ) );
   my $data = {
     offset    => $offset,
     rowcount  => $page_size,
-    rows      => $alignment 
+    rows      => $alignment
   };
   
-  $c->stash->{json} = $data;
-  $c->stash->{ storeAlignments } = $storealignment;
-  #$c->log->debug( 'ALignment:alignment: the dump of the alignment is '.dump( $data ) );
-  $c->forward('DasViewer::View::JSON');
+#  $c->stash->{json} = $data;
+#  $c->stash->{ storeAlignments } = $storealignment;
+  my $json = { 
+    data  => $data,
+    storeAlignments =>  $storealignment
+  };
+  
+  $c->stash->{json} = to_json( $json );
+#  $c->stash->{json}->{ data } = to_json( $data );
+#  $c->stash->{json}->{ storeAlignments } = to_json( $storealignment );
+  
+  $c->res->content_type( 'application/json');
+  $c->res->body( $c->stash->{ json } );  
+#  #$c->log->debug( 'ALignment:alignment: the dump of the alignment is '.dump( $data ) );
+#  $c->forward('DasViewer::View::JSON');
   
 }
 
+sub end : ActionClass( 'RenderView' ) {}
 
 =head1 AUTHOR
 
