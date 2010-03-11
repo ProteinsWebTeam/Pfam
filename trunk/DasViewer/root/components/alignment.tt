@@ -91,7 +91,7 @@ requirements.js.push( "excanvas.js" );
       var alignStart , alignEnd ; // later the alignment start and end are used by the div to draw a rectangular bar behind the canvas;
       
       var size = [% data.size %];
-      console.log( 'the total rows is  is '+size );
+      //console.log( 'the total rows is  is '+size );
       if (size > 0) {
       
         var myGridUpdater;
@@ -114,7 +114,7 @@ requirements.js.push( "excanvas.js" );
               $("spinner").removeClassName('visible');
               $("spinner").addClassName('hidden');
               
-              //alignments = $H(eval( myGridUpdater.getAlignment() ) );
+              alignments = $H(eval( myGridUpdater.getAlignment() ) );
 //              console.log("alignment sis |"+alignments.inspect()+'|');
             },
             onLoading: function(){
@@ -126,6 +126,9 @@ requirements.js.push( "excanvas.js" );
             onFirstContent: function(){
               console.log( "onFirstContent: updating row count" );
               updateTopicsGridHeader(0);
+            },
+            onSuccess: function( transport ){
+              console.log( 'the request is success '+transport.headerJSON );
             }
           };
           
@@ -200,20 +203,21 @@ requirements.js.push( "excanvas.js" );
         
         var el = e.element();
         acc = el.getAttribute( 'id' );
-        var id; 
+        
+        var id = parseAccession( acc ); 
 //        if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
-        if( /(\w+)\/(\d+)\-(\d+)/.test( el.getAttribute( 'id' ) ) ){            
-          var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.getAttribute( 'id' ) );
-          id         = data[1]; 
-          alignStart = data[2];
-          alignEnd   = data[3];
-          console.log( "the start and end are present which are |%s|%s|%s| ",id,alignStart,alignEnd );
-              
-        }else{
-          id         = el.getAttribute( 'id' ); 
-          alignStart = 0;
-          alignEnd   = 0;
-        }
+//        if( /(\w+)\/(\d+)\-(\d+)/.test( el.getAttribute( 'id' ) ) ){            
+//          var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.getAttribute( 'id' ) );
+//          id         = data[1]; 
+//          alignStart = data[2];
+//          alignEnd   = data[3];
+//          console.log( "the start and end are present which are |%s|%s|%s| ",id,alignStart,alignEnd );
+//              
+//        }else{
+//          id         = el.getAttribute( 'id' ); 
+//          alignStart = 0;
+//          alignEnd   = 0;
+//        }
         
         // check whether the clicked element is an uniprot accession
         // replace acc with id, as i have changed the id of the element;
@@ -240,6 +244,24 @@ requirements.js.push( "excanvas.js" );
         
       } );
       
+      // function to parse the accession to get the id;
+      function parseAccession( acc ){
+        var id;
+        
+        if( /(\w+)\/(\d+)\-(\d+)/.test( acc ) ){            
+          var data = /(\w+)\/(\d+)\-(\d+)/.exec( acc );
+          id         = data[1]; 
+          alignStart = data[2];
+          alignEnd   = data[3];
+          console.log( "the start and end are present which are |%s|%s|%s| ",id,alignStart,alignEnd );
+              
+        }else{
+          id         = acc; 
+          alignStart = 0;
+          alignEnd   = 0;
+        }
+        return id;
+      }
       
       // function to make an ajax call to fetch features;
       function fetchFeatures( id , form ){
@@ -259,7 +281,7 @@ requirements.js.push( "excanvas.js" );
         // if we dint get id then the user clicked the form;
         if( id == ''){
           console.log("teh previous acc is used for "+acc );
-          id = acc;
+          id = parseAccession( acc );
         }
         // all the clicked das sources
         var das = [];
