@@ -311,12 +311,13 @@ var LiveGridBuffer = Class.create( {
 
 
     this.startPos = parseInt(start);
-    this.rows     = ajaxResponse.responseJSON.json.rows;
+    //this.rows     = ajaxResponse.responseJSON.json.rows;
+    this.rows     = ajaxResponse.responseJSON.data.rows;
     this.size     = this.rows.length;
     
     // now I am adding the alignments to the object for retrieving;
     this.alignments = ajaxResponse.responseJSON.storeAlignments;
-    //console.log( "the alignments are "+this.alignments );
+    //// console.log( "the ajaxResponse is "+$H(ajaxResponse).inspect()+'| \nthe JSOn string is '+$H(ajaxResponse.responseJSON).inspect() );
     // console.log( "(17.2.2) LiveGridBuffer.update: end the size is "+this.size );
 /*
     try { 
@@ -445,7 +446,7 @@ var LiveGridBuffer = Class.create( {
     return this.rows.slice( begPos, endPos );
 
     // // console.log( "LiveGridBuffer.getRows: end" );
-  }
+  },
 
   //----------------------------------------------------------------------------
   
@@ -589,16 +590,16 @@ var LiveGrid = Class.create( {
     // AjaxRequest response states, e.g. onLoading, onComplete, etc.
     Object.extend( options, this.options );
     
-    // console.log( "(16)before teh ajaxUpdate.bind ");
+    // console.log( "(16)before teh ajaxUpdate.bind "+$H( options ));
     // add the update method from this class, so that we have a hook for updating the
     // page with the server response
     options.onComplete = this.ajaxUpdate.bind( this ); 
-    // console.log( "(18)after the  ajaxUpdate.bind ");
+    // console.log( "(18)after the  ajaxUpdate.bind the options is "+$H( options ).inspect() );
     
     // console.log( "(19)before ajax request");
     // send the request
     this.ajaxRequest = new Ajax.Request( this.url, options );
-    //// console.log( "(20)after ajax request the scroller value is "+this.scroller );
+    // console.log( "(20)after ajax request the scroller value is "+this.scroller );
     
 //    var test = $H( options.parameters );
 //    // console.log( 'the options hash is '+test.inspect() );
@@ -639,7 +640,7 @@ var LiveGrid = Class.create( {
   //----------------------------------------------------------------------------
 
   ajaxUpdate: function( ajaxResponse ) {
-    // console.log( "(17)LiveGrid.ajaxUpdate: start"+ajaxResponse );
+    // console.log( "(17)LiveGrid.ajaxUpdate: start"+$H(ajaxResponse ) );
 
     clearTimeout( this.timeoutHandler );
 
@@ -678,12 +679,12 @@ var LiveGrid = Class.create( {
     // // console.log( "LiveGrid.processQueuedRequest: start" );
 
     if ( this.unprocessedRequest != null) {
-      // // console.log( "LiveGrid.processQueuedRequest: found an unprocessed request..." );
+      // console.log( "LiveGrid.processQueuedRequest: found an unprocessed request..." );
       this.requestContentRefresh(this.unprocessedRequest.requestOffset);
       this.unprocessedRequest = null;
     }
 
-    // // console.log( "LiveGrid.processQueuedRequest: end" );
+    // console.log( "LiveGrid.processQueuedRequest: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -715,6 +716,7 @@ var LiveGrid = Class.create( {
 //    outputDiv.appendChild( sequencesDiv );    
     
     var rows = this.buffer.getRows( startPos, this.metaData.getPageSize() );
+    // console.log( '(17.4.4) teh size of the rows is '+rows.length );
     
     for (var i = 0, len = rows.length; i < len; ++i ) {
       var row = rows[i];
@@ -745,10 +747,11 @@ var LiveGrid = Class.create( {
 //        acc_id = row[0];  
 //      }
       
-      //console.log( 'the accession is '+acc_id );
-      var accDiv = new Element( "div" ).update( " " + row[0] );
-      var seqDiv = new Element( "div" ).update( " "+ row[1] );
-      
+      //// console.log( 'the accession is '+acc_id );
+//      var accDiv = new Element( "div" ).update( " " + row[0] );
+//      var seqDiv = new Element( "div" ).update( " "+ row[1] );
+      var accDiv = new Element( "div" ).update( " " + row.key );
+      var seqDiv = new Element( "div" ).update( " "+ row.value );
       accessionsDiv.appendChild( accDiv );
       sequencesDiv.appendChild( seqDiv );
     }
@@ -802,7 +805,7 @@ var LiveGrid = Class.create( {
   //----------------------------------------------------------------------------
   
   getAlignment : function(){
-    //console.log( "the buffer alignments are "+$H( this.alignments).inspect() );
+    //// console.log( "the buffer alignments are "+$H( this.alignments).inspect() );
     return this.alignments;
   }
    //----------------------------------------------------------------------------
