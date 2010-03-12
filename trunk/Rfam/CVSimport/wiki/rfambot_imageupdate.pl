@@ -272,7 +272,7 @@ TITLE:foreach my $t (@$titles){
             foreach my $a (@{$rv}){
                 my $user=  $a->{user};
                 #check for the users
-                if ($user eq "Jennifer Rfm" || $user eq "rfambot"){
+                if ($user eq "Jennifer Rfm" || $user eq "Rfambot"){
                     print "(ee) Jennifer/Rfambot has edited this page since the last release-check it\n";
                     push(@editCheck, $imageId);
                     next TITLE;
