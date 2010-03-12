@@ -1,0 +1,23 @@
+
+[%#
+# title.tt
+# pg6 20101101
+#
+# builds the title for the Protein - Protein interaction pages
+# 
+# this one template should be able to generate two titles: the first ("tab") should
+# be the one that appears inside the page, as the label for the "tab" that forms
+# the page. This one can (and probably should) include HTML. The second title is the
+# one that goes into the header of the HTML and will appear as the title for the 
+# browser window or browser tab. This one shouldn't contain any HTML, and it will
+# be prefixed with "Pfam: " in the page wrapper template.
+#
+# $Id: title.tt,v 1.4 2010-01-19 13:27:56 pg6 Exp $   
+%]
+
+[% IF titleType == 'tab' %]
+[% CALL c.log.debug( "the from id is" rest.from.accession ) %]
+<h1>PPI: [% rest.from.accession %]-[% rest.to.accession %]</h1>
+[% ELSIF pageType == 'page' %]
+Protein-Protein Interaction: [% rest.from.accession %]-[% rest.to.accession %]
+[% END  %]
