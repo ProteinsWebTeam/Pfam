@@ -1,0 +1,925 @@
+
+[%
+# residue.tt
+# pg6 20090112 WTSI
+# 
+# build the summary block for proteins
+#
+# $Id: residue.tt,v 1.9 2010-02-03 15:45:53 pg6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "protein.css" );
+requirements.cssIeAll.push( "protein_all_ie.css" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# as we are using the scriptaculous for  generating the slider, 
+# load that as a requirement;
+requirements.js.push( "scriptaculous.js?load=slider" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics_test.js" );
+#requirements.js.push( "domain_graphics_loader.js" );
+
+#-------------------------------------------------------------------------------
+-%]
+
+<div class="block" id="protprotintResidueBlock">
+  <div class="handle">
+    <!--<h1>Residue-Residue interaction: [% rest.from.accession %]-[% rest.to.accession %]</h1>-->
+    <h1> Residue Interactions</h1>
+  </div>
+  
+  <div class="blockContent">
+    This is the summary page for the interaction between protein [% from.pfama_id %] and protein [% to.pfama_id %].
+  
+  
+  <!-- model region -->
+  <textarea id='seq2' rows='20' cols='60' style="display:none">
+    {"length":"950","options" : {
+         "tips" : "false",
+         "imageMap" : "false",
+         "lables" : "false"
+      },"regions":[{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"361","display":true,"startStyle":"jagged","aliEnd":"361","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"163","start":"159"},{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"587","display":true,"startStyle":"jagged","aliEnd":"573","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"470","start":"470"},{"modelStart":"12","modelEnd":"100","colour":"#ff5353","endStyle":"curved","end":"469","display":true,"startStyle":"jagged","aliEnd":"469","modelLength":"100","text":"PA","href":"/family/PF02225","type":"pfama","metadata":{"scoreName":"e-value","score":"7.1e-09","description":"PA domain","end":"469","accession":"PF02225","database":"pfam","aliEnd":"469","identifier":"PA","type":"Family","aliStart":"385","start":"362"},"aliStart":"385","start":"362"},{"modelStart":"1","modelEnd":"112","colour":"#5b5bff","endStyle":"curved","end":"726","display":true,"startStyle":"curved","aliEnd":"726","modelLength":"112","text":"DUF1034","href":"/family/PF06280","type":"pfama","metadata":{"scoreName":"e-value","score":"1.1e-13","description":"Fn3-like domain (DUF1034)","end":"726","accession":"PF06280","database":"pfam","aliEnd":"726","identifier":"DUF1034","type":"Domain","aliStart":"613","start":"613"},"aliStart":"613","start":"613"}],"markups":[{"lineColour":"#ff0000","colour":"#000000","end":"470","display":true,"v_align":"top","metadata":{"database":"pfam","type":"Link between discontinous regions","start":"361","end":"470"},"type":"Nested","start":"361"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"S","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"S Pfam predicted active site","start":"538"},"start":"538"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"D","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"D Pfam predicted active site","start":"185"},"start":"185"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"H","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"H Pfam predicted active site","start":"235"},"start":"235"}],"metadata":{"database":"uniprot","identifier":"Q560V8_CRYNE","description":"Putative uncharacterized protein","organism":"Cryptococcus neoformans (Filobasidiella neoformans)","accession":"Q560V8","taxid":"5207"},"motifs":[{"colour":"#ffa500","type":"sig_p","metadata":{"database":"Phobius","type":"sig_p","start":"1","end":"23"},"start":1,"end":23,"display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.5100","type":"low_complexity","start":"3","end":"21"},"start":3,"end":21,"display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.4900","type":"low_complexity","start":"134","end":"156"},"start":"134","end":"156","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0200","type":"low_complexity","start":"173","end":"187"},"start":"173","end":"187","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0800","type":"low_complexity","start":"207","end":"218"},"start":"207","end":"218","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.1300","type":"low_complexity","start":"220","end":"231"},"start":"220","end":"231","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0000","type":"low_complexity","start":"538","end":"554"},"start":"538","end":"554","display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.9100","type":"low_complexity","start":"578","end":"590"},"start":588,"end":"590","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"1.7600","type":"low_complexity","start":"822","end":"831"},"start":"822","end":"831","display":false},{"colour":["#ff7ff0","#f2ff7f","#7ff2ff"],"href":"/pfamb/PB075017","type":"pfamb","metadata":{"database":"pfam","identifier":"Pfam-B_75017","type":"Pfam-B","start":"791","end":"949","accession":"PB075017"},"start":"791","end":"949","display":true}]}			
+		</textarea><br />
+  
+  
+  
+  <div id="canvasWrapper" style="position:relative">
+    
+    <canvas id="canvasEl"></canvas>
+    <div id="scroller"></div>
+    
+    <div style="clear:left"></div>
+    <div id="topWin" class="resWindow"></div>
+     <div style="clear:left"></div>
+    <div id="bottomWin" class="resWindow"></div>
+    <div style="clear:left"></div>
+    
+    <!--
+    <div id="topWin" style="width:625px;height:68px;background-color:cyan;position:absolute;z-index:0;opacity:0.3"></div>
+     <div style="clear:left"></div>
+    <div id="bottomWin" style="width:500px;height:68px;background-color:#4AA02C;position:absolute;z-index:0;opacity:0.3"></div>
+    
+    <canvas id="canvasEl" style="z-index:1;position:absolute;"></canvas>
+    <div id="scroller" style="border:1px solid green;position:relative;width:2px;opacity:0.5;z-index:10"></div>
+    -->
+    
+    <p></p>
+    <!-- now add another div for the residue level interaction -->
+    <div id="resInteraction" style="display:none">
+      <canvas id="resCanvas" height="200"></canvas>
+      
+    </div>
+    
+  </div>
+  
+  <br/> the interactions are [% graphics.from.interactions %];<p></p>
+  
+  <br/> the interactions are [% graphics.from.bonds %];<p></p>
+  
+  <br/> the interactions are [% graphics.to.interactions %];<p></p>
+  
+  <br/> the interactions are [% graphics.to.bonds %];<p></p>
+  
+  <div id="errors" style="display:none;font:Arial Black"></div>
+  </div>
+  <script type="text/javascript">
+  
+//---------------------------------------------------------------------------------------------------------------
+    // Entire initialisation of varaibles;
+    
+     var pg1 = new PfamGraphic( "canvasWrapper" );
+     pg1.setCanvas( 'canvasEl' );
+     pg1.setNewCanvas( false );          // its mandatory, use the same canvas to draw the interaction
+     var pg2 = new PfamGraphic( "canvasWrapper" );
+     pg2.setCanvas( 'canvasEl' );
+     pg2.setNewCanvas( false );
+     
+     // create the image param object;
+     var resWidth      = 1;
+     var graphicOffset = 100;
+     var imgParams     = {
+                          xscale: 1,
+                          yscale: 1,
+                          residueWidth: resWidth,
+                          envOpacity:-1,
+                          sequenceEndPadding: 0
+                         };
+     pg1.setImageParams( imgParams );
+     
+     
+     var layout = [% graphics.from.layout || "[]" %];
+     pg1.setSequence(layout[0]);
+     var dimForSeq1       = pg1.getDimensions();
+     var baselineForSeq1  = pg1.getBaseline();
+     
+     // now set for seq 2;
+     var seq2       = eval(  "sequence = "+$('seq2').getValue() ); 
+     pg2.setImageParams( imgParams );
+     pg2.setImageParams( { yOffset : graphicOffset } );
+     pg2.setSequence( seq2 );
+     
+     var dimForSeq2       = pg2.getDimensions();
+     var baselineForSeq2  = pg2.getBaseline(); 
+     
+     // console.log( 'the baseline for seq1|%s|seq2|%s|',baselineForSeq1,baselineForSeq2 +'|');
+     // console.log( 'the dimensions for seq1 and seq2 are |%d|%d|',dimForSeq1,dimForSeq2 );
+     
+     // now get the canvas element and draw the interaction;
+     var canvas = pg2.getCanvas();
+     
+     // algorithm to draw a region.
+     var seq1_interactions =  new Hash( eval( [% graphics.from.interactions %] ) );
+     var seq2_interactions =  new Hash( eval( [% graphics.to.interactions %] ) );
+     
+     // create a hash for storing the range;
+     var storeRange  = new Hash();
+     var window_span = 15 ; // this is the pixel value;
+     
+     // slider object which controls the res Interaction to be shown;
+     var slider;
+     
+     // we need to draw a separation line between the sequences;
+     var separationPoint = ( baselineForSeq1 + baselineForSeq2 + 100 )/ 2;
+     //console.log( 'the separation point is '+ separationPoint );
+     
+     // now compare the dimensions for both the sequence and set the bigger sequence's dimensions;
+     var canvasWidth, canvasHeight;
+     if( dimForSeq1[ 0 ] > dimForSeq2[ 0 ] ){
+       canvasWidth  = dimForSeq1[ 0 ];
+       canvasHeight = 100 + baselineForSeq2 + 25; // 25 pixels is added as an extra value;
+     } else if( dimForSeq2[ 0 ] > dimForSeq1[ 0 ] ){
+       canvasWidth  = dimForSeq2[ 0 ];
+       canvasHeight = 100 + baselineForSeq2 + 25;  // 25 pixels is added as an extra value;
+     } 
+     
+     // now set these attrbiutes to the canvas element;
+     $( 'canvasEl' ).writeAttribute( 'width', canvasWidth );
+     $( 'canvasEl' ).writeAttribute( 'height', canvasHeight );
+     
+     // now set the attributes for the top adn bottom window which highlights the sequence;
+     $( 'topWin' ).setStyle({
+       'width' : dimForSeq1[0]+'px',
+       'height': separationPoint+'px'
+     });
+     
+     $( 'bottomWin' ).setStyle({
+       'width' : dimForSeq2[0]+'px',
+       'height': separationPoint+'px'
+     });
+     
+     // create a new hash and set the bonds specific color;
+     var bondColors = new Hash( {
+       'V' : '#FF0000',      // 'vanderwaals'
+       'B' : '#731DAC',      // h-bond_back
+       'S' : '#08088A',      // 'h-bond_side'
+       'E' : '#1D51AC',      //'electrostatic'
+       'D' : '#0F8A92',      //'disulphide'
+       'C' : '#42621C',      //'covalent'
+     });
+     
+     var bondNames = new Hash( {
+       'V' : 'Vanderwaals',
+       'B' : 'h-bond_back',
+       'S' : 'h-bond_side',
+       'E' : 'Electrostatic',
+       'D' : 'Disulphide',
+       'C' : 'Covalent'
+     });
+     
+//---------------------------------------------------------------------------------------------------------------
+    // drawing the interaction begins here;
+          
+     if( canvas.getContext ){
+      
+      var ctx   = canvas.getContext( '2d' );
+      var seq1Y = parseInt( baselineForSeq1 );
+      var seq2Y = 100 + parseInt( baselineForSeq2 );
+      
+      //now walk down the sequence1 interactions and mark the points to draw;
+      seq1_interactions.keys( ).sort().each( function( key ) {
+        
+        var seq1X = parseInt( key );
+        
+        var values     = seq1_interactions.get( seq1X ).toArray(); // as it may have multiple values get it as array;
+        
+        //console.log( "the resA|resB|%s|%s|",seq1X, seq1_interactions.get( seq1X ) );
+        
+        values.sort().each( function ( x2 ){
+          
+          var seq2X = parseInt( x2 );
+          calculateRange( seq1X * resWidth, seq2X * resWidth );
+          
+         } ); // end of the seq1_interaction array;
+        
+      } ); 
+      
+      // now walk down the storeRange hash and draw all the points;
+      storeRange.each( function ( pair ){
+        var Points = pair.key.split( '-' );
+        console.log( "the range is "+pair.key );
+        
+        ctx.beginPath();
+        ctx.moveTo(Points[ 0 ], seq1Y);
+        ctx.lineTo(Points[ 1 ], seq1Y);
+        ctx.lineTo(Points[ 3 ], seq2Y);
+        ctx.lineTo(Points[ 2 ], seq2Y);
+        ctx.fillStyle = 'rgba( 222,184,135,10)';
+        ctx.fill();  
+        
+      } );
+      
+      // now render the domain graphics;
+      pg1.render();
+      pg2.render(); 
+        
+    }else {  
+     // canvas-unsupported code here
+       
+    } 
+
+//---------------------------------------------------------------------------------------------------------------
+    
+    // now add an event listener for the canvas element and draw the interaction;
+  var timer; 
+   
+  $('canvasEl').observe( 'mousemove',function( e){
+    
+    // clear the timeout in case the mouse moves rapidly;
+    
+    clearTimeout( timer );
+    
+    // calculate the offset position of the element;
+    var offset = $('canvasEl').up().cumulativeOffset();
+    
+    // calulate the x position
+    var x = e.pointerX() - offset[ 0 ];
+    var y = e.pointerY() - offset[ 1 ];
+    var seq1Ythreshold = baselineForSeq1 + 20 ; // from the base line the maxim pixel height is 10 for the region so add 20;
+    var seq2Ythreshold = baselineForSeq2 + graphicOffset  ;
+    
+    //console.log( 'teh pointer is at |%s|%s|%s|%s|',x,y,seq1Ythreshold,seq2Ythreshold );
+    //console.log( 'teh pointer is at |%s|%s|',x,y );
+    // now move the div over the image,
+    $( 'scroller' ).setStyle({
+      'height' :  seq2Ythreshold+'px',
+      'left':     x-3+'px' 
+    } );
+    
+    // hide the canvas;
+    //$('resCanvas').hide();
+       
+    var typeOfSeq;
+    
+    if (y < separationPoint ) {
+      typeOfSeq = 'seq1';
+      // now highlight the specfic topWin div;
+      $( 'topWin' ).setStyle({
+        'background': '#E0F8E0'
+      });
+      
+      $( 'bottomWin' ).setStyle({
+        'background': '#FFFFFF'
+      });
+      
+    }
+    else {
+      typeOfSeq = 'seq2';
+       // console.log('mouse scroll over seq2');  
+       // now highlight the specfic topWin div;
+      $( 'topWin' ).setStyle({
+        'background': '#FFFFFF'
+      });
+      
+      $( 'bottomWin' ).setStyle({
+        'background': '#E0F8E0'
+      });
+    }
+    
+    timer = window.setTimeout( "drawResInteraction('" + x + "','"+ typeOfSeq +"')", 50 );
+    
+    // // console.log( 'the event is '+ timer );
+    
+    
+  } );
+  
+ //---------------------------------------------------------------------------------------------------------------
+   // the function is in test.js inside teh test directory;
+    
+   function drawResInteraction( mousePointer, seq ){
+     
+     // console.log( 'the mousePointer is '+mousePointer+'|' );
+     
+     // now define the coordinates;
+     var seq1Y, seq2Y;
+     
+     var padding      = 10;
+     var spaceBtwSeqs = 125;
+     var rectSize     = 20;
+     var startX       = 10;
+     var interactions;
+     var bonds; 
+     var seq1Type, seq2Type;
+      
+     if( seq === 'seq1' ){
+       seq1Type = 'seq1';
+       seq2Type = 'seq2';
+       
+       seq1Y  = 40;  
+       seq2Y  = 40 + spaceBtwSeqs;
+       interactions = seq1_interactions;
+       bonds = new Hash( [% graphics.from.bonds %] );
+       
+     }else{
+       seq1Type = 'seq2';
+       seq2Type = 'seq1';
+       
+       seq2Y  = 40;  
+       seq1Y  = 40 + spaceBtwSeqs;
+       interactions = seq2_interactions;
+       bonds = new Hash( [% graphics.to.bonds %] );
+       
+     }
+     
+     var lastXOnSeq1,  lastYOnSeq1, lastXOnSeq2,  lastYOnSeq2, lastResOnSeq1;
+     
+     var resCtx;
+     
+     var leftWinPos   = parseInt( mousePointer ) - 7; 
+     var rightWinPos  = parseInt( mousePointer ) + 7;
+     
+     // console.log( 'the mouse pointer right and leftwinpos is |%d|%s|%s|',mousePointer, leftWinPos, rightWinPos );
+     
+     // this is the canvas status;
+     var newCanvasStatus = 0;
+     var prevDiff, prevRes;
+     
+     // calculating the nearest point from the mouse pointer;
+     interactions.each( function (pair ){
+       
+       if (pair.key >= leftWinPos && pair.key <= rightWinPos) {
+         
+         // find the diff between the mouse pointer and the key;
+         var diff = Math.abs( parseInt( pair.key ) - mousePointer );
+         
+         if( prevDiff === undefined ){
+           // console.log( 'no prevDif so assuming this point |%s| is closer to mouse pointer |%s|',pair.key, mousePointer );
+           prevDiff = diff;
+           prevRes  = pair.key;
+         }else if( diff < prevDiff ){
+           // console.log( 'the diff |%s| is smaller than prevdiff |%s| so assuming the new key |%s| instead of  |%s| ',diff,prevDiff,pair.key,prevRes );
+           prevDiff = diff;
+           prevRes  = pair.key;  
+         }
+           
+       } // end of if pair.key; 
+       
+     } ); // end of interactions;
+     
+     // now we have the closest residue to the pointer and draw the interactions for it;
+     
+     if( prevRes !== undefined ){
+       
+       newCanvasStatus = 1;
+       
+       // now get the resiude interactions for the nearest residue;
+       
+       //var points = interactions.get( prevRes ).toArray().uniq().sort();
+       var points   = interactions.get( prevRes ).toArray();
+       var resBonds = bonds.get( prevRes ).toArray();
+       
+       // if we have more than 8 resiudes interacting then dynamically set the size of the canvas;
+       if( points.size() > 6 ){
+         //console.log( 'more than 10 residues so setting the width greater than 500 px' );
+         var width = ( points.size() * 50 )+200;
+         $('resCanvas').writeAttribute( 'width', width );
+         
+       }else{
+         //console.log( 'less 10 residues so setting the width greater than 500 px '+points.size() );
+         $('resCanvas').writeAttribute( 'width', 500 );
+       }
+       
+       // check whether we coudl get context from the canvas;
+       if( $('resCanvas' ).getContext ){
+         
+         resCtx = $('resCanvas' ).getContext( '2d' );
+         
+         var width = $('resCanvas' ).getWidth();
+         //console.log('the width of the canvas is '+width );
+         // draw an empty rectangle with the last points to delete teh last image drawn;
+         // console.log( 'drawing an empty rect ');
+         resCtx.fillStyle = '#FFF';
+         resCtx.fillRect( 0,0,width,200 );
+         
+       } // end of $(resCanvas);
+       
+       resCtx.font         = "bold 14px 'optimer'";
+       resCtx.textAlign    = "center";
+       resCtx.textBaseline = "middle";
+       resCtx.lineWidth    = 2;
+       
+         // add 50 px to the position so that the single residue would be placed in center of the canvas;
+         // to avoid confusion, i use 
+         if( lastXOnSeq1 === undefined ){
+           lastXOnSeq1 = startX+50;
+         }
+         
+         if( lastYOnSeq1 === undefined ){
+           lastYOnSeq1 = seq1Y;
+         }
+         
+         
+         // draw the dots representing the contnuation of the sequence;
+         drawDots( resCtx, lastXOnSeq1, lastYOnSeq1 , 2 );
+         
+         // now get the color of the residue to draw the rectangle;
+         var seq1ResColour = getColor( prevRes, seq1Type );
+         // console.log( 'the resColor is '+seq1ResColour );
+         
+         // now based on the type of the retruned value ;
+         if( seq1ResColour !== '#000000' ){
+           // if the type of colour is string then use it ;
+           //console.log( 'the colour is '+seq1ResColour );
+           if( typeof seq1ResColour == 'string' ){
+             resCtx.fillStyle = seq1ResColour;
+             resCtx.fillRect(lastXOnSeq1 + 25, lastYOnSeq1 - 10, rectSize, rectSize);
+           }else if( typeof seq1ResColour == 'object' ){
+             
+             // check whether we have got number or pfam-b
+             if( typeof seq1ResColour[ 0 ] == 'number' ){
+               // console.log('the numebr are |%d|%d|%d|',seq1ResColour[0],seq1ResColour[1],seq1ResColour[2]);
+               resCtx.fillStyle = 'rgb( '+seq1ResColour[ 0 ]+',' +seq1ResColour[ 1 ]+','+ seq1ResColour[ 2 ] +')';
+               resCtx.fillRect(lastXOnSeq1 + 25, lastYOnSeq1 - 10, rectSize, rectSize);
+             }else{
+               // console.log(' its a pfamB' );
+             }
+             
+           }
+           
+         }else{
+           console.log('inside the undefined ');
+           // as the size of the rect is 20px, 10 px of y height is reduced and drawn from there to make it look like , the line touches the center of the rect
+           resCtx.strokeStyle = 'black  ';
+           resCtx.strokeRect(lastXOnSeq1 + 25, lastYOnSeq1 - 10, rectSize, rectSize);
+         }
+         // as the size of the rect is 20px, 10 px of y height is reduced and drawn from there to make it look like , the line touches the center of the rect
+         //resCtx.strokeRect(lastXOnSeq1 + 25, lastYOnSeq1 - 10, rectSize, rectSize); 
+         
+         // linelength(25) and widht of rect( 20 ) is added to reach the next side of the rect and line is drawn;
+         drawDots( resCtx, lastXOnSeq1 +45, lastYOnSeq1 , 2 );
+         
+         // now draw the text;
+         
+         resCtx.strokeStyle = "#eeeeee";
+         resCtx.strokeText( 'R', lastXOnSeq1+35, lastYOnSeq1 );
+         resCtx.strokeStyle = "#000000";
+         // the size of the rectangle is 20px 
+         // so 15 px is added so that it looks cool underneath the rectangle
+         
+         resCtx.fillStyle = "#000000";
+         resCtx.fillText( 'R', lastXOnSeq1+35, lastYOnSeq1 );
+         
+         if( seq === 'seq1' ){
+              // based on the mouse pointer this position will vary, 
+              // if the mouse pointer is in seq1, then the residue number should be displayed above the rect,
+              // so reduce the height of the y by 20px, x is adjusted to 30px to exactly make it look under the box;
+              resCtx.fillText( prevRes, lastXOnSeq1 + 30, lastYOnSeq1 - 20 );
+              
+         }else{
+              // in this case the pointer is over seq2, so increase the y value to make it look under the rectangle
+              resCtx.fillText( prevRes, lastXOnSeq1 + 30, lastYOnSeq1 + 20 );
+         } 
+         
+         // now change the coordinates 
+         lastXOnSeq1 = lastXOnSeq1 + 45;
+         lastYOnSeq1 = lastYOnSeq1;
+         
+         // now loop through the points to draw the interacting residues for seq2;
+         
+         var prevSeq2Res; // defined in order to find whether dotted lines or straight line to be drawn;
+         
+         // an hash to store the srawn residue position adn bond types;
+         var drawnResidues = new Hash();
+         var storePoints   = new Hash();
+         var bondsSeen     = new Hash();
+         
+         points.each( function( value,resPosition ){
+           
+           // get the color of the bond by fetching the bonds type and then use it as a lookup to get the color;
+           var bondType  = resBonds[ resPosition ];
+           var bondColor = bondColors.get( bondType );
+           // now get the color of the residue to draw the rectangle;
+           var seq2ResColour = getColor( value, seq2Type );
+           // console.log( 'the resColor is '+seq2ResColour );
+           
+           //console.log( 'the bondcolor for the residue is |%s|%s|',value, seq2ResColour );
+           
+           // store the bonds seen and later use that for drawing the legends;
+           //if( bondsSeen.get( bondType ) !== undefined ){
+             //console.log( 'setting the bondType '+bondType );
+             bondsSeen.set( bondType, 1 );  
+           //}
+           
+           // before proceeding check whether the residue is drawn already and has same bondType
+           if( drawnResidues.get( value ) !== undefined ){
+             if( drawnResidues.get( value ) === bondType ){
+               // console.log( 'the residue |%s| is already drawn wiht bondtype |bondType|',value,bondType );
+               return;
+             }else{
+               // console.log( 'the box already exists draw only the bond for '+value+'|'+bondType );
+               var coords = storePoints.get( value );
+               // console.log( 'the x1,y1,x2,y2 are '+coords );
+               
+               // now draw the bond and return;
+               drawbond( resCtx, coords[ 0 ], coords[1], ( coords[2] - 5 ), coords[3], bondColor );
+               return;
+               
+             }
+           }
+           
+           if( prevSeq2Res === undefined ){
+             prevSeq2Res = value;
+           }
+           // console.log( 'teh previous and the current value are |%d|%d|',prevSeq2Res,value );  
+           if( lastXOnSeq2 === undefined ){
+              
+              // if we have just one point then draw straight;
+              if( points.size() > 1){
+                lastXOnSeq2 = startX ;  
+              }else{
+                lastXOnSeq2 = startX + 50 ;
+              }
+              
+            }
+             
+            if( lastYOnSeq2 === undefined ){
+              lastYOnSeq2 = seq2Y;
+            }
+            
+            // if the values are continuos draw a line else, draw dots;
+            if( ( value - 1 ) == prevSeq2Res ){
+              // console.log( 'the values are consecutive |%s|%s|',prevSeq2Res,value);
+              resCtx.beginPath();
+              resCtx.moveTo(lastXOnSeq2, lastYOnSeq2);
+              resCtx.lineTo(lastXOnSeq2 + 25, lastYOnSeq2);
+              resCtx.stroke();  
+            
+            }else{
+              // draw small rectangle which looks like dotted lines;
+              drawDots( resCtx, lastXOnSeq2, lastYOnSeq2 , 2 );
+            }
+            
+            //resCtx.stroke();
+            //resCtx.strokeRect(lastXOnSeq2 + 25, lastYOnSeq2 - 10 , rectSize, rectSize);
+            // now based on the type of the retruned value ;
+             if( seq2ResColour !== '#000000' ){
+               // if the type of colour is string then use it ;
+               //console.log( 'the colour is '+seq1ResColour );
+               if( typeof seq2ResColour == 'string' ){
+                 resCtx.fillStyle = seq2ResColour;
+                 resCtx.fillRect(lastXOnSeq2 + 25, lastYOnSeq2 - 10 , rectSize, rectSize );
+               }else if( typeof seq2ResColour == 'object' ){
+                 
+                 // check whether we have got number or pfam-b
+                 if( typeof seq2ResColour[ 0 ] == 'number' ){
+                   // console.log('the numebr are |%d|%d|%d|',seq2ResColour[0],seq2ResColour[1],seq2ResColour[2]);
+                   resCtx.fillStyle = 'rgb( '+seq2ResColour[ 0 ]+',' +seq2ResColour[ 1 ]+','+ seq2ResColour[ 2 ] +')';
+                   resCtx.fillRect( lastXOnSeq2 + 25, lastYOnSeq2 - 10 , rectSize, rectSize );
+                 }else{
+                   // console.log(' its a pfamB' );
+                 }
+                 
+               }
+               
+             }else{
+               // console.log('inside the undefined ');
+               // as the size of the rect is 20px, 10 px of y height is reduced and drawn from there to make it look like , the line touches the center of the rect
+               resCtx.strokeStyle = 'black';
+               resCtx.strokeRect( lastXOnSeq2 + 25, lastYOnSeq2 - 10 , rectSize, rectSize );
+             }
+            
+            resCtx.strokeStyle = "#eeeeee";
+            resCtx.strokeText( 'R', lastXOnSeq2+35, lastYOnSeq2 );
+            resCtx.strokeStyle = "#000000";
+          
+            // add the text here;
+            resCtx.fillStyle = 'black';
+            resCtx.fillText( 'R', lastXOnSeq2+35, lastYOnSeq2 );
+            
+            //// console.log( 'in fitst line adn rect he x and y is |%s|%s|',lastXOnSeq2,lastYOnSeq2);
+            lastXOnSeq2 = lastXOnSeq2 + 45;
+            lastYOnSeq2 = lastYOnSeq2;
+            //// console.log( 'saving for next res x and y is |%s|%s|',lastXOnSeq2,lastYOnSeq2);
+            
+            // the lines has to be drawn from the midpoint of the rectangle,
+            // calculate the position for respective sequences;
+            
+            var textX, textY,x1,y1,x2,y2;
+            
+            if( seq === 'seq1' ){
+              textX = lastXOnSeq2 - 15;
+              textY = lastYOnSeq2 + 20;
+              
+              // already x position on seq1 and seq1 are incremented for the width of rectangle,
+              // so reduce 10 pix to get midpoint;
+              x1    = lastXOnSeq1 - 10; 
+              y1    = lastYOnSeq1 + 10;
+              x2    = lastXOnSeq2 - 10;
+              y2    = lastYOnSeq2 - 10;
+              
+              // now store the seq1( x1,y1 ) and seq2( x2,y2 ) points 
+              // for later use, to draw different bonds;
+              storePoints.set( value, [ x1, y1, x2, y2 ] );
+              
+            }else{
+              textX = lastXOnSeq2 - 15;
+              textY = lastYOnSeq2 - 20;
+              
+              // already x position on seq1 and seq1 are incremented for the width of rectangle,
+              // so reduce 10 pix to get midpoint;
+              x1    = lastXOnSeq1 - 10; 
+              y1    = lastYOnSeq1 - 10;
+              x2    = lastXOnSeq2 - 10;
+              y2    = lastYOnSeq2 + 10;
+              
+              // now store the seq1( x1,y1 ) and seq2( x2,y2 ) points 
+              // for later use, to draw different bonds;
+              storePoints.set( value, [ x1, y1, x2, y2 ] );
+            }
+
+            // add the residue number above the box
+            resCtx.fillText( value, textX, textY );
+            
+            // now draw the line between the points x1,x2,y1,y2 using the bondcolor;
+            drawbond( resCtx, x1, y1, x2, y2, bondColor );
+
+            // repalce the prevSeq2Res for next residue;
+            prevSeq2Res = value;
+            
+            // set the drawn residue for checks;
+            drawnResidues.set( value,bondType );
+            
+         } ); // end of points.each( 
+         
+         // at the end of the sequence, draw the dots;
+         drawDots( resCtx, lastXOnSeq2, lastYOnSeq2 , 2 );
+       
+       // now draw the legends;
+       // before drawing the legends, its better to save it,so that we can restore if necessitates;
+       if( bondsSeen !== undefined ){
+         resCtx.save();
+         
+         var lineX = ( $( 'resCanvas' ).getWidth() - 110 );
+         var lineY = 10;
+         
+         // now write the legend:
+         resCtx.fillText( 'Bonds', lineX, lineY );
+         
+         lineX -= 40;
+         lineY += 20;
+         
+         resCtx.lineWidth = 3;
+         resCtx.lineCap = 'round';
+         
+         
+         bondsSeen.each( function( pair ){
+           //console.log( 'the bond seen is '+pair.key );
+           resCtx.beginPath();
+           resCtx.strokeStyle = bondColors.get( pair.key );
+           resCtx.moveTo( lineX, lineY );
+           resCtx.lineTo( lineX+20, lineY );
+           resCtx.stroke();
+           
+           // revert the color to black;
+           resCtx.strokeStyle = 'black';
+           // now write the text;
+           resCtx.fillText( bondNames.get( pair.key ), lineX+80, lineY );
+           
+           lineY += 20; 
+                
+         } );
+       }
+               
+     } // if prevRes;
+     
+     
+     
+     // check the newcanvas status and if its hasnt changed then hide the canvas;
+     if( newCanvasStatus === 1 ) {
+//       $('resCanvas' ).setStyle({
+//         'visibility': 'visible'
+//       } );
+        //console.log('show the canvas');
+        $('resInteraction').show();      
+     }else{
+//       $('resCanvas' ).setStyle({
+//         'visibility': 'hidden'
+//       } ); 
+        $('resInteraction').hide();
+     } 
+     
+   }
+ 
+//---------------------------------------------------------------------------------------------------------------   
+  // function to select the color of the residues;
+  function getColor( res, typeOfSeq ){
+    
+    var resNum = parseInt( res );
+    
+    var seqObject;
+    if( typeOfSeq == 'seq1' ){
+      seqObject = pg1;
+    }else{
+      seqObject = pg2;
+    }
+    
+    var areas = seqObject.getAreas();
+    var areasList = areas[0].toArray();
+    
+    // console.log(' the residue,typeofseq,areas are |%s|%s|',resNum,typeOfSeq);
+    var colourValue;
+    
+    // walk the array and get teh areas;
+    areasList.each( function ( area ){
+      
+      //console.log('the area is '+area['tip']['title']+'|'+ area['colour']+'|'+area[ 'type' ]);
+      
+      // check whether the area has color property and it shouldn't be black;
+      if( ( area['colour'] !== 'undefined' ) && area['colour'] != '#000000'){
+        
+        // check whether it has got start defined  
+        if( area[ 'start' ] !== 'undefined' ){
+          
+          if( area[ 'end' ] !== 'undefined' ){
+            // now we have got both start and end coordiantes;
+            // if the residue falls between this range then use this color;
+            if( resNum >= area['start'] && resNum <= area[ 'end' ] ){
+              // console.log( 'resNum,start,end,colour are |%s|%s|%s|%s| ', resNum,area['start'],area['end'],area['colour'] );
+              colourValue = area['colour'];
+              throw $break;  
+//              // if we directly get the string, exit;
+//              if( typeof( area['colour' ] == 'string' ) ){
+//                colourValue = area[ 'colour' ];
+//                // console.log( 'res,start,end,colour are |%s|%s|%s|%s| ', res,area['start'],area['end'],area['colour'] );
+//                throw $break;        
+//              }else if( typeof( area[ 'colour' ] ) == 'object' ){
+//                colourValue = area[ 'colour' ];
+//                
+//              } // check whether we have got rgb value; 
+               
+            } // comparing the start and end
+              
+          } else {   // end of area['end']
+            if( resNum == area[ 'start' ] ){  
+              // mouse is scrolled over annotation ,i.e active site;
+              colourValue = area[ 'colour' ];
+              throw $break;
+            } 
+            
+          }   
+        
+        }// end of area['start']
+            
+      } // end of area['colour']
+      
+    });
+    
+    if ( colourValue == undefined ) {
+      //console.log( 'setting the color to black' );
+      colourValue = '#000000';
+    }
+    
+    //console.log('teh colour value in getColor is '+colourValue);
+    return colourValue;  
+  }
+
+//---------------------------------------------------------------------------------------------------------------   
+
+  function drawbond ( resCtx, x1, y1, x2, y2, color ){
+    
+    resCtx.beginPath();
+    resCtx.strokeStyle = color;    // set the color of the line for bond 
+    resCtx.moveTo( x1 , y1 );
+    resCtx.lineTo( x2 , y2 );
+    resCtx.stroke();
+    resCtx.strokeStyle = 'black';    // revert to the black color; 
+    
+  }
+
+//---------------------------------------------------------------------------------------------------------------   
+  
+  function drawDots( ctx, x, y, width ){
+    // always give the width as 2 as the following calclulation works well
+    // as i expect the line length to be 24,
+    // 5 rectangles 4 * 2 = 8px+ 4*( spacing 4px ) = 24px;
+    var spacing = 4; 
+    for( var i=0; i<= 4; i++){
+      // draw rectangle of 2 pixels width adn height;
+      ctx.fillStyle = "black";
+      ctx.fillRect(x + spacing, y - width , width, width );
+      spacing = spacing + 4;
+    }
+         
+  }    
+
+//---------------------------------------------------------------------------------------------------------------
+
+   // function to calculate the range;
+   function calculateRange( x1, x2 ){
+     //// console.log( 'function called with %s|%s|',x1,x2 );
+     var keys = storeRange.keys();
+     
+     if( keys[0] === undefined ){
+       
+       var range = x1+"-"+x1+"-"+x2+"-"+x2;
+       storeRange.set(  range, 0 );
+       
+     }else{
+       
+       // if we have keys, walk down the hash and generate a new range;
+       var newX1Range;
+       var newX2Range;
+       var range;
+       var xChange;
+       
+       storeRange.each( function(pair){
+         
+         var rangePoints = pair.key.split("-");
+         var x1WinStart = parseInt(rangePoints[0]) - window_span;
+         var x1WinStop = parseInt(rangePoints[1]) + window_span;
+         var x2WinStart = parseInt(rangePoints[2]) - window_span;
+         var x2WinStop = parseInt(rangePoints[3]) + window_span;
+         
+         //// console.log( '|%s|%s|%s|%s|%s|%s|%s|',pair.key,x1,x2,x1WinStart,x1WinStop,x2WinStart,x2WinStop );
+         
+         if ((x1 > x1WinStart && x1 < x1WinStop) && (x2 > x2WinStart && x2 < x2WinStop)) {
+       
+           if (x1 < parseInt(rangePoints[0])) {
+             newX1Range = x1 + '-' + rangePoints[1];
+           }
+           else if (x1 > parseInt(rangePoints[1])) {
+             newX1Range = rangePoints[0] + '-' + x1;
+           }else{
+             newX1Range = rangePoints[0] + '-' + rangePoints[1];
+           }
+           
+           if (x2 < parseInt(rangePoints[2])) {
+             newX2Range = x2 + '-' + rangePoints[3];
+             
+           }
+           else if (x2 > parseInt(rangePoints[3])) {
+             newX2Range = rangePoints[2] + '-' + x2;
+             
+           }else{
+             newX2Range =  rangePoints[2] + '-' + rangePoints[3];
+             
+           }
+           xChange = 0;
+           
+           storeRange.unset( pair.key );
+           
+           storeRange.set( newX1Range+'-'+newX2Range, 0 );
+           //// console.log( 'Extending the region from xcahnge|%s|%s|%s|%s|',pair.key,newX1Range+'-'+newX2Range,xChange );
+           
+           throw $break;
+           
+         }else{
+           xChange = 1;
+         }
+         
+       } ) ;
+       
+       // if it reaches here 
+       
+       if( xChange === 1){
+         var range = x1+"-"+x1+"-"+x2+"-"+x2;
+         storeRange.set(  range, 0 );  
+       }
+
+     }// end of else loop;s
+   }
+
+//---------------------------------------------------------------------------------------------------------------
+		 
+  </script>
+  
+</div>
+
