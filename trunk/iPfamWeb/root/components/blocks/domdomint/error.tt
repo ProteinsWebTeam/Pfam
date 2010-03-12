@@ -4,7 +4,7 @@
 #
 # show an error report for the family page.
 #
-# $Id: error.tt,v 1.2 2010-01-19 13:27:56 pg6 Exp $
+# $Id: error.tt,v 1.1 2009-10-16 13:36:08 pg6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
@@ -19,7 +19,7 @@ META fullPage = 1;
 
   [% ELSE %]
 
-    <p>There was a problem loading the requested protein - protein interaction page.</p>
+    <p>There was a problem loading the requested domain-domain interaction page.</p>
 
     [% IF errorMsg %]
       <p class="message">[% errorMsg %]</p>

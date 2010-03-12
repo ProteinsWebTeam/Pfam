@@ -1,9 +1,9 @@
 
 [%#
 # title.tt
-# pg6 20101101
+# pg6 20090903
 #
-# builds the title for the Protein - Protein interaction pages
+# builds the title for the domian-domain interaction pages
 # 
 # this one template should be able to generate two titles: the first ("tab") should
 # be the one that appears inside the page, as the label for the "tab" that forms
@@ -12,12 +12,12 @@
 # browser window or browser tab. This one shouldn't contain any HTML, and it will
 # be prefixed with "Pfam: " in the page wrapper template.
 #
-# $Id: title.tt,v 1.4 2010-01-19 13:27:56 pg6 Exp $   
+# $Id: title.tt,v 1.3 2009-11-19 11:28:35 pg6 Exp $   
 %]
 
 [% IF titleType == 'tab' %]
-[% CALL c.log.debug( "the from id is" rest.from.accession ) %]
-<h1>PPI: [% rest.from.accession %]-[% rest.to.accession %]</h1>
+[% CALL c.log.debug( "the from id is" from.pfama_id ) %]
+<h1>DDI: [% from.pfama_id %]-[% to.pfama_id %]</h1>
 [% ELSIF pageType == 'page' %]
-Protein-Protein Interaction: [% rest.from.accession %]-[% rest.to.accession %]
+Domain-Domain Interaction: [% from.pfama_id %]-[% to.pfama_id %]
 [% END  %]
