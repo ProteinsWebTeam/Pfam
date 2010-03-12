@@ -60,3 +60,76 @@ will update any of our pages if edited in the last 5 days.
 /software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_9_1 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_9_1\n
 
 
+
+-----------------------------------------------------------------------------
+
+Updating of Rfambox :
+
+Notes for updating Rfambox- use the rfambot account for this:
+username=Rfambot
+password=mafr123
+bot approval -
+http://en.wikipedia.org/wiki/Wikipedia:BRfA
+http://en.wikipedia.org/wiki/User:Rfambot
+
+
+Code:rfambot_boxupdate.pl
+
+Currently hardcoded- bot password, release and database.
+
+
+-----------------------------------------------------------
+
+rfambot_imageupdate.pl
+
+This is not specifically approved as a bot as it isnt editing any text and is simply
+an automated update/uploading tool. We still do this using the rfambot user name in wikicommons.
+
+As with the box update code-it wont actually do anything unless you specify the -edit option.
+Otherwise you just get a report-which is good to do before you set it running...
+
+-see comments at top of code on how it runs. help documentation not complete...
+
+
+-----------------------------------------------------------
+
+rfambot_imagenew.pl
+
+(there is also an older piece of code rfambot_newimage.pl_old) which might be of use.
+
+the iamge new code as it it needs the family acc and image id to be specified.
+-the license inforation is spcified in the code- lots of hard coded release specific info
+should be checked before running.
+
+currently it only uploads one page at time 
+
+-------------------------------------------------------------
+TEXT FOR A NEW IMAGE:
+
+{{Information |description=Secondary structure image for <$id> non coding RNA (<$Rfamacc>). Nucleotide colouring indicates sequence conservation between the members of this family.
+|source= Rfam database release 9.1
+|date=  January 2009
+|author= Rfam database
+|permission=This image is taken from the [http://rfam.sanger.ac.uk/ Rfam database], which is completely in the [ftp://ftp.sanger.ac.uk/pub/databases/Rfam/9.1/COPYING public domain]
+|other_versions=
+|other_fields=[[Category:Non-coding RNA]]
+}}
+{{PD-because|this image is taken from the [http://rfam.sanger.ac.uk/ Rfam database], which is completely in the [ftp://ftp.sanger.ac.uk/pub/databases/Rfam/9.1/COPYING public domain]}}
+
+TO ADD A GALLERY:
+
+{{Navbox
+| name = hide the gallery
+| title = Gallery of secondary structure images
+| titlestyle = background:#e7dcc3
+| state = autocollapse
+| list1  = {{Gallery
+| lines=5
+| Image:BsrC secondary structure.jpg|'''BsrC''':  Secondary structre taken from the [http://rfam.sanger.ac.uk Rfam] database. Family [http://rfam.sanger.ac.uk/family/RF01410 RF01410]
+| Image:BsrF secondary structure.jpg |'''BsrF''':  Secondary structre taken from the [http://rfam.sanger.ac.uk Rfam] database. Family [http://rfam.sanger.ac.uk/family/RF01411 RF01411]
+| Image:BsrG secondary structure.jpg |'''BsrG''':  Secondary structre taken from the [http://rfam.sanger.ac.uk Rfam] database. Family [http://rfam.sanger.ac.uk/family/RF01412 RF01412]
+|}}
+}}
+
+[[Image:GRIK4_3p_UTR_secondary_structure.jpg|thumb|250px| Secondary structure identified in the 3' UTR of the GRIK4 transcript. Nucleotide colouring indicates sequence conservation between members of this family.]]
+
