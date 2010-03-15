@@ -45,16 +45,9 @@ var highlight = {};
 highlight.mouseoverHandler = function( e ) {
 
   // get hold of the starting row, the one with the highlighted cell
-  var startingRow;
-  if( e.srcElement ) {
-    // get it the IE way...
-    startingRow = e.srcElement.parentNode;
-  } else if( e.target ) {
-    // and for the rest of the world...
-    startingRow = e.target.parentNode;
-  }
+  var startingRow = e.findElement("tr");
 
-  // if the mouseover event originates at a link node within a table
+// if the mouseover event originates at a link node within a table
   // cell, we need to get the parent of the parent of the link node
   if( "td" == startingRow.nodeName || "TD" == startingRow.nodeName ) {
     startingRow = startingRow.parentNode;
@@ -64,24 +57,23 @@ highlight.mouseoverHandler = function( e ) {
   var cells = new Array();
 
   // first, stash the cells in the starting row
-  var startingCells = $A( startingRow.getElementsByTagName( "td" ) );
+  var startingCells = startingRow.select("td");
   cells.push( startingCells );
   // console.debug( "cells starts with " + cells.length + " cells" );
 
   // and then, if this row isn't the full width of the table, recurse down
   // (actually, up) the previous rows and collect more cells to highlight
-  if( startingCells.length < numColsTable ) {
+  if ( startingCells.length < numColsTable ) {
     this.walkRows( startingRow, cells );
   }
   // console.debug( "retrieved " + cells.flatten().length + " cells" );
 
   // highlight the collected cells
   cells.flatten().each( function( cell ) {
-                          Element.addClassName( cell, "stripeHover" );
-                          // console.debug( "added stripeHover for cell " + cell );
-                          highlightedCells.push( cell );
-                        }
-                      );
+    cell.addClassName( "stripeHover" );
+    // console.debug( "added stripeHover for cell " + cell );
+    highlightedCells.push( cell );
+  } );
   
 };
 
@@ -147,13 +139,8 @@ highlight.walkRows = function( startingRow, cells ) {
 // currently highlighted cells and remove the hover classname
   
 highlight.mouseoutHandler = function( e ) {
-  highlightedCells.each( function( cell ) {
-                           Element.removeClassName( cell, "stripeHover" );
-                         }
-                       );
-  
-  // reset the array
-  highlightedCells.clear();
+  highlightedCells.invoke( "removeClassName", "stripeHover" )
+                  .clear();
 };
 
 //------------------------------------------------------------
