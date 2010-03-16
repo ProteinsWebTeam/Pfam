@@ -72,13 +72,13 @@ if ( !( -d "$pwd/$family/.svn" ) ) {
 # If a message is supplied, then write it to file such that the code reference
 # that deals with the SVN log message can grab it.
 
-if ( -s ".default".$$."pfci" ) {
-  unlink(".default".$$."pfci")
+if ( -s ".default" . $$ . "pfci" ) {
+  unlink( ".default" . $$ . "pfci" )
     or die "Could not remove old default check-in message\n";
 }
 
 if ($message) {
-  open( M, ">.default".$$."pfci" ) or die "Could not open message file\n";
+  open( M, ">.default" . $$ . "pfci" ) or die "Could not open message file\n";
   print M $message;
   close(M);
 }
@@ -100,14 +100,13 @@ $client->checkFamilyExists($family);
 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 
-
 if ($onlydesc) {
   $client->addPFANNLog();
 
   #AC
 
-  #my $upFamObj = $familyIO->loadPfamADESCFromLocalFile($family, $pwd);
-  print STDERR "Successfully loaded $family through middleware\n";
+#my $upFamObj = $familyIO->loadPfamADESCFromLocalFile($family, $pwd);
+#print STDERR "Successfully loaded  local copy of $family through middleware\n";
   die "Not implemented\n";
 }
 else {
@@ -118,11 +117,21 @@ else {
   }
 
   my $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
-  print STDERR "Successfully loaded $family through middleware\n";
-  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
+  print STDERR "Successfully loaded local copy $family through middleware\n";
+  my $oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
+  print STDERR "Successfully loaded SVN copy of $family through middleware\n";
+
 #-------------------------------------------------------------------------------
 
   if ($addToClan) {
+    print STDERR "Checking clan information\n";
+
+    #When adding to a clan, we want to check that the family
+    #does not already have a CL line in the old DESC, and that the
+    #new DESC has a CL line and that the clan exists.
+
+    #As part of belt and brace, we also check that the family is
+    #not already part of the clan membership (some how)
 
     #Check that the clan accession is in the correct format.
     unless ( $upFamObj->DESC->CL =~ /CL\d{4}/ ) {
@@ -139,33 +148,49 @@ else {
       die
 "Trying to add $family to $addToClan, yet it appears that $family is already part of the clan\n";
     }
+    if ( $oldFamObj->DESC->CL and $oldFamObj->DESC->CL =~ /CL\d{4}/ ) {
+      die
+"You have asked for this family to be added to a clan, but it is already part of a clan!\n"
+        . "Found:"
+        . $oldFamObj->DESC->CL
+        . " in SVN copy\n";
+    }
 
 #Need to propergate the fact we want to add this family to a clan via the log message.
-    open( C, ">.atc" ) or die "Could not open .atc:[$!]\n";
+    open( C, ">.atc".$$ ) or die "Could not open .atc:[$!]\n";
     print C $upFamObj->DESC->CL . ":" . $upFamObj->DESC->AC;
     close(C);
 
     $client->addPFCIATCLog();
   }
   elsif ($removeFromClan) {
+    print STDERR "Checking clan information\n";
+
+    #Things to check:
+    # - Does the clan exist?
+    # - Is the family part of a clan?
+    # - That the CL line has been removed
+    # - Ensure that CL line has been removed from the file
 
     #Check that the clan accession is in the correct format.
     unless ( $oldFamObj->DESC->CL =~ /CL\d{4}/ ) {
-      die "$removeFromClan does not look like a clan accession\n";
-    }
-
-    unless ( Bio::Pfam::PfamQC::noMissing( $upFamObj, $oldFamObj, $family ) ) {
-      print STDERR
-"Your family apppears to have missing sequences compared to the SVN version.";
-      exit(1);
+      die "SVN copy has:|"
+        . $oldFamObj->DESC->CL
+        . "| but this does not look like a clan accession\n";
     }
 
     #Does the clan in question exist?
-    $client->checkClanExists($oldFamObj->DESC->CL);
+    $client->checkClanExists( $oldFamObj->DESC->CL );
 
     #Seems like it does, lets load it!
-    my $clanIO  = Bio::Pfam::ClanIO->new;
+    my $clanIO = Bio::Pfam::ClanIO->new;
     my $clanObj = $clanIO->loadClanFromSVN( $oldFamObj->DESC->CL, $client );
+
+    if ( $upFamObj->DESC->CL and $upFamObj->DESC->CL =~ /CL\d{4}/ ) {
+      die "local copy has:|"
+        . $oldFamObj->DESC->CL
+        . "| yet you have asked to remove it from the clan.  Remove CL line and try again.\n";
+    }
 
     #Now check the membership.
     my %membership = map { $_ => 1 } @{ $clanObj->DESC->MEMB };
@@ -174,7 +199,7 @@ else {
 "Trying to remove $family from $removeFromClan, yet it does not appear that the $family is part of the clan\n";
     }
 
-    open( C, ">.rmc" ) or die "Could not open .rmc:[$!]\n";
+    open( C, ">.rmc".$$ ) or die "Could not open .rmc:[$!]\n";
     print C $oldFamObj->DESC->CL . ":" . $oldFamObj->DESC->AC;
     close(C);
 
@@ -184,34 +209,41 @@ else {
     $client->addPFCILog();
   }
 
-  print STDERR "Successfully loaded remote $family through middleware\n";
+  print STDERR "Cross referenceing Ids and Accs\n";
 
-  
   #Check the desc accessions are the same
   if ( $upFamObj->DESC->AC ne $oldFamObj->DESC->AC ) {
-    die "Accession error, your local copy does not match the repository\n";
+    die
+"\n***** Accession error, your local copy does not match the SVN repository *****\n\n";
   }
 
   #Check the desc accessions are the same
   if ( $upFamObj->DESC->ID ne $oldFamObj->DESC->ID ) {
-    die "Identifier error, your local copy does not match the repository\n";
+    die
+"\n***** Identifier error, your local copy does not match the SVN repository. ".
+   " Do you mean to change the name? If so use pfmove. *****\n\n";
   }
-  
-  if($oldFamObj->DESC->CL){
-    if($upFamObj->DESC->CL){
-    unless( $upFamObj->DESC->CL eq $oldFamObj->DESC->CL){
-      die "The clan acession in the CL has been changed between the SVN copy and your local copy!:".
-    "From:".$oldFamObj->DESC->CL." to ".$upFamObj->DESC->CL.".  You can not do this!\n".
-    "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
+
+  if ( $oldFamObj->DESC->CL ) {
+    if ( $upFamObj->DESC->CL ) {
+      unless ( $upFamObj->DESC->CL eq $oldFamObj->DESC->CL ) {
+        die
+"The clan acession in the CL has been changed between the SVN copy and your local copy!:"
+          . "From:"
+          . $oldFamObj->DESC->CL . " to "
+          . $upFamObj->DESC->CL
+          . ".  You can not do this!\n"
+          . "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
+      }
     }
-    }else{
-      unless($removeFromClan){
-        die "The SVN copy of this family has a CL line, but this version does not. Either use the -remove_from_clan option or put back.\n";
+    else {
+      unless ($removeFromClan) {
+        die
+"The SVN copy of this family has a CL line, but this version does not. Either use the -remove_from_clan option or put back.\n";
       }
     }
   }
-  
-  
+
   #These are more sanity checks
   unless ($ignore) {
 
@@ -235,7 +267,7 @@ else {
         exit(1);
       }
     }
-    
+
     Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
     unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj ) ) {
@@ -243,14 +275,16 @@ else {
       exit(1);
     }
 
-    unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
-       print("$0: your family seems to be missing members compared to the DBN copy\n(see $family/missing). Please inspect loss of members.\n");
-       print("Do you want to continue regardless? [y/n]  ");
-       my $reply = <STDIN>;
-       chomp $reply;
-       if ($reply ne "y") {
+    unless ( Bio::Pfam::PfamQC::noMissing( $upFamObj, $oldFamObj, $family ) ) {
+      print(
+"$0: your family seems to be missing members compared to the DBN copy\n(see $family/missing). Please inspect loss of members.\n"
+      );
+      print("Do you want to continue regardless? [y/n]  ");
+      my $reply = <STDIN>;
+      chomp $reply;
+      if ( $reply ne "y" ) {
         exit(1);
-       }
+      }
     }
 
     #pqc-check $family
@@ -277,11 +311,19 @@ else {
   $client->commitFamily($family);
 
   #Remove any file containing the check-in message
-  if ( -s ".default".$$."pfci" ) {
-    unlink(".default".$$."pfci")
+  if ( -s ".default" . $$ . "pfci" ) {
+    unlink( ".default" . $$ . "pfci" )
       or die "Could not remove old default check-in message\n";
   }
-
+   #Remove any file containing the check-in message
+  if ( -s ".rmc". $$ ) {
+    unlink( ".rmc".$$ )
+      or die "Could not remove old remove from clan check-in message\n";
+  }
+  if ( -s ".atc". $$ ) {
+    unlink( ".atc".$$ )
+      or die "Could not remove old add to clan check-in message\n";
+  }
   #
   if ($caught_cntrl_c) {
     print STDERR
@@ -289,34 +331,3 @@ else {
   }
 }
 exit(0);
-
-#-------------------------------------------------------------------------------
-# SUBROUTINES ------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 subname 
-
-  Title    :
-  Usage    :  
-  Function :
-  Args     :
-  Returns  :
-  
-=cut
-
-sub checkClanOpts {
-  if ($addToClan) {
-
-    #Check that the clan exists.
-
-    #Check that the family is not already part of clan.
-  }
-
-  if ($removeFromClan) {
-
-    #Check that the clan exists.
-
-    #Check that the family is part of the clan
-
-  }
-}
