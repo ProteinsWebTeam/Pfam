@@ -769,10 +769,12 @@ sub addClan {
 
   #And finally commit them.
   my $cinfo;
-  eval { $cinfo = $self->{txn}->commit( "$dest/$newClanId", 1 ); };
-
-  if ($@) {
-    confess("\n*** Failed to commit new family to $newClanId ***\n\n[$@]\n");
+  eval {
+    $cinfo = $self->{txn}->commit("$dest/$newClanId", 1);
+  };
+  
+  if($@){
+    confess("\n*** Failed to commit new clan  to $newClanId - Possible duplicate name? ***\n\n[$@]\n");   
   }
 
   #Now check that something happen!
