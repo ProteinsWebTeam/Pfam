@@ -62,27 +62,37 @@ use Bio::Pfam::AlignPfam;
 subtype 'AlignPfamA'
   => as Object
   => where { $_->isa('Bio::Pfam::AlignPfam') }
-  => message { "Couldn't find/create a valid Bio::Pfam::AlignPfam object" };
+  => message { "\n\n *** Couldn't find/create a valid Bio::Pfam::AlignPfam object ***\n".
+               "There is likely to be something wrong with your ALIGN file.\n".
+               "$@\n" };
 
 subtype 'HMMPfamA'
   => as Object
   => where { $_->isa('Bio::Pfam::HMM::HMM') }
-  => message { "Couldn't create a valid Bio::Pfam::HMM::HMM object" };
+  => message { "\n\n *** Couldn't create a valid Bio::Pfam::HMM::HMM object ***\n".
+               "There is likely to be something wrong with your HMM file.\n".
+               "$@\n" };
 
 subtype 'PfamoutPfamA'
   => as Object
   => where { $_->isa('Bio::Pfam::HMM::HMMResults') }
-  => message { "Couldn't find/create a valid Bio::Pfam::AlignPfam object" };
+  => message { "\n\n *** Couldn't find/create a HMMResults object from your PFAMOUT file ***\n".
+               "There is likely to be something wrong with your PFAMOUT file.\n".
+               "$@\n" };
 
 subtype 'scoresPfamA'
   => as Object
   => where { $_->isa('Bio::Pfam::Family::Scores') }
-  => message { "Couldn't create a Bio::Pfam::Family::Scores object" };
+  => message { "\n\n *** Couldn't create a Bio::Pfam::Family::Scores object ***\n".
+               "There is likely to be something wrong with your scores file.\n".
+               "$@\n" };
 
 subtype 'DESCPfamA'
   => as Object
   => where { $_->isa('Bio::Pfam::Family::DESC') }
-  => message { "Couldn't create a Bio::Pfam::Family::DESC object" };
+  => message { "\n\n *** Couldn't create a Bio::Pfam::Family::DESC object ***\n".
+               "There is likely to be something wrong with your DESC file.\n".
+               "$@\n" };
   
 
 # build an AlignPfam object from a file containing a Stockholm-format alignment
