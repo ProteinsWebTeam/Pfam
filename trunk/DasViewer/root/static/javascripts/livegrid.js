@@ -136,9 +136,11 @@ var LiveGridScroller = Class.create( {
     var visibleHeight = grid.offsetHeight;
     this.lineHeight   = visibleHeight / this.metaData.getPageSize();
       
-    // create the outer div...
-    this.scrollerDiv = document.createElement( "div" );
-    
+    // adding the scrollerDiv to the dom caused problems in IE when used nextSibling method to add
+		// to dom, so its solved by providing a reference to the div;
+		this.scrollerDiv = this.liveGrid.options.scrollerDiv;
+		
+    // console.log( "LiveGridScroller._createScrollBar: after scroller div created" );
     this.scrollerDiv.setStyle( {
       borderRight: "1px solid #ababab",
       position:    "relative",
@@ -147,10 +149,10 @@ var LiveGridScroller = Class.create( {
       height:      visibleHeight + "px",
       overflow:    "auto"
     } );
+		// console.log('the style set for the scrolldiv');
     
-   
-    if ( Prototype.Browser.IE ) {
-
+		if ( Prototype.Browser.IE ) {
+      // console.log('the browser is Ie; adding event listener to the scroll bar');
       grid.onmousewheel = function( evt ) {
         if ( event.wheelDelta >= 0 ) { //wheel-up
           this.scrollerDiv.scrollTop -= this.lineHeight;
@@ -177,21 +179,21 @@ var LiveGridScroller = Class.create( {
     }
 
     // create the inner div...
-    this.heightDiv = document.createElement( "div" );
+		// console.log( 'the heightdiv is created');
+    this.heightDiv = Element.extend( document.createElement( "div" ) );
     this.updateSize();
-
+    
+		// console.log( "LiveGridScroller.before appending" );
     this.scrollerDiv.appendChild( this.heightDiv );
-    this.scrollerDiv.onscroll = this.handleScroll.bindAsEventListener( this );
-
-    Element.insert( grid.nextSibling, { before: this.scrollerDiv } );
-
+    // console.log( "LiveGridScroller.befiore onscroll" );
+		this.scrollerDiv.onscroll = this.handleScroll.bindAsEventListener( this );
     // console.log( "( 17.5.2.4 )LiveGridScroller._createScrollBar: end" );
   },
    
   //----------------------------------------------------------------------------
 
   updateSize: function() {
-    // // console.log( "LiveGridScroller.updateSize: start" );
+    // console.log( "LiveGridScroller.updateSize: start" );
 
     var visibleHeight = this.liveGrid.grid.offsetHeight;
     var divHeight = parseInt( visibleHeight * this.metaData.getTotalRows() / this.metaData.getPageSize() );
@@ -200,7 +202,7 @@ var LiveGridScroller = Class.create( {
       width:  "1px"
     } );
 
-    // // console.log( "LiveGridScroller.updateSize: end" );
+    // console.log( "LiveGridScroller.updateSize: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -446,7 +448,7 @@ var LiveGridBuffer = Class.create( {
     return this.rows.slice( begPos, endPos );
 
     // // console.log( "LiveGridBuffer.getRows: end" );
-  },
+  }
 
   //----------------------------------------------------------------------------
   
@@ -594,7 +596,7 @@ var LiveGrid = Class.create( {
     // add the update method from this class, so that we have a hook for updating the
     // page with the server response
     options.onComplete = this.ajaxUpdate.bind( this ); 
-    // console.log( "(18)after the  ajaxUpdate.bind the options is "+$H( options ).inspect() );
+    //// console.log( "(18)after the  ajaxUpdate.bind the options is "+$H( options ).inspect() );
     
     // console.log( "(19)before ajax request");
     // send the request
@@ -665,8 +667,11 @@ var LiveGrid = Class.create( {
         this.options.onFirstContent(this);
       }
     }      
-    if ( this.options.onComplete ) {
+    //// console.log( 'the options is '+$H(this.options).inspect() );
+		if ( this.options.onComplete ) {
+			// console.log('the oncomplete function is called');
       this.options.onComplete(this);
+			// console.log('the oncomplete function finished executed');
     }
     this.processQueuedRequest();
 
