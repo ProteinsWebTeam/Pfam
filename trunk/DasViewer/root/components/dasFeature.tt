@@ -17,10 +17,10 @@ META naked = 1;
   <div>
     <canvas id="textEl" style="float:left;z-index:1;"></canvas>
     
-    <div id="canvasWrapper" style="overflow-x:auto;width:auto">
-      <canvas id="canvasEl" style="float:left;z-index:1;"></canvas>
-      <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10"></div>
-      <div id="backgroundDiv" style="background-color:#C7F3C5;position:relative;z-index:-1"></div>
+    <div id="canvasWrapper" style="overflow-x:auto;width:auto;">
+      <canvas id="canvasEl" style="float:left;z-index:1;border:1px solid red;"></canvas>
+      <div id="scroller" style="width:1px;background-color:black;position:absolute;z-index:10;display:none"></div>
+      <div id="backgroundDiv" style="background-color:#C7F3C5;position:relative;z-index:-1;display:none"></div>
     </div>
     
   </div>    
@@ -71,9 +71,17 @@ META naked = 1;
        
     var features =  $H( eval( [% dasFeatures %] ) );
     
-    // I need the canvas for drwaing the text so get the canvas object;
+		// make sure it gets initialised in bloody IE...
+    if ( typeof G_vmlCanvasManager !== "undefined" ) {
+      canvas = G_vmlCanvasManager.initElement( $('canvasEl') );
+    }
+		// make sure it gets initialised in bloody IE...
+    if ( typeof G_vmlCanvasManager !== "undefined" ) {
+      textCanvas = G_vmlCanvasManager.initElement( $('textEl'));
+    }
+		
+		// get the context object for both the canvas elements;
     var ctx,ttx;
-    
     if( $('canvasEl').getContext ){
       console.log( "canvas can be used in this browser" );
       ctx = $( 'canvasEl' ).getContext( '2d' );
@@ -139,9 +147,12 @@ META naked = 1;
           'width' : diff_size+'px'
         });
     
+	 // now show the backgrounDiv;
+	 $('backgroundDiv').show();
+		
    // now add an event listener to the canvasElement;
    $( 'canvasEl' ).observe( 'mousemove' , function( e ){
-     
+            
       // calculate the offset position of the element;
       var offset = $('canvasEl').up().cumulativeOffset();
       
@@ -163,7 +174,10 @@ META naked = 1;
           'left'  : scrollerLeftPos+'px'
         } );
         
-        // now update the resNum div to say which residue is currently shown;
+      // show the scroller;
+      $('scroller').show();
+      
+			// now update the resNum div to say which residue is currently shown;
         var res = ( x / resWidth ) - graphicXOffset + parseInt( $('canvasWrapper').scrollLeft );
         $('resNum').update( "Residue Number: "+ res ); 
         
