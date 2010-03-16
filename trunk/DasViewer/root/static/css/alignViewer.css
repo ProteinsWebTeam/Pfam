@@ -16,7 +16,8 @@
   background-color: #CCBBCC;
 }
 #sequences {
-  overflow-x:auto
+  overflow-x:auto;
+	overflow-y:hidden;
 }
 
 #sequences .odd {
