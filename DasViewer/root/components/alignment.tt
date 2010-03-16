@@ -11,10 +11,13 @@ PROCESS "components/require.tt";
 requirements.css.push( "alignment.css" );
 requirements.css.push( "alignViewer.css" );
 
+requirements.js.push( "excanvas.js" );
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
 requirements.js.push( "livegrid.js" );
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
-requirements.js.push( "excanvas.js" );
 
 -%]
     <h2>Alignment Viewer:</h2>
@@ -22,12 +25,14 @@ requirements.js.push( "excanvas.js" );
       <p id="gridResultRange"></p>
       
       
-        <div id="grid" >
+      <div id="grid" >
           <div id="highlightColumn" style="width:6px;border:1px solid red;position:relative;float:left;visibility:hidden;"></div>
           <div id="accessions"></div>
           <div id="sequences"></div>
-        
       </div>
+			<div id="scrollerDiv">
+				
+			</div>
       
     </div>
     
@@ -106,6 +111,7 @@ requirements.js.push( "excanvas.js" );
             },
             accessionsDiv: $('accessions'),
             sequencesDiv: $('sequences'),
+						scrollerDiv:  $('scrollerDiv'),
             scrollvalue: 0,
             prefetchBuffer: true,
             onscroll: updateTopicsGridHeader,
@@ -115,10 +121,10 @@ requirements.js.push( "excanvas.js" );
               $("spinner").addClassName('hidden');
               
               alignments = $H(eval( myGridUpdater.getAlignment() ) );
-//              console.log("alignment sis |"+alignments.inspect()+'|');
+              //console.log("alignment.tt: alignment is |"+alignments.inspect()+'|');
             },
             onLoading: function(){
-              //console.log( "onLoading: showing spinner" );
+              console.log( "onLoading: showing spinner" );
               $("spinner").update("Loading Alignment...");
               $("spinner").removeClassName('hidden');
               $("spinner").addClassName('visible');
@@ -129,6 +135,11 @@ requirements.js.push( "excanvas.js" );
             },
             onSuccess: function( transport ){
               console.log( 'the request is success '+transport.headerJSON );
+//							$("spinner").removeClassName('visible');
+//              $("spinner").addClassName('hidden');
+//              
+//              alignments = $H(eval( myGridUpdater.getAlignment() ) );
+//							console.log("alignment.tt: alignment is |"+alignments.inspect()+'|');
             }
           };
           
@@ -138,7 +149,7 @@ requirements.js.push( "excanvas.js" );
         
         // called on the onscroll event
         function updateTopicsGridHeader(offset){
-          //console.log( "updateTopicsGridHeader: offset: |" + offset + "|");
+          console.log( "updateTopicsGridHeader: offset: |" + offset + "|");
           
           // on update we lost the color so retain it by adding the backgound;
           if( acc !== undefined ){
@@ -293,7 +304,7 @@ requirements.js.push( "excanvas.js" );
             das[i] = allSources[i].value;
           }
         }
-        
+        //console.log( 'alingmnets before ajax request is '+alignments.inspect() );
         var call = new Ajax.Request( "[% c.uri_for('/feature/getFeature') %]",
                                      {
                                        method:     'post',
@@ -309,10 +320,10 @@ requirements.js.push( "excanvas.js" );
                                              $( "checkSources" ).show();	
                                              $("spinner").removeClassName('visible');
                                              $("spinner").addClassName('hidden');																			 
-																           },                        
+																           }                       
                                      } 
         ); 
-        
+        //console.log( 'alingmnets after ajax request is '+alignments.inspect() );
         return false; 
       }
     
