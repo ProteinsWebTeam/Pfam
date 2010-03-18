@@ -196,11 +196,6 @@ META naked = 1;
               //console.log('it is a residue '+ value );
               if( ( parseInt(alignStart) + resNum ) == res ){
                 columnNum = index;
-                
-                if( columnNum == 0 ){
-                  columnNum = 1;
-                }
-                
                 throw $break;
               }
               resNum++;  
@@ -221,6 +216,7 @@ META naked = 1;
          var visibleWinStart = $('sequences').scrollLeft;
          var visibleWinEnd = seqSize + $('sequences').scrollLeft ;
          var diffPos = 0;
+         
          // if the total visible size is lesser than the residue to be highlighted,
          //console.log( 'bef the windowstart,end,leftpos are |%d|%d|%d|',visibleWinStart,visibleWinEnd,highlightLeftPos);
          console.log("the scrollLEft and highlightleftpos is |%d|%d|",$('sequences').scrollLeft, highlightLeftPos );
