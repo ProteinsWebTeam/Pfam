@@ -83,7 +83,7 @@ if($seed){
 
 my  $tmpAliFile = "/tmp/$$.ali"; 
 #Okay, if we have the HMM, fa (and seed)
-my $cmd = "hmmalign -q --outformat Pfam";
+my $cmd = "hmmalign --outformat Pfam";
 $cmd .= " --mapali $tmpSeedFile" if($seed);
 $cmd .= " $tmpHMMFile $tmpDir/$faFile";
 
