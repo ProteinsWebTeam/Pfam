@@ -19,25 +19,37 @@
 
 #You will need to configure this for your system.
 #General
-export PATH="/sbin:/data/bin:/home/pfamweb/PfamBackend/scripts:$PATH"
-export PERL5LIB="/home/pfamweb/PfamLib:/home/pfamweb/PfamSchemata:/home/pfamweb/BPModules:$PERL5LIB"
 
-#Dequeuer config 
-export PFAMOFFLINE_CONFIG=/home/pfamweb/PfamBackend/conf/pfam_backend.conf
+export PFAMROOT=/software/pfam
+export PFAMWEBROOT=$PFAMROOT/pfamweb
+export WISECONFIGDIR=$PFAMWEBROOT/src/wise2.2.0/wisecfg 
+export PFAMOFFLINE_CONFIG=$PFAMWEBROOT/PfamBackend/conf/pfam_backend.conf
+export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:$PFAMWEBROOT/src/hmmer-3.0b3/bin:$PFAMWEBROOT/src/wise2.2.0/src/bin:/sbin:$PATH
 
-#Stuff required for binaries.
-export WISECONFIGDIR=/data/bin/wise2/wisecfg/
-export WUBLASTMAT=/Users/rdf/Applications/wu-blast/matrix/
+# Rfam config
+export RFAMROOT=/software/rfam
+export RFAMWEBROOT=$RFAMROOT/rfamweb 
+export PATH=$RFAMWEBROOT/src/infernal-0.72/src:$RFAMWEBROOT/src/wublast:$PATH
 
-# Set up of the lsf config - WTSI specific
-#. /usr/local/lsf/conf/profile.lsf
+#This is very WTSI specific.
+HOST=`hostname`
+if [ $HOST = "pfamweb-03" -o $HOST = "pfamweb-04" ]; then
+ . /usr/local/lsf/conf/profile.lsf
+fi
+
+export PERL5LIB=$PFAMWEBROOT/PfamLib:$PFAMWEBROOT/PfamSchemata:$PFAMWEBROOT/bioperl_1.4:$PFAMROOT/perl/lib/5.8.8:$PFAMROOT/perl/lib/perl/5.8.4:$PFAMROOT/perl/lib/site_perl/5.8.8:$PFAMROOT/perl/lib/site_perl/5.8.8/x86_64-linux-thread-multi:$PFAMROOT/perl/share/perl/5.8:$PFAMROOT/perl/share/perl/5.8.8:$PFAMROOT/perl/share/perl/5.8.4
+
+export DEBUG=0;
+
 
 #Config for this shell script
-DAEMON= <PATH-TO-THIS-SCRIPT>/slowDequeue.pl
+DAEMON=/software/pfam/pfamweb/PfamBackend/scripts/slowDequeue.pl
 NAME=slowDequeue
 DESC="Slow queue daemon"
 
+
 #End of config
+
 
 test -f $DAEMON || exit 0
 
@@ -45,24 +57,24 @@ set -e
 case "$1" in
   start)
  echo -n "Starting $DESC: "
- start-stop-daemon --start --quiet --pidfile /var/lock/$NAME.pid \
-  --exec /usr/bin/perl --startas $DAEMON
+ start-stop-daemon --start --quiet --pidfile /var/lock/${NAME}.pid \
+    -c pfamweb --exec /usr/local/bin/perl --startas $DAEMON
  echo "$NAME."
  ;;
   stop)
  echo -n "Stopping $DESC: "
  # --quiet
- start-stop-daemon --stop --signal 15 --pidfile /var/lock/$NAME.pid \
-  --exec /usr/bin/perl --startas $DAEMON
+ start-stop-daemon --stop --signal 15 --quiet --pidfile /var/lock/${NAME}.pid \
+   -c pfamweb --exec /usr/local/bin/perl --startas $DAEMON
  echo "$NAME."
  ;;
   restart|force-reload)
  echo -n "Restarting $DESC: "
- start-stop-daemon --stop --quiet --pidfile \
-  /var/lock/$NAME.pid --exec /usr/bin/perl --startas $DAEMON
+ start-stop-daemon --stop --singal 15 --quiet --pidfile \
+  /var/lock/${NAME}.pid  -c pfamweb --exec /usr/local/bin/perl --startas $DAEMON
  sleep 1
- start-stop-daemon --start --quiet --pidfile \
-  /var/lock/$NAME.pid --exec /usr/bin/perl --startas $DAEMON
+ start-stop-daemon --start --quiet --pidfile /var/lock/${NAME}.pid \
+   -c pfamweb --exec /usr/local/bin/perl --startas $DAEMON
  echo "$NAME."
  ;;
   *)
