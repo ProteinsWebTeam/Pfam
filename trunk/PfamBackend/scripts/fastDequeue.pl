@@ -38,7 +38,7 @@ use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
 #Switch on or off debugging
-our $DEBUG = 0;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 
 # Get a new queue stub of the type fast
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
@@ -99,7 +99,7 @@ while(1) {
 		      next;
 		    }
 		    #/home/pfamweb/scripts/rfamseq_blast_new.pl -in /tmp/rfam_test_seq.fa -cpus 2 -data /data/blastdb/Rfam
-		    $cmd = $ref->{'command'}." -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir."-cpus ".$qsout->cpus." -data ".$qsout->rfamDataFileDir;
+		    $cmd = $ref->{'command'}." -align -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir." -cpus ".$qsout->cpus." -data ".$qsout->rfamDataFileDir;
   	 } 
 	$DEBUG && print STDERR "Executing id=$ref->{'id'}, command=$cmd\n";
 	
