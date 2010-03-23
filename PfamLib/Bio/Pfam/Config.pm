@@ -96,6 +96,27 @@ sub location {
   return $self->{location};
 }
 
+
+=head2 binLocation
+
+  Title    : binLocation
+  Usage    : $config->binLocation
+  Function : Returns the bin directory
+  Args     : None - read only operator
+  Returns  : string containing path  
+  
+=cut
+
+sub binLocation {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{binLocation};
+}
+
+
+
 =head2 hmmer3bin
 
   Title    : hmmer3bin
@@ -428,6 +449,30 @@ sub pfamjobs {
   return $self->{Model}->{PfamJobs};  
   
 }
+
+=head2 pfamOldRelAdmin 
+
+  Title    : pfamOldRelAdmin
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
+
+sub pfamOldRelAdmin {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  my $c = $self->{Model}->{PfamOldRel};  
+  $c->{password} = $c->{adminpassword};
+  $c->{user} = $c->{adminuser};
+  return $c;
+}
+
+
 
 sub svnRepos {
   my $self = shift;
