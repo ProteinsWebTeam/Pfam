@@ -67,40 +67,7 @@ sub browse : Global {
   # copy the kingdoms list into the stash so that we can use them to build the
   $c->stash->{kingdoms} = [ sort keys %{ $this->{kingdoms} } ]; 
 
-  my $cache_key = 'active_letters_hash';
-  my $active_letters = $c->cache->get( $cache_key );
-  if ( defined $active_letters ) {
-    $c->log->debug( 'Browse::browse: retrieved active letters list from cache' )
-      if $c->debug;
-  }
-  else {
-    $c->log->debug( 'Browse::browse: failed to retrieve active letters list from cache; going to DB' )
-      if $c->debug;
-
-    # get a list of all genomes, then hash them on kingdom and species name first
-    # letter
-    my @res = $c->model('RfamDB::GenomeSummary')
-                ->search( {},
-                          { order_by => 'species ASC' } );
-
-    $active_letters = { all => {} };
-    foreach my $kingdom ( keys %{ $this->{kingdoms} } ) {
-      $active_letters->{$kingdom} = {};
-    }
-
-    foreach my $genome_row ( @res ) {
-      my $first_letter = uc( substr( $genome_row->species, 0, 1 ) );
-      $active_letters->{$genome_row->kingdom}->{$first_letter} = 1;
-      $active_letters->{all}->{$first_letter} = 1;
-    }
-
-    $c->cache->set( $cache_key, $active_letters );
-  }
-
-  $c->stash->{active_letters} = $active_letters;
-
-  #$c->log->debug( "Browse::browse: active_letters: " . dump( $active_letters ) )
-  #  if $c->debug;
+  $c->forward( 'build_active_letters' );
 
   $c->stash->{template} ||= 'pages/browse/index.tt';
 }
@@ -109,7 +76,7 @@ sub browse : Global {
 #- genomes ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 browse_genomes : Path
+=head2 browse_genomes : Chained PathPart CaptureArgs
 
 Retrieves the list of genomes from the DB and stashes them for the template.
 
@@ -118,25 +85,27 @@ Retrieves the list of genomes from the DB and stashes them for the template.
 sub browse_genomes : Chained( '/' )
                      PathPart( 'genome' )
                      CaptureArgs( 0 ) {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Genome::browse_genomes: building a list of genomes' )
     if $c->debug;
+    
+  $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 browse_genomes : Path
+=head2 browse_genomes_list : Chained PathPart Args
 
 Retrieves the full list of genomes from the DB and stashes them for the 
 template.
 
 =cut
 
-sub browse_list : Chained( 'browse_genomes' )
-                  PathPart( 'browse' )
-                  Args( 0 ) {
-  my( $this, $c ) = @_;
+sub browse_genomes_list : Chained( 'browse_genomes' )
+                          PathPart( 'browse' )
+                          Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Genome::browse_list: building full list of genomes' )
     if $c->debug;
@@ -150,23 +119,20 @@ sub browse_list : Chained( 'browse_genomes' )
 
   # stash the results for the template
   $c->stash->{genomes} = \@res if scalar @res;
-
-  # render the page
-  $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 browse_by_kingdom : Path
+=head2 browse_genomes_by_kingdom : Chained PathPart Args
 
 Retrieves the list of genomes from a particular kingdom and stashes them for 
 the template.
 
 =cut
 
-sub browse_by_kingdom : Chained( 'browse_genomes' )
-                        PathPart( 'browse' )
-                        Args( 1 ) {
+sub browse_genomes_by_kingdom : Chained( 'browse_genomes' )
+                                PathPart( 'browse' )
+                                Args( 1 ) {
   my ( $this, $c, $tainted_kingdom ) = @_;
 
   my ( $kingdom ) = $tainted_kingdom =~ m/^([\w\-\.\"\']+)/;
@@ -205,9 +171,6 @@ sub browse_by_kingdom : Chained( 'browse_genomes' )
 
   # stash the results for the template
   $c->stash->{genomes} = \@res if scalar @res;
-
-  # render the page
-  $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -227,9 +190,6 @@ sub browse_families : Chained( '/' )
   
   $c->log->debug( 'Browse::browse_families: building a list of families' )
     if $c->debug;
-
-                        
-  $c->stash->{template} = 'pages/browse/families.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -241,42 +201,80 @@ letter/number. End of a dispatch chain.
 
 =cut
 
-sub browse_letter : Chained( 'browse_families' )
-                    PathPart( 'browse' )
-                    Args( 1 ) {
+sub browse_families_by_letter : Chained( 'browse_families' )
+                                PathPart( 'browse' )
+                                Args( 1 ) {
   my ( $this, $c, $tainted_letter ) = @_;
+
+  if ( $tainted_letter eq 'with_structure' ) {
+    $c->log->debug( 'Browse::browse_families_by_letter: building a list of families with structures' )
+      if $c->debug;
   
-  if ( $tainted_letter eq 'top20' ) {
-    $c->log->debug( 'Browse::browse_letter: showing top 20 largest families' )
+    # we need the "active_letters" data structure, so that we can decide
+    # which families have structures
+    $c->forward( 'build_active_letters' );
+  
+    my @rs = $c->model( 'RfamDB::PdbRfamReg' )
+               ->search( { 'alignments_and_trees.type' => 'seed' },
+                         { prefetch => { 'auto_rfam' => 'alignments_and_trees' },
+                           '+select'=> [ { count => 'auto_rfam.auto_rfam' } ],
+                           '+as'    => [ 'num_structures' ],
+                           group_by => [ 'auto_rfam.rfam_id' ],
+                           order_by => 'auto_rfam.rfam_id' } );
+    
+    $c->stash->{families} = \@rs;
+    $c->stash->{template} = 'pages/browse/structures.tt';
+  }
+  elsif ( $tainted_letter eq 'top20' ) {
+    $c->log->debug( 'Browse::browse_families_by_letter: showing top 20 largest families' )
       if $c->debug;
 
     my @rs = $c->model('RfamDB::Rfam')
-               ->search( { },
-                         { rows     => 20,
+               ->search( { 'alignments_and_trees.type' => 'seed' },
+                         { prefetch => 'alignments_and_trees',
+                           rows     => 20,
                            page     => 1,
                            order_by => 'num_full DESC' }
                          )->all;
   
-    $c->log->debug( 'Browse::browse_letter: got |' . scalar @rs
+    $c->log->debug( 'Browse::browse_families_by_letter: got |' . scalar @rs
                     . '| top20 families' ) if $c->debug;
   
     $c->stash->{top20}    = 1;
     $c->stash->{families} = \@rs;
+    $c->stash->{template} = 'pages/browse/families.tt';
+  }
+  else {
+    $c->log->debug( 'Browse::browse_families_by_letter: showing all families' )
+      if $c->debug;
+
+    my @rs = $c->model('RfamDB::Rfam')
+               ->search( { 'alignments_and_trees.type' => 'seed' },
+                         { prefetch => 'alignments_and_trees',
+                           order_by => 'rfam_id' }
+                       )->all;
+  
+    $c->log->debug( 'Browse::browse_families_by_letter: got |' . scalar @rs
+                    . '| families' ) if $c->debug;
+  
+    $c->stash->{all}      = 1;
+    $c->stash->{families} = \@rs;
+    $c->stash->{template} = 'pages/browse/all_families.tt';
   }
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 browse_range : Chained PathPart Args
+=head2 browse_families_range : Chained PathPart Args
 
 Build a page showing the list of families starting with a particular 
 letter/number. End of a dispatch chain.
 
 =cut
 
-sub browse_range : Chained( 'browse_families' ) 
-                   PathPart( 'browse' )
-                   Args( 2 ) {
+sub browse_families_range : Chained( 'browse_families' ) 
+                            PathPart( 'browse' )
+                            Args( 2 ) {
   my ( $this, $c, $tainted_a, $tainted_b ) = @_;
 
   my ( $a ) = $tainted_a =~ m/^(\w)$/;
@@ -284,7 +282,7 @@ sub browse_range : Chained( 'browse_families' )
   
   my ( $from, $to ) = sort ( $a, $b );
   
-  $c->log->debug( "Browse::browse_range: from / to: |$from|$to|" ) if $c->debug;
+  $c->log->debug( "Browse::browse_families_range: from / to: |$from|$to|" ) if $c->debug;
 
   # according to the DBIC docs, it's bad to use an SQL function on the left-
   # hand side of a comparison like this (here we're doing a SUBSTRING), because
@@ -293,16 +291,84 @@ sub browse_range : Chained( 'browse_families' )
   # something drastic happens), we should be okay. 
 
   my @families = $c->model('RfamDB::Rfam')
-                   ->search( { 'SUBSTRING(rfam_id,1,1)'  => { 'IN', [ $from .. $to ] } },
-                             { order_by => 'rfam_id' } );                   
+                   ->search( { 'SUBSTRING(rfam_id,1,1)'  => { 'IN', [ $from .. $to ] },
+                               'alignments_and_trees.type' => 'seed' },
+                             { prefetch => [ 'alignments_and_trees' ],
+                               order_by => 'rfam_id' } );        
 
-  $c->log->debug( 'Browse::browse_range: found |' . scalar @families
+  $c->log->debug( 'Browse::browse_families_range: found |' . scalar @families
                   . '| families in total' ) if $c->debug;
 
   $c->stash->{from}     = $from;
   $c->stash->{to}       = $to;
   $c->stash->{families} = \@families;
   $c->stash->{template} = 'pages/browse/families.tt';
+}
+
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 build_active_letters : Private
+
+Builds a data structure that can be used for building the lists of first-letters
+in the various browse pages.
+
+=cut
+
+sub build_active_letters : Private {
+  my ( $this, $c ) = @_;
+  
+  my $cache_key = 'active_letters_hash';
+  my $active_letters = $c->cache->get( $cache_key );
+  if ( defined $active_letters ) {
+    $c->log->debug( 'Browse::build_active_letters: retrieved active letters list from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Browse::build_active_letters: failed to retrieve active letters list from cache; going to DB' )
+      if $c->debug;
+
+    # get a list of all genomes, then hash them on kingdom and species name first
+    # letter
+    my @genome_summaries = $c->model('RfamDB::GenomeSummary')
+                             ->search( {},
+                                       { order_by => 'species ASC' } );
+
+    $active_letters = { all => {} };
+
+    foreach my $kingdom ( keys %{ $this->{kingdoms} } ) {
+      $active_letters->{$kingdom} = {};
+    }
+
+    my $first_letter;
+    foreach my $genome_row ( @genome_summaries ) {
+      $first_letter = uc( substr( $genome_row->species, 0, 1 ) );
+      $active_letters->{$genome_row->kingdom}->{$first_letter} = 1;
+      $active_letters->{all}->{$first_letter} = 1;
+    }
+
+    # get a list of all families for which there's a 3-D structure and
+    # add them to the "active_letters" data structure
+    my @families_with_structures = 
+      $c->model( 'RfamDB::PdbRfamReg' )
+        ->search( {},
+                  { prefetch => [ 'auto_rfam' ],
+                    distinct => 1,
+                    order_by => 'rfam_id' } );
+  
+    foreach my $family ( @families_with_structures ) {
+      $first_letter = uc( substr( $family->rfam_id, 0, 1 ) );
+      $active_letters->{families_with_structures}->{$first_letter} = 1;
+    }
+
+    $c->cache->set( $cache_key, $active_letters ) unless $ENV{NO_CACHE};
+  }
+
+  $c->stash->{active_letters} = $active_letters;
+
+  #$c->log->debug( "Browse::build_active_letters: active_letters: " . dump( $active_letters ) )
+  #  if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
