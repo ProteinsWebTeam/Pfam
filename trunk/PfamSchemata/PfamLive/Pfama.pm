@@ -279,6 +279,14 @@ __PACKAGE__->has_many(
   "PfamLive::ActiveSiteAlignments",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
+
+#This should be auto gnerated.
+__PACKAGE__->has_many(
+   "pfama_wikis",
+   "PfamLive::PfamaWiki",
+   { "foreign.auto_pfama" => "self.auto_pfama" },
+ );
+ 
 __PACKAGE__->set_primary_key("auto_pfama", "pfama_id", "pfama_acc");
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
