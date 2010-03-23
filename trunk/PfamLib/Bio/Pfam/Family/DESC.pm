@@ -152,6 +152,11 @@ has 'TP' => (
   required  => 1
 );
 
+has 'WIKI' => (
+  is        => 'ro',
+  isa       => 'HashRef'
+);
+
 has 'REFS' => (
   is        => 'ro',
   isa       => 'PfamRef'
@@ -201,7 +206,7 @@ has 'private' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(ID AC PI DE AU SE CUTGA CUTTC CUTNC BM SM TP CL NESTS REFS DBREFS CC SQ EDITS private ) ] }
+  default => sub {[ qw(ID AC PI DE AU SE CUTGA CUTTC CUTNC BM SM TP WIKI CL NESTS REFS DBREFS CC SQ EDITS private ) ] }
 );
 
 
