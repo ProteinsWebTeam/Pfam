@@ -832,6 +832,67 @@ sub updateMetaPfamA {
   }
 }
 
+sub updatePfamAWikipedia {
+  
+  my ( $self, $famObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the pfamA family
+
+  my $auto;
+  if ( $famObj->rdb->{auto} ) {
+    $auto = $famObj->rdb->{auto};
+  }
+  else {
+    my $pfamA =
+      $self->getSchema->resultset('Pfama')
+      ->find( { pfamA_id => $famObj->DESC->ID } );
+
+    if ( $pfamA->pfama_id ) {
+      $auto = $pfamA->auto_pfama;
+      $famObj->rdb->{auto} = $auto;
+    }
+    else {
+      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+    }
+  }
+
+#-------------------------------------------------------------------------------
+#Add the page to the wikipedia table if it is not there.
+#Then added the information pfamA_literature_reference table.
+  $self->getSchema->resultset('PfamaWiki')
+    ->search( { auto_pfamA => $auto } )->delete;
+  if($famObj->DESC->WIKI and ref($famObj->DESC->WIKI) eq 'HASH'){
+    foreach my $page ( keys %{ $famObj->DESC->WIKI } ) {
+      my $wiki =
+        $self->getSchema->resultset('Wikipedia')->find_or_create(
+        {
+          title   => $page,
+        }
+        );
+      
+      unless ( $wiki->auto_wiki ) {
+        confess( "Failed to find or create row for wiki page".$page."\n" );
+      }
+      
+      $self->getSchema->resultset('PfamaWiki')->create(
+        {
+          auto_pfama  => $auto,
+          auto_wiki    => $wiki->auto_wiki
+        }
+      );
+    }
+  }
+}
+
+
 sub updatePfamALitRefs {
   my ( $self, $famObj ) = @_;
 
@@ -1275,6 +1336,68 @@ sub updateClanDbXrefs {
     );
   }
 }
+
+
+sub updateClanWikipedia {
+  my ( $self, $clanObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the clan
+
+  my $auto;
+  if ( $clanObj->rdb->{auto} ) {
+    $auto = $clanObj->rdb->{auto};
+  }
+  else {
+    my $clan =
+      $self->getSchema->resultset('Clans')
+      ->find( { clan_acc => $clanObj->DESC->AC } );
+
+    if ( $clan->clan_id ) {
+      $auto = $clan->auto_pfama;
+      $clanObj->rdb( { auto => $clan->auto_clan } );
+    }
+    else {
+      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+    }
+  }
+ 
+#-------------------------------------------------------------------------------
+#Add the page to the wikipedia table if it is not there.
+#Then added the information pfamA_literature_reference table.
+  $self->getSchema->resultset('ClanWiki')
+    ->search( { auto_clan => $auto } )->delete;
+    
+  if($clanObj->DESC->WIKI and ref($clanObj->DESC->WIKI) eq 'HASH'){
+    foreach my $page ( keys %{ $clanObj->DESC->WIKI } ) {
+      my $wiki =
+        $self->getSchema->resultset('Wikipedia')->find_or_create(
+        {
+          title   => $page,
+        }
+        );
+      
+      unless ( $wiki->auto_wiki ) {
+        confess( "Failed to find or create row for wiki page".$page."\n" );
+      }
+      
+      $self->getSchema->resultset('ClanWiki')->create(
+        {
+          auto_clan  => $auto,
+          auto_wiki    => $wiki->auto_wiki
+        }
+      );
+    }
+  }
+}
+
 
 sub updateClanLitRefs {
   my ( $self, $clanObj ) = @_;
