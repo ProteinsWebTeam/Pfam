@@ -93,11 +93,11 @@ sub loadPfamAFromLocalFile {
       or confess("Could not open $dir/$family/$f:[$!]");
     $params{$f} = $fh;
   }
-  
-  if($source){
-    $params{'source'} = $source; 
+
+  if ($source) {
+    $params{'source'} = $source;
   }
-  
+
   my $famObj = Bio::Pfam::Family::PfamA->new(%params);
 
   return ($famObj);
@@ -134,17 +134,20 @@ sub parseScores {
     @file = <$fh>;
   }
 
-
   my $noHits = 0;
   my %regions;
   foreach my $line (@file) {
     if ( $line =~ /^(\S+)\s+(\S+)\/(\d+)\-(\d+)\s+(\d+)\-(\d+)/ ) {
-      push( @{ $regions{$2} }, { start    => $3, 
-                                end       => $4, 
-                                score     => $1, 
-                                aliStart  => $5, 
-                                aliEnd    => $6, 
-                                 } );
+      push(
+        @{ $regions{$2} },
+        {
+          start    => $3,
+          end      => $4,
+          score    => $1,
+          aliStart => $5,
+          aliEnd   => $6,
+        }
+      );
       $noHits++;
     }
     else {
@@ -178,8 +181,10 @@ sub parseDESC {
   my $expLen = 80;
 
   my $refTags = {
-    RC => { RC => 1,
-            RN => 1 },
+    RC => {
+      RC => 1,
+      RN => 1
+    },
     RN => { RM => 1 },
     RM => { RT => 1 },
     RT => {
@@ -197,7 +202,9 @@ sub parseDESC {
     my $l = $file[$i];
     chomp($l);
     if ( length($l) > $expLen ) {
-      confess("Got a DESC line that was longer the $expLen, $file[$l]\n");
+      confess( "\nGot a DESC line that was longer the $expLen, $file[$l]\n\n"
+          . "-" x 80
+          . "\n" );
     }
 
     if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
@@ -205,24 +212,36 @@ sub parseDESC {
       next;
     }
     elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)\s+(\S+)\;$/ ) {
-      $params{"CUT".$1} = { seq => $2, dom => $3 };
+      $params{ "CUT" . $1 } = { seq => $2, dom => $3 };
     }
     elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
-      $params{private} .= " " if($params{private});
-      $params{private} .=  $1 ;
+      $params{private} .= " " if ( $params{private} );
+      $params{private} .= $1;
+    }
+    elsif ( $file[$i] =~ /^WK\s{3}(.*)\;$/ ) {
+      my $pages = $1;
+      foreach my $p ( split( /\;/, $pages ) ) {
+        if ( defined( $params{"WIKI"} ) ) {
+          $params{"WIKI"}->{$p}++;
+        }
+        else {
+          $params{"WIKI"} = { $p => 1 };
+        }
+      }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
       while ( $cc =~ /(\w+):(\S+)/g ) {
         my $db  = $1;
         my $acc = $2;
-        
+
         if ( $db eq 'Swiss' ) {
           $acc =~ s/\W+//g;
           unless ( $acc =~ /^\S{6}$/ ) {
             confess(
-"DESC file format for link to Swiss-Prot is wrong $acc is not a valid accession\n"
-            );
+"\nDESC file format for link to Swiss-Prot is wrong $acc is not a valid accession\n"
+                . "-" x 80
+                . "\n" );
           }
         }
 
@@ -230,15 +249,14 @@ sub parseDESC {
           $acc =~ s/\.|\,//g;
           unless ( $acc =~ /^PF\d{5}/ ) {
             warn(
-"DESC file format for link to Pfam is wrong $acc is not a valid accession\n"
-            );
+"\nDESC file format for link to Pfam is wrong $acc is not a valid accession\n"
+                . "-" x 80
+                . "\n" );
           }
         }
-     
+
         if ( $db eq 'EC' ) {
-          unless (
-            $acc =~ /^\(?(\d+)(\.(\d+|\-)){1,3}(\.|\,|\)){0,2}$/ )
-          {
+          unless ( $acc =~ /^\(?(\d+)(\.(\d+|\-)){1,3}(\.|\,|\)){0,2}$/ ) {
             confess(
 "DESC file format for link to EC is wrong $acc is not a valid accession\n"
             );
@@ -264,9 +282,9 @@ sub parseDESC {
           else {
             $ref->{$1} = $2;
           }
-          if($j == $#file){
-              $i = $j;
-              last REFLINE;
+          if ( $j == $#file ) {
+            $i = $j;
+            last REFLINE;
           }
           my ($nextTag) = $file[ $j + 1 ] =~ /^(\w{2})\s{3}/;
 
@@ -274,8 +292,13 @@ sub parseDESC {
           if ( $refTags->{$thisTag}->{$nextTag} ) {
             next REFLINE;
           }
-          elsif ( ( !$refTags->{$nextTag} or ( $nextTag eq "RN" or $nextTag eq "RC") )
-            and ( $thisTag eq "RL" ) )
+          elsif (
+            (
+              !$refTags->{$nextTag}
+              or ( $nextTag eq "RN" or $nextTag eq "RC" )
+            )
+            and ( $thisTag eq "RL" )
+            )
           {
             $i = $j;
             last REFLINE;
@@ -303,13 +326,13 @@ sub parseDESC {
     }
     elsif (
       $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+(\S+)\/(\d+)\-(\d+)\;\s+$/ )
-   {
+    {
       push(
         @{ $params{EDITS} },
         { seq => $1, oldFrom => $2, oldTo => $3, newFrom => $5, newTo => $6 }
       );
       next;
-    }   
+    }
     elsif ( $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+$/ ) {
       push(
         @{ $params{EDITS} },
@@ -321,18 +344,19 @@ sub parseDESC {
       for ( ; $i <= $#file ; $i++ ) {
         my $com;
         for ( ; $i <= $#file ; $i++ ) {
-          if( $file[$i] =~ /^DC\s{3}(.*)/ ) {
-            $com .= " " if($com);
+          if ( $file[$i] =~ /^DC\s{3}(.*)/ ) {
+            $com .= " " if ($com);
             $com = $1;
-          }else{
+          }
+          else {
             last;
           }
-        }  
+        }
 
-        if(!$file[$i]){
+        if ( !$file[$i] ) {
           confess("Found a orphan DC line\n");
         }
-          
+
         if ( $file[$i] =~ /^DR   PRINTS;\s/ ) {
           if ( $file[$i] !~ /^DR   (PRINTS);\s+(PR\d{5});$/ ) {
             confess("Bad prints reference [$file[$i]]\n");
@@ -352,7 +376,7 @@ sub parseDESC {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
         elsif ( $file[$i] =~ /^DR   HOMSTRAD/ ) {
-          if (  $file[$i] !~ /^DR   (HOMSTRAD);\s(\S+);$/ ) {
+          if ( $file[$i] !~ /^DR   (HOMSTRAD);\s(\S+);$/ ) {
             confess("Bad homstrad reference [$file[$i]]\n");
           }
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
@@ -365,16 +389,15 @@ sub parseDESC {
         }
         elsif ( $file[$i] =~ /^DR   SCOP;\s/ ) {
           if ( $file[$i] !~ /^DR   (SCOP);\s+(\S{4});\s+(\w+);$/ ) {
-            confess("Bad SCOP reference [ ".$file[$i]."]\n");
+            confess( "Bad SCOP reference [ " . $file[$i] . "]\n" );
           }
           my $id   = $1;
           my $link = $2;
           my $tag  = $3;
           unless ( $tag eq "sf" || $tag eq "fa" || $tag eq "pr" ) {
-            confess
-              "Bad SCOP reference (must have sf or fa tag) [$file[$i]]\n";
+            confess "Bad SCOP reference (must have sf or fa tag) [$file[$i]]\n";
           }
-          
+
           push(
             @{ $params{DBREFS} },
             { db_id => $id, db_link => $link, other_params => $tag }
@@ -393,8 +416,7 @@ sub parseDESC {
         elsif ( $file[$i] =~ /^DR   (LOAD); (\S+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (CAZY); ((GH|GT|CBM|PL|CE)\d+);$/ )
-        {
+        elsif ( $file[$i] =~ /^DR   (CAZY); ((GH|GT|CBM|PL|CE)\d+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
         elsif ( $file[$i] =~ /^DR   (SMART); (\w+);$/ ) {
@@ -411,8 +433,8 @@ sub parseDESC {
           $i--;
           last;
         }
-        if($com){
-          $params{DBREFS}->[ $#{ $params{DBREFS} } ]->{db_comment} = $com; 
+        if ($com) {
+          $params{DBREFS}->[ $#{ $params{DBREFS} } ]->{db_comment} = $com;
         }
       }
     }
@@ -422,36 +444,43 @@ sub parseDESC {
       next;
     }
     else {
-      confess("Failed to parse the DESC line $file[$i]");
+      chomp( $file[$i] );
+      my $msg = "Failed to parse the DESC line (enclosed by |):|$file[$i]|\n\n"
+        . "-" x 80 . "\n";
+
+      #croak($msg);
+      die $msg;
+
+#confess("Failed to parse the DESC line (enclosed by |):|$file[$i]|\n\n". "-" x 80 ."\n");
     }
   }
 
   #print Dumper %params;
-    my $desc = Bio::Pfam::Family::DESC->new(%params);
-    return $desc;
-      #End of uber for loop
+  my $desc = Bio::Pfam::Family::DESC->new(%params);
+  return $desc;
+
+  #End of uber for loop
 }
 
 sub writeEmptyDESC {
-  my ($self) = @_;  
-  
-  my %desc = ( DE    => "Family description",
-               AU    => "Who RU",
-               SE    => "Where did the seed come from",
-               CUTGA => { seq => "27.00", dom => "27.00" },
-               CUTNC => { seq => "27.00", dom => "27.00" },
-               CUTTC => { seq => "27.00", dom => "27.00" },
-               BM    => "hmmbuild  -o /dev/null HMM SEED",
-               SM    => "hmmsearch -Z ".$self->{config}->dbsize." -E 1000 HMM pfamseq",
-               TP    => 'Family' );
+  my ($self) = @_;
 
-  
+  my %desc = (
+    ID    => 'ShortName',
+    DE    => 'Family description',
+    AU    => 'Who RU',
+    SE    => 'Where did the seed come from',
+    CUTGA => { seq => '27.00', dom => '27.00' },
+    CUTNC => { seq => '27.00', dom => '27.00' },
+    CUTTC => { seq => '27.00', dom => '27.00' },
+    BM    => 'hmmbuild  -o /dev/null HMM SEED;',
+    SM    => 'hmmsearch -Z ' . $self->{config}->dbsize . ' -E 1000 HMM pfamseq',
+    TP    => 'Family'
+  );
+
   my $desc = Bio::Pfam::Family::DESC->new(%desc);
   $self->writeDESC($desc);
 }
-
-
-
 
 sub writeDESC {
   my ( $self, $desc, $path ) = @_;
@@ -459,224 +488,270 @@ sub writeDESC {
   unless ( $desc->isa('Bio::Pfam::Family::DESC') ) {
     confess("You did not pass in a  Bio::Pfam::Family::DESC object");
   }
-  
+
   my $descfile;
-  if($path){
-    $descfile = $path."/DESC"; 
-  }else{
+  if ($path) {
+    $descfile = $path . "/DESC";
+  }
+  else {
     $descfile = "DESC";
   }
-  open(D, ">$descfile") or die "Could not open $descfile file for writing to\n";   
-  
+  open( D, ">$descfile" )
+    or die "Could not open $descfile file for writing to\n";
+
   $Text::Wrap::columns = 75;
-  foreach my $tagOrder ( @{ $desc->order } ){
-    if(length($tagOrder) == 2 ){
-      if($desc->$tagOrder and $desc->$tagOrder=~/\S+/){
-        print D wrap("$tagOrder   ","$tagOrder   ", $desc->$tagOrder) ;
-        print D "\n";
-      } 
-    }else{
-      next unless($desc->$tagOrder);
-      if($tagOrder eq 'CUTTC'){
-        printf D "TC   %.2f %.2f;\n", $desc->$tagOrder->{seq}, $desc->$tagOrder->{dom};
-      }elsif($tagOrder eq 'CUTGA'){
-        printf D "GA   %.2f %.2f;\n", $desc->$tagOrder->{seq}, $desc->$tagOrder->{dom};
-      }elsif($tagOrder eq 'CUTNC'){
-        printf D "NC   %.2f %.2f;\n", $desc->$tagOrder->{seq}, $desc->$tagOrder->{dom};
-      }elsif($tagOrder eq 'NESTS'){
-        foreach my $n (@{$desc->$tagOrder}){
-          print D wrap("NE   ","NE   ", $n->{dom}.";") ;
-          print D "\n";
-          print D wrap("NL   ","NL   ", $n->{seq}."/".$n->{from}."-".$n->{to}.";") ;
-          print D "\n";
-        }
-      }elsif($tagOrder eq 'REFS'){
-        foreach my $ref ( @{$desc->$tagOrder}){
-          if ($ref->{RC}){ 
-            print D wrap("RC   ","RC   ",$ref->{RC});
-            print D "\n";
-          }
-          print D "RN   [".$ref->{RN}."]\n";
-          print D "RM   ".$ref->{RM}."\n";
-          print D wrap("RT   ","RT   ", $ref->{RT});
-          print D "\n";
-          print D wrap("RA   ","RA   ", $ref->{RA});
-          print D "\n";
-          print D "RL   ".$ref->{RL}."\n";
-          
-        }
-      }elsif($tagOrder eq 'DBREFS'){
-        foreach my $xref (@{$desc->$tagOrder}){
-          #Print out any comment
-          if($xref->{db_comment}){
-             print D wrap "DC   ", "DC   ", $xref->{db_comment};
-             print D "\n";
-          }
-        
-          if($xref->{other_params}){
-            print D "DR   ".$xref->{db_id}."; ". $xref->{db_link} ."; " .$xref->{other_params}.";\n";
-          }else{
-            print D "DR   ".$xref->{db_id}."; ".$xref->{db_link}.";\n";
-          }
-        }
-      }elsif($tagOrder eq 'EDITS'){
-        foreach my $e ( @{$desc->$tagOrder}){
-          if($e->{newTo}){
-            print D "ED   ".$e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}."; ".$e->{seq}."/".$e->{newFrom}."-".$e->{newTo}.";\n";
-          }else{
-            print D "ED   ".$e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}.";\n";
-          }
-        }
-      }elsif($tagOrder eq 'private'){
-        print D wrap "**   ","**   ", $desc->{$tagOrder};
+  foreach my $tagOrder ( @{ $desc->order } ) {
+    if ( length($tagOrder) == 2 ) {
+      if ( $desc->$tagOrder and $desc->$tagOrder =~ /\S+/ ) {
+        print D wrap( "$tagOrder   ", "$tagOrder   ", $desc->$tagOrder );
         print D "\n";
       }
-    }    
+    }
+    else {
+      next unless ( $desc->$tagOrder );
+      if ( $tagOrder eq 'CUTTC' ) {
+        printf D "TC   %.2f %.2f;\n", $desc->$tagOrder->{seq},
+          $desc->$tagOrder->{dom};
+      }
+      elsif ( $tagOrder eq 'CUTGA' ) {
+        printf D "GA   %.2f %.2f;\n", $desc->$tagOrder->{seq},
+          $desc->$tagOrder->{dom};
+      }
+      elsif ( $tagOrder eq 'CUTNC' ) {
+        printf D "NC   %.2f %.2f;\n", $desc->$tagOrder->{seq},
+          $desc->$tagOrder->{dom};
+      }
+      elsif ( $tagOrder eq 'NESTS' ) {
+        foreach my $n ( @{ $desc->$tagOrder } ) {
+          print D wrap( "NE   ", "NE   ", $n->{dom} . ";" );
+          print D "\n";
+          print D wrap( "NL   ", "NL   ",
+            $n->{seq} . "/" . $n->{from} . "-" . $n->{to} . ";" );
+          print D "\n";
+        }
+      }
+      elsif ( $tagOrder eq 'WIKI' ) {
+        if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
+          my @pages = keys( %{ $desc->$tagOrder } );
+          my $p = join( ";", @pages );
+          $p .= ";";
+          print D wrap( "WK   ", "WK   ", $p );
+          print D "\n";
+        }
+      }
+      elsif ( $tagOrder eq 'REFS' ) {
+        foreach my $ref ( @{ $desc->$tagOrder } ) {
+          if ( $ref->{RC} ) {
+            print D wrap( "RC   ", "RC   ", $ref->{RC} );
+            print D "\n";
+          }
+          print D "RN   [" . $ref->{RN} . "]\n";
+          print D "RM   " . $ref->{RM} . "\n";
+          print D wrap( "RT   ", "RT   ", $ref->{RT} );
+          print D "\n";
+          print D wrap( "RA   ", "RA   ", $ref->{RA} );
+          print D "\n";
+          print D "RL   " . $ref->{RL} . "\n";
+
+        }
+      }
+      elsif ( $tagOrder eq 'DBREFS' ) {
+        foreach my $xref ( @{ $desc->$tagOrder } ) {
+
+          #Print out any comment
+          if ( $xref->{db_comment} ) {
+            print D wrap "DC   ", "DC   ", $xref->{db_comment};
+            print D "\n";
+          }
+
+          if ( $xref->{other_params} ) {
+            print D "DR   "
+              . $xref->{db_id} . "; "
+              . $xref->{db_link} . "; "
+              . $xref->{other_params} . ";\n";
+          }
+          else {
+            print D "DR   " . $xref->{db_id} . "; " . $xref->{db_link} . ";\n";
+          }
+        }
+      }
+      elsif ( $tagOrder eq 'EDITS' ) {
+        foreach my $e ( @{ $desc->$tagOrder } ) {
+          if ( $e->{newTo} ) {
+            print D "ED   "
+              . $e->{seq} . "/"
+              . $e->{oldFrom} . "-"
+              . $e->{oldTo} . "; "
+              . $e->{seq} . "/"
+              . $e->{newFrom} . "-"
+              . $e->{newTo} . ";\n";
+          }
+          else {
+            print D "ED   "
+              . $e->{seq} . "/"
+              . $e->{oldFrom} . "-"
+              . $e->{oldTo} . ";\n";
+          }
+        }
+      }
+      elsif ( $tagOrder eq 'private' ) {
+        print D wrap "**   ", "**   ", $desc->{$tagOrder};
+        print D "\n";
+      }
+    }
   }
   close(D);
 }
 
-
 sub updatePfamAInRDB {
   my ( $self, $famObj, $pfamDB, $isNew, $depositor ) = @_;
-  
-  unless($famObj and $famObj->isa('Bio::Pfam::Family::PfamA')){
-    confess("Did not get a Bio::Pfam::Family::PfamA object"); 
-  }
-  
-  unless($pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager')){
-    confess("Did not get a Bio::Pfam::PfamLiveDBManager object"); 
-  }
-  
-  if($isNew){
-    $pfamDB->createPfamA($famObj, $depositor);  
-  }else{
-    $pfamDB->updatePfamA( $famObj );
-  }
-  
-  $pfamDB->updatePfamARegSeed( $famObj );
-  $pfamDB->updatePfamARegFull( $famObj );
-    
-  if($famObj->DESC->REFS){
-    $pfamDB->updatePfamALitRefs( $famObj );
-  }
-  
-  if($famObj->DESC->DBREFS){
-    $pfamDB->updatePfamADbXrefs( $famObj );
-  }
-  
-  if($famObj->DESC->NESTS){
-    $pfamDB->updatePfamANested( $famObj );
-  }
-  
-  if($famObj->DESC->EDITS){
-    $pfamDB->updateEdits($famObj); 
-  }
-  
-}
 
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
+  }
+
+  if ($isNew) {
+    $pfamDB->createPfamA( $famObj, $depositor );
+  }
+  else {
+    $pfamDB->updatePfamA($famObj);
+  }
+
+  $pfamDB->updatePfamARegSeed($famObj);
+  $pfamDB->updatePfamARegFull($famObj);
+
+  if ( $famObj->DESC->WIKI ) {
+    $pfamDB->updatePfamAWikipedia($famObj);
+  }
+
+  if ( $famObj->DESC->REFS ) {
+    $pfamDB->updatePfamALitRefs($famObj);
+  }
+
+  if ( $famObj->DESC->DBREFS ) {
+    $pfamDB->updatePfamADbXrefs($famObj);
+  }
+
+  if ( $famObj->DESC->NESTS ) {
+    $pfamDB->updatePfamANested($famObj);
+  }
+
+  if ( $famObj->DESC->EDITS ) {
+    $pfamDB->updateEdits($famObj);
+  }
+
+}
 
 sub movePfamAInRDB {
   my ( $self, $famObj, $pfamDB ) = @_;
-  
-  unless($famObj and $famObj->isa('Bio::Pfam::Family::PfamA')){
-    confess("Did not get a Bio::Pfam::Family::PfamA object"); 
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
-  
-  unless($pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager')){
-    confess("Did not get a Bio::Pfam::PfamLiveDBManager object"); 
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
-  
-  $pfamDB->updatePfamA( $famObj );
-  
+
+  $pfamDB->updatePfamA($famObj);
+
 }
 
 sub deletePfamAInRDB {
-  my ( $self, $family, $pfamDB, $comment, $forward, $user ) = @_;  
-  
-  unless($family and $family =~/PF\d{5}/){
-    confess("Did not get a family accession\n"); 
+  my ( $self, $family, $pfamDB, $comment, $forward, $user ) = @_;
+
+  unless ( $family and $family =~ /PF\d{5}/ ) {
+    confess("Did not get a family accession\n");
   }
-  
-  unless($pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager')){
-    confess("Did not get a Bio::Pfam::PfamLiveDBManager object"); 
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
-  
-  unless($comment){
+
+  unless ($comment) {
     confess('Did not get a comment as to why this family is being killed');
   }
-  
-  $pfamDB->deletePfamA($family, $comment, $forward, $user);
-  
+
+  $pfamDB->deletePfamA( $family, $comment, $forward, $user );
+
 }
 
 sub uploadPfamAHMM {
   my ( $self, $famObj, $pfamDB, $dir, $isNew ) = @_;
-  
-  unless($famObj and $famObj->isa('Bio::Pfam::Family::PfamA')){
-    confess("Did not get a Bio::Pfam::Family::PfamA object"); 
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
-  
-  unless($pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager')){
-    confess("Did not get a Bio::Pfam::PfamLiveDBManager object"); 
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
-   
+
   #my $hmmio = Bio::Pfam::HMM::HMMIO->new;
 
   #my ($fh, $filename) = tempfile();
   #$hmmio->writeHHMM($fh, $famObj->HMMPfamA);
   #close($fh)
   my $family;
-  if($isNew){
+  if ($isNew) {
     $family = $famObj->DESC->ID;
-  }else{
+  }
+  else {
     $family = $famObj->DESC->AC;
   }
-  open(HMM, "$dir/$family/HMM") or die "Could not open $dir/$family/HMM:[$!]\n";
+  open( HMM, "$dir/$family/HMM" )
+    or die "Could not open $dir/$family/HMM:[$!]\n";
   my $hmmString;
-  while(<HMM>){
+  while (<HMM>) {
     $hmmString .= $_;
   }
-  
-  $pfamDB->uploadPfamAHMM($famObj, $hmmString);
-      
+
+  $pfamDB->uploadPfamAHMM( $famObj, $hmmString );
+
 }
 
 sub uploadPfamAAligns {
-  my ($self, $famObj, $pfamDB, $dir, $isNew) = @_;
-  unless($famObj and $famObj->isa('Bio::Pfam::Family::PfamA')){
-    confess("Did not get a Bio::Pfam::Family::PfamA object"); 
+  my ( $self, $famObj, $pfamDB, $dir, $isNew ) = @_;
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
-  
-  unless($pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager')){
-    confess("Did not get a Bio::Pfam::PfamLiveDBManager object"); 
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
-  
+
   my $family;
-  if($isNew){
+  if ($isNew) {
     $family = $famObj->DESC->ID;
-  }else{
+  }
+  else {
     $family = $famObj->DESC->AC;
   }
-  
+
   my $full;
   my $seed;
-  
+
   #Read the FULL alignment into a string
-  open(F, "$dir/$family/ALIGN") or die "Could not open $dir/$family/ALIGN:[$!]\n";
-  while(<F>){
-    $full .= $_; 
+  open( F, "$dir/$family/ALIGN" )
+    or die "Could not open $dir/$family/ALIGN:[$!]\n";
+  while (<F>) {
+    $full .= $_;
   }
   close(F);
-  
+
   #Read the SEED alignment into a string;
-  open(S, "$dir/$family/SEED") or die "Could not open $dir/$family/SEED:[$!]\n";
-  while(<S>){
-    $seed .= $_; 
+  open( S, "$dir/$family/SEED" )
+    or die "Could not open $dir/$family/SEED:[$!]\n";
+  while (<S>) {
+    $seed .= $_;
   }
   close(S);
-  
-  $pfamDB->uploadPfamAInternal($famObj, $seed, $full);
+
+  $pfamDB->uploadPfamAInternal( $famObj, $seed, $full );
 
 }
 1;
