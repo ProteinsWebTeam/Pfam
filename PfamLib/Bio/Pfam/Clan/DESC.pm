@@ -114,6 +114,11 @@ has 'AU' => (
   required  => 1
 );
 
+has 'WIKI' => (
+  is        => 'ro',
+  isa       => 'HashRef'
+);
+
 has 'REFS' => (
   is        => 'ro',
   isa       => 'PfamRef'
@@ -138,7 +143,7 @@ has 'MEMB' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(ID AC PI DE AU REFS DBREFS CC MEMB) ] }
+  default => sub {[ qw(ID AC PI DE AU WIKI REFS DBREFS CC MEMB) ] }
 );
 
 1;
