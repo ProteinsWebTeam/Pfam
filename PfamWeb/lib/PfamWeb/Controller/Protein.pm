@@ -153,9 +153,9 @@ sub get_data : Private {
       if $c->debug;
 
     # see if this is really a secondary accession
-    $c->stash->{pfamseq} = $c->model('PfamDB::Secondary_pfamseq_acc')
+    $c->stash->{pfamseq} = $c->model('PfamDB::SecondaryPfamseqAcc')
                              ->search( { secondary_acc => $entry },
-                                       { prefetch      => [ qw( pfamseq ) ] } )
+                                       { prefetch      => [ qw( auto_pfamseq ) ] } )
                              ->single;
   }
   
