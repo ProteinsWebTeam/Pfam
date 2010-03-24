@@ -3,6 +3,7 @@ package Bio::Pfam::AlignMethods;
 use strict;
 use warnings;
 use Getopt::Long;
+use Bio::Pfam::SeqFetch;
 
 =head1 help
 
@@ -63,7 +64,6 @@ One of the following alignment methods:
     -m          Use MAFFT alignment method \n
     -mu         Use muscle alignment method \n
     -mup        Use muscle progressive-alignment methods (quicker, less accurate) \n
-    -p          Use probcons alignment methods (only works on small numbers of seqs, less than 50) \n
     -cl         Use Clustalw \n
     -ma   -pdb <pdb identifier>   -chain <chain>         Use mask alignment method (chain is optional)\n               
 " );
@@ -76,19 +76,17 @@ One of the following alignment methods:
 Title   : read_fasta
 Function: Takes fasta filename and returns two array references.
 	: (\@sequence,\@description)
-Usage	: &readfasta(fasta file name)
+Usage	: &readfasta($fasta_file, $bin_dir)
 
 =cut
 
+
 sub read_fasta {
 
-  my $fasta_file = shift;
-  system("sreformat fasta $fasta_file > $fasta_file.fa.$$");
-  $fasta_file = "$fasta_file.fa.$$";
+  my ($fasta_file, $bin) = @_;
+  open( FASTA, "$bin/sreformat fasta $fasta_file |") or die "Coudn't open fh to sreformat ($bin/sreformat fasta $fasta_file)  $!";
 
   my ( @sequence, @description, $i );
-
-  open( FASTA, "$fasta_file" ) || die "Can't open fasta file $fasta_file\n";
 
   $/ = ">";    # Change record seperator
   $i = 0;
@@ -104,10 +102,12 @@ sub read_fasta {
     }
   }
   close(FASTA);
-  unlink($fasta_file) if ( -s $fasta_file );
+
   $/ = "\n";                           # Change record seperator
   return ( \@sequence, \@description );
 }
+
+
 
 =head2 create_alignment
 
@@ -115,107 +115,82 @@ sub read_fasta {
 	Function: Takes array of sequences and aligns
 	       	: $method = clustal , T_coffee, MAFFT, hmmt
 	Returns : array of aligned sequences
-	Usage   : &create_alignment(\@sequence,\@description,\@name,$method,$fasta_file,$pdb,$chain)
+	Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file,$pdb,$chain)
 
 =cut
 
 sub create_alignment {
 
-  my ( @sequence, @description, $method, $fasta_file, $pdb, $chain, $i );
+  my ( $bin, $sequence, $description, $method, $fasta_file, $pdb, $chain) = @_;
 
-  $i = 0;
-
-  # Put references into scalars
-  @sequence    = @{ shift @_ };
-  @description = @{ shift @_ };
-  $method      = shift;
-  $fasta_file  = shift;
-  $pdb         = shift;
-  $chain       = shift;
 
   # Create fasta file
-  open( TMP, ">tmp$$" );
-  while ( $sequence[$i] ) {
-    print TMP ">$i~$description[$i]\n$sequence[$i]\n"
-      ; #need to insert $i at the beginning of each accession no. to ensure each one is unique
-    $i++;
+  open( TMP, ">tmp$$" ) or die "Couldn't open fh to tmp$$ $!";;
+  for ( my $i=0; $i< @$sequence; $i++) {
+      print TMP ">$i~$description->[$i]\n$sequence->[$i]\n"; #need to insert $i at the beginning of each accession no. to ensure each one is unique
   }
   close(TMP);
 
   # Create fasta file
   if ( ( $method =~ m/clustal/i ) || ( $method =~ m/clustalw/i ) ) {
     my $optns = "-infile=tmp$$";
-    system "clustalw $optns -output=gcg > /dev/null";
-    system "sreformat selex tmp$$.msf > tmp$$.slx";
+    system ("$bin/clustalw $optns -output=gcg > /dev/null") and die "Error running clustalw: $!";
+    open(TMP, "$bin/sreformat selex tmp$$.msf |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.msf) $!";
   }
   elsif ( $method =~ m/t_coffee/i ) {
 
     #    print "\# Align with t_coffee\n";
-    system "t_coffee tmp$$ -output=msf > /dev/null";
+    system "$bin/t_coffee tmp$$ -output=msf > /dev/null" and die "Error running t_coffee: $!";;
 
     # Reformat a bit
-    open( TMP,  "tmp$$.msf" )    || die "Could not open tmp$$.msf\n";
-    open( TMP2, "> tmp$$.msf2" ) || die "Could not open tmp$$.msf2\n";
+    open( T,  "tmp$$.msf" )    || die "Could not open tmp$$.msf\n";
+    open( T2, "> tmp$$.msf2" ) || die "Could not open tmp$$.msf2\n";
     my $print;
-    while (<TMP>) {
+    while (<T>) {
       if ($print) {
-        print TMP2;
+        print T2;
       }
       if (/\/\//) {
         $print = 1;
       }
 
     }
-    close(TMP);
-    close(TMP2);
+    close(T);
+    close(T2);
 
-    system("sreformat selex tmp$$.msf2 > tmp$$.slx");
-  }
-  elsif ( ( $method =~ m/hmmt/i ) || ( $method =~ m/hmm/i ) ) {
-    system(
-"hmmt -P /usr/local/pubseq/bin/wublast/BLOSUM62 -o tmp$$.slx tmp$$.hmm tmp$$ > /dev/null"
-    );
+    open(TMP, "$bin/sreformat selex tmp$$.msf2 |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.msf2) $!";
   }
   elsif ( $method =~ m/mask/i ) {
 
     # Make mask file
-    open( MASK, ">maskfile" ) || die "Can't open maskfile\n";
+    open( MASK, ">maskfile" ) || die "Can't open maskfile $!";
     &pdb2mask( $pdb, *MASK, $chain );
     close(MASK);
-    open( SLX, "> tmp$$.slx" ) || die;
+    open( SLX, "> tmp$$.slx" ) || die "Couldn't open tmp$$.slx $!";;
     &clustal_mask( "maskfile", "tmp$$", *SLX );
     close(SLX);
+    open(TMP, ">tmp$$.slx") or die "Couldn't open fh to tmp$$.slx $!";
 
   }
   elsif ( $method =~ m/MAFFT/i ) {
-    system("sreformat -u fasta tmp$$ > tmp$$.fa");
+      system("$bin/sreformat -u fasta tmp$$ > tmp$$.fa") and die "sreformat failed $!";
 
 # V4 of MAFFT is much better. It now has a wrapper and a series of options. There seems to be
 # no format issues now and my test show there is not need for the -/\. substitution.
-    system "mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft" and die;
-    system("sreformat selex tmp$$.mafft > tmp$$.slx");
+    system ("$bin/mafft  --quiet --maxiterate 16 tmp$$.fa > tmp$$.mafft") and die "Error running MAFFT: $!";
+
+    open(TMP, "$bin/sreformat selex tmp$$.mafft |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.mafft) $!";
   }
   elsif ( $method =~ /muscle-pro/i ) {
 
 # Note need to remain this way round for the statement to distinguish between the two
-    system("muscle -in tmp$$ -out tmp$$.fa -quiet -maxiters 2");
-    system("sreformat selex tmp$$.fa > tmp$$.slx");
+    system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet -maxiters 2") and die "Error running muscle: $!";
+    open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
   }
   elsif ( $method =~ /muscle/i ) {
 
-    system("muscle -in tmp$$ -out tmp$$.fa -quiet");
-    system("sreformat selex tmp$$.fa > tmp$$.slx");
-
-  }
-  elsif ( $method =~ /probcons/i ) {
-
-# Okay, this is a slow algorithm.  However, the most fo the time is spent on the -pre option
-# Reducing this will give a speed up, but will reduce accuracy.  I have tested probcons
-# on about 30 sequences and the pre training stablises out after 5 iteractions.
-    system(
-"/pfam/db/Pfam/software/probcons/probcons -pre 5 -c 5 -ir 500 tmp$$ > tmp$$.fa "
-    );
-    system("sreformat selex tmp$$.fa > tmp$$.slx");
+    system("$bin/muscle -in tmp$$ -out tmp$$.fa -quiet") and die "Error running muscle: $!";
+    open(TMP, "$bin/sreformat selex tmp$$.fa |") or die "Couldn't open fh to sreformat ($bin/sreformat selex tmp$$.fa) $!";
   }
   else {
     print "Cannot align with method: $method.\n";
@@ -225,11 +200,10 @@ sub create_alignment {
 
   # Put into mul format
 
-  open( TMP, "tmp$$.slx" ) || die "tmp$$.slx not found";
+
   while (<TMP>) {
-    if ( !(/^\#/) and ( !/^$/ ) and ( !/\/\// ) )
-    {    # Ignore blanks and lines beginning with #.
-      /^(\S+)\s+(\S+)$/;    # (name) (sequence).
+    if ( !(/^\#/) and ( !/^$/ ) and ( !/\/\// ) )  {    # Ignore blanks and lines beginning with #.
+	/^(\S+)\s+(\S+)$/;                              # (name) (sequence).
 
       $ali_name     = $1;
       $sequence_s_e = $2;
@@ -295,7 +269,7 @@ sub pdb2mask {
 
   # Retrieve DSSP info
   my $dssp = "DSSP";
-  system("getz -f res '[dssp:$id]' > DSSP");
+  system("getz -f res '[dssp:$id]' > DSSP") and die "Error running getz: $!";
 
   open( DSSP, "$dssp" ) || do {
     warn "Could not open dssp file for $id\n";
@@ -366,21 +340,19 @@ sub pdb2mask {
 =cut
 
 sub clustal_mask {
-  my ( $i, $mask, $fasta );
+  my ( $i, $mask, $fasta, $bin );
   $mask  = shift;
   $fasta = shift;
   *FILE  = shift;
+  $bin = shift;
   $i     = 0;
 
   # Do alignment
-  system(
-"clustalw -profile -profile1=$mask -profile2=$fasta -secstrout=both -sequences -output=gcg > /dev/null"
-  );
+  system("$bin/clustalw -profile -profile1=$mask -profile2=$fasta -secstrout=both -sequences -output=gcg > /dev/null") and die "Error running clustalw: $!";
 
 # Need to remove sequence of structure. May be duplicated or not exist in pfamseq!
 
-  open( ALI, "sreformat selex $fasta.msf | sel2mul |" )
-    || die "Can't open Alignment file [$fasta.msf]\n";
+  open( ALI, "sreformat selex $fasta.msf | sel2mul |" ) or die "Can't open Alignment file [$fasta.msf] $!";
   while (<ALI>) {
     if ( $i > 0 ) {
       print FILE "$_";
@@ -421,13 +393,13 @@ sub print_alignment {
 
     #need to trim alignment
 
-    open( FILE, ">tmp$$.mul" ) or die "Can't open tmp$$.mul\n";
+    open( FILE, ">tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
     while ( ( $key, $value ) = each( %{$hash} ) ) {
       $line = sprintf( "%-" . $idlength . "s %s \n", $key, $value );
       print FILE "$line";
     }
     close FILE;
-    open( FILE, "tmp$$.mul" ) or die "Can't open tmp$$.mul\n";
+    open( FILE, "tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
     &trim_align( \*FILE, 99 );
     close FILE;
     unlink "tmp$$.mul";
@@ -454,116 +426,91 @@ sub print_alignment {
 sub extend_alignment {
 
   my $opt_align = shift;
-  my $dbarg     = shift;
+  my $db_arg     = shift;
   my $opt_n     = shift;
   my $opt_c     = shift;
 
-  open( TEMP,  "> FA" )       || die "Can't open temp file\n";
-  open( ALIGN, "$opt_align" ) || die "Can't open $opt_align\n";
+  open( TEMP,  "> FA" ) or die "Can't open temp file $!";
+  open( ALIGN, "$opt_align" ) or die "Can't open $opt_align $!";
 
   my ( %length, %sequence );
   my ( $id, $from, $to, $newfrom, $newto, $original_seqno, $retrieved_seqno );
 
+
+  my (%nse, %seqList);
+
+  my $fa_file = "FA.whole.$$";
+
+  open(F, ">$fa_file") or die "Could not open $fa_file for writing :[$!]\n";
   while (<ALIGN>) {
-
-    # Get each line of alignment
     if (/^(\S+)\/(\d+)-(\d+)\s+(\S+)/) {
-      $id   = $1;
-      $from = $2;
-      $to   = $3;
-      $original_seqno++;
-      if ( $id =~ /_/ ) {
-        $id = &id2acc($id);
+        my ($acc, $start, $end) = ($1, $2, $3);
 
-# This sub routine looks up each id individually.  The program might be quicker if a list of id numbers that needed converting
-# were created and so the database is only accessed once.  It seems to work relatively fast as it though.
-      }
-      if ($id) {
-        unlink("tmp.$$");
-        system("seq_get.pl -d $dbarg -s $id > datafile.$$")
-          ;    # Retrieve full sequence
-
-        open( DATA, "datafile.$$" );
-        while (<DATA>) {
-          if (/^>.*$/) {
-            $retrieved_seqno++;
-          }
-          elsif (/(.*)/) {
-            $sequence{$id} .= $1;
-          }
-          else {
-            die "Unrecognised line from sequence entry $id\n";
-          }
-        }
-
-        close(DATA);
-
-        #Get length of sequence.
-        unless ( exists( $length{$id} ) ) {
-          $length{$id} = length $sequence{$id};
-        }
-        next
-          if ( $length{$id} eq "0" )
-          ;    #The sequence isn't in the db (ie hasn't been retrieved)
-        if ( $to > $length{$id} ) {
-          die
-"Sorry your mul alignment seems to be out of sync with DB\nYou can't have a domain boundary outside sequence\n$id,$from,$to,$length{$id}\n";
-        }
-
-        if ( $from < 1 ) {
-          die
-"Sorry your mul alignment seems to be out of sync with DB\nYou can't have a domain boundary before start of sequence\n";
-        }
-
-        # Get new from and to
-
-        # Do N terminus first
-        if ( $from - $opt_n > 0 ) {
-          $newfrom = $from - $opt_n;    # Extension is in range
-        }
-        else {
-          $newfrom = 1;
-        }
-
-        # Do C terminus next
-        if ( $to + $opt_c <= $length{$id} ) {
-          $newto = $to + $opt_c;        # Extension is in range
-        }
-        else {
-          $newto = $length{$id};
-        }
-
-        my ( $full_seq, $extended_seq );
-
-        open( DATA, "datafile.$$" ) || die "Could not open data file\n";
-        while (<DATA>) {
-          if (/^>.*$/) {
-            next;
-          }
-          elsif (/(.*)/) {
-            $full_seq .= $1;
-          }
-        }
-        $extended_seq = substr( $full_seq, $newfrom - 1, $newto - $newfrom + 1 )
-          ;    # Extract extended sequence using new from and to
-        print TEMP ">$id/$newfrom-$newto\n$extended_seq\n"
-          ;    # Print sequence id, new from-to and extended sequence
-        close(DATA);
-      }
+	push(@{$nse{$acc}}, { start => $start, end => $end} );
+	
+	push(@{ $seqList{$acc} }, { whole => 1 });
+    }
+    elsif(/^\/\//) {
+	next;
+    }
+    else {
+	warn "Unrecognised line: [$_]\n";
     }
   }
-  close(ALIGN);
-  close(TEMP);
 
-  # Check to see if all sequences from original alignnment were retrieved
-  my $diff = $original_seqno - $retrieved_seqno;
-  print STDERR
-"Extending $retrieved_seqno out the $original_seqno sequences in alignment.\n";
-  if ( $diff != 0 ) {
-    print STDERR
-"Warning - $diff of the $original_seqno in the original alignment were not retrieved\n";
+  my $original = keys %seqList;
+  my $retrieved =  Bio::Pfam::SeqFetch::fetchSeqs(\%seqList,$db_arg, \*F);
+  close F;
+
+  my $diff = $original - $retrieved;
+  print STDERR "Extending $retrieved out the $original sequences in alignment.\n";
+  if($diff != 0) {
+      print STDERR "Warning - $diff of the $original sequences in the original alignment were not retrieved\n";
   }
-  unlink("datafile.$$");
+
+  my $acc;
+  open(F, "$fa_file") or die "Couldn't open $fa_file for reading :[$!]\n";
+  while (<F>) {
+      if (/^>(\S+)\/\d+\-(\d+)/) {
+	  $acc = $1;
+          $length{$acc}=$2;
+      }
+      elsif (/(.*)/) {
+	  $sequence{$acc} .= $1;
+      }
+  } 
+  close(F);
+  unlink("$fa_file");  
+
+
+
+  foreach my $acc (keys %length) {
+
+      foreach my $se (@{$nse{$acc}}) {
+	  $retrieved++;
+	  my ($new_start, $new_end);
+
+	  if( ($se->{start} - $opt_n) > 0) {
+	      $new_start = $se->{start} - $opt_n;
+	  }
+	  else {
+	      $new_start = 1;
+	  }
+
+	  if( ($se->{end} + $opt_c) > $length{$acc}) {
+	      $new_end = $length{$acc};
+	  }
+	  else {
+	      $new_end = $se->{end} + $opt_c;
+	  }
+	  my $extended_seq = substr( $sequence{$acc}, $new_start - 1, $new_end - $new_start + 1 );
+
+	  print TEMP ">$acc/$new_start\-$new_end\n$extended_seq\n";
+      }
+  }
+
+  close TEMP;
+
   return;
 }
 
