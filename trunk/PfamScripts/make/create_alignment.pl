@@ -4,6 +4,7 @@ use IO::File;
 use Getopt::Long;
 use strict;
 use Bio::Pfam::AlignMethods;
+use Bio::Pfam::Config;
 
 my $prog = $0;
 
@@ -80,14 +81,15 @@ else {
   die "Could not remove // from end of file\n";
 } 
 
+
+my $config = Bio::Pfam::Config->new;      
+
 # Read fasta file and put ref into scalars
-my @foo = &Bio::Pfam::AlignMethods::read_fasta($fasta_file);
-my @sequence    = @{shift @foo};
-my @description = @{shift @foo};
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta_file, $config->binLocation);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta_file,$pdb,$chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence, $description,$method,$fasta_file,$pdb,$chain);
 
 
 #Print alignment
