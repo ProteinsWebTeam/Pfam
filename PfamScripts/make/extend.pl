@@ -82,11 +82,6 @@ if (! $opt_n && ! $opt_c){
 }
 
 
-my $config = Bio::Pfam::Config->new;      
-my $dbarg  = $config->pfamseqLoc."/pfamseq";
-
-
-
 # If options not set use defaults
 if (! $opt_n){
     $opt_n=0;
@@ -100,19 +95,19 @@ print STDERR "$opt_n residues at the N terminus\n";
 print STDERR "$opt_c residues at the C terminus\n";
 
 
-&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $dbarg, $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
+my $config = Bio::Pfam::Config->new;      
+
+&Bio::Pfam::AlignMethods::extend_alignment($opt_align, $config->pfamseqLoc."/pfamseq", $opt_n, $opt_c) ; # prints extended sequences in fasta format to a file called FA
 
 
 my $fasta = "FA";
 
 # Read fasta file and put ref into scalars
-my @foo = &Bio::Pfam::AlignMethods::read_fasta($fasta);
-my @sequence    = @{shift @foo};
-my @description = @{shift @foo};
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $config->binLocation);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation, $sequence,$description,$method,$fasta, $pdb, $chain);
 
 
 #Print alignment
