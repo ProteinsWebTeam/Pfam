@@ -53,6 +53,8 @@ use Getopt::Long;
 
 #Our modules
 use Bio::Pfam::AlignMethods;
+use Bio::Pfam::Config;
+
 
 #Can you not use $0? (rdf)
 my $prog = "merge_alignment.pl";
@@ -150,17 +152,15 @@ while (<FILE2>) {
 close FILE2;
 close CATFILE;
 
+
+my $config = Bio::Pfam::Config->new;
+
 # Read fasta file and put ref into scalars
-my @foo         = &Bio::Pfam::AlignMethods::read_fasta("$fasta_file");
-my @sequence    = @{ shift @foo };
-my @description = @{ shift @foo };
+my ($sequence, $description)  = &Bio::Pfam::AlignMethods::read_fasta($fasta_file, $config->binLocation);
 
-#-------------------------------------------------------------------------------
+
 # Create alignment
-
-my %hash =
-  &Bio::Pfam::AlignMethods::create_alignment( \@sequence, \@description,
-  $method, $fasta_file, $pdb, $chain );
+my %hash =  &Bio::Pfam::AlignMethods::create_alignment( $config->binLocation, $sequence, $description, $method, $fasta_file, $pdb, $chain );
 
 #Print alignment
 &Bio::Pfam::AlignMethods::print_alignment( \%hash, $method );
