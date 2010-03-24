@@ -3,6 +3,7 @@
 use strict;
 use Getopt::Long;
 use Bio::Pfam::AlignMethods;
+use Bio::Pfam::Config;
 
 my $prog = "wholeseq.pl";
 
@@ -114,18 +115,14 @@ if($diff != 0) {
   print STDERR "Warning - $diff of the $original_seqno sequences in the original alignment were not retrieved\n";
 } 
 
-
-
 my $fasta = "FA.whole";
 
 # Read fasta file and put ref into scalars
-my @foo = &Bio::Pfam::AlignMethods::read_fasta($fasta);
-my @sequence    = @{shift @foo};
-my @description = @{shift @foo};
+my ($sequence, $description) = &Bio::Pfam::AlignMethods::read_fasta($fasta, $config->binLocation);
 
 
 # Create alignment 
-my %hash=&Bio::Pfam::AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment($config->binLocation,$sequence,$description,$method,$fasta, $pdb, $chain);
 
 
 #Print alignment
