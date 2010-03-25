@@ -46,7 +46,7 @@ sub type : Path {
     $c->log->debug( 'Search::Type::type: paths parameters: |' 
                     . $c->req->param('paths') . '|' ) if $c->debug;
 
-    if ( $c->req->param('paths') =~ m/^([\w\;\-\,]+)$/ ) {
+    if ( $c->req->param('paths') =~ m/^([\s\w\;\-\,]+)$/ ) {
       @paths = split ",", $1;         
     }
     else {
