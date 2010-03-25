@@ -76,7 +76,7 @@ unless (-d $ENV{'WISECONFIGDIR'}){
 }
 
 #Build the wublast command to try and find Pfam regions on the DNA sequence
-my $command = "/software/pfam/pfamweb/ncbi/bin/blastx -db $dataFileDir/Pfam-A.fasta -query $tmpDir/$faFile";
+my $command = "blastx -db $dataFileDir/Pfam-A.fasta -query $tmpDir/$faFile";
 
 $DEBUG && print STDERR "Going to run $command\n";
 
