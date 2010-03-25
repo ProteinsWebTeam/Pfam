@@ -37,9 +37,9 @@ oe = 0;
   <h2>Rfam hits on sequence [% rfamseq_acc %]</h2>
 
   <p>
-    There are the <strong>[% results.size %] </strong>Rfam hits on the EMBL 
-    sequence 
-    <strong><a href="http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-e+[embl-AccNumber:'[% entry %]']"
+    There [% results.size > 1 ? "are" : "is" %] <strong>[% results.size %]</strong> 
+    Rfam hit[% results.size > 1 ? "s" : "" %] on the EMBL sequence 
+    <strong><a href="http://www.ebi.ac.uk/ena/data/view/[% entry %]"
       class="ext">[% entry %]</a></strong>.
   </p>
 
