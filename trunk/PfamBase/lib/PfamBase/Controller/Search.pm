@@ -175,7 +175,7 @@ sub formatTerms : Private {
   my( $this, $c ) = @_;
 
   $c->stash->{terms} =
-    join " ", map { $_ = "+$_*" } split /\s+|\W|\_/, $c->stash->{rawQueryTerms};
+    join " ", map { $_ = "+$_*" } split /[^A-Za-z0-9_-]/, $c->stash->{rawQueryTerms};
 
 }
 
