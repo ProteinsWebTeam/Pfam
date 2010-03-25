@@ -26,19 +26,19 @@ __PACKAGE__->set_primary_key("ncbi_code", "auto_rfam");
 __PACKAGE__->belongs_to(
   "ncbi_code",
   "RfamDB::TaxonomyWebsearch",
-  { ncbi_code => "ncbi_code" },
+  { ncbi_code => "ncbi_taxid" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LsRi7VzSY2s/aOTfg/BYWQ
 
-__PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_code' );
+__PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_taxid' );
 
 __PACKAGE__->has_one(
   "tax",
   "RfamDB::TaxonomyWebsearch",
-  { "foreign.ncbi_code" => "self.ncbi_code" },
+  { "foreign.ncbi_taxid" => "self.ncbi_code" },
 );
 
 #-------------------------------------------------------------------------------
