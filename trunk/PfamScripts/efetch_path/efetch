@@ -1,0 +1,16 @@
+#!/usr/local/bin/perl -w
+
+# belvu calls efetch to get seqs when we double click.  efetch is 
+# deprecated.  We now use pvu alias to add this efetch replacement
+# to the path.
+
+use strict;
+
+my $name = shift;
+$name =~ s/^\w+://;
+
+my $seen;
+open(GET,"pfetch -F $name |");
+while(<GET>) {
+    print;
+}
