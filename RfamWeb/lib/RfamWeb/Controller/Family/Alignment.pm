@@ -57,27 +57,31 @@ extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 sub html : Local {
   my ( $this, $c ) = @_;
-  
-  my ( $block_num ) = $c->req->param('block') =~ m/^(\d+)$/;
-  $block_num ||= 0;
 
-  $c->log->debug( "Family::Alignment::html: showing block $block_num" )
-    if $c->debug;
-  $c->stash->{current_block} = $block_num;
+  # get all of the blocks  
+  my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
+                                              { type => $c->stash->{alnType} } );
 
-  my $rs = $c->stash->{rfam}->search_related( 'html_alignments',
-                                              { block => $block_num,
-                                                type  => $c->stash->{alnType} } );
-
-  unless ( defined $rs ) {
+  unless ( scalar @rs ) {
     $c->log->debug( 'Family::Alignment::html: failed to retrieve an alignment block' )
       if $c->debug;
     $c->stash->{errorMsg} = 'We could not extract the requested alignment block for '
                             . $c->stash->{acc};
     return;
   }
-  
-  my $gzipped_html = $rs->first->html;
+
+  $c->log->debug( 'Family::Alignment::html: found ' . scalar @rs . ' blocks' )
+    if $c->debug;
+
+  # decide which block to show
+  my ( $block_num ) = $c->req->param('block') =~ m/^(\d+)$/;
+  $block_num ||= 0;
+
+  $c->log->debug( "Family::Alignment::html: showing block $block_num" )
+    if $c->debug;
+
+  # gunzip the html
+  my $gzipped_html = $rs[$block_num]->html;
   my $block = Compress::Zlib::memGunzip( $gzipped_html );
   unless ( defined $block ) {
     $c->log->debug( 'Family::Alignment::html: failed to gunzip the alignment block' )
@@ -87,17 +91,14 @@ sub html : Local {
     return;
   }
  
-  # stash the HTML
-  $c->stash->{alignment_block} = $block;
+  # $c->log->debug( "Family::Alignment::html: block code: : |$block|" )
+  #  if $c->debug;
 
-  # figure out how many blocks there are for this alignment type
-  my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
-                                              { type => $c->stash->{alnType} } );
-  $c->log->debug( 'Family::Alignment::html: found ' . scalar @rs . ' blocks' )
-    if $c->debug;
-    
-  $c->stash->{last_block} = $rs[-1]->block; 
-  
+  # stash the stuff that's used for paging in the template
+  $c->stash->{alignment_block}   = $block;
+  $c->stash->{current_block_num} = $block_num;
+  $c->stash->{last_block_num}    = scalar @rs - 1;
+
   $c->stash->{template} = 'components/tools/html_alignment.tt';
 }
 
