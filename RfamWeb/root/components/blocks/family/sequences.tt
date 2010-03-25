@@ -12,8 +12,12 @@
 PROCESS "components/require.tt";
 sharedRequirements.js.push( "tablekit.js" );
 
+sharedRequirements.js.push(  "lightbox2.js" );
+sharedRequirements.css.push( "lightbox2.css" );
+
 #-------------------------------------------------------------------------------
 
+USE Number.Format( THOUSANDS_SEP = "," );
 USE String;
 %]
 
@@ -61,18 +65,47 @@ USE String;
         </thead>
         <tbody>
           [% seqUri = c.uri_for( '/sequence/' );
-          FOREACH region IN regions %]
+          FOREACH region IN regions;
+            seqAcc  = region.get_column('rfamseq_acc');
+            
+            # build the URL for the ENA image, expanding the region by
+            # 500 bases in each direction
+            from = region.seq_start - 500;
+            to   = region.seq_end   + 500;
+            IF from < 1;
+              from = 1;
+            END;
+            IF to > region.get_column('length');
+              to = region.get_column('length');
+            END;
+
+            enaURI = "http://www.ebi.ac.uk/ena/data/view/graphics/" 
+              _ seqAcc
+              _ "%26showSequence=false%26featureRange="
+              _ from _ "-" _ to
+              _ "%26sequenceRange=1-1000.jpg";
+              
+            enaTitle = "Sequence context for <strong>${rfam.rfam_id}</strong> in "
+              _ "<a href='http://www.ebi.ac.uk/ena/data/view/$seqAcc' class='ext'>$seqAcc</a>/"
+              _ region.seq_start _ " - " _ region.seq_end
+              | html -%]
             <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
               <td class="rowNum">[% loop.index %]</td>
               <td>
-                <a title="[% row.get_column('rfam_acc') %]" 
-                   href="[% seqUri; region.get_column('rfamseq_id') %]">
-                  [% region.get_column('rfamseq_id') %]</a>
+                <a title="[% rfam.rfam_acc %]" 
+                   href="[% seqUri; seqAcc %]">
+                  [% seqAcc %]</a>
+                <a href="[% enaURI %]" 
+                   rel="lightbox[seqs]" 
+                   title="[% enaTitle %]">
+                  <img src="/static/images/seq_icon.png"
+                       class="seqIcon"
+                       alt="ENA graphic" /></a>
               </td>
               <td>[% region.bits_score %]</td>
               <td>[% region.type %]</td>
-              <td>[% region.seq_start %]</td>
-              <td>[% region.seq_end %]</td>
+              <td>[% region.seq_start | format_number %]</td>
+              <td>[% region.seq_end   | format_number %]</td>
               <td class="left">[% region.get_column('description') %]</td>
               <td>[% region.get_column('species') %]</td>
             </tr>
@@ -99,6 +132,8 @@ USE String;
     $("sortLink").observe( "click", function() {
       sorter.sort(0);
     } );
+
+    var lb = new Lightbox();
 
     // ]]>
   </script>
