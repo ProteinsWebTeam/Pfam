@@ -15,6 +15,8 @@ requirements.css.push( "genome.css" );
 
 #-------------------------------------------------------------------------------
 
+USE Number.Format( THOUSANDS_SEP = "," );
+
 USE String;
 %]
 
@@ -40,30 +42,30 @@ USE String;
     [%- oe = 0 %]
     <table class="layout" summary="Summary of information for the proteome">
       <tbody>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Taxonomic lineage</td>    
           <td class="data" id="lineage">
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Kingdom</td>    
           <td class="data">[% summary.kingdom %]</td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Number of families</td>
-          <td class="data">[% summary.families %]</td>
+          <td class="data">[% summary.families | format_number() %]</td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Number of regions</td>
-          <td class="data">[% summary.regions %]</td>
+          <td class="data">[% summary.regions | format_number() %]</td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Genome length</td>
-          <td class="data">[% summary.genome_size %] bp</td>
+          <td class="data">[% summary.genome_size | format_number() %] bp</td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Number of genomic elements</td>
-          <td class="data">[% hit_chromosomes.keys.size %]</td>
+          <td class="data">[% hit_chromosomes.keys.size | format_number() %]</td>
         </tr>
       </tbody>
     </table>
