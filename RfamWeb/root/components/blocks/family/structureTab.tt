@@ -98,7 +98,7 @@ END -%]
 
   		        IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
 	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                  [% pdbKey %]
+	                <a href="http://www.rcsb.org/pdb/explore/explore.do?structureId=[% pdbKey %]">[% pdbKey %]</a>
                 </td>
               [% END;
       				prevSeqKey = seqKey;
