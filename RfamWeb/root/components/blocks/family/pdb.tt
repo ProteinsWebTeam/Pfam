@@ -19,11 +19,9 @@ RETURN UNLESS summaryData.numStructures;
     <p>
       For those sequences which have a structure in the
       <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
-      use the mapping between <a class="ext" 
-        href="http://www.ebi.uniprot.org/">EMBL</a>, PDB and Rfam coordinate
-      systems from the <a class="ext" 
-        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
-      Rfam families onto EMBL three-dimensional structures. The table below
+      generate a mapping between <a class="ext" 
+        href="http://www.ebi.ac.uk/embl/">EMBL</a>, PDB and Rfam coordinate
+      systems. The table below
       shows the structures on which the <strong>[% rfam.rfam_id %]</strong>
       family has been found. 
     </p>
@@ -38,15 +36,29 @@ RETURN UNLESS summaryData.numStructures;
   <script type="text/javascript">
     // <![CDATA[
     Event.observe( window, "load", function() {
-      var r = new Ajax.Request( "[% c.uri_for( '/family/structures/mapping' ) %]",
-                                 {
-                                   parameters: { acc:"[% acc %]" },
-                                   onSuccess:  fstrucSuccess,
-                                   onFailure:  function () {
-                                                 $("fstrucph").update( "Graphics loading failed." );
-                                               }
-                                 }
-                               );
+      var r = new Ajax.Request( 
+        "[% c.uri_for( '/family/structures/mapping' ) %]",
+	      {
+	        parameters: { acc:"[% acc %]" },
+	        onSuccess:  function fstrucSuccess( oResponse ) {
+	          $("familyStructureTabHolder").update( oResponse.responseText );
+	          // how many columns are there in the table ?
+		        var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+		        numColsTable  = firstRow.getElementsByTagName("td").length;
+		
+		        // walk over all of the cells in the table and add listeners for mouseover and 
+		        // mouseout events
+		        $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+	            cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+	            cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+            } );
+    
+          },
+          onFailure:  function () {
+            $("fstrucph").update( "Graphics loading failed." );
+          }
+        }
+      );
     } );
     // ]]>
   </script>
