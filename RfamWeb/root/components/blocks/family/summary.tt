@@ -16,8 +16,6 @@ requirements.css.push( "wp.css" );
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
-requirements.js.push( "family.js" );
-
 #-------------------------------------------------------------------------------
 -%]
 
@@ -29,8 +27,47 @@ requirements.js.push( "family.js" );
   </div>
   <div class="blockContent">
 
+    [% IF clan -%]
+      <h1>Clan</h1>
+  
+      [% membershipList = BLOCK;
+      total = 0;
+      members = [];
+      
+      # can't sort the contents of "clan.clan_memberships" directly. Convert the 
+      # list into rows from the rfam table first
+      FOREACH member IN clan.clan_memberships;
+      members.push( member.auto_rfam );
+      END;
+      FOREACH member IN members.sort("rfam_id") %]
+        <span class="listItem">
+          [% IF member.rfam_acc == rfam.rfam_acc;
+            member.rfam_id;
+            ELSE %]
+            <a title="[% member.rfam_acc %]"
+              href="[% c.uri_for( '/family', member.rfam_acc ) %]">
+              [% member.rfam_id %]</a>
+          [% END %]
+        </span>
+        [% total = total + 1;
+        END; # of foreach
+      END # of block %]
+      
+      <p>
+        This family is a member of clan <strong>
+          <a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
+        (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
+        which contains the following [% total > 1 ? total _ " members" : "member" %]:
+      </p>
+      
+      [% membershipList %]
+      
+      <div class="cleaner"></div>
+      
+    [% END; # of "IF clan" -%]
+ 
     <h1>
-      [% rfam.auto_wiki.title.replace( "_", " " ) %]
+      Wikipedia annotation
       <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% rfam.auto_wiki.title %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
@@ -38,8 +75,10 @@ requirements.js.push( "family.js" );
     </h1>
     <p>
       The Rfam group coordinates the annotation of Rfam families in  
-      <a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA ">
-        Wikipedia</a>. You can see the Wikipedia page for this family 
+      <a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA">
+        Wikipedia</a>. This family is described by a Wikipedia entry entitled  
+      <strong>[% rfam.auto_wiki.title.replace( "_", " " ) %]</strong>.
+      You can see the Wikipedia page for this family 
       <a href="http://en.wikipedia.org/w/index.php?title=[% rfam.auto_wiki.title %]"
          class="ext">here</a>.
       
@@ -54,12 +93,12 @@ requirements.js.push( "family.js" );
         from <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">
           Wikipedia</a>. This means that the information we display is a copy of 
         the information from the Wikipedia database. The button above 
-        (&quot;Edit wikipedia entry&quot;) directs you to the edit page for the 
+        (&quot;Edit wikipedia entry&quot;) takes you to the edit page for the 
         article directly within wikipedia. You should be aware you are not 
         editing our local copy of this information. Any changes that you make 
         to the Wikipedia article will not be displayed by our site until we next 
-        download the article from Wikipedia. We are currently only downloading 
-        articles once per week.
+        download the article from Wikipedia. We currently download new content 
+        on a nightly basis.
       </p>
       
       <h2>Before you edit for the first time</h2>
@@ -93,21 +132,21 @@ requirements.js.push( "family.js" );
 
       <p>
         Anyone can edit a Wikipedia entry. You can do this either as a new user 
-        or you can register with wikipedia and log on. When you click on the 
+        or you can register with Wikipedia and log on. When you click on the 
         &quot;Edit Wikipedia entry&quot; button, your browser will direct you to 
         the edit page for this entry in Wikipedia. If you are a registered user 
-        of Wikipedia and currently logged in, your changes will be recorded 
-        under your Wikipedia user name. However, if you are not a registered 
-        user or are not logged on, your changes will be logged under your 
-        computer's IP address. This has two main implications. Firstly, as a 
-        registered Wikipedia user your edits are more likely seen as valuable 
-        contribution (although all edits are open to community scrutiny 
-        regardless). Secondly, if you edit under an IP address you may share 
-        this IP address with other users. If this IP address has previously been 
+        and currently logged in, your changes will be recorded under your 
+        Wikipedia user name. However, if you are not a registered user or are 
+        not logged on, your changes will be logged under your computer's IP 
+        address. This has two main implications. Firstly, as a registered 
+        Wikipedia user your edits are more likely seen as valuable contribution 
+        (although all edits are open to community scrutiny regardless). 
+        Secondly, if you edit under an IP address you may be sharing this IP 
+        address with other users. If your IP address has previously been 
         blocked (due to being flagged as a source of 'vandalism') your edits 
         will also be blocked. You can find more information on this and creating 
-        a user account at <a href="http://en.wikipedia.org/wiki/Wikipedia:Why_create_an_account"
-          class="ext" >Wikipedia</a>.
+        a <a href="http://en.wikipedia.org/wiki/Wikipedia:Why_create_an_account"
+          class="ext" >user account</a> at Wikipedia.
       </p>      
       <p>
         If you have problems editing a particular page, contact us at 
