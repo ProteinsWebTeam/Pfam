@@ -1,0 +1,167 @@
+[%
+# structuresTab.tt
+# jt6 20060424 WTSI
+#
+# $Id: structureTab.tt,v 1.7 2009-09-04 10:47:29 jt6 Exp $
+
+USE String;
+
+META naked=1;
+
+oe = 0;
+mapping = {};
+
+USE pdbMapIter = iterator( rfamMaps );
+
+FOREACH pdbMap IN pdbMapIter;
+  famKey = pdbMap.get_column("rfam_id");
+  IF ! mapping.$famKey;
+    mapping.$famKey = {};
+  END;
+    
+  seqKey = pdbMap.get_column("rfamseq_acc");
+  IF ! mapping.$famKey.$seqKey;
+    mapping.$famKey.$seqKey = {};
+  END;
+  IF ! mapping.$famKey.$seqKey.COUNT;
+    mapping.$famKey.$seqKey.COUNT = 1;
+  ELSE;
+    mapping.$famKey.$seqKey.COUNT = mapping.$famKey.$seqKey.COUNT + 1;
+  END;
+
+  resKey = String.new( pdbMap.get_column("rfam_start_res") );
+  CALL resKey.append( " - ", pdbMap.get_column("rfam_end_res") );
+  IF ! mapping.$famKey.$seqKey.$resKey;
+    mapping.$famKey.$seqKey.$resKey = {};
+  END;
+    
+  pdbKey = pdbMap.get_column("pdb_id");
+  IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey;
+    mapping.$famKey.$seqKey.$resKey.$pdbKey = {};
+  END;
+  IF ! mapping.$famKey.$seqKey.$resKey.COUNT;
+    mapping.$famKey.$seqKey.$resKey.COUNT = 1;
+  ELSE;
+    mapping.$famKey.$seqKey.$resKey.COUNT = mapping.$famKey.$seqKey.$resKey.COUNT + 1;
+  END;
+    
+  chainKey = pdbMap.get_column("chain");
+  IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey;
+    mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey = {};
+  END;
+  IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT;
+    mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = 1;
+  ELSE;
+    mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT + 1;
+  END;
+    
+  pdbResKey = String.new( pdbMap.get_column("pdb_start_res") );
+  CALL pdbResKey.append( " - ", pdbMap.get_column("pdb_end_res") );
+  IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey;
+    mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap;
+  END;
+  IF ! mapping.$famKey.COUNT;
+    mapping.$famKey.COUNT = 1;
+  ELSE;
+    mapping.$famKey.COUNT = mapping.$famKey.COUNT + 1;
+  END;
+
+END -%]
+
+<table class="details" id="structuresTable">
+  <thead>
+    <tr class="caption">
+      <th id="pfam">Rfam family</th>
+      <th id="emblId">EMBL entry</th>
+      <th id="emblRes">EMBL residues</th>
+      <th id="pdbId">PDB ID</th>
+      <th id="chId">PDB chain ID</th>
+      <th id="pdbRes">PDB residues</th>
+      <th id="viewCol">View</th>
+  </tr>
+  </thead>
+  <tbody>
+    [%- 
+    familyUri          = c.uri_for( "/family" );
+    sequenceUri        = c.uri_for( "/sequence" );
+    structureUri       = c.uri_for( "/structure" );
+    structureViewerUri = c.uri_for( "/structure/viewer" );    
+    
+    USE famKeyIter = iterator( mapping.keys.sort );
+    FOREACH famKey IN famKeyIter;
+      NEXT IF mapping.$famKey == "COUNT";
+      oe=oe+1;
+      FOREACH seqKey IN mapping.$famKey.keys.sort;
+        FOREACH resKey IN mapping.$famKey.$seqKey.keys.sort;
+          NEXT IF mapping.$famKey.$seqKey.$resKey == "COUNT";
+          FOREACH pdbKey IN mapping.$famKey.$seqKey.$resKey.keys.sort;
+            FOREACH chainKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.keys.sort;
+              NEXT IF mapping.$famKey.$seqKey.$resKey.$pdbKey == "COUNT";
+              FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+                <tr>
+                [% IF famKey != prevFamKey -%]
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
+                    <a href="[% familyUri; '/'; famKey %]">[% famKey %]</a>
+                  </td>
+                [% END;
+                IF seqKey != prevSeqKey -%]
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
+                    <a href="[% sequenceUri; '/'; seqKey %]">[% seqKey %]</a>
+                  </td>
+                [% END;
+                IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                [% END;
+                IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                    <a href="http://www.rcsb.org/pdb/explore/explore.do?structureId=[% pdbKey %]">[% pdbKey %]</a>
+                  </td>
+                [% END;
+                prevFamKey = famKey;
+                prevSeqKey = seqKey;
+                prevResKey = resKey;
+                prevPdbKey = pdbKey -%]  
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">
+                    [% IF chainKey;
+                      chainKey;
+                    ELSE %]
+                      <span class="inactive">n/a</span>
+                    [% END %]
+                  </td>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">
+                    <a href="[% structureViewerUri %]?viewer=jmol&amp;id=[% pdbKey %]"
+                       onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;">
+                       Jmol</a>  
+                    <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
+                       AstexViewer</a>  
+                  </td>
+                </tr>
+              [%- END; # of pdbResKey
+            END; # of chainKey
+          END; # of pdbKey
+        END; # of resKey
+      END; # of seqKey
+    END; # of famKey -%]
+  </tbody>
+</table>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
