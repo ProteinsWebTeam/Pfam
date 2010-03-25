@@ -1,0 +1,132 @@
+
+[%
+# alignments.tt
+# jt6 20060424 WTSI
+#
+# $Id: alignments.tt,v 1.14 2009-09-04 10:47:42 jt6 Exp $
+
+USE Number.Format( THOUSANDS_SEP = "," );
+
+# calculate the percentages for the table 
+totalFam = 0;
+totalSeq = 0;
+rfams = [];
+FOREACH rfam IN clan.clan_memberships;
+	totalFam = totalFam + 1;
+	totalSeq = totalSeq + rfam.auto_rfam.num_full;
+	rfams.push( rfam.auto_rfam );
+END;
+
+# a block to start the table. There may be two tables, placed side by side, if 
+# the number of rows gets too large to display comfortably in a single table,
+# hence the definition of a block build the table header 
+tableHeader = BLOCK -%]
+    <table class="details[% IF float; ' '; float; END %]" summary="Details of alignments">
+      <thead>
+        <tr>
+          <th>Rfam family</th>
+          <th>Num. regions</th>
+          <th>Alignment</th>
+        </tr>
+      </thead>
+      <tbody>
+[% END;
+
+# a BLOCK to close off the table
+tableFooter = BLOCK -%]
+[%- END -%]
+
+<!-- start clan alignments block -->
+
+<div class="block" id="clanAlignmentsBlock">
+  <div class="handle">
+    <h1>Alignments</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      The table below shows the number of occurrences of each family throughout
+      the sequence database.
+      In brackets beside each number is the percentage of the total number of 
+      sequence hits for the clan that are represented by this family. The 
+      rightmost column provides a link to the alignments tab for each family.
+    </p>
+
+    [% # work out if we're going to split the table in two. If we are, work out how long
+       # each column can get and wrap each in a div that will float it left  
+    maxLength = "";
+    IF clan.clan_memberships.size > constants.tableLength;
+      maxLength = clan.clan_memberships.size / 2 -%]
+      <div class="floatLeft">
+    [%- END;
+    
+    # insert the table header
+    tableHeader;
+    
+    # and build the body
+    oe = 0;
+    split = 0;
+    FOREACH rfam IN rfams.nsort("num_full").reverse;
+    
+      IF NOT split AND maxLength AND loop.index > maxLength -%]
+        <tr class="continuation">
+          <td colspan="3">
+            <span class="inactive">continued</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+        <div class="floatLeft">
+        [%- tableHeader;
+        split = 1;
+      END;
+    
+      percent = ( rfam.num_full / totalSeq ) * 100;
+      percentS = String.new(percent).format("%.1f") -%]
+
+      <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+        <td>
+          <a href="[% c.uri_for( '/family', rfam.rfam_id  ) %]">[% rfam.rfam_id %]</a>
+         (<a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.rfam_acc %]</a>)
+        </td>
+        <td>[% rfam.num_full | format_number %] ([% percentS %]%)</td>
+        <td>
+          <a href="[% c.uri_for( '/family', rfam.rfam_id, { tab = "alignBlock" } ) | html %]">View</a>
+        </td>
+      </tr>
+    
+    [%- END # of FOREACH rfam -%]
+
+      </tbody>
+    </table>
+          
+    [% # do we close the float div ?
+    IF clan.clan_memberships.size > constants.tableLength -%]
+      </div>
+    [%- END -%]
+
+    <div class="cleaner">&nbsp;</div>
+
+  </div>
+</div>
+
+<!-- end clan alignments block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

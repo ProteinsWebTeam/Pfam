@@ -1,0 +1,105 @@
+[%
+# structures.tt
+# jt6 20060424 WTSI
+#
+# $Id: structures.tt,v 1.17 2009-10-07 13:34:25 jt6 Exp $
+
+RETURN UNLESS summaryData.numStructures;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+#-------------------------------------------------------------------------------
+-%]
+
+<!-- start structures block -->
+
+<div class="block" id="clanStructuresBlock">
+  <div class="handle">
+    <h1>Structures</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      generate a mapping between <a class="ext" 
+        href="http://www.ebi.ac.uk/embl/">EMBL</a>, PDB and Rfam coordinate
+      systems. The table below
+      shows the mapping between the Rfam families in this clan, the 
+      corresponding EMBL entries, and the region of the three-dimensional
+      structures that are available for that sequence.
+    </p>
+
+  	<div id="clanStructureTabHolder">
+    	<p id="cstrucph" class="loading">
+      Loading structure mapping...
+     </p>	
+    </div>
+
+  </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    var numColsTable;
+
+    document.observe( "dom:loaded", function() {
+      var r = new Ajax.Request( 
+        "[% c.uri_for( '/clan/structures' ) %]",
+        { parameters: { acc: "[% acc %]" },
+          onComplete: function( oResponse ) {
+
+            $("clanStructureTabHolder").update( oResponse.responseText );
+             
+            // how many columns are there in the table ?
+            var rows = $("structuresTable").select("tr");
+            
+            if ( rows.size() <= 1 ) {
+              $("clanStructureTabHolder").update( "There is no structure mapping for this clan." );
+              return;
+            }
+             
+            numColsTable = rows.first().select("th").size();
+   
+            // walk over all of the cells in the table and add listeners for mouseover and 
+            // mouseout events
+            $("structuresTable")
+              .select( "td" )
+              .each( function( cell ) {
+                cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+                cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+              } );
+
+          },
+          onFailure:  function() {
+            $("cstrucph").update( "Graphics loading failed." );
+          }
+        } );
+    } );
+
+    // ]]>
+  </script>
+
+</div>
+
+<!-- end structures block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

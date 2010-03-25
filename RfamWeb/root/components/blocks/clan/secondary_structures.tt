@@ -1,0 +1,80 @@
+[%
+# secondary_structures.tt
+# jt6 20100322 WTSI
+#
+# $Id$
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+requirements.js.push( "ssswitcher.js" );
+
+#-------------------------------------------------------------------------------
+-%]
+
+<!-- start secondary structures block -->
+
+<div class="block" id="clanSecStructuresBlock">
+  <div class="handle">
+    <h1>Secondary structures</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      This tool allows you to view the secondary structure images of two
+      clan members side-by-side. Choose the family structures using the two
+      drop-down menus below.
+    </p>
+
+    [%
+    members = [];
+    FOREACH member IN clan.clan_memberships;
+      members.push( member.auto_rfam );
+    END -%]
+    
+    <div id="switcherHolder"></div>
+    
+    <script type="text/javascript">
+      // <![CDATA[
+
+      var members = [
+        [% FOREACH rfam IN members.sort("rfam_id") -%]
+          { acc: "[% rfam.rfam_acc %]",
+            id:  "[% rfam.rfam_id %]"   }[% ", " UNLESS loop.last %]
+        [% END -%]
+      ];
+
+      var ssSwitcher;
+      
+      document.observe( "dom:loaded", function() { 
+        ssSwitcher = new SSSwitcher( members,
+                                     "switcherHolder",
+                                     "[% c.uri_for( '/family/image' ) %]" );
+      } );
+      
+      // ]]>
+    </script>
+  
+  </div>
+
+</div>
+
+<!-- end secondary structures block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
