@@ -195,18 +195,17 @@ sub get_data : Private {
   }
 
   my @hits = $c->model('RfamDB::RfamRegFull')
-               ->search( [ { 'auto_rfamseq.rfamseq_acc' => $c->stash->{entry} },
-                           { 'auto_rfamseq.rfamseq_id'  => $c->stash->{entry} } ],
+               ->search( { 'auto_rfamseq.rfamseq_acc' => $c->stash->{entry} },
                          { 
-                           join      => [ qw( auto_rfam
-                                              auto_rfamseq ) ],
+                           join      => [ 'auto_rfam',
+                                           { 'auto_rfamseq' => 'ncbi_id' } ],
                            '+select' => [ qw( auto_rfam.rfam_id
                                               auto_rfam.rfam_acc
                                               auto_rfam.description
                                               auto_rfamseq.rfamseq_acc
                                               auto_rfamseq.description
-                                              auto_rfamseq.taxonomy
-                                              auto_rfamseq.species ) ],
+                                              ncbi_id.tax_string
+                                              ncbi_id.species ) ],
                            '+as'     => [ qw( rfam_id
                                               rfam_acc
                                               rfam_desc

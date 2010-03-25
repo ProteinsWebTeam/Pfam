@@ -66,6 +66,8 @@ either an ID or accession
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
   
+  $c->cache_page( 604800 );
+  
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
@@ -93,16 +95,28 @@ sub begin : Private {
     return;
   }
   
-  #  find out what type of alignment we need, seed, full, ncbi, etc
+  # find out what type of alignment we need, seed, full, ncbi, etc
   $c->stash->{alnType} = 'seed';
-  if( defined $c->req->param('alnType') ) {
-    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
-                                                                 : 'seed';
+  if ( defined $c->req->param('alnType') and
+       ( $c->req->param('alnType') eq 'seed' or 
+         $c->req->param('alnType') eq 'full' ) ) {
+    $c->stash->{alnType} = $c->req->param( 'alnType' );
   }
-  
+
   $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
     if $c->debug;
+  
+  # for the benefit of the alignment generation controller, we also check to 
+  # see if alignments should be produced with the alternate label format, or
+  # in "colorstock" html format
+  $c->stash->{nseLabels}  = $c->req->param('nseLabels') ? 1 : 0;
+  $c->stash->{colorstock} = $c->req->param('cs') ? 1 : 0;
 
+  $c->log->debug( 'Family::begin: use name/start-end labels ? ' . $c->stash->{nseLabels} )
+    if $c->debug;
+  $c->log->debug( 'Family::begin: raw or colorstock ?         ' . $c->stash->{colorstock} )
+    if $c->debug;
+  
   #----------------------------------------
 
   # retrieve data for the family
@@ -270,7 +284,7 @@ sub regions : Local {
 
   # add the rows
   foreach my $region ( @{ $c->stash->{regions} } ) {
-    $regions .= $region->get_column('rfamseq_id' ) . "\t";
+    $regions .= $region->get_column('rfamseq_acc' ) . "\t";
     $regions .= $region->bits_score . "\t";
 #    $regions .= $region->type . "\t";
     $regions .= $region->seq_start . "\t";
@@ -300,12 +314,11 @@ sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
   # check for a family
-  my $rs = $c->model('RfamDB::Rfam')
-             ->search( [ { rfam_acc => $entry },
-                         { rfam_id  => $entry } ] );
+  my $rfam = $c->model('RfamDB::Rfam')
+               ->search( [ { rfam_acc => $entry },
+                           { rfam_id  => $entry } ] )
+               ->single;
                          
-  my $rfam = $rs->first if defined $rs;
-  
   unless ( defined $rfam ) {
     $c->log->debug( 'Family::get_data: no row for that accession/ID' )
       if $c->debug;
@@ -321,6 +334,25 @@ sub get_data : Private {
   $c->stash->{rfam} = $rfam;
   $c->stash->{acc}  = $rfam->rfam_acc;
   $c->stash->{entryType}  = 'R';
+
+  # get curation data
+  my $rs = $c->model( 'RfamDB::AlignmentsAndTrees' )
+             ->search( {
+                         -and => [
+                                   auto_rfam => $rfam->auto_rfam,
+                                   -or => [
+                                            type => 'full',
+                                            type => 'seed'
+                                          ]
+                                 ]
+                       },
+                       { order_by => 'type DESC' } );
+
+  $c->stash->{alignment_info} = $rs;
+
+  $c->log->debug( 'Family::get_data: found ' . $rs->count 
+                  . ' rows for alignment info' )
+    if $c->debug;
 
   # if we're returning XML, we don't need the extra summary data etc.  
   if ( $c->stash->{output_xml} ) {
@@ -354,7 +386,16 @@ sub get_data : Private {
     $c->stash->{showText} = 1;
   }
 
-  #$c->forward( 'get_db_xrefs' );
+  # add the clan details, if any
+  my $clan = $c->model('RfamDB::Clans')
+               ->search( { 'clan_memberships.auto_rfam' => $rfam->auto_rfam },
+                         { prefetch => [ qw(clan_memberships) ] } )
+               ->first;
+  
+  if ( $clan and defined $clan->clan_acc ) {
+    $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
+    $c->stash->{clan} = $clan;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -410,15 +451,15 @@ sub get_regions_data : Private {
 
   my @regions = $c->model('RfamDB::RfamRegFull')
                   ->search( { auto_rfam => $rfam->auto_rfam },
-                            { join      => [ 'auto_rfamseq' ],
-                              '+select' => [ qw( auto_rfamseq.rfamseq_id
-                                                 auto_rfamseq.rfamseq_acc
+                            { join      => { 'auto_rfamseq' => 'ncbi_id' },
+                              '+select' => [ qw( auto_rfamseq.rfamseq_acc
                                                  auto_rfamseq.description
-                                                 auto_rfamseq.species ) ],
-                              '+as'     => [ qw( rfamseq_id
-                                                 rfamseq_acc
+                                                 ncbi_id.species
+                                                 auto_rfamseq.length ) ],
+                              '+as'     => [ qw( rfamseq_acc
                                                  description
-                                                 species ) ],
+                                                 species
+                                                 length ) ],
                               order_by  => [ 'bits_score DESC' ] } );
                                             
   $c->stash->{regions} = \@regions;
@@ -427,132 +468,6 @@ sub get_regions_data : Private {
   $c->log->debug( 'Family::get_regions_data: added |' . scalar @regions
                   . '| regions to stash' ) if $c->debug;
 }
-
-#-------------------------------------------------------------------------------
-
-=head2 get_db_xrefs : Private
-
-Retrieve the database cross-references for the family.
-
-=cut
-
-#sub get_db_xrefs : Private {
-#  my ( $this, $c ) = @_;
-#
-#  my $xRefs = {};
-#
-#  # stuff in the accession and ID for this entry
-#  $xRefs->{entryAcc} = $c->stash->{pfam}->pfamA_acc;
-#  $xRefs->{entryId}  = $c->stash->{pfam}->pfamA_id;
-#
-#  # Interpro
-#  push @{ $xRefs->{interpro} }, $c->stash->{pfam}->interpro_id
-#    if $c->stash->{pfam}->interpro_id;
-#
-#  # PDB
-#  $xRefs->{pdb} = keys %{ $c->stash->{pdbUnique} }
-#    if $c->stash->{summaryData}{numStructures};
-#
-#
-#  # PfamA relationship based on SCOOP
-#  push @{ $xRefs->{scoop} },
-#       $c->model('PfamDB::PfamA2pfamA_scoop_results')
-#         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA,
-#                     score       => { '>', 50.0 } },
-#                   { join        => [ qw( pfamA1 pfamA2 ) ],
-#                     select      => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id score ) ],
-#                     as          => [ qw( l_pfamA_id r_pfamA_id score ) ]
-#                   } );
-#
-#  # PfamA to PfamB links based on PRODOM
-#  my %atobPRODOM;
-#  foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
-#    if ( $xref->db_id eq 'PFAMB' ) {
-#      $atobPRODOM{$xref->db_link} = $xref;
-#    }
-#    else {
-#      push @{ $xRefs->{$xref->db_id} }, $xref;
-#    }
-#  }
-#
-#  # PfamA to PfamA links based on PRC
-#  my @atoaPRC = $c->model('PfamDB::PfamA2pfamA_PRC_results')
-#                  ->search( { 'pfamA1.pfamA_acc' => $c->stash->{pfam}->pfamA_acc },
-#                            { join               => [ qw( pfamA1 pfamA2 ) ],
-#                              select             => [ qw( pfamA1.pfamA_id 
-#                                                          pfamA1.pfamA_acc
-#                                                          pfamA2.pfamA_id 
-#                                                          pfamA2.pfamA_acc 
-#                                                          evalue ) ],
-#                              as                 => [ qw( l_pfamA_id 
-#                                                          l_pfamA_acc 
-#                                                          r_pfamA_id 
-#                                                          r_pfamA_acc 
-#                                                          evalue ) ],
-#                              order_by           => 'pfamA2.auto_pfamA ASC'
-#                            } );
-#
-#  $xRefs->{atoaPRC} = [];
-#  foreach ( @atoaPRC ) {
-#    if( $_->get_column( 'evalue' ) <= 0.001 and
-#        $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
-#      push @{ $xRefs->{atoaPRC} }, $_;
-#    } 
-#  }
-#
-#  # PfamB to PfamA links based on PRC
-#  my @atobPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
-#                  ->search( { 'pfamA.pfamA_acc' => $c->stash->{pfam}->pfamA_acc, },
-#                            { join      => [ qw( pfamA pfamB ) ],
-#                              prefetch  => [ qw( pfamA pfamB ) ]
-#                            } );
-#
-#  # find the union between PRC and PRODOM PfamB links
-#  my %atobPRC;
-#  foreach ( @atobPRC ) {
-#    $atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
-#  }
-#  # we should be able to filter the results of the query according to
-#  # evalue using a call on the DBIx::Class object, but for some reason
-#  # it's broken, hence that last loop rather than this neat map...
-#  # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
-#
-#  my %atobBOTH;
-#  foreach ( keys %atobPRC, keys %atobPRODOM ) {
-#    $atobBOTH{$_} = $atobPRC{$_}
-#      if( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
-#  }
-#
-#  # and then prune out those accessions that are in both lists
-#  foreach ( keys %atobPRC ) {
-#    delete $atobPRC{$_} if exists $atobBOTH{$_};
-#  }
-#
-#  foreach ( keys %atobPRODOM ) {
-#    delete $atobPRODOM{$_} if exists $atobBOTH{$_};
-#  }
-#
-#  # now populate the hash of xRefs;
-#  my @atobPRC_pruned;
-#  foreach ( sort keys %atobPRC ) {
-#    push @atobPRC_pruned, $atobPRC{$_};
-#  }
-#  $xRefs->{atobPRC} = \@atobPRC_pruned if scalar @atobPRC_pruned;
-#
-#  my @atobPRODOM;
-#  foreach ( sort keys %atobPRODOM ) {
-#    push @atobPRODOM, $atobPRODOM{$_};
-#  }
-#  $xRefs->{atobPRODOM} = \@atobPRODOM if scalar @atobPRODOM;
-#
-#  my @atobBOTH;
-#  foreach ( sort keys %atobBOTH ) {
-#    push @atobBOTH, $atobBOTH{$_};
-#  }
-#  $xRefs->{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
-#
-#  $c->stash->{xrefs} = $xRefs;
-#}
 
 #-------------------------------------------------------------------------------
 

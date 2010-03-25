@@ -151,11 +151,11 @@ sub buildTree : Private {
   foreach my $region ( @{ $c->stash->{regions} } ) {
 
     # first, get the species information
-    my $species = $region->auto_rfamseq->species;
+    my $species = $region->auto_rfamseq->ncbi_id->species;
     $species =~ s/^(\s+)//g; # trim leading whitespace
 
     # next, the taxonomy above the species
-    my $tax = $region->auto_rfamseq->taxonomy;
+    my $tax = $region->auto_rfamseq->ncbi_id->tax_string;
     $tax =~ s/\s+//g;
     my @tax = split m/\;/, $tax;
 
@@ -198,8 +198,9 @@ sub getDataByType : Private {
   # get the species information for the full alignment
   my @regions = $c->model('RfamDB::RfamRegFull')
                   ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam },
-                            { join     => [ qw( auto_rfamseq auto_rfam ) ],
-                              prefetch => [ qw( auto_rfamseq ) ] } );
+                            { join     => [ { 'auto_rfamseq' => 'ncbi_id' },
+                                              'auto_rfam' ],
+                              prefetch => [ 'auto_rfamseq' ] } );
 
   $c->stash->{regions} = \@regions;
 
