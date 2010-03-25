@@ -103,11 +103,11 @@ END; # of "addLinks" block
 BLOCK buildLink;
   SWITCH type %]
     [%- CASE "MIR" -%]
-<a class="ext" href="http://microrna.sanger.ac.uk/cgi-bin/sequences/mirna_entry.pl?acc=[% id %]">[% id %]</a>
+<a class="ext" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc=[% id %]">[% id %]</a>
     [%- CASE "snoRNABase" -%]
 <a class="ext" href="http://www-snorna.biotoul.fr/plus.php?id=[% id %]">[% id %]</a>
     [%- CASE "MIPF" -%]
-<a class="ext" href="http://microrna.sanger.ac.uk/cgi-bin/sequences/mirna_summary.pl?fam=[% id %]">[% id %]</a>
+<a class="ext" href="http://www.mirbase.org/cgi-bin/mirna_summary.pl?fam=[% id %]">[% id %]</a>
     [%- CASE "URL" -%]
 [% number %]: <a [% UNLESS internal %]class="ext" [% END %]href="[% id %]">[% id %]</a><br />
     [%- CASE -%]
