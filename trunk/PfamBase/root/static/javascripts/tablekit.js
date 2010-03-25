@@ -89,7 +89,11 @@ Object.extend(TableKit, {
 			data.textContent = cell.textContent ? cell.textContent : cell.innerText;
 			data.refresh = false;
 		}
-		return data.textContent;
+    // hack to make sorting work with numbers that are "punctuated" with commas,
+    // such as "100,000"
+    // jt6 20100305 WTSI
+    data.textContent = data.textContent.gsub(',','');
+    return data.textContent;
 	},
 	getCellData : function(cell) {
 	  var t = null;
