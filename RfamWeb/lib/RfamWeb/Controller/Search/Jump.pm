@@ -22,6 +22,20 @@ use strict;
 use warnings;
 
 use base 'PfamBase::Controller::Search::Jump';
+    
+# these are the available guesses, as a hash and an array, for convenience
+my %action_types= (
+  family   => 'guess_family',
+  clan     => 'guess_clan',
+  genome   => 'guess_genome',
+  sequence => 'guess_sequence',
+);
+my @available_actions = qw( 
+  guess_family
+  guess_clan
+  guess_genome
+  guess_sequence
+);
 
 #-------------------------------------------------------------------------------
 
@@ -50,18 +64,6 @@ sub guess : Private {
   
   $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
     if $c->debug;
-    
-  my %action_types= ( 
-                      family   => 'guess_family',
-                      genome   => 'guess_genome',
-                      sequence => 'guess_sequence',
-                    );
-
-  my @available_actions = qw( 
-                              guess_family
-                              guess_genome
-                              guess_sequence
-                            );
 
   my $guess_actions;
   if ( $entry_type and $action_types{$entry_type} ) {
@@ -111,6 +113,27 @@ sub guess_family : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 guess_clan : Private
+
+Look for an Rfam clan with the specified accession or ID.
+
+=cut
+
+sub guess_clan : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
+    if $c->debug;
+  
+  my @rs = $c->model('RfamDB::Clans')
+             ->search( [ { clan_acc => $entry },
+                         { clan_id  => $entry } ] );
+
+  return 'clan' if scalar @rs;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 guess_sequence : Private
 
 Look for a sequence entry.
@@ -123,11 +146,10 @@ sub guess_sequence : Private {
   $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
     if $c->debug;
   
-  my @rs = $c->model('RfamDB::Rfamseq')
-             ->search( [ { rfamseq_acc => $entry },
-                         { rfamseq_id  => $entry } ] );
+  my $seq = $c->model('RfamDB::Rfamseq')
+              ->find( { rfamseq_acc => $entry } );
 
-  return 'sequence' if scalar @rs;
+  return 'sequence' if defined $seq;
 }
 
 #-------------------------------------------------------------------------------
