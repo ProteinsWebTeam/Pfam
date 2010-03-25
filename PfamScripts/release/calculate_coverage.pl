@@ -2,32 +2,69 @@
 
 use strict;
 use Getopt::Long;
+use Bio::Pfam::Config;
+use Bio::Pfam::PfamLiveDBManager;
 
 #Script for calculating amino acid coverage for a sequence database
-#Before running this script you need to create two files:
-#length_file.  This file contains the lengths of all the sequences in the database. 
-#The format of the length file is auto, length (e.g. select auto_metaseq, length from metaseq)
-#regions_file.  This file contains all of the pfamA regions found in on sequences in the database.  
-#The format of the regions file is auto_pfamA, start, end (e.g. select auto_pfamA, seq_start, seq_end from meta_pfamA_reg)
-#The regions file MUST be sorted by auto_pfamA (e.g. sort -n <regions_file>)
+#Script queries the database for the length of each sequence, and for the start/ends of each region that matches a Pfam-A
+
+my ($ncbi, $meta);
+GetOptions( 'meta' => \$meta,
+	    'ncbi'  => \$ncbi);
 
 
-my ($regions_file, $length_file);
-GetOptions( 'regions_file=s' => \$regions_file,
-	    'length_file=s'  => \$length_file);
-
-unless($regions_file and -s $regions_file) {
-    die "Need to specify a regions file on the command line\n";
+if( ($meta and $ncbi) or (!$meta and !$ncbi)) {
+    help();
 }
 
-unless($length_file and -s $length_file) {
-    die "Need to specify a length file on the command line\n";
+
+my ($seq_tbl, $reg_full_tbl, $auto);
+if($meta) {
+    $seq_tbl = "metaseq";
+    $reg_full_tbl = "meta_pfamA_reg";
+    $auto = "auto_metaseq";
+}
+else {
+    $seq_tbl = "ncbi_seq";
+    $reg_full_tbl = "ncbi_pfamA_reg";
+    $auto = "gi";
 }
 
-print STDERR "Parsing $length_file...";
+
+my $lengths_file = "lengths.$$";
+my $regions_file = "regions.$$";
+my $tmp_regions_file = "tmp.regions.$$";
+
+#Set up database
+my $config = Bio::Pfam::Config->new;
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+my $dbh = $pfamDB->getSchema->storage->dbh;
+
+
+#Run queries
+print STDERR "querying $seq_tbl\n";
+my $st1 = $dbh->prepare("select $auto, length into outfile \"/tmp/$lengths_file\" from $seq_tbl") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st1->execute() or die "Couldn't execute statement ".$st1->errstr."\n";
+
+print STDERR "querying $reg_full_tbl\n";
+my $st2 = $dbh->prepare("select $auto, seq_start, seq_end into outfile \"/tmp/$tmp_regions_file\" from $reg_full_tbl") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st2->execute() or die "Couldn't execute statement ".$st2->errstr."\n";
+$dbh->disconnect;
+
+
+#Copy data locally
+system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$lengths_file ." ) and die("Could not scp $lengths_file from database host $!");
+system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$tmp_regions_file ." ) and die("Could not scp $tmp_regions_file from database host $!");
+
+system("sort -n $tmp_regions_file > $regions_file") and die "Failed to sort regions file $!";
+unlink($tmp_regions_file);
+
+
+
+print STDERR "Parsing $lengths_file...";
 
 my $length=0;
-open(LEN, $length_file) or die "Couldn't open $length_file $!";
+open(LEN, $lengths_file) or die "Couldn't open $lengths_file $!";
 while(<LEN>) {
     if(/^\S+\s+(\S+)/) { 
 	$length+=$1;
@@ -72,6 +109,8 @@ close REG;
 
 print STDERR "done\n";
 
+unlink $lengths_file;
+unlink $regions_file;
 
 print "Number of residues covered by Pfam-A:$aa\nTotal number of residues:$length\n";
 my $coverage = ($aa/$length)*100;
@@ -91,4 +130,22 @@ sub calculate {
     delete $$reg{$auto};
 
     return($aa);   
+}
+
+
+sub help {
+
+   print STDERR <<EOF;
+
+A script for calculating the amino acid coverage for the ncbi_seq or
+metaseq dataset in pfamlive.  You need to specify which dataset you
+wish to run it on.  The results are printed to STDOUT;
+
+Usage:
+
+       $0 -meta or $0 -ncbi
+
+EOF
+  exit;
+
 }
