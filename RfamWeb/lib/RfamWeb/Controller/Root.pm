@@ -33,7 +33,7 @@ use base 'PfamBase::Controller::Root';
 
 =head2 auto : Private
 
-Adds the Pfam version data to the stash, so that it's accessible 
+Adds the version data to the stash, so that it's accessible 
 throughout the site.
 
 =cut
@@ -65,6 +65,27 @@ sub auto : Private {
   # call the "auto" method on the super-class, which will do the work of
   # picking the correct tab for us
   return $c->SUPER::auto( @_ );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 index : Private
+
+Generates the main site index page. This action is cloned from PfamBase, so 
+that we can enable page caching for the Rfam index page.
+
+=cut
+
+sub index : Private {
+  my( $this, $c ) = @_;
+
+  # cache the page output for one week
+  $c->cache_page( 604800 );
+  
+  # tell the navbar where we are
+  $c->stash->{nav} = 'home';
+
+  $c->log->debug('RfamWeb::Root::index: generating site index') if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
