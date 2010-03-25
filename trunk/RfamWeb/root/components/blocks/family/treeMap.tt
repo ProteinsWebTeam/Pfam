@@ -17,13 +17,13 @@
 META naked = 1;
 %]
 
-<img src="[% c.uri_for( "/family/tree/image", { acc => acc, alnType => alnType, label => label } ) | html %]"
-     id="[% label; "_"; alnType %]_img"
-     usemap="#[% label; "_"; alnType %]_map" />
+<img src="[% c.uri_for( '/family/tree/image', { acc => acc, alnType => alnType, label => label } ) | html %]"
+     id="[% label; '_'; alnType %]_img"
+     usemap="#[% label; '_'; alnType %]_map" />
 
 
-<map id="[% label; "_"; alnType %]_map"
-     name="[% label; "_"; alnType %]_map" />
+<map id="[% label; '_'; alnType %]_map"
+     name="[% label; '_'; alnType %]_map" />
 
 
 [%- # finally, the javascript that will generate tooltip objects for each node %]
@@ -40,10 +40,10 @@ META naked = 1;
   
   area = new Element( "area", 
                       { coords:  "[% node.area.join(',') %]",
-                        id:      "area_[% label; "_"; alnType; loop.index %]" } ); 
-  $("[% label; "_"; alnType %]_map").insert( area );
+                        id:      "area_[% label; '_'; alnType; loop.index %]" } ); 
+  $("[% label; '_'; alnType %]_map").insert( area );
   
-  areas.set( "area_[% label; "_"; alnType; loop.index %]",
+  areas.set( "area_[% label; '_'; alnType; loop.index %]",
              "[% node.L %]" );
 
 [% END; # of "foreach node"
