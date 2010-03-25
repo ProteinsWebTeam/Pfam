@@ -59,25 +59,6 @@ __PACKAGE__->setup( qw( PageCache ) );
 
 #-------------------------------------------------------------------------------
 
-=head1 METHODS
-
-=head2 is_cache_enabled
-
-Returns true if the configuration parameter C<enable_cache> is defined and is
-set to a true value. Used by the PageCache plugin to decide if it should step
-in to cache a page/serve a page from cache.
-
-If C<enable_cache> is true, page caching will be enabled.
-
-=cut
-
-sub is_cache_enabled {
-  my ( $c ) = @_;
-  return ( exists $c->config->{enable_cache} and $c->config->{enable_cache} );
-}
-
-#-------------------------------------------------------------------------------
-
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
