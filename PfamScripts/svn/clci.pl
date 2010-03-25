@@ -10,10 +10,10 @@ use Cwd;
 use Data::Dumper;
 use Getopt::Long;
 
-use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ClanIO;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::SVN::Client;
 
 #-------------------------------------------------------------------------------
 # Deal with all of the options
@@ -23,7 +23,7 @@ my ( $message, $help );
 &GetOptions(
   "m=s"  => \$message,
   "help" => \$help
-);
+) or die "Problem with options passed in, exiting.\n";
 
 my $clan = shift;
 unless ($clan) {
@@ -111,8 +111,8 @@ unless($clanObj->DESC->ID eq $clanSVNObj->DESC->ID){
     "From:".$clanSVNObj->DESC->ID." to ".$clanObj->DESC->ID.".  Use clmove.pl to change the name\n";
 }
 
- $client->addCLCILog();  
-
+$client->addCLCILog();  
+ 
 #-------------------------------------------------------------------------------
 #If we get here, then great! We can now check the family in!
 my $caught_cntrl_c;
@@ -129,10 +129,8 @@ if ( -s ".default".$$."clci" ) {
 #
 if ($caught_cntrl_c) {
   print STDERR
-"\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
+  "\n** You hit cntrl-c while the operation was in progress.\n**". 
+  "The script has tried to ignore this and recover\n**".
+  "but this could be very bad.  You really must tell someone about this!\n";
 }
 exit(0);
-
-#-------------------------------------------------------------------------------
-# SUBROUTINES ------------------------------------------------------------------
-#-------------------------------------------------------------------------------
