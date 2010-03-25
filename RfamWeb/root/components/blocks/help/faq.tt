@@ -36,6 +36,7 @@
       <li><a class="link" rel="validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
       <li><a class="link" rel="myseqmissing">Why is my favourite sequence not in the family?</a></li>
       <li><a class="link" rel="cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
+      <li><a class="link" rel="seqIds">What do the sequence identifiers in your alignments mean?</a>
     </ul>
     
     <h3 class="listTitle">Searching</h3>
@@ -318,6 +319,19 @@ why is the model truncated from published blah
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
 
+    <h3><a name="seqIds">What do the sequence identifiers in your 
+      alignments mean?</a></h3>
+      
+    <p>
+      The identifier &quot;<strong>AY033236.1/563-353</strong>&quot; means that 
+      the EMBL accession is &quot;AY033236&quot;, the sequence version is 
+      &quot;1&quot; (optional), the start coordinate is &quot;563&quot; and the
+      end coordinate is &quot;353&quot;, the strand is given by the order of 
+      the coordinates, in this case it is negative.
+    </p>
+
+    <p><a class="link" rel="faqTop">back to top</a></p>
+    
     <!--downloading-->
 
     <h3><a name="downloadalign">How can I view or download a family 
