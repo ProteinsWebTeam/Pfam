@@ -73,6 +73,18 @@ __PACKAGE__->belongs_to("auto_rfam",
                                          description
                                        ) ] } );
 
+__PACKAGE__->belongs_to(
+  "rfamseq",
+  "RfamDB::Rfamseq",
+  { rfamseq_acc => "rfamseq_acc" },
+);
+
+#__PACKAGE__->has_many(
+#  "alignments_and_trees",
+#  "RfamDB::AlignmentsAndTrees",
+#  { "foreign.auto_rfam" => "self.auto_rfam" }
+#);
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
