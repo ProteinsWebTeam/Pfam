@@ -78,6 +78,8 @@ sub genome_page : Chained( '/' )
                   Args( 1 ) {
   my ( $this, $c, $tainted_entry ) = @_;
 
+  $c->cache_page( 604800 );
+  
   $c->log->debug( 'Genome::genome_page: building a "genome" page' )
     if $c->debug;
 
