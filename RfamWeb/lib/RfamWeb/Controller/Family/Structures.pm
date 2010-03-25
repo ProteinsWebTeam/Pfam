@@ -63,12 +63,12 @@ the method also retrieves the row of the "pdb" table for that entry.
 =cut
 
 sub structures : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # see if we were handed a PDB ID and, if so, put the data for that entry into
   # the stash
-  if( defined $c->req->param('pdbId') and
-      $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
+  if ( defined $c->req->param('pdbId') and
+      $c->req->param('pdbId') =~ m/^(\d\w{3})$/ ) {
 
     $c->stash->{pdbObj} = $c->model('RfamDB::Pdb')
                             ->find( { pdb_id => $1 } );
@@ -76,7 +76,7 @@ sub structures : Path {
 
   # retrieve the PDB entries for this family
   my @rs;
-  if( defined $c->stash->{rfam}->auto_rfam ) {
+  if ( defined $c->stash->{rfam}->auto_rfam ) {
     @rs = $c->model('RfamDB::PdbRfamReg')
             ->search( { auto_rfam  => $c->stash->{rfam}->auto_rfam},
                       { join       => [ qw( pdb ) ],
