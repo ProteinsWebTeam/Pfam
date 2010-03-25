@@ -81,6 +81,8 @@ sub end : ActionClass( 'RenderView' ) {
   # real errors now
   if ( scalar @{ $c->error } ) {
 
+    $c->log->error( $_ ) for @{ $c->error };
+
   	# there was a system error...
   	$c->stash->{template} = 'components/systemError.tt';
 
