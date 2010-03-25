@@ -56,19 +56,29 @@ sharedRequirements.js.push( "tablekit.js" );
   [% END %]
 
   <p>
-    We found <strong>[% results.size %]</strong> unique results for your query 
+    We found <strong>[% results.size %]</strong> unique 
+    result[% results.size > 1 ? "s" : "" %] for your query 
     (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
     sections of the database.
     [% IF lookupHit %]
       Your query also appears to be a match for Rfam entry
-      <em><a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">
-        [% lookupHit.rfam_id %]</a></em>
-      (<a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">[% lookupHit.rfam_acc %]</a>)
+      <strong>
+        <em><a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">
+          [% lookupHit.rfam_id %]</a></em></strong>
+        (<strong><a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">[% lookupHit.rfam_acc %]</a></strong>)
       and this row is <span class="highlight">highlighted</span> in the
       results table.
     [% END %]
   </p>
 
+  [% IF rawQueryTerms.length < 3 -%]
+  <p>
+    <strong>Note</strong> that text searches do not work well with query terms 
+    that are shorter than <strong>3</strong> characters, so your results may 
+    not be comprehensive.
+  </p>
+  [% END %]
+  
   [% hitsSummary %]
 
   <p>
