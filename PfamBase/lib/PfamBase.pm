@@ -25,8 +25,6 @@ $Id: PfamBase.pm,v 1.3 2010-01-19 09:57:49 jt6 Exp $
 use strict;
 use warnings;
 
-use local::lib '/opt/perl5';
-
 use Config::General;
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
@@ -62,28 +60,19 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{driver} =
 
 =head1 METHODS
 
-=head2 finalize_config
+=head2 is_cache_enabled
 
-Overrides the default C<finalize_config> method from the ConfigLoader plugin, 
-turning it into a dumb by-pass of the perl taint checking on configuration
-parameters.
+Returns true if the configuration parameter C<enable_cache> is defined and is
+set to a true value. Used by the PageCache plugin to decide if it should step
+in to cache a page/serve a page from cache.
+
+If C<enable_cache> is true, page caching will be enabled.
 
 =cut
 
-sub finalize_config {
-  my $c = shift;
-  my $v = Data::Visitor::Callback
-            ->new( plain_value => sub {
-               return unless defined $_;
-               /^(.*)$/s;
-               $_ = $1;
-            }
-          );
-  $v->visit( $c->config );
-
-  # make sure we run the original finalize_config, so that the substitutions
-  # happen as per the documentation
-  $c->NEXT::finalize_config( @_ );
+sub is_cache_enabled {
+  my ( $c ) = @_;
+  return ( exists $c->config->{enable_cache} and $c->config->{enable_cache} );
 }
 
 #-------------------------------------------------------------------------------
