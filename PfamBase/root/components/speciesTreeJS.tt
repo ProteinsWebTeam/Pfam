@@ -88,7 +88,7 @@ stUri = c.uri_for( "/speciestree" );
     if ( treeBuiltSuccessfully ) {
 
       /* [%# we got a tree; render it -%]*/
-      tree.draw();
+      tree.render();
 
       /* [%# bring back the control panel -%] */
       $("treeTools").show();
