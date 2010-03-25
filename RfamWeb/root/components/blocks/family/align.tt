@@ -27,6 +27,15 @@ alignmentUri = c.uri_for( "/family/alignment" );
         More...</span>
     </p>
     <div id="alignmentsNotes" style="display: none">
+
+      <h3>Alignment labels</h3>
+      <p>
+        We generate alignments with two types of labels for sequence. The 
+        default labels give the species name for each sequence, but you can
+        also choose to label each sequence with the sequence identifier and the
+        start/end coordinates for the region.
+      </p>
+      
       <h3>Viewing</h3>
       <p>
         You can choose from three different sequence viewers:
@@ -44,11 +53,10 @@ alignmentUri = c.uri_for( "/family/alignment" );
           HTML
         </dt>
         <dd>
-          an HTML page showing the whole alignment.
-          <strong>Please note:</strong> full Rfam alignments can be <em>very</em>
-          large. These HTML views are extremely large and often cause problems
-          for browsers. Please use the jalview if you have trouble viewing the 
-          HTML version
+          an HTML page showing the alignment in blocks. We do not store
+          separate alignments with species or &quot;name/start-end&quot; labels,
+          but you can switch between these different labels within the block
+          viewer
         </dd>
       </dl>
       <h3>Downloading</h3>
@@ -57,22 +65,21 @@ alignmentUri = c.uri_for( "/family/alignment" );
         Rfam alignment in various formats:
       </p>
       <ul>
-        <li>Selex</li>
         <li>Stockholm</li>
-        <li>FASTA</li>
-        <li>MSF</li>
+        <li>Pfam</li>
+        <li>Gapped FASTA</li>
+        <li>Ungapped FASTA</li>
       </ul>
-      <p>
-        You can also change the order in which sequences are listed in the 
-        alignment, change how insertions are represented, alter the characters
-        that are used to represent gaps in sequences and, finally, choose 
-        whether to download the alignment or to view it in your browser 
-        directly.
-      </p>
       <hr />
     </div>
 
     <h2>View options</h2>
+
+    <p>
+      You can view Rfam alignments in your browser in various ways. Choose the
+      viewer that you want to use and click the &quot;View&quot; button to 
+      show the alignment in a pop-up window.
+    </p>
 
     <form id="viewerForm"
           action="[% alignmentUri %]/html"
@@ -80,11 +87,10 @@ alignmentUri = c.uri_for( "/family/alignment" );
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
-        [% oe = 0 %]
+        [%- oe = 0 %]
     	  <table class="details alignOpts" summary="Alignment display options">
           <tbody>
-            [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -95,10 +101,22 @@ alignmentUri = c.uri_for( "/family/alignment" );
                   <input type="radio" name="alnType" id="viewerTypeF" value="full" />
                   <label for="viewerTypeF">Full ([% rfam.num_full %])</label>
                 </span>
-      	      </td>
+              </td>
             </tr>
-            [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Label format:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="viewSpeciesLabels" value="0" checked="checked" />
+                  <label for="viewSpeciesLabels">Species labels</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="viewNseLabels" value="1" />
+                  <label for="viewNseLabels">Name/start-end</label>
+                </span>
+              </td>
+            </tr>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
                 <span class="button">
@@ -119,36 +137,26 @@ alignmentUri = c.uri_for( "/family/alignment" );
       </div>
     </form>
 
-  	<script type="text/javascript">
-      // <![CDATA[
-      // although the form action looks like it will download the alignment,
-      // in fact we catch the submission here and decide, based on the form
-      // values, which URL to go to next.
-      function launch() {
-        if( $F("viewer") == "jalview" ) {
-        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
-          popUp( url, 'console', 800, 800, 'jalviewWin');
-      
-        } else if( $F("viewer") == "html" ) {
-        	url = "[% alignmentUri %]/html?" + Form.serialize("viewerForm");
-          popUp( url, 'console', 800, 800, 'viewerWin');
-        }      
-        return false;
-      }
-      // ]]>
-    </script>
-
     <h2>Formatting options</h2>
 
-    <form action="[% alignmentUri %]/download/format" method="get">
+    <p>
+      You can view or download Rfam alignments in several formats. Check either 
+      the &quot;download&quot; button, to save the formatted alignment, or 
+      &quot;view&quot;, to see it in your browser window, and click 
+      &quot;Generate&quot;. 
+    </p>
+        
+    <form id="optionsForm"
+          action="[% alignmentUri %]/download/format" 
+          method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
-
+        
         [% oe = 0 %]
         <table class="details alignOpts" summary="Alignment formatting options">
           <tbody>
             [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -159,64 +167,36 @@ alignmentUri = c.uri_for( "/family/alignment" );
                   <input type="radio" name="alnType" id="typeF" value="full" />
                   <label for="typeF">Full ([% rfam.num_full %])</label>
                 </span>
-      	      </td>
+              </td>
             </tr>
             [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Format:</td>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Label format:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="formatSpeciesLabels" value="0" checked="checked" />
+                  <label for="formatSpeciesLabels">Species labels</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="formatNseLabels" value="1" />
+                  <label for="formatNseLabels">Name/start-end</label>
+                </span>
+              </td>
+            </tr>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Alignment format:</td>
               <td>
                 <span class="button">
                   <select name="format" id="format">
-                    <option value="fasta" selected="selected">FASTA</option>
-                    <option value="stockholm">Stockholm</option>
-                    <option value="pfam">Selex</option>
-                    <option value="msf">MSF</option>
+                    <option value="stockholm" selected="selected">Stockholm</option>
+                    <option value="pfam">Pfam</option>
+                    <option value="fasta">FASTA (gapped)</option>
+                    <option value="fastau">FASTA (UNgapped)</option>
                   </select>
                 </span>
       	      </td>
             </tr>
-            [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Order:</td>
-              <td>
-                <span class="button">
-                  <input type="radio" name="order" id="orderT" value="t" checked="checked" />
-                  <label for="orderT">Tree</label>
-                </span>
-                <span class="button">
-                  <input type="radio" name="order" id="orderA" value="a" />
-                  <label for="orderA">Alphabetical</label>
-                </span>
-      	      </td>
-            </tr>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Sequence:</td>
-              <td>
-                <span class="button">
-                  <input type="radio" name="case" id="caseL" value="l" checked="checked" />
-                  <label for="caseL">Inserts lower case</label>
-                </span>
-          			<span class="button">
-                  <input type="radio" name="case" id="caseU" value="u" />
-                  <label for="caseU">All upper case</label>
-                </span>
-      	      </td>
-            </tr>
-            [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Gaps:</td>
-              <td>
-                <span class="button">
-                  <select name="gaps" id="gaps">
-                    <option value="default" selected="selected">Gaps as "." or "-" (mixed)</option>
-                    <option value="dots">Gaps as "." (dots)</option>
-                    <option value="dashes">Gaps as "-" (dashes)</option>
-                    <option value="none">No gaps (unaligned)</option>
-                  </select>
-                </span>
-      	      </td>
-            </tr>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Download/view:</td>
               <td>
                 <span class="button">
@@ -237,11 +217,10 @@ alignmentUri = c.uri_for( "/family/alignment" );
       </div>
     </form>
 
-    [% IF entryType != 'B' %]
     <h2>Download options</h2>
 
     <p>
-      <em>Very</em> large alignments can often cause problems for the formatting
+      Very large alignments can often cause problems for the formatting
       tool above. If you find that downloading or viewing a large alignment is
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
@@ -249,18 +228,24 @@ alignmentUri = c.uri_for( "/family/alignment" );
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
         seed</a> or 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
-        full</a> alignment for this family. 
+      full</a> alignment for this family. Both 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed&amp;af=1">
+        seed</a> and
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full&amp;af=1">
+      full</a> alignments are also available with &quot;name/start-end&quot; 
+      rather than species name labels.
     </p>
 
-    <form action="[% alignmentUri %]/download/gzipped"
+    <form id="downloadForm"
+          action="[% alignmentUri %]/download/gzipped"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
-  
+        
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
           <tbody>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -273,6 +258,32 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
               </td>
             </tr>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Label format:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="dlSpeciesLabels" value="0" checked="checked" />
+                  <label for="dlSpeciesLabels">Species labels</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="nseLabels" id="dlNseLabels" value="1" />
+                  <label for="dlNseLabels">Name/start-end</label>
+                </span>
+              </td>
+            </tr>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Alignment style:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="cs" id="dlStyleCSS" value="0" checked="checked" />
+                  <label for="dlStyleCSS">Raw</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="cs" id="dlStyleCSF" value="1" />
+                  <label for="dlStyleCSF">Colorstock</label>
+                </span>
+              </td>
+            </tr>
           </tbody>
         </table>
   
@@ -280,7 +291,59 @@ alignmentUri = c.uri_for( "/family/alignment" );
   
       </div>
     </form>
-    [% END %]
+
+  	<script type="text/javascript">
+      // <![CDATA[
+
+      // wire up observers for the "view" and "download" forms
+      $("viewer").observe("change", function() {
+        $("viewerForm").select("[name=nseLabels]").each( function(input) {
+          if ( $F("viewer") == "html" ) {
+            input.disable()
+                 .next("label")
+                 .addClassName("inactive");
+          } else {
+            input.enable()
+                 .next("label")
+                 .removeClassName("inactive");
+          }
+        } )
+      } );
+      $("dlStyleCSS").observe("change", function() {
+        if ( $("dlStyleCSS").checked == true ) {
+          $("downloadForm").select("[name=nseLabels]").each( function(input) {
+            input.enable()
+                 .next("label")
+                 .removeClassName("inactive");
+          } )
+        }
+      } );
+      $("dlStyleCSF").observe("change", function() {
+        if ( $("dlStyleCSF").checked == true ) {
+          $("downloadForm").select("[name=nseLabels]").each( function(input) {
+            input.disable()
+                 .next("label")
+                 .addClassName("inactive");
+          } )
+        }
+      } );
+
+      // although the form action for the "view" form looks like it will 
+      // download the alignment, in fact we catch the submission here and 
+      // decide, based on the form values, which URL to go to next.
+      function launch() {
+        if( $F("viewer") == "jalview" ) {
+        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
+          popUp( url, 'console', 800, 800, 'jalviewWin');
+      
+        } else if( $F("viewer") == "html" ) {
+        	url = "[% alignmentUri %]/html?" + Form.serialize("viewerForm");
+          popUp( url, 'console', 800, 800, 'viewerWin');
+        }      
+        return false;
+      }
+      // ]]>
+    </script>
 
   </div>
 
