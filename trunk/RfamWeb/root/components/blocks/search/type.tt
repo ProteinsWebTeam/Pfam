@@ -16,8 +16,8 @@ requirements.css.push( "forms.css" );
 requirements.cssIeAll.push( "forms_all_ie.css" );
 
 sharedRequirements.css.push( "tree.css" );
-sharedRequirements.js.push( "yui/TaskNode.js" );
-sharedRequirements.js.push( "treeTweak.js" );
+#sharedRequirements.js.push( "yui/TaskNode.js" );
+#sharedRequirements.js.push( "treeTweak.js" );
 
 #-------------------------------------------------------------------------------
 %]
@@ -137,7 +137,7 @@ sharedRequirements.js.push( "treeTweak.js" );
     
         <div class="row">
           <label for="q">Entry types</label>
-          <div id="treeDiv"></div>
+          <div id="treeDiv" class="ygtv-checkbox"></div>
         </div>
 
         <div class="row">
@@ -172,38 +172,40 @@ sharedRequirements.js.push( "treeTweak.js" );
 
     var treeData = [
       { label: "Gene", path: "Gene;",
-        children: [ { label: "anti-sense", path: "Gene;antisense;" },
-                    { label: "microRNA", path: "Gene;miRNA;" },
-                    { label: "rRNA", path: "Gene;rRNA;" },
-                    { label: "ribozyme", path: "Gene;ribozyme;" },
-                    { label: "sRNA", path: "Gene;sRNA;" },
-                    { label: "snRNA", path: "Gene;snRNA;",
-                      children: [ { label: "snoRNA", path: "Gene;snRNA;snoRNA;",
-                                    children: [ { label: "CD-box", path: "Gene;snRNA;snoRNA;CD-box;" },
-                                                { label: "HACA-box", path: "Gene;snRNA;snoRNA;HACA-box;" },
-                                                { label: "scaRNA", path: "Gene;snRNA;snoRNA;scaRNA;" } ] },
-                                  { label: "splicing", path: "Gene;snRNA;splicing;" } ] },
-                    { label: "tRNA", path: "Gene;tRNA;" } ] },
+        children: [ { label: "CRISPR", path: "Gene; CRISPR;" },
+                    { label: "anti-sense", path: "Gene; antisense;" },
+                    { label: "microRNA", path: "Gene; miRNA;" },
+                    { label: "rRNA", path: "Gene; rRNA;" },
+                    { label: "ribozyme", path: "Gene; ribozyme;" },
+                    { label: "sRNA", path: "Gene; sRNA;" },
+                    { label: "snRNA", path: "Gene; snRNA;",
+                      children: [ { label: "snoRNA", path: "Gene; snRNA; snoRNA;",
+                                    children: [ { label: "CD-box", path: "Gene; snRNA; snoRNA; CD-box;" },
+                                                { label: "HACA-box", path: "Gene; snRNA; snoRNA; HACA-box;" },
+                                                { label: "scaRNA", path: "Gene; snRNA; snoRNA; scaRNA;" } ] },
+                                  { label: "splicing", path: "Gene; snRNA; splicing;" } ] },
+                    { label: "tRNA", path: "Gene; tRNA;" } ] },
       { label: "Intron", path: "Intron;" },
       { label: "Cis-regulatory element", path: "Cis-reg;",
-        children: [ { label: "IRES", path: "Cis-reg;IRES;" },
-                    { label: "Frameshift element", path: "Cis-reg;frameshift_element;" },
-                    { label: "leader", path: "Cis-reg;leader;" },
-                    { label: "riboswitch", path: "Cis-reg;riboswitch;" },
-                    { label: "thermoregulator", path: "Cis-reg;thermoregulator;" } ] }
+        children: [ { label: "IRES", path: "Cis-reg; IRES;" },
+                    { label: "Frameshift element", path: "Cis-reg; frameshift_element;" },
+                    { label: "leader", path: "Cis-reg; leader;" },
+                    { label: "riboswitch", path: "Cis-reg; riboswitch;" },
+                    { label: "thermoregulator", path: "Cis-reg; thermoregulator;" } ] }
     ];
     
     var exampleData = { "sRNA": 1,
                          "riboswitch" : 1 };
 
     var tree;
-    var nodes = new Array();
+    var nodes = [];
     function treeInit() {
       var build = function ( parent, oConfig ) {
         var i, item, node;
         for ( var i = 0; i < oConfig.length; i++ ) {
           item = oConfig[i];
-          node = new YAHOO.widget.TaskNode( item.label, parent, item.path, true, false, false );
+          // node = new YAHOO.widget.HTMLNode(  item.label, parent, item.path, true, false, false );
+          node = new YAHOO.widget.HTMLNode( { html: item.label, data: item.path }, parent, true );
           nodes.push( node );
           if ( item.children ) {
             build( node, item.children );
@@ -212,22 +214,20 @@ sharedRequirements.js.push( "treeTweak.js" );
       };
       tree = new YAHOO.widget.TreeView( "treeDiv" );
       build( tree.getRoot(), treeData );
-      tree.draw();
+      tree.subscribe( "clickEvent", tree.onEventToggleHighlight );
+      tree.setNodesProperty( "propagateHighlightUp",   true );
+      tree.setNodesProperty( "propagateHighlightDown", true );
+
+      tree.render();
     }
     YAHOO.util.Event.onDOMReady( treeInit );
 
     function submitForm() {
-      var checked = $$("td.ygtvcheck2").collect(
-        function(cell) {
-          return cell.next('td',1).innerHTML;
-        }
-      );
-      if ( checked.length < 1 ) {
-        return false;
-      }
-
-      $("typePaths").setValue( checked.join(",") );        
-      return true;
+      var list = tree.getNodesByProperty( "highlightState", 1 )  // select only highlighted nodes
+                     .collect( function( s ) { return s.data } ) // get their "data" property, which stores the type
+                     .join( "," );                               // join...
+      $("typePaths").setValue( list );                           // and set as a hidden value in the form
+      return true;                                               // which can be submitted now
     }
 
     function fillTypeExample() {
