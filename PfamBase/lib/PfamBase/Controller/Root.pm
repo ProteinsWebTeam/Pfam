@@ -341,6 +341,21 @@ EOF_default_robots
 
 #-------------------------------------------------------------------------------
 
+=head2 favicon : Path
+
+Redirect requests for "favicon.ico" to the actual file.
+
+=cut
+
+sub favicon : Path( '/favicon.ico' ) {
+  my ( $this, $c ) = @_;
+  
+  # set the status to 301 "Moved permanently" too.
+  $c->res->redirect( $c->uri_for( '/static/images/favicon.png' ), 301 );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 end : Private
 
 Renders the index page for the site by default, but the default template can be 
