@@ -46,6 +46,7 @@
 
 .alignment_seq {
   float: left;
+  clear: both;
 }
 
 #alignment_key {
