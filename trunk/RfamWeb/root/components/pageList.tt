@@ -11,6 +11,8 @@ META naked = 1;
 
 # arguments: pageURI - the base URI for the page links
 #            lcChar  - the first letter of the page that we are currently on
+#            activeLetters - hash where keys are letters that should be linked
+#                      in the page list
 #            encode  - if true, the URI is "uri encoded" to convert, for 
 #                      example, spaces into %20 before use
 
@@ -40,7 +42,7 @@ active = activeLetters || {};
           encodedURI = BLOCK; pageURI; page; END;
         END %]
         <span class="letter">
-          [%- IF active.$pageR %]
+          [%- IF active.$page %]
           <a href="[% encodedURI %]">[% pageR | ucfirst %]</a>
           [%- ELSE;
             pageR | ucfirst;
