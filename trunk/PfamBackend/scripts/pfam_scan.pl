@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/local/bin/perl
 
 # $Id: pfam_scan.pl,v 1.14 2009-10-09 14:23:58 rdf Exp $
 
