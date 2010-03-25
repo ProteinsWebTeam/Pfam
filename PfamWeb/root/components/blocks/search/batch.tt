@@ -95,9 +95,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         Your sequence should be a <strong>valid protein sequence</strong>. As 
         such, the sequence line should contain only amino-acid symbols, i.e. 
         capital letters excluding &quot;J&quot;. In the context of a Pfam 
-        search, gaps and translation stops have little meaning and should not 
-        normally be used, but we accept &quot;-&quot; or &quot;*&quot; to 
-        denote gaps and translation stops respectively.  
+        search gaps and translation stops have little meaning and should not 
+        normally be used, but we do accept &quot;-&quot; or &quot;*&quot; to 
+        denote gaps and translation stops respectively. Nucleotide sequences
+        are not considered valid and will be rejected.
       </p>
 
       <h2>Service limits</h2>
@@ -121,7 +122,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <h3>Sequence length</h3>
       
       <p>
-        Each sequence must be no longer than <strong>20000</strong> amino-acids. 
+        Each sequence must be between <strong>6</strong> and <strong>20000</strong>
+        amino-acids in length.
       </p>
       
       <h3>Sequence variation</h3>
