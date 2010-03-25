@@ -16,7 +16,7 @@ META fullPage = 1;
 
   <p>There was a system error on your last request.</p>
 
-  [% IF c.error.size AND constants.debug %]
+  [% IF c.error.size AND c.debug %]
     <p class="message">[% c.error.first %]</p>
   [% END %]
 
