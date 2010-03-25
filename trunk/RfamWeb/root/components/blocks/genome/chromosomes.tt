@@ -15,58 +15,78 @@ sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
+USE Number.Format( THOUSANDS_SEP = "," );
+
+# shortcuts to the show/hide glass buttons
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
+
 embl_seq = 1;
 
 tbody = BLOCK;
   lastAG = 0;
   oe = 0;
   FOREACH auto_genome IN hits.keys.sort;
-  
-    FOREACH row IN hits.$auto_genome.rows %]
-      <tr class="[% oe % 2 ? "odd" : "even" %]">
-        [% IF lastAG != auto_genome %]
-          <td rowspan="[% hits.$auto_genome.count || 1 %]">
-            [% IF row.genome_acc;
-              embl_seq = 1 -%]
-              <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nuccore&amp;id=[% row.genome_acc %]">
-                [% row.genome_acc %]</a>
-            [%- ELSE;
-              embl_seq = 0;
-              row.ensembl_id;
-            END %]
-          </td>
-          <td rowspan="[% hits.$auto_genome.count || 1 %]" class="left">
-            [% row.description %]
-          </td>
-          <td rowspan="[% hits.$auto_genome.count || 1 %]">
-            [% row.length %]
-          </td>
-        [% END;
-        IF hits.$auto_genome.count %]
-          <td>
-            <a href="[% c.uri_for( '/family', row.get_column('rfam_id') ) %]">
-              [% row.get_column('rfam_id') %]</a>
-          </td>
-          <td>[% row.get_column('genome_start') %]</td>
-          <td>[% row.get_column('genome_end') %]</td>
-          <td>[% row.get_column('bits_score') %]</td>
-        [% ELSE %]
-          <td colspan="4" class="inactive">No Rfam hits</td>
-        [% END;
-        IF lastAG != auto_genome;
-          IF hits.$auto_genome.count %]
-            <td rowspan="[% hits.$auto_genome.count %]">
-              <a href="[% c.uri_for('/genome', summary.ncbi_id, 'gff', auto_genome ) %]">Download</a>
-            </td>
-          [% ELSE %]
-            <td><span class="inactive">No GFF file</span></td>
-          [% END;
+    row = hits.$auto_genome.rows.0 %]
+    <tr class="[% oe % 2 ? "odd" : "even" %]">
+      <td>
+        [% IF row.genome_acc;
+          embl_seq = 1 -%]
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nuccore&amp;id=[% row.genome_acc %]">
+            [% row.genome_acc %]</a>
+        [%- ELSE;
+          embl_seq = 0;
+          row.ensembl_id;
         END %]
+      </td>
+      <td class="left">[% row.description %]</td>
+      <td>[% row.length | format_number( 0, 0 ) %]</td>
+      <td>[% hits.$auto_genome.count %]</td>
+      [%- IF hits.$auto_genome.count %]
+        <td><a href="[% c.uri_for('/genome', summary.ncbi_id, 'gff', auto_genome ) %]">Download</a></td>
+      [%- ELSE %]
+        <td><span class="inactive">No GFF file</span></td>
+      [%- END %]
+      <td class="showSwitch">
+        <img src="[% showButton %]"
+          alt="Show/hide all regions" />
+      </td>
+    </tr>
+    <tr class="[% oe % 2 ? 'odd' : 'even' %]" style="display: none">
+      <td colspan="6">
+        <table>
+          <thead>
+            <tr>
+              <th>Family</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Bits score</th>
+            </tr>
+          </thead>
+          <tbody>
+            [% oe2 = 0;
+            FOREACH row IN hits.$auto_genome.rows %]
+              <tr class="[% oe2 % 2 ? 'odd' : 'even' %]">
+                [%- IF hits.$auto_genome.count %]
+                  <td style="width: 5em">
+                    <a href="[% c.uri_for( '/family', row.get_column('rfam_id') ) %]">
+                      [% row.get_column('rfam_id') %]</a>
+                  </td>
+                  <td style="width: 5em">[% row.get_column('genome_start') | format_number( 0, 0 ) %]</td>
+                  <td style="width: 5em">[% row.get_column('genome_end') | format_number( 0, 0 ) %]</td>
+                  <td style="width: 5em">[% row.get_column('bits_score') %]</td>
+                [%- ELSE %]
+                  <td colspan="4" class="inactive">No Rfam hits</td>
+                [%- END %]
+              </tr>
+              [%- oe2 = oe2 + 1;
+            END %]
+          </tbody>
+        </table>
+        </td>
       </tr>
-      [% lastAG = auto_genome;
-  
-    END; # of "FOREACH row"
-    oe = oe + 1;
+    [% oe = oe + 1;
   END; # of "FOREACH auto_genome"
 END; # of BLOCK
 -%]
@@ -80,13 +100,16 @@ END; # of BLOCK
   <div class="blockContent">  
 
     <p>
-      A chromosome-by-chromosome breakdown of the genome.
+      This section shows a chromosome-by-chromosome breakdown of the genome.
       [%- IF embl_seq -%]
       This genome has <a class="ext" href="http://www.ebi.ac.uk/embl/">EMBL accessions</a>.
       [%- ELSE -%]
       You can see more annotations for this genome at 
       <a class="ext" href="http://www.ensembl.org/">Ensembl</a>.
       [%- END -%]
+      Each row shows the details of a particular chromosome. You can see 
+      information about the families found on that chromosome by clicking the
+      &quot;Show&quot; button at the end of the row.
     </p>
 
     <table id="breakdownTable"
@@ -103,11 +126,9 @@ END; # of BLOCK
           </th>
           <th>Description</th>
           <th>Length</th>
-          <th>Family</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Bits score</th>
+          <th>Family count</th>
           <th>Download <acronym title="General Feature Format">GFF</acronym> file</th>
+          <th>Show all regions</th>
         </tr>
       </thead>
       <tbody>
@@ -116,6 +137,22 @@ END; # of BLOCK
     </table>
 
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    $$("#breakdownTable td.showSwitch").each( function( td ) {
+      td.observe( "click", function( e ) { 
+        var cell    = e.findElement("td");
+        var img     = cell.down("img");
+        var nextRow = cell.up("tr").next("tr");
+        nextRow.toggle();
+        img.src = nextRow.visible() ? "[% hideButton %]" : "[% showButton %]";
+      } );
+    } );
+
+    // ]]>    
+  </script>
 </div>
 
 <!-- end chromosomes block -->
