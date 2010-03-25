@@ -1,13 +1,12 @@
-
 [%
-# genomes.tt
-# rdf 20061109 WTSI
+# browseFamilies.tt
+# jt6 20060717 WTSI
 # 
-# build a "browse" page for genomes
+# build a "browse" page for Rfam families
 #
-# $Id: genomes.tt,v 1.2 2008-12-10 13:52:26 jt6 Exp $
+# $Id: families.tt,v 1.5 2008-12-10 13:52:17 jt6 Exp $
 
-META title = "Browse Rfam genomes";
+META title = "Browse Rfam families";
 META fullPage = 1;
 
 USE Number.Format( THOUSANDS_SEP = "," );
@@ -22,56 +21,24 @@ sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
-pages = [ "A" .. "Z" ];
+pages = [ "0 - 9" ];
+CALL pages.import( [ "A" .. "Z" ] );
 
 # shortcuts for URIs
-genomeURI = c.uri_for( "/genome" );
-
-# generate the table
-activeLetters = {};
-tableBody = BLOCK;
-
-  first = "";
-  FOREACH genome IN genomes;
-    initialLetter = genome.species.split("").first | upper;
-    activeLetters.${initialLetter} = 1 %]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
-      <td class="rowNum">[% loop.index %]</td>
-      <td>
-        <a class="species" 
-           href="[% genomeURI; '/'; genome.ncbi_id %]"
-           [%- IF initialLetter != first -%]
-             name="[% initialLetter %]"
-             [%- first = initialLetter | upper;
-           END %]>[% genome.species %]</a>
-       </td>
-      <td>[% genome.kingdom %]</td>
-      <td>[% genome.families | format_number %]</td>
-      <td>[% genome.regions | format_number %]</td>
-      <td>[% genome.genome_size | format_number %]</td>
-    </tr>
-  [% END;
-END; # of BLOCK tableBody
+familyURI = c.uri_for( "/family" );
 
 # generate the page list
-pageList = PROCESS "components/pageList.tt", 
-                   pageList=pages,
-                   lcChar=lcChar,
-                   activeLetters=activeLetters,
+pageList = PROCESS "components/pageList.tt" 
+                   pageList=pages
+                   activeLetters=active_letters.families
                    pageURI = "#";
-%]
+-%]
 
 <!-- start browse page -->
 
-[% IF kingdom.defined %]
-<h1 class="pageHeader">Browse Rfam genomes from [% kingdom %]</h1>
+<h1 class="pageHeader">Browse all [% families.size %] Rfam families</h1>
+
 <p class="browseSummary">
-  Rfam covers <strong>[% genomes.size %]</strong> genomes from <strong>[% kingdom %]</strong>.
-[% ELSE %]
-<h1 class="pageHeader">Browse all Rfam genomes</h1>
-<p class="browseSummary">
-  Rfam covers a total of <strong>[% genomes.size %]</strong> genomes. 
-[% END %]
   The table may be sorted by clicking on the column titles, or restored to the 
   original order <span class="link" id="sortLink">here</span>. 
   <strong>Please note</strong> that sorting large tables can be slow. 
@@ -79,22 +46,50 @@ pageList = PROCESS "components/pageList.tt",
 </p>
 
 [% pageList %]
-
-<table class="details browse"
-       id="browseTable" 
-       summary="Browse genomes">
+          
+<table class="details browse" 
+       id="browseTable"
+       summary="Details of Rfam families">
   <thead>
     <tr>
       <th id="indexCol" class="rowNum">Original order</th>
-      <th>Species name</th>
-      <th>Kingdom</th>
-      <th>Families</th>
-      <th>Regions</th>
-      <th>Genome size</th>
+      <th>ID</th>
+      <th>Accession</th>
+      <th>Type</th>
+      <th>Seed</th>
+      <th>Full</th>
+      <th>Average length</th>
+      <th>Sequence<br />identity (%)</th>
+      <th>Description</th>
     </tr>
   </thead>
   <tbody>
-  [% tableBody %]
+    [% first = "";
+    FOREACH rfam IN families;
+      IF rfam.rfam_id.match('^\d');
+        initialLetter = "0 - 9";
+      ELSE;
+        initialLetter = rfam.rfam_id.split("").first | upper;
+      END %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td>
+          <a [%- IF initialLetter != first -%]name="[% initialLetter %]"
+             [%- first = initialLetter | upper; END %]
+             href="[% familyURI; '/'; rfam.rfam_acc %]">
+            [% rfam.rfam_id %]</a>
+        </td>
+        <td>
+          <a href="[% familyURI; '/'; rfam.rfam_acc %]">[% rfam.rfam_acc %]</a>
+        </td>
+        <td>[% rfam.type %]</td>
+        <td>[% rfam.num_seed | format_number %]</td>
+        <td>[% rfam.num_full | format_number %]</td>
+        <td>[% rfam.alignments_and_trees.average_length %]</td>
+        <td>[% rfam.alignments_and_trees.percent_id %]</td>
+        <td class="left">[% rfam.description | html %]</td>
+      </tr>
+    [% END -%]
   </tbody>
 </table>
 
@@ -115,12 +110,10 @@ pageList = PROCESS "components/pageList.tt",
      # now that the table sort object is actually defined %]
   $("sortLink").observe( "click", function() {
     sorter.sort(0);
-  } );
-  // ]]>
+  } );  // ]]>
 </script>
 
 <!-- end browse page -->
-
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
