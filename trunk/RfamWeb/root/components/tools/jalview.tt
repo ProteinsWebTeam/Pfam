@@ -12,7 +12,13 @@ META naked = 1;
 
 pageContent = BLOCK;
 
-title = "jalview"
+title = "jalview";
+
+sequenceUri = c.uri_for( '/family/alignment/download/format', 
+                         { acc       = acc, 
+                           format    = 'fasta',
+                           alnType   = alnType,
+                           nseLabels = nseLabels } )
 -%]
 
 <h1>jalview: alignment<em> for [% acc %]</em></h1>
@@ -21,7 +27,7 @@ title = "jalview"
          width="140" 
          height="35" 
          archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
-  <param name="file"          value="[% c.uri_for( '/family/alignment/download/format', { acc = acc, format = 'fasta', alnType = alnType } ) %]" />
+  <param name="file"          value="[% sequenceUri %]" />
   <param name="defaultColour" value="Taylor" />
   <param name="RGB"           value="#FFFFCC" />
   <param name="database"      value="pfamseq" />
