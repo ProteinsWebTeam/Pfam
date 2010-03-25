@@ -109,6 +109,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li class="link currentLink" onclick="switchPanel(this,'help')">QUICK LINKS</li>
       <li class="link" onclick="switchPanel(this,'RNA')">SEQUENCE SEARCH</li>
       <li class="link" onclick="switchPanel(this,'family')">VIEW AN RFAM FAMILY</li>
+      <li class="link" onclick="switchPanel(this,'clan')">VIEW AN RFAM CLAN</li>
       <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
       <li class="link" onclick="switchPanel(this,'taxonomy')">TAXONOMY SEARCH</li>
       <li class="link" onclick="switchPanel(this,'help')">JUMP TO</li>
@@ -121,6 +122,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <ul>
       <li>Analyze your RNA sequence for Rfam matches</li>
       <li>View Rfam family annotation and alignments</li>
+      <li>View Rfam clan details</li>
       <li>Query Rfam by keywords</li>
       <li>Fetch families or sequences by NCBI taxonomy</li>
       <li>
@@ -194,34 +196,66 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <h3>View Rfam family annotation and alignments</h3>
     <p>Enter a family identifier or accession to see all data for that family.</p>
     <form action="[% jumpUri %]"
-          method="get" 
-          id="familyForm"
-          onsubmit="return jump(this);">
+      method="get" 
+      id="familyForm"
+      onsubmit="return jump(this);">
       <div>
         <input class="entryField" 
-               type="text" 
-               name="entry" 
-               id="familyField" 
-               size="30" />
+          type="text" 
+          name="entry" 
+          id="familyField" 
+          size="30" />
         <input type="hidden"
-               name="type"
-               value="Family" />
+          name="type"
+          value="Family" />
       </div>
       <div onclick="if( $('familyField').present() ){jump('familyForm');};"
-           class="glassButton goButton">&nbsp;</div>
+        class="glassButton goButton">&nbsp;</div>
       <div onclick="$('familyField').value=exRfamId"
-           class="glassButton exampleButton">&nbsp;</div>
+        class="glassButton exampleButton">&nbsp;</div>
       <div style="display: none"
-           class="jumpSpinner">Searching...</div>
+        class="jumpSpinner">Searching...</div>
       <div style="display: none"
-           class="jumpError"></div>
+        class="jumpError"></div>
       <p class="small nlh">
         You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
         through the list of all Rfam families.
       </p>
     </form>
   </div>
-    
+  
+  <div id="clan" class="panel" style="display: none">
+    <h3>View Rfam clan and alignments</h3>
+    <p>Enter a family identifier or accession to see all data for that family.</p>
+    <form action="[% jumpUri %]"
+      method="get" 
+      id="clanForm"
+      onsubmit="return jump(this);">
+      <div>
+        <input class="entryField" 
+          type="text" 
+          name="entry" 
+          id="clanField" 
+          size="30" />
+        <input type="hidden"
+          name="type"
+          value="Clan" />
+      </div>
+      <div onclick="if( $('clanField').present() ){jump('clanForm');};"
+        class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('clanField').value=exClanId"
+        class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+        class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+        class="jumpError"></div>
+      <p class="small nlh">
+        You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
+        through the list of all Rfam clans.
+      </p>
+    </form>
+  </div>
+  
   <div id="sequence" class="panel" style="display: none">
     <h3>View domain organisation of a RNA sequence</h3>
     <p>Enter a sequence identifier or accession.</p>
@@ -346,6 +380,24 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   <div class="cleaner"><!-- empty --></div>
 
   <hr />
+
+  <div id="jobAnnouncement" style="border: 1px solid #AAA; padding: 0.5em; background-color: #EEE">
+    <h2>Job announcement</h2>
+
+    <p>
+      We currently have a job opening in the Rfam team for a senior computer biologist. You can see 
+      more information about the post in our latest 
+      <a class="ext" 
+          href="http://xfam.wordpress.com/2010/03/01/job-opening-at-rfam-for-a-senior-computer-biologist/">
+          blog post</a>, or on the Sanger 
+      <a class="ext" 
+         href="https://jobs.sanger.ac.uk/wd/plsql/wd_portal.show_job?p_web_site_id=1764&amp;p_web_page_id=101766">
+         jobs page</a>.
+    </p>
+
+  </div>
+ 
+  <hr />
  
   <div id="newFeatures" style="display: none">
   </div>
@@ -423,7 +475,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   } );
 
   // rotate through example IDs
-  var jumpExamples = new Array( "snoZ107_R87" );  
+  var jumpExamples = $w("snoZ107_R87 209261 telomerase");  
   var lastJumpExample = 0;
   var fillJumpField = function() {
     $("jumpField").value = jumpExamples[lastJumpExample++];
@@ -443,6 +495,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   // example values for the various forms
 
   var exRfamId = "snoZ107_R87";
+  var exClanId = "telomerase";
   var exKw     = "spliceosomal";
   var exTx     = "plasmodium";
   var exSeq    = "AGUUACGGCCAUACCUCAGAGAAUAUACCGUAUCCCGUUCGAUCUGCGAAGUUAAGCUCU\n\
