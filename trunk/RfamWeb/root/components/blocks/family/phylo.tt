@@ -221,7 +221,7 @@ treeUri = c.uri_for( "/family/tree" );
     <dt>Species:</dt> \
     <dd> \
       <a class="ext" \
-         href="http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-e+[embl-AccNumber:\'#{acc}\']"> \
+         href="http://www.ebi.ac.uk/ena/data/view/#{acc}"> \
         #{species}</a></dd> \
   </dl> \
 </div> ' );
