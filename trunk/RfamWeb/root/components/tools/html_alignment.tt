@@ -26,23 +26,23 @@ title = type _ " sequence alignment for " _ acc;
 
 BLOCK pageList -%]
 <ul class="pageList">
-  [% IF current_block > 0 %]
+  [% IF current_block_num > 0 %]
     <li><a title="First page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => 0 ) | html %]">&laquo;</a></li>
-    <li><a title="Previous page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block - 1 ) | html %]">&lsaquo;</a></li>
+    <li><a title="Previous page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block_num - 1 ) | html %]">&lsaquo;</a></li>
   [% ELSE %]
     <li class="inactive">&laquo;</li>
     <li class="inactive">&lsaquo;</li>
   [% END %]
-  [% FOREACH block IN [ 0 .. last_block ] %]
-    [% IF block == current_block %]
+  [% FOREACH block IN [ 0 .. last_block_num ] %]
+    [% IF block == current_block_num %]
       <li class="inactive">[% block + 1 %]</li>
     [% ELSE %]
       <li><a title="Page [% block + 1 %]" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => block ) | html %]">[% block + 1 %]</a></li>
     [% END %]
   [% END %]
-  [% IF current_block < last_block %]
-    <li><a title="Next page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block + 1 ) | html %]">&rsaquo;</a></li>
-    <li><a title="Last page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => last_block ) | html %]">&raquo;</a></li>
+  [% IF current_block_num < last_block_num %]
+    <li><a title="Next page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block_num + 1 ) | html %]">&rsaquo;</a></li>
+    <li><a title="Last page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => last_block_num ) | html %]">&raquo;</a></li>
   [% ELSE %]
     <li class="inactive">&rsaquo;</li>
     <li class="inactive">&raquo;</li>
