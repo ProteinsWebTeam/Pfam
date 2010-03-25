@@ -55,7 +55,26 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 
 # read the configuration, configure the application and load these 
 # catalyst plugins
-__PACKAGE__->setup( qw() ); # no extra plugins required yet
+__PACKAGE__->setup( qw( PageCache ) );
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 is_cache_enabled
+
+Returns true if the configuration parameter C<enable_cache> is defined and is
+set to a true value. Used by the PageCache plugin to decide if it should step
+in to cache a page/serve a page from cache.
+
+If C<enable_cache> is true, page caching will be enabled.
+
+=cut
+
+sub is_cache_enabled {
+  my ( $c ) = @_;
+  return ( exists $c->config->{enable_cache} and $c->config->{enable_cache} );
+}
 
 #-------------------------------------------------------------------------------
 
