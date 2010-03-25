@@ -23,7 +23,6 @@ d = relData.rfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
 
 release_date = String.new( "00:00:00 " );
 CALL release_date.append( d.2, ":", d.1, ":", d.0 );
-
 %]
 
 <!-- start summary block -->
@@ -46,7 +45,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       The Rfam database is a collection of RNA sequence families of
       structural RNAs including non-coding RNA genes as well as
       cis-regulatory elements. Each family is represented by multiple
-      sequence alignments and covariance models (CMs).  You can use the Rfam
+      sequence alignments and covariance models (CMs). You can use the Rfam
       website to obtain information about an individual family, or browse
       our families and genome annotations. Alternatively you can download
       all of the Rfam data from our <a class="ext"
