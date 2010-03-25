@@ -424,6 +424,7 @@ div.errorReport p.message {
 table.details {  
   margin: 0;
   padding: 0;
+  border-spacing: 1px;
 }
 
 table.details thead tr {
@@ -445,7 +446,7 @@ table.details td.label {
   width: 14em;
   padding: 0.2em;
   background: #CCC;
-  text-align: center;
+  text-align: center ! important;
   font-weight: bold;
 }
 
@@ -602,6 +603,7 @@ a.sortheader {
   width: 50%;
   margin-left: 25%;
   margin-right: 25%;
+  border-spacing: 1px;
 }
 
 #keyTable thead {
@@ -630,6 +632,7 @@ a.sortheader {
   clear: both;
 /*   border: 1px solid #000070; */
     margin: 0 auto;
+  border-spacing: 1px;
 }
 
 .resultTable thead tr {
@@ -1020,7 +1023,7 @@ div.chartKey {
   background-color: #f3f3f3;
   border: 1px solid #CCC;
   padding: 0.4em;
-  width: 10em;
+  width: 15em;
 }
 
 div.chartKey ul {
@@ -1035,13 +1038,16 @@ div.chartKey li span {
   width: 10px;
   height: 10px;
   margin: 2px 2px 0 0;
+  border: 1px solid black;
 }
 
 span.alignColour     { background-color: #F00; }
 span.seedColour      { background-color: #00F; }
+span.nsnfColour      { background-color: #a01ff0; }
 span.thresholdColour { background-color: #000; }
 span.familyColour    { background-color: #acd7e5; }
 span.forbiddenColour { background-color: #ffc3ce; }
+span.bfafColour      { background-color: #f6deb3; }
 
 /* control tabs */
 
@@ -1185,4 +1191,26 @@ div.blockContent > #treeTools {
   padding: 0.2em 0;
 }
 
+/* ======================================== */
+/* secondary structure image switcher rules */
 
+#switcherHolder {
+  border: 1px solid #AAA;
+}
+
+div.empty {
+  height: 0px;
+}
+
+div.SSSwitcher {
+  float: left;
+}
+
+#lSwitcher {
+  width: 50%;
+  border-right: 1px solid #AAA;
+}
+
+#rSwitcher {
+  width: 49%;
+}

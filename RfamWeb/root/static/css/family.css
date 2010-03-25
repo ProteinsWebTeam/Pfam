@@ -185,6 +185,11 @@ table.alignOpts td span {
   float: left;
 }
 
+table.alignOpts td span.double {
+  width: 28em;
+  clear: both;
+}
+
 /* ---------------------------------------- */
 /* dead families page */
 

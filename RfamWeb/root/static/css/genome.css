@@ -29,3 +29,7 @@
 .ygtvlabel {
   background-color: inherit ! important;
 }
+
+img.showHide {
+  cursor: pointer;
+}
