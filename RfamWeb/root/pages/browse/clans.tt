@@ -1,13 +1,13 @@
 
 [%
-# browseClans.tt
-# jt6 20060821 WTSI
+# clans.tt
+# jt6 20100323 WTSI
 # 
 # build a "browse" page for clans
 #
-# $Id: clans.tt,v 1.2 2008-06-17 09:23:33 jt6 Exp $
+# $Id$
 
-META title = "Browse Pfam clans";
+META title = "Browse Rfam clans";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
@@ -16,21 +16,20 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
-lcChar = char | lower;
-
-pages = [ "numbers",
-          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
-	        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+pages = [ "0 - 9" ];
+CALL pages.import( [ "A" .. "Z" ] );
 
 # shortcuts for URIs
 clanURI = c.uri_for( "/clan" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 
-                   lcChar=lcChar,
+                   pageList=pages
+                   activeLetters=active_letters.clans
                    pageURI = "#";
 %]
 
@@ -38,32 +37,45 @@ pageList = PROCESS "components/pageList.tt",
 
 <h1 class="pageHeader">Browse Pfam clans</h1>
 
+<p class="browseSummary">
+  Rfam has a total of <strong>[% clans.size %]</strong> clans. 
+  The table may be sorted by clicking on the column titles, or restored to the 
+  original order <span class="link" id="sortLink">here</span>. 
+  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
+</p>
+
 [% pageList %]
 
-<table class="details browse" summary="Browse Pfam clans">
+<table class="details browse" 
+       id="browseTable"
+       summary="Browse Pfam clans">
   <thead>
     <tr class="caption">
+      <th id="indexCol" class="rowNum">Original order</th>
       <th>ID</th>
       <th>Accession</th>
+      <th>Number of<br />families</th>
       <th>Description</th>
     </tr>
   </thead>
   <tbody>
   [% first = "";
-  FOREACH clan IN browse;
+  FOREACH clan IN clans;
     IF clan.clan_id.match('^\d');
-      initialLetter = "numbers";
+      initialLetter = "0 - 9";
     ELSE;
-	    initialLetter = clan.clan_id.split("").first | lower;
+	    initialLetter = clan.clan_id.split("").first | upper;
     END %]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+    <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
+      <td class="rowNum">[% loop.index %]</td>
   	  <td>
         <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
-           id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
-           href="[% clanURI %]?acc=[% clan.clan_acc %]">
+           id="[% initialLetter %]"[% first = initialLetter | upper %][% END %] 
+           href="[% clanURI; '/'; clan.clan_acc %]">
           [% clan.clan_id %]</a>
       </td>
-      <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
+      <td><a href="[% clanURI; '/'; clan.clan_acc %]">[% clan.clan_acc %]</a></td>
+      <td>[% clan.get_column("num_families") %]</td>
       <td>[% clan.clan_description %]</td>
     </tr>
   [% END # of FOREACH %]
@@ -71,6 +83,25 @@ pageList = PROCESS "components/pageList.tt",
 </table>
 
 [% pageList %]
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "browseTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  [% # add a listener to the "return to original sort order" link,
+     # now that the table sort object is actually defined %]
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );
+  // ]]>
+</script>
 
 <!-- end browse page -->
 [%#

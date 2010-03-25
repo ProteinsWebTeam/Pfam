@@ -21,111 +21,92 @@ requirements.css.push( "browse.css" );
 #-------------------------------------------------------------------------------
 
 alphabet = [ "A" .. "Z" ];
-
-pages = { 'A' => 'F',
-          'G' => 'L',
-          'M' => 'R',
-          'S' => 'T',
-          'U' => 'Z' };
-
-genomeUri = c.uri_for( '/genome/browse' );
-
-USE table alphabet, rows = 20 -%]
+-%]
 
 <!-- start of browse index page -->
 <div id="browseIndex">
   
   <h2>Browse Rfam</h2>
   
+  <p>
+    You can use the links below to find lists of families, clans, genomes, or
+    families that have a three-dimensional structure associated with them.    
+  </p>
   <table summary="Browse the Rfam database">
     <tbody>
       <tr>
         <td class="type">FAMILIES</td>
         <td class="links">
-          <a href="[% c.uri_for( '/family/browse/all' ) | html %]">
-            All</a>
-          <a href="[% c.uri_for( '/family/browse/top20' ) | html %]">
-            Top twenty</a>
-          <a href="[% c.uri_for( '/family/browse', 0, 9 ) | html %]">
-            0 - 9</a>
-          [% FOREACH from IN pages.keys.sort;
-            to = pages.$from; %]
-          <a href="[% c.uri_for( '/family/browse', from, to ) | html %]">
-            [% from | ucfirst %] - [% to | ucfirst %]</a>
-          [% END %]
+          [% num = "0 - 9";
+          IF active_letters.families.$num -%]
+            <a href="[% c.uri_for( '/family/browse#0' ) %]">0 - 9</a>
+          [% ELSE -%]
+            <span class="inactive">0 - 9</span>
+          [% END;
+          FOREACH letter IN alphabet;
+            IF active_letters.families.$letter -%]
+              <a href='[% c.uri_for( "/family/browse#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
         </td>
       </tr>
       
       <tr>
         <td class="type">GENOMES</td>
         <td class="links">
-          You can browse <a href="[% genomeUri %]">all genomes</a> 
-          by species name, or you can browse genomes from specific kingdoms:
-          
-          <dl class="alphabetList">
-            <dt>
-              <a href="[% genomeUri %]">All</a>
-            </dt>
-            <dd>
-            [% FOREACH col IN table.col;
-              FOREACH letter IN col;
-                IF active_letters.all.$letter %]
-                  <a href="[% genomeUri %]#[% letter %]">[% letter %]</a>
-                [%- ELSE %]
-                  <span class="inactive">[% letter %]</span>
-                [%- END;
-              END -%]
-              <br />
-            [% END -%]
-          </dl>
-
-          [%- FOREACH kingdom IN kingdoms %]
-            <dl class="alphabetList">
-              <dt>
-                <a href="[% genomeUri; '/'; kingdom %]">[% kingdom %]</a>
-              </dt>
-              <dd>
-                [% FOREACH col IN table.col;
-                  FOREACH letter IN col;
-                    IF active_letters.$kingdom.$letter %]
-                      <a href="[% genomeUri; '/'; kingdom; '#'; letter %]">[% letter %]</a>
-                    [%- ELSE %]
-                      <span class="inactive">[% letter %]</span>
-                    [%- END;
-                  END -%]
-                  <br />
-                [% END -%]
-              </dd>
-            </dl>
-          [% END %]
-        </td>
-      </tr>
-
-      <tr>
-        <td class="type">STRUCTURES</td>
-        <td class="links">
-          [% got_numbers = 0; 
-          FOREACH num IN [ 0..9 ];
-            IF active_letters.families_with_structures.$num;
-              got_numbers = 1;
-              LAST;
-            END;
-          END;
-          IF got_numbers %]
-            <a href="[% c.uri_for( '/family/browse/with_structure#0' ) %]">0 - 9</a>
-          [% ELSE %]
+          [% num = "0 - 9";
+          IF active_letters.genomes.$num -%]
+            <a href="[% c.uri_for( '/genome/browse#0' ) %]">0 - 9</a>
+          [% ELSE -%]
             <span class="inactive">0 - 9</span>
           [% END;
-          FOREACH col IN table.col;
-            FOREACH letter IN col;
-              IF active_letters.families_with_structures.$letter %]
-                <a href='[% c.uri_for( "/family/browse/with_structure#$letter" ) %]'>[% letter %]</a>
-              [%- ELSE %]
-                <span class="inactive">[% letter %]</span>
-              [%- END;
-            END -%]
-            <br />
-          [% END -%]
+          FOREACH letter IN alphabet;
+            IF active_letters.genomes.$letter -%]
+              <a href='[% c.uri_for( "/genome/browse#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="type">CLANS</td>
+        <td class="links">
+          [% num = "0 - 9";
+          IF active_letters.clans.$num -%]
+            <a href="[% c.uri_for( '/clan/browse#0' ) %]">0 - 9</a>
+          [% ELSE -%]
+            <span class="inactive">0 - 9</span>
+          [% END;
+          FOREACH letter IN alphabet;
+            IF active_letters.clans.$letter -%]
+              <a href='[% c.uri_for( "/clan/browse#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="type">FAMILIES WITH<br />STRUCTURES</td>
+        <td class="links">
+          [% num = "0 - 9";
+          IF active_letters.families_with_structures.$num -%]
+            <a href="[% c.uri_for( '/family/browse/with_structure#0' ) %]">0 - 9</a>
+          [% ELSE -%]
+            <span class="inactive">0 - 9</span>
+          [% END;
+          FOREACH letter IN alphabet;
+            IF active_letters.families_with_structures.$letter -%]
+              <a href='[% c.uri_for( "/family/browse/with_structure#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
         </td>
       </tr>
       
