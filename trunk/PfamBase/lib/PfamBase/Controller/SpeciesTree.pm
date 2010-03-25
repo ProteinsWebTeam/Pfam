@@ -59,6 +59,7 @@ use warnings;
 
 use URI::Escape;
 use Data::UUID;
+use JSON;
 
 use base 'Catalyst::Controller';
 
@@ -202,6 +203,25 @@ sub interactive : Local {
   
   # cache the output of the template for one week
   #$c->cache_page( 604800 );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 json : Local
+
+Generates an JSON rendering of the species tree for the specified entry.
+
+=cut
+
+sub json : Local {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'SpeciesTree::interactive: generating JSON tree for acc: |'
+                  . $c->stash->{acc} . '|' ) if $c->debug;
+
+  $c->forward('buildTree');
+
+  $c->res->body( to_json( $c->stash->{rawTree} ) );
 }
 
 #-------------------------------------------------------------------------------
