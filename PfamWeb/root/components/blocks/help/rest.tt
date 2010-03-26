@@ -100,6 +100,8 @@ sharedRequirements.css.push( "prettify.css" );
 
     <h3><a name="sending">Sending requests</a></h3>
 
+    <h4>Using <code>curl</code></h4>
+
     <p>
       Although you can use a browser to retrieve family data in XML format, 
       it&#39;s most useful to send requests and retrieve XML programmatically. 
@@ -110,7 +112,7 @@ sharedRequirements.css.push( "prettify.css" );
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -123,7 +125,18 @@ sharedRequirements.css.push( "prettify.css" );
     ...</pre>
       </div>
     </fieldset>
+
+    <p>
+      <strong>Note:</strong> we have recently changed the web server that we use
+      for serving the Pfam site. Due to a bug in the server itself, requests that
+      come from <code>curl</code> are normally rejected. The current work-around is
+      to add an extra parameter to the <code>curl</code> command line: 
+      <code>-H 'Expect:'</code>. This should avoid problems with requests being
+      rejected.
+    </p>
     
+    <h4>Using a script</h3>
+
     <p>
       Most programming languages have the ability to send HTTP requests and 
       receive HTTP responses. A perl script to retrieve data about a Pfam
@@ -229,7 +242,7 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/acc/Piwi' ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/acc/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:37:09 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -257,9 +270,9 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl '[% c.uri_for( '/family/acc/Piwi' ) | html %]'
+        <pre>shell% curl -H 'Expect:' '[% c.uri_for( '/family/acc/Piwi' ) | html %]'
 PF02171
-shell% curl '[% c.uri_for( '/family/id/PF02171' ) | html %]'
+shell% curl -H 'Expect:' '[% c.uri_for( '/family/id/PF02171' ) | html %]'
 Piwi</pre>
       </div>
     </fieldset>
@@ -288,7 +301,7 @@ Piwi</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -373,7 +386,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 16:34:44 26-Oct-2009 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -419,7 +432,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- all Pfam-A families, generated: 16:12:54 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -467,7 +480,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
+        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 16:28:26 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -589,16 +602,16 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
+        <pre>shell% curl -H 'Expect:' -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
         <pre class="prettyprint">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd"&gt;
-  &lt;job job_id="F69126C4-C24E-11DE-825F-800A2878356D"&gt;
-    &lt;opened&gt;2009-10-26 16:45:27&lt;/opened&gt;
-    &lt;result_url&gt;http://pfam.sanger.ac.uk/search/sequence/resultset/F69126C4-C24E-11DE-825F-800A2878356D?output=xml&lt;/result_url&gt;
+  &lt;job job_id="adabec68-703f-48c4-bec7-07f1ab965fbb"&gt;
+    &lt;opened&gt;2010-03-26 11:25:57&lt;/opened&gt;
+    &lt;result_url&gt;http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml&lt;/result_url&gt;
   &lt;/job&gt;
 &lt;/jobs&gt;</pre>
       </div>
@@ -765,39 +778,37 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-      <pre>shell% curl 'http://pfam.sanger.ac.uk/search/sequence/results?jobId=8B39C37A-BF7D-11DC-9E70-862FEF792CB2&amp;output=xml'</pre>
+      <pre>shell% curl -H 'Expect:' 'http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml'</pre>
       <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/results.xsd"
+                          http://deskpro20626.dynamic.sanger.ac.uk:8000/static/documents/schemas/results.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
-  &lt;results job_id="F69126C4-C24E-11DE-825F-800A2878356D"&gt;
+  &lt;results job_id="adabec68-703f-48c4-bec7-07f1ab965fbb"&gt;
     &lt;matches&gt;
       &lt;protein length="669"&gt;
         &lt;database id="pfam" release="24.0" release_date="2009-10-07"&gt;
-          &lt;match accession="PF02532.7" id="PsbI" type="Pfam-A" class="Family"&gt;
-            &lt;location start="297" end="308" ali_start="298" ali_end="306" 
-              hmm_start="23" hmm_end="31" evalue="2.4e+02" bitscore="1.1" 
-              evidence="hmmer v3.0b2" significant="0" /&gt;
+          &lt;match accession="PF08310.4" id="LGFP" type="Pfam-A" class="Repeat"&gt;
+            &lt;location start="422" end="475" ali_start="422" ali_end="473" 
+              hmm_start="1" hmm_end="52" evalue="5.9e-10" bitscore="38.3" evidence="hmmer v3.0b2" significant="1" /&gt;
+            &lt;location start="476" end="529" ali_start="476" ali_end="528" 
+              hmm_start="1" hmm_end="53" evalue="4.8e-23" bitscore="80.2" evidence="hmmer v3.0b2" significant="1" /&gt;
+            &lt;location start="530" end="580" ali_start="530" ali_end="578" 
+              hmm_start="1" hmm_end="51" evalue="3e-06" bitscore="26.4" evidence="hmmer v3.0b2" significant="1" /&gt;
+            &lt;location start="581" end="633" ali_start="581" ali_end="633" 
+              hmm_start="1" hmm_end="54" evalue="1e-19" bitscore="69.5" evidence="hmmer v3.0b2" significant="1" /&gt;
           &lt;/match&gt;
-          &lt;match accession="PF10055.2" id="DUF2292" type="Pfam-A" class="Family"&gt;
-            &lt;location start="647" end="664" ali_start="650" ali_end="662" 
-              hmm_start="19" hmm_end="31" evalue="49" bitscore="3.0" 
-              evidence="hmmer v3.0b2" significant="0" /&gt;
+          &lt;match accession="PF00756.13" id="Esterase" type="Pfam-A" class="Family"&gt;
+            &lt;location start="122" end="392" ali_start="122" ali_end="390" 
+              hmm_start="1" hmm_end="250" evalue="3.1e-62" bitscore="209.9" evidence="hmmer v3.0b2" significant="1" /&gt;
           &lt;/match&gt;
-          &lt;match accession="PF09772.2" id="Tmem26" type="Pfam-A" class="Family"&gt;
-            &lt;location start="164" end="187" ali_start="167" ali_end="185" 
-              hmm_start="260" hmm_end="278" evalue="3.3e+02" bitscore="-0.1" 
-              evidence="hmmer v3.0b2" significant="0" /&gt;
-          &lt;/match&gt;
-          &lt;match accession="PF04335.6" id="VirB8" type="Pfam-A" class="Family"&gt;
-            &lt;location start="9" end="57" ali_start="12" ali_end="49" 
-              hmm_start="4" hmm_end="41" evalue="17" bitscore="4.6" 
-              evidence="hmmer v3.0b2" significant="0" /&gt;
-          &lt;/match&gt;
-          ...</pre>
+        &lt;/database&gt;
+      &lt;/protein&gt;
+    &lt;/matches&gt;
+  &lt;/results&gt;
+&lt;/pfam&gt;</pre>
       </div>
     </fieldset>
 
@@ -813,7 +824,7 @@ ITFQNGTIRQVNGRIEESR</pre>
     </p>
     
     <pre class="url">
-[% c.uri_for( "/search/sequence/results/F69126C4-C24E-11DE-825F-800A2878356D" ) %]</pre>
+[% c.uri_for( "/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
     
     <p>
       Note that old search results are generally cleared out after some time, so
