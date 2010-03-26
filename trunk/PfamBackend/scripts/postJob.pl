@@ -260,7 +260,7 @@ __MESSAGE__
 
 ----------------
 
-Your job ran successfully but we found no Pfam matches to your sequence. 
+Your job ran successfully but we found no matches to your sequence. 
 
 __MESSAGE__
 
