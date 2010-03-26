@@ -117,9 +117,9 @@ else {
     exit(1);
   }
 
-  my $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
+  $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
   print STDERR "Successfully loaded local copy $family through middleware\n";
-  my $oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
+  $oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
   print STDERR "Successfully loaded SVN copy of $family through middleware\n";
 }
 
