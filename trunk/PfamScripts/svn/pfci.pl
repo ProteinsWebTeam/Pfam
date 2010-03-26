@@ -31,12 +31,11 @@ my ( $message, $ignore, $onlydesc, $addToClan, $removeFromClan, $help );
 ) or die "Unrecognised option passed in to the script.\n";
 
 my $family = shift;
-chomp($family);
-
 unless ($family) {
   warn "\n***** No family passed  *****\n\n";
   help();
 }
+chomp($family);
 
 if (@ARGV) {
   warn "\n***** $0 no longer supports multiple family check-ins *****\n\n";
