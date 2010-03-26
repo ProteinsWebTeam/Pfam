@@ -213,17 +213,17 @@ pre {
 }
 
 fieldset {
-  position: relative;
+  /* position: relative; */
   border: 1px solid #BBB;
   background: #EEE;
-  margin: 1em 0;
-  padding: 1em;
+  /* margin: 1em 0; */
+  /* padding: 1em; */
 }
 
 legend {
-  position: absolute;
-  top: -1em;
-  left: 0.2em;
+  /* position: absolute; */
+  /* top: -1em; */
+  /* left: 0.2em; */
   border: 1px solid #BBB;
   background: #DDD;
   padding: 0.4em;
