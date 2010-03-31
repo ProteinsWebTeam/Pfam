@@ -98,12 +98,22 @@ sub begin : Private {
 
   # retrieve the data for this sequence entry  
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
-  
+
   #----------------------------------------
 
   # if we're outputting HTML, we're done here
-  unless ( $c->stash->{output_xml} ) {
+  if ( not $c->stash->{output_xml} ) {
     $c->log->debug( 'Protein::begin: emitting HTML' ) if $c->debug;
+
+    # we're going to need to add extra data to the stash, data that is
+    # only used in the HTML templates, not the XML templates
+    $c->forward('get_annseq');
+    $c->forward('get_mapping');
+    $c->forward('get_summary_data');
+
+    # not currently needed
+    # $c->forward('get_das_sources');
+    
     return;
   }
 
@@ -116,10 +126,16 @@ sub begin : Private {
   if ( $c->stash->{errorMsg} ) {
     $c->log->debug( 'Protein::begin: there was an error: |' .
                     $c->stash->{errorMsg} . '|' ) if $c->debug;
+
     $c->stash->{template} = 'rest/protein/error_xml.tt';
+
     return;
   }
   else {    
+    # there were no errors retrieving data and we now know that we're going 
+    # to need the regions
+    $c->forward('get_regions');
+
     $c->stash->{template} = 'rest/protein/entry_xml.tt';
   }
   
@@ -141,6 +157,8 @@ this method.
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
+  $c->log->debug( 'Protein::get_data: adding protein data' ) if $c->debug;
+
   # look for the entry itself
   $c->stash->{pfamseq} = $c->model('PfamDB::Pfamseq')
                            ->search( [ { pfamseq_acc => $entry },
@@ -167,11 +185,20 @@ sub get_data : Private {
 
     return;
   }
-    
-  #----------------------------------------
+}
 
-  # add Pfam-A regions  
-  $c->log->debug( 'Protein::get_data: adding region info' ) if $c->debug;
+#-------------------------------------------------------------------------------
+
+=head2 get_regions : Private
+
+Retrieves and stashes the regions for this protein.
+
+=cut
+
+sub get_regions : Private {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Protein::get_regions: adding region info' ) if $c->debug;
   
   my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
              ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
@@ -179,7 +206,7 @@ sub get_data : Private {
                        { prefetch => [ qw( auto_pfama ) ] } );
   $c->stash->{pfama_regions} = \@pfama_regions;
 
-  $c->log->debug( 'Protein::get_data: found ' 
+  $c->log->debug( 'Protein::get_regions: found ' 
                   . scalar( @{ $c->stash->{pfama_regions} } ) . ' Pfam-A hits' )
       if $c->debug;
   
@@ -189,35 +216,42 @@ sub get_data : Private {
                     { prefetch => [ qw( auto_pfamb ) ] } );
   $c->stash->{pfamb_regions} = \@pfamb_regions; 
 
-  $c->log->debug( 'Protein::get_data: found ' 
+  $c->log->debug( 'Protein::get_regions: found ' 
                   . scalar( @{ $c->stash->{pfamb_regions} } ) . ' Pfam-B hits' )
       if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_annseq : Private
+
+Retrieves and stashes the Storable for the sequence annotation data structure.
+
+=cut
+
+sub get_annseq : Private {
+  my ( $this, $c ) = @_;
   
-  #----------------------------------------
+  $c->log->debug( 'Protein::get_annseq: adding annseq storable' ) if $c->debug;
 
   my $storable = thaw $c->stash->{pfamseq}->annseqs->annseq_storable;
-  if ( defined $storable ) {
-    $c->stash->{seqs} = [ $storable ];
+  return unless defined $storable;
 
-    my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
-    $lm->layoutSequences( $c->stash->{seqs} );
+  $c->log->debug( 'Protein::get_annseq: got a storable; encoding as JSON' ) if $c->debug;
 
-    # configure the JSON object to correctly stringify the layout manager output
-    my $json = new JSON;
-    # $json->pretty(1);
-    $json->allow_blessed;
-    $json->convert_blessed;
+  $c->stash->{seqs} = [ $storable ];
 
-    # encode and stash the sequences as a JSON string
-    $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
-  }
+  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+  $lm->layoutSequences( $c->stash->{seqs} );
 
-  #----------------------------------------
+  # configure the JSON object to correctly stringify the layout manager output
+  my $json = new JSON;
+  # $json->pretty(1);
+  $json->allow_blessed;
+  $json->convert_blessed;
 
-  # add extra data to the stash  
-  # $c->forward('get_das_sources');
-  $c->forward('get_mapping');
-  $c->forward('get_summary_data');
+  # encode and stash the sequences as a JSON string
+  $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
 }
 
 #-------------------------------------------------------------------------------
