@@ -526,7 +526,7 @@ or
                 i.e. Domain and sequence have the same inclusion threshold.
 
 Script Options
--fa           : The name of the fasta file that you want to run Jackhmmer on.
+-fa <fa_file> : The name of the fasta file that you want to run Jackhmmer on.
 -acc <acc>    : Accession of protein you want to run Jackhmmer on
 -pfam         : Product Pfam-style outputs. (Coming if we want them)
 -noOverlap    : Script 
@@ -536,7 +536,7 @@ Script Options
 Options that you can not control 
 i)   Options controlling scoring system in iteration one.
 ii)  Options controlling significance thresholds for reporting.
-iii) Turning off of HMMER3 acceleration heuristics
+iii) Turning off HMMER3 acceleration heuristics
 iv)  Expert parameters for HMM building.
 
 
