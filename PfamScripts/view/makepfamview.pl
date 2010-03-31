@@ -834,8 +834,8 @@ sub _getDsspData {
   if($filename eq 'ALIGN'){
       @dssp = $pfamDB->getSchema
                           ->resultset("PdbResidueData")
-                            ->search({auto_pfama => $autoPfamA,
-                                      in_full    => 1 },
+                            ->search({"pfamA_reg_full_significant.auto_pfama" => $autoPfamA,
+                                      "pfamA_reg_full_significant.in_full"    => 1 },
                                      {join => [qw( pfamA_reg_full_significant )],
                                       select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                       as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
@@ -843,7 +843,7 @@ sub _getDsspData {
   }elsif($filename eq 'SEED'){
           @dssp = $pfamDB->getSchema
                           ->resultset("PdbResidueData")
-                            ->search({auto_pfama => $autoPfamA},
+                            ->search({"pfamA_reg_seed.auto_pfama" => $autoPfamA},
                                       {join => [qw( pfamA_reg_seed )],
                                        select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                        as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
@@ -1268,7 +1268,7 @@ sub versionFiles{
                               ->update_or_create({ auto_pfama     => $pfam->auto_pfama,
                                seed      => $fileCheckSums{SEED},
                                align     => $fileCheckSums{ALIGN},
-                               #desc_file => $fileCheckSums{DESC},
+                               desc_file => $fileCheckSums{DESC} ? $fileCheckSums{DESC} : '',
                                hmm       => $fileCheckSums{HMM},
                                });
   #Get the release versions
@@ -1280,13 +1280,13 @@ sub versionFiles{
   if($releasedVersions and $releasedVersions->auto_pfama){
         $changeStatus = 'NOCHANGE';
         #If the release version are different, then we need to add them to the 
-        if($releasedVersions->hmm ne $currentVersions->current_hmm){
+        if($releasedVersions->hmm ne $currentVersions->hmm){
             $thisVersion = $releasedVersions->version + 1 ;
             $changeStatus = 'CHANGED';
         }else{
-          if( ($releasedVersions->seed ne $currentVersions->current_seed) or
-              ($releasedVersions->align ne $currentVersions->current_align) or
-              ($releasedVersions->desc ne $currentVersions->current_desc)){
+          if( ($releasedVersions->seed ne $currentVersions->seed) or
+              ($releasedVersions->align ne $currentVersions->align) or
+              ($releasedVersions->desc_file ne $currentVersions->desc_file)){
                 $changeStatus = 'CHANGED';
               }
         }
