@@ -4,40 +4,24 @@
 #slow and accurate tree
 
 use strict;
-use Rfam;
-use Rfam::RfamAlign;
 use Getopt::Long;
 use DBI;
+use File::Copy;
 
-# MySQL connection details.
-my $database = "rfamlive";
-my $host     = "pfamdb2a";
-my $user     = "pfamadmin";
-my $pw       = "mafpAdmin";
-my $port     = 3303;
-
-# Query to search for the accession and description of embl entries with the embl id
-my $query = qq(
-           select t.species, t.tax_string 
-           from taxonomy as t, rfamseq as r 
-           where t.auto_taxid=r.taxon and rfamseq_acc=?;
-   );
-
-#mysql -h pfamdb2a -u pfamadmin -pmafpAdmin -P 3303 rfamlive
-#select t.ncbi_id, t.species, t.tax_string from taxonomy as t, rfamseq as r where t.auto_taxid=r.taxon and rfamseq_acc="AE001437";
-#select all rfmaseqs with this ncbi_id (nb..NOT a left join)
-#select r.rfamseq_acc, r.taxon  from rfamseq as r ,taxonomy as t where r.taxon=t.auto_taxid and t.ncbi_id=272562;
+use Rfam;
+use Rfam::RfamAlign;
 
 my $infile = "SEED";
-my ($quick, $quicktree, $slow, $slowonly, $outlist, $help);
-$outlist=1;
+my ($fasttree, $quicktree, $njtree, $mletree, $raxmltree, $verbose, $help);
+
 &GetOptions(
             "f|infile=s"       => \$infile,
-            "o|outlist"        => \$outlist,
-            "q|quickonly"      => \$quick,
-            "sa|slowalso"      => \$slow,
-            "s|slowonly"       => \$slowonly,
+            "ft|fasttree"      => \$fasttree,
+            "ml|mletree"       => \$mletree,
+            "nj|njtree"        => \$njtree,
             "qt|quicktree"     => \$quicktree,
+            "rt|raxmltree"     => \$raxmltree,
+            "v|verbose"        => \$verbose,
 	    "h|help"           => \$help
     );
 
@@ -46,20 +30,42 @@ if( $help ) {
     exit(1);
 }
 
-if (!defined($slow)){
-    $quick=1;
-}
+#Set default:
+$quicktree = 1 if (!defined($fasttree) && !defined($mletree)  && !defined($njtree)  && !defined($quicktree) );
 
-# Create a connection to the database.
+######################################################################
+#INITIALIZE FILES BLOCK
+# MySQL connection details.
+my $database = "rfamlive";
+my $host     = "pfamdb2a";
+my $user     = "pfamadmin";
+my $pw       = "mafpAdmin";
+my $port     = 3303;
+
+# Query to search for the accession and description of embl entries with the embl id
+#my $query = qq(
+#           select t.species, t.tax_string 
+#           from taxonomy as t, rfamseq as r 
+#           where t.auto_taxid=r.taxon and rfamseq_acc=?;
+#   );
+
+# Query to fetch the species name, full taxonomy string and ncbi id for a given embl id:
+my $query = qq(
+           select t.species, t.tax_string
+           from taxonomy as t, rfamseq as r 
+           where t.ncbi_id=r.ncbi_id and r.rfamseq_acc=?;
+   );
+
 my $dbh = DBI->connect(
-    "dbi:mysql:$database:$host:$port", $user, $pw, {
+    "dbi:mysql:$Rfam::live_rdb_name:$Rfam::rdb_host:$Rfam::rdb_port", $Rfam::rdb_user, $Rfam::rdb_pass, {
 	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
 	RaiseError => 1
-    });
+    }    );
+
 
 # Prepare the query for execution.
 my $sth = $dbh->prepare($query);
-###########
+######################################################################
 
 #Read stockholm file in
 open( SD, "$infile" ) or die ("FATAL: Couldn't open $infile [$!]\n $!\n");
@@ -76,22 +82,24 @@ if (scalar(@list) > 26**4){
 
 #If required 
 my (%outliststart, %outlistend, %outlistscore);
-if (defined($outlist)){
+if (-e "out.list" or -e "TABFILE"){
     if (-e "out.list"){
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
     }
-    elsif (-e "OUTPUT"){
+    elsif (-e "TABFILE"){
 	system("rfmake.pl -l") and die "Could not find out.list and could not run rfmake.pl\n[$!]";
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
     }
     else {
-	print "FATAL: could not find the file \42out.list\42\n\n";
+	print "FATAL: could not find or generate the file \42out.list\42\n\n";
 	&help();
 	exit(1);
     }
     
     while (my $line = <OUTLIST>){
-	if ($line =~ m/^(\S+)\t\S+\t(\S+)\t(\d+)\t(\d+)\s+.+/){
+## bits  evalue  seqLabel        name         start             end      qStart  qEnd    termlabel       shortSpecies    description
+#215.49  5.11e-57        SEED    AM497930.1               1             209      1       211     T       Naegleria       Naegleria sp. NG332 group I like ribozyme GIR1, strain NG332
+	if ($line =~ m/^(\S+)\s+\S+\s+\S+\s+(\S+)\s+(\d+)\s+(\d+)\s+/){
 	    
 	    my ($s, $e);
 	    if ($3<$4){
@@ -109,6 +117,7 @@ if (defined($outlist)){
 	    
 	}
     }
+    close(OUTLIST);
 }
 
 my %speciesnames;
@@ -146,7 +155,7 @@ foreach my $seqobj ( @list ) {
     }
     
     my $score_string = "";
-    if (defined($outlist) && defined($outliststart{$seqobj->id})){
+    if (defined($outliststart{$seqobj->id})){
 	
 	for ( my $i=0; $i< scalar(@{ $outliststart{$seqobj->id} }); $i++ ){
 	    	    if (overlap($seqobj->start, $seqobj->end, $outliststart{$seqobj->id}[$i], $outlistend{$seqobj->id}[$i])){
@@ -154,7 +163,7 @@ foreach my $seqobj ( @list ) {
 		    }
 	}
     }
-    elsif (defined($outlist)){
+    else{
 	$score_string = "NA_";
     }
     
@@ -177,24 +186,86 @@ open(SDOUT, ">$tmpseed" ) or die ("FATAL: Couldn't open $tmpseed\n[$!]");
 write_stockholm_lite($self, \*SDOUT, $len);
 close(SDOUT);
 
-system("sreformat phylip $tmpseed > infile")  and die( "FATAL: Error in [sreformat phylip $tmpseed > infile].\n[$!]");
 
-if (-e "outfile"){
-    system("rm outfile");
-}
 
-if (-e "outtree"){
-    system("rm outtree");
-}
+######################################################################
+#RUN METHODS
+#Input file in stockholm format is: $tmpseed
 
-system("cp infile infile.phy");
+unlink("rm outfile") if (-e "outfile");
+unlink("outtree") if (-e "outtree");
 
-if (!defined($slowonly) && !defined($quicktree)){
+my %times;
+
+if (defined($njtree)){
 #Compute a quick and dirty tree
-    system("echo \42Y\42 | dnadist");
-    system("mv outfile infile");
-    system("echo \42Y\42 | neighbor");
+    unlink("outtree") if (-e "outtree");
+    unlink("outfile") if (-e "outfile");
+    unlink("infile") if (-e "infile");
 
+    system("sreformat phylip $tmpseed > infile")  and die( "FATAL: Error in [sreformat phylip $tmpseed > infile].\n[$!]");
+    
+    my $starttime = time();
+    system("echo \42Y\42 | dnadist > /dev/null");
+    system("mv outfile infile");
+    system("echo \42Y\42 | neighbor > /dev/null");
+    my $endtime = time();
+    $times{'neighbour-joining'} = $endtime - $starttime;
+    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    open( TRO, ">$infile\.neighbor\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    fix_node_names(\*TR, \*TRO, \%speciesnames);
+    close(TR);
+    close(TRO);
+}
+
+if (defined($quicktree)){
+    unlink("outtree") if (-e "outtree");
+
+    my $starttime = time();
+    system("quicktree -boot 100 -in a -out t $tmpseed | tr -d '\n' > outtree") and die "FATAL: cannot run quicktree -in a -out t $tmpseed > outtree\n[$!]";
+    my $endtime = time();
+    $times{'quicktree'} = $endtime - $starttime;
+    
+    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    open( TRO, ">$infile\.quicktree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    fix_node_names(\*TR, \*TRO, \%speciesnames);
+    close(TR);
+    close(TRO);
+        
+}
+
+if (defined($fasttree)){
+    unlink("outtree") if (-e "outtree");
+    unlink("infile") if (-e "infile");
+
+    system("sreformat -d -u a2m $tmpseed > infile")  and die( "FATAL: Error in [sreformat a2m $tmpseed > infile].\n[$!]");
+    
+    my $starttime = time();
+#    system("FastTree -nt -nj -boot 100 < infile > outtree 2> /dev/null") and die "FATAL: cannot run FastTree -nt < infile  > outtree\n[$!]";
+    system("FastTree -nt -nj -boot 100 < infile > outtree") and die "FATAL: cannot run FastTree -nt < infile  > outtree\n[$!]";
+    my $endtime = time();
+    $times{'fasttree'} = $endtime - $starttime;
+    
+    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    open( TRO, ">$infile\.fasttree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    fix_node_names(\*TR, \*TRO, \%speciesnames);
+    close(TR);
+    close(TRO);
+}
+
+if($mletree){
+#Running dnaml-erate
+
+    unlink("outtree") if (-e "outtree");
+    unlink("outfile") if (-e "outfile");
+    unlink("infile")  if (-e "infile");
+    system("sreformat phylip $tmpseed > infile")  and die( "FATAL: Error in [sreformat phylip $tmpseed > infile].\n[$!]");
+    
+    my $starttime = time();
+    system("echo \42Y\42 | dnaml-erate");
+    my $endtime = time();
+    $times{'dnaml-erate'} = $endtime - $starttime;
+    
     open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
     open( TRO, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
     fix_node_names(\*TR, \*TRO, \%speciesnames);
@@ -202,47 +273,60 @@ if (!defined($slowonly) && !defined($quicktree)){
     close(TRO);
 }
 
-if (-e "outtree"){
-    system("rm outtree");
-}
-
-if (-e "outfile"){
-    system("rm outfile");
-}
-
-if (defined($quick) && !defined($slowonly) && !defined($quicktree)){
-#    print "View your tree in $infile\.njtree\.dnd\n";
-    cleanup();
-    exit();
-}
-
-if (defined($quicktree)){
-
-    system("quicktree -in a -out t $tmpseed | tr -d '\n' > outtree") and die "FATAL: cannot run quicktree -in a -out t $tmpseed > outtree\n[$!]";
+if($raxmltree){
+    unlink("outtree") if (-e "outtree");
+    unlink("infile") if (-e "infile");
+    system("rm -f RAxML_*outtree");
     
-    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
-    open( TRO, ">$infile\.quicktree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    system("sreformat phylip $tmpseed > infile")  and die( "FATAL: Error in [sreformat phylip $tmpseed > infile].\n[$!]");
+    my $ss = 0;
+    if ($ss_cons =~ /[\<\[\(\{ABCDEFG]/){
+	$ss_cons =~ s/[^\(^\)^\<^\>^\[^\]^\{^\}^\.]/\./g;
+	open(SS, ">structfile") or die "FATAL: failed to open structfile!\n[$!]";
+	print SS "$ss_cons\n";
+	close(SS);
+	$ss = 1;
+    }
+
+#Philip format, 
+    my $cmd = "raxmlHPC-SSE3";
+    $cmd .= " -m GTRGAMMA";
+#              "-m GTRGAMMA"       : GTR + Optimization of substitution rates + GAMMA model of rate
+#                                      heterogeneity (alpha parameter will be estimated)
+    $cmd .= " -s infile";
+    $cmd .= " -S structfile" if (-s "structfile" && $ss );
+    $cmd .= " -A S16";
+#     -A      Specify one of the secondary structure substitution models implemented in RAxML.
+#              The same nomenclature as in the PHASE manual is used, available models:
+#              S6A, S6B, S6C, S6D, S6E, S7A, S7B, S7C, S7D, S7E, S7F, S16, S16A, S16B
+#              DEFAULT: 16-state GTR model (S16)
+
+    $cmd .= " -n outtree";
+#      -n      Specifies the name of the output file.
+    $cmd .= " -N 1"; #Number of bootstraps
+    
+    print  "$cmd > /dev/null" if $verbose;
+    my $starttime = time();
+    system("$cmd > /dev/null");
+    my $endtime = time();
+    $times{'raxml'} = $endtime - $starttime;
+    
+    open( TR,  "<RAxML_bestTree.outtree" ) or die "RAxML_bestTree.outtree can't be opened\n[$!]";
+    open( TRO, ">$infile\.raxml\.dnd" ) or die "FATAL: problem opening $infile\.raxml\.dnd\n[$!]";
     fix_node_names(\*TR, \*TRO, \%speciesnames);
     close(TR);
     close(TRO);
     
-    cleanup();
-    exit();
-    
 }
 
-#Running dnaml-erate
-system("mv infile.phy infile");
-system("echo \42Y\42 | dnaml-erate");
-
-open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
-open( TRO, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
-fix_node_names(\*TR, \*TRO, \%speciesnames);
-close(TR);
-close(TRO);
+open(TM, ">seed2tree.times");
+foreach my $meth ( sort{ $a cmp $b } keys %times) {
+    printf TM "%20s\t%20s\n", $meth, $times{$meth};
+}
+close(TM);
+system("cat seed2tree.times");
 
 cleanup();
-
 exit();
 
 ######################################################################
@@ -338,6 +422,18 @@ sub write_stockholm_lite {
 sub overlap {
     my($x1, $y1, $x2, $y2) = @_;
     
+    if($x1 > $y1){
+	my $tmp=$x1;
+	$x1=$y1;
+	$y1=$tmp;
+    }
+    
+    if($x2 > $y2){
+	my $tmp=$x2;
+	$x2=$y2;
+	$y2=$tmp;
+    }
+    
     if ( ($x1<=$x2 && $x2<=$y1) || ($x1<=$y2 && $y2<=$y1) || ($x2<=$x1 && $x1<=$y2) || ($x2<=$y1 && $y1<=$y2)  ){
         return 1;
     }
@@ -351,31 +447,32 @@ sub help {
     
     print STDERR <<EOF;
 
-seed2tree.pl - build a quick and dirty NJ tree, then tries to build an accurate dnaml-erate tree.
-               The NJ trees are written to \47filename\47\.njtree\.dnd, ML trees are written
-	       to \47filename\47\.dnaml-erate\.dnd
+seed2tree.pl - builds one or more trees for an input alignment.
     
 USAGE:   seed2tree.pl <options>
 
 OPTIONS:       
-  -h or -help                Show this help.
-  -f|-infile <str>           Use \'str\' as input (must be stockholm), default is to use SEED 
-                             from the current dir.
-  -q|-quickonly              Only generate the quick and dirty NJ-tree.
-  -o|-outlist                Read scores in from the out.list file and prepend these to the N/S-E_species strings. (default)
-  -sa|-slowalso              
-  -s|-slowonly               
+  -h|--help                   Show this help.
+  -f|--infile <str>           Use \'str\' as input (must be stockholm), default is to use SEED 
+                              from the current dir.
+  -ft|--fasttree              Generate a tree using FastTree (Price, Dehal & Arkin (2009))
+  -ml|--mletree               Generate a tree using dnaml-erate (Rivas & Eddy (2008))
+  -nj|--njtree                Generate a tree using dnadist+neighbour from the Phylip package (Felsenstein (2009))
+  -qt|--quicktree             Generate a tree using quicktree (Howe, Bateman, Durbin R (2002)) [default]
+  -rt|--raxmltree             Generate a tree using RAxML v 7.2.5 (alpha) 
+                              (Stamatakis, et al. http://wwwkramer.in.tum.de/exelixis/software.html)
 
 EXAMPLES: 
 
 To produce a quick NJ tree for the ALIGN file with CM scores annotated:
-seed2tree.pl -q -o -f ALIGN
+seed2tree.pl -nj -f ALIGN
 
 REFERENCES:
 
 Rivas and Eddy (2008) Probabilistic Phylogenetic Inference with Insertions and Deletions.
 
 TO ADD:
+RaxML has doublet models!
 
 EOF
 }
