@@ -25,7 +25,6 @@ use strict;
 use warnings;
 
 use Compress::Zlib;
-use IPC::Open2;
 use File::Temp qw( tempfile );
 
 use base 'RfamWeb::Controller::Family::Alignment';
