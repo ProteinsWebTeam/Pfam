@@ -106,13 +106,16 @@ sub begin : Private {
     $c->log->debug( 'Protein::begin: emitting HTML' ) if $c->debug;
 
     # we're going to need to add extra data to the stash, data that is
-    # only used in the HTML templates, not the XML templates
-    $c->forward('get_annseq');
-    $c->forward('get_mapping');
-    $c->forward('get_summary_data');
+    # only used in the HTML templates, not the XML templates. Only 
+    # attempt this if we actually have a sequence to work with
+    if ( $c->stash->{pfamseq} ) {
+      $c->forward('get_annseq');
+      $c->forward('get_mapping');
+      $c->forward('get_summary_data');
 
-    # not currently needed
-    # $c->forward('get_das_sources');
+      # not currently needed
+      # $c->forward('get_das_sources');
+    }
     
     return;
   }
