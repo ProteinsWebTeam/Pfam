@@ -630,7 +630,7 @@ sub parseTerms : Private {
 =head2 getFamilyCount : Private
 
 Retrieves the list of families in a given species. Returns a reference to a 
-hash containing the Pfam-A accession and the count of the number of families.
+hash containing the Rfam accession and the count of the number of families.
 
 =cut
 
@@ -666,7 +666,7 @@ sub getFamilyCount : Private {
     my @rs = $c->model('RfamDB::TaxonomyWebsearch')
                ->search( { lft => { '>=' => $range->[0] },
                            rgt => { '<=' => $range->[1] } },
-                         { join     => [ 'rfam_ncbi' ],
+                         { prefetch => [ 'rfam_ncbi' ],
                            select   => [ 'rfam_ncbi.rfam_acc', 
                                          { count => 'rfam_ncbi.rfam_acc' } ],
                            as       => [ 'rfam_acc', 'count' ],
@@ -693,8 +693,8 @@ sub getFamilyCount : Private {
 
 =head2 getAllFamilyCount : Private
 
-Retrieves, for each Pfam-A family, the count of the number of times that family
-occurs for each species. Returns a reference to a hash with Pfam-A accession 
+Retrieves, for each Rfam family, the count of the number of times that family
+occurs for each species. Returns a reference to a hash with Rfam accession 
 and count.
 
 =cut
