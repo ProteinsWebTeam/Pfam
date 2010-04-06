@@ -1,34 +1,5 @@
 
-[%
-# speciesTreeJS.tt
-# jt6 20070626 WTSI
-#
-# build the javascript boiler plate that controls loading of the species
-# tree
-#
-# $Id: speciesTreeJS.tt,v 1.5 2010-01-19 10:00:08 jt6 Exp $
-
-stUri = c.uri_for( "/speciestree" );
-%]
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  var ielt8 = true;
-
-  //]]>
-</script>
-
-<!--[if lt IE 8]>
-<script type="text/javascript">
-  // <![CDATA[
-  var ielt8 = false;
-  //]]>
-</script>
-<![endif]-->
-
-<script type="text/javascript">
-  // <![CDATA[
+var SpeciesTree = Class.create( {
 
   // set parameters that are used by the tree controls 
   
@@ -39,19 +10,9 @@ stUri = c.uri_for( "/speciestree" );
   // selected sequences as domain graphics
   var selectGraphicsURI  = "[% stUri %]/graphics";
 
-  [%# there are two URIs for generating alignments. We have one specific to
-    # Pfam, which needs to run hmmalign to align selected sequences against
-    # the HMM. We have another that's specific to Rfam, which only needs to
-    # retrieve alignment snippets from a table and then format them as 
-    # a Stockholm file -%]
-
   // the URL to visit when the user selects nodes and wants to view the 
-  // selected sequences as an alignment - Pfam specific
-  var selectPfamAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
-
-  // the URL to visit when the user selects nodes and wants to download the 
-  // selected sequences as an alignment - Rfam specific
-  var selectRfamAlignmentURI = "[% stUri %]/alignment";
+  // selected sequences as an alignment
+  var selectAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
 
   // the URL to visit when the user selects nodes and wants to download the 
   // selected sequence accessions
@@ -98,7 +59,7 @@ stUri = c.uri_for( "/speciestree" );
     if ( treeBuiltSuccessfully ) {
 
       // we got a tree; render it
-      tree.render();
+      tree.draw();
 
       // bring back the control panel
       $("treeTools").show();
@@ -168,23 +129,97 @@ stUri = c.uri_for( "/speciestree" );
     );
   } );
 
-  // ]]>
-</script>
-[%#
-Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+  
+  //------------------------------------------------------------
+  // collect the sequences that are specified by the checked leaf nodes
+  // in the species trees. Submits the form in the page which will act on those
+  // accessions. The argument should be either "G" or "A", for graphical or
+  // sequence alignment view of the collected sequences.
+  
+  function collectSequences( sStyle, sAcc ) {
+  
+    // retrieve all checked nodes in the tree
+    var checkedNodes = tree.getNodesByProperty( "highlightState", 1 );  
+    
+    // make sure we have at least one checked node
+    if( ! checkedNodes.size() ) {
+      $("stError")
+        .update( "Please select some nodes" )
+        .show();
+      return;
+    }
+  
+    var seqAccs = checkedNodes.inject( "", function( accumulator, n ) {
+      if ( typeof n.data == "string" &&
+           nodeSequences[n.data] &&
+           nodeSequences[n.data] !== "undefined" ) {
+        return accumulator + nodeSequences[n.data] + " ";
+      } else { 
+        return accumulator;
+      }
+    } );
+  
+    // TODO we could optimise this a bit, by storing the list of selected 
+    // accessions at this point and then checking the new list against the old
+    // list before making another AJAX request to store a second, identical list
+    // in the DB. 
+  
+    // store the IDs and get back a "job id"
+    var jobId;
+    var r = new Ajax.Request( selectStoreURI, {
+      method: 'post',
+      parameters: { ids: escape( seqAccs ) },
+      onSuccess: function( oResponse ) {
+  
+        // the response should contain only the "job ID", which points to the list
+        // of accessions
+        jobId = oResponse.responseText;
+  
+        // build the URI for the next request, the one that actually does the 
+        // work here
+        var url;
+        var popup = true;
+  
+        // view the selected sequences as...
+        switch( sStyle ) {
+          case 'G':
+            url = selectGraphicsURI;   // domain graphics
+            break;
+          case 'L':
+            url = selectAccessionsURI; // sequence accessions
+            popup = false;
+            break;
+          case 'F':
+            url = selectFastaURI;      // FASTA format
+            popup = false;
+            break;
+          default:
+            url = selectAlignmentURI;  // an alignment
+        }
+  
+        // tack on the parameters that we need
+        url +=   "?acc="   + sAcc
+               + "&jobId=" + jobId;
+          
+        // load that URL, either in a popup or in the main window
+        if( popup ) {
+          popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
+        } else {
+          window.location = url;
+        }
+        
+      },
+      onFailure: function( oResponse ) {
+        $("stError")
+          .update( "There was a problem collecting sequence accessions" )
+          .show();
+        return;
+      }
+    });
+  
+  }
 
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
+} );
 
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
--%]
