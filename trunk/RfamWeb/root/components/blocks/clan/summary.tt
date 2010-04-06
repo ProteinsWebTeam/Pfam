@@ -12,8 +12,8 @@
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "clans.css" );
-requirements.cssIe.push( "clans_ie.css" );
+#requirements.css.push( "clans.css" );
+#requirements.cssIe.push( "clans_ie.css" );
 
 #-------------------------------------------------------------------------------
 
