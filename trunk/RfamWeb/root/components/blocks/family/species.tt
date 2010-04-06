@@ -113,7 +113,7 @@ sharedRequirements.js.push( "treeTweak.js" );
     </div>
 
     <!-- start of tree -->
-    <div id="treeDiv">
+    <div id="treeDiv" class="ygtv-checkbox">
       <p id="stph" class="loading">Loading...</p>
     </div>
 
