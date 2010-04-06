@@ -58,10 +58,6 @@
         a text representation
       </li>
     </ul>
-
-    [% # only show the last options if this is NOT an Rfam family (currently
-       # broken for Rfam... 
-    IF entryType != "R" %]
     
     <h3>Selected sequences</h3>
     <ul class="bare">
@@ -96,6 +92,20 @@
             </li>
           </ul>
         </li>
+      [%- ELSIF entryType == "R" %]
+        <li>
+          <em>Download</em>
+          <ul>
+            <li>
+              as an <span onclick="collectSequences( 'S', '[% acc %]' );" class="link">
+                alignment</span>
+            </li>
+            <li>
+              <span onclick="collectSequences( 'L', '[% acc %]' );" class="link">
+                sequence accessions</span>
+            </li>
+          </ul>
+        </li>
       [%- ELSE %]
         <li>
           <em>View</em>
@@ -112,7 +122,6 @@
       <li id="stError"
           style="display: none" ></li>
     </ul>
-    [%- END %]
 
   </div>
 
