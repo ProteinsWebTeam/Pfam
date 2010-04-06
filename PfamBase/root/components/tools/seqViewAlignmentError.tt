@@ -1,0 +1,91 @@
+
+[%
+# seqViewAlignmentError.tt
+# jt6 20061101 WTSI
+# 
+# display an error message pertaining to the submission of a sequence alignment
+# job
+#
+# $Id: seqViewAlignmentError.tt,v 1.3 2008-05-16 15:30:31 jt6 Exp $
+
+# tell the wrapper not to add any header or footer
+META naked = 1;
+
+pageContent = BLOCK;
+
+title = "Problem aligning selected sequences"
+-%]
+
+<h1>Problem aligning selected sequences</h1>
+
+<p>
+  You selected <strong>[% selectedSeqAccs.size %]</strong> sequences.
+  [% IF selectedSeqAccs.size >= 10 %]
+    <span onclick="reveal( this, 'extraAccs', false, true )"
+          class="moreLink">Show all accessions...</span>
+  [% END %]
+</p>
+<div id="selectedAccs">
+[% IF selectedSeqAccs.size >= 10 %]
+  <p>
+    [% i = 0;
+    WHILE i < 10 %]
+      <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+        [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+    <span>&hellip;</span>
+  </p>
+  <div class="cleaner"><!-- empty --></div>
+      
+  <div id="extraAccs" style="display: none">
+    [% i = 10;
+    WHILE i < selectedSeqAccs.size %]
+    <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+      [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+  </div>
+  <div class="cleaner"><!-- empty --></div>
+[% ELSE %]
+  <p>
+  [% FOREACH seq IN selectedSeqAccs %]
+    <a href="[% c.uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
+  [% END %]
+  </p>
+[% END %]  
+</div>
+
+[% IF errorMsg %]
+  <p class="message">[% errorMsg %]</p>
+[% ELSE %]
+  <p>
+    Unfortunately there was a problem when we tried to align these sequences. The
+    error could have occurred when we were queuing the alignment job, or when 
+    handing off a successfully generated alignment to the alignment viewer.
+  </p>
+[% END %]
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
