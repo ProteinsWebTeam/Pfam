@@ -128,6 +128,8 @@ to the template that generates a table showing that mapping.
 sub structures : Local {
   my( $this, $c) = @_;
 
+  $c->cache_page( 604800 );
+  
   # all we need to do extra for this action is retrieve the mapping between
   # structure, sequence and family
   $c->forward( 'get_mapping' );
