@@ -39,22 +39,12 @@ stUri = c.uri_for( "/speciestree" );
   // selected sequences as domain graphics
   var selectGraphicsURI  = "[% stUri %]/graphics";
 
-<<<<<<< .mine
-  // the URL to visit when the user selects nodes and wants to view the 
-  // selected sequences as an alignment
-  var selectAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
-=======
   [%# there are two URIs for generating alignments. We have one specific to
     # Pfam, which needs to run hmmalign to align selected sequences against
     # the HMM. We have another that's specific to Rfam, which only needs to
     # retrieve alignment snippets from a table and then format them as 
     # a Stockholm file -%]
->>>>>>> .r4616
 
-<<<<<<< .mine
-  // the URL to visit when the user selects nodes and wants to download the 
-  // selected sequence accessions
-=======
   // the URL to visit when the user selects nodes and wants to view the 
   // selected sequences as an alignment - Pfam specific
   var selectPfamAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
@@ -65,7 +55,6 @@ stUri = c.uri_for( "/speciestree" );
 
   // the URL to visit when the user selects nodes and wants to download the 
   // selected sequence accessions
->>>>>>> .r4616
   var selectAccessionsURI = "[% stUri %]/accessions";
 
   // the URL to visit when the user selects nodes and wants to download the 
@@ -108,13 +97,8 @@ stUri = c.uri_for( "/speciestree" );
     // a tree, we must have more than just the root node
     if ( treeBuiltSuccessfully ) {
 
-<<<<<<< .mine
-      // we got a tree; render it
-      tree.draw();
-=======
       // we got a tree; render it
       tree.render();
->>>>>>> .r4616
 
       // bring back the control panel
       $("treeTools").show();
