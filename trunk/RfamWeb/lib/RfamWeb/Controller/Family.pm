@@ -144,6 +144,23 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 varna : Local
+
+This is the way into the VARNA secondary structure viewer applet.
+
+Hands straight off to a template that generates a "tool" page containing the 
+VARNA applet.
+
+=cut
+
+sub varna : Local {
+  my ( $this, $c ) = @_;
+
+  $c->stash->{template} = 'components/tools/varna.tt';
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 image : Local
 
 Retrieves and returns an image from the database. Cache the image, unless
@@ -153,6 +170,8 @@ C<$ENV{NO_CACHE}> is true.
 
 sub image : Local {
   my ( $this, $c ) = @_;
+  
+  $c->cache_page( 604800 );
 
   my ( $image_type ) = $c->req->param('type') || '' =~ m/^(\w+)$/;
 
