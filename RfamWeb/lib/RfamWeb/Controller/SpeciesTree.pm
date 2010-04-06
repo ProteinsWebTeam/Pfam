@@ -27,6 +27,10 @@ $Id: SpeciesTree.pm,v 1.4 2008-11-04 15:07:56 jt6 Exp $
 use strict;
 use warnings;
 
+use File::Temp qw( tempfile );
+
+use Data::Dump qw( dump );
+
 use base 'PfamBase::Controller::SpeciesTree';
 
 #-------------------------------------------------------------------------------
@@ -61,9 +65,10 @@ sub begin : Private {
   
   #  find out what type of alignment we need, seed, full, etc
   $c->stash->{alnType} = 'seed';
-  if( defined $c->req->param('alnType') ) {
-    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
-                         :                                         'seed';
+  if ( defined $c->req->param('alnType') ) {
+    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' 
+                           ? 'full'
+                           : 'seed';
   }
   
   $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
@@ -116,6 +121,107 @@ sub auto : Private {
     $c->stash->{release_data} = '# Generated from Rfam version ' .
                                 $c->stash->{relData}->rfam_release . "\n";
   }
+}
+
+#-------------------------------------------------------------------------------
+#- public actions --------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 alignment  : Local
+
+Returns a Stockholm-format alignment of the sequence snippets for the selected
+species.
+
+=cut
+
+sub alignment : Local {
+  my( $this, $c ) = @_;
+  
+  # validate the UUID
+  my $jobId = $c->req->param('jobId');
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
+    $c->log->debug( 'SpeciesTree::alignment: bad job id' ) if $c->debug;
+
+    $c->stash->{errorMsg} = 'Invalid job ID';
+
+    return;
+  }
+
+  # retrieve the accessions for that job ID
+  my $accession_list = $c->forward( '/utils/retrieve_ids', [ $jobId ] );
+  unless( $accession_list ) {
+    $c->log->debug( 'SpeciesTree::alignment: could not retrieve accessions list' ) 
+      if $c->debug;
+
+    $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
+
+    return;
+  }
+
+  # retrieve the region sequences
+  my @sequences;
+  my $input = "# STOCKHOLM 1.0\n";
+  ACCESSION: foreach my $accession ( @$accession_list ) {
+    my @regions = $c->model('RfamDB::RfamRegFull')
+                             ->search( { auto_rfam   => $c->stash->{rfam}->auto_rfam,
+                                         rfamseq_acc => $accession },
+                                       { prefetch => 'auto_rfamseq' } );
+
+    unless ( scalar @regions ) {
+      $c->log->warn( "SpeciesTree::alignment: no sequences for |$accession|" )
+        if $c->debug;
+      next ACCESSION;
+    }
+
+    $c->log->debug( 'SpeciesTree::alignment: got ' . scalar @regions 
+                    . " regions for |$accession|" )
+      if $c->debug;
+
+    REGION: foreach my $region ( @regions ) {
+      $input .=   $region->auto_rfamseq->rfamseq_acc . '/'
+                . $region->seq_start . '-'
+                . $region->seq_end . ' '
+                . $region->sequence . "\n";
+    }
+
+  }
+  $input .= '#=GC SS_cons ' . $c->stash->{rfam}->reference_structure . "\n"; 
+  $input .= '#=GC RF ' . $c->stash->{rfam}->reference_sequence . "\n";
+  $input .= "//\n";
+
+  # get a temporary file and filehandle
+  my ( $fh, $fn ) = tempfile();
+  unless ( $fn and $fh ) {
+    $c->log->error( "SpeciesTree::alignment: couldn't open temp file for alignment: $!" );
+    return;
+  }
+
+  # dump the alignment to that file
+  print $fh $input;
+  close $fh;
+
+  # build the command for running esl-reformat    
+  my $cmd = $this->{eslreformat_binary} . " -u -r --mingap --informat stockholm stockholm $fn";
+  $c->log->debug( "SpeciesTree::alignment: running system command: |$cmd|" )
+    if $c->debug;
+
+  unless ( open OUTPUT, "$cmd|" ) {    
+    $c->log->error( "SpeciesTree::alignment: couldn't run esl-reformat: $!" );
+    return;
+  }
+
+  # stick the output of esl-reformat back together and remove the temp file
+  my $output = join '', <OUTPUT>;
+  close OUTPUT;
+
+  unlink $fn;
+
+  # we got a nicely formatted Stockholm alignment; make it a plain text download
+  $c->res->content_type( 'text/plain' );
+  $c->res->headers->header( 'Content-disposition' => 'attachment; ' .
+                            'filename=selected_sequence_accessions.txt' );
+  
+  $c->res->body( $output );
 }
 
 #-------------------------------------------------------------------------------
