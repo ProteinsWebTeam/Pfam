@@ -36,43 +36,38 @@ BLOCK buildTableBody;
 
   tableRow = 0;
   rowId = '';
-  FOREACH family IN hits.keys.sort;
-    FOREACH sequence IN hits.$family.sequences;
-      FOREACH hit IN sequence.hits;
-        alignmentRowId = "rfamAlignment${tableRow}";
-        rowClass       = tableRow % 2 ? "odd" : "even";
-        tableRow       = tableRow  + 1;
-        totalHits      = totalHits + 1 -%]
-        <tr class="[% rowClass %]">
-          <td class="rowNum">[% loop.index %]</td>
-          <td>
-            <a href="[% c.uri_for( '/family', acc => hits.$family.acc ) | html %]">
-              [% hits.$family.id %]</a>
-          </td>
-          <td>[% hit.offset_start %]</td>
-          <td>[% hit.offset_end %]</td>
-          <td>[% hit.bits %]</td>
-          <td>[% hit.dir %]</td>
-          <td class="showSwitch">
-            <img src="[% showButton %]" 
-                 onclick="toggleAlignment( '[% alignmentRowId %]', this )"
-                 alt="Show alignment" />
-          </td>
-        </tr>
-        <tr class="alignment [% rowClass %]"
-            id="[% alignmentRowId %]">
-          <td colspan="6">
-            <pre>
-[% hit.alignment.ss      | html %]
-[% hit.alignment.hit_seq | html %]
-[% hit.alignment.match   | html %]
+  FOREACH hit IN hits;
+    rowClass       = tableRow % 2 ? "odd" : "even";
+    tableRow       = tableRow  + 1;
+    totalHits      = totalHits + 1 -%]
+    <tr class="[% rowClass %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td>
+        <a href="[% c.uri_for( '/family', hit.family ) | html %]">
+          [% hit.family %]</a>
+      </td>
+      <td>[% hit.start %]</td>
+      <td>[% hit.end %]</td>
+      <td>[% hit.score %]</td>
+      <td>[% hit.E %]</td>
+      <td>[% hit.strand %]</td>
+      <td class="showSwitch">
+        <img src="[% showButton %]" 
+             alt="Show alignment" />
+      </td>
+    </tr>
+    <tr class="alignment [% rowClass %]"
+        style="display: none">
+      <td colspan="7">
+          <pre>
+[% hit.alignment.ss       | html %]
+[% hit.alignment.hit_seq  | html %]
+[% hit.alignment.match    | html %]
 [% hit.alignment.user_seq | html %]
-            </pre>
-          </td>
-        </tr>
-      [%- END;
-    END;
-  END;
+        </pre>
+      </td>
+    </tr>
+  [%- END;
   
 
 END; # of "buildTableBody"
@@ -137,8 +132,8 @@ tableBody = PROCESS buildTableBody;
          class="resultTable">
     <caption>
       <span class="tableTitle">Rfam matches</span>
-      <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
-      <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
+      <span class="link" id="showAll">Show</span> or
+      <span class="link" id="hideAll">hide</span> 
       all alignments.
     </caption>
     <thead>
@@ -147,6 +142,7 @@ tableBody = PROCESS buildTableBody;
         <th>Start</th>
         <th>End</th>
         <th>Bits score</th>
+        <th>E-value</th>
         <th>Strand</th>
         <th>Show/hide alignment</th>
       </tr>
@@ -166,28 +162,27 @@ END %]
 
 <script type="text/javascript">
   // <![CDATA[
-  // hide all of the alignment rows once the table is built
-  Event.observe( window, "load", function() {
-      $$(".alignment").invoke( "hide" );
-    }
-  );
-  // a function to show or hide the alignment rows
-  function toggleAlignment( sId, oSwitch ) {
-    $(sId).toggle();
-    oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
-  }
-  // a function to show or hide all of the alignments in one fell swoop...
-  function showAllAlignments( sId, bState ) {
-    var sState = bState ? "show" : "hide";
-    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
-    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
-    $A( $$("td.showSwitch img") ).each(
-      function (s ) {
-        s.src = sSrc; 
-      }
-    );
-  }
-  // ]]>
+
+  $$("td.showSwitch").each( function(s) {
+    s.observe( "click", function( e ) {
+      var cell = e.findElement("td");
+      var img = cell.down("img");
+      var tr  = img.up("tr").next("tr"); 
+      tr.toggle();
+      img.src = tr.visible() ? "[% hideButton %]" : "[% showButton %]";   
+    } );
+  } );
+
+  $("showAll").observe( "click", function() {
+    $$(".alignment").invoke("show");
+    $$("td.showSwitch img").invoke( "setAttribute", "src", "[% hideButton %]" );
+  } );
+  $("hideAll").observe( "click", function() {
+    $$(".alignment").invoke("hide");
+    $$("td.showSwitch img").invoke( "setAttribute", "src", "[% showButton %]" );
+  } );
+
+// ]]>
 </script>
 
 <!-- end of "results" -->
