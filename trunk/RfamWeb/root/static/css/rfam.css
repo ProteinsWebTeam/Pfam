@@ -515,11 +515,11 @@ table.links td {
 body.tool {
   padding: 80px 2px 2px 2px;
   background: #FFF url(/static/images/about_back.png) left top no-repeat; 
-  color: #15538e;
+  color: #621700;
 }
 
 a.closer {
-  background: url(/shared/images/close.gif) no-repeat left;
+  background: url(/static/images/close.gif) no-repeat left;
   padding-left: 11px;
   margin: 0.2em;
 }
