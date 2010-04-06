@@ -381,24 +381,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 
   <hr />
 
-  <div id="jobAnnouncement" style="border: 1px solid #AAA; padding: 0.5em; background-color: #EEE">
-    <h2>Job announcement</h2>
-
-    <p>
-      We currently have a job opening in the Rfam team for a senior computer biologist. You can see 
-      more information about the post in our latest 
-      <a class="ext" 
-          href="http://xfam.wordpress.com/2010/03/01/job-opening-at-rfam-for-a-senior-computer-biologist/">
-          blog post</a>, or on the Sanger 
-      <a class="ext" 
-         href="https://jobs.sanger.ac.uk/wd/plsql/wd_portal.show_job?p_web_site_id=1764&amp;p_web_page_id=101766">
-         jobs page</a>.
-    </p>
-
-  </div>
- 
-  <hr />
- 
   <div id="newFeatures" style="display: none">
   </div>
   
