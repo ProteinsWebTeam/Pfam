@@ -55,6 +55,10 @@ labels = [
 
     <div id="ssNotes" style="display: none">
       <p>
+        In this page you can view static images showing the secondary structure
+        of this family using a variety of colouring schemes:
+      </p>
+      <p>
         <strong>Conservation (cons)</strong>: this plot colours each character 
         by how well conserved it is. A site with 100% sequence conservation 
         is coloured red, 0% is violet.
@@ -106,14 +110,43 @@ labels = [
       <p>
         <strong>Normal</strong>: normal, usual, run-of-the-mill.
       </p>
+      <p>
+        You can also view the secondary structure in the VARNA applet. The
+        applet is shown in a separate pop-up window.
+      </p>
       <h3>Acknowledgements</h3>
       <p>
         The bulk of the code for generating these graphics was kindly supplied
         by Andreas Gruber and Ivo Hofacker. The statistics were implemented by
         Rfam.
       </p>
+      <p>
+        The <a class="ext" href="http://varna.lri.fr/">VARNA</a> applet is developed by 
+        <a class="ext" href="http://www.lix.polytechnique.fr/~ponty/">Yann Ponty</a>
+        <em>et al</em>:
+      </p>
+      <div class="citation">
+        <span class="title">
+          <a class="ext" 
+             href="http://bioinformatics.oxfordjournals.org/cgi/content/full/25/15/1974">
+            VARNA: Interactive drawing and editing of the RNA secondary structure</a>: 
+        </span>
+        <span class="authors">
+          K&eacute;vin Darty, Alain Denise and Yann Ponty
+        </span>
+        <span class="ref">
+          <span class="jrnl">Bioinformatics</span>&nbsp;(2009)
+          &nbsp;25:1974-1975
+        </span>
+      </div>
       <hr />
     </div>
+
+    <p>
+      You can <span class="link" id="varnaLink">view</span> the 
+      secondary structure of the family using the <a class="ext" 
+        href="http://varna.lri.fr/">VARNA</a> applet.
+    </p>
 
     <ul id="ssImageTabs" class="controlTabList">
 [% FOREACH hash IN labels -%]
@@ -132,11 +165,17 @@ labels = [
 
     <script type="text/javascript">
       // <![CDATA[
-      var ssImageTabsController = new Control.Tabs( "ssImageTabs",
-                                                    { defaultTab: "[% labels.first.type %]Image" } );
+      var ssImageTabsController = 
+        new Control.Tabs( "ssImageTabs",
+                          { defaultTab: "[% labels.first.type %]Image" } );
       
       // "defaultTab" doesn't seem to set this correctly, hence the next call:
       ssImageTabsController.setActiveTab("[% types.first %]Image");
+
+      // add a listener for the VARNA link
+      $("varnaLink").observe( "click", function() {
+        popUp( "[% c.uri_for( '/family/varna', acc ) %]", 'console', 800, 800, 'varnaWin' );
+      } );
       // ]]>
     </script>
 
