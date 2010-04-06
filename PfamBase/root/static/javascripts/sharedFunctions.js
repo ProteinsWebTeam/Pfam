@@ -1066,8 +1066,12 @@ function collectSequences( sStyle, sAcc ) {
           url = selectFastaURI;      // FASTA format
           popup = false;
           break;
+        case 'S':
+          url = selectRfamAlignmentURI; // Stockholm format Rfam alignment
+          popup = false;
+          break;
         default:
-          url = selectAlignmentURI;  // an alignment
+          url = selectPfamAlignmentURI;  // a Pfam alignment
       }
 
       // tack on the parameters that we need
