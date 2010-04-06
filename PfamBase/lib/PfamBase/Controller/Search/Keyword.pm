@@ -197,17 +197,8 @@ sub run_searches : Private {
 
   #----------------------------------------
 
-  # do a quick look-up to see if the search term matches an ID or 
-  # accession, but first check if there are multiple "words" in the query 
-  # term, because if there are, this can't be a unique ID or accession
-  $c->forward( 'lookup_term' )
-    unless $c->stash->{rawQueryTerms} =~ /[^A-Za-z0-9_-]/;
-
-  #----------------------------------------
-
-  # if there's only one result (and provided the search term is not a direct
-  # match for a family ID), redirect straight to it
-  if ( $numHits == 1 and not $c->stash->{lookupHit} ) {
+  # if there's only one result, redirect straight to it
+  if ( $numHits == 1 ) {
     my ( $acc ) = keys %{$c->stash->{results}};
     $c->log->debug( "Search::Keyword::run_searches: found a single hit: |$acc|; redirecting" )
       if $c->debug;
@@ -230,8 +221,15 @@ sub run_searches : Private {
 
   #----------------------------------------
 
+  # do a quick look-up to see if the search term matches a Pfam ID or 
+  # accession, but first check if there are multiple "words" in the query 
+  # term, because if there are, this can't be a unique ID or accession
+  $c->forward( 'lookup_term' )
+    unless $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/;
+
   # set the page template and we're done
   $c->stash->{template} = 'pages/search/keyword/results.tt';
+
 }
 
 #-------------------------------------------------------------------------------
