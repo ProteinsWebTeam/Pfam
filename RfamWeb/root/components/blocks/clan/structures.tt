@@ -48,7 +48,8 @@ PROCESS "components/require.tt";
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Request( 
         "[% c.uri_for( '/clan/structures' ) %]",
-        { parameters: { acc: "[% acc %]" },
+        { method: "get",
+          parameters: { acc: "[% acc %]" },
           onComplete: function( oResponse ) {
 
             $("clanStructureTabHolder").update( oResponse.responseText );
