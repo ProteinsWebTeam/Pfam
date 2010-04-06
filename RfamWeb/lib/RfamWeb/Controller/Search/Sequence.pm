@@ -537,68 +537,30 @@ sub handleResults : Private {
 #  $c->log->debug( 'Search::Sequence::handleResults: results data structure: ' .
 #                  dump( $c->stash->{hits} ) ) if $c->debug;  
 
-  my $hits = $c->stash->{hits}; # shortcut...
-    
-  foreach my $family ( sort keys %{ $hits } ) {
-    $c->log->debug( "Search::Sequence::handleResults: results for family |$family|" )
+  foreach my $hit ( @{ $c->stash->{hits} } ) {
+    $c->log->debug( 'hit: ', dump( $hit ) )
       if $c->debug;
-
-    foreach my $sequence ( @{ $hits->{$family}->{sequences} } ) {
     
-      foreach my $hit ( @{ $sequence->{hits} } ) {
+    $hit->{alignment}->{ss}       = '           ';
+    $hit->{alignment}->{hit_seq}  = sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
+    $hit->{alignment}->{match}    = '           ';
+    $hit->{alignment}->{user_seq} = sprintf '%10d ', $hit->{start};
         
-        $hit->{offset_start} = $hit->{start} + $sequence->{start} - 1;
-        $hit->{offset_end}   = $hit->{end}   + $sequence->{start} - 1; 
-                                                   # NB still the start coord here
-        
-        if ( $hit->{end} > $hit->{start} ) {
-          $hit->{dir} = '+';
-        }
-        else {
-          $hit->{dir} = '-';
-          my $stored = $hit->{offset_start};
-          $hit->{offset_start} = $hit->{offset_end}; 
-          $hit->{offset_end}   = $stored;          
-        }
-        
-        $hit->{dir} = $hit->{end} > $hit->{start} ? '+' : '-';
-        
-        $hit->{alignment}->{ss}       = '           ';
-        $hit->{alignment}->{hit_seq}  = sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
-        $hit->{alignment}->{match}    = '           ';
-        $hit->{alignment}->{user_seq} = sprintf '%10d ', $hit->{blocks}->[0]->{user}->{start};
-        
-        foreach my $block ( @{ $hit->{blocks} } ) {
-          $hit->{alignment}->{ss}       .= $block->{ss};
-          $hit->{alignment}->{hit_seq}  .= $block->{hit}->{seq};
-          $hit->{alignment}->{match}    .= $block->{match};
-          $hit->{alignment}->{user_seq} .= $block->{user}->{seq};
-        }
-        
-        $hit->{alignment}->{ss}       .= '           ';
-        $hit->{alignment}->{hit_seq}  .= sprintf ' %-10d', $hit->{blocks}->[-1]->{hit}->{end};
-        $hit->{alignment}->{match}    .= '           ';
-        $hit->{alignment}->{user_seq} .= sprintf ' %-10d', $hit->{blocks}->[-1]->{user}->{end};
-        
-#        if ( $c->debug ) {
-#          $c->log->debug( 'Search::Sequence::handleResults: ss:           |' . $hit->{alignment}->{ss} .'|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: hit:          |' . $hit->{alignment}->{hit_seq} . '|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: match:        |' . $hit->{alignment}->{match} . '|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: user:         |' . $hit->{alignment}->{user_seq} . '|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: offset start: |' . $hit->{offset_start} . '|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: offset end:   |' . $hit->{offset_end} . '|' );
-#          $c->log->debug( 'Search::Sequence::handleResults: direction:    |' . $hit->{dir} . '|' );
-#        }
-        
-      }
-      
+    foreach my $block ( @{ $hit->{blocks} } ) {
+      $hit->{alignment}->{ss}       .= $block->{ss};
+      $hit->{alignment}->{hit_seq}  .= $block->{hit}->{seq};
+      $hit->{alignment}->{match}    .= $block->{match};
+      $hit->{alignment}->{user_seq} .= $block->{user}->{seq};
     }
-    
+        
+    $hit->{alignment}->{ss}       .= '           ';
+    $hit->{alignment}->{hit_seq}  .= sprintf ' %-10d', $hit->{blocks}->[-1]->{hit}->{end};
+    $hit->{alignment}->{match}    .= '           ';
+    $hit->{alignment}->{user_seq} .= sprintf ' %-10d', $hit->{end};
   }
   
-#  $c->log->debug( 'Search::Sequence::handleResults: modified results data structure: ' .
-#                  dump( $c->stash->{hits} ) ) if $c->debug;  
-
+  $c->log->debug( 'Search::Sequence::handleResults: modified results data structure: ' .
+                  dump( $c->stash->{hits} ) ) if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -616,9 +578,12 @@ sub parse_log : Private {
   # split the log into individual lines and parse them 
   my @lines = split /\n/, $c->{stash}->{results}->{$jobId}->{rawData};
   
-  my $hits     = {}; # everything...
-  my $sequence = {}; # everything about a given sequence (or region thereof)
+  my $hits     = []; # everything...
+  my $hit;           # an individual hit
   my $family   = ''; # the current family
+  my $strand   = ''; # the current strand, plus or minus
+  my ( $seq_start, $seq_end ); # sequence start/end positions
+  my ( $hit_start, $hit_end ); # hit start/end positions
 
   for ( my $n = 0; $n < scalar @lines; $n++ ) {
     my $line = $lines[$n];
@@ -627,56 +592,73 @@ sub parse_log : Private {
                             $n, $line ) if $c->debug;
     
     # store the name of the family for this hit
-    if ( $line =~ m/Results for rfam: ([\w\-]+) \((RF\d{5})\)/ ) {
-      $c->log->debug( "Search::Sequence::parse_log: results for |$1|$2|" )
+    if ( $line =~ m/^CM: ([\w\-]+)/ ) {
+      $c->log->debug( "Search::Sequence::parse_log: results for |$1|" )
         if $c->debug;
-      $family = $2;
+      $family = $1;
+    }
 
-      # store the ID and acc for later
-      $hits->{$family}->{id}  = $1;
-      $hits->{$family}->{acc} = $2;
+    # sequence start/end
+    elsif ( $line =~ m|^>.*?/(\d+)\-(\d+)$| ) {
+      $c->log->debug( "Search::Sequence::parse_log: sequence start-end: |$1-$2|" )
+        if $c->debug;
+
+      # store the ID for later
+      $seq_start = $1;
+      $seq_end   = $2;
+    }
+
+    # plus or minus strand
+    elsif ( $line =~ m/^\s*(.*?) strand results/ ) {
+      $c->log->debug( "Search::Sequence::parse_log: results for |$1| strand" )
+        if $c->debug;
+
+      # store the strand
+      $strand = $1 eq 'Plus' ? '+' : '-';
     }
 
     # get the sequence, start and end
-    elsif ( $line =~ m|^sequence: (\S+)/(\d+)\-(\d+)| ) {
-      $c->log->debug( 'Search::Sequence::parse_log: sequence/start-end: |' . 
-                      "$1/$2-$3|" ) if $c->debug;
-                      
-      $sequence = {};
-      push @{ $hits->{$family}->{sequences} }, $sequence;
-      $sequence->{start} = $2;
-      $sequence->{end}   = $3;
+    elsif ( $line =~ m|Query = (\d+) - (\d+), Target = (\d+) - (\d+)| ) {
+      if ( $c->debug ) {
+        $c->log->debug( "Search::Sequence::parse_log: query start-end:  |$1 - $2|" );
+        $c->log->debug( "Search::Sequence::parse_log: target start-end: |$3 - $4|" );
+      }
+
+      if ( $4 > $3 ) {
+        $hit_start = $3;
+        $hit_end   = $4;
+      }
+      else {
+        $hit_start = $4;
+        $hit_end   = $3;
+      }
     }
 
-    # must be a hit...
-    elsif ( $line =~ m/^hit\s+(\d+)\s*\:        # 1. hit number
-                       \s+(\d+)                 # 2. hit start 
-                       \s+(\d+)                 # 3. hit end
-                       \s+(\d+\.\d+)\s+bits\s*  # 4. bits score
-                      /x ) {
-      
+    # get the score, etc.
+    elsif ( $line =~ m|Score = (.*?), E = (.*?), P = (.*?), GC =\s+(.*)$| ) {
       if ( $c->debug ) {
-        $c->log->debug( "Search::Sequence::parse_log: hit number: |$1|" ); 
-        $c->log->debug( "Search::Sequence::parse_log: hit start:  |$2|" ); 
-        $c->log->debug( "Search::Sequence::parse_log: hit end:    |$3|" ); 
-        $c->log->debug( "Search::Sequence::parse_log: bits score: |$4|" ); 
+        $c->log->debug( "Search::Sequence::parse_log: score: |$1|" );
+        $c->log->debug( "Search::Sequence::parse_log: E:     |$2|" );
+        $c->log->debug( "Search::Sequence::parse_log: P:     |$3|" );
+        $c->log->debug( "Search::Sequence::parse_log: GC:    |$4|" );
       }
-      
-#      my $hit_num = $1;
-#      $sequence->{hits}->[$hit_num] = { start  => $2,
-#                                        end    => $3,
-#                                        bits   => $4,
-#                                        blocks => [] };
-      
-      my $hit = { start  => $2,
-                  end    => $3,
-                  bits   => $4,
-                  blocks => [] };
 
-      push @{ $sequence->{hits} }, $hit;
+      $hit = {
+        family => $family,
+        strand => $strand,
+        start  => $hit_start + $seq_start - 1,
+        end    => $hit_end   + $seq_start - 1,
+        score  => $1,
+        E      => $2,
+        P      => $3,
+        GC     => $4,
+        blocks => []
+      };
+
+      push @$hits, $hit;
       
       # parse the alignment blocks
-      for ( my $b = $n + 1; $b < scalar @lines; $b += 5 ) {
+      for ( my $b = $n + 2; $b < scalar @lines; $b += 5 ) {
         last unless $lines[$b+1] =~ m/^\s+\d+.*?\s+\d+\s*$/;
         
         $c->log->debug( 'Search::Sequence::parse_log: block constitutes lines ' .
@@ -766,3 +748,68 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
+
+__END__
+
+CM: mir-2
+>UserSeq/79-459
+
+  Plus strand results:
+
+ Query = 1 - 72, Target = 73 - 144
+ Score = 58.80, E = 7.87e-16, P = 8.842e-18, GC =  50
+
+           ::::<<<<<<<<<<<<<<<<<<--<<<___________.______>>>>>>>>>>>>->>
+         1 uaacuCaUCAAAgUGGCUGUGAaaUguuguuauuuuuu.aaaaUCauAUCACAGCCAGcU 59
+             +CUC UCAAAGUGG:UGUGAAAUG ++UU    UUU      C UAUCACA:CCAGCU
+        73 GGGCUC-UCAAAGUGGUUGUGAAAUGCAUUUCCGCUUUgCGCGGCAUAUCACAGCCAGCU 131
+
+           >>>>>>>::::::
+        60 UUGAuGaGcUugg 72
+           UUGAUGAGCUU G
+       132 UUGAUGAGCUUAG 144
+
+
+ Query = 1 - 72, Target = 247 - 311
+ Score = 38.62, E = 2.022e-10, P = 2.271e-12, GC =  45
+
+           ::::<<<<<<<<<.<<<<<<<<<--<<<_________________>>>>>>>>>>>>->>
+         1 uaacuCaUCAAAg.UGGCUGUGAaaUguuguuauuuuuuaaaaUCauAUCACAGCCAGcU 59
+           UA+CUCAUCAAAG UGG UGUGA+AUG        UU   +A+ C UAUCACA CCA C
+       247 UAGCUCAUCAAAGcUGGCUGUGAUAUGC------GUUGGGUAUCCAUAUCACAACCA-C- 298
+
+           >>>>>>>::::::
+        60 UUGAuGaGcUugg 72
+           UUGAUGAG  U
+       299 UUGAUGAGGCUUU 311
+
+
+  Minus strand results:
+
+ Query = 1 - 72, Target = 309 - 245
+ Score = 56.13, E = 4.102e-15, P = 4.609e-17, GC =  48
+
+           ::::<<<<<<<<<<<<<<<<<<--<<<_________________>>>>>>>>>>>>->>>
+         1 uaacuCaUCAAAgUGGCUGUGAaaUguuguuauuuuuuaaaaUCauAUCACAGCCAGcUU 60
+           +  CUCAUCAA  UGG:UGUGA+AUG:      +U+   AA  C:UAUCACA:CCAGC U
+       309 AGCCUCAUCAAG-UGGUUGUGAUAUGG------AUACCCAACGCAUAUCACAGCCAGCUU 257
+
+           >>>>>>::::::
+        61 UGAuGaGcUugg 72
+           UGAUGAGCU GG
+       256 UGAUGAGCUAGG 245
+
+
+ Query = 1 - 72, Target = 142 - 71
+ Score = 34.10, E = 3.29e-09, P = 3.697e-11, GC =  50
+
+           ::::<<<<<<<<<.<<<<<<<<<--<<<___________.______>>>>>>>>>>>>->
+         1 uaacuCaUCAAAg.UGGCUGUGAaaUguuguuauuuuuu.aaaaUCauAUCACAGCCAGc 58
+           +A+CUCAUCAAAG UGG UGUGA+A G  G   +++    AAA+ C U UCACA CCA C
+       142 AAGCUCAUCAAAGcUGGCUGUGAUAUGCCGCGCAAAGCGgAAAUGCAUUUCACAACCA-C 84
+
+           >>>>>>>>::::::
+        59 UUUGAuGaGcUugg 72
+           UUUGA GAGC
+        83 UUUGA-GAGCCCUC 71
+
