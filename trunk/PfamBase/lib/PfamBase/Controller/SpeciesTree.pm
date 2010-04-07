@@ -140,7 +140,7 @@ sub store_ids : Local {
   
   my $id_list = uri_unescape( $c->req->param('ids') ); 
   
-  unless( $id_list =~ m/^([\w]{6,12}\s+)+$/ ) {
+  unless( $id_list =~ m/^([\w]{6,13}\s+)+$/ ) {
     $c->log->debug( 'SpeciesTree::store_ids: not a valid ID string' )
       if $c->debug;
 
