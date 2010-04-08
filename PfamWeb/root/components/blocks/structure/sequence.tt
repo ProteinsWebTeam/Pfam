@@ -53,7 +53,7 @@ RETURN UNLESS mapping.size;
   -%]
 
     // set up the AJAX call for the structure image
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
 
       // structure graphic
       var r = new Ajax.Updater(

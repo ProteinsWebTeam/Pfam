@@ -30,7 +30,7 @@
     // <![CDATA[
     
     // set up the post-load AJAX call
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Request(
         "[% c.uri_for( "/structure/structuraldomains" ) %]",
         { parameters: { id:     '[% pdbId %]' },

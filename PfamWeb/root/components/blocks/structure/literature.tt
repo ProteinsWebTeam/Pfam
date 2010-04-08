@@ -31,7 +31,7 @@
     // load the biolit data. Set up the js objects that handle switching
     // between the various figures
     var switchers = [];
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Updater(
         "biolitRefs",
         "[% c.uri_for( '/structure/annotations/references' ) %]",
