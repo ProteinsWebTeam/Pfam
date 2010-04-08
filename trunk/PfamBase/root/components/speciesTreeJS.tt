@@ -155,7 +155,7 @@ stUri = c.uri_for( "/speciestree" );
   }
 
   // fire off the request to load the tree
-  document.observe( "dom:loaded", function() {
+  Event.observe( window, "load", function() {
     var r = new Ajax.Request(
       stUri,
       {
