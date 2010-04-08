@@ -200,8 +200,6 @@ PROCESS components/links.tt; %]
 
     // set up the AJAX call to load the structure image
     Event.observe( window, "load", function() {
-      console.debug( "Family: summary.tt: firing ajax call for structure image" );
-
       var r = new Ajax.Updater( 
         "siph", 
         "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
@@ -212,7 +210,6 @@ PROCESS components/links.tt; %]
           }
         }
       );
-
     } );
     // ]]>
   </script>
