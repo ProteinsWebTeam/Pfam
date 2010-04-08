@@ -838,7 +838,7 @@ ITFQNGTIRQVNGRIEESR</pre>
   <script type="text/javascript">
     // <![CDATA[
     // set up syntax highlighting of code blocks
-    document.observe( 'dom:loaded', prettyPrint );
+    Event.observe( window, "load", prettyPrint );
     // ]]>  
   </script>
 

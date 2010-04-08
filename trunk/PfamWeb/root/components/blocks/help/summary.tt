@@ -13,6 +13,7 @@
 PROCESS "components/require.tt";
 
 requirements.css.push( "help.css" );
+requirements.cssIeAll.push( "help_ie.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -99,7 +100,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <script type="text/javascript">
       // <![CDATA[
 
-      document.observe( "dom:loaded", function() {
+      Event.observe( window, "load", function() {
     
         $$("a[rel]").each( function(el){
     
