@@ -105,7 +105,7 @@ requirements.js.push( "domain_graphics_loader.js" );
     // <![CDATA[
 
     // set up the post-load AJAX call
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Updater(
         "pdgph",
         "[% c.uri_for( "/domaingraphics" ) %]",

@@ -63,7 +63,7 @@ oe = 0;
     <script type="text/javascript">
       // <![CDATA[
 
-      document.observe( "dom:loaded", function() {
+      Event.observe( window, "load", function() {
         var r = new Ajax.Updater(
           "statsTableDiv",
           "[% c.uri_for( '/proteome/stats' ) %]",
