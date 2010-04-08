@@ -180,27 +180,31 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     var graphicsSubmitter = function() {
       $("pgSubmitButton").disable();
       $("pgUpdateSpinner").show();
-      var r = new Ajax.Request( '[% graphicsUri %]',
-                                 {
-                                   parameters:  $("updateGraphicsForm").serialize(true),
-                                   evalScripts: true,
-                                   onSuccess:  function() {
-                                     $("pgSubmitButton").enable();
-                                     $("pgUpdateSpinner").hide();
-                                   },
-                                   onFailure:  function() {
-                                     $("pgSubmitButton").disable();
-                                     $("pgUpdateSpinner").hide();
-                                     $("graphicsHolder").update( "Alignment loading failed." );
-                                   }
-                                 } );
+      var r = new Ajax.Request( 
+        '[% graphicsUri %]',
+        {
+          method:      "get",
+          parameters:  $("updateGraphicsForm").serialize(true),
+          evalScripts: true,
+          onSuccess:   function() {
+            $("pgSubmitButton").enable();
+            $("pgUpdateSpinner").hide();
+          },
+          onFailure:   function() {
+            $("pgSubmitButton").disable();
+            $("pgUpdateSpinner").hide();
+            $("graphicsHolder").update( "Alignment loading failed." );
+          }
+        }
+      );
     };
 
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Updater( 
         "graphicsHolder",
         "[% graphicsUri %]",
         {
+          method:     "get",
           parameters: { acc:       "[% pfamseq.pfamseq_acc %]",
                         highlight: "[% highlightSource %]" },
           onSuccess:  function() {
