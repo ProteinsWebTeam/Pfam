@@ -39,6 +39,7 @@ labels = {
     PRODOM     = "PRODOM"
     PROSITE    = "PROSITE"
     PROSITE_PROFILE = "PROSITE profile"
+    PSEUDOFAM  = "Pseudofam"
     SCOP       = "SCOP"
     scoop      = "SCOOP"
     SMART      = "SMART"
@@ -74,6 +75,7 @@ external = [
     "PRODOM",
     "PROSITE",
     "PROSITE_PROFILE",
+    "PSEUDOFAM",
     "SCOP",
     "SMART",
     "SYSTERS",
@@ -175,6 +177,8 @@ BLOCK buildLink;
 <a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% id %]">[% id %]</a>
     [%- CASE [ "PROSITE", "PROSITE_PROFILE" ] -%]
 <a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
+    [%- CASE "PSEUDOFAM" -%]
+<a class="ext" href="[% pseudofam_prefix_url; id %]">[% id %]</a>
     [%- CASE "SCOP" -%]
       [%- IF other -%]
 <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&amp;pdb=[% id %]">[% id %]</a>
@@ -335,7 +339,10 @@ BLOCK externalLinks;
     oe = 0;
     FOREACH db IN external;
       IF entryType == "A";
-        IF db == "FUNSHIFT" OR db == "PANDIT" OR db == "SYSTERS" -%]
+        IF db == "FUNSHIFT" OR 
+           db == "PANDIT"   OR 
+           db == "SYSTERS"  OR
+           db == "PSEUDOFAM" -%]
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
           <td class="label">[% 
             IF labels.$db;
@@ -348,6 +355,9 @@ BLOCK externalLinks;
             [%- IF db == "SYSTERS";
               PROCESS buildLink type=db 
                                 id=xrefs.entryId;
+            ELSIF db == "PSEUDOFAM";
+              PROCESS buildLink type=db 
+                                id=acc;
             ELSE;
               PROCESS buildLink type=db 
                                 id=xrefs.entryAcc;
