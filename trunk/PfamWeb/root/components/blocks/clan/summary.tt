@@ -124,7 +124,7 @@ END; -%]
   <script type="text/javascript">
     // <![CDATA[
 
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Updater( 
         "siph",
         "[% c.uri_for( '/family/structures', members.first.pfama_acc ) %]",

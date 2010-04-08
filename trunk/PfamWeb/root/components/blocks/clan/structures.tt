@@ -47,7 +47,7 @@ PROCESS "components/require.tt";
 
     var numColsTable;
 
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Request( 
         "[% c.uri_for( '/clan/structures' ) %]",
         { parameters: { acc: "[% clan.clan_acc %]" },
@@ -63,7 +63,7 @@ PROCESS "components/require.tt";
               return;
             }
              
-            numColsTable = rows.first().select("td").size();
+            numColsTable = rows.first().select("th").size();
    
             // walk over all of the cells in the table and add listeners for mouseover and 
             // mouseout events
@@ -78,7 +78,8 @@ PROCESS "components/require.tt";
           onFailure:  function() {
             $("cstrucph").update( "Graphics loading failed." );
           }
-        } );
+        }
+      );
     } );
 
     // ]]>
