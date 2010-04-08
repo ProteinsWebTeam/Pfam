@@ -79,7 +79,7 @@
   <script type="text/javascript">
     // <![CDATA[
 
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
       var r = new Ajax.Request(
         "[% c.uri_for( '/domaingraphics' ) %]",
         { 
