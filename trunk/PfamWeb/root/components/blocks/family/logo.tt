@@ -53,21 +53,25 @@
 
   <script type="text/javascript">
     // <![CDATA[
-    var r = new Ajax.Request(
-      "[% c.uri_for( '/family/logo' ) %]",
-      {
-        method: 'get',
-        parameters: { acc: "[% acc %]" },
-        evalScripts: true,
-        onSuccess: function( oResponse ) {
-          $("logo").update( oResponse.responseText );
-        },
-        on204: function( oResponse ) {
-          $("logo").update( "We could not find a logo for this entry." );
+    
+    Event.observe( window, "load", function() {
+      var r = new Ajax.Request(
+        "[% c.uri_for( '/family/logo' ) %]",
+        {
+          method: 'get',
+          parameters: { acc: "[% acc %]" },
+          evalScripts: true,
+          onSuccess: function( oResponse ) {
+            $("logo").update( oResponse.responseText );
+          },
+          on204: function( oResponse ) {
+            $("logo").update( "We could not find a logo for this entry." );
+          }
         }
-      }
-    );
-    // ]]> 
+      );
+    } );
+
+// ]]> 
   </script>
 
 </div>
