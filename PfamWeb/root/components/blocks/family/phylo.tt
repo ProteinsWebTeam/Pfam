@@ -166,7 +166,7 @@ treeUri = c.uri_for( "/family/tree" );
       $("phyloForm").observe( "change", treeSubmitter );
 
       // fire the function on page load
-      document.observe( "dom:loaded", treeSubmitter );
+      Event.observe( window, "load", treeSubmitter );
 
       // ]]>
     </script>

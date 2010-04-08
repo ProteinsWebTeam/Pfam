@@ -199,7 +199,8 @@ PROCESS components/links.tt; %]
     // <![CDATA[
 
     // set up the AJAX call to load the structure image
-    document.observe( "dom:loaded", function() {
+    Event.observe( window, "load", function() {
+      console.debug( "Family: summary.tt: firing ajax call for structure image" );
 
       var r = new Ajax.Updater( 
         "siph", 
