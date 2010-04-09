@@ -802,7 +802,7 @@ sub _feat_params {
     'type_cvid'     => $type_ref->{$param}->{'type'},
     'method'        => $type_ref->{$param}->{'method'},
     'method_label'  => $type_ref->{$param}->{'method_label'},
-    'method_cvId'   => $type_ref->{$param}->{'method_cvid'}, 
+    'method_cvid'   => $type_ref->{$param}->{'method_cvid'}, 
   };
   return $feature;
 }
