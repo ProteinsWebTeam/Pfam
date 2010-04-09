@@ -7,6 +7,7 @@ use Bio::Pfam::Config;
 use Log::Log4perl qw( :easy );
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
+use Net::SCP;
 
 # get the realease number as command line argument
 my $RELEASE;
@@ -86,8 +87,11 @@ foreach my $r (@$res){
 # my script;
 
 # now copy the uniportNcbiMapping.dat file to the pfamdb2a instance and load it;
-system( "scp $production_loc/pfamseq".$RELEASE."/uniprotNcbiMapping.dat ".$config->pfamliveAdmin->{host}.":/tmp/uniprotNcbiMapping.dat" )
-  and $logger->logdie( "Scp command failed: copying uniprotNcbiMapping.dat from production location to ".$config->pfamliveAdmin->{host}." failed ");
+
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+my $tmp = "/tmp";
+my $f1 = "$production_loc/pfamseq".$RELEASE."/uniprotNcbiMapping.dat";
+$scp->put("$f1", "$tmp/uniprotNcbiMapping.dat") or $logger->logdie( "Scp command failed: copying uniprotNcbiMapping.dat from production location to ".$config->pfamliveAdmin->{host}." failed ".$scp->{errstr});
 
 # create a temporary table, but for testing i have created a permanant table and load it, later remove it.
 

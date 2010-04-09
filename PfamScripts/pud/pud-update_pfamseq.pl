@@ -8,12 +8,18 @@ use File::Copy;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
 use Text::Wrap;
+use Net::SCP;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
 
 $Text::Wrap::columns = 60;
+
+
+#Set UniProtKB location
+my $uniprot_url = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete";
+
 
 my($statusdir, $pfamseq_dir);
 
@@ -26,10 +32,10 @@ Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 unless($statusdir and -e $statusdir) {
-    $logger->logdie("Status directory [$statusdir] does not exist");
+    help();
 }
 unless($pfamseq_dir and -e $pfamseq_dir) {
-    $logger->logdie("Pfamseq direcory [$pfamseq_dir] does not exist");
+    help();
 }
 
 my $config = Bio::Pfam::Config->new;
@@ -59,8 +65,6 @@ else {
 chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
 
 
-#Set UniProtKB location
-my $uniprot_url = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete";
 
 
 #Get reldate.txt from EBI ftp site
@@ -446,6 +450,8 @@ else {
 }
 
 my $cwd = getcwd;
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+my $tmp = "/tmp";
 
 #Upload pfamseq data to temporary table
 if(-e "$statusdir/uploaded_pfamseq") {
@@ -453,9 +459,9 @@ if(-e "$statusdir/uploaded_pfamseq") {
 }
 else {
     $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
+
+    $scp->put("$cwd/pfamseq.dat", "$tmp/pfamseq.dat") or $logger->logdie("Could not scp pfamseq.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
     
-    system("scp $cwd/pfamseq.dat ".$config->pfamliveAdmin->{host}.":/tmp/pfamseq.dat" ) and 
-      $logger->logdie("Could not scp pfamseq.dat to database host");
     my $st_upload = $dbh->prepare("load data infile '/tmp/pfamseq.dat' into table tmp_pfamseq");
     $st_upload->execute() or $logger->logdie("Failed to upload pfamseq.dat".$st_upload->errstr."\n");
     system("touch $statusdir/uploaded_pfamseq") and $logger->logdie("Couldn't touch $statusdir/uploaded_pfamseq:[$!]\n"); 
@@ -566,8 +572,8 @@ if(-e "$statusdir/upload_active_metal") {
 else {
     $logger->info("Uploading $cwd/active_site_metal.auto.dat to pfamseq_markup\n");
     
-    system("scp $cwd/active_site_metal.auto.dat ".$config->pfamliveAdmin->{host}.":/tmp/active_site_metal.auto.dat" ) and
-    $logger->logdie('Failed to scp active_site_metal.auto.dat to database host');
+    $scp->put("$cwd/active_site_metal.auto.dat", "$tmp/active_site_metal.auto.dat") or $logger->logdie("Could not scp active_site_metal.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
+
 my $act_metal_new = $dbh->prepare("load data infile '/tmp/active_site_metal.auto.dat' into table pfamseq_markup (auto_pfamseq, auto_markup, residue, annotation) ");
 $act_metal_new->execute() or $logger->logdie("Failed to upload active site and metal ion binding data to pfamseq_markup ".$act_metal_new->errstr."\n");
     system("touch $statusdir/upload_active_metal") and $logger->logdie("Couldn't touch $statusdir/upload_active_metal:[$!]\n"); 
@@ -605,7 +611,11 @@ if(-e "$statusdir/upload_disulphide") {
 }
 else {
     $logger->info("Uploading $cwd/disulphide.auto.dat to pfamseq_disulphide\n");
-    system("scp $cwd/disulphide.auto.dat ".$config->pfamliveAdmin->{host}.":/tmp/disulphide.auto.dat" ) and $logger->logdie("Could not scp disulphide.auto.dat to database host"); 
+
+
+    $scp->put("$cwd/disulphide.auto.dat", "$tmp/disulphide.auto.dat") or $logger->logdie("Could not scp disulphide.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
+
+    
     my $disulphide_new = $dbh->prepare("load data infile '/tmp/disulphide.auto.dat' into table pfamseq_disulphide (auto_pfamseq, bond_start, bond_end)");
     $disulphide_new->execute() or $logger->logdie("Failed to upload disulphide bond data to pfamseq_disulphide ".$disulphide_new->errstr."\n");
     system("touch $statusdir/upload_disulphide") and $logger->logdie("Couldn't touch $statusdir/upload_disulphide:[$!]\n"); 
@@ -641,7 +651,9 @@ if(-e "$statusdir/upload_secondary_acc") {
 }
 else {
     $logger->info("Uploading $cwd/secondary_acc.auto.dat to secondary_pfamseq_acc\n");
-    system("scp $cwd/secondary_acc.auto.dat ".$config->pfamliveAdmin->{host}.":/tmp/secondary_acc.auto.dat" ) and $logger->logdie("Could not scp secondary_acc.auto.dat to database host"); 
+
+    $scp->put("$cwd/secondary_acc.auto.dat", "$tmp/secondary_acc.auto.dat") or $logger->logdie("Could not scp secondary_acc.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
+
     my $sec_acc_new = $dbh->prepare("load data infile '/tmp/secondary_acc.auto.dat' into table secondary_pfamseq_acc (auto_pfamseq, secondary_acc)");
 
     $sec_acc_new->execute() or $logger->logdie("Failed to upload secondary pfamseq accessions to secondary_pfamseq_acc ".$sec_acc_new->errstr."\n");
@@ -814,4 +826,33 @@ sub acc2auto_mapping {
 	$$hash{$row->[0]}= $row->[1];
     }
     
+}
+
+
+sub help {
+print STDERR << "EOF";
+
+This script downloads the current UniProtKB release and updates
+pfamlive with the new seqence database.  A temporary table is first
+created in pfamlive, and the new sequence data uploaded to it.  The
+script deletes all obsolete data from pfamseq, and updates any changed
+sequences, and finally uploads new sequences to pfamseq.  
+
+The script also updates the active site data, metal binding data and
+disulphide bond data.  The script generates the DBSIZE file, and
+creates indices for the pfamseq database.
+
+Usage:
+
+  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir>
+
+Both the status directory and pfamseq_directory must already exist.
+pfamseq_dir is the directory where the uniprot data will be downloaded
+to.  The status directory is where a log of the progress of the script
+is recorded.
+
+EOF
+
+exit (0);
+
 }

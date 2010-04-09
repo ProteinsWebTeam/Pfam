@@ -7,6 +7,7 @@ use Cwd;
 use IO::File;
 use Sys::Hostname;
 use Data::UUID;
+use Net::SCP;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -192,11 +193,11 @@ for( my $m =1; $m <= $n; $m++){
 #-------------------------------------------------------------------------------
 #Copy file to the mysql instance so that it can be uploaded
 #
-
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+my $tmp = "/tmp";
 $logger->info("scp data file to instance");
-system("scp $orDir/allOtherReg.dat ".$config->pfamliveAdmin->{host}.":/tmp/allOtherReg.dat") 
-  and $logger->logdie("Could not scp file ($orDir/allOtherReg.dat) to ".
-    $config->pfamliveAdmin->{host}." because:[$!]");
+
+$scp->put("$orDir/allOtherReg.dat", "$tmp/allOtherReg.dat") or $logger->logdie("Could not scp file ($orDir/allOtherReg.dat) to ". $config->pfamliveAdmin->{host}." because: ". $scp->{errstr});
 
 $logger->info('preparing to upload the file');
 $dbh->do("delete from other_reg");
