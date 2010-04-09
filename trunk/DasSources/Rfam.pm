@@ -59,7 +59,8 @@ our $type_ref = {
 		'typetxt'		=> 'rRNA',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 #	'Gene;snRNA;splicing;'	=>{
 #		'type'			=> 'SO:0000274',
@@ -73,126 +74,144 @@ our $type_ref = {
 		'typetxt'		=> 'ncRNA_gene',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;ribozyme;'	=>{
 		'type'			=> 'SO:0000374',
 		'typetxt'		=> 'ribozyme',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;'	=>{
 		'type'			=> 'SO:0005836',
 		'typetxt'		=> 'regulatory_region',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;thermoregulator;'	=>{
 		'type'			=> 'SO:0001055',
 		'typetxt'		=> 'transcriptional_cis_regulatory_region',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;antisense;'	=>{
 		'type'			=> 'SO:0000077',
 		'typetxt'		=> 'antisense',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;snRNA;snoRNA;HACA-box;'	=>{
 		'type'			=> 'SO:0000608',
 		'typetxt'		=> 'H_ACA_box_snoRNA_encoding',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;miRNA;'	=>{
 		'type'			=> 'SO:0000571',
 		'typetxt'		=> 'miRNA',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;sRNA;'	=>{
 		'type'			=> 'SO:0000370',
 		'typetxt'		=> 'small_regulatory_ncRNA',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;snRNA;snoRNA;CD-box;'	=>{
 		'type'			=> 'SO:0000585',
 		'typetxt'		=> 'C_D_box_snoRNA_encoding',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;riboswitch;'	=>{
 		'type'			=> 'SO:0000035',
 		'typetxt'		=> 'riboswitch',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;IRES;'	=>{
 		'type'			=> 'SO:0000243',
 		'typetxt'		=> 'internal_ribosome_entry_site',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;frameshift_element;'	=>{
 		'type'			=> 'SO:0001055',
 		'typetxt'		=> 'transcriptional_cis_regulatory_region',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Cis-reg;leader;'	=>{
 		'type'			=> 'SO:0000140',
 		'typetxt'		=> 'attenuator',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;snRNA;snoRNA;scaRNA;'	=>{
 		'type'			=> 'SO:0000275',
 		'typetxt'		=> 'snoRNA',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Intron;'	=>{
 		'type'			=> 'SO:0000588',
 		'typetxt'		=> 'autocatalytically_spliced_intron',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;snRNA;'	=>{
 		'type'			=> 'SO:0000274',
 		'typetxt'		=> 'snRNA',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	'Gene;tRNA;'	=>{
 		'type'			=> 'SO:0001272',
 		'typetxt'		=> 'tRNA_gene',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	 'Gene;CRISPR;'	=>{
 		'type'			=> 'SO:0000657',
 		'typetxt'		=> 'repeat_region',
 		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
 		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam"		
+		'method_label'	=> "Rfam",
+    'method_cvid'   => "ECO:00000043"		
 	},
 	
 }; 
@@ -311,7 +330,7 @@ sub build_types{
         		push @types, {
 	    			'type'  	=> "No annotation",
 	    			'method'   	=> "No method",
-					'category'	=> "No Evidence Code"
+					  'category'	=> "No Evidence Code"
 				};					
     		}
     	}
@@ -319,19 +338,19 @@ sub build_types{
 		
 		#loads all types 
 		push @types,{
-    		'type'		=> 'ID',
-			'method'	=> 'Method used',
-			'category' 	=> 'Evidence code Term'
+    		 'type'		=> 'ID',
+			   'method'	=> 'Method used',
+			   'category' 	=> 'Evidence code Term'
     		};
 		foreach my $key (keys %{$type_ref}){
 	    	
 	    		push @types,{
-    			'type'		=> $type_ref->{$key}->{'type'},
-				'method'	=> $type_ref->{$key}->{'method'},
-				'category' 	=> $type_ref->{$key}->{'type_category'},
-    			};	
+      			'type_cvid'   => $type_ref->{$key}->{'type'},
+            'type'        => $type_ref->{$key}->{'typetxt'},
+            'method'      => $type_ref->{$key}->{'method'},
+        	};	
 		}    	
-    }
+  }
     
 	return @types;		
 }
@@ -357,11 +376,11 @@ sub _type_params {
 	}
 	my @type_feat;
 	push @type_feat,{
-    		'type'		=> $type_ref->{$param}->{'type'},
-			'method'	=> $type_ref->{$param}->{'method'},
-			'category' 	=> $type_ref->{$param}->{'type_category'},
-			'count'		=> $count
-    	};	
+      	'type_cvid'   => $type_ref->{$param}->{'type'},
+        'type'        => $type_ref->{$param}->{'typetxt'},
+        'method'      => $type_ref->{$param}->{'method'},
+        'count'       => $count
+      };	
 		return @type_feat;
 }
 
@@ -427,14 +446,21 @@ sub _feat_params {
 		#'label'			=>	$id.":".$start."-".$end,
 		'label'			=>	$feat->{rfam_acc}.": ".$feat->{rfam_id},
 		'start'			=> 	$feat->{seq_start},
-		'end'			=>	$feat->{seq_end},
+		'end'			  =>	$feat->{seq_end},
 		'link'			=> 	$link,
 		'linktxt'		=>	$id,
-		'type'   		=> 	$type_ref ->{$param}->{'type'},	
-		'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
-		'type_category' => 	$type_ref ->{$param}->{'type_category'},
-		'method'		=>	$type_ref ->{$param}->{'method'},
-		'method_label'	=>	$type_ref ->{$param}->{'method_label'}	
+#		'type'   		=> 	$type_ref ->{$param}->{'type'},	
+#		'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
+#		'type_category' => 	$type_ref ->{$param}->{'type_category'},
+#		'method'		=>	$type_ref ->{$param}->{'method'},
+#		'method_label'	=>	$type_ref ->{$param}->{'method_label'}
+    'type'          => $type_ref->{$param}->{'typetxt'},
+    'typetxt'       => $type_ref->{$param}->{'typetxt'},
+    'type_cvid'     => $type_ref->{$param}->{'type'},
+    'method'        => $type_ref->{$param}->{'method'},
+    'method_label'  => $type_ref->{$param}->{'method_label'},
+    'method_cvid'   => $type_ref->{$param}->{'method_cvid'}, 
+    	
 	};
 	#print Dumper($feature);
 	return $feature;
