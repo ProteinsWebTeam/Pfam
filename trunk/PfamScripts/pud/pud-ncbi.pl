@@ -9,6 +9,7 @@ use Digest::MD5 qw( md5_hex );
 use Config::General qw( SaveConfig );
 use Getopt::Long;
 use File::Copy;
+use Net::SCP;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -88,8 +89,10 @@ $logger->info("total gi:$total_gi|$total_seq_in_file|");
 
 # copy the file from local to pfamdb2a machine using scp;
 # currently the name is hard-coded, should discuss with rob and decide about it.
-system("scp $production_location/pfamseq".$VERSION."/ncbi.dat ". $config->pfamliveAdmin->{host} .":/tmp/ncbi.dat") 
-  and $logger->logdie("Could not scp ncbi.dat to ".$config->pfamliveAdmin->{host}.":[$!]");
+
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+my $f1 = "$production_location/pfamseq".$VERSION."/ncbi.dat";
+$scp->put("$f1", "/tmp/ncbi.dat") or $logger->logdie("Could not scp ncbi.dat to ".$pfamDB->{host}. " " . $scp->{errstr});
 
 #get the dbh handle for the database specifed in the config file;
 

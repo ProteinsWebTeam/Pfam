@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Log::Log4perl qw(:easy);
-
+use Net::SCP;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -189,11 +189,15 @@ my %ftmap = ( 'msd_data.dat'    => 'pdb_residue-data',
               'entryAuthor.dat' => 'pdb_author' );
 
 #Now copy to the instance and upload
+
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+my $tmp = "/tmp/";
+
 foreach my $f (qw( entryData.dat entryAuthor.dat msd_data.dat )){
-  system("scp  $output_dir/msd_data.dat ".$config->pfamliveAdmin->{host}.":/tmp/$f") 
-    and $logger->logdie("Could not scp to instance:[$!]");
-  my $sth = $pfamDBh->("load data infile '/tmp/$file' into table ".$ftmap{$f}) 
-    or $logger->logdie("Failed to prepare upload statement for $f:".$pfamDBh->errstr);
-  $sth->execute or $logger->logdie("Failed to upload $f:".$pfamDBh->errstr);;
+  
+  $scp->put("$output_dir/msd_data.dat", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/msd_data.dat to $tmp/$f " . $scp->{errstr});
+
+  my $sth = $pfamDBh->("load data infile '$tmp/$f' into table ".$ftmap{$f}) or $logger->logdie("Failed to prepare upload statement for $f:".$pfamDBh->errstr);
+  $sth->execute or $logger->logdie("Failed to upload $f:".$pfamDBh->errstr);
 }
 

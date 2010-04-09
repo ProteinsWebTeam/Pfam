@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 use LWP::Simple;
+use Net::SCP;
 
 use Bio::Pfam::Config;
-
+use Bio::Pfam::PfamLiveDBManager;
 
 my $c = Bio::Pfam::Config->new;
 
@@ -32,8 +33,14 @@ foreach file {
 #| length        | mediumint(8)     | NO   |     | 0       |       | 
 #| sequence      | blob             | NO   |     |         |       | 
 #+---------------+------------------+------+-----+---------+-------+ 
+}
 
-system('scp file '.$c->pfamliveAdmin->{host}.":/tmp/file");
+#scp bit will be something like this
+my $pfamDB =  Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+my $tmp = "/tmp";
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+$scp->put("file", "$tmp/file") or die "Couldn't scp file " .  $scp->{errstr};
+
 
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $c->pfamliveAdmin });
 my $dbh = $pfamDB->getSchema->storage->dbh;
