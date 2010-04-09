@@ -60,7 +60,8 @@ our $type_ref = {
     'type_category' =>
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
-    'method_label' => "Pfam-A"
+    'method_label' => "Pfam-A",
+    'method_cvId'   => "ECO:00000053" 
   },
 
   Domain => {
@@ -69,7 +70,8 @@ our $type_ref = {
     'type_category' =>
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
-    'method_label' => "Pfam-A"
+    'method_label' => "Pfam-A",
+    'method_cvId'   => "ECO:00000053" 
   },
   Repeat => {
     'type'          => 'SO:0001068',
@@ -77,7 +79,8 @@ our $type_ref = {
     'type_category' =>
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
-    'method_label' => "Pfam-A"
+    'method_label' => "Pfam-A",
+    'method_cvId'   => "ECO:00000053" 
   },
   Motif => {
     'type'          => 'SO:0100017',
@@ -93,7 +96,8 @@ our $type_ref = {
     'typetxt'       => "polypeptide_region",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Pfam",
-    'method_label'  => "Pfam-B"
+    'method_label'  => "Pfam-B",
+    'method_cvId'   => "ECO:00000067" 
   },
 
   'Active site' => {
@@ -102,7 +106,7 @@ our $type_ref = {
     'method'        => "Uniprot",
     'method_label'  => "Uniprot",
     'type_category' => "inferred by curator (ECO:0000001)",
-
+    'method_cvId'   => "ECO:00000001"
   },
   'Pfam predicted active site' => {
     'type'          => "SO:0001104",
@@ -110,6 +114,7 @@ our $type_ref = {
     'method'        => "Pfam",
     'method_label'  => "Pfam predicted active site",
     'type_category' => "inferred from motif similarity (ECO:0000028)",
+    'method_cvId'   => "ECO:00000028" 
   },
   'Swiss-Prot predicted active site' => {
     'type'          => "SO:0001104",
@@ -117,6 +122,7 @@ our $type_ref = {
     'method'        => "Uniprot",
     'method_label'  => "Uniprot",
     'type_category' => "inferred by curator (ECO:0000001)",
+    'method_cvId'   => "ECO:00000001" 
   },
 
   'disulfide' => {
@@ -124,7 +130,8 @@ our $type_ref = {
     'typetxt'       => "disulfide crosslinked residues",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "UniProt",
-    'method_label'  => "Uniprot"
+    'method_label'  => "Uniprot",
+    'method_cvId'   => "ECO:00000067" 
   },
 
   'ncoils' => {
@@ -132,7 +139,8 @@ our $type_ref = {
     'typetxt'       => "coiled_coil",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Pfam",
-    'method_label'  => "Ncoil"
+    'method_label'  => "Ncoil",
+    'method_cvId'   => "ECO:00000067" 
   },
 
   'sig_p' => {
@@ -140,7 +148,8 @@ our $type_ref = {
     'typetxt'       => "signal_peptide",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Phobius",
-    'method_label'  => "Phobius"
+    'method_label'  => "Phobius",
+    'method_cvId'   => "ECO:00000067" 
 
   },
 
@@ -149,7 +158,8 @@ our $type_ref = {
     'typetxt'       => "transmembrane_region",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Phobius",
-    'method_label'  => "Phobius"
+    'method_label'  => "Phobius",
+    'method_cvId'   => "ECO:00000067"
   },
 
   'seg' => {    #nochange
@@ -157,7 +167,8 @@ our $type_ref = {
     'typetxt'       => "low_complexity",
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Pfam",
-    'method_label'  => "Seg"
+    'method_label'  => "Seg",
+    'method_cvId'   => "ECO:00000067" 
     }
 
 };
@@ -781,13 +792,21 @@ sub _feat_params {
     'end'           => $end,
     'link'          => $link,
     'linktxt'       => $linktxt,
-    'type'          => $type_ref->{$param}->{'type'},
+#    'type'          => $type_ref->{$param}->{'type'},
+#    'typetxt'       => $type_ref->{$param}->{'typetxt'},
+#    'type_category' => $type_ref->{$param}->{'type_category'},
+#    'method'        => $type_ref->{$param}->{'method'},
+#    'method_label'  => $type_ref->{$param}->{'method_label'}
+    'type'          => $type_ref->{$param}->{'typetxt'},
     'typetxt'       => $type_ref->{$param}->{'typetxt'},
-    'type_category' => $type_ref->{$param}->{'type_category'},
+    'type_cvid'     => $type_ref->{$param}->{'type'},
     'method'        => $type_ref->{$param}->{'method'},
-    'method_label'  => $type_ref->{$param}->{'method_label'}
+    'method_label'  => $type_ref->{$param}->{'method_label'},
+    'method_cvId'   => $type_ref->{$param}->{'method_cvid'}, 
   };
   return $feature;
 }
 
 1;
+
+  
