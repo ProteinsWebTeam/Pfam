@@ -10,7 +10,7 @@ use strict;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Getopt::Long;
-
+use Net::SCP;
 
 my $help;
 GetOptions('help'    => \$help);
@@ -35,6 +35,7 @@ my $old_rel = $pfamDB1->{database};
 my $pfamDB2 = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh_new = $pfamDB2->getSchema->storage->dbh;
 my $new_rel = $pfamDB2->{database};
+
 
 
 #Get auto_pfamA to acc and id mappings and find out which fams are now dead
@@ -70,20 +71,23 @@ foreach my $element (@$array_ref_new) {
 
 my $old_len_file = "old_lengths.dat.$$";
 my $old_reg_file = "old_regions.dat.$$";
+my $tmp = "/tmp";
 
 print STDERR "querying $old_rel pfamseq\n";
-my $st_old1 = $dbh_old->prepare("select auto_pfamseq, length into outfile \"/tmp/$old_len_file\" from pfamseq") or die "Failed to prepare statement:".$dbh_old->errstr."\n";
+my $st_old1 = $dbh_old->prepare("select auto_pfamseq, length into outfile \"$tmp/$old_len_file\" from pfamseq") or die "Failed to prepare statement:".$dbh_old->errstr."\n";
 $st_old1->execute() or die "Couldn't execute statement ".$st_old1->errstr."\n";
 
 print STDERR "querying $old_rel pfamA_reg_full_significant\n";
-my $st_old2 = $dbh_old->prepare("select auto_pfamseq, seq_start, seq_end, auto_pfamA into outfile \"/tmp/$old_reg_file\" from pfamA_reg_full_significant where in_full =1") or die "Failed to prepare statement:".$dbh_old->errstr."\n";
+my $st_old2 = $dbh_old->prepare("select auto_pfamseq, seq_start, seq_end, auto_pfamA into outfile \"$tmp/$old_reg_file\" from pfamA_reg_full_significant where in_full =1") or die "Failed to prepare statement:".$dbh_old->errstr."\n";
 $st_old2->execute() or die "Couldn't execute statement ".$st_old2->errstr."\n";
 $dbh_old->disconnect;
 
 
 #Copy data locally
-system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$old_len_file ." ) and die("Could not scp $old_len_file from database host $!");
-system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$old_reg_file ." ) and die("Could not scp $old_reg_file from database host $!");
+my $scp_old = Net::SCP->new( { "host"=> $pfamDB1->{host} } );
+$scp_old->get("$tmp/$old_len_file") or die "Couldn't scp $tmp/$old_len_file to cwd " . $scp_old->{errstr} . "\n";;
+$scp_old->get("$tmp/$old_reg_file") or die "Couldn't scp $tmp/$old_reg_file to cwd " . $scp_old->{errstr} . "\n";;
+
 
 
 #Now do new data
@@ -91,17 +95,20 @@ my $new_len_file = "new_lengths.dat.$$";
 my $new_reg_file = "new_regions.dat.$$";
 
 print STDERR "querying $new_rel pfamseq\n";
-my $st_new1 = $dbh_new->prepare("select auto_pfamseq, length into outfile \"/tmp/$new_len_file\" from pfamseq") or die "Failed to prepare statement:".$dbh_new->errstr."\n";
+my $st_new1 = $dbh_new->prepare("select auto_pfamseq, length into outfile \"$tmp/$new_len_file\" from pfamseq") or die "Failed to prepare statement:".$dbh_new->errstr."\n";
 $st_new1->execute() or die "Couldn't execute statement ".$st_new1->errstr."\n";
 
 
 print STDERR "querying $new_rel pfamA_reg_full_significant\n";
-my $st_new2 = $dbh_new->prepare("select auto_pfamseq, seq_start, seq_end, auto_pfamA into outfile \"/tmp/$new_reg_file\" from pfamA_reg_full_significant where in_full =1") or die "Failed to prepare statement:".$dbh_new->errstr."\n";
+my $st_new2 = $dbh_new->prepare("select auto_pfamseq, seq_start, seq_end, auto_pfamA into outfile \"$tmp/$new_reg_file\" from pfamA_reg_full_significant where in_full =1") or die "Failed to prepare statement:".$dbh_new->errstr."\n";
 $st_new2->execute() or die "Couldn't execute statement ".$st_new2->errstr."\n";
 $dbh_new->disconnect;
 
-system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$new_len_file . " ) and die("Could not scp $new_len_file from database host $!");
-system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/$new_reg_file ." ) and die("Could not scp $old_reg_file from database host $!");
+my $scp_new = Net::SCP->new( { "host"=> $pfamDB2->{host} } );
+$scp_new->get("$tmp/$new_len_file") or die "Couldn't scp $tmp/$new_len_file to cwd " . $scp_new->{errstr} . "\n";
+$scp_new->get("$tmp/$new_reg_file") or die "Couldn't scp $tmp/$new_reg_file to cwd " . $scp_new->{errstr} . "\n";
+
+
 
 
 #Store the accessions for the old, new and intersection of the db, and the total number of amino acids in each
