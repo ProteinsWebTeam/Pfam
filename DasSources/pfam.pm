@@ -599,9 +599,9 @@ sub _get_PfamA_regions {
   # Select the pfamA regions
   my $query =
 qq(SELECT pfamA_id, pfamA_acc, pfamA.description, md5, seq_start, seq_end, domain_evalue_score,pfamA.type  
-			   					FROM   pfamA, pfamA_reg_full, pfamseq 
-			  					WHERE  pfamA.auto_pfamA=pfamA_reg_full.auto_pfamA
-			  					AND pfamA_reg_full.auto_pfamseq=pfamseq.auto_pfamseq 
+			   					FROM   pfamA, pfamA_reg_full_significant, pfamseq 
+			  					WHERE  pfamA.auto_pfamA=pfamA_reg_full_significant.auto_pfamA
+			  					AND pfamA_reg_full_significant.auto_pfamseq=pfamseq.auto_pfamseq 
 			   					AND in_full=1
 			   					AND pfamseq_acc=$qsegment $qbounds);
 
@@ -808,5 +808,3 @@ sub _feat_params {
 }
 
 1;
-
-  
