@@ -1148,6 +1148,7 @@ sub write_ascii_out {
 	    print $fh sprintf( "%-10s %s\n", "#MATCH", $unit->hmmalign->{match} );
 	    print $fh sprintf( "%-10s %s\n", "#PP",   $unit->hmmalign->{pp});
 	    print $fh sprintf( "%-10s %s\n", "#SEQ",   $unit->hmmalign->{seq});
+	    print $fh sprintf( "%-10s %s\n", "#CS",   $unit->hmmalign->{cs}) if($unit->hmmalign->{cs});
 	}
 	
     }
