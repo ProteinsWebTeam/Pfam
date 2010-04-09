@@ -332,9 +332,9 @@ sub build_types {
 
       push @types,
         {
-        'type'     => $type_ref->{$key}->{'type'},
-        'method'   => $type_ref->{$key}->{'method'},
-        'category' => $type_ref->{$key}->{'type_category'},
+        'type_cvid'   => $type_ref->{$param}->{'type'},
+        'type'        => $type_ref->{$param}->{'typetxt'},
+        'method'      => $type_ref->{$param}->{'method'},
         };
     }
   }
@@ -755,10 +755,15 @@ sub _type_params {
   my @type_feat;
   push @type_feat,
     {
-    'type'     => $type_ref->{$param}->{'type'},
-    'method'   => $type_ref->{$param}->{'method'},
-    'category' => $type_ref->{$param}->{'type_category'},
-    'count'    => $count
+#    'type'     => $type_ref->{$param}->{'type'},
+#    'method'   => $type_ref->{$param}->{'method'},
+#    'category' => $type_ref->{$param}->{'type_category'},
+#    'count'    => $count
+    'type_cvid'   => $type_ref->{$param}->{'type'},
+    'type'        => $type_ref->{$param}->{'typetxt'},
+    'method'      => $type_ref->{$param}->{'method'},
+    #'category'    => $type_ref->{$param}->{'type_category'},
+    'count'       => $count
     };
   return @type_feat;
 }
