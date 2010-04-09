@@ -332,9 +332,11 @@ sub build_types {
 
       push @types,
         {
-        'type_cvid'   => $type_ref->{$param}->{'type'},
-        'type'        => $type_ref->{$param}->{'typetxt'},
-        'method'      => $type_ref->{$param}->{'method'},
+        'type_cvid'   => $type_ref->{$key}->{'type'},
+        'type'        => $type_ref->{$key}->{'typetxt'},
+        'method'      => $type_ref->{$key}->{'method'},
+        #'category'    => $type_ref->{$param}->{'type_category'},
+    
         };
     }
   }
