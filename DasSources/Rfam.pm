@@ -50,171 +50,12 @@ use strict;
 use Bio::Das::ProServer::SourceAdaptor;
 use Data::Dumper;
 use base 'Bio::Das::ProServer::SourceAdaptor';
+use Data::Dump qw( dump );
 
+# RFAM STORES ONTOLOGIES IN THEIR DATABASE NOW;
+our $METHOD      = 'Rfam';
+our $METHOD_CVID = 'ECO:00000043';
 
-#declare the global variable for type and other sequenc ontology to be deifined later
-our $type_ref = {
-	'Gene;rRNA;'	=>{
-		'type'			=> 'SO:0000252',
-		'typetxt'		=> 'rRNA',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-#	'Gene;snRNA;splicing;'	=>{
-#		'type'			=> 'SO:0000274',
-#		'typetxt'		=> 'snRNA',
-#		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-#		'method' 		=> "Rfam",
-#		'method_label'	=> "Rfam"		
-#	},
-	'Gene;'	=>{
-		'type'			=> 'SO:0001263',
-		'typetxt'		=> 'ncRNA_gene',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;ribozyme;'	=>{
-		'type'			=> 'SO:0000374',
-		'typetxt'		=> 'ribozyme',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;'	=>{
-		'type'			=> 'SO:0005836',
-		'typetxt'		=> 'regulatory_region',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;thermoregulator;'	=>{
-		'type'			=> 'SO:0001055',
-		'typetxt'		=> 'transcriptional_cis_regulatory_region',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;antisense;'	=>{
-		'type'			=> 'SO:0000077',
-		'typetxt'		=> 'antisense',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;snRNA;snoRNA;HACA-box;'	=>{
-		'type'			=> 'SO:0000608',
-		'typetxt'		=> 'H_ACA_box_snoRNA_encoding',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;miRNA;'	=>{
-		'type'			=> 'SO:0000571',
-		'typetxt'		=> 'miRNA',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;sRNA;'	=>{
-		'type'			=> 'SO:0000370',
-		'typetxt'		=> 'small_regulatory_ncRNA',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;snRNA;snoRNA;CD-box;'	=>{
-		'type'			=> 'SO:0000585',
-		'typetxt'		=> 'C_D_box_snoRNA_encoding',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;riboswitch;'	=>{
-		'type'			=> 'SO:0000035',
-		'typetxt'		=> 'riboswitch',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;IRES;'	=>{
-		'type'			=> 'SO:0000243',
-		'typetxt'		=> 'internal_ribosome_entry_site',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;frameshift_element;'	=>{
-		'type'			=> 'SO:0001055',
-		'typetxt'		=> 'transcriptional_cis_regulatory_region',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Cis-reg;leader;'	=>{
-		'type'			=> 'SO:0000140',
-		'typetxt'		=> 'attenuator',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;snRNA;snoRNA;scaRNA;'	=>{
-		'type'			=> 'SO:0000275',
-		'typetxt'		=> 'snoRNA',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Intron;'	=>{
-		'type'			=> 'SO:0000588',
-		'typetxt'		=> 'autocatalytically_spliced_intron',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;snRNA;'	=>{
-		'type'			=> 'SO:0000274',
-		'typetxt'		=> 'snRNA',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	'Gene;tRNA;'	=>{
-		'type'			=> 'SO:0001272',
-		'typetxt'		=> 'tRNA_gene',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	 'Gene;CRISPR;'	=>{
-		'type'			=> 'SO:0000657',
-		'typetxt'		=> 'repeat_region',
-		'type_category' => 'inferred from in-silico analysis (ECO:0000043)',
-		'method' 		=> "Rfam",
-		'method_label'	=> "Rfam",
-    'method_cvid'   => "ECO:00000043"		
-	},
-	
-}; 
 #-------------------------------------------------------------------------------------------------------------------
 
 
@@ -253,29 +94,31 @@ sub build_features {
    # Test for valid segment 
     if(!$test->[0]){
     	my @features;
-		push @features, {
-	    	'label'  => "Invalid segment",
-	    	'start'  => "0",
-	    	'end'    => "0",	
-	    	'note'   => "Sequence cannot be retrieved for invalid segment"
-		};
-		return @features;
+  		push @features, {
+  	    	'label'  => "Invalid segment",
+  	    	'start'  => "0",
+  	    	'end'    => "0",	
+  	    	'note'   => "Sequence cannot be retrieved for invalid segment"
+  		};
+  		return @features;
     }
+    
     my $ref = $self->_get_Rfam_regions($start,$end,$qsegment);
-    #my $VERSION  =  "Infernal-0.72";
+    
     my $VERSION  =  "Infernal-1.0";
     my @features = ();
-	my $href = "http://rfam.sanger.ac.uk/";
-    #print Dumper($ref);
-	for my $row (@{$ref}) {
-    my $ptype = $row->{'type'};
-		my $id = $row->{'rfam_id'};
-		#my $feature = $self->_feat_params($ptype,$id,$row->{'seq_start'},$row->{'seq_end'},$href."family?entry=".$row->{'rfam_acc'},$id);
-		my $feature = $self->_feat_params($ptype,$id,$row,$href."family?entry=".$row->{'rfam_acc'});
-		$$feature{'score'} = $row->{'bits_score'};
-		$$feature{'note'} = "$VERSION";
-		push (@features,$feature);
+  	my $href = "http://rfam.sanger.ac.uk/";
+    
+  	for my $row (@{$ref}) {
+      my $ptype = $row->{'type'};
+      
+  		my $id = $row->{'rfam_id'};
+  		my $feature = $self->_feat_params($id,$row,$href."family?entry=".$row->{'rfam_acc'});
+  		$$feature{'score'} = $row->{'bits_score'};
+  		$$feature{'note'} = "$VERSION";
+  		push (@features,$feature);
     }
+   #print STDERR "the featuers are ".dump( \@features )."\n";
    return @features;   
 }
 
@@ -295,95 +138,83 @@ sub build_features {
 =cut
 
 sub build_types{
-    my ($self,$opts) = @_;
-    # checks for segment  
+  my ($self,$opts) = @_;
+  # checks for segment  
 	my @types;			
 	if($opts){
     	my $segment       = $opts->{'segment'};
     	my $start         = $opts->{'start'};
     	my $end           = $opts->{'end'};
    		my $dsn           = $self->{'dsn'}; 
-		my $qsegment      = $self->transport->dbh->quote($segment);
+		  my $qsegment      = $self->transport->dbh->quote($segment);
     	my $test          = $self->transport->query(qq(SELECT rfamseq_acc FROM  rfamseq WHERE  rfamseq_acc = $qsegment));
 		
 		# checks valid segment or not
 		if(!$test->[0]){
-    		my @types;
+   		my @types;
 			push @types, {
 	    		'type'  => "Invalid segment: No type found",
 	    		'method'=> 'No Method defined',
 	    		'category' => 'No Evidence code'
 			};
 			return @types;
-    	}else{
-			# PfamA regions 
+  	}else{
+      # rfam regions 
 			my $ref_A = $self->_get_Rfam_regions($start,$end,$qsegment);
-			my $typesFound;
-			foreach my $pfamA (@{$ref_A} ){
-				$typesFound->{$pfamA->{'type'}}++;
+			
+			# add the db_id and the db_link to create the SO id;
+			# create a hash to build the required values;
+			my $typesFound = {};
+			foreach my $rfam (@{$ref_A} ){
+			  my $so_id = $rfam->{ db_id } . ':' . $rfam->{ db_link };
+
+        unless( exists $typesFound->{ $so_id } ){
+			    $typesFound-> { $so_id } = {
+			      'type_cvid'  => $so_id,
+			      'type'       => $rfam->{ comment },
+			      'method'     => $METHOD,
+			      'count'      => 1        
+			    };  
+			   
+			  } # end of unless; 
+			  else{
+			    $typesFound->{ $so_id }->{ count }++;  
+			  }
+			  
 			}
-			foreach my $typeName (keys %$typesFound){
-				push (@types,$self->_type_params($typeName, $typesFound->{$typeName}));
-			}
+			
+      foreach my $types ( keys %$typesFound ){
+        push ( @types, $typesFound->{ $types } );
+      }
+      			
 			# No types for valid segment
 			if(!@types){
         		push @types, {
 	    			'type'  	=> "No annotation",
 	    			'method'   	=> "No method",
 					  'category'	=> "No Evidence Code"
-				};					
-    		}
-    	}
+				    };					
+      }
+    }
 	}else{    	
 		
-		#loads all types 
-		push @types,{
-    		 'type'		=> 'ID',
-			   'method'	=> 'Method used',
-			   'category' 	=> 'Evidence code Term'
-    		};
-		foreach my $key (keys %{$type_ref}){
-	    	
-	    		push @types,{
-      			'type_cvid'   => $type_ref->{$key}->{'type'},
-            'type'        => $type_ref->{$key}->{'typetxt'},
-            'method'      => $type_ref->{$key}->{'method'},
-        	};	
-		}    	
+		# now load all the types, so query from the datbaase;
+		my $typesQuery = $self->transport->query( qq( select db_id, db_link, comment, count( *) AS total from rfam_database_links where db_id = 'SO' group by db_link; ) );
+		
+		
+		foreach my $type ( @{ $typesQuery } ){
+		  #print "the dump fo the type is ".dump( $type );
+		  push @types, {
+		    'type_cvid' =>  $type->{ db_id } .':'. $type->{ db_link },
+		    'type'      =>  $type->{ comment },
+		    'count'     =>  $type->{ total } 
+		  };
+		}
+      	
   }
     
 	return @types;		
 }
-#-------------------------------------------------------------------------------------------------------------------
-
-# subroutine returns ontology for features
-
-=head2  _type_params
-
- Title		:	_type_params
- Usage		:	$pfam_obj->_type_params
- Function	:	Returns Ontology information for specific feature
- Example	:	$pfam_obj->_type_params($type,$count);
- Returns	:	Array of hash 
- Args		:	String 
-
-=cut
-
-sub _type_params {
-	my ($self,$param,$count) = @_;
-	if($param =~ /splicing;/){
-		$param =~ s/splicing;//g;
-	}
-	my @type_feat;
-	push @type_feat,{
-      	'type_cvid'   => $type_ref->{$param}->{'type'},
-        'type'        => $type_ref->{$param}->{'typetxt'},
-        'method'      => $type_ref->{$param}->{'method'},
-        'count'       => $count
-      };	
-		return @type_feat;
-}
-
 
 #-------------------------------------------------------------------------------------------------------------------
 #subroutine returns Rfam features as a hash-ref for segment
@@ -406,16 +237,18 @@ sub _get_Rfam_regions {
     
     # Select the Rfam regions
     my $query         = qq(select rfam_id,rfam_acc, rfam.description, seq_start , seq_end , bits_score , rfam.type 
-    					   from rfam, rfam_reg_full, rfamseq 
+    					   , db_id, rfam_database_links.comment, db_link  
+    					   from rfam, rfam_reg_full, rfamseq, rfam_database_links  
     					   where rfam.auto_rfam = rfam_reg_full.auto_rfam 
     					   and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq 
+    					   and rfam.auto_rfam = rfam_database_links.auto_rfam 
+    					   and rfam_database_links.db_id = 'SO' 
     					   and rfamseq_acc = $qsegment $qbounds);
      
     my $ref    = $self->transport->query($query);
     return $ref;
     
 }
-
 
 #subroutine returns feature information
 
@@ -431,14 +264,11 @@ sub _get_Rfam_regions {
 =cut
 
 sub _feat_params {
-	my ($self,$param,$id,$feat,$link) = @_;	
+	#my ($self,$param,$id,$feat,$link) = @_;	
+	my ($self,$id,$feat,$link) = @_;
 	
 	next unless($feat->{seq_start} =~ /^\d+/);
 	next unless($feat->{seq_end} =~	/^\d+/);
-	
-	if($param =~ /splicing;/){
-		$param =~ s/splicing;//g;		
-	}
 	
 	# to make the feature ids unique, i have added the start and end coordinates with the id;
 	my $feature = {
@@ -449,38 +279,15 @@ sub _feat_params {
 		'end'			  =>	$feat->{seq_end},
 		'link'			=> 	$link,
 		'linktxt'		=>	$id,
-#		'type'   		=> 	$type_ref ->{$param}->{'type'},	
-#		'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
-#		'type_category' => 	$type_ref ->{$param}->{'type_category'},
-#		'method'		=>	$type_ref ->{$param}->{'method'},
-#		'method_label'	=>	$type_ref ->{$param}->{'method_label'}
-    'type'          => $type_ref->{$param}->{'typetxt'},
-    'typetxt'       => $type_ref->{$param}->{'typetxt'},
-    'type_cvid'     => $type_ref->{$param}->{'type'},
-    'method'        => $type_ref->{$param}->{'method'},
-    'method_label'  => $type_ref->{$param}->{'method_label'},
-    'method_cvid'   => $type_ref->{$param}->{'method_cvid'}, 
-    	
+    'type'          => $feat->{ comment },
+    'typetxt'       => $feat->{ comment },
+    'type_cvid'     => $feat->{ db_id }.':'.$feat->{ db_link },
+    'method'        => $METHOD,
+    'method_label'  => $METHOD,
+    'method_cvid'   => $METHOD_CVID
 	};
-	#print Dumper($feature);
 	return $feature;
 }
 
 
 1;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
