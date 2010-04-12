@@ -1,0 +1,15 @@
+1) check out the DasSources module from SVN which contains all the xfam das sources.
+
+2) create a symlink of the files to Bio/Das/ProServer/SourceAdaptor/ directory like following
+
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/pfam.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/pfamAlign.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/pfamSeedAlign.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/pfamFullAlign.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/iPfamDomain.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/iPfamInteraction.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/Cosmic_Protein_Mutation.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/Rfam.pm .
+ln -s /nfs/team71/pfam/pg6/2009/project/Bio-Das-ProServer/DasSources/pfamOtherFeatures.pm .
+
+3) copy the proserver.ini file to the eg/ directory to make it running;
