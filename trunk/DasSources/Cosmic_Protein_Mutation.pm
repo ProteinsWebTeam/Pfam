@@ -337,11 +337,11 @@ sub build_types{
 		
 	}else{
 		#loads all types 
-		push @types,{
-    		'type'		=> 'ID',
-			'method'	=> 'Method used',
-			'category' 	=> 'Evidence code Term(Evidence Code from the ECO)'
-    		};
+#		push @types,{
+#    		'type'		=> 'ID',
+#			'method'	=> 'Method used',
+#			'category' 	=> 'Evidence code Term(Evidence Code from the ECO)'
+#    		};
 		foreach my $key (keys %{$type_ref}){
 	    	push @types,{
     			'type_cvid'   => $type_ref->{$key}->{'type'},
@@ -526,7 +526,8 @@ sub build_features{
 		my $feature = $self->_feat_params($feat->{class},$feat);
 		push @mutation,  $feature;
 	}	
-  return @mutation;  
+	print STDERR Dumper( \@mutation );
+	return @mutation;  
 }
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -606,13 +607,13 @@ sub _feat_params {
       'start'     =>  $start,
       'end'     =>  $end,
 			'score'			=>	$feat->{m_count},
+			'link'			=>	"http://www.sanger.ac.uk/perl/genetics/CGP/cosmic?action=mut_summary&id=".$feat->{mut_id},
+			#'note'			=> 	$feat->{mut_label}.": ".$feat->{class},
+			'note'     =>  $note,
 			'target_id'		=>	$feat->{query_id},
 			'target_start'	=>	$feat->{qmut_start},
 			'target_stop'	=>	$feat->{qmut_end},
 			'linktxt'		=> 	$feat->{mut_label},
-			'link'			=>	"http://www.sanger.ac.uk/perl/genetics/CGP/cosmic?action=mut_summary&id=".$feat->{mut_id},
-			#'note'			=> 	$feat->{mut_label}.": ".$feat->{class},
-			'note'     =>  $note,
 #			'type'   		=> 	$type_ref ->{$param}->{'type'},	
 #			'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
 #			'type_category' => 	$type_ref ->{$param}->{'type_category'},
@@ -632,13 +633,3 @@ sub _feat_params {
 
 
 1;
-
-
-
-
-
-
-
-
-
-
