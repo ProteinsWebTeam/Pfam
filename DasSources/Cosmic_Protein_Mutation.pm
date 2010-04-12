@@ -55,140 +55,140 @@ our $type_ref = {
 	'Unknown' => {
 				'type'			=> 'SO:1000090',
 				'typetxt'		=> 'mutation_causing_uncharacterised_change_of_translational_product',
-				'type_category' => 'ECO:0000006',
+				'method_cvid' => 'ECO:0000006',
 				'method' 		=> 'Cosmic',
 				'method_label'	=> 'Cosmic'
 				},
 	'Gene fusion' => {
 					'type'			=> 'SO:1000181',
 					'typetxt'		=> 'mutation_causing_gene_fusion',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Substitution - Nonsense' => {
 					'type'			=> 'SO:1000062',
 					'typetxt'		=> 'mutation_causing_nonsense_codon_change_in_transcript',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Substitution - Missense' => {
 					'type'			=> 'SO:1000059',
 					'typetxt'		=> 'mutation_causing_missense_codon_change_in_transcript',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Substitution - coding silent' => {
 					'type'			=> 'SO:1000057',
 					'typetxt'		=> 'mutation_causing_synonymous_codon_change_in_transcript',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Insertion - In frame' => {
 					'type'			=> 'SO:1000096',
 					'typetxt'		=> 'mutation_causing_amino_acid_insertion',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Insertion - Frameshift' => {
 					'type'			=> 'SO:1000065',
 					'typetxt'		=> 'frameshift_mutation',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Deletion - In frame' => {
 					'type'			=> 'SO:1000097',
 					'typetxt'		=> 'mutation_causing_amino_acid_deletion',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Deletion - Frameshift' => {
 					'type'			=> 'SO:1000065',
 					'typetxt'		=> 'frameshift_mutation',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Substitution - intronic' => {
 					'type'			=> 'SO:1000071',
 					'typetxt'		=> 'mutation_affecting_splicing',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Complex - compound substitution' => {
 					'type'			=> 'SO:1000092',
 					'typetxt'		=> 'mutation_causing_complex_change_of_translational_product',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Insertion - intronic' => {
 					'type'			=> 'SO:1000071',
 					'typetxt'		=> 'mutation_affecting_splicing',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Deletion - intronic' => {
 					'type'			=> 'SO:1000071',
 					'typetxt'		=> 'mutation_affecting_splicing',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Nonstop extension' => {
 					'type'			=> 'SO:1000063',
 					'typetxt'		=> 'mutation_causing_terminator_codon_change_in_transcript',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Complex - intronic' => {
 					'type'			=> 'SO:1000071',
 					'typetxt'		=> 'mutation_affecting_splicing',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Coding silent' => {
 					'type'			=> 'SO:1000057',
 					'typetxt'		=> 'mutation_causing_synonymous_codon_change_in_transcript',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Complex - deletion inframe' => {
 					'type'			=> 'SO:1000092',
 					'typetxt'		=> 'mutation_causing_complex_change_of_translational_product',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Complex - insertion inframe' => {
 					'type'			=> 'SO:1000092',
 					'typetxt'		=> 'mutation_causing_complex_change_of_translational_product',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'Complex - frameshift' => {
 					'type'			=> 'SO:1000065',
 					'typetxt'		=> 'frameshift_mutation',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					},
 	'"Parent" fusion - genomic locali' => {
 					'type'			=> 'SO:1000181',
 					'typetxt'		=> 'mutation_causing_gene_fusion',
-					'type_category' => 'ECO:0000006',
+					'method_cvid' => 'ECO:0000006',
 					'method' 		=> 'Cosmic',
 					'method_label'	=> 'Cosmic'
 					}
@@ -323,10 +323,15 @@ sub build_types{
 		}
 		foreach my $type_name (keys %$types_found){
 			push @types, {
-				'type'		=> $type_ref->{$type_name}->{'type'},
-				'method'	=> $type_ref->{$type_name}->{'method'},
-				'category' 	=> $type_ref->{$type_name}->{'type_category'},
-				count		=>	$types_found->{$type_name}
+				'type_cvid'   => $type_ref->{$type_name}->{'type'},
+        'type'        => $type_ref->{$type_name}->{'typetxt'},
+        'method'      => $type_ref->{$type_name}->{'method'},
+        'count'       => $types_found->{$type_name},
+#    
+#				'type'		=> $type_ref->{$type_name}->{'type'},
+#				'method'	=> $type_ref->{$type_name}->{'method'},
+#				'category' 	=> $type_ref->{$type_name}->{'type_category'},
+#				count		=>	$types_found->{$type_name}
 			}
 		} 
 		
@@ -339,10 +344,14 @@ sub build_types{
     		};
 		foreach my $key (keys %{$type_ref}){
 	    	push @types,{
-    			'type'		=> $type_ref->{$key}->{'type'},
-				'method'	=> $type_ref->{$key}->{'method'},
-				'category' 	=> $type_ref->{$key}->{'type_category'},
-    			};	
+    			'type_cvid'   => $type_ref->{$key}->{'type'},
+          'type'        => $type_ref->{$key}->{'typetxt'},
+          'method'      => $type_ref->{$key}->{'method'},
+          #'category'    => $type_ref->{$param}->{'type_category'},
+#          'type'		=> $type_ref->{$key}->{'type'},
+#				  'method'	=> $type_ref->{$key}->{'method'},
+#				  'category' 	=> $type_ref->{$key}->{'type_category'},
+    		};	
 		}		
 	}	 
 	return @types; 				
@@ -604,12 +613,19 @@ sub _feat_params {
 			'link'			=>	"http://www.sanger.ac.uk/perl/genetics/CGP/cosmic?action=mut_summary&id=".$feat->{mut_id},
 			#'note'			=> 	$feat->{mut_label}.": ".$feat->{class},
 			'note'     =>  $note,
-			'type'   		=> 	$type_ref ->{$param}->{'type'},	
-			'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
-			'type_category' => 	$type_ref ->{$param}->{'type_category'},
-			'method'		=>	$type_ref ->{$param}->{'method'},
-			'method_label'	=>	$type_ref ->{$param}->{'method_label'}		
-		
+#			'type'   		=> 	$type_ref ->{$param}->{'type'},	
+#			'typetxt'		=> 	$type_ref ->{$param}->{'typetxt'},
+#			'type_category' => 	$type_ref ->{$param}->{'type_category'},
+#			'method'		=>	$type_ref ->{$param}->{'method'},
+#			'method_label'	=>	$type_ref ->{$param}->{'method_label'}		
+		  
+		  'type'          => $type_ref->{$param}->{'typetxt'},
+      'typetxt'       => $type_ref->{$param}->{'typetxt'},
+      'type_cvid'     => $type_ref->{$param}->{'type'},
+      'method'        => $type_ref->{$param}->{'method'},
+      'method_label'  => $type_ref->{$param}->{'method_label'},
+      'method_cvid'   => $type_ref->{$param}->{'method_cvid'}, 
+    
 	};
 	return $feature;
 }
