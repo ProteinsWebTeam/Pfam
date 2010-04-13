@@ -882,7 +882,7 @@ sub collate_large_fam_reg_full {
        $rdb_auto_num = $en->auto_rfam;
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
-
+       
        #print STDERR $full_structure;
        
        #get the evalues
@@ -895,7 +895,7 @@ sub collate_large_fam_reg_full {
        $asth->execute($rdb_acc);
        my($temp_auto) = $asth->fetchrow;
        $asth->finish();
-	   
+       
        $rdb_auto_num = $temp_auto if(defined($temp_auto));  
        
        #this is stored so we can add the ss_cons line to the rfam table;
@@ -989,6 +989,8 @@ sub collate_large_fam_reg_full {
 
 	   #generate the data structure to return;
 	   #empty values=auto_genome, genome_start, genome_end
+	   $rdb_auto_genome = 0 if not defined $rdb_auto_genome;
+	   ($rdb_genome_start,  $rdb_genome_end) = (0,0) if (not defined $rdb_genome_start && not defined $rdb_genome_end);
  	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, $rdb_auto_genome, $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, $rdb_genome_start,  $rdb_genome_end, $rdb_full_string);
 	   push (@$data, $string);
        }#end of regions for $entry;
