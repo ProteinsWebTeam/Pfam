@@ -798,6 +798,9 @@ sub update_rfam_reg_full {
 	       $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 11));
 	   }
 	   eval {
+	       $rdb_auto_genome = 0 if not defined $rdb_auto_genome;
+	       ($rdb_genome_start,  $rdb_genome_end) = (0,0) if (not defined $rdb_genome_start && not defined $rdb_genome_end);
+
 	       $stat->execute($rdb_auto_num,
 			      $rfamseq_auto,
 			      $rdb_auto_genome,
