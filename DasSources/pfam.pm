@@ -61,7 +61,7 @@ our $type_ref = {
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
     'method_label' => "Pfam-A",
-    'method_cvid'   => "ECO:00000053" 
+    'method_cvid'   => "ECO:0000053" 
   },
 
   Domain => {
@@ -71,7 +71,7 @@ our $type_ref = {
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
     'method_label' => "Pfam-A",
-    'method_cvid'   => "ECO:00000053" 
+    'method_cvid'   => "ECO:0000053" 
   },
   Repeat => {
     'type'          => 'SO:0001068',
@@ -80,7 +80,7 @@ our $type_ref = {
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
     'method_label' => "Pfam-A",
-    'method_cvid'   => "ECO:00000053" 
+    'method_cvid'   => "ECO:0000053" 
   },
   Motif => {
     'type'          => 'SO:0100017',
@@ -88,7 +88,8 @@ our $type_ref = {
     'type_category' =>
       "inferred from reviewed computational analysis (ECO:0000053)",
     'method'       => "Pfam",
-    'method_label' => "Pfam-A"
+    'method_label' => "Pfam-A",
+    'method_cvid'   => "ECO:0000053" 
   },
 
   'PfamB' => {
@@ -97,7 +98,7 @@ our $type_ref = {
     'type_category' => "inferred from electronic annotation (ECO:00000067)",
     'method'        => "Pfam",
     'method_label'  => "Pfam-B",
-    'method_cvid'   => "ECO:00000067" 
+    'method_cvid'   => "ECO:0000067" 
   },
 
   'Active site' => {
@@ -114,7 +115,7 @@ our $type_ref = {
     'method'        => "Pfam",
     'method_label'  => "Pfam predicted active site",
     'type_category' => "inferred from motif similarity (ECO:0000028)",
-    'method_cvid'   => "ECO:00000028" 
+    'method_cvid'   => "ECO:0000028" 
   },
   'Swiss-Prot predicted active site' => {
     'type'          => "SO:0001104",
@@ -128,47 +129,47 @@ our $type_ref = {
   'disulfide' => {
     'type'          => "MOD:00689",
     'typetxt'       => "disulfide crosslinked residues",
-    'type_category' => "inferred from electronic annotation (ECO:00000067)",
+    'type_category' => "inferred from electronic annotation (ECO:0000067)",
     'method'        => "UniProt",
     'method_label'  => "Uniprot",
-    'method_cvid'   => "ECO:00000067" 
+    'method_cvid'   => "ECO:0000067" 
   },
 
   'ncoils' => {
     'type'          => "SO:0001080",
     'typetxt'       => "coiled_coil",
-    'type_category' => "inferred from electronic annotation (ECO:00000067)",
+    'type_category' => "inferred from electronic annotation (ECO:0000067)",
     'method'        => "Pfam",
     'method_label'  => "Ncoil",
-    'method_cvid'   => "ECO:00000067" 
+    'method_cvid'   => "ECO:0000067" 
   },
 
   'sig_p' => {
     'type'          => "SO:0000418",
     'typetxt'       => "signal_peptide",
-    'type_category' => "inferred from electronic annotation (ECO:00000067)",
+    'type_category' => "inferred from electronic annotation (ECO:0000067)",
     'method'        => "Phobius",
     'method_label'  => "Phobius",
-    'method_cvid'   => "ECO:00000067" 
+    'method_cvid'   => "ECO:0000067" 
 
   },
 
   'transmembrane' => {
     'type'          => "SO:0001077",
     'typetxt'       => "transmembrane_region",
-    'type_category' => "inferred from electronic annotation (ECO:00000067)",
+    'type_category' => "inferred from electronic annotation (ECO:0000067)",
     'method'        => "Phobius",
     'method_label'  => "Phobius",
-    'method_cvid'   => "ECO:00000067"
+    'method_cvid'   => "ECO:0000067"
   },
 
   'seg' => {    #nochange
     'type'          => "SO:0001004",
     'typetxt'       => "low_complexity",
-    'type_category' => "inferred from electronic annotation (ECO:00000067)",
+    'type_category' => "inferred from electronic annotation (ECO:0000067)",
     'method'        => "Pfam",
     'method_label'  => "Seg",
-    'method_cvid'   => "ECO:00000067" 
+    'method_cvid'   => "ECO:0000067" 
     }
 
 };
