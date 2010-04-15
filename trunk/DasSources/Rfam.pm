@@ -54,7 +54,7 @@ use Data::Dump qw( dump );
 
 # RFAM STORES ONTOLOGIES IN THEIR DATABASE NOW;
 our $METHOD      = 'Rfam';
-our $METHOD_CVID = 'ECO:00000043';
+our $METHOD_CVID = 'ECO:0000043';
 
 #-------------------------------------------------------------------------------------------------------------------
 
