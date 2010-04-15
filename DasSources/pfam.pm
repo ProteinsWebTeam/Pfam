@@ -107,7 +107,7 @@ our $type_ref = {
     'method'        => "Uniprot",
     'method_label'  => "Uniprot",
     'type_category' => "inferred by curator (ECO:0000001)",
-    'method_cvid'   => "ECO:00000001"
+    'method_cvid'   => "ECO:0000001"
   },
   'Pfam predicted active site' => {
     'type'          => "SO:0001104",
@@ -123,7 +123,7 @@ our $type_ref = {
     'method'        => "Uniprot",
     'method_label'  => "Uniprot",
     'type_category' => "inferred by curator (ECO:0000001)",
-    'method_cvid'   => "ECO:00000001" 
+    'method_cvid'   => "ECO:0000001" 
   },
 
   'disulfide' => {
