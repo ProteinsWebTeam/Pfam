@@ -44,7 +44,7 @@ Each "block" is a hash containing two arrays:
 
 jt6 20080622 WTSI.
 
-$Id: HtmlAlignment.pm,v 1.3 2008-07-24 13:22:44 pg5 Exp $
+$Id: HtmlAlignment.pm,v 1.4 2010-04-15 14:00:49 pg5 Exp $
 
 =cut
 
@@ -52,8 +52,9 @@ use strict;
 use warnings;
 
 # TODO remove this hard-coded path to the Rfam modules
-use lib qw( /nfs/team71/pfam/pg5/scripts/Modules );
+#use lib qw( /nfs/team71/pfam/pg5/scripts/Modules );
 use Rfam::SS;
+use Rfam::RfamAlign;
 
 use base qw( Bio::SimpleAlign
              Class::Accessor
@@ -73,7 +74,7 @@ my $logger_conf = q(
 
 Log::Log4perl->init( \$logger_conf );
 our $log = Log::Log4perl->get_logger( 'HtmlAlignment' );
-
+#$log->level($Log::Log4perl::DEBUG);
 #-------------------------------------------------------------------------------
 # configuration
 
@@ -102,18 +103,21 @@ Returns a new C<HtmlAlignment> object.
 
 sub new {
   my $caller = shift;
-
+  my $file = shift;
+  #print "HtmlAlignment::new() caller=[$caller] file=[$file]\n";
   # construct this object
   my $class = ref $caller || $caller;
   my $this = {};
   bless $this , $class;
-
+  
   # see if we should initialise it with a specific file
-  $this->read_stockholm( shift ) if scalar @_;
-
+  #$this->read_stockholm( shift ) if scalar @_;
+  $this->read_stockholm( $file ) if defined $file;
+  
   # set class defaults
+#  $this->block_size( 100 );
   $this->block_size( 30 );
-
+  
   return $this;
 }
 
@@ -160,7 +164,8 @@ Returns the number of sequences that were read from the alignment.
 
 sub read_stockholm {
   my ( $this, $input ) = @_;
-
+  
+  #print "HtmlAlignment::read_stockholm input=[$input]\n";
   # figure out where we're reading from 
   my @file_contents;
   if ( ref $input eq 'SCALAR' ) {
@@ -194,7 +199,7 @@ sub read_stockholm {
       $match_states,
       %align,
       @c2name );
-
+  
   my $count = 0;
   foreach ( @file_contents ) {
 
@@ -240,8 +245,8 @@ sub read_stockholm {
 
   # assemble the sequences
   foreach my $name ( @c2name ) {
-    my ( $seqname, $start, $end );
-
+    my ( $seqname, $start, $end, $strand );
+    
     if ( $name =~ m/(\S+)\/(\d+)-(\d+)/ ) {
       $seqname = $1;
       $start   = $2;
@@ -252,13 +257,16 @@ sub read_stockholm {
       $start   = 1;
       $end     = length( $align{$name} );
     }
+    
+    ($start,$end,$strand)=RfamUtils::se2ses($start,$end);
 
     my $seq = new Bio::LocatableSeq( '-seq'   => $align{$name},
                                      '-id'    => $seqname,
                                      '-start' => $start,
                                      '-end'   => $end,
+                                     '-strand'=> $strand,
                                      '-type'  => 'aligned' );
-
+    #print "name[$seqname] start[$start] end[$end] strand[$strand] seq[$align{$name}]\n";
     $this->add_seq($seq);
   }
 
@@ -271,17 +279,15 @@ sub read_stockholm {
   else {
     $log->logdie( 'error: no secondary structure consensus line read' );
   }
-
+  
   # store match states
   if ( $match_states ) {
       $this->match_states( $match_states );
   }
-#  else {
-#      $log->logwarn( 'warning: no match states read' );
-#  }
 
   return $count;
 }
+
 
 #-------------------------------------------------------------------------------
 
@@ -300,6 +306,8 @@ HTML blocks in the object. Retrieve them using L<blocks>:
 sub build_html {
   my ( $this ) = @_;
 
+  #print "HtmlAlignment::build_html()\n";
+  
   # split the secondary structure consensus
   $this->ss_cons->length( $this->length );
   my @ss_str = split //, $this->ss_cons->getInfernalString();
@@ -308,28 +316,35 @@ sub build_html {
   # get the colour map from the SS consensus
   my $colour_map = $this->ss_cons->column_colourmap;
   $log->debug( 'retrieved colour map from SS consensus object' );
-
+  
   my @sequences = $this->each_seq;
   my $num_blocks = int( scalar @sequences / $this->block_size );
 
+  $log->debug( "num_blocks |$num_blocks| num_seqs |" . scalar @sequences . "| block_size|" . $this->block_size . "|");
+  
+  
+  
+  
   # group the sequences into blocks
   my @blocks = ();
   for ( my $block = 0; $block < $num_blocks + 1; $block++ ) {
     my $from = $this->block_size * $block;
     my $to   = $this->block_size + $from - 1;
     $to      = scalar @sequences  - 1 if $to >= scalar @sequences;
-    $log->debug( "generating block |$block| using sequences |$from| - |$to|" );
+    $log->debug( "generating block |$block| of |$num_blocks| using sequences |$from| - |$to|" );
 
     # walk over the sequences that comprise this block
     my @labels = ();
     my @seqs   = ();
     foreach my $seq ( @sequences[ $from .. $to ] ) {
+	
+      $log->debug( "colouring seq->seq:[" . $seq->seq . "]\n" );
 
       my $row = '';
-
+      #print "seq->seq:[" . $seq->seq . "]\n";
       my @seq = split //, $seq->seq;
       for ( my $i = 0; $i < scalar @seq; $i++ ) {
-
+	  
         if ( my $col = $colour_map->{ $i + 1 } ) {
           my $pair = $this->ss_cons->getPairByCol($i+1);
           my @res = sort ( $seq[ $pair->left - 1 ], $seq[ $pair->right - 1 ] );
@@ -348,9 +363,11 @@ sub build_html {
         $row .= $seq[$i];
 
       } # end of "for $i"
-
+      
       push @labels, $this->displayname( $seq->get_nse() );
+      #print "build_html: displayname:[" . $this->displayname( $seq->get_nse() ) . "]\n";
       push @seqs,   $row;
+      #print "build_html: row:[" . $row . "]\n";
 
     } # end of "foreach $seq"
 
