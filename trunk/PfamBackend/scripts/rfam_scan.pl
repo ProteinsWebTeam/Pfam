@@ -29,7 +29,7 @@ my $VERSION = '1.0';
 my $blastcut = 0.01;
 my $outputfmt = 'gff';
 my $filter = 'ncbi';
-my $starttime = `date`;
+my $starttime = `/bin/date`;
 chomp $starttime;
 my $cmdline = $0.' '.join( ' ', @ARGV );
 
@@ -401,7 +401,7 @@ sub parse_blast_table {
     my $fh = IO::File->new();
     # sort hits so they go in to add_non_overlapping_hit in coordinate
     # order
-    $fh->open( "sort -k7n $blastfile |" );
+    $fh->open( "/usr/bin/sort -k7n $blastfile |" );
     while(<$fh>) {
 	next if( /^\#/ );
 	my @col = split( /\s+/, $_ );
