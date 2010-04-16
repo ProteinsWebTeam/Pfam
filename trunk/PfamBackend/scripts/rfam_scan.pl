@@ -148,8 +148,8 @@ my %counts;
 if( $outputfmt eq 'gff' ) {
     my $endtime = `date`;
     chomp $endtime;
-{
-    print $outfh <<EOF
+#{
+#   print $outfh <<EOF
 ##gff-version 3
 # rfam_scan.pl (v$VERSION)
 # command line:     $cmdline
@@ -157,8 +157,8 @@ if( $outputfmt eq 'gff' ) {
 # query FASTA file: $fafile
 # start time:       $starttime
 # end time:         $endtime
-EOF
-}   
+#EOF
+#}   
     foreach my $f ( sort { $b->score <=> $a->score } @{$features} ) {
 	my ($rfamid) = $f->get_tag_values('rfam-id');
 	$counts{$rfamid}++;
