@@ -206,6 +206,20 @@ sub reorder {
     return ($x,$y);
 }
 ######################################################################
+#se2ses: converts start-end to start-end+strand where the strand is
+#        given by the order of the input start-end.
+sub se2ses {
+    my ($x,$y)=@_;
+    my $strand = 1;
+    if ($y<$x){
+	my $tmp = $x;
+	$x = $y;
+	$y = $tmp;
+	$strand = -1;
+    }
+    return ($x,$y,$strand);
+}
+######################################################################
 #nses2array: takes name/start-end:strand -- returns an array of (name, start, end, strand)
 sub nses2array {
     my $idline=shift;
