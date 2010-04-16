@@ -24,35 +24,51 @@ if( $help || (defined($idfile) && defined($seqfile)) || (!defined($idfile) && !d
 
 if (defined($idfile)){
     
-    open( ID, $idfile ) or die "$idfile exists but can't be opened\n[$!]";
+    print "reading: $idfile\n";
+    open( ID, "< $idfile" ) or die "$idfile exists but can't be opened\n[$!]";
     
+    my $seqCount=0;
     my (%forward, %reverse);
     while( my $line = <ID> ) {
 	my ($valid, $name, $start, $end);
+	next if $line =~ /^\#/;
+	chomp($line);
+	print "read: [$line]\n";
 	if ($line =~ /(\S+)\/(\d+)\-(\d+)/){
 	    $name = $1;
 	    $start = $2;
 	    $end = $3;
 	    $valid=1;
 	}
-	elsif  ($line =~ /(\S+)\t(\d+)\t(\d+)/){
+	elsif  ($line =~ /(\S+)\s+(\d+)\s+(\d+)/){
 	    $name = $1;
 	    $start = $2;
 	    $end = $3;
 	    $valid=1;
 	}
+# 	elsif  ($line =~ /(\S+)\t(\d+)\t(\d+)/){
+# 	    $name = $1;
+# 	    $start = $2;
+# 	    $end = $3;
+# 	    $valid=1;
+#	}
 	
 	if (defined($valid) && $start < $end ){
+	    print "adding: $name/$start\-$end:+1\n";
 	    push( @{ $forward{$name} }, { 'start'  => $start,
 					  'end'    => $end} );
+	    $seqCount++;
 	}
 	elsif (defined($valid) && $start > $end ){
+	    print "adding: $name/$start\-$end:-1\n";
 	    push( @{ $reverse{$name} }, { 'start'  => $end,
 					  'end'    => $start} );
+	    $seqCount++;
 	}
 	
     }
     
+    die "FATAL: failed to find any valid regions in [$idfile]!" if $seqCount==0;
     $seqfile = $idfile . "\.fa";
     open( FA, ">$seqfile" ) or die;
     SeqFetch::fetchSeqs(\%forward, $Rfam::rfamseq, 0, \*FA);
@@ -67,7 +83,7 @@ if (-e "SEED\.new"){
 }
 
 
-system("/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED") and die("FATAL: Error in: [/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED].\n");
+system("/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED > cmbuild.out") and die("FATAL: Error in: [/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED > cmbuild.out].\n");
 
 if (defined($iter)){
     $seqfile = "seed.fa";
