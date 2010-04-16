@@ -56,7 +56,9 @@ my(
     $debug,
     $schema,
     $rfamTimes,
-    $cmsearch_eval
+    $cmsearch_eval,
+    @extraCmsearchOptionsSingle,
+    @extraCmsearchOptionsDouble
     );
 
 #BLAST/MINIDB defaults
@@ -97,13 +99,15 @@ $cmsearch_eval=1000000;
 	     "window=s"            => \$window,
              "maxseqs4cmsearchlimits=s"          => \$maxseqs4cmsearchlimits,
              "minseqs4cmsearchlimits=s"          => \$minseqs4cmsearchlimits,
-             "dirty"                => \$dirty,
-             "nomerge"              => \$nomerge,
-             "cal|calibrate"        => \$onlyCalibrate,
-             "fcal|forcecalibrate"  => \$forceCalibrate,
-             "cme|cmsearchevalue=s" => \$cmsearch_eval,
-              "debug"               => \$debug,
-	     "h|help"               => \$help 
+             "dirty"                   => \$dirty,
+             "nomerge"                 => \$nomerge,
+             "cal|calibrate"           => \$onlyCalibrate,
+             "fcal|forcecalibrate"     => \$forceCalibrate,
+             "cme|cmsearchevalue=s"    => \$cmsearch_eval,
+             "cmos|cmsearchoptions=s@" => \@extraCmsearchOptionsSingle,
+             "cmod|cmsearchoptiond=s@" => \@extraCmsearchOptionsDouble,
+             "debug"                   => \$debug,
+	     "h|help"                  => \$help 
     );
 
 if( $help ) {
@@ -279,7 +283,7 @@ elsif (!(-e $blastonly)) {
 }
 
 #Moderately paranoid checking of the all important window parameter:
-if ( (int($cmwindow) == $cmwindow) && $cmwindow>0 && !(defined($window) && (int($window) == $window)) ){
+if ( (int($cmwindow) == $cmwindow) && $cmwindow>0 && !(defined($window)) ){
     $window=$cmwindow; 
     &printlog( "Using window [$window] from CM file" );
 }
@@ -592,6 +596,18 @@ my $options = " -Z $dbsize -E $cmsearch_eval "; #
 $options .= " --hmmonly " if( $hmmonly );
 $options .= " --toponly " if( !$nofilters );
 $options .= " -g " if( defined $glocal );
+
+if (@extraCmsearchOptionsSingle){#covers the '-' options
+    foreach my $opts (@extraCmsearchOptionsSingle){
+	$options .= " \-$opts ";
+    }
+}
+
+if (@extraCmsearchOptionsDouble){#covers the '--' options 
+    foreach my $opts (@extraCmsearchOptionsDouble){
+	$options .= " \-\-$opts ";
+    }
+}
 
 $pname = "cm$$" if( not $pname );
 #copy( "CM",  "$lustre/$$.CM") or die "FATAL: error copying CM file to $$.CM\n[$!]";
@@ -1108,15 +1124,20 @@ Options:       --h                  show this help
 	       --blastonly <opt:str>     Run the BLAST jobs, build and merge the minidbs and stop. Optionally takes a fasta file as input.
 	       
 	       INFERNAL/CM OPTIONS:
-	       --nobuild              skip cmbuild step
-	       -g|--glocal            Run cmsearch in glocal mode (override DESC cmsearch command)
-	       --window <str>         Use this window size for fetching blast sequences rather than from CM.
-	       --hmmonly|--long       An option for long models (eg. SSU/LSU rRNA,...),
-	                              This runs "cmsearch -hmmfilter", requires infernal version >0.7 
-	       -cal|--calibrate       Calibrate model and exit
-	       -fcal|--forcecalibrate Force re-calibrating the model
-	       -cme|--cmsearchevalue  Set an evalue threshold for cmsearch [Default: $cmsearch_eval]
-
+	       --nobuild                     Skip the cmbuild step
+	       -g|--glocal                   Run cmsearch in glocal mode (override DESC cmsearch command)
+	       --window <str>                Use this window size for fetching blast sequences rather than from CM.
+	       --hmmonly|--long              An option for long models (eg. SSU/LSU rRNA,...),
+	                                     This runs "cmsearch -hmmfilter", requires infernal version >0.7 
+	       -cal|--calibrate              Calibrate model and exit
+	       -fcal|--forcecalibrate        Force re-calibrating the model
+	       -cme|--cmsearchevalue   <num> Set an evalue threshold for cmsearch [Default: $cmsearch_eval]
+	       -cmos|--cmsearchoptions <str> Add extra arbitrary options to cmsearch with a single '-'. For multiple options use multiple 
+	                                     -cmos lines. Eg. '-cmos g -cmos x' will run cmsearch in global mode and annotate 
+					     non-compensatory bps in output alignments with 'x'.
+	       -cmod|--cmsearchoptiond <str> Add extra arbitrary options to cmsearch with a double '-'. For multiple options use multiple 
+	                                     -cmod lines. Eg. '-cmod fil-no-hmm' will run cmsearch without filtering usin HMM Forward 
+					     algorithm.
 	       
 		CLEANUP
 		--dirty            Leave the files on the cluster. 
