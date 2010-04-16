@@ -35,9 +35,8 @@ use IO::File;
 
 use Bio::SimpleAlign;
 use Rfam::SS;
-
-#needed to use RDB to get taxonomy for order_by_taxonomy
-use Rfam;
+use Rfam; #needed to use RDB to get taxonomy for order_by_taxonomy
+use RfamUtils; 
 
 @ISA = qw( Bio::SimpleAlign  Rfam );
 
@@ -53,6 +52,7 @@ sub new {
     $self -> { 'SS_CONS' }      = undef;
     $self -> { 'MATCH_STATES' } = undef;
     $self -> { 'CONSENSUS' }    = undef;
+    $self -> { 'MIS' }          = undef;
     return $self;
 }
 
@@ -66,10 +66,10 @@ sub consensus {
 
 sub mis {
     my $self = shift;
-    if( not $self -> { 'CONSENSUS' } ) {
-	$self -> { 'CONSENSUS' } = $self -> _compute_mis();
+    if( not $self -> { 'MIS' } ) {
+	$self -> { 'MIS' } = $self -> _compute_mis();
     }
-    return $self -> { 'CONSENSUS' };
+    return $self -> { 'MIS' };
 }
 
 sub ss_cons {
@@ -288,43 +288,38 @@ sub merge_alignment {
 
 sub order_by_embl_taxonomy {
     my ($self, $acc, $type) = @_;
-    #my $acc=shift;
-    #my $type=shift; #SEED or ALIGN;
+
     my $newaln = Rfam::RfamAlign->new();
-    my( %tax, %order );
+    my( %tax, %order, %species );
     my @seqs = $self->each_seq;
     
     ## get the tax strings from the rdb
     ##get DB connection parameters from Rfam.pm
   
     my $dbName=$Rfam::live_rdb_name;
+    my $dbHost=$Rfam::rdb_host;   
     my $dbdriver=$Rfam::rdb_driver;
     my $dbUser=$Rfam::rdb_user;
     my $dbPass=$Rfam::rdb_pass;
     my $dbPort=$Rfam::rdb_port;
-    my $dbHost=$Rfam::rdb_host;   
     
     #prepare DB connection and statement handles
     my $dsn    = "dbi:$dbdriver:$dbName:$dbHost:$dbPort";
     my $dbAttr = { RaiseError => 1,  PrintError => 1 };
-
+    
     # connect
     my $dbh = DBI->connect( $dsn, $dbUser, $dbPass, $dbAttr )
 	or die "(EE) ERROR: couldn't connect to database: $!";
 
     #need different query for SEED or ALIGN file
     my $asth;
-    if ($type eq 'SEED'){ 
-	$asth=$dbh->prepare( 'select rs.rfamseq_acc, rs.taxonomy from rfamseq as rs join rfam_reg_seed as rrs on rrs.auto_rfamseq=rs.auto_rfamseq join rfam as rf on rrs.auto_rfam=rf.auto_rfam and rf.rfam_acc=?' )
-	    or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;}
-    elsif($type eq 'ALIGN') {
-	$asth=$dbh->prepare( 'select rs.rfamseq_acc, rs.taxonomy from rfamseq as rs join rfam_reg_full as rrf on rrf.auto_rfamseq=rs.auto_rfamseq join rfam as rf on rrf.auto_rfam=rf.auto_rfam and rf.rfam_acc=?' )
-	    or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;}
-    else {
-	die '(EE) ERROR: dont recognise the file type?'};
-
-    print STDERR "(ii) getting the taxonomy info from rdb for  \"$acc\" file $type\n";
+    my $typeTable = 'full';
+    $typeTable = 'seed' if $type eq 'SEED';
     
+    my $prepareString = 'select rs.rfamseq_acc, tx.tax_string, tx.species from rfamseq as rs join rfam_reg_' . $typeTable . ' as rrs on rrs.auto_rfamseq=rs.auto_rfamseq join rfam as rf on rrs.auto_rfam=rf.auto_rfam join taxonomy as tx on rs.ncbi_id=tx.ncbi_id and rf.rfam_acc=?';
+    $asth=$dbh->prepare( $prepareString )
+	or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;
+    print "$prepareString\n";
     $asth->execute($acc);
     
     if( $DBI::err ) {
@@ -340,33 +335,95 @@ sub order_by_embl_taxonomy {
     }
     #store all the rdb data for this family SEED or ALIGN file 
     foreach my $row (@$data){
-	$tax{$$row[0]}=$$row[1]; #accession and tax string
-	#print $$row[0], "\t", $$row[1], "\n";
+	$tax{$$row[0]}=$$row[1] if defined $$row[0] && defined $$row[1]; #accession and tax string
+	$species{$$row[0]}= RfamUtils::species2shortspecies($$row[2]) if defined $$row[0] && defined $$row[2]; #accession and species string
     }
     
     ###-----------------------------------------------------------
-
+    
     #get array of seq accessions order the seqs by taxonomy
     foreach my $seq ( @seqs ) {
-	    my ( $acc ) = $seq->id()=~ /^(\S+?)(\.|$)/;
-	    if( !exists $tax{$acc} ) {
-		warn "failed to get taxonomy for ", $seq->id, "\n";
-		$tax{$acc} = "zz_unknown";
-	    }
-	    $order{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
-								 'oc'  => $tax{$acc} };
+	$seq->id()=~ /^(\S+)\.\d+/;
+	my $acc = $1;
+	if( !exists $tax{$acc} ) {
+	    warn "failed to get taxonomy for [", $seq->id, "] from [" . $seq->id() . "]\n";
+	    $tax{$acc} = "zz.unknown.zz";
 	}
+	$order{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
+							     'oc'  => $tax{$acc} };
+    }
 
     foreach my $nse ( sort { $order{$a}->{'oc'} cmp $order{$b}->{'oc'} } keys %order ) {
-	#print STDERR "$nse\n";
 	$newaln->add_seq( $order{$nse}->{'seq'} );
     }
 
     $newaln->ss_cons( $self->ss_cons );
     $newaln->match_states( $self->match_states );
-
-    return $newaln;
+    
+    return ($newaln, \%species);
 }
+
+#Same as order_by_embl_taxonomy but doesn't require a Rfam accession
+sub order_by_embl_taxonomy_nonrfam {
+    my ($self, $acc, $type) = @_;
+
+    my $newaln = Rfam::RfamAlign->new();
+    my( %tax, %order, %species );
+    my @seqs = $self->each_seq;
+    
+    ## get the tax strings from the rdb
+    ##get DB connection parameters from Rfam.pm
+  
+    my $dbName=$Rfam::live_rdb_name;
+    my $dbHost=$Rfam::rdb_host;   
+    my $dbdriver=$Rfam::rdb_driver;
+    my $dbUser=$Rfam::rdb_user;
+    my $dbPass=$Rfam::rdb_pass;
+    my $dbPort=$Rfam::rdb_port;
+    
+    #prepare DB connection and statement handles
+    my $dsn    = "dbi:$dbdriver:$dbName:$dbHost:$dbPort";
+    my $dbAttr = { RaiseError => 1,  PrintError => 1 };
+    
+    # connect
+    my $dbh = DBI->connect( $dsn, $dbUser, $dbPass, $dbAttr )
+	or die "(EE) ERROR: couldn't connect to database: $!";
+
+    my $prepareString = 'select tx.species from rfamseq as rs join taxonomy as tx on rs.ncbi_id=tx.ncbi_id and rs.rfamseq_acc=?';
+    my $asth=$dbh->prepare( $prepareString )
+	or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;
+    
+    ###-----------------------------------------------------------
+    
+    #get array of seq accessions order the seqs by taxonomy
+    foreach my $seq ( @seqs ) {
+	$seq->id()=~ /^(\S+)\.\d+/;
+	my $acc = $1;
+	$asth->execute($acc);
+	
+	my $taxString;
+	my $data =  $asth->fetchall_arrayref();
+	foreach my $row (@$data){
+	    $taxString .= $row->[0];
+	}
+	$taxString = 'unknown' if not defined $taxString;
+	
+	$species{$acc}= RfamUtils::species2shortspecies($taxString) if defined $acc && defined $taxString;
+	
+	$order{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
+							     'oc'  => $taxString };
+    }
+    
+    foreach my $nse ( sort { $order{$a}->{'oc'} cmp $order{$b}->{'oc'} } keys %order ) {
+	$newaln->add_seq( $order{$nse}->{'seq'} );
+    }
+
+    $newaln->ss_cons( $self->ss_cons );
+    $newaln->match_states( $self->match_states );
+    
+    return ($newaln, \%species);
+}
+
 
 
 # insert a column of gaps after the given column number
@@ -531,7 +588,8 @@ sub read_stockholm {
         my $name = $c2name{$no};
 	my( $seqname,
 	    $start,
-	    $end );
+	    $end,
+	    $strand);
 	
         if( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
             $seqname = $1;
@@ -543,10 +601,18 @@ sub read_stockholm {
             $end = length($align{$name});
         }
 
+#--------------------- WARNING ---------------------
+#MSG: In sequence DJ431322.1 residue count gives end value 121.
+#Overriding value [71] with value 121 for Bio::LocatableSeq::end().
+#CCCAAGG.CUCUUUUC...............A.G.A.G..CC..ACCCA
+#---------------------------------------------------
+	($start,$end,$strand)=RfamUtils::se2ses($start,$end);
+	
         my $seq = new Bio::LocatableSeq( '-seq'   => $align{$name},
 					 '-id'    => $seqname,
 					 '-start' => $start,
 					 '-end'   => $end, 
+					 '-strand'=> $strand, 
 					 '-type'  => 'aligned'
 					 );
 
@@ -731,6 +797,29 @@ sub write_ilm {
     }
 }
 
+##Bioperl version mungs reverse strand sequences! Fix attempted here:
+sub get_nse_rfam {
+
+   my ($self,$char1,$char2) = @_;
+   
+   $char1 ||= "/";
+   $char2 ||= "-";
+   
+   my ($id, $st, $end)  = ($self->id(), $self->start(), $self->end());
+   ($st, $end)          = ($self->end, $self->start) if (defined $self->strand && $self->strand<0 && $st < $end);
+   
+   $self->throw("Attribute id not set") unless defined($id);
+   $self->throw("Attribute start not set") unless defined($st);
+   $self->throw("Attribute end not set") unless defined($end);
+   
+   #Stockholm Rfam includes version if present so it is optional
+   my $v = $self->version ? '.'.$self->version : ''; 
+#   print "get_nse_rfam: [" . $id . $v. $char1 . $st . $char2 . $end . "]\n";
+   return $id . $v. $char1 . $st . $char2 . $end ;
+
+}
+
+
 
 sub write_stockholm {
     my $self  = shift;
@@ -738,7 +827,7 @@ sub write_stockholm {
     my $block = shift;
     $block = 50 if( not defined $block );
     $block = $self -> length if( not $block );
-
+    
     my $maxn = $self->maxdisplayname_length() + 2;
     $maxn = 15 if( $maxn < 15 );
     my $iter = $self->length/$block;
@@ -754,7 +843,12 @@ sub write_stockholm {
 	
     for( my $i=0; $i < $iter; $i++ ) {
 	foreach my $seq ( $self->each_seq() ) {
-	    my $namestr = $self->displayname($seq->get_nse());
+	    my $nse = $seq->get_nse();
+	    my $rfamNse = get_nse_rfam($seq);
+#	    my $namestr = $self->displayname($nse);
+	    my $namestr = $rfamNse;
+#	    my $namestr = $self->displayname(get_nse_rfam($seq));
+#	    print "nse:[$nse] rfamNse:[$rfamNse] displayname:[$namestr]\n";
 	    my $subseq = substr( $seq->seq, $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", $namestr, $subseq );
 	}
