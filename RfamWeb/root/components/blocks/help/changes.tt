@@ -16,49 +16,10 @@
   <div class="blockContent">
   
     <p>
-      This section details the changes that we plan to make or have made to Rfam.
-      This includes changes to the flatfiles, MySQL database and the public 
-      website.
-    </p>
-    <hr />
-<!--
-    <h2>Latest changes to Rfam data</h2>
-
-    [%- # all changelog entries are stored in the "changelog.conf" config
-        # file. Each entry is a hash value, keyed on the epoch time of the
-        # entry. To show the changelog entries, we get the keys (which are
-        # effectively date stamps) and use them to pull out the snippets of
-        # static HTML for each entry 
-    
-    dataUpdateDates = c.config.changelog.data_changes.keys.sort.reverse;
-    
-    latestUpdateDate = dataUpdateDates.shift;
-    c.config.changelog.data_changes.${latestUpdateDate} %]
- 
-    <p>
-      <span onclick="reveal( this, 'dataChanges', false, true )"
-            class="moreLink">
-        Show</span> past changes.
+      This section details the changes that we have made to the Rfam website.
     </p>
 
-    <div id="dataChanges" 
-         class="pastChanges"
-         style="display: none">
-
-      <h2>Past changes</h2>
-
-      [%- FOREACH updateDate IN dataUpdateDates;
-        c.config.changelog.data_changes.${updateDate};
-      END %]
-
-    </div>
--->
-
-    <!-- end of "dataChanges" -->
-
-<!--
     <hr />
--->
 
     <h2>Latest changes to website</h2>
 
