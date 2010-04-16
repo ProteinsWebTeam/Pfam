@@ -97,9 +97,8 @@ while(1) {
 		      $qsout->update_job_status($ref->{id}, 'FAIL');
 		      $qsout->update_job_stream($ref->{id}, 'stderr', $error);
 		      next;
-		    }
-		    #/home/pfamweb/scripts/rfamseq_blast_new.pl -in /tmp/rfam_test_seq.fa -cpus 2 -data /data/blastdb/Rfam
-		    $cmd = $ref->{'command'}." -align -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir." -cpus ".$qsout->cpus." -data ".$qsout->rfamDataFileDir;
+		    #New Rfam scan line.
+		    $cmd = $ref->{'command'}." -f align  -blastdb ".$qsout->rfamDataFileDir."/Rfam.fasta ".$qsout->rfamDataFileDir."/Rfam.cm ". $qsout->tmpDir."/".$ref->{job_id}.".fa";
   	 } 
 	$DEBUG && print STDERR "Executing id=$ref->{'id'}, command=$cmd\n";
 	
