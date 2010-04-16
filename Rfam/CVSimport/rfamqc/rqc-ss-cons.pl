@@ -5,15 +5,17 @@
 # A program to run checks on alignment consistency with structure.
 
 use strict;
-use Rfam;
-use RfamQC;
-use Rfam::RfamAlign;
 use Getopt::Long;
 #use Data::Dumper; #Great for printing diverse data-structures.
 #use Tie::IxHash;  #Use to return hash keys in the order they were added
 use bigint;
 use Math::BigFloat;
 use Cwd;
+use File::Copy; 
+
+use Rfam;
+use RfamQC;
+use Rfam::RfamAlign;
 
 my( $nolog, $help, $file );
 
@@ -50,6 +52,9 @@ else {
     $file = "SEED";
 }
 
+# make sure files are writable by group
+umask(002);
+
 print "family_dir: $family_dir\n";
 
 if ( !(-e "$family_dir/$file")){
@@ -58,9 +63,34 @@ if ( !(-e "$family_dir/$file")){
     exit(1);    
 }
 
-my $error;
 $file = "$family_dir/$file";
 open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
+
+######################################################################
+#Check for gap only columns:
+system("sreformat --mingap stockholm $file > $file\.tmp") and die "FATAL: \47sreformat --mingap stockholm $file\47 failed";
+my ($alignmentLength, $alignmentLengthT);
+open(ALI,"esl-alistat $file |") or die( "FATAL: Could not open alistat pipe on $file:[$!]");
+while(<ALI>) {
+    if (/^Alignment length:\s+(\d+)/){ 
+	$alignmentLength = $1; 
+    }
+}
+close(ALI);
+
+open(ALI,"esl-alistat $file\.tmp |") or die( "FATAL: Could not open alistat pipe on $file:[$!]");
+while(<ALI>) {
+    if (/^Alignment length:\s+(\d+)/){ 
+	$alignmentLengthT = $1; 
+    }
+}
+close(ALI);
+
+if ($alignmentLength != $alignmentLengthT){
+    die ("FATAL: gap columns in $file!\n alignmentLength:$alignmentLength != alignmentLengthTrue:$alignmentLengthT\nRun:sreformat --mingap SEED");
+}
+
+######################################################################
 
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
@@ -71,18 +101,10 @@ my $perfamily=0;
 #tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
 #tie %perbasepair, "Tie::IxHash";
 
-if (-e "$family_dir/ss-stats-perfamily"){
-    system("cp $family_dir/ss-stats-perfamily $family_dir/ss-stats-perfamily.old");
-}
 
-if (-e "$family_dir/ss-stats-persequence"){
-    system("cp $family_dir/ss-stats-persequence $family_dir/ss-stats-persequence.old");
-}
-
-if (-e "$family_dir/ss-stats-perbasepair"){
-    system("cp $family_dir/ss-stats-perbasepair $family_dir/ss-stats-perbasepair.old");
-}
-
+copy("$family_dir/ss-stats-perfamily", "$family_dir/ss-stats-perfamily.old") if (-e "$family_dir/ss-stats-perfamily");
+copy("$family_dir/ss-stats-persequence", "$family_dir/ss-stats-persequence.old") if (-e "$family_dir/ss-stats-persequence");
+copy("$family_dir/ss-stats-perbasepair", "$family_dir/ss-stats-perbasepair.old") if (-e "$family_dir/ss-stats-perbasepair");
 
 #Open log files:
 if( ! defined $nolog ) {
@@ -103,29 +125,10 @@ my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
 my @list = $seed->each_seq();
-
-open(SD, "<$file") || die "cant read in the seed file to get the sscons lines$!";
-my @seedlines=<SD>;
-chomp @seedlines;
-close(SD);
-
-my @cons=grep{/cons/} @seedlines;
-my $ss_cons;
-foreach my $c (@cons){
-    $c=~s/^.*\s+//g;
-    $ss_cons.=$c;
-}
-#dont use this as it removes the unbalanced base pairs from the ss_cons line
-#my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
-
+my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
 
 #Make a pair table & initialise hashes:
 my @table = make_pair_table($ss_cons);
-if (! @table){
-    print STDERR "Problem with making the basepair table;";
-    exit(1);
-}
-
 my $noseqs = scalar(@list);
 my $len = $table[0];
 my ($loop, $nopairs) = (0,0);
@@ -168,8 +171,7 @@ if ($nopairs==0){
 }
 
 if (scalar(@list)<2){
-    printf STDERR "WARNING: $shortname_family_dir is boring and less than two sequences!\n";
-    exit(1);
+    printf STDERR "WARNING: $shortname_family_dir is boring and less than two sequences! Computing base-pair stats only.\n";
 }
 
 my @list2 = @list;
@@ -278,7 +280,6 @@ foreach my $seqobj ( @list ) {
 	}
 	else {
 	    printf STDERR "WARNING: $shortname_family_dir $seqname has length \'$len1\' and $seqname2 has length \'$len2\' in $family_dir/SEED!\n";
-	    exit (1);
 	}
 	
 	$mean_pid += $pid;
@@ -400,7 +401,7 @@ if ($noseqs>0 && $nopairs>0){
 	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	else {
-	    printf STDERR "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
+	    printf "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	
 	if ($perbasepair{$bpposns}<$threshold){
@@ -420,7 +421,7 @@ if( ! defined $nolog ) {
     printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;    
 }
 else {
-    printf STDERR "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
+    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
 }
 
 close(LOGpb);
@@ -442,9 +443,9 @@ close(LOGps);
 #                 (8,0,8,7,0,0,0,3,2)
 ######################################################################
 sub make_pair_table {
-    
-    my $str = shift;
 
+    my $str = shift;
+    
     my $unbalanced = 0;
     my %bpsymbs5p3p = (
 	'(' => ')',
@@ -528,11 +529,10 @@ sub make_pair_table {
 	    $bpsymbs3p5p_counts{$char}++;
 	}
        	else {
-	    $unbalanced=1;
 	    printf STDERR "Strange character \"$char\" in secondary structure:\n$str\n";
 	}
     }
-
+    
     #Check basepair symbols are all matched:
     foreach my $symb5p (keys %bpsymbs5p3p_counts){
 	my $symb3p = $bpsymbs5p3p{$symb5p};
@@ -543,13 +543,12 @@ sub make_pair_table {
 	}
     }
     
-
+    
     if ($count != 0 || $unbalanced){
-	printf STDERR "Unbalanced basepair symbols/or strange chars  in secondary structure:\n$str\n";
+	printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
 	return ();
     }    
     else {
-	print STDERR "SScons is fine\n";
 	return @pair_table;
     }
     
@@ -846,6 +845,44 @@ Usage:    rqc-ss-con.pl <directory>
 Options:
   -n             no log file
   -f <stkfile>   calculate statistics on \47stkfile\47 instead of SEED
+
+Email discussion with Eric Nawrocki:
+
+Use a rel-entropy measure also?:
+> cmbuild --prior nearzero.prior --enone my.cm ../testsuite/srp-euk.sto
+#                                                                          rel entropy
+#                                                                         ------------
+#  aln  cm idx  name           nseq  eff_nseq    alen   clen   bps  bifs     CM    HMM
+# ----  ------  ---------  --------  --------  ------  -----  ----  ----  -----  -----
+     1       1  srp-euk-1        37     37.00     344    297    74     4  0.892  0.691
+
+The 'rel entropy' 'HMM' column is the information that's due to
+primary sequence conservation, so in this case 0.691/0.892 =~ 77% of
+the information is from the primary sequence and 23% is from the
+structure - more specifically from modelling the consensus pairs
+emissions as joint probabilities instead of independently as if they
+were single stranded like an HMM could do.
+
+> cmbuild -F my.cm ../testsuite/srp-euk.sto
+#                                                                          rel entropy
+#                                                                         ------------
+#  aln  cm idx  name           nseq  eff_nseq    alen   clen   bps  bifs     CM    HMM
+# ----  ------  ---------  --------  --------  ------  -----  ----  ----  -----  -----
+     1       1  srp-euk-1        37      8.90     344    297    74     4  0.590  0.385
+
+probabilities of the CM as long as you don't go to below 0.59 bits per
+position (for models > 90 consensus positions), or the corresponding
+number for models < 90 consensus positions.
+
+\$X = 6.* (eX + log((double) ((clen * (clen+1)) / 2)) / log(2.))    / (double)(2*clen + 4);
+
+if (0.59 > \$relEntropy && \$length >= 90){
+       print "BAD MODEL MAGIC! The model is now non-specific, delete dodgy sequences.\n";
+}
+elsif (\$X > \$relEntropy && \$length < 90){
+       print "BAD MODEL MAGIC! The model is now non-specific, delete dodgy sequences.\n";
+}
+
 
 EOF
 }
