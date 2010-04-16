@@ -9,7 +9,7 @@
 #5. If there are possible replacements for a missing seq in the ALIGN print:
 #      1. [num] 
 #      2. SEED seqname
-#      3. EMBL-ID/NSE of replacement
+#      3. EMBL-ID/NSE of replacementpeople/zasha_weinberg/
 #      4. Species
 #      5. DE
 #6. Read in [num] choice or [n]. 
@@ -287,7 +287,7 @@ my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
 
-my @remove;
+my %remove;
 foreach my $rep (keys %replace){
     
     print     "######################################################################\n" if defined($verbose);
@@ -410,7 +410,8 @@ foreach my $rep (keys %replace){
     my ($badseq, @warnings2);
     foreach my $seq ( $seed->each_seq() ) {
 	my $id = $seq->id;
-	my $nse = seqObj2nse($seq);
+	#my $nse = seqObj2nse($seq);
+	my $nse = Rfam::RfamAlign::get_nse_rfam($seq);
 	#if ( $id eq $rep || $id eq $rep2 ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	if ( $nse eq $rep ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $badseq=$seq;
@@ -420,8 +421,8 @@ foreach my $rep (keys %replace){
 	}
 	elsif  ( $id eq $rep || $id eq $rep2 ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $badseq=$seq;
-	    print "WARNING1: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n" if defined($verbose);
-	    push(@warnings2, "WARNING1: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n");
+#	    print "WARNING1: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n" if defined($verbose);
+	    #push(@warnings2, "WARNING1: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n");
 	}
     }
     push(@warnings, @warnings2) if @warnings2;
@@ -430,14 +431,15 @@ foreach my $rep (keys %replace){
     my ($alnbadseq, $alngoodseq);
     foreach my $seq ( $warn->each_seq() ) {
 	my $id = $seq->id;
-	my $nse = seqObj2nse($seq);
+	my $nse = Rfam::RfamAlign::get_nse_rfam($seq);
+#	my $nse = seqObj2nse($seq);
 	if ( $nse eq $rep){
 	    $alnbadseq=$seq;
 	    undef @warnings2;
 	}
 	elsif ( $id eq $rep || $id eq $rep2 ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
-	    print "WARNING2: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n" if defined($verbose);
-	    push(@warnings2, "WARNING2: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n");
+	    #print "WARNING2: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n" if defined($verbose);
+	    #push(@warnings2, "WARNING2: id=[$id] eq rep=[$rep] || id=[$id] eq rep2=[$rep2], check sequences were mapped correctly...\n");
 	    $alnbadseq=$seq;
 	}
 	else {
@@ -503,32 +505,39 @@ foreach my $rep (keys %replace){
     
     my $ts = join( '', @s );
     $ts =~ tr/tT/uU/;
-    $new->start( $alngoodseq->start );
-    $new->end( $alngoodseq->end );
+    $new->start(      $alngoodseq->start );
+    $new->end(        $alngoodseq->end );
+
+#    $new->display_id( $alngoodseq->id . "\/" . $alngoodseq->end . "\-" . $alngoodseq->start ) if $alngoodseq->strand<0;
+    $new->start(      $alngoodseq->end ) if $alngoodseq->strand<0;
+    $new->end(        $alngoodseq->start ) if $alngoodseq->strand<0;
+
+    $new->strand(     $alngoodseq->strand );
     $new->seq( $ts );
     $seed->add_seq( $new );
-    
+    #$seq->display_id
     if (defined($verbose)){
     print "
 #Replaced
->" . $badseq->id . "\/" . $badseq->start . "\-" . $badseq->end . "\n" .
+>" . $badseq->id . "\/" . $badseq->start . "\-" . $badseq->end . " strand:" . $badseq->strand . "\n" .
 $badseq->seq  . "\n" .
 "#With:
->" . $alngoodseq->id . "\/" . $alngoodseq->start . "\-" . $alngoodseq->end  . "\n" .
+>" . $alngoodseq->id . "\/" . $alngoodseq->start . "\-" . $alngoodseq->end . " strand:" . $alngoodseq->strand . "\n" .
 $ts . "\n\n";
     }
     
     if (defined($badseq)){
-	push( @remove, $badseq );
+	$remove{$badseq->id . "\/" . $badseq->start . "\-" . $badseq->end} = $badseq;
     }
 
     print     "######################################################################\n" if defined($verbose);
 }
 
-printf "removing %d sequences from SEED\n", scalar(@remove);
-foreach my $seq ( @remove ) {
-    print "\tdeleting " . seqObj2nse($seq) . "\n" if defined($verbose);
-    $seed->remove_seq( $seq );
+printf "removing %d sequences from SEED\n", scalar(keys %remove);
+foreach my $seq ( keys %remove ) {
+#    print "\tdeleting " . seqObj2nse($seq) . "\n" if defined($verbose);
+    print "\tdeleting " . $seq . "\n" if defined($verbose);
+    $seed->remove_seq( $remove{$seq} );
 }
 
 open(SEEDNEW, ">SEED.new") or die "FATAL: can't open SEED.new\n[$!]";
@@ -546,21 +555,52 @@ if(@warnings>0){
     }
 }
 
+#Sanity check:
+my $idSeed    = grab_ids_from_alignment("SEED");
+my $idSeedNew = grab_ids_from_alignment("SEED.new");
+foreach my $id (keys %{$idSeed}){
+    
+    my @nse = RfamUtils::nse2array($id);
+    if ($idSeedNew->{"$nse[0]/$nse[2]\-$nse[1]"}){
+	print "ERROR: coordinates have flipped between seed and seed.new!
+\tseed:    [$id]
+\tseed.new:[$nse[0]/$nse[2]\-$nse[1]]\n";
+    }
+}
+
 if(@noReplacement){
     my $noReplacement=join(')|(',@noReplacement);
     print "#Run this to remove the unmappable sequences:\n";
     print "egrep -v \'($noReplacement)\' SEED.new > delme; sreformat -r -u --mingap --pfam stockholm delme\n";
 }
 
+
+
 exit(0);
 
 #Given a sequence object return a NSE string:
-sub seqObj2nse {
-    my $seq = shift;
-    my $str = '';
-    $str = $seq->id . '/' . $seq->start . '-' . $seq->end if defined $seq->id && defined $seq->start && defined $seq->end;
-    return $str;
+#sub seqObj2nse {
+#    my $seq = shift;
+#    my $str = '';
+#    $str = $seq->id . '/' . $seq->start . '-' . $seq->end if defined $seq->id && defined $seq->start && defined $seq->end;
+#    return $str;
+#}
+
+#
+sub grab_ids_from_alignment {
+    my $file = shift;
+    open(IN, "< $file");
+    my %ids;
+    while(<IN>){
+	next if /^\#|^\s|\/\//;
+	if(/^(\S+)\s+(\S+)$/){
+	    $ids{$1}+=length($2);
+	}
+    }
+    close(IN);
+    return \%ids;
 }
+
 
 ######################################################################
 #trimEnds: trim the ends of replacement sequence so that it is the
@@ -608,6 +648,7 @@ sub trimEnds {
     $replacement = join('', @replacement);
     return ($original, $replacement, $toTrimS, $toTrimE);
 }
+
 
 #fixNameStartEnd: adjust start and end coordinates in the name if the sequence was trimmed:
 sub fixNameStartEnd {
@@ -693,14 +734,6 @@ tRNA model:!!!
 [1] [7] replace X14848.1/3820-3750 with X14848.1/3820-3750? [pid=100.00 cover=100.00] [blat=138.0 bits=48.74 E=2.05e-05] [.] [R.norvegicus]     [EMBL;STD;ROD:Rattus norvegicus mitochondrial genome]
 
 -PROBLEM WITH Y RNA (RF00019) 
---FAILS:
-------------- EXCEPTION: Bio::Root::Exception -------------
-MSG: Sequence AAGU01328742.1/1105-1205 does not exist in the alignment to remove!
-STACK: Error::throw
-STACK: Bio::Root::Root::throw /software/pfam/bioperl_1.5.2/Bio/Root/Root.pm:359
-STACK: Bio::SimpleAlign::remove_seq /software/pfam/bioperl_1.5.2/Bio/SimpleAlign.pm:308
-STACK: /nfs/team71/pfam/pg5/scripts/make/rfmake_resolve_warnings.pl:506
------------------------------------------------------------
 
 --DUPLICATE AAGU01328742.1 ENTRIES
 --SEQUENCE ALIGNMENT IS NON-IDENTICAL -- THE BLAT RESULT SUGGESTS OTHERWISE!
@@ -712,6 +745,11 @@ RF01324
 
 -ADD A REMOVE UNMAPPABLE SEQUENCES OPTION...
 --COLLAPSE COLUMNS
+
+Add a call to:
+\&RfamQC::valid_sequences( \$family )
+
+Give a bonus point of the coordinates are equal.
  
 EOF
 }
