@@ -53,7 +53,8 @@ use base 'Bio::Das::ProServer::SourceAdaptor';
 
 our $type_ref = {
 	'Unknown' => {
-				'type'			=> 'SO:1000090',
+				#'type'			=> 'SO:1000090',
+				'type'			=> 'SO:1000088',
 				'typetxt'		=> 'mutation_causing_uncharacterised_change_of_translational_product',
 				'method_cvid' => 'ECO:0000006',
 				'method' 		=> 'Cosmic',
