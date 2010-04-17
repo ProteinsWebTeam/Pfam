@@ -5,16 +5,16 @@
 # jt6 20070524 WTSI.
 
 # to fix  a specific page run this:
-# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages list -acc RF00173  -update  -fill
+# scrape_cronjob.pl -pages list -acc RF00173  -update  -fill
 
 # to fix more than one  page just specify multiple -acc
-# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages list -acc RF00173 -acc RF00018 -update  -fill
+# scrape_cronjob.pl -pages list -acc RF00173 -acc RF00018 -update  -fill
 
 # to update all pages use this:
-# ~jd7/WIKI/Code/scrape_cronjob_all.pl -pages all  -update  -fill
+# scrape_cronjob.pl -pages all  -update  -fill
 
 # *** the scrape code updates the RDB on dev- you then need to run this to copy the table over to live.******
-# ~jd7/WIKI/Code/updateLive.sh
+# updateLive.sh
 # *
 # nb
 # *the -update option has to be used otherwise it only reports changes that have been made and not actually update the RDB
@@ -22,10 +22,10 @@
 # * to update only pages that have been edited in N days use -changes N instead of -fill
 
 # e.g
-# ./scrape_cronjob_all.pl -pages list -acc RF00173  -update  -changes 5
+# scrape_cronjob.pl -pages list -acc RF00173  -update  -changes 5
 # will update this page if edited in the last 5 days.
 # or
-# /scrape_cronjob_all.pl -pages all  -update  -changes 5
+# scrape_cronjob.pl -pages all  -update  -changes 5
 #will update any of our pages if edited in the last 5 days. 
 
 
@@ -79,7 +79,7 @@ my $WP_API = 'http://en.wikipedia.org/w/api.php';
 my( $dbHost, $dbPort, $dbName, $dbUser, $dbPass );
 $dbHost = 'pfamdb2a';
 $dbPort = '3301'; # this will be different for the new different dbs..
-$dbName = 'rfam_9_1';
+$dbName = 'rfam_10_0';
 $dbUser = 'pfam';
 $dbPass = 'mafp1';
 
@@ -384,7 +384,7 @@ TITLE:foreach my $ar ( keys %$rfams ) {
       print "\n$page_count pages checked/updated\n";
   }
 
-print STDERR "**You should now update the live RDB with the new data. run the following command\n\n\/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_9_1 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_9_1\\n\n";
+print STDERR "**You should now update the live RDB with the new data. run the following command\n\n\/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_10_0 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_10_0\\n\n";
 
 
 exit;
@@ -715,7 +715,7 @@ Facility to check for changes & report but not update the RDB-default is report 
 **need to add facily to 
 **note revisions wont report anything > 500 edits. 
 
-Usage:  ./scrape_cronjob_all.pl <options>
+Usage:  ./scrape_cronjob.pl <options>
 Options:       -h               show this help
 		-pages		can be 'all' or 'list'
 		-acc		must be a family acc e. RF00648. can specify multiple.
@@ -724,13 +724,13 @@ Options:       -h               show this help
 		-update		unless this option is specified the RDB is not updated.
   
 e.g. check for changes in all pages in last 20 days update rdb
- scrape_cronjob_all.pl -pages all -changes 20 -update 
+ scrape_cronjob.pl -pages all -changes 20 -update 
 
 e.g. changes in pages for RF00648 and RF00122 in last 5 days
- scrape_cronjob_all.pl -pages list -acc RF00648 -acc RF00122 -changes 5 -update 
+ scrape_cronjob.pl -pages list -acc RF00648 -acc RF00122 -changes 5 -update 
 
 e.g.update the page for RF00648
- scrape_cronjob_all.pl -pages list -acc RF00648 -fill
+ scrape_cronjob.pl -pages list -acc RF00648 -fill
 
 EOF
 
