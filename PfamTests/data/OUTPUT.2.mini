@@ -1,0 +1,145 @@
+hmmsearch - search a sequence database with a profile HMM
+HMMER 2.3.2 (Oct 2003)
+Copyright (C) 1992-2003 HHMI/Washington University School of Medicine
+Freely distributed under the GNU General Public License (GPL)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+HMM file:                   HMM.2 [SEED]
+Sequence database:          /Users/finnr/Work/PfamCodeBase/PfamTests/data/minidb.fa
+per-sequence score cutoff:  [none]
+per-domain score cutoff:    [none]
+per-sequence Eval cutoff:   <= 10        
+per-domain Eval cutoff:     [none]
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query HMM:   SEED
+Accession:   [none]
+Description: [none]
+  [No calibration for HMM; E-values are upper bounds]
+
+Scores for complete sequences (score includes all domains):
+Sequence Description                                    Score    E-value  N 
+-------- -----------                                    -----    ------- ---
+P37935.1 MAAY4_SCHCO Mating-type protein A-alpha Y4.    398.8   4.7e-114   1
+Q02531.2 Q02531_SCHCO Y5.                               393.8   1.5e-112   1
+P37936.1 MAAY1_SCHCO Mating-type protein A-alpha Y1.    391.0     1e-111   1
+P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.    389.4   3.2e-111   1
+Q9P448.1 Q9P448_SCHCO Mating type protein A-alpha Y6.   382.9   2.8e-109   1
+
+Parsed for domains:
+Sequence Domain  seq-f seq-t    hmm-f hmm-t      score  E-value
+-------- ------- ----- -----    ----- -----      -----  -------
+P37935.1   1/1       1   146 [.     1   149 []   398.8 4.7e-114
+Q02531.2   1/1       1   149 [.     1   149 []   393.8 1.5e-112
+P37936.1   1/1       1   146 [.     1   149 []   391.0   1e-111
+P37934.1   1/1       1   147 [.     1   149 []   389.4 3.2e-111
+Q9P448.1   1/1       1   147 [.     1   149 []   382.9 2.8e-109
+
+Alignments of top-scoring domains:
+P37935.1: domain 1 of 1, from 1 to 146: score 398.8, E = 4.7e-114
+                   *->MedllalLqsIsAnAkdmaaiArSRGAkpiPspvpttavhPCFdpLP
+                      M++lla+LqsIsA+Akdm+a+ArSRGA+++ +p+ptt++h  Fd+L+
+    P37935.1     1    MAELLACLQSISAHAKDMMALARSRGATGS-RPTPTTLPH--FDELL 44   
+
+                   tPdLdglRtRLqeakLPpKaikSALsAYEkACaRWrsdleeaFdktAksV
+                   +P+Ld++RtRLqea+LPpKaik++LsAYE+ACaRW++dleeaFd+tA+s+
+    P37935.1    45 PPNLDFVRTRLQEARLPPKAIKGTLSAYESACARWKHDLEEAFDRTAHSI 94   
+
+                   SPhNlHLLeaLRfrlYteQVeKWlvQVLqVperWrAEMEKQRAHIaATMG
+                   SPhN+++L++LR+rlY+eQV+KWl++VLqVperW+AEMEKQRAHI+ATMG
+    P37935.1    95 SPHNFQRLAQLRTRLYVEQVQKWLYEVLQVPERWKAEMEKQRAHINATMG 144  
+
+                   ps<-*
+                   p+   
+    P37935.1   145 PD    146  
+
+Q02531.2: domain 1 of 1, from 1 to 149: score 393.8, E = 1.5e-112
+                   *->MedllalLqsIsAnAkdmaaiArSRGAkpiPspvpttavhPCFdpLP
+                      M++++++L+sI+AnA+++++iAr+RGAk++Ps++++t+v+PCF++LP
+    Q02531.2     1    MDASSSPLHSIAANARALVEIARARGAKHAPSAQRPTTVKPCFAVLP 47   
+
+                   tPdLdglRtRLqeakLPpKaikSALsAYEkACaRWrsdleeaFdktAksV
+                   tPd++glRt+L++++LP+K+i+SA++AYEkAC+RW+sd++++Fd++AksV
+    Q02531.2    48 TPDYAGLRTCLSQVHLPAKVIDSAIAAYEKACVRWLSDITYHFDIAAKSV 97   
+
+                   SPhNlHLLeaLRfrlYteQVeKWlvQVLqVperWrAEMEKQRAHIaATMG
+                   SP+N+HLLe+LRf+++t+QVeKW++QVL++++rWr+EMEKQRAHI+ATMG
+    Q02531.2    98 SPANYHLLELLRFQTFTRQVEKWQTQVLEFASRWREEMEKQRAHITATMG 147  
+
+                   ps<-*
+                   ps   
+    Q02531.2   148 PS    149  
+
+P37936.1: domain 1 of 1, from 1 to 146: score 391.0, E = 1e-111
+                   *->MedllalLqsIsAnAkdmaaiArSRGAkpiPspvpttavhPCFdpLP
+                      M+d+la+L++IsA+Ak+m++iA++RGA+p+ +p++t++vh  FdpLP
+    P37936.1     1    MTDRLASLRAISASAKSMMSIAAARGAQPT-APIQTAPVH--FDPLP 44   
+
+                   tPdLdglRtRLqeakLPpKaikSALsAYEkACaRWrsdleeaFdktAksV
+                   tP+Ldg+R+RL+e+kLPpKa+kSAL++Y++ACaRWr++l+e+F+++A+sV
+    P37936.1    45 TPYLDGIRARLTEVKLPPKALKSALNSYDQACARWRYSLDESFSQAARSV 94   
+
+                   SPhNlHLLeaLRfrlYteQVeKWlvQVLqVperWrAEMEKQRAHIaATMG
+                   SPhNlHLL++LRfrlYteQVe+W+vQVLqV+e+WrAEMEKQRAHIaA+++
+    P37936.1    95 SPHNLHLLSTLRFRLYTEQVERWAVQVLQVAEQWRAEMEKQRAHIAASTD 144  
+
+                   ps<-*
+                   +s   
+    P37936.1   145 KS    146  
+
+P37934.1: domain 1 of 1, from 1 to 147: score 389.4, E = 3.2e-111
+                   *->MedllalLqsIsAnAkdmaaiArSRGAkpiPspvpttavhPCFdpLP
+                      M+d+l+lLq+Is++Akd+a++A+SRGA+piP+pv++t+v+  FdpLP
+    P37934.1     1    MVDRLKLLQAISTSAKDLASFALSRGASPIPQPVGLTDVT--FDPLP 45   
+
+                   tPdLdglRtRLqeakLPpKaikSALsAYEkACaRWrsdleeaFdktAksV
+                   +PdL++l++RL++a+LPpK++kSA++AY++AC+RWrs+++e+F++tA++V
+    P37934.1    46 LPDLNALHRRLKDAGLPPKTTKSAIKAYDEACSRWRSTVDESFKATASAV 95   
+
+                   SPhNlHLLeaLRfrlYteQVeKWlvQVLqVperWrAEMEKQRAHIaATMG
+                   SP+NlHLL++LR+++Y++QV+KWl+QVLqVpe+W+AEM+KQRAHI+ATM+
+    P37934.1    96 SPRNLHLLLSLRHHVYAQQVQKWLWQVLQVPELWKAEMAKQRAHITATMD 145  
+
+                   ps<-*
+                   ++   
+    P37934.1   146 TY    147  
+
+Q9P448.1: domain 1 of 1, from 1 to 147: score 382.9, E = 2.8e-109
+                   *->MedllalLqsIsAnAkdmaaiArSRGAkpiPspvpttavhPCFdpLP
+                      Medl+++L++I+AnA++maa+A+SRG+++iP+++p++a++  ++pLP
+    Q9P448.1     1    MEDLVPHLKNILANARGMAAYAASRGGYSIPPQYPASAMS--LEPLP 45   
+
+                   tPdLdglRtRLqeakLPpKaikSALsAYEkACaRWrsdleeaFdktAksV
+                   +P+Ld+lR+RLq+akLP++++++ALsAYE+AC+RWr++le+aF+ktA+++
+    Q9P448.1    46 SPNLDYLRSRLQHAKLPARSVAAALSAYERACTRWRRELEDAFSKTAVYI 95   
+
+                   SPhNlHLLeaLRfrlYteQVeKWlvQVLqVperWrAEMEKQRAHIaATMG
+                   +P+NlHL++aLR+rlYt+QVeKW++QVL+Vp++W+AEMEKQRAHIaATMG
+    Q9P448.1    96 LPSNLHLFNALRIRLYTQQVEKWHAQVLEVPAKWTAEMEKQRAHIAATMG 145  
+
+                   ps<-*
+                   p+   
+    Q9P448.1   146 PA    147  
+
+
+Histogram of all scores:
+score    obs    exp  (one = represents 1 sequences)
+-----    ---    ---
+<-116     13      -|=============                                              
+>-116     17      -|=================                                          
+
+
+% No statistical fit available
+
+Total sequences searched: 30
+
+Whole sequence top hits:
+tophits_s report:
+     Total hits:           5
+     Satisfying E cutoff:  5
+     Total memory:         16K
+
+Domain top hits:
+tophits_s report:
+     Total hits:           5
+     Satisfying E cutoff:  5
+     Total memory:         18K

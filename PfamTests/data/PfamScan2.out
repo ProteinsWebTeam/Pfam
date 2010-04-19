@@ -1,0 +1,71 @@
+Q1JEP1.1     12    398     12    398  PF01640.5     1   394    746.6  3.9e-229  Peptidase_C10    CL0125.5
+#HMM       illalGllllalpvladqnvarnekkakdsaktfiakraaikalarsaedlkldkvykaaeleeallyvynriekdGfllvaaddrspevlGyatkGsfdaarkpenlasflksyvremeavkegkakkldtireakaeidlpvvkalldekGihasdgilydlltpvieklkpleqsfvGqqaatGcvatataqimkyykypekalkeydytlddntgtfthyknlfaeistrqynwskilgtisvrisnvekkalselmadvsisvdmdyadssssafsirveralketfgykkslrqinrsdlskkewkdqidkelaenrpvyyaGvdkvgGhafvidGaegdntyhvnwGwGGvsdGffrldllnpsalGtGaGdGGystdqevvvGikp
+#MATCH     +llalG+++la+pv+adqn+arnek+akdsa+tfi+k+aaika+arsaed+kldkv++++el+++++yvyn i+++Gf++v++d+rspe+lGy+t+Gsfda++k en+asf++syv   e++ke  +kkldt+++++aei++pvvk+lld+kGih+++g++y+lltpviek+kp+eqsfvGq+aatGcvatataqimky++yp+k+lk+y+ytl++n+++f+h+knlfa+istrqynw++il+t+s+r+snv+k+a+selmadv+isvdmdy++ss+sa+s+rv+ralke+fgy++s++qinrsd+sk++w++qidkel++n+pvyy+Gv+kvgGhafvidGa+g+n+yhvnwGwGGvsdGffrld+lnpsalGtG+G+GG++++q++vvGikp
+#PP        689********************************************************************.********************************.***********...*****..***************************************************************************************************************************************************************************************************************************************************************************9
+#SEQ       SLLALGGFVLANPVFADQNFARNEKEAKDSAITFIQKSAAIKAGARSAEDIKLDKVNLGGELSGSNMYVYN-ISTGGFVIVSGDKRSPEILGYSTSGSFDANGK-ENIASFMESYV---EQIKE--NKKLDTTYAGTAEIKQPVVKSLLDSKGIHYNQGNPYNLLTPVIEKVKPGEQSFVGQHAATGCVATATAQIMKYHNYPNKGLKDYTYTLSSNNPYFNHPKNLFAAISTRQYNWNNILPTYSGRESNVQKMAISELMADVGISVDMDYGPSSGSAGSSRVQRALKENFGYNQSVHQINRSDFSKQDWEAQIDKELSQNQPVYYQGVGKVGGHAFVIDGADGRNFYHVNWGWGGVSDGFFRLDALNPSALGTGGGAGGFNGYQSAVVGIKP
+
+Q55U49.1    895   1146    895   1146  PF00621.1     1   180    118.4   2.1e-38  RhoGEF           No_clan
+#HMM       vikElletErsYvrdLeilvevflkplkee........kkilseeeiktiFsnieeilelhke.fleeLee...rlees.............seeqkigdvflkleeflkvYseYcsnypkalkllkklk.................................................kknkkfakflkeleespecrkldLeslLikPvqRiprYplLLkellkhtpedhpdy.edlkkaleaikevakqine
+#MATCH     +i+E++etEr+Yvr+L++lv+++++p+++++++++++++++++++e+k++F+++e+il++h+++fl++Le+++++   ++++++++++++++++++++g+vf+++++++k+Ys+Y++n+++al+++k+++++++++++++++++++++++++++++++++++++++++++++++++++++++k++++flk+++e+p++++++Les+L++P+qR+prY+lLL+el+++tp+++++++++l++al++i+++a+++ne
+#PP        699************************999*******************************655*******6662...23334555566666777778******9999*********************************************************************9977788********************************************96665445***************9997
+#SEQ       CIHEIWETERTYVRNLGELVTIYVRPASQPvnqsksvvETVIPAAERKIVFGGVESILAIHRDnFLPALETvlkQ---LiengddekgilsiDTAYSVGEVFRTYIAYMKQYSTYITNFDNALARMKTWSlsnsgsstpafsgkssaanasvnalsagmgavslsasavpttsgqsmssSQRKRVKAFLKKAREHPMHSQISLESYLLLPIQRVPRYKLLLTELAMCTPARSDGLrDALDDALTEISSLASLMNE
+
+P28685.1     47    115     32    124  PF07679.6    13    82     37.8   3.8e-13  I-set            CL0011.5
+#HMM       keGesaeleckvsGepepevsWlkdgqelke..skrlkvkeeegeatLtisn.vkkeDeGkYtckatnsagea
+#MATCH     +++e+++l+c+++++p+++++W+++g+elk+++++r+++++++    L+isn+vk++D+G+Y+c+atn++g++
+#PP        44579*************************9445555555555....9998769***************9875
+#SEQ       SAEEKVTLTCRARANPPATYRWKMNGTELKMgpDSRYRLVAGD----LVISNpVKAKDAGSYQCVATNARGTV
+
+P28685.1    136    208    128    216  PF07679.6     8    79     11.1   8.3e-05  I-set            CL0011.5
+#HMM       kdvevkeGesaeleckvsGe.pepevsWlkdgqelkeskrlkvkeeegeatLtisnvkkeDeGkYtckatnsa
+#MATCH     ++v+++eG++++++c++++++p+++++Wl++++++++++++++++++++++L+i++++++D+G+Y+c+at+++
+#PP        67899999999999998765599999999996654443444444455568*******************9876
+#SEQ       DPVKITEGWGVMFTCSPPPHyPALSYRWLLNEFPNFIPADGRRFVSQTTGNLYIAKTEASDLGNYSCFATSHI
+
+P28685.1    241    312    234    318  PF07679.6     7    84     39.7   9.4e-14  I-set            CL0011.5
+#HMM       lkdvevkeGesaeleckvsGepepevsWlkdgqelkeskrlkvkeeegeatLtisnvkkeDeGkYtckatnsageaea
+#MATCH     ++d+++++G++++lec+++G+p+p+++W+k+++++++    k++++e  ++L+i+nv++eDeG+Y+c+a+n++g++++
+#PP        56777889********************997544443....344444..79*********************999876
+#SEQ       PADTYALTGQMVTLECFAFGNPVPQIKWRKLDGSQTS----KWLSSE--PLLHIQNVDFEDEGTYECEAENIKGRDTY
+
+P28685.1    328    407    322    407  PF07679.6     7    90     57.7   2.2e-19  I-set            CL0011.5
+#HMM       lkdvevkeGesaeleckvsGepepevsWlkdgqelkeskrlkvkeeegeatLtisnvkkeDeGkYtckatnsageaeasaeLtV
+#MATCH     ++d+e+++G++++++c++sG+p+p+v+Wl+dgq+l++++r++v+++e    L++s++++eD+G+Y+c+a+n++g+++asaeLtV
+#PP        678999*******************************9888888777....*******************************98
+#SEQ       ITDTEADIGSDLRWSCVASGKPRPAVRWLRDGQPLASQNRIEVSGGE----LRFSKLVLEDSGMYQCVAENKHGTVYASAELTV
+
+P28685.1    430    500    419    500  PF07679.6    17    90     45.5   1.4e-15  I-set            CL0011.5
+#HMM       saeleckvsGepepevsWlkdgqelkeskrlkvkeeegeatLtisnvkkeDeGkYtckatnsageaeasaeLtV
+#MATCH     +++++c+++++p+++v+W+k++++l++s+r+++++++   tL+++n++k+DeGkYtc+a+n++g+a+++++L+V
+#PP        577899*******************************...**************************99988776
+#SEQ       KVIIPCQPRAAPKATVLWTKGTELLTNSSRVTITADG---TLILQNISKSDEGKYTCFAENFMGKANSTGILSV
+
+P28685.1    505    599    504    599  PF07679.6     2    90     37.6   4.4e-13  I-set            CL0011.5
+#HMM       kftqklkdvevkeGesaeleckvsGepep..evsWlkdgqelke....skrlkvkeeegeatLtisnvkkeDeGkYtckatnsageaeasaeLtV
+#MATCH     k+t++++++++++Ge+++l+c++s++p+++++++W++d+++++++++++++++++++e++++L+i+n++++++G+Ytc+a+++++++++sa+LtV
+#PP        5778899********************8722578****99997643323334556666999********************************98
+#SEQ       KITLAPSSADINVGENLTLQCHASHDPTMdlTFTWSLDDFPIDLdkseGHYRRASVKEAVGDLAIVNAQLKHSGRYTCTAQTVVDSTSESATLTV
+
+P28685.1    605    692    604    692  PF00041.3     2    84     51.1   2.2e-17  fn3              CL0159.7
+#HMM       aptnlsvtevtstsltlsWsppe.gngpitgYeveyrpknege....eekeltvpgtttsvtltgLkpgteYevrVqavngagegpes
+#MATCH     +p++++v+++++t+++lsWs+++++++pi++Y++e+r++++++++++++++++++g+++++++++L+p+++Ye+rV+a+n++g+g++s
+#PP        89****************************************98888899999***************************99999987
+#SEQ       PPGGVVVRDIGDTTVQLSWSRGFdNHSPIARYSIEARTLLSNKwkqmRTNPVNIEGNAETAQVVNLIPWMDYEFRVLASNILGVGEPS
+
+P28685.1    718    795    708    795  PF00041.3    12    84     27.0     8e-10  fn3              CL0159.7
+#HMM       tstsltlsWsppe...gngpitgYeveyrpknegeeekeltvpgttt...svtltgLkpgteYevrVqavngagegpes
+#MATCH     ++++l+++W+p++++++ng+++gY++++r+k++++ +++++vp+++++++++++++++p+t++ev+++a+n++gegpes
+#PP        5899********99********************9.******999876224555779********************98
+#SEQ       APNELIINWTPTLrdyQNGDGFGYILSFRKKGTQG-WLTARVPHAESlhyVYRNESIGPYTPFEVKIKAYNRKGEGPES
+
+P28685.1    810    896    809    896  PF00041.3     2    84     61.0   1.8e-20  fn3              CL0159.7
+#HMM       aptnlsvtevtstsltlsWsppe...gngpitgYeveyrpknege.eekeltvpgtttsvtltgLkpgteYevrVqavngagegpes
+#MATCH     ap+++++++v+s+++++sW+p+e+++++g+++gYe++y++++++e+++++++++g++ts+++tgL+p+t+Y+v+V+a+n+ag+gp+s
+#PP        799*********************9999*************99998455555555555***************************98
+#SEQ       APFRVTAKAVLSSEMDVSWEPVEqgdMTGVLLGYEIRYWKDGDKEeAADRVRTAGLVTSAHVTGLNPNTKYHVSVRAYNRAGAGPPS
+
+P28685.1    911    954    910    977  PF00041.3     2    43     11.5   5.7e-05  fn3              CL0159.7
+#HMM       aptnlsvtevtstsltlsWsppe...gngpitgYeveyrpknege
+#MATCH     +p+n+s+t+ t++++t++W+p++++++++++tgY+++yr++++++
+#PP        677887776.899*********999*************9998775
+#SEQ       PPGNISWTL-TGSTVTIKWDPVVaqaDESAVTGYKMLYRQDSHSA

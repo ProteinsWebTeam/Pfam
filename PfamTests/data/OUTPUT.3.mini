@@ -1,0 +1,505 @@
+# hmmsearch :: search profile HMM(s) against a sequence database
+# HMMER 3.0.dev (October 2008); http://hmmer.janelia.org/
+# Copyright (C) 2008 Howard Hughes Medical Institute.
+# Freely distributed under the GNU General Public License (GPLv3).
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# query HMM file:             data/HMM.3
+# target sequence database:   data/minidb.fa
+# Random generator seed:      24
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Query:       SEED  [M=147]
+Scores for complete sequences (score includes all domains):
+   --- full sequence ----  ---- single best dom ----    -- #doms --
+   E-value   score   bias    score   bias    E-value     exp     N  Sequence Description
+   ------- ------- ------  ------- ------ ----------   ----- -----  -------- -----------
+   6.1e-71   245.4    0.6    244.0    0.5    1.7e-70     1.8     1  P37935.1 MAAY4_SCHCO Mating-type protein A-alpha Y4.
+   1.7e-70   243.9    3.3    242.7    2.3    4.2e-70     1.7     1  P37936.1 MAAY1_SCHCO Mating-type protein A-alpha Y1.
+     5e-69   239.2    1.6    239.2    1.1      5e-69     2.1     2  Q9P448.1 Q9P448_SCHCO Mating type protein A-alpha Y6.
+   8.2e-69   238.5    1.0    238.5    0.7    8.2e-69     2.5     3  P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.
+   2.3e-67   233.8    1.5    232.5    1.1    5.8e-67     1.7     1  Q02531.2 Q02531_SCHCO Y5.
+         1    17.6    0.0     17.5    0.0        1.1     1.1     1  A3UFN3.1 A3UFN3_9RHOB Putative uncharacterized protein.
+       1.8    16.7    0.8     11.1    0.2      1e+02     2.2     2  Q7MDW6.1 Q7MDW6_VIBVY Putative uncharacterized protein VVA0920.
+       1.9    16.7    0.0     14.8    0.0        7.4     1.8     2  A6RPE1.1 A6RPE1_BOTFB Putative uncharacterized protein.
+         2    16.7    1.0     11.1    0.2      1e+02     2.2     2  Q8D705.1 Q8D705_VIBVU Chromosome segregation ATPase.
+       2.3    16.4    0.1     15.1    0.0          6     1.7     2  A6B2D7.1 A6B2D7_VIBPA Transcriptional regulator, AraC family.
+       2.4    16.3    0.0     16.2    0.0        2.7     1.1     1  Q1N926.1 Q1N926_9SPHN Putative uncharacterized protein.
+       2.5    16.3    0.1      6.8    0.0    2.1e+03     2.6     2  Q16KM5.1 Q16KM5_AEDAE Zinc finger protein.
+       2.6    16.3    0.2     15.8    0.2        3.7     1.3     1  A3VWL1.1 A3VWL1_9RHOB Phage Terminase Small Subunit.
+       3.5    15.9    0.0     15.7    0.0        3.9     1.0     1  Q48E53.1 Q48E53_PSE14 Putative uncharacterized protein.
+       3.9    15.7    0.0     15.0    0.0        6.5     1.4     1  Q2K4Z3.1 Q2K4Z3_RHIEC Hypothetical conserved protein.
+       3.9    15.7    0.0     15.7    0.0        3.9     1.1     1  Q1MCT6.1 Q1MCT6_RHIL3 Putative uncharacterized protein.
+       4.1    15.6    0.3     13.7    0.1         16     1.9     2  Q67L73.1 Q67L73_SYMTH Putative pyrroline-5-carboxylate reductase.
+       5.5    15.2    0.7     13.9    0.5         14     1.6     1  Q4QCY3.1 Q4QCY3_LEIMA Putative uncharacterized protein.
+       5.9    15.1    0.9     13.0    0.1         26     2.1     2  A2E5U8.1 A2E5U8_TRIVA Putative uncharacterized protein.
+       6.2    15.0    0.0     14.2    0.0         11     1.3     1  A6GFJ1.1 A6GFJ1_9DELT TPR repeat.
+       6.5    15.0    0.1     14.0    0.1         13     1.6     1  Q9BHE6.1 Q9BHE6_LEIMA Putative uncharacterized protein P883.24 (Fragment).
+         7    14.9    0.0     14.8    0.0        7.1     1.1     1  Q8UCQ3.1 Q8UCQ3_AGRT5 Putative uncharacterized protein Atu2430 (AGR_C_4409p).
+         7    14.9    0.0     14.8    0.0        7.3     1.1     1  Q11G67.1 Q11G67_MESSB Putative uncharacterized protein.
+         7    14.8    0.0     14.7    0.0          8     1.1     1  Q0LVI0.1 Q0LVI0_9CAUL Putative uncharacterized protein.
+       7.2    14.8    0.5     13.2    0.0         22     2.0     2  A5PJJ1.1 A5PJJ1_BOVIN MGC159957 protein.
+       8.1    14.7    0.1     13.5    0.0         18     1.6     1  Q4Q6I6.1 Q4Q6I6_LEIMA Putative uncharacterized protein.
+       8.3    14.6    1.6     13.8    1.1         15     1.4     1  Q0F0G3.1 Q0F0G3_9PROT Acyl carrier protein S-malonyltransferase.
+       8.4    14.6    0.1     13.3    0.0         22     1.7     2  A8FX08.1 A8FX08_9GAMM Biotin biosynthesis protein BioC.
+       8.7    14.6    0.1     13.9    0.1         14     1.5     1  Q2U1Q6.1 Q2U1Q6_ASPOR Predicted protein.
+       9.4    14.4    0.1     13.9    0.1         14     1.2     1  Q9FQC7.1 Q9FQC7_MAIZE Glutathione S-transferase GST 12 (EC 2.5.1.18).
+
+Domain and alignment annotation for each sequence:
+>> P37935.1  MAAY4_SCHCO Mating-type protein A-alpha Y4.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1     244.0     0.5    9.5e-76    1.7e-70        1      146 [.        1      145 [.        1      146 [.    0.99
+
+  Alignments for each domain:
+  == domain 1    score: 244.0 bits;  conditional E-value: 9.5e-76
+      SEED   1 medrlallkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatmgp 146
+               m+++la+l++isa+akd++ala+srGa+++ +p++tt+++fd+l++P+ld++rtrl+ea+lP+kaik++lsaye+aCarW++dleeafd+ta+s+sP+n+++l++lr+rly+eqv+kWl++vl+v+erWkaemekqrahi+atmgp
+  P37935.1   1 MAELLACLQSISAHAKDMMALARSRGATGS-RPTPTTLPHFDELLPPNLDFVRTRLQEARLPPKAIKGTLSAYESACARWKHDLEEAFDRTAHSISPHNFQRLAQLRTRLYVEQVQKWLYEVLQVPERWKAEMEKQRAHINATMGP 145
+               899***************************.******************************************************************************************************************8 PP
+
+>> P37936.1  MAAY1_SCHCO Mating-type protein A-alpha Y1.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1     242.7     2.3    2.4e-75    4.2e-70        1      146 [.        1      145 [.        1      146 [.    0.99
+
+  Alignments for each domain:
+  == domain 1    score: 242.7 bits;  conditional E-value: 2.4e-75
+      SEED   1 medrlallkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatmgp 146
+               m+drla+l+aisasak+++++aa+rGa+++ +p++t++v+fdplptP+ld++r+rl+e+klP+ka+ksal++y++aCarWr++l+e+f+++a+svsP+nlhll++lr+rlyteqve+W+vqvl+vae+W+aemekqrahiaa++++
+  P37936.1   1 MTDRLASLRAISASAKSMMSIAAARGAQPT-APIQTAPVHFDPLPTPYLDGIRARLTEVKLPPKALKSALNSYDQACARWRYSLDESFSQAARSVSPHNLHLLSTLRFRLYTEQVERWAVQVLQVAEQWRAEMEKQRAHIAASTDK 145
+               99****************************.9****************************************************************************************************************98 PP
+
+>> Q9P448.1  Q9P448_SCHCO Mating type protein A-alpha Y6.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1     239.2     1.1    2.8e-74      5e-69        1      146 [.        1      146 [.        1      147 [.    0.99
+     2      -1.5     0.1        4.4    7.9e+05       19       37 ..      390      408 ..      373      423 ..    0.66
+
+  Alignments for each domain:
+  == domain 1    score: 239.2 bits;  conditional E-value: 2.8e-74
+      SEED   1 medrlallkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatmgp 146
+               med++++lk+i+a+a++++a+aasrG++sip++++++a++++plp+P+ld+lr+rl++aklPa+++++alsaye+aC+rWr++le+af+kta++++P+nlhl++alrirlyt+qvekW++qvlev+++W+aemekqrahiaatmgp
+  Q9P448.1   1 MEDLVPHLKNILANARGMAAYAASRGGYSIPPQYPASAMSLEPLPSPNLDYLRSRLQHAKLPARSVAAALSAYERACTRWRRELEDAFSKTAVYILPSNLHLFNALRIRLYTQQVEKWHAQVLEVPAKWTAEMEKQRAHIAATMGP 146
+               99**********************************************************************************************************************************************98 PP
+
+  == domain 2    score: -1.5 bits;  conditional E-value: 4.4
+      SEED  19 valaasrGaksipspvktt 37 
+               ++la++r+a+++ps+++++
+  Q9P448.1 390 GELAFARAAYPTPSKYAYV 408
+               47999999*9998877544 PP
+
+>> P37934.1  MAAY3_SCHCO Mating-type protein A-alpha Y3.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1     238.5     0.7    4.6e-74    8.2e-69        1      146 [.        1      146 [.        1      147 [.    0.99
+     2      -1.7     0.1          5    8.8e+05       15       35 ..      375      395 ..      363      415 ..    0.74
+     3      -2.9     0.3         12    2.1e+06       18       55 ..      681      718 ..      669      728 ..    0.71
+
+  Alignments for each domain:
+  == domain 1    score: 238.5 bits;  conditional E-value: 4.6e-74
+      SEED   1 medrlallkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatmgp 146
+               m+drl+ll+ais+sakdl+++a+srGa++ip+pv++t+v+fdplp+Pdl+al++rlk+a+lP+k++ksa++ay++aC+rWrs+++e+f++ta++vsP+nlhll++lr+++y++qv+kWl+qvl+v+e+Wkaem+kqrahi+atm++
+  P37934.1   1 MVDRLKLLQAISTSAKDLASFALSRGASPIPQPVGLTDVTFDPLPLPDLNALHRRLKDAGLPPKTTKSAIKAYDEACSRWRSTVDESFKATASAVSPRNLHLLLSLRHHVYAQQVQKWLWQVLQVPELWKAEMAKQRAHITATMDT 146
+               89**********************************************************************************************************************************************97 PP
+
+  == domain 2    score: -1.7 bits;  conditional E-value: 5
+      SEED  15 akdlvalaasrGaksipspvk 35 
+               ++++++la++r+a+++psp++
+  P37934.1 375 FDSKAELAFARMAYPAPSPYA 395
+               4566899999***99999875 PP
+
+  == domain 3    score: -2.9 bits;  conditional E-value: 12
+      SEED  18 lvalaasrGaksipspvkttavkfdplptPdldalrtr 55 
+               ++a+a+sr+++++++p++++a+++++++tP+l+++++r
+  P37934.1 681 SDASATSRKSRTSRKPRDSSASSVASARTPSLSSTSSR 718
+               44668889888888888888888999999988876655 PP
+
+>> Q02531.2  Q02531_SCHCO Y5.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1     232.5     1.1    3.3e-72    5.8e-67        1      147 []        1      149 [.        1      149 [.    0.99
+
+  Alignments for each domain:
+  == domain 1    score: 232.5 bits;  conditional E-value: 3.3e-72
+      SEED   1 medrlallkaisasakdlvalaasrGaksipspvkttavk..fdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatmgps 147
+               m++++++l++i+a+a++lv++a++rGak++ps++++t+vk++f++lptPd+++lrt+l++++lPak+i+sa++ayekaC+rW+sd++++fd++aksvsPan+hlle+lr++++t+qvekW++qvle+a+rW++emekqrahi+atmgps
+  Q02531.2   1 MDASSSPLHSIAANARALVEIARARGAKHAPSAQRPTTVKpcFAVLPTPDYAGLRTCLSQVHLPAKVIDSAIAAYEKACVRWLSDITYHFDIAAKSVSPANYHLLELLRFQTFTRQVEKWQTQVLEFASRWREEMEKQRAHITATMGPS 149
+               89999**********************************999*********************************************************************************************************85 PP
+
+>> A3UFN3.1  A3UFN3_9RHOB Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      17.5     0.0    6.1e-06        1.1       38      112 ..       18       89 ..        4       90 .]    0.80
+
+  Alignments for each domain:
+  == domain 1    score: 17.5 bits;  conditional E-value: 6.1e-06
+      SEED  38 avkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyt 112
+               ++++++lp+Pd++++++r+k a++ ++a++++l+++++aC+r+r+++ee f+++++s+++++l++l+++ri++y+
+  A3UFN3.1  18 PLTVADLPSPDTKRWVIRRK-AEV-VAAVRGGLLSLDEACDRYRLTVEE-FLSWQRSIDRHGLAGLRTTRIQQYR 89 
+               56778899998875443322.333.45899*****************97.5567899**************9996 PP
+
+>> Q7MDW6.1  Q7MDW6_VIBVY Putative uncharacterized protein VVA0920.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      11.1     0.2    0.00057      1e+02       27      121 ..       37      130 ..       17      148 ..    0.85
+     2       4.2     0.0      0.076    1.4e+04       82      102 ..      225      245 ..      183      252 ..    0.82
+
+  Alignments for each domain:
+  == domain 1    score: 11.1 bits;  conditional E-value: 0.00057
+      SEED  27 aksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvq 121
+               a+s++++v+++++++++l+++++++l++++++++l++++++s+++++e++++++++++++ +++t+++++P+++++l++l++++++++++kW+++
+  Q7MDW6.1  37 AASKSQSVINASADKSQLLQAEIEILKEEVRNLELYQRHLTSMIANQEQEKSSLAKQIQD-IQVTRQGIVPLMYDMLDTLKTTINQDMPIKWQQR 130
+               4444455666667778999**************************************987.6999*****************9999999999864 PP
+
+  == domain 2    score: 4.2 bits;  conditional E-value: 0.076
+      SEED  82 sdleeafdktaksvsPanlhl 102
+               +d+++afd++a++v+Pa+l++
+  Q7MDW6.1 225 TDVNRAFDIAAQKVAPAMLNM 245
+               5899************98875 PP
+
+>> A6RPE1.1  A6RPE1_BOTFB Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      -1.7     0.0        5.1      9e+05       40       75 ..      193      229 ..      180      235 ..    0.83
+     2      14.8     0.0    4.2e-05        7.4       31       78 ..      440      486 ..      423      500 ..    0.82
+
+  Alignments for each domain:
+  == domain 1    score: -1.7 bits;  conditional E-value: 5.1
+      SEED  40 kfdplptPdldalrtrlkeaklPakai.ksalsayek 75 
+               +++++p+P++++++++++++++P++++++++l++y++
+  A6RPE1.1 193 SYATIPDPSFENVTAGFDVVIIPEGGTeNNTLASYDS 229
+               6788999999999999999999987661578999987 PP
+
+  == domain 2    score: 14.8 bits;  conditional E-value: 4.2e-05
+      SEED  31 pspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCa 78 
+               ++++++t++++dp+++P+ +++r+rl++++lP+++i++al++ye++C+
+  A6RPE1.1 440 KVQYTPTQYGYDPANAPN-KFIRMRLNNGILPLDTIRGALANYEYVCF 486
+               346677777899999998.79*************************95 PP
+
+>> Q8D705.1  Q8D705_VIBVU Chromosome segregation ATPase.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      11.1     0.2    0.00058      1e+02       27      121 ..       37      130 ..       16      148 ..    0.85
+     2       4.3     0.0      0.072    1.3e+04       82      102 ..      225      245 ..      183      252 ..    0.82
+
+  Alignments for each domain:
+  == domain 1    score: 11.1 bits;  conditional E-value: 0.00058
+      SEED  27 aksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvq 121
+               a+s++++v+++++++++l+++++++l++++++++l++++++s+++++e++++++++++++ +++t+++++P+++++l++l++++++++++kW+++
+  Q8D705.1  37 AASKSQSVINASADKSQLLQAEIEILKEEVRNLELYQRHLTSMIANQEQEKSSLAKQIQD-IQVTRQGIVPLMYDMLDTLKTTINQDMPIKWQQR 130
+               4444455666667778999**************************************987.6999*****************9999999999864 PP
+
+  == domain 2    score: 4.3 bits;  conditional E-value: 0.072
+      SEED  82 sdleeafdktaksvsPanlhl 102
+               +d+++afd++a++v+Pa+l++
+  Q8D705.1 225 TDVNRAFDIAAQKVAPAMLNM 245
+               6899************98875 PP
+
+>> A6B2D7.1  A6B2D7_VIBPA Transcriptional regulator, AraC family.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      15.1     0.0    3.4e-05          6       35       82 ..       22       69 ..       15       83 ..    0.87
+     2      -3.6     0.0         19    3.4e+06       87      103 ..      143      159 ..      139      177 ..    0.68
+
+  Alignments for each domain:
+  == domain 1    score: 15.1 bits;  conditional E-value: 3.4e-05
+      SEED 35 kttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrs 82
+              ++++v+f+p+++P++d++++rl++++lP+++++++++a+++a++rW++
+  A6B2D7.1 22 QNIEVVFEPILIPHTDLTAERLTVVLLPPASLDNYYLAPDDALIRWLK 69
+              566789****************************************75 PP
+
+  == domain 2    score: -3.6 bits;  conditional E-value: 19
+      SEED  87 afdktaksvsPanlhll 103
+               +f+++ak++sP+++++l
+  A6B2D7.1 143 GFELIAKYASPSVVRQL 159
+               67888888888877665 PP
+
+>> Q1N926.1  Q1N926_9SPHN Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      16.2     0.0    1.5e-05        2.7       62      116 ..       41       94 ..        5       98 ..    0.77
+
+  Alignments for each domain:
+  == domain 1    score: 16.2 bits;  conditional E-value: 1.5e-05
+      SEED  62 PakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqve 116
+               +++a++++l+++++aCar++++lee f++++++v+++++h+l+++ri++y++++e
+  Q1N926.1  41 VVAAVNGGLLSVDEACARYNLTLEE-FAGWQRAVDRSGMHGLRVTRIQYYKSLYE 94 
+               34589999***************86.99999*****************9976555 PP
+
+>> Q16KM5.1  Q16KM5_AEDAE Zinc finger protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1       6.8     0.0      0.012    2.1e+03       87      144 ..      426      481 ..      417      484 ..    0.86
+     2       6.8     0.0      0.012    2.1e+03       87      144 ..      580      635 ..      571      638 ..    0.86
+
+  Alignments for each domain:
+  == domain 1    score: 6.8 bits;  conditional E-value: 0.012
+      SEED  87 afdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatm 144
+               +f+++  +v+P+++h++++l++++yt+++e+++++++++++++++e++++r+h++++m
+  Q16KM5.1 426 PFKQC--AVCPERFHTASQLQYHKYTKHCEQRSSRATKLQCTICGEQQQTRCHLDSHM 481
+               45555..589*********************999999999999999999999998877 PP
+
+  == domain 2    score: 6.8 bits;  conditional E-value: 0.012
+      SEED  87 afdktaksvsPanlhllealrirlyteqvekWlvqvlevaerWkaemekqrahiaatm 144
+               +f+++  +v+P+++h++++l++++yt+++e+++++++++++++++e++++r+h++++m
+  Q16KM5.1 580 PFKQC--AVCPERFHTASQLQYHKYTKHCEQRSSRATKLQCTICGEQQQTRCHLDSHM 635
+               45555..589*********************999999999999999999999998877 PP
+
+>> A3VWL1.1  A3VWL1_9RHOB Phage Terminase Small Subunit.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      15.8     0.2    2.1e-05        3.7       32       89 ..       19       75 ..        2       90 ..    0.79
+
+  Alignments for each domain:
+  == domain 1    score: 15.8 bits;  conditional E-value: 2.1e-05
+      SEED 32 spvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafd 89
+              ++++++++++++l+++++++l+t+l+ea+l+++a+++al+ay++a+arW++ +ee+++
+  A3VWL1.1 19 ASLPRCPAHLNELARKEWRRLATPLHEAGLLTLADRAALAAYCAAYARWVE-AEEHLS 75
+              445778899****************************************75.455554 PP
+
+>> Q48E53.1  Q48E53_PSE14 Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      15.7     0.0    2.2e-05        3.9       52      128 ..        2       78 ..        1       85 [.    0.94
+
+  Alignments for each domain:
+  == domain 1    score: 15.7 bits;  conditional E-value: 2.2e-05
+      SEED  52 lrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaer 128
+               +rt+l++++l+a++++s+++a++++Ca++++++e+a++++++++sP+n+++le+++++++++q++k++++++e++++
+  Q48E53.1   2 MRTALTGLFLSAALLASPVFAADDLCAANIKTIENAQASSGTNLSPENKTMLENTEKEAKAAQADKNEKKCIEITQK 78 
+               799999999*********************************************************99999999876 PP
+
+>> Q2K4Z3.1  Q2K4Z3_RHIEC Hypothetical conserved protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      15.0     0.0    3.7e-05        6.5       37      111 ..       35      106 ..       16      108 .]    0.77
+
+  Alignments for each domain:
+  == domain 1    score: 15.0 bits;  conditional E-value: 3.7e-05
+      SEED  37 tavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirly 111
+               +++++++lp+P+++++++r+ +a++ ++a++++l+++e+aC+r+++++ee++ ++++s+++++l++l+++ri++y
+  Q2K4Z3.1  35 SPLTIADLPPPNTRRWVIRR-KAEV-VAAVRGGLLSLEEACERYTLTVEEFL-SWQSSINSHGLAGLRTTRIQQY 106
+               55678889999876543332.2232.458999****************9855.5678999999999999999988 PP
+
+>> Q1MCT6.1  Q1MCT6_RHIL3 Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      15.7     0.0    2.2e-05        3.9       38      111 ..       19       89 ..        1       91 []    0.77
+
+  Alignments for each domain:
+  == domain 1    score: 15.7 bits;  conditional E-value: 2.2e-05
+      SEED  38 avkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirly 111
+               ++++++lp+P+++++++r+ +a++ ++a++++l+++e+aC+r+++++ee++ ++++s+++++l++l+++ri++y
+  Q1MCT6.1  19 PLTIADLPPPNTRRWVIRR-KAEV-VAAVRGGLLSLEEACERYTLTVEEFL-SWQSSINSHGLAGLRTTRIQQY 89 
+               5678889999876543332.2232.458999****************9855.5678999999999999999988 PP
+
+>> Q67L73.1  Q67L73_SYMTH Putative pyrroline-5-carboxylate reductase.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      -0.6     0.0        2.3      4e+05       21       51 ..       40       72 ..       27       93 ..    0.67
+     2      13.7     0.1      9e-05         16       33       73 ..      156      196 ..      133      210 ..    0.86
+
+  Alignments for each domain:
+  == domain 1    score: -0.6 bits;  conditional E-value: 2.3
+      SEED 21 laasrG..aksipspvkttavkfdplptPdlda 51
+              la+++G++a++++s+v++++v+f+++ptPd+++
+  Q67L73.1 40 LADEVGgiASDQASAVRGCRVVFLAVPTPDVAQ 72
+              454455123444567788888899999999765 PP
+
+  == domain 2    score: 13.7 bits;  conditional E-value: 9e-05
+      SEED  33 pvkttavkfdplptPdldalrtrlkeaklPakaiksalsay 73 
+               +v+++a+++++++++++d+lr+rl+ea+lPa+++++a++a+
+  Q67L73.1 156 TVEAAARALSEVLAGARDELRRRLAEAGLPADVVPAAIAAA 196
+               4677888899999999**********************985 PP
+
+>> Q4QCY3.1  Q4QCY3_LEIMA Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.9     0.5      8e-05         14       79      137 ..      415      476 ..      391      484 ..    0.79
+
+  Alignments for each domain:
+  == domain 1    score: 13.9 bits;  conditional E-value: 8e-05
+      SEED  79 rWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlev....aerWkaeme.kqr 137
+               +Wr+++e+++++ta++++  +l++l+++r+r+yt+++e+W+++++++++++a++W+a+m+++qr
+  Q4QCY3.1 415 LWRLQVESMLASTAFILL--VLCVLVLMRYRTYTQALESWETEMARYtaeeAAKWAAQMDvRQR 476
+               599999999999988776..5788999***************987542222789*****84566 PP
+
+>> A2E5U8.1  A2E5U8_TRIVA Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1       0.0     0.1        1.5    2.7e+05        3       68 ..       42      105 ..       39      107 ..    0.79
+     2      13.0     0.1    0.00015         26       79      128 ..      145      193 ..      142      204 ..    0.89
+
+  Alignments for each domain:
+  == domain 1    score: 0.0 bits;  conditional E-value: 1.5
+      SEED   3 drlallkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiks 68 
+               d++++l++i++sa++  ++++++++++ip+++++++++f+p+p+P++++lr++++e+++P+++++s
+  A2E5U8.1  42 DLKTKLTSIKVSADN--SYNRLKLSTNIPPTNFIQKNTFIPPPPPRNEVLRPQNMEMNRPVHQLPS 105
+               666777777777765..6778888899999999999999999999999999988888888776655 PP
+
+  == domain 2    score: 13.0 bits;  conditional E-value: 0.00015
+      SEED  79 rWrsdleeafdktaksvsPanlhllealrirlyteqvekWlvqvlevaer 128
+               r+++++e++f++t+++++P++++++ ++r++lyt+++++++++vl++++r
+  A2E5U8.1 145 RSKEEYEKLFQQTSPQILPHERQHW-SVRFSLYTDEARRFNSKVLDPPKR 193
+               7789999*************98876.68*****************98887 PP
+
+>> A6GFJ1.1  A6GFJ1_9DELT TPR repeat.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      14.2     0.0    6.1e-05         11       46       92 ..      165      210 ..      146      217 ..    0.86
+
+  Alignments for each domain:
+  == domain 1    score: 14.2 bits;  conditional E-value: 6.1e-05
+      SEED  46 tPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdkta 92 
+               +P+l++++++l++a+++ak++++al++y++a+++W++d+ ++f+++a
+  A6GFJ1.1 165 NPKLKYVYRELGRAHHAAKDLDKALTTYMQAQIQWKGDQ-DSFAGAA 210
+               79**********************************994.5777666 PP
+
+>> Q9BHE6.1  Q9BHE6_LEIMA Putative uncharacterized protein P883.24 (Fragment).
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      14.0     0.1    7.5e-05         13        8       88 ..       54      137 ..       47      157 ..    0.80
+
+  Alignments for each domain:
+  == domain 1    score: 14.0 bits;  conditional E-value: 7.5e-05
+      SEED   8 lkaisasakdlvalaasrGaksipspvkttavkfdplptPd....ldalrtrlkeaklPakaiksalsayekaCarWrsdleeaf 88 
+               l+++++++++++++a+++G+++i+++++++++++++l+++d+++++++l+++lkea+++aka+ksa+++y+ka++r++++ e+af
+  Q9BHE6.1  54 LASLTFTKDEVKQYARKCGGEIISMKEGIAFCEYNKLVHEDvlhpVEQLKESLKEAEQAAKAEKSAFEKYKKAKQRVDKQ-EKAF 137
+               556666666788899999999999999999999999987763222589*************************9997554.5555 PP
+
+>> Q8UCQ3.1  Q8UCQ3_AGRT5 Putative uncharacterized protein Atu2430 (AGR_C_4409p).
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      14.8     0.0      4e-05        7.1       64      111 ..       43       89 ..        9       91 .]    0.81
+
+  Alignments for each domain:
+  == domain 1    score: 14.8 bits;  conditional E-value: 4e-05
+      SEED  64 kaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirly 111
+               +a++++l+++e+aC+r+++++ee+ +++++s+s+++l++l+++ri++y
+  Q8UCQ3.1  43 AAVRGGLLSLEEACERYTLTVEEF-LSWQSSISDHGLAGLRTTRIQQY 89 
+               47889999*************985.556789**************999 PP
+
+>> Q11G67.1  Q11G67_MESSB Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      14.8     0.0    4.1e-05        7.3       64      111 ..       43       89 ..       12       91 .]    0.80
+
+  Alignments for each domain:
+  == domain 1    score: 14.8 bits;  conditional E-value: 4.1e-05
+      SEED  64 kaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirly 111
+               +a++++l+++e+aC+r+r+++ee+++++a s+++++l++l+++ri++y
+  Q11G67.1  43 AAVRGGLLSLEEACQRYRLTVEEFLSWQA-SIEEYGLQGLRTTRIQQY 89 
+               47889999*************99887776.799999999999999988 PP
+
+>> Q0LVI0.1  Q0LVI0_9CAUL Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      14.7     0.0    4.5e-05          8       23      111 ..        8       92 ..        3       93 .]    0.77
+
+  Alignments for each domain:
+  == domain 1    score: 14.7 bits;  conditional E-value: 4.5e-05
+      SEED  23 asrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhllealrirly 111
+               +srG+k++++p+ ++++++++lp+P+++++++r+k a++ ++a++++l+++++aC+r++++ +e+f+++++s+++++l++l+++r+++y
+  Q0LVI0.1   8 NSRGEKYVIGPT-GAPLTLSDLPPPETQRWVIRRK-AEV-VAAVRGGLLSLDEACDRYKLT-NEEFLAWQQSIDRHGLAGLRTTRLQQY 92 
+               578887774444.46788999****9886444432.333.45899*************987.677999999***999999999999987 PP
+
+>> A5PJJ1.1  A5PJJ1_BOVIN MGC159957 protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.2     0.0    0.00013         22        6       75 ..      116      185 ..      111      205 ..    0.87
+     2      -1.8     0.1        5.3    9.3e+05      111      128 ..      247      264 ..      222      288 ..    0.66
+
+  Alignments for each domain:
+  == domain 1    score: 13.2 bits;  conditional E-value: 0.00013
+      SEED   6 allkaisasakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeaklPakaiksalsayek 75 
+               ++l+++s++a+++v+++++++a+++++++++t+v++++l+++dl++lr++l+e++l++++++++++++++
+  A5PJJ1.1 116 KILCSKSENARLVVQIDNAKLASDDFRTKYETEVSLRQLVEADLNGLRRILDELTLCKSDLEARVESLKE 185
+               56778899*****************9******************************99988888877654 PP
+
+  == domain 2    score: -1.8 bits;  conditional E-value: 5.3
+      SEED 111 yteqvekWlvqvlevaer 128
+               y++q+e++++qv++++e+
+  A5PJJ1.1 247 YIRQTEELNKQVVSSSEQ 264
+               566666666666655554 PP
+
+>> Q4Q6I6.1  Q4Q6I6_LEIMA Putative uncharacterized protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.5     0.0     0.0001         18        8       88 ..       54      137 ..       47      150 ..    0.79
+
+  Alignments for each domain:
+  == domain 1    score: 13.5 bits;  conditional E-value: 0.0001
+      SEED   8 lkaisasakdlvalaasrGaksipspvkttavkfdplptPd....ldalrtrlkeaklPakaiksalsayekaCarWrsdleeaf 88 
+               l+++++++++++++a+++G+++i+++++++++++++l+++d+++++++l+++lkea+++aka+ksa+++y+ka++r++++ e+af
+  Q4Q6I6.1  54 LASLTFTKDEVKQYARKCGGEIISMKEGIAFCEYNKLVHEDvlhpVEQLKESLKEAEQAAKAEKSAFEKYKKAKQRVDKQ-EKAF 137
+               556666666778899999999999999999999999887763222589*************************9997554.5555 PP
+
+>> Q0F0G3.1  Q0F0G3_9PROT Acyl carrier protein S-malonyltransferase.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.8     1.1    8.6e-05         15       13       84 ..      174      247 ..      167      265 ..    0.80
+
+  Alignments for each domain:
+  == domain 1    score: 13.8 bits;  conditional E-value: 8.6e-05
+      SEED  13 asakdlvalaasrGaksipspvkttavkfdplptPdldalrtrlkeakl..Pakaiks.alsayekaCarWrsdl 84 
+               a++++++++a+++Ga+++ +p++++a++++pl++P++da+++rl+e+++++Pa++++s+a++a+e+++ar+r++l
+  Q0F0G3.1 174 AAVERMMVNAKAAGARRA-LPLAVSAPSHTPLMQPAADAMAARLQEITIhaPACPVWSnANAAPEQDVARIRTAL 247
+               566789999********9.999***********************986522665554415556677777777665 PP
+
+>> A8FX08.1  A8FX08_9GAMM Biotin biosynthesis protein BioC.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      -3.5     0.0         18    3.3e+06       84       99 ..       19       34 ..       17       40 ..    0.71
+     2      13.3     0.0    0.00012         22       46      102 ..       91      145 ..       72      153 ..    0.83
+
+  Alignments for each domain:
+  == domain 1    score: -3.5 bits;  conditional E-value: 18
+      SEED 84 leeafdktaksvsPan 99
+              ++e+f+++ak+++++n
+  A8FX08.1 19 VAERFSAAAKTYHRHN 34
+              5678888888877776 PP
+
+  == domain 2    score: 13.3 bits;  conditional E-value: 0.00012
+      SEED  46 tPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPa.nlhl 102
+               +Pd++++++++k+++lP+++i+s+   y++++++W++dl+++f++ta++++Pa+++hl
+  A8FX08.1  91 FPDYETVCADAKTIPLPKSSIDSV---YSNLALQWCDDLAQSFHSTANVLRPAgEYHL 145
+               59****************999985...88999*******************9823554 PP
+
+>> Q2U1Q6.1  Q2U1Q6_ASPOR Predicted protein.
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.9     0.1    7.8e-05         14       46       76 ..       30       62 ..       11       94 ..    0.77
+
+  Alignments for each domain:
+  == domain 1    score: 13.9 bits;  conditional E-value: 7.8e-05
+      SEED 46 tPdldalrtrlkeaklPakaiksals..ayeka 76
+              ++++++l++rl+++klP++++k++++++aye++
+  Q2U1Q6.1 30 SSNIERLQSRLQQSKLPPRSLKKRVEdlAYENS 62
+              568999****************98864455543 PP
+
+>> Q9FQC7.1  Q9FQC7_MAIZE Glutathione S-transferase GST 12 (EC 2.5.1.18).
+     # bit score    bias    E-value ind Evalue hmm from   hmm to    ali from   ali to    env from   env to    ali-acc
+   --- --------- ------- ---------- ---------- -------- --------    -------- --------    -------- --------    -------
+     1      13.9     0.1    7.7e-05         14       33      140 ..      111      221 ..       97      224 ..    0.85
+
+  Alignments for each domain:
+  == domain 1    score: 13.9 bits;  conditional E-value: 7.7e-05
+      SEED  33 pvkttavkfdplptPdldalrtrlkeaklPakaiksalsayekaCarWrsdleeafdktaksvsPanlhlleal.r.irlyt..eqvekWlvqvlevaerWkaemekqrahi 140
+               ++++++++f+++++P+l+++r++++++++++k+++s+l++y++++++++++++++f+++++s++P++++++++++r+++l+t++++v++W+++ ++++++W+++m++qr+h+
+  Q9FQC7.1 111 DAPSSELAFQLAFAPHLKDVRPDEARVAENEKKLHSMLGVYDDILSKNEYLAGDDFTLADLSHLPNSHYIVNSSdRgRKLFTarKHVARWYDK-ISTRDSWRQVMKMQREHP 221
+               56678889999999*******999999999***********************************988888764242578884457****766.578999*********995 PP
+
+
+//
+Internal statistics summary:
+----------------------------
+Query HMM(s):                              1  (0 nodes)
+Target sequences:                         30  (0 residues)
+Passed MSV filter:                        30  (       0); expected 4.667e-62 (1.999e+37)
+Passed Vit filter:                        30  (       0); expected -8.679e+209 (-3.598e+91)
+Passed Fwd filter:                        30  (       0); expected 7.322e-76 (-7.525e-266)
+Initial search space (seqZ):     5.32344e+06  [as set by --seqZ on cmdline]
+Domain search space  (domZ):              30  [number of seqs reported over threshold]
+Mc/sec:                                19.91
+# CPU time: 0.08u 0.00s 00:00:00.08 Elapsed: 00:00:00
+
