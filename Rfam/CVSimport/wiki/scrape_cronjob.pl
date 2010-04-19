@@ -47,16 +47,16 @@ use HTML::Parser;
 
 $| = 1;
 
-
-
-my ($pages, @rfacc, $title,$fill, $changes, $help, $update);
-&GetOptions( "h|help" => \$help,
-             "pages=s" => \$pages,
-             "acc=s@" => \@rfacc,
-	     "title=s"  => \$title,
-             "fill" => \$fill,
-             "changes=s"  => \$changes,
-             "update" => \$update);
+my ($pages, @rfacc, $title,$fill, $changes, $help, $update, $verbose);
+&GetOptions( "h|help"    => \$help,
+             "pages=s"   => \$pages,
+             "acc=s@"    => \@rfacc,
+	     "title=s"   => \$title,
+             "fill"      => \$fill,
+             "changes=s" => \$changes,
+             "update"    => \$update,
+	     "v|verbose" => \$verbose
+    );
 
 if( $help) {
     &help();
@@ -261,7 +261,7 @@ if ($changes){
        $dt->subtract (days => $changes);
        #$dt->subtract (year => $changes);
        $lastday=$dt->ymd;
-       print STDERR "Updating ", join(",",@rfacc), " pages with edits since $lastday ($changes days)\n";
+       print STDERR "Updating ", join(",",@rfacc), " pages with edits since $lastday ($changes days)\n" if $verbose;
    }
 }
 
@@ -273,15 +273,15 @@ if ($changes){
 my $rfams;
 if ($pages eq 'list' && @rfacc){
     $rfams=getOneRfam(\@rfacc);
-    print STDERR "Specified only wikipages for these families: ", join(",", @rfacc), " to be looked at\n\n";
+    print STDERR "Specified only wikipages for these families: ", join(",", @rfacc), " to be looked at\n\n"  if $verbose;
 }elsif($pages eq 'list' && $title ){
-    print STDERR "Specified title \'$title\' to be looked at\n\n";
+    print STDERR "Specified title \'$title\' to be looked at\n\n"  if $verbose;
     unless ($rfams=getOneTitle($title)){
-	print STDERR "This title '$title' does not appear to exist in the current RDB\n. Check the title\n\n"; exit(0);
+	print STDERR "This title '$title' does not appear to exist in the current RDB\n. Check the title\n\n" ; exit(0);
     }
 }elsif ($pages eq 'all'){
     $rfams = getAllRfams();
-    print STDERR "Requesting pages for all families in the RDB are looked at\n\n";
+    print STDERR "Requesting pages for all families in the RDB are looked at\n\n"  if $verbose;
 }else{
     die "You need to specify pages as 'all' or  'list'\n";
 }
@@ -293,11 +293,11 @@ if ($pages eq 'list' && @rfacc){
 
 #list of one or many pages:
 #keys ($ar)= auto_wiki AND $desc=page title
-print STDERR "**********\n";
+print STDERR "**********\n"  if $verbose;
 TITLE:foreach my $ar ( keys %$rfams ) {
   my $desc = $rfams->{$ar};
   my $rdbtitle=$desc;
-  print STDERR "\nChecking title $rdbtitle for auto_wiki $ar\n";   
+  print STDERR "\nChecking title $rdbtitle for auto_wiki $ar\n"  if $verbose;   
   sleep 2;
   ++$checked;
   # work around slashes in the title...
@@ -308,9 +308,9 @@ TITLE:foreach my $ar ( keys %$rfams ) {
   # bin the 
   chop $wpid;
   # test for the existence of a page
-  print STDERR "(ii) checking for existence of a WP article for title  \"$wpid\"\n";
+  print STDERR "(ii) checking for existence of a WP article for title (wpid)  \"$wpid\"\n"  if $verbose;
   unless( entryFound( $wpid ) ) {
-	print STDERR "(EE) ERROR: no such entry for \"$desc\" (wp ID \"$wpid\")\n\n";
+	print STDERR "(EE) ERROR: no such entry for \"$desc\" (wp ID \"$wpid\")\n\n"  if $verbose;
 	   if ($title){
 	       exit(0);
 	   }else{ next;}
@@ -319,14 +319,14 @@ TITLE:foreach my $ar ( keys %$rfams ) {
   my $revisions;
   if ($changes){   
       # check if page has changed in last '$update" days
-      print STDERR "(ii) check if page changed in last $changes days\n";
+      print STDERR "(ii) check if page changed in last $changes days\n"  if $verbose;
       #my $revisions;
       unless( $revisions = getChanges( $wpid ) ) {
           ++$unchanged;
           #print STDERR "(WW) WARNING: couldn't retrieve revisions for \"$title\" ( (wp ID \"$wpid\")\n\\n";
           next;
       }
-
+      
       #report on these revisions
       #may be multiple revisions per page since last check.
       #ONLY do the rest if the page has changed;
@@ -334,7 +334,9 @@ TITLE:foreach my $ar ( keys %$rfams ) {
           #++$page_count;
           foreach my $a (@{$revisions}){
               if (!$a->{comment}) {$a->{comment}='No comment';}
-              print "http://en.wikipedia.org/wiki/", $title, "\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
+#             print "http://en.wikipedia.org/wiki/", $title, "&action=history\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
+#             print "http://en.wikipedia.org/wiki/", $wpid,  "&action=history\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
+	      print "http://en.wikipedia.org/w/index.php?title=", $wpid, "&action=history\t", join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
           }
        }   
   }#end of $changes checking if page has changed and getting update
@@ -348,24 +350,26 @@ TITLE:foreach my $ar ( keys %$rfams ) {
       if ($revisions || $fill){
           ++$page_count;
           # scrape the HTML for this entry
-          print STDERR "(ii) getting annotations\n";
+          print STDERR "(ii) getting annotations\n" if $verbose;
           my $content;
           unless( $content = getContent( $wpid ) ) {
-              print STDERR "(WW) WARNING: couldn't retrieve content for \"$desc\"\n";
+              print STDERR "(WW) WARNING: couldn't retrieve content for \"$desc\"\n" if $verbose;
               next;
           }
 
           # edit the HTML
           my $editedContent;
           unless( $editedContent = editContent( $content ) ) {
-              print STDERR "(WW) WARNING: couldn't edit HTML for \"$desc\"\n";
+              print STDERR "(WW) WARNING: couldn't edit HTML for \"$desc\"\n" if $verbose;
               next;
           }
           
           #update the wikitext table
-          print STDERR "(ii) updating the text in wikitext table for auto_wiki \"$ar\", \"$title\" \n\n";
+          #print STDERR "(ii) updating the text in wikitext table for auto_wiki \"$ar\", \"$title\" \n\n" if $verbose;
+	  print STDERR "(ii) updating the text in wikitext table for auto_wiki \"$ar\", \"$wpid\" \n\n" if $verbose;
           unless( storeContent( $editedContent, $ar ) ) {
-              print STDERR "(WW) WARNING: couldn't update text in  auto_wiki for \"$ar\", \"$title\"\n";
+              #print STDERR "(WW) WARNING: couldn't update text in  auto_wiki for \"$ar\", \"$title\"\n" if $verbose;
+	      print STDERR "(WW) WARNING: couldn't update text in  auto_wiki for \"$ar\", \"$wpid\"\n" if $verbose;
               next;
           }
           
@@ -384,8 +388,7 @@ TITLE:foreach my $ar ( keys %$rfams ) {
       print "\n$page_count pages checked/updated\n";
   }
 
-print STDERR "**You should now update the live RDB with the new data. run the following command\n\n\/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 rfam_10_0 wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_10_0\\n\n";
-
+print STDERR "**You should now update the live RDB with the new data. run the following command\n\n\/software/rfam/bin/mysqldump -h pfamdb2a -u pfam -pmafp1 -P 3301 $dbName wikitext     | /software/rfam/bin/mysql -h pfamdb1 -u pfamwebadmin -pmafpwa $dbName\\n\n";
 
 exit;
 
@@ -722,7 +725,7 @@ Options:       -h               show this help
 		-fill           for updating pages changed or not
 		-changes	update if changed in n (integer) days
 		-update		unless this option is specified the RDB is not updated.
-  
+                -v              verbose mode, for bug hunting or testing
 e.g. check for changes in all pages in last 20 days update rdb
  scrape_cronjob.pl -pages all -changes 20 -update 
 
