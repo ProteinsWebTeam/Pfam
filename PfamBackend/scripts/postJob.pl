@@ -281,8 +281,8 @@ __MESSAGE__
 
 ----------------
 
-The output format is:
-<rfam acc> <rfam id> <seq id> <seq start> <seq end> <strand> <score>
+The output format is GFF:
+<seq id> <source> <type> <seq start> <seq end> <score> <strand> <phase> <comment: incl. cm e-value, g+c content, cm id, model coords, rfam acc, rfam id>
 __MESSAGE__
       
     }
