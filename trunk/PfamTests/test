@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cover -delete
+HARNESS_PERL_SWITCHES=-MDevel::Cover=-ignore,bioperl,\.t$,-select,PfamH3Lib,PfamLib prove 0*.t
+cover

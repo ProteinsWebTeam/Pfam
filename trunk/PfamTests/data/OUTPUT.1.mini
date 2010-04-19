@@ -1,0 +1,40 @@
+hmmls - search long sequences for local matches to a hidden Markov model
+     version 1.8.5, February 2006
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+HMM file:                   HMM.1
+Sequence database:          /Users/finnr/Work/PfamCodeBase/PfamTests/data/minidb.fa
+Report scores above:        0.00
+Scan window size:           1000
+Do complementary strand:    no
+Fancy alignment output:     no
+[Printing multiple non-overlapping hits per sequence]
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+1.92   (bits) f:   67 t:  212 Target: A2E5U8.1 A2E5U8_TRIVA Putative uncharacterized protein.
+5.67   (bits) f:   14 t:  160 Target: A3VWL1.1 A3VWL1_9RHOB Phage Terminase Small Subunit.
+14.27  (bits) f:  111 t:  257 Target: A5PJJ1.1 A5PJJ1_BOVIN MGC159957 protein.
+0.61   (bits) f:   42 t:  187 Target: A6B2D7.1 A6B2D7_VIBPA Transcriptional regulator, AraC family.
+11.57  (bits) f:  121 t:  265 Target: A6GFJ1.1 A6GFJ1_9DELT TPR repeat.
+0.42   (bits) f:   41 t:  190 Target: A8FX08.1 A8FX08_9GAMM Biotin biosynthesis protein BioC.
+210.56 (bits) f:    1 t:  147 Target: P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.
+5.58   (bits) f:  200 t:  346 Target: P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.
+1.13   (bits) f:  516 t:  661 Target: P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.
+2.35   (bits) f:  693 t:  838 Target: P37934.1 MAAY3_SCHCO Mating-type protein A-alpha Y3.
+216.82 (bits) f:    1 t:  146 Target: P37935.1 MAAY4_SCHCO Mating-type protein A-alpha Y4.
+2.23   (bits) f:  210 t:  354 Target: P37935.1 MAAY4_SCHCO Mating-type protein A-alpha Y4.
+1.14   (bits) f:  519 t:  665 Target: P37935.1 MAAY4_SCHCO Mating-type protein A-alpha Y4.
+216.02 (bits) f:    1 t:  146 Target: P37936.1 MAAY1_SCHCO Mating-type protein A-alpha Y1.
+1.27   (bits) f:  593 t:  739 Target: P37936.1 MAAY1_SCHCO Mating-type protein A-alpha Y1.
+196.61 (bits) f:    1 t:  149 Target: Q02531.2 Q02531_SCHCO Y5.
+0.31   (bits) f:  364 t:  508 Target: Q02531.2 Q02531_SCHCO Y5.
+5.11   (bits) f:  657 t:  803 Target: Q02531.2 Q02531_SCHCO Y5.
+9.14   (bits) f:   62 t:  208 Target: Q0F0G3.1 Q0F0G3_9PROT Acyl carrier protein S-malonyltransferase.
+0.63   (bits) f:  338 t:  484 Target: Q16KM5.1 Q16KM5_AEDAE Zinc finger protein.
+4.24   (bits) f:  492 t:  638 Target: Q16KM5.1 Q16KM5_AEDAE Zinc finger protein.
+3.05   (bits) f:   93 t:  239 Target: Q4QCY3.1 Q4QCY3_LEIMA Putative uncharacterized protein.
+10.70  (bits) f:  334 t:  481 Target: Q4QCY3.1 Q4QCY3_LEIMA Putative uncharacterized protein.
+4.17   (bits) f:   81 t:  225 Target: Q9FQC7.1 Q9FQC7_MAIZE Glutathione S-transferase GST 12 (EC 2.5.1.18).
+208.29 (bits) f:    1 t:  147 Target: Q9P448.1 Q9P448_SCHCO Mating type protein A-alpha Y6.
+4.22   (bits) f:  228 t:  374 Target: Q9P448.1 Q9P448_SCHCO Mating type protein A-alpha Y6.
+12.60  (bits) f:  518 t:  663 Target: Q9P448.1 Q9P448_SCHCO Mating type protein A-alpha Y6.
