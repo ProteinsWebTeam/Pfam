@@ -335,8 +335,8 @@ TITLE:foreach my $ar ( keys %$rfams ) {
           foreach my $a (@{$revisions}){
               if (!$a->{comment}) {$a->{comment}='No comment';}
 #             print "http://en.wikipedia.org/wiki/", $title, "&action=history\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
-	      print "http://en.wikipedia.org/wiki/", $wpid,  "&action=history\n\t\t" , join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
-#Failed nice html format:
+	      print "http://en.wikipedia.org/w/index.php?title=", $wpid, "&action=history", join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
+#Failed attempt at nice html format -- can't figure out htaml email:
 #	      print "<a href=\"http://en.wikipedia.org/w/index.php?title=", $wpid, "&action=history\">", $wpid, "</a>\t", join("\t", $a->{user},$a->{timestamp}, $a->{comment}),"\n";
           }
        }   
