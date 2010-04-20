@@ -222,6 +222,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
         return false;
       }
       
+      [% IF entryType != "B" %]
       // when the user chooses "heatmap" as the viewer for the alignment,
       // we disable the full/seed toggle, since there's only a heatmap
       // for the full alignment
@@ -265,6 +266,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
           }
         }
       );
+      [% END -%]
 
       // ]]>
     </script>
