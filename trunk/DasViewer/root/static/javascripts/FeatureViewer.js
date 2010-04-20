@@ -1,0 +1,361 @@
+
+// spoof a console, if necessary, so that we can run in IE (<8) without having
+// to entirely disable debug messages
+if ( ! window.console ) {
+  window.console     = {};
+  window.console.log = function() {};
+}  
+
+//------------------------------------------------------------------------------
+//- class ----------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+// A Javascript library to use domainGraphics code to draw the protein features
+// for respective das sources.
+
+var FeatureViewer = Class.create({
+  
+  initialize: function( parent, accession, sources, url ){
+    
+    // check for an existing DOM element;
+    if( parent !== undefined ){
+      this.setParent( parent );
+    }else{
+      this._throw( 'parent cannot be null' );
+    }
+    
+    // check for accession;
+    if( accession !== undefined ){
+      this.setAccession( accession );  
+    }else{
+      this._throw( 'Accession cannot be null' );
+    }
+     
+    // check for sources; 
+    if( sources !== undefined ){
+      this.setSources( sources );
+    }else{
+      this._throw( 'Sources cannot be null' );
+    }     
+    
+    // add the url
+    if( /[\£\$\*\^]+/.test( url ) ){
+      this._throw( "Input URL contains invalid characters");
+    }else{
+      this._url = url;
+    } 
+    
+    
+    //  initialise the other params for the feature viewer;
+    // currently hard-coded maybe latter i could get it from options
+    this._graphicXOffset = 10;
+    this._extraXspace    = 40;
+    this._Yincrement     = 20;
+    
+    // initialise the image params for pfam graphic code
+    this._imgParams     = { xscale:            1,
+                          yscale:              1,
+                          residueWidth:        1,
+                          envOpacity:          -1,
+                          sequenceEndPadding:  0,
+                          xOffset: this._graphicXOffset  // das source names were written using canvas;
+                         };
+                                                      
+    // now fetch the features using this method;
+    this.fetchFeatures();
+     
+  }, // end of initialize function
+  
+  //----------------------------------------------------------------------------
+  //- Methods ------------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  
+  // Method to make feature Request;
+  fetchFeatures: function(){
+    // create an ajax request;
+    var callParams = { acc : this.getAccession(),
+                       sources : this.getSources() };
+    
+    // setting up the ajax request options;
+    var options = { parameters: callParams };
+    
+    // now add the callback functions for the request;
+    options.onComplete = this.ajaxComplete.bind( this );
+    options.onLoading  = this.ajaxLoading.bind( this );
+                       
+    this._request = new Ajax.Request( this._url, options );
+      
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // callback function for ajax request onComplete;
+  ajaxComplete: function( ajaxResponse ){
+    
+    // remove the loading features child from shown;
+    this._parent.removeChild( $('spinner') );
+    
+    this._response = $H( eval ( '(' +ajaxResponse.responseText +')' ) );
+    //console.log( 'the ajax response is '+$H( this._response ).inspect() );
+    
+    // parse the response and look for the error message;
+    if( this._response.get( 'errorMsg') !== undefined ){
+      console.log("WE GOT AN ERROR" );
+      this._throw( this._response.get( 'errorMsg') );  
+    }
+    
+    // now create the canvas elements to draw the images ;
+    this.buildCanvas();
+    
+    // retrieve the features and sources which returned data and draw them;
+    this.drawCanvas();
+    
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to create the canvas element;
+  buildCanvas: function(){
+    
+    // create the canvas element for the drawing;
+    var imgCanvas = new Element( 'canvas',{ 'id': 'imgCanvas'} );
+    var txtCanvas = new Element( 'canvas',{ 'id': 'txtCanvas'} );
+    
+    // make sure it gets initialised in bloody IE...
+    if ( typeof G_vmlCanvasManager !== "undefined" ) {
+      imgCanvas = G_vmlCanvasManager.initElement( imgCanvas );
+      txtCanvas = G_vmlCanvasManager.initElement( txtCanvas );
+    }
+    
+    //now set the canvas
+    
+    if( imgCanvas !== undefined ){
+      this.setimgCanvas( imgCanvas );  
+    }
+    
+    if( txtCanvas !== undefined ){
+      this.settxtCanvas( txtCanvas );  
+    }
+    
+    // now add both the elements as child elements of the div;
+    // CHECK: make sure there is no child elements of that parent.
+    this._parent.appendChild( txtCanvas );
+    this._parent.appendChild( imgCanvas );
+    
+    // now set the size of the canvas ;
+    
+    this._canvasHeight = this._response.get( 'dasTracks' ) * this._Yincrement;
+    this._sequenceLength = ( this._response.get( 'seqLength' ) * 1 );  // here the 1 is resWidth
+    this._canvasWidth    = this._sequenceLength + this._graphicXOffset + this._extraXspace;
+    
+    // now set the canva height to be this value;
+    imgCanvas.setAttribute( 'height', this._canvasHeight );
+    imgCanvas.setAttribute( 'width', this._canvasWidth );
+    txtCanvas.setAttribute( 'height', this._canvasHeight );
+    txtCanvas.setAttribute( 'width', 150 ); 
+    console.log( 'buildCanvas:the parent is '+this._parent);
+  },
+  
+  //----------------------------------------------------------------------------
+  drawCanvas:function(){
+    
+    // now get teh sources whcih returned some features;
+    this._featureSources = $A( eval( '('+ this._response.get( 'json_sources' ) + ')' ) );
+    this._dasFeatures    = $H( eval( '('+  this._response.get( 'dasFeatures' ) + ')' ) );
+    
+    var parent         = this._parent;
+    var featureSources = this._featureSources;
+    var dasFeatures    = this._dasFeatures;
+    var imgCanvas      = this._imgCanvas;
+    var Yincrement     = this._Yincrement;
+    var imgParams      = this._imgParams;
+    
+    console.log('the sources which returned the features are '+ featureSources.inspect() );
+    
+    // get the context for the canvases;
+    if( this._imgCanvas.getContext ){
+      // console.log( "canvas can be used in this browser" );
+      ctx = this._imgCanvas.getContext( '2d' );
+    }
+    
+    // get the context for text element;
+    if ( this._txtCanvas.getContext ) {
+      ttx = this._txtCanvas.getContext( '2d' );
+      ttx.font = "bold 10px 'optimer'";
+      ttx.textAlign = "center";
+      ttx.textBaseline = "middle";
+      ttx.lineWidth = 2;
+    }  
+    
+    var baseline;  
+    var graphicYOffset = 0 ;
+    
+    featureSources.each( function( ds_id ){
+      
+      var seqObj = $A( dasFeatures.get( ds_id ) );
+      
+      // now draw the track for each of the seqObject;
+  	  seqObj.each( function( seq ){
+        
+        // draw the grpahic using the sequnece;
+        var pg1 = new PfamGraphic( parent );
+        pg1.setCanvas( imgCanvas );
+        pg1.setNewCanvas( false );  
+        pg1.setImageParams( imgParams );
+        pg1.setImageParams( { yOffset : graphicYOffset } );
+        pg1.setSequence( seq );
+        
+        baseline = pg1.getBaseline();
+        
+        // draw the text
+        ttx.strokeStyle = "#eeeeee";
+        ttx.strokeText( ds_id, 75, graphicYOffset+baseline );
+        ttx.strokeStyle = "#000000";
+          
+        // add the text here;
+        ttx.fillStyle = 'black';
+        ttx.fillText( ds_id, 75, graphicYOffset + baseline );
+        
+        pg1.render();
+        
+        graphicYOffset +=Yincrement; 
+      } );
+       
+    } );
+    
+  },
+  
+  //----------------------------------------------------------------------------
+ 
+  // callback function for ajax request loading;
+  ajaxLoading: function(){
+    console.log( 'making an ajax request for '+this._url );
+    var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
+    loadDiv.update( 'Loading Features...' );
+    this._parent.appendChild( loadDiv );
+  },
+  
+  //----------------------------------------------------------------------------
+  //- Get and Set Methods ------------------------------------------------------
+  //----------------------------------------------------------------------------
+  
+  // function to set parent;
+  setParent: function( parent ){
+    this._parent = $( parent );
+    console.log('the parent is '+this._parent.inspect() );
+    
+    if ( this._parent === undefined || this._parent === null ) {
+      this._throw( "couldn't find the node"+parent );
+    }
+      
+  },
+  
+  //--------------------------------------
+  
+  // function to get the parent;
+  getParent: function(){
+    return this._parent;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the accession;
+  setAccession: function( accession ){
+    this._accession = accession;
+    
+    //check whether we get the accession as a string;
+    if( this._accession === null ){
+      this._throw( 'Accession cannot be null' );
+    }
+    
+    // use regex to check we get any invalid characters in the string;
+    if( /\W+/.test( this._accession ) ){
+      this._throw( 'Accession contains invalid characters');
+    }
+    
+    
+  }, // end of setAccession
+  
+  //-------------------------------------
+  
+  // function to return the accession 
+  getAccession: function(){
+    return this._accession;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the das sources;
+  setSources: function( sources ){
+    this._sources = sources;
+    
+    // check the sources whether its an array
+    if( typeof this._sources !== 'object' ){
+      this._throw('Sources is not an Javascript object');
+    }
+    
+    // check whether the array has got contents;
+    if( this._sources.length == undefined ){
+      this._throw( 'Input sources doesnt contain values');
+    }
+    
+  },
+  
+  //-------------------------------------
+  
+  // function to get the input das sources;
+  getSources: function( ){
+    return this._sources;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the image canvas;
+  setimgCanvas: function( canvas ){
+    if( canvas !== undefined ){
+      this._imgCanvas = canvas;
+    }else{
+      this._throw( 'imgCanvas could not be created' );
+    }
+    
+  },
+  
+  //-------------------------------------
+  
+  // function to get the image canvas;
+  getimgCanvas: function(){
+    return this._imgCanvas;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the text canvas;
+  settxtCanvas: function( canvas ){
+    if( canvas !== undefined ){
+      this._txtCanvas = canvas;
+    }else{
+      this._throw( 'txtCanvas could not be created' );
+    }
+    
+  },
+  
+  //-------------------------------------
+  
+  // function to get the txt canvas;
+  gettxtCanvas: function(){
+    return this._txtCanvas;
+  },
+  
+  //----------------------------------------------------------------------------
+  //- Private methods ----------------------------------------------------------
+  //----------------------------------------------------------------------------
+  
+  _throw: function( message ) {
+    throw { name: "FeatureViewerException",
+            message: message,
+            toString: function() { return this.message; } };
+  } 
+  
+  //----------------------------------------------------------------------------
+  
+}); // end of Class.create;
