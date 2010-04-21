@@ -62,7 +62,10 @@ var FeatureViewer = Class.create({
                          };
                                                       
     // now fetch the features using this method;
-    this.fetchFeatures();
+    //this.fetchFeaturesByAjax();
+    
+    // now test to make the use of the Yahoo's GET utility;
+    this.fetchFeaturesByYahoo();
      
   }, // end of initialize function
   
@@ -70,8 +73,45 @@ var FeatureViewer = Class.create({
   //- Methods ------------------------------------------------------------------
   //----------------------------------------------------------------------------
   
-  // Method to make feature Request;
-  fetchFeatures: function(){
+  // method to test YAHOO get utility;
+  fetchFeaturesByYahoo: function(){
+    
+    var that = this;
+    // now assuming that we are making a request, I am calling onLoading function;
+    this.ajaxLoading();
+    
+    var sources = $A( this._sources );
+    
+    // now generate the query URL using the input accession and the source;
+    var queryString = url+'?acc='+ this._accession;
+    
+    // now walk the sources array and add it to the query string;
+    sources.each( function( dsn ){
+      //console.log('the dsn is '+dsn );
+      queryString += '&sources=' + dsn ;
+    } );
+    console.log( 'the final query string is '+queryString );
+    
+    var objTransaction = YAHOO.util.Get.script( queryString, { 
+    onSuccess: function( response ){
+        // now we got the featuers as JSON string;
+        
+        that.ajaxComplete( features );
+        
+      },
+    });
+    
+  },
+  
+//  // function to remove the loading image;
+//  removeLoading: function(){
+//    console.log('the event is success, so remove the loading image' );
+//    this._parent.removeChild( $( 'spinner' ) ); 
+//  },
+  //----------------------------------------------------------------------------
+  
+  // Method to make feature Request using Ajax call;
+  fetchFeaturesByAjax: function(){
     // create an ajax request;
     var callParams = { acc : this.getAccession(),
                        sources : this.getSources() };
@@ -90,12 +130,13 @@ var FeatureViewer = Class.create({
   //----------------------------------------------------------------------------
   
   // callback function for ajax request onComplete;
-  ajaxComplete: function( ajaxResponse ){
+  ajaxComplete: function( features ){
     
     // remove the loading features child from shown;
     this._parent.removeChild( $('spinner') );
     
-    this._response = $H( eval ( '(' +ajaxResponse.responseText +')' ) );
+    //this._response = $H( eval ( '(' + features +')' ) );
+    this._response = $H( features );
     //console.log( 'the ajax response is '+$H( this._response ).inspect() );
     
     // parse the response and look for the error message;
@@ -160,8 +201,12 @@ var FeatureViewer = Class.create({
   drawCanvas:function(){
     
     // now get teh sources whcih returned some features;
-    this._featureSources = $A( eval( '('+ this._response.get( 'json_sources' ) + ')' ) );
-    this._dasFeatures    = $H( eval( '('+  this._response.get( 'dasFeatures' ) + ')' ) );
+//    this._featureSources = $A( eval( '('+ this._response.get( 'json_sources' ) + ')' ) );
+//    this._dasFeatures    = $H( eval( '('+  this._response.get( 'dasFeatures' ) + ')' ) );
+    this._featureSources = $A( this._response.get( 'json_sources' ) );
+    this._dasFeatures    = $H( this._response.get( 'dasFeatures' ) );
+    
+    //console.log('the feature and das sources are |%s|%s|',this._featureSources.inspect(), this._dasFeatures.inspect() );
     
     var parent         = this._parent;
     var featureSources = this._featureSources;
@@ -169,8 +214,6 @@ var FeatureViewer = Class.create({
     var imgCanvas      = this._imgCanvas;
     var Yincrement     = this._Yincrement;
     var imgParams      = this._imgParams;
-    
-    console.log('the sources which returned the features are '+ featureSources.inspect() );
     
     // get the context for the canvases;
     if( this._imgCanvas.getContext ){
@@ -229,7 +272,6 @@ var FeatureViewer = Class.create({
  
   // callback function for ajax request loading;
   ajaxLoading: function(){
-    console.log( 'making an ajax request for '+this._url );
     var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
     loadDiv.update( 'Loading Features...' );
     this._parent.appendChild( loadDiv );
