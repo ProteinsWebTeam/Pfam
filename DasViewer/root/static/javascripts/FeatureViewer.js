@@ -1,4 +1,14 @@
 
+// FeatureViewer.js
+//
+// Javascript library which gets Features and renders it in the browser.
+//
+// $Id$
+
+//------------------------------------------------------------------------------
+//- OBJECT ---------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 // spoof a console, if necessary, so that we can run in IE (<8) without having
 // to entirely disable debug messages
 if ( ! window.console ) {
