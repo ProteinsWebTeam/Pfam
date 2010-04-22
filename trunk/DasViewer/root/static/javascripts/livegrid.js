@@ -314,11 +314,12 @@ var LiveGridBuffer = Class.create( {
 
     this.startPos = parseInt(start);
     //this.rows     = ajaxResponse.responseJSON.json.rows;
-    this.rows     = ajaxResponse.responseJSON.data.rows;
+    this.rows     = ajaxResponse.data.rows;
     this.size     = this.rows.length;
     
     // now I am adding the alignments to the object for retrieving;
-    this.alignments = ajaxResponse.responseJSON.storeAlignments;
+    //this.alignments = ajaxResponse.responseJSON.storeAlignments;
+    this.alignments = ajaxResponse.storeAlignments;
     //// console.log( "the ajaxResponse is "+$H(ajaxResponse).inspect()+'| \nthe JSOn string is '+$H(ajaxResponse.responseJSON).inspect() );
     // console.log( "(17.2.2) LiveGridBuffer.update: end the size is "+this.size );
 /*
@@ -556,7 +557,7 @@ var LiveGrid = Class.create( {
   //----------------------------------------------------------------------------
 
   fetchBuffer: function( offset, fullBufferp ) {
-    //// console.log( "(8)LiveGrid.fetchBuffer: start " );
+    console.log( "(8)LiveGrid.fetchBuffer: start " );
 
     if ( this.processingRequest ) {
       //// console.log( "(9)LiveGrid.fetchBuffer: processing request..." );
@@ -576,43 +577,109 @@ var LiveGrid = Class.create( {
     this.processingRequest.bufferOffset = bufferStartPos;
     // console.log( "(15)LiveGrid:processingRequest:bufferOffset |%d|", this.processingRequest.bufferOffset );
     
-    var callParams = { id:        this.gridId,
-                       page_size: fetchSize,
-                       offset:    bufferStartPos };
-    Object.extend( callParams, this.additionalParams );
-    // // console.log( "LiveGrid.fetchBuffer: call parameters: " );
-    // // console.log( callParams );
-
-    // setup the AjaxRequest options
-
-    // first, set the request parameters
-    var options = { parameters: callParams };
+    // now prepare the querystring adn make a request;
+    var queryString = this.url + '?page_size=' + fetchSize + '&offset=' + bufferStartPos ;
     
-    // and then add user-defined options. These should be the callbacks for the various
-    // AjaxRequest response states, e.g. onLoading, onComplete, etc.
-    Object.extend( options, this.options );
+//    var callParams = { id:        this.gridId,
+//                       page_size: fetchSize,
+//                       offset:    bufferStartPos };
     
-    // console.log( "(16)before teh ajaxUpdate.bind "+$H( options ));
-    // add the update method from this class, so that we have a hook for updating the
-    // page with the server response
-    options.onComplete = this.ajaxUpdate.bind( this ); 
-    //// console.log( "(18)after the  ajaxUpdate.bind the options is "+$H( options ).inspect() );
+    // now walk down the additional params and add them as well;
+    $H( this.additionalParams ).each( function( pair ){
+      //console.log( 'the additional param key and value are |%s|%s|',pair.key, pair.value );
+      queryString += '&' + pair.key + '=' + pair.value;  
+    } );
     
-    // console.log( "(19)before ajax request");
-    // send the request
-    this.ajaxRequest = new Ajax.Request( this.url, options );
-    // console.log( "(20)after ajax request the scroller value is "+this.scroller );
+    console.log( 'the final querystring is '+queryString );
     
-//    var test = $H( options.parameters );
-//    // console.log( 'the options hash is '+test.inspect() );
+    // now make Yahoo get request;
+    var that = this;
     
-    //this.timeoutHandler = setTimeout( this.handleTimedOut.bind(this), 10000 ); // i am commenting to increase the timeout to 6 seconds.
+    this.ajaxLoading();
+    
+    var objTransaction = YAHOO.util.Get.script( queryString, { 
+      onSuccess : function( response ){
+        response.purge();
+        // now call the ajaxupdate function;
+        that.ajaxUpdate( alignments );
+      }
+    } );
+    
     this.timeoutHandler = setTimeout( this.handleTimedOut.bind(this), 120000 );
-    
-    // // console.log( "LiveGrid.fetchBuffer: end" );
-  },
 
+    console.log( "LiveGrid.fetchBuffer: end" );
+  },
+  
   //----------------------------------------------------------------------------
+ 
+  // callback function for ajax request loading;
+  ajaxLoading: function(){
+    var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
+    loadDiv.update( 'Loading Features...' );
+    this.grid.appendChild( loadDiv );
+  },
+  
+  //----------------------------------------------------------------------------
+  
+//  
+//  fetchBuffer: function( offset, fullBufferp ) {
+//    //// console.log( "(8)LiveGrid.fetchBuffer: start " );
+//
+//    if ( this.processingRequest ) {
+//      //// console.log( "(9)LiveGrid.fetchBuffer: processing request..." );
+//      this.unprocessedRequest = new LiveGridRequest( offset );
+//      return;
+//    }
+//    
+//    var fetchSize = this.metaData.getBufferSize( fullBufferp );
+//    // console.log( "(11)the fetchsize returned from above is "+fetchSize );
+//    var bufferStartPos = Math.max( 0, fullBufferp ? this.largeBufferWindowStart(offset) : offset );
+//    
+//    // console.log( "(13)LiveGrid.fetchBuffer: bufferStartPos: |%d|", bufferStartPos );
+//
+//    this.processingRequest = new LiveGridRequest(offset);
+//    // console.log( "(14)LiveGrid:processingRequest |%d|", this.processingRequest );
+//    
+//    this.processingRequest.bufferOffset = bufferStartPos;
+//    // console.log( "(15)LiveGrid:processingRequest:bufferOffset |%d|", this.processingRequest.bufferOffset );
+//    
+//    var callParams = { id:        this.gridId,
+//                       page_size: fetchSize,
+//                       offset:    bufferStartPos };
+//    Object.extend( callParams, this.additionalParams );
+//    // // console.log( "LiveGrid.fetchBuffer: call parameters: " );
+//    // // console.log( callParams );
+//
+//    // setup the AjaxRequest options
+//
+//    // first, set the request parameters
+//    var options = { parameters: callParams };
+//    
+//    // and then add user-defined options. These should be the callbacks for the various
+//    // AjaxRequest response states, e.g. onLoading, onComplete, etc.
+//    Object.extend( options, this.options );
+//    
+//    // console.log( "(16)before teh ajaxUpdate.bind "+$H( options ));
+//    // add the update method from this class, so that we have a hook for updating the
+//    // page with the server response
+//    options.onComplete = this.ajaxUpdate.bind( this ); 
+//    //// console.log( "(18)after the  ajaxUpdate.bind the options is "+$H( options ).inspect() );
+//    
+//    // console.log( "(19)before ajax request");
+//    // send the request
+//    this.ajaxRequest = new Ajax.Request( this.url, options );
+//    // console.log( "(20)after ajax request the scroller value is "+this.scroller );
+//    
+////    var test = $H( options.parameters );
+////    // console.log( 'the options hash is '+test.inspect() );
+//    
+//    //this.timeoutHandler = setTimeout( this.handleTimedOut.bind(this), 10000 ); // i am commenting to increase the timeout to 6 seconds.
+//    this.timeoutHandler = setTimeout( this.handleTimedOut.bind(this), 120000 );
+//    
+//    // // console.log( "LiveGrid.fetchBuffer: end" );
+//  },
+//
+//  //----------------------------------------------------------------------------
 
   requestContentRefresh: function( contentOffset ) {
     //// console.log( "LiveGrid.requestContentRefresh: start" );
@@ -645,7 +712,10 @@ var LiveGrid = Class.create( {
     // console.log( "(17)LiveGrid.ajaxUpdate: start"+$H(ajaxResponse ) );
 
     clearTimeout( this.timeoutHandler );
-
+    
+    // remove the loading features child from shown;
+    this.grid.removeChild( $('spinner') );
+    
     this.buffer = new LiveGridBuffer( this.metaData );
     // console.log( "(17.1)the buffer is "+this.buffer);
     
