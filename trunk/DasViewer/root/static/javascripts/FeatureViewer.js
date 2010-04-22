@@ -95,7 +95,7 @@ var FeatureViewer = Class.create({
     var objTransaction = YAHOO.util.Get.script( queryString, { 
     onSuccess: function( response ){
         // now we got the featuers as JSON string;
-        
+        response.purge();
         that.ajaxComplete( features );
         
       },
