@@ -1,4 +1,14 @@
 
+// AlignmentViewer.js
+//
+// Javascript library which gets alignments and renders it in the browser.
+//
+// $Id$
+
+//------------------------------------------------------------------------------
+//- OBJECT ---------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 // spoof a console if necessitates for IE.
 if( ! window.console ){
   window.console = {};
@@ -9,7 +19,6 @@ if( ! window.console ){
 //- class ----------------------------------------------------------------------
 //------------------------------------------------------------------------------
 
-// Javascript library to show alignments;
 var AlignmentViewer = Class.create({
   
   initialize: function( parent, accession, dsn, size, url, options ){
