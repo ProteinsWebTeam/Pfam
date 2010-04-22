@@ -47,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $pfam,  $help,  $noOverlap, $local, $acc
+    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -59,7 +59,6 @@ sub main {
     "e=s"       => \$incE,
     "t=s"       => \$incDomT,
     "T=s"       => \$incT,
-    "pfam"      => \$pfam,
     "noOverlap" => \$noOverlap,
     "local"     => \$local,
     "acc=s"     => \$acc,
@@ -183,11 +182,6 @@ sub main {
 
   if ($local) {
     runJackhmmer( $config, \%optCmds, $fasta, $seqDB );
-    
-    #Will make a sudo Pfam out file......
-    if ($pfam) {
-      parseJachmmer();
-    }
     
     #Check for overlaps....
     unless ( $noOverlap and -s "JALIGN" ) {
@@ -423,13 +417,6 @@ sub farmJackhmmer {
 
 }
 
-sub parseJackhmmer {
-
-  my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;
-  $HMMResultsIO->convertJackH("OUTPUT");
-
-}
-
 
 sub writePFAMOUT {
     #This subroutine is virtually identical to the pfjbuild_pfamout.pl script.  
@@ -528,7 +515,6 @@ or
 Script Options
 -fa <fa_file> : The name of the fasta file that you want to run Jackhmmer on.
 -acc <acc>    : Accession of protein you want to run Jackhmmer on
--pfam         : Product Pfam-style outputs. (Coming if we want them)
 -noOverlap    : Script 
 -local        : Run script on local machine
 -help         : Prints out this help message
