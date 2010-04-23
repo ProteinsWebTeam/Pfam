@@ -528,28 +528,7 @@ sub checkBioPerl {
       $error++;
     }
   }
-
-  if ( $error == 0 ) {
-    my $found = substr( $Bio::Root::Version::VERSION, 0, 5 );
-    $found =~ s/00//g;
-
-    unless ( $bioPerlVersion eq $found ) {
-      print "$found\n";
-      print STDERR
-        "Wrong version of bioperl found - wanted a flavour of $bioPerlVersion, "
-        . "but found "
-        . $found . "\n";
-      $error++;
-    }
-  }
-
-  if ($error) {
-    $bioPerlVersion =~ s/00//g;
-    die
-"The version of bioperl required is $bioPerlVersion, see http://bio.perl.org/wiki/Main_Page"
-      . " for more information and check that the directory contiaing the root Bio directory is on your PERL5LIB"
-      . " and before any other versions you may have.";
-  }
+ 
 }
 
 #-------------------------------------------------------------------------------
