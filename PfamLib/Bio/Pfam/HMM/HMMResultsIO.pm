@@ -49,7 +49,6 @@ use strict;
 use warnings;
 use Moose;
 use Carp;
-use Data::Dump qw(dump);
 
 #All the things we need to objectfy the search results
 use Bio::Pfam::HMM::HMMResults;
