@@ -6,10 +6,14 @@ use strict;
 use File::Path;
 use File::Copy;
 
-my $pfam_scan_root = "/software/pfam/Scripts/PfamH3Scripts/search";
-my $modules_root = "/software/pfam/Modules/PfamH3Lib/";
+my $pfam_scan_root = "/software/pfam/Scripts/PfamScripts/search";
+my $modules_root = "/software/pfam/Modules/PfamLib/";
 my $directory = "PfamScan";
 my $script = "pfam_scan.pl";
+
+print STDERR "pfam_scan.pl will be copied from $pfam_scan_root\n";
+print STDERR "Modules will be copied from $modules_root\n\n\n"; 
+
 
 #Make PfamScan directory
 unless(-d $directory) {
