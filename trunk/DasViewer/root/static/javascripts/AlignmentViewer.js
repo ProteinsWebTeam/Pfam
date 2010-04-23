@@ -248,12 +248,34 @@ var AlignmentViewer = Class.create({
     return this._size;
   },
   
+  //-------------------------------------
+  
+  // I need some more get methods for grid and other divs;
+  // function to get the grid;
+  getGridDiv: function(){
+    return this._gridDiv;
+  },
+  
+  //-------------------------------------
+  
+  // function to get the accessions Div
+  getAccDiv: function(){
+    return this._accDiv;
+  },
+  
+  //-------------------------------------
+  
+  // function to get the sequences Div
+  getSeqDiv: function(){
+    return this._seqDiv;
+  },
+  
   //------------------------------------------------------------------------------
   //- Private Methods ------------------------------------------------------------
   //------------------------------------------------------------------------------
   _throw: function( msg ){
     
-    throw { name : AlignmentViewerException,
+    throw { name : 'AlignmentViewerException',
             message: msg,
             toString: function(){ return this.message ;}
           };
