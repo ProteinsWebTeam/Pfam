@@ -136,7 +136,7 @@ sub build_alignment {
 		my @objectDetails;
 		push(@aliObjects, {'version' => $row->{'md5'},
 				   'intID' => $row->{'pfamseq_acc'},
-				   'type' => "Protein sequence",
+				   'type' => "PROTEIN",
 				   'dbSource' => "Pfam",
 				   'dbVersion' => $version->[0]->{'pfam_release'},
 				   'coos' => "UniProt",

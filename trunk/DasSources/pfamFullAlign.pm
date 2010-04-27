@@ -83,9 +83,9 @@ sub build_alignment {
 		    my $query;
 		    
 			$query = qq(SELECT tree_order 
-				    FROM   pfamA_reg_full, pfamseq
+				    FROM   pfamA_reg_full_significant, pfamseq
 				    WHERE  auto_pfamA = $pfamAData->[0]->{'auto_pfamA'}
-				    AND    pfamA_reg_full.auto_pfamseq = pfamseq.auto_pfamseq
+				    AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq
 				    AND    in_full=1
 				    AND    pfamseq_acc=$qsubject); 
 		    
@@ -99,9 +99,9 @@ sub build_alignment {
 			
 			
 			    push(@statements, qq(SELECT pfamseq_acc, pfamseq_id, md5, sequence, cigar, tree_order, seq_start, seq_end 
-						 FROM   pfamA_reg_full, pfamseq
+						 FROM   pfamA_reg_full_significant, pfamseq
 						 WHERE  auto_pfamA = $pfamAData->[0]->{'auto_pfamA'}
-						 AND    pfamA_reg_full.auto_pfamseq = pfamseq.auto_pfamseq
+						 AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq
 						 AND    in_full=1
 						 AND    tree_order <= $end
 						 AND    tree_order >= $start));
@@ -112,9 +112,9 @@ sub build_alignment {
 
 		    
 			push(@statements, qq(SELECT pfamseq_acc, pfamseq_id, md5, sequence, cigar, tree_order, seq_start, seq_end 
-					     FROM   pfamA_reg_full, pfamseq
+					     FROM   pfamA_reg_full_significant, pfamseq
 					     WHERE  auto_pfamA = $pfamAData->[0]->{'auto_pfamA'}
-					     AND    pfamA_reg_full.auto_pfamseq = pfamseq.auto_pfamseq
+					     AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq
 					     AND    in_full=1
 					     AND    pfamseq_acc=$qsubject));
 		    
@@ -128,9 +128,9 @@ sub build_alignment {
 	    $all_pos .= "$start-$end,";
 	    
 		push(@statements, qq(SELECT pfamseq_acc, pfamseq_id, md5, sequence, cigar, tree_order, seq_start, seq_end 
-				     FROM   pfamA_reg_full, pfamseq
+				     FROM   pfamA_reg_full_significant, pfamseq
 				     WHERE  auto_pfamA = $pfamAData->[0]->{'auto_pfamA'}
-				     AND    pfamA_reg_full.auto_pfamseq = pfamseq.auto_pfamseq
+				     AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq
 				     AND    in_full=1
 				     AND    tree_order <= $end
 				     AND    tree_order >= $start)) unless (!$start || !$end);
@@ -143,9 +143,9 @@ sub build_alignment {
 	    
 	
 		push(@statements, qq(SELECT pfamseq_acc, pfamseq_id, md5, sequence, cigar, tree_order, seq_start, seq_end 
-				     FROM   pfamA_reg_full, pfamseq
+				     FROM   pfamA_reg_full_significant, pfamseq
 				     WHERE  auto_pfamA = $pfamAData->[0]->{'auto_pfamA'}
-				     AND    pfamA_reg_full.auto_pfamseq = pfamseq.auto_pfamseq
+				     AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq
 				     AND    in_full=1));
 	
 	    
@@ -177,7 +177,7 @@ sub build_alignment {
 		
 		push(@aliObjects, {'version' => $row->{'md5'},
 				   'intID' => $row->{'pfamseq_acc'},
-				   'type' => "Protein sequence",
+				   'type' => "PROTEIN",
 				   'dbSource' => "Pfam",
 				   'dbVersion' => $version->[0]->{'pfam_release'},
 				   'coos' => "UniProt",
