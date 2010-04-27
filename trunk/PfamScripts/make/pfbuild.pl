@@ -61,7 +61,7 @@ sub main {
                'F3=s'       => \$f3,
                'withpfmake' => \$withpfmake,
                'makeEval=s' => \$makeEvalue,
-  	       'db=s'       => \$db);
+  	       'db=s'       => \$db) or die "Unknown option, try running -help for more infortmation.\n";
   
   help() if($help);
   if($hand and $nobuild){
@@ -231,7 +231,6 @@ sub main {
       die "Did not recognise BM line ".$descObj->BM."\n";
     }
   }
-  
     my $buildline = "hmmbuild ";
     foreach my $opt (keys %buildOpts){
       if($buildOpts{$opt}){
