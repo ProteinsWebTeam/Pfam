@@ -208,6 +208,23 @@ sub metaseqLoc {
   return $self->{metaseq}->{location};
 }
 
+=head2 revpfamseqLoc
+
+  Title    : revpfamseqLoc
+  Usage    : $config->revpfamseqLoc
+  Function : Returns the location of revpfamseq
+  Args     : None - read only operator
+  Returns  : string containing path to revpfamseq
+  
+=cut
+
+sub revpfamseqLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{revpfamseq}->{location};
+}
 
 =head2 pfamseqFarmLoc
 
@@ -344,7 +361,7 @@ sub ncbi_dbsize {
 
   Title    : meta_dbsize
   Usage    : $config->meta_dbsize
-  Function : Returns the number of sequences in ncbi
+  Function : Returns the number of sequences in metaseq
   Args     : None - read only operator
   Returns  : integer    
   
@@ -356,6 +373,24 @@ sub meta_dbsize {
     warn "Passed variable to ro config\n";
   }
   return $self->{metaseq}->{dbsize};
+}
+
+=head2 rev_dbsize
+
+  Title    : rev_dbsize
+  Usage    : $config->rev_dbsize
+  Function : Returns the number of sequences in revpfamseq
+  Args     : None - read only operator
+  Returns  : integer    
+  
+=cut
+
+sub rev_dbsize {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{revpfamseq}->{dbsize};
 }
 
 =head2 dictionary
