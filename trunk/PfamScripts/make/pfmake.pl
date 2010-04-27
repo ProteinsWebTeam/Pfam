@@ -187,7 +187,8 @@ sub makeALIGN {
   my ($config, $fasta) = @_;  
   
   unless(-s $fasta){
-    die "The fasta file has zero size:[$!]\n"; 
+    warn "The fasta file has zero size:[$!]\n"; 
+    exit;
   }
 
   system($config->hmmer3bin."/hmmalign HMM FA > ALIGN.sto") and die "Could not run H3 hmmalign:[$!]";
