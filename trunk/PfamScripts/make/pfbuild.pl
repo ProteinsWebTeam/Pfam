@@ -104,6 +104,15 @@ sub main {
       } 
       $db_location = $config->metaseqLoc."/$db";
   }
+  elsif($db eq "revpfamseq") {
+      if($dbsize and $dbsize ne $config->dbsize){
+	  warn "\n***** Using effective database size [$dbsize] that is different to metaseq [".$config->meta_dbsize."] *****\n\n";
+      }
+      else {
+	  $dbsize =  $config->rev_dbsize;
+      } 
+      $db_location = $config-> seqLoc."/$db";
+  }
   else {
       die "db must be either 'pfamseq', 'ncbi' or 'metaseq', you specified [$db]\n";
   }
@@ -250,7 +259,6 @@ sub main {
     
   }else{
     # Skip hmmbuild if no build
-    print STDERR "No build\n";
     unless( -s "HMM" ){
       die "Could not find the HMM file:[$!]\n";
     } 
