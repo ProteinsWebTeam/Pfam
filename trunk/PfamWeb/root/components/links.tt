@@ -395,7 +395,20 @@ BLOCK externalLinks;
                                           id=id -%]
                   </span>
                 [%- END;
-              CASE [ "CATH", "CAZY", "HOMSTRAD", "MEROPS", "MIM", "PRINTS", "PRODOM", 
+              # TODO the CAZY IDs in pfam_24_0 are broken - they include an underscore but shouldn't.
+              # The IDs are fixed in 25.0, but in order to fix the CAZY links, we'll just remove
+              # the underscore manually here. This can be removed once 25.0 is out.
+              # jt6 20100428 WTSI
+              CASE "CAZY";
+                FOREACH ref IN xrefs.$db;
+                  cazy_id = ref.db_link.remove( "_" ); -%]
+                  <span class="entry">
+                    [%- PROCESS buildLink type=db 
+                                          id=cazy_id -%]
+                  </span>
+                [%- END;
+              # TODO for release 25.0 onwards, CAZY can be added back into this list
+              CASE [ "CATH", "HOMSTRAD", "MEROPS", "MIM", "PRINTS", "PRODOM", 
                      "PROSITE", "PROSITE_PROFILE", "SMART", "TC" ];
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
