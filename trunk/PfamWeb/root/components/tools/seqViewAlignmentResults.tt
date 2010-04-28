@@ -74,8 +74,10 @@ title = "View selected sequences"
   <p class="message">[% errorMsg %]</p>
 [% ELSE; %]
 
-  CALL c.log.debug( "alignment results: " );
-  CALL c.log.debug( dumper.dump( results ) );
+  IF c.debug;
+    CALL c.log.debug( "alignment results: " );
+    CALL c.log.debug( dumper.dump( results ) );
+  END;
 
 END %]
 
