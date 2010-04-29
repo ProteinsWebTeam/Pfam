@@ -60,6 +60,10 @@ var AlignmentViewer = Class.create({
       this._url = url;
     } 
     
+    // also I need the CSS files to render the alignments in the page. 
+    // so make a request to get the CSS files in the page using GET request;
+    this._fetchCSS();
+    
     // now define the options;
     this.options = {};
     Object.extend( this.options, options || {} );
@@ -73,6 +77,7 @@ var AlignmentViewer = Class.create({
     
     // add event listeners after the alignment is populated;
     this._addListeners();
+    
     
   },  // end of initialize
   
@@ -97,20 +102,15 @@ var AlignmentViewer = Class.create({
       sequencesDiv: this._seqDiv,
 			scrollerDiv:  this._scroll,
       scrollvalue: 0,
-      prefetchBuffer: true,
-//      onLoading: function(){
-//        var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
-//        loadDiv.update( 'Loading Alignment...' );
-//        parent.appendChild( loadDiv );
-//      },
-//      onComplete: function(){
-//        parent.removeChild( $('spinner' ) );
-//      }
+      prefetchBuffer: true
     }; // end of options;
     
     console.log('fetchAlignments: making a livegrid request with |%s|%d|%s|%s|',this._gridDiv, this._size, this._url, opts.toString()  );
     // now make an request using livegrid;
     this._livegrid = new LiveGrid( this._gridDiv, 25, this._size, this._url, opts );
+    
+    // set the timeout to check whether we get the alignments from the livegrid;
+    this._timer = setInterval( this.checkAlignment.bind(this) , 500 );
     
   },
   
@@ -125,20 +125,23 @@ var AlignmentViewer = Class.create({
     //      <div id="sequences"></div>
     //    </div>
     //    <div id="scrollerDiv"></div>
-    var grid   = new Element( 'div',{ 'id': 'grid' } );
-    var scroll = new Element( 'div',{ 'id': 'scrollerDiv' } );
-    var acc    = new Element( 'div',{ 'id': 'accessions' } );
-    var seq    = new Element( 'div',{ 'id': 'sequences' } );
+    var grid         = new Element( 'div',{ 'id': 'grid' } );
+    var highlighter  = new Element( 'div', { 'id': 'highlightColumn' } );
+    var scroll       = new Element( 'div',{ 'id': 'scrollerDiv' } );
+    var acc          = new Element( 'div',{ 'id': 'accessions' } );
+    var seq          = new Element( 'div',{ 'id': 'sequences' } );
     
     // add the grid and the scroller to the DOM as children of parent;
     this._parent.appendChild( grid );
     this._parent.appendChild( scroll );
     
     // add the acc and seq as children of grid;
+    grid.appendChild( highlighter );
     grid.appendChild( acc );
     grid.appendChild( seq );
     
     // now add the grid and other elements to the object;
+    this._highlighter = highlighter;
     this._gridDiv = grid;
     this._accDiv  = acc;
     this._seqDiv  = seq;
@@ -155,10 +158,51 @@ var AlignmentViewer = Class.create({
     }.bind( this ) );
     
   },    
+  
+  //----------------------------------------------------------------------------
+  
+  // function to check whether we have got the alignments response;
+  checkAlignment: function(  ){
+    
+    var accDiv = this._accDiv.identify();
+    
+    if( this._accDiv.childElements().size() > 0 ){
+      console.log('the accessions are updated & timer is cleared '+ $( accDiv ) .childElements().size());
+      clearInterval( this._timer);
+      
+      // now set the readyState to true;
+      this.setReadyState( true );  
+    }
+    
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to fetch the CSS files for rendering the alignment;
+  _fetchCSS: function( ){
+    console.log( 'making YAHOO get request for getting the CSS' );
+    
+    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignViewer.css' );
+    var cssTransaction2 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignment.css' );
+      
+  },
       
   //------------------------------------------------------------------------------
   //- Get and Set Methods --------------------------------------------------------
   //------------------------------------------------------------------------------
+  
+  // function to set the readyState of this object;
+  setReadyState: function( status ){
+    this._readyState = status;  
+  },
+  
+  //--------------------------------------
+  
+  getReadyState: function( ){
+    return this._readyState;
+  },
+  
+  //----------------------------------------------------------------------------
   
   // get the livegrid object for later use;
   getLiveGrid: function(){
