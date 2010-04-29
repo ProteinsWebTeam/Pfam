@@ -61,11 +61,12 @@ var FeatureViewer = Class.create({
     this._graphicXOffset = 10;
     this._extraXspace    = 40;
     this._Yincrement     = 20;
+    this._resWidth       = 1;
     
     // initialise the image params for pfam graphic code
     this._imgParams     = { xscale:            1,
                           yscale:              1,
-                          residueWidth:        1,
+                          residueWidth:        this._resWidth,
                           envOpacity:          -1,
                           sequenceEndPadding:  0,
                           xOffset: this._graphicXOffset  // das source names were written using canvas;
@@ -93,7 +94,8 @@ var FeatureViewer = Class.create({
     var sources = $A( this._sources );
     
     // now generate the query URL using the input accession and the source;
-    var queryString = url+'?acc='+ this._accession;
+    //var queryString = url+'?acc='+ this._accession;
+    var queryString = this._url+'?acc='+ this._accession;
     
     // now walk the sources array and add it to the query string;
     sources.each( function( dsn ){
@@ -106,9 +108,15 @@ var FeatureViewer = Class.create({
     onSuccess: function( response ){
         // now we got the featuers as JSON string;
         response.purge();
+        
+        //that._parent.update( "Features for <strong>"+that._accession+"</strong>" );
+        
         that.ajaxComplete( features );
         
-      },
+        // now set the readyState to true;
+        that.setReadyState( true );
+          
+      }
     });
     
   },
@@ -168,30 +176,60 @@ var FeatureViewer = Class.create({
   // function to create the canvas element;
   buildCanvas: function(){
     
-    // create the canvas element for the drawing;
-    var imgCanvas = new Element( 'canvas',{ 'id': 'imgCanvas'} );
-    var txtCanvas = new Element( 'canvas',{ 'id': 'txtCanvas'} );
+    // create the canvas element for the drawing if it doesnt exists in the dom;
+    var imgCanvas, txtCanvas, scroller, backgroundDiv, wrapper;
     
-    // make sure it gets initialised in bloody IE...
-    if ( typeof G_vmlCanvasManager !== "undefined" ) {
-      imgCanvas = G_vmlCanvasManager.initElement( imgCanvas );
-      txtCanvas = G_vmlCanvasManager.initElement( txtCanvas );
+    if( $( 'imgCanvas') === null && $( 'txtCanvas' ) === null ){
+      imgCanvas = new Element( 'canvas',{ 'id': 'imgCanvas'} );
+      txtCanvas = new Element( 'canvas',{ 'id': 'txtCanvas'} );
+      
+      // also create a wrapper div for img canvas, as we need this for taggin with alignment
+      // viewer later;
+      wrapper    = new Element( 'div', { 'id': 'canvasWrapper' } );
+      scroller       = new Element( 'div', { 'id': 'scroller' } );
+      backgroundDiv  = new Element( 'div', { 'id': 'backgroundDiv' } );
+      
+      wrapper.appendChild( imgCanvas );
+      wrapper.appendChild( scroller );
+      wrapper.appendChild( backgroundDiv );
+      
+      
+      // make sure it gets initialised in bloody IE...
+      if ( typeof G_vmlCanvasManager !== "undefined" ) {
+        imgCanvas = G_vmlCanvasManager.initElement( imgCanvas );
+        txtCanvas = G_vmlCanvasManager.initElement( txtCanvas );
+      }
+      
+      // now add both the elements as child elements of the div;
+      // CHECK: make sure there is no child elements of that parent.
+      this._parent.appendChild( txtCanvas );
+      //this._parent.appendChild( imgCanvas );
+      this._parent.appendChild( wrapper );  
+    }else{
+      
+      imgCanvas = $( 'imgCanvas' );
+      txtCanvas = $( 'txtCanvas' );
+      
     }
-    
-    //now set the canvas
-    
+
+    //now set the canvas & the wrapper;
+      
     if( imgCanvas !== undefined ){
       this.setimgCanvas( imgCanvas );  
     }
-    
+      
     if( txtCanvas !== undefined ){
       this.settxtCanvas( txtCanvas );  
     }
     
-    // now add both the elements as child elements of the div;
-    // CHECK: make sure there is no child elements of that parent.
-    this._parent.appendChild( txtCanvas );
-    this._parent.appendChild( imgCanvas );
+    if( wrapper !== undefined ){
+      console.log( 'the canvasWrapper is set '+wrapper );
+      this.setCanvasWrapper( wrapper );
+    }  
+    
+    // also set the scroller and backgroundDiv elements;
+    this._scroller      = scroller;
+    this._backgroundDiv = backgroundDiv;
     
     // now set the size of the canvas ;
     
@@ -227,7 +265,7 @@ var FeatureViewer = Class.create({
     
     // get the context for the canvases;
     if( this._imgCanvas.getContext ){
-      // console.log( "canvas can be used in this browser" );
+      console.log( "canvas can be used in this browser" );
       ctx = this._imgCanvas.getContext( '2d' );
     }
     
@@ -275,6 +313,11 @@ var FeatureViewer = Class.create({
       } );
        
     } );
+    
+    // now store the baseline and the graphicYOffset,
+    // as these are required for tagging with the alignments;
+    this._baseline = baseline;
+    this._graphicYOffset = graphicYOffset; 
     
   },
   
@@ -396,6 +439,36 @@ var FeatureViewer = Class.create({
   // function to get the txt canvas;
   gettxtCanvas: function(){
     return this._txtCanvas;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the wrapper;
+  setCanvasWrapper: function( wrapper ){
+    if( wrapper !== undefined ){
+      this._canvasWrapper = wrapper ;
+    }else{
+      this._throw( 'canvasWrapper was not created' );
+    }  
+  },
+  
+  //-------------------------------------
+  
+  getCanvasWrapper: function(){
+    return this._canvasWrapper;
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to set the readyState of this object;
+  setReadyState: function( status ){
+    this._readyState = status;  
+  },
+  
+  //--------------------------------------
+  
+  getReadyState: function( ){
+    return this._readyState;
   },
   
   //----------------------------------------------------------------------------
