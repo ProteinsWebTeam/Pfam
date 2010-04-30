@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/perl
 #
 #We have to set this in thes scripts as they do not assume anyones environment variables.
 #
