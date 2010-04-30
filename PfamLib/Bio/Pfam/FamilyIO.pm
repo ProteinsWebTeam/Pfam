@@ -643,7 +643,7 @@ sub updatePfamAInRDB {
 
 }
 
-sub updateRegionsInRDB {
+sub updatePfamARegions {
   my ( $self, $famObj, $pfamDB ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
