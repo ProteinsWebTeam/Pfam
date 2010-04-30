@@ -57,31 +57,15 @@ use Bio::Pfam::Family::DESC;
 =cut
 
 
-
-#subtype 'PfamAuthor'
-#  => as Str
-#  => where { $_ =~ /^((\S+\s{1}\S{1,3})(\,\s{1})?)*$/ }
-#  => message { 'Not a vailid Pfam author' };
-
-#subtype 'PfamDesc'
-#  => as Str
-#  => where { $_ =~ /^(.{1,75})$/ }
-#  => message { 'Not a vailid Pfam author' };
-
-#subtype 'PfamRef'
-#  => as ArrayRef
-#  => where{ scalar(@{$_}) >= 1; }
-#  => message { 'Not a vaild Pfam Reference' };   
-
 subtype 'ClanAcc'
   => as Str
   => where { $_ =~ m/^CL\d{4}$/ }
-  => message { 'Not a valid Clan accession' };
+  => message { "\n\n*** $_ is not a valid clan accession. Expected CLXXXX ***\n\n" };
 
 subtype 'ClanId'
   => as Str
-  => where { $_ =~ m/^[\w_-]+$/ }
-  => message { 'Not a valid CLan accession' };
+  => where { $_ =~ m/^[\w_-]{1,15}$/ }
+  => message { "\n\n***$_ is not a valid Clan Id" };
   
 has 'AC' => (
   is        => 'rw',
