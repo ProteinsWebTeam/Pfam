@@ -218,16 +218,14 @@ sub parseDESC {
       $params{private} .= " " if ( $params{private} );
       $params{private} .= $1;
     }
-    elsif ( $file[$i] =~ /^WK\s{3}(.*)\;$/ ) {
-      my $pages = $1;
-      foreach my $p ( split( /\;/, $pages ) ) {
+    elsif ( $file[$i] =~ /^WK\s{3}(.*)$/ ) {
+      my $page = $1;
         if ( defined( $params{"WIKI"} ) ) {
-          $params{"WIKI"}->{$p}++;
+          $params{"WIKI"}->{$page}++;
         }
         else {
-          $params{"WIKI"} = { $p => 1 };
+          $params{"WIKI"} = { $page => 1 };
         }
-      }
     }
     elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
@@ -533,10 +531,10 @@ sub writeDESC {
       elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
           my @pages = keys( %{ $desc->$tagOrder } );
-          my $p = join( ";", @pages );
-          $p .= ";";
-          print D wrap( "WK   ", "WK   ", $p );
-          print D "\n";
+          foreach my $p (@pages){
+            print D wrap( "WK   ", "WK   ", $p );
+            print D "\n"
+          }
         }
       }
       elsif ( $tagOrder eq 'REFS' ) {
@@ -606,6 +604,7 @@ sub writeDESC {
 sub updatePfamAInRDB {
   my ( $self, $famObj, $pfamDB, $isNew, $depositor ) = @_;
 
+  #This essential updates all of the content contained in the desc file
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
@@ -621,8 +620,6 @@ sub updatePfamAInRDB {
     $pfamDB->updatePfamA($famObj);
   }
 
-  $pfamDB->updatePfamARegSeed($famObj);
-  $pfamDB->updatePfamARegFull($famObj);
 
   if ( $famObj->DESC->WIKI ) {
     $pfamDB->updatePfamAWikipedia($famObj);
@@ -645,6 +642,23 @@ sub updatePfamAInRDB {
   }
 
 }
+
+sub updateRegionsInRDB {
+  my ( $self, $famObj, $pfamDB ) = @_;
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+  unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
+    confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
+  }
+  
+  $pfamDB->updatePfamARegSeed($famObj);
+  $pfamDB->updatePfamARegFull($famObj);  
+  
+}
+
 
 sub movePfamAInRDB {
   my ( $self, $famObj, $pfamDB ) = @_;
