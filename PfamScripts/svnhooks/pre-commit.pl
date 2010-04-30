@@ -134,8 +134,9 @@ elsif ( $msg =~ /PFCIRMC:(CL\d{4})\:(PF\d{5})/ ) {
 }
 elsif ( $msg =~ /^PFNEW:/ ) {
   $txnlook->commitNewFamily($pfamDB);
-}
-elsif ( $msg =~ /^CLCI:/ ) {
+}elsif( $msg =~ /PFCIDESC:/){
+  $txnlook->commitFamilyDESC($pfamDB);   
+}elsif ( $msg =~ /^CLCI:/ ) {
   $txnlook->commitClan($pfamDB);
 }
 elsif ( $msg =~ /^CLNEW:/ ) {
@@ -158,9 +159,6 @@ elsif ( $msg =~ /^AUTORMMB/ ) {
 }
 elsif ( $msg =~ /^AUTORMCL:/ ) {
   $txnlook->initiateFamilyView($pfamDB);
-}
-elsif ( $msg =~ /^PFANN:/ ) {
-  $txnlook->commitDesc;
 }
 elsif ( $msg =~ /^PFMOV:/ ) {
   $txnlook->moveFamily($pfamDB);
