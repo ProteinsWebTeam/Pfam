@@ -209,6 +209,9 @@ var FeatureViewer = Class.create({
       
       imgCanvas = $( 'imgCanvas' );
       txtCanvas = $( 'txtCanvas' );
+      wrapper   = $( 'canvasWrapper' );
+      scroller  = $( 'scroller' );
+      backgroundDiv = $( 'backgroundDiv' );
       
     }
 
