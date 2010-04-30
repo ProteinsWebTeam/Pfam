@@ -447,21 +447,6 @@ sub checkoutAllFamilies {
   }
 }
 
-sub checkoutFamilyDESC {
-  my ( $self, $family, $dest ) = @_;
-  my $url = $self->familyLocation . "/" . $family . "/DESC";
-
-  print STDERR "$url";
-  eval {
-    $self->{txn}
-      ->checkout( $url, $dest, $self->revision ? $self->revision : 'HEAD', 1 );
-  };
-
-  if ($@) {
-    confess("Failed to check out family DESC, $family:[$!]\n");
-  }
-}
-
 sub checkoutClan {
   my ( $self, $clan, $dest ) = @_;
   my $url      = $self->clanLocation . "/" . $clan;
@@ -553,6 +538,23 @@ sub commitFamily {
   #And finally commit them.
   my $cinfo;
   eval { $cinfo = $self->{txn}->commit( $family, 1 ); };
+
+  if ($@) {
+    confess("Failed to commit family, $family: [$@]\n");
+  }
+
+  #Now check that something happen!
+  $self->_checkCommitObj($cinfo);
+
+}
+
+
+sub commitFamilyDESC {
+  my ( $self, $family ) = @_;
+
+  #And finally commit them.
+  my $cinfo;
+  eval { $cinfo = $self->{txn}->commit( $family."/DESC", 1 ); };
 
   if ($@) {
     confess("Failed to commit family, $family: [$@]\n");
