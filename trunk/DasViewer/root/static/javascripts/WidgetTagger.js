@@ -138,10 +138,20 @@ var WidgetTagger = Class.create({
     // event listener added for click
     accDiv.observe( 'click', function( e ){
       
-      // store the clicked element as wholeAcc, as we need this to 
-      // retrieve raw alignment to tag this with the feature viewer;
-      this._wholeAcc = e.element().identify();
-      console.log('teh wholeAcc is '+this._wholeAcc );
+      // if the wholeAcc is already defined, then remove the className;
+      if( this._wholeAcc !== undefined ){
+        console.log('removing the backgrund class from the accession' );
+        $( this._wholeAcc ).removeClassName( 'background' );
+      }
+      
+      // store the clicked element as wholeAcc, as we need this,
+      // also add the background class to highight the clicked accession;
+      e.element().addClassName( 'background' );
+       
+      this._wholeAcc      = e.element().identify();
+      this._wholeSeqWidth = $( this._wholeAcc+'seq' ).getWidth();
+       
+      console.log('teh wholeAcc and seq width is '+this._wholeAcc +'|'+ this._wholeSeqWidth );
       
       this._parseAccession( e.element().identify() );
       
@@ -178,9 +188,6 @@ var WidgetTagger = Class.create({
     
     if( this._featureObj.getReadyState() === true ){
       
-      // features are loaded now, so clear the timer;
-      clearInterval( this._featureChecker );
-      
       // now add the mouse move listener to the features;
       this.mousemoveListener();
       
@@ -203,6 +210,9 @@ var WidgetTagger = Class.create({
     
     if( this._structureObj.getReadyState() === true ){
       
+      this._mapData = this._structureObj._processedStructure.get( this._structureObj.getShownStructure() );
+      this._resDiff = this._mapData.pstart - this._mapData.start;
+      
       // structures are loaded now, so clear the timer;
       clearInterval( this._structureChecker );
       
@@ -222,6 +232,9 @@ var WidgetTagger = Class.create({
   // function which registers the mousemove and tags the alignment viewer together;
   mousemoveListener : function(){
     
+    // features are loaded now, so clear the timer;
+    clearInterval( this._featureChecker );
+      
     var featureObj = this._featureObj;
     
     // first get the canvas;
@@ -233,6 +246,7 @@ var WidgetTagger = Class.create({
     // as we now have the features, to tag it to the alignment viewer, we need certain parameters
     // so parse the features response and get those details;
     // ******* features is already present in DOM *****
+    
     var graphicXOffset = featureObj._graphicXOffset;
     var extraXspace    = featureObj._extraXspace;
     var Yincrement     = featureObj._Yincrement  
@@ -254,15 +268,34 @@ var WidgetTagger = Class.create({
       
     console.log('the canvas wrapper is '+canvasWrapper.inspect()+'|'+scroller.inspect()+'|'+ backgroundDiv.inspect() );
     
-    
     // now get the parameters from alignObj;
     var alignObj       = this._alignObj;
     var alignStart     = this._alignStart;
     var alignEnd       = this._alignEnd;
+    var diff_size      = ( alignEnd - alignStart ) + 1 + 1;
     var alignments     = $H( alignObj._livegrid.getAlignment() );
+    var leftPos        = graphicXOffset + parseInt( alignStart  ) + 1;
+    var sequence       = $A( alignments.get( this._wholeAcc ).toArray() );
+    var wholeSeqWidth  = this._wholeSeqWidth;
+    
+    console.log( 'the wholeseqWidth is '+this._wholeSeqWidth );
+     
+    // background div;
+    backgroundDiv.setStyle( {
+          'height': height+'px',
+          'left'  : leftPos+'px',
+          'width' : diff_size+'px'
+        });
+    
     
     //console.log('the alignments are '+ alignments.inspect() );
     imgCanvas.observe( 'mousemove', function( e ){
+      
+      if (this._mapData !== undefined) {
+        // first reset the structure to native stage;
+        var script = 'select all; color grey; spacefill false;';
+        jmolScript(script, 'foo');
+      }
       
       // calculate the offset position of the element;
       var offset = imgCanvas.up().cumulativeOffset();
@@ -272,11 +305,15 @@ var WidgetTagger = Class.create({
       var y = e.pointerY() - offset[ 1 ];
       //console.log( 'the x and y is |%d|%d|',x,y, graphicXOffset, canvasWidth, extraXspace ); 
       
+      // as the y are positioned using float:left, we need to consider the width of the text canvas;
+      var scrollerLeftPos = x + parseInt( txtCanvas.getAttribute( 'width' ) );
+      
+      // now update the resNum div to say which residue is currently shown;
+      var res = ( x / resWidth ) - graphicXOffset + parseInt( canvasWrapper.scrollLeft );
+      //console.log( 'the start, end of alignment and the res is |%d|%d|',alignStart,alignEnd,res);
+          
       // inserted from here
       if( x > graphicXOffset && x < ( canvasWidth - extraXspace ) ){
-        
-        // as the y are positioned using float:left, we need to consider the width of the text canvas;
-        var scrollerLeftPos = x + parseInt( txtCanvas.getAttribute( 'width' ) );
         
         // now calculate the size of the scroller to be displayed
         scroller.setStyle( {
@@ -284,17 +321,9 @@ var WidgetTagger = Class.create({
           'left'  : scrollerLeftPos+'px'
         } );
         
-        // now update the resNum div to say which residue is currently shown;
-        var res = ( x / resWidth ) - graphicXOffset + parseInt( canvasWrapper.scrollLeft );
-        //console.log( 'the start, end of alignment and the res is |%d|%d|',alignStart,alignEnd,res);
-        
         // TAGGING THE ALIGNMENT VIEWER TO FEATURE VIEWER HERE;
         //if the resnumber falls between the alignmnet coordinates
         if( ( res >= alignStart ) && ( res <= alignEnd ) ){
-          
-          // use the accession and residue number get the column number and change the color.
-          var sequence = $A( alignments.get( this._wholeAcc ).toArray() );
-          console.log( 'the start, end of alignment and the res is |%d|%d|',alignStart,alignEnd,res);
           
           var resNum = 0 ;
           var columnNum;
@@ -318,7 +347,7 @@ var WidgetTagger = Class.create({
           var seqSize  = alignObj.getSeqDiv().getWidth();
           
           // get the width of the sequence % total residues to get pixel value for single residue;
-          var highlightLeftPos =  ( Math.round( ( $( this._wholeAcc +'seq').getWidth()/sequence.size() ) * columnNum ) );
+          var highlightLeftPos =  ( Math.round( ( wholeSeqWidth /sequence.size() ) * columnNum ) );
           //// console.log( 'accsize|highlightLeftPos|seqsize|totalres|,|%d|%d|%d|%d|',accSize,highlightLeftPos,$(acc+'seq').getWidth(),sequence.size() );
           
           // get the total size we have moved;
@@ -329,6 +358,7 @@ var WidgetTagger = Class.create({
           // if the total visible size is lesser than the residue to be highlighted,
           //// console.log( 'bef the windowstart,end,leftpos are |%d|%d|%d|',visibleWinStart,visibleWinEnd,highlightLeftPos);
           // console.log("the scrollLEft and highlightleftpos is |%d|%d|",$('sequences').scrollLeft, highlightLeftPos );
+          
           if ( ( highlightLeftPos > visibleWinEnd ) ){
             // now set the new scrollLeft as the visibleWinEnd;
             diffPos = highlightLeftPos - visibleWinEnd;
@@ -371,12 +401,35 @@ var WidgetTagger = Class.create({
       } // because we start to draw the sequence from 100px;
       // insert completed; 
       
-      // also make sure the strucutreObj is ready;
-      if( this._structureObj.getReadyState() === true ){
+      // now check the status of the structure, if its changed, then new mapdata is to be calculated;
+      if( this._structureObj.isStructureChanged() === true ){
         
-        jmolScript( 'select all; color red;', 'foo' );
+        console.log('the strucutre is changed, so gettitng new mapdata for '+ this._structureObj.getShownStructure() )
+        this._mapData = this._structureObj._processedStructure.get( this._structureObj.getShownStructure() );
+        this._resDiff = this._mapData.pstart - this._mapData.start;
+      
+        console.log( 'the mapdata and the resDiff is '+this._mapData+'|'+ this._resDiff );  
+        
+        // now we got the change so set to false;
+        this._structureObj.setStructureChange( false );
+        console.log( 'the structure status changed to false ' );
+        
+      } // end  of structure changed;
+      
+      if( this._mapData !== undefined ){
+        
+        if( res >= this._mapData.pstart && res <= this._mapData.pend ){
           
-      } // end of structureObj.getReadyState;
+          // if we subtract the diff in mapping numbers, we get the actual residue to be highlighted;
+          var pdbRes = res - this._resDiff;
+          
+//          console.log( 'the res,pdbRes, pstart, pend, start, end  ',res,pdbRes, this._mapData.pstart, this._mapData.pend, this._mapData.start, this._mapData.end );
+          var script = 'select '+pdbRes+'; color red; spacefill true;';
+          jmolScript( script, 'foo' );
+          
+        }
+        
+      } // end of mapData undefined
       
     }.bind(this) ); // end of imgCanvas.observe
     
