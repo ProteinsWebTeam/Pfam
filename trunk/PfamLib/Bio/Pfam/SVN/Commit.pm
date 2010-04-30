@@ -89,16 +89,26 @@ sub commitFamily {
   
   #Make an object to respresent the family based on the SVN transcation
   my $familyIO = Bio::Pfam::FamilyIO->new;
-  my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
   
-  #Perform QC on the family
-  $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB);
+  my ($famObj, $family, $dir);
+  my @updated = $self->updated();
   
-  #Okay, if we get to here, then we should be okay!
-  #Now upload the family to Pfam  
-  $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-  $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
-  $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+  if(scalar(@updated) == 1 and $updated[0] eq 'DESC'){
+     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
+     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+  }else{
+    ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
+  
+    #Perform QC on the family
+    $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB);
+  
+    #Okay, if we get to here, then we should be okay!
+    #Now upload the family to Pfam  
+    $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+    $familyIO->updatePfamARegions($famObj, $pfamDB, 0);
+    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
+    $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+  }  
   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
@@ -107,6 +117,7 @@ sub commitFamily {
     #If we have not died, then we should be good to go! 
     Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
   }
+
 }
 
 sub commitNewFamily {
@@ -120,10 +131,7 @@ sub commitNewFamily {
   my $acc = $self->_assignAccession($pfamDB);
   
   $famObj->DESC->AC($acc);
-  #Now update the desc file
-  
-#TODO
-  
+
   #Now perform the QC steps.....
   $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB);
   #Need to check the sequences.....
@@ -133,6 +141,7 @@ sub commitNewFamily {
   #Now upload the family to Pfam  
   my $author = $self->author();
   $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
+  $familyIO->updatePfamARegions($famObj, $pfamDB, 1);
   $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
   $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
   
@@ -247,7 +256,6 @@ sub _getFamilyObjFromTrans {
   
   return($famObj, $family, $dir);
 }
-
 
 sub _getClanObjFromTrans {
   my ($self, $clanIO, $isNew) = @_;
