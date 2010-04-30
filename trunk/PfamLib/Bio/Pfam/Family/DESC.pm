@@ -80,9 +80,12 @@ subtype 'PfamRef'
 subtype 'hmmCutOff'
   => as HashRef 
   => where { defined $_->{seq} and defined $_->{dom} }
-  => message { 'expected hash containing  seq and dom as keys '.dumper($_) };  
+  => message { 'expected hash containing  seq and dom as keys '.dumper($_) }; 
   
-
+subtype 'PfamClanAcc'
+  => as Str
+  => where { $_ =~ m/^CL\d{4}$/ }
+  => message { "\n\n*** $_ is not a valid clan accession. Expected CLXXXX ***\n\n" };
 
 has 'AC' => (
   is        => 'rw',
@@ -124,7 +127,7 @@ has 'SE' => (
 
 has 'CL' => (
   is       => 'rw',
-  isa      => 'Str',
+  isa      => 'PfamClanAcc',
   required => 0
 );
 
