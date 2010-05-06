@@ -99,10 +99,10 @@ var FeatureViewer = Class.create({
     
     // now walk the sources array and add it to the query string;
     sources.each( function( dsn ){
-      //console.log('the dsn is '+dsn );
+      //// console.log('the dsn is '+dsn );
       queryString += '&sources=' + dsn ;
     } );
-    console.log( 'the final query string is '+queryString );
+    // console.log( 'the final query string is '+queryString );
     
     var objTransaction = YAHOO.util.Get.script( queryString, { 
     onSuccess: function( response ){
@@ -123,7 +123,7 @@ var FeatureViewer = Class.create({
   
 //  // function to remove the loading image;
 //  removeLoading: function(){
-//    console.log('the event is success, so remove the loading image' );
+//    // console.log('the event is success, so remove the loading image' );
 //    this._parent.removeChild( $( 'spinner' ) ); 
 //  },
   //----------------------------------------------------------------------------
@@ -155,11 +155,11 @@ var FeatureViewer = Class.create({
     
     //this._response = $H( eval ( '(' + features +')' ) );
     this._response = $H( features );
-    //console.log( 'the ajax response is '+$H( this._response ).inspect() );
+    //// console.log( 'the ajax response is '+$H( this._response ).inspect() );
     
     // parse the response and look for the error message;
     if( this._response.get( 'errorMsg') !== undefined ){
-      console.log("WE GOT AN ERROR" );
+      // console.log("WE GOT AN ERROR" );
       this._throw( this._response.get( 'errorMsg') );  
     }
     
@@ -226,7 +226,7 @@ var FeatureViewer = Class.create({
     }
     
     if( wrapper !== undefined ){
-      console.log( 'the canvasWrapper is set '+wrapper );
+      // console.log( 'the canvasWrapper is set '+wrapper );
       this.setCanvasWrapper( wrapper );
     }  
     
@@ -245,7 +245,7 @@ var FeatureViewer = Class.create({
     imgCanvas.setAttribute( 'width', this._canvasWidth );
     txtCanvas.setAttribute( 'height', this._canvasHeight );
     txtCanvas.setAttribute( 'width', 150 ); 
-    console.log( 'buildCanvas:the parent is '+this._parent);
+    // console.log( 'buildCanvas:the parent is '+this._parent);
   },
   
   //----------------------------------------------------------------------------
@@ -257,7 +257,7 @@ var FeatureViewer = Class.create({
     this._featureSources = $A( this._response.get( 'json_sources' ) );
     this._dasFeatures    = $H( this._response.get( 'dasFeatures' ) );
     
-    //console.log('the feature and das sources are |%s|%s|',this._featureSources.inspect(), this._dasFeatures.inspect() );
+    //// console.log('the feature and das sources are |%s|%s|',this._featureSources.inspect(), this._dasFeatures.inspect() );
     
     var parent         = this._parent;
     var featureSources = this._featureSources;
@@ -268,7 +268,7 @@ var FeatureViewer = Class.create({
     
     // get the context for the canvases;
     if( this._imgCanvas.getContext ){
-      console.log( "canvas can be used in this browser" );
+      // console.log( "canvas can be used in this browser" );
       ctx = this._imgCanvas.getContext( '2d' );
     }
     
@@ -284,6 +284,12 @@ var FeatureViewer = Class.create({
     var baseline;  
     var graphicYOffset = 0 ;
     
+    var pg1 = new PfamGraphic( parent );
+    pg1.setCanvas( imgCanvas );
+    pg1.setNewCanvas( false );  
+    pg1.setImageParams( imgParams );
+    // console.debug( pg1 );
+        
     featureSources.each( function( ds_id ){
       
       var seqObj = $A( dasFeatures.get( ds_id ) );
@@ -292,10 +298,6 @@ var FeatureViewer = Class.create({
   	  seqObj.each( function( seq ){
         
         // draw the grpahic using the sequnece;
-        var pg1 = new PfamGraphic( parent );
-        pg1.setCanvas( imgCanvas );
-        pg1.setNewCanvas( false );  
-        pg1.setImageParams( imgParams );
         pg1.setImageParams( { yOffset : graphicYOffset } );
         pg1.setSequence( seq );
         
@@ -311,10 +313,12 @@ var FeatureViewer = Class.create({
         ttx.fillText( ds_id, 75, graphicYOffset + baseline );
         
         pg1.render();
+        // console.debug( "areas: ", pg1._areasList );
         
         graphicYOffset +=Yincrement; 
       } );
-       
+      
+      pg1.setImageParams( {yOffset: 0 });
     } );
     
     // now store the baseline and the graphicYOffset,
@@ -340,7 +344,7 @@ var FeatureViewer = Class.create({
   // function to set parent;
   setParent: function( parent ){
     this._parent = $( parent );
-    console.log('the parent is '+this._parent.inspect() );
+    // console.log('the parent is '+this._parent.inspect() );
     
     if ( this._parent === undefined || this._parent === null ) {
       this._throw( "couldn't find the node"+parent );
