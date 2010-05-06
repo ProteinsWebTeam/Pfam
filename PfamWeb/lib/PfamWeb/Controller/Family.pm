@@ -29,6 +29,9 @@ $Id: Family.pm,v 1.54 2010-01-13 14:44:53 jt6 Exp $
 use strict;
 use warnings;
 
+use LWP::UserAgent;
+use XML::LibXML;
+
 use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Section';
@@ -270,6 +273,7 @@ sub get_data : Private {
         $c->forward( 'get_summary_data' );
         $c->forward( 'get_db_xrefs' );
         $c->forward( 'get_interactions' );
+        $c->forward( 'get_pseudofam' );
       }
 
     } # end of "unless XML..."
@@ -577,6 +581,140 @@ sub get_interactions : Private {
                                    prefetch => [ qw( auto_pfama_b ) ] } );
 
   $c->stash->{interactions} = \@interactions;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_pseudofam : Private
+
+Retrieves details of the interactions between this family and others.
+
+=cut
+
+sub get_pseudofam : Private {
+  my ( $this, $c ) = @_;
+ 
+  my $cache_key = 'pseudofam_families';
+  $c->stash->{pseudofam_accessions} = $c->cache->get( $cache_key );
+
+  if ( defined $c->stash->{pseudofam_accessions} ) {
+    $c->log->debug( 'Family::get_pseudofam: retrieved pseudofam families list from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::get_pseudofam: failed to retrieve pseudofam families list from cache; going to pseudofam web service' )
+      if $c->debug;
+
+    # get the accessions list from the web service
+    $c->forward( 'get_pseudofam_accessions' );
+
+    if ( defined $c->stash->{pseudofam_accessions} ) {
+      $c->log->debug( 'Family::get_pseudofam: got pseudofam_accessions' ) 
+        if $c->debug;
+      $c->cache->set( $cache_key, $c->stash->{pseudofam_accessions} ) unless $ENV{NO_CACHE};
+    }
+    else {
+      $c->log->debug( 'Family::get_pseudofam: failed to retrieve pseudofam accessions' )
+        if $c->debug;
+      return;
+    }
+  }
+
+  # for convenience, pull the URL prefix out of the accessions hash and stash
+  # it individually
+  $c->stash->{pseudofam_prefix_url} = $c->stash->{pseudofam_accessions}->{_prefix};
+
+  $c->log->debug( 'Family::get_pseudofam: got a hash of ' 
+                  . scalar( keys %{$c->stash->{pseudofam_accessions} } ) 
+                  . ' accessions' )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_pseudofam_accessions : Private
+
+Parses the XML containing the list of pseudofam accessions.
+
+=cut
+
+sub get_pseudofam_accessions : Private {
+  my ( $this, $c ) = @_;
+ 
+  # go to the web service and retrieve the XML
+  $c->forward( 'retrieve_pseudofam_xml' );
+
+  # did we manage to retrieve it ?
+  unless ( defined $c->stash->{pseudofam_xml} ) {
+    $c->log->warn( 'Family::get_pseudofam_accessions: failed to retrieve pseudofam families list from the pseudofam web service: '
+                   . $c->stash->{error} ) if $c->debug;
+    return;
+  }
+  
+  # now parse the XML to extract the list of families, which we then store
+  # as hash keys
+  my $xml_parser = XML::LibXML->new();
+  my $xml_document;
+  my $xml_root;
+  eval {
+    $xml_document = $xml_parser->parse_string( $c->stash->{pseudofam_xml} );
+    $xml_root     = $xml_document->documentElement();
+  };
+  if ( $@ ) {
+    $c->log->warn( "Family::get_pseudofam_accessions: failed to parse pseudofam xml: $@" )
+      if $c->debug;
+    return;
+  }
+
+  # get the family accessions
+  my @accession_nodes = $xml_root->findnodes( '/pseudofam/families/accession' );
+  $c->log->debug( 'Family::get_pseudofam_accessions: found ' 
+                  . scalar @accession_nodes . ' accessions in file' )
+    if $c->debug;
+
+  my %accessions = map { $_->textContent => 1 } @accession_nodes;
+
+  # get the URL prefix from the XML and drop that into the accessions hash
+  my $prefix_url = $xml_root->find( '/pseudofam/families' )
+                            ->shift()
+                            ->getAttribute('urlPrefix');
+  $accessions{_prefix} = $prefix_url;
+
+  $c->stash->{pseudofam_accessions} = \%accessions;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 retrieve_pseudofam_xml : Private
+
+Retrieves the XML containing the list of pseudofam accessions from their web
+service.
+
+=cut
+
+sub retrieve_pseudofam_xml : Private {
+  my ( $this, $c ) = @_;
+ 
+  if ( not defined $this->{_ua} ) {
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: building a new user agent' ) 
+      if $c->debug;
+    $this->{_ua} = LWP::UserAgent->new;
+    $this->{_ua}->timeout(10);
+    $this->{_ua}->env_proxy;
+  }
+  
+  my $response = $this->{_ua}->get( $this->{pseudofam_ws_url} );
+
+  if ( $response->is_success ) {
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: successful response from web service' ) 
+      if $c->debug;
+    $c->stash->{pseudofam_xml} = $response->decoded_content;
+  }
+  else {
+    $c->log->debug( 'Family::retrieve_pseudofam_xml: got an error from web service' ) 
+      if $c->debug;
+    $c->stash->{error} = $response->status_line;
+  }  
 }
 
 #-------------------------------------------------------------------------------
