@@ -90,7 +90,7 @@ foreach my $seq ( keys %{ $famObj->scores->regions } ) {
   else {
     $id = $seq;
   }
-  foreach my $fullReg ( @{ $famObj->scores->regions->{$id} } ) {
+  foreach my $fullReg ( @{ $famObj->scores->regions->{$seq} } ) {
     my $string = join(
       "\t",
       (
@@ -122,6 +122,9 @@ my $res = $ua->request(POST 'https://pfamsvn.sanger.ac.uk/cgi-bin/overlap.cgi',
 # Check the outcome of the response
 if ( $res->is_success ) {
   print $res->content;
+  open(O, ">$pwd/$family/overlap");
+  print O $res->content;
+  close(O);
 }
 else {
   print $res->status_line, "\n";
