@@ -957,7 +957,23 @@ sub family_overlaps_with_db {
   }
   close $LOG if ($LOG);
 
-# Finally, test for internal overlaps in the SEED.. With H3 we do get overlaps between hits!
+  my $sOverlaps = seedIntOverlaps($famObj);
+  $numOverlaps += $sOverlaps;
+
+  if ($numOverlaps) {
+    return $numOverlaps;
+  }
+  else {
+    return 0;
+  }
+}
+
+#------------------------------------------------------------------------------
+sub seedIntOverlaps{
+  my( $famObj ) = shift;
+  
+  my $numOverlaps = 0;
+  # Test for internal overlaps in the SEED.. With H3 we do get overlaps between hits!
   my @list = $famObj->SEED->each_seq();
   for ( my $seq = shift(@list) ; defined $seq ; $seq = shift(@list) ) {
     foreach my $other (@list) {
@@ -980,17 +996,12 @@ sub family_overlaps_with_db {
         $numOverlaps++;
       }
     }
-  }
-
-  #    warn "Done. Found ", scalar(@overlaps), " external overlaps.\n";
-
-  if ($numOverlaps) {
-    return $numOverlaps;
-  }
-  else {
-    return 0;
-  }
+  }  
+  
+  return $numOverlaps;
 }
+
+
 
 #-------------------------------------------------------------------------------
 
