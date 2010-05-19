@@ -79,8 +79,6 @@ var WidgetTagger = Class.create({
         // check for JmolURL
         if( options.StructureParams.structureJmolURL === undefined ){
           this._throw( 'JmolURL necessary for Structure viewer'+ options.StructureParams.structureJmolURL );  
-        }else{
-          console.log( 'JmolURL necessary for Structure viewer,|%s|', options.StructureParams.structureJmolURL );
         }
         
       }
@@ -170,7 +168,9 @@ var WidgetTagger = Class.create({
        
       this._wholeAcc      = e.element().identify();
       this._wholeSeqWidth = $( this._wholeAcc+'seq' ).getWidth();
-       
+      this._alignments    = $H( this._alignObj._livegrid.getAlignment() );
+      this._sequence      = $A( this._alignments.get( this._wholeAcc ).toArray() );
+     
       // console.log('teh wholeAcc and seq width is '+this._wholeAcc +'|'+ this._wholeSeqWidth );
       
       this._parseAccession( e.element().identify() );
@@ -196,11 +196,9 @@ var WidgetTagger = Class.create({
           // now make a status holder for featureviewer adn say true;
           this.FeatureViewerEnabled = true;
           
-          // console.log( 'making a feature request with |%s|%s|%s|%s|',this.options.FeatureParams.featureParent, this.clickedAccession, this.options.FeatureParams.featureSources, this.options.FeatureParams.featureURL );
-          this._featureObj = new FeatureViewer( this.options.FeatureParams.featureParent, this.clickedAccession, this.options.FeatureParams.featureSources, this.options.FeatureParams.featureURL );
-          
-          // add an poller to check the status of the features
-          this._featureChecker   = setInterval( this.featureStatusChecker.bind( this ), 500 );  
+          // now try to add another method for making feature request and seting nterval;
+          this.getFeatureViewer();
+            
         }
         
         // simultaneously, if structure params are defined;
@@ -223,6 +221,20 @@ var WidgetTagger = Class.create({
       
     }.bind( this ) );
           
+  },
+  
+  //-------------------------------------------------------------------------------
+  
+  // function to get the feature viewer;
+  
+  getFeatureViewer: function(){
+     
+     // console.log( 'making a feature request with |%s|%s|%s|%s|',this.options.FeatureParams.featureParent, this.clickedAccession, this.options.FeatureParams.featureSources, this.options.FeatureParams.featureURL );
+     this._featureObj = new FeatureViewer( this.options.FeatureParams.featureParent, this.clickedAccession, this.options.FeatureParams.featureSources, this.options.FeatureParams.featureURL );
+          
+     // add an poller to check the status of the features
+     this._featureChecker   = setInterval( this.featureStatusChecker.bind( this ), 500 );
+      
   },
   
   //-------------------------------------------------------------------------------
@@ -338,9 +350,9 @@ var WidgetTagger = Class.create({
     var alignStart     = this._alignStart;
     var alignEnd       = this._alignEnd;
     var diff_size      = ( alignEnd - alignStart ) + 1 + 1;
-    var alignments     = $H( alignObj._livegrid.getAlignment() );
     var leftPos        = graphicXOffset + parseInt( alignStart  ) + 1;
-    var sequence       = $A( alignments.get( this._wholeAcc ).toArray() );
+    var alignments     = this._alignments;
+    var sequence       = this._sequence;
     var wholeSeqWidth  = this._wholeSeqWidth;
     
     // console.log( 'the wholeseqWidth is '+this._wholeSeqWidth );
