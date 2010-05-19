@@ -52,6 +52,7 @@ PROCESS "components/require.tt"
        <li>Datasource name ( DAS source name )</li>
        <li>Total rows in the alignment.</li>
        <li>URL to make a request.( The server returns the data in JSON format and the response JSON is shown below )</li>
+       <li>Total number of rows to be displayed in the window ( optional ).</li>
      </ol>
      
      <strong>Example:</strong><pre style="font-family:"Courier New",Courier,mono">var alignments = new AlignmentViewer( parent, acc, dsn, size, url );</pre>
