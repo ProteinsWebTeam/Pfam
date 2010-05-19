@@ -8,40 +8,40 @@
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "alignment.css" );
-requirements.css.push( "alignViewer.css" );
+#requirements.css.push( "alignment.css" );
+#requirements.css.push( "alignViewer.css" );
+requirements.css.push( "prototip.css" );
 
-requirements.js.push( "excanvas.js" );
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
-requirements.js.push( "faces/optimer-bold-normal.js" );
-
-requirements.js.push( "livegrid.js" );
+requirements.js.push( "prototip.js" );
+requirements.js.push( "tip_definition.js" );
+#requirements.js.push( "livegrid.js" );
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
+requirements.js.push( "excanvas.js" );
+requirements.js.push( "Jmol.js" );
+requirements.js.push( "AlignmentViewer.js" );
+requirements.js.push( "FeatureViewer.js" );
+requirements.js.push( "StructureViewer.js" );
+requirements.js.push( "WidgetTagger.js" );
 
 -%]
-    <h2>Alignment Viewer:</h2>
-    <div id="gridWrapper">
-      <p id="gridResultRange"></p>
-      
-      
-      <div id="grid" >
-          <div id="highlightColumn" style="width:6px;border:1px solid red;position:relative;float:left;visibility:hidden;"></div>
-          <div id="accessions"></div>
-          <div id="sequences"></div>
-      </div>
-			<div id="scrollerDiv">
-				
-			</div>
-      
-    </div>
+    <h2>Alignment Viewer</h2>
+  
+    <div id="alignmentHolder" style="width:675px;float:left;"></div>
+   
+    <p></p> 
+    <div id="structureHolder" style="width:400px;float:left;"></div>
     
-    <div style="clear:both"/><p/>
-      <p><span class="loading" id="spinner" class="hidden"></span>
-    </p>
+    <p></p>
+    
+    <div id="featureHolder" style="clear:both;display:none">
+      <br/>
+     <h2>Feature Viewer</h2>
+    </div>
+      
+    <p></p> 
     
     <div id="featureWrapper">
-      <div id="features" style="display:none"></div>
      
      <div id="checkSources" style="display:none;"> 
        <h3>Click on the Das sources:</h3>
@@ -49,13 +49,13 @@ requirements.js.push( "domain_graphics_loader.js" );
        <p/>
        <form id="feature_source" name="feature_source" action="[% c.uri_for('/feature/getFeature')%]" method="post">  
         <span  class="listItem"><input type="checkbox" name="Das" value="DS_241" checked="checked"><span id="DS_241" >Pfam</span></input></span>
-        <span class="listItem"><input type="checkbox" name="Das" value="DS_446" checked="checked"><span id="DS_446">Gene3D</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_327" checked="checked"><span id="DS_327">Interpro</span></input></span>
-        <span class="listItem"><input type="checkbox" name="Das" value="DS_120" checked="checked"><span id="DS_120">SUPERFAMILY</span></input></span>
-        <span class="listItem"><input type="checkbox" name="Das" value="DS_817" checked="checked"><span id="DS_817">Prosite Features (matches)</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_446"><span id="DS_446">Gene3D</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_120"><span id="DS_120">SUPERFAMILY</span></input></span>
+        <span class="listItem"><input type="checkbox" name="Das" value="DS_817"><span id="DS_817">Prosite Features (matches)</span></input></span>
         
         <span class="listItem"><input type="checkbox" name="Das"  value="DS_704"><span id="DS_704">Cosmic Protein Mutations</span></input></span>
-        <span class="listItem"><input type="checkbox" name="Das" value="DS_109"><span id="DS_109">uniprot aristotle</span></input></span>
+        <!--<span class="listItem"><input type="checkbox" name="Das" value="DS_109"><span id="DS_109">uniprot aristotle</span></input></span>-->
         <span class="listItem"><input type="checkbox" name="Das"  value="DS_114"><span id="DS_114">signalp</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_118"><span id="DS_118">prop</span></input></span>
         <span class="listItem"><input type="checkbox" name="Das" value="DS_121"><span id="DS_121">secretomep</span></input></span>
@@ -79,10 +79,15 @@ requirements.js.push( "domain_graphics_loader.js" );
         
       
         <div style="clear:both"/><p/>
-        <input type="button" id="getfeatures" value="GetFeatures" onclick="fetchFeatures( '',document.feature_source)"/>
+        <input type="button" id="getfeatures" value="GetFeatures" onclick="addSources( '',document.feature_source)"/>
         <input type="reset" id="reset" value="Reset"/>
         </form> 
       </div>
+    </div>  
+    
+    <p></p>
+    <div id="colorcode" style="clear:both;display:none;">
+      The contents here are to be highlighted;
     </div>  
     
     <div id='error' style="color:red;width:500px;font-size:large;background-color:#EEE;display:none;">
@@ -90,258 +95,58 @@ requirements.js.push( "domain_graphics_loader.js" );
     </div>
 
     <script type="text/javascript">
-      // <![CDATA[
-      var alignments;
-      var acc;  // bcos when the form is submited again we need to track this,
-      var alignStart , alignEnd ; // later the alignment start and end are used by the div to draw a rectangular bar behind the canvas;
       
       var size = [% data.size %];
-      //console.log( 'the total rows is  is '+size );
-      if (size > 0) {
+      var acc  = "[% data.acc %]";
+      var dsn  = "[% data.dsn_name %]"
+      var timer,alignObj;
+      var sources = [ 'DS_241','DS_327','DS_817','DS_449','DS_446' ];
+      //var sources = [ 'DS_241' ];
       
-        var myGridUpdater;
+      var options = {
+       FeatureParams:{
+                       featureParent: 'featureHolder',
+                       featureSources: sources,
+                       featureURL: "http://localhost:3000/feature/getFeature"
+                     },
+       StructureParams:{
+                          structureParent:   'structureHolder',
+                          structureURL:      "[% c.uri_for( '/structure/getStructure') %]",
+                          structureJmolURL:  'http://localhost:3000/static/jmol'
+                          
+                       }                      
+     };
+     
+      console.log( 'the size,acc,dsn are |%d|%s|%s|', size,acc, dsn );
+      if( size > 0 ){
         
-        Event.observe(window, "load", function(){
-          //function mygrid() {
-          var opts = {
-            requestParameters: {
-              accession: "[% data.acc %]",
-              dsn_name: "[% data.dsn_name %]",
-              max_rows: "[% data.size %]"
-            },
-            accessionsDiv: $('accessions'),
-            sequencesDiv: $('sequences'),
-						scrollerDiv:  $('scrollerDiv'),
-            scrollvalue: 0,
-            prefetchBuffer: true,
-            onscroll: updateTopicsGridHeader,
-            onComplete: function(){
-              console.log( "onComplete: hiding spinner" );
-              $("spinner").removeClassName('visible');
-              $("spinner").addClassName('hidden');
-              
-              alignments = $H(eval( myGridUpdater.getAlignment() ) );
-              //console.log("alignment.tt: alignment is |"+alignments.inspect()+'|');
-            },
-            onLoading: function(){
-              console.log( "onLoading: showing spinner" );
-              $("spinner").update("Loading Alignment...");
-              $("spinner").removeClassName('hidden');
-              $("spinner").addClassName('visible');
-            },
-            onFirstContent: function(){
-              console.log( "onFirstContent: updating row count" );
-              updateTopicsGridHeader(0);
-            },
-            onSuccess: function( transport ){
-              console.log( 'the request is success '+transport.headerJSON );
-//							$("spinner").removeClassName('visible');
-//              $("spinner").addClassName('hidden');
-//              
-//              alignments = $H(eval( myGridUpdater.getAlignment() ) );
-//							console.log("alignment.tt: alignment is |"+alignments.inspect()+'|');
-            }
-          };
-          
-          myGridUpdater = new LiveGrid('grid', 25, "[% data.size %]", "[% c.uri_for('/alignment/alignment') %]", opts);
-          
-        });
-        
-        // called on the onscroll event
-        function updateTopicsGridHeader(offset){
-          console.log( "updateTopicsGridHeader: offset: |" + offset + "|");
-          
-          // on update we lost the color so retain it by adding the backgound;
-          if( acc !== undefined ){
-           //console.log( "reverting the color of acc "+acc );
-            
-            if( $(acc) !== null ){ 
-              
-              $( acc ).setStyle({
-                "background":"cyan"
-              });
-               
-            }
-            
-          }
-          
-          if (myGridUpdater && myGridUpdater.metaData) {
-            var metaData = myGridUpdater.metaData;
-            
-            // in certain cases where pair-wise alignment is shown
-            var end = (offset + metaData.pageSize - 1);
-            if (end > metaData.getTotalRows()) {
-              end = metaData.getTotalRows();
-            }
-            
-            $('gridResultRange').innerHTML = 'Rows %1 from %2'.replace('%1', offset + ' - ' + end).replace('%2', metaData.getTotalRows());
-          }
-          
-        }
-        
-        // add an event listener to the sequences;
-        $('sequences').observe('scroll', function(){
-          myGridUpdater.options.scrollvalue = $('sequences').scrollLeft;
-        });
+        Event.observe( window, 'load', function(){
+          // call the alignment viewer;
+          console.log( 'event load triggered' );
+          alignObj = new AlignmentViewer( 'alignmentHolder', acc, dsn, size, 'http://localhost:3000/alignment/alignment' );
+          new WidgetTagger( alignObj, options );
+          //timer = setInterval( "checkAlignments()", 800 );
+        } );
         
       }else{
+        
         $('error').show();
-        $('gridWrapper').hide();
-        $("spinner").removeClassName('visible');
-        $("spinner").addClassName('hidden');
-      }
+        
+      } // end of size > 0 else
       
-      // now add an event listener for the accession;
-      // when the accession is clikced, it showld fetch the features;
-     var prev_error_sources;
       
-      $( 'accessions' ).observe( 'click', function( e ){
-        
-        console.log( 'the clikc is on '+acc);
-        // previous acc background should be reverted back;
-        if( acc !== undefined ){
-           //console.log( "reverting the color of acc "+acc );
-           
-           if( $(acc) !== null ){
-             
-             $( acc ).setStyle({
-                "background":"#CCBBCC"
-              });
-                
-           }
-            
-        }
-        
-        var el = e.element();
-        acc = el.getAttribute( 'id' );
-        
-        var id = parseAccession( acc ); 
-//        if( /(\w+)\/(\d+)\-(\d+)/.test( el.innerHTML ) ){
-//        if( /(\w+)\/(\d+)\-(\d+)/.test( el.getAttribute( 'id' ) ) ){            
-//          var data = /(\w+)\/(\d+)\-(\d+)/.exec( el.getAttribute( 'id' ) );
-//          id         = data[1]; 
-//          alignStart = data[2];
-//          alignEnd   = data[3];
-//          console.log( "the start and end are present which are |%s|%s|%s| ",id,alignStart,alignEnd );
-//              
-//        }else{
-//          id         = el.getAttribute( 'id' ); 
-//          alignStart = 0;
-//          alignEnd   = 0;
-//        }
-        
-        // check whether the clicked element is an uniprot accession
-        // replace acc with id, as i have changed the id of the element;
-        if( id.length == 6 ){
-          console.log( 'the accession is '+id);
+      // function to receive for setInterval;
+      function checkAlignments( ){
+       
+        if( alignObj.getReadyState() === true ){
           
-          // because pdb's have some dots;
-          if( /\./.test( id ) ){
-            alert( 'Please click on Uniprot Accession');
-            $('featureWrapper').hide();
-          }else{
-            // console.log( "its not a pdb id");
-            fetchFeatures( id ,$( 'feature_source' ) );
-            
-            $( acc ).setStyle({
-              'background': "cyan"
-            });
-            
-          }
-        }else{
-          alert( 'Please click on Uniprot Accession');
-          $('featureWrapper').hide();
+          console.log( 'I got the alignments so clearing the timer ' );
+          clearInterval( timer );
+          //$( 'checkSources' ).show();  
+          
+          new WidgetTagger( alignObj, options );
+          // now create the widget tagger for making the calls;
         }
         
-      } );
-      
-      // function to parse the accession to get the id;
-      function parseAccession( acc ){
-        var id;
-        
-        if( /(\w+)\/(\d+)\-(\d+)/.test( acc ) ){            
-          var data = /(\w+)\/(\d+)\-(\d+)/.exec( acc );
-          id         = data[1]; 
-          alignStart = data[2];
-          alignEnd   = data[3];
-          console.log( "the start and end are present which are |%s|%s|%s| ",id,alignStart,alignEnd );
-              
-        }else{
-          id         = acc; 
-          alignStart = 0;
-          alignEnd   = 0;
-        }
-        return id;
       }
-      
-      // function to make an ajax call to fetch features;
-      function fetchFeatures( id , form ){
-        
-        // get teh prev_error_source and reset the color;
-        if( prev_error_sources !== undefined ){
-            
-          prev_error_sources.each( function( pair ){
-         
-            var el = pair.key;
-            $( el ).removeClassName( 'errorColor' );
-            
-            //console.log( 'the element is '+$(el).toString() );
-          });
-        }
-         
-        // if we dint get id then the user clicked the form;
-        if( id == ''){
-          console.log("teh previous acc is used for "+acc );
-          id = parseAccession( acc );
-        }
-        // all the clicked das sources
-        var das = [];
-        var allSources = form['Das'];
-        
-        for( var i = 0; i< allSources.length; i++){
-          if( allSources[i].checked ){
-            console.log( "the source is selected"+allSources[i].value+' | ' );
-            das[i] = allSources[i].value;
-          }
-        }
-        //console.log( 'alingmnets before ajax request is '+alignments.inspect() );
-        var call = new Ajax.Request( "[% c.uri_for('/feature/getFeature') %]",
-                                     {
-                                       method:     'post',
-                                       parameters: { acc: id, Das: das  },
-                                       onLoading: function(){
-                                        //console.log( "onLoading: showing spinner" );
-                                        $("spinner").update("Loading Features...");
-                                        $("spinner").removeClassName('hidden');
-                                        $("spinner").addClassName('visible');
-                                      },
-                                       onComplete: function( oResponse ){
-																	           $( "features" ).update( oResponse.responseText).show();		
-                                             $( "checkSources" ).show();	
-                                             $("spinner").removeClassName('visible');
-                                             $("spinner").addClassName('hidden');																			 
-																           }                       
-                                     } 
-        ); 
-        //console.log( 'alingmnets after ajax request is '+alignments.inspect() );
-        return false; 
-      }
-    
-    function colourSources ( error_sources ){ 
-      
-      $('sourceDesc').show();
-      
-      prev_error_sources = error_sources;
-      
-      error_sources.each( function( pair ){
-       
-       console.log( "the |%s| source hasnt got any feature ",pair.key );
-       
-       var el = pair.key;
-       $( el ).addClassName( 'errorColor' );
-       console.log( 'the element is '+$(el).toString() );
-      }); 
-    }
-      // ]]>
-    </script>
-
+  </script>
