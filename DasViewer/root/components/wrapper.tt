@@ -51,12 +51,15 @@
 																	o_JSON);}});
 
 			</script>
+      <!-- no line space: delete everyting as this is just for test-->
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
     </head>
       
     <body>
     
     <div id="bodyblock" style="position:relative;">
-     <h1 style="text-align:center;text-decoration:underline;">[% "DAS Alignment Viewer" %]</h1>
+     <h1 style="text-align:center;text-decoration:underline;">[% "DAS Widgets" %]</h1>
      <div id="menu">
         <ul style="text-align:center;list-style-type:none; ">
             <li><a href="[% c.uri_for('/') %]">Home</a> | <a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
