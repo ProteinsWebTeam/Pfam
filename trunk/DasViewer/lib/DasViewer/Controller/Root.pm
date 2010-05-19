@@ -39,6 +39,12 @@ sub default :Path {
   
 }
 
+sub docs : Path( '/docs' ){
+ my ( $self, $c ) = @_;
+ 
+ $c->stash->{ template } = 'components/docs.tt';
+  
+}
 =head2 end
 
 Attempt to render a view, if needed.
