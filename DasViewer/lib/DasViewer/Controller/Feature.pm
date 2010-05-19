@@ -18,12 +18,12 @@ use JSON;
 use parent 'Catalyst::Controller';
 
 #---------------------------------------------------------------------------------------------
-
-sub feature : Path('/feature') {
-  my ( $self, $c ) = @_;
-
-  $c->stash->{template} = 'components/modelFeature.tt';
-}
+#
+#sub feature : Path('/feature') {
+#  my ( $self, $c ) = @_;
+#
+#  $c->stash->{template} = 'components/modelFeature.tt';
+#}
 
 #---------------------------------------------------------------------------------------------
 
@@ -34,14 +34,14 @@ sub getFeature : Local {
 
   # parse the arguments;
   my $acc     = $c->req->param('acc');
-  my @sources = $c->req->param('Das');
-
+  #my @sources = $c->req->param('Das');
+  my @sources = $c->req->param('sources');
   $c->log->debug(
     "Feature::getFeature::the dump of the sources is " . dump( \@sources ) );
 
   # now stash the accession and the sources;
-  $c->stash->{acc}     = $acc;
-  $c->stash->{sources} = \@sources;
+  $c->stash->{ response}->{acc}     = $acc;
+  $c->stash->{ response}->{sources} = \@sources;
   
   # stash the names of the sources;
   my @source_names;
@@ -49,8 +49,9 @@ sub getFeature : Local {
     #$c->log->debug( 'the source is '.$_ ."\n the dump of the objs is ".dump( $self->{ $_ } ) );
     push @source_names, $self->{ $_ }->{ name };
   }
-  #$c->stash->{json_sources} = to_json( \@source_names );
-  $c->stash->{json_sources} = to_json( \@source_names );
+  #$c->stash->{ response}->{json_sources} = to_json( \@source_names );
+  #$c->stash->{ response}->{json_sources} = to_json( \@source_names );
+  $c->stash->{ response}->{json_sources} = \@source_names;
   
   # as we need to wire this into pfam code, develop it as a self-dependent code,
   # get the lite object;
@@ -59,21 +60,32 @@ sub getFeature : Local {
   # get the features of the protein;
   $c->forward('getDasFeatures');
   
-  if( defined $c->stash->{ errorSources } ){
-    $c->stash->{ json_error_sources }  = to_json( $c->stash->{ errorSources } );
+  if( defined $c->stash->{ response}->{ errorSources } ){
+    #$c->stash->{ response}->{ json_error_sources }  = to_json( $c->stash->{ response}->{ errorSources } );
+    $c->stash->{ response}->{ json_error_sources }  = $c->stash->{ response}->{ errorSources };
   }else{
-    $c->stash->{ json_error_sources }  = to_json( { } );
+    #$c->stash->{ response}->{ json_error_sources }  = to_json( { } );
+    $c->stash->{ response}->{ json_error_sources }  = {};
   }
   
   # check whether the totalError is equal to the total das sources requested,
-  if( defined $c->stash->{ totalError } ){
-    if( $c->stash->{ totalError } == scalar( @{ $c->stash->{sources} } ) ){
-      $c->stash->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." provided.";
+  if( defined $c->stash->{ response}->{ totalError } ){
+    if( $c->stash->{ response}->{ totalError } == scalar( @{ $c->stash->{ response}->{sources} } ) ){
+      $c->stash->{ response}->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." provided.";
     } 
   }
+ 
+  my $features = to_json( $c->stash->{ response } );
+  print STDERR $features."\n"; 
+  my $string = <<EOF;
+  
+  var features = $features;
+  
+EOF
 
-  $c->stash->{template} = 'components/dasFeature.tt';
-
+  $c->res->content_type( 'text/javascript');
+  $c->res->body( $string );
+  
 }
 
 #---------------------------------------------------------------------------------------------
@@ -93,18 +105,18 @@ sub getDasFeatures : Private {
 # get the feature for all the clicked sources and generate the seq object for giving it to the domain graphics;
   my $lite = $self->{daslite};
   
-SOURCE:  foreach my $ds_id ( @{ $c->stash->{sources} } ) {
+SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
 
     $lite->dsn( $self->{$ds_id}->{url} );
-    my $featureResponse = $lite->features( $c->stash->{acc} );
+    my $featureResponse = $lite->features( $c->stash->{ response}->{acc} );
     my ( $url, $features ) = each( %{$featureResponse} );
     
     unless( defined $features && ( ref $features eq 'ARRAY' ) && scalar( @{ $features } ) > 0 ){
       $c->log->debug( "Feature::getDasFeatures:: cant get features for the source ".$self->{$ds_id}->{name});
       #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is  ".dump( $features ) );
-      $c->stash->{ totalError }++;
-      #push( @{ $c->stash->{ errorSources } }, $ds_id );
-      $c->stash->{ errorSources }->{ $ds_id } = 1;
+      $c->stash->{ response}->{ totalError }++;
+      #push( @{ $c->stash->{ response}->{ errorSources } }, $ds_id );
+      $c->stash->{ response}->{ errorSources }->{ $ds_id } = 1;
       next SOURCE;
     }
     # build the sequence object;
@@ -115,8 +127,8 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{sources} } ) {
       
       $c->log->debug( "Feature::getDasFeatures:: got features for the source but they dont have start&end".scalar( @{ $resolvedFeature }) );
       #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is ".dump( $features ) );
-      $c->stash->{ totalError }++;
-      $c->stash->{ errorSources }->{ $ds_id } = 1;
+      $c->stash->{ response}->{ totalError }++;
+      $c->stash->{ response}->{ errorSources }->{ $ds_id } = 1;
       next SOURCE;
       
     } 
@@ -129,15 +141,16 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{sources} } ) {
   
   #$c->log->debug( 'The featuresets is '.dump( $dasFeatures ) );
   # now stash the totalRows for defining the height of hte canvas;
-  $c->stash->{ dasTracks }  = $totalRows;
-  $c->log->debug( "the toatl das tracks to be drawn are ". $c->stash->{ dasTracks } );
+  $c->stash->{ response}->{ dasTracks }  = $totalRows;
+  $c->log->debug( "the toatl das tracks to be drawn are ". $c->stash->{ response}->{ dasTracks } );
   
   # now build the sequence object for giving it to domain graphics code;
   my $seqObject = $c->forward( 'buildSequence', [ $dasFeatures ] );
   
-  $c->stash->{dasFeatures} = to_json( $seqObject );
-
-  #$c->log->debug( 'Features:getDasFeatures: the dump of the result is '.dump( $c->stash->{ dasFeatures } ) );
+  #$c->stash->{ response}->{dasFeatures} = to_json( $seqObject );
+  $c->stash->{ response}->{dasFeatures} = $seqObject;
+  
+  #$c->log->debug( 'Features:getDasFeatures: the dump of the result is '.dump( $c->stash->{ response}->{ dasFeatures } ) );
 
 }
 
@@ -159,7 +172,7 @@ sub buildSequence : Private {
   
   # we have to use the dasFeatures, but to define the length which is not present in some sources,
   # I am walking down the sources array so that pfam would always return the end;
-  foreach my $ds_id ( @{ $c->stash->{ sources } } ){
+  foreach my $ds_id ( @{ $c->stash->{ response}->{ sources } } ){
   #foreach my $ds_id ( sort keys %{ $dasFeatures } ){
     
     # there may be cases where the das sources might not return value and would be populated in error sources;
@@ -186,16 +199,16 @@ FEAT: for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
         
         my $feature = $featureRow->[ $j ];
         
-        unless( defined $c->stash->{ seqLength } ){
+        unless( defined $c->stash->{ response}->{ seqLength } ){
           #$c->log->debug( "The length of the sequence undefined so going to define t");
           if( exists $feature->{ segment_stop } ){
-            $c->stash->{ seqLength } =  $feature->{ segment_stop };
+            $c->stash->{ response}->{ seqLength } =  $feature->{ segment_stop };
           }
             
-        } # end of unless $c->stash->{ seqLength };  
+        } # end of unless $c->stash->{ response}->{ seqLength };  
         
-        #$c->log->debug( "The seqLength for $ds_id is ".$c->stash->{ seqLength } );
-        $rowSeqObj->{ length }   = $c->stash->{ seqLength };
+        #$c->log->debug( "The seqLength for $ds_id is ".$c->stash->{ response}->{ seqLength } );
+        $rowSeqObj->{ length }   = $c->stash->{ response}->{ seqLength };
         $rowSeqObj->{ tips }     = "true";
         $rowSeqObj->{ imageMap } = "true";
         $rowSeqObj->{ lables }   = "true";
