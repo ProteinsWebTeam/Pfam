@@ -45,6 +45,7 @@ Prototip.Styles.pfam = {
   hook: false,
   radius: 3,
   showOn: 'mousemove',
+  delay:  0.5,  // i have added it to my local copy as i need this when they mousemove;
   stem: {
     position: 'topLeft',
     height: 12,
