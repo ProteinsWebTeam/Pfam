@@ -1,0 +1,119 @@
+
+[%
+# alignment.tt
+# jt6 20090205 WTSI
+# 
+# page wrapper for the grid tests
+#
+# $Id: alignment.tt,v 1.2 2010-02-16 09:43:39 pg6 Exp $
+
+PROCESS "components/require.tt";
+
+#requirements.css.push( "alignment.css" );
+requirements.css.push( "alignViewer.css" );
+requirements.css.push( "prototip.css" );
+
+requirements.js.push( "prototip.js" );
+requirements.js.push( "tip_definition.js" );
+requirements.js.push( "livegrid.js" );
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
+requirements.js.push( "excanvas.js" );
+requirements.js.push( "Jmol.js" );
+requirements.js.push( "AlignmentViewer.js" );
+requirements.js.push( "FeatureViewer.js" );
+requirements.js.push( "StructureViewer.js" );
+requirements.js.push( "WidgetTagger.js" );
+
+-%]
+    <h2>Model Structure viewer</h2>
+    
+    <div id="alignmentHolder" style="width:675px;float:left;"></div>
+   
+    <p></p> 
+    <div id="structureHolder" style="width:400px;float:left;"></div>
+    
+    <p></p>
+    
+    <div id="featureHolder" style="clear:both"></div>
+    
+    <p></p> 
+    
+    <div id="testDiv"></div>
+    
+<script type="text/javascript">
+    
+//    var sequence = {
+//        length: 400,
+//        options:{
+//          tips: true
+//        },
+//        regions: [ { startStyle: "curved",
+//                     endStyle:   "curved",
+//                     start:      40,
+//                     end:        220,
+//                     aliStart:   60,
+//                     aliEnd:     200,
+//                     colour:     "#ff8800",
+//                     text:       "first" },
+//                   { startStyle: "jagged",
+//                     endStyle:   "jagged",
+//                     start:      300,
+//                     end:        380,
+//                     aliStart:   315,
+//                     aliEnd:     350,
+//                     colour:     "#ff0000",
+//                     text:       "second" } ]
+//      };
+//   
+//    console.log( 'the request is started' );
+    
+    // *********************************************************************************
+    // * GREAT EXAMPLE FOR DEMO;                                                       * 
+    // * acc = PF11591; has 4 seqs for full alignment and has strucutre for seq P07839 * 
+    // * acc = PF11410; has 29 seq for full align and has strucutre for seq P81418     *          
+    // *********************************************************************************
+//    
+//    var acc = 'PF12298';  //'PF11410'  //'PF11591'  //'PF02171' ; 'PF00017';  //'PF00185';  // || 'PF00001'
+//    var dsn = 'Pfam_Full_Alignments';
+//    var size =  79; // 4; //129  //736; // 2861;  //124;  || 23760
+//     
+//    var alignObj = new AlignmentViewer( 'alignmentHolder', acc, dsn, size, 'http://localhost:3000/ajaxalignment/alignment' );
+//    
+    var parent = 'structureHolder';
+    var url = "http://localhost:3000/structure/getStructure";
+    var accession = 'P50225';
+    var jmolUrl  = 'http://localhost:3000/static/jmol';
+    
+    console.log( 'teh url is '+url );
+    var structures = new StructureViewer( parent, accession, url, jmolUrl );
+    
+//     
+//     
+//     var id = 'featureHolder';
+//     var accession = 'P44947';
+//     var sources = [ 'DS_241','DS_327' ];
+//     var url = "http://localhost:3000/ajaxfeature/getFeature";
+//     
+//     var features = new FeatureViewer( id, accession, sources, url );
+//     
+//     console.log( 'the request is completed' );
+//     
+//     var options = {
+//       FeatureParams:{
+//                       featureParent: 'featureHolder',
+//                       featureSources: [ 'DS_241','DS_327' ],
+//                       featureURL: "http://localhost:3000/ajaxfeature/getFeature"
+//                     },
+//       StructureParams:{
+//                          structureParent:   'structureHolder',
+//                          structureURL:      "[% c.uri_for( '/structure/getStructure') %]",
+//                          structureJmolURL:  'http://localhost:3000/static/jmol'
+//                          
+//                       }                      
+//     };
+//     
+//     var tagger = new WidgetTagger( alignObj, options );
+     
+</script>      
+  
