@@ -29,9 +29,9 @@ var LiveGridMetaData = Class.create( {
 //    }
     
     this.options = {
-      largeBufferSize: 4.0,
+      largeBufferSize: 7.0,
       smallBufferSize: 1.0,
-      nearLimitFactor: 0.1
+      nearLimitFactor: 0.2
     }
     
     Object.extend( this.options, options || {} );
