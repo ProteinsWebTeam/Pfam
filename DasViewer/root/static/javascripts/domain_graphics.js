@@ -227,6 +227,7 @@ var PfamGraphic = Class.create( {
       headSizeSquare:  6,
       headSizeDiamond: 4,
       headSizeArrow:   3,
+      headSizePointer: 3,
       headSizeLine:    3,
      
       // padding (in pixels) for the ends of the graphic, so that lollipop heads 
@@ -282,13 +283,13 @@ var PfamGraphic = Class.create( {
     this._markupSpec = {
       valignValues:       $w( "top bottom" ),
       linesStyleValues:   $w( "mixed bold dashed" ),
-      lollipopHeadValues: $w( "diamond circle square arrow line" ),
+      lollipopHeadValues: $w( "diamond circle square arrow pointer line" ),
       regionEndValues:    $w( "curved straight jagged arrow" )
     };
 
     // store the heights of the various drawing elements (only used in the 
     // context of a single rendering)
-    this._heights = [];
+    this._heights = {};
 
     // somewhere to put <area> definitions for the domains and markups
     this._areasHash = new Hash();
@@ -324,6 +325,7 @@ var PfamGraphic = Class.create( {
    *   giving the ID of the parent element, or as an reference to
    *   the parent element directly
    * @throws {PfamGraphicException} if a valid parent node is not specified
+   * @returns {PfamGraphic} reference to this object
    */
   setParent: function( parent ) {
     this._parent = $(parent);
@@ -334,6 +336,8 @@ var PfamGraphic = Class.create( {
 
     // console.log( "PfamGraphic.setParent: parent node ID: |%s|", 
     //   this._parent.identify() );
+
+    return this;
   },
 
   //----------------------------------
@@ -355,6 +359,7 @@ var PfamGraphic = Class.create( {
    *   giving the ID of the canvas element, or as an reference to
    *   the canvas element directly
    * @throws {PfamGraphicException} if a valid canvas is is not specified
+   * @returns {PfamGraphic} reference to this object
    */
   setCanvas: function( canvas ) {
     this._canvas = $(canvas);
@@ -377,6 +382,8 @@ var PfamGraphic = Class.create( {
     // we need to tie the areas to the canvases, so if we change canvas, we
     // also need to reset the areas list
     this._areasList = [];
+
+    return this;
   },
 
   //----------------------------------
@@ -394,10 +401,12 @@ var PfamGraphic = Class.create( {
    * Sets the image parameters.
    *
    * @param {Object} userImageParams user params
+   * @returns {PfamGraphic} reference to this object
    */
   setImageParams: function( userImageParams ) {
     this._imageParams = Object.extend( this._imageParams, userImageParams );
     this._applyImageParams = true;
+    return this;
   },
 
   //----------------------------------
@@ -417,9 +426,11 @@ var PfamGraphic = Class.create( {
    *
    * @param {boolean} newCanvas flag determining whether a new canvas should
    *   be used for each rendering
+   * @returns {PfamGraphic} reference to this object
    */
   setNewCanvas: function( newCanvas ) {
     this._options.newCanvas = newCanvas;
+    return this;
   },
 
   //----------------------------------
@@ -440,9 +451,11 @@ var PfamGraphic = Class.create( {
    * an absolute URL, so it must be a valid URL fragment.
    *
    * @param {String} url new value for the base URL
+   * @returns {PfamGraphic} reference to this object
    */
   setBaseUrl: function( baseUrl ) {
     this._options.baseUrl = baseUrl;
+    return this;
   },
 
   //----------------------------------
@@ -462,6 +475,7 @@ var PfamGraphic = Class.create( {
    *
    * @param {Object} sequence data structure describing the graphic
    * @throws {PfamGraphicException} if sequence object is not valid
+   * @returns {PfamGraphic} reference to this object
    */
   setSequence: function( sequence ) {
 
@@ -616,6 +630,8 @@ var PfamGraphic = Class.create( {
                        this._heights.bridges.upMax,
                        this._imageParams.regionHeight / 2 ].max() + 1;
                        // that single pixel is just a fudge factor...
+
+    return this;
   },
   
   //----------------------------------
@@ -713,6 +729,7 @@ var PfamGraphic = Class.create( {
    * @param {Object} [sequence] sequence object
    * @throws {PfamGraphicException} if sequence or parent is not set either here
    *   or previously
+   * @returns {PfamGraphic} reference to this object
    */
   render: function( parent, sequence ) {
 
@@ -753,15 +770,13 @@ var PfamGraphic = Class.create( {
     // that this (*should*) work even if there are multiple PfamGraphic
     // objects in operation
     this._canvases.set( this._canvas.identify(),
-                        { "parentEl": this._parent,
-                          "areas":    this._areasList } );
+                        { "parentEl":    this._parent,
+                          "areas":       this._areasList } );
 
     // add mouse event listeners
     this._addListeners();
 
-    // clean up...
-//    this._heights = {};
-
+    return this;
   }, // end of "render"
 
   //----------------------------------------------------------------------------
@@ -901,9 +916,9 @@ var PfamGraphic = Class.create( {
       var activeCanvas = e.findElement("canvas");
 
       // retrieve the parent element and areas list for this particular canvas
-      var canvasId  = activeCanvas.identify();
-      var parentEl  = this._canvases.get( canvasId ).parentEl;
-      var areasList = this._canvases.get( canvasId ).areas;
+      var canvasSettings = this._canvases.get( activeCanvas.identify() );
+      var parentEl  = canvasSettings.parentEl;
+      var areasList = canvasSettings.areas;
 
       // the offset coordinates of the canvas itself
       var offset = activeCanvas.cumulativeOffset();
@@ -932,8 +947,8 @@ var PfamGraphic = Class.create( {
       // offset of the graphic due to the sequence end padding value and
       // the drawing offsets
       var ip = this._imageParams;
-      var x = e.pointerX() - cx + sx - ip.sequenceEndPadding - ip.xOffset,
-          y = e.pointerY() - cy + sy - ip.yOffset,
+      var x = e.pointerX() - cx + sx - ip.sequenceEndPadding;
+          y = e.pointerY() - cy + sy;
           activeArea = null;
       x /= this._imageParams.xscale;
       y /= this._imageParams.yscale;
@@ -1128,7 +1143,7 @@ var PfamGraphic = Class.create( {
       }
 
       orderedMarkups[markup.start].push( markup );
-    } );
+    }.bind(this) );
     
     // flatten to get rid of nested arrays and then strip out slots with 
     // "undefined" as a value
@@ -1211,7 +1226,7 @@ var PfamGraphic = Class.create( {
       // console.log( "PfamGraphic._buildMarkup: max heights for lollipops: up/down: %d / %d",
       //   heights.lollipops.upMax, heights.lollipops.downMax );
 
-    } );
+    }.bind(this) );
 
     bridgeMarkups.each( function( bridgeMarkup ) {
 
@@ -1333,7 +1348,7 @@ var PfamGraphic = Class.create( {
       // console.log( "PfamGraphic._buildMarkup: max heights for bridges: %d / %d",
       //   heights.bridges.upMax, heights.bridges.downMax );
 
-    } );
+    }.bind(this) );
 
     // finally, push the data structure onto the object, to make it globally
     // accessible
@@ -1469,11 +1484,15 @@ var PfamGraphic = Class.create( {
     // we're done drawing, so restore the canvas state
     this._context.restore();
 
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset;
+
     // add an area
     return { label:  "sequence", // TODO make this more informative...
              text:   "sequence",
-             coords: [ 0, this._topOffset, 
-             this._imageWidth, this._topOffset + this._seqStep * 5 ] };
+             coords: [ xo,                    yo + this._topOffset, 
+                       xo + this._imageWidth, yo + this._topOffset + this._seqStep * 5 ] };
   },
 
   //----------------------------------------------------------------------------
@@ -1523,13 +1542,17 @@ var PfamGraphic = Class.create( {
 
     //----------------------------------
     
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset;
+
     // add an <area> for the stick (the head drawing function will add a separate 
     // <area> for the head)
     var ys = [ y1, y2 ].sort(function( a, b ) { return a - b; } );
     var area = { start:    start,
                  type:     "lollipop",
-                 coords:   [ Math.floor( x1 ) - 1, ys[0] - 1, 
-                             Math.floor( x1 ) + 1, ys[1] + 1 ] };
+                 coords:   [ xo + Math.floor( x1 ) - 1, yo + ys[0] - 1, 
+                             xo + Math.floor( x1 ) + 1, yo + ys[1] + 1 ] };
     this._areasList.push( area );
 
     // console.log( "PfamGraphic._drawLollipop: area coords: (%d, %d), (%d, %d)", 
@@ -1568,7 +1591,9 @@ var PfamGraphic = Class.create( {
     
     // add the head
     if ( markup.headStyle ) {
-      this._drawLollipopHead( x1, y2, start, up, markup.headStyle, markup.colour, area.tip, markup.metadata );
+      this._drawLollipopHead( x1, y1, y2, start, up, markup.headStyle, 
+                              markup.colour, markup.lineColour, area.tip, 
+                              markup.metadata );
     }
 
     // console.log( "PfamGraphic._drawLollipop: end" );
@@ -1580,18 +1605,23 @@ var PfamGraphic = Class.create( {
    *
    * @private
    * @param {int} x x-coordinate of lollipop (canvas coords)
-   * @param {int} y y-coordinate of lollipop (canvas coords)
+   * @param {int} y1 y-coordinate of lollipop (canvas coords, end close to sequence)
+   * @param {int} y2 y-coordinate of lollipop (canvas coords, end distant from sequence)
    * @param {int} start position of lollipop (residue number)
    * @param {boolean} up flag determining whether lollipop is drawn above or
    *   below the sequence line
    * @param {String} colour HTML color for lollipop head
+   * @param {String} colour HTML color for lollipop stem
    * @param {Object} tip object with information for the tooltip
    * @param {Object} metadata object with metadata about the lollipop
    */
-  _drawLollipopHead: function( x, y, start, up, style, colour, tip, metadata ) {
+  _drawLollipopHead: function( x, y1, y2, start, up, style, colour, lineColour, tip, metadata ) {
     // console.log( "PfamGraphic._drawLollipopHead: starting to draw head |%s|", style );
 
-    var r,
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset,
+        r,
         d;
 
     // store the canvas state before we start drawing
@@ -1603,7 +1633,7 @@ var PfamGraphic = Class.create( {
         r = this._imageParams.headSizeCircle;
         // console.log( "PfamGraphic._drawLollipopHead: drawing circle" );
         this._context.beginPath();
-        this._context.arc( x, y, r, 0, (Math.PI * 2), "true" );
+        this._context.arc( x, y2, r, 0, (Math.PI * 2), "true" );
         this._context.fillStyle = colour || "red";
         this._context.fill();
         this._areasList.push( { tip:      tip,
@@ -1611,19 +1641,20 @@ var PfamGraphic = Class.create( {
                                 shape:    "circle",
                                 colour:   colour || "red",
                                 start:    start,
-                                coords:   [ x - r, y - r, x + r, y + r ] } );
+                                coords:   [ xo + x - r, yo + y2 - r, 
+                                            xo + x + r, yo + y2 + r ] } );
         break;
 
       case "square":
         d = this._imageParams.headSizeSquare / 2;
         // console.log( "PfamGraphic._drawLollipopHead: drawing square, edge |%d|, centred at %d x %d",
-        //   this._imageParams.headSize.square, x, y );
+        //   this._imageParams.headSize.square, x, y2 );
         this._context.beginPath();
-        this._context.moveTo( (x - d), (y - d) );
-        this._context.lineTo( (x - d), (y + d) );
-        this._context.lineTo( x + d, y + d );
-        this._context.lineTo( x + d, y - d );
-        this._context.lineTo( x - d, y - d );
+        this._context.moveTo( (x - d), (y2 - d) );
+        this._context.lineTo( (x - d), (y2 + d) );
+        this._context.lineTo( x + d, y2 + d );
+        this._context.lineTo( x + d, y2 - d );
+        this._context.lineTo( x - d, y2 - d );
         this._context.closePath();
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
@@ -1631,37 +1662,39 @@ var PfamGraphic = Class.create( {
                                 type:     "lollipop-head",
                                 start:    start,
                                 colour:   colour || "rgb(100, 200, 9)",
-                                coords:   [ x - d, y - d, x + d, y + d ] } );
+                                coords:   [ xo + x - d, yo + y2 - d, 
+                                            xo + x + d, yo + y2 + d ] } );
         break;
 
       case "diamond":
         d = this._imageParams.headSizeDiamond;
         // console.log( "PfamGraphic._drawLollipopHead: drawing diamond, extent |%d|, centred %d x %d",
-        //   d, x, y );
+        //   d, x, y2 );
         this._context.beginPath();
-        this._context.moveTo( x - d, y );
-        this._context.lineTo( x,     y + d );
-        this._context.lineTo( x + d, y );
-        this._context.lineTo( x,     y - d );
-        this._context.lineTo( x - d, y );
+        this._context.moveTo( x - d, y2 );
+        this._context.lineTo( x,     y2 + d );
+        this._context.lineTo( x + d, y2 );
+        this._context.lineTo( x,     y2 - d );
+        this._context.lineTo( x - d, y2 );
         this._context.closePath();
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
         this._areasList.push( { tip:      tip,
-                                type:     "lollipop-head",
+                                ty2pe:     "lollipop-head",
                                 shape:    "poly",
                                 start:    start,
                                 colour:   colour || "rgb(100, 200, 9)",
-                                coords:   [ x - d, y - d, x + d, y + d ] } );
+                                coords:   [ xo + x - d, yo + y2 - d, 
+                                            xo + x + d, yo + y2 + d ] } );
         break;
 
       case "line":
         d = this._imageParams.headSizeLine;
         // console.log( "PfamGraphic._drawLollipopHead: drawing line, length |%d|, centred %d x %d", 
-        //   d, x, y );
+        //   d, x, y2 );
         this._context.beginPath();
-        this._context.moveTo( x, y - d );
-        this._context.lineTo( x, y + d );
+        this._context.moveTo( x, y2 - d );
+        this._context.lineTo( x, y2 + d );
         this._context.closePath();
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
@@ -1669,28 +1702,70 @@ var PfamGraphic = Class.create( {
                                 type:     "lollipop-head",
                                 start:    start,
                                 colour:   colour || "rgb(50, 40, 255)",
-                                coords:   [ x - 1, y - d - 1,
-                                            x + 1, y + d + 1 ] } );
+                                coords:   [ xo + x - 1, yo + y2 - d - 1,
+                                            xo + x + 1, yo + y2 + d + 1 ] } );
         break;
 
       case "arrow":
         d = this._imageParams.headSizeArrow;
-        console.log( "PfamGraphic._drawLollipopHead: drawing arrow, extent |%d|, centred %d x %d", 
-          d, x, y );
+        // console.log( "PfamGraphic._drawLollipopHead: drawing arrow, extent |%d|, centred %d x %d", 
+        //   d, x, y2 );
+
+        var coords;
+        if ( up ) {
+          this._context.beginPath();
+          this._context.moveTo( x,     y2  );
+          this._context.lineTo( x,     y2 - d );
+          this._context.strokeStyle = lineColour || "#000000";  
+          this._context.stroke();
+          this._context.beginPath();
+          this._context.moveTo( x - d, y2 + d * 0.5 );
+          this._context.lineTo( x,     y2 - d );
+          this._context.lineTo( x + d, y2 + d * 0.5 );
+          coords = [ xo + x - d, yo + y2, 
+                     xo + x + d, yo + y2 + d * 0.5 ];
+        } else { 
+          this._context.beginPath();
+          this._context.moveTo( x,     y2  );
+          this._context.lineTo( x,     y2 + d );
+          this._context.strokeStyle = lineColour || "#000000";  
+          this._context.stroke();
+          this._context.beginPath();
+          this._context.moveTo( x - d, y2 - d * 0.5 );
+          this._context.lineTo( x,     y2 + d );
+          this._context.lineTo( x + d, y2 - d * 1.5 );
+          coords = [ xo + x - d, yo + y2 - d * 1.5, 
+                     xo + x + d, yo + y2 - d ];
+        }
+        this._context.strokeStyle = colour || "rgb(50, 40, 255)";
+        this._context.stroke();
+        this._areasList.push( { tip:      tip,
+                                type:     "lollipop-head",
+                                colour:   colour || "rgb(50, 40, 255)",
+                                start:    start,
+                                shape:    "poly",
+                                coords:   coords } );
+        break;
+
+      case "pointer":
+        d = this._imageParams.headSizePointer;
+        // console.log( "PfamGraphic._drawLollipopHead: drawing pointer, extent |%d|, centred %d x %d", 
+        //   d, x, y2 );
         this._context.beginPath();
 
         var coords;
-        console.log( "PfamGraphic._drawLollipopHead: up ? ", up );
         if ( up ) {
-          this._context.moveTo( x - d, y + d );
-          this._context.lineTo( x,     y     );
-          this._context.lineTo( x + d, y + d );
-          coords = [ x - d, y, x + d, y + d ];
+          this._context.moveTo( x - d, y1 - d * 1.5 );
+          this._context.lineTo( x,     y1     );
+          this._context.lineTo( x + d, y1 - d * 1.5 );
+          coords = [ xo + x - d, yo + y1, 
+                     xo + x + d, yo + y1 - d ];
         } else { 
-          this._context.moveTo( x - d, y - d );
-          this._context.lineTo( x,     y     );
-          this._context.lineTo( x + d, y - d );
-          coords = [ x - d, y - d, x + d, y ];
+          this._context.moveTo( x - d, y1 + d * 1.5 );
+          this._context.lineTo( x,     y1     );
+          this._context.lineTo( x + d, y1 + d * 1.5 );
+          coords = [ xo + x - d, yo + y1 + d, 
+                     xo + x + d, yo + y1 ];
         }
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
@@ -1733,7 +1808,11 @@ var PfamGraphic = Class.create( {
         x2 = Math.floor( end   * this._imageParams.residueWidth ) + 1.5,
         y1 = Math.round( up ? this._topOffset : this._botOffset ) + 0.5,
         y2,
-        label;
+        label,
+
+        xo = this._imageParams.xOffset, // need X- and Y-offsets
+        yo = this._imageParams.yOffset;
+
 
     if ( up ) {
       // console.log( "PfamGraphic._drawBridge: drawing bridge on top at position %d", start );
@@ -1792,22 +1871,22 @@ var PfamGraphic = Class.create( {
                             colour: colour,
                             end:    end,
                             tip:    tip,
-                            coords: [ x1 - 1, ys[0] - 1, 
-                                      x1 + 1, ys[1] + 1 ] } );
+                            coords: [ xo + x1 - 1, yo + ys[0] - 1, 
+                                      xo + x1 + 1, yo + ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
                             type:   "bridge-horizontal",
                             colour: colour,
                             end:    end,
                             tip:    tip,
-                            coords: [ x1 - 1, ys[1] - 1, 
-                                      x2 + 1, ys[1] + 1 ] } );
+                            coords: [ xo + x1 - 1, yo + ys[1] - 1, 
+                                      xo + x2 + 1, yo + ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
                             type:   "bridge-end",
                             colour: colour,
                             end:    end,
                             tip:    tip,
-                            coords: [ x2 - 1, ys[0] - 1, 
-                                      x2 + 1, ys[1] + 1 ] } );
+                            coords: [ xo + x2 - 1, yo + ys[0] - 1, 
+                                      xo + x2 + 1, yo + ys[1] + 1 ] } );
 
     // console.log( "PfamGraphic._drawBridge: end" );
   },
@@ -1948,6 +2027,10 @@ var PfamGraphic = Class.create( {
 
     // build the area data
 
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset;
+
     var area = { text:     region.text,
                  type:     "region",
                  start:    region.start,
@@ -1955,7 +2038,8 @@ var PfamGraphic = Class.create( {
                  colour:   region.colour,
                  aliStart: region.aliStart,
                  aliEnd:   region.aliEnd,
-                 coords:   [ x, y, x + width + 1, y + height ] };
+                 coords:   [ xo + x,             yo + y, 
+                             xo + x + width + 1, yo + y + height ] };
     this._areasList.push( area );
     this._areasHash.set( "region_" + region.text + "_" + region.start + "_" + region.end, area); 
     
@@ -2108,14 +2192,29 @@ var PfamGraphic = Class.create( {
     //----------------------------------
 
     // add the area
-    var area = { text:   motif.metadata.identifier,
+    var label;
+    if ( motif.metadata            !== undefined &&
+         motif.metadata.identifier !== undefined ) {
+      label = motif.metadata.identifier;
+    } else if ( motif.text !== undefined ) {
+      label = motif.text;
+    } else {
+      label = "motif, " + motif.start + " - " + motif.end;
+    }
+      
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset;
+
+    var area = { text:   label,
                  type:   "motif",
                  start:  motif.aliStart || motif.start,
                  end:    motif.aliEnd   || motif.end,
                  colour: colour,
-                 coords: [ x, y, x + width, y + height ] };
+                 coords: [ xo + x,         yo + y,  
+                           xo + x + width, yo + y + height ] };
     this._areasList.push( area );
-    this._areasHash.set( "motif_" + motif.metadata.identifier + "_" + motif.start + "_" + motif.end, area );
+    this._areasHash.set( "motif_" + label + "_" + motif.start + "_" + motif.end, area );
 
     // if there's a URL on the region, add it to the area'
     if ( motif.href !== undefined ) {
@@ -2524,9 +2623,14 @@ var PfamGraphic = Class.create( {
    */
   _drawHighlight: function() {
 
-    var lineThicknessOffset = Math.round( this._imageParams.highlightWeight / 2 ),
-        left   = Math.floor( this._sequence.highlight.start * this._imageParams.residueWidth ),
-        right  = Math.ceil(  this._sequence.highlight.end   * this._imageParams.residueWidth ),
+    // need X- and Y-offsets
+    var xo = this._imageParams.xOffset,
+        yo = this._imageParams.yOffset,
+
+        lineThicknessOffset = Math.round( this._imageParams.highlightWeight / 2 ),
+
+        left   = Math.floor( xo + this._sequence.highlight.start * this._imageParams.residueWidth ),
+        right  = Math.ceil(  yo + this._sequence.highlight.end   * this._imageParams.residueWidth ),
         top    = this._canvasHeight - 4 - lineThicknessOffset,
         bottom = this._canvasHeight - 2;
 
@@ -2582,7 +2686,8 @@ var PfamGraphic = Class.create( {
   /**
    * Converts a hex string (eg "#07874f") into an RGB triplet (eg [ 7, 135, 79 ]).
    * RGB values are in the range 0 - 255. Returns an array containing the RGB values,
-   * which are also available as { r: RED, g: GREEN, b: BLUE }.
+   * which are also available as { r: RED, g: GREEN, b: BLUE }. Also handles three
+   * digit hex strings, e.g. "#FC0". Does not distinguish between "#FC0" and "#fc0".
    *
    * (these two complementary methods were taken originally from
    * "http://www.linuxtopia.org/online_books/javascript_guides/javascript_faq/rgbtohex.htm")
@@ -2594,16 +2699,27 @@ var PfamGraphic = Class.create( {
    */
   _getRGBColour: function( hexString ) {
 
-    var matches = /^#?([A-F0-9]{6})$/i.exec( hexString );
-    if ( matches === null ) {
+    var longHexMatches  = /^#?([A-F0-9]{6})$/i.exec( hexString ),
+        shortHexMatches = /^#?([A-F0-9]{3})$/i.exec( hexString ),
+        h, r, g, b, rgb;
+
+    if ( longHexMatches === null && shortHexMatches === null ) {
       this._throw( "not a valid hex colour ('" + hexString + "')" );
     }
-    var h = matches[1],
-        r = parseInt( h.substring( 0, 2 ), 16 ),
-        g = parseInt( h.substring( 2, 4 ), 16 ),
-        b = parseInt( h.substring( 4, 6 ), 16 ),
-        rgb = [ r, g, b ];
 
+    if ( longHexMatches !== null ) {
+      h = longHexMatches[1];
+      r = parseInt( h.substring( 0, 2 ), 16 );
+      g = parseInt( h.substring( 2, 4 ), 16 );
+      b = parseInt( h.substring( 4, 6 ), 16 );
+    } else if ( shortHexMatches !== null ) {
+      h = shortHexMatches[1];
+      r = parseInt( "" + h.substring( 0, 1 ) + h.substring( 0, 1 ), 16 );
+      g = parseInt( "" + h.substring( 1, 2 ) + h.substring( 1, 2 ), 16 );
+      b = parseInt( "" + h.substring( 2, 3 ) + h.substring( 2, 3 ), 16 );
+    }
+
+    rgb = [ r, g, b ];
     rgb.r = r;
     rgb.g = g;
     rgb.b = b;
