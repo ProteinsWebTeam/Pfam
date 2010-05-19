@@ -65,7 +65,7 @@ var AlignmentViewer = Class.create({
       this._rowsToDisplay = rows;
     }else{
       console.log( 'You havnt initialise the total rows to be seen, so setting it to 18' ); 
-      this.rowsToDisplay = 18;
+      this._rowsToDisplay = 18;
     }
     // also I need the CSS files to render the alignments in the page. 
     // so make a request to get the CSS files in the page using GET request;
@@ -112,7 +112,7 @@ var AlignmentViewer = Class.create({
       prefetchBuffer: true
     }; // end of options;
     
-    console.log('fetchAlignments: making a livegrid request with |%s|%d|%s|%s|',this._gridDiv, this._size, this._url, opts.toString()  );
+    console.log('fetchAlignments: making a livegrid request with |%s|%d|%s|%s|%d|',this._gridDiv, this._size, this._url, opts.toString(),this._rowsToDisplay  );
     // now make an request using livegrid;
     //this._livegrid = new LiveGrid( this._gridDiv, 25, this._size, this._url, opts );
     this._livegrid = new LiveGrid( this._gridDiv, this._rowsToDisplay, this._size, this._url, opts );
