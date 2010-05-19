@@ -219,20 +219,17 @@ sub markup_alignment{
   my @markedUpAlignments;
       
   my $row_num = 0;
-#  
-#  unless ( defined $consensus ){
-#    $consensus = [];
-#  }
+  
+  unless ( defined $consensus ){
+    $consensus = [];
+  }
   my %rawAlignments;
   foreach( keys %{ $alignment->[ 0 ] } ){
     $rawAlignments{ $_ } = $alignment->[0]->{ $_ };
     my( $acc, $align ) = Bio::Pfam::ColourAlign::markupAlignSingle( $_, $alignment->[0]->{ $_ }, $consensus, $row_num  );
-    #$markedUpAlignments{ $acc } = $align;
-    # it was an array now i am replacing to hash;
-#    push @markedUpAlignments ,[ $acc, $align ];
-     push @markedUpAlignments ,{ 'key'=> $acc, 'value'=>  $align };
+    push @markedUpAlignments ,{ 'key'=> $acc, 'value'=>  $align };
     $row_num++;
-    print STDERR "the dump of the acc in markupalignsinlge is $_\n";
+    
   }
   
   return \%rawAlignments, \@markedUpAlignments;
