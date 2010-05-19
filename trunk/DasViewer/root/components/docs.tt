@@ -1,0 +1,269 @@
+
+[%
+# docs.tt
+# 
+# Documentation page for the Widgets
+#
+# $Id$
+#
+
+PROCESS "components/require.tt"
+
+# later we might need to add some files for css.
+-%]
+<div id="documentation" style="font-size:1em">
+  <h2>Documentation</h2>
+  
+  <!-- Div for the main topics which are explained in the page-->
+  <div id="topics">
+    <ul>
+      <li> <h3> <a href="#intro"> Introduction </a> </h3></li>
+      <li> <h3> <a href="#widget"> Widgets </a> </h3> </li>
+      <li> <h3> <a href="#require"> Requirements </a> </h3> </li>
+    </ul>
+  </div>  
+  
+  <p/>
+  
+  <div id="introduction">
+    
+    <a name="intro"> <h4> Introduction </h4> </a>
+    DAS Widgets - A Javascript library which is used to show multiple sequence alignments, positional features on a protein sequence and PDB structures in a more intuitive way.
+    This library consists of three widgets named Aignment viewer, Feature viewer and Structure viewer which are used to show alignments, draw features and  display structures respectively. 
+    It also has a helper class called WidgetTagger which tags all the widgets together in an interactive manner. 
+    The motivation for this work is to provide researchers and developers a tool to visualise biological data and thereby spending less time in reinventing the software and more time in search of knowledge. This documentation is intended to explain the working of the widgets and doesn't explain the code.
+    It also relies on certain other javascript libraries which are mentioned in the requirements section.
+  </div>
+  
+  <div id="widgets">
+    
+    <a name="widget"> <h4> Widgets </h4></a>
+    
+    <!-- now contents for alignment viewer -->
+    <div id="alignmentViewer">
+      
+      <span><strong>Alignment Viewer</strong></span>
+      <p/>
+      Visualizing large scale alignments was never easy and have never ending issues. This widget is one such attempt to address a particular issue which is to display massive alignments in the browser by loading them dynamically when needed. You can initialize the widget by providing following parameters,
+     
+     <ol>
+       <li>A reference to HTML DOM element,</li>
+       <li>Uniprot accession identifier</li>
+       <li>Datasource name ( DAS source name )</li>
+       <li>Total rows in the alignment.</li>
+       <li>URL to make a request.( The server returns the data in JSON format and the response JSON is shown below )</li>
+     </ol>
+     
+     <strong>Example:</strong><pre style="font-family:"Courier New",Courier,mono">var alignments = new AlignmentViewer( parent, acc, dsn, size, url );</pre>
+     <p/>
+     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     
+     <ul>
+       <li>CSS files required to render the alignments are loaded from the server using YAHOO's GET utility.</li>
+       <li>HTML elements are created and are added as child elements to the input parent element.</li>
+       <li>Custom built LiveGrid object is initialized, which makes GET request to the input URL.</li>
+         <p></p>
+         <ol>
+           <li>Javascript library which provides a behavior for connecting an HTML element to a live datasource via YAHOO's GET request.</li>
+           <li>Creates a scroller which acts a live navigator for making requests.</li>
+           <li>Automatically populates the response alignments to the HTML element.</li>
+           <li>Data buffering and Event registration strategies are implemented to improve performance.</li>
+         </ol>
+     </ul>
+     
+     <span><strong>Response JSON format</strong></span>
+     <p/>
+     
+     <pre style="font-family:"Courier New",Courier,mono">
+       var alignments = {"data":{
+         "rows":[
+             {"value":"html span tag","key":"html span tag"},
+             {"value":"html span tag","key":"html span tag"} 
+            ],
+          "rowcount":"integer",
+          "offset":"integer"
+        },
+        "storeAlignments":{"accession1/start-end":"MAMAMRSTFAARV.GAKPAVRGARPASR.MSCMA","accession2/start-end":"MSMAVRSSFAARVAGARPAVRAARPSARTVSVNA"}
+      }
+    </pre>
+    
+    </div> <!-- end of alignmentviewer -->
+    
+    <!--  now feature viewer-->
+    <div id="featureViewer">
+      <span><strong>Feature Viewer</strong></span>
+      <p/>
+      This widget gets the positional features for a uniprot accession in a specific JSON format and uses Pfam Domain Graphics code to draw those returned features in the browser using the HTML canvas element. You can initialise the widget by providing the following parameters,
+      
+      <ol>
+       <li>A reference to HTML DOM element,</li>
+       <li>Uniprot accession identifier</li>
+       <li>List of DAS sources to get the features ( provide das source unique identifiers )</li>
+       <li>URL to make a request.( The server returns the data in JSON format and the response JSON is shown below )</li>
+     </ol>
+     
+     <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono">var featureviewer = new FeatureViewer( parent, acc, sources, url );</pre>
+     <p/>
+     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     
+     <ul>
+       <li>CSS files required to render the features are loaded from the server using YAHOO's GET utility.</li>
+       <li>A GET request is made to retrieve all the positional features present on the input accession.</li>
+       <li>If the request succeeds, new HTML elements are created and added as child elements to the input parent element.</li>
+       <li>The das features are parsed and are provided as an argument to the Pfam Domain Graphics code to draw them in canvas element.</li>
+       <li>Event listeners are added which add the tooltips functionality to the protein features.</li> 
+       
+     </ul>
+     
+     <span><strong>Response JSON format</strong></span>
+     <p/>
+     
+     <pre style="font-family:"Courier New",Courier,mono">
+       var features = { "json_sources":["Das source name1","Das source name2"],
+                        "seqLength":"length of sequence Integer",
+                        "sources":["DS id"],
+                        "dasTracks":"total number of tracks to be drawn",
+                        "json_error_sources":{'error sources which doesnt have any features'},
+                        "dasFeatures":
+                          {"DasSourceName1":
+                            [
+                              {"imageMap":"true",
+                               "lables":"true",
+                               "length":"length of the feature",
+                               "motifs":
+                                 [
+                                   {"colour":"color used to draw the feature",
+                                    "metadata":
+                                      {"database":"DasSourceName1","type":"feature id","display":"true","end":"112","start":"38"},
+                                      "end":"112",
+                                      "start":"38"
+                                   },
+                                   {"colour":"color used to draw the feature",
+                                     "metadata":
+                                       {"database":"DasSourceName1","type":"feature id","display":"true","end":"32","start":"1"},
+                                       "end":"32",
+                                       "start":"1"
+                                   }
+                                 ]
+                               }
+                          },
+                        "acc":"Accession"
+                      }
+     </pre>  
+     
+    </div><!-- end of featureviewer -->
+    
+    <!--  now structure viewer-->
+    <div id="structureViewer">
+      <span><strong>Structure Viewer</strong></span>
+      <p/>
+      This widget gets the PDB structures which are similar to the input uniprot accession in a specific JSON format and then uses JMOL library to create an applet in the browser to show the 3D structure. You can initialize the widget by providing the following parameters,
+      
+      <ol>
+       <li>A reference to HTML DOM element,</li>
+       <li>Uniprot accession identifier</li>
+       <li>URL to make a request.( The server returns the data in JSON format and the response JSON is shown below )</li>
+       <li>JMOL library path ( location of jar files ).</li>
+       
+     </ol>
+     
+     <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono">var structureviewer = new StructureViewer( parent, acc, url, jmolUrl );</pre>
+     <p/>
+     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     
+     <ul>
+       <li>A GET request is made to retrieve all the structures which are similar to the input accession.</li>
+       <li>If the request succeeds, Jmol applet is created and the PDB structure is loaded by using Jmol command.</li>
+       <li>If more than one structures are similar, then a drop-down box is created by listing the structures.</li>
+       <li> Event listeners are added, in cases where different structures are selected, which is then loaded in the applet.</li> 
+       
+     </ul>
+     
+     
+     <span><strong>Response JSON format</strong></span>
+     <p/>
+     
+     <pre style="font-family:"Courier New",Courier,mono">
+       var structures = [
+                          {"pacc":"Protein accession",
+                          "pend":"end: protein coordinate matching PDB",
+                          "pstart":"start: protein coordinate matching PDB",
+                          "end":"end: PDB coordinate matching protein",",
+                          "start":"start: PDB coordinate matching protein",
+                          "acc":"PDB_id with chain id"
+                          }
+                        ];
+     </pre>  
+     
+    </div><!-- end of strucutre viewer-->
+    
+    <!-- Now widget tagger -->
+    <div id="widgetTagger">
+     <span><strong>Widget Tagger</strong></span>
+      <p/>
+      This is a javascript object which provides interactivity between the widgets. It adds event listeners for click and mouse move to the widgets and then triggers a series of responses, based on those events. You can initialize the object by providing the following parameters,
+      <p></p>
+      <ol>
+        <li>Alignment object.</li>
+        <li>Options hash which should atleast have parameters for one other widget. ( Either Feature viewer or Structure viewer )</li>
+      </ol>
+    
+      <strong>Note:</strong><p/>
+      <ol>
+        <li>If you wish to enable FeatureViewer, you need to provide the following keys and its value, featureParent, featureSources, featureURL.</li>
+        <li>If you wish to enable StructureViewer, you need to provide the folllowing keys and its value, structureParent, structureURL, structureJmolURL.</li>
+      </ol><p/>
+      
+      <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono"> var widgetTagger = new WidgetTagger( alignObj, options );</pre>
+
+      <span><strong>Working:</strong></span>  The following events takes place in the sequential order while you initialize the object,
+      
+      <ul>
+        <li>A watch dog functionality is added which waits until the alignments response is loaded in the browser.</li>
+        <li>An Event listener for 'click' is added to the list of accessions shown in the alignments response.</li>
+        <li>Using the accession and depending upon the input options, either Feature viewer or Structure Viewer is loaded.</li>
+    	  <li>Another watch dog functionality is loaded which waits for the enabled viewers to be loaded.</li>
+        <li>If Feature Viewer is enabled,  a mouse move listener is added to the displayed protein features.</li>
+        <ul>  
+          <li>When mouse is moved over the protein features corresponding column in the alignment viewer is highlighted and the corresponding residue in the structure is highlighted, if the viewer is enabled.</li>
+        </ul>   
+      </ul>
+      
+    </div><!-- end of widget tagger -->
+    
+  </div><!-- end of div widgets -->
+  
+  <div id="requirements">
+    <a name="require"><h4>Requirements</h4></a>
+    <p/>
+    
+    All the code is developed using <strong>Prototype</strong> framework and it is mandatory to include the latest version of prototype before you try to use these widgets, It also requires the other libraries which are mentioned below.
+    <p></p>
+    It is also mandate to include YAHOO utilities in your page by adding the following lines in your header
+    <pre style="font-family:"Courier New",Courier,mono">
+    <<span>script src="</span>http://yui.yahooapis.com/2.8.1/build/yahoo/yahoo-min.js<span>"><</span><span>/script></span>
+    <<span>script src="</span>http://yui.yahooapis.com/2.8.1/build/get/get-min.js<span>"><</span><span>/script></span>
+    </pre>
+    
+    <p></p>
+    To enable Alignment viewer, you need
+    <ul>
+      <li>Custom built - LiveGrid library ( This will be automatically loaded ).</li>
+    </ul>
+    <p></p>
+    To enable Feature viewer, you need
+    <ul>
+      <li>Pfam domain graphics library.</li>
+      <li>Canvas libraries ( if you are using <strong>IE</strong> then include <a href="http://excanvas.sourceforge.net/">Excanvas</a> library ).</li>
+      
+      <li><a href="http://www.nickstakenburg.com/projects/prototip2/">Prototip</a> library.</li>
+    </ul>
+    <p></p>
+    To enable, Structure viewer, you need
+    <ul>
+      <li>Jmol library ( > 1.6 )</li>
+    </ul>
+    
+  </div>  <!-- end of requirements -->
+
+</div> <!-- end of documentation -->
