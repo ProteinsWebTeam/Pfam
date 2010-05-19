@@ -55,6 +55,9 @@ var FeatureViewer = Class.create({
       this._url = url;
     } 
     
+    // also I need the CSS files to render the alignments in the page. 
+    // so make a request to get the CSS files in the page using GET request;
+    this._fetchCSS();
     
     //  initialise the other params for the feature viewer;
     // currently hard-coded maybe latter i could get it from options
@@ -109,8 +112,6 @@ var FeatureViewer = Class.create({
         // now we got the featuers as JSON string;
         response.purge();
         
-        //that._parent.update( "Features for <strong>"+that._accession+"</strong>" );
-        
         that.ajaxComplete( features );
         
         // now set the readyState to true;
@@ -126,25 +127,6 @@ var FeatureViewer = Class.create({
 //    // console.log('the event is success, so remove the loading image' );
 //    this._parent.removeChild( $( 'spinner' ) ); 
 //  },
-  //----------------------------------------------------------------------------
-  
-  // Method to make feature Request using Ajax call;
-  fetchFeaturesByAjax: function(){
-    // create an ajax request;
-    var callParams = { acc : this.getAccession(),
-                       sources : this.getSources() };
-    
-    // setting up the ajax request options;
-    var options = { parameters: callParams };
-    
-    // now add the callback functions for the request;
-    options.onComplete = this.ajaxComplete.bind( this );
-    options.onLoading  = this.ajaxLoading.bind( this );
-                       
-    this._request = new Ajax.Request( this._url, options );
-      
-  },
-  
   //----------------------------------------------------------------------------
   
   // callback function for ajax request onComplete;
@@ -169,6 +151,8 @@ var FeatureViewer = Class.create({
     // retrieve the features and sources which returned data and draw them;
     this.drawCanvas();
     
+    // by default show it off;
+    this._parent.show();
   },
   
   //----------------------------------------------------------------------------
@@ -244,7 +228,7 @@ var FeatureViewer = Class.create({
     imgCanvas.setAttribute( 'height', this._canvasHeight );
     imgCanvas.setAttribute( 'width', this._canvasWidth );
     txtCanvas.setAttribute( 'height', this._canvasHeight );
-    txtCanvas.setAttribute( 'width', 150 ); 
+    //txtCanvas.setAttribute( 'width', 150 ); 
     // console.log( 'buildCanvas:the parent is '+this._parent);
   },
   
@@ -284,6 +268,22 @@ var FeatureViewer = Class.create({
     var baseline;  
     var graphicYOffset = 0 ;
     
+    // walk down the featureSources and measure the maximum textWidth and use that for 
+    // rendering the text;
+    var textWidth = 0;
+    featureSources.each( function( ds_id ){
+      console.log( 'teh width is ' + ttx.measureText( ds_id ).width );
+      
+      // if the width is higher then use it;
+      if( ttx.measureText( ds_id ).width > textWidth ){
+        textWidth = ttx.measureText( ds_id ).width;
+      }
+      
+    } );
+    
+    // now set the text canvas width to be the calculated value + 20 as fudge factor;
+    this._txtCanvas.setAttribute( 'width', textWidth + 20 );  
+    
     var pg1 = new PfamGraphic( parent );
     pg1.setCanvas( imgCanvas );
     pg1.setNewCanvas( false );  
@@ -291,7 +291,6 @@ var FeatureViewer = Class.create({
     // console.debug( pg1 );
         
     featureSources.each( function( ds_id ){
-      
       var seqObj = $A( dasFeatures.get( ds_id ) );
       
       // now draw the track for each of the seqObject;
@@ -305,12 +304,12 @@ var FeatureViewer = Class.create({
         
         // draw the text
         ttx.strokeStyle = "#eeeeee";
-        ttx.strokeText( ds_id, 75, graphicYOffset+baseline );
+        ttx.strokeText( ds_id, 5, graphicYOffset+baseline );
         ttx.strokeStyle = "#000000";
           
         // add the text here;
         ttx.fillStyle = 'black';
-        ttx.fillText( ds_id, 75, graphicYOffset + baseline );
+        ttx.fillText( ds_id, 5, graphicYOffset + baseline );
         
         pg1.render();
         // console.debug( "areas: ", pg1._areasList );
@@ -318,7 +317,7 @@ var FeatureViewer = Class.create({
         graphicYOffset +=Yincrement; 
       } );
       
-      pg1.setImageParams( {yOffset: 0 });
+//      pg1.setImageParams( {yOffset: 0 });
     } );
     
     // now store the baseline and the graphicYOffset,
@@ -335,6 +334,20 @@ var FeatureViewer = Class.create({
     var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
     loadDiv.update( 'Loading Features...' );
     this._parent.appendChild( loadDiv );
+  },
+  
+  //----------------------------------------------------------------------------
+  
+  // function to fetch the CSS files for rendering the alignment;
+  _fetchCSS: function( ){
+    console.log( 'making YAHOO get request for getting the CSS' );
+    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignViewer.css',{
+      onSuccess:function( o ){
+        o.purge(); //removes the script node immediately after executing;
+      }
+      
+    } );
+      
   },
   
   //----------------------------------------------------------------------------
