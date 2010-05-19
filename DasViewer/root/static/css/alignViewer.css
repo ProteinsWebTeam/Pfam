@@ -1,7 +1,9 @@
  #grid {
   white-space: nowrap;
   float: left;
-  width: 1000px;
+  /*width: 1000px;*/
+  /*width: 700px;*/  /* it was fine for the grid, i am changing it for widgets;*/
+  width: 90%;
   border: 1px solid #ababab;
   border-right: none;
   font-family: monospace;
@@ -60,4 +62,105 @@
 .columnColor {
   background-color: #9074DE;
   z-index: 10;
+}
+
+/* style for the canvasWrapper */
+#canvasWrapper {
+  overflow-x:auto;
+  /*width:auto;*/
+  width: 575px;
+}
+
+#txtCanvas {
+  float:left;
+  z-index:1;
+}
+
+#imgCanvas{
+  float:left;
+  z-index:1;
+}
+
+#scroller {
+  width:1px;
+  background-color:black;
+  position:absolute;
+  z-index:10;
+  /*display:none;*/
+}
+
+#backgroundDiv {
+  background-color:#C7F3C5;
+  position:relative;
+  z-index:-1;
+  /*display:none*/;
+}
+
+#highlightColumn {
+  width:6px;
+  border:1px solid red;
+  position:relative;
+  float:left;
+  visibility:hidden;  
+}
+
+.background {
+  background-color: cyan;
+}
+
+/* ---------------------------------------- */
+/* tooltip styles */
+
+.prototip .tooltip {
+  background: #efefef;
+  border: 1px solid #074987;
+}
+
+.prototip .tooltip .title {
+  background: #074987;
+  color: #cbdced;
+  font-weight: bold;
+  padding: 0 0.4em;
+}
+
+.prototip .tooltip .content {
+  color: #074987;
+  margin: 0.2em;
+}
+
+/* for the benefit of IE, otherwise it leaves a great wide gap
+ * at the left of the <dl> */
+.prototip dl {
+  margin: 0;
+}
+
+.prototip p {
+  margin: 0;
+  padding: 0.2em;
+}
+
+.prototip div.scale {
+  font-family: monospace;
+  font-size: smaller;
+  text-align: left;
+}
+
+.prototip div.scale span {
+  margin: 0;
+  padding: 0;
+}
+
+.prototip dt {
+  padding: 0;
+  font-weight: bold;
+  float: left;
+}
+
+.prototip dd {
+  margin-left: 8em;
+  padding: 0 0.2em;
+}
+
+.prototip .inactive {
+  color: #aaaaaa;
 }
