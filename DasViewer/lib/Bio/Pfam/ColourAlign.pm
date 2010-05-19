@@ -203,29 +203,38 @@ sub markupAlignSingle {
   # replaced id to acc;
   $key   = "<span id=\"$acc\" class=\"" . ( $rowNum % 2 ? "odd" : "even" ) . "\">$acc</span>\n";
 	$value = "<span id=\"$acc".'seq"'." class=\"" . ( $rowNum++ % 2 ? "odd" : "even" ) . "\">";
-
-	while( $seq ) {
+  
+  # if the consensus string is defined, then do the following else add the string to the span element
+  if( scalar( @{ $conRef } ) > 0 ){
+  
+    while( $seq ) {
 	  
-	  $r = substr( $seq, 0, 1, "" );
-	  $R = uc $r;
-    
-    
-	  if( $R eq "." or $R eq "-" ) {
-		  $value .= $r;
-		  #print "$value|$R|$conRef->[$i]|\n";
-	  } elsif( $R eq $conRef->[$i] ) {
-		  $value .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
-		  #print "$value|$R|$conRef->[$i]|\n";
-	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
-		  $value .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
-		  #print "$value|$R|$conRef->[$i]|\n";
-	  } else {
-		  $value .= $r;
-		  #print "$value|$R|$conRef->[$i]|\n";
-	  }
-	  $i++;
-
-	}
+  	  $r = substr( $seq, 0, 1, "" );
+  	  $R = uc $r;
+      
+      
+  	  if( $R eq "." or $R eq "-" ) {
+  		  $value .= $r;
+  		  #print "$value|$R|$conRef->[$i]|\n";
+  	  } elsif( $R eq $conRef->[$i] ) {
+  		  $value .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
+  		  #print "$value|$R|$conRef->[$i]|\n";
+  	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
+  		  $value .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
+  		  #print "$value|$R|$conRef->[$i]|\n";
+  	  } else {
+  		  $value .= $r;
+  		  #print "$value|$R|$conRef->[$i]|\n";
+  	  }
+  	  $i++;
+  
+  	} 
+  	 
+  } # end of scalar conref 
+  else{
+    $value .= $seq;
+  }
+	
 
 	$value .= "<br /></span>\n";
 
