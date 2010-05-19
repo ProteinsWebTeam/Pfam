@@ -196,7 +196,9 @@ var StructureViewer = Class.create({
     this.setShownStructure( this._selectEl.value );
     //this._shownStructure = this._selectEl.value;
     this.jmolViewer( );
-      
+    
+    // show the element;
+    this._parent.show();  
   },
   
   //----------------------------------------------------------------------------
@@ -218,7 +220,7 @@ var StructureViewer = Class.create({
     
     console.log( 'the string is '+ string );
     
-    var myApplet = jmolApplet( 350, string, 'foo' );
+    var myApplet = jmolApplet( 250, string, 'foo' );
     
     // now update the applet element with this value;
     this._appletEl.update( myApplet );
