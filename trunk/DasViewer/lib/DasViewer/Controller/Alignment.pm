@@ -50,7 +50,7 @@ sub view : Local {
     $c->stash->{ errorMsg } = "Invalid accession or No alignment found for ".$c->req->param('accession')." provided.";
   }
   
-  $c->log->debug( "Alignment::View:the sizw returned is ".$args->{ input_params }->{ size } );
+  $c->log->debug( "Alignment::View:the size returned is ".$args->{ input_params }->{ size } );
   $c->stash->{ data } = $args->{ input_params }; 
   $c->stash->{template} = 'components/alignment.tt';
   
@@ -95,31 +95,40 @@ sub alignment : Local {
   my $ds = $c->model('DasSource' )->getDataSource( $args );
   
   my ( $storealignment, $alignment )= $ds->get_alignment();
+  #$c->log->debug( 'the alignment is '.dump( $alignment ) );
   
-#  my $test = [ [1,2],[3,4],[5,6],[3,23],[23,54],[2,34],[4,65] ];
-#  
-#  $c->log->debug( 'the alignmnet is '.dump( $test ) );
   my $data = {
     offset    => $offset,
     rowcount  => $page_size,
     rows      => $alignment
   };
   
-#  $c->stash->{json} = $data;
-#  $c->stash->{ storeAlignments } = $storealignment;
+#  my $json = { 
+#    data  => $data,
+#    storeAlignments =>  $storealignment
+#  };
+#  
+#  $c->stash->{json} = to_json( $json );
+#  
+#  $c->res->content_type( 'application/json');
+#  $c->res->body( $c->stash->{ json } );  
+
   my $json = { 
-    data  => $data,
-    storeAlignments =>  $storealignment
-  };
+             data  => $data,
+             storeAlignments =>  $storealignment
+             };
   
-  $c->stash->{json} = to_json( $json );
-#  $c->stash->{json}->{ data } = to_json( $data );
-#  $c->stash->{json}->{ storeAlignments } = to_json( $storealignment );
+  my $alignments = to_json( $json );
+  
+  my $string = <<EOF;
+  
+  var alignments = $alignments;
+  
+EOF
   
   $c->res->content_type( 'application/json');
-  $c->res->body( $c->stash->{ json } );  
-#  #$c->log->debug( 'ALignment:alignment: the dump of the alignment is '.dump( $data ) );
-#  $c->forward('DasViewer::View::JSON');
+  
+  $c->res->body( $string );
   
 }
 
