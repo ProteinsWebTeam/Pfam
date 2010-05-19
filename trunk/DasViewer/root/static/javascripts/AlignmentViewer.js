@@ -21,7 +21,7 @@ if( ! window.console ){
 
 var AlignmentViewer = Class.create({
   
-  initialize: function( parent, accession, dsn, size, url, options ){
+  initialize: function( parent, accession, dsn, size, url,rows, options ){
     
     console.log( 'initialize: begins');
     
@@ -60,9 +60,19 @@ var AlignmentViewer = Class.create({
       this._url = url;
     } 
     
+    // check whether user gave the input rows to be seen;
+    if( rows !== undefined ){
+      this._rowsToDisplay = rows;
+    }else{
+      console.log( 'You havnt initialise the total rows to be seen, so setting it to 18' ); 
+      this.rowsToDisplay = 18;
+    }
     // also I need the CSS files to render the alignments in the page. 
     // so make a request to get the CSS files in the page using GET request;
     this._fetchCSS();
+    
+    // as LiveGrid library has been changed a lot, its better to load it using get request; 
+    this._getLiveGrid();
     
     // now define the options;
     this.options = {};
@@ -71,9 +81,6 @@ var AlignmentViewer = Class.create({
     // now create the child elements for generating grid;
     this.createChildren();
     console.log('initialise: children created' );
-    
-    // now use livegrid to get the alignments;
-    this.fetchAlignments();
     
     // add event listeners after the alignment is populated;
     this._addListeners();
@@ -107,7 +114,8 @@ var AlignmentViewer = Class.create({
     
     console.log('fetchAlignments: making a livegrid request with |%s|%d|%s|%s|',this._gridDiv, this._size, this._url, opts.toString()  );
     // now make an request using livegrid;
-    this._livegrid = new LiveGrid( this._gridDiv, 25, this._size, this._url, opts );
+    //this._livegrid = new LiveGrid( this._gridDiv, 25, this._size, this._url, opts );
+    this._livegrid = new LiveGrid( this._gridDiv, this._rowsToDisplay, this._size, this._url, opts );
     
     // set the timeout to check whether we get the alignments from the livegrid;
     this._timer = setInterval( this.checkAlignment.bind(this) , 500 );
@@ -186,7 +194,24 @@ var AlignmentViewer = Class.create({
     var cssTransaction2 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignment.css' );
       
   },
-      
+  
+  //----------------------------------------------------------------------------
+  
+  // function to get the custom built LiveGrid library from our server;
+  _getLiveGrid: function(){
+    console.log( 'making YAHOO get request for getting custom built LiveGrid library' );
+    
+    var that = this;
+    var livegridTransaction = YAHOO.util.Get.script( 'http://localhost:3000/static/javascripts/livegrid.js',{
+      onSuccess: function( response ){
+        console.log( 'LiveGrid library has been dynamically loaded' );
+        
+        // now fetch the alignments as LiveGrid is loaded in the browser now;
+        that.fetchAlignments();
+      }
+    })  
+  },
+       
   //------------------------------------------------------------------------------
   //- Get and Set Methods --------------------------------------------------------
   //------------------------------------------------------------------------------
