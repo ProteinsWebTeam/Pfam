@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.11 2010-01-13 13:47:39 jt6 Exp $
+// $Id$
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -271,12 +271,13 @@ var PfamGraphic = Class.create( {
 
     // general options, specified as part of the "sequence"
     this._options = {
-      baseUrl:   "",    // a URL to be prepended to hrefs when domains, motifs, etc are clicked
-      imageMap:  true,  // add the image map ?
-      labels:    true,  // add the text labels to regions ?
-      tips:      true,  // add tooltips ? Requires prototip2
-      newCanvas: true   // generate a new canvas for each new sequence that's to
-                        // be rendered
+      baseUrl:   "",     // a URL to be prepended to hrefs when domains, motifs, etc are clicked
+      imageMap:  true,   // add the image map ?
+      labels:    true,   // add the text labels to regions ?
+      tips:      true,   // add tooltips ? Requires prototip2
+      tipStyle:  "pfam", // style for tooltips
+      newCanvas: true    // generate a new canvas for each new sequence that's to
+                         // be rendered
     };
 
     // specification of various allowed values in the input
@@ -973,12 +974,15 @@ var PfamGraphic = Class.create( {
           this._inside = activeArea;
 
           if ( addTips && activeArea.tip ) {
+            var opts =  { title: activeArea.tip.title,
+                          stem: "topLeft" };
+            if ( this._options.tipStyle ) {
+              opts.style = this._options.tipStyle;
+            }
             var t1 = new Tip(
               parentEl,
               activeArea.tip.body,
-              { title: activeArea.tip.title,
-                stem: "topLeft",
-                style: "pfam" }
+              opts
             );
           }
 
