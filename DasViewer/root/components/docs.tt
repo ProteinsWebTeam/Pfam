@@ -101,6 +101,12 @@ PROCESS "components/require.tt"
        <li>Uniprot accession identifier</li>
        <li>List of DAS sources to get the features ( provide das source unique identifiers )</li>
        <li>URL to make a request.( The server returns the data in JSON format and the response JSON is shown below )</li>
+       <li>An options hash with extra parameters which can contain following keys in it:</li>
+       <ol>
+         <li>Yincrement - Pixel size difference between two das tracks drawn ( default is 10px ).</li>
+         <li>resWidth - Pixel width corresponding to aminoacid residue ( default is 1 pixel per residue ).</li>
+         <li>tipStyle - if you intend to use your own tip style please look at the documentation of <a href="http://www.nickstakenburg.com/projects/prototip2/">Prototip2</a> for creating custom styles.</li>
+       </ol>
      </ol>
      
      <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono">var featureviewer = new FeatureViewer( parent, acc, sources, url );</pre>
@@ -257,7 +263,7 @@ PROCESS "components/require.tt"
       <li>Pfam domain graphics library.</li>
       <li>Canvas libraries ( if you are using <strong>IE</strong> then include <a href="http://excanvas.sourceforge.net/">Excanvas</a> library ).</li>
       
-      <li><a href="http://www.nickstakenburg.com/projects/prototip2/">Prototip</a> library.</li>
+      <li><a href="http://www.nickstakenburg.com/projects/prototip2/">Prototip2</a> library.</li>
     </ul>
     <p></p>
     To enable, Structure viewer, you need
