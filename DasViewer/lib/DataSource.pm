@@ -286,12 +286,13 @@ sub get_sequence{
       use LWP::Simple;
       foreach (@pdbs){
         my ($pdb_id) = $_ =~ /^(\w{4})/ ;
-        #print STDERR "the pdb id is $pdb_id\n";
+        print STDERR "the pdb id is $pdb_id\n";
         my $url = "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=FASTA\&structureId=$pdb_id";
         unless ( exists $test{$pdb_id}){
           my $pdb_seq = get($url);
           open(OUT,">>PDB");
-          print OUT $pdb_seq;          
+          print OUT $pdb_seq;
+          print STDERR 'the pdbSeq id '.$pdb_seq."\n";          
         }
         $test{$pdb_id} = $_;        
         close OUT;
@@ -305,7 +306,7 @@ sub get_sequence{
       while ( my $seq = $seqio->next_seq() ){
        #print "primnary id is ",$seq->id(),"\n"; 
        my $id;
-       #print "the das url is ",$self->{daslite}->dsn()->[0],"\n\n";
+       #print STDERR "the das url is ".$self->{daslite}->dsn()->[0]."\n\n";
        if($self->{daslite}->dsn()->[0] =~ /biojavapdbuniprot/i){
          $id = uc(substr($seq->id(),0,4));    
        }else{
@@ -318,7 +319,9 @@ sub get_sequence{
       }
       #print STDERR "the dump fo pdb seq is ".dump( $sequence )."\n";
      unlink "PDB";
-      
+     
+     # dump the sequence hash to see whether we have some sequences;
+     #print STDERR dump( $sequence ); 
     }elsif( $_ =~ /^Uniprot/i ){
       $self->{ daslite }->dsn( $das_params->{ uniprot_sequence });
       my $seq = $self->{ daslite }->sequence($accession->{$_});
@@ -352,19 +355,38 @@ Reconstructs a blocked alignment from a raw alignment.
 sub reconstruct_alignment {
   my ( $self, $aliData, $seq ) = @_;
   
+  print STDERR "the ump of the seq is ".dump( $seq )."\n";
   my ( @alignments, @alignmentLengths );
 
   for ( my $i = 0 ; $i < scalar(@$aliData) ; $i++ ) {
     
     my %aliObjects = map { $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
     
+    # I am calling this subroutine for both the cases where sequence is given and not.
     if( defined $seq ){
       foreach ( keys %aliObjects ){
-        $aliObjects{ $_ }->{ sequence } = $seq->{ $_ } if( exists $seq->{ $_ });
+        print STDERR 'the aliObjects are '.$_." \n";
+        # there might be cases where the sequences stored might be in lower case and the 
+        # accession we got might be in upper case, so check for both the cases;
+        if( exists $seq->{ $_ } ){
+          
+          print STDERR "now its normal case\n";
+          $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
+          
+        }elsif( exists $seq->{ uc( $_ ) } ){
+          
+          print STDERR "now aliObejct is in Upper case\n";
+          $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
+          
+        }elsif( exists $seq->{ lc( $_ ) } ){
+          print STDERR "now aliObejct is in lower case\n";
+          $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
+        }
+        #$aliObjects{ $_ }->{ sequence } = $seq->{ $_ } if( exists $seq->{ $_ });
       } 
     }
     
-    
+    #print STDERR "dump of the aliObject is ".dump( \%aliObjects )."\n";
     push @alignmentLengths, $aliData->[$i]->{alignment_max};
     
     #print "i value is $i and aliobject is ",dump( \%aliObjects ),"**************\n";
@@ -389,6 +411,7 @@ sub reconstruct_alignment {
       push @alignments, \%ali;
     }
  }
+ print STDERR 'dump of the alignments hash is '.dump( \@alignments )."\n"; 
  return \@alignments, \@alignmentLengths;
 } 
 
@@ -402,10 +425,11 @@ Gets the alignment string from the alignment.
 
 sub get_alignment_string {
   my ( $bseqRef, $aliObjectsRef ) = @_;
-  #print "bseqref is ",dump($bseqRef),"\n and aliobjectref is ",dump( $aliObjectsRef ),"\n";
+  
   my $seqStr = $aliObjectsRef->{ $bseqRef->{segment_intObjectId} }->{sequence};
+  
   my $seq;
-  if( $bseqRef->{segment_start} and $bseqRef->{segment_end} ){
+  if( $bseqRef->{segment_start} and $bseqRef->{segment_end} and ( length( $seqStr ) > $bseqRef->{segment_end} ) ){
           $seq = substr(
               $seqStr,
               $bseqRef->{segment_start} - 1,
@@ -414,6 +438,8 @@ sub get_alignment_string {
   }else{
           $seq = $seqStr;
   }
+  
+  # if the cigar string exists use it to build the alignment string;
   if(exists $bseqRef->{cigar}){
     return cigar_to_alignment( $bseqRef->{cigar}, $seq );  
   }else{
