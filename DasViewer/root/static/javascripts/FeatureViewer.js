@@ -25,7 +25,7 @@ if ( ! window.console ) {
 
 var FeatureViewer = Class.create({
   
-  initialize: function( parent, accession, sources, url ){
+  initialize: function( parent, accession, sources, url, options ){
     
     // check for an existing DOM element;
     if( parent !== undefined ){
@@ -55,16 +55,23 @@ var FeatureViewer = Class.create({
       this._url = url;
     } 
     
+    // check whether tipStyle is defined in the options;
+    if( options.tipStyle !== undefined ){
+      // now the user is not interested in having their style, 
+      // so we need to get the tip_definition.js file;
+      this._fetchTipDefinition();
+    }
+    
     // also I need the CSS files to render the alignments in the page. 
     // so make a request to get the CSS files in the page using GET request;
     this._fetchCSS();
     
     //  initialise the other params for the feature viewer;
     // currently hard-coded maybe latter i could get it from options
-    this._graphicXOffset = 10;
-    this._extraXspace    = 40;
-    this._Yincrement     = 20;
-    this._resWidth       = 1;
+    this._graphicXOffset = options.graphicXOffset || 10;
+    this._extraXspace    = options.extraXspace    || 40;
+    this._Yincrement     = options.Yincrement     || 20;
+    this._resWidth       = options.resWidth       || 1;
     
     // initialise the image params for pfam graphic code
     this._imgParams     = { xscale:            1,
@@ -72,11 +79,8 @@ var FeatureViewer = Class.create({
                           residueWidth:        this._resWidth,
                           envOpacity:          -1,
                           sequenceEndPadding:  0,
-                          xOffset: this._graphicXOffset  // das source names were written using canvas;
+                          xOffset: this._graphicXOffset,  // das source names were written using canvas;
                          };
-                                                      
-    // now fetch the features using this method;
-    //this.fetchFeaturesByAjax();
     
     // now test to make the use of the Yahoo's GET utility;
     this.fetchFeaturesByYahoo();
@@ -221,7 +225,7 @@ var FeatureViewer = Class.create({
     // now set the size of the canvas ;
     
     this._canvasHeight = this._response.get( 'dasTracks' ) * this._Yincrement;
-    this._sequenceLength = ( this._response.get( 'seqLength' ) * 1 );  // here the 1 is resWidth
+    this._sequenceLength = ( this._response.get( 'seqLength' ) * this._resWidth );  // here the 1 is resWidth
     this._canvasWidth    = this._sequenceLength + this._graphicXOffset + this._extraXspace;
     
     // now set the canva height to be this value;
@@ -341,7 +345,7 @@ var FeatureViewer = Class.create({
   // function to fetch the CSS files for rendering the alignment;
   _fetchCSS: function( ){
     console.log( 'making YAHOO get request for getting the CSS' );
-    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignViewer.css',{
+    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/featureViewer.css',{
       onSuccess:function( o ){
         o.purge(); //removes the script node immediately after executing;
       }
@@ -350,6 +354,20 @@ var FeatureViewer = Class.create({
       
   },
   
+  //----------------------------------------------------------------------------
+  
+  // function to fetch the tip_definition file from my server;
+  _fetchTipDefinition: function(){
+    console.log( 'fetching the tipdefinition file for the tool tips' );
+    
+    var tipTransaction = YAHOO.util.Get.script( 'http://localhost:3000/static/javascripts/tip_definition.js',{
+      onSuccess: function( o ){
+        console.log( 'tip_definition loaded in the browser' );
+        o.purge();
+      }
+    } );
+    
+  },
   //----------------------------------------------------------------------------
   //- Get and Set Methods ------------------------------------------------------
   //----------------------------------------------------------------------------
