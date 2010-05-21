@@ -798,34 +798,6 @@ var LiveGrid = Class.create( {
       var row = rows[i];
       var className = i % 2 ? "odd" : "even";
   
-//      var accDiv = new Element( "div", { id: "acc_"+i, "class": "seq_acc " + className } )
-//                   .update( i+startPos + ": " + row.acc );
-//      var seqDiv = new Element( "div", { id: "seq_"+i, "class": "seq_seq " + className } )
-//                   .update( row.seq );
-      
-      // use the regular expressions in javascript and get the id and start and end coords;
-//      var acc_id;
-//      var regExp = /(\w+)\/\d+/;
-//      
-//      // check whether this is pfam source;
-//      if( /(\w+)\/\d+/.test( rows[0] ) )
-//      {
-//        var matches = /(\w+)\/\d+/.exec( row[0] );
-//        acc_id = matches[1];
-//        
-//      }else if( /(.*)\/\d+/.test( row[0] ) )
-//      {
-//        var matches = /(.*)\/\d+/.exec( row[0] );
-//        acc_id = matches[1];
-//        
-//      }else
-//      {
-//        acc_id = row[0];  
-//      }
-      
-      //// // console.log( 'the accession is '+acc_id );
-//      var accDiv = new Element( "div" ).update( " " + row[0] );
-//      var seqDiv = new Element( "div" ).update( " "+ row[1] );
       var accDiv = new Element( "div" ).update( " " + row.key );
       var seqDiv = new Element( "div" ).update( " "+ row.value );
       accessionsDiv.appendChild( accDiv );
@@ -839,6 +811,9 @@ var LiveGrid = Class.create( {
     
     // we know the previous position of the scroller, set that so that user wouldnt find any difference in the grid;
     sequencesDiv.scrollLeft = this.options.scrollvalue;
+    
+    // now as the divs are updated, I fire up an custom event;
+    accessionsDiv.fire( 'Accessions:updated' );
     
     // // // console.log( "LiveGrid.updateContent: end" );
   },
