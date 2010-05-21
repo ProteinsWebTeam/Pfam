@@ -190,8 +190,8 @@ var AlignmentViewer = Class.create({
   _fetchCSS: function( ){
     console.log( 'making YAHOO get request for getting the CSS' );
     
-    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignViewer.css' );
-    var cssTransaction2 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/alignment.css' );
+    var cssTransaction1 = YAHOO.util.Get.css( '/static/css/alignViewer.css' );
+    var cssTransaction2 = YAHOO.util.Get.css( '/static/css/alignment.css' );
       
   },
   
@@ -202,7 +202,7 @@ var AlignmentViewer = Class.create({
     console.log( 'making YAHOO get request for getting custom built LiveGrid library' );
     
     var that = this;
-    var livegridTransaction = YAHOO.util.Get.script( 'http://localhost:3000/static/javascripts/livegrid.js',{
+    var livegridTransaction = YAHOO.util.Get.script( '/static/javascripts/livegrid.js',{
       onSuccess: function( response ){
         console.log( 'LiveGrid library has been dynamically loaded' );
         
