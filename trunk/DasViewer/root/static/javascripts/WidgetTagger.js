@@ -87,6 +87,8 @@ var WidgetTagger = Class.create({
     // set an poller to check whether the alignObj is ready;
     this._alignChecker = setInterval( this.alignStatusChecker.bind( this ), 500 );  
     
+    // now create an custom event listener for the accessions:updated event;
+    this._customEvent();
     
   }, // end of initialize;
   
@@ -616,6 +618,20 @@ var WidgetTagger = Class.create({
       this._alignEnd         = 0;
     }
      
+  },
+  
+  //-------------------------------------------------------------------------------
+  _customEvent: function(){
+    console.log( 'the custom event for Accession:updated created');
+    
+    document.observe( 'Accessions:updated', function( event ){
+      console.log( 'the event called '+ event );
+      // check whether the wholeAcc is defined;
+      if( $( this._wholeAcc ) !== null ){
+        console.log( 'adding the background to the element'+ this._wholeAcc );
+        $( this._wholeAcc ).addClassName( 'background' );
+      }
+    }.bind( this ) );
   },
   
   //-------------------------------------------------------------------------------
