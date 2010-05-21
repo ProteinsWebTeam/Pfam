@@ -55,8 +55,17 @@ var FeatureViewer = Class.create({
       this._url = url;
     } 
     
+    // check whether options is undefined or not;
+    //this._options = ( options === undefined ) : {} ? options;
+    
+    if( options === undefined ){
+      this._options = {};
+    }else{
+      this._options = options;
+    }
+    
     // check whether tipStyle is defined in the options;
-    if( options.tipStyle !== undefined ){
+    if( this._options.tipStyle === undefined ){
       // now the user is not interested in having their style, 
       // so we need to get the tip_definition.js file;
       this._fetchTipDefinition();
@@ -67,11 +76,11 @@ var FeatureViewer = Class.create({
     this._fetchCSS();
     
     //  initialise the other params for the feature viewer;
-    // currently hard-coded maybe latter i could get it from options
-    this._graphicXOffset = options.graphicXOffset || 10;
-    this._extraXspace    = options.extraXspace    || 40;
-    this._Yincrement     = options.Yincrement     || 20;
-    this._resWidth       = options.resWidth       || 1;
+    // currently hard-coded maybe latter i could get it from this._options
+    this._graphicXOffset = this._options.graphicXOffset || 10;
+    this._extraXspace    = this._options.extraXspace    || 40;
+    this._Yincrement     = this._options.Yincrement     || 20;
+    this._resWidth       = this._options.resWidth       || 1;
     
     // initialise the image params for pfam graphic code
     this._imgParams     = { xscale:            1,
@@ -276,7 +285,6 @@ var FeatureViewer = Class.create({
     // rendering the text;
     var textWidth = 0;
     featureSources.each( function( ds_id ){
-      console.log( 'teh width is ' + ttx.measureText( ds_id ).width );
       
       // if the width is higher then use it;
       if( ttx.measureText( ds_id ).width > textWidth ){
@@ -344,13 +352,16 @@ var FeatureViewer = Class.create({
   
   // function to fetch the CSS files for rendering the alignment;
   _fetchCSS: function( ){
-    console.log( 'making YAHOO get request for getting the CSS' );
-    var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/featureViewer.css',{
-      onSuccess:function( o ){
-        o.purge(); //removes the script node immediately after executing;
-      }
-      
-    } );
+    
+    // try to look whether we already do have featureViewer file enabled;
+    var css = $$('link[href="http://localhost:3000/static/css/featureViewer.css"]'); 
+    
+    if( css.size() == 0 ){
+      console.log( 'making YAHOO get request for getting the CSS; as its not present in DOM' );
+      var cssTransaction1 = YAHOO.util.Get.css( 'http://localhost:3000/static/css/featureViewer.css');
+        
+    }
+    
       
   },
   
@@ -358,14 +369,16 @@ var FeatureViewer = Class.create({
   
   // function to fetch the tip_definition file from my server;
   _fetchTipDefinition: function(){
-    console.log( 'fetching the tipdefinition file for the tool tips' );
     
-    var tipTransaction = YAHOO.util.Get.script( 'http://localhost:3000/static/javascripts/tip_definition.js',{
-      onSuccess: function( o ){
-        console.log( 'tip_definition loaded in the browser' );
-        o.purge();
-      }
-    } );
+    // try to look whether we already do have tip_definition in the browser
+    var scripts = $$('script[src="http://localhost:3000/static/javascripts/tip_definition.js"]');
+                    
+    if( scripts.size() == 0 ){
+      console.log( 'fetching the tipdefinition file for the tool tips' );
+      var tipTransaction = YAHOO.util.Get.script( 'http://localhost:3000/static/javascripts/tip_definition.js');
+      
+    }
+    
     
   },
   //----------------------------------------------------------------------------
