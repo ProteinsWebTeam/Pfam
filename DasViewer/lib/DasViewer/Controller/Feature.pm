@@ -24,6 +24,26 @@ use parent 'Catalyst::Controller';
 #
 #  $c->stash->{template} = 'components/modelFeature.tt';
 #}
+#---------------------------------------------------------------------------------------------
+
+=head2 getFeatureViewer : Path 
+
+=cut
+
+sub getFeatureViewer : Path( '/javascripts/FeatureViewer.js'){
+  my( $self, $c ) = @_;
+  
+  #$c->res->content_type( 'text/javascript');
+  
+  # now set the template to be the file 
+  $c->stash->{ template } = 'components/FeatureViewer.tt';
+  
+  my $jsFile = $c->view( 'TT')->render( $c, 'components/FeatureViewer.tt' );
+  
+  $c->res->content_type( 'text/javascript');
+  $c->res->body( $jsFile );
+  
+}
 
 #---------------------------------------------------------------------------------------------
 
@@ -76,7 +96,7 @@ sub getFeature : Local {
   }
  
   my $features = to_json( $c->stash->{ response } );
-  print STDERR $features."\n"; 
+  #print STDERR $features."\n"; 
   my $string = <<EOF;
   
   var features = $features;

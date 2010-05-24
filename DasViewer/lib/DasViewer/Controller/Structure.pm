@@ -17,7 +17,28 @@ use LWP::Simple;
 use Data::Dump qw( dump );
 use JSON;
 
-#ÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐ
+#---------------------------------------------------------------------------------------------
+
+=head2 getStructureViewer : Path 
+
+=cut
+
+sub getStructureViewer : Path( '/javascripts/StructureViewer.js'){
+  my( $self, $c ) = @_;
+  
+  #$c->res->content_type( 'text/javascript');
+  
+  # now set the template to be the file 
+  $c->stash->{ template } = 'components/StructureViewer.tt';
+  
+  my $jsFile = $c->view( 'TT')->render( $c, 'components/StructureViewer.tt' );
+  
+  $c->res->content_type( 'text/javascript');
+  $c->res->body( $jsFile );
+  
+}
+
+#---------------------------------------------------------------------------------------------
 
 =head2 getStructure : Local 
 
