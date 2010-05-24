@@ -21,10 +21,6 @@ requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
 requirements.js.push( "excanvas.js" );
 requirements.js.push( "Jmol.js" );
-requirements.js.push( "AlignmentViewer.js" );
-requirements.js.push( "FeatureViewer.js" );
-requirements.js.push( "StructureViewer.js" );
-requirements.js.push( "WidgetTagger.js" );
 
 -%]
     <h2>Alignment Viewer</h2>
