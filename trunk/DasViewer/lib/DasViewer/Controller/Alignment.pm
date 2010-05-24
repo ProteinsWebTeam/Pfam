@@ -56,6 +56,30 @@ sub view : Local {
   
 }
 
+
+#---------------------------------------------------------------------------------------------
+
+=head2 getAlignmentViewer : Path 
+
+=cut
+
+sub getAlignmentViewer : Path( '/javascripts/AlignmentViewer.js'){
+  my( $self, $c ) = @_;
+  
+  #$c->res->content_type( 'text/javascript');
+  
+  # now set the template to be the file 
+  $c->stash->{ template } = 'components/AlignmentViewer.tt';
+  
+  my $jsFile = $c->view( 'TT')->render( $c, 'components/AlignmentViewer.tt' );
+  
+  $c->res->content_type( 'text/javascript');
+  $c->res->body( $jsFile );
+  
+}
+
+#---------------------------------------------------------------------------------------------
+
 #------------------------------------------------------------------------------
 
 =head2 alignment : Local
