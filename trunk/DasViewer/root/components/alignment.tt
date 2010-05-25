@@ -18,7 +18,6 @@ requirements.js.push( "prototip.js" );
 #requirements.js.push( "livegrid.js" );
 
 requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "domain_graphics_loader.js" );
 requirements.js.push( "excanvas.js" );
 requirements.js.push( "Jmol.js" );
 
