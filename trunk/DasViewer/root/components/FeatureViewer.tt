@@ -1,7 +1,7 @@
 [%
 META naked = 1;
 -%]
-  
+
 // FeatureViewer.js
 //
 // Javascript library which gets Features and renders it in the browser.
@@ -128,10 +128,18 @@ var FeatureViewer = Class.create({
         // now we got the featuers as JSON string;
         response.purge();
         
-        that.ajaxComplete( features );
+        // if we have any errorMsg then update the parent wiht that message and we are done.
+        if( features.errorMsg !== undefined ){
+          that._parent.update( features.errorMsg );
+          
+          // now set the state to false;
+          that.setReadyState( false );
+        }else{
+          that.ajaxComplete( features );
         
-        // now set the readyState to true;
-        that.setReadyState( true );
+          // now set the readyState to true;
+          that.setReadyState( true );  
+        }
           
       }
     });
@@ -391,10 +399,11 @@ var FeatureViewer = Class.create({
   // function to set parent;
   setParent: function( parent ){
     this._parent = $( parent );
-    // console.log('the parent is '+this._parent.inspect() );
     
     if ( this._parent === undefined || this._parent === null ) {
       this._throw( "couldn't find the node"+parent );
+    }else{
+      this._parent.update();
     }
       
   },
