@@ -119,31 +119,26 @@ sub alignment : Local {
   my $ds = $c->model('DasSource' )->getDataSource( $args );
   
   my ( $storealignment, $alignment )= $ds->get_alignment();
-  #$c->log->debug( 'the alignment is '.dump( $alignment ) );
   
-  my $data = {
-    offset    => $offset,
-    rowcount  => $page_size,
-    rows      => $alignment
-  };
+  my $alignments;
   
-#  my $json = { 
-#    data  => $data,
-#    storeAlignments =>  $storealignment
-#  };
-#  
-#  $c->stash->{json} = to_json( $json );
-#  
-#  $c->res->content_type( 'application/json');
-#  $c->res->body( $c->stash->{ json } );  
-
-  my $json = { 
-             data  => $data,
-             storeAlignments =>  $storealignment
-             };
+  if( ref( \$storealignment ) ne 'SCALAR' ){
+    
+    my $data = {
+      offset    => $offset,
+      rowcount  => $page_size,
+      rows      => $alignment
+    };
   
-  my $alignments = to_json( $json );
-  
+    my $json = { 
+               data  => $data,
+               storeAlignments =>  $storealignment
+               };
+    
+    $alignments = to_json( $json );
+  } else{
+    $alignments = "'".$storealignment."'";
+  }  
   my $string = <<EOF;
   
   var alignments = $alignments;
