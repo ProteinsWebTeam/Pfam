@@ -39,12 +39,49 @@ sub default :Path {
   
 }
 
+=head2 docs: Path( '/docs)
+
+Subroutine to build the documentation page;
+
+=cut
+
 sub docs : Path( '/docs' ){
  my ( $self, $c ) = @_;
  
  $c->stash->{ template } = 'components/docs.tt';
   
 }
+
+#----------------------------------------------------------------------------------------------------------------
+
+sub example: Path( '/example' ){
+  
+  my( $self, $c ) = @_;
+  
+  my $type =  $c->req->param( 'type' );
+   
+  if( $type eq 'feature' ){
+    
+    $c->stash->{ template } = 'components/featureEg.tt'
+      
+  }elsif( $type eq 'alignment' ){
+    
+    $c->stash->{ template } = 'components/alignmentEg.tt';
+    
+  }elsif( $type eq 'structure' ){
+    
+    $c->stash->{ template } = 'components/structureEg.tt';
+    
+  }elsif( $type eq 'all' ){
+    
+    $c->stash->{ template } = 'components/allEg.tt';
+    
+  }
+  
+}
+
+#----------------------------------------------------------------------------------------------------------------
+
 =head2 end
 
 Attempt to render a view, if needed.
