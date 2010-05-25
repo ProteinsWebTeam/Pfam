@@ -255,6 +255,8 @@ var StructureViewer = Class.create({
     
     if ( this._parent === undefined || this._parent === null ) {
       this._throw( "couldn't find the node"+parent );
+    }else{
+      this._parent.update();
     }
       
   },
