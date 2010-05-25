@@ -151,6 +151,11 @@ sub get_alignment {
   # parse the alignment to get the source adn alignment data 
   my ( $source, $aliData ) = each %$rawAlignment;
   
+  # if the alignments are not present then give the error message and return;
+  unless( defined $aliData ){
+    return "Alignments are not found for $acc";  
+  }
+  
   my ( $alignment, $alignmentLengths );
   
   # get the sequences, if necessitates;
