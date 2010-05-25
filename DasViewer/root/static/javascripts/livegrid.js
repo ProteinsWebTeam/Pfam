@@ -600,8 +600,18 @@ var LiveGrid = Class.create( {
     var objTransaction = YAHOO.util.Get.script( queryString, { 
       onSuccess : function( response ){
         response.purge();
-        // now call the ajaxupdate function;
-        that.ajaxUpdate( alignments );
+        
+        // now remove the element showing the spinner;
+        that.grid.up(0).removeChild( $('spinner') );
+        
+        if( typeof alignments == 'string' ){
+          console.log( '****the type of alignments is '+ typeof alignments +'|'+alignments );  
+          that.grid.up(0).update( alignments );
+        }else{
+          // now call the ajaxupdate function;
+          that.ajaxUpdate( alignments );  
+        } 
+        
       }
     } );
     
@@ -713,10 +723,6 @@ var LiveGrid = Class.create( {
 
     clearTimeout( this.timeoutHandler );
     
-    // remove the loading features child from shown;
-//    this.grid.removeChild( $('spinner') );
-    this.grid.up(0).removeChild( $('spinner') );
-     
     this.buffer = new LiveGridBuffer( this.metaData );
     // // console.log( "(17.1)the buffer is "+this.buffer);
     
