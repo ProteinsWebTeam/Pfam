@@ -20,6 +20,7 @@ PROCESS "components/require.tt"
       <li> <h3> <a href="#intro"> Introduction </a> </h3></li>
       <li> <h3> <a href="#widget"> Widgets </a> </h3> </li>
       <li> <h3> <a href="#require"> Requirements </a> </h3> </li>
+      <li> <h3> <a href="#example"> Example Usage </a> </h3> </li>
     </ul>
   </div>  
   
@@ -272,5 +273,20 @@ PROCESS "components/require.tt"
     </ul>
     
   </div>  <!-- end of requirements -->
-
+  
+  <div id="egusage">
+    <a name="example"><h4>Example</h4></a>
+    Please click on the following link to go to model page to see the working of the widgets.
+    <div id='Egpages'>
+      <ul>
+        
+        <li><a href="[% c.uri_for( 'example' ) %]?type=feature">Feature Viewer</a></li>
+        <li><a href="[% c.uri_for( 'example' ) %]?type=alignment">Alignment Viewer</a></li>
+        <li><a href="[% c.uri_for( 'example' ) %]?type=structure">Structure Viewer</a></li>
+        <li><a href="[% c.uri_for( 'example' ) %]?type=all">All widgets</a></li>
+        
+      </ul>
+    </div>
+    
+  </div> <!-- End of example -->
 </div> <!-- end of documentation -->
