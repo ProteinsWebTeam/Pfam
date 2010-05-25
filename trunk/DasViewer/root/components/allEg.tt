@@ -1,0 +1,143 @@
+[%
+  META naked=1;
+
+# Example page for feature viewer;
+# 
+# $Id$ 
+
+%]
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <title>All widgets - Example page</title>
+      
+      <!-- load the prototype: mandatory -->
+      <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+      <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+
+      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
+			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+				-->
+        
+      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
+      <script type="text/javascript">
+        Ajax.Responders.register(
+          {
+            onException: function( requestor, exception, json ){
+              console.info(  requestor, exception, json );
+            }
+          }
+        );
+      </script>      
+  
+      <!-- required javascripts -->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/prototip.js'></script> <!-- for creating tooltips-->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/domain_graphics.js'></script> <!-- for generating Feature images-->
+      
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/excanvas.js'></script> <!-- Mandatory: if you are using IE -->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/Jmol.js'></script>  <!-- Jmol library required for structure viewer-->
+
+      <!-- styles applicable to all browsers -->
+      <link rel='stylesheet' href='http://localhost:3000/static/css/prototip.css' type='text/css' />
+
+      <!-- YAHOO's GET utility added for making request-->
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
+      
+      <!-- now load the three visualisation widgets -->
+      <script src="http://localhost:3000/javascripts/AlignmentViewer.js"></script>
+      <script src="http://localhost:3000/javascripts/FeatureViewer.js"></script>
+      <script src="http://localhost:3000/javascripts/StructureViewer.js"></script>
+
+      
+      <!-- now load the widgettagger, which tags the widgets together -->
+      <script src="http://localhost:3000/static/javascripts/WidgetTagger.js"></script>
+      
+    </head>
+      
+    <body>
+    
+      <div id="bodyblock" style="position:relative;">
+        
+        <div id='input' style="float:left;border:1px solid green;padding: 1em;">
+          <h3> Input params </h3>
+          
+          <form name="alignmentWidget">
+            Enter Accession:<input type="text" id="acc" value="PF09038"/>
+            <p/>
+            Choose one of the das source to get alignment:  
+      			<select id="dsn_name" name="dsn_name">
+      			  <option value="Pfam_Seed_Alignments" >Pfam Seed Alignments </option>
+      			  <option value="Pfam_Full_Alignments" >Pfam Full Alignments </options>
+      			  <option value="Prosite" >Prosite</option>
+              <option value="alig_pdb_sp" >alig_pdb_sp </option>
+              <!--<option value="biojavapdbuniprot" >biojavapdbuniprot </option>-->
+      			  <option value="alig_uniprot_ensp" >alig_uniprot_ensp </option>
+      			  <option value="Cosmic_Protein_Mutation" >Cosmic Protein Mutation </option>
+      			</select>
+            <p/>Enter the total rows in the alignment:<input type="text" id='size' value="3"/>
+            <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/alignment/alignment' ) %]"/>
+            <p/><input type='button' value='getWidget' onclick="getWidget( document.alignmentWidget )"/>
+            <input type='reset' value='Reset'/>
+          </form>
+        </div> 
+        
+        <div style="clear:both"/>
+        
+        <br/><br/>
+        <div id='alignmentid'></div>
+        <!-- Reference element in DOM for drawing alignments-->
+        <div id="alignmentHolder" style="width:675px;float:left;"></div>
+   
+        <p></p> 
+        <div id="structureHolder" style="width:400px;float:left;"></div>
+        
+        <p></p>
+        
+        <div id="featureHolder" style="clear:both;display:none"> 
+         
+      </div><!-- end bodyblock -->
+      
+      <script type="text/javascript">
+        
+        var sources = [ 'DS_241','DS_327','DS_817','DS_449','DS_446' ];
+        
+        var options = {
+           FeatureParams:{
+                           featureParent: 'featureHolder',
+                           featureSources: sources,
+                           featureURL: "[% c.uri_for( '/feature/getFeature' ) %]"
+                         },
+           StructureParams:{
+                              structureParent:   'structureHolder',
+                              structureURL:      "[% c.uri_for( '/structure/getStructure') %]",
+                              structureJmolURL:  'http://localhost:3000/static/jmol'
+                              
+                           }                      
+         };
+        
+        // function to create the alignment viewer widget;
+        function getWidget( element ){
+          var parent = 'alignmentHolder';
+          var acc    = $('acc').value;
+          var dsn    = $('dsn_name').value;
+          var size   = $('size' ).value;
+          var url    = $('url').value;
+          
+          // now instantiate the widget;
+          var alignObj = new AlignmentViewer( parent, acc, dsn, size, url );
+          
+          $('alignmentid').update( "<h3>Alignment Viewer</h3>");
+          
+          // now instantiate the widget tagger with the alignObj and the options;
+          new WidgetTagger( alignObj, options ); 
+        }
+        
+           
+      </script>
+    </body>
+    
+  </html>
+    

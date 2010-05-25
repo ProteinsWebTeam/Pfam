@@ -1,0 +1,111 @@
+[%
+  META naked=1;
+
+# Example page for feature viewer;
+# 
+# $Id$ 
+
+%]
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <title>Feature Viewer - Example page</title>
+      
+      <!-- load the prototype: mandatory -->
+      <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+      <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+
+      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
+			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+				-->
+        
+      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
+      <script type="text/javascript">
+        Ajax.Responders.register(
+          {
+            onException: function( requestor, exception, json ){
+              console.info(  requestor, exception, json );
+            }
+          }
+        );
+      </script>      
+  
+      <!-- required javascripts -->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/prototip.js'></script> <!-- for creating tooltips-->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/domain_graphics.js'></script> <!-- for generating Feature images-->
+      
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/excanvas.js'></script> <!-- Mandatory: if you are using IE -->
+      
+      <!-- styles applicable to all browsers -->
+      <link rel='stylesheet' href='http://localhost:3000/static/css/prototip.css' type='text/css' />
+
+      <!-- YAHOO's GET utility added for making request-->
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
+      
+      <!-- now load the the featureviewer widget -->
+      <script src="http://localhost:3000/javascripts/FeatureViewer.js"></script>
+      
+    </head>
+      
+    <body>
+      <div id="bodyblock" style="position:relative;">
+        <h1> Example page - Feature Viewer </h1>
+        <p></p>
+        
+        <div id='input' style="float:left;border:1px solid green;padding: 1em;">
+          <h3> Input params </h3>
+          <form name="featureWidget">
+            Enter Uniprot Accession:<input type="text" id="acc" value="P51587"/>
+            <p/>Select a model DAS source:
+            <span class="listItem"><input type="checkbox" name="Das" value="DS_241" checked="checked"><span id="DS_241" >Pfam</span></input></span>
+            <span class="listItem"><input type="checkbox" name="Das" value="DS_327" checked="checked"><span id="DS_327">Interpro</span></input></span>
+            <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/feature/getFeature' ) %]"/>
+            <p/><input type='button' value='getWidget' onclick="getWidget( document.featureWidget.Das )"/>
+            <input type='reset' value='Reset'/>
+          </form>
+        </div> 
+        
+        <div style="clear:both"/>
+        
+        <br/><br/>
+        <div id='featureid'></div>
+        <!-- Reference element in DOM for drawing features-->
+        <div id='featureHolder'/>
+           
+        </div> 
+      </div><!-- end bodyblock -->
+    
+      <script type="text/javascript">
+        
+        // function to get the above input params and initialise the feature viewer;  
+        function getWidget( el ){
+          
+          var parent = 'featureHolder';
+          var acc = $('acc').value;
+          var url = $('url').value;
+          var sources = [];
+          
+          for (i = 0; i < el.length; i++){
+          	
+            if( el[i].checked ){
+              sources[i] = el[i].value;
+            }
+            
+          }
+          
+          console.log( 'the sources are ', sources );
+          
+          // now we have accession, url , list of das sources to make request, 
+          var featureObj = new FeatureViewer( parent, acc, sources, url ); 
+          $('featureid').update( "<h3>Features Viewer</h3>");
+        }
+        
+      </script>
+      
+    </body>
+    
+  </html>
+    
