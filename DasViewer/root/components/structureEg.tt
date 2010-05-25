@@ -1,0 +1,94 @@
+[%
+  META naked=1;
+
+# Example page for structure viewer;
+# 
+# $Id$ 
+
+%]
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+      <title>Structure Viewer - Example page</title>
+      
+      <!-- load the prototype: mandatory -->
+      <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+      <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+
+      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
+			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+				-->
+        
+      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
+      <script type="text/javascript">
+        Ajax.Responders.register(
+          {
+            onException: function( requestor, exception, json ){
+              console.info(  requestor, exception, json );
+            }
+          }
+        );
+      </script>      
+  
+      <!-- required javascripts -->
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/Jmol.js'></script>  <!-- Jmol library required for structure viewer-->
+      
+      <!-- YAHOO's GET utility added for making request-->
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
+      <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
+      
+      <!-- now load the structure widgets -->
+      <script src="http://localhost:3000/javascripts/StructureViewer.js"></script>
+      
+    </head>
+      
+    <body>
+    
+      <div id="bodyblock" style="position:relative;">
+        <h1> Example page - Structure Viewer </h1>
+        <p></p>
+        
+        <div id='input' style="float:left;border:1px solid green;padding: 1em;">
+          <h3> Input params </h3>
+          <form name="featureWidget">
+            Enter Uniprot Accession:<input type="text" id="acc" value="Q12888"/>
+            <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/structure/getStructure') %]"/>
+            <p/>Enter the URL to get data:<input type="text" id='jmolurl' size="40" value="[% c.uri_for( '/static/jmol') %]"/>
+            <p/><input type='button' value='getWidget' onclick="getWidget(  )"/>
+            <input type='reset' value='Reset'/>
+          </form>
+        </div> 
+        
+        <div style="clear:both"/>
+        
+        <br/><br/>
+        <!-- Reference element in DOM for drawing structures-->
+        <div id='structureHolder'/>
+           
+        </div> 
+      </div><!-- end bodyblock -->
+    
+      <script type="text/javascript">
+        
+        // function to get the above input params and initialise the structure viewer;  
+        function getWidget( ){
+          
+          var parent = 'structureHolder';
+          var acc = $('acc').value;
+          var url = $('url').value;
+          var jmolurl = $('jmolurl').value;
+          
+          // now we have accession, url  and the jmol url for making the request;
+          
+          var structureObj = new StructureViewer( parent, acc, url, jmolurl ); 
+          //$('structureid').update( "<h3>structures similar to accession "+acc+"</h3>");
+        }
+        
+      </script>
+      
+    </body>
+    
+  </html>
+    
