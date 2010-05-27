@@ -783,7 +783,7 @@ ITFQNGTIRQVNGRIEESR</pre>
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://deskpro20626.dynamic.sanger.ac.uk:8000/static/documents/schemas/results.xsd"
+                          http://pfam.sanger.ac.uk/static/documents/schemas/results.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;results job_id="adabec68-703f-48c4-bec7-07f1ab965fbb"&gt;
