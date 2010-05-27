@@ -10,8 +10,7 @@ USE dumper;
 
 META naked = 1;
 
-#baseUri = "http://pfam.sanger.ac.uk/";
-baseUri = "http://deskpro20626.dynamic.sanger.ac.uk:8000/";
+baseUri = "http://pfam.sanger.ac.uk/";
 
 # get the job ID
 jobId = results.keys.shift;
