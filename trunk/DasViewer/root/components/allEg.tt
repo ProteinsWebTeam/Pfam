@@ -16,32 +16,22 @@
       <!-- load the prototype: mandatory -->
       <script type="text/javascript" src="http://www.google.com/jsapi"></script>
       <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+      
+      <!-- styles applicable to all versions of IE -->
+      <!--[if IE ]>
+      <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script><![endif]-->
 
-      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
-			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-				-->
-        
-      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
-      <script type="text/javascript">
-        Ajax.Responders.register(
-          {
-            onException: function( requestor, exception, json ){
-              console.info(  requestor, exception, json );
-            }
-          }
-        );
-      </script>      
-  
       <!-- required javascripts -->
       <script type='text/javascript' src='http://localhost:3000/static/javascripts/prototip.js'></script> <!-- for creating tooltips-->
       <script type='text/javascript' src='http://localhost:3000/static/javascripts/domain_graphics.js'></script> <!-- for generating Feature images-->
       
-      <script type='text/javascript' src='http://localhost:3000/static/javascripts/excanvas.js'></script> <!-- Mandatory: if you are using IE -->
+      <!--[if IE ]>
+      <script type='text/javascript' src='http://localhost:3000/static/javascripts/excanvas.js'></script><![endif]-->
       <script type='text/javascript' src='http://localhost:3000/static/javascripts/Jmol.js'></script>  <!-- Jmol library required for structure viewer-->
 
       <!-- styles applicable to all browsers -->
       <link rel='stylesheet' href='http://localhost:3000/static/css/prototip.css' type='text/css' />
-
+      
       <!-- YAHOO's GET utility added for making request-->
       <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
       <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
@@ -55,48 +45,62 @@
       <!-- now load the widgettagger, which tags the widgets together -->
       <script src="http://localhost:3000/static/javascripts/WidgetTagger.js"></script>
       
+      <!-- styles specific to this page -->
+      <link rel='stylesheet' href='http://localhost:3000/static/css/example.css' type='text/css' />
     </head>
       
     <body>
     
       <div id="bodyblock" style="position:relative;">
         
-        <div id='input' style="float:left;border:1px solid green;padding: 1em;">
+        <div style="float:left;border:1px solid green;padding: 1em;">
           <h3> Input params </h3>
+          <div id="input">
+            
+            <form name="alignmentWidget">
+              Enter Accession:<input type="text" id="acc" value="PF09038"/>
+              <p/>
+              Choose one of the das source to get alignment:  
+        			<select id="dsn_name" name="dsn_name">
+        			  <option value="Pfam_Full_Alignments" >Pfam Full Alignments </options>
+        			  <option value="Pfam_Seed_Alignments" >Pfam Seed Alignments </option>
+        			  <option value="Prosite" >Prosite</option>
+                <option value="alig_pdb_sp" >alig_pdb_sp </option>
+                <!--<option value="biojavapdbuniprot" >biojavapdbuniprot </option>-->
+        			  <option value="alig_uniprot_ensp" >alig_uniprot_ensp </option>
+        			  <option value="Cosmic_Protein_Mutation" >Cosmic Protein Mutation </option>
+        			</select>
+              <p/>Enter the total rows in the alignment:<input type="text" id='size' value="27"/>
+              <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/alignment/alignment' ) %]"/>
+              <p/><input type='button' value='getWidget' onclick="getWidget( document.alignmentWidget )"/>
+              <input type='reset' value='Reset'/>
+            </form>
+          </div>
           
-          <form name="alignmentWidget">
-            Enter Accession:<input type="text" id="acc" value="PF09038"/>
-            <p/>
-            Choose one of the das source to get alignment:  
-      			<select id="dsn_name" name="dsn_name">
-      			  <option value="Pfam_Seed_Alignments" >Pfam Seed Alignments </option>
-      			  <option value="Pfam_Full_Alignments" >Pfam Full Alignments </options>
-      			  <option value="Prosite" >Prosite</option>
-              <option value="alig_pdb_sp" >alig_pdb_sp </option>
-              <!--<option value="biojavapdbuniprot" >biojavapdbuniprot </option>-->
-      			  <option value="alig_uniprot_ensp" >alig_uniprot_ensp </option>
-      			  <option value="Cosmic_Protein_Mutation" >Cosmic Protein Mutation </option>
-      			</select>
-            <p/>Enter the total rows in the alignment:<input type="text" id='size' value="3"/>
-            <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/alignment/alignment' ) %]"/>
-            <p/><input type='button' value='getWidget' onclick="getWidget( document.alignmentWidget )"/>
-            <input type='reset' value='Reset'/>
-          </form>
+          <input type="button" value="Show input" id="showForm" style="display:none;"/>
+          
         </div> 
         
-        <div style="clear:both"/>
         
-        <br/><br/>
-        <div id='alignmentid'></div>
+        <div style="clear:both;"/>
+        
         <!-- Reference element in DOM for drawing alignments-->
-        <div id="alignmentHolder" style="width:675px;float:left;"></div>
-   
-        <p></p> 
-        <div id="structureHolder" style="width:400px;float:left;"></div>
+       <div id="alignments" style="margin-top:2em;float:left;border: 1px solid green;width:65%;padding:0.5em;display:none;">
+           <h3 style="padding-left:1em;">Alignment Viewer</h3>
+            <div id="alignmentHolder"></div>
+         </div>
+         
+         <div id="structures" style="margin-top:2em;margin-left:1em;float:left;border: 1px solid green;padding:0.5em;display:none;">
+           <h3>Structure Viewer</h3>
+           <div id="structureHolder"></div>
+         </div>
+         
+         <div style="clear:both;"></div>
+         <div id="features" style="width:65%;margin-top:1em;border: 1px solid green;padding:0.5em;display:none;">
+           <h3>Feature Viewer</h3>
+           <div id="featureHolder"></div>
+         </div>
         
-        <p></p>
-        
-        <div id="featureHolder" style="clear:both;display:none"> 
          
       </div><!-- end bodyblock -->
       
@@ -120,6 +124,7 @@
         
         // function to create the alignment viewer widget;
         function getWidget( element ){
+          
           var parent = 'alignmentHolder';
           var acc    = $('acc').value;
           var dsn    = $('dsn_name').value;
@@ -129,10 +134,17 @@
           // now instantiate the widget;
           var alignObj = new AlignmentViewer( parent, acc, dsn, size, url );
           
-          $('alignmentid').update( "<h3>Alignment Viewer</h3>");
+          $('alignments').show();
           
           // now instantiate the widget tagger with the alignObj and the options;
           new WidgetTagger( alignObj, options ); 
+          
+          // hide the input params;
+          $('input').hide();
+          
+          // show the form;
+          $( 'showForm' ).show();
+          
         }
         
            
