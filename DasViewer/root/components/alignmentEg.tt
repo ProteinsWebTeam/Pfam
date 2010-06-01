@@ -16,22 +16,14 @@
       <!-- load the prototype: mandatory -->
       <script type="text/javascript" src="http://www.google.com/jsapi"></script>
       <script type="text/javascript">google.load("prototype", "1.6.1");</script>
-
-      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
-			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-				-->
+      
+      <!-- styles applicable to all versions of IE -->
+      <!--[if IE ]>
+      <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script><![endif]-->
+      
+      <!-- styles applicable to all browsers -->
+      <link rel='stylesheet' href='http://localhost:3000/static/css/prototip.css' type='text/css' />
         
-      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
-      <script type="text/javascript">
-        Ajax.Responders.register(
-          {
-            onException: function( requestor, exception, json ){
-              console.info(  requestor, exception, json );
-            }
-          }
-        );
-      </script>      
-  
       <!-- YAHOO's GET utility added for making request-->
       <script src="http://yui.yahooapis.com/2.8.0r4/build/yahoo/yahoo-min.js" ></script>
       <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
@@ -51,7 +43,7 @@
           <h3> Input params </h3>
           
           <form name="alignmentWidget">
-            Enter Accession:<input type="text" id="acc" value="PF02171"/>
+            Enter Accession:<input type="text" id="acc" value="PF11791"/>
             <p/>
             Choose one of the das source to get alignment:  
       			<select id="dsn_name" name="dsn_name">
@@ -63,7 +55,7 @@
       			  <option value="alig_uniprot_ensp" >alig_uniprot_ensp </option>
       			  <option value="Cosmic_Protein_Mutation" >Cosmic Protein Mutation </option>
       			</select>
-            <p/>Enter the total rows in the alignment:<input type="text" id='size' value="21"/>
+            <p/>Enter the total rows in the alignment:<input type="text" id='size' value="95"/>
             <p/>Enter the URL to get data:<input type="text" id='url' size="40" value="[% c.uri_for( '/alignment/alignment' ) %]"/>
             <p/><input type='button' value='getWidget' onclick="getWidget( document.alignmentWidget )"/>
             <input type='reset' value='Reset'/>
@@ -72,12 +64,12 @@
         
         <div style="clear:both"/>
         
-        <br/><br/>
-        <div id='alignmentid'></div>
-        <!-- Reference element in DOM for drawing alignments-->
-        <div id='alignmentHolder'/>
-           
-        </div> 
+        <div id="alignments" style="margin-top:2em;float:left;border: 1px solid green;width:65%;padding:0.5em;display:none">
+           <h3 style="padding-left:1em;">Alignment Viewer</h3>
+            <div id="alignmentHolder"></div>
+         </div>
+         
+        
        
 
       </div><!-- end bodyblock -->
@@ -95,7 +87,9 @@
           // now instantiate the widget;
           var alignObj = new AlignmentViewer( parent, acc, dsn, size, url );
           
-          $('alignmentid').update( "<h3>Alignments shown for accession: "+acc+"</h3>"); 
+          // now show the element;
+          $('alignments').show();
+                    
         }
         
       </script>
