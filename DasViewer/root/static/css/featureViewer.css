@@ -5,7 +5,7 @@
 #canvasWrapper {
   overflow-x:auto;
   /*width:auto;*/
-  width: 575px;
+  width: 90%;
 }
 
 #txtCanvas {
