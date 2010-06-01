@@ -27,7 +27,31 @@ if ( ! window.console ) {
 // for respective das sources.
 
 var FeatureViewer = Class.create({
-  
+  /**
+   * @lends Feature Viewer#
+   * @author Prasad Gunasekaran
+   * @author John Tate
+   * @author Rob Finn
+   * 
+   * @class 
+   * A Javascript library which generates feature widget and embeds in to the web page.
+   *
+   * @description Creates a FeatureViewer object which makes a get request to the server,
+   * which returns the features which are similar to the input accession which is then 
+   * represented in the canvas element by using domain_graphics library. A series of other
+   * calls are made to load the dependencies like stylesheet, tip definition for tooltips 
+   * dynamically.
+   * 
+   * Note: Other than setters, most of the method doesn't take arguments, as they are 
+   * stored in the object itself.
+   * 
+   * @constructs
+   * @param { String | Element} parent
+   * @param { String } accession
+   * @param { Object } sources
+   * @param { String } url
+   * @param { Object } options
+   */
   initialize: function( parent, accession, sources, url, options ){
     
     // check for an existing DOM element;
@@ -102,13 +126,15 @@ var FeatureViewer = Class.create({
   //----------------------------------------------------------------------------
   //- Methods ------------------------------------------------------------------
   //----------------------------------------------------------------------------
-  
+  /**
+   * Method which fetches the features from the server using YAHOO's Get request.
+   */
   // method to test YAHOO get utility;
   fetchFeaturesByYahoo: function(){
     
     var that = this;
     // now assuming that we are making a request, I am calling onLoading function;
-    this.ajaxLoading();
+    this._ajaxLoading();
     
     var sources = $A( this._sources );
     
@@ -135,26 +161,33 @@ var FeatureViewer = Class.create({
           // now set the state to false;
           that.setReadyState( false );
         }else{
-          that.ajaxComplete( features );
+          that._ajaxComplete( features );
         
           // now set the readyState to true;
           that.setReadyState( true );  
         }
-          
+        
+        // by default show it off;
+        that._parent.show();
+        
+        // Its an extra overhead, as sometimes the parent element might be hidden;
+        that._parent.up(0).show();
+           
       }
     });
     
   },
   
-//  // function to remove the loading image;
-//  removeLoading: function(){
-//    // console.log('the event is success, so remove the loading image' );
-//    this._parent.removeChild( $( 'spinner' ) ); 
-//  },
   //----------------------------------------------------------------------------
-  
+  /**
+   * @Private 
+   * 
+   * Callback function, which initiates building the canvas and drawing them, when
+   * the features response is received.
+   * @param {Object} features
+   */
   // callback function for ajax request onComplete;
-  ajaxComplete: function( features ){
+  _ajaxComplete: function( features ){
     
     // remove the loading features child from shown;
     this._parent.removeChild( $('spinner') );
@@ -175,12 +208,14 @@ var FeatureViewer = Class.create({
     // retrieve the features and sources which returned data and draw them;
     this.drawCanvas();
     
-    // by default show it off;
-    this._parent.show();
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Method which builds the canvas with necessary dimensions for drawing the 
+   * features. Two canvas elements are created, one to draw the text and the other
+   * to represent the features.
+   */
   // function to create the canvas element;
   buildCanvas: function(){
     
@@ -257,6 +292,9 @@ var FeatureViewer = Class.create({
   },
   
   //----------------------------------------------------------------------------
+  /**
+   * Method to parse the features and are drawn in the canvas.
+   */
   drawCanvas:function(){
     
     // now get teh sources whcih returned some features;
@@ -351,16 +389,25 @@ var FeatureViewer = Class.create({
   },
   
   //----------------------------------------------------------------------------
- 
+  /**
+   * @Private
+   * Method which creates div element to show status, while request is made.
+   */
   // callback function for ajax request loading;
-  ajaxLoading: function(){
+  _ajaxLoading: function(){
     var loadDiv = new Element( 'div',{ 'id': 'spinner' } );
+    loadDiv.setStyle({
+      'width': '4em'
+    });
     loadDiv.update( 'Loading Features...' );
     this._parent.appendChild( loadDiv );
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * @Private
+   * Method to fetch the stylesheet which is required for rendering the canvas elements.
+   */
   // function to fetch the CSS files for rendering the alignment;
   _fetchCSS: function( ){
     
@@ -377,16 +424,21 @@ var FeatureViewer = Class.create({
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * @Private
+   * Method to fetch the default style definition for the tooltips, if the user has provided own 
+   * tooltips then that could be used.
+   */
   // function to fetch the tip_definition file from my server;
   _fetchTipDefinition: function(){
     
+    var url = '[% c.uri_for( "./static/javascripts/tip_definition.js" ) %]';
     // try to look whether we already do have tip_definition in the browser
-    var scripts = $$('script[src="./static/javascripts/tip_definition.js"]');
+    var scripts = $$( 'script[src='+url+']' );
                     
     if( scripts.size() == 0 ){
       console.log( 'fetching the tipdefinition file for the tool tips' );
-      var tipTransaction = YAHOO.util.Get.script( './static/javascripts/tip_definition.js');
+      var tipTransaction = YAHOO.util.Get.script( url );
       
     }
     
@@ -395,7 +447,13 @@ var FeatureViewer = Class.create({
   //----------------------------------------------------------------------------
   //- Get and Set Methods ------------------------------------------------------
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input parent which holds the feature widget
+   * and throws exception, if its invalid
+   * 
+   * @param {String | Element } parent
+   * @throws{ FeatureViewerException } for invalid parent element.
+   */
   // function to set parent;
   setParent: function( parent ){
     this._parent = $( parent );
@@ -409,14 +467,24 @@ var FeatureViewer = Class.create({
   },
   
   //--------------------------------------
-  
+  /**
+   * Returns the input parent element
+   * 
+   * @returns the input parent element.
+   */
   // function to get the parent;
   getParent: function(){
     return this._parent;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input accession 
+   * and throws exception, if its invalid.
+   * 
+   * @param {String} accession
+   * @throws{ FeatureViewerException } for invalid accession.
+   */
   // function to set the accession;
   setAccession: function( accession ){
     this._accession = accession;
@@ -435,14 +503,22 @@ var FeatureViewer = Class.create({
   }, // end of setAccession
   
   //-------------------------------------
-  
+  /**
+   * Returns the input accession.
+   * 
+   * @returns input accession.
+   */
   // function to return the accession 
   getAccession: function(){
     return this._accession;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input DAS sources ( DS_id ), to make the request.
+   * @param {Object} sources 
+   * @throws{ FeatureViewerException } for invalid DAS name.
+   */
   // function to set the das sources;
   setSources: function( sources ){
     this._sources = sources;
@@ -460,14 +536,20 @@ var FeatureViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the input DAS sources
+   * @returns DAS sources.
+   */
   // function to get the input das sources;
   getSources: function( ){
     return this._sources;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the canvas used to draw the features as imgCanvas.
+   * @param {String } canvas
+   */
   // function to set the image canvas;
   setimgCanvas: function( canvas ){
     if( canvas !== undefined ){
@@ -479,14 +561,20 @@ var FeatureViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Get method to return the canvas element in which features are drawn.
+   * @returns canvas
+   */
   // function to get the image canvas;
   getimgCanvas: function(){
     return this._imgCanvas;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the canvas used to draw the text, which are DAS source names.
+   * @param {String } canvas
+   */
   // function to set the text canvas;
   settxtCanvas: function( canvas ){
     if( canvas !== undefined ){
@@ -498,14 +586,21 @@ var FeatureViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Get method to return the canvas element in which text are drawn.
+   * @returns canvas
+   */
   // function to get the txt canvas;
   gettxtCanvas: function(){
     return this._txtCanvas;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set a div element named canvasWrapper which holds both the canvas
+   * elements as child element.
+   * @param {String} wrapper
+   */
   // function to set the wrapper;
   setCanvasWrapper: function( wrapper ){
     if( wrapper !== undefined ){
@@ -516,12 +611,19 @@ var FeatureViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the element which holds the canvas elements.
+   * @returns Element.
+   */
   getCanvasWrapper: function(){
     return this._canvasWrapper;
   },
   
   //----------------------------------------------------------------------------
+  /**
+   * Setter method to set the status of the widget.
+   * @param {Boolean} status
+   */
   
   // function to set the readyState of this object;
   setReadyState: function( status ){
@@ -529,7 +631,12 @@ var FeatureViewer = Class.create({
   },
   
   //--------------------------------------
-  
+   /**
+   * Returns the ready state of the widget.
+   * 
+   * @returns ready state of the widget
+   * 
+   */
   getReadyState: function( ){
     return this._readyState;
   },
@@ -537,7 +644,13 @@ var FeatureViewer = Class.create({
   //----------------------------------------------------------------------------
   //- Private methods ----------------------------------------------------------
   //----------------------------------------------------------------------------
-  
+  /**
+   * @Private 
+   * Generates a customised exception and throws with the message.
+   * 
+   * @param {String} msg
+   * @throws FeatureViewerException with the specified message.
+   */
   _throw: function( message ) {
     throw { name: "FeatureViewerException",
             message: message,
