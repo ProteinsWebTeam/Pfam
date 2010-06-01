@@ -4,8 +4,8 @@
   /*width: 1000px;*/
   /*width: 700px;*/  /* it was fine for the grid, i am changing it for widgets;*/
   width: 90%;
-  border: 1px solid #ababab;
-  border-right: none;
+  /*border: 1px solid #ababab;
+  border-right: none;*/
   font-family: monospace;
   position: relative;
   overflow:hidden;
@@ -65,11 +65,12 @@
 }
 
 #highlightColumn {
-  width:6px;
   border:1px solid red;
   position:relative;
   float:left;
-  visibility:hidden;  
+  visibility:hidden;
+  width:1em;
+   
 }
 
 .background {
