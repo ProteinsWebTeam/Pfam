@@ -140,9 +140,8 @@ var LiveGridScroller = Class.create( {
 		// to dom, so its solved by providing a reference to the div;
 		this.scrollerDiv = this.liveGrid.options.scrollerDiv;
 		
-    // // console.log( "LiveGridScroller._createScrollBar: after scroller div created" );
+    console.log( "LiveGridScroller._createScrollBar: after scroller div created wiht height ", visibleHeight );
     this.scrollerDiv.setStyle( {
-      borderRight: "1px solid #ababab",
       position:    "relative",
       /* left:        Prototype.Browser.IE ? "-6px" : "-3px", */
       width:       "19px",
