@@ -20,7 +20,25 @@ if( ! window.console ){
 //------------------------------------------------------------------------------
 
 var WidgetTagger = Class.create({
-  
+  /**
+   * @lends WidgetTagger#
+   * @author Prasad Gunasekaran
+   * @author John Tate
+   * @author Rob Finn
+   * 
+   * @class
+   * A javascript library which tags the widgets together providing interaction between them.
+   * 
+   * @description Creates a WidgetTagger object which adds a watch dog functionality to the 
+   * alignment widget and when its made sure it is ready, event listeners are added which registers
+   * the click, which then loads the other widgets based on the input options.
+   * 
+   * To Remember: Atleast one other viewer's params has to be given before creating the object.
+   * 
+   * @constructs
+   * @param {Object} alignObj
+   * @param {Object} options
+   */
   initialize: function( alignObj, options ){
     
     // now check whether alignObj is valid;
@@ -95,7 +113,10 @@ var WidgetTagger = Class.create({
   //------------------------------------------------------------------------------
   //- Methods --------------------------------------------------------------------
   //------------------------------------------------------------------------------
-  
+  /**
+   * Watchdog method which polls for the presence of the alignment widget and if it does, 
+   * registers the event listener for the accessions in the alignments. 
+   */
   // function to check the status of the alignment;
   alignStatusChecker: function(){
     
@@ -106,7 +127,7 @@ var WidgetTagger = Class.create({
       
       //// console.log( 'the alignments are '+$H( this._alignObj._livegrid.getAlignment() ).inspect() );
       // now proceed with the other process of adding listeners;
-      this.getWidgets();
+      this.addListener();
       
     }else if( this._alignObj.getReadyState() === false ){
       
@@ -120,17 +141,10 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
-  // function to continue the tagging the alignment viewer;
-  getWidgets: function( ){
-    
-    // add event listeners to the accesions of the alignObj;
-    this.addListener();
-     
-  },
-  
-  //-------------------------------------------------------------------------------
-  
+  /**
+   * Method which adds event listener to the accessions and instantiates other widgets
+   * based on the input params.
+   */
   // function which adds event listener to the accDiv;
   addListener: function(){
     
@@ -226,7 +240,9 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Method which instantiates the Feature widget.
+   */
   // function to get the feature viewer;
   
   getFeatureViewer: function(){
@@ -240,7 +256,10 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Watchdog functionality for the feature viewer to make sure the status is ready 
+   * to add further event listeners.
+   */
   // function to track down the features to load in the page;
   
   featureStatusChecker: function(){
@@ -278,7 +297,10 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Watchdog functionality for the structure viewer to make sure the status is ready 
+   * to add further event listeners.
+   */
   // function to track down the structures to load in the page;
   
   structureStatusChecker: function(){
@@ -309,7 +331,10 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Event listener for mouse move over the feature viewer, which inturn hightlights the 
+   * same regions in the alignments and structures, if mapping exists.
+   */
   // function which registers the mousemove and tags the alignment viewer together;
   mousemoveListener : function(){
     
@@ -481,12 +506,6 @@ var WidgetTagger = Class.create({
       // TAGGING THE ALIGNMENT VIEWER TO FEATURE VIEWER ENDS HERE;
       
       }  //  end of if graphicOffset ;because we start to draw the sequence from 100px;
-//      else { 
-//        // console.log( 'the scroller is out of range so hide it' );
-//        
-//        scroller.hide();
-//        
-//      } 
       
       // ****************************************************
       // * if the structure viewer is enabled, do something *
@@ -532,7 +551,9 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Method to say whether the feature viewer is enabled or not.
+   */
   // function to check whether feature viewer enabled.
   isFeatureViewerEnabled: function(){
     if( this.FeatureViewerEnabled !== undefined ){
@@ -542,6 +563,11 @@ var WidgetTagger = Class.create({
     }
   },
   
+  
+  //-------------------------------------------------------------------------------
+  /**
+   * Method to say whether the structure viewer is enabled or not.
+   */
   // function to check whether structure viewer enabled.
   isStructureViewerEnabled: function(){
     if( this.StructureViewerEnabled !== undefined ){
@@ -554,42 +580,62 @@ var WidgetTagger = Class.create({
   //------------------------------------------------------------------------------
   //- Getters and Setters --------------------------------------------------------
   //------------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the alignment Object in the object.
+   * @param {Object} alignObj
+   */
   // set method for alignObj;
   setAlignObj: function( alignObj ){
     this._alignObj = alignObj;
   },
   
   //-------------------------------------
-  
+  /**
+   * Method to return the stored alignment object.
+   * @returns Returns the alignment object.
+   */
   // get method for alignObj;
   getAlignObj: function(){
     return this._alignObj;
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input options in the object.
+   * @param {Object} options
+   */
   // function to set the options;
   setOptions: function( options ){
     this.options = options;
   },
   
   //-------------------------------------
-  
+  /**
+   * Method to return the input options.
+   * @returns input options.
+   */
   // function to get teh options;
   getOptions: function(){
     return this.options;
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * Method to register the click, if more than one click is done, the request is not 
+   * processed untill the first one is completed. 
+   * @param {Object} bool
+   */
   // function to set teh click status
   setClickProcessStatus: function( bool ){
     this.clickProcessStatus = bool;
   },
   
   //-------------------------------------
-  
+  /**
+   * Method to get the status of the click on the accessions. It returns true if there is an
+   * active request and false for no request.
+   * returns true or false.
+   */
   // function to get the clicked status;
   getClickProcessStatus: function( ){
     return this.clickProcessStatus;
@@ -597,7 +643,11 @@ var WidgetTagger = Class.create({
   //------------------------------------------------------------------------------
   //- Private Methods ------------------------------------------------------------
   //------------------------------------------------------------------------------
-  
+  /**
+   * @Private
+   * Method to parse the accession which has the format [ ( accession ) / ( start ) - ( end ) ];
+   * @param {String} acc
+   */
   // function to parse the accession which is clicked;
   _parseAccession: function( acc ){
     
@@ -621,6 +671,10 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
+  /**
+   * @Private 
+   * Method to fire up to highlight the clicked accession. 
+   */
   _customEvent: function(){
     console.log( 'the custom event for Accession:updated created');
     
@@ -635,7 +689,13 @@ var WidgetTagger = Class.create({
   },
   
   //-------------------------------------------------------------------------------
-  
+  /**
+   * @Private 
+   * Generates a customised exception and throws with the message.
+   * 
+   * @param {String} msg
+   * @throws WidgetViewerException with the specified message.
+   */  
   _throw: function( msg ){
     throw {
       name: 'WidgetTaggerException',
