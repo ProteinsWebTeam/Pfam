@@ -29,7 +29,6 @@ use JSON;
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
 use Storable qw( thaw );
-use Sanger::Graphics::ColourMap;
 
 use Data::Dump qw( dump );
 
