@@ -16,20 +16,10 @@
       <script type="text/javascript" src="http://www.google.com/jsapi"></script>
       <script type="text/javascript">google.load("prototype", "1.6.1");</script>
       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,builder,controls,slider"></script>
-      <!-- add firebug lite for IE 
-			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-				-->
-      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
-      <script type="text/javascript">
-        Ajax.Responders.register(
-          {
-            onException: function( requestor, exception, json ){
-              console.info(  requestor, exception, json );
-            }
-          }
-        );
-        
-        
+      
+      <!--[if IE ]>
+      <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script><![endif]-->
+      
       </script>
       [%-  # use uri_for to get the root for the static directory
        staticUri = c.uri_for( "/static" );
