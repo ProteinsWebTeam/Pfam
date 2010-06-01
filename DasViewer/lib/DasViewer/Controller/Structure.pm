@@ -71,8 +71,6 @@ sub getStructure : Local {
   # now process the alignments to get the PDB accessions and coordinates;
   $c->forward( 'processAlignment' );
   
-  $c->log->debug( 'Structure::getStructure: the strucuter are '.$c->stash->{ structures } );
-  
   my $structures;
   
   if( defined $c->stash->{ errorMSG } ){
