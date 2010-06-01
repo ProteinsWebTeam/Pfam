@@ -184,7 +184,7 @@ unless(-e "$statusdir/updated_pfamseq"){
   #Add Jaina's stuff in here!!!!
   $logger->info("Updating pfamseq");
   system("pud-update_pfamseq.pl -status_dir $statusdir -pfamseq_dir $pfamseqdir$newrelease_num")
-    and $logger->logdir("Failed to run pud-update_pfamseq.pl:[$!]");
+    and $logger->logdie("Failed to run pud-update_pfamseq.pl:[$!]");
   $logger->info("Updated pfamseq");
   system("touch $statusdir/updated_pfamseq") and $logger->logdie("Could not touch $statusdir/updated_pfamseq");
 }else{
@@ -196,7 +196,7 @@ unless(-e "$statusdir/updated_ncbi_map"){
   #Add Jaina's stuff in here!!!!
   $logger->info("Updating ncbi_map");
   system("pud-uniprotNcbiMapping.pl -release $newrelease_num")
-    and $logger->logdir("Failed to run pud-uniprotNcbiMapping.pl:[$!]");
+    and $logger->logdie("Failed to run pud-uniprotNcbiMapping.pl:[$!]");
   $logger->info("Updated ncbi_map table");
   system("touch $statusdir/updated_ncbi_map") and 
     $logger->logdie("Could not touch $statusdir/updated_ncbi_map");
@@ -215,7 +215,7 @@ if(! -e "$statusdir/downloaded_proteomes") {
     if (! -d "$dir"){
 	mkdir ("$dir",0777) or die "Cannot make dir $dir";
     }
-    system("$scriptdir/pud/pud-get_proteome.pl $dir") and $logger->logdie("Downloading proteomes failed:[$!]");
+    system("pud-get_proteome.pl $dir") and $logger->logdie("Downloading proteomes failed:[$!]");
     system("touch $statusdir/downloaded_proteomes")   and $logger->logdie(die "couldn't touch $statusdir/downloaded_proteomes:[$!]");
     $logger->info("Downloaded proteome data");
 } else {
@@ -258,7 +258,7 @@ $logger->warn('Until we have a good source of metaseq data, there is nothing to 
 
 if(! -e "$statusdir/done_upload_interpro") {
   $logger->info("Preparing to upload the new interpro database and GO data\n");
-  system("pud-update_interpro_and_go.pl") and $logger->logdie "pud-update_interpro_and_go.pl failed:[$!]";  
+  system("pud-update_interpro_and_go.pl") and $logger->logdie( "pud-update_interpro_and_go.pl failed:[$!]" );  
   system("touch $statusdir/done_upload_interpro") and $logger->logdie( "can't touch $statusdir/done_upload_interpro:[$!]");
 }else{
   $logger->info("Already done upload on interpro and GO\n");
@@ -482,7 +482,7 @@ if(! -e "$statusdir/families_checked_in") {
     &report("Check in all families\n");
     chdir "$config->productionLoc/ALL_FAMILIES" or die "Can not change dir to $config->productionLoc/ALL_FAMILIES :[$!]";
 
-    system ("$scriptdir/pud/pud-ci.pl \'Release $newrelease_num update\'") and die "pud-ci.pl failed, serious problem!!!:[$!]";
+    system ("pud-ci.pl \'Release $newrelease_num update\'") and die "pud-ci.pl failed, serious problem!!!:[$!]";
     system("touch $statusdir/families_checked_in") and die "Cannot run touch:[$!]";
 } else {
     &report("Already checked in all families\n");
