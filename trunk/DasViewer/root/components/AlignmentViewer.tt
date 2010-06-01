@@ -24,7 +24,30 @@ if( ! window.console ){
 //------------------------------------------------------------------------------
 
 var AlignmentViewer = Class.create({
-  
+  /**
+   * @lends Alignment Viewer#
+   * @author Prasad Gunasekaran
+   * @author John Tate
+   * @author Rob Finn
+   * 
+   * @class 
+   * A Javascript library which generates alignment widget and embeds in to the web page.
+   *
+   * @description Creates an AlignmentViewer object which instantiates the customised version of 
+   * livegrid, which handles the request and responses to the server and updates the elements
+   * which are created by this object. A series of other calls are made to load the livegrid library, 
+   * and the stylesheets dynamically.
+   * 
+   * @constructs
+   * @param {String | Element } parent
+   * @param {String} accession
+   * @param {String} dsn
+   * @param {Integer} size
+   * @param {String} url
+   * @param {Integer} rows
+   * @param {Object} options
+   */
+
   initialize: function( parent, accession, dsn, size, url,rows, options ){
     
     console.log( 'initialize: begins');
@@ -69,7 +92,7 @@ var AlignmentViewer = Class.create({
       this._rowsToDisplay = rows;
     }else{
       console.log( 'You havnt initialise the total rows to be seen, so setting it to 18' ); 
-      this._rowsToDisplay = 18;
+      this._rowsToDisplay = 21;
     }
     // also I need the CSS files to render the alignments in the page. 
     // so make a request to get the CSS files in the page using GET request;
@@ -95,7 +118,11 @@ var AlignmentViewer = Class.create({
   //------------------------------------------------------------------------------
   //- Methods --------------------------------------------------------------------
   //------------------------------------------------------------------------------
-  
+  /**
+   * Instantiates the custom built <a href="http://www.chrisvandesteeg.nl/tmp/livegrid.js">livegrid</a> object  
+   * ( which is heavily modified ) and retrieves the alignments to be shown in the widget.
+   *  
+   */
   // function to initialise the livegrid object and gets the alignment;
   fetchAlignments: function( ){
     
@@ -127,7 +154,10 @@ var AlignmentViewer = Class.create({
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Creates div elements in a specific order and inserts into the DOM as the data
+   * returned from the server is updated into these elements.
+   */
   // function to create the children;
   createChildren: function( ){
     
@@ -161,7 +191,11 @@ var AlignmentViewer = Class.create({
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * @Private
+   * Adds a event listener for scrolling, so that when new data is loaded, 
+   * the original position was retained.
+   */
   // function which adds event listeners
   _addListeners: function(){
     
@@ -172,7 +206,9 @@ var AlignmentViewer = Class.create({
   },    
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Checks whether a valid response is received and based on it, updates the response state.
+   */
   // function to check whether we have got the alignments response;
   checkAlignment: function(  ){
     
@@ -184,12 +220,17 @@ var AlignmentViewer = Class.create({
       
       // now set the readyState to true;
       this.setReadyState( true );  
+      
+      // now show the element;
+      this._parent.show();
     }
     
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Fetches the stylesheets from the server, which is mandatory in assembling the widget.
+   */
   // function to fetch the CSS files for rendering the alignment;
   _fetchCSS: function( ){
     console.log( 'making YAHOO get request for getting the CSS' );
@@ -201,6 +242,11 @@ var AlignmentViewer = Class.create({
   
   //----------------------------------------------------------------------------
   
+  /**
+   * @Private
+   * Fetches the custom built LiveGrid library from the server and only if succeeds, 
+   * fetching alignments are initiated.
+   */
   // function to get the custom built LiveGrid library from our server;
   _getLiveGrid: function(){
     console.log( 'making YAHOO get request for getting custom built LiveGrid library' );
@@ -219,27 +265,45 @@ var AlignmentViewer = Class.create({
   //------------------------------------------------------------------------------
   //- Get and Set Methods --------------------------------------------------------
   //------------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the status of the widget.
+   * @param {Boolean} status
+   */
   // function to set the readyState of this object;
   setReadyState: function( status ){
     this._readyState = status;  
   },
   
   //--------------------------------------
-  
+  /**
+   * Returns the ready state of the widget.
+   * 
+   * @returns ready state of the widget
+   * 
+   */
   getReadyState: function( ){
     return this._readyState;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Returns the livegrid object 
+   * 
+   * @returns the livegrid object for initating the request;
+   */
   // get the livegrid object for later use;
   getLiveGrid: function(){
     return this._livegrid;  
   },
   
   //--------------------------------------
-  
+  /**
+   * Setter method to set the input parent which holds the alignment widget
+   * and throws exception, if its invalid
+   * 
+   * @param {String | Element } parent
+   * @throws{ AlignmentViewerException } for invalid parent element.
+   */
   // function to set parent;
   setParent: function( parent ){
     this._parent = $( parent );
@@ -254,14 +318,24 @@ var AlignmentViewer = Class.create({
   },
   
   //--------------------------------------
-  
+  /**
+   * Returns the input parent element
+   * 
+   * @returns the input parent element.
+   */
   // function to get the parent;
   getParent: function(){
     return this._parent;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input accession 
+   * and throws exception, if its invalid.
+   * 
+   * @param {String} accession
+   * @throws{ AlignmentViewerException } for invalid accession.
+   */
   // function to set the accession;
   setAccession: function( accession ){
     this._accession = accession;
@@ -280,14 +354,22 @@ var AlignmentViewer = Class.create({
   }, // end of setAccession
   
   //-------------------------------------
-  
+  /**
+   * Returns the input accession.
+   * 
+   * @returns input accession.
+   */
   // function to return the accession 
   getAccession: function(){
     return this._accession;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the input DAS source name, to make the request.
+   * @param {String} dsn
+   * @throws{ AlignmentViewerException } for invalid DAS name.
+   */
   // function to set the dsn;
   setDsn: function( dsn ){
     this._dsn = dsn;
@@ -298,14 +380,22 @@ var AlignmentViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the input DAS source name.
+   * @returns DAS source name.
+   */
   // function to get the dsn;
   getDsn: function(){
     return this._dsn;
   },
   
   //----------------------------------------------------------------------------
-  
+  /**
+   * Setter method to set the total number or rows in the alignment.
+   * 
+   * @param { Integer } size
+   * @throws{ AlignmentViewerException } when the input is not provided.
+   */
   // function to set the size;
   setSize: function( size ){
     this._size = size;
@@ -317,14 +407,21 @@ var AlignmentViewer = Class.create({
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the total number of rows present in the alignment.
+   * @return total number of rows in the alignment.
+   * 
+   */
   // function to get the size;
   getSize: function(){
     return this._size;
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the grid element created as a child element of the input parent element.
+   * @return grid element which is the child element of the input parent element.
+   */
   // I need some more get methods for grid and other divs;
   // function to get the grid;
   getGridDiv: function(){
@@ -333,13 +430,20 @@ var AlignmentViewer = Class.create({
   
   //-------------------------------------
   
+  /**
+   * Returns the div element which holds all the accessions corresponding to the alignments shown in the viewport.
+   * @return accession element which holds all the accessions.
+   */
   // function to get the accessions Div
   getAccDiv: function(){
     return this._accDiv;
   },
   
   //-------------------------------------
-  
+  /**
+   * Returns the div element which holds all the sequences corresponding to the alignments shown in the viewport.
+   * @return accession element which holds all the sequences.
+   */
   // function to get the sequences Div
   getSeqDiv: function(){
     return this._seqDiv;
@@ -348,6 +452,13 @@ var AlignmentViewer = Class.create({
   //------------------------------------------------------------------------------
   //- Private Methods ------------------------------------------------------------
   //------------------------------------------------------------------------------
+  /**
+   * @Private 
+   * Generates a customised exception and throws with the message.
+   * 
+   * @param {String} msg
+   * @throws AlignmentViewerException with the specified message.
+   */
   _throw: function( msg ){
     
     throw { name : 'AlignmentViewerException',
