@@ -9,10 +9,9 @@
 
 PROCESS "components/require.tt"
 
-# later we might need to add some files for css.
 -%]
 <div id="documentation" style="font-size:1em">
-  <h2>Documentation</h2>
+  <h1>Documentation</h1>
   
   <!-- Div for the main topics which are explained in the page-->
   <div id="topics">
@@ -28,23 +27,22 @@ PROCESS "components/require.tt"
   
   <div id="introduction">
     
-    <a name="intro"> <h4> Introduction </h4> </a>
+     <h2> <a name="intro">Introduction</a> </h2> 
     DAS Widgets - A Javascript library which is used to show multiple sequence alignments, positional features on a protein sequence and PDB structures in a more intuitive way.
-    This library consists of three widgets named Aignment viewer, Feature viewer and Structure viewer which are used to show alignments, draw features and  display structures respectively. 
+    This library consists of three widgets named Alignment viewer, Feature viewer and Structure viewer which are used to show alignments, draw features and  display structures respectively. 
     It also has a helper class called WidgetTagger which tags all the widgets together in an interactive manner. 
-    The motivation for this work is to provide researchers and developers a tool to visualise biological data and thereby spending less time in reinventing the software and more time in search of knowledge. This documentation is intended to explain the working of the widgets and doesn't explain the code.
+    This documentation is intended for developers to explain the working and to show the ways to embed these widgets in a web page.
     It also relies on certain other javascript libraries which are mentioned in the requirements section.
   </div>
   
   <div id="widgets">
     
-    <a name="widget"> <h4> Widgets </h4></a>
+    <h2><a name="widget"> Widgets </a></h2>
     
     <!-- now contents for alignment viewer -->
     <div id="alignmentViewer">
       
-      <span><strong>Alignment Viewer</strong></span>
-      <p/>
+      <h3>Alignment Viewer</h3>
       Visualizing large scale alignments was never easy and have never ending issues. This widget is one such attempt to address a particular issue which is to display massive alignments in the browser by loading them dynamically when needed. You can initialize the widget by providing following parameters,
      
      <ol>
@@ -56,9 +54,9 @@ PROCESS "components/require.tt"
        <li>Total number of rows to be displayed in the window ( optional ).</li>
      </ol>
      
-     <strong>Example:</strong><pre style="font-family:"Courier New",Courier,mono">var alignments = new AlignmentViewer( parent, acc, dsn, size, url );</pre>
-     <p/>
-     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     <h4>Example:</h4><pre>var alignments = new AlignmentViewer( parent, acc, dsn, size, url, rows );</pre>
+     
+     <h4>Working:</h4> The following events takes place in the sequential order while you initialize the widget,
      
      <ul>
        <li>CSS files required to render the alignments are loaded from the server using YAHOO's GET utility.</li>
@@ -73,10 +71,10 @@ PROCESS "components/require.tt"
          </ol>
      </ul>
      
-     <span><strong>Response JSON format</strong></span>
-     <p/>
-     
-     <pre style="font-family:"Courier New",Courier,mono">
+     <h4>Response JSON format</h4>
+     When you make a request to the server, it has to return the data as a JSON string in the following format to allow
+     the library to render the data in the browser, 
+     <pre>
        var alignments = {"data":{
          "rows":[
              {"value":"html span tag","key":"html span tag"},
@@ -93,8 +91,8 @@ PROCESS "components/require.tt"
     
     <!--  now feature viewer-->
     <div id="featureViewer">
-      <span><strong>Feature Viewer</strong></span>
-      <p/>
+      <h3>Feature Viewer</h3>
+      
       This widget gets the positional features for a uniprot accession in a specific JSON format and uses Pfam Domain Graphics code to draw those returned features in the browser using the HTML canvas element. You can initialise the widget by providing the following parameters,
       
       <ol>
@@ -110,9 +108,9 @@ PROCESS "components/require.tt"
        </ol>
      </ol>
      
-     <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono">var featureviewer = new FeatureViewer( parent, acc, sources, url );</pre>
-     <p/>
-     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     <strong>Example:</strong> <pre>var featureviewer = new FeatureViewer( parent, acc, sources, url );</pre>
+     
+     <h4>Working:</h4> The following events takes place in the sequential order while you initialize the widget,
      
      <ul>
        <li>CSS files required to render the features are loaded from the server using YAHOO's GET utility.</li>
@@ -123,10 +121,10 @@ PROCESS "components/require.tt"
        
      </ul>
      
-     <span><strong>Response JSON format</strong></span>
-     <p/>
+     <h4>Response JSON format</h4>
      
-     <pre style="font-family:"Courier New",Courier,mono">
+     When you make a request to the server, it has to return the data as a JSON string in the following format to allow      the library to render the data in the browser, 
+     <pre>
        var features = { "json_sources":["Das source name1","Das source name2"],
                         "seqLength":"length of sequence Integer",
                         "sources":["DS id"],
@@ -163,8 +161,8 @@ PROCESS "components/require.tt"
     
     <!--  now structure viewer-->
     <div id="structureViewer">
-      <span><strong>Structure Viewer</strong></span>
-      <p/>
+      <h3>Structure Viewer</h3>
+      
       This widget gets the PDB structures which are similar to the input uniprot accession in a specific JSON format and then uses JMOL library to create an applet in the browser to show the 3D structure. You can initialize the widget by providing the following parameters,
       
       <ol>
@@ -175,9 +173,9 @@ PROCESS "components/require.tt"
        
      </ol>
      
-     <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono">var structureviewer = new StructureViewer( parent, acc, url, jmolUrl );</pre>
-     <p/>
-     <span><strong>Working:</strong></span> The following events takes place in the sequential order while you initialize the widget,
+     <strong>Example:</strong> <pre>var structureviewer = new StructureViewer( parent, acc, url, jmolUrl );</pre>
+     
+     <h4>Working:</h4> The following events takes place in the sequential order while you initialize the widget,
      
      <ul>
        <li>A GET request is made to retrieve all the structures which are similar to the input accession.</li>
@@ -188,10 +186,10 @@ PROCESS "components/require.tt"
      </ul>
      
      
-     <span><strong>Response JSON format</strong></span>
-     <p/>
+     <h4>Response JSON format</h4>
      
-     <pre style="font-family:"Courier New",Courier,mono">
+     When you make a request to the server, it has to return the data as a JSON string in the following format to allow      the library to render the data in the browser, 
+     <pre>
        var structures = [
                           {"pacc":"Protein accession",
                           "pend":"end: protein coordinate matching PDB",
@@ -207,8 +205,8 @@ PROCESS "components/require.tt"
     
     <!-- Now widget tagger -->
     <div id="widgetTagger">
-     <span><strong>Widget Tagger</strong></span>
-      <p/>
+     <h3>Widget Tagger</h3>
+      
       This is a javascript object which provides interactivity between the widgets. It adds event listeners for click and mouse move to the widgets and then triggers a series of responses, based on those events. You can initialize the object by providing the following parameters,
       <p></p>
       <ol>
@@ -216,15 +214,15 @@ PROCESS "components/require.tt"
         <li>Options hash which should atleast have parameters for one other widget. ( Either Feature viewer or Structure viewer )</li>
       </ol>
     
-      <strong>Note:</strong><p/>
+      <strong>Note:</strong>
       <ol>
         <li>If you wish to enable FeatureViewer, you need to provide the following keys and its value, featureParent, featureSources, featureURL.</li>
         <li>If you wish to enable StructureViewer, you need to provide the folllowing keys and its value, structureParent, structureURL, structureJmolURL.</li>
-      </ol><p/>
+      </ol>
       
-      <strong>Example:</strong> <pre style="font-family:"Courier New",Courier,mono"> var widgetTagger = new WidgetTagger( alignObj, options );</pre>
+      <strong>Example:</strong> <pre> var widgetTagger = new WidgetTagger( alignObj, options );</pre>
 
-      <span><strong>Working:</strong></span>  The following events takes place in the sequential order while you initialize the object,
+      <h4>Working:</h4>  The following events takes place in the sequential order while you initialize the object,
       
       <ul>
         <li>A watch dog functionality is added which waits until the alignments response is loaded in the browser.</li>
@@ -242,23 +240,23 @@ PROCESS "components/require.tt"
   </div><!-- end of div widgets -->
   
   <div id="requirements">
-    <a name="require"><h4>Requirements</h4></a>
-    <p/>
+    <h2><a name="require">Requirements</a></h2>
+    
     
     All the code is developed using <strong>Prototype</strong> framework and it is mandatory to include the latest version of prototype before you try to use these widgets, It also requires the other libraries which are mentioned below.
-    <p></p>
+    
     It is also mandate to include YAHOO utilities in your page by adding the following lines in your header
-    <pre style="font-family:"Courier New",Courier,mono">
+    <pre>
     <<span>script src="</span>http://yui.yahooapis.com/2.8.1/build/yahoo/yahoo-min.js<span>"><</span><span>/script></span>
     <<span>script src="</span>http://yui.yahooapis.com/2.8.1/build/get/get-min.js<span>"><</span><span>/script></span>
     </pre>
     
-    <p></p>
+    
     To enable Alignment viewer, you need
     <ul>
       <li>Custom built - LiveGrid library ( This will be automatically loaded ).</li>
     </ul>
-    <p></p>
+    
     To enable Feature viewer, you need
     <ul>
       <li>Pfam domain graphics library.</li>
@@ -266,7 +264,7 @@ PROCESS "components/require.tt"
       
       <li><a href="http://www.nickstakenburg.com/projects/prototip2/">Prototip2</a> library.</li>
     </ul>
-    <p></p>
+    
     To enable, Structure viewer, you need
     <ul>
       <li>Jmol library ( > 1.6 )</li>
@@ -275,7 +273,7 @@ PROCESS "components/require.tt"
   </div>  <!-- end of requirements -->
   
   <div id="egusage">
-    <a name="example"><h4>Example</h4></a>
+    <h2><a name="example">Example</a></h2>
     Please click on the following link to go to model page to see the working of the widgets.
     <div id='Egpages'>
       <ul>
