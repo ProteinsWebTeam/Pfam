@@ -31,37 +31,37 @@ activeSites = String.new( "select none; " );
 CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) );
 CALL script.append( "\"; select all; cartoons on; cpk off; wireframe off; " );
 
-FOREACH m IN mapping;
-
-  CALL script.append( "select ${m.pdb_res_start}-${m.pdb_res_end}" );
-  IF m.chain;
-    CALL script.append( ":${m.chain}; " );
-  ELSE;
-    CALL script.append( "; " );
-  END;
-  IF m.hex_colour;
-    CALL script.append( "color [x${m.hex_colour}]; " );
-  END;
-
-  FOREACH markup IN markups;
-    CALL activeSites.append( "select ${markup.pdb_seq_number}" );
-    IF markup.chain;
-      CALL activeSites.append( ":${markup.chain}; " );
-    ELSE;
-      CALL activeSites.append( "; " );
-    END;
-
-    IF markup.auto_markup == 1;
-      CALL activeSites.append( "colour [255,51,102]; " );
-    ELSIF markup.auto_markup == 2;
-      CALL activeSites.append( "colour [153,0,204]; " );
-    END;
-
-    CALL activeSites.append( "wireframe 100; " );
-
-  END; # of FOREACH markup
-
-END; # of FOREACH mapping
+#FOREACH m IN mapping;
+#
+#  CALL script.append( "select ${m.pdb_res_start}-${m.pdb_res_end}" );
+#  IF m.chain;
+#    CALL script.append( ":${m.chain}; " );
+#  ELSE;
+#    CALL script.append( "; " );
+#  END;
+#  IF m.hex_colour;
+#    CALL script.append( "color [x${m.hex_colour}]; " );
+#  END;
+#
+#  FOREACH markup IN markups;
+#    CALL activeSites.append( "select ${markup.pdb_seq_number}" );
+#    IF markup.chain;
+#      CALL activeSites.append( ":${markup.chain}; " );
+#    ELSE;
+#      CALL activeSites.append( "; " );
+#    END;
+#
+#    IF markup.auto_markup == 1;
+#      CALL activeSites.append( "colour [255,51,102]; " );
+#    ELSIF markup.auto_markup == 2;
+#      CALL activeSites.append( "colour [153,0,204]; " );
+#    END;
+#
+#    CALL activeSites.append( "wireframe 100; " );
+#
+#  END; # of FOREACH markup
+#
+#END; # of FOREACH mapping
 
 CALL script.append( activeSites );
 CALL script.append( "select none; select ligand; cpk on; color cpk; " );
