@@ -16,22 +16,11 @@
       <!-- load the prototype: mandatory -->
       <script type="text/javascript" src="http://www.google.com/jsapi"></script>
       <script type="text/javascript">google.load("prototype", "1.6.1");</script>
-
-      <!-- Add firebuglite for IE, to avoid getting exception, Console not defined  
-			<script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-				-->
-        
-      <!--this bit of code will spit the exceptions of ajax requests to firebug console -->
-      <script type="text/javascript">
-        Ajax.Responders.register(
-          {
-            onException: function( requestor, exception, json ){
-              console.info(  requestor, exception, json );
-            }
-          }
-        );
-      </script>      
   
+      <!-- styles applicable to all versions of IE -->
+      <!--[if IE ]>
+      <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script><![endif]-->
+
       <!-- required javascripts -->
       <script type='text/javascript' src='http://localhost:3000/static/javascripts/Jmol.js'></script>  <!-- Jmol library required for structure viewer-->
       
@@ -63,9 +52,10 @@
         
         <div style="clear:both"/>
         
-        <br/><br/>
-        <!-- Reference element in DOM for drawing structures-->
-        <div id='structureHolder'/>
+         <div id="structures" style="margin-top:2em;margin-left:1em;float:left;border: 1px solid green;padding:0.5em;display:none;">
+           <h3>Structure Viewer</h3>
+           <div id="structureHolder"></div>
+         </div>
            
         </div> 
       </div><!-- end bodyblock -->
@@ -83,7 +73,7 @@
           // now we have accession, url  and the jmol url for making the request;
           
           var structureObj = new StructureViewer( parent, acc, url, jmolurl ); 
-          //$('structureid').update( "<h3>structures similar to accession "+acc+"</h3>");
+        
         }
         
       </script>
