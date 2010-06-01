@@ -33,7 +33,7 @@ use JSON;
 
 use base 'Catalyst::Controller::REST';
 
-sub begin : private{
+sub begin : Private{
   
   my( $this, $c,$entry_arg ) = @_;
   $c->log->debug( "Family::begin: inside the begin action " );
