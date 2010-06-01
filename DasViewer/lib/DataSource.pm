@@ -416,7 +416,6 @@ sub reconstruct_alignment {
       push @alignments, \%ali;
     }
  }
- print STDERR 'dump of the alignments hash is '.dump( \@alignments )."\n"; 
  return \@alignments, \@alignmentLengths;
 } 
 
