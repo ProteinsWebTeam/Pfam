@@ -234,7 +234,7 @@ unless(-e "$statusdir/uploaded_proteomes"){
 
 #-------------------------------------------------------------------------------
 ## get GenPept from NCBI - takes about 1 hour to download. 12 hours to upload 
-unless(-e "$statusdir/ncbi_taxonomy"){  
+unless(-e "$statusdir/ncbi"){  
   system("pud-ncbi.pl -version $newrelease_num") and 
     $logger->logdie("Failed to run pud-ncbi.pl:[$!]");
   system("touch $statusdir/ncbi") and $logger->logdie("couldn't touch $statusdir/ncbi:[$!]");
