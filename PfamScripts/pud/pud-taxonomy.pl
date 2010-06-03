@@ -43,6 +43,49 @@ GetOptions(
 usage() and exit if $help;
 
 
+my $nodeFile = "nodes.dmp";
+my $nameFile = "names.dmp";
+
+my %ranks = ( superkingdom => 1,
+              kingdom      => 1,
+              phylum       => 1,
+              class        => 1,
+              order        => 1,
+              family       => 1,
+              genus        => 1,
+              species      => 1 );
+
+my %names;
+my %minNames;
+open( _NAMES, $config->localDbsLoc . '/ncbi/names.dmp' )
+  or die "Could not open " . $config->localDbsLoc . "/ncbi/names.dmp: [$!]\n";
+while(<_NAMES>){
+  next unless(/scientific name/);
+  @_ = split(/\|/, $_);
+  my ($lineNumber) = $_[0] =~ /(\d+)/;
+  my ($lineName)   = $_[1] =~ /\s+(.*)\s+/;
+  $names{$lineNumber} = $lineName;
+}
+
+open( _NODES, $config->localDbsLoc . '/ncbi/nodes.dmp' )
+  or die "Could not open " . $config->localDbsLoc . "/ncbi/nodes.dmp: [$!]\n";
+while(<_NODES>){
+  @_ = split(/\|/, $_);
+  my ($lineNumber) = $_[0] =~ /(\d+)/;
+  my ($lineRank)   = $_[2] =~ /(\S+)/;
+  $lineRank = lc($lineRank);
+  if($names{$lineNumber} and $ranks{$lineRank}){
+    $minNames{ $names{$lineNumber} } = $lineRank;
+  }
+}
+
+close(_NAMES);
+close(_NODES);
+
+#Now put the manual fixes in for the other things in the classification.
+foreach my $l ( "Viroids","Viruses", "unclassified", "unclassified sequences", "other sequences"){
+  $minNames{$l} = 'superkingdom';
+}
 
 #-------------------------------------------------------------------------------
 #- main ------------------------------------------------------------------------
@@ -80,7 +123,7 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 $log->debug( 'successfully connected to database' );
 
 # just prepare the insert statement
-my $insertSth = $dbh->prepare( "INSERT INTO taxonomy VALUES ( ?, ?, ?, ?, ?, ?, ? )" );
+my $insertSth = $dbh->prepare( "INSERT INTO taxonomy VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )" );
 $log->debug( 'prepared INSERT statement' );
 
 # prepare and execute the select
@@ -124,7 +167,7 @@ build( $tree, "root" );
 # $indent = "";
 
 $log->info( 'starting to walk the tree' );
-walk( $tree );
+walk( $tree, \%minNames );
 
 exit;
 
@@ -167,6 +210,7 @@ sub build {
 
 sub walk {
   my $hash = shift;
+  my $minNamesRef = shift;
 
   my ( $left, $right, $parent );
   foreach my $nodeName ( keys %$hash ) {
@@ -191,16 +235,25 @@ sub walk {
       $insertSth->bind_param( 2, $1 );
       $insertSth->bind_param( 3, $hash->{$nodeName}->{TAXONOMY} );
       $insertSth->bind_param( 7, "NULL" );
+      $insertSth->bind_param( 8, 1);
+      $insertSth->bind_param( 9, "species");
+
+
+
+
       $insertSth->execute;
     }
     else {
-      $insertSth->bind_param( 1, "NULL" );
+      $insertSth->bind_param( 1, "0" );
       $insertSth->bind_param( 2, "NULL" );
       $insertSth->bind_param( 3, "NULL" );
       $insertSth->bind_param( 7, $nodeName );
+      $insertSth->bind_param( 8, (defined($minNamesRef->{$nodeName}) ? 1 : 0 ));
+      $insertSth->bind_param( 9, (defined($minNamesRef->{$nodeName}) ? $minNamesRef->{$nodeName} : "NULL" ));
+
       $insertSth->execute;
       #    $indent .= "  ";
-      walk( $hash->{$nodeName} );
+      walk( $hash->{$nodeName}, $minNamesRef );
       #    $indent = substr( $indent, 2 );
     }
 
