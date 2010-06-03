@@ -111,7 +111,7 @@ sub main {
       else {
 	  $dbsize =  $config->rev_dbsize;
       } 
-      $db_location = $config-> seqLoc."/$db";
+      $db_location = $config->revpfamseqLoc."/$db";
   }
   else {
       die "db must be either 'pfamseq', 'ncbi' or 'metaseq', you specified [$db]\n";
