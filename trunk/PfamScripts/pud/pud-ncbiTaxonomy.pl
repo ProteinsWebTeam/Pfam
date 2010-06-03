@@ -93,64 +93,64 @@ close(_NODE);
 
 #-------------------------------------------------------------------------------
 #Now parse the taxonomy file
-#$logger->info('Parsing taxonomy.dat');
-#my(%parents, %scientific_name, $id);
+$logger->info('Parsing taxonomy.dat');
+my(%parents, %scientific_name, $id);
+
+foreach my $l (split(/\n/, $taxonomy)) {
+  if ( $l =~ /^ID\s+\:\s+(\d+)/ ) {
+    $id = $1;
+  }
+  if ( $l =~ /^PARENT ID\s+\:\s+(\d+)/ ) {
+    $parents{$id} = $1;
+  }
+  if ( $l =~ /^SCIENTIFIC NAME\s+\:\s+(.*)/ ) {
+    $scientific_name{$id} = $1;
+  }
+}
+close(_SPECIES);
+
+#-------------------------------------------------------------------------------
 #
-#foreach my $l (split(/\n/, $taxonomy)) {
-#  if ( $l =~ /^ID\s+\:\s+(\d+)/ ) {
-#    $id = $1;
-#  }
-#  if ( $l =~ /^PARENT ID\s+\:\s+(\d+)/ ) {
-#    $parents{$id} = $1;
-#  }
-#  if ( $l =~ /^SCIENTIFIC NAME\s+\:\s+(.*)/ ) {
-#    $scientific_name{$id} = $1;
-#  }
-#}
-#close(_SPECIES);
-#
-##-------------------------------------------------------------------------------
-##
-#$logger->info('Munging data together!');
-#
-#
-#foreach my $taxId (sort keys %no_rank) {
-#  #$logger->debug("Working on $taxId\n");
-#  
-#  my $get_spec = 1;
-#  my @all_parents;
-#  my $species = $scientific_name{$taxId};  
-#  my ($first_part) = $1 if ($scientific_name{$taxId} =~ /^(\S+)\s+\S+/);
-#
-#  my $first = $parents{$taxId};
-#  my $full_taxonomy;
-#  my $is_the_species = 0;
-#  while ($get_spec) {
-#    my $parents = $parents{$first};
-#    my $full_name = $scientific_name{$first};
-#    unless(defined($no_rank{$first})) {
-#          $full_taxonomy = $full_name . ";" . $full_taxonomy;
-#    }
-#    push @all_parents, $parents;
-#    $first = $parents;
-#    $get_spec = 0 if (!$parents);
-#    if  ($full_name eq $first_part)  {
-#      $is_the_species = 1;
-#    }
-#
-#  }
-#  $full_taxonomy =~ s/root;cellular organisms;//;
-#  $full_taxonomy =~ s/root;//;
-#
-#
-#  #$logger->debug("$taxId\t$species\t$full_taxonomy\n");
-#  next unless($species);
-#  $pfamDB->getSchema
-#          ->resultset('NcbiTaxonomy')
-#              ->update_or_create( { ncbi_taxid => $taxId,
-#                                    species    => $species,
-#                                    taxonomy   => $full_taxonomy});                    
-#}
+$logger->info('Munging data together!');
+
+
+foreach my $taxId (sort keys %no_rank) {
+  #$logger->debug("Working on $taxId\n");
+  
+  my $get_spec = 1;
+  my @all_parents;
+  my $species = $scientific_name{$taxId};  
+  my ($first_part) = $1 if ($scientific_name{$taxId} =~ /^(\S+)\s+\S+/);
+
+  my $first = $parents{$taxId};
+  my $full_taxonomy;
+  my $is_the_species = 0;
+  while ($get_spec) {
+    my $parents = $parents{$first};
+    my $full_name = $scientific_name{$first};
+    unless(defined($no_rank{$first})) {
+          $full_taxonomy = $full_name . ";" . $full_taxonomy;
+    }
+    push @all_parents, $parents;
+    $first = $parents;
+    $get_spec = 0 if (!$parents);
+    if  ($full_name eq $first_part)  {
+      $is_the_species = 1;
+    }
+
+  }
+  $full_taxonomy =~ s/root;cellular organisms;//;
+  $full_taxonomy =~ s/root;//;
+
+
+  #$logger->debug("$taxId\t$species\t$full_taxonomy\n");
+  next unless($species);
+  $pfamDB->getSchema
+          ->resultset('NcbiTaxonomy')
+              ->update_or_create( { ncbi_taxid => $taxId,
+                                    species    => $species,
+                                    taxonomy   => $full_taxonomy});                    
+}
 
 #Unclassified will be set to zero;
 $no_rank{0}++;
@@ -167,8 +167,11 @@ my @allTaxIds = $pfamDB->getSchema
             ->search();
 
 #-------------------------------------------------------------------------------
+#As the taxonomy table refers to the ncbi_taxonomy table, we need to delete the contents of
+#this table first.
+$pfamDB->getSchema->resultset('Taxonomy')->delete;
 
-
+#Now delete cruft in ncbi_taxonomy.
 foreach my $r (@allTaxIds){
   unless($no_rank{$r->ncbi_taxid}){
     $r->delete({}, {cascade_delete => 0});  
