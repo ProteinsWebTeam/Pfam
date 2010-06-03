@@ -498,7 +498,7 @@ if(-e "$statusdir/pfamseq_new") {
 }
 else {
     $logger->info("Updating pfamseq with new data\n");
-    my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
+    my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
     $pfamseq_new->execute() or $logger->logdie("Failed to update pfamseq with new data ".$pfamseq_new->errstr."\n");
     system("touch $statusdir/pfamseq_new") and $logger->logdie("Couldn't touch $statusdir/pfamseq_new:[$!]\n"); 
 }
@@ -543,7 +543,7 @@ my %acc2auto;
 
 
 #Transform active site and metal ion binding data
-if(-e "active_site_metal.auto.dat ") {
+if(-e "$statusdir/upload_active_metal") {
     $logger->info("Already transformed active_site_metal.dat file\n");
 }
 else {
@@ -581,7 +581,7 @@ $act_metal_new->execute() or $logger->logdie("Failed to upload active site and m
 
 
 #Transform disulphide bond binding data
-if(-e "disulpide.auto.dat") {
+if(-e "$statusdir/upload_disulphide") {
     $logger->info("Already transformed disulpide.dat file\n");
 }
 else {
@@ -623,7 +623,7 @@ else {
 
 
 #Transform secondary acc data
-if(-e "disulpide.auto.dat") {
+if(-e "$statusdir/upload_secondary_acc") {
     $logger->info("Already transformed secondary_acc.dat file\n");
 }
 else {
