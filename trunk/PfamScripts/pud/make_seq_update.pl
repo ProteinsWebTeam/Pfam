@@ -211,11 +211,11 @@ if(! -e "$statusdir/downloaded_proteomes") {
     
     $logger->info("Downloading proteomes\n");
     # This is a dumping ground for all proteomes.  
-    my $dir = "/lustre/pfam/pfam/Production/localdbs/proteome/Release" . $num;
+    my $dir = $config->localDbsLoc."/proteome/Release" . $num;
     if (! -d "$dir"){
 	mkdir ("$dir",0777) or die "Cannot make dir $dir";
     }
-    system("pud-get_proteome.pl $dir") and $logger->logdie("Downloading proteomes failed:[$!]");
+    system("pud-getProteome.pl $dir") and $logger->logdie("Downloading proteomes failed:[$!]");
     system("touch $statusdir/downloaded_proteomes")   and $logger->logdie(die "couldn't touch $statusdir/downloaded_proteomes:[$!]");
     $logger->info("Downloaded proteome data");
 } else {
@@ -226,8 +226,9 @@ if(! -e "$statusdir/downloaded_proteomes") {
 unless(-e "$statusdir/uploaded_proteomes"){
   my $num = $newrelease_num . ".0";
   $logger->info("Uploading proteomes");
-  system("pud-proteome_upload.pl -rel $num") and $logger->logdie("Failed to run |pud-proteome_upload.pl -rel $num|:[$!]");
+  system("pud-proteomeUpload.pl -rel $num") and $logger->logdie("Failed to run |pud-proteomeUpload.pl -rel $num|:[$!]");
   $logger->info("Finished uploading proteomes");
+  system("touch $statusdir/uploaded_proteomes") and $logger->logdie(die "couldn't touch $statusdir/uploaded_proteomes:[$!]");
 }else{
   $logger->info("Already uploaded proteomes");  
 }
