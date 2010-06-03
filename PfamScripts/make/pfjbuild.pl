@@ -179,6 +179,7 @@ sub main {
   $optCmds{'-A'}        = 'JALIGN';
   $optCmds{'-o'}        = 'JOUT';
   $optCmds{'--notextw'} = '';
+  $optCmds{'--cpu'}     = '1';
 
   if ($local) {
     runJackhmmer( $config, \%optCmds, $fasta, $seqDB );
