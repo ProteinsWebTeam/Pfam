@@ -71,11 +71,16 @@ my $mapSth = $dbh->prepare("SELECT DISTINCT accession_version, primary_id
 $mapSth->execute;
 my $res = $mapSth->fetchall_arrayref;
 
+my $f1 = "$production_loc/pfamseq".$RELEASE."/uniprotNcbiMapping.dat";
+open(OUT, ">$f1") or die "Could not open $f1:[$!]\n";
+
 foreach my $r (@$res){
-	my ($acc, $version) = $r->[0] =~ /(\S+)\.(\d+)/;
-	print "$acc\t$version\t$r->[1]\n";  
-	
+  my ($acc, $version) = $r->[0] =~ /(\S+)\.(\d+)/;
+  print OUT "$acc\t$version\t$r->[1]\n";  
+  
 }
+close(OUT);
+
 
 # Save the above into a file.
 # Copy to the database instance
@@ -90,7 +95,6 @@ foreach my $r (@$res){
 
 my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
 my $tmp = "/tmp";
-my $f1 = "$production_loc/pfamseq".$RELEASE."/uniprotNcbiMapping.dat";
 $scp->put("$f1", "$tmp/uniprotNcbiMapping.dat") or $logger->logdie( "Scp command failed: copying uniprotNcbiMapping.dat from production location to ".$config->pfamliveAdmin->{host}." failed ".$scp->{errstr});
 
 # create a temporary table, but for testing i have created a permanant table and load it, later remove it.
