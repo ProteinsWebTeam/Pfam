@@ -41,13 +41,14 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db, $cpu );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db, $cpu, $copy );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
                "ignoreBM"   => \$ibm,
                "ignoreSM"   => \$ism,
                "local"      => \$local,
+               "copy"       => \$copy,
                "nobuild"    => \$nobuild,
                "split"      => \$split,
                "cpu=i"      => \$cpu,
@@ -104,17 +105,17 @@ sub main {
       } 
       $db_location = $config->metaseqLoc."/$db";
   }
-  elsif($db eq "revpfamseq") {
+  elsif($db eq "shuffled") {
       if($dbsize and $dbsize ne $config->dbsize){
 	  warn "\n***** Using effective database size [$dbsize] that is different to metaseq [".$config->meta_dbsize."] *****\n\n";
       }
       else {
-	  $dbsize =  $config->rev_dbsize;
+	  $dbsize =  $config->shuffled_dbsize;
       } 
-      $db_location = $config->revpfamseqLoc."/$db";
+      $db_location = $config->shuffledLoc."/$db";
   }
   else {
-      die "db must be either 'pfamseq', 'ncbi' or 'metaseq', you specified [$db]\n";
+      die "db must be either 'pfamseq', 'shuffled', 'ncbi' or 'metaseq', you specified [$db]\n";
   }
   unless(int($dbsize) == $dbsize and $dbsize > 0){
     die "dbsize ($dbsize) must be an integer greater than 1\n"; 
@@ -415,18 +416,23 @@ sub main {
       my $ug = new Data::UUID; 
       my $uuid = $ug->to_string( $ug->create() );
       my $user = $ENV{USER};
-      mkdir($farmConfig->{lsf}->{scratch}."/$user/$uuid") or 
-        die "Failed to make a directory on the farm users space, ".
+      if($copy){
+        mkdir($farmConfig->{lsf}->{scratch}."/$user/$uuid") or 
+          die "Failed to make a directory on the farm users space, ".
             $farmConfig->{lsf}->{scratch}."/$user/$uuid: [$!]";
-      copy( "SEED", $farmConfig->{lsf}->{scratch}."/$user/$uuid/SEED") or die "Failed to copy SEED to scratch space:[$!]";
-      copy( "HMM", $farmConfig->{lsf}->{scratch}."/$user/$uuid/HMM")   or die "Failed to copy HMM to scratch space:[$!]";
-      copy( "DESC", $farmConfig->{lsf}->{scratch}."/$user/$uuid/DESC") or die "Failed to copy DESC to scratch space:[$!]";
-
+        copy( "SEED", $farmConfig->{lsf}->{scratch}."/$user/$uuid/SEED") or die "Failed to copy SEED to scratch space:[$!]";
+        copy( "HMM", $farmConfig->{lsf}->{scratch}."/$user/$uuid/HMM")   or die "Failed to copy HMM to scratch space:[$!]";
+        copy( "DESC", $farmConfig->{lsf}->{scratch}."/$user/$uuid/DESC") or die "Failed to copy DESC to scratch space:[$!]";
+      }
 
       unless($split){
         my $fh = IO::File->new();
         $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -n $cpu -R \"span[hosts=1]\" -o /tmp/$$.log -Jhmmsearch$$");
-        $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n");
+        if($copy){
+          $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n") if($copy);
+        }else{
+          $fh->print("cd ".$pwd." \n"); 
+        }
         $fh->print("$cmd\n");
         
         # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
@@ -446,18 +452,20 @@ sub main {
         }
         
         #Now bring back all of the files
-        $fh->print( "/usr/bin/scp -p HMM $phost:$pwd/HMM\n" );
-    		$fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/PFAMOUT\n" );
-        $fh->print( "/usr/bin/scp -p OUTPUT $phost:$pwd/OUTPUT\n" );
-        
-        if($withpfmake){
-          #Copy all of the files back associated with the alignment.
-          $fh->print( "/usr/bin/scp -p DESC $phost:$pwd/DESC\n" );
-          $fh->print( "/usr/bin/scp -p scores $phost:$pwd/scores\n");
-          $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
-        }     
-        #Now clean up after ourselves on the farm
-        $fh->print( "rm -fr ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n" );
+        if($copy){
+          $fh->print( "/usr/bin/scp -p HMM $phost:$pwd/HMM\n" );
+      		$fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/PFAMOUT\n" );
+          $fh->print( "/usr/bin/scp -p OUTPUT $phost:$pwd/OUTPUT\n" );
+          
+          if($withpfmake){
+            #Copy all of the files back associated with the alignment.
+            $fh->print( "/usr/bin/scp -p DESC $phost:$pwd/DESC\n" );
+            $fh->print( "/usr/bin/scp -p scores $phost:$pwd/scores\n");
+            $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
+          }     
+          #Now clean up after ourselves on the farm
+          $fh->print( "rm -fr ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n" );
+        }
         $fh->close();
       }else{
         #TODO split
@@ -504,6 +512,7 @@ Options that influence hmmsearch:
   -local      : Run the hmmsearch on the local machine rather than submitting 
               : to a compute farm. Note, the farm configuration is used by the 
               : Pfam configuration file.
+  -copy       : Copy the files in the familyto a place that is visible to the farm.            
   -split      : Run the hmmsearch against the split version of pfamseq (Not yet implemented).
   -ignoreSM   : Ignore the SM line present in the DESC file. Otherwise the SM
               : line will be supplimented to your SM options.            
