@@ -2,10 +2,10 @@
 #
 #
 # Author:        jm14
-# Maintainer:    $Id: merge_alignment.pl,v 1.2 2009-06-25 14:41:08 rdf Exp $
-# Version:       $Revision: 1.2 $
+# Maintainer:    $Id$
+# Version:       $Revision$
 # Created:       Jun 22, 2009
-# Last Modified: $Date: 2009-06-25 14:41:08 $
+# Last Modified: $Date$
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ merge_alignment.pl - merges two alignments
 Script that takes two input alignments, reformat them and makes a single alignment
 using the specified alignment method.Template - a short description of the class
 
-$Id: merge_alignment.pl,v 1.2 2009-06-25 14:41:08 rdf Exp $
+$Id$
 
 =head1 COPYRIGHT
 
