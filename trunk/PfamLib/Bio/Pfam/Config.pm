@@ -208,22 +208,22 @@ sub metaseqLoc {
   return $self->{metaseq}->{location};
 }
 
-=head2 revpfamseqLoc
+=head2 shuffledLoc
 
-  Title    : revpfamseqLoc
-  Usage    : $config->revpfamseqLoc
-  Function : Returns the location of revpfamseq
+  Title    : shuffledLoc
+  Usage    : $config->shuffledLoc
+  Function : Returns the location of shuffled
   Args     : None - read only operator
-  Returns  : string containing path to revpfamseq
+  Returns  : string containing path to shuffled
   
 =cut
 
-sub revpfamseqLoc {
+sub shuffledLoc {
   my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  return $self->{revpfamseq}->{location};
+  return $self->{shuffled}->{location};
 }
 
 =head2 pfamseqFarmLoc
@@ -375,22 +375,22 @@ sub meta_dbsize {
   return $self->{metaseq}->{dbsize};
 }
 
-=head2 rev_dbsize
+=head2 shuffled_dbsize
 
-  Title    : rev_dbsize
-  Usage    : $config->rev_dbsize
-  Function : Returns the number of sequences in revpfamseq
+  Title    : shuffled_dbsize
+  Usage    : $config->shuffled_dbsize
+  Function : Returns the number of sequences in shuffled
   Args     : None - read only operator
   Returns  : integer    
   
 =cut
 
-sub rev_dbsize {
+sub shuffled_dbsize {
   my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  return $self->{revpfamseq}->{dbsize};
+  return $self->{shuffled}->{dbsize};
 }
 
 =head2 dictionary
