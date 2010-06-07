@@ -24,7 +24,7 @@ use JSON qw( -convert_blessed_universally );
 
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
-use base 'Catalyst::Controller::REST';
+use base 'iPfamWeb::Controller::REST';
 
 #---------------------------------------------------------------------------------------------------------
 

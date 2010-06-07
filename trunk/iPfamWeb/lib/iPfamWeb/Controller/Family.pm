@@ -31,12 +31,12 @@ use warnings;
 use Data::Dump qw( dump );
 use JSON;
 
-use base 'Catalyst::Controller::REST';
+use base 'iPfamWeb::Controller::REST';
 
 sub begin : Private{
   
   my( $this, $c,$entry_arg ) = @_;
-  $c->log->debug( "Family::begin: inside the begin action " );
+  $c->log->debug( "Family::begin: inside the begin action ".dump( $this) );
   
   #stash the template and pagetype in the begining;
   $c->stash->{ pageType } ||= 'family';
@@ -129,7 +129,7 @@ sub family : Path : ActionClass( 'REST' ){}
 
 sub family_GET {
   my( $this, $c ) = @_;
-  $c->log->debug( "Family::GET: inside the method GET " );
+  $c->log->debug( "Family::GET: inside the method GET ".dump( $this ) );
   $c->log->debug( "Family::GET: forwarding to get_data " );
   $c->forward( 'get_data') unless( $c->stash->{ errorMsg } );
   
