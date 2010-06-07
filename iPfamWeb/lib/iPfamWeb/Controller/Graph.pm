@@ -29,7 +29,6 @@ use Data::Dump qw( dump );
 
 use base 'Catalyst::Controller';
 
-our $DEBUG = 0;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -49,7 +48,8 @@ sub begin : Private {
     || $c->req->param('acc')
     || $c->req->param('id');
   return unless $tainted_entry;
-  $c->log->debug("Graph:begin: The input tainted entry is $tainted_entry ") if( $DEBUG );
+  $c->log->debug("Graph:begin: The input tainted entry is $tainted_entry ")
+    if $c->debug;
 
 # now split the tainted_entry using ~, as the entries are explicitly joined using '~'
   my @tainted_entries = split( '~', $tainted_entry );
@@ -61,7 +61,8 @@ sub begin : Private {
   else {
     $entry = $tainted_entries[-1];
   }
-  $c->log->debug("Graph:begin: The entry is $entry ") if( $DEBUG );
+  $c->log->debug("Graph:begin: The entry is $entry ")
+    if $c->debug;
   $c->stash->{ entry } = $entry;
   
   my @entries;
@@ -72,7 +73,8 @@ sub begin : Private {
 
     if ( $tainted_entries[$i] =~ m/^([\w\._-]+)$/ ) {
 
-      $c->log->debug("Graph::begin: the detainted entry now is $1") if( $DEBUG );
+      $c->log->debug("Graph::begin: the detainted entry now is $1")
+        if $c->debug;
       push @entries, $1;
 
       # now look for the pfam accessions for the entry
@@ -83,8 +85,8 @@ sub begin : Private {
 
       if ( $1 eq $entry ) {
         unless ( defined $pfam ) {
-          $c->log->debug(
-            "Graph::begin: No pfam accessions were found for entry $1") if( $DEBUG );
+          $c->log->debug( "Graph::begin: No pfam accessions were found for entry $1" )
+            if $c->debug;
           $c->stash->{errorMsg} = 'No Pfam family found for entry $1 ';
           return;
         }
@@ -92,8 +94,8 @@ sub begin : Private {
 
       # now store the position and the pfam accession for the entry;
       if ( defined $pfam ) {
-        $c->log->debug(
-          "Graph::begin:the entry $1 has pfam_acc and is added to stash") if( $DEBUG );
+        $c->log->debug( "Graph::begin:the entry $1 has pfam_acc and is added to stash" )
+        if $c->debug;
         
 #        # always use teh pfama_id as key, so if the user provides the input as pfam_acc, change them 
 #        # so that we use pfama_id as a key;
@@ -112,13 +114,14 @@ sub begin : Private {
 
     }    # end of if
     else {
-      $c->log->debug(
-        "Graph:begin: The input entry $1 contains invalid characters ") if( $DEBUG );
+      $c->log->debug( "Graph:begin: The input entry $1 contains invalid characters" )
+        if $c->debug;
     }    # end of else
 
   }    # end of foreach tainted_entry
 
-  $c->log->debug( "Graph::begin: The dump of the acc is " . dump($acc) ) if( $DEBUG );
+  $c->log->debug( "Graph::begin: The dump of the acc is " . dump($acc) )
+    if $c->debug;
 
   # now stash the acc;
   $c->stash->{acc}     = $acc;
@@ -129,7 +132,8 @@ sub begin : Private {
 
   if ( $c->req->param('database') ) {
     foreach ( $c->req->param('database') ) {
-      $c->log->debug("Graph::begin: checking for database |$_|") if( $DEBUG );
+      $c->log->debug("Graph::begin: checking for database |$_|" )
+        if $c->debug;
 
       # ditch anything too dodgy
       next unless m/^([\w-]+)$/;
@@ -143,7 +147,8 @@ sub begin : Private {
       # trust that limit, since it's enforced by javascript...
       last if scalar @{ $c->stash->{db_list} } >= $self->{max_servers};
 
-      $c->log->debug("Graph::begin: adding |$_|") if( $DEBUG );
+      $c->log->debug("Graph::begin: adding |$_|") 
+        if $c->debug;
       push @{ $c->stash->{db_list} }, $1;
     }
   }
@@ -162,7 +167,8 @@ one for this request.
 sub graph : Path {
   my ( $self, $c ) = @_;
 
-  $c->log->debug("Graph::Path: Inside the Graph controller") if( $DEBUG );
+  $c->log->debug("Graph::graph: Inside the Graph controller") 
+    if $c->debug;
 
   # stash the list of servers that the user can choose to query
   $c->stash->{servers_hash} = $self->{servers_hash};
@@ -174,10 +180,12 @@ sub graph : Path {
   
   # switch ot fire off the request, if we get an acc,
   if( defined $c->stash->{ entry } ){
-    $c->log->debug( "Graph::graph:: we got the acc so set the flag to fire up ajax request" ) if( $DEBUG );
+    $c->log->debug( "Graph::graph:: we got the acc so set the flag to fire up ajax request" ) 
+      if $c->debug;
     $c->stash->{ ajaxStart } = 1;
   }else{
-    $c->log->debug( "Graph::graph:: we dint get the acc so set the flag to stop ajax request" )if( $DEBUG );
+    $c->log->debug( "Graph::graph:: we dint get the acc so set the flag to stop ajax request" )
+      if $c->debug;
     $c->stash->{ ajaxStart } = 0;
   }
   
@@ -204,14 +212,15 @@ sub map : Local {
 
   $c->forward('get_graph');
   unless ( defined $c->stash->{map} ) {
-    $c->log->debug('Graph::draw: no map found') if( $DEBUG );
+    $c->log->debug('Graph::draw: no map found') 
+      if $c->debug;
     $c->stash->{errorMsg} ||= 'Failed to build a graph for this Pfam family.';
     return;
   }
 
   # rebuilding the input entries;
-  $c->log->debug(
-    "Graph::Map: the dump of the entries is " . dump( $c->stash->{entries} ) ) if( $DEBUG );
+  $c->log->debug( "Graph::Map: the dump of the entries is " . dump( $c->stash->{entries} ) ) 
+    if $c->debug;
   my $entry = join( '~', @{ $c->stash->{entries} } );
 
   my $parameters = {
@@ -219,12 +228,11 @@ sub map : Local {
     database => $c->stash->{db_list}
   };
   $c->log->debug( 'Graph::map: parameters for image_uri: ', dump $parameters )
-   if( $DEBUG );
+   if $c->debug;
 
   $c->stash->{image_uri} = $c->uri_for( '/graph/image/', $parameters );
-  $c->log->debug(
-    'Graph::graph: setting image_uri to |' . $c->stash->{image_uri} . '|' )
-    if( $DEBUG );
+  $c->log->debug( 'Graph::graph: setting image_uri to |' . $c->stash->{image_uri} . '|' )
+    if $c->debug;
 
   # make sure that the image map isn't cached...
   $c->res->header( 'Pragma'  => 'no-cache' );
@@ -245,8 +253,8 @@ about caching data rather than retrieving it always from source.
 sub get_graph : Private {
   my ( $self, $c ) = @_;
 
-  $c->log->debug('Graph::get_graph: getting graph image and map')
-   if( $DEBUG );
+  $c->log->debug('Graph::get_graph: getting graph image and map') 
+    if $c->debug;
 
   my $entries = join '', @{ $c->stash->{entries} };
   $c->log->debug("Graph:get_graph: the list of entries joined are $entries");
@@ -257,8 +265,10 @@ sub get_graph : Private {
   my $db_list = join '', @{ $c->stash->{db_list} };
 
   $c->log->debug( "Graph:get_graph: the list of db_list are ",
-    dump $c->stash->{db_list} ) if( $DEBUG );
-  $c->log->debug("Graph:get_graph: the list of db_list are $db_list") if( $DEBUG );
+    dump $c->stash->{db_list} ) 
+      if $c->debug;
+  $c->log->debug("Graph:get_graph: the list of db_list are $db_list") 
+    if $c->debug;
 
   my $image_cache_key = 'graphImage' . $db_list . $entries;
   my $map_cache_key   = 'graphMap' . $db_list . $entries;
@@ -269,18 +279,16 @@ sub get_graph : Private {
   $c->stash->{map}   = $c->cache->get($map_cache_key);
   $c->stash->{ ligSource } = $c->cache->get( $ligSource_cache_key );
   
-  $c->log->debug("Graph::get_graph: image cache key: |$image_cache_key|")
-   if( $DEBUG );
-  $c->log->debug("Graph::get_graph: map cache key:   |$map_cache_key|")
-   if( $DEBUG );
-  $c->log->debug("Graph::get_graph: ligSource cache key:   |$ligSource_cache_key|")
-   if( $DEBUG );
+  if ( $c->debug ) {
+    $c->log->debug("Graph::get_graph: image cache key: |$image_cache_key|");
+    $c->log->debug("Graph::get_graph: map cache key:   |$map_cache_key|"); 
+    $c->log->debug("Graph::get_graph: ligSource cache key:   |$ligSource_cache_key|");
+  }
     
   if (  defined $c->stash->{image}
-    and defined $c->stash->{map} )
-  {
-    $c->log->debug('Graph::get_graph: retrieved map and image from cache')
-     if( $DEBUG );
+    and defined $c->stash->{map} ) {
+    $c->log->debug('Graph::get_graph: retrieved map and image from cache') 
+      if $c->debug;
   }
   else {
     $c->forward( 'build_graph', [ $image_cache_key, $map_cache_key, $ligSource_cache_key ] );
@@ -298,8 +306,8 @@ Does the donkey work of generating the graph.
 sub build_graph : Private {
   my ( $self, $c, $image_cache_key, $map_cache_key, $ligSource_cache_key ) = @_;
 
-  $c->log->debug('Graph::build_graph: generating map and image')
-   if( $DEBUG );
+  $c->log->debug('Graph::build_graph: generating map and image') 
+    if $c->debug;
 
   # get the raw interaction data and process it a little
   $c->forward('get_interaction_data');
@@ -311,6 +319,9 @@ sub build_graph : Private {
   if ( defined $c->stash->{errorMsg} ) {
     return;
   }
+
+  $c->log->debug('Graph::build_graph: retrieved data; instantiating GraphViz object') 
+    if $c->debug;
 
   # build a new GraphViz object and let it rip
   my $g;
@@ -328,11 +339,14 @@ sub build_graph : Private {
     );
   };
   if ($@) {
-    $c->log->debug('Graph::build_graph: problem generating a GraphViz object')
-     if( $DEBUG );
+    $c->log->debug('Graph::build_graph: problem generating a GraphViz object') 
+      if $c->debug;
     $c->stash->{errorMsg} ||= 'There was a problem generating your graph.';
     return;
   }
+
+  $c->log->debug('Graph::build_graph: got a GV object; adding nodes') 
+    if $c->debug;
 
   # first, interactors, i.e. graph nodes
   my %seen;
@@ -363,7 +377,8 @@ sub build_graph : Private {
     }
     
     if( defined $input_entry ){
-      $c->log->debug( "graph::build_graph: the color for $input_entry is ".$self->{ $acc->{ $input_entry }->{position} }) if( $DEBUG );
+      $c->log->debug( "graph::build_graph: the color for $input_entry is ".$self->{ $acc->{ $input_entry }->{position} }) 
+        if $c->debug;
       if ( $acc->{ $input_entry }->{position} < 5 ) {
         $g->add_node(
           $interactor->{node_name},
@@ -375,6 +390,9 @@ sub build_graph : Private {
     }
 
   }    # end of foreach interactor
+
+  $c->log->debug('Graph::build_graph: done adding interactors; adding interactions') 
+    if $c->debug;
 
   # next, add interactions to the graph, i.e. edges
   foreach my $interaction_id ( keys %{ $c->stash->{interactions} } ) {
@@ -402,9 +420,22 @@ sub build_graph : Private {
     );
   }
 
+  $c->log->debug('Graph::build_graph: done adding interactions') 
+    if $c->debug;
+
   # generate the image and the image map
-  $c->stash->{image} = $g->as_png;
-  $c->stash->{map}   = $g->as_cmapx;
+  eval {
+    $c->stash->{image} = $g->as_png;
+  }; 
+  if ( $@ ) {
+    $c->log->debug( "Graph::build_graph: error while generating image: $@" ) if $c->debug;
+  }
+  eval {
+    $c->stash->{map}   = $g->as_cmapx;
+  }; 
+  if ( $@ ) {
+    $c->log->debug( "Graph::build_graph: error while generating map: $@" ) if $c->debug;
+  }
 
   # try to cache them, so that we don't have to generate everything again when
   # we receive the request for the image
@@ -413,13 +444,16 @@ sub build_graph : Private {
   {
     $c->cache->set( $image_cache_key, $c->stash->{image} );
     $c->log->debug(
-      "Graph::build_graph: cached image under key |$image_cache_key|") if( $DEBUG );
+      "Graph::build_graph: cached image under key |$image_cache_key|") 
+        if $c->debug;
     $c->cache->set( $map_cache_key, $c->stash->{map} );
     $c->log->debug(
-      "Graph::build_graph: cached map under key   |$map_cache_key|") if( $DEBUG );
+      "Graph::build_graph: cached map under key   |$map_cache_key|") 
+        if $c->debug;
     $c->cache->set( $ligSource_cache_key, $c->stash->{ ligSource } );
     $c->log->debug(
-      "Graph::build_graph: cached the ligSource under the key |$ligSource_cache_key|\n") if( $DEBUG );   
+      "Graph::build_graph: cached the ligSource under the key |$ligSource_cache_key|\n") 
+        if $c->debug;   
   }
   else {
     $c->log->warn('Graph::build_graph: failed to generate image and/or map');
@@ -451,15 +485,16 @@ sub get_interaction_data : Private {
     # key has got format $entry~$db
     my ( $entry, $db_name ) = split( '~', $xml );
     
-    $c->log->debug( "Graph:get_interaction_data: dump of das response from $db_name ".dump( $c->stash->{ $xml } ) ) if( $DEBUG );
+    $c->log->debug( "Graph:get_interaction_data: dump of das response from $db_name ".dump( $c->stash->{ $xml } ) ) 
+      if $c->debug;
     my $dom;
     eval {
       $dom = $self->{xml_parser}->parse_string( $c->stash->{xml}->{$xml} );
     };
 
     if ($@) {
-      $c->log->warn("Graph::get_interaction_data: error when parsing XML: |$@|")
-       if( $DEBUG );
+      $c->log->warn("Graph::get_interaction_data: error when parsing XML: |$@|") 
+        if $c->debug;
       $c->stash->{errorMsg} =
           'We received a bad response from the '
         . $self->{servers_hash}->{$db_name}->{label}
@@ -469,8 +504,8 @@ sub get_interaction_data : Private {
 
     unless ( defined $dom ) {
       $c->log->warn( q(Graph::get_interaction_data: couldn't parse XML from )
-          . "database |$db_name|: $!" )
-       if( $DEBUG );
+          . "database |$db_name|: $!" ) 
+            if $c->debug;
       $c->stash->{errorMsg} =
           'We did not receive a response from the '
         . $self->{servers_hash}->{$db_name}->{label}
@@ -555,8 +590,10 @@ sub get_interaction_data : Private {
     $c->stash->{label}   = \%label;
     $c->stash->{ligSource} = \%ligSource;
 
-    $c->log->debug( "the ligSource is " . dump( $c->stash->{ligSource} ) . "\n\n" ) if( $DEBUG );
-    $c->log->debug( "The label is" . dump( \%label ) ) if( $DEBUG );
+    $c->log->debug( "the ligSource is " . dump( $c->stash->{ligSource} ) . "\n\n" ) 
+      if $c->debug;
+    $c->log->debug( "The label is" . dump( \%label ) ) 
+      if $c->debug;
 
     # store the interactions
     foreach my $interaction (@interactions) {
@@ -585,9 +622,8 @@ sub get_interaction_data : Private {
         $to_id = 'unknown';
       }
 
-      $c->log->debug(
-"Graph::get_interaction_data:for|$db_name|from_id|$from_id|to_id|$to_id|"
-      ) if( $DEBUG );
+      $c->log->debug( "Graph::get_interaction_data:for|$db_name|from_id|$from_id|to_id|$to_id|") 
+        if $c->debug;
 
       my ( $key, $key1, $to_dbid, $from_dbid );
 
@@ -634,9 +670,8 @@ sub get_interaction_data : Private {
 # however, add the nodes which already exists.
 
         if ( $c->stash->{acc}->{$entry}->{position} > 1 ) {
-          $c->log->debug(
-"Graph:get_interaction_data: edge added between $from_dbid to $to_dbid for key $key "
-          ) if( $DEBUG );
+          $c->log->debug( "Graph:get_interaction_data: edge added between $from_dbid to $to_dbid for key $key ") 
+            if $c->debug;
           $c->stash->{interactions}->{$key} = $edge
             if (( exists $acc->{ $label{$to_dbid} } )
             and ( exists $acc->{ $label{$from_dbid} } ) );
@@ -663,7 +698,8 @@ Gets the raw xml from the das servers and caches it for repeated use.
 sub get_xml : Private {
   my ( $self, $c ) = @_;
 
-  $c->log->debug("Graph::get_xml: getting raw xml from the das sources") if( $DEBUG );
+  $c->log->debug("Graph::get_xml: getting raw xml from the das sources") 
+    if $c->debug;
   my $xml_hash = {};
 
   foreach my $entry ( @{ $c->stash->{entries} } ) {
@@ -683,14 +719,16 @@ sub get_xml : Private {
         my $url = $self->{servers_hash}->{$db}->{uri};
         unless ( defined $url ) {
           $c->log->debug(
-            "Graph::get_xml: couldn't find URL for database |$db|") if( $DEBUG );
+            "Graph::get_xml: couldn't find URL for database |$db|") 
+              if $c->debug;
           next;
         }
 
         # append the Pfam accession
         $url .= '?interactor=' . $c->stash->{acc}->{$entry}->{pfam};
 
-        $c->log->debug("Graph::get_xml: retrieving XML from URL: |$url|") if( $DEBUG );
+        $c->log->debug("Graph::get_xml: retrieving XML from URL: |$url|") 
+          if $c->debug;
 
         # get a UserAgent
         my $ua = LWP::UserAgent->new;
@@ -746,7 +784,8 @@ sub image : Local {
 
   $c->forward('get_graph');
   unless ( defined $c->stash->{image} ) {
-    $c->log->debug('Graph::draw: no image found')if( $DEBUG );
+    $c->log->debug('Graph::draw: no image found') 
+      if $c->debug;
     return;
   }
 
@@ -779,12 +818,11 @@ sub validate_interaction : Private {
   unless ( defined $c->stash->{interactors}
     and defined $c->stash->{interactions} )
   {
-    $c->log->debug(
-"Graph:validate_interaction: Interactors and Interactions are missing in the stash "
-    ) if( $DEBUG );
+    $c->log->debug( "Graph:validate_interaction: Interactors and Interactions are missing in the stash ") 
+      if $c->debug;
     $c->stash->{errorMsg} ||= 'We found no interactions for this entry ';
-    $c->log->debug(
-      "graph:validate_interaction: returning in validate_interaction ") if( $DEBUG );
+    $c->log->debug( "graph:validate_interaction: returning in validate_interaction ") 
+      if $c->debug;
     return;
   }
 
@@ -807,7 +845,8 @@ OUTER: for ( my $i = $#{ $c->stash->{entries} } ; $i > 0 ; $i-- ) {
     $c->log->debug( "$i = "
         . $c->stash->{entries}->[$i] . " $j= "
         . $c->stash->{entries}->[$j]
-        . "|$key1|$key2|\n" ) if( $DEBUG );
+        . "|$key1|$key2|\n" ) 
+          if $c->debug;
 
     # if there is no interaction between the entries then mark the position;
     unless ( exists $c->stash->{interactions}->{$key1}
@@ -817,12 +856,12 @@ OUTER: for ( my $i = $#{ $c->stash->{entries} } ; $i > 0 ; $i-- ) {
       $c->log->debug(
         "graph:validate_interaction: does it comes here ",
         dump( $acc->{ $c->stash->{entries}->[$i] } )
-      ) if( $DEBUG );
+      ) 
+        if $c->debug;
       $remove_position = $acc->{ $c->stash->{entries}->[$i] }->{position};
       $c->stash->{remove_position} = $remove_position;
-      $c->log->debug(
-"Graph::validate_interaction: Entries which are lesser than position $remove_position are removed "
-      ) if( $DEBUG );
+      $c->log->debug( "Graph::validate_interaction: Entries which are lesser than position $remove_position are removed ") 
+        if $c->debug;
       last OUTER;
     }
 
@@ -831,9 +870,8 @@ OUTER: for ( my $i = $#{ $c->stash->{entries} } ; $i > 0 ; $i-- ) {
   # return if remove_position is not defined;
   unless ( defined $remove_position ) {
 
-    $c->log->debug(
-" Graph::validate_interaction: All input entries are connected hence skipping validation"
-    ) if( $DEBUG );
+    $c->log->debug( "Graph::validate_interaction: All input entries are connected hence skipping validation") 
+      if $c->debug;
     return;
 
   }
@@ -849,17 +887,20 @@ OUTER: for ( my $i = $#{ $c->stash->{entries} } ; $i > 0 ; $i-- ) {
     $c->log->debug( "Graph:validate_interaction: $_ The |$from|"
         . $label->{$from} . '|'
         . $to . '|'
-        . $label->{$to} ) if( $DEBUG );
+        . $label->{$to} ) 
+          if $c->debug;
 
     if ( exists $acc->{ $label->{$from} } and exists $acc->{ $label->{$to} } ) {
       $c->log->debug(
             "Graph:validate_interaction: both from and to exists in acc: "
           . $label->{$from} . '|'
-          . $label->{$to} ) if( $DEBUG );
+          . $label->{$to} ) 
+            if $c->debug;
       if (  ( $acc->{ $label->{$to} }->{position} > $remove_position )
         and ( $acc->{ $label->{$from} }->{position} > $remove_position ) )
       {
-        $c->log->debug("graph:deleting the $label->{ $from }|$label->{ $to }") if( $DEBUG );
+        $c->log->debug("graph:deleting the $label->{ $from }|$label->{ $to }") 
+          if $c->debug;
         delete $c->stash->{interactions}->{$_};
       }
     }
@@ -899,17 +940,20 @@ OUTER: for ( my $i = $#{ $c->stash->{entries} } ; $i > 0 ; $i-- ) {
     $c->log->debug( "Graph:validate_interaction: $_ The |$from|"
         . $label->{$from} . '|'
         . $to . '|'
-        . $label->{$to} ) if( $DEBUG );
+        . $label->{$to} ) 
+          if $c->debug;
     if ( exists $acc->{ $label->{$from} } and exists $acc->{ $label->{$to} } ) {
 
       $c->log->debug(
             "Graph:validate_interaction: both from and to exists in acc: "
           . $label->{$from} . '|'
-          . $label->{$to} ) if( $DEBUG );
+          . $label->{$to} ) 
+            if $c->debug;
       if (  ( $acc->{ $label->{$to} }->{position} > $remove_position )
         and ( $acc->{ $label->{$from} }->{position} > $remove_position ) )
       {
-        $c->log->debug("graph:deleting the $label->{ $from }|$label->{ $to }") if( $DEBUG );
+        $c->log->debug("graph:deleting the $label->{ $from }|$label->{ $to }") 
+          if $c->debug;
         delete $c->stash->{interactors}->{$_};
       }
     }
@@ -956,9 +1000,8 @@ sub end : ActionClass('RenderView') {
   my ( $self, $c ) = @_;
   if ( defined $c->stash->{errorMsg} ) {
     $c->log->debug( 'Graph::end: found an error message in the stash: |'
-        . $c->stash->{errorMsg}
-        . '|' )
-     if( $DEBUG );
+        . $c->stash->{errorMsg} . '|' ) 
+      if $c->debug;
     $c->res->body( $c->stash->{errorMsg} );
     $c->res->status(400);
   }
