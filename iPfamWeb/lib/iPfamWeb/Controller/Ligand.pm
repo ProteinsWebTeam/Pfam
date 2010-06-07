@@ -23,7 +23,7 @@ use warnings;
 use Data::Dump qw( dump );
 
 
-use base 'Catalyst::Controller::REST';
+use base 'iPfamWeb::Controller::REST';
 
 #use base 'iPfamWeb::Controller::Section';
 
