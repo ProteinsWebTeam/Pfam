@@ -381,8 +381,8 @@ sub checkRegions {
         my $string =
             "(3) In "
           . $regions->[$j]->{fam} . " "
-          . $regions->[$j]->{acc} . ": "
-          . $regions->[$j]->{ali} . " "
+          . $regions->[$j]->{acc} . " "
+          . $regions->[$j]->{ali} . " " . ": "
           . $protein . "/"
           . $regions->[$j]->{start} . "-"
           . $regions->[$j]->{end} . " ("
