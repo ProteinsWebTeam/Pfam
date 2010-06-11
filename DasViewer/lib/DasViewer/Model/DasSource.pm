@@ -37,8 +37,9 @@ sub getDataSource{
   $args->{ das_params }->{ capability } = $capability;
   $args->{ das_params }->{http_proxy}   = $proxy if defined $proxy;
   
+  print STDERR 'Model::DasSource:the config file to be loaded is '.$ENV{ MODEL_CONFIG };
   # store the config file in input params;
-  $args->{ input_params }->{ config } = $this->{ config };
+  $args->{ input_params }->{ config } = $ENV{ MODEL_CONFIG }; 
   
   my $ds = DataSource->new( $args );
   
