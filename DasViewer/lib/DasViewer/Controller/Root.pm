@@ -28,15 +28,8 @@ DasViewer::Controller::Root - Root Controller for DasViewer
 
 sub index :Path  {
   my ( $self, $c ) = @_;
-  
+  $c->log->debug( "DasViewer::Root: Setting the index page to the app" ); 
   $c->stash->{template} = 'components/index.tt';
-}
-
-sub default :Path {
-  my ( $self, $c ) = @_;
-  $c->response->body( 'Page not found' );
-  $c->response->status(404);
-  
 }
 
 =head2 docs: Path( '/docs)
