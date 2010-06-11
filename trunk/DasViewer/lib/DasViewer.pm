@@ -14,8 +14,7 @@ use Catalyst::Runtime '5.70';
 #                 directory
 
 use parent qw/Catalyst/;
-use Catalyst qw/-Debug
-                Cache
+use Catalyst qw/Cache
                 ConfigLoader
                 Static::Simple/;
 our $VERSION = '0.01';
@@ -29,7 +28,12 @@ our $VERSION = '0.01';
 # with a external configuration file acting as an override for
 # local deployment.
 
-__PACKAGE__->config( name => 'DasViewer' );
+__PACKAGE__->config(
+  name => 'DasViewer',
+  'Plugin::ConfigLoader' => {
+    file => '/opt/www/DasViewer/conf/dasviewer.conf'
+  }
+);
 
 # Start the application
 __PACKAGE__->setup();
