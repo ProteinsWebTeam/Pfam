@@ -432,7 +432,7 @@ var FeatureViewer = Class.create({
   // function to fetch the tip_definition file from my server;
   _fetchTipDefinition: function(){
     
-    var url = '[% c.uri_for( "./static/javascripts/tip_definition.js" ) %]';
+    var url = '[% c.uri_for( "/static/javascripts/tip_definition.js" ) %]';
     // try to look whether we already do have tip_definition in the browser
     var scripts = $$( 'script[src='+url+']' );
                     
