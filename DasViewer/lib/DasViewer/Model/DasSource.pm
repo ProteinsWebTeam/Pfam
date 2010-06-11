@@ -28,7 +28,7 @@ sub getDataSource{
   my( $this, $args ) = @_;
   
 #  my ( $dsn   ) = $this->{dsn}         =~ m/^([\w\.\:\/\-\?\#]+)$/;
-  my ( $proxy )      = $this->{proxy} || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
+  my ( $proxy )      = $ENV{ http_proxy } || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
   my ( $to )         = $this->{timeout} || 60 =~ /^\d+$/;    
   my ( $capability ) = $this->{capability} =~ /^\w+$/;
   
