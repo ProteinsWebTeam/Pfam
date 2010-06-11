@@ -5,6 +5,7 @@
   ELSE;  
   
 -%]
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -46,12 +47,12 @@
       <script src="http://yui.yahooapis.com/2.8.0r4/build/get/get-min.js" ></script>
       
       <!-- now load the three visualisation widgets -->
-      <script src="http://localhost:3000/javascripts/AlignmentViewer.js"></script>
-      <script src="http://localhost:3000/javascripts/FeatureViewer.js"></script>
-      <script src="http://localhost:3000/javascripts/StructureViewer.js"></script>
+      <script src="[% c.uri_for('/javascripts/AlignmentViewer.js') %]"></script>
+      <script src="[% c.uri_for('/javascripts/FeatureViewer.js') %]"></script>
+      <script src="[% c.uri_for('/javascripts/StructureViewer.js') %]"></script>
       
       <!-- now load the widgettagger, which tags the widgets together -->
-      <script src="http://localhost:3000/static/javascripts/WidgetTagger.js"></script>
+      <script src="[% c.uri_for('/static/javascripts/WidgetTagger.js') %]"></script>
     </head>
       
     <body>
