@@ -104,12 +104,12 @@ requirements.js.push( "Jmol.js" );
        FeatureParams:{
                        featureParent: 'featureHolder',
                        featureSources: sources,
-                       featureURL: "http://localhost:3000/feature/getFeature"
+                       featureURL: "[% c.uri_for( '/feature/getFeature') %]"
                      },
        StructureParams:{
                           structureParent:   'structureHolder',
                           structureURL:      "[% c.uri_for( '/structure/getStructure') %]",
-                          structureJmolURL:  'http://localhost:3000/static/jmol'
+                          structureJmolURL:  "[% c.uri_for( '/static/jmol') %]"
                           
                        }                      
      };
@@ -120,7 +120,7 @@ requirements.js.push( "Jmol.js" );
         Event.observe( window, 'load', function(){
           // call the alignment viewer;
           console.log( 'event load triggered' );
-          alignObj = new AlignmentViewer( 'alignmentHolder', acc, dsn, size, 'http://localhost:3000/alignment/alignment' );
+          alignObj = new AlignmentViewer( 'alignmentHolder', acc, dsn, size, "[% c.uri_for( '/alignment/alignment') %]" );
           new WidgetTagger( alignObj, options );
           //timer = setInterval( "checkAlignments()", 800 );
         } );

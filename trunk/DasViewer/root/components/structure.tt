@@ -81,9 +81,9 @@ requirements.js.push( "WidgetTagger.js" );
 //    var alignObj = new AlignmentViewer( 'alignmentHolder', acc, dsn, size, 'http://localhost:3000/ajaxalignment/alignment' );
 //    
     var parent = 'structureHolder';
-    var url = "http://localhost:3000/structure/getStructure";
+    var url = "[% c.uri_for( 'structure/getStructure') %]";
     var accession = 'P50225';
-    var jmolUrl  = 'http://localhost:3000/static/jmol';
+    var jmolUrl  = "[% c.uri_for( '/static/jmol') %]";
     
     console.log( 'teh url is '+url );
     var structures = new StructureViewer( parent, accession, url, jmolUrl );
