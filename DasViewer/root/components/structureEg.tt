@@ -34,9 +34,16 @@
     </head>
       
     <body>
+      
+      <h1 style="text-align:center;text-decoration:underline;">[% "DAS Widgets" %]</h1>
+       <div id="menu">
+          <ul style="text-align:center;list-style-type:none; ">
+              <li><a href="[% c.uri_for('/') %]">Home</a> | <a href="[% c.uri_for('/docs') %]">Documentation</a> | <a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
+          </ul>
+      </div><!-- end menu -->
     
       <div id="bodyblock" style="position:relative;">
-        <h1> Example page - Structure Viewer </h1>
+        <h2> Example page - Structure Viewer </h2>
         <p></p>
         
         <div id='input' style="float:left;border:1px solid green;padding: 1em;">
