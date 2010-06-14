@@ -126,9 +126,22 @@ sub getDasFeatures : Private {
   my $lite = $self->{daslite};
   
 SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
-
-    $lite->dsn( $self->{$ds_id}->{url} );
-    my $featureResponse = $lite->features( $c->stash->{ response}->{acc} );
+    
+    my $featureResponse;
+    
+    # there might be cases where connecting to a specific source may fail;
+    eval{
+      $lite->dsn( $self->{$ds_id}->{url} );
+      $featureResponse = $lite->features( $c->stash->{ response}->{acc} );  
+    };
+    
+    if( $@ ){
+      $c->log->debug( 'there is a problem connecting to this source '.$self->{$ds_id}->{url});
+      $c->stash->{ response}->{ totalError }++;
+      $c->stash->{ response}->{ errorSources }->{ $ds_id } = 1;
+      next SOURCE;
+    }
+    
     my ( $url, $features ) = each( %{$featureResponse} );
     
     unless( defined $features && ( ref $features eq 'ARRAY' ) && scalar( @{ $features } ) > 0 ){
