@@ -77,7 +77,7 @@
             </form>
           </div>
           
-          <input type="button" value="Show input" id="showForm" style="display:none;"/>
+          <input type="button" value="Show input" id="showForm" onclick="showForm( )" style="display:none;"/>
           
         </div> 
         
@@ -147,6 +147,13 @@
           
         }
         
+        // function to show the input form;
+        function showForm(  ){
+          $( 'input' ).show();
+          
+          // hide the form;
+          $( 'showForm').hide();
+        }
            
       </script>
     </body>
