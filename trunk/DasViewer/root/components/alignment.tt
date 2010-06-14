@@ -139,10 +139,7 @@ requirements.js.push( "Jmol.js" );
           
           console.log( 'I got the alignments so clearing the timer ' );
           clearInterval( timer );
-          //$( 'checkSources' ).show();  
-          
-          new WidgetTagger( alignObj, options );
-          // now create the widget tagger for making the calls;
+          //$( 'checkSources' ).show();            
         }
         
       }
