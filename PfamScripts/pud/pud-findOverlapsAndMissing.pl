@@ -8,6 +8,7 @@ use Cwd;
 use Bio::Pfam::FamilyIO;
 use Data::Dumper;
 use Date::Object;
+use Getopt::Long;
 
 my $logdir = shift;
 my $families = shift;
@@ -17,6 +18,9 @@ my $clans;
 my $clan2fam;
 my $nestClans = 1;
 my $famData;
+
+my $no_compete; # Use this option to not do the clan competition step
+GetOptions( 'no_compete!'     => \$no_compete);
 
 
 opendir( DIR, "$families" ) or die "Could not open dir, $families:[$!]\n";
@@ -192,38 +196,45 @@ sub checkRegions {
   # Do all competition comparisons first to set all the skip flags
   # This means if there are two overlapping regions that are to families in the same clan
   # only the highest scoring match will be kept
-  for ( my $i = 0 ; $i <= $#{ $regions } ; $i++ ) {
-      for ( my $j = $i + 1 ; $j <= $#{$regions} ; $j++ ) {
-	  if( $clans->{$regions->[$i]->{acc}} and $clans->{$regions->[$j]->{acc}}){
-	      if($clans->{$regions->[$i]->{acc}} eq $clans->{$regions->[$j]->{acc}} ){
-		  my $remove=0;
-		  #print STDERR "Both regions are in the same clan\n";
-		  # I should delete the lowest scoring one if they overlap!
-		  if ( $regions->[$i]->{start} <= $regions->[$j]->{start}
-		       && $regions->[$i]->{end} >= $regions->[$j]->{start} )
-		  {$remove=1;} 
+  if (! $no_compete){
+      for ( my $i = 0 ; $i <= $#{ $regions } ; $i++ ) {
+	  for ( my $j = $i + 1 ; $j <= $#{$regions} ; $j++ ) {
+	      if( $clans->{$regions->[$i]->{acc}} and $clans->{$regions->[$j]->{acc}}){
+		  if($clans->{$regions->[$i]->{acc}} eq $clans->{$regions->[$j]->{acc}} ){
+		      my $remove=0;
+		      
+		      # Short circuit tests to try and speed up
+		      #if ($regions->[$i]->{end} < $regions->[$j]->{start}){next;}
+		      #if ($regions->[$i]->{start} > $regions->[$j]->{end}){next;}
+		      
+		      #print STDERR "Both regions are in the same clan\n";
+		      # I should delete the lowest scoring one if they overlap!
+		      if ( $regions->[$i]->{start} <= $regions->[$j]->{start}
+			   && $regions->[$i]->{end} >= $regions->[$j]->{start} )
+		      {$remove=1;} 
+		      
+		      elsif ( $regions->[$i]->{start} <= $regions->[$j]->{end}
+			      && $regions->[$i]->{end} >= $regions->[$j]->{end} )
+		      {$remove=1;}
+		      
+		      elsif ( $regions->[$i]->{start} >= $regions->[$j]->{start}
+			      && $regions->[$i]->{end} <= $regions->[$j]->{end} )
+		      {$remove=1;}
+		      
+		      if ($remove){
+			  my $score_i=$regions->[$i]->{score};
+			  my $score_j=$regions->[$j]->{score};
+			  
 
-		  elsif ( $regions->[$i]->{start} <= $regions->[$j]->{end}
-			  && $regions->[$i]->{end} >= $regions->[$j]->{end} )
-		  {$remove=1;}
-
-		  elsif ( $regions->[$i]->{start} >= $regions->[$j]->{start}
-			  && $regions->[$i]->{end} <= $regions->[$j]->{end} )
-		  {$remove=1;}
-
-		  if ($remove){
-		      my $score_i=$regions->[$i]->{score};
-		      my $score_j=$regions->[$j]->{score};
-
-
-		      if ($score_i eq '**' or $score_j eq '**'){
-			  # Ignore removal one is a SEED sequence
-		      } elsif ($score_i<$score_j){
-			  #print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
-			  $regions->[$i]->{skip}=1;
-		      } else {
-			  #print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
-			  $regions->[$j]->{skip}=1;
+			  if ($score_i eq '**' or $score_j eq '**'){
+			      # Ignore removal one is a SEED sequence
+			  } elsif ($score_i<$score_j){
+			      #print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
+			      $regions->[$i]->{skip}=1;
+			  } else {
+			      #print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
+			      $regions->[$j]->{skip}=1;
+			  }
 		      }
 		  }
 	      }
