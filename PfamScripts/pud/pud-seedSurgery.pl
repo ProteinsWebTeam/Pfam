@@ -153,8 +153,8 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
     $logger->warn("$fam does not exist in the $famDir");
     next;
   }
-  move( $famDir . "/$fam", $surgeryDir . "/$fam" ) or 
-    $logger->logdie("Failed to move $fam in to $surgeryDir:[$!]");
+  system( "mv $famDir/$fam $surgeryDir" ) and 
+    $logger->logdie("Failed to move $famDir/$fam to  $surgeryDir:[$!]");
   chdir("$surgeryDir/$fam")
     or $logger->logdie( "Could not change into $surgeryDir/$fam:[$!]" );
 
@@ -212,9 +212,10 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
 #-------------------------------------------------------------------------------
 #Move those families that do not need surgery (as only names have changes into the non-surgery directory.
   if ( !$needHMMAlign and !defined( $descObj->NESTS ) ) {
+    chdir($surgeryDir);
     $logger->debug("Moving $fam to $famDir");
-    move( "$surgeryDir/$fam", "$famDir/$fam" )
-      or die "Failed to move $fam dir into $famDir\n";
+    system( "mv $surgeryDir/$fam $famDir" )
+      and $logger->logdie("Failed to move $fam dir into $famDir");
   }
 }
 
