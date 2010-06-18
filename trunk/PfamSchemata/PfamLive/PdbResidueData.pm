@@ -15,29 +15,31 @@ __PACKAGE__->add_columns(
   "chain",
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
   "serial",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "pdb_res",
-  { data_type => "CHAR", default_value => "", is_nullable => 0, size => 3 },
+  { data_type => "CHAR", default_value => undef, is_nullable => 1, size => 3 },
   "pdb_seq_number",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "pdb_insert_code",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 1 },
   "pfamseq_acc",
-  { data_type => "VARCHAR", default_value => 0, is_nullable => 0, size => 6 },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 6 },
   "auto_pfamseq",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "seq_version",
   { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
   "pfamseq_res",
-  { data_type => "CHAR", default_value => "", is_nullable => 0, size => 3 },
+  { data_type => "CHAR", default_value => undef, is_nullable => 1, size => 3 },
   "pfamseq_seq_number",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "dssp_code",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 4 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
 );
 __PACKAGE__->belongs_to("pdb_id", "PfamLive::Pdb", { pdb_id => "pdb_id" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-21 16:01:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qUESoPEAVf9I1abhmoxGZg
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-06-18 14:37:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:laCdfpYTBOzt4vOBqpfXHg
 
 __PACKAGE__->might_have( pfamA_reg_full_significant => "PfamLive::PfamaRegFullSignificant",
              { "foreign.auto_pfamseq" => "self.auto_pfamseq"});
