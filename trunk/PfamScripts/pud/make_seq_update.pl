@@ -22,6 +22,7 @@ use File::Copy;
 use Mail::Mailer;
 use Cwd;
 use Log::Log4perl qw(:easy);
+use Date::Object;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -259,7 +260,7 @@ $logger->warn('Until we have a good source of metaseq data, there is nothing to 
 
 if(! -e "$statusdir/done_upload_interpro") {
   $logger->info("Preparing to upload the new interpro database and GO data\n");
-  system("pud-update_interpro_and_go.pl") and $logger->logdie( "pud-update_interpro_and_go.pl failed:[$!]" );  
+  system("pud-updateInterproAndGo.pl") and $logger->logdie( "pud-update_interpro_and_go.pl failed:[$!]" );  
   system("touch $statusdir/done_upload_interpro") and $logger->logdie( "can't touch $statusdir/done_upload_interpro:[$!]");
 }else{
   $logger->info("Already done upload on interpro and GO\n");
@@ -276,7 +277,7 @@ $logger->warn('Until iPfam is resurrected, there is nothing to do.');
 # This took 2.5 without the upload (done manaually afterwards) - takes about another 2 hours to upload
 unless(-e "$statusdir/done_update_pdb" ){
   $logger->info("Preparing to fetch all the latest pdb data.");
-  system("pud-getPdbData.pl") 
+  system("pud-getPdbData.pl $statusdir") 
     and $logger->logdie("Failed to run pud-getPdbData.pl:[$!]");
   $logger->info("Updated pdb data");
   system("touch $statusdir/done_update_pdb") 
@@ -289,7 +290,7 @@ unless(-e "$statusdir/done_update_pdb" ){
 #Calculate the other regions - This takes about 5 hours to calculate....Hmm we may want to fork here (rdf)
 unless(-e "$statusdir/done_other_reg_update"){
   $logger->info("Updating other_reg table");
-  system("pud-other-reg.pl $pfamseqdir$newrelease_num") 
+  system("pud-otherReg.pl $pfamseqdir$newrelease_num") 
     and $logger->logdie("Failed to calculate othe regions:[$!]");
   $logger->info("Finished updating other_reg table");
   system("touch $statusdir/done_other_reg_update") 
@@ -337,8 +338,8 @@ unless(-e "$statusdir/done_checked_out_families") {
 #Find out which families require seed surgery and fix them. This will also check out families that do not require surgery....
 if(! -e "$statusdir/done_seed_surgery") {
   $logger->info("Finding out which families require seed surgery\n"); 
-  system("pud-seed-surgery.pl -families $migrationDir/Families -surgery $migrationDir/SURGERY -md5file $statusdir/oldpfamseq".$oldrelease_num.".dat")
-    and $logger->logdie( "pud-seed-surgery.pl failed:[$!]");
+  system("pud-seedSurgery.pl -families $migrationDir/Families -surgery $migrationDir/SURGERY -md5file $statusdir/old_pfamseq.md5")
+    and $logger->logdie( "pud-seedSurgery.pl failed:[$!]");
   system("touch $statusdir/done_seed_surgery") and die "can't touch $statusdir/done_seed_surgery:[$!]";
   $logger->info("Determined which families require seed surgery and fixed them\n");
 }
@@ -383,11 +384,11 @@ if (! -z "$statusdir/check_NON_SURGERY_SEEDS_have_size"){
 #Unlock the database
 # Unlock the database at this point ready for check ins
 if(! -e "$statusdir/database_unlocked") {
-    &report("Unlocking database\n");
+    $logger->info("Unlocking database\n");
     system ("pflock -u") and die "Cannot run pflock:[$!]";
     system("touch $statusdir/database_unlocked") and die "Cannot run touch:[$!]";
 } else {
-    &report("Already unlocked database\n");
+    $logger->info("Already unlocked database\n");
 }
 #-------------------------------------------------------------------------------
 if (! -e "$statusdir/searched_all_non_surgery_families"){
@@ -419,17 +420,22 @@ if (! -e "$statusdir/searched_all_non_surgery_families"){
   system("touch $statusdir/searched_all_non_surgery_families") and 
     $logger->info("Can not touch $statusdir/searched_all_non_surgery_families:[$!]");   
 } else {
-    &report("Already carried out pfbuilds for non-surgery families");
+    $logger->info("Already carried out pfbuilds for non-surgery families");
 }
 
 # Tell user to wait until all SEED surgery families have been checked
 if(! -e "$statusdir/seed_surgery_alignments_checked") {
   my $ans=0;
-  until ($ans eq 'y') {
-    $logger->info("Have all the SEED surgery alignments been checked and modified where needed?".
+  $logger->info("Have all the SEED surgery alignments been checked and modified where needed?".
 	  " If not go and do this now.  When you have done this come back and press 'y'".
 	  " and the program will continue\n");
-	 chomp ($ans = <STDIN>);
+  until ($ans eq 'y') {
+    print STDERR "Has surgery been completed?:";
+    $ans = <STDIN>;
+    $ans = ($ans ? $ans : 0);
+    chomp($ans);
+	  #chomp ($ans = (defined(<STDIN>) ? <STDIN> : 0));
+    print $ans;
   }
   system ("touch $statusdir/seed_surgery_alignments_checked")
     and $logger->logdie("Can not touch $statusdir/seed_surgery_alignments_checked:[$!]");
@@ -440,7 +446,6 @@ $logger->info("Already checked all SEED surgery family alignments - program cont
 #-------------------------------------------------------------------------------
 
 # BREAKING HERE UNTIL SURGERY HAS BEEN COMPLETED
-exit;
 #-------------------------------------------------------------------------------
 #Assuming all surgery has been performed and families moved back into families dir.
 
@@ -451,46 +456,57 @@ exit;
 #Run my overlap script 
 
 #Wait until all overlaps resolved......
+#Put some hints on how to resolve overlaps.
+
+#Need to add some information about how to resolve overlaps
+
+#Then two manual steps - truncate pfamA_reg_full_significant
 
 
 
-# Should put overlap resolution and clan building into an iterative cycle with overlap checks.
-
-#Do overlap checks
+#Do overlap checks one last time
 if(! -e "$statusdir/resolved_overlaps") {
-    &report("Looking for overlaps\n");
-    system ("pud-overlap.pl $config->productionLoc/ALL_FAMILIES") and die "pud-overlap.pl failed:[$!]";
-
+    $logger->info("Looking for overlaps");
+    system ("pud-findOverlapsAndMissing.pl $statusdir $migrationDir/Families") and 
+      $logger->logdie("Failed to run oud-finOverlapsAndMissing.pl:[$!]\n");
+    my $date       = new Date::Object( time() );
+    my $filePrefix = $date->year.$date->month.$date->day."overlaps";
     # Check size of overlaps
-    if (! -s "$config->productionLoc/ALL_FAMILIES/overlaps"){
-	&report("Congratulations you appear to have resolved all overlaps");
-	system("touch $statusdir/resolved_overlaps") and die "Cannot run touch:[$!]";
+    if (-e "$statusdir/$filePrefix.overlaps" and 
+          !-s "$statusdir/$filePrefix.overlaps"){
+	    $logger->info("Congratulations you appear to have resolved all overlaps");
+    	system("touch $statusdir/resolved_overlaps") and $logger->logdie("Cannot run touch on $statusdir/resolved_overlaps:[$!]");
     } else {
-	&report("Overlaps still remain to be resolved. Exiting");
+	    $logger->info("Overlaps still remain to be resolved. Exiting");
+      exit;
     }
 } else {
-    &report("Already resolved overlaps");
+    $logger->info("Already resolved overlaps");
 }
 
+
 #-------------------------------------------------------------------------------
-#lock database
 #Ensure that the clan dequeuer is offline
 
 # Check in all families
 # In release 23 found a lot of families had not been checked out!
 # Wrote a little helper program to fix this see ~agb/Scripts/fix_ci.pl
 if(! -e "$statusdir/families_checked_in") {
-    &report("Check in all families\n");
-    chdir "$config->productionLoc/ALL_FAMILIES" or die "Can not change dir to $config->productionLoc/ALL_FAMILIES :[$!]";
+    $logger->info("Check in all families");
+    chdir "$migrationDir/Families" or $logger->logdie("Could not chdir to $migrationDir/Families:[$!]");
 
-    system ("pud-ci.pl \'Release $newrelease_num update\'") and die "pud-ci.pl failed, serious problem!!!:[$!]";
+    system ("pud-ci.pl -message \'Release $newrelease_num update\' -fam_dir $migrationDir/Families -log_dir $statusdir") and $logger->logdie("pud-ci.pl failed, serious problem!!!:[$!]");
+    unless(-e "$statusdir/failedCheckIn" and !-s "$statusdir/failedCheckIn" and -s "$statusdir/checkedIn"){
+      $logger->logdie("Some families failed check-in. Please fix the problem and retry\n");
+    }
     system("touch $statusdir/families_checked_in") and die "Cannot run touch:[$!]";
 } else {
-    &report("Already checked in all families\n");
+    $logger->infot("Already checked in all families\n");
 }
 
 #Start up the clan dequeuer
 
+exit;
 
 
 # Now check that everything got checked in correctly and has message
