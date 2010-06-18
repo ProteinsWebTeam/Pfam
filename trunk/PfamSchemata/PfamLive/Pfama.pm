@@ -210,6 +210,16 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
+  "pfama2pfama_hhsearch_results_auto_pfama2s",
+  "PfamLive::Pfama2pfamaHhsearchResults",
+  { "foreign.auto_pfama2" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama2pfama_hhsearch_results_auto_pfama1s",
+  "PfamLive::Pfama2pfamaHhsearchResults",
+  { "foreign.auto_pfama1" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
   "pfama_hmms",
   "PfamLive::PfamaHmm",
   { "foreign.auto_pfama" => "self.auto_pfama" },
@@ -255,6 +265,21 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
+  "pfama_species_trees",
+  "PfamLive::PfamaSpeciesTree",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama_tax_depths",
+  "PfamLive::PfamaTaxDepth",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama_wikis",
+  "PfamLive::PfamaWiki",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
   "pfamb2pfama_prc_results",
   "PfamLive::Pfamb2pfamaPrcResults",
   { "foreign.auto_pfama" => "self.auto_pfama" },
@@ -271,8 +296,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-07-31 09:38:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uT+dnI2MZxeqB85YSEfIOg
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-06-18 14:37:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UpiKz8q9yWBQ7jiXbGUqFA
 
 __PACKAGE__->has_many(
   "_active_site_alignments",
