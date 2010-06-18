@@ -44,101 +44,101 @@ chdir("$pfamseqDir/otherReg")
 #-------------------------------------------------------------------------------
 #Open and spit pfamseq into bits;
 
-#my $bit = int( ( $config->dbsize ) / 100 );
-#$bit++;
-#
-#$logger->debug(
-#  "Going to split pfamseq into 100 files containing $bit sequences");
-#my $n = 1;
-#
-#open( B, ">pfamseq.$n" )
-#  or $logger->logdie("Could not open pfamseq.$n:[$!]\n");
-#open( P, "$pfamseqDir/pfamseq" )
-#  or $logger->logdie("Could not open $pfamseqDir/pfamseq:[$!]\n");
-#
-#my $c;
-#while (<P>) {
-#  if (/^>/) {
-#    $c++;
-#    if ( $c > $bit ) {
-#      close(B);
-#      $n++;
-#      $c = 0;
-#      open( B, ">pfamseq.$n" );
-#    }
-#  }
-#  print B $_;
-#}
-#close(B);
-#close(P);
-#$logger->info("Made $n files");
-#
+my $bit = int( ( $config->dbsize ) / 100 );
+$bit++;
+
+$logger->debug(
+  "Going to split pfamseq into 100 files containing $bit sequences");
+my $n = 1;
+
+open( B, ">pfamseq.$n" )
+  or $logger->logdie("Could not open pfamseq.$n:[$!]\n");
+open( P, "$pfamseqDir/pfamseq" )
+  or $logger->logdie("Could not open $pfamseqDir/pfamseq:[$!]\n");
+
+my $c;
+while (<P>) {
+  if (/^>/) {
+    $c++;
+    if ( $c > $bit ) {
+      close(B);
+      $n++;
+      $c = 0;
+      open( B, ">pfamseq.$n" );
+    }
+  }
+ print B $_;
+}
+close(B);
+close(P);
+$logger->info("Made $n files");
+
 ##-------------------------------------------------------------------------------
 ##Now submit the searches to the farm
-#my $farmConfig = $config->farm;
-#my $phost      = hostname;
-#my $ug         = new Data::UUID;
-#my $uuid       = $ug->to_string( $ug->create() );
-#my $fh         = IO::File->new();
-#
-#$logger->info("Submitting jobs to the farm");
-#
-##Set up the job and copy the files over;
-#$fh->open( "| bsub -q "
-#    . $farmConfig->{lsf}->{queue}
-#    . " -o /tmp/$$.log  -JotherRegs\"[1-$n]\" " );
-#$fh->print( "mkdir " . $farmConfig->{lsf}->{scratch} . "/$uuid\n" );
-#$fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$uuid\n" );
-#$fh->print(
-#      "/usr/bin/scp -p $phost:$pfamseqDir/otherReg/pfamseq.\$\{LSB_JOBINDEX\} "
-#    . $farmConfig->{lsf}->{scratch}
-#    . "/$uuid/pfamseq.\$\{LSB_JOBINDEX\}\n" );
-#
-##To calculate these other regions
-##seg
-##ncoils - This needs the environment variable COILSDIR to be set.
-##phobius
-#$fh->print(
-#  "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
-#$fh->print("seg pfamseq.\$\{LSB_JOBINDEX\} -l > seg.\$\{LSB_JOBINDEX\}\n");
-#$fh->print(
-#  "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
-#
-##Now bring back all of the files
-#foreach my $f (qw(ncoils seg phobius)) {
-#  $fh->print(
-#"/usr/bin/scp -p $f.\$\{LSB_JOBINDEX\} $phost:$pfamseqDir/otherReg/$f.\$\{LSB_JOBINDEX\}\n"
-#  );
-#}
-#$fh->print("rm -f pfamseq.\$\{LSB_JOBINDEX\}\n");
-#$fh->close;
-#
-##-------------------------------------------------------------------------------
-##Have all of the jobs finished
-#$logger->info("Waiting for jobs to finish on the farm");
-#my $finished = 0;
-#while ( !$finished ) {
-#  open( FH, "bjobs -JotherRegs|" );
-#  my $jobnum;
-#  while (<FH>) {
-#    if (/^\d+/) {
-#      $jobnum++;
-#    }
-#  }
-#  close FH;
-#
-#  if ($jobnum) {
-#    $logger->info(
-#"Will not continue until your $jobnum outstanding jobs have completed. Will check again in five minutes"
-#    );
-#    sleep(300);
-#  }
-#  else {
-#    $finished = 1;
-#  }
-#}
+my $farmConfig = $config->farm;
+my $phost      = hostname;
+my $ug         = new Data::UUID;
+my $uuid       = $ug->to_string( $ug->create() );
+my $fh         = IO::File->new();
+my $user       = $ENV{USER};
+$logger->info("Submitting jobs to the farm");
 
-my $n = 100;
+#Set up the job and copy the files over;
+$fh->open( "| bsub -q "
+    . $farmConfig->{lsf}->{queue}
+    . " -o /tmp/$$.log  -JotherRegs\"[1-$n]\" " );
+$fh->print( "mkdir " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid\n" );
+$fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid\n" );
+$fh->print(
+      "/usr/bin/scp -p $phost:$pfamseqDir/otherReg/pfamseq.\$\{LSB_JOBINDEX\} "
+    . $farmConfig->{lsf}->{scratch}
+    . "/$user/$uuid/pfamseq.\$\{LSB_JOBINDEX\}\n" );
+
+#To calculate these other regions
+#seg
+#ncoils - This needs the environment variable COILSDIR to be set.
+#phobius
+$fh->print(
+  "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
+$fh->print("seg pfamseq.\$\{LSB_JOBINDEX\} -l > seg.\$\{LSB_JOBINDEX\}\n");
+$fh->print(
+  "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
+
+#Now bring back all of the files
+foreach my $f (qw(ncoils seg phobius)) {
+  $fh->print(
+"/usr/bin/scp -p $f.\$\{LSB_JOBINDEX\} $phost:$pfamseqDir/otherReg/$f.\$\{LSB_JOBINDEX\}\n"
+  );
+}
+$fh->print("rm -f pfamseq.\$\{LSB_JOBINDEX\}\n");
+$fh->close;
+
+#-------------------------------------------------------------------------------
+##Have all of the jobs finished
+$logger->info("Waiting for jobs to finish on the farm");
+my $finished = 0;
+while ( !$finished ) {
+  open( FH, "bjobs -JotherRegs|" );
+  my $jobnum;
+  while (<FH>) {
+    if (/^\d+/) {
+      $jobnum++;
+    }
+  }
+  close FH;
+
+  if ($jobnum) {
+    $logger->info(
+"Will not continue until your $jobnum outstanding jobs have completed. Will check again in five minutes"
+    );
+    sleep(300);
+  }
+  else {
+    $finished = 1;
+  }
+}
+
+#my $n = 100;
 #-------------------------------------------------------------------------------
 #Now we should have every thing back to be joined together and uploaded.
 $logger->info("Checking all of the files have been retieved from the farm");
@@ -180,7 +180,7 @@ foreach my $r (@$res) {
 my %subs = ( ncoils  => \&parseNcoils,
              seg     => \&parseSeg,
              phobius => \&parsePhobius );
-my ($fh);
+#my ($fh);
 open($fh, ">$orDir/allOtherReg.dat") or $logger->logdie("Could not open allOtherReg.dat");
 
 for( my $m =1; $m <= $n; $m++){
