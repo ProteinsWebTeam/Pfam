@@ -25,10 +25,15 @@ my $config  = Bio::Pfam::Config->new;
 my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $pfamDBh = $pfamDB->getSchema->storage->dbh;
 
+my $statusdir = shift;
+
+unless($statusdir and -d $statusdir){
+  $logger->logdie("You need to pass a statusdir in:[$!]");
+}
 #-------------------------------------------------------------------------------
 #Open up the files
 my $output_dir = $config->localDbsLoc."/msd";
-
+unless(-e "$statusdir/fetched_pdb_data"){
 open(MSD, ">$output_dir/msd_data.dat") or
    $logger->logdie("Could not open $output_dir/entryResidueData.dat:[$!]");
 open(MSD2, ">$output_dir/entryData.dat") or
@@ -72,8 +77,8 @@ pl.DATABASE_ID_PUBMED as PUBMEDID
 FROM 
 (
 SELECT  p.database_id_pubmed, p.entry_id, p.id
-from pdbe.citation p where nvl(p.id,0) =0 )pl,
-pdbe.entry e
+from pdbe_ro.citation p where nvl(p.id,0) =0 )pl,
+pdbe_ro.entry e
 where
 e.id = pl.entry_id (+)");
 
@@ -114,7 +119,7 @@ close(MSD2);
 
 $logger->info("Getting the PDB author data");
 #Now get the data for the pdb_author table
-my $sthAuthor = $dbh->prepare("SELECT ENTRY_ID, ORDINAL, NAME FROM PDBE.AUDIT_AUTHOR");
+my $sthAuthor = $dbh->prepare("SELECT ENTRY_ID, ORDINAL, NAME FROM PDBE_RO.AUDIT_AUTHOR");
 $sthAuthor->execute;
 
 while (my $hash = $sthAuthor->fetchrow_hashref){
@@ -124,6 +129,18 @@ while (my $hash = $sthAuthor->fetchrow_hashref){
 }
 $sthAuthor->finish;
 close(MSD3);
+
+#-------------------------------------------------------------------------------
+#Get the pfamseq numbers
+my $seqSth = $pfamDBh->prepare("select pfamseq_acc, auto_pfamseq from pfamseq");
+$seqSth->execute;
+my $res = $seqSth->fetchall_arrayref;
+my %acc2auto;
+
+foreach (@$res){
+  $acc2auto{$_->[0]} = $_->[1];
+}
+
 
 #-------------------------------------------------------------------------------
 #Get the residue by residue mapping
@@ -138,15 +155,16 @@ S.STRUCT_ASYM_ID,
 S.AUTH_ASYM_ID, 
 S.RESIDUE_ID, 
 S.CHEM_COMP_ID, 
-S.AUTH_SEQ_ID, 
+S.AUTH_SEQ_ID,
+S.PDB_INS_CODE,
 S.ACCESSION,
 U.SEQ_VERSION, 
 S.ONE_LETTER_CODE, 
 S.UNP_SERIAL,
 S.DSSP_SYMBOL
 FROM 
-PDBE.XREF_RESIDUE S,
-PDBE.UNP_ENTITY U
+PDBE_RO.XREF_RESIDUE S,
+PDBE_RO.UNP_ENTITY U
 WHERE S.ENTRY_ID=U.ENTRY_ID and S.ACCESSION=U.ACCESSION AND S.ENTRY_ID = ?
 order by 
 S.ENTRY_ID, 
@@ -165,6 +183,10 @@ foreach my $entryId (@entryIds){
   $sthMapping->execute($entryId);
   my $map = $sthMapping->fetchall_arrayref;
   foreach my $row (@{$map}){
+    #Make sure the sequence is in pfamseq
+    next unless($acc2auto{$row->[7]});
+    #Add the auto pfamseq reference to the accession.  
+    $row->[7] .= "\t".$acc2auto{$row->[7]};
     my $rowString;
     foreach my $e (@$row){
       $rowString .= (defined($e) ? $e : '\N')."\t";    
@@ -174,17 +196,21 @@ foreach my $entryId (@entryIds){
 }
 $sthMapping->finish;
 close(MSD);
-
+system("touch $statusdir/fetched_pdb_data") and 
+  $logger->logdie("Could not touch $statusdir/fetched_pdb_data");
+}else{
+  $logger->info("Already fetched the pdb data\n");
+}
 
 #-------------------------------------------------------------------------------
 #Delete the old data.
 $logger->info("Deleting the contents of pdb");
-$pfamDB->getSchema->Resultset('Pdb')->delete 
+$pfamDB->getSchema->resultset('Pdb')->delete 
   or $logger->logdie('Failed to delete the contents of pdb table');
 
 $logger->info("Uploading data......");
 
-my %ftmap = ( 'msd_data.dat'    => 'pdb_residue-data',
+my %ftmap = ( 'msd_data.dat'    => 'pdb_residue_data',
               'entryData.dat'   => 'pdb',
               'entryAuthor.dat' => 'pdb_author' );
 
@@ -195,9 +221,9 @@ my $tmp = "/tmp/";
 
 foreach my $f (qw( entryData.dat entryAuthor.dat msd_data.dat )){
   
-  $scp->put("$output_dir/msd_data.dat", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/msd_data.dat to $tmp/$f " . $scp->{errstr});
+  $scp->put("$output_dir/$f", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/msd_data.dat to $tmp/$f " . $scp->{errstr});
 
-  my $sth = $pfamDBh->("load data infile '$tmp/$f' into table ".$ftmap{$f}) or $logger->logdie("Failed to prepare upload statement for $f:".$pfamDBh->errstr);
+  my $sth = $pfamDBh->prepare("load data infile '$tmp/$f' into table ".$ftmap{$f}) or $logger->logdie("Failed to prepare upload statement for $f:".$pfamDBh->errstr);
   $sth->execute or $logger->logdie("Failed to upload $f:".$pfamDBh->errstr);
 }
 
