@@ -6,7 +6,7 @@
 # a script to convert Stockholm-format sequence alignments into HTML, according
 # to supplied consensus strings
 #
-# $Id: clustalX.pl,v 1.1 2009-01-18 14:14:04 rdf Exp $
+# $Id$
 
 use strict;
 use warnings;
