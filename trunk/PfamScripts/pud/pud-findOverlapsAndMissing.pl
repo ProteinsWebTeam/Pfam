@@ -30,7 +30,7 @@ my $allowed;
 open( R, ">$logdir/$filePrefix.allRegions.txt" ) 
   or die "Could not open $logdir/$filePrefix.allRegions.txt\n";
 
-open( S, ">$logdir/$filePrefix.skipping" ) 
+open( SKIP, ">$logdir/$filePrefix.skipping" ) 
   or die "Could not open $logdir/$filePrefix.skipping\n";
   
 
@@ -39,8 +39,6 @@ my $io = Bio::Pfam::FamilyIO->new;
 FAM:
 foreach my $fDir ( sort @dirs) {
   next unless($fDir =~ /PF\d+/);
-  print "Looking at $fDir\n";
- 
   open( D, "$families/$fDir/DESC" ) or die "Could not open $fDir/DESC:[$!]\n";
   #Now read the DESC to see it we have nested domains;
 
@@ -49,7 +47,7 @@ foreach my $fDir ( sort @dirs) {
       $descObj = $io->parseDESC( \*D );
   };
   if($@){
-    print S "$fDir\n";
+    print SKIP "$fDir\n";
     close(D);
     next FAM;  
   }
@@ -117,7 +115,7 @@ foreach my $fDir ( sort @dirs) {
       print R "$2\t$4\t$5\t$fDir\t$id\tALIGN\t$1\n";
     }
   }
-
+  close(S);
   
   if($descObj->CL) {
     $clans->{$fDir} = $descObj->CL;
@@ -125,7 +123,7 @@ foreach my $fDir ( sort @dirs) {
   }
 }
 close(R);
-
+close(SKIP);
 print STDERR "Sorting all regions\n";
 system("sort -k1,1 -k7,7nr $logdir/$filePrefix.allRegions.txt > $logdir/$filePrefix.allRegionsSorted.txt")
   and die "Failed to sort regions\n";
