@@ -1,6 +1,6 @@
-#!/software/bin/perl
+#!/usr/bin/perl
 
-# $Id: pfam_scan.pl,v 1.27 2009-12-16 11:44:16 jm14 Exp $
+# $Id$
 
 use strict;
 use warnings;
