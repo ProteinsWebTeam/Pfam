@@ -108,7 +108,7 @@ foreach my $seqobj ( $seed->each_seq() ) {
 #READ ALIGN:
 open( ALIGN, "ALIGN" ) or die ("FATAL: Couldn't open ALIGN [$!]\n $!\n");
 my $align = new Rfam::RfamAlign;
-$align -> read_stockholm( \*ALIGN );
+$align -> Rfam::RfamAlign::read_stockholm( \*ALIGN );
 close(ALIGN);
 my @alignlist = $align->each_seq();
 my $ss_cons = $align->ss_cons->getInfernalString(); #This is damned confusing!
@@ -150,13 +150,18 @@ my (%ALIGNhash, %ALIGNandSEEDhash, %ALIGNnames); #array of hashes to store nuc-c
 
 #Read ALIGN info into hashes and test for overlaps with SEED:
 foreach my $seqobj ( @alignlist ) {
-
+    
+    foreach my $strand (qw(-1 1)){#Horrible hack around bioperl screwing up reverse strands somewhere:
     my $start = $seqobj->start;
     my $end = $seqobj->end;
+    
     my $longseqname = $seqobj->id . "/" . $start . "-" . $end;
-
+    $longseqname = $seqobj->id . "/" . $end . "-" . $start if ($strand<0);
+    
+    
     $ALIGNhash{$longseqname}=uc($seqobj->seq); #A hash of arrays might be more efficient. Saves all the splitting, substr's of length 1. 
     $ALIGNnames{$longseqname}=$seqobj->id;
+    #$logger->logwarn("[ALIGNnames{$longseqname}] = [$ALIGNnames{$longseqname}]");
     
     if (defined($SEEDhash{$longseqname})){
 	$ALIGNandSEEDhash{$longseqname}=1;
@@ -183,6 +188,7 @@ foreach my $seqobj ( @alignlist ) {
 	    }
 	}
     }
+    }
 }
 
 if (defined($ont) && $ont == 0){
@@ -200,7 +206,7 @@ if (defined($ont) || defined($scorethreshold)){
 		$ALIGNscores{$2}=$1;
 	    }
 	    else {
-		$logger->logwarn("$2 is in scores but does not appear to be in ALIGN!");
+		$logger->logwarn("$2 is in scores [$1] but does not appear to be in ALIGN!");
 	    }
 	}
     }
@@ -260,6 +266,8 @@ my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejec
 	    RaiseError => 1
 	}    );
 
+$logger->info("dbi:mysql:$Rfam::live_rdb_name:$Rfam::rdb_host:$Rfam::rdb_port, $Rfam::rdb_user, $Rfam::rdb_pass");
+
 # Query to search for the accession and description of embl entries with the embl id
 #my $query = qq(
 #           select entry.accession_version, description.description
@@ -275,12 +283,14 @@ my $queryTax = qq(
            from taxonomy as t, rfamseq as r 
            where t.ncbi_id=r.ncbi_id and r.rfamseq_acc=?;
    );
+$logger->info($queryTax);
 
 # Query to search for the description of embl entries with the embl id
 my $queryDesc = qq(
            select description
                    from rfamseq where rfamseq_acc=?;
    );
+$logger->info($queryDesc);
 
 # Prepare the queries for execution.
 my $sthDesc = $rfdbh->prepare($queryDesc);
@@ -470,16 +480,16 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	
 	#Grab seq description, check it passes required & forbidden terms tests: 
 	my $desc; 
-	$sthDesc->execute($ALIGNnames{$longseqname});
+	my ($n,$v,$s,$e) = RfamUtils::nvse2array($longseqname);
+	$sthDesc->execute($n);
 	my $res = $sthDesc->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[1];
+	    $desc .= $row->[0];
 	}
-	
-	if( !defined($desc) ) {
-	    $desc = "no description available";
-	}
-	
+	$desc = "no description available" if( not defined($desc) or length($desc)==0 );
+
+#	$logger->info("sthDesc->execute($n) ::: [$desc]");
+
 	#Check for matches to required desc terms:
 	if(@required_terms){
 	    my $nomatch = 1;
@@ -585,7 +595,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	$sthDesc->execute($ALIGNnames{$longseqname});
 	my $res = $sthDesc->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[1];
+	    $desc .= $row->[0];
 	}
 
 	if( !defined($desc) ) {
@@ -881,5 +891,7 @@ To Add:
 	-scan warnings file from rfmake, if there are any identical matches to these seqs
 	 in the ALIGN then swap them...
   -Make a log file of why each sequence is rejected
+  -Switch to RfamUtils functions!
+
 EOF
 }
