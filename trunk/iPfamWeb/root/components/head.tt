@@ -47,6 +47,9 @@ IF refreshUri != "";
 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
 
+<script src="http://yui.yahooapis.com/2.8.1/build/yahoo/yahoo-min.js" ></script>
+<script src="http://yui.yahooapis.com/2.8.1/build/get/get-min.js" ></script>
+
 <!-- google analytics -->
 <script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
 
