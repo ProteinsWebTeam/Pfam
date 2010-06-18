@@ -54,7 +54,7 @@ foreach my $line (split(/\n/, $content)){
   
   if( $line =~ /(gb\w+.fsa_aa.gz)/){
     $logger->info( " Downloading file $1.....");
-    getstore( $NCBI_PATH."/$1","$store_dir$1" ) || $logger->logdie( "cant store the file $1 in $store_dir/$1");    
+    getstore( $NCBI_PATH."/$1","$store_dir/$1" ) || $logger->logdie( "cant store the file $1 in $store_dir/$1");    
   
   } # end of $line =~ pattern   
 
@@ -67,7 +67,7 @@ my $total_seqs = {};
 
 # now get all the files from the directory and parse it to append the fasta sequences to make a single file.
 
-foreach my $file ( glob( "$store_dir/*.gz" ) ) {
+foreach my $file ( glob( "$store_dir/gb*.fsa_aa.gz" ) ) {
   
   $logger->info( "now working on file number $counter: $file");
  
