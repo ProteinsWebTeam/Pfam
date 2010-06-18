@@ -47,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc
+    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -61,6 +61,7 @@ sub main {
     "T=s"       => \$incT,
     "noOverlap" => \$noOverlap,
     "local"     => \$local,
+    "copy"      => \$copy,
     "acc=s"     => \$acc,
     "help"      => \$help
   ) or help();
@@ -198,7 +199,7 @@ sub main {
     open(ALIGN, ">align") or die "Couldn't open file 'align' for writing $!";
 
     while(<JALIGN>) {
-	next if(/^\#/ or /^\s*$/ or /\/\//);
+	next if(/^\#/ or /^\s*$/ or m|//|);
 	print ALIGN $_;
     }
     close JALIGN;
@@ -206,7 +207,7 @@ sub main {
 
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check, $c );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check, $c, $copy );
   }
 
 }
@@ -284,7 +285,7 @@ sub checkOverlap {
 }
 
 sub runJackhmmer {
-  my ( $config, $optionalCmds, $fasta, $seqDB ) = @_;
+  my ( $config, $optionalCmds, $fasta, $seqDB) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -304,7 +305,7 @@ sub runJackhmmer {
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check, $c ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check, $c,  $copyFiles ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -390,30 +391,34 @@ sub farmJackhmmer {
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
       . "/$user/$uuid/$$.log -Jjackhmmer$$" );
-  $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
-
+  if($copyFiles){
+    $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
+  }else{
+    $fh->print( "cd $pwd \n" );
+  }
   #Execute the command we have built up.
   $fh->print("$cmd\n");
 
   #Write a PFAMOUT style file
   my $jout_file = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/JOUT";
   $fh->print("pfjbuild_pfamout.pl $jout_file $c\n");
-
-  #Bring back all of the files.
-  $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
-  $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
-  $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
   $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > align \n"); #Create an ALIGN file
-  $fh->print("/usr/bin/scp align $phost:$pwd/align\n");
-  $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
+    
+  #Bring back all of the files.
+  if($copyFiles){
+    $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
+    $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
+    $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
+    $fh->print("/usr/bin/scp align $phost:$pwd/align\n");
+    $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
 
-  $fh->print("/usr/bin/scp HMM $phost:$pwd/HMM\n");
-  $fh->print("/usr/bin/scp PFAMOUT $phost:$pwd/PFAMOUT\n");
-  $fh->print("/usr/bin/scp DESC $phost:$pwd/DESC\n");
-
+    $fh->print("/usr/bin/scp HMM $phost:$pwd/HMM\n");
+    $fh->print("/usr/bin/scp PFAMOUT $phost:$pwd/PFAMOUT\n");
+    $fh->print("/usr/bin/scp DESC $phost:$pwd/DESC\n");
+  }
   
   #Now clean up after ourselves on the farm
-  $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
+  $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" ) if($copyFiles);
   $fh->close();
 
 }
