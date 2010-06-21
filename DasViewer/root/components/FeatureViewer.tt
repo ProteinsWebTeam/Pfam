@@ -147,7 +147,6 @@ var FeatureViewer = Class.create({
       //console.log('the dsn is '+dsn );
       queryString += '&sources=' + dsn ;
     } );
-    console.log( 'the final query string is '+queryString );
     
     var objTransaction = YAHOO.util.Get.script( queryString, { 
     onSuccess: function( response ){
@@ -269,7 +268,6 @@ var FeatureViewer = Class.create({
     }
     
     if( wrapper !== undefined ){
-      console.log( 'the canvasWrapper is set '+wrapper );
       this.setCanvasWrapper( wrapper );
     }  
     
@@ -287,8 +285,7 @@ var FeatureViewer = Class.create({
     imgCanvas.setAttribute( 'height', this._canvasHeight );
     imgCanvas.setAttribute( 'width', this._canvasWidth );
     txtCanvas.setAttribute( 'height', this._canvasHeight );
-    //txtCanvas.setAttribute( 'width', 150 ); 
-    console.log( 'buildCanvas:the parent is '+this._parent);
+    
   },
   
   //----------------------------------------------------------------------------
@@ -302,8 +299,6 @@ var FeatureViewer = Class.create({
 //    this._dasFeatures    = $H( eval( '('+  this._response.get( 'dasFeatures' ) + ')' ) );
     this._featureSources = $A( this._response.get( 'json_sources' ) );
     this._dasFeatures    = $H( this._response.get( 'dasFeatures' ) );
-    
-    //console.log('the feature and das sources are |%s|%s|',this._featureSources.inspect(), this._dasFeatures.inspect() );
     
     var parent         = this._parent;
     var featureSources = this._featureSources;
@@ -349,7 +344,6 @@ var FeatureViewer = Class.create({
     pg1.setCanvas( imgCanvas );
     pg1.setNewCanvas( false );  
     pg1.setImageParams( imgParams );
-    console.debug( 'the domain graphic obejct is '+pg1 );
         
     featureSources.each( function( ds_id ){
       var seqObj = $A( dasFeatures.get( ds_id ) );
@@ -366,10 +360,7 @@ var FeatureViewer = Class.create({
 
         // draw the text
         ttx.strokeStyle = "#eeeeee";
-        console.log( 'writing the stext');  
         ttx.strokeText( ds_id, 5, graphicYOffset+baseline );
-        console.log( 'writing the text');  
-          
         ttx.strokeStyle = "#000000";
         
         // add the text here;
@@ -377,7 +368,6 @@ var FeatureViewer = Class.create({
         ttx.fillText( ds_id, 5, graphicYOffset + baseline );
         
         pg1.render();
-        console.debug( "areas: ", pg1._areasList );
         
         graphicYOffset +=Yincrement; 
       } );
