@@ -321,7 +321,7 @@ var FeatureViewer = Class.create({
     // get the context for text element;
     if ( this._txtCanvas.getContext ) {
       ttx = this._txtCanvas.getContext( '2d' );
-      ttx.font = "bold 10px 'optimer'";
+      ttx.font = "normal 10px Arial";
       ttx.textAlign = "center";
       ttx.textBaseline = "middle";
       ttx.lineWidth = 2;
