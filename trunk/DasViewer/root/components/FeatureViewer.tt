@@ -349,7 +349,7 @@ var FeatureViewer = Class.create({
     pg1.setCanvas( imgCanvas );
     pg1.setNewCanvas( false );  
     pg1.setImageParams( imgParams );
-    console.debug( pg1 );
+    console.debug( 'the domain graphic obejct is '+pg1 );
         
     featureSources.each( function( ds_id ){
       var seqObj = $A( dasFeatures.get( ds_id ) );
@@ -363,11 +363,15 @@ var FeatureViewer = Class.create({
         
         baseline = pg1.getBaseline();
         
+
         // draw the text
         ttx.strokeStyle = "#eeeeee";
+        console.log( 'writing the stext');  
         ttx.strokeText( ds_id, 5, graphicYOffset+baseline );
-        ttx.strokeStyle = "#000000";
+        console.log( 'writing the text');  
           
+        ttx.strokeStyle = "#000000";
+        
         // add the text here;
         ttx.fillStyle = 'black';
         ttx.fillText( ds_id, 5, graphicYOffset + baseline );
@@ -435,7 +439,7 @@ var FeatureViewer = Class.create({
     var url = '[% c.uri_for( "/static/javascripts/tip_definition.js" ) %]';
     
     // check whether the styles.pfam is already defined or not, if exists don't make a request to the server;
-    if( Prototip.styles.pfam ){
+    if( Prototip.Styles.pfam ){
       console.log( "tipdefinition exists in the page" );
       return;
     }else{
