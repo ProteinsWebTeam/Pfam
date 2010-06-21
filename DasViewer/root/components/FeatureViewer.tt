@@ -119,7 +119,7 @@ var FeatureViewer = Class.create({
                          };
     
     // now test to make the use of the Yahoo's GET utility;
-    this.fetchFeaturesByYahoo();
+    this.draw();
      
   }, // end of initialize function
   
@@ -130,7 +130,7 @@ var FeatureViewer = Class.create({
    * Method which fetches the features from the server using YAHOO's Get request.
    */
   // method to test YAHOO get utility;
-  fetchFeaturesByYahoo: function(){
+  draw: function(){
     
     var that = this;
     // now assuming that we are making a request, I am calling onLoading function;
