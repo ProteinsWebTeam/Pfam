@@ -18,13 +18,6 @@ use JSON;
 use parent 'Catalyst::Controller';
 
 #---------------------------------------------------------------------------------------------
-#
-#sub feature : Path('/feature') {
-#  my ( $self, $c ) = @_;
-#
-#  $c->stash->{template} = 'components/modelFeature.tt';
-#}
-#---------------------------------------------------------------------------------------------
 
 =head2 getFeatureViewer : Path 
 
@@ -50,8 +43,6 @@ sub getFeatureViewer : Path( '/javascripts/FeatureViewer.js'){
 sub getFeature : Local {
   my ( $self, $c ) = @_;
 
-  #$c->log->debug( 'Feature:getFeature:the dump of the bject is '.dump( $self ) );
-
   # parse the arguments;
   my $acc     = $c->req->param('acc');
   #my @sources = $c->req->param('Das');
@@ -66,25 +57,25 @@ sub getFeature : Local {
   # stash the names of the sources;
   my @source_names;
   foreach( @sources ){
-    #$c->log->debug( 'the source is '.$_ ."\n the dump of the objs is ".dump( $self->{ $_ } ) );
     push @source_names, $self->{ $_ }->{ name };
   }
-  #$c->stash->{ response}->{json_sources} = to_json( \@source_names );
-  #$c->stash->{ response}->{json_sources} = to_json( \@source_names );
   $c->stash->{ response}->{json_sources} = \@source_names;
   
   # as we need to wire this into pfam code, develop it as a self-dependent code,
   # get the lite object;
   $c->forward('getDasLite');
+  
+  # get the length of the sequence by making a request to the uniprot das source.
+  # as part of das spec, all sources need to give start adn end coordinates for a segment,
+  # however some sources, dont, hence we get the end coordiantes, by makign a das call.
+  $c->forward( 'getSeqLength');
 
   # get the features of the protein;
   $c->forward('getDasFeatures');
   
   if( defined $c->stash->{ response}->{ errorSources } ){
-    #$c->stash->{ response}->{ json_error_sources }  = to_json( $c->stash->{ response}->{ errorSources } );
     $c->stash->{ response}->{ json_error_sources }  = $c->stash->{ response}->{ errorSources };
   }else{
-    #$c->stash->{ response}->{ json_error_sources }  = to_json( { } );
     $c->stash->{ response}->{ json_error_sources }  = {};
   }
   
@@ -96,7 +87,6 @@ sub getFeature : Local {
   }
  
   my $features = to_json( $c->stash->{ response } );
-  #print STDERR $features."\n"; 
   my $string = <<EOF;
   
   var features = $features;
@@ -108,6 +98,29 @@ EOF
   
 }
 
+#---------------------------------------------------------------------------------------------
+
+=head2 getSeqLength : Private
+
+method to get the length of the sequence by querying Uniprot das source.
+
+=cut;
+
+sub getSeqLength : Private {
+  my ( $self, $c ) = @_;
+  
+  my $lite = $self->{ daslite };
+
+  # set the dsn name ;
+  $lite->dsn( $self->{ uniprotURL } );
+
+  my $seqResponse = $lite->sequence( $c->stash->{ response}->{acc} );
+
+  my ( $url, $sequence ) = each( %{ $seqResponse } );
+
+  $c->stash->{ response }->{ seqLength } = $sequence->[0]->{ sequence_stop }; 
+ 
+}
 #---------------------------------------------------------------------------------------------
 
 =head2 getDasFeatures : Private
@@ -146,9 +159,7 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     
     unless( defined $features && ( ref $features eq 'ARRAY' ) && scalar( @{ $features } ) > 0 ){
       $c->log->debug( "Feature::getDasFeatures:: cant get features for the source ".$self->{$ds_id}->{name});
-      #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is  ".dump( $features ) );
       $c->stash->{ response}->{ totalError }++;
-      #push( @{ $c->stash->{ response}->{ errorSources } }, $ds_id );
       $c->stash->{ response}->{ errorSources }->{ $ds_id } = 1;
       next SOURCE;
     }
@@ -159,7 +170,6 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     if( scalar( @{ $resolvedFeature } ) == 0 ){
       
       $c->log->debug( "Feature::getDasFeatures:: got features for the source but they dont have start&end".scalar( @{ $resolvedFeature }) );
-      #$c->log->debug( "Feature::getDasFeatures:: the dump of the features is ".dump( $features ) );
       $c->stash->{ response}->{ totalError }++;
       $c->stash->{ response}->{ errorSources }->{ $ds_id } = 1;
       next SOURCE;
@@ -172,7 +182,6 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     
   }    # end of foreach
   
-  #$c->log->debug( 'The featuresets is '.dump( $dasFeatures ) );
   # now stash the totalRows for defining the height of hte canvas;
   $c->stash->{ response}->{ dasTracks }  = $totalRows;
   $c->log->debug( "the toatl das tracks to be drawn are ". $c->stash->{ response}->{ dasTracks } );
@@ -180,10 +189,7 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
   # now build the sequence object for giving it to domain graphics code;
   my $seqObject = $c->forward( 'buildSequence', [ $dasFeatures ] );
   
-  #$c->stash->{ response}->{dasFeatures} = to_json( $seqObject );
   $c->stash->{ response}->{dasFeatures} = $seqObject;
-  
-  #$c->log->debug( 'Features:getDasFeatures: the dump of the result is '.dump( $c->stash->{ response}->{ dasFeatures } ) );
 
 }
 
@@ -200,13 +206,9 @@ sub buildSequence : Private {
   
   my $seqObject = {};
   
-  # this is at top level getting all the features which are placed as separate values of an array
-  # to avaoid overlpas;
-  
   # we have to use the dasFeatures, but to define the length which is not present in some sources,
   # I am walking down the sources array so that pfam would always return the end;
   foreach my $ds_id ( @{ $c->stash->{ response}->{ sources } } ){
-  #foreach my $ds_id ( sort keys %{ $dasFeatures } ){
     
     # there may be cases where the das sources might not return value and would be populated in error sources;
     # so first check whether they exist in the response;
@@ -216,9 +218,6 @@ sub buildSequence : Private {
     }
     
     $c->log->debug( "the total featureSets present for $ds_id is ".scalar( @{ $dasFeatures->{ $ds_id } }) );
-    
-    # add the ds_id as a key;
-    #$seqObject->{ $ds_id } = [];
     
     # getting one level deeper for specific row;
     for( my $i = 0; $i < scalar( @{ $dasFeatures->{ $ds_id } } ); $i++ ){
@@ -233,14 +232,12 @@ FEAT: for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
         my $feature = $featureRow->[ $j ];
         
         unless( defined $c->stash->{ response}->{ seqLength } ){
-          #$c->log->debug( "The length of the sequence undefined so going to define t");
           if( exists $feature->{ segment_stop } ){
             $c->stash->{ response}->{ seqLength } =  $feature->{ segment_stop };
           }
             
         } # end of unless $c->stash->{ response}->{ seqLength };  
         
-        #$c->log->debug( "The seqLength for $ds_id is ".$c->stash->{ response}->{ seqLength } );
         $rowSeqObj->{ length }   = $c->stash->{ response}->{ seqLength };
         $rowSeqObj->{ tips }     = "true";
         $rowSeqObj->{ imageMap } = "true";
@@ -278,7 +275,6 @@ FEAT: for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
     
   } # end of foreach $dasFeatures;
   
-  #$c->log->debug( "dump fo the rowSeqObj is ".dump( $seqObject ) );
   return $seqObject;
 }
 
@@ -363,7 +359,7 @@ sub getDasLite : Private {
 
   $self->{daslite} = Bio::Das::Lite->new( { timeout => $self->{timeout}, } );
 
-  $self->{daslite}->{http_proxy} = $proxy if ( defined $proxy );
+  $self->{daslite}->{http_proxy} = $ENV{ http_proxy }  if ( defined $ENV{ http_proxy} );
 
 }
 
