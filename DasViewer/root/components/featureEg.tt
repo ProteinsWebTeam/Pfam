@@ -23,6 +23,11 @@
 
       <!-- required javascripts -->
       <script type='text/javascript' src="[% c.uri_for( '/static/javascripts/prototip.js' ) %]"></script> <!-- for creating tooltips-->
+      <script type='text/javascript' src="[% c.uri_for( '/static/javascripts/excanvas.js' ) %]"></script>
+      <script type='text/javascript' src='http://localhost:8001/static/javascripts/canvas.text.js?reimplement=true&amp;dontUseMoz=true'></script>
+      <script type='text/javascript' src="[% c.uri_for( '/static/javascripts/faces/Arial-normal-normal.js' ) %]"></script>
+
+      
       <script type='text/javascript' src="[% c.uri_for( '/static/javascripts/domain_graphics.js' ) %]"></script> <!-- for generating Feature images-->
       
       <!--[if IE ]>
@@ -103,6 +108,24 @@
           
         }
         
+//        var parent = 'testEl';    // HTML DOM element;
+//        var acc    = 'P51587';    // Protein accession;
+//        var sources= ['DS_241'];    // sources array should contain DS_id's ( NOTE: use native javascript array );
+//        var url    = 'http://web-vm-ipfam.internal.sanger.ac.uk:8001/feature/getFeature';
+//        
+//        var importFeatureViewer = YAHOO.util.Get.script( 'http://web-vm-ipfam.internal.sanger.ac.uk:8001/javascripts/FeatureViewer.js',{
+//          onSuccess: function( response ){
+//            console.log( 'FEATURE VIEWER JAVASCRIPT LIBRARY LOADED' );
+//            response.purge();   //  if you dont want the javascript library to present in the DOM.
+//            // now load the feature viewer;
+//            var featureObj = new FeatureViewer( parent, acc, sources, url );
+//          },
+//          onFailure: function( response ){
+//            console.log( 'FEATURE VIEWER CANT BE LOADED' );
+//            throw( 'ERROR: Loading the Feature viewer library failed' );
+//          }
+//        } ); // end of imporint feature viewer.
+//        
       </script>
       
     </body>
