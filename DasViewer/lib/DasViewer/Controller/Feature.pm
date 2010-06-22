@@ -85,7 +85,7 @@ sub getFeature : Local {
       $c->stash->{ response}->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." provided.";
     } 
   }
- 
+  
   my $features = to_json( $c->stash->{ response } );
   my $string = <<EOF;
   
@@ -115,11 +115,11 @@ sub getSeqLength : Private {
   $lite->dsn( $self->{ uniprotURL } );
 
   my $seqResponse = $lite->sequence( $c->stash->{ response}->{acc} );
-
+  $c->log->debug( 'the seqRespinse is '.dump( $seqResponse ) );
   my ( $url, $sequence ) = each( %{ $seqResponse } );
 
   $c->stash->{ response }->{ seqLength } = $sequence->[0]->{ sequence_stop }; 
- 
+  $c->log->debug( 'the sequence Length retrieved is '.$c->stash->{ response }->{ seqLength } );  
 }
 #---------------------------------------------------------------------------------------------
 
@@ -156,7 +156,9 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     }
     
     my ( $url, $features ) = each( %{$featureResponse} );
-    
+    #if( $ds_id eq 'DS_634'){
+    #  $c->log->debug( 'the dump of the efature reso=ponsefor BM is '.dump( $featureResponse ) );
+    #} 
     unless( defined $features && ( ref $features eq 'ARRAY' ) && scalar( @{ $features } ) > 0 ){
       $c->log->debug( "Feature::getDasFeatures:: cant get features for the source ".$self->{$ds_id}->{name});
       $c->stash->{ response}->{ totalError }++;
@@ -237,7 +239,9 @@ FEAT: for( my $j = 0; $j < scalar( @{ $featureRow } ); $j++ ){
           }
             
         } # end of unless $c->stash->{ response}->{ seqLength };  
-        
+
+        #$c->log->debug( 'settign the seqlength to be '.$c->stash->{ response }->{ seqLength } .' for source '.$ds_id );
+ 
         $rowSeqObj->{ length }   = $c->stash->{ response}->{ seqLength };
         $rowSeqObj->{ tips }     = "true";
         $rowSeqObj->{ imageMap } = "true";
@@ -355,11 +359,12 @@ Method which returns the  Bio::Das::Lite object, for features retrieval;
 sub getDasLite : Private {
   my ( $self, $c ) = @_;
 
-  my ($proxy) = $self->{proxy} || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
-
+  my ($proxy) = $self->{ das }->{proxy} || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
+  
+  $c->log->debug( "getDasLite: the proxy to be set is $proxy ");
   $self->{daslite} = Bio::Das::Lite->new( { timeout => $self->{timeout}, } );
 
-  $self->{daslite}->{http_proxy} = $ENV{ http_proxy }  if ( defined $ENV{ http_proxy} );
+  $self->{daslite}->{http_proxy} = $proxy if ( defined $proxy );
 
 }
 
