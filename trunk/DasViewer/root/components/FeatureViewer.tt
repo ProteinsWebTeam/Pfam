@@ -134,8 +134,8 @@ var FeatureViewer = Class.create({
     
     var that = this;
     // now assuming that we are making a request, I am calling onLoading function;
-    this._ajaxLoading();
-    
+    //this._ajaxLoading();
+
     var sources = $A( this._sources );
     
     // now generate the query URL using the input accession and the source;
@@ -155,7 +155,10 @@ var FeatureViewer = Class.create({
         
         // if we have any errorMsg then update the parent wiht that message and we are done.
         if( features.errorMsg !== undefined ){
-          that._parent.update( features.errorMsg );
+          var errorEl = new Element( 'div',{ 'id': 'errorMsg' } );
+          errorEl.update( features.errorMsg );
+
+          that._pupdatee( errorEl );
           
           // now set the state to false;
           that.setReadyState( false );
@@ -189,8 +192,9 @@ var FeatureViewer = Class.create({
   _ajaxComplete: function( features ){
     
     // remove the loading features child from shown;
-    this._parent.removeChild( $('spinner') );
-    
+    //this._parent.removeChild( $('spinner') );
+    this._parent.update();
+
     //this._response = $H( eval ( '(' + features +')' ) );
     this._response = $H( features );
     //console.log( 'the ajax response is '+$H( this._response ).inspect() );
@@ -207,7 +211,13 @@ var FeatureViewer = Class.create({
     // retrieve the features and sources which returned data and draw them;
     this.drawCanvas();
     
+    // check for the error sources, if we find something then fire up a custom event;
+    if( this._response.get( 'errorSources' ) !== undefined ){
+      console.log( 'the error sources are ',this._response.get( 'errorSources' ) );
+      this._parent.fire( 'ErrorSources:Found',  { errorSources: this._response.get( 'errorSources' ) } );
+    }  
   },
+
   
   //----------------------------------------------------------------------------
   /**
