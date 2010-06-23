@@ -82,7 +82,7 @@ sub getFeature : Local {
   # check whether the totalError is equal to the total das sources requested,
   if( defined $c->stash->{ response}->{ totalError } ){
     if( $c->stash->{ response}->{ totalError } == scalar( @{ $c->stash->{ response}->{sources} } ) ){
-      $c->stash->{ response}->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." provided.";
+      $c->stash->{ response}->{ errorMsg } = "Invalid accession or No features found for ".$c->req->param('acc')." for the selected Das sources.";
     } 
   }
   
