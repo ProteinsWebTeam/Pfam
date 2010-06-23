@@ -5,9 +5,13 @@
 #canvasWrapper {
   overflow-x:auto;
   /*width:auto;*/
-  width: 90%;
+  /*width: 90%;*/
 }
 
+#errorMsg {
+  background: red;
+  width: 40%;
+}
 #txtCanvas {
   float:left;
   z-index:1;
