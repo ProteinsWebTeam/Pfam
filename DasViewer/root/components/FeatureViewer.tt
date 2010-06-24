@@ -54,7 +54,7 @@ var FeatureViewer = Class.create({
    */
   initialize: function( parent, accession, sources, url, options ){
     
-    // check for an existing DOM element;
+   // check for an existing DOM element;
     if( parent !== undefined ){
       this.setParent( parent );
     }else{
@@ -108,14 +108,15 @@ var FeatureViewer = Class.create({
     this._extraXspace    = this._options.extraXspace    || 40;
     this._Yincrement     = this._options.Yincrement     || 20;
     this._resWidth       = this._options.resWidth       || 1;
-    
+    this._yOffset = this._options.yOffset || 0;
+
     // initialise the image params for pfam graphic code
     this._imgParams     = { xscale:            1,
                           yscale:              1,
                           residueWidth:        this._resWidth,
                           envOpacity:          -1,
                           sequenceEndPadding:  0,
-                          xOffset: this._graphicXOffset,  // das source names were written using canvas;
+                          xOffset:             this._graphicXOffset,  // das source names were written using canvas;
                          };
     
     // now test to make the use of the Yahoo's GET utility;
@@ -215,7 +216,10 @@ var FeatureViewer = Class.create({
     if( this._response.get( 'errorSources' ) !== undefined ){
       console.log( 'the error sources are ',this._response.get( 'errorSources' ) );
       this._parent.fire( 'ErrorSources:Found',  { errorSources: this._response.get( 'errorSources' ) } );
-    }  
+    } 
+
+    // now fire up an event for saying the feature widget loaded successfully;
+    this._parent.fire( 'Feature:Loaded', { 'pg' : this._pfamGraphic } );
   },
 
   
@@ -287,7 +291,7 @@ var FeatureViewer = Class.create({
     
     // now set the size of the canvas ;
     
-    this._canvasHeight = this._response.get( 'dasTracks' ) * this._Yincrement;
+    this._canvasHeight = ( this._response.get( 'dasTracks' ) * this._Yincrement ) + this._yOffset;
     this._sequenceLength = ( this._response.get( 'seqLength' ) * this._resWidth );  // here the 1 is resWidth
     this._canvasWidth    = this._sequenceLength + this._graphicXOffset + this._extraXspace;
     
@@ -333,7 +337,7 @@ var FeatureViewer = Class.create({
     }  
     
     var baseline;  
-    var graphicYOffset = 0 ;
+    var graphicYOffset = this._yOffset;
     
     // walk down the featureSources and measure the maximum textWidth and use that for 
     // rendering the text;
@@ -389,7 +393,7 @@ var FeatureViewer = Class.create({
     // as these are required for tagging with the alignments;
     this._baseline = baseline;
     this._graphicYOffset = graphicYOffset; 
-    
+    this._pfamGraphic    = pg1; 
   },
   
   //----------------------------------------------------------------------------
