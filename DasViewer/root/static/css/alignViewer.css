@@ -15,7 +15,7 @@
 }
 #accessions {
   float:left;
-  background-color: #CCBBCC;
+  /* background-color: #CCBBCC; */
 }
 #sequences {
   overflow-x:auto;
@@ -29,10 +29,17 @@
   background-color: #e0e0e0;
 }
 #spinner {
-  color: #FFF;
+  /*color: #FFF;
   background-color: #F00;
-  padding: 1em;
-  font-size:0.6em;
+  padding: 0.5em;
+  font-size:1em;
+  width: 18%;*/
+  clear:both;
+  background-image: url(/static/images/loading.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+  padding-left: 16px;
+  
 }
 
 .visible {
