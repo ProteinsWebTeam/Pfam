@@ -223,6 +223,9 @@ var AlignmentViewer = Class.create({
       
       // now show the element;
       this._parent.show();
+
+      // now fire up an event to say the alignments are loaded;
+      this._parent.fire( 'Alignments:Loaded' );
     }
     
   },
