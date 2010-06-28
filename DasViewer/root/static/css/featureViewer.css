@@ -27,14 +27,14 @@
   background-color:black;
   position:absolute;
   z-index:10;
-  /*display:none;*/
+  display:none;
 }
 
 #backgroundDiv {
   background-color:#C7F3C5;
   position:relative;
   z-index:-1;
-  /*display:none*/;
+  display:none;
 }
 
 /* ---------------------------------------- */
