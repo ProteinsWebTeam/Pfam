@@ -754,7 +754,11 @@ sub sequenceChecker {
 
       my $str_ali = uc( $seq->seq() );
       $str_ali =~ s/[.-]//g;
-      Bio::Pfam::SeqFetch::addSeqToVerify( $seq->id . "." . $seq->version,
+      my $seqName = $seq->id;
+      if($seq->version){
+        $seqName .= ".".$seq->version;
+      }
+      Bio::Pfam::SeqFetch::addSeqToVerify( $seqName,
         $seq->start, $seq->end, $str_ali, \%allseqs );
     }
   }
@@ -935,11 +939,13 @@ sub family_overlaps_with_db {
     foreach
       my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )
     {
+      
+ REGION:
       foreach my $overRegion ( @{ $region->{overlap} } ) {
         next if ( $$ignore_ref{ $overRegion->{family} } );
-        if($region->{ali} eq 'FULL' and $overRegion->{ali} eq 'FULL'){
+        if($region->{ali} eq 'FULL' and $overRegion->{ali} eq 'FULL' and $compete){
          if(_compete($seqAcc, $region, $overRegion, $pfamDB, $pfamoutRegions, $famObj->DESC->CL)){
-          next;  
+          next REGION;  
          }
         }
         
@@ -1738,7 +1744,7 @@ sub _compete {
   }
   
   unless($thisEvalue){
-    die "Could not find sequence region\n";  
+    die "Could not find sequence region!\n";  
   }
   
   #Is this family part of a clan? If it is, then get all the clan regions.
@@ -1756,7 +1762,7 @@ sub _compete {
     my $otherClanAcc;
     my $cRS = $pfamDB->getClanDataByPfam($overRegion->{family});
     if($cRS){
-      $otherClanAcc = $cRS->clan_acc;
+      $otherClanAcc = $cRS->auto_clan->clan_acc;
     }
     if($otherClanAcc and $otherClanAcc =~ /CL\d{4}/){
       #Need to get the E-value for the other sequence
