@@ -11,12 +11,13 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan );
+my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan, $compete );
 
 &GetOptions(
   "i=s@"               => \@ignore,
-  "help"               => \$help
-);
+  "help"               => \$help,
+  "compete"            => \$compete
+) or die "Incorrect option passed in\n"; 
 
 my $family = shift;
 
@@ -32,7 +33,7 @@ if ( $family =~ /^(\S+)\/$/ ) {
 help() if ($help);
 
 my %ignore;    #Hash used to ignore duplicating entries in @ignore
-foreach my $fam (@ignore) {
+  foreach my $fam (@ignore) {
   $ignore{$fam} = 1;
 }
 
@@ -43,6 +44,8 @@ my $connect = $config->pfamlive;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
   %{ $connect }
 );
+
+print STDERR "Going to try to resolve overlaps via competing\n" if($compete); 
 
 #Find out if family is in rdb
 my $rdb_family = $pfamDB->getPfamData($family);
@@ -65,8 +68,9 @@ if( !-w "$pwd/$family" ) {
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
+
 my $overlaps =
-  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj );
+  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete );
   warn "$family: found $overlaps external overlaps\n";
 
 if ($overlaps) {
