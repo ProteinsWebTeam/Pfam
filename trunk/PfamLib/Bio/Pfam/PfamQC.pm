@@ -793,7 +793,7 @@ sub sequenceChecker {
 =cut
 
 sub family_overlaps_with_db {
-  my ( $family, $ignore_ref, $endpoints_opt, $pfamDB, $famObj ) = @_;
+  my ( $family, $ignore_ref, $endpoints_opt, $pfamDB, $famObj, $compete ) = @_;
   my ( %ignore, @overlaps );
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
@@ -917,6 +917,12 @@ sub family_overlaps_with_db {
   $pfamDB->getOverlapingFullPfamRegions( \%regions, \%overlaps );
   $pfamDB->getOverlapingSeedPfamRegions( \%regions, \%overlaps );
 
+
+  my $pfamoutRegions;
+  if($compete){
+    $pfamoutRegions = $famObj->PFAMOUT->eachHMMSeq;  
+  }
+
   my $numOverlaps = 0;
   my %seen;
 
@@ -931,6 +937,12 @@ sub family_overlaps_with_db {
     {
       foreach my $overRegion ( @{ $region->{overlap} } ) {
         next if ( $$ignore_ref{ $overRegion->{family} } );
+        if($region->{ali} eq 'FULL' and $overRegion->{ali} eq 'FULL'){
+         if(_compete($seqAcc, $region, $overRegion, $pfamDB, $pfamoutRegions, $famObj->DESC->CL)){
+          next;  
+         }
+        }
+        
         my $line =
             "Sequence [" 
           . $seqAcc
@@ -1698,6 +1710,68 @@ sub checkSearchMethod {
     return 1;    # success
   }
 }
+
+
+sub _compete {
+  my( $seqAcc, $region, $overRegion, $pfamDB, $pfamoutRegions, $clanAcc) = @_; 
+  
+  my $skip = 0;
+  my $thisEvalue;
+  foreach my $seq (@$pfamoutRegions){
+    #Find the sequence
+    
+    my ($acc, $version) = $seq->name =~ /(\S+)\.(\d+)/;
+    if($acc eq $seqAcc){
+      print STDERR "Comparing $seqAcc to ".$seq->name."\n";
+      #Now find the region - we are screwed if it has ED lines
+      foreach my $u ( @{ $seq->hmmUnits } ) {
+          print STDERR  $u->seqFrom." ".$region->{from}." ".$u->seqTo." ".$region->{to}."\n";
+          if($u->seqFrom == $region->{from} and $u->seqTo == $region->{to}){
+            #Right, we have found the overlaping regions  
+            $thisEvalue = $u->evalue;
+            print STDERR $thisEvalue;
+            last;
+          }
+      }
+      last;
+    }      
+  }
+  
+  unless($thisEvalue){
+    die "Could not find sequence region\n";  
+  }
+  
+  #Is this family part of a clan? If it is, then get all the clan regions.
+  if($clanAcc and $clanAcc =~ /CL\d{4}/){
+    #Look up to see if there are any regions in the database with an E-value
+    #less than this one!
+    my $seqRegions = $pfamDB->findLowerEvalueRegion($seqAcc, $region, $clanAcc, $thisEvalue);  
+    if($seqRegions > 0){
+      $skip = 1;  
+    }
+  }
+  
+  unless( $skip == 1 ) {
+    #Okay, now inspect the overlaping region.
+    my $otherClanAcc;
+    my $cRS = $pfamDB->getClanDataByPfam($overRegion->{family});
+    if($cRS){
+      $otherClanAcc = $cRS->clan_acc;
+    }
+    if($otherClanAcc and $otherClanAcc =~ /CL\d{4}/){
+      #Need to get the E-value for the other sequence
+      #Look up to see if there are any regions in the database with an E-value
+      #less than this one!
+      my $seqRegions = $pfamDB->findLowerEvalueRegion($seqAcc, $overRegion, $clanAcc);  
+      if($seqRegions > 0){
+        $skip = 1;  
+      }
+    }
+  }
+  return($skip);
+}
+
+
 
 =head1 COPYRIGHT
 

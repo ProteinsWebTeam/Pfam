@@ -538,6 +538,71 @@ sub getOverlapingSeedPfamRegions {
   }
 }
 
+sub findLowerEvalueRegion {
+  my ($self, $seqAcc, $region, $clanAcc, $evalue) = @_;
+  
+  if($seqAcc =~ /(\S+)\.\d+/){
+    $seqAcc = $1;
+  }
+       
+  
+  my $dbh = $self->getSchema->storage->dbh;
+  
+  unless($evalue){
+    print STDERR "Performing look up to find evalue of other family\n";
+    my $sthE = $dbh->prepare("SELECT evalue FROM 
+                                      pfamA a, 
+                                      pfamA_reg_full_significant r,
+                                      pfamseq s
+                               WHERE  pfamseq_acc= ? 
+                               AND seqFrom = ? 
+                               AND seqTo = ?
+                               AND s.auto_pfamseq=r.auto_pfamseq 
+                               AND r.auto_pfamA=a.auto_pfamA
+                               AND pfamA_acc = ?");
+    $sthE->execute($seqAcc, $region->{from}, $region->{to}, $region->{family});
+    my $row = $sthE->fetchrow_arrayref;
+    unless(defined( $row ) and $row->[0]){
+      die "Failed to get evalue for $seqAcc\n";  
+    }
+    $evalue = $row->[0];
+  }
+  
+  
+  
+  my $sthO = $dbh->prepare("SELECT domain_evalue_score FROM 
+                              pfamA a, 
+                              clans c, 
+                              clan_membership m, 
+                              pfamA_reg_full_significant r, 
+                              pfamseq s 
+                            WHERE  pfamseq_acc= ? AND
+                            ((? >= r.seq_start and ? <= r.seq_end) or 
+                            ( ? >= r.seq_start and ? <= r.seq_end) or 
+                            ( ? < r.seq_start and ? >r.seq_end)) and
+                            s.auto_pfamseq=r.auto_pfamseq and 
+                            r.auto_pfamA=a.auto_pfamA and 
+                            pfamA_acc != ? and
+                            clan_acc = ? and
+                            c.auto_clan = m.auto_clan and
+                            m.auto_pfamA = r.auto_pfamA") or confess $dbh->errstr;
+ 
+  $sthO->execute($seqAcc, $region->{from}, $region->{from}, 
+                 $region->{to}, $region->{to}, 
+                 $region->{from}, $region->{to}, $region->{family}, $clanAcc );
+
+  my $regBetter = 0 ;  
+  foreach my $row ( @{ $sthO->fetchall_arrayref } ) {
+    if($row->[0] < $evalue){
+      $regBetter =1;
+      last; 
+    }
+  }
+  
+  return $regBetter;
+}
+
+
 sub getPfamRegionsForSeq {
   my ( $self, $seq ) = @_;
   my @pfamRegions;
