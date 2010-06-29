@@ -357,8 +357,8 @@ sub _qualityControlFamily {
      
   }  
   
-  
-  my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj );
+  my $compete = 1;
+  my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
   warn "$family: found $overlaps overlaps\n";
   if ($overlaps) {
     confess("Found overlaps\n");
