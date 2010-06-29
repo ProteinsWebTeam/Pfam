@@ -61,7 +61,7 @@ sub getSchema {
 sub id2acc {
   my ( $self, $id ) = @_;
   my $result =
-  $self->getSchema->resultset("Pfama")->find( { "pfamA_id" => $id } );
+  $self->getSchema->resultset("Pfama")->find( { "pfama_id" => $id } );
   if ( $result && $result->pfama_acc ) {
     return ( $result->pfama_acc );
   }
@@ -70,9 +70,9 @@ sub id2acc {
 sub acc2id {
   my ( $self, $acc ) = @_;
   my $result =
-    $self->getSchema->resultset("Pfama")->find( { "pfamA_acc" => $acc } );
-  if ( $result && $result->pfamA_id ) {
-    return ( $result->pfamA_id );
+    $self->getSchema->resultset("Pfama")->find( { "pfama_acc" => $acc } );
+  if ( $result && $result->pfama_id ) {
+    return ( $result->pfama_id );
   }
 }
 
@@ -550,13 +550,13 @@ sub findLowerEvalueRegion {
   
   unless($evalue){
     print STDERR "Performing look up to find evalue of other family\n";
-    my $sthE = $dbh->prepare("SELECT evalue FROM 
+    my $sthE = $dbh->prepare("SELECT domain_evalue_score FROM 
                                       pfamA a, 
                                       pfamA_reg_full_significant r,
                                       pfamseq s
                                WHERE  pfamseq_acc= ? 
-                               AND seqFrom = ? 
-                               AND seqTo = ?
+                               AND seq_start = ? 
+                               AND seq_end = ?
                                AND s.auto_pfamseq=r.auto_pfamseq 
                                AND r.auto_pfamA=a.auto_pfamA
                                AND pfamA_acc = ?");
@@ -566,6 +566,7 @@ sub findLowerEvalueRegion {
       die "Failed to get evalue for $seqAcc\n";  
     }
     $evalue = $row->[0];
+    print STDERR "$evalue\n";
   }
   
   
