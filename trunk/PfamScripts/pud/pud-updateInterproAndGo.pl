@@ -264,8 +264,20 @@ sub parseInterproXML {
   my $parser = XML::LibXML->new;
   my $cgi    = CGI->new;
 
+  #InterPro XML is crap and contains HTML tags in the CDATA.  We are going to explicitly
+  #add them here.  
+  open(F, $INTERPRO_FILE) or $logger->logdie("Could not open $INTERPRO_FILE:[$!]");
+  open(G, ">".$INTERPRO_FILE.".cdata") or $logger->logdie("Could not open $INTERPRO_FILE.cdata for writing:[$!]");
+  while(<F>){
+      s/\<abstract\>/<abstract><![CDATA[/g;
+      s/\<\/abstract\>/]]><\/abstract>/g;
+      print G $_;
+  }
+  close(F);
+  close(G);
+
   # original file: /pfam/data1/localdbs/interpro/interpro.xml
-  my $DOM = $parser->parse_file($INTERPRO_FILE)
+  my $DOM = $parser->parse_file($INTERPRO_FILE.".cdata")
     or die "(EE) ERROR: couldn't parse file: $!";
 
   my $root = $DOM->documentElement;
