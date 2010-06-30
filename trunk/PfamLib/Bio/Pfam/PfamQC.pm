@@ -1768,7 +1768,7 @@ sub _compete {
       #Need to get the E-value for the other sequence
       #Look up to see if there are any regions in the database with an E-value
       #less than this one!
-      my $seqRegions = $pfamDB->findLowerEvalueRegion($seqAcc, $overRegion, $clanAcc);  
+      my $seqRegions = $pfamDB->findLowerEvalueRegion($seqAcc, $overRegion, $otherClanAcc);  
       if($seqRegions > 0){
         $skip = 1;  
       }
