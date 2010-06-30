@@ -27,6 +27,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
+  "pdb_start_icode",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 1 },
   "pdb_res_end",
   {
     data_type => "MEDIUMINT",
@@ -34,6 +36,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
+  "pdb_end_icode",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 1 },
   "seq_start",
   { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
   "seq_end",
@@ -42,26 +46,26 @@ __PACKAGE__->add_columns(
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 6 },
 );
 __PACKAGE__->set_primary_key("auto_pdb_reg");
-__PACKAGE__->belongs_to(
-  "auto_pfama_reg_full",
-  "PfamLive::PfamaRegFullSignificant",
-  { auto_pfama_reg_full => "auto_pfama_reg_full" },
-);
+__PACKAGE__->belongs_to("pdb_id", "PfamLive::Pdb", { pdb_id => "pdb_id" });
 __PACKAGE__->belongs_to(
   "auto_pfama",
   "PfamLive::Pfama",
   { auto_pfama => "auto_pfama" },
 );
 __PACKAGE__->belongs_to(
+  "auto_pfama_reg_full",
+  "PfamLive::PfamaRegFullSignificant",
+  { auto_pfama_reg_full => "auto_pfama_reg_full" },
+);
+__PACKAGE__->belongs_to(
   "auto_pfamseq",
   "PfamLive::Pfamseq",
   { auto_pfamseq => "auto_pfamseq" },
 );
-__PACKAGE__->belongs_to("pdb_id", "PfamLive::Pdb", { pdb_id => "pdb_id" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-18 18:25:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xsMnhOQQvQJ9pbxA+FeMnQ
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-06-18 16:34:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z1Bd2ji/FPvaqAESsVH8Ug
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
