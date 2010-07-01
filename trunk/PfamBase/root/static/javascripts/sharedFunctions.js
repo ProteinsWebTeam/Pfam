@@ -168,9 +168,10 @@ var CurvedBorders = Class.create( {
 
       // move the ID of the original element onto the new outer element
       // and give it a new class name to mark it as an inner element
-      outer.id = orig.identify();       
+      var outerId = orig.identify();
       orig.removeAttribute("id");
-
+      outer.id = outerId;
+      
       orig.removeClassName( "cbb" )
           .addClassName( "i3" );
 
@@ -408,9 +409,10 @@ var TabPage = Class.create( {
       }
     } );
 
-    document.observe( "keypress", function(e){
-
-      // don't capture events that originate on an input or textarea -%]
+    // listen for keypresses and switch tabs based on which key was pressed
+    document.observe( "keypress", function(e) {
+      
+      // don't capture events that originate on an input or textarea
       var targetNodeType = e.findElement().nodeName;
       if ( targetNodeType == 'INPUT' ||
            targetNodeType == 'TEXTAREA' ) {
@@ -442,6 +444,60 @@ var TabPage = Class.create( {
       }
     }.bind( this ) );
 
+  }
+
+} );
+
+//------------------------------------------------------------
+// a simple class to fix behavioural problems with wiki content. These are
+// caused by us stripping javascript from the content when we import it, so
+// we need to mimic at least the most important bits here.
+
+var WikiContent = Class.create( {
+
+  initialize: function( wikiContent ) {
+    this._wikiContentEl = $(wikiContent);
+
+    this._tocCount = 0;
+    this._colCount = 0;
+
+    this._collapseElements();
+  },
+
+  _collapseElements: function() {
+
+    this._wikiContentEl.select(".toc").each( function(toc) {
+      var list     = toc.down("ul");
+      var title    = list.previous("div");
+      var toggleId = "toctoggle" + this._tocCount;
+      var toggle   = new Element( "span", { "class": "toctoggle" } )
+                       .update( "[<span class='link' id='" + toggleId + "'>show</span>]" );
+      title.appendChild(toggle);
+      $(toggleId).observe( "click", this._toggle.bind( this, toggleId, list ) );
+      this._tocCount++;
+    }.bind(this) );
+
+    this._wikiContentEl.select(".collapsible").each( function(col) {
+      var title    = col.down("th");
+      var row      = title.up("tr").next("tr");
+      if ( col.hasClassName("collapsed") ) {
+        row.hide();
+      }
+      var toggleId = "collapseButton" + this._colCount;
+      var toggle   = new Element( "span", { "class": "collapseButton" } )
+                       .update( "[<span class='link' id='" + toggleId + "'>show</span>]" );
+      title.appendChild(toggle);
+      $(toggleId).observe( "click", this._toggle.bind( this, toggleId, row ) );
+    }.bind(this) );
+  },
+
+  _toggle: function( toggleId, el ) {
+    el.toggle();
+    if ( el.visible() ) {
+      $(toggleId).update("hide");
+    } else {
+      $(toggleId).update("show");
+    }
   }
 
 } );
