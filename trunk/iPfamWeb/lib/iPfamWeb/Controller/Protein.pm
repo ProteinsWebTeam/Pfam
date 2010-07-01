@@ -54,7 +54,7 @@ sub begin : Private {
     
     $c->log->debug( "Protein::begin: we did get a input entry |$tainted_entry|" );
     # now detaint the input entry.
-    ( $entry ) = $tainted_entry =~ /^([A-Za-z0-9\.\_]*)$/;   # now the protein entry has '.', so not validating strictly.
+    ( $entry ) = $tainted_entry =~ /^([A-Za-z0-9\.\_]*)/;   # now the protein entry has '.', so not validating strictly.
     
     unless( defined $entry ){
       $c->log->debug( "Protein::begin::Invalid input, entry contains invalid characters." );
