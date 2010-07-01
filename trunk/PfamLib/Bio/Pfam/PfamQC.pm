@@ -943,7 +943,7 @@ sub family_overlaps_with_db {
  REGION:
       foreach my $overRegion ( @{ $region->{overlap} } ) {
         next if ( $$ignore_ref{ $overRegion->{family} } );
-        if($region->{ali} eq 'FULL' and $overRegion->{ali} eq 'FULL' and $compete){
+        if($region->{ali} eq 'FULL' and $compete){
          if(_compete($seqAcc, $region, $overRegion, $pfamDB, $pfamoutRegions, $famObj->DESC->CL)){
           next REGION;  
          }
@@ -1758,7 +1758,8 @@ sub _compete {
   }
   
   unless( $skip == 1 ) {
-    #Okay, now inspect the overlaping region.
+    if($overRegion->{align} eq 'FULL'){
+      #Okay, now inspect the overlaping region.
     my $otherClanAcc;
     my $cRS = $pfamDB->getClanDataByPfam($overRegion->{family});
     if($cRS){
@@ -1772,6 +1773,7 @@ sub _compete {
       if($seqRegions > 0){
         $skip = 1;  
       }
+    }
     }
   }
   return($skip);
