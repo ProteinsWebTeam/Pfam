@@ -5,7 +5,7 @@
 # $Id: about.tt,v 1.1 2009-11-13 10:36:40 pg6 Exp $
 #
 
-META fullpage = 1;
+META fullPage = 1;
 
 -%]
 
