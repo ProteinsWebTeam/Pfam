@@ -365,7 +365,7 @@ div.jumpError {
 }
 
 /* the footer for tab-layout templates */
-/*#contentContainer #footer {
+#contentContainer #footer {
   clear: both;
   position: relative;
   width: 85%;
@@ -373,7 +373,7 @@ div.jumpError {
   border: none;
   border-top: 1px solid #063;
   height: 4px;
-}*/
+}
 
 /* ======================================== */
 /* error page styles */
