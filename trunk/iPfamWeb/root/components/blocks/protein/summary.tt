@@ -143,9 +143,7 @@ oe = 0;
     <tbody>
     </tbody>
     </table>
-    [% USE Dumper;
-      Dumper.dump( rest.layout[0] );
-    %]
+    
     <script type="text/javascript">
       // <![CDATA[
 
