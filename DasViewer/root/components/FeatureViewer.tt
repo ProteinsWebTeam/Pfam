@@ -159,7 +159,7 @@ var FeatureViewer = Class.create({
           var errorEl = new Element( 'div',{ 'id': 'errorMsg' } );
           errorEl.update( features.errorMsg );
 
-          that._pupdatee( errorEl );
+          that._parent.update( errorEl );
           
           // now set the state to false;
           that.setReadyState( false );
