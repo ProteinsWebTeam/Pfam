@@ -377,7 +377,29 @@ if (@blastdb==0){
 }
 
 #Find out how big the database is (used for e-value computations for blast & HMMer):
-my $dbsize  = Rfam::RfamSearch::getDbSize();
+my $dbsize=0;
+if (defined($altdb)){ #if altdb, check for DBSIZE file or die - LEB
+	open(DBSIZE, "< $blastdbdir/DBSIZE") or die "FATAL: failed to open $blastdbdir\n[$!]";
+	while(<DBSIZE>){
+		if (/(\d+)/){
+			$dbsize=$1;
+			last;
+		}
+	}
+} elsif (defined($incldb)){
+	open(DBSIZE, "< $blastdbdir/DBSIZE") or die "FATAL: failed to open $blastdbdir\n[$!]";
+	while(<DBSIZE>){
+		if (/(\d+)/){
+			$dbsize=$1;
+			last;
+		}
+	}
+	$dbsize  += Rfam::RfamSearch::getDbSize();
+}
+else {
+	$dbsize  =  Rfam::RfamSearch::getDbSize();
+}
+#&printlog( "DBSIZE: $dbsize");
 
 my $nobjobs = scalar(@blastdb);
 
