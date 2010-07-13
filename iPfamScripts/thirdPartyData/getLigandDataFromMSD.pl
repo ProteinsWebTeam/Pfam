@@ -1,86 +1,142 @@
 #!/usr/local/bin/perl
+#===============================================================================
+#
+#         FILE:  getLigandDataFromMSD.pl
+#
+#        USAGE:  ./getLigandDataFromMSD.pl  
+#
+#  DESCRIPTION: Script to get the ligand data from the MSD database and populate 
+#               the following tables, ligand_chemistry, pdb_connectivity,
+#               ligand_synonyms and ligand_summary. 
+#
+# REQUIREMENTS:  ---
+#       AUTHOR:  Prasad Gunasekaran (pg6@sanger.ac.uk )
+#      VERSION:  1.0
+#      CREATED:  13/07/2010 10:30:04
+#     REVISION:  ---
+#===============================================================================
 
 use strict;
 use warnings;
-use Bio::Pfam;
-use Data::Dumper;
+
+use Data::Dump qw(dump);
+use Net::SCP;
+use Log::Log4perl qw(:easy);
 use DBI;
+use Getopt::Long;
+use Config::General;
 
-#my $rdb = shift; #This is in the new format pfam_X_0
+use Bio::iPfam::Config;
 
-#die "Please provide a database name that you wish to update\n" unless ($rdb);
+my ( $ipfam_config );
+
+GetOptions(
+    "ipfam_config=s"  =>  \$ipfam_config
+);
+
+#-------------------------------------------------------------------------------
+
+#Start up the logger
+Log::Log4perl->easy_init($DEBUG);
+my $logger = get_logger();
 
 $ENV {"ORACLE_HOME"} = "/software/oracle";
-#my $output_dir = "/pfam/data1/localdbs/msd";
-#my $output_dir = "/home/rob/";
-#Okay - This is the set up for connecting to the msd database. This should go into a module!!!!
 
-my $host = "ocs16";
-my $port = 1527;
-my $db = "msd";
-my $password = "search";
-my $user = "search";
+my $config  = Bio::iPfam::Config->new;
+my $statusdir = $config->statusDir;
 
-my $dbh = DBI->connect("dbi:Oracle:host=$host;sid=$db;port=$port", $user, $password) or  die "Couldn't connect to database: ".DBI->errstr;
-# We should now have a connection string!
+$logger->info( "the statusDir is located in $statusDir" );
 
-
-#Now get the data for the pdb table
-my $sthLigandData = $dbh->prepare("SELECT 
-CHEM_COMP_ID,
-CHEM_COMP_CODE,
-CODE_3_LETTER,
-CODE_1_LETTER,
-NAME,
-SYSTEMATIC_NAME,
-NUM_ATOMS_ALL,
-NUM_ATOMS_NON_H,
-STEREO_SMILES,
-NONSTEREO_SMILES,
-FORMAL_CHARGE,
-RCSB_HETTYPE,
-FORMULA,
-WEIGHT
-FROM CHEM_COMP");
-$sthLigandData->execute;
-
-open(LIG, ">LigandData.dat") || die "Could not open LigandData.dat:[$!]\n";
-while (my $hash = $sthLigandData->fetchrow_hashref){
-  eval{
-    chomp($$hash{NAME});
-    chomp($$hash{SYSTEMATIC_NAME});
-    print LIG $$hash{CHEM_COMP_ID}."\t".
-      $$hash{CHEM_COMP_CODE}."\t".
-	$$hash{CODE_3_LETTER}."\t".
-	$$hash{CODE_1_LETTER}."\t".
-	  $$hash{NAME}."\t".
-	    $$hash{SYSTEMATIC_NAME}."\t".
-	      $$hash{NUM_ATOMS_ALL}."\t".
-		$$hash{NUM_ATOMS_NON_H}."\t".
-		  $$hash{STEREO_SMILES}."\t".
-		    $$hash{NONSTEREO_SMILES}."\t".
-		      $$hash{FORMAL_CHARGE}."\t".
-			$$hash{RCSB_HETTYPE}."\t".
-			  $$hash{FORMULA}."\t".
-			    $$hash{WEIGHT}."\n";
-
-  };
- }
-$sthLigandData->finish;
-close(LIG);
-
-
-my $sthLigandSyn = $dbh->prepare( "SELECT CHEM_COMP_ID, SERIAL, NAME_SYNONYM FROM COMP_SYNONYM");
-$sthLigandSyn->execute;
-open(LIGSYN, ">LigandSyn.dat") || die "Could not open LigandSyn.dat:[$!]\n";
-while(my $hash = $sthLigandSyn->fetchrow_hashref){
-  eval{
-    print LIGSYN $$hash{CHEM_COMP_ID}."\t".$$hash{SERIAL}."\t".$$hash{NAME_SYNONYM}."\n";
-  };
+unless($statusdir and -d $statusdir){
+  $logger->logdie("You need to pass a statusdir in:[$!]");
 }
-$sthLigandSyn->finish;
-close(LIGSYN);
+
+unless ( $ipfam_config ) {
+  $logger->logdie( 'You need to give config file containing connection params to ipfam database' );
+}
+#-------------------------------------------------------------------------------
+# data files are written in localdbs/msd for populating into the database;
+my $output_dir = $config->localDbsLoc."/msd";
+
+# check whether the ligand data is already fetched and the status is updated in the statusdir
+unless ( -e "$statusdir/fetchedLigandData" ){
+  
+  # try to connect to PDBe database and die if it fails,
+  $logger->info( 'Connecting to PDBe database' );
+  my $host = "ocs16";
+  my $port = "1530";
+  my $db = "msd";
+  my $password = "pdbe_ro";
+  my $user = "pdbe_ro";
+  
+  my $dbh = DBI->connect("dbi:Oracle:host=$host;sid=$db;port=$port", $user, $password)
+   or  $logger->logdie("Couldn't connect to database: ".DBI->errstr);
+  
+  #-------------------------------------------------------------------------------
+  # prepare the query to get the ligand Chemistry data from MSD;
+  my $ligChemistry = $dbh->prepare( "SELECTÊ
+                        cc.id as CHEM_COMP_ID,
+                        cc.id as CHEM_COMP_CODE,
+                        cc.three_letter_code as CODE_3_LETTER,
+                        cc.one_letter_code as CODE_1_LETTER,
+                        cc.name,Ê
+                        cs2.identifier as SYSTEMATIC_NAME,
+                        cc.number_atoms_all as NUM_ATOMS_ALL,
+                        cc.number_atoms_nh as NUM_ATOMS_NON_H,
+                        cd3.descriptor as STEREO_SMILES,Ê
+                        cd1.descriptor as NONSTEREO_SMILES,Ê
+                        cc.formal_charge as FORMAL_CHARGE,
+                        cc.type_text as RCSB_HETTYPE,
+                        cc.FORMULA,Ê
+                        cc.formula_weight as WEIGHT
+                        FROMÊ
+                        pdbe.chem_comp cc, pdbe.chem_identifier Êcs2 , pdbe.chem_descriptor cd1, pdbe.chem_descriptor cd3Ê
+                        whereÊ
+                        cc.id = cs2.chem_comp_id (+) andÊ
+                        cs2.type (+) = 'SYSTEMATIC NAME' and cs2.program (+) = 'ACDLabs' and
+                        cc.id = cd1.chem_comp_id (+) andÊ
+                        (cd1.type (+) = 'SMILES' and cd1.program (+) = 'CACTVS') andÊ
+                        cc.id = cd3.chem_comp_id (+) andÊ
+                        (cd3.type (+) = 'SMILES_CANONICAL' and cd3.program (+) = 'CACTVS') and rownum = 1"
+                      );
+  
+  # now execute the query;
+  $ligChemistry->execute or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
+  
+  # open the stream to write the output;
+  open( CHEMISTRY, "$output_dir/ligand_chemistry.dat") 
+    || $logger->logdie( "$output_dir/ligand_chemistry.dat cannot be opened for writing ".$! );
+  
+  # retrieve the rows
+  while( my $row = $ligChemistry->fetchrow_hashref ){
+    print dump( $row );
+    exit;
+  } # end of while( my$row );
+        
+}# end of unless ( -e fetchedLigandData )
+else{
+  $logger->info( 'Ligand data already exists in $output_dir ' );
+}
 
 
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+=cut
 
 
