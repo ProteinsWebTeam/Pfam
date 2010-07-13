@@ -268,6 +268,25 @@ sub localDbsLoc {
 }
 
 
+=head2 statusDir
+
+  Title    : statusDir
+  Usage    : $config->statusDir
+  Function : Returns the location of the status dir
+  Args     : None - read only operator
+  Returns  : string containing path to local databases
+  
+=cut
+
+sub statusDir {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{ statusDir };
+}
+
+
 =head2 productionLoc
 
   Title    : productionLoc
