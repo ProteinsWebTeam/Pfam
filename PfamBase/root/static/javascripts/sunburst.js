@@ -78,6 +78,7 @@ var Sunburst = Class.create( {
                                "maxH": 6.19591884457987 }
   },
 
+  // these are the original angles, converted to radians above
   // _colours: { 
   //   "Archaea":               { "minH": 1,
   //                              "maxH": 40 },
@@ -96,8 +97,6 @@ var Sunburst = Class.create( {
   //   "other sequences":       { "minH": 336,
   //                              "maxH": 355 }
   // },
-
-  // TODO could make these limits radians and save the conversion later on
 
 /*
 +------------+--------------------+----------+---------+---------+--------+------------------------+---------+--------------+
@@ -185,7 +184,7 @@ var Sunburst = Class.create( {
    * tree) will be draw in &quot;subTree&quot;
    * </p>
    */
-  initialize: function( parentEl, treeData ) {
+  initialize: function( parentEl, treeData, w, h ) {
 
     this._parentEl = $(parentEl);
     this._treeData = treeData;
@@ -207,8 +206,8 @@ var Sunburst = Class.create( {
     this._depthLimit       = 50;
     this._layerSeparation  = 2;
                            
-    this._treeWidth        = 1000;
-    this._treeHeight       = 1000;
+    this._treeWidth        = w || 1000;
+    this._treeHeight       = h || 1000;
     this._subTreeWidth     =  246;
     this._subTreeHeight    =  150;
                            
@@ -240,7 +239,8 @@ var Sunburst = Class.create( {
     //   stem: "topLeft",
     //   width: "15em"
     // };
-
+    
+    // build the markup that we need for the tree and the sub-tree
     this._buildHTML();
   },
 
@@ -261,6 +261,7 @@ var Sunburst = Class.create( {
    * to draw the arcs, before calling <code>draw()</code>.
    */
   draw: function() {
+
     this._arcCount = 0;
 
     // move the origin of the coordinate system back to the origin of the canvas
@@ -301,7 +302,7 @@ var Sunburst = Class.create( {
 
   //----------------------------------------------------------------------------
   /**
-   * Set the scale of the tree. Defaults to <strong>50</strong>. Must be in the
+   * Sets the scale of the tree. Defaults to <strong>50</strong>. Must be in the
    * range 10 &lt;= scale &lt;= 100.
    *
    * @param s scale value
@@ -314,9 +315,9 @@ var Sunburst = Class.create( {
 
   //----------------------------------------------------------------------------
   /**
-   * Returns a list of the currently selected <code>Node</code> objects.
+   * Returns a list of the currently selected <code>SunburstNode</code> objects.
    *
-   * @returns {Array} list of selected <code>Node</code> objects
+   * @returns {Array} list of selected <code>SunburstNode</code> objects
    */
   getSelected: function() {
     return this._selected.values();
@@ -455,10 +456,14 @@ var Sunburst = Class.create( {
     this._tipNumSpecies     = $("tipNumSpecies");
 
     // set the opacity (in a browser independent fashion) on the sub-tree div
-    this._subTreeWrapperDiv.setOpacity(0.8);
+    this._subTreeWrapperDiv.setOpacity(0.75);
    
     // make the sub-tree draggable
-    d = new Draggable( this._subTreeWrapperDiv ); 
+    try {
+      d = new Draggable( this._subTreeWrapperDiv ); 
+    } catch(e) {
+      // don't care
+    }
 
     // build the canvases
     this._subTreeCanvas = this._buildCanvas( this._subTreeDiv, this._subTreeWidth, this._subTreeHeight );
@@ -487,6 +492,8 @@ var Sunburst = Class.create( {
     // watch the main canvas for mouse events
     this._treeCanvas.observe( "mousemove", this._handleMousemove.bind(this) );
     this._treeCanvas.observe( "click",     this._handleClick.bind(this) );
+
+    this._builtMarkup = true;
 
     return this;
   },
@@ -641,17 +648,17 @@ var Sunburst = Class.create( {
 
     // calculate the radius and angle subtended
     var r  = ( this._layerWidth + this._layerSeparation ) * arc._depth,
-        da = ( arc._toAlpha - arc._fromAlpha ) /  2, // delta alpha
-        ma = arc._fromAlpha + da,                    // midpoint alpha
+        da = arc._toAlpha - arc._fromAlpha, // delta alpha
+        ma = arc._fromAlpha + ( da / 2 ),   // midpoint alpha
 
         shim = 0.1 * ( 2 * Math.PI ) / 360, // leave a gap of 0.1 degree between arcs
 
         to = Math.max( arc._fromAlpha, arc._toAlpha - shim ),
 
-        l = 2 * Math.PI * ( r - this._layerWidth / 2 ) * ( da / ( 2 * Math.PI ) ), // arc length
+        l = r * da, // arc length
 
         label = arc.nodeName.match( /([\w\s]*)(?:\(.*?\))?/ )[1]
-                              .replace( /\n/g, ' ' ),
+                            .replace( /\n/g, ' ' ),
         lines, labelHeight, labelWidth;
 
     // if no colour is specified, default to the colour of the arc itself
@@ -684,10 +691,17 @@ var Sunburst = Class.create( {
       }
     } else {
       // tangential labels
-      if ( this._ctx.measureText( label ).width < l+30 ) {
+      if ( this._ctx.measureText( label ).width + 4 < l ) {
         this._ctx.save();
-        this._ctx.rotate( ma );
-        this._ctx.translate( r - this._layerWidth * 0.1, 0 );
+        if ( ma < Math.PI ) {
+          this._ctx.rotate( ma + Math.PI );
+          this._ctx.translate( 0 - ( r - this._layerWidth * 0.1 ), 0 );
+        } else {
+          this._ctx.rotate( ma );
+          this._ctx.translate( r - this._layerWidth * 0.1, 0 );
+        }
+        // this._ctx.rotate( ma );
+        // this._ctx.translate( r - this._layerWidth * 0.1, 0 );
         this._ctx.rotate( Math.PI / 2 );
         this._ctx.fillText( label, 0, 0 );
         this._ctx.restore();
@@ -698,18 +712,28 @@ var Sunburst = Class.create( {
         lines = label.split( " " ).slice(0,2);
 
         // calculate the height of the split text
-        labelHeight = ( ( lines.size() - 2 ) * 5 ) + 2; // lots of fudge there...
+        // labelHeight = ( ( lines.size() - 2 ) * 5 ) + 2; // lots of fudge there...
+        labelHeight = lines.size() * 10;
+        // console.debug( "label: |%s|, lines.size(): |%d|, labelHeight: |%d|", label, lines.size(), labelHeight );
 
         // and calculate the width of the longest line
         labelWidth = lines.map( function(line) { 
           return this._ctx.measureText(line).width;
         }.bind(this) ).max();
-        console.debug( "longest line: |%d|, arc length: |%d|", labelWidth, l );
+        // console.debug( "label: |%s|, longest line: |%d|, arc length: |%d|", label, labelWidth, l );
 
-        if ( labelHeight < this._layerWidth && labelWidth < l+45 ) {
+        if ( labelHeight < this._layerWidth && 
+             labelWidth + 4 < l ) {
           this._ctx.save();
-          this._ctx.rotate( ma );
-          this._ctx.translate( r + labelHeight, 0 );
+          if ( ma < Math.PI ) {
+            this._ctx.rotate( ma + Math.PI );
+            this._ctx.translate( 0 - ( r - ( labelHeight / 2 ) + 4 ), 0 );
+          } else {
+            this._ctx.rotate( ma );
+            this._ctx.translate( r + ( labelHeight / 2 ) - 4, 0 );
+          }
+          // this._ctx.rotate( ma );
+          // this._ctx.translate( r + labelHeight, 0 );
           this._ctx.rotate( Math.PI / 2 );
           lines.each( function(line,i) {
             this._ctx.fillText( line, 0, i * 10 );
@@ -822,12 +846,12 @@ var Sunburst = Class.create( {
   /**
    * Given a mouse event originating from the main tree canvas, this method 
    * takes the X,Y position of the event and tries to find the arc over which
-   * the mouse is moving. Returns the arc data structure (<code>Node</code>
-   * itself, if found.
+   * the mouse is moving. Returns the arc data structure 
+   * (<code>SunburstNode</code> itself, if found.
    *
    * @private
    * @param e mouse event from tree canvas
-   * @returns {Node} data structure for the active arc
+   * @returns {SunburstNode} data structure for the active arc
    */
   _findArc: function(e) {
 
