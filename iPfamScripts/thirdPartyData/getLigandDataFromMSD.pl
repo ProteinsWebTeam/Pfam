@@ -59,7 +59,7 @@ unless ( $ipfam_config ) {
 my $output_dir = $config->localDbsLoc."/msd";
 
 # check whether the ligand data is already fetched and the status is updated in the statusdir
-unless ( -e "$statusdir/fetchedLigandData" ){
+unless ( -e "$statusdir/fetched_ligand_data" ){
   
   # try to connect to PDBe database and die if it fails,
   $logger->info( 'Connecting to PDBe database' );
@@ -91,7 +91,7 @@ unless ( -e "$statusdir/fetchedLigandData" ){
                         cc.FORMULA,
                         cc.formula_weight as WEIGHT
                         FROM
-                        pdbe.chem_comp cc, pdbe.chem_identifier cs2, pdbe.chem_descriptor cd1, pdbe.chem_descriptor cd3
+                        pdbe_ro.chem_comp cc, pdbe_ro.chem_identifier cs2, pdbe_ro.chem_descriptor cd1, pdbe_ro.chem_descriptor cd3
                         where
                         cc.id = cs2.chem_comp_id (+) and
                         cs2.type (+) = 'SYSTEMATIC NAME' and cs2.program (+) = 'ACDLabs' and
@@ -101,25 +101,121 @@ unless ( -e "$statusdir/fetchedLigandData" ){
                         (cd3.type (+) = 'SMILES_CANONICAL' and cd3.program (+) = 'CACTVS') "
                       );
   # now execute the query;
-  #$ligChemistry->execute() or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
+  $ligChemistry->execute() or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
   
-  # open the stream to write the output;
-  open( CHEMISTRY, "$output_dir/ligand_chemistry.dat") 
+  # open the stream to write the output for ligand chemistry table;
+  open( CHEMISTRY, ">$output_dir/ligand_chemistry.dat") 
     or $logger->logdie( "$output_dir/ligand_chemistry.dat cannot be opened for writing ".$! );
   
+  open( SUMMARY, ">$output_dir/ligand_summary.dat" )
+    or $logger->logdie( "$output_dir/ligand_summary.dat cannot be opened for writing ".$! );
+
   # retrieve the rows
+  my $count = 0;
   while( my $row = $ligChemistry->fetchrow_hashref ){
-    print dump( $row );
-    exit;
+    
+    $count++;
+      
+    # chomp the name and systematic name to remove trailing characters;
+   
+    print CHEMISTRY $row->{ CHEM_COMP_ID } ."\t";
+    
+    if( $row->{ CODE_3_LETTER } ){
+      print CHEMISTRY $row->{ CODE_3_LETTER } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    
+    if( $row->{ CODE_1_LETTER } ){
+      print CHEMISTRY $row->{ CODE_1_LETTER } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+
+    if( $row->{  NAME } ){
+      chomp( $row->{ NAME } ); 
+      print CHEMISTRY $row->{ NAME } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ SYSTEMATIC_NAME }  ){
+      chomp( $row->{ SYSTEMATIC_NAME } ); 
+      print CHEMISTRY $row->{ SYSTEMATIC_NAME }  ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ NUM_ATOMS_ALL }  ){
+      print CHEMISTRY $row->{ NUM_ATOMS_ALL }  ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ STEREO_SMILES } ){
+      print CHEMISTRY $row->{ STEREO_SMILES } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ NONSTEREO_SMILES } ){
+      print CHEMISTRY $row->{ NONSTEREO_SMILES } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ FORMAL_CHARGE }  ){
+      print CHEMISTRY $row->{ FORMAL_CHARGE }  ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ RCSB_HETTYPE } ){
+      print CHEMISTRY $row->{ RCSB_HETTYPE } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }
+    if( $row->{ FORMULA } ){
+      print CHEMISTRY $row->{ FORMULA } ."\t";
+    }else{
+      print CHEMISTRY '\N'."\t";
+    }       
+    if( $row->{ WEIGHT } ){
+      print CHEMISTRY $row->{ WEIGHT } ."\n";
+    }else{
+      print CHEMISTRY '\N'."\n";
+    }        
+    
+     # now for the table ligand_summary, 
+    print SUMMARY  $row->{ CHEM_COMP_ID } ."\t";
+     
+    if( $row->{ CODE_3_LETTER } ){
+      print SUMMARY $row->{ CODE_3_LETTER } ."\t";
+    }else{
+      print SUMMARY '\N'."\t";
+    }
+    
+    if( $row->{ NAME } ){
+      print SUMMARY $row->{ NAME } ."\t";
+    }else{
+      print SUMMARY '\N'."\t";
+    }
+    if( $row->{ FORMULA } ){
+      print SUMMARY $row->{ FORMULA } ."\t".'\N'."\t".'\N'."\n";
+    }else{
+      print SUMMARY '\N'."\t".'\N'."\t".'\N'."\n";
+    }
+    
   } # end of while( my$row );
   
+  $ligChemistry->finish;
+  
+  close( CHEMISTRY );
+  close( SUMMARY ); 
+  
+  $logger->info( "I got $count rows in total to populate ligand chemistry & ligand summary ");
+  $count = 0;
   #-------------------------------------------------------------------------------
   # Process 2: getting data for ligand synonym table;
   my $ligSynonym = $dbh->prepare( "select
                       ci.chem_comp_id,
                       ci.identifier as NAME_SYNONYM
                       FROM 
-                      pdbe.chem_identifier ci 
+                      pdbe_ro.chem_identifier ci 
                       where ci.type = 'NAME_SYNONYM'"
                    );
   
@@ -127,26 +223,40 @@ unless ( -e "$statusdir/fetchedLigandData" ){
   $ligSynonym->execute() or $logger->logdie( 'Ligand synonym query could not be executed '.$dbh->errstr() );
   
   # now open the stream to write the output;
-  open( SYN, "$output_dir/ligand_synonym.dat") 
+  open( SYN, ">$output_dir/ligand_synonym.dat") 
     or $logger->logdie( "$output_dir/ligand_synonym.dat cant be opened for writing ".$! );
   
   # now retrieve the rows.
-  SYNONYM: while( my $row = $ligSynonym->fetchrow_hashref ){
-    print dump( $row );
-    last SYNONYM;
+  while( my $row = $ligSynonym->fetchrow_hashref ){
+    $count++;
+    print SYN $row->{ CHEM_COMP_ID } ."\t";
+           
+    if( $row->{ NAME } ){
+      chomp ( $row->{ NAME } );
+      print SYN $row->{ NAME } ."\n";
+    }else{
+      print SYN '\N'."\n";
+    }
+
   } # end of while( my $row,ligsynonym ) 
-   
+  
+  $ligSynonym->finish;
+  close( SYN );
+  
+  $logger->info( "I got $count rows in total to populate ligand synonym table"); 
+  $count = 0;
+
   #-------------------------------------------------------------------------------
   # Process 3: getting data for pdb_conectivity table;
   my $pdbConnection = $dbh->prepare( "SELECT
                         c.id CHEM_COMP_ID,
-                        c.three_letter_code CODE_3_LETTER,Ê
-                        b.chem_atom_1_id CHEM_ATOM_1_NAME,Ê
-                        b.chem_atom_1_id CHEM_ATOM_2_NAMEÊ
-                        FROMÊ
-                        pdbe.chem_comp c,Ê
-                        pdbe.chem_bond b whereÊ
-                        c.id=b.chem_comp_idÊ
+                        c.three_letter_code CODE_3_LETTER,
+                        b.chem_atom_1_id CHEM_ATOM_1_NAME,
+                        b.chem_atom_1_id CHEM_ATOM_2_NAME
+                        FROM
+                        pdbe_ro.chem_comp c,
+                        pdbe_ro.chem_bond b where
+                        c.id=b.chem_comp_id
                         order by c.id, b.ordinal" 
                       );
   
@@ -154,16 +264,27 @@ unless ( -e "$statusdir/fetchedLigandData" ){
   $pdbConnection->execute() or $logger->logdie( 'pdb connectivity query could not be executed '.$dbh->errstr() );
   
   # now open the stream to write the output;
-  open( SYN, "$output_dir/pdb_connectivity.dat") 
+  open( CONNECTIVITY, ">$output_dir/pdb_connectivity.dat") 
     or $logger->logdie( "$output_dir/pdb_connectivity.dat cant be opened for writing ".$! );
   
   # now retrieve the rows.
-  CONNECTION: while( my $row = $pdbConnection->fetchrow_hashref ){
-    print dump( $row );
-    last CONNECTION;
+  while( my $row = $pdbConnection->fetchrow_hashref ){
+    $count++;
+    print CONNECTIVITY $row->{ CHEM_COMP_ID } ."\t".
+        $row->{ CODE_3_LETTER } ."\t".   
+        $row->{ CHEM_ATOM_1_NAME } ."\t".   
+        $row->{ CHEM_ATOM_2_NAME } ."\n";
+          
   } # end of while( my $row,pdbConnection ) 
-                        
+  
+  $pdbConnection->finish;
+  close( CONNECTIVITY );
+  $logger->info( "I got $count rows in total to populate pdb_connectivity table " ); 
+  
   #-------------------------------------------------------------------------------
+  
+  system("touch $statusdir/fetched_ligand_data") and 
+  $logger->logdie("Could not touch $statusdir/fetched_ligand_data");
         
 }# end of unless ( -e fetchedLigandData )
 else{
@@ -173,7 +294,6 @@ else{
 #-------------------------------------------------------------------------------
 # Now, we have data in files, scp them using the Net::SCP module and copy it to the
 # host mentioned in the config file and load them in to the database;
-=out
 my $conf;
 $conf = new Config::General( "$ipfam_config" ) || $logger->logdie('Cant parse the config file'.$conf) ;
 my %ipfamdb_config = $conf->getall;
@@ -194,6 +314,7 @@ $logger->info("Uploading data......");
 
 my %ftmap = ( 'ligand_chemistry.dat'    => 'ligand_chemistry',
               'ligand_synonym.dat'      => 'ligand_synonyms',
+              'ligand_summary.dat'      => 'ligand_summary',
               'pdb_connectivity.dat'    => 'pdb_connectivity' );
 
 #Now copy to the instance and upload
@@ -201,7 +322,7 @@ my %ftmap = ( 'ligand_chemistry.dat'    => 'ligand_chemistry',
 my $scp = Net::SCP->new( { "host"=> $ipfam_host } );
 my $tmp = "/tmp/";
 
-foreach my $f (qw( ligand_chemistry.dat ligand_synonym.dat pdb_connectivity.dat  )){
+foreach my $f (qw( ligand_chemistry.dat ligand_synonym.dat ligand_summary.dat pdb_connectivity.dat  )){
   
     $scp->put("$output_dir/$f", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/$f to $tmp/$f " . $scp->{errstr});
 
