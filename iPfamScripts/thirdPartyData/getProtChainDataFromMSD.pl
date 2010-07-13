@@ -14,10 +14,9 @@ use Net::SCP;
 
 use Config::General;
 
-my ( $statusdir, $ipfam_config );
+my ( $ipfam_config );
 
 GetOptions(
-    "statusdir=s"   => \$statusdir,
     "ipfam_config=s"  =>  \$ipfam_config
 );
 
@@ -30,6 +29,8 @@ my $logger = get_logger();
 $ENV {"ORACLE_HOME"} = "/software/oracle";
 
 my $config  = Bio::iPfam::Config->new;
+my $statusdir = $config->statusDir;
+
 
 unless($statusdir and -d $statusdir){
   $logger->logdie("You need to pass a statusdir in:[$!]");
