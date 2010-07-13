@@ -45,9 +45,9 @@ $ENV {"ORACLE_HOME"} = "/software/oracle";
 my $config  = Bio::iPfam::Config->new;
 my $statusdir = $config->statusDir;
 
-$logger->info( "the statusDir is located in $statusDir" );
+$logger->info( "the statusDir is located in $statusdir" );
 
-unless($statusdir and -d $statusdir){
+unless( -d $statusdir){
   $logger->logdie("You need to pass a statusdir in:[$!]");
 }
 
@@ -74,34 +74,33 @@ unless ( -e "$statusdir/fetchedLigandData" ){
   
   #-------------------------------------------------------------------------------
   # prepare the query to get the ligand Chemistry data from MSD;
-  my $ligChemistry = $dbh->prepare( "SELECTÊ
+  my $ligChemistry = $dbh->prepare( "SELECT
                         cc.id as CHEM_COMP_ID,
                         cc.id as CHEM_COMP_CODE,
                         cc.three_letter_code as CODE_3_LETTER,
                         cc.one_letter_code as CODE_1_LETTER,
-                        cc.name,Ê
+                        cc.name,
                         cs2.identifier as SYSTEMATIC_NAME,
                         cc.number_atoms_all as NUM_ATOMS_ALL,
                         cc.number_atoms_nh as NUM_ATOMS_NON_H,
-                        cd3.descriptor as STEREO_SMILES,Ê
-                        cd1.descriptor as NONSTEREO_SMILES,Ê
+                        cd3.descriptor as STEREO_SMILES,
+                        cd1.descriptor as NONSTEREO_SMILES,
                         cc.formal_charge as FORMAL_CHARGE,
                         cc.type_text as RCSB_HETTYPE,
-                        cc.FORMULA,Ê
+                        cc.FORMULA,
                         cc.formula_weight as WEIGHT
-                        FROMÊ
-                        pdbe.chem_comp cc, pdbe.chem_identifier Êcs2 , pdbe.chem_descriptor cd1, pdbe.chem_descriptor cd3Ê
-                        whereÊ
-                        cc.id = cs2.chem_comp_id (+) andÊ
+                        FROM
+                        pdbe.chem_comp cc, pdbe.chem_identifier cs2, pdbe.chem_descriptor cd1, pdbe.chem_descriptor cd3
+                        where
+                        cc.id = cs2.chem_comp_id (+) and
                         cs2.type (+) = 'SYSTEMATIC NAME' and cs2.program (+) = 'ACDLabs' and
-                        cc.id = cd1.chem_comp_id (+) andÊ
-                        (cd1.type (+) = 'SMILES' and cd1.program (+) = 'CACTVS') andÊ
-                        cc.id = cd3.chem_comp_id (+) andÊ
-                        (cd3.type (+) = 'SMILES_CANONICAL' and cd3.program (+) = 'CACTVS') and rownum = 1"
+                        cc.id = cd1.chem_comp_id (+) and
+                        (cd1.type (+) = 'SMILES' and cd1.program (+) = 'CACTVS') and
+                        cc.id = cd3.chem_comp_id (+) and
+                        (cd3.type (+) = 'SMILES_CANONICAL' and cd3.program (+) = 'CACTVS') "
                       );
-  
   # now execute the query;
-  $ligChemistry->execute or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
+  $ligChemistry->execute() or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
   
   # open the stream to write the output;
   open( CHEMISTRY, "$output_dir/ligand_chemistry.dat") 
