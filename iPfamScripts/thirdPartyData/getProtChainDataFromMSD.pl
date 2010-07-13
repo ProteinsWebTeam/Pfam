@@ -7,10 +7,19 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Log::Log4perl qw(:easy);
-use Net::SCP;
 use DBI;
-
+use Getopt::Long;
 use Bio::iPfam::Config;
+use Net::SCP;
+
+use Config::General;
+
+my ( $statusdir, $ipfam_config );
+
+GetOptions(
+    "statusdir=s"   => \$statusdir,
+    "ipfam_config=s"  =>  \$ipfam_config
+);
 
 #-------------------------------------------------------------------------------
 #Initail set up....
@@ -20,20 +29,25 @@ my $logger = get_logger();
 
 $ENV {"ORACLE_HOME"} = "/software/oracle";
 
-my $status_dir = shift;
+my $config  = Bio::iPfam::Config->new;
 
 unless($statusdir and -d $statusdir){
   $logger->logdie("You need to pass a statusdir in:[$!]");
 }
 
+unless ( $ipfam_config ) {
+  $logger->logdie( 'You need to give config file containing connection params to ipfam database' );
+}
 #-------------------------------------------------------------------------------
+
+$logger->info('the input ipfam_config is '.$ipfam_config );
 
 $logger->info( 'writing files to the directory'.$config->localDbsLoc );
 
 #Open up the files
 my $output_dir = $config->localDbsLoc."/msd";
 
-#unless(-e "$statusdir/fetched_pdb_data"){
+unless(-e "$statusdir/fetched_pdb_data"){
 open(MSD, ">$output_dir/msd_data.dat") or
    $logger->logdie("Could not open $output_dir/entryResidueData.dat:[$!]");
 open(MSD2, ">$output_dir/entryData.dat") or
@@ -78,7 +92,8 @@ pdbe_ro.entry e
 where
 e.id = pl.entry_id (+)");
 
-$sthEntryData->execute or $logger->logdie("Failed to execute entryDataSth:".$dbh->errstr);
+$sthEntryData->execute() or $logger->logdie("Failed to execute entryDataSth:".$dbh->errstr);
+$logger->info("Query execution completed".$sthEntryData->fetchrow_hashref );
 
 while (my $hash = $sthEntryData->fetchrow_hashref){
     print MSD2 $$hash{ID}."\t";
@@ -110,7 +125,6 @@ while (my $hash = $sthEntryData->fetchrow_hashref){
 $sthEntryData->finish;
 close(MSD2);
 
-=out
 #-------------------------------------------------------------------------------
 
 ###########################
@@ -164,7 +178,7 @@ S.RESIDUE_ID ASC"
 );
 
 my ($c, $total);
-foreach my $entryId (@entryIds){
+RESIDUE: foreach my $entryId (@entryIds){
   $c++;
   if($c == 1000){
     $total += $c;
@@ -175,9 +189,10 @@ foreach my $entryId (@entryIds){
   my $map = $sthMapping->fetchall_arrayref;
   foreach my $row (@{$map}){
     #Make sure the sequence is in pfamseq
-    next unless($acc2auto{$row->[7]});
+    #next unless($acc2auto{$row->[7]});
     #Add the auto pfamseq reference to the accession.  
-    $row->[7] .= "\t".$acc2auto{$row->[7]};
+    #$row->[7] .= "\t".$acc2auto{$row->[7]};
+    #$row->[7] .= "\tAUTO_PFAMSEQ";
     my $rowString;
     foreach my $e (@$row){
       $rowString .= (defined($e) ? $e : '\N')."\t";    
@@ -189,6 +204,42 @@ $sthMapping->finish;
 close(MSD);
 system("touch $statusdir/fetched_pdb_data") and 
   $logger->logdie("Could not touch $statusdir/fetched_pdb_data");
-#}else{
-#  $logger->info("Already fetched the pdb data\n");
-#}
+}else{
+  $logger->info("Already fetched the pdb data\n");
+}
+
+# Now populating the tables ( pdb_residue_data, pdb, pdb-author );
+#  first get the dbh handle;
+
+my $conf;
+$conf = new Config::General( "$ipfam_config" ) || $logger->logdie('Cant parse the config file'.$conf) ;
+my %ipfamdb_config = $conf->getall;
+
+my $ipfamdb =  $ipfamdb_config{ iPfamDB };
+
+my $ipfam_host      = $ipfamdb->{ host } ;
+my $ipfam_database  = $ipfamdb->{ db };
+my $ipfam_port      = $ipfamdb->{ port };
+my $ipfam_user      = $ipfamdb->{ user };
+my $ipfam_password  = $ipfamdb->{ password };
+
+my $ipfam_dbh = DBI->connect("dbi:mysql:host=$ipfam_host;database=$ipfam_database;port=$ipfam_port", $ipfam_user, $ipfam_password) || $logger->logdie( 'Cant get dbh handle for iPfam database'.DBI->errstr );
+
+$logger->info("Uploading data......");
+
+my %ftmap = ( 'msd_data.dat'    => 'pdb_residue_data',
+              'entryData.dat'   => 'pdb',
+              'entryAuthor.dat' => 'pdb_author' );
+
+#Now copy to the instance and upload
+
+my $scp = Net::SCP->new( { "host"=> $ipfam_host } );
+my $tmp = "/tmp/";
+
+foreach my $f (qw( entryData.dat entryAuthor.dat msd_data.dat )){
+  
+    $scp->put("$output_dir/$f", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/msd_data.dat to $tmp/$f " . $scp->{errstr});
+
+    my $sth = $ipfam_dbh->prepare("load data infile '$tmp/$f' into table ".$ftmap{$f}) or $logger->logdie("Failed to prepare upload statement for $f:".$ipfam_dbh->errstr);
+    $sth->execute or $logger->logdie("Failed to upload $f:".$ipfam_dbh->errstr);
+}
