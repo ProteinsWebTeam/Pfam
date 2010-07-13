@@ -322,7 +322,7 @@ sub _locate_as {
 	      $nested_start = $2;
 	      $nested_end = $3;	
 	  }
-	  elsif(ref($line) eq "PfamLive::Nested_locations"){
+	  elsif(ref($line) eq "PfamLive::NestedLocations"){
 	      $nested_id = $line->pfamseq_acc;
 	      $nested_start = $line->seq_start;
 	      $nested_end = $line->seq_end;
