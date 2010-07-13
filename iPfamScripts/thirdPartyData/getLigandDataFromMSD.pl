@@ -73,6 +73,7 @@ unless ( -e "$statusdir/fetchedLigandData" ){
    or  $logger->logdie("Couldn't connect to database: ".DBI->errstr);
   
   #-------------------------------------------------------------------------------
+  # PROCESS 1: getting data for ligand chemistry table;
   # prepare the query to get the ligand Chemistry data from MSD;
   my $ligChemistry = $dbh->prepare( "SELECT
                         cc.id as CHEM_COMP_ID,
@@ -100,23 +101,113 @@ unless ( -e "$statusdir/fetchedLigandData" ){
                         (cd3.type (+) = 'SMILES_CANONICAL' and cd3.program (+) = 'CACTVS') "
                       );
   # now execute the query;
-  $ligChemistry->execute() or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
+  #$ligChemistry->execute() or $logger->logdie( "LigandChemistry query cannot be executed ".$dbh->errstr() );
   
   # open the stream to write the output;
   open( CHEMISTRY, "$output_dir/ligand_chemistry.dat") 
-    || $logger->logdie( "$output_dir/ligand_chemistry.dat cannot be opened for writing ".$! );
+    or $logger->logdie( "$output_dir/ligand_chemistry.dat cannot be opened for writing ".$! );
   
   # retrieve the rows
   while( my $row = $ligChemistry->fetchrow_hashref ){
     print dump( $row );
     exit;
   } # end of while( my$row );
+  
+  #-------------------------------------------------------------------------------
+  # Process 2: getting data for ligand synonym table;
+  my $ligSynonym = $dbh->prepare( "select
+                      ci.chem_comp_id,
+                      ci.identifier as NAME_SYNONYM
+                      FROM 
+                      pdbe.chem_identifier ci 
+                      where ci.type = 'NAME_SYNONYM'"
+                   );
+  
+  # now execute the query to get the synonyms;
+  $ligSynonym->execute() or $logger->logdie( 'Ligand synonym query could not be executed '.$dbh->errstr() );
+  
+  # now open the stream to write the output;
+  open( SYN, "$output_dir/ligand_synonym.dat") 
+    or $logger->logdie( "$output_dir/ligand_synonym.dat cant be opened for writing ".$! );
+  
+  # now retrieve the rows.
+  SYNONYM: while( my $row = $ligSynonym->fetchrow_hashref ){
+    print dump( $row );
+    last SYNONYM;
+  } # end of while( my $row,ligsynonym ) 
+   
+  #-------------------------------------------------------------------------------
+  # Process 3: getting data for pdb_conectivity table;
+  my $pdbConnection = $dbh->prepare( "SELECT
+                        c.id CHEM_COMP_ID,
+                        c.three_letter_code CODE_3_LETTER,Ê
+                        b.chem_atom_1_id CHEM_ATOM_1_NAME,Ê
+                        b.chem_atom_1_id CHEM_ATOM_2_NAMEÊ
+                        FROMÊ
+                        pdbe.chem_comp c,Ê
+                        pdbe.chem_bond b whereÊ
+                        c.id=b.chem_comp_idÊ
+                        order by c.id, b.ordinal" 
+                      );
+  
+  # now execute the query to get the synonyms;
+  $pdbConnection->execute() or $logger->logdie( 'pdb connectivity query could not be executed '.$dbh->errstr() );
+  
+  # now open the stream to write the output;
+  open( SYN, "$output_dir/pdb_connectivity.dat") 
+    or $logger->logdie( "$output_dir/pdb_connectivity.dat cant be opened for writing ".$! );
+  
+  # now retrieve the rows.
+  CONNECTION: while( my $row = $pdbConnection->fetchrow_hashref ){
+    print dump( $row );
+    last CONNECTION;
+  } # end of while( my $row,pdbConnection ) 
+                        
+  #-------------------------------------------------------------------------------
         
 }# end of unless ( -e fetchedLigandData )
 else{
   $logger->info( 'Ligand data already exists in $output_dir ' );
 }
 
+#-------------------------------------------------------------------------------
+# Now, we have data in files, scp them using the Net::SCP module and copy it to the
+# host mentioned in the config file and load them in to the database;
+=out
+my $conf;
+$conf = new Config::General( "$ipfam_config" ) || $logger->logdie('Cant parse the config file'.$conf) ;
+my %ipfamdb_config = $conf->getall;
+
+my $ipfamdb =  $ipfamdb_config{ iPfamDB };
+
+my $ipfam_host      = $ipfamdb->{ host } ;
+my $ipfam_database  = $ipfamdb->{ db };
+my $ipfam_port      = $ipfamdb->{ port };
+my $ipfam_user      = $ipfamdb->{ user };
+my $ipfam_password  = $ipfamdb->{ password };
+
+my $ipfam_dbh = DBI->connect("dbi:mysql:host=$ipfam_host;database=$ipfam_database;port=$ipfam_port", $ipfam_user, $ipfam_password) || $logger->logdie( 'Cant get dbh handle for iPfam database'.DBI->errstr );
+
+$logger->info("Uploading data......");
+
+# hash to store the mappings btw the table to populate and the files;
+
+my %ftmap = ( 'ligand_chemistry.dat'    => 'ligand_chemistry',
+              'ligand_synonym.dat'      => 'ligand_synonyms',
+              'pdb_connectivity.dat'    => 'pdb_connectivity' );
+
+#Now copy to the instance and upload
+
+my $scp = Net::SCP->new( { "host"=> $ipfam_host } );
+my $tmp = "/tmp/";
+
+foreach my $f (qw( ligand_chemistry.dat ligand_synonym.dat pdb_connectivity.dat  )){
+  
+    $scp->put("$output_dir/$f", "$tmp/$f") or die $logger->logdie("Could not scp $output_dir/$f to $tmp/$f " . $scp->{errstr});
+
+    my $sth = $ipfam_dbh->prepare("load data infile '$tmp/$f' into table ".$ftmap{$f}) or $logger->logdie("Failed to prepare upload statement for $f:".$ipfam_dbh->errstr);
+    $sth->execute or $logger->logdie("Failed to upload $f:".$ipfam_dbh->errstr);
+}
 
 
 =head1 COPYRIGHT
