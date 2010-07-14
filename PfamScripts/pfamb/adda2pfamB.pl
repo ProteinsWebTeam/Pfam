@@ -106,24 +106,24 @@ my $sql = "CREATE TABLE adda (
 )";
 $dbh->do($sql) or $logger->logdie($dbh->errstr);
 
-#$logger->debug("Creating preliminary pfamB data table");
-#
-#$logger->debug("Removing old adda table if present");
-#my $sqlDelOldB = "DROP TABLE IF EXISTS _preliminary_pfamB";
-#$dbh->do($sqlDelOldB) or $logger->logdie("Error deleting:".$dbh->errstr);
-#
-#$logger->debug("Creating pre Pfam-B data table");
-#
-#my $sqlB =  "CREATE TABLE `_preliminary_pfamB` (
-#  `auto_pfamB` int(10) unsigned NOT NULL auto_increment,
-#  `number_archs` int(8) unsigned default NULL,
-#  `number_species` int(8) unsigned default NULL,
-#  `number_structures` int(8) unsigned default NULL,
-#  `number_regions` int(5) unsigned default '0',
-#  PRIMARY KEY  (`auto_pfamB`)
-#)";
-#
-#$dbh->do($sqlB) or $logger->logdie($dbh->errstr);
+$logger->debug("Creating preliminary pfamB data table");
+
+$logger->debug("Removing old adda table if present");
+my $sqlDelOldB = "DROP TABLE IF EXISTS _preliminary_pfamB";
+$dbh->do($sqlDelOldB) or $logger->logdie("Error deleting:".$dbh->errstr);
+
+$logger->debug("Creating pre Pfam-B data table");
+
+my $sqlB =  "CREATE TABLE `_preliminary_pfamB` (
+  `auto_pfamB` int(10) unsigned NOT NULL auto_increment,
+  `number_archs` int(8) unsigned default NULL,
+  `number_species` int(8) unsigned default NULL,
+  `number_structures` int(8) unsigned default NULL,
+  `number_regions` int(5) unsigned default '0',
+  PRIMARY KEY  (`auto_pfamB`)
+)";
+
+$dbh->do($sqlB) or $logger->logdie($dbh->errstr);
 
 
 
@@ -148,7 +148,7 @@ $addaData = undef;
 $totSeq = undef;
 
 #$logger->debug("Rsyncing acclist to farm");
-##Rsync the acc files on to the farm
+##Rsync the acc files on t¤o the farm
 ##Set up an objec that can perform rsync copying
 #my $rsyncObj = File::Rsync->new( { archive      => 1, 
 #                                   compress     => 1,
