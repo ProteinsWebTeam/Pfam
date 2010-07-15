@@ -38,6 +38,7 @@ __PACKAGE__->load_classes( qw/Feature_das_sources
                               JobHistory
                               JobStream
                               Species_collection
+                              Wikitext
                               / );
 
 #-------------------------------------------------------------------------------
