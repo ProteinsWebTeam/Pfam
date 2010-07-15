@@ -53,8 +53,6 @@ use Data::Dumper;
 
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
-# as cshrc.pfam file is readonly, currently settting the env variable inside the script;
-our $IPFAM_CONFIG =  '/nfs/pfam_nfs/pfam/Conf/PfamConfigWTSI/iPfamRepos/ipfam_code.conf';
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -72,8 +70,7 @@ our $IPFAM_CONFIG =  '/nfs/pfam_nfs/pfam/Conf/PfamConfigWTSI/iPfamRepos/ipfam_co
 sub new {
   my $ref = shift;
   my $class = ref($ref) || $ref;
-  #my ($conf) = $ENV{IPFAM_CONFIG} =~ m/([\d\w\/\-\.]+)/;
-  my ($conf) = $IPFAM_CONFIG =~ m/([\d\w\/\-\.]+)/;
+  my ($conf) = $ENV{IPFAM_CONFIG} =~ m/([\d\w\/\-\.]+)/;
   my $c      = new Config::General($conf);
   my %ac     = $c->getall;
   #print Dumper (%ac);
