@@ -13,6 +13,7 @@ my $file = shift;  #Location of JOUT filt
 my $check = shift; #File prefix for jackhmmer checkpointing files
 
 
+
 #Write results of final iteration to file
 my ($header, $header_complete, $flag);
 my $outfile = "JOUT.final";
@@ -25,19 +26,19 @@ while(<JOUT>) {
 	}
 	elsif(/^Query\:/) {
 	    $header .= "\n$_";
-	}
-	elsif(/^Description\:/) {
-	    $header .= "$_\n";
 	    $header_complete = 1;
-	    }
+	}
+    }
+    elsif(/^Description\:/) { #Not all files will have a description line
+	$header .= "$_\n";
     }
     #Print header and results for this iteration, overwriting any previous iterations
-	elsif(/^Scores for complete sequences/) {
-	    open(OUT, ">$outfile") or die "Couldn't open $outfile for writing $!";
-	    print OUT $header;
-	    print OUT $_;
-	    $flag=1;
-	}
+    elsif(/^Scores for complete sequences/) {
+	open(OUT, ">$outfile") or die "Couldn't open $outfile for writing $!";
+	print OUT $header;
+	print OUT $_;
+	$flag=1;
+    }
     elsif($flag) {
 	print OUT $_;
     }
