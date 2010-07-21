@@ -47,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy
+    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy, $gzip
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -63,6 +63,7 @@ sub main {
     "local"     => \$local,
     "copy"      => \$copy,
     "acc=s"     => \$acc,
+    "gzip"      => \$gzip,
     "help"      => \$help
   ) or help();
 
@@ -205,9 +206,19 @@ sub main {
     close JALIGN;
     close ALIGN;
 
+    unless($check) {
+	unlink glob("$c*");
+    }
+    if($gzip) {
+	system("gzip JALIGN") and die "Failed to run gzip on JALIGN, $!";
+	system("gzip JOUT") and die "Failed to run gzip on JOUT, $!";
+    }
+    unlink("JOUT.final");
+
+
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $check, $c, $copy );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $copy );
   }
 
 }
@@ -282,6 +293,8 @@ sub checkOverlap {
     }
   }
   close $LOG if ($LOG);
+  close T;
+  unlink("$$.tmp");
 }
 
 sub runJackhmmer {
@@ -305,7 +318,7 @@ sub runJackhmmer {
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $check, $c,  $copyFiles ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $gzip, $check, $c,  $copyFiles ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -401,13 +414,31 @@ sub farmJackhmmer {
 
   #Write a PFAMOUT style file
   my $jout_file = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/JOUT";
-  $fh->print("pfjbuild_pfamout.pl $jout_file $c\n");
+  $fh->print("pfjbuild_pfamout.pl JOUT $c\n");
   $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > align \n"); #Create an ALIGN file
     
+  if($gzip) {
+      $fh->print("gzip JALIGN\n");
+      $fh->print("gzip JOUT\n");
+  }  
+
+  $fh->print("rm -fr JOUT.final\n");
+  unless($check) {
+      $fh->print("rm -fr $c* \n");
+  }
+
+
   #Bring back all of the files.
   if($copyFiles){
-    $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
-    $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
+      if($gzip) {
+	  $fh->print("/usr/bin/scp JALIGN.gz $phost:$pwd/JALIGN.gz\n");	 
+	  $fh->print("/usr/bin/scp JOUT.gz $phost:$pwd/JOUT.gz\n");
+      }
+      else {
+	  $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
+	  $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
+      }
+   
     $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
     $fh->print("/usr/bin/scp align $phost:$pwd/align\n");
     $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
@@ -523,6 +554,8 @@ Script Options
 -acc <acc>    : Accession of protein you want to run Jackhmmer on
 -noOverlap    : Script 
 -local        : Run script on local machine
+-gzip         : Gzips the JOUT and JALIGN files, this option is useful if you are running
+                a large number of pfjbuilds and are conscious of disk space
 -help         : Prints out this help message
 
 Options that you can not control 
