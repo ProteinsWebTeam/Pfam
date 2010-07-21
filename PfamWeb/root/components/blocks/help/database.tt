@@ -11,43 +11,57 @@
 
 <div class="block" id="helpDatabaseBlock">
   <div class="handle">
-    <h1>Database documentation</h1>
+    <h1><a name="dbTop">Database documentation</a></h1>
   </div>
   <div class="blockContent">
 
-    <div style="width:80%; border: 1px solid #CCC; margin: 1em auto; padding: 0 1em; background-color: #EEE">
-      <h2>Documentation update</h2>
-      <h3>October 2009</h3>
-      <p>
-        The documentation in this tab is currently out of date. Although
-        the general information is still largely accurate, the details of 
-        the site and underlying database may be inaccurate. We hope to update
-        the documentation within the coming weeks.
-      </p>
+    <div class="sections">
+      <p>Contents:</p>
+      <ol>
+        <li><a class="link" rel="version">VERSION table</a></li>
+        <li><a class="link" rel="domain">Domain information</a></li>
+        <li><a class="link" rel="pfamseq">Pfamseq</a></li>
+        <li><a class="link" rel="pfamb">Pfam-B</a></li>
+        <li><a class="link" rel="architecture">Architecture</a></li>
+        <li><a class="link" rel="annotation">Annotation information</a></li>
+        <li><a class="link" rel="clanData">Clans</a></li>
+        <li><a class="link" rel="dead">Dead families</a></li>
+        <li><a class="link" rel="nested">Nested domains</a></li>
+        <li><a class="link" rel="ncbi">NCBI and metagenomics data</a></li>
+        <li><a class="link" rel="structural">Structural data</a></li>
+        <li><a class="link" rel="proteomes">Proteomes</a></li>
+        <li><a class="link" rel="related">Related families</a></li>
+        <li><a class="link" rel="data">Data files</a></li>
+      </ol>
     </div>
 
     <p>
-      This section describes the tables in the Pfam MySQL database and shows 
-      example queries. Installation packages and documentation on the MySQL
-      database itself can be found on the MySQL 
-      <a class="ext" href="http://www.mysql.com/">website</a>.
+      The Pfam MySQL database contains all of the data accessible via the
+      website. The database currently consists of 75 tables. Below is some
+      basic documentation on the schema layout and how smaller numbers of
+      tables can be put together to enable access to a subset of the data. At
+      the time of writing, between releases 24.0 and 25.0, the fields within
+      the tables and the results of queries are correct. The data within the
+      tables will change with each release. Although we do not anticipate any
+      major changes to the database, we reserve the right to make changes with
+      or without warning; we will endeavour to update this document if such
+      changes are made.
     </p>
  
     <hr />
 
-    <h2>VERSION table</h2>
+    <h2><a name="version">VERSION table</a></h2>
 
     <img class="tables"
          alt="Version table"
-         src="[% c.uri_for( "/static/images/db_schema/Version.png" ) %]" />
+         src="[% c.uri_for( '/static/images/help/db_schema/version.png' ) %]" />
 
     <p>
-      The <span class="table">VERSION</span> table contains information that 
-      relates to a particular Pfam release. It contains the version number of 
-      the Pfam database, the version numbers of the Swiss-Prot and TrEMBL 
-      databases that were used to build Pfam, and some statistics about the 
-      number of families and coverage. This table is stand-alone and does not 
-      link to any of the other tables.
+      The <span class="table">VERSION</span> table contains information that relates to a particular Pfam
+      release. It contains the version number of the Pfam database, the version
+      numbers of the Swiss-Prot and TrEMBL databases that were used to build
+      Pfam, and some statistics about the number of families and coverage. This
+      table is stand-alone and does not link to any of the other tables. 
     </p>
 
     <fieldset class="query">
@@ -57,130 +71,156 @@
 
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT * FROM version \G
-                     pfam_release: 22.0
-                pfam_release_date: 2007-07-10
-               swiss_prot_version: 51.7
-                   trembl_version: 34.7
-                    hmmer_version: 2.3.2
-                   pfamA_coverage: 73.2
-        pfamB_additional_coverage: 11.6
-           pfamA_residue_coverage: 50.8
-pfamB_additional_residue_coverage: 6.5
-                  number_families: 9318</pre>
+      <pre>mysql> SELECT * FROM VERSION \G
+
+                          pfam_release: 24.0
+                     pfam_release_date: 2009-09-24
+                    swiss_prot_version: 57.6
+                        trembl_version: 40.6
+                         hmmer_version: 3.0b2
+                        pfamA_coverage: 73.7
+             pfamB_additional_coverage: 11.8
+                pfamA_residue_coverage: 51.2
+     pfamB_additional_residue_coverage: 12.4
+                       number_families: 11912</pre>
     </fieldset>
     
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
 
-    <h2>Domain information</h2>
+    <h2><a name="domain">Domain information</a></h2>
     
     <img class="tables"
          alt="Domain information"
-         src="[% c.uri_for( "/static/images/db_schema/Pfamseq_pfamA.png" ) %]" />
+         src="[% c.uri_for( '/static/images/help/db_schema/domain.png' ) %]" />
 
     <p>
-      Two of the central tables in the database are 
-      <span class="table">pfamseq</span>, which contains the UniProtkKB sequence 
-      database, and <span class="table">pfamA</span>, which contains 
-      information about the Pfam-A families. The table 
-      <span class="table">pfamA_reg_seed</span> contains the Pfam domains that 
-      are present in a seed alignment, and the 
-      <span class="table">pfamA_reg_full</span> contains all of the sequence 
-      regions that match the HMM for each family. Note that the 
-      <span class="table">pfamA_reg_full</span> table contains both the 
-      significant and insignificant data.
+      Two of the central tables in the Pfam database are <span
+        class="table">pfamseq</span>, which contains the UniProtKB sequence database,
+      and <span class="table">pfamA</span>, which contains information about the
+      Pfam-A families. Most of the other tables in the database link to one or both
+      of these tables, either directly or indirectly.
     </p>
     <p>
-      The <span class="table">pfamA_reg_full_significant</span> and 
-      <span class="table">pfamA_reg_full_insignificant</span> tables 
-      contain, as the names suggest, the significant and insignificant data 
-      respectively. Significant hits are those with a bits score above the 
-      curated threshold for the family, whilst insignificant matches are those 
-      that score below the curated threshold. With respect to the tables 
-      that contain significant data 
-      (<span class="table">pfamA_reg_full_significant</span> and 
-      <span class="table">pfamA_reg_full</span>), there is an extra column 
-      called 'in_full'. The matches that are present in the full alignment for 
-      a Pfam family have this column set to <strong>1</strong>, while those 
-      that are not present in the full alignment have the 'in_full' column set 
-      to <strong>0</strong>. Where there is an overlapping fragment match and a 
-      full length match to the same Pfam-A family, only one of the matches will 
-      be present in the full alignment for that Pfam-A family.
+      The table <span class="table">pfamA_reg_seed</span>contains the Pfam
+      regions that are present in a seed alignment, and the <span class="table">
+        pfamA_reg_full_significant</span> table contains all of the sequence 
+      regions that match the HMM and score above the curated threshold, i.e. are 
+      significant matches, for each family. There is also a table named 
+      <span class="table">pfamA_reg_full_insignificant</span> which contains, as 
+      the name suggests, all the insignificant matches for each family.
+      Insignificant matches are those which match the HMM with an E-value less than
+      1000, but score below the curated bit score threshold for each family.
     </p>
     <p>
-      The Pfam database has historically been built on the UniProtKB database, 
-      however as of release 22.0 we also provide Pfam domain data for the NCBI 
-      sequence database (genpept) and a set of metagenomics sequences. Further 
-      information about querying the NCBI and metagenomics data sets can be 
-      found below. 
+      The table <span class="table">pfamA_reg_full_significant</span> contains a 
+      column called 'in_full'. The matches that are present in the full alignment 
+      for a Pfam family have this column set to 1, while those that are not present 
+      in the full alignment have the 'in_full' column set to 0. A significant 
+      match will only be excluded from the full alignment (in_full = 0) if it 
+      matches a family that belongs to a clan, and the match overlaps with 
+      another more significant (lower E-value) match to a family within the clan.
+    </p>
+    <p>
+      For each sequence match we store two sets of coordinates, the 
+      <em>envelope</em> coordinates and the <em>alignment</em> coordinates. 
+      
+      The envelope co-ordinates delineate the region on the sequence where the 
+      match has been probabilistically determined to lie, whereas the alignment 
+      coordinates delineate where HMMER is confident that the alignment of the 
+      sequence to the profile HMM is correct. Our full alignments contain the
+      envelope coordinates. In the database, envelope start and end positions
+      are stored in the <span class="column">seq_start</span> and 
+      <span class="column">seq_end fields</span> columns, and the alignment 
+      coordinates are stored in the <span class="column">ali_start</span> 
+      and <span class="column">ali_end</span> fields.
+    </p>
+    <p>
+      The Pfam database has historically been built on the UniProtKB database.
+      However, as of release 22.0 we also provide Pfam domain data for the 
+      NCBI sequence database (GenPept) and a set of metagenomics sequences. 
+      Further information about querying the NCBI and metagenomics data sets can 
+      be found below.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the domains for UniProtKB protein sequence 
-      &#39;VAV_HUMAN&#39;
+      Give me all of the domains for UniProtKB protein sequence 'VAV_HUMAN'
     </fieldset>
 
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT pfamA_acc, \
+      <pre>
+mysql> SELECT pfamA_acc, \
               pfamA_id, \
               seq_start, \
               seq_end \
        FROM   pfamseq, \
               pfamA, \
               pfamA_reg_full_significant \
-       WHERE  pfamseq_id = &#39;VAV_HUMAN&#39; \
+       WHERE  pfamseq_id = 'VAV_HUMAN' \
        AND    in_full = 1 \
        AND    pfamseq.auto_pfamseq = pfamA_reg_full_significant.auto_pfamseq \
        AND    pfamA_reg_full_significant.auto_pfamA = pfamA.auto_pfamA;
+
 +-----------+----------+-----------+---------+
 | pfamA_acc | pfamA_id | seq_start | seq_end |
 +-----------+----------+-----------+---------+
-| PF00307   | CH       |         2 |     120 |
-| PF00621   | RhoGEF   |       198 |     372 |
-| PF00017   | SH2      |       671 |     745 |
-| PF00169   | PH       |       403 |     504 |
 | PF00130   | C1_1     |       516 |     568 |
-| PF00018   | SH3_1    |       785 |     840 |
-| PF00018   | SH3_1    |       617 |     658 |
-+-----------+----------+-----------+---------+
-</pre>
+| PF00307   | CH       |         2 |     119 |
+| PF00621   | RhoGEF   |       198 |     372 |
+| PF00169   | PH       |       403 |     504 |
+| PF00017   | SH2      |       671 |     745 |
+| PF00018   | SH3_1    |       788 |     834 |
+| PF00018   | SH3_1    |       615 |     652 |
++-----------+----------+-----------+---------+</pre>
+
     </fieldset>
-
-
     <p>
-      UniProtKB sequences have secondary accessions if they have been merged 
-      or split. Secondary accession numbers are stored in the table called
-      <span class="table">secondary_pfamseq_acc</span>.
+      To report all of the overlapping domains within any clans, leave out the
+      'in_full =1' clause. More information on clans can be found later in
+      this document.
     </p>
-
+    
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the secondary accession(s) for the UniProtKB sequence
-      &#39;P15455&#39;
+      Give me all the UniProtKB sequences in the <strong>full</strong> alignment 
+      for the family 'B12D'
     </fieldset>
 
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT pfamseq_acc, \
-              secondary_acc \
-       FROM   pfamseq, \
-              secondary_pfamseq_acc \
-       WHERE  pfamseq.auto_pfamseq = secondary_pfamseq_acc.auto_pfamseq \
-       AND    pfamseq_acc= &#39;P15455&#39;;
-+-------------+---------------+
-| pfamseq_acc | secondary_acc |
-+-------------+---------------+
-| P15455      | Q3E711        |
-| P15455      | Q9FFH7        |
-+-------------+---------------+</pre>
+      <pre>mysql> SELECT pfamseq_id, \
+              pfamseq_acc, \
+              seq_start, \
+              seq_end, \
+              pfamA_id \
+       FROM   pfamA, \
+              pfamseq, \
+              pfamA_reg_full_significant \
+       WHERE  pfamA_id = 'B12D' \
+       AND    in_full = 1 \
+       AND    pfamA.auto_pfamA = pfamA_reg_full_significant.auto_pfamA \
+       AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq;
+
++--------------+-------------+-----------+---------+----------+
+| pfamseq_id   | pfamseq_acc | seq_start | seq_end | pfamA_id |
++--------------+-------------+-----------+---------+----------+
+| C1MQA1_9CHLO | C1MQA1      |        46 |     135 | B12D     |
+| A9TC09_PHYPA | A9TC09      |         8 |      93 | B12D     |
+| A9NTZ5_PICSI | A9NTZ5      |         7 |      92 | B12D     |
+| Q84MX3_ORYSJ | Q84MX3      |         1 |      75 | B12D     |
+| B9HTB9_POPTR | B9HTB9      |         3 |      89 | B12D     |
+| B6T0R2_MAIZE | B6T0R2      |         1 |      87 | B12D     |
+| A6MZE4_ORYSI | A6MZE4      |         3 |      89 | B12D     |
+...</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the UniProtKB sequences in the full alignment for the family 
-      &#39;B12D&#39;
+      Give me all the UniProtKB sequences in the <strong>seed</strong> alignment 
+      for the family 'B12D'
     </fieldset>
     
     <fieldset class="sql">
@@ -192,117 +232,129 @@ pfamB_additional_residue_coverage: 6.5
               pfamA_id \
        FROM   pfamA, \
               pfamseq, \
-              pfamA_reg_full_significant \
-       WHERE  pfamA_id = &#39;B12D&#39; \
-       AND    in_full = 1 \
-       AND    pfamA.auto_pfamA = pfamA_reg_full_significant.auto_pfamA \
-       AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq;
+              pfamA_reg_seed \
+       WHERE  pfamA_id = 'B12D' \
+       AND    pfamA.auto_pfamA = pfamA_reg_seed.auto_pfamA \
+       AND    pfamA_reg_seed.auto_pfamseq = pfamseq.auto_pfamseq;
+
 +--------------+-------------+-----------+---------+----------+
 | pfamseq_id   | pfamseq_acc | seq_start | seq_end | pfamA_id |
 +--------------+-------------+-----------+---------+----------+
+| Q9XHD5_IPOBA | Q9XHD5      |         3 |      89 | B12D     |
+| Q42338_ARATH | Q42338      |         2 |      88 | B12D     |
+| Q940E1_CASSA | Q940E1      |        29 |     116 | B12D     |
+| Q9LJ47_ARATH | Q9LJ47      |         1 |      87 | B12D     |
 | O22414_ORYSA | O22414      |         3 |      89 | B12D     |
-| Q01BS9_OSTTA | Q01BS9      |         5 |     119 | B12D     |
-| A3BLZ4_ORYSJ | A3BLZ4      |        76 |     155 | B12D     |
-| Q69F92_PHAVU | Q69F92      |        30 |     128 | B12D     |
-| A6MZE4_ORYSI | A6MZE4      |         3 |      89 | B12D     |
-| Q84MX3_ORYSJ | Q84MX3      |         1 |      75 | B12D     |
 | Q6YU35_ORYSJ | Q6YU35      |        11 |      97 | B12D     |
-| A7PAD2_VITVI | A7PAD2      |         1 |      99 | B12D     |
-| A7PD80_VITVI | A7PD80      |         6 |      92 | B12D     |
-...</pre>
+| Q6YU38_ORYSJ | Q6YU38      |         2 |      84 | B12D     |
+| Q6Z4G5_ORYSJ | Q6Z4G5      |         1 |      87 | B12D     |
+| Q1H8M8_BETVU | Q1H8M8      |         4 |      90 | B12D     |
++--------------+-------------+-----------+---------+----------+</pre>
     </fieldset>
-    
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all the UniProtKB sequences in the seed alignment for the family 
-      &#39;B12D&#39;
-    </fieldset>
-    
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>mysql> SELECT pfamseq_id, \
-              seq_start, \
-              seq_end, \
-              pfamA_id \
-       FROM   pfamA, \
-              pfamseq, \
-              pfamA_reg_seed \
-       WHERE  pfamA_id = &#39;B12D&#39; \
-       AND    pfamA.auto_pfamA = pfamA_reg_seed.auto_pfamA \
-       AND    pfamA_reg_seed.auto_pfamseq = pfamseq.auto_pfamseq;
-+--------------+-----------+---------+----------+
-| pfamseq_id   | seq_start | seq_end | pfamA_id |
-+--------------+-----------+---------+----------+
-| Q9XHD5_IPOBA |         3 |      89 | B12D     |
-| Q940E1_CASSA |        29 |     116 | B12D     |
-| Q42338_ARATH |         2 |      88 | B12D     |
-| Q9LJ47_ARATH |         1 |      87 | B12D     |
-| Q6YU38_ORYSJ |         2 |      84 | B12D     |
-| O22414_ORYSA |         3 |      89 | B12D     |
-| Q1H8M8_BETVU |         4 |      90 | B12D     |
-| Q6YU35_ORYSJ |        11 |      97 | B12D     |
-| Q6Z4G5_ORYSJ |         1 |      87 | B12D     |
-+--------------+-----------+---------+----------+</pre>
-    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
 
     <hr />
 
-    <h2>Other regions, active site and disulphide bond information for a 
-      sequence</h2>
+    <h2><a name="pfamseq">Pfamseq - other tables</a></h2>
 
-        <img class="tables"
-             alt="Other regions, sites, disulphides"
-             src="[% c.uri_for( "/static/images/db_schema/Other_reg.png" ) %]" />
+    <img class="tables"
+         alt="Other regions, sites, disulphides"
+         src="[% c.uri_for( "/static/images/help/db_schema/pfamseq_other.png" ) %]" />
 
     <p>
-      These tables contain-sequence specific information about the sequences 
-      in the UniProtKB database. The <span class="table">other_regions</span>
-      tables contains coiled coil, low complexity, signal peptide and 
-      transmembrane regions. The <span class="table">context_pfam_regions</span>
-      table contains context domains; context domains are those that do not 
-      score above the family gathering threshold, but are expected to be real 
-      based on the presence of the surrounding domains found in the protein.
-      The <span class="table">pfamseq_markup</span> table contains active site
-      information which is taken from the UniProtKB feature table. Additional 
-      active site residues are predicted by Pfam based on conserved residues 
-      in a Pfam alignment. The <span class="table">pfamseq_disulphide</span>
-      tables contains disulphide bond information from the UniProtKB feature 
-      table.
+      This section contains a few tables that link to the <span
+      class="table">pfamseq</span> table, but don't fit nicely into any of the
+      sections described above.
+    </p>
+
+    <p>
+      The <span class="table">pfam_annseq</span> table contains binary Perl data
+      structures which are used internally to generate the Pfam domain graphics.
+      This table is not intended for use by Pfam users, as it is very dependent on
+      Perl module versions.
+    </p>
+
+    <p>
+      The <span class="table">evidence</span> table contains the UniProtKB evidence
+      code key that is used in the <span class="column">evidence</span> field in the
+      <span class="table">pfamseq</span> table.
+    </p>
+
+    <p>
+      UniProtKB sequences have secondary accessions if they have been merged or
+      split. Secondary accession numbers are stored in the table called <span
+      class="table">secondary_pfamseq_acc</span>. 
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the pfamB regions for the UniProtKB sequence 
-      &#39;VAV_HUMAN&#39;
+      Give me the secondary accession(s) for the UniProtKB sequence 'P15455'
     </fieldset>
 
     <fieldset class="sql">
-      <pre>mysql> SELECT DISTINCT pfamB.pfamB_acc, \
-              pfamB_id, \
-              seq_start, \
-              seq_end \
-       FROM   pfamB_reg, \
-              pfamB, \
-              pfamseq \
-       WHERE  pfamseq_id = &#39;VAV_HUMAN&#39; \
-       AND    pfamB_reg.auto_pfamseq = pfamseq.auto_pfamseq \
-       AND    pfamB_reg.auto_pfamB = pfamB.auto_pfamB;
-+-----------+--------------+-----------+---------+
-| pfamB_acc | pfamB_id     | seq_start | seq_end |
-+-----------+--------------+-----------+---------+
-| PB017628  | Pfam-B_17628 |       155 |     181 |
-| PB045706  | Pfam-B_45706 |       585 |     616 |
-+-----------+--------------+-----------+---------+</pre>
+      <pre>mysql> SELECT secondary_acc \
+       FROM   pfamseq, \
+              secondary_pfamseq_acc \
+       WHERE  pfamseq.auto_pfamseq = secondary_pfamseq_acc.auto_pfamseq \
+       AND    pfamseq_acc= 'P15455';
+
++---------------+
+| secondary_acc |
++---------------+
+| Q3E711        |
+| Q9FFH7        |
++---------------+</pre>
     </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
+    <hr />
+
+    <h2><a name="pfamb">Pfam-B, other sequence regions, active site and disulphide bond 
+      information for a sequence</a></h2>
+
+    <img class="tables"
+         alt="Other regions, sites, disulphides"
+         src="[% c.uri_for( "/static/images/help/db_schema/other_regions.png" ) %]" />
+
+    <p>
+      These tables contain sequence specific information about the
+      sequences in the <a class="ext" 
+        href="http://www.uniprot.org/help/uniprotkb/">UniProtKB</a>
+      database. The <span class="table">other_regions</span> tables
+      contains coiled coil, low complexity, signal peptide and
+      transmembrane regions. The <span class="table">context_pfam_regions</span>
+      table contains context domains; context domains are those that 
+      do not score above the family gathering threshold, but are expected 
+      to be real based on the presence of the surrounding domains found in 
+      the protein. The <span class="table">pfamseq_markup</span> table 
+      contains active site information which is taken from the UniProtKB 
+      feature table. Additional active site residues are predicted by Pfam 
+      based on conserved residues in a Pfam alignment. The 
+      <span class="table">pfamseq_disulphide</span> tables contains 
+      disulphide bond information from the UniProtKB feature table.
+    </p>
+    <p>
+      The <span class="table">pfamseq</span> table also links to the 
+      Pfam-B family tables. Pfam-B families are automatically generated 
+      protein sequence clusters produced by the <a class="ext"
+        href="http://ekhidna.biocenter.helsinki.fi:9801/sqgraph/pairsdb">
+        ADDA</a> database, and they give an indication of additional 
+      conserved regions that are not covered by Pfam-A families. Pfam-B
+      families have an associated alignment, but do not have any
+      annotation or literature references. Unlike Pfam-A alignments, Pfam-B
+      alignments have not been manually checked for quality by a Pfam
+      curator. 
+    </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the transmembrane, signal-peptide, coiled-coils and 
-      low-complexity information for the UniProtKB sequnce &#39;VAV_HUMAN&#39;
+      low-complexity information for the UniProtKB sequnce 'VAV_HUMAN'
     </fieldset>
 
     <fieldset class="sql">
-      <legend>SQL</legend>
       <pre>mysql> SELECT type_id, \
               source_id, \
               seq_start, \
@@ -310,8 +362,9 @@ pfamB_additional_residue_coverage: 6.5
               score \
        FROM   other_reg, \
               pfamseq \
-       WHERE  pfamseq.pfamseq_id = &#39;VAV_HUMAN&#39; \
+       WHERE  pfamseq.pfamseq_id = 'VAV_HUMAN' \
        AND    other_reg.auto_pfamseq = pfamseq.auto_pfamseq;
+
 +----------------+-----------+-----------+---------+--------+
 | type_id        | source_id | seq_start | seq_end | score  |
 +----------------+-----------+-----------+---------+--------+
@@ -322,12 +375,10 @@ pfamB_additional_residue_coverage: 6.5
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the context regions for the UniProtKB sequence 
-      &#39;Q8I6U6_PLAF7&#39;
+      Give me all of the context regions for the UniProtKB sequence 'Q8I6U6_PLAF7'
     </fieldset>
-      
+
     <fieldset class="sql">
-      <legend>SQL</legend>
       <pre>mysql> SELECT seq_start, \
               seq_end, \
               domain_score, \
@@ -337,25 +388,26 @@ pfamB_additional_residue_coverage: 6.5
        FROM   context_pfam_regions, \
               pfamseq, \
               pfamA \
-       WHERE  pfamseq.pfamseq_id = &#39;Q8I6U6_PLAF7&#39; \
-       AND    context_pfam_regions.auto_pfamseq = pfamseq.auto_pfamseq \
-       AND    pfamA.auto_pfamA = context_pfam_regions.auto_pfamA;
-+-----------+---------+--------------+-----------+----------+--------------------------------------+
-| seq_start | seq_end | domain_score | pfamA_acc | pfamA_id | description                          |
-+-----------+---------+--------------+-----------+----------+--------------------------------------+
-|     10250 |   10279 |     12800.00 | PF06513   | DUF1103  | Repeat of unknown function (DUF1103) |
-+-----------+---------+--------------+-----------+----------+--------------------------------------+
-      </pre>
+      WHERE  pfamseq.pfamseq_acc = 'O74056' \
+      AND    context_pfam_regions.auto_pfamseq = pfamseq.auto_pfamseq \
+      AND    pfamA.auto_pfamA = context_pfam_regions.auto_pfamA;
+
++-----------+---------+--------------+-----------+----------+--------------------------+
+| seq_start | seq_end | domain_score | pfamA_acc | pfamA_id | description              |
++-----------+---------+--------------+-----------+----------+--------------------------+
+|       602 |     641 |         4.96 | PF00400   | WD40     | WD domain, G-beta repeat |
+|       711 |     750 |         7.05 | PF00400   | WD40     | WD domain, G-beta repeat |
+|      1420 |    1457 |         9.29 | PF00400   | WD40     | WD domain, G-beta repeat |
+|      1824 |    1862 |         8.96 | PF00400   | WD40     | WD domain, G-beta repeat |
++-----------+---------+--------------+-----------+----------+--------------------------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the active site information for UniProtKB sequence 
-      &#39;Q22CX9&#39;
+      Give me all of the active site information for UniProtKB sequence 'Q22CX9'
     </fieldset>
-      
+
     <fieldset class="sql">
-      <legend>SQL</legend>
       <pre>mysql> SELECT pfamseq_acc, \
               pfamseq_id, \
               residue, \
@@ -365,24 +417,24 @@ pfamB_additional_residue_coverage: 6.5
               markup_key \
        WHERE  pfamseq.auto_pfamseq = pfamseq_markup.auto_pfamseq \
        AND    pfamseq_markup.auto_markup = markup_key.auto_markup \
-       AND    pfamseq_acc = &#39;Q22CX9&#39;;
+       AND    pfamseq_acc = 'Q10L43';
 +-------------+--------------+---------+----------------------------+
+
 | pfamseq_acc | pfamseq_id   | residue | label                      |
 +-------------+--------------+---------+----------------------------+
-| Q22CX9      | Q22CX9_TETTH |     276 | Pfam predicted active site |
-| Q22CX9      | Q22CX9_TETTH |     305 | Pfam predicted active site |
-| Q22CX9      | Q22CX9_TETTH |     337 | Pfam predicted active site |
+| Q10L43      | Q10L43_ORYSJ |    1889 | Pfam predicted active site |
+| Q10L43      | Q10L43_ORYSJ |    1836 | Pfam predicted active site |
+| Q10L43      | Q10L43_ORYSJ |    1819 | Pfam predicted active site |
 +-------------+--------------+---------+----------------------------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all the residues involved in disulphide bonds in the UniProtKB 
-      sequence &#39;P98092&#39;
+      sequence 'P98092'
     </fieldset>
-      
+
     <fieldset class="sql">
-      <legend>SQL</legend>
       <pre>mysql> SELECT pfamseq_acc, \
               pfamseq_id, \
               bond_start, \
@@ -390,128 +442,194 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamseq, \
               pfamseq_disulphide \
        WHERE  pfamseq_disulphide.auto_pfamseq = pfamseq.auto_pfamseq \
-       AND    pfamseq_acc = &#39;Q43495&#39;;
-+-------------+------------+------------+----------+ 
-| pfamseq_acc | pfamseq_id | bond_start | bond_end | 
-+-------------+------------+------------+----------+ 
-| Q43495      | 108_SOLLC  |         41 |       77 | 
-| Q43495      | 108_SOLLC  |         51 |       66 |
+       AND    pfamseq_acc = 'Q43495';
+
++-------------+------------+------------+----------+
+| pfamseq_acc | pfamseq_id | bond_start | bond_end |
++-------------+------------+------------+----------+
 | Q43495      | 108_SOLLC  |         67 |       92 |
+| Q43495      | 108_SOLLC  |         51 |       66 |
+| Q43495      | 108_SOLLC  |         41 |       77 |
 | Q43495      | 108_SOLLC  |         79 |       99 |
 +-------------+------------+------------+----------+</pre>
     </fieldset>
 
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me all of the pfamB regions for the UniProtKB sequence 'VAV_HUMAN'
+    </fieldset>
+
+    <fieldset class="sql">
+      <pre>mysql> SELECT DISTINCT pfamB.pfamB_acc, \
+              pfamB_id, \
+              seq_start, \
+              seq_end \
+       FROM   pfamB_reg, \
+              pfamB, \
+              pfamseq \
+       WHERE  pfamseq_id = 'SPT13_HUMAN' \
+       AND    pfamB_reg.auto_pfamseq = pfamseq.auto_pfamseq \
+       AND    pfamB_reg.auto_pfamB = pfamB.auto_pfamB;
+
++-----------+--------------+-----------+---------+
+| pfamB_acc | pfamB_id     | seq_start | seq_end |
++-----------+--------------+-----------+---------+
+| PB066871  | Pfam-B_66871 |         3 |      72 |
++-----------+--------------+-----------+---------+</pre>
+    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
 
-    <h2>Architecture information for a family</h2>
+    <h2><a name="architecture">Architecture information for a family</a></h2>
 
     <img class="tables"
          alt="Architecture table"
-         src="[% c.uri_for( "/static/images/db_schema/Architecture.png" ) %]" />
+         src="[% c.uri_for( "/static/images/help/db_schema/architecture.png" ) %]" />
 
     <p>
-      In Pfam, an architecture is the collection of domains that are present 
-      on a protein.
+      In Pfam, an architecture is the combination of domains that are present
+      on a protein. The <span class="table">architecture</span> table can be 
+      used to find out which combination of domains are found on particular 
+      sets of proteins, or to find out which proteins share the same domains 
+      architecture.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the architectures and UniProtKB protein sequences for the
-      family &#39;Dehyd-heme_bind&#39;
+      Give me all of the architectures and UniProtKB protein sequences for the 
+      family 'Dehyd-heme_bind'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT architecture, \
+      <pre>mysql> SELECT architecture_acc, \
               pfamseq_id, \
               pfamseq_acc \
        FROM   architecture, \
               pfamseq \
-       WHERE  architecture like &#39;%Dehyd-heme_bind%&#39; \
+       WHERE  architecture like '%Dehyd-heme_bind%' \
        AND    pfamseq.auto_architecture = architecture.auto_architecture;
-+---------------------------------+--------------+-------------+
-| architecture                    | pfamseq_id   | pfamseq_acc |
-+---------------------------------+--------------+-------------+
-| Dehyd-heme_bind~DUF1928         | A0NPA8_9RHOB | A0NPA8      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q8VUT0_PARDE | Q8VUT0      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q8VW85_PSEPU | Q8VW85      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q5P0U9_AZOSE | Q5P0U9      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q5P5Q6_AZOSE | Q5P5Q6      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q4K966_PSEF5 | Q4K966      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q3KBY9_PSEPF | Q3KBY9      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q2BKZ1_9GAMM | Q2BKZ1      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q2BHT3_9GAMM | Q2BHT3      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | Q1I9C7_PSEE4 | Q1I9C7      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | A1FCF3_PSEPU | A1FCF3      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | A1B2Q6_PARDP | A1B2Q6      |
-| Dehyd-heme_bind~DUF1927~DUF1928 | A1K4V1_AZOSB | A1K4V1      |
-+---------------------------------+--------------+-------------+</pre>
+
++-------------------------+--------------+-------------+
+| architecture_acc        | pfamseq_id   | pfamseq_acc |
++-------------------------+--------------+-------------+
+| PF09098 PF09099 PF09100 | Q8VUT0_PARDE | Q8VUT0      |
+| PF09098 PF09099 PF09100 | Q8VW85_PSEPU | Q8VW85      |
+| PF09098 PF09099 PF09100 | Q5P0U9_AZOSE | Q5P0U9      |
+| PF09098 PF09099 PF09100 | Q5P5Q6_AZOSE | Q5P5Q6      |
+| PF09098 PF09099 PF09100 | Q4K966_PSEF5 | Q4K966      |
+| PF09098 PF09099 PF09100 | Q3KBY9_PSEPF | Q3KBY9      |
+| PF09098 PF09099 PF09100 | Q2BKZ1_9GAMM | Q2BKZ1      |
+| PF09098 PF09099 PF09100 | Q2BHT3_9GAMM | Q2BHT3      |
+| PF09098 PF09099 PF09100 | A0NPA8_9RHOB | A0NPA8      |
+| PF09098 PF09099 PF09100 | Q1I9C7_PSEE4 | Q1I9C7      |
+| PF09098 PF09099 PF09100 | A1B2Q6_PARDP | A1B2Q6      |
+| PF09098 PF09099 PF09100 | A1K4V1_AZOSB | A1K4V1      |
+| PF09098 PF09099 PF09100 | A5W2T6_PSEP1 | A5W2T6      |
+| PF09098 PF09099 PF09100 | A8ES16_ARCB4 | A8ES16      |
+| PF09098 PF09099 PF09100 | B0KQV9_PSEPG | B0KQV9      |
+| PF09098 PF09099 PF09100 | B1J9N8_PSEPW | B1J9N8      |
+| PF09098 PF09099 PF09100 | B1N7H2_PSEPU | B1N7H2      |
+| PF09098 PF09100         | B6BG33_9RHOB | B6BG33      |
+| PF09098 PF09099 PF09100 | B9Z0G3_9NEIS | B9Z0G3      |
+| PF09098 PF09099 PF09100 | C4KB05_9RHOO | C4KB05      |
+| PF09098 PF09099 PF09100 | C4ZJ19_9RHOO | C4ZJ19      |
++-------------------------+--------------+-------------+</pre>
     </fieldset>
-
-    <hr />
-    
-    <h2>Annotation information for a family</h2>
-
-    <img class="tables"
-         alt="Literature references"
-         src="[% c.uri_for( "/static/images/db_schema/Lit_ref.png" ) %]" />
-
-    <p>
-      In addition to the Pfam annotation for each family, we also store 
-      InterPro annotation and their associated GO terms for each family. Links 
-      to other databases (e.g. SCOP) are also stored where appropriate.
-    </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the Pfam annotation and family information for the family 
-      &#39;CBS&#39;
+      Give me all the sequences which have the architecture 'PF09098 PF09099 PF09100'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT * FROM pfamA WHERE pfamA_id = 'CBS' \G
-      auto_pfamA: 124
-       pfamA_acc: PF00571
-        pfamA_id: CBS
-     description: CBS domain pair
-    model_length: 114
-          author: Bateman A
-     seed_source: [1]
-alignment_method: Manual
-            type: Domain
-  ls_sequence_GA: 19.5000
-    ls_domain_GA: 19.5000
-  fs_sequence_GA: 20.7000
-    fs_domain_GA: 20.7000
-  ls_sequence_TC: 19.5000
-    ls_domain_TC: 19.5000
-  fs_sequence_TC: 20.7000
-    fs_domain_TC: 20.7000
-  ls_sequence_NC: 19.4000
-    ls_domain_NC: 19.4000
-  fs_sequence_NC: 20.6000
-    fs_domain_NC: 20.6000
-           ls_mu: -57.9224
-        ls_kappa: 0.2126
-           fs_mu: -9.4208
-        fs_kappa: 0.6305
-         comment:  CBS domains are small intracellular modules that pair ...
-     previous_id: NULL
-     hmmbuild_ls: hmmbuild -F --hand HMM_ls SEED
- hmmcalibrate_ls: hmmcalibrate --cpu 1 --seed 0 HMM_ls
-     hmmbuild_fs: hmmbuild -f -F --hand HMM_fs SEED
- hmmcalibrate_fs: hmmcalibrate --cpu 1 --seed 0 HMM_fs
-        num_seed: 0
-        num_full: 0
-         updated: 2008-01-29 19:23:10
-         created: 2003-04-07 12:59:11
-         version: NULL</pre>
+      <pre>mysql> SELECT pfamseq_acc, \
+              pfamseq_id  \
+       FROM   architecture,  \
+              pfamseq \
+       WHERE  architecture.auto_architecture = pfamseq.auto_architecture \
+       AND    architecture_acc = "PF09098 PF09099 PF09100";
+
++-------------+--------------+
+| pfamseq_acc | pfamseq_id   |
++-------------+--------------+
+| Q8VUT0      | Q8VUT0_PARDE |
+| Q8VW85      | Q8VW85_PSEPU |
+| Q5P0U9      | Q5P0U9_AZOSE |
+| Q5P5Q6      | Q5P5Q6_AZOSE |
+| Q4K966      | Q4K966_PSEF5 |
+| Q3KBY9      | Q3KBY9_PSEPF |
+| Q2BKZ1      | Q2BKZ1_9GAMM |
+| Q2BHT3      | Q2BHT3_9GAMM |
+| A0NPA8      | A0NPA8_9RHOB |
+| Q1I9C7      | Q1I9C7_PSEE4 |
+| A1B2Q6      | A1B2Q6_PARDP |
+| A1K4V1      | A1K4V1_AZOSB |
+| A5W2T6      | A5W2T6_PSEP1 |
+| A8ES16      | A8ES16_ARCB4 |
+| B0KQV9      | B0KQV9_PSEPG |
+| B1J9N8      | B1J9N8_PSEPW |
+| B1N7H2      | B1N7H2_PSEPU |
+| B9Z0G3      | B9Z0G3_9NEIS |
+| C4KB05      | C4KB05_9RHOO |
+| C4ZJ19      | C4ZJ19_9RHOO |
++-------------+--------------+</pre>
+    </fieldset>
+
+    <hr />
+
+    <h2><a name="annotation">Annotation information for a family</a></h2>
+
+    <img class="tables"
+         alt="Literature references"
+         src="[% c.uri_for( '/static/images/help/db_schema/annotation.png' ) %]" />
+
+    <p>
+      In addition to the Pfam annotation, we also store <a class="ext"
+        href="http://www.ebi.ac.uk/interpro/">InterPro</a> annotation and their
+      associated <a class="ext" href="http://www.geneontology.org/"> GO</a>
+      terms for each family. Links to other databases, e.g.  <a class="ext"
+        href="http://scop.mrc-lmb.cam.ac.uk/scop/">SCOP</a>) are also stored
+      where appropriate. The <span class="table">pfamA</span> table contains
+      the GA, TC and NC cut-offs for each family, and additional information
+      surrounding the Pfam-A family, including the number of sequences in the
+      seed and full alignment. The <span
+        class="table">pfamA_interactions</span> table contains, where data are
+      available, pairs of interacting Pfam domains. The data in this table are
+      taken from the <a class="ext" href="http://ipfam.sanger.ac.uk/">iPfam</a>
+      resource, which describes physical interactions between Pfam domains that
+      have a representative structure in the PDB.
+    </p>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me the Pfam annotation for the family 'CBS'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT comment FROM pfamA WHERE pfamA_id = 'CBS' \G
+      
+*************************** 1. row ***************************
+comment: CBS domains are small intracellular modules that pair together
+to form a stable globular domain [2]. This family represents a single CBS
+domain. Pairs of these domains have been termed a Bateman domain [6]. CBS
+domains have been shown to bind ligands with an adenosyl group such as
+AMP, ATP and S-AdoMet [5].  CBS domains are found attached to a wide
+range of other protein domains suggesting that CBS domains may play a
+regulatory role making proteins sensitive to adenosyl carrying ligands.
+The region containing the CBS domains in Cystathionine-beta synthase is
+involved in regulation by S-AdoMet [4]. CBS domain pairs from AMPK bind
+AMP or ATP [5]. The CBS domains from IMPDH and the chloride channel CLC2
+bind ATP [5].</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the interpro annotation for the family &#39;CBS&#39;
+      Give me the interpro annotation for the family 'CBS'
     </fieldset>
       
     <fieldset class="sql">
@@ -521,7 +639,7 @@ alignment_method: Manual
        FROM   interpro, \
               pfamA \
        WHERE  pfamA.auto_pfamA = interpro.auto_pfamA \
-       AND    pfamA_id = &#39;CBS&#39;\G
+       AND    pfamA_id = 'CBS'\G
 interpro_id: IPR000644
    abstract: CBS (cystathionine-beta-synthase) domains are small ...
          </pre>
@@ -530,96 +648,63 @@ interpro_id: IPR000644
     <fieldset class="query">
       <legend>Example query</legend>
       Give me the gene ontology (GO) annotation and family information for 
-      the family &#39;p450&#39;
+      the family 'p450'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT go_id, \
+      <pre>
+mysql> SELECT go_id, \
               term, \
               category \
        FROM   gene_ontology AS go, \
               pfamA AS p \
        WHERE  go.auto_pfamA = p.auto_pfamA \
-       AND    pfamA_id = &#39;p450&#39;;
-+------------+------------------------+----------+
-| go_id      | term                   | category |
-+------------+------------------------+----------+
-| GO:0020037 | heme binding           | function |
-| GO:0005506 | iron ion binding       | function |
-| GO:0006118 | electron transport     | process  |
-| GO:0004497 | monooxygenase activity | function |
-+------------+------------------------+----------+
-      </pre>
+       AND    pfamA_id = 'p450';
+
++------------+---------------------------+----------+
+| go_id      | term                      | category |
++------------+---------------------------+----------+
+| GO:0009055 | electron carrier activity | function |
+| GO:0020037 | heme binding              | function |
+| GO:0005506 | iron ion binding          | function |
+| GO:0004497 | monooxygenase activity    | function |
++------------+---------------------------+----------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the literature references for the family &#39;CBS&#39;
+      Give me all of the literature references for the family 'CBS'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
       <pre>mysql> SELECT pfamA_literature_references.comment, \
               order_added, \
-              medline, \
+              pmid, \
               title, \
               literature_references.author, \
               journal \
        FROM   pfamA, \
               pfamA_literature_references, \
               literature_references \
-       WHERE  pfamA_id = &#39;CBS&#39; \
+       WHERE  pfamA_id = 'CBS' \
        AND    pfamA.auto_pfamA = pfamA_literature_references.auto_pfamA \
        AND    pfamA_literature_references.auto_lit = literature_references.auto_lit \G
+
 *************************** 1. row ***************************
-    comment: NULL
-order_added: 4
-    medline: 11524006
-      title: Regulation of human cystathionine beta-synthase by S-adenosyl-L-methionine: evidence for two catalytically active conformations involving an autoinhibitory domain in the C-terminal region.
-     author: Janosik M, Kery V, Gaustadnes M, Maclean KN, Kraus JP
-    journal: Biochemistry 2001;40:10625-10633.
-*************************** 2. row ***************************
-    comment: Discovery of CBS domain.
-order_added: 3
-    medline: 9106071
-      title: CBS domains in ClC chloride channels implicated in myotonia and nephrolithiasis (kidney stones).
-     author: Ponting CP;
-    journal: J Mol Med 1997;75:160-163.
-*************************** 3. row ***************************
-    comment: 3D Structure found as a sub-domain in TIM barrel ofinosine-monophosphate dehydrogenase.
-order_added: 2
-    medline: 10200156
-      title: Characteristics and crystal structure of bacterial inosine-5'-monophosphate dehydrogenase.
-     author: Zhang R, Evans G, Rotella FJ, Westbrook EM, Beno D, Huberman E, Joachimiak A, Collart FR;
-    journal: Biochemistry 1999;38:4691-4700.
-*************************** 4. row ***************************
     comment: Discovery and naming of the CBS domain.
 order_added: 1
-    medline: 9020585
+       pmid: 9020585
       title: The structure of a domain common to archaebacteria and the homocystinuria disease protein.
      author: Bateman A;
     journal: Trends Biochem Sci 1997;22:12-13.
-*************************** 5. row ***************************
-    comment: NULL
-order_added: 5
-    medline: 14722619
-      title: CBS domains form energy-sensing modules whose binding of adenosine ligands is disrupted by disease mutations.
-     author: Scott JW, Hawley SA, Green KA, Anis M, Stewart G, Scullion GA, Norman DG, Hardie DG;
-    journal: J Clin Invest 2004;113:274-284.
-*************************** 6. row ***************************
-    comment: NULL
-order_added: 6
-    medline: 14722609
-      title: Bateman domains and adenosine derivatives form a binding contract.
-     author: Kemp BE;
-    journal: J Clin Invest 2004;113:182-184.
-6 rows in set (0.18 sec)</pre>
+...</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the database references for the family &#39;A2M&#39;
+      Give me all of the database references for the family 'A2M'
     </fieldset>
       
     <fieldset class="sql">
@@ -630,66 +715,108 @@ order_added: 6
               other_params \
        FROM   pfamA, \
               pfamA_database_links \
-       WHERE  pfamA_id = &#39;A2M&#39; \
+       WHERE  pfamA_id = 'A2M' \
        AND    pfamA.auto_pfamA = pfamA_database_links.auto_pfamA;
+
 +----------+---------+-----------+--------------+
 | db_id    | comment | db_link   | other_params |
 +----------+---------+-----------+--------------+
-| HOMSTRAD | NULL    | A2M_B     |              |
-| HOMSTRAD | NULL    | A2M_A     |              |
-| SCOP     | NULL    | 1c3d      | fa;          |
-| PROSITE  | NULL    | PDOC00440 |              |
+| PROSITE  |         | PDOC00440 |              |
+| SCOP     |         | 1c3d      | fa           |
+| HOMSTRAD |         | A2M_A     |              |
+| HOMSTRAD |         | A2M_B     |              |
 +----------+---------+-----------+--------------+</pre>
     </fieldset>
 
     <p>
       <strong>Note:</strong> The <span class="column">other_params</span> 
-      column contains &#39;fa;&#39; where the Pfam family corresponds to a 
-      SCOP family, and &#39;sf;&#39; where the Pfam family corresponds to 
+      column contains 'fa;' where the Pfam family corresponds to a 
+      SCOP family, and 'sf;' where the Pfam family corresponds to 
       a SCOP superfamily.
-    </p>
+    </p> 
 
-    <hr />
-
-    <h2>Clan data</h2>
-
-    <img class="tables"
-         alt="Clan table"
-         src="[% c.uri_for( "/static/images/db_schema/Clan.png" ) %]" />
-
-    <p>
-      A clan contains a set of related Pfam-A families. The information we use 
-      to determine which families belong to the same clan include related 
-      structure, related function, matching of the same sequence to HMMs from 
-      different families and profile-profile comparisons. Note that not all 
-      Pfam-A families belong to a clan.
-    </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the ID of the clan to which Pfam family &#39;EGF&#39; belongs
+      Give me the interacting domains for the domain 'EGF'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT clan_id, \
+      <pre>
+mysql> SELECT a.pfamA_id, \
+              b.pfamA_id \
+       FROM   pfamA as a, \
+              pfamA as b, \
+              pfamA_interactions \
+       WHERE  a.auto_pfamA = pfamA_interactions.auto_pfamA_A \
+       AND    b.auto_pfamA = pfamA_interactions.auto_pfamA_B \
+       AND    a.pfamA_id = "EGF";
+
++----------+----------------+
+| pfamA_id | pfamA_id       |
++----------+----------------+
+| EGF      | EGF            |
+| EGF      | Ldl_recept_a   |
+| EGF      | Lectin_C       |
+| EGF      | Trypsin        |
+| EGF      | CUB            |
+| EGF      | Gla            |
+| EGF      | Recep_L_domain |
+| EGF      | TSP_3          |
+| EGF      | An_peroxidase  |
+| EGF      | TSP_C          |
+| EGF      | EGF_CA         |
++----------+----------------+</pre>
+    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
+    <hr />
+
+    <h2><a name="clanData">Clan data</a></h2>
+
+    <img class="tables"
+         alt="Clan table"
+         src="[% c.uri_for( "/static/images/help/db_schema/clan.png" ) %]" />
+
+    <p>
+      A Pfam <em>clan</em> is a set of related Pfam-A families. The information
+      we use to determine which families belong to the same clan includes related
+      structure, related function, matching of the same sequence to HMMs from
+      different families, and profile-profile comparisons. <strong>Note</strong> that
+      not all Pfam-A families belong to a clan and that a Pfam-A family cannot belong
+      to more than one clan.
+    </p>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me the id and accession of the clan to which Pfam family 'EGF' belongs
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>
+mysql> SELECT clan_id, \
               clan_acc \
        FROM   clans, \
               clan_membership, \
               pfamA \
        WHERE  clans.auto_clan = clan_membership.auto_clan \
        AND    clan_membership.auto_pfamA = pfamA.auto_pfamA \
-       AND    pfamA.pfamA_id = &#39;EGF&#39;;
+       AND    pfamA.pfamA_id = 'EGF';
+
 +---------+----------+
 | clan_id | clan_acc |
 +---------+----------+
 | EGF     | CL0001   |
-+---------+----------+</pre>
++---------+----------+
+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the Pfam-A families that belong to clan &#39;CL0001&#39;
+      Give me all of the Pfam-A families that belong to clan 'CL0001'
     </fieldset>
       
     <fieldset class="sql">
@@ -701,24 +828,28 @@ order_added: 6
               pfamA \
        WHERE  clans.auto_clan = clan_membership.auto_clan \
        AND    clan_membership.auto_pfamA = pfamA.auto_pfamA \
-       AND    clan_acc = &#39;CL0001&#39;;
-+-----------+-----------------+
-| pfamA_acc | pfamA_id        |
-+-----------+-----------------+
-| PF07645   | EGF_CA          |
-| PF04863   | EGF_alliinase   |
-| PF07974   | EGF_2           |
-| PF09120   | EGF-like_subdom |
-| PF00008   | EGF             |
-| PF09289   | FOLN            |
-| PF00053   | Laminin_EGF     |
-| PF09064   | Tme5_EGF_like   |
-+-----------+-----------------+</pre>
+       AND    clan_acc = 'CL0001';
+
++-----------+---------------+
+| pfamA_acc | pfamA_id      |
++-----------+---------------+
+| PF01414   | DSL           |
+| PF04863   | EGF_alliinase |
+| PF00052   | Laminin_B     |
+| PF00053   | Laminin_EGF   |
+| PF07645   | EGF_CA        |
+| PF00008   | EGF           |
+| PF07974   | EGF_2         |
+| PF09064   | Tme5_EGF_like |
+| PF09289   | FOLN          |
+| PF12661   | hEGF          |
+| PF12662   | cEGF          |
++-----------+---------------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the clan description and comment for clan &#39;CL0001&#39;
+      Give me the clan description and comment for clan 'CL0001'
     </fieldset>
       
     <fieldset class="sql">
@@ -728,24 +859,24 @@ order_added: 6
               clan_description, \
               clan_comment \
        FROM   clans \
-       WHERE  clan_acc = &#39;CL0001&#39; \G
-        clan_acc: CL0001
-         clan_id: EGF
+       WHERE  clan_acc = 'CL0001' \G
+
+clan_acc: CL0001
+clan_id: EGF
 clan_description: EGF superfamily
-    clan_comment: Members of this clan all belong to the EGF superfamily  ...
-      </pre>
+clan_comment: Members of this clan all belong to the EGF superfamily ...</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the literature references for clan &#39;CL0001&#39;
+      Give me the literature references for clan 'CL0001'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
       <pre>mysql> SELECT comment, \
               order_added, \
-              medline, \
+              pmid, \
               title, \
               author, \
               journal \
@@ -754,18 +885,19 @@ clan_description: EGF superfamily
               clan_lit_refs \
        WHERE  clans.auto_clan = clan_lit_refs.auto_clan \
        AND    clan_lit_refs.auto_lit = literature_references.auto_lit \
-       AND    clan_acc = &#39;CL0001&#39; \G
+       AND    clan_acc = 'CL0001' \G
+
 *************************** 1. row ***************************
     comment: NULL
 order_added: 2
-    medline: 11852228
+       pmid: 11852228
       title: Domain structure and organisation in extracellular matrix proteins.
      author: Hohenester E, Engel J;
     journal: Matrix Biol 2002;21:115-128.
 *************************** 2. row ***************************
     comment: NULL
 order_added: 1
-    medline: 3282918
+       pmid: 3282918
       title: Structure and function of epidermal growth factor-like regions in proteins.
      author: Appella E, Weber IT, Blasi F;
     journal: FEBS Lett 1988;231:1-4.</pre>
@@ -773,12 +905,13 @@ order_added: 1
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the first 5 architectures for the clan &#39;CL0001&#39;
+      Give me the first 5 architectures for the clan 'CL0001'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
       <pre>mysql> SELECT architecture, \
+              architecture_acc, \
               type_example, \
               no_seqs \
        FROM   architecture, \
@@ -786,33 +919,39 @@ order_added: 1
               clans \
        WHERE  architecture.auto_architecture = clan_architecture.auto_architecture \
        AND    clan_architecture.auto_clan = clans.auto_clan \
-       AND    clan_acc = &#39;CL0001&#39;
+       AND    clan_acc = 'CL0001'
        LIMIT  5 \G
+
 *************************** 1. row ***************************
-architecture: Ldl_recept_a~EGF_CA~Ldl_recept_b~Ldl_recept_a~EGF~Ldl_recept_b~EGF~Ldl_recept_b
-type_example: 2403803
-     no_seqs: 1
+    architecture: DSL~EGF_2~EGF_2~EGF
+architecture_acc: PF01414 PF07974 PF07974 PF00008
+    type_example: 4790
+         no_seqs: 2
 *************************** 2. row ***************************
-architecture: EGF_CA~Pkinase_Tyr~Pkinase_Tyr~Pkinase_Tyr
-type_example: 1309029
-     no_seqs: 1
+    architecture: MNNL~DSL~EGF~EGF~EGF~EGF~EGF~EGF
+architecture_acc: PF07657 PF01414 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008
+    type_example: 22062
+         no_seqs: 20
 *************************** 3. row ***************************
-architecture: EGF_CA~GPS~7tm_2
-type_example: 168833
-     no_seqs: 11
+    architecture: MNNL~DSL~EGF~EGF~EGF~EGF~EGF
+architecture_acc: PF07657 PF01414 PF00008 PF00008 PF00008 PF00008 PF00008
+    type_example: 22068
+         no_seqs: 9
 *************************** 4. row ***************************
-architecture: EGF_CA~EGF_CA~EGF_CA~Sushi~Sushi~Sushi~Sushi
-type_example: 1486049
-     no_seqs: 1
+    architecture: MNNL~DSL~EGF~EGF~EGF~EGF~EGF~EGF~EGF_CA
+architecture_acc: PF07657 PF01414 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF07645
+    type_example: 22131
+         no_seqs: 8
 *************************** 5. row ***************************
-architecture: EGF~EGF~EGF~EGF~EGF_CA~EGF~EGF~EGF_CA~EGF~EGF~EGF_CA~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~Notch~Notch~Notch~NOD~NODP~Ank
-type_example: 57059
-     no_seqs: 1</pre>
+    architecture: MNNL~DSL~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF~EGF
+architecture_acc: PF07657 PF01414 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008 PF00008
+    type_example: 43821
+         no_seqs: 4</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the database links for clan &#39;CL0001&#39;
+      Give me the database links for clan 'CL0001'
     </fieldset>
       
     <fieldset class="sql">
@@ -824,7 +963,8 @@ type_example: 57059
        FROM   clan_database_links, \
               clans \
        WHERE  clan_database_links.auto_clan = clans.auto_clan \
-       AND    clan_acc = &#39;CL0001&#39;;
+       AND    clan_acc = 'CL0001';
+
 +-------+---------+------------+--------------+
 | db_id | comment | db_link    | other_params |
 +-------+---------+------------+--------------+
@@ -833,69 +973,82 @@ type_example: 57059
 +-------+---------+------------+--------------+</pre>
     </fieldset>
 
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
 
-    <h2>Dead families and clans</h2>
+    <h2><a name="dead">Dead families and clans</a></h2>
 
     <img class="tables"
          alt="Dead families"
-         src="[% c.uri_for( "/static/images/db_schema/Dead.png" ) %]" />
+         src="[% c.uri_for( "/static/images/help/db_schema/dead.png" ) %]" />
 
     <p>
-      Sometimes we find that two or more families within Pfam can be merged 
-      into a single family, which leads to the deletion of Pfam-A families. 
-      The <span class="table">dead_families</span> and 
-      <span class="table">dead_clans</span> tables contain information about 
-      families and clans that have been deleted. These tables may be of use if 
-      you need to track what happened to the members of a particular family 
-      that is no longer in Pfam.
+      Sometimes we find that two or more Pfam-A families can be merged into a single
+      family, which leads to the deletion of Pfam-A families. Likewise we might
+      merged two clans together, which results in the deletion of a clan. The
+      <span class="table">dead_families</span> and <span class="table">
+        dead_clans</span> tables contain information about Pfam-A families
+      and clans that have been deleted. These tables may be of use if you need to
+      track what happened to the members of a particular family/clan that is no
+      longer in Pfam.
     </p>
+
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the information about &#39;dead&#39; Pfam-A family 
-      &#39;PF06700&#39;
+      Give me all of the information about 'dead' Pfam-A family 
+      'PF06700'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT * FROM dead_families WHERE pfamA_acc = &#39;PF06700&#39;;
-+-----------+-----------------+---------------------------------+------------+
-| pfamA_acc | pfamA_id        | comment                         | forward_to |
-+-----------+-----------------+---------------------------------+------------+
-| PF06700   | 2oxo_fer_oxidoB |  Merged into TPP binding domain | PF02775    |
-+-----------+-----------------+---------------------------------+------------+</pre>
+      <pre>mysql> SELECT * FROM dead_families WHERE pfamA_acc = 'PF09410' \G
+
+ pfamA_acc: PF09410
+  pfamA_id: DUF2006
+   comment: Merged into PF07143
+forward_to: PF07143
+      user: jm14
+    killed: 2009-08-25 10:33:41</pre>
     </fieldset>
 
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me all of the information about 'dead' clan 'CL0152'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT * FROM dead_clans WHERE clan_acc = "CL0152" \G
+
+        clan_acc: CL0152
+         clan_id: XI_TIM
+clan_description: Xylose isomerase-like TIM barrel superfamily
+ clan_membership:
+         comment: Merged clan in to TIM_barrel clan
+      forward_to: CL0036
+            user: rdf
+          killed: 2009-06-22 17:47:17</pre>
+    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
 
-    <h2>Hidden Markov model (HMM) tables</h2>
-
-    <img class="tables"
-         alt="HMM tables"
-         src="[% c.uri_for( "/static/images/db_schema/Hmm.png" ) %]" />
-
-    <p>
-      The tables <span class="table">pfamA_HMM_ls</span> and 
-      <span class="table">pfamA_HMM_ls</span> contain the HMMs for the global 
-      and fragment models respectively. It is unlikely that you will need to 
-      query these tables. The table <span class="table">pfamA_web</span> 
-      contains information about the percentage identity, average length and 
-      average coverage for a Pfam-A family.
-    </p>
-
-    <hr />
-
-    <h2>Nested domains</h2>
+    <h2><a name="nested">Nested domains</a></h2>
 
     <img class="tables"
          alt="Nested domains"
-         src="[% c.uri_for( "/static/images/db_schema/Nested.png" ) %]" />
+         src="[% c.uri_for( '/static/images/help/db_schema/nested.png' ) %]" />
 
     <p>
-      Some domains in Pfam are disrupted by the insertion of another domain 
-      (or domains) within them. The domain that is inserted into another is 
-      known as a nested domain.
+      Some Pfam-A domains are disrupted by the insertion of another domain (or
+      domains) within them. The domain that is inserted into another is known
+      as a nested domain. The <span class="column">nested_locations</span> 
+      table stores all the nested Pfam-A domains. It also stores the 
+      coordinates of the nested domain with respect to a sequence that is 
+      present in the <em>seed</em> alignment of the domain in which it nests.
     </p>
 
     <fieldset class="query">
@@ -910,75 +1063,223 @@ type_example: 57059
        FROM   pfamA AS A, \
               pfamA AS B, \
               nested_domains \
-       WHERE  A.auto_pfamA = nested_domains.auto_pfamA \
-       AND    B.auto_pfamA = nested_domains.nests_auto_pfamA;
+       WHERE  A.auto_pfamA = nested_locations.auto_pfamA \
+       AND    B.auto_pfamA = nested_locations.nests_auto_pfamA;
+
 +-----------------+-----------------+
 | pfamA_id        | nested_domain   |
 +-----------------+-----------------+
+| CBS             | DRTGG           |
+| RecO_C          | TF_Zn_Ribbon    |
 | IMPDH           | CBS             |
-| PAP_central     | NTP_transf_2    |
+| End_beta_propel | End_beta_barrel |
+| DUF2330         | TonB            |
 | Peptidase_M10   | fn2             |
-| UCH             | zf-MYND         |
-| Radical_SAM     | Fer4            |
-| Asp             | SapB_1          |
+| SBP_bac_3       | Ion_trans_2     |
+| SBP_bac_3       | Ion_trans       |
+| RWD             | zf-CCCH         |
+| NIR_SIR         | Fer4            |
 | Asp             | SapB_2          |
-| HhH-GPD         | HHH             |
-| Peptidase_S8    | PA              |
-| CAF1            | R3H             |
-| CAF1            | zf-CCCH         |
-| RNA_pol_Rpb1_5  | RNA_pol_Rpb1_7  |
+| Asp             | SapB_1  &nbsp;  |
+| PAP_central     | NTP_transf_2    |
 ...</pre>
     </fieldset>
 
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me the nested data for the family IMPDH
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT pfamA_id,  \
+              nested_pfamA_acc, \
+              pfamseq_acc, \
+              seq_version, \
+              seq_start, \
+              seq_end \
+       FROM   pfamA, \
+              nested_locations\
+       WHERE  pfamA.auto_pfamA = nested_locations.auto_pfamA \
+       AND    pfamA_id ="IMPDH";
+
++----------+------------------+-------------+-------------+-----------+---------+
+| pfamA_id | nested_pfamA_acc | pfamseq_acc | seq_version | seq_start | seq_end |
++----------+------------------+-------------+-------------+-----------+---------+
+| IMPDH    | PF00571          | P24547      |           2 |       111 |     232 |
++----------+------------------+-------------+-------------+-----------+---------+</pre>
+    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
     
-    <h2>Structural data</h2>
+    <h2><a name="ncbi">NCBI and metagenomics data</a></h2>
 
     <img class="tables"
-         alt="PDB table"
-         src="[% c.uri_for( "/static/images/db_schema/Pdb.png" ) %]" />
+         alt="Version table"
+         src="[% c.uri_for( "/static/images/help/db_schema/ncbi_meta.png" ) %]" />
 
     <p>
-      In order for the <a class="ext" href="http://www.wwpdb.org/">Protein 
-        DataBank</a> (PDB) information to be useful to Pfam,
-      we need to map between PDB residues and UniProtKB sequence residues. 
-      This is not a trivial task and this mapping information is provided by the 
-      <a class="ext" href="http://www.ebi.ac.uk/msd/">
-        Macromolecular Structure Database</a> (MSD) group. The 
-      <span class="table">msd_data</span> table contains this 
-      residue-by-residue mapping.
+      In addition to searching all of the sequences in <a class="ext"
+        href="http://www.uniprot.org/help/uniprotkb/">UniProtKB</a>, we also search the
+      protein sequences from <a class="ext"
+      href="http://www.ncbi.nlm.nih.gov/">NCBI</a> (GenPept), and a set of
+      metagenomic sequences against the Pfam-A HMMs. The <span
+      class="table">ncbi_pfamA_reg</span> table contains all of the significant
+      GenPept matches for each Pfam-A HMM, and the <span
+      class="table">meta_pfamA_reg</span> contains all of the significant
+      metagenomics matches for each Pfam-A HMM. Unlike the situation for UniProtKB
+      data, we do not exclude overlapping matches between families in the same clan
+      from the NCBI and metagenomics alignments, and therefore the <span
+      class="column">in_full</span> columns in the <span
+      class="table">ncbi_pfamA_reg</span> and <span
+      class="table">meta_pfamA_reg</span> tables are obsolete (and may be removed in
+      future versions of the database). The <span class="table">ncbi_map</span> table
+      links the GI number to its corresponding UniProtKB entry(s).
+      <strong>Note</strong> that not all GI numbers have a corresponding UniProtKB
+      entry. The metagenomics sequences that we searched can be found in the metaseq
+      table.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the PDB information for structure &#39;2abl&#39;
+      Give me all of the Pfam-A domains for NCBI protein 'GI:1000125'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT pdb_id, \
-              header, \
-              title \
-       FROM   pdb \
-       WHERE  pdb_id = &#39;2abl&#39;;
-+--------+-------------+-------------------------------------------------------------+
-| pdb_id | header      | title                                                       |
-+--------+-------------+-------------------------------------------------------------+
-| 2abl   | TRANSFERASE |    SH3-SH2 DOMAIN FRAGMENT OF HUMAN BCR-ABL TYROSINE KINASE |
-+--------+-------------+-------------------------------------------------------------+</pre>
+      <pre>mysql> SELECT pfamA_acc, \
+              pfamA_id, \
+              seq_start, \
+              seq_end \
+       FROM   ncbi_pfamA_reg, \
+              pfamA \
+       WHERE  ncbi_pfamA_reg.gi = '1000125' \
+       AND    ncbi_pfamA_reg.auto_pfamA = pfamA.auto_pfamA;
+
++-----------+-------------+-----------+---------+
+| pfamA_acc | pfamA_id    | seq_start | seq_end |
++-----------+-------------+-----------+---------+
+| PF02185   | HR1         |        47 |     114 |
+| PF02185   | HR1         |       136 |     207 |
+| PF02185   | HR1         |       217 |     289 |
+| PF00433   | Pkinase_C   |       936 |     983 |
+| PF07714   | Pkinase_Tyr |       657 |     905 |
+| PF00069   | Pkinase     |       657 |     916 |
++-----------+-------------+-----------+---------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the first 10 residue mappings for the structure &#39;2abl&#39;
+      Give me all of the NCBI protein domains for the 
+      Pfam-A family 'AalphaY_MDB'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT pdb_id, \
+      <pre>mysql> SELECT gi, \
+              seq_start, \
+              seq_end, \
+              pfamA_id \
+       FROM   pfamA, \
+              ncbi_pfamA_reg \
+       WHERE  pfamA_id = 'AalphaY_MDB' \
+       AND    pfamA.auto_pfamA = ncbi_pfamA_reg.auto_pfamA \
+       AND    in_full = 1;
+
++---------+-----------+---------+-------------+
+| gi      | seq_start | seq_end | pfamA_id    |
++---------+-----------+---------+-------------+
+| 8650517 |         1 |     147 | AalphaY_MDB |
+| 2314885 |         1 |     149 | AalphaY_MDB |
+|  169855 |         1 |     146 | AalphaY_MDB |
+|  169861 |         1 |     146 | AalphaY_MDB |
+|  169857 |         1 |     147 | AalphaY_MDB |
++---------+-----------+---------+-------------+</pre>
+    </fieldset>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me all of the metagenomics domains for the family '3-alpha'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT metaseq_acc, \
+              seq_start, \
+              seq_end, \
+              pfamA_id \
+       FROM   pfamA, \
+              metaseq, \
+              meta_pfamA_reg \
+       WHERE  pfamA_id = '3-alpha' \
+       AND    pfamA.auto_pfamA = meta_pfamA_reg.auto_pfamA \
+       AND    meta_pfamA_reg.auto_metaseq = metaseq.auto_metaseq;
+
++-------------+-----------+---------+----------+
+| metaseq_acc | seq_start | seq_end | pfamA_id |
++-------------+-----------+---------+----------+
+| EBC58818.1  |       172 |     218 | 3-alpha  |
+| EBB53961.1  |       183 |     229 | 3-alpha  |
+| 2001510128  |        48 |      93 | 3-alpha  |
+| ECV16193.1  |       172 |     218 | 3-alpha  |
+| EBT67177.1  |       169 |     215 | 3-alpha  |
+| ECV05831.1  |       172 |     218 | 3-alpha  |
+| 2001448363  |        23 |      62 | 3-alpha  |
+| ECV29667.1  |       419 |     465 | 3-alpha  |
+| EBT80309.1  |       133 |     178 | 3-alpha  |
+| ECB16942.1  |        46 |      92 | 3-alpha  |
+| EBL10473.1  |       173 |     219 | 3-alpha  |
+| ECN56225.1  |        16 |      62 | 3-alpha  |
+| 2000097130  |       178 |     223 | 3-alpha  |
+| EDF57633.1  |       169 |     215 | 3-alpha  |
+| EDF88754.1  |       185 |     230 | 3-alpha  |
+| ECD80201.1  |       120 |     166 | 3-alpha  |
+| EBV29651.1  |        74 |     119 | 3-alpha  |
+| EBG15763.1  |       173 |     215 | 3-alpha  |
+| EDC05583.1  |       227 |     273 | 3-alpha  |
+| EDD80781.1  |       172 |     218 | 3-alpha  |
+| EDB76302.1  |       169 |     215 | 3-alpha  |
++-------------+-----------+---------+----------+</pre>
+    </fieldset>
+
+    <hr />
+
+    <h2><a name="structural">Structural data</a></h2>
+
+    <img class="tables"
+         alt="PDB table"
+         src="[% c.uri_for( "/static/images/help/db_schema/pdb.png" ) %]" />
+
+    <p>
+      In order for the <a class="ext" href="http://www.wwpdb.org/">Protein
+      DataBank</a> (PDB) information to be useful to Pfam, we need to map
+      between PDB residues and UniProtKB sequence residues, which is not a
+      trivial task. We store the residue-by-residue mapping that is provided by
+      the <a class="ext" href="http://www.ebi.ac.uk/pdbe/">PDBe</a> group in
+      the <span class="table">pdb_residue_data</span> table.
+    </p>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me the first 10 residue mappings for the structure '2abl'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT pdb.pdb_id, \
               pdb_res, \
               pdb_seq_number, \
-              pfamseq_acc, pfamseq_res, pfamseq_seq_number from msd_data, pdb, pfamseq where pdb.auto_pdb=msd_data.auto_pdb and pfamseq.auto_pfamseq=msd_data.auto_pfamseq and pdb_id=&#39;2abl&#39; limit 10;
+              pfamseq_acc, \
+              pfamseq_res, \
+              pfamseq_seq_number \
+       FROM   pdb_residue_data, \
+              pdb  \
+       WHERE  pdb.pdb_id = pdb_residue_data.pdb_id \
+       AND    pdb.pdb_id = '2abl' \
+       LIMIT  10;
+
 +--------+---------+----------------+-------------+-------------+--------------------+
 | pdb_id | pdb_res | pdb_seq_number | pfamseq_acc | pfamseq_res | pfamseq_seq_number |
 +--------+---------+----------------+-------------+-------------+--------------------+
@@ -997,134 +1298,126 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the structural data for the family &#39;CBS&#39;
+      Give me all the structures that map to the family 'Globin'
     </fieldset>
     
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT pdb_id, \
-             chain, \
-             pdb_res_start, \
-             pdb_res_end \
-      FROM   pdb, \
-             pdb_pfamA_reg, \
-             pfamA \
-      WHERE  pfamA_id = &#39;CBS&#39; \
-      AND    pfamA.auto_pfamA = pdb_pfamA_reg.auto_pfamA 
-      AND    pdb_pfamA_reg.auto_pdb = pdb.auto_pdb;
-+--------+-------+---------------+-------------+
-| pdb_id | chain | pdb_res_start | pdb_res_end |
-+--------+-------+---------------+-------------+
-| 1vrd   | A     |            87 |         202 |
-| 1vrd   | B     |            87 |         202 |
-| 1nfb   | B     |           112 |         232 |
-| 1nfb   | A     |           112 |         232 |
-| 1b3o   | B     |           112 |         232 |
-| 1jr1   | A     |           112 |         232 |
-| 1pvm   | B     |             7 |         126 |
-| 1pvm   | A     |             7 |         126 |
-| 1yav   | A     |            20 |         141 |
-| 1yav   | B     |            20 |         141 |
-...</pre>
+      <pre>mysql> SELECT pdb_pfamA_reg.pdb_id, \
+              chain, \
+              pdb_res_start, \
+              pdb_res_end, \
+              seq_start, 
+              seq_end \
+       FROM   pdb, \
+              pdb_pfamA_reg, \
+              pfamA \
+       WHERE  pfamA_id = 'Globin' \
+       AND    pfamA.auto_pfamA = pdb_pfamA_reg.auto_pfamA \
+       AND    pdb_pfamA_reg.pdb_id = pdb.pdb_id;
+
++--------+-------+---------------+-------------+-----------+---------+
+| pdb_id | chain | pdb_res_start | pdb_res_end | seq_start | seq_end |
++--------+-------+---------------+-------------+-----------+---------+
+| 2vyy   | A     |             1 |          87 |         2 |      88 |
+| 1v07   | A     |             1 |          87 |         2 |      88 |
+| 2vyz   | A     |             1 |          87 |         2 |      88 |
+| 1kr7   | A     |             1 |          87 |         2 |      88 |
+| 1wmu   | A     |             6 |         106 |         6 |     106 |
+| 2z6n   | A     |             6 |         106 |         6 |     106 |
+| 1v75   | A     |             6 |         106 |         6 |     106 |
+| 3fs4   | C     |             6 |         106 |         6 |     106 |
+| 3fs4   | A     |             6 |         106 |         6 |     106 |
+| 2mhb   | B     |             7 |         111 |         7 |     111 |
+... </pre>
     </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
 
     <hr />
 
-    <h2>Genomes</h2>
+    <h2><a name="proteomes">Proteomes</a></h2>
 
     <img class="tables"
-         alt="Genome tables"
-         src="[% c.uri_for( "/static/images/db_schema/Genome.png" ) %]" />
+         alt="Proteome tables"
+         src="[% c.uri_for( "/static/images/help/db_schema/proteome.png" ) %]" />
 
     <p>
-      The tables in this section allow you to retrieve domain information about
-      a particular species, or to retrieve all of the species which contain a 
-      partciular Pfam domain.
+      At each Pfam release, we download the proteome set from the <a class="ext"
+      href="http://www.ebi.ac.uk/integr8/EBI-Integr8-HomePage.do">Integr8</a>
+      resource. The species and NCBI taxonomy IDs for all of the proteomes in our
+      Integr8 proteome set can be found in the <span
+      class="table">complete_proteomes</span> table, along with some statistics
+      about the number of families and coverage. The tables in this section allow
+      you to retrieve domain information about a particular species, or to
+      retrieve all of the species which contain a particular Pfam domain.  
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Return all the species and basic Pfam information for &#39;bacteria&#39;
+      Give me the Pfam summary for the human (Homo sapiens) proteome
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>
-mysql> SELECT   ncbi_code, \
-                species, \
-                num_distinct_regions, \
-                num_total_regions, \
-                num_proteins, \
-                sequence_coverage, \
-                residue_coverage, \
-                total_genome_proteins \
-       FROM     genome_species \
-       WHERE    grouping LIKE &#39;%Bacteria%&#39; \
-       ORDER BY species \G
-*************************** 1. row ***************************
-            ncbi_code: 62977
-              species: Acinetobacter sp. (strain ADP1)
- num_distinct_regions: 1394
-    num_total_regions: 3105
-         num_proteins: 2388
+      <pre>mysql> SELECT * FROM complete_proteomes WHERE species = "Homo sapiens" \G
+
+        auto_proteome: 511
+           ncbi_taxid: 9606
+              species: Homo sapiens
+             grouping: Eukaryota
+ num_distinct_regions: 4315
+    num_total_regions: 68410
+         num_proteins: 32474
     sequence_coverage: 72
-     residue_coverage: 56
-total_genome_proteins: 3302
-*************************** 2. row ***************************
-            ncbi_code: 180835
-              species: Agrobacterium tumefaciens (strain C58 / ATCC 33970 (Washington University))
- num_distinct_regions: 1644
-    num_total_regions: 5184
-         num_proteins: 4077
-    sequence_coverage: 76
-     residue_coverage: 59
-total_genome_proteins: 5397</pre>
+     residue_coverage: 40
+total_genome_proteins: 44817
+      total_aa_length: 19347573
+     total_aa_covered: 7758075
+   total_seqs_covered: 32474</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the Pfam-A domains for the species 
-      &#39;Arabidopsis thaliana&#39;
+      Give me all the Pfam-A domains for the species 'Arabidopsis thaliana'
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT   genome_seqs.auto_pfamA, \
-                pfamA_acc, \
-                pfamA_id, \
-                description, \
-                sum(count) \
-       FROM     genome_seqs, \
-                pfamA \
-       WHERE    genome_seqs.ncbi_code = &#39;3702&#39; \
-       AND      genome_seqs.auto_pfamA = pfamA.auto_pfamA \
-       GROUP BY genome_seqs.auto_pfamA;
-+------------+-----------+--------------+-----------------------------------------------------------------+------------+
-| auto_pfamA | pfamA_acc | pfamA_id     | description                                                     | sum(count) |
-+------------+-----------+--------------+-----------------------------------------------------------------+------------+
-|          1 | PF00389   | 2-Hacid_dh   | D-isomer specific 2-hydroxyacid dehydrogenase, catalytic domain |          9 |
-|          2 | PF00198   | 2-oxoacid_dh | 2-oxoacid dehydrogenases acyltransferase (catalytic domain)     |         10 |
-|          4 | PF03171   | 2OG-FeII_Oxy | 2OG-Fe(II) oxygenase superfamily                                |        118 |
-|          5 | PF01073   | 3Beta_HSD    | 3-beta hydroxysteroid dehydrogenase/isomerase family            |          4 |
-|          6 | PF04419   | 4F5          | 4F5 protein family                                              |          1 |
-|          7 | PF03061   | 4HBT         | Thioesterase superfamily                                        |         12 |
-|         11 | PF01661   | Macro        | Macro domain                                                    |          3 |
-|         13 | PF00962   | A_deaminase  | Adenosine/AMP deaminase                                         |          2 |
-|         14 | PF01490   | Aa_trans     | Transmembrane amino acid transporter protein                    |         49 |
-|         15 | PF00004   | AAA          | ATPase family associated with various cellular activities (AAA) |        121 |
+      <pre> mysql> SELECT   pfamA_acc, \
+                 pfamA_id, \
+                 description, \
+                 SUM(count) \
+        FROM     complete_proteomes, \
+                 proteome_regions, \
+                 pfamA \
+        WHERE    complete_proteomes.ncbi_taxid = 3702 \
+        AND      proteome_regions.auto_pfamA = pfamA.auto_pfamA \
+        AND      proteome_regions.auto_proteome = complete_proteomes.auto_proteome \
+        GROUP BY proteome_regions.auto_pfamA;
+
++-----------+----------------+-----------------------------------------------------------------+------------+
+| pfamA_acc | pfamA_id       | description                                                     | sum(count) |
++-----------+----------------+-----------------------------------------------------------------+------------+
+| PF00389   | 2-Hacid_dh     | D-isomer specific 2-hydroxyacid dehydrogenase, catalytic domain |         10 |
+| PF00198   | 2-oxoacid_dh   | 2-oxoacid dehydrogenases acyltransferase (catalytic domain)     |         11 |
+| PF03171   | 2OG-FeII_Oxy   | 2OG-Fe(II) oxygenase superfamily                                |        144 |
+| PF01073   | 3Beta_HSD      | 3-beta hydroxysteroid dehydrogenase/isomerase family            |          9 |
+| PF04419   | 4F5            | 4F5 protein family                                              |          3 |
+| PF03061   | 4HBT           | Thioesterase superfamily                                        |         13 |
 ...</pre>
     </fieldset>
     
     <p>
       <strong>Note:</strong> The <span class="column">ncbi_code</span> for the 
-      species &#39;Arabidopsis thaliana&#39; is 3702. This information can be 
+      species 'Arabidopsis thaliana' is 3702. This information can be 
       found in the <span class="table">ncbi_taxonomy</span> table.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the UniProtKB protein sequences for the species 
-      &#39;Arabidopsis thaliana&#39; 
+      'Arabidopsis thaliana' 
     </fieldset>
       
     <fieldset class="sql">
@@ -1132,7 +1425,7 @@ total_genome_proteins: 5397</pre>
       <pre>mysql> SELECT pfamseq.pfamseq_id \
        FROM   pfamseq, \
               genome_seqs \
-       WHERE  pfamseq.ncbi_code = &#39;3702&#39; \
+       WHERE  pfamseq.ncbi_code = '3702' \
        AND    genome_seqs.auto_pfamseq = pfamseq.auto_pfamseq;
 +-------------+
 | pfamseq_id  |
@@ -1152,8 +1445,8 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the UniProtKB protein sequences from the species 
-      &#39;Arabidopsis thaliana&#39; that belong to Pfam-A domain 
-      &#39;PF00106&#39;
+      'Arabidopsis thaliana' that belong to Pfam-A domain 
+      'PF00106'
     </fieldset>
       
     <fieldset class="sql">
@@ -1162,10 +1455,10 @@ total_genome_proteins: 5397</pre>
        FROM   pfamseq, \
               genome_seqs, \
               pfamA \
-       WHERE  genome_seqs.ncbi_code = &#39;3702&#39; \
+       WHERE  genome_seqs.ncbi_code = '3702' \
        AND    genome_seqs.auto_pfamseq = pfamseq.auto_pfamseq \
        AND    genome_seqs.auto_pfamA = pfamA.auto_pfamA \
-       AND    pfamA_acc = &#39;PF00106&#39;;
+       AND    pfamA_acc = 'PF00106';
 +--------------+
 | pfamseq_id   |
 +--------------+
@@ -1182,144 +1475,31 @@ total_genome_proteins: 5397</pre>
 ...</pre>
     </fieldset>
 
+    <p><a class="link" rel="dbTop">back to top</a></p>
+
     <hr />
 
-    <h2>Related families</h2>
+    <h2><a name="related">Related families</a></h2>
 
     <img class="tables"
          alt="Related families"
-         src="[% c.uri_for( "/static/images/db_schema/Prc.png" ) %]" />
+         src="[% c.uri_for( "/static/images/help/db_schema/related_families.png" ) %]" />
 
     <p>
-      <a class="ext" href="http://supfam.org/PRC/">PRC</a> and SCOOP are two 
-      pieces of software that we use to determine which Pfam families are 
-      related. The scores from these programs have been very useful in 
-      deciding which Pfam-A families should belong to the same clan. As a 
-      rough guide, a PRC E-value score of less than 0.001, or a SCOOP 
-      score greater than 50 shows that two families are closely related.
+      <a class="ext"
+        href="http://bioinformatics.oxfordjournals.org/cgi/content/short/23/7/809">SCOOP</a>
+      and <a class="ext" href="http://toolkit.tuebingen.mpg.de/hhpred">HHsearch</a>
+      are two pieces of software that we use to help to determine which Pfam-A
+      families are related. The scores from these programs have been a very useful
+      aid in deciding which Pfam-A families should belong to the same clan. As a
+      rough guide, a SCOOP score greater than 50 or a HHsearch E-value score of less
+      than 0.01 is an indication that two families are closely related.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the Pfam-A families that have a PRC E-value score of less 
-      than 0.001 for the pfamA family &#39;ABC1&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>mysql> SELECT A.pfamA_id, \
-              B.pfamA_id, \
-              model_start1, \
-              model_end1, \
-              length1, \
-              model_start2, \
-              model_end2, \
-              length2, \
-              evalue \
-       FROM   pfamA AS A, \
-              pfamA AS B, \
-              pfamA2pfamA_PRC_results \
-       WHERE  A.auto_pfamA = pfamA2pfamA_PRC_results.auto_pfamA1 \
-       AND    B.auto_pfamA = pfamA2pfamA_PRC_results.auto_pfamA2 \
-       AND    evalue &lt; 1e-03 \
-       AND    A.pfamA_id = &#39;ABC1&#39;;
-+----------+-------------+--------------+------------+---------+--------------+------------+---------+--------------+
-| pfamA_id | pfamA_id    | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
-+----------+-------------+--------------+------------+---------+--------------+------------+---------+--------------+
-| ABC1     | Pkinase_Tyr |           17 |         57 |      41 |            5 |         52 |      48 | 1.284523e-04 |
-| ABC1     | Pkinase     |           17 |         43 |      27 |            5 |         31 |      27 | 2.537716e-04 |
-| ABC1     | ABC1        |            1 |        126 |     126 |            1 |        126 |     126 | 3.600000e-68 |
-+----------+-------------+--------------+------------+---------+--------------+------------+---------+--------------+</pre>
-    </fieldset>
-
-    <p>
-      <strong>Note:</strong> The <span class="column">model_start</span> and 
-      <span class="column">model_end</span> values let you know which region of 
-      the models are similar.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the Pfam-A families that have a PRC E-value score of less 
-      than 0.001 when compared to the Pfam-B family &#39;PB007609&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <span style="color: #F00; font-weight: bold">THIS QUERY GIVES NO RESULTS</span>
-      <pre>mysql> SELECT pfamB_acc, \
-              pfamA_id, \
-              model_start1, \
-              model_end1, \
-              length1, \
-              model_start2, \
-              model_end2, \
-              length2, \
-              evalue \
-       FROM   pfamB AS b, \
-              pfamB2pfamA_PRC_results AS ab, \
-              pfamA AS a\
-       WHERE  b.auto_pfamB = ab.auto_pfamB \
-       AND    ab.auto_pfamA = a.auto_pfamA \
-       AND    evalue &lt; 1e-03 \
-       AND    pfamB_acc = &#39;PB007609&#39;;
-+-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+
-| pfamB_acc | pfamA_id       | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
-+-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+
-| PB007609  | Ala_racemase_N |           13 |         72 |      60 |            2 |         65 |      64 | 3.600000e-09 |
-+-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+</pre>
-    </fieldset>
-
-    <p>
-      <strong>Note:</strong> This query currently returns no results. PRC 
-      comparisons for Pfam-B families were not added to Pfam release 23.0, due
-      to computational constraints. We hope to re-instate this data in a later
-      release.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the Pfam-B families that have a PRC E-value score of less 
-      than 0.001 when compared to the Pfam-B family &#39;PB007609&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <span style="color: #F00; font-weight: bold">THIS QUERY GIVES NO RESULTS</span>
-      <pre>mysql> SELECT a.pfamB_acc, \
-              b.pfamB_acc, \
-              model_start1, \
-              model_end1, \
-              length1, \
-              model_start2, \
-              model_end2, \
-              length2, \
-              evalue \
-       FROM   pfamB AS a, \
-              pfamB AS b, \
-              pfamB2pfamB_PRC_results AS ab \
-       WHERE  a.auto_pfamB = ab.auto_pfamB1 \
-       AND    b.auto_pfamB = ab.auto_pfamB2 \
-       AND    evalue &lt; 1e-03 \
-       AND    a.pfamB_acc = &#39;PB006860&#39;;
-+-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+
-| pfamB_acc | pfamB_acc | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
-+-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+
-| PB006860  | PB006860  |            1 |         62 |      62 |            1 |         62 |      62 | 1.300000e-44 |
-+-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+</pre>
-    </fieldset>
-
-    <p>
-      <strong>Note:</strong> This query currently returns no results. PRC 
-      comparisons for Pfam-B families were not added to Pfam release 23.0, due
-      to computational constraints. We hope to re-instate this data in a later
-      release.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all pf the Pfam-A families that have a SCOOP score greater than 50 
-      when compared to the family &#39;ABC1&#39;
+      Give me all pf the Pfam-A families that have a SCOOP score greater than 50 when 
+      compared to the family 'ABC1'
     </fieldset>
       
     <fieldset class="sql">
@@ -1329,178 +1509,109 @@ total_genome_proteins: 5397</pre>
               score \
        FROM   pfamA AS a, \
               pfamA AS b, \
-              pfamA2pfamA_scoop_results AS ab \
-       WHERE  a.auto_pfamA = ab.auto_pfamA1 \
-       AND    b.auto_pfamA = ab.auto_pfamA2 \
-       AND    a.pfamA_id = &#39;ABC1&#39; \
-       AND    score &gt; 50;
-+----------+----------+---------+
-| pfamA_id | pfamA_id | score   |
-+----------+----------+---------+
-| ABC1     | APH      | 83.0761 |
-+----------+----------+---------+</pre>
+              pfamA2pfamA_scoop_results AS p\
+       WHERE  a.auto_pfamA = p.auto_pfamA1 \
+       AND    b.auto_pfamA = p.auto_pfamA2\
+       AND    score > 50 \
+       AND    a.pfamA_id = "ABC1";
+
++----------+-----------------+---------+
+| pfamA_id | pfamA_id        | score   |
++----------+-----------------+---------+
+| ABC1     | Pkinase         | 82.5059 |
+| ABC1     | Pox_ser-thr_kin | 77.4765 |
+| ABC1     | Kdo             | 62.4555 |
+| ABC1     | Seadorna_VP7    | 53.7196 |
+| ABC1     | Pkinase_Tyr     | 85.9087 |
+| ABC1     | RIO1            | 60.2442 |
++----------+-----------------+---------+</pre>
     </fieldset>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me all pf the Pfam-A families that have a HHsearch E-value score of
+      less than 0.01 when compared to the family 'AAA'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT a.pfamA_id, \
+              b.pfamA_id, \
+              evalue \
+       FROM   pfamA AS a, \
+              pfamA AS b, \
+              pfamA2pfamA_hhsearch_results AS p \
+       WHERE  a.auto_pfamA = p.auto_pfamA1 \
+       AND    b.auto_pfamA = p.auto_pfamA2 \
+       AND    evalue < 0.01 \
+       AND    a.pfamA_id = "AAA";
+
++----------+-----------------+---------+
+| pfamA_id | pfamA_id        | evalue  |
++----------+-----------------+---------+
+| AAA      | Sigma54_activat | 0.0069  |
+| AAA      | RuvB_N          | 5.6E-08 |
+| AAA      | AAA_2           | 0.00011 |
+| AAA      | AAA_5           | 0.00011 |
+| AAA      | Viral_helicase1 | 0.0045  |
+| AAA      | AAA             | 8.8E-23 |
+| AAA      | IstB            | 0.00063 |
++----------+-----------------+---------+</pre>
+    </fieldset>
+
+    <fieldset class="query">
+      <legend>Example query</legend>
+      Give me all of the UniProtKB protein sequences for the species 'Gallus gallus'
+    </fieldset>
+      
+    <fieldset class="sql">
+      <legend>SQL</legend>
+      <pre>mysql> SELECT pfamseq_id, \
+              pfamseq_acc FROM pfamseq, \
+              proteome_pfamseq, \
+              complete_proteomes\
+       WHERE  complete_proteomes.species = "Gallus gallus" \
+       AND    pfamseq.auto_pfamseq = proteome_pfamseq.auto_pfamseq \
+       AND    proteome_pfamseq.auto_proteome =complete_proteomes.auto_proteome;
+
++--------------+-------------+
+| pfamseq_id   | pfamseq_acc |
++--------------+-------------+
+| Q788U5_CHICK | Q788U5      |
+| Q5ZHK8_CHICK | Q5ZHK8      |
+| Q7T1N6_CHICK | Q7T1N6      |
+| Q9DEG1_CHICK | Q9DEG1      |
+| PRTG_CHICK   | Q589G5      |
+| B5BSF2_CHICK | B5BSF2      |
+| Q8QGR9_CHICK | Q8QGR9      |
+| CLLD6_CHICK  | Q5ZHV7      |
+| Q5ZK24_CHICK | Q5ZK24      |
+| HXC8_CHICK   | Q9YH13      |
+...</pre>
+    </fieldset>
+
+    <p><a class="link" rel="dbTop">back to top</a></p>
 
     <hr />
-    
-    <h2>NCBI data</h2>
+
+    <h2><a name="data">Data Files - Alignments, trees and HMMs</a></h2>
 
     <img class="tables"
-         alt="Version table"
-         src="[% c.uri_for( "/static/images/db_schema/Ncbiseq.png" ) %]" />
+         alt="HMM tables"
+         src="[% c.uri_for( "/static/images/help/db_schema/alignments_and_trees.png" ) %]" />
 
     <p>
-      In addition to searching all of the sequences in UniProtKB, we also 
-      search the protein sequences from NCBI against Pfam. The 
-      <span class="table">ncbi_pfamA_reg</span> tables contains all of the 
-      sequence regions (both significant and insignificant) that match each 
-      HMM. The <span class="table">ncbi_map</span> table links the GI number
-      to its corresponding UniProtKB entry(s). Note that not all GI numbers 
-      have a corresponding UniProtKB entry.  
+      The seed, full, NCBI and metaseq alignments are all stored as gzipped
+      files in the database, as is the HMM for each family. Note that the NCBI
+      and metaseq alignments may contain overlapping matches to Pfam-A families
+      that belong to the same clan, however, the UniprotKB alignments (seed and
+      full) will not. This is because we have performed a clan filtering step
+      on the UniProtKB data such that where there are overlapping Pfam-A
+      matches within a clan, only the lowest E-value scoring match is included
+      in the full alignment.
     </p>
 
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the Pfam-A domains for NCBI protein 
-      &#39;GI:1000125&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>mysql> SELECT pfamA_acc, \
-              pfamA_id, \
-              seq_start, \
-              seq_end \
-       FROM   ncbi_pfamA_reg, \
-              pfamA \
-       WHERE  ncbi_pfamA_reg.gi = &#39;1000125&#39; \
-       AND    ncbi_pfamA_reg.auto_pfamA = pfamA.auto_pfamA \
-       AND    in_full = 1;
-+-----------+-----------+-----------+---------+
-| pfamA_acc | pfamA_id  | seq_start | seq_end |
-+-----------+-----------+-----------+---------+
-| PF00069   | Pkinase   |       657 |     916 |
-| PF00433   | Pkinase_C |       936 |     983 |
-| PF02185   | HR1       |        47 |     119 |
-| PF02185   | HR1       |       136 |     213 |
-| PF02185   | HR1       |       217 |     294 |
-+-----------+-----------+-----------+---------+</pre>
-    </fieldset>
-
-    <p>
-      <strong>Note:</strong> The query must include &#39;in_full=1&#39; in
-      order to retrieve only significant hits.
-    </p>
- 
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the NCBI protein domains for the 
-      Pfam-A family &#39;AalphaY_MDB&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>mysql> SELECT gi, \
-              seq_start, \
-              seq_end, \
-              pfamA_id \
-       FROM   pfamA, \
-              ncbi_pfamA_reg \
-       WHERE  pfamA_id = &#39;AalphaY_MDB&#39; \
-       AND    pfamA.auto_pfamA = ncbi_pfamA_reg.auto_pfamA \
-       AND    in_full = 1;
-+---------+-----------+---------+-------------+
-| gi      | seq_start | seq_end | pfamA_id    |
-+---------+-----------+---------+-------------+
-| 8650517 |         1 |     147 | AalphaY_MDB |
-| 2314885 |         1 |     149 | AalphaY_MDB |
-|  169861 |         1 |     146 | AalphaY_MDB |
-|  169855 |         1 |     146 | AalphaY_MDB |
-|  169857 |         1 |     147 | AalphaY_MDB |
-+---------+-----------+---------+-------------+</pre>
-    </fieldset>
-
-    <p>
-      <strong>Note:</strong> The query must include &#39;in_full=1&#39; in
-      order to retrieve only significant hits.
-    </p>
-    
-    <hr />
- 
-    <h2>Metagenomics data</h2>
-
-    <img class="tables"
-         alt="Metaseq tables"
-         src="[% c.uri_for( "/static/images/db_schema/Metaseq.png" ) %]" />
-
-    <p>
-      We have searched a set of metagenomics seqeuences against Pfam. The 
-      metagenomics sequences that we searched are found in the 
-      <span class="table">metaseq</span> table. Note that the 
-      <span class="table">meta_pfamA_reg</span> table is different to the 
-      <span class="table">ncbi_pfamA_reg</span> and 
-      <span class="table">pfamA_reg_full</span> tables in that it contains 
-      only significant data.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the Pfam-A domains for metagenomics protein 
-      &#39;JCVI_ORF_1096665732460&#39; 
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>
-mysql> SELECT pfamA_acc, \
-              pfamA_id, \
-              seq_start, \
-              seq_end \
-       FROM   metaseq, \
-              pfamA, \
-              meta_pfamA_reg \
-       WHERE  metaseq_id = &#39;JCVI_ORF_1096665732460&#39; \
-       AND    metaseq.auto_metaseq = meta_pfamA_reg.auto_metaseq \
-       AND    meta_pfamA_reg.auto_pfamA = pfamA.auto_pfamA;
-+-----------+-----------+-----------+---------+
-| pfamA_acc | pfamA_id  | seq_start | seq_end |
-+-----------+-----------+-----------+---------+
-| PF02934   | GatB_N    |         1 |      65 |
-| PF01162   | GatB      |        82 |     150 |
-| PF02637   | GatB_Yqey |       151 |     284 |
-+-----------+-----------+-----------+---------+</pre>
-    </fieldset>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the metagenomics domains for the family &#39;3-alpha&#39;
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>
-mysql> SELECT metaseq_id, \
-              seq_start, \
-              seq_end, \
-              pfamA_id \
-       FROM   pfamA, \
-              metaseq, \
-              meta_pfamA_reg \
-       WHERE  pfamA_id = &#39;3-alpha&#39; \
-       AND    pfamA.auto_pfamA = meta_pfamA_reg.auto_pfamA \
-       AND    meta_pfamA_reg.auto_metaseq = metaseq.auto_metaseq;
-+------------------------+-----------+---------+----------+
-| metaseq_id             | seq_start | seq_end | pfamA_id |
-+------------------------+-----------+---------+----------+
-| JCVI_ORF_1096672077456 |       120 |     166 | 3-alpha  |
-| JCVI_ORF_1096672196106 |       133 |     178 | 3-alpha  |
-| JCVI_ORF_1096687352712 |       172 |     218 | 3-alpha  |
-| JCVI_ORF_1096685142424 |       172 |     218 | 3-alpha  |
-| JCVI_ORF_1096690616764 |        16 |      62 | 3-alpha  |
-| JCVI_ORF_1096700525628 |       183 |     229 | 3-alpha  |
-| JCVI_ORF_1096670986256 |        46 |      92 | 3-alpha  |
-+------------------------+-----------+---------+----------+</pre>
-    </fieldset>
+    <p><a class="link" rel="dbTop">back to top</a></p>
 
   </div>
 </div>
