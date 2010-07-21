@@ -66,8 +66,8 @@ __PACKAGE__->set_primary_key("auto_pfamseq");
 __PACKAGE__->add_unique_constraint("pfamseq_acc", ["pfamseq_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-07-21 15:16:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p4Afc+sDmaCe6WJbe2tMUg
+# Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-07-21 16:29:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AtGvESgQEgTWRTaV2xAwDA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
