@@ -1,0 +1,1604 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<clay-model clay-version="2.0.0">
+<database-model author="" begin-script="" end-script="Alter table ddi engine=InnoDB;                      &#13;Alter table ddi_res engine=InnoDB;                   &#13;Alter table dli engine=InnoDB;                       &#13;Alter table dli_res engine=InnoDB;                  &#13;Alter table domain  engine=InnoDB;                    &#13;Alter table interface  engine=InnoDB;                 &#13;Alter table ligand_chemistry engine=InnoDB; &#13;Alter table ligand_int_atoms  engine=InnoDB;&#13;Alter table ligand_summary          engine=InnoDB;&#13;Alter table ligand_synonyms            engine=InnoDB;&#13;Alter table ligands                    engine=InnoDB;&#13;Alter table nadi                       engine=InnoDB;&#13;Alter table nadi_res                   engine=InnoDB; &#13;Alter table napi                       engine=InnoDB;&#13;Alter table napi_res                  engine=InnoDB; &#13;Alter table nardi                      engine=InnoDB;&#13;Alter table nardi_res                  engine=InnoDB;&#13;Alter table nucleic_acid               engine=InnoDB;&#13;Alter table nucleic_acid_int_atoms     engine=InnoDB;&#13;Alter table nucleic_acid_region        engine=InnoDB;&#13;Alter table pdb                        engine=InnoDB;&#13;Alter table pdb_author                 engine=InnoDB;&#13;Alter table pdb_chain_data             engine=InnoDB;&#13;Alter table pdb_connectivity           engine=InnoDB;&#13;Alter table pdb_residue_data           engine=InnoDB;&#13;Alter table pfama                      engine=InnoDB;&#13;Alter table pli                        engine=InnoDB;&#13;Alter table pli_res                    engine=InnoDB;&#13;Alter table ppi                        engine=InnoDB;&#13;Alter table ppi_res                   engine=InnoDB;&#13;Alter table protein                    engine=InnoDB;&#13;Alter table protein_int_atoms     engine=InnoDB;&#13;Alter table protein_ligand_bonds   engine=InnoDB;&#13;Alter table protein_nucleic_acid_bonds engine=InnoDB;&#13;Alter table protein_protein_bonds  engine=InnoDB;&#13;Alter table quality_control engine=InnoDB;&#13;Alter table rfam engine=InnoDB;&#13;Alter table tracking  engine=InnoDB;&#13;alter table domain modify protein_accession varchar(20) character set latin1 collate latin1_general_cs NOT NULL;&#13;alter table domain modify protein_id varchar(20) character set latin1 collate latin1_general_cs NOT NULL;" id="c677a7:11d0a03bd9e:-7fdc" name="ipfam_0_2_myisam" sql-dialect-id="jp.azzurri.clay.dialect.MySQL_5_0_Dialect" version="1.0">
+<schema-list>
+<schema id="c677a7:11d0a03bd9e:-7fda" name="iPfam_innodb">
+<table-list>
+<table id="c677a7:11d0a03bd9e:-7fd9" name="ddi">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fd7" mandatory="true" name="ddi">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fd6" mandatory="true" name="region_id_A">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fd5" mandatory="true" name="region_id_B">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fd4" mandatory="true" name="intrachain">
+<data-type name="TINYINT" selected-variant-pattern="TINYINT(%n) UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fd8" name="PK_DDI">
+<primary-key-column name="ddi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7305" name="FK_ddi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="region_id_A" referenced-key-column-name="region_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-72d8" name="FK_ddi_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="region_id_B" referenced-key-column-name="region_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7fd3" name="ddi_region_id_A_region_id_B_Idx" unique="false">
+<index-column name="region_id_A" sort="ASC"/>
+<index-column name="region_id_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fd2" name="ddi_region_id_B_Idx" unique="false">
+<index-column name="region_id_B" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7fd1" name="ddi_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fcf" mandatory="true" name="ddi">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fce" mandatory="true" name="region_id_A">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fcd" mandatory="true" name="region_id_B">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fcc" mandatory="true" name="residue_A">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fcb" mandatory="true" name="residue_B">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fca" mandatory="true" name="intrachain">
+<data-type name="TINYINT" selected-variant-pattern="TINYINT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fc9" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fd0" name="PK_DDI_RES"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7167" name="FK_ddi_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DDI" referenced-table="ddi" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ddi" referenced-key-column-name="ddi"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7fc8" name="ddi_idx" unique="false">
+<index-column name="ddi" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fc7" name="ddi_region_id_A_region_id_B_Idx" unique="false">
+<index-column name="region_id_A" sort="ASC"/>
+<index-column name="region_id_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fc6" name="ddi_region_id_B_Idx" unique="false">
+<index-column name="region_id_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fc5" name="ddi_residue_A_residue_B_Idx" unique="false">
+<index-column name="residue_A" sort="ASC"/>
+<index-column name="residue_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fc4" name="ddi_residue_B_Idx" unique="false">
+<index-column name="residue_B" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7fc3" name="dli">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fc1" mandatory="true" name="dli">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fc0" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fbf" mandatory="true" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fc2" name="PK_DLI">
+<primary-key-column name="dli"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-751e" name="FK_dli_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGANDS" referenced-table="ligands" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_ligand_id" referenced-key-column-name="internal_ligand_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-743b" name="FK_dli_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7fbe" name="ligand_id_region_id_idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+<index-column name="region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fbd" name="region_id_idx" unique="false">
+<index-column name="region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fbc" name="region_id_ligand_id_idx" unique="false">
+<index-column name="region_id" sort="ASC"/>
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7fbb" name="dli_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb9" mandatory="true" name="dli">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb8" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb7" mandatory="true" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb6" mandatory="true" name="region_residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb5" mandatory="true" name="ligand_residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fb4" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fba" name="PK_DLI_RES"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7123" name="FK_dli_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGANDS" referenced-table="ligands" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_ligand_id" referenced-key-column-name="internal_ligand_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-6cba" name="FK_dli_res_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7fb3" name="dli_idx" unique="false">
+<index-column name="dli" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fb2" name="dli_internal_ligand_id_Idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fb1" name="dli_ligand_residue_Idx" unique="false">
+<index-column name="ligand_residue" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fb0" name="dli_region_id_internal_ligand_id_Idx" unique="false">
+<index-column name="region_id" sort="ASC"/>
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7faf" name="dli_region_residue_Idx" unique="false">
+<index-column name="region_residue" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7fae" name="domain">
+<column-list>
+<column auto-increment="false" column-size="8" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fac" mandatory="true" name="pfam_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fab" mandatory="true" name="protein_accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7faa" mandatory="true" name="start">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fa9" mandatory="true" name="end">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="true" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fa8" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fa7" mandatory="true" name="region_source_db">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7fa6" mandatory="true" name="protein_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fad" name="PK_DOMAIN">
+<primary-key-column name="region_id"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6f77" name="FK_domain_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PFAMA" referenced-table="pfama" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pfam_acc" referenced-key-column-name="pfamA_acc"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-70af" name="FK_domain_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_accession" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7fa4" name="region_pfam_acc_Idx" unique="false">
+<index-column name="pfam_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fa3" name="region_protein_accession_start_end_Idx" unique="false">
+<index-column name="protein_accession" sort="ASC"/>
+<index-column name="start" sort="ASC"/>
+<index-column name="end" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7fa5" name="fk_region_proteins" unique="false">
+<index-column name="protein_accession" sort="ASC"/>
+<index-column name="protein_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7fa2" name="ligand_chemistry">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9f" mandatory="true" name="ligand_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9e" mandatory="true" name="three_letter_code">
+<data-type name="CHAR" selected-variant-pattern="CHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9d" mandatory="false" name="one_letter_code">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9c" mandatory="true" name="name">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9b" mandatory="true" name="systematic_name">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f9a" mandatory="false" name="num_all_atoms">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f99" mandatory="false" name="num_atoms_no_H">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f98" mandatory="true" name="stereo_smiles">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f97" mandatory="false" name="non_stereo_smiles">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f96" mandatory="false" name="charge">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f95" mandatory="true" name="category">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f94" mandatory="true" name="formula">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f93" mandatory="false" name="molecular_weight">
+<data-type name="FLOAT" selected-variant-pattern="FLOAT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7fa1" name="PK_LIGAND_CHEMISTRY">
+<primary-key-column name="ligand_id"/>
+</primary-key>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f92" name="ligand_chemistry_code_Idx" unique="true">
+<index-column name="ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f90" name="ligand_summary_lig_code_idx" unique="true">
+<index-column name="ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f8f" name="ligand_chemistry_three_letter_code_idx" unique="false">
+<index-column name="three_letter_code" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f8e" name="ligand_int_atoms">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f8c" mandatory="true" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f8b" mandatory="true" name="atom_number">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f8a" mandatory="false" name="ligand">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f89" mandatory="true" name="atom_acc">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f88" mandatory="false" name="atom">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f8d" name="PK_LIGAND_INT_ATOMS">
+<primary-key-column name="atom_acc"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6e52" name="FK_ligand_int_atoms_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGANDS" referenced-table="ligands" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_ligand_id" referenced-key-column-name="internal_ligand_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f87" name="ligand_int_atoms_atom_acc_Idx" unique="false">
+<index-column name="atom_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f86" name="ligand_int_atoms_internal_ligand_id_Idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f85" name="ligand_summary">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f82" mandatory="true" name="ligand_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f81" mandatory="true" name="three_letter_code">
+<data-type name="CHAR" selected-variant-pattern="CHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f80" mandatory="true" name="name">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f7f" mandatory="true" name="formula">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f7e" mandatory="false" name="domCount">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-6174" mandatory="false" name="image">
+<data-type name="BLOB" selected-variant-pattern="BLOB"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f84" name="PK_LIGAND_SUMMARY"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-777a" name="FK_ligand_summary_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGAND_CHEMISTRY" referenced-table="ligand_chemistry" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ligand_id" referenced-key-column-name="ligand_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f7d" name="ligand_summary_ligand_id_Idx" unique="true"/>
+<index id="c677a7:11d0a03bd9e:-7f7c" name="ligand_summary_three_letter_code_idx" unique="false">
+<index-column name="three_letter_code" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f7b" name="ligand_synonyms">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f79" mandatory="true" name="ligand_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f78" mandatory="true" name="alt_name">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f7a" name="PK_LIGAND_SYNONYMS"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7616" name="FK_ligand_synonyms_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGAND_CHEMISTRY" referenced-table="ligand_chemistry" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ligand_id" referenced-key-column-name="ligand_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f77" name="ligand_synonyms_ligand_id_Idx" unique="false">
+<index-column name="ligand_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f76" name="ligands">
+<column-list>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f74" mandatory="true" name="accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f73" mandatory="true" name="ligand_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f72" mandatory="true" name="ligand_number">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f71" mandatory="true" name="chain">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f70" mandatory="true" name="atom_start">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f6f" mandatory="true" name="atom_end">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f6e" mandatory="true" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="1d1068c:129d31d45c6:-7dfc" mandatory="true" name="internal_chain_accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f75" name="PK_LIGANDS">
+<primary-key-column name="internal_ligand_id"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7638" name="FK_ligands_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGAND_CHEMISTRY" referenced-table="ligand_chemistry" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ligand_id" referenced-key-column-name="ligand_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-61af" name="FK_ligands_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_chain_data_1" referenced-table="pdb_chain_data" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_chain_accession" referenced-key-column-name="internal_chain_accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f6d" name="ligands_uniq_idx" unique="true">
+<index-column name="accession" sort="ASC"/>
+<index-column name="ligand_id" sort="ASC"/>
+<index-column name="ligand_number" sort="ASC"/>
+<index-column name="chain" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f6c" name="ligands_accession_Idx" unique="false">
+<index-column name="accession" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f6b" name="ligands_internal_ligand_id_Idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f6a" name="ligands_ligand_id_Idx" unique="false">
+<index-column name="ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f69" name="ligands_ligand_number_Idx" unique="false">
+<index-column name="ligand_number" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f68" name="nadi">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f66" mandatory="true" name="nadi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f65" mandatory="true" name="nucleic_acid_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f64" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f67" name="PK_NADI">
+<primary-key-column name="nadi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-654e" name="FK_nadi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-6404" name="FK_nadi_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f63" name="nucleic_acid_acc_idx" unique="false">
+<index-column name="nucleic_acid_acc" sort="ASC"/>
+<index-column name="region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f62" name="region_id_idx" unique="false">
+<index-column name="region_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f55" name="napi">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f53" mandatory="true" name="napi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f52" mandatory="true" name="nucleic_acid_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f51" mandatory="true" name="protein_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f54" name="PK_NAPI">
+<primary-key-column name="napi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-63a8" name="FK_napi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f50" name="napi_nucleic_acid_acc_protein_acc_Idx" unique="false">
+<index-column name="nucleic_acid_acc" sort="ASC"/>
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f4f" name="napi_protein_acc_Idx" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f4e" name="napi_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f4c" mandatory="true" name="napi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f4b" mandatory="true" name="nucleic_acid_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f4a" mandatory="true" name="base">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f49" mandatory="true" name="protein_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f48" mandatory="true" name="residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f47" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f4d" name="PK_NAPI_RES"/>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f46" name="napi_idx" unique="false">
+<index-column name="napi" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f45" name="napi_res_nucleic_acid_acc_protein_acc_Idx" unique="false">
+<index-column name="nucleic_acid_acc" sort="ASC"/>
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f44" name="napi_res_protein_acc_Idx" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f43" name="nardi">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f41" mandatory="true" name="nardi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f40" mandatory="true" name="protein_region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f3f" mandatory="true" name="nucleic_region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f42" name="PK_NARDI">
+<primary-key-column name="nardi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-676b" name="FK_nardi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID_REGION" referenced-table="nucleic_acid_region" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nucleic_region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-6480" name="FK_nardi_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f3e" name="nardi_domain" unique="false">
+<index-column name="protein_region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f3d" name="nardi_nucleic_acid_region" unique="false">
+<index-column name="nucleic_region_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f3c" name="nardi_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f3a" mandatory="true" name="nardi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f39" mandatory="true" name="protein_region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f38" mandatory="true" name="nucleic_region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f37" mandatory="true" name="protein_residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="19" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f36" mandatory="true" name="nucleic_base">
+<data-type name="BIGINT" selected-variant-pattern="BIGINT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f35" mandatory="true" name="quality_control">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f3b" name="PK_NARDI_RES"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6238" name="FK_nardi_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NARDI" referenced-table="nardi" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nardi" referenced-key-column-name="nardi"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f34" name="nardi_domain_idx" unique="false">
+<index-column name="protein_region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f33" name="nardi_idx" unique="false">
+<index-column name="nardi" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f32" name="nardi_nucleic_acid_region_idx" unique="false">
+<index-column name="nucleic_region_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f31" name="nucleic_acid">
+<column-list>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2f" mandatory="true" name="accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2e" mandatory="false" name="id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2d" mandatory="true" name="seq_version">
+<data-type name="TINYINT" selected-variant-pattern="TINYINT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="32" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2c" mandatory="false" name="md5">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2b" mandatory="true" name="type">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f2a" mandatory="true" name="source_db">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f29" mandatory="true" name="length">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f28" mandatory="true" name="ncbi_code">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="65535" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f27" mandatory="true" name="sequence">
+<data-type name="BLOB" selected-variant-pattern="BLOB"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="1d1068c:129d31d45c6:-7df9" mandatory="true" name="internal_chain_accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f30" name="PK_NUCLEIC_ACID">
+<primary-key-column name="accession"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6619" name="FK_nucleic_acid_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_chain_data_1" referenced-table="pdb_chain_data" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_chain_accession" referenced-key-column-name="internal_chain_accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f26" name="fk_nucleic_acid_pdb" unique="false">
+<index-column name="accession" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f25" name="nucleic_acid_int_atoms">
+<column-list>
+<column auto-increment="false" column-size="6" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f23" mandatory="true" name="nucleic_acid_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f22" mandatory="true" name="atom_number">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f21" mandatory="true" name="nucleic_acid_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f20" mandatory="true" name="base">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1f" mandatory="true" name="base_name">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1e" mandatory="true" name="atom">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1d" mandatory="true" name="atom_acc">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f24" name="PK_NUCLEIC_ACID_INT_ATOMS"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-635e" name="FK_nucleic_acid_int_atoms_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f1c" name="nucleic_acid_int_atoms_atom_acc_Idx" unique="false">
+<index-column name="atom_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f1b" name="nucleic_acid_int_atoms_nucleic_acid_acc_Idx" unique="false">
+<index-column name="nucleic_acid_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f1a" name="nucleic_acid_int_atoms_nucleic_acid_id_Idx" unique="false">
+<index-column name="nucleic_acid_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f19" name="nucleic_acid_region">
+<column-list>
+<column auto-increment="false" column-size="8" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f17" mandatory="true" name="rfam_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="6" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f16" mandatory="false" name="accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f15" mandatory="true" name="start">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f14" mandatory="true" name="end">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f13" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f12" mandatory="true" name="region_source_db">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f11" mandatory="true" name="nucleic_acid_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f18" name="PK_NUCLEIC_ACID_REGION">
+<primary-key-column name="region_id"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6983" name="FK_nucleic_acid_region_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_RFAM" referenced-table="rfam" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="rfam_acc" referenced-key-column-name="rfam_acc"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-68f4" name="FK_nucleic_acid_region_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="accession" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f10" name="nucleic_acid_region_accession_Idx" unique="false">
+<index-column name="accession" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f0f" name="nucleic_acid_region_rfam_acc_Idx" unique="false">
+<index-column name="rfam_acc" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f0e" name="pdb">
+<column-list>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="NULL" id="c677a7:11d0a03bd9e:-7f0b" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f0a" mandatory="false" name="keywords">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f09" mandatory="false" name="title">
+<data-type name="MEDIUMTEXT" selected-variant-pattern="MEDIUMTEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f08" mandatory="false" name="date">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="2" default-value="" id="c677a7:11d0a03bd9e:-7f07" mandatory="true" name="resolution">
+<data-type name="DECIMAL" selected-variant-pattern="DECIMAL"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f06" mandatory="true" name="method">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f04" mandatory="true" name="pubmed_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f0d" name="PK_PDB">
+<primary-key-column name="pdb_id"/>
+</primary-key>
+<unique-key-list>
+<unique-key id="c677a7:11d0a03bd9e:-6203" name="UQ_pdb_1">
+<unique-key-column name="pdb_id"/>
+</unique-key>
+</unique-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f00" name="pdb_pdb_id_Idx" unique="false">
+<index-column name="pdb_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7eff" name="pdb_author">
+<column-list>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7efd" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="0" id="c677a7:11d0a03bd9e:-7efc" mandatory="true" name="author_order">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7efb" mandatory="true" name="name">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7efe" name="PK_PDB_AUTHOR">
+<primary-key-column name="pdb_id"/>
+</primary-key>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ef9" name="pdb_author_accession_Idx" unique="false">
+<index-column name="pdb_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ef8" name="pdb_chain_data">
+<column-list>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ef6" mandatory="true" name="internal_chain_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ef5" mandatory="true" name="internal_chain_accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="1" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ef4" mandatory="true" name="original_chain">
+<data-type name="CHAR" selected-variant-pattern="CHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ef3" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ef7" name="PK_PDB_CHAIN_DATA"/>
+<unique-key-list>
+<unique-key id="c677a7:11d0a03bd9e:-6640" name="UQ_pdb_chain_data_1">
+<unique-key-column name="internal_chain_accession"/>
+</unique-key>
+</unique-key-list>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6a94" name="FK_pdb_chain_data_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PDB" referenced-table="pdb" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pdb_id" referenced-key-column-name="pdb_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ef2" name="internal_chain_accession_idx" unique="true">
+<index-column name="internal_chain_accession" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ef1" name="pdb_connectivity">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eef" mandatory="true" name="ligand_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eee" mandatory="true" name="three_letter_code">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eed" mandatory="true" name="atom1_name">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eec" mandatory="true" name="atom2_name">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ef0" name="PK_PDB_CONNECTIVITY"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7044" name="FK_pdb_connectivity_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGAND_CHEMISTRY" referenced-table="ligand_chemistry" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ligand_id" referenced-key-column-name="ligand_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7eeb" name="con_ligand_id_Idx" unique="false">
+<index-column name="ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7eea" name="con_three_letter_code_Idx" unique="false">
+<index-column name="three_letter_code" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ee9" name="con_three_letter_code_atom1_name" unique="false">
+<index-column name="three_letter_code" sort="ASC"/>
+<index-column name="atom1_name" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ee8" name="pdb_residue_data">
+<column-list>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ee5" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="10d08bc:129c5d3a947:-7c2f" mandatory="false" name="msd_chain">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ee4" mandatory="true" name="chain">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="10d08bc:129c5d3a947:-7c2e" mandatory="false" name="serial">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ee1" mandatory="true" name="pdb_residue">
+<data-type name="CHAR" selected-variant-pattern="CHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ee2" mandatory="true" name="pdb_coordinate">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="1" decimal-digits="0" default-value="" id="10d08bc:129c5d3a947:-7be0" mandatory="false" name="pdb_insert_code">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ee3" mandatory="true" name="uniprot_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="" id="10d08bc:129c5d3a947:-7bdf" mandatory="false" name="seq_version">
+<data-type name="TINYINT" selected-variant-pattern="TINYINT(%n)"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ede" mandatory="true" name="uniprot_residue">
+<data-type name="CHAR" selected-variant-pattern="CHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7edf" mandatory="true" name="uniprot_coordinate">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="4" decimal-digits="0" default-value="0" id="c677a7:11d0a03bd9e:-7ee0" mandatory="true" name="dssp_code">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ee7" name="PK_PDB_RESIDUE_DATA"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-795e" name="FK_pdb_residue_data_1" on-delete="CASCADE" on-update="UNSPECIFIED" referenced-key="PK_PDB" referenced-table="pdb" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pdb_id" referenced-key-column-name="pdb_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7edd" name="pdb_residue_data_pdb_id_Idx" unique="false">
+<index-column name="pdb_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7edc" name="pdb_residue_data_uniprot_acc_Idx" unique="false">
+<index-column name="uniprot_acc" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7edb" name="pfama">
+<column-list>
+<column auto-increment="false" column-size="8" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed9" mandatory="true" name="pfamA_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed8" mandatory="true" name="pfamA_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed7" mandatory="true" name="NumberInAlign">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="65535" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed6" mandatory="true" name="description">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed5" mandatory="false" name="domCount">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed4" mandatory="false" name="ligCount">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ed3" mandatory="false" name="naCount">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7bf8" mandatory="false" name="comment">
+<data-type name="LONGTEXT" selected-variant-pattern="LONGTEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7bfa" mandatory="false" name="interpro_id">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7bf9" mandatory="false" name="interpro_abstract">
+<data-type name="LONGTEXT" selected-variant-pattern="LONGTEXT"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7eda" name="PK_PFAMA">
+<primary-key-column name="pfamA_acc"/>
+</primary-key>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ed2" name="pfamA_pfamA_acc_Idx" unique="false">
+<index-column name="pfamA_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ed1" name="pfamA_pfamA_id_Idx" unique="false">
+<index-column name="pfamA_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ed0" name="pli">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ece" mandatory="true" name="pli">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ecd" mandatory="true" name="protein_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ecc" mandatory="true" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ecf" name="PK_PLI">
+<primary-key-column name="pli"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7564" name="FK_pli_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGANDS" referenced-table="ligands" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_ligand_id" referenced-key-column-name="internal_ligand_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-70d9" name="FK_pli_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ecb" name="pli_internal_ligand_id_Idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7eca" name="pli_protein_acc_internal_ligand_id_Idx" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ec9" name="pli_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec7" mandatory="true" name="pli">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec6" mandatory="false" name="protein_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec5" mandatory="false" name="internal_ligand_id">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec4" mandatory="true" name="residue_A">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec3" mandatory="true" name="residue_B">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ec2" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ec8" name="PK_PLI_RES"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6c53" name="FK_pli_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-6a02" name="FK_pli_res_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGANDS" referenced-table="ligands" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="internal_ligand_id" referenced-key-column-name="internal_ligand_id"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ec1" name="pli_idx" unique="false">
+<index-column name="pli" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ec0" name="pli_lig_prot_idx" unique="false">
+<index-column name="internal_ligand_id" sort="ASC"/>
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ebf" name="pli_prot_lig_idx" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+<index-column name="internal_ligand_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ebe" name="ppi">
+<column-list>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ebc" mandatory="true" name="ppi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ebb" mandatory="false" name="protein_acc_A">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eba" mandatory="false" name="protein_acc_B">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7ebd" name="PK_PPI">
+<primary-key-column name="ppi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6eaa" name="FK_ppi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_acc_A" referenced-key-column-name="accession"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-6e7d" name="FK_ppi_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_acc_B" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7eb9" name="ppi_acc_A_acc_B_Idx" unique="false">
+<index-column name="protein_acc_A" sort="ASC"/>
+<index-column name="protein_acc_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7eb8" name="ppi_acc_B_Idx" unique="false">
+<index-column name="protein_acc_B" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7eb7" name="ppi_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb5" mandatory="true" name="ppi">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb4" mandatory="false" name="protein_acc_A">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb3" mandatory="false" name="protein_acc_B">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb2" mandatory="true" name="residue_A">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb1" mandatory="true" name="residue_B">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eb0" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7eb6" name="PK_PPI_RES"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6c09" name="FK_ppi_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PPI" referenced-table="ppi" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ppi" referenced-key-column-name="ppi"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7eaf" name="ppi_acc_AB_idx" unique="false">
+<index-column name="protein_acc_A" sort="ASC"/>
+<index-column name="protein_acc_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7eae" name="ppi_acc_BA_idx" unique="false">
+<index-column name="protein_acc_B" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7ead" name="protein">
+<column-list>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eab" mandatory="true" name="accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7eaa" mandatory="true" name="id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea9" mandatory="true" name="seq_version">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="16" decimal-digits="0" default-value="" id="4e63f9:129d047d8e1:-7c82" mandatory="true" name="crc64">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="32" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea8" mandatory="true" name="md5">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea7" mandatory="true" name="source_db">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea6" mandatory="true" name="length">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea5" mandatory="false" name="ncbi_code">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7ea4" mandatory="true" name="sequence">
+<data-type name="BLOB" selected-variant-pattern="BLOB"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="1d1068c:129d31d45c6:-7e5a" mandatory="true" name="internal_chain_accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="93c5e7:129eacae4d1:-7d3e" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7eac" name="PK_PROTEIN">
+<primary-key-column name="accession"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="4e63f9:129d047d8e1:-7c5d" name="FK_protein_3" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_SOURCE" referenced-table="source" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="source_db" referenced-key-column-name="source_db"/>
+</foreign-key>
+<foreign-key id="1d1068c:129d31d45c6:-7e2c" name="FK_protein_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PDB_CHAIN_DATA" referenced-table="pdb_chain_data" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type=""/>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7ea3" name="proteins_accession_Idx" unique="true">
+<index-column name="accession" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ea2" name="proteins_accession_id_Idx" unique="true">
+<index-column name="accession" sort="ASC"/>
+<index-column name="id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ea1" name="proteins_md5_Idx" unique="false">
+<index-column name="md5" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7ea0" name="proteins_ncbi_code_Idx" unique="false">
+<index-column name="ncbi_code" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e9f" name="protein_int_atoms">
+<column-list>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e9d" mandatory="false" name="protein_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e9c" mandatory="true" name="atom_number">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e9b" mandatory="false" name="protein_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e9a" mandatory="true" name="residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e99" mandatory="true" name="atom_acc">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e98" mandatory="true" name="atom">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e9e" name="PK_PROTEIN_INT_ATOMS">
+<primary-key-column name="atom_acc"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-6d39" name="FK_protein_int_atoms_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_acc" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e97" name="fk_atoms_protein" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+<index-column name="protein_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e96" name="protein_int_atoms_atom_acc_Idx" unique="false">
+<index-column name="atom_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e95" name="protein_int_atoms_protein_acc_Idx" unique="false">
+<index-column name="protein_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e94" name="protein_int_atoms_protein_id_residue_Idx" unique="false">
+<index-column name="protein_id" sort="ASC"/>
+<index-column name="residue" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e93" name="protein_ligand_bonds">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e91" mandatory="true" name="protein_atom">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e90" mandatory="true" name="ligand_atom">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e8f" mandatory="true" name="bond_type">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e8e" mandatory="true" name="distance">
+<data-type name="FLOAT" selected-variant-pattern="FLOAT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-69d9" mandatory="true" name="atom_acc">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e92" name="PK_PROTEIN_LIGAND_BONDS"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-7809" name="FK_protein_ligand_bonds_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN_INT_ATOMS" referenced-table="protein_int_atoms" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_atom" referenced-key-column-name="atom_acc"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-69da" name="FK_protein_ligand_bonds_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_LIGAND_INT_ATOMS" referenced-table="ligand_int_atoms" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="ligand_atom" referenced-key-column-name="atom_acc"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e8d" name="protein_ligand_bonds_unique" unique="true">
+<index-column name="protein_atom" sort="ASC"/>
+<index-column name="ligand_atom" sort="ASC"/>
+<index-column name="bond_type" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e8c" name="protein_ligand_bonds_bond_type_Idx" unique="false">
+<index-column name="bond_type" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e8b" name="protein_ligand_bonds_ligand_atom_Idx" unique="false">
+<index-column name="ligand_atom" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e8a" name="protein_ligand_bonds_protein_atom_ligand_atom_Idx" unique="false">
+<index-column name="protein_atom" sort="ASC"/>
+<index-column name="ligand_atom" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e89" name="protein_nucleic_acid_bonds">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e87" mandatory="true" name="nucleic_acid_atom">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e86" mandatory="true" name="protein_atom">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e85" mandatory="true" name="bond_type">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e84" mandatory="true" name="distance">
+<data-type name="FLOAT" selected-variant-pattern="FLOAT(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e88" name="PK_PROTEIN_NUCLEIC_ACID_BONDS"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-785a" name="FK_protein_nucleic_acid_bonds_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN_INT_ATOMS" referenced-table="protein_int_atoms" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="protein_atom" referenced-key-column-name="atom_acc"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e83" name="protein_nucleic_acid_bonds_bond_type_Idx" unique="false">
+<index-column name="bond_type" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e82" name="protein_nucleic_acid_bonds_nucleic_acid_atom_protein_atom_Idx" unique="false">
+<index-column name="nucleic_acid_atom" sort="ASC"/>
+<index-column name="protein_atom" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e81" name="protein_nucleic_acid_bonds_protein_atom_Idx" unique="false">
+<index-column name="protein_atom" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e80" name="protein_protein_bonds">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e7e" mandatory="true" name="atom_A">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e7d" mandatory="true" name="atom_B">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e7c" mandatory="true" name="bond_type">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e7b" mandatory="true" name="distance">
+<data-type name="FLOAT" selected-variant-pattern="FLOAT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e7a" mandatory="true" name="intrachain">
+<data-type name="TINYINT" selected-variant-pattern="TINYINT UNSIGNED"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e7f" name="PK_PROTEIN_PROTEIN_BONDS"/>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-78d7" name="FK_protein_protein_bonds_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN_INT_ATOMS" referenced-table="protein_int_atoms" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="atom_A" referenced-key-column-name="atom_acc"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e79" name="protein_protein_bonds_unique" unique="true">
+<index-column name="atom_A" sort="ASC"/>
+<index-column name="atom_B" sort="ASC"/>
+<index-column name="bond_type" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e78" name="protein_protein_bonds_atom_A_atom_B_Idx" unique="false">
+<index-column name="atom_A" sort="ASC"/>
+<index-column name="atom_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e77" name="protein_protein_bonds_atom_B_Idx" unique="false">
+<index-column name="atom_B" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e76" name="protein_protein_bonds_bond_type_Idx" unique="false">
+<index-column name="bond_type" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e75" name="quality_control">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e73" mandatory="true" name="quality_control">
+<data-type name="INT" selected-variant-pattern="INT UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e72" mandatory="false" name="int_type">
+<data-type name="ENUM" selected-variant-pattern="ENUM('ppi','pli','ddi','dli','napi','nadi','nardi')"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e71" mandatory="true" name="method">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="12" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e70" mandatory="false" name="score">
+<data-type name="FLOAT" selected-variant-pattern="FLOAT(%n)"/>
+</column>
+<column auto-increment="false" column-size="65535" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e6f" mandatory="false" name="comment">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e74" name="PK_QUALITY_CONTROL"/>
+<unique-key-list>
+<unique-key id="c677a7:11d0a03bd9e:-626f" name="UQ_quality_control_1">
+<unique-key-column name="quality_control"/>
+<unique-key-column name="int_type"/>
+</unique-key>
+</unique-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e6e" name="int_type_idx" unique="false">
+<index-column name="int_type" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e6d" name="quality_control_idx" unique="false">
+<index-column name="quality_control" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e6c" name="rfam">
+<column-list>
+<column auto-increment="false" column-size="8" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e6a" mandatory="true" name="rfam_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e69" mandatory="true" name="rfam_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="65535" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e68" mandatory="true" name="decsription">
+<data-type name="TEXT" selected-variant-pattern="TEXT"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e6b" name="PK_RFAM">
+<primary-key-column name="rfam_acc"/>
+</primary-key>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7e67" name="rfam_rfam_acc_Idx" unique="false">
+<index-column name="rfam_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7e66" name="rfam_rfam_id_Idx" unique="false">
+<index-column name="rfam_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7e5d" name="tracking">
+<column-list>
+<column auto-increment="false" column-size="5" decimal-digits="0" default-value="NULL" id="c677a7:11d0a03bd9e:-7e5b" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="0000-00-00 00:00:00" id="c677a7:11d0a03bd9e:-7e5a" mandatory="true" name="started">
+<data-type name="DATETIME" selected-variant-pattern="DATETIME"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="0000-00-00 00:00:00" id="c677a7:11d0a03bd9e:-7e59" mandatory="true" name="finished">
+<data-type name="DATETIME" selected-variant-pattern="DATETIME"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7e58" mandatory="true" name="job_type">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7e5c" name="PK_TRACKING">
+<primary-key-column name="pdb_id"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-61e0" name="FK_tracking_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_1" referenced-table="pdb" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pdb_id" referenced-key-column-name="pdb_id"/>
+</foreign-key>
+</foreign-key-list>
+</table>
+<table id="c677a7:11d0a03bd9e:-7f61" name="nadi_res">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5f" mandatory="true" name="nadi">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5e" mandatory="true" name="nucleic_acid_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5d" mandatory="true" name="base">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5c" mandatory="true" name="region_id">
+<data-type name="INT" selected-variant-pattern="INT(%n) UNSIGNED"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5b" mandatory="true" name="region_residue">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="50" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f5a" mandatory="true" name="bond">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="c677a7:11d0a03bd9e:-7f60" name="PK_NADI_RES">
+<primary-key-column name="nadi"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="c677a7:11d0a03bd9e:-62de" name="FK_nadi_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NADI" referenced-table="nadi" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="nadi" referenced-key-column-name="nadi"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="c677a7:11d0a03bd9e:-7f59" name="base_idx" unique="false">
+<index-column name="base" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f58" name="nucleic_acid_idx" unique="false">
+<index-column name="nucleic_acid_acc" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f57" name="region_id_idx" unique="false">
+<index-column name="region_id" sort="ASC"/>
+</index>
+<index id="c677a7:11d0a03bd9e:-7f56" name="residue_idx" unique="false">
+<index-column name="region_residue" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="f815d0:122efcc622e:-7fb6" name="gene_ontology">
+<column-list>
+<column alias="Go Id" auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7fb2" mandatory="true" name="go_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="7" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7fab" mandatory="true" name="pfamA_acc">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7fae" mandatory="true" name="category">
+<data-type name="TINYTEXT" selected-variant-pattern="TINYTEXT"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="f815d0:122efcc622e:-7faf" mandatory="true" name="term">
+<data-type name="LONGTEXT" selected-variant-pattern="LONGTEXT"/>
+</column>
+</column-list>
+<primary-key id="f815d0:122efcc622e:-7fb5" name="PK_GENE_ONTOLOGY">
+<primary-key-column name="go_id"/>
+<primary-key-column name="pfamA_acc"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="f815d0:122efcc622e:-7f7f" name="FK_Gene_ontology_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PFAMA" referenced-table="pfama" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pfamA_acc" referenced-key-column-name="pfamA_acc"/>
+</foreign-key>
+</foreign-key-list>
+<index-list>
+<index id="f815d0:122efcc622e:-7f50" name="gene_ontology_pfamA_acc_idx" unique="false">
+<index-column name="pfamA_acc" sort="ASC"/>
+</index>
+<index id="f815d0:122efcc622e:-7f3d" name="gene_ontology_go_id_idx" unique="false">
+<index-column name="go_id" sort="ASC"/>
+</index>
+</index-list>
+</table>
+<table id="c0468e:124e38f664f:-7e7a" name="pdb_image">
+<column-list>
+<column alias="pdb_id" auto-increment="false" column-size="5" decimal-digits="0" default-value="" id="c0468e:124e38f664f:-7e76" mandatory="true" name="pdb_id">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c0468e:124e38f664f:-7e75" mandatory="false" name="pdb_image">
+<data-type name="MEDIUMBLOB" selected-variant-pattern="MEDIUMBLOB"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="c0468e:124e38f664f:-7e74" mandatory="false" name="pdb_image_sml">
+<data-type name="BLOB" selected-variant-pattern="BLOB"/>
+</column>
+</column-list>
+<primary-key id="c0468e:124e38f664f:-7e79" name="PK_PDB_IMAGE">
+<primary-key-column name="pdb_id"/>
+</primary-key>
+<unique-key-list>
+<unique-key id="c0468e:124e38f664f:-7e40" name="pdb_id">
+<unique-key-column name="pdb_id"/>
+</unique-key>
+</unique-key-list>
+<foreign-key-list>
+<foreign-key id="c0468e:124e38f664f:-7aa7" name="FK_pdb_image_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_1" referenced-table="pdb" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..1" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="pdb_id" referenced-key-column-name="pdb_id"/>
+</foreign-key>
+</foreign-key-list>
+</table>
+<table id="add9ad:1260377794d:-75b1" name="protein_annseq">
+<column-list>
+<column alias="Accession" auto-increment="false" column-size="20" decimal-digits="0" default-value="" id="add9ad:1260377794d:-75af" mandatory="true" name="accession">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+<column auto-increment="false" column-size="0" decimal-digits="0" default-value="" id="add9ad:1260377794d:-75ae" mandatory="true" name="annseq_storable">
+<data-type name="MEDIUMBLOB" selected-variant-pattern="MEDIUMBLOB"/>
+</column>
+</column-list>
+<primary-key id="add9ad:1260377794d:-75ad" name="PK_PROTEIN_ANNSEQ">
+<primary-key-column name="accession"/>
+</primary-key>
+<foreign-key-list>
+<foreign-key id="1d1068c:129d31d45c6:-7e6a" name="FK_protein_annseq_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_PROTEIN" referenced-table="protein" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="1" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key-column column-name="accession" referenced-key-column-name="accession"/>
+</foreign-key>
+</foreign-key-list>
+</table>
+<table id="4e63f9:129d047d8e1:-7c7d" name="source">
+<column-list>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="4e63f9:129d047d8e1:-7c79" mandatory="true" name="source_db">
+<data-type name="INT" selected-variant-pattern="INT(%n)"/>
+</column>
+<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="4e63f9:129d047d8e1:-7c78" mandatory="true" name="name">
+<data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
+</column>
+</column-list>
+<primary-key id="4e63f9:129d047d8e1:-7c7c" name="PK_SOURCE">
+<primary-key-column name="source_db"/>
+</primary-key>
+<index-list>
+<index id="4e63f9:129d047d8e1:-7c77" name="IX_source_1" unique="true">
+<index-column name="source_db" sort="ASC"/>
+</index>
+</index-list>
+</table>
+</table-list>
+</schema>
+</schema-list>
+</database-model>
+<diagram>
+<table-figure refid="c677a7:11d0a03bd9e:-7fd9" x="1339" y="36"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7fd1" x="1543" y="413"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7fc3" x="862" y="379"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7fbb" x="665" y="187"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7fae" x="903" y="5"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7fa2" x="602" y="920"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f8e" x="254" y="835"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f85" x="599" y="1249"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f7b" x="270" y="989"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f76" x="602" y="668"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f68" x="861" y="602"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f55" x="1355" y="1210"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f4e" x="1530" y="244"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f43" x="1769" y="1099"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f3c" x="1938" y="825"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f31" x="867" y="1258"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f25" x="1236" y="1025"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f19" x="1691" y="1262"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f0e" x="1198" y="673"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7eff" x="1553" y="599"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ef8" x="913" y="996"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ef1" x="243" y="1162"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ee8" x="1559" y="847"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7edb" x="1141" y="421"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ed0" x="451" y="285"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ec9" x="219" y="324"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ebe" x="14" y="3"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7eb7" x="4" y="172"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7ead" x="400" y="12"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e9f" x="5" y="451"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e93" x="421" y="578"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e89" x="163" y="644"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e80" x="6" y="795"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e75" x="1119" y="1351"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e6c" x="2072" y="1176"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7e5d" x="1606" y="719"/>
+<table-figure refid="c677a7:11d0a03bd9e:-7f61" x="957" y="741"/>
+<table-figure refid="f815d0:122efcc622e:-7fb6" x="1246" y="203"/>
+<table-figure refid="c0468e:124e38f664f:-7e7a" x="1273" y="857"/>
+<table-figure refid="add9ad:1260377794d:-75b1" x="164" y="117"/>
+<table-figure refid="4e63f9:129d047d8e1:-7c7d" x="626" y="121"/>
+</diagram>
+</clay-model>
