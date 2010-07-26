@@ -17,26 +17,32 @@ use warnings;
 
 use lib qw( /nfs/users/nfs_j/jt6/wiki/WikiApp/lib );
 
+use Getopt::Long;
 use Config::General;
 use LWP::UserAgent;
 use JSON;
-
-use Bio::Pfam::Wiki::WikiScraper;
+use Bio::Pfam::Wiki::Scraper;
 use WebUser;
+use Data::Dump qw(dump);
 
 # the script needs to be able to find a table wrapper for the "wikitext"
 # table in the "web_user" database. Add the appropriate DBIC schema 
 # description to PERL5LIB
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 
 # get a WikiScraper...
-my $scraper = Bio::Pfam::Wiki::WikiScraper->new;
+my $scraper = Bio::Pfam::Wiki::Scraper->new;
+
+# find the config file
+my $config_file = 'conf/wiki.conf';
+GetOptions ( 'config=s' => \$config_file );
+die "ERROR: couldn't read config from '$config_file': $!" unless -e $config_file;
 
 # parse the config and get the section relevant to the web_user database
-my $cg = Config::General->new( 'conf/wiki.conf' );
+my $cg = Config::General->new($config_file);
 my %config  = $cg->getall;
-my $db_conf = $config{web_user};
+my $db_conf = $config{wiki_approve}{WebUser};
 
 # build database connection string
 my $dsn = "dbi:mysql:$db_conf->{db_name}:$db_conf->{db_host}:$db_conf->{db_port}";
@@ -46,7 +52,10 @@ my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password} 
 # $schema->storage()->debug( 1 );
 
 # get the URL for the CGI script that will distribute the approved revisions
-my $revisions_script = $config{revisions_url};
+my $revisions_script = $config{wiki_approve}{revisions_url};
+
+# get the delay that we should use between wikipedia hits
+my $scrape_loop_delay = $config{wiki_approve}{scrape_loop_delay};
 
 # get a user agent and actually retrieve the list of revisions
 my $ua = LWP::UserAgent->new;
@@ -94,9 +103,12 @@ while ( my ( $title, $revision ) = each %$revisions ) {
 
     print STDERR "retrieved new content for '$title', revision ($revision)\n";
 		$numUpdated++;
+
+    sleep $scrape_loop_delay;
   }
 
   $numRows++;
+
 }
 
 print STDERR "updated $numUpdated out of $numRows articles\n";
