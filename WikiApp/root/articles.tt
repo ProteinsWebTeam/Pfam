@@ -91,7 +91,11 @@ BLOCK buildRows;
          target="[% target %]" 
          href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=history">hist</a>)
     </td>
-    <td class="showEdits link">[% article.history.size %]</td>
+    [%-# the last article in the history is the previous approved revision. So, to get
+       # the number of real edits that were made since that approved revision, we need 
+       # to subtract one. The same applies when we work out how many revisions are being
+       # ignored in the sub-table of revisions %]
+    <td class="showEdits link">[% article.history.size - 1 %]</td>
     <td>
       <button class="approve" 
               [% UNLESS c.user_exists %]disabled="disabled"[% END %]
@@ -123,7 +127,7 @@ BLOCK buildRows;
             ELSE;
               num_edits = 'no approved edits';
             END; -%]
-            <tr>
+            <tr[% IF loop.index == ( article.history.size - 1 ) %] class="inactive"[% END %]>
               <td class="user left">
                 <a class="ext user[% ' approved' IF revision.user_approved %]" 
                    rel="[% revision.user %]"
@@ -162,7 +166,7 @@ BLOCK buildRows;
             remaining = article.history.size - 20 %]
             <tr>
               <td colspan="5" class="inactive">
-                &hellip;and a further <strong>[% article.history.size - 20 %]</strong>
+                &hellip;and a further <strong>[% article.history.size - 21 %]</strong>
                 revisions&hellip;
               </td>
             </tr>
