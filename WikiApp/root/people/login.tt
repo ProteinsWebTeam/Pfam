@@ -1,0 +1,20 @@
+
+[%- IF c.user_exists %]
+  <p>You are already logged in.</p>
+[%- ELSE %]
+<form action="[% c.uri_for('/login') %]"
+      method="post"
+      accept-charset="utf-8">
+
+  <label for="username">Username</label>
+  <input type="text" name="username" id="username" value="" />
+
+  <label for="password">Password</label>
+  <input type="password" name="password" id="password" value="" />
+
+  <p>
+    <input type="submit" value="Login" />
+  </p>
+
+</form>
+[%- END %]
