@@ -19,14 +19,15 @@ use Bio::Pfam::Wiki::Updater;
 use DateTime;
 
 # find the config file
-my $config = 'conf/wiki.conf';
-GetOptions ( 'config=s' => \$config );
-die "ERROR: couldn't read config from '$config': $!" unless -e $config;
+my $config_file = 'conf/wiki.conf';
+GetOptions( 'config=s' => \$config_file );
+die "ERROR: couldn't read config from '$config_file': $!"
+  unless -e $config_file;
 
 # get the DB connection parameters
-my $cg = Config::General->new($config);
+my $cg = Config::General->new($config_file);
 my %config = $cg->getall;
-die "ERROR: failed to extract and configuration from '$config'"
+die "ERROR: failed to extract and configuration from '$config_file'"
   unless keys %$cg;
 my $conf = $config{wiki_approve}{WikiApprove};
 
@@ -43,4 +44,9 @@ my $updated = $u->num_updated;
 
 my $now = DateTime->now;
 print STDERR "$now: updated last revision IDs for $updated out of $checked checked articles\n";
+
+# if given in the configuration, append a snippet of text to the output. This is
+# to allow URLs, etc., to be added to the cron output
+print STDERR "\n", $config{wiki_approve}{update_email_message}, "\n"
+  if $config{wiki_approve}{update_email_message};
 
