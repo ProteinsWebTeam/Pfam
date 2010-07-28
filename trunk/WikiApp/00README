@@ -1,0 +1,22 @@
+
+This is the catalyst application for approving wikipedia article revisions,
+prior to their inclusion in the Pfam/Rfam websites. 
+
+The application requires Catalyst 5.8+ and several other non-standard 
+modules (all available from CPAN). The configuration file in this directory
+should be modified to provide the database connection parameters for the
+wiki_approve database.
+
+Start the server using the "run_server.sh" script. Configure the PERL5LIB
+environment variable to add the directory with catalyst and the other
+non-standard modules, and to give the location of the configuration file.
+
+NOTE
+
+In the Pfam/Rfam installation, catalyst itself has been patched to prevent
+passwords being echoed in debug logs. If you run the app using a different
+catalyst installation, and if you enable debug mode, passwords will be echoed
+in the log.
+
+jt6 2010727 WTSI
+
