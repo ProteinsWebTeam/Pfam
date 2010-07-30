@@ -40,7 +40,7 @@ BLOCK buildRows;
   target = "new_" _ article.title;
   target = target.replace( '\W', '_' );
   IF article.history.-1.number_edits.defined;
-    num_edits = article.history.-1.number_edits;
+    num_edits = article.history.0.number_edits;
   ELSE;
     num_edits = 'no approved edits';
   END; -%]
@@ -55,32 +55,20 @@ BLOCK buildRows;
          href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title %]</a>
     </td>
     <td class="left">
-      [% IF article.update_comment;
-        article.update_comment | html;
+      [% IF article.history.0.comment;
+        article.history.0.comment | html;
       ELSE; %]
-        <span class="inactive">n/a</span>
+        <span class="inactive">No comment given</span>
       [% END %]
     </td>
     <td class="left user">
       <a class="ext user[% ' approved' IF article.history.-1.user_approved %]" 
-         rel="[% article.last_update_user %]"
+         rel="[% article.history.0.user %]"
          target="[% target %]" 
-         href="http://en.wikipedia.org/wiki/Special:Contributions/[% article.last_update_user | uri %]">
-        [% article.last_update_user %]</a>&nbsp;([% num_edits %])
+         href="http://en.wikipedia.org/wiki/Special:Contributions/[% article.history.0.user | uri %]">
+        [% article.history.0.user %]</a>&nbsp;([% num_edits %])
     </td>
-    <td class="updated">[% article.updated %]</td>
-    <td>
-      <a class="ext" 
-         rel="approved_revision"
-         target="[% target %]" 
-         href="http://en.wikipedia.org/wiki/[% article.title | uri %]?oldid=[% article.approved_revision %]">
-        [% article.approved_revision %]</a>
-    </td>
-    <td>
-      <a class="ext" 
-         target="[% target %]" 
-         href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=historysubmit&amp;diff=[% article.wikipedia_revision %]&amp;oldid=[% article.approved_revision %]">diff</a>
-    </td>
+    <td class="updated">[% article.history.0.timestamp.replace('T',' ') %]</td>
     <td[% IF updatedArticles.${article.title}; ' class="updatedArticle"'; END %]>
       <a class="ext" 
          rel="wikipedia_revision"
@@ -90,6 +78,18 @@ BLOCK buildRows;
       (<a class="ext" 
          target="[% target %]" 
          href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=history">hist</a>)
+    </td>
+    <td>
+      <a class="ext" 
+         target="[% target %]" 
+         href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=historysubmit&amp;diff=[% article.wikipedia_revision %]&amp;oldid=[% article.approved_revision %]">diff</a>
+    </td>
+    <td>
+      <a class="ext" 
+         rel="approved_revision"
+         target="[% target %]" 
+         href="http://en.wikipedia.org/wiki/[% article.title | uri %]?oldid=[% article.approved_revision %]">
+        [% article.approved_revision %]</a>
     </td>
     [%-# the last article in the history is the previous approved revision. So, to get
        # the number of real edits that were made since that approved revision, we need 
@@ -109,11 +109,11 @@ BLOCK buildRows;
       <table summary="Revision history">
         <thead>
           <tr>
-            <th>Editor</th>
             <th>Comment</th>
+            <th>Editor</th>
+            <th>Revision date</th>
             <th>Revision</th>
             <th>Diff to previous</th>
-            <th>Revision date</th>
           </tr>
         </thead>
         <tbody>
@@ -128,6 +128,13 @@ BLOCK buildRows;
               num_edits = 'no approved edits';
             END; -%]
             <tr[% IF loop.index == ( article.history.size - 1 ) %] class="inactive"[% END %]>
+              <td class="left">
+                [% IF revision.comment;
+                  revision.comment | html;
+                ELSE; %]
+                  <span class="inactive">No comment given</span>
+                [% END %]
+              </td>
               <td class="user left">
                 <a class="ext user[% ' approved' IF revision.user_approved %]" 
                    rel="[% revision.user %]"
@@ -135,13 +142,7 @@ BLOCK buildRows;
                    href="http://en.wikipedia.org/wiki/Special:Contributions/[% revision.user | uri %]">
                   [% revision.user %]</a>&nbsp;([% num_edits %])
               </td>
-              <td class="left">
-                [% IF revision.comment;
-                  revision.comment | html;
-                ELSE; %]
-                  <span class="inactive">n/a</span>
-                [% END %]
-              </td>
+              <td>[% revision.timestamp.replace('T',' ') %]</td>
               <td>
                 <a class="ext" 
                    target="[% target %]" 
@@ -154,12 +155,15 @@ BLOCK buildRows;
                 ELSE;
                   nextIndex = loop.index + 1;
                   nextArticle = article.history.reverse.${nextIndex}.revid;
-                END; %]
-                <a class="ext" 
-                   target="[% target %]" 
-                   href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=historysubmit&amp;diff=[% revision.revid %]&amp;oldid=[% nextArticle %]">diff</a>
+                END;
+                IF nextArticle > 0; %]
+                  <a class="ext" 
+                     target="[% target %]" 
+                     href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]&amp;action=historysubmit&amp;diff=[% revision.revid %]&amp;oldid=[% nextArticle %]">diff</a>
+                [% ELSE %]
+                  <span class="inactive">no previous edit</span>
+                [% END %]
               </td>
-              <td>[% revision.timestamp.replace('T',' ') %]</td>
             </tr>
           [%- END;
           IF article.history.size > 20;
@@ -232,23 +236,34 @@ PROCESS buildTables -%]
   articles per page.
 </p>
 
-<table summary="Paging">
+<form action="[% c.req.uri | html %]">
+  <p>
+    <input type="hidden" name="rows" value="[% rows %]" />
+    <label for="pageNum">
+      Jump to page <input id="pageNum" type="text" name="page" />
+    </label>
+    <input type="submit" name="submit" value="Go" />
+  </p>
+</form>
+
+<table summary="Paging"
+       class="paging">
   <tbody>
     <tr>
-      <td>
+      <td class="arrow">
         [% IF pager.previous_page %]
           <a href="[% c.req.uri_with( page => pager.first_page ) | html %]">
-            First page</a>
+            &laquo;</a>
         [% ELSE %]
-          First page
+          &laquo;
         [% END %]
       </td>
-      <td>
+      <td class="arrow">
         [% IF pager.previous_page %]
           <a href="[% c.req.uri_with( page => pager.previous_page ) | html %]">
-            Previous page</a>
+            &lsaquo;</a>
         [% ELSE %]
-          Previous page
+          &lsaquo;
         [% END %]
       </td>
       [% page_window = 11;
@@ -267,7 +282,7 @@ PROCESS buildTables -%]
         END;
       END;
 
-      CALL c.log.debug( "window from $first_window_page to $last_window_page" ) IF c.debug;
+      # CALL c.log.debug( "window from $first_window_page to $last_window_page" ) IF c.debug;
       %]
 
       <td>
@@ -284,9 +299,9 @@ PROCESS buildTables -%]
           <a href="[% c.req.uri_with( page => page_num ) | html %]">[% page_num %]</a>
         [%- ELSIF page_num > pager.last_page %]
           <span class="inactive">[% page_num %]</span>
-        [% ELSE;
-          page_num;
-        END %]
+        [% ELSE %]
+          <span>[% page_num %]</span>
+        [% END %]
       </td>
       [% END %]
       <td>
@@ -296,35 +311,25 @@ PROCESS buildTables -%]
           &nbsp;
         [% END %]
       </td>
-      <td>
+      <td class="arrow">
         [% IF pager.next_page %]
           <a href="[% c.req.uri_with( page => pager.next_page ) | html %]">
-            Next page</a>
+            &rsaquo;</a>
         [% ELSE %]
-            Next page
+            &rsaquo;
         [% END %]
       </td>
-      <td>
+      <td class="arrow">
         [% IF pager.next_page %]
           <a href="[% c.req.uri_with( page => pager.last_page ) | html %]">
-            Last page</a>
+            &raquo;</a>
         [% ELSE %]
-            Last page
+            &raquo;
         [% END %]
       </td>
     </tr>
   </tbody>
 </table>
-
-<form action="[% c.req.uri | html %]">
-  <p>
-    <input type="hidden" name="rows" value="[% rows %]" />
-    <label for="pageNum">
-      Jump to page <input id="pageNum" type="text" name="page" />
-    </label>
-    <input type="submit" name="submit" value="Go" />
-  </p>
-</form>
 
 
 <h2>Unapproved articles</h2>
@@ -338,12 +343,12 @@ PROCESS buildTables -%]
         <tr>
           <th style="display: none">Approved by</th>
           <th>Title</th>
-          <th>Update comment</th>
+          <th>Last update comment</th>
           <th>Last editor</th>
-          <th>Previous approval</th>
-          <th>Approved revision</th>
-          <th>Diff</th>
+          <th>Last revision date</th>
           <th>Current wikipedia revision</th>
+          <th>Diff</th>
+          <th>Approved revision</th>
           <th>Edits</th>
           <th>Approve article</th>
         </tr>
