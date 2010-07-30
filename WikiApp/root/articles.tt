@@ -39,7 +39,7 @@ END; # of "BLOCK buildTables"
 BLOCK buildRows;
   target = "new_" _ article.title;
   target = target.replace( '\W', '_' );
-  IF article.history.-1.number_edits.defined;
+  IF article.history.0.number_edits.defined;
     num_edits = article.history.0.number_edits;
   ELSE;
     num_edits = 'no approved edits';
@@ -62,7 +62,7 @@ BLOCK buildRows;
       [% END %]
     </td>
     <td class="left user">
-      <a class="ext user[% ' approved' IF article.history.-1.user_approved %]" 
+      <a class="ext user[% ' approved' IF article.history.0.user_approved %]" 
          rel="[% article.history.0.user %]"
          target="[% target %]" 
          href="http://en.wikipedia.org/wiki/Special:Contributions/[% article.history.0.user | uri %]">
