@@ -67,6 +67,11 @@ div.cleaner {
   color: #AAA;
 }
 
+.inactive a:link,
+.inactive .link {
+  color: #777;
+}
+
 #footer {
   font-size: smaller;
 }
@@ -148,5 +153,32 @@ tr.revisions td table td {
 
 .updatedArticle {
   background-color: #F99;
+}
+
+table.paging {
+  width: 40em;
+  font-size: large;
+  font-weight: bold;
+  background-color: transparent;
+  margin: 0 auto;
+}
+
+table.paging td {
+  background-color: transparent;
+  width: 2em;
+}
+
+table.paging td a {
+  width: 2em;
+  padding: 0;
+}
+
+table.paging td.arrow {
+  font-size: larger;
+}
+
+table.paging td.normalfont {
+  font-size: small;
+  font-weight: normal;
 }
 
