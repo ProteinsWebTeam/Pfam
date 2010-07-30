@@ -154,7 +154,7 @@ BLOCK buildRows;
                   nextArticle = article.approved_revision;
                 ELSE;
                   nextIndex = loop.index + 1;
-                  nextArticle = article.history.reverse.${nextIndex}.revid;
+                  nextArticle = article.history.${nextIndex}.revid;
                 END;
                 IF nextArticle > 0; %]
                   <a class="ext" 
