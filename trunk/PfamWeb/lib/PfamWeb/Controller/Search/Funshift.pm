@@ -24,6 +24,8 @@ $Id: Funshift.pm,v 1.4 2009-10-08 10:12:27 jt6 Exp $
 use strict;
 use warnings;
 
+use Sanger::Graphics::ColourMap;
+
 use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Search';
