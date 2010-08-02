@@ -15,6 +15,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
 
 #-------------------------------------------------------------------------------
 
+USE Number.Format( THOUSANDS_SEP = "," );
 %]
 
 <!-- start curation block -->
@@ -70,19 +71,25 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
   	            </tr>
   	          </thead>
   	          <tbody>
-  	            [% row = alignment_info.next # should be "full" -%]
-  	            <tr class="odd">
-  	              <td class="label">[% row.type %]</td>
-  	              <td>[% rfam.num_full %]</td>
-  	              <td>[% row.average_length %]</td>
-  	              <td>[% row.percent_id %]</td>
-  	            </tr>
-  	            [% row = alignment_info.next # should be "seed" -%]
   	            <tr class="even">
-  	              <td class="label">[% row.type %]</td>
-  	              <td>[% rfam.num_seed %]</td>
-  	              <td>[% row.average_length %]</td>
-  	              <td>[% row.percent_id %]</td>
+                  <td class="label">full</td>
+                  <td>[% rfam.num_full | format_number %]</td>
+                  [%- IF alignment_info.full %]
+                    <td>[% alignment_info.full.average_length %]</td>
+                    <td>[% alignment_info.full.percent_id %]</td>
+                  [%- ELSE %]
+                    <td colspan="2" class="inactive">no full alignment</td>
+                  [%- END %]
+  	            </tr>
+  	            <tr class="odd">
+  	              <td class="label">seed</td>
+                  <td>[% rfam.num_seed | format_number %]</td>
+                  [%- IF alignment_info.seed %]
+                    <td>[% alignment_info.seed.average_length %]</td>
+                    <td>[% alignment_info.seed.percent_id %]</td>
+                  [%- ELSE %]
+                    <td colspan="2" class="inactive">no seed alignment</td>
+                  [%- END %]
   	            </tr>
   	          </tbody>
   	        </table>
@@ -143,7 +150,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
     <h2>Distributions of bits scores</h2>
 
     <p>
-      These graphcs show the CM bit-score distributions for 
+      These graphics show the CM bit-score distributions for 
       [% rfam.rfam_id %] ([% rfam.rfam_acc %]).
       <span onclick="reveal( this, 'chartsNotes', false, true );"
             class="moreLink">
@@ -218,8 +225,10 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
     
     <script type="text/javascript">
       // <![CDATA[
-      var chartTabsController = new Control.Tabs( "chartTabs",
-                                                   { defaultTab: "dist" });
+      Event.observe( window, "load", function() {
+        var chartTabsController = new Control.Tabs( "chartTabs",
+                                                     { defaultTab: "dist" });
+      } );
       // ]]>
     </script>
 
