@@ -163,7 +163,8 @@ treeUri = c.uri_for( "/family/tree" );
     
             var r = new Ajax.Request(
               "[% treeUri %]", 
-              { parameters: { acc:     "[% acc %]",
+              { method:     "get",
+                parameters: { acc:     "[% acc %]",
                               label:   label,
                               alnType: alnType },
                 onSuccess: function( oResponse ) {
