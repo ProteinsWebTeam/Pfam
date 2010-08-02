@@ -732,14 +732,14 @@ sub update_rfam_reg_full {
 	       $seed_acc = $1;
 	   }
 	   else {
-	       $seed_acc = $reg->seq_name;
+	       $seed_acc = $s->seq_name;
 	   } 
 	  $store_seed{$seed_acc}{$s->from}{$s->to}=1;
        }
 
        #collate the data for each region and fill rfam_reg_full
        @regions = $en->annotated_regions('FULL');
-
+       
        foreach my $reg (@regions) {
 	   my $rfamseq_acc;     # should be embl acc not acc.ver
 	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
@@ -752,7 +752,7 @@ sub update_rfam_reg_full {
 	   #padded seq string from full align
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
 	    if (!$rdb_full_string){
-	       print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       print STDERR "ERROR(1) with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the rdb_full_string data\n";
 	       last;
 	   }
@@ -913,7 +913,7 @@ sub collate_large_fam_reg_full {
 	       $seed_acc = $1;
 	   }
 	   else {
-	       $seed_acc = $reg->seq_name;
+	       $seed_acc = $s->seq_name;
 	   } 
 	  $store_seed{$seed_acc}{$s->from}{$s->to}=1;
        }
@@ -954,7 +954,7 @@ sub collate_large_fam_reg_full {
 	   #full seq string
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
            if (!$rdb_full_string){
-	        print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	        print STDERR "ERROR(2) with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
 	       $error="Problem with the rdb_full_string data\n";
 	       last;
 	   }
