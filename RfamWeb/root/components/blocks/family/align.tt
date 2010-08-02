@@ -8,6 +8,8 @@
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
+
+USE Number.Format( THOUSANDS_SEP = "," );
 %]
 
 <!-- start align block -->
@@ -94,12 +96,23 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="checked" />
-                  <label for="viewerTypeS">Seed ([% rfam.num_seed %])</label>
+                  <input type="radio" 
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="viewerTypeS"
+                         value="seed" 
+                         checked="checked" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="viewerTypeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="viewerTypeF" value="full" />
-                  <label for="viewerTypeF">Full ([% rfam.num_full %])</label>
+                  <input type="radio" 
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="viewerTypeF" 
+                         value="full" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="viewerTypeF">Full ([% rfam.num_full | format_number %])</label>
                 </span>
               </td>
             </tr>
@@ -160,12 +173,23 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="typeS" value="seed" checked="checked" />
-                  <label for="typeS">Seed ([% rfam.num_seed %])</label>
+                  <input type="radio"
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="typeS" 
+                         value="seed" 
+                         checked="checked" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="typeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="typeF" value="full" />
-                  <label for="typeF">Full ([% rfam.num_full %])</label>
+                  <input type="radio" 
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="typeF" 
+                         value="full" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="typeF">Full ([% rfam.num_full | format_number %])</label>
                 </span>
               </td>
             </tr>
@@ -249,12 +273,23 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
-                  <label for="dlTypeS">Seed ([% rfam.num_seed %])</label>
+                  <input type="radio" 
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="dlTypeS" 
+                         value="seed" 
+                         checked="checked" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="dlTypeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="dlTypeF" value="full" />
-                  <label for="dlTypeF">Full ([% rfam.num_full %])</label>
+                  <input type="radio"
+                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         name="alnType" 
+                         id="dlTypeF" 
+                         value="full" />
+                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                         for="dlTypeF">Full ([% rfam.num_full | format_number %])</label>
                 </span>
               </td>
             </tr>
