@@ -80,7 +80,7 @@ my $numRows    = 0;
 my $numUpdated = 0;
 while ( my ( $title, $revision ) = each %$revisions ) {
 
-  print STDERR "updating '$title'... " if $DEBUG;
+  print STDERR "checking article '$title'... " if $DEBUG;
 
   # get the DBIC Row for that article...
   my $row = $schema->resultset('Wikitext')
@@ -111,5 +111,5 @@ while ( my ( $title, $revision ) = each %$revisions ) {
 
 }
 
-print STDERR "updated $numUpdated out of $numRows articles\n";
+print STDERR "scraped new content for $numUpdated out of $numRows articles\n";
 
