@@ -137,7 +137,7 @@ requirements.cssIe.push( "family_ie.css" );
         the edit page for this entry in Wikipedia. If you are a registered user 
         and currently logged in, your changes will be recorded under your 
         Wikipedia user name. However, if you are not a registered user or are 
-        not logged on, your changes will be logged under your computer's IP 
+        not logged on, your changes will be logged under your computer&rsquo;s IP 
         address. This has two main implications. Firstly, as a registered 
         Wikipedia user your edits are more likely seen as valuable contribution 
         (although all edits are open to community scrutiny regardless). 
@@ -205,7 +205,7 @@ requirements.cssIe.push( "family_ie.css" );
 
     <div id="wpData" 
          class="controlTabContent">
-      [%- rfam.auto_wiki.text %]
+      [%- article.text %]
     </div>
 
     <p id="wpLicense">
