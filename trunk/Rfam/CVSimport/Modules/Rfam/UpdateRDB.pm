@@ -772,7 +772,8 @@ sub update_rfam_reg_full {
 	   }
 	   #get the evalue from the scores_evalue file
 	   $rdb_evalue=$s_evalues->{$rfamseq_acc}->{$reg->from}->{$reg->to};
-
+	   
+	   my $rfamseq_auto;
 	   if (defined($store_rfamseq{$rfamseq_acc})) {
 	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
 	   } else {
@@ -969,6 +970,7 @@ sub collate_large_fam_reg_full {
 	   #get the evalue from the scores_evalue
 	   $rdb_evalue=$s_evalues->{$rfamseq_acc}->{$reg->from}->{$reg->to};
 	   
+	   my $rfamseq_auto;
 	   if (defined($store_rfamseq{$rfamseq_acc})) {
 	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
 	   } else {
@@ -1463,6 +1465,7 @@ sub update_rfam_database_links {
 
 #     return $rows;
 # }
+
 
 
 1;
