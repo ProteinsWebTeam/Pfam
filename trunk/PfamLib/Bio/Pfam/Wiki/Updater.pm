@@ -241,10 +241,11 @@ sub _update {
   my $num_checked = 0;
   my $num_updated = 0;
   foreach my $article ( @articles ) {
+		sleep 1;
     $num_checked++;
     my $latest_revid = $this->_get_last_revid( $article->title );
 
-    next unless ( defined $latest_revid and $latest_revid =~ m/^\d$/ );
+    next unless ( defined $latest_revid and $latest_revid =~ m/^\d+$/ );
 
     if ( $latest_revid == $article->wikipedia_revision ) {
       $this->logger->debug( 'wikipedia table already has most recent revid for |'
@@ -257,7 +258,6 @@ sub _update {
 			push @{ $this->updated_articles }, $article->title;
       $num_updated++;
     }
-		sleep 2;
   }
 
   $this->_set_num_checked( $num_checked );
