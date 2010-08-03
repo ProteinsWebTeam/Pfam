@@ -41,8 +41,8 @@ $st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
 
 
 #Copy regions file to cwd
-my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
-$scp->get("/tmp/$reg_file") or die "Couldn't scp /tmp/$reg_file to cwd " . $scp->{errstr} . "\n";;
+my $host = $pfamDB->{host};
+system("scp $host:/tmp/$reg_file .") and die "Couldn't scp /tmp/$reg_file to cwd \n";
 
 
 #Sort file by auto_pfamA
