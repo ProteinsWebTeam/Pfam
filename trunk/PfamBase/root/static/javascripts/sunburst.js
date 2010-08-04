@@ -5,7 +5,7 @@
 
 // for the benefit of jslint, declare global variables from outside this script
 /*global $, Class, console, Element, Hash, document, window, TreeFactory,
-         setTimeout, clearTimeout, Draggable, G_vmlCanvasManager, Tip */
+         setTimeout, clearTimeout, G_vmlCanvasManager, Tip */
 
 // spoof a console, if necessary, so that we can run in IE (<8) without having
 // to entirely disable debug messages
@@ -184,10 +184,11 @@ var Sunburst = Class.create( {
    * tree) will be draw in &quot;subTree&quot;
    * </p>
    */
-  initialize: function( parentEl, treeData, w, h ) {
+  initialize: function( treeParentEl, subTreeParentEl, treeData, w, h ) {
 
-    this._parentEl = $(parentEl);
-    this._treeData = treeData;
+    this._treeParentEl    = $(treeParentEl);
+    this._subTreeParentEl = $(subTreeParentEl);
+    this._treeData        = treeData;
 
     this._tree             = TreeFactory( treeData );
     this._layers           = [];
@@ -215,14 +216,13 @@ var Sunburst = Class.create( {
     // this._centreY          = this._treeHeight / 2;
     this._centreX          = 0;
     this._centreY          = 0;
-    this._layerWidth       = 40;
+    this._layerWidth       = 35;
                            
     this._branches         = [];
     this._arcCount         = 0;
 
     this._radialLabels     = false; // true:  draw labels centred on arcs and radially
                                     // false: draw labels tangential to arcs
-                                    //
     this._selected         = new Hash();
     this._highlightedArc   = null;
     this._clickedArc       = null;
@@ -281,6 +281,9 @@ var Sunburst = Class.create( {
     // translate the origin of the coordinate system to the new centre of the
     // sunburst
     this._ctx.translate( this._centreX, this._centreY );
+
+    // label the "root node"
+    this._ctx.fillText( "Root", 0, 0 );
 
     this._ctx.lineWidth = this._layerWidth;
 
@@ -431,11 +434,26 @@ var Sunburst = Class.create( {
 
     var d;
 
-    this._parentEl.update( [ 
-      '<div id="subTreeWrapper" style="display: none">',
-        '<h1 id="subTreeSpeciesName"></h1>',
-        '<div id="subTree"></div>',
-      '</div>',
+    // add the sub-tree markup. Use "insert" to avoid stopping on anything that
+    // is already in the element
+    this._subTreeParentEl.insert( { top: [ 
+      '<div id="subTreeWrapper">',
+        '<h1 id="subTreeSpeciesName">Lineage</h1>',
+        '<div id="subTree">',
+          '<div id="subTreeHelp">',
+            '<p>',
+              'Move your mouse over the main tree to show the lineage of a particular node.',
+            '</p>',
+            '<p>',
+              'You can move this pane by dragging it.',
+            '</p>',
+          '</span>',
+        '</div>',
+      '</div>'
+    ].join("") } ); // keep JSLint happy by avoiding a multi-line string...
+ 
+    // and the main tree
+    this._treeParentEl.insert( { top: [ 
       '<div id="treeWrapper"></div>',
       '<div id="treeTipContent" style="display: none">',
         '<div id="treeTipTitle" class="title"></div>',
@@ -444,26 +462,17 @@ var Sunburst = Class.create( {
           '<span id="tipNumSpecies">0</span> species',
         '</div>',
       '</div>'
-    ].join("") ); // keep JSLint happy by avoiding a multi-line string...
+    ].join("") } );
  
     this._subTreeWrapperDiv = $("subTreeWrapper");
     this._speciesNameDiv    = $("subTreeSpeciesName");
     this._subTreeDiv        = $("subTree");
+    this._subTreeHelp       = $("subTreeHelp");
     this._treeDiv           = $("treeWrapper");
     this._tipContent        = $("treeTipContent");
     this._tipTitle          = $("treeTipTitle");
     this._tipNumSeq         = $("tipNumSeq");
     this._tipNumSpecies     = $("tipNumSpecies");
-
-    // set the opacity (in a browser independent fashion) on the sub-tree div
-    this._subTreeWrapperDiv.setOpacity(0.75);
-   
-    // make the sub-tree draggable
-    try {
-      d = new Draggable( this._subTreeWrapperDiv ); 
-    } catch(e) {
-      // don't care
-    }
 
     // build the canvases
     this._subTreeCanvas = this._buildCanvas( this._subTreeDiv, this._subTreeWidth, this._subTreeHeight );
@@ -660,6 +669,10 @@ var Sunburst = Class.create( {
         label = arc.nodeName.match( /([\w\s]*)(?:\(.*?\))?/ )[1]
                             .replace( /\n/g, ' ' ),
         lines, labelHeight, labelWidth;
+
+    if ( to - arc._fromAlpha < 0.001 ) {
+      return;
+    }
 
     // if no colour is specified, default to the colour of the arc itself
     if ( colour !== undefined ) {
@@ -1075,6 +1088,13 @@ var Sunburst = Class.create( {
    * @param child the reference node in the tree
    */
   _drawSubTree: function( child ) {
+
+    // get rid of the help message that is present initially in the sub-tree
+    // wrapper div
+    if ( this._subTreeHelp ) {
+      this._subTreeHelp.remove();
+      this._subTreeHelp = null;
+    }
 
     var xAdd, yAdd, text, colour,
         parentNode, limit = 0, subTree,
