@@ -48,6 +48,13 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   
   <xs:element name="location">
     <xs:complexType>
+      <xs:all>
+        <xs:element name="hmm"          type="xs:string" />
+        <xs:element name="match_string" type="xs:string" />
+        <xs:element name="pp"           type="xs:string" />
+        <xs:element name="seq"          type="xs:string" />
+        <xs:element name="raw"          type="xs:string" />
+      </xs:all>
       <xs:attribute name="start"       type="xs:integer" use="required" />
       <xs:attribute name="end"         type="xs:integer" use="required" />
       <xs:attribute name="ali_start"   type="xs:integer" use="required" />
