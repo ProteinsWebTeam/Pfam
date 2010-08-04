@@ -69,7 +69,25 @@ FOREACH hitKey IN a_hits.keys;
 [% 
 # location lines
 FOREACH row IN hit -%]
-            <location start="[% row.env.from %]" end="[% row.env.to %]" ali_start="[% row.seq.from %]" ali_end="[% row.seq.to %]" hmm_start="[% row.hmm.from %]" hmm_end="[% row.hmm.to %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% row.sig %]" />
+            <location start="[% row.env.from %]" end="[% row.env.to %]" ali_start="[% row.seq.from %]" ali_end="[% row.seq.to %]" hmm_start="[% row.hmm.from %]" hmm_end="[% row.hmm.to %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% row.sig %]">
+              <hmm>
+                <![CDATA[[% row.align.0.substr(11) %]]]>
+              </hmm>
+              <match_string>
+                <![CDATA[[% row.align.1.substr(11) %]]]>
+              </match_string>
+              <pp>
+                <![CDATA[[% row.align.2.substr(11) %]]]>
+              </pp>
+              <seq>
+                <![CDATA[[% row.align.3.substr(11) %]]]>
+              </seq>
+              <raw>
+                <![CDATA[
+[% row.align.join("\n") %]
+                ]]>
+              </raw>
+            </location>
 [% END -%]
           </match>
 [% END; # of Pfam-A hits
@@ -82,7 +100,25 @@ FOREACH hitKey IN b_hits.keys;
 -%]
           <match accession="[% hit.0.acc %]" id="[% hit.0.name %]" type="Pfam-B">
 [% FOREACH row IN hit -%]
-            <location start="[% row.env.from %]" end="[% row.env.to %]" ali_start="[% row.seq.from %]" ali_end="[% row.seq.to %]" hmm_start="[% row.hmm.from %]" hmm_end="[% row.hmm.to %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" evidence="hmmer v[% relData.hmmer_version %]" significant="1" />
+            <location start="[% row.env.from %]" end="[% row.env.to %]" ali_start="[% row.seq.from %]" ali_end="[% row.seq.to %]" hmm_start="[% row.hmm.from %]" hmm_end="[% row.hmm.to %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" evidence="hmmer v[% relData.hmmer_version %]" significant="1">
+              <hmm>
+                <![CDATA[[% row.align.0.substr(11) %]]]>
+              </hmm>
+              <match_string>
+                <![CDATA[[% row.align.1.substr(11) %]]]>
+              </match_string>
+              <pp>
+                <![CDATA[[% row.align.2.substr(11) %]]]>
+              </pp>
+              <seq>
+                <![CDATA[[% row.align.3.substr(11) %]]]>
+              </seq>
+              <raw>
+                <![CDATA[
+[% row.align.join("\n") %]
+                ]]>
+              </raw>
+            </location>
 [% END -%]
           </match>
 [% END -%]
