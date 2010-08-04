@@ -1,6 +1,6 @@
 #! /software/bin/perl -w
 
-#Script to print out each family and its sequence and residue coverage
+#Script to print out each family and cumulative sequence and residue coverage
 #Prints the following to STDOUT:
 #pfamA_acc, pfamA_id,seq, seq_coverage(%), residues, residue_coverage(%)
 
@@ -20,11 +20,6 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
-#Get length and region data from rdb
-my $reg_file = "tmp.regions.dat.$$";
-my $sorted_reg ="regions.dat.$$";
-
-
 #Find total number of residues
 my $st_len = $dbh->prepare("select length from pfamseq") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_len->execute() or die "Couldn't execute statement ".$st_len->errstr."\n";
@@ -35,8 +30,12 @@ foreach my $element (@$array_ref_len) {
     $total_aa += $$element[0];
 }
 
+#Get region data from rdb
+my $reg_file = "tmp.regions.dat.$$";
+my $sorted_reg ="regions.dat.$$";
 
-my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end into outfile \"/tmp/$reg_file\" from pfamA_reg_full_significant where in_full =1") or die "Failed to prepare statement:".$dbh->errstr."\n";
+
+my $st_reg = $dbh->prepare("select auto_pfamseq, pfamA_acc, pfamA_id, seq_start, seq_end into outfile \"/tmp/$reg_file\" from pfamA as a, pfamA_reg_full_significant as b where a.auto_pfamA = b.auto_pfamA and in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
 
 
@@ -45,53 +44,56 @@ my $host = $pfamDB->{host};
 system("scp $host:/tmp/$reg_file .") and die "Couldn't scp /tmp/$reg_file to cwd \n";
 
 
-#Sort file by auto_pfamA
-system("sort $reg_file -k2n > $sorted_reg") and die "Couldn't sort $reg_file $!"; 
-#unlink($reg_file);
+#Sort file by pfamA_acc
+system("sort $reg_file -k2 > $sorted_reg") and die "Couldn't sort $reg_file $!"; 
+unlink($reg_file);
 
 
-#Get auto_pfamA to pfamA_id/pfamA_acc mapping
-my $st_pfamA = $dbh->prepare("select auto_pfamA, pfamA_acc, pfamA_id from pfamA") or die "Failed to prepare statement:".$dbh->errstr."\n";
-$st_pfamA->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n"; 
-my $array_ref_pfamA = $st_pfamA->fetchall_arrayref();
+#Get clan mapping
+my $st_clan = $dbh->prepare("select pfamA_acc, clan_acc from pfamA as a, clan_membership as b, clans as c where a.auto_pfamA = b.auto_pfamA and b.auto_clan = c.auto_clan") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st_clan->execute or die "Couldn't execute statement ".$st_clan->errstr."\n";
+my $array_ref_clan = $st_clan->fetchall_arrayref();
 
-my %pfamA;
-foreach my $element (@$array_ref_pfamA) {
-    my ($auto, $acc, $id) = ($$element[0], $$element[1], $$element[2]);
-    $pfamA{$auto}->{'acc'}=$acc;
-    $pfamA{$auto}->{'id'}=$id;
+my %clan;
+foreach my $element (@$array_ref_clan) {
+    $clan{$$element[0]}=$$element[1];
 }
 
 $dbh->disconnect;
 
 
 
-#Go though each family and calculate amino acid and sequence coverage
+#Go though each family and calculate cumulative amino acid and sequence coverage
 my $aa_count=0;
-my %seq;
-my $pfamA;
+my (%seq, %total_seq);
+my ($acc, $id);
+my ($auto_pfamseq, $pfamA_acc, $pfamA_id, $start, $end);
 
-#Put results in temporary file so we can sort them for the user
-open(TMP, ">tmp.$$") or die "Couldn't open file tmp.$$ for writing, $!";
-
-print "pfamA_acc, pfamA_id, seq, seq_coverage(%), residues, residue_coverage(%)\n";
+print STDOUT "#pfamA_acc, pfamA_id, clan, seq, seq_coverage(%), residues, residue_coverage(%)\n";
 open(FH, $sorted_reg) or die "Couldn't open fh to $sorted_reg, $!";
 while(<FH>) {
-    if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
-	my ($auto_pfamseq, $auto_pfamA, $start, $end) = ($1, $2, $3, $4);
+    if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
+	($auto_pfamseq, $pfamA_acc, $pfamA_id, $start, $end) = ($1, $2, $3, $4, $5);
 
-	$pfamA=$auto_pfamA unless($pfamA);
+	unless($acc) {
+	    $acc=$pfamA_acc;
+	    $id=$pfamA_id;
+	}
 
-	if($pfamA ne $auto_pfamA) {
-            calculate($aa_count, \%seq, \%pfamA, $pfamA, $total_seq, $total_aa);
+	if($acc ne $pfamA_acc) {
+	    my $clan = $clan{$pfamA_acc};
+	    $clan = "No_clan" unless($clan);
 
-	    $pfamA = $auto_pfamA;
+            calculate($aa_count, \%seq, \%total_seq, $acc, $id, $clan, $total_seq, $total_aa);
+
+	    $acc = $pfamA_acc;
+	    $id = $pfamA_id;
 	    %seq = ();
-	    $aa_count=0;
 	}
 
 	$aa_count += $end - $start +1;
 	$seq{$auto_pfamseq}=1;
+	$total_seq{$auto_pfamseq}=1;
     }
     else {
 	chomp $_;
@@ -102,30 +104,26 @@ while(<FH>) {
 unlink($sorted_reg);
 
 #Do last family
-calculate($aa_count, \%seq, \%pfamA, $pfamA, $total_seq, $total_aa);
+my $clan = $clan{$pfamA_acc};
+$clan = "No_clan" unless($clan);
+
+calculate($aa_count, \%seq, \%total_seq, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa);
 
 close FH;
-close TMP;
-
-#Sort file by pfamA_acc
-system("sort tmp.$$") and die "Couldn't sort tmp.$$, $!";
-unlink("tmp.$$");
 
 
 
 
+sub calculate { #Subroutine to calculate seq and aa coverage for each family
+    my ($aa_count, $seq_hash, $total_seq_hash, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa) = @_;
 
-sub calculate { #Subroutine to calculate seq and aa coverage for eacg family
-    my ($aa_count, $seq_hash, $pfamA, $auto_pfamA, $total_seq, $total_aa) = @_;
+    my $seq_in_fam = keys %$seq_hash; 
 
-    my $pfamA_id = $$pfamA{$auto_pfamA}->{'id'};
-    my $pfamA_acc = $$pfamA{$auto_pfamA}->{'acc'};
-
-    my $num_seq = keys %$seq_hash;
+    my $num_seq = keys %$total_seq_hash;
     my $seq_cov = ($num_seq/$total_seq)*100;
- 
+    
     my $aa_cov = ($aa_count/$total_aa)*100;
  
-    print TMP sprintf ("%7s %-16s %7s  %-21s %10s  %-21s\n", $pfamA_acc, $pfamA_id, $num_seq, $seq_cov, $aa_count, $aa_cov);
+    print STDOUT sprintf ("%7s, %-17s %7s, %7s, %-21s, %10s, %-21s\n", $pfamA_acc, "$pfamA_id,", $clan, $seq_in_fam, "$seq_cov,", $aa_count, $aa_cov);
 }
 
