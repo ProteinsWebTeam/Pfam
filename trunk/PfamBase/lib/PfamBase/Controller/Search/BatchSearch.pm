@@ -139,10 +139,23 @@ sub parse_upload : Private {
 
     # look at header lines
     if ( m/^>(.*)/ ) {
+      my $raw_header = $1;
+
+      # check that the header text doesn't start with a space...
+      if ( $raw_header =~ m/^\s+/ ) {
+        $c->stash->{searchError} = 
+            "You cannot have whitespace after the '>'. Please check that your file "
+          . "conforms to the FASTA file format specification.";
+
+        $c->log->debug( 'Search::BatchSearch::parse_upload: whitespace after ">"' )
+          if $c->debug;
+
+        return 0;
+      }
 
       # check that the header has some content... Yes, we've had a user 
       # submit sequence files with empty header lines.
-      unless ( length $1 ) {
+      unless ( length $raw_header ) {
         $c->stash->{searchError} = 
             'You cannot have blank header lines. Please make sure that any line '
           . "starting with '>' has content.";
@@ -160,11 +173,11 @@ sub parse_upload : Private {
       # provides when we come to look at the output in the active site code in 
       # pfam_scan.pl
 
-      if ( length $1 > 60 ) {
-        $header = substr $1, 0, 60;
+      if ( length $raw_header > 60 ) {
+        $header = substr $raw_header, 0, 60;
       }
       else {
-        $header = $1;
+        $header = $raw_header;
       } 
 
       # check for the following illegal characters: \ ! and *
