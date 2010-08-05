@@ -83,6 +83,11 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         make sure that your header lines are 60 characters or less in length.
       </p>
       <p>
+        Header rows must not have any whitespace between the &quot;&gt;&quot;
+        and the remainder of the header row. Header rows must also have content;
+        files with blank header lines will not be accepted.
+      </p>
+      <p>
         In order to avoid generating strange or ambiguous search results, we 
         require that header lines in your file are unique, at least within the
         first 60 characters. Uploaded files which contain duplicate header lines
