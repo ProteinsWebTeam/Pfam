@@ -2,7 +2,7 @@
 
 #Script to print out each family and cumulative sequence and residue coverage
 #Prints the following to STDOUT:
-#pfamA_acc, pfamA_id,seq, seq_coverage(%), residues, residue_coverage(%)
+#pfamA_acc, pfamA_id, number_seq, new_seq, seq_coverage(%), residues, residue_coverage(%)
 
 
 use strict;
@@ -68,8 +68,9 @@ my $aa_count=0;
 my (%seq, %total_seq);
 my ($acc, $id);
 my ($auto_pfamseq, $pfamA_acc, $pfamA_id, $start, $end);
+my $total_seq_without_current_fam =0;
 
-print STDOUT "#pfamA_acc, pfamA_id, clan, seq, seq_coverage(%), residues, residue_coverage(%)\n";
+print STDOUT "#pfamA_acc, pfamA_id, clan, num_seq, new_seq, seq_coverage(%), residues, residue_coverage(%)\n";
 open(FH, $sorted_reg) or die "Couldn't open fh to $sorted_reg, $!";
 while(<FH>) {
     if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
@@ -84,7 +85,9 @@ while(<FH>) {
 	    my $clan = $clan{$acc};
 	    $clan = "No_clan" unless($clan);
 
-            calculate($aa_count, \%seq, \%total_seq, $acc, $id, $clan, $total_seq, $total_aa);
+            calculate($aa_count, \%seq, \%total_seq, $total_seq_without_current_fam, $acc, $id, $clan, $total_seq, $total_aa);
+
+	    $total_seq_without_current_fam = keys %total_seq;
 
 	    $acc = $pfamA_acc;
 	    $id = $pfamA_id;
@@ -107,7 +110,7 @@ unlink($sorted_reg);
 my $clan = $clan{$pfamA_acc};
 $clan = "No_clan" unless($clan);
 
-calculate($aa_count, \%seq, \%total_seq, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa);
+calculate($aa_count, \%seq, \%total_seq, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa);
 
 close FH;
 
@@ -115,15 +118,18 @@ close FH;
 
 
 sub calculate { #Subroutine to calculate seq and aa coverage for each family
-    my ($aa_count, $seq_hash, $total_seq_hash, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa) = @_;
+    my ($aa_count, $seq_hash, $total_seq_hash, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa) = @_;
 
     my $seq_in_fam = keys %$seq_hash; 
 
     my $num_seq = keys %$total_seq_hash;
+
+    my $num_seq_added = $num_seq - $total_seq_without_current_fam;
+
     my $seq_cov = ($num_seq/$total_seq)*100;
     
     my $aa_cov = ($aa_count/$total_aa)*100;
  
-    print STDOUT sprintf ("%7s, %-17s %7s, %7s, %-21s, %10s, %-21s\n", $pfamA_acc, "$pfamA_id,", $clan, $seq_in_fam, "$seq_cov,", $aa_count, $aa_cov);
+    print STDOUT sprintf ("%7s, %-17s %7s, %7s, %7s,  %-21s %10s, %-21s\n", $pfamA_acc, "$pfamA_id,", $clan, $seq_in_fam, $num_seq_added, "$seq_cov,", $aa_count, $aa_cov);
 }
 
