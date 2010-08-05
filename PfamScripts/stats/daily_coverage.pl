@@ -81,7 +81,7 @@ while(<FH>) {
 	}
 
 	if($acc ne $pfamA_acc) {
-	    my $clan = $clan{$pfamA_acc};
+	    my $clan = $clan{$acc};
 	    $clan = "No_clan" unless($clan);
 
             calculate($aa_count, \%seq, \%total_seq, $acc, $id, $clan, $total_seq, $total_aa);
