@@ -137,10 +137,21 @@ sub parse_upload : Private {
 
     #----------------------------------------
 
-    # illegal character checks
-    
     # look at header lines
     if ( m/^>(.*)/ ) {
+
+      # check that the header has some content... Yes, we've had a user 
+      # submit sequence files with empty header lines.
+      unless ( length $1 ) {
+        $c->stash->{searchError} = 
+            'You cannot have blank header lines. Please make sure that any line '
+          . "starting with '>' has content.";
+
+        $c->log->debug( 'Search::BatchSearch::parse_upload: empty header line' )
+          if $c->debug;
+
+        return 0;
+      }
 
       # store the header line here unchecked; we'll validate it in a moment.
       #
