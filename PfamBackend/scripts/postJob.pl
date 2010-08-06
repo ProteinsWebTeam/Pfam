@@ -50,57 +50,64 @@ die 'No job ID supplied' unless $id;
 
 my $ref = $qsout->get_job($id);
 
-my $emailAds; 
+my $email_address; 
 
-if($ref->{job_type} eq 'rfam_batch'){
-  $emailAds = $qsout->rfamEmail;	
-}else{
-  $emailAds = $qsout->email;
+if ( $ref->{job_type} eq 'rfam_batch' ) {
+  $email_address = $qsout->rfamEmail;	
+}
+else {
+  $email_address = $qsout->email;
 }
 
-print Dumper($emailAds);
+print Dumper($email_address);
 my $status = $ref->{status};
 my ( $error, $results );
 
-if ( $status eq 'RUN' ){
-  # Check that there is a result, even if it is empty
-  if ( ! -e "$tmpDir/" . $ref->{job_id} . ".res" ) { 
-    $error .= "No output produced\n";  
+if ( $status eq 'RUN' ) {
+
+  my $err_file = $tmpDir . '/' . $ref->{job_id} . '.err';
+  my $res_file = $tmpDir . '/' . $ref->{job_id} . '.res';
+
+  # check that there is a result, even if it is empty
+  if ( ! -e $res_file ) { 
+    $error .= "No output produced.\n";  
+  }
+
+  # if there is an error file and the output has zero size (or does not exisit), 
+  # then something has gone wrong. Read in the contents of the error file
+  if (   -s $err_file and 
+       ! -s $res_file ) { 
+    open ( ERR, $err_file ) 
+      or die "Could not open '$err_file': [$!]\n";
+    while ( <ERR> ) { $error .= $_; }
   }
   
-  # If there is an error file and the output has zero size (or does not exisit), 
-  # then something has gone wrong.
-  if (  -s "$tmpDir/" . $ref->{job_id} . '.err' and
-       !-s "$tmpDir/" . $ref->{job_id} . '.res' ) {
-    open ( ERR, "$tmpDir/" . $ref->{job_id} . '.err') 
-      or die "Could not open $tmpDir/" . $ref->{job_id} . ".err: [$!]\n";
-    while ( <ERR> ) {
-      $error .= $_;
+  # if no errors have been detected...
+  if ( ! $error ) {
+    if ( open ( RES, $res_file ) ) {
+      while ( <RES> ) { $results .= $_; }
     }
-  }
-  
-  # If no errors have been detected, then this 
-  if ( !$error ) {
-    my $FH;
-    open ( $FH, "$tmpDir/" . $ref->{job_id} . '.res') 
-      or $error .= "Could not open results file\n"; 
-    if ( $FH ) {
-      while ( <$FH> ) {
-        $results .= $_;
-      }
+    else {
+      $error .= "Could not open results file.\n"; 
     }
-    # Update the job status to done!
+
+    # update the job status to done
     $qsout->update_job_status( $ref->{id}, 'DONE' );
+
+    # mail the results out
     emailResults( $ref->{email}, 
                   $results, 
-                  $emailAds, 
+                  $email_address, 
                   $ref );
+
+    # update the job_stream table with the results and any error messages
     $qsout->update_job_stream( $ref->{id}, 'stdout', $results );
     $qsout->update_job_stream( $ref->{id}, 'stderr', $error ) if $error;
   }
   else {
-     $qsout->update_job_status( $ref->{id}, 'FAIL' );
-     $qsout->update_job_stream( $ref->{id}, 'stderr', $error );
+    # set the status to FAIL and put the error messages into the table
+    $qsout->update_job_status( $ref->{id}, 'FAIL' );
+    $qsout->update_job_stream( $ref->{id}, 'stderr', $error );
   }
 }
 elsif ( $status eq 'PEND' ) {
@@ -114,10 +121,9 @@ $status = $ref->{status};
 
 if ( $status eq 'FAIL' ) {
   my $errorString = $ref->{stderr} . "\n" if $ref->{stderr};
-  $errorString .= $error if $error;
-  emailFail ($ref->{email}, 
+  emailFail( $ref->{email}, 
              $errorString, 
-             $emailAds, 
+             $email_address, 
              $ref );
 }
 
@@ -281,8 +287,8 @@ __MESSAGE__
 
 ----------------
 
-The output format is GFF:
-<seq id> <source> <type> <seq start> <seq end> <score> <strand> <phase> <comment: incl. cm e-value, g+c content, cm id, model coords, rfam acc, rfam id>
+The output format is:
+<rfam acc> <rfam id> <seq id> <seq start> <seq end> <strand> <score>
 __MESSAGE__
       
     }
@@ -324,6 +330,15 @@ sub emailFail{
 
   my $mailer = Mail::Mailer->new;
   $mailer->open( \%header );
-  print $mailer $errorString;
+
+  my $message .= <<'__MESSAGE__';
+
+We encountered the following errors when running the job:
+
+__MESSAGE__
+
+  $message .= $errorString;
+
+  print $mailer $message;
   $mailer->close;
 }
