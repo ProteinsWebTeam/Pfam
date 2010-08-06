@@ -91,7 +91,7 @@ while(1) {
 		$cmd .= " -as";
 		$cmd .= " -fasta ".$qsout->tmpDir."/".$job->{job_id}.".fa";
 		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " ; postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
 
 
 
@@ -103,16 +103,16 @@ while(1) {
 		$cmd .= " -data ".$qsout->dataFileDir;
 		$cmd .= " -cpu ".$qsout->cpus;
 		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " ; postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
 	}elsif($job->{'job_type'} eq "rfam_batch"){
 		$cmd = "preJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir." && ";
     #The rfam_scan cmmd.
-    $cmd = $job->{'command'}." -blastdb ".
+    $cmd .= $job->{'command'}." -blastdb ".
     $qsout->rfamDataFileDir."/Rfam.fasta ".
     $qsout->rfamDataFileDir."/Rfam.cm ". 
     $qsout->tmpDir."/".$job->{job_id}.".fa";
 		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " ; postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
 	}
 	  
 	$DEBUG && print STDERR "Submitting id=$job->{'id'}, command=$cmd\n";
