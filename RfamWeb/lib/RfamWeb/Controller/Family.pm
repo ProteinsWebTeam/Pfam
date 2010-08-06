@@ -119,7 +119,7 @@ either an ID or accession
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
   
-  $c->cache_page( 604800 );
+  $c->cache_page( 43200 ); # cache for 12 hours
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
