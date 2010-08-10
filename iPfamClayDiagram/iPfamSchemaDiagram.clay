@@ -448,11 +448,11 @@
 <primary-key-column name="nadi"/>
 </primary-key>
 <foreign-key-list>
-<foreign-key id="c677a7:11d0a03bd9e:-654e" name="FK_nadi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
-<foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
-</foreign-key>
 <foreign-key id="c677a7:11d0a03bd9e:-6404" name="FK_nadi_2" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_DOMAIN" referenced-table="domain" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
 <foreign-key-column column-name="region_id" referenced-key-column-name="region_id"/>
+</foreign-key>
+<foreign-key id="c677a7:11d0a03bd9e:-654e" name="FK_nadi_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="0..1" target-relationship-type="">
+<foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
 </foreign-key>
 </foreign-key-list>
 <index-list>
@@ -638,7 +638,7 @@
 <primary-key-column name="accession"/>
 </primary-key>
 <foreign-key-list>
-<foreign-key id="c677a7:11d0a03bd9e:-6619" name="FK_nucleic_acid_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_chain_data_1" referenced-table="pdb_chain_data" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
+<foreign-key id="c677a7:11d0a03bd9e:-6619" name="FK_nucleic_acid_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="UQ_pdb_chain_data_1" referenced-table="pdb_chain_data" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="0..1" target-relationship-type="">
 <foreign-key-column column-name="internal_chain_accession" referenced-key-column-name="internal_chain_accession"/>
 </foreign-key>
 </foreign-key-list>
