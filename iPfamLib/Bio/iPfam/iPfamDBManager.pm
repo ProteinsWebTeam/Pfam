@@ -104,7 +104,7 @@ sub getChainData {
  my $chainRDBObj;
  my $fa = $chain->chain2fasta;
  if($chain->type eq 'protein'){
-   $logger->info( "find or create on Protein table for pdb_id \n $pdbId chainId: | ".$chain->internal_chain_id ."\n sequence: $fa \n");
+   $logger->debug( "find or create on Protein table for pdb_id \n $pdbId chainId: | ".$chain->internal_chain_id ."\n sequence: $fa \n");
    $chainRDBObj = $self->getSchema
                         ->resultset("Protein")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
@@ -117,7 +117,7 @@ sub getChainData {
    
    # print OUT "protein\taccession\t".$chainRDBObj->get_column( 'accession')."\n";
    
-   $logger->info( "find or create on PdbChainData table for $pdbId and | ".$chain->internal_chain_id );
+   $logger->debug( "find or create on PdbChainData table for $pdbId and | ".$chain->internal_chain_id );
    my $test1 = $self->getSchema
           ->resultset("PdbChainData")
             ->find_or_create({ internal_chain_id => $chainRDBObj->id,
@@ -130,7 +130,7 @@ sub getChainData {
    
                               
  }elsif($chain->type eq 'DNA'){
-   $logger->info( 'the chain type is DNA and populating the nucleicacid table ' );
+   $logger->debug( 'the chain type is DNA and populating the nucleicacid table ' );
    $chainRDBObj = $self->getSchema
                         ->resultset("NucleicAcid")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
@@ -146,7 +146,7 @@ sub getChainData {
    # print OUT "nucleic_cid\taccession\t".$chainRDBObj->get_column( 'accession')."\n";
                                                
  }elsif($chain->type eq 'RNA'){
-  $logger->info( 'the chain type is RNA and populating the nucleicacid table ' );
+  $logger->debug( 'the chain type is RNA and populating the nucleicacid table ' );
    $chainRDBObj = $self->getSchema
                         ->resultset("NucleicAcid")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
@@ -216,7 +216,7 @@ sub addPpi{
 #                                       { key => 'ppiConst' }
                                        );
   ## print OUT "ppi\tprotein_acc_a\t".$ppi->protein_acc_a."\n";
-  $logger->info( "ppi\tppi\t".$ppi->get_column( 'ppi')."\n");                                        
+  $logger->debug( "ppi\tppi\t".$ppi->get_column( 'ppi')."\n");                                        
   return($ppi);                            
 }
 
@@ -813,7 +813,7 @@ sub getQualityControl {
 sub getPdbData {
  my($self, $pdbId, $assembly, $bioMol ) = @_;
  
-  $logger->info( "getPdbData method called with $pdbId" );
+  $logger->debug( "getPdbData method called with $pdbId" );
   my $pdbRDBObj;
   if($pdbId and $pdbId =~ /^\S{4}$/ ){
        $pdbRDBObj = $self->getSchema
