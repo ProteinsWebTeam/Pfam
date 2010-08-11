@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use iPfam;
 use Bio::iPfam::iPfamDBManager;
-use Data::Dumper;
+use Data::Dump qw( dump);
 use Getopt::Long;
 use Time::HiRes qw(time);
 my ($pdbId, $help, $outputDir, $slopFactor, $debug, $numberPdbs, $page,
@@ -72,6 +72,8 @@ if(!$rdb_pass){
 
 #Now check that these actuall work
 my $db = Bio::iPfam::iPfamDBManager->new('port', $rdb_port, 'host', $rdb_host, "password", $rdb_pass, 'database', $rdb_name);
+
+# delete here
 unless($db){
   $logger->logdie("Failed to get a connection to the database......"); 
 }
@@ -99,18 +101,20 @@ foreach my $pdbRow ( @pdbList ){
 
   #Get the pdb entry, build the objects and locate the domains
   my $pdbObj = &iPfam::getPdb($pdbRow->pdb_id); # Use this at sanger
-
+  
   #Now calculate all interactions for the PDB file;
   if($pdbObj){  
-    eval{
+    #eval{
         iPfam::calInts($pdbObj, $db);
-    };
+    #};
     
     my $error;
     if ($@){
+      $logger->info( 'We got an error in calling iPfam::callInts, so creating an error string');
       $error = $@;
     }else{
-    #Now we make the Biomolecule
+    
+      #Now we make the Biomolecule
       if($pdbObj->biomolecule and ref($pdbObj->biomolecule) eq "HASH"){
         $logger->info('Going to make biomolecules');
         foreach my $bioNo (keys %{ $pdbObj->biomolecule }){
@@ -128,6 +132,7 @@ foreach my $pdbRow ( @pdbList ){
     unless($error){
       $logger->info('Finished to search for interactions within entry '.$pdbRow->pdb_id); 
       $db->endJob($pdbRow->pdb_id);
+      
     }
   }else{
      $logger->warn( "Failed get the pdb file entry for". $pdbRow->pdb_id );
