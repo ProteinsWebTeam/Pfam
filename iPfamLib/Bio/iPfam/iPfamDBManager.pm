@@ -15,9 +15,13 @@ use Data::Dump qw( dump );
 
 my $logger = get_logger(__PACKAGE__);
 
+
+open ( OUT, ">/lustre/scratch103/sanger/pg6/iPfam/status_dir_ipfam/populated_data" ) || die "cant opent the file for writing the rows which are updated:";
+
 sub new {
     my $caller = shift;
     my $class = ref($caller) || $caller;
+    #my %dbiParams = ( RaiseError => 1, AutoCommit => 0 );
     my %dbiParams = ( RaiseError => 1, AutoCommit => 0 );
     my $self = { user      => "pfam",
 		             host      => "pfamdb2a",
@@ -71,18 +75,21 @@ sub getLigandChemistryData{
   my ($self, $ligand) = @_;
 
   my $ligandRDBObj;
-  if($ligand->hetID && $ligand->numHetAtoms){
+  
+  if($ligand->hetID  && $ligand->numHetAtoms){
     $ligandRDBObj = $self->getSchema
                           ->resultset("LigandChemistry")
                             ->find({'three_letter_code' => $ligand->hetID,
                                     'num_atoms_no_H'     => $ligand->numHetAtoms },
-                                    { key => 'ligand_chemistry_three_letter_code'});
+#                                    { key => 'ligand_chemistry_three_letter_code'}
+                                    );
   }
   if(!$ligandRDBObj and $ligand->hetID){
     $ligandRDBObj = $self->getSchema
                           ->resultset("LigandChemistry")
                             ->find({'three_letter_code' => $ligand->resName },
-                            { key => 'ligand_chemistry_three_letter_code'});
+#                            { key => 'ligand_chemistry_three_letter_code'}
+                            );
     
   }
   
@@ -99,7 +106,8 @@ sub getChainData {
  my $chainRDBObj;
  my $fa = $chain->chain2fasta;
  if($chain->type eq 'protein'){
-    $chainRDBObj = $self->getSchema
+   $logger->info( "find or create on Protein table for pdb_id \n $pdbId chainId: | ".$chain->internal_chain_id ."\n sequence: $fa \n");
+   $chainRDBObj = $self->getSchema
                         ->resultset("Protein")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
                                             'id'        => $pdbId."_".$chain->internal_chain_id,
@@ -108,16 +116,23 @@ sub getChainData {
                                             'source_db' => 2,
                                             'length' => length($fa),
                                             'sequence' => $fa });
-                                            
-   $self->getSchema
+   
+   print OUT "protein\taccession\t".$chainRDBObj->get_column( 'accession')."\n";
+   
+   $logger->info( "find or create on PdbChainData table for $pdbId and | ".$chain->internal_chain_id );
+   my $test1 = $self->getSchema
           ->resultset("PdbChainData")
             ->find_or_create({ internal_chain_id => $chainRDBObj->id,
                               internal_chain_accession => $chainRDBObj->accession,
                               original_chain => $chain->chainID,
                               pdb_id         => $pdbId },
                               { key => 'internal_chain_accession_idx'});
+   
+   print OUT "pdb_chain_data\tinternal_chain_accession\t".$test1->get_column( 'internal_chain_accession')."\n";
+   
                               
  }elsif($chain->type eq 'DNA'){
+   $logger->info( 'the chain type is DNA and populating the nucleicacid table ' );
    $chainRDBObj = $self->getSchema
                         ->resultset("NucleicAcid")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
@@ -127,8 +142,13 @@ sub getChainData {
                                             'source_db' => 2,
                                             'type'  => 'DNA',
                                             'length' => length($fa),
-                                            'sequence' => $fa });
+                                            'sequence' => $fa,
+                                            'ncbi_code' => 0 },
+                                            { key => 'unique_accession' } );
+   print OUT "nucleic_cid\taccession\t".$chainRDBObj->get_column( 'accession')."\n";
+                                               
  }elsif($chain->type eq 'RNA'){
+  $logger->info( 'the chain type is RNA and populating the nucleicacid table ' );
    $chainRDBObj = $self->getSchema
                         ->resultset("NucleicAcid")
                           ->find_or_create({ 'accession' => $pdbId."_".$chain->internal_chain_id,
@@ -138,7 +158,12 @@ sub getChainData {
                                             'type' => 'RNA',
                                             'source_db' => 2,
                                             'length' => length($fa),
-                                            'sequence' => $fa });
+                                            'sequence' => $fa,
+                                            'ncbi_code' => 0 },
+                                            { key => 'unique_accession' });
+   
+   print OUT "nucleic_cid\taccession\t".$chainRDBObj->get_column( 'accession')."\n";
+                                               
  }elsif($chain->type eq 'ligand'){
      $logger->warn("Use getLigandChemsityData");
  }else{
@@ -165,7 +190,9 @@ sub addLigand{
                                           "chain" => $ligand->chainID,
                                           "atom_start" => $atoms->[0]->serial,
                                           "atom_end"   => $atoms-> [$#{$atoms}]->serial },
-                                         { key => 'ligands_uniq_idx' });
+                                         { key => 'ligands_uniq_idx' }
+                                         );
+  print OUT "ligands\tinternal_ligand_id\t".$ligandRDBObj->get_column('internal_ligand_id')."\n";                                         
   return($ligandRDBObj) if ($ligandRDBObj);
 }
 
@@ -188,7 +215,10 @@ sub addPpi{
                   ->resultset("Ppi")
                     ->find_or_create({ "protein_acc_a" => $id1,
                                        "protein_acc_b" => $id2 },
-                                       { key => 'ppiConst' });
+#                                       { key => 'ppiConst' }
+                                       );
+  #print OUT "ppi\tprotein_acc_a\t".$ppi->protein_acc_a."\n";
+  $logger->info( "ppi\tppi\t".$ppi->get_column( 'ppi')."\n");                                        
   return($ppi);                            
 }
 
@@ -204,8 +234,9 @@ sub addPpiRes {
                                   "residue_a" => $aa1,
                                   "residue_b" => $aa2,
                                   "bond" => $bond },
-                                  { key => 'ppiResConst'});
-
+#                                  { key => 'ppiResConst'}
+                                );
+  print OUT "ppi_res\tppi\t".$ppiRes->get_column( 'ppi')."\n";
   return ( $ppiRes );                                           
 }
 
@@ -229,7 +260,7 @@ sub getPpiResWithRange {
                                        residue_a => { '<=' =>  $aEnd, 
                                                       '>=' =>  $aStart },
                                        residue_b => { '<=' =>  $bEnd,
-                                                      '>=' =>  $bStart } });
+                                                      '>=' =>  $bStart } });                                                      
   if(scalar(@interface)){
     return \@interface; 
   }
@@ -249,7 +280,10 @@ sub addPli{
                   ->resultset("Pli")
                     ->find_or_create({ "protein_acc" => $id1,
                                        "internal_ligand_id" => $id2 },
-                                       { key => 'pliConst' });
+#                                       { key => 'pliConst' }
+                                       );
+  
+  print OUT "pli\tpli\t".$pli->get_column( 'pli')."\n";                                       
   return($pli);                            
 }
 
@@ -265,8 +299,10 @@ sub addPliRes {
                                   "residue_a" => $aa1,
                                   "residue_b" => $aa2,
                                   "bond" => $bond },
-                                   { key => 'pliResConst' });
-
+#                                   { key => 'pliResConst' }
+                                   );
+  print OUT "pli_res\tpli\t".$pliRes->get_column( 'pli')."\n";                                       
+  
   return ( $pliRes );                                           
 }
 
@@ -302,7 +338,9 @@ sub addNapi{
                    ->resultset("Napi")
                      ->find_or_create({ "nucleic_acid_acc" => $id1,
                                            "protein_acc" => $id2 },
-                                          { key => 'napiConst' });
+#                                          { key => 'napiConst' }
+                                          );
+  print OUT "napi\tnapi\t".$napi->get_column( 'napi')."\n";                                          
   return $napi;
 }
 
@@ -318,7 +356,9 @@ sub addNapiRes {
                                   "base" => $base,
                                   "residue" => $aa,
                                   "bond" => $bond },
-                                  { key => 'napiResConst' });
+#                                  { key => 'napiResConst' }
+                                  );
+  print OUT "napi_res\tnapi\t".$napiRes->get_column( 'napi')."\n";                                   
 
   return ( $napiRes );                                           
 }
@@ -363,7 +403,9 @@ sub addDdi{
                     ->find_or_create({"region_id_a" => $id1,
                                        "region_id_b" => $id2,
                                        "intrachain"  => $intrachain},
-                                       { key => 'ddiConst' });
+                                       #{ key => 'ddiConst' }
+                                       );
+  print OUT "ddi\tddi\t".$ddi->get_column( 'ddi')."\n";                                       
   return($ddi);                            
 }
 
@@ -379,8 +421,9 @@ sub addDdiRes {
                                   "residue_b" => $aa2,
                                   "intrachain" => $intra,
                                   "bond" => $bond },
-                                  { key => 'ddiResConst' });
-
+#                                  { key => 'ddiResConst' }
+                                  );
+  print OUT "ddi_res\tddi\t".$ddiRes->get_column( 'ddi')."\n";
   return ( $ddiRes );                                           
 }
 
@@ -408,7 +451,9 @@ sub addNadi{
                   ->resultset("Nadi")
                     ->find_or_create({"nucleic_acid_acc" => $id1,
                                        "region_id" => $id2},
-                                       { key => 'nadiConst' });
+#                                       { key => 'nadiConst' }
+                                       );
+  print OUT "nadi\tnadi\t".$nadi->get_column( 'nadi')."\n";                                       
   return($nadi);                            
 }
 
@@ -424,7 +469,9 @@ sub addNadiRes {
                                   "base" => $base,
                                   "region_residue" => $aa,
                                   "bond" => $bond },
-                                  { key => 'nadiResConst' });
+#                                  { key => 'nadiResConst' }
+                                  );
+  print OUT "nadi_res\tnadi\t".$nadiRes->get_column( 'nadi')."\n";                                  
   return ( $nadiRes );                                           
 }
 
@@ -454,7 +501,9 @@ sub addDli{
                   ->resultset("Dli")
                     ->find_or_create({ "region_id" => $did,
                                        "internal_ligand_id" => $lid },
-                                       { key => 'dliConst' });
+#                                       { key => 'dliConst' }
+                                       );
+  print OUT "dli\tdli\t".$dli->get_column( 'dli')."\n";                                       
   return($dli);                            
 }
 
@@ -470,8 +519,9 @@ sub addDliRes {
                                   "region_residue" => $aa1,
                                   "ligand_residue" => $aa2,
                                   "bond" => $bond },
-                                  { key => 'dliResConst'});
-
+#                                  { key => 'dliResConst'}
+                                  );
+  print OUT "dli_res\tdli\t".$dliRes->get_column( 'dli')."\n";
   return ( $dliRes );                                           
 }
 
@@ -497,7 +547,10 @@ sub addProteinAtomData {
                                           "residue"     => $aa->resSeq,
                                           "atom"        => $aa_atom->realName, 
                                           "atom_number" => $aa_atom->serial},
-                                          { key => 'intAtom sConst' });
+#                                          { key => 'intAtom sConst' }
+                                          );
+  
+  print OUT "protein_int_atoms\tprotein_acc\t".$protAtomdObj->get_column( 'protein_acc')."\n";                                          
   return $protAtomdObj;
 }
  
@@ -508,11 +561,11 @@ sub addProteinAtomData {
    
     my @atoms = $self->getSchema
                       ->resultset("ProteinProteinBonds")
-                        ->search({"atomA.protein_acc" => $pacc1,
-                                  "atomB.protein_acc" => $pacc2,
+                        ->search({"atom_a.protein_acc" => $pacc1,
+                                  "atom_b.protein_acc" => $pacc2,
                                   "intrachain"        => $intra},
-                                  { join        => [ qw( atomA atomB ) ],
-                                    select      => [ qw( atomA.protein_acc atomA.atom_number atomB.protein_acc atomB.atom_number atom_a atom_b bond_type ) ],
+                                  { join        => [ qw( atom_a atom_b ) ],
+                                    select      => [ qw( atom_a.protein_acc atom_a.atom_number atom_b.protein_acc atom_b.atom_number atom_a atom_b bond_type ) ],
                                     as          => [ qw( protein_acc_a atom_number_a protein_acc_b atom_number_b atom_a atom_b bond_type ) ]});
     return \@atoms;
  }
@@ -527,7 +580,9 @@ sub addProteinAtomData {
                                           "base_name"        => $base,
                                           "atom"             => $atom, 
                                           "atom_number"      => $atom_number},
-                                          { key => 'intAtomsConst' });
+#                                          { key => 'intAtomsConst' }
+                                          );
+  print OUT "nucleic_acid_int_atoms\tnucleic_acid_acc\t".$nucAtomdObj->get_column( 'nucleic_acid_acc')."\n";                                          
   return $nucAtomdObj;
  }
  
@@ -545,25 +600,51 @@ sub addLigandAtomData {
   my $ligAtomdObj = $self->getSchema
                        ->resultset("LigandIntAtoms")
                         ->create({"internal_ligand_id"  => $ligand_id, 
-                                          "ligand"              => $ligand->hetID,
+                                          "ligand"      => $ligand->hetID,
                                           "atom"        => $lig_atom->realName, 
                                           "atom_number" => $lig_atom->serial},
-                                          { key => 'intAtomsConst' });
+#                                          { key => 'intAtomsConst' }
+                                          );
+  print OUT "ligand_int_atoms\tatom_acc\t".$ligAtomdObj->get_column( 'atom_acc')."\n";                                          
   return $ligAtomdObj;
 }
 
-
+# original method, which i have changed for new realtionships;
+#sub getProteinLigandAtomAndBondData {
+#   my($self, $pacc, $ligacc) = @_;
+#   my @atoms = $self->getSchema
+#                      ->resultset("ProteinLigandBonds")
+#                        ->search({"protein_acc" => $pacc,
+#                                  "internal_ligand_id" => $ligacc},
+#                                  { join        => [ qw( proteinAtom ligandAtom ) ],
+#                                    select      => [ qw( proteinAtom.protein_acc 
+#                                                         proteinAtom.atom_number 
+#                                                         ligandAtom.internal_ligand_id 
+#                                                         ligandAtom.atom_number 
+#                                                         protein_atom 
+#                                                         ligand_atom 
+#                                                         bond_type ) ],
+#                                    as          => [ qw( protein_acc
+#                                                         protein_atom_number 
+#                                                         internal_ligand_id 
+#                                                         ligand_atom_number 
+#                                                         protein_atom 
+#                                                         ligand_atom 
+#                                                         bond_type ) ]});
+#  return \@atoms;
+#}
+ 
 sub getProteinLigandAtomAndBondData {
    my($self, $pacc, $ligacc) = @_;
    my @atoms = $self->getSchema
                       ->resultset("ProteinLigandBonds")
                         ->search({"protein_acc" => $pacc,
                                   "internal_ligand_id" => $ligacc},
-                                  { join        => [ qw( proteinAtom ligandAtom ) ],
-                                    select      => [ qw( proteinAtom.protein_acc 
-                                                         proteinAtom.atom_number 
-                                                         ligandAtom.internal_ligand_id 
-                                                         ligandAtom.atom_number 
+                                  { join        => [ qw( protein_atom ligand_atom ) ],
+                                    select      => [ qw( protein_atom.protein_acc 
+                                                         protein_atom.atom_number 
+                                                         ligand_atom.internal_ligand_id 
+                                                         ligand_atom.atom_number 
                                                          protein_atom 
                                                          ligand_atom 
                                                          bond_type ) ],
@@ -576,7 +657,6 @@ sub getProteinLigandAtomAndBondData {
                                                          bond_type ) ]});
   return \@atoms;
 }
- 
 
  sub addProteinProteinBond{
    my ($self, $atom1_acc, $atom2_acc, $bond, $distance, $intrachain) = @_;
@@ -587,8 +667,9 @@ sub getProteinLigandAtomAndBondData {
                                           "bond_type" => $bond,
                                           "distance" => $distance,
                                           "intrachain" => $intrachain},
-                                         { key => 'protein_protein_bonds_unique' });
-                                         
+#                                         { key => 'protein_protein_bonds_unique' }
+                                         );
+   print OUT "protein_protein_bonds\tatom_a\t".$bondObj->get_column( 'atom_a')."\n";                                          
    return $bondObj if($bondObj);
 }
 
@@ -602,8 +683,9 @@ sub addProteinLigandBond{
                                           "ligand_atom" => $lig_atom,
                                           "bond_type" => $bond,
                                           "distance" => $distance},
-                                         { key => 'protein_ligand_bonds_unique' });
-                                         
+#                                         { key => 'protein_ligand_bonds_unique' }
+                                         );
+   print OUT "protein_ligand_bonds\tprotein_atom\t".$bondObj->get_column( 'protein_atom')."\n";                                          
    return $bondObj if($bondObj);
  }
  
@@ -615,8 +697,9 @@ sub addProteinNucleicAcidBond{
                                           "nucleic_acid_atom" => $na_atom,
                                           "bond_type" => $bond,
                                           "distance" => $distance},
-                                         { key => 'protein_na_bonds_unique' });
-                                         
+#                                         { key => 'protein_na_bonds_unique' }
+                                         );
+   print OUT "protein_nucleic_acid_bonds\tprotein_atom\t".$bondObj->get_column( 'protein_atom')."\n";                                         
    return $bondObj if($bondObj);
  }
 
@@ -626,11 +709,11 @@ sub getProteinNucleicAtomAndBondData{
                       ->resultset("ProteinNucleicAcidBonds")
                         ->search({"protein_acc" => $pacc,
                                   "nucleic_acid_acc" => $naacc},
-                                  { join        => [ qw( proteinAtom nucleicAcidAtom ) ],
-                                    select      => [ qw( proteinAtom.protein_acc 
-                                                         proteinAtom.atom_number 
-                                                         nucleicAcidAtom.nucleic_acid_acc 
-                                                         nucleicAcidAtom.atom_number 
+                                  { join        => [ qw( protein_atom nucleic_acid_atom ) ],
+                                    select      => [ qw( protein_atom.protein_acc 
+                                                         protein_atom.atom_number 
+                                                         nucleic_acid_atom.nucleic_acid_acc 
+                                                         nucleic_acid_atom.atom_number 
                                                          protein_atom 
                                                          nucleic_acid_atom 
                                                          bond_type ) ],
@@ -683,7 +766,7 @@ sub transferDomainAnnotation {
                        ->search("protein_accession" => $pdbId."_".$oriChain);
 
   foreach my $d (@domain){
-     $self->getSchema
+     my $test = $self->getSchema
            ->resultset("Domain")
             ->find_or_create( "pfam_acc"          => $d->pfam_acc,
                               "start"             => $d->start,
@@ -691,6 +774,7 @@ sub transferDomainAnnotation {
                               "region_source_db"  => $d->region_source_db,
                               "protein_id"        => $pdbId."_".$newChain,
                               "protein_accession" => $pdbId."_".$newChain);
+    print OUT "domain\tprotein_id\t".$test->get_column( 'protein_id')."\n";                              
   }  
 }
 #----------------------------- Quality Control -----------------------------------------------
@@ -706,8 +790,10 @@ sub addQualityControl {
                                           score           => $score,
                                           comment         => $comment
                                          },
-                                         { key => 'qcConst'} );
-                                         
+                                         { key => "UQ_quality_control_1"}
+                                          );
+  
+  print OUT "quality_control\tquality_control\t".$qcRow->quality_control."\n";                                       
   return $qcRow;
 }
 
@@ -729,6 +815,7 @@ sub getQualityControl {
 sub getPdbData {
  my($self, $pdbId, $assembly, $bioMol ) = @_;
  
+  $logger->info( "getPdbData method called with $pdbId" );
   my $pdbRDBObj;
   if($pdbId and $pdbId =~ /^\S{4}$/ ){
        $pdbRDBObj = $self->getSchema
@@ -740,16 +827,20 @@ sub getPdbData {
     $pdbRDBObj = $self->getSchema
                         ->resultset("Pdb")
                           ->find_or_create({"pdb_id" => $pdbId,
-                                            "header" => $pdbRDBObj->header,
+#                                            "header" => $pdbRDBObj->header,
+                                            "keywords"  =>  $pdbRDBObj->keywords,
                                             "title"  => $pdbRDBObj->title,
                                             "date"   => $pdbRDBObj->date,
                                             "resolution" => $pdbRDBObj->resolution,
-                                            "experiment_short" => $pdbRDBObj->experiment_short,
-                                            "experiment_long" => $pdbRDBObj->experiment_long,
-                                            "pubmed_id" => $pdbRDBObj->pubmed_id,
-                                            "biological_unit" => $bioMol
+                                            "method"  =>  $pdbRDBObj->method,
+#                                            "experiment_short" => $pdbRDBObj->experiment_short,
+#                                            "experiment_long" => $pdbRDBObj->experiment_long,
+                                            "pubmed_id" => $pdbRDBObj->pubmed_id,                                            
+#                                            "biological_unit" => $bioMol
                                             },
-                                            { key => 'pdb_accession_Idx'});
+#                                            { key => 'pdb_accession_Idx'}
+                                            );
+    print OUT "pdb\tpdb_id\t".$pdbRDBObj->get_column( 'pdb_id')."\n";                                            
   }else{
    $logger->warn("No assembly information supplied and/or biomatrix data supplied."); 
   }

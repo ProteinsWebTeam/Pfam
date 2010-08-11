@@ -53,9 +53,11 @@ sub calInts {
   $logger->info("Getting domains");
   getRegions( $pdbObj, $db );
   $logger->info("Got domains");
-
+    
   #Chains will include Protein, DNA, RNA and/or ligands
-  if ( scalar( $pdbObj->chains ) > 1 ) {
+  #if ( scalar( $pdbObj->chains ) > 1 ) {
+  if( scalar( @{ $pdbObj->chains } ) ){
+    $logger->info( 'We got '.scalar(@{ $pdbObj->chains } ).' chains in total so calculating interchain interactions adn inter domain interactions ' );
     calInterChainInts( $pdbObj, $db, $pdbRdbObj );
     deriveInterDomInts( $pdbObj, $db );
   }
@@ -78,27 +80,33 @@ sub getRegions {
         $db->transferDomainAnnotation( $pdbObj->id, $oriChain,
           $chain->internal_chain_id );
       }
-      my $domInfo =
-        $db->getDomainsForPDB( $pdbObj->id, $chain->internal_chain_id );
+      my $domInfo = $db->getDomainsForPDB( $pdbObj->id, $chain->internal_chain_id );
+      
       if ( $domInfo and ref($domInfo) eq "ARRAY" ) {
-        $logger->info("Adding domains");
+        $logger->info("********Adding domains*************");
         my $pfamChain = Bio::iPfam::Structure::PfamChain->new;
         $chain->add_pfam_chain($pfamChain);
+        
         foreach my $d (@$domInfo) {
 
-    #Make a new region object, populate it and add it to the list of Pfam chains
+          #Make a new region object, populate it and add it to the list of Pfam chains
           my $reg = Bio::iPfam::Structure::Region->new;
-          $reg->acc( $d->pfam_acc );
+          $reg->acc( $d->get_column( 'pfam_acc') );
           $reg->start( $d->start );
           $reg->end( $d->end );
           $reg->uniqueID( $d->region_id );
           $pfamChain->add_region($reg);
-        }
+          
+          #print "teh region for acc is ".$d->get_column( 'pfam_acc' )."\n".dump( $reg )."\n";
+          
+        } # END OF @$domInfo
+        
       }    # Warn if we did not get any domains and we are debuging
       else {
-        $logger->debug(
-          "Did not find any domains on " . $chain->internal_chain_id );
+        $logger->debug( "Did not find any domains on " . $chain->internal_chain_id );
+        
       }
+      
     }    # If is it an RNA chain, look for Rfams
     elsif ( $chain->type eq 'RNA' ) {
       my $rfamInfo =
@@ -144,21 +152,33 @@ sub calInterChainInts {
           . $chain1->type . " and "
           . $chain2->chainID . ","
           . $chain2->type );
-
+      $logger->info( "Working on "
+          . $chain1->chainID . ","
+          . $chain1->type . " and "
+          . $chain2->chainID . ","
+          . $chain2->type );
       #Skip self-self interactions!
-      next if ( $chain1->internal_chain_id eq $chain2->internal_chain_id );
-
+#      next if ( $chain1->internal_chain_id eq $chain2->internal_chain_id );
+      if ( $chain1->internal_chain_id eq $chain2->internal_chain_id ){
+        $logger->info( "****Self-Self interactions are skipped for ".$chain1->internal_chain_id .'-'. $chain2->internal_chain_id.
+         ' , types are '.$chain1->type . "-" . $chain2->type );
+        next;  
+      }
+      
 #Depending on the chain types involved, we are going to neeed to call different methods.
 #Protein:protein interactions
       if (  $chain1->type eq "protein"
         and $chain2->type eq "protein" )
       {
+        $logger->info( 'calculating Interchain ProteinProtein Interactions*********');
         proteinProteinInts( $chain1, $chain2, $db, $pdbRdbObj );
+        $logger->info( 'finsihed calculating Interchain ProteinProtein Interactions*********');
+        
       }    #Protein nucleic-acid interactions
       elsif ( $chain1->type eq "protein"
         and ( $chain2->type eq "DNA" or $chain2->type eq "RNA" ) )
       {
-        $logger->info("Going to calculate protein:nucleic interactions");
+        $logger->info("Going to calculate interchain protein:nucleic interactions");
         proteinNucleicInts( $chain1, $chain2, $db, $pdbRdbObj );
       }    #
       elsif ( ( $chain1->type eq "DNA" or $chain1->type eq "RNA" )
@@ -169,10 +189,11 @@ sub calInterChainInts {
         #nucleicNucleicInts($chain1, $chain2, $db, $pdbRdbObj);
       }    #Look for protein - ligand interactions
       elsif ( $chain1->type eq "protein" and $chain2->type eq "ligand" ) {
+        $logger->info( 'calculating Interchain Protein ligand Interactions*********');
         proteinLigandInts( $chain1, $chain2, $db, $pdbRdbObj );
       }
       elsif ( $chain1->type eq "ligand" and $chain2->type eq "protein" ) {
-
+        $logger->info( "chain 1 has to be Protein so skipping this chain 1" );
         #We only want to store stuff one way for ligands.
         next;
       }
@@ -191,12 +212,15 @@ sub proteinProteinInts {
 
   my $pdbId  = $pdbRdbObj->pdb_id;
   my $ch1Obj = $db->getChainData( $chain1, $pdbId );
+  $logger->info( "Got chain data for $chain1 and $pdbId" );
   my $ch2Obj = $db->getChainData( $chain2, $pdbId );
-
+  $logger->info( "Got chain data for $chain2 and $pdbId" );
+  
   #TODO Fix this query/caching
   my ( $foundInteraction, $ppi, %ppiResStored, %ppiAtomStore, %ppiBondStore );
   my $atomsRef =
     $db->getProteinAtomAndBondData( $ch1Obj->accession, $ch2Obj->accession, 0 );
+  
   foreach my $bondObj (@$atomsRef) {
     $ppiAtomStore{ $bondObj->get_column('protein_acc_a') . ":"
         . $bondObj->get_column('atom_number_a') } =
@@ -224,11 +248,11 @@ sub proteinProteinInts {
 
   foreach my $aa1 ( @{ $chain1->monomers } ) {
     my $ca1 = $aa1->get_primary_atom;
-    $logger->debug("Got primary $ca1");
+    
   AA:
     foreach my $aa2 ( @{ $chain2->monomers } ) {
       my $ca2 = $aa2->get_primary_atom;
-
+      
       #See if these amino acids look close
       next AA if ( $ca1->distance($ca2) > 20 );
       my $addToInterface = 0;
@@ -239,43 +263,44 @@ sub proteinProteinInts {
         foreach my $aa1_atom ( @{ $aa1->atoms } ) {
           my $distance = $aa1_atom->distance($aa2_atom);
           next ATOM if ( $distance > 6 );
-
+          
           #The two atoms are cloes enough to form a bond.
-          my $bond =
-            &_bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance,
-            $carDataRef, $db );
+          my $bond = &_bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance,$carDataRef, $db );
+#          my $bond;
+#          eval{
+#            $bond = &_bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance,$carDataRef, $db );
+#          };
+#          
+#          if( $@ ){
+#           $logger->fatal( "the error while calcualting bondType is _bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance,$carDataRef, $db ); \n".$@ );
+#          }else{
+#           $logger->debug( 'No error: the bond is '.$bond);
+#          }
+          
           if ( $bond && $bond ne "no_bond" ) {
-            $logger->debug("Got bond, $bond");
+            
             my ( $a1_acc, $a2_acc );
-            unless (
-              $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial } )
-            {
-              my $a1 =
-                $db->addProteinAtomData( $ch1Obj->accession, $ch1Obj->id, $aa1,
-                $aa1_atom );
-              $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial } =
-                $a1->atom_acc;
+            
+            unless ( $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial } ) {
+              my $a1 = $db->addProteinAtomData( $ch1Obj->accession, $ch1Obj->id, $aa1, $aa1_atom );
+              $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial } = $a1->atom_acc;
             }
-            $a1_acc =
-              $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial };
-            unless (
-              $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial } )
-            {
-              my $a2 =
-                $db->addProteinAtomData( $ch2Obj->accession, $ch2Obj->id, $aa2,
-                $aa2_atom );
-              $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial } =
-                $a2->atom_acc;
+            
+            $a1_acc = $ppiAtomStore{ $ch1Obj->accession . ":" . $aa1_atom->serial };
+            
+            unless ( $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial } ) {
+              my $a2 = $db->addProteinAtomData( $ch2Obj->accession, $ch2Obj->id, $aa2,$aa2_atom );
+              $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial } = $a2->atom_acc;
             }
-            $a2_acc =
-              $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial };
+            
+            $a2_acc = $ppiAtomStore{ $ch2Obj->accession . ":" . $aa2_atom->serial };
+            
             unless ( $ppiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond } ) {
-              $db->addProteinProteinBond( $a1_acc, $a2_acc, $bond, $distance,
-                0 );
+              $db->addProteinProteinBond( $a1_acc, $a2_acc, $bond, $distance, 0 );
               $ppiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond }++;
             }
+            
             unless ($ppi) {
-
               #Add the chain
               $ppi = $db->addPpi( $ch1Obj->id, $ch2Obj->id );
 
@@ -290,19 +315,14 @@ sub proteinProteinInts {
               } @$ppiRes;
             }
 
-            unless (
-              $ppiResStored{ $aa1->resSeq . ":" . $aa2->resSeq . ":" . $bond } )
-            {
-              my $res = $db->addPpiRes(
-                $ppi->ppi,    $ch1Obj->id,  $ch2Obj->id,
-                $aa1->resSeq, $aa2->resSeq, $bond
-              );
-              $ppiResStored{ $res->residue_a . ":"
-                  . $res->residue_b . ":"
-                  . $res->bond } = 1;
+            unless ( $ppiResStored{ $aa1->resSeq . ":" . $aa2->resSeq . ":" . $bond } ){
+              my $res = $db->addPpiRes( $ppi->ppi,    $ch1Obj->id,  $ch2Obj->id, $aa1->resSeq, $aa2->resSeq, $bond );
+              $ppiResStored{ $res->residue_a . ":" . $res->residue_b . ":". $res->bond } = 1;
             }
+            
             $foundInteraction = 1;
-          }
+          
+          } # end of if( $bond && $bond)
         }
       }
     }
@@ -317,6 +337,7 @@ sub proteinProteinInts {
       my $dasa = calculateInteractionASA( $chain1, $chain2 );
       $logger->info("The deltaASA is $dasa");
       $db->addQualityControl( $ppi->ppi, "ppi", "NACCESS", $dasa, "deltaASA" );
+      
     }
 
     #TODO - Get NoxClass Fix this......
@@ -342,21 +363,19 @@ sub proteinNucleicInts {
   #Add the chains to the database if not already present
   my $ch1Obj = $db->getChainData( $chain1, $pdbId );
   my $ch2Obj = $db->getChainData( $chain2, $pdbId );
-
+  $logger->info( "chain queries are succesful ");
+  $logger->info( "the accession called for teh get Protein Nucleic data are ". $ch1Obj->get_column( "accession") , $ch2Obj->get_column( "accession") );
+  
   my ( %napiAtomStore, %napiBondStore );
-  my $atomsRef =
-    $db->getProteinNucleicAtomAndBondData( $ch1Obj->accession,
-    $ch2Obj->accession );
+  my $atomsRef = $db->getProteinNucleicAtomAndBondData( $ch1Obj->get_column( "accession") , $ch2Obj->get_column( "accession") );
+  $logger->info( "finsihed getting protein nuclcie data ");  
+  
   foreach my $bondObj (@$atomsRef) {
-    $napiAtomStore{ $bondObj->get_column('protein_acc') . ":"
-        . $bondObj->get_column('protein_atom_number') } =
-      $bondObj->get_column('protein_atom');
-    $napiAtomStore{ $bondObj->get_column('na_acc') . ":"
-        . $bondObj->get_column('na_atom_number') } =
-      $bondObj->get_column('na_atom');
-    $napiBondStore{ $bondObj->get_column('protein_atom') . ":"
-        . $bondObj->get_column('na_atom') . ":"
-        . $bondObj->get_column('bond_type') } = 1;
+    
+    $napiAtomStore{ $bondObj->get_column('protein_acc') . ":" . $bondObj->get_column('protein_atom_number') } = $bondObj->get_column('protein_atom');
+    $napiAtomStore{ $bondObj->get_column('na_acc') . ":". $bondObj->get_column('na_atom_number') } = $bondObj->get_column('na_atom');
+    $napiBondStore{ $bondObj->get_column('protein_atom') . ":". $bondObj->get_column('na_atom') . ":". $bondObj->get_column('bond_type') } = 1;
+    
   }
   my ( $foundInteraction, $napi, %napiResStored );
   foreach my $aa ( @{ $chain1->monomers } ) {
@@ -378,41 +397,41 @@ sub proteinNucleicInts {
           next ATOM if ( $distance > 6 );
 
           #The two atoms are cloes enough to form a bond.
-          my $bond =
-            &_bondType( $aa, $base, $aa_atom, $base_atom, $distance,
-            $carDataRef, $db );
+          my $bond = &_bondType( $aa, $base, $aa_atom, $base_atom, $distance,$carDataRef, $db );
+          
           if ( $bond && $bond ne "no_bond" ) {
             $logger->debug("Got bond, $bond");
 
-            unless (
-              $napiAtomStore{ $ch1Obj->accession . ":" . $aa_atom->serial } )
-            {
-              my $a1 =
-                $db->addProteinAtomData( $ch1Obj->accession, $ch1Obj->id, $aa,
-                $aa_atom );
-              $napiAtomStore{ $ch1Obj->accession . ":" . $aa_atom->serial } =
-                $a1->atom_acc;
+            unless ( $napiAtomStore{ $ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial } ) {
+             
+              my $a1 = $db->addProteinAtomData( $ch1Obj->get_column( "accession" ), $ch1Obj->id, $aa, $aa_atom );
+              $napiAtomStore{ $ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial } = $a1->atom_acc;
+              
             }
 
-            unless (
-              $napiAtomStore{ $ch2Obj->accession . ":" . $base_atom->serial } )
-            {
-              my $a2 =
-                $db->addNucleicAcidAtomData( $ch2Obj->accession, $ch2Obj->id,
-                $base->resName, $base->resSeq, $base_atom->realName,
-                $base_atom->serial );
-              $napiAtomStore{ $ch2Obj->accession . ":" . $base_atom->serial } =
-                $a2->atom_acc;
+            unless ( $napiAtomStore{ $ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial } ) {
+              
+              my $a2 = $db->addNucleicAcidAtomData( $ch2Obj->get_column( "accession" ), $ch2Obj->id, $base->resName, $base->resSeq, $base_atom->realName, $base_atom->serial );
+              $napiAtomStore{ $ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial } = $a2->atom_acc;
+              $logger->info( "the atom_acc added to the table is ".$a2->atom_acc);
+                            
             }
-
-            my $a1_acc =
-              $napiAtomStore{ $ch1Obj->accession . ":" . $aa_atom->serial };
-            my $a2_acc =
-              $napiAtomStore{ $ch2Obj->accession . ":" . $base_atom->serial };
+            print "the base is ".dump( \%napiAtomStore );
+            print "teh base atom is ".dump( \%napiBondStore );
+            
+            $logger->info("**********teh accession and serial for protein are ".$ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial );
+            $logger->info( "*********the accession and serial for nucleic are ".$ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial );
+            
+            my $a1_acc = $napiAtomStore{ $ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial };
+            my $a2_acc = $napiAtomStore{ $ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial };
+            
+            $logger->info( "a1acc $a1_acc | a2_acc $a2_acc " );
+            
             unless ( $napiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond } ) {
-              $db->addProteinNucleicAcidBond( $a1_acc, $a2_acc, $bond,
-                $distance );
+              
+              $db->addProteinNucleicAcidBond( $a1_acc, $a2_acc, $bond, $distance );
               $napiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond }++;
+              
             }
 
             unless ($napi) {
@@ -429,20 +448,14 @@ sub proteinNucleicInts {
                 @$napiRes;
             }
 
-            unless (
-              $napiResStored{ $base->resSeq . ":"
-                  . $aa->resSeq . ":"
-                  . $bond } )
-            {
-              my $res = $db->addNapiRes(
-                $napi->napi,   $ch2Obj->id, $ch1Obj->id,
-                $base->resSeq, $aa->resSeq, $bond
-              );
-              $napiResStored{ $res->base . ":"
-                  . $res->residue . ":"
-                  . $res->bond } = 1;
+            unless ( $napiResStored{ $base->resSeq . ":" . $aa->resSeq . ":" . $bond } ) {
+            
+              my $res = $db->addNapiRes( $napi->napi,   $ch2Obj->id, $ch1Obj->id, $base->resSeq, $aa->resSeq, $bond );
+              $napiResStored{ $res->base . ":" . $res->residue . ":" . $res->bond } = 1;
             }
+            
             $foundInteraction = 1;
+          
           }
         }
       }
@@ -464,11 +477,16 @@ sub proteinNucleicInts {
 
 sub proteinLigandInts {
   my ( $chain, $ligandChain, $db, $pdbRDBObj ) = @_;
-
+  
   #my $carDataRef = &readCAR;
   my $chainObj = $db->getChainData( $chain, $pdbRDBObj->pdb_id );
-
+  
   foreach my $ligand ( @{ $ligandChain->monomers } ) {
+    
+    # check whether the momomer we are dealing with is ligand or residue, if its residue, then skip it.
+    next unless( ref( $ligand ) eq "Bio::iPfam::Structure::Ligand" );
+    $logger->info( "******************the dump of the ligands in proteinLigandInts is ".ref( $ligand ) );
+    
     next if ( $ligand->resName eq "HOH" or $ligand->resName eq "DOD" );
     my ( $foundInteraction, $pli, %pliResStored, %pliAtomStore, %pliBondStore );
     my $ligChemObj = $db->getLigandChemistryData($ligand);
@@ -604,47 +622,50 @@ sub calIntraDomDomInts {
   my ( $pdbObj, $db ) = @_;
 
   foreach my $chain ( @{ $pdbObj->chains } ) {
+    
     next unless ( $chain->type eq "protein" );
+    
     my $chainObj = $db->getChainData( $chain, $pdbObj->id );
     $logger->info("Got chain");
+    
     if ( $chain->pfam_chain ) {
       $logger->info("Got pfam chain");
+      
       if ( scalar( @{ $chain->pfam_chain->regions } ) > 1 ) {
         $pdbObj->log->info("Got pfam region");
+        
         foreach my $reg1 ( @{ $chain->pfam_chain->regions } ) {
-
+    
           foreach my $reg2 ( @{ $chain->pfam_chain->regions } ) {
+            
+            $logger->info( "the uniquID of region1 and region2 are ". $reg1->uniqueID ." - ". $reg2->uniqueID );
+                    
             next if ( $reg1->uniqueID eq $reg2->uniqueID );
-            my ( $foundInteraction, $ddi, %ddiResStored, %ddiAtomStore,
-              %ddiBondStore );
-            my $atomsRef =
-              $db->getProteinAtomAndBondData( $chainObj->accession,
-              $chainObj->accession, 1 );
+            my ( $foundInteraction, $ddi, %ddiResStored, %ddiAtomStore, %ddiBondStore );
+            
+            my $atomsRef = $db->getProteinAtomAndBondData( $chainObj->accession, $chainObj->accession, 1 );
+            
             foreach my $bondObj (@$atomsRef) {
-              $ddiAtomStore{ $bondObj->get_column('protein_acc_a') . ":"
-                  . $bondObj->get_column('atom_number_a') } =
-                $bondObj->get_column('atom_a');
-              $ddiAtomStore{ $bondObj->get_column('protein_acc_b') . ":"
-                  . $bondObj->get_column('atom_number_b') } =
-                $bondObj->get_column('atom_b');
-              $ddiBondStore{ $bondObj->get_column('atom_a') . ":"
-                  . $bondObj->get_column('atom_b') . ":"
-                  . $bondObj->get_column('bond_type') } = 1;
-            }
+              
+              $ddiAtomStore{ $bondObj->get_column('protein_acc_a') . ":". $bondObj->get_column('atom_number_a') } = $bondObj->get_column('atom_a');
+              $ddiAtomStore{ $bondObj->get_column('protein_acc_b') . ":". $bondObj->get_column('atom_number_b') } = $bondObj->get_column('atom_b');
+              $ddiBondStore{ $bondObj->get_column('atom_a') . ":". $bondObj->get_column('atom_b') . ":". $bondObj->get_column('bond_type') } = 1;
+            
+            } # end of @£atomsRef
 
-            $logger->info( "Going to calulate domain interactions between"
-                . $reg1->acc . " and "
-                . $reg2->acc );
+            $logger->debug( "Going to calulate domain interactions between ". $reg1->acc . " and ". $reg2->acc );
+            
             foreach my $aa1 ( @{ $chain->monomers } ) {
-              next
-                if ( $aa1->resSeq < $reg1->start or $aa1->resSeq > $reg1->end );
+              next if ( $aa1->resSeq < $reg1->start or $aa1->resSeq > $reg1->end );
+              
               $logger->debug( "Residue1" . $aa1->resSeq );
               my $ca1 = $aa1->get_primary_atom;
+              
             AA:
               foreach my $aa2 ( @{ $chain->monomers } ) {
-                next
-                  if ( $aa2->resSeq < $reg2->start
-                  or $aa2->resSeq > $reg2->end );
+                
+                next if ( $aa2->resSeq < $reg2->start or $aa2->resSeq > $reg2->end );
+                
                 $logger->debug( "Residue2 " . $aa2->resSeq );
                 my $ca2 = $aa2->get_primary_atom;
 
@@ -654,116 +675,107 @@ sub calIntraDomDomInts {
 
                 #If we get here, these look close
                 foreach my $aa2_atom ( @{ $aa2->atoms } ) {
+                
                 ATOM:
                   foreach my $aa1_atom ( @{ $aa1->atoms } ) {
+                    
                     my $distance = $aa1_atom->distance($aa2_atom);
                     next ATOM if ( $distance > 6 );
 
                     #The two atoms are cloes enough to form a bond.
                     $logger->debug("$distance");
-                    my $bond =
-                      &_bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance,
-                      $carDataRef, $db );
+                    
+                    my $bond = &_bondType( $aa1, $aa2, $aa1_atom, $aa2_atom, $distance, $carDataRef, $db );
                     $logger->debug("Got bond, $bond");
+                    
                     if ( $bond && $bond ne "no_bond" ) {
+                      
                       $logger->debug("Got bond, $bond");
                       my ( $a1_acc, $a2_acc );
 
-                      unless (
-                        $ddiAtomStore{ $chainObj->accession . ":"
-                            . $aa1_atom->serial } )
-                      {
-                        my $a1 =
-                          $db->addProteinAtomData( $chainObj->accession,
-                          $chainObj->id, $aa1, $aa1_atom );
-                        $ddiAtomStore{ $chainObj->accession . ":"
-                            . $aa1_atom->serial } = $a1->atom_acc;
-                      }
-                      $a1_acc = $ddiAtomStore{ $chainObj->accession . ":"
-                          . $aa1_atom->serial };
+                      unless ( $ddiAtomStore{ $chainObj->accession . ":" . $aa1_atom->serial } ) {
+                        my $a1 = $db->addProteinAtomData( $chainObj->accession, $chainObj->id, $aa1, $aa1_atom );
+                        $ddiAtomStore{ $chainObj->accession . ":". $aa1_atom->serial } = $a1->atom_acc;
+                      } # en dof ddiAtomStore
+                      
+                      $a1_acc = $ddiAtomStore{ $chainObj->accession . ":". $aa1_atom->serial };
 
-                      unless (
-                        $ddiAtomStore{ $chainObj->accession . ":"
-                            . $aa2_atom->serial } )
-                      {
-                        my $a2 =
-                          $db->addProteinAtomData( $chainObj->accession,
-                          $chainObj->id, $aa2, $aa2_atom );
-                        $ddiAtomStore{ $chainObj->accession . ":"
-                            . $aa2_atom->serial } = $a2->atom_acc;
-                      }
-                      $a2_acc = $ddiAtomStore{ $chainObj->accession . ":"
-                          . $aa2_atom->serial };
+                      unless ( $ddiAtomStore{ $chainObj->accession . ":". $aa2_atom->serial } ) {
+                        my $a2 = $db->addProteinAtomData( $chainObj->accession, $chainObj->id, $aa2, $aa2_atom );
+                        $ddiAtomStore{ $chainObj->accession . ":". $aa2_atom->serial } = $a2->atom_acc;
+                      } # end of ddiAtomStore
+                      
+                      $a2_acc = $ddiAtomStore{ $chainObj->accession . ":". $aa2_atom->serial };
 
-                      unless (
-                        $ddiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond } )
-                      {
-                        $db->addProteinProteinBond( $a1_acc, $a2_acc, $bond,
-                          $distance, 1 );
-                        $ddiBondStore{ $a1_acc . ":" . $a2_acc . ":"
-                            . $bond }++;
-                      }
+                      unless ( $ddiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond } ) {
+                        $db->addProteinProteinBond( $a1_acc, $a2_acc, $bond, $distance, 1 );
+                        $ddiBondStore{ $a1_acc . ":" . $a2_acc . ":". $bond }++;
+                      
+                      } # end of ddiBondStore;
 
                       unless ($ddi) {
 
                         #Add the chains, ligand second
-                        $ddi =
-                          $db->addDdi( $reg1->uniqueID, $reg2->uniqueID, 1,
-                          $bond );
+                        $ddi = $db->addDdi( $reg1->uniqueID, $reg2->uniqueID, 1, $bond );
 
                         #Get a list of all residues
                         my $ddiRes = $db->getDdiRes( $ddi->ddi );
 
-                  #Build a hash of them......This stops us adding the samething!
+                        # Build a hash of them......This stops us adding the samething!
                         %ddiResStored = map {
                               $_->residue_a . ":"
                             . $_->residue_b . ":"
                             . $_->bond => 1
                         } @$ddiRes;
-                      }
+                      } # end of ddi;
+                   
+                      unless ( $ddiResStored{ $aa1->resSeq . ":" . $aa2->resSeq . ":" . $bond } ) {
+                        my $res = $db->addDdiRes( $ddi->ddi, $chainObj->id, $chainObj->id, $aa1->resSeq, $aa2->resSeq, 1, $bond );
 
-                      unless (
-                        $ddiResStored{ $aa1->resSeq . ":"
-                            . $aa2->resSeq . ":"
-                            . $bond } )
-                      {
-                        my $res =
-                          $db->addDdiRes( $ddi->ddi, $chainObj->id,
-                          $chainObj->id, $aa1->resSeq, $aa2->resSeq, 1, $bond );
-
-#$db->addDdi($reg1->uniqueID, $reg2->uniqueID, $aa1->resSeq, $aa2->resSeq, 1, $bond);
-                        $ddiResStored{ $res->residue_a . ":"
-                            . $res->residue_b . ":"
-                            . $res->bond } = 1;
-                      }
+                        # $db->addDdi($reg1->uniqueID, $reg2->uniqueID, $aa1->resSeq, $aa2->resSeq, 1, $bond);
+                        $ddiResStored{ $res->residue_a . ":". $res->residue_b . ":". $res->bond } = 1;
+                        
+                      } # end of $ddiResStored
                       $foundInteraction = 1;
-                    }
-                  }
-                }
-              }
-            }
+                      
+                    } # end of  if( $bond && $bond new 'nobond' )
+                    
+                  } # end of( @{ $aa1->atoms } )
+    
+                } # end of @{ $aa2->atoms }
+    
+              } # end of $aa2 @{ $chain->monomers }
+    
+            } # end of $aa1 @{ $chain->monomers }
+            
             if ($foundInteraction) {
-              my $rowRef =
-                $db->getQualityControl( $ddi->ddi, "ddi", "NACCESS" );
-
-              unless ( scalar(@$rowRef) >= 1 ) {
-                my $dasa =
-                  calculateDomainInteractionASA( $chain, $reg1, $chain, $reg2 );
-                $db->addQualityControl( $ddi->ddi, "ddi", "NACCESS", $dasa,
-                  "deltaASA" );
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+              my $rowRef = $db->getQualityControl( $ddi->ddi, "ddi", "NACCESS" );
+               
+               unless ( scalar(@$rowRef) >= 1 ) {
+ #                my $dasa = calculateDomainInteractionASA( $chain, $reg1, $chain, $reg2 );
+                 my $dasa = calculateDomainInteractionASA( $chain, $reg1, $chain, $reg2 , 770 );  
+                 $db->addQualityControl( $ddi->ddi, "ddi", "NACCESS", $dasa, "deltaASA" );
+                 
+               }
+               
+            } # end of if( $foundInteraction )
+          
+          } # $reg2 ( @{ $chain->pfam_chain->regions } )
+    
+        } # end of $reg1 ( @{ $chain->pfam_chain->regions } )
+    
+      }# end of scalar( @{ $chain->pfam_chain->regions } ) > 1 )
+    
+    } # end of $chain->pfam_chain
+    
+  } # end of $chain ( @{ $pdbObj->chains }
 
 }
 
 sub deriveInterDomInts {
   my ( $pdbObj, $db ) = @_;
 
+  $logger->info( "inside deriveINerDOnInts");
   foreach my $chain1 ( @{ $pdbObj->chains } ) {
     $logger->debug("Got chain1");
     foreach my $chain2 ( @{ $pdbObj->chains } ) {
@@ -836,11 +848,8 @@ sub deriveInterDomInts {
                 $db->getQualityControl( $ddi->ddi, "ddi", "NACCESS" );
 
               unless ( scalar(@$rowRef) >= 1 ) {
-                my $dasa =
-                  calculateDomainInteractionASA( $chain1, $reg1, $chain2,
-                  $reg2 );
-                $db->addQualityControl( $ddi->ddi, "ddi", "NACCESS", $dasa,
-                  "deltaASA" );
+                my $dasa = calculateDomainInteractionASA( $chain1, $reg1, $chain2,$reg2 );
+                $db->addQualityControl( $ddi->ddi, "ddi", "NACCESS", $dasa,"deltaASA" );
               }
             }
           }
@@ -866,45 +875,38 @@ sub deriveInterDomInts {
             );
             if ( ref($interface) eq "ARRAY" ) {
               my ( $nadi, %nadiResStored );
+              
               foreach my $int ( @{$interface} ) {
                 unless ($nadi) {
-                  $nadi =
-                    $db->addNadi( $reg1->uniqueID,
-                    $pdbObj->id . "_" . $chain2->internal_chain_id );
 
+                  $nadi = $db->addNadi(  $pdbObj->id . "_" . $chain2->internal_chain_id, $reg1->uniqueID );
                   #Get a list of all residues
                   my $nadiRes = $db->getNadiRes( $nadi->nadi );
 
-           #Build a hash of them......This stops us adding the same thing twice!
+                  #Build a hash of them......This stops us adding the same thing twice!
                   %nadiResStored = map {
                         $_->base . ":"
                       . $_->region_residue . ":"
                       . $_->bond => 1
                   } @$nadiRes;
+       
                 }
                 $logger->debug("Got interface");
-                unless (
-                  $nadiResStored{ $int->base . ":"
-                      . $int->residue . ":"
-                      . $int->bond } )
-                {
-                  $db->addNadiRes( $nadi->nadi, $int->nucleic_acid_acc,
-                    $reg1->uniqueID, $int->base, $int->residue, $int->bond );
-                  $nadiResStored{ $int->base . ":"
-                      . $int->residue . ":"
-                      . $int->bond }++;
+                unless ( $nadiResStored{ $int->base . ":" . $int->residue . ":" . $int->bond } ) {
+                 
+                  $db->addNadiRes( $nadi->nadi, $int->nucleic_acid_acc, $reg1->uniqueID, $int->base, $int->residue, $int->bond );
+                  $nadiResStored{ $int->base . ":" . $int->residue . ":" . $int->bond }++;
+                  
                 }
               }
-              my $rowRef =
-                $db->getQualityControl( $nadi->nadi, "nadii", "NACCESS" );
+              my $rowRef = $db->getQualityControl( $nadi->nadi, "nadii", "NACCESS" );
 
               unless ( scalar(@$rowRef) >= 1 ) {
 
                 #Calculate deltaASA
-                my $dasa =
-                  calculateDomainInteractionASA( $chain1, $reg1, $chain2 );
-                $db->addQualityControl( $nadi->nadi, "nadi", "NACCESS", $dasa,
-                  "deltaASA" );
+                my $dasa = calculateDomainInteractionASA( $chain1, $reg1, $chain2 );
+                $db->addQualityControl( $nadi->nadi, "nadi", "NACCESS", $dasa, "deltaASA" );
+                
               }
             }
           }
@@ -912,7 +914,13 @@ sub deriveInterDomInts {
       }    #Calculate domain ligand interactions
       elsif ( $chain1->pfam_chain and $chain2->type eq "ligand" ) {
         foreach my $ligand ( @{ $chain2->monomers } ) {
+          
+          # check whether the momomer we are dealing with is ligand or residue, if its residue, then skip it.
+          next unless( ref( $ligand ) eq "Bio::iPfam::Structure::Ligand" );
+          $logger->info( "******************the dump of the ligands in deriveInterDomInts is ".ref( $ligand ) );
+         
           next if ( $ligand->resName eq "HOH" or $ligand->resName eq "DOD" );
+          
           my $ligChemObj = $db->getLigandChemistryData($ligand);
           my $ligRDBObj;
           if ($ligChemObj) {
@@ -993,6 +1001,7 @@ sub deriveInterDomInts {
       }
     }
   }
+  $logger->info( "********************completed deriveINerDOnInts");
 }
 
 =head2 getPdb
@@ -1037,7 +1046,7 @@ sub _bondType {
   my $at2 = $atom2->realName;
   my ( $pat1, $pat2, $pr1, $pr2, $bond );
   my $slopfactor = 1;
-  $logger->debug( "|" . $r1->resName . ",$at1/" . $r2->resName . ",$at2|" );
+  $logger->debug( "|" . $r1->resName . ",$at1/" . $r2->resName . ",$at2| $distance" );
 
   #Get rid of any whitespace around the atom
 
@@ -1061,31 +1070,22 @@ sub _bondType {
   }
 
   #Now, lets try and work out the bonds
-  $logger->debug( "Have not work out what residue " . $r1->type . " is" )
-    unless ($pr1);
+  $logger->debug( "Have not work out what residue " . $r1->type . " is" ) unless ($pr1);
   $logger->debug("Have not work out what atom $at1 is") unless ($pat1);
   $logger->debug( "Have not work out what " . $r2->type . " is" ) unless ($pr2);
   $logger->debug("Have not work out what $at1 is") unless ($pat2);
 
   if ( $pr1 && $pr2 && $pat1 && $pat2 ) {
-    $logger->debug(
-"Going to estimate the bond with the following residues/atoms info |$pr1, $pr2, $pat1, $pat2|"
-    );
-
+    $logger->debug( "Going to estimate the bond with the following residues/atoms info |$pr1, $pr2, $pat1, $pat2|" );
+    
     #Check that the process res/mono and atoms are in the hash
-    if ( ( !keys( %{ $$carDataRef{$pr2}{$pat2} } ) )
-      || ( !keys( %{ $$carDataRef{$pr1}{$pat1} } ) ) )
-    {
-      $logger->warn(
-"Undefined bond for $r1, $at1 and $r2, $at2 as one of them is not in the charge & radii hash"
-      );
+    if ( ( !keys( %{ $$carDataRef{$pr2}{$pat2} } ) ) || ( !keys( %{ $$carDataRef{$pr1}{$pat1} } ) ) ) {
+      $logger->warn("Undefined bond for $r1, $at1 and $r2, $at2 as one of them is not in the charge & radii hash" );
       $bond = undef;
     }
     else {
 
-      if ( $distance <
-        ( $$carDataRef{$pr1}{$pat1}{'cr'} + $$carDataRef{$pr2}{$pat2}{'cr'} ) )
-      {
+      if ( $distance < ( $$carDataRef{$pr1}{$pat1}{'cr'} + $$carDataRef{$pr2}{$pat2}{'cr'} ) ) {
         if ( $pat1 eq "SG" && $pat2 eq "SG" ) {
           $bond = "disulphide";
         }
@@ -1093,66 +1093,36 @@ sub _bondType {
           $bond = "covalent";
         }
       }
-      elsif (
-        (
-          $distance < (
-            $slopfactor * (
-              $$carDataRef{$pr1}{$pat1}{'vr'} + $$carDataRef{$pr2}{$pat2}{'vr'}
-            )
-          )
-        )
-        && (
-          (
-               ( $$carDataRef{$pr1}{$pat1}{'Charge'} eq "+" )
-            && ( $$carDataRef{$pr2}{$pat2}{'Charge'} eq "-" )
-          )
-          || ( ( $$carDataRef{$pr1}{$pat1}{'Charge'} eq "-" )
-            && ( $$carDataRef{$pr2}{$pat2}{'Charge'} eq "+" ) )
-        )
-        )
-      {
+      elsif ( ( $distance < ( $slopfactor * ( $$carDataRef{$pr1}{$pat1}{'vr'} + $$carDataRef{$pr2}{$pat2}{'vr'} ) ) )
+        && ( ( ( $$carDataRef{$pr1}{$pat1}{'Charge'} eq "+" ) && ( $$carDataRef{$pr2}{$pat2}{'Charge'} eq "-" ) ) || ( ( $$carDataRef{$pr1}{$pat1}{'Charge'} eq "-" ) 
+        && ( $$carDataRef{$pr2}{$pat2}{'Charge'} eq "+" ) ) ) ) {
+        
         $bond = "electrostatic";
       }
-      elsif (
-        (
-          ( $distance < 3.6 )
-          && (
-            $distance > (
-              1 +
-                $$carDataRef{$pr1}{$pat1}{'cr'} +
-                $$carDataRef{$pr2}{$pat2}{'cr'}
-            )
-          )
-        )
-        && (
-          (
-               ( $$carDataRef{$pr1}{$pat1}{'Hb'} eq "D" )
-            && ( $$carDataRef{$pr2}{$pat2}{'Hb'} eq "A" )
-          )
-          || ( ( $$carDataRef{$pr1}{$pat1}{'Hb'} eq "A" )
-            && ( $$carDataRef{$pr2}{$pat2}{'Hb'} eq "D" ) )
-        )
-        )
+      elsif ( ( ( $distance < 3.6 ) && ( $distance > ( 1 + $$carDataRef{$pr1}{$pat1}{'cr'} + $$carDataRef{$pr2}{$pat2}{'cr'} )) ) 
+        && ( ( ( $$carDataRef{$pr1}{$pat1}{'Hb'} eq "D" ) && ( $$carDataRef{$pr2}{$pat2}{'Hb'} eq "A" ) ) || ( ( $$carDataRef{$pr1}{$pat1}{'Hb'} eq "A" )
+        && ( $$carDataRef{$pr2}{$pat2}{'Hb'} eq "D" ) ) ) )
       {
-
+        $logger->debug( "the distance btw atoms is less than 3.6, so gettign the connectivity for ".$r1->resName.' | '.$atom1->realName );
+         
         unless ( $connectivityRef->{ $r1->resName }->{ $atom1->realName } ) {
           my $cons = $db->getConnectivity( $r1->resName, $atom1->realName );
+          
           if ($cons) {
+            
             foreach my $c (@$cons) {
               push(
                 @{ $connectivityRef->{ $r1->resName }->{ $atom1->realName } },
                 $c->atom2_name
               );
-              $logger->debug(
-                "Connections " . $c->atom1_name . "," . $c->atom2_name );
+              $logger->debug( "Connections " . $c->atom1_name . "," . $c->atom2_name );
             }
           }
           else {
-            $logger->warn( "Failed to get connectivity for "
-                . $r1->resName . "-"
-                . $atom1->realName );
+            $logger->warn( "Failed to get connectivity for ". $r1->resName . "-" . $atom1->realName );
           }
-        }
+        }  # end of $connectivityRef->{ $r1->resName  }
+        
         unless ( $connectivityRef->{ $r2->resName }->{ $atom2->realName } ) {
           my $cons = $db->getConnectivity( $r2->resName, $atom2->realName );
           if ($cons) {
@@ -1161,25 +1131,37 @@ sub _bondType {
                 @{ $connectivityRef->{ $r2->resName }->{ $atom2->realName } },
                 $c->atom2_name
               );
-              $logger->debug(
-                "Connections " . $c->atom1_name . "," . $c->atom2_name );
+              $logger->debug( "Connections " . $c->atom1_name . "," . $c->atom2_name );
             }
           }
           else {
-            $logger->warn( "Failed to get connectivity for "
-                . $r2->resName . "-"
-                . $atom2->realName );
+            $logger->warn( "Failed to get connectivity for " . $r2->resName . "-" . $atom2->realName );
           }
         }
-
-        my ( $bond_angle, $bond_plane ) = bond_angle(
-          $atom1, $$carDataRef{$pr1}{$pat1}{'Hb'},
-          $atom2, $$carDataRef{$pr2}{$pat2}{'Hb'},
-          $r1, $r2, $db
-        );
+        
+        my ( $bond_angle, $bond_plane );
+        #$logger->info( "************** bond_angle sub called with the params ".$atom1->realName.' | '. $$carDataRef{$pr1}{$pat1}{'Hb'}.' | '.$atom2->realName.' | '.$$carDataRef{$pr2}{$pat2}{'Hb'}.' | '.$r1->resName.' | '.$r2->resName.' | '."\n and we got angle $bond_angle" );
+        # delete everything from this line till # EOF
+        unless ( defined $atom1->realName ){ $logger->info( "********atom1 not defined" ); }
+        unless ( defined $$carDataRef{$pr1}{$pat1}{'Hb'} ){ $logger->info( "*******$pr1, $pat1, hb not defined" ); }
+        unless ( defined $atom2->realName ){ $logger->info( "*********atom2 not defined" ); }
+        unless ( defined $$carDataRef{$pr2}{$pat2}{'Hb'} ){ $logger->info( "********$pr2, $pat2, hb not defined" ); }
+        unless ( defined $r1->resName ){ $logger->info( "**********Res1 not defined" ); }
+        unless ( defined $r2->resName ){ $logger->info( "*******Res2 not defined" ); }
+        
+        # EOF 
+        eval{
+          ( $bond_angle, $bond_plane ) = bond_angle( $atom1, $$carDataRef{$pr1}{$pat1}{'Hb'}, $atom2, $$carDataRef{$pr2}{$pat2}{'Hb'},$r1, $r2, $db ); 
+        };
+        
+        if( $@ ){
+          $logger->info( "************** bond_angle sub called with the params ".$atom1->realName.' | '. $$carDataRef{$pr1}{$pat1}{'Hb'}.' | '.$atom2->realName.' | '.$$carDataRef{$pr2}{$pat2}{'Hb'}.' | '.$r1->resName.' | '.$r2->resName.' | '."\n and we got angle $bond_angle" );
+          $logger->logdie( "there is some error in finding the bond angle ".$@ );
+        }
+         
         if ( $bond_angle > 90 && $bond_angle < 140 ) {
 
-#print STDERR "looks like we have a H-bond between $r1, $at1 and $pr2, $pat2, Check regex\n";
+          #print STDERR "looks like we have a H-bond between $r1, $at1 and $pr2, $pat2, Check regex\n";
           if ( ( $r1 =~ /\S{3}/ )
             && ( ( $pat1 eq "O" ) || ( $pat1 eq "N" || ( $pat1 eq "OXT" ) ) ) )
           {
@@ -1193,29 +1175,18 @@ sub _bondType {
           else {
             $bond = "h-bond_side";
           }
-        }
+        } # end of if( $bond_angle )
         else {
           $bond = "vanderwaals";
         }
+        
       }
-      elsif (
-        (
-          $distance < (
-            $slopfactor * 1.5 +
-              $$carDataRef{$pr1}{$pat1}{'vr'} +
-              $$carDataRef{$pr2}{$pat2}{'vr'}
-          )
-        )
-        && ( $distance >
-          $$carDataRef{$pr1}{$pat1}{'vr'} + $$carDataRef{$pr2}{$pat2}{'vr'} )
-        )
+      elsif ( ( $distance < ( $slopfactor * 1.5 + $$carDataRef{$pr1}{$pat1}{'vr'} + $$carDataRef{$pr2}{$pat2}{'vr'} ) )
+        && ( $distance > $$carDataRef{$pr1}{$pat1}{'vr'} + $$carDataRef{$pr2}{$pat2}{'vr'} ) )
       {
         $bond = "vanderwaals";
       }
       else {
-
-        #print $$carDataRef{$pr1}{$pat1}{'vr'}."\n";
-        #print $$carDataRef{$pr2}{$pat2}{'vr'}."\n";
         $bond = "no_bond";
       }
     }
@@ -1225,15 +1196,16 @@ sub _bondType {
     #Okay, processing resulted in undefined values
     $bond = undef;
   }
+  
   return $bond;
 }
 
 sub bond_angle {
   $logger->debug("in bond angle");
-
+  
   # atom1, donor/acceptor, atom2, donor/acceptor, residue1, residue2
   my ( $a1, $h1, $a2, $h2, $r1, $r2, $db ) = @_;
-
+  
   #vector1 A->D
   my ( $v1, $v2, $bond_plane_angle, $bond_res_plane );
 
@@ -1245,6 +1217,7 @@ sub bond_angle {
     $v2 = $a1->cal_vector($c);
     $logger->debug("Calculating vector a1, a2");
     $v1 = $a1->cal_vector($a2);
+    
   }
   elsif ( $h2 eq "A" ) {
     $logger->debug("Getting carbon for accptor (h2)");
@@ -1253,13 +1226,15 @@ sub bond_angle {
     $v2 = $a2->cal_vector($c);
     $logger->debug("Calculating vector a1, a2");
     $v1 = $a2->cal_vector($a1);
+    
   }
   else {
     $logger->debug("no donor");
   }
-
+  
+  
   if ( $v1 and $v2 ) {
-
+    
     # Then need to find the angle between these two vectors.
     # Uses the dot product equation a.b = |a||b| cos THETA
     #|a| -> sqroot of X2 + Y2 + Z2
@@ -1268,7 +1243,16 @@ sub bond_angle {
 
     #a.b -> X x X + Y x Y + Z X Z
     my $vp = vector_product( $v1, $v2 );
-    my $angle = rad2deg( acos( $vp / ( $mod_v1 * $mod_v2 ) ) );
+    
+    # IN SOME CASES, I AM GETTING THE VALUE 0 FOR X, Y AND Z, SO MAKE SURE WE DO CALCULATION FOR NON-ZERO VALUES;
+    my $angle;
+    if( $mod_v1 > 0 and $mod_v2 > 0 ){
+      $angle = rad2deg( acos( $vp / ( $mod_v1 * $mod_v2 ) ) );
+    }else{
+      $logger->info( "********one of the mod values is 0, so skipped the calculation");
+      $angle = "0";
+    }
+    
     return ($angle);
   }
   else {
@@ -1325,6 +1309,7 @@ sub getConnection {
   }
   if ($conAtom) {
     $logger->debug( "Returning connection $conAtom for " . $res->resName );
+    $logger->info( "Returning connection $conAtom for " . $res->resName );
     return ($conAtom);
   }
 }
@@ -1363,7 +1348,7 @@ sub vector_product {
 =cut
 
 sub calculateInteractionASA {
-  my ( $obj1, $obj2 ) = @_;
+  my ( $obj1, $obj2 , $line) = @_;
 
   #Write out each object as a pdb file
   #domain1
@@ -1518,7 +1503,8 @@ sub calculateLigandInteractionASA {
 sub _runAndParseNaccess {
   my ($file) = @_;
   my $asaData;
-
+  
+  #$logger->info( 'running naccess for the file '.$file );
   #Run naccess
   system("naccess $file.pdb -h > /dev/null 2>&1");
 
