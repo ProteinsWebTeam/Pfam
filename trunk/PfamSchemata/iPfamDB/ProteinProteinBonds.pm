@@ -29,6 +29,7 @@ __PACKAGE__->belongs_to("atom_a", "iPfamDB::ProteinIntAtoms", { atom_acc => "ato
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-07-21 16:29:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YuVbzRwYncv39rRJ2OdlUQ
 
+__PACKAGE__->belongs_to("atom_b", "iPfamDB::ProteinIntAtoms", { atom_acc => "atom_b" });
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;

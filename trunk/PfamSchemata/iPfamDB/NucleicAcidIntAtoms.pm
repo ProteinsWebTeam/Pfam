@@ -33,6 +33,13 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-07-21 16:29:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d2UklZKBAkBOO4ts+LrlDg
 
+__PACKAGE__->set_primary_key("atom_acc");
+
+__PACKAGE__->has_many(
+  "nucleic_acid__bonds",
+  "iPfamDB::ProteinNucleicAcidBonds",
+  { "foreign.nucleic_acid_atom" => "self.atom_acc" },
+);
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
