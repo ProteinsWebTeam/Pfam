@@ -23,6 +23,8 @@ $Id: BatchSearch.pm,v 1.5 2009-10-07 14:20:24 jt6 Exp $
 use strict;
 use warnings;
 
+use Data::Dump qw( dump );
+
 use base 'PfamBase::Controller::Search';
 
 #-------------------------------------------------------------------------------
@@ -138,11 +140,12 @@ sub parse_upload : Private {
     #----------------------------------------
 
     # look at header lines
-    if ( m/^>(.*)/ ) {
-      my $raw_header = $1;
+    if ( m/^>(\S+)/ ) {
+      # my $raw_header = $1;
+      $header = $1;
 
       # check that the header text doesn't start with a space...
-      if ( $raw_header =~ m/^\s+/ ) {
+      if ( $header =~ m/^\s+/ ) {
         $c->stash->{searchError} = 
             "You cannot have whitespace after the '>'. Please check that your file "
           . "conforms to the FASTA file format specification.";
@@ -155,7 +158,7 @@ sub parse_upload : Private {
 
       # check that the header has some content... Yes, we've had a user 
       # submit sequence files with empty header lines.
-      unless ( length $raw_header ) {
+      unless ( length $header ) {
         $c->stash->{searchError} = 
             'You cannot have blank header lines. Please make sure that any line '
           . "starting with '>' has content.";
@@ -173,12 +176,12 @@ sub parse_upload : Private {
       # provides when we come to look at the output in the active site code in 
       # pfam_scan.pl
 
-      if ( length $raw_header > 60 ) {
-        $header = substr $raw_header, 0, 60;
-      }
-      else {
-        $header = $raw_header;
-      } 
+      # if ( length $raw_header > 60 ) {
+      #   $header = substr $raw_header, 0, 60;
+      # }
+      # else {
+      #   $header = $raw_header;
+      # } 
 
       # check for the following illegal characters: \ ! and *
       if ( m/[\\\!\*]/ ) {
@@ -197,9 +200,8 @@ sub parse_upload : Private {
         $c->stash->{searchError} = 
             'Your file appears to contain duplicate sequences. The header on '
           . "line $line_num was also found on line $header_lines{$header}. "
-          . 'Please make sure that your file contains only unique header lines '
-          . 'that are unique within their first 60 characters. See the notes '
-          . 'for more information about this restriction.';
+          . 'Please make sure that your file contains only unique header lines. '
+          . 'See the notes for more information about this restriction.';
 
         $c->log->debug( "Search::BatchSearch::parse_upload: duplicate header on line $line_num" )
           if $c->debug;
@@ -234,7 +236,7 @@ sub parse_upload : Private {
 
       # strip new line, carriage return and *space characters*
       s/[\r\n\s]//g;
-
+    
       # regular sequence line
       my $regex_string = $this->{sequenceValidationRegex};      
       my $regex = qr/$regex_string/i;
@@ -275,6 +277,34 @@ sub parse_upload : Private {
 
   $c->log->debug( "Search::BatchSearch::parse_upload: found |$seq_count| sequences in the upload" )
     if $c->debug;
+
+  # sequences will only be stored in the %sequences hash if they have a valid
+  # header and a valid sequence string. Check the sequences hash and make sure
+  # it's sensible...
+
+  # make sure we actually got some sequences
+  unless ( scalar keys %sequences ) {
+    $c->stash->{searchError} = 
+        'We could not find any valid sequences in the uploaded file. Please '
+      . 'check the file format and try again.';
+
+    $c->log->debug( 'Search::BatchSearch::parse_upload: no valid sequences found in file' )
+      if $c->debug;
+
+    return 0;
+  }
+
+  # make sure we got the same number of headers as sequences
+  if ( scalar( keys %sequences ) != $seq_count ) {
+    $c->stash->{searchError} = 
+        "The file contained $seq_count headers but " . scalar( keys %sequences )
+      . ' sequences. Please check the file format and try again.';
+
+    $c->log->debug( 'Search::BatchSearch::parse_upload: different numbers of headers and sequences' )
+      if $c->debug;
+
+    return 0;
+  }
 
   #----------------------------------------
 
