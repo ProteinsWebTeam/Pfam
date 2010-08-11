@@ -21,13 +21,14 @@ __PACKAGE__->add_columns(
   "bond",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 50 },
 );
-__PACKAGE__->set_primary_key("nadi");
+#__PACKAGE__->set_primary_key("nadi");
 __PACKAGE__->belongs_to("nadi", "iPfamDB::Nadi", { nadi => "nadi" });
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2010-07-21 16:29:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J+C6+BXdaMakW+06ET6Mng
 
+# I have commented the set_primary_key line above the check_sum, so remember to move this file when new dump is created;
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
