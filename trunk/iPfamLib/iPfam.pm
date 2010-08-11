@@ -152,7 +152,7 @@ sub calInterChainInts {
           . $chain1->type . " and "
           . $chain2->chainID . ","
           . $chain2->type );
-      $logger->debug(( "Working on "
+      $logger->debug( "Working on "
           . $chain1->chainID . ","
           . $chain1->type . " and "
           . $chain2->chainID . ","
