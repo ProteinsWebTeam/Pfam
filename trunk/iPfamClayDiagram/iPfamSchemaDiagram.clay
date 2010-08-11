@@ -668,11 +668,13 @@
 <column auto-increment="false" column-size="3" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1e" mandatory="true" name="atom">
 <data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
 </column>
-<column auto-increment="false" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1d" mandatory="true" name="atom_acc">
+<column auto-increment="true" column-size="10" decimal-digits="0" default-value="" id="c677a7:11d0a03bd9e:-7f1d" mandatory="true" name="atom_acc">
 <data-type name="INT" selected-variant-pattern="INT(%n)"/>
 </column>
 </column-list>
-<primary-key id="c677a7:11d0a03bd9e:-7f24" name="PK_NUCLEIC_ACID_INT_ATOMS"/>
+<primary-key id="c677a7:11d0a03bd9e:-7f24" name="PK_NUCLEIC_ACID_INT_ATOMS">
+<primary-key-column name="atom_acc"/>
+</primary-key>
 <foreign-key-list>
 <foreign-key id="c677a7:11d0a03bd9e:-635e" name="FK_nucleic_acid_int_atoms_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NUCLEIC_ACID" referenced-table="nucleic_acid" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
 <foreign-key-column column-name="nucleic_acid_acc" referenced-key-column-name="accession"/>
@@ -1436,9 +1438,7 @@
 <data-type name="VARCHAR" selected-variant-pattern="VARCHAR(%n)"/>
 </column>
 </column-list>
-<primary-key id="c677a7:11d0a03bd9e:-7f60" name="PK_NADI_RES">
-<primary-key-column name="nadi"/>
-</primary-key>
+<primary-key id="c677a7:11d0a03bd9e:-7f60" name="PK_NADI_RES"/>
 <foreign-key-list>
 <foreign-key id="c677a7:11d0a03bd9e:-62de" name="FK_nadi_res_1" on-delete="UNSPECIFIED" on-update="UNSPECIFIED" referenced-key="PK_NADI" referenced-table="nadi" referenced-table-schema="iPfam_innodb" source-entity-role="" source-multiplicity="0..*" source-relationship-type="" target-entity-role="" target-multiplicity="1" target-relationship-type="">
 <foreign-key-column column-name="nadi" referenced-key-column-name="nadi"/>
