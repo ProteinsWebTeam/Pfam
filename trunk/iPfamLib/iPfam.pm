@@ -76,7 +76,7 @@ sub getRegions {
     if ( $chain->type eq 'protein' ) {
       if ( $chain->internal_chain_id =~ /biomt\.(\S{1})\./ ) {
         my $oriChain = "asym." . $1 . ".1.1";
-        $logger->info("Transfering domain information from $oriChain");
+        $logger->debug("Transfering domain information from $oriChain");
         $db->transferDomainAnnotation( $pdbObj->id, $oriChain,
           $chain->internal_chain_id );
       }
@@ -152,7 +152,7 @@ sub calInterChainInts {
           . $chain1->type . " and "
           . $chain2->chainID . ","
           . $chain2->type );
-      $logger->info( "Working on "
+      $logger->debug(( "Working on "
           . $chain1->chainID . ","
           . $chain1->type . " and "
           . $chain2->chainID . ","
@@ -160,7 +160,7 @@ sub calInterChainInts {
       #Skip self-self interactions!
 #      next if ( $chain1->internal_chain_id eq $chain2->internal_chain_id );
       if ( $chain1->internal_chain_id eq $chain2->internal_chain_id ){
-        $logger->info( "****Self-Self interactions are skipped for ".$chain1->internal_chain_id .'-'. $chain2->internal_chain_id.
+        $logger->debug( "****Self-Self interactions are skipped for ".$chain1->internal_chain_id .'-'. $chain2->internal_chain_id.
          ' , types are '.$chain1->type . "-" . $chain2->type );
         next;  
       }
@@ -170,15 +170,15 @@ sub calInterChainInts {
       if (  $chain1->type eq "protein"
         and $chain2->type eq "protein" )
       {
-        $logger->info( 'calculating Interchain ProteinProtein Interactions*********');
+        $logger->debug( 'calculating Interchain ProteinProtein Interactions*********');
         proteinProteinInts( $chain1, $chain2, $db, $pdbRdbObj );
-        $logger->info( 'finsihed calculating Interchain ProteinProtein Interactions*********');
+        $logger->debug( 'finsihed calculating Interchain ProteinProtein Interactions*********');
         
       }    #Protein nucleic-acid interactions
       elsif ( $chain1->type eq "protein"
         and ( $chain2->type eq "DNA" or $chain2->type eq "RNA" ) )
       {
-        $logger->info("Going to calculate interchain protein:nucleic interactions");
+        $logger->debug("Going to calculate interchain protein:nucleic interactions");
         proteinNucleicInts( $chain1, $chain2, $db, $pdbRdbObj );
       }    #
       elsif ( ( $chain1->type eq "DNA" or $chain1->type eq "RNA" )
@@ -189,11 +189,11 @@ sub calInterChainInts {
         #nucleicNucleicInts($chain1, $chain2, $db, $pdbRdbObj);
       }    #Look for protein - ligand interactions
       elsif ( $chain1->type eq "protein" and $chain2->type eq "ligand" ) {
-        $logger->info( 'calculating Interchain Protein ligand Interactions*********');
+        $logger->debug( 'calculating Interchain Protein ligand Interactions*********');
         proteinLigandInts( $chain1, $chain2, $db, $pdbRdbObj );
       }
       elsif ( $chain1->type eq "ligand" and $chain2->type eq "protein" ) {
-        $logger->info( "chain 1 has to be Protein so skipping this chain 1" );
+        $logger->debug( "chain 1 has to be Protein so skipping this chain 1" );
         #We only want to store stuff one way for ligands.
         next;
       }
@@ -212,9 +212,9 @@ sub proteinProteinInts {
 
   my $pdbId  = $pdbRdbObj->pdb_id;
   my $ch1Obj = $db->getChainData( $chain1, $pdbId );
-  $logger->info( "Got chain data for $chain1 and $pdbId" );
+  $logger->debug( "Got chain data for $chain1 and $pdbId" );
   my $ch2Obj = $db->getChainData( $chain2, $pdbId );
-  $logger->info( "Got chain data for $chain2 and $pdbId" );
+  $logger->debug( "Got chain data for $chain2 and $pdbId" );
   
   #TODO Fix this query/caching
   my ( $foundInteraction, $ppi, %ppiResStored, %ppiAtomStore, %ppiBondStore );
@@ -335,7 +335,7 @@ sub proteinProteinInts {
 
       #Now calculate the protein interaction information
       my $dasa = calculateInteractionASA( $chain1, $chain2 );
-      $logger->info("The deltaASA is $dasa");
+      $logger->debug("The deltaASA is $dasa");
       $db->addQualityControl( $ppi->ppi, "ppi", "NACCESS", $dasa, "deltaASA" );
       
     }
@@ -348,7 +348,7 @@ sub proteinProteinInts {
 
 sub proteinNucleicInts {
   my ( $chain1, $chain2, $db, $pdbRdbObj ) = @_;
-  $logger->info("Calculating protein Nucleic acid interactions");
+  $logger->debug("Calculating protein Nucleic acid interactions");
 
   #Check that we have to chains of the right type!
   unless ( $chain1->type eq "protein"
@@ -363,12 +363,12 @@ sub proteinNucleicInts {
   #Add the chains to the database if not already present
   my $ch1Obj = $db->getChainData( $chain1, $pdbId );
   my $ch2Obj = $db->getChainData( $chain2, $pdbId );
-  $logger->info( "chain queries are succesful ");
-  $logger->info( "the accession called for teh get Protein Nucleic data are ". $ch1Obj->get_column( "accession") , $ch2Obj->get_column( "accession") );
+  $logger->debug( "chain queries are succesful ");
+  $logger->debug( "the accession called for teh get Protein Nucleic data are ". $ch1Obj->get_column( "accession") , $ch2Obj->get_column( "accession") );
   
   my ( %napiAtomStore, %napiBondStore );
   my $atomsRef = $db->getProteinNucleicAtomAndBondData( $ch1Obj->get_column( "accession") , $ch2Obj->get_column( "accession") );
-  $logger->info( "finsihed getting protein nuclcie data ");  
+  $logger->debug( "finsihed getting protein nuclcie data ");  
   
   foreach my $bondObj (@$atomsRef) {
     
@@ -413,19 +413,17 @@ sub proteinNucleicInts {
               
               my $a2 = $db->addNucleicAcidAtomData( $ch2Obj->get_column( "accession" ), $ch2Obj->id, $base->resName, $base->resSeq, $base_atom->realName, $base_atom->serial );
               $napiAtomStore{ $ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial } = $a2->atom_acc;
-              $logger->info( "the atom_acc added to the table is ".$a2->atom_acc);
+              $logger->debug( "the atom_acc added to the table is ".$a2->atom_acc);
                             
             }
-            print "the base is ".dump( \%napiAtomStore );
-            print "teh base atom is ".dump( \%napiBondStore );
-            
-            $logger->info("**********teh accession and serial for protein are ".$ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial );
-            $logger->info( "*********the accession and serial for nucleic are ".$ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial );
+             
+            $logger->debug("**********teh accession and serial for protein are ".$ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial );
+            $logger->debug( "*********the accession and serial for nucleic are ".$ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial );
             
             my $a1_acc = $napiAtomStore{ $ch1Obj->get_column( "accession" ) . ":" . $aa_atom->serial };
             my $a2_acc = $napiAtomStore{ $ch2Obj->get_column( "accession" ) . ":" . $base_atom->serial };
             
-            $logger->info( "a1acc $a1_acc | a2_acc $a2_acc " );
+            $logger->debug( "a1acc $a1_acc | a2_acc $a2_acc " );
             
             unless ( $napiBondStore{ $a1_acc . ":" . $a2_acc . ":" . $bond } ) {
               
@@ -485,7 +483,7 @@ sub proteinLigandInts {
     
     # check whether the momomer we are dealing with is ligand or residue, if its residue, then skip it.
     next unless( ref( $ligand ) eq "Bio::iPfam::Structure::Ligand" );
-    $logger->info( "******************the dump of the ligands in proteinLigandInts is ".ref( $ligand ) );
+    $logger->debug( "******************the dump of the ligands in proteinLigandInts is ".ref( $ligand ) );
     
     next if ( $ligand->resName eq "HOH" or $ligand->resName eq "DOD" );
     my ( $foundInteraction, $pli, %pliResStored, %pliAtomStore, %pliBondStore );
@@ -626,19 +624,19 @@ sub calIntraDomDomInts {
     next unless ( $chain->type eq "protein" );
     
     my $chainObj = $db->getChainData( $chain, $pdbObj->id );
-    $logger->info("Got chain");
+    $logger->debug("Got chain");
     
     if ( $chain->pfam_chain ) {
-      $logger->info("Got pfam chain");
+      $logger->debug("Got pfam chain");
       
       if ( scalar( @{ $chain->pfam_chain->regions } ) > 1 ) {
-        $pdbObj->log->info("Got pfam region");
+        $pdbObj->log->debug("Got pfam region");
         
         foreach my $reg1 ( @{ $chain->pfam_chain->regions } ) {
     
           foreach my $reg2 ( @{ $chain->pfam_chain->regions } ) {
             
-            $logger->info( "the uniquID of region1 and region2 are ". $reg1->uniqueID ." - ". $reg2->uniqueID );
+            $logger->debug( "the uniquID of region1 and region2 are ". $reg1->uniqueID ." - ". $reg2->uniqueID );
                     
             next if ( $reg1->uniqueID eq $reg2->uniqueID );
             my ( $foundInteraction, $ddi, %ddiResStored, %ddiAtomStore, %ddiBondStore );
@@ -775,7 +773,7 @@ sub calIntraDomDomInts {
 sub deriveInterDomInts {
   my ( $pdbObj, $db ) = @_;
 
-  $logger->info( "inside deriveINerDOnInts");
+  $logger->debug( "inside deriveINerDOnInts");
   foreach my $chain1 ( @{ $pdbObj->chains } ) {
     $logger->debug("Got chain1");
     foreach my $chain2 ( @{ $pdbObj->chains } ) {
@@ -859,13 +857,13 @@ sub deriveInterDomInts {
         and ( $chain2->type eq "RNA" or $chain2->type eq "DNA" ) )
       {
         foreach my $reg ( @{ $chain1->pfam_chain->regions } ) {
-          $logger->info(
+          $logger->debug(
             "Getting DNA/RNA interaction information with " . $reg->acc );
 
-          $logger->info(
+          $logger->debug(
             "Got pfam chains on both PDB, look to see if they interact");
           foreach my $reg1 ( @{ $chain1->pfam_chain->regions } ) {
-            $logger->info( "looking for inteactions between "
+            $logger->debug( "looking for inteactions between "
                 . $reg1->uniqueID . " and "
                 . $chain2->internal_chain_id );
             my $interface = $db->getNapiResWithProteinRange(
@@ -917,7 +915,7 @@ sub deriveInterDomInts {
           
           # check whether the momomer we are dealing with is ligand or residue, if its residue, then skip it.
           next unless( ref( $ligand ) eq "Bio::iPfam::Structure::Ligand" );
-          $logger->info( "******************the dump of the ligands in deriveInterDomInts is ".ref( $ligand ) );
+          $logger->debug( "******************the dump of the ligands in deriveInterDomInts is ".ref( $ligand ) );
          
           next if ( $ligand->resName eq "HOH" or $ligand->resName eq "DOD" );
           
@@ -1142,12 +1140,12 @@ sub _bondType {
         my ( $bond_angle, $bond_plane );
         #$logger->info( "************** bond_angle sub called with the params ".$atom1->realName.' | '. $$carDataRef{$pr1}{$pat1}{'Hb'}.' | '.$atom2->realName.' | '.$$carDataRef{$pr2}{$pat2}{'Hb'}.' | '.$r1->resName.' | '.$r2->resName.' | '."\n and we got angle $bond_angle" );
         # delete everything from this line till # EOF
-        unless ( defined $atom1->realName ){ $logger->info( "********atom1 not defined" ); }
-        unless ( defined $$carDataRef{$pr1}{$pat1}{'Hb'} ){ $logger->info( "*******$pr1, $pat1, hb not defined" ); }
-        unless ( defined $atom2->realName ){ $logger->info( "*********atom2 not defined" ); }
-        unless ( defined $$carDataRef{$pr2}{$pat2}{'Hb'} ){ $logger->info( "********$pr2, $pat2, hb not defined" ); }
-        unless ( defined $r1->resName ){ $logger->info( "**********Res1 not defined" ); }
-        unless ( defined $r2->resName ){ $logger->info( "*******Res2 not defined" ); }
+        unless ( defined $atom1->realName ){ $logger->debug( "********atom1 not defined" ); }
+        unless ( defined $$carDataRef{$pr1}{$pat1}{'Hb'} ){ $logger->debug( "*******$pr1, $pat1, hb not defined" ); }
+        unless ( defined $atom2->realName ){ $logger->debug( "*********atom2 not defined" ); }
+        unless ( defined $$carDataRef{$pr2}{$pat2}{'Hb'} ){ $logger->debug( "********$pr2, $pat2, hb not defined" ); }
+        unless ( defined $r1->resName ){ $logger->debug( "**********Res1 not defined" ); }
+        unless ( defined $r2->resName ){ $logger->debug( "*******Res2 not defined" ); }
         
         # EOF 
         eval{
@@ -1155,7 +1153,7 @@ sub _bondType {
         };
         
         if( $@ ){
-          $logger->info( "************** bond_angle sub called with the params ".$atom1->realName.' | '. $$carDataRef{$pr1}{$pat1}{'Hb'}.' | '.$atom2->realName.' | '.$$carDataRef{$pr2}{$pat2}{'Hb'}.' | '.$r1->resName.' | '.$r2->resName.' | '."\n and we got angle $bond_angle" );
+          $logger->debug( "************** bond_angle sub called with the params ".$atom1->realName.' | '. $$carDataRef{$pr1}{$pat1}{'Hb'}.' | '.$atom2->realName.' | '.$$carDataRef{$pr2}{$pat2}{'Hb'}.' | '.$r1->resName.' | '.$r2->resName.' | '."\n and we got angle $bond_angle" );
           $logger->logdie( "there is some error in finding the bond angle ".$@ );
         }
          
@@ -1249,7 +1247,7 @@ sub bond_angle {
     if( $mod_v1 > 0 and $mod_v2 > 0 ){
       $angle = rad2deg( acos( $vp / ( $mod_v1 * $mod_v2 ) ) );
     }else{
-      $logger->info( "********one of the mod values is 0, so skipped the calculation");
+      $logger->debug( "********one of the mod values is 0, so skipped the calculation");
       $angle = "0";
     }
     
@@ -1309,7 +1307,7 @@ sub getConnection {
   }
   if ($conAtom) {
     $logger->debug( "Returning connection $conAtom for " . $res->resName );
-    $logger->info( "Returning connection $conAtom for " . $res->resName );
+    $logger->debug( "Returning connection $conAtom for " . $res->resName );
     return ($conAtom);
   }
 }
