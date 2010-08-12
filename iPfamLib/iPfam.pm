@@ -1511,7 +1511,6 @@ sub _runAndParseNaccess {
   open( RES, "$file.rsa" ) || die "Could not open $file.rsa :[$!]\n";
   while (<RES>) {
     if (/^TOTAL\s+(\S+)\s+\S+\s+\S+\s+\S+\s+\S+/) {
-      print "the rsa values are $file.rsa $1 $2 $3 $4 $5\n";
       $asaData->{all}      = $1;
       $asaData->{side}     = $2;
       $asaData->{main}     = $3;
@@ -1523,6 +1522,7 @@ sub _runAndParseNaccess {
   # THERE ARE CASES WHERE THE TOTAL ATOMS PRESENT IN THE FILE IS MORE THAN 30000,
   # SO NACCESS IS NOT CALCULATING THE DATA, SO BETTER ADD THE ALL VALUE AS 0;
   unless ( defined $asaData->{ all } ){
+   $logger->debug( "***********the entity2 is empty, so adding data to 0 " );
    $asaData->{ all } = 0;
   }
   
