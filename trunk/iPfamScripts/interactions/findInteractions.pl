@@ -133,6 +133,8 @@ foreach my $pdbRow ( @pdbList ){
       $logger->info('Finished to search for interactions within entry '.$pdbRow->pdb_id); 
       $db->endJob($pdbRow->pdb_id);
       
+      # now there is no error so commit the data into the database;
+      $db->{ 'schema' }->txn_commit();
     }
   }else{
      $logger->warn( "Failed get the pdb file entry for". $pdbRow->pdb_id );
