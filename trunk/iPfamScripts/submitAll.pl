@@ -75,13 +75,14 @@ unless($sqlResource){
 }
 
 unless($lsfQueue){
+  # either normal or basement should be entered instead of 100;
   $lsfQueue = 100;
   $logger->warn("*** The max load on SQL was not specified. Setting maxLoad to be $maxLoad ***");
 }
 
 
 #Now check that a valid resource has been 
-unless($sqlResource =~ /mypfam[dev|stg|live|arc]/){
+unless( $sqlResource =~ /mypfam[dev|stg|live|arc]/){
   $logger->logdie("*** Invaild LSF pfam sql resources: $sqlResource ***" );
 }
 
@@ -132,13 +133,13 @@ my $totalNumberStructures = $db->getSchema
                                 ->resultset("Pdb")
 			                           ->search();
 
-
+$logger->debug( "the total number of structures is ". $totalNumberStructures );
 my $numJobs = 	int($totalNumberStructures/$numberPdbsPerJob)+1;
 
 
 
 #Now Build up the execution statement.
-my $exec =  'cd /lustre/scratch1/sanger/pfam/ipfam; findInteractions.pl ';
+my $exec =  'cd /lustre/scratch103/sanger/pg6/iPfam/iPfamScripts/interactions; findInteractions.pl ';
 $exec .= " -numberPdbs $numberPdbsPerJob";
 $exec .= " -page \$\{LSB_JOBINDEX\}";
 $exec .= " -h $rdb_host -rdb $rdb_name -port $rdb_port -p $rdb_pass";
@@ -153,7 +154,7 @@ $logger->debug("Would execute the following cmd:$exec");
 my $job = LSF::Job->submit(-q => $lsfQueue,
                            #-J => "ipfam[1-$numJobs]",
                            -J => "ipfam[3-$numJobs]",
-                           -o => '/lustre/scratch1/sanger/pfam/ipfam/%J.%I.test',
+                           -o => '/lustre/scratch103/sanger/pg6/iPfam/output/%J.%I.test',
                            -M => '1500000',
                            -R => "select[mem>1500 && $sqlResource<$maxLoad && type==X86_64] rusage[$sqlResource=10:mem=1500]",
                            $exec);
