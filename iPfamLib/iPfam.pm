@@ -235,15 +235,12 @@ sub proteinProteinInts {
 
 #Now look up the reverse to in case the chains have already been considered in the reverse order
 #However, we only want to store the atoms......
-  $atomsRef =
-    $db->getProteinAtomAndBondData( $ch2Obj->accession, $ch1Obj->accession, 0 );
+  $atomsRef = $db->getProteinAtomAndBondData( $ch2Obj->accession, $ch1Obj->accession, 0 );
   foreach my $bondObj (@$atomsRef) {
-    $ppiAtomStore{ $bondObj->get_column('protein_acc_a') . ":"
-        . $bondObj->get_column('atom_number_a') } =
-      $bondObj->get_column('atom_a');
-    $ppiAtomStore{ $bondObj->get_column('protein_acc_b') . ":"
-        . $bondObj->get_column('atom_number_b') } =
-      $bondObj->get_column('atom_b');
+    
+    $ppiAtomStore{ $bondObj->get_column('protein_acc_a') . ":". $bondObj->get_column('atom_number_a') } = $bondObj->get_column('atom_a');
+    $ppiAtomStore{ $bondObj->get_column('protein_acc_b') . ":" . $bondObj->get_column('atom_number_b') } = $bondObj->get_column('atom_b');
+    
   }
 
   foreach my $aa1 ( @{ $chain1->monomers } ) {
@@ -1376,6 +1373,7 @@ sub calculateInteractionASA {
     $asa[$i] = $data if ($data);
     $i++;
   }
+  
   my $dasa = ( $asa[0]->{all} + $asa[1]->{all} ) - $asa[2]->{all};
 
   #Return the results
@@ -1513,6 +1511,7 @@ sub _runAndParseNaccess {
   open( RES, "$file.rsa" ) || die "Could not open $file.rsa :[$!]\n";
   while (<RES>) {
     if (/^TOTAL\s+(\S+)\s+\S+\s+\S+\s+\S+\s+\S+/) {
+      print "the rsa values are $file.rsa $1 $2 $3 $4 $5\n";
       $asaData->{all}      = $1;
       $asaData->{side}     = $2;
       $asaData->{main}     = $3;
@@ -1520,7 +1519,13 @@ sub _runAndParseNaccess {
       $asaData->{polar}    = $5;
     }
   }
-
+  
+  # THERE ARE CASES WHERE THE TOTAL ATOMS PRESENT IN THE FILE IS MORE THAN 30000,
+  # SO NACCESS IS NOT CALCULATING THE DATA, SO BETTER ADD THE ALL VALUE AS 0;
+  unless ( defined $asaData->{ all } ){
+   $asaData->{ all } = 0;
+  }
+  
   #Clean up
   foreach my $ext ( "asa", "log", "rsa", "pdb" ) {
     unlink("$file\.$ext") || die "Could not remove $file\.$ext :[$!]\n";
