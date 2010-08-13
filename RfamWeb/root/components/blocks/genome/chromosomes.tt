@@ -55,7 +55,7 @@ tbody = BLOCK;
     </tr>
     <tr class="[% oe % 2 ? 'odd' : 'even' %]" style="display: none">
       <td colspan="6">
-        <table>
+        <table summary="Region summary">
           <thead>
             <tr>
               <th>Family</th>
