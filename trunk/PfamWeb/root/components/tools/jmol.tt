@@ -81,7 +81,9 @@ END; # of FOREACH mapping
 
 CALL script.append( activeSites );
 CALL script.append( "select none; select ligand; cpk on; color cpk; " );
-CALL script.append( unassigned );
+IF mapping.size;
+  CALL script.append( unassigned );
+END;
 -%]
 
 <h1>PDB entry [% pdb.pdb_id %]</h1>
