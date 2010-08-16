@@ -19,6 +19,11 @@ UNLESS sharedRequirements.js;       sharedRequirements.js       = []; END;
 UNLESS sharedRequirements.css ;     sharedRequirements.css      = []; END;
 UNLESS sharedRequirements.cssIe ;   sharedRequirements.cssIe    = []; END;
 UNLESS sharedRequirements.cssIeAll; sharedRequirements.cssIeAll = []; END;
+UNLESS    extRequirements;             extRequirements          = {}; END;
+UNLESS    extRequirements.js;          extRequirements.js       = []; END;
+UNLESS    extRequirements.css;         extRequirements.css      = []; END;
+UNLESS    extRequirements.cssIe ;      extRequirements.cssIe    = []; END;
+UNLESS    extRequirements.cssIeAll;    extRequirements.cssIeAll = []; END;
 %]
 [%#
 Copyright (c) 2007: Genome Research Ltd.

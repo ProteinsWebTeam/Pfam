@@ -28,34 +28,44 @@ jsIeIncludes = [];
 USE String;
 USE dumper;
 
-FOREACH location IN allRequirements.keys;
+# handle shared requirements (those in PfamBase) and local ones (those from this app)
+FOREACH location IN [ 'local', 'shared' ];
   uri  = allRequirements.${location}.uri
   reqs = allRequirements.${location}.reqs;
-  FOREACH filetype IN reqs.keys;
-    SWITCH filetype;
-      CASE "css";
-        FOREACH stylesheet IN reqs.css;
-          cssIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
-        END;
-      CASE "cssIe";
-        FOREACH stylesheet IN reqs.cssIe;
-          cssIeIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
-        END;
-      CASE "cssIeAll";
-        FOREACH stylesheet IN reqs.cssIeAll;
-          cssIeAllIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
-        END;
-      CASE "js";
-        FOREACH js IN reqs.js;
-          jsIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
-        END;
-      CASE "jsIe";
-        FOREACH js IN reqs.jsIe;
-          jsIeIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
-        END;
-    END; # of SWITCH
-  END; # of "FOREACH filetype"
+  FOREACH stylesheet IN reqs.css;
+    cssIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
+  END;
+  FOREACH stylesheet IN reqs.cssIe;
+    cssIeIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
+  END;
+  FOREACH stylesheet IN reqs.cssIeAll;
+    cssIeAllIncludes.push( "<link rel='stylesheet' href='$uri/css/$stylesheet' type='text/css' />" );
+  END;
+  FOREACH js IN reqs.js;
+    jsIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
+  END;
+  FOREACH js IN reqs.jsIe;
+    jsIeIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
+  END;
 END; # of "FOREACH location"
+
+# handle external requirements (those from third-party sites)
+reqs = allRequirements.external;
+FOREACH stylesheet IN reqs.css;
+  cssIncludes.push( "<link rel='stylesheet' href='$stylesheet' type='text/css' />" );
+END;
+FOREACH stylesheet IN reqs.cssIe;
+  cssIeIncludes.push( "<link rel='stylesheet' href='$stylesheet' type='text/css' />" );
+END;
+FOREACH stylesheet IN reqs.cssIeAll;
+  cssIeAllIncludes.push( "<link rel='stylesheet' href='$stylesheet' type='text/css' />" );
+END;
+FOREACH js IN reqs.js;
+  jsIncludes.push( "<script type='text/javascript' src='$js'></script>" );
+END;
+FOREACH js IN reqs.jsIe;
+  jsIeIncludes.push( "<script type='text/javascript' src='$js'></script>" );
+END;
 %]
 
 <!-- required javascripts -->
