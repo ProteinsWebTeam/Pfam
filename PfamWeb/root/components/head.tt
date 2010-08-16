@@ -50,7 +50,7 @@ IF refreshUri != "";
 <!-- prototype / scriptaculous -->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
 <script type="text/javascript">google.load("prototype", "1.6.1");</script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,builder,controls,slider"></script>
+<script type="text/javascript">google.load("scriptaculous", "1.8.1");</script>
 
 <!-- YUI -->
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
@@ -63,6 +63,8 @@ IF refreshUri != "";
 <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> 
 
 <!-- google analytics -->
 <script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
@@ -91,10 +93,11 @@ IF refreshUri != "";
 <!-- load dynamically required stylesheets and javascript files-->
 
 [%-
-allRequirements = { local  => { uri  => staticUri,
-                                reqs => requirements },
-                    shared => { uri  => sharedUri,
-                                reqs => sharedRequirements } };
+allRequirements = { local    => { uri  => staticUri,
+                                  reqs => requirements },
+                    shared   => { uri  => sharedUri,
+                                  reqs => sharedRequirements },
+                    external => extRequirements };
 
 PROCESS "components/load_requirements.tt" -%]
 
