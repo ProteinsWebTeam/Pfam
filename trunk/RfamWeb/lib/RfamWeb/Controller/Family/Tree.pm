@@ -105,7 +105,8 @@ Serves the raw tree data as a downloadable file.
 sub download : Local {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Tree::download: dumping tree data to the response' );
+  $c->log->debug( 'Family::Tree::download: dumping tree data to the response' )
+    if $c->debug;
 
   # stash the raw tree data
   $c->forward( 'get_tree_data' );
@@ -113,9 +114,11 @@ sub download : Local {
   return unless defined $c->stash->{treeData};
 
   my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
-  $c->log->debug( 'Family::Tree::download: tree data: |' . $c->stash->{treeData} . '|' );
+  $c->log->debug( 'Family::Tree::download: tree data: |' . $c->stash->{treeData} . '|' )
+    if $c->debug;
 
-  $c->log->debug( "Family::Tree::download: tree filename: |$filename|" );
+  $c->log->debug( "Family::Tree::download: tree filename: |$filename|" )
+    if $c->debug;
 
   $c->res->content_type( 'text/plain' );
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
@@ -304,10 +307,12 @@ sub get_tree_data : Private {
   my $treeData = $c->cache->get( $cacheKey );
   
   if ( defined $treeData ) {
-    $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' );  
+    $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' )
+      if $c->debug;  
   }
   else {
-    $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' );  
+    $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' )
+      if $c->debug;  
 
     # retrieve the tree from the DB
     my $rs = $c->model('RfamDB::AlignmentsAndTrees')
