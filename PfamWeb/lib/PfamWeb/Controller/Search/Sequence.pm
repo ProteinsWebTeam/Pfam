@@ -14,15 +14,25 @@ package PfamWeb::Controller::Search::Sequence;
 
 =head1 DESCRIPTION
 
-This controller is responsible for running sequence searches. It's built on 
-Catalyst::Controller::REST, which takes care of dispatching requests to the
-various methods, depending on the request method (e.g. "GET", "POST"), and
-rendering the results in the appropriate output format, depending on the 
-requested content-type (e.g. "JSON", "XML").
+This controller is responsible for running sequence searches. Takes care
+of outputting results as HTML or, if running via a script, as XML.
+
+=head2 Catalyst::Controller::REST and the lack thereof
+
+Ideally, we would have built this on top of Catalyst::Controller::REST, which
+takes care of dispatching requests to the various methods, depending on the
+request method (e.g. "GET", "POST"), and rendering the results in the
+appropriate output format, depending on the requested content-type (e.g.
+"JSON", "XML"). Unfortunately, because of issues with installing C::C::REST
+when we were running on the main mod_perl servers, we had to hack around
+C::C::REST and do the donkey work ourselves.
+
 
 $Id: Sequence.pm,v 1.40 2009-10-28 11:56:58 jt6 Exp $
 
 =cut
+
+# TODO: make this use C::C::REST !
 
 use strict;
 use warnings;
@@ -286,6 +296,49 @@ sub resultset : Local {
   # stash, which is where the serialisers will be looking for it
   $c->stash->{rest} = $c->stash->{results}->{$jobId}->{hits};
   # TODO figure out where this should really be...
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 graphic : Local
+
+Returns the raw JSON string describing the domain graphic for the specified job
+result set.
+
+=cut
+
+sub graphic : Local {
+  my ( $this, $c, $arg ) = @_;
+
+  # retrieve job details
+  unless ( $c->forward( 'get_job_details', [ $arg ] ) ) {
+    $c->log->debug( 'Search::Sequence::graphic: problems getting job details' )
+      if $c->debug;
+
+    $c->res->status( 404 ); # "Not found"
+    $c->res->body( 'There is no search job with that ID' );
+
+    return;
+  }
+
+  # retrieve results
+  $c->forward( 'handle_results' );
+
+  # build the domain graphics description
+  $c->forward( 'layout_dg' );
+
+  # make sure we got something...
+  unless ( $c->stash->{dg_layout} ) {
+    $c->res->status( 500 ); # "Not found"
+    $c->res->body( 'Failed to build domain graphics description' );
+    return;
+  }
+
+  $c->log->debug( 'Search::Sequence::graphic: layout: ' . $c->stash->{dg_layout} )
+    if $c->debug;
+
+  $c->res->content_type( 'application/json' );
+  $c->res->body( $c->stash->{dg_layout} );
 }
 
 #-------------------------------------------------------------------------------
@@ -680,6 +733,9 @@ sub handle_results : Private {
     
     $jobs->{hits}->{$job_type} = $results;
 
+		$c->log->debug( 'Search::Sequence::handle_results: ' . dump( $results ) )
+			if $c->debug;
+
   } # end of "foreach my $job"
 
   $c->log->debug( 'Search::Sequence::handle_results: stashed hits for '
@@ -852,7 +908,7 @@ sub layout_dg : Private {
   # $c->log->debug( "Search::Sequence::layout_dg: JSON sequence object: |$json_layout|" ) 
   #   if $c->debug;
 
-} # end of "sub handle_results"
+} # end of "sub layout_dg"
 
 #-------------------------------------------------------------------------------
 
