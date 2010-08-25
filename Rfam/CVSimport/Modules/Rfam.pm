@@ -101,7 +101,7 @@ $rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq";
 $rfamseq_farm2_run_dir     = "/nfs/pfam_nfs/rfam/rfamseq/CURRENT";
 
 #SCRATCH ON THE FARM:
-$scratch_farm = "/lustre/scratch103/sanger";
+$scratch_farm = "/lustre/scratch101/sanger";
 
 #INFERNAL PATH
 $infernal_path = "/software/rfam/share/infernal-1.0/bin";
