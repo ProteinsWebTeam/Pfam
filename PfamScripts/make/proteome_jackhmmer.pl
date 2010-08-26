@@ -59,7 +59,7 @@ $st1->execute() or $logger->logdie("Couldn't select auto_proteome from complete_
 my $auto_proteome =  $st1->fetchrow;
 
 unless($auto_proteome) {
-    $logger->logdie("Couldn't find the auto_proteome foe the ncbi taxid $ncbi_tax in the database");
+    $logger->logdie("Couldn't find the auto_proteome for the ncbi taxid $ncbi_tax in the database");
 }
 
 
