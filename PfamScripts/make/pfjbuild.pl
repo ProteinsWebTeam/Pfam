@@ -449,7 +449,7 @@ sub farmJackhmmer {
   }
   
   #Now clean up after ourselves on the farm
-  $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" ) if($copyFiles);
+  $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   $fh->close();
 
 }
