@@ -79,7 +79,7 @@ my $pfamA_count = keys %pfamA_proteins;
 
 #Get total number of proteins in proteome
 my $st3 = $dbh->prepare("select proteome_pfamseq.auto_pfamseq, pfamseq_acc, seq_version, description, sequence from pfamseq, proteome_pfamseq where pfamseq.auto_pfamseq = proteome_pfamseq.auto_pfamseq and auto_proteome = $auto_proteome");
-$st3->execute() or die $logger->logdie("Couldn't select auto_pfamseq from proteome_pfamseq where auto_proteome = $auto_proteome " . $st3->errstr."\n");
+$st3->execute() or die $logger->logdie("Couldn't select proteome_pfamseq.auto_pfamseq, pfamseq_acc, seq_version, description, sequence from pfamseq, proteome_pfamseq where pfamseq.auto_pfamseq = proteome_pfamseq.auto_pfamseq and auto_proteome = $auto_proteome " . $st3->errstr."\n");
 
 my $all_data = $st3->fetchall_arrayref;
 my %all_proteins;
