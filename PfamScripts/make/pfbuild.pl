@@ -41,7 +41,7 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db, $cpu, $copy );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db, $cpu, $copy , $pfamseq_local);
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
@@ -62,12 +62,23 @@ sub main {
                'F3=s'       => \$f3,
                'withpfmake' => \$withpfmake,
                'makeEval=s' => \$makeEvalue,
+	       'pfamseq=s'  => \$pfamseq_local,
   	       'db=s'       => \$db) or die "Unknown option, try running -help for more infortmation.\n";
   
   help() if($help);
   if($hand and $nobuild){
      warn "\n***** Can not specfiy -hand and -build together *****\n\n";
   }
+
+  if($pfamseq_local) {
+      unless($local) {
+	  die "You can only use the -pfamseq option with the the -local option\n";
+      }
+      unless(-s $pfamseq_local) {
+	  die "[$pfamseq_local] does not exist\n";
+      }
+  }
+
   
   if($local){
     $split = 0; 
@@ -85,7 +96,13 @@ sub main {
       else {
 	  $dbsize =  $config->dbsize;
       }
-      $db_location = $config->pfamseqLoc."/$db";
+
+      if($pfamseq_local) {
+	  $db_location = $pfamseq_local;
+      }
+      else {
+	  $db_location = $config->pfamseqLoc."/$db";
+      }
   }
   elsif($db eq "ncbi") {
       if($dbsize and $dbsize ne $config->ncbi_dbsize){
@@ -512,6 +529,8 @@ Options that influence hmmsearch:
   -local      : Run the hmmsearch on the local machine rather than submitting 
               : to a compute farm. Note, the farm configuration is used by the 
               : Pfam configuration file.
+  -pfamseq <p>: Give the location of pfamseq on the command line
+                This option is only for use with -local
   -copy       : Copy the files in the familyto a place that is visible to the farm.            
   -split      : Run the hmmsearch against the split version of pfamseq (Not yet implemented).
   -ignoreSM   : Ignore the SM line present in the DESC file. Otherwise the SM
