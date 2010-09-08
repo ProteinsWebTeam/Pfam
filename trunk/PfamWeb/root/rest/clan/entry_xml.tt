@@ -1,0 +1,68 @@
+[% 
+# entry_xml.tt
+# jt6 20100906 WTSI
+#
+# template for serialising clan data to XML format
+#
+# $Id$
+
+USE date;
+USE String;
+
+META naked = 1;
+
+baseUri = "http://pfam.sanger.ac.uk/";
+#baseUri = "http://web-vm-pfam.internal.sanger.ac.uk:8000/";
+
+totalFam = 0;
+totalSeq = 0;
+FOREACH pfam IN clanMembers 
+  totalFam = totalFam + 1;
+  totalSeq = totalSeq + pfam.auto_pfama.num_full;
+END -%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on Pfam clan [% clan.clan_acc %] ([% clan.clan_id %]), generated: [% date.format %] -->
+<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/clan_xml.xsd"
+      release="[% relData.pfam_release %]" 
+      release_date="[% relData.pfam_release_date %]">
+  <entry entry_type="Clan" accession="[% clan.clan_acc %]" id="[% clan.clan_id %]">
+    <description>
+<![CDATA[
+[% clan.clan_description | html %]
+]]>
+    </description>
+    <comment>
+<![CDATA[
+[% clan.clan_comment | html %]
+]]>
+    </comment>
+    <members>
+[% FOREACH pfam IN clanMembers;
+  percent = ( pfam.auto_pfama.num_full / totalSeq ) * 100;
+  percentS = String.new(percent).format("%.1f") -%]
+      <pfamA accession="[% pfam.auto_pfama.pfama_acc %]" id="[% pfam.auto_pfama.pfama_id %]" num_occurrences="[% pfam.auto_pfama.num_full %]" percentage_hits="[% percentS %]" />
+[% END -%]
+    </members>
+  </entry>
+</pfam>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
