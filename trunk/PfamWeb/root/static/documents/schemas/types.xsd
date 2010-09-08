@@ -54,7 +54,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       <xs:pattern value="[A-Za-z0-9_\-]{1,15}" />
     </xs:restriction>
   </xs:simpleType>
-
+  
   <xs:simpleType name="pfamAType">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Domain"></xs:enumeration>
@@ -82,6 +82,12 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   <xs:simpleType name="clanAccession">
     <xs:restriction base="xs:string">
       <xs:pattern value="CL\d{4}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="clanId">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z0-9_\-]{1,15}" />
     </xs:restriction>
   </xs:simpleType>
   
