@@ -33,8 +33,9 @@ baseUri = "http://pfam.sanger.ac.uk/";
 ]]>
     </comment>
 [% END;
-IF pfam.clan_acc -%]
-    <clan_membership clan_acc="[% pfam.clan_acc %]" clan_id="[% pfam.clan_id %]" />
+clanRow = pfam.clan_memberships.auto_clan;
+IF clanRow -%]
+    <clan_membership clan_acc="[% clanRow.clan_acc %]" clan_id="[% clanRow.clan_id %]" />
 [% END;
 CALL c.log.debug( "goTerms.size: |" _ goTerms.size _ "|" );
 IF goTerms.size;
