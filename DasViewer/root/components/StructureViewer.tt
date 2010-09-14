@@ -49,7 +49,7 @@ var StructureViewer = Class.create({
    */
   initialize: function( parent, accession, url, jmolUrl, options ){
     
-    console.log( 'initialize: begins');
+    // console.log( 'initialize: begins');
     
     // check for an existing DOM element;
     if( parent !== undefined ){
@@ -97,7 +97,7 @@ var StructureViewer = Class.create({
     
     // now create the query string and make a request;
     var queryString = this._url + '?acc=' + this._accession;
-    console.log( 'fetchStructures: the queryString is |%s|',queryString );
+    // console.log( 'fetchStructures: the queryString is |%s|',queryString );
     
     // now make the request using YAHOO get;
     var objTransaction = YAHOO.util.Get.script( queryString, {
@@ -107,7 +107,7 @@ var StructureViewer = Class.create({
         response.purge();
         
         if( typeof structure === 'string' ){
-          console.log( '****the type of structure is '+ typeof structure +'|'+structure );  
+          // console.log( '****the type of structure is '+ typeof structure +'|'+structure );  
           that._parent.update( structure );
           
           // now set the readystate to false;
@@ -151,7 +151,7 @@ var StructureViewer = Class.create({
     
     // walk down the array to get the vales;
     $A( structure ).each( function( pdb ){
-      console.log( 'the acc, start, end is |%s|%d|%d| ', pdb.acc, pdb.start, pdb.end );
+      // console.log( 'the acc, start, end is |%s|%d|%d| ', pdb.acc, pdb.start, pdb.end );
       
       processedStructure.set( pdb.acc, pdb );
       // now create the option element and add as child of select;
@@ -163,7 +163,7 @@ var StructureViewer = Class.create({
     } );
     
     this._processedStructure = processedStructure;
-    console.log('the processed Strucutre is '+ this._processedStructure.inspect() );
+    // console.log('the processed Strucutre is '+ this._processedStructure.inspect() );
     
     // no add this to the selectEl to the object;
     this._selectEl = selectEl ;
@@ -195,7 +195,7 @@ var StructureViewer = Class.create({
     
     // change the shown strcture to be this one;
     var pdb = this.getShownStructure();
-    console.log( 'new Strucutre to be shown '+ pdb );
+    // console.log( 'new Strucutre to be shown '+ pdb );
     
     // now get the first 4 letters of the PDB id leaving the chain details;
     var list = /(\w{4})\.\w+/.exec( pdb );
@@ -205,7 +205,7 @@ var StructureViewer = Class.create({
     var string = 'background white;load [% c.uri_for ("/structure/getpdb") %]?id=' + pdb_id;
     string += ';select all;cartoon on;cpk off; wireframe off;';
     
-    console.log( 'the string is '+ string );
+    // console.log( 'the string is '+ string );
     
     var myApplet = jmolApplet( 250, string, 'foo' );
     
@@ -220,7 +220,7 @@ var StructureViewer = Class.create({
    */
   // function to create applet element;
   appletElement: function(){
-    console.log( 'Creating an element for applet ' );
+    // console.log( 'Creating an element for applet ' );
     
     var appletId = new Element( 'div', { 'id': 'appletId' } );
     
@@ -245,7 +245,7 @@ var StructureViewer = Class.create({
   // function to set parent;
   setParent: function( parent ){
     this._parent = $( parent );
-    console.log('the parent is '+this._parent.inspect() );
+    // console.log('the parent is '+this._parent.inspect() );
     
     if ( this._parent === undefined || this._parent === null ) {
       this._throw( "couldn't find the node"+parent );
@@ -376,7 +376,7 @@ var StructureViewer = Class.create({
     
     this._selectEl.observe( 'change', function( ){
       
-      console.log( 'the selected option is '+ this._selectEl.value );
+      // console.log( 'the selected option is '+ this._selectEl.value );
       
       this._structureChanged = true;
       
