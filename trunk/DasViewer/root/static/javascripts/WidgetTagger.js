@@ -163,7 +163,7 @@ var WidgetTagger = Class.create({
       // ******************************************************************************
       
       if( this.getClickProcessStatus() === true ){
-        console.log( 'there is a request in process; so returning;' );
+        // console.log( 'there is a request in process; so returning;' );
         return;
       }
       
@@ -676,13 +676,13 @@ var WidgetTagger = Class.create({
    * Method to fire up to highlight the clicked accession. 
    */
   _customEvent: function(){
-    console.log( 'the custom event for Accession:updated created');
+    // console.log( 'the custom event for Accession:updated created');
     
     document.observe( 'Accessions:updated', function( event ){
-      console.log( 'the event called '+ event );
+      // console.log( 'the event called '+ event );
       // check whether the wholeAcc is defined;
       if( $( this._wholeAcc ) !== null ){
-        console.log( 'adding the background to the element'+ this._wholeAcc );
+        // console.log( 'adding the background to the element'+ this._wholeAcc );
         $( this._wholeAcc ).addClassName( 'background' );
       }
     }.bind( this ) );
