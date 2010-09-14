@@ -3,7 +3,7 @@ package DasViewer::Model::DasSource;
 use strict;
 use warnings;
 use parent 'Catalyst::Model';
-#use lib '/nfs/team71/pfam/pg6/2009/project/catalyst_test/DasViewer';
+
 use DataSource;
 
 use Data::Dump qw( dump );
@@ -29,15 +29,16 @@ sub getDataSource{
   
 #  my ( $dsn   ) = $this->{dsn}         =~ m/^([\w\.\:\/\-\?\#]+)$/;
   my ( $proxy )      = $ENV{ http_proxy } || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
-  my ( $to )         = $this->{timeout} || 60 =~ /^\d+$/;    
-  my ( $capability ) = $this->{capability} =~ /^\w+$/;
+  my ( $to )         = $this->{timeout} || 60 =~ /^(\d+)$/;    
+  my ( $capability ) = $this->{capability} =~ /^(\w+)$/;
   
   # add extra params to the $args hash for creating the bio::Das::Lite object;
   $args->{ das_params }->{ timeout }    = $to;
   $args->{ das_params }->{ capability } = $capability;
   $args->{ das_params }->{http_proxy}   = $proxy if defined $proxy;
   
-  print STDERR 'Model::DasSource:the config file to be loaded is '.$ENV{ MODEL_CONFIG };
+  # print STDERR 'Model::DasSource:the config file to be loaded is '.$ENV{ MODEL_CONFIG };
+
   # store the config file in input params;
   $args->{ input_params }->{ config } = $ENV{ MODEL_CONFIG }; 
   
