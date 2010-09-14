@@ -8,11 +8,8 @@ use Config::General qw(ParseConfig);
 use Carp;
 use Bio::SeqIO;
 
-#use lib '/Users/PrasadGunasekaran/WORK/PfamCode/PfamLib/';  
-
 use Bio::Pfam::ColourAlign;
 
-our $SEQUENCE = 'MELWRQCTHWLIQCRVLPPSHRVTWDGAQVCELAQALRDGVLLCQLLNNLLPHAINLREVNLRPQMSQFLCLKNIRTFLSTCCEKFGLKRSELFEAFDLFDVQDFGKVIYTLSALSWTPIAQNRGIMPFPTEEESVGDEDIYSGLSDQIDDTVEEDEDLYDCVENEEAEGDEIYEDLMRSEPVSMPPKMTEYDKRCCCLREIQQTEEKYTDTLGSIQQHFLKPLQRFLKPQDIEIIFINIEDLLRVHTHFLKEMKEALGTPGAANLYQVFIKYKERFLVYGRYCSQVESASKHLDRVAAAREDVQMKLEECSQRANNGRFTLRDLLMVPMQRVLKYHLLLQELVKHTQEAMEKENLRLALDAMRDLAQCVNEVKRDNETLRQITNFQLSIENLDQSLAHYGRPKIDGELKITSVERRSKMDRYAFLLDKALLICKRRGDSYDLKDFVNLHDAAEFAISIKYNVEVKHIKIMTAEGLYRITEKKAFRGLTELVEFYQQNSLKDCFKSLDTTLQFPFKEPEKRTISRPAVGSTKYFGTAKARYDFCARDRSELSLKEGDIIKILNKKGQQGWWRGEIYGRVGWFPANYVEEDYSEYC';
 #------------------------------------------------------------------------------
 
 =head2 new
@@ -60,7 +57,7 @@ sub get_alignment_size {
   $self->{ daslite }->dsn( $dasParams->{ url } );
   
   if( $dasParams->{ max } == 1 ){
-    print STDERR 'its a pfam das source, so use rows to get the max rows ';
+    # print STDERR 'its a pfam das source, so use rows to get the max rows ';
     
     my $rawAlignment = $self->{ daslite }->alignment({
       query =>  $acc,
@@ -71,7 +68,7 @@ sub get_alignment_size {
     foreach ( values %{ $rawAlignment } ){
       $size = $_->[ 0 ]->{ alignment_max };
     }
-    print STDERR "teh size is $size\n";
+    # print STDERR "teh size is $size\n";
     
     return $size;
   }else{
@@ -91,7 +88,7 @@ sub get_alignment_size {
     if( defined $aliData and exists $aliData->[ 0 ]->{ alignobject } ){
       return scalar( @{ $aliData->[0]->{ alignobject } } ) ;
     }else{
-      print STDERR "the alidata is nto defined  \n";
+      # print STDERR "the alidata is nto defined  \n";
       return 0;  
     }
     
@@ -134,14 +131,14 @@ sub get_alignment {
   # prosite doesnt support rows, so deal with that separately
   my $rawAlignment;
   if( $dsn eq 'Prosite' ){
-    print STDERR "teh das source is prosite\n";
+    # print STDERR "teh das source is prosite\n";
     $rawAlignment = $self->{ daslite }->alignment({
       query =>  $acc,
       #rows  =>  "$rows"    
     });  
   }else{
     # now get the raw alignment;
-    print STDERR "teh das source is not prosite\n";
+    # print STDERR "teh das source is not prosite\n";
     $rawAlignment = $self->{ daslite }->alignment({
       query =>  $acc,
       rows  =>  "$rows"    
@@ -160,7 +157,7 @@ sub get_alignment {
   
   # get the sequences, if necessitates;
   if( $dasParams->{ sequence } == 0 ){
-    print STDERR 'there is no sequence so we need to get the accessions and fetch it for unique accessions ';
+    # print STDERR 'there is no sequence so we need to get the accessions and fetch it for unique accessions ';
     
     # get the accessions for the alignment data;
     my $accession = $self->get_accessions( $aliData );
@@ -180,7 +177,7 @@ sub get_alignment {
   my $label;
   my $consensus = [];
   if( $dasParams->{ consensus } == 1 ){
-    print STDERR " get the consensus string  and markup the alignment ";
+    # print STDERR " get the consensus string  and markup the alignment ";
     
     # get the features and parse it for source and features
     my $features_hash = $self->{ daslite }->features( $acc );
@@ -291,13 +288,13 @@ sub get_sequence{
       use LWP::Simple;
       foreach (@pdbs){
         my ($pdb_id) = $_ =~ /^(\w{4})/ ;
-        print STDERR "the pdb id is $pdb_id\n";
+        # print STDERR "the pdb id is $pdb_id\n";
         my $url = "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=FASTA\&structureId=$pdb_id";
         unless ( exists $test{$pdb_id}){
           my $pdb_seq = get($url);
           open(OUT,">>PDB");
           print OUT $pdb_seq;
-          print STDERR 'the pdbSeq id '.$pdb_seq."\n";          
+          # print STDERR 'the pdbSeq id '.$pdb_seq."\n";          
         }
         $test{$pdb_id} = $_;        
         close OUT;
@@ -326,7 +323,7 @@ sub get_sequence{
      unlink "PDB";
      
      # dump the sequence hash to see whether we have some sequences;
-     #print STDERR dump( $sequence ); 
+     # print STDERR dump( $sequence ); 
     }elsif( $_ =~ /^Uniprot/i ){
       $self->{ daslite }->dsn( $das_params->{ uniprot_sequence });
       my $seq = $self->{ daslite }->sequence($accession->{$_});
@@ -360,7 +357,7 @@ Reconstructs a blocked alignment from a raw alignment.
 sub reconstruct_alignment {
   my ( $self, $aliData, $seq ) = @_;
   
-  print STDERR "the ump of the seq is ".dump( $seq )."\n";
+  # print STDERR "the ump of the seq is ".dump( $seq )."\n";
   my ( @alignments, @alignmentLengths );
 
   for ( my $i = 0 ; $i < scalar(@$aliData) ; $i++ ) {
@@ -370,21 +367,21 @@ sub reconstruct_alignment {
     # I am calling this subroutine for both the cases where sequence is given and not.
     if( defined $seq ){
       foreach ( keys %aliObjects ){
-        print STDERR 'the aliObjects are '.$_." \n";
+        # print STDERR 'the aliObjects are '.$_." \n";
         # there might be cases where the sequences stored might be in lower case and the 
         # accession we got might be in upper case, so check for both the cases;
         if( exists $seq->{ $_ } ){
           
-          print STDERR "now its normal case\n";
+          # print STDERR "now its normal case\n";
           $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
           
         }elsif( exists $seq->{ uc( $_ ) } ){
           
-          print STDERR "now aliObejct is in Upper case\n";
+          # print STDERR "now aliObejct is in Upper case\n";
           $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
           
         }elsif( exists $seq->{ lc( $_ ) } ){
-          print STDERR "now aliObejct is in lower case\n";
+          # print STDERR "now aliObejct is in lower case\n";
           $aliObjects{ $_ }->{ sequence } = $seq->{ $_ };
         }
         #$aliObjects{ $_ }->{ sequence } = $seq->{ $_ } if( exists $seq->{ $_ });
