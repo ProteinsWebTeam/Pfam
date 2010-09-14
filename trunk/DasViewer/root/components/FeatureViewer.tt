@@ -202,7 +202,6 @@ var FeatureViewer = Class.create({
     
     // parse the response and look for the error message;
     if( this._response.get( 'errorMsg') !== undefined ){
-      console.log("WE GOT AN ERROR" );
       this._throw( this._response.get( 'errorMsg') );  
     }
     
@@ -214,7 +213,7 @@ var FeatureViewer = Class.create({
     
     // check for the error sources, if we find something then fire up a custom event;
     if( this._response.get( 'errorSources' ) !== undefined ){
-      console.log( 'the error sources are ',this._response.get( 'errorSources' ) );
+      // console.log( 'the error sources are ',this._response.get( 'errorSources' ) );
       this._parent.fire( 'ErrorSources:Found',  { errorSources: this._response.get( 'errorSources' ) } );
     } 
 
@@ -323,7 +322,6 @@ var FeatureViewer = Class.create({
     
     // get the context for the canvases;
     if( this._imgCanvas.getContext ){
-      console.log( "canvas can be used in this browser" );
       ctx = this._imgCanvas.getContext( '2d' );
     }
     
@@ -422,11 +420,9 @@ var FeatureViewer = Class.create({
     var css = $$('link[href="[% c.uri_for( "/static/css/featureViewer.css" ) %] "]'); 
     
     if( css.size() == 0 ){
-      console.log( 'making YAHOO get request for getting the CSS; as its not present in DOM' );
+      // console.log( 'making YAHOO get request for getting the CSS; as its not present in DOM' );
       var cssTransaction1 = YAHOO.util.Get.css( '[% c.uri_for( "/static/css/featureViewer.css" ) %]');
-        
     }
-    
       
   },
   
@@ -443,10 +439,10 @@ var FeatureViewer = Class.create({
     
     // check whether the styles.pfam is already defined or not, if exists don't make a request to the server;
     if( Prototip.Styles.pfam ){
-      console.log( "tipdefinition exists in the page" );
+      // console.log( "tipdefinition exists in the page" );
       return;
     }else{
-      console.log( 'fetching the tipdefinition file for the tool tips' );
+      // console.log( 'fetching the tipdefinition file for the tool tips' );
       var tipTransaction = YAHOO.util.Get.script( url );
     }
     
