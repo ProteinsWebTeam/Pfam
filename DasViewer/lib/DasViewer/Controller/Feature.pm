@@ -26,16 +26,10 @@ use parent 'Catalyst::Controller';
 sub getFeatureViewer : Path( '/javascripts/FeatureViewer.js'){
   my( $self, $c ) = @_;
   
-  #$c->res->content_type( 'text/javascript');
-  
-  # now set the template to be the file 
-  $c->stash->{ template } = 'components/FeatureViewer.tt';
-  
   my $jsFile = $c->view( 'TT')->render( $c, 'components/FeatureViewer.tt' );
   
   $c->res->content_type( 'text/javascript');
   $c->res->body( $jsFile );
-  
 }
 
 #---------------------------------------------------------------------------------------------
@@ -44,15 +38,29 @@ sub getFeature : Local {
   my ( $self, $c ) = @_;
 
   # parse the arguments;
-  my $acc     = $c->req->param('acc');
-  #my @sources = $c->req->param('Das');
-  my @sources = $c->req->param('sources');
-  $c->log->debug(
-    "Feature::getFeature::the dump of the sources is " . dump( \@sources ) );
+  unless ( defined $c->req->param('acc') and
+           $c->req->param('acc') =~ m/^[A-Za-z0-9]+$/ ) {
+    $c->res->status(400); # Bad Request
+    $c->res->body( 'You did not specified a valid sequence accession.' );
+    return;
+  }
+  my $acc = $c->req->param('acc');
+
+  my @sources;
+  foreach ( $c->req->param('sources') ) {
+    unless ( m/^DS_\d+$/ ) {
+      $c->res->status(400); # Bad Request
+      $c->res->body( 'One or more or your source IDs was invalid' );
+      return;
+    }
+    push @sources, $_;
+  }
+  $c->log->debug( 'Feature::getFeature::the dump of the sources is ' . dump( \@sources ) )
+    if $c->debug;
 
   # now stash the accession and the sources;
-  $c->stash->{ response}->{acc}     = $acc;
-  $c->stash->{ response}->{sources} = \@sources;
+  $c->stash->{response}->{acc}     = $acc;
+  $c->stash->{response}->{sources} = \@sources;
   
   # stash the names of the sources;
   my @source_names;
@@ -95,7 +103,6 @@ EOF
 
   $c->res->content_type( 'text/javascript');
   $c->res->body( $string );
-  
 }
 
 #---------------------------------------------------------------------------------------------
@@ -109,18 +116,19 @@ method to get the length of the sequence by querying Uniprot das source.
 sub getSeqLength : Private {
   my ( $self, $c ) = @_;
   
-  my $lite = $self->{ daslite };
-
   # set the dsn name ;
-  $lite->dsn( $self->{ uniprotURL } );
+  $self->{daslite}->dsn( $self->{ uniprotURL } );
 
-  my $seqResponse = $lite->sequence( $c->stash->{ response}->{acc} );
-  $c->log->debug( 'the seqRespinse is '.dump( $seqResponse ) );
+  my $seqResponse = $self->{daslite}->sequence( $c->stash->{response}->{acc} );
+  $c->log->debug( 'the seqRespinse is '.dump( $seqResponse ) )
+    if $c->debug;
   my ( $url, $sequence ) = each( %{ $seqResponse } );
 
   $c->stash->{ response }->{ seqLength } = $sequence->[0]->{ sequence_stop }; 
-  $c->log->debug( 'the sequence Length retrieved is '.$c->stash->{ response }->{ seqLength } );  
+  $c->log->debug( 'the sequence Length retrieved is '.$c->stash->{ response }->{ seqLength } )
+    if $c->debug;
 }
+
 #---------------------------------------------------------------------------------------------
 
 =head2 getDasFeatures : Private
@@ -136,7 +144,6 @@ sub getDasFeatures : Private {
   
   my $totalRows = 0;
 # get the feature for all the clicked sources and generate the seq object for giving it to the domain graphics;
-  my $lite = $self->{daslite};
   
 SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     
@@ -144,8 +151,8 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     
     # there might be cases where connecting to a specific source may fail;
     eval{
-      $lite->dsn( $self->{$ds_id}->{url} );
-      $featureResponse = $lite->features( $c->stash->{ response}->{acc} );  
+      $self->{daslite}->dsn( $self->{$ds_id}->{url} );
+      $featureResponse = $self->{daslite}->features( $c->stash->{ response}->{acc} );  
     };
     
     if( $@ ){
@@ -167,6 +174,10 @@ SOURCE:  foreach my $ds_id ( @{ $c->stash->{ response}->{sources} } ) {
     }
     # build the sequence object;
     my $resolvedFeature = $c->forward( 'resolveOverlaps', [$features] );
+    # this is dodgy. There's no reason to wrap $features as an array ref, and doing so 
+    # means that, in "resolveOverlaps", there's all kinds of extra cruft required. I'd
+    # remove it but I don't want to mess with something that (nominally works).
+    # jt6 20100913 WTSI
     
     # add another check, to measure the resolved feature count should be more than zero;
     if( scalar( @{ $resolvedFeature } ) == 0 ){
@@ -359,9 +370,13 @@ Method which returns the  Bio::Das::Lite object, for features retrieval;
 sub getDasLite : Private {
   my ( $self, $c ) = @_;
 
+  # cache the Bio::Das::Lite object for future requests
+  return if defined $self->{daslite};
+
   my ($proxy) = $self->{ das }->{proxy} || '' =~ /^([\w\:\/\.\-\?\#]+)$/;
   
-  $c->log->debug( "getDasLite: the proxy to be set is $proxy ");
+  $c->log->debug( "getDasLite: the proxy to be set is $proxy ")
+    if $c->debug;
   $self->{daslite} = Bio::Das::Lite->new( { timeout => $self->{timeout}, } );
 
   $self->{daslite}->{http_proxy} = $proxy if ( defined $proxy );
