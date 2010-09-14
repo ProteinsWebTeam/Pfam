@@ -53,16 +53,16 @@ sub getStructure : Local {
   # get the accession from the request;
   $c->stash->{ acc } = $c->req->param( 'acc' );
   
-  #Ênow get the Bio::Das::Lite object
+  # now get the Bio::Das::Lite object
   $c->forward( 'getDasLite' );
   
   # now get the mappings between the Uniprot and pdb;
   my $lite = $self->{ daslite };
   
-  #Ênow set the dsn to the mapping url;
+  # now set the dsn to the mapping url;
   $lite->dsn( $self->{ mappingUrl } );
   
-  #Ênow retrieve the alignmetns and stash it;
+  # now retrieve the alignmetns and stash it;
   $c->stash->{ rawAlignments } = $lite->alignment({
                                                     query  => $c->stash->{ acc } 
                                                   } );
@@ -91,7 +91,7 @@ EOF
 } # end of getStructure;
 
 
-#ÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐ
+#-------------------------------------------------------------------------------
 
 =head2 processAlignment : Private
 
@@ -143,13 +143,13 @@ sub processAlignment : Private {
         
       } # end of the segmetns
           
-    } #Êend of alignemtns
+    } # end of alignemtns
   } # end of values
   
   $c->stash->{ structures } = to_json( $structures );
 }
 
-#ÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐ
+#-------------------------------------------------------------------------------
 
 =head2 get_pdb
 
@@ -196,7 +196,7 @@ sub getpdb: Local {
   
 }
 
-#ÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐ
+#-------------------------------------------------------------------------------
 
 =head2 getDasLite : Private 
 
