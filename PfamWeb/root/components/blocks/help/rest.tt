@@ -27,7 +27,7 @@ sharedRequirements.css.push( "prettify.css" );
   </div>
   <div class="blockContent">
 
-    <div id="sections">
+    <div class="sections">
       <p>Contents:</p>
       <ol>
         <li>
@@ -135,11 +135,11 @@ sharedRequirements.css.push( "prettify.css" );
       rejected.
     </p>
     
-    <h4>Using a script</h3>
+    <h4>Using a script</h4>
 
     <p>
       Most programming languages have the ability to send HTTP requests and 
-      receive HTTP responses. A perl script to retrieve data about a Pfam
+      receive HTTP responses. A Perl script to retrieve data about a Pfam
       family might be as trivial as this:
     </p>
 
@@ -153,16 +153,16 @@ use warnings;
 
 use LWP::UserAgent;
 
-my $ua = LWP::UserAgent->new;
-$ua->env_proxy;
+my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;env_proxy;
 
-my $res = $ua->get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $res = $ua-&gt;get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
 
-if ( $res->is_success ) {
-  print $res->content;
+if ( $res-&gt;is_success ) {
+  print $res-&gt;content;
 }
 else {
-  print STDERR $res->status_line, "\n";
+  print STDERR $res-&gt;status_line, "\n";
 }</pre>
       </div>
     </fieldset>
@@ -172,8 +172,8 @@ else {
 
     <p>
       Although XML is just plain text and therefore human-readable, it&#39;s
-      intended to be parsed into a data structure. Extending the perl script 
-      above, we can add the ability to parse the XML using an external perl 
+      intended to be parsed into a data structure. Extending the Perl script 
+      above, we can add the ability to parse the XML using an external Perl 
       module, 
       <a class="ext" href="http://search.cpan.org/dist/XML-LibXML/">XML::LibXML</a>:
     </p>
@@ -189,21 +189,21 @@ use warnings;
 use LWP::UserAgent;
 use XML::LibXML;
 
-my $ua = LWP::UserAgent->new;
-$ua->env_proxy;
+my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;env_proxy;
 
-my $res = $ua->get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $res = $ua-&gt;get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
 
-die "error: failed to retrieve XML: " . $res->status_line . "\n"
-  unless $res->is_success;
+die "error: failed to retrieve XML: " . $res-&gt;status_line . "\n"
+  unless $res-&gt;is_success;
 
-my $xml = $res->content;
+my $xml = $res-&gt;content;
 
-my $xml_parser = XML::LibXML->new();
-my $dom = $xml_parser->parse_string( $xml );
+my $xml_parser = XML::LibXML-&gt;new();
+my $dom = $xml_parser-&gt;parse_string( $xml );
 
-my $root = $dom->documentElement();
-my ( $entry ) = $root->getChildrenByTagName( 'entry' );
+my $root = $dom-&gt;documentElement();
+my ( $entry ) = $root-&gt;getChildrenByTagName( 'entry' );
 
 print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
       </div>
@@ -832,6 +832,27 @@ ITFQNGTIRQVNGRIEESR</pre>
       may find that they are already gone.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
+
+    <h4>Retrieve domain graphics description</h4>
+
+    <p>
+      When you run a sequence search via the browser, the results page includes a 
+      Pfam domain graphic, showing the locations of any matching Pfam families
+      on your search sequence. When running a search via the RESTful interface,
+      you can't retrieve the domain graphic directly, since it's generated using
+      a javascript class in the browser. However, you can retrieve the 
+      <a class="ext" href="http://en.wikipedia.org/wiki/Json">JSON</a> string
+      that describes the graphic:
+    </p>
+
+    <pre class="url">
+[% c.uri_for( "/search/sequence/graphic/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
+
+    <p>
+      Check the <a href="[% c.uri_for('/help#tabview=tab8') %]">
+        domain graphics documentation</a> for details on how you can use the JSON
+      string locally.
+    </p>
 
   </div>
     
