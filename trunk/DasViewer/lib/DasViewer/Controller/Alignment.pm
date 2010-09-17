@@ -77,13 +77,13 @@ sub getAlignmentViewer : Path( '/javascripts/AlignmentViewer.js'){
 
 #---------------------------------------------------------------------------------------------
 
-=head2 alignment : Local
+=head2 alignment : Path
 
 Method which gets the alignment for the offset defined;
 
 =cut
 
-sub alignment : Local {
+sub alignment : Path {
   my ( $self, $c ) = @_;
   
   # detaint the damn parameters...
