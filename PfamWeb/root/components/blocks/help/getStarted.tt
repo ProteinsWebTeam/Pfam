@@ -14,6 +14,85 @@
     <h1>Getting Started using Pfam</h1>
   </div>
   <div class="blockContent">
+
+    <h2>Site organisation</h2>
+
+    <img alt="Site organisation" 
+         id="wiringDiagram"
+         src="[% c.uri_for('/static/images/wiring/family.png') %]" />
+
+    <div id="wiringBlockSummaries">
+      <div id="clanSummary" class="wiringBlockSummary" style="display: none">
+        <p>
+          <strong>Clans</strong> are sets of related Pfam-A families. The clan
+          pages can be accessed by clicking on the clan link on a family page,
+          or by entering a clan accession or identifier in the
+          &quot;Jump-to&quot; or keyword search boxes that are present on most
+          Pfam pages. A full list of clans can be viewed by using the browse
+          link at the top of the home-page.  The tabs on the clan page are very
+          similar to some of those on the family page, and include a summary,
+          domain organisation, alignments, species, interactions and
+          structures. The clan pages also have a relationships tab, which gives
+          a graphical image of the interconnections between the clan members,
+          determined by <a class="ext"
+          href="http://toolkit.tuebingen.mpg.de/hhpred">HHsearch</a> alignment
+          between the family HMMs. Note than not all Pfam-A families belong to
+          a clan. 
+        </p>
+      </div>
+      <div id="proteomeSummary" class="wiringBlockSummary" style="display: none">
+        <p>
+          The <strong>proteome</strong> pages give details of the Pfam families
+          that are found on the completed proteome of a given organism.
+        </p>
+      </div>
+      <div id="familySummary" class="wiringBlockSummary">
+        <p>
+          The <strong>family</strong> page is the major page for accessing
+          information contained within Pfam as it describes the Pfam family
+          entries. Most referring sites link to this page. Alternatively, users
+          can navigate to family pages by entering the Pfam identifier or
+          accession number, either via the home page, the &quot;Jump-to&quot;
+          boxes or the keyword search box, or by clicking on a domain name or
+          graphic from anywhere on the website. As with all Pfam pages, there
+          is the context-sensitive icon bar in the top right hand corner that
+          provides a quick overview about the contents of the tabs. The tabs on
+          the family page cover the following topics: functional annotation;
+          domain organisation or architectures; alignments; HMM logo; trees;
+          curation and models; species distribution; interactions; and
+          structures. 
+        </p>
+      </div>
+      <div id="structureSummary" class="wiringBlockSummary" style="display: none">
+        <p>
+          The three-dimensional <strong>structure</strong> of a protein reveals
+          how the units of the protein are arranged when folded. As this data
+          can be key to understanding the function of a protein, we make pages
+          dedicated to structures. As with all of our pages, the structure page
+          comprises a series of tabs with a summary bar in the top right
+          corner. These tabs contain a summary of the PDB entry, which includes
+          how the structure was determined, links to other protein structure
+          resources, the domain organisation for each protein or chain found in
+          the structure, the mapping between the PDB chains and UniProt
+          sequence and links to applets for viewing the structure. We also
+          dynamically pull in articles from <a class="ext"
+          href="http://www.ncbi.nlm.nih.gov/pmc/">PubMedCentral</a> and/or the
+          <a class="ext" href="http://www.topsan.org/">TOPSAN</a> wiki, which
+          provide further information on the structure. 
+        </p>
+      </div>
+      <div id="sequenceSummary" class="wiringBlockSummary" style="display: none">
+        <p>
+          <strong>Sequence</strong> pages list the amino acid sequence, source
+          organsim, sequence description and Pfam domains found on the
+          sequence. There are links to structures and <a class="ext"
+          href="http://www.treefam.org/">TreeFam</a> if the protein has been
+          classified by that third party database. 
+        </p>
+      </div>
+    </div>
+
+    <hr />
     
     <img class="jumpTo" 
          src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
@@ -183,6 +262,38 @@
       distances allowed between domains. 
     </p>
   
+    <script type="text/javascript">
+      // <![CDATA[
+
+      var areas = $H( {
+        clan:      [ 16, 19 ],
+        family:    [ 196, 119 ],
+        proteome:  [ 376, 19 ],
+        sequence:  [ 377, 219, ],
+        structure: [ 16, 219 ]
+      } );
+
+      var wiringDiagramUrlStub = "[% c.uri_for('/static/images/wiring/') %]";
+
+      $("wiringDiagram").observe( "click", function( e ) {
+        var co = $("wiringDiagram").cumulativeOffset(),
+            x  = e.pointerX() - co.left,
+            y  = e.pointerY() - co.top;
+        areas.keys().each( function( blockName ) {
+          var area = areas.get(blockName);
+          if ( x >= area[0] && x <= area[0] + 100 &&
+               y >= area[1] && y <= area[1] + 50 ) {
+            $("wiringDiagram").src = wiringDiagramUrlStub + blockName + ".png";
+            $$("div.wiringBlockSummary").invoke("hide");
+            $(blockName + "Summary").show();
+          }
+        } );
+
+      } );
+
+      // ]]>
+    </script>
+
   </div>
 </div>
 [%#
