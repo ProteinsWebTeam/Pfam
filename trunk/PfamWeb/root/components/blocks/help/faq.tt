@@ -15,27 +15,32 @@
   </div>
   <div class="blockContent">
 
-    <ul id="questionSelector">
-      <li><a class="link" rel="whatispfam">What is Pfam ?</a></li>
-      <li><a class="link" rel="diffs">What is the difference between Pfam-A and 
-        Pfam-B families?</a></li>
-      <li><a class="link" rel="family">What is on a Pfam-A family page ?</a></li>
-      <li><a class="link" rel="clan">What is a clan ?</a></li>
-      <li><a class="link" rel="lsfs">What happened to the Pfam_ls and Pfam_fs files ?</a></li>
-      <li><a class="link" rel="dnaSearch">Can I search DNA against Pfam ?</a></li>
-      <li><a class="link" rel="localSearch">How can I search Pfam locally ?</a></li>
-      <li><a class="link" rel="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></li>
-      <li><a class="link" rel="howMany">How many accurate alignments do you have ?</a></li>
-      <li><a class="link" rel="submit">How can I submit a new domain ?</a></li>
-      <li><a class="link" rel="ipfam">What is iPfam ?</a></li>
-      <li><a class="link" rel="mySearch">Can I search my protein against Pfam ?</a></li>
-      <li><a class="link" rel="gaps">What is the difference between the '-' and '.' 
-        characters in your full alignments ?</a></li>
-      <li><a class="link" rel="sssa">What do the SS lines in the alignment mean ?</a></li>
-      <li><a class="link" rel="missing">You don't have domain YYYY in Pfam !</a></li>
-      <li><a class="link" rel="other">Are there other databases which do this ?</a></li>
-      <li><a class="link" rel="best">So which database is better ?</a></li>
-    </ul> 
+    <div class="sections">
+      <p>Contents:</p>
+      <ol id="questionSelector">
+        <li><a class="link" rel="whatispfam">What is Pfam ?</a></li>
+        <li><a class="link" rel="diffs">What is the difference between Pfam-A and 
+          Pfam-B families ?</a></li>
+        <li><a class="link" rel="family">What is on a Pfam-A family page ?</a></li>
+        <li><a class="link" rel="clan">What is a clan ?</a></li>
+        <li><a class="link" rel="clanBuilding">What criteria do you use for putting families into clans ?</a></li>
+        <li><a class="link" rel="lsfs">What happened to the Pfam_ls and Pfam_fs files ?</a></li>
+        <li><a class="link" rel="wise">I was wondering if it is possible to build Wise2 with HMMER3 support ? </a></li>
+        <li><a class="link" rel="dnaSearch">Can I search DNA against Pfam ?</a></li>
+        <li><a class="link" rel="localSearch">How can I search Pfam locally ?</a></li>
+        <li><a class="link" rel="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></li>
+        <li><a class="link" rel="howMany">How many accurate alignments do you have ?</a></li>
+        <li><a class="link" rel="submit">How can I submit a new domain ?</a></li>
+        <li><a class="link" rel="ipfam">What is iPfam ?</a></li>
+        <li><a class="link" rel="mySearch">Can I search my protein against Pfam ?</a></li>
+        <li><a class="link" rel="gaps">What is the difference between the '-' and '.' 
+          characters in your full alignments ?</a></li>
+        <li><a class="link" rel="sssa">What do the SS lines in the alignment mean ?</a></li>
+        <li><a class="link" rel="missing">You don't have domain YYYY in Pfam !</a></li>
+        <li><a class="link" rel="other">Are there other databases which do this ?</a></li>
+        <li><a class="link" rel="best">So which database is better ?</a></li>
+      </ol> 
+    </div>
   
     <h3><a name="whatispfam">What is Pfam ?</a></h3>
   
@@ -149,6 +154,44 @@
       the family page, or alternatively they can be accessed by clicking on
       'clans' under the 'browse' by menu on the top of any Pfam page.
     </p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
+  
+    <h3><a name="clanBuilding">What criteria do you use for putting families into clans ?</a></h3>
+  
+    <p>
+      We use a variety of measures. Where possible we do use structures to guide 
+      us and that is always the gold standard. In the absence of a structure we
+      use:
+    </p>
+    <ol>
+      <li>profile comparisons such as PRC or HHsearch</li>
+      <li>the fact that a sequence significantly matches two HMMs in the same 
+        region of the sequence</li>
+      <li>a method called SCOOP, that looks for common matches in search results 
+        that may indicate a relationship</li>
+    </ol>
+    <p>
+      All of this sort of information is then used by one of our curators to make 
+      a decision about where families are related and we strive to find information 
+      in literature that support the relationship, e.g. common function.
+    </p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
+  
+    <h3><a name="wise">I was wondering if it is possible to build Wise2 with HMMER3 
+		  support ?</a></h3>
+  
+    <p>
+			The way we get round the problem with the difference in HMMER versions,
+			is to convert the HMMs that are in HMMER3 format to HMMER2 format using
+			the HMMER3 program &quot;hmconvert&quot; (with -2) flag. To make the 
+			searches feasible, we screen the DNA for potential domains using 
+			ncbi-blast and the Pfam-A.fasta as a target library. GeneWise is then 
+			used to calculate a subset of HMMs against the DNA. There is some 
+			down-weighting of the bits-per-position between H2 and H3 HMMs that the 
+			conversion does not account for, leading inevitably to some false 
+			negatives for some families/sequences. However, until GeneWise is patched 
+			to deal with HMMER3 models, this is the best course of action.
+		</p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
     <h3><a name="lsfs">What happened to the Pfam_ls and Pfam_fs files?</a></h3>
