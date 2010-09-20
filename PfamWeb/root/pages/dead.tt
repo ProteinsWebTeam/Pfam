@@ -43,14 +43,15 @@ IF pfam.forward_to %]
   <a href="[% refreshUri %]"><strong>[% pfam.forward_to %]</strong></a>.  
 </p>
 <p>
-  In 5 seconds you will be redirected to the Pfam family page for 
-  <a href="[% refreshUri %]">[% pfam.forward_to %]</a>, or you can click 
-  <a href="[% refreshUri %]">here</a> to go there immediately.
+  In [% refreshDelay ? refreshDelay : 5 -%] seconds you will be redirected to
+  the Pfam family page for <a href="[% refreshUri %]">[% pfam.forward_to %]</a>, 
+  or you can click <a href="[% refreshUri %]">here</a> to go there immediately.
 </p>
 [% ELSE %]
 <p>
-  In 5 seconds you will be redirected to the Pfam home page, or you can click 
-  <a href="[% refreshUri %]">here</a> to go there immediately.
+  In [% refreshDelay ? refreshDelay : 5 -%] seconds you will be redirected to
+  the Pfam home page, or you can click <a href="[% refreshUri %]">here</a> to
+  go there immediately.
 </p>
 [% END %]
 
