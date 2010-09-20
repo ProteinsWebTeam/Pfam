@@ -90,6 +90,27 @@ sharedRequirements.js.push( "treeTweak.js" );
 
     [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
     
+    <script type="text/javascript">
+      // <![CDATA[
+
+      document.observe("dom:loaded", function() {
+
+        var r = new Ajax.Request(
+          stUri,
+          {
+            method:     'get',
+            parameters: { acc: "[% acc %]",
+                          ie:  Prototype.Browser.IE },
+            onSuccess:  stSuccess,
+            onFailure:  stFailure
+          }
+        );
+
+      } );
+
+      // ]]>
+    </script>
+
   </div>
 </div>
 
