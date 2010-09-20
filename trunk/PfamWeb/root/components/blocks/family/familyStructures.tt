@@ -6,17 +6,22 @@
 #
 # $Id: familyStructures.tt,v 1.19 2009-10-07 13:39:16 jt6 Exp $
  
-# see if pdb was populated by the controller, in which case the user chose a
+# see if pdb_id was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
 # entry and show the image for that
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
-IF NOT pdbObj;
+USE Dumper;
+CALL c.log.debug( "colours: " _ Dumper.dump(colours) );
 
-  # pick a random PDB entry for this family
-  idList = pdbUnique.keys.sort;
+IF pdb_id;
+  pdbObj = pdb_unique.${pdb_id};
+ELSE;
+  
+  # no ID given; pick a random PDB entry for this family
+  idList = pdb_unique.keys.sort;
   numIds = idList.size;
 
   IF numIds > 1;
@@ -33,41 +38,29 @@ IF NOT pdbObj;
       randomId = idList.${rand};
     END;
 
-	pdbObj = pdbUnique.$randomId;
+    pdbObj = pdb_unique.$randomId;
 
   ELSE;
-    # if theres only one structure theres no array under pdbUnique, so we go 
+    # if theres only one structure theres no array under pdb_unique, so we go 
     # straight to the pdb object... I think
-    pdbObj = pdbUnique.values.shift;
+    pdbObj = pdb_unique.values.shift;
   END;
 
 END;
 
-IF pdbUnique.keys.size;
+IF pdb_unique.keys.size;
 
-  # when this template is called initially from the family page, the PDB ID is 
-  # coming from a query on the pdb_pfamA_reg table, so we access the pdb_id via
-  # a join. When the template is called a second time, when the user chooses to 
-  # change the structure image, the query is on the pdb table instead. Now the
-  # pdb_id is directly available, so we don't need to walk the join to get it.
-  # This IF is deciding where to get the PDB ID...
-  IF pdbObj.pdb_id.pdb_id.defined;
-    pdbImageObj = pdbObj.pdb_id;
-  ELSE;
-    pdbImageObj = pdbObj;
-  END;
+  # there are some PDB IDs, so generate some HTML...
+  
+  pdbImageObj = pdbObj.pdb_id; -%]
 
--%]
-
-<!-- start of pdb image block -->
-
-[%# <div class="pdbImageFragment"> %]
+  <!-- start of pdb image block -->
 
   [%- IF pdbObj.pdb_image.pdb_image -%]
 
     <a href="[% c.uri_for( "/structure", pdbImageObj.pdb_id ) %]">
       <img class="pdbImage" 
- 	       src="[% c.uri_for( "/structure/getimage", pdbImageObj.pdb_id, { size = "s" } ) | html %]"
+         src="[% c.uri_for( "/structure/getimage", pdbImageObj.pdb_id, { size = "s" } ) | html %]"
            alt="[% pdbImageObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
@@ -82,16 +75,16 @@ IF pdbUnique.keys.size;
     <p class="inactive">No image available</p>
 
   [%- END -%]
- 
+
   [% # if there are multiple PDB entries, allow the user to choose a specific one
-  IF pdbUnique.keys.size > 1 %]
+  IF pdb_unique.keys.size > 1 %]
 
     <form id="structuresForm"
           action="[% c.uri_for( "/family/structures" ) %]">
       <div>
         <strong>View a different structure:</strong>
-    	  <select id="pdbIdField">
-    	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
+        <select id="pdbIdField">
+          [% FOREACH id IN idList %]
           <option value="[% id %]"[% IF pdbImageObj.pdb_id == id %] 
                   disabled="disabled"
                   selected="selected"[% END %] />[% id %]</option>
@@ -99,6 +92,7 @@ IF pdbUnique.keys.size;
         </select
       </div>
     </form>
+
 
     <script type="text/javascript">
       // <![CDATA[
@@ -123,12 +117,11 @@ IF pdbUnique.keys.size;
       // ]]>
     </script>
 
-  [% END # of "if pdbUnique.keys.size > 1" %]
-[%# </div> %]
+  [% END # of "if pdb_unique.keys.size > 1" %]
 
-<!-- end of pdb image block -->
+  <!-- end of pdb image block -->
 
-[% END # of "if pdbUnique.keys.size" %]
+[% END # of "if pdb_unique.keys.size" %]
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.
