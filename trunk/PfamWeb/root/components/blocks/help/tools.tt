@@ -6,10 +6,32 @@
 #
 # $Id: tools.tt,v 1.16 2009-12-07 22:30:46 jt6 Exp $
 
-USE dumper;
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
 
-# figure out the location of the schema document
-controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+
+#-------------------------------------------------------------------------------
 
 %]
 
@@ -20,26 +42,11 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
   </div>
   <div class="blockContent">
 
-    <div style="width:80%; border: 1px solid #CCC; margin: 1em auto; padding: 0 1em; background-color: #EEE">
-      <h2>Documentation update</h2>
-      <h3>October 2009</h3>
-      <p>
-        The documentation in this tab is currently out of date. Although
-        the general information is still largely accurate, the details of 
-        the site and underlying database may be inaccurate. We hope to update
-        the documentation within the coming weeks.
-      </p>
-    </div>
-
-    <h2>Tools</h2>
-
-    <h3>Producing your own graphics</h3>
+    <h2>Producing your own graphics</h2>
 
     <p>
       As we are regularly approached for producing domain graphics for use in 
-      publications, we have produced a 
-      <a href="[% c.uri_for( "/generateGraphic" ) %]">tool</a> for users to 
-      upload a &quot;domain graphics&quot; XML. This file will be validated 
+      publications, we have produced a tool for users to upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
       <a href="[% c.uri_for( "/static/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
       and subsequently rendered. The images that the tool produces can then 
@@ -61,162 +68,83 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       which allows you to see the domain graphic for a given 
       <a class="ext" href="http://www.uniprot.org/">UniProt</a> entry.
     </p>
-    
-    <hr />
 
-	  <h2>Web services</h2>
+		<hr />
+    
+    <div id="dg"></div>
 
-    <p>
-      In the past, Pfam has provided a set of 
-      <a class="ext" href="http://en.wikipedia.org/wiki/SOAP">SOAP</a>-based 
-      web services, designed to allow programmatic access to Pfam data. These 
-      services were built as a stand-alone service, entirely separate from the 
-      old Pfam website. As such they are somewhat difficult to maintain and 
-      poorly integrated with the new Pfam website.
-    </p>
-    <p>
-      With the latest website release, we have added a new type of programmatic
-      interface to Pfam services, in the form of a set of 
-      &quot;<a class="ext" href="http://en.wikipedia.org/wiki/Restful">RESTful</a>&quot;
-      services. You can see documentation for these new services 
-      <span class="link" onclick="tabPage.switchTab('helpRestBlock');">here</span>. 
-    </p>
-    <p>     
-      Because of the problems of maintaining the SOAP-based web-services, we
-      are now phasing them out, in favour of the RESTful interface. We would 
-      strongly encourage developers to switch to the new services. If you have
-      questions or comments about this switch, please contact us at the email
-      address at the bottom of the page.
-    </p>
-    <p>
-      <span class="moreLink" onclick="reveal(this,'wsNotes',false, true)">Show</span>
-      the web services documentation.
-    </p>
+    <div id="errors" style="display: none"></div>
 
-    <div id="wsNotes" style="display: none">
+    <button id="submit">Submit</button>
+    <button id="clear">Clear</button>
 
-    	<h3>Service description</h3>
-    
-    	<p>
-    	  The set of web services offered by Pfam provides access to various parts
-      	of the Pfam database, with the main focus on the family information. The
-      	currently available methods are:
-      </p>
-    
-    	<dl class="methods">
-    	  <dt>isAlive</dt>
-        <dd>test to see if the services are up and running</dd>
-    	  <dt>getIdByAcc</dt>
-        <dd>retrieve a Pfam ID, given a Pfam accession (<em>PFXXXXX</em>)</dd>
-    	  <dt>getPfamAnnotation</dt>
-        <dd>retrieve a Pfam annotation</dd>
-    	  <dt>getPfamGO</dt>
-        <dd>get the <a class="ext" href="http://www.ebi.ac.uk/GO/">Gene Ontology</a>
-          (GO) terms for a given Pfam family</dd>
-    	  <dt>getPfamInterPro</dt>
-        <dd>get the <a class="ext" href="http://www.ebi.ac.uk/interpro">InterPro</a> 
-          information for a Pfam family</dd>
-        <dt>getPfamMembership</dt>
-        <dd>retrieve the sequences in a family, in the format &quot;
-          <em>acc / start - end</em>&quot;</dd>
-        <dt>annotateSequenceById</dt>
-        <dd>retrieve all of the Pfam domains for a given sequence, where the 
-          sequence is identified by its <a class="ext" 
-            href="http://www.uniprot.org/">UniProt</a> ID</dd>
-        <dt>annotateSequenceByAcc</dt>
-        <dd>retrieve all of the Pfam domains for a given sequence, where the 
-          sequence is identified by its <a class="ext" 
-            href="http://www.uniprot.org/">UniProt</a> accession</dd>
-        <dt>annotateSequenceByMd5</dt>
-        <dd>retrieve all of the Pfam domains for a given sequence, where the 
-          sequence is identified by its MD5 checksum</dd>
-      </dl> 
-    	
-    	<h3>Proposed methods</h3>
-      
-      <p>
-        The following methods <strong>may</strong> be added to the service in 
-        the future:
-      </p>
-    
-    	<ul>
-    		<li>getDomainGraphicByAcc</li>
-    		<li>getDomainGraphicById</li>
-    		<li>getSeedAlign</li>
-    		<li>getFullAlign</li>
-    		<li>buildAndSearch</li>
-    		<li>compareAlignToPfam</li>
-    		<li>submitPfamScan</li>
-    
-    	</ul>
-    	
-    	<h3>WSDL</h3>
-      
-    	<p>
-    	  The WSDL for the services can be found at:
-     	  <a class="ext" href="http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl">
-    	    http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl</a>
-      </p>
-    	
-    	<h3>Prerequisites</h3>
-      
-    	<p>
-    	  To run the perl client you will need to install the <code><a class="ext"
-          href="http://search.cpan.org/~byrne/SOAP-Lite/">SOAP::Lite</a></code>
-        package from <a class="ext" href="http://www.cpan.org/">CPAN</a> first. 
-        <code>SOAP::Lite</code> is a collection of perl modules which provides a 
-        simple and lightweight interface to the Simple Object Access Protocol 
-        (SOAP).
-      </p>
-    
-    	<h3>Example client</h3>
-    
-      <p>
-        You can <a href="[% c.uri_for( "/static/documents/pfamClient.pl" ) %]">download</a> 
-        an example perl client.
-        To run it, simply type: <code>perl pfamClient.pl</code>
-        The output from the script should be similar to this:
-      </p>
-    
-      <pre class="codeSnippet">shell% perl pfamClient.pl 
-Checking isAlive
-Service is alive: Pfam Web Services are alive at Wed May 30 13:32:12 2007
-Checking getId2Acc
-The id for PF00069 is: Pkinase
-Checking getAcc2Id
-The acc for Pkinase is: PF00069
-Checking getPfamAnnotation
-The description for PF00069 is:
-ID   Pkinase
-AC   PF00069
-DE   Protein kinase domain
-PI   pkinase;
-AU   Sonnhammer ELL
-SE   Unknown
-GA   -70.30 -70.30; 20.00 20.00;
-TC   -70.30 -70.30; 20.00 20.00;
-NC   -70.40 -70.40; 19.90 19.90;
-TC   Protein kinase domain
-NC   Protein kinase domain
-TP   Domain
-BM   hmmbuild -F HMM_ls SEED
-BM   hmmcalibrate --cpu 1 --seed 0 HMM_ls
-BM   hmmbuild -f -F HMM_fs SEED
-BM   hmmcalibrate --cpu 1 --seed 0 HMM_fs
-AM   globalfirst
-...</pre>
-      
-      <h3>Contact</h3>
-      
-      <p>
-        If you have questions or comments about the Pfam web services, please 
-        contact us via the email address below. If you plan to use Pfam web services 
-        for a course or if you intend to make a large number of requests, please 
-        let us know, so that we can make sure that sufficient resources are 
-        available to you. 
-      </p>
+    <div id="form">
+
+      <!-- example taken from Q560V8_CRYNE (Q560V8) -->
+      <textarea cols="80" rows="40" id="seq">
+{"length":"950","regions":[{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"361","display":true,"startStyle":"jagged","aliEnd":"361","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"163","start":"159"},{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"587","display":true,"startStyle":"jagged","aliEnd":"573","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"470","start":"470"},{"modelStart":"12","modelEnd":"100","colour":"#ff5353","endStyle":"curved","end":"469","display":true,"startStyle":"jagged","aliEnd":"469","modelLength":"100","text":"PA","href":"/family/PF02225","type":"pfama","metadata":{"scoreName":"e-value","score":"7.1e-09","description":"PA domain","end":"469","accession":"PF02225","database":"pfam","aliEnd":"469","identifier":"PA","type":"Family","aliStart":"385","start":"362"},"aliStart":"385","start":"362"},{"modelStart":"1","modelEnd":"112","colour":"#5b5bff","endStyle":"curved","end":"726","display":true,"startStyle":"curved","aliEnd":"726","modelLength":"112","text":"DUF1034","href":"/family/PF06280","type":"pfama","metadata":{"scoreName":"e-value","score":"1.1e-13","description":"Fn3-like domain (DUF1034)","end":"726","accession":"PF06280","database":"pfam","aliEnd":"726","identifier":"DUF1034","type":"Domain","aliStart":"613","start":"613"},"aliStart":"613","start":"613"}],"markups":[{"lineColour":"#ff0000","colour":"#000000","end":"470","display":true,"v_align":"top","metadata":{"database":"pfam","type":"Link between discontinous regions","start":"361","end":"470"},"type":"Nested","start":"361"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"S","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"S Pfam predicted active site","start":"538"},"start":"538"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"D","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"D Pfam predicted active site","start":"185"},"start":"185"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"H","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"H Pfam predicted active site","start":"235"},"start":"235"}],"metadata":{"database":"uniprot","identifier":"Q560V8_CRYNE","description":"Putative uncharacterized protein","organism":"Cryptococcus neoformans (Filobasidiella neoformans)","accession":"Q560V8","taxid":"5207"},"motifs":[{"colour":"#ffa500","type":"sig_p","metadata":{"database":"Phobius","type":"sig_p","start":"1","end":"23"},"start":1,"end":23,"display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.5100","type":"low_complexity","start":"3","end":"21"},"start":3,"end":21,"display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.4900","type":"low_complexity","start":"134","end":"156"},"start":"134","end":"156","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0200","type":"low_complexity","start":"173","end":"187"},"start":"173","end":"187","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0800","type":"low_complexity","start":"207","end":"218"},"start":"207","end":"218","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.1300","type":"low_complexity","start":"220","end":"231"},"start":"220","end":"231","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0000","type":"low_complexity","start":"538","end":"554"},"start":"538","end":"554","display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.9100","type":"low_complexity","start":"578","end":"590"},"start":588,"end":"590","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"1.7600","type":"low_complexity","start":"822","end":"831"},"start":"822","end":"831","display":false},{"colour":["#ff7ff0","#f2ff7f","#7ff2ff"],"href":"/pfamb/PB075017","type":"pfamb","metadata":{"database":"pfam","identifier":"Pfam-B_75017","type":"Pfam-B","start":"791","end":"949","accession":"PB075017"},"start":"791","end":"949","display":true}]}
+      </textarea><br />
+      <label for="xscale">X-scale: <input id="xscale" value="1.0"></input></label><br />
+      <label for="yscale">Y-scale: <input id="yscale" value="1.0"></input></label><br />
 
     </div>
+    <script type="text/javascript">
+      // <![CDATA[
+
+      var pg = new PfamGraphic();
+      //pg.setCanvas( "canvasEl" );
+      var generate = function() {
+
+        $("errors").hide();
+        if ( $("dg").select("canvas").size() > 0 ) {
+          $("dg").select("canvas").first().remove();
+        }
+
+        try {
+          sequence = eval( "sequence = " + $("seq").getValue() );
+        } catch ( e ) {
+          $("errors").update( e ).show();
+          return;
+        }
+
+        pg.setParent( "dg" );
+
+        pg.setImageParams( {
+          xscale: $F("xscale"),
+          yscale: $F("yscale")
+        } );
+
+        try {
+          pg.setSequence( sequence );
+          pg.render();
+        } catch ( e ) {
+          $("errors").update( e ).show();
+          return;
+        }
+      };
+
+      var clear = function() {
+        $("errors").hide();
+        $("seq").setValue("");
+        $("seq").focus()
+        $("seq").select();
+      };
+
+      document.observe( "dom:loaded", function() {
+
+        $("seq").focus();
+        $("seq").select();
+
+        $("submit").observe( "click", generate );
+        $("clear").observe( "click", clear );
+
+        // generate();
+      } );
+
+      // ]]>
+    </script>
+
+    <hr />
 
   </div>
 </div>
