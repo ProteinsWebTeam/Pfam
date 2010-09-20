@@ -1,0 +1,114 @@
+[%
+# wiki.tt
+# jt6 20100628 WTSI
+#
+# block showing the wikipedia content for the family
+#
+# $Id$
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+sharedRequirements.css.push( "wp.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start wiki block -->
+
+<div class="block" id="wikiBlock">
+  <div class="handle">
+    <h1>Wikipedia content</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      This is the wikipedia content that accompanies Pfam-A family 
+      <strong>[% acc %]</strong>.
+      <span onclick="reveal( this, 'wikiNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="wikiNotes" style="display: none">
+      <p>
+        More information on the process of adding the wiki content.
+      </p>
+    </div>
+
+    <div id="contentTabs" class="yui-navset">
+      <ul id="contentTabsNav" class="yui-nav">
+        [% FOREACH article IN articles %]
+        <li[% IF loop.first %] class="selected"[% END %]>
+          <a href="wpContent[% loop.index %]">Wikipedia: [% article.title %]</a>
+        </li>
+        [% END %]
+        <li><a href="#pfamContent">Pfam</a></li>
+        <li><a href="#interproContent">Interpro</a></li>
+   <!-- <li><a href="#topsanContent">TopSan</a></li> -->
+      </ul>
+      <div class="yui-content">
+        [% FOREACH article IN articles %]
+          <div id="wpContent[% loop.index %]">
+            <div class="wpData">
+              <h1 class="firstHeading">[% article.title %]</h1>
+              [% article.text %]
+            </div>
+            <p id="wpLicense">
+              This page is based on a 
+              <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title %]">
+                wikipedia article</a>. The text is available under the 
+              <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
+                Creative Commons Attribution/Share-Alike License</a>.
+            </p>
+          </div>
+        [% END %]
+        <div id="pfamContent" class="pfamData">
+          <h1>Pfam</h1>
+          <p>Pfam content</p>
+        </div>
+        <div id="interproContent" class="interproData">
+          <h1>Interpro</h1>
+          <p>Interpro content</p>
+        </div>
+   <!-- <div id="topsanContent" class="topsanData">
+          <h1>TopSan</h1>
+          <p>TopSan content</p>
+        </div> -->
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      // <![CDATA[
+
+      var extraContentTabView;
+      document.observe( "dom:loaded", function() {
+        extraContentTabView = new YAHOO.widget.TabView("contentTabs");
+      } );
+
+      // ]]>
+    </script>
+
+  </div>
+
+</div>
+
+<!-- end of wiki block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
