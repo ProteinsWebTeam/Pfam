@@ -69,6 +69,21 @@ img.jumpTo {
   padding: 0.4em;
 }
 
+#wiringDiagram {
+	width: 480px;
+	height: 270px;
+}
+
+#wiringBlockSummaries {
+	border: 1px solid #AAA;
+	padding: 0.4em;
+}
+
+#wiringBlockSummaries p {
+	margin: 0;
+	padding: 0;
+}
+
 /* ---------------------------------------- */
 
 #alignmentTree img {
@@ -143,14 +158,14 @@ img.jumpTo {
 /* ---------------------------------------- */
 /* domain graphics */
 
-div.xmlFragment {
+div.jsonFragment {
   margin: 0.2em;
   padding: 0.2em;
   border: 1px solid #666;
   background: #e7e7e7;
 }
 
-div.xmlFragment pre {
+div.jsonFragment pre {
   margin: 0;
   padding: 0;
 }
@@ -213,17 +228,12 @@ pre {
 }
 
 fieldset {
-  /* position: relative; */
   border: 1px solid #BBB;
   background: #EEE;
-  /* margin: 1em 0; */
-  /* padding: 1em; */
+  margin-bottom: 1em;
 }
 
 legend {
-  /* position: absolute; */
-  /* top: -1em; */
-  /* left: 0.2em; */
   border: 1px solid #BBB;
   background: #DDD;
   padding: 0.4em;
@@ -231,6 +241,7 @@ legend {
 
 img.tables {
   overflow: auto;
+  border: 1px solid #BBB;
 }
 
 /* ---------------------------------------- */
@@ -261,7 +272,7 @@ div.code {
   width: 100%;
 }
 
-#sections {
+div.sections {
   border: 1px solid #CCC;
   background-color: #EEE;
   padding: 0.4em;
@@ -269,14 +280,15 @@ div.code {
   float: right;
 }
 
-#sections p {
+div.sections p {
   margin: 0;
   padding: 0;
 }
 
-#sections ol {
+div.sections ol {
   width: 100%;
   margin: 0.2em;
   padding: 0 1.4em;
+  margin: 0.2em 0.2em 0.2em 1.2em;
 }
  

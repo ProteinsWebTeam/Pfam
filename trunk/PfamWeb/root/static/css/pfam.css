@@ -242,7 +242,7 @@ img.h3PfamLogo {
 
 /* the "add annotation" button image */
 img.addAnnotation {
-	width: 100px;
+	/* width: 100px; */
   height: 24px;
 	vertical-align: middle;
   padding-bottom: 3px;
@@ -1083,20 +1083,20 @@ div.nodeSummary div {
 }
 
 #treeTools {
-  right: 2em;
+  right: 3.2em;
   width: 18em;
   padding: 0.4em;
   border: 1px solid #AAA;
   background: #e8e8e8;
-  opacity: 0.75;
 }
 
 #speciesTreeDesc {
-  margin-right: 19em;
+  margin-right: 20em;
 }
 
-div.blockContent > #treeTools {
+div.blockContent #treeTools {
   position: fixed;
+  cursor: move;
 }
 
 #treeTools ul {
