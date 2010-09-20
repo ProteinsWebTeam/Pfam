@@ -67,53 +67,55 @@ the method also retrieves the row of the "pdb" table for that entry.
 sub structures : Path {
   my ( $this, $c ) = @_;
 
-  # see if we were handed a PDB ID and, if so, put the data for that entry into
-  # the stash
+  # see if we were handed a valid PDB ID and, if so, just stash it
   if ( defined $c->req->param('pdbId') and
        $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
 
     $c->log->debug( "Family::Structures::structures: got PDB ID: |$1|" )
       if $c->debug;
 
-    # $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
-    #                         ->find( { pdb_id => $1 } );
-    $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
-                            ->search( { 'me.pdb_id' => $1 },
-                                      { prefetch => 'pdb_image' } )
-                            ->first;
-
-    # $c->log->debug( 'Family::Structures::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
-    #   if $c->debug;
+    $c->stash->{pdb_id} = $1;
   }
 
   # retrieve the PDB entries for this family
-  my @rs;
+  my @regions;
   if ( defined $c->stash->{pfam}->auto_pfama ) {
-    $c->log->debug( 'Family::Structures::structures: got an auto_pfama: ' . $c->stash->{pfam}->auto_pfama )
-      if $c->debug;
-    @rs = $c->model('PfamDB::PdbPfamaReg')
-            ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                      { prefetch   => [ qw( pdb_id pdb_image ) ] } );
-    $c->log->debug( 'Family::Structures::structures: got ' . scalar @rs . ' regions' )
-      if $c->debug;
+    $c->log->debug( 'Family::Structures::structures: got an auto_pfama: '
+                    . $c->stash->{pfam}->auto_pfama ) if $c->debug;
+    @regions = $c->model('PfamDB::PdbPfamaReg')
+                 ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
+                           { prefetch   => [ qw( pdb_id pdb_image ) ] } );
+    $c->log->debug( 'Family::Structures::structures: got ' 
+                    . scalar @regions . ' regions' ) if $c->debug;
   }
 
   # don't render the template unless we need to
-  unless ( scalar @rs ) {
+  unless ( scalar @regions ) {
     $c->log->debug( 'Family::Structures::structures: no structure image; not rendering template' )
       if $c->debug;
     $c->res->status( 204 );
     return;
   }
 
-  my %pdbUnique = map{ $_->pdb_id->pdb_id => $_ } @rs;
-  $c->stash->{pdbUnique} = \%pdbUnique;
+  my $pdb_unique = {};
+  my $colours = {};
+  foreach my $region ( @regions ) {
+    my $id = $region->pdb_id->pdb_id;
+    $pdb_unique->{$id} = $region;
+    $colours->{$id}->{$region->hex_colour} = $region->auto_pfama->pfama_id;
+  }
+
+  $c->stash->{pdb_unique} = $pdb_unique;
+  $c->stash->{colours}    = $colours;
+
+  # my %pdb_unique = map{ $_->pdb_id->pdb_id => $_ } @regions;
+  # $c->stash->{pdb_unique} = \%pdb_unique;
 
   # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = 'components/blocks/family/familyStructures.tt';
 
   # cache the template output for one week
-  #$c->cache_page( 604800 );
+  $c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
@@ -159,7 +161,7 @@ sub mapping : Local  {
   }
 
   # cache the template output for one week
-  #$c->cache_page( 604800 );
+  $c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
