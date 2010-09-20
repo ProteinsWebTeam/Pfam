@@ -1,5 +1,3 @@
-
-# Family.pm
 # jt6 20060411 WTSI
 #
 # $Id: Family.pm,v 1.54 2010-01-13 14:44:53 jt6 Exp $
@@ -70,7 +68,13 @@ either an ID or accession
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
 
-  $c->cache_page( 604800 );
+  # we previously cached the page for a week or so, but now that we're
+  # including wikipedia content, we need to reduce the cache period,
+  # otherwise it could be a week before new content is visible in the
+  # site. 
+  
+  # cache page for 12 hours
+  $c->cache_page( 43200 ); 
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
@@ -81,7 +85,6 @@ sub begin : Private {
     $c->res->content_type('text/xml');    
   }
   
-  # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
@@ -139,6 +142,12 @@ sub begin : Private {
     }
     else {
       $c->stash->{refreshUri} = $c->uri_for( '/' );
+
+      # the default delay for redirecting is 5 seconds, but that's maybe
+      # too short to allow the user to read the message telling them that
+      # they're going to be redirected to the home page. Pause for a little
+      # longer in this case
+      $c->stash->{refreshDelay} = 20;
     }
     
     # set the template. This will be overridden below if we're emitting XML
@@ -237,8 +246,10 @@ sub get_data : Private {
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ],
-                       { join     => [ qw( interpros ) ],
-                         prefetch => [ qw( interpros ) ] } );
+                       { join     => [ { clan_memberships => 'auto_clan' },
+                                       "interpros", 
+                                       "pfama_species_trees" ],
+                         prefetch => [ qw( interpros pfama_species_trees ) ] } );
   my $pfam = $rs->first if defined $rs;
   
   if ( $pfam ) {
@@ -274,6 +285,7 @@ sub get_data : Private {
         $c->forward( 'get_db_xrefs' );
         $c->forward( 'get_interactions' );
         $c->forward( 'get_pseudofam' );
+        $c->forward( 'get_wikipedia' );
       }
 
     } # end of "unless XML..."
@@ -715,6 +727,37 @@ sub retrieve_pseudofam_xml : Private {
       if $c->debug;
     $c->stash->{error} = $response->status_line;
   }  
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_wikipedia : Private
+
+Retrieves the wikipedia content, if any, for this family.
+
+=cut
+
+sub get_wikipedia : Private {
+  my ( $this, $c ) = @_;
+  
+  return unless $c->stash->{pfam}->pfama_wikis;
+
+  my ( @articles, $title );
+  foreach my $pfama_wiki ( $c->stash->{pfam}->pfama_wikis ) {
+    $title = $pfama_wiki->auto_wiki->title;
+
+    $c->log->debug( "Family::get_wikipedia: got wiki title: |$title|" )
+      if $c->debug;
+
+    my $article = $c->model('WebUser::Wikitext')
+                    ->find( $title );
+
+    if ( defined $article and defined $article->title ) {
+      push @articles, $article;
+    }
+  }
+
+  $c->stash->{articles} = \@articles;
 }
 
 #-------------------------------------------------------------------------------
