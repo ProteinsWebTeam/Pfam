@@ -33,16 +33,6 @@ META fullPage = 1;
   a note of this if you are submitting multiple jobs; this is the unique 
   identifier for this particular job. 
 </p>
-[% IF numPending > 1 %]
-  <p>
-    There are <strong>[% numPending %]</strong> jobs ahead of yours in the 
-    batch queue.
-  </p>
-[% ELSIF numPending == 1 %]
-  <p>
-    There is <strong>1</strong> job ahead of yours in the batch queue.
-  </p>
-[% END %]
 <p>
   In [% refreshDelay || 30 %] seconds you will be redirected to the 
   <a href="[% refreshUri %]">Pfam search page</a>, or you can click 
