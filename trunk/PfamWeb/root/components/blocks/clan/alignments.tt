@@ -105,12 +105,12 @@ tableFooter = BLOCK -%]
 
       <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
         <td>
-          <a href="[% c.uri_for( "/family", { id = pfam.pfama_id } ) %]">[% pfam.pfama_id %]</a>
-         (<a href="[% c.uri_for( "/family", { acc = pfam.pfama_acc } ) %]">[% pfam.pfama_acc %]</a>)
+          <a href="[% c.uri_for( "/family", pfam.pfama_id  ) %]">[% pfam.pfama_id %]</a>
+         (<a href="[% c.uri_for( "/family", pfam.pfama_acc ) %]">[% pfam.pfama_acc %]</a>)
         </td>
         <td>[% pfam.num_full %] ([% percentS %]%)</td>
         <td>
-          <a href="[% c.uri_for( "/family", { id = pfam.pfama_id, tab = "alignBlock" } ) | html %]">View</a>
+          <a href="[% c.uri_for( "/family", pfam.pfama_id, { tab = "alignBlock" } ) | html %]">View</a>
         </td>
       </tr>
     
