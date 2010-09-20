@@ -15,94 +15,331 @@
   </div>
   <div class="blockContent">
 	
-	<p>
-	  The following list describes a few of the important files in the Pfam 
-	  <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. 
-    Some of these files may be <em>very</em> large (of the order of several 
-    hundred	megabytes). Please check the sizes on the 
-		<a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
-    before trying to download them over a slow connection.
-	</p>
+    <p>
+      The Pfam <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">
+        FTP site</a> is organised into the following structure: 
+    </p>
 
-	<dl>
-	  <dt>
-	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
-	      relnotes.txt</a>
-	  </dt>
-	  <dd>
-		Release notes
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
-			  pfamseq.gz</a>
-	  </dt>
-	  <dd>
-			A fasta version of Pfam's underlying sequence database 
-	  </dd>
-    <dt>
-      <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
-        Pfam-A.hmm.gz</a>
-    </dt>
-    <dd>
-      The Pfam HMM library for Pfam-A families
-    </dd>
-    <dt>
-      <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
-        Pfam-B.hmm.gz</a>
-    </dt>
-    <dd>
-      The Pfam HMM library for Pfam-B families
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
-	 		  Pfam-A.full.gz</a>
-	  </dt>
-	  <dd>
-			The full alignments of the curated families
-   </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
-			  Pfam-A.seed.gz</a>
-	  </dt>
-	  <dd>
-			 The seed alignments of the curated families
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
-			  Pfam-B.gz</a>
-	  </dt>
-	  <dd>
-			Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
-			that are not modelled in the curated part of Pfam
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
-			  Pfam-C.gz</a>
-	  </dt>
-	  <dd>
-			The contains the information about clans and the Pfam-A membership
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
-			  swisspfam.gz</a>
-	  </dt>
-	  <dd>
-			The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
-	  </dt>
-	  <dd>
-			Copyright notice for Pfam
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
-	  </dt>
-	  <dd>
-			The full text of the GNU Library General Public License under which Pfam is
-			licensed
-	  </dd>
-	</dl>
+    <pre>
+|
++- Tools/
+|
++- papers/
+|
++- current_release/
+    |
+    +- database_files/
+|
++- releases/
+    |
+    +- Pfam23.0/
+    |   |
+    |   +- database_files/
+    |
+    +- Pfam22.0/
+    |   |
+    |   +- database_files/
+    |
+    +- ...
+    |
+    +- Pfam1.0/</pre>
+  
+    <p>
+      The most important directory is probably the current_release directory.
+      This contains the flat-files for the current release. Some of these files 
+      may be <em>very</em> large (of the order of several hundred megabytes). 
+      Please check the sizes on the
+      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
+      before trying to download them over a slow connection. The files, most of 
+      which are compressed using <a class="ext" href="http://www.gzip.org/">
+        gzip</a>, are:
+    </p>
+  
+    <dl>
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.dead.gz">
+          Pfam-A.dead.gz</a>
+      </dt>
+      <dd>
+       Listing of families that have been deleted from the database
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.fasta.gz">
+          Pfam-A.fasta.gz</a>
+      </dt>
+      <dd>
+        A 90% non-redundant set of fasta formatted sequence for each Pfam-A
+        family. The sequences are only the regions hit by the model and
+        not full length protein sequences.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
+          Pfam-A.full.gz</a>
+      </dt>
+      <dd>
+        The full alignments of the curated families, searched against
+        pfamseq/UniProt.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.metagenomcis.gz">
+          Pfam-A.full.metagenomcis.gz</a>
+      </dt>
+      <dd>
+        The full alignments of the curated families, searched against
+        Metagenomic proteins.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.ncbi.gz">
+          Pfam-A.full.ncbi.gz</a>
+      </dt>
+      <dd>
+        The full alignments of the curated families, searched against NCBI
+        GenPept proteins.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz">
+          Pfam-A.hmm.dat.gz</a>
+      </dt>
+      <dd>
+        A data file that contains information about each Pfam-A family
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
+          Pfam-A.hmm.gz</a>
+      </dt>
+      <dd>
+        The Pfam HMM library for Pfam-A families 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
+          Pfam-A.seed.gz</a>
+      </dt>
+      <dd>
+        The seed alignments of the curated families 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
+          Pfam-A.hmm.gz</a>
+      </dt>
+      <dd>
+        The Pfam HMM library for Pfam-A families 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.fasta.gz">
+          Pfam-B.fasta.gz</a>
+      </dt>
+      <dd>
+        A 90% non-redundant set of fasta formatted sequence for each
+        Pfam-B family.  The sequences are only the regions hit by the
+        model and not full length protein sequences.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
+          Pfam-B.gz</a>
+      </dt>
+      <dd>
+        Automatically generated alignments of sequence clusters in SWISSPROT
+        and TrEMBL that are not modelled in the curated part of Pfam
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
+          Pfam-B.hmm.dat.gz</a>
+      </dt>
+      <dd>
+        A data file that contains information about each Pfam-B family
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
+          Pfam-B.hmm.gz</a>
+      </dt>
+      <dd>
+        The Pfam HMM library for Pfam-B families 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
+          Pfam-C.gz</a>
+      </dt>
+      <dd>
+        The contains the information about clans and the Pfam-A membership
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/active_site.dat.gz">
+          active_site.dat.gz</a>
+      </dt>
+      <dd>
+        Tar-ball of data required for the predictions of active sites by Pfam scan.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database.tar">
+          database.tar</a>
+      </dt>
+      <dd>
+        A tar-ball of the database_files directory.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files">
+          database_files</a>
+      </dt>
+      <dd>
+        Directory contains two files per table from the MySQL database.
+        The .sql.gz file contains the table structure, the .txt.gz files
+        contains the contented of the table, as a tab delimited file with
+        field enclosed by a single quote (').
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff.gz">
+          diff.gz</a>
+      </dt>
+      <dd>
+        Stores the change status of entries between this release and last.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/metapfam.gz">
+          metapfam.gz</a>
+      </dt>
+      <dd>
+        ASCII representation of the domain structure of Metagenomic proteins according to Pfam 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/metaseq.gz">
+          metaseq.gz</a>
+      </dt>
+      <dd>
+        Metagenomic sequence database used in this release
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/ncbi.gz">
+          ncbi.gz</a>
+      </dt>
+      <dd>
+        NCBI GenPept sequence database used in this release.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/ncbipfam.gz">
+          ncbipfam.gz</a>
+      </dt>
+      <dd>
+        ASCII representation of the domain structure of GenPept proteins according to Pfam 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pdbmap.gz">
+          pdbmap.gz</a>
+      </dt>
+      <dd>
+        Mapping between PDB structures and Pfam domains.
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
+          pfamseq.gz</a>
+      </dt>
+      <dd>
+        A fasta version of Pfam's underlying sequence database 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
+          relnotes.txt</a>
+      </dt>
+      <dd>
+        Release notes 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
+          swisspfam.gz</a>
+      </dt>
+      <dd>
+        ASCII representation of the domain structure of UniProt proteins according to Pfam 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/uniprot_sprot.dat.gz">
+          uniprot_sprot.dat.gz</a>
+      </dt>
+      <dd>
+        Data files from UniProt containing SwissProt annotations. 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/uniprot_trembl.dat.gz">
+          uniprot_trembl.dat.gz</a>
+      </dt>
+      <dd>
+        Data files from UniProt containing TrEMBL annotations. 
+      </dd>
+  
+      <dt>
+        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/userman.txt">
+          userman.txt</a>
+      </dt>
+      <dd>
+        File containing information about the flatfile format
+      </dd>
+  	</dl>
+
+    <p>
+      The <strong>papers</strong> directory contains each NAR database issue
+      article describing Pfam. For a detailed description of the latest changes
+      to Pfam, please consult (and cite) these papers.
+    </p>
+    <p>
+      The <strong>releases</strong> directory contains all the flat files and
+      database dumps (where appropriate) for all version of Pfam to-date. The
+      files in more recent releases are the same as described for the current
+      release, but in older releases the contents do change.
+    </p>
+    <p>
+      The <strong>Tools</strong> directory contains code for running
+      <code>pfam_scan.pl</code>. The README file in this directory contains
+      detailed information on how to install and run the script. Note that we
+      have gone for a modular design for the script, enabling the functionally
+      on the script to be easily incorporated into other Perl scripts. The
+      ChangeLog file lists the versions and changes to the current version of
+      <code>pfam_scan.pl</code> (and modules). There is also an archived
+      version of <code>pfam_scan.pl</code> that works with HMMER2. This is no
+      longer supported. There is also Perl code for predicting active sites
+      found in the ActSitePred directory, the functionality of which has been
+      rolled into the latest version of <code>pfam_scan.pl</code>
+    </p>
+    <p>
+      The top level directory also contains the following two files:
+    </p>
+    <dl>
+      <dt>COPYRIGHT</dt>
+      <dd>Copyright notice for Pfam</dd>
+      <dt>GNULICENSE</dt>
+      <dd>The full text of the GNU Library General Public License under which
+        Pfam is licensed</dd>
+    </dl>
+    <p>
+      It also contains a further directory, <strong>sitesearch</strong>, that
+      contain a subset of information from Pfam in an XML file. This XML file,
+      primarily for use by the Sanger Web Team, is indexed using lucene and
+      used in the WTSI site search. This is updated at each release. 
+    </p>
 
   </div>
 </div>
