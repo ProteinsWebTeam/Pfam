@@ -24,16 +24,11 @@ use Getopt::Std;
 
 use Cache::Memcached;
 
-my @development = qw( 172.17.36.2:11211 );
-my @production  = qw( 172.17.36.3:11211 
-                      172.17.36.4:11211
-                      172.17.36.5:11211
-                      172.17.36.6:11211
-                      172.17.36.7:11211
-                      172.17.36.8:11211
-                      172.17.36.9:11211
-                      172.17.36.10:11211
-                      172.17.36.11:11211 );
+my @development = qw( memcache-1-01:11211 );
+my @production  = qw( memcache-1-01:11211 
+                      memcache-1-02:11211
+                      memcache-1-03:11211
+                      memcache-1-04:11211 );
 
 my %options;
 getopt( 'adpqh', \%options ) or usage();
