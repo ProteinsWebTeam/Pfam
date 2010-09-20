@@ -292,7 +292,8 @@ sub domain_graphics : Path {
       $valid_colours->{$_} = $pfamb_colours->{$_};
     }
 
-    $c->stash->{assignedColours} = $json->encode( $valid_colours );
+    $c->stash->{assignedColours} = $json->encode( $valid_colours )
+      if $valid_colours;
   }
 
   # use a different template for rendering sequences vs architectures vs
@@ -427,7 +428,7 @@ sub get_family_data : Private {
   # sequences, depending how we were called) and build a data structure that
   # the drawing code will use to generate the graphics
   my ( @seqs, %seqInfo, @ids );
-  foreach my $row ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
+  ARCH: foreach my $row ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
 
     # thaw out the sequence object for this architecture and get a handle on
     # the right DB object
@@ -439,7 +440,14 @@ sub get_family_data : Private {
       $seq = $row;
     }
     else {
-      push @seqs, thaw( $row->auto_architecture->storable->annseq_storable );
+      eval {
+        push @seqs, thaw( $row->auto_architecture->storable->annseq_storable );
+      };
+      if ( $@ ) {
+        $c->log->debug( "DomainGraphics::get_family_data: failed to thaw storable: $@" )
+          if $c->debug;
+        next ARCH;
+      }
 
       # we're looking at all sequences, so we want just the type example
       $seq = $row->auto_architecture->type_example;
