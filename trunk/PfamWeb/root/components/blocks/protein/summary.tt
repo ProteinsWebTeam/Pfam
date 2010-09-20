@@ -119,9 +119,8 @@ oe = 0;
 
     <div id="pgholder" class="pgholder"></div>
 
-    <table class="resultTable"
+    <table class="resultTable details"
            id="imageKey" 
-           class="details"
            summary="Key for the Pfam domain image">
       <thead>
         <tr>
@@ -138,23 +137,23 @@ oe = 0;
     <script type="text/javascript">
       // <![CDATA[
 
-      /* [%# retrieve the domain graphics description %] */
+      [%-# retrieve the domain graphics description %]
       var layout = [% layout || "[]" %];
       var sequence = layout[0];
 
-      /* [%# build the domain graphic %] */
+      [%-# build the domain graphic %]
       var pg = new PfamGraphic( "pgholder", sequence);
       pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
       pg.render();
 
-      /* [%# show the blurb about the image %] */
+      [%-# show the blurb about the image %]
       $("pgdesc").show();
 
-      /* [%# a base URI for the family links in the table %] */
+      [%-# a base URI for the family links in the table %]
       var familyUri = "[% c.uri_for( '/family' ) %]";
 
-      /* [%# build the key table, giving the list of domains and their start/end points.
-           # If there are no regions, just hide the table instead %] */
+      [%-# build the key table, giving the list of domains and their start/end points.
+         # If there are no regions, just hide the table instead %]
       if ( sequence.regions.size() > 0 ) {
 
         var tbody = $("imageKey").down("tbody");
