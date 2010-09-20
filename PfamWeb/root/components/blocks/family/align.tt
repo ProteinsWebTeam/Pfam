@@ -189,7 +189,8 @@ alignmentUri = c.uri_for( "/family/alignment" );
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
-          var url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
+          var url = "[% alignmentUri %]/dasviewer?" + Form.serialize("viewerForm");
+          // var url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
