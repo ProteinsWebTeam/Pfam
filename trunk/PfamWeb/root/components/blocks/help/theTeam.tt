@@ -48,6 +48,15 @@
 
     [% PROCESS "components/mirrors.tt" %]  
   
+    <h3>External contributors</h3>
+
+    <p>
+      Pfam includes families that have been built by external contributors:
+    </p>
+    <ul>
+      <li>Kyle Ellrott</li>
+    </ul>
+
     <h3>Previous contributors</h3>
   
     <ul>
@@ -67,9 +76,12 @@
       <li>William Mifsud</li>
       <li>Simon Moxon</li>
       <li>Joanne Pollington</li>
-      <li>Stephen John Sammut</li>
+      <li>Stephen-John Sammut</li>
+      <li>Benjamin Schuster-B&ouml;ckler</li>
       <li>David Studholme</li>
+      <li>Benjamin Vella-Briffa</li>
       <li>Corin Yeats</li>
+      <li>Arthur Wuster</li>
     </ul>
   
     <p>
