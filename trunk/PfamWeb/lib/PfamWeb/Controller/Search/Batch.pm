@@ -116,35 +116,6 @@ sub validate_input : Private {
 
   # do the quick checks first...
   
-  # available sequence search options
-  my %available_options = ( both        => 1,
-                            bothNoMerge => 1,
-                            ls          => 1,
-                            fs          => 1 );
-
-  # the user supplied an option; check it's valid
-  if ( defined $c->req->param('batchOpts') ) {
-    
-    unless ( defined $available_options{ $c->req->param('batchOpts') } ) {
-      $c->stash->{searchError} = 'You must use a valid search option.';
-
-      $c->log->debug( 'Search::Batch::validate_input: bad search option; returning to form' )
-        if $c->debug;
-
-      return 0;
-    }
-    
-    $c->stash->{user_options}->{batchOpts} = $c->req->param('batchOpts');
-  }
-
-  # default to "both"
-  else {
-    $c->stash->{user_options}->{batchOpts} = 'both';
-
-    $c->log->debug( 'Search::Batch::validate_input: setting search option to default of "both"' )
-      if $c->debug;
-  }
-
   # if we have an E-value, we'll use that, otherwise we'll use the gathering
   # threshold
   if ( defined $c->req->param( 'ga' ) and $c->req->param( 'ga' ) ) {
