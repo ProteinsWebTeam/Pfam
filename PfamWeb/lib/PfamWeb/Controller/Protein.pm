@@ -28,6 +28,7 @@ use warnings;
 
 use Storable qw( thaw );
 use JSON qw( -convert_blessed_universally );
+use Data::Dump qw( dump );
 
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
@@ -112,9 +113,7 @@ sub begin : Private {
       $c->forward('get_annseq');
       $c->forward('get_mapping');
       $c->forward('get_summary_data');
-
-      # not currently needed
-      # $c->forward('get_das_sources');
+      $c->forward('get_das_sources');
     }
     
     return;
@@ -255,6 +254,7 @@ sub get_annseq : Private {
 
   # encode and stash the sequences as a JSON string
   $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
+
 }
 
 #-------------------------------------------------------------------------------
@@ -278,19 +278,21 @@ sub get_das_sources : Private {
   my %alignMatches;
   
   FEATURE: foreach my $f (@dasSources) {
-    if ($f->sequence_type eq $baseType and $f->system eq $baseCoord) {
-      push (@{ $keptSources->{$f->sequence_type}{$f->system} }, $f);
-      next;
+    if ( $f->sequence_type eq $baseType and 
+         $f->system        eq $baseCoord ) {
+      push @{ $keptSources->{$f->sequence_type}{$f->system} }, $f;
+      next FEATURE;
     }
-    ALN: foreach my $a ($f->alignment_sources_to) {
-      next ALN unless (defined $a);
-      next ALN unless ($a->from_type eq $baseType and $a->from_system eq $baseCoord);
-    
-      # Find out if we have any alignments for this object type and co-ord system.
-      unless (defined $alignMatches{$f->sequence_type}{$f->system}) {
+    ALN: foreach my $a ( $f->alignment_sources_to ) {
+      next ALN unless defined $a;
+      next ALN unless ( $a->from_type   eq $baseType and 
+                        $a->from_system eq $baseCoord );
+
+      # find out if we have any alignments for this object type and co-ord system.
+      unless ( defined $alignMatches{$f->sequence_type}{$f->system} ) {
         $dl->dsn( [$a->url] );
-        my (undef, $alignments) = each %{ $dl->alignment( { 'query' => $seqAcc } ) };
-        if (ref $alignments eq 'ARRAY' and scalar @{$alignments}) {
+        my ( undef, $alignments ) = each %{ $dl->alignment( { 'query' => $seqAcc } ) };
+        if ( ref $alignments eq 'ARRAY' and scalar @{$alignments} ) {
           $alignMatches{$f->sequence_type}{$f->system} = 1;
         } else {
           $alignMatches{$f->sequence_type}{$f->system} = 0;
@@ -302,21 +304,21 @@ sub get_das_sources : Private {
       next FEATURE;
     }
   }
-  
+
   my @keptSourcesArr = ();
-  my @types = _sortWithPref($baseType, keys %{ $keptSources } );
+  my @types = _sortWithPref( $baseType, keys %{ $keptSources } );
   foreach my $type (@types) {
-    my @systems = _sortWithPref($baseCoord, keys %{ $keptSources->{$type} } );
+    my @systems = _sortWithPref( $baseCoord, keys %{ $keptSources->{$type} } );
     foreach my $system (@systems) {
       my $id = $type.'_'.$system;
       $id =~ s/\s+/_/g;
-        push (@keptSourcesArr, { type=>$type, system=>$system, servers=>$keptSources->{$type}{$system}, id=>$id } );
+      push @keptSourcesArr, { type    => $type, 
+                              system  => $system, 
+                              servers => $keptSources->{$type}{$system}, 
+                              id      => $id };
     }
   }
-  $c->stash->{dasSourcesRs} = \@keptSourcesArr;
-
-  $c->log->debug('Protein::get_das_sources: added DAS sources to the stash')
-    if $c->debug;
+  $c->stash->{dasSourcesRs} = \@keptSourcesArr; 
 }
 
 #-------------------------------------------------------------------------------
