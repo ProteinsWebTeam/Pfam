@@ -89,6 +89,44 @@ div.blockContent ol {
 }
 
 /* ---------------------------------------- */
+/* style the nested tabs */
+
+.nestedTabs .yui-nav li {
+  border: 1px solid #CCC;
+  border-bottom: none;
+  padding: 0.6em;
+}
+
+.nestedTabs .yui-nav li.selected {
+  padding-top: 1em;
+  background-color: #EEE;
+}
+
+.nestedTabs .yui-nav a {
+  text-decoration: none;
+  font-weight: bold;
+  outline: none;
+}
+
+.nestedTabs .yui-nav li.disabled a,
+.nestedTabs .yui-nav li.disabled a:hover {
+  color: #AAA !important;
+  cursor: default;
+  text-decoration: none !important;
+}
+
+.nestedTabs #summaryTabsNav,
+.nestedTabs #speciesTreeTabsNav {
+  position: relative;
+  top: 1px;
+}
+
+.nestedTabs .yui-content {
+  border: 1px solid #CCC;
+  padding: 0.2em;
+}
+
+/* ---------------------------------------- */
 /* styles for the "Pfam sequence viewer" */
 
 #alignmentKey {

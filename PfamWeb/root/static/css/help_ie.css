@@ -27,13 +27,14 @@
 
 fieldset {
   position: relative;
-  margin: 1em 0;
   padding: 1em;
+  margin-top: 2em;
 }
 
 legend {
   position: absolute;
   top: -1em;
-  left: 0.2em;
+  left: 0.4em;
+  padding: 0.2em;
 }
 

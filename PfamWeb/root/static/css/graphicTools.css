@@ -25,41 +25,78 @@
     
 */   
 
-.graphicItem {
-  border: 1px solid #666;
-  background: #e7e7e7;
-  padding: 0.4em;
+body {
   margin: 0.2em;
 }
 
-
-#generatedGraphic p {
-  padding-bottom: 0.4em;
-  margin: 0;
-}
-
-div.error {
-  width: 60%;
+#errors {
   border: 1px solid #966;
   background: #e7e7e7;
   padding: 0.4em;
   margin: 1em auto;
 }
 
-div.error h1 {
+#errors h1 {
   font-size: 1.4em;
   padding: 0;
   margin: 0;
 }
 
-div.error p {
+#error p {
   margin: 0;
 }
 
-#xmlFragment {
+
+/*h2 {
+  padding: 0;
+  margin: 0;
+}*/
+
+#none {
+  color: #CCC;
+}
+
+div.panel {
+  border: 1px solid #AAA;
+  margin: 0.2em;
+	padding: 0.6em;
+  float: left;
+}
+
+div.panel p {
   font-size: smaller;
 }
 
-#form {
-  padding: 0.4em 0;
+#graphic {
+  width: 97%;
 }
+
+#sequence {
+  width: 48%;
+  height: 45em;
+}
+
+#controls {
+  width: 47%;
+  height: 45em;
+}
+
+#seq {
+  width: 100%;
+  height: 40em;
+}
+
+span.label  {
+  width: 6em;
+  display: block;
+  float: left;
+}
+
+#submit {
+  background-color: #9C9;
+}
+
+#clear {
+  background-color: #C99;
+}
+
