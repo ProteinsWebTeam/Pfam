@@ -50,6 +50,15 @@ in the clan table for that entry.
 sub begin : Private {
   my( $this, $c, $entry_arg ) = @_;
 
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');    
+  }
+  
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
@@ -70,9 +79,25 @@ sub begin : Private {
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
+
+  return unless defined $entry;
   
-  # retrieve data for this entry
-  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+  # retrieve data for the entry
+  $c->forward( 'get_data', [ $entry ] );
+
+# we're done here unless we're rendering XML
+  return unless $c->stash->{output_xml};
+
+  # if there was an error...
+  if ( $c->stash->{errorMsg} ) {
+    $c->log->debug( 'Clan::begin: there was an error: |' .
+                    $c->stash->{errorMsg} . '|' ) if $c->debug;
+    $c->stash->{template} = 'rest/clan/error_xml.tt';
+    return;
+  }
+  
+  $c->log->debug( 'Clan::begin: outputting XML for clan' ) if $c->debug;
+  $c->stash->{template} = 'rest/clan/entry_xml.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -191,6 +216,8 @@ sub get_data : Private {
                        { join      => [ 'auto_pfama' ],
                          prefetch  => [ 'auto_pfama' ] } );
   $c->stash->{clanMembers} = \@rs;
+
+  return if $c->stash->{output_xml};
   
   # only add extra data to the stash if we're actually going to use it later
   if ( not $c->stash->{output_xml} and 
