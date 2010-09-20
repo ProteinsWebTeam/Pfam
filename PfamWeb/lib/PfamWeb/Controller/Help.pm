@@ -48,6 +48,20 @@ sub about : Global {
 
 #-------------------------------------------------------------------------------
 
+=head2 domain_graphics_example : Path
+
+Displays a page with an example showing how to use the domain graphics library.
+
+=cut 
+
+sub domain_graphics_example : Path('/help/domain_graphics_example.html') {
+  my ( $this, $c ) = @_;
+
+  $c->stash->{template} = 'pages/domain_graphics_example.tt';
+}
+
+#-------------------------------------------------------------------------------
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
