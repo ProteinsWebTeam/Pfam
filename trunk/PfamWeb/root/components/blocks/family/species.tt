@@ -12,10 +12,29 @@
 
 PROCESS "components/require.tt";
 
-# YUI stuff - this is for the tree viewer
-sharedRequirements.css.push( "tree.css" );
-#sharedRequirements.js.push( "yui/TaskNode.js" );
-#sharedRequirements.js.push( "treeTweak.js" );
+sharedRequirements.js.push( "tree_factory.js" ); # handles tree data
+
+sharedRequirements.js.push( "sunburst.js" );     # sunburst tree
+sharedRequirements.css.push( "sunburst.css" );
+
+sharedRequirements.css.push( "tree.css" );       # YUI tree 
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+#requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "canvas.text.js" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
 
 #-------------------------------------------------------------------------------
 %]
@@ -28,96 +47,390 @@ sharedRequirements.css.push( "tree.css" );
   </div>
   <div class="blockContent">
 
-    [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
-    
-    <div id="speciesTreeDesc">
-      <p>
-        The tree shows the occurrence of this domain across different species.
-        <span onclick="reveal( this, 'speciesNotes', false, true );"
-              class="moreLink">
-          More...</span>
-      </p>
+    <div id="speciesTreeTabs" class="nestedTabs yui-navset">
+
+      <ul id="speciesTreeTabsNav" class="yui-nav">
+        <li class="selected"><a href="#sunburstTreeTab">Sunburst</a></li>
+        <li><a href="#yuiTreeTab">Tree</a></li> 
+      </ul>
+      
+      <div class="yui-content">
   
-      <div id="speciesNotes" style="display: none">
-        <h2>Species trees</h2>
-        <p>
-          We show the species tree in one of two ways. For smaller trees we try
-          to show an interactive representation, which allows you to select
-          specific nodes in the tree and view them as an alignment or as a set 
-          of Pfam domain graphics.
-        </p>
-        <p>
-          Unfortunately we have found that there are problems viewing the 
-          interactive tree when the it becomes larger than a certain limit. 
-          Furthermore, we have found that Internet Explorer can become 
-          unresponsive when viewing some trees, regardless of their size. 
-          We therefore show a text representation of the species tree when the
-          size is above a certain limit or if you are using Internet Explorer
-          to view the site.
-        </p>
-        <p>
-          If you are using IE you can still load the interactive tree by 
-          clicking the &quot;Generate interactive tree&quot; button, but please 
-          be aware of the potential problems that the interactive species tree 
-          can cause.
-        </p>
+        <!-- start of sunburst tab -->
+
+        <div id="sunburstTreeTab"> 
+
+          <div id="sunburstSubTree">
+
+            <div id="sunburstControlsHeader">
+              <h3>Sunburst controls</h3>
+              <span id="sunburstControlsToggle">Hide</span>
+              <div class="cleaner"><!-- empty --></div>
+            </div>
+ 
+            <div id="sunburstControlsContent">
+              <!-- sub-tree markup will go here -->
+              <div id="weightWrapper">
+                <h3>Weight segments by...</h3>
+                <span>
+                  <label for="weightSeq">
+                    <input type="radio" name="weight" id="weightSeq" value="1" checked="checked" />
+                    number of  sequences
+                  </label>
+                  <br />
+                  <label for="weightSpecies">
+                    <input type="radio" name="weight" id="weightSpecies" value="1" />
+                    number of  species
+                  </label>
+                </span>
+              </div>
+              <div id="sliderWrapper">
+                <h3>Change the size of the sunburst</h3>
+                <div id="sliderSmallScale">Small</div>
+                <div id="sliderLargeScale">Large</div>
+                <div id="sliderScale" class="slider">
+                  <div class="handle"></div>
+                </div>
+              </div>
+              [%- imgs = c.uri_for("/shared/images/sunburst_colours") %]
+              <div id="sunburstColours">
+                <h3>Colour assignments</h3>
+                <table summary="Sunburst colour assignments">
+                  <tbody>
+                    <tr>
+                      <td class="narrow">
+                        <img src="[% imgs %]/archea.png" alt="Archea" />
+                        Archea
+                      </td>
+                      <td class="wide">
+                        <img src="[% imgs %]/eukaryota.png" alt="Eukaryota" />
+                        Eukaryota
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="narrow">
+                        <img src="[% imgs %]/bacteria.png" alt="Bacteria" />
+                        Bacteria
+                      </td>
+                      <td class="wide">
+                        <img src="[% imgs %]/other_sequences.png" alt="Other sequences" />
+                        Other&nbsp;sequences
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="narrow">
+                        <img src="[% imgs %]/viruses.png" alt="Viruses" />
+                        Viruses
+                      </td>
+                      <td class="wide">
+                        <img src="[% imgs %]/unclassified.png" alt="Unclassified" />
+                        Unclassified
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="narrow">
+                        <img src="[% imgs %]/viroids.png" alt="Viroids" />
+                        Viroids
+                      </td>
+                      <td class="wide">
+                        <img src="[% imgs %]/unclassified_sequence.png" alt="Unclassified sequence" />
+                        Unclassified&nbsp;sequence
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="sunburstTreeDesc">
+            <p>
+              The tree shows the occurrence of this domain across different species.
+              <span onclick="reveal( this, 'sunburstNotes', false, true );"
+                    class="moreLink">
+                More...</span>
+            </p>
         
-        <h3>Interactive tree</h3>
-        <p>
-          For all of the domain matches in a full alignment, we count the 
-          number that are found on all sequences in the alignment. 
-          This total is shown in the <span class="domSum">purple</span> box.
-        </p>
-        <p>
-          We also count the number of unique sequences on which each domain is 
-          found, which is shown in <span class="seqSum">green</span>.
-          <strong>Note</strong> that a domain may appear multiple times on the
-          same sequence, leading to the difference between these two numbers.
-        </p>
-        <p>
-          Finally, we group sequences from the same organism according to the 
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
-          title="National Center for Biotechnology Information">NCBI</acronym></a> 
-          code that is assigned by
-          <a class="ext" href="http://www.uniprot.org/">UniProt</a>, 
-          allowing us to count the number of distinct sequences on which the 
-          domain is found. This value is shown in the <span class="specSum">
-            pink</span> boxes.
-        </p>
-        <p>
-          We use the NCBI species tree to group organisms according to their 
-          taxonomy and this forms the structure of the displayed tree.
-          <strong>Note</strong> that in some cases the trees are too large (have
-          too many nodes) to allow us to build an interactive tree, but in most
-          cases you can still view the tree in a plain text, non-interactive
-          representation. Those species which are represented in the seed
-          alignment for this domain are <span class="highlightSeed">
-            highlighted</span>.
-        </p>
-        <p>
-          You can use the tree controls to manipulate how the interactive tree
-          is displayed:
-        </p>
-        <ul>
-          <li>show/hide the summary boxes</li>
-          <li>highlight species that are represented in the seed alignment</li>
-          <li>expand/collapse the tree or expand it to a given depth</li>
-          <li>select a sub-tree or a set of species within the tree and view
-            them graphically or as an alignment</li>
-          <li>save a plain text representation of the tree</li>
-        </ul>
-        <hr />
-      </div>
-    </div>
+            <div id="sunburstNotes" style="display: none">
+              <h2>Species trees</h2>
+              <p>
+                We show the species tree in one of two ways. For smaller trees we try
+                to show an interactive representation, which allows you to select
+                specific nodes in the tree and view them as an alignment or as a set 
+                of Pfam domain graphics.
+              </p>
+              <p>
+                Unfortunately we have found that there are problems viewing the 
+                interactive tree when the it becomes larger than a certain limit. 
+                Furthermore, we have found that Internet Explorer can become 
+                unresponsive when viewing some trees, regardless of their size. 
+                We therefore show a text representation of the species tree when the
+                size is above a certain limit or if you are using Internet Explorer
+                to view the site.
+              </p>
+              <p>
+                If you are using IE you can still load the interactive tree by 
+                clicking the &quot;Generate interactive tree&quot; button, but please 
+                be aware of the potential problems that the interactive species tree 
+                can cause.
+              </p>
+              
+              <h3>Interactive tree</h3>
+              <p>
+                For all of the domain matches in a full alignment, we count the 
+                number that are found on all sequences in the alignment. 
+                This total is shown in the <span class="domSum">purple</span> box.
+              </p>
+              <p>
+                We also count the number of unique sequences on which each domain is 
+                found, which is shown in <span class="seqSum">green</span>.
+                <strong>Note</strong> that a domain may appear multiple times on the
+                same sequence, leading to the difference between these two numbers.
+              </p>
+              <p>
+                Finally, we group sequences from the same organism according to the 
+                <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
+                title="National Center for Biotechnology Information">NCBI</acronym></a> 
+                code that is assigned by
+                <a class="ext" href="http://www.uniprot.org/">UniProt</a>, 
+                allowing us to count the number of distinct sequences on which the 
+                domain is found. This value is shown in the <span class="specSum">
+                  pink</span> boxes.
+              </p>
+              <p>
+                We use the NCBI species tree to group organisms according to their 
+                taxonomy and this forms the structure of the displayed tree.
+                <strong>Note</strong> that in some cases the trees are too large (have
+                too many nodes) to allow us to build an interactive tree, but in most
+                cases you can still view the tree in a plain text, non-interactive
+                representation. Those species which are represented in the seed
+                alignment for this domain are <span class="highlightSeed">
+                  highlighted</span>.
+              </p>
+              <p>
+                You can use the tree controls to manipulate how the interactive tree
+                is displayed:
+              </p>
+              <ul>
+                <li>show/hide the summary boxes</li>
+                <li>highlight species that are represented in the seed alignment</li>
+                <li>expand/collapse the tree or expand it to a given depth</li>
+                <li>select a sub-tree or a set of species within the tree and view
+                  them graphically or as an alignment</li>
+                <li>save a plain text representation of the tree</li>
+              </ul>
+              <hr />
+            </div>
+          </div>
 
-    <!-- start of tree -->
-    <div id="treeDiv" class="ygtv-checkbox">
-      <p id="stph" class="loading">Loading...</p>
-    </div>
+          <div id="sunburst">
+            <!-- tree markup will go here -->
+          </div>
 
-    [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
-    
+          <script type="text/javascript">
+            // <![CDATA[
+            
+            // ]]>
+          </script>
+
+        </div>
+
+        <!-- end of sunburst tab -->
+
+        <!-- start of yui-tree tab -->
+
+        <div id="yuiTreeTab">
+
+          [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
+          
+          <div id="speciesTreeDesc">
+            <p>
+              The tree shows the occurrence of this domain across different species.
+              <span onclick="reveal( this, 'speciesNotes', false, true );"
+                    class="moreLink">
+                More...</span>
+            </p>
+        
+            <div id="speciesNotes" style="display: none">
+              <h2>Species trees</h2>
+              <p>
+                We show the species tree in one of two ways. For smaller trees we try
+                to show an interactive representation, which allows you to select
+                specific nodes in the tree and view them as an alignment or as a set 
+                of Pfam domain graphics.
+              </p>
+              <p>
+                Unfortunately we have found that there are problems viewing the 
+                interactive tree when the it becomes larger than a certain limit. 
+                Furthermore, we have found that Internet Explorer can become 
+                unresponsive when viewing some trees, regardless of their size. 
+                We therefore show a text representation of the species tree when the
+                size is above a certain limit or if you are using Internet Explorer
+                to view the site.
+              </p>
+              <p>
+                If you are using IE you can still load the interactive tree by 
+                clicking the &quot;Generate interactive tree&quot; button, but please 
+                be aware of the potential problems that the interactive species tree 
+                can cause.
+              </p>
+              
+              <h3>Interactive tree</h3>
+              <p>
+                For all of the domain matches in a full alignment, we count the 
+                number that are found on all sequences in the alignment. 
+                This total is shown in the <span class="domSum">purple</span> box.
+              </p>
+              <p>
+                We also count the number of unique sequences on which each domain is 
+                found, which is shown in <span class="seqSum">green</span>.
+                <strong>Note</strong> that a domain may appear multiple times on the
+                same sequence, leading to the difference between these two numbers.
+              </p>
+              <p>
+                Finally, we group sequences from the same organism according to the 
+                <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
+                title="National Center for Biotechnology Information">NCBI</acronym></a> 
+                code that is assigned by
+                <a class="ext" href="http://www.uniprot.org/">UniProt</a>, 
+                allowing us to count the number of distinct sequences on which the 
+                domain is found. This value is shown in the <span class="specSum">
+                  pink</span> boxes.
+              </p>
+              <p>
+                We use the NCBI species tree to group organisms according to their 
+                taxonomy and this forms the structure of the displayed tree.
+                <strong>Note</strong> that in some cases the trees are too large (have
+                too many nodes) to allow us to build an interactive tree, but in most
+                cases you can still view the tree in a plain text, non-interactive
+                representation. Those species which are represented in the seed
+                alignment for this domain are <span class="highlightSeed">
+                  highlighted</span>.
+              </p>
+              <p>
+                You can use the tree controls to manipulate how the interactive tree
+                is displayed:
+              </p>
+              <ul>
+                <li>show/hide the summary boxes</li>
+                <li>highlight species that are represented in the seed alignment</li>
+                <li>expand/collapse the tree or expand it to a given depth</li>
+                <li>select a sub-tree or a set of species within the tree and view
+                  them graphically or as an alignment</li>
+                <li>save a plain text representation of the tree</li>
+              </ul>
+              <hr />
+            </div>
+          </div>
+
+          <div id="treeDiv" class="ygtv-checkbox">
+            <p id="stph" class="loading">Loading...</p>
+          </div>
+
+          [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
+
+        </div>
+
+        <!-- end of yui-tree tab -->
+
+      </div> [%# end of "yui-content" %]
+      
+    </div> [%# end of "speciesTreeTabs" %]
+
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    var treeData = [% pfam.pfama_species_trees.json_string || "{}" %],
+        YUITreeLoaded = false,
+        speciesTreeTabView,
+        sunburst,
+        slider;
+
+    [%-# set up the "Show/Hide" buttons in the tool panels %]
+    document.observe("dom:loaded", function() {
+
+      // set up the tree tabs
+      speciesTreeTabView = new YAHOO.widget.TabView("speciesTreeTabs");
+
+      // build the sunburst immediately
+      sunburst = new Sunburst( "sunburst", "sunburstControlsContent", treeData );
+      sunburst.build()
+              .draw();
+
+      // set up the controls
+
+      // scale slider
+      slider = new Control.Slider( 
+        $("sliderScale").down('.handle'),  // handle element
+        $("sliderScale"),                  // track element
+        {
+          range: $R(20, 50),
+          values: [ 20, 25, 30, 35, 40, 45, 50 ],
+          sliderValue: 35,
+          onSlide: function(value) {
+            sunburst.setScale( value )
+                    .draw();
+          },
+          onChange: function(value) {
+            sunburst.setScale( value )
+                    .draw();
+          }
+        }
+      );
+
+      // wire up the "weight by..." buttons
+      $("weightSeq").observe( "change", function() {
+        sunburst.weightByNumSeq()
+                .draw();
+      } );
+      $("weightSpecies").observe( "change", function() {
+        sunburst.weightByNumSpecies()
+                .draw();
+      } );
+
+      // make the sunburst controls draggable and translucent
+      new Draggable( "sunburstSubTree" );
+      $("sunburstSubTree").setOpacity(0.85);
+
+      var sct = $("sunburstControlsToggle"),
+          th  = $("toolsToggle");
+
+      sct.observe("click",function() {
+        toggleTools( sct, "sunburstControlsContent" );
+      } );
+
+      th.observe("click",function() {
+        toggleTools( th, "toolsContent" );
+      } );
+
+      // add a listener for the tab change, so that we can load the YUI species
+      // tree on-demand
+      speciesTreeTabView.addListener( "activeTabChange", function() {
+        if ( YUITreeLoaded ) {
+          return;
+        }
+
+        var r = new Ajax.Request(
+          stUri,
+          {
+            method:     'get',
+            parameters: { acc: "[% acc %]",
+                          ie:  Prototype.Browser.IE },
+            onSuccess:  stSuccess,
+            onFailure:  stFailure
+          }
+        );
+
+        YUITreeLoaded = true;
+      } );
+
+    } ); [%# end of "document.observe..." %]
+
+    // ]]>
+  </script>
+
 </div>
 
 
