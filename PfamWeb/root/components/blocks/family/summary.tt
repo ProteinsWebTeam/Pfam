@@ -16,24 +16,7 @@ requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
 
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.css.push( "prototip.css" );
-requirements.js.push( "tip_definition.js" );
-
-# this needs to be loaded before we try to load the canvas text library,
-# but if we include it specifically for IE, it gets added below everything
-# else. We can add it here safely, however, because excanvas checks to see
-# if canvas is implemented before trying to inject itself
-requirements.js.push( "excanvas.js" );
-
-# need to load the canvas.text.js file before trying to load the font file, 
-# otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
-
-requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "domain_graphics_loader.js" );
+sharedRequirements.css.push( "wp.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -50,170 +33,384 @@ PROCESS components/links.tt; %]
   </div>
   <div class="blockContent">
 
-    [%- # a placeholder for the structure image -%]
-    <div id="siph"
-         class="pdbImageFragment"
-         style="display: none">&nbsp;</div>
+    <p>
+      Pfam includes annotations and additional family information from a range
+      of different sources. These sources can be accessed via the tabs below.
+    </p>
 
-    <h1>
-      [% pfam.description %]
-      <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
-        <img class="addAnnotation" 
-             alt="Add an annotation" 
-             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
-    </h1>
+    <div id="summaryTabs" class="nestedTabs yui-navset">
 
-    [% IF pfam.comment.length %]
-    <p>[% PROCESS addLinks, input = pfam.comment %]</p>
-    [% ELSE %]
-    <p class="inactive">No Pfam abstract.</p>
-    [% END %]
-  
-    <hr class="short"/>
-
-    [% IF pfam.pfama_literature_references.size %]
-      <h2>Literature references</h2>
-  
-      <ol>
-      [% # hash the literature references on "order_added"... I'm sure we should be able to do
-         # this with a simple "sort", but it's screwing up somewhere...
-      litRefs = {};
-      FOREACH ref IN pfam.pfama_literature_references; 
-        litRefs.${ref.order_added} = ref;
-      END;
-      FOREACH refNum IN litRefs.keys.nsort;
-        ref = litRefs.$refNum; %]
-        <li>
-          <p>
-            [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
-            <a name="ref[% refNum %]"
-               class="ext" 
-               href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">
-              PUBMED:[% ref.auto_lit.pmid %]</a>
-          </p>
-        </li>
-      [%- END %]
-      </ol>
-  
-      <hr class="short"/>
-    [% END %]
-
-    [% IF pfam.interpro %]
-      <h2 id="interproTitle">
-        InterPro entry 
-        <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
-      </h2>
-      [% # THIS IS A HACK ! the database entry for the interpro abstract appears
-         # to contain <p> tags...
-      pfam.interpro.abstract;
-
-    END;
-
-    IF clan -%]
-      <h2>Clan</h2>
-  
-      [% membershipList = BLOCK;
-        total = 0;
-        members = [];
-
-        # can't sort the contents of "clan.clan_memberships" directly. Convert the 
-        # list into rows from the pfamA table first
-        FOREACH member IN clan.clan_memberships;
-          members.push( member.auto_pfama );
-        END;
-        FOREACH member IN members.sort("pfama_id") %]
-          <span class="listItem">
-          [% IF member.pfama_acc == pfam.pfama_acc;
-            member.pfama_id;
-          ELSE %]
-            <a title="[% member.pfama_acc %]"
-               href="[% c.uri_for( '/family', member.pfama_acc ) %]">
-              [% member.pfama_id %]</a>
-          [% END %]
-          </span>
-          [% total = total + 1;
-        END; # of foreach
-      END # of block %]
-
-      <p>
-        This family is a member of clan <strong>
-        <a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
-        (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
-        which contains the following [% total > 1 ? total _ " members" : "member" %]:
-      </p>
-    
-      [% membershipList %]
-    
-      <div class="cleaner"></div>
-
-    [%- END; # of "if clan_acc"
-
-    IF goTerms.size -%]
-
-      <h2>Gene Ontology</h2>
-
-      [% categories = { 
-        function  => { label   => "Molecular function",
-                       goTerms => [] },
-        process   => { label   => "Biological process",
-                       goTerms => [] },
-        component => { label   => "Cellular component",
-                       goTerms => [] }
-      };
-
-      FOREACH goTerm IN goTerms;
-        categories.${goTerm.category}.goTerms.push( goTerm ); 
-      END -%]
-      
-      <table class="details links" summary="Gene ontology data">
-        <tbody>
-        [% FOREACH categoryName IN categories.keys.sort;
-          category = categories.${categoryName};
-          FOREACH goTerm IN category.goTerms -%]
-          <tr class="[% loop.index % 2 ? "odd" : "even" %]">
-            [% IF loop.first -%]
-              <td class="label"[% IF loop.first %] rowspan="[% category.goTerms.size %]"[% END %]>
-                [% category.label %]
-              </td>
-            [% END -%]
-            <td>
-              <a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">
-                [% goTerm.term %]</a>
-              (<a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">[% goTerm.go_id %]</a>)
-            </td>
-          </tr>
+      <ul id="summaryTabsNav" class="yui-nav">
+        <!-- wp -->
+        [%- IF articles.size;
+          FOREACH article IN articles %]
+          <li[% IF loop.first %] class="selected"[% END %]>
+            <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title %]</a>
+          </li>
           [% END;
-        END -%]
-        </tbody>
-      </table>
-      
-    [%- END; # of "if goTerms"
+        ELSE -%]
+          <li>
+            <a href="#wpContent">No wikipedia article</a>
+          </li>
+        [%- END %]
+        <!-- pf -->
+        <li[% IF ! articles.size %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
+        <!-- ip -->
+        <li[% ' class="disabled"' UNLESS pfam.interpro %]>
+          <a href="#interproContent">Interpro</a>
+        </li>
+   <!-- <li><a href="#topsanContent">TopSan</a></li> -->
+      </ul>
 
-    # add the tables showing internal and external database links 
-    PROCESS buildLinksTable; -%]
+      <div class="yui-content">
 
-  </div>
+        <!-- ============================================================== -->
 
-  [% IF summaryData.numStructures -%]
+        [%- IF articles.size;
+          FOREACH article IN articles %]
+            <div id="wpContent[% loop.index %]">
+
+              <p>
+                The Pfam group coordinates the annotation of Pfam families in  
+                <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>. 
+                This family is described by a Wikipedia entry entitled  
+                &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title.replace( "_", " " ) | html %]</a>&quot;.
+                <span onclick="reveal( this, 'wikiNotes', false, true );"
+                      class="moreLink">
+                  More...</span>
+              </p>
+
+              <hr />
+
+              <div id="wikiNotes" style="display: none">
+                <p>
+                  The Wikipedia text that you see displayed here is a download
+                  from <a href="http://en.wikipedia.org/wiki/Main_Page"
+                    class="ext">Wikipedia</a>. This means that the information
+                  we display is a copy of the information from the Wikipedia
+                  database. The button next to the article title (&quot;Edit
+                  wikipedia article&quot;) takes you to the edit page for the
+                  article directly within wikipedia. You should be aware you
+                  are not editing our local copy of this information. Any
+                  changes that you make to the Wikipedia article will not be
+                  displayed here until we next download the article from
+                  Wikipedia. We currently download new content on a nightly
+                  basis.
+                </p>
+                
+                <h3>Does Pfam agree with the content of the Wikipedia entry ?</h3>
+
+                <p>
+                  Pfam has chosen to link families to Wikipedia articles. In
+                  some case we have created or edited these articles but in
+                  many other cases we have not made any direct contribution to
+                  the content of the article. The Wikipedia community does
+                  monitor edits to try to ensure that (a) the quality of
+                  article annotation increases, and (b) vandalism is very
+                  quickly dealt with. However, we would like to emphasise that
+                  Pfam does not curate the Wikipedia entries and we cannot
+                  guarantee the accuracy of the information on the Wikipedia
+                  page.
+                </p>
+                
+                <h2>Before you edit for the first time</h2>
+
+                <p>
+                  Wikipedia is a free, online encyclopedia. Although anyone can
+                  edit or contribute to an article, Wikipedia has some strong
+                  editing guidelines and policies, which promote the Wikipedia
+                  standard of style and etiquette. Your edits and contributions
+                  are more likely to be accepted (and remain) if they are in
+                  accordance with this policy.
+                </p>
+                <p>
+                  You should take a few minutes to view the following pages:
+                </p>
+                <ul>
+                  <li><a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:Five_pillars">
+                        Five pillars</a></li>
+                  <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents/Policies_and_guidelines">
+                        Policies and quidelines</a></li>
+                  <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents">
+                        Wikipedia help contents</a></li>
+                  <li><a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:Tips">
+                        Wikipedia Tips</a></li>
+                  <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents/Editing_Wikipedia">
+                        Editing help</a></li>
+                </ul>
+
+                <h2>Things you should know</h2>
+                
+                <h3>How your contribution will be recorded</h3>
+
+                <p>
+                  Anyone can edit a Wikipedia entry. You can do this either as
+                  a new user or you can register with Wikipedia and log on.
+                  When you click on the &quot;Edit Wikipedia article&quot;
+                  button, your browser will direct you to the edit page for
+                  this entry in Wikipedia. If you are a registered user and
+                  currently logged in, your changes will be recorded under your
+                  Wikipedia user name. However, if you are not a registered
+                  user or are not logged on, your changes will be logged under
+                  your computer's IP address. This has two main implications.
+                  Firstly, as a registered Wikipedia user your edits are more
+                  likely seen as valuable contribution (although all edits are
+                  open to community scrutiny regardless).  Secondly, if you
+                  edit under an IP address you may be sharing this IP address
+                  with other users. If your IP address has previously been
+                  blocked (due to being flagged as a source of 'vandalism')
+                  your edits will also be blocked. You can find more
+                  information on this and creating a 
+                  <a class="ext"
+                  href="http://en.wikipedia.org/wiki/Wikipedia:Why_create_an_account">
+                    user account</a> at Wikipedia.
+                </p>      
+                <p>
+                  If you have problems editing a particular page, contact us at 
+                  <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
+                    &#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>
+                  and we will try to help.
+                </p>
+                
+                <h2>Contact us</h2>
+                
+                <p>
+                  The community annotation is a new facility of the Pfam web site. If you 
+                  have problems editing or experience problems with these pages please 
+                  <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
+                    contact us</a>.
+                </p>
+
+                <hr />
+              
+              </div>
+
+              <div class="wpData">
+                <h1 class="firstHeading">
+                  [% article.title | html %]
+                  <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
+                  <img class="addAnnotation" 
+                       alt="Edit wikipedia article" 
+                       src="[% c.uri_for( '/static/images/edit_wikipedia_button.png' ) %]" /></a>
+                </h1>
+                [% article.text %]
+              </div>
+              <p id="wpLicense">
+                This page is based on a 
+                <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
+                  wikipedia article</a>. The text is available under the 
+                <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
+                  Creative Commons Attribution/Share-Alike License</a>.
+              </p>
+            </div>
+          [% END;
+        ELSE -%]
+          <div id="wpContent">
+            <p> 
+              The Pfam group coordinates the annotation of Pfam families in  <a
+              class="ext"
+              href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>, but
+              we have not yet assigned a wikipedia article to this family. If
+              you think that a particular wikipedia article provides good
+              anotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
+                let us know</a>.
+            </p>
+          </div>
+        [%- END %]
+        
+        <!-- ============================================================== -->
+
+        <div id="pfamContent" class="pfamData">
+
+          <p>
+            This tab holds the annotation information that is stored in the Pfam
+            database. As we move to using Wikipedia as our main source of annotation,
+            the contents of this tab will be gradually replaced by the Wikipedia
+            tab.
+          </p>
+
+          <hr />
+
+          [%- # a placeholder for the structure image -%]
+          <div id="siph"
+               class="pdbImageFragment"
+               style="display: none">&nbsp;</div>
+
+          <h1>
+            [% pfam.description %]
+            <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
+              <img class="addAnnotation" 
+                   alt="Add an annotation" 
+                   src="[% c.uri_for( '/static/images/annotation.png' ) %]" /></a>
+          </h1>
+
+          [%- IF pfam.comment.length %]
+          <p>[% PROCESS addLinks, input = pfam.comment %]</p>
+          [%- ELSE %]
+          <p class="inactive">No Pfam abstract.</p>
+          [%- END %]
+        
+          [%- IF pfam.pfama_literature_references.size %]
+            <h2>Literature references</h2>
+        
+            <ol>
+            [% # hash the literature references on "order_added"... I'm sure we should be able to do
+               # this with a simple "sort", but it's screwing up somewhere...
+            litRefs = {};
+            FOREACH ref IN pfam.pfama_literature_references; 
+              litRefs.${ref.order_added} = ref;
+            END;
+            FOREACH refNum IN litRefs.keys.nsort;
+              ref = litRefs.$refNum; %]
+              <li>
+                <p>
+                  [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
+                  <a name="ref[% refNum %]"
+                     class="ext" 
+                     href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">
+                    PUBMED:[% ref.auto_lit.pmid %]</a>
+                </p>
+              </li>
+            [%- END %]
+            </ol>
+        
+            <hr class="short"/>
+          [% END %]
+
+          <hr class="short"/>
+
+          [%- IF clan %]
+            <h2>Clan</h2>
+            <p>
+              This family is a member of clan 
+              <strong><a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
+              (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
+              which has a total of 
+              <span class="link" onclick="tabPage.switchTab('clanBlock');">
+                <strong>[% clan.clan_memberships.size %]</strong> members</span>.
+            </p>
+          [%- END;
+
+          # add the tables showing internal and external database links 
+          PROCESS buildLinksTable; -%]
+
+        </div> [%# end of "pfamContent" %]
+
+        <!-- ============================================================== -->
+
+        <div class="interproData">
+
+          <p>
+            This tab holds annotation information from the 
+            <a class="ext" href="http://www.ebi.ac.uk/interpro/">Interpro</a> database.
+          </p>
+
+          <hr />
+
+          [%- IF pfam.interpro %]
+            <h2 id="interproTitle">
+              InterPro entry 
+              <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
+            </h2>
+            [% # THIS IS A HACK ! the database entry for the interpro abstract appears
+               # to contain <p> tags...
+            pfam.interpro.abstract;
+
+            IF goTerms.size -%]
+
+              <h2>Gene Ontology</h2>
+
+              [% categories = { 
+                function  => { label   => "Molecular function",
+                               goTerms => [] },
+                process   => { label   => "Biological process",
+                               goTerms => [] },
+                component => { label   => "Cellular component",
+                               goTerms => [] }
+              };
+
+              FOREACH goTerm IN goTerms;
+                categories.${goTerm.category}.goTerms.push( goTerm ); 
+              END -%]
+              
+              <table class="details links" summary="Gene ontology data">
+                <tbody>
+                [% FOREACH categoryName IN categories.keys.sort;
+                  category = categories.${categoryName};
+                  FOREACH goTerm IN category.goTerms -%]
+                  <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+                    [% IF loop.first -%]
+                      <td class="label"[% IF loop.first %] rowspan="[% category.goTerms.size %]"[% END %]>
+                        [% category.label %]
+                      </td>
+                    [% END -%]
+                    <td>
+                      <a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">
+                        [% goTerm.term %]</a>
+                      (<a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">[% goTerm.go_id %]</a>)
+                    </td>
+                  </tr>
+                  [% END;
+                END -%]
+                </tbody>
+              </table>
+              
+            [%- END; # of "if goTerms"
+
+          ELSE %]
+            <div id="interproContent">
+              <p>No Interpro data for this Pfam family.</p>
+            </div>
+          [%- END %]
+        </div>
+
+        <!-- ============================================================== -->
+
+   <!-- <div id="topsanContent" class="topsanData">
+          <h1>TopSan</h1>
+          <p>TopSan content</p>
+        </div> -->
+
+      </div> [%# end of "yui-content" %]
+     
+    </div> [%# end of "#contentTabs" %]
+
+  </div> [%# end of "blockContent" %]
+
   <script type="text/javascript">
     // <![CDATA[
 
-    // set up the AJAX call to load the structure image
-    Event.observe( window, "load", function() {
-      var r = new Ajax.Updater( 
-        "siph", 
-        "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
-        { evalScripts: true,
-          method: 'get',
-          onSuccess: function( response ) {
-            $("siph").show();
+    var extraContentTabView,
+        wikiContents = [];
+
+    document.observe( "dom:loaded", function() {
+      extraContentTabView = new YAHOO.widget.TabView("summaryTabs");
+
+      [%- IF articles.size;
+        # set up the "show"/"hide" links in the wiki content %]
+        $$(".wpData").each( function( wpData ) {
+          wikiContents.push( new WikiContent( wpData ) );
+        } );
+      [%- END %]
+
+      [%- IF summaryData.numStructures;
+        # set up the AJAX call to load the structure image %]
+        var r = new Ajax.Updater( 
+          "siph", 
+          "[% c.uri_for( '/family/structures', acc ) %]",
+          { 
+            evalScripts: true,
+            method: 'get',
+            onSuccess: function( response ) {
+              $("siph").show();
+            }
           }
-        }
-      );
+        );
+      [%- END %]
     } );
+
     // ]]>
   </script>
-  [% END -%]
 
 </div>
 
