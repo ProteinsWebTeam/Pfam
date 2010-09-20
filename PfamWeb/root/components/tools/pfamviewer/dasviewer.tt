@@ -1,0 +1,107 @@
+
+[%
+# dasviewer.tt
+# pg6 20100628 WTSI
+# 
+# build a page for the pfamviewer tool
+#
+# $Id$
+
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "alignment.css" );
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "family.js" );
+
+#-------------------------------------------------------------------------------
+
+# set the title for the window
+title = "Pfam alignment viewer";
+
+pageContent = BLOCK
+-%]
+
+<script type="text/javascript">
+  // <![CDATA[
+    
+    var parent = 'caph';
+    var acc    = '[% params.acc %]';
+    var dsn    = '[% params.dasSource %]';
+    var size   = '[% params.numRowsInAlignment %]';
+    var url    = 'http://pfamviewer.sanger.ac.uk/alignment';
+    var rows;
+    if( size > 30 ){
+      rows = 30;
+    }else{
+      rows = size;
+    }
+    document.observe( "dom:loaded", function() {
+
+      importAlignmentViewer = YAHOO.util.Get.script( 
+        'http://pfamviewer.sanger.ac.uk/javascripts/AlignmentViewer.js',
+        {
+          onSuccess: function( response ){
+            // console.log( 'alignment VIEWER JAVASCRIPT LIBRARY LOADED ' );
+            // response.purge();   //  if you dont want the javascript library to present in the DOM.
+            // console.log( 'the params are %s,%s,%s,%d,%s,%d',parent, acc, dsn, size, url , rows );
+            alignmentObj = new AlignmentViewer( parent, acc, dsn, size, url , rows );   
+          },
+          onFailure: function( response ){
+            // console.log( 'alignment VIEWER CANT BE LOADED' );
+          }
+        }
+      );
+
+    } );
+  
+  // Event triggered when the response is loaded;
+  // document.observe( 'Alignments:Loaded', function( e ){
+    // console.log( 'The alignment response is loaded. if you need to do anythign do now.' );
+  // } );
+
+  // ]]>
+</script>
+
+[% IF params.title %]
+  <h1>[% params.title %]</h1>
+[% ELSE %]
+  <h1>Pfam alignment viewer</h1>
+[% END %]
+
+<div id="caph"> </div>
+
+ <div id="loadAlign" class="loading" style="display:none">
+    Loading alignment...
+ </div>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
+
