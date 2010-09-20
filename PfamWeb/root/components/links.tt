@@ -178,7 +178,7 @@ BLOCK buildLink;
     [%- CASE [ "PROSITE", "PROSITE_PROFILE" ] -%]
 <a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
     [%- CASE "PSEUDOFAM" -%]
-<a class="ext" href="[% pseudofam_prefix_url; id %]">[% id %]</a>
+<a class="ext" href="[% pseudofam_prefix_url | uri; id %]">[% id %]</a>
     [%- CASE "SCOP" -%]
       [%- IF other -%]
 <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&amp;pdb=[% id %]">[% id %]</a>
