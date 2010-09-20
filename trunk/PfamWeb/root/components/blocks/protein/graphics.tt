@@ -15,17 +15,13 @@
 #
 # $Id: graphics.tt,v 1.30 2009-10-07 13:47:39 jt6 Exp $
 
-# disable this until we get around to moving it to the new graphics system
-RETURN;
-
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-# the tooltips script
-#sharedRequirements.js.push( "prototip.js" );
-#sharedRequirements.css.push( "prototip.css" );
+requirements.js.push( "faces/arial-normal-normal.js" );
+requirements.js.push( 'domain_graphics.js');
 
 #-------------------------------------------------------------------------------
 
@@ -103,12 +99,15 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     </p>
  
     <!-- start of graphics div -->
-    <div id="graphicsHolder">
-      <p id="pgph" class="loading">
+    <div id="pgph" class="loading">
         Loading feature alignment...
-      </p>
+    </div>
+
+    <div id="graphicsHolder">
     </div>
     <!-- end of graphics div -->
+    
+    <br />
 
     <p><span class="link" onclick="reveal(this,'checkboxes',false)">Show</span>
     sources update panel.</p>
@@ -123,6 +122,10 @@ graphicsUri = c.uri_for( "/protein/graphics" );
           image are retrieved from servers around the web and it may take a few seconds to 
           collect the data and generate the image.
         </p>
+        <p>
+          Note that some DAS sources may not return any features on this sequence. These
+          sources are <span class="highlightError">highlighted</span> in the list below.
+        </p>
   
         <form action="[% graphicsUri %]"
               id="updateGraphicsForm"
@@ -136,19 +139,22 @@ graphicsUri = c.uri_for( "/protein/graphics" );
                 <div id="[% section.id %]" class="section">
                 <p class="sectionLabel">[% section.system %] [% section.type %]</p>
                 [% FOREACH source IN section.servers.sort("name") -%]
+                        [% IF source.name != 'Pfam' %]
                         <div class="source">
-                          <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]"
+                          <!-- <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]" -->
+                          <input name="[% source.server_id %]" 
                                  type="checkbox"
                                  [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="checked"[% END %] />
-                            <span class="checkboxLabel ext">
+                            <span id="[% source.server_id %]_das" class="checkboxLabel ext">
                             [% IF source.helper_url %]
                                 <a href="[% source.helper_url %]">[% source.name %]</a>
                               [% ELSE %]
                                 [% source.name %]
                               [% END %]
                               (<a href="[% source.url %]">source</a>)
-                    </span>
+                            </span>
                         </div>
+                        [% END %]
                 [% END -%]
               </div>
             [% END %]
@@ -156,8 +162,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
             <input id="pgSubmitButton"
                    name="submit"
                    value="Update"
-                   type="submit"
-                   disabled="disabled" />
+                   type="submit"/>
                    
             <div id="pgUpdateSpinner" style="display: none" class="loading">
               Loading features...
@@ -167,7 +172,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
         </form>
 
         <div class="cleaner">&nbsp;</div>
-   
+       
       </div> <!-- end of "checkboxes" -->
 
     </div> <!-- end of "updatePanel" -->
@@ -176,50 +181,109 @@ graphicsUri = c.uri_for( "/protein/graphics" );
 
   <script type="text/javascript">
     // <![CDATA[
+    
+    // the sequence is retrieved in the begining as its used by the pfamgraphci;
+    var layout = [% layout || "[]" %];
+    var sequence = layout[0];
+    var parent  = 'graphicsHolder';    // HTML DOM element;
+    var acc     = '[% pfamseq.pfamseq_acc %]';    // Protein accession;
+    var sources = $H( Form.serializeElements( $("updateGraphicsForm").getInputs('checkbox'), { hash:true} ) ).keys();  // sources array should contain DS_id's ( NOTE: use native javascript array );
+    var url     = 'http://web-vm-ipfam.internal.sanger.ac.uk:8001/feature/getFeature';
+    
+    var featureObj;
+    var importFeatureViewer;
 
-    var graphicsSubmitter = function() {
-      $("pgSubmitButton").disable();
-      $("pgUpdateSpinner").show();
-      var r = new Ajax.Request( 
-        '[% graphicsUri %]',
+    document.observe( "dom:loaded", function() {
+
+      importFeatureViewer = YAHOO.util.Get.script( 
+        'http://web-vm-ipfam.internal.sanger.ac.uk:8001/javascripts/FeatureViewer.js',
         {
-          method:      "get",
-          parameters:  $("updateGraphicsForm").serialize(true),
-          evalScripts: true,
-          onSuccess:   function() {
-            $("pgSubmitButton").enable();
-            $("pgUpdateSpinner").hide();
+          onSuccess: function( response ){
+            // console.log( 'FEATURE VIEWER JAVASCRIPT LIBRARY LOADED' );
+            // response.purge();   //  if you dont want the javascript library to present in the DOM.
+            
+            // i need the Y offset to be changed to 130 px which gives enough space to draw pfam graphic;
+            var options = { 'yOffset': 40 }; 
+                        
+            featureObj = new FeatureViewer( parent, acc, sources, url , options);
           },
-          onFailure:   function() {
-            $("pgSubmitButton").disable();
-            $("pgUpdateSpinner").hide();
-            $("graphicsHolder").update( "Alignment loading failed." );
+          onFailure: function( response ){
+            // console.log( 'FEATURE VIEWER CANT BE LOADED' );
           }
         }
       );
-    };
 
-    Event.observe( window, "load", function() {
-      var r = new Ajax.Updater( 
-        "graphicsHolder",
-        "[% graphicsUri %]",
-        {
-          method:     "get",
-          parameters: { acc:       "[% pfamseq.pfamseq_acc %]",
-                        highlight: "[% highlightSource %]" },
-          onSuccess:  function() {
-            $("pgSubmitButton").enable();
-            $("pgUpdateSpinner").hide();
-          },
-          onFailure:  function() {
-            $("pgSubmitButton").disable();
-            $("pgUpdateSpinner").hide();
-            $("graphicsHolder").update( "Alignment loading failed." );
-          }
-        }
-      );
     } );
+    
+    // function to get the form parameters
+    function graphicsSubmitter(){
+      // $("pgSubmitButton").disable();
+      $("pgUpdateSpinner").show();
+      
+      // get the DS_id's from the checkboxes;
+      var sources = $H( Form.serializeElements( $("updateGraphicsForm").getInputs('checkbox'), { hash:true} ) ).keys();
+      
+      // check whether the featureObj already exists or not;
+      if( featureObj !== undefined ){
+        
+        if( featureObj._response.get( 'errorSources' ) !== undefined ){
+          // before proceeding remove the background of error sources for previous request;
+          var errorSources = $H( featureObj._response.get( 'errorSources' ) ) ;
 
+          errorSources.each( function( pair ){
+            var el = pair.key + '_das';
+            // console.log( ' the classname to be removed from element is '+el );
+            if(  $(el) !== undefined ){
+              $( el ).removeClassName( 'highlightError' );
+            }
+
+          }); // end of errorSources.each
+        
+        } // end of featureObj._response.errorSources;
+
+
+        // now set the new sources into the object;
+        featureObj.setSources( sources );
+        // now redraw the features 
+        featureObj.draw();
+
+      } // end of featureObj undefined;
+     
+    }   // end of function grahcisSubmitter;
+    
+    // custom event listener fired by the feature widget, if we happened to get das sources, whidh doesn't have features;
+    document.observe( 'ErrorSources:Found', function( e ){
+      //console.log( 'the errorsources found are ', e.memo.errorSources );
+      
+      // now highlight the error sources;
+      var errorSources = $H( e.memo.errorSources ) ;
+
+      errorSources.each( function( pair ){
+        var el = pair.key + '_das';
+        if(  $(el) !== undefined ){
+          $( el ).addClassName( 'highlightError' );
+        }
+
+      }); // end of errorSources.each
+
+    } );  // end of document.observe;
+   
+
+    // custom event listener for looking at the feature widget;
+    document.observe( 'Feature:Loaded', function( e) {
+      
+      var pg = e.memo.pg;
+      // console.log( 'the pfamgraphic is',pg );
+
+      pg.setImageParams( {yOffset : 0 } );
+      pg.setSequence( sequence );
+      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
+
+      pg.render();
+      
+      $("pgUpdateSpinner").hide();
+      $("pgph").hide(); 
+    } );
     // ]]>
   </script>
 
