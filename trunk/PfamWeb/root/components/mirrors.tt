@@ -13,7 +13,7 @@ META naked = 1;
   <li class="uk mirror"><a href="http://pfam.sanger.ac.uk/" class="ext flag">WTSI, UK</a></li>
   <li class="se mirror"><a href="http://pfam.sbc.su.se/" class="ext flag">SBC, Sweden</a></li>
   <li class="us mirror"><a href="http://pfam.janelia.org/" class="ext flag">JFRC, USA</a></li>
-  <li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">INRA, France</a></li>
+[%#  <li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">INRA, France</a></li> %]
 </ul>
 [%#
 Copyright (c) 2007: Genome Research Ltd.
