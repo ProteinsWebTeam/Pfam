@@ -865,6 +865,7 @@ var PfamGraphic = Class.create( {
     canvas.identify();
 
     // make sure it gets initialised in bloody IE...
+    // N.B. this "undefined" really needs the quotation marks !
     if ( typeof G_vmlCanvasManager !== "undefined" ) {
       canvas = G_vmlCanvasManager.initElement( canvas );
     }
