@@ -113,8 +113,6 @@ sub download : Local {
   return unless defined $c->stash->{treeData};
 
   my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
-  $c->log->debug( 'Family::Tree::download: tree data: |' . $c->stash->{treeData} . '|' )
-    if $c->debug;
 
   $c->log->debug( "Family::Tree::download: tree filename: |$filename|" )
     if $c->debug;
