@@ -110,7 +110,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
         The Pfam graphic below shows only the <strong>significant</strong>
         matches to your sequence. A significant match is one where the bits
         score is greater than or equal to the gathering threshhold for the
-        Pfam domain.  Clicking on any of the domains in the image will take
+        Pfam domain. Clicking on any of the domains in the image will take
         you to a page of information about that domain.
         [% IF numJobs > 1 # so we must have one Pfam-A and one Pfam-B job... -%]
         Note that some Pfam-B domains may be obscured by overlapping Pfam-A
@@ -120,7 +120,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
       <p>
         Below are the details of the matches that were found. We separate
         Pfam-A matches into two tables, containing the significant and
-        insignificant matches.  Hits which do not start and end at the end
+        insignificant matches. Hits which do not start and end at the end
         points of the matching HMM are <span
         class="warning">highlighted</span>.
       </p>
