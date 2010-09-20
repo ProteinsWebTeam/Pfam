@@ -1,0 +1,240 @@
+[%
+# domain_graphics_example.tt
+# jt6 20100517 WTSI
+# 
+# build the stand-alone example for the domain graphics.
+#
+# $Id$
+
+# no wrapper for this page
+META naked = 1;
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+  <!--
+  This is an example of drawing a domain graphic using the PfamGraphic javascript
+  class. The page includes a form where you can paste the domain graphic 
+  description (a JSON string) and a button to generate the resulting graphic.
+
+  The textarea comes pre-loaded with a fairly complex graphic, showing most
+  of the features of the library. There's another simpler one in the comments
+  below, which is probably easier for playing with.
+  -->
+
+  <head>
+
+    <title>Domain graphics test page</title>
+
+    <!-- load the prototype library from google -->
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+
+    <!-- the following libraries are all hosted on the Pfam site, but can obviously be
+         retrieved and served locally -->
+
+    <!-- the domain graphics library -->
+    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/domain_graphics.js') %]"></script>
+
+    <!-- in order to standardize the look of text, and in order to make it work at
+         all in older browsers (and IE), we need the canvas text library. And, in turn,
+         that library uses a font description in a separate javascript file -->
+    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/canvas.text.js', reimplement='true', dontUseMoz='true') | html %]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/faces/optimer-bold-normal.js') %]"></script>
+
+    <!-- we use the (non-free) prototip2 library to add tooltips. It's not free, but
+         nearly. The domain graphics code should cope if it's not loaded, so you
+         could just omit the prototip load -->
+    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/prototip.js') %]"></script>
+
+    <!-- prototip allows for configuring a "style", which is done here -->
+    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/tip_definition.js') %]"></script>
+
+    <!-- stylesheets. We only really need the rules that are specific to the tooltips -->
+    <link rel="stylesheet" href="[% c.uri_for('/static/css/pfam.css') %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for('/static/css/prototip.css') %]" type="text/css" />
+
+    <!-- IE, being IE, needs extra help. In particular we need to add an extra library
+         that implements <canvas> using the VML drawing layer in IE. And, so that 
+         "console.log" calls don't screw everything up, we include the firebug-lite 
+         script -->
+    <!--[if IE]>
+      <script type="text/javascript" src="[% c.uri_for('/static/javascripts/excanvas.js') %]"></script>
+      <script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
+    <![endif]-->
+
+    <style type="text/css">
+      #dg canvas { 
+        margin: 2em;
+      }
+      #errors {
+        border: 1px solid red;
+        margin: 1em 0;
+        padding: 0.4em;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <h3>Domain graphics test page</h3>
+
+    <p>
+      This page allows you test the domain graphics library with different
+      domain graphics descriptions. You can edit the string in the text area
+      below and press &quot;submit&quot; to see the resulting graphic. If 
+      there are problems with the description, you should see an explanatory
+      error message...
+    </p>
+    <p>
+      Read the source code of the page for an explanation of how to use
+      the library. We also recommend taking a look at the source code of the
+      javascript library itself.
+    </p>
+
+    <!-- this will hold the canvas element -->
+    <div id="dg"></div>
+
+    <button id="submit">Submit</button>
+    <button id="clear">Clear</button>
+
+    <div id="errors" style="display: none"></div>
+
+    <div id="form">
+    
+      <!-- example taken from Q560V8_CRYNE (Q560V8) -->
+      <textarea cols="80" rows="40" id="seq">
+{"length":"950","regions":[{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"361","display":true,"startStyle":"jagged","aliEnd":"361","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"163","start":"159"},{"modelStart":"5","modelEnd":"292","colour":"#2dcf00","endStyle":"jagged","end":"587","display":true,"startStyle":"jagged","aliEnd":"573","modelLength":"307","text":"Peptidase_S8","href":"/family/PF00082","type":"pfama","metadata":{"scoreName":"e-value","score":"1.3e-38","description":"Subtilase family","end":"587","accession":"PF00082","database":"pfam","aliEnd":"573","identifier":"Peptidase_S8","type":"Domain","aliStart":"163","start":"159"},"aliStart":"470","start":"470"},{"modelStart":"12","modelEnd":"100","colour":"#ff5353","endStyle":"curved","end":"469","display":true,"startStyle":"jagged","aliEnd":"469","modelLength":"100","text":"PA","href":"/family/PF02225","type":"pfama","metadata":{"scoreName":"e-value","score":"7.1e-09","description":"PA domain","end":"469","accession":"PF02225","database":"pfam","aliEnd":"469","identifier":"PA","type":"Family","aliStart":"385","start":"362"},"aliStart":"385","start":"362"},{"modelStart":"1","modelEnd":"112","colour":"#5b5bff","endStyle":"curved","end":"726","display":true,"startStyle":"curved","aliEnd":"726","modelLength":"112","text":"DUF1034","href":"/family/PF06280","type":"pfama","metadata":{"scoreName":"e-value","score":"1.1e-13","description":"Fn3-like domain (DUF1034)","end":"726","accession":"PF06280","database":"pfam","aliEnd":"726","identifier":"DUF1034","type":"Domain","aliStart":"613","start":"613"},"aliStart":"613","start":"613"}],"markups":[{"lineColour":"#ff0000","colour":"#000000","end":"470","display":true,"v_align":"top","metadata":{"database":"pfam","type":"Link between discontinous regions","start":"361","end":"470"},"type":"Nested","start":"361"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"S","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"S Pfam predicted active site","start":"538"},"start":"538"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"D","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"D Pfam predicted active site","start":"185"},"start":"185"},{"lineColour":"#333333","colour":"#e469fe","display":true,"residue":"H","headStyle":"diamond","v_align":"top","type":"Pfam predicted active site","metadata":{"database":"pfam","description":"H Pfam predicted active site","start":"235"},"start":"235"}],"metadata":{"database":"uniprot","identifier":"Q560V8_CRYNE","description":"Putative uncharacterized protein","organism":"Cryptococcus neoformans (Filobasidiella neoformans)","accession":"Q560V8","taxid":"5207"},"motifs":[{"colour":"#ffa500","type":"sig_p","metadata":{"database":"Phobius","type":"sig_p","start":"1","end":"23"},"start":1,"end":23,"display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.5100","type":"low_complexity","start":"3","end":"21"},"start":3,"end":21,"display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.4900","type":"low_complexity","start":"134","end":"156"},"start":"134","end":"156","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0200","type":"low_complexity","start":"173","end":"187"},"start":"173","end":"187","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0800","type":"low_complexity","start":"207","end":"218"},"start":"207","end":"218","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.1300","type":"low_complexity","start":"220","end":"231"},"start":"220","end":"231","display":false},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"2.0000","type":"low_complexity","start":"538","end":"554"},"start":"538","end":"554","display":false},{"colour":"#86bcff","type":"low_complexity","metadata":{"database":"seg","score":"1.9100","type":"low_complexity","start":"578","end":"590"},"start":588,"end":"590","display":true},{"colour":"#00ffff","type":"low_complexity","metadata":{"database":"seg","score":"1.7600","type":"low_complexity","start":"822","end":"831"},"start":"822","end":"831","display":false},{"colour":["#ff7ff0","#f2ff7f","#7ff2ff"],"href":"/pfamb/PB075017","type":"pfamb","metadata":{"database":"pfam","identifier":"Pfam-B_75017","type":"Pfam-B","start":"791","end":"949","accession":"PB075017"},"start":"791","end":"949","display":true}]}
+      </textarea><br />
+      <label for="xscale">X-scale: <input id="xscale" value="1.0"></input></label><br />
+      <label for="yscale">Y-scale: <input id="yscale" value="1.0"></input></label><br />
+
+    </div>  
+
+    <!-- this is a simpler domain graphic description. Paste it into the 
+         text area to see how it looks
+    {
+      length: 700,
+      markups: [ { start:     110,
+                   lineStyle: "bold",  //one of bold, dash, mixed
+                   headStyle: "diamond", //one of square, diamond, circle, arrow
+                   v_align:   "top", //one of top or bottom 
+                   label:     "diamond",
+                   colour:    "red" },
+                 { start:     130,
+                   lineStyle: "bold",  //one of bold, dash, mixed
+                   headStyle: "line", //one of square, diamond, circle, arrow
+                   v_align:   "top", //one of top or bottom 
+                   label:     "line",
+                   colour:    "green" } ],
+      regions: [ { startStyle: "curved",
+                   endStyle:   "curved",
+                   start:      10,
+                   end:        220,
+                   aliStart:   40,
+                   aliEnd:     200,
+                   colour:     "#ff8800",
+                   text:       "first" },
+                 { startStyle: "jagged",
+                   endStyle:   "jagged",
+                   start:      300,
+                   end:        380,
+                   aliStart:   315,
+                   aliEnd:     350,
+                   colour:     "#ff0000",
+                   text:       "second" } ]
+    }
+    -->
+
+    <!-- This is the script tag that is responsible for controlling the page. 
+         We define a function that's will actually generate the domain graphic,
+         based on the content of the form field above. -->
+
+    <script type="text/javascript">
+      // <![CDATA[
+
+      // instantiate an object
+      var pg = new PfamGraphic();
+
+      // the function that gets called when the "submit" button is clicked
+      var generate = function() {
+
+        // start by getting hiding any previous error messages and then 
+        // delete the old canvas element. We could effectively blank the
+        // old canvas by overwriting it with a big white rectangle, but 
+        // here we're just removing it and letting the domain graphics
+        // library generate a new one
+        $("errors").hide();
+        if ( $("dg").select("canvas").size() > 0 ) {
+          $("dg").select("canvas").first().remove();
+        }
+
+        // see if we can turn the contents of the text area into a valid
+        // javascript data structure. If not, display an error message.
+        try {
+          sequence = eval( "sequence = " + $("seq").getValue() );
+        } catch ( e ) {
+          $("errors").update( e ).show();
+          return;
+        }
+
+        // give the object the ID of the container that will hold the canvas.
+        // We could have specified this when we instantiated the object instead.
+        // We could also have supplied a reference to the element itself, rather
+        // than it's ID; the libary doesn't care.
+        pg.setParent( "dg" );
+
+        // get the values of X-scale and Y-scale from the form and set them
+        // on the object. These two values can be used to scale the domain
+        // graphics. Set them large to see how the domain graphic looks in detail,
+        // but ignore the drawing errors...
+        pg.setImageParams( {
+          xscale: $F("xscale"),
+          yscale: $F("yscale")
+        } );
+
+        // hand the domain graphics description to the domain graphics object. It
+        // will throw an exception (hopefully with a meaningful error message 
+        // embedded) if it can't parse the data structure or if there's a problem, 
+        // such as a start value that's greater than an end value. If there's an 
+        // error, show it in the error div.
+        try {
+          pg.setSequence( sequence );
+          pg.render();
+        } catch ( e ) {
+          $("errors").update( e ).show();
+          return;
+        }
+      };
+
+      // a function to blank everything and start again
+      var clear = function() {
+        $("errors").hide();
+        $("seq").setValue("");
+        $("seq").focus()
+        $("seq").select();
+      };
+
+      // when the DOM is loaded, add listeners to the two buttons
+      document.observe( "dom:loaded", function() {
+
+        $("seq").focus();
+        $("seq").select();
+
+        $("submit").observe( "click", generate );
+        $("clear").observe( "click", clear );
+
+        // we could generate the domain graphic as soon as the page is loaded,
+        // assuming the textarea contains a real domain graphics description
+        // generate();
+      } );
+
+      // ]]>
+    </script>
+
+  </body>
+
+</html>
+
