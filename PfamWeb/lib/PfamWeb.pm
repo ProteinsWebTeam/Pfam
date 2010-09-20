@@ -59,8 +59,8 @@ __PACKAGE__->setup( qw(
                         HTML::Widget
                         PageCache
                         Unicode
-                        GzipCompressor
                       ) );
+                        # GzipCompressor
 
                         # the session plugins were used by the protein features
                         # viewer, but, since it's disabled...
