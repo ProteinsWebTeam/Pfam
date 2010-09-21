@@ -662,15 +662,28 @@ function chooseTab() {
 //------------------------------------------------------------
 // show/hide a tools palette
 
-function toggleTools() {
-  if( $("toolsContent").visible() ) {
-    $("toolsContent").hide();
-    $("toolsToggle").update( "Show" );
+function toggleTools( sToggle, sContent ) {
+  var toggle  = $(sToggle),
+      content = $(sContent);
+
+  if( content.visible() ) {
+    content.hide();
+    toggle.update( "Show" );
   } else {
-    $("toolsContent").show();
-    $("toolsToggle").update( "Hide" );
+    content.show();
+    toggle.update( "Hide" );
   }
 }
+
+// function toggleTools() {
+//   if( $("toolsContent").visible() ) {
+//     $("toolsContent").hide();
+//     $("toolsToggle").update( "Show" );
+//   } else {
+//     $("toolsContent").show();
+//     $("toolsToggle").update( "Hide" );
+//   }
+// }
 
 //------------------------------------------------------------
 //- external functions ---------------------------------------
