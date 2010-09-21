@@ -101,7 +101,13 @@ stUri = c.uri_for( "/speciestree" );
       tree.render();
 
       // bring back the control panel
-      $("treeTools").show();
+      $("treeTools").show()
+                    .setOpacity(0.85);
+      try {
+        new Draggable( "treeTools" );
+      } catch (e) {
+        // don't care
+      }
     
     } else {
 
@@ -155,18 +161,18 @@ stUri = c.uri_for( "/speciestree" );
   }
 
   // fire off the request to load the tree
-  Event.observe( window, "load", function() {
-    var r = new Ajax.Request(
-      stUri,
-      {
-        method:     'get',
-        parameters: { acc: "[% acc %]",
-                      ie:  Prototype.Browser.IE },
-        onSuccess:  stSuccess,
-        onFailure:  stFailure
-      }
-    );
-  } );
+  //Event.observe( window, "load", function() {
+  //  var r = new Ajax.Request(
+  //    stUri,
+  //    {
+  //      method:     'get',
+  //      parameters: { acc: "[% acc %]",
+  //                    ie:  Prototype.Browser.IE },
+  //      onSuccess:  stSuccess,
+  //      onFailure:  stFailure
+  //    }
+  //  );
+  //} );
 
   // ]]>
 </script>
