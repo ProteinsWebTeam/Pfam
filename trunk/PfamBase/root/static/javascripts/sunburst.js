@@ -198,7 +198,7 @@ var Sunburst = Class.create( {
       numSeq:     {
         tree:   this._tree,
         layers: this._layers,
-        arcs:   this._arcs,
+        arcs:   this._arcs
       },
       numSpecies: {}
     };
@@ -209,8 +209,8 @@ var Sunburst = Class.create( {
                            
     this._treeWidth        = w || 1000;
     this._treeHeight       = h || 1000;
-    this._subTreeWidth     =  246;
-    this._subTreeHeight    =  150;
+    this._subTreeWidth     = 246;
+    this._subTreeHeight    = 150;
                            
     // this._centreX          = this._treeWidth  / 2;
     // this._centreY          = this._treeHeight / 2;
@@ -288,6 +288,9 @@ var Sunburst = Class.create( {
     this._ctx.lineWidth = this._layerWidth;
 
     this._arcs.each( function(layer) {
+      if ( layer === undefined ) {
+        return;
+      }
       layer.each( function(arc) {
         if ( arc._selected ) {
           this._drawArc( arc, this._selectedNodeColour );
@@ -431,8 +434,6 @@ var Sunburst = Class.create( {
    * @returns {Sunburst} reference to this object
    */
   _buildHTML: function() {
-
-    var d;
 
     // add the sub-tree markup. Use "insert" to avoid stopping on anything that
     // is already in the element
