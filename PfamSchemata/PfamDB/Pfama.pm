@@ -292,5 +292,17 @@ __PACKAGE__->has_one(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 
+__PACKAGE__->has_many(
+   "pfama_wikis",
+   "PfamDB::PfamaWiki",
+   { "foreign.auto_pfama" => "self.auto_pfama" },
+ );
+
+__PACKAGE__->has_many(
+  "pfama_species_trees",
+  "PfamDB::PfamaSpeciesTree",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+
 
 1;
