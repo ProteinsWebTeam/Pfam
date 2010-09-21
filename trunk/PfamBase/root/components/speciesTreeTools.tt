@@ -9,7 +9,7 @@
 
 <div id="treeTools">
 
-  <div id="toolsHeader" onclick="toggleTools();">
+  <div id="toolsHeader">
     <h3>Tree controls</h3>
     <span id="toolsToggle">Hide</span>
 		<div class="cleaner"><!-- empty --></div>
