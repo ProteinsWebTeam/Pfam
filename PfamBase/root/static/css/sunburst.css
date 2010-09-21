@@ -1,0 +1,171 @@
+
+/* sunburst.css
+   jt6 20100713 WTSI
+
+   Style rules for the sunburst markup.
+
+   $Id$
+   
+   Copyright (c) 2010: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+    
+*/   
+
+#sunburstTreeDesc {
+  margin-right: 260px;
+}
+
+#sunburstSubTree {
+  cursor: move;
+  border: 1px solid #CCC;
+  position: absolute;
+  right: 0.3em;
+  width: 250px;
+  background-color: #e8e8e8;
+  z-index: 10;
+}
+
+#sunburstSubTree h3 {
+  margin: 4px;
+  font-size: 1em;
+  padding:0.4em 0 0.2em;
+}
+
+#sunburstControlsHeader h3 {
+  margin: 0 0 0 4px;
+  float: left;
+}
+
+#sunburstControlsToggle {
+  cursor: pointer;
+  float: right;
+  padding: 0.2em 0;
+}
+
+#subTreeSpeciesName {
+  font-size: small;
+  padding: 0.2em 0.2em 0.2em 0.4em;
+  margin: 0;
+  height: 2.4em;
+}
+
+#subTreeHelp {
+  position: absolute;
+}
+
+#subTree {
+  padding: 0.4em;
+  z-index: 1;
+  cursor: move;
+}
+
+#weightWrapper {
+  border-top: 1px solid #CCC;
+  padding-bottom: 0.4em;
+}
+
+#sliderWrapper {
+  border-top: 1px solid #CCC;
+  background-color: #e8e8e8;
+  font-weight: bold;
+  font-size: xx-small;
+}
+
+#sunburstColours {
+  border-top: 1px solid #CCC;
+}
+
+#sliderSmallScale {
+  float: left;
+  margin-left: 4px;
+}
+
+#sliderLargeScale {
+  float: right;
+  margin-right: 4px;
+}
+
+div.slider {
+  clear: both;
+  margin: 10px 0;
+  background: url(/shared/images/gradient.png);
+  height: 5px;
+  width: 240px;
+  margin-bottom: 14px;
+  position: relative;
+  border-left: 1px solid #787778;
+  border-right: 1px solid #787778;
+}
+
+div.slider div.handle {
+  background: url(/static/images/sliderHandle.png);
+  width: 16px;
+  height: 16px; 
+  top: -4px;
+}
+
+#sliderScale {
+  margin-left: 4px;
+}
+
+div.content {
+  margin: 0 ! important;
+  padding: 0 ! important;
+}
+
+#treeTipTitle {
+  background-color: #074987;
+  color: #cbdced;
+  font-weight: bold;
+}
+
+#treeTipContent {
+  margin: 0;
+  padding: 0;
+}
+
+#treeTipBody {
+  margin: 0;
+  padding: 0.4em ! important;
+}
+
+#treeZoomArea {
+  background-color: #CCC;
+  border: 1px solid #999;
+  position: absolute;
+}
+
+/* ======================================== */
+/* colour distributions */
+
+#sunburstColours td {
+  margin: 0.2em;
+  font-size: xx-small;
+}
+
+#sunburstColours td.narrow {
+  width: 8em;
+}
+
+#sunburstColours td.wide {
+  width: 16em;
+}
+
+#sunburstColours td img {
+  vertical-align: middle;
+}
+
