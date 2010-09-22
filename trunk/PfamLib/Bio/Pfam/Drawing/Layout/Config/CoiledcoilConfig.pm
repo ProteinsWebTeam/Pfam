@@ -64,7 +64,7 @@ extends 'Bio::Pfam::Drawing::Layout::Config::GenericMotifConfig';
 #This sets the generic region to a dark grey colour
 sub _setColour{
   my ($self, $motif) = @_;
-  $motif->colour( Convert::Color->new( 'x11:LimeGreen') );
+  $motif->colour( Convert::Color->new('rgb8:32cd32') );
 }
 
 
