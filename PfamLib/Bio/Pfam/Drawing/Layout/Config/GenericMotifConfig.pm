@@ -32,7 +32,7 @@ sub constructLabel{
 #This sets the generic region to a dark grey colour
 sub _setColour{
   my ($self, $region) = @_;
-  $region->colour( Convert::Color->new( 'x11:grey') );
+  $region->colour( Convert::Color->new( 'rgb8:bebebe' ) );
 }
 
 

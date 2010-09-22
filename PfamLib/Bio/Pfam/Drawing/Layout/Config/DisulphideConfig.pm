@@ -109,7 +109,7 @@ sub _setColour{
     $markup->colour( Convert::Color->new( 'rgb8:AAAAAA') );
   }else{
     $markup->lineColour( Convert::Color->new( 'rgb8:AAAAAA') );
-    $markup->colour( Convert::Color->new( 'x11:yellow') );
+    $markup->colour( Convert::Color->new( 'rgb8:ffff00' ) );
   }
   #This sets the line colour
   
