@@ -245,6 +245,25 @@ sub pfamseqFarmLoc {
 }
 
 
+=head2 pfamseqLustreLoc
+
+  Title    : pfamseqLustreLoc
+  Usage    : $config->pfamseqLustreLoc
+  Function : Returns the location of pfamseq on lustre
+  Args     : None - read only operator
+  Returns  : string containing path to pfamseq on lustre
+  
+=cut
+
+sub pfamseqLustreLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{pfamseq}->{lustreLocation};
+}
+
+
 =head2 localDbsLoc
 
   Title    : localDbsLoc
