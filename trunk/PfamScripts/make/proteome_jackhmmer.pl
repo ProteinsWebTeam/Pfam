@@ -16,10 +16,11 @@ Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 
-my ($ncbi_tax, $help);
+my ($ncbi_tax, $max_jobs, $help);
 
 
 &GetOptions( "ncbi_tax=s" => \$ncbi_tax,
+             "max_jobs=i" => \$max_jobs,
 	           "help" => \$help);
 
 
@@ -27,6 +28,15 @@ unless($ncbi_tax) {
     print STDERR "Need to specify tax id ($0 -ncbi_tax <ncbi_taxid>)\n";
     &help();
 
+}
+
+if($max_jobs) {
+    unless($max_jobs >0) {
+	$logger->logdie("max_jobs needs to be a number greater than 0");
+    }
+}
+else {
+    $max_jobs = 200;
 }
 
 open(SUMMARY, ">$ncbi_tax.txt") or die "Couldn't open fh to $ncbi_tax.txt, $!";
@@ -117,26 +127,79 @@ $logger->info("Going to run jackhmmer (N=3) on each of the proteins that do not 
 print SUMMARY "Going to run jackhmmer (N=3) on each of the proteins that do not match a Pfam-A\n";
 close SUMMARY;
 
+$logger->info("The maximum number of jobs submitted to the farm at any one time will be $max_jobs\n");
 
 unless(-d "Jackhmmer") {
     mkdir("Jackhmmer", 0755) or $logger->logdie("Couldn't mkdir Jackhmmer, $!");
 }
 chdir("Jackhmmer") or $logger->logdie("Couldn't chdir into 'Jackhmmer', $!");
 
+my $n = $max_jobs;
+my $jobs_submitted=0;
 
 foreach my $auto (keys %no_pfamA) {
-    my $acc = $no_pfamA{$auto};
 
-    mkdir($acc, 0755) or $logger->logdie("Couldn't mkdir $acc, $!");
-    chdir($acc) or $logger->logdie("Couldn't chdir into $acc, $!");
+	my $acc = $no_pfamA{$auto};
+	
+	mkdir($acc, 0755) or $logger->logdie("Couldn't mkdir $acc, $!");
+	chdir($acc) or $logger->logdie("Couldn't chdir into $acc, $!");
+	
+	open(FH, ">seq.fasta") or $logger->die("Couldn't open fh to seq.fasta, $!");
+	print FH $fasta{$auto};
+	close FH;
+	
+	system("pfjbuild -N 3 -fa seq.fasta -gzip") and $logger->logdie("Failed to run jackhmmer on $acc, $!");
+	$jobs_submitted++;
+	chdir("../") or $logger->logdie("Couldn't chdir up a dir from $acc, $!");
 
-    open(FH, ">seq.fasta") or $logger->die("Couldn't open fh to seq.fasta, $!");
-    print FH $fasta{$auto};
-    close FH;
+	if($jobs_submitted == $no_pfamA) { #All jobs are submitted, exit loop
+	    $logger->info("All jobs submitted to the farm");
+	    last;
+	}
 
-    system("pfjbuild -N 3 -fa seq.fasta -gzip") and $logger->logdie("Failed to run jackhmmer on $acc, $!");
-    chdir("../") or $logger->logdie("Couldn't chdir up a dir from $acc, $!");
+	$n--;
+	while($n<=0) { #See how many jobs are running/pending, and how many more we should submit
+	    sleep 30; #Give time for last submitted job to appear on 'bjobs'
+
+	    my $farm_jobs = count_bjobs();
+	  
+	    $n = $max_jobs - $farm_jobs;
+	    if($n<=0) { 
+		$logger->info("You have $farm_jobs jobs on the farm, waiting for some of the jobs to finish before submitting more");
+		sleep 120;
+	    }
+	    else {
+		$logger->info("You have $farm_jobs jobs on the farm, submitting another $n job(s)");
+	    }
+	}
 }
+
+
+
+sub count_bjobs {
+    my $run=0;
+
+    my $flag;
+
+    open(BJOBS, "bjobs |") or $logger->logdie("Couldn't open fh to bjobs $!");
+    while(<BJOBS>) {
+	next if(/^No unfinished job found/);
+	if(/^JOBID/) {
+	    $flag=1;
+	}
+
+	$run++;
+    }
+    close BJOBS;
+
+    if($run and !$flag) {
+	$logger->info("LSF looks like it is not working, going to wait before submitting more jobs");
+	$run = 100000; #Big number prevents more jobs being submitted
+    }
+    
+    return($run);
+}
+
 
 
 
@@ -155,6 +218,10 @@ organism you wish to run the script on on the command line.
 
 Usage:
   $0 -ncbi_tax <ncbi_tax>
+
+Options:
+ -max_jobs <n>:Maximum number of jobs to run on the farm at any one time
+               (Default 200)
 
 
 After this script has been run, you should run proteome_summary.pl to
