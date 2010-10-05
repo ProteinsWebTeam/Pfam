@@ -101,7 +101,12 @@ sub main {
 	  $db_location = $pfamseq_local;
       }
       else {
-	  $db_location = $config->pfamseqLoc."/$db";
+	  if($config->location eq 'WTSI') {
+	      $db_location = $config->pfamseqLustreLoc."/$db";
+	  }
+	  else {
+	      $db_location = $config->pfamseqLoc."/$db";
+	  }
       }
   }
   elsif($db eq "ncbi") {
@@ -389,13 +394,21 @@ sub main {
       
       #run pfmake if we need to
       if($withpfmake){
+	  my $pfmake_db;
+	  if($db eq "pfamseq" and $config->location eq "WTSI") {
+	      $pfmake_db = $config->pfamseqLoc."/$db";
+	  }
+	  else {
+	      $pfmake_db = $db_location;
+	  }
+
 	  if($makeEvalue){
-	      system("pfmake.pl -e $makeEvalue -d $db_location\n") and die "Failed to run pfmake\n";
+	      system("pfmake.pl -e $makeEvalue -d $pfmake_db\n") and die "Failed to run pfmake\n";
 	  }else{
 	      if(-e "DESC"){
-		  system("pfmake.pl -d $db_location\n") and die "Failed to run pfmake\n";
+		  system("pfmake.pl -d $pfmake_db\n") and die "Failed to run pfmake\n";
 	      }else{
-		  system("pfmake.pl -e 0.01 -d $db_location\n") and die "Failed to run pfmake\n";
+		  system("pfmake.pl -e 0.01 -d $pfmake_db\n") and die "Failed to run pfmake\n";
 	      }
 	  }    
       }
@@ -457,13 +470,23 @@ sub main {
         
         #And finally, run pfmake if we need to
         if($withpfmake){
+	  my $pfmake_db;
+	  if($db eq "pfamseq" and $config->location eq "WTSI") {
+	      $pfmake_db = $config->pfamseqLoc."/$db";
+	  }
+	  else {
+	      $pfmake_db = $db_location;
+	  }
+
+
+
           if($makeEvalue){
-            $fh->print("pfmake.pl -e $makeEvalue -d $db_location\n");    
+            $fh->print("pfmake.pl -e $makeEvalue -d $pfmake_db\n");    
           }else{
             if(-e "$pwd/DESC"){
-              $fh->print("pfmake.pl -d $db_location\n");
+              $fh->print("pfmake.pl -d $pfmake_db\n");
             }else{
-              $fh->print("pfmake.pl -e 0.01 -d $db_location\n");  
+              $fh->print("pfmake.pl -e 0.01 -d $pfmake_db\n");  
             }
           }
         }
