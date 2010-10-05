@@ -159,8 +159,14 @@ sub main {
 
 
   unless ($seqDB) {
-    $seqDB = $config->pfamseqLoc . "/pfamseq";
+      if($config->location eq 'WTSI') {
+	  $seqDB = $config->pfamseqLustreLoc."/pfamseq";
+      }
+      else {
+	  $seqDB = $config->pfamseqLoc . "/pfamseq";
+      }
   }
+
 
   unless ($noOverlap) {
     if ( $seqDB !~ m|/pfamseq$| ) {
@@ -352,13 +358,13 @@ sub farmJackhmmer {
 
   $fasta = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta";
 
-  unless ( $seqDB =~ m|^/nfs/pfam_nfs| ) {
-    warn
-"Going to copy sequence database to scratch, this may slow things down a bit!\n";
-    copy( $seqDB, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB" )
-      or die "Failed to copy SEED to scratch space:[$!]";
-    $seqDB = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB";
-  }
+#  unless ( $seqDB =~ m|^/nfs/pfam_nfs| ) {
+#    warn
+#"Going to copy sequence database to scratch, this may slow things down a bit!\n";
+#    copy( $seqDB, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB" )
+#      or die "Failed to copy SEED to scratch space:[$!]";
+#    $seqDB = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB";
+#  }
 
 #Okay, things should be in the right place for working on.
 #Build up the command we want to run.  We want to run this same script, but with the local option.
