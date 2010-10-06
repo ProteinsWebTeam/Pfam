@@ -328,6 +328,45 @@ sub _move_accession{
    untie(%accmap);
 }
 
+=head2 _delete_accession
+
+ Title   : _delete_accession
+ Usage   : $self->_delete_accession('RF01002')
+ Function: Deletes an accession *only in the db file*, not in 
+           the underlying database. Assummes you have the lock
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub _delete_accession{
+   my ($self,$accession) = @_;
+   my ($obj,%accmap, $oldid);
+   if( $self->{'is_locked'} != 1 ) {
+       die("Have not locked the database - cannot kill a accession!");
+   }
+
+   # now get and tie the hash, saving the object
+   
+   if( ($obj = tie(%accmap,'DB_File',$self->{'dbrcsbase_index'},O_RDWR,0666)) == 0){
+       die("Could not open $self->{'dbrcsbase_index'} as a DB_file $! Leaving the lock on");
+       
+   }
+   if( !exists $accmap{$accession} ) {
+       die("$accession does not exist in db!");
+   }
+   else {
+       $oldid = $accmap{$accession};
+   }
+
+   delete($accmap{$accession});
+   $obj->sync();
+   $obj = undef;
+   untie(%accmap);
+}
+
 =head2 _kill_accession
 
  Title   : _kill_accession
