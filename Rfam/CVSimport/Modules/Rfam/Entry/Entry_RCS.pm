@@ -531,13 +531,14 @@ sub full_strings{
    $full_align = Rfam::RfamAlign->new();
    $full_align->read_stockholm(\*_ALIGN);
    close(_ALIGN);
-
+   
    my %seq_string;
    foreach my $seq ( $full_align -> each_seq() ){
       my $acc=$seq->id();
       $acc=~s/\.\d+$//g;
-      $seq_string{$acc}{$seq->start()}{$seq->end()}=$seq->seq(); 
-     
+      my ($start,$end)=($seq->start(),$seq->end());
+      ($start,$end)=($seq->end(),$seq->start()) if($seq->strand()<0);
+      $seq_string{$acc}{$start}{$end}=$seq->seq(); 
    }
   # print STDERR Dumper(\%seq_string), "\n";
    $seq_string{'sscons'}=$full_align->ss_cons->getInfernalString();

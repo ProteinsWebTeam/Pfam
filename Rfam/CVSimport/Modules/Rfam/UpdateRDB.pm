@@ -753,6 +753,18 @@ sub update_rfam_reg_full {
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
 	    if (!$rdb_full_string){
 	       print STDERR "ERROR(1) with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       print STDERR "\tWRONG STRAND\n" if $full_ss->{$rfamseq_acc}->{$reg->to}->{$reg->from};
+	       print STDERR "\tWRONG ACC (needs version)" if $full_ss->{$reg->seq_name}->{$reg->from}->{$reg->to};
+	       print STDERR "\tfull_ss contains:\n";
+	       foreach my $kk1 (keys %{ $full_ss }){
+		   print STDERR "\t\tfull_ss->\{$kk1\}\n";
+# 		   foreach my $k2 (keys %{$full_ss->{$k1}}){
+# 		       foreach my $k3 (keys %{$full_ss->{$k1}->{$k2}}){
+# 			   printf STDERR "\t\tfull_ss->{$k1}->{$k2}->{$k3} \t=\t %s\n", $full_ss->{$k1}->{$k2}->{$k3};
+# 		       }
+# 		   }
+	       }
+	       
 	       $error="Problem with the rdb_full_string data\n";
 	       last;
 	   }
@@ -836,6 +848,9 @@ sub update_rfam_reg_full {
    $self->close_transaction( $error );
    if (!$error){
        print STDERR "Completed rfam_reg_full: $rows rows added $no_seq_count missing \n";
+   }
+   else {
+       print STDERR "ERROR: [$error]\n";
    }
  }
 
