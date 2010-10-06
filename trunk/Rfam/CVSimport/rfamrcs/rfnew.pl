@@ -5,11 +5,11 @@
 # modified heavily by jd7 to use new rfci code 
 #
 
-BEGIN {
-   $rfam_mod_dir = "/software/rfam/scripts/Modules/";
-}
+#BEGIN {
+#   $rfam_mod_dir = "/software/rfam/scripts/Modules/";
+#}
 
-use lib $rfam_mod_dir;
+#use lib $rfam_mod_dir;
 use strict;
 use Rfam;
 use RfamQC;
@@ -27,13 +27,11 @@ use File::Copy;
 
 my ($id, 
     $message,
-    $updateRDB,
     $help);
 
 &GetOptions(
 	    '-id=s'=> \$id,
 	    '-m:s' => \$message,
-	    '-updateRDB' => \$updateRDB,
 	    "h|help"         => \$help 
 	    );
 
@@ -64,7 +62,7 @@ if( $locked ) {
 
 # check is new family
 if( ! $id ) {
-    die "rfnew: you must specifiy the name of the directory to checkin use `-id` option \n";
+    die "rfnew: you must specify the name of the directory to checkin use `-id` option \n";
 }
 
 if( $id =~ /\/$/ ) {
@@ -76,8 +74,7 @@ if(   !(-d $id) ) {
 }
 
 if( &RfamQC::id_exists( $id ) ) {
-    die "rfnew: Family [$id] already exists.\nIf this is an existing family, check in the revision using rfc
-i\n";
+    die "rfnew: Family [$id] already exists.\nIf this is an existing family, check in the revision using rfci.pl\n";
 }
 ###############################
 #check for the qc.passed file
@@ -86,21 +83,17 @@ my $dir=cwd;
 
 #need to add in this for checking the qc has been done-dont allow ci otherwise.
     if (! -e "$dir/$id/qcpassed" ){
-    die "rfci: [$id] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
+	die "rfci: [$id] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
     }
 #check qc.passed is older than the relevant files
  
- if( (-M "$dir/$id/DESC" < -M "$dir/$id/qcpassed") ||
-     (-M "$dir/$id/SEED" < -M "$dir/$id/qcpassed") ||
-     (-M "$dir/$id/OUTPUT" < -M "$dir/$id/qcpassed") ||
-     (-M "$dir/$id/out.list" < -M "$dir/$id/qcpassed")
+ if( (-M "$dir/$id/DESC"      < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/SEED"      < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/OUTPUT"    < -M "$dir/$id/qcpassed") ||
+     (-M "$dir/$id/out.list"  < -M "$dir/$id/qcpassed")
     ) {
         die "You need to rerun the rqc-all.pl as at least one of DESC/SEED/OUTPUT/out.list has changed since you ran it last\n";
  }
-
-
-
-
 
 ################################
 

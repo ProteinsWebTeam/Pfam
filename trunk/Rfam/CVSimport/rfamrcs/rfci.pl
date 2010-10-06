@@ -27,11 +27,11 @@ jd7 (edits on the old rfci.pl code)
 =cut
 
 
-BEGIN {
-   $rfam_mod_dir = "/software/rfam/scripts/Modules/";
-}
+# BEGIN {
+#    $rfam_mod_dir = "/software/rfam/scripts/Modules/";
+# }
 
-use lib $rfam_mod_dir;
+# use lib $rfam_mod_dir;
 use IO::File;
 use strict;
 use Rfam;
