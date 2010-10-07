@@ -48,4 +48,16 @@ if(-e ".default".$$."clnew"){
   unlink(".default".$$."clnew");
 }
 
+#It may be nice to report the accession of the new clan.....This will only work at WTSI, as this is the only place where the database
+#sits. Could replace with a webservice!
+
+if ( $config->location eq "WTSI" ) {
+  my $connect   = $config->pfamlive;
+  my $pfamDB    = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+  my $pfamEntry = $pfamDB->getClanData( $clanObj->DESC->ID );
+  print STDERR "This clan has been asssigned the accession:"
+    . $pfamEntry->clan_acc . "\n"
+    if ( $pfamEntry->clan_acc );
+}
+
 exit(0);
