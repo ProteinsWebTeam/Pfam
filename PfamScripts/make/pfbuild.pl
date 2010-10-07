@@ -150,7 +150,7 @@ sub main {
   my $io = Bio::Pfam::FamilyIO->new; 
 
   unless(-s 'DESC'){
-    warn "We now require a DESC file before runing $0.\n Writing dummy DESC file\n";
+    warn "We now require a DESC file before running $0.\n Writing dummy DESC file\n";
     $io->writeEmptyDESC;
   }
 
