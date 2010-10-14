@@ -1,9 +1,9 @@
-/* $Id: canvas.text.js,v 1.3 2009-12-07 22:37:53 jt6 Exp $ */
+/* $Id$ */
 
 /** 
  * @projectDescription An cross-browser implementation of the HTML5 <canvas> text methods
- * @author Fabien M?nager
- * @version $Revision: 1.3 $
+ * @author Fabien M�nager
+ * @version $Revision$
  * @license MIT License <http://www.opensource.org/licenses/mit-license.php>
  */
 
@@ -18,13 +18,13 @@ window.Canvas.Text = {
   // http://mondaybynoon.com/2007/04/02/linux-font-equivalents-to-popular-web-typefaces/
   equivalentFaces: {
     // Web popular fonts
-    'arial': ['liberation sans', 'nimbus sans l', 'freesans'],
-    'times new roman': ['liberation serif', 'linux libertine', 'freeserif'],
+    'arial': ['liberation sans', 'nimbus sans l', 'freesans', 'optimer', 'dejavu sans'],
+    'times new roman': ['liberation serif', 'helvetiker', 'linux libertine', 'freeserif'],
     'courier new': ['dejavu sans mono', 'liberation mono', 'nimbus mono l', 'freemono'],
-    'georgia': ['nimbus roman no9 l'],
-    'helvetica': ['nimbus sans l', 'freesans'],
-    'tahoma': ['dejavu sans', 'bitstream vera sans'],
-    'verdana': ['dejavu sans', 'bitstream vera sans']
+    'georgia': ['nimbus roman no9 l', 'helvetiker'],
+    'helvetica': ['nimbus sans l', 'helvetiker', 'freesans'],
+    'tahoma': ['dejavu sans', 'optimer', 'bitstream vera sans'],
+    'verdana': ['dejavu sans', 'optimer', 'bitstream vera sans']
   },
   genericFaces: {
     'serif': ['times new roman', 'georgia', 'garamond', 'bodoni', 'minion web', 'itc stone serif', 'bitstream cyberbit'],
@@ -41,7 +41,7 @@ window.Canvas.Text = {
 
 /** The implementation of the text functions */
 (function(){
-  var isOpera9 = (window.opera && navigator.userAgent.match(/Opera\/9/)), // It seems to be faster when the hacked methods are used. But there are artifacts with Opera 10.
+  var isOpera9 = (window.opera && /Opera\/9/.test(navigator.userAgent)), // It seems to be faster when the hacked methods are used. But there are artifacts with Opera 10.
       proto = window.CanvasRenderingContext2D ? window.CanvasRenderingContext2D.prototype : document.createElement('canvas').getContext('2d').__proto__,
       ctxt = window.Canvas.Text;
 
@@ -51,42 +51,33 @@ window.Canvas.Text = {
     dontUseMoz: false, // Don't use the builtin Firefox 3.0 functions (mozDrawText, mozPathText and mozMeasureText)
     reimplement: false, // Don't use the builtin official functions present in Chrome 2, Safari 4, and Firefox 3.1+
     debug: false, // Debug mode, not used yet
-    autoload: 'faces'
+    autoload: false // Specify the directory containing the face files or false
   };
   
-  function initialize(){
-    var libFileName = 'canvas.text.js',
-        scripts = document.getElementsByTagName("script"), i, j;
-
-    for (i = 0; i < scripts.length; i++) {
-      var src = scripts[i].src;
-      if (src.indexOf(libFileName) != -1) {
-        var parts = src.split('?');
-        ctxt.basePath = parts[0].replace(libFileName, '');
-        if (parts[1]) {
-          var options = parts[1].split('&');
-          for (j = options.length-1; j >= 0; --j) {
-            var pair = options[j].split('=');
-            ctxt.options[pair[0]] = pair[1];
-          }
-        }
-        break;
-      }
+  var scripts = document.getElementsByTagName("script"),
+      parts = scripts[scripts.length-1].src.split('?');
+  
+  ctxt.basePath = parts[0].substr(0, parts[0].lastIndexOf("/")+1);
+  
+  if (parts[1]) {
+    var options = parts[1].split('&');
+    for (var j = options.length-1; j >= 0; --j) {
+      var pair = options[j].split('=');
+      ctxt.options[pair[0]] = pair[1];
     }
   }
-  initialize();
   
   // What is the browser's implementation ?
-  var moz = !ctxt.options.dontUseMoz && proto.mozDrawText && !proto.strokeText;
+  var moz = !ctxt.options.dontUseMoz && proto.mozDrawText && !proto.fillText;
 
-  // If the text functions are already here : nothing to do !
-  if (proto.strokeText && !ctxt.options.reimplement) {
+  // If the text functions are already here or if on the iPhone (fillText exists) : nothing to do !
+  if (proto.fillText && !ctxt.options.reimplement && !/iphone/i.test(navigator.userAgent)) {
     // This property is needed, when including the font face files
     return window._typeface_js = {loadFace: function(){}};
   }
   
   function getCSSWeightEquivalent(weight){
-    switch(weight) {
+    switch(String(weight)) {
       case 'bolder':
       case 'bold':
       case '900':
@@ -104,11 +95,8 @@ window.Canvas.Text = {
   function getElementStyle(e){
     if (document.defaultView && document.defaultView.getComputedStyle) {
       return document.defaultView.getComputedStyle(e, null);
-    } else if (e.currentStyle) {
-      return e.currentStyle;
-    } else {
-      return e.style;
     }
+    return e.currentStyle || e.style;
   }
   
   function getXHR(){
@@ -118,7 +106,7 @@ window.Canvas.Text = {
         function(){return new ActiveXObject('Msxml2.XMLHTTP')},
         function(){return new ActiveXObject('Microsoft.XMLHTTP')}
       ];
-      for (i = 0; i < methods.length; i++) {
+      for (var i = 0; i < methods.length; i++) {
         try {
           ctxt.xhr = methods[i](); 
           break;
@@ -182,12 +170,25 @@ window.Canvas.Text = {
   
   ctxt.loadFace = function(data){
     var family = data.familyName.toLowerCase();
+
     this.faces[family] = this.faces[family] || {};
-    this.faces[family][data.cssFontWeight] = this.faces[family][data.cssFontWeight] || {};
-    this.faces[family][data.cssFontWeight][data.cssFontStyle] = data;
+    
+    if (data.strokeFont) {
+      this.faces[family].normal = this.faces[family].normal || {};
+      this.faces[family].normal.normal = data;
+      this.faces[family].normal.italic = data;
+      
+      this.faces[family].bold = this.faces[family].normal || {};
+      this.faces[family].bold.normal = data;
+      this.faces[family].bold.italic = data;
+    }
+    else {
+      this.faces[family][data.cssFontWeight] = this.faces[family][data.cssFontWeight] || {};
+      this.faces[family][data.cssFontWeight][data.cssFontStyle] = data;
+    }
     return data;
   };
-  
+
   // To use the typeface.js face files
   window._typeface_js = {faces: ctxt.faces, loadFace: ctxt.loadFace};
   
@@ -196,7 +197,8 @@ window.Canvas.Text = {
         families = style.family, i, face;
         
     for (i = 0; i < families.length; i++) {
-      if (face = this.getFace(families[i].toLowerCase(), weight, style.style)) {
+      // The iPhone adds "-webkit-" at the beginning
+      if (face = this.getFace(families[i].toLowerCase().replace(/^-webkit-/, ""), weight, style.style)) {
         return face;
       }
     }
@@ -228,7 +230,7 @@ window.Canvas.Text = {
     
     computedStyle = getElementStyle(this._elt);
     style.size = computedStyle.fontSize;
-    style.weight = computedStyle.fontWeight;
+    style.weight = getCSSWeightEquivalent(computedStyle.fontWeight);
     style.style = computedStyle.fontStyle;
     
     families = computedStyle.fontFamily.split(',');
@@ -236,7 +238,6 @@ window.Canvas.Text = {
       families[i] = families[i].replace(/^["'\s]*/, '').replace(/["'\s]*$/, '');
     }
     style.family = families;
-    
     return this.getComputedStyle(ctxt._styleCache[styleText] = style);
   };
   
@@ -246,9 +247,9 @@ window.Canvas.Text = {
 
   proto.renderText = function(text, style){
     var face = ctxt.getFaceFromStyle(style),
-        scale = (style.size / face.resolution) * (3/4),
+        scale = (style.size / face.resolution) * 0.75,
         offset = 0, i, 
-        chars = text.split(''), 
+        chars = String(text).split(''), 
         length = chars.length;
     
     if (!isOpera9) {
@@ -263,8 +264,9 @@ window.Canvas.Text = {
 
   if (isOpera9) {
     proto.renderGlyph = function(c, face, scale, offset){
-      var i, cpx, cpy, outline, action, glyph = face.glyphs[c], length;
-      
+      var i, cpx, cpy, outline, action, length,
+          glyph = face.glyphs[c] || face.glyphs[ctxt.options.fallbackCharacter];
+
       if (!glyph) return;
   
       if (glyph.o) {
@@ -285,6 +287,11 @@ window.Canvas.Text = {
               cpy = outline[i++]*-scale;
               this.quadraticCurveTo(outline[i++]*scale+offset, outline[i++]*-scale, cpx, cpy);
               break;
+            case 'b':
+              cpx = outline[i++]*scale+offset;
+              cpy = outline[i++]*-scale;
+              this.bezierCurveTo(outline[i++]*scale+offset, outline[i++]*-scale, outline[i++]*scale+offset, outline[i++]*-scale, cpx, cpy);
+              break;
           }
         }
       }
@@ -293,7 +300,8 @@ window.Canvas.Text = {
   }
   else {
     proto.renderGlyph = function(c, face){
-      var i, cpx, cpy, outline, action, glyph = face.glyphs[c], length;
+      var i, cpx, cpy, outline, action, length,
+          glyph = face.glyphs[c] || face.glyphs[ctxt.options.fallbackCharacter];
       
       if (!glyph) return;
 
@@ -315,6 +323,11 @@ window.Canvas.Text = {
               cpy = outline[i++];
               this.quadraticCurveTo(outline[i++], outline[i++], cpx, cpy);
               break;
+            case 'b':
+              cpx = outline[i++];
+              cpy = outline[i++];
+              this.bezierCurveTo(outline[i++], outline[i++], outline[i++], outline[i++], cpx, cpy);
+              break;
           }
         }
       }
@@ -325,9 +338,9 @@ window.Canvas.Text = {
   proto.getTextExtents = function(text, style){
     var width = 0, height = 0, ha = 0, 
         face = ctxt.getFaceFromStyle(style),
-        i, glyph;
+        i, length = text.length, glyph;
     
-    for (i = 0; i < text.length; i++) {
+    for (i = 0; i < length; i++) {
       glyph = face.glyphs[text.charAt(i)] || face.glyphs[ctxt.options.fallbackCharacter];
       width += Math.max(glyph.ha, glyph.x_max);
       ha += glyph.ha;
@@ -352,14 +365,14 @@ window.Canvas.Text = {
     }
     
     // Compute the size
-    if (typeof s == 'number' || s.indexOf('px') != -1) 
+    if (typeof s === 'number' || s.indexOf('px') != -1) 
       computedStyle.size = fontSize;
     else if (s.indexOf('em') != -1)
       computedStyle.size = canvasFontSize * fontSize;
     else if (s.indexOf('%') != -1)
       computedStyle.size = (canvasFontSize / 100) * fontSize;
     else if (s.indexOf('pt') != -1)
-      computedStyle.size = canvasFontSize * (4/3) * fontSize;
+      computedStyle.size = fontSize / 0.75;
     else
       computedStyle.size = canvasFontSize;
     
@@ -369,7 +382,7 @@ window.Canvas.Text = {
   proto.getTextOffset = function(text, style, face){
     var canvasStyle = getElementStyle(this.canvas),
         metrics = this.measureText(text), 
-        scale = (style.size / face.resolution) * (3/4),
+        scale = (style.size / face.resolution) * 0.75,
         offset = {x: 0, y: 0, metrics: metrics, scale: scale};
 
     switch (this.textAlign) {
@@ -400,12 +413,13 @@ window.Canvas.Text = {
     var style = this.parseStyle(this.font),
         face = ctxt.getFaceFromStyle(style),
         offset = this.getTextOffset(text, style, face);
-    
+        
     this.save();
     this.translate(x + offset.x, y + offset.y);
     if (face.strokeFont && !stroke) {
       this.strokeStyle = this.fillStyle;
     }
+    this.lineCap = "round";
     this.beginPath();
 
     if (moz) {
@@ -416,7 +430,7 @@ window.Canvas.Text = {
       this.scale(ctxt.scaling, ctxt.scaling);
       this.renderText(text, style);
       if (face.strokeFont) {
-        this.lineWidth = style.size * (style.weight == 'bold' ? 0.5 : 0.3);
+        this.lineWidth = 2 + style.size * (style.weight == 'bold' ? 0.08 : 0.015) / 2;
       }
     }
 
@@ -466,7 +480,7 @@ window.Canvas.Text = {
     }
     else {
       var face = ctxt.getFaceFromStyle(style),
-          scale = (style.size / face.resolution) * (3/4);
+          scale = (style.size / face.resolution) * 0.75;
           
       dim.width = this.getTextExtents(text, style).ha * scale * ctxt.scaling;
     }
@@ -474,4 +488,3 @@ window.Canvas.Text = {
     return dim;
   };
 })();
-
