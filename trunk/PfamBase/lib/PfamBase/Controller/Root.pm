@@ -106,18 +106,18 @@ sub announcements : Local {
 
   my $response = $ua->get( $this->{blog_uri} );
   unless ( $response->is_success ) {
-    # $c->log->warn( "Root::announcements: could't retrieve blog content from |"
-    #                 . $this->{blog_uri} . "|" ) if $c->debug;
+    $c->log->warn( "Root::announcements: could't retrieve blog content from |"
+                    . $this->{blog_uri} . "|" ) if $c->debug;
     $c->res->status( 204 );
     return;
   }
-  my $blog_content = $response->content;
+  my $blog_content = $response->decoded_content;
 
   # parse the XML and turn it into an XML::Feed object
   my $feed = XML::Feed->parse( \$blog_content );
   unless ( defined $feed ) {
-    # $c->log->warn( "Root::announcements: couldn't parse blog content" )
-    #   if $c->debug;
+    $c->log->warn( "Root::announcements: couldn't parse blog content" )
+      if $c->debug;
     $c->res->status( 204 );
     return;
   }
@@ -134,7 +134,7 @@ sub announcements : Local {
       if ( $issued > $cookie->value ) {
         # $c->log->debug( "Root::announcements: post is newer than cookie; showing" )
         #   if $c->debug;
-        $entries->{$issued} = $entry;
+        # $entries->{$issued} = $entry;
       }
       # else {
       #   $c->log->debug( "Root::announcements: cookie is newer than post; NOT showing" )
@@ -157,13 +157,13 @@ sub announcements : Local {
   foreach my $issued ( reverse sort keys %$entries ) {
     my $entry = $entries->{$issued};
     
-    # $c->log->debug( "Root::announcements: adding post $i" )
-    #   if $c->debug;
+    $c->log->debug( "Root::announcements: adding post $i" )
+      if $c->debug;
     
     # TODO should make the maximum number of posts into a configuration value
     if ( $i >= 3 ) { 
-      # $c->log->debug( "Root::announcements: reached limit for posts" )
-      #   if $c->debug;
+      $c->log->debug( "Root::announcements: reached limit for posts" )
+        if $c->debug;
       last;
     }
 
