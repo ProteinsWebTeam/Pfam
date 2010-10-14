@@ -2440,11 +2440,9 @@ var PfamGraphic = Class.create( {
     //   x, midpoint, textX );
 
     // stroke the outline in white...
-    if ( ! Prototype.Browser.Gecko ) {
-      this._context.lineWidth   = 2;
-      this._context.strokeStyle = "#eeeeee";
-      this._context.strokeText( text, textX, midpoint );
-    }
+    this._context.lineWidth   = 2;
+    this._context.strokeStyle = "#eeeeee";
+    this._context.strokeText( text, textX, midpoint );
 
     // ... and then fill in black
     this._context.fillStyle = "#000000";
