@@ -1399,7 +1399,9 @@ var PfamGraphic = Class.create( {
 
     // draw the briges
     this._heights.bridges.markups.each( function( bridge ) {
-      if ( bridge.display !== undefined && ! bridge.display ) {
+      if ( bridge.display !== undefined &&
+           bridge.display !== null &&
+           ! bridge.display ) {
         return;
       }
       this._drawBridge( bridge );
@@ -1410,7 +1412,9 @@ var PfamGraphic = Class.create( {
     // lollipops fall close to each other, the left-most lollipop is drawn above
     // the other
     this._heights.lollipops.markups.reverse().each( function( lollipop ) {
-      if ( lollipop.display !== undefined && ! lollipop.display ) {
+      if ( lollipop.display !== undefined &&
+           lollipop.display !== null &&
+           ! lollipop.display ) {
         return;
       }
       this._drawLollipop( lollipop );
@@ -1418,7 +1422,9 @@ var PfamGraphic = Class.create( {
 
     // draw the regions
     this._sequence.regions.each( function( region ) {
-      if ( region.display !== undefined && ! region.display ) {
+      if ( region.display !== undefined && 
+           region.display !== null && 
+           ! region.display ) {
         return;
       }
       this._drawRegion( region );
@@ -1426,7 +1432,9 @@ var PfamGraphic = Class.create( {
 
     // draw the motifs
     this._sequence.motifs.each( function( motif ) {
-      if ( motif.display !== undefined && ! motif.display ) {
+      if ( motif.display !== undefined && 
+           motif.display !== null && 
+           ! motif.display ) {
         return;
       }
       this._drawMotif( motif );
@@ -1958,65 +1966,39 @@ var PfamGraphic = Class.create( {
 
     //----------------------------------
 
-    // save the canvas state
-    this._context.save();
-
     // the inner-most shell is filled, with a colour gradient running from white 
     // to dark to light colour as y increases. First draw the shell, then fill it
-    this._buildRegionPath( regionParams );
 
     // fill the path with a gradient
     var gradient = this._context.createLinearGradient( x, y, x, y + height );
-
-//    gradient.addColorStop( 0,   region.colour );
-//    gradient.addColorStop( 0.2, region.colour );
-//    gradient.addColorStop( 0.5, "#ffffff" );
-//    gradient.addColorStop( 0.8, region.colour );
-//    gradient.addColorStop( 1,   region.colour );
 
      gradient.addColorStop( 0, "#ffffff" );
      gradient.addColorStop( 0.5, region.colour );
      gradient.addColorStop( 0.7, region.colour );
      gradient.addColorStop( 1, "#ffffff" ); // TODO make this a bit darker
 
+    this._context.save();
+
+    this._context.beginPath();
+
+    this._buildRegionPath( regionParams );
+
+    // fill the region
     this._context.fillStyle = gradient;
     this._context.fill();
 
-    //----------------------------------
-
-    // add the envelope, if required
+    // add the envelope, if required. This call used to return the list of 
+    // areas for the envelope regions, and might again one day...
     var areas;
     if ( region.aliStart !== undefined && region.aliEnd !== undefined ) { 
       areas = this._drawEnvelope( region, radius, height );
     }
 
-    //----------------------------------
-
-    // now step out and draw a solid line round the gradient filled shape
-
-    // calculate dimensions for this outer shape
-//    height += 1;
-//    radius  = Math.round( height / 2 );
-//    arrow   = radius;
-//    width  += 1;
-//    x      -= 0.5;
-//    y       = Math.floor( this._baseline - radius ) + 1;
-
-    // console.log( "PfamGraphic._drawRegion: outer: (x, y), h, w: (%d, %d), %d, %d",
-    //   x, y, height, width );
-
-    this._buildRegionPath( regionParams ); 
-//    this._buildRegionPath( { x: x, 
-//                             y: y, 
-//                             w: width, 
-//                             h: height,
-//                             r: radius,
-//                             a: arrow,
-//                             s: region.startStyle,
-//                             e: region.endStyle } );
-
+    // outline the region
     this._context.strokeStyle = region.colour;
     this._context.stroke();
+
+    this._context.closePath();
 
     //----------------------------------
 
@@ -2242,8 +2224,6 @@ var PfamGraphic = Class.create( {
    */
   _buildRegionPath: function( params ) {
 
-    this._context.beginPath();
-
     // console.log( "PfamGraphic._buildRegionPath: drawing left end" );
     switch ( params.s ) {
       case "curved":
@@ -2293,8 +2273,7 @@ var PfamGraphic = Class.create( {
     } else {
       this._context.lineTo( params.x, params.y );
     }
-    
-    this._context.closePath();
+
   }, // end of "_buildRegionPath"
 
   //----------------------------------------------------------------------------
@@ -2461,9 +2440,11 @@ var PfamGraphic = Class.create( {
     //   x, midpoint, textX );
 
     // stroke the outline in white...
-    this._context.lineWidth   = 2;
-    this._context.strokeStyle = "#eeeeee";
-    this._context.strokeText( text, textX, midpoint );
+    if ( ! Prototype.Browser.Gecko ) {
+      this._context.lineWidth   = 2;
+      this._context.strokeStyle = "#eeeeee";
+      this._context.strokeText( text, textX, midpoint );
+    }
 
     // ... and then fill in black
     this._context.fillStyle = "#000000";
