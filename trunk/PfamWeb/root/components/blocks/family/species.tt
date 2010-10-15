@@ -31,10 +31,8 @@ requirements.js.push( "tip_definition.js" );
 requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
-# otherwise it bails with an error about "face.glyphs is undefined". We are
-# telling the canvas text library to override the built-in methods in firefox,
-# in order to avoid a bug: https://bugzilla.mozilla.org/show_bug.cgi?id=478445
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js" );
 requirements.js.push( "faces/optimer-bold-normal.js" );
 
 #-------------------------------------------------------------------------------
