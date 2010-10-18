@@ -93,7 +93,7 @@ END; -%]
     [% membershipList %]
 
     [% # add the tables showing internal and external database links 
-    PROCESS buildLinksTable; -%]
+    PROCESS buildLinksTable type="clan" -%]
 
   </div>
 
