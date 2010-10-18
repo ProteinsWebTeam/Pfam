@@ -47,7 +47,7 @@ PROCESS components/links.tt
     </ol>
 
     [% # add the tables showing internal and external database links 
-    PROCESS buildLinksTable %]
+    PROCESS buildLinksTable type="rfam" %]
 
   </div>
 </div>
