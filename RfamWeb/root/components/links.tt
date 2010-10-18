@@ -59,7 +59,6 @@ BLOCK buildLinksTable;
   # parameter "type" should be either "rfam" or "clan", depending on whether
   # this template is being called for a family or a clan
   #PROCESS internalLinks type=type;
-  CALL c.log.debug( "buildLinksTable: type = " _ type );
   PROCESS externalLinks type=type;
 END; # of "buildLinksTable" block
 
@@ -244,24 +243,21 @@ END; # of "internalLinks" block
 # be called from the buildLinksTable block
 
 BLOCK externalLinks;
-  CALL c.log.debug( "externalLinks: type = " _ type );
 
   xrefs = {};
   SWITCH type;
     CASE "rfam";
-      CALL c.log.debug( "building links from rfam_database_links; rfam: " _ rfam.rfam_acc );
       FOREACH link IN rfam.rfam_database_links;
         db = link.db_id;
-        IF NOT xrefs.${db}.d;
+        IF NOT xrefs.${db}.defined;
           xrefs.${db} = [];
         END;
         xrefs.${db}.push( link );
       END;
     CASE "clan";
-      CALL c.log.debug( "building links from clan_database_link; clan: " _ clan.clan_acc );
       FOREACH link IN clan.clan_database_links;
         db = link.db_id;
-        IF NOT xrefs.${db}.d;
+        IF NOT xrefs.${db}.defined;
           xrefs.${db} = [];
         END;
         xrefs.${db}.push( link );
