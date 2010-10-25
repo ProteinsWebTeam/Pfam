@@ -197,7 +197,7 @@ sub update : Local {
 	my $u = Bio::Pfam::Wiki::Updater->new( schema => $c->model('WikiAppDB')->schema );
 
 	if ( $titles ) {
-		unless ( $titles =~ m/[\/%\`\#;?&,]/ ) {
+		if ( $titles =~ m/[\/%\`\#;?&,]/ ) {
 			$c->log->debug( "Articles::update: invalid titles: |$titles|" )
 				if $c->debug;
 			$c->res->status( 400 ); # Bad request
