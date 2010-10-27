@@ -1,0 +1,74 @@
+[%
+# maintenance.tt
+# jt6 20101027 WTSI
+#
+# A simple page to say that the site is down for scheduled maintenance.
+#
+# $Id$
+
+META naked = 1;
+
+# the base URL for static content
+staticUri = c.uri_for( "/static" );
+sharedUri = c.uri_for( "/shared" );
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+
+  <head>
+    <title>Pfam: Unavailable due to scheduled maintenance</title>
+    <link rel="stylesheet" type="text/css" href="[% staticUri %]/css/pfam.css" />
+    <link rel="stylesheet" type="text/css" href="[% staticUri %]/css/[% c.config.site %].css" /> 
+  </head>
+
+  <body>
+
+    <div id="dbd">
+
+      <a class="siteLogoHolder" style="float: left" href="[% c.config.site_home %]">
+        <img alt="[% c.config.site_name %]" 
+             id="siteLogo"
+             src="[% sharedUri %]/images/blank.gif" /></a>
+      
+      <a class="pfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
+        <img alt="Pfam" 
+             id="pfamLogo" 
+             src="[% sharedUri %]/images/blank.gif" /></a>
+
+      <div class="cleaner"><!-- empty --></div>
+  
+      <h1>[% title %]</h1>
+
+      [% message %]
+
+    </div>
+
+    [% TRY;
+      PROCESS "components/footer_${c.config.site}.tt";
+    CATCH file;
+      CALL c.log.error( "wrapper.tt: couldn't find the site-specific footer" );
+    END -%]
+
+  </body>
+
+</html>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
