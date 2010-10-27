@@ -42,6 +42,20 @@ sub auto : Private {
   my $this = shift;
   my ( $c ) = @_;
 
+  # see if there's a maintenance message in the configuration file
+  if ( $c->config->{maintenance} ) {
+    $c->log->debug( 'found a maintenance message' )
+      if $c->debug;
+
+    $c->stash->{title}   = $c->config->{maintenance}->{title};
+    $c->stash->{message} = $c->config->{maintenance}->{message};
+
+    $c->stash->{template} = 'pages/maintenance.tt';
+
+    # break out of the processing chain now and go straight to the "end" action
+    return 0;
+  }
+
   # see if we can get a DB ResultSet from the VERSION table, which is 
   # effectively a test of whether we can connect to the DB. If we can't, 
   # set the template to point to a page that will apologise and let the "end"
