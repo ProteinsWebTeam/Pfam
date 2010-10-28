@@ -48,6 +48,7 @@ my $start_time=time();
 my $rcs_time;
 
 #check ID and lock #################
+print STDERR "Doing checks on dir and RCS for $id\n";
 
 my( $locked, $locker, $allow_ref ) = &RfamRCS::check_database_isnot_locked;
 if( $locked ) {
@@ -77,6 +78,7 @@ if(   !(-w $id) ) {
     die "rfnew: [$id] you dont have write permissions to this directory so cant proceed from here\n";
 }
 
+#this checks the accmap for unique ids
 if( &RfamQC::id_exists( $id ) ) {
     die "rfne: Family [$id] already exists.\nIf this is an existing family, check in the revision using rfci.pl\n";
 }
@@ -111,7 +113,7 @@ while(<DESC>) {
 	die "rfnew: Your DESC file has a AC line [$_].\n";
     }
     if( /^ID/ ) {
-	#THIS IS DUMB!
+	#THIS IS DUMB!-but its been known to happen..
 	die "rfnew: Your DESC file has a ID line [$_].\n";
     }
     
@@ -128,6 +130,9 @@ unless( &RfamQC::valid_sequences( $id ) ) {
 
 #RCS lock & update ################
 
+print STDERR "\nStarting the RCS check in for $id -- commited now........\n";
+
+#gets the next id from the acclog
 my $acc = &RfamRCS::allocate_new_accession($id);
 if( !defined $acc ) {
     die "rfnew: Unable to allocate new accession number. Check write permission to ACCESSION dir\n";
@@ -207,16 +212,13 @@ $lock=$rdb->add_lock($user, $acc);
 if ($lock){
     if  ($lock->{'status'}){
 	print STDERR "Successful lock on the RDB to allow checkin by $user\n";
-    }elsif($lock->{'locker'} eq $user && $lock->{'family'} ne $acc){
-	die  "You already have the lock on the RDB for a different family", $lock->{'locker'},",", $lock->{'family'},"\n";
-    }
-    else {
+    }else {
 	#lock by someone else
-	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "-you cant check in right now\n";
+	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "\n";
     }
 }
 else{
-	die  "Problem obtaining lock on RDB for $user\n";
+    die  "Problem obtaining lock on RDB for $user\n";
 }
 
 #get entry Obj from RCS
@@ -276,10 +278,10 @@ if ($full_size > 6000){
 }
 
 #Successful checkin remove the RDB lock
-if ( $lock=$rdb->remove_my_lock($user, $lock) ){
-    print STDERR "Failed to remove the lock on RDB after successful checking";
+if ( $lock=$rdb->remove_my_lock($user, $acc, $lock) ){
+    print STDERR "Failed to remove the lock on RDB after successful check in $id ($acc)";
 }else{
-    print STDERR "Removed lock by $user\n";
+    print STDERR "Removed lock by $user for $id ($acc)\n";
 }
 
 my $end_time=time();
