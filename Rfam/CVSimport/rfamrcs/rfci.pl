@@ -31,7 +31,7 @@ jd7 (edits on the old rfci.pl code)
 #    $rfam_mod_dir = "/software/rfam/scripts/Modules/";
 # }
 
-# use lib $rfam_mod_dir;
+#use lib $rfam_mod_dir;
 use IO::File;
 use strict;
 use Rfam;
@@ -106,14 +106,6 @@ my $dir=cwd;
         die "You need to rerun the rqc-all.pl as at least one of DESC/SEED/OUTPUT/out.list has changed since you ran it last\n";
  }
 
-####
-
-if ($updateRDB){ 
-    $rcs_time=time(); 
-    goto LOCK;
-}
-
-
 #check RCS lock###################################
 
 my ($rcs_locked, $rcs_locker, $allow_ref) = &RfamRCS::check_database_isnot_locked;
@@ -157,10 +149,11 @@ if(! $desc->{'AC'}) {
 }
 
 ########################
-#All is apparently ok-proceed with a checkin
 
+#All is apparently ok-proceed with a checkin
 # #Lock RDB
 # #this opens a connection, adds lock to RDB table and then closes it
+
 LOCK:
 my $lock;
 $lock=$rdb->add_lock($user, $acc);
@@ -168,20 +161,19 @@ $lock=$rdb->add_lock($user, $acc);
 if ($lock){
     if  ($lock->{'status'}){
 	print STDERR "Successful lock on the RDB to allow checkin by $user\n";
-    }elsif($lock->{'locker'} eq $user && $lock->{'family'} ne $acc){
-	die  "You already have the lock on the RDB for a different family", $lock->{'locker'},",", $lock->{'family'},"\n";
-    }
-    else {
+    } else {
 	#lock by someone else
-	die "RDB currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "-you cant check in right now\n";
+	die "Family currently has lock placed on it by ". $lock->{'locker'},",", $lock->{'family'}, "\n";
     }
 }
 else{
 	die  "Problem obtaining lock on RDB for $user\n";
 }
 
-if ($updateRDB) {goto RDB;}
+
 ############################
+
+print STDERR "Starting the RCS check in\n";
 
 # #check ID line not changed if so fix DES file;
 my $oldid=$db->acc2id($acc);
@@ -222,13 +214,13 @@ unless ($desc->{'ID'} eq $oldid){
 	RfamUtils::writeDesc($desc,\*DE);
 	close(DE);
 	print STDERR "have updated the DESC file with the update PI lines";
+    }#end of checking PI
 
-	#change acc map ? do we even use this anymore? 
-	$db->_move_accession( $acc, $desc->{'ID'} );
-	$db->_unlock();
+   #change acc map -important 
+   $db->_move_accession( $acc, $desc->{'ID'} );
+   $db->_unlock();
 	
-    }
-}#end of checking PI
+}#end of checking ID
 
 #copy files around to correct places
 if( &RfamRCS::move_files_to_rcs_directory($acc, $acc) == 0 ) {
@@ -330,7 +322,7 @@ if ($full_size > 6000){
 }
 
 #Successful checkin remove the RDB lock
-if ( $lock=$rdb->remove_my_lock($user, $lock) ){
+if ( $lock=$rdb->remove_my_lock($user, $acc, $lock) ){
     print STDERR "Failed to remove the lock on RDB after successful checking";
 }else{
     print STDERR "Removed lock by $user\n";
