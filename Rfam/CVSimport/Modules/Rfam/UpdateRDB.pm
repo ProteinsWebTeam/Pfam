@@ -314,7 +314,7 @@ sub delete_Entry {
 
 }
 
-#soley to stop multiple checkins to RDB
+#soley to stop multiple people fiddling with same family
 sub add_lock {
     my ($self, $qusr, $family)=@_;
     my ($lock,
@@ -324,44 +324,33 @@ sub add_lock {
     $dbh = $self->connect('_lock'); #error raising is on
 
     eval{
-	my $asth=$dbh->prepare("SELECT * from  _lock;");
-	$asth->execute();
+	my $asth=$dbh->prepare("SELECT * from  _lock where rfam_acc=?");
+	$asth->execute($family);
 	$locker=$asth->fetchall_arrayref();
 	$asth->finish();
     };if ($@){
 	$self->disconnect;
 	die "Failed to get the current RDB info: $@";
     }
-    if (scalar(@$locker) > 1) {
-	my $userlist;
+    #check all locks for other user
+    if (scalar(@$locker) > 0) {
 	foreach my $r (@$locker){
-	    $userlist.=join("\t", @$r);
-	    $userlist.="\n";
+	    if ($r->[0] ne $qusr){
+		#cant give the lock
+		$self->disconnect();	
+		$lock->{'status'}=undef; #no lock given
+		$lock->{'locker'}=$r->[0]; #other user
+		$lock->{'family'}=$r->[1]; 
+		return $lock;
+	    } 
 	}
-	$self->disconnect();
-	$error= "More than one lock on the lock table-this is BAD\n$userlist.\n";
-	
-    }
-        
-    #should only be one entry;
-    $user=$locker->[0];
-         
-    #if already locked-disconnect
-    if ($user->[0]){
-	if( $user->[0] ne $qusr && $user->[1] ne $family){
-	    $self->disconnect();
-	    $lock->{'status'}=undef; #already locked
-	    $lock->{'locker'}=$user->[0]; 
-	    $lock->{'family'}=$user->[1];
-	    return $lock;
-	}elsif($user->[0] eq $qusr && $user->[1] eq $family){
-    	    $self->disconnect();
-	    $lock->{'status'}=1; #locked and ready to go;
-	    $lock->{'locker'}=$qusr;
-	    $lock->{'family'}=$family;
-	    return $lock;
-	}
-    }else{
+	#only self so give lock
+	$self->disconnect(); 
+	$lock->{'status'}=1; 
+	$lock->{'locker'}=$qusr;
+	$lock->{'family'}=$family; 
+	return $lock; 
+    }else{ #is new so add lock for self
 	eval{
 	    my $bsth=$dbh->prepare("Insert into _lock values (?,?)");
 	    $bsth->execute($qusr, $family);
@@ -374,22 +363,20 @@ sub add_lock {
 	    $lock->{'family'}=$family;;
 	    return $lock;
 	}
-	
-    }
+    } 
     $self->disconnect();
-    print STDERR $error if $error;
-    
+    print STDERR $error if $error;    
 }
 
+
 sub remove_my_lock {
-    my ($self, $usr, $lock)=@_;
+    my ($self, $usr, $acc, $lock)=@_;
     my $error;
-    my $status=undef;
     $dbh = $self->connect(); #error raising is on
     
     eval{
-	my $asth=$dbh->prepare("Delete from _lock  where locker=?");
-	$asth->execute($usr);
+	my $asth=$dbh->prepare("Delete from _lock  where locker=? and rfam_acc=?");
+	$asth->execute($usr, $acc);
 	$asth->finish();
     }; if($@){
 	$self->disconnect();
