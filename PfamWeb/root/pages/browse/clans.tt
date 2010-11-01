@@ -16,6 +16,7 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -40,11 +41,14 @@ pageList = PROCESS "components/pageList.tt",
 
 [% pageList %]
 
-<table class="details browse" summary="Browse Pfam clans">
+<table class="details browse" 
+       id="clanBrowse"
+       summary="Browse Pfam clans">
   <thead>
     <tr class="caption">
-      <th>ID</th>
+      <th class="sortasc">ID</th>
       <th>Accession</th>
+      <th>SCOP identifier</th>
       <th>Description</th>
     </tr>
   </thead>
@@ -56,7 +60,7 @@ pageList = PROCESS "components/pageList.tt",
     ELSE;
 	    initialLetter = clan.clan_id.split("").first | lower;
     END %]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+    <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
   	  <td>
         <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
            id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
@@ -64,6 +68,14 @@ pageList = PROCESS "components/pageList.tt",
           [% clan.clan_id %]</a>
       </td>
       <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
+      <td>
+        [% IF clan.clan_database_links.db_id == 'SCOP' -%]
+          <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% clan.clan_database_links.db_link %]">
+            [% clan.clan_database_links.db_link %]</a>
+        [% ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
       <td>[% clan.clan_description %]</td>
     </tr>
   [% END # of FOREACH %]
@@ -71,6 +83,19 @@ pageList = PROCESS "components/pageList.tt",
 </table>
 
 [% pageList %]
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var sorter = new TableKit( "clanBrowse",
+                             { editable:     false,
+                               resizable:    false,
+                               rowEvenClass: "even",
+                               rowOddClass:  "odd",
+                               stripe:       true } );
+
+  // ]]>
+</script>
 
 <!-- end browse page -->
 [%#
