@@ -1,9 +1,9 @@
 #!/software/bin/perl -w
 
 BEGIN {
-    $rfam_mod_dir = "/nfs/team71/pfam/jd7/scripts/Modules/";
-    #$rfam_mod_dir = "//software/rfam/scripts/Modules/";
+    $rfam_mod_dir = "//software/rfam/scripts/Modules/";
 }
+
 use lib $rfam_mod_dir;
 use strict;
 use Rfam;
@@ -498,7 +498,7 @@ sub desc_is_OK {
 			$GOstring.=$_;
                         if( !/^DR   GO\:\d+\sGO\:\S+/ ) {
                             warn "$family: Bad GO reference [$_]\n";
-                            #$error = 1;
+                            $error = 1;
                             last SWITCH;
 			    #http://www.sequenceontology.org/miso/current_cvs/term/SO:0000655
                         }
