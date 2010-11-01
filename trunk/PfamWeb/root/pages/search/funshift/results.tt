@@ -92,7 +92,7 @@ sharedRequirements.js.push( "tablekit.js" );
         <th>Pfam A ID</th>
         <th>Pfam A acc.</th>
         <th>Clan ID</th>
-        <th>rfunSim</th>
+        <th class="sortdesc">rfunSim</th>
         <th>mfscore</th>
         <th>bpscore</th>
       </tr>
