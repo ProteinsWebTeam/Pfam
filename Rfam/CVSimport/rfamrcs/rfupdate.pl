@@ -71,7 +71,15 @@ foreach my $fam (@ARGV) {
 	print ("rfupdate: Problem - we could not copy the files from the current set.");
     }
 
-    print STDOUT "\n\nUpdated family [$acc]\n";
+#to fix the annoyance with timestamps at checkout.
+my @filelist = qw( DESC SEED CM OUTPUT  out.list TABFILE ALIGN scores scores.eva
+lue  species );
+
+foreach my $file (@filelist){
+    system("touch $file") if $file;          
+}
+
+ print STDOUT "\n\nUpdated family [$acc]\n";
 
     chdir ".." || die "Could not ascend one directory. Whoops! $!";    
 }
