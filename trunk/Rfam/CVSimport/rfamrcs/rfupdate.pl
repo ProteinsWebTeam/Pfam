@@ -72,8 +72,7 @@ foreach my $fam (@ARGV) {
     }
 
 #to fix the annoyance with timestamps at checkout.
-my @filelist = qw( DESC SEED CM OUTPUT  out.list TABFILE ALIGN scores scores.eva
-lue  species );
+my @filelist = qw( DESC SEED CM OUTPUT  out.list TABFILE ALIGN scores scores.evalue  species );
 
 foreach my $file (@filelist){
     system("touch $file") if $file;          
