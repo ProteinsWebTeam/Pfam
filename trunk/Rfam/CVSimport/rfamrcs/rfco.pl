@@ -73,17 +73,15 @@ if( !(&RfamRCS::check_out_family($acc,\*STDOUT)) ) {
     die "rfco: Very bad error on family $acc, cannot check out\nPlease email pfam\@sanger.ac.uk to resolve this problem!\n";
 }
 
+if( !(&RfamRCS::move_family_to_current($acc)) ) {
+    die "rfco: Could not move family. Not happy about this! $!\n";
+}
+
 #to fix the annoyance with timestamps at checkout.
 my @filelist = qw( DESC SEED CM OUTPUT  out.list TABFILE ALIGN scores scores.evalue  species );
 
 foreach my $file (@filelist){
     system("touch $file") if $file;          
-}
-
-
-  
-if( !(&RfamRCS::move_family_to_current($acc)) ) {
-    die "rfco: Could not move family. Not happy about this! $!\n";
 }
 
 print STDOUT "\n\nChecked out family [$acc]\n";
