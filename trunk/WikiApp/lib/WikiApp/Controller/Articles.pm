@@ -146,7 +146,7 @@ sub approve : Chained('article') PathPart('approve') Args(0) {
 
   my $revid       = $c->req->params->{revid};       # revision to use as approved version
   my $approved_by = $c->req->params->{approved_by}; # username of approver
-  my $updated     = $c->req->params->{updated};     # timestamp for the update. Leave as
+  my $updated_ts  = $c->req->params->{updated};     # timestamp for the update. Leave as
                                                     # undef to use "NOW()"
 
   unless ( defined $revid and $revid =~ m/^\d+$/ ) {
@@ -163,6 +163,13 @@ sub approve : Chained('article') PathPart('approve') Args(0) {
     $c->res->status( 400 ); # Bad request
     $c->res->body( 'Must supply a valid user name for approver' );
     return;
+  }
+
+  # TODO we really should be doing this using an Inflate::DateTime on the DB column
+  my $updated;
+  if ( defined $updated_ts and
+       $updated_ts =~ m/(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})/) {
+    $updated = "$1 $2";
   }
 
   $c->log->debug( "Articles::approve: user $approved_by is approving revision $revid for article " 
