@@ -73,7 +73,7 @@ labels = [
         respect to every other pair (e.g. lots of mutations to 
         non-canonical pairs) gets a score of -2 and is coloured violet.
         Further information on this metric can be found in this 
-        <a href="colourings_desc.pdf">document</a>.
+        <a href="/static/documents/structure_statistics.pdf">document</a>.
       </p>
       <p>
         <strong>Sequence entropy (ent)</strong>: this plot colours each 
@@ -83,7 +83,7 @@ labels = [
         either non-existent or near the background frequencies, receive
         positive scores; sites where all the nucleotides are under-represented
         receive negative scores. Further information on this metric can be
-        found in this <a href="colourings_desc.pdf">document</a>.
+        found in this <a href="/static/documents/structure_statistics.pdf">document</a>.
       </p>
       <p>
         <strong>Fraction of canonical basepairs (fcbp</strong>): this plot 
