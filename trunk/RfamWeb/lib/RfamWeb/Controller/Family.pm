@@ -30,6 +30,8 @@ use warnings;
 
 use Compress::Zlib;
 use MIME::Base64;
+use JSON;
+use Data::Dump qw( dump );
 
 use base 'RfamWeb::Controller::Section';
 
@@ -79,7 +81,7 @@ QliDtDSZTAZerxfhcBipVAo6nQ5WqxXj4+NV/VoukUggHA4jFoshkUggnU6LPxjq7u6GzWbD6OgozGZz
 wWCAyWSCzWbD4OAgenp6FD9/HYyy20YgiUQCS0tLEr+mbDaLcDiMcDiM+/fvV2zj9evXiv8XBAGJRAKJRAI7OzuYmprC3bt3G+qv2vvyeDzY2NiQ/C+VSsHn82F/fx/Pnz8vcSpppA+xWAxLS0slv3Q8
 Pz9HMplEMplEKBTC58+fSxYrrpNRdlukWIIgYGVlpayZmfzkaQS3242jo6NLObZq91Xu+DKZDFZWVur+2a5SH9bX1+tq77oZZbdFBPH7/RK/WY1Gg4cPH8LhcAD4apmzurpa8Qs1m81wOp2w2WwwGo3Q
 6XQ4Pz/HyckJvF4vgsGg+N7t7W3YbDZJ6lTLMm+9+7oIjUaD2dlZOBwOdHR0IBQK4dOnT+Ixn56eYnd3F+Pj46r0QW5XOj8/D7vdDuCrU2MikUA0GsX+/r7kfdfNKLstBFL8RQLA9PS0xOvJ5XJBEASs
-ra2VbWdhYUHxxDObzXj06JFkP4UvsF7U3tfU1BRcLpe47XQ6kcvlJMccDAYlAmmkD52dnRKfroODAwCA0WiE0WiE3W6H3W4vcbVXMsru6+sTtwtG2b/88ovkMxRIA8Tjccl2IXIUMzQ0VFEguVwOfr8f
+RA2vBwDHYUHxxDObzXj06JFkP4UvsF7U3tfU1BRcLpe47XQ6kcvlJMccDAYlAmmkD52dnRKfroODAwCA0WiE0WiE3W6H3W4vcbVXMsru6+sTtwtG2b/88ovkMxRIA8Tjccl2IXIUMzQ0VFEguVwOfr8f
 BwcHODk5QSaTudCsrVFvWrX3NTQ0VPGY5ePUSB8cDofkZPf5fPD5fAC+2gj19vZiYGAAY2NjEq/g62aU3RYCEQRBsq20YlPpMWinp6d49+4d0ul0VftsxIanGfuq5piLx6nRPszMzCCbzYqRQ15nxONx
 xONx+Hw+PH/+HFarVRRlPauTLNIbUbHMpjObzZa8R+l/8qKz2pOlUZqxL6WTSH7MxePUaB8KPlqLi4uYmZkRaxmlRy243W5x+7oZZbdFBDGZTBKbzmAwWOJMKK9T5BQXjgDEIl+v16OjowO5XA4vX76s
 ecVGaR2/GfuS1xcASlaKTCaT6n3o7e0tWT4+Pj7G27dvFVOk62aU3RYCGRoakgjE7XZDq9WKtUgoFJLMYtVGJY1Gg7OzM8Tj8bLP/Sv+THEaEwwG4XA4Kj6fo559yXG73dDpdOIxh8PhkmNWqlPq7cOr
@@ -202,6 +204,10 @@ sub begin : Private {
 
 This is the way into the VARNA secondary structure viewer applet.
 
+To fix a possible problem with the reference structure annotation in VARNA,
+we apply a pattern match to the structure description string, converting 
+"A" and "a" to "[" and "]", and "Bb" to "{}".
+
 Hands straight off to a template that generates a "tool" page containing the 
 VARNA applet.
 
@@ -209,6 +215,18 @@ VARNA applet.
 
 sub varna : Local {
   my ( $this, $c ) = @_;
+
+  my $json = JSON->new;
+
+  # retrieve the JSON string with the (broken) annotation
+  my $json_string = $c->stash->{rfam}->structure_annotations;
+
+  # decode it so we can work with it as a regular perl data structure,
+  # convert the A/a notation to [/] and similarly for B/b to {/}, then
+  # re-encode it and stash it for the template
+  my $ss = $json->decode( $json_string );
+  $ss->{reference_structure} =~ tr/AaBb/[]{}/;
+  $c->stash->{ss} = $json->encode( $ss );
 
   $c->stash->{template} = 'components/tools/varna.tt';
 }
