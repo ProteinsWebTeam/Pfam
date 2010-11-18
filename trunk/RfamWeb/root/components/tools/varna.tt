@@ -38,7 +38,7 @@ title = "VARNA"
   // <![CDATA[
 
   var varnaJarUri = "[% c.uri_for( '/static/varna/VARNAv3-6.jar' ) %]";
-  var ssData = [% rfam.structure_annotations %];
+  var ssData = [% ss %];
 
   var vc = new VarnaControl( varnaJarUri, ssData, "appletContainer" );
 
