@@ -225,7 +225,7 @@ sub varna : Local {
   # convert the A/a notation to [/] and similarly for B/b to {/}, then
   # re-encode it and stash it for the template
   my $ss = $json->decode( $json_string );
-  $ss->{reference_structure} =~ tr/AaBb/[]{}/;
+  $ss->{reference_structure} =~ tr/AaBbC-Zc-z/[]{}../;
   $c->stash->{ss} = $json->encode( $ss );
 
   $c->stash->{template} = 'components/tools/varna.tt';
