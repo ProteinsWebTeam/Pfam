@@ -115,6 +115,14 @@ var Sunburst = Class.create( {
 */
 
   /**
+   * Enable/disable the handlers that deal with mouse clicks. This effectively
+   * enables or disables selections.
+   *
+   * @private
+   */
+  _enableClicks: false,
+
+  /**
    * The time limit (in milliseconds) for registering a second click as a 
    * double-click.
    *
@@ -287,11 +295,14 @@ var Sunburst = Class.create( {
 
     this._ctx.lineWidth = this._layerWidth;
 
-    this._arcs.each( function(layer) {
+    this._arcs.each( function(layer, i) {
+      // console.debug( "drawing layer %d", i );
       if ( layer === undefined ) {
+        // console.warn( "layer %d undefined", i );
         return;
       }
       layer.each( function(arc) {
+        // console.debug( "drawing arc: " + arc );
         if ( arc._selected ) {
           this._drawArc( arc, this._selectedNodeColour );
         } else {
@@ -501,7 +512,9 @@ var Sunburst = Class.create( {
 
     // watch the main canvas for mouse events
     this._treeCanvas.observe( "mousemove", this._handleMousemove.bind(this) );
-    this._treeCanvas.observe( "click",     this._handleClick.bind(this) );
+    if ( this._enableClicks ) {
+      this._treeCanvas.observe( "click", this._handleClick.bind(this) );
+    }
 
     this._builtMarkup = true;
 
@@ -661,7 +674,8 @@ var Sunburst = Class.create( {
         da = arc._toAlpha - arc._fromAlpha, // delta alpha
         ma = arc._fromAlpha + ( da / 2 ),   // midpoint alpha
 
-        shim = 0.1 * ( 2 * Math.PI ) / 360, // leave a gap of 0.1 degree between arcs
+        // shim = 0.1 * ( 2 * Math.PI ) / 360, // leave a gap of 0.1 degree between arcs
+        shim = 0.0017453292519943296,       // this we can pre-calculate...
 
         to = Math.max( arc._fromAlpha, arc._toAlpha - shim ),
 
@@ -761,58 +775,62 @@ var Sunburst = Class.create( {
   },
  
   //----------------------------------------------------------------------------
-  
-  _drawBranch: function( child ) {
+  // this method isn't currently used, but it was draws a sort of tree graph,
+  // rather than the arcs
 
-    var rInner    = ( this._layerWidth + this._layerSeparation ) * ( child._depth - 1 ),
-        rOuter    = ( this._layerWidth + this._layerSeparation ) * child._depth + this._layerSeparation,
-        midAlphas = [],
-        fromAlpha, toAlpha,
-        ma, x0, y0, x1, y1;
+  // _drawBranch: function( child ) {
 
-    if ( child.children !== undefined && child.children.length > 1 ) {
+  //   var rInner    = ( this._layerWidth + this._layerSeparation ) * ( child._depth - 1 ),
+  //       rOuter    = ( this._layerWidth + this._layerSeparation ) * child._depth + this._layerSeparation,
+  //       midAlphas = [],
+  //       fromAlpha, toAlpha,
+  //       ma, x0, y0, x1, y1;
 
-      // fromAlpha = child.children
-      //                  .pluck("_fromAlpha")
-      //                  .min();
-      //   toAlpha = child.children
-      //                  .pluck("_toAlpha")
-      //                  .max();
+  //   if ( child.children !== undefined && child.children.length > 1 ) {
 
-      child.children.each( function(grandchild) {
-        midAlphas.push( grandchild._fromAlpha + ( ( grandchild._toAlpha - grandchild._fromAlpha ) / 2 ) );
-      } );
+  //     // fromAlpha = child.children
+  //     //                  .pluck("_fromAlpha")
+  //     //                  .min();
+  //     //   toAlpha = child.children
+  //     //                  .pluck("_toAlpha")
+  //     //                  .max();
 
-      fromAlpha = midAlphas.min();
-        toAlpha = midAlphas.max();
+  //     child.children.each( function(grandchild) {
+  //       midAlphas.push( grandchild._fromAlpha + ( ( grandchild._toAlpha - grandchild._fromAlpha ) / 2 ) );
+  //     } );
 
-      this._ctx.beginPath();
-      // console.debug( "radius: %d, fromAlpha: %d, toAlpha: %d, child: ", 
-      //                r + this._layerWidth, fromAlpha, toAlpha, child );
-      this._ctx.arc( 0, 0, rOuter, fromAlpha, toAlpha, false );
-      this._ctx.stroke(); 
+  //     fromAlpha = midAlphas.min();
+  //       toAlpha = midAlphas.max();
 
-    } else {
-    
-      fromAlpha = child._fromAlpha;
-      toAlpha   = child._toAlpha;
+  //     this._ctx.beginPath();
+  //     // console.debug( "radius: %d, fromAlpha: %d, toAlpha: %d, child: ", 
+  //     //                r + this._layerWidth, fromAlpha, toAlpha, child );
+  //     this._ctx.arc( 0, 0, rOuter, fromAlpha, toAlpha, false );
+  //     this._ctx.stroke(); 
 
-    }
+  //   } else {
+  //   
+  //     fromAlpha = child._fromAlpha;
+  //     toAlpha   = child._toAlpha;
 
-    ma = fromAlpha + ( ( toAlpha - fromAlpha ) /  2 ); // midpoint alpha
+  //   }
 
-    x0 = rInner * Math.cos(ma);
-    y0 = rInner * Math.sin(ma);
-    x1 = rOuter * Math.cos(ma);
-    y1 = rOuter * Math.sin(ma);
+  //   ma = fromAlpha + ( ( toAlpha - fromAlpha ) /  2 ); // midpoint alpha
 
-    this._ctx.beginPath();
-    this._ctx.moveTo( x0, y0 );
-    this._ctx.lineTo( x1, y1 );
-    this._ctx.stroke();
-  },
+  //   x0 = rInner * Math.cos(ma);
+  //   y0 = rInner * Math.sin(ma);
+  //   x1 = rOuter * Math.cos(ma);
+  //   y1 = rOuter * Math.sin(ma);
+
+  //   this._ctx.beginPath();
+  //   this._ctx.moveTo( x0, y0 );
+  //   this._ctx.lineTo( x1, y1 );
+  //   this._ctx.stroke();
+  // },
 
   //----------------------------------------------------------------------------
+  // like the _drawBranch method, but puts the vertices in different places
+  // relative to the arcs
  
   // _drawCentredBranch: function( child ) {
 
@@ -861,7 +879,7 @@ var Sunburst = Class.create( {
    * Given a mouse event originating from the main tree canvas, this method 
    * takes the X,Y position of the event and tries to find the arc over which
    * the mouse is moving. Returns the arc data structure 
-   * (<code>SunburstNode</code> itself, if found.
+   * (<code>SunburstNode</code>) itself, if an arc was found.
    *
    * @private
    * @param e mouse event from tree canvas
