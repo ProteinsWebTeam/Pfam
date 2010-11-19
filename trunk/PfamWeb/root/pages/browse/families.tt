@@ -48,7 +48,9 @@ pageList = PROCESS "components/pageList.tt",
 
 [% pageList %]
 
-<table class="details browse" summary="Details of Pfam families">
+<table class="details browse" 
+       id="familyBrowse"
+       summary="Details of Pfam families">
   <thead>
     <tr>
       <th rowspan="2">ID</th>
