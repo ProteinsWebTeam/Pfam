@@ -44,7 +44,7 @@ pageList = PROCESS "components/pageList.tt",
 <table class="details browse" 
        id="clanBrowse"
        summary="Browse Pfam clans">
-  <thead>
+  <thead class="sortIndicator">
     <tr class="caption">
       <th class="sortasc">ID</th>
       <th>Accession</th>
@@ -69,11 +69,16 @@ pageList = PROCESS "components/pageList.tt",
       </td>
       <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
       <td>
-        [% IF clan.clan_database_links.db_id == 'SCOP' -%]
-          <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% clan.clan_database_links.db_link %]">
-            [% clan.clan_database_links.db_link %]</a>
-        [% ELSE -%]
-          <span class="inactive">n/a</span>
+        [% # there could be zero, one or multiple SCOP IDs for each clan...
+        IF clan.clan_database_links;
+          FOREACH row IN clan.clan_database_links;
+            IF row.db_id == 'SCOP' -%]
+            <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% row.db_link %]">
+              [% row.db_link %]</a>
+            [% END; # of FOREACH row
+          END;
+        ELSE -%]
+          <span class="inactive">n/a</span> 
         [% END -%]
       </td>
       <td>[% clan.clan_description %]</td>
@@ -88,11 +93,18 @@ pageList = PROCESS "components/pageList.tt",
   // <![CDATA[
 
   var sorter = new TableKit( "clanBrowse",
-                             { editable:     false,
+                             {
+                               editable:     false,
                                resizable:    false,
                                rowEvenClass: "even",
                                rowOddClass:  "odd",
-                               stripe:       true } );
+                               stripe:       true,
+                               observers: {
+                                 onSortStart: function( table, event ) { 
+                                   table.down("thead").removeClassName("sortIndicator");
+                                 }
+                               }
+                             } );
 
   // ]]>
 </script>
