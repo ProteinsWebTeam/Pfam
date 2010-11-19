@@ -122,7 +122,7 @@ oe = 0;
     <table class="resultTable details"
            id="imageKey" 
            summary="Key for the Pfam domain image">
-      <thead>
+      <thead class="sortIndicator">
         <tr>
           <th>Source</th>
           <th>Domain</th>
@@ -193,8 +193,14 @@ oe = 0;
                                    resizable:    false,
                                    rowEvenClass: "even",
                                    rowOddClass:  "odd",
-                                   stripe:       true } );
-      sorter.sort(3);
+                                   stripe:       true,
+                                   observers: {
+                                     onSortStart: function( table, event ) { 
+                                       table.down("thead").removeClassName("sortIndicator");
+                                     }
+                                   }
+                                 } );
+      //sorter.sort(3);
 
       // ]]>
     </script>
