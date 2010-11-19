@@ -85,7 +85,7 @@ sharedRequirements.js.push( "tablekit.js" );
 
 <div id="results">
   <table class="resultTable" id="resultTable" summary="Search results">
-    <thead>
+    <thead class="sortIndicator">
       <tr>
         <th id="indexCol" class="rowNum">Original order</th>
         <th>Accession</th>
@@ -125,13 +125,18 @@ sharedRequirements.js.push( "tablekit.js" );
   <script type="text/javascript">
     // <![CDATA[
     var sorter = new TableKit( "resultTable",
-                                {
-                                  editable: false,
-                                  resizable: false,
-                                  rowEvenClass: "even",
-                                  rowOddClass: "odd",
-                                  stripe: true
-                                } );    
+                               {
+                                 editable: false,
+                                 resizable: false,
+                                 rowEvenClass: "even",
+                                 rowOddClass: "odd",
+                                 stripe: true,
+                                 observers: {
+                                   onSortStart: function( table, event ) { 
+                                     table.down("thead").removeClassName("sortIndicator");
+                                   }
+                                 }
+                               } );    
     // ]]>
   </script>
 
