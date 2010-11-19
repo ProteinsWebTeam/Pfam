@@ -432,9 +432,9 @@ table.details {
   border-spacing: 1px;
 }
 
-table.details thead tr {
-  background: #BBB;
-}
+/* table.details thead tr { */
+/*   background: #BBB; */
+/* } */
 
 table.details th {
   padding: 0.2em;
@@ -537,6 +537,10 @@ body.tool h1 {
 /* ======================================== */
 /* search results */
 
+.sortIndicator th {
+  background-image: url(/shared/images/up-down.gif);
+}
+
 .sortcol {
   cursor: pointer;
   padding-left: 16px ! important;
@@ -552,6 +556,7 @@ body.tool h1 {
 }
 .nosort {
   cursor: default;
+  background-image: none ! important;
 }
 
 /* this is the auto-generated link for sorting the column */
