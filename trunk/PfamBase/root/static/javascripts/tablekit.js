@@ -123,7 +123,12 @@ Object.extend(TableKit, {
 		if(TableKit.tables[table.id] &&  TableKit.tables[table.id].observers && TableKit.tables[table.id].observers[eventName]) {
 			TableKit.tables[table.id].observers[eventName](table, event);
 		}
-		TableKit.options.observers[eventName](table, event)();
+    // wrap this call in a test, otherwise we get an error saying that the
+    // function does not exist
+    // jt6 20101118 WTSI
+    if ( TableKit.options.observers[eventName](table, event) ) {
+      TableKit.options.observers[eventName](table, event)();
+    }
 	},
 	isSortable : function(table) {
 		return TableKit.tables[table.id] ? TableKit.tables[table.id].sortable : false;
@@ -371,7 +376,10 @@ TableKit.Sortable = {
 		var op = TableKit.option('noSortClass descendingClass ascendingClass defaultSortDirection', table.id);
 		
 		if(cell.hasClassName(op.noSortClass)) {return;}	
-		//TableKit.notify('onSortStart', table);
+    // uncomment the call to "notify", so that we can use the mechanism
+    // for notifying observers of events
+    // jt6 20101118 WTSI
+		TableKit.notify('onSortStart', table);
 		order = order ? order : op.defaultSortDirection;
 		var rows = TableKit.getBodyRows(table);
 
