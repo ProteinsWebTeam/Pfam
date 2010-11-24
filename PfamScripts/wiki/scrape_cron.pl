@@ -15,8 +15,6 @@
 use strict;
 use warnings;
 
-use lib qw( /nfs/users/nfs_j/jt6/wiki/WikiApp/lib );
-
 use Getopt::Long;
 use Config::General;
 use LWP::UserAgent;
