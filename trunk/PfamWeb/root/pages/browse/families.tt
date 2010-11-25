@@ -15,6 +15,12 @@ META fullPage = 1;
 
 PROCESS "components/require.tt";
 
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.js.push( "tip_definition.js" );
+requirements.js.push( "excanvas.js" );
+
+requirements.css.push( "prototip.css" );
 requirements.css.push( "browse.css" );
 
 #-------------------------------------------------------------------------------
@@ -102,6 +108,56 @@ pageList = PROCESS "components/pageList.tt",
   [% END %]
   </tbody>
 </table>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var topTips = [
+    "Short name<br />for entry",
+    "Unique stable identifier for each Pfam entry",
+    "Designation of whether a Pfam entry is a Domain, Repeat, Motif or Family",
+    null,
+    "Average length of amino-acid regions in the full alignment",
+    "Average percentage identity of sequences in the full alignment",
+    "Fraction of whole sequence length that the Pfam entry covers",
+    "Does the family have a known 3-dimensional structure ?",
+    "Has the family changed or been added in this<br />release compared to the previous release ?",
+    "Short description of the Pfam entry"
+  ];
+
+  var bottomTips = [
+    "Number of regions in the seed alignment",
+    "Number of regions in the full alignment"
+  ];
+
+  $("familyBrowse")
+    .down("tr",0)
+    .select("th")
+    .each( function(th, i) { 
+      if ( topTips[i] ) {
+        var t = new Tip( th,
+                         topTips[i],
+                         { title: th.innerHTML,
+                           hook: { target: "bottomMiddle", tip: "topMiddle" },
+                           stem: "topMiddle",
+                           style: "pfam" } );
+      }
+    } );
+
+  $("familyBrowse")
+    .down("tr",1)
+    .select("th")
+    .each( function(th, i) { 
+      var t = new Tip( th,
+                       bottomTips[i],
+                       { title: th.innerHTML,
+                         hook: { target: "bottomMiddle", tip: "topMiddle" },
+                         stem: "topMiddle",
+                         style: "pfam" } );
+    } );
+
+  // ]]>
+</script>
 
 [% pageList %]
 
