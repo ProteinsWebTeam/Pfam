@@ -284,6 +284,12 @@ Example output (with -pfamB, -as options):
   O65039.1     38     93     38     93 PF08246   Inhibitor_I29     Domain     1    58    58     45.9   2.8e-12   1 No_clan
   O65039.1    126    342    126    342 PF00112   Peptidase_C1      Domain     1   216   216    296.0   1.1e-88   1 CL0125   predicted_active_site[150,285,307]
 
+Most of these values are derived from the output of I<hmmscan> (see HMMER3
+documentation for details). The significance value is 1 if the bit score for a
+hit is greater than or equal to the curated gathering threshold for the
+matching family, 0 otherwise. Pfam-B hits are always assigned a significance
+value of "NA", since Pfam-B families do not have curated thresholds and the
+value is therefore meaningless. 
 
 =head1 REFERENCES
 
