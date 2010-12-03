@@ -98,6 +98,20 @@ var Sunburst = Class.create( {
   //                              "maxH": 355 }
   // },
 
+  // the eight major taxonomic levels. Used only when generating the 
+  // tooltips for the mouseover.
+  _levels: [
+    null,
+    "superkingdom",
+    "kingdom", 
+    "phylum", 
+    "class",
+    "order",
+    "family",
+    "genus",
+    "species"
+  ],
+
 /*
 +------------+--------------------+----------+---------+---------+--------+------------------------+---------+--------------+
 | ncbi_taxid | species            | taxonomy | lft     | rgt     | parent | level                  | minimal | rank         |
@@ -775,7 +789,7 @@ var Sunburst = Class.create( {
   },
  
   //----------------------------------------------------------------------------
-  // this method isn't currently used, but it was draws a sort of tree graph,
+  // this method isn't currently used, but it draws a sort of tree graph,
   // rather than the arcs
 
   // _drawBranch: function( child ) {
@@ -1011,7 +1025,7 @@ var Sunburst = Class.create( {
     this._drawSubTree( arc );
 
     // update the tip
-    this._tipTitle.update( arc.nodeName );
+    this._tipTitle.update( arc.nodeName + " [" + this._levels[arc._depth] + "]" );
     this._tipNumSeq.update( arc.numSequences + ( arc.numSequences > 1 ? " sequences" : " sequence" ) );
     this._tipNumSpecies.update( arc.numSpecies );
 
