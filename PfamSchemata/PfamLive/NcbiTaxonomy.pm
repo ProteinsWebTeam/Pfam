@@ -26,11 +26,11 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("ncbi_taxid");
-__PACKAGE__->has_many(
-  "complete_proteomes",
-  "PfamLive::CompleteProteomes",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
-);
+#__PACKAGE__->has_many(
+#  "complete_proteomes",
+#  "PfamLive::CompleteProteomes",
+#  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+#);
 __PACKAGE__->has_many(
   "pfama_ncbis",
   "PfamLive::PfamaNcbi",
@@ -55,7 +55,6 @@ __PACKAGE__->has_many(
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MoDHs5Xa0ROZJmOAUoay3w
-
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
