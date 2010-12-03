@@ -112,6 +112,9 @@ var Sunburst = Class.create( {
     "species"
   ],
 
+  // a regex for testing whether a node name is something like "(No order)"
+  _noLevelRE: new RegExp( '^\\\(No ' ),
+
 /*
 +------------+--------------------+----------+---------+---------+--------+------------------------+---------+--------------+
 | ncbi_taxid | species            | taxonomy | lft     | rgt     | parent | level                  | minimal | rank         |
@@ -973,7 +976,8 @@ var Sunburst = Class.create( {
    */
   _handleMousemove: function(e) {
 
-    var arc = this._findArc( e );
+    var arc = this._findArc( e ),
+        tipTitle;
 
     if ( arc === undefined ) {
       // the mouse is not over any arc; tidy up and we're done
@@ -1024,8 +1028,17 @@ var Sunburst = Class.create( {
     // update the sub-tree
     this._drawSubTree( arc );
 
+    // test the node name to see if it's designating a node that doesn't have
+    // one of the main eight levels (e.g. "(No order)"). In that case we leave
+    // it untouched, both otherwise we'll add the level after the node name.
+    if ( this._noLevelRE.test( arc.nodeName ) ) {
+      tipTitle = arc.nodeName;
+    } else {
+      tipTitle = arc.nodeName + " [" + this._levels[arc._depth] + "]"; 
+    }
+    
     // update the tip
-    this._tipTitle.update( arc.nodeName + " [" + this._levels[arc._depth] + "]" );
+    this._tipTitle.update( tipTitle );
     this._tipNumSeq.update( arc.numSequences + ( arc.numSequences > 1 ? " sequences" : " sequence" ) );
     this._tipNumSpecies.update( arc.numSpecies );
 
