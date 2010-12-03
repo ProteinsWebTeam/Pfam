@@ -135,6 +135,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 65535,
   },
+  "number_shuffled_hits",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_pfama");
 __PACKAGE__->add_unique_constraint("pfamA_id", ["pfama_id"]);
