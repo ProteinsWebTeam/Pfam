@@ -70,14 +70,19 @@ pageList = PROCESS "components/pageList.tt",
       <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
       <td>
         [% # there could be zero, one or multiple SCOP IDs for each clan...
-        IF clan.clan_database_links;
-          FOREACH row IN clan.clan_database_links;
-            IF row.db_id == 'SCOP' -%]
-            <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% row.db_link %]">
-              [% row.db_link %]</a>
-            [% END; # of FOREACH row
-          END;
-        ELSE -%]
+        links = BLOCK;
+          IF clan.clan_database_links;
+            FOREACH row IN clan.clan_database_links;
+              IF row.db_id == 'SCOP' -%]
+              <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% row.db_link %]">
+                [% row.db_link %]</a>
+              [% END;
+            END; # of FOREACH row
+          END; # of BLOCK
+        END; # of IF
+        IF links -%]
+          [% links %]
+        [% ELSE -%]
           <span class="inactive">n/a</span> 
         [% END -%]
       </td>
