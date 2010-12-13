@@ -12,12 +12,27 @@
 use strict;
 use warnings;
 
+use Getopt::Long;
+use Config::General;
 use DateTime;
 use DBI;
 
-my $DB_DSN = 'dbi:mysql:database=web_user;host=pfamdb1;port=3306';
-my $DB_USER = 'webuser';
-my $DB_PASS = 'Machete81';
+# find the config file
+my $config_file = 'conf/wiki.conf';
+GetOptions( 'config=s' => \$config_file );
+die "ERROR: couldn't read config from '$config_file': $!"
+  unless -e $config_file;
+
+# get the DB connection parameters
+my $cg = Config::General->new($config_file);
+my %config = $cg->getall;
+die "ERROR: failed to extract and configuration from '$config_file'"
+  unless keys %$cg;
+my $conf = $config{Model}{WebUser};
+
+my $DB_DSN  = "dbi:mysql:database=$conf->{database};host=$conf->{host};port=$conf->{port}";
+my $DB_USER = $conf->{user};
+my $DB_PASS = $conf->{password};
 my $MAX_PENDING = 50;
 
 # connect to the web_user database
@@ -34,7 +49,7 @@ my $dt = DateTime->now
 my $date = $dt->ymd . ' 00:00:00';
 
 # set up the query
-my $sth = $dbh->prepare( 'SELECT COUNT(*) FROM job_history WHERE status != "PEND" AND opened > ?' );
+my $sth = $dbh->prepare( 'SELECT COUNT(*) FROM job_history WHERE status = "PEND" AND opened > ?' );
 $sth->bind_param( 1, $date );
 $sth->execute;
 
