@@ -29,5 +29,6 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iIwYdTBVEb1ChNkCPXGTqg
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->set_primary_key( 'auto_pfama', 'auto_wiki' );
+
 1;
