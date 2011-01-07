@@ -301,19 +301,17 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-06-18 14:37:17
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UpiKz8q9yWBQ7jiXbGUqFA
 
+
 __PACKAGE__->has_many(
   "_active_site_alignments",
   "PfamLive::ActiveSiteAlignments",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
-
-#This should be auto gnerated.
-__PACKAGE__->has_many(
-   "pfama_wikis",
-   "PfamLive::PfamaWiki",
-   { "foreign.auto_pfama" => "self.auto_pfama" },
- );
+ 
+__PACKAGE__->many_to_many(
+  'articles' => 'pfama_wikis', 'auto_wiki'
+);
  
 __PACKAGE__->set_primary_key("auto_pfama", "pfama_id", "pfama_acc");
-# You can replace this text with custom content, and it will be preserved on regeneration
+
 1;
