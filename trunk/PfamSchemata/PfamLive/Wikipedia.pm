@@ -38,5 +38,8 @@ __PACKAGE__->has_many(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZwxUU71nu+CBkf344DLdeQ
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->many_to_many(
+  'pfams' => 'pfama_wikis', 'auto_pfama'
+);
+ 
 1;
