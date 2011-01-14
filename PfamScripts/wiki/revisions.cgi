@@ -28,7 +28,8 @@ my $conf = $config{WikiApprove};
 my $dsn = "dbi:mysql:$conf->{db_name}:$conf->{db_host}:$conf->{db_port}";
 
 my $dbh = DBI->connect( $dsn, $conf->{username}, $conf->{password},
-                        { RaiseError => 0 } );
+                        { PrintError => 0,
+                          RaiseError => 0 } );
 
 # if we can't even connect, we're done here. At least put a hint in
 # the body of the response though
