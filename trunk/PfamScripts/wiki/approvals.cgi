@@ -34,7 +34,8 @@ my $rfam_conf= $config{RfamDB};
 # get database connections
 my $wa_dbh = DBI->connect( "dbi:mysql:$wa_conf->{db_name}:$wa_conf->{db_host}:$wa_conf->{db_port}", 
                            $wa_conf->{username}, $wa_conf->{password},
-                           { RaiseError => 0 } );
+                           { PrintError => 0,
+                             RaiseError => 0 } );
 # (we're not using the DBIC wrapper for the wiki_approve database, because it's
 # more than just a simple table wrapper. It requires MediaWiki::API, which is
 # going to be a pain to get installed and working on the SVN machine.)
