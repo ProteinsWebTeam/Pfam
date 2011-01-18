@@ -29,7 +29,7 @@ my $cg = Config::General->new($config_file);
 my %config = $cg->getall;
 die "ERROR: failed to extract and configuration from '$config_file'"
   unless keys %$cg;
-my $conf = $config{wiki_approve}{WikiApprove};
+my $conf = $config{WikiApprove};
 
 # connect to the wiki_approve database
 my $dsn = "dbi:mysql:$conf->{db_name}:$conf->{db_host}:$conf->{db_port}";
@@ -47,6 +47,6 @@ print STDERR "$now: updated last revision IDs for $updated out of $checked check
 
 # if given in the configuration, append a snippet of text to the output. This is
 # to allow URLs, etc., to be added to the cron output
-print STDERR "\n", $config{wiki_approve}{update_email_message}, "\n"
-  if $config{wiki_approve}{update_email_message};
+print STDERR "\n", $config{update_email_message}, "\n"
+  if $config{update_email_message};
 
