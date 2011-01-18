@@ -40,7 +40,7 @@ die "ERROR: couldn't read config from '$config_file': $!" unless -e $config_file
 # parse the config and get the section relevant to the web_user database
 my $cg = Config::General->new($config_file);
 my %config  = $cg->getall;
-my $db_conf = $config{wiki_approve}{WebUser};
+my $db_conf = $config{WebUser};
 
 # build database connection string
 my $dsn = "dbi:mysql:$db_conf->{db_name}:$db_conf->{db_host}:$db_conf->{db_port}";
@@ -50,10 +50,10 @@ my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password} 
 # $schema->storage()->debug( 1 );
 
 # get the URL for the CGI script that will distribute the approved revisions
-my $revisions_script = $config{wiki_approve}{revisions_url};
+my $revisions_script = $config{revisions_url};
 
 # get the delay that we should use between wikipedia hits
-my $scrape_loop_delay = $config{wiki_approve}{scrape_loop_delay};
+my $scrape_loop_delay = $config{scrape_loop_delay};
 
 # get a user agent and actually retrieve the list of revisions
 my $ua = LWP::UserAgent->new;
