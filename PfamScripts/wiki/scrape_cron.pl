@@ -27,7 +27,7 @@ use Data::Dump qw(dump);
 # table in the "web_user" database. Add the appropriate DBIC schema 
 # description to PERL5LIB
 
-my $DEBUG = 0;
+my $DEBUG = 1;
 
 # get a WikiScraper...
 my $scraper = Bio::Pfam::Wiki::Scraper->new;
@@ -79,6 +79,11 @@ my $numUpdated = 0;
 while ( my ( $title, $revision ) = each %$revisions ) {
 
   print STDERR "checking article '$title'... " if $DEBUG;
+
+  unless ( $revision =~ m/^(\d+)$/ and $1 > 0 ) {
+    print STDERR "invalid revision number for '$title' ($revision)\n";
+    next;
+  }
 
   # get the DBIC Row for that article...
   my $row = $schema->resultset('Wikitext')
