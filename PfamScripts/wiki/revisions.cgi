@@ -17,8 +17,15 @@ use CGI;
 
 my $q = CGI->new;
 
+# find the configuration file
+my $config_file = '/pfam/home/config/wiki.conf';
+if ( defined $ENV{WIKI_CGIS_CONFIG} and
+     -e $ENV{WIKI_CGIS_CONFIG} ) {
+  $config_file = $ENV{WIKI_CGIS_CONFIG};
+}
+
 # get database connection parameters from the config file
-my $cg = Config::General->new( '/pfam/home/config/wiki.conf' );
+my $cg = Config::General->new( $config_file );
 
 # parse the config and get the section relevant to the wikipedia stuff
 my %config = $cg->getall;
