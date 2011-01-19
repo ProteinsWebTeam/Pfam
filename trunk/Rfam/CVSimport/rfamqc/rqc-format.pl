@@ -326,8 +326,8 @@ sub desc_is_OK {
 	    #check for WK and SO and GO here
 	    /^WK/ && do {
                 $fields{$&}++; 
-                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+$/){
-                    warn "$family: WK lines should look like:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR;\nNot $_\nProblem most likely a terminal semicolon- remove it!";
+                if ( (/^WK.*\;$/) || ( ! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+$/ ) ){
+                    warn "\n$family: WK lines should look like this:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR\n Not this \n$_\nProblem most likely a terminal semicolon- remove it!\n\n";
                     $error = 1;
                 }
 		last;
