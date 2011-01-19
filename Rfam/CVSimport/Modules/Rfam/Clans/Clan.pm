@@ -1,6 +1,12 @@
 package Rfam::Clans::Clan; 
 
-#modules for dealing with Rfam clans
+#methods in this package:
+#slurpClanDesc 
+#writeClanDesc 
+#generateClanDesc 
+#check_into_DB 
+#checkForExistingLitRefEntry
+
 
 use strict;
 use warnings;
@@ -19,8 +25,8 @@ use vars qw(
 
 @ISA    = qw( Exporter );
 
-#Using dev for testing:
-my @rfamDatabase = ("dbi:mysql:rfam_10_0:$Rfam::rdbHostDev:$Rfam::rdbPortDev", $Rfam::rdbUserDev, $Rfam::rdbPassDev);
+#loads into rfamlive
+my @rfamDatabase = ("dbi:mysql:rfamlive:$Rfam::rdb_host:$Rfam::rdb_port", $Rfam::rdb_user, $Rfam::rdb_pass);
 
 #Tags used in CLANDESC files -- the order here matters!!!:
 @clanTags = qw(
@@ -184,87 +190,160 @@ sub generateClanDesc {
 
 ######################################################################
 
-#check_into_DB: Load the data contained in desc into the database:
+#check_into_DB: Load the data contained in clandesc into the database:
 sub check_into_DB {
     my $desc = shift;
-    
+    my $table;
     my $rfdbh = DBI->connect(
 	@rfamDatabase, {
 	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
 	    RaiseError => 1
 	}    );
     
-    ########
-    # Fill the clans table:
+ 
+
     my $ccLines = $desc->{CC};
     $ccLines =~ s/\nCC\s{3}/\n/g;
-    my $fillClansQuery = qq(
-insert into clans (clan_acc, clan_id, clan_description, clan_author, clan_comment) VALUES ('$desc->{AC}','$desc->{ID}','$desc->{DE}','$desc->{AU}','$ccLines')
-   );
+    $ccLines =~ s/\n//g;
+
+    ###########################
+    # 1 CLAN TABLE#
+    ############################
+
+    #check to see if clan exists:
+    my $asth = $rfdbh->prepare( 'Select auto_clan from clans where clan_acc=?' )
+	or die '(EE) ERROR: couldn\'t prepare query asth: ' . $rfdbh->errstr;
     
-    printf "Checking acc=[%s] id=[%s] de=[%s] into DB\n", $desc->{AC},$desc->{ID},$desc->{DE};
+    my $bsth = $rfdbh->prepare( 'Replace into clans (auto_clan, clan_acc, clan_id, clan_description, clan_author, clan_comment) values (?,?,?,?,?,?)' )
+	or die '(EE) ERROR: couldn\'t prepare query bsth: ' . $rfdbh->errstr;
     
-    my $sth = $rfdbh->prepare($fillClansQuery);
-    $sth->execute();
-    my $autoClan = $sth->{mysql_insertid};
-    ########
+    my $csth = $rfdbh->prepare( 'Insert into clans (clan_acc, clan_id, clan_description, clan_author, clan_comment) values (?,?,?,?,?)' )
+	or die '(EE) ERROR: couldn\'t prepare query csth: ' . $rfdbh->errstr;
+
+    my $autoClan;
+    #check for existing entry
+    $asth->execute($desc->{AC});
+    $autoClan=$asth->fetchrow();
+    $asth->finish();
+
+    if ($autoClan){
+	#do the replace
+	$bsth->execute($autoClan, $desc->{AC},$desc->{ID},$desc->{DE},$desc->{AU},$ccLines);
+	  print STDERR "(WW) WARNING: error whilst updating clans table: ". $rfdbh->errstr . "\n"if $DBI::err;
+	$bsth->finish();
+    }else{
+	#insert and get autoclan
+	$csth->execute($desc->{AC},$desc->{ID},$desc->{DE},$desc->{AU},$ccLines);
+	$autoClan=$csth->{mysql_insertid};
+	print STDERR "$autoClan autoclan new\n";
+	print STDERR "(WW) WARNING: error whilst inserting new data  into clans table: ". $rfdbh->errstr . "\n"if $DBI::err;  
+	$csth->finish();
+    }
     
+    if (!$autoClan){
+	die "Problem with insert/update on the clans table...";
+    }
+
+    printf "Checking acc=[%s] id=[%s] de=[%s] into rfamlive RDB with auto_id $autoClan\n", $desc->{AC},$desc->{ID},$desc->{DE};
+    
+    #############################
+    #2. clan_membership table
+    ############################
+
     #Find the auto_rfam number for each member:
-    my $autoRfQuery = qq(
-           select auto_rfam, rfam_id from rfam where rfam_acc=?;
-   );
+    my $sthRfQuery = $rfdbh->prepare('Select auto_rfam, type from rfam where rfam_acc=?' )
+	or die '(EE) ERROR: couldn\'t prepare query sthRfQuery: ' . $rfdbh->errstr;
+
+    my $dsth = $rfdbh->prepare ('Insert into clan_membership (auto_clan, auto_rfam) VALUES (?, ?)' )
+	or die '(EE) ERROR: couldn\'t prepare query dsth: ' . $rfdbh->errstr;
     
-    my $sthRfQuery = $rfdbh->prepare($autoRfQuery);
     my %mb2auto_rfam;
+    my %familytypes;
+    my $type;
+ 
     foreach my $mb ( @{$desc->{MB}} ){
 	
 	$sthRfQuery->execute($mb);
-	
+	print STDERR "(WW) WARNING: error whilst retreiving data from the rfam table for $mb: ". $rfdbh->errstr . "\n"if $DBI::err;
+
 	my $result = $sthRfQuery->fetchall_arrayref;
 	my $rfamId='';
 	foreach my $row (@$result){
-	    $mb2auto_rfam{$mb} .= $row->[0] if defined $row->[0];
-	    $rfamId .= $row->[1] if defined $row->[1];
+	    #key rfamacc
+	    $mb2auto_rfam{$mb} = $row->[0] if defined $row->[0];
+	    $familytypes{$row->[1]}.=" $mb ";
+	    
 	}
     }
+
+    $sthRfQuery->finish();
+
+    if ( keys %familytypes > 1){
+	print STDERR "\nWARNING: clan built from Rfam families of more than one type:\n";
+	foreach my $k (keys (%familytypes)){
+	    print STDERR "type=> ", $k, "   families=>", $familytypes{$k}, "\n"; 
+	}
+	print STDERR "\n";
+    }
     
-    ##########
-    # Query to fill the clan_membership table:
-    my $fillClanMembershipQuery = qq(
-insert into clan_membership (auto_clan, auto_rfam) VALUES ($autoClan, ?);
-   );
-    
-    $sth = $rfdbh->prepare($fillClanMembershipQuery);
-    
+    #delete any existing data for this clan:
+    my $delete_cm = $rfdbh->prepare( 'Delete from clan_membership where auto_clan=?' )
+	or die '(EE) ERROR: couldn\'t prepare query to delete: ' . $rfdbh->errstr;
+    $delete_cm->execute($autoClan);
+    $delete_cm->finish();
+
+    #Fill the clan_membership table:
     foreach my $mb ( @{$desc->{MB}} ){
-	$sth->execute($mb2auto_rfam{$mb}) if defined $mb2auto_rfam{$mb};
+	$dsth->execute($autoClan, $mb2auto_rfam{$mb}) if defined $mb2auto_rfam{$mb};
 	warn "WARNING: failed to find an auto_rfam id for $mb!" if not defined $mb2auto_rfam{$mb};
     }
-    ##########
-    # Query to fill the database links table:
+
+    $dsth->finish();
+    print STDERR "Updated the clan_membership table\n";
     
-    if (defined $desc->{DR} and $desc->{DR} =~ /\S+/){
-	my $fillDatabaseLinksQuery = qq(
-insert into clan_database_links (auto_clan, db_id, comment, DB_link, other_params) VALUES ($autoClan, ?, '', ?, '');
-   );
-	
-	$sth = $rfdbh->prepare($fillDatabaseLinksQuery);
+    
+    ##################################
+    # 3 Database links table:
+    #####################################
+
+
+    my $gsth = $rfdbh->prepare('Insert into clan_database_links (auto_clan, db_id, comment, DB_link, other_params) VALUES (?, ?, ?, ?, ?)')
+		or die '(EE) ERROR: couldn\'t prepare query fsth: ' . $rfdbh->errstr;
+
+    #delete existing data
+    my $delete_cdb = $rfdbh->prepare( 'Delete from clan_database_links where auto_clan=?' )
+	or die '(EE) ERROR: couldn\'t prepare query to delete: ' . $rfdbh->errstr;
+    $delete_cdb->execute($autoClan);
+    $delete_cdb->finish();
+
+    #load new data
+    if (defined $desc->{DR} and $desc->{DR} =~ /\S+/){	
+	my ($dbcomment, $dbother);
 	my $dbLinks = $desc->{DR};
 	my @dbLinks = split(/\nDR\s+/, $dbLinks);
 	foreach my $dbL (@dbLinks){
 	    if($dbL =~ /(\S+);\s+(\S+)/){
-		$sth->execute($1,$2);
+		$gsth->execute($autoClan, $1, $dbcomment, $2, $dbother);
 	    }
 	}
-	
+
+	$gsth->finish();
     }
-    ##########
-    # Query to fill the literature references table:
-    #Check if they aleady exist in the DB
-    
+
+ print STDERR "Updated the clan_database_links table\n";
+
+    #############################
+    # 4 Literature references table:
+    ##############################
+
+    #Check if refs aleady exist in the DB and uses their index or inserts them into table    
     if ($desc->{RN}){
+
+	my $delete_clr = $rfdbh->prepare( 'Delete from clan_literature_references where auto_clan=?' )
+	    or die '(EE) ERROR: couldn\'t prepare query to delete: ' . $rfdbh->errstr;
+	$delete_clr->execute($autoClan);
+	$delete_clr->finish();
 	
-	#
 	my $orderAdded=1;
 	foreach my $ref (@{$desc->{RN}}){
 	    
@@ -274,17 +353,18 @@ insert into clan_database_links (auto_clan, db_id, comment, DB_link, other_param
 	    my $fillClanLiteratureReferencesQuery = qq(
 	        insert into clan_literature_references (auto_clan, auto_lit, comment, order_added) values ($autoClan, ?, ?, ?);
                );
-	    
+
+	    my $fsth;
 	    if (defined $existingAutoLit && RfamUtils::isInteger($existingAutoLit) && $existingAutoLit > 0){#literature_references entry already exists:
-		$sth = $rfdbh->prepare($fillClanLiteratureReferencesQuery);
-		$sth->execute($existingAutoLit,'',$orderAdded);
+		$fsth = $rfdbh->prepare($fillClanLiteratureReferencesQuery);
+		$fsth->execute($existingAutoLit,'',$orderAdded);
 	    }
 	    else {#fill literature_references:
 		
 		#function?:
 		my $fillLiteratureReferencesQuery = qq(
 	        insert into literature_references (medline, title, author, journal) values (?, ?, ?, ?);
-               );
+                );
 		
 		my $refTitle = $ref->{RT};
 		$refTitle =~ s/\nRT\s{3}/\n/g;
@@ -293,23 +373,23 @@ insert into clan_database_links (auto_clan, db_id, comment, DB_link, other_param
 		my $refJournal = $ref->{RL};
 		$refJournal =~ s/\nRL\s{3}/\n/g;
 		
-		$sth = $rfdbh->prepare($fillLiteratureReferencesQuery);
-		$sth->execute($ref->{RM},$refTitle,$refAuthor,$refJournal);
+		$fsth = $rfdbh->prepare($fillLiteratureReferencesQuery);
+		$fsth->execute($ref->{RM},$refTitle,$refAuthor,$refJournal);
 		
-		$existingAutoLit = $sth->{mysql_insertid};
-		$sth = $rfdbh->prepare($fillClanLiteratureReferencesQuery);
-		$sth->execute($existingAutoLit,'',$orderAdded);
+		$existingAutoLit = $fsth->{mysql_insertid};
+		$fsth = $rfdbh->prepare($fillClanLiteratureReferencesQuery);
+		$fsth->execute($existingAutoLit,'',$orderAdded);
 		
 	    }
-	    
+	    $fsth->finish();
 	    $orderAdded++;
 	}
 	
 	
-    }
+    } #end of literature ref table
 #my $result = ($success ? $dbh->commit : $dbh->rollback);
  
-
+    print STDERR "Updated the clan_literature_links table\n"; 
     $rfdbh->disconnect;
 }
 
@@ -329,7 +409,8 @@ sub checkForExistingLitRefEntry {
     $sth->execute($pubMedId);
     
     my $result = $sth->fetchall_arrayref;
-    
+    $sth->finish();
+
     foreach my $row (@$result){
 	$existingAutoLit .= $row->[0] if defined $row->[0];
     }
@@ -338,124 +419,22 @@ sub checkForExistingLitRefEntry {
 
 ######################################################################
 
-sub id_exists {
-    my $id = shift;
-    
-    my $rfdbh = DBI->connect(
-	@rfamDatabase, {
-	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	    RaiseError => 1
-	}    );
-    
-    # Query to search for the description of embl entries with the embl id
-    my $query = qq(
-           select clan_acc from clans where clan_id=?;         
-   );
-    
-    my $sth = $rfdbh->prepare($query);
-    $sth->execute($id);
-    
-    my $acc=0;
-    my $result = $sth->fetchall_arrayref;
-    foreach my $row (@$result){
-	$acc .= $row->[0] if defined $row->[0];
-    }
-    $sth = $rfdbh->disconnect or warn $rfdbh->errstr;
-    
-    return $acc; # id exists
-    
-}
-
-######################################################################
-#sub check_out_family {
-#sub check_in_family {
-#sub allocate_new_accession {
-sub allocate_new_clan_accession {
-    my $id = shift;
-
-     if( not defined $id && length($id)>0) {
- 	warn("Cannot allocate a new family without a name");
- 	return undef;
-     }
-
-#     my $db = Rfam::default_db();
-#     if( my $name = $db->_get_lock() ) {
-#         # locks the SDMB file
-#         die "Unable to get the lock for the SDBM_file - $name has it\n";
-#     }
-    
-    my $clan_acclog_file   = "$Rfam::clan_acclog_file";
-    open(ACCLOG,"< $clan_acclog_file") || die "Could not open $clan_acclog_file ($!) A v. bad error\n[$!]";
-    open(ACCTEMP,">$clan_acclog_file.$$") || die "Could not open $clan_acclog_file.$$ ($!) A v. bad error\n[$!]";
-    
-#RF00001 [5S_rRNA] [sgj] [Thu Aug  8 12:57:12 2002]
-    my $line = "CL00000 [dummy] [pg5] [Tue Oct 20 15:59:05 2009]\n"; #Initialise with a dummy CL00000 entry 
-    while( <ACCLOG> ) {
- 	print ACCTEMP;
- 	$line = $_;
-    }
-    
-    ($line =~ /^(\S{2}\d+)/) || die "Last line of acclog is not an accession ($_). Big trouble!";
-    
-    my $acc = $1;
-    $acc++;
-    
-    my $me = `whoami`;
-    chomp $me;
-    my $date = gmtime();
-
-    print ACCTEMP "$acc [$id] [$me] [$date]\n";
-    print         "$acc [$id] [$me] [$date]\n";
-    
-    close(ACCLOG);
-    close(ACCTEMP);
-    
-    rename("$clan_acclog_file.$$",$clan_acclog_file) or die "FATAL: failed to rename [$clan_acclog_file.$$] as [$clan_acclog_file]\n[$!]";
-    
-#     # update the accmap
-#     $db->_add_accession( $acc, $family );
-#     $db->_unlock();
-    
-    return "$acc";
-}
-
-#Makes the clan directory and writes the CLANDESC file:
-sub make_new_clan_files {
-    my $desc = shift;
-    
-    die "FATAL: AC is not defined or is poorly formatted in the desc object! [" . $desc->{'AC'} . "]"  if not defined $desc->{'AC'} or $desc->{'AC'} !~ /^CL/;
-    my $newfamily = $desc->{'AC'};
-    my $dir = "$Rfam::clan_dir/$newfamily";
-    
-    die "FATAL: the directory [$dir] already exists!" if -d $dir;
-    mkdir("$dir", 0775 ) or die "FATAL: (Clan.pm) Could not make a new clan directory for [$newfamily]!\n[$!]";
-    
-    print "Writing CLANDESC file: [$dir/CLANDESC]\n";
-    open(DE, "> $dir/CLANDESC");
-    Rfam::Clans::Clan::writeClanDesc($desc, \*DE);
-    close(DE);
-    system("chmod -R a+rxw $dir") and die "FATAL: failed to run chmod -R a+rxw $dir\n[$!]";
-    return 1;
-}
-
 #sub is_in_clan { #returns a clan acc
 #sub clanacc2clanid {
 #sub clanid2clanacc {
-
-#sub slurpClanDesc {
-#sub generateClanDesc {
 
 ######################################################################
 
 =head1 AUTHOR
 
-Paul Gardner, C<pg5@sanger.ac.uk>
+Paul Gardner, <pg5@sanger.ac.uk>
+Jennifer Daub <jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2009: Genome Research Ltd.
 
-Authors: Paul Gardner (pg5@sanger.ac.uk)
+Authors: Paul Gardner (pg5@sanger.ac.uk) & Jennifer Daub <jd7@sanger.ac.uk>
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
