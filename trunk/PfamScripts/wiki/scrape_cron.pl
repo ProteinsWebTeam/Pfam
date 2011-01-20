@@ -27,7 +27,7 @@ use Data::Dump qw(dump);
 # table in the "web_user" database. Add the appropriate DBIC schema 
 # description to PERL5LIB
 
-my $DEBUG = 1;
+my $DEBUG = 0;
 
 # get a WikiScraper...
 my $scraper = Bio::Pfam::Wiki::Scraper->new;
