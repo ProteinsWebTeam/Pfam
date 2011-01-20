@@ -62,7 +62,7 @@ elsif ( defined $q->param('db') and
   $query    .= ' where db = "rfam"';
 }
 
-my $data = $dbh->selectcol_arrayref( $query, { Columns => [ 1, 2 ] } );
+my $data = $dbh->selectall_arrayref( $query );
 
 # (make sure we retrieved *something*)
 unless ( $data ) {
@@ -71,9 +71,10 @@ unless ( $data ) {
   exit;
 }
 
-# convert the array elements straight to a hash and dump it to the 
-# response as a JSON string
-my %hash = @$data;
+# convert the array elements to a hash and dump it to the response as a JSON
+# string
+my %hash;
+map { push @{ $hash{ $_->[0] } }, $_->[1] } @$data;
  
 print $q->header( -type => 'application/json',
                   -Content_Disposition => "attachment; filename=$filename" ),
