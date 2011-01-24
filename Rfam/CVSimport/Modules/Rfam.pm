@@ -20,8 +20,10 @@ use vars qw( @ISA
 	     $lock_file
 	     $scripts_dir
 	     $acclog_file
-             $clan_acclog_file
              $clan_dir
+             $clan_rcs_dir
+             $clan_acclog_file
+             $clan_index_file
 	     $rfamseq
 	     $rfamseq_root_dir
 	     $rfamseq_current_dir
@@ -64,7 +66,7 @@ use vars qw( @ISA
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
-
+use Rfam::Clans::Clan_RCS;
 #mfetch -d version
 $embl = "embl_100";
 
@@ -74,12 +76,17 @@ $accession_dir  = "$root_dir/ACCESSION";
 $releases_dir   = "$root_dir/RELEASES";
 $rcs_master_dir = "$root_dir/RCS_MASTER";
 $rcs_attic_dir  = "$root_dir/RCS_ATTIC";
-$clan_dir       = "$root_dir/CLANS";
 $scripts_dir    = "/software/rfam/scripts/";
 $acclog_file    = "$accession_dir/acclog";
-$clan_acclog_file    = "$accession_dir/clanacclog";
 $rcs_index_file = "$accession_dir/accmap.dat";
 $lock_file      = "$accession_dir/lock";
+
+#clan rcs files
+$clan_dir   = "$root_dir/CLANS";
+$clan_rcs_dir       = "$root_dir/RCS_CLAN";
+$clan_acclog_file   = "$root_dir/CLAN_ACCESSION/clanacclog";
+$clan_index_file    = "$root_dir/CLAN_ACCESSION/clan_accmap.dat";
+
 
 #$rfamseq_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
 $rfamseq_root_dir    = "/nfs/pfam_nfs/rfam/rfamseq";
@@ -237,8 +244,15 @@ sub default_db{
 				  '-attic'     => $rcs_attic_dir, 
 				  '-index'     => $rcs_index_file,
 				  '-lock_file' => $lock_file,
-				  '-rfamseq'   => $rfamseq );
-} 
+				  '-rfamseq'   => $rfamseq);
+}
+			
+#clans but same lock file
+sub clan_db{
+    return Rfam::Clans::Clan_RCS->new( '-clan_current'   => $clan_dir,   
+				       '-clan_index'     => $clan_index_file,
+				       '-lock_file' => $lock_file );  
+}
 
 #curation
 sub live_rdb {
