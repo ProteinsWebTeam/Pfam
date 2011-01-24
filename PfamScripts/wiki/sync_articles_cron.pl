@@ -60,9 +60,9 @@ $log->logdie( "ERROR: couldn't read config from '$config_file': $!" )
 # parse the config and get the section relevant to the web_user database
 my $cg        = Config::General->new($config_file);
 my %config    = $cg->getall;
-my $wa_conf   = $config{wiki_approve}{WikiApprove};
-my $pfam_conf = $config{wiki_approve}{PfamLive};
-my $rfam_conf = $config{wiki_approve}{RfamLive};
+my $wa_conf   = $config{WikiApprove};
+my $pfam_conf = $config{PfamLive};
+my $rfam_conf = $config{RfamLive};
 
 #-------------------------------------------------------------------------------
 
@@ -125,7 +125,8 @@ foreach my $pfam ( @pfam_articles ) {
                            ->find_or_create( { title       => $article->title,
                                                approved_by => 'jt6',
                                                pfam_status => 'active', 
-                                               rfam_status => 'inactive' } );
+                                               rfam_status => 'inactive' },
+                                             { key => 'primary' } );
 
     # We also want to keep track of the mapping between articles and Pfam
     # entries. If the mapping is already there, we update it to this latest
@@ -133,7 +134,8 @@ foreach my $pfam ( @pfam_articles ) {
     my $mapping = $wa_schema->resultset('ArticleMapping')
                             ->update_or_create( { accession => $pfam->pfama_acc,
                                                   title     => $article->title,
-                                                  db        => 'pfam' } );
+                                                  db        => 'pfam' } ,
+                                                { key => 'primary' } );
   }
 }
 
