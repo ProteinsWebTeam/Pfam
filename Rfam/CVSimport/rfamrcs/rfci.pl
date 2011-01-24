@@ -148,6 +148,11 @@ if(! $desc->{'AC'}) {
     die "rfci: Your DESC file has no AC line. This is bad!\n";
 }
 
+if(! $desc->{'ID'}) {
+    die "rfci: Your DESC file has no ID line. This is bad!\n";
+}
+
+
 ########################
 
 #All is apparently ok-proceed with a checkin
