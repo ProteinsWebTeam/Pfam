@@ -39,13 +39,26 @@ if( ! defined $nolog ) {
 
 # -l option not used at moment but will be added.
 
+########
+#ignore set
+
+#add self to ignore list
 my %ignore;
 push (@ignore, $family_dir); # add self to ignore list
+
+#never check agains the big bad families
+push (@ignore, 'RF00005', 'RF00177','RF00028','RF00029'); # tmRNA, SSU, GRPI&II intron
+
 foreach my $ignorefam ( @ignore ) {
     #print STDERR "ignoring $ignorefam\n";
     $ignore{$ignorefam} = 1;
 }
 
+#report NR list of ignored families
+my @nrIgnore=keys(%ignore);
+print STDERR "\nRemember ignoring all these families in OL checks\n\t", join("\t", @nrIgnore), "\n";
+
+##########
 
 my @overlap;
 if( defined $quiet ) {
