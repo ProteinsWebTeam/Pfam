@@ -85,7 +85,10 @@ while ( my ( $title, $revision ) = each %$revisions ) {
     next;
   }
 
-  # get the DBIC Row for that article...
+  # get the DBIC Row for that article. If there is no row for the article, it
+  # means it's new to the approval process, and will presumably get an approved
+  # revision number in the next round of approvals. We add a new row with the
+  # default revision number of 0 in that case.
   my $row = $schema->resultset('Wikitext')
                 ->find_or_create( { title => $title } );
 
