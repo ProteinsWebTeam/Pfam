@@ -9,10 +9,11 @@ use Cwd;
 
 my $pwd=cwd;
 
-my ($full, $family);
+my ($full, $family, @ignore);
 &GetOptions(
 	    '-full'=> \$full,
-	    '-fam=s'=> \$family
+	    '-fam=s'=> \$family,
+            '-i=s@' => \@ignore
 	    );
 
 $family=shift;
@@ -30,6 +31,15 @@ if ($full){
     print STDERR "Doing a qc-check on families not using the RDB\n";
 }
 
+my $ignore_string;
+if (@ignore){
+    print STDERR "A list of families to ignore in the overlap check has been given\n";
+    $ignore_string="-i ";
+    $ignore_string.=join( " -i ", @ignore);
+    print STDERR $ignore_string, "\n"; 
+}
+ 
+
 my ($error,$format);
 my $errlog="$pwd/$family/format.stderr.$$";
 my $outlog="$pwd/$family/format.stdout.$$";
@@ -40,9 +50,17 @@ system ("echo '\n**FORMAT ERRS**\n' > $errlog");
 $format=system("rqc-format.pl  $family 1>> $outlog 2>> $errlog");
 if ($format){ $error=1; print STDERR "\t--errors" } else{ print STDERR "\t--format check completed with no major errors";}
 
-print STDERR "\n(2) OVERLAP CHECK - ignoring $family\n";
+
 system ("echo '\n**OVERLAP ERRS**\n' >> $errlog");
-my $overlap=system ("rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
+my $overlap;
+if($ignore_string){    
+    print STDERR "\n(2) OVERLAP CHECK - ignoring $family and $ignore_string\n";
+    $overlap=system ("rqc-overlap-rdb.pl $family -i $family $ignore_string 1>> $outlog 2>> $errlog");
+    }
+else{
+    print STDERR "\n(2) OVERLAP CHECK - ignoring $family\n";
+    $overlap=system ("rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
+}
 if ($overlap){ $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--overlap check completed with no major errors";}
 
 print STDERR "\n(3) STRUCTURE CHECK\n";
