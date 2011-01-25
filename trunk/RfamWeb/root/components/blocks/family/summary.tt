@@ -205,7 +205,7 @@ requirements.cssIe.push( "family_ie.css" );
 
     <div id="wpData" 
          class="controlTabContent">
-      [%- article.text %]
+      [%- article.wikitext.text %]
     </div>
 
     <p id="wpLicense">
