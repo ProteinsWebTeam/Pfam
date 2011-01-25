@@ -176,7 +176,11 @@ sub begin : Private {
 
   # retrieve data for the family
   $c->forward( 'get_data', [ $entry ] );
-  $c->forward( 'get_wikipedia' );
+
+  if ( ref $this eq 'RfamWeb::Controller::Family' ) {
+    $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
+    $c->forward( 'get_wikipedia' );
+  }
   
   #----------------------------------------
 
@@ -621,16 +625,21 @@ Retrieves the wikipedia content, if any, for this family.
 
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
+
+  my $article = $c->model('WebUser::ArticleMapping')
+                  ->search( { accession => $c->stash->{acc} },
+                            { join     => [ 'wikitext' ],
+                              prefetch => [ 'wikitext' ] } )
+                  ->next;
+  # my $article = $articles->next;
   
-  return unless $c->stash->{rfam}->auto_wiki;
+  return unless $article;
 
-  my $title = $c->stash->{rfam}->auto_wiki->title;
-
-  $c->log->debug( "Family::get_wikipedia: got wiki title: |$title|" )
+  $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
+                  . $article->wikitext->title . '|' )
     if $c->debug;
 
-  $c->stash->{article} = $c->model('WebUser::Wikitext')
-                           ->find( $title );
+  $c->stash->{article} = $article;
 }
 
 #-------------------------------------------------------------------------------
