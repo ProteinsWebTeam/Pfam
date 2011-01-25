@@ -35,7 +35,7 @@ my ($acc, $help, $message, $skip);
 
 &GetOptions(
 	    '-acc=s'=> \$acc,
-	    '-m|message' =>  \$message, 
+	    '-m:s' =>  \$message, 
             '-skip' => \$skip, 
 	    "h|help"         => \$help
 	    );
