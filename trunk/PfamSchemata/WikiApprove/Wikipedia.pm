@@ -50,6 +50,25 @@ __PACKAGE__->set_primary_key("title");
 #- accessors -------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+# because there can be trailing semi-colons in some titles, we need to wrap
+# the DBIC wrapper and strip them before doing anything meaningful
+
+around 'title' => sub {
+  my $orig = shift;
+  my $this = shift;
+
+  if ( @_ ) {
+    return $this->$orig(@_);
+  }
+
+  my $title = $this->$orig();
+  $title =~ s/;$//;
+
+  return $title;
+};
+
+#-------------------------------------------------------------------------------
+
 # users
 has '_users' => (
   is      => 'ro',
@@ -93,13 +112,8 @@ has 'history' => (
 sub _get_article_history {
   my $this = shift;
 
-  # handle trailing semi-colons. Strip them off before trying to use them to 
-  # query the database
-  my $title = $this->title;
-  $title =~ s/;$//;
-
   # from reading the source of MW::Bot, we should be able to do this:
-  #   my @history_list = $this->_mw_bot->get_history( $title, 
+  #   my @history_list = $this->_mw_bot->get_history( $this->title, 
   #                                                   50,
   #                                                   $this->approved_revision,
   #                                                   'newer' );
@@ -109,7 +123,7 @@ sub _get_article_history {
   # retrieve the list of edits that were made since the last approved revision
   my $response = $this->_mw_api->api( {
     action    => 'query',
-    titles    => $title,
+    titles    => $this->title,
     prop      => 'revisions',
     rvprop    => 'ids|timestamp|user|comment',
     rvstartid => $this->wikipedia_revision,
@@ -119,7 +133,7 @@ sub _get_article_history {
   } );
 
   unless ( $response ) {
-    croak "Error retrieving revision history for '$title' using API: "
+    croak "Error retrieving revision history for '" . $this->title . "' using API: "
           . $this->_mw_api->{error}->{details} 
           . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
     return;
