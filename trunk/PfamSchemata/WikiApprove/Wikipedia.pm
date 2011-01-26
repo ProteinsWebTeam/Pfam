@@ -227,7 +227,7 @@ sub update_approval {
 no Moose;
 
 # don't make the class immutable: it breaks "find_or_create"...
-__PACKAGE__->meta->make_immutable;
+# __PACKAGE__->meta->make_immutable;
 
 1;
 
