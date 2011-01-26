@@ -80,8 +80,13 @@ while ( my ( $title, $revision ) = each %$revisions ) {
 
   print STDERR "checking article '$title'... " if $DEBUG;
 
-  unless ( $revision =~ m/^(\d+)$/ and $1 > 0 ) {
-    print STDERR "invalid revision number for '$title' ($revision)\n";
+  unless ( $revision =~ m/^\d+$/ ) {
+    print STDERR "WARNING: Invalid revision number for '$title' ($revision)\n";
+    next;
+  }
+
+  if ( $revision == 0 ) {
+    print STDERR "unapproved article: '$title'; content will not be scraped until the article has been approved\n";
     next;
   }
 
