@@ -93,8 +93,13 @@ has 'history' => (
 sub _get_article_history {
   my $this = shift;
 
+  # handle trailing semi-colons. Strip them off before trying to use them to 
+  # query the database
+  my $title = $this->title;
+  $title =~ s/;$//;
+
   # from reading the source of MW::Bot, we should be able to do this:
-  #   my @history_list = $this->_mw_bot->get_history( $this->title, 
+  #   my @history_list = $this->_mw_bot->get_history( $title, 
   #                                                   50,
   #                                                   $this->approved_revision,
   #                                                   'newer' );
@@ -104,7 +109,7 @@ sub _get_article_history {
   # retrieve the list of edits that were made since the last approved revision
   my $response = $this->_mw_api->api( {
     action    => 'query',
-    titles    => $this->title,
+    titles    => $title,
     prop      => 'revisions',
     rvprop    => 'ids|timestamp|user|comment',
     rvstartid => $this->wikipedia_revision,
@@ -114,7 +119,7 @@ sub _get_article_history {
   } );
 
   unless ( $response ) {
-    croak 'Error retrieving revision history for ' . $this->title . ' using API: '
+    croak "Error retrieving revision history for '$title' using API: "
           . $this->_mw_api->{error}->{details} 
           . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
     return;
@@ -201,9 +206,6 @@ sub last_update_user {
 
 sub update_comment {
   my $this = shift;
-
-  # cluck 'stack trace for article ' . $this->title;
-
   return scalar @{ $this->history } ? $this->history->[-1]->{comment} : undef;
 }
 
