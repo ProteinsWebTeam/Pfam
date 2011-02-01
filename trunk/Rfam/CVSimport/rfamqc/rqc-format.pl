@@ -314,15 +314,38 @@ sub desc_is_OK {
 	    };
             /^BM/ && do {
                 $fields{$&}++;
-		if( not /^BM   cmbuild\s+(\-\w\s)?CM SEED\;\s+cmcalibrate\s(\-\-mpi )?\-s\s\d\sCM$/ 
-		    and not  ( /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+(\-g\s+)?(\-\-fil\-no\-hmm\s+)?CM SEQDB$/
-			     or    /^BM   cmsearch\s+(\-\-local\s+)?\-\-toponly  CM SEQDB$/ 
-			       )) {
-                    warn "$family: Your BM line doesn't look right [$_]\n";
+
+		#deal with cmbuild and search separately
+		if (/cmbuild/ and not (/^BM   cmbuild\s+(\-\w\s)?CM SEED\;\s+cmcalibrate\s(\-\-mpi )?\-s\s\d\sCM$/)) {
+		    
+		    warn "$family: Your BM cmbuild line doesn't look right [$_]\n";
 		    $error = 1;
 		}
+
+
+		if( /cmsearch/ ) {
+		    my $string=$_;
+		    ## always at least 8 fields
+		    #cmsearch -Z 169604 -E (scalar or decimal) (--toponly) (-g)? (variable blah)? CM SEQDB
+		    if ($string =~/BM\s+cmsearch\s+-Z\s+169604\s+-E\s+\d+(\.\d+)?\s+\-\-toponly\s+(\-g\s+)?(\-\-.*)?CM SEQDB/){
+			 my $varies=$3;
+			 if ( $varies){
+			     #check the variable bit
+			     my @fields=split(/\s+/, $varies);
+			     if ($varies !~/^--fil-no-hmm(\s+)?$|--forward\s+--noalign(\s+)?$/) {
+				 warn "$family: Problem with the cmsearch variable region reg expression '$varies'\n";
+				 $error=1;
+			     }
+			 }
+			 
+		    }else{
+			warn "$family: Your BM cmsearch line doesn't look right [$_]\n";
+			$error = 1;
+		    }
+		}
                 last;
-            };
+            }; # end BM
+
 	    #check for WK and SO and GO here
 	    /^WK/ && do {
                 $fields{$&}++; 
