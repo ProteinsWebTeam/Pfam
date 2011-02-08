@@ -29,7 +29,7 @@ META naked = 1;
 
     <!-- load the prototype library from google -->
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">google.load("prototype", "1.6.1");</script>
+    <script type="text/javascript">google.load("prototype", "1.7");</script>
 
     <!-- the following libraries are all hosted on the Pfam site, but can obviously be
          retrieved and served locally -->
@@ -46,14 +46,12 @@ META naked = 1;
     <!-- we use the (non-free) prototip2 library to add tooltips. It's not free, but
          nearly. The domain graphics code should cope if it's not loaded, so you
          could just omit the prototip load -->
-    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/prototip.js') %]"></script>
-
-    <!-- prototip allows for configuring a "style", which is done here -->
-    <script type="text/javascript" src="[% c.uri_for('/static/javascripts/tip_definition.js') %]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/shared/javascripts/prototip.js') %]"></script>
+    <script type="text/javascript" src="[% c.uri_for('/shared/javascripts/styles.js') %]"></script>
 
     <!-- stylesheets. We only really need the rules that are specific to the tooltips -->
     <link rel="stylesheet" href="[% c.uri_for('/static/css/pfam.css') %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for('/static/css/prototip.css') %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for('/shared/css/prototip.css') %]" type="text/css" />
 
     <!-- IE, being IE, needs extra help. In particular we need to add an extra library
          that implements <canvas> using the VML drawing layer in IE. And, so that 
