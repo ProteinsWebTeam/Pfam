@@ -13,11 +13,6 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "help.css" );
 
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.css.push( "prototip.css" );
-requirements.js.push( "tip_definition.js" );
-
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
 # else. We can add it here safely, however, because excanvas checks to see
@@ -42,12 +37,12 @@ family = c.uri_for( "/family" );
 
 <div class="block" id="helpDomainGraphicsBlock">
   <div class="handle">
-    <h1><a name="graphicsTop">A Guide to the Pfam Domain Graphics</a></h1>
+    <h1 id="graphicsTop">A Guide to the Pfam Domain Graphics</h1>
   </div>
   <div class="blockContent">
 
     <p>
-      One of the features provided by the Pfam website is a graphical 
+      One of the visualisations provided by the Pfam website is a graphical 
       representation of the features found within a sequence, termed <em>domain 
       graphics</em>. There are a variety of different shapes and styles and each 
       one has a particular meaning. This page gives an in-depth description of 
@@ -60,15 +55,27 @@ family = c.uri_for( "/family" );
       graphics in this page is followed by a link that can be used to show the 
       JSON snippet that produced it. 
     </p>
+
+    <h2>Generating graphics</h2>
+
     <p>
 			You can try generating your own graphics using the 
-      <a href="[% c.uri_for( "/generateGraphic" ) %]">domain graphics generator</a>.
+      <a href="[% c.uri_for( '/generate_graphic' ) %]">domain graphics generator</a>.
       The JSON descriptions in this page can be pasted directly into the  
       generator to produce the graphics that you see here.
     </p>
     <p>
+      You can also generate the domain graphics for specific sequences, using the 
+      <a href="[% c.uri_for( '/generate_uniprot_graphic' ) %]">
+        UniProt graphics generator</a>.
+    </p>
+
+    <h2>Using the domain graphics code</h2>
+
+    <p>
       Finally, if you would like to use the javascript library in your own site,
-      we have put together <a href="[% c.uri_for('/help/domain_graphics_example.html' ) %]">
+      we have put together 
+      <a href="[% c.uri_for('/help/domain_graphics_example.html' ) %]">
         an example page</a>, showing how to set up the library and its dependencies.
       Look at the source code of the page for an explanation.
     </p>
@@ -98,7 +105,7 @@ family = c.uri_for( "/family" );
       are drawn on the sequence are also scaled by the same factor.
     </p>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <hr />
     
@@ -119,15 +126,14 @@ family = c.uri_for( "/family" );
       match). The two types of match are rendered differently.
     </p>
     <p>
-      Both <em>family</em> and <em>domain</em>entries are rendered as rectangles 
-      with curved ends when the sequence is a full length match. The curves at 
-      the ends become less pronounced when the domains are short, as shown in 
-      the second domain below. Different types of domain are displayed with 
-      different colours. When the domain image is long enough, the domain name 
-      is shown within the domain itself. In most cases, you can click on the 
-      domains to visit the &quot;family page&quot; for that domain. Moving the 
-      mouse over the domain image should also display a tooltip showing the 
-      domain name, as well as the start and end positions of the domain.
+      Both <em>family</em> and <em>domain</em> entries are rendered as
+      rectangles with curved ends when the sequence is a full length match.
+      Different types of domain are displayed with different colours. When the
+      domain image is long enough, the domain name is shown within the domain
+      itself. In most cases, you can click on the domains to visit the
+      &quot;family page&quot; for that domain. Moving the mouse over the domain
+      image should also display a tooltip showing the domain name, as well as
+      the start and end positions of the domain.
     </p>
     <img src="[% imgs %]/seqDomain.png" alt="" />
     <span class="link" onclick="reveal(this,'seqDomainJSON',false)">Show JSON</span> 
@@ -228,7 +234,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
        
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Repeat/motif</h3> 
     
@@ -292,7 +298,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Discontinuous nested domains</h3>
 
@@ -374,7 +380,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Context domains</h3>
 
@@ -478,7 +484,7 @@ family = c.uri_for( "/family" );
       always be verified by other means.
     </p> 
     
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <hr />
     
@@ -548,7 +554,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
   
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <hr />
     
@@ -618,7 +624,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
     
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Signal peptides</h3>
     
@@ -646,7 +652,7 @@ family = c.uri_for( "/family" );
       </span>
     </div>
   
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Low complexity regions</h3>
 
@@ -685,7 +691,7 @@ family = c.uri_for( "/family" );
       </span>
     </div>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3>Coiled-coils</h3>
 
@@ -700,7 +706,7 @@ family = c.uri_for( "/family" );
       lime-green rectangle. 
     </p>
     
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
     
     <h3>Transmembrane regions</h3>
 
@@ -714,7 +720,7 @@ family = c.uri_for( "/family" );
       rectangle.
     </p>
   
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
     
     <hr />
     
@@ -892,7 +898,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
     <h3><a name="disulphides">Disulphide bridges</a></h3>
     
@@ -909,7 +915,7 @@ family = c.uri_for( "/family" );
       of the bond in a tooltip.
     </p>
     
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
     
     <h3>Active site residues</h3> 
 
@@ -927,7 +933,7 @@ family = c.uri_for( "/family" );
       data and transferring these annotations through a Pfam alignment. 
     </p>  
   
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
     
     <h3>&quot;Lollipops&quot;</h3>
 
@@ -1014,7 +1020,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
     
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
     
     <hr />
     
@@ -1383,12 +1389,19 @@ family = c.uri_for( "/family" );
                                            .innerHTML );
         var tipsGraphic = new PfamGraphic("tipsGraphic", tipsSeq);
         tipsGraphic.render();
+
+        var scrollToTop = function() {
+          $("graphicsTop").scrollTo();
+        };
+
+        $$("span.backToTop").invoke( "observe", "click", scrollToTop );
+
       } );
 
       // ]]>
     </script>
 
-    <p><a href="#graphicsTop">back to top</a></p>
+    <p><span class="backToTop link">back to top</span></p>
 
   </div>
 </div>
