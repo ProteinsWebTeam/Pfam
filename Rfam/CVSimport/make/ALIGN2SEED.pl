@@ -7,7 +7,7 @@ use Rfam;
 use Rfam::RfamAlign;
 use RfamUtils;
 use Getopt::Long;
-use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
+#use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
 use DBI;
 #use Tie::IxHash;  #Use to return hash keys in the order they were added
 
@@ -67,30 +67,30 @@ if (@extra_forbidden_terms){
     push(@forbidden_terms, @extra_forbidden_terms);
 }
 
-############Ben's Logging Crap:#############
-######
-# Get a logger
-######
-my $logger = get_logger();
-$logger->level($DEBUG) if $info;
-######
-# Explicitly set the logging style and output; this seems damned ridiculous, aren't the defaults sensible?
-######
-BEGIN {
-    # We initialise on the fly
-        Log::Log4perl->init( \<<EOF
-log4perl.rootLogger=ERROR, SCREEN
-log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
-log4perl.appender.SCREEN.mode=append
-log4perl.appender.SCREEN.layout=PatternLayout
-#log4perl.appender.SCREEN.layout.ConversionPattern=%d %p> %F{1} on %H line %L: %M - %m%n
-EOF
-        );
-}
+# ############Ben's Logging Crap:#############
+# ######
+# # Get a logger
+# ######
+# my $logger = get_logger();
+# $logger->level($DEBUG) if $info;
+# ######
+# # Explicitly set the logging style and output; this seems damned ridiculous, aren't the defaults sensible?
+# ######
+# BEGIN {
+#     # We initialise on the fly
+#         Log::Log4perl->init( \<<EOF
+# log4perl.rootLogger=ERROR, SCREEN
+# log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
+# log4perl.appender.SCREEN.mode=append
+# log4perl.appender.SCREEN.layout=PatternLayout
+# #log4perl.appender.SCREEN.layout.ConversionPattern=%d %p> %F{1} on %H line %L: %M - %m%n
+# EOF
+#         );
+# }
 ############Ben's Logging Crap Ends#########
 
 #READ SEED:
-open( SEED, "SEED" ) or $logger->logdie("FATAL: Couldn't open SEED\n [$!]");
+open( SEED, "SEED" ) or print("FATAL: Couldn't open SEED\n [$!]");
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
@@ -100,9 +100,13 @@ my (%SEEDhash, %SEEDseqs, %SEEDstarts, %SEEDends); #
 #Read SEED into hashes. This maybe daft. Could use "$seed" directly. But then we lose the niceties of hashes. Rewrite "read_stockholm()"?:
 foreach my $seqobj ( $seed->each_seq() ) {
     my $longseqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
+    my ($start,$end) = ($seqobj->start,$seqobj->end);
+    
+    $longseqname = $seqobj->id . "/" . $seqobj->end . "-" . $seqobj->start if (defined $seqobj->strand && $seqobj->strand < 0);
+     ($start,$end) = ($seqobj->end,$seqobj->start) if (defined $seqobj->strand && $seqobj->strand < 0);
     $SEEDhash{$longseqname}= 1;
-    push( @{ $SEEDstarts{$seqobj->id} }, $seqobj->start );
-    push( @{ $SEEDends{$seqobj->id} }, $seqobj->end );
+    push( @{ $SEEDstarts{$seqobj->id} }, $start );
+    push( @{ $SEEDends{$seqobj->id} }  , $end );
 }
 
 #READ ALIGN:
@@ -199,14 +203,14 @@ if (defined($ont) && $ont == 0){
 my %ALIGNscores;
 #tie %ALIGNscores, "Tie::IxHash";
 if (defined($ont) || defined($scorethreshold)){
-    open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open scores\n [$!]"); 
+    open(SC, "<scores")  or print("FATAL: Couldn't open scores\n [$!]"); 
     while (my $sc = <SC>){
 	if ($sc =~ /(\S+)\s+(\S+)/){
 	    if (defined($ALIGNnames{$2})){
 		$ALIGNscores{$2}=$1;
 	    }
 	    else {
-		$logger->logwarn("$2 is in scores [$1] but does not appear to be in ALIGN!");
+		print("WARNING: $2 is in scores [$1] but does not appear to be in ALIGN!");
 	    }
 	}
     }
@@ -266,7 +270,7 @@ my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejec
 	    RaiseError => 1
 	}    );
 
-$logger->info("dbi:mysql:$Rfam::live_rdb_name:$Rfam::rdb_host:$Rfam::rdb_port, $Rfam::rdb_user, $Rfam::rdb_pass");
+print("dbi:mysql:$Rfam::live_rdb_name:$Rfam::rdb_host:$Rfam::rdb_port, $Rfam::rdb_user, $Rfam::rdb_pass");
 
 # Query to search for the accession and description of embl entries with the embl id
 #my $query = qq(
@@ -283,14 +287,14 @@ my $queryTax = qq(
            from taxonomy as t, rfamseq as r 
            where t.ncbi_id=r.ncbi_id and r.rfamseq_acc=?;
    );
-$logger->info($queryTax);
+print($queryTax);
 
 # Query to search for the description of embl entries with the embl id
 my $queryDesc = qq(
            select description
                    from rfamseq where rfamseq_acc=?;
    );
-$logger->info($queryDesc);
+print($queryDesc);
 
 # Prepare the queries for execution.
 my $sthDesc = $rfdbh->prepare($queryDesc);
@@ -335,7 +339,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	if ($timer_hash{$frac_done}){
 	    my $timer_str=sprintf("%d%% of ALIGN seqs tested\n", 10*$frac_done); 
 	    $timer_hash{$frac_done}=0;
-	    $logger->info("$timer_str");
+	    print("$timer_str");
 	}
     }
     
@@ -352,13 +356,13 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	
 	if (defined($scorethreshold)){
 	    if ($ALIGNscores{$longseqname} && $ALIGNscores{$longseqname} < $scorethreshold){
-		$logger->info("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
+		print("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
 		$scorerejected++;
 		next BIGLOOP;
 		
 	    }
 	    elsif (!$ALIGNscores{$longseqname}) {
-		$logger->info("REJECTED: $longseqname score is missing!\t(check \42scores\42 file)\n");
+		print("REJECTED: $longseqname score is missing!\t(check \42scores\42 file)\n");
 		$scorerejected++;
 		next BIGLOOP;
 	    }
@@ -381,7 +385,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	if (!$oks || !$oke){
 	    my $a= substr($ALIGNhash{$longseqname},0,$nucends);
 	    my $b= substr($ALIGNhash{$longseqname},-1*$nucends);
-	    $logger->info("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
+	    print("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
 	    $truncrejected++;
 	    next BIGLOOP;
 	}
@@ -408,7 +412,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
                 #Logger still doesn't support formatted output! :-(
 	    }
 	    
-	    $logger->info("$structrejected_string");
+	    print("$structrejected_string");
 	    $structrejected++;
 	    next BIGLOOP;
 	}
@@ -440,7 +444,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 
 
 	if (defined($ont) && defined($seen_taxa{$ncbi_id}) && $seen_taxa{$ncbi_id} >= $ont){
-	    $logger->info("REJECTED: $longseqname taxonomy is already well represented (count=$seen_taxa{$ncbi_id} > thresh=$ont) [$ncbi_id; $tax_string; $species]!\n");
+	    print("REJECTED: $longseqname taxonomy is already well represented (count=$seen_taxa{$ncbi_id} > thresh=$ont) [$ncbi_id; $tax_string; $species]!\n");
 	    $taxonomyrejected++;
 	    next BIGLOOP;
 	}
@@ -454,7 +458,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    }
 	    
 	    if ($nomatch){
-		$logger->info("REJECTED: $longseqname taxonomy did not match your required terms [$ncbi_id; $tax_string; $species]!\n");
+		print("REJECTED: $longseqname taxonomy did not match your required terms [$ncbi_id; $tax_string; $species]!\n");
 		$taxonomyrejected++;
 		next BIGLOOP;
 	    }
@@ -472,7 +476,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    }
 	    
 	    if ($nomatch2){
-		$logger->info("REJECTED: $longseqname taxonomy did not match your forbidden term: \47$matchterm\47 [$ncbi_id; $tax_string; $species]!\n");
+		print("REJECTED: $longseqname taxonomy did not match your forbidden term: \47$matchterm\47 [$ncbi_id; $tax_string; $species]!\n");
 		$taxonomyrejected++;
 		next BIGLOOP;
 	    }
@@ -488,7 +492,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	}
 	$desc = "no description available" if( not defined($desc) or length($desc)==0 );
 
-#	$logger->info("sthDesc->execute($n) ::: [$desc]");
+#	print("sthDesc->execute($n) ::: [$desc]");
 
 	#Check for matches to required desc terms:
 	if(@required_terms){
@@ -500,7 +504,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    }
 	    
 	    if ($nomatch){
-		$logger->info("REJECTED: $longseqname description did not match your required terms [$desc]!\n");
+		print("REJECTED: $longseqname description did not match your required terms [$desc]!\n");
 		$descrequirerejected++;
 		next BIGLOOP;
 	    }
@@ -510,7 +514,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	if ($forbidden){
 	    foreach my $ft (@forbidden_terms){
 		if ($desc =~ m/$ft/i){
-		    $logger->info("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
+		    print("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
 		    $descforbidrejected++;
 		    next BIGLOOP;
 		}
@@ -528,7 +532,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 		if ($info){
 		     $pidrejected_str = sprintf( "REJECTED: $longseqname too similar to $longseqname3 in ALIGN2SEEDcandidates (id=%0.3f)!\n", $p2); 
 		}
-		$logger->info("$pidrejected_str");
+		print("$pidrejected_str");
 		
 		next BIGLOOP;
 	    }
@@ -561,7 +565,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    if ($info){
 		$pidrejected_str = sprintf( "REJECTED: $longseqname max pid outside allowed range, ID=$longseqname_max (id=%0.3f)!\n", $maxpid{$longseqname}); 
 	    }
-	    $logger->info("$pidrejected_str");
+	    print("$pidrejected_str");
 	    
 	    $pidrejected++;
 	    next BIGLOOP;
@@ -585,7 +589,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	if ($info){
 	    $summary_txt = sprintf( "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence); 
 	}
-	$logger->info("$summary_txt");
+	print("$summary_txt");
 	$ALIGN2SEEDcandidates{$longseqname}=$ALIGNhash{$longseqname};
     }
     else {#Print DE lines for the SEED sequences:
@@ -603,35 +607,35 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	}
 	
 	my $seedinfo_txt = sprintf( "SEED\t\t$longseqname\t%s\n", substr($desc,0,70));
-	$logger->info("$seedinfo_txt");
+	print("$seedinfo_txt");
     }
 }
 close(OUT);
 $rfdbh->disconnect;
 
 my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected+$scorerejected;
-$logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected");
+print("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 
 
 if ($align2seedcount>0){
-    $logger->info( "Building SEED.new (adding $align2seedcount squences):");
+    print( "Building SEED.new (adding $align2seedcount squences):");
     
-    #system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and $logger->logdie("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
-#    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
+    #system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and print("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
+#    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and print( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
     if (RfamUtils::youngerThan('CM', 'SEED')){
-	$logger->info( "Seed younger than CM, rebuilding...");
+	print( "Seed younger than CM, rebuilding...");
 	Rfam::RfamSearch::cmBuild('CM','SEED','1.0');
 	#No need to calibrate...
     }
 
-    system("$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out") and $logger->logdie( "FATAL: Error in [$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out].\n");
+    system("$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out") and print( "FATAL: Error in [$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out].\n");
     
-    $logger->info("Added $align2seedcount sequences\n");
-    $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
+    print("Added $align2seedcount sequences\n");
+    print("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 }
 else {
-    $logger->info( "No ALIGN2SEED candidates.\n");
-    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
+    print( "No ALIGN2SEED candidates.\n");
+    print( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 }
 
 #Finished!
@@ -892,6 +896,10 @@ To Add:
 	 in the ALIGN then swap them...
   -Make a log file of why each sequence is rejected
   -Switch to RfamUtils functions!
+  -Automatically include 'T' sequences not in SEED flag
+  -Die when max/min PID outside range.
 
+TEST STRANDEDNESS IS NOT GETTING TOASTED!!!
+  
 EOF
 }
