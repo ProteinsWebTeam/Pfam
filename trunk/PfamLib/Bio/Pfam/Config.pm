@@ -51,6 +51,10 @@ use warnings;
 use Config::General;
 use Data::Dumper;
 
+use base qw( Class::Accessor::Fast );
+
+__PACKAGE__->mk_ro_accessors( qw( view_process_admin ) );
+
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
 #-------------------------------------------------------------------------------
@@ -77,6 +81,17 @@ sub new {
   my $self   = \%ac;
   return bless( $self, $class );
 }
+
+=head2 view_process_admin
+
+  Title    : view_process_admin
+  Usage    : $config->view_process_admin
+  Function : Returns the email address of the view process administrator.
+  Args     : None - read only operator
+  Returns  : string containing path  
+  
+=cut
+
 
 =head2 location
 
