@@ -1,7 +1,7 @@
 #!/software/bin/perl -w
 
 #rfmake.pl - a script designed to process the results of rfsearch.pl. 
-# $Id: rfmake.pl,v 1.57 2009-12-16 13:34:55 pg5 Exp $
+# $Id: rfmake.pl,v 1.58 2011-02-10 20:11:20 pg5 Exp $
 
 use strict;
 use Getopt::Long;
@@ -27,7 +27,10 @@ my( $thr,
     $output,
     $incldb,
     @warnings,
-    $verbose
+    $verbose,
+    @extraCmalignOptionsSingle,
+    @extraCmalignOptionsDouble,
+    $huge
     );
 
 &GetOptions( "t=s"      => \$thr,
@@ -42,6 +45,9 @@ my( $thr,
 	     "o|output=s"     => \$output,
 	     "farm"           => \$farm,
              "incldb=s"       => \$incldb,
+             "cmos|cmalignoptions=s@" => \@extraCmalignOptionsSingle,
+             "cmod|cmalignoptiond=s@" => \@extraCmalignOptionsDouble,
+	     "huge"                   => \$huge,
 	     "v|verbose"      => \$verbose,
 	     "h|help"         => \$help );
 
@@ -114,11 +120,12 @@ if ($list){
     if (@extrafamily){ 
 	push(@family_terms,@extrafamily);
     }
-    
+    print "Using family terms: [@family_terms]\n" if (defined $verbose);
     @forbidden_terms = @Rfam::forbidden_terms;
     if (@extra_forbidden_terms){
 	push(@forbidden_terms, @extra_forbidden_terms);
     }
+    print "Using forbidden terms: [@forbidden_terms]\n" if (defined $verbose);
 
 #Make into a function:
 ######################################################################
@@ -204,13 +211,14 @@ my $prevExponent=-1;
     printf RINc "cnt\ttax\n";
     my %kingdomCounts;
     
-    #If you don't like this you can fuck off!:
-    open(F, "grep -v ^'#' $file | sort -k6nr | ") or die "FATAL: could not open pipe for reading $file\n[$!]";
-    #Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents:
     
     my %store; #Used to store N/S-E's for overlap checks
     my $printedThresh;
     my $printedExponentChange=0;
+
+    #If you don't like this you can fuck off!:
+    open(F, "grep -v ^'#' $file | sort -k6nr | ") or die "FATAL: could not open pipe for reading $file\n[$!]";
+    #Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents:
   TABFILE: while (my $tabline = <F>){
       if($tabline=~/(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+\.\d+)\s+(\S+)\s+\d+/){
 	  my ($idline,$tStart,$tEnd,$qStart,$qEnd,$bits,$evalue)=($1,$2,$3,$4,$5,$6,$7);
@@ -259,7 +267,7 @@ my $prevExponent=-1;
 		  $ncbiId .= $row->[2];
 	      }
 	      $shortSpecies  = RfamUtils::species2shortspecies($species);
-	      $domainKingdom = tax2kingdom($taxString . '; ' . $species . ';');
+	      $domainKingdom = tax2kingdom($taxString . '; ' . $species . ';', $huge);
 	      $kingdomCounts{$domainKingdom}=0 if not defined $kingdomCounts{$domainKingdom};
 	      $kingdomCounts{$domainKingdom}++;
 	  }
@@ -345,7 +353,7 @@ my $prevExponent=-1;
 ######################################################################
 die "FATAL: threshold is undefined!" if not defined $thr;
 
-my ($forward,$reverse)=outlist2fetchSeqsHashes($output,$thr);
+my ($forward,$reverse,$scores)=outlist2fetchSeqsHashes($output,$thr);
 
 open( FA, ">$$.fa" ) or die "FATAL: failed to open $$.fa\n[$!]"; 
 foreach my $blastdatabase (@blastdb){
@@ -360,6 +368,19 @@ if( not defined $global ) {
     $options = " -l ".$options;
 }
 
+if (@extraCmalignOptionsSingle){#covers the '-' options
+    foreach my $opts (@extraCmalignOptionsSingle){
+	$options .= " \-$opts ";
+    }
+}
+
+if (@extraCmalignOptionsDouble){#covers the '--' options 
+    foreach my $opts (@extraCmalignOptionsDouble){
+	$options .= " \-\-$opts ";
+    }
+}
+
+
 #Complain if cmalign bits scores are negative:
 open (CMAO, "> cmalign.out") or die "FATAL: failed to open cmalign.out\n[$!]";
 # bsub -q hugemem -o $HOME/cmalign.out /usr/bin/time -f '%S %U' -o cmalign.time cmalign -o ALIGN CM 23848.fa
@@ -368,11 +389,18 @@ my $cmalignCommand = "/usr/bin/time -f \'\%S \%U\' -o cmalign.time cmalign $opti
 print "RUN:\n$cmalignCommand\n" if defined $verbose;
 open (CMA, "$cmalignCommand | ") or die "FATAL: failed to run [cmalign $options CM $$.fa]\n[$!]";
 while (my $cma = <CMA>){
-    if($cma =~ /\s+\d+\s+\S+\s+\d+\s+(-\d+\.\d+)/){
+    if($cma =~ /\s+\d+\s+(\S+)\s+\d+\s+([-]?\d+\.\d+)/){
 	#Print warning if cmalign bit score is significantly different from the cmsearch bit score?
-	print          "WARNING: negative cmalign bits score: $cma";
-	push(@warnings,"WARNING: negative cmalign bits score: $cma");    
-}
+	if(defined($scores->{$1}) and 0.9*($scores->{$1}) > $2 ){
+	    chomp($cma);
+	    print          "WARNING: your cmalign score [$2] is significantly lower than the cmsearch score [$scores->{$1}]:\n\ttry re-running rfmake.pl with \42-cmod sums\42\n";
+	    push(@warnings,"WARNING: your cmalign score [$2] is significantly lower than the cmsearch score [$scores->{$1}]:\n\ttry re-running rfmake.pl with \42-cmod sums\42\n");    
+	}
+	elsif(not defined($scores->{$1})){
+	    print          "WARNING: [$1] is in ALIGN but is not in the \42scores\42 file!\n";
+	    push(@warnings,"WARNING: [$1] is in ALIGN but is not in the \42scores\42 file!\n");    
+	}
+    }
     print CMAO $cma;
 }
 close(CMA);
@@ -537,7 +565,8 @@ sub stringMatches {
     my ($description, $terms) = @_;
     
     foreach my $t (@{$terms}){
-	return 1 if $description =~ /$t/;
+	print "term [$t] matches [$description]\n" if (defined $verbose && $description =~ /$t/);
+	return 1 if ($description =~ /$t/i);
     }
     return 0;
 }
@@ -549,7 +578,7 @@ sub outlist2fetchSeqsHashes {
     open(OL, "< $outlist") or die "FATAL: failed to open $outlist\n[$!]";
     open( SC, ">scores" )  or die "FATAL: failed to open scores\n[$!]";
     open( SCE, ">scores.evalue" )  or die "FATAL: failed to open scores.evalue\n[$!]";
-    my (%forward, %reverse);
+    my (%forward, %reverse, %scores);
     while (<OL>){
 	if(/(\S+)\s+(\S+)\s+(SEED\.\d+|SEED|ALIGN|NOT)\s+(\S+)\s+(\d+)\s+(\d+)/){
 	    my ($bits,$evalue,$id,$start,$end)=($1,$2,$4,$5,$6);
@@ -566,23 +595,25 @@ sub outlist2fetchSeqsHashes {
 					    'strand' => -1} );
 	    }
 	    print SC $bits, " $id/$start-$end\n";
+	    $scores{"$id/$start-$end"}=$bits;
 	    print SCE "$bits $evalue $id/$start-$end\n";
 	}
     }
     close(OL);
     close(SC);
     
-    return (\%forward, \%reverse);
+    return (\%forward, \%reverse, \%scores);
 }
 
 ######################################################################
 #
 sub tax2kingdom {
-    my $species = shift;
+    my ($species, $huge) = @_;
     my $kingdom;
     #unclassified sequences; metagenomes; ecological metagenomes.
     if ($species=~/^(.+?);\s+(.+?)\.*?;/){
 	$kingdom = "$1; $2";
+	$kingdom = $1 if defined $huge;
     }
     die "FATAL: failed to parse a kingdom from species string: [$species]. email pg5!" if not defined $kingdom;
     
@@ -604,12 +635,13 @@ Usage:      rfmake.pl -t <bits>
             rfmake.pl -l
 
 Options:    MAJOR MODES:
-	    -t <bits>
+	    -t <bits>                    Make a full alignment, using <bits> as the threshold for inclusion
     	    -l                           option lists hits but does not build ALIGN
 	    
             I/O
 	    -file <infernal output file> Use an alternative cmsearch output [Default: OUTPUT].
 	    -d <blastdb>                 Use a different blast database for sequence fetching.
+	    -incldb                      Include an additional directory of blast databases
 	    -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
 	    
 	    THRESHOLDs/PLOTs 
@@ -623,8 +655,19 @@ Options:    MAJOR MODES:
 	                                 distribution plots.
 	    -ftn|-forbiddentaxonomynot   Taxonomy strings NOT matching <str> are treated as false for the
 	                                 distribution plots.
+	    -huge                        Employ some tricks for HUGE families.
+             CMALIGN:					 
+	     -cmos|--cmalignoptions <str> Add extra arbitrary options to cmalign with a single '-'. For multiple options use multiple 
+	                                     -cmos lines. Eg. '-cmos q -cmos p' will run cmalign in quiet mode and append posterior 
+					     probabilities to alignment.
+	     -cmod|--cmalignoptiond <str> Add extra arbitrary options to cmalign with a double '-'. For multiple options use multiple 
+	                                     -cmod lines. Eg. '-cmod cyk' will run cmalign with the CYK algorithm.
+	     OTHER:
+	    -farm                       run on the farm 
+ 
 	    -v|--verbose                 print loads of cruft
 	    -h|-help                     Print this help
+
 
 To add:
 -add a warning if a seed sequence matches a forbidden term
@@ -644,7 +687,7 @@ I was happily ignorant of this until recently!:
 [0] [7] replace M10217.1/5909-5841 with M10217.1/5910-5840? [pid=100.00 cover=100.00] [blat=135.0 bits=54.91 E=3.67e-07] [.] [X.laevis] [EMBL;STD;VRT:Xenopus laevis mitochondrial DNA, complete genome.]
 
 -PROFILE THE CODE -- SEEMS TO SPEND AGES ON FETCHING TAXON NAMES...
--USE THE SAME CMALIGN MODE AS FOR CMSEARCH -- EG. IF LOCAL USE LOCAL, IF GLOCAL USE GLOBAL
+-PRINT WARNING IF CMALIGN BIT SCORE IS SIGNIFICANTLY DIFFERENT FROM THE CMSEARCH BIT SCORE
 
 EOF
 }
