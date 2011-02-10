@@ -7,6 +7,7 @@ use Mail::Mailer;
 
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::Config;
 
 sub initiateViewProcess {
   my ( $famObj, $name, $config ) = @_;
@@ -269,9 +270,12 @@ sub killJob {
 
 sub mailPfam {
   my ( $title, $message, $nodie ) = @_;
+
+  my $config = new Bio::Pfam::Config;
+
   my %header = (
-    To      => 'rdf@sanger.ac.uk',
-    From    => 'rdf@sanger.ac.uk',
+    To      => $config->view_process_admin,
+    From    => $config->view_process_admin,
     Subject => $title
   );
 
@@ -286,12 +290,16 @@ sub mailUserAndFail {
   my ( $job, $message ) = @_;
 
   if ( $job->user_id ) {
+  
+    my $config = new Bio::Pfam::Config;
+
     my %header = (
       To      => $job->user_id . '@sanger.ac.uk',
-      Cc      => 'rdf@sanger.ac.uk',
-      From    => 'rdf@sanger.ac.uk',
+      Cc      => $config->view_process_admin,
+      From    => $config->view_process_admin,
       Subject => 'Error in view process for ' . $job->entity_id
     );
+
     my $mailer = Mail::Mailer->new;
     $mailer->open( \%header );
     print $mailer $job->entity_id . "\n" . $message;
