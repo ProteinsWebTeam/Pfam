@@ -14,76 +14,61 @@
     <h1>Help With Pfam HMM scores</h1>
   </div>
   <div class="blockContent">
-		
-    <div style="width:80%; border: 1px solid #CCC; margin: 1em auto; padding: 0 1em; background-color: #EEE">
-      <h2>Documentation update</h2>
-      <h3>October 2009</h3>
-      <p>
-        The documentation in this tab is currently out of date. Although
-        the general information is still largely accurate, the details of 
-        the site and underlying database may be inaccurate. We hope to update
-        the documentation within the coming weeks.
-      </p>
-    </div>
-  
-  	<h3>What Pfam HMM scores mean</h3>
-  
-  	<p>
-  	  Pfam-A is based around hidden Markov model (HMM) searches, as
-  	  provided by the <a href="http://hmmer.janelia.org/">HMMER2</a>
-  	  package.  In HMMER2, like BLAST, E-values (expectation values)
-  	  are calculated.  The E-value is the number of hits that would be
-  	  expected to have a score equal or better than this by chance
-  	  alone. A good E-value is much less than 1. Around 1 is what we
-  	  expect just by chance. In principle, all you need to decide on
-  	  the significance of a match is the E-value.
-  	</p>
-  	<p>
-  	  However, there are a few complications. 
-  	</p>
-  	<p>
-  	  The most serious complication is that there are no analytical
-  	  results available for accurately determining E-values for gapped
-  	  alignments, especially profile HMM alignments. HMMER uses
-  	  empirical methods to estimate E-values. These methods are
-  	  generally rather accurate. However, when in doubt, HMMER tends
-  	  to err on the conservative side.
-  	</p>
-  	<p>
-  	  We use a second, and even more empirical, system in maintaining
-  	  Pfam models. This system is implemented in the Pfam database
-  	  rather than in the HMMER software. For each Pfam family, we
-  	  record a &quot;trusted cutoff&quot; and a &quot;noise 
-  	  cutoff&quot;, TC1 and NC1. TC1
-  	  is the lowest score for sequences we included in the family
-  	  (e.g. in the Full alignment).  NC1 is the highest score for
-  	  sequences we did not include in the Full alignment. (Since Full
-  	  alignments are produced automatically, the trusted sequence
-  	  cutoff is always greater than the noise sequence cutoff.)
-  	</p>
-  	<p>
-  	  Therefore, we can consider a hit very significant if it scores
-  	  better than the trusted cutoff, better than the noise cutoff,
-  	  and has a significant E-value. Sometimes sequences score better
-  	  than the cutoffs though they don't have significant E-values;
-  	  these are marginal hits that we've chosen to include in the
-  	  family.
-  	</p>
-  
-  	<h3>Sequence versus domain scores</h3>
-  
-  	<p>
-  	  There's one additional wrinkle in the scoring scheme. HMMER2
-  	  calculates two kinds of scores. The &quot;sequence
-  	  classification score&quot; is the <i>total</i> score of a
-  	  sequence aligned to a model; if there are more than one domain,
-  	  the sequence score is the sum of all (finding multiple domains
-  	  increases our confidence that the sequence belongs to that
-  	  protein family, even if each domain individually is a weak
-  	  match.) The &quot;domain score&quot; is a score for a single
-  	  domain (these two scores are identical for single domain
-  	  proteins).
-  	</p>
+
+    <h2>E-values and Bit-scores</h2>
+
+    <p>
+      Pfam-A is based around hidden Markov model (HMM) searches, as provided by
+      the <a href="http://hmmer.janelia.org/">HMMER3</a> package. In HMMER3, like
+      BLAST, E-values (expectation values) are calculated. The E-value is the number
+      of hits that would be expected to have a score equal to or better than this
+      value by chance alone. A good E-value is much less than 1. A value of 1 is what
+      would be expected just by chance. In principle, all you need to decide on the
+      significance of a match is the E-value.
+    </p>
+    <p>
+      E-values are dependent on the size of the database searched, so we use a
+      second system in-house for maintaining Pfam models, based on a bit score
+      (see below), which is independent of the size of the database searched.
+      For each Pfam family, we set a bit score gathering (GA) threshold by
+      hand, such that all sequences scoring at or above this threshold appear
+      in the full alignment. It works out that a bit score of 20 equates to an
+      E-value of approximately 0.1, and a score 25 of to approximately 0.01.
+      From the gathering threshold both a &quot;trusted cutoff&quot; (TC) and a
+      &quot;noise cutoff&quot; (NC) are recorded automatically. The TC is the
+      score for the next highest scoring match above the GA, and the NC is the
+      score for the sequence next below the GA, i.e. the highest scoring
+      sequence not included in the full alignment.
+    </p>
+
+    <h2>Sequence versus domain scores</h2>
+
+    <p>
+      There's an additional wrinkle in the scoring system. HMMER3 calculates
+      two kinds of scores, the first for the sequence as a whole and the second
+      for the domain(s) on that sequence. The &quot;sequence score&quot; is the
+      total score of a sequence aligned to the model (the HMM); the
+      &quot;domain score&quot; is the score for a single domain &mdash; these
+      two scores are virtually identical where only one domain is present on a
+      sequence. Where there are multiple occurrences of the domain on a
+      sequence any individual match may be quite weak, but the sequence score
+      is the sum of all the individual domain scores, since finding multiple
+      instances of a domain increases our confidence that that sequence belongs
+      to that protein family, i.e. truly matches the model.
+    </p>
+
+    <h2>Meaning of bit-score for non-mathematicians</h2>
+
+    <p>
+      A bit score of 0 means that the likelihood of the match having been
+      emitted by the model is equal to that of it having been emitted by the
+      Null model (by chance). A bit score of 1 means that the match is twice as
+      likely to have been emitted by the model than by the Null. A bit score of
+      2 means that the match is 4 times as likely to have been emitted by the
+      model than by the Null. So, a bit score of 20 means that the match is 2
+      to the power 20 times as likely to have been emitted by the model than by
+      the Null. 
+    </p>
 
   </div>
 </div>
