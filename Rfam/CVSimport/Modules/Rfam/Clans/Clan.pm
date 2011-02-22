@@ -203,7 +203,7 @@ sub check_into_DB {
  
 
     my $ccLines = $desc->{CC};
-    $ccLines =~ s/\nCC\s{3}/\n/g;
+    $ccLines =~ s/\nCC\s{3}/\n /g;
     $ccLines =~ s/\n//g;
 
     ###########################
