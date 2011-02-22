@@ -115,8 +115,8 @@ sub acc2id {
 #the only bit of this that does anything serious is the update accmap- which is a DB_File hash. acclog is just a simple flat file.
 sub allocate_new_clan_accession {
     my ($id) = shift;
- 
-   if( not defined $id && length($id)==0) {
+
+   if( not (defined $id)  || length($id)==0) {
  	warn("Cannot allocate a new family without a name");
  	return undef;
     }
