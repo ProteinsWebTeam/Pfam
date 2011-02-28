@@ -23,7 +23,7 @@ use Data::Dumper;
 my $q = CGI->new;
 
 # find the configuration file
-my $config_file = '/pfam/home/config/wiki.conf';
+my $config_file = '/pfam/home/config/wiki_cgis.conf';
 if ( defined $ENV{WIKI_CGIS_CONFIG} and
      -e $ENV{WIKI_CGIS_CONFIG} ) {
   $config_file = $ENV{WIKI_CGIS_CONFIG};
