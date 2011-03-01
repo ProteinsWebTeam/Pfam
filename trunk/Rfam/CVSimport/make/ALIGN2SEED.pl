@@ -6,6 +6,7 @@ use strict;
 use Rfam;
 use Rfam::RfamAlign;
 use RfamUtils;
+use Data::Dumper;
 use Getopt::Long;
 #use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
 use DBI;
@@ -67,10 +68,10 @@ if (@extra_forbidden_terms){
     push(@forbidden_terms, @extra_forbidden_terms);
 }
 
-# ############Ben's Logging Crap:#############
-# ######
-# # Get a logger
-# ######
+############Ben's Logging Crap:#############
+######
+# Get a logger
+######
 # my $logger = get_logger();
 # $logger->level($DEBUG) if $info;
 # ######
@@ -95,20 +96,19 @@ my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
 
-my (%SEEDhash, %SEEDseqs, %SEEDstarts, %SEEDends); #
+my (%SEEDhash, %SEEDseqs, %SEEDstarts, %SEEDends); # comment not found...
 
 #Read SEED into hashes. This maybe daft. Could use "$seed" directly. But then we lose the niceties of hashes. Rewrite "read_stockholm()"?:
 foreach my $seqobj ( $seed->each_seq() ) {
     my $longseqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
-    my ($start,$end) = ($seqobj->start,$seqobj->end);
-    
-    $longseqname = $seqobj->id . "/" . $seqobj->end . "-" . $seqobj->start if (defined $seqobj->strand && $seqobj->strand < 0);
-     ($start,$end) = ($seqobj->end,$seqobj->start) if (defined $seqobj->strand && $seqobj->strand < 0);
+	$longseqname = $seqobj->id . "/" . $seqobj->end . "-" . $seqobj->start if ($seqobj->strand<0);
+	print "longseqname: $longseqname\n";
     $SEEDhash{$longseqname}= 1;
-    push( @{ $SEEDstarts{$seqobj->id} }, $start );
-    push( @{ $SEEDends{$seqobj->id} }  , $end );
+    push( @{ $SEEDstarts{$seqobj->id} }, $seqobj->start );
+    push( @{ $SEEDends{$seqobj->id} }, $seqobj->end );
 }
-
+#print "Dump of SEEDhash\n";
+#print Dumper \%SEEDhash;
 #READ ALIGN:
 open( ALIGN, "ALIGN" ) or die ("FATAL: Couldn't open ALIGN [$!]\n $!\n");
 my $align = new Rfam::RfamAlign;
@@ -117,18 +117,21 @@ close(ALIGN);
 my @alignlist = $align->each_seq();
 my $ss_cons = $align->ss_cons->getInfernalString(); #This is damned confusing!
 
+#print "Dump of alignlist";
+#print Dumper \@alignlist;
+
+#die "stop here for the moment";
+
 #READ WARNINGS:
 my %warnings;
 if (-e "warnings"){
     open( WARN, "warnings" ) or die ("FATAL: Couldn't open warnings [$!]\n $!\n");
     while(my $l = <WARN>){
-	if (/^WARNING: SEED sequence (.+)\s+/){
-	    my $n = $1;
-	    $warnings{$n}=1;
-	}
-	
+		if (/^WARNING: SEED sequence (.+)\s+/){
+		    my $n = $1;
+		    $warnings{$n}=1;
+		}
     }
-    
 }
 
 
@@ -143,9 +146,9 @@ for( my $i = 1; $i<$len+1; $i++ ){
     
     my $j = $table[$i];
     if ($i<$j){
-	my $bpstr = "$i:$j";
-	$basepairs{$bpstr} = 0;
-	$nopairs++;
+		my $bpstr = "$i:$j";
+		$basepairs{$bpstr} = 0;
+		$nopairs++;
     }
 }
 
@@ -153,46 +156,33 @@ my $alignlength = length($alignlist[0]->seq);
 my (%ALIGNhash, %ALIGNandSEEDhash, %ALIGNnames); #array of hashes to store nuc-counts.
 
 #Read ALIGN info into hashes and test for overlaps with SEED:
+
 foreach my $seqobj ( @alignlist ) {
-    
-    foreach my $strand (qw(-1 1)){#Horrible hack around bioperl screwing up reverse strands somewhere:
+   
+
+    my $strand = $seqobj->strand;
     my $start = $seqobj->start;
     my $end = $seqobj->end;
     
     my $longseqname = $seqobj->id . "/" . $start . "-" . $end;
     $longseqname = $seqobj->id . "/" . $end . "-" . $start if ($strand<0);
     
-    
-    $ALIGNhash{$longseqname}=uc($seqobj->seq); #A hash of arrays might be more efficient. Saves all the splitting, substr's of length 1. 
-    $ALIGNnames{$longseqname}=$seqobj->id;
-    #$logger->logwarn("[ALIGNnames{$longseqname}] = [$ALIGNnames{$longseqname}]");
-    
+    $ALIGNhash{$longseqname} = uc($seqobj->seq); #A hash of arrays might be more efficient. Saves all the splitting, substr's of length 1. 
+    $ALIGNnames{$longseqname} = $seqobj->id;				#$logger->logwarn("[ALIGNnames{$longseqname}] = [$ALIGNnames{$longseqname}]");
+
     if (defined($SEEDhash{$longseqname})){
-	$ALIGNandSEEDhash{$longseqname}=1;
-    }
-    elsif ( defined($SEEDstarts{$seqobj->id}) ) {
- 	for (my $i=0; $i<scalar(@{ $SEEDends{$seqobj->id} }); $i++){
-	    my $e = $SEEDends{$seqobj->id}[$i];
-	    my $s = $SEEDstarts{$seqobj->id}[$i];
-	    
-	    if ($e<$s){
-		my $tmp = $s;
-		$s = $e;
-		$e = $tmp;
-	    }
-	    
-	    if ($end<$start){
-		my $tmp = $start;
-		$start = $end;
-		$end = $tmp;
-	    }
-	    
-	    if (overlap($start, $end, $s, $e)){
 		$ALIGNandSEEDhash{$longseqname}=1;
-	    }
+    } elsif ( defined($SEEDstarts{$seqobj->id}) ) {
+	 	for (my $i=0; $i<scalar(@{ $SEEDends{$seqobj->id} }); $i++){
+			my $e = $SEEDends{$seqobj->id}[$i];
+			my $s = $SEEDstarts{$seqobj->id}[$i];
+			
+			if (overlap($start, $end, $s, $e)){
+				$ALIGNandSEEDhash{$longseqname}=1;
+			}
+		}
 	}
-    }
-    }
+
 }
 
 if (defined($ont) && $ont == 0){
@@ -205,15 +195,15 @@ my %ALIGNscores;
 if (defined($ont) || defined($scorethreshold)){
     open(SC, "<scores")  or print("FATAL: Couldn't open scores\n [$!]"); 
     while (my $sc = <SC>){
-	if ($sc =~ /(\S+)\s+(\S+)/){
-	    if (defined($ALIGNnames{$2})){
-		$ALIGNscores{$2}=$1;
-	    }
-	    else {
-		print("WARNING: $2 is in scores [$1] but does not appear to be in ALIGN!");
-	    }
-	}
+		if ($sc =~ /(\S+)\s+(\S+)/){
+			if (defined($ALIGNnames{$2})){
+				$ALIGNscores{$2}=$1;
+			} else {
+				print("$2 is in scores [$1] but does not appear to be in ALIGN!");
+			}
+		}
     }
+	close(SC) or die "zomg!\n";
 }
 
 my @ALIGNscoreskeys = sort { $ALIGNscores{$b} <=> $ALIGNscores{$a} } keys %ALIGNscores;
@@ -307,21 +297,21 @@ if (defined($ont)){
     @names_array = @ALIGNscoreskeys;
     
     foreach my $n (keys %SEEDhash){
-	$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
-	my $id = $1;
-	my $ncbi_id = "";
-	$sthTax->execute($id);
-	my $rfres = $sthTax->fetchall_arrayref;
-	foreach my $row (@$rfres){
-	    $ncbi_id  .= $row->[2];
-	}
+		$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
+		my $id = $1;
+		my $ncbi_id = "";
+		$sthTax->execute($id);
+		my $rfres = $sthTax->fetchall_arrayref;
+		foreach my $row (@$rfres){
+			$ncbi_id  .= $row->[2];
+		}
 	
-	if (defined($seen_taxa{$ncbi_id})){
-	    $seen_taxa{$ncbi_id}+=1;
-	}
-	else {
-	    $seen_taxa{$ncbi_id}=1;
-	}
+		if (defined($seen_taxa{$ncbi_id})){
+			$seen_taxa{$ncbi_id}+=1;
+		}
+		else {
+			$seen_taxa{$ncbi_id}=1;
+		}
     }
     $seen_taxa{0}=$ont;
 }
@@ -333,307 +323,303 @@ else {
 BIGLOOP: foreach my $longseqname (@names_array){
     
     if ($info){
-	#Progress bar. Some thing to look at for the really long boring runs:
-	$counter++;
-	my $frac_done = int(10*$counter/$noseqs);
-	if ($timer_hash{$frac_done}){
-	    my $timer_str=sprintf("%d%% of ALIGN seqs tested\n", 10*$frac_done); 
-	    $timer_hash{$frac_done}=0;
-	    print("$timer_str");
-	}
+		#Progress bar. Something to look at for the really long boring runs:
+		$counter++;
+		my $frac_done = int(10*$counter/$noseqs);
+		if ($timer_hash{$frac_done}){
+			my $timer_str=sprintf("%d%% of ALIGN seqs tested\n", 10*$frac_done); 
+			$timer_hash{$frac_done}=0;
+			print("$timer_str");
+		}
     }
     
     #Sequence is not from SEED:
     if (!defined($ALIGNandSEEDhash{$longseqname})){
-	$minpid{$longseqname}=1.0;
-	$maxpid{$longseqname}=0.0;
-	my ($ok,$oks,$oke,$persequence,$pidcounts) = (1,0,0,0.0,0);
-	
-	
-	#Perform the fast and easy checks first, on the first fail goto next seq.
-	
-	#Check that the sequence ends are OK:
-	
-	if (defined($scorethreshold)){
-	    if ($ALIGNscores{$longseqname} && $ALIGNscores{$longseqname} < $scorethreshold){
-		print("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
-		$scorerejected++;
-		next BIGLOOP;
+
+		$minpid{$longseqname}=1.0;
+		$maxpid{$longseqname}=0.0;
+		my ($ok,$oks,$oke,$persequence,$pidcounts) = (1, 0, 0, 0.0, 0);
 		
-	    }
-	    elsif (!$ALIGNscores{$longseqname}) {
-		print("REJECTED: $longseqname score is missing!\t(check \42scores\42 file)\n");
-		$scorerejected++;
-		next BIGLOOP;
-	    }
-	}
-	
-	
-	for (my $i=0; $i<$nucends; $i++){
-	    my $a= substr($ALIGNhash{$longseqname},$i,1);
-	    
-	    if (is_nucleotide($a)){
-		$oks=1; 
-	    }
-	    my $b= substr($ALIGNhash{$longseqname},$alignlength-$i-1,1);
-	    
-	    if (is_nucleotide($b)){
-		$oke=1;
-	    }
-	}
-	
-	if (!$oks || !$oke){
-	    my $a= substr($ALIGNhash{$longseqname},0,$nucends);
-	    my $b= substr($ALIGNhash{$longseqname},-1*$nucends);
-	    print("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
-	    $truncrejected++;
-	    next BIGLOOP;
-	}
-	
-	#Check structure consistency:
-	my @seq = split(//,$ALIGNhash{$longseqname});
-	if($nopairs>0){
-	    foreach my $bpposns ( keys %basepairs ) {
-		my @bpposns = split(/:/,$bpposns);
-		my $ispair = is_complementary($seq[$bpposns[0]-1],$seq[$bpposns[1]-1]);
-		$persequence += $ispair;
-	    }
-	    $persequence = $persequence/$nopairs;
-	}
-	else {
-	    $persequence = 1.0;
-	}
-	
-	if ($persequence<$bpconsistency){
-	    
-	    my $structrejected_string = "";
-	    if ($info){
-		$structrejected_string = sprintf( "REJECTED: $longseqname doesn't match the consensus structure (FCBP=%0.3f<thresh=$bpconsistency)!\n", $persequence); 
-                #Logger still doesn't support formatted output! :-(
-	    }
-	    
-	    print("$structrejected_string");
-	    $structrejected++;
-	    next BIGLOOP;
-	}
-	
-	my ($species, $tax_string, $ncbi_id); 
-	
-	$longseqname =~ m/(\S+)\.\d+\/\d+\-\d+/;
-	my $id = $1;
-	
-	$sthTax->execute($id);
-	my $rfres = $sthTax->fetchall_arrayref;
-	foreach my $row (@$rfres){
-	    $species .= $row->[0];
-	    $tax_string .= $row->[1];
-	    $ncbi_id  .= $row->[2];
-	}
-	
-	if( !defined($tax_string) ) {
-	    $tax_string = "taxonomy unavailable";
-	}
-	    
-	if( !defined($species) ) {
-	    $species = "species unavailable";
-	}
-
-	if( !defined($ncbi_id) ) {
-	    $ncbi_id = 0;
-	}
-
-
-	if (defined($ont) && defined($seen_taxa{$ncbi_id}) && $seen_taxa{$ncbi_id} >= $ont){
-	    print("REJECTED: $longseqname taxonomy is already well represented (count=$seen_taxa{$ncbi_id} > thresh=$ont) [$ncbi_id; $tax_string; $species]!\n");
-	    $taxonomyrejected++;
-	    next BIGLOOP;
-	}
-
-	if ( scalar(@taxonomy)>0 ){
-	    my $nomatch = 1;
-	    foreach my $rft (@taxonomy){
-		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
-		    $nomatch = 0;
+		
+		#Perform the fast and easy checks first, on the first fail goto next seq. 
+		
+		#Check that the sequence ends are OK:
+		
+		if (defined($scorethreshold)){
+		    if ($ALIGNscores{$longseqname} && $ALIGNscores{$longseqname} < $scorethreshold) {
+				print("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
+				$scorerejected++;
+				next BIGLOOP;
+		    } elsif (!$ALIGNscores{$longseqname}) {
+				print("REJECTED: $longseqname score is missing!\t(check \42scores\42 file)\n");
+				$scorerejected++;
+				next BIGLOOP;
+		    }
 		}
-	    }
-	    
-	    if ($nomatch){
-		print("REJECTED: $longseqname taxonomy did not match your required terms [$ncbi_id; $tax_string; $species]!\n");
-		$taxonomyrejected++;
-		next BIGLOOP;
-	    }
-	}
-	
-	if ( scalar(@forbiddentaxonomy)>0 ){
-	    my $nomatch2 = 0;
-	    my $matchterm = "";
-	    foreach my $rft (@forbiddentaxonomy){
-		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
-		    $nomatch2 = 1;
-		    $matchterm=$rft;
-		    last;
+		
+		
+		for (my $i=0; $i<$nucends; $i++){
+		    my $a= substr($ALIGNhash{$longseqname},$i,1); # check the first $nucends nucleotides
+		    
+		    if (is_nucleotide($a)){
+				$oks=1; 
+		    }
+		    my $b= substr($ALIGNhash{$longseqname},$alignlength-$i-1,1);# check the last $nucends nucleotides
+		    
+		    if (is_nucleotide($b)){
+				$oke=1;
+		    }
 		}
-	    }
-	    
-	    if ($nomatch2){
-		print("REJECTED: $longseqname taxonomy did not match your forbidden term: \47$matchterm\47 [$ncbi_id; $tax_string; $species]!\n");
-		$taxonomyrejected++;
-		next BIGLOOP;
-	    }
-	}
-	
-	#Grab seq description, check it passes required & forbidden terms tests: 
-	my $desc; 
-	my ($n,$v,$s,$e) = RfamUtils::nvse2array($longseqname);
-	$sthDesc->execute($n);
-	my $res = $sthDesc->fetchall_arrayref;
-	foreach my $row (@$res){
-	    $desc .= $row->[0];
-	}
-	$desc = "no description available" if( not defined($desc) or length($desc)==0 );
-
-#	print("sthDesc->execute($n) ::: [$desc]");
-
-	#Check for matches to required desc terms:
-	if(@required_terms){
-	    my $nomatch = 1;
-	    foreach my $rt (@required_terms){
-		if ($desc =~ m/$rt/i){
-		    $nomatch = 0;
-		}
-	    }
-	    
-	    if ($nomatch){
-		print("REJECTED: $longseqname description did not match your required terms [$desc]!\n");
-		$descrequirerejected++;
-		next BIGLOOP;
-	    }
-	}
-	
-	#Check for matches to forbidden desc terms:
-	if ($forbidden){
-	    foreach my $ft (@forbidden_terms){
-		if ($desc =~ m/$ft/i){
-		    print("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
-		    $descforbidrejected++;
+		
+		if (!$oks || !$oke){
+		    my $a= substr($ALIGNhash{$longseqname},0,$nucends);
+		    my $b= substr($ALIGNhash{$longseqname},-1*$nucends);
+		    print("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
+		    $truncrejected++;
 		    next BIGLOOP;
 		}
-	    }
-	}
-	
-	#Check ALIGN seq is not too similar to the other seqs we've selected:
-	foreach my $longseqname3 (keys %ALIGN2SEEDcandidates){
-	    my $p2 = pid($ALIGNhash{$longseqname},$ALIGN2SEEDcandidates{$longseqname3});
-	    $pidcounts++;
-	    if ($p2>=$maxpid){
-		$ok = 0;
-		$pidrejected++;
-		my $pidrejected_str="";
-		if ($info){
-		     $pidrejected_str = sprintf( "REJECTED: $longseqname too similar to $longseqname3 in ALIGN2SEEDcandidates (id=%0.3f)!\n", $p2); 
-		}
-		print("$pidrejected_str");
 		
-		next BIGLOOP;
-	    }
-	}
-	
-	#Calculate min and max PIDs between the ALIGN seq and SEED seqs:
-	my $longseqname_max = "";
-	foreach my $longseqname2 (keys %ALIGNandSEEDhash){
-	    my $p = pid($ALIGNhash{$longseqname},$ALIGNhash{$longseqname2});
-	    $pidcounts++;
-	    if ($minpid{$longseqname}>$p){
-		$minpid{$longseqname}=$p;
-	    }
+		#Check structure consistency:
+		my @seq = split(//,$ALIGNhash{$longseqname});
+		if($nopairs>0){
+		    foreach my $bpposns ( keys %basepairs ) {
+				my @bpposns = split(/:/,$bpposns);
+				my $ispair = is_complementary($seq[$bpposns[0]-1],$seq[$bpposns[1]-1]);
+				$persequence += $ispair;
+		    }
+		    $persequence = $persequence/$nopairs;
+		} else {
+		    $persequence = 1.0;
+		}
+		
+		if ($persequence<$bpconsistency){
+		    
+		    my $structrejected_string = "";
+		    if ($info){
+				$structrejected_string = sprintf( "REJECTED: $longseqname doesn't match the consensus structure (FCBP=%0.3f<thresh=$bpconsistency)!\n", $persequence); 
+		    }
+		    
+		    print("$structrejected_string");
+		    $structrejected++;
+		    next BIGLOOP;
+		}
+		
+		my ($species, $tax_string, $ncbi_id); 
+		
+		$longseqname =~ m/(\S+)\.\d+\/\d+\-\d+/;
+		my $id = $1;
+		
+		$sthTax->execute($id);
+		my $rfres = $sthTax->fetchall_arrayref;
+		foreach my $row (@$rfres){
+		    $species .= $row->[0];
+		    $tax_string .= $row->[1];
+		    $ncbi_id  .= $row->[2];
+		}
+		
+		if( !defined($tax_string) ) {
+		    $tax_string = "taxonomy unavailable";
+		}
+		    
+		if( !defined($species) ) {
+		    $species = "species unavailable";
+		}
 
-	    if ($maxpid{$longseqname}<$p){
-		$maxpid{$longseqname}=$p;
-		$longseqname_max = $longseqname2;
-	    }
-	    
-	}
-	
-	if ($pidcounts==0 || $maxpid{$longseqname}==0.0){
-	    $maxpid{$longseqname} = ($minpid+$maxpid)/2;
-	}
-	
-	#If the max PID between ALIGN seq and SEED seqs is outside our limits:
-	if ( $maxpid{$longseqname} < $minpid || $maxpid < $maxpid{$longseqname} ){
-	    $ok = 0;
-	    my $pidrejected_str = "";
-	    if ($info){
-		$pidrejected_str = sprintf( "REJECTED: $longseqname max pid outside allowed range, ID=$longseqname_max (id=%0.3f)!\n", $maxpid{$longseqname}); 
-	    }
-	    print("$pidrejected_str");
-	    
-	    $pidrejected++;
-	    next BIGLOOP;
-	}
-	
-	$align2seedcount++;
-	my $ungapped = $ALIGNhash{$longseqname};
-	$ungapped =~ s/[,\.\-:_]//g;
-	
-	if (defined($ont)){
-	    if ($seen_taxa{$ncbi_id}){
-		$seen_taxa{$ncbi_id}+=1;
-	    }
-	    else {
-		$seen_taxa{$ncbi_id}=1;
-	    }
-	}
+		if( !defined($ncbi_id) ) {
+		    $ncbi_id = 0;
+		}
 
-	printf OUT ">$longseqname\t%0.3f\t%0.3f\t$tax_string; $species\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
-	my $summary_txt = "";
-	if ($info){
-	    $summary_txt = sprintf( "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence); 
-	}
-	print("$summary_txt");
-	$ALIGN2SEEDcandidates{$longseqname}=$ALIGNhash{$longseqname};
-    }
-    else {#Print DE lines for the SEED sequences:
-	
-	#Grab seq description:
-	my $desc; 
-	$sthDesc->execute($ALIGNnames{$longseqname});
-	my $res = $sthDesc->fetchall_arrayref;
-	foreach my $row (@$res){
-	    $desc .= $row->[0];
-	}
 
-	if( !defined($desc) ) {
-	    $desc = "no description available";
-	}
-	
-	my $seedinfo_txt = sprintf( "SEED\t\t$longseqname\t%s\n", substr($desc,0,70));
-	print("$seedinfo_txt");
+		if (defined($ont) && defined($seen_taxa{$ncbi_id}) && $seen_taxa{$ncbi_id} >= $ont){
+		    print("REJECTED: $longseqname taxonomy is already well represented (count=$seen_taxa{$ncbi_id} > thresh=$ont) [$ncbi_id; $tax_string; $species]!\n");
+		    $taxonomyrejected++;
+		    next BIGLOOP;
+		}
+
+		if ( scalar(@taxonomy)>0 ){
+		    my $nomatch = 1;
+		    foreach my $rft (@taxonomy){
+				if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
+					$nomatch = 0;
+				}
+		    }
+		    
+		    if ($nomatch){
+			print("REJECTED: $longseqname taxonomy did not match your required terms [$ncbi_id; $tax_string; $species]!\n");
+			$taxonomyrejected++;
+			next BIGLOOP;
+		    }
+		}
+		
+		if ( scalar(@forbiddentaxonomy)>0 ){
+		    my $nomatch2 = 0;
+		    my $matchterm = "";
+		    foreach my $rft (@forbiddentaxonomy){
+				if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
+					$nomatch2 = 1;
+					$matchterm=$rft;
+					last;
+				}
+		    }
+		    
+		    if ($nomatch2){
+				print("REJECTED: $longseqname taxonomy did not match your forbidden term: \47$matchterm\47 [$ncbi_id; $tax_string; $species]!\n");
+				$taxonomyrejected++;
+				next BIGLOOP;
+		    }
+		}
+		
+		#Grab seq description, check it passes required & forbidden terms tests: 
+		my $desc; 
+		my ($n,$v,$s,$e) = RfamUtils::nvse2array($longseqname);
+		$sthDesc->execute($n);
+		my $res = $sthDesc->fetchall_arrayref;
+		foreach my $row (@$res){
+		    $desc .= $row->[0];
+		}
+		$desc = "no description available" if( not defined($desc) or length($desc)==0 );
+
+	#	$logger->info("sthDesc->execute($n) ::: [$desc]");
+
+		#Check for matches to required desc terms:
+		if(@required_terms){
+		    my $nomatch = 1;
+		    foreach my $rt (@required_terms){
+				if ($desc =~ m/$rt/i){
+					$nomatch = 0;
+				}
+		    }
+		    
+		    if ($nomatch){
+				print("REJECTED: $longseqname description did not match your required terms [$desc]!\n");
+				$descrequirerejected++;
+				next BIGLOOP;
+		    }
+		}
+		
+		#Check for matches to forbidden desc terms:
+		if ($forbidden){
+		    foreach my $ft (@forbidden_terms){
+				if ($desc =~ m/$ft/i){
+					print("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
+					$descforbidrejected++;
+					next BIGLOOP;
+				}
+		    }
+		}
+		
+		#Check ALIGN seq is not too similar to the other seqs we've selected:
+		foreach my $longseqname3 (keys %ALIGN2SEEDcandidates){
+		    my $p2 = pid($ALIGNhash{$longseqname},$ALIGN2SEEDcandidates{$longseqname3});
+		    $pidcounts++;
+		    if ($p2>=$maxpid){
+				$ok = 0;
+				$pidrejected++;
+				my $pidrejected_str="";
+				if ($info){
+				     $pidrejected_str = sprintf( "REJECTED: $longseqname too similar to $longseqname3 in ALIGN2SEEDcandidates (id=%0.3f)!\n", $p2); 
+				}
+				print("$pidrejected_str");
+				
+				next BIGLOOP;
+		    }
+		}
+		
+		#Calculate min and max PIDs between the ALIGN seq and SEED seqs:
+		my $longseqname_max = "";
+		foreach my $longseqname2 (keys %ALIGNandSEEDhash){
+		    my $p = pid($ALIGNhash{$longseqname},$ALIGNhash{$longseqname2});
+		    $pidcounts++;
+		    if ($minpid{$longseqname}>$p){
+				$minpid{$longseqname}=$p;
+		    }
+
+		    if ($maxpid{$longseqname}<$p){
+				$maxpid{$longseqname}=$p;
+				$longseqname_max = $longseqname2;
+		    }
+		    
+		}
+		
+		if ($pidcounts==0 || $maxpid{$longseqname}==0.0){
+		    $maxpid{$longseqname} = ($minpid+$maxpid)/2;
+		}
+		
+		#If the max PID between ALIGN seq and SEED seqs is outside our limits:
+		if ( $maxpid{$longseqname} < $minpid || $maxpid < $maxpid{$longseqname} ){
+		    $ok = 0;
+		    my $pidrejected_str = "";
+		    if ($info){
+			$pidrejected_str = sprintf( "REJECTED: $longseqname max pid outside allowed range, ID=$longseqname_max (id=%0.3f)!\n", $maxpid{$longseqname}); 
+		    }
+		    print("$pidrejected_str");
+		    
+		    $pidrejected++;
+		    next BIGLOOP;
+		}
+		
+		$align2seedcount++;
+		my $ungapped = $ALIGNhash{$longseqname};
+		$ungapped =~ s/[,\.\-:_]//g;
+		
+		if (defined($ont)){
+		    if ($seen_taxa{$ncbi_id}){
+				$seen_taxa{$ncbi_id}+=1;
+		    } else {
+				$seen_taxa{$ncbi_id}=1;
+		    }
+		}
+
+		printf OUT ">$longseqname\t%0.3f\t%0.3f\t$tax_string; $species\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
+		my $summary_txt = "";
+		if ($info){
+		    $summary_txt = sprintf( "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence); 
+		}
+		print("$summary_txt");
+		$ALIGN2SEEDcandidates{$longseqname}=$ALIGNhash{$longseqname};
+	} else {#Print DE lines for the SEED sequences: #Sequence is from SEED:
+		
+		#Grab seq description:
+		my $desc; 
+		$sthDesc->execute($ALIGNnames{$longseqname});
+		my $res = $sthDesc->fetchall_arrayref;
+
+		foreach my $row (@$res){
+		    $desc .= $row->[0];
+		}
+
+		if( !defined($desc) ) {
+		    $desc = "no description available";
+		}
+		
+		my $seedinfo_txt = sprintf( "SEED\t\t$longseqname\t%s\n", substr($desc,0,70));
+		print("$seedinfo_txt");
     }
 }
 close(OUT);
+
 $rfdbh->disconnect;
 
 my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected+$scorerejected;
-print("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
+print("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected");
 
 
 if ($align2seedcount>0){
     print( "Building SEED.new (adding $align2seedcount squences):");
     
-    #system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and print("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
-#    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and print( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
-    if (RfamUtils::youngerThan('CM', 'SEED')){
-	print( "Seed younger than CM, rebuilding...");
-	Rfam::RfamSearch::cmBuild('CM','SEED','1.0');
-	#No need to calibrate...
+    #system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and $logger->logdie("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
+#    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
+    if (RfamUtils::youngerThan('CM', 'SEED')) {
+		print( "Seed younger than CM, rebuilding...");
+		Rfam::RfamSearch::cmBuild('CM','SEED','1.0');
+		#No need to calibrate...
     }
 
     system("$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out") and print( "FATAL: Error in [$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out].\n");
     
     print("Added $align2seedcount sequences\n");
     print("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
-}
-else {
+} else {
     print( "No ALIGN2SEED candidates.\n");
     print( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 }
@@ -645,13 +631,24 @@ exit();
 # Should add these functions to Rfam modules: 
 sub overlap {
     my($x1, $y1, $x2, $y2) = @_;
-    
+
+	if($y1<$x1) {	
+		my $t = $x1;
+		$x1=$y1;
+		$y1=$t;
+	}
+	if($y2<$x2) {	
+		my $t = $x2;
+		$x2=$y2;
+		$y2=$t;
+	}
+	    
     if ( ($x1<=$x2 && $x2<=$y1) || ($x1<=$y2 && $y2<=$y1) || ($x2<=$x1 && $x1<=$y2) || ($x2<=$y1 && $y1<=$y2)  ){
         return 1;
     }
     else {
         return 0;
-    }
+    }	
 }
 
 sub pid {
@@ -663,31 +660,30 @@ sub pid {
     my ($sim, $lena, $lenb) = (0, 0, 0);
     
     if (scalar(@a) != scalar(@b)){
-	return 0;
+		return 0;
     }
     else {
-	
- 	for (my $i=0; $i<scalar(@b); $i++){
-	    if ( (is_nucleotide($a[$i]) || is_nucleotide($b[$i])) && $a[$i] eq $b[$i] ){
-		$sim++;
-	    }
-	    
-	    if ( is_nucleotide($a[$i]) ){
-		$lena++;
-	    }
+		
+	 	for (my $i=0; $i<scalar(@b); $i++){
+		    if ( (is_nucleotide($a[$i]) || is_nucleotide($b[$i])) && $a[$i] eq $b[$i] ){
+			$sim++;
+		    }
+		    
+		    if ( is_nucleotide($a[$i]) ){
+			$lena++;
+		    }
 
-	    if ( is_nucleotide($b[$i]) ){
-		$lenb++;
-	    }
-	}
+		    if ( is_nucleotide($b[$i]) ){
+			$lenb++;
+		    }
+		}
     }
     
     my $maxlen = max($lena, $lenb);
     if ($maxlen>0){
-	return $sim/$maxlen;
-    }
-    else {
-	return 0;
+		return $sim/$maxlen;
+    } else {
+		return 0;
     }
 }
 
@@ -779,48 +775,44 @@ sub make_pair_table {
     
     my $j=0;
     foreach my $char (@ss){
-	$j++;
-	$pair_table[$j] = 0;
-	
-	if ( defined( $unpairedsymbs{$char} ) ) {
-	    next; #Boring unpaired region.
-	}
-	elsif ( defined( $bpsymbs5p3p{$char}) ){#Record position of open bps:
-	    push( @{ $bpsymbs_posns{$char} }, $j);
-	    ++$count;
-	    $bpsymbs5p3p_counts{$char}++;
-	}
-	elsif ( defined( $bpsymbs3p5p{$char}) ){#close bp, save positions of matches in pair_table:
-	    my $mchar = $bpsymbs3p5p{$char};
-	    $prime5 = pop( @{ $bpsymbs_posns{$mchar} } );
-	    $prime3 = $j;
-	    $pair_table[$prime3] = $prime5;
-	    $pair_table[$prime5] = $prime3;
-	    --$count;
-	    $bpsymbs3p5p_counts{$char}++;
-	}
-       	else {
-	    printf STDERR "Strange character \"$char\" in secondary structure:\n$str\n";
-	}
+		$j++;
+		$pair_table[$j] = 0;
+		
+		if ( defined( $unpairedsymbs{$char} ) ) {
+		    next; #Boring unpaired region.
+		} elsif ( defined( $bpsymbs5p3p{$char}) ){#Record position of open bps:
+		    push( @{ $bpsymbs_posns{$char} }, $j);
+		    ++$count;
+		    $bpsymbs5p3p_counts{$char}++;
+		} elsif ( defined( $bpsymbs3p5p{$char}) ){#close bp, save positions of matches in pair_table:
+		    my $mchar = $bpsymbs3p5p{$char};
+		    $prime5 = pop( @{ $bpsymbs_posns{$mchar} } );
+		    $prime3 = $j;
+		    $pair_table[$prime3] = $prime5;
+		    $pair_table[$prime5] = $prime3;
+		    --$count;
+		    $bpsymbs3p5p_counts{$char}++;
+		} else {
+		    printf STDERR "Strange character \"$char\" in secondary structure:\n$str\n";
+		}
     }
     
     #Check basepair symbols are all matched:
     foreach my $symb5p (keys %bpsymbs5p3p_counts){
-	my $symb3p = $bpsymbs5p3p{$symb5p};
-	my $diff = $bpsymbs5p3p_counts{$symb5p} - $bpsymbs3p5p_counts{$symb3p};
-	if ($diff!=0){
-	    printf STDERR "BAD EVIL AND NASTY: Unbalanced brackets in secondary structure:\n$bpsymbs5p3p_counts{$symb5p}x\'$symb5p\' and $bpsymbs3p5p_counts{$symb3p}x\'$symb3p\'\n";
-	    $unbalanced = 1;
-	}
+		my $symb3p = $bpsymbs5p3p{$symb5p};
+		my $diff = $bpsymbs5p3p_counts{$symb5p} - $bpsymbs3p5p_counts{$symb3p};
+		if ($diff!=0){
+		    printf STDERR "BAD EVIL AND NASTY: Unbalanced brackets in secondary structure:\n$bpsymbs5p3p_counts{$symb5p}x\'$symb5p\' and $bpsymbs3p5p_counts{$symb3p}x\'$symb3p\'\n";
+		    $unbalanced = 1;
+		}
     }
     
     
     if ($count != 0 || $unbalanced){
-	printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
-	return ();
-    }    
-    else {
-	return @pair_table;
+		printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
+		return ();
+    } else {
+		return @pair_table;
     }
     
 }
@@ -896,10 +888,6 @@ To Add:
 	 in the ALIGN then swap them...
   -Make a log file of why each sequence is rejected
   -Switch to RfamUtils functions!
-  -Automatically include 'T' sequences not in SEED flag
-  -Die when max/min PID outside range.
 
-TEST STRANDEDNESS IS NOT GETTING TOASTED!!!
-  
 EOF
 }
