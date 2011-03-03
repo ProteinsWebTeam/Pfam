@@ -37,7 +37,7 @@ family = c.uri_for( "/family" );
 
 <div class="block" id="helpDomainGraphicsBlock">
   <div class="handle">
-    <h1 id="graphicsTop">A Guide to the Pfam Domain Graphics</h1>
+    <h1><a name="graphicsTop">A Guide to the Pfam Domain Graphics</a></h1>
   </div>
   <div class="blockContent">
 
@@ -105,7 +105,7 @@ family = c.uri_for( "/family" );
       are drawn on the sequence are also scaled by the same factor.
     </p>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <hr />
     
@@ -234,7 +234,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
        
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Repeat/motif</h3> 
     
@@ -298,7 +298,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Discontinuous nested domains</h3>
 
@@ -380,7 +380,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Context domains</h3>
 
@@ -484,7 +484,7 @@ family = c.uri_for( "/family" );
       always be verified by other means.
     </p> 
     
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <hr />
     
@@ -554,7 +554,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
   
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <hr />
     
@@ -624,7 +624,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
     
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Signal peptides</h3>
     
@@ -652,7 +652,7 @@ family = c.uri_for( "/family" );
       </span>
     </div>
   
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Low complexity regions</h3>
 
@@ -691,7 +691,7 @@ family = c.uri_for( "/family" );
       </span>
     </div>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3>Coiled-coils</h3>
 
@@ -706,7 +706,7 @@ family = c.uri_for( "/family" );
       lime-green rectangle. 
     </p>
     
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
     
     <h3>Transmembrane regions</h3>
 
@@ -720,7 +720,7 @@ family = c.uri_for( "/family" );
       rectangle.
     </p>
   
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
     
     <hr />
     
@@ -898,7 +898,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
     <h3><a name="disulphides">Disulphide bridges</a></h3>
     
@@ -915,7 +915,7 @@ family = c.uri_for( "/family" );
       of the bond in a tooltip.
     </p>
     
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
     
     <h3>Active site residues</h3> 
 
@@ -933,7 +933,7 @@ family = c.uri_for( "/family" );
       data and transferring these annotations through a Pfam alignment. 
     </p>  
   
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
     
     <h3>&quot;Lollipops&quot;</h3>
 
@@ -1020,7 +1020,7 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
     
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
     
     <hr />
     
@@ -1389,19 +1389,12 @@ family = c.uri_for( "/family" );
                                            .innerHTML );
         var tipsGraphic = new PfamGraphic("tipsGraphic", tipsSeq);
         tipsGraphic.render();
-
-        var scrollToTop = function() {
-          $("graphicsTop").scrollTo();
-        };
-
-        $$("span.backToTop").invoke( "observe", "click", scrollToTop );
-
       } );
 
       // ]]>
     </script>
 
-    <p><span class="backToTop link">back to top</span></p>
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
 
   </div>
 </div>
