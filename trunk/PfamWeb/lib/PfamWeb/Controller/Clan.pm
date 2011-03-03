@@ -308,8 +308,9 @@ sub get_xrefs : Private {
 
   my %xRefs;
   foreach ( @refs ) {
-    $xRefs{$_->db_id} = $_;
+    push @{ $xRefs{$_->db_id} }, $_;
   }
+ 
   $c->stash->{xrefs} = \%xRefs;
 
 }
