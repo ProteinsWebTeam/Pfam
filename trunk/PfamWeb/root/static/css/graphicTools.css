@@ -63,9 +63,9 @@ div.panel {
   float: left;
 }
 
-div.panel p {
-  font-size: smaller;
-}
+/* div.panel p { */
+/*   font-size: smaller; */
+/* } */
 
 #graphic {
   width: 97%;
@@ -98,5 +98,9 @@ span.label  {
 
 #clear {
   background-color: #C99;
+}
+
+#example {
+  background-color: #CCC;
 }
 
