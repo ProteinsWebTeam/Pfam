@@ -40,9 +40,11 @@ __PACKAGE__->config( SECTION => 'protein' );
 
 =head1 METHODS
 
-=head2 begin : Private
+=head2 protein : Chained 
 
-Get the data from the database for the UniProt entry.
+Takes the place of the original "begin" method. We need to fiddle with the 
+chain to make this work, but essentially this method does the same thing: get 
+the data from the database for the UniProt entry.
 
 =cut
 
@@ -50,7 +52,6 @@ sub protein_end : Chained( 'protein' )
                   PathPart( '' )
                   Args( 0 ) {}
 
-# sub begin : Private {
 sub protein : Chained( '/' )
               PathPart( 'protein' )
               CaptureArgs( 1 ) {
