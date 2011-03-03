@@ -1,4 +1,3 @@
-
 [%
 # summary.tt
 # jt6 20060406 WTSI
@@ -17,11 +16,6 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
-
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.css.push( "prototip.css" );
-requirements.js.push( "tip_definition.js" );
 
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
