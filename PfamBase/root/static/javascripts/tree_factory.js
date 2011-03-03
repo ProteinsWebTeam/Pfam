@@ -106,7 +106,7 @@ var TreeFactory = function( treeData, parentNode ) {
     numSequences: treeData.numSequences,
     numDomains:   treeData.numDomains,
     numSpecies:   treeData.numSpecies,
-    nodeName:     treeData.node,
+    nodeName:     treeData.node || "Unknown",
     id:           treeData.id,
     parentNode:   parentNode
   } );
