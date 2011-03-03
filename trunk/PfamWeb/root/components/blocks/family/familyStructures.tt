@@ -13,15 +13,14 @@
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
-USE Dumper;
-CALL c.log.debug( "colours: " _ Dumper.dump(colours) );
+# sort the list of PDB IDs
+idList = pdb_unique.keys.sort;
 
 IF pdb_id;
   pdbObj = pdb_unique.${pdb_id};
 ELSE;
   
   # no ID given; pick a random PDB entry for this family
-  idList = pdb_unique.keys.sort;
   numIds = idList.size;
 
   IF numIds > 1;
@@ -100,8 +99,11 @@ IF pdb_unique.keys.size;
         var r = new Ajax.Updater(
           "siph", 
           "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
-           { parameters:  { pdbId: $F("pdbIdField") },
-             evalScripts: true }
+          {
+            parameters:  { pdbId: $F("pdbIdField") },
+            method: 'get',
+            evalScripts: true 
+          }
         );
       };
 
