@@ -2002,6 +2002,29 @@ var PfamGraphic = Class.create( {
 
     //----------------------------------
 
+    // this is an almight hack. There is a bug in firefox (upto and including 4.0b6)
+    // which causes a context.strokeText() call to stroke not only the required
+    // text but also the last path that was stroked. In our case, that means that 
+    // when adding text to a region, the outline of the region also gets coloured
+    // white. See bugzilla: https://bugzilla.mozilla.org/show_bug.cgi?id=478445
+    //
+    // One workaround for this bug is to allow the canvas.text.js library to 
+    // over-ride the built-in firefox canvas text routines, but that hits a problem
+    // with the canvas.text.js library...
+    //
+    // Adding this extra tiny path before trying to add text means that the 
+    // strokeText call affects this sacrificial path rather than the outline of 
+    // the region. 
+
+    this._context.beginPath();
+    this._context.moveTo( 0, this._topOffset );
+    this._context.lineTo( 0, this._botOffset );
+    this._context.strokeStyle = "white";
+    this._context.stroke();
+    this._context.closePath();
+
+    //----------------------------------
+
     // add the text label
     if ( this._options.labels ) {
       this._drawText( x, this._baseline, width, region.text );
@@ -2324,6 +2347,8 @@ var PfamGraphic = Class.create( {
             h: height + 1 };
     }
 
+    this._context.save();
+
     // clip the envelope regions to the existing canvas content, so that we 
     // restrict the shading to, for example, the true edges of the arrow head
     this._context.globalCompositeOperation = "source-atop";
@@ -2345,8 +2370,7 @@ var PfamGraphic = Class.create( {
       this._context.fillRect( r.x, r.y, r.w, r.h );
     }
 
-    // reset the compositing rule
-    this._context.globalCompositeOperation = "source-over";
+    this._context.restore();
 
     // console.log( "PfamGraphic._drawEnvelope: added envelope(s)" );
 
