@@ -740,22 +740,15 @@ Retrieves the wikipedia content, if any, for this family.
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
   
-  return unless $c->stash->{pfam}->pfama_wikis;
+  my @articles = $c->model('WebUser::ArticleMapping')
+                   ->search( { accession => $c->stash->{acc} },
+                             { join     => [ 'wikitext' ],
+                               prefetch => [ 'wikitext' ] } );
 
-  my ( @articles, $title );
-  foreach my $pfama_wiki ( $c->stash->{pfam}->pfama_wikis ) {
-    $title = $pfama_wiki->auto_wiki->title;
+  return unless scalar @articles;
 
-    $c->log->debug( "Family::get_wikipedia: got wiki title: |$title|" )
-      if $c->debug;
-
-    my $article = $c->model('WebUser::Wikitext')
-                    ->find( $title );
-
-    if ( defined $article and defined $article->title ) {
-      push @articles, $article;
-    }
-  }
+  $c->log->debug( 'Family::get_wikipedia: found ' . scalar @articles . ' articles' )
+    if $c->debug;
 
   $c->stash->{articles} = \@articles;
 }
