@@ -549,7 +549,7 @@ sub parse_sequence : Private {
 
   # check that the sequence string contains only letters. Bail if it has 
   # anything else in it
-  if ( $seq =~ m/[^ABCDEFGHIKLMNPQRSTUVWXYZ\*]/g ) {
+  if ( $seq =~ m/[^ABCDEFGHIJKLMNOPQRSTUVWXYZ\*]/g ) {
     $c->stash->{searchError} = 'Invalid sequence; illegal character at position ' 
       . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 ) 
       . '&quot;). Please try again with a valid amino-acid sequence';
