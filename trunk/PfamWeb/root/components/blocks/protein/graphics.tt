@@ -188,7 +188,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     var parent  = 'graphicsHolder';    // HTML DOM element;
     var acc     = '[% pfamseq.pfamseq_acc %]';    // Protein accession;
     var sources = $H( Form.serializeElements( $("updateGraphicsForm").getInputs('checkbox'), { hash:true} ) ).keys();  // sources array should contain DS_id's ( NOTE: use native javascript array );
-    var url     = 'http://web-vm-ipfam.internal.sanger.ac.uk:8001/feature/getFeature';
+    var url     = '[% c.config.pfamsrv_url %]/feature/getFeature';
     
     var featureObj;
     var importFeatureViewer;
@@ -196,7 +196,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     document.observe( "dom:loaded", function() {
 
       importFeatureViewer = YAHOO.util.Get.script( 
-        'http://web-vm-ipfam.internal.sanger.ac.uk:8001/javascripts/FeatureViewer.js',
+        '[% c.config.pfamsrv_url %]/javascripts/FeatureViewer.js',
         {
           onSuccess: function( response ){
             // console.log( 'FEATURE VIEWER JAVASCRIPT LIBRARY LOADED' );
