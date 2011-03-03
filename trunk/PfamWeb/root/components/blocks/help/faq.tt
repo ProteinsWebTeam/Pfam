@@ -28,7 +28,7 @@
         <li><a class="link" rel="wise">I was wondering if it is possible to build Wise2 with HMMER3 support ? </a></li>
         <li><a class="link" rel="dnaSearch">Can I search DNA against Pfam ?</a></li>
         <li><a class="link" rel="localSearch">How can I search Pfam locally ?</a></li>
-        <li><a class="link" rel="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></li>
+        <li><a class="link" rel="noSeq">Why doesn't Pfam include my sequence ?</a></li>
         <li><a class="link" rel="howMany">How many accurate alignments do you have ?</a></li>
         <li><a class="link" rel="submit">How can I submit a new domain ?</a></li>
         <li><a class="link" rel="ipfam">What is iPfam ?</a></li>
@@ -244,7 +244,7 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
-    <h3><a name="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></h3>
+    <h3><a name="noSeq">Why doesn't Pfam include my sequence ?</a></h3>
   
     <p>
       Pfam is built from a fixed release of UniProt. At each Pfam release we
