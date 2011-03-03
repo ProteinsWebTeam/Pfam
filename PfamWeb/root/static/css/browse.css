@@ -60,6 +60,11 @@ table.browse {
   margin: 0 auto !important
 }
 
+table.browse thead tr {
+  background-color: #074987;
+  color: #FFF;
+}
+
 .species {
   font-style: italic;
 }
