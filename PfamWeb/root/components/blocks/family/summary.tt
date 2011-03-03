@@ -45,7 +45,7 @@ PROCESS components/links.tt; %]
         [%- IF articles.size;
           FOREACH article IN articles %]
           <li[% IF loop.first %] class="selected"[% END %]>
-            <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title %]</a>
+            <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title.replace( "_", " " ) | html %]</a>
           </li>
           [% END;
         ELSE -%]
@@ -79,8 +79,6 @@ PROCESS components/links.tt; %]
                       class="moreLink">
                   More...</span>
               </p>
-
-              <hr />
 
               <div id="wikiNotes" style="display: none">
                 <p>
@@ -187,13 +185,13 @@ PROCESS components/links.tt; %]
 
               <div class="wpData">
                 <h1 class="firstHeading">
-                  [% article.title | html %]
+                  [% article.title.replace( "_", " " ) | html %]
                   <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
                   <img class="addAnnotation" 
                        alt="Edit wikipedia article" 
                        src="[% c.uri_for( '/static/images/edit_wikipedia_button.png' ) %]" /></a>
                 </h1>
-                [% article.text %]
+                [% article.wikitext.text %]
               </div>
               <p id="wpLicense">
                 This page is based on a 
@@ -228,8 +226,6 @@ PROCESS components/links.tt; %]
             the contents of this tab will be gradually replaced by the Wikipedia
             tab.
           </p>
-
-          <hr />
 
           [%- # a placeholder for the structure image -%]
           <div id="siph"
@@ -305,13 +301,11 @@ PROCESS components/links.tt; %]
             <a class="ext" href="http://www.ebi.ac.uk/interpro/">Interpro</a> database.
           </p>
 
-          <hr />
-
           [%- IF pfam.interpro %]
-            <h2 id="interproTitle">
+            <h1 id="interproTitle">
               InterPro entry 
               <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
-            </h2>
+            </h1>
             [% # THIS IS A HACK ! the database entry for the interpro abstract appears
                # to contain <p> tags...
             pfam.interpro.abstract;
