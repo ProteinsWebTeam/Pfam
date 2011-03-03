@@ -46,7 +46,14 @@ Get the data from the database for the UniProt entry.
 
 =cut
 
-sub begin : Private {
+sub protein_end : Chained( 'protein' )
+                  PathPart( '' )
+                  Args( 0 ) {}
+
+# sub begin : Private {
+sub protein : Chained( '/' )
+              PathPart( 'protein' )
+              CaptureArgs( 1 ) {
   my ( $this, $c, $entry_arg ) = @_;
 
   # decide what format to emit. The default is HTML, in which case
@@ -141,6 +148,23 @@ sub begin : Private {
     $c->stash->{template} = 'rest/protein/entry_xml.tt';
   }
   
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 graphic : Chained( 'protein' ) PathPart( 'graphic' )
+
+Returns just the JSON string describing the domain graphic for this sequence.
+
+=cut
+
+sub graphic : Chained( 'protein' )
+              PathPart( 'graphic' )
+              Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->res->content_type( 'application/json' );
+  $c->res->body( $c->stash->{layout} );
 }
 
 #-------------------------------------------------------------------------------
