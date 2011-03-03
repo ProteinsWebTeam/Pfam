@@ -1,11 +1,10 @@
-
 [%
-# uploadXml.tt
+# generate_graphic.tt
 # jt6 20070402 WTSI
 #
-# builds form for uploading XML describing a Pfam graphic
+# builds form for uploading JSON describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.11 2009-03-18 15:32:57 jt6 Exp $
+# $Id$
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -16,11 +15,6 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "graphicTools.css" );
-
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.css.push( "prototip.css" );
-requirements.js.push( "tip_definition.js" );
 
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
@@ -37,7 +31,6 @@ requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "graphic_generator.js" );
 
 #-------------------------------------------------------------------------------
-
 %]
 
 <h1>Generate domain images</h1>
@@ -47,7 +40,9 @@ requirements.js.push( "graphic_generator.js" );
   input to the form is a <a class="ext" href="http://en.wikipedia.org/wiki/Json">
     JSON</a> string that provides a description of the graphic. You can see the 
   specification of the domain graphics on the 
-  <a href="[% c.uri_for('/help') %]#tabview=tab8">help pages</a>.
+  <a href="[% c.uri_for('/help') %]#tabview=tab8">help pages</a>. You can 
+  also generate the domain graphic for a 
+  <a href="[% c.uri_for('/generate_uniprot_graphic') %]">Uniprot sequence</a>.
 </p>
 <p>
   In some browsers you can right-click on the domain graphics image and save it
@@ -141,7 +136,7 @@ requirements.js.push( "graphic_generator.js" );
       Click &quot;Generate&quot; to build the domain graphic using the sequence 
       description to the left. If there are any problems with your sequence description,
       they will be shown in a box above. Click &quot;Clear&quot; to empty the 
-      sequence description field. <strong>Note</strong> that this will delete th
+      sequence description field. <strong>Note</strong> that this will delete the
       contents of the description field entirely.
     </p>
 
