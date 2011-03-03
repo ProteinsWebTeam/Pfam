@@ -6,9 +6,6 @@
 #
 # $Id: tax.tt,v 1.15 2009-10-28 14:04:57 jt6 Exp $
 
-# TODO reinstate when we have the data loaded
-RETURN;
-
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
