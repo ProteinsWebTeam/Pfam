@@ -15,11 +15,6 @@ PROCESS "components/require.tt";
 requirements.css.push( "clans.css" );
 requirements.cssIe.push( "clans_ie.css" );
 
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.css.push( "prototip.css" );
-requirements.js.push( "tip_definition.js" );
-
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
 # else. We can add it here safely, however, because excanvas checks to see
