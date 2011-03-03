@@ -15,12 +15,7 @@ META fullPage = 1;
 
 PROCESS "components/require.tt";
 
-# tooltip library and Pfam-style tip definition
-requirements.js.push( "prototip.js" );
-requirements.js.push( "tip_definition.js" );
 requirements.js.push( "excanvas.js" );
-
-requirements.css.push( "prototip.css" );
 requirements.css.push( "browse.css" );
 
 #-------------------------------------------------------------------------------
