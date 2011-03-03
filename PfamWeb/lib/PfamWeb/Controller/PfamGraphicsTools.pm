@@ -15,8 +15,7 @@ package PfamWeb::Controller::PfamGraphicsTools;
 =head1 DESCRIPTION
 
 A couple of utility methods for generating Pfam graphics from a user-supplied
-XML file and for displaying the XML that builds the graphic for a specified 
-UniProt entry.
+JSON string and for displaying the graphic for a given Uniprot sequence.
 
 $Id: PfamGraphicsTools.pm,v 1.9 2009-03-20 15:56:08 jt6 Exp $
 
@@ -31,34 +30,35 @@ use base 'Catalyst::Controller';
 
 =head1 METHODS
 
-=head2 generateGraphic : Global
+=head2 generate_graphic : Global
 
 Displays the tools for generating Pfam graphics using the JS library.
 
 =cut
 
-sub generateGraphic : Global {
+sub generate_graphic : Global {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'PfamGraphicsTools::generateGraphic: generating form' );
+  $c->log->debug( 'PfamGraphicsTools::generateGraphic: generating form' )
+    if $c->debug;
   $c->stash->{template} = 'pages/generate_graphic.tt';
 
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 generateUniprotGraphic : Global
+=head2 generate_uniprot_graphic : Global
 
 Displays the graphic for a particular UniProt entry.
 
 =cut
 
-sub generateUniprotGraphic : Global {
+sub generate_uniprot_graphic : Global {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'PfamGraphicsTools::generateUniprotGraphic: generating form' );
-  $c->stash->{template} = 'pages/uploadUniprotEntry.tt';
-  
+  $c->log->debug( 'PfamGraphicsTools::generate_uniprot_graphic: generating form' )
+    if $c->debug;
+  $c->stash->{template} = 'pages/generate_uniprot_graphic.tt';
 }
 
 #-------------------------------------------------------------------------------
