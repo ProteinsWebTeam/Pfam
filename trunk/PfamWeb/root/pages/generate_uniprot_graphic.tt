@@ -1,0 +1,154 @@
+[%
+# generate_uniprot_graphic.tt
+# jt6 20110204 WTSI
+#
+# builds the form for specifying a UniProt entry for which to show the graphics
+#
+# $Id$
+
+META title = "Pfam graphic for UniProt entry";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "graphicTools.css" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "uniprot_graphic_generator.js" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<h1>Generate domain graphics for UniProt sequences</h1>
+
+<p>
+  This tool allows you to generate Pfam-style domain graphics for specific
+  UniProt sequences. You can also generate 
+  <a href="[% c.uri_for('/generate_graphic') %]">custom domain graphics</a> 
+  by specifying your own domain graphics description.
+</p>
+<p>
+  In some browsers you can right-click on the domain graphics image and save it
+  to your local disk. This is known to work with firefox. If you are using a
+  different browser, you may need to capture the image as a screenshot in order
+  to use it elsewhere.
+</p>
+ 
+<div id="graphic" class="panel">
+  <h2>Domain graphic</h2>
+  <div id="dg">
+    <span id="none">No graphic yet</span>
+  </div>
+  <div id="loading" 
+       class="loading"
+       style="display: none">
+    loading...
+  </div>
+</div>
+
+<div class="cleaner"><!-- empty --></div>
+
+<div id="form">
+
+  <div id="sequence" class="panel">
+
+    <h2>UniProt sequence</h2>
+    
+    <p>
+      Enter the UniProt sequence accession or ID:
+      <input type="text" id="entry" />
+    </p>
+
+    <h2>Example sequence</h2>
+
+    <p>
+      Click to enter an <button id="example">example</button> UniProt ID.
+    </p>
+
+  </div>
+
+  <div id="controls" class="panel">
+
+    <h2>Scale</h2>
+
+    <p>
+      These parameters affect the size of the image. Increase X- and Y-scale to make the 
+      generated graphic larger.
+    </p>
+    
+    <div class="row">
+      <span class="label">X-scale:</span><input id="xscale" value="1.0"></input>
+    </div>
+    <div class="row">
+      <span class="label">Y-scale:</span><input id="yscale" value="1.0"></input>
+    </div>
+
+    <h2>Generate</h2>
+
+    <p>
+      Click &quot;Generate&quot; to build the domain graphic for the specified
+      UniProt sequence. If there are any problems generating the graphic,
+      they will be shown in a box below. Click &quot;Clear&quot; to empty the 
+      sequence accession/ID field.
+    </p>
+
+    <button id="submit">Generate graphic</button>
+    <button id="clear">Clear accession/ID</button>
+
+    <div id="errors"
+         style="display: none">
+      <h1>Problem generating domain graphic</h1>
+      <div id="error"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  $("example").observe( "click", function() {
+    $("entry").setValue("VAV_HUMAN");
+  } );
+
+  var generator;
+  document.observe( "dom:loaded", function() {
+    generator = new UniprotGraphicGenerator( "[% c.uri_for('/protein', '%s', 'graphic' ) %]" );
+  } );
+
+  // ]]>
+</script>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
