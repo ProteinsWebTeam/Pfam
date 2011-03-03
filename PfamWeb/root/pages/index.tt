@@ -329,6 +329,31 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
+[%# uncomment to add an advance warning of a maintenance shutdown
+  <hr />
+
+  <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#E7EDF3;border:1px solid #074987;padding:1em">
+    <h2>Scheduled downtime</h2>
+    <p> 
+      The Pfam website at the Sanger Institute will be unavailable from 4.30pm on
+      Friday 7th January 2011 until 10am on Monday 10th January. This is due to
+      scheduled maintenance work in the Sanger data centre. You can read a little
+      more about the down time on the Sanger
+      <a class="ext" href="http://sangerinstitute.blogspot.com/">blog</a>.
+    </p>
+    <p>
+      While this Pfam site is offline, you may want to use one of our other mirrors:
+    </p>
+    <ul>
+      <li><a class="ext" href="http://pfam.janelia.org/">Janelia Farm, USA</a></li>
+      <li><a class="ext" href="http://pfam.sbc.su.se/">Stockholm University, Sweden</a></li>
+    </ul>
+    <p> 
+      Please accept our apologies for the inconvenience.
+    </p>
+  </div>
+# end of maintenance method %]
+
   <div id="posts" class="announcements" style="display: none">
     <hr />
     <span onclick="hideThis('posts');" 
