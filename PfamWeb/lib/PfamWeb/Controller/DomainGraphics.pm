@@ -82,8 +82,7 @@ sub begin : Private {
 
   #----------------------------------------
 
-  # or do we have an accessions ?
-  # elsif ( $tainted_entry ) {
+  # or do we have an accession ?
   if ( $tainted_entry ) {
 
     # we got a regular family accession...
@@ -181,7 +180,8 @@ sub begin : Private {
     # which include the given family from the given species
     if( defined $c->req->param('pfamAcc') and
         $c->req->param('pfamAcc')=~ m/(PF\d{5})(\.\d+)?$/ ) {
-      $c->stash->{pfamAcc} = $1;
+      $c->stash->{acc} = $1;
+      $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
     }
 
     # retrieve the data for we need regarding the specified proteome. This
@@ -383,6 +383,9 @@ Pfam-A.
 
 sub get_family_data : Private {
   my ( $this, $c ) = @_;
+
+  $c->stash->{pfam} = $c->model('PfamDB::Pfama')
+                        ->find( { pfamA_acc => $c->stash->{acc} } );
 
   # decide if we're showing the individual architectures or all sequences
   # for a particular architecture
@@ -922,18 +925,16 @@ sub get_proteome_data : Private {
                           as        => [ qw( pfamseq_id
                                              annseq_storable  ) ] } );
   }
-  elsif ( $c->stash->{pfamAcc} ) {
+  elsif ( $c->stash->{acc} ) {
 
     $c->log->debug( 'DomainGraphics::get_proteome_data: got a pfamAcc: '
-                    . $c->stash->{pfamAcc} ) if $c->debug;
-
-    $c->stash->{auto_pfama} = $c->stash->{pfam}->auto_pfama;
+                    . $c->stash->{acc} ) if $c->debug;
 
     @rows = $c->model('PfamDB::Pfamseq')
               ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome,
-                          'proteome_seqs.auto_pfama'        => $c->stash->{auto_pfama} },
+                          'proteome_regions.auto_pfama'     => $c->stash->{pfam}->auto_pfama },
                         { join      => [ qw( proteome_regions
-                                             proteome_pfamseq
+                                             proteome_pfamseqs
                                              annseqs ) ],
                           select    => [ { distinct => [ 'me.auto_pfamseq' ] } ,
                                          qw( pfamseq_id
@@ -986,20 +987,22 @@ sub get_proteome_data : Private {
     push @seqs, $seq;
     push @ids,  $seq->metadata->identifier;
 
+    my $id = $row->get_column('pfamseq_id');
+
     unless ( $c->stash->{auto_arch} or 
-             $c->stash->{auto_pfama} ) {
+             $c->stash->{pfam}->auto_pfama ) {
 
       my @domains = split /\~/, $row->auto_architecture->architecture;
-      my $id = $row->get_column('pfamseq_id');
 
       $seqInfo{$id}{arch}      = \@domains;
       $seqInfo{$id}{auto_arch} = $row->get_column('auto_architecture');
       $seqInfo{$id}{num}       = $row->get_column('numberArchs');
 
-      $seqInfo{$id}{desc}    = $seq->metadata->description;
-      $seqInfo{$id}{species} = $seq->metadata->organism;
-      $seqInfo{$id}{length}  = $seq->length;
     }
+
+    $seqInfo{$id}{desc}    = $seq->metadata->description;
+    $seqInfo{$id}{species} = $seq->metadata->organism;
+    $seqInfo{$id}{length}  = $seq->length;
 
   }
 
