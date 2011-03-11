@@ -104,37 +104,42 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                       { 'foreign.auto_pfamseq'  => 'self.auto_pfamseq' },
-                                            { proxy => [ qw( pfamseq_acc
-							     pfamseq_id
-							     seq_version
-							     crc64 
-							     md5 
-							     description
-							     length
-							     species 
-							     taxonomy
-							     ncbi_taxid 
-							     sequence
-							     updated
-							     created ) ] } );
-
-
+                      { proxy => [ qw( pfamseq_acc
+                                       pfamseq_id
+                                       seq_version
+                                       crc64 
+                                       md5 
+                                       description
+                                       length
+                                       species 
+                                       taxonomy
+                                       ncbi_taxid 
+                                       sequence
+                                       updated
+                                       created ) ] }
+);
 
 __PACKAGE__->might_have(
   "clan_membership" => 'PfamDB::ClanMembership',
-			{ 'foreign.auto_pfama' => 'self.auto_pfama' } );
+  		{ 'foreign.auto_pfama' => 'self.auto_pfama' }
+);
 
 __PACKAGE__->might_have(
   "interactions" => 'PfamDB::PfamaInteractions',
-			{ 'foreign.auto_pfama_a' => 'self.auto_pfama' } );
+  { 'foreign.auto_pfama_a' => 'self.auto_pfama' }
+);
 
 __PACKAGE__->might_have(
   "markup" => 'PfamDB::PfamseqMarkup',
-			{ 'foreign.auto_pfamseq' => 'self.auto_pfamseq'});
+  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq'}
+);
 
-__PACKAGE__->has_one( "pfama" => "PfamDB::Pfama",
-                     { "foreign.auto_pfama" => "self.auto_pfama"},
-                      { proxy => [qw(pfama_id pfama_acc)]});
+__PACKAGE__->has_one( 
+  "pfama" => "PfamDB::Pfama",
+  { "foreign.auto_pfama" => "self.auto_pfama"},
+  { proxy => [ qw( pfama_id 
+                   pfama_acc ) ] }
+);
 
 =head1 COPYRIGHT
 
