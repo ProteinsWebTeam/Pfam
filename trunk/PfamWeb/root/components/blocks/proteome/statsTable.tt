@@ -74,7 +74,8 @@ IF c.req.param('full');
              onclick="popUp( '[% c.uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
       <td class="showSwitch">
-        <img src="[% c.uri_for( '/static/images/showButton.png' ) %]"
+        <img class="link" 
+             src="[% c.uri_for( '/static/images/showButton.png' ) %]"
              alt="Show sequence alignment"
              onclick="popUp( '[% c.uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
@@ -99,6 +100,7 @@ IF c.req.param('full');
       "statsTableDiv",
       "[% c.uri_for( '/proteome/stats' ) %]",
       { 
+        method:     "get",
         parameters: { taxId: "[% taxId %]",
                       full:  1 },
         onFailure:  function( oResponse ) {
