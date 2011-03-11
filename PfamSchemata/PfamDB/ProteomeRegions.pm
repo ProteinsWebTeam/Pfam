@@ -38,6 +38,14 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sc7js2Qph+P1TSlpXk6+TA
 
 
+__PACKAGE__->has_many(
+  "regions",
+  "PfamDB::PfamaRegFullSignificant",
+  { "foreign.auto_pfamseq" => "self.auto_pfamseq",
+    "foreign.auto_pfama"   => "self.auto_pfama" },
+);
+
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
