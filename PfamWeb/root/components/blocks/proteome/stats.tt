@@ -68,6 +68,7 @@ oe = 0;
           "statsTableDiv",
           "[% c.uri_for( '/proteome/stats' ) %]",
           {
+            method:      "get",
             evalScripts: true,
             parameters: { taxId: "[% taxId %]" },
             onFailure: function( oResponse ) {
