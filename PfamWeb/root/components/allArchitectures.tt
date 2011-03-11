@@ -185,6 +185,7 @@ END -%]
         "next[% first %]",
         "[% c.uri_for( '/domaingraphics' ) %]",
         {
+          method:      "get",
           evalScripts: true,
           parameters:  { acc:   "[% acc %]",
                          taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
