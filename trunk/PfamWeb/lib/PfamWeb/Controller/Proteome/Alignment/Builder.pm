@@ -47,16 +47,16 @@ Builds a sequence alignment from the specified sequences.
 =cut
 
 sub build : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
   
   $c->log->debug( 'Proteome::Alignment::Builder::build: checking for sequences' )
     if $c->debug;
 
   # retrieve the sequences
-  $c->forward( 'getSequences' );
+  $c->forward( 'get_sequences' );
   
   # make sure we got something...
-  unless( length $c->stash->{fasta} ) {
+  unless ( length $c->stash->{fasta} ) {
     $c->log->debug( 'Proteome::Alignment::Builder::build: failed to get a FASTA sequence' )
       if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
@@ -65,7 +65,7 @@ sub build : Path {
   }
 
   # submit the job to actually build the alignment
-  my $submissionStatus = $c->forward( 'queueAlignment' );
+  my $submissionStatus = $c->forward( 'queue_alignment' );
 
   # and see if we managed it...
   if( $submissionStatus < 0 ) {
@@ -114,11 +114,11 @@ sub view : Local {
   
   # a pretty title...
   my $title = 'Alignment for ' . $c->stash->{proteomeSpecies}->species 
-              . ' sequences with Pfam domain ' . $c->stash->{pfam}->pfamA_id
-              . '(' . $c->stash->{pfam}->pfamA_acc . ')';
+              . ' sequences with Pfam domain ' . $c->stash->{pfam}->pfama_id
+              . '(' . $c->stash->{pfam}->pfama_acc . ')';
   
   $c->stash->{params} = { source             => 'species',
-                          pfamAcc            => $c->stash->{pfam}->pfamA_acc,
+                          pfamAcc            => $c->stash->{pfam}->pfama_acc,
                           taxId              => $c->stash->{taxId},
                           title              => $title,
                           jobId              => $jobId,
@@ -132,58 +132,67 @@ sub view : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getSequences : Private
+=head2 get_sequences : Private
 
 Retrieves the sequences for the specified sequence accessions and drops them
 into the stash as a single FASTA-format string.
 
 =cut
 
-sub getSequences : Private {
+# select s.auto_pfamA, seq_start, seq_end, c.ncbi_taxid from complete_proteomes c join proteome_regions r on c.auto_proteome = r.auto_proteome join pfamA_reg_full_significant s on r.auto_pfamseq = s.auto_pfamseq where c.ncbi_taxid=46125 and in_full=1 limit 10;
+
+sub get_sequences : Private {
   my( $this, $c ) = @_;
   
-  my @seqs = $c->model('PfamDB::PfamA_reg_full_significant')
-               ->search( { ncbi_code  => $c->stash->{taxId},
-                           auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                           in_full    => 1,
-                           genome_seq => 1 },
-                         { join       => [ qw( pfamseq ) ],
-                           prefetch   => [ qw( pfamseq ) ] } );
+  my @regions = $c->model('PfamDB::ProteomeRegions')
+                  ->search( { 'auto_proteome.ncbi_taxid' => $c->stash->{taxId},
+                              'me.auto_pfama'            => $c->stash->{pfam}->auto_pfama },
+                            { join       => [ 'auto_proteome', { regions => 'pfamseq' } ],
+                              prefetch   => [ 'auto_proteome', { regions => 'pfamseq' } ] } );
 
   $c->log->debug( 'Proteome::Alignment::Builder: found |' 
-                  . scalar @seqs . '| sequences for this taxId / family' )
+                  . scalar @regions . '| sequences for this taxId / family' )
     if $c->debug;
 
-  $c->stash->{numRows} = scalar @seqs; # used when estimating job runtime...
+  $c->stash->{numRows} = scalar @regions; # used when estimating job runtime...
 
-  foreach my $seq ( @seqs ){
-    push @{ $c->stash->{selectedSeqAccs} }, $seq->pfamseq_acc;
-    
-    $c->stash->{fasta} .= '>'.$seq->pfamseq_acc.'/'.$seq->seq_start.'-'.$seq->seq_end."\n";
-    $c->stash->{fasta} .= substr( $seq->sequence,
-                                  $seq->seq_start - 1,
-                                  $seq->seq_end - $seq->seq_start + 1 ) . "\n";
+  foreach my $regions ( @regions ) {
+
+    push @{ $c->stash->{selectedSeqAccs} }, $regions->regions->first->pfamseq_acc;
+      
+    # there could be multiple regions for a given combination of family and
+    # sequence, so we need to loop over the list of regions from the 
+    # ProteomeRegions table
+    foreach my $region ( $regions->regions->all ) {
+      $c->stash->{fasta} .= '>'.$region->pfamseq_acc.'/'.$region->seq_start.'-'.$region->seq_end."\n";
+      $c->stash->{fasta} .= substr( $region->sequence,
+                                    $region->seq_start - 1,
+                                    $region->seq_end - $region->seq_start + 1 ) . "\n";
+    }
+
   }
-  $c->log->debug( 'Family::Alignment::Builder::generateAlignment: built a FASTA file: |'
-                  . $c->stash->{fasta} . '|' ) if $c->debug;
+
+  $c->log->debug( 'Family::Alignment::Builder::get_sequences: built a FASTA file: |'
+                  . $c->stash->{fasta} . '|' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 queueAlignment : Private
+=head2 queue_alignment : Private
 
 Queues the job that will actually generate the sequence alignment.
 
 =cut
 
-sub queueAlignment : Private {
-  my($this, $c) = @_; 
+sub queue_alignment : Private {
+  my ($this, $c) = @_; 
 
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
   # set the options
-  my $opts = '-acc ' . $c->stash->{pfam}->pfamA_acc . '.' . $c->stash->{pfam}->version; 
+  my $opts = '-acc ' . $c->stash->{pfam}->pfama_acc . '.' . $c->stash->{pfam}->version; 
 
   # guesstimate the time it will take to build the alignment
   my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) ); 
@@ -214,7 +223,7 @@ sub queueAlignment : Private {
                       checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
                       doneURI       => $c->uri_for( '/proteome/alignment/builder/view',
-                                                    { pfamAcc => $c->stash->{pfam}->pfamA_acc,
+                                                    { pfamAcc => $c->stash->{pfam}->pfama_acc,
                                                       taxId   => $c->stash->{taxId} } )
                                          ->as_string,
                       estimatedTime => $estimatedTime,
