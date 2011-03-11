@@ -11,7 +11,10 @@ META naked = 1;
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
-#PROCESS "components/require.tt";
+PROCESS "components/require.tt";
+
+requirements.js.push( "domain_graphics_loader.js" );
+requirements.js.push( "domain_graphics.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -23,7 +26,7 @@ pageContent = BLOCK
 <p>
   This window shows the domain graphics for sequences from 
   <strong><em>[% proteomeSpecies.species %]</em></strong> that contain the 
-  Pfam domain <strong>[% pfam.pfamA_id %]</strong>.
+  Pfam domain <strong>[% pfamAcc %]</strong>.
 </p>
 
 <div id="dgph">
@@ -35,8 +38,10 @@ pageContent = BLOCK
 
   var r = new Ajax.Updater(
     "dgph",
-    "[% c.uri_for( "/domaingraphics" ) %]",
+    "[% c.uri_for( '/domaingraphics' ) %]",
     {
+      method:     "get",
+      evalScripts: true,
       parameters: { pfamAcc: "[% pfamAcc %]",
                     taxId:   "[% taxId %]" },
       onFailure:  function( oResponse ) {
