@@ -506,7 +506,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       collection of tools to handle multiple sequence alignments. For example, 
       one can refine a seed alignment (sequence addition or removal, 
       re-alignment or manual edition) and then search databases for remote 
-      homologs using HMMER2. 
+      homologs using HMMER3. 
     </p>
 
     <form id="myHitsForm"
