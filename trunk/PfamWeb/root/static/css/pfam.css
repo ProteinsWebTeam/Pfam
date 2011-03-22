@@ -432,9 +432,9 @@ table.details {
   border-spacing: 1px;
 }
 
-/* table.details thead tr { */
-/*   background: #BBB; */
-/* } */
+table.details thead tr {
+  background: #BBB;
+}
 
 table.details th {
   padding: 0.2em;
@@ -715,8 +715,7 @@ div.pfamBSearch .progressBar {
   background-image: url(/shared/images/tick.gif);
 }
 
-#results span.highlight,
-.resultTable tr.highlight {
+.highlight {
   background: #c2d2e1 ! important; /* #CBD */
 }
 
