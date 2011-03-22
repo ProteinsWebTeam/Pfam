@@ -98,7 +98,8 @@
     <p>
       The suite of programs that Pfam uses to build and search HMMs. For Pfam
       release 24.0 we have used HMMER version 3 to make Pfam. See the 
-      <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
+      <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site for more
+      information.
     </p>
 
     <h3>Hidden Markov model (HMM)</h3>
@@ -111,11 +112,12 @@
       protein database to find homologous sequences.
     </p>
 
-    <h3>HMMER2</h3>
+    <h3>HMMER3</h3>
     
     <p>
       The suite of programs that Pfam uses to build and search HMMs. See 
-      the <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
+      the <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site
+      for more information.
     </p>
 
     <h3>iPfam</h3>
