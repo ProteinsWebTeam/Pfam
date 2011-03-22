@@ -118,12 +118,14 @@
     <h3><a name="family">What is on a Pfam-A family page ?</a></h3>
   
     <p>
-      From the family page you can view the Pfam annotation for a family.  We
+      From the family page you can view the Pfam annotation for a family. We
       also provide access to many other sources of information, including
       annotation from the <a class="ext"
-      href="http://www.ebi.ac.uk/interpro/">InterPro</a> database, where
+        href="http://www.ebi.ac.uk/interpro/">InterPro</a> database, where
       available, cross-links to other databases and other tools for protein
-      analysis.
+      analysis. Since release 25.0 we have also started displaying relevant
+      articles from <a class="ext"
+        href="http://en.wikipedia.org/">Wikipedia</a> where available. 
     </p>
     <p>
       Via the tabs on the left-hand side of the page, you can view:
