@@ -631,6 +631,7 @@ sub parse_terms : Private {
   # finally, put double-quotes around each of the search terms in the input
   # string and return that
   foreach my $term ( @{ $c->stash->{terms} } ) {
+    next unless $term;
     $query =~ s/($term)/"$1"/ig;
   }
   
@@ -678,12 +679,13 @@ sub getFamilyCount : Private {
     my @rs = $c->model('PfamDB::Taxonomy')
                ->search( { lft => { '>=' => $range->[0] },
                            rgt => { '<=' => $range->[1] } },
-                         { join     => [ 'ncbi_taxid' ],
-                           select   => [ 'ncbi_taxid.pfama_acc', 
-                                         { count => 'ncbi_taxid.auto_pfamA' } ],
+                         { join     => [ 'pfama_ncbi' ],
+                           select   => [ 'pfama_ncbi.pfama_acc', 
+                                         { count => 'pfama_ncbi.auto_pfamA' } ],
                            as       => [ 'pfama_acc', 'count' ],
-                           group_by => [ 'ncbi_taxid.auto_pfama' ],
+                           group_by => [ 'pfama_ncbi.auto_pfama' ],
                          } );
+
     foreach ( @rs ) {
       next unless( defined $_->get_column('pfama_acc') and
                    defined $_->get_column('count') );
@@ -726,7 +728,7 @@ sub getAllFamilyCount : Private {
     $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: failed to retrieve family counts from cache; going to DB' )
       if $c->debug;
 
-    my @rs = $c->model('PfamDB::PfamA_ncbi')
+    my @rs = $c->model('PfamDB::PfamaNcbi')
                ->search( {},
                          { select   => [ 'pfama_acc', 
                                          { count => 'auto_pfama' } ],
