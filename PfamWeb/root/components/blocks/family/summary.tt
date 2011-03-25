@@ -210,7 +210,7 @@ PROCESS components/links.tt; %]
               href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>, but
               we have not yet assigned a wikipedia article to this family. If
               you think that a particular wikipedia article provides good
-              anotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
+              annotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
                 let us know</a>.
             </p>
           </div>
