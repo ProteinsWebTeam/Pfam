@@ -1,4 +1,4 @@
-
+[%
 # speciesTreeTab.tt
 # jt6 20110328 WTSI
 #
@@ -11,7 +11,7 @@
 #
 # $Id$
 
-[% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
+PROCESS components/speciesTreeTools.tt  # add the "control panel %]
 
 <div id="speciesTreeDesc">
   <p>
