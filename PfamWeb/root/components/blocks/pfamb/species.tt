@@ -1,6 +1,6 @@
 [%
 # species.tt
-# jt6 20060411 WTSI
+# jt6 20110328 WTSI
 #
 # block showing the species tree for Pfam-Bs
 #
@@ -27,17 +27,31 @@ sharedRequirements.js.push( "treeTweak.js" );
   </div>
   <div class="blockContent">
 
-    [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
-    
-    <!-- start of tree -->
-  	<div id="treeDiv">
-      <p id="stph" class="loading">Loading...</p>
-    </div>
-    <!-- end of tree -->
-
-    [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
+    [% PROCESS components/speciesTreeTab.tt %]
     
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    document.observe("dom:loaded", function() {
+
+      var r = new Ajax.Request(
+        stUri,
+        {
+          method:     "get",
+          parameters: { acc: "[% acc %]",
+                        ie:  Prototype.Browser.IE },
+          onSuccess:  stSuccess,
+          onFailure:  stFailure
+        }
+      );
+
+    } );
+
+    // ]]>
+  </script>
+
 </div>
 
 <!-- end of species block -->
