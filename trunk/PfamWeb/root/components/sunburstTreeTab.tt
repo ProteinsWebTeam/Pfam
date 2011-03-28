@@ -1,0 +1,298 @@
+
+# sunburstTreeTab.tt
+# jt6 20110328 WTSI
+#
+# template for generating the sunburst species tree. This should be called 
+# from a tab template using PROCESS.
+#
+# There are two separate templates for generating the sunburst and YUI
+# trees, so that we can use both for the Pfam-A families but only the
+# YUI tree for Pfam-Bs.
+#
+# $Id$
+
+<div id="sunburstSubTree">
+
+  <div id="sunburstControlsHeader">
+    <h3>Sunburst controls</h3>
+    <span id="sunburstControlsToggle">Hide</span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+
+  <div id="sunburstControlsContent">
+    <!-- sub-tree markup will go here -->
+    <div id="weightWrapper">
+      <h3>Weight segments by...</h3>
+      <span>
+        <label for="weightSeq">
+          <input type="radio" name="weight" id="weightSeq" value="1" checked="checked" />
+          number of  sequences
+        </label>
+        <br />
+        <label for="weightSpecies">
+          <input type="radio" name="weight" id="weightSpecies" value="1" />
+          number of  species
+        </label>
+      </span>
+    </div>
+    <div id="sliderWrapper">
+      <h3>Change the size of the sunburst</h3>
+      <div id="sliderSmallScale">Small</div>
+      <div id="sliderLargeScale">Large</div>
+      <div id="sliderScale" class="slider">
+        <div class="handle"></div>
+      </div>
+    </div>
+    [%- imgs = c.uri_for("/shared/images/sunburst_colours") %]
+    <div id="sunburstColours">
+      <h3>Colour assignments</h3>
+      <table summary="Sunburst colour assignments">
+        <tbody>
+          <tr>
+            <td class="narrow">
+              <img src="[% imgs %]/archea.png" alt="Archea" />
+              Archea
+            </td>
+            <td class="wide">
+              <img src="[% imgs %]/eukaryota.png" alt="Eukaryota" />
+              Eukaryota
+            </td>
+          </tr>
+          <tr>
+            <td class="narrow">
+              <img src="[% imgs %]/bacteria.png" alt="Bacteria" />
+              Bacteria
+            </td>
+            <td class="wide">
+              <img src="[% imgs %]/other_sequences.png" alt="Other sequences" />
+              Other&nbsp;sequences
+            </td>
+          </tr>
+          <tr>
+            <td class="narrow">
+              <img src="[% imgs %]/viruses.png" alt="Viruses" />
+              Viruses
+            </td>
+            <td class="wide">
+              <img src="[% imgs %]/unclassified.png" alt="Unclassified" />
+              Unclassified
+            </td>
+          </tr>
+          <tr>
+            <td class="narrow">
+              <img src="[% imgs %]/viroids.png" alt="Viroids" />
+              Viroids
+            </td>
+            <td class="wide">
+              <img src="[% imgs %]/unclassified_sequence.png" alt="Unclassified sequence" />
+              Unclassified&nbsp;sequence
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div id="sunburstTreeDesc">
+  <p>
+    This visualisation provides a simple graphical representation of
+    the distribution of this family across species. You can find the 
+    original interactive tree in the 
+    <span class="link" onclick="speciesTreeTabView.selectTab(1)">
+      adjacent tab</span> if you need to select sub-trees and view 
+    sequence alignments.
+    <span onclick="reveal( this, 'sunburstNotes', false, true );"
+          class="moreLink">
+      More...</span>
+  </p>
+
+  <div id="sunburstNotes" style="display: none">
+    <p>
+      This chart is a modified &quot;sunburst&quot; visualisation of
+      the species tree for this family. It shows each node in the
+      tree as a separate arc, arranged radially with the superkingdoms
+      at the centre and the species arrayed around the outermost
+      ring.
+    </p>
+
+    <h2>How the sunburst is generated</h2>
+
+    <p>
+      The tree is built by considering the taxonomic lineage of each
+      sequence that has a match to this family. For each node in the
+      resulting tree, we draw an arc in the sunburst. The radius of
+      the arc, it's distance from the root node at the centre of the
+      sunburst, shows the taxonomic level (&quot;superkingdom&quot;,
+      &quot;kingdom&quot;, etc). The length of the arc represents
+      either the number of sequences represented at a given level, or
+      the number of species that are found beneath the node in the
+      tree. The weighting scheme can be changed using the sunburst
+      controls.
+    </p>
+    <p>
+      In order to reduce the complexity of the representation, we 
+      reduce the number of taxonomic levels that we show. We consider
+      only the following eight major taxonomic levels:
+    </p>
+    <ul>
+      <li>superkingdom</li>
+      <li>kingdom</li>
+      <li>phylum</li>
+      <li>class</li>
+      <li>order</li>
+      <li>family</li>
+      <li>genus</li>
+      <li>species</li>
+    </ul>
+
+    <h2>Colouring and labels</h2>
+
+    <p>
+      Segments of the tree are coloured approximately according to
+      their superkingdom. For example, archeal branches are coloured
+      with shades of orange, eukaryotes in shades of purple, etc. The
+      colour assignments are shown under the sunburst controls. Where
+      space allows, the name of the taxonomic level will be written on
+      the arc itself.
+    </p>
+    <p>
+      As you move your mouse across the sunburst, the current node
+      will be highlighted. In the top section of the controls panel we
+      show a summary of the lineage of the currently highlighed node.
+      If you pause over an arc, a tooltip will be shown, giving the
+      name of the taxonomic level in the title and a summary of the
+      number of sequences and species below that node in the tree. 
+    </p>
+
+    <h2>Anomalies in the taxonomy tree</h2>
+
+    <p>
+      There are some situations that the sunburst tree cannot easily
+      handle and for which we have work-arounds in place.
+    </p>
+
+    <h3>Missing taxonomic levels</h3>
+
+    <p>
+      Some species in the taxonomic tree may not have one or more of
+      the main eight levels that we display. For example, <em>Bos
+      taurus</em> is not assigned an order in the NCBI taxonomic tree.
+      In such cases we mark the omitted level with, for example,
+      &quot;No order&quot;, in both the tooltip and the lineage
+      summary.
+    </p>
+
+    <h3>Unmapped species names</h3>
+    
+    <p>
+      The tree is built by looking at each sequence in the full
+      alignment for the family. We take the name of the species given
+      by UniProt and try to map that to the full taxonomic tree from
+      NCBI. In some cases, the name chosen by UniProt does not map to
+      any node in the NCBI tree, perhaps because the chosen name is
+      listed as a synonym or a misspelling in the NCBI taxonomy.
+    </p>
+    <p>
+      So that these nodes are not simply omitted from the sunburst
+      tree, we group them together in a separate branch (or segment of
+      the sunburst tree). Since we cannot determine the lineage for
+      these unmapped species, we show all levels between the
+      superkingdom and the species as &quot;uncategorised&quot;.
+    </p>
+
+    <h3>Sub-species</h3>
+
+    <p>
+      Since we reduce the species tree to only the eight main
+      taxonomic levels, sequences that are mapped to the sub-species
+      level in the tree would not normally be shown. Rather than leave
+      out these species, we map them instead to their parent species.
+      So, for example, for sequences belonging to one of the
+      <em>Vibrio cholerae</em> sub-species in the NCBI taxonomy, we
+      show them instead as belonging to the species <em>Vibrio
+      cholerae</em>.
+    </p>
+
+    <h3>Too many species/sequences</h3>
+
+    <p>
+      For large species trees, you may see blank regions in the outer
+      layers of the sunburst. These occur when there are large numbers
+      of arcs to be drawn in a small space. If an arc is less than
+      approximately one pixel wide, it will not be drawn and the space
+      will be left blank. You may still be able to get some
+      information about the species in that region by moving your mouse
+      across the area, but since each arc will be very small, it will
+      be difficult to accurately locate a particular species.
+    </p>
+
+    <hr />
+  </div>
+</div>
+
+<div id="sunburst">
+  <!-- tree markup will go here -->
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var sunburst,
+      slider;
+
+  [%-# set up the "Show/Hide" buttons in the tool panels %]
+  document.observe("dom:loaded", function() {
+
+    // build the sunburst immediately
+    sunburst = new Sunburst( "sunburst", "sunburstControlsContent", treeData );
+    sunburst.build()
+            .draw();
+
+    // set up the controls
+
+    // scale slider
+    slider = new Control.Slider( 
+      $("sliderScale").down('.handle'),  // handle element
+      $("sliderScale"),                  // track element
+      {
+        range: $R(20, 50),
+        values: [ 20, 25, 30, 35, 40, 45, 50 ],
+        sliderValue: 35,
+        onSlide: function(value) {
+          sunburst.setScale( value )
+                  .draw();
+        },
+        onChange: function(value) {
+          sunburst.setScale( value )
+                  .draw();
+        }
+      }
+    );
+
+    // wire up the "weight by..." buttons
+    $("weightSeq").observe( "change", function() {
+      sunburst.weightByNumSeq()
+              .draw();
+    } );
+    $("weightSpecies").observe( "change", function() {
+      sunburst.weightByNumSpecies()
+              .draw();
+    } );
+
+    // make the sunburst controls draggable and translucent
+    new Draggable( "sunburstSubTree" );
+    $("sunburstSubTree").setOpacity(0.85);
+
+    // show/hide the sunburst controls when the toggle button is clicked
+    var sct = $("sunburstControlsToggle");
+    sct.observe("click",function() {
+      toggleTools( sct, "sunburstControlsContent" );
+    } );
+
+  } ); [%# end of "document.observe..." %]
+
+  // ]]>
+</script>
+
