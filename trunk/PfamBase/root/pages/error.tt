@@ -43,6 +43,25 @@ META fullPage = 1;
 
 </div>
 
+<script type="text/javascript">
+  // <![CDATA[
+
+  // if the errorReport div isn't a direct child of the <body>, then it's 
+  // been included via an AJAX call. In that case we don't want the default
+  // page header, footer, navbar, etc. to be displayed. Instead we'll 
+  // replace the contents of the parent of the errorReport div with just the 
+  // errorReport div
+  var errorReport  = $$(".errorReport").first();
+  var errorWrapper = errorReport.up();
+
+  if ( errorWrapper.nodeName !== "BODY" ) {
+    var errorReportEl = errorReport.remove();
+    errorWrapper.update( errorReportEl );
+  }
+
+  // ]]>
+</script>
+
 <!-- end error report -->
 [%#
 Copyright (c) 2007: Genome Research Ltd.
