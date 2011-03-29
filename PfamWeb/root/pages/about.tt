@@ -18,10 +18,7 @@ META fullPage = 1;
     href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a> 
     in Cambridge, UK. Pfam is based on a sequence database called <em>Pfamseq</em>, 
     which is based on <a class="ext" href="http://www.uniprot.org/">UniProt</a>
-    release 15.6 (<a class="ext" href="http://www.expasy.org/sprot/relnotes/relstat.html">Swiss-Prot</a> 
-    release [% relData.swiss_prot_version %] and 
-    <a class="ext" href="http://www.ebi.ac.uk/swissprot/sptr_stats/index.html">
-    SP-TrEMBL</a> release [% relData.trembl_version %]).
+    release [% relData.swiss_prot_version %].
   </p>
   <p>
     Pfam is freely available under the
@@ -40,9 +37,9 @@ META fullPage = 1;
   </p>
   <ul>
     <li>in the UK, at the <a class="ext" href="http://www.sanger.ac.uk/">
-      Wellcome Trust Sanger Institute</a>, by John Tate and Rob Finn</li>
+      Wellcome Trust Sanger Institute</a>, by John Tate</li>
     <li>in the US, at <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Farm Research Campus</a>, by Goran Ceric</li>
+      Howard Hughes Janelia Farm Research Campus</a>, by Rob Finn and Goran Ceric</li>
     <li>in Sweden, at the <a class="ext" href="http://www.sbc.su.se/">Stockholm 
       Bioinformatics Centre</a>, by Kristoffer Forslund and Erik Sonnhammer</li>
   </ul>
