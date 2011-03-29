@@ -53,6 +53,11 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qsqa114ln2YRhFU0SMRhMQ
 
+__PACKAGE__->has_one(
+  "pfama_ncbi",
+  "PfamDB::PfamaNcbi",
+  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+);
 
 __PACKAGE__->set_primary_key("ncbi_taxid");
 
