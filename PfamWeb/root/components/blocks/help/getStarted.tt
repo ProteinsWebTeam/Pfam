@@ -11,11 +11,23 @@
 
 <div class="block" id="helpGetStartedBlock">
   <div class="handle">
-    <h1>Getting Started using Pfam</h1>
+    <h1><a name="getStartedTop">Getting Started using Pfam</a></h1>
   </div>
   <div class="blockContent">
 
-    <h2>Site organisation</h2>
+    <div class="sections">
+      <p>Contents:</p>
+      <ol>
+        <li><a class="link" rel="organisation">Site organisation</a></li>
+        <li><a class="link" rel="jumpTo">Using &quot;Jump to&quot;</a></li>
+        <li><a class="link" rel="kwSearch">Using the keyword search</a></li>
+        <li><a class="link" rel="seqSearch">Searching a sequence</a></li>
+        <li><a class="link" rel="archSearch">Finding architectures</a></li>
+        <li><a class="link" rel="wiki">Wikipedia annotation</a></li>
+      </ol> 
+    </div>
+  
+    <h2><a name="organisation">Site organisation</a></h2>
 
     <img alt="Site organisation" 
          id="wiringDiagram"
@@ -92,13 +104,15 @@
       </div>
     </div>
 
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
     <hr />
     
     <img class="jumpTo" 
          src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
          alt="jump to..." />
 
-    <h2>Using the &quot;Jump to&quot; search</h2>
+    <h2><a name="jumpTo">Using the &quot;Jump to&quot; search</a></h2>
 
     <p>
       Many pages in the site include a small search box, entitled &quot;Jump 
@@ -145,13 +159,15 @@
       <li>Proteome species name, e.g. Homo sapiens</li>
     </ul>
 
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
     <hr />
     
     <img class="jumpTo" 
          src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]" 
          alt="keyword search" />
 
-    <h2>Keyword search</h2>
+    <h2><a name="kwSearch">Keyword search</a></h2>
     
     <p>
       Every page in the Pfam site includes a search box in the page header.
@@ -170,9 +186,11 @@
       might have been found in more than one area of the database.
     </p>      
 
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
     <hr />
     
-  	<h2>Searching a protein sequence against Pfam</h2>
+  	<h2><a name="seqSearch">Searching a protein sequence against Pfam</a></h2>
   
   	<p>
       Searching a protein sequence against the Pfam library of HMMs will
@@ -235,19 +253,19 @@
       view the proteome page for that organism. From here you can view the
       domain organisation and the domain composition for that proteome.
     </p>
-<!-- currently disabled...
     <p>
       The taxonomy query allows quick identification of families/domains which
       are present in one species but are absent from another. It can also be
       used to find families/domains that are unique to a particular species
       (note this can be very slow). 
   	</p>
--->
   
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
     <hr />
     
-  	<h2>Finding proteins with a specific set of domain 
-      combinations ('architectures')</h2>
+  	<h2><a name="archSearch">Finding proteins with a specific set of domain 
+      combinations ('architectures')</a></h2>
   
   	<p>
       Pfam allows you to retrieve all of the proteins with a particular domain
@@ -262,6 +280,19 @@
       distances allowed between domains. 
     </p>
   
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
+    <hr />
+    
+  	<h2><a name="wiki">Wikipedia annotation</a></h2>
+  
+  	<p>
+      The Pfam consortium is now coordinating the annotation of Pfam families via
+      <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia </a>.
+    </p>
+  
+    <p><a class="link" rel="getStartedTop">back to top</a></p>
+
     <script type="text/javascript">
       // <![CDATA[
 
