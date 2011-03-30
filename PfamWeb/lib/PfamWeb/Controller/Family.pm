@@ -270,15 +270,14 @@ sub get_data : Private {
         $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
 
         # add the clan details, if any
-        my $clans = $c->model('PfamDB::Clans')
-                      ->search( { 'clan_memberships.auto_pfama' => $pfam->auto_pfama },
-                                { join     => [ qw(clan_memberships) ],
-                                  prefetch => [ qw(clan_memberships) ] } )
-                      ->first;
+        my $clans = $c->model('PfamDB::ClanMembership')
+                              ->search( { 'auto_pfama' => $pfam->auto_pfama },
+                                        { join     => [ qw(auto_clan) ],
+                                          prefetch => [ qw(auto_clan) ] } )->first;
         
-        if ( $clans and  defined $clans->clan_acc ) {
+        if ( $clans and  defined $clans->auto_clan->clan_acc ) {
           $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
-          $c->stash->{clan} = $clans;
+          $c->stash->{clan} = $clans->auto_clan;
         }
         
         $c->forward( 'get_summary_data' );
