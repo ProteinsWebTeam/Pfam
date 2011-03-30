@@ -15,14 +15,17 @@ META fullPage = 1;
   
   <p>
     Pfam version [% relData.pfam_release %] was produced at the <a class="ext" 
-    href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a> 
-    in Cambridge, UK. Pfam is based on a sequence database called <em>Pfamseq</em>, 
-    which is based on <a class="ext" href="http://www.uniprot.org/">UniProt</a>
-    release [% relData.swiss_prot_version %].
+      href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a> 
+    and <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
+      Howard Hughes Janelia Farm Research Campus</a>. Pfam is based on a 
+    sequence database called <em>Pfamseq</em>, which is based on 
+    <a class="ext" href="http://www.uniprot.org/">UniProt</a> release 
+    [% relData.swiss_prot_version %].
   </p>
   <p>
     Pfam is freely available under the
-    <a class="ext" href="http://www.gnu.org/copyleft/lesser.html">GNU LGPL license</a>.
+    <a class="ext" href="http://www.gnu.org/copyleft/lesser.html">
+      Creative Commons Zero</a> (&quot;CC0&quot;) license.
   </p>
  
   <p> 
@@ -39,7 +42,8 @@ META fullPage = 1;
     <li>in the UK, at the <a class="ext" href="http://www.sanger.ac.uk/">
       Wellcome Trust Sanger Institute</a>, by John Tate</li>
     <li>in the US, at <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Farm Research Campus</a>, by Rob Finn and Goran Ceric</li>
+      Howard Hughes Janelia Farm Research Campus</a>, by Rob Finn, Jody Clements
+      and Goran Ceric</li>
     <li>in Sweden, at the <a class="ext" href="http://www.sbc.su.se/">Stockholm 
       Bioinformatics Centre</a>, by Kristoffer Forslund and Erik Sonnhammer</li>
   </ul>
