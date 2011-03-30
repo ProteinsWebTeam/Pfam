@@ -14,6 +14,17 @@ mapping = {};
 USE pdbMapIter = iterator( pfamMaps );
 
 FOREACH pdbMap IN pdbMapIter;
+
+  rowKey = pdbMap.get_column("pfamA_id")                                                   # famKey
+           _ "_" _ pdbMap.get_column("pfamseq_id")                                         # seqKey
+           _ "_" _ pdbMap.get_column("pfam_start_res") _ pdbMap.get_column("pfam_end_res") # resKey
+           _ "_" _ pdbMap.get_column("pdb_id")                                             # pdbKey
+           _ "_" _ pdbMap.get_column("chain")                                              # chainKey
+           _ "_" _ pdbMap.get_column("pdb_start_res") _ pdbMap.get_column("pdb_end_res");  # pdbResKey
+
+  NEXT IF rowHash.${rowKey};
+  rowHash.${rowKey} = 1;
+
   famKey = pdbMap.get_column("pfamA_id");
   IF ! mapping.$famKey;
     mapping.$famKey = {};
