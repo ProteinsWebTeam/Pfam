@@ -49,10 +49,8 @@ of URL to get here:
 
 =cut
 
-sub default : Path : Args(1) {
-  my ( $this, $c, $arg ) = @_;
-  $c->log->debug( "Section::default: found an argument on the URL: |$arg|" )
-    if $c->debug;
+sub default : Path {
+  my ( $this, $c  ) = @_;
 }
 
 #-------------------------------------------------------------------------------
