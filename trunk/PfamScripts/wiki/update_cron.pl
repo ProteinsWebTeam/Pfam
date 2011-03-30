@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # this script updates the "wikipedia_revision" column in the wiki_approve database.
 # It checks wikipedia to get the latest revision number for all of the articles 

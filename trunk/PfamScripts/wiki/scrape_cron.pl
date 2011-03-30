@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 # This script downloads the list of current approved revision IDs for 
 # wikipedia articles and scrapes the content for the approved revisions,
