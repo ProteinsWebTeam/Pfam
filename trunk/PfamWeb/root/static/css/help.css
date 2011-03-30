@@ -72,6 +72,7 @@ img.jumpTo {
 #wiringDiagram {
 	width: 480px;
 	height: 270px;
+  cursor: pointer;
 }
 
 #wiringBlockSummaries {
