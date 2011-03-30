@@ -47,10 +47,12 @@ PROCESS "components/require.tt";
 
     var numColsTable;
 
-    Event.observe( window, "load", function() {
+    document.observe( "dom:loaded", function() {
       var r = new Ajax.Request( 
         "[% c.uri_for( '/clan/structures' ) %]",
-        { parameters: { acc: "[% clan.clan_acc %]" },
+        { 
+          method:     "get",
+          parameters: { acc: "[% clan.clan_acc %]" },
           onComplete: function( oResponse ) {
 
             $("clanStructureTabHolder").update( oResponse.responseText );
