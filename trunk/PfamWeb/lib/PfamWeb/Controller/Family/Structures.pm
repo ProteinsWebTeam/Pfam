@@ -64,7 +64,7 @@ the method also retrieves the row of the "pdb" table for that entry.
 
 =cut
 
-sub structures : Path {
+sub structures : Path :  Args(1) {
   my ( $this, $c ) = @_;
 
   # see if we were handed a valid PDB ID and, if so, just stash it
