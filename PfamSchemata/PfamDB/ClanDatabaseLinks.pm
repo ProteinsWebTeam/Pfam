@@ -45,6 +45,7 @@ __PACKAGE__->belongs_to("auto_clan", "PfamDB::Clans", { auto_clan => "auto_clan"
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J3Lv14/WLZ9bz+8VS7EbhA
 
+__PACKAGE__->set_primary_key("auto_clan");
 
 =head1 COPYRIGHT
 
