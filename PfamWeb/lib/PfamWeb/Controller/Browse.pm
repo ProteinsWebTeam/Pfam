@@ -183,8 +183,7 @@ sub browse_clans : Path( '/clan/browse' ) {
 
   my @res = $c->model('PfamDB::Clans')
               ->search( { },
-                        { prefetch => [ 'clan_database_links' ],
-                			    order_by => 'clan_id ASC' } );
+                        { order_by => 'clan_id ASC' } );
 
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
