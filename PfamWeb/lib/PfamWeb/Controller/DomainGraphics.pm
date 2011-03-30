@@ -990,7 +990,7 @@ sub get_proteome_data : Private {
     my $id = $row->get_column('pfamseq_id');
 
     unless ( $c->stash->{auto_arch} or 
-             $c->stash->{pfam}->auto_pfama ) {
+            (exists($c->stash->{pfam}) and $c->stash->{pfam}->auto_pfama ) ) {
 
       my @domains = split /\~/, $row->auto_architecture->architecture;
 
