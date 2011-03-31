@@ -20,6 +20,9 @@ sharedRequirements.css.push( "wp.css" );
 
 #-------------------------------------------------------------------------------
 
+# make a boolean to show whether we have wikipedia articles or not
+hasWikiArticles = articles.size ? 1 : 0;
+
 # process the template that defines the blocks that do various things with
 # database links. We use it later to convert IDs in the Pfam comment and to
 # build tables of database links 
@@ -42,7 +45,7 @@ PROCESS components/links.tt; %]
 
       <ul id="summaryTabsNav" class="yui-nav">
         <!-- wp -->
-        [%- IF articles.size;
+        [%- IF hasWikiArticles;
           FOREACH article IN articles %]
           <li[% IF loop.first %] class="selected"[% END %]>
             <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title.replace( "_", " " ) | html %]</a>
@@ -54,7 +57,7 @@ PROCESS components/links.tt; %]
           </li>
         [%- END %]
         <!-- pf -->
-        <li[% IF ! articles.size %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
+        <li[% IF ! hasWikiArticles %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
         <li[% ' class="disabled"' UNLESS pfam.interpro %]>
           <a href="#interproContent">Interpro</a>
@@ -66,7 +69,7 @@ PROCESS components/links.tt; %]
 
         <!-- ============================================================== -->
 
-        [%- IF articles.size;
+        [%- IF hasWikiArticles;
           FOREACH article IN articles %]
             <div id="wpContent[% loop.index %]">
 
@@ -96,7 +99,7 @@ PROCESS components/links.tt; %]
                   basis.
                 </p>
                 
-                <h3>Does Pfam agree with the content of the Wikipedia entry ?</h3>
+                <h2>Does Pfam agree with the content of the Wikipedia entry ?</h2>
 
                 <p>
                   Pfam has chosen to link families to Wikipedia articles. In
@@ -111,7 +114,9 @@ PROCESS components/links.tt; %]
                   page.
                 </p>
                 
-                <h2>Before you edit for the first time</h2>
+                <h2>Editing Wikipedia articles</h2>
+                
+                <h3>Before you edit for the first time</h3>
 
                 <p>
                   Wikipedia is a free, online encyclopedia. Although anyone can
@@ -137,8 +142,6 @@ PROCESS components/links.tt; %]
                         Editing help</a></li>
                 </ul>
 
-                <h2>Things you should know</h2>
-                
                 <h3>How your contribution will be recorded</h3>
 
                 <p>
@@ -233,11 +236,13 @@ PROCESS components/links.tt; %]
                style="display: none">&nbsp;</div>
 
           <h1>
-            [% pfam.description %]
-            <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
-              <img class="addAnnotation" 
-                   alt="Add an annotation" 
-                   src="[% c.uri_for( '/static/images/annotation.png' ) %]" /></a>
+            [% pfam.description;
+            IF ! hasWikiArticles %]
+              <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
+                <img class="addAnnotation" 
+                     alt="Add an annotation" 
+                     src="[% c.uri_for( '/static/images/annotation.png' ) %]" /></a>
+            [%- END %]
           </h1>
 
           [%- IF pfam.comment.length %]
@@ -380,7 +385,7 @@ PROCESS components/links.tt; %]
     document.observe( "dom:loaded", function() {
       extraContentTabView = new YAHOO.widget.TabView("summaryTabs");
 
-      [%- IF articles.size;
+      [%- IF hasWikiArticles;
         # set up the "show"/"hide" links in the wiki content %]
         $$(".wpData").each( function( wpData ) {
           wikiContents.push( new WikiContent( wpData ) );
