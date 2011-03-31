@@ -135,7 +135,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
       [% END %]
   
-      <form method="post" 
+      <form method="get" 
             id="proteinTaxSearchForm"
             action="[% c.uri_for( '/search/taxonomy' ) %]">
 
