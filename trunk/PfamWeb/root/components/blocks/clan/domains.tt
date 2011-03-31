@@ -83,6 +83,7 @@
       var r = new Ajax.Request(
         "[% c.uri_for( '/domaingraphics' ) %]",
         { 
+          method:     "get",
           parameters: { acc: "[% clan.clan_acc %]" },
           onComplete: function( oResponse ) {
             $("clanGraphicsHolder").update( oResponse.responseText );
