@@ -7,6 +7,7 @@ Pfam version: [% relData.pfam_release %]
 
 Name:       [% user | html %]
 Email:      [% email | html %]
+Posted at:  [% c.config.site %]
 Annotation:
 [% annotation | html %]
 
