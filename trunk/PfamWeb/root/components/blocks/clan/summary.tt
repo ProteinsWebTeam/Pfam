@@ -148,12 +148,13 @@ END;
         "siph",
         "[% c.uri_for( '/family/structures', members.first.pfama_acc ) %]",
         {
+          method:      "get",
           evalScripts: true,
-          onSuccess: function() {
+          onSuccess:   function() {
             $("siph").show();
           },
-          on204: function() {
-            // capture the 204 so that we don't end up showing an empty box... 
+          on204:       function() {
+            // capture the 204 so that we dont end up showing an empty box... 
           }
         }
       );
