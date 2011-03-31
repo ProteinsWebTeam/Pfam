@@ -215,38 +215,38 @@ sub setPage : Private {
   $numRowsToShow = $c->stash->{numRowsInAlignment}
     if $c->stash->{numRowsInAlignment} < $numRowsToShow;
 
-  $c->log->debug( "PfamViewer::view: showing |$numRowsToShow| rows" )
+  $c->log->debug( "PfamViewer::setPage: showing |$numRowsToShow| rows" )
     if $c->debug;
 
   #----------------------------------------
 
   # use a Data::Pageset object to keep track of all this...
   my $pager = Data::Pageset->new( { total_entries    => $c->stash->{numRowsInAlignment}, 
-                                     entries_per_page => $numRowsToShow,
-                                     pages_per_set    => 11,
-                                     mode             => 'slide' } );
+                                    entries_per_page => $numRowsToShow,
+                                    pages_per_set    => 11,
+                                    mode             => 'slide' } );
   $c->stash->{pager} = $pager;
 
   # find out what page we want for this request
   my $page;
   if ( defined $c->req->param('page') ) {
     ( $page ) = $c->req->param('page') =~ m/^(\d+)$/;
-    $c->log->debug( "PfamViewer::view: requested page number |$page|" )
+    $c->log->debug( "PfamViewer::setPage: requested page number |$page|" )
       if $c->debug;
   }
   
   elsif( defined $c->req->param('next') ) {
     $page = $pager->next;
-    $c->log->debug( 'PfamViewer::view: requested next page' ) if $c->debug;
+    $c->log->debug( 'PfamViewer::setPage: requested next page' ) if $c->debug;
   }
   
   elsif( defined $c->req->param('prev') ) {
     $page = $pager->prev;
-    $c->log->debug( 'PfamViewer::view: requested previous page' ) if $c->debug;
+    $c->log->debug( 'PfamViewer::setPage: requested previous page' ) if $c->debug;
   }
   
   $page ||= 1;
-  $c->log->debug( "PfamViewer::view: showing page |$page|" ) if $c->debug;
+  $c->log->debug( "PfamViewer::setPage: showing page |$page|" ) if $c->debug;
   
   $pager->current_page( $page ); 
 
