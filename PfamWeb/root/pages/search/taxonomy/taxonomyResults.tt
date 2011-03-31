@@ -74,6 +74,7 @@ META fullPage = 1;
     "results",
     "[% c.uri_for( '/search/taxonomy/results' ) %]",
     {
+      method:      "get",
       evalScripts: true,
       parameters:  { q: encodeURI('[% q %]') },
       onFailure:   function() {
