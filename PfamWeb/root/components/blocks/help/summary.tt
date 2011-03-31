@@ -15,6 +15,12 @@ PROCESS "components/require.tt";
 requirements.css.push( "help.css" );
 requirements.cssIeAll.push( "help_ie.css" );
 
+requirements.js.push( "lightbox2.js" );
+requirements.js.push( "image_switcher.js" );
+
+requirements.css.push( "lightbox2.css" );
+requirements.css.push( "structure.css" );
+
 #-------------------------------------------------------------------------------
 
 # format the date nicely
@@ -100,11 +106,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <script type="text/javascript">
       // <![CDATA[
 
-      Event.observe( window, "load", function() {
+      document.observe( "dom:loaded", function() {
     
-        $$("a[rel]").each( function(el){
+        $$("a[rel]").each( function(el) {
     
-          el.observe( "click", function(e){
+          el.observe( "click", function(e) {
             var el = e.findElement();
             var target = el.getAttribute("rel");
             $$("a[name='"+target+"']").first().scrollTo();
