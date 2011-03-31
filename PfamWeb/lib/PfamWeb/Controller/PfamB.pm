@@ -81,7 +81,7 @@ sub structures : Local {
 
   my @mapping = $c->model('PfamDB::PdbPfambReg')
                   ->search( { auto_pfamB  => $c->stash->{pfam}->auto_pfamb },
-                            { prefetch    => [ 'pdb' ] } );
+                            { prefetch    => [ 'pdb_id' ] } );
   $c->stash->{pfamMaps} = \@mapping;
   $c->log->debug( 'PfamB::structuretab: found |' . scalar @mapping . '| mappings' )
     if $c->debug;
