@@ -27,7 +27,7 @@ CALL c.log.debug( "in seqView.tt" );
 title = "Align selected sequences"
 -%]
 
-<h1>Alignment selected sequences</h1>
+<h1>Align selected sequences</h1>
 
 <p>
   You selected <strong>[% selectedSeqAccs.size %]</strong> sequences.
