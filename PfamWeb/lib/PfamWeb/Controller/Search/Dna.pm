@@ -77,7 +77,8 @@ sub search : Path {
   $c->stash->{refreshUri}   = $c->uri_for( '/search' );
   $c->stash->{refreshDelay} = 30;
 
-  $c->log->debug( 'Search::Dna::search: batch dna search submitted' ); 
+  $c->log->debug( 'Search::Dna::search: batch dna search submitted' )
+    if $c->debug;
   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
 }
 
