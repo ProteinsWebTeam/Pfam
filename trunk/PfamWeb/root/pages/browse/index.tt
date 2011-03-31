@@ -27,10 +27,10 @@ clanPages =   [ "numbers" ];
 
 # shortcuts for URIs
 baseUri     = c.uri_for( "/" );
-familyURI   = "${baseUri}/family/browse";
-clanURI     = "${baseUri}/clan/browse";
-proteomeURI = "${baseUri}/proteome/browse";
-metaseqURI  = "${baseUri}/metaseq/browse";
+familyURI   = "${baseUri}family/browse";
+clanURI     = "${baseUri}clan/browse";
+proteomeURI = "${baseUri}proteome/browse";
+metaseqURI  = "${baseUri}metaseq/browse";
 %]
 
 <!-- start of browse index page -->
