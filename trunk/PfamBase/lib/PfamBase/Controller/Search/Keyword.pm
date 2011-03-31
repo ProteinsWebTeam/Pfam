@@ -37,7 +37,7 @@ Forwards immediately to the L<run_searches> action to run the text searches.
 
 =cut
 
-sub text_search : Path {
+sub text_search : Path : Args(0) {
   my ( $this, $c ) = @_;
 
   # if there's no query parameter, we're done here; drop straight to the 
