@@ -287,8 +287,20 @@
   	<h2><a name="wiki">Wikipedia annotation</a></h2>
   
   	<p>
-      The Pfam consortium is now coordinating the annotation of Pfam families via
-      <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia </a>.
+      The Pfam consortium is now coordinating the annotation of Pfam families
+      via <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">
+        Wikipedia</a>. On the summary tab of some family pages, you'll find the 
+      text from a Wikipedia article that we feel provides a good description
+      of the Pfam family. If a family has a Wikipedia article assigned to it,
+      we now show the text of that article on the summary tab, in preference
+      to the traditional Pfam annotation text.
+    </p>
+    <p>
+      If a family does not yet have a Wikipedia article assigned to it, there
+      are several ways for you to help us add one. You can find much more
+      information about the process in the
+		  <span class="link" onclick="tabPage.switchTab('helpWikiBlock')">
+        Pfam and Wikipedia</span> tab.
     </p>
   
     <p><a class="link" rel="getStartedTop">back to top</a></p>
