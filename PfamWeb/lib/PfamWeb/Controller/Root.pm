@@ -60,12 +60,11 @@ sub auto : Private {
   # effectively a test of whether we can connect to the DB. If we can't, 
   # set the template to point to a page that will apologise and let the "end"
   # actin do its stuff
-  my $releaseData;
   eval {
     # stash some details of the Pfam release
-    $releaseData = $c->model( 'PfamDB::Version' )
-                     ->search( {} )
-                     ->first;
+    $c->stash->{relData} = $c->model( 'PfamDB::Version' )
+                             ->search( {}, {} )
+                             ->first;
   };
   if ( $@ ) {
     $c->stash->{template} = 'pages/db_down.tt';
@@ -74,8 +73,6 @@ sub auto : Private {
     return 0;
   }
   
-  $c->stash->{relData} = $releaseData if $releaseData;
-
   # call the "auto" method on the super-class, which will do the work of
   # picking the correct tab for us
   return $c->SUPER::auto( @_ );
