@@ -429,19 +429,24 @@ sub _get_lock{
 
    if( !-e $self->_lock_file ) {
        # get the lock now!
-
+       
        open( _LOCK_, ">".$self->_lock_file ) || die "Could not open lock file $!";
        print _LOCK_ "$me has locked the database\n";
        close(_LOCK_);
        $self->{'is_locked'} = 1;
-
+       
        return undef;
    } else {
        open( _LOCK_, $self->_lock_file ) || die "Could not open lock file $!";
        $line = <_LOCK_>;
-       $line =~ /(\S+)/;
-       $name = $1;
+       if($line =~ /(\S+)/){
+	   $name = $1;
+       }
+       else {
+	   die "FATAL: lock file ($self->_lock_file) was empty!";
+       }
        close(_LOCK_);
+       
        return $name;
    }
 }
