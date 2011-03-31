@@ -228,7 +228,7 @@ oe    = 0;
     // <![CDATA[
 
     var lb, prints;
-    Event.observe( window, "load", function() {
+    document.observe( "dom:loaded", function() {
 
       // set up the lightbox
       lb = new Lightbox();
