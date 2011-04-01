@@ -40,17 +40,55 @@ __PACKAGE__->config( SECTION => 'protein' );
 
 =head1 METHODS
 
-=head2 protein : Chained 
+=head2 default : Path
 
-Takes the place of the original "begin" method. We need to fiddle with the 
-chain to make this work, but essentially this method does the same thing: get 
-the data from the database for the UniProt entry.
+The entry point when the accession/ID is given as a parameter rather than an 
+argument.
 
 =cut
+
+sub default : Path {
+  my ( $this, $c ) = @_;
+
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $c->req->param('name')  || # cope with redirects "swisspfamget.pl"
+                      '';
+
+  $c->log->debug( "Protein::default: got a tainted entry: |$tainted_entry|" )
+    if $c->debug;
+
+  $c->detach( 'protein', [ $tainted_entry ] );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 protein_end : Chained 
+
+The entry point when the accession/ID is given as an argument on the URL, 
+e.g. /protein/VAV_HUMAN.
+
+=cut
+
+# I'm not convinced this wiring is the most sensible way to use Chained...
+# jt6 20110401 WTSI
 
 sub protein_end : Chained( 'protein' )
                   PathPart( '' )
                   Args( 0 ) {}
+
+#-------------------------------------------------------------------------------
+
+=head2 protein : Chained 
+
+This is the method that takes care of retrieving protein data from the database.
+There are two possible entry points, depending whether the accession/ID arrived
+as an argument on the URL, in which case we arrive here via a chain, or as a
+parameter, in which case the "default" method detaches here. Hopefully the end
+result is the same in either case.
+
+=cut
 
 sub protein : Chained( '/' )
               PathPart( 'protein' )
@@ -82,12 +120,7 @@ sub protein : Chained( '/' )
   #----------------------------------------
 
   # get a handle on the entry and detaint it
-  my $tainted_entry = $c->req->param('acc')   ||
-                      $c->req->param('id')    ||
-                      $c->req->param('entry') ||
-                      $c->req->param('name')  || # cope with redirects "swisspfamget.pl"
-                      $entry_arg              ||
-                      '';
+  my $tainted_entry = $entry_arg || '';
   
   my $entry;
   if ( $tainted_entry ) {
