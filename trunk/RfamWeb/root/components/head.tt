@@ -40,7 +40,7 @@ IF refreshUri != "";
 
 <!-- prototype / scriptaculous -->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">google.load("prototype", "1.6.1");</script>
+<script type="text/javascript">google.load("prototype", "1.7");</script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,builder,controls"></script>
 
 <!-- YUI -->
