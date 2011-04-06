@@ -32,7 +32,7 @@ sharedUri = c.uri_for( "/shared" );
              id="siteLogo"
              src="[% sharedUri %]/images/blank.gif" /></a>
       
-      <a class="pfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
+      <a class="rfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
         <img alt="Pfam" 
              id="pfamLogo" 
              src="[% sharedUri %]/images/blank.gif" /></a>
