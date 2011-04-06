@@ -66,7 +66,8 @@ sub html : Local {
       # retrieve the HTML from the DB
       $row = $c->model('PfamDB::AlignmentsAndTrees')
                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
-                           type       => $c->stash->{alnType} } )
+                           type       => $c->stash->{alnType} },
+                          { columns    => [ qw( jtml ) ] } )
                ->single;
     
       # final check...
@@ -145,7 +146,8 @@ sub heatmap : Local {
       # retrieve the HTML from the DB
       $row = $c->model('PfamDB::AlignmentsAndTrees')
                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
-                           type       => 'full' } )
+                           type       => 'full' }, 
+                         { columns    => [ qw( post ) ] } )
                ->single;
     
       # final check...
@@ -193,11 +195,14 @@ sub gzipped : Local {
       if $c->debug;
 
     # build the alignment file
-    my @rs = $c->model('PfamDB::PfamaRegFullSignificant')
+    my $rs = $c->model('PfamDB::PfamaRegFullSignificant')
                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                         { prefetch => [ 'auto_pfamseq' ] } );
+                         { prefetch => [ qw( auto_pfamseq ) ],
+                           columns  => [ qw( auto_pfamseq.pfamseq_id 
+                                             auto_pfamseq.pfamseq_acc
+                                             auto_pfamseq.sequence ) ] } );
     my $sequences = '';
-    foreach my $seq_row ( @rs ) {
+    while ( my $seq_row = $rs->next ) {
       $Text::Wrap::columns = 60;
       $sequences .= '>' . $seq_row->pfamseq_id . ' (' . $seq_row->pfamseq_acc . ")\n";
       $sequences .= wrap( '', '', $seq_row->sequence ) . "\n";
@@ -213,7 +218,8 @@ sub gzipped : Local {
     # retrieve the alignment
      my $rs = $c->model('PfamDB::AlignmentsAndTrees')
                 ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
-                            type       => $c->stash->{alnType} } )
+                            type       => $c->stash->{alnType} },
+                          { columns    => [ qw( alignment ) ] } )
                 ->single();
 
     $alignment = $rs->alignment;
@@ -421,7 +427,8 @@ sub getAlignment : Private {
       # retrieve the alignment from the DB
       my $row = $c->model('PfamDB::AlignmentsAndTrees')
                   ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
-                              type       => $c->stash->{alnType} } )
+                              type       => $c->stash->{alnType} },
+                            { columns    => [ qw( alignment ) ] } )
                   ->single;
   
       unless ( defined $row and defined $row->alignment ) {
