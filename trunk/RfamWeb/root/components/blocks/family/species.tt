@@ -114,12 +114,41 @@ sharedRequirements.js.push( "treeTweak.js" );
 
     <!-- start of tree -->
     <div id="treeDiv" class="ygtv-checkbox">
-      <p id="stph" class="loading">Loading...</p>
+      <div id="loadTree">
+        <p>
+          The interactive species trees can be large and slow to generate. If you would like
+          to see the tree for this family, please press the button below.
+        </p>
+        <button id="loadTreeButton">Load tree</button>
+      </div>
+      <p id="stph" class="loading" style="display: none">Loading species tree...</p>
     </div>
 
     [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
-    
+
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    $("loadTreeButton").observe( "click", function() {
+      $("loadTree").remove();
+      $("stph").show();
+      var r = new Ajax.Request(
+        stUri,
+        {
+          method:     "get",
+          parameters: { acc: "[% acc %]",
+                        ie:  Prototype.Browser.IE },
+          onSuccess:  stSuccess,
+          onFailure:  stFailure
+        }
+      );
+    } );
+
+    // ]]>
+  </script>
+
 </div>
 
 
