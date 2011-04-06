@@ -262,6 +262,8 @@ sub browse_all_families : Chained( 'browse_families' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
 
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Browse::browse_all_families: showing all families' )
       if $c->debug;
 
