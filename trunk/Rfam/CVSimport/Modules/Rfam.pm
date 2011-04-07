@@ -161,10 +161,10 @@ our $rdbHostDev = "pfamdb2a";
 our $rdbUserDev = "pfam";
 our $rdbPassDev = "mafp1";
 our $rdbPortDev= "3301";
-our $rdbNameDev= "rfam_10_0";
+our $rdbNameDev= "rfam_10_1";
 
 our $live_rdb_name = "rfamlive";
-our $release_rdb_name = "rfam_9_1";
+our $release_rdb_name = "rfam_10_1";
 #temp databases used sequpdate switch over
 our $backup_rdb_name = "rfamlive_backup";
 our $test_rdb_name = "rfamlive_seq10";
