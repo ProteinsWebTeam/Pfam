@@ -47,7 +47,7 @@ sub begin : Private {
     for qw( to from top20 numbers );
 
   # set the page to be cached for one week
-  #$c->cache_page( 604800 );
+  $c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'browse';
@@ -261,8 +261,6 @@ sub browse_all_families : Chained( 'browse_families' )
                           PathPart( 'browse' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
-
-  $c->cache_page( 604800 );
 
   $c->log->debug( 'Browse::browse_all_families: showing all families' )
       if $c->debug;
