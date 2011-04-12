@@ -98,7 +98,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <p>
         If you are planning to submit a lot of sequence searches, we recommend 
         installing 
-        <a href="http://www.sanger.ac.uk/Software/Rfam/help/software.shtml">rfam_scan.pl</a>
+        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">rfam_scan.pl</a>
         locally.
       </p>
 
