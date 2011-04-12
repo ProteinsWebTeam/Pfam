@@ -234,7 +234,12 @@ sub get_data : Private {
     $c->stash->{pfamseq} = $c->model('PfamDB::SecondaryPfamseqAcc')
                              ->search( { secondary_acc => $entry },
                                        { prefetch      => [ qw( auto_pfamseq ) ] } )
-                             ->single;
+                             ->single
+                             ->auto_pfamseq;
+
+    # set a flag to show that we got a secondary accession, so that the 
+    # template add a message to that effect to the page
+    $c->stash->{from_secondary_acc} = $entry;
   }
   
   unless ( $c->stash->{pfamseq} ) {
