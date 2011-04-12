@@ -47,7 +47,12 @@ oe = 0;
   </div>
   <div class="blockContent">
     
-    <h1>[% pfamseq.pfamseq_id %]</h1>
+    <h1>
+      [% pfamseq.pfamseq_id;
+      IF from_secondary_acc -%]
+      (via secondary accession <strong>[% from_secondary_acc %]</strong>)
+      [%- END %]
+    </h1>
 
     <p>
       This is the summary of UniProt entry 
