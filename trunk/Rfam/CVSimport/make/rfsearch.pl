@@ -58,7 +58,8 @@ my(
     $rfamTimes,
     $cmsearch_eval,
     @extraCmsearchOptionsSingle,
-    @extraCmsearchOptionsDouble
+    @extraCmsearchOptionsDouble,
+    $nostruct
     );
 
 #BLAST/MINIDB defaults
@@ -106,6 +107,7 @@ $cmsearch_eval=1000000;
              "cme|cmsearchevalue=s"    => \$cmsearch_eval,
              "cmos|cmsearchoptions=s@" => \@extraCmsearchOptionsSingle,
              "cmod|cmsearchoptiond=s@" => \@extraCmsearchOptionsDouble,
+             "nostruct"                => \$nostruct,
              "debug"                   => \$debug,
 	     "h|help"                  => \$help 
     );
@@ -169,22 +171,67 @@ else {
 &printlog( "RFSEARCH RUN ON: " . $runTimes{'rfam_acc'} . ":" . $desc->{'ID'} );
 
 ######################################################################
-#Validate the SEED & check for an RF line:
+#Validate the SEED & check for RF and SS_cons annotation
 $buildopts = "" unless $buildopts;
 if (-e "SEED"){
-    open( S, "SEED" ) or die("SEED exists but couldn't be opened!");
-    my $seenrf;
+    open(S, "SEED") or die("SEED exists but couldn't be opened!");
+    my $seen_rf;
+    my $seen_sscons;
     while(<S>) {
-	if( /^\#=GC RF/ ) {
-	    $seenrf = 1;
-	    last;
+	if( /^\#=GC\s+RF/ ) {
+	    $seen_rf = 1;
+	}
+	if( /^\#=GC\s+SS_cons/ ) {
+	    $seen_sscons = 1;
 	}
     }
-    
-#Using a reference coordinate system
-    if( !$seenrf and $buildopts =~ /--rf/ ) {
+    close(S);
+    #Using a reference coordinate system
+    if( !$seen_rf and $buildopts =~ /--rf/ ) {
 	$buildopts =~ s/--rf //g;
     }
+    # Check if we need to add SS_cons to the SEED (only legal if -nostruct enabled)
+    if(! $seen_sscons) { # SS_cons does not exist in SEED
+	if(! $nostruct) { # -nostruct not enabled, die
+	    die("FATAL: no SS_cons in SEED, use -nostruct to build a 0 bp one");
+	}
+	else { # -nostruct enabled, add zero bp SS_cons to alignment
+	    # first convert it to Pfam format (1 line per sequence) with esl-reformat
+	    my $status = system "esl-reformat --informat stockholm pfam SEED > SEED.tmp";
+	    if($status != 0) { die "couldn't convert SEED to pfam"; }
+	    open(S,  "SEED.tmp")   || die "ERROR couldn't open SEED.tmp  for reading";
+	    open(NS, ">SEED.tmp2") || die "ERROR couldn't open SEED.tmp2 for writing";
+	    # regurgitate SEED.tmp and insert appropriate length blank (0 bp) SS_cons at end
+	    my ($line, $i);
+	    my $sscons = "";
+	    my $aln = "";
+	    while($line = <S>) { 
+		if($line =~ /^\/\/$/) { # final line, insert SS_cons before it
+		    if($sscons eq "") { die "ERROR adding SS_cons"; }
+		    print NS $sscons . "\n";
+		}
+		print NS $line;
+		if($sscons eq "") { 
+		    chomp $line;
+		    if(($line !~ m/^\#/) && ($line =~ s/^\S+\s+//)) { # a sequence line, with seq name now removed
+			if($sscons eq "") { $sscons = "#=GC SS_cons "; }
+			for($i = 0; $i < length($line); $i++) { $sscons .= "."; }
+		    }
+		}
+	    }
+	    close(S);
+
+	    # run esl-reformat again to clean up spacing
+	    my $status = system "esl-reformat --informat stockholm pfam SEED.tmp2 > SEED.new";
+	    if($status != 0) { die "couldn't create SEED.new"; }
+
+	    # rename files
+	    rename( "SEED",     "SEED.old" ) or die;
+	    rename( "SEED.new", "SEED"     ) or die;
+	    unlink "SEED.tmp";
+	    unlink "SEED.tmp2";
+	} 
+    } # end of if(! $seen_sscons)
 }
 elsif (!(-e $blastonly)) {
     die("FATAL: check SEED or $blastonly exists");
