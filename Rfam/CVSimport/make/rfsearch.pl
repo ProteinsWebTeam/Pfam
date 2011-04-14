@@ -190,15 +190,15 @@ if (-e "SEED"){
     if( !$seen_rf and $buildopts =~ /--rf/ ) {
 	$buildopts =~ s/--rf //g;
     }
-    # Check if we need to add SS_cons to the SEED (only legal if -nostruct enabled)
+    # Check if we need to add SS_cons to the SEED (only legal if --nostruct enabled)
     if(! $seen_sscons) { # SS_cons does not exist in SEED
-	if(! $nostruct) { # -nostruct not enabled, die
-	    die("FATAL: no SS_cons in SEED, use -nostruct to build a 0 bp one");
+	if(! $nostruct) { # --nostruct not enabled, die
+	    die("FATAL: no SS_cons in SEED, use --nostruct to build a 0 bp one");
 	}
-	else { # -nostruct enabled, add zero bp SS_cons to alignment
+	else { # --nostruct enabled, add zero bp SS_cons to alignment
 	    # first convert it to Pfam format (1 line per sequence) with esl-reformat
 	    my $status = system "esl-reformat --informat stockholm pfam SEED > SEED.tmp";
-	    if($status != 0) { die "couldn't convert SEED to pfam"; }
+	    if($status != 0) { die "ERROR, couldn't convert SEED to pfam"; }
 	    open(S,  "SEED.tmp")   || die "ERROR couldn't open SEED.tmp  for reading";
 	    open(NS, ">SEED.tmp2") || die "ERROR couldn't open SEED.tmp2 for writing";
 	    # regurgitate SEED.tmp and insert appropriate length blank (0 bp) SS_cons at end
@@ -232,6 +232,9 @@ if (-e "SEED"){
 	    unlink "SEED.tmp2";
 	} 
     } # end of if(! $seen_sscons)
+    elsif($nostruct) { # --nostruct enabled, but SS_cons exists, die 
+	die "ERROR --nostruct enabled but SEED has SS_cons annotation";
+    }
 }
 elsif (!(-e $blastonly)) {
     die("FATAL: check SEED or $blastonly exists");
@@ -1194,6 +1197,7 @@ Options:       --h                  show this help
 	       
 	       INFERNAL/CM OPTIONS:
 	       --nobuild                     Skip the cmbuild step
+	       --nostruct                    Add a zero basepair SS_cons to SEED prior to cmbuild (requires that none exists in SEED)
 	       -g|--glocal                   Run cmsearch in glocal mode (override DESC cmsearch command)
 	       --window <str>                Use this window size for fetching blast sequences rather than from CM.
 	       --hmmonly|--long              An option for long models (eg. SSU/LSU rRNA,...),
