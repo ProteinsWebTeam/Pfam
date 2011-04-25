@@ -13,7 +13,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
 use Data::Dumper;
 
-my $DEBUG = defined( $ENV{DEBUG} ) ? $ENV{DEBUG} : 0;
+my $DEBUG = defined( $ENV{DEBUG} ) ? $ENV{DEBUG} : 1;
 
 my ( $rev, $txn, $repos, $debug, $help );
 
@@ -211,9 +211,11 @@ elsif ( $msg =~ /SEQUP/ ) {
         . " like it has come from the sequence part of the repository\n";
     }
   }
-}
-else {
-  die "Do not know here this commit has come from, [$msg]!\n";
+}else{
+  my @changed = $txnlook->changed();
+  unless ( $changed[0] =~ m|Data/Dictionary/dictionary$|){
+    die "Do not know where this commit has come from, [$msg]!\n";
+  }
 }
 
 exit(0);
