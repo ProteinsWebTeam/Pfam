@@ -1,0 +1,55 @@
+
+/* janelia.css
+   jt6 20080220 WTSI
+
+   Stylesheet with rules specific to the Janelia installation.
+
+   $Id: janelia.css,v 1.2 2008-05-16 15:32:12 jt6 Exp $
+
+   Copyright (c) 2007, 2008: Genome Research Ltd.
+
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+#siteLogo {
+  background-image: url(/static/images/janelia_logo.gif);
+}
+
+#emailImage {
+  width: 160px;
+  height: 20px;
+  vertical-align: bottom;
+}
+
+button {
+  color:#fff;
+  -moz-border-radius: 5px;
+  -webkit-border-raiuds: 5px;
+  border-radius: 5px;
+  background:#739025;
+  margin-left:0.3em;
+  -moz-box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  background-color: #739025;
+  background-image: -moz-linear-gradient(top, #aac858 ,#739025);
+  background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #aac858),color-stop(1, #739025));
+  filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#aac858', EndColorStr='#739025');
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#aac858', EndColorStr='#739025')";
+  border:1px solid #555;
+  text-shadow: 0px -1px 1px #000;
+}
