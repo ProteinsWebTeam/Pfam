@@ -1,0 +1,131 @@
+[%
+# head.tt
+# jt6 20060314 WTSI
+#
+# the contents of the "head" section of the web page. This template controls the
+# importing of stylesheets, javascripts, etc., and decides which tab should be
+# shown, using a snippet of JS.
+#
+# $Id: head.tt,v 1.39 2009-10-07 13:24:57 jt6 Exp $
+
+# use uri_for to get the root for the static directory
+staticUri = c.uri_for( "/static" );
+sharedUri = c.uri_for( "/shared" );
+
+# these first meta tags are google webmasters verification tags. They are here
+# so that google can verify that we control the websites and we can control,
+# to some extent, how the googlebot indexes them.
+
+# pfam.sanger.ac.uk -%]
+<meta name="verify-v1" content="GjV+z5lf7mSCShhAOJZh1UW8J+iiCgWmbxIFg2GkG0Q=" />
+
+[%- # pfam.sbc.su.se -%]
+<meta name="verify-v1" content="FA9AR+bh3BmS05vcSp0mbiAB80DgELEAkFvu4q9ViC8=" />
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+[%- # add a meaningful description, for the benefit of search engines -%]
+<meta name="Description" content="Pfam is a large collection of protein families, represented by multiple sequence alignments and hidden Markov models (HMMs)" />
+
+[% # if the stash contains a value for "refreshUri", we'll add a
+   # refresh header to redirect after the default delay of 5 seconds
+   # or after "refreshDelay" seconds, if specified
+IF refreshUri != "";
+  delay = refreshDelay ? refreshDelay : 5; -%]
+<meta http-equiv="Refresh" content="[% delay %]; URL=[% refreshUri %]" />
+[% END -%]
+
+<!-- ====================================================================== -->
+<!-- make the site RSS feed discoverable --> 
+
+<link href="http://xfam.wordpress.com/tag/pfam/feed/" 
+      rel="alternate"
+      type="application/rss+xml"
+      title="Pfam News" />
+
+<!-- ====================================================================== -->
+<!-- third-party javascript libraries
+
+     we are now loading third-party libraries from remote sites. We get
+     prototype and scriptaculous from googleapis and the YUI components 
+     for tree viewing directly from yahoo
+--> 
+
+<!-- prototype / scriptaculous -->
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">google.load("prototype", "1.7.0.0");</script>
+<script type="text/javascript">google.load("scriptaculous", "1.8.3");</script>
+
+<!-- YUI -->
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/element/element-min.js"></script>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> 
+
+<!-- prototip -->
+<script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
+<script type='text/javascript' src='[% sharedUri %]/javascripts/styles.js'></script>
+<link rel='stylesheet' href='[% sharedUri %]/css/prototip.css' type='text/css' />
+
+<!-- ====================================================================== -->
+<!-- local javascript files -->
+
+<!-- local javascript -->
+<script type="text/javascript" src="[% sharedUri %]/javascripts/sharedFunctions.js"></script>
+<script type="text/javascript" src="[% staticUri %]/javascripts/pfFunctions.js"></script>
+
+<!-- ====================================================================== -->
+<!-- local stylesheets -->
+
+<!-- global stylesheet -->
+<link rel="stylesheet" href="[% staticUri %]/css/pfam.css" type="text/css" />
+
+<!-- site-specific stylesheet -->
+<link rel="stylesheet" href="[% staticUri %]/css/[% c.config.site %].css" type="text/css" />
+
+<!-- ====================================================================== -->
+<!-- load dynamically required stylesheets and javascript files-->
+
+[%-
+allRequirements = { local    => { uri  => staticUri,
+                                  reqs => requirements },
+                    shared   => { uri  => sharedUri,
+                                  reqs => sharedRequirements },
+                    external => extRequirements };
+
+PROCESS "components/load_requirements.tt" -%]
+
+<!-- ====================================================================== -->
+<!-- set the favicon -->
+
+<link rel="shortcut icon" 
+      type="image/png" 
+      href="[% staticUri %]/images/favicon.png" />
+      
+<!-- ====================================================================== -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -1,0 +1,60 @@
+[%
+# about.tt
+# jt6 20091027 WTSI
+#
+# An about page...
+#
+# $Id: about.tt,v 1.1 2009-10-29 14:36:40 jt6 Exp $
+
+META fullPage = 1;
+-%]
+
+<div id="about">
+
+  <h1>About Dfam</h1>
+  
+  <p>
+    Dfam version [% relData.pfam_release %] was produced at the <a class="ext" 
+    href="http://www.hhmi.org/janelia">HHMI Janelia Farm Research Campus</a> 
+    in Virginia, USA. 
+
+    <!-- Pfam is based on a sequence database called <em>Pfamseq</em>, 
+    which is based on <a class="ext" href="http://www.uniprot.org/">UniProt</a>
+    release 15.6 (<a class="ext" href="http://www.expasy.org/sprot/relnotes/relstat.html">Swiss-Prot</a> 
+    release [% relData.swiss_prot_version %] and 
+    <a class="ext" href="http://www.ebi.ac.uk/swissprot/sptr_stats/index.html">
+    SP-TrEMBL</a> release [% relData.trembl_version %]).-->
+  </p>
+  <p>
+    Dfam is freely available under the
+    <a class="ext" href="http://www.gnu.org/copyleft/lesser.html">GNU LGPL license</a>.
+  </p>
+ 
+  <p> 
+    Dfam is powered by nhmmer, written by Travis Wheeler as part of the 
+    <a class="ext" href="http://hmmer.janelia.org/">HMMER3</a>
+    package, written by members of <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
+    Sean Eddy&#39;s</a> group at the <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
+    Howard Hughes Janelia Farm Research Campus</a>.
+  </p>
+
+</div>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
