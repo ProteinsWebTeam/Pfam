@@ -1,0 +1,414 @@
+
+[%
+# index.tt
+# jt6 20060717 WTSI
+# 
+# build the main Pfam home page.
+#
+# $Id: index.tt,v 1.62 2010-01-07 14:09:12 jt6 Exp $
+
+META title = "Home page";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "index.css" );
+requirements.cssIeAll.push( "index_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start of index page -->
+<div id="index">
+  <div id="intro">
+
+    [% # if the database is down, we will be unable to retrieve release data, so
+       # change the construction of the page title accordingly
+    IF relData;
+    
+      # we have release data; format the date nicely
+      USE date( format = "%B %Y" );
+      d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
+
+      USE String;
+      release_date = String.new( "00:00:00 " );
+      CALL release_date.append( d.2, ":", d.1, ":", d.0 ); %]
+      <h2>Dfam [% relData.dfam_release %] ([% date.format( release_date ) %],
+        [% relData.number_families %] families)</h2>
+    [% ELSE %]
+      <h2>Dfam - DNA Repeat Families Database</h2>
+    [% END %]
+    <p>
+      The Dfam database is a collection of repetitive DNA sequence
+      families, each represented by <em>multiple sequence alignments</em>
+      and <em>hidden Markov models (HMMs)</em>.
+      <span onclick="reveal( this, 'pfamNotes', false, true )"
+            class="link moreLink">
+        More...</span>
+    </p>
+    <div id="pfamNotes" style="display: none">
+      <p>
+        To be filled out by Travis!
+Filling
+      </p>
+    </div>
+  </div>
+
+  <hr />
+ 
+   [% # URI shortcuts
+   helpBase   = c.uri_for( "/help" );
+   searchBase = c.uri_for( "/search" );
+   jumpUri    = "${searchBase}/jump";
+   %]
+ 
+  <div id="controlPanel">
+    <ul>
+      <li class="link currentLink" onclick="switchPanel(this,'help')">QUICK LINKS</li>
+      <li class="link" onclick="switchPanel(this,'protein')">SEQUENCE SEARCH</li>
+      <li class="link" onclick="switchPanel(this,'family')">VIEW A DFAM FAMILY</li>
+      <li class="link" onclick="switchPanel(this,'sequence')">VIEW A SEQUENCE</li>
+      <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
+      <li class="link" onclick="switchPanel(this,'help')">JUMP TO</li>
+      <li>&nbsp;</li>
+    </ul>
+  </div><!-- end of "controlPanel" -->
+    
+  <div id="help" class="panel">
+    <h3>You can find data in Dfam in various ways...</h3>
+    <ul>
+      <li>Analyze your DNA sequence for Dfam matches</li>
+      <li>View Dfam family annotation and alignments</li>
+      <li>Look at the Dfam regions on a sequence</li>
+      <li>Query Dfam by keywords</li>
+      <li>
+        <form action="[% jumpUri %]"
+              id="jumpForm"
+              onsubmit="return jump(this);">
+          <div>
+            <input class="entryField"
+                   type="text" 
+                   name="entry" 
+                   id="jumpField" 
+                   size="30" />
+            <button id="jumpButton">Go</button>
+            <button onclick="fillJumpField();">Example</button>
+            <div style="display: none"
+                 class="jumpSpinner">Searching...</div>
+            <div style="display: none"
+                 class="jumpError"></div>
+            <p class="small nlh">
+              Enter any type of accession or ID to jump to the page
+              for a Dfam family, Ensembl sequence, etc.
+            </p>
+          </div>
+        </form>
+      </li>
+      <li>Or view the <a href="[% helpBase %]">help</a> pages for 
+        more information</li>
+    </ul>
+  </div>
+
+  <div id="protein" class="panel" style="display: none">
+    <h3>Analyze your protein sequence for Pfam matches</h3>
+    <p>
+      Paste your protein sequence here to find matching Pfam families.
+    </p>
+    <form action="[% searchBase %]/sequence"
+          method="post"
+          id="seqForm">
+      <div>
+        <input type="hidden"
+               name="seqOpts"
+               value="both" />
+        <input type="hidden"
+               name="ga"
+               value="0" />
+        <input type="hidden"
+               name="evalue"
+               value="1.0" />
+        <textarea class="entryField" 
+                  name="seq"
+                  id="seq" 
+                  cols="50" 
+                  rows="6"></textarea>
+      </div>
+    </form>
+    <button onclick="if( $('seq').present() ){$('seqForm').submit()};">Go</button>
+    <button onclick="$('seq').value=exSeq">Example</button>
+    <p class="small nlh">
+      This search will use and an E-value of 1.0. You can set your own search 
+      parameters and perform a range of other searches 
+      <a href="[% searchBase %]">here</a>.
+    </p>
+  </div>
+
+  <div id="family" class="panel" style="display: none">
+    <h3>View Pfam family annotation and alignments</h3>
+    <p>Enter a family identifier (e.g.&nbsp;<em>Piwi</em>) or accession 
+    (e.g.&nbsp;<em>PF02171</em>) to see all data for that family.</p>
+    <form action="[% jumpUri %]"
+          id="familyForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField" 
+               type="text" 
+               name="entry" 
+               id="familyField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Family" />
+      </div>
+      <button onclick="if( $('familyField').present() ){jump('familyForm');};">Go</button>
+      <button onclick="$('familyField').value=exPfamId">Example</button>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a> 
+        through the list of all Pfam families.
+      </p>
+    </form>
+  </div>
+    
+  <div id="sequence" class="panel" style="display: none">
+    <h3>View domain organisation of a protein sequence</h3>
+    <p>Enter a sequence identifier (e.g.&nbsp;<em>VAV_HUMAN</em>) or accession
+    (e.g.&nbsp;<em>P15498</em>).</p>
+    <form action="[% jumpUri%]"
+          id="proteinForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="proteinField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Protein" />
+      </div>
+      <button onclick="if( $('proteinField').present() ){jump('proteinForm');};">Go</button>
+      <button onclick="$('proteinField').value=exUnpId">Example</button>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can use <a class="ext" href="http://www.uniprot.org/">UniProt</a>
+        and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
+          metaseq</a> accessions or identifiers, as well as<br />
+        NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
+          &quot;GI&quot; numbers</a>. GI numbers should be in the form 
+          &quot;113594566&quot;.
+      </p>
+    </form>
+  </div>
+  
+  <div id="structure" class="panel" style="display: none">
+    <h3>Find the domains on a PDB structure</h3>
+    <p>Enter the PDB identifier (e.g.&nbsp;<em>2abl</em>) for the structure in the 
+    Protein DataBank.</p>
+    <form action="[% jumpUri %]"
+          id="structureForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="structureField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Structure" />
+      </div>
+      <button onclick="if( $('structureField').present() ){jump('structureForm');};">Go</button>
+      <button onclick="$('structureField').value=exPdbId">go</button>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+    </form>
+  </div>
+    
+  <div id="keyword" class="panel" style="display: none">
+    <h3>Query Pfam by keyword</h3>
+    <p>Search for keywords in text data in the Pfam database.</p> 
+    <form action="[% searchBase %]/keyword"
+          id="keywordForm">
+      <div>
+        <input class="entryField" 
+               type="text" 
+               name="query"
+               id="keywordField"
+               size="30" />
+      </div>
+      <button onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};">Go</button>
+      <button onclick="$('keywordField').value=exKw">Example</button>
+      <p class="small nlh">
+        You can also use the
+        <a onclick="$('siteSearchField').focus();return false;" href="#">
+          keyword search box</a> at the top of every page.
+      </p>
+    </form>
+  </div>
+    
+  <div class="cleaner"><!-- empty --></div>
+
+[%# uncomment to add an advance warning of a maintenance shutdown
+  <hr />
+
+  <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#E7EDF3;border:1px solid #074987;padding:1em">
+    <h2>Scheduled downtime</h2>
+    <p> 
+      The Pfam website at the Sanger Institute will be unavailable from 4.30pm on
+      Friday 7th January 2011 until 10am on Monday 10th January. This is due to
+      scheduled maintenance work in the Sanger data centre. You can read a little
+      more about the down time on the Sanger
+      <a class="ext" href="http://sangerinstitute.blogspot.com/">blog</a>.
+    </p>
+    <p>
+      While this Pfam site is offline, you may want to use one of our other mirrors:
+    </p>
+    <ul>
+      <li><a class="ext" href="http://pfam.janelia.org/">Janelia Farm, USA</a></li>
+      <li><a class="ext" href="http://pfam.sbc.su.se/">Stockholm University, Sweden</a></li>
+    </ul>
+    <p> 
+      Please accept our apologies for the inconvenience.
+    </p>
+  </div>
+# end of maintenance method %]
+
+ <!-- <div id="posts" class="announcements" style="display: none">
+    <hr />
+    <span onclick="hideThis('posts');" 
+          class="closer"
+          style="float: right; cursor: pointer">Hide this</span>
+    <h2>Recent Pfam <a class="ext" href="http://xfam.wordpress.com/tag/pfam/">
+      blog</a> posts</h2>
+  </div>
+  
+  <hr />
+
+  <div id="mirrors">
+    <h2>Mirrors</h2>
+    <p>The following are official Pfam 
+      <a href="[% helpBase %]?tab=helpTheTeamBlock">mirror</a> sites:
+    </p>
+    [% PROCESS "components/mirrors.tt" %]
+
+  </div>--!>
+
+  <div class="cleaner"><!-- empty --></div>
+  <hr />
+
+  
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // hide the announcements or new features list when the user clicks the 
+  // "hide this" button
+  var hideThis = function( id ) {
+    $(id).hide();
+
+    // tell urchin that we've hidden the blog
+    try {
+      urchinTracker( "/index/hidBlog" );
+    } catch( e ) {}
+
+    var d = new Date();
+    var t = Math.round( d.getTime() / 1000 );
+    createCookie( 'hide_' + id, t, '365' ); 
+    $("restore").show();
+  };
+  
+  // set up the "jump to" field
+
+  // first, make it behave nicely
+  $("jumpField").value = "enter any accession or ID";
+  $("jumpField").selectionStart = 0;
+  $("jumpField").selectionEnd   = 0;
+  $("jumpField").focus();
+
+  // add observers to clear out the field when the user first enters something
+  // in it. We need several to catch all eventualities...
+
+  var jumpCleared = false;
+  $("jumpField").observe( "keypress", function() {
+    var start = $("jumpField").selectionStart;
+    $("jumpField").value = $F("jumpField").substr( 0, start );;
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "click", function() {
+    $("jumpField").value = '';
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "focus", function() {
+    $("jumpField").selectionStart = 0;
+    $("jumpField").selectionEnd   = 0;
+  } );
+
+  // rotate through example IDs
+  var jumpExamples = new Array( "Piwi", "Kazal", "VAV_HUMAN", "1w9h", "349163" );  
+  var lastJumpExample = 0;
+  var fillJumpField = function() {
+    $("jumpField").value = jumpExamples[lastJumpExample++];
+    jumpCleared = true;
+    if ( lastJumpExample >= jumpExamples.size() ) {
+      lastJumpExample = 0;
+    }
+  }
+
+  // add an observer to submit the form when the user hits "go"
+  $("jumpButton").observe( "click", function() {
+    if ( $("jumpField").present() &&
+         jumpCleared ) {
+      jump('jumpForm');
+    }
+  } );
+
+  // example values for the various other forms in the page
+  var exPfamId = "Piwi";
+  var exKw     = "apoptosis";
+  var exSeq    = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
+TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
+SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
+LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
+GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
+FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
+CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
+QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
+YSENDISNSIKNGILYLEDPVNHEWYPHYFVLTSSKIYYSEETSSDQGNEDEEEPKEASG\n\
+STELHSNEKWFHGKLGAGRDGRHIAERLLTEYCIETGAPDGSFLVRESETFVGDYTLSFW\n\
+RNGKVQHCRIHSRQDAGTPKFFLTDNLVFDSLYDLITHYQQVPLRCNEFEMRLSEPVPQT\n\
+NAHESKEWYHASLTRAQAEHMLMRVPRDGAFLVRKRNEPNSYAISFRAEGKIKHCRVQQE\n\
+GQTVMLGNSEFDSLVDLISYYEKHPLYRKMKLRYPINEEALEKIGTAEPDYGALYEGRNP\n\
+GFYVEANPMPTFKCAVKALFDYKAQREDELTFTKSAIIQNVEKQEGGWWRGDYGGKKQLW\n\
+FPSNYVEEMVSPAALEPEREHLDENSPLGDLLRGVLDVPACQIAVRPEGKNNRLFVFSIS\n\
+MASVAHWSLDVAADSQEELQDWVKKIREVAQTADARLTEGKMMERRKKIALELSELVVYC\n\
+RPVPFDEEKIGTERACYRDMSSFPETKAEKYVNKAKGKKFLQYNRLQLSRIYPKGQRLDS\n\
+SNYDPLPMWICGSQLVALNFQTPDKPMQMNQALFLAGGHCGYVLQPSVMRDEAFDPFDKS\n\
+SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
+PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
+ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
+FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+
+  // ]]>
+</script>
+
+<!-- end of index page -->
+[%#
+Copyright!!!
+-%]

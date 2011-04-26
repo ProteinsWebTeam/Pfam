@@ -1,0 +1,80 @@
+[%
+# logo.tt
+# jt6 20090303 WTSI
+# 
+# a message telling a Gecko user that the logo image they asked for is too large
+#
+# $Id: logo.tt,v 1.1 2009-03-20 15:58:59 jt6 Exp $
+
+USE String;
+
+META naked = 1;
+
+IF large_logo ;
+-%]
+
+<hr />
+
+<p>
+  The logo image that you have requested is very large ([% logo_x %] &times;
+  [% logo_y %] pixels) and you appear to be using a 
+  <a class="ext" href="http://en.wikipedia.org/wiki/Gecko_(layout_engine)">
+    Gecko-based</a> web browser, such as Mozilla or Firefox.
+  Very large PNG images are 
+  <a class="ext" href="https://bugzilla.mozilla.org/show_bug.cgi?id=427385">
+    known</a> to crash Gecko-based browsers, under some circumstances. This
+  logo image has therefore not been automatically loaded.
+</p>
+<p>
+  If you would like to try displaying the logo anyway, you can 
+  <span class="link" id="overrideLink">override</span> 
+  the test for image size. <strong>Please note</strong> that this may crash your
+  browser !
+</p>
+<p>
+  If you would like to 
+  <a href="[% c.uri_for( '/family/logo_image', { entry => acc, dl => 1 } ) %]">
+    download</a> the image, you can save the image and view it locally. 
+</p>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // add a listener to the "override" link, which replaces this whole chunk
+  // of text with an <img> tag that will load the image
+  $("overrideLink").observe( "click", function() {
+    console.log( "clicked override link" );
+    var img = new Element( "img", 
+                            {
+                              alt: "", 
+                              src: "[% c.uri_for( '/family/logo_image', { entry => acc } ) %]"
+                            } );
+    $("logo").update( img );
+  } );
+
+  // ]]>
+</script>
+
+
+[% ELSE -%]
+<img src="[% c.uri_for( '/family/logo_image', { entry => acc } ) %]"
+     alt="HMM logo" />
+[% END -%]     
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

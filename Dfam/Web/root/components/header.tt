@@ -1,0 +1,130 @@
+[%
+# header.tt
+# jt6 200670326 WTSI
+#
+# the slimmed down, re-vamped, googlized page header...
+#
+# $Id: header.tt,v 1.36 2009-10-28 14:01:23 jt6 Exp $
+
+# the names for the links in the page
+navNames = { 
+  home   = "HOME",
+  search = "SEARCH",
+  browse = "BROWSE",
+  ftp    = "FTP",
+  help   = "HELP",
+  about  = "ABOUT" };
+
+# the URIs for the links
+navLinks = {
+  home   = c.uri_for( "/" ),
+  search = c.uri_for( "/search" ),
+  browse = c.uri_for( "/browse" ),
+  ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Pfam",
+  help   = c.uri_for( "/help" ),
+  about  = c.uri_for( "/about" ) };
+
+# the order of the items in the navbar - these are the keys for the two
+# hashes above
+navItems = [ "home", "search", "browse", "ftp", "help", "about" ];
+
+# the base URL for static content
+staticUri = c.uri_for( "/static" );
+sharedUri = c.uri_for( "/shared" );
+-%]
+
+<!-- header starts here -->
+
+<div id="header">
+
+  <div id="navbar" class="column">
+    <ul>
+    [% FOREACH navItem IN navItems -%]
+      <li>
+        [% IF c.stash.nav == navItem -%]
+          <a class="here" href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+        [% ELSE -%]
+          <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+        [% END;
+        IF ! loop.last %]&nbsp;|&nbsp;[% END -%]
+       </li>
+    [% END -%]
+    </ul>
+  </div>
+  
+  <div class="siteLogoHolder column">
+    <a href="[% c.config.site_home %]">
+      <img alt="[% c.config.site_name %]" 
+           id="siteLogo" 
+           src="[% sharedUri %]/images/blank.gif" /></a>
+  </div>
+
+  <div class="pfamLogoHolder column">
+    <a href="[% c.uri_for( "/" ) %]">
+      <img alt="Pfam" 
+           [%- IF c.config.live %]
+           class="prePfamLogo"
+           [% ELSIF c.config.h3 %]
+           class="h3PfamLogo"
+           [%- END %]
+           id="pfamLogo" 
+           src="[% sharedUri %]/images/blank.gif" /></a>
+    <form action="[% c.uri_for( "/search/keyword" ) %]" 
+          id="siteSearchForm">
+      <div id="searchBox">
+        <input class="entryField"
+             type="text" 
+             onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
+             name="query" 
+             id="siteSearchField" />
+        <button onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}">Go</button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<div class="cleaner"><!-- empty --></div>
+
+[%-
+# a warning message for users who dont have javascript turned on. The 
+# message should be hidden immediately after its displayed, but if 
+# javascript is not working, the prototype call will fail and the message
+# will stay visible
+%]
+<div id="jsWarning">
+  <strong>Please note:</strong> this site relies heavily on the use of javascript. 
+  Without a javascript-enabled browser, this site will not function correctly. 
+  Please enable javascript and reload the page, or switch to a different browser.
+</div>
+<script type="text/javascript">
+  // <![CDATA[
+  $("jsWarning").hide();
+
+  $("siteSearchField").value = "keyword search";
+  var ssCleared = false;
+  // ]]>
+</script>
+
+[%- # dump out the name of the host that served the file -%] 
+<!-- [% c.config.server_name %] / [% c.config.server_pid %] -->
+
+<!-- header end -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
