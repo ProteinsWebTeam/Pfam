@@ -1,0 +1,142 @@
+
+/* index.css
+   jt6 20070312 WTSI
+
+   Style the main site index page.
+   
+   $Id: index.css,v 1.12 2009-02-13 16:03:21 jt6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+    
+*/   
+
+/* layout and general rules */
+
+#index {
+  width: 700px;
+  margin: 0 auto;
+}
+
+#index p {
+  line-height: 1.4em;
+}
+
+#intro {
+   text-align: left;
+   padding: 0;
+}
+
+#intro p {
+    font-size: 1em;
+    padding: 0;
+}
+
+#index em {
+  font-style: normal;
+  font-weight: bold;  
+}
+
+#index .panel em {
+  font-style: italic;
+  font-weight: normal;
+}
+
+#index ul {
+  padding: 0 2em 0 0;
+  margin: 0;
+}
+
+#index li {
+  list-style: none;
+  padding: 0.4em 0;
+}
+
+.link {
+  cursor: pointer;
+  text-decoration: none;
+  color: #739025;
+  font-weight: bold;
+}
+
+.currentLink {
+  cursor: auto;
+  font-weight: bold;
+  color: #666;
+  text-decoration: none ! important;
+}
+
+#restore {
+  font-size: x-small;
+  text-align: center;
+}
+
+/* ---------------------------------------- */
+/* mirrors */
+
+#mirrors {
+  float: right;
+  width: 38%;
+}
+
+/* ---------------------------------------- */
+/* format the "panels" */
+
+#controlPanel {
+  float: left;
+  width: 35%;
+}
+
+div.panel {
+  float: left;
+  width: 65%;
+}
+
+div.panel p {
+  margin: 0;
+  padding: 0.4em 0;
+  clear: left;
+}
+
+div.panel h3 {
+  text-transform: uppercase;
+  font-size: 1em;
+  margin: 0;
+  padding: 0.4em 0;
+  color: #666;
+}
+
+#controlPanel li {
+  text-align: right;
+}
+
+#submitButton {
+  float: left;
+}
+
+/* ---------------------------------------- */
+/* the announcementa and new features list */
+
+.announcements ul {
+  padding: 0 2em 0 0 ! important;
+  margin: 1.2em ! important;
+}
+
+.announcements li {
+  padding: 0.2em 0 ! important;
+  list-style-type: disc ! important;
+}
