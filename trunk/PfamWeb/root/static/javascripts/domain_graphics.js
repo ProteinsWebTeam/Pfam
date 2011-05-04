@@ -1844,11 +1844,7 @@ var PfamGraphic = Class.create( {
     this._context.lineTo( x2, y2 );
     this._context.lineTo( x2, y1 );
 
-    if ( bridge.markup.colour.match( "^\\#[0-9A-Fa-f]{6}$" ) ) {
-      colour = bridge.markup.colour;
-      // console.log( "PfamGraphic._drawBridge: using user-defined colour '%s'", colour );
-    }
-    this._context.strokeStyle = colour;  
+    this._context.strokeStyle = bridge.markup.colour;  
     this._context.stroke();
     this._context.closePath();
 
