@@ -1891,8 +1891,8 @@ var PfamGraphic = Class.create( {
                             colour: colour,
                             end:    end,
                             tip:    tip,
-                            coords: [ xo + x1 - 1, yo + ys[1] - 1, 
-                                      xo + x2 + 1, yo + ys[1] + 1 ] } );
+                            coords: [ xo + x1 - 1, yo + ys[0], 
+                                      xo + x2 + 1, yo + ys[0] + 2 ] } );
     this._areasList.push( { start:  start,
                             type:   "bridge-end",
                             colour: colour,
