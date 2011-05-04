@@ -136,7 +136,14 @@ sub mapping : Local  {
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                            { prefetch   => [ qw( pdb_id auto_pfamseq ) ] } );
+                            { join       => [ qw( pdb_id auto_pfamseq ) ],
+                              columns    => [ qw( auto_pfamseq.pfamseq_id
+                                                  seq_start
+                                                  seq_end
+                                                  pdb_id.pdb_id
+                                                  chain
+                                                  pdb_res_start
+                                                  pdb_res_end ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
   $c->log->debug( 'Family::Structures::mapping: found |' . scalar @mapping . '| rows' )
