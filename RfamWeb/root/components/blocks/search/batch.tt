@@ -26,6 +26,29 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
+    <div style="border: 1px solid #621700; background-color: #EEE; color: #621700; padding: 0.5em; width: 80%; margin: 0.5em auto">
+
+      <h1>Search queues paused</h1>
+
+      <p>
+        Rfam batch searches are managed by a job queuing system. On Monday 9th
+        May 2011 we will be performing essential software upgrades to this queuing
+        system, which will require us to stop and empty the queues entirely. In order
+        to avoid searches being lost, we have now paused the submission of new search
+        jobs through the website.
+      </p>
+      <p>
+        Although you can continue to submit jobs, no new jobs will be run from 6pm
+        Sunday 8th May 2011 (GMT) until the completion of the work. This means that
+        there will be a delay of between 12 and 24 hours in returning job results.
+      </p>
+      <p>
+        Please accept our apologies for any inconvenience. If you have any concerns
+        about this work, please contact us at <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>.
+      </p>
+
+    </div>
+
     <p>
       Upload a FASTA-format file containing multiple nucleotide sequences to 
       be searched for matching Rfam families. Results of the search will be 
