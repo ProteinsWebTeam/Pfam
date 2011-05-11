@@ -61,7 +61,7 @@
      <h1 style="text-align:center;text-decoration:underline;">[% "DAS Widgets" %]</h1>
      <div id="menu">
         <ul style="text-align:center;list-style-type:none; ">
-            <li><a href="[% c.uri_for('/') %]">Home</a> | <a href="[% c.uri_for('/docs') %]">Documentation</a> | <a href="mailto:pg6@sanger.ac.uk" title="Contact Us">Contact Us</a></li>
+           <li><a href="[% c.uri_for('/') %]">Home</a> | <a href="[% c.uri_for('/docs') %]">Documentation</a> | <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;" title="Contact Us">Contact Us</a></li>
         </ul>
     </div><!-- end menu -->
     
