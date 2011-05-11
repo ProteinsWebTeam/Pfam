@@ -46,7 +46,7 @@ my $db_conf = $config{WebUser};
 my $dsn = "dbi:mysql:$db_conf->{db_name}:$db_conf->{db_host}:$db_conf->{db_port}";
 
 # get a DBIC database connection object
-my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password} );
+my $schema = WebUser->connect( $dsn, $db_conf->{username}, $db_conf->{password}, { mysql_enable_utf8 => 1 } );
 # $schema->storage()->debug( 1 );
 
 # get the URL for the CGI script that will distribute the approved revisions
