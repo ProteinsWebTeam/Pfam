@@ -14,14 +14,15 @@ use Data::Dumper;
 sub new {
     my $caller = shift;
     my $class = ref($caller) || $caller;
-    my %dbiParams = ();
     my $self = { user      => "web_user",
-		 host      => "pfam",
-		 port      => "3306",
-		 database  => "web_user",
-		 password  => "web_user",
-		 driver    => "mysql",
-		 @_,};
+                 host      => "pfam",
+                 port      => "3306",
+                 database  => "web_user",
+                 password  => "web_user",
+                 driver    => "mysql",
+                 @_,};
+
+    my $dbiParams = $self->{dbiParams} || {};
 
     #print STDERR Dumper($self);
 
@@ -32,7 +33,7 @@ sub new {
 				       ":".$self->{port},
 				       $self->{user},
 				       $self->{password},
-				       \%dbiParams);
+				       $dbiParams);
     return bless($self, $caller);
 } 
 
