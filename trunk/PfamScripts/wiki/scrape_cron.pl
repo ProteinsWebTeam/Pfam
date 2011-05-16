@@ -105,7 +105,7 @@ while ( my ( $title, $revision ) = each %$revisions ) {
        $row->approved_revision != $revision ) {
 
     # yes; scrape the content and deposit it
-    my $content = $scraper->scrape( $title );
+    my $content = $scraper->scrape( $title, $revision );
 
     # print STDERR "\ncontent: |$content|\n" if $DEBUG;
 
