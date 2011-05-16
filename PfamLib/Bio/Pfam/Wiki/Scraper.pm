@@ -168,13 +168,27 @@ Downloads the wikipedia content for the specified article.
 =cut
 
 sub scrape {
-  my ( $this, $title ) = @_;
+  my ( $this, $title, $revision ) = @_;
 
   return unless $title;
 
+  # handle trailing semi-colons in article titles. These should be fixed in the
+  # databases but we'll take care of it here for now
+  if ( $title =~ m/;$/ ) {
+    print STDERR qq(WARNING: Stripping trailing ";" for article $title\n);
+    $title =~ s/;$//;
+  }
+
   # build the URL
   my $url = $this->wiki_root . $title;
-  $this->logger->info( "retrieving wikipedia content for '$title'" );
+  if ( $revision ) {
+    return unless $revision =~ m/^\d+$/;
+    $url = $this->wiki_root . $title . "&oldid=$revision";
+    $this->logger->info( "retrieving wikipedia content for '$title' revision $revision" );
+  }
+  else {
+    $this->logger->info( "retrieving latest wikipedia content for '$title'" );
+  }
 
   # build a new request object and retrieve a response from it
   my $req = HTTP::Request->new( GET => $url );
