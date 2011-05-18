@@ -466,31 +466,40 @@ var WikiContent = Class.create( {
 
   _collapseElements: function() {
 
+    // collapse the table of contents and add a button to show/hide it
     this._wikiContentEl.select(".toc").each( function(toc) {
-      var list     = toc.down("ul");
-      var title    = list.previous("div");
-      var toggleId = "toctoggle" + this._tocCount;
-      var toggle   = new Element( "span", { "class": "toctoggle" } )
+      var list     = toc.down("ul"),
+          title    = list.previous("div"),
+          toggleId = "toctoggle" + this._tocCount,
+          toggle   = new Element( "span", { "class": "toctoggle" } )
                        .update( "[<span class='link' id='" + toggleId + "'>show</span>]" );
       title.appendChild(toggle);
       $(toggleId).observe( "click", this._toggle.bind( this, toggleId, list ) );
       this._tocCount++;
     }.bind(this) );
 
+    // collapse various other collapsible elements and add show/hide buttons
     this._wikiContentEl.select(".collapsible").each( function(col) {
-      var title    = col.down("th");
-      var row      = title.up("tr").next("tr");
-      if ( col.hasClassName("collapsed") ) {
-        row.hide();
+      var toggleId = "collapseButton" + this._colCount,
+          toggle   = new Element( "span", { "class": "collapseButton" } )
+                       .update( "[<span class='link' id='" + toggleId + "'>show</span>]" ),
+          rows     = col.down("th").up("tr").nextSiblings();
+
+      col.down("th").appendChild(toggle);
+
+      $(toggleId).observe( "click", this._toggleRows.bind( this, toggleId, rows ) );
+
+      if ( col.hasClassName("collapsed") ||
+           col.hasClassName("autocollapse") ) {
+        rows.invoke("hide");
       }
-      var toggleId = "collapseButton" + this._colCount;
-      var toggle   = new Element( "span", { "class": "collapseButton" } )
-                       .update( "[<span class='link' id='" + toggleId + "'>show</span>]" );
-      title.appendChild(toggle);
-      $(toggleId).observe( "click", this._toggle.bind( this, toggleId, row ) );
+
+      this._colCount++;
     }.bind(this) );
+
   },
 
+  // toggle the visibility of the supplied element and change the toggle switch text
   _toggle: function( toggleId, el ) {
     el.toggle();
     if ( el.visible() ) {
@@ -498,6 +507,13 @@ var WikiContent = Class.create( {
     } else {
       $(toggleId).update("show");
     }
+  },
+
+  // toggle the visibility of an array of elements
+  _toggleRows: function( toggleId, rows ) {
+    rows.each( function(row) {
+      this._toggle( toggleId, row );
+    }.bind(this) );
   }
 
 } );
