@@ -7,7 +7,6 @@ use Getopt::Long;
 use Config::General;
 use LWP::UserAgent;
 use JSON;
-use HTML::Tidy;
 use Bio::Pfam::Wiki::Scraper;
 use WebUser;
 use Data::Dump qw(dump);
@@ -104,13 +103,6 @@ print STDERR "retrieved " . scalar( keys %$revisions ) . " article titles\n"
 
 #-------------------------------------------------------------------------------
 
-# set up a new HTML::Tidy object to clean up the wikipedia content
-my $tidy = new HTML::Tidy( {
-  'char-encoding'  => 'utf8',
-  'show-body-only' => 1,
-  'output-xhtml'   => 1,
-} );
-
 foreach my $title ( @titles ) {
 
   print STDERR "checking article '$title'... " if $DEBUG;
@@ -154,18 +146,11 @@ foreach my $title ( @titles ) {
 
     print STDERR "forcing loading of content\n" if $force;
 
-    # yes; scrape the content, clean it, and deposit it
+    # yes; scrape the content and deposit it
     my $content = $scraper->scrape( $title, $revision );
 
-    $tidy->clear_messages();
-    my $cleaned_content = $tidy->clean( "$title.html", $content );
-
-    print STDERR "WARNING: problems cleaning content with HTML tidy; storing raw HTML\n"
-      unless $cleaned_content;
-
     $row->update( { approved_revision => $revision,
-                    text              => $cleaned_content || $content } );
-                    # text              => $content } );
+                    text              => $content } );
 
     print STDERR "retrieved new content for '$title', revision $revision\n";
 
