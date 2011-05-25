@@ -469,18 +469,19 @@ var WikiContent = Class.create( {
     // collapse the table of contents and add a button to show/hide it
     this._wikiContentEl.select(".toc").each( function(toc) {
       var list     = toc.down("ul"),
-          title    = list.previous("div"),
-          toggleId = "toctoggle" + this._tocCount,
+          tocID    = toc.identify(),
+          toggleId = tocID + "toctoggle" + this._tocCount,
           toggle   = new Element( "span", { "class": "toctoggle" } )
-                       .update( "[<span class='link' id='" + toggleId + "'>show</span>]" );
-      title.appendChild(toggle);
+                       .update( "[<span class='link' id='" + toggleId + "'>hide</span>]" );
+      list.previous("div").appendChild(toggle);
       $(toggleId).observe( "click", this._toggle.bind( this, toggleId, list ) );
       this._tocCount++;
     }.bind(this) );
 
     // collapse various other collapsible elements and add show/hide buttons
     this._wikiContentEl.select(".collapsible").each( function(col) {
-      var toggleId = "collapseButton" + this._colCount,
+      var colId    = col.identify(),
+          toggleId = colId + "collapseButton" + this._colCount,
           toggle   = new Element( "span", { "class": "collapseButton" } )
                        .update( "[<span class='link' id='" + toggleId + "'>show</span>]" ),
           rows     = col.down("th").up("tr").nextSiblings();
