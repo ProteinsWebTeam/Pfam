@@ -99,6 +99,8 @@ sub articles : Global {
 
   # stash the pager too, so that we can work out where we are in the page list
   $c->stash->{pager} = $articles->pager;
+
+  # TODO should really generate a Data::PageSet to handle the paging
 }
 
 #-------------------------------------------------------------------------------
