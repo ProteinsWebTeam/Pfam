@@ -73,7 +73,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         The default threshold for the HMM search is an <em>E-value</em> of 1.0,
         but you can also use the <em>gathering threshold</em> for each HMM, or
         you can specify your own E-value setting. Note that the E-value that 
-        you give must be positive.
+        you give must be positive and &lt 10.0.
       </p>
       <p>
         By default the search will only look for Pfam-A families on your 
