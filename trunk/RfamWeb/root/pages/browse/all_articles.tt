@@ -1,0 +1,173 @@
+[%
+# all_articles.tt
+# jt6 20110413 WTSI
+# 
+# build a "browse" page for Wikipedia articles
+#
+# $Id$
+
+META title = "Browse Rfam Wikipedia articles";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+pages = [ "0 - 9" ];
+CALL pages.import( [ "A" .. "Z" ] );
+
+# shortcuts for URIs
+familyURI = c.uri_for( "/family" );
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt" 
+                   pageList=pages
+                   activeLetters=active_letters
+                   pageURI = "#";
+-%]
+
+<!-- start browse page -->
+
+<h1 class="pageHeader">Browse all [% articles.keys.size %] Wikipedia articles</h1>
+
+<p class="browseSummary">
+  This table lists the Wikipedia articles that are referenced by Rfam
+  families. In the right-hand column you can see the list of Rfam
+  family accessions for a given article. If there are more than four
+  families, you can see all of them by clicking the &quot;Show all
+  families&quot; link. <strong>Note</strong> that we show only the
+  first <strong>50</strong> families. If you need to see the complete
+  list, you can download it as a tab-delimited text file
+  <a href="[% c.uri_for( '/articles/browse', { output => 'text' } ) %]">
+    here</a>.
+</p>
+<p class="browseSummary">
+  The table may be sorted by clicking on the column titles, or restored to the 
+  original order <span class="link" id="sortLink">here</span>. 
+  <strong>Please note</strong> that sorting large tables can be slow. 
+  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
+</p>
+
+[% pageList %]
+          
+<table class="details browse" 
+       id="browseTable"
+       summary="Details of Wikipedia articles">
+  <thead>
+    <tr>
+      <th id="indexCol" class="rowNum">Original order</th>
+      <th>Title</th>
+      <th>Number of<br />families</th>
+      <th>Accession(s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% first = "";
+    FOREACH title IN articles.keys.sort;
+      numFamilies = articles.$title.size;
+      IF title.match('^\d');
+        initialLetter = "0 - 9";
+      ELSE;
+        initialLetter = title.split("").first | upper;
+      END %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td class="titleCol">
+          <a [% IF initialLetter != first %]name="[% initialLetter %]"
+             [%- first = initialLetter | upper; END %]
+             class="ext"
+             href="http://en.wikipedia.org/wiki/[% title %]">[% title %]</a>
+        </td>
+        <td class="numCol">[% numFamilies %]</td>
+        <td class="accCol">
+          <div>
+            [%- IF numFamilies > 4;
+              FOREACH acc IN articles.$title.slice(0,2);
+                LAST UNLESS acc %]
+                <a class="familyLink" href="[% familyURI _ '/' _ acc %]">[% acc %]</a>
+              [%- END %]
+              <span class="familyLink">...</span>
+              <div class="cleaner"><!-- empty --></div>
+              <span class="link expandFamilyList">Show all families</span>
+            [%- ELSIF numFamilies <= 4;
+              FOREACH acc IN articles.$title %]
+                <a class="familyLink" href="[% familyURI _ '/' _ acc %]">[% acc %]</a>
+              [%- END;
+            END %]
+          </div>
+          <div style="display: none">
+            [%- FOREACH acc IN articles.$title.slice(0,49);
+              LAST UNLESS acc %]
+              <a class="familyLink" href="[% familyURI _ '/' _ acc %]">[% acc %]</a>
+            [%- END;
+            IF numFamilies > 4;
+              IF numFamilies > 50 %]
+                <div class="cleaner"><!-- empty --></div>
+                <span>(Showing first 50 families only)</span>
+              [%- END %]
+              <div class="cleaner"><!-- empty --></div>
+              <span class="link expandFamilyList">Hide families list</span>
+            [%- END %]
+          </div>
+        </td>
+      </tr>
+    [% END -%]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "browseTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  [% # add a listener to the "return to original sort order" link,
+     # now that the table sort object is actually defined %]
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );
+  
+  $$(".expandFamilyList").invoke( "observe", "click", 
+    function( e ) {
+      var link   = e.findElement();
+      var single = link.up("td").down("div").toggle();
+      var list   = single.next("div").toggle();
+    }
+  );
+  
+  // ]]>
+</script>
+
+<!-- end browse page -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
