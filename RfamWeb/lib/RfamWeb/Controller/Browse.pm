@@ -396,29 +396,7 @@ Start of a chain for building the "browse articles" pages.
 
 sub browse_articles : Chained( '/' )
                       PathPart( 'articles' )
-                      CaptureArgs( 0 ) {
-  my ( $this, $c ) = @_;
-  
-  $c->log->debug( 'Browse::browse_articles: building a list of articles' )
-    if $c->debug;
-
-  # decide if we're outputting text or HTML
-  if ( $c->req->param('output') eq 'text' ) {
-    $c->log->debug( 'Browse::browse_articles: outputting a text list' )
-      if $c->debug;
-    $c->res->content_type( 'text/plain' );
-    $c->res->header( 'Content-disposition' => "attachment; filename=rfam_wikipedia_articles.txt" );
-    $c->stash->{template} = 'pages/browse/all_articles_text.tt';
-  }
-  elsif ( $c->req->param('output') eq 'list' ) {
-    $c->log->debug( 'Browse::browse_articles: outputting a tabular list' )
-      if $c->debug;
-    $c->stash->{template} = 'pages/browse/all_articles_columns.tt';
-  }
-  else {
-    $c->stash->{template} = 'pages/browse/all_articles.tt';
-  }
-}
+                      CaptureArgs( 0 ) { }
 
 #-------------------------------------------------------------------------------
 
@@ -434,24 +412,34 @@ sub browse_all_articles : Chained( 'browse_articles' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Browse::browse_all_articles: showing all articles' )
-      if $c->debug;
+  $c->log->debug( 'Browse::browse_articles: building a list of articles' )
+    if $c->debug;
 
-  my $cache_key = 'article_mapping';
-  my $mapping_and_letters = $c->cache->get( $cache_key );
-  if ( defined $mapping_and_letters ) {
-    $c->log->debug( 'Browse::browse_all_articles: retrieved mapping from cache' )
-      if $c->debug;
+  # decide if we're outputting text or HTML
+  if ( $c->req->param('output' ) ) {
+
+    if ( $c->req->param('output') eq 'text' ) {
+      $c->log->debug( 'Browse::browse_articles: outputting a text list' )
+        if $c->debug;
+      $c->res->content_type( 'text/plain' );
+      $c->res->header( 'Content-disposition' => "attachment; filename=rfam_wikipedia_articles.txt" );
+      $c->stash->{template} = 'pages/browse/all_articles_text.tt';
+    }
+    elsif ( $c->req->param('output') eq 'list' ) {
+      $c->log->debug( 'Browse::browse_articles: outputting a tabular list' )
+        if $c->debug;
+      $c->stash->{template} = 'pages/browse/all_articles_columns.tt';
+    }
+
   }
   else {
-    $c->log->debug( 'Browse::browse_all_articles: failed to retrieve mapping from cache; going to DB' )
-      if $c->debug;
-    $mapping_and_letters = $c->forward('build_articles_list');
-    $c->cache->set( $cache_key, $mapping_and_letters ) unless $ENV{NO_CACHE};
+    $c->stash->{template} = 'pages/browse/all_articles.tt';
   }
 
-  $c->stash->{articles}       = $mapping_and_letters->{mapping};
-  $c->stash->{active_letters} = $mapping_and_letters->{active_letters};
+  my $article_mapping_and_letters = $c->forward('build_articles_list');
+
+  $c->stash->{articles}       = $article_mapping_and_letters->{mapping};
+  $c->stash->{active_letters} = $article_mapping_and_letters->{active_letters};
 }
 
 #-------------------------------------------------------------------------------
@@ -522,20 +510,21 @@ sub build_active_letters : Private {
     #----------------------------------------
 
     # articles
-    my $cache_key = 'article_mapping';
-    my $mapping_and_letters = $c->cache->get( $cache_key );
-    if ( defined $mapping_and_letters ) {
+    my $articles_cache_key = 'article_mapping';
+    my $article_mapping_and_letters = $c->cache->get( $articles_cache_key );
+    if ( defined $article_mapping_and_letters ) {
       $c->log->debug( 'Browse::build_active_letters: retrieved article mapping from cache' )
         if $c->debug;
     }
     else {
       $c->log->debug( 'Browse::build_active_letters: failed to retrieve article mapping from cache; going to DB' )
         if $c->debug;
-      $mapping_and_letters = $c->forward('build_articles_list');
-      $c->cache->set( $cache_key, $mapping_and_letters ) unless $ENV{NO_CACHE};
+      $article_mapping_and_letters = $c->forward('build_articles_list');
+      $c->cache->set( $articles_cache_key, $article_mapping_and_letters ) unless $ENV{NO_CACHE};
     }
 
-    $active_letters->{articles} = $mapping_and_letters->{active_letters};
+    $active_letters->{articles} = $article_mapping_and_letters->{active_letters};
+    $c->stash->{articles}       = $article_mapping_and_letters->{mapping};
 
     #----------------------------------------
     
