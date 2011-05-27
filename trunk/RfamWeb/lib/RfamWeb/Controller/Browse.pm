@@ -385,6 +385,76 @@ sub browse_families_range : Chained( 'browse_families' )
 }
 
 #-------------------------------------------------------------------------------
+#- wikipedia articles  ---------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 browse_articles : Chained PathPart CaptureArgs
+
+Start of a chain for building the "browse articles" pages.
+
+=cut
+
+sub browse_articles : Chained( '/' )
+                      PathPart( 'articles' )
+                      CaptureArgs( 0 ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Browse::browse_articles: building a list of articles' )
+    if $c->debug;
+
+  # decide if we're outputting text or HTML
+  if ( $c->req->param('output') eq 'text' ) {
+    $c->log->debug( 'Browse::browse_articles: outputting a text list' )
+      if $c->debug;
+    $c->res->content_type( 'text/plain' );
+    $c->res->header( 'Content-disposition' => "attachment; filename=rfam_wikipedia_articles.txt" );
+    $c->stash->{template} = 'pages/browse/all_articles_text.tt';
+  }
+  elsif ( $c->req->param('output') eq 'list' ) {
+    $c->log->debug( 'Browse::browse_articles: outputting a tabular list' )
+      if $c->debug;
+    $c->stash->{template} = 'pages/browse/all_articles_columns.tt';
+  }
+  else {
+    $c->stash->{template} = 'pages/browse/all_articles.tt';
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browse_all_articles : Chained PathPart Args
+
+Build a page showing the list of all wikipedia articles. End of a dispatch 
+chain.
+
+=cut
+
+sub browse_all_articles : Chained( 'browse_articles' )
+                          PathPart( 'browse' )
+                          Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Browse::browse_all_articles: showing all articles' )
+      if $c->debug;
+
+  my $cache_key = 'article_mapping';
+  my $mapping_and_letters = $c->cache->get( $cache_key );
+  if ( defined $mapping_and_letters ) {
+    $c->log->debug( 'Browse::browse_all_articles: retrieved mapping from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Browse::browse_all_articles: failed to retrieve mapping from cache; going to DB' )
+      if $c->debug;
+    $mapping_and_letters = $c->forward('build_articles_list');
+    $c->cache->set( $cache_key, $mapping_and_letters ) unless $ENV{NO_CACHE};
+  }
+
+  $c->stash->{articles}       = $mapping_and_letters->{mapping};
+  $c->stash->{active_letters} = $mapping_and_letters->{active_letters};
+}
+
+#-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -450,11 +520,64 @@ sub build_active_letters : Private {
     }
 
     #----------------------------------------
+
+    # articles
+    my $cache_key = 'article_mapping';
+    my $mapping_and_letters = $c->cache->get( $cache_key );
+    if ( defined $mapping_and_letters ) {
+      $c->log->debug( 'Browse::build_active_letters: retrieved article mapping from cache' )
+        if $c->debug;
+    }
+    else {
+      $c->log->debug( 'Browse::build_active_letters: failed to retrieve article mapping from cache; going to DB' )
+        if $c->debug;
+      $mapping_and_letters = $c->forward('build_articles_list');
+      $c->cache->set( $cache_key, $mapping_and_letters ) unless $ENV{NO_CACHE};
+    }
+
+    $active_letters->{articles} = $mapping_and_letters->{active_letters};
+
+    #----------------------------------------
     
     $c->cache->set( $cache_key, $active_letters ) unless $ENV{NO_CACHE};
   }
 
   $c->stash->{active_letters} = $active_letters;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 build_articles_list : Private
+
+Builds a data structure containing the mapping between families and articles, 
+as well as the list of active letters for the articles list.
+
+=cut
+
+sub build_articles_list : Private {
+  my ( $this, $c ) = @_;
+
+  my @rs = $c->model('WebUser::ArticleMapping')
+             ->search( { accession                    => { like => 'RF%' },
+                         'wikitext.approved_revision' => { '>'  => 0 } },
+                       { join => [ 'wikitext' ] } );
+
+  $c->log->debug( 'Browse::build_articles_list: got |' . scalar @rs . '| rows' )
+    if $c->debug;
+
+  my $first_letter;
+  my $mapping = {};
+  my $active_letters = {};
+  
+  foreach my $row ( @rs ) {
+    push @{ $mapping->{$row->title} }, $row->accession;
+    $first_letter = uc( substr( $row->title, 0, 1 ) );
+    $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
+    $active_letters->{$first_letter} = 1;
+  }
+
+  return { mapping        => $mapping,
+           active_letters => $active_letters };
 }
 
 #-------------------------------------------------------------------------------
