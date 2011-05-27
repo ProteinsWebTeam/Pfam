@@ -648,19 +648,19 @@ ITFQNGTIRQVNGRIEESR</pre>
         <tr class="even">
           <td>evalue</td>
           <td class="left">use this E-value cut-off</td> 
-          <td>valid float</td> 
-          <td>1.0</td> 
+          <td>valid float &lt; 10.0</td> 
+          <td>none</td> 
           <td rowspan="2" class="left notes">
-            to use the gathering threshold for the family, set &quot;ga=1&quot; 
-            and don&#39;t specify an E-value. If an E-value is given, it will
-            be used, regardless of the value of &quot;ga&quot;
+            the default is to have no E-value and to use the gathering threshold. 
+            See note below. If an E-value is given, it will be used, regardless
+            of the value of &quot;ga&quot;
           </td>
         </tr>
         <tr class="odd">
           <td>ga</td>
           <td class="left">use gathering threshhold</td> 
           <td>0 | 1</td> 
-          <td>0</td> 
+          <td>1</td> 
         </tr>
         <tr class="even">
           <td>searchBs</td>
@@ -689,6 +689,15 @@ ITFQNGTIRQVNGRIEESR</pre>
         </tr>
       </tbody>
     </table>
+
+    <p>
+      <strong>Note:</strong> this documentation previously suggested
+      that searches submitted through the RESTful interface used
+      an E-value cut-off of 1.0 by default. This is incorrect. RESTful
+      searches use the gathering threshold and not an E-value of 1.0. 
+      This is the opposite of the behaviour of the searches run through 
+      the web interface. We apologise for the inconsistency.
+    </p>
     
     <h4>Wait for the search to complete</h4>
 
@@ -849,7 +858,7 @@ ITFQNGTIRQVNGRIEESR</pre>
 [% c.uri_for( "/search/sequence/graphic/adabec68-703f-48c4-bec7-07f1ab965fbb" ) %]</pre>
 
     <p>
-      Check the <a href="[% c.uri_for('/help#tabview=tab8') %]">
+      Check the <a href="[% c.uri_for('/help#tabview=tab9') %]">
         domain graphics documentation</a> for details on how you can use the JSON
       string locally.
     </p>
