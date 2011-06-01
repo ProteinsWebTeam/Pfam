@@ -1,4 +1,4 @@
-#!/software/bin/perl -w
+#!/usr/bin/env perl -w
 
 # Add reference to a DESC file or CLANDESC file
 # dump to stdout if there isn't a desc file

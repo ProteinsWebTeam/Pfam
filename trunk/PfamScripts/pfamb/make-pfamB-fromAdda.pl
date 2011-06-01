@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 #
 # Perl script for make-pfamB-fromAdda.pl
 #

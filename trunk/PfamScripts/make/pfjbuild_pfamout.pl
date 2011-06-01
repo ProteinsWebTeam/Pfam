@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 #Script to make PFAMOUT file from pfjbuild JOUT file
 

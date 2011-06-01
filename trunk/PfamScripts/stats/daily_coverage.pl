@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Script to print out each family and cumulative sequence and residue coverage
 #Prints the following to STDOUT:

@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 #
 # This script allows one to check in a family to the SVN repository containing Pfam families.
 # The family that you wish to checkout should be passed in as a parameter

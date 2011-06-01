@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl -w
+#! /usr/bin/env perl -w
 
 # They said it couldn't be done! They might have been right.
 # A script to automagically annotate Pfam families.  Generally its use is 

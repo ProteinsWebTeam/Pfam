@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 # A script to enter an i-spell session for the free text of a family
 # Make a file of free text only. Keep line numbers for eachline.

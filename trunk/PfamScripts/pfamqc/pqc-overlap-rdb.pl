@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Script to find overlaps between a family (on disk) and the live curation MySQL database!
 #

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # This is the iPfam version of the script that retrieves data from the MSD database.
 #

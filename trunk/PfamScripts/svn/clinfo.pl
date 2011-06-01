@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # clan_info.pl  - fetches the latest clandesc file and revision information for the 
 # clan from the svn repository. 

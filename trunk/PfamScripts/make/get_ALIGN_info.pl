@@ -1,4 +1,4 @@
-#!/software/bin/perl -w
+#!/usr/bin/env perl -w
 
 # This program take the full alignment of a Pfam entry and
 # get a shortened view of the information on each sequence

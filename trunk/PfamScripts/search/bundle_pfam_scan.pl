@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Script to make a tar ball of pfam_scan.pl and its associated modules for the ftp site
 

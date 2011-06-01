@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 # clustalX.pl
 # rdf/jt6 20080418 WTSI

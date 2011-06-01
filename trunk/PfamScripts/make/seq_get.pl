@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 # $0 -d <seq database index file>  [-g <gdf file>  or -l <list file> or -s <seq name> ]
 # Fetch a sequence from a wu-blast indexed sequence database.

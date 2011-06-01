@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 #This script is designed to calcualted the Pfam coverage for each proteome in the list
 #of proteomes downloaded at sequence update time from Integr8 database.  This used to be done

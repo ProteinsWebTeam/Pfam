@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Takes a file in "pfam" format, reads it in and looks up the sequence accessions
 # based on the ID. Currently only works on UniProt sequences.  
