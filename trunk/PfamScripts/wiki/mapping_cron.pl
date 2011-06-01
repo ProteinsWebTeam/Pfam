@@ -1,5 +1,16 @@
 #!/usr/bin/env perl
 
+# This script downloads the mapping between families and articles and updates
+# the "web_user.article_mapping" table.
+#
+# The mapping is retrieved as a JSON string from:
+#
+#   http://pfamsrv.sanger.ac.uk/cgi-bin/mapping.cgi
+#
+# jt6 20100625 WTSI
+#
+# $Id$
+
 use strict;
 use warnings;
 
