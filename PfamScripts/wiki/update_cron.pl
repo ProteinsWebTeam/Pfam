@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
-# this script updates the "wikipedia_revision" column in the wiki_approve database.
-# It checks wikipedia to get the latest revision number for all of the articles 
-# in the table. If the retrieved version number is different from the one in the
-# table, the row is updated.
+# This script updates the "wikipedia_revision" column in the
+# "wiki_approve.wikipedia" table. It uses the wikipedia API to get the latest
+# revision number for all of the articles in the table. If the retrieved
+# version number is different from the one in the table, the row is updated.
 #
 # jt6 20100420 WTSI
 #

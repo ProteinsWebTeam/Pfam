@@ -4,7 +4,7 @@
 #
 # Firstly, it updates the mapping between Pfam/Rfam entries and wikipedia
 # articles. For each database, the script retrieves the article titles that are
-# associated with each family and updates the "wikipedia.article_mapping"
+# associated with each family and updates the "wiki_approve.article_mapping"
 # table. No mappings are deleted from the table.
 #
 # Secondly, the script updates the list of wikipedia articles in the
@@ -13,9 +13,9 @@
 # be checked for updates and presented for approval.
 #
 # This script checks the pfam_live and rfam_live databases and retrieves the
-# set of wikipedia articles that are currently in use. If an article isn't found
-# in "wiki_approve.wikipedia", the title is added. No titles are deleted from 
-# that table.
+# set of wikipedia articles that are currently in use. If an article isn't
+# found in "wiki_approve.wikipedia", the title is added. No titles are deleted
+# from that table.
 #
 # jt6 20110111 WTSI
 #
