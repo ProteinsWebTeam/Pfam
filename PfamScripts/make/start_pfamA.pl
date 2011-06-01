@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Generic script to build pfams from fasta files or SEED alignments, or to iterate a family and perform overlap checks.
 

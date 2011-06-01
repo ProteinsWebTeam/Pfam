@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 #
 # A script to determine overlaps across all Pfam families found within a single directory
 #

@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Script to automagically resolve overlaps by adding ED lines
 

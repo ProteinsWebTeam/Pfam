@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Script to compare coverage between last release of pfam and pfamlive
 #Queries rdb for sequence lengths, and region data and dumps to file (need to remove scp bit)

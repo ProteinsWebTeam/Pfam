@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 ##### This code is designed to build up the NCBI taxonomy trees
 # At the moment is uses the taxonomy.dat file which is downloaded from EBI

@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 #
 # This script allows one to check in a clan in to the SVN repository.
 # The clan that you wish to check in should be passed in as a parameter

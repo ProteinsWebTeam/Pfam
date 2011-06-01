@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 # Script to try and set-up Pfam to download and configure users on external machines
 # to run Pfam.

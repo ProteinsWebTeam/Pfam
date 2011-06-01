@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 #
 # Checkhmmflat - checks integrity of an annotatedHMM file

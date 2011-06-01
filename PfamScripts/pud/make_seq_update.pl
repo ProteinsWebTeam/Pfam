@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 # A script for doing the Pfam sequence update. This process involves
 # all families in Pfam being updated to a new version of the

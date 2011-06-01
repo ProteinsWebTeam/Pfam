@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 #Mark up alignment according to posterior probabilities.
 

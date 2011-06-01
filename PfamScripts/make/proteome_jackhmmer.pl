@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Script to run jackhmmer on all proteins in a particular
 #proteome that do not have a match to Pfam-A

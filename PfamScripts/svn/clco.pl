@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # clco.pl <clan_acc> - check out a clan
 #

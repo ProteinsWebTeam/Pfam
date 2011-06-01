@@ -1,4 +1,4 @@
-#!/software/bin/perl 
+#!/usr/bin/env perl 
 #
 # The aim of this program is to identify any SEED alignments that have out-of-date
 # seqeunces in them and will try and fix the SEED alignments in the cases where the sequences

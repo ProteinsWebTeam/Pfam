@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/env perl -w
 
 # This script is designed to get the latest proteomes from Intergr8 at the ebi.
 # This data is processed by another script, this simply downloaded.

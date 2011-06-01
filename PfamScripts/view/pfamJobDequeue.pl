@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 #
 # This code is desgined to act as a layer on top os LSF, taking jobs out of the
 # pfam_jobs database and submit them to the farm.  Ideal, this would only encapsulate

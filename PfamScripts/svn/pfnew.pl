@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # pfnew.pl - This script allows one to check in a family to the SVN repository
 # containing Pfam families. The family that you wish to add to the database

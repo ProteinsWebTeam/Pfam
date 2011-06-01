@@ -1,4 +1,4 @@
-#! /software/bin/perl -w
+#! /usr/bin/env perl -w
 
 #Script to make the diff file from the current_pfam_version and released_pfam_version tables in rdb
 #The final step in the script updates the released_pfam_version table using the data in current_pfam_version
