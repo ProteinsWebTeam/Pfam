@@ -44,7 +44,7 @@ family = c.uri_for( "/family" );
     </p>
     <p>
       We provide a set of tools, described in the 
-      <span class="link" onclick="switchTab('helpToolsBlock')">Tools &amp; Web 
+      <span class="link" onclick="tabPage.switchTab('helpToolsBlock')">Tools &amp; Web 
         Services</span> section of the help pages, that allow you to generate 
       <a href="[% c.uri_for( "/generateGraphic" ) %]">custom domain graphics</a> by
       uploading your own XML file, or to generate graphics for a

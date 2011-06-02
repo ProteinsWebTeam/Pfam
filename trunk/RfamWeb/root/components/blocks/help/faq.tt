@@ -202,7 +202,7 @@ why is the model truncated from published blah
       In such cases we will have made the best choice we can in order to limit 
       the false positive and loss of true positives. If you have queries about 
       the membership of any of our families, please do 
-      <span class="link" onclick="switchTab('helpContactUsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span> and we will try to clarify or resolve the problem.
     </p> 
     <p><a class="link" rel="faqTop">back to top</a></p>
@@ -240,7 +240,7 @@ why is the model truncated from published blah
           here</a>. If, however, your sequence <em>is</em> in the relevant EMBL 
       release but is still absent from a relevant family, it is possible that 
       our model may need to be improved. Please <span class="link" 
-      onclick="switchTab('helpContactUsBlock');">contact us</span> with the 
+      onclick="tabPage.switchTab('helpContactUsBlock');">contact us</span> with the 
       relevant information and we will decide whether the sequence should 
       indeed be included and, if so, we will try to improve our model. 
     </p>
@@ -259,7 +259,7 @@ why is the model truncated from published blah
         Biological Sequence Analysis</a> by Richard Durbin, Sean Eddy, 
       Anders Krogh, and Graeme Mitchison (Cambridge University Press, 1998). 
       For more references see the 
-      <span onclick="switchTab('helpReferencesBlock');" class="link">
+      <span onclick="tabPage.switchTab('helpReferencesBlock');" class="link">
         Citing Rfam</span> tab.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
@@ -314,7 +314,7 @@ why is the model truncated from published blah
     <p>
       Finally, if you have a very large number of sequences to search, you may
       find it most convenient to download and
-      <span class="link" onclick="switchTab('helpGenomeAnnotBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpGenomeAnnotBlock');">
         run Rfam locally</span>.  
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
@@ -381,7 +381,7 @@ why is the model truncated from published blah
       our database administrators. There are plans in place to implement a 
       <a class="ext" href="http://www.biomart.org/">Biomart</a> interface 
       that will allow these queries. Meanwhile, if you 
-      <span class="link" onclick="switchTab('helpContactUsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span> and 
       <a href="mailto:rfam-help@sanger.ac.uk">ask us</a> very nicely, 
       and we have have time, then one of our engineers may be able to help.     
@@ -409,7 +409,7 @@ why is the model truncated from published blah
       tiling array or deep sequencing. For more detailed information on
       how to submit a family, please read the rest of the Rfam documentation
       but, if you have any queries, please do 
-      <span class="link" onclick="switchTab('helpContactUsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span>.
     </p>
     <p>
@@ -428,7 +428,7 @@ why is the model truncated from published blah
       This is advantageous in that it maintains our standard of alignments 
       and structures, but, if you feel our seed alignment/structure 
       annotations can and should be improved, please  
-      <span class="link" onclick="switchTab('helpContactUsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span>, preferably supplying us with a new alignment, in 
       Stockholm format, and we will do our best to incorporate the improvements.
     </p>
@@ -549,7 +549,7 @@ why is the model truncated from published blah
       our own ontology and does not current directly relate to the
       ontologies used by other databases. For a full list of our current
       ontologies see the help section on <span class="link"
-      onclick="switchTab('helpgetStartedBlock');">searching by family
+      onclick="tabPage.switchTab('helpgetStartedBlock');">searching by family
       type</span>.
     </p>
     

@@ -182,7 +182,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       probabilistic model (covariance model or CM) for this family. Useful
       references on stochastic free grammars and covariance models can be
       found in the <span class="link"
-      onclick="switchTab('helpReferencesBlock');">citing Rfam</span>
+      onclick="tabPage.switchTab('helpReferencesBlock');">citing Rfam</span>
       section. This model is then used to search the rfamseq
       database for other possible homologs.
     </p>
@@ -237,7 +237,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       database. Matches that score above a curated threshold are aligned to 
       the CM to produce the full alignment. All sequences in the seed will 
       also be present in the full  alignment. You should read the 
-      <span class="link" onclick="switchTab('helpCurationBlock');">curation 
+      <span class="link" onclick="tabPage.switchTab('helpCurationBlock');">curation 
       information</span> pages for details of bit scores and gathering 
       thresholds.    
     </p>

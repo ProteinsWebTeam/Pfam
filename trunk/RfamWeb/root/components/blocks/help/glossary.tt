@@ -61,8 +61,8 @@ RNAs. See the<a href="http://infernal.janelia.org/"> Infernal
 
 RNA structure prediction algorithm which utilises minimum free energy
 information. See the <a
-href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php>Mfold
-webserver</a>.
+  href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php">
+  Mfold webserver</a>.
 
 <h3>Pfold</h3>
 
@@ -103,7 +103,7 @@ A simple functional classification we use for our families. This is
 our own ontology and does not current directly relate to the
 ontologies used by other databases. For a full list of our current
 ontologies see the help section on <span class="link"
-onclick="switchTab('helpgetStartedBlock');"> searching by family
+onclick="tabPage.switchTab('helpgetStartedBlock');"> searching by family
 type</span>.
 
 <h3>Stockholm format</h3>
