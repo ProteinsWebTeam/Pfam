@@ -205,7 +205,7 @@
     <p>
       If you have a large number of nucleotide searches, it may be more
       convenient to run Rfam locally. You should read the help pages on 
-      <span class="link" onclick="switchTab('helpGenomeAnnotBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpGenomeAnnotBlock');">
         running Rfam locally</span>.
     </p>
     

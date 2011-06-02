@@ -67,7 +67,7 @@
       Rfam is a collaborative venture and we hope to be able to interact
       with as many people as possible to provide a quality database. Please
       get in touch with us for information. You can 
-      <span class="link" onclick="switchTab('helpContactUsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span> in various ways, including the help desk email 
       address that can be found at the bottom of every page.
     </p>
