@@ -8,6 +8,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use Carp qw( croak cluck );
 use MediaWiki::API;
+use Data::Dump qw(dump);
 
 extends 'DBIx::Class';
 
@@ -142,6 +143,10 @@ sub _get_article_history {
   my ( $id ) = keys %{ $response->{query}->{pages} };
   my $revisions = $response->{query}->{pages}->{$id}->{revisions};
 
+  if ( $this->title eq 'Glucuronosyltransferase' ) {
+    print STDERR dump($revisions), "\n";
+  }
+
   # we don't actually want the *last* revision, since it's actually the most
   # recently approved revision
   # shift @$revisions;
@@ -174,7 +179,11 @@ sub _check_all_users_approved {
 
   my $all_approved  = 0;
   my $num_revisions = 0;
-  foreach my $revision ( @$revisions ) {
+
+  # the list of revisions ends with the most recently approved revision. Here
+  # we only care about revisions *since* that the last approved one, so we
+  # slice the array to chop off the last element
+  foreach my $revision ( @$revisions[ 0 .. length( @$revisions ) - 1 ] ) {
     $all_approved += $revision->{user_approved} || 0;
     $num_revisions++;
   }
