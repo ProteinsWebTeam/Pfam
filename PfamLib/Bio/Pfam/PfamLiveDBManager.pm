@@ -109,6 +109,13 @@ sub removeFamilyFromClanMembership {
   carp(
     "Removing family from clan membership: $autoClan, auto_pfamA: $autoPfamA")
     if ( $self->{'debug'} );
+    #print STDERR "Got $clan, $pfamA\n";
+  #my $r = $self->getSchema->resultset('Clans')->find({clan_acc => $clan});
+  #my $autoClan = $r->auto_clan;
+  #$r = $self->getSchema->resultset('Pfama')->find({pfama_acc => $pfamA});
+  #my $autoPfamA = $r->auto_pfama;
+
+
   if ( $autoClan && $autoPfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find(
       {
