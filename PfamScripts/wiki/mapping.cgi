@@ -18,7 +18,7 @@ use CGI;
 my $q = CGI->new;
 
 # find the configuration file
-my $config_file = '/pfam/home/config/wiki.conf';
+my $config_file = '/pfam/home/config/wiki_cgis.conf';
 if ( defined $ENV{WIKI_CGIS_CONFIG} and
      -e $ENV{WIKI_CGIS_CONFIG} ) {
   $config_file = $ENV{WIKI_CGIS_CONFIG};
@@ -79,6 +79,6 @@ map { push @{ $hash{ $_->[0] } }, $_->[1] } @$data;
 print $q->header( -type => 'application/json',
                   -Content_Disposition => "attachment; filename=$filename" ),
 
-      to_json( \%hash );
-#     to_json( \%hash, { pretty => 1 } ); # to generate a "pretty" string
+#    to_json( \%hash );
+     to_json( \%hash, { pretty => 1 } ); # to generate a "pretty" string
 
