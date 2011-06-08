@@ -1432,7 +1432,7 @@ sub addAUTORMMBLog {
   #Here we just need to provide the message;
   my $commit = sub {
     my $passmessage = shift;    #Scalar reference passed by svn binding
-    $$passmessage .= "AUTOMB:Automatically removed family from clan";
+    $$passmessage .= "AUTORMMB:Automatically removed family from clan";
   };
 
   $self->{txn}->log_msg($commit);
