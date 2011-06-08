@@ -242,7 +242,7 @@ sub _getFamilyObjFromTrans {
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   my $params;
   foreach  my $f ( @{ $self->{config}->mandatoryFamilyFiles }) {
-    print STDERR "Catting $f\n";
+    print STDERR "Catting $path/$f\n";
     my $fh;
     my @file =  $self->cat("$path/$f");
     open( $fh, ">$dir/$family/$f") or die "Could not open $dir/$f";
