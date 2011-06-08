@@ -64,7 +64,7 @@ sub initiateClanViewProcess {
   if ( scalar(@jobs) ) {
     foreach my $job (@jobs) {
       if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
-        Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
+        #Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
       }
       $job->update(
         {
@@ -236,7 +236,7 @@ sub killFamilyJob {
   if ( scalar(@jobs) ) {
     foreach my $job (@jobs) {
       if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
-        Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
+        #Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
       }
       $job->update(
         {
