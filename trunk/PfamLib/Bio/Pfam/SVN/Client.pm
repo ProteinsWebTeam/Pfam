@@ -115,9 +115,9 @@ sub new {
         \&_ssl_server_trust_prompt
       ),
 
-      SVN::Client::get_ssl_server_trust_prompt_provider(
-        \&_ssl_server_trust_prompt
-      ),
+      #SVN::Client::get_ssl_server_trust_prompt_provider(
+      #  \&_ssl_server_trust_prompt
+      #),
       SVN::Client::get_ssl_client_cert_prompt_provider(
         \&_ssl_client_cert_prompt, 2
       ),
@@ -537,7 +537,13 @@ sub commitFamily {
 
   #And finally commit them.
   my $cinfo;
-  eval { $cinfo = $self->{txn}->commit( $family, 1 ); };
+
+  my @files;
+  push(@files, $family);
+  foreach my $file ( @{ $self->{config}->mandatoryFamilyFiles } ) {
+    push(@files, "$family/$file");
+  }
+  eval { $cinfo = $self->{txn}->commit( \@files, 1); };
 
   if ($@) {
     confess("Failed to commit family, $family: [$@]\n");
@@ -619,7 +625,14 @@ sub addFamily {
 
   #And finally commit them.
   my $cinfo;
-  eval { $cinfo = $self->{txn}->commit( "$dest/$newFamilyId", 1 ); };
+  my @files;
+  push( @files, "$dest/$newFamilyId" );
+  foreach my $file ( @{ $self->{config}->mandatoryFamilyFiles } ) {
+    push( @files, "$dest/$newFamilyId/$file" );
+  }
+  
+
+  eval { $cinfo = $self->{txn}->commit( \@files, 1 ); };
 
   if ($@) {
     confess("\n*** Failed to commit new family to $newFamilyId ***\n\n[$@]\n");
@@ -705,7 +718,7 @@ sub killClan {
 sub commitClan {
   my ( $self, $clan ) = @_;
   my $cinfo;
-  eval { $cinfo = $self->{txn}->commit( $clan, 1 ); };
+  eval { $cinfo = $self->{txn}->commit( [$clan, "$clan/CLANDESC"], 1 ); };
 
   #Catch any error and report.
   if ($@) {
@@ -772,7 +785,7 @@ sub addClan {
   #And finally commit them.
   my $cinfo;
   eval {
-    $cinfo = $self->{txn}->commit("$dest/$newClanId", 1);
+    $cinfo = $self->{txn}->commit(["$dest/$newClanId", "$dest/$newClanId/CLANDESC"], 1);
   };
   
   if($@){
