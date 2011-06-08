@@ -133,6 +133,8 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
 }elsif($logMessage =~ /[PFCIRMC|PFKILLRMC]:(CL\d{4}):(PF\d{5})/){
   my $clan = $1;
   my $fam  = $2;
+
+  print STDERR "$clan, $fam\n";
   
   #Need to remvoe the family accession from the clam membership list; 
   removeFromClan($clan, $fam);  
@@ -265,7 +267,7 @@ sub removeFromClan {
   my $client = Bio::Pfam::SVN::Client->new;
   
   #Check that the family and clan reside in the repository;
-  $client->checkFamilyExists($fam);
+  #$client->checkFamilyExists($fam);
   $client->checkClanExists($clan);
   
   $client->checkoutClan($clan, $dest);
@@ -279,7 +281,10 @@ sub removeFromClan {
   my $newMembership;
   if($clanObj->DESC->MEMB){
     foreach my $mem (@{ $clanObj->DESC->MEMB }){
-      push(@{ $newMembership }, $mem ) unless($mem eq $fam);
+      unless($mem eq $fam){
+        print STDERR "$mem, $fam\n";
+        push(@{ $newMembership }, $mem ) unless($mem eq $fam);
+      }
     }
   }else{
     die;
@@ -289,7 +294,10 @@ sub removeFromClan {
   $clanIO->writeCLANDESC($clanObj->DESC, $clanDir);
   
   #Now check the clan back in, adding a automatic comment.
+  print STDERR "Exiting\n";
   $client->addAUTORMMBLog($fam);
+  print STDERR "Exiting\n";
   $client->commitClan($clanDir);
+  print STDERR "Exiting\n";
 } 
 
