@@ -268,19 +268,26 @@ PROCESS buildTables -%]
       </td>
       [% page_window = 11;
 
-      first_window_page = pager.current_page - 5;
-      last_window_page  = pager.current_page + 5;
+      first_window_page = pager.current_page - 5; 
+      last_window_page  = pager.current_page + 5; 
+      # CALL c.log.debug( "1. first_window_page: " _ first_window_page );
+      # CALL c.log.debug( "1. last_window_page:  " _ last_window_page );
 
-      first_window_page = first_window_page < pager.first_page ? pager.first_page : first_window_page;
-      last_window_page  = last_window_page  > pager.last_page  ? pager.last_page  : last_window_page;
+      first_window_page = ( first_window_page < pager.first_page ) ? pager.first_page : first_window_page;
+      last_window_page  = ( last_window_page  > pager.last_page  ) ? pager.last_page  : last_window_page;
+      # CALL c.log.debug( "2. first_window_page: " _ first_window_page );
+      # CALL c.log.debug( "2. last_window_page:  " _ last_window_page );
 
       IF last_window_page - first_window_page < 11;
         IF pager.current_page - 5 < 1;
-          last_window_page = first_window_page + 10;
+          first_window_page = 1;
+          last_window_page  = first_window_page + 10;
         ELSE;
           first_window_page = last_window_page - 10;
         END;
       END;
+      # CALL c.log.debug( "3. first_window_page: " _ first_window_page );
+      # CALL c.log.debug( "3. last_window_page:  " _ last_window_page );
 
       # CALL c.log.debug( "window from $first_window_page to $last_window_page" ) IF c.debug;
       %]
