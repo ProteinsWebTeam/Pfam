@@ -175,7 +175,8 @@ sub approve : Chained('article') PathPart('approve') Args(0) {
   }
 
   $c->log->debug( "Articles::approve: user $approved_by is approving revision $revid for article " 
-                  . $c->stash->{article}->title . " at $updated" ) if $c->debug;
+                  . $c->stash->{article}->title . ( defined $updated ? " at $updated" : "" ) ) 
+    if $c->debug;
 
   eval {
     $c->stash->{article}->update_approval( $revid, $approved_by, $updated );
