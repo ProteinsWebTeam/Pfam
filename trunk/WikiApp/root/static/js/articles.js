@@ -189,10 +189,9 @@ var ArticleApprover = Class.create( {
                   .select("a.user")
                   .invoke("readAttribute","rel");
 
-    users.each( function( unescaped_user ) {
-      var user = escape( unescaped_user );
+    users.each( function( user ) {
       // console.debug( "incrementing edit count for '%s'", user );
-      var uri = this._userUri + '/' + user + '/addedit/';
+      var uri = this._userUri + '/' + encodeURIComponent(user) + '/addedit/';
       
       var r = new Ajax.Request( uri, {
         onFailure: function(response) {
