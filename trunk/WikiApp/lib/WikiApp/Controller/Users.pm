@@ -104,7 +104,7 @@ of edits for the user.
 sub add_single_edit : Chained('user') PathPart('addedit') Args(0) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'User::add_single_action: adding a single edit for the user' )
+  $c->log->debug( 'Users::add_single_edit: adding a single edit for the user' )
     if $c->debug;
   $c->forward( $c->controller('Users')->action_for('add_edits'), [ 1 ] );
 }
