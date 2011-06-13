@@ -47,7 +47,7 @@ sub references : Local {
   my ( $this, $c ) = @_;
   
   my $biolit = Bio::Lit->new( entry_type => 'pdb', 
-                              id         => $c->stash->{pdbId} );
+                              id         => uc( $c->stash->{pdbId} ) );
   
   my $cache_key = 'articles_' . $c->stash->{pdbId};
   my $articles = $c->cache->get( $cache_key ); 
@@ -61,12 +61,20 @@ sub references : Local {
       if $c->debug;  
 
     $articles = $biolit->articles;
-    $c->cache->set( $cache_key, $articles ) unless $ENV{NO_CACHE};
+    if ( scalar( @$articles ) ) {
+      $c->log->debug( 'Structure::references: caching list of articles' )
+        if $c->debug;  
+      $c->cache->set( $cache_key, $articles ) unless $ENV{NO_CACHE};
+    }
+    else {
+      $c->log->debug( 'Structure::references: no articles retrieved; nothing to cache' )
+        if $c->debug;  
+    }
   }
   
   $c->stash->{articles} = $articles;
   
-  $c->log->debug( 'Structure::references: found ' . scalar @{ $c->stash->{articles} } )
+  $c->log->debug( 'Structure::references: found ' . scalar @$articles . ' articles' )
       if $c->debug;
 
   $c->stash->{template} = 'components/blocks/structure/biolit.tt';
