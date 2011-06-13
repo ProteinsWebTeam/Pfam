@@ -253,7 +253,8 @@ sub get_logo : Private {
 #    my $rs = $c->model('PfamDB::PfamaHmm')
 #               ->find( $c->stash->{pfam}->auto_pfama );
 #    $logo = $rs->logo;
-    if ( defined $c->stash->{pfam}->pfama_hmms ) {
+    if ( defined $c->stash->{pfam} and 
+         defined $c->stash->{pfam}->pfama_hmms ) {
       $logo = $c->stash->{pfam}->pfama_hmms->logo;
     }
 
