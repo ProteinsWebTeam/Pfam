@@ -13,9 +13,7 @@ stUri = c.uri_for( "/speciestree" );
 
 <script type="text/javascript">
   // <![CDATA[
-
   var ielt8 = true;
-
   //]]>
 </script>
 
@@ -85,7 +83,7 @@ stUri = c.uri_for( "/speciestree" );
     try {
       eval( oResponse.responseText );
     } catch( e ) {
-      // don't care
+      // dont care
     }
 
     tree.subscribe( "clickEvent", tree.onEventToggleHighlight );
@@ -106,13 +104,13 @@ stUri = c.uri_for( "/speciestree" );
       try {
         new Draggable( "treeTools" );
       } catch (e) {
-        // don't care
+        // dont care
       }
     
     } else {
 
-      // if this flag isn't even set, then the AJAX response didn't contain
-      // the javascript to set it, so we assume instead that there's an 
+      // if this flag isnt even set, then the AJAX response didnt contain
+      // the javascript to set it, so we assume instead that theres an 
       // error message in there
       if ( treeBuiltSuccessfully == undefined ) {
         $("treeDiv").update( oResponse.responseText );
@@ -131,7 +129,7 @@ stUri = c.uri_for( "/speciestree" );
 
   // this is an extra method to submit a new ajax request, this time with
   // the "loadTree" flag set, which tells the controller to load the tree
-  // even it's large
+  // even its large
   var forceLoad = function() {
   
     // show the new spinner and disable the button
