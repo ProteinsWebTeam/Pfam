@@ -32,34 +32,10 @@ use Compress::Zlib;
 use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
+#- public actions --------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 =head1 METHODS
-
-=head2 auto : Private
-
-Just decides if the user wants HTML, plain text, XML, etc.
-
-=cut
-
-sub auto : Private {
-  my ( $this, $c ) = @_;
-
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  if ( defined $c->req->param('output') ) {
-    if( $c->req->param('output') eq 'xml' ) {
-      $c->stash->{output_xml} = 1;
-    }
-    elsif ( $c->req->param('output') eq 'text' ) {
-      $c->stash->{output_text} = 1;
-    }
-  }
-  
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
 
 =head2 families : Global
   
@@ -84,6 +60,11 @@ sub families : Global {
                            [ 'text', 'rest/family/families_text.tt' ] );
     $c->res->content_type('text/plain');
   }
+  elsif ( $c->stash->{output_interpro} ) {
+    $output = $c->forward( 'get_families_list', 
+                           [ 'text', 'rest/family/families_interpro.tt' ] );
+    $c->res->content_type('text/xml');
+  }
   else {
     $output = $c->forward( 'get_families_list', 
                            [ 'html', 'rest/family/families_list.tt' ] );
@@ -92,6 +73,37 @@ sub families : Global {
 
   $c->res->output( $output );
 
+}
+
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 auto : Private
+
+Just decides if the user wants HTML, plain text, XML, etc.
+
+=cut
+
+sub auto : Private {
+  my ( $this, $c ) = @_;
+
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') ) {
+    if( $c->req->param('output') eq 'xml' ) {
+      $c->stash->{output_xml} = 1;
+    }
+    elsif ( $c->req->param('output') eq 'text' ) {
+      $c->stash->{output_text} = 1;
+    }
+    elsif ( $c->req->param('output') eq 'interpro' ) {
+      $c->stash->{output_interpro} = 1;
+    }
+  }
+  
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
