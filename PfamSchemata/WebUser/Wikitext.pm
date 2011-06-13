@@ -27,7 +27,7 @@ __PACKAGE__->set_primary_key("title");
 __END__
 CREATE TABLE `wikitext` (
   `title` tinytext NOT NULL,
-  `text` longtext NOT NULL,
+  `text` longtext character set utf8,
   `approved_revision` int(10) unsigned default '0',
   PRIMARY KEY  (`title`(256))
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
