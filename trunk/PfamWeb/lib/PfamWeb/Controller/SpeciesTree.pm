@@ -421,7 +421,7 @@ sub getFamilyData : Private {
   # get the species information for the seed alignment
   my @resultsSeed = $c->model('PfamDB::Pfamseq')
                       ->search( { 'pfama_reg_seeds.auto_pfama' => $pfamA->auto_pfama },
-                                { join                                     => [ qw( pfama_reg_seeds ) ]} );;
+                                { join                         => [ qw( pfama_reg_seeds ) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
                 
