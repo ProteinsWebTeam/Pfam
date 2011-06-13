@@ -8,10 +8,10 @@
 # reap Catalyst FastCGI processes that might be growing too large due to
 # "copy-on-write".
 #
-# Example: every thirty minutes, kill of all pfamweb FastCGI processes
+# Example: every thirty minutes, kill off all pfamweb FastCGI processes
 #          that have a virtual memory size of greater than 100Mb
 #
-# */30 * * * * /path/to/fastcgi_reaper `cat /var/run/pfamweb/pfamweb.pid` 104857600
+# */30 * * * * /path/to/fastcgi_reaper `cat /var/run/pfamweb.pid` 512000 
 #
 # Copied almost verbatim from http://www.catalystframework.org/calendar/2007/18
 #
