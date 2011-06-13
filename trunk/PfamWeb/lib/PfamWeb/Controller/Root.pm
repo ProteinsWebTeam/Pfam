@@ -101,6 +101,43 @@ sub index : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 blocked : Path
+
+Displays a message telling the user that their access has been blocked for 
+potentially abusive usage.
+
+=cut
+
+sub blocked : Global {
+  my( $this, $c ) = @_;
+
+  # # set the page to be cached for one week
+  $c->cache_page( 604800 );
+
+  $c->log->debug( 'Root::blocked: sending "blocked" message for IP: '
+                  . $c->req->address ) if $c->debug;
+
+  my $ip = $c->req->address;
+
+  $c->res->status( 403 ); # Forbidden
+  $c->res->content_type( 'text/plain' );
+  $c->res->body( <<EOF );
+
+REQUEST BLOCKED
+
+We have detected excessive or potentially abusive usage of the Pfam website
+from your IP address ($ip). Access to this section of the site is 
+currently blocked for all users of that address. 
+
+Please return to the home page and contact the Pfam helpdesk as soon as
+possible, using the email address at the bottom of the page.
+
+EOF
+
+}
+
+#-------------------------------------------------------------------------------
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
