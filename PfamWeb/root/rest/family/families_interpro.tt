@@ -1,0 +1,66 @@
+[% 
+# families_interpro.tt
+# jt6 20110418 WTSI
+#
+# template for formatting the list of all Pfam-A families as an XML 
+# file suitable for InterPro.
+#
+# $Id$
+
+USE String;
+
+META naked=1;
+-%]
+<signature-library-release 
+  library="PFAM" 
+  version="[% relData.pfam_release %]" 
+  xmlns="http://www.ebi.ac.uk/schema/interpro"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://www.ebi.ac.uk/schema/interpro
+                      http://www.ebi.ac.uk/schema/interpro/interpro-5.0.xsd">
+[% FOREACH pfam IN entries -%]
+  <signature ac="[% pfam.pfama_acc %]" name="[% pfam.pfama_id %]" type="[% pfam.type | lower %]" desc="[% pfam.description | html_entity %]">
+  [% IF pfam.comment;
+    # hash the references according to their "order_added"...
+    refs = {};
+    FOREACH ref IN pfam.pfama_literature_references;
+      refs.${ref.order_added} = ref.pmid;
+    END;
+
+    # and for each reference in the text, replace "[1]" with "[PMID:12345678]"
+    comment = String.new( pfam.comment );
+    FOREACH order IN refs.keys;
+      from = "\\[$order\\]";
+      to   = "[PMID:${refs.$order}]";
+      comment = comment.replace( from, to );
+    END -%]
+    <abstract>
+      <![CDATA[
+      [% comment | html_entity %]
+      ]]>
+      </abstract>
+[% END -%]
+    <models>
+      <model ac="[% pfam.pfama_acc %]" name="[% pfam.pfama_id %]" desc="[% pfam.description | html_entity %]" />
+    </models>
+  </signature>
+[% END -%]
+</signature-library-release>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
