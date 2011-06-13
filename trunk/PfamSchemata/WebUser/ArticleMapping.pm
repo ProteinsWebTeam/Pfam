@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('accession','title');
 
-__PACKAGE__->might_have(
+__PACKAGE__->has_many(
   wikitext => 'WebUser::Wikitext',
   { 'foreign.title' => 'self.title' }
 );
