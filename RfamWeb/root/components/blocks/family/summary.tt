@@ -80,7 +80,10 @@ requirements.cssIe.push( "family_ie.css" );
       <strong>[% rfam.auto_wiki.title.replace( "_", " " ) %]</strong>.
       You can see the Wikipedia page for this family 
       <a href="http://en.wikipedia.org/w/index.php?title=[% rfam.auto_wiki.title %]"
-         class="ext">here</a>.
+         class="ext">here</a>
+      [%- UNLESS article.wikitext AND article.wikitext.text %]
+      but we are unable to retrieve the article content at this time
+      [%- END %].
       
       <span onclick="reveal( this, 'wikiNotes', false, true );"
             class="moreLink">
@@ -203,6 +206,7 @@ requirements.cssIe.push( "family_ie.css" );
       <hr />
     </div>
 
+    [%- IF article.wikitext AND article.wikitext.text %]
     <div id="wpData" 
          class="controlTabContent">
       [%- article.wikitext.text %]
@@ -215,6 +219,7 @@ requirements.cssIe.push( "family_ie.css" );
       <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
         Creative Commons Attribution/Share-Alike License</a>.
     </p>
+    [%- END # of "IF article.wikitext..." %]
 
   </div>
 </div>
