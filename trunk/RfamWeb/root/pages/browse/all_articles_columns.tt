@@ -1,0 +1,112 @@
+[%
+# all_articles.tt
+# jt6 20110413 WTSI
+# 
+# build a "browse" page for Wikipedia articles
+#
+# $Id$
+
+META title = "Browse Rfam Wikipedia articles";
+META fullPage = 1;
+
+USE String;
+USE Dumper;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+pages = [ "0 - 9" ];
+CALL pages.import( [ "A" .. "Z" ] );
+
+# shortcuts for URIs
+familyURI = c.uri_for( "/family" );
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt" 
+                   pageList=pages
+                   activeLetters=active_letters.articles
+                   pageURI = "#";
+
+blocks = [];
+first = "";
+currentCol = String.new;
+columns = [ currentCol ];
+rowCount = 3;
+colLength = ( articles.keys.size + 26 * 2 + 2 * 2 ) / 3;
+# o allow two extra rows per heading, so 26 of those (assuming there's an article
+#   beginning with ever letter, which isn't a bad assumption)
+# o allow two extra rows for the extra headings that could be at the top of the
+#   second two columns, because we're adding a heading something like "X cont"
+#   when we wrap the column
+FOREACH title IN articles.keys.sort;
+
+  IF title.match('^\d');
+    initialLetter = "0 - 9";
+  ELSE;
+    initialLetter = title.split("").first | upper;
+  END;
+
+  IF initialLetter != first;
+    IF NOT loop.first;
+      CALL currentCol.append( "</ul>" );
+    END;
+    CALL currentCol.append( "<h1>", initialLetter, "</h1><ul>" );
+    rowCount = rowCount + 2;
+  END;
+
+  first = initialLetter | upper;
+
+  titleString = String.new( title ).truncate( 40, "..." );
+  CALL currentCol.append( "<li><a title='" _ title _ "' href='http://en.wikipedia.org/en/" _ title _ "'>", titleString, "</a></li>" );
+  rowCount = rowCount + 1;
+
+  IF rowCount % ( colLength  ) == 0;
+    CALL currentCol.append( "</ul>" );
+
+    currentCol = String.new;
+    columns.push( currentCol );
+
+    CALL currentCol.append( "<h1>", initialLetter, " cont.</h1><ul>" );
+    rowCount = rowCount + 2;
+  END;
+
+END;
+
+%]
+<table>
+  <tr>
+    [% FOREACH column IN columns %]
+      <td style="vertical-align: top" id="column[% loop.index %]">
+        [% column %]
+      </td>
+    [% END %]
+  </tr>
+</table>
+
+<!-- end browse page -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
