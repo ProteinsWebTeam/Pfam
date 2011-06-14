@@ -220,10 +220,22 @@ VARNA applet.
 sub varna : Local {
   my ( $this, $c ) = @_;
 
+  $c->stash->{template} = 'components/tools/varna.tt';
+
   my $json = JSON->new;
 
   # retrieve the JSON string with the (broken) annotation
-  my $json_string = $c->stash->{rfam}->structure_annotations;
+  # my $json_string = $c->stash->{rfam}->structure_annotations;
+
+  # get the gzip compressed JSON string for the structure annotation
+  my $rs = $c->model('RfamDB::SecondaryStructureImages')
+             ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+                       type      => 'ss' } );
+  return unless ( $rs and $rs->image );
+
+  # try to uncompress it
+  my $json_string = Compress::Zlib::memGunzip( $rs->image );
+  return unless $json_string;
 
   # decode it so we can work with it as a regular perl data structure,
   # convert the A/a notation to [/] and similarly for B/b to {/}, then
@@ -231,8 +243,6 @@ sub varna : Local {
   my $ss = $json->decode( $json_string );
   $ss->{reference_structure} =~ tr/AaBbC-Zc-z/[]{}../;
   $c->stash->{ss} = $json->encode( $ss );
-
-  $c->stash->{template} = 'components/tools/varna.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -276,9 +286,9 @@ sub image : Local {
              defined $rs->image ) {
       $c->detach( 'no_alignment' );
       return;
-      # $c->stash->{errorMsg} = 'We could not find an image for ' 
-      #                         . $c->stash->{acc};
-      # return;
+      $c->stash->{errorMsg} = 'We could not find an image for ' 
+                              . $c->stash->{acc};
+      return;
     }
 
     $image = $rs->image;
@@ -633,7 +643,7 @@ sub get_wikipedia : Private {
                   ->next;
   # my $article = $articles->next;
   
-  return unless $article;
+  return unless ( $article and $article->wikitext );
 
   $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
                   . $article->wikitext->title . '|' )
