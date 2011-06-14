@@ -97,12 +97,12 @@ USE Number.Format( THOUSANDS_SEP = "," );
               <td>
                 <span class="button">
                   <input type="radio" 
-                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
                          name="alnType" 
                          id="viewerTypeS"
                          value="seed" 
                          checked="checked" />
-                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                  <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
                          for="viewerTypeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
@@ -174,12 +174,12 @@ USE Number.Format( THOUSANDS_SEP = "," );
               <td>
                 <span class="button">
                   <input type="radio"
-                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
                          name="alnType" 
                          id="typeS" 
                          value="seed" 
                          checked="checked" />
-                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                  <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
                          for="typeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
@@ -257,7 +257,9 @@ USE Number.Format( THOUSANDS_SEP = "," );
         seed</a> and
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full&amp;af=1">
       full</a> alignments are also available with &quot;name/start-end&quot; 
-      rather than species name labels.
+      rather than species name labels. You may find
+      <a class="ext" href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee">
+        RALEE</a> useful when viewing sequence alignments.
     </p>
 
     <form id="downloadForm"
@@ -274,12 +276,12 @@ USE Number.Format( THOUSANDS_SEP = "," );
               <td>
                 <span class="button">
                   <input type="radio" 
-                         [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
+                         [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
                          name="alnType" 
                          id="dlTypeS" 
                          value="seed" 
                          checked="checked" />
-                  <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
+                  <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
                          for="dlTypeS">Seed ([% rfam.num_seed | format_number %])</label>
                 </span>
                 <span class="button">
