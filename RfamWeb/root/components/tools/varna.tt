@@ -34,16 +34,23 @@ title = "VARNA"
   <em>et al</em>.
 </p>
 
-<script type="text/javascript">
-  // <![CDATA[
+[%- # check that there's a structure annotation available...
+IF ss %]
+  <script type="text/javascript">
+    // <![CDATA[
 
-  var varnaJarUri = "[% c.uri_for( '/static/varna/VARNAv3-6.jar' ) %]";
-  var ssData = [% ss %];
+    var varnaJarUri = "[% c.uri_for( '/static/varna/VARNAv3-7.jar' ) %]";
+    var ssData = [% ss %];
 
-  var vc = new VarnaControl( varnaJarUri, ssData, "appletContainer" );
+    var vc = new VarnaControl( varnaJarUri, ssData, "appletContainer" );
 
-  // ]]>
-</script>
+    // ]]>
+  </script>
+[%- ELSE %]
+  <p>
+    There was a problem loading the secondary structure annotation.
+  </p>
+[%- END %]
 
 <br />
 
