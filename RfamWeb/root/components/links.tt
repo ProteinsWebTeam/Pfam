@@ -15,6 +15,8 @@ USE String;
 # these are the labels for the links that will appear in the internal or
 # external links tables
 labels = {
+    GO         = "Gene Ontology",
+    SO         = "Sequence Ontology",
     MIR        = "MicroRNA",
     snoRNABase = "snoRNABase",
     MIPF       = "MIPF",
@@ -35,6 +37,8 @@ internal = [
     "btobPRC"
 ]
 external = [
+    "GO",
+    "SO",
     "MIR",
     "snoRNABase",
     "MIPF",
@@ -104,6 +108,10 @@ END; # of "addLinks" block
 
 BLOCK buildLink;
   SWITCH type %]
+    [%- CASE "GO" -%]
+<a class="ext" href="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=GO:[% id %]">[% id %]</a>
+    [%- CASE "SO" -%]
+<a class="ext" href="http://www.sequenceontology.org/miso/current_release/term/SO:[% id %]">[% id %]</a>
     [%- CASE "MIR" -%]
 <a class="ext" href="http://www.mirbase.org/cgi-bin/mirna_entry.pl?acc=[% id %]">[% id %]</a>
     [%- CASE "snoRNABase" -%]
@@ -248,6 +256,7 @@ BLOCK externalLinks;
   SWITCH type;
     CASE "rfam";
       FOREACH link IN rfam.rfam_database_links;
+        # CALL c.log.debug( "db_id: " _ link.db_id _ ", id: " _ link.db_link );
         db = link.db_id;
         IF NOT xrefs.${db}.defined;
           xrefs.${db} = [];
@@ -279,7 +288,7 @@ BLOCK externalLinks;
           </td>
           <td>[% 
             SWITCH db;
-              CASE [ "MIR", "snoRNABase", "MIPF" ];
+              CASE [ "GO", "SO", "MIR", "snoRNABase", "MIPF" ];
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
                     [%- PROCESS buildLink type=db 
