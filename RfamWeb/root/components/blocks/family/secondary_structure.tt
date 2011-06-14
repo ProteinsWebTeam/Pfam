@@ -143,9 +143,10 @@ labels = [
     </div>
 
     <p>
-      You can <span class="link" id="varnaLink">view</span> the 
-      secondary structure of the family using the <a class="ext" 
-        href="http://varna.lri.fr/">VARNA</a> applet.
+      You can view the secondary structure of the family using the 
+      <strong><span class="link" id="varnaLink">VARNA</span></strong> applet. 
+      You can see more information about VARNA iself 
+      <a class="ext" href="http://varna.lri.fr/">here</a>.
     </p>
 
     <ul id="ssImageTabs" class="controlTabList">
