@@ -781,6 +781,60 @@ sub sequenceChecker {
     return 1;
   }
 }
+#-------------------------------------------------------------------------------
+
+=head2 family_overlaps_with_signal_peptide
+Usage       : &PfamQC::family_overlaps_with_signal_peptide("family_id", $famObj, $pfamDB)
+Function    : check if the seed and align contain signal peptides as determined by phobius
+Returns     : number of overlaps found
+Args        : family_id, Bio::Pfam::Family::PfamA, Bio::Pfam::PfamLiveDBManager
+=cut
+
+sub family_overlaps_with_signal_peptide {
+
+    my ($family, $famObj, $pfamDB) = @_;
+
+    unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+        confess("$family: Did not get a family object passed in.....\n");
+    }
+    my %checked;
+    my %overlaps; # number of overlaps seen
+    $overlaps{seed}=0;
+    $overlaps{align}=0;
+	open(my $LOG, ">$family/sig_p_overlap") or die "Can't open file sig_p_overlap for writing log.\n";
+    foreach my $seq ($famObj->SEED->each_seq) {
+        my $id = $seq->id;
+        my $start = $seq->start;
+        my $end = $seq->end;
+        #print "$id - $start \/ $end\n";
+        $checked{$id}=1;
+	    my %overlap = %{ $pfamDB->getSignalPeptideRegion($id, $start, $end) };
+        if($overlap{overlap}==1) {
+            print $LOG "Sequence $id\/$start-$end in SEED overlaps with signal peptide $overlap{start}-$overlap{end}\n";
+            $overlaps{seed}++;
+        }
+    }
+
+    foreach my $seq ($famObj->ALIGN->each_seq) {
+        my $id = $seq->id;
+        my $start = $seq->start;
+        my $end = $seq->end;
+        if(!exists $checked{$id}) {
+            #print "$id - $start \/ $end\n";
+    
+	        my %overlap = %{ $pfamDB->getSignalPeptideRegion($id, $start, $end) };
+            if($overlap{overlap}==1) {
+                print $LOG "Sequence $id\/$start-$end in ALIGN overlaps with signal peptide $overlap{start}-$overlap{end}\n";
+                $overlaps{align}++;
+            }
+        }
+    }
+    
+    close($LOG) or warn "Can't close file $family/sig_p_overlap.\n";
+    $overlaps{total} = $overlaps{seed}+$overlaps{align};
+    #returns number of overlaps;
+    return \%overlaps;
+}
 
 #-------------------------------------------------------------------------------
 
@@ -793,7 +847,6 @@ sub sequenceChecker {
  Returns  : number of overlaps
  Args     : family_id, reference to an array of families to ignore, 
             optional flag to calculate end points
-
 =cut
 
 sub family_overlaps_with_db {
