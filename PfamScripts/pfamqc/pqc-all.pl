@@ -136,6 +136,12 @@ if ( $config->location eq "WTSI" ) {
   }
   $verbose and print STDERR "$0: No overlaps found\n";
   
+  my %signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
+  if($signal_peptide_overlap{total}>0) {
+    print "$0: There are $signal_peptide_overlap{total} signal peptide overlaps, $signal_peptide_overlap{seed} in SEED and $signal_peptide_overlap{align} in ALIGN\n";
+    exit(1);
+  }
+  
 }
 
 Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
