@@ -38,7 +38,7 @@ use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
 #Switch on or off debugging
-our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 
 # Get a new queue stub of the type fast
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
