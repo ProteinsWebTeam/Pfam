@@ -14,7 +14,13 @@ use Data::Dump qw( dump );
 my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 $ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
 
-my $pq = Bio::Pfam::WebServices::PfamQueue->new( 'h3' );
+my $opts = {};
+
+if (defined $ENV{PIDFILE}) {
+  $opts->{pidfile} = $ENV{PIDFILE};
+}
+
+my $pq = Bio::Pfam::WebServices::PfamQueue->new('h3', $opts);
 $pq->daemonise unless $DEBUG;
 
 my $ps = Bio::Pfam::Scan::PfamScan->new();

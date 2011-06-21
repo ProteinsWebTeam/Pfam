@@ -40,8 +40,14 @@ use Bio::Pfam::WebServices::PfamQueue;
 #Switch on or off debugging
 our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 
+my $opts = {};
+
+if (defined $ENV{PIDFILE}) {
+  $opts->{pidfile} = $ENV{PIDFILE};
+}
+
 # Get a new queue stub of the type fast
-my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
+my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast", $opts);
 $qsout->daemonise unless($DEBUG);
 
 while(1) {

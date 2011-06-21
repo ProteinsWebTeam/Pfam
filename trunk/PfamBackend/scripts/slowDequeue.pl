@@ -53,10 +53,14 @@ use Bio::Pfam::WebServices::PfamQueue;
 
 our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 
+my $opts = {};
 
+if (defined $ENV{PIDFILE}) {
+  $opts->{pidfile} = $ENV{PIDFILE};
+}
 
 # Get a new queue stub
-my $qsout = Bio::Pfam::WebServices::PfamQueue->new("slow");
+my $qsout = Bio::Pfam::WebServices::PfamQueue->new("slow", $opts);
 $qsout->daemonise unless($DEBUG);
 while(1) {
   my $job   = $qsout->satisfy_pending_job();

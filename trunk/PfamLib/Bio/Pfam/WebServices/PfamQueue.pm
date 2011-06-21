@@ -37,6 +37,7 @@ sub new {
                            status
                            id
                            email
+                           pidfile
 			   rfamEmail
                            command)],
 	     };
@@ -442,6 +443,16 @@ sub update_job_stream {
 }
 
 
+sub pidfile {
+  my $self = shift;
+  if(!exists $self->{pidfile}) {
+    my $pidFile = basename($0);
+    $pidFile =~ s/\.pl/\.pid/;
+    $self->{pidfile} = $pidFile;
+  }
+  return $self->{pidfile};
+}
+
 sub daemonise {
   my $self = shift;
   chdir '/var/lock'                 or die "Can't chdir to /: $!";
@@ -450,10 +461,9 @@ sub daemonise {
   open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
   open STDERR, '>/dev/null' or die "Can't write to /dev/null: $!";
   defined(my $pid = fork)   or die "Can't fork: $!";
-  
-  my $pidFile = basename($0);
-  $pidFile =~ s/\.pl/\.pid/;
-  
+
+  my $pidFile = $self->pidfile();
+
   if($pid){
     open PIDFILE, ">$pidFile" or die "can't open $pidFile: $!\n";
     print PIDFILE $pid;
@@ -736,6 +746,7 @@ equivalent to job submission management via LSF.
    masterdbpass => ''         # optional overridden database password
    stdin        => ''         # standard input for job
    id           => ''         # job id, required for job retrieval
+   pidfile      => 'file.pid' # the full path to the pidfile
    blocking     => 0          # blocking i/o on|off
 
 =head2 tracker : job tracker (use 'id' instead for non-LSF submissions)
