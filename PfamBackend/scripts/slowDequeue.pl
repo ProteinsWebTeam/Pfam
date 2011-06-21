@@ -51,7 +51,7 @@ use Getopt::Long;
 # Our Module Found in Pfam-Core
 use Bio::Pfam::WebServices::PfamQueue;
 
-our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 
 
 
