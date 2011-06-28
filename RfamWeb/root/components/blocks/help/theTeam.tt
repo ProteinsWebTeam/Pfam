@@ -29,8 +29,9 @@
     <ul>
       <li>Alex Bateman - coordinator of the Pfam, Merops and Rfam databases</li>
       <li>Jennifer Daub - Rfam research and development</li>
-      <li>Paul Gardner - Rfam Project leader</li>
+      <li>Ruth Eberhardt - curator</li>
       <li>John Tate - web development</li>
+      <li>Sarah Burge - Rfam project leader</li>
     </ul>
     
     <h3>Janelia Farm Research Center (USA)</h3>
@@ -49,6 +50,12 @@
         collaborator</li>
     </ul>
     
+    <h3>University of Canterbury (NZ)</h3>
+
+    <ul>
+      <li>Paul Gardner - former Rfam project leader and continued collaborator</li>
+    </ul>
+
     <h3>Mirror Sites</h3>
 
     [% PROCESS "components/mirrors.tt" %]  
