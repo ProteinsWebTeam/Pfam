@@ -28,10 +28,10 @@
   
     <ul>
       <li>Alex Bateman - coordinator of the Pfam, Merops and Rfam databases</li>
+      <li>Sarah Burge - Rfam project leader</li>
       <li>Jennifer Daub - Rfam research and development</li>
       <li>Ruth Eberhardt - curator</li>
-      <li>John Tate - web development</li>
-      <li>Sarah Burge - Rfam project leader</li>
+      <li>John Tate - web developer</li>
     </ul>
     
     <h3>Janelia Farm Research Center (USA)</h3>
@@ -40,7 +40,6 @@
       <li>Sean Eddy - coordinator of Rfam-USA, founding developer and 
         author of Infernal software</li>
       <li>Eric Nawrocki - developer of Infernal software</li>  
-      <li>Diana Kolbe - developer of Infernal software</li>
     </ul>
     
     <h3>Manchester University (UK)</h3>
@@ -68,6 +67,7 @@
        <li>Adam Wilkinson</li>
        <li>William Mifsud</li>
        <li>Enrico Marantidis</li>
+       <li>Diana Kolbe</li>
     </ul>
   
     <p>
