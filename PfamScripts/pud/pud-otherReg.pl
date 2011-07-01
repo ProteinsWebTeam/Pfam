@@ -43,13 +43,13 @@ chdir("$pfamseqDir/otherReg")
 
 #-------------------------------------------------------------------------------
 #Open and spit pfamseq into bits;
-
+my $n = 1;
+unless(-e "$pfamseqDir/otherReg/doneSplit"){
 my $bit = int( ( $config->dbsize ) / 100 );
 $bit++;
 
 $logger->debug(
   "Going to split pfamseq into 100 files containing $bit sequences");
-my $n = 1;
 
 open( B, ">pfamseq.$n" )
   or $logger->logdie("Could not open pfamseq.$n:[$!]\n");
@@ -72,7 +72,9 @@ while (<P>) {
 close(B);
 close(P);
 $logger->info("Made $n files");
-
+system("touch $pfamseqDir/otherReg/doneSplit");
+}
+$n =100;
 ##-------------------------------------------------------------------------------
 ##Now submit the searches to the farm
 my $farmConfig = $config->farm;
@@ -81,19 +83,22 @@ my $ug         = new Data::UUID;
 my $uuid       = $ug->to_string( $ug->create() );
 my $fh         = IO::File->new();
 my $user       = $ENV{USER};
+
+
+unless(-e "$pfamseqDir/otherReg/doneFarm"){
 $logger->info("Submitting jobs to the farm");
 
 #Set up the job and copy the files over;
 $fh->open( "| bsub -q "
     . $farmConfig->{lsf}->{queue}
     . " -o /tmp/$$.log  -JotherRegs\"[1-$n]\" " );
-$fh->print( "mkdir " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid\n" );
-$fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid\n" );
-$fh->print(
-      "/usr/bin/scp -p $phost:$pfamseqDir/otherReg/pfamseq.\$\{LSB_JOBINDEX\} "
-    . $farmConfig->{lsf}->{scratch}
-    . "/$user/$uuid/pfamseq.\$\{LSB_JOBINDEX\}\n" );
-
+#$fh->print( "mkdir " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid\n" );
+$fh->print( "cd $pfamseqDir/otherReg/pfamseq.\$\{LSB_JOBINDEX\}\n"); 
+#r/otherReg/pfamseq.\$\{LSB_JOBINDEX\} $fh->print(
+#      "/usr/bin/scp -p $phost:$pfamseqDir/otherReg/pfamseq.\$\{LSB_JOBINDEX\} "
+#    . $farmConfig->{lsf}->{scratch}
+#    . "/$user/$uuid/pfamseq.\$\{LSB_JOBINDEX\}\n" );
+#
 #To calculate these other regions
 #seg
 #ncoils - This needs the environment variable COILSDIR to be set.
@@ -105,14 +110,17 @@ $fh->print(
   "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
 
 #Now bring back all of the files
-foreach my $f (qw(ncoils seg phobius)) {
-  $fh->print(
-"/usr/bin/scp -p $f.\$\{LSB_JOBINDEX\} $phost:$pfamseqDir/otherReg/$f.\$\{LSB_JOBINDEX\}\n"
-  );
-}
-$fh->print("rm -f pfamseq.\$\{LSB_JOBINDEX\}\n");
+#foreach my $f (qw(ncoils seg phobius)) {
+#  $fh->print(
+#"/usr/bin/scp -p $f.\$\{LSB_JOBINDEX\} $phost:$pfamseqDir/otherReg/$f.\$\{LSB_JOBINDEX\}\n"
+#  );
+#}
+#$fh->print("rm -f pfamseq.\$\{LSB_JOBINDEX\}\n");
 $fh->close;
 
+sleep(30); #Give them change to get on to the farm queue!
+system("touch $pfamseqDir/otherReg/doneFarm");
+}
 #-------------------------------------------------------------------------------
 ##Have all of the jobs finished
 $logger->info("Waiting for jobs to finish on the farm");
