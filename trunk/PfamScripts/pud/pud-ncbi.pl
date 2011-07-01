@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/software/bin/perl
 
 use strict;
 use warnings;
@@ -9,7 +9,6 @@ use Digest::MD5 qw( md5_hex );
 use Config::General qw( SaveConfig );
 use Getopt::Long;
 use File::Copy;
-use Net::SCP;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -50,51 +49,37 @@ my $content = get( $NCBI_PATH ) || $logger->logdie( "cant download the Ncbi_inde
 # and store those files into the corresponding ncbi directory mentioned in the config file.
 
 
-foreach my $line (split(/\n/, $content)){
   
-  if( $line =~ /(gb\w+.fsa_aa.gz)/){
-    $logger->info( " Downloading file $1.....");
-    getstore( $NCBI_PATH."/$1","$store_dir/$1" ) || $logger->logdie( "cant store the file $1 in $store_dir/$1");    
-  
-  } # end of $line =~ pattern   
+$logger->info( "Downloading file release number.....");
+getstore( $NCBI_PATH."/GB_Release_Number","$store_dir/GB_Release_Number" ) || $logger->logdie( "cant store the file GB_Release_Number in $store_dir/GB_Release_Number");    
 
-} # end of foreach ( split )
+$logger->info( "Downloading file nr.gz.....");
+$NCBI_PATH = 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/';
 
+unless (-e "$store_dir/nr.gz"){
+  getstore($NCBI_PATH."/nr.gz", "$store_dir/nr.gz") || $logger->logdie("Can not store nr.gz in $store_dir/nr.gz");
+}
+$logger->info("downloaded nr.");
 # when it reaches here all the files are present in the ncbi directory and now parse each file to get the fasta sequence;
 
 my $counter = 1;
 my $total_seqs = {};
 
 # now get all the files from the directory and parse it to append the fasta sequences to make a single file.
-
-foreach my $file ( glob( "$store_dir/gb*.fsa_aa.gz" ) ) {
-  
-  $logger->info( "now working on file number $counter: $file");
+my $file = "$store_dir/nr.gz";
+$logger->info( "now working on file number $counter: $file");
  
-  ( $total_seqs->{ $file }->{ gi_lines }, $total_seqs->{ $file }->{ seq_lines } ) = gz2string( $file, $logger );
+( $total_seqs->{ $file }->{ gi_lines }, $total_seqs->{ $file }->{ seq_lines } ) = gz2string( $file, $logger );
   
-  $counter++;
-}# end of foreach( files )
 
-# now check whether the total lines are equal to file or not;
-my $total_gi = 0 ;
-my $total_seq_in_file= 0 ;
 
-foreach( keys %{ $total_seqs }){
-  $total_gi += $total_seqs->{ $_ }->{ gi_lines } if( defined $total_seqs->{ $_ }->{ gi_lines } );
-  $total_seq_in_file+= $total_seqs->{ $_ }->{ seq_lines } if( defined $total_seqs->{ $_ }->{ seq_lines } );
-}
 
-$logger->info("total gi:$total_gi|$total_seq_in_file|");
+## copy the file from local to pfamdb2a machine using scp;
+## currently the name is hard-coded, should discuss with rob and decide about it.
+system("scp $production_location/pfamseq".$VERSION."/ncbi.dat ". $config->pfamliveAdmin->{host} .":/tmp/ncbi.dat") 
+  and $logger->logdie("Could not scp ncbi.dat to ".$config->pfamliveAdmin->{host}.":[$!]");
 
-# copy the file from local to pfamdb2a machine using scp;
-# currently the name is hard-coded, should discuss with rob and decide about it.
-
-my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
-my $f1 = "$production_location/pfamseq".$VERSION."/ncbi.dat";
-$scp->put("$f1", "/tmp/ncbi.dat") or $logger->logdie("Could not scp ncbi.dat to ".$pfamDB->{host}. " " . $scp->{errstr});
-
-#get the dbh handle for the database specifed in the config file;
+##get the dbh handle for the database specifed in the config file;
 
 
 # now delete the contents of the ncbi_seq table;
@@ -106,8 +91,8 @@ if( $@ ){
 }
 
 my $sth = $dbh->prepare( "LOAD DATA INFILE '/tmp/ncbi.dat' INTO TABLE ncbi_seq" );
-
-# catch the errors, if encountered;
+#
+## catch the errors, if encountered;
 eval{
   $sth->execute();  
 };
@@ -139,21 +124,18 @@ $ncbi_seq->execute ||
   $logger->logdie("Query fail: couldn't calculate the total ncbi sequences present in database ".$ncbi_seq->errstr."\n");
 my $total_db_sequences = $ncbi_seq->fetchrow;
 
-if( $total_db_sequences !=  $total_seq_in_file){
-  $logger->logdie( "Diffence in total ncbi sequence count: sequences in fasta file: $total_seq_in_file, sequences in database: $total_db_sequences ");
-}else {
   
-  # DOUBLE CHECK WITH ROB AS THIS PIECE OF SNIPPET WILL CHANGE THE PFAM CONFIG EACH TIME.
-  $logger->info("Changing pfam config file\n");
+# DOUBLE CHECK WITH ROB AS THIS PIECE OF SNIPPET WILL CHANGE THE PFAM CONFIG EACH TIME.
+$logger->info("Changing pfam config file\n");
 
-  my $config = new Config::General($ENV{PFAM_CONFIG}); 
-  my %ac = $config->getall; 
+  my $configNew = new Config::General($ENV{PFAM_CONFIG}); 
+  my %ac = $configNew->getall; 
   
   my $pfam_config = $ENV{PFAM_CONFIG};
   move( $pfam_config, "$pfam_config.$$.old") || $logger->logdie("Could not move config file");;
-  $ac{ ncbi }->{ dbsize } = $total_seq_in_file; 
+  $ac{ ncbi }->{ dbsize } = $total_db_sequences; 
 
-  SaveConfig( $pfam_config, \%ac );
+  SaveConfig( $pfam_config, \%ac ) || $logger->logdie( "cant change the Pfam_config file");
   
   # checking whether we could get a proper config object
   my $newConfig;
@@ -164,8 +146,7 @@ if( $total_db_sequences !=  $total_seq_in_file){
   if($@) { 
     $logger->logdie("Problem modifying the pfam_config ($pfam_config) file");
   }
-
-}
+  $config = $newConfig;
 
 exit;
 
@@ -177,52 +158,63 @@ exit;
 sub gz2string {
   my ( $file, $logger ) = @_;
   
-  open( OUT, ">>$production_location/pfamseq".$VERSION."/ncbi.dat") || 
+  open( OUT, ">$production_location/pfamseq".$VERSION."/ncbi.dat") || 
     $logger->logdie( "cant open the file ncbi.dat for writing ");
-  open( OUT1,">>$production_location/pfamseq".$VERSION."/ncbi") || 
+  open( OUT1,">$production_location/pfamseq".$VERSION."/ncbi") || 
     $logger->logdie( "cant open the file ncbi for writing");
-  
+  my($head, $sequence, $gi_lines, $seq_lines, $line_count);
   open( IN, "gunzip -c $file | ") || $logger->logdie( "cant open the file $file for reading ");
-  my ( $gi, $gb, $gb_prefix, $desc, $sequence, $line_count, $gi_lines, $seq_lines );
   while( <IN> ){
     $line_count++;
     chomp;
     # some of the lines also contain dbj or emb instead of gb so i have explicitly added those as well
-    if( $_ =~ /^\>gi[|](\d+)[|](gb|dbj|emb)[|]([A-Za-z0-9\.]+)[|](.*)$/){
+    if( $_ =~ /^\>gi[|].*$/){
       
-      my $md5 = md5_hex( $sequence ) if( defined $sequence );
       my $ter_acc = '\N';
-      
-      #The tab delimited file
-      print OUT "$gi\t$gb\t$ter_acc\t$md5\t'$desc'\t" if( defined $gi and  defined $gb and defined $md5 and defined $desc );      
-      print OUT length( $sequence )."\t$sequence\n" if( defined $sequence );  
-      
-      
-      #The fasta file
-      if( defined $gi and  defined $gb and defined $md5 and defined $desc ){
+      if(defined($head) and defined($sequence)){ 
+        parseAndWrite($head, $sequence, \*OUT, \*OUT1);
         $gi_lines++;
-        print OUT1 ">gi|$gi|$gb_prefix|$gb|$desc\n";
-      }
-        
-      if( defined $sequence ){
         $seq_lines++;
-        print OUT1 "$sequence\n";
       }
-      # now i uninitialise the value of sequence and other variables, for the next sequence;
-      $sequence = '';
-      ( $gi,$gb_prefix, $gb, $desc ) = ( $1, $2, $3 ,$4);
-      
+      $sequence = undef;
+      $head = $_;
     }elsif( $_ =~ /^([A-Z]+)$/){
       $sequence .= $1;
     }
     else{
-      $logger->logdie( "|$file| contains invalid character at line $line_count\n");
+      $logger->logdie( "|$file| contains invalid character at line $line_count\n - $_ \n");
     }
     
   } # end of while
   close IN;
-  $logger->info( "the total lines present in $file is $line_count" ); 
+  parseAndWrite($head, $sequence, \*OUT, \*OUT1)
+      if(defined($head) and defined($sequence));
   close OUT;
   close OUT1;
   return ( $gi_lines,$seq_lines ) ;
+}
+
+sub parseAndWrite {
+  my($head, $sequence, $fh1, $fh2) = @_; 
+  
+  my $md5 = md5_hex( $sequence ) if( defined $sequence );
+  my $l = length( $sequence );
+  my @heads = split( /\001/, $head );
+  my @pheads;
+  foreach my $h (@heads) {
+    if ( my ( $gi, $gb_prefix, $gb, $ter_acc, $desc, $os ) =
+      $h =~ /^\S?gi\|(\d+)\|(\S+)\|(\S+)?\|(\S+)? (.*?)(\[.*\])?$/ )
+    {
+      $ter_acc = ($ter_acc ? $ter_acc : '\N');
+      $gb = ($gb ? $gb : '\N');
+      $desc .= " $os" if($os); 
+      print $fh1 print OUT "$gi\t$gb\t$ter_acc\t$md5\t'$desc'\t$l\t$sequence\n";
+      #print out redundant fasta file:
+      print $fh2 ">$gi $gb_prefix|$gb $desc\n$sequence\n";
+    }
+    else {
+      die "NR header $h did not match\n";
+    }
+    last;
+  }
 }
