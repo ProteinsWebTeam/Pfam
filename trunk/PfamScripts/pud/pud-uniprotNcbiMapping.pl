@@ -60,7 +60,7 @@ if(!$uniprotVersion){
 }
 $logger->info("Proceeding to get mappings for UniProt:".$uniprotVersion);
 
-my $dbh = DBI->connect("dbi:mysql:database=$uniprotVersion;host=cbi3:port=3306", "genero") 
+my $dbh = DBI->connect("dbi:mysql:database=$uniprotVersion;host=cbi5d:port=3306", "genero") 
   or $logger->logdie("Failed to get connection to mole:".$DBI::errstr);
 
 my $mapSth = $dbh->prepare("SELECT DISTINCT accession_version, primary_id 
