@@ -329,7 +329,7 @@ else {
 		$is_frag = 0;
 	    }
 	    
-	    print PFAMSEQ "$record{'ID'}\t$record{'AC'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t'NOW()'\t$record{'NCBI_TAX'}\t\\N\t\\N\t\\N\n";
+	    print PFAMSEQ "$record{'ID'}\t$record{'AC'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t\\N\n";
 	    
 	    
 	    if(exists($record{'SEC_AC'})) {
@@ -421,7 +421,9 @@ if(-e "$statusdir/created_tmp_pfamseq") {
 }
 else {
   $logger->info("Creating table tmp_pfamseq\n");
-    
+  
+  $dbh->do("drop table if exists tmp_pfamseq");
+
   my $st = $dbh->prepare("create table tmp_pfamseq (\
   pfamseq_id varchar(12) NOT NULL,\
   pfamseq_acc varchar(6) NOT NULL,\
