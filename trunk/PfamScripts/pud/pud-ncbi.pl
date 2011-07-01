@@ -83,13 +83,14 @@ system("scp $production_location/pfamseq".$VERSION."/ncbi.dat ". $config->pfamli
 
 
 # now delete the contents of the ncbi_seq table;
-eval{
-  $dbh->do( "delete from ncbi_seq "); 
-};
-if( $@ ){
-  $logger->logdie( "Could not delete the contents of the table: ncbi_seq".$dbh->errstr );
+foreach my $table (qw(ncbi_map ncbi_pfamA_reg ncbi_seq)){
+  eval{
+    $dbh->do( "truncate $table "); 
+  };
+  if( $@ ){
+    $logger->logdie( "Could not delete the contents of the table: $table".$dbh->errstr );
+  }
 }
-
 my $sth = $dbh->prepare( "LOAD DATA INFILE '/tmp/ncbi.dat' INTO TABLE ncbi_seq" );
 #
 ## catch the errors, if encountered;
