@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/software/bin/perl
 
 # populate the interpro and gene_ontology tables in the Pfam database,
 # given a list of Pfam accessions from the database and a set of data
@@ -77,8 +77,7 @@ unless ( -d $ROOT ) {
 
 my $INTERPRO_FILE = "$ROOT/interpro.xml";
 my @ONTOLOGIES    = (
-  "$ROOT/function.ontology", "$ROOT/component.ontology",
-  "$ROOT/process.ontology"
+  "$ROOT/gene_ontology.1_2.obo"
 );
 my $INTERPRO2GO_FILE = "$ROOT/interpro2go";
 
@@ -100,9 +99,8 @@ foreach my $file (qw(interpro.xml.gz interpro2go)) {
 }
 system("gunzip $ROOT/interpro.xml.gz")
   and $logger->logdie("Could not gunzip interpro.xml.gz [$!]");
-
-foreach my $file (qw(component.ontology function.ontology process.ontology)) {
-  my $rc = getstore( "ftp://ftp.geneontology.org/pub/go/ontology/$file", $ROOT . "/" . $file );
+foreach my $file (qw(gene_ontology.1_2.obo)) {
+  my $rc = getstore( "ftp://ftp.geneontology.org/pub/go/ontology/obo_format_1_2/$file", $ROOT . "/" . $file );
   $logger->logdie( "Failed to get the file $file:[ got response code $rc ]")
     unless ( is_success($rc) );
 }
@@ -248,9 +246,7 @@ interpro. These files need to exist before this script is run:
 
     interpro.xml
     interpro2go
-    component.ontology
-    function.ontology
-    process.ontology
+    gene_ontology.1_2.obo
 
 EOFmsg
 
@@ -383,31 +379,32 @@ sub parseInterproXML {
 
 sub parseOntologies {
 
-  my %terms;
+  my $terms = {};
 
   foreach my $file (@ONTOLOGIES) {
 
     open( FILE, $file )
       or $logger->logdie( "(EE) ERROR: couldn't open file \"$file\": $!");
 
-    ( $file = basename $file ) =~ s/^(\w+)\..*/$1/;
-
-    my $count = 0;
-    while ( my $line = <FILE> ) {
-
-      next if $line =~ /^\s*\!/;
-
-      foreach my $goId ( grep /(GO:\d+)/, split( /s+/, $line )) {
-        chomp $goId;
-        $goId =~ s/.*?(GO:\d+).*/$1/;
-        $terms{$file}{$goId} = "";
+    my($id, $name, $ns);
+    while(<FILE>){
+      if(/^id:\s+(GO:\d+)/){
+        $id = $1;    
+      }elsif(/^name:\s+(.*)/){
+        $name = $1;
+      }elsif(/^namespace:\s+\S+_(\S+)/){
+        $ns = $1;
+        if(defined($ns) and defined($name) and defined($id)){
+          $terms->{$ns}->{$id} = $name;
+        }
+        $ns = $name = $id = undef;
       }
     }
 
     close FILE;
   }
 
-  return \%terms;
+  return $terms;
 }
 
 #-------------------------------------------------------------------------------
