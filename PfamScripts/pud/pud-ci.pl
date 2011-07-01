@@ -76,7 +76,7 @@ chdir("$fam_dir") or die "Couldn't chdir into $fam_dir $!";
 
 
 #Loop through each family and check in
-foreach my $family ( @families ) {
+foreach my $family ( sort{ $b cmp $a }@families ) {
     next unless(-d $family);
 
     next if(exists($done{$family}));
