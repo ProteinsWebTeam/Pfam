@@ -934,28 +934,16 @@ sub getRange : Private {
   
   # we need to remove double quotes added round the term by QueryParser
   $term =~ s/\"//g;
-  
-  $c->log->debug( "Search::Taxonomy::getRange: looking up term: |$term|" )
+
+  $c->log->debug( "Search::Taxonomy::get_range: looking up term: |$term|" )
     if $c->debug;
 
-  my $rs;
-  if( $term =~ m/\S+\s+\S+/ ){
-    # looks like a species name
-    $c->log->debug( 'Search::Taxonomy::getRange: looks like a species term')
-      if $c->debug;
-         
-    $rs = $c->model('RfamDB::TaxonomyWebsearch')
-            ->find( { species => $term } );  
-
-  } elsif( $term =~/\S+/ ) {
-    # looks like a taxonomic level other than species.
-    $c->log->debug( 'Search::Taxonomy::getRange: looks like a level term' )
-      if $c->debug;
-
-    $rs = $c->model('RfamDB::TaxonomyWebsearch')
-            ->find( { level => $term } );
-  }
+  my $rs = $c->model('RfamDB::TaxonomyWebsearch')
+             ->find( { species => $term } );   
   
+  # $c->log->debug( "Search::Taxonomy::getRange: looking up term: |$term|" )
+  #   if $c->debug;
+
   # return "0" by default, as this is what $c->forward will enforce anyway
   my $rv = 0;
   if( defined $rs and 
