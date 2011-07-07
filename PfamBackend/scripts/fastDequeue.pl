@@ -103,6 +103,7 @@ while(1) {
 		      $qsout->update_job_status($ref->{id}, 'FAIL');
 		      $qsout->update_job_stream($ref->{id}, 'stderr', $error);
 		      next;
+        }
 		    #New Rfam scan line.
 		    $cmd = $ref->{'command'}." -f align  -blastdb ".$qsout->rfamDataFileDir."/Rfam.fasta ".$qsout->rfamDataFileDir."/Rfam.cm ". $qsout->tmpDir."/".$ref->{job_id}.".fa";
   	 } 
