@@ -204,7 +204,7 @@ sub get_matches_with_hmmer {
   # use hmmsearch to get a small database of potential matches
   if (! -e "$dir$fname.hmmsearch") {
     warn "Performing hmmsearch\n";
-    my $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm /opt/data/pfamseq";
+    my $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm $SEQDB";
     system $cmd;
   }
   else {
