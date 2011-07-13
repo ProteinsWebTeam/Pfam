@@ -15,7 +15,7 @@ use Bio::Pfam::Config;
 my $config = Bio::Pfam::Config->new();
 
 
-my $SEQDB = $config->pfamseqLoc();
+my $SEQDB = $config->pfamseqLoc()."/pfamseq";
 my $DEFAULT_LABEL_LEN = 15;
 
 $|++;
