@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Getopt::Long;
 use File::Basename;
-use IPC::Open2;
 use IPC::Open3;
 use IO::Handle;
 use String::Diff;
@@ -15,7 +14,7 @@ use Bio::Pfam::Config;
 my $config = Bio::Pfam::Config->new();
 
 
-my $SEQDB = $config->pfamseqLoc()."/pfamseq";
+my $SEQDB = $config->pfamseqLoc() . '/pfamseq';
 my $DEFAULT_LABEL_LEN = 15;
 
 $|++;
@@ -94,7 +93,7 @@ sub cleanup {
   unlink "$file.hmmsearch";
   unlink "$file.phmmerdb";
   unlink "$file.phmmerdb.ssi";
-
+  unlink "$file.acclist";
   return;
 }
 
@@ -298,33 +297,26 @@ sub parse_hmmsearch {
   my ($file) = @_;
   if (! -e "$file.phmmerdb") {
     warn "creating database for phmmer search\n";
-    my $cmd = $config->hmmer3bin . "/esl-sfetch -Cf $SEQDB -";
-    my ($reader, $writer) = (IO::Handle->new, IO::Handle->new);
-    my $pid = undef;
-    eval {
-      $pid = open2($reader, $writer, $cmd);
-    };
-    if ($@) {
-      die "open2 failed: $!\n$@\n";
-    }
 
+    # create acc list to pipe into sfetch
     open my $results, '<', "$file.hmmsearch"
       or die "Couldn't open hmmsearch results file for reading [$file.hmmsearch]: $!\n";
+
+    open my $acclist ,'>', "$file.acclist"
+      or die "Couldn't open acclist for writing [$file.acclist]: $!\n";
+
     while(<$results>) {
       next if $_ =~ /^#/;
       my ($acc) = $_ =~ /^([^\s]+)/;
-      print $writer "$acc 1 0 $acc\n";
+      print $acclist "$acc\n";
     }
     close $results;
-    close $writer;
+    close $acclist;
 
-    open my $phmmerdb, '>', "$file.phmmerdb"
-      or die "Couldn't open phmmerdb file for writing [$file.phmmerdb]: $! \n";
+    my $cmd = $config->hmmer3bin . "/esl-sfetch -o $file.phmmerdb -f $SEQDB $file.acclist >/dev/null";
 
-    while(<$reader>) {
-      print $phmmerdb $_;
-    }
-    close $phmmerdb;
+    system $cmd;
+
     $cmd = $config->hmmer3bin . "/esl-sfetch --index $file.phmmerdb 1>/dev/null";
     system $cmd;
   }
