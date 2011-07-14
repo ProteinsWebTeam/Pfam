@@ -46,6 +46,8 @@ if ( !Bio::Pfam::PfamQC::checkFamilyFiles($family) ) {
 
 $verbose and print STDERR "$0: All family files are present\n";
 
+
+
 #
 #-------------------------------------------------------------------------------
 # Load the family from disk and svn through the middleware
@@ -58,6 +60,15 @@ $verbose and print STDERR "Successfully loaded $family through middleware\n";
 #Check DESC file for ID/AC and that if we have a CL line that we really meant it
 
 my ($isNew, $svnFamObj);
+unless ( $famObj->DESC->ID  and $famObj->DESC->ID =~ /\S+/   ) {
+  die
+"$0: Your family does not appear have an identifier!  The name of the family is now "
+    . "supplied in the DESC file and families are stored under their accession\n."
+    . "The check-in process will automatically assign the accession and position it in the
+  repository for you!\n";
+
+}
+
 if ( $famObj->DESC->AC ) {
   $isNew = 0;
   
@@ -96,7 +107,7 @@ else {
   
 }
 
-unless ( $famObj->DESC->ID ) {
+unless ( $famObj->DESC->ID  and $famObj->DESC->ID =~ /\S+/   ) {
   die
 "$0: Your family does not appear have an identifier!  The name of the family is now "
     . "supplied in the DESC file and families are stored under their accession\n."
@@ -136,9 +147,9 @@ if ( $config->location eq "WTSI" ) {
   }
   $verbose and print STDERR "$0: No overlaps found\n";
   
-  my %signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
-  if($signal_peptide_overlap{total}>0) {
-    print "$0: There are $signal_peptide_overlap{total} signal peptide overlaps, $signal_peptide_overlap{seed} in SEED and $signal_peptide_overlap{align} in ALIGN\n";
+  my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
+  if(defined($signal_peptide_overlap) and exists($signal_peptide_overlap->{total}) and $signal_peptide_overlap->{total}>0) {
+    print "$0: There are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
     exit(1);
   }
   
