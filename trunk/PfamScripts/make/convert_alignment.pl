@@ -112,10 +112,10 @@ sub rebuild_alignment {
   my ($match, $infile, $seedfile) = @_;
 
   if ($match->[0]->{'fail'}) {
-    printf $seedfile "#SEARCH FAILURE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{query};
+    printf $seedfile "#=GF CC  SEARCH FAILURE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{query};
   }
   elsif ($match->[0]->{duplicate}) {
-    printf $seedfile "#DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
+    printf $seedfile "#=GF CC DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
   }
   else {
 
@@ -130,9 +130,12 @@ sub rebuild_alignment {
         }
       }
 
+      # convert all dashes (-) to dots (.) in the original sequence
+      $original =~ s/-/\./g;
+
       # grab spacings from the original
       my @spacings = ();
-      while($original =~ /-+/g) {
+      while($original =~ /\.+/g) {
         push @spacings, [@-, @+];
       }
 
@@ -145,7 +148,7 @@ sub rebuild_alignment {
 
       # apply spacings to the original sequence in order;
       foreach my $space (@spacings) {
-        substr($new_seq, int($space->[0]), 0) = '-' x ($space->[1] - $space->[0]);
+        substr($new_seq, int($space->[0]), 0) = '.' x ($space->[1] - $space->[0]);
       }
 
       if ($original ne $new_seq) {
@@ -168,7 +171,7 @@ sub rebuild_alignment {
   $match->[0]->{qname}\t$diff->[0]
   $match->[0]->{tname}\t$diff->[1]
   \n);
-          printf $seedfile "#BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
+          printf $seedfile "#=GF CC BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
         }
         else {
           # else add it to the seedfile
