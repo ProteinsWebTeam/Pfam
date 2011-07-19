@@ -514,6 +514,7 @@ sub makeAlign {
           $families_in_align{$_} = "tmp.$$.$align_no.align";
         }
       }
+      $align_no++;
     }
     else {
       $logger->debug("$acc1 and $acc2 is already in the alignment");
