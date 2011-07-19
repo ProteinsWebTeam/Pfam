@@ -49,6 +49,12 @@ sub main {
   open my $seedfile, '>', "$dir$fname.seed"
     or die "Couldn't open seed file for writing [$dir$fname.seed]: $!\n";
 
+  open my $pfamfile, '>', "$dir$fname.pfam"
+    or die "Couldn't open seed file for writing [$dir$fname.pfam]: $!\n";
+
+  open my $errors, '>', "$dir$fname.errors"
+    or die "Couldn't open errors file for writing [$dir$fname.errors]: $!\n";
+
   open my $in_align, '<', $opt->{'file'}
     or die "Couldn't open original alignment for reading [@{[$opt->{'file'}]}]: $! \n";
 
@@ -58,10 +64,12 @@ sub main {
 
   print $seedfile "# STOCKHOLM 1.0\n";
   foreach my $match (@$matches) {
-    rebuild_alignment($match, $in_align, $seedfile);
+    rebuild_alignment($match, $in_align, $seedfile, $pfamfile, $errors);
   }
   print $seedfile "\n//";
   close $seedfile;
+  close $errors;
+  close $pfamfile;
   close $in_align;
   if (!$opt->{'skipclean'}) {
     cleanup("$dir$fname", $suffix);
@@ -109,10 +117,11 @@ sub set_label_length {
 }
 
 sub rebuild_alignment {
-  my ($match, $infile, $seedfile) = @_;
+  my ($match, $infile, $seedfile, $pfamfile, $errors) = @_;
 
   if ($match->[0]->{'fail'}) {
     printf $seedfile "#=GF CC  SEARCH FAILURE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{query};
+    printf $errors "SEARCH FAILED TO MATCH %s\n", $match->[0]->{query};
   }
   elsif ($match->[0]->{duplicate}) {
     printf $seedfile "#=GF CC DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
@@ -146,7 +155,7 @@ sub rebuild_alignment {
       $new_seq =~ s/^>.*//;
       $new_seq =~ s/\n//gs;
 
-      $new_seq = substr($new_seq, $match->[0]->{ali_from} - 1, $match->[0]->{ali_to} - $match->[0]->{ali_from} +1);
+      $new_seq = substr($new_seq, $match->[0]->{ali_from} - 1, $match->[0]->{ali_to} - $match->[0]->{ali_from} + 1);
 
       # apply spacings to the original sequence in order;
       foreach my $space (@spacings) {
@@ -169,11 +178,13 @@ sub rebuild_alignment {
         # if more than 2 residues differ, then fail and show diff"
         my $delta_percent = int(($diff_count * 100) / $match->[0]->{qlen});
         if ($delta_percent > 6) {
-          warn qq(The differenecs between the original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] were too great. It wont be added to the .seed file.:
+          my $message = qq(The differenecs between the original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] were too great. It wont be added to the .seed file.:
   $match->[0]->{qname}\t$diff->[0]
   $match->[0]->{tname}\t$diff->[1]
   \n);
+          warn $message;
           printf $seedfile "#=GF CC BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
+          printf $errors $message;
         }
         else {
           # else add it to the seedfile
@@ -182,11 +193,13 @@ sub rebuild_alignment {
   $match->[0]->{tname}\t$diff->[1]
   \n);
           printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
+          printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
         }
       }
       else {
         # print to .seed file
         printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
+        printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
       }
     }
   }
