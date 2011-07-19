@@ -144,7 +144,7 @@ if ($famId) {
 # Test to see if we can get a connection to the RDB #
 #####################################################
 
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 unless ($pfamDB) {
   Bio::Pfam::ViewProcess::mailUserAndFail( $job,
@@ -672,8 +672,13 @@ $dbh->do($statement) or die $dbh->errstr;
 #Now populate it;
 $dbh->do(
 "INSERT INTO $table SELECT distinct s.pfamseq_acc from pfamseq s, pfamA_reg_full_significant r
-            WHERE in_full=1 AND r.auto_pfamseq=s.auto_pfamseq and r.auto_pfamA= $auto_pfamA"
+            WHERE in_full=1 AND r.auto_pfamseq=s.auto_pfamseq and r.auto_pfamA=".$pfam->auto_pfama
 ) or $dbh->errstr;
+
+#-------------------------------------------------------------------------------
+#Now grab the different taxonomic ranges;
+my $ranges  = $dbh->selectall_arrayref('select lft, rgt, level from taxonomy where parent="root"')
+                                          or die $dbh->errstr;
 
 #Now loop over the tax ranges and perform a look-up on each if there is an overlap
 my $sthTaxDepth = $dbh->prepare(
@@ -719,14 +724,14 @@ makeSpeciesJsonString( $pfam->auto_pfama, $pfamDB, $dbh );
 #This is a dirty hack!!!!
 write_DESC_file( $pfam, $pfamDB );
 
-$logger->debug("Running against reversed datasbase");
+$logger->debug("Running against shuffled datasbase");
 
 #Remove files, but keep SEED and HMM, DESC
 unlink glob("SEED.*");
 unlink glob("ALIGN*");
 unlink glob("HMM.*");
 
-system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db revpfamseq")
+system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db shuffled")
   and warn("Failed to run pfbuild with pfmake against reversed database:[$!]");
 
 my $noHits = 0;
@@ -736,7 +741,7 @@ if ( -s "ALIGN" ) {
   my @a = <A>;
   $noHits = scalar(@a);
 }
-$pfam->update( { number_reverse_hits => $noHits } );
+$pfam->update( { number_shuffled_hits => $noHits } );
 
 #-------------------------------------------------------------------------------
 #Start the ncbi searches
@@ -851,9 +856,8 @@ if ( -s "ALIGN" ) {
   $pfamDB->updateMetaPfamA($metaFamObj);
 
   my @metaRegs = $pfamDB->getSchema->resultset('MetaPfamaReg')->search(
-    { auto_pfama => $pfam->auto_pfama, },
-    ;
-  }
+    { auto_pfama => $pfam->auto_pfama, });
+
   my %metaRegs = map {
         $_->auto_metaseq->metaseq_acc . "/"
       . $_->seq_start . "-"
@@ -1156,11 +1160,16 @@ sub _getDsspData {
   #Now stuff it into a data structure for working on
   my $acc2map;
   foreach (@dssp) {
+    unless( $acc2map->{ $_->get_column('pfamseq_acc') }
+      ->{ $_->get_column('pfamseq_seq_number') }
+      ->{ $_->get_column('pdb_id') . "_" . $_->get_column('chain') }){
+
     $acc2map->{ $_->get_column('pfamseq_acc') }
       ->{ $_->get_column('pfamseq_seq_number') }
       ->{ $_->get_column('pdb_id') . "_" . $_->get_column('chain') }
       ->{ $_->get_column('pdb_seq_number')
-        . $_->get_coloumn('pdb_insert_code') } = $_->get_column('dssp_code');
+        . (defined($_->get_column('pdb_insert_code')) ? $_->get_column('pdb_insert_code') : '') } = $_->get_column('dssp_code');
+    }
   }
   return ($acc2map);
 }
@@ -1203,6 +1212,7 @@ sub markupAlignWithSS {
             while ( my ( $pdbResNum, $dsspCode ) =
               each %{ $$dsspDataRef{ $seq->acc }{$p}{$pdb_chain} } )
             {
+              $dsspCode = defined($dsspCode) ? $dsspCode : '';
               if ( $dsspCode =~ /\S+/ ) {
                 $ss{$pdb_chain}{ssString} .= $dsspCode;
               }
@@ -1253,7 +1263,7 @@ sub markupAlignWithSS {
                 }
               }
             }
-          else {
+          }else {
 
             #If not then put an X for undef
             $ss{$pdb_chain}{ssString} .= "X";
@@ -1288,7 +1298,7 @@ sub markupAlignWithSS {
         $link->database("PDB");
         $link->primary_id( $pdb . " " . $chain );
         $link->optional_id(
-          $ss{$pdb_chain}{start}.$ss{$pdb_chain}{icode_start} . "-" . $ss{$pdb_chain}{end} .$ss{$pdb_chain}{icode_end} ";" );
+          $ss{$pdb_chain}{start}.$ss{$pdb_chain}{icode_start} . "-" . $ss{$pdb_chain}{end} .$ss{$pdb_chain}{icode_end}.";" );
         $seq->annotation( Bio::Annotation::Collection->new() )
           unless ( $seq->annotation );
         $seq->annotation->add_Annotation( 'dblink', $link );
@@ -1555,7 +1565,7 @@ sub makeHTMLAlign {
 
     #Make the posterior probablility alignment.
     system("heatMap.pl -a $filename.ann -b $block > $filename.pp")
-      and mailUserAndFail( $job, "Failed to run heatMap.pl ($type):[$!}" );
+      and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run heatMap.pl ($type):[$!}" );
 
     open( GZPP, "gzip -c $filename.pp |" )
       or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
@@ -1898,12 +1908,9 @@ sub write_stockholm_file {
   if ( scalar(@wiki) ) {
     my $wikiString;
     foreach my $w (@wiki) {
-      if ($wikiString) {
-        $wikiString .= " ";
-      }
-      $wikiString .= $w->auto_wiki->title . ";";
+      print ANNFILE wrap( "#=GF WK   ", "#=GF WK   ", $w->auto_wiki->title );
+      print ANNFILE "\n";
     }
-    print ANNFILE wrap( "#=GF WK   ", "#=GF WK   ", $wikiString );
   }
 
   #Add Nested domains if they are present
@@ -2225,8 +2232,8 @@ sub makeSpeciesJsonString {
   $pfamDB->getSchema->resultset('PfamaSpeciesTree')
     ->update_or_create(
     {
-      auto_pfama => $pfam->auto_pfama,
-      json       => $json_string
+      auto_pfama  => $pfam->auto_pfama,
+      json_string => $json_string
     }
     );
 

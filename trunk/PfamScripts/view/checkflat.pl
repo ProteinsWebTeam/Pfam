@@ -67,7 +67,8 @@ LINE: while(<>) {
 
 	## Can be one of four types
 	/^\#=GF\s+TP\s{3}(Domain|Family|Repeat|Motif)$/ && do {$hash{'TP'}++; next; };
-	
+
+  /^\#=GF\s+WK\s{3}(.*)$/ && do { $hash{'WK'}++; next; };
 	## Can be one of three options
 	/^\#=GF\s+AM\s{3}(byscore|globalfirst|localfirst)$/ && do {$hash{'AM'}++; next; };
 	
@@ -92,10 +93,11 @@ LINE: while(<>) {
 	
 	/^\#=GF\s+DC\s{3}/ && next;
 	
-	if (/^\#=GF\s+DR\s{3}(\S+);/){
+	if (/^\#=GF\s+DR\s{1,3}(\S+);/){
 		my $db = $1;
 		if ($db eq "PDB"){
-			next if (/\#=GF\s+DR\s{3}PDB;\s{1}\S{4}\s{1}\S{0,1};\s{1}-?\d{1,5};\s{1}-?\d{1,5};$/);
+      print STDERR "HERE\n";
+			next if (/\#=GF\s+DR\s{1,3}PDB;\s{1}\S{4}\s{1}\S{1};\s{1}-?\d{1,5}[A-Z0-9]{0,1}(\-)-?\d{1,5}[A-Z0-9]{0,1};$/);
 		}elsif($db eq "SMART"){
 			next if (/\#=GF\s+DR\s{3}SMART;\s{1}\S+;$/);
 		}elsif($db eq "SCOP"){
@@ -114,7 +116,7 @@ LINE: while(<>) {
 		}elsif($db eq "HOMSTRAD"){
 			next if (/\#=GF\s+DR\s{3}HOMSTRAD;\s{1}\S+;$/);
 		}elsif($db eq "CAZY"){
-			next if (/\#=GF\s+DR\s{3}CAZY;\s{1}\S{2,3}_\d+;$/);
+			next if (/\#=GF\s+DR\s{3}CAZY;\s{1}\S+;$/);
 		}elsif($db eq "MIM"){
 			next if (/\#=GF\s+DR\s{3}MIM;\s{1}\d{6};$/);
 		}elsif($db eq "MEROPS"){
@@ -207,7 +209,7 @@ LINE: while(<>) {
 	};
 	
 	##=GS ADA_ECOLI/10-75 DR PDB; 1adn ; 10; 75;
-	/^\#=GS\s{1}\S+\/\d+-\d+\s+DR PDB; \S{4}\s{1}\S{0,1}; -?\d+--?\d+;$/ && next;
+	/^\#=GS\s{1}\S+\/\d+-\d+\s+DR PDB; \S{4}\s{1}\S{0,1}; -?\d+\w{0,1}--?\d+\w{0,1};$/ && next;
 	
 	
 	##=GC seq_cons

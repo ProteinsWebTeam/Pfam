@@ -7,11 +7,11 @@
 # and the parent process terminated so that the script runs in the background.
 #
 # Author        : rdf
-# Maintainer    : $Author: rdf $
+# Maintainer    : $Author$
 # Created       : 2008-05-05
-# Last Modified : $Date: 2009-09-07 09:51:47 $
-# Version       : $Revision: 1.7 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.7 2009-09-07 09:51:47 rdf Exp $
+# Last Modified : $Date$
+# Version       : $Revision$;
+# Id            : $Id$
 
 use strict;
 use warnings;
@@ -24,13 +24,15 @@ use LSF::Job;
 # Our Module Found in Pfam-Core
 use Bio::Pfam::Queues::IntQueue;
 
-our $DEBUG = 1;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 
 # Get a new queue stub
 my $qsout = Bio::Pfam::Queues::IntQueue->new();
 
 # Deamonise the process if we are not trying to debug the code
 $qsout->daemonise unless ($DEBUG);
+my $user = defined($ENV{USER}) ? $ENV{USER} : 'pfam-pipe';
+$user = 'pfam-pipe' if ($user eq 'root');
 
 #Now set off the infinite loop!
 while (1) {
@@ -51,25 +53,26 @@ while (1) {
 
     #Step 2 - Build up the resource requirements!
     if ( $ref->{'job_type'} eq "family" ) {
-    #Build up the command here to run the view process!
-    #Depending on the size of the family, dictates where the job should be scheduled to!
+
+      #Build up the command here to run the view process!
+      #Depending on the size of the family, dictates where the job should be scheduled to!
       if ( $ref->{'entity_size'} ) {
         if ( $ref->{'entity_size'} < 3000 ) {
           #Use small
-          $memory = '1200000';
-          $resource = "select[mypfamlive<300 && type==X86_64 && mem>1200] rusage[mypfamlive=10:mem=1200]";
+          $memory = '4000000';
+          $resource = "select[mypfamlive2<300 && type==X86_64 && mem>4000] rusage[mypfamlive2=10:mem=4000]";
           $tmpDir = $qsout->tmpDir;
-          $queue  = 'small';
-        }elsif( $ref->{'entity_size'} >= 3000 and $ref->{'entity_size'} < 20000 ){
+          $queue  = 'normal';
+        }elsif( $ref->{'entity_size'} >= 3000 and $ref->{'entity_size'} < 10000 ){
           #Use normal
-          $resource = 'select[mem>1500 && mypfamlive<300 && type==X86_64] rusage[mypfamlive=10:mem=1500]';
-          $memory = '1500000'; #Request 1.5 GB of memory
+          $resource = 'select[mem>4000 && mypfamlive2<300 && type==X86_64] rusage[mypfamlive2=10:mem=4000]';
+          $memory = '4000000'; #Request 4 GB of memory
           $tmpDir = $qsout->tmpDir;
           $queue  = 'normal';
         } else {
           #Higher memory requirements and run on long
-          $memory = '7000000'; #Request 7 GB of memory
-          $resource = 'select[type==X86_64 && mem>7000 && mypfamlive<300] rusage[mypfamlive=10:mem=7000]';
+          $memory = '15000000'; #Request 7 GB of memory
+          $resource = 'select[type==X86_64 && mem>15000 && mypfamlive2<300] rusage[mypfamlive2=10:mem=15000]';
           $tmpDir = $qsout->tmpDir;
           $queue  = "long";
         }
@@ -78,20 +81,36 @@ while (1) {
 
         #If we do not have a size of family, this will work in most cases.
         $memory = '7000000'; #We want 7GB of memory
-        $resource = 'select[type==X86_64 && mem>7000 && mypfamlive<300] rusage[mypfamlive=10:mem=7000]';
+        $resource = 'select[type==X86_64 && mem>7000 && mypfamlive2<300] rusage[mypfamlive2=10:mem=7000]';
         $tmpDir = $qsout->tmpDir;
         $queue  = 'long';
       }
 
       #Step 3 - Build up the command that we want to run
+      my $cmd = $ref->{'command'};
+      $cmd .= " -id " . $ref->{'job_id'};
+      $cmd .= " -family " . $ref->{'entity_id'};
+      $cmd .= " && rm -fr " . $tmpDir . "/".$user."/" . $ref->{'job_id'};
+      push( @cmds, $cmd );
 
-        my $cmd = $ref->{'command'};
-        $cmd .= " -id " . $ref->{'job_id'};
-        $cmd .= " -family " . $ref->{'entity_id'};
-        $cmd .= " && rm -fr " . $tmpDir . "/".$ENV{USER}."/" . $ref->{'job_id'};
-        push( @cmds, $cmd );
- 
-    
+    }
+    elsif ( $ref->{'job_type'} eq 'clan' ) {
+      #Repeat steps 2 and 3 if we have a clan view process to run.  
+
+      #Step 2 - build up the LSF resource requirements
+      $memory   = '7000000'; #We want 7GB of memory
+      $resource = 'select[type==X86_64 && mem>7000 && mypfamlive2<300] rusage[mypfamlive2=10:mem=7000]';
+      $tmpDir   = $qsout->tmpDir;
+      $queue    = 'long';
+
+      #Step 3 - Build up the command that we want to run
+      my $cmd = $ref->{'command'};
+      $cmd .= " -id " . $ref->{'job_id'};
+      $cmd .= " -clan " . $ref->{'entity_acc'};
+      $cmd .= " && rm -fr " . $tmpDir . "/".$user."/" . $ref->{'job_id'};
+      push( @cmds, $cmd );
+    }
+
     #Now submit the generic jobs using this method!
     foreach my $cmd (@cmds) {
       $DEBUG
@@ -103,13 +122,13 @@ while (1) {
         #Now set up the lsf requirements
         
         
-        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$ENV{USER}.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
-        ' && cd '.$tmpDir .'/'. $ENV{USER}.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
+        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$user.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
+        ' && cd '.$tmpDir .'/'. $user.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
         
         $DEBUG && print STDERR "$mkAndCdToTmp && $cmd";
 
         my $job = LSF::Job->submit(
-          -o => $tmpDir .'/'. $ref->{'job_id'} .'log',
+          -o => $tmpDir .'/'. $user .'/'.$ref->{'job_id'}.'log',
           -q => $queue,
           -R => $resource,
           -M => $memory,
@@ -134,7 +153,6 @@ while (1) {
       $qsout->update_job_stream( $ref->{id}, 'stderr', $error );
       next;
     }
-  }
   }
 }
 
