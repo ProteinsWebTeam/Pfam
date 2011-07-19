@@ -30,6 +30,8 @@ my ( $message, $ignore, $onlydesc, $addToClan, $removeFromClan, $help );
   "help"             => \$help
 ) or die "Unrecognised option passed in to the script.\n";
 
+help() if ($help);
+
 my $family = shift;
 unless ($family) {
   warn "\n***** No family passed  *****\n\n";
@@ -48,7 +50,6 @@ if ( $removeFromClan and $addToClan ) {
   help();
 }
 
-help() if ($help);
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
