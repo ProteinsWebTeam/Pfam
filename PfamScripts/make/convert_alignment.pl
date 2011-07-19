@@ -140,11 +140,13 @@ sub rebuild_alignment {
       }
 
       # grab the new sequence out of pfamseq
-      my $cmd = $config->hmmer3bin . "/esl-sfetch -c $match->[0]->{ali_from}..$match->[0]->{ali_to} $SEQDB $match->[0]->{tname}";
+      my $cmd = $config->hmmer3bin . "/esl-sfetch $SEQDB $match->[0]->{tname}";
       my $new_seq = `$cmd`;
 
       $new_seq =~ s/^>.*//;
       $new_seq =~ s/\n//gs;
+
+      $new_seq = substr($new_seq, $match->[0]->{ali_from} - 1, $match->[0]->{ali_to} - $match->[0]->{ali_from} +1);
 
       # apply spacings to the original sequence in order;
       foreach my $space (@spacings) {
