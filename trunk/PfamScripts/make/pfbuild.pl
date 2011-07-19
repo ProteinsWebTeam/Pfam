@@ -457,7 +457,7 @@ sub main {
 
       unless($split){
         my $fh = IO::File->new();
-        $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -n $cpu -R \"span[hosts=1]\" -o /tmp/$$.log -Jhmmsearch$$");
+        $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -n $cpu -R \"span[hosts=1] select[type==X86_64 && mem>7000] rusage[mem=7000]\" -M 7000000 -o /tmp/$$.log -Jhmmsearch$$");
         if($copy){
           $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n") if($copy);
         }else{
