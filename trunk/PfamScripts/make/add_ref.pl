@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 # Add reference to a DESC file or CLANDESC file
 # dump to stdout if there isn't a desc file
@@ -6,6 +6,7 @@
 #TODO - get this to use the DESC/CLANDESC objects
 
 use strict;
+use warnings;
 use LWP;
 use Text::Wrap;
 use Getopt::Long;
