@@ -65,7 +65,7 @@ if(!$noJobs){
 
 
 if(!$tmpDir){
-  $tmpDir = "/lustre/scratch103/sanger/".$ENV{USER}."/pfamB";
+  $tmpDir = "/lustre/scratch101/sanger/".$ENV{USER}."/pfamB";
   $logger->debug("Setting farm tmp directory to be $tmpDir");
 }
 
@@ -75,7 +75,7 @@ if(-e $tmpDir){
 mkdir($tmpDir);
 
 if(!$resource){
-  $resource = "-R'select[type==X86_64 && mem>1500 && mypfamlive<500] rusage[mypfamlive=10:mem=1500]'";
+  $resource = "-R'select[type==X86_64 && mem>1500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=1500]'";
   $logger->debug("Setting farm resource request to be $resource");
 }
 
@@ -96,7 +96,7 @@ $dbh->do($sqlDelOld) or $logger->logdie("Error deleting:".$dbh->errstr);
 $logger->debug("Creating data table");
 #Generate the adda table.
 my $sql = "CREATE TABLE adda (
-  adda_acc int(10) NOT NULL,
+  adda_acc varchar(20) NOT NULL,
   seqacc varchar(6) NOT NULL,
   version tinyint(4) NOT NULL,
   start int(6) unsigned NOT NULL,
@@ -139,6 +139,7 @@ foreach my $table (qw( pfamB_stockholm pfamB_fasta pfamB_reg pfamB_database_link
 $logger->debug("Preparing adda table insert statement");
 my $addaSth = $dbh->prepare("INSERT INTO adda (adda_acc, seqacc, version, start, end) VALUES (?,?,?,?,?)");
 
+chdir($tmpDir) or die "Could not change into tmp dir:[$!]\n";
 $logger->debug("Going to parse the adda data");
 my($addaData, $totSeq) = parseAddaData($addaSth, $addafile);
 $logger->debug("Going to split adda alignments into roughly $noJobs jobs");
@@ -195,7 +196,7 @@ sub parseAddaData {
 	open(ADDA, "$addafile") || $logger->logdie("Could not open file $addafile:[$!]\n");
 	while(<ADDA>){
 		#A0A000|A0A000_9ACTO     35      371     2820 - try and match a line like this
-		if(/(\S{6})\.(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/){
+		if(/(\S{6})\.(\d+)\s+(\d+)\s+(\d+)\s+(\S+)/){
 			my $seqacc = $1;
 			my $version = $2;
 			my $start  = $3;
@@ -203,6 +204,7 @@ sub parseAddaData {
 			my $a = $5;
 			$start++;
 			$end--;
+      next if($end < 1);
 			my $length = $end - $start +1;
 			$adda->{$a}->{seqs}++;
 			$adda->{$a}->{residues} += $length;
