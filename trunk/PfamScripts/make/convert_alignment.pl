@@ -209,24 +209,14 @@ sub rebuild_alignment {
 sub get_matches_with_hmmer {
   my ($fname, $dir, $suffix) = @_;
   # use hmmbuild to generate an hmm from the input
-  if (! -e "$dir$fname.hmm") {
-    warn "Generating HMM\n";
-    my $cmd = $config->hmmer3bin . "/hmmbuild $dir$fname.hmm $dir$fname$suffix >/dev/null";
-    system $cmd;
-  }
-  else {
-    warn "using HMM found in: $dir$fname.hmm\n";
-  }
+  warn "Generating HMM\n";
+  my $cmd = $config->hmmer3bin . "/hmmbuild $dir$fname.hmm $dir$fname$suffix >/dev/null";
+  system $cmd;
 
   # use hmmsearch to get a small database of potential matches
-  if (! -e "$dir$fname.hmmsearch") {
-    warn "Performing hmmsearch\n";
-    my $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm $SEQDB";
-    system $cmd;
-  }
-  else {
-    warn "skipping hmmsearch, found results in: $dir$fname.hmmsearch\n";
-  }
+  warn "Performing hmmsearch\n";
+  $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm $SEQDB";
+  system $cmd;
 
   # parse the .hmmsearch file to get a list of sequences and use esl-sfetch to get them out of pfamseq
   parse_hmmsearch("$dir$fname");
@@ -313,58 +303,48 @@ sub run_phmmer_search {
 
 sub parse_hmmsearch {
   my ($file) = @_;
-  if (! -e "$file.phmmerdb") {
-    warn "creating database for phmmer search\n";
+  warn "creating database for phmmer search\n";
 
-    # create acc list to pipe into sfetch
-    open my $results, '<', "$file.hmmsearch"
-      or die "Couldn't open hmmsearch results file for reading [$file.hmmsearch]: $!\n";
+  # create acc list to pipe into sfetch
+  open my $results, '<', "$file.hmmsearch"
+    or die "Couldn't open hmmsearch results file for reading [$file.hmmsearch]: $!\n";
 
-    open my $acclist ,'>', "$file.acclist"
-      or die "Couldn't open acclist for writing [$file.acclist]: $!\n";
+  open my $acclist ,'>', "$file.acclist"
+    or die "Couldn't open acclist for writing [$file.acclist]: $!\n";
 
-    while(<$results>) {
-      next if $_ =~ /^#/;
-      my ($acc) = $_ =~ /^([^\s]+)/;
-      print $acclist "$acc\n";
-    }
-    close $results;
-    close $acclist;
-
-    my $cmd = $config->hmmer3bin . "/esl-sfetch -o $file.phmmerdb -f $SEQDB $file.acclist >/dev/null";
-
-    system $cmd;
-
-    $cmd = $config->hmmer3bin . "/esl-sfetch --index $file.phmmerdb 1>/dev/null";
-    system $cmd;
+  while(<$results>) {
+    next if $_ =~ /^#/;
+    my ($acc) = $_ =~ /^([^\s]+)/;
+    print $acclist "$acc\n";
   }
-  else {
-    warn "Using phmmer database found in: $file.phmmerdb\n";
-  }
+  close $results;
+  close $acclist;
+
+  my $cmd = $config->hmmer3bin . "/esl-sfetch -o $file.phmmerdb -f $SEQDB $file.acclist >/dev/null";
+
+  system $cmd;
+
+  $cmd = $config->hmmer3bin . "/esl-sfetch --index $file.phmmerdb 1>/dev/null";
+  system $cmd;
   return;
 }
 
 sub convert_to_fasta {
   # convert to fasta sequences with esl-reformat
   my ($input) = @_;
-  if (! -e "$input.fa") {
-    warn "Creating fasta datadase from input file\n";
-    my $cmd = $config->hmmer3bin . "/esl-reformat -o $input.fa  --informat stockholm fasta $input";
-    system $cmd;
+  warn "Creating fasta datadase from input file\n";
+  my $cmd = $config->hmmer3bin . "/esl-reformat -o $input.fa  --informat stockholm fasta $input";
+  system $cmd;
 
-    if (-z "$input.fa") {
-      warn "Failed to generate a fasta file. Possible duplicate sequence ids.\n";
-      unlink "$input.fa";
-      exit;
-    }
+  if (-z "$input.fa") {
+    warn "Failed to generate a fasta file. Possible duplicate sequence ids.\n";
+    unlink "$input.fa";
+    exit;
+  }
 
-    # index the fasta file for later
-    $cmd = $config->hmmer3bin . "/esl-sfetch --index $input.fa 1>/dev/null";
-    system $cmd;
-  }
-  else {
-    warn "Using input fasta database found in: $input.fa\n";
-  }
+  # index the fasta file for later
+  $cmd = $config->hmmer3bin . "/esl-sfetch --index $input.fa 1>/dev/null";
+  system $cmd;
   return "$input.fa";
 }
 
