@@ -1,60 +1,55 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 #
-# Script to automagically resolve overlaps by adding ED lines
 
 use strict;
 use warnings;
 use Data::Dumper;
 use File::Copy;
-use Getopt::Long;
 
 use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::FamilyIO;
+use Getopt::Long;
 
-my ($help,$overlap_file,$family_dir,$threshold,$percentage);
-&GetOptions('help!'         => \$help,
-            'overlap=s'     => \$overlap_file,
-	    'family_dir=s'  => \$family_dir,
-            'threshold=s'   => \$threshold,
-            'max_overlap=s' => \$percentage,
-	    );
+my ($file, $famDir, $threshold, $percentage, $help); 
+GetOptions( "aa=i"         => \$threshold,
+            "file=s"       => \$file,
+            "famDir=s"     => \$famDir,
+            "h|help"       => \$help,
+            "percentage=s" => \$percentage)            
+or die "Failed to get options";
 
-if (! $overlap_file or $family_dir){$help=1}
-
-if ($help){
-    print STDERR <<"EOF";
-This script is used during the overlap resolution stage of the Pfam sequence
-update.
-
-Usage: $0 
-
-Required options:
-  -overlap <overlap file> 
-  -family_dir <family dirs>
-
-Optional options
-  -threshold <max length of an ED line edit>
-  -max_overlap <max fraction of either region that can be edited>
-  -help
-
-
-EOF
-    exit 0;
+if($help){
+  &help;
 }
 
 
-# If no values are given choose relatively conservative values
-if (! $threshold){$threshold = 10;}
-if (! $percentage){$percentage = 0.25;}
+if(!$percentage or $percentage <= 0 or $percentage >= 1){
+  warn "Percantage overlap needs to be between 0 and 1\n";
+  &help;
+}
 
+unless(-s $file){
+  die "Could not find the overlap file:".(defined($file) ? $file : "undef")."\n";
+}
+
+unless(-d $famDir){
+  die "Could not find the families directory:".(defined($famDir) ? $famDir : "undef")."\n";
+}
+
+unless($threshold){
+  die "Need to specify a maximum overlap threshold, set in amino acids\n";
+}
+
+#my $threshold = 120;
+#my $percentage = 0.75;
 
 my %fixes;
 my %seedOverlaps;
 
-open(O, $overlap_file) or die "Could not open file $overlap_file:[$!]\n";
+open(O, $file) or die "Could not open $file:[$!]\n";
 while(<O>){
   my($seq1, $seq2, $s1, $s2, $e1, $e2, $l1, $l2, $fam1, $fam2, $ali1, $ali2, $index);
-  if(/(\(2\)) .* (PF\d+) (ALIGN|SEED) \: (\S+)\/(\d+)\-(\d+) .* (PF\d+) (ALIGN|SEED) (\S+)\/(\d+)\-(\d+)/){
+  if(/(\(\d{1}\)) .* (PF\d+) (ALIGN|SEED) \: (\S+)\/(\d+)\-(\d+) .* (PF\d+) (ALIGN|SEED) (\S+)\/(\d+)\-(\d+)/){
     $fam1 = $2;
     $ali1 = $3;
     $seq1 =  $4;
@@ -66,39 +61,28 @@ while(<O>){
     $s2 = $10;
     $e2 = $11;
     $index = $1;
-  }elsif(/(\(1\)) .* (PF\d+) (ALIGN|SEED) \: (\S+)\/(\d+)\-(\d+) .* (PF\d+) (ALIGN|SEED) (\S+)\/(\d+)\-(\d+)/){
-    $fam1 = $7;
-    $ali1 = $8;
-    $seq1 = $9;
-    $s1   = $10;
-    $e1   = $11;
-    $fam2 = $2;
-    $ali2 = $3;
-    $seq2 = $4;
-    $s2   = $5;
-    $e2   = $6;
-    $index = $1;
   }else{
     warn "Did not parse $_\n"; 
   }
+  next if($index eq '(3)');
   next if($ali1 eq 'ALIGN' and $ali2 eq 'ALIGN'); 
 
-  if($ali2 eq 'SEED'){
+  if(defined($ali2) and  $ali2 eq 'SEED'){
    #This sequence has to stay with this family
    $seedOverlaps{$seq2} = $fam2;
-  }elsif($ali1 eq 'SEED'){
+  }elsif(defined($ali1) and $ali1 eq 'SEED'){
     #This sequence has to stay with this family
     $seedOverlaps{$seq1} = $fam1;
   }
 }
 close(O);
 
-print Dumper(%seedOverlaps);
+#print Dumper(%seedOverlaps);
 
-open(O, $overlap_file) or die "Could not open $overlap_file:[$!]\n";
+open(O, $file) or die "Could not open $file:[$!]\n";
 while(<O>){
   my($seq1, $seq2, $s1, $s2, $e1, $e2, $l1, $l2, $fam1, $fam2, $ali1, $ali2, $index);
-  if(/(\(2\)) .* (PF\d+) (ALIGN|SEED) \: (\S+)\/(\d+)\-(\d+) .* (PF\d+) (ALIGN|SEED) (\S+)\/(\d+)\-(\d+)/){
+  if(/(\([2|3]\)) .* (PF\d+) (ALIGN|SEED) \: (\S+)\/(\d+)\-(\d+) .* (PF\d+) (ALIGN|SEED) (\S+)\/(\d+)\-(\d+)/){
     $fam1 = $2;
     $ali1 = $3;
     $seq1 =  $4;
@@ -123,9 +107,12 @@ while(<O>){
     $e2   = $6;
     $index = $1;
   }else{
+    die;
     next;
   }
-  
+ 
+
+  next if($ali1 eq "SEED" and $ali2 eq "SEED");
   $l2 = $e2-$s2+1;
   $l1 = $e1-$s1+1;
   if($s1<= $s2 and $e1 <= $e2){ 
@@ -133,6 +120,7 @@ while(<O>){
    print "$seq1, $s1, $e1, $seq2, $s2, $e2\n";
    print "Overlap is: $o\n";
    if($o < $threshold and ($o/$l1 < $percentage) and $o/$l2  < $percentage){
+      print "I can fix this overlap\n";
       if($seedOverlaps{$seq1} and $seedOverlaps{$seq1} eq $fam2){
         push(@{ $fixes{$fam1} }, {  seq   => $seq1,
                                     from  => $s1,
@@ -148,7 +136,7 @@ while(<O>){
        
      }     
    }else{ 
-     print "Big overlap\n";
+     print "Big overlap, skipping (overlap = $o, domain 1 = $l1,  domain 2 = $l2)\n";
    }
   }
 }
@@ -157,15 +145,15 @@ my $noOverlaps;
 open(E, ">edits.txt") or die "Could not open edits:[$!]\n";
 foreach my $fam (sort{ $fixes{$b} <=> $fixes{$a} }keys %fixes){
   if(@{$fixes{$fam}} < 50){
-    print "=== $fam ===\n";
+    print STDERR "=== $fam ===\n";
     print E "=== FAMILY: $fam ===\n";
-    chdir("$family_dir/$fam") or die "Could not change directory to $family_dir/$fam\n";
+    chdir("$famDir/$fam") or die "Could not change directory to $famDir/$fam\n";
     my $hmmio  = Bio::Pfam::HMM::HMMResultsIO->new;
     my $hmmres = Bio::Pfam::HMM::HMMResultsIO->parsePFAMOUT('PFAMOUT');
     my $familyIO = Bio::Pfam::FamilyIO->new;
     
     my $desc  = Bio::Pfam::FamilyIO->parseDESC('DESC');
-    copy('DESC', 'DESC.beforeEditGo3');
+    copy('DESC', 'DESC.beforeEdit');
  
     unless ( $desc->EDITS ){
       $desc->EDITS( [] ); 
@@ -219,3 +207,25 @@ foreach my $fam (sort{ $fixes{$b} <=> $fixes{$a} }keys %fixes){
   }
 }
 print "Resolved $noOverlaps\n";
+
+sub help {
+  
+print <<EOF;
+  
+  !!!WARNING - this is a very dangerous script to run.....
+
+  $0 <options>
+
+  All options are mandatory:
+
+  aa         : An amino acid size limit of the maximum number of amino acids that it allowed to be removed. (e.g. 100)
+  percentage : The maximum percentage of the domain length that can be wiped out by and ED line. Must
+               be a number between 0 and 1. (e.g. 0.60).
+  file       : File containing the list of overlaps.
+  famDir     : The directory containing the families.
+
+EOF
+
+exit;
+
+}
