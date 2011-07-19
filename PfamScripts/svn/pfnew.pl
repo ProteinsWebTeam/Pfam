@@ -35,6 +35,8 @@ my ( $message, $ignore, $addToClan, $help );
   "help"        => \$help
 ) or die "Error fetching options\n";
 
+help() if ($help);
+
 my $family = shift;
 chomp($family);
 
@@ -48,7 +50,6 @@ if (@ARGV) {
   help();
 }
 
-help() if ($help);
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
