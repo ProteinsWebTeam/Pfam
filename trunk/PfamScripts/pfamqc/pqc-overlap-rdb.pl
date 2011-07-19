@@ -73,9 +73,9 @@ my $overlaps =
   &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete );
   warn "$family: found $overlaps external overlaps\n";
 
-my %signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
-if($signal_peptide_overlap{total}>0) {
-  warn "$0: There are $signal_peptide_overlap{total} signal peptide overlaps, $signal_peptide_overlap{seed} in SEED and $signal_peptide_overlap{align} in ALIGN\n";
+my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
+if(defined($signal_peptide_overlap) and exists($signal_peptide_overlap->{total}) and $signal_peptide_overlap->{total}>0) {
+  warn "$0: There are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
   exit(1);
 }
 
