@@ -894,7 +894,7 @@ sub updatePfamAWikipedia {
         confess( "Failed to find or create row for wiki page".$page."\n" );
       }
       
-      $self->getSchema->resultset('PfamaWiki')->create(
+      $self->getSchema->resultset('PfamaWiki')->find_or_create(
         {
           auto_pfama  => $auto,
           auto_wiki    => $wiki->auto_wiki
