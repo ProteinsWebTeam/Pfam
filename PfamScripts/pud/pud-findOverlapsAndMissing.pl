@@ -12,6 +12,7 @@ use Getopt::Long;
 
 my $logdir = shift;
 my $families = shift;
+my $familiesToCi = shift;
 my $date       = new Date::Object( time() );
 my $filePrefix = $date->year.$date->month.$date->day."overlaps"; 
 my $clans;
@@ -23,9 +24,6 @@ my $no_compete; # Use this option to not do the clan competition step
 GetOptions( 'no_compete!'     => \$no_compete);
 
 
-opendir( DIR, "$families" ) or die "Could not open dir, $families:[$!]\n";
-my @dirs = grep { $_ ne ".." and $_ ne "." and $_ ne ".svn" } readdir(DIR);
-
 my $allowed;
 open( R, ">$logdir/$filePrefix.allRegions.txt" ) 
   or die "Could not open $logdir/$filePrefix.allRegions.txt\n";
@@ -35,6 +33,47 @@ open( SKIP, ">$logdir/$filePrefix.skipping" )
   
 
 my $io = Bio::Pfam::FamilyIO->new;
+
+if(defined($familiesToCi) and $familiesToCi){
+  print STDERR "Parsing DESC files of families that have no overlaps\n";
+  opendir( DIR, "$familiesToCi" ) or die "Could not open dir, $familiesToCi:[$!]\n";
+  my @dirs = grep { $_ ne ".." and $_ ne "." and $_ ne ".svn" } readdir(DIR);
+  FAM:
+  foreach my $fDir ( sort @dirs) {
+    next unless($fDir =~ /PF\d+/);
+    open( D, "$familiesToCi/$fDir/DESC" ) or die "Could not open $fDir/DESC:[$!]\n";
+    #Now read the DESC to see it we have nested domains;
+
+    my $descObj;
+    eval{
+      $descObj = $io->parseDESC( \*D );
+    };
+    if($@){
+      print SKIP "$fDir\n";
+      close(D);
+      next FAM;  
+    } 
+  
+    my $acc     = $descObj->AC;
+    my $id      = $descObj->ID;
+    if ( $descObj->NESTS ) {
+      foreach my $n ( @{ $descObj->NESTS } ) {
+        push( @{ $allowed->{$fDir} }, $n->{'dom'} );
+        push( @{ $allowed->{$n->{'dom'} }}, $fDir );
+      }
+    }
+    if($descObj->CL) {
+      $clans->{$fDir} = $descObj->CL;
+      push (@{ $clan2fam->{ $descObj->CL } },  $fDir);
+    }
+    close(D);
+  }
+  close(DIR);
+}
+
+opendir( DIR, "$families" ) or die "Could not open dir, $families:[$!]\n";
+my @dirs = grep { $_ ne ".." and $_ ne "." and $_ ne ".svn" } readdir(DIR);
+
 
 FAM:
 foreach my $fDir ( sort @dirs) {
