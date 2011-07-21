@@ -431,7 +431,7 @@ sub updatePfamARegSeed {
     ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
-
+  $dbh->begin_work;
   my $seq_sth = $dbh->prepare(
     'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
   );
@@ -458,6 +458,7 @@ sub updatePfamARegSeed {
     }
     $up_sth->execute( $sauto, $auto, $seq->start, $seq->end );
   }
+  $dbh->commit;
 }
 
 sub updatePfamARegFull {
@@ -545,7 +546,7 @@ sub updatePfamARegFull {
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
   my $dbh = $self->getSchema->storage->dbh;
-
+  $dbh->begin_work;
   my $seq_sth = $dbh->prepare(
     'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
   );
@@ -662,6 +663,7 @@ sub updatePfamARegFull {
       }
     }
   }
+  $dbh->commit;
 }
 
 sub updateNcbiPfamA {
@@ -695,7 +697,7 @@ sub updateNcbiPfamA {
     ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
-
+  $dbh->begin_work; 
   my $upSth = $dbh->prepare(
     'INSERT INTO ncbi_pfamA_reg
     (auto_pfamA,        
@@ -731,6 +733,8 @@ sub updateNcbiPfamA {
       }
     }
   }
+  $dbh->commit;
+
 }
 
 sub updateMetaPfamA {
@@ -784,7 +788,7 @@ sub updateMetaPfamA {
     ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
-
+  $dbh->begin_work; 
   my $seq_sth =
     $dbh->prepare('select auto_metaseq from metaseq where metaseq_acc = ? ');
 
@@ -837,6 +841,7 @@ sub updateMetaPfamA {
       }
     }
   }
+  $dbh->commit;
 }
 
 sub updatePfamAWikipedia {
