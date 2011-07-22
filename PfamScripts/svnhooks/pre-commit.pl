@@ -165,7 +165,7 @@ elsif ( $msg =~ /^PFMOV:/ ) {
 }
 elsif ( $msg =~ /^PFKILL:/ ) {
   my ( $comment, $forward );
-  if ( $msg =~ /PFKILL:Comment;(.*)PFKILL:Forward;(.*)/ ) {
+  if ( $msg =~ /PFKILL:Comment;(.*)\nPFKILL:Forward;(.*)/ ) {
     $comment = $1;
     $forward = $2;
   }
@@ -211,6 +211,9 @@ elsif ( $msg =~ /SEQUP/ ) {
         . " like it has come from the sequence part of the repository\n";
     }
   }
+}elsif( $msg =~ /ADMINBYPASS/){
+# let it go through.
+
 }else{
   my @changed = $txnlook->changed();
   unless ( $changed[0] =~ m|Data/Dictionary/dictionary$|){
