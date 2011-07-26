@@ -389,12 +389,13 @@ sub deleteClan {
 }
 
 sub updatePfamARegSeed {
-  my ( $self, $famObj ) = @_;
+  my ( $self, $famObj, $mongo ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
+  #Determing the family surrogate key
   my $auto;
   if ( $famObj->rdb->{auto} ) {
     $auto = $famObj->rdb->{auto};
@@ -412,57 +413,64 @@ sub updatePfamARegSeed {
       confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
     }
   }
-  my @oldRegions = $self->getSchema->resultset('PfamaRegSeed')->search(
-    { auto_pfama => $auto },
-    {
-      select => [qw(me.auto_pfamseq pfamseq_acc seq_version)],
-      as     => [qw( auto_pfamseq pfamseq_acc seq_version )],
-      join   => [qw(auto_pfamseq)]
-    }
-  );
-
-  my %seqacc2auto;
-  foreach my $r (@oldRegions) {
-    $seqacc2auto{ $r->get_column('pfamseq_acc') . "."
-        . $r->get_column('seq_version') } = $r->get_column('auto_pfamseq');
-  }
-
+  
+  #Delete all the seed regions
   $self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )
     ->delete;
-
+  
+  #Determing all surrogate keys for the sequences in the SEED alignment
+  #which are stored in a mongodb.
+  my %seqacc2auto;
+  
   my $dbh = $self->getSchema->storage->dbh;
   $dbh->begin_work;
-  my $seq_sth = $dbh->prepare(
-    'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
-  );
+
   my $up_sth = $dbh->prepare(
     'insert into pfamA_reg_seed 
       (auto_pfamseq, auto_pfamA, seq_start, seq_end) values ( ?, ?, ?, ?)'
   );
 
+  #Get all the sequences that we need to work on
+  my @seqs;
+  foreach my $seq ( $famObj->SEED->each_seq ) {
+    push(@seqs, $seq->id . "." . $seq->seq_version);
+  }
+  
+  #Perform lookups in batches of 1000
+  while(@seqs){
+    my @seqs1000 = splice(@seqs, 0, 1000);  
+    my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
+    my @data = ();
+    if ($cursor) {
+      @data = $cursor->all;
+    }
+    #Store them in our hash for later
+    foreach my $d (@data){
+      $seqacc2auto{ $d->{'_id'} } =  $d->{'auto'};
+    }
+  }
+  
   foreach my $seq ( $famObj->SEED->each_seq ) {
     my $sauto;
     if ( $seqacc2auto{ $seq->id . "." . $seq->seq_version } ) {
+      #If we have not mapped them, then something has gone wrong!!!
       $sauto = $seqacc2auto{ $seq->id . "." . $seq->seq_version };
     }
     else {
-      $seq_sth->execute( $seq->id, $seq->version );
-      my $row = $seq_sth->fetchrow_arrayref;
-      unless ($row) {
+      
         confess( "Failed to find entry in pfamseq for "
             . $seq->id . "."
             . $seq->seq_version
             . "\n" );
-      }
-      $sauto = $row->[0];
-    }
+     }
+     
     $up_sth->execute( $sauto, $auto, $seq->start, $seq->end );
   }
   $dbh->commit;
 }
 
 sub updatePfamARegFull {
-  my ( $self, $famObj ) = @_;
+  my ( $self, $famObj, $mongo ) = @_;
 
 #-------------------------------------------------------------------------------
 #Check we have the correct object
@@ -493,40 +501,24 @@ sub updatePfamARegFull {
   }
 
 #-------------------------------------------------------------------------------
-#Get all previous regions for this family from pfamA_reg_fill_significant and
-#pfamA_reg_full insignificant and hash the seq acc + version to index
-
-  #Signfiicant table first
-  my @oldRegions =
-    $self->getSchema->resultset('PfamaRegFullSignificant')->search(
-    { auto_pfama => $auto },
-    {
-      select => [qw(me.auto_pfamseq pfamseq_acc seq_version)],
-      as     => [qw( auto_pfamseq pfamseq_acc seq_version )],
-      join   => [qw(auto_pfamseq)]
-    }
-    );
-
   my %seqacc2auto;
-  foreach my $r (@oldRegions) {
-    $seqacc2auto{ $r->get_column('pfamseq_acc') . "."
-        . $r->get_column('seq_version') } = $r->get_column('auto_pfamseq');
+  my @seqs;
+  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
+    push(@seqs,  $seq->name);
   }
-
-  #Now the insignificant table
-  my @oldInRegions =
-    $self->getSchema->resultset('PfamaRegFullInsignificant')->search(
-    { auto_pfama => $auto },
-    {
-      select => [qw(me.auto_pfamseq pfamseq_acc seq_version)],
-      as     => [qw( auto_pfamseq pfamseq_acc seq_version )],
-      join   => [qw(auto_pfamseq)]
+  
+  #Perform lookups in batches of 1000
+  while(@seqs){
+    my @seqs1000 = splice(@seqs, 0, 1000);  
+    my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
+    my @data = ();
+    if ($cursor) {
+      @data = $cursor->all;
     }
-    );
-
-  foreach my $r (@oldInRegions) {
-    $seqacc2auto{ $r->get_column('pfamseq_acc') . "."
-        . $r->get_column('seq_version') } = $r->get_column('auto_pfamseq');
+    #Store them in our hash for later
+    foreach my $d (@data){
+      $seqacc2auto{ $d->{'_id'} } =  $d->{'auto'};
+    }
   }
 
 #-------------------------------------------------------------------------------
@@ -604,16 +596,11 @@ sub updatePfamARegFull {
       $sauto = $seqacc2auto{ $seq->name };
     }
     else {
-      my ( $acc, $version ) = $seq->name =~ /(\S+)\.(\d+)/;
-      $seq_sth->execute( $acc, $version );
-      my $row = $seq_sth->fetchrow_arrayref;
-      unless ($row) {
+      
         confess( "Failed to find entry in pfamseq for "
             . $seq->id . "."
             . $seq->seq_version
             . "\n" );
-      }
-      $sauto = $row->[0];
     }
 
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {

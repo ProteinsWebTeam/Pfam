@@ -644,7 +644,7 @@ sub updatePfamAInRDB {
 }
 
 sub updatePfamARegions {
-  my ( $self, $famObj, $pfamDB ) = @_;
+  my ( $self, $famObj, $pfamDB , $mongo) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
@@ -654,8 +654,8 @@ sub updatePfamARegions {
     confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
   
-  $pfamDB->updatePfamARegSeed($famObj);
-  $pfamDB->updatePfamARegFull($famObj);  
+  $pfamDB->updatePfamARegSeed($famObj, $mongo);
+  $pfamDB->updatePfamARegFull($famObj, $mongo);  
   
 }
 
