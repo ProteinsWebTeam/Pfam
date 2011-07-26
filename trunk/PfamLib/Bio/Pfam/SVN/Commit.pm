@@ -57,6 +57,7 @@ use Bio::Pfam::PfamQC;
 use Bio::Pfam::ViewProcess;
 use Bio::Pfam::ClanIO;
 use Bio::Pfam::Clan::Compete;
+use MongoDB;
 
 use base "SVN::Look";
 
@@ -80,7 +81,11 @@ sub new {
   }
   
   $self->{config} = Bio::Pfam::Config->new;
-  
+  $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
+                                             port => 27018)->pfamseq->automap;
+                                             
+  die "MongoDB size does not match pfamseq size!\n"
+    if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
   return bless($self, $class);  
 }
 
@@ -105,7 +110,7 @@ sub commitFamily {
     #Okay, if we get to here, then we should be okay!
     #Now upload the family to Pfam  
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-    $familyIO->updatePfamARegions($famObj, $pfamDB, 0);
+    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
   }  
