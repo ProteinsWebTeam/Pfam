@@ -90,7 +90,7 @@ sub new {
 }
 
 sub commitFamily {
-  my ( $self, $pfamDB ) = @_;
+  my ( $self, $pfamDB, $msg ) = @_;
   
   #Make an object to respresent the family based on the SVN transcation
   my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -105,7 +105,7 @@ sub commitFamily {
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
   
     #Perform QC on the family
-    $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB);
+    $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
   
     #Okay, if we get to here, then we should be okay!
     #Now upload the family to Pfam  
@@ -311,7 +311,7 @@ sub _getClanObjFromTrans {
 }
 
 sub _qualityControlFamily {
-  my  ($self, $famObj, $dir, $family, $pfamDB) = @_; 
+  my  ($self, $famObj, $dir, $family, $pfamDB, $msg) = @_; 
   
  #Perform all of the format checks
   unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
@@ -362,12 +362,14 @@ sub _qualityControlFamily {
      
   }  
   
-  my $compete = 1;
-  my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
-  warn "$family: found $overlaps overlaps\n";
-  if ($overlaps) {
-    confess("Found overlaps\n");
-  } 
+  if(defined($msg) and $msg !~ /Release \d+ update/){
+    my $compete = 1;
+    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
+    warn "$family: found $overlaps overlaps\n";
+    if ($overlaps) {
+      confess("Found overlaps\n");
+    } 
+  }
 }
 
 sub moveClan {
