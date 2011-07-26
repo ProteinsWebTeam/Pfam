@@ -415,8 +415,8 @@ sub updatePfamARegSeed {
   }
   
   #Delete all the seed regions
-  $self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )
-    ->delete;
+  #$self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )
+  #  ->delete;
   
   #Determing all surrogate keys for the sequences in the SEED alignment
   #which are stored in a mongodb.
@@ -424,7 +424,10 @@ sub updatePfamARegSeed {
   
   my $dbh = $self->getSchema->storage->dbh;
   $dbh->begin_work;
-
+  $dbh->do("delete from pfamA_reg_seed where auto_pfamA=$auto");
+  my $seq_sth = $dbh->prepare(
+    'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
+  );
   my $up_sth = $dbh->prepare(
     'insert into pfamA_reg_seed 
       (auto_pfamseq, auto_pfamA, seq_start, seq_end) values ( ?, ?, ?, ?)'
@@ -528,17 +531,19 @@ sub updatePfamARegFull {
   $self->getSchema->resultset('PdbPfamaReg')->search( { auto_pfama => $auto } )
     ->delete;
 
-  $self->getSchema->resultset('PfamaRegFullSignificant')
-    ->search( { auto_pfama => $auto } )->delete;
+  #$self->getSchema->resultset('PfamaRegFullSignificant')
+  #  ->search( { auto_pfama => $auto } )->delete;
 
-  $self->getSchema->resultset('PfamaRegFullInsignificant')
-    ->search( { auto_pfama => $auto } )->delete;
+  #$self->getSchema->resultset('PfamaRegFullInsignificant')
+  #  ->search( { auto_pfama => $auto } )->delete;
 
 #-------------------------------------------------------------------------------
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
   my $dbh = $self->getSchema->storage->dbh;
   $dbh->begin_work;
+  $dbh->do("delete from pfamA_reg_full_insignificant where auto_pfamA=$auto");
+  $dbh->do("delete from pfamA_reg_full_significant where auto_pfamA=$auto");
   my $seq_sth = $dbh->prepare(
     'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
   );
