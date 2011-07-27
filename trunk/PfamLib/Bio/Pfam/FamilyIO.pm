@@ -178,7 +178,7 @@ sub parseDESC {
   }
 
   my %params;
-  my $expLen = 80;
+  my $expLen = 75;
 
   my $refTags = {
     RC => {
