@@ -108,7 +108,7 @@ unless ($allow_commit) {
 }
 
 if ( $msg =~ /^PFCI:/ ) {
-  $txnlook->commitFamily($pfamDB);
+  $txnlook->commitFamily($pfamDB, $msg);
 }
 elsif ( $msg =~ /PFCIATC:(CL\d{4})\:(PF\d{5})/ ) {
   my ( $clan, $fam );
