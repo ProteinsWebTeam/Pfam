@@ -202,12 +202,17 @@ sub parseDESC {
     my $l = $file[$i];
     chomp($l);
     if ( length($l) > $expLen ) {
-      confess( "\nGot a DESC line that was longer the $expLen, $file[$l]\n\n"
+      confess( "\nGot a DESC line that was longer the $expLen, $file[$i]\n\n"
           . "-" x 80
           . "\n" );
     }
 
     if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|TP|SQ|BM|SM|CL)\s{3}(.*)$/ ) {
+      if(exists($params{$1})){
+        confess("\nFound more than one line containing the $1 tag\n\n"
+         . "-" x 80
+                . "\n" );  
+      }
       $params{$1} = $2;
       next;
     }
