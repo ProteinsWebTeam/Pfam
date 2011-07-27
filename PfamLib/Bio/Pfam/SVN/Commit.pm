@@ -82,7 +82,7 @@ sub new {
   
   $self->{config} = Bio::Pfam::Config->new;
   $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
-                                             port => 27018)->pfamseq->automap;
+                                             port => 27017)->pfamseq->automap;
                                              
   die "MongoDB size does not match pfamseq size!\n"
     if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
@@ -146,7 +146,7 @@ sub commitNewFamily {
   #Now upload the family to Pfam  
   my $author = $self->author();
   $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-  $familyIO->updatePfamARegions($famObj, $pfamDB, 1);
+  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
   $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
   $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
   
