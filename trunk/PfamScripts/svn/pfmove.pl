@@ -39,10 +39,11 @@ use Bio::Pfam::PfamLiveDBManager;
 
 my $config = Bio::Pfam::Config->new;
 
-my ( $help, $family, $newName ); 
+my ( $help, $family, $newName, $wiki ); 
 
 &GetOptions(
   "help" => \$help,
+  "wiki" => \$wiki
 );
 
 help() if($help);
@@ -115,6 +116,14 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 my $descObj = $familyIO->parseDESC( $dest."/DESC");
 my $oldName = $descObj->ID;
 
+if($oldName =~ /^DUF\d+/){
+  unless($wiki){
+    if(defined($descObj->WIKI) and exists($descObj->WIKI->{Domain_of_unknown_function})){
+      die "Please remove wikipedia article for domain of unknown function\n";
+    }
+  }
+}
+
 if($oldName eq $newName){
   die "The old name [$oldName] and the new name [$newName] are identical\n";  
 }
@@ -172,6 +181,8 @@ usage: $0 <PFAM ACCESSION> <NEW NAME>
   alpha-numeric characters and/or the following symbols: '_' '-'
   
   Note: If you are at WTSI, you can use family ids instead of accessions.
+  
+  If you are told to remove a wikipedia line and really do not want to, use the -wiki flag.
 
 EOF
 
