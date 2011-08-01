@@ -126,14 +126,6 @@
       </dd>
   
       <dt>
-        <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
-          Pfam-A.hmm.gz</a>
-      </dt>
-      <dd>
-        The Pfam HMM library for Pfam-A families 
-      </dd>
-  
-      <dt>
         <a href="http://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.fasta.gz">
           Pfam-B.fasta.gz</a>
       </dt>
