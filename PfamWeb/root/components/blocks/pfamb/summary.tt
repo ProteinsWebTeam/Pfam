@@ -36,7 +36,7 @@ requirements.js.push( "domain_graphics_loader.js" );
 # ADDA seems not to understand its own accessions... tweak the ADDA ID to remove
 # "ADDA" from the front. Go figure
 adda_id  = adda.db_link;
-matches  = adda_id.match( '^ADDA_(\d+)$' );
+matches  = adda_id.match( '^ADDA_AD(\d+)$' );
 adda_fid = matches.0;
 
 %]
