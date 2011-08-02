@@ -1,10 +1,11 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 #Script to make the diff file from the current_pfam_version and released_pfam_version tables in rdb
 #The final step in the script updates the released_pfam_version table using the data in current_pfam_version
 #Need to pass the diff file from the last release on the command line, along with the old release and new release number.
 
 use strict;
+use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Getopt::Long;

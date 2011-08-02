@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl 
 
 # This script is designed to get the latest proteomes from Intergr8 at the ebi.
 # This data is processed by another script, this simply downloaded.
@@ -7,6 +7,7 @@
 
 
 use strict;
+use warnings;
 
 my $output_dir = shift;
 

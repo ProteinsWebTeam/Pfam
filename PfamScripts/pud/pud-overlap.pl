@@ -1,10 +1,11 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl 
 
 #
 # Checks all-vs-all overlap 
 # from ALIGN files across a Pfam directory system
 #
 use strict;
+use warnings;
 use Bio::Pfam::PfamQC;
 
 my $dir = shift;

@@ -1,8 +1,9 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 #Script to generate the Pfam-A.dead flatfile from rdb
 
 use strict;
+use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Getopt::Long;

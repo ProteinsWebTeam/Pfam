@@ -1,6 +1,7 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 use strict;
+use warnings;
 use Log::Log4perl qw(:easy);
 use Config::General qw(SaveConfig);
 use Cwd;

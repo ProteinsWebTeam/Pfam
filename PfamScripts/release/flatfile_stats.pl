@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl 
 
 # A script to make coverage stats from flatfiles.
 
