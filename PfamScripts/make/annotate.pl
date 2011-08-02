@@ -1,4 +1,4 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 # They said it couldn't be done! They might have been right.
 # A script to automagically annotate Pfam families.  Generally its use is 
@@ -14,6 +14,7 @@
 #  5) Fix problem with dealing with DE lines!
 
 use strict;
+use warnings;
 use Text::Wrap;
 use Getopt::Long;
 

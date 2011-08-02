@@ -1,9 +1,10 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 #Script to run jackhmmer on all proteins in a particular
 #proteome that do not have a match to Pfam-A
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Log::Log4perl qw(:easy);
 

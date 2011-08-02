@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
 
 # This program take the full alignment of a Pfam entry and
 # get a shortened view of the information on each sequence
@@ -7,6 +7,7 @@
 # Written by rdf, 11/03/03
 
 use strict;
+use warnings;
 
 open (ALIGN, "ALIGN") || die "Cannot find the ALIGN file, are in you in the correct directory ?\n";
 
