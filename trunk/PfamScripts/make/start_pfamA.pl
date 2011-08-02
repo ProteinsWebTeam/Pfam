@@ -1,8 +1,9 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl
 
 #Generic script to build pfams from fasta files or SEED alignments, or to iterate a family and perform overlap checks.
 
 use strict;
+use warnings;
 use Getopt::Long;
 use Cwd;
 use Log::Log4perl qw(:easy);
@@ -24,14 +25,14 @@ my $author = "";
 
 
 &GetOptions ( "directory=s"      => \$directory,
-	      "list=s"           => \$list,
-	      "family=s"         => \$family,
+              "list=s"           => \$list,
+              "family=s"         => \$family,
               "fasta=s"          => \$fasta,
               "seed=s"           => \$seed,
               "seed_source=s"    => \$seed_source,
-	      "author=s"         => \$author,
+              "author=s"         => \$author,
               "max_iterations=i" => \$max_iterations,
-	      "extend"           => \$extend,
+              "extend"           => \$extend,
               "help"             => \$help);
 
 
@@ -74,9 +75,9 @@ if($directory) {
 elsif($list) {
     open(LIST, $list) or $logger->logdie("Couldn't open $list $!");
     while(<LIST>) {
-	if(/^(\S+)/) {
-	    push(@dirs, $1);
-	}
+ if(/^(\S+)/) {
+     push(@dirs, $1);
+ }
     }
     close LIST;
 }
@@ -101,21 +102,21 @@ foreach my $dir (@dirs) {
     chdir "$dir" or $logger->logdie("Couldn't chdir to $dir $!");
 
     if(-s "ALIGN" and -s "PFAMOUT" and (-M "PFAMOUT" > -M "ALIGN") ) {
-	iterate($dir, $cwd, $seed_source, $author, $extend);
+ iterate($dir, $cwd, $seed_source, $author, $extend);
     }
     elsif($fasta) { 
           unless(-s $fasta)  {
               $fasta = grep_file($fasta);
           }
-	  unless(-s $fasta) {
+   unless(-s $fasta) {
               $logger->info("No fasta file [$dir/$fasta] - skipping family\n");
               next;
-	  }
-	  print "[$dir, $fasta]\n";
+   }
+   print "[$dir, $fasta]\n";
           create_seed($dir, $fasta);
           create_desc($author, $seed_source);
 
-	  system("pfbuild.pl -withpfmake -makeEval 0.1");
+   system("pfbuild.pl -withpfmake -makeEval 0.1");
     }
     elsif($seed) {    
           unless(-s "SEED")  {
@@ -123,15 +124,15 @@ foreach my $dir (@dirs) {
               rename ($seed, "SEED");
           }
           unless(-s "SEED") {
-	      $logger->info("No seed file [$dir/SEED], skipping family");
+       $logger->info("No seed file [$dir/SEED], skipping family");
               next;
           }
-	  create_desc($author, $seed_source);
-	  system("pfbuild.pl -withpfmake -makeEval 0.1");
+   create_desc($author, $seed_source);
+   system("pfbuild.pl -withpfmake -makeEval 0.1");
 
     }
     else {
-	$logger->info("$dir looks like it hasn't finished searching");
+ $logger->info("$dir looks like it hasn't finished searching");
     }
 }
 
@@ -247,7 +248,7 @@ sub iterate {
     #If it overlaps move to Overlaps directory
     if($overlaps) {   
         chdir("../");
-	$logger->info("Moving family $dir to Overlaps directory");
+ $logger->info("Moving family $dir to Overlaps directory");
         rename ("$dir","Overlaps/$dir") or $logger->logdie("Cannot move $dir to Overlaps/$dir $!");
         return;
     }
@@ -256,10 +257,10 @@ sub iterate {
      unless($num) {
         open(TMP, "ALIGN.iteration_number");
         while(<TMP>) {
-	    if(/(\d+)/) {
+     if(/(\d+)/) {
                 $num = $1;
-	    }
-	}
+     }
+ }
         close TMP;
      }
 
@@ -298,10 +299,10 @@ sub iterate {
 
 
     if($extend) {
-	create_extended_seed($dir, "ALIGN.$$", $cwd);
+ create_extended_seed($dir, "ALIGN.$$", $cwd);
     }
     else {
-	create_seed($dir, "ALIGN.$$");
+ create_seed($dir, "ALIGN.$$");
     }
 
     unlink "ALIGN.$$";
@@ -325,12 +326,12 @@ sub create_seed {
     open(ALN, "aln.$$") or $logger->logdie("Couldn't open aln.$$ $!");
     my $aln = new Bio::Pfam::AlignPfam;
     while(<ALN>) {
-	if( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
-	    my $name = $1;
-	    my $start = $2;
-	    my $end = $3;
-	    my $seq = $4;
-	    
+ if( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
+     my $name = $1;
+     my $start = $2;
+     my $end = $3;
+     my $seq = $4;
+     
 
             $aln->add_seq(Bio::Pfam::SeqPfam->new('-seq'=>$seq,
                                                   '-id'=>$name,
@@ -339,7 +340,7 @@ sub create_seed {
                                                   '-type'=>'aligned'));
 
 
-	}
+ }
     }                 
     close ALN;
 
@@ -378,61 +379,61 @@ sub create_extended_seed {
     my $c_seq =""; 
 
     foreach my $seq ($famObj->ALIGN->each_seq) {
-		
-	$st->execute($seq->display_id) or die "Couldn't execute statement ".$st->errstr."\n";
+  
+ $st->execute($seq->display_id) or die "Couldn't execute statement ".$st->errstr."\n";
 
-	my $array_ref = $st->fetchall_arrayref();
-	
-	foreach my $row (@$array_ref) {
-	    my ($start, $end) = ($$row[0], $$row[1]);
-	    
-	    if($end <= $seq->start) {
-		my $tmp = $seq->start - $end - 1;
-		if(!$n_ext or $tmp < $n_ext) {
-		    $n_ext = $tmp;
-		    $n_seq = $seq->display_id;
-		}
-	    }
-	    elsif($start >= $seq->end) {
-		my $tmp = $start - $seq->end - 1;
-		if(!$c_ext or $tmp < $c_ext) {
-		    $c_ext = $tmp;
-		    $c_seq = $seq->display_id;
-		}
-	    }
-	}
+ my $array_ref = $st->fetchall_arrayref();
+ 
+ foreach my $row (@$array_ref) {
+     my ($start, $end) = ($$row[0], $$row[1]);
+     
+     if($end <= $seq->start) {
+  my $tmp = $seq->start - $end - 1;
+  if(!$n_ext or $tmp < $n_ext) {
+      $n_ext = $tmp;
+      $n_seq = $seq->display_id;
+  }
+     }
+     elsif($start >= $seq->end) {
+  my $tmp = $start - $seq->end - 1;
+  if(!$c_ext or $tmp < $c_ext) {
+      $c_ext = $tmp;
+      $c_seq = $seq->display_id;
+  }
+     }
+ }
     }
 
   
     if($n_ext) {
-	$logger->info("Extending alignment by $n_ext ($n_seq) residues at N terminal");
+ $logger->info("Extending alignment by $n_ext ($n_seq) residues at N terminal");
     }
     if($c_ext) {
-	$logger->info("Extending alignment by $c_ext ($c_seq) residues at C terminal");
+ $logger->info("Extending alignment by $c_ext ($c_seq) residues at C terminal");
     }
 
     my $wholeseq;
     unless($n_ext or $c_ext) {
-	$logger->info("No Pfam-A families found on sequences in ALIGN file, running wholeseq on alignment");
-	$wholeseq=1;
+ $logger->info("No Pfam-A families found on sequences in ALIGN file, running wholeseq on alignment");
+ $wholeseq=1;
     }
 
     if($wholeseq) {   
-	system("wholeseq.pl -align $fa -mu > aln.$$") and $logger->logdie("Couldn't run wholeseq.pl $!");
+ system("wholeseq.pl -align $fa -mu > aln.$$") and $logger->logdie("Couldn't run wholeseq.pl $!");
     }
     else {
-	system("extend.pl -n $n_ext -c $c_ext -align $fa -mu > aln.$$") and $logger->logdie("Couldn't run extend.pl $!");
+ system("extend.pl -n $n_ext -c $c_ext -align $fa -mu > aln.$$") and $logger->logdie("Couldn't run extend.pl $!");
     }
 
     open(ALN, "aln.$$") or $logger->logdie("Couldn't open aln.$$ $!");
     my $aln = new Bio::Pfam::AlignPfam;
     while(<ALN>) {
-	if( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
-	    my $name = $1;
-	    my $start = $2;
-	    my $end = $3;
-	    my $seq = $4;
-	    
+ if( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
+     my $name = $1;
+     my $start = $2;
+     my $end = $3;
+     my $seq = $4;
+     
 
             $aln->add_seq(Bio::Pfam::SeqPfam->new('-seq'=>$seq,
                                                   '-id'=>$name,
@@ -441,7 +442,7 @@ sub create_extended_seed {
                                                   '-type'=>'aligned'));
 
 
-	}
+ }
     }                 
     close ALN;
 
@@ -474,14 +475,14 @@ sub create_desc {
 
 
     my %desc = ( DE    => "Family description",
-		 AU    => $author,
-		 SE    => $seed_source,
-		 CUTGA => { seq => "27.00", dom => "27.00" },
-		 CUTNC => { seq => "27.00", dom => "27.00" },
-		 CUTTC => { seq => "27.00", dom => "27.00" },
-		 BM    => "hmmbuild  -o /dev/null HMM SEED",
-		 SM    => "hmmsearch -Z ".$io->{config}->dbsize." -E 1000 HMM pfamseq",
-		 TP    => 'Family' );
+   AU    => $author,
+   SE    => $seed_source,
+   CUTGA => { seq => "27.00", dom => "27.00" },
+   CUTNC => { seq => "27.00", dom => "27.00" },
+   CUTTC => { seq => "27.00", dom => "27.00" },
+   BM    => "hmmbuild  -o /dev/null HMM SEED",
+   SM    => "hmmsearch -Z ".$io->{config}->dbsize." -E 1000 HMM pfamseq",
+   TP    => 'Family' );
     
 
     my $desc = Bio::Pfam::Family::DESC->new(%desc);
@@ -499,7 +500,7 @@ sub grep_file {
     my @files = grep {$_ =~ /$ext$/} readdir(D);
     closedir(D);
     unless(scalar(@files)) { 
-	print STDERR "No files with $ext extension\n";
+ print STDERR "No files with $ext extension\n";
         return;
     }
     unless(@files == "1") {
@@ -534,15 +535,15 @@ sub edit_desc {
     open(OLDDESC, "DESC.$$") or $logger->logdie("Couldn't open DESC.$$ file $!");
     open(DESC, ">DESC") or $logger->logdie("Couldn't open DESC file $!");
     while(<OLDDESC>) {
-	if(/^SE/ and $seed) {
-	    print DESC "SE   $seed_source\n";
-	}
-	elsif(/^AU/ and $author) {
-	    print DESC "AU   $author\n";
-	}
-	else {
-	    print DESC $_;
-	}
+ if(/^SE/ and $seed) {
+     print DESC "SE   $seed_source\n";
+ }
+ elsif(/^AU/ and $author) {
+     print DESC "AU   $author\n";
+ }
+ else {
+     print DESC $_;
+ }
     }
     close DESC;
     close OLDDESC;

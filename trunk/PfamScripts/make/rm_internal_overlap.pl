@@ -1,6 +1,8 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 # A dumb script to remove internal overlaps!
+use strict;
+use warnings;
 
 my $align = shift @ARGV;
 
