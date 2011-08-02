@@ -1,6 +1,7 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 use strict;
+use warnings;
 use Bio::Pfam::Config;
 use Getopt::Long;
 use Log::Log4perl qw(:easy);

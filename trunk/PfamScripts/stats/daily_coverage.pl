@@ -1,4 +1,4 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 #Script to print out each family and cumulative sequence and residue coverage
 #Prints the following to STDOUT:
@@ -6,6 +6,7 @@
 
 
 use strict;
+use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Net::SCP;

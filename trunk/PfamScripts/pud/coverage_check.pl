@@ -1,4 +1,4 @@
-#! /usr/bin/env perl -w
+#! /usr/bin/env perl 
 
 #Script to compare coverage between last release of pfam and pfamlive
 #Queries rdb for sequence lengths, and region data and dumps to file (need to remove scp bit)
@@ -7,6 +7,7 @@
 #Writes two files to cwd: overallCoverage.txt, familyCoverage.txt 
 
 use strict;
+use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Getopt::Long;
