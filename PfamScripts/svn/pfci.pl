@@ -253,7 +253,7 @@ if ( $upFamObj->DESC->CL ) {
       and $upFamObj->DESC->CL eq $oldFamObj->DESC->CL )
     {
       die
-"Found a CL line in this DESC, but it is either not present in the SVN copy of different."
+"Found a CL line in this DESC, but it is either not present in the SVN copy or different."
         . " Did you mean to use -add_to_clan?\n";
     }
   }
