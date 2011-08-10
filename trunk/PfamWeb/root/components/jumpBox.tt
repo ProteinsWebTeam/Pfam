@@ -16,7 +16,7 @@ META naked = 1;
 		<span>Jump to...</span>
 		<a href="[% c.uri_for( "/help", { tab = "helpGetStartedBlock" } ) %]"
        title="View help on the &quot;Jump to...&quot; search">
-	 		<img src="[% c.uri_for( "/shared/images/info.gif" ) %]" 
+	 		<img src="[% c.uri_for( '/shared/images/info.gif' ) %]" 
            alt="View help on the &quot;Jump to...&quot; search" 
            class="info" /></a>
 	</h1>
