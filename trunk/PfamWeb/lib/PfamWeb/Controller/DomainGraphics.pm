@@ -408,7 +408,7 @@ sub get_family_data : Private {
 
     @rows = $c->model('PfamDB::PfamaArchitecture')
               ->search( { pfama_acc => $c->stash->{acc} },
-                        { prefetch => [ qw( auto_pfama auto_architecture ) ],
+                        { prefetch => [ 'auto_pfama', { auto_architecture => 'storable' } ],
                           order_by => 'auto_architecture.no_seqs DESC' } );
   }
 
