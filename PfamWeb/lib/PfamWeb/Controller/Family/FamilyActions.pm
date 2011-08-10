@@ -11,7 +11,7 @@ related to families.
 
 =cut
 
-package PfamWeb::Controller::Family::FamilyActions;
+package PfamWeb::Controller::Family;
 
 =head1 DESCRIPTION
 
@@ -27,21 +27,24 @@ use warnings;
 
 use Image::Size;
 
-use base 'PfamWeb::Controller::Family';
+# use base 'PfamWeb::Controller::Family';
+use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 hmm : Private
+=head2 hmm : Chained
 
 Serve the contents of the HMM for a Pfam-A entry from the database. Requires 
 the "mode" parameter to be set either to "ls" or "fs".
 
 =cut
 
-sub hmm : Path( '/family/hmm' ) {
-  my( $this, $c ) = @_;
+sub hmm : Chained( 'family' )
+          PathPart( 'hmm' ) 
+          Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   return unless defined $c->stash->{pfam};
 
@@ -101,9 +104,25 @@ sub hmm : Path( '/family/hmm' ) {
   # content in the response and return without trying to render any templates
 }
 
+#---------------------------------------
+
+=head2 old_hmm : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_hmm : Path( '/family/hmm' ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  $c->log->debug( 'Family:FamilyActions::old_hmm: redirecting to "hmm"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/hmm' ) );
+}
+
 #-------------------------------------------------------------------------------
 
-=head2 logo : Local
+=head2 logo : Chained
 
 Returns the HMM logo image for this family. This is subject to a check on the 
 size of the image and the type of browser that is requesting it. Since there
@@ -113,7 +132,9 @@ and providing a link to load the image anyway.
 
 =cut
 
-sub logo : Path( '/family/logo' ) {
+sub logo : Chained( 'family' )
+           PathPart( 'logo' )
+           Args( 0 ) {
   my ( $this, $c ) = @_;
   
   my $logo = $c->forward( 'get_logo' );    
@@ -140,15 +161,33 @@ sub logo : Path( '/family/logo' ) {
   $c->stash->{template} = 'components/logo.tt';
 }
 
+#---------------------------------------
+
+=head2 old_logo : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_logo : Path( '/family/logo' ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  $c->log->debug( 'Family::FamilyActions::old_logo: redirecting to "logo"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/logo' ) );
+}
+
 #-------------------------------------------------------------------------------
 
-=head2 logo_image : Local
+=head2 logo_image : Chained
 
 Returns the HMM logo image for this family.
 
 =cut
 
-sub logo_image : Path( '/family/logo_image' ) {
+sub logo_image : Chained( 'family' )
+                 PathPart( 'logo_image' ) 
+                 Args( 0 ) {
   my ( $this, $c ) = @_;
 
   $c->log->debug( 'Family::FamilyActions::logo_image: returning raw image' )
@@ -171,16 +210,34 @@ sub logo_image : Path( '/family/logo_image' ) {
   $c->res->body( $logo );
 }
 
+#---------------------------------------
+
+=head2 old_logo_image : Path
+
+Deprecated. Stub to redirect to chained action.
+
+=cut
+
+sub old_logo_image : Path( '/family/logo_image' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family:FamilyActions::old_logo_image: redirecting to "logo_image"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/logo_image' ) );
+}
+
 #-------------------------------------------------------------------------------
 
-=head2 id : Local
+=head2 id : Chained
 
 Returns the ID for this family as a single, plain text string. Returns 404 if
 there's no family to work on.
 
 =cut
 
-sub id : Path( '/family/id' ) {
+sub id : Chained( 'family' )
+         PathPart( 'id' )
+         Args( 0 ) {
   my ( $this, $c ) = @_;
   
   if ( defined $c->stash->{pfam} ) {    
@@ -198,16 +255,34 @@ sub id : Path( '/family/id' ) {
   }
 }
 
+#---------------------------------------
+
+=head2 old_id : Path
+
+Deprecated. Stub to redirect to chained action.
+
+=cut
+
+sub old_id : Path( '/family/id' ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family:FamilyActions::old_id: redirecting to "id"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/id' ) );
+}
+
 #-------------------------------------------------------------------------------
 
-=head2 acc : Local
+=head2 acc : Chained
 
 Returns the accession for this family as a single, plain text string. Returns 
 404 if there's no family to work on.
 
 =cut
 
-sub acc : Path( '/family/acc' ) {
+sub acc : Chained( 'family' )
+          PathPart( 'acc' )
+          Args( 0 ) {
   my ( $this, $c ) = @_;
   
   if ( defined $c->stash->{pfam} ) {    
@@ -223,6 +298,213 @@ sub acc : Path( '/family/acc' ) {
     $c->res->status( 404 );
     $c->res->body( 'No such family' );
   }
+}
+
+#---------------------------------------
+
+=head2 old_acc : Path
+
+Deprecated. Stub to redirect to chained action.
+
+=cut
+
+sub old_acc : Path( '/family/acc' ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family:FamilyActions::old_acc: redirecting to "acc"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/acc' ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 desc : Chained
+
+Returns the description string for a family. If the "output_pfamalyzer"
+parameter is set, the output returns more family information.
+
+=cut
+
+sub desc : Chained( 'family' )
+           PathPart( 'desc' )
+           Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  if ( defined $c->stash->{pfam} ) {
+
+    $c->res->content_type( 'text/plain' );
+
+    if ( $c->stash->{output_pfamalyzer} ) {
+      $c->res->body(
+        $c->stash->{pfam}->pfama_acc   . "\t" .
+        $c->stash->{pfam}->author      . "\t" .
+        $c->stash->{pfam}->type        . "\t" .
+        $c->stash->{pfam}->num_seed    . "\t" .
+        $c->stash->{pfam}->num_full    . "\t" .
+        $c->stash->{pfam}->description . "\t" .
+        $c->stash->{pfam}->comment
+      );
+    }
+    else {
+      $c->res->body( $c->stash->{pfam}->description );
+    }
+  }
+  else {
+    $c->res->status( 404 );
+    $c->res->body( 'No such family' );
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 structures : Chained
+
+Retrieves the list of PDB entries for this family. If a PDB ID is specified,
+the method also retrieves the row of the "pdb" table for that entry.
+
+=cut
+
+sub structures : Chained( 'family' )
+                 PathPart( 'structures' )
+								 Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # see if we were handed a valid PDB ID and, if so, just stash it
+  if ( defined $c->req->param('pdbId') and
+       $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
+
+    $c->log->debug( "Family::Structures::structures: got PDB ID: |$1|" )
+      if $c->debug;
+
+    $c->stash->{pdb_id} = $1;
+  }
+
+  # retrieve the PDB entries for this family
+  my @regions;
+  if ( defined $c->stash->{pfam}->auto_pfama ) {
+    $c->log->debug( 'Family::Structures::structures: got an auto_pfama: '
+                    . $c->stash->{pfam}->auto_pfama ) if $c->debug;
+    @regions = $c->model('PfamDB::PdbPfamaReg')
+                 ->search( { 'me.auto_pfama' => $c->stash->{pfam}->auto_pfama },
+                           { prefetch => [ qw( pdb_id pdb_image auto_pfama ) ] } );
+    $c->log->debug( 'Family::Structures::structures: got ' 
+                    . scalar @regions . ' regions' ) if $c->debug;
+  }
+
+  # don't render the template unless we need to
+  unless ( scalar @regions ) {
+    $c->log->debug( 'Family::Structures::structures: no structure image; not rendering template' )
+      if $c->debug;
+    $c->res->status( 204 );
+    return;
+  }
+
+  my $pdb_unique = {};
+  my $colours = {};
+  foreach my $region ( @regions ) {
+    my $id = $region->pdb_id->pdb_id;
+    $pdb_unique->{$id} = $region;
+    $colours->{$id}->{$region->hex_colour} = $region->auto_pfama->pfama_id;
+  }
+
+  $c->stash->{pdb_unique} = $pdb_unique;
+  $c->stash->{colours}    = $colours;
+
+  # my %pdb_unique = map{ $_->pdb_id->pdb_id => $_ } @regions;
+  # $c->stash->{pdb_unique} = \%pdb_unique;
+
+  # set up the view and rely on "end" from the parent class to render it
+  $c->stash->{template} = 'components/blocks/family/familyStructures.tt';
+
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+}
+
+#---------------------------------------
+
+=head2 old_structures : Path
+
+Deprecated. Stub to redirect to chained action.
+
+=cut
+
+sub old_structures : Path( '/family/structures' ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family::Structures::old_structures: redirecting to "structures"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/structures' ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 mapping : Chained
+
+Renders a table showing the mapping between Pfam family, UniProt region and
+PDB residues.
+
+=cut
+
+sub mapping : Chained( 'family' )
+              PathPart( 'mapping' )
+              Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::FamilyActions::mapping: acc: |'
+                  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' )
+    if $c->debug;
+
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
+                            { join       => [ qw( pdb_id auto_pfamseq ) ],
+                              columns    => [ qw( auto_pfamseq.pfamseq_id
+                                                  seq_start
+                                                  seq_end
+                                                  pdb_id.pdb_id
+                                                  chain
+                                                  pdb_res_start
+                                                  pdb_res_end ) ] } );
+
+  $c->stash->{pfamMaps} = \@mapping;
+  $c->log->debug( 'Family::FamilyActions::mapping: found |' . scalar @mapping . '| rows' )
+    if $c->debug;
+
+  unless ( scalar @mapping ) {
+    $c->log->debug( 'Family::FamilyActions::mapping: no rows; returning 204' )
+      if $c->debug;
+      
+    $c->res->status( 204 );
+    
+    return;
+  }
+  
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Family::FamilyActions::mapping: emitting XML' ) if $c->debug;
+    $c->stash->{template} = 'rest/family/structures_xml.tt';
+  }
+  else {
+    $c->log->debug( 'Family::FamilyActions::mapping: emitting HTML' ) if $c->debug;
+    $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+  }
+
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+}
+
+#---------------------------------------
+
+=head2 old_mapping : Path
+
+Deprecated. Stub to redirect to chained action.
+
+=cut
+
+sub old_mapping : Path( '/family/structures/mapping' ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family::FamilyActions::old_mapping: redirecting to "mapping"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/mapping' ) );
 }
 
 #-------------------------------------------------------------------------------
