@@ -12,7 +12,7 @@ Controller to build the tree view of the family.
 
 =cut
 
-package PfamWeb::Controller::Family::Tree;
+package PfamWeb::Controller::Family;
 
 =head1 DESCRIPTION
 
@@ -27,10 +27,15 @@ use strict;
 use warnings;
 
 use Compress::Zlib;
-
 use treefam::nhx_plot;
 
-use base 'PfamWeb::Controller::Family';
+use base 'Catalyst::Controller';
+
+my %allowed_alignment_types = ( full => 1,
+                                seed => 1,
+                                ncbi => 1,
+                                meta => 1,
+                                long => 1 );
 
 #-------------------------------------------------------------------------------
 #- exposed actions -------------------------------------------------------------
@@ -38,18 +43,41 @@ use base 'PfamWeb::Controller::Family';
 
 =head1 METHODS
 
-=head2 showTree : Path
+=head2 tree : Chained
 
-Plots the tree that we loaded in "auto" and hands off to a template that
-builds HTML for the image and associated image map.
+Stub to set the type of alignment that we want.
 
 =cut
 
-sub showTree : Path {
-  my( $this, $c ) = @_;
+sub tree : Chained( 'family' )
+           PathPart( 'tree' )
+           CaptureArgs( 1 ) {
+  my ( $this, $c, $aln_type ) = @_;
+
+  $c->stash->{alnType} = 'seed';
+
+  if ( defined $aln_type and
+       exists $allowed_alignment_types{ $aln_type } ) {
+    $c->stash->{alnType} = $aln_type;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 tree_html : Chained
+
+Plots the tree and hands off to a template that builds HTML for the image and
+associated image map.
+
+=cut
+
+sub tree_html : Chained( 'tree' )
+                PathPart( 'html' )
+                Args( 0 ) {
+  my ( $this, $c, $aln_type ) = @_;
 
   # stash the tree object
-  $c->forward( 'getTree' );
+  $c->forward( 'get_tree' );
   
   # bail unless we actually got a tree
   unless ( defined $c->stash->{tree} ) {
@@ -67,6 +95,41 @@ sub showTree : Path {
   #$c->cache_page( 604800 );
 }
 
+#---------------------------------------
+
+=head2 old_tree : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_tree : Path( '/family/tree' ) {
+  my ( $this, $c, $action ) = @_;
+
+  my $aln_type = 'seed';
+
+  if ( defined $c->req->param('alnType') and
+       exists $allowed_alignment_types{ $c->req->param('alnType') } ) {
+    $aln_type = $c->req->param('alnType');
+  }
+
+  if ( ( $action || '' ) eq 'image' ) {
+    $c->log->debug( 'Family::Tree::old_tree: redirecting to "image"' )
+      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type/image" ) );
+  }
+  elsif ( ( $action || '' ) eq 'download' ) {
+    $c->log->debug( 'Family::Tree::old_tree: redirecting to "download"' )
+      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type/download" ) );
+  }
+	else {
+    $c->log->debug( 'Family::Tree::old_tree: redirecting to "tree"' )
+      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type" ) );
+  }
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 image : Local
@@ -76,11 +139,13 @@ an "image/gif". Otherwise returns a blank image.
 
 =cut
 
-sub image : Local {
-  my( $this, $c ) = @_;
+sub image : Chained( 'tree' )
+            PathPart( 'image' )
+            Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   # stash the tree object
-  $c->forward( 'getTree' );
+  $c->forward( 'get_tree' );
 
   if ( defined $c->stash->{tree} ) {
     $c->res->content_type( 'image/gif' );
@@ -95,20 +160,22 @@ sub image : Local {
 
 #-------------------------------------------------------------------------------
 
-=head2 download : Local
+=head2 download : Chained
 
 Serves the raw tree data as a downloadable file.
 
 =cut
 
-sub download : Local {
-  my( $this, $c ) = @_;
+sub download : Chained( 'tree' )
+               PathPart( 'download' )
+               Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Family::Tree::download: dumping tree data to the response' )
     if $c->debug;
 
   # stash the raw tree data
-  $c->forward( 'getTreeData' );
+  $c->forward( 'get_tree_data' );
 
   return unless defined $c->stash->{treeData};
 
@@ -126,7 +193,7 @@ sub download : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getTree : Private
+=head2 get_tree : Private
 
 Builds the TreeFam tree object for the specified family and alignment type 
 (seed or full). We first check the cache for the pre-built tree object and 
@@ -134,19 +201,19 @@ then fall back to the database if it's not already available in the cache.
 
 =cut
 
-sub getTree : Private {
-  my( $this, $c) = @_;
+sub get_tree : Private {
+  my ( $this, $c ) = @_;
 
   # see if we can extract the pre-built tree object from cache
   my $cacheKey = 'tree' . $c->stash->{acc} . $c->stash->{alnType};
   my $tree     = $c->cache->get( $cacheKey );
   
   if ( defined $tree ) {
-    $c->log->debug( 'Family::Tree::getTree: extracted tree from cache' )
+    $c->log->debug( 'Family::Tree::get_tree: extracted tree from cache' )
       if $c->debug;  
   }
   else {
-    $c->log->debug( 'Family::Tree::getTree: failed to extract tree from cache; going to DB' )
+    $c->log->debug( 'Family::Tree::get_tree: failed to extract tree from cache; going to DB' )
       if $c->debug;  
 
     # get a new tree object...
@@ -154,7 +221,7 @@ sub getTree : Private {
                                     -skip  => 14 );
 
     # retrieve the tree from the DB
-    $c->forward( 'getTreeData' );
+    $c->forward( 'get_tree_data' );
     return unless defined $c->stash->{treeData};
   
     # parse the data
@@ -162,7 +229,7 @@ sub getTree : Private {
       $tree->parse( $c->stash->{treeData} );
     };
     if( $@ ) {
-      $c->log->error( 'Family::Tree::getTree: ERROR: failed to parse ' 
+      $c->log->error( 'Family::Tree::get_tree: ERROR: failed to parse ' 
                       . $c->stash->{alnType} . ' tree for ' 
                       . $c->stash->{acc} . ": $@" );
       return;
@@ -177,25 +244,25 @@ sub getTree : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getTreeData : Private
+=head2 get_tree_data : Private
 
 Retrieves the raw tree data. We first check the cache and then fall back to the 
 database.
 
 =cut
 
-sub getTreeData : Private {
-  my( $this, $c) = @_;
+sub get_tree_data : Private {
+  my ( $this, $c ) = @_;
 
   # see if we can extract the pre-built tree object from cache
   my $cacheKey = 'treeData' . $c->stash->{acc} . $c->stash->{alnType};
   my $treeData = $c->cache->get( $cacheKey );
   
   if( defined $treeData ) {
-    $c->log->debug( 'Family::Tree::getTreeData: extracted tree data from cache' )
+    $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' )
       if $c->debug;  
   } else {
-    $c->log->debug( 'Family::Tree::getTreeData: failed to extract tree data from cache; going to DB' )
+    $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' )
       if $c->debug;  
 
     # retrieve the tree from the DB
@@ -214,7 +281,7 @@ sub getTreeData : Private {
     # make sure we can uncompress it
     $treeData = Compress::Zlib::memGunzip( $tree );
     unless ( defined $treeData ) {
-      $c->log->error( 'Family::Tree::getTree: ERROR: failed to uncompress ' 
+      $c->log->error( 'Family::Tree::get_tree_data: ERROR: failed to uncompress ' 
                       . $c->stash->{alnType} . ' tree data for ' 
                       . $c->stash->{acc} );
       return;
