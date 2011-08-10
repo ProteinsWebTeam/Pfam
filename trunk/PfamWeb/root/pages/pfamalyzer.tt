@@ -1,0 +1,211 @@
+[%
+# pfamalyzer.tt
+# jt6 20110805 WTSI
+#
+# The PfamAlyzer help page
+#
+# $Id$
+
+META fullPage = 1;
+-%]
+
+<div id="about">
+
+	<h1>Explore protein domain evolution with PfamAlyzer</h1>
+
+	<p>
+		The PfamAlyzer Java applet comprises four views that focus on different
+		aspects of domain architecture searching. These views can be accessed through
+		the menu buttons at the top. You may think of these views as independent
+		windows within the program. Moving from one view to some other will not harm
+		its current content and you may come back to this view later and will find all
+		data preserved.
+	</p>
+
+	<h2>Protein HMM search</h2>
+
+	<p>
+		With the 'Protein HMM search' it is possible to determine the Pfam domain
+		architecture for any given protein sequence. 
+		parameters. Alternatively, by pasting in a non-UniProt sequence you can
+		discover its domain architecture according to Pfam. The calculations are
+		carried out by the Pfam website, using the 
+    <a class="ext" href="http://hmmer.janelia.org">HMMER package</a>, 
+		which is the same packages that is used for generating Pfam full alignments
+		from curated seeds.
+	</p>
+	<p>
+		<strong>Note</strong> that you will need to grant the applet access to the 
+    system clipboard in order to paste into the search field.
+  </p>
+
+[%# no "glocal" in HMMER3.0...
+	<h3>Search Mode</h3>
+
+	<p>
+		There are two different ways to search for Pfam domain architectures. You may
+		seek only complete domains, i.e. one or more significant alignments that are
+		global with respect to the profile-HMM, and local with respect to the query
+		sequence - dubbed "glocal" alignment, for "global to the model, local to the
+		sequence". Additionally, you can also search in a fully local mode, where
+		PfamAlyzer looks for one or more significant alignments that are local with
+		respect to both the model and the query sequence. Glocal mode is the more
+		sensitive mode - provided that your sequence actually does contain complete
+		domains. Local mode is less sensitive in general, but capable of detecting
+		fragments of domains, where perhaps part of the structure has been deleted or
+		mutated beyond recognition.  Merged mode combines the results from a glocal and
+		a local run. The default option is glocal.
+	</p>
+%]
+
+	<h3>Cutoff Strategy</h3> 
+
+	<p>
+		There are two different ways to determine the significance level for reporting
+		hits to Pfam models. By default, we cut off at a raw score threshold called the
+		'gathering threshold' (GA cutoff). GA thresholds are set by Pfam curators for
+		each model. These cutoffs are exactly what are used to collect the sequences
+		included in Pfam Full alignments. The GA thresholds are considered to be
+		trustworthy cutoffs at which effectively zero false positives get through, and
+		the annotation coming from the Pfam server is extremely reliable and suitable
+		for fully automated annotation (which is what Pfam was designed for). 
+	</p>
+	<p>
+		You may want less reliable annotation, in return for increased sensitivity,
+		if you're willing to sort through more output for clues. In this case, select
+		the E-value cutoff instead of the GA cutoff. The default 1.0 will report about
+		1 false positive hit per query sequence; you might turn this up to 10, in which
+		case you'll get about 10 false positive hits per query sequence. Because of the
+		false positives, you can expect the usually pretty domain picture to be messy,
+		with several overlaps.
+	</p>
+	<p>
+		When pressing 'Submit query' the Pfam HMM database will be searched for matches
+		to the query sequence. The calculations are complex and are not carried out
+		within the PfamAlyzer applet. Instead, the sequence is sent to a compute
+		cluster that aims to deliver the result quickly. However, depending on the
+		complexity of your search and the current load of the cluster, the search may
+		run for a considerable time. After submitting the query a job ID is immediately
+		displayed. With this ID in hand, you can retrieve the results once the
+		prediction has been completed. The results are stored on the server and kept
+		for at least a month. However, for security and privacy reasons you will always
+		need your ID for data access. We do not offer to recover an ID you may have
+		lost.
+	</p>
+	<p>
+		The results of the predictions are displayed in the lower frame. Overlapping
+		domains according to the prediction are indicated by a red line below the
+		overlapping range. Such overlapping regions can result from multiple Pfam clan
+		members that are predicted for this region. Since clan members are allowed to
+		overlap this will happen for a number of sequences. Other kinds of overlaps can
+		occur if you work with a high E-value. A context menu opens with a right mouse
+		click on a domain and provides access to general information about the
+		predicted domain. By the command 'Find architecture' from the context menu on
+		the displayed protein you are transfered to the Domain Query view and the
+		predicted architecture is automatically inserted as query. If you open the
+		context menu on a protein domain, you can select 'short info' which gives you
+		some facts about this domain in a small seperate family info window.  The
+		domain viewer that can also be accessed through the context menu brings you
+		directly to 'Browse Pfam' view of the selected domain.
+	</p>
+
+	<h2>Domain Query</h2>
+
+	<p>
+		PfamAlyzer enables comprehensive study of domain architectures in the 'Domain
+		Query' view. Using a user-friendly graphical query language, arbitrary domains
+		may be freely combined on the screen. PfamAlyzer uses Drag &amp; Drop functionality
+		as an intuitive query formulation approach. The domain is selected on the left
+		frame (clans are available in the combo box as well) and then dragged to
+		protein in the upper right panel. Once the domains are on the protein, the
+		order can be altered by the Drag &amp; Drop mechanism. A domain is deleted by
+		selecting and dragging it away from the protein. Tolerated gaps between domains
+		may be specified by clicking on a gap and opening the distances dialog. The
+		left field in the dialog determines the minimum gap between to domains, the
+		right field holds the maximum. A ('don't care') wild card is expressed as '*'.
+		The maximum vlaue overrides the minimum, e.g., a '* - 0' entry allows no gaps.
+		The gap range unit is Pfam-A domains on default but can be changed to amino
+		acids in the left frame. Thus, the search is not necessarily restricted to
+		exactly defined architectures, but allows some user-defined freedom.
+	</p>
+	<p>
+		The 'Order sensitivity' checkbox defines the search mode and influences the
+		result set in serveral ways. Without order sensitivity every domain specified
+		in the query sequence must occur at least the number of times as on the query
+		sequence, yet not necessarily in the same order. Any defined gaps will not be
+		regarded in the order insensitive mode. You can choose to exclude certain
+		domains from your result set. If you click on a domain in the query sequence it
+		is graphically crossed out and is not allowed to occur in the result set. In
+		the order sensitive mode, the domains have to be present exactly in the given
+		order. Here, a crossed out domain will only exclude this domain from occurring
+		at this position in the sequence but not in general.
+	</p>
+	<p>
+		Optionally, the search can be limited to specific taxonomic groups, e.g.
+		Chordata, by switching from the upper right frame from 'domain architecture' to
+		'species'. Pressing clear lets you start again from scratch. The search is
+		started by hitting the search button. All UniProt proteins with a Pfam domain
+		are queried for the selected architecture. The outcome is presented either in a
+		list fashion or as a species distribution. Here, the proteins are shown as
+		leaves on the species tree. Subtrees may be collapsed to simplify the analysis
+		of large result sets. This is controlled by right clicking on a node and
+		selecting expand or collapse. The shadow effect on proteins may be toggled
+		through the options menu. As in the 'HMM search' view context menus are
+		available for protein domains giving a direct link to the 'Browse Pfam' view
+		for the chosen domain or displaying the family info. By using context menu on
+		the protein name, the user can switch to the 'Browse SwissPfam' view for the
+		protein. 
+	</p>
+
+	<h2>Browse SwissPfam</h2>
+
+	<p>
+		The 'Browse SwissPfam' view holds information about whole protein sequences and
+		the domains they contain. Both the manually curated Pfam-A domains and the
+		uncurated Pfam-B domains derived from the ProDom database are included. Links
+		to the UniProt database provide means for further information gathering (see
+		example P08487).  The currently displayed protein can be a starting point  for
+		a domain query. The 'domain query' switches to this view and inserts the
+		current protein in the query. The browser button brings you to the protein's
+		SwissProt site. As in the previous views, family info help is available by
+		clicking on a Pfam-A domain.
+	</p>
+
+	<h2>Browse Pfam</h2>
+
+	<p>
+		The 'Browse Pfam' view shows comprehensive information about all Pfam-A
+		families and clans. This includes description, technical parameters for the
+		profile HMM generation, as well as the seed and full alignments.The alignments
+		are displayed in the lower right frame if you click on it. 
+	</p>
+
+	<p class="small">
+		PfamAlyzer was written by Volker Hollich, Kristoffer Forslund and Erik Sonnhammer. 
+    Contact 
+    <a href="mailto:&#107;&#114;&#105;&#102;&#111;&#064;&#115;&#098;&#099;&#046;&#115;&#117;&#046;&#115;&#101;">
+      &#107;&#114;&#105;&#102;&#111;&#064;&#115;&#098;&#099;&#046;&#115;&#117;&#046;&#115;&#101;</a>
+    if you have questions or comments.
+	</p>
+
+</div>
+
+[%#
+Copyright (c) 2011: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
+         Kristoffer Fforslund (krifo@sbc.su.se) 
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
