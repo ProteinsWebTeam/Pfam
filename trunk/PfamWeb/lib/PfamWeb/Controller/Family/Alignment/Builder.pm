@@ -10,7 +10,7 @@ PfamWeb::Controller::Family::Alignment::Builder - generate sequence alignments
 
 =cut
 
-package PfamWeb::Controller::Family::Alignment::Builder;
+package PfamWeb::Controller::Family;
 
 =head1 DESCRIPTION
 
@@ -34,11 +34,25 @@ use Data::Dump qw( dump );
 
 use Bio::Pfam::ColourAlign;
 
-use base 'PfamWeb::Controller::Family::Alignment';
+# use base 'PfamWeb::Controller::Family::Alignment';
+use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 alignment_link : Chained
+
+An endpoint for the /family/ACC/alignment chain that doesn't need the alignment
+type specified. 
+
+=cut
+
+sub alignment_link : Chained( 'family' )
+                     PathPart( 'alignment' )
+                     CaptureArgs( 0 ) { }
+
+#---------------------------------------
 
 =head2 build : Path
 
@@ -48,13 +62,15 @@ the species_collection table, rather than the job that we run to align them.
 
 =cut
 
-sub build : Path {
-  my( $this, $c ) = @_;
+sub build : Chained( 'alignment_link' )
+            PathPart( 'build' )
+            Args( 0 ) {
+  my ( $this, $c ) = @_;
   
   $c->log->debug( 'Family::Alignment::Builder::build: checking for sequences' )
     if $c->debug;
 
-  unless( $c->req->param('jobId') ) {
+  unless ( $c->req->param('jobId') ) {
     $c->log->debug( 'Family::Alignment::Builder::build: no job ID supplied' )
       if $c->debug;
     $c->stash->{errorMsg} = 'There was no job ID for this alignment..';
@@ -64,7 +80,7 @@ sub build : Path {
 
   # validate the UUID
   my $collection_id = $c->req->param('jobId');
-  unless ($collection_id =~ m/^([A-F0-9\-]{36})$/i ) {
+  unless ( $collection_id =~ m/^([A-F0-9\-]{36})$/i ) {
     $c->log->debug( 'Family::Alignment::Builder: bad job id' )
       if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
@@ -77,7 +93,7 @@ sub build : Path {
                                     [ $collection_id, $c->stash->{pfam} ] );
   
   # make sure we got something...
-  unless( length $c->stash->{fasta} ) {
+  unless ( length $c->stash->{fasta} ) {
     $c->log->debug( 'Family::Alignment::Builder::build: failed to get a FASTA sequence' )
       if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
@@ -89,16 +105,33 @@ sub build : Path {
   my $submissionStatus = $c->forward( 'queueAlignment' );
 
   # and see if we managed it...
-  if( $submissionStatus < 0 ) {
+  if ( $submissionStatus < 0 ) {
     $c->log->debug( 'Family::Alignment::Builder::build: problem with submission; returning error page' )
       if $c->debug; 
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
-  } else {
+  }
+  else {
     $c->log->debug( 'Family::Alignment::Builder::build: alignment job submitted; polling' )
       if $c->debug; 
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
+}
+
+#---------------------------------------
+
+=head2 old_build : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_build : Path( '/family/alignment/builder' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::Alignment::Builder::old_build: redirecting to "build"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/build' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -109,14 +142,16 @@ Retrieves the sequence alignment that we generated.
 
 =cut
 
-sub view : Local {
-  my( $this, $c ) = @_;
+sub view : Chained( 'alignment_link' )
+           PathPart( 'view' )
+           Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   # retrieve the job results
-  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
+  my ( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   
-  unless( scalar keys %{ $c->stash->{results} } ) {
+  unless ( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::Alignment::Builder::view: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
@@ -139,6 +174,14 @@ sub view : Local {
 
   # and hand off to it
   $c->forward( 'PfamViewer', 'showPfamViewer' );
+}
+
+sub old_view : Path( '/family/alignment/builder/view' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::Alignment::Builder::old_view: redirecting to "view"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/view' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -256,9 +299,7 @@ sub queueAlignment : Private {
                     {
                       checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/family/alignment/builder/view',
-                                                    { acc => $c->stash->{acc} } )
-                                         ->as_string,
+                      doneURI       => $c->uri_for( '/family/'.$c->stash->{acc}.'/alignment/view' )->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,
@@ -267,7 +308,7 @@ sub queueAlignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
+  $c->stash->{jobStatusJSON} = to_json( $jobStatus );
 
   $c->log->debug( 'Family::Alignment::Builder::queueAlignment: job status: ',
                   dump( $jobStatus ) ) if $c->debug;
