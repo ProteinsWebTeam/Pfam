@@ -64,6 +64,7 @@
 
 .formWrapper .subLabel {
   text-align: left;
+  width: 20em;
 }
 
 .formWrapper input,
