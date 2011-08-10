@@ -30,6 +30,7 @@ use warnings;
 
 use LWP::UserAgent;
 use XML::LibXML;
+use Image::Size;
 
 use Data::Dump qw( dump );
 
@@ -44,9 +45,8 @@ __PACKAGE__->config( SECTION => 'family' );
 
 =head2 begin : Private
 
-This is the guts of this controller. It's function is to extract
-the Pfam family ID or accession from the URL and get the row
-in the Pfam table for that entry. Expects one of three parameters:
+Extracts the Pfam family ID or accession from parameters on the URL. Handles
+any of three parameters:
 
 =over
 
@@ -69,23 +69,24 @@ either an ID or accession
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
 
-  # we previously cached the page for a week or so, but now that we're
-  # including wikipedia content, we need to reduce the cache period,
-  # otherwise it could be a week before new content is visible in the
-  # site. 
-  
   # cache page for 12 hours
   $c->cache_page( 43200 ); 
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');    
+  if ( defined $c->req->param('output') ) {
+    if ( $c->req->param('output') eq 'xml' ) {
+      $c->stash->{output_xml} = 1;
+      $c->res->content_type('text/xml');    
+    }
+    elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
+      $c->stash->{output_pfamalyzer} = 1;
+      $c->res->content_type('text/plain');    
+    }
   }
   
+  # see if the entry is specified as a parameter
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
@@ -93,13 +94,41 @@ sub begin : Private {
                       $entry_arg              ||
                       '';
   
+  if ( $tainted_entry ) {
+    $c->log->debug( 'Family::begin: got a tainted entry' )
+      if $c->debug;
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\.-]+)$/
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 family : Chained
+
+Tries to get a row from the DB for the family.
+
+=cut
+
+sub family : Chained( '/' )
+             PathPart( 'family' )
+             CaptureArgs( 1 ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
+  
+  $c->log->debug( "Family::family: tainted_entry: |$tainted_entry|" )
+    if $c->debug;
+
   # although these next checks might fail and end up putting an error message
   # into the stash, we don't "return", because we might want to process the 
   # error message using a template that returns XML rather than simply HTML
   
   my $entry;
   if ( $tainted_entry ) {
-    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
+    # strip off family version numbers, if present
+    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)(\.\d+)?$/;
     $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
       unless defined $entry;
   }
@@ -107,34 +136,33 @@ sub begin : Private {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
   
-  # strip off family version numbers, if present
-  $entry =~ s/\.\d+$//;
-  
-  #  find out what type of alignment we need, seed, full, ncbi, etc
-  $c->stash->{alnType} = 'seed';
-  my %allowed_alignment_types = ( full => 1,
-                                  seed => 1,
-                                  ncbi => 1,
-                                  meta => 1,
-                                  long => 1 );
-  if ( defined $c->req->param('alnType') and
-       exists $allowed_alignment_types{ $c->req->param('alnType') } ) {
-    $c->stash->{alnType} = $c->req->param( 'alnType' );
-  }
-  
-  $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
-    if $c->debug;
-  
   # retrieve data for the family
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
-  
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 family_page : Chained
+
+End point of a chain, which captures the URLs for the family page.
+
+=cut
+
+sub family_page : Chained( 'family' )
+                  PathPart( '' )
+                  Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # if we don't have an entry to work with by now, we're done
+  return unless $c->stash->{pfam};
+
   #----------------------------------------
   
   # dead families are a special case...
   if ( defined $c->stash->{entryType} and
        $c->stash->{entryType} eq 'D' ) {
     
-    $c->log->debug( 'Family::begin: got a dead family; setting a refresh URI' ) 
+    $c->log->debug( 'Family::family_page: got a dead family; setting a refresh URI' ) 
       if $c->debug;
 
     if ( $c->stash->{pfam}->forward_to ) {
@@ -153,6 +181,8 @@ sub begin : Private {
     
     # set the template. This will be overridden below if we're emitting XML
     $c->stash->{template} = 'pages/dead.tt';
+
+    return;
   }
 
   #----------------------------------------
@@ -161,7 +191,7 @@ sub begin : Private {
   if ( defined $c->stash->{entryType} and
        $c->stash->{entryType} eq 'R' ) {
     
-    $c->log->debug( 'Family::begin: arrived at a family using a previous ID; setting a refresh URI' ) 
+    $c->log->debug( 'Family::family_page: arrived at a family using a previous ID; setting a refresh URI' ) 
       if $c->debug;
 
     $c->stash->{refreshUri} =
@@ -169,45 +199,103 @@ sub begin : Private {
     
     # set the template for the intermediate page
     $c->stash->{template} = 'pages/moved.tt';
-  }
 
-  #----------------------------------------
-
-  # if we're outputting HTML, we're done here
-  return unless $c->stash->{output_xml};
-
-  #----------------------------------------
-  # from here on we're handling XML output
-
-  # if there was an error...
-  if ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'Family::begin: there was an error: |' .
-                    $c->stash->{errorMsg} . '|' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/error_xml.tt';
     return;
   }
+
+  #----------------------------------------
   
-  # decide on the output template, based on the type of family that we have
-  if ( $c->stash->{entryType} eq 'A' or
-       $c->stash->{entryType} eq 'R' ) {
-    # we'll use the same XML template to handle familes that were arrived at 
-    # using a "previous ID"
-    $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/pfama_xml.tt';
-  }
-  elsif( $c->stash->{entryType} eq 'B' ) {
-    $c->log->debug( 'Family::begin: got data for a Pfam-B' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/pfamb_xml.tt';
-  }
-  elsif( $c->stash->{entryType} eq 'D' ) {
-    $c->log->debug( 'Family::begin: got data for a dead family' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/dead_xml.tt';
-  }
-  else {
-    $c->log->debug( 'Family::begin: got an error' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/error_xml.tt';
+  # output is specific to PfamAlyzer
+  if ( $c->stash->{output_pfamalyzer} ) {
+
+    $c->log->debug( 'Family::family_page: outputting plain text for PfamAlyzer' )
+      if $c->debug;
+
+    $c->stash->{template} = 'rest/family/entry_pfamalyzer.tt';
   }
 
+  # output is in XML format
+  elsif ( $c->stash->{output_xml} ) {
+
+    $c->log->debug( 'Family::family_page: outputting XML' )
+      if $c->debug;
+
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Family::family_page: there was an error: |' .
+                      $c->stash->{errorMsg} . '|' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/error_xml.tt';
+      return;
+    }
+    
+    # decide on the output template, based on the type of family that we have
+    if ( $c->stash->{entryType} eq 'A' or
+         $c->stash->{entryType} eq 'R' ) {
+      # we'll use the same XML template to handle familes that were arrived at 
+      # using a "previous ID"
+      $c->log->debug( 'Family::family_page: got data for a Pfam-A' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/pfama_xml.tt';
+    }
+    elsif( $c->stash->{entryType} eq 'B' ) {
+      $c->log->debug( 'Family::family_page: got data for a Pfam-B' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/pfamb_xml.tt';
+    }
+    elsif( $c->stash->{entryType} eq 'D' ) {
+      $c->log->debug( 'Family::family_page: got data for a dead family' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/dead_xml.tt';
+    }
+    else {
+      $c->log->debug( 'Family::family_page: got an error' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/error_xml.tt';
+    }
+
+  }
+
+  # output is a web page
+  else {
+
+    $c->log->debug( 'Family::family_page: outputting HTML' )
+      if $c->debug;
+
+    $c->log->debug( 'Family::family_page: adding extra family info' ) if $c->debug;
+
+    # add the clan details, if any
+    my $clans = $c->model('PfamDB::ClanMembership')
+                          ->search( { 'auto_pfama' => $c->stash->{pfam}->auto_pfama },
+                                    { join     => [ qw(auto_clan) ],
+                                      prefetch => [ qw(auto_clan) ] } )->first;
+    
+    if ( $clans and defined $clans->auto_clan->clan_acc ) {
+      $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
+      $c->stash->{clan} = $clans->auto_clan;
+    }
+    
+    $c->forward( 'get_summary_data' );
+    $c->forward( 'get_db_xrefs' );
+    $c->forward( 'get_interactions' );
+    $c->forward( 'get_pseudofam' );
+    $c->forward( 'get_wikipedia' );
+
+    return;
+
+  } # end of "else"
+
+}
+
+#---------------------------------------
+
+=head2 old_family : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_family : Path( '/family' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_family: redirecting to "family"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -222,9 +310,7 @@ the icons. For most other actions that are related to families, we don't need
 all of that extra stuff.
 
 The actions that are associated with families are all in the 
-L<FamilyActions|PfamWeb::Controller::Family::FamilyActions> controller, so that 
-we can distinguish them from the actions that need summary data, and just avoid 
-the overhead of adding it for no reason. 
+L<FamilyActions|PfamWeb::Controller::Family::FamilyActions> controller.
 
 =cut
 
@@ -251,8 +337,9 @@ sub get_data : Private {
                                        "interpros", 
                                        "pfama_species_trees" ],
                          prefetch => [ qw( interpros pfama_species_trees ) ] } );
+
   my $pfam = $rs->first if defined $rs;
-  
+
   if ( $pfam ) {
     $c->log->debug( 'Family::get_data: got a Pfam-A' ) if $c->debug;
     $c->stash->{pfam}      = $pfam;
@@ -262,87 +349,47 @@ sub get_data : Private {
     # GO data are used by both the XML and HTML outputs, so always get those
     $c->forward( 'get_go_data' );
 
-    unless ( $c->stash->{output_xml} ) {
-      
-      # if this request originates at the top level of the object hierarchy,
-      # i.e. if it's a call on the "default" method of the Family object,
-      # then we'll need to do a few extra things
-      if ( ref $this eq 'PfamWeb::Controller::Family' ) {
-        $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
-
-        # add the clan details, if any
-        my $clans = $c->model('PfamDB::ClanMembership')
-                              ->search( { 'auto_pfama' => $pfam->auto_pfama },
-                                        { join     => [ qw(auto_clan) ],
-                                          prefetch => [ qw(auto_clan) ] } )->first;
-        
-        if ( $clans and  defined $clans->auto_clan->clan_acc ) {
-          $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
-          $c->stash->{clan} = $clans->auto_clan;
-        }
-        
-        $c->forward( 'get_summary_data' );
-        $c->forward( 'get_db_xrefs' );
-        $c->forward( 'get_interactions' );
-        $c->forward( 'get_pseudofam' );
-        $c->forward( 'get_wikipedia' );
-      }
-
-    } # end of "unless XML..."
-    
-    return;
+    return; # unless $c->stash->{output_xml};
 
   } # end of "if pfam..."
 
   #----------------------------------------
-  # check for a Pfam-B
-    
-  $rs = $c->model('PfamDB::Pfamb')
-          ->search( [ { pfamb_acc => $entry },
-                      { pfamb_id  => $entry } ] );
-  $pfam = $rs->first if defined $rs;
-    
-  if ( $pfam ) {
-    $c->log->debug( 'Family::get_data: got a Pfam-B' ) if $c->debug;
-    $c->stash->{pfam}      = $pfam;
-    $c->stash->{acc}       = $pfam->pfamb_acc;
-    $c->stash->{entryType} = 'B';
-    return;
-  }
-
-  #----------------------------------------
   # check for a dead Pfam-A
   
-  $pfam = $c->model('PfamDB::DeadFamilies')
-            ->search( [ { pfama_acc => $entry },
-                        { pfama_id  => $entry } ] )
-            ->single;
-  
-  if ( $pfam ) {
-    $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
-    $c->stash->{pfam}      = $pfam;
-    $c->stash->{acc}       = $pfam->pfama_acc;
-    $c->stash->{entryType} = 'D';
-    return;
+  if ( not $pfam ) {
+    $pfam = $c->model('PfamDB::DeadFamilies')
+              ->search( [ { pfama_acc => $entry },
+                          { pfama_id  => $entry } ] )
+              ->single;
+    
+    if ( $pfam ) {
+      $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
+      $c->stash->{pfam}      = $pfam;
+      $c->stash->{acc}       = $pfam->pfama_acc;
+      $c->stash->{entryType} = 'D';
+      return;
+    }
   }
 
   #----------------------------------------
   # check for a previous ID
   
-  $pfam = $c->model('PfamDB::Pfama')
-            ->find( { previous_id => { like => "%$entry;%" } } );
-  
-  # make sure the entry matches a whole ID, rather than just part of one
-  # i.e. make sure that "6" doesn't match "DUF456" 
-  if ( $pfam ) {
-    my $previous_id = $pfam->previous_id;
-    if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Jump.pm
-      $c->log->debug( 'Family::get_data: got a family using a previous ID' )
-        if $c->debug;
-      $c->stash->{pfam}      = $pfam;
-      $c->stash->{acc}       = $pfam->pfama_acc;
-      $c->stash->{entryType} = 'R';
-      return;
+  if ( not $pfam ) {
+    $pfam = $c->model('PfamDB::Pfama')
+              ->find( { previous_id => { like => "%$entry;%" } } );
+    
+    # make sure the entry matches a whole ID, rather than just part of one
+    # i.e. make sure that "6" doesn't match "DUF456" 
+    if ( $pfam ) {
+      my $previous_id = $pfam->previous_id;
+      if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Jump.pm
+        $c->log->debug( 'Family::get_data: got a family using a previous ID' )
+          if $c->debug;
+        $c->stash->{pfam}      = $pfam;
+        $c->stash->{acc}       = $pfam->pfama_acc;
+        $c->stash->{entryType} = 'R';
+        return;
+      }
     }
   }
 
@@ -783,3 +830,4 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
+
