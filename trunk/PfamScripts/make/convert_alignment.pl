@@ -162,9 +162,9 @@ sub rebuild_alignment {
         substr($new_seq, int($space->[0]), 0) = '.' x ($space->[1] - $space->[0]);
       }
 
-      if ($original ne $new_seq) {
-        my $full_diff  = String::Diff::diff_fully($original, $new_seq);
-        my $diff       = String::Diff::diff $original, $new_seq;
+      if (uc($original) ne uc($new_seq)) {
+        my $full_diff  = String::Diff::diff_fully(uc($original), uc($new_seq));
+        my $diff       = String::Diff::diff uc($original), uc($new_seq);
         my $diff_count = 0;
 
         for my $line (@$full_diff) {
