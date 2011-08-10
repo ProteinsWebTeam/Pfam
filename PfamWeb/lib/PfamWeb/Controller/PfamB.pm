@@ -29,7 +29,7 @@ use warnings;
 
 use Data::Dump qw( dump );
 
-use base 'PfamWeb::Controller::Family';
+use base 'PfamWeb::Controller::Section';
 
 # define the name of the section...
 __PACKAGE__->config( SECTION => 'pfamb' );
@@ -37,6 +37,127 @@ __PACKAGE__->config( SECTION => 'pfamb' );
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 begin : Private
+
+Determines the accession/ID for the Pfam-B.
+
+=cut
+
+sub begin : Private {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  # cache page for 12 hours
+  $c->cache_page( 43200 ); 
+  
+  # see if the entry is specified as a parameter
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $c->req->query_keywords || # accept getacc-style params
+                      $entry_arg              ||
+                      '';
+  
+  if ( $tainted_entry ) {
+    $c->log->debug( 'PfamB::begin: got a tainted entry' )
+      if $c->debug;
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\.-]+)$/
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 pfamb : Chained
+
+End of a chain that captures the URLs for the Pfam-B family page.
+
+=cut
+
+sub pfamb : Chained( '/' )
+            PathPart( 'pfamb' )
+            CaptureArgs( 1 ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
+  
+  $c->log->debug( "Family::family: tainted_entry: |$tainted_entry|" )
+    if $c->debug;
+
+  my $entry;
+  if ( $tainted_entry ) {
+    # strip off family version numbers, if present
+    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)(\.\d+)?$/;
+    $c->stash->{errorMsg} = 'Invalid Pfam-B accession or ID' 
+      unless defined $entry;
+  }
+  else {
+    $c->stash->{errorMsg} = 'No Pfam-B accession or ID specified';
+  }
+
+  # retrieve data for the family
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 pfamb_page : Chained
+
+Just stuffs the hash with extra information, such as summary data and 
+database cross-references. 
+
+=cut
+
+sub pfamb_page : Chained( 'pfamb' )
+                 PathPart( '' )
+                 Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  return unless $c->stash->{pfam};
+
+  $c->log->debug('PfamB::pfamb_page: generating a page for a PfamB' )
+    if $c->debug;
+
+  $c->forward( 'get_summary_data' );
+  $c->forward( 'get_db_xrefs' );
+}
+
+#---------------------------------------
+
+=head2 old_pfamb : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_pfamb : Path( '/pfamb' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_pfamb: redirecting to "pfamb"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/pfamb/' . $c->stash->{param_entry} ) );
+}
+
+#-------------------------------------------------------------------------------
+
+sub get_data : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  my $rs = $c->model('PfamDB::Pfamb')
+             ->search( [ { pfamb_acc => $entry },
+                         { pfamb_id  => $entry } ] );
+  my $pfam = $rs->first if defined $rs;
+    
+  return unless $pfam;
+  
+  $c->log->debug( 'Family::get_data: got a Pfam-B' ) if $c->debug;
+  $c->stash->{pfam}      = $pfam;
+  $c->stash->{acc}       = $pfam->pfamb_acc;
+  $c->stash->{entryType} = 'B';
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 pfamB : Path
 
@@ -47,22 +168,22 @@ for us.
 
 =cut
 
-sub pfamB : Path {
-  my ( $this, $c ) = @_;
-
-  # we're done here unless there's an entry specified
-  unless ( defined $c->stash->{pfam} ) {
-    $c->log->warn( 'PfamB::default: no ID or accession' );
-    $c->stash->{errorMsg} = 'No valid Pfam-B ID or accession';
-    return;
-  }
-
-  $c->log->debug('PfamB::default: generating a page for a PfamB' )
-    if $c->debug;
-
-  $c->forward( 'get_summary_data' );
-  $c->forward( 'get_db_xrefs' );
-}
+# sub pfamB : Path {
+#   my ( $this, $c ) = @_;
+# 
+#   # we're done here unless there's an entry specified
+#   unless ( defined $c->stash->{pfam} ) {
+#     $c->log->warn( 'PfamB::default: no ID or accession' );
+#     $c->stash->{errorMsg} = 'No valid Pfam-B ID or accession';
+#     return;
+#   }
+# 
+#   $c->log->debug('PfamB::default: generating a page for a PfamB' )
+#     if $c->debug;
+# 
+#   $c->forward( 'get_summary_data' );
+#   $c->forward( 'get_db_xrefs' );
+# }
 
 #-------------------------------------------------------------------------------
 
@@ -72,21 +193,39 @@ Populates the stash with the mapping and hands off to the appropriate template.
 
 =cut
 
-sub structures : Local {
-  my ($this, $c) = @_;
+sub structures : Chained( 'pfamb' )
+                 PathPart( 'structures' )
+                 Args( 0 ) {
+  my ( $this, $c ) = @_;
 
-  $c->log->debug( 'PfamB::structuretab: acc: |'
+  $c->log->debug( 'PfamB::structures: acc: |'
 		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|')
     if $c->debug;
 
   my @mapping = $c->model('PfamDB::PdbPfambReg')
                   ->search( { auto_pfamB  => $c->stash->{pfam}->auto_pfamb },
-                            { prefetch    => [ 'pdb_id' ] } );
+                            { prefetch    => [ qw( pdb_id auto_pfamseq ) ] } );
   $c->stash->{pfamMaps} = \@mapping;
-  $c->log->debug( 'PfamB::structuretab: found |' . scalar @mapping . '| mappings' )
+  $c->log->debug( 'PfamB::structures: found |' . scalar @mapping . '| mappings' )
     if $c->debug;
   
   $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+}
+
+#---------------------------------------
+
+=head2 old_structures : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_structures : Path( '/pfamb/structures' ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  $c->log->debug( 'Family:FamilyActions::old_structures: redirecting to "structures"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/pfamb/' . $c->stash->{param_entry} . '/structures' ) );
 }
 
 #-------------------------------------------------------------------------------
