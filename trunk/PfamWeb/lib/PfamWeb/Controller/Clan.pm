@@ -50,13 +50,21 @@ in the clan table for that entry.
 sub begin : Private {
   my( $this, $c, $entry_arg ) = @_;
 
+  # cache page for 12 hours
+  $c->cache_page( 43200 ); 
+  
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');    
+  if ( defined $c->req->param('output') ) {
+    if ( $c->req->param('output') eq 'xml' ) {
+      $c->stash->{output_xml} = 1;
+      $c->res->content_type('text/xml');    
+    }
+    elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
+      $c->stash->{output_pfamalyzer} = 1;
+      $c->res->content_type('text/plain');    
+    }
   }
   
   # get a handle on the entry and detaint it
@@ -66,6 +74,32 @@ sub begin : Private {
                       $entry_arg              ||
                       '';
   
+  if ( $tainted_entry ) {
+    $c->log->debug( 'Family::begin: got a tainted entry' )
+      if $c->debug;
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\.-]+)$/
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 clan : Chained
+
+Main action in the chain. Takes the clan ID or accession and gets the row 
+in the clan table.
+
+=cut
+
+sub clan : Chained( '/' )
+           PathPart( 'clan' )
+           CaptureArgs( 1 ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
+
   # although these next checks might fail and end up putting an error message
   # into the stash, we don't "return", because we might want to process the 
   # error message using a template that returns XML rather than simply HTML
@@ -84,20 +118,46 @@ sub begin : Private {
   
   # retrieve data for the entry
   $c->forward( 'get_data', [ $entry ] );
+}
 
-# we're done here unless we're rendering XML
-  return unless $c->stash->{output_xml};
+#-------------------------------------------------------------------------------
 
-  # if there was an error...
-  if ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'Clan::begin: there was an error: |' .
-                    $c->stash->{errorMsg} . '|' ) if $c->debug;
-    $c->stash->{template} = 'rest/clan/error_xml.tt';
-    return;
-  }
-  
-  $c->log->debug( 'Clan::begin: outputting XML for clan' ) if $c->debug;
-  $c->stash->{template} = 'rest/clan/entry_xml.tt';
+=head2 clan_end : Chained
+
+Stub action forming the end of a chain that catches the "/clan" URL.
+
+=cut
+
+sub clan_end : Chained( 'clan' )
+               PathPart( '' )
+               Args( 0 ) {
+	my ( $this, $c ) = @_;
+
+	if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Clan::clan_end: emitting XML' )
+      if $c->debug;
+
+		# if there was an error...
+		if ( $c->stash->{errorMsg} ) {
+			$c->log->debug( 'Clan::clan_end: there was an error: |' .
+											$c->stash->{errorMsg} . '|' ) if $c->debug;
+			$c->stash->{template} = 'rest/clan/error_xml.tt';
+			return;
+		}
+  	else {
+			$c->stash->{template} = 'rest/clan/entry_xml.tt';
+		}
+	}
+	elsif( $c->stash->{output_pfamalyzer} ) {
+		$c->log->debug( 'Clan::clan_end: emitting text for PfamAlyzer' ) 
+      if $c->debug;
+
+		$c->stash->{template} = 'rest/clan/entry_pfamalyzer.tt';
+	}
+	else {
+		$c->log->debug( 'Clan::clan_end: emitting HTML' ) 
+      if $c->debug;
+	}
 }
 
 #-------------------------------------------------------------------------------
@@ -111,7 +171,9 @@ extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 =cut
 
-sub alignment : Local {
+sub alignment : Chained( 'clan' )
+                PathPart( 'alignment' )
+                Args( 0 ) {
   my ( $this, $c ) = @_;
 
   # point to the "tool" window
@@ -161,6 +223,23 @@ sub alignment : Local {
   
 }
 
+#---------------------------------------
+
+=head2 old_alignment : Local
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_alignment : Path( '/clan/alignment' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Clan::old_alignment redirecting to "alignment"' )
+    if $c->debug;
+
+  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/alignment' ) );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 structures : Local
@@ -170,14 +249,69 @@ to the template that generates a table showing that mapping.
 
 =cut
 
-sub structures : Local {
-  my( $this, $c) = @_;
+sub structures : Chained( 'clan' )
+                 PathPart( 'structures' )
+                 Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   # all we need to do extra for this action is retrieve the mapping between
   # structure, sequence and family
   $c->forward( 'get_mapping' );
 
   $c->stash->{template} = 'components/blocks/clan/structureTab.tt';
+}
+
+#---------------------------------------
+
+=head2 old_structures : Local
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_structures : Path( '/clan/structures' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Clan::old_structures: redirecting to "structures"' )
+    if $c->debug;
+
+  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/structures' ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 desc : Chained
+
+Returns the description of the clan. If the "output=pfamalyzer" parameter is 
+set, returns a longer string specifically for the PfamAlyzer applet.
+
+=cut
+
+sub desc : Chained( 'clan' )
+           PathPart( 'desc' ) 
+           Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  if ( defined $c->stash->{clan} ) {
+
+    $c->res->content_type( 'text/plain' );
+
+    if ( $c->stash->{output_pfamalyzer} ) {
+      $c->res->body(
+        $c->stash->{clan}->clan_acc         . "\t" . 
+        $c->stash->{clan}->clan_author      . "\t" . 
+        $c->stash->{clan}->clan_description . "\t" . 
+        $c->stash->{clan}->clan_comment
+      );
+    }
+    else {
+      $c->res->body( $c->stash->{clan}->clan_description );
+    }
+  }
+  else {
+    $c->res->status( 404 );
+    $c->res->body( 'No such clan' );
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -217,17 +351,15 @@ sub get_data : Private {
                          prefetch  => [ 'auto_pfama' ] } );
   $c->stash->{clanMembers} = \@rs;
 
-  return if $c->stash->{output_xml};
-  
   # only add extra data to the stash if we're actually going to use it later
-  if ( not $c->stash->{output_xml} and 
-       ref $this eq 'PfamWeb::Controller::Clan' ) {
-    
-    $c->forward( 'get_summary_data' );
-    $c->forward( 'get_xrefs' );
+  unless ( $c->stash->{output_xml} or
+           $c->stash->{output_pfamalyzer} ) {
+    if ( ref $this eq 'PfamWeb::Controller::Clan' ) {
+      $c->forward( 'get_summary_data' );
+      $c->forward( 'get_xrefs' );
+    }
+    $c->forward( 'get_diagram' );
   }
-   
-  $c->forward( 'get_diagram' );
 }
 
 #-------------------------------------------------------------------------------
