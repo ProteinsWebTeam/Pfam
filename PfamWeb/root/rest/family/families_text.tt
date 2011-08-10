@@ -11,7 +11,7 @@ USE date;
 META naked = 1;
 
 -%]
-# list of all Pfam-A families, generated: [% date.format %]
+# list of all [% entries.size %] Pfam-A families, generated: [% date.format %]
 # pfam release [% relData.pfam_release %], release date [% relData.pfam_release_date %]
 [% FOREACH pfam IN entries;
 pfam.pfama_acc; "\t"; pfam.pfama_id; "\t"; pfam.description %]
