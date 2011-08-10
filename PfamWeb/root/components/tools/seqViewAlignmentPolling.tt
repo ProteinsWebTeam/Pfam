@@ -22,8 +22,6 @@ sharedRequirements.js.push( "job.js" );
 
 pageContent = BLOCK;
 
-CALL c.log.debug( "in seqView.tt" );
-
 title = "Align selected sequences"
 -%]
 
@@ -66,6 +64,8 @@ title = "Align selected sequences"
   </p>
 [% END %]  
 </div>
+
+<div class="cleaner"><!-- empty --></div>
 
 <div id="logger">
   <h3>Status</h3>
