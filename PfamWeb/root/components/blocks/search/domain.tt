@@ -45,9 +45,59 @@ pageList = PROCESS "components/pageList.tt",
 
 <div class="block" id="searchDomainBlock">
   <div class="handle">
-    <h1>Domain search</h1>
+    <h1>Domain architecture search</h1>
   </div>
   <div class="blockContent">
+
+    <p>
+      Search using 
+      <a href="[% c.uri_for('/search/pfamalyzer/applet') %]"
+         onclick="popUp(this.href,'console',800,800,'avWin');return false;">PfamAlyzer</a>.
+      <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
+    </p>
+
+    <div id="paNotes" style="display: none">
+      <p>
+        PfamAlyzer is designed to provide insight into the Pfam protein domain database. 
+        It integrates and extends many popular Pfam tools and provides means for the 
+        study of domain architecture evolution. 
+      </p>
+      <p>
+        You can read more about PfamAlyzer in an accompanying 
+        <a href="[% c.uri_for( '/static/documents/PfamAlyzer_handout.pdf' ) %]">
+          handout</a> or 
+        <a href="[% c.uri_for( '/static/documents/PfamAlyzer_poster.pdf' ) %]">
+          poster</a> (PDF format).
+      </p>
+
+      <h3>For which platforms is PfamAlyzer available?</h3>
+
+      <p>
+        PfamAlyzer is implemented as a Java applet. It requires a Java runtime
+        environment (JRE) of at least 
+        <a class="ext" href="http://java.sun.com/j2se/1.4.2/download.html">Java2 1.4.2</a>. 
+        Most browsers are shipped with previous Java versions. However, there are plug-ins
+        for various browsers and platforms available which enable you to run
+        PfamAlyzer. You may find out which Java version you currently have installed at
+        <a class="ext" href="http://www.java.com/en/download/help/testvm.jsp">this page</a>.
+      </p>
+
+      <h3>Why do I get a security warning when I start PfamAlyzer?</h3>
+
+      <p>
+        In general, Java does not grant applets access to the local computer's
+        resources. PfamAlyzer enables the user to enter sequences by means of 
+        cut-and-paste. For this purpose, PfamAlyzer requires access to the system 
+        clipboard which is also beyond scope the applet's sandbox. Therefore, PfamAlyzer comes a
+        signed applet which is allowed to leave the sandbox in which unsigned applets
+        are alwalys confined. However, the user is alerted if this fact and asked for
+        permission. Currently, PfamAlyzer does not use a certificate issued by a
+        trusted authority which is what the security warning is about. We ask you
+        kindly to grant PfamAlyzer access to the clipboard.
+      </p>
+    </div>
+
+    <hr />
 
     <p>
       Search for sequence architectures with the specified composition.
