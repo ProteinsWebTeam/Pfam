@@ -10,8 +10,6 @@ USE date;
 
 META naked = 1;
 
-baseUri = "http://pfam.sanger.ac.uk/";
-
 CALL c.debug.log( "template found a pfam of type " + pfam.type );
 IF entryType == "A";
   type = "Pfam-A";
