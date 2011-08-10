@@ -1,0 +1,75 @@
+[% 
+# families_pfamalyzer.tt
+# jt6 20110711 WTSI
+#
+# template for serialising the list of all Pfam-A families to plain text, in
+# a format suitable for use by PfamAlyzer.
+#
+# $Id$
+
+META naked = 1;
+
+comment = pfam.comment.remove('\n');
+
+"ID:" _
+pfam.pfama_acc    _ "	" _
+pfam.description  _ "	" _
+pfam.model_length _ "	" _
+pfam.author       _ "	" _
+pfam.seed_source  _ "	" _
+pfam.deposited_by _ "	" _
+pfam.type         _ "	" _
+pfam.sequence_ga  _ "	" _
+pfam.domain_ga    _ "	" _
+pfam.sequence_tc  _ "	" _
+pfam.domain_tc    _ "	" _
+pfam.sequence_nc  _ "	" _
+pfam.domain_nc    _ "	" _
+pfam.buildmethod  _ "	" _
+pfam.searchmethod _ "	" _
+pfam.num_seed     _ "	" _
+pfam.num_full     _ "	" _
+pfam.created      _ "	" _
+comment %]
+[%
+
+FOREACH ref IN pfam.pfama_database_links;
+  "DB:" _
+  ref.db_id   _ "	" _
+  ref.comment _ "	" _
+  ref.db_link _ "	" _
+  ref.other_params;
+  UNLESS loop.last %]
+[% END;
+END; 
+
+IF pfam.pfama_literature_references.size %]
+[% END;
+
+FOREACH ref IN pfam.pfama_literature_references;
+  "LR:" _
+  ref.pmid   _ "	" _
+  ref.title  _ "	" _
+  ref.author _ "	" _
+  ref.journal;
+  UNLESS loop.last %]
+[% END;
+END; 
+
+# Copyright (c) 2011: Genome Research Ltd.
+# 
+# Authors: John Tate (jt6@sanger.ac.uk)
+# 
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
