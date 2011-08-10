@@ -1,0 +1,54 @@
+[%- 
+# entry_pfamalyzer.tt
+# jt6 20110711 WTSI
+#
+# template for serialising the regions on a protein in a format suitable for
+# use by PfamAlyzer.
+#
+# $Id$
+
+META naked = 1;
+
+RETURN UNLESS ( regions.keys.size );
+
+USE regions_iterator = iterator( regions.keys );
+
+FOREACH pfamseq_acc IN regions_iterator;
+  pfamseq = regions.$pfamseq_acc.0;
+  "P	" _ 
+  pfamseq.pfamseq_acc _ "	" _
+  pfamseq.pfamseq_id  _ "	" _
+  pfamseq.description _ "	" _
+  pfamseq.length      _ "	" _
+  pfamseq.species     _ "	" _
+  pfamseq.taxonomy    _ "	" _
+  pfamseq.pfamseq.is_fragment; %]
+[% FOREACH region IN regions.$pfamseq_acc;
+    "A	" _
+    region.pfama_id  _ "	" _
+    region.pfama_acc _ "	" _
+    region.seq_start _ "	" _
+    region.seq_end;
+    UNLESS ( loop.last AND regions_iterator.last ) %]
+[% END;
+  END; # of "FOREACH region"
+
+END; # of "FOREACH pfamseq_acc"
+
+# Copyright (c) 2011: Genome Research Ltd.
+# 
+# Authors: John Tate (jt6@sanger.ac.uk)
+# 
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
