@@ -129,19 +129,14 @@ sub view : Local {
     return;
   }
   my $source = $1;
-  my $class  = $this->{sources}->{$source};
-  $c->log->debug( "PfamViewer::view: class: |$class|" ) if $c->debug;
-
-  # make sure we can actually use the source to get an alignment
-  unless ( $class->can( 'getAlignment' ) ) {
-    $c->error( "'$source' is not a valid alignment source." );
-    return;
-  }
+  my $controller = $this->{sources}->{$source};
+  $c->log->debug( "PfamViewer::view: controller: |$controller|" ) 
+    if $c->debug;
 
   # forward to that class
-  $c->log->debug( "PfamViewer::view: forwarding to 'getAlignment' on '$class'" )
+  $c->log->debug( "PfamViewer::view: forwarding to '$controller'" )
     if $c->debug;
-  $c->forward( $class, 'getAlignment' );
+  $c->forward( $controller, 'getAlignment' );
   
   # shortcut to the hash with the details of the alignments that were returned
   my $alignments = $c->stash->{alignments};
