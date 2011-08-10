@@ -40,7 +40,7 @@ RETURN UNLESS summaryData.numStructures;
   <script type="text/javascript">
     // <![CDATA[  
     var r = new Ajax.Request(
-      "[% c.uri_for( "/pfamb/structures", acc ) %]",
+      "[% c.uri_for( '/pfamb/' _ acc _ '/structures' ) %]",
       {
         method:     "get",
         onComplete: fstrucSuccess,
