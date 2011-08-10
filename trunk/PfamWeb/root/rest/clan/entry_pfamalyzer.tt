@@ -1,0 +1,55 @@
+[%- 
+# entry_pfamalyzer.tt
+# jt6 20110711 WTSI
+#
+# template for serialising clan data in a format suitable for
+# use by PfamAlyzer.
+#
+# $Id$
+
+META naked = 1;
+
+comment = clan.clan_comment.remove('\n');
+
+"ID:"_
+clan.auto_clan        _ "	" _
+clan.clan_acc         _ "	" _
+clan.clan_description _ "	" _
+clan.clan_author      _ "	" _
+clan.created          _ "	" _
+comment %]
+[%
+
+FOREACH ref IN clan.clan_database_links;
+  "DB:" _
+  ref.db_id   _ "	" _
+  ref.comment _ "	" _
+  ref.db_link _ "	" _
+  ref.other_params %]
+[% END;
+
+FOREACH member IN clanMembers;
+  "ME:" _
+  member.auto_pfama.pfama_acc _ "	" _
+  member.auto_pfama.pfama_id;
+  UNLESS loop.last %]
+[% END;
+END; 
+
+# Copyright (c) 2011: Genome Research Ltd.
+# 
+# Authors: John Tate (jt6@sanger.ac.uk)
+# 
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
