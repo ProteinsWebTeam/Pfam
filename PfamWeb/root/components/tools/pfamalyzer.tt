@@ -1,0 +1,100 @@
+[%
+# pfamalyzer.tt
+# jt6 20110630 WTSI
+# 
+# build a page for the PfamAlyzer applet
+#
+# $Id$
+
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+#requirements.css.push( "pfamalyzer.css" );
+
+#-------------------------------------------------------------------------------
+
+# build the page itself
+
+pageContent = BLOCK;
+
+title = "PfamAlyzer"
+
+# we apparently need to set explicitly the name of the window, otherwise it takes the 
+# name of the parent, so targetted links back to the parent wont work
+-%]
+
+<script type="text/javascript">
+  // <![CDATA[
+  window.name = "paWin";
+  // ]]>
+</script>
+
+<!--[if !IE]> Firefox and others will use outer object -->
+<object classid="java:PfamAlyzer.PfamAlyzer.class" 
+        id="pa"
+        type="application/x-java-applet"
+        archive="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" 
+        height="1"
+        width="1">
+  <!-- Konqueror browser needs the following param -->
+  <param name="archive" value="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
+  <param name="baseURL" value="[% c.uri_for ( '/' )%]" />
+<!--<![endif]-->
+  <!-- MSIE (Microsoft Internet Explorer) will use inner object --> 
+  <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+          id="avIE"
+          codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0-windows-i586.cab"
+          height="1"
+          width="1">
+    <param name="archive" value="[% c.uri_for( "/static/pfamalyzer/PfamAlyzer.jar" ) %]" />
+    <param name="code" value="PfamAlyzer.PfamAlyzer.class" />
+    <param name="baseURL" value="[% c.uri_for ( '/' )%]" />
+    <strong>
+      This browser does not have a Java Plug-in.
+      <br />
+      <a href="http://java.sun.com/products/plugin/downloads/index.html">
+        Get the latest Java Plug-in here.
+      </a>
+    </strong>
+  </object> 
+<!--[if !IE]> close outer object -->
+</object>
+<!--<![endif]-->
+
+<h1>PfamAlyzer</h1>
+
+<p>
+  PfamAlyzer is a java applet that is embedded in this window. You need to keep the
+  window open while you are using the applet. Once you have finished using PfamAlyzer
+  you can close the window and the applet will also close.
+</p>
+
+<div>
+  <a href="#" onclick="window.close()" class="closer">Close window</a>
+</div>
+
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2011: Genome Research Ltd.
+
+Authors: Kristoffer Forslund <Kristoffer.Forslund@sbc.su.se>, John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
