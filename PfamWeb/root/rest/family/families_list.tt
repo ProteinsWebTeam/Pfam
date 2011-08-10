@@ -10,7 +10,7 @@ META title = 'All Pfam families';
 
 -%]
 <p>
-  This is a list of all Pfam-A families in Pfam release 
+  This is a list of all [% entries.size %] Pfam-A families in Pfam release 
   <strong>[% relData.pfam_release %]</strong> (release date  
   [% relData.pfam_release_date %]).
 </p>
