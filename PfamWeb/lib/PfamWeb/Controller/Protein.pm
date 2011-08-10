@@ -56,27 +56,57 @@ sub default : Path {
                       $c->req->param('name')  || # cope with redirects "swisspfamget.pl"
                       '';
 
-  $c->log->debug( "Protein::default: got a tainted entry: |$tainted_entry|" )
-    if $c->debug;
+  if ( $tainted_entry =~ m/\,/ ) {
+    $c->log->debug( 'Protein::default: got multiple accessions' )
+      if $c->debug;
+    $c->detach( 'proteins', [ $tainted_entry ] );
+  }
+  else {
+    $c->log->debug( 'Protein::default: got a single tainted entry' )
+      if $c->debug;
+    $c->detach( 'protein', [ $tainted_entry ] );
+  }
 
-  $c->detach( 'protein', [ $tainted_entry ] );
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 protein_end : Chained 
+=head2 begin : Private
 
-The entry point when the accession/ID is given as an argument on the URL, 
-e.g. /protein/VAV_HUMAN.
+Handles figuring out the output format and takes care of setting the
+appropriate stash key for highlighting tracks.
 
 =cut
 
-# I'm not convinced this wiring is the most sensible way to use Chained...
-# jt6 20110401 WTSI
+sub begin : Private {
+  my ( $this, $c ) = @_;
 
-sub protein_end : Chained( 'protein' )
-                  PathPart( '' )
-                  Args( 0 ) {}
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') ) {
+    if ( $c->req->param('output') eq 'xml' ) {
+      $c->stash->{output_xml} = 1;
+      $c->res->content_type('text/xml');
+    }
+    elsif ( $c->req->param('output') eq 'pfamalyzer' ) {
+      $c->stash->{output_pfamalyzer} = 1;
+      $c->res->content_type('text/plain');
+    }
+  }
+
+  # see if we should highlight a particular DAS track (or tracks) in the 
+  # features tab
+  if ( defined $c->req->param('highlight') ) {
+    my ( $highlight ) = $c->req->param('highlight') =~ m/^([\w\s]+)$/;
+    if ( defined $highlight ) {
+      $c->log->debug( "Protein::begin: highlighting tracks for '$highlight'" )
+        if $c->debug;
+      $c->stash->{highlightSource} = $highlight;
+    }
+  }
+
+}
 
 #-------------------------------------------------------------------------------
 
@@ -94,30 +124,6 @@ sub protein : Chained( '/' )
               PathPart( 'protein' )
               CaptureArgs( 1 ) {
   my ( $this, $c, $entry_arg ) = @_;
-
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');
-  }
-
-  #----------------------------------------
-
-  # see if we should highlight a particular DAS track (or tracks) in the 
-  # features tab
-  if ( defined $c->req->param('highlight') ) {
-    my ( $highlight ) = $c->req->param('highlight') =~ m/^([\w\s]+)$/;
-    if ( defined $highlight ) {
-      $c->log->debug( "Protein::begin: highlighting tracks for '$highlight'" )
-        if $c->debug;
-      $c->stash->{highlightSource} = $highlight;
-    }
-  }
-
-  #----------------------------------------
 
   # get a handle on the entry and detaint it
   my $tainted_entry = $entry_arg || '';
@@ -141,11 +147,70 @@ sub protein : Chained( '/' )
   # retrieve the data for this sequence entry  
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 
-  #----------------------------------------
 
-  # if we're outputting HTML, we're done here
-  if ( not $c->stash->{output_xml} ) {
-    $c->log->debug( 'Protein::begin: emitting HTML' ) if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 protein_end : Chained 
+
+The entry point when the accession/ID is given as an argument on the URL, 
+e.g. /protein/VAV_HUMAN.
+
+=cut
+
+sub protein_end : Chained( 'protein' )
+                  PathPart( '' )
+                  Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # see what we're outputting...
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Protein::protein_end: emitting XML' ) if $c->debug;
+
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Protein::protein_end: there was an error: |' .
+                      $c->stash->{errorMsg} . '|' ) if $c->debug;
+
+      $c->stash->{template} = 'rest/protein/error_xml.tt';
+
+      return;
+    }
+    else {    
+      # there were no errors retrieving data and we now know that we're going 
+      # to need the regions
+      $c->forward('get_regions');
+
+      $c->stash->{template} = 'rest/protein/entry_xml.tt';
+    }
+  }
+  elsif( $c->stash->{output_pfamalyzer} ) {
+    $c->log->debug( 'Protein::protein_end: emitting text for PfamAlyzer' ) 
+      if $c->debug;
+
+    # get the Pfam-A and Pfam-B regions on this sequence
+    my @pfamA_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                          ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq,
+                                      in_full      => 1 },
+                                    { prefetch => [ 'pfama' ],
+                                      order_by => [ 'seq_start' ] } );
+
+    my @pfamB_regions = $c->model('PfamDB::PfambReg')
+                          ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
+                                    { prefetch => [ 'auto_pfamb' ],
+                                      order_by => [ 'seq_start' ] } );
+
+    my $regions;
+    foreach my $region ( @pfamA_regions, @pfamB_regions ) {
+      push @{ $regions->{ $region->pfamseq_acc } }, $region;
+    }
+
+    $c->stash->{regions} = $regions;
+    $c->stash->{template} = 'rest/protein/entry_pfamalyzer.tt';
+  }
+  else {
+    $c->log->debug( 'Protein::protein_end: emitting HTML' ) if $c->debug;
 
     # we're going to need to add extra data to the stash, data that is
     # only used in the HTML templates, not the XML templates. Only 
@@ -156,32 +221,8 @@ sub protein : Chained( '/' )
       $c->forward('get_summary_data');
       $c->forward('get_das_sources');
     }
-    
-    return;
   }
 
-  #----------------------------------------
-  # from here on we're handling XML output
-
-  $c->log->debug( 'Protein::begin: emitting XML' ) if $c->debug;
-
-  # if there was an error...
-  if ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'Protein::begin: there was an error: |' .
-                    $c->stash->{errorMsg} . '|' ) if $c->debug;
-
-    $c->stash->{template} = 'rest/protein/error_xml.tt';
-
-    return;
-  }
-  else {    
-    # there were no errors retrieving data and we now know that we're going 
-    # to need the regions
-    $c->forward('get_regions');
-
-    $c->stash->{template} = 'rest/protein/entry_xml.tt';
-  }
-  
 }
 
 #-------------------------------------------------------------------------------
@@ -199,6 +240,50 @@ sub graphic : Chained( 'protein' )
 
   $c->res->content_type( 'application/json' );
   $c->res->body( $c->stash->{layout} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 proteins : Chained
+
+Returns a list of the details of the specified proteins, along with the regions
+found on them, all in a format specific to PfamAlyzer.
+
+=cut
+
+sub proteins : Chained( 'protein' )
+               PathPart( '' )
+               Args( 1 ) {
+  my ( $this, $c, $tainted_accs ) = @_;
+
+  my @accs;
+  foreach my $acc ( split m/\,/, $tainted_accs ) {
+    next unless $acc =~ m/^\w+$/;
+    push @accs, $acc;
+  }
+
+  # get the Pfam-A and Pfam-B regions on this sequence
+  my @pfamA_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                        ->search( { pfamseq_acc => \@accs,
+                                    in_full      => 1 },
+                                  { prefetch => [ qw( pfamseq pfama ) ],
+                                    order_by => [ qw( seq_start ) ] } );
+
+  my @pfamB_regions = $c->model('PfamDB::PfambReg')
+                        ->search( { pfamseq_acc => \@accs },
+                                  { prefetch => [ qw( auto_pfamseq auto_pfamb ) ],
+                                    order_by => [ qw( seq_start ) ] } );
+
+  my $regions;
+  foreach my $region ( @pfamA_regions ) {
+    push @{ $regions->{ $region->pfamseq_acc } }, $region;
+  }
+  foreach my $region ( @pfamB_regions ) {
+    push @{ $regions->{ $region->auto_pfamseq->pfamseq_acc } }, $region;
+  }
+
+  $c->stash->{regions} = $regions;
+  $c->stash->{template} = 'rest/protein/entry_pfamalyzer.tt';
 }
 
 #-------------------------------------------------------------------------------
