@@ -59,6 +59,7 @@ __PACKAGE__->setup( qw(
                         HTML::Widget
                         PageCache
                         Unicode
+                        Static::Simple
                       ) );
                         # GzipCompressor
 
