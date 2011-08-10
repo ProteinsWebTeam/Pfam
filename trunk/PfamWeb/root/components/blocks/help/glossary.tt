@@ -19,7 +19,7 @@
       These are some of the commonly used terms in the Pfam website.			
     </p>
 
-    <h3>Alignment coordinates</h3>
+    <h3><a name="align_coords">Alignment coordinates</a></h3>
 
     <p>
       HMMER3 reports two sets of domain coordinates for each profile HMM match.
@@ -31,24 +31,24 @@
       HMMER3.
     </p>
 
-    <h3>Architecture</h3>
+    <h3><a name="arch">Architecture</a></h3>
     
     <p>The collection of domains that are present on a protein.</p>
 
-    <h3>Clan</h3>
+    <h3><a name="clan">Clan</a></h3>
 
     <p>
       A collection of related Pfam entries. The relationship may be defined 
       by similarity of sequence, structure or profile-HMM.
     </p>
 
-    <h3>Domain</h3>
+    <h3><a name="domain">Domain</a></h3>
     
     <p>
       A structural unit which can be found in multiple protein contexts.
     </p>
 
-    <h3>Domain score</h3>
+    <h3><a name="domain_score">Domain score</a></h3>
     
     <p>
       The score of a single domain aligned to an HMM. Note that, for HMMER2, if
@@ -57,25 +57,25 @@
       HMMER3.
     </p>
 
-    <h3>DUF</h3>
+    <h3><a name="duf">DUF</a></h3>
     
     <p>
       Domain of unknown function.
     </p>
 
-    <h3>Envelope coordinates</h3>
+    <h3><a name="env_coords">Envelope coordinates</a></h3>
 
     <p>
       See <strong>Alignment coordinates</strong>.
     </p>
 
-    <h3>Family</h3>
+    <h3><a name="family">Family</a></h3>
     
     <p>
       A collection of related proteins.
     </p>
 
-    <h3>Full alignment</h3>
+    <h3><a name="full">Full alignment</a></h3>
     
     <p>
       An alignment of the set of related sequences which score higher than 
@@ -83,7 +83,7 @@
       entry.
     </p>
 
-    <h3>Gathering threshold (GA)</h3>
+    <h3><a name="gathering_threshold">Gathering threshold (GA)</a></h3>
     
     <p>
       Also called the gathering cut-off, this value is the search threshold 
@@ -93,7 +93,7 @@
       a domain cutoff.
     </p>
 
-    <h3>HMMER</h3>
+    <h3><a name="hmmer">HMMER</a></h3>
     
     <p>
       The suite of programs that Pfam uses to build and search HMMs. For Pfam
@@ -102,7 +102,7 @@
       information.
     </p>
 
-    <h3>Hidden Markov model (HMM)</h3>
+    <h3><a name="hmm">Hidden Markov model (HMM)</a></h3>
     
     <p>
       A HMM is a probablistic model. In Pfam we use HMMs to transform the 
@@ -112,7 +112,7 @@
       protein database to find homologous sequences.
     </p>
 
-    <h3>HMMER3</h3>
+    <h3><a name="hmmer3">HMMER3</a></h3>
     
     <p>
       The suite of programs that Pfam uses to build and search HMMs. See 
@@ -120,7 +120,7 @@
       for more information.
     </p>
 
-    <h3>iPfam</h3>
+    <h3><a name="ipfam">iPfam</a></h3>
     
     <p>
       A resource that describes domain-domain interactions that are observed 
@@ -130,25 +130,25 @@
       the interaction.
     </p> 
 
-    <h3>Metaseq</h3>
+    <h3><a name="metaseq">Metaseq</a></h3>
     
     <p>
       A collection of sequences derived from various metagenomics datasets.
     </p>
 
-    <h3>Motif</h3>
+    <h3><a name="motif">Motif</a></h3>
     
     <p>
       A short unit found outside globular domains.
     </p>
 
-    <h3>Noise cutoff (NC)</h3>
+    <h3><a name="noise_cutoff">Noise cutoff (NC)</a></h3>
     
     <p>
       The bit scores of the highest scoring match not in the full alignment.
     </p>
 
-    <h3>Pfam-A</h3>
+    <h3><a name="pfama">Pfam-A</a></h3>
     
     <p>
       A HMM based hand curated Pfam entry which is built using a small number 
@@ -159,7 +159,7 @@
       the entry's full alignment.
     </p>
 
-    <h3>Pfam-B</h3>
+    <h3><a name="pfamb">Pfam-B</a></h3>
     
     <p>
       An automatically generated alignment which is formed by taking a cluster
@@ -175,7 +175,7 @@
       website.
     </p>
 
-    <h3>Posterior probability</h3>
+    <h3><a name="pp">Posterior probability</a></h3>
     
     <p>
       HMMER3 reports a <em>posterior probability</em> for each residue that
@@ -189,21 +189,21 @@
       and red ones indicate a lower posterior probability.
     </p>
 
-    <h3>Repeat</h3>
+    <h3><a name="repeat">Repeat</a></h3>
     
     <p>
       A short unit which is unstable in isolation but forms a stable structure 
       when multiple copies are present.
     </p>
 
-    <h3>Seed alignment</h3>
+    <h3><a name="seed">Seed alignment</a></h3>
     
     <p>
       An alignment of a set of representative sequences for a Pfam entry. We 
       use this alignment to construct the HMMs for the Pfam entry.
     </p> 
 
-    <h3>Sequence score</h3>
+    <h3><a name="seq_score">Sequence score</a></h3>
     
     <p>
       The total score of a sequence aligned to a HMM. If there is more than 
@@ -214,7 +214,7 @@
       a particular Pfam entry.
     </p>
 
-    <h3>Trusted cutoff (TC)</h3>
+    <h3><a name="trusted_cutoff">Trusted cutoff (TC)</a></h3>
     
     <p>
       The bit scores of the lowest scoring match in the full alignment.
