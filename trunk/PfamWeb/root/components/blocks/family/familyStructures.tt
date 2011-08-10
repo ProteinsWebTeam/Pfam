@@ -79,7 +79,7 @@ IF pdb_unique.keys.size;
   IF pdb_unique.keys.size > 1 %]
 
     <form id="structuresForm"
-          action="[% c.uri_for( "/family/structures" ) %]">
+          action="[% c.uri_for( '/family/' _ acc _ '/structures' ) %]">
       <div>
         <strong>View a different structure:</strong>
         <select id="pdbIdField">
@@ -98,7 +98,7 @@ IF pdb_unique.keys.size;
       var pdbImageSubmitter = function() {
         var r = new Ajax.Updater(
           "siph", 
-          "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
+          "[% c.uri_for( '/family/' _ acc _ '/structures' ) %]",
           {
             parameters:  { pdbId: $F("pdbIdField") },
             method: 'get',

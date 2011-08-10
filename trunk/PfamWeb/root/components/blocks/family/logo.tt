@@ -56,10 +56,9 @@
     
     Event.observe( window, "load", function() {
       var r = new Ajax.Request(
-        "[% c.uri_for( '/family/logo' ) %]",
+        "[% c.uri_for( '/family/' _ acc _ '/logo' ) %]",
         {
           method: 'get',
-          parameters: { acc: "[% acc %]" },
           evalScripts: true,
           onSuccess: function( oResponse ) {
             $("logo").update( oResponse.responseText );

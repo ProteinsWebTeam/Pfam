@@ -6,8 +6,6 @@
 # block showing the phylogenetic tree for a family
 #
 # $Id: phylo.tt,v 1.26 2010-01-07 13:54:20 jt6 Exp $
-
-treeUri = c.uri_for( "/family/tree" );
 %]
 
 <!-- start of phyloBlock -->
@@ -27,7 +25,7 @@ treeUri = c.uri_for( "/family/tree" );
     </p> 
     [% # the form that controls the tree display %]
     <form id="phyloForm"
-          action="[% treeUri %]">
+          action="[% c.uri_for( '/family/' _ acc _ '/tree' ) %]">
       <div>
         <span>
           <input id="seedRb" 
@@ -94,7 +92,7 @@ treeUri = c.uri_for( "/family/tree" );
             }
           }
         } );
-        // re-enable the submit button, even though it's a bit redundant
+        // re-enable the submit button, even though its a bit redundant
         $("phyloFormSubmitter").enable();
       };
 
@@ -117,13 +115,13 @@ treeUri = c.uri_for( "/family/tree" );
           type = checkedId.value;
         }
         
-        // see if we've already loaded the image map for this tree and, if we 
-        // have, don't load it, just show it
+        // see if weve already loaded the image map for this tree and, if we 
+        // have, dont load it, just show it
         if ( $(type + "_tree") ) {
           $$(".treemap").invoke("hide");
           $(type+"_tree").show();
         } else {
-          // the image map for this tree isn't loaded yet; set up the AJAX
+          // the image map for this tree isnt loaded yet; set up the AJAX
           // request to load it now
 
           // show the spinner and disable the form while the request is active
@@ -133,11 +131,9 @@ treeUri = c.uri_for( "/family/tree" );
           // submit the AJAX request that will load the image map and the 
           // associated <img>
           var r = new Ajax.Request(
-            '[% treeUri %]', 
+            "[% c.uri_for( '/family/' _ acc _ '/tree/' ) %]" + type + "/html", 
             { 
-              method: 'get',
-              parameters: { acc:     '[% acc %]',
-                            alnType: type },
+              method: "get",
               onComplete: function() {
                 $("treeSpinner").hide();
                 // re-enable the form, leaving the checked item untouched
@@ -148,10 +144,10 @@ treeUri = c.uri_for( "/family/tree" );
                 $("alignmentTree").insert( oResponse.responseText );
               },
               on204: function(){
-                // show a simple error message if we don't get back a tree
+                // show a simple error message if we dont get back a tree
                 $("alignmentTree").update(
-                   new Element( "div", { id: type + "_tree",
-                                          "class": "treemap" } )
+                   new Element( "div", { id:      type + "_tree",
+                                         "class": "treemap" } )
                      .update( "We could not load the " + type + " tree" )
                 );
               }
@@ -173,10 +169,10 @@ treeUri = c.uri_for( "/family/tree" );
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'seed', acc => acc } ) | html %]">seed</a>,
-      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'full', acc => acc } ) | html %]">full</a>,
-      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'ncbi', acc => acc } ) | html %]">NCBI</a> or
-      <a href="[% c.uri_for( '/family/tree/download', { alnType = 'meta', acc => acc } ) | html %]">metagenomics</a>
+      <a href="[% c.uri_for( '/family/' _ acc _ '/tree/seed/download' ) %]">seed</a>,
+      <a href="[% c.uri_for( '/family/' _ acc _ '/tree/full/download' ) %]">full</a>,
+      <a href="[% c.uri_for( '/family/' _ acc _ '/tree/ncbi/download' ) %]">NCBI</a> or
+      <a href="[% c.uri_for( '/family/' _ acc _ '/tree/meta/download' ) %]">metagenomics</a>
       trees.
     </p>
 
