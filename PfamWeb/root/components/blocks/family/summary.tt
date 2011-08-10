@@ -74,10 +74,12 @@ PROCESS components/links.tt; %]
             <div id="wpContent[% loop.index %]">
 
               <p>
+                This is the Wikipedia entry entitled  
+                &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title.replace( "_", " " ) | html %]</a>&quot;.
+                <!--
                 The Pfam group coordinates the annotation of Pfam families in  
                 <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>. 
-                This family is described by a Wikipedia entry entitled  
-                &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title.replace( "_", " " ) | html %]</a>&quot;.
+                -->
                 <span onclick="reveal( this, 'wikiNotes', false, true );"
                       class="moreLink">
                   More...</span>
@@ -396,7 +398,7 @@ PROCESS components/links.tt; %]
         # set up the AJAX call to load the structure image %]
         var r = new Ajax.Updater( 
           "siph", 
-          "[% c.uri_for( '/family/structures', acc ) %]",
+          "[% c.uri_for( '/family/' _ acc _ '/structures' ) %]",
           { 
             evalScripts: true,
             method: 'get',

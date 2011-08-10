@@ -7,7 +7,7 @@
 # $Id: align.tt,v 1.33 2009-10-28 11:58:43 jt6 Exp $
 
 # shortcut to the alignment tools
-alignmentUri = c.uri_for( "/family/alignment" );
+alignmentUri = c.uri_for( "/family/" _ acc _ "/alignment" );
 %]
 
 <!-- start align block -->
@@ -84,14 +84,13 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <form id="viewerForm"
           action="[% alignmentUri %]/download/html"
-          onsubmit="launchPfam();">
+          onsubmit="launchViewer();">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
         [% oe = 0 %]
     	  <table class="details alignOpts" summary="Alignment display options">
           <tbody>
-            [% IF entryType != 'B' %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
@@ -150,7 +149,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
               </td>
             </tr>
-            [% END %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
@@ -158,10 +156,8 @@ alignmentUri = c.uri_for( "/family/alignment" );
                   <select name="viewer" id="viewer">
                     <option value="jalview" selected="selected">jalview</option>
                     <option value="html">HTML</option>
-                    [% IF entryType != 'B' %]
                     <option value="heatmap">Heatmap</option>
                     <option value="viewer">Pfam viewer</option>
-                    [% END %]
                   </select>
                 </span>
                 [%# a warning message about settings in the form -%]
@@ -172,7 +168,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
           </tbody>
         </table>
   
-        <input type="button" value="View" onclick="launchPfam();" />
+        <input type="button" value="View" onclick="launchViewer();" />
   
       </div>
     </form>
@@ -183,47 +179,44 @@ alignmentUri = c.uri_for( "/family/alignment" );
       // although the form action looks like it will download the alignment,
       // in fact we catch the submission here and decide, based on the form
       // values, which URL to go to next.
-      function launchPfam() {
+      function launchViewer() {
+          var alignmentType = $F("viewerTypeS") ? "seed" 
+                            : $F("viewerTypeF") ? "full"
+                            : $F("viewerTypeN") ? "ncbi"
+                            : $F("viewerTypeM") ? "meta"
+                            : "seed"; // default to seed
+
+          var alignmentSizes = {
+            seed: [% pfam.num_seed %],
+            full: [% pfam.num_full %],
+            ncbi: [% pfam.number_ncbi %],
+            meta: [% pfam.number_meta %]
+          };
+
         if( $F("viewer") == "jalview" ) {
-          var url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
+          var url = "[% alignmentUri %]/" + alignmentType + "/jalview";
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
-          var url = "[% alignmentUri %]/dasviewer?" + Form.serialize("viewerForm");
-          // var url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
+          var url = "[% alignmentUri %]/" + alignmentType + "/dasviewer";
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
           var action = $F("viewer");
           var cont = true;
-          [% # change the test here depending on whether we are dealing with 
-             # a Pfam-A or a Pfam-B
-          IF entryType != "B" -%]
-            if ( ( $F("viewerTypeS") && [% pfam.num_seed %] > 1000 ) || 
-                 ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) || 
-                 ( $F("viewerTypeN") && [% pfam.number_ncbi || 0 %] > 1000 ) || 
-                 ( $F("viewerTypeM") && [% pfam.number_meta || 0 %] > 1000 ) ) {
-              cont = confirm("This alignment contains a large number of sequences, " +
-                             "which can cause problems for browsers. \nAre you " +
-                             "sure that you want to try to view it as HTML ?" );
-            }
-          [% ELSE -%]
-            if ( [% pfam.number_regions %] > 1000 ) {
-              cont = confirm("This alignment contains a large number of sequences, " +
-                             "which can cause problems for browsers. \nAre you " +
-                             "sure that you want to try to view it as HTML ?" );
-            }
-          [% END -%]
-
+          if ( alignmentSizes[alignmentType] > 1000 ) {
+            cont = confirm("This alignment contains a large number of sequences, " +
+                           "which can cause problems for browsers. \nAre you " +
+                           "sure that you want to try to view it as HTML ?" );
+          }
           if ( cont ) {
-            url = "[% alignmentUri %]/download/" + action + "?" + Form.serialize("viewerForm");
+            url = "[% alignmentUri %]/" + alignmentType + "/" + action;
             popUp( url, 'console', 800, 800, 'viewerWin');
           }
         }      
         return false;
       }
       
-      [% IF entryType != "B" %]
       // when the user chooses "heatmap" as the viewer for the alignment,
       // we disable the full/seed toggle, since there's only a heatmap
       // for the full alignment
@@ -267,14 +260,16 @@ alignmentUri = c.uri_for( "/family/alignment" );
           }
         }
       );
-      [% END -%]
 
       // ]]>
     </script>
     
     <h2>Formatting options</h2>
 
-    <form action="[% alignmentUri %]/download/format" 
+    [%- # we'll stick to the "legacy" URL for this form, since it's not
+        # processed by any javascript that can convert the form parameters
+        # into URL arguments -%]
+    <form action="[% c.uri_for( '/family/alignment/download/format' ) %]" 
           id="formatForm">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -282,7 +277,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
         [% oe = 0 %]
         <table class="details alignOpts" summary="Alignment formatting options">
           <tbody>
-            [% IF entryType != 'B' %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
@@ -303,7 +297,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
       	      </td>
             </tr>
-            [% END %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Format:</td>
               <td>
@@ -317,7 +310,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
       	      </td>
             </tr>
-            [% IF entryType != 'B' %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Order:</td>
               <td>
@@ -344,7 +336,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
       	      </td>
             </tr>
-            [% END %]
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Gaps:</td>
               <td>
@@ -379,7 +370,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
       </div>
     </form>
 
-    [% IF entryType != 'B' %]
     <h2>Download options</h2>
 
     <p>
@@ -388,14 +378,14 @@ alignmentUri = c.uri_for( "/family/alignment" );
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
       Stockholm-format file containing the 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
+      <a href="[% alignmentUri %]/seed/gzipped">
         seed</a> or
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
+      <a href="[% alignmentUri %]/full/gzipped">
         full</a> alignment for this family. 
     </p>
     <p>
       You can also 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=long">
+      <a href="[% alignmentUri %]/long/gzipped">
         download</a> a FASTA format file containing the 
       <strong>full-length sequences</strong> for all sequences in the full alignment.
     </p>
@@ -409,14 +399,18 @@ alignmentUri = c.uri_for( "/family/alignment" );
     <p>
       You can view alignments from these two additional datasets using the form
       above, or you can download alignments of 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
+      <a href="[% alignmentUri %]/ncbi/gzipped">
         NCBI</a> or  
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=meta">
+      <a href="[% alignmentUri %]/meta/gzipped">
         metagenomics</a> sequences, as  
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed files.       
     </p>
+
+    [%- # we'll stick to the "legacy" URL for this form, since it's not
+        # processed by any javascript that can convert the form parameters
+        # into URL arguments -%]
     <form id="downloadGzippedForm"
-          action="[% alignmentUri %]/download/gzipped">
+          action="[% c.uri_for( '/family/alignment/download/gzipped' ) %]">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
@@ -546,11 +540,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       </div>
     </form>
 
-    [% END; # of "if entryType != B" -%]
-
   </div>
-
-  [% IF entryType != 'B' %]
 
   <script type="text/javascript">
     // <![CDATA[
@@ -587,8 +577,6 @@ alignmentUri = c.uri_for( "/family/alignment" );
     // ]]>
   </script>
 
-  [% END; # of "if entryType != B" -%]
-  
 </div>
 
 <!-- end of align block -->
