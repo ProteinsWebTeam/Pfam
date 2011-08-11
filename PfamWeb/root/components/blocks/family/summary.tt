@@ -32,7 +32,7 @@ PROCESS components/links.tt; %]
 
 <div class="block" id="familySummaryBlock">
   <div class="handle">
-    <h1>Summary</h1>
+    <h1>Summary: [% pfam.description %]</h1>
   </div>
   <div class="blockContent">
 
@@ -47,7 +47,7 @@ PROCESS components/links.tt; %]
         <!-- wp -->
         [%- IF hasWikiArticles;
           FOREACH article IN articles %]
-          <li[% IF loop.first %] class="selected"[% END %]>
+          <li[% IF loop.first AND NOT is_duf %] class="selected"[% END %]>
             <a href="#wpContent[% loop.index %]">Wikipedia: [% article.title.replace( "_", " " ) | html %]</a>
           </li>
           [% END;
@@ -57,7 +57,7 @@ PROCESS components/links.tt; %]
           </li>
         [%- END %]
         <!-- pf -->
-        <li[% IF ! hasWikiArticles %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
+        <li[% IF ( NOT hasWikiArticles ) OR is_duf %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
         <li[% ' class="disabled"' UNLESS pfam.interpro %]>
           <a href="#interproContent">Interpro</a>
@@ -226,10 +226,19 @@ PROCESS components/links.tt; %]
         <div id="pfamContent" class="pfamData">
 
           <p>
-            This tab holds the annotation information that is stored in the Pfam
-            database. As we move to using Wikipedia as our main source of annotation,
-            the contents of this tab will be gradually replaced by the Wikipedia
-            tab.
+            [% IF is_duf -%]
+              &quot;DUF&quot; families are annotated with the 
+              <a class="ext" href="http://en.wikipedia.org/w/index.php?title=Domain_of_unknown_function">
+                Domain of unknown function</a> Wikipedia article. This is a general
+              article, with no specific information about individual Pfam DUFs. If 
+              you have information about this particular DUF, please let us know 
+              using the &quot;Add annotation&quot; button below.
+            [% ELSE -%]
+              This tab holds the annotation information that is stored in the Pfam
+              database. As we move to using Wikipedia as our main source of annotation,
+              the contents of this tab will be gradually replaced by the Wikipedia
+              tab.
+            [% END -%]
           </p>
 
           [%- # a placeholder for the structure image -%]
@@ -239,7 +248,7 @@ PROCESS components/links.tt; %]
 
           <h1>
             [% pfam.description;
-            IF ! hasWikiArticles %]
+            IF ( ! hasWikiArticles ) OR is_duf %]
               <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
                 <img class="addAnnotation" 
                      alt="Add an annotation" 
