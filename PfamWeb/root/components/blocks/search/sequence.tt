@@ -78,7 +78,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <p>
         By default the search will only look for Pfam-A families on your 
         sequence but, by checking the box below, you can also search for 
-        Pfam-B hits.
+        Pfam-B hits. Note that the Pfam-B search is now performed using HMMER,
+        using automatically generated HMMs. We generate HMMs for only the
+        <strong>20,000</strong> largest Pfam-B families. 
       </p>
       
       <hr />
@@ -127,9 +129,27 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    id="gaButton" 
                    value="1"
                    onclick="$('evalue').disable();" />
-            Gathering threshold
+            <span id="gaLabel">Gathering threshold</span>
           </label>
         </div>
+        <script type="text/javascript">
+          // <![CDATA[
+
+          document.observe( "dom:loaded", function() {
+            var t = new Tip( "gaLabel", 
+  "The gathering threshold is assigned by a curator when the family is \
+  built. This is the minimum score a sequence must attain in order to \
+  belong to the full alignment of a Pfam entry.", 
+              {
+                title: "Gathering threshold",
+                style: "pfam",
+                hook: { target: "bottomRight", tip: "topLeft" },
+                width: "30em"
+            } );
+          } );
+
+          // ]]>
+        </script>
 
         <div class="row">
           <span class="label blankLabel">Cut-off</span>
@@ -162,6 +182,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  name="searchBs" 
                  id="searchBs" 
                  value="1" />
+          <span class="small note">
+            <strong>Note</strong> that we search only the
+            20,000 largest Pfam-B families
+          </span>
         </div>
 
         <div class="row">
