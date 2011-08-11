@@ -157,6 +157,11 @@ sub family_page : Chained( 'family' )
   return unless $c->stash->{pfam};
 
   #----------------------------------------
+
+  # detect DUFs
+  $c->stash->{is_duf} = ( $c->stash->{pfam}->pfama_id =~ m/^DUF\d+$/ );
+
+  #----------------------------------------
   
   # dead families are a special case...
   if ( defined $c->stash->{entryType} and
