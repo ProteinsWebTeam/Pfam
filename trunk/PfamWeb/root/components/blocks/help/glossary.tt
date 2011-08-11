@@ -86,11 +86,12 @@
     <h3><a name="gathering_threshold">Gathering threshold (GA)</a></h3>
     
     <p>
-      Also called the gathering cut-off, this value is the search threshold 
-      used to build the full alignment. The GA is the minimum score a sequence 
-      must attain in order to belong the the full alignment of a Pfam entry. 
-      For each Pfam HMM we have two GA cutoff values, a sequence cutoff and 
-      a domain cutoff.
+      Also called the gathering cut-off, this value is the search threshold
+      used to build the full alignment. The gathering threshold is assigned by
+      a curator when the family is built. The GA is the minimum score a
+      sequence must attain in order to belong to the full alignment of a Pfam
+      entry. For each Pfam HMM we have two GA cutoff values, a sequence cutoff
+      and a domain cutoff.
     </p>
 
     <h3><a name="hmmer">HMMER</a></h3>
