@@ -238,6 +238,10 @@ sub graphic : Chained( 'protein' )
               Args( 0 ) {
   my ( $this, $c ) = @_;
 
+  # the earlier methods in the chain get the row for the protein itself, but
+  # we need to add the storable for the architecture here explicitly
+  $c->forward('get_annseq');
+
   $c->res->content_type( 'application/json' );
   $c->res->body( $c->stash->{layout} );
 }
