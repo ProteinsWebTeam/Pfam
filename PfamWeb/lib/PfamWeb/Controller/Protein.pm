@@ -420,57 +420,71 @@ Retrieves DAS sources with the appropriate object type and coordinate system.
 sub get_das_sources : Private {
   my( $this, $c) = @_;
   
-  my @dasSources = $c->model('WebUser::Feature_das_sources')
-                     ->search();
-  my $keptSources = {};
-  my( $baseCoord, $baseType ) = ('UniProt', 'Protein Sequence');
-  my $seqAcc = $c->stash->{pfamseq}->pfamseq_acc;
+  my @das_sources = $c->model('WebUser::Feature_das_sources')
+                      ->search( {},
+                                { prefetch => [ 'alignment_sources_to' ] } );
+
   my $dl = $c->model('PfamDB')
              ->getDasLite;
-  my %alignMatches;
+
+  my $base_type  = 'Protein Sequence';
+  my $base_coord = 'UniProt';
+
+  my $align_matches;
+  my $kept_sources = {};
   
-  FEATURE: foreach my $f (@dasSources) {
-    if ( $f->sequence_type eq $baseType and 
-         $f->system        eq $baseCoord ) {
-      push @{ $keptSources->{$f->sequence_type}{$f->system} }, $f;
+  my $seen_sources = {};
+  FEATURE: foreach my $f ( @das_sources ) {
+
+    if ( $f->sequence_type eq $base_type and 
+         $f->system        eq $base_coord ) {
+      push @{ $kept_sources->{$f->sequence_type}->{$f->system} }, $f
+        if not $seen_sources->{$f->server_id};
+      $seen_sources->{$f->server_id} = 1;
+
       next FEATURE;
     }
+
     ALN: foreach my $a ( $f->alignment_sources_to ) {
+
       next ALN unless defined $a;
-      next ALN unless ( $a->from_type   eq $baseType and 
-                        $a->from_system eq $baseCoord );
+      next ALN unless ( $a->from_type   eq $base_type and 
+                        $a->from_system eq $base_coord );
 
       # find out if we have any alignments for this object type and co-ord system.
-      unless ( defined $alignMatches{$f->sequence_type}{$f->system} ) {
+      unless ( defined $align_matches->{$f->sequence_type}->{$f->system} ) {
         $dl->dsn( [$a->url] );
-        my ( undef, $alignments ) = each %{ $dl->alignment( { 'query' => $seqAcc } ) };
+        my ( undef, $alignments ) = each %{ $dl->alignment( { 'query' => $c->stash->{pfamseq}->pfamseq_acc } ) };
         if ( ref $alignments eq 'ARRAY' and scalar @{$alignments} ) {
-          $alignMatches{$f->sequence_type}{$f->system} = 1;
-        } else {
-          $alignMatches{$f->sequence_type}{$f->system} = 0;
+          $align_matches->{$f->sequence_type}->{$f->system} = 1;
+        }
+        else {
+          $align_matches->{$f->sequence_type}->{$f->system} = 0;
         }
       }
       
-      push @{ $keptSources->{$f->sequence_type}{$f->system} }, $f 
-        if $alignMatches{$f->sequence_type}{$f->system};
+      push @{ $kept_sources->{$f->sequence_type}->{$f->system} }, $f 
+        if $align_matches->{$f->sequence_type}->{$f->system};
       next FEATURE;
     }
+
   }
 
-  my @keptSourcesArr = ();
-  my @types = _sortWithPref( $baseType, keys %{ $keptSources } );
+  my @kept_sources_list = ();
+  my @types = _sortWithPref( $base_type, keys %{ $kept_sources } );
   foreach my $type (@types) {
-    my @systems = _sortWithPref( $baseCoord, keys %{ $keptSources->{$type} } );
+    my @systems = _sortWithPref( $base_coord, keys %{ $kept_sources->{$type} } );
     foreach my $system (@systems) {
       my $id = $type.'_'.$system;
       $id =~ s/\s+/_/g;
-      push @keptSourcesArr, { type    => $type, 
-                              system  => $system, 
-                              servers => $keptSources->{$type}{$system}, 
-                              id      => $id };
+      push @kept_sources_list, { type    => $type, 
+                                 system  => $system, 
+                                 servers => $kept_sources->{$type}->{$system}, 
+                                 id      => $id };
     }
   }
-  $c->stash->{dasSourcesRs} = \@keptSourcesArr; 
+
+  $c->stash->{dasSourcesRs} = \@kept_sources_list; 
 }
 
 #-------------------------------------------------------------------------------
@@ -552,6 +566,26 @@ sub get_summary_data : Private {
   $summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
+  my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                                    in_full => 1 },
+                                  { prefetch => [ qw( auto_pfama pfamseq ) ] } );
+
+  my @pfamb_regions = $c->model('PfamDB::PfambReg')
+                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                                  { prefetch => [ 'auto_pfamb' ] } );
+
+  my @other_regions = $c->model('PfamDB::OtherReg')
+                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                                  {} );
+
+  my $regions;
+  foreach my $region ( @pfama_regions, @pfamb_regions, @other_regions ) {
+    push @{ $regions->{ $region->seq_start } }, $region;
+  }
+
+  $c->stash->{regions} = $regions;
+
   $c->log->debug('Protein::get_summary_data: added the summary data to the stash')
     if $c->debug;
 }
@@ -569,11 +603,12 @@ A regular Perl method implementing a sort.
 sub _sortWithPref {
   my $pref = shift;
   return sort {
-    my $i = (lc $a) cmp (lc $b);
+    my $i = ( lc $a ) cmp ( lc $b );
     return $i if $i == 0;
-    if( $a eq $pref ) {
+    if ( $a eq $pref ) {
       $i = -1;
-    } elsif( $b eq $pref ) {
+    }
+    elsif ( $b eq $pref ) {
       $i = 1;
     }
     return $i;
