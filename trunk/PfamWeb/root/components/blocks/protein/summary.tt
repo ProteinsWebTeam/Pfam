@@ -120,7 +120,7 @@ oe = 0;
     <div id="pgholder" class="pgholder"></div>
 
     <table class="resultTable details"
-           id="imageKey" 
+           id="imageKey"
            summary="Key for the Pfam domain image">
       <thead class="sortIndicator">
         <tr>
@@ -130,8 +130,35 @@ oe = 0;
           <th>End</th>
         </tr>
       </thead>
-    <tbody>
-    </tbody>
+      <tbody>
+      [%- oe = 0;
+       FOREACH seq_start IN regions.keys.nsort;
+        FOREACH row IN regions.$seq_start;
+          IF row.auto_pfama.pfama_acc %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+              <td class="pfama_[% row.auto_pfama.pfama_acc %]">Pfam A</td>
+              <td><a href="[% c.uri_for( '/family', row.auto_pfama.pfama_id ) %]">[% row.auto_pfama.pfama_id %]</a></td>
+              <td>[% row.seq_start %]</td>
+              <td>[% row.seq_end %]</td>
+            </tr>
+          [%- ELSIF row.pfamb_acc %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+              <td class="domain">Pfam B</td>
+              <td><a href="[% c.uri_for( '/pfamb', row.pfamb_id ) %]">[% row.pfamb_id %]</a></td>
+              <td>[% row.seq_start %]</td>
+              <td>[% row.seq_end %]</td>
+            </tr>
+          [%- ELSE %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+              <td class="domain">[% row.type_id %]</td>
+              <td><span class="inactive">n/a</span></td>
+              <td>[% row.seq_start %]</td>
+              <td>[% row.seq_end %]</td>
+            </tr>
+          [%- END; # of IF
+        END; # of FOREACH row
+      END %]
+      </tbody>
     </table>
 
     <script type="text/javascript">
@@ -152,36 +179,24 @@ oe = 0;
       [%-# a base URI for the family links in the table %]
       var familyUri = "[% c.uri_for( '/family' ) %]";
 
-      [%-# build the key table, giving the list of domains and their start/end points.
-         # If there are no regions, just hide the table instead %]
+      [%-# colour the Pfam-A accessions in the key table according to their domain colour
+         # in the graphic. If there are no regions, just hide the table instead %]
       if ( sequence.regions.size() > 0 ) {
 
-        var tbody = $("imageKey").down("tbody");
-        var oe = "odd";
-        [ sequence.regions, sequence.motifs ].flatten().each( function( hit ) {
-          var tr = new Element( "tr", { "class": oe } );
-          tbody.appendChild( tr );
+        [%-# retrieve the domain colours from the graphic description %]
+        var colours = {};
+        sequence.regions.each( function( region ) {
+          colours[region.metadata.accession] = region.colour;
+        } );
 
-          var link = new Element( "a", { href: familyUri + "/" + hit.metadata.identifier } )
-                       .update( hit.metadata.identifier );
-
-          var source = new Element( "td" )
-                         .setStyle( { fontWeight: "bold" } );
-          if ( hit.type == "pfama" ) {
-            source.update( "Pfam A" )
-		              .setStyle( { color: hit.colour } );
-          } else if ( hit.type == "pfamb" ) {
-            source.update( "Pfam B" );
-          } else {
-            source.update( hit.type );
-          }
-
-          tr.appendChild( source );
-          tr.appendChild( new Element( "td" ).update( link ) );
-          tr.appendChild( new Element( "td" ).update( hit.metadata.start || hit.start ) );
-          tr.appendChild( new Element( "td" ).update( hit.metadata.end   || hit.end  ) );
-
-          oe = ( oe == "odd" ) ? "even" : "odd";
+        [%- # find the table cells that need colouring using a natty little selector... %]
+        $$("[class^='pfama']").each( function(cell) {
+          var pfamaAcc = cell.className.match('^pfama_(.*)')[1];
+          cell.setStyle( { color: colours[pfamaAcc] } );
+          [%-# we add the classname to set the bold font here rather than in the HTML,
+             # because if we did that it would interfere with the "cell.className" call
+             # above, and I like that simplicity... %]
+          cell.addClassName( "domain" );
         } );
 
       } else {
