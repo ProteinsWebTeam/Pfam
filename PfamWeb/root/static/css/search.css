@@ -138,6 +138,17 @@ div.autocomplete span.informal {
 }
 
 /* ---------------------------------------- */
+/* sequence search form */
+
+span.note {
+  vertical-align: sub;
+}
+
+#gaLabel {
+  border-bottom: 1px dotted;
+}
+
+/* ---------------------------------------- */
 /* sequence search results */
 
 td.showSwitch {
