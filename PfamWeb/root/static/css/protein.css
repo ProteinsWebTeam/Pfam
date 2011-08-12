@@ -195,7 +195,7 @@ div.summaryGraphic {
   width: auto;
 }
 
-#imageKey td.pfamA {
+#imageKey td.domain {
   font-weight: bold;
 }
 
@@ -211,6 +211,5 @@ div.summaryGraphic {
 /* styles specific for the feature widget */
 
 span.highlightError {
-
   background: #FA5858;
 }
