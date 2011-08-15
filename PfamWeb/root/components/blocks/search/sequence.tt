@@ -129,14 +129,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    id="gaButton" 
                    value="1"
                    onclick="$('evalue').disable();" />
-            <span id="gaLabel">Gathering threshold</span>
+            <span id="seqGaLabel">Gathering threshold</span>
           </label>
         </div>
         <script type="text/javascript">
           // <![CDATA[
 
           document.observe( "dom:loaded", function() {
-            var t = new Tip( "gaLabel", 
+            var t = new Tip( "seqGaLabel", 
   "The gathering threshold is assigned by a curator when the family is \
   built. This is the minimum score a sequence must attain in order to \
   belong to the full alignment of a Pfam entry.", 
