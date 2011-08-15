@@ -179,9 +179,27 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    id="batchGaButton" 
                    value="1" 
                    onclick="$('batchEvalue').disable()" />
-            Gathering threshold
+            <span id="batchGaLabel">Gathering threshold</span>
           </label>
         </div>
+        <script type="text/javascript">
+          // <![CDATA[
+
+          document.observe( "dom:loaded", function() {
+            var t = new Tip( "batchGaLabel", 
+  "The gathering threshold is assigned by a curator when the family is \
+  built. This is the minimum score a sequence must attain in order to \
+  belong to the full alignment of a Pfam entry.", 
+              {
+                title: "Gathering threshold",
+                style: "pfam",
+                hook: { target: "bottomRight", tip: "topLeft" },
+                width: "30em"
+            } );
+          } );
+
+          // ]]>
+        </script>
 
         <div class="row">
           <span class="label blankLabel">Cut-off</span>
