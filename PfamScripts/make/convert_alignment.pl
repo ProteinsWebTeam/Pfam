@@ -64,9 +64,39 @@ sub main {
   set_label_length($matches);
 
   print $seedfile "# STOCKHOLM 1.0\n";
+
+  my @realigned = ();
+  my $insertions = {};
+
   foreach my $match (@$matches) {
-    rebuild_alignment($match, $in_align, $seedfile, $pfamfile, $errors);
+    if ($match->[0]->{'fail'}) {
+      $match->[0]->{'seed'}  = sprintf "#=GF CC  SEARCH FAILURE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{query};
+      $match->[0]->{'error'} = sprintf "SEARCH FAILED TO MATCH %s\n", $match->[0]->{query};
+    }
+    elsif ($match->[0]->{'duplicate'}) {
+      $match->[0]->{'fail'} = 1;
+      $match->[0]->{'seed'} = sprintf "#=GF CC DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
+    }
+    else {
+      rebuild_alignment($match->[0], $in_align, $insertions);
+    }
+    push @realigned, $match;
   }
+
+  strip_removed_seq_inserts(\@realigned, $insertions);
+  pad_alignments_for_inserts(\@realigned, $insertions);
+
+  foreach my $result (@realigned) {
+    if (exists $result->[0]->{'fail'}) {
+      print $errors $result->[0]->{error};
+      print $seedfile $result->[0]->{seed};
+    }
+    else {
+      printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $result->[0]->{label}, $result->[0]->{seq};
+      printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $result->[0]->{label}, $result->[0]->{seq};
+    }
+  }
+
   print $seedfile "\n//";
   close $seedfile;
   close $errors;
@@ -75,6 +105,47 @@ sub main {
   if (!$opt->{'skipclean'}) {
     cleanup("$dir$fname", $suffix);
   }
+}
+
+sub strip_removed_seq_inserts {
+  my ($realigned, $insertions) = @_;
+  # go through insertions and remove sequences that failed
+  my %realigned_lookup = ();
+  for my $seq (@$realigned) {
+    if (!exists $seq->[0]->{fail}) {
+      $realigned_lookup{$seq->[0]->{label}}++;
+    }
+  }
+
+  for my $ins (keys %$insertions) {
+    for my $ins_seq (keys %{$insertions->{$ins}}) {
+      if (!exists $realigned_lookup{$ins_seq}) {
+        delete $insertions->{$ins}->{$ins_seq};
+      }
+    }
+    if (!keys %{$insertions->{$ins}}) {
+     delete $insertions->{$ins};
+    }
+  }
+
+  return;
+}
+
+sub pad_alignments_for_inserts {
+  my ($realigned, $insertions) = @_;
+
+  # get insertion points in reverse order
+  for my $insert (sort { $b <=> $a } keys %$insertions) {
+    for my $seq (@$realigned) {
+      next if exists $seq->[0]->{fail};
+      next if exists $insertions->{$insert}->{$seq->[0]->{label}};
+      # add a . at insert position to all sequences not in
+      # the list of insertions at that point
+      substr($seq->[0]->{seq}, $insert, 0) = '.';
+    }
+  }
+
+  return;
 }
 
 sub strip_out_duplicates {
@@ -118,81 +189,69 @@ sub set_label_length {
 }
 
 sub rebuild_alignment {
-  my ($match, $infile, $seedfile, $pfamfile, $errors) = @_;
+  my ($match, $infile, $insertions) = @_;
 
-  if ($match->[0]->{'fail'}) {
-    printf $seedfile "#=GF CC  SEARCH FAILURE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{query};
-    printf $errors "SEARCH FAILED TO MATCH %s\n", $match->[0]->{query};
-  }
-  elsif ($match->[0]->{duplicate}) {
-    printf $seedfile "#=GF CC DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
-  }
-  else {
-
-    my $original = undef;
-    # get original seq out of infile
-    my $qid = $match->[0]->{qname};
-    if ($qid) {
-      while(<$infile>){
-        if ($_ =~ /^$qid\s+(.*)$/) {
-          $original = $1;
-          last;
-        }
-      }
-
-      # convert all dashes (-) to dots (.) in the original sequence
-      $original =~ s/-/\./g;
-
-      # grab the new sequence out of pfamseq
-      my $cmd = $config->hmmer3bin . "/esl-sfetch $SEQDB $match->[0]->{tname}";
-      my $new_seq = `$cmd`;
-
-      $new_seq =~ s/^>.*//;
-      $new_seq =~ s/\n//gs;
-
-      $new_seq = substr($new_seq, $match->[0]->{ali_from} - 1, $match->[0]->{ali_to} - $match->[0]->{ali_from} + 1);
-
-      my $insertions = [];
-      my $diffcount = 0;
-
-      # merge the new and original sequence
-      ($new_seq, $diffcount) = merge_seqs(uc $original, uc $new_seq, $insertions);
-
-      if (uc($original) ne uc($new_seq)) {
-        my $diff = String::Diff::diff uc($original), uc($new_seq);
-
-        # if more than 3 percent of residues differ, then fail and show diff"
-        my $delta_percent = int(($diffcount * 100) / $match->[0]->{qlen});
-        if ($delta_percent > 3) {
-          my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{qname}, $diff->[0];
-          my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{tname}, $diff->[1];
-          my $message = qq(The differenecs between the original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] were too great. It wont be added to the .seed file.:
-  $qstring
-  $tstring
-  \n);
-          warn $message;
-          printf $seedfile "#=GF CC BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
-          printf $errors $message;
-        }
-        else {
-          # else add it to the seedfile
-          my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{qname}, $diff->[0];
-          my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{tname}, $diff->[1];
-          warn qq(The original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] differed by only $diffcount. It has been added to the .seed file.:\n);
-          warn "$qstring\n";
-          warn "$tstring\n";
-          printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
-          printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
-        }
-      }
-      else {
-        # print to .seed file
-        printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
-        printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
+  my $original = undef;
+  # get original seq out of infile
+  my $qid = $match->{qname};
+  if ($qid) {
+    while(<$infile>){
+      if ($_ =~ /^$qid\s+(.*)$/) {
+        $original = $1;
+        last;
       }
     }
+
+    # convert all dashes (-) to dots (.) in the original sequence
+    $original =~ s/-/\./g;
+
+    # grab the new sequence out of pfamseq
+    my $cmd = $config->hmmer3bin . "/esl-sfetch $SEQDB $match->{tname}";
+    my $new_seq = `$cmd`;
+
+    $new_seq =~ s/^>.*//;
+    $new_seq =~ s/\n//gs;
+
+    $new_seq = substr($new_seq, $match->{ali_from} - 1, $match->{ali_to} - $match->{ali_from} + 1);
+
+    my $diffcount = 0;
+
+    # merge the new and original sequence
+    ($new_seq, $diffcount) = merge_seqs(uc $original, uc $new_seq, $match, $insertions);
+
+    if (uc($original) ne uc($new_seq)) {
+      my $diff = String::Diff::diff uc($original), uc($new_seq);
+
+      # if more than 3 percent of residues differ, then fail and show diff"
+      my $delta_percent = int(($diffcount * 100) / $match->{qlen});
+      if ($delta_percent > 3) {
+        my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->{qname}, $diff->[0];
+        my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->{tname}, $diff->[1];
+        my $message = qq(The differenecs between the original [$match->{qname}] and proposed sequence [$match->{tname}] were too great. It wont be added to the .seed file.:
+$qstring
+$tstring
+\n);
+        warn $message;
+        $match->{'fail'} = 1;
+        $match->{'seed'}  = sprintf "#=GF CC BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->{label};
+        $match->{'error'} = sprintf $message;
+      }
+      else {
+        # else add it to the seedfile
+        my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->{qname}, $diff->[0];
+        my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->{tname}, $diff->[1];
+        warn qq(The original [$match->{qname}] and proposed sequence [$match->{tname}] differed by only $diffcount. It has been added to the .seed file.:\n);
+        warn "$qstring\n";
+        warn "$tstring\n";
+        $match->{seq} = $new_seq;
+      }
+    }
+    else {
+      # print to .seed file
+      $match->{seq} = $new_seq;
+    }
   }
-  return;
+  return $match;
 }
 
 sub get_matches_with_hmmer {
@@ -324,7 +383,7 @@ sub parse_hmmsearch {
 }
 
 sub merge_seqs {
-  my ($original, $new, $ins) = @_;
+  my ($original, $new, $match, $ins) = @_;
   my @diffs = sdiff [split(//, $original)], [split(//, $new)];
   my $index = 0;
   my $dcount = 0;
@@ -338,7 +397,7 @@ sub merge_seqs {
     }
     elsif ($position->[0] eq 'c' && $position->[1] eq '.') {
       $result .= $position->[2] . '.';
-      push @$ins, $index;
+      $ins->{$index}->{$match->{label}}++;
       $dcount++;
     }
     elsif ($position->[0] eq 'c') {
@@ -347,7 +406,7 @@ sub merge_seqs {
     }
     elsif ($position->[0] eq '+') {
       $result .= $position->[2];
-      push @$ins, $index;
+      $ins->{$index}->{$match->{label}}++;
       $dcount++;
     }
     elsif ($position->[0] eq '-') {
