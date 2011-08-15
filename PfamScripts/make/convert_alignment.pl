@@ -9,6 +9,7 @@ use IO::Handle;
 use String::Diff;
 use Data::Dumper;
 use Bio::Pfam::Config;
+use Algorithm::Diff qw(sdiff);
 
 
 my $config = Bio::Pfam::Config->new();
@@ -142,12 +143,6 @@ sub rebuild_alignment {
       # convert all dashes (-) to dots (.) in the original sequence
       $original =~ s/-/\./g;
 
-      # grab spacings from the original
-      my @spacings = ();
-      while($original =~ /\.+/g) {
-        push @spacings, [@-, @+];
-      }
-
       # grab the new sequence out of pfamseq
       my $cmd = $config->hmmer3bin . "/esl-sfetch $SEQDB $match->[0]->{tname}";
       my $new_seq = `$cmd`;
@@ -157,30 +152,23 @@ sub rebuild_alignment {
 
       $new_seq = substr($new_seq, $match->[0]->{ali_from} - 1, $match->[0]->{ali_to} - $match->[0]->{ali_from} + 1);
 
-      # apply spacings to the original sequence in order;
-      foreach my $space (@spacings) {
-        substr($new_seq, int($space->[0]), 0) = '.' x ($space->[1] - $space->[0]);
-      }
+      my $insertions = [];
+      my $diffcount = 0;
+
+      # merge the new and original sequence
+      ($new_seq, $diffcount) = merge_seqs(uc $original, uc $new_seq, $insertions);
 
       if (uc($original) ne uc($new_seq)) {
-        my $full_diff  = String::Diff::diff_fully(uc($original), uc($new_seq));
-        my $diff       = String::Diff::diff uc($original), uc($new_seq);
-        my $diff_count = 0;
+        my $diff = String::Diff::diff uc($original), uc($new_seq);
 
-        for my $line (@$full_diff) {
-          for my $rmatch (@$line) {
-            if ($rmatch->[0] =~ /(-|\+)/) {
-              $diff_count += length $rmatch->[1];
-            }
-          }
-        }
-
-        # if more than 2 residues differ, then fail and show diff"
-        my $delta_percent = int(($diff_count * 100) / $match->[0]->{qlen});
-        if ($delta_percent > 6) {
+        # if more than 3 percent of residues differ, then fail and show diff"
+        my $delta_percent = int(($diffcount * 100) / $match->[0]->{qlen});
+        if ($delta_percent > 3) {
+          my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{qname}, $diff->[0];
+          my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{tname}, $diff->[1];
           my $message = qq(The differenecs between the original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] were too great. It wont be added to the .seed file.:
-  $match->[0]->{qname}\t$diff->[0]
-  $match->[0]->{tname}\t$diff->[1]
+  $qstring
+  $tstring
   \n);
           warn $message;
           printf $seedfile "#=GF CC BAD MATCH %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
@@ -188,10 +176,11 @@ sub rebuild_alignment {
         }
         else {
           # else add it to the seedfile
-          warn qq(The original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] differed by only $diff_count. It has been added to the .seed file.:
-  $match->[0]->{qname}\t$diff->[0]
-  $match->[0]->{tname}\t$diff->[1]
-  \n);
+          my $qstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{qname}, $diff->[0];
+          my $tstring = sprintf "%-${DEFAULT_LABEL_LEN}s\t%s", $match->[0]->{tname}, $diff->[1];
+          warn qq(The original [$match->[0]->{qname}] and proposed sequence [$match->[0]->{tname}] differed by only $diffcount. It has been added to the .seed file.:\n);
+          warn "$qstring\n";
+          warn "$tstring\n";
           printf $seedfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
           printf $pfamfile "%-${DEFAULT_LABEL_LEN}s\t%s\n", $match->[0]->{label}, $new_seq;
         }
@@ -332,6 +321,42 @@ sub parse_hmmsearch {
   $cmd = $config->hmmer3bin . "/esl-sfetch --index $file.phmmerdb 1>/dev/null";
   system $cmd;
   return;
+}
+
+sub merge_seqs {
+  my ($original, $new, $ins) = @_;
+  my @diffs = sdiff [split(//, $original)], [split(//, $new)];
+  my $index = 0;
+  my $dcount = 0;
+  my $result = '';
+  for my $position (@diffs) {
+    if ($position->[0] eq 'u') {
+      $result .= $position->[1];
+    }
+    elsif ($position->[1] eq '.' && $position->[2] eq '') {
+      $result .= '.';
+    }
+    elsif ($position->[0] eq 'c' && $position->[1] eq '.') {
+      $result .= $position->[2] . '.';
+      push @$ins, $index;
+      $dcount++;
+    }
+    elsif ($position->[0] eq 'c') {
+      $result .= $position->[2];
+      $dcount++;
+    }
+    elsif ($position->[0] eq '+') {
+      $result .= $position->[2];
+      push @$ins, $index;
+      $dcount++;
+    }
+    elsif ($position->[0] eq '-') {
+      $result .= '.';
+      $dcount++;
+    }
+    $index++;
+  }
+  return $result, $dcount;
 }
 
 sub convert_to_fasta {
