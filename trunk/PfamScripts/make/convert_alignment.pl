@@ -75,6 +75,7 @@ sub main {
     }
     elsif ($match->[0]->{'duplicate'}) {
       $match->[0]->{'fail'} = 1;
+      $match->[0]->{'error'} = sprintf "REMOVED QUERY SEQUENCE [%s] AS IT RESULTED IN DUPLICATE SEQUENCE [%s]\n", $match->[0]->{tname}, $match->[0]->{qname};
       $match->[0]->{'seed'} = sprintf "#=GF CC DUPLICATE %-${DEFAULT_LABEL_LEN}s\n", $match->[0]->{label};
     }
     else {
