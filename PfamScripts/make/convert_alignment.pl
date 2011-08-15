@@ -41,7 +41,7 @@ sub main {
   my $fa = convert_to_fasta($opt->{'file'});
 
   # get nearest match with hmmsearch and phmmer
-  my $matches = get_matches_with_hmmer($fname, $dir, $suffix);
+  my $matches = get_matches_with_hmmer($fname, $dir, $suffix, $opt);
 
   strip_out_duplicates($matches);
 
@@ -207,16 +207,21 @@ sub rebuild_alignment {
 }
 
 sub get_matches_with_hmmer {
-  my ($fname, $dir, $suffix) = @_;
+  my ($fname, $dir, $suffix, $opt) = @_;
   # use hmmbuild to generate an hmm from the input
   warn "Generating HMM\n";
   my $cmd = $config->hmmer3bin . "/hmmbuild $dir$fname.hmm $dir$fname$suffix >/dev/null";
   system $cmd;
 
   # use hmmsearch to get a small database of potential matches
-  warn "Performing hmmsearch\n";
-  $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm $SEQDB";
-  system $cmd;
+  if (exists $opt->{debug}) {
+    warn "Skipping hmmsearch [debug]\n";
+  }
+  else {
+    warn "Performing hmmsearch\n";
+    $cmd = $config->hmmer3bin . "/hmmsearch --nobias --tblout $dir$fname.hmmsearch -E 1 -o /dev/null $dir$fname.hmm $SEQDB";
+    system $cmd;
+  }
 
   # parse the .hmmsearch file to get a list of sequences and use esl-sfetch to get them out of pfamseq
   parse_hmmsearch("$dir$fname");
@@ -358,6 +363,6 @@ sub usage {
 
 sub get_options {
   my $opt = {};
-  GetOptions($opt, 'file=s', 'help', 'skipclean' );
+  GetOptions($opt, 'file=s', 'help', 'skipclean', 'debug');
   return $opt;
 }
