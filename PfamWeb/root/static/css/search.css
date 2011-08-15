@@ -144,7 +144,8 @@ span.note {
   vertical-align: sub;
 }
 
-#gaLabel {
+#batchGaLabel,
+#seqGaLabel {
   border-bottom: 1px dotted;
 }
 
