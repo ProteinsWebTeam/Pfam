@@ -32,7 +32,7 @@
       </p>
       <p>
         The E-value for each pair of closely or partially related families
-        is show next to the line linking the families. Clicking on the 
+        is shown next to the line linking the families. Clicking on the 
         E-value will take you to the pairwise 
         <a href="http://www.sanger.ac.uk/Software/analysis/logomat-p/"
            class="ext">HMM-logo</a> for that relationship.
