@@ -90,7 +90,7 @@ imagesUri = c.uri_for( "/static/images" );
            href="[% c.uri_for( "/structure/viewer", { viewer = "av", id = pdbId } ) | html %]">AstexViewer</a>
       </li>
       <li>
-        <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbId %]"
+        <a href="http://www.dasregistry.org/showspice.jsp?display=DS_241&amp;pdb=[% pdbId %]"
            class="ext">SPICE</a>
       </li>
     </ul>
