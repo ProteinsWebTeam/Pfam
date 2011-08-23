@@ -141,7 +141,7 @@ END -%]
                     <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey } ) %]&amp;viewer=av"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
                        AstexViewer</a>  
-                    <a href="http://www.dasregistry.org/showSpiceAction.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                    <a href="http://www.dasregistry.org/runspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
                        class="ext">SPICE</a>  
                   </td>
