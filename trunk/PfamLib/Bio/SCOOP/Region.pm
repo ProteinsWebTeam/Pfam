@@ -140,7 +140,11 @@ sub overlap {
     my $end1  =$region1->{'end'};
     my $end2  =$region2->{'end'};
 
-    
+    # shortcircuits test
+    if ($end1<$start2 or $end2<$start1){
+	return 0;
+    }
+
     # This method requires the midpoint of one region to lie within the other
     my $mid1=($start1+$end1)/2;
     my $mid2=($start2+$end2)/2;
@@ -231,6 +235,37 @@ sub add_match {
     $self->{'match'}->{$match}=1;
 }
 
+
+#########
+# score #
+#########
+
+# Test whether this score has matched to another output already This
+# is used to stop multiple counting for redundant regions because they
+# will have the same score.  However, some matches will be lost
+# because although they are different they still get the same score.
+
+sub score {
+    my ($self,$score) = @_;
+
+    if ($self->{'score'}->{$score}){
+	return 1;
+    } else {
+	return 0;
+    }
+}
+
+
+#############
+# add_score #
+#############
+
+# Add an element to the score hash
+sub add_score {
+    my ($self,$score) = @_;
+
+    $self->{'score'}->{$score}=1;
+}
 
 ##########
 # evalue #
