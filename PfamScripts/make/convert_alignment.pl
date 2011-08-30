@@ -154,12 +154,12 @@ sub strip_out_duplicates {
   my $unique = [];
   my %seen   = ();
   for my $match (@$matches) {
-    if ($match->[0]->{tname}) {
-      if ($seen{$match->[0]->{tname}}) {
-        warn "$match->[0]->{tname} was seen multiple times. Removing duplicates.\n";
+    if ($match->[0]->{label}) {
+      if ($seen{$match->[0]->{label}}) {
+        warn "$match->[0]->{label} was seen multiple times. Removing duplicates.\n";
         $match->[0]->{duplicate}++;
       }
-      $seen{$match->[0]->{tname}}++;
+      $seen{$match->[0]->{label}}++;
     }
   }
 
