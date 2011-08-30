@@ -1,57 +1,78 @@
 #! /usr/bin/env perl 
 
-#Script to print out each family and cumulative sequence and residue coverage
+#Script to print out amino acid coverage, and cumulative sequence coverage by family
 #Prints the following to STDOUT:
-#pfamA_acc, pfamA_id, number_seq, new_seq, seq_coverage(%), residues, residue_coverage(%)
+#Total amino acid coverage
+#pfamA_acc, pfamA_id, number_seq, new_seq, seq_coverage(%)
 
 
 use strict;
 use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
-use Net::SCP;
+
 
 
 
 my $config = Bio::Pfam::Config->new;
 
+
 #Set up database
-my $total_seq = $config->{pfamseq}->{dbsize};
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
-#Find total number of residues
-my $st_len = $dbh->prepare("select length from pfamseq") or die "Failed to prepare statement:".$dbh->errstr."\n";
-$st_len->execute() or die "Couldn't execute statement ".$st_len->errstr."\n";
-my $array_ref_len = $st_len->fetchall_arrayref();
+my $total_seq = $config->{pfamseq}->{dbsize};
 
+
+#Find total number of residues
 my $total_aa;
-foreach my $element (@$array_ref_len) {
-    $total_aa += $$element[0];
+if($total_seq == 15929002) { #This is the number of seq for release 26.0
+    $total_aa = 5169768107;
+}
+else {
+    my $st_len = $dbh->prepare("select length from pfamseq") or die "Failed to prepare statement:".$dbh->errstr."\n";
+    $st_len->execute() or die "Couldn't execute statement ".$st_len->errstr."\n";
+    my $array_ref_len = $st_len->fetchall_arrayref();
+
+    foreach my $element (@$array_ref_len) {
+	$total_aa += $$element[0];
+    }
 }
 
-#Get region data from rdb
-my $reg_file = "tmp.regions.dat.$$";
-my $sorted_reg ="regions.dat.$$";
 
 
-my $st_reg = $dbh->prepare("select auto_pfamseq, pfamA_acc, pfamA_id, seq_start, seq_end into outfile \"/tmp/$reg_file\" from pfamA as a, pfamA_reg_full_significant as b where a.auto_pfamA = b.auto_pfamA and in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
-$st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
+#Get pfamA family ids and accessions
+my $st_pfamA = $dbh->prepare("select auto_pfamA, pfamA_acc, pfamA_id from pfamA") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st_pfamA->execute() or die "Couldn't execute statement ".$st_pfamA->errstr."\n";
+my $array_ref_pfamA = $st_pfamA->fetchall_arrayref();
+
+my (%pfamA_acc, %pfamA_id);
+foreach my $element (@$array_ref_pfamA) {
+    my ($auto_pfamA, $pfamA_acc, $pfamA_id) = ($$element[0], $$element[1], $$element[2]);
+
+    $pfamA_acc{$auto_pfamA}=$pfamA_acc;
+    $pfamA_id{$auto_pfamA}=$pfamA_id;
+}
 
 
-#Copy regions file to cwd
-my $host = $pfamDB->{host};
-system("scp $host:/tmp/$reg_file .") and die "Couldn't scp /tmp/$reg_file to cwd \n";
 
+#Get nested families
+my $st_nested = $dbh->prepare("select auto_pfamA, nests_auto_pfamA from nested_domains") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st_nested->execute() or die "Couldn't execute statement ".$st_nested->errstr."\n";
+my $array_ref_nested = $st_nested->fetchall_arrayref();
 
-#Sort file by pfamA_acc
-system("sort $reg_file -k2 > $sorted_reg") and die "Couldn't sort $reg_file $!"; 
-unlink($reg_file);
+my (%nested);
+foreach my $element (@$array_ref_nested) {
+    my ($fam1, $fam2) = ($$element[0], $$element[1]);
+
+    $nested{$fam1}{$fam2}=1;
+    $nested{$fam2}{$fam1}=1;
+}
 
 
 #Get clan mapping
-my $st_clan = $dbh->prepare("select pfamA_acc, clan_acc from pfamA as a, clan_membership as b, clans as c where a.auto_pfamA = b.auto_pfamA and b.auto_clan = c.auto_clan") or die "Failed to prepare statement:".$dbh->errstr."\n";
+my $st_clan = $dbh->prepare("select b.auto_pfamA, clan_acc from pfamA as a, clan_membership as b, clans as c where a.auto_pfamA = b.auto_pfamA and b.auto_clan = c.auto_clan") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_clan->execute or die "Couldn't execute statement ".$st_clan->errstr."\n";
 my $array_ref_clan = $st_clan->fetchall_arrayref();
 
@@ -60,22 +81,144 @@ foreach my $element (@$array_ref_clan) {
     $clan{$$element[0]}=$$element[1];
 }
 
+
+#Get region data from rdb
+my $reg_file = "tmp.regions.dat.$$";
+my $sorted_reg ="pfamA.dat.$$";
+my $sorted_seq ="seq.dat.$$";
+
+
+my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end, domain_bits_score into outfile \"/tmp/$reg_file\" from pfamA_reg_full_significant as b where in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
+$st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
+
+
+
+#Copy regions file to cwd
+my $host = $pfamDB->{host};
+system("scp $host:/tmp/$reg_file .") and die "Couldn't scp $host:/tmp/$reg_file to cwd \n";
+
+
+
+#All rdb queries done
 $dbh->disconnect;
 
 
 
-#Go though each family and calculate cumulative amino acid and sequence coverage
-my $aa_count=0;
+#Look at aa coverage first
+#Sort regions file by sequence, then by bit score
+
+system("sort $reg_file -k1n -k5nr > $sorted_seq") and die "Couldn't sort $reg_file by auto_pfamseq and bit score, $!"; 
+unlink($reg_file);
+
+my (%clan_regions, %nested_regions);
+my $aa_covered;
+my $seq;
+my ($auto_pfamseq, $auto_pfamA, $start, $end);
+
+
+open(FH, $sorted_seq) or die "Couldn't open fh to $sorted_seq, $!";
+while(<FH>) {
+    if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
+	($auto_pfamseq, $auto_pfamA, $start, $end) = ($1, $2, $3, $4);
+
+        $seq = $auto_pfamseq unless($seq);
+
+        if($seq ne $auto_pfamseq) { #New sequence, clear the clan_regions and nested_regions hashes
+	    %clan_regions = ();
+	    %nested_regions = ();
+            $seq = $auto_pfamseq;
+	}
+
+	my $clan = $clan{$auto_pfamA};
+
+
+        if($clan) {
+	    my $overlap=0;
+	    if(exists($clan_regions{$clan})) { #Don't double count things in clans
+	   
+		foreach my $reg (@{ $clan_regions{$clan}}) {
+
+		    unless ($end < $reg->{'start'} or $reg->{'end'} < $start){ #Overlaps
+
+			if(exists($nested{$auto_pfamA}{$reg->{'pfamA'}}))  { #Overlap is due to domain being nested in another
+  
+				if($start < $reg->{'start'} or $end > $reg->{'end'}) {  #If this isn't true then $reg is the outer domain and we don't need to count the inner one 
+				    my $outer = $end - $start +1;
+				    my $inner = $reg->{'end'} - $reg->{'start'} +1;
+				    $aa_covered += $outer - $inner; 
+				    last;
+				}
+			}
+			$overlap=1;
+			last;
+		    }
+		}
+	    }
+	    unless($overlap) {
+		push (@{ $clan_regions{$clan} }, { start => $start, end => $end, pfamA => $auto_pfamA });
+		if(exists($nested{$auto_pfamA})) {
+		    push (@{ $nested_regions{$auto_pfamA} }, { start => $start, end => $end });
+		}
+		$aa_covered += $end - $start +1;
+	    }
+	}
+	else {
+	    if(exists($nested{$auto_pfamA})) {
+	        foreach my $fam (keys %{$nested{$auto_pfamA}}) {
+		    foreach my $reg (@{$nested_regions{$fam}}) {
+		        unless ($end < $reg->{'start'} or $reg->{'end'} < $start){ #Overlaps
+			    if($start < $reg->{'start'} or $end > $reg->{'end'}) {  #If this isn't true then $reg is the outer domain and we don't need to count the inner one 
+			        my $outer = $end - $start +1;
+			        my $inner = $reg->{'end'} - $reg->{'start'} +1;
+                                $aa_covered += $outer - $inner; 
+				last;
+			    }
+			}
+		    }
+	        }
+	    }
+	    else {
+		if(exists($nested{$auto_pfamA})) {
+		    push (@{ $nested_regions{$auto_pfamA} }, { start => $start, end => $end });
+		}
+	        $aa_covered += $end - $start + 1;
+	    }
+	 
+	}
+    }
+}
+close FH;
+
+
+my $aa_coverage = ($aa_covered/$total_aa)*100;
+$aa_coverage = sprintf("%.3f", $aa_coverage);
+
+print "Amino acid coverage is $aa_coverage" . "%\n\n";
+
+
+
+
+
+#Now look at sequence coverage by family
+#Sort file by auto_pfamA
+system("sort $sorted_seq -k2n > $sorted_reg") and die "Couldn't sort $reg_file by auto_pfamA, $!"; 
+unlink($sorted_seq);
+
+
+
+#Go though each family and calculate cumulative sequence coverage
 my (%seq, %total_seq);
-my ($acc, $id);
-my ($auto_pfamseq, $pfamA_acc, $pfamA_id, $start, $end);
+my ($acc, $id, $pfamA_id, $pfamA_acc);
 my $total_seq_without_current_fam =0;
 
-print STDOUT "#pfamA_acc, pfamA_id, clan, num_seq, new_seq, seq_coverage(%), residues, residue_coverage(%)\n";
-open(FH, $sorted_reg) or die "Couldn't open fh to $sorted_reg, $!";
-while(<FH>) {
-    if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
-	($auto_pfamseq, $pfamA_acc, $pfamA_id, $start, $end) = ($1, $2, $3, $4, $5);
+print STDOUT "#pfamA_acc, pfamA_id, clan, num_seq, new_seq, seq_coverage(%)\n";
+open(FH2, $sorted_reg) or die "Couldn't open fh to $sorted_reg, $!";
+while(<FH2>) {
+    if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
+	($auto_pfamseq, $auto_pfamA, $start, $end) = ($1, $2, $3, $4);
+
+	$pfamA_acc = $pfamA_acc{$auto_pfamA};
+	$pfamA_id = $pfamA_id{$auto_pfamA};
 
 	unless($acc) {
 	    $acc=$pfamA_acc;
@@ -83,10 +226,10 @@ while(<FH>) {
 	}
 
 	if($acc ne $pfamA_acc) {
-	    my $clan = $clan{$acc};
+	    my $clan = $clan{$auto_pfamA};
 	    $clan = "No_clan" unless($clan);
 
-            calculate($aa_count, \%seq, \%total_seq, $total_seq_without_current_fam, $acc, $id, $clan, $total_seq, $total_aa);
+            calculate(\%seq, \%total_seq, $total_seq_without_current_fam, $acc, $id, $clan, $total_seq);
 
 	    $total_seq_without_current_fam = keys %total_seq;
 
@@ -95,7 +238,6 @@ while(<FH>) {
 	    %seq = ();
 	}
 
-	$aa_count += $end - $start +1;
 	$seq{$auto_pfamseq}=1;
 	$total_seq{$auto_pfamseq}=1;
     }
@@ -105,21 +247,21 @@ while(<FH>) {
     }
 }
 
-unlink($sorted_reg);
+
 
 #Do last family
 my $clan = $clan{$pfamA_acc};
 $clan = "No_clan" unless($clan);
 
-calculate($aa_count, \%seq, \%total_seq, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa);
+calculate(\%seq, \%total_seq, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq);
 
-close FH;
+close FH2;
+unlink($sorted_reg);
 
 
 
-
-sub calculate { #Subroutine to calculate seq and aa coverage for each family
-    my ($aa_count, $seq_hash, $total_seq_hash, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq, $total_aa) = @_;
+sub calculate { #Subroutine to calculate seq coverage for each family
+    my ($seq_hash, $total_seq_hash, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq) = @_;
 
     my $seq_in_fam = keys %$seq_hash; 
 
@@ -129,8 +271,8 @@ sub calculate { #Subroutine to calculate seq and aa coverage for each family
 
     my $seq_cov = ($num_seq/$total_seq)*100;
     
-    my $aa_cov = ($aa_count/$total_aa)*100;
- 
-    print STDOUT sprintf ("%7s, %-17s %7s, %7s, %7s,  %-21s %10s, %-21s\n", $pfamA_acc, "$pfamA_id,", $clan, $seq_in_fam, $num_seq_added, "$seq_cov,", $aa_count, $aa_cov);
+   
+    print STDOUT sprintf ("%7s, %-17s %7s, %7s, %7s,  %-21s\n", $pfamA_acc, "$pfamA_id,", $clan, $seq_in_fam, $num_seq_added, "$seq_cov"); 
+    
 }
 
