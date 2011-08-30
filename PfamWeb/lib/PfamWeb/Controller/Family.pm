@@ -97,7 +97,7 @@ sub begin : Private {
   if ( $tainted_entry ) {
     $c->log->debug( 'Family::begin: got a tainted entry' )
       if $c->debug;
-    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\.-]+)$/
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w-]+)(\.\d+)?$/;
   }
 }
 
@@ -105,7 +105,8 @@ sub begin : Private {
 
 =head2 family : Chained
 
-Tries to get a row from the DB for the family.
+Tries to get a row from the DB for the family. This is the entry point for
+URLs with the accession/ID given like "/family/piwi".
 
 =cut
 
@@ -128,7 +129,7 @@ sub family : Chained( '/' )
   my $entry;
   if ( $tainted_entry ) {
     # strip off family version numbers, if present
-    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)(\.\d+)?$/;
+    ( $entry ) = $tainted_entry =~ m/^([\w-]+)(\.\d+)?$/;
     $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
       unless defined $entry;
   }
