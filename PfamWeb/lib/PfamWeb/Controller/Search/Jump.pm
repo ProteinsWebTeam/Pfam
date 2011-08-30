@@ -101,7 +101,23 @@ sub guess_family : Private {
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
   
-  # first, see if it's a Pfam-A family accession or ID
+  # first, since it's cheaper to evaluate a regex than to go to the database, 
+  # see if it's a Pfam-A accession with a version number
+  if ( $entry =~ m/^(PF\d{5})(\.\d+)?$/ ) {
+    my $rs = $c->model('PfamDB::Pfama')
+               ->search( { pfama_acc => $1 } )
+               ->first;
+               
+    if ( $rs and 
+         ( uc( $rs->pfama_acc ) eq $1 ) ) {
+      $c->log->debug( 'Search::Jump::guess_family: accession, possibly with version number: ' 
+                      . $rs->pfama_acc . ' eq ' . $1 )
+        if $c->debug;
+      return 'family';
+    }
+  }
+  
+  # next, check the database to see if it's a Pfam-A family accession or ID
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ] )
@@ -116,7 +132,7 @@ sub guess_family : Private {
       if $c->debug;
     return 'family';
   }
-               
+  
   # or a Pfam-B accession ?
   my @rs = $c->model('PfamDB::Pfamb')
           ->search( [ { pfamb_acc => $entry },
