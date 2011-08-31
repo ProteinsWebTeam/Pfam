@@ -5,7 +5,7 @@ use warnings;
 
 use Convert::Color;
 use Moose;
-use Moose::Util::TypeConstraints;
+use Moose::Util::TypeConstraints qw(enum);
 
 extends 'Bio::Pfam::Sequence::Feature';
 

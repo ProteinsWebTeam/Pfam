@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Moose;
-use Moose::Util::TypeConstraints;
+use Moose::Util::TypeConstraints qw(enum);
 
 
 has 'database' => (
