@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl -w
+#!/usr/bin/env perl
 
 # Software to find matches between Pfam families.
 #
