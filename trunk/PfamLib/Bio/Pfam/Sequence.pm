@@ -4,7 +4,9 @@ use strict;
 use warnings;
 
 use Moose;
-use Moose::Util::TypeConstraints;
+use Moose::Util::TypeConstraints qw(
+    subtype as where message enum coerce from via
+);
 
 subtype 'HighlightType'
   => as HashRef

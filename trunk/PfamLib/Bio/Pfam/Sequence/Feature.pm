@@ -5,7 +5,9 @@ use warnings;
 
 use JSON;
 use Moose;
-use Moose::Util::TypeConstraints;
+use Moose::Util::TypeConstraints qw(
+    subtype as where message coerce from via
+);
 
 use Data::Dump qw( dump );
 

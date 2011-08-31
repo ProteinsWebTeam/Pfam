@@ -76,6 +76,12 @@ C<update> or C<update_all>.
 Returns the number of wikipedia entries whose revision ID was updated in the 
 database during the most recent C<update> or C<update_all>.
 
+=head2 num_redirected
+
+Returns the number of wikipedia entries in the most recent C<update> or 
+C<update_all> which have been redirected. Retrieve the list of redirects
+using L<redirected_articles>.
+
 =head2 schema
 
 A L<DBIx::Class::Schema> for the C<wiki_approve> database schema. Required;
@@ -84,6 +90,12 @@ must be supplied in the constructor.
 =head2 updated_articles
 
 Returns a reference to an array containing the titles of updated articles.
+
+=head2 redirected_articles
+
+Returns a reference to an array containing the titles of redirected articles.
+Each element of the array is a hash, with keys "from" and "to", giving the 
+titles of the article redirected from and to.
 
 =cut
 
@@ -102,6 +114,13 @@ has 'num_updated' => (
   writer  => '_set_num_updated',
 );
 
+has 'num_redirected' => (
+  is      => 'rw',
+  isa     => 'Int',
+  default => 0,
+  writer  => '_set_num_redirected',
+);
+
 # DBIC connection to wiki_approve DB
 has 'schema' => (
   is       => 'ro',
@@ -110,6 +129,12 @@ has 'schema' => (
 );
 
 has 'updated_articles' => (
+	is       => 'ro',
+  isa      => 'ArrayRef[Str]',
+  default  => sub { [] },
+);
+
+has 'redirected_articles' => (
 	is       => 'ro',
   isa      => 'ArrayRef[Str]',
   default  => sub { [] },
@@ -238,12 +263,19 @@ sub _update {
   # for each row, get the last revision number and update the database,
   # if necessary
 
-  my $num_checked = 0;
-  my $num_updated = 0;
+  my $num_checked    = 0;
+  my $num_updated    = 0;
+  my $num_redirected = 0;
+
   foreach my $article ( @articles ) {
 		sleep 1;
     $num_checked++;
     my $latest_revid = $this->_get_last_revid( $article->title );
+
+    if ( my $is_redirected = $article->is_redirected ) {
+      push @{ $this->redirected_articles }, @$is_redirected;
+      $num_redirected++;
+    }
 
     next unless ( defined $latest_revid and $latest_revid =~ m/^\d+$/ );
 
@@ -262,6 +294,7 @@ sub _update {
 
   $this->_set_num_checked( $num_checked );
   $this->_set_num_updated( $num_updated );
+  $this->_set_num_redirected( $num_redirected );
 }
 
 #-------------------------------------------------------------------------------
