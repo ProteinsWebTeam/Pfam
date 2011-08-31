@@ -8,6 +8,7 @@
 
 use strict;
 use warnings;
+use Net::SCP;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
@@ -27,8 +28,8 @@ my $total_seq = $config->{pfamseq}->{dbsize};
 
 #Find total number of residues
 my $total_aa;
-if($total_seq == 15929002) { #This is the number of seq for release 26.0
-    $total_aa = 5169768107;
+if($total_seq == 15929002) { #Number of seq for release 26.0
+    $total_aa = 5169768107; #Number of aa for release 26.0
 }
 else {
     my $st_len = $dbh->prepare("select length from pfamseq") or die "Failed to prepare statement:".$dbh->errstr."\n";
@@ -94,9 +95,8 @@ $st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
 
 
 #Copy regions file to cwd
-my $host = $pfamDB->{host};
-system("scp $host:/tmp/$reg_file .") and die "Couldn't scp $host:/tmp/$reg_file to cwd \n";
-
+my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
+$scp->get("/tmp/$reg_file") or die $scp->{errstr};
 
 
 #All rdb queries done
@@ -208,7 +208,7 @@ unlink($sorted_seq);
 
 #Go though each family and calculate cumulative sequence coverage
 my (%seq, %total_seq);
-my ($acc, $id, $pfamA_id, $pfamA_acc);
+my ($acc, $id, $pfamA_id, $pfamA_acc, $auto);
 my $total_seq_without_current_fam =0;
 
 print STDOUT "#pfamA_acc, pfamA_id, clan, num_seq, new_seq, seq_coverage(%)\n";
@@ -217,24 +217,24 @@ while(<FH2>) {
     if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
 	($auto_pfamseq, $auto_pfamA, $start, $end) = ($1, $2, $3, $4);
 
-	$pfamA_acc = $pfamA_acc{$auto_pfamA};
-	$pfamA_id = $pfamA_id{$auto_pfamA};
 
 	unless($acc) {
-	    $acc=$pfamA_acc;
-	    $id=$pfamA_id;
+	    $acc=$pfamA_acc{$auto_pfamA};
+	    $id=$pfamA_id{$auto_pfamA};
+	    $auto=$auto_pfamA;
 	}
 
-	if($acc ne $pfamA_acc) {
-	    my $clan = $clan{$auto_pfamA};
+	if($auto ne $auto_pfamA) {
+	    my $clan = $clan{$auto};
 	    $clan = "No_clan" unless($clan);
 
             calculate(\%seq, \%total_seq, $total_seq_without_current_fam, $acc, $id, $clan, $total_seq);
 
 	    $total_seq_without_current_fam = keys %total_seq;
 
-	    $acc = $pfamA_acc;
-	    $id = $pfamA_id;
+	    $acc = $pfamA_acc{$auto_pfamA};
+	    $id = $pfamA_id{$auto_pfamA};
+	    $auto=$auto_pfamA;
 	    %seq = ();
 	}
 
@@ -250,10 +250,10 @@ while(<FH2>) {
 
 
 #Do last family
-my $clan = $clan{$pfamA_acc};
+my $clan = $clan{$auto};
 $clan = "No_clan" unless($clan);
 
-calculate(\%seq, \%total_seq, $total_seq_without_current_fam, $pfamA_acc, $pfamA_id, $clan, $total_seq);
+calculate(\%seq, \%total_seq, $total_seq_without_current_fam, $acc, $id, $clan, $total_seq);
 
 close FH2;
 unlink($sorted_reg);
