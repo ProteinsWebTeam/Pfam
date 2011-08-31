@@ -44,12 +44,12 @@ my $num_updated    = $u->num_updated;
 my $num_redirected = $u->num_redirected;
 
 if ( $num_redirected ) {
-  print "\n";
+  print "\n\n";
   foreach ( @{ $u->redirected_articles } ) {
     print STDERR '"' . $_->{from} . '" has been redirected to "' 
                  . $_->{to} . qq("\n);
   }
-  print "\n";
+  print "\n\n";
 }
 
 my $now = DateTime->now;
