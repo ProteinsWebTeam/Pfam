@@ -220,6 +220,8 @@ has '_unapprove_values' => (
 #- custom methods --------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+# returns the name of the user who last updated this article in wikipedia
+
 sub last_update_user {
   my $this = shift;
   return scalar @{ $this->history } ? $this->history->[-1]->{user} : undef;
@@ -227,12 +229,17 @@ sub last_update_user {
 
 #-------------------------------------------------------------------------------
 
+# returns the comment that was given when the article was last updated in 
+# wikipedia
+
 sub update_comment {
   my $this = shift;
   return scalar @{ $this->history } ? $this->history->[-1]->{comment} : undef;
 }
 
 #-------------------------------------------------------------------------------
+
+# updates the approval status of this article in the tracking database
 
 sub update_approval {
   my ( $this, $revid, $approved_by, $updated ) = @_;
@@ -249,10 +256,47 @@ sub update_approval {
 
 #-------------------------------------------------------------------------------
 
+# for an article that is redirected, this method returns an array containing
+# a series of hashes, each with the keys "from" and "to", giving the titles of
+# the article redirected from and to. Returns undef for articles that are not
+# redirected.
+
+sub is_redirected {
+  my $this = shift;
+
+  my $response = $this->_mw_api->api( {
+    action    => 'query',
+    titles    => $this->title,
+    redirects => 1,
+  } );
+
+  unless ( $response ) {
+    croak 'Error retrieving redirects for ' . $this->title . ' using API: '
+          . $this->_mw_api->{error}->{details} 
+          . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
+    return;
+  }
+
+  my $redirects = [];
+  if ( $response->{query}->{redirects} ) {
+    foreach my $redirect ( @{ $response->{query}->{redirects} } ) {
+      push @{ $redirects },  $redirect; 
+    }
+  }
+  else {
+    return;
+  }
+
+  return $redirects;
+}
+
+#-------------------------------------------------------------------------------
+
 no Moose;
 
 # don't make the class immutable: it breaks "find_or_create"...
 # __PACKAGE__->meta->make_immutable;
+# __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 
 1;
 
