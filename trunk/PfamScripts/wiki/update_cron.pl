@@ -44,12 +44,19 @@ my $num_updated    = $u->num_updated;
 my $num_redirected = $u->num_redirected;
 
 if ( $num_redirected ) {
-  print "\n\n";
-  foreach ( @{ $u->redirected_articles } ) {
-    print STDERR '"' . $_->{from} . '" has been redirected to "' 
-                 . $_->{to} . qq("\n);
+  print "\n";
+  foreach my $redirect ( @{ $u->redirected_articles } ) {
+    print STDERR q(") . $redirect->{from} . q(" has been redirected to ") 
+                 . $redirect->{to} . q(");
+    if ( $redirect->{row}->article_mappings ) {
+      print ', used by ';
+      foreach my $mapping ( $redirect->{row}->article_mappings ) {
+        print ucfirst $mapping->db . ' ' . $mapping->accession . ' ';
+      }
+    }
+    print "\n";
   }
-  print "\n\n";
+  print "\n";
 }
 
 my $now = DateTime->now;
