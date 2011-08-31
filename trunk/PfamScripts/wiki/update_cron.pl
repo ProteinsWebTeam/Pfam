@@ -39,11 +39,21 @@ my $wa = WikiApprove->connect( $dsn, $conf->{username}, $conf->{password} );
 my $u = Bio::Pfam::Wiki::Updater->new( schema => $wa );
 $u->update_all;
 
-my $checked = $u->num_checked;
-my $updated = $u->num_updated;
+my $num_checked    = $u->num_checked;
+my $num_updated    = $u->num_updated;
+my $num_redirected = $u->num_redirected;
+
+if ( $num_redirected ) {
+  print "\n";
+  foreach ( @{ $u->redirected_articles } ) {
+    print STDERR '"' . $_->{from} . '" has been redirected to "' 
+                 . $_->{to} . qq("\n);
+  }
+  print "\n";
+}
 
 my $now = DateTime->now;
-print STDERR "$now: updated last revision IDs for $updated out of $checked checked articles\n";
+print STDERR "$now: updated last revision IDs for $num_updated out of $num_checked checked articles. Found $num_redirected redirected article(s).\n";
 
 # if given in the configuration, append a snippet of text to the output. This is
 # to allow URLs, etc., to be added to the cron output
