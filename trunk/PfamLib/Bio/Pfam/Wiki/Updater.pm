@@ -95,7 +95,8 @@ Returns a reference to an array containing the titles of updated articles.
 
 Returns a reference to an array containing the titles of redirected articles.
 Each element of the array is a hash, with keys "from" and "to", giving the 
-titles of the article redirected from and to.
+titles of the article redirected from and to, and "row" giving a reference
+to the DBIC row object for the article.
 
 =cut
 
@@ -272,8 +273,8 @@ sub _update {
     $num_checked++;
     my $latest_revid = $this->_get_last_revid( $article->title );
 
-    if ( my $is_redirected = $article->is_redirected ) {
-      push @{ $this->redirected_articles }, @$is_redirected;
+    if ( my $redirects = $article->get_redirects ) {
+      push @{ $this->redirected_articles }, @$redirects;
       $num_redirected++;
     }
 
