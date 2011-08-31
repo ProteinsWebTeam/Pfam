@@ -48,6 +48,15 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("title");
 
 #-------------------------------------------------------------------------------
+#- relationships ---------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+__PACKAGE__->has_many(
+  article_mappings => 'WikiApprove::ArticleMapping',
+  'title'
+);
+
+#-------------------------------------------------------------------------------
 #- accessors -------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -258,10 +267,10 @@ sub update_approval {
 
 # for an article that is redirected, this method returns an array containing
 # a series of hashes, each with the keys "from" and "to", giving the titles of
-# the article redirected from and to. Returns undef for articles that are not
-# redirected.
+# the article redirected from and to, and "row" giving a reference to this 
+# object. Returns undef for articles that are not redirected.
 
-sub is_redirected {
+sub get_redirects {
   my $this = shift;
 
   my $response = $this->_mw_api->api( {
@@ -280,7 +289,8 @@ sub is_redirected {
   my $redirects = [];
   if ( $response->{query}->{redirects} ) {
     foreach my $redirect ( @{ $response->{query}->{redirects} } ) {
-      push @{ $redirects },  $redirect; 
+      $redirect->{row} = $this;
+      push @{ $redirects }, $redirect; 
     }
   }
   else {
