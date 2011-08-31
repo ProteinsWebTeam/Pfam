@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl -w
+#!/usr/bin/env perl
 
 # They said it couldn't be done! They might have been right.
 # A script to automagically annotate Pfam families.  Generally its use is 
@@ -13,6 +13,7 @@
 #  5) Would be nice to order keywords by frequency
 
 use strict;
+use warnings;
 use Text::Wrap;
 use Getopt::Long;
 
