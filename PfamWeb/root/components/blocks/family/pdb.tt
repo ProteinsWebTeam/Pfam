@@ -26,7 +26,10 @@ RETURN UNLESS summaryData.numStructures;
       Pfam domains onto UniProt sequences and three-dimensional protein 
       structures. The table below
       shows the structures on which the <strong>[% pfam.pfama_id %]</strong>
-      domain has been found. 
+      domain has been found. There are [% summaryData.numStructures %]
+      instances of this domain found in the PDB. Note that there may be 
+      multiple copies of the domain in a single PDB structure, since many 
+      structures contain multiple copies of the same protein seqence.
     </p>
 
     <div id="familyStructureTabHolder">
