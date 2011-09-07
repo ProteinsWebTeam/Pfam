@@ -51,7 +51,7 @@ if ( $num_redirected ) {
     if ( $redirect->{row}->article_mappings ) {
       print STDERR ', used by ';
       foreach my $mapping ( $redirect->{row}->article_mappings ) {
-        print ucfirst $mapping->db . ' ' . $mapping->accession . ' ';
+        print STDERR ucfirst $mapping->db . ' ' . $mapping->accession . ' ';
       }
     }
     print STDERR "\n";
