@@ -64,11 +64,16 @@ requirements.cssIe.push( "family_ie.css" );
       
       <div class="cleaner"></div>
       
-    [% END; # of "IF clan" -%]
+    [% END; # of "IF clan"
  
+    # get the URL-safe title (including underscores for spaces) from the article_mapping
+    # table, and convert it to a human-readable version for dropping into the web page
+    normalizedTitle = article.title;
+    title           = article.title.replace( "_", " " ) -%]
+
     <h1>
       Wikipedia annotation
-      <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% rfam.auto_wiki.title %]">
+      <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% normalizedTitle %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
              src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
@@ -77,9 +82,9 @@ requirements.cssIe.push( "family_ie.css" );
       The Rfam group coordinates the annotation of Rfam families in  
       <a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA">
         Wikipedia</a>. This family is described by a Wikipedia entry entitled  
-      <strong>[% rfam.auto_wiki.title.replace( "_", " " ) %]</strong>.
+      <strong>[% title %]</strong>.
       You can see the Wikipedia page for this family 
-      <a href="http://en.wikipedia.org/w/index.php?title=[% rfam.auto_wiki.title %]"
+      <a href="http://en.wikipedia.org/w/index.php?title=[% normalizedTitle %]"
          class="ext">here</a>
       [%- UNLESS article.wikitext AND article.wikitext.text %]
       but we are unable to retrieve the article content at this time
@@ -214,7 +219,7 @@ requirements.cssIe.push( "family_ie.css" );
 
     <p id="wpLicense">
       This page is based on a 
-      <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% rfam.auto_wiki.title %]">
+      <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% normalizedTitle %]">
         wikipedia article</a>. The text is available under the 
       <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
         Creative Commons Attribution/Share-Alike License</a>.
