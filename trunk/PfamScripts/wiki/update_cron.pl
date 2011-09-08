@@ -48,11 +48,13 @@ if ( $num_redirected ) {
   foreach my $redirect ( @{ $u->redirected_articles } ) {
     print STDERR q(") . $redirect->{from} . q(" has been redirected to ") 
                  . $redirect->{to} . q(");
-    if ( $redirect->{row}->article_mappings ) {
+    my @mappings =  $redirect->{row}->article_mappings; 
+    if ( scalar @mappings ) {
       print STDERR ', used by ';
-      foreach my $mapping ( $redirect->{row}->article_mappings ) {
-        print STDERR ucfirst $mapping->db . ' ' . $mapping->accession . ' ';
-      }
+      print STDERR ucfirst $_->db . ' ' . $_->accession . ' ' for @mappings;
+    }
+    else {
+      print STDERR ", NOT USED";
     }
     print STDERR "\n";
   }
