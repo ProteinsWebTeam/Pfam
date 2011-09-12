@@ -35,13 +35,11 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 14,
   },
+  "title",
+  { data_type => "TINYTEXT", default_value => "", is_nullable => 1, size => 255 },
 );
 __PACKAGE__->add_unique_constraint("pfamA_acc", ["pfama_acc"]);
+__PACKAGE__->set_primary_key("pfama_acc");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-07-24 17:53:29
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3N/eAyuLsymFIg7SmhN79g
-
-
-# You can replace this text with custom content, and it will be preserved on regeneration
 1;
