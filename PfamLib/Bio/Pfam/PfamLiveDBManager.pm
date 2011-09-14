@@ -332,14 +332,25 @@ sub movePfamA {
 
 sub deletePfamA {
   my ( $self, $family, $comment, $forward, $user ) = @_;
-  my $pfamA =
-    $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } );
+
+  my $pfamA = $self->getSchema->resultset('Pfama')->search( { pfama_acc => $family }, { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
+
+
+  my $wiki_page; #Store wiki link as need this for the website
+  foreach my $article ( $pfamA->articles ) {
+    $wiki_page = $article->title;
+    last;
+  }
+
+
   $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } )
     ->delete;
+
+
 
   #Now make the dead_families entry
   $self->getSchema->resultset('DeadFamilies')->create(
@@ -349,7 +360,8 @@ sub deletePfamA {
       comment    => $comment,
       forward_to => $forward,
       user       => $user,
-      killed     => \'NOW()'
+      killed     => \'NOW()',
+      title      => $wiki_page
     }
   );
 
