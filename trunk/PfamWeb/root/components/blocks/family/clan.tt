@@ -15,7 +15,7 @@ oe = 0;
 
 <div class="block" id="clanBlock">
   <div class="handle">
-    <h1>Pfam Clans</h1>
+    <h1>Pfam Clan</h1>
   </div>
   <div class="blockContent">
 
