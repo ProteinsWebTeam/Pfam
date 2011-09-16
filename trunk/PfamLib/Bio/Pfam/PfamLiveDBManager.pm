@@ -13,6 +13,9 @@ use PfamLive;
 use strict;
 use warnings;
 use Compress::Zlib;
+use POSIX;
+use Parallel::ForkManager;
+use DBIx::Connector;
 
 sub new {
   my $caller    = shift;
@@ -252,7 +255,7 @@ sub updatePfamA {
 
   #Now update the numbers in the SEED and FULL
   $pfamA->num_seed( $famObj->SEED->no_sequences );
-  $pfamA->num_full( $famObj->ALIGN->no_sequences );
+  $pfamA->num_full( $famObj->scores->numRegions );
 
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
@@ -297,7 +300,7 @@ sub createPfamA {
       forward_lambda => $famObj->HMM->forwardStats->{lambda},
       model_length   => $famObj->HMM->length,
       num_seed       => $famObj->SEED->no_sequences,
-      num_full       => $famObj->ALIGN->no_sequences,
+      num_full       => $famObj->scores->numRegions,
       created        => \'NOW()',
     }
   );
@@ -550,17 +553,59 @@ sub updatePfamARegFull {
   #  ->search( { auto_pfama => $auto } )->delete;
 
 #-------------------------------------------------------------------------------
+#All of the quires are set up now prepare the data
+
+#Find out which sequences have made it in to the full alignment from the scores file
+  my $inFullHash;
+  my $regions = $famObj->scores->regions;
+  my $rc = 0;
+  foreach my $seq ( keys %{$regions} ) {
+    foreach my $se ( @{ $regions->{$seq} } ) {
+      $inFullHash->{ $seq . "/" . $se->{start} . "-" . $se->{end} }++;
+      $rc++;
+    }
+  }
+#-------------------------------------------------------------------------------
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
-  my $dbh = $self->getSchema->storage->dbh;
-  $dbh->begin_work;
-  $dbh->do("delete from pfamA_reg_full_insignificant where auto_pfamA=$auto");
-  $dbh->do("delete from pfamA_reg_full_significant where auto_pfamA=$auto");
-  my $seq_sth = $dbh->prepare(
-    'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
+  my $dsn = "dbi:mysql:database=pfam_live;host=pfamdb2a;port=3304";
+  my $user = 'pfamadmin';
+  my $pass = 'mafpAdmin';
+  my $max_procs = 8;
+  if($rc > 10000){
+    $max_procs = 2;
+  }
+  if($rc > 50000){
+    $max_procs=0;
+  }
+  my $pm = new Parallel::ForkManager($max_procs);    
+  
+  my $conn = DBIx::Connector->new($dsn, $user, $pass, 
+    {
+        AutoCommit       => 0,
+        PrintError       => 0,
+        RaiseError       => 1,
+        ChopBlanks       => 1,
+        FetchHashKeyName => 'NAME_lc',
+    }
   );
 
-  my $upSigSth = $dbh->prepare(
+  $conn->mode('fixup');
+  my $dbh = $conn->dbh;
+  $dbh->do("delete from pfamA_reg_full_insignificant where auto_pfamA=$auto");
+  $dbh->do("delete from pfamA_reg_full_significant where auto_pfamA=$auto");
+  $dbh->commit;
+
+  my $parts = ceil($rc/1000);
+  $parts = $max_procs if($parts < $max_procs);
+  my $range = ceil(scalar(@{$famObj->PFAMOUT->eachHMMSeq})/$parts);
+  foreach my $bit (1 .. $parts){
+    my $pid = $pm->start() and next;
+    my $min = ($bit - 1) * $range;
+    my $max = ($bit * $range)-1;           
+    $conn->txn( sub {
+      my $dbh = shift;
+    my $upSigSth = $dbh->prepare(
     'INSERT INTO pfamA_reg_full_significant
     (auto_pfamA, 
     auto_pfamseq, 
@@ -596,17 +641,8 @@ sub updatePfamARegFull {
 #-------------------------------------------------------------------------------
 #All of the quires are set up now prepare the data
 
-#Find out which sequences have made it in to the full alignment from the scores file
-  my $inFullHash;
-  my $regions = $famObj->scores->regions;
-  foreach my $seq ( keys %{$regions} ) {
-    foreach my $se ( @{ $regions->{$seq} } ) {
-      $inFullHash->{ $seq . "/" . $se->{start} . "-" . $se->{end} }++;
-    }
-  }
-
-  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
-
+  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq }[$min..$max] ) {
+    next unless($seq);  
     #Get the auto number for this sequence
     my $sauto;
     if ( $seqacc2auto{ $seq->name } ) {
@@ -668,6 +704,9 @@ sub updatePfamARegFull {
     }
   }
   $dbh->commit;
+  });
+  $pm->finish;
+  }
 }
 
 sub updateNcbiPfamA {

@@ -134,7 +134,7 @@ sub initiateFamilyViewProcess {
 # Now clear out any existing jobs for that family.
   Bio::Pfam::ViewProcess::killFamilyJob( $famObj->DESC->AC, $db );
 
-  my $size = $famObj->ALIGN->no_sequences;
+  my $size = $famObj->scores->numRegions;
 
   #Add the job to the pfam_jobs database.
   my $transaction = sub {
