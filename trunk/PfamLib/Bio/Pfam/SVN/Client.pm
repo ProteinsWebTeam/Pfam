@@ -429,7 +429,7 @@ sub checkoutFamily {
   };
 
   if ($@) {
-    confess("Failed to check out family, $family:[$!]\n");
+    confess("Failed to check out family, $family:[$@]\n");
   }
 }
 
