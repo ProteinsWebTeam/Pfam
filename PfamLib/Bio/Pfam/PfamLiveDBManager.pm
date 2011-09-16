@@ -553,6 +553,7 @@ sub updatePfamARegFull {
   #  ->search( { auto_pfama => $auto } )->delete;
 
 #-------------------------------------------------------------------------------
+
 #All of the quires are set up now prepare the data
 
 #Find out which sequences have made it in to the full alignment from the scores file
@@ -568,6 +569,7 @@ sub updatePfamARegFull {
 #-------------------------------------------------------------------------------
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
+
   my $dsn = "dbi:mysql:database=pfam_live;host=pfamdb2a;port=3304";
   my $user = 'pfamadmin';
   my $pass = 'mafpAdmin';
@@ -595,6 +597,7 @@ sub updatePfamARegFull {
   $dbh->do("delete from pfamA_reg_full_insignificant where auto_pfamA=$auto");
   $dbh->do("delete from pfamA_reg_full_significant where auto_pfamA=$auto");
   $dbh->commit;
+
 
   my $parts = ceil($rc/1000);
   $parts = $max_procs if($parts < $max_procs);
@@ -640,6 +643,7 @@ sub updatePfamARegFull {
 
 #-------------------------------------------------------------------------------
 #All of the quires are set up now prepare the data
+
 
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq }[$min..$max] ) {
     next unless($seq);  

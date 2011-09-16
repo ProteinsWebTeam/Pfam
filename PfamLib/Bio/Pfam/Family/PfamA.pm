@@ -239,6 +239,7 @@ subtype 'PfamId'
 has 'ALIGN' => (
   is       => 'ro',
   isa      => 'AlignPfamA',
+  required => 0,
   coerce   => 1,
   #handles  => [ qw( length each_seq write_stockholm) ],
 );
