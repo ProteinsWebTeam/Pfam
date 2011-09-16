@@ -75,7 +75,7 @@ sub new {
 }
 
 sub loadPfamAFromLocalFile {
-  my ( $self, $family, $dir, $source ) = @_;
+  my ( $self, $family, $dir, $source, $withoutAlign ) = @_;
 
   unless ( -d "$dir/$family" ) {
     confess("Could not find family directory $dir/$family");
@@ -86,9 +86,14 @@ sub loadPfamAFromLocalFile {
     unless ( -s "$dir/$family/$f" ) {
       confess("Could not find $dir/$family/$f\n");
     }
+
     if(defined($source) and $source eq 'commit'){
       next if($f eq 'ALIGN');  
     }
+    if(defined($withoutAlign) and $withoutAlign == 1 ){
+      next if($f eq 'ALIGN');  
+    }
+
     my $fh;
 
     #print "Opening $dir/$family/$f\n";
@@ -107,7 +112,7 @@ sub loadPfamAFromLocalFile {
 }
 
 sub loadPfamAFromSVN {
-  my ( $self, $family, $client ) = @_;
+  my ( $self, $family, $client, $withoutAlign ) = @_;
 
   my $dir = File::Temp->newdir( 'CLEANUP' => 0 );
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
@@ -118,7 +123,7 @@ sub loadPfamAFromSVN {
     $client->catFile( $family, $f, $fh );
     close($fh);
   }
-  my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn' );
+  my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn', $withoutAlign );
   return $famObj;
 }
 
