@@ -86,6 +86,9 @@ sub loadPfamAFromLocalFile {
     unless ( -s "$dir/$family/$f" ) {
       confess("Could not find $dir/$family/$f\n");
     }
+    if(defined($source) and $source eq 'commit'){
+      next if($f eq 'ALIGN');  
+    }
     my $fh;
 
     #print "Opening $dir/$family/$f\n";

@@ -91,7 +91,8 @@ sub new {
 
 sub commitFamily {
   my ( $self, $pfamDB, $msg ) = @_;
-  
+ 
+  my $author = $self->author;
   #Make an object to respresent the family based on the SVN transcation
   my $familyIO = Bio::Pfam::FamilyIO->new;
   
@@ -117,10 +118,10 @@ sub commitFamily {
   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
-    Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
+    Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $author, $self->{config});
   }else{
     #If we have not died, then we should be good to go! 
-    Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
+    Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $author, $self->{config});
   }
 
 }
@@ -243,7 +244,7 @@ sub _getFamilyObjFromTrans {
   
   
   #Write all of the files for this transaction to disk and then read them
-  my $dir =  File::Temp->newdir();
+  my $dir =  File::Temp->newdir( DIR => "/pfam/repos/tmp");
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   my $params;
   foreach  my $f ( @{ $self->{config}->mandatoryFamilyFiles }) {
@@ -257,7 +258,7 @@ sub _getFamilyObjFromTrans {
     close($fh);
   }
  
-  my $famObj = $familyIO->loadPfamAFromLocalFile($family, $dir, 'svn');
+  my $famObj = $familyIO->loadPfamAFromLocalFile($family, $dir, 'commit');
   
   return($famObj, $family, $dir);
 }
@@ -314,9 +315,9 @@ sub _qualityControlFamily {
   my  ($self, $famObj, $dir, $family, $pfamDB, $msg) = @_; 
   
  #Perform all of the format checks
-  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
-    exit(1); 
-  }
+  #unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
+  #  exit(1); 
+  #}
   
   #Need to add sequence checker here!
   
@@ -352,7 +353,7 @@ sub _qualityControlFamily {
     if($clan->DESC->MEMB){
       foreach my $m (@{ $clan->DESC->MEMB }){
         $ignore{$m}++;  
-        print STDERR "Ignoring $m in overlaps\n";
+        #print STDERR "Ignoring $m in overlaps\n";
       }
     }
       
@@ -363,12 +364,12 @@ sub _qualityControlFamily {
   }  
   
   if(defined($msg) and $msg !~ /Release \d+ update/){
-    my $compete = 1;
-    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
-    warn "$family: found $overlaps overlaps\n";
-    if ($overlaps) {
-      confess("Found overlaps\n");
-    } 
+    #my $compete = 1;
+    #my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
+    #warn "$family: found $overlaps overlaps\n";
+    #if ($overlaps) {
+    #  confess("Found overlaps\n");
+    #} 
   }
 }
 

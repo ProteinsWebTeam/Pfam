@@ -239,7 +239,6 @@ subtype 'PfamId'
 has 'ALIGN' => (
   is       => 'ro',
   isa      => 'AlignPfamA',
-  required => 1,
   coerce   => 1,
   #handles  => [ qw( length each_seq write_stockholm) ],
 );
@@ -284,7 +283,7 @@ has 'DESC' => (
 
 has 'source' => (
   is    => 'ro',
-  isa   => enum ([ qw(database file svn) ]),
+  isa   => enum ([ qw(database file svn commit) ]),
 );
 
 has 'rdb' => (
