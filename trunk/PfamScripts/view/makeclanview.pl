@@ -126,14 +126,13 @@ foreach my $mem (@$clanMemRef) {
 # Give a clan we want to first compete all of the members within that clan.
 $logger->debug("Competing the clan members");
 Bio::Pfam::Clan::Compete::competeClan( $clanAcc, $pfamDB );
-$clanData->update( { competed => 1 } );
 
 #-------------------------------------------------------------------------------
 # Now trigger off the view processes for all of the family members.
 # Needs to happen after the competion. Will need to tweak the view process
 # to make sure that the QC does not fail on alignment sizes compared with the database
 my $hmmio = Bio::Pfam::HMM::HMMIO->new;
-
+if(scalar(@$clanMemAcc) <= 40){
 foreach my $fam (@$clanMemAcc) {
 
   #We are going to need the HMMs and SEED alignmetns
@@ -182,17 +181,11 @@ foreach my $fam (@$clanMemAcc) {
   }
 
 }
-
+}
 #-------------------------------------------------------------------------------
 # Would be good to add summary data to the clan table.
-
-$logger->debug("Calculating the number of architectures");
 #No archs
-my $noArchRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-  { join => [qw(pfamseq clan_membership)],
-    columns => [ qw(pfamseq.auto_architecture) ],
-    distinct => 1 } );
-my $noArch = $noArchRS->count;
+my $noArch = 0;
 
 $logger->debug("Calculating the number of sequences");
 #No Seqs
@@ -281,11 +274,14 @@ close(STO);
 $pfamDB->getSchema
         ->resultset('ClanAlignmentsAndRelationships')
           ->update_or_create({ auto_clan => $clanData->auto_clan,
-                               stockholm => $clanDescZip});
+                               stockholm => $clanDescZip,
+                               alignment => undef,
+                               image_map => undef,
+                               relationship => undef });
 
 #-------------------------------------------------------------------------------
 # Make clan alignment and relationship images
-
+if(scalar(@$clanMemAcc) <= 40){ 
 $logger->debug("Going to run hhsearch for clan members");
 my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $config, $job );
 
@@ -293,7 +289,7 @@ $logger->debug("Making clan alignment");
 makeAlign( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
 $logger->debug("Making clan relationship diagram");
 makeGraph( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
-
+}
 
 #-------------------------------------------------------------------------------
 $logger->debug("Initiating view process for family members");
@@ -304,7 +300,7 @@ foreach my $fam (@$clanMemAcc){
   
   my $famObj;
   eval{
-    $famObj = $familyIO->loadPfamAFromSVN($fam, $client);
+    $famObj = $familyIO->loadPfamAFromSVN($fam, $client, 1);
   };
   if($@){
     Bio::Pfam::ViewProcess::mailUserAndFail( $job,
