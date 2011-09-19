@@ -350,7 +350,7 @@ foreach my $filename (qw(ALIGN SEED)) {
     my %species;
 
     foreach my $nse ( keys %regs ) {
-      $species{ $regs{$nse}->ncbi_taxid } = 1;
+      $species{ $regs{$nse}->ncbi_taxid->ncbi_taxid } = 1;
       $no_aa_in_sequences += $regs{$nse}->length;
       $no_aa_in_domain += ( $regs{$nse}->seq_end - $regs{$nse}->seq_start + 1 );
     }
@@ -720,6 +720,22 @@ $sthMinMax->finish;
 $logger->debug("Building JSON string for species tree");
 makeSpeciesJsonString( $pfam->auto_pfama, $pfamDB, $dbh );
 
+#-------------------------------------------------------------------------------
+#Now remove the number of regions in ncbi and metagenomics and the ALIGNMENT files;
+$pfamDB->getSchema->resultset('AlignmentsAndTrees')
+  ->search( { auto_pfama => $pfam->auto_pfama,
+              type       => 'ncbi' } )->delete;
+
+$pfamDB->getSchema->resultset('AlignmentsAndTrees')
+  ->search( { auto_pfama => $pfam->auto_pfama,
+              type       => 'meta' } )->delete;
+              
+$pfamDB->getSchema->resultset('NcbiPfamaReg')
+  ->search( { auto_pfama => $pfam->auto_pfama } )->delete;
+  
+$pfamDB->getSchema->resultset('MetaPfamaReg')
+  ->search( { auto_pfama => $pfam->auto_pfama } )->delete;
+ 
 #-------------------------------------------------------------------------------
 #This is a dirty hack!!!!
 write_DESC_file( $pfam, $pfamDB );
