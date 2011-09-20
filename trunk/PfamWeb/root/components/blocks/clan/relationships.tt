@@ -44,7 +44,7 @@
 
     [% IF relationshipImage.defined AND relationshipImageMap.defined %]
       <img id="clanImage"
-           src="[% c.uri_for( '/clan/relationship/image', { acc = acc } ) %]"
+           src="[% c.uri_for( '/clan/' _ acc _ '/relationship_image' ) %]"
            alt=""
            usemap="#clanMap" />
   	  <map name="clanMap" id="clanMap">
