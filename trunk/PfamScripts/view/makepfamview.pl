@@ -390,7 +390,10 @@ foreach my $filename (qw(ALIGN SEED)) {
         number_species   => $noSpecies,
         average_length   => $averageLength,
         average_coverage => $averageCoverage,
-        full_consensus   => $consensus
+        full_consensus   => $consensus,
+        number_meta      => 0,
+        number_ncbi      => 0,
+        number_archs     => 0
       }
     );
 
