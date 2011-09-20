@@ -75,7 +75,7 @@ sub begin : Private {
                       '';
   
   if ( $tainted_entry ) {
-    $c->log->debug( 'Family::begin: got a tainted entry' )
+    $c->log->debug( 'Clan::begin: got a tainted entry' )
       if $c->debug;
     ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\.-]+)$/
   }
@@ -312,6 +312,49 @@ sub desc : Chained( 'clan' )
     $c->res->status( 404 );
     $c->res->body( 'No such clan' );
   }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 image : Local
+
+Serves the image file for the clan relationship diagram.
+
+=cut
+
+sub image : Chained('clan')
+            PathPart('relationship_image')
+            Args(0) {
+  my( $this, $c ) = @_;
+  
+  $c->log->debug( 'Clan::image: serving clan relationship image' )
+    if $c->debug;
+  
+  if( defined $c->stash->{relationshipImage} ) {
+    $c->res->content_type( 'image/gif' );
+    $c->res->body( $c->stash->{relationshipImage} );
+  } else {
+    # TODO this is bad. We should avoid hard-coding a path to an image here
+    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+  }
+
+}
+
+#---------------------------------------
+
+=head2 old_image : Local
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_alignment : Path( '/clan/relationship/image' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Clan::old_image redirecting to "relationship_image"' )
+    if $c->debug;
+
+  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/relationship_image' ) );
 }
 
 #-------------------------------------------------------------------------------
