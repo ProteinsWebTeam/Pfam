@@ -272,7 +272,7 @@ sub calculate { #Subroutine to calculate seq coverage for each family
     my $seq_cov = ($num_seq/$total_seq)*100;
     
    
-    print STDOUT sprintf ("%5s, %7s, %-17s, %7s, %7s, %7s,  %-21s\n", $auto_pfamA, $pfamA_acc, $pfamA_id, $clan, $seq_in_fam, $num_seq_added, $seq_cov); 
+    print STDOUT sprintf ("%5s, %7s, %17s, %7s, %7s, %7s,  %-21s\n", $auto_pfamA, $pfamA_acc, $pfamA_id, $clan, $seq_in_fam, $num_seq_added, $seq_cov); 
     
 }
 
