@@ -136,7 +136,6 @@ sub begin : Private {
   # that build page components
   if( ref $this eq 'PfamWeb::Controller::Structure' ) {
     $c->forward( 'get_summary_data' );
-    $c->forward( 'get_authors' );
   }
   
   # add the mapping between structure, sequence and family. We need this for 
@@ -232,25 +231,6 @@ sub get_summary_data : Private {
   }
 
   $c->stash->{summaryData} = $summary;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 getAuthors : Private
-
-Add the list of authors to the stash.
-
-=cut
-
-sub get_authors : Private {
-  my ( $this, $c ) = @_;
-
-  # get the authors list
-  my @authors = $c->model('PfamDB::PdbAuthor')
-                  ->search( { pdb_id => $c->stash->{pdb}->pdb_id },
-                            { order_by => 'author_order ASC' } );
-
-  $c->stash->{authors} = \@authors;
 }
 
 #-------------------------------------------------------------------------------
