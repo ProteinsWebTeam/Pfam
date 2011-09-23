@@ -1,6 +1,6 @@
 
 [%
-# browseClans.tt
+# clans.tt
 # jt6 20060821 WTSI
 # 
 # build a "browse" page for clans
@@ -64,10 +64,10 @@ pageList = PROCESS "components/pageList.tt",
   	  <td>
         <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
            id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
-           href="[% clanURI %]?acc=[% clan.clan_acc %]">
+           href="[% clanURI %]/[% clan.clan_id %]">
           [% clan.clan_id %]</a>
       </td>
-      <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
+      <td><a href="[% clanURI %]/[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
       <td>
         [% # there could be zero, one or multiple SCOP IDs for each clan...
         links = BLOCK;
