@@ -42,7 +42,7 @@ extRequirements.js.push( "http://www.ebi.ac.uk/pdbe-apps/widgets/js/pdbprints.js
 
 #-------------------------------------------------------------------------------
 
-pdbId = pdb.pdb_id;
+pdbId = pdb.pdb_id|lower; # PDBPrints needs it lower-case and it's just plain prettier that way anyway !
 title = pdb.title;
 oe    = 0;
 %]
@@ -73,7 +73,7 @@ oe    = 0;
       </div>
     [% END %]
 
-    <h1>PDB entry [% pdb.pdb_id %]</h1>
+    <h1>PDB entry [% pdbId %]</h1>
 
     <p>
     [% IF title;
@@ -118,18 +118,14 @@ oe    = 0;
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-    		  <td class="label">Deposition date:</td>
+    		  <td class="label">Release date:</td>
   	      <td class="data">
             [% pdb.date || '<span class="inactive">n/a</span>' %]
           </td>
     		</tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Authors:</td>
-          <td class="data">
-          [% FOREACH author IN authors -%]
-            <span class="authorName">[% author.name; ", " UNLESS loop.last %]</span>
-          [% END -%]
-          </td>
+          <td class="data">[% pdb.author %]</td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
     		  <td class="label">Species:</td>
