@@ -45,8 +45,13 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 255,
   },
-  "pubmed_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "author",
+  {
+    data_type => "MEDIUMTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
 );
 __PACKAGE__->set_primary_key("pdb_id");
 __PACKAGE__->has_many(
@@ -75,9 +80,10 @@ __PACKAGE__->has_many(
   { "foreign.pdb_id" => "self.pdb_id" },
 );
 
-
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-18 18:25:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zuoHssnXw1lIyUTrfSBb/g
+# this is redundant now. Manually modified to remove "pubmed_id" column
+# and add "authors".
+## Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-18 18:25:15
+## DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zuoHssnXw1lIyUTrfSBb/g
 
 
 __PACKAGE__->might_have(
