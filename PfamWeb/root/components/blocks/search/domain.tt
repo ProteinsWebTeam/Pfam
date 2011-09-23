@@ -49,18 +49,25 @@ pageList = PROCESS "components/pageList.tt",
   </div>
   <div class="blockContent">
 
+    <a href="[% c.uri_for('/search/pfamalyzer/applet') %]"
+       onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+      <img id="paLogo"
+           alt="Search for domain architectures using PfamAlyzer"
+           src="[% c.uri_for('/static/images/PfamAlyzer.png') %]" /></a>
+
     <p>
-      Search using 
+      Search for sequence architectures using the
       <a href="[% c.uri_for('/search/pfamalyzer/applet') %]"
-         onclick="popUp(this.href,'console',800,800,'avWin');return false;">PfamAlyzer</a>.
+         onclick="popUp(this.href,'console',800,800,'avWin');return false;">PfamAlyzer</a>
+      applet.
       <span class="moreLink" onclick="reveal(this,'paNotes',false, true)">More...</span>
     </p>
 
     <div id="paNotes" style="display: none">
       <p>
-        PfamAlyzer is designed to provide insight into the Pfam protein domain database. 
-        It integrates and extends many popular Pfam tools and provides means for the 
-        study of domain architecture evolution. 
+        PfamAlyzer is designed to provide insight into the Pfam protein domain
+        database. It integrates and extends many popular Pfam tools and
+        provides means for the study of domain architecture evolution. 
       </p>
       <p>
         You can read more about PfamAlyzer in an accompanying 
@@ -69,9 +76,6 @@ pageList = PROCESS "components/pageList.tt",
         <a href="[% c.uri_for( '/static/documents/PfamAlyzer_poster.pdf' ) %]">
           poster</a> (PDF format).
       </p>
-
-      <h3>For which platforms is PfamAlyzer available?</h3>
-
       <p>
         PfamAlyzer is implemented as a Java applet. It requires a Java runtime
         environment (JRE) of at least 
@@ -96,6 +100,8 @@ pageList = PROCESS "components/pageList.tt",
         kindly to grant PfamAlyzer access to the clipboard.
       </p>
     </div>
+
+    <div class="cleaner"><!-- empty --></div>
 
     <hr />
 
