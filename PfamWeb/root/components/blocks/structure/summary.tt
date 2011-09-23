@@ -148,7 +148,7 @@ oe    = 0;
               [% END %]
           </td>
     		</tr>
-        [% IF pdb.pubmed_id != 0 %]
+        [% IF pdb.pubmed_id %]
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
     		  <td class="label">PubMed reference:</td>
   	      <td class="data">
