@@ -120,6 +120,23 @@ sub clan : Chained( '/' )
   $c->forward( 'get_data', [ $entry ] );
 }
 
+#---------------------------------------
+
+=head2 old_clan : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_clan : Path( '/clan' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Clan::old_clan: redirecting to "clan"' )
+    if $c->debug;
+  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} ) );
+}
+
+
 #-------------------------------------------------------------------------------
 
 =head2 clan_end : Chained
