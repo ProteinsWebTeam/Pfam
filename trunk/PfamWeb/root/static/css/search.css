@@ -272,3 +272,9 @@ table.pageList span.letter {
   text-decoration: none;
   color: #040404;
 }
+
+#paLogo {
+  float: right;
+  padding-left: 1em;
+}
+
