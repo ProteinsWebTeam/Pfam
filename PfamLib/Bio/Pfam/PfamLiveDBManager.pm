@@ -89,7 +89,8 @@ sub updateClanMembership {
   my ($result);
   carp(
     "Updating clan membership with auto_clan: $autoClan, auto_pfamA: $autoPfamA"
-  ) if ( $self->{'debug'} );
+    )
+    if ( $self->{'debug'} );
   if ( $autoClan && $autoPfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find_or_create(
       {
@@ -112,12 +113,12 @@ sub removeFamilyFromClanMembership {
   carp(
     "Removing family from clan membership: $autoClan, auto_pfamA: $autoPfamA")
     if ( $self->{'debug'} );
-    #print STDERR "Got $clan, $pfamA\n";
+
+  #print STDERR "Got $clan, $pfamA\n";
   #my $r = $self->getSchema->resultset('Clans')->find({clan_acc => $clan});
   #my $autoClan = $r->auto_clan;
   #$r = $self->getSchema->resultset('Pfama')->find({pfama_acc => $pfamA});
   #my $autoPfamA = $r->auto_pfama;
-
 
   if ( $autoClan && $autoPfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find(
@@ -336,24 +337,22 @@ sub movePfamA {
 sub deletePfamA {
   my ( $self, $family, $comment, $forward, $user ) = @_;
 
-  my $pfamA = $self->getSchema->resultset('Pfama')->search( { pfama_acc => $family }, { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
+  my $pfamA =
+    $self->getSchema->resultset('Pfama')->search( { pfama_acc => $family },
+    { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
 
-
-  my $wiki_page; #Store wiki link as need this for the website
+  my $wiki_page;    #Store wiki link as need this for the website
   foreach my $article ( $pfamA->articles ) {
     $wiki_page = $article->title;
     last;
   }
 
-
   $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } )
     ->delete;
-
-
 
   #Now make the dead_families entry
   $self->getSchema->resultset('DeadFamilies')->create(
@@ -428,21 +427,22 @@ sub updatePfamARegSeed {
       confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
     }
   }
-  
-  #Delete all the seed regions
-  #$self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )
-  #  ->delete;
-  
+
+ #Delete all the seed regions
+ #$self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )
+ #  ->delete;
+
   #Determing all surrogate keys for the sequences in the SEED alignment
   #which are stored in a mongodb.
   my %seqacc2auto;
-  
+
   my $dbh = $self->getSchema->storage->dbh;
   $dbh->begin_work;
   $dbh->do("delete from pfamA_reg_seed where auto_pfamA=$auto");
-  my $seq_sth = $dbh->prepare(
+  my $seq_sth =
+    $dbh->prepare(
     'select auto_pfamseq from pfamseq where pfamseq_acc = ? and seq_version = ?'
-  );
+    );
   my $up_sth = $dbh->prepare(
     'insert into pfamA_reg_seed 
       (auto_pfamseq, auto_pfamA, seq_start, seq_end) values ( ?, ?, ?, ?)'
@@ -451,37 +451,39 @@ sub updatePfamARegSeed {
   #Get all the sequences that we need to work on
   my @seqs;
   foreach my $seq ( $famObj->SEED->each_seq ) {
-    push(@seqs, $seq->id . "." . $seq->seq_version);
+    push( @seqs, $seq->id . "." . $seq->seq_version );
   }
-  
+
   #Perform lookups in batches of 1000
-  while(@seqs){
-    my @seqs1000 = splice(@seqs, 0, 1000);  
+  while (@seqs) {
+    my @seqs1000 = splice( @seqs, 0, 1000 );
     my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
     my @data = ();
     if ($cursor) {
       @data = $cursor->all;
     }
+
     #Store them in our hash for later
-    foreach my $d (@data){
-      $seqacc2auto{ $d->{'_id'} } =  $d->{'auto'};
+    foreach my $d (@data) {
+      $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
     }
   }
-  
+
   foreach my $seq ( $famObj->SEED->each_seq ) {
     my $sauto;
     if ( $seqacc2auto{ $seq->id . "." . $seq->seq_version } ) {
+
       #If we have not mapped them, then something has gone wrong!!!
       $sauto = $seqacc2auto{ $seq->id . "." . $seq->seq_version };
     }
     else {
-      
-        confess( "Failed to find entry in pfamseq for "
-            . $seq->id . "."
-            . $seq->seq_version
-            . "\n" );
-     }
-     
+
+      confess( "Failed to find entry in pfamseq for "
+          . $seq->id . "."
+          . $seq->seq_version
+          . "\n" );
+    }
+
     $up_sth->execute( $sauto, $auto, $seq->start, $seq->end );
   }
   $dbh->commit;
@@ -522,20 +524,21 @@ sub updatePfamARegFull {
   my %seqacc2auto;
   my @seqs;
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
-    push(@seqs,  $seq->name);
+    push( @seqs, $seq->name );
   }
-  
+
   #Perform lookups in batches of 1000
-  while(@seqs){
-    my @seqs1000 = splice(@seqs, 0, 1000);  
+  while (@seqs) {
+    my @seqs1000 = splice( @seqs, 0, 1000 );
     my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
     my @data = ();
     if ($cursor) {
       @data = $cursor->all;
     }
+
     #Store them in our hash for later
-    foreach my $d (@data){
-      $seqacc2auto{ $d->{'_id'} } =  $d->{'auto'};
+    foreach my $d (@data) {
+      $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
     }
   }
 
@@ -554,41 +557,43 @@ sub updatePfamARegFull {
 
 #-------------------------------------------------------------------------------
 
-#All of the quires are set up now prepare the data
+  #All of the quires are set up now prepare the data
 
 #Find out which sequences have made it in to the full alignment from the scores file
   my $inFullHash;
   my $regions = $famObj->scores->regions;
-  my $rc = 0;
+  my $rc      = 0;
   foreach my $seq ( keys %{$regions} ) {
     foreach my $se ( @{ $regions->{$seq} } ) {
       $inFullHash->{ $seq . "/" . $se->{start} . "-" . $se->{end} }++;
       $rc++;
     }
   }
+
 #-------------------------------------------------------------------------------
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
 
-  my $dsn = "dbi:mysql:database=pfam_live;host=pfamdb2a;port=3304";
-  my $user = 'pfamadmin';
-  my $pass = 'mafpAdmin';
+  my $dsn       = "dbi:mysql:database=pfam_live;host=pfamdb2a;port=3304";
+  my $user      = 'pfamadmin';
+  my $pass      = 'mafpAdmin';
   my $max_procs = 8;
-  if($rc > 10000){
+  if ( $rc > 10000 ) {
     $max_procs = 2;
   }
-  if($rc > 50000){
-    $max_procs=0;
+  if ( $rc > 50000 ) {
+    $max_procs = 0;
   }
-  my $pm = new Parallel::ForkManager($max_procs);    
-  
-  my $conn = DBIx::Connector->new($dsn, $user, $pass, 
+  my $pm = new Parallel::ForkManager($max_procs);
+
+  my $conn = DBIx::Connector->new(
+    $dsn, $user, $pass,
     {
-        AutoCommit       => 0,
-        PrintError       => 0,
-        RaiseError       => 1,
-        ChopBlanks       => 1,
-        FetchHashKeyName => 'NAME_lc',
+      AutoCommit       => 0,
+      PrintError       => 0,
+      RaiseError       => 1,
+      ChopBlanks       => 1,
+      FetchHashKeyName => 'NAME_lc',
     }
   );
 
@@ -598,18 +603,18 @@ sub updatePfamARegFull {
   $dbh->do("delete from pfamA_reg_full_significant where auto_pfamA=$auto");
   $dbh->commit;
 
-
-  my $parts = ceil($rc/1000);
-  $parts = $max_procs if($parts < $max_procs);
-  my $range = ceil(scalar(@{$famObj->PFAMOUT->eachHMMSeq})/$parts);
-  foreach my $bit (1 .. $parts){
+  my $parts = ceil( $rc / 1000 );
+  $parts = $max_procs if ( $parts < $max_procs );
+  my $range = ceil( scalar( @{ $famObj->PFAMOUT->eachHMMSeq } ) / $parts );
+  foreach my $bit ( 1 .. $parts ) {
     my $pid = $pm->start() and next;
-    my $min = ($bit - 1) * $range;
-    my $max = ($bit * $range)-1;           
-    $conn->txn( sub {
-      my $dbh = shift;
-    my $upSigSth = $dbh->prepare(
-    'INSERT INTO pfamA_reg_full_significant
+    my $min = ( $bit - 1 ) * $range;
+    my $max = ( $bit * $range ) - 1;
+    $conn->txn(
+      sub {
+        my $dbh      = shift;
+        my $upSigSth = $dbh->prepare(
+          'INSERT INTO pfamA_reg_full_significant
     (auto_pfamA, 
     auto_pfamseq, 
     seq_start, 
@@ -624,10 +629,10 @@ sub updatePfamARegFull {
     sequence_evalue_score,
     in_full ) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  );
+        );
 
-  my $upInsigSth = $dbh->prepare(
-    'INSERT INTO pfamA_reg_full_insignificant
+        my $upInsigSth = $dbh->prepare(
+          'INSERT INTO pfamA_reg_full_insignificant
     (auto_pfamA, 
     auto_pfamseq, 
     seq_start, 
@@ -639,77 +644,81 @@ sub updatePfamARegFull {
     sequence_bits_score,
     sequence_evalue_score) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-  );
+        );
 
 #-------------------------------------------------------------------------------
 #All of the quires are set up now prepare the data
 
+        foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq }[ $min .. $max ] ) {
+          next unless ($seq);
 
-  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq }[$min..$max] ) {
-    next unless($seq);  
-    #Get the auto number for this sequence
-    my $sauto;
-    if ( $seqacc2auto{ $seq->name } ) {
-      $sauto = $seqacc2auto{ $seq->name };
-    }
-    else {
-      
-        confess( "Failed to find entry in pfamseq for "
-            . $seq->id . "."
-            . $seq->seq_version
-            . "\n" );
-    }
+          #Get the auto number for this sequence
+          my $sauto;
+          if ( $seqacc2auto{ $seq->name } ) {
+            $sauto = $seqacc2auto{ $seq->name };
+          }
+          else {
 
-    if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
-      foreach my $u ( @{ $seq->hmmUnits } ) {
+            confess( "Failed to find entry in pfamseq for "
+                . $seq->id . "."
+                . $seq->seq_version
+                . "\n" );
+          }
 
-        #Is it significant dom?
-        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
-          $upSigSth->execute(
-            $auto,
-            $sauto,
-            $u->envFrom,
-            $u->envTo,
-            $u->seqFrom,
-            $u->seqTo,
-            $u->hmmFrom,
-            $u->hmmTo,
-            $u->bits,
-            $u->evalue,
-            $seq->bits,
-            $seq->evalue,
-            $inFullHash->{ $u->name . "/" . $u->envFrom . "-" . $u->envTo }
-            ? 1
-            : 0
-          );
+          if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
+            foreach my $u ( @{ $seq->hmmUnits } ) {
 
+              #Is it significant dom?
+              if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+                $upSigSth->execute(
+                  $auto,
+                  $sauto,
+                  $u->envFrom,
+                  $u->envTo,
+                  $u->seqFrom,
+                  $u->seqTo,
+                  $u->hmmFrom,
+                  $u->hmmTo,
+                  $u->bits,
+                  $u->evalue,
+                  $seq->bits,
+                  $seq->evalue,
+                  $inFullHash->{ $u->name . "/"
+                      . $u->envFrom . "-"
+                      . $u->envTo }
+                  ? 1
+                  : 0
+                );
+
+              }
+              else {
+
+             #Although the sequence is significant this regions is insignificant
+                $upInsigSth->execute(
+                  $auto,       $sauto,    $u->envFrom, $u->envTo,
+                  $u->hmmFrom, $u->hmmTo, $u->bits,    $u->evalue,
+                  $seq->bits,  $seq->evalue
+                );
+
+              }
+            }
+          }
+          else {
+
+            #Sequence is insignifcant....Therefore all the domains have to be.
+            foreach my $u ( @{ $seq->hmmUnits } ) {
+              $upInsigSth->execute(
+                $auto,       $sauto,    $u->envFrom, $u->envTo,
+                $u->hmmFrom, $u->hmmTo, $u->bits,    $u->evalue,
+                $seq->bits,  $seq->evalue
+              );
+            }
+          }
         }
-        else {
-
-          #Although the sequence is significant this regions is insignificant
-          $upInsigSth->execute(
-            $auto,       $sauto,    $u->envFrom, $u->envTo,
-            $u->hmmFrom, $u->hmmTo, $u->bits,    $u->evalue,
-            $seq->bits,  $seq->evalue
-          );
-
-        }
+        $dbh->commit;
       }
-    }
-    else {
-
-      #Sequence is insignifcant....Therefore all the domains have to be.
-      foreach my $u ( @{ $seq->hmmUnits } ) {
-        $upInsigSth->execute(
-          $auto,     $sauto,   $u->envFrom, $u->envTo,  $u->hmmFrom,
-          $u->hmmTo, $u->bits, $u->evalue,  $seq->bits, $seq->evalue
-        );
-      }
-    }
-  }
-  $dbh->commit;
-  });
-  $pm->finish;
+    );
+    $pm->finish;
   }
 }
 
@@ -743,8 +752,9 @@ sub updateNcbiPfamA {
   $self->getSchema->resultset('NcbiPfamaReg')->search( { auto_pfama => $auto } )
     ->delete;
 
-  my $dbh = $self->getSchema->storage->dbh;
-  $dbh->begin_work; 
+  my $dbh     = $self->getSchema->storage->dbh;
+  my $counter = 0;
+  $dbh->begin_work;
   my $upSth = $dbh->prepare(
     'INSERT INTO ncbi_pfamA_reg
     (auto_pfamA,        
@@ -776,6 +786,13 @@ sub updateNcbiPfamA {
             $u->bits,    $u->evalue, $seq->bits,  $seq->evalue,
           );
 
+        }
+
+        $counter++;
+        if ( $counter == 1000 ) {
+          $dbh->commit;
+          $dbh->begin_work;
+          $counter = 0;
         }
       }
     }
@@ -835,7 +852,8 @@ sub updateMetaPfamA {
     ->delete;
 
   my $dbh = $self->getSchema->storage->dbh;
-  $dbh->begin_work; 
+  $dbh->begin_work;
+  my $counter = 0;
   my $seq_sth =
     $dbh->prepare('select auto_metaseq from metaseq where metaseq_acc = ? ');
 
@@ -885,6 +903,12 @@ sub updateMetaPfamA {
           );
 
         }
+        $counter++;
+        if ( $counter == 1000 ) {
+          $dbh->commit;
+          $dbh->begin_work;
+          $counter = 0;
+        }
       }
     }
   }
@@ -892,7 +916,7 @@ sub updateMetaPfamA {
 }
 
 sub updatePfamAWikipedia {
-  
+
   my ( $self, $famObj ) = @_;
 
 #-------------------------------------------------------------------------------
@@ -926,31 +950,27 @@ sub updatePfamAWikipedia {
 #-------------------------------------------------------------------------------
 #Add the page to the wikipedia table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('PfamaWiki')
-    ->search( { auto_pfamA => $auto } )->delete;
-  if($famObj->DESC->WIKI and ref($famObj->DESC->WIKI) eq 'HASH'){
+  $self->getSchema->resultset('PfamaWiki')->search( { auto_pfamA => $auto } )
+    ->delete;
+  if ( $famObj->DESC->WIKI and ref( $famObj->DESC->WIKI ) eq 'HASH' ) {
     foreach my $page ( keys %{ $famObj->DESC->WIKI } ) {
       my $wiki =
-        $self->getSchema->resultset('Wikipedia')->find_or_create(
-        {
-          title   => $page,
-        }
-        );
-      
+        $self->getSchema->resultset('Wikipedia')
+        ->find_or_create( { title => $page, } );
+
       unless ( $wiki->auto_wiki ) {
-        confess( "Failed to find or create row for wiki page".$page."\n" );
+        confess( "Failed to find or create row for wiki page" . $page . "\n" );
       }
-      
+
       $self->getSchema->resultset('PfamaWiki')->find_or_create(
         {
-          auto_pfama  => $auto,
-          auto_wiki    => $wiki->auto_wiki
+          auto_pfama => $auto,
+          auto_wiki  => $wiki->auto_wiki
         }
       );
     }
   }
 }
-
 
 sub updatePfamALitRefs {
   my ( $self, $famObj ) = @_;
@@ -1256,7 +1276,6 @@ sub updateEdits {
   }
 }
 
-
 sub uploadPfamAHMM {
   my ( $self, $famObj, $hmmString ) = @_;
 
@@ -1396,7 +1415,6 @@ sub updateClanDbXrefs {
   }
 }
 
-
 sub updateClanWikipedia {
   my ( $self, $clanObj ) = @_;
 
@@ -1427,36 +1445,32 @@ sub updateClanWikipedia {
       confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
     }
   }
- 
+
 #-------------------------------------------------------------------------------
 #Add the page to the wikipedia table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('ClanWiki')
-    ->search( { auto_clan => $auto } )->delete;
-    
-  if($clanObj->DESC->WIKI and ref($clanObj->DESC->WIKI) eq 'HASH'){
+  $self->getSchema->resultset('ClanWiki')->search( { auto_clan => $auto } )
+    ->delete;
+
+  if ( $clanObj->DESC->WIKI and ref( $clanObj->DESC->WIKI ) eq 'HASH' ) {
     foreach my $page ( keys %{ $clanObj->DESC->WIKI } ) {
       my $wiki =
-        $self->getSchema->resultset('Wikipedia')->find_or_create(
-        {
-          title   => $page,
-        }
-        );
-      
+        $self->getSchema->resultset('Wikipedia')
+        ->find_or_create( { title => $page, } );
+
       unless ( $wiki->auto_wiki ) {
-        confess( "Failed to find or create row for wiki page".$page."\n" );
+        confess( "Failed to find or create row for wiki page" . $page . "\n" );
       }
-      
+
       $self->getSchema->resultset('ClanWiki')->create(
         {
-          auto_clan  => $auto,
-          auto_wiki    => $wiki->auto_wiki
+          auto_clan => $auto,
+          auto_wiki => $wiki->auto_wiki
         }
       );
     }
   }
 }
-
 
 sub updateClanLitRefs {
   my ( $self, $clanObj ) = @_;
