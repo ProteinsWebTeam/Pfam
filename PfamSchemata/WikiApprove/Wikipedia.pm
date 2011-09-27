@@ -152,10 +152,6 @@ sub _get_article_history {
   my ( $id ) = keys %{ $response->{query}->{pages} };
   my $revisions = $response->{query}->{pages}->{$id}->{revisions};
 
-  if ( $this->title eq 'Glucuronosyltransferase' ) {
-    print STDERR dump($revisions), "\n";
-  }
-
   # we don't actually want the *last* revision, since it's actually the most
   # recently approved revision
   # shift @$revisions;
@@ -163,10 +159,14 @@ sub _get_article_history {
   # copy the approval status from the full list of users+status (in $this->_users)
   # into this new list of revisions
   foreach my $revision ( @$revisions ) {
-    $revision->{user_approved} = $this->_users->{ $revision->{user} }->{approved};
-    $revision->{number_edits}  = $this->_users->{ $revision->{user} }->{number_edits};
+    $revision->{user_approved} = $this->_users->{ $revision->{user} }->{approved} || 0;
+    $revision->{number_edits}  = $this->_users->{ $revision->{user} }->{number_edits} || 0;
   }
   # TODO don't recalculate these two values everytime the history is requested
+
+  # if ( $this->title eq 'Albumin' ) {
+  #   print STDERR dump($revisions), "\n";
+  # }
 
   return $revisions;
 }
@@ -192,7 +192,7 @@ sub _check_all_users_approved {
   # the list of revisions ends with the most recently approved revision. Here
   # we only care about revisions *since* that the last approved one, so we
   # slice the array to chop off the last element
-  foreach my $revision ( @$revisions[ 0 .. length( @$revisions ) - 1 ] ) {
+  foreach my $revision ( @$revisions[ 0 .. scalar( @$revisions ) - 1 ] ) {
     $all_approved += $revision->{user_approved} || 0;
     $num_revisions++;
   }
