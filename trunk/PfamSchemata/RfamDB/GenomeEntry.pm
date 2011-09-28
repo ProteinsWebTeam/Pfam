@@ -57,9 +57,9 @@ __PACKAGE__->has_many(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1mjRIQBxbIo8Csh8Pf/9pw
 
 __PACKAGE__->has_one(
-  "gff",
-  "RfamDB::GenomeGff",
-  { "foreign.auto_genome" => "self.auto_genome" },
+  "bigbed",
+  "RfamDB::GenomeBigbed",
+  { "foreign.ncbi_id" => "self.ncbi_id" },
 );
 
 __PACKAGE__->has_many(
