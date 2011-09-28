@@ -52,16 +52,21 @@ sub genome : Chained( '/' )
 
   my ( $entry ) = $tainted_entry =~ m/^(\w+)$/;
   unless ( defined $entry ) {
-    $c->log->debug( 'Genome::genome: no valid tax ID found' )
+    $c->log->debug( 'Genome::genome: no valid genome ID found' )
       if $c->debug;
 
-    $c->stash->{errorMsg} = 'Invalid NCBI taxonomy ID';
+    $c->stash->{errorMsg} = 'No valid genome identifier';
 
     return;
   }
-  
-  # retrieve data for the genome
-  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+
+  $c->stash->{entry} = $entry;
+
+  # get the basic genome and chromosome information
+  $c->forward( 'get_chromosomes' );
+  $c->forward( 'get_genome_data' ); # need the chromosome data before we can
+                                    # be sure to get genome data, because we
+                                    # use the ncbi_id to retrieve it
 }
 
 #-------------------------------------------------------------------------------
@@ -73,28 +78,18 @@ ID and adds summary data to the stash. Start and end of a chain.
 
 =cut
 
-sub genome_page : Chained( '/' )
-                  PathPart( 'genome' )
-                  Args( 1 ) {
-  my ( $this, $c, $tainted_entry ) = @_;
+sub genome_page : Chained( 'genome' )
+                  PathPart( '' )
+                  Args( 0 ) {
+  my ( $this, $c ) = @_;
 
   $c->cache_page( 604800 );
   
   $c->log->debug( 'Genome::genome_page: building a "genome" page' )
     if $c->debug;
 
-  my ( $entry ) = $tainted_entry =~ m/^(\w+)$/;
-  unless ( defined $entry ) {
-    $c->log->debug( 'Genome::genome_page: no valid tax ID found' )
-      if $c->debug;
-
-    $c->stash->{errorMsg} = 'Invalid NCBI taxonomy ID';
-
-    return;
-  }
-  
-  # retrieve data for the genome
-  $c->forward( 'get_data', [ $entry ] );
+  # retrieve extra data for the genome that will be used by the template
+  $c->forward( 'get_regions' );
 
   #----------------------------------------
   
@@ -106,7 +101,7 @@ sub genome_page : Chained( '/' )
     # i.e. if it's a call on the "default" method of the Family object,
     # then we'll need to do a few extra things
     if ( ref $this eq 'RfamWeb::Controller::Genome' ) {
-      $c->log->debug( 'Genome::genome_page: adding extra genome info' ) if $c->debug;
+      $c->log->debug( 'Genome::genome_page: adding genome summary info' ) if $c->debug;
       
       $c->forward( 'get_summary_data' );
     }
@@ -115,6 +110,43 @@ sub genome_page : Chained( '/' )
 
 }
     
+#-------------------------------------------------------------------------------
+
+=head2 bigbed
+
+Returns the bigbed file for the specified genome, if it exists. 
+
+=cut
+
+sub bigbed : Chained( 'genome' )
+             PathPart( 'bigbed' )
+             Args( 0 ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Genome::bigbed: retrieving a bigbed file' )
+    if $c->debug;
+  
+  my $rs = $c->model('RfamDB::GenomeBigbed')
+             ->find( { ncbi_id => $c->stash->{ncbi_id} } );
+          
+  unless ( defined $rs ) {
+    $c->log->debug( 'Genome::bigbed: no bigbed found for this genome' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'No bigbed file found for this genome';
+
+    return;
+  }
+
+  my $filename = $c->stash->{genome_acc} . '.bigBed';
+  $c->log->debug( "Genome::bigbed: using 'genome_acc' for filename: |$filename|" )
+    if $c->debug;
+  
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $rs->bigbed );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 gff
@@ -129,25 +161,25 @@ sub gff : Chained( 'genome' )
           Args( 1 ) {
   my ( $this, $c, $tainted_ag ) = @_;
   
-  $c->log->debug( 'Genome::genome_page: retrieving a GFF file' )
+  $c->log->debug( 'Genome::gff: retrieving a GFF file' )
     if $c->debug;
-
+  
   my ( $ag ) = $tainted_ag =~ m/^(\w+)$/;
   unless ( defined $ag ) {
-    $c->log->debug( 'Genome::genome_page: no valid auto_genome found' )
+    $c->log->debug( 'Genome::gff: no valid auto_genome found' )
       if $c->debug;
 
     $c->stash->{errorMsg} = 'Invalid genome segment identifier';
 
     return;
   }
-  
+
   my $rs = $c->model('RfamDB::GenomeGff')
              ->search( { 'me.auto_genome' => $ag },
                        { join => [ 'auto_genome' ] } );
           
   unless ( defined $rs ) {
-    $c->log->debug( 'Genome::genome_page: no GFF found auto_genome for that segment' )
+    $c->log->debug( 'Genome::gff: no GFF found auto_genome for that segment' )
       if $c->debug;
 
     $c->stash->{errorMsg} = 'No GFF found for that genome segment';
@@ -223,98 +255,196 @@ genome. Chained to "genome".
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 get_data : Private
+=head2 get_chromosomes : Private
 
-Retrieves genome data for the given entry.
+Retrieves chromosome data for the given entry.
 
 =cut
 
-sub get_data : Private {
-  my ( $this, $c, $entry ) = @_;
-  
-  # get the genome breakdown
-  my @genomes = $c->model('RfamDB::GenomeEntry')
-                  ->search( {
-                              -or =>  [ { ncbi_id    => $entry },
-                                        { genome_acc => $entry },
-                                        { ensembl_id => $entry } ],
-                              -and => { 'regions.genome_start' => { '!=', undef }, 
-                                        'regions.genome_end'   => { '!=', undef } }
-                            },
-                            {
-                              join      => { 'regions' => 'auto_rfam' },
-                              order_by  => [ qw( auto_genome
-                                                 regions.genome_start ) ],
-                              '+select' => [ qw( regions.auto_rfam
-                                                 regions.genome_start
-                                                 regions.genome_end
-                                                 regions.bits_score
-                                                 auto_rfam.rfam_id
-                                                 auto_rfam.rfam_acc ) ],
-                              '+as'     => [ qw( auto_rfam 
-                                                 genome_start
-                                                 genome_end
-                                                 bits_score
-                                                 rfam_id
-                                                 rfam_acc ) ] 
-                            } );
+sub get_chromosomes : Private {
+  my ( $this, $c ) = @_;
 
+  my @genomes = $c->model('RfamDB::GenomeEntry')
+                  ->search( { -or =>  [ { ncbi_id    => $c->stash->{entry} },
+                                        { genome_acc => $c->stash->{entry} } ] },
+                            { join     => [ qw( genome_gffs ) ],
+                              order_by => [ qw( auto_genome ) ] } );
+  
   unless ( @genomes ) {
-    $c->log->debug( "Genome::get_data: failed to find a genome for '$entry'" )
+    $c->log->debug( "Genome::get_chromosomes: failed to find any chromosomes for '$c->stash->{entry}'" )
       if $c->debug;
     
-    $c->stash->{errorMsg} = "No genome for taxonomy ID $entry";
+    $c->stash->{errorMsg} = "No genome for taxonomy ID $c->stash->{entry}";
 
     return;
   }
 
-  #----------------------------------------
-
-  $c->log->debug( 'Genome::get_data found ' . scalar @genomes . ' genome rows' )
+  $c->stash->{chromosomes} = \@genomes;
+  $c->stash->{ncbi_id}     = $genomes[0]->ncbi_id;
+  $c->stash->{genome_acc}  = $genomes[0]->genome_acc;
+  
+  $c->log->debug( 'Genome::get_chromosomes: found ' . scalar @{ $c->stash->{chromosomes} } . ' chromosome rows' )
     if $c->debug;
+}
 
-  # get the summary for this genome
+#-------------------------------------------------------------------------------
+
+=head2 get_genome_data : Private
+
+Retrieves the genome summary.
+
+=cut
+
+sub get_genome_data : Private {
+  my ( $this, $c ) = @_;
+
   my $summary = $c->model('RfamDB::GenomeSummary')
-                  ->find( { ncbi_id => $genomes[0]->ncbi_id } );
+                  ->find( { ncbi_id => $c->stash->{ncbi_id} } );
 
   unless ( defined $summary ) {
-    $c->log->debug( "Genome::get_data: failed to find a genome summary for '$entry'" )
+    $c->log->debug( "Genome::get_genome_data: failed to find a genome summary for ncbi_id $c->stash->{ncbi_id}" )
       if $c->debug;
     
-    $c->stash->{errorMsg} = "No genome summary for taxonomy ID $entry";
+    $c->stash->{errorMsg} = "No genome summary for genome identifier $c->stash->{entry}";
 
     return;
   }
 
-  $c->log->debug( 'Genome::get_data: got a genome summary' ) if $c->debug;
   $c->stash->{summary} = $summary;
-  
-  #----------------------------------------
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_regions : Private
+
+Retrieves Rfam regions for the chromosomes.
+
+=cut
+
+sub get_regions : Private {
+  my ( $this, $c ) = @_;
 
   # hash the breakdown in different ways
-  my $hits            = {};
-  my $hit_chromosomes = {};
-  foreach my $row ( @genomes ) {
+  my $regions = {};
+  foreach my $row ( @{ $c->stash->{chromosomes} } ) {
     my $ag = $row->auto_genome;
 
-    push @{ $hits->{$ag}->{rows} }, $row;
+    # in the summary template we'll count the number of keys and
+    # use that to show the number of chromosomes with hits
+    $c->stash->{hit_chromosomes}->{$ag} = 1;
 
-    $hit_chromosomes->{$ag} = 1;   
+    $regions->{$ag} =
+      $c->model('RfamDB::RfamRegFull')
+        ->search( { auto_genome => $ag },
+                  { join     => [ qw( auto_rfam ) ],
+                    select   => [ qw( auto_rfam.rfam_id 
+                                      auto_rfam.rfam_acc 
+                                      genome_start 
+                                      genome_end
+                                      bits_score ) ],
+                    as       => [ qw( rfam_id
+                                      rfam_acc
+                                      genome_start
+                                      genome_end
+                                      bits_score ) ],
+                    order_by => [ qw( auto_genome genome_start ) ] } );
 
-    $hits->{$ag}->{count}++    if defined $row->get_column('auto_rfam');
-    $hits->{$ag}->{families}++ if defined $row->get_column('auto_rfam');
-
+    $regions->{$ag}->{has_regions}++ 
+      if defined $regions->{$ag}->get_column('rfam_id');
   }
 
-  $c->stash->{hits}            = $hits;
-  $c->stash->{hit_chromosomes} = $hit_chromosomes;
+  $c->stash->{regions} = $regions;
 }
+
+#-------------------------------------------------------------------------------
+
+# sub get_data_old : Private {
+#   my ( $this, $c ) = @_;
+#   
+#   # get the genome breakdown
+#                                         # { ensembl_id => $entry }, # there are no ensembl_id's in the table,
+#                                         # so don't waste time searching on them
+#   my @genomes = $c->model('RfamDB::GenomeEntry')
+#                   ->search( {
+#                               -or =>  [ { ncbi_id    => $c->stash->{entry} },
+#                                         { genome_acc => $c->stash->{entry} } ],
+#                               -and => { 'regions.genome_start' => { '!=', undef }, 
+#                                         'regions.genome_end'   => { '!=', undef } }
+#                             },
+#                             {
+#                               join      => { 'regions' => 'auto_rfam' },
+#                               order_by  => [ qw( auto_genome
+#                                                  regions.genome_start ) ],
+#                               '+select' => [ qw( regions.auto_rfam
+#                                                  regions.genome_start
+#                                                  regions.genome_end
+#                                                  regions.bits_score
+#                                                  auto_rfam.rfam_id
+#                                                  auto_rfam.rfam_acc ) ],
+#                               '+as'     => [ qw( auto_rfam 
+#                                                  genome_start
+#                                                  genome_end
+#                                                  bits_score
+#                                                  rfam_id
+#                                                  rfam_acc ) ] 
+#                             } );
+# 
+#   unless ( @genomes ) {
+#     $c->log->debug( "Genome::get_data: failed to find a genome for '$c->stash->{entry}'" )
+#       if $c->debug;
+#     
+#     $c->stash->{errorMsg} = "No genome for genome identifier $c->stash->{entry}";
+# 
+#     return;
+#   }
+# 
+#   #----------------------------------------
+# 
+#   $c->log->debug( 'Genome::get_data found ' . scalar @genomes . ' genome rows' )
+#     if $c->debug;
+# 
+#   # get the summary for this genome
+#   my $summary = $c->model('RfamDB::GenomeSummary')
+#                   ->find( { ncbi_id => $genomes[0]->ncbi_id } );
+# 
+#   unless ( defined $summary ) {
+#     $c->log->debug( "Genome::get_data: failed to find a genome summary for '$c->stash->{entry}'" )
+#       if $c->debug;
+#     
+#     $c->stash->{errorMsg} = "No genome summary for taxonomy ID $c->stash->{entry}";
+# 
+#     return;
+#   }
+# 
+#   $c->log->debug( 'Genome::get_data: got a genome summary' ) if $c->debug;
+#   $c->stash->{summary} = $summary;
+#   
+#   #----------------------------------------
+# 
+#   # hash the breakdown in different ways
+#   my $hits            = {};
+#   my $hit_chromosomes = {};
+#   foreach my $row ( @genomes ) {
+#     my $ag = $row->auto_genome;
+# 
+#     push @{ $hits->{$ag}->{rows} }, $row;
+# 
+#     $hit_chromosomes->{$ag} = 1;   
+# 
+#     $hits->{$ag}->{count}++    if defined $row->get_column('auto_rfam');
+#     $hits->{$ag}->{families}++ if defined $row->get_column('auto_rfam');
+# 
+#   }
+# 
+#   $c->stash->{hits}            = $hits;
+#   $c->stash->{hit_chromosomes} = $hit_chromosomes;
+# }
 
 #-------------------------------------------------------------------------------
 
 =head2 get_summary_data : Private
 
-Just gets the data items for the overview bar.
+Stashes the data items for the overview bar.
 
 =cut
 
