@@ -104,6 +104,10 @@ td.user {
   width: 10em;
 }
 
+p.unapprovedWarning {
+  color: #F00000;
+}
+
 div.userApproval {
   width: 21px;
   height: 20px;
@@ -113,6 +117,10 @@ div.userApproval {
 
 div.approved {
   background-image: url( '/static/images/user_approved.png' ) ! important;
+}
+
+tr.inactive div.approved {
+  background-image: url( '/static/images/user_approved_lite.png' ) ! important;
 }
 
 div.approveToggle {
