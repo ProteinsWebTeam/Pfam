@@ -27,23 +27,23 @@ embl_seq = 1;
 tbody = BLOCK;
   lastAG = 0;
   oe = 0;
-  FOREACH auto_genome IN hits.keys.sort;
-    row = hits.$auto_genome.rows.0 %]
-    <tr class="[% oe % 2 ? "odd" : "even" %]">
+  FOREACH chromosome IN chromosomes;
+    auto_genome = chromosome.auto_genome %]
+    <tr class="[% oe % 2 ? 'odd' : 'even' %]">
       <td>
-        [% IF row.genome_acc;
+        [% IF chromosome.genome_acc;
           embl_seq = 1 -%]
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nuccore&amp;id=[% row.genome_acc %]">
-            [% row.genome_acc %]</a>
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=nuccore&amp;id=[% chromosome.genome_acc %]">
+            [% chromosome.genome_acc %]</a>
         [%- ELSE;
           embl_seq = 0;
           row.ensembl_id;
         END %]
       </td>
-      <td class="left">[% row.description %]</td>
-      <td>[% row.length | format_number( 0, 0 ) %]</td>
-      <td>[% hits.$auto_genome.count %]</td>
-      [%- IF hits.$auto_genome.count %]
+      <td class="left">[% chromosome.description %]</td>
+      <td>[% chromosome.length | format_number( 0, 0 ) %]</td>
+      <td>[% regions.$auto_genome.count %]</td>
+      [%- IF regions.$auto_genome.count %]
         <td><a href="[% c.uri_for('/genome', summary.ncbi_id, 'gff', auto_genome ) %]">Download</a></td>
       [%- ELSE %]
         <td><span class="inactive">No GFF file</span></td>
@@ -66,16 +66,16 @@ tbody = BLOCK;
           </thead>
           <tbody>
             [% oe2 = 0;
-            FOREACH row IN hits.$auto_genome.rows %]
+            FOREACH region IN regions.$auto_genome.all %]
               <tr class="[% oe2 % 2 ? 'odd' : 'even' %]">
-                [%- IF hits.$auto_genome.count %]
+                [%- IF regions.$auto_genome.has_regions %]
                   <td style="width: 5em">
-                    <a href="[% c.uri_for( '/family', row.get_column('rfam_id') ) %]">
-                      [% row.get_column('rfam_id') %]</a>
+                    <a href="[% c.uri_for( '/family', region.get_column('rfam_id') ) %]">
+                      [% region.get_column('rfam_id') %]</a>
                   </td>
-                  <td style="width: 5em">[% row.get_column('genome_start') | format_number( 0, 0 ) %]</td>
-                  <td style="width: 5em">[% row.get_column('genome_end') | format_number( 0, 0 ) %]</td>
-                  <td style="width: 5em">[% row.get_column('bits_score') %]</td>
+                  <td style="width: 5em">[% region.get_column('genome_start') | format_number( 0, 0 ) %]</td>
+                  <td style="width: 5em">[% region.get_column('genome_end') | format_number( 0, 0 ) %]</td>
+                  <td style="width: 5em">[% region.get_column('bits_score') %]</td>
                 [%- ELSE %]
                   <td colspan="4" class="inactive">No Rfam hits</td>
                 [%- END %]
