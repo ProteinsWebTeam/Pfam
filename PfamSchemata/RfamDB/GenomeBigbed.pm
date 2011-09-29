@@ -10,6 +10,13 @@ __PACKAGE__->table('genome_bigbed');
 __PACKAGE__->add_columns(
   'ncbi_id',
   { data_type => 'INT', default_value => undef, is_nullable => 0, size => 10 },
+  "code", 
+  { 
+    data_type => "MEDIUMTEXT", 
+    default_value => undef, 
+    is_nullable => 0, 
+    size => 16777215, 
+  },  
   'bigbed',
   {
     data_type => 'MEDIUMBLOB',
