@@ -164,10 +164,6 @@ sub _get_article_history {
   }
   # TODO don't recalculate these two values everytime the history is requested
 
-  # if ( $this->title eq 'Albumin' ) {
-  #   print STDERR dump($revisions), "\n";
-  # }
-
   return $revisions;
 }
 
@@ -192,7 +188,8 @@ sub _check_all_users_approved {
   # the list of revisions ends with the most recently approved revision. Here
   # we only care about revisions *since* that the last approved one, so we
   # slice the array to chop off the last element
-  foreach my $revision ( @$revisions[ 0 .. scalar( @$revisions ) - 1 ] ) {
+  foreach my $revision ( @$revisions ) {
+    next if $revision->{revid} == $this->approved_revision;
     $all_approved += $revision->{user_approved} || 0;
     $num_revisions++;
   }
