@@ -190,11 +190,19 @@ Type = String.new(type).capital;
 
 PROCESS buildTables -%]
 
-[% IF type %]
-  <h1>[% Type %] articles requiring approval</h1>
-[% ELSE %]
-  <h1>Articles requiring approval</h1>
-[% END %]
+<h1>
+[%- IF type %]
+  [% Type %] articles requiring approval
+[%- ELSE %]
+  Articles requiring approval
+[%- END %]
+</h1>
+
+[%- UNLESS c.user_exists %]
+<p class="unapprovedWarning">
+  You need to login before you can make any changes.
+</p>
+[%- END %]
 
 <p>
   This is the list of <strong>[% pager.total_entries %]</strong> 
@@ -415,14 +423,35 @@ PROCESS buildTables -%]
 
 </div>
 
-<h2>Refresh articles list</h2>
+<h2>Update articles list</h2>
+
+<p>
+  If you have made an edit to an article, if you found vandalism, for example,
+  you can tell the approval app to present that latest revision for approval.
+  Press one of the <em>Re-check revisions</em> button below to trigger 
+  an update of either the articles visible in this page, or all articles that
+  are waiting for approval
+</p>
+<p>
+  If you <strong>haven't</strong> made any revisions but want to get the next
+  page of articles for approval, you can simply reload the browser page by
+  hitting the reload button.
+</p>
 
 <form action="[% c.uri_for('/articles/update') %]">
   <p>
-    <input type="button" class="updateButton relPage" value="Refresh" /> the articles listed in this page.
+    <input type="button" 
+           [% UNLESS c.user_exists %]disabled="disabled"[% END %]
+           class="updateButton relPage" 
+           value="Re-check revisions" />
+    for the articles listed in this page.
   </p>
   <p>
-    <input type="button" class="updateButton relAll" value="Refresh" /> <strong>all</strong> articles.
+    <input type="button" 
+           [% UNLESS c.user_exists %]disabled="disabled"[% END %]
+           class="updateButton relAll" 
+           value="Re-check revisions" />
+    for <strong>all</strong> articles that are waiting for approval.
   </p>
   <p>
     <span[% UNLESS updateCount.defined %] style="display: none"[% END %]>
