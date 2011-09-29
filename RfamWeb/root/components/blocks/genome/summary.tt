@@ -80,8 +80,8 @@ USE String;
       var tree = new YAHOO.widget.TreeView("lineage"); 
       var parent = tree.getRoot();
       
-      [%- # get the taxonomy strings out of the hit list. Rather convoluted...
-      taxonomyString = hits.values.first.rows.first.taxonomy;
+      [%- # get the taxonomy string and process it into a YAHOO TreeView
+      taxonomyString = chromosomes.first.taxonomy;
 
       FOREACH node IN taxonomyString.split('; ');
 
