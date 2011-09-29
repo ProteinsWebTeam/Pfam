@@ -112,43 +112,6 @@ sub genome_page : Chained( 'genome' )
     
 #-------------------------------------------------------------------------------
 
-=head2 bigbed
-
-Returns the bigbed file for the specified genome, if it exists. 
-
-=cut
-
-sub bigbed : Chained( 'genome' )
-             PathPart( 'bigbed' )
-             Args( 0 ) {
-  my ( $this, $c ) = @_;
-  
-  $c->log->debug( 'Genome::bigbed: retrieving a bigbed file' )
-    if $c->debug;
-  
-  my $rs = $c->model('RfamDB::GenomeBigbed')
-             ->find( { ncbi_id => $c->stash->{ncbi_id} } );
-          
-  unless ( defined $rs ) {
-    $c->log->debug( 'Genome::bigbed: no bigbed found for this genome' )
-      if $c->debug;
-
-    $c->stash->{errorMsg} = 'No bigbed file found for this genome';
-
-    return;
-  }
-
-  my $filename = $c->stash->{genome_acc} . '.bigBed';
-  $c->log->debug( "Genome::bigbed: using 'genome_acc' for filename: |$filename|" )
-    if $c->debug;
-  
-  $c->res->content_type( 'text/plain' );
-  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
-  $c->res->body( $rs->bigbed );
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 gff
 
 Treats its argument as an auto_genome number and uses it to retrieve the GFF for 
@@ -250,6 +213,120 @@ genome. Chained to "genome".
 #  }    
 #             
 #}
+
+#-------------------------------------------------------------------------------
+#- actions related to UCSC genome browser use ----------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 hub_txt : Path
+
+Returns a "hub.txt".
+
+=cut
+
+sub hub_txt : Path('/genome/hub.txt') {
+  my ( $this, $c ) = @_;
+
+  my $genomes_txt = $c->uri_for( '/genome/genomes.txt' );
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=hub.txt" );
+  $c->res->body( <<EOF_hub );
+hub rfam
+shortLabel rfam_ncRNA
+longLabel Rfam non-coding RNA annotation
+genomesFile $genomes_txt
+email rfam-help\@sanger.ac.uk
+EOF_hub
+}
+  
+#-------------------------------------------------------------------------------
+
+=head2 genomes_txt : Path
+
+Returns a "genomes.txt" file.
+
+=cut
+
+sub genomes_txt : Path('/genome/genomes.txt') {
+  my ( $this, $c ) = @_;
+
+  my $rs = $c->model('GenomeBigbed')
+             ->search( {}, {} );
+
+  my $content = '';
+  while ( my $genome = $rs->next ) {
+    $content .= 'genome ' . $genome->code . "\n";
+    $content .= 'trackDb ' . $c->uri_for( '/genome/' . $genome->ncbi_id . '/trackDb.txt' ) . "\n\n";
+  }
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=genomes.txt" );
+  $c->res->body( $content );
+}
+  
+#-------------------------------------------------------------------------------
+
+=head2 trackdb_txt : Chained
+
+Returns a "trackDb.txt" file for the specified genome.
+
+=cut
+
+sub trackdb_txt : Chained('genome')
+                  PathPart('trackDb.txt')
+                  Args(0) {
+  my ( $this, $c ) = @_;
+
+  my $bigbed = $c->uri_for( '/genome/' . $c->stash->{ncbi_id} . '/bigbed' );
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=trackDb.txt" );
+  $c->res->body( <<EOF_trackdb );
+track Rfam 
+bigDataUrl $bigbed
+shortLabel Rfam ncRNA
+longLabel Rfam ncRNA annotations 
+type bigBed 8
+url http://rfam.sanger.ac.uk/family/\$\$
+visibility 3
+color 102,0,0
+EOF_trackdb
+}
+  
+#-------------------------------------------------------------------------------
+
+=head2 bigbed : Chained
+
+Returns the bigbed file for the specified genome, if it exists. 
+
+=cut
+
+sub bigbed : Chained( 'genome' )
+             PathPart( 'bigbed' )
+             Args( 0 ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Genome::bigbed: retrieving a bigbed file' )
+    if $c->debug;
+  
+  my $rs = $c->model('RfamDB::GenomeBigbed')
+             ->find( { ncbi_id => $c->stash->{ncbi_id} } );
+          
+  unless ( defined $rs ) {
+    $c->log->debug( 'Genome::bigbed: no bigbed found for this genome' )
+      if $c->debug;
+
+    $c->res->status(404); # Not found
+
+    return;
+  }
+
+  my $filename = $rs->code . '.bigBed';
+  
+  $c->res->content_type( 'application/octet-stream' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $rs->bigbed );
+}
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
