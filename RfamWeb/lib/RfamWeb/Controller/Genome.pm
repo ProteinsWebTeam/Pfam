@@ -227,14 +227,13 @@ Returns a "hub.txt".
 sub hub_txt : Path('/genome/hub.txt') {
   my ( $this, $c ) = @_;
 
-  my $genomes_txt = $c->uri_for( '/genome/genomes.txt' );
   $c->res->content_type( 'text/plain' );
   $c->res->header( 'Content-disposition' => "attachment; filename=hub.txt" );
   $c->res->body( <<EOF_hub );
 hub rfam
 shortLabel rfam_ncRNA
 longLabel Rfam non-coding RNA annotation
-genomesFile $genomes_txt
+genomesFile genomes.txt
 email rfam-help\@sanger.ac.uk
 EOF_hub
 }
