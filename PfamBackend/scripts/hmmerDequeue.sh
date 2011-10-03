@@ -23,14 +23,13 @@
 export DEBUG=0
 export PFAMROOT=/software/pfam
 export PFAMWEBROOT=$PFAMROOT/pfamweb
-export WISECONFIGDIR=$PFAMWEBROOT/src/wise2.2.0/wisecfg 
+export WISECONFIGDIR=$PFAMWEBROOT/wisecfg 
 export PFAMOFFLINE_CONFIG=$PFAMWEBROOT/PfamBackend/conf/pfam_backend.conf
-export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:$PFAMWEBROOT/src/hmmer-3.0b3/bin:$PFAMWEBROOT/src/wise2.2.0/src/bin:/sbin:$PATH
+export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:/sbin:/usr/bin:$PATH
 
 # Rfam config
 export RFAMROOT=/software/rfam
 export RFAMWEBROOT=$RFAMROOT/rfamweb 
-export PATH=$RFAMWEBROOT/src/infernal-0.72/src:$RFAMWEBROOT/src/wublast:$PATH
 
 
 HOST=`hostname`
@@ -77,7 +76,7 @@ case "$1" in
  ;;
   restart|force-reload)
  echo -n "Restarting $DESC: "
- start-stop-daemon --stop --singal 15 --quiet  --pidfile \
+ start-stop-daemon --stop --signal 15 --quiet  --pidfile \
   /var/lock/${NAME}0.pid -c pfamweb --exec /usr/local/bin/perl --startas $DAEMON0
  echo "${NAME}0 stopped."
 
