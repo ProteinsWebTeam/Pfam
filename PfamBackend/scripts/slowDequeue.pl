@@ -86,7 +86,8 @@ while(1) {
         $cmd .= " -e_seq ". $opts->{evalue}." -e_dom ".$opts->{evalue};
       }
     
-      if($opts->{batchOpts}){
+      if($opts->{searchBs}){
+        $DEBUG && print STDERR "dequeuer: searching for Pfam-Bs\n";
         #Run both a Pfam-A and a Pfam-B search
         $cmd .= " -pfamB "  
       }
