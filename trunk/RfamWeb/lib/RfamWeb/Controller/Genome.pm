@@ -227,7 +227,7 @@ Returns a "hub.txt".
 sub hub_txt : Path('/genome/hub.txt') {
   my ( $this, $c ) = @_;
 
-  $c->cache_page( 2419200 );
+  # $c->cache_page( 2419200 );
 
   $c->res->content_type( 'text/plain' );
   # $c->res->header( 'Content-disposition' => "attachment; filename=hub.txt" );
@@ -251,7 +251,7 @@ Returns a "genomes.txt" file.
 sub genomes_txt : Path('/genome/genomes.txt') {
   my ( $this, $c ) = @_;
 
-  $c->cache_page( 2419200 );
+  # $c->cache_page( 2419200 );
 
   my $rs = $c->model('GenomeBigbed')
              ->search( {}, {} );
@@ -280,7 +280,7 @@ sub trackdb_txt : Chained('genome')
                   Args(0) {
   my ( $this, $c ) = @_;
 
-  $c->cache_page( 2419200 );
+  # $c->cache_page( 2419200 );
 
   my $bigbed = $c->uri_for( '/genome/' . $c->stash->{ncbi_id} . '/bigbed' );
 
