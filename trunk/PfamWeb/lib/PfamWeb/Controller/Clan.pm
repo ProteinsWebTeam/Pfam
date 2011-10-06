@@ -365,7 +365,7 @@ Deprecated. Stub to redirect to the chained action.
 
 =cut
 
-sub old_alignment : Path( '/clan/relationship/image' ) {
+sub old_image : Path( '/clan/relationship/image' ) {
   my ( $this, $c ) = @_;
 
   $c->log->debug( 'Clan::old_image redirecting to "relationship_image"' )
