@@ -53,7 +53,7 @@ PROCESS components/links.tt; %]
           [% END;
         ELSE -%]
           <li>
-            <a href="#wpContent">No wikipedia article</a>
+            <a href="#wpContent">No Wikipedia article</a>
           </li>
         [%- END %]
         <!-- pf -->
@@ -92,8 +92,8 @@ PROCESS components/links.tt; %]
                     class="ext">Wikipedia</a>. This means that the information
                   we display is a copy of the information from the Wikipedia
                   database. The button next to the article title (&quot;Edit
-                  wikipedia article&quot;) takes you to the edit page for the
-                  article directly within wikipedia. You should be aware you
+                  Wikipedia article&quot;) takes you to the edit page for the
+                  article directly within Wikipedia. You should be aware you
                   are not editing our local copy of this information. Any
                   changes that you make to the Wikipedia article will not be
                   displayed here until we next download the article from
@@ -193,7 +193,7 @@ PROCESS components/links.tt; %]
                   [% article.title.replace( "_", " " ) | html %]
                   <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
                   <img class="addAnnotation" 
-                       alt="Edit wikipedia article" 
+                       alt="Edit Wikipedia article" 
                        src="[% c.uri_for( '/static/images/edit_wikipedia_button.png' ) %]" /></a>
                 </h1>
                 [% article.wikitext.text %]
@@ -201,7 +201,7 @@ PROCESS components/links.tt; %]
               <p id="wpLicense">
                 This page is based on a 
                 <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
-                  wikipedia article</a>. The text is available under the 
+                  Wikipedia article</a>. The text is available under the 
                 <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
                   Creative Commons Attribution/Share-Alike License</a>.
               </p>
@@ -213,8 +213,8 @@ PROCESS components/links.tt; %]
               The Pfam group coordinates the annotation of Pfam families in  <a
               class="ext"
               href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>, but
-              we have not yet assigned a wikipedia article to this family. If
-              you think that a particular wikipedia article provides good
+              we have not yet assigned a Wikipedia article to this family. If
+              you think that a particular Wikipedia article provides good
               annotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
                 let us know</a>.
             </p>
