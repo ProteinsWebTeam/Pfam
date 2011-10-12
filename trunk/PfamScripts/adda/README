@@ -1,0 +1,107 @@
+OVERVIEW
+
+ADDA is a method to find protein domains in protein sequences.
+Briefly, ADDA attempts to split domains into segments that 
+correspond as closely as possible to all-on-all pairwise
+alignments. A detailed description of the method can be found
+in
+
+Heger A, Holm L. (2003)
+Exhaustive enumeration of protein domain families.
+J Mol Biol. 2003 May 2;328(3):749-67.
+PMID: 12706730 
+
+USAGE INSTRUCTIONS
+
+ADDA is controlled with the script adda.py. The script expects a file adda.ini 
+with configuration options in the directory from which it is called. An example 
+is in the directory ./test.
+
+INPUT DATA
+
+ADDA requires three input files.
+
+   1. sequences in fasta format
+
+   2. the results from an all-on-all sequence comparison (sequence alignment graph)
+
+   3. domain assignments from a reference domain assignment
+
+ADDA proceeds in stages. Each stage corresponds to a command to
+the script adda.py. To run all stages, run adda.py as
+
+   python adda.py --steps=all
+
+The specific stages are:
+
+1. Pre-processing of the input. These steps can be performed in
+  parallel.
+
+   1. indexing the sequence database - "index"
+
+   2. building sequence profiles - "profiles"
+
+   3. formatting and filtering the alignment graph - "graph"
+
+   4. indexing the alignment graph - "index"
+
+   5. estimating the error parameters - "fit"
+
+2. Decomposing sequences into domains - "optimise"
+
+3. Convert sequence alignment graph to domain alignment graph - "convert"
+
+4. Build minimum spanning tree of domains - "mst"
+
+5. Align domains - "align"
+
+EXAMPLE
+
+A toy example can be found at http://genserv.anat.ox.ac.uk/downloads/contrib/adda.
+The files are:
+
+nrdb.fasta.gz: a file with protein sequences in fasta format. These have been 
+filtered to be less than 40% identical (Park et al. 2000).
+
+pairsdb.links.gz: a list of pairwise alignments. These have been obtained by
+running BLASTP (Altschul et al. 1997) all-on-all and parsed into a tab-separated 
+table. The columns are:
+
+1. query: identifier of the query sequence
+2. sbjct: identifier of the sbjct sequence
+3. evalue: natural log of the E-Value
+4-6. query_start, query_end, query_ali: alignment of the query
+7-9. sbjct_start, sbjct_end, sbjct_ali: alignment of the sbjct
+10. alignment score (not used)
+11. percent identity (not used)
+
+The alignment coordinates are inclusive/exclusive 0-based coordinates "[)".
+The alignment is stored in compressed form as alternating integer numbers
+with the prefix "+" and "-". Positive numbers signify character emissions 
+and negative numbers insertions. For example, "+3-3+2" with the sequence 
+ABCDE will result in "ABC---DE".
+
+references.domains.gz: a list of domains for a subset of sequences. The
+domains in this file were derived from structural domain definitions in
+SCOP (Andreeva et al. 2008).
+
+REFERENCES
+
+Altschul SF, Madden TL, Schäffer AA, Zhang J, Zhang Z, Miller W, Lipman DJ.
+(1997) Gapped BLAST and PSI-BLAST: a new generation of protein database search programs.
+Nucleic Acids Res. Sep 1;25(17):3389-402. Review.
+
+Park J, Holm L, Heger A, Chothia C. (2000) RSDB: representative protein 
+sequence databases have high information content. Bioinformatics. May;16(5):458-64.
+
+Andreeva A, Howorth D, Chandonia JM, Brenner SE, Hubbard TJ, Chothia C, Murzin AG.
+(2008) Data growth and its impact on the SCOP database: new developments.
+Nucleic Acids Res. Jan;36(Database issue):D419-25. Epub 2007 Nov 13.
+
+TODO
+
+1. auto-calibrate the alignment score threshold 
+2. speed up the initial graph parsing using cython
+
+
+

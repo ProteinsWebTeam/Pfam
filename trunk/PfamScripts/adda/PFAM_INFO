@@ -1,0 +1,172 @@
+Notes from 2011, release 26.0 - rdf.
+
+Summary:
+
+1. How to make ADDA.
+2. Lee's Lab talk.
+3. PDB structure images.
+
+ADDA
+=====
+Trying to adda working again......
+ 
+/software/pfam/python/bin/addaFarm.py make map
+ 
+
+Mapping ADDA to Pfamseq
+
+From Andreas Heger: Andreas Heger <andreas.heger@dpag.ox.ac.uk>
+
+please find the latest ADDA update at
+http://genserv.anat.ox.ac.uk/downloads/adda/current
+I have written installation and update notes, see http://wwwfgu.anat.ox.ac.uk/~andreas/adda/
+
+For installation, see http://wwwfgu.anat.ox.ac.uk/~andreas/adda/Introduction.html#installation 
+For running a mapping, see http://wwwfgu.anat.ox.ac.uk/~andreas/adda/Mapping.html
+
+Step 1: Download ADDA data
+Download adda.20XX-XX-XX.tgz and adda.fasta.gz from http://genserv.anat.ox.ac.uk/downloads/adda/current
+
+Step 2: Generate Directory with all of the components in:
+
+cd /lustre/scratch101/sanger/pfam-pipe/pfam26/ADDA
+Step 2.1:
+tar zxvf  adda.2010-05-10.tgz
+x adda.result
+x adda.families
+x adda.summary
+
+Step 2.2
+copy pfamseq and gzip it.
+
+Step 2.3:The adda.ini file
+
+[map]
+filename_adda_sequences: adda.fasta.gz
+filename_domains: adda.result.gz
+filename_target_sequences: pfamseq.gz
+chunksize: 10000
+min_identity: 40
+input_fasta: adda.fasta.gz
+output_nids: output
+output_fasta: output.fa
+input_graph: input.graph
+output_graph: output.graph
+output_fit: fit
+output_segments: segments
+output_stats: stats
+output_domains: domains
+output_domaingraph: dom_graph
+output_mst: mst
+output_align: align
+output_cluster: cluster
+output_families: families
+output_summary: summary
+
+
+Should have something like this:
+
+-rw-rw-r-- 1 pfam-pipe pfam        500 2011-07-28 19:47 adda.ini
+-rw-rw-r-- 1 pfam-pipe pfam  485098874 2011-07-28 19:48 adda.fasta.gz
+-rw-rw-r-- 1 pfam-pipe pfam 3028857871 2011-07-28 19:58 pfamseq.gz
+-rw-rw-r-- 1 rdf       pfam   88639707 2011-07-28 21:46 adda.result
+
+Note, there is an inconsistency between adda.result as to whether it is gz or not. I can not remember if it should or not.
+
+Step 3: Run adda mapping script!
+/software/pfam/python/bin/addaFarm.py make map
+
+End results should be something like this:
+ls -lrt
+total 9717904
+-rw-rw-r-- 1 pfam-pipe pfam        500 2011-07-28 19:47 adda.ini
+-rw-rw-r-- 1 pfam-pipe pfam  485098874 2011-07-28 19:48 adda.fasta.gz
+-rw-rw-r-- 1 pfam-pipe pfam 3028857871 2011-07-28 19:58 pfamseq.gz
+-rw-rw-r-- 1 rdf       pfam   88639707 2011-07-28 21:46 adda.result
+-rw-rw-r-- 1 pfam-pipe pfam  851674623 2011-07-29 02:14 query.fasta
+-rw-rw-r-- 1 pfam-pipe pfam  205386328 2011-07-29 02:38 target.lengths
+-rw-rw-r-- 1 pfam-pipe pfam 3627096020 2011-07-29 02:55 target.new.fasta
+-rw-rw-r-- 1 pfam-pipe pfam   41095740 2011-07-29 02:55 target.new2old.map
+-rw-rw-r-- 1 pfam-pipe pfam   56715678 2011-07-29 02:55 target.new2new.map
+-rw-rw-r-- 1 pfam-pipe pfam    2456106 2011-07-29 02:55 target.obsolete.ids
+-rw-rw-r-- 1 pfam-pipe pfam       1596 2011-07-29 02:55 target.new.fasta.log
+-rw-rw-r-- 1 pfam-pipe pfam        108 2011-07-29 02:57 5.ooc.log
+-rw-rw-r-- 1 pfam-pipe pfam       1816 2011-07-29 02:57 5.ooc
+-rw-rw-r-- 1 pfam-pipe pfam        425 2011-07-29 19:36 split.log
+-rw-rw-r-- 1 pfam-pipe pfam     216250 2011-07-30 21:00 query.fasta.out
+-rw-rw-r-- 1 rdf       pfam   26967061 2011-07-30 21:12 adda.results.gz
+-rw-rw-r-- 1 rdf       pfam   26967061 2011-07-30 21:53 adda.result.gz
+-rw-rw-r-- 1 rdf       pfam   88639707 2011-07-30 21:54 adda.results
+-rw-rw-r-- 1 pfam-pipe pfam   91370957 2011-07-30 21:55 direct.domains
+drwxrwxr-x 2 rdf       pfam      69632 2011-10-11 19:59 libs
+drwxrwxr-x 2 rdf       pfam     528384 2011-10-11 21:13 blat.dir
+-rw-rw-r-- 1 rdf       pfam  300868008 2011-10-11 21:15 mapped.domains
+-rw-rw-r-- 1 rdf       pfam   88741976 2011-10-11 21:16 indirect.domains
+-rw-rw-r-- 1 rdf       pfam  480980941 2011-10-11 21:17 all.domains
+-rw-rw-r-- 1 rdf       pfam   15428815 2011-10-11 21:18 all.families
+-rw-rw-r-- 1 rdf       pfam       1421 2011-10-11 21:25 mapping.coverage.log
+-rw-rw-r-- 1 rdf       pfam  443149637 2011-10-11 21:25 mapping.coverage
+-rw-rw-r-- 1 rdf       pfam        237 2011-10-11 22:37 mapping.summary
+
+Known problems / Issues
+
+ISSUE 1:When running on the farm, I kept running into the following issue. liblapack.so.3.0 was not found. I looked for it, but the version on the farm is not compatible.
+
+Ended up doing the following:
+
+cp /usr/lib/* /lustre/scratch101/sanger/pfam-pipe/pfam26/ADDA/libs
+export $LD_LIBRARY_PATH /lustre/scratch101/sanger/pfam-pipe/pfam26/ADDA/libs:/software/oracle/lib:/usr/local/lib:/usr/local/lsf/7.0/linux2.6-glibc2.3-x86_64/lib:/software/pfam/subversion/lib:/software/pfam/python/lib:/software/intel-tools/fce/10.1.011/lib:/software/intel-tools/cce/10.1.011/lib:/usr/local/lsf/7.0/linux2.6-glibc2.3-x86_64/lib:/software/oracle_client-10.2.0/lib
+
+ISSUE 2: The script does not finish cleanly, as it tries to display the summary.....
+
+all.families] -> mapping.summary] completed
+Completed Task = buildMappingSummary
+re-raising exception
+Traceback (most recent call last):
+  File "/software/pfam/python/bin/addaFarm.py", line 538, in <module>
+    sys.exit(P.main())
+  File "/software/pfam/python/lib/python2.6/site-packages/Adda/Pipeline2.py", line 338, in main
+    pipeline_run( [ options.pipeline_target ], multiprocess = options.multiprocess, verbose = options.loglevel )
+  File "build/bdist.linux-x86_64/egg/ruffus/task.py", line 2547, in pipeline_run
+ruffus.ruffus_exceptions.RethrownJobError:
+
+    Exceptions running jobs for
+
+    'def buildMappingCoverage(...):'
+
+    Original exception:
+    Exception #1    Adda.Pipeline2.PipelineError(Child was terminated by signal -1:      The stderr was:    Traceback (most recent call last):      File "/software/pfam/python/lib/python2.6/site-packages/Adda/adda2coverage.py", line 193, in <module>
+        sys.exit( main( sys.argv) )
+      File "/software/pfam/python/lib/python2.6/site-packages/Adda/adda2coverage.py", line 156, in main
+        pylab.subplot( 211 )
+      File "/software/pfam/python/lib/python2.6/site-packages/matplotlib/pyplot.py", line 646, in subplot
+        fig = gcf()      File "/software/pfam/python/lib/python2.6/site-packages/matplotlib/pyplot.py", line 276, in gcf
+        return figure()
+      File "/software/pfam/python/lib/python2.6/site-packages/matplotlib/pyplot.py", line 254, in figure
+        **kwargs)
+      File "/software/pfam/python/lib/python2.6/site-packages/matplotlib/backends/backend_tkagg.py", line 90, in new_figure_manager
+        window = Tk.Tk()
+      File "/software/pfam/python//lib/python2.6/lib-tk/Tkinter.py", line 1643, in __init__
+        self.tk = _tkinter.create(screenName, baseName, className, interactive, wantobjects, useTk, sync, use)
+
+
+
+HOWEVER, the file we need for making pfam-B is 
+all.domains 
+
+head all.domains
+
+id       start  end     family
+Q91G67.1        4       128     AD179848
+P0C9F0.1        0       117     AD006453
+P0C9F1.1        0       120     AD006453
+P0C9F2.1        0       123     AD006453
+Q65209.1        0       140     AD006453
+P0C9F4.1        0       140     AD006453
+P0C9F6.1        0       140     AD006453
+P0C9F3.1        0       140     AD006453
+P0C9F8.1        0       145     AD006453
+P0C9F9.1        0       139     AD006453
+P0C9G0.1        0       144     AD006453
+P0C9F7.1        0       144     AD006453
+

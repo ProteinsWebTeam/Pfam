@@ -1,0 +1,5 @@
+include src/*.h
+include COPYING
+include README
+include AUTHORS
+include THANKS
