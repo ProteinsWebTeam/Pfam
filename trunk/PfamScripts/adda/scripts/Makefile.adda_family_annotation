@@ -1,0 +1,41 @@
+CMD_STATISTICS=python $(DIR_DOMAINS_SCRIPTS)OutputStatisticsClustering.py --Database=$(PARAM_DATABASE_PAIRSDB) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) 
+
+RSDB_LEVEL=40
+MIN_EVIDENCE=1
+MIN_UNITS=5
+
+################################################################################
+# annotate list with other domain information
+%.pfam_annotations: %.table
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --min_evidence=$(MIN_EVIDENCE) --min_units=$(MIN_UNITS) --ref_domains=$(LEVEL)_pfam_domains_nr --ref_families=$(LEVEL)_pfam_families_nr --subset=$(PARAM_DATABASE_ADDA).$* Annotation > $@
+
+################################################################################
+# annotate with masks
+%.taxonomy: %.table
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --map_taxonomy=$(PARAM_DATABASE_PAIRSDB).pairsdb_100x$(RSDB_LEVEL) --subset=$(PARAM_DATABASE_ADDA).$* Taxonomy > $@
+
+%.struc_coverage: %.table
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --map_taxonomy=$(PARAM_DATABASE_PAIRSDB).pairsdb_100x$(RSDB_LEVEL) --subset=$(PARAM_DATABASE_ADDA).$* --min_overlap=20 StructuralCoverage > $@
+
+#################################################################
+make_summary:
+	for file in *_modules.*; do \
+		echo $$file `grep -v "#" $$file | wc -l` ; \
+	done
+
+taxonomy_summary: 
+	for file in *_modules*.taxonomy taxonomy; do \
+		echo $$file;\
+		awk '{a=a+(($$8>0)?1:0);b=b+(($$10>0)?1:0);c=c+(($$12>0)?1:0);d=d+(($$8>0&&$$10==0&&$$12==0)||($$8==0&&$$10>0&&$$12==0)||($$8==0&&$$10==0&&$$12>0)?1:0)} END {printf"1: %i\t2: %i\t3: %i\t 1|2|3: %i\t",a,b,c,d}' $$file ;\
+		awk '{a=a+(($$8>0 && $$10>0)?1:0);b=b+(($$8>0 && $$12>0)?1:0);c=c+(($$10 && $$12>0)?1:0)} END {printf"1+2: %i\t1+3: %i\t2+3: %i\t1&2|1&3|2&3: %i\t",a,b,c,a+b+c}' $$file ;\
+		awk '{a=a+(($$8>0 && $$10>0 && $$12>0)?1:0);b=b+(($$8==0 && $$10==0 && $$12==0)?1:0)} END {printf"1,2,3: %i\tnone: %i\n", a,b}' $$file ;\
+		awk '{a=a+(($$7==1)?1:0)} END {printf"species_specific: %i\n", a}' $$file ;\
+	done
+
+transmembrane: 
+	for file in *_modules*.masks; do \
+		echo $$file `awk '$$17>20 {a=a+1} END { printf"%i\n", a}' $$file`; \
+	done
+edges_between_domains_tax.taxonomy:
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)calculate_taxonomic_edges.py --full --symmetric taxonomy.classes < edges_between_domains_tax > $@
+

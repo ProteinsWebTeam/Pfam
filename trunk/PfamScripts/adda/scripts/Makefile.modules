@@ -1,0 +1,60 @@
+include ../Makefile.definitions
+
+TABLE_TAXONOMY=taxonomy
+LEVEL=nrdb40
+
+## primary targets
+modules: modules.table modules.list modules.links modules.complist modules.components modules.hist
+
+################################################################################
+## definition of modules:
+modules.table:
+	mysql -e "DROP TABLE IF EXISTS $(TABLE_MODULES); \
+	CREATE TABLE $(TABLE_MODULES) (family int unsigned, type char(1), unique(family)); \
+	INSERT INTO $(TABLE_MODULES) \
+	SELECT DISTINCTROW f1.family, 'm' \
+	FROM \
+	$(TABLE_FAMILIES) AS f1, \
+	$(TABLE_DOMAINS) AS d1, \
+	$(TABLE_DOMAINS) as d2, \
+	$(TABLE_FAMILIES) AS f2, \
+	$(TABLE_DOMAINS) as d3,\
+	$(TABLE_FAMILIES) AS f3, \
+	$(TABLE_DOMAINS) as d4, \
+	$(TABLE_FAMILIES) AS f4 \
+	WHERE \
+	f1.family = d1.family AND f1.nunits >= 5 \
+	AND f2.family = d2.family AND f2.nunits >= 5 \
+	AND f3.family = d3.family AND f3.nunits >= 5 \
+	AND f4.family = d4.family AND f4.nunits >= 5 \
+	AND d1.rep_nid = d2.rep_nid \
+	AND d3.rep_nid = d4.rep_nid \
+	AND d1.rep_nid < d3.rep_nid \
+	AND d1.family = d3.family \
+	AND d1.family <> d2.family \
+	AND d2.family <> d4.family \
+	AND d3.family <> d4.family;" $(DATABASE)
+
+modules.list:
+	mysql -B -N -e "SELECT m.family FROM $(TABLE_MODULES) AS m, $(TABLE_FAMILIES) AS f WHERE m.family = f.family" $(DATABASE_ADDA) > $@
+
+################################################################################
+## create graph between modules
+%.links:
+	perl $(DIR_GRAPH_SCRIPTS)filter_links_tokens.pl $*.list < edges_between_domains > $@
+
+%.complist: %.links
+	$(DIR_BIN)ga_components $*.links | grep -v "## iteration" > $@
+
+%.components: %.complist
+	grep -v "#" < $*.complist |\
+	perl $(DIR_TOOLS)regextract.pl "\/\/" 0 "\/\/" 0 1 |\
+	sort -k2n -k1n > $@
+
+%.hist: %.complist
+	perl $(DIR_TOOLS)regtail.pl "total" < $*.complist | grep "^[0-9]" |\
+	$(CMD_SUBMIT) python $(DIR_PAIRSDB_TOOLS)calculate_histogram.py --column=1 > $@
+
+clean_modules:
+	rm -f modules.*
+	rm -f *_modules.*

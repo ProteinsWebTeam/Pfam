@@ -1,0 +1,635 @@
+#########################################################################
+# common makefile for building my own domain definitions
+# $Id$
+#########################################################################
+
+## flags for domain boundary evaluation
+FLAGS_EVALUATION=--switch --skip_repeats --quality
+
+#########################################################################
+SHELL=/bin/bash2
+DIR_ANNOTATION_SCRIPTS=/production/scripts/domains/
+
+CMD_STATISTICS=python $(DIR_ANNOTATION_SCRIPTS)OutputStatisticsClustering.py --Database=$(DATABASE)
+DIR_EXPORT=/afs/biocenter.helsinki.fi/bioinfo/group/src/Zope-2.6.0-linux2-x86/export/
+
+REFERENCES=pfam scop
+ANNOTATIONS=$(REFERENCES:%=%.annotations)
+
+MAX_FAMILY=1000000
+
+## level for comparison
+LEVEL=$(DATABASE).nrdb40
+
+TARGETS_EXPORT=.html _sensitivity.html _selectivity.html _roc.png 
+PFAM_EXPORT=$(TARGETS_EXPORT:%=pfam%)
+SCOP_EXPORT=$(TARGETS_EXPORT:%=scop%)
+
+TARGETS_BENCHMARKS=annotations selectivity sensitivity unknown extended roc 
+PFAM_BENCHMARKS=$(TARGETS_BENCHMARKS:%=pfam.%)
+SCOP_BENCHMARKS=$(TARGETS_BENCHMARKS:%=scop.%)
+INTERPRO_BENCHMARKS=$(TARGETS_BENCHMARKS:%=interpro.%)
+
+EXPORT=lhist.png fhist.png struc.html $(EXPORTS)
+
+MIN_TAXONOMY_MATCHES=0
+
+## if less than five percent of a family are annotated, print it.
+THRESHOLD_UNKNOWN=5
+THRESHOLD_EXTENDED_MIN=5
+THRESHOLD_EXTENDED_MAX=50
+
+#########################################################################
+## graph related flags
+FLAGS_GDL_SPLIT=--min_size=5
+
+## summaries to compute
+SUMMARY=summary lhist fhist struc_coverage struc_summary family_summary \
+	summary_genomes
+
+TAXONOMY=taxonomy
+
+annotate: $(SUMMARY) $(BENCHMARKS) domains_x_domains
+
+load: $(LOAD)
+
+##########################################################################
+## calculate various summary statistics for a domain clustering
+summary:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) Summary > $@
+
+lhist:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) LengthDistribution > $@
+
+lhist.png: lhist
+	echo 'set title "Distribution of domain lengths"' > g
+	echo 'set terminal png small size 500,300' >> g
+	echo 'set output "$@"' >> g
+	echo 'set xlabel "log(length of a domain)' >> g
+	echo 'set ylabel "log(number of domains)' >> g
+	echo 'set logscale xy' >> g
+	echo 'plot "lhist" using ($$1):($$2) title "all", "lhist" using ($$1):($$3) title "singletons" ' >> g
+	gnuplot g
+	rm -f g
+
+fhist:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) CountDistribution > $@
+
+fhist.png: fhist
+	echo 'set title "Distribution of domain family size"' > g
+	echo 'set terminal png small size 500,300' >> g
+	echo 'set output "$@"' >> g
+	echo 'set xlabel "log(domains or sequences per family)' >> g
+	echo 'set ylabel "log(number of families)' >> g
+	echo 'set logscale xy' >> g
+	echo 'plot "fhist" using ($$1):($$2) title "domains", "fhist" using ($$1):($$3) title "sequences" ' >> g
+	gnuplot g
+	rm -f g
+
+##########################################################################	
+## calculate annotations for export (only biggest families)
+%.large_annotations:
+	$(CMD_SUBMIT) $(CMD_STATISTICS)  --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --max_family=$(MAX_FAMILY) --min_evidence=2 --min_units=50 --ref_domains=$(LEVEL)_$*_domains_nr --ref_families=$(LEVEL)_$*_families_nr Annotation > $@
+
+##########################################################################	
+## calculate annotations for sensitivity/selectivity (all families)
+%.annotations:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --max_family=$(MAX_FAMILY) --min_evidence=2 --min_units=2 --ref_domains=$(LEVEL)_$*_domains_nr --ref_families=$(LEVEL)_$*_families_nr Annotation > $@
+
+%.load_annotations: %.annotations
+	$(CMD_SUBMIT) awk ' BEGIN { FS = "\t" } \
+			!/#/  \
+			{ \
+			if ($$14 != "unknown") { \
+				if ($$1 != "") { \
+					a = $$1; \
+					printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", \
+						a, $$7, $$8, $$9, $$10, $$11, $$12, $$13, $$14, $$15);\
+				} else { \
+					printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", \
+						a, $$7, $$8, $$9, $$10, $$11, $$12, $$13, $$14, $$15);\
+				} \
+			}\
+			}' < $*.annotations > $(DIR_LOAD)$*.tmp_load_hits
+	$(CMD_SUBMIT) grep -v "^[#	]" $*.annotations | sed '/	unknown/d' | cut -f 1-6 > $(DIR_LOAD)$*.tmp_load_summary
+	chmod 666 $(DIR_LOAD)$*.tmp_load_hits $(DIR_LOAD)$*.tmp_load_summary
+	mysql -e "DROP TABLE IF EXISTS $(TABLE_DOMAINS)_vs_$*_matches, $(TABLE_DOMAINS)_vs_$*_summary; \
+	CREATE TABLE $(TABLE_DOMAINS)_vs_$*_matches (family INT UNSIGNED NOT NULL DEFAULT 0, runits INT UNSIGNED NOT NULL DEFAULT 0, tunits INT UNSIGNED NOT NULL DEFAULT 0, rseqs INT UNSIGNED NOT NULL DEFAULT 0, tseqs INT UNSIGNED NOT NULL DEFAULT 0, alength FLOAT, aovl FLOAT, rfamily VARCHAR(20), description VARCHAR(200), INDEX(family), INDEX(rfamily)); \
+	LOAD DATA INFILE '$(DIR_LOAD)$*.tmp_load_hits' INTO TABLE $(TABLE_DOMAINS)_vs_$*_matches; \
+	CREATE TABLE $(TABLE_DOMAINS)_vs_$*_summary (family INT UNSIGNED NOT NULL DEFAULT 0, nunits INT UNSIGNED NOT NULL DEFAULT 0, aunits INT UNSIGNED NOT NULL DEFAULT 0, nseqs INT UNSIGNED NOT NULL DEFAULT 0, aseqs INT UNSIGNED NOT NULL DEFAULT 0, length INT UNSIGNED NOT NULL DEFAULT 0, INDEX(family)); \
+	LOAD DATA INFILE '$(DIR_LOAD)$*.tmp_load_summary' INTO TABLE $(TABLE_DOMAINS)_vs_$*_summary;" $(DATABASE_ADDA)
+	rm -f $(DIR_LOAD)$*.tmp_load_hits $(DIR_LOAD)$*.tmp_load_summary
+	echo "loaded at `date`" > $@
+
+%.html: %.annotations
+	$(CMD_SUBMIT) python $(DIR_ANNOTATION_SCRIPTS)txt2html_annotation.py --cluster=0 --ref=12 < $*.annotations > $@
+
+##########################################################################	
+## Sensitivity
+%.sensitivity: %.annotations
+	$(CMD_SUBMIT) perl $(DIR_ANNOTATION_SCRIPTS)calculate_sensitivity.pl < $*.annotations > $@
+
+%_sensitivity.html: %.sensitivity
+	$(CMD_SUBMIT) python $(DIR_ANNOTATION_SCRIPTS)txt2html_annotation.py --cluster=0 --ref=4 < $*.sensitivity > $@
+
+%.load_sensitivity: %.sensitivity
+	grep -v "#" $*.sensitivity > $(DIR_LOAD)$*.sensitivity
+	chmod 666 $(DIR_LOAD)$*.sensitivity
+	mysql -e "DROP TABLE IF EXISTS $(TABLE_DOMAINS)_vs_$*_sensitivity; \
+	CREATE TABLE $(TABLE_DOMAINS)_vs_$*_sensitivity (family INT UNSIGNED NOT NULL DEFAULT 0, runits INT UNSIGNED NOT NULL DEFAULT 0, tunits INT UNSIGNED NOT NULL DEFAULT 0, sensitivity FLOAT, rfamily VARCHAR(20), description VARCHAR(200), INDEX(family), INDEX(rfamily)); \
+	LOAD DATA INFILE '$(DIR_LOAD)$*.sensitivity' INTO TABLE $(TABLE_DOMAINS)_vs_$*_sensitivity;" $(DATABASE_ADDA)
+	rm -f $(DIR_LOAD)$*.tmp_sensitivity
+	echo "loaded at `date`" > $@
+
+##########################################################################	
+## Selectivity
+%.selectivity: %.annotations
+	$(CMD_SUBMIT) perl $(DIR_ANNOTATION_SCRIPTS)calculate_selectivity.pl < $*.annotations > $@
+
+%_selectivity.html: %.selectivity
+	$(CMD_SUBMIT) python $(DIR_ANNOTATION_SCRIPTS)txt2html_annotation.py --cluster=0 --ref=4 < $*.selectivity > $@
+
+%.load_selectivity: %.selectivity
+	grep -v "#" $*.selectivity > $(DIR_LOAD)$*.selectivity
+	chmod 666 $(DIR_LOAD)$*.selectivity
+	mysql -e "DROP TABLE IF EXISTS $(TABLE_DOMAINS)_vs_$*_selectivity; \
+	CREATE TABLE $(TABLE_DOMAINS)_vs_$*_selectivity (family INT UNSIGNED NOT NULL DEFAULT 0, runits INT UNSIGNED NOT NULL DEFAULT 0, tunits INT UNSIGNED NOT NULL DEFAULT 0, selectivity FLOAT, rfamily VARCHAR(20), description VARCHAR(200), INDEX(family), INDEX(rfamily)); \
+	LOAD DATA INFILE '$(DIR_LOAD)$*.selectivity' INTO TABLE $(TABLE_DOMAINS)_vs_$*_selectivity;" $(DATABASE_ADDA)
+	rm -f $(DIR_LOAD)$*.tmp_selectivity
+	echo "loaded at `date`" > $@
+
+##########################################################################	
+## unknown domains
+%.unknown: %.annotations
+	awk ' !/#/ { split( $$0, a, "\t"); if (a[14] == "unknown" || (a[2] > 0 && 100 * a[3] / a[2] < $(THRESHOLD_UNKNOWN) )) { print $0; }; }' < $*.annotations > $@
+
+##########################################################################	
+## unknown domains
+%.extended: %.annotations
+	awk ' !/#/ { split( $$0, a, "\t"); if (a[2] > 0 && (100*a[3]/a[2]) >= $(THRESHOLD_EXTENDED_MIN) && (100*a[3]/a[2]) < $(THRESHOLD_EXTENDED_MAX)  ) { print $0; }; }' < $*.annotations > $@
+
+##########################################################################	
+## 
+%.roc:
+	$(CMD_STATISTICS)  --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --min_evidence=1 --min_units=0 --ref_domains=$(LEVEL)_$*_domains_nr --ref_families=$(LEVEL)_$*_families_nr Roc | uniq > $@ 
+
+%_roc.png: %.roc
+	echo 'set title "Cumulative Distribution of Annotated Clusters"' > g
+	echo 'set terminal png' >> g
+	echo 'set output "$@"' >> g
+	echo 'set xlabel "cluster size /residues ' >> g
+	echo 'set ylabel "annotated / %' >> g
+	echo 'set logscale x' >> g
+	echo 'plot "$*.roc" using ($$1):($$2) title "" with linespoints  ' >> g
+	gnuplot g
+	rm -f g
+
+##################################################################
+## info about individual clusters
+family_summary:
+	$(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) FamilySummary > $@
+
+##################################################################
+## get masking information for each family
+masks:
+	python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) Masks > $@
+
+##################################################################
+## get structural coverage of families
+struc_coverage:
+	$(CMD_STATISTICS) --structures=$(TABLE_STRUCTURES) \
+			  --domains=$(TABLE_DOMAINS) \
+			  --families=$(TABLE_FAMILIES) \
+			  --min_overlap=20 StructuralCoverage > $@
+
+struc.html: struc_coverage
+	python $(DIR_ANNOTATION_SCRIPTS)txt2html_annotation.py --cluster=0 < struc_coverage > $@
+
+# important: do alphanumerical sort, otherwise join won't work
+struc_summary: struc_coverage family_summary
+	grep -v "#" family_summary | sort > $*_a.tmp
+	grep -v "#" struc_coverage | sort > $*_b.tmp
+	join -t'	' $*_a.tmp $*_b.tmp | sort -k1n > $@
+	rm -f $*_a.tmp $*_b.tmp
+	@echo "residues total" 
+	@awk -F'	' '{c=c+$$4} END {printf"%i\n",c}' $@
+	@echo "sequences total"
+	@awk -F'	' '{c=c+$$2} END {printf"%i\n",c}' $@
+	@echo "domains total"
+	@awk -F'	' '{c=c+$$3} END {printf"%i\n",c}' $@
+	@echo "families total"
+	@wc -l $@
+
+###############################################################################
+## get edges between clusters
+domains_x_domains:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --min_units=1 --Database=$(DATABASE) EdgesBetweenDomains > $@
+
+domains_x_domains_tax:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --min_units=1 --restrict_taxonomy=159436 --Database=$(DATABASE) EdgesBetweenDomains > $@
+
+## load edges between domains. Make graph symmetric at the same time.
+domains_x_domains.load:
+	mysql -B -N -e "DROP TABLE IF EXISTS $(TABLE_DOMAINS_LINKS)" $(DATABASE)
+	mysql -B -N -e "CREATE TABLE $(TABLE_DOMAINS_LINKS) \
+	(family1 INT UNSIGNED NOT NULL DEFAULT 0, \
+	family2 INT UNSIGNED NOT NULL DEFAULT 0, \
+	nlinks SMALLINT UNSIGNED NOT NULL DEFAULT 0, \
+	INDEX(family1), INDEX(family2) );" $(DATABASE)
+	grep -v "#" < domains_x_domains > $(DIR_LOAD)domains_x_domains
+	grep -v "#" < domains_x_domains | awk '{printf("%s\t%s\t%s\n", $$2, $$1, $$3);}' >> $(DIR_LOAD)domains_x_domains
+	chmod 666 $(DIR_LOAD)domains_x_domains
+	mysql -B -N -e "LOAD DATA INFILE '$(DIR_LOAD)domains_x_domains' INTO TABLE $(TABLE_DOMAINS_LINKS)" $(DATABASE)
+	rm -f $(DIR_LOAD)domains_x_domains
+	touch $@
+
+###############################################################################
+## get taxononomic information for clusters
+taxonomy:
+	$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(TABLE_DOMAINS) --families=$(TABLE_FAMILIES) --min_units=1 --map_taxonomy=pairsdb_100x40 --Database=$(DATABASE) Taxonomy > $@
+
+## eight classes of domains: universal, two-domains, one-domain, unknown
+taxonomy.classes: taxonomy
+	grep -v "#" taxonomy | awk '$$3>1 {a=($$8>$(MIN_TAXONOMY_MATCHES));b=($$10>$(MIN_TAXONOMY_MATCHES));c=($$12>$(MIN_TAXONOMY_MATCHES)); printf("%s\t%i%i%i\n", $$1,a,b,c)}' > $@
+
+## two classes of domains: universal and not-universal
+taxonomy.two_classes: taxonomy
+	grep -v "#" taxonomy | awk '$$3>1 {a=($$8>$(MIN_TAXONOMY_MATCHES) && ($$10>$(MIN_TAXONOMY_MATCHES)) && ($$12>$(MIN_TAXONOMY_MATCHES))); printf("%s\t%i\n", $$1,a)}' > $@
+
+taxonomy_summary: taxonomy
+	echo "# all clusters" 
+	awk '{a=a+(($$7>0)?1:0);b=b+(($$9>0)?1:0);c=c+(($$11>0)?1:0)} END {printf"1: %i\t2: %i\t3: %i\t",a,b,c}' taxonomy 
+	awk '{a=a+(($$7>0 && $$9>0)?1:0);b=b+(($$7>0 && $$11>0)?1:0);c=c+(($$9 && $$11>0)?1:0)} END {printf"1+2: %i\t1+3: %i\t2+3: %i\t",a,b,c}' taxonomy 
+	awk '{a=a+(($$7>0 && $$9>0 && $$11>0)?1:0);b=b+(($$7==0 && $$9==0 && $$11==0)?1:0)} END {printf"1,2,3: %i\tnone: %i\n", a,b}' taxonomy 
+	echo "# non-singletons" 
+	awk '$$3>1 {a=a+(($$7>0)?1:0);b=b+(($$9>0)?1:0);c=c+(($$11>0)?1:0)} END {printf"1: %i\t2: %i\t3: %i\t",a,b,c}' taxonomy 
+	awk '$$3>1 {a=a+(($$7>0 && $$9>0)?1:0);b=b+(($$7>0 && $$11>0)?1:0);c=c+(($$9 && $$11>0)?1:0)} END {printf"1+2: %i\t1+3: %i\t2+3: %i\t",a,b,c}' taxonomy
+	awk '$$3>1 {a=a+(($$7>0 && $$9>0 && $$11>0)?1:0);b=b+(($$7==0 && $$9==0 && $$11==0)?1:0)} END {printf"1,2,3: %i\tnone: %i\n", a,b}' taxonomy 
+
+## get taxononomic information for a single cluster
+%.taxonomy: %.nids
+	python $(DIR_ANNOTATION_SCRIPTS)annotate_nids.py 40 < $*.nids > $@
+
+%.taxonomy_colours: %.taxonomy
+	python $(DIR_ANNOTATION_SCRIPTS)links2taxonomy_colours.py < $*.taxonomy > $@
+
+%.pfam_domains: %.nids
+	python $(DIR_ANNOTATION_SCRIPTS)annotate_nids.py --no_boundaries 10 < $*.nids > $@
+
+%.pfam_colours: %.pfam_domains
+	python $(DIR_ANNOTATION_SCRIPTS)links2colours.py < $*.pfam_domains > $@
+
+###############################################################################
+## methods for use in cluster analysis
+%.nids:
+	mysql -B -N -e "SELECT DISTINCT rep_nid, rep_from, rep_to FROM $(TABLE_DOMAINS) WHERE family = $*" $(DATABASE) > $@
+
+%.sequences:
+	mysql -B -N -e "SELECT DISTINCT CONCAT('>', rep_nid, '|', accessionnumber, '|', identifier, ' ', description, '\n', n.sequence) FROM $(TABLE_DOMAINS), nrdb AS n WHERE family = $* AND rep_nid = n.nid " $(DATABASE) | perl -pe "s/\\\n/\n/g" > $@
+
+%.domain_sequences:
+	mysql -B -N -e "SELECT DISTINCT CONCAT('>', rep_nid, '|', identifier, '/', rep_from, '-', rep_to, '\n', SUBSTRING(n.sequence, rep_from, rep_to-rep_from+1)) FROM $(TABLE_DOMAINS), nrdb AS n WHERE family = $* AND rep_nid = n.nid " $(DATABASE) | perl -pe "s/\\\n/\n/g" > $@
+
+
+%.aln: %.domain_sequences
+	clustalw $*.domain_sequences 
+
+%.domains: %.nids
+	python $(DIR_ANNOTATION_SCRIPTS)annotate_nids.py --no_boundaries $(TABLE_DOMAINS) < $*.nids > $@
+
+###############################################################################
+## how to generate an eps file from a gdl file
+## split a gdl file components
+%.split_gdl: %.gdl
+	python $(DIR_ANNOTATION_SCRIPTS)gdl2gdl_components.py $(FLAGS_GDL_SPLIT) < $*.gdl | csplit --prefix=$*_ - /^\/\// {*}
+	find . -empty -exec rm -f {} \;
+	for f in $*_*; do \
+		mv $$f $$f.gdl; \
+	done 
+
+## convert a gdl file to an eps file
+%.eps: %.gdl
+	rm -f $*.eps
+	aisee -cedges -hidesingles -silent -color -psoutput $@ $*.gdl
+	perl -p -i -e "s/\(Created with.*\) show$$/\(\) show/" $@
+
+
+###############################################################################
+## make an annotations table
+## sunits/ssequences: number of units/sequences with structure
+## nstrucs: number of structures in family
+## nspecies: number of species
+## n40xxx: number of domains in superkingdom xxx on level nrdb40
+## nxxx: number of domains in superkingdom xxx on leve nrdb
+## nlinks: number of links to associated domains
+## is_module: is a mobile module
+annotations_table.create: 
+	mysql -B -N -e "DROP TABLE IF EXISTS $(TABLE_ANNOTATIONS)" $(DATABASE_ADDA)
+	mysql -B -N -e "CREATE TABLE $(TABLE_ANNOTATIONS) (\
+            family INT UNSIGNED NOT NULL DEFAULT 0, \
+            nunits INT UNSIGNED NOT NULL DEFAULT 0, \
+            nsequences INT UNSIGNED NOT NULL DEFAULT 0, \
+            nresidues INT UNSIGNED NOT NULL DEFAULT 0, \
+            length INT UNSIGNED NOT NULL DEFAULT 0, \
+	    sunits INT UNSIGNED NOT NULL DEFAULT 0, \
+	    ssequences INT UNSIGNED NOT NULL DEFAULT 0, \
+	    nstrucs INT UNSIGNED NOT NULL DEFAULT 0, \
+	    nspecies INT UNSIGNED NOT NULL DEFAULT 0, \
+	    n40archaea INT UNSIGNED NOT NULL DEFAULT 0, \
+	    narchaea INT UNSIGNED NOT NULL DEFAULT 0, \
+	    n40bacteria INT UNSIGNED NOT NULL DEFAULT 0, \
+	    nbacteria INT UNSIGNED NOT NULL DEFAULT 0, \
+	    n40eukaryota INT UNSIGNED NOT NULL DEFAULT 0, \
+	    neukaryota INT UNSIGNED NOT NULL DEFAULT 0, \
+	    nlinks INT UNSIGNED NOT NULL DEFAULT 0, \
+	    is_module CHAR(1) NOT NULL DEFAULT 'N', \
+	    is_unknown CHAR(1) NOT NULL DEFAULT 'N', \
+	    is_extended CHAR(1) NOT NULL DEFAULT 'N', \
+	    INDEX(family))" $(DATABASE_ADDA) > $@
+	mysql -B -N -e "INSERT INTO $(TABLE_ANNOTATIONS) (family, nunits, nsequences, nresidues, length) \
+	SELECT family, nunits, nsequences, nresidues, length FROM $(TABLE_FAMILIES)" $(DATABASE_ADDA) >> $@
+
+struc_coverage.load: struc_coverage annotations_table.create
+	cat struc_coverage |\
+	awk '/#/ {next;} { printf("UPDATE $(TABLE_ANNOTATIONS) SET sunits=%i, ssequences=%i, nstrucs=%i WHERE family=%i;\n", $$2, $$3, $$4, $$1);}' |\
+	mysql
+	touch $@
+
+taxonomy.load: taxonomy annotations_table.create
+	cat taxonomy |\
+	awk '/#/ {next;} { printf("UPDATE $(TABLE_ANNOTATIONS) \
+	SET nspecies=%i, n40archaea=%i, narchaea=%i, n40bacteria=%i, nbacteria=%i, n40eukaryota=%i, neukaryota=%i\
+	WHERE family=%i;\n", $$6, $$7, $$8, $$9, $$10, $$11, $$12, $$1);}' |\
+	mysql
+	touch $@
+
+nlinks.load: domains_x_domains.load annotations_table.create
+	mysql -B -N -e "SELECT family1, COUNT(DISTINCT family2) FROM $(TABLE_DOMAINS_LINKS) GROUP BY family1" |\
+	awk '/#/ {next;} { printf("UPDATE $(TABLE_ANNOTATIONS) SET nlinks=%i WHERE family=%i;\n", $$2, $$1);}' |\
+	mysql
+	touch $@
+
+## unknown is updated as "AND", i.e., only if unknown to all three classifications
+## the domain is unknown.
+unknown.load: $(UNKNOWN) annotations_table.create
+	rm -f $@.tmp
+	nunknown=`echo "$(UNKNOWN)" | wc -w`; \
+	for file in $(UNKNOWN); do \
+		cut -f 1 $$file >> $@.tmp; \
+	done; \
+	sort -k1n $@.tmp | sort -k1n | uniq -c |\
+	awk -v n="$$nunknown" '$$1==n {printf("UPDATE $(TABLE_ANNOTATIONS) SET is_unknown=\"Y\" WHERE family=%i;\n", $$2);}' |\
+	mysql
+	rm -f $@.tmp
+	mysql -e "UPDATE $(TABLE_ANNOTATIONS) SET is_unknown=\"?\" WHERE nunits = 1" $(DATABASE_ADDA)
+	touch $@
+
+## extended is updated as "AND", i.e., only if a family is extended in all classifications, it
+## is shown here.
+extended.load: $(EXTENDED) annotations_table.create
+	rm -f $@.tmp
+	nextended=`echo "$(EXTENDED)" | wc -w`; \
+	for file in $(EXTENDED); do \
+		cut -f 1 $$file >> $@.tmp; \
+	done; \
+	sort -k1n $@.tmp | sort -k1n | uniq -c |\
+	awk -v n="$$nextended" '$$1==n {printf("UPDATE $(TABLE_ANNOTATIONS) SET is_extended=\"Y\" WHERE family=%i;\n", $$2);}' |\
+	mysql
+	rm -f $@.tmp
+	touch $@
+
+modules.load: ../modules/modules.list annotations_table.create
+	cat ../modules/modules.list |\
+	awk '/#/ {next;} { printf("UPDATE $(TABLE_ANNOTATIONS) \
+	SET is_module=\"Y\" WHERE family=%i;\n", $$1);}' |\
+	mysql
+	touch $@
+
+#################################################
+## genomes
+summary_genomes: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		tax_id INTEGER, \
+		scientific_name VARCHAR(100), \
+		nsequences INT, \
+		nunits INT, \
+		nfamilies INT, \
+		INDEX(tax_id), INDEX(scientific_name))" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT t.tax_id, t.scientific_name, \
+	COUNT(DISTINCT d.rep_nid), COUNT(*), COUNT( DISTINCT d.family) \
+	FROM $(TABLE_NRDB_DOMAINS) AS d, \
+	$(DATABASE).taxonomy_assignments AS a, \
+	$(DATABASE).taxonomy AS t \
+	WHERE t.tax_id = a.tax_id AND a.nid = d.rep_nid \
+	GROUP BY t.tax_id" $(DATABASE_ADDA)
+
+## all
+summary_all_modules: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT, \
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'singletons', COUNT(DISTINCT family), 'module=n' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits = 1 AND is_module = 'N'" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'associated families', COUNT(DISTINCT family), 'module=n' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'mobile modules', COUNT(DISTINCT family), 'module=y' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y'" $(DATABASE_ADDA)
+	touch $@
+
+summary_all_annotation: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'structurally covered', COUNT(DISTINCT family), 'structure=y' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nstrucs > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'annotated', COUNT(DISTINCT family),'structure=n&unknown=n&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'N' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'extended', COUNT(DISTINCT family), 'structure=n&unknown=n&extended=y'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'Y' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'unknown', COUNT(DISTINCT family), 'structure=n&unknown=y&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nstrucs = 0 AND is_unknown = 'Y' AND is_extended = 'N' " $(DATABASE_ADDA)
+	touch $@
+
+summary_all_taxonomy: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'only archaea', COUNT(DISTINCT family), 'yes_taxonomy=archaea&no_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea > 0 AND nbacteria = 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only bacteria', COUNT(DISTINCT family), 'no_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea = 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only eukaryota', COUNT(DISTINCT family), 'no_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea = 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and bacteria', COUNT(DISTINCT family), 'yes_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea > 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and eukaryota', COUNT(DISTINCT family), 'yes_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea > 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'bacteria and eukaryota', COUNT(DISTINCT family), 'no_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea = 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'all', COUNT(DISTINCT family), 'yes_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE narchaea > 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	touch $@
+
+## modules
+summary_modules_annotation: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'structurally covered', COUNT(DISTINCT family), 'module=y&structure=y' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND nstrucs > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'annotated', COUNT(DISTINCT family),'module=y&structure=n&unknown=n&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'N' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'extended', COUNT(DISTINCT family), 'module=y&structure=n&unknown=n&extended=y'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'Y' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'unknown', COUNT(DISTINCT family), 'module=y&structure=n&unknown=y&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND nstrucs = 0 AND is_unknown = 'Y' AND is_extended = 'N' " $(DATABASE_ADDA)
+	touch $@
+
+summary_modules_taxonomy: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'only archaea', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&no_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea > 0 AND nbacteria = 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only bacteria', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea = 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only eukaryota', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea = 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and bacteria', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea > 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and eukaryota', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea > 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'bacteria and eukaryota', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea = 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'all', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE is_module = 'Y' AND narchaea > 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	touch $@
+
+
+## non-mobile modiles (without singletons)
+summary_nonmodules_annotation: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'structurally covered', COUNT(DISTINCT family), 'module=y&structure=y' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND nstrucs > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'annotated', COUNT(DISTINCT family),'module=y&structure=n&unknown=n&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'N' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'extended', COUNT(DISTINCT family), 'module=y&structure=n&unknown=n&extended=y'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND nstrucs = 0 AND is_unknown = 'N' AND is_extended = 'Y' " $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'unknown', COUNT(DISTINCT family), 'module=y&structure=n&unknown=y&extended=n'  \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND nstrucs = 0 AND is_unknown = 'Y' AND is_extended = 'N' " $(DATABASE_ADDA)
+	touch $@
+
+summary_nonmodules_taxonomy: $(SUMMARY_TABLE)
+	mysql  -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql  -e "CREATE TABLE $@ (\
+		category VARCHAR(255), \
+		counts INT,\
+		link TEXT)" $(DATABASE_ADDA) 
+	mysql -e "INSERT INTO $@ SELECT 'only archaea', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&no_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea > 0 AND nbacteria = 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only bacteria', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea = 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'only eukaryota', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea = 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and bacteria', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&yes_taxonomy=bacteria&no_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea > 0 AND nbacteria > 0 AND neukaryota = 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'archaea and eukaryota', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&no_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea > 0 AND nbacteria = 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'bacteria and eukaryota', COUNT(DISTINCT family), 'module=y&no_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea = 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'all', COUNT(DISTINCT family), 'module=y&yes_taxonomy=archaea&yes_taxonomy=bacteria&yes_taxonomy=eukaryota' \
+	FROM $(TABLE_ANNOTATIONS) WHERE nunits > 1 AND is_module = 'N'  AND narchaea > 0 AND nbacteria > 0 AND neukaryota > 0" $(DATABASE_ADDA)
+	touch $@
+
+summary_all_lengths: lhist
+	mysql -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql -e "CREATE TABLE $@ (\
+	        counts INT, \
+		nall INT,\
+		nwith INT, \
+		nsingletons INT )" $(DATABASE_ADDA) 
+	awk '!/#/ { printf("INSERT INTO $@ VALUES (%i,%i,%i,%i);\n", $$1, $$2, $$3,$$4);}' < lhist | mysql $(DATABASE_ADDA)
+	touch $@
+
+
+summary_all_sizes: fhist
+	mysql -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql -e "CREATE TABLE $@ (\
+	        counts INT, \
+		nunits INT,\
+		nsequences INT)" $(DATABASE_ADDA) 
+	awk '!/#/ { printf("INSERT INTO $@ VALUES (%i,%i,%i);\n", $$1, $$2, $$3);}' < fhist | mysql $(DATABASE_ADDA)
+	touch $@
+
+
+summary_table: 
+	mysql -e "DROP TABLE IF EXISTS $@" $(DATABASE_ADDA)
+	mysql -e "CREATE TABLE $@ (\
+		level VARCHAR(255), \
+		counts INT, \
+		units VARCHAR(255) )" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', COUNT(*), 'sequences' FROM $(DATABASE).nrdb40" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', COUNT(*), 'domains' FROM $(TABLE_DOMAINS)" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', COUNT(family), 'non-singletons' FROM $(TABLE_FAMILIES) WHERE nunits > 1" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', COUNT(family), 'singletons' FROM $(TABLE_FAMILIES) WHERE nunits = 1" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', MAX(nunits), 'domains in largest family' FROM $(TABLE_FAMILIES)" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', MAX(nsequences), 'sequences in largest family' FROM $(TABLE_FAMILIES)" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb40', COUNT(*), 'mobile modules' FROM modules" $(DATABASE_ADDA)
+
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', COUNT(*), 'sequences' FROM $(DATABASE).nrdb WHERE filter > 0" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', COUNT(*), 'domains' FROM $(TABLE_NRDB_DOMAINS)" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', COUNT(family), 'non-singletons' FROM $(TABLE_NRDB_FAMILIES) WHERE nunits > 1" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', COUNT(family), 'singletons' FROM $(TABLE_NRDB_FAMILIES) WHERE nunits = 1" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', MAX(nunits), 'domains in largest family' FROM $(TABLE_NRDB_FAMILIES)" $(DATABASE_ADDA)
+	mysql -e "INSERT INTO $@ SELECT 'nrdb', MAX(nsequences), 'sequences in largest family' FROM $(TABLE_NRDB_FAMILIES)" $(DATABASE_ADDA)
+	touch $@
+###############################################################################
+## export html and png files
+export: $(EXPORT)
+	cp *.png $(DIR_EXPORT)$(DIR_EXPORT_SUFFIX)
+	cp *.html $(DIR_EXPORT)$(DIR_EXPORT_SUFFIX)
+
+## trash
+
+##################################################################
+## various summaries for all files in directory
+summary.result:
+	python $(PATH_PAIRSDBTOOLS)get_summary.py $(SUMMARIES) > $@
+
+lengths.result:
+	python $(PATH_PAIRSDBTOOLS)get_length_distribution.py $(LENGTHS) > $@
+
+families.result:
+	python $(PATH_PAIRSDBTOOLS)get_length_distribution.py $(FAMILIES) > $@
+
+psummary.result:
+	python $(PATH_PAIRSDBTOOLS)get_summary.py $(PICASSO_SUMMARIES) > $@
+
+plengths.result:
+	python $(PATH_PAIRSDBTOOLS)get_length_distribution.py $(PICASSO_LENGTHS) > $@
+
+pfamilies.result:
+	python $(PATH_PAIRSDBTOOLS)get_length_distribution.py $(PICASSO_FAMILIES) > $@
+
+annotation_clean:
+	rm -f $(SUMMARY) $(BENCHMARKS) $(TAXONOMY) *.png *.svg *.gdl *.eps *.html
+
+
+
+
+

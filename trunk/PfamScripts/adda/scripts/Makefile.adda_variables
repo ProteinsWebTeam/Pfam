@@ -1,0 +1,157 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+#########################################################################
+# common makefile for adda shared by different versions of ADDA
+# $Id$
+#########################################################################
+# shell has to be bash2 because of 2G limit
+SHELL=/bin/bash --login
+
+################################################
+## Section parameters: start
+################################################
+
+#########################################################################
+## root directory of this installation
+## note: is set automatically
+DIR_ROOT=
+
+#########################################################################
+## root directory of this installation
+## note: is set automatically
+DIR_SCRIPTS_SRC?=/home/andreas/workspace/adda/lib/
+DIR_SCRIPTS?=/home/andreas/workspace/adda/scripts/
+
+#########################################################################
+#########################################################################
+#########################################################################
+## database connection options
+#########################################################################
+PARAM_DB_CONNECTION?=--backend=mysql --user=heger --password=HeinBloed --host=localhost --database=$(PARAM_DATABASE_ADDA)
+
+#########################################################################
+## various directories
+DIR_DOMAINS?=/production/domains/
+
+DIR_DUMP?=/data/mysql_dump/
+DIR_LOAD?=/data/mysql_load/
+
+DIR_BIN?=/production/bin/
+DIR_LIB?=$(DIR_SCRIPTS)
+
+#########################################################################
+## script and tools directories
+#########################################################################
+
+DIR_DOMAINS_SCRIPTS?=/production/scripts/domains/
+DIR_PAIRSDB_SCRIPTS?=/production/scripts/pairsdb/
+DIR_PAIRSDB_LIB?=$(DIR_PAIRSDB_SCRIPTS)
+DIR_PAIRSDB_TOOLS?=/production/scripts/pairsdb_tools/
+DIR_TOOLS?=/production/scripts/tools/
+DIR_GRAPH_SCRIPTS?=/production/scripts/graph/
+DIR_MAXFLOW_SCRIPTS?=/production/scripts/maxflow/
+DIR_JAVA?=/production/java/
+
+#########################################################################
+MAIL_ADDRESS?=prod@kerberos
+MAIL_CC?=andreas.heger@helsinki.fi
+
+#########################################################################
+## various comments
+PARAM_SCALE_FACTOR?=1
+
+#########################################################################
+## number of parallel jobs
+PARAM_NUM_JOBS?=10
+
+#########################################################################
+CMD_SUBMIT?=nice -19
+
+#########################################################################
+## various directories
+PARAM_SUFFIX?=
+
+PARAM_DATABASE_PAIRSDB?=pairsdb
+
+PARAM_DATABASE_ADDA?=adda_run4
+
+###########################################################################
+## source
+PARAM_TABLE_NIDS?=$(PARAM_DATABASE_ADDA).nrdb40
+
+## table used for creating the initial partitions of the tree
+PARAM_TABLE_LINKS?=$(PARAM_DATABASE_PAIRSDB).pairsdb_40x40
+PARAM_TABLE_ALIGN_NEIGHBOURS?=$(PARAM_DATABASE_PAIRSDB).pairsdb_40x40
+
+## what is this for?
+## PARAM_TABLE_REPEATS?=core.nrdb40_core_domains
+
+PARAM_TABLE_MASKS?=$(PARAM_DATABASE_PAIRSDB).nrdb90_masks
+## table used for annotation minimum spanning trees
+PARAM_TABLE_ANNOTATION?=$(PARAM_DATABASE_PAIRSDB).nrdb40_pfam_domains_nr
+
+PARAM_SRC_GRAPH_MALI?=$(SRC_GRAPH)
+
+#########################################################################
+## source directory with graph to use
+DIR_GRAPH_GRAPH?=/production/pairsdb/graph/pairsdb_40x40/
+
+#########################################################################
+## location of graph
+PARAM_SRC_GRAPH?=$(DIR_GRAPH_GRAPH)pairsdb_40x40_update.links
+
+#########################################################################
+## location of index of graph in $(PARAM_SRC_GRAPH)
+PARAM_SRC_INDEX?=$(DIR_GRAPH_GRAPH)pairsdb_40x40_update.index
+
+#########################################################################
+## locations components in graph
+PARAM_SRC_COMPONENTS?=$(DIR_GRAPH_GRAPH)pairsdb_40x40_update.complist
+
+###########################################################################
+## table names
+PARAM_TABLE_DOMAINS?=$(PARAM_DATABASE_ADDA).nrdb40_adda_domains$(SUFFIX)
+PARAM_TABLE_FAMILIES?=$(PARAM_DATABASE_ADDA).nrdb40_adda_families$(SUFFIX)
+PARAM_TABLE_TREES?=$(PARAM_DATABASE_ADDA).nrdb40_trees_domains$(SUFFIX)
+PARAM_TABLE_PARTS?=$(PARAM_DATABASE_ADDA).nrdb40_parts_domains$(SUFFIX)
+PARAM_TABLE_MALIS_DOMAINS?=$(PARAM_DATABASE_ADDA).nrdb40_madda_domains$(SUFFIX)
+PARAM_TABLE_MALIS_FAMILIES?=$(PARAM_DATABASE_ADDA).nrdb40_madda_families$(SUFFIX)
+PARAM_TABLE_ANNOTATIONS?=$(PARAM_DATABASE_ADDA).nrdb40_annotatedadda_families$(SUFFIX)
+
+PARAM_TABLE_NRDB_DOMAINS?=$(PARAM_DATABASE_ADDA).nrdb_adda_domains$(SUFFIX)
+PARAM_TABLE_NRDB_FAMILIES?=$(PARAM_DATABASE_ADDA).nrdb_adda_families$(SUFFIX)
+
+PARAM_TABLE_DOMAINS_REFERENCE?=$(PARAM_DATABASE_ADDA).nrdb40_reference_domains$(SUFFIX)
+PARAM_TABLE_FAMILIES_REFERENCE?=$(PARAM_DATABASE_ADDA).nrdb40_reference_families$(SUFFIX)
+
+PARAM_DIR_EXPORT_SUFFIX?=nrdb40_adda
+
+PARAM_FILENAME_REFERENCE_DOMAINS?=../../data/reference.domains.gz
+
+################################################
+## Section parameters: end
+################################################
+
+
+

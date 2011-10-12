@@ -1,0 +1,82 @@
+## what shall be compared and exported
+## has to be in front, not quite sure why
+BENCHMARKS=$(SCOP_BENCHMARKS) $(INTERPRO_BENCHMARKS)
+EXPORTS=$(SCOP_EXPORT) $(INTERPRO_EXPORT)
+
+SUMMARY_TABLE=annotations_table.create struc_coverage.load taxonomy.load nlinks.load unknown.load extended.load modules.load
+
+LOAD=scop.load_annotations scop.load_sensitivity scop.load_selectivity \
+	interpro.load_annotations interpro.load_sensitivity interpro.load_selectivity \
+	domains_x_domains.load \
+	$(SUMMARY_TABLE) \
+	summary_all_modules summary_all_annotation summary_all_taxonomy \
+	summary_modules_annotation summary_modules_taxonomy \
+	summary_nonmodules_annotation summary_nonmodules_taxonomy \
+	summary_table
+
+
+UNKNOWN=interpro.unknown scop.unknown
+EXTENDED=interpro.extended scop.extended
+
+TABLE_DOMAINS_LINKS=$(DATABASE_ADDA).domains_x_domains
+TABLES_SUMMARY=summary_modules
+
+include ../Makefile.definitions
+include ../../Makefile.adda
+include ../../Makefile.annotation
+
+FLAGS_EVALUATION_TREES=--switch --skip_repeats --quality --no_full_length --bin_size=10
+FLAGS_EVALUATION_PARTS=--switch --skip_repeats --quality --bin_size=10
+FLAGS_EVALUATION_NOFULL=--switch --skip_repeats --quality --no_full_length --bin_size=10
+FLAGS_EVALUATION_FULL=--switch --skip_repeats --quality --only_full_length --bin_size=10
+
+QUALITY_CONTROL=nrdb40_scop_domains_nr.eval_parts
+
+all: sanity annotate $(LOAD) $(UNKNOWN) $(QUALITY_CONTROL)
+
+###############################################################################
+## benchmarking of domain boundaries
+%.eval_parts:
+	python $(DIR_ANNOTATION_SCRIPTS)evaluate_domain_boundaries.py --Database=$(DATABASE) --reference=$* --parts=$(TABLE_DOMAINS) $(FLAGS_EVALUATION_PARTS) > $@
+
+%.eval_parts_nofull:
+	python $(DIR_ANNOTATION_SCRIPTS)evaluate_domain_boundaries.py --Database=$(DATABASE) --reference=$* --parts=$(TABLE_DOMAINS) $(FLAGS_EVALUATION_NOFULL) > $@
+
+%.eval_parts_full:
+	python $(DIR_ANNOTATION_SCRIPTS)evaluate_domain_boundaries.py --Database=$(DATABASE) --reference=$* --parts=$(TABLE_DOMAINS) $(FLAGS_EVALUATION_FULL) > $@
+
+sanity:
+	echo "checking nids at `date`:" > $@
+	echo "$(TABLE_NIDS): `mysql -B -N -e 'SELECT count(*) FROM $(TABLE_NIDS)' $(DATABASE)`" >> $@
+	echo "$(TABLE_DOMAINS): `mysql -B -N -e 'SELECT count(DISTINCT rep_nid) FROM $(TABLE_DOMAINS)' $(DATABASE)`" >> $@
+	echo "small sequences: `mysql -B -N -e 'SELECT COUNT(*) FROM $(TABLE_NIDS) as n, $(DATABASE).nrdb as m left join $(TABLE_DOMAINS) AS d ON d.rep_nid = n.nid WHERE n.nid = m.nid AND d.rep_nid IS NULL AND m.length <= 31;' $(DATABASE)`" >> $@
+
+parts_relative.png: $(QUALITY_CONTROL)
+	perl $(DIR_TOOLS)regtail.pl "# histogram over reference coverage" < nrdb40_scop_domains_nr.eval_parts |\
+	grep "^[0-9]" > $@.tmp1
+	perl $(DIR_TOOLS)regtail.pl "# histogram over reference coverage" < nrdb40_scop_domains_nr.eval_parts |\
+	grep "^[0-9]" > $@.tmp2
+	echo 'set title "Quality control - domain boundaries"' > g
+	echo 'set terminal png small size 500,300' >> g
+	echo 'set output "$@"' >> g
+	echo 'set xlabel "relative overlap' >> g
+	echo 'set xrange [0:400]' >> g
+	echo 'set ylabel "relative frequency' >> g
+	echo 'plot "$@.tmp1" using ($$1):($$3) title "scop" with linespoints, "$@.tmp2" using ($$1):($$3) title "scop" with linespoints ' >> g
+	gnuplot g
+	rm -f g $@.tmp1 $@.tmp2
+
+parts_cumulative.png: $(QUALITY_CONTROL)
+	perl $(DIR_TOOLS)regtail.pl "# histogram over reference coverage" < nrdb40_scop_domains_nr.eval_parts |\
+	grep "^[0-9]" > $@.tmp1
+	perl $(DIR_TOOLS)regtail.pl "# histogram over reference coverage" < nrdb40_scop_domains_nr.eval_parts |\
+	grep "^[0-9]" > $@.tmp2
+	echo 'set title "Quality control - domain boundaries"' > g
+	echo 'set terminal png small size 500,300' >> g
+	echo 'set output "$@"' >> g
+	echo 'set xlabel "relative overlap' >> g
+	echo 'set xrange [0:400]' >> g
+	echo 'set ylabel "cumulative frequency' >> g
+	echo 'plot "$@.tmp1" using ($$1):($$5) title "scop" with linespoints, "$@.tmp2" using ($$1):($$5) title "scop" with linespoints ' >> g
+	gnuplot g
+	rm -f g $@.tmp1 $@.tmp2

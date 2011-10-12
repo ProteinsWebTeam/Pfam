@@ -1,0 +1,223 @@
+## $Id$
+## makefile for running maxflow
+include ../../Makefile.adda
+include ../Makefile.definitions
+
+TABLE_MALIS_DOMAINS=adda.nrdb40_maxflow_domains
+TABLE_MALIS_FAMILIES=adda.nrdb40_maxflow_families
+
+SRC_GRAPH_MALI=/production/pairsdb/graph/psiblast_40x40/psiblast_40x40.links /production/pairsdb/graph/pairsdb_40x40_nm/pairsdb_40x40_nm.links
+
+#############################################################
+## default variables that can be changed by the user
+FLAGS_DOMAINS+=--domains
+
+FLAGS_MALI+=
+FLAGS_VIEW_MALI+=
+
+# minimum overlap of neighbourhood (relative value)
+MIN_NEIGHBOURHOOD_OVERLAP=10
+
+# maximum overlap of neighbourhood (absolute value)
+MAX_NEIGHBOURHOOD_OVERLAP=20
+
+# do not process families with more than this number
+# of links:
+MAX_NUMBER_OF_LINKS=120000
+
+GOP=-90
+GEP=-10
+
+MIN_DOT_SCORE=10
+MIN_ALIGNMENT_LENGTH=10
+MIN_ALIGNMENT_SCORE=500
+
+MIN_COL_OCCUPANCY=0.1
+
+CMD_SUBMIT=mosrun -j2-50 -F
+MAXFLOW_MODE=-n 3
+
+FILTER=| grep "[^0-9_][0-9][0-9]"
+#############################################################
+ALL_PAIRS=$(wildcard *.all_pairs)
+PAIRS=$(ALL_PAIRS:%.all_pairs=%.pairs)
+DOTS=$(PAIRS:%.pairs=%.aligned_dots)
+SUBSET=$(PAIRS:%.pairs=%.subset)
+MALI=$(PAIRS:%.pairs=%.mali)
+HTML=$(PAIRS:%.pairs=%.html)
+ORDER=$(PAIRS:%.pairs=%.order)
+MST=$(PAIRS:%.pairs=%.mst)
+gdl=$(PAIRS:%.pairs=%.gdl)
+
+pairs: $(PAIRS)
+dots: $(DOTS)
+mali: $(MALI)
+order: $(ORDER)
+subset: $(SUBSET)
+gdl: $(GDL)
+
+##########################################################################
+prepare: links mst components
+
+all: mali 
+
+post: all_malis load
+
+#############################################################
+## preparation of targets
+mst:
+	$(CMD_SUBMIT) cat ../load/trees.components $(FILTER) > tmp_mst
+	$(CMD_SUBMIT) cut -f 2- ../align/trees_checked | $(CMD_SUBMIT) perl $(DIR_GRAPH_SCRIPTS)split_links_components.pl tmp_mst mst > $@
+	rm -f tmp_mst
+
+links:
+	perl -p -e "s/_\S*//g" < ../load/trees.components $(FILTER) > tmp_links
+	cat $(SRC_GRAPH_MALI) |\
+	perl $(DIR_GRAPH_SCRIPTS)split_links_components_multiple.pl tmp_links all_pairs > $@
+	rm -f tmp_links
+
+components:
+	cat ../load/trees.components $(FILTER) |\
+	perl $(DIR_GRAPH_SCRIPTS)split_components.pl domains > $@
+
+#############################################################
+## restrict dots towards only those inside domains
+## what do to with repeats?
+## substitute nid with domain identifier (merge neighbouring domains?, do this in 
+## one of the previous steps)
+%.pairs: %.all_pairs
+	python $(DIR_SCRIPTS)convert_sequence2domain_graph.py --mode=prune --file=$*.domains < $*.all_pairs > $@
+
+## note: use -P output for small output
+%.aligned_dots: %.all_pairs %.subset
+	python $(DIR_SCRIPTS)convert_sequence2domain_graph.py --mode=prune --file=$*.domains < $*.all_pairs > $*.pairs
+	-if test `cat $*.pairs | wc -l` -lt $(MAX_NUMBER_OF_LINKS); then \
+		$(CMD_SUBMIT) $(BIN_DIR)maxflow -v 1 -P -p -g $*.pairs -m $(MIN_DOT_SCORE) -o $(GOP) -e $(GEP) -I $(MIN_ALIGNMENT_SCORE) $(MAXFLOW_MODE) -i $*.subset > $@; \
+	else \
+		$(MAKE) $*.gtg_all
+	fi
+	rm -f $*.pairs
+
+%.subset: %.mst
+	sort -k3n $*.mst |\
+	$(CMD_SUBMIT) python $(DIR_GRAPH_SCRIPTS)mst2order.py --leaf_selection --max_weight=$(MAX_NEIGHBOURHOOD_OVERLAP) > $@	
+
+############################################################################
+## mali is built for reference. 
+## Note: the alignment has to be shifted in the rep_* fields to the left for the first residue
+## to be starting at 1.
+## It this at this stage, that alignments are filtered by alignment length
+%.order: %.mst
+	sort -k3n $*.mst | python $(DIR_GRAPH_SCRIPTS)mst2order.py > $@
+
+%.mali: %.aligned_dots %.subset
+	sort -k3n $*.mst | python $(DIR_GRAPH_SCRIPTS)mst2order.py > $*.order
+	rm -f $@;
+	for master in `cat $*.subset`; do \
+		echo $$master | perl -e '$$_ = <STDIN>; chop(); @data=split(/_/); printf("%s\t%s\t%s\t+%s\t%s\t%s\t%s\t+%s\t%s-%s\n", $$data[0], $$data[1], $$data[2], $$data[2] - $$data[1] + 1, $$_, 1, $$data[2] - $$data[1] + 1, $$data[2] - $$data[1] + 1, $*, $$_)' >> $@; \
+		grep "^$$master" < $*.aligned_dots |\
+		awk -v master=$$master 'BEGIN { split( master, a, "_");};  { if ($$8-$$7 >= $(MIN_ALIGNMENT_LENGTH)) { printf("%i\t%i\t%i\t%s\t%s\t%i\t%i\t%s\t%s-%s\n", int($$2), $$7, $$8, $$9, $$2, $$4 - a[2] + 1, $$5 - a[2] + 1, $$6, $*, master); }}'  >> $@;\
+	done		
+	rm -f $*.order
+
+############################################################################
+## how to build a graphical representation
+%.gdl: %.mali
+	cut -f 5,9 $*.mali |\
+	python $(DIR_GRAPH_SCRIPTS)links2gdl.py --format_bipartite=default > $@
+
+%.svg: %.gdl
+	$(CMD_SUBMIT) aisee_prod -color -cedges -svgoutput $@ $*.gdl
+
+#############################################################
+## load data into table.
+load: 
+	find . -name "*.mali" -exec cat {} \; > $@
+	$(CMD_SUBMIT) python $(DIR_DOMAINS_SCRIPTS)DomainsAdda.py $(GENERAL_OPTIONS) --domains=$(PARAM_TABLE_MALIS_DOMAINS) --families=$(PARAM_TABLE_MALIS_FAMILIES) --input=$@ CreateMalis 
+
+#############################################################
+## cleaning up
+clean:
+	find . -name "*.mali" -exec rm {} \;
+	find . -name "*.domains" -exec rm {} \;
+	find . -name "*.subset" -exec rm {} \;
+	find . -name "*.aligned_dots" -exec rm {} \;
+	find . -name "*.mst" -exec rm {} \;
+	find . -name "*.order" -exec rm {} \;
+
+distclean:
+	find . -name "*.pairs" -exec rm {} \;
+	find . -name "*.all_pairs" -exec rm {} \;
+	rm -f all_malis
+
+
+############################################################################
+## global trace graph version of maxflow
+############################################################################
+%.tlinks: %.pairs
+	perl $(DIR_SCRIPTS_GRAPH)convert_tokens2nids.pl $*.tokens < $*.links | sort -k1n -k2n -k3n > $@
+
+%.tindex: %.tlinks
+	$(BIN_DIR)adda_index -n $*.tlinks -f $@ 
+
+%.gtg_edges: %.tlinks %.tindex
+	$(BIN_DIR)gtg_weight -g $*.tlinks -i $*.tindex -n $*.gtg_seqs -e $*.gtg_edges -r 1 -v 3 > $*.output_weighting
+
+%.gtg_index: %.gtg_edges
+	$(BIN_DIR)gtg_index -n $*.gtg_edges -f $@ -v 2 -r 10000 
+
+%.gtg_clusters: %.gtg_edges %.gtg_index
+	rm -f $*.gtg_clusters $*.gtg_tree $*.gtg_vertices
+	$(BIN_DIR)gtg_cluster -n $*.gtg_seqs -e $*.gtg_edges -c $*.gtg_clusters \
+	-t $*.gtg_tree -w $*.gtg_vertices -v 2 -r 10000 > $*.output_clustering
+
+%.gtg_vertices: %.gtg_clusters
+	$(BIN_DIR)gtg_cluster2vertex -n $*.gtg_seqs -e $*.gtg_edges -c $*.gtg_clusters \
+	-t $*.gtg_tree -w $*.gtg_vertices -v 2 -r 10000 > $*.output_vertices	
+
+%.gtg_align: %.gtg_clusters %.gtg_edges
+	$(BIN_DIR)gtg_align -n $*.gtg_seqs -e $*.gtg_edges -c $*.gtg_clusters \
+	-t $*.gtg_tree -w $*.gtg_vertices -i $*.gtg_index -m $(MIN_DOT_SCORE) 
+	-O $(GOP) -E $(GEP) -I $(MIN_ALIGNMENT_SCORE) $(MAXFLOW_MODE) -p $*.subset > $@
+
+%.gtg_clean:
+	rm -f $*.gtg_clusters $*.gtg_edges $*.gtg_tree $*.gtg_vertices $*.gtg_index $*.tlinks $*.tindex
+
+############################################################################
+## mali is built for reference. 
+## Note: the alignment has to be shifted in the rep_* fields to the left for the first residue
+## to be starting at 1.
+## It this at this stage, that alignments are filtered.
+## this is the old version based on dots:
+%.dots_mali: %.aligned_dots %.order %.subset
+	rm -f $@;
+	$(CMD_SUBMIT) awk 'BEGIN {keep=0;} ; /score/ { split($$2, a, "="); if (a[2] >= $(MIN_ALIGNMENT_SCORE)) { keep = 1;} else { keep = 0; } } ; !/#/ { if (keep) {printf("%s\t%s\n", $$1, $$2);}}' $*.aligned_dots > $*.tmp ;
+	for master in `cat $*.subset`; do \
+		echo "processing $$master"; \
+		echo $$master | perl -e '$$_ = <STDIN>; chop(); @data=split(/_/); printf("%s\t%s\t%s\t+%s\t%s\t%s\t%s\t+%s\t%s-%s\n", $$data[0], $$data[1], $$data[2], $$data[2] - $$data[1] + 1, $$_, 1, $$data[2] - $$data[1] + 1, $$data[2] - $$data[1] + 1, $*, $$_)' >> $@; \
+		$(CMD_SUBMIT) grep "^$$master" < $*.tmp |\
+		$(CMD_SUBMIT) python $(DIR_MAXFLOW_SCRIPTS)maxflow_dots2links.py --sort=$*.order |\
+		$(CMD_SUBMIT) awk -v master=$$master 'BEGIN { split( master, a, "_");};  { if ($$8-$$7 >= $(MIN_ALIGNMENT_LENGTH)) { printf("%i\t%i\t%i\t%s\t%s\t%i\t%i\t%s\t%s-%s\n", int($$2), $$7, $$8, $$9, $$2, $$4 - a[2] + 1, $$5 - a[2] + 1, $$6, $*, master); }}'  >> $@;\
+	done		
+	rm -f $*.tmp;
+
+
+
+
+
+#############################################################
+## note: the links in the msts have to be sorted correctly
+## use xsubset if you need to calculate a value based on the number of links
+##
+%.xsubset: %.pairs
+	ndomains=`wc -l $*.mst | sed "s/^ *//" | cut -d " " -f 1 `;\
+	let nsubset="$$ndomains * $(MIN_NEIGHBOURHOOD_OVERLAP) / 100";\
+	if test "nsubset < $(MAX_NEIGHBOURHOOD_OVERLAP)"; then \
+		let nsubset=$(MAX_NEIGHBOURHOOD_OVERLAP); \
+	fi; \
+	sort -k3n $*.mst |\
+	python $(DIR_GRAPH_SCRIPTS)mst2order.py --leaf_selection --max_weight=$$nsubset > $@	
+
+
+
+

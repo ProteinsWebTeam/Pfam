@@ -1,0 +1,237 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+## 
+## Makefile for curve fitting used by ADDA
+##
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+## reference domain definitions used for fitting data
+
+## domain table
+PARAM_TABLE_FIT_REFERENCE_DOMAINS?=$(PARAM_DATABASE_PAIRSDB).nrdb40_scop_domains_nr
+## families table
+PARAM_TABLE_FIT_REFERENCE_FAMILIES?=$(PARAM_DATABASE_PAIRSDB).nrdb40_scop_families_nr
+
+## minimum transfer fragment size
+PARAM_FIT_MIN_TRANSFER=10
+
+## minimum overhang fragment size
+PARAM_FIT_MIN_OVERHANG=10
+
+## minimum overlap fragment size
+PARAM_FIT_MIN_OVERLAP=10
+
+## filter for scop classes
+PARAM_FIT_FILTER?=^00[abcd]
+
+################################################
+## Section parameters: end
+################################################
+
+##########################################################
+define SCRIPT_FIT_EXPONENTIAL
+	f(x) = F * exp ( - x * E) \n\
+	F = 0.5 \n\
+	E = 0.05 \n\
+	fit f(x) 'overhangs.params' via E,F \n\
+	set term postscript eps \n\
+	set output 'overhangs.eps' \n\
+	set logscale y \n\
+	plot 'overhangs.params' , f(x)
+endef
+
+##########################################################
+all: analyse_transfer no_repeats overhangs_no_repeats.hist transfer_no_repeats.hist \
+	overhangs.params transfer.params overhangs.fit
+
+analyse_transfer:
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)OutputStatisticsAnnotations.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--domains=$(PARAM_TABLE_FIT_REFERENCE_DOMAINS) \
+		--families=$(PARAM_TABLE_FIT_REFERENCE_FAMILIES) \
+		--links=$(PARAM_TABLE_LINKS) \
+		--min_overlap=$(PARAM_FIT_MIN_OVERLAP) \
+		AnalyseTransfer > $@
+	$(EPILOG)
+
+## repeats: average per sequence pair and class
+no_repeats: analyse_transfer
+	$(PROLOG)
+	@awk '!/#/ {printf("%s%s%s\t%i\t%i\n", $$1, $$2, $$7, $$13-$$15, $$15);}' < analyse_transfer > $@.tmp
+	@awk '!/#/ {printf("%s%s%s\t%i\t%i\n", $$1, $$2, $$7, $$14-$$15, $$15);}' < analyse_transfer >> $@.tmp
+	@sort -k1,1 $@.tmp |\
+	awk 'BEGIN { n = 0; last = 0; t = 0; s = 0} \
+		/$(PARAM_FIT_FILTER)/ \
+		{ \
+		 if ($$1 != last) { \
+			if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+			n = 0; t = 0; s = 0; last = $$1; \
+		} \
+		  if ($$3 >= $(PARAM_FIT_MIN_TRANSFER)) { \
+		  	t+=$$2; s += $$3; n+=1; \
+		  } \
+		} \
+	      END { \
+		if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+		}' > $@
+	@rm -f $@.tmp
+	$(EPILOG)
+
+overhangs_%.hist: %
+	$(PROLOG)
+	@cut -f 3 $* |\
+        awk '{if ($$1 >= $(PARAM_FIT_MIN_OVERHANG)) { print; }}' |\
+	python $(DIR_SCRIPTS_SRC)calculate_histogram.py | grep -v "#" |\
+	python $(DIR_SCRIPTS_SRC)append_histogram.py |\
+	cut -f 1,3 > $@
+	$(EPILOG)
+
+transfer_%.hist: %
+	$(PROLOG)
+	@cut -f 4 $* |\
+	python $(DIR_SCRIPTS_SRC)calculate_histogram.py | grep -v "#" |\
+	python $(DIR_SCRIPTS_SRC)append_histogram.py |\
+	cut -f 1,3,7 > $@
+	$(EPILOG)
+
+overhangs.params: overhangs_no_repeats.hist
+	$(PROLOG)
+	@grep -v "#" overhangs_no_repeats.hist | awk '{printf("%i\t%f\n", $$1, $$2);}' > $@
+	$(EPILOG)
+
+overhangs.fit: overhangs.params
+	$(PROLOG)
+	@rm -f fit.log
+	@echo -e "$(SCRIPT_FIT_EXPONENTIAL)" > $@.tmp
+	@gnuplot $@.tmp
+	@sed -n '/Final set of parameters/,$$p' < fit.log |\
+	grep "[EF].*=" | \
+	awk '{ printf("-%s %f ", $$1, $$3);}' > $@
+	@echo >> $@
+	$(EPILOG)
+
+transfer.params: overhangs_no_repeats.hist
+	$(PROLOG)
+	@grep -v "#" transfer_no_repeats.hist |\
+	awk '{printf("%i\t%f\n", $$1, $$3);}' > $@
+	$(EPILOG)
+
+clean: 
+	$(PROLOG)
+	@rm -f *.hist tmp
+	$(EPILOG)
+
+distclean: clean
+	$(PROLOG)
+	@rm -f no_repeats overhangs.* transfer.params analyse_transfer fit.log
+	$(EPILOG)
+
+
+#################################
+## various trash
+
+
+## calculate histogram of transfer values, ignore t < 10
+transfer.hist: analyse_transfer
+	$(PROLOG)
+	@cut -f 15 analyse_transfer |\
+	grep -v "#" |\
+	python $(DIR_SCRIPTS_SRC)calculate_histogram.py | grep -v "^[0-9][^0-9]" |\
+	python $(DIR_SCRIPTS_SRC)append_histogram.py |\
+	cut -f 1,3,7 > $@
+	$(EPILOG)
+
+## calculate histogram of overhangs (ldomain-t)
+overhangs.hist: analyse_transfer
+	$(PROLOG)
+	@awk '!/#/ {printf("%s\t%i\n", $$1, $$14-$$15);}' < analyse_transfer > tmp
+	@awk '!/#/ {printf("%s\t%i\n", $$1, $$13-$$15);}' < analyse_transfer >> tmp
+	@awk '/^00[abcd]/ {printf("%i\t%s\n", $$2, $$1);}' < tmp |\
+	grep -v "00b001001" |\
+	python $(DIR_SCRIPTS_SRC)calculate_histogram.py |\
+	python $(DIR_SCRIPTS_SRC)append_histogram.py |\
+	grep -v "#" |\
+	cut -f 1,3 > $@
+	@rm -f tmp
+	$(EPILOG)
+
+averages:
+	$(PROLOG)
+	@awk '!/#/ {printf("%s\t%i\t%i\n", $$1, $$13-$$15, $$15);}' < $(PARAM_FILE_TRANSFER) > tmp
+	@awk '!/#/ {printf("%s\t%i\t%i\n", $$1, $$14-$$15, $$15);}' < $(PARAM_FILE_TRANSFER) >> tmp
+	@sort -k1 tmp |\
+	awk 'BEGIN { n = 0; last = 0; t = 0; s = 0} \
+		/^00[abcd]/ \
+		{ \
+		 if ($$1 != last) { \
+			if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+			n = 0; t = 0; s = 0; last = $$1; \
+		} \
+		  if ($$3 > $(PARAM_FIT_MIN_TRANSFER)) { \
+		  	t+=$$2; s += $$3; n+=1; \
+		  } \
+		} \
+	     END { \
+		if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+		}' > $@
+	$(EPILOG)
+
+relative: analyse_transfer
+	$(PROLOG)
+	awk '!/#/ {printf("%s%s%s\t%i\t%i\t%f\t%i\n", $$1, $$2, $$7, ($$13-$$15) / $$13 * 100, $$15, $$18, $$13);}' < analyse_transfer > tmp
+	awk '!/#/ {printf("%s%s%s\t%i\t%i\t%f\t%i\n", $$1, $$2, $$7, ($$14-$$15) / $$14 * 100, $$15, $$18, $$14);}' < analyse_transfer >> tmp
+	sort -k1 tmp |\
+	awk 'BEGIN { n = 0; last = 0; t = 0; s = 0} \
+		/^00[abcd]/ \
+		{ \
+		 if ($$1 != last) { \
+			if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+			n = 0; t = 0; s = 0; last = $$1; \
+		} \
+		  if ($$3 > $(PARAM_FIT_MIN_TRANSFER)) { \
+		  	t+=$$2; s += $$3; n+=1; \
+		  } \
+		} \
+	     END { \
+		if (n > 0) { printf("%s\t%i\t%f\t%f\n", last, n, t/n, s/n); } \
+		}' > $@
+	$(EPILOG)
+
+%.html:
+	$(PROLOG)
+	echo "<HTML><HEAD></HEAD><BODY BGCOLOR='#FFFFFF'><PRE>" > $@
+	awk '!/#/ {printf("<A HREF=\"http://kerberos.biocenter.helsinki.fi:8080/pairsdb/sequence/report_neighbourhood_svg?nid=%s&links=pairsdb_new.fssp_100x100_defrag&annotation=nrdb_scop_domains,puut.nrdb_trees_domains,puut.nrdb_parts_domains&threshold=-5\">%s%s%s</A>\t%s%s%s\t%i\t%i\t%f\t%i\n", $$2, $$1, $$2, $$7, $$1, $$2, $$7, ($$13-$$15) / $$13 * 100, $$15, $$18, $$13);}' < $* > tmp
+	awk '!/#/ {printf("<A HREF=\"http://kerberos.biocenter.helsinki.fi:8080/pairsdb/sequence/report_neighbourhood_svg?nid=%s&links=pairsdb_new.fssp_100x100_defrag&annotation=nrdb_scop_domains,puut.nrdb_trees_domains,puut.nrdb_parts_domains&threshold=-5\">%s%s%s</A>\t%s%s%s\t%i\t%i\t%f\t%i\n", $$2, $$1, $$2, $$7, $$1, $$2, $$7, ($$14-$$15) / $$14 * 100, $$15, $$18, $$14);}' < $* > tmp
+	sort -k4n -k3 tmp >> $@
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common
+

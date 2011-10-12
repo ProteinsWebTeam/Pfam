@@ -1,0 +1,147 @@
+## $Id$
+## makefile for building pictures of minimum spanning trees
+## for adda families
+
+include ../../Makefile.adda
+include ../Makefile.definitions
+
+#############################################################
+LINKS=$(wildcard *.links)
+GDL=$(LINKS:%.links=%.gdl)
+PNG=$(LINKS:%.links=%.png)
+SVG=$(LINKS:%.links=%.svg)
+
+SRC_TREES=../align/trees_checked
+SRC_DOMAINS_X_DOMAINS=../annotation/domains_x_domains
+
+prepare: links format_graph format_node format_edge
+
+all: gdl svg
+
+post: 
+
+#############################################################
+## graph format
+define FORMAT_GRAPH
+         layoutalgorithm: forcedir       \n\
+         scaling        : maxspect	 \n\
+         arrowmode      : free		 \n\
+         attraction     : 60    // Attractive force           \n\
+         repulsion      : 60    // Repulsive force            \n\
+         gravity        :  0.0  // Gravitational force (float) \n\
+         randomrounds   :  5    // Nr.rounds with rand.impulse \n\
+         randomimpulse  :  0    // Force of the random impulse \n\
+         fdmax          : 500   // Number Iterations          \n\
+         tempmax        : 254   // Maximal Temperature        \n\
+         tempmin        :  0    // Minimal Temperature        \n\
+         temptreshold   :  3    // > 0                        \n\
+         tempscheme     :  7    // 1 - 8                      \n\
+         tempfactor     :  1.08 // > 1 (float)                \n\
+         randomfactor   : 95   // 100 means: determ. schedule\n\
+         magnetic_field1: no		\n\
+         magnetic_field2: no 		\n\
+         magnetic_force1: 20 		\n\
+         magnetic_force2:  0 		\n\
+         border x : 5000 		\n\
+         border y : 5000 		
+endef
+
+define FORMAT_EDGE
+         edge.arrowstyle: none		\n\
+         edge.thickness: 1		\n\
+         edge.color: 18 
+endef
+
+define FORMAT_NODE
+         node.shape      : circle	\n\
+         node.height     : 32		\n\
+         node.width      : 32		\n\
+         node.color      :  8		\n\
+         node.fontname   : \"timR08.vcf\" \n\
+         node.textcolor  :  black	\n\
+         node.bordercolor:  black		
+endef
+
+#############################################################
+links:
+	$(CMD_SUBMIT) cut -f 2- $(SRC_TREES) | $(CMD_SUBMIT) perl $(DIR_GRAPH_SCRIPTS)split_links_components.pl ../load/trees.components links > $@
+
+%.nids:
+	$(CMD_SUBMIT) perl $(DIR_GRAPH_SCRIPTS)links2tokens.pl < $*.links > $@
+
+%.pfam_domains: %.nids
+	$(CMD_SUBMIT) python $(DIR_DOMAINS_SCRIPTS)annotate_domains.py $(PARAM_TABLE_ANNOTATION) < $*.nids > $@
+
+%.pfam_colours: %.pfam_domains
+	$(CMD_SUBMIT) python $(DIR_DOMAINS_SCRIPTS)links2colours.py --multi_labels --legend < $*.pfam_domains > $@
+
+#############################################################
+## build gdl files
+## aisee has a problem with long labels in the svg output
+## therefore: only use nid for label.
+## links are coloured according to alignment score
+## the minimum colour is 32, which corresponds to 100 and below
+## the highest colour is 142, which corresponds to 1100 and above.
+
+gdl: $(GDL)
+
+%.gdl: %.links %.pfam_domains %.pfam_colours %.nids
+	awk '{c = 32 + ($$10 - 100) / 10; if (c < 32) {c = 32;} if (c > 142) { c = 142;} \
+	printf("%s\t%s\t%i\n", $$1, $$2, c);}' < $*.links |\
+	$(CMD_SUBMIT) python $(DIR_GRAPH_SCRIPTS)links2gdl.py --format_graph=format_graph --format_node=format_node --format_edge=format_edge --colours=$*.pfam_colours --edgecolour --colour_scheme=heat --labels=$*.pfam_domains |\
+	perl -p -e 's/label: \"(\d+)_(\S+)\"/label: \"$$1\"/' > $@
+
+format_graph:
+	echo -e "$(FORMAT_GRAPH)" > $@
+format_edge:
+	echo -e "$(FORMAT_EDGE)" > $@
+format_node:
+	echo -e "$(FORMAT_NODE)" > $@
+
+#############################################################
+## build svg from gdl
+## add hyperlinks for sequences
+## add legend
+
+svg: $(SVG)
+
+%.svg: %.pfam_colours # %.gdl
+	$(CMD_SUBMIT) aisee_prod -color -cedges -svgoutput $*_tmp $*.gdl
+	$(CMD_SUBMIT) perl $(DIR_DOMAINS_SCRIPTS)modify_mst_svg.pl $*.pfam_colours < $*_tmp > $@
+	rm -f $*_tmp
+
+#############################################################
+## build svg from gdl
+## add hyperlinks for sequences
+## add legend
+%.neighbours:
+	perl $(DIR_GRAPH_SCRIPTS)filter_links_neighbours.pl $* < $(SRC_DOMAINS_X_DOMAINS) > $@
+
+%_nh.gdl: %.neighbours
+	perl $(CMD_SUBMIT) perl $(DIR_GRAPH_SCRIPTS)filter_links_tokens.pl $*.neighbours < $(SRC_DOMAINS_X_DOMAINS) |\
+	$(CMD_SUBMIT) python $(DIR_GRAPH_SCRIPTS)links.gdl.py > $@
+
+
+%_nh.svg: %_nh.gdl 
+	$(CMD_SUBMIT) aisee_prod -color -cedges -svgoutput $*_nh_tmp $*.gdl
+	cat < $*_nh_tmp > $@
+	rm -f $*_nh_tmp
+
+
+#############################################################
+## build png from svg
+png: $(PNG)
+
+%.png: %.svg
+	java -jar $(DIR_JAVA)batik/batik-rasterizer.jar -validate 11.svg
+
+## cleaning up
+clean:
+	find . -name "*.links" -exec rm {} \;
+	find . -name "*.pfam*" -exec rm {} \;
+	find . -name "*.nids" -exec rm {} \;
+	rm -f format*
+
+dist_clean:
+	find . -name "*.svg" -exec rm {} \;
+	find . -name "*.gdl" -exec rm {} \;

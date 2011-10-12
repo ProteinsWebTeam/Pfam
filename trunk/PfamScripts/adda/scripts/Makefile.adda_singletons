@@ -1,0 +1,80 @@
+include ../../../Makefile.adda
+include ../../Makefile.definitions
+include ../../../Makefile.adda_family_annotation
+
+TABLE_MODULES=$(PARAM_DATABASE_ADDA).modules
+TABLE_TAXONOMY=taxonomy
+LEVEL=nrdb40
+
+MIN_EVIDENCE=1
+MIN_UNITS=1
+
+MIN_SEGMENT_LENGTH=30
+MASKS=1,3,4
+
+all: singletons.list
+
+################################################################################
+singletons.list:
+	mysql -B -e "SELECT f.family AS family FROM $(PARAM_TABLE_FAMILIES) AS f WHERE f.nunits = 1" $(PARAM_DATABASE_ADDA) > $@
+
+%.table:
+	mysql -e "DROP TABLE IF EXISTS $*; CREATE TABLE $* (family INT UNSIGNED, INDEX(family)); \
+	INSERT INTO $* SELECT family FROM $(PARAM_TABLE_FAMILIES) AS f WHERE f.nunits = 1" $(PARAM_DATABASE_ADDA) > $@
+
+################################################################################
+## definition of singletons together with masking information
+%.masks:
+	echo -n "# " > $@
+	mysql -B -e "SELECT f.family AS FAMILY, \
+	CONCAT(d.rep_nid, '_', d.rep_from, '_', d.rep_to) AS UNIT, \
+	d.rep_to - d.rep_from + 1 AS LUNIT, \
+	n.length AS LSEQ, \
+	SUM(IF(m.method = 1, LEAST(m.last_res, d.rep_to) - GREATEST(m.first_res, d.rep_from), 0)) AS BIAS, \
+	SUM(IF(m.method = 2, LEAST(m.last_res, d.rep_to) - GREATEST(m.first_res, d.rep_from), 0)) AS TM, \
+	SUM(IF(m.method = 3, LEAST(m.last_res, d.rep_to) - GREATEST(m.first_res, d.rep_from), 0)) AS COIL, \
+	SUM(IF(m.method = 4, LEAST(m.last_res, d.rep_to) - GREATEST(m.first_res, d.rep_from), 0)) AS SHORT, \
+	SUBSTRING(n.sequence, d.rep_from, d.rep_to - d.rep_from + 1) AS SEQ \
+	FROM \
+	$(PARAM_TABLE_FAMILIES) AS f, \
+	$(PARAM_TABLE_DOMAINS) AS d, \
+	nrdb AS n \
+	LEFT JOIN nrdb90_masks AS m \
+	ON m.nid = d.rep_nid AND LEAST(m.last_res, d.rep_to) - GREATEST(m.first_res, d.rep_from) > 0 \
+	WHERE f.nunits = 1 AND \
+	f.family = d.family AND \
+	n.nid = d.rep_nid \
+	GROUP BY f.family" $(PARAM_DATABASE_PAIRSDB) >> $@
+
+
+################################################################################
+## singletons together with number of neighbours
+%.neighbours:
+	echo -n "# " > $@
+	mysql -B -e "SELECT f.family AS FAMILY, \
+	CONCAT(d.rep_nid, '_', d.rep_from, '_', d.rep_to) AS UNIT, \
+	d.rep_to - d.rep_from + 1 AS LUNIT, \
+	COUNT(DISTINCT l.sbjct_nid) AS NNEI \
+	FROM \
+	$(PARAM_TABLE_FAMILIES) AS f, \
+	$(PARAM_TABLE_DOMAINS) AS d \
+	LEFT JOIN $(PARAM_TABLE_LINKS) AS l \
+	ON l.query_nid = d.rep_nid AND \
+	LEAST(l.query_to, d.rep_to) - GREATEST(l.query_from, d.rep_from) > 0 \
+	AND l.sbjct_nid <> l.query_nid \
+	WHERE f.nunits = 1 AND \
+	f.family = d.family \
+	GROUP BY f.family" >> $@
+
+################################################################################
+## retrieve list of singleton domains
+## do not output completely masked sequences (< 30 residues unmasked)
+%.fasta: %.masks
+	grep -v "#" $*.masks | cut -f 2-8 | $(CMD_SUBMIT) python $(DIR_PAIRSDB_SCRIPTS)get_sequence.py --masks=$(MASKS) --min_segment=$(MIN_SEGMENT_LENGTH) > $@
+
+clean:
+	rm -f singletons.*
+
+
+
+

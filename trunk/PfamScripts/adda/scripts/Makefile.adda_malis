@@ -1,0 +1,69 @@
+## $Id$
+## makefile for running maxflow
+include ../../Makefile.adda
+include ../Makefile.definitions
+#############################################################
+## default variables that can be changed by the user
+FLAGS_MALI+=
+FLAGS_VIEW_MALI+=
+
+MIN_COL_OCCUPANCY=0.1
+
+#############################################################
+LINKS=$(wildcard *.links)
+DOTS=$(LINKS:%.links=%.dots)
+MALI=$(LINKS:%.links=%.mali)
+HTML=$(LINKS:%.links=%.html)
+ORDER=$(LINKS:%.links=%.order)
+
+dots: $(DOTS)
+mali: $(MALI)
+html: $(HTML)
+order: $(ORDER)
+
+prepare: links
+
+all: dots order mali all_malis 
+
+post: load
+
+#############################################################
+links:
+	$(CMD_SUBMIT) cut -f 2- ../align/trees_checked | $(CMD_SUBMIT) perl $(DIR_GRAPH_SCRIPTS)split_links_components.pl ../load/trees.components links > $@
+
+#############################################################
+## build multiple alignment as dots
+%.dots: # %.links
+	$(CMD_SUBMIT) python $(DIR_MAXFLOW_SCRIPTS)maxflow_pairs2residues.py < $*.links > $@
+
+%.mali: # %.dots 
+	$(CMD_SUBMIT) $(BIN_DIR)maxflow_dots2mali $(FLAGS_MALI) \
+	-m `echo "\`wc -l $*.links | sed "s/^ *//" | cut -d " " -f 1\` * $(MIN_COL_OCCUPANCY)" | bc` $*.dots |\
+	$(CMD_SUBMIT) python $(DIR_MAXFLOW_SCRIPTS)maxflow_dots2links.py --sort=$*.order |\
+	$(CMD_SUBMIT) awk '{ printf("%i\t%i\t%i\t%s\t%s\t%i\t%i\t%s\t%i\n", int($$2), $$7, $$8, $$9, $$2, $$4, $$5, $$6, $*);}' > $@
+
+%.order: # %.links
+	$(CMD_SUBMIT) sort -k3n $*.links | python $(DIR_GRAPH_SCRIPTS)mst2order.py > $@
+
+%.plain: %.mali %.order
+	$(CMD_SUBMIT) python $(DIR_MAXFLOW_SCRIPTS)maxflow_dots2links.py < $*.mali | $(CMD_SUBMIT) python $(DIR_PAIRSDB_TOOLS)view_graph_mali.py --plain --no_ruler --sort=$*.order > $@
+
+%.html: %.mali %.order
+	$(CMD_SUBMIT) python $(DIR_MAXFLOW_SCRIPTS)maxflow_dots2links.py < $*.mali | $(CMD_SUBMIT) python $(DIR_PAIRSDB_TOOLS)view_graph_mali.py $(FLAGS_VIEW_MALI) --sort=$*.order > $@
+
+all_malis:
+	find . -name "*.mali" -exec cat {} \; > $@
+
+#############################################################
+load: all_malis
+	python $(DIR_DOMAINS_SCRIPTS)DomainsAdda.py $(GENERAL_OPTIONS) --domains=$(PARAM_TABLE_MALIS_DOMAINS) --families=$(PARAM_TABLE_MALIS_FAMILIES) --input=all_malis CreateMalis > $@ 
+
+## cleaning up
+clean:
+	find . -name "*.mali" -exec rm {} \;
+	find . -name "*.dots" -exec rm {} \;
+	find . -name "*.links" -exec rm {} \;
+	find . -name "*.order" -exec rm {} \;
+
+dist_clean:
+	rm -f all_malis

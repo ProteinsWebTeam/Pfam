@@ -1,0 +1,126 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+##
+## building minimum spanning trees
+##
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+
+
+################################################
+## Section parameters: end
+################################################
+
+SRC_ADDA=../opti/all.adda
+TREE_LINKS=$(wildcard *.tree_links)
+TREES=$(TREE_LINKS:%.tree_links=%.tree)
+
+trees: $(TREES)
+
+#####################################################
+## primary targets
+prepare: 
+
+all: domains domains.links domains.mst trees_links
+
+post: 
+
+#####################################################
+## build graph of domain links
+domains: $(SRC_ADDA)
+	$(PROLOG)
+	@awk '!/^#/ { printf("%s_%s_%s\n", $$1, $$2, $$3); }' < $(SRC_ADDA) > $@
+	$(EPILOG)
+
+%.links: %
+	$(PROLOG)
+	@$(CMD_SUBMIT) adda_convert_seq2dom_graph -m 1 -d $* < $(PARAM_SRC_GRAPH) |\
+	$(CMD_SUBMIT) awk '!/^#/ {printf("%s\t%s\t%i\n", $$1, $$2, ($$3 > -12) ? (200 - $$7 * 100) : (100 - $$7 * 100));}' |\
+	$(CMD_SUBMIT) sort -T. -k3n > $@
+	$(EPILOG)
+
+%.mst: %.links
+	$(PROLOG)
+	@$(CMD_SUBMIT) ga_mst $*.links | grep "^[0-9]" > $@  
+	$(EPILOG)
+
+trees_links: domains.mst
+	$(PROLOG)
+	@ln -s domains.mst $@
+	$(EPILOG)
+
+#####################################################
+## obsolete:
+#####################################################
+## split graph into components
+%.split:  %.components
+	$(PROLOG)
+	@$(CMD_SUBMIT) perl $(DIR_SCRIPTS_SRC)split_components.pl < $*.components > $@
+	$(EPILOG)
+
+#####################################################
+## creating links for trees
+%.create_tree_links: %.components %.links
+	$(PROLOG)
+	@$(CMD_SUBMIT) perl $(DIR_SCRIPTS_SRC)split_links_components.pl \
+		$*.components tree_links \
+		< $*.links > $@
+	$(EPILOG)
+
+##################################################### 
+## building trees
+%.tree: # %.tree_links
+	$(PROLOG)
+	@$(CMD_SUBMIT) ga_mst $*.tree_links | grep "^[0-9]" > $@  
+	$(EPILOG)
+
+##################################################### 
+## building list of links to be checked
+#trees_links: # $(TREES)
+#	rm -f $@
+#	find . -maxdepth 1 -name "*.tree" -exec cat "{}" \; | grep "^[0-9]" > $@
+
+##################################################### 
+## clean up
+clean:
+	$(PROLOG)
+	@-find . -maxdepth 1 -name "*.tree" -exec rm "{}" \;
+	@-find . -maxdepth 1 -name "*.list" -exec rm "{}" \;
+	@-find . -maxdepth 1 -name "*.tree_links" -exec rm "{}" \;
+	@rm -f *.tree *.list *.tree_links
+	@rm -f domains.*	
+	$(EPILOG)
+
+dist_clean: clean
+	$(PROLOG)
+	@rm -f trees_links
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common
