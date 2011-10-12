@@ -5,7 +5,9 @@ use warnings;
 use Log::Log4perl qw(get_logger :levels);
 use Data::Dump qw(dump);
 use Getopt::Long;
-use File::Temp qw/ tempdir /;
+use File::Temp qw( tempdir );
+use File::Path qw(remove_tree);
+use Cwd;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -30,16 +32,21 @@ log4perl.appender.SCREEN.layout.ConversionPattern=%d %p> %F{1} on %H line %L: %M
 EOF
 );
 
-
 my $logger = get_logger();
 $logger->level($INFO);
 
-my ($chunk, $chunkSize, $acc);
-GetOptions( "chunk=i" => \$chunk,
-            "chunkSize=i" => \$chunkSize,
-            "acc=s" => \$acc) or die "Invalid option\n";
+my ( $chunk, $chunkSize, $acc, $help );
+GetOptions(
+  "chunk=i"     => \$chunk,
+  "chunkSize=i" => \$chunkSize,
+  "acc=s"       => \$acc,
+  "help"        => \$help
+  )
+  or ( help() and die "Invalid option\n" );
 
 my %blackList = ( '1GAC' => 1 );
+
+
 
 
 my $config = Bio::Pfam::Config->new;
@@ -52,98 +59,111 @@ unless ($pfamDB) {
 my $dbh = $pfamDB->getSchema->storage->dbh;
 $logger->debug("Got pfamlive database connection");
 
-
-my $pfetch  = Bio::Pfam::Pfetch->new;
+my $pfetch = Bio::Pfam::Pfetch->new;
 my @pdbRS;
-            
-if($acc){
-    
-}elsif($chunk and $chunkSize){
- 
-  
 
 #-------------------------------------------------------------------------------
 
-$logger->debug("Calculating pdbs paging");
+if ( $acc and $acc =~ /PF\d{5}/ ) {
 
-my $pdbsAll =
-  $pfamDB->getSchema->resultset('Pdb')->search( {},
-  {
-    page => 1,
-    rows => $chunkSize 
-  } 
+  #Get the structures that have been mapped to this family.
+  my $pfamA = $pfamDB->getPfamData($acc);
+  @pdbRS =
+    $pfamDB->getSchema->resultset('Pdb')
+            ->search( { "pdb_pfama_regs.auto_pfamA" => $pfamA->auto_pfama },
+                    { join => [qw(pdb_pfama_regs)] } );
+
+}
+elsif ( $chunk and $chunkSize ) {
+  $logger->debug("Calculating pdbs paging");
+
+  my $pdbsAll = $pfamDB->getSchema->resultset('Pdb')->search(
+    {},
+    {
+      page => 1,
+      rows => $chunkSize
+    }
   );
 
-my $pager = $pdbsAll->pager;
-$logger->info("Working on page $chunk out of ".$pager->last_page);
+  my $pager = $pdbsAll->pager;
+  $logger->info( "Working on page $chunk out of " . $pager->last_page );
 
-  @pdbRS = $pdbsAll->page($chunk)->all; 
-  
-}else{
-  die "No range or accession entered.\n";
+  @pdbRS = $pdbsAll->page($chunk)->all;
+
+}
+else {
+  help();
+  die "\n\n ***** No range or accession entered. *****\n";
 }
 
-makeImages( \@pdbRS, $pfamDB, $logger, $pfetch, \%blackList);
+makeImages( \@pdbRS, $pfamDB, $logger, $pfetch, \%blackList );
 
+#-------------------------------------------------------------------------------
 
 sub makeImages {
-  my ($pdbs, $pfamDB, $logger, $pfetch, $blackListRef) = @_;
+  my ( $pdbs, $pfamDB, $logger, $pfetch, $blackListRef ) = @_;
 ##-------------------------------------------------------------------------------
 ##Now update the PDB images for any of these changed sequences.....
 ## Get a list of pdbs;
+  my $pwd = getcwd;
+  foreach my $pdbRow (@$pdbs) {
+    my $pdb = $pdbRow->pdb_id;
+    $logger->info("Working on $pdb");
+    next if ( $blackListRef->{$pdb} );
+    my $tempDir = tempdir( CLEANUP => 1 );
 
-foreach my $pdbRow (@$pdbs) {
-  my $pdb = $pdbRow->pdb_id;
-  $logger->info("Working on $pdb");
-  next if($blackListRef->{$pdb});
-  my $tempDir = tempdir( CLEANUP => 1 );
-  
-  # Fetch the pdb file
-  $logger->debug("Fetching $pdb");
-  open( P, ">$tempDir/$pdb.pdb" )
-    or $logger->logdie("Could not open $tempDir/$pdb.pdb fro writing:[$!]");
+    # Fetch the pdb file
+    $logger->debug("Fetching $pdb");
+    open( P, ">$tempDir/$pdb.pdb" )
+      or $logger->logdie("Could not open $tempDir/$pdb.pdb fro writing:[$!]");
 
-  my $file = $pfetch->retrieve( { '--new_pdb' => lc($pdb) } )
-    or $logger->logdie("Failed to run pfetch because:[$!]");
-  if($file){  
-    foreach my $l (@$file) {
-      print P $l;
+    my $file = $pfetch->retrieve( { '--new_pdb' => lc($pdb) } )
+      or $logger->logdie("Failed to run pfetch because:[$!]");
+    if ($file) {
+      foreach my $l (@$file) {
+        print P $l;
+      }
+      close(P);
     }
-    close(P);
-  }
-  
-  unless(-s "$tempDir/$pdb.pdb"){
-    system("wget -O /tmp/$pdb.pdb http://www.rcsb.org/pdb/files/$pdb.pdb");
-  }
-  next unless(-s "$tempDir/$pdb.pdb");
-  
-  #Now get the region information for this pdb
-  my @regions =
-    $pfamDB->getSchema->resultset('PdbPfamaReg')
-    ->search( { pdb_id => $pdb }, { order_by => 'chain, pdb_res_start ASC' } );
 
-  foreach my $r (@regions){
-    $logger->debug( $r->pdb_id->pdb_id.",".$r->chain.",".$r->pdb_res_start."-".$r->pdb_res_end);
+    unless ( -s "$tempDir/$pdb.pdb" ) {
+      system("wget -O ".$tempDir."/$pdb.pdb http://www.rcsb.org/pdb/files/$pdb.pdb");
     }
-  my $pfamaConfig = Bio::Pfam::Drawing::Layout::Config::PfamaConfig->new;
-  foreach my $domain (@regions) {
-    &assignColour( $pfamaConfig, $domain );
+    next unless ( -s "$tempDir/$pdb.pdb" );
+
+    #Now get the region information for this pdb
+    my @regions =
+      $pfamDB->getSchema->resultset('PdbPfamaReg')
+      ->search( { pdb_id => $pdb },
+      { order_by => 'chain, pdb_res_start ASC' } );
+
+    foreach my $r (@regions) {
+      $logger->debug( $r->pdb_id->pdb_id . ","
+          . $r->chain . ","
+          . $r->pdb_res_start . "-"
+          . $r->pdb_res_end );
+    }
+    my $pfamaConfig = Bio::Pfam::Drawing::Layout::Config::PfamaConfig->new;
+    foreach my $domain (@regions) {
+      &assignColour( $pfamaConfig, $domain );
+    }
+
+    my ( $auto_markup, $ions, $ligand, $nucleotides ) =
+      _read_molauto( $pdb, $tempDir, $logger );
+    my ($pfamMarkupRef) =
+      _munge_molauto( $pdb, $tempDir, $auto_markup, \@regions, $logger );
+
+    _write_pfam_molscript( $pdb, $tempDir, $pfamMarkupRef, $ions, $ligand,
+      $nucleotides );
+
+    my $success = _produce_render_file( $pdb, $tempDir, $logger );
+
+    if ($success) {
+      _render_image( $pdb, $tempDir, $pfamDB, $logger );
+    }
+    chdir($pwd);
+    remove_tree($tempDir);
   }
-
-  my ( $auto_markup, $ions, $ligand, $nucleotides ) =
-    _read_molauto( $pdb, $tempDir, $logger );
-  my ($pfamMarkupRef) =
-    _munge_molauto( $pdb, $tempDir, $auto_markup, \@regions, $logger );
-
-  _write_pfam_molscript( $pdb, $tempDir, $pfamMarkupRef, $ions, $ligand,
-    $nucleotides );
-
-  my $success = _produce_render_file( $pdb, $tempDir, $logger );
-
-  if ($success) {
-    _render_image( $pdb, $tempDir, $pfamDB, $logger );
-  }
-}
 }
 
 ###############
@@ -445,6 +465,7 @@ sub _munge_molauto {
         }
       }
     }
+
     #$logger->debug( $pfam_markup[$#pfam_markup] );
   }
 
@@ -497,7 +518,7 @@ EOF
 sub _produce_render_file {
   my $pdb     = shift;
   my $tempDir = shift;
-  my $logger = shift;
+  my $logger  = shift;
   chdir($tempDir);
   my $error;
   system("molscript -in pov$pdb.in -y -out pov$pdb.out > /dev/null 2>&1")
@@ -517,20 +538,18 @@ sub _produce_render_file {
 sub _render_image {
   my $pdb     = shift;
   my $tempDir = shift;
-  my $pfamDB = shift;
+  my $pfamDB  = shift;
 
   chdir($tempDir);
 
   #Finally make the png image
-  system( "povray +Ipov" 
-      . $pdb
+  system( "povray +Ipov" . $pdb
       . ".out +O"
       . $tempDir . "/"
       . $pdb
       . ".png +W640 +H640 -D +UA +FN +A0.5 > /dev/null 2>&1" ) == 0
     or warn "Error generating image for $pdb";
-  system( "povray +Ipov" 
-      . $pdb
+  system( "povray +Ipov" . $pdb
       . ".out +O"
       . $tempDir . "/"
       . $pdb
@@ -616,4 +635,26 @@ sub assignColour {
       { $domain->auto_pfama->auto_pfama => $colour } );
   }
   $domain->update( { hex_colour => $colour->as_rgb8->hex } );
+}
+
+sub help {
+  print STDERR <<HELP
+
+$0 <options>
+
+chunk     : Used in combination with chunksize, this says which page, or multiple
+          : of the
+chunksize :
+acc       : A Pfam accession. This code will also make structure images for a
+          : single family.
+
+Notes - There is a blacklist of pdb files encoded into this script. Some NMR structures
+and viruses cause massive memory inflations.
+
+This was how this script was run on the Sanger farm.
+bsub -q normal  -R"select[mem>8000] rusage[mem=8000]" -M 8000000 -J "pdb[1-30]" 
+-o "pdb.\%J.\%I.log" 'makePdbImages.pl -chunkSize 2477 -chunk \$\{LSB_JOBINDEX\}'
+
+HELP
+  
 }
