@@ -1348,7 +1348,7 @@ sub write_pfamB_entry {
       #We need a non-redundant fasta file
       $logger->debug("Going to make fasta file");
       makeNonRedundantFasta($prePfamB, $identity, $pfamDB, $filename);
-      
+      makeSpeciesJsonString($prePfamB->auto_pfamB, $pfamDB);
       $prePfamB->update( { number_species => scalar(keys(%species)),
                            number_regions => $newaln->no_sequences,
                            number_structures => $noStructures });
@@ -2366,3 +2366,145 @@ sub markupAlignWithSS{
   }
   return ($noStructures, $map);
 }
+
+sub makeSpeciesJsonString {
+  my ( $auto_pfamB, $pfamDB ) = @_;
+  
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+
+  my $pfambRegSth = $dbh->prepare(
+"select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.auto_pfamseq) from pfamB_reg r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.auto_pfamseq=r.auto_pfamseq and auto_pfamB= ? and t.species!=\'NULL\' group by s.auto_pfamseq"
+  );
+  my $taxFSth = $dbh->prepare(
+    "select parent, minimal, level, rank from taxonomy where level=?");
+
+
+  $pfambRegSth->execute($auto_pfamB);
+  my @tree;
+  my %seenTaxIds;
+  my @expectedLevels =
+    qw(superkingdom kingdom phylum class order family genus species);
+  my $unique = 1;
+
+  foreach my $rRef ( @{ $pfambRegSth->fetchall_arrayref } ) {
+    my $thisBranch;
+    $thisBranch->{sequence} = {
+      seqAcc     => $rRef->[4],
+      seedSeq    => 0,
+      numDomains => $rRef->[6]
+    };
+
+    $thisBranch->{ $rRef->[3] } = {
+      node  => $rRef->[0],
+      taxid => $rRef->[5]
+    };
+
+    my $speciesCounter = 0;
+    unless ( $seenTaxIds{ $rRef->[5] } ) {
+      $speciesCounter = 1;
+    }
+    $seenTaxIds{ $rRef->[5] }++;
+
+    my $atRoot = 0;
+
+    #print "Looking up ".$rRef->[1]."\n";
+    $taxFSth->execute( $rRef->[1] );
+    my $rHashRef = $taxFSth->fetchrow_hashref;
+
+    #print Dumper $rHashRef;
+    until ($atRoot) {
+      $atRoot = 1 if ( $rHashRef->{parent} eq 'root' );
+      if ( $rHashRef->{minimal} == 1 ) {
+
+        #Harvest the information that we want!
+        $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{level} };
+      }
+      $taxFSth->execute( $rHashRef->{parent} );
+      $rHashRef = $taxFSth->fetchrow_hashref;
+    }
+
+    my $previousNode;
+    for ( my $i = 0 ; $i <= $#expectedLevels ; $i++ ) {
+      my $node;
+
+#Become the same name as the parent if this taxonomic level is unknown. Everything should have a superkingdom.
+      unless ( $thisBranch->{ $expectedLevels[$i] } ) {
+        die "Trying to assign an name to a superkingdom" unless ( $i > 0 );
+        die "Trying to assign "
+          . $expectedLevels[$i]
+          . " name based on "
+          . $expectedLevels[ $i - 1 ]
+          . " level\n"
+          unless ( $thisBranch->{ $expectedLevels[ $i - 1 ] } );
+        $thisBranch->{ $expectedLevels[$i] }->{node} =
+          $thisBranch->{ $expectedLevels[ $i - 1 ] }->{node};
+      }
+      if ($previousNode) {
+        foreach my $c ( @{ $previousNode->{children} } ) {
+          if ( $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+            $node = $c;
+          }
+        }
+        unless ($node) {
+          $node = { node => $thisBranch->{ $expectedLevels[$i] }->{node} };
+          push( @{ $previousNode->{children} }, $node );
+        }
+        $node->{parent} = $previousNode->{node};
+      }
+      else {
+
+        #Find it at the op of the tree?
+        foreach my $skNode (@tree) {
+          if ( $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} )
+          {
+            $node = $skNode;
+          }
+        }
+
+        unless ($node) {
+          $node = {
+            node   => $thisBranch->{ $expectedLevels[$i] }->{node},
+            parent => 'root'
+          };
+          push( @tree, $node );
+        }
+      }
+      $node->{id} = $unique;
+      $unique++;
+      $node->{numSequences}++;
+      $node->{numSpecies} += $speciesCounter;
+      $node->{numDomains} += $rRef->[6];
+
+      $previousNode = $node;
+    }
+    push( @{ $previousNode->{sequences} }, $thisBranch->{sequence} );
+  }
+
+  my ( $totalSequence, $totalSpecies, $totalDomains );
+  foreach my $skNode (@tree) {
+    $totalSequence += $skNode->{numSequences};
+    $totalSpecies  += $skNode->{numSpecies};
+    $totalDomains  += $skNode->{numDomains};
+  }
+
+  my $rootedTree = {
+    id           => 0,
+    node         => 'root',
+    numSequences => $totalSequence,
+    numSpecies   => $totalSpecies,
+    numDomains   => $totalDomains,
+    children     => \@tree
+  };
+
+  my $json_string = to_json($rootedTree);
+
+  $pfamDB->getSchema->resultset('PfambSpeciesTree')
+    ->update_or_create(
+    {
+      auto_pfamb  => $auto_pfamB,
+      json_string => $json_string
+    }
+    );
+
+}
+
