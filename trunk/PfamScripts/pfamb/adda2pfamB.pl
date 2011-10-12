@@ -209,6 +209,8 @@ sub parseAddaData {
 			$adda->{$a}->{seqs}++;
 			$adda->{$a}->{residues} += $length;
 			push (@{$adda->{$a}->{regions}}, {start => $start, end => $end, version => $version, seqacc => $seqacc});
+		}elsif(/^id\s+start\s+end\s+family/){
+		  next;
 		}else{
 			chomp;
 			$logger->warn("Did not parse line|$_|");
