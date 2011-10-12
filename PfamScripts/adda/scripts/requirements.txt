@@ -1,0 +1,28 @@
+ADDA requires
+
+from pairsdb:
+
+     scripts:
+
+     tables:
+	nrdb			
+	nrdb40			domain_trees
+	pairsdb_40x40		domain_trees, fit
+	pairsdb_100x40		load
+	nrdb40_scop_domains	fit
+	nrdb40_scop_families	fit
+	nrdb40_pfam_domains	annotation
+	nrdb40_pfam_families	annotation
+	
+      data:
+	pairsdb_40x40.links	
+	pairsdb_40x40.index
+
+external programs:
+
+mysql: 
+       database to create tables
+    
+ga_components
+adda_index
+adda_convert_seq2domain_graph
