@@ -1,0 +1,113 @@
+################################################################################
+#
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+## domains less than this size are discarded
+PARAM_MIN_DOMAIN_LENGTH_CUTOFF?=30
+
+################################################
+## Section parameters: end
+################################################
+
+CHUNKS=$(wildcard *.list)
+SPLIT=$(CHUNKS:%.list=%.split)
+
+SRC_SPLIT_TREE=../align/trees_checked
+
+all: trees.links \
+	trees.components trees.complist trees.hist \
+	trees.load trees.load_nrdb
+
+#####################################################
+## filter links
+%.links: $(SRC_SPLIT_TREE)
+	$(PROLOG)
+	@awk '{if ($$12 >= $(PARAM_MIN_DOMAIN_LENGTH_CUTOFF)) \
+		{ printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",$$2,$$3,$$4,$$5,$$6,$$8,$$9,$$11,$$12,$$13);}}'\
+	< $(SRC_SPLIT_TREE) > $@
+	$(EPILOG)
+
+#####################################################
+## build families based on components
+%.load:   %.components
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)DomainsAdda.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--domains=$(PARAM_TABLE_DOMAINS) \
+		--families=$(PARAM_TABLE_FAMILIES) \
+		--input=$*.components \
+		--source=$(PARAM_TABLE_NIDS) \
+		Create Finalize UpdateDomains > $@ 
+	$(EPILOG)
+
+#####################################################
+%.load_filtered: %.components
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)DomainsAdda.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--domains=$(PARAM_TABLE_DOMAINS)_f \
+		--families=$(PARAM_TABLE_FAMILIES)_f \
+		--input=$*.components \
+		--source=$(PARAM_TABLE_NIDS) \
+		--repeats=$(PARAM_TABLE_REPEATS) \
+		--filter_repeats \
+		Create Finalize UpdateDomains > $@ 
+	$(EPILOG)
+
+#####################################################
+%.load_repeats: %.components
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)DomainsAdda.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--domains=$(PARAM_TABLE_DOMAINS)_r \
+		--families=$(PARAM_TABLE_FAMILIES)_r \
+		--input=$*.components \
+		--source=$(PARAM_TABLE_NIDS) \
+		--repeats=$(PARAM_TABLE_REPEATS) \
+		--filter_repeats \
+		Create Finalize AddRepeats UpdateDomains > $@
+	$(EPILOG)
+
+#####################################################
+%.load_nrdb: %.load
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)DomainsAdda.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--domains=$(PARAM_TABLE_DOMAINS) \
+		--families=$(PARAM_TABLE_FAMILIES) \
+		PropagateUp > $@
+	$(EPILOG)
+
+#####################################################
+clean:
+	$(PROLOG)
+	@rm -f trees.*
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common

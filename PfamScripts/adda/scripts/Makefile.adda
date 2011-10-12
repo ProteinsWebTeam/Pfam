@@ -1,0 +1,98 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+##
+## main control file for building ADDA
+##
+#################################################################################
+
+## include file with variables
+include Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+PARAM_VERSION?=0.0
+
+################################################
+## Section parameters: end
+################################################
+
+##################################################
+## jobs to do for prepare
+do_fit:
+	$(MAKE) -C fit all
+
+do_domain_trees:
+	$(MAKE) -C domain_trees all
+
+prepare:
+	$(PROLOG)
+	@rm -f $@
+	@for x in fit domain_trees opti ms_trees align load modules annotation svg; do \
+		python $(DIR_SCRIPTS_SRC)setup.py \
+		-f -d $${x} --method=adda_$${x} >> $@; \
+	done
+	$(EPILOG)
+
+##################################################
+all:
+	$(MAKE) -C fit all
+
+	$(MAKE) -C domain_trees all
+
+	$(MAKE) -C opti prepare
+	$(MAKE) -j $(NUM_JOBS) -C opti all
+	$(MAKE) -C opti post
+
+	$(MAKE) -C ms_trees prepare
+	$(MAKE) -j $(NUM_JOBS) -C ms_trees all
+	$(MAKE) -C ms_trees post
+
+	$(MAKE) -C align prepare
+	$(MAKE) -j $(NUM_JOBS) -C align all
+	$(MAKE) -C align post
+
+	$(MAKE) -j $(NUM_JOBS) -C load all
+
+	$(MAKE) -j $(NUM_JOBS) -C modules modules
+
+	$(MAKE) -j $(NUM_JOBS) -C annotation all
+
+	$(MAKE) -C svg prepare
+	$(MAKE) -j $(NUM_JOBS) -C svg all
+	$(MAKE) -C svg post
+
+clean:
+	$(MAKE) -C domain_trees clean
+	$(MAKE) -C opti clean
+	$(MAKE) -C ms_trees clean
+	$(MAKE) -C align clean
+	$(MAKE) -C load clean
+	$(MAKE) -C svg clean
+	find . -name "nohup.out" -exec rm "{}" \;
+
+add_version:
+	echo "ADDA version $(PARAM_VERSION): released at `date`" >> version
+
+include $(DIR_SCRIPTS_SRC)Makefile.common

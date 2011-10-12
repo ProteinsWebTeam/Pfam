@@ -1,0 +1,113 @@
+################################################################################
+#   Gene prediction pipeline 
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+## Resolution of domain boundaries.
+PARAM_TREES_SCALE_FACTOR?=10
+
+################################################
+## Section parameters: end
+################################################
+
+TABLE_TREES_FIELDS=     nid INT(10) UNSIGNED NOT NULL, \
+			node SMALLINT(5) UNSIGNED NOT NULL, \
+			parent SMALLINT(5) UNSIGNED NOT NULL, \
+			level TINYINT(3) UNSIGNED NOT NULL, \
+			xfrom SMALLINT(5) UNSIGNED NOT NULL, \
+			xto SMALLINT(5) UNSIGNED NOT NULL
+TABLE_TREES_INDICES=, INDEX(nid)
+
+# old flags: min_neighbours=10 max_evalue=-12
+TREES_FLAGS=--table_nids=$(PARAM_TABLE_NIDS) \
+		--table_links=$(PARAM_TABLE_LINKS) \
+		--combine_repeats \
+		--covering_trees \
+		--min_neighbours=0 \
+		--max_evalue=0 \
+		--resolution=$(PARAM_TREES_SCALE_FACTOR)
+
+############################################################################
+## primary targets
+all: trees domain_trees load summary summary.mail
+
+############################################################################
+trees:
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)calculate_trees.py \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		$(TREES_FLAGS) \
+		--num_jobs=$(PARAM_NUM_JOBS) > $@
+	$(EPILOG)
+
+domain_trees: trees
+	$(PROLOG)
+	@cat trees_* | grep -v "#" | sort -k1n -k2n > $@
+	@rm -f trees_*
+	$(EPILOG)
+
+load:	domain_trees
+	$(PROLOG)
+	@mysql $(PARAM_DATABASE_ADDA) \
+		-e "DROP TABLE IF EXISTS $(PARAM_TABLE_TREES); \
+		CREATE TABLE $(PARAM_TABLE_TREES) ( $(TABLE_TREES_FIELDS) $(TABLE_TREES_INDICES) )"
+	@cp domain_trees $(DIR_LOAD)trees
+	@chmod 666 $(DIR_LOAD)trees
+	@mysql $(PARAM_DATABASE_ADDA) -e "LOAD DATA INFILE \"$(DIR_LOAD)trees\" INTO TABLE $(PARAM_TABLE_TREES)"
+	@rm $(DIR_LOAD)trees
+	@echo "loaded" > $@
+	$(EPILOG)
+
+dist_clean: clean
+	$(PROLOG)
+	@rm -f domain_trees
+	$(EPILOG)
+
+clean:
+	$(PROLOG)
+	@rm -f trees
+	@rm -f trees_*
+	@rm -f load
+	@rm -f summary
+	$(EPILOG)
+
+summary:
+	$(PROLOG)
+	@echo "# summary of $(CURDIR) at `date`" > $@
+	@echo "Source database: $(PARAM_DATABASE_PAIRSDB)" >> $@
+	@echo "Target database: $(PARAM_DATABASE_ADDA)" >> $@
+	@echo "# $(PARAM_TABLE_NIDS):" >> $@
+	@echo " `mysql -B -N -e 'SELECT COUNT(*) FROM $(PARAM_TABLE_NIDS)' $(PARAM_DATABASE_PAIRSDB)` nids" >> $@
+	@echo "# entries in file:" >> $@
+	@echo " `wc -l domain_trees` entries" >> $@
+	@echo " `cut -f 1 domain_trees | uniq | wc -l` nids" >> $@
+	@echo "# entries in table $(PARAM_TABLE_TREES):" >> $@
+	@echo " `mysql -B -N -e 'SELECT COUNT(*) FROM $(PARAM_TABLE_TREES)'` entries" >> $@
+	@echo " `mysql -B -N -e 'SELECT COUNT(DISTINCT nid) FROM $(PARAM_TABLE_TREES)'` nids" >> $@
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common

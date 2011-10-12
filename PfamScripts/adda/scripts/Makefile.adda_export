@@ -1,0 +1,6 @@
+include ../Makefile.common
+
+export:
+	mysql -B -N -e "SELECT CONCAT('>', nid, d.family, '|', d.rep_from, '|', d.rep_to, ' ', n.identifier, ' ', n.description, '@', SUBSTRING(n.sequence, d.rep_from, d.rep_to - d.rep_from + 1) FROM $(PARAM_TABLE_DOMAINS) AS d, nrdb AS n WHERE d.rep_nid = n.nid LIMIT 10" |\
+	perl -pe s:@:\n:g > $@
+

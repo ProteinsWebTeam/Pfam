@@ -1,0 +1,142 @@
+################################################################################
+#   Gene prediction pipeline 
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+PARAM_ADDA_PARAMETERS?=-y ../fit/transfer.params `cat $(DIR_ROOT)fit/overhangs.fit`
+
+## maximum sequence length to analyze
+PARAM_MAX_SEQUENCE_LENGTH?=10000
+
+################################################
+## Section parameters: end
+################################################
+
+COMPONENTS=$(wildcard *.list)
+
+ADDA=$(COMPONENTS:%.list=%.adda)
+
+## adda command
+CMD_ADDA=adda $(PARAM_ADDA_PARAMETERS) -i 100 -n $(PARAM_SRC_GRAPH) -f $(PARAM_SRC_INDEX) -v 0
+
+SRC_DOMAIN_TREES=../domain_trees/domain_trees
+
+#################################################################
+prepare: all.list all.trees
+
+all: $(ADDA)
+
+post: parts load
+
+#################################################################
+## create files containing all nids for a particular component
+exclude:
+	$(PROLOG)
+	@mysql -B -N -e "SELECT nrdb40.nid FROM nrdb40, nrdb WHERE nrdb40.nid = nrdb.nid AND nrdb.length > $(PARAM_MAX_SEQUENCE_LENGTH)" $(PARAM_DATABASE_PAIRSDB) > $@
+	$(EPILOG)
+
+################################################################
+## create files containing all nids for a particular component
+## 
+## Note: currently deactivated. The full component (all.list) is
+## used.
+components:
+	$(PROLOG)
+	@grep -v "#" < $(PARAM_SRC_COMPONENTS) |\
+	perl $(DIR_SCRIPTS_SRC)regextract.pl "\/\/" 0 "\/\/" 0 1 |\
+	sort -k2n -k1n  > $@	
+	$(EPILOG)
+
+split:  components exclude
+	$(PROLOG)
+	@perl $(DIR_SCRIPTS_SRC)split_components.pl -e exclude -s .list \
+	< components > $@
+	$(EPILOG)
+
+split_trees: $(SRC_DOMAIN_TREES)
+	$(PROLOG)
+	@perl $(DIR_SCRIPTS_SRC)split_by_components.pl \
+		-e exclude -c components -s .trees 
+	< $< > $@	
+	$(EPILOG)
+
+#################################################################
+## optimize domains using ADDA
+all.trees:
+	$(PROLOG)
+	@ln -s $(SRC_DOMAIN_TREES) $@
+	$(EPILOG)
+
+all.list:
+	$(PROLOG)
+	@mysql -B -N -e "SELECT nrdb40.nid FROM nrdb40, nrdb \
+		WHERE nrdb40.nid = nrdb.nid AND nrdb.length <= $(PARAM_MAX_SEQUENCE_LENGTH)" \
+	$(PARAM_DATABASE_PAIRSDB) > $@
+	$(EPILOG)
+
+%.adda: %.list %.trees
+	$(PROLOG)
+	@$(CMD_SUBMIT) $(CMD_ADDA) -t $*.trees -q $*.list -d > $@
+	$(EPILOG)
+
+parts:
+	$(PROLOG)
+	@find . -maxdepth 1 -name "*.adda" -exec cat "{}" \; | grep "^[0-9]" > $@
+	$(EPILOG)
+
+#################################################################
+## create a single file to load and load it
+load: 
+	$(PROLOG)
+	@mysql $(PARAM_DATABASE_ADDA) -e \
+		"DROP TABLE IF EXISTS $(PARAM_TABLE_PARTS); \
+		CREATE TABLE $(PARAM_TABLE_PARTS) \
+		(rep_nid INT UNSIGNED, rep_from SMALLINT UNSIGNED, \
+		rep_to SMALLINT UNSIGNED, family INT UNSIGNED DEFAULT 0, INDEX(rep_nid))" 
+	@cp parts $(DIR_LOAD)parts 
+	@chmod 666 $(DIR_LOAD)parts
+	@mysql $(PARAM_DATABASE_ADDA) -e "LOAD DATA INFILE '$(DIR_LOAD)parts' \
+		INTO TABLE $(PARAM_TABLE_PARTS) (rep_nid,rep_from,rep_to)" >> $@
+	@rm $(DIR_LOAD)parts
+	$(EPILOG)
+
+#################################################################
+clean:
+	$(PROLOG)
+	@find . -maxdepth 1 -name "*.list" -exec rm {} \;
+	@find . -maxdepth 1 -name "*.trees" -exec rm {} \;
+	@rm -f load split split_trees exclude components
+	$(EPILOG)
+
+dist_clean: clean
+	$(PROLOG)
+	@find . -maxdepth 1 -name "*.split" -exec rm {} \;
+	@find . -maxdepth 1 -name "*.adda" -exec rm {} \;
+	$(EPILOG)
+
+#################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common
+

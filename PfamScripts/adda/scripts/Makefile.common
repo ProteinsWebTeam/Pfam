@@ -1,0 +1,104 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+SHELL=/bin/bash --login
+
+LOG=log
+
+################################################
+## Section parameters: start
+################################################
+
+################################################
+## Directories
+
+## directory where gene prediction scripts can be found
+DIR_SCRIPTS_SRC?=
+
+## temporary directory
+DIR_TMP?=/tmp/
+
+################################################
+## Section parameters: end
+################################################
+
+## Commands for writing logfiles
+CMD_LOG2?=echo -e >> $(LOG) "\# `date`:"
+CMD_LOG?=@$(CMD_LOG2)
+
+CMD_MSG2?=echo -e "\# `date`:"
+CMD_MSG?=@$(CMD_MSG2)
+
+TOLOG?=>> $(LOG)
+LOG_HR1?=@echo "\#==============================================================================================" $(TOLOG)
+LOG_HR2?=@echo "\#----------------------------------------------------------------------------------------------" $(TOLOG)
+LOG_HR2v?=echo "\#----------------------------------------------------------------------------------------------" $(TOLOG)
+
+TO_NULL?=>& /dev/null
+
+#########################################################################
+## message to echo at start of task
+PROLOG?=$(CMD_LOG) "$@ started."
+
+## message to echo at end of task
+EPILOG?=$(CMD_LOG) "$@ completed."
+
+#####################################################
+## build components of a links files
+%.complist: %.links
+	$(PROLOG)
+	@$(CMD_SUBMIT) $(DIR_BIN)ga_components $*.links | grep -v "## iteration" > $@
+	$(EPILOG)
+
+%.components: %.complist
+	$(PROLOG)
+	@$(CMD_SUBMIT) grep -v "#" < $*.complist |\
+	$(CMD_SUBMIT) perl $(DIR_SCRIPTS)regextract.pl "\/\/" 0 "\/\/" 0 1 |\
+	$(CMD_SUBMIT) sort -k2n -k1n > $@
+	$(EPILOG)
+
+%.hist: %.complist
+	$(PROLOG)
+	@$(CMD_SUBMIT) perl $(DIR_SCRIPTS)regtail.pl "total" < $*.complist | grep "^[0-9]" |\
+        $(CMD_SUBMIT) python $(DIR_SCRIPTS)data2histogram.py --column=1 > $@  
+	$(EPILOG)
+
+######################################################
+## mail a fail to the supervisor
+summary.mail: summary
+	$(PROLOG)
+	@if test ! -z "$(MAIL_ADDRESS)"; then \
+		if test -z "$(MAIL_CC)"; then \
+			mail -s "processing of $(CURDIR) finished" $(MAIL_ADDRESS) < summary; \
+		else \
+			mail -s "processing of $(CURDIR) finished" -c $(MAIL_CC) $(MAIL_ADDRESS) < summary; \
+		fi \
+	fi
+	$(EPILOG)
+
+######################################################
+CMD_SQL=mysql --user=heger --password=HeinBloed --host=localhost --database=$(PARAM_DATABASE_ADDA) -B -N -e
+CMD_SQL_CREATE=mysql --user=heger --password=HeinBloed --host=localhost -B -N -e
+CMD_SQL_STDIN=mysql --user=heger --password=HeinBloed --host=localhost --database=$(PARAM_DATABASE_ADDA) 
+
+CMD_STATISTICS=python $(DIR_SCRIPTS_SRC)OutputStatisticsClustering.py --Database=$(PARAM_DATABASE_PAIRSDB)

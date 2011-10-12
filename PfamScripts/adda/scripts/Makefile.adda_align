@@ -1,0 +1,108 @@
+################################################################################
+#
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+
+################################################
+## Section parameters: end
+################################################
+
+COMPONENTS=$(wildcard links_*.chunk)
+CHECKED=$(COMPONENTS:%.chunk=%.checked)
+PREFIXES=$(COMPONENTS:%.chunk=%)
+
+CHUNK_SIZE=10000
+
+SRC_TREES_LINKS=../ms_trees/trees_links
+
+#####################################################
+## primary targets
+prepare: split
+
+all: $(CHECKED)
+
+post: all_trees trees_checked
+
+
+#####################################################
+split:
+	$(PROLOG)
+	@split -l $(CHUNK_SIZE) $(SRC_TREES_LINKS) links_ > $@
+	@find . -name "links_*" -exec mv {} {}.chunk \;	
+	$(EPILOG)
+
+#####################################################
+%.checked: %.chunk
+	$(PROLOG)
+	@-$(CMD_SUBMIT) python $(DIR_SCRIPTS_SRC)check_domain_links_zscore.py \
+		--no_cache \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+		--neighbours=$(PARAM_TABLE_ALIGN_NEIGHBOURS) \
+		--table_masks=$(PARAM_TABLE_MASKS) \
+	< $< |\
+	grep -v "#" > $@; detect_pipe_error
+	$(EPILOG)
+
+all_trees: $(CHECKED)
+	$(PROLOG)
+	@errors=0; \
+	for file in $(PREFIXES); do \
+		if [[ `wc -l < $$file.checked` != `wc -l < $$file.chunk` ]] ; then \
+			echo "ERROR: file $${file}.checked incomplete: `wc -l $${file}.checked`"; \
+			let errors+=1; \
+		fi \
+	done ; \
+	$(CMD_LOG2) "incomplete files=$$errors"; \
+	if [[ $$errors > 0 ]] ; then \
+		exit 1; \
+	fi
+	@rm -f $@
+	@find . -maxdepth 1 -name "*.checked" -exec cat "{}" \; > $@   	
+	$(EPILOG)
+
+trees_checked: all_trees
+	$(PROLOG)
+	@grep "^\+" < all_trees > $@   		
+	$(EPILOG)
+
+#####################################################
+## clean up
+dist_clean: clean
+	$(PROLOG)
+	@rm -f trees_checked
+	$(EPILOG)
+
+clean:
+	$(PROLOG)
+	@rm -f split
+	@rm -f *.chunk
+	@rm -f *.checked
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common

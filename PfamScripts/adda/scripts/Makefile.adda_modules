@@ -1,0 +1,475 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+## 
+## Makefile for curve fitting used by ADDA
+##
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+PARAM_TABLE_MODULES?=$(PARAM_DATABASE_ADDA).modules
+
+PARAM_TABLE_MODULES_LINKS=$(PARAM_DATABASE_ADDA).modules_links
+
+## table with links between domain families
+PARAM_TABLE_DOMAINS_LINKS=$(PARAM_DATABASE_ADDA).domains_x_domains
+
+PARAM_TABLE_TAXONOMY=taxonomy
+
+PARAM_LEVEL=nrdb40
+
+PARAM_MODULE_MIN_UNITS=5
+
+PARAM_LINK_MIN_STRENGTH=5
+
+#########################################################################
+## graph related flags
+PARAM_FLAGS_GDL_SPLIT=--min_size=5
+
+################################################
+## Section parameters: end
+################################################
+
+CMD_STATISTICS=python $(DIR_DOMAINS_SCRIPTS)OutputStatisticsClustering.py --Database=$(PARAM_DATABASE_PAIRSDB)
+
+#############################################################################
+## sets
+SUBSETS=pfam_modules.completely_unknowns pfam_modules.partially_unknowns \
+	pfam_modules.small_extended pfam_modules.large_extended pfam_modules.known \
+	pfam_modules.all \
+	smart_modules.completely_unknowns smart_modules.partially_unknowns \
+	smart_modules.small_extended smart_modules.large_extended smart_modules.known 
+
+INTERSECTION=inter_modules.completely_unknowns inter_modules.partially_unknowns inter_modules.known inter_modules.small_extended inter_modules.large_extended 
+
+UNION=union_modules.completely_unknowns union_modules.partially_unknowns union_modules.known union_modules.small_extended union_modules.large_extended 
+
+MASKS=$(SUBSETS:%=%.masks) 
+TAXONOMY=$(SUBSETS:%=%.taxonomy) 
+STRUCTURES=$(SUBSETS:%=%.struc_coverage) 
+
+IMASKS=$(INTERSECTION:%=%.masks) 
+ITAXONOMY=$(INTERSECTION:%=%.taxonomy) 
+ISTRUCTURES=$(INTERSECTION:%=%.struc_coverage) 
+
+UMASKS=$(UNION:%=%.masks) 
+UTAXONOMY=$(UNION:%=%.taxonomy) 
+USTRUCTURES=$(UNION:%=%.struc_coverage) 
+
+################################################################################
+## targets
+## primary targets
+all: modules domains_x_domains
+
+## secondary targets
+modules: modules.table modules.list modules.links modules.complist modules.components modules.hist
+
+domains_x_domains: domains_x_domains.links domains_x_domains.load
+
+annotate_modules: pfam_modules.annotations smart_modules.annotations ssubset intersection union
+annotate_sets: itaxonomy istructures utaxonomy ustructures ssubset staxonomy sstructures 
+
+intersection: $(INTERSECTION)
+union: $(UNION)
+
+ssubset: $(SUBSETS)
+smasks: $(MASKS)
+staxonomy: $(TAXONOMY) 
+sstructures: $(STRUCTURES)
+
+imasks: $(IMASKS)
+itaxonomy: $(ITAXONOMY) 
+istructures: $(ISTRUCTURES)
+
+umasks: $(UMASKS)
+utaxonomy: $(UTAXONOMY) 
+ustructures: $(USTRUCTURES)
+
+################################################################################
+## definition of modules:
+modules.table:
+	$(PROLOG)
+	@mysql -e "DROP TABLE IF EXISTS $(PARAM_TABLE_MODULES); \
+	CREATE TABLE $(PARAM_TABLE_MODULES) (family int unsigned, type char(1), unique(family)); \
+	INSERT INTO $(PARAM_TABLE_MODULES) \
+	SELECT DISTINCTROW f1.family, 'm' \
+	FROM \
+	$(PARAM_TABLE_FAMILIES) AS f1, \
+	$(PARAM_TABLE_DOMAINS) AS d1, \
+	$(PARAM_TABLE_DOMAINS) as d2, \
+	$(PARAM_TABLE_FAMILIES) AS f2, \
+	$(PARAM_TABLE_DOMAINS) as d3,\
+	$(PARAM_TABLE_FAMILIES) AS f3, \
+	$(PARAM_TABLE_DOMAINS) as d4, \
+	$(PARAM_TABLE_FAMILIES) AS f4 \
+	WHERE \
+	f1.family = d1.family AND f1.nunits >= $(PARAM_MODULE_MIN_UNITS) \
+	AND f2.family = d2.family AND f2.nunits >= $(PARAM_MODULE_MIN_UNITS) \
+	AND f3.family = d3.family AND f3.nunits >= $(PARAM_MODULE_MIN_UNITS) \
+	AND f4.family = d4.family AND f4.nunits >= $(PARAM_MODULE_MIN_UNITS) \
+	AND d1.rep_nid = d2.rep_nid \
+	AND d3.rep_nid = d4.rep_nid \
+	AND d1.rep_nid < d3.rep_nid \
+	AND d1.family = d3.family \
+	AND d1.family <> d2.family \
+	AND d2.family <> d4.family \
+	AND d3.family <> d4.family;" $(PARAM_DATABASE_PAIRSDB) > $@
+	$(EPILOG)
+
+modules.list: modules.table
+	$(PROLOG)
+	@mysql -B -N -e "SELECT m.family FROM $(PARAM_TABLE_MODULES) AS m, $(PARAM_TABLE_FAMILIES) AS f WHERE m.family = f.family" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+all_domains.list:
+	$(PROLOG)
+	@mysql -B -N -e "SELECT f.family FROM $(PARAM_TABLE_FAMILIES) AS f WHERE f.nunits > 1" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+non_modules.list: modules.table
+	$(PROLOG)
+	@mysql -B -N -e "SELECT f.family FROM $(PARAM_TABLE_FAMILIES) AS f LEFT JOIN $(PARAM_TABLE_MODULES) AS m ON m.family = f.family WHERE f.nunits > 1 AND m.family IS NULL" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+large_non_modules.list: modules.table
+	$(PROLOG)
+	@mysql -B -N -e "SELECT f.family FROM $(PARAM_TABLE_FAMILIES) AS f LEFT JOIN $(PARAM_TABLE_MODULES) AS m ON m.family = f.family WHERE m.family IS NULL AND f.nunits >= $(PARAM_MODULE_MIN_UNITS)" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+##########################################################################
+##########################################################################
+##########################################################################
+## get edges between clusters
+##########################################################################
+domains_x_domains.links:
+	$(PROLOG)
+	@$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_units=1 --Database=$(PARAM_DATABASE_PAIRSDB) EdgesBetweenDomains > $@
+	$(EPILOG)
+
+domains_x_domains_tax.links:
+	$(PROLOG)
+	@$(CMD_SUBMIT) $(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_units=1 --restrict_taxonomy=159436 --Database=$(PARAM_DATABASE_PAIRSDB) EdgesBetweenDomains > $@
+	$(EPILOG)
+
+## load edges between domains. Make graph symmetric at the same time.
+domains_x_domains.load: domains_x_domains.links
+	$(PROLOG)
+	@mysql -B -N -e "DROP TABLE IF EXISTS $(PARAM_TABLE_DOMAINS_LINKS)" $(PARAM_DATABASE_PAIRSDB)
+	@mysql -B -N -e "CREATE TABLE $(PARAM_TABLE_DOMAINS_LINKS) \
+	(family1 INT UNSIGNED NOT NULL DEFAULT 0, \
+	family2 INT UNSIGNED NOT NULL DEFAULT 0, \
+	nlinks SMALLINT UNSIGNED NOT NULL DEFAULT 0, \
+	INDEX(family1), INDEX(family2) );" $(PARAM_DATABASE_PAIRSDB)
+	@grep -v "#" < $< > $(DIR_LOAD)$<
+	@grep -v "#" < $< | awk '{printf("%s\t%s\t%s\n", $$2, $$1, $$3);}' >> $(DIR_LOAD)$<
+	@chmod 666 $(DIR_LOAD)$<
+	@mysql -B -N -e "LOAD DATA INFILE '$(DIR_LOAD)$<' INTO TABLE $(PARAM_TABLE_DOMAINS_LINKS)" $(PARAM_DATABASE_PAIRSDB)
+	@rm -f $(DIR_LOAD)$<
+	@touch $@
+	$(EPILOG)
+
+################################################################################
+## create graph between modules
+%.links: domains_x_domains.links
+	$(PROLOG)
+	@perl $(DIR_GRAPH_SCRIPTS)filter_links_tokens.pl $*.list < $< > $@
+	$(EPILOG)
+
+%.load_links:
+	$(PROLOG)
+	@mysql -B -N -e "DROP TABLE IF EXISTS $(PARAM_TABLE_MODULES_LINKS)" $(PARAM_DATABASE_PAIRSDB)
+	@mysql -B -N -e "CREATE TABLE $(PARAM_TABLE_MODULES_LINKS) \
+	(family1 INT UNSIGNED NOT NULL DFEAULT 0, \
+	family2 INT UNSIGNED NOT NULL DEFAULT 0, \
+	strength SMALLINT UNSIGNED NOT NULL DEFAUL 0)"
+	$(EPILOG)
+
+%.complist: %.links
+	$(PROLOG)
+	@$(DIR_BIN)ga_components $*.links | grep -v "## iteration" > $@
+	$(EPILOG)
+
+%.components: %.complist
+	$(PROLOG)
+	@grep -v "#" < $*.complist |\
+	perl $(DIR_TOOLS)regextract.pl "\/\/" 0 "\/\/" 0 1 |\
+	sort -k2n -k1n > $@
+	$(EPILOG)
+
+%.hist: %.complist
+	$(PROLOG)
+	@perl $(DIR_TOOLS)regtail.pl "total" < $*.complist | grep "^[0-9]" |\
+	$(CMD_SUBMIT) python $(DIR_PAIRSDB_TOOLS)calculate_histogram.py --column=1 > $@
+	$(EPILOG)
+
+%.gdl: %.links
+	$(PROLOG)
+	@awk '{ if ($$3 >= $(PARAM_LINK_MIN_STRENGTH)) { print; } }' < $*.links |\
+	python $(DIR_GRAPH_SCRIPTS)links2gdl.py |\
+	python $(DIR_SCRIPTS)gdl2gdl_components.py $(PARAM_FLAGS_GDL_SPLIT) |\
+	csplit --prefix=$*_ - /^\/\// {*}
+	@for file in $*_*; do \
+		if test -s $${file}; then \
+			mv $${file} $${file}.gdl; \
+		else \
+			rm -f $${file}; \
+		fi \
+	done
+	$(EPILOG)
+
+################################################################################
+# annotate lists
+pfam_modules.annotations:
+	$(PROLOG)
+	$(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_evidence=1 --min_units=$(PARAM_MODULE_MIN_UNITS) --ref_domains=$(PARAM_LEVEL)_pfam_domains_nr --ref_families=$(PARAM_LEVEL)_pfam_families_nr --file_subset=modules.list Annotation > $@
+	$(EPILOG)
+
+pfam_non_modules.annotations:
+	$(PROLOG)
+	$(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_evidence=1 --min_units=$(PARAM_MODULE_MIN_UNITS) --ref_domains=$(PARAM_LEVEL)_pfam_domains_nr --ref_families=$(PARAM_LEVEL)_pfam_families_nr --file_subset=large_non_modules.list Annotation > $@
+	$(EPILOG)
+
+smart_modules.annotations:
+	$(PROLOG)
+	$(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_evidence=1 --min_units=$(PARAM_MODULE_MIN_UNITS) --ref_domains=$(PARAM_LEVEL)_smart_domains_nr --ref_families=$(PARAM_LEVEL)_smart_families_nr --file_subset=modules.list Annotation > $@
+	$(EPILOG)
+
+smart_non_modules.annotations:
+	$(PROLOG)
+	$(CMD_STATISTICS) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --min_evidence=1 --min_units=$(PARAM_MODULE_MIN_UNITS) --ref_domains=$(PARAM_LEVEL)_smart_domains_nr --ref_families=$(PARAM_LEVEL)_smart_families_nr --file_subset=large_non_modules.list Annotation > $@
+	$(EPILOG)
+
+
+#smart_modules.annotations:
+#	$(PROLOG)
+#	$(CMD_SUBMIT) python /data/domains/scripts/OutputStatisticsClustering.py --Database=$(PARAM_DATABASE_PAIRSDB) --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --max_family=1000000 --min_evidence=1 --min_units=$(PARAM_MODULE_MIN_UNITS) --ref_domains=pairsdb.nrdb40_smart_domains_nr --ref_families=pairsdb.nrdb40_smart_families_nr --file_subset=$* Annotation > $@
+
+##################################################################
+## classifiy domains according if they are known to domains
+%.completely_unknowns: %.annotations
+	$(PROLOG)
+	grep "	unknown" $*.annotations > $@
+	$(EPILOG)
+
+%.partially_unknowns: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations | awk '/^[^\t]/ {if ($$7<$(PARAM_MODULE_MIN_UNITS) && $$7/$$8<0.2) print }' > $@
+	$(EPILOG)
+
+%.not_known_unknowns: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations | awk '/^[^\t]/ {if ($$7<$(PARAM_MODULE_MIN_UNITS) && $$7>0) print }' > $@
+	$(EPILOG)
+
+%.small_extended: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations |  grep -v "	unknown" | awk '/^[^\t]/ {if ($$7<$(PARAM_MODULE_MIN_UNITS) && $$7/$$2<0.5 && $$7/$$8==1.0) print }' > $@
+	$(EPILOG)
+
+%.large_extended: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations | grep -v "	unknown" | awk '/^[^\t]/ {if ($$7>= $(PARAM_MODULE_MIN_UNITS) && $$7/$$2<0.5 && $$7/$$8==1.0) print }' > $@
+	$(EPILOG)
+
+%.known: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations | grep -v "	unknown" | awk '/^[^\t]/ {if ($$7>=$(PARAM_MODULE_MIN_UNITS)) print }' > $@
+	$(EPILOG)
+
+%.all: %.annotations
+	$(PROLOG)
+	grep -v "#" $*.annotations > $@
+	$(EPILOG)
+
+%.masks: %
+	$(PROLOG)
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --file_subset=$* Masks > $@
+	$(EPILOG)
+
+%.taxonomy: %
+	$(PROLOG)
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --map_taxonomy=$(PARAM_DATABASE_PAIRSDB).pairsdb_100x40 --file_subset=$* Taxonomy > $@
+	$(EPILOG)
+
+%.struc_coverage: %
+	$(PROLOG)
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --map_taxonomy=$(PARAM_DATABASE_PAIRSDB).pairsdb_100x40 --file_subset=$* --min_overlap=20 StructuralCoverage > $@
+	$(EPILOG)
+
+#################################################################
+## unknown domains that cooccur with known domains:
+%.pfam_associated_domains:
+	$(PROLOG)
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --ref_domains=pairsdb.nrdb40_pfam_domains_nr --ref_families=pairsdb.nrdb40_pfam_families_nr --file_subset=$* AssociatedDomains > $@
+	$(EPILOG)
+
+%.smart_associated_domains:
+	$(PROLOG)
+	$(CMD_SUBMIT) python $(DIR_SCRIPTS)OutputStatisticsClustering.py --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --ref_domains=pairsdb.nrdb40_smart_domains_nr --ref_families=pairsdb.nrdb40_smart_families_nr --file_subset=$* AssociatedDomains > $@
+	$(EPILOG)
+
+associated_domains:
+	$(PROLOG)
+	grep -v "#" inter_modules.completely_unknowns.smart_associated_domains | grep -v "	none" > x
+	grep -v "#" inter_modules.completely_unknowns.pfam_associated_domains |  grep -v "	none" > y
+	perl $(DIR_TOOLS)set_union.pl x y > $@
+	rm -f x y
+	$(EPILOG)
+
+#################################################################
+inter_modules.%:
+	$(PROLOG)
+	perl $(DIR_TOOLS)set_intersection.pl pfam_modules.$* smart_modules.$* | cut -f 1-14,20- > $@
+	$(EPILOG)
+
+union_modules.%:
+	$(PROLOG)
+	perl $(DIR_TOOLS)set_union.pl pfam_modules.$* smart_modules.$* | cut -f 1-14,20- > $@
+	$(EPILOG)
+
+#################################################################
+make_summary:
+	$(PROLOG)
+	for file in *_modules.*; do \
+		echo $$file `grep -v "#" $$file | wc -l` ; \
+	done
+	$(EPILOG)
+
+taxonomy_summary: 
+	$(PROLOG)
+	for file in *_modules*.taxonomy taxonomy; do \
+		echo $$file;\
+		awk '{a=a+(($$8>0)?1:0);b=b+(($$10>0)?1:0);c=c+(($$12>0)?1:0);d=d+(($$8>0&&$$10==0&&$$12==0)||($$8==0&&$$10>0&&$$12==0)||($$8==0&&$$10==0&&$$12>0)?1:0)} END {printf"1: %i\t2: %i\t3: %i\t 1|2|3: %i\t",a,b,c,d}' $$file ;\
+		awk '{a=a+(($$8>0 && $$10>0)?1:0);b=b+(($$8>0 && $$12>0)?1:0);c=c+(($$10 && $$12>0)?1:0)} END {printf"1+2: %i\t1+3: %i\t2+3: %i\t1&2|1&3|2&3: %i\t",a,b,c,a+b+c}' $$file ;\
+		awk '{a=a+(($$8>0 && $$10>0 && $$12>0)?1:0);b=b+(($$8==0 && $$10==0 && $$12==0)?1:0)} END {printf"1,2,3: %i\tnone: %i\n", a,b}' $$file ;\
+		awk '{a=a+(($$7==1)?1:0)} END {printf"species_specific: %i\n", a}' $$file ;\
+	done
+	$(EPILOG)
+
+transmembrane:
+	$(PROLOG)
+	for file in *_modules*.masks; do \
+		echo $$file `awk '$$17>20 {a=a+1} END { printf"%i\n", a}' $$file`; \
+	done
+	$(EPILOG)
+
+domains_x_domains_tax.taxonomy:
+	$(PROLOG)
+	@$(CMD_SUBMIT) python $(DIR_SCRIPTS)calculate_taxonomic_edges.py --full --symmetric taxonomy.classes < domains_x_domains_tax > $@
+	$(EPILOG)
+
+taxonomic_distribution: taxonomy.classes
+	$(PROLOG)
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --file_taxonomy_classes=taxonomy.classes TaxonomicDistributionDomainCombinations > $@
+	$(EPILOG)
+
+taxonomic_dists: taxonomic_dists_all taxonomic_dists_modules taxonomic_dists_large_families
+
+taxonomic_dists_all:
+	$(PROLOG)
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --file_taxonomy_classes=taxonomy.classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_all_eight_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --file_taxonomy_classes=taxonomy.classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_all_eight_classes.error
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --file_taxonomy_classes=taxonomy.two_classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_all_two_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --file_taxonomy_classes=taxonomy.two_classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_all_two_classes.error
+	$(EPILOG)
+
+taxonomic_dists_modules:
+	$(PROLOG)
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_modules_eight_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_modules_eight_classes.error
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.two_classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_modules_two_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.two_classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_modules_two_classes.error
+	$(EPILOG)
+
+taxonomic_dists_large_families:
+	$(PROLOG)
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --min_units=50 --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_large_families_eight_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --min_units=50 --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_large_families_eight_classes.error
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --min_units=50 --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.two_classes_noerror TaxonomicDistributionDomainCombinations > taxonomic_dists_large_families_two_classes.noerror
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --min_units=50 --subset=$(PARAM_TABLE_MODULES) --file_taxonomy_classes=taxonomy.two_classes_error TaxonomicDistributionDomainCombinations > taxonomic_dists_large_families_two_classes.error
+	$(EPILOG)
+
+taxonomy.load: taxonomy.classes
+	$(PROLOG)
+	mysql -e "DROP TABLE IF EXISTS taxonomy;" $(PARAM_DATABASE_ADDA)	
+	mysql -e "CREATE TABLE taxonomy (family INT UNSIGNED, taxonomy CHAR(3), INDEX(family))" $(PARAM_DATABASE_ADDA)
+	cp taxonomy.classes $(DIR_LOAD)tmp_tax
+	chmod 666 $(DIR_LOAD)tmp_tax
+	mysql -e "LOAD DATA INFILE '$(DIR_LOAD)tmp_tax' INTO TABLE taxonomy" $(PARAM_DATABASE_ADDA)
+	rm -f $(DIR_LOAD)tmp_tax
+	$(EPILOG)
+
+#################################################################
+load_unknown:
+	$(PROLOG)
+	mysql -e "DROP TABLE IF EXISTS unknown;" $(PARAM_DATABASE_ADDA)	
+	mysql -e "CREATE TABLE unknown (family INT UNSIGNED, INDEX(family));" $(PARAM_DATABASE_ADDA)
+	cut -f 1 inter_modules.completely_unknowns > $(DIR_LOAD)/tmp_load_unknown
+	chmod 666 $(DIR_LOAD)/tmp_load_unknown
+	mysql -e "LOAD DATA INFILE '$(DIR_LOAD)/tmp_load_unknown' INTO TABLE unknown;" $(PARAM_DATABASE_ADDA)
+	rm -f $(DIR_LOAD)/tmp_load_unknown
+	$(EPILOG)
+
+load_known:
+	$(PROLOG)
+	mysql -e "DROP TABLE IF EXISTS known;" $(PARAM_DATABASE_ADDA)	
+	mysql -e "CREATE TABLE known (family INT UNSIGNED, INDEX(family));" $(PARAM_DATABASE_ADDA)
+	cut -f 1 union_modules.known > $(DIR_LOAD)/tmp_load_known
+	chmod 666 $(DIR_LOAD)/tmp_load_known
+	mysql -e "LOAD DATA INFILE '$(DIR_LOAD)/tmp_load_known' INTO TABLE known;" $(PARAM_DATABASE_ADDA)
+	rm -f $(DIR_LOAD)/tmp_load_known
+	$(EPILOG)
+
+#################################################################
+## mobiles/known/unknown sorted by f.nunits
+mobiles_percent.hist:
+	$(PROLOG)
+	mysql -B -N -e "SELECT f.nunits, COUNT(DISTINCT o.family), COUNT(DISTINCT u.family), COUNT(DISTINCT f.family), COUNT(DISTINCT k.family) FROM $(PARAM_TABLE_FAMILIES) AS f LEFT JOIN $(PARAM_TABLE_MODULES) AS o ON f.family = o.family LEFT JOIN unknown AS u ON f.family = u.family LEFT JOIN known AS k ON f.family = k.family GROUP BY f.nunits" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+#################################################################
+## taxonomy sorted by f.units
+taxonomy_percent.hist:
+	$(PROLOG)
+	echo "#	nunits	000	001	010	011	100	101	110	111" > $@
+	mysql -B -N -e "SELECT f.nunits, COUNT(IF(t.taxonomy='000',1,NULL)), COUNT(IF(t.taxonomy='001',1,NULL)), COUNT(IF(t.taxonomy='010',1,NULL)), COUNT(IF(t.taxonomy='011',1,NULL)), COUNT(IF(t.taxonomy='100',1,NULL)), COUNT(IF(t.taxonomy='101',1,NULL)), COUNT(IF(t.taxonomy='110',1,NULL)), COUNT(IF(t.taxonomy='111',1,NULL))  FROM $(PARAM_TABLE_FAMILIES) AS f, $(PARAM_TABLE_MODULES) AS o, $(PARAM_TABLE_TAXONOMY) AS t WHERE t.family = f.family AND f.family = o.family GROUP BY f.nunits" $(PARAM_DATABASE_ADDA) >> $@
+	$(EPILOG)
+
+#################################################################
+## histogram of domains per sequence
+dhist:
+	$(PROLOG)
+	$(CMD_STATISTICS)  --domains=$(PARAM_TABLE_DOMAINS) --families=$(PARAM_TABLE_FAMILIES) --Database=$(PARAM_DATABASE_PAIRSDB) --subset=$(PARAM_TABLE_MODULES) DomainDistribution > $@
+	$(EPILOG)
+
+clean:
+	$(PROLOG)
+	rm -f modules.*
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common

@@ -1,0 +1,140 @@
+################################################################################
+#   
+#   ADDA
+#
+#   $Id$
+#
+#   Copyright (C) 2004 Andreas Heger
+#
+#   This program is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#################################################################################
+##
+## building minimum spanning trees
+##
+#################################################################################
+
+include ../Makefile.variables
+
+################################################
+## Section parameters: start
+################################################
+
+
+
+################################################
+## Section parameters: end
+################################################
+
+SRC_TREES=../align/all_trees
+
+##################################################################
+## tools to analyse the distribution of PFAM families over several
+## ADDA clusters
+%_pfam.clusters:
+	$(PROLOG)
+	@mysql -B -N -e "SELECT DISTINCTROW CONCAT(d.rep_nid, '_', d.rep_from, '_', d.rep_to), \
+		d.rep_nid, d.family \
+		FROM $(PARAM_DATABASE_PAIRSDB).nrdb40_pfam_domains_nr AS r, \
+		$(PARAM_TABLE_DOMAINS) AS d \
+		WHERE r.family = '$*' AND r.rep_nid = d.rep_nid AND \
+		LEAST(r.rep_to, d.rep_to) - GREATEST(r.rep_from, d.rep_from) > 10 \
+		ORDER BY d.family, d.rep_nid " $(PARAM_DATABASE) > $@
+	$(EPILOG)
+
+## filter links out of minimum spanning tree according to several PFAM clusters
+%.clinks: %.clusters
+	$(PROLOG)
+	@perl $(DIR_SCRIPTS_SRC)filter_clinks_tokens.pl $*.clusters < $(SRC_TREES) > $@
+	$(EPILOG)
+
+##################################################################
+## filter checked links according 
+%.clinks_annotated:
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)annotate_domains.py \
+		--columns=1,2 \
+		--boundaries $(PARAM_DATABASE_PAIRSDB).nrdb40_pfam_domains_nr \
+		< $*.clinks > $@
+	$(EPILOG)
+
+##################################################################
+## tools to analyse pairwise links in mst
+
+## filter links out of minimum spanning tree according to an ADDA family
+%.domains: 	
+	$(PROLOG)
+	@mysql -B -N -e "SELECT DISTINCTROW CONCAT(d.rep_nid, '_', d.rep_from, '_', d.rep_to) \
+		FROM $(PARAM_TABLE_DOMAINS) AS d WHERE family = '$*'" \
+		$(PARAM_DATABASE_PAIRSDB) > $@
+	$(EPILOG)
+
+## filter links out of minimum spanning tree according to an ADDA family
+%.clinks: %.domains
+	$(PROLOG)
+	@perl $(DIR_SCRIPTS_SRC)filter_clinks_tokens.pl $*.domains < $(SRC_TREES) > $@
+	$(EPILOG)
+
+## filter out links of minimum spanning tree between different PFAM families
+%.errors: %.clinks_annotated
+	$(PROLOG)
+	@awk ' !/^#/ { split($$3,a,"_"); split($$5,b,"_"); \
+		if (a[1] != b[1] && $$3 != "na" && $$5 != "na" ) { print; } }' \
+	< $*.clinks_annotated > $@
+	$(EPILOG)
+
+##################################################################
+## tools to analyse paths
+%.anno_steps: %.steps
+	$(PROLOG)
+	@grep -v "#" $*.steps | grep -v "\/\/" |\
+	python $(DIR_SCRIPTS_SRC)annotate_domains.py \
+		$(PARAM_DATABASE_PAIRSDB).nrdb40_pfam_domains_nr \
+		$(PARAM_DATABASE).nrdb40_smart_domains_nr adda.nrdb40_adda_domains \
+	> $@
+	$(EPILOG)
+
+%.align: %.links
+	$(PROLOG)
+	@python $(DIR_SCRIPTS_SRC)check_domain_links_zscore.py \
+		-V 4 \
+		--Database=$(PARAM_DATABASE_PAIRSDB) \
+	< $*.links > $@
+	$(EPILOG)
+
+##################################################################
+## table statistics
+tables:
+	$(PROLOG)
+	@mysql -e "SHOW TABLE STATUS" $(PARAM_DATABASE_ADDA) > $@
+	$(EPILOG)
+
+statistics:
+	$(PROLOG)
+	@echo "# table $(PARAM_DATABASE_ADDA) $(PARAM_TABLE_PARTS)" > $@
+	@mysql -B -e "SELECT COUNT(*) AS ndom, \
+		COUNT(DISTINCT rep_nid) AS nseq, \
+		COUNT(*) / COUNT(DISTINCT rep_nid) AS ndom_per_nseq \
+		FROM $(PARAM_TABLE_PARTS)" $(PARAM_DATABASE_ADDA) >> $@
+	@echo "# table $(PARAM_DATABASE_ADDA) $(PARAM_TABLE_TREES)" >> $@
+	@mysql -B -e "SELECT COUNT(*) AS nparts, COUNT(DISTINCT nid) AS nseq, \
+		COUNT(*) / COUNT(DISTINCT nid) AS nparts_per_nseq, MAX(level) AS max_level \
+		FROM $(PARAM_TABLE_TREES)" $(PARAM_DATABASE_ADDA) >> $@
+	$(EPILOG)
+
+########################################################################
+include $(DIR_SCRIPTS_SRC)Makefile.common
+
+
+
