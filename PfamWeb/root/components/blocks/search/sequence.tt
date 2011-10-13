@@ -28,6 +28,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
+    [%- IF c.config.disable_searches %]
+      <div class="warningBox">
+        Sequence searches have been <strong>disabled</strong> in the
+        configuration of this website. You can still perform searches using the
+        main 
+        <a class="ext" href="http://pfam.sanger.ac.uk/search/">Pfam website</a>.
+      </div>
+    [%- END %]
     <p>
       Find Pfam families within your sequence of interest. Paste your protein
       sequence into the box below, to have it searched for matching Pfam
@@ -206,15 +214,11 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   <script type="text/javascript">
     // <![CDATA[
 
-//  var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
-//TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
-//SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
-//LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
-//GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
-//FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
-//CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
-//QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
-//FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+    [% IF c.config.disable_searches %]
+    document.observe( "dom:loaded", function() {
+      $("proteinSeqSearchForm").disable();
+    } );
+    [% END %]
 
     var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
