@@ -28,6 +28,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
+    [%- IF c.config.disable_searches %]
+      <div class="warningBox">
+        Batch searches have been <strong>disabled</strong> in the configuration
+        of this website. You can still perform searches using the main 
+        <a class="ext" href="http://pfam.sanger.ac.uk/search#tabview=tab1">
+          Pfam website</a>.
+      </div>
+    [%- END %]
     <p>
       Upload a FASTA-format file containing multiple protein sequences to be 
       searched for matching Pfam families. Results of the search will be 
@@ -249,6 +257,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       
     </div>
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    [% IF c.config.disable_searches %]
+    document.observe( "dom:loaded", function() {
+      $("proteinBatchSearchForm").disable();
+    } );
+    [% END %]
+    // ]]>
+  </script>
+
 </div>
 
 <!-- end batch search block -->
