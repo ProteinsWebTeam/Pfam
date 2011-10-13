@@ -28,7 +28,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
-    [%- IF c.config.disable_searches %]
+    [%- IF c.config.disable_sequence_searches %]
       <div class="warningBox">
         Sequence searches have been <strong>disabled</strong> in the
         configuration of this website. You can still perform searches using the
