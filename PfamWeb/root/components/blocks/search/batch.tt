@@ -260,7 +260,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
   <script type="text/javascript">
     // <![CDATA[
-    [% IF c.config.disable_searches %]
+    [% IF c.config.disable_sequence_searches %]
     document.observe( "dom:loaded", function() {
       $("proteinBatchSearchForm").disable();
     } );
