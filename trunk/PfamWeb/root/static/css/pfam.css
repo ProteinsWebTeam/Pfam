@@ -231,13 +231,18 @@ img.h3PfamLogo {
 
 /* a little warning message */
 
-#jsWarning {
+.warningBox {
   border: 2px solid #600;
   background: #900;
   color: #FFF;
   margin: 0.4em auto;
   width: 50%;
   padding: 0.4em;
+}
+
+.warningBox a {
+  color: #FFF;
+  font-weight: bold;
 }
 
 /* the "add annotation" button image */
