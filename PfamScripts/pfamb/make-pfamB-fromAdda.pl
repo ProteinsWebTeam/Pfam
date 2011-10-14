@@ -526,7 +526,7 @@ sub potential_classification {
   # of the section of sequence that is covered by a Pfam-A domain
   #$logger->debug("REGIONS $regions");
   foreach my $seg (@$regions) {
-    $logger->debug(Dumper($seg));
+    #$logger->debug(Dumper($seg));
     #if (not ($seg->{start} < $addastart or $seg->{end} > $addaend)) {
     if(($seg->{start} >= $addastart and  $seg->{start} <= $addaend) or
         ($seg->{end} >= $addastart and $seg->{end} <= $addaend)){
@@ -849,7 +849,7 @@ sub make_pfamB_alignment {
     my $scoprefs = shift;
     my $prositerefs = shift;
 
-  print Dumper ($seqs_to_modes);
+  #print Dumper ($seqs_to_modes);
     my ($reducedaln, $aln2, $aln3);
 
     $reducedaln = Bio::Pfam::AlignPfam->new();
@@ -871,10 +871,10 @@ sub make_pfamB_alignment {
   foreach my $seq ($alignment->each_seq()) {
       my ($mode, $leftextent, $rightextent) = @{$seqs_to_modes->{ $seq->id."/".$seq->start."-".$seq->end }};
       if ($mode eq $empty) {
-          print "HERE". $seq->id.",$seq\n";
+         # print "HERE". $seq->id.",$seq\n";
     $reducedaln->add_seq( $seq );
       }else{
-        print "SKIP\n"; 
+        #print "SKIP\n"; 
       }
   }
 
@@ -1260,10 +1260,10 @@ sub write_pfamB_entry {
           
           #Now reinsert
           $pfamDB->getSchema
-                  ->resultset('Pdb_pfamB_reg')
-                    ->create({ auto_pfamB_reg  => $regs{$nse}->auto_pfamb_reg,
-                               auto_pdb        => $pdbReg->{pdb_id},
-                               auto_pfamB      => $regs{$nse}->auto_pfamb->auto_pfamb,
+                  ->resultset('PdbPfambReg')
+                    ->create({ auto_pfamb_reg  => $regs{$nse}->auto_pfamb_reg,
+                               pdb_id          => $pdbReg->{pdb_id},
+                               auto_pfamb      => $regs{$nse}->auto_pfamb,
                                auto_pfamseq    => $regs{$nse}->auto_pfamseq,
                                chain           => $pdbReg->{chain},
                                pdb_res_start   => $pdbReg->{pdb_start},
@@ -1415,7 +1415,7 @@ sub makeAnnotatedSeqs {
   foreach my $r (@$res){
     push(@{$seqs->{$r->[0]}->{regions}}, {pfamA_acc => $r->[1], version => $r->[2], start => $r->[3], end => $r->[4]})    
   }
-  $logger->debug("Got the following sequence regios".Dumper($seqs));
+  #$logger->debug("Got the following sequence regios".Dumper($seqs));
 }
 
 
@@ -1594,7 +1594,7 @@ sub retrievePfamBAS {
   
   my @expASs = $pfamDB->getSchema
                       ->resultset('PfamseqMarkup')
-                        ->search( { auto_pfamb => $auto_pfamB,
+                        ->search( { "pfamb_regs.auto_pfamb" => $auto_pfamB,
                                     auto_markup => 1 },
                                   { select     => [ qw (pfamseq_id residue annotation) ],
                                     as         => [ qw(pfamseq_id residue annotation) ],
@@ -1606,7 +1606,7 @@ sub retrievePfamBAS {
   
   my @predASs = $pfamDB->getSchema
                       ->resultset('PfamseqMarkup')
-                        ->search( { auto_pfamb => $auto_pfamB,
+                        ->search( { "pfamb_regs.auto_pfamb" => $auto_pfamB,
                                     auto_markup                             => 3 },
                                   { select     => [ qw (pfamseq_id residue annotation) ],
                                     as         => [qw(pfamseq_id residue annotation)],
@@ -2217,7 +2217,7 @@ sub getDsspData {
   
   @dssp = $pfamDB->getSchema
                   ->resultset("PdbResidueData")
-                     ->search({auto_pfamb => $autoPfamB,
+                     ->search({"pfamB_reg.auto_pfamb" => $autoPfamB,
                                pdb_seq_number => { '!=' => 0}
                      },
                                {join => [qw( pfamB_reg )],
@@ -2367,30 +2367,217 @@ sub markupAlignWithSS{
   return ($noStructures, $map);
 }
 
+sub secStrucConsensus {
+  my $ssStringsRef    = shift;
+  my $num             = scalar(@$ssStringsRef);
+  my $length          = length $$ssStringsRef[0];
+  my $gapcount        = 0;
+  my $consensusstring = "";
+  my ( @count, @consensuschar );
+  my $numchar = 0;
+  my (
+    $m,         $n,        $x,            $z,
+    $charindex, $ass,      $ambigous,     $pos,
+    $character, $prevchar, $gapcharacter, $maxcount
+  );
+  $prevchar = "";
+
+  if ( $num > 1 ) {
+    for ( $m = 0 ; $m < $length ; $m++ ) {
+      for ( $n = 0 ; $n < $num ; $n++ ) {
+        $character = substr( $$ssStringsRef[$n], $m, 1 );
+        if ( $character ne "-" && $character ne "." && $character ne "X" ) {
+          if ( !( $prevchar =~ /$character/ ) ) {
+            $consensuschar[$numchar] = $character;
+            $count[$numchar]++;
+            $numchar++;
+            $prevchar .= $character;
+          }
+          else {
+            $pos = index $prevchar, $character;
+            $count[$pos]++;
+          }
+        }
+        else {
+          $gapcount++;
+          $gapcharacter = $character;
+        }
+      }
+      if ( $gapcount eq $num ) {
+        $consensusstring .= $gapcharacter;
+      }
+      else {
+        $maxcount = 0;
+        my $end_count = @count;
+        for ( $x = 0 ; $x < $end_count ; $x++ ) {
+          if ( $count[$x] > $maxcount ) {
+            $charindex = $x;
+            $maxcount  = $count[$x];
+          }
+        }
+        my $ambigious = grep /$maxcount/, @count;
+        if ( $ambigious > 1 ) {
+          for ( $z = 0 ; $z < $end_count ; $z++ )
+          {    # Changed from @count to $end_count for speed
+            if ( $count[$z] eq $maxcount ) {
+              $ass .= $consensuschar[$z];
+            }
+          }
+          $ass =~ s/G/H/g;
+          $ass =~ s/I/H/g;
+          $ass =~ s/B/E/g;
+          $ass =~ s/S/T/g;
+          if ( $ass =~ /^(.)\1+$/ ) {
+            $consensusstring .= $1;
+          }
+          else {
+            $consensusstring .= "C";
+          }
+          $ass = "";
+        }
+        else {
+          $consensusstring .= $consensuschar[$charindex];
+        }
+      }
+      $prevchar = "";
+      $gapcount = $numchar = 0;
+      undef @count;
+      undef @consensuschar;
+    }
+  }
+  else {
+    $consensusstring = $$ssStringsRef[0];
+  }
+  return $consensusstring;
+}
+
 sub makeSpeciesJsonString {
   my ( $auto_pfamB, $pfamDB ) = @_;
   
   my $dbh = $pfamDB->getSchema->storage->dbh;
 
-  my $pfambRegSth = $dbh->prepare(
-"select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.auto_pfamseq) from pfamB_reg r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.auto_pfamseq=r.auto_pfamseq and auto_pfamB= ? and t.species!=\'NULL\' group by s.auto_pfamseq"
-  );
-  my $taxFSth = $dbh->prepare(
-    "select parent, minimal, level, rank from taxonomy where level=?");
+  my $fullSth = $dbh->prepare( q[ SELECT t.species, t.parent, t.minimal, t.rank, pfamseq_acc, t.ncbi_taxid, COUNT(s.auto_pfamseq) FROM pfamB_reg r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid join taxonomy p on p.ncbi_taxid = t.parent WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamB = ? and ( t.rank='species' or p.rank='species') GROUP BY s.auto_pfamseq ] );
 
+  my $taxFSth = $dbh->prepare( q[SELECT parent, minimal, species, rank FROM taxonomy WHERE ncbi_taxid = ?] );
 
-  $pfambRegSth->execute($auto_pfamB);
+#Unclassified sequences
+my $unclassSth = $dbh->prepare(q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxid FROM pfamB_reg r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamB = ? AND t.ncbi_taxid IS null GROUP BY s.auto_pfamseq ]);
+
+#-------------------------------------------------------------------------------
+
+my @expectedLevels = qw(superkingdom kingdom phylum class order family genus species);
+my %superkingdom_members = (
+  'Bacteria'              => 'bacterium',
+  'Eukaryota'             => 'eukaryote',
+  'Archea'                => 'archea',
+  'Viruses'               => 'virus',
+  'Viroids'               => 'viroid',
+  'Other sequences'       => 'sequence',
+  'Unclassified'          => 'sequence',
+  'Unclassified sequence' => 'sequence',
+);
+
+my $json = JSON->new;
+# $json->pretty(1);
+  
+$logger->debug( "building $auto_pfamB..." );
+
+  # get the list of seed sequences
+  my %seedSeqs;
+
   my @tree;
   my %seenTaxIds;
-  my @expectedLevels =
-    qw(superkingdom kingdom phylum class order family genus species);
-  my $unique = 1;
+  my $unique  = 1;
+  my $counter = 1;
 
-  foreach my $rRef ( @{ $pfambRegSth->fetchall_arrayref } ) {
+  #----------------------------------------
+ 
+  # build the list of unclassified levels
+
+  $unclassSth->execute($auto_pfamB);
+  foreach my $rRef ( @{ $unclassSth->fetchall_arrayref }){
+    my $thisBranch;
+    $thisBranch->{sequence} = {
+      seqAcc     => $rRef->[2],
+      seedSeq    => ( defined( $seedSeqs{ $rRef->[2] } ) ? 1 : 0 ),
+      numDomains => $rRef->[3]
+    }; 
+
+    $thisBranch->{species} = {
+      node  => $rRef->[0],
+      taxid => 0
+    };
+
+    my $speciesCounter = 0;
+    #We do not have a useful taxid, use species name
+    unless($seenTaxIds{ $rRef->[0]}){
+      $speciesCounter++;
+    }
+    $seenTaxIds{ $rRef->[0] }++;
+
+
+    my ($skName) = $rRef->[1] =~ /^(.*?)\; /;
+    my $sk_member = $superkingdom_members{$skName} || 'entity';
+    for ( my $i = 0 ; $i < $#expectedLevels ; $i++ ) {
+      # $thisBranch->{$expectedLevels[$i]}->{node} = $i > 0 ? 'Unclassified '.$expectedLevels[$i] : $skName;
+      $thisBranch->{$expectedLevels[$i]}->{node} = $i > 0 ? "Uncategorised $sk_member" : $skName;
+    }
+    
+    my $previousNode; 
+    for ( my $i = 0 ; $i <= $#expectedLevels ; $i++ ) {
+      my $node;
+      if ($previousNode) {
+        foreach my $c ( @{ $previousNode->{children} } ) {
+          if ( $c->{node} and
+               $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+            $node = $c;
+          }
+        }
+        unless ($node) {
+          $node = { node => $thisBranch->{ $expectedLevels[$i] }->{node} };
+          push( @{ $previousNode->{children} }, $node );
+        }
+        $node->{parent} = $previousNode->{node};
+      }
+      else {
+   
+        #Find it at the op of the tree?
+        foreach my $skNode (@tree) {
+          if ( $skNode->{node} and
+               $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+            $node = $skNode;
+          }
+        }
+   
+        unless ($node) {
+          $node = {
+            node   => $thisBranch->{ $expectedLevels[$i] }->{node},
+            parent => 'root'
+          };
+          push( @tree, $node );
+        }
+      }
+      $node->{id} = $unique++;
+      $node->{numSequences}++;
+      $node->{numSpecies} += $speciesCounter;
+      $node->{numDomains} += $rRef->[3];
+   
+      $previousNode = $node;
+    }
+    push( @{ $previousNode->{sequences} }, $thisBranch->{sequence} );
+  }
+  
+  #----------------------------------------
+
+  # build the full tree
+
+  $fullSth->execute($auto_pfamB);
+  foreach my $rRef ( @{ $fullSth->fetchall_arrayref } ) {
+  
     my $thisBranch;
     $thisBranch->{sequence} = {
       seqAcc     => $rRef->[4],
-      seedSeq    => 0,
+      seedSeq    => ( defined( $seedSeqs{ $rRef->[4] } ) ? 1 : 0 ),
       numDomains => $rRef->[6]
     };
 
@@ -2410,14 +2597,13 @@ sub makeSpeciesJsonString {
     #print "Looking up ".$rRef->[1]."\n";
     $taxFSth->execute( $rRef->[1] );
     my $rHashRef = $taxFSth->fetchrow_hashref;
-
-    #print Dumper $rHashRef;
+  
     until ($atRoot) {
-      $atRoot = 1 if ( $rHashRef->{parent} eq 'root' );
-      if ( $rHashRef->{minimal} == 1 ) {
+      $atRoot = 1 if ( $rHashRef->{parent} and $rHashRef->{parent} == 1 );
+      if ( $rHashRef->{minimal} and $rHashRef->{minimal} == 1 ) {
 
         #Harvest the information that we want!
-        $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{level} };
+        $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{species} };
       }
       $taxFSth->execute( $rHashRef->{parent} );
       $rHashRef = $taxFSth->fetchrow_hashref;
@@ -2427,9 +2613,9 @@ sub makeSpeciesJsonString {
     for ( my $i = 0 ; $i <= $#expectedLevels ; $i++ ) {
       my $node;
 
-#Become the same name as the parent if this taxonomic level is unknown. Everything should have a superkingdom.
+      #Become the same name as the parent if this taxonomic level is unknown. Everything should have a superkingdom.
       unless ( $thisBranch->{ $expectedLevels[$i] } ) {
-        die "Trying to assign an name to a superkingdom" unless ( $i > 0 );
+        die "Trying to assign a name to a superkingdom" unless ( $i > 0 );
         die "Trying to assign "
           . $expectedLevels[$i]
           . " name based on "
@@ -2437,11 +2623,13 @@ sub makeSpeciesJsonString {
           . " level\n"
           unless ( $thisBranch->{ $expectedLevels[ $i - 1 ] } );
         $thisBranch->{ $expectedLevels[$i] }->{node} =
-          $thisBranch->{ $expectedLevels[ $i - 1 ] }->{node};
+          '(No ' . $expectedLevels[$i] . ')';
+          # $thisBranch->{ $expectedLevels[ $i - 1 ] }->{node};
       }
       if ($previousNode) {
         foreach my $c ( @{ $previousNode->{children} } ) {
-          if ( $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+          if ( $c->{node} and
+               $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
             $node = $c;
           }
         }
@@ -2455,7 +2643,8 @@ sub makeSpeciesJsonString {
 
         #Find it at the op of the tree?
         foreach my $skNode (@tree) {
-          if ( $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} )
+          if ( $skNode->{node} and
+               $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} )
           {
             $node = $skNode;
           }
@@ -2469,8 +2658,7 @@ sub makeSpeciesJsonString {
           push( @tree, $node );
         }
       }
-      $node->{id} = $unique;
-      $unique++;
+      $node->{id} = $unique++;
       $node->{numSequences}++;
       $node->{numSpecies} += $speciesCounter;
       $node->{numDomains} += $rRef->[6];
@@ -2480,6 +2668,7 @@ sub makeSpeciesJsonString {
     push( @{ $previousNode->{sequences} }, $thisBranch->{sequence} );
   }
 
+  # stats...
   my ( $totalSequence, $totalSpecies, $totalDomains );
   foreach my $skNode (@tree) {
     $totalSequence += $skNode->{numSequences};
@@ -2487,6 +2676,7 @@ sub makeSpeciesJsonString {
     $totalDomains  += $skNode->{numDomains};
   }
 
+  # make a root for the tree
   my $rootedTree = {
     id           => 0,
     node         => 'root',
@@ -2496,15 +2686,12 @@ sub makeSpeciesJsonString {
     children     => \@tree
   };
 
-  my $json_string = to_json($rootedTree);
+  my $json_string = $json->encode( $rootedTree );
+# print $json_string, "\n";
 
-  $pfamDB->getSchema->resultset('PfambSpeciesTree')
-    ->update_or_create(
-    {
-      auto_pfamb  => $auto_pfamB,
-      json_string => $json_string
-    }
-    );
+  $pfamDB->resultset('PfambSpeciesTree')
+         ->update_or_create( { auto_pfamb  => $auto_pfamB,
+                               json_string => $json_string } );
 
 }
 
