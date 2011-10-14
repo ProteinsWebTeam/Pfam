@@ -251,7 +251,7 @@ sub makeAccList {
 
 	my $chunk = (int( scalar($totSeq) / $noJobs ) ) + 1;
 
-	my @addaList = sort{$a <=> $b} keys %$addaPrune;
+	my @addaList = sort{$a cmp $b} keys %$addaPrune;
 	$logger->debug("There will be approx. $chunk sequenecs per job");
 
 	my $i =1;
