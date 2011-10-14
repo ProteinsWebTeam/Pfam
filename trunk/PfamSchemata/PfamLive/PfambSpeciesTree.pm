@@ -6,7 +6,7 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("pfamb_species_tree");
+__PACKAGE__->table("pfamB_species_tree");
 __PACKAGE__->add_columns(
   "auto_pfamb",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 5 },
