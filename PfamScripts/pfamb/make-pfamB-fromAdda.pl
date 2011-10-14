@@ -164,6 +164,7 @@ use Bio::Pfam::AlignPfam;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
+use JSON;
 
 
 ## To Use log4per......
@@ -2689,7 +2690,7 @@ $logger->debug( "building $auto_pfamB..." );
   my $json_string = $json->encode( $rootedTree );
 # print $json_string, "\n";
 
-  $pfamDB->resultset('PfambSpeciesTree')
+  $pfamDB->getSchema->resultset('PfambSpeciesTree')
          ->update_or_create( { auto_pfamb  => $auto_pfamB,
                                json_string => $json_string } );
 
