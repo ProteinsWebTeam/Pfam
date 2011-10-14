@@ -1348,7 +1348,7 @@ sub write_pfamB_entry {
       #We need a non-redundant fasta file
       $logger->debug("Going to make fasta file");
       makeNonRedundantFasta($prePfamB, $identity, $pfamDB, $filename);
-      makeSpeciesJsonString($prePfamB->auto_pfamB, $pfamDB);
+      makeSpeciesJsonString($prePfamB->auto_pfamb, $pfamDB);
       $prePfamB->update( { number_species => scalar(keys(%species)),
                            number_regions => $newaln->no_sequences,
                            number_structures => $noStructures });
