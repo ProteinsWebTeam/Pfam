@@ -2459,7 +2459,7 @@ sub makeSpeciesJsonString {
 
   my $fullSth = $dbh->prepare( q[ SELECT t.species, t.parent, t.minimal, t.rank, pfamseq_acc, t.ncbi_taxid, COUNT(s.auto_pfamseq) FROM pfamB_reg r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid join taxonomy p on p.ncbi_taxid = t.parent WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamB = ? and ( t.rank='species' or p.rank='species') GROUP BY s.auto_pfamseq ] );
 
-  my $taxFSth = $dbh->prepare( q[SELECT parent, minimal, species, rank FROM taxonomy WHERE ncbi_taxid = ?] );
+  my $taxFSth = $dbh->prepare( q[SELECT parent, minimal, level, rank FROM taxonomy WHERE ncbi_taxid = ?] );
 
 #Unclassified sequences
 my $unclassSth = $dbh->prepare(q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxid FROM pfamB_reg r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamB = ? AND t.ncbi_taxid IS null GROUP BY s.auto_pfamseq ]);
@@ -2604,7 +2604,7 @@ $logger->debug( "building $auto_pfamB..." );
       if ( $rHashRef->{minimal} and $rHashRef->{minimal} == 1 ) {
 
         #Harvest the information that we want!
-        $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{species} };
+        $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{level} };
       }
       $taxFSth->execute( $rHashRef->{parent} );
       $rHashRef = $taxFSth->fetchrow_hashref;
