@@ -102,11 +102,15 @@ while (<_NODES>) {
   @_ = split( /\|/, $_ );
   my ($taxid)  = $_[0] =~ /(\d+)/;
   my ($parent) = $_[1] =~ /(\d+)/;
-  my ($rank)   = $_[2] =~ /(\S+)/;
-
+  my ($rank)   = $_[2] =~ /\s+(.*)\s+/;
+  #print "$rank\|"; 
   #Shunt those special ids to be superkingdoms.
   $rank = 'superkingdom' if ( $promoteTaxIds{$taxid} );
-
+    
+  unless(defined($names{$taxid})){
+     #warn $taxid. " has no name\n"; 
+     $names{$taxid} = '_unnamed';
+  }
   $nodes->[$taxid] = {
                        taxid  => $taxid,
                        parent => $parent,
@@ -133,7 +137,7 @@ my $insertTaxSth = $dbh->prepare(
 #
 $logger->info('Building full taxonomic tree');
 my $tree = {};
-buildTree( $tree, $nodes );
+#buildTree( $tree, $nodes );
 
 #------------------------------------------------------------------------------
 # Cut out the levels that are excessive by reassigning parentage
@@ -148,37 +152,22 @@ my %ranks = ( superkingdom => 1,
               genus        => 1,
               species      => 1 );
 
-my $parent = 1;                         #The root id
-walkAndCut( $tree, $nodes, $parent, \%ranks );
-
-#------------------------------------------------------------------------------
-# Now rebuild the minimal tree from the nodes.
-#
-my $t0 = [gettimeofday];
-$logger->info('Building minimal taxonomic tree');
-my $minTree = {};
-buildTree( $minTree, $nodes );
-my $elapsed = tv_interval( $t0 );
-$logger->info( "Minimal tree building took $elapsed");
-
-#------------------------------------------------------------------------------
-# To mkae the storage/quereies in the database faster we need to traverse the
-# tree to store the
-#
+buildTree( $tree, $nodes );
 $logger->info('Traversing tree');
 my $count = 0;
-traverseTree( $minTree, $nodes, $count );
+traverseTree( $tree, $nodes, $count );
 
 #------------------------------------------------------------------------------
 # Print tree out/store it in the database.
 #
 
-#$dbh->do("DELETE FROM taxonomy");
+$dbh->do("DELETE FROM taxonomy");
 
 my $taxString = '';
 $logger->info("Updating taxonomy table");
-traverseTreeAndStore( $minTree, $nodes, $taxString, $insertTaxSth );
+traverseTreeAndStore( $tree, $nodes, $taxString, $insertTaxSth, \%ranks );
 
+exit;
 
 #------------------------------------------------------------------------------
 # subroutines ----------------------------------------------------------------- 
@@ -196,11 +185,11 @@ sub traverseTree {
 
 
 sub traverseTreeAndStore {
-  my ( $hash, $nodes, $taxString, $insertTaxSth ) = @_;
+  my ( $hash, $nodes, $taxString, $insertTaxSth, $ranksRef ) = @_;
   
   foreach my $k ( keys %{$hash} ) {
     my $thisTaxString = $taxString;
-    if(defined $nodes->[$k]->{name} ){
+    #if(defined $nodes->[$k]->{name} ){
     $thisTaxString .= $nodes->[$k]->{name} . ';';
     $insertTaxSth->execute(
         $k,
@@ -210,10 +199,10 @@ sub traverseTreeAndStore {
         $nodes->[$k]->{rgt}, 
         $nodes->[$k]->{parent},
         $nodes->[$k]->{name},
-        1, 
+        exists ($ranksRef->{$nodes->[$k]->{rank}}) ? 1 : 0, 
         $nodes->[$k]->{rank});
-    }
-    traverseTreeAndStore( $hash->{$k}, $nodes, $thisTaxString, $insertTaxSth );
+    #}
+    traverseTreeAndStore( $hash->{$k}, $nodes, $thisTaxString, $insertTaxSth, $ranksRef );
   }
 }
 
@@ -233,25 +222,12 @@ sub traverseTreeAndPrint {
   }
 }
 
-sub walkAndCut {
-  my ( $hash, $nodesRef, $parent, $ranks ) = @_;
-
-  foreach my $k ( keys %{$hash} ) {
-    my $thisParent = $parent;
-    $nodesRef->[$k]->{parent} = $parent;
-    if ( $ranks->{ $nodesRef->[$k]->{rank} } ) {
-      $thisParent = $nodesRef->[$k]->{taxid};
-    }
-    walkAndCut( $hash->{$k}, $nodesRef, $thisParent, $ranks );
-  }
-}
-
 sub buildTree {
   my ( $tree, $nodes ) = @_;
 
   foreach my $node (@$nodes) {
     next unless ($node);
-    next unless ( $node->{rank} eq 'species' );
+    next unless ( $node->{rank} eq 'species' or $node->{rank} eq 'no rank');
 
     my @speciesNodes;
     push( @speciesNodes, $node );
@@ -273,34 +249,6 @@ sub buildTree {
 }
 
 
-
-# prepare the database access and the queries that we'll use. We expect to
-# write to a table like this:
-#
-# CREATE TABLE `taxonomy` (
-#  `taxid` int(10) NOT NULL,
-#  `parent_taxid` int(11) NOT NULL,
-#  `rank` varchar(16) DEFAULT NULL,
-#  `lft` int(10) NOT NULL,
-#  `rgt` int(10) NOT NULL,
-#  `name` varchar(100) NOT NULL,
-#  `taxonomy` mediumtext,
-#  PRIMARY KEY (`taxid`)
-#) ENGINE=InnoDB
-#
-# query the table with something like:
-# SELECT ncbi_taxid,
-#        species,
-#        lft,
-#        rgt,
-#        parent,
-#        level
-# FROM   taxonomy
-# WHERE  lft <= 98440
-# AND    rgt >= 98441
-# ORDER BT lft ASC;
-;
-
 #-------------------------------------------------------------------------------
 
 sub usage {
@@ -308,7 +256,7 @@ sub usage {
   print <<'EOF_help';
 Usage: $0 
 
-Build a database table of the taxonomic tree.
+Build a database table of the taxonomic tree using the ncbi taxonomy files names.dmp and nodes.dmp
 
 EOF_help
 
