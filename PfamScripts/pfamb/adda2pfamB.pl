@@ -168,7 +168,7 @@ $totSeq = undef;
 my $fh = IO::File->new();
 #print "bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.log  -Jadda2pfam\"[1-$actualJobs]\"";
 
-$fh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.\%I.log  -Jadda2pfam\"[1-$actualJobs]\"");
+$fh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.\%I.log  -Jadda2pfam\"[1-$actualJobs]%70\"");
 #$fh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.\%I.log  -Jadda2pfam\"[1]\"");
 $fh->print( "cd ".$tmpDir."/\$\{LSB_JOBINDEX\}\n");
 $fh->print( "make-pfamB-fromAdda.pl -accfile ADDA_acclist.\$\{LSB_JOBINDEX\}\n");
