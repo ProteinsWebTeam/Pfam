@@ -337,9 +337,9 @@ foreach my $filename (qw(ALIGN SEED)) {
 
   #Calculate the consensus line at 60% threshold
   #We may want to make this user defined/overridable?
-  $logger->debug("Running consensus.pl on $filename");
+  $logger->info("Running consensus.pl on $filename");
   my $consensus = consensus_line( $filename, $ali->length );
-  $logger->debug("Finished running consensus.pl on $filename");
+  $logger->info("Finished running consensus.pl on $filename");
 
   if ( $filename eq "ALIGN" ) {
 
@@ -2110,7 +2110,9 @@ sub make_tree {
 
 sub makeSpeciesJsonString {
   my ( $auto_pfamA, $pfamDB, $dbh ) = @_;
-
+  
+  $json = JSON->new;
+  
   #List of seed sequences
   my $seedSth = $dbh->prepare(
 "select pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.auto_pfamseq=r.auto_pfamseq and auto_pfamA= ?"
@@ -2119,7 +2121,23 @@ sub makeSpeciesJsonString {
 "select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.auto_pfamseq) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.auto_pfamseq=r.auto_pfamseq and auto_pfamA= ? and in_full =1 and t.species!=\'NULL\' group by s.auto_pfamseq"
   );
   my $taxFSth = $dbh->prepare(
-    "select parent, minimal, level, rank from taxonomy where level=?");
+    "select parent, minimal, level, rank from taxonomy where ncbi_taxid=?");
+  my $unclassSth = $dbh->prepare(q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamA = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.auto_pfamseq ]);
+  
+#-------------------------------------------------------------------------------
+
+my @expectedLevels = qw(superkingdom kingdom phylum class order family genus species);
+my %superkingdom_members = (
+  'Bacteria'              => 'bacterium',
+  'Eukaryota'             => 'eukaryote',
+  'Archea'                => 'archea',
+  'Viruses'               => 'virus',
+  'Viroids'               => 'viroid',
+  'Other sequences'       => 'sequence',
+  'Unclassified'          => 'sequence',
+  'Unclassified sequence' => 'sequence',
+);
+
 
   $seedSth->execute($auto_pfamA);
   my %seedSeqs;
@@ -2128,15 +2146,97 @@ sub makeSpeciesJsonString {
     #print $rRef->[0]."\n";
     $seedSeqs{ $rRef->[0] }++;
   }
-
-  $fullSth->execute($auto_pfamA);
   my @tree;
   my %seenTaxIds;
-  my @expectedLevels =
-    qw(superkingdom kingdom phylum class order family genus species);
-  my $unique = 1;
+  my $unique  = 1;
+  my $counter = 1;
 
+  #----------------------------------------
+ 
+  # build the list of unclassified levels
+
+  $unclassSth->execute($auto_pfamA);
+  foreach my $rRef ( @{ $unclassSth->fetchall_arrayref }){
+    my $thisBranch;
+    $thisBranch->{sequence} = {
+      seqAcc     => $rRef->[2],
+      seedSeq    => ( defined( $seedSeqs{ $rRef->[2] } ) ? 1 : 0 ),
+      numDomains => $rRef->[3]
+    }; 
+
+    $thisBranch->{species} = {
+      node  => $rRef->[0],
+      taxid => 0
+    };
+
+    my $speciesCounter = 0;
+    #We do not have a useful taxid, use species name
+    unless($seenTaxIds{ $rRef->[0]}){
+      $speciesCounter++;
+    }
+    $seenTaxIds{ $rRef->[0] }++;
+
+
+    my ($skName) = $rRef->[1] =~ /^(.*?)\; /;
+    my $sk_member = $superkingdom_members{$skName} || 'entity';
+    for ( my $i = 0 ; $i < $#expectedLevels ; $i++ ) {
+      # $thisBranch->{$expectedLevels[$i]}->{node} = $i > 0 ? 'Unclassified '.$expectedLevels[$i] : $skName;
+      $thisBranch->{$expectedLevels[$i]}->{node} = $i > 0 ? "Uncategorised $sk_member" : $skName;
+    }
+    
+    my $previousNode; 
+    for ( my $i = 0 ; $i <= $#expectedLevels ; $i++ ) {
+      my $node;
+      if ($previousNode) {
+        foreach my $c ( @{ $previousNode->{children} } ) {
+          if ( $c->{node} and
+               $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+            $node = $c;
+          }
+        }
+        unless ($node) {
+          $node = { node => $thisBranch->{ $expectedLevels[$i] }->{node} };
+          push( @{ $previousNode->{children} }, $node );
+        }
+        $node->{parent} = $previousNode->{node};
+      }
+      else {
+   
+        #Find it at the op of the tree?
+        foreach my $skNode (@tree) {
+          if ( $skNode->{node} and
+               $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+            $node = $skNode;
+          }
+        }
+   
+        unless ($node) {
+          $node = {
+            node   => $thisBranch->{ $expectedLevels[$i] }->{node},
+            parent => 'root'
+          };
+          push( @tree, $node );
+        }
+      }
+      $node->{id} = $unique++;
+      $node->{numSequences}++;
+      $node->{numSpecies} += $speciesCounter;
+      $node->{numDomains} += $rRef->[3];
+   
+      $previousNode = $node;
+    }
+    push( @{ $previousNode->{sequences} }, $thisBranch->{sequence} );
+  }
+
+
+  #----------------------------------------
+
+  # build the full tree
+
+  $fullSth->execute($auto_pfamA);
   foreach my $rRef ( @{ $fullSth->fetchall_arrayref } ) {
+  
+
     my $thisBranch;
     $thisBranch->{sequence} = {
       seqAcc     => $rRef->[4],
@@ -2158,28 +2258,29 @@ sub makeSpeciesJsonString {
     my $atRoot = 0;
 
     #print "Looking up ".$rRef->[1]."\n";
+
     $taxFSth->execute( $rRef->[1] );
     my $rHashRef = $taxFSth->fetchrow_hashref;
-
-    #print Dumper $rHashRef;
+  
     until ($atRoot) {
-      $atRoot = 1 if ( $rHashRef->{parent} eq 'root' );
-      if ( $rHashRef->{minimal} == 1 ) {
+      $atRoot = 1 if ( $rHashRef->{parent} and $rHashRef->{parent} == 1 );
+      if ( $rHashRef->{minimal} and $rHashRef->{minimal} == 1 ) {
 
         #Harvest the information that we want!
         $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{level} };
       }
       $taxFSth->execute( $rHashRef->{parent} );
       $rHashRef = $taxFSth->fetchrow_hashref;
+
     }
 
     my $previousNode;
     for ( my $i = 0 ; $i <= $#expectedLevels ; $i++ ) {
       my $node;
 
-#Become the same name as the parent if this taxonomic level is unknown. Everything should have a superkingdom.
+      #Become the same name as the parent if this taxonomic level is unknown. Everything should have a superkingdom.
       unless ( $thisBranch->{ $expectedLevels[$i] } ) {
-        die "Trying to assign an name to a superkingdom" unless ( $i > 0 );
+        die "Trying to assign a name to a superkingdom" unless ( $i > 0 );
         die "Trying to assign "
           . $expectedLevels[$i]
           . " name based on "
@@ -2187,11 +2288,13 @@ sub makeSpeciesJsonString {
           . " level\n"
           unless ( $thisBranch->{ $expectedLevels[ $i - 1 ] } );
         $thisBranch->{ $expectedLevels[$i] }->{node} =
-          $thisBranch->{ $expectedLevels[ $i - 1 ] }->{node};
+          '(No ' . $expectedLevels[$i] . ')';
+          # $thisBranch->{ $expectedLevels[ $i - 1 ] }->{node};
       }
       if ($previousNode) {
         foreach my $c ( @{ $previousNode->{children} } ) {
-          if ( $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
+          if ( $c->{node} and
+               $c->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} ) {
             $node = $c;
           }
         }
@@ -2205,7 +2308,8 @@ sub makeSpeciesJsonString {
 
         #Find it at the op of the tree?
         foreach my $skNode (@tree) {
-          if ( $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} )
+          if ( $skNode->{node} and
+               $skNode->{node} eq $thisBranch->{ $expectedLevels[$i] }->{node} )
           {
             $node = $skNode;
           }
@@ -2219,8 +2323,7 @@ sub makeSpeciesJsonString {
           push( @tree, $node );
         }
       }
-      $node->{id} = $unique;
-      $unique++;
+      $node->{id} = $unique++;
       $node->{numSequences}++;
       $node->{numSpecies} += $speciesCounter;
       $node->{numDomains} += $rRef->[6];
@@ -2230,6 +2333,7 @@ sub makeSpeciesJsonString {
     push( @{ $previousNode->{sequences} }, $thisBranch->{sequence} );
   }
 
+  # stats...
   my ( $totalSequence, $totalSpecies, $totalDomains );
   foreach my $skNode (@tree) {
     $totalSequence += $skNode->{numSequences};
@@ -2237,6 +2341,7 @@ sub makeSpeciesJsonString {
     $totalDomains  += $skNode->{numDomains};
   }
 
+  # make a root for the tree
   my $rootedTree = {
     id           => 0,
     node         => 'root',
@@ -2246,15 +2351,13 @@ sub makeSpeciesJsonString {
     children     => \@tree
   };
 
-  my $json_string = to_json($rootedTree);
+;
+
+  my $json_string = $json->encode( $rootedTree );
 
   $pfamDB->getSchema->resultset('PfamaSpeciesTree')
-    ->update_or_create(
-    {
-      auto_pfama  => $pfam->auto_pfama,
-      json_string => $json_string
-    }
-    );
+         ->update_or_create( { auto_pfama  => $auto_pfamA,
+                               json_string => $json_string } );
 
 }
 
