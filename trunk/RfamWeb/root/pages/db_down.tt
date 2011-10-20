@@ -34,7 +34,7 @@ sharedUri = c.uri_for( "/shared" );
       
       <a class="rfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
         <img alt="Pfam" 
-             id="pfamLogo" 
+             id="rfamLogo" 
              src="[% sharedUri %]/images/blank.gif" /></a>
 
       <div class="cleaner"><!-- empty --></div>
