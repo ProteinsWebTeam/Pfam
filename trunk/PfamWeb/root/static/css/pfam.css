@@ -43,10 +43,6 @@ body {
   padding: 0;
 }
 
-ul, dl, ol {
-  position: relative;
-}
-
 .ext {
   background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
