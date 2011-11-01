@@ -54,14 +54,21 @@ GetOptions(
   )
   or ( help() and die "Invalid option\n" );
 
+if($help){
+  help();
+  exit;  
+}
+
 unless($file or $acc or ($chunkSize and $chunk)){
   help();
   $log->warn(" No accession, accession file or range passed in\n");
+  exit;
 }
 
 if($file and $acc){
   help();
   $log->warn("Can not specify both accession AND file containing accessions.\n");
+  exit;
 }
 
 my @auto_pfamAs;
