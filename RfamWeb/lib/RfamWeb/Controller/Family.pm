@@ -278,7 +278,7 @@ sub image : Local {
     $c->log->debug( 'Family::image: failed to retrieve image from cache; going to DB' )
       if $c->debug;
 
-    my $rs = $c->model('SecondaryStructureImages')
+    my $rs = $c->model('RfamDB::SecondaryStructureImages')
                ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
                          type      => $image_type } );
 
@@ -641,12 +641,11 @@ sub get_wikipedia : Private {
                             { join     => [ 'wikitext' ],
                               prefetch => [ 'wikitext' ] } )
                   ->next;
-  # my $article = $articles->next;
   
   return unless ( $article and $article->wikitext );
 
   $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
-                  . $article->wikitext->title . '|' )
+                  . $article->title . '|' )
     if $c->debug;
 
   $c->stash->{article} = $article;
