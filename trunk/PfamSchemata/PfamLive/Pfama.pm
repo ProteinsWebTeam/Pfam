@@ -282,11 +282,6 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
-  "pfamb2pfama_prc_results",
-  "PfamLive::Pfamb2pfamaPrcResults",
-  { "foreign.auto_pfama" => "self.auto_pfama" },
-);
-__PACKAGE__->has_many(
   "proteome_regions",
   "PfamLive::ProteomeRegions",
   { "foreign.auto_pfama" => "self.auto_pfama" },
