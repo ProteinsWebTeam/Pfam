@@ -11,12 +11,13 @@ use Bio::Pfam::Config;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( @ignore, $endpoints_opt, $help, $add_to_clan, $remove_from_clan, $compete );
+my ( @ignore, $help, $compete, $no_sigP );
 
 &GetOptions(
   "i=s@"               => \@ignore,
   "help"               => \$help,
-  "compete"            => \$compete
+  "compete"            => \$compete,
+  "no_sigP"	       => \$no_sigP
 ) or die "Incorrect option passed in\n"; 
 
 my $family = shift;
@@ -73,10 +74,15 @@ my $overlaps =
   &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete );
   warn "$family: found $overlaps external overlaps\n";
 
-my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
-if(defined($signal_peptide_overlap) and exists($signal_peptide_overlap->{total}) and $signal_peptide_overlap->{total}>0) {
-  warn "$0: There are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
-  exit(1);
+unless($no_sigP) {
+  my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
+  if($signal_peptide_overlap->{total}>0) {
+    warn "$family: there are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
+    exit(1);
+  }
+  else {
+    warn "$family: found 0 signal peptide overlaps\n";
+  }
 }
 
 
@@ -100,17 +106,10 @@ Usage:
 
 Addional options:
 
-  -add_to_clan <clan_accession>       :Adds family to clan
-  -remove_from_clan <clan_accession>  :Removes family from clan
-  -i <family_name>                    :Ignore this family (-i can occur multiple times)
-  -e                                  :Find end points of extensions
+  -i <family_name>       :Ignore this family (-i can occur multiple times)
+  -compete               :Compete family before checking for overlaps
+  -no_sigP               :Do not check whether family overlaps with signal peptide
 
-
-  
-
-Example:
-
-    $0 AAA -remove_from_clan CL0023
 
 EOF
 
