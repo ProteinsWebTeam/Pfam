@@ -452,30 +452,26 @@ sub getNSEseed {
   carp("Did not find family information for $family") if $self->{'debug'};
 }
 
-# takes pfamA_acc and returns signal peptide regions from the other_reg table in the db
-# sorry for perpetuating bad code :(
-# author cb17
+
 sub getSignalPeptideRegion {
-    my ($self, $pfamAcc, $start, $end) = @_;
-    my %sig_p;
+    my ($self, $regions_hash) = @_;
     
     my $dbh = $self->getSchema->storage->dbh;
-    my $sth = $dbh->prepare(
-"select pfamseq_acc,pfamseq_id,seq_start,seq_end,type_id,source_id from other_reg o join pfamseq s on o.auto_pfamseq=s.auto_pfamseq where type_id=? and pfamseq_acc=?"
+    my $sth = $dbh->prepare("select seq_start, seq_end from other_reg o join pfamseq s on o.auto_pfamseq=s.auto_pfamseq where type_id=\"sig_p\" and pfamseq_acc=?"
   ) or confess $dbh->errstr;
-    $sth->execute("sig_p", $pfamAcc);
 
-    #my $overlap=0;
     my %overlap;
-    $overlap{overlap}=0;
-    foreach my $row ( @{ $sth->fetchall_arrayref} ) {
-        $overlap{id}    = $row->[0]; #id
-        $overlap{start} = $row->[2]; #start
-        $overlap{end}   = $row->[3]; #end
-        if($row->[3]>$start) {
-            $overlap{overlap}=1;
-        }
+    foreach my $pfamseq_acc (keys %$regions_hash) {
+      $sth->execute($pfamseq_acc);  
+      foreach my $row ( @{ $sth->fetchall_arrayref} ) {
+        my ($sigp_start, $sigp_end) = ($row->[0], $row->[1]);
+	if($sigp_end >= $regions_hash->{$pfamseq_acc}->{start}) {
+	  $overlap{$pfamseq_acc}="$sigp_start-$sigp_end";
+	  last;
+	}
+      }
     }
+ 
     return \%overlap;
 }
 
