@@ -786,7 +786,7 @@ sub sequenceChecker {
 =head2 family_overlaps_with_signal_peptide
 Usage       : &PfamQC::family_overlaps_with_signal_peptide("family_id", $famObj, $pfamDB)
 Function    : check if the seed and align contain signal peptides as determined by phobius
-Returns     : number of overlaps found
+Returns     : hash of overlaps found (keys in hash are seed, align, total)
 Args        : family_id, Bio::Pfam::Family::PfamA, Bio::Pfam::PfamLiveDBManager
 =cut
 
@@ -797,43 +797,54 @@ sub family_overlaps_with_signal_peptide {
     unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
         confess("$family: Did not get a family object passed in.....\n");
     }
-    my %checked;
-    my %overlaps; # number of overlaps seen
-    $overlaps{seed}=0;
-    $overlaps{align}=0;
-	open(my $LOG, ">$family/sig_p_overlap") or die "Can't open file sig_p_overlap for writing log.\n";
+ 
+    open(LOG, ">$family/sig_p_overlap") or die "Can't open file $family/sig_p_overlap for writing log.\n";
+
+    my (%seedRegions, %alignRegions, %count);
+    $count{seed} = $count{align} = 0;
+
     foreach my $seq ($famObj->SEED->each_seq) {
-        my $id = $seq->id;
-        my $start = $seq->start;
-        my $end = $seq->end;
-        #print "$id - $start \/ $end\n";
-        $checked{$id}=1;
-	    my %overlap = %{ $pfamDB->getSignalPeptideRegion($id, $start, $end) };
-        if($overlap{overlap}==1) {
-            print $LOG "Sequence $id\/$start-$end in SEED overlaps with signal peptide $overlap{start}-$overlap{end}\n";
-            $overlaps{seed}++;
-        }
+      if(exists($seedRegions{$seq->id})) {
+        if($seq->start < $seedRegions{$seq->id}{start}) { #Only store first region on the sequence
+          $seedRegions{$seq->id}{start}=$seq->start;
+          $seedRegions{$seq->id}{end}=$seq->end;
+         }
+      }
+      else {
+        $seedRegions{$seq->id}{start}=$seq->start;
+        $seedRegions{$seq->id}{end}=$seq->end;
+      }
+    }
+    my $overlap_hash = $pfamDB->getSignalPeptideRegion(\%seedRegions);
+ 
+    foreach my $pfamseq_acc (keys %{$overlap_hash}) {
+      print LOG "Sequence $pfamseq_acc/" . $seedRegions{$pfamseq_acc}{start} . "-". $seedRegions{$pfamseq_acc}{end} . " in SEED overlaps with signal peptide $overlap_hash->{$pfamseq_acc}\n";
+      $count{seed}++;
+    } 
+    
+  foreach my $seq ($famObj->ALIGN->each_seq) {
+      if(exists($alignRegions{$seq->id})) {
+        if($seq->start < $alignRegions{$seq->id}{start}) {
+          $alignRegions{$seq->id}{start}=$seq->start;
+          $alignRegions{$seq->id}{end}=$seq->end;
+         }
+      }
+      else {
+        $alignRegions{$seq->id}{start}=$seq->start;
+        $alignRegions{$seq->id}{end}=$seq->end;
+      }
     }
 
-    foreach my $seq ($famObj->ALIGN->each_seq) {
-        my $id = $seq->id;
-        my $start = $seq->start;
-        my $end = $seq->end;
-        if(!exists $checked{$id}) {
-            #print "$id - $start \/ $end\n";
-    
-	        my %overlap = %{ $pfamDB->getSignalPeptideRegion($id, $start, $end) };
-            if($overlap{overlap}==1) {
-                print $LOG "Sequence $id\/$start-$end in ALIGN overlaps with signal peptide $overlap{start}-$overlap{end}\n";
-                $overlaps{align}++;
-            }
-        }
-    }
-    
-    close($LOG) or warn "Can't close file $family/sig_p_overlap.\n";
-    $overlaps{total} = $overlaps{seed}+$overlaps{align};
-    #returns number of overlaps;
-    return \%overlaps;
+    $overlap_hash = $pfamDB->getSignalPeptideRegion(\%alignRegions);
+
+    foreach my $pfamseq_acc (keys %{$overlap_hash}) {
+      print LOG "Sequence $pfamseq_acc/" . $alignRegions{$pfamseq_acc}{start} . "-". $alignRegions{$pfamseq_acc}{end} . " in ALIGN overlaps with signal peptide $overlap_hash->{$pfamseq_acc}\n";
+      $count{align}++;
+    } 
+
+   $count{total}=$count{seed}+$count{align};
+
+    return \%count;
 }
 
 #-------------------------------------------------------------------------------
