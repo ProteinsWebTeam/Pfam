@@ -48,30 +48,21 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
-my $st_tax = $dbh->prepare("select species from taxonomy where ncbi_taxid = '$ncbi_tax'");
 
-$st_tax->execute or $logger->logdie("Couldn't select species from taxonomy where ncbi_taxid = '$ncbi_tax' "..$st_tax->errstr."\n");
+#Get species and auto_proteome number
+my $st_tax = $dbh->prepare("select species, auto_proteome from complete_proteomes where ncbi_taxid = '$ncbi_tax'");
 
-my $species = $st_tax->fetchrow;
+$st_tax->execute or $logger->logdie("Couldn't select species and auto_protoeme from complete_proteomes where ncbi_taxid = '$ncbi_tax' ".$st_tax->errstr."\n");
+ 
+my ($species, $auto_proteome) = $st_tax->fetchrow;
 
-unless($species) {
-    $logger->logdie("Couldn't find the ncbi taxid |$ncbi_tax| in the databasexs"); 
+unless($species and $auto_proteome) {
+    $logger->logdie("Couldn't find the ncbi taxid |$ncbi_tax| in the database"); 
 }
 
 $logger->info("Species name for NCBI taxid $ncbi_tax is '$species'");
 
 print SUMMARY "Species name for NCBI taxid $ncbi_tax is '$species'\n";
-
-
-#Get auto_proteome number
-my $st1 = $dbh->prepare("select auto_proteome from complete_proteomes where ncbi_taxid = '$ncbi_tax'");
-$st1->execute() or $logger->logdie("Couldn't select auto_proteome from complete_proteomes where ncbi_taxid = ncbi_tax " . $st1->errstr."\n");
-
-my $auto_proteome =  $st1->fetchrow;
-
-unless($auto_proteome) {
-    $logger->logdie("Couldn't find the auto_proteome for the ncbi taxid $ncbi_tax in the database");
-}
 
 
 #Find out which ones have a Pfam-A match
