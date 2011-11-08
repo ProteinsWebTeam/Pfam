@@ -53,6 +53,11 @@ body {
   padding-right: 16px;
 }
 
+.twitter {
+  background: url(/shared/images/twitter_newbird_blue_s.png) no-repeat center right;
+  padding-right: 18px;
+}
+
 a:link,
 a:visited,
 a:focus,
