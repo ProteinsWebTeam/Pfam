@@ -24,17 +24,18 @@
     <h3>Wellcome Trust Sanger Institute (UK)</h3>
   
     <ul>
-      <li>Alex Bateman - Co-ordinator of the Pfam, Merops and Rfam databases </li>
-      <li>Marco Punta - Pfam developer</li>
+      <li>Marco Punta - Pfam project leader</li>
       <li>Penny Coggill - Pfam database annotator</li>
       <li>Ruth Eberhardt - Pfam database annotator</li>
-      <li>John Tate - Web development</li>
+      <li>Jaina Mistry - Pfam developer</li>
+      <li>John Tate - Web developer</li>
+      <li>Alex Bateman - Faculty lead</li>
     </ul>
     
     <h3>Janelia Farm Research Center (USA)</h3>
   
     <ul>
-      <li>Rob Finn - Co-ordinator of Pfam-USA</li>
+      <li>Rob Finn - Pfam project leader</li>
       <li>Sean Eddy - founding developer and author of HMMER software</li>
     </ul>
     
@@ -75,7 +76,6 @@
       <li>Kevin Howe</li> 
       <li>Nicola Kerrison</li>
       <li>Mhairi Marshall</li>
-      <li>Jaina Mistry</li>
       <li>Nina Mian</li>
       <li>William Mifsud</li>
       <li>Simon Moxon</li>
