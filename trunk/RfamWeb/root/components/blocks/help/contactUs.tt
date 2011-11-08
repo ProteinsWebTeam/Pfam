@@ -36,12 +36,19 @@
       <a class="ext" href="http://xfam.wordpress.com/tag/rfam/">here</a>.
     </p>
 
-    <h2>RSS feeds</h2>
+    <h2><span class="feed">RSS feed</span></h2>
 
     <p>
       You can keep in touch with the latest goings by subscribing to the 
-      <a class="feed" href="http://xfam.wordpress.com/tag/rfam/feed/">
+      <a href="http://xfam.wordpress.com/tag/rfam/feed/">
         RSS feed</a> from the Xfam blog.
+    </p> 
+
+    <h2><span class="twitter">Twitter</span></h2>
+
+    <p>
+      You can <a class="ext" href="http://www.twitter.com/Xfam_WTSI">follow</a>
+      the Xfam team at the Sanger Institute.
     </p> 
  
     <h2>Mailing list</h2>
