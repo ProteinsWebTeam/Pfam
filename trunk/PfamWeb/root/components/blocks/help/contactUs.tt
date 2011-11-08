@@ -58,14 +58,23 @@
       <a href="http://xfam.wordpress.com/tag/pfam/" class="ext">here</a>.
     </p>
 
-    <h3>RSS feeds</h3>
+    <h3><span class="feed">RSS feed</span></h3>
 
     <p>
       You can keep in touch with the latest goings on by subscribing to the 
-      <a href="http://xfam.wordpress.com/tag/pfam/feed/" class="feed">RSS feed</a> 
+      <a href="http://xfam.wordpress.com/tag/pfam/feed/">RSS feed</a> 
       from the Xfam blog.
     </p>
             
+    [% IF c.config.site == "wtsi" -%]
+    <h3><span class="twitter">Twitter</span></h3>
+
+    <p>
+      You can <a class="ext" href="http://www.twitter.com/Xfam_WTSI">follow</a> 
+      the Xfam team at the Sanger Institute.
+    </p>
+    [% END -%]
+
   </div>
 </div>
 [%#
