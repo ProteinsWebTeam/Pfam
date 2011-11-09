@@ -378,7 +378,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  [%# uncomment to add an advance warning of maintenance downtime %]
+  [%# uncomment to add an advance warning of maintenance downtime
   <hr />
 
   <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#F0E8E6;border:1px solid #621700;padding:1em">
@@ -404,8 +404,17 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       We apologise for any inconvenience.
     </p>
   </div>
-  [%# end of maintenance message %]
+  # end of maintenance message %]
 
+  <div id="posts" class="announcements" style="display: none">
+    <hr />
+    <span onclick="hideThis('posts');" 
+          class="closer"
+          style="float: right; cursor: pointer">Hide this</span>
+    <h2>Recent Rfam <a class="ext" href="http://xfam.wordpress.com/tag/rfam/">
+      blog</a> posts</h2>
+  </div>
+  
   <hr />
 
   <div id="newFeatures" style="display: none">
@@ -445,6 +454,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   </div>
 
   <div class="cleaner"><!-- empty --></div>
+
+  <div id="restore" class="announcements" style="display: none">
+    <hr />
+    <p>
+      You have hidden the blog posts section. You can restore it  
+      <span class="link" id="restoreLink">here</span>. 
+    </p>
+  
+  </div>
 
   <hr />
   
@@ -509,6 +527,61 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   var exTx     = "plasmodium";
   var exSeq    = "AGUUACGGCCAUACCUCAGAGAAUAUACCGUAUCCCGUUCGAUCUGCGAAGUUAAGCUCU\n\
 GAAGGGCGUCGUCAGUACUAUAGUGGGUGACCAUAUGGGAAUACGACGUGCUGUAGCUU";
+
+  // hide the announcements or new features list when the user clicks the 
+  // "hide this" button
+  var hideThis = function( id ) {
+    $(id).hide();
+
+    // tell urchin that we've hidden the blog
+    try {
+      urchinTracker( "/index/hidBlog" );
+    } catch( e ) {}
+
+    var d = new Date();
+    var t = Math.round( d.getTime() / 1000 );
+    createCookie( 'hide_' + id, t, '365' ); 
+    $("restore").show();
+  };
+  
+  $("restoreLink").observe( "click", function() {
+    ['announcements','website_changes','posts'].each( function( type ) {
+      var cookieValue = readCookie( "hide_" + type );
+      if ( cookieValue != null ) {
+
+        // tell urchin that we've shown the blog
+        try {
+          urchinTracker( "/index/shownBlog" );
+        } catch( e ) {}
+
+
+        eraseCookie( "hide_" + type );
+        window.location = "[% c.uri_for('/') %]";
+      }
+    } );
+  } );
+  
+  // load the latest blog posts
+  document.observe( "dom:loaded", function() {
+    var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
+      { 
+        method:     'get',
+        parameters: { type: "posts" },
+        on204:      function( oResponse ) {
+          $("restore").show();
+        },
+        // for the benefit of IE, we need to check for an out-and-out
+        // failure, as well 204 status
+        onFailure:  function( oResponse ) {
+          $("restore").show();
+        },
+        onSuccess:  function( oResponse ) {
+          $("posts").insert( oResponse.responseText );
+          $("posts").show();
+        }
+      }
+    );
+  } );
 
   // ]]>
 </script>
