@@ -519,7 +519,7 @@ body.tool {
   color: #621700;
 }
 
-a.closer {
+.closer {
   background: url(/static/images/close.gif) no-repeat left;
   padding-left: 11px;
   margin: 0.2em;

@@ -75,6 +75,11 @@
   text-decoration: none ! important;
 }
 
+#restore {
+  font-size: x-small;
+  text-align: center;
+}
+
 /* ---------------------------------------- */
 /* mirrors */
 
