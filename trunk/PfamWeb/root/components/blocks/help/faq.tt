@@ -166,7 +166,7 @@
       use:
     </p>
     <ol>
-      <li>profile comparisons such as PRC or HHsearch</li>
+      <li>profile comparisons such as HHsearch</li>
       <li>the fact that a sequence significantly matches two HMMs in the same 
         region of the sequence</li>
       <li>a method called SCOOP, that looks for common matches in search results 
