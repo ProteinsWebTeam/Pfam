@@ -60,21 +60,19 @@ my $schema = WebUser->connect(
 
 # $schema->storage()->debug( 1 );
 
-#-------------------------------------------------------------------------------
-
-# retrieve the mapping(s)
-
 # get the URL for the CGI script that distributes the mapping
 my $mapping_url = $config{mapping_url};
 
-# get a user agent and actually retrieve the mapping(s)
+#-------------------------------------------------------------------------------
+
+# get a user agent and retrieve the mapping(s)
 my $ua = LWP::UserAgent->new;
 $ua->env_proxy;
 
 # the configuration will specify whether to retrieve just Pfam, just Rfam or
 # both sets of mappings. This is for the benefit of mirrors, which may be 
 # running just one of the sites, rather than both.
-my $mapping = {};
+my $new_mapping = {};
 foreach my $db ( keys( %{$config{mappings}} ) ) {
 
   my $response = $ua->post( $mapping_url, { db => $db } );
@@ -90,38 +88,28 @@ foreach my $db ( keys( %{$config{mappings}} ) ) {
   $log->info( 'retrieved ' . scalar( keys %$db_mapping ) 
               . " article-to-entry rows for db $db" );
 
-  # merge the mapping from this database into the global one
-  $mapping->{$_} = $db_mapping->{$_} for keys %$db_mapping;
-}
+  foreach my $acc ( keys %$db_mapping ) {
+    
+    # clear out the old mapping
+    my $rv = $schema->resultset('ArticleMapping')
+                    ->search( { accession => $acc }, { } )
+                    ->delete;
 
-$log->info( 'got ' . scalar( keys %$mapping ) . ' accessions in final mapping' );
+    $log->logwarn( "warning: failed to delete old mapping for '$acc'" )
+      unless $rv > 0;
+
+    # and add the new one
+    foreach my $title ( @{ $db_mapping->{$acc} } ) {
+      $schema->resultset('ArticleMapping')
+             ->create( { accession => $acc,
+                         title     => $title },
+                       { key => 'primary' } )
+        or $log->logwarn( "warning: failed to insert new mapping row for '$acc'" );
+    }
+  }
+}
 
 #-------------------------------------------------------------------------------
 
-foreach my $acc ( sort keys %$mapping ) {
-
-  $log->debug( "looking for |$acc|..." );
-
-  my $rows = $schema->resultset('ArticleMapping')
-                    ->search( { accession => $acc }, {} );
-
-  $log->debug( '  found ' . $rows->count . ' rows in old mapping' );
-  $log->debug( '  found ' . scalar @{ $mapping->{$acc} } . ' rows in new mapping' );
-
-  # if new mapping has multiple titles for a single accession, we need to
-  # delete the old mapping and create it afresh, otherwise we could end up with
-  # a stale article mapped to a family
-  if ( scalar @{ $mapping->{$acc} } > 1 ) {
-    $rows->delete;
-    $rows->create( { accession => $acc,
-                     title     => $_ },
-                   { key => 'primary' } ) for @{ $mapping->{$acc} };
-  }
-  # if there's just a single old and new mapping, we can just update
-  else {
-    $rows->update_or_create( { accession => $acc,
-                               title     => $mapping->{$acc}->[0] },
-                             { key => 'primary' } );
-  }
-}
+$log->info( 'done' );
 
