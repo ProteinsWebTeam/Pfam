@@ -24,7 +24,7 @@
     <h3>Wellcome Trust Sanger Institute (UK)</h3>
   
     <ul>
-      <li>Marco Punta - Pfam project leader</li>
+      <li><strong>Marco Punta - Pfam project leader</strong></li>
       <li>Penny Coggill - Pfam database annotator</li>
       <li>Ruth Eberhardt - Pfam database annotator</li>
       <li>Jaina Mistry - Pfam developer</li>
@@ -32,30 +32,40 @@
       <li>Alex Bateman - Faculty lead</li>
     </ul>
     
-    <h3>Janelia Farm Research Center (USA)</h3>
+    <h3>Janelia Farm Research Campus (USA)</h3>
   
     <ul>
-      <li>Rob Finn - Pfam project leader</li>
-      <li>Sean Eddy - founding developer and author of HMMER software</li>
+      <li><strong>Rob Finn - Pfam project leader</strong></li>
+      <li>Jody Clements - Web developer</li>
+      <li>Sean Eddy - Founding developer and author of HMMER software</li>
     </ul>
     
     <h3>Stockholm Bioinformatics Center (Sweden)</h3>
   
     <ul>
-      <li>Erik Sonnhammer - Co-ordinator of Pfam-Sweden and founding developer</li>
       <li>Kristoffer Forslund - Pfam developer</li>
+      <li>Erik Sonnhammer - Coordinator of Pfam-Sweden and founding developer</li>
     </ul>
     
-    <h3>Mirror Sites</h3>
-
-    [% PROCESS "components/mirrors.tt" %]  
-  
     <h3>External contributors</h3>
 
     <p>
       Pfam includes families that have been built by external contributors:
     </p>
+
+    <h4>NCBI</h4>
     <ul>
+      <li>Lakshminarayan Iyer</li>
+      <li>L. Aravind</li>
+      <li>Zhang Dapeng</li>
+      <li>Robson De Souza</li>
+      <li>Vivek Anantharaman</li>
+    </ul>
+
+    <h4>Sanford-Burnham Medical Research Institute</h4>
+    <ul>
+      <li>Adam Godizk</li>
+      <li>Lukasz Jaroszewski</li>
       <li>Kyle Ellrott</li>
     </ul>
 
@@ -95,6 +105,14 @@
       You can email Pfam using the address found at the bottom of the page.
     </p>
     
+    <h3>Mirror Sites</h3>
+
+    <p>
+      The Pfam website is available from several mirrors around the world:
+    </p>
+
+    [% PROCESS "components/mirrors.tt" %]  
+  
   </div>
 </div>
 [%#
