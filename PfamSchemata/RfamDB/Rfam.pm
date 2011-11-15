@@ -220,6 +220,18 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3ApIXss5kX4PoGzi5seYUg
 
+__PACKAGE__->belongs_to(
+  'article',
+  'RfamDB::Wikitext',
+  { 'foreign.auto_wiki' => 'self.auto_wiki' }
+);
+
+__PACKAGE__->belongs_to(
+  'from_dead',
+  'RfamDB::DeadFamilies',
+  { 'foreign.forward_to' => 'self.rfam_acc' }
+);
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
