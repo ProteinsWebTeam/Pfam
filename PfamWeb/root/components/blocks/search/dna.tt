@@ -49,6 +49,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         address that you enter is correct, as no checking is performed before 
         the search is run.
       </p>
+      <p class="small">
+        <strong>Note</strong> that we search DNA sequences for Pfam-A matches
+        only. We do not look for Pfam-B matches using this tool. If you would 
+        like to find Pfam-B families that match your DNA sequence, please 
+        perform the translation and use our interactive protein sequence search
+        tool instead.
+      </p>
       <hr />
     </div>
 
