@@ -309,4 +309,10 @@ __PACKAGE__->many_to_many(
  
 __PACKAGE__->set_primary_key("auto_pfama", "pfama_id", "pfama_acc");
 
+__PACKAGE__->belongs_to(
+  'from_dead',
+  'PfamLive::DeadFamilies',
+  { 'foreign.forward_to' => 'self.pfamA_acc' }
+);
+
 1;
