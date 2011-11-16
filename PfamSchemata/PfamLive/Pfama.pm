@@ -291,12 +291,6 @@ __PACKAGE__->has_many(
   "PfamLive::ReleasedPfamVersion",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
-
-
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-06-18 14:37:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UpiKz8q9yWBQ7jiXbGUqFA
-
-
 __PACKAGE__->has_many(
   "_active_site_alignments",
   "PfamLive::ActiveSiteAlignments",
