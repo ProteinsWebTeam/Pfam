@@ -11,10 +11,23 @@
 
 PROCESS "components/require.tt";
 
-# YUI stuff - this is for the tree viewer
-sharedRequirements.css.push( "tree.css" );
-sharedRequirements.js.push( "yui/TaskNode.js" );
-sharedRequirements.js.push( "treeTweak.js" );
+sharedRequirements.js.push( "tree_factory.js" ); # handles tree data
+
+sharedRequirements.js.push( "sunburst.js" );     # sunburst tree
+sharedRequirements.css.push( "sunburst.css" );
+
+sharedRequirements.css.push( "tree.css" );       # YUI tree 
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js" );
+requirements.js.push( "faces/optimer-bold-normal.js" );
 
 #-------------------------------------------------------------------------------
 %]
@@ -27,13 +40,80 @@ sharedRequirements.js.push( "treeTweak.js" );
   </div>
   <div class="blockContent">
 
-    [% PROCESS components/speciesTreeTab.tt %]
-    
+    <div id="speciesTreeTabs" class="nestedTabs yui-navset">
+
+      <ul id="speciesTreeTabsNav" class="yui-nav">
+        <li class="selected"><a href="#sunburstTreeTab">Sunburst</a></li>
+        <li><a href="#yuiTreeTab">Tree</a></li> 
+      </ul>
+      
+      <div class="yui-content">
+  
+        <!-- start of sunburst tab -->
+
+        <div id="sunburstTreeTab"> 
+
+          [% PROCESS components/sunburstTreeTab.tt %]
+
+        </div>
+
+        <!-- end of sunburst tab -->
+
+        <!-- start of yui-tree tab -->
+
+        <div id="yuiTreeTab">
+
+          [% PROCESS components/speciesTreeTab.tt %]
+
+        </div>
+
+        <!-- end of yui-tree tab -->
+
+      </div> [%# end of "yui-content" %]
+      
+    </div> [%# end of "speciesTreeTabs" %]
+
   </div>
 
   <script type="text/javascript">
     // <![CDATA[
 
+    var treeData = [% pfam.pfamb_species_trees.json_string || "{}" %],
+        YUITreeLoaded = false,
+        speciesTreeTabView,
+        sunburst,
+        slider;
+
+    [%-# set up the "Show/Hide" buttons in the tool panels %]
+    document.observe("dom:loaded", function() {
+
+      // set up the tree tabs
+      speciesTreeTabView = new YAHOO.widget.TabView("speciesTreeTabs");
+
+      // add a listener for the tab change, so that we can load the YUI species
+      // tree on-demand
+      speciesTreeTabView.addListener( "activeTabChange", function() {
+        if ( YUITreeLoaded ) {
+          return;
+        }
+
+        var r = new Ajax.Request(
+          stUri,
+          {
+            method:     "get",
+            parameters: { acc: "[% acc %]",
+                          ie:  Prototype.Browser.IE },
+            onSuccess:  stSuccess,
+            onFailure:  stFailure
+          }
+        );
+
+        YUITreeLoaded = true;
+      } );
+
+    } ); [%# end of "document.observe..." %]
+
+    /*
     document.observe("dom:loaded", function() {
 
       var r = new Ajax.Request(
@@ -48,6 +128,7 @@ sharedRequirements.js.push( "treeTweak.js" );
       );
 
     } );
+    */
 
     // ]]>
   </script>
