@@ -17,20 +17,6 @@ requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
 
-# this needs to be loaded before we try to load the canvas text library,
-# but if we include it specifically for IE, it gets added below everything
-# else. We can add it here safely, however, because excanvas checks to see
-# if canvas is implemented before trying to inject itself
-requirements.js.push( "excanvas.js" );
-
-# need to load the canvas.text.js file before trying to load the font file, 
-# otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
-
-requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "domain_graphics_loader.js" );
-
 #-------------------------------------------------------------------------------
 
 # ADDA seems not to understand its own accessions... tweak the ADDA ID to remove
