@@ -135,6 +135,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 65535,
   },
+  "number_shuffled_hits",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_pfama");
 __PACKAGE__->add_unique_constraint("pfamA_id", ["pfama_id"]);
@@ -210,6 +212,16 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
+  "pfama2pfama_hhsearch_results_auto_pfama2s",
+  "PfamLive::Pfama2pfamaHhsearchResults",
+  { "foreign.auto_pfama2" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama2pfama_hhsearch_results_auto_pfama1s",
+  "PfamLive::Pfama2pfamaHhsearchResults",
+  { "foreign.auto_pfama1" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
   "pfama_hmms",
   "PfamDB::PfamaHmm",
   { "foreign.auto_pfama" => "self.auto_pfama" },
@@ -255,8 +267,18 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
-  "pfamb2pfama_prc_results",
-  "PfamDB::Pfamb2pfamaPrcResults",
+  "pfama_species_trees",
+  "PfamDB::PfamaSpeciesTree",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama_tax_depths",
+  "PfamLive::PfamaTaxDepth",
+  { "foreign.auto_pfama" => "self.auto_pfama" },
+);
+__PACKAGE__->has_many(
+  "pfama_wikis",
+  "PfamLive::PfamaWiki",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
@@ -269,40 +291,24 @@ __PACKAGE__->has_many(
   "PfamDB::ReleasedPfamVersion",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
-
-
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-07-31 09:38:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uT+dnI2MZxeqB85YSEfIOg
-
-
 __PACKAGE__->has_many(
   "_active_site_alignments",
   "PfamDB::ActiveSiteAlignments",
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 
+# not sure why we need this; it's a duplicate of "interpros" above
 __PACKAGE__->might_have(
   'interpro' => 'PfamDB::Interpro',
   { 'foreign.auto_pfama' => 'self.auto_pfama' }
 );
 
-__PACKAGE__->has_one(
-  "pfama_hmms",
-  "PfamDB::PfamaHmm",
-  { "foreign.auto_pfama" => "self.auto_pfama" },
+__PACKAGE__->might_have(
+  "member",
+  "PfamDB::ClanMembership",
+  'auto_pfama',
+  { join_type => 'left' }
+  # { "foreign.auto_pfama" => "self.auto_pfama" },
 );
-
-__PACKAGE__->has_many(
-   "pfama_wikis",
-   "PfamDB::PfamaWiki",
-   { "foreign.auto_pfama" => "self.auto_pfama" },
- );
-
-__PACKAGE__->has_many(
-  "pfama_species_trees",
-  "PfamDB::PfamaSpeciesTree",
-  { "foreign.auto_pfama" => "self.auto_pfama" },
-);
-
 
 1;
