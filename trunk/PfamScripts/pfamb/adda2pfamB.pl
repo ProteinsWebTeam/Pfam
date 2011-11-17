@@ -148,25 +148,8 @@ my $actualJobs = makeAccList($addaData, $totSeq, $noJobs, $tmpDir);
 $addaData = undef;
 $totSeq = undef;
 
-#$logger->debug("Rsyncing acclist to farm");
-##Rsync the acc files on t¤o the farm
-##Set up an objec that can perform rsync copying
-#my $rsyncObj = File::Rsync->new( { archive      => 1, 
-#                                   compress     => 1,
-#                                   recursive    => 1, 
-#                                   rsh          => '/usr/bin/ssh', 
-#                                   'rsync-path' => '/usr/bin/rsync' } );
-# 
-#for(my $i = 1; $i <= $actualJobs; $i++){                                   
-#	$rsyncObj->exec( { src => "ADDA_acclist.$i", dest => $farmNode.":".$tmpDir } );
-#	if($rsyncObj->err){
-#		$logger->warn("Failed to rsync ADDA_acclist.$i acc files to the farm,".
-#	                 "because [".join("", @{$rsyncObj->err})."]");
-#	}
-#}
-#Submit the jobs to the farm
+#Submit to the farm
 my $fh = IO::File->new();
-#print "bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.log  -Jadda2pfam\"[1-$actualJobs]\"";
 
 $fh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.\%I.log  -Jadda2pfam\"[1-$actualJobs]%70\"");
 #$fh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/adda2pfam.\%J.\%I.log  -Jadda2pfam\"[1]\"");
@@ -175,8 +158,6 @@ $fh->print( "make-pfamB-fromAdda.pl -accfile ADDA_acclist.\$\{LSB_JOBINDEX\}\n")
 $fh->print( "rm -fr ".$tmpDir."/\$\{LSB_JOBINDEX\}\n");
 $fh->close;
 
-exit;
-#TODO - put correct executable strings into bsub!
 my $assginAccfh = IO::File->new();
 $assginAccfh->open( "| bsub -q $queue  ".$resource." -o ".$tmpDir."/assignAcc.log  -w\'done(adda2pfam)\'");
 $assginAccfh->print( "assignPfamBAcc.pl rdb connect params etc \n" );
