@@ -29,15 +29,15 @@ unless($file and -s $file and $old_rel and $new_rel) {
 print STDERR "Parsing $file...";
 my $dead;
 my %old;
-open(FH, $file) or die "Couldn't open $file $!";
+open(FH, "gunzip -c $file |") or die "Couldn't open $file $!";
 while(<FH>) {
-    if(/^FI\s+(PF\d\d\d\d\d)\S+\s+(\S+)\s+(\S+)/) {
-	if($3 eq "DEAD") {              
-            $dead .= sprintf("%2s  %-11s  %-17s  %-30s \n", "FI", $1, $2, "DEAD");
-	}
-	else {
+    if(/^FI\s+(PF\d{5})\S{0,4}\s+(\S+)\s+(\S+)/) {
+	    if($3 eq "DEAD") {              
+      $dead .= sprintf("%2s  %-11s  %-17s  %-30s \n", "FI", $1, $2, "DEAD");
+	  }
+	  else {
 	    $old{$1}=$2;
-	}
+	  }
     }
     elsif(/^NR/) {
 	print "NR  Rel$old_rel" . "_0\n";
@@ -128,7 +128,7 @@ foreach my $pfamA (keys %old) {
 }
 print STDERR "done\n";
 
-
+exit;
 
 print STDERR "Deleting old data from released_pfam_version...";
 my $dbh = $pfamDB->getSchema->storage->dbh;
