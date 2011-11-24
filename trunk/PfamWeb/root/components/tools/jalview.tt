@@ -12,54 +12,47 @@ META naked = 1;
 
 pageContent = BLOCK;
 
-title = "jalview"
+title = "Jalview: $alnType alignment for $acc";
 
 alignmentURI = "";
 IF entryType == "B";
   alignmentURI = c.uri_for( '/pfamb/alignment/format' );
 ELSE;
-  alignmentURI = c.uri_for( "/family/alignment/download/format", { acc = acc, format = "fasta", alnType = alnType } ) ;
+  alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType/format" );
 END;
 -%]
 
-<h1>jalview: alignment<em> for [% acc %]</em></h1>
+<h1>
+  View [% alnType %] alignment for <em>[% acc %]</em> using <a class="ext" href="http://www.jalview.org/">Jalview</a>
+</h1>
+
+<div class="jalview">
+  <applet code="jalview.bin.JalviewLite" 
+          width="780" 
+          height="550"
+          archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+    <param name="file" value="[% alignmentURI | html %]" />
+    <param name="defaultColour" value="Clustal" />
+    <param name="linkLabel_1" value="UniProt" />
+    <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
+    <param name="linkLabel_2" value="Pfam sequence page" />
+    <param name="linkUrl_2" value="[% c.uri_for( '/protein/$SEQUENCE_ID$' ) %]" />
+    <param name="database" value="pfamseq" />
+    <param name="embedded" value="true" /> 
+    <param name="nojmol" value="true" />
+  </applet>
+</div>
 
 <p>
-  You can use <a class="ext" href="http://www.jalview.org/">JalView</a> in two ways:
+  You can also 
+  <strong><a href="http://www.jalview.org/services/launchApp?colour=Taylor&amp;open=[% alignmentURI | uri %]">
+    start Jalview</a></strong> via 
+  <a class="ext" href="http://en.wikipedia.org/wiki/Java_Web_Start">Java Web Start</a>
 </p>
-<ul>
-  <li>as a <a class="ext" href="http://en.wikipedia.org/wiki/Java_Applet">Java applet</a></li>
-  <li>via <a class="ext" href="http://en.wikipedia.org/wiki/Java_Web_Start">Java Web Start</a></li>
-</ul>
 <p>
-  Both versions of JalView will enable you to view the sequence alignment interactively,
+  Both versions of Jalview will enable you to view the sequence alignment interactively,
   but the Web Start application offers slightly more functionality.
 </p>
-
-<h2>Applet</h2>
-
-<applet code="jalview.bin.JalviewLite" 
-        width="140" 
-        height="35" 
-        archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
-  <param name="file" value="[% alignmentURI | html %]" />
-  <param name="defaultColour" value="Taylor" />
-  <param name="RGB"  value="#FFFFCC" />
-  <param name="linkLabel_2" value="Uniprot" />
-  <param name="linkUrl_2" value="[% c.uri_for( "/protein", { acc = acc } ) %]" />
-  <param name="mailServer" value="www.sanger.ac.uk" />
-  <param name="srsServer" value="www.sanger.ac.uk/srs5bin/cgi-bin/" />
-  <param name="database" value="pfamseq" />
-</applet>
-
-<h2>Web Start</h2>
-
-<p>
-  <a href="http://www.jalview.org/services/launchApp?colour=Taylor&amp;open=[% alignmentURI | uri %]">Start Jalview</a>
-  using Web Start
-</p>
-
-<br />
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
 
@@ -67,7 +60,7 @@ END;
 
 PROCESS components/tools/toolWindow.tt %]
 [%#
-Copyright (c) 2007: Genome Research Ltd.
+Copyright (c) 2011: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
