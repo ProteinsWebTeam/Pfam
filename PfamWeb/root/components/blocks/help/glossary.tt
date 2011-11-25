@@ -97,8 +97,8 @@
     <h3><a name="hmmer">HMMER</a></h3>
     
     <p>
-      The suite of programs that Pfam uses to build and search HMMs. For Pfam
-      release 24.0 we have used HMMER version 3 to make Pfam. See the 
+      The suite of programs that Pfam uses to build and search HMMs. Since Pfam
+      release 24.0 we have used HMMER version 3 to make Pfam. See the
       <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site for more
       information.
     </p>
