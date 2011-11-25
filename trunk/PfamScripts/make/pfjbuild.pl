@@ -194,7 +194,15 @@ sub main {
     
     #Check for overlaps....
     unless ( $noOverlap and -s "JALIGN" ) {
-      checkOverlap($pfamDB);
+      checkOverlap($pfamDB, "JALIGN");
+    }
+    #Check for overlaps in checkpoint alignments
+    if($check and !$noOverlap) {
+      for(my $i=1; $i<=$noIts; $i++) {
+	my $aln_file = "$check-$i.sto";
+	next unless(-s $aln_file);
+	checkOverlap($pfamDB, $aln_file);
+      }
     }
 
     #Write PFAMOUT style file
@@ -211,6 +219,25 @@ sub main {
     }
     close JALIGN;
     close ALIGN;
+
+    #Make pseudo ALIGN files for checkpoint alignments
+    if($check) {
+      for(my $i=1; $i<=$noIts; $i++) {
+	my $a = "$check-$i";
+	my $aln_file = "$a.sto";
+	next unless(-s $aln_file);
+	open(ALN, $aln_file) or die "Couldn't open $aln_file, $!";
+	open(A, ">$a.align") or die "Couldn't open file '$a.align' for writing $!";
+	
+	while(<ALN>) {
+	  next if(/^\#/ or /^\s*$/ or m|//|);
+	  print A $_;
+	}
+	close ALIGN;
+	close A;
+      }
+    }
+
 
     unless($check) {
 	unlink glob("$c*");
@@ -230,8 +257,9 @@ sub main {
 }
 
 sub checkOverlap {
-  my ($pfamDB) = @_;
-  open( A, "JALIGN" )  or die "Could not open JALIGN:[$!]\n";
+  my ($pfamDB, $aln) = @_;
+
+  open( A, $aln )  or die "Could not open $aln:[$!]\n";
   open( T, ">$$.tmp" ) or die;
   while (<A>) {
     if ( $_ !~ /^#/ and $_ =~ /\S+/ ) {
@@ -267,7 +295,19 @@ sub checkOverlap {
 
   #Now print out any overlaps that should not be ignored
   my $LOG;
-  open( $LOG, ">overlap" ) or die "Can't open overlap file\n";
+  my $overlap_file;
+  if($aln eq "JALIGN") {
+    $overlap_file = "overlap";
+  }
+  else {
+    if($aln =~ /(\S+)\.sto/) {
+      $overlap_file = "$1.overlap";
+    }
+    else {
+      $overlap_file = "$aln.overlap";
+    }
+  }
+  open( $LOG, ">$overlap_file" ) or die "Can't open overlap file $overlap_file, $!\n";
 
   foreach my $seqAcc ( keys %overlaps ) {
     foreach
@@ -370,6 +410,7 @@ sub farmJackhmmer {
 #Build up the command we want to run.  We want to run this same script, but with the local option.
 
   my $cmd = "pfjbuild.pl";
+ 
 
   if ( $$optCmdsRef{'--incT'} ) {
     $cmd .= " -T " . $$optCmdsRef{'--incT'};
