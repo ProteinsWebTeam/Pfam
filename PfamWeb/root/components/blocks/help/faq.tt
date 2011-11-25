@@ -103,8 +103,8 @@
       are related by using other methods, such as BLAST.
     </p>
     <p>
-      In Pfam 24.0, we have built HMMs for the first (and largest) 20,000 Pfam-B
-      families. Using the Pfam website, users are able to perform a
+      Since Pfam 24.0, we have built HMMs for the first (and largest) 20,000
+      Pfam-B families. Using the Pfam website, users are able to perform a
       single-sequence or batch search against both the Pfam-A and Pfam-B HMMs. 
     </p>
     <p>
@@ -135,7 +135,8 @@
       <li>the alignments for the family in various formats, including alignments of
         matches to the NCBI and metagenomic sets, as well as in 'heat-map' format.
         All alignments can be downloaded</li>
-      <li>the phylogenetic and species distribution trees, the latter being interactive</li>
+      <li>the phylogenetic and species distribution trees, either as a traditional,
+        interactive tree or as a &quot;sunburst&quot; plot</li>
       <li>the HMM logo</li>
       <li>the structural information for each family where available</li>
     </ul> 
@@ -337,9 +338,10 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
     <h3><a name="sssa">What do the SS lines in the alignment mean ?</a></h3>
   
     <p>
-      These lines are structural information. The SS stands for
-      secondary structure, and this is taken from DSSP. The following list
-      gives the definitions for each code letter:
+      These lines are structural information. The SS stands for secondary
+      structure, and this is taken from 
+      <a class="ext" href="http://swift.cmbi.ru.nl/gv/dssp/">DSSP</a>. 
+      The following list gives the definitions for each code letter:
     </p>
   
     <dl>
@@ -383,7 +385,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
       conserved regions. Examples include:
     </p>
     <dl>
-      <dt><a class="ext" href="http://www.isrec.isb-sib.ch/software/PFSCAN_form.html">
+      <dt><a class="ext" href="http://prosite.expasy.org/">
         PROSITE</a></dt>
       <dd>This originally was based around regular expression patterns
       but now also includes profiles.</dd>
@@ -391,8 +393,6 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
           PRINTS</a></dt>
       <dd>This is based around protein &quot;finger-prints&quot; of a series of
       small conserved motifs making up a domain.</dd>
-      <dt><a class="ext" href="http://www.blocks.fhcrc.org/">BLOCKS</a></dt>
-      <dd>This is based around automatic ungapped alignments.</dd>
       <dt><a class="ext" href="http://smart.embl-heidelberg.de/">SMART</a></dt>
       <dd>This is a database concentrating on extracellular modules
       and signaling domains.</dd>
