@@ -771,7 +771,7 @@ sub get_families_for_term : Private {
   # see if we can retrieve the families for this species from cache
   my $cacheKey = 'familiesForTerm' . $term;
   $cacheKey =~ s/[\W\s]/_/g;  
-  $c->log->debug( "Search::Taxonomy::getFamilies: cacheKey: |$cacheKey|" )
+  $c->log->debug( "Search::Taxonomy::get_families_for_term: cacheKey: |$cacheKey|" )
     if $c->debug;
   my $res = $c->cache->get( $cacheKey );
   
@@ -802,14 +802,14 @@ sub get_families_for_term : Private {
                          { prefetch => { 'ncbi_taxid' => 'taxonomies' } }
                        );
   
-    $c->log->debug( 'Search::Taxonomy::get_families_for_species: found |'
+    $c->log->debug( 'Search::Taxonomy::get_families_for_term: found |'
                     . scalar @rs . '| rows for tax query' )
       if $c->debug;
 
     # map the Pfam-A accession to a hash with other information for the family
     my %res = map{ $_->pfama_acc => $familyInfo->{$_->pfama_acc} } @rs;
 
-    $c->log->debug( 'Search::Taxonomy::get_families_for_species: found |'
+    $c->log->debug( 'Search::Taxonomy::get_families_for_term: found |'
                     . scalar( keys %res ) . '| families' )
       if $c->debug;
       
