@@ -33,12 +33,12 @@ oe = 0;
     <p>
       This section gives details of the Pfam domains that are found on 
       the completed proteome of
-      <a href="http://www.ebi.ac.uk/integr8/QuickSearch.do?action=doOrgSearch&amp;organismName=[% proteomeSpecies.ncbi_code %]"
-         class="ext"><em>[% proteomeSpecies.species %]</em></a>
-      (<acronym title="National Center for Biotechnology Information">NCBI</acronym> 
-      taxonomy ID
-      <a href="http://www.ebi.ac.uk/newt/display?search=[% proteomeSpecies.ncbi_code %]"
-         class="ext">[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]</a>).
+      <a href="http://www.ebi.ac.uk/integr8/QuickSearch.do?action=doOrgSearch&amp;organismName=[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]"
+         class="ext"><em>[% proteomeSpecies.species %]</em></a>.
+      You can see details of the proteome in 
+      <a class="ext" href="http://www.uniprot.org/taxonomy/[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">UniProt</a> or at
+      <a class="ext" href="http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">
+        <acronym title="National Center for Biotechnology Information">NCBI</acronym></a>.
     </p>
 
     <table class="layout" summary="Summary of information for the proteome">
@@ -88,7 +88,7 @@ oe = 0;
         node_id = "node" _ node_name.replace( '\W', '' ); %]
         var [% node_id %]Node = new YAHOO.widget.TextNode( 
           { label: "[% node_name %]",
-            href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node_name %]" },
+            href:  "[% 'http://www.uniprot.org/taxonomy?sort=score&query=' _ node_name | html %]" },
           parent,
           true );
         parent = [% node_id %]Node;
