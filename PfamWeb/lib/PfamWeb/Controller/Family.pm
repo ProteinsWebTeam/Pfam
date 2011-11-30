@@ -678,7 +678,7 @@ sub structures : Chained( 'family' )
   if ( defined $c->req->param('pdbId') and
        $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
 
-    $c->log->debug( "Family::Structures::structures: got PDB ID: |$1|" )
+    $c->log->debug( "Family::structures: got PDB ID: |$1|" )
       if $c->debug;
 
     $c->stash->{pdb_id} = $1;
@@ -687,18 +687,18 @@ sub structures : Chained( 'family' )
   # retrieve the PDB entries for this family
   my @regions;
   if ( defined $c->stash->{pfam}->auto_pfama ) {
-    $c->log->debug( 'Family::Structures::structures: got an auto_pfama: '
+    $c->log->debug( 'Family::structures: got an auto_pfama: '
                     . $c->stash->{pfam}->auto_pfama ) if $c->debug;
     @regions = $c->model('PfamDB::PdbPfamaReg')
                  ->search( { 'me.auto_pfama' => $c->stash->{pfam}->auto_pfama },
                            { prefetch => [ qw( pdb_id pdb_image auto_pfama ) ] } );
-    $c->log->debug( 'Family::Structures::structures: got ' 
+    $c->log->debug( 'Family::structures: got ' 
                     . scalar @regions . ' regions' ) if $c->debug;
   }
 
   # don't render the template unless we need to
   unless ( scalar @regions ) {
-    $c->log->debug( 'Family::Structures::structures: no structure image; not rendering template' )
+    $c->log->debug( 'Family::structures: no structure image; not rendering template' )
       if $c->debug;
     $c->res->status( 204 );
     return;
@@ -736,7 +736,7 @@ Deprecated. Stub to redirect to chained action.
 sub old_structures : Path( '/family/structures' ) {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Family::Structures::old_structures: redirecting to "structures"' )
+  $c->log->debug( 'Family::old_structures: redirecting to "structures"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/structures' ) );
 }
@@ -989,7 +989,7 @@ sub alignment : Chained( 'family' )
     $c->stash->{alnType} = $aln_type;
   }
 
-  $c->log->debug( 'Family::Alignment::alignment: aln_type: |' . $c->stash->{alnType} .'|' )
+  $c->log->debug( 'Family::alignment: aln_type: |' . $c->stash->{alnType} .'|' )
     if $c->debug;
 }
 
@@ -1043,12 +1043,13 @@ sub gzipped : Chained( 'alignment' )
   my ( $alignment, $filename );
 
   if ( $c->stash->{alnType} eq 'long' ) {
-    $c->log->debug( 'Family::Alignment::Download::gzipped: building full length sequence FASTA' )
+    $c->log->debug( 'Family::gzipped: building full length sequence FASTA' )
       if $c->debug;
 
     # build the alignment file
     my $rs = $c->model('PfamDB::PfamaRegFullSignificant')
-               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
+               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                           in_full    => 1 },
                          { prefetch => [ qw( auto_pfamseq ) ],
                            columns  => [ qw( auto_pfamseq.pfamseq_id 
                                              auto_pfamseq.pfamseq_acc
@@ -1079,7 +1080,7 @@ sub gzipped : Chained( 'alignment' )
   }
 
   unless ( defined $alignment ) {
-    $c->log->warn( 'Family::Alignment::Download::gzipped: failed to retrieve alignment for '
+    $c->log->warn( 'Family::gzipped: failed to retrieve alignment for '
                     . $c->stash->{acc} ) if $c->debug;
       
     $c->res->status( 204 ); # "no content"
@@ -1116,7 +1117,7 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
     $aln_type = $c->req->param('alnType');
   }
 
-  $c->log->debug( 'Family::Alignment::old_gzipped: redirecting to "gzipped"' )
+  $c->log->debug( 'Family::old_gzipped: redirecting to "gzipped"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/$aln_type/gzipped" ) );
 }
@@ -1166,11 +1167,11 @@ sub format : Chained( 'alignment' )
   $c->forward( 'get_alignment_from_db' );
 
   if ( defined $c->stash->{alignment_rows} ) {
-    $c->log->debug( 'Family::Alignment::format: successfully retrieved an alignment' )
+    $c->log->debug( 'Family::format: successfully retrieved an alignment' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::format: failed to retrieve an alignment' )
+    $c->log->debug( 'Family::format: failed to retrieve an alignment' )
       if $c->debug;
   }
 
@@ -1180,7 +1181,7 @@ sub format : Chained( 'alignment' )
     $pfamaln->read_stockholm( $c->stash->{alignment_rows} );
   };
   if ( $@ ) {
-    $c->log->debug( "Family::Alignment::format: problem reading stockholm data: $@" )
+    $c->log->debug( "Family::format: problem reading stockholm data: $@" )
       if $c->debug;
     $c->stash->{errorMsg} = 'There was a problem with the alignment data for '
                             . $c->stash->{acc};
@@ -1189,7 +1190,7 @@ sub format : Chained( 'alignment' )
 
   # gaps param can be default, dashes, dot or none
   if ( $c->req->param('gaps') ) {
-    $c->log->debug( 'Family::Alignment::format: handling gaps parameter' )
+    $c->log->debug( 'Family::format: handling gaps parameter' )
       if $c->debug;
       
     if ( $c->req->param('gaps') =~ m/^n\w*/ ) {
@@ -1206,14 +1207,14 @@ sub format : Chained( 'alignment' )
 
   # case param can be u or l
   if ( $c->req->param('case') and $c->req->param('case') =~ m/^u\w*$/ ) {
-    $c->log->debug( 'Family::Alignment::format: uppercasing alignment' )
+    $c->log->debug( 'Family::format: uppercasing alignment' )
       if $c->debug;
     $pfamaln->uppercase;
   }
 
   # order param can be tree or alphabetical
   if ( $c->req->param('order') and $c->req->param('order') =~ m/^a\w*$/ ) {
-    $c->log->debug( 'Family::Alignment::format: sorting alphabetically' )
+    $c->log->debug( 'Family::format: sorting alphabetically' )
       if $c->debug;
     $pfamaln->sort_alphabetically;
   }
@@ -1222,17 +1223,17 @@ sub format : Chained( 'alignment' )
   my $output;
   if ( $c->req->param( 'format' ) ) {
     if ( $c->req->param( 'format' ) =~ m/^p\w*$/ ) {
-      $c->log->debug( 'Family::Alignment::format: writing Pfam format' )
+      $c->log->debug( 'Family::format: writing Pfam format' )
         if $c->debug;
       $output = $pfamaln->write_Pfam;
     }
     elsif ( $c->req->param( 'format' ) =~ m/^f\w*$/ ) {
-      $c->log->debug( 'Family::Alignment::format: writing FASTA format' )
+      $c->log->debug( 'Family::format: writing FASTA format' )
         if $c->debug;
       $output = $pfamaln->write_fasta;
     }
     elsif ( $c->req->param( 'format' ) =~ m/^m\w*$/ ) {
-      $c->log->debug( 'Family::Alignment::format: writing MSF format' )
+      $c->log->debug( 'Family::format: writing MSF format' )
         if $c->debug;
       $output = $pfamaln->write_MSF;
     }
@@ -1243,7 +1244,7 @@ sub format : Chained( 'alignment' )
 
   # are we downloading this or just dumping it to the browser ?
   if ( $c->req->param( 'download' ) ) {
-    $c->log->debug( 'Family::Alignment::format: sending alignment as download' )
+    $c->log->debug( 'Family::format: sending alignment as download' )
       if $c->debug;
 
     my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.txt';
@@ -1275,7 +1276,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
     $aln_type = $c->req->param('alnType');
   }
 
-  $c->log->debug( 'Family::Alignment::old_format: redirecting to "format"' )
+  $c->log->debug( 'Family::old_format: redirecting to "format"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} .
                                   "/alignment/$aln_type/format",
@@ -1303,11 +1304,11 @@ sub html : Chained( 'alignment' )
   
   my $jtml = $c->cache->get( $cacheKey );
   if ( defined $jtml ) {
-    $c->log->debug( 'Family::Alignment::Download::html: extracted HTML from cache' )
+    $c->log->debug( 'Family::html: extracted HTML from cache' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::Download::html: failed to extract HTML from cache; going to DB' )
+    $c->log->debug( 'Family::html: failed to extract HTML from cache; going to DB' )
       if $c->debug;  
 
     # retrieve the HTML from the DB
@@ -1319,7 +1320,7 @@ sub html : Chained( 'alignment' )
   
     # final check...
     unless ( defined $row->jtml ) {
-      $c->log->debug( 'Family::Alignment::Download::html: failed to retrieve JTML' )
+      $c->log->debug( 'Family::html: failed to retrieve JTML' )
         if $c->debug;  
 
       $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
@@ -1335,7 +1336,7 @@ sub html : Chained( 'alignment' )
       return;
     }
 
-    $c->log->debug( 'Family::Alignment::Download::html: retrieved HTML from DB' )
+    $c->log->debug( 'Family::html: retrieved HTML from DB' )
       if $c->debug;
     $c->cache->set( $cacheKey, $jtml ) unless $ENV{NO_CACHE};
   }
@@ -1363,7 +1364,7 @@ sub old_html : Path( '/family/alignment/download/html' ) {
     $aln_type = $c->req->param('alnType');
   }
 
-  $c->log->debug( 'Family::Alignment::old_html: redirecting to "html"' )
+  $c->log->debug( 'Family::old_html: redirecting to "html"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/$aln_type/html" ) );
 }
@@ -1397,11 +1398,11 @@ sub heatmap : Chained( 'alignment' )
   
   my $hm = $c->cache->get( $cacheKey );
   if ( defined $hm ) {
-    $c->log->debug( 'Family::Alignment::Download::heatmap: extracted HTML from cache' )
+    $c->log->debug( 'Family::heatmap: extracted HTML from cache' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::Download::heatmap: failed to extract HTML from cache; going to DB' )
+    $c->log->debug( 'Family::heatmap: failed to extract HTML from cache; going to DB' )
       if $c->debug;  
 
     # retrieve the HTML from the DB
@@ -1426,7 +1427,7 @@ sub heatmap : Chained( 'alignment' )
       return;
     }
 
-    $c->log->debug( 'Family::Alignment::Download::heatmap: retrieved HTML from DB' )
+    $c->log->debug( 'Family::heatmap: retrieved HTML from DB' )
       if $c->debug;
     $c->cache->set( $cacheKey, $hm ) unless $ENV{NO_CACHE};
   }
@@ -1446,7 +1447,7 @@ Deprecated. Stub to redirect to the chained action(s).
 sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::old_heatmap: redirecting to "heatmap"' )
+  $c->log->debug( 'Family::old_heatmap: redirecting to "heatmap"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/full/heatmap" ) );
 }
@@ -1487,7 +1488,7 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
     $aln_type = $c->req->param('alnType');
   }
 
-  $c->log->debug( 'Family::Alignment::old_jalview: redirecting to "jalview"' )
+  $c->log->debug( 'Family::old_jalview: redirecting to "jalview"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry}
                      . "/alignment/$aln_type/jalview" ) );
@@ -1518,7 +1519,7 @@ sub dasviewer : Chained( 'alignment' )
                  ? 'Pfam_Seed_Alignments' 
                  : 'Pfam_Full_Alignments' ;
 
-  $c->log->debug( 'Family::Alignment::dasviewer: setting up for get_das_alignment' )
+  $c->log->debug( 'Family::dasviewer: setting up for get_das_alignment' )
     if $c->debug;
 
   $c->stash->{params} = { source             => 'family',
@@ -1551,7 +1552,7 @@ sub old_dasviewer : Path( '/family/alignment/dasviewer' ) {
     $aln_type = $c->req->param('alnType');
   }
 
-  $c->log->debug( 'Family::Alignment::old_dasviewer: redirecting to "dasviewer"' )
+  $c->log->debug( 'Family::old_dasviewer: redirecting to "dasviewer"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} .
                                   "/alignment/$aln_type/dasviewer",
@@ -1573,11 +1574,11 @@ sub build : Chained( 'alignment_link' )
             Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Family::Alignment::Builder::build: checking for sequences' )
+  $c->log->debug( 'Family::build: checking for sequences' )
     if $c->debug;
 
   unless ( $c->req->param('jobId') ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: no job ID supplied' )
+    $c->log->debug( 'Family::build: no job ID supplied' )
       if $c->debug;
     $c->stash->{errorMsg} = 'There was no job ID for this alignment..';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
@@ -1587,7 +1588,7 @@ sub build : Chained( 'alignment_link' )
   # validate the UUID
   my $collection_id = $c->req->param('jobId');
   unless ( $collection_id =~ m/^([A-F0-9\-]{36})$/i ) {
-    $c->log->debug( 'Family::Alignment::Builder: bad job id' )
+    $c->log->debug( 'Family::build: bad job id' )
       if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
@@ -1600,7 +1601,7 @@ sub build : Chained( 'alignment_link' )
   
   # make sure we got something...
   unless ( length $c->stash->{fasta} ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: failed to get a FASTA sequence' )
+    $c->log->debug( 'Family::build: failed to get a FASTA sequence' )
       if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
@@ -1612,13 +1613,13 @@ sub build : Chained( 'alignment_link' )
 
   # and see if we managed it...
   if ( $submissionStatus < 0 ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: problem with submission; returning error page' )
+    $c->log->debug( 'Family::build: problem with submission; returning error page' )
       if $c->debug; 
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   }
   else {
-    $c->log->debug( 'Family::Alignment::Builder::build: alignment job submitted; polling' )
+    $c->log->debug( 'Family::build: alignment job submitted; polling' )
       if $c->debug; 
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
@@ -1635,7 +1636,7 @@ Deprecated. Stub to redirect to the chained action(s).
 sub old_build : Path( '/family/alignment/builder' ) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::Builder::old_build: redirecting to "build"' )
+  $c->log->debug( 'Family::old_build: redirecting to "build"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/build' ) );
 }
@@ -1658,7 +1659,7 @@ sub view : Chained( 'alignment_link' )
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   
   unless ( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Family::Alignment::Builder::view: no results found' )
+    $c->log->debug( 'Family::view: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
@@ -1669,7 +1670,7 @@ sub view : Chained( 'alignment_link' )
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
-  $c->log->debug( "Family::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" )
+  $c->log->debug( "Family::view: alignment has |$numRowsInAlignment| rows" )
     if $c->debug;
 
   # configure the viewer...
@@ -1693,7 +1694,7 @@ Deprecated. Stub to redirect to the chained action(s).
 sub old_view : Path( '/family/alignment/builder/view' ) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::Builder::old_view: redirecting to "view"' )
+  $c->log->debug( 'Family::old_view: redirecting to "view"' )
     if $c->debug;
   $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/view' ) );
 }
@@ -1888,7 +1889,7 @@ sub get_db_xrefs : Private {
     }
   }
 
-  # PfamA to PfamA links based on PRC
+  # PfamA to PfamA links based on HHsearch
   my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearchResults')
                  ->search( { 'auto_pfama1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
                            { join     => [ qw( auto_pfama1 auto_pfama2 ) ],
@@ -1912,82 +1913,6 @@ sub get_db_xrefs : Private {
       push @{ $xRefs->{atoaHH} }, $_;
     } 
   }
-
-#  # PfamA to PfamA links based on PRC
-#  my @atoaPRC = $c->model('PfamDB::Pfama2pfamaPrcResults')
-#                  ->search( { 'pfamA1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
-#                            { join               => [ qw( pfamA1 pfamA2 ) ],
-#                              select             => [ qw( pfamA1.pfama_id 
-#                                                          pfamA1.pfama_acc
-#                                                          pfamA2.pfama_id 
-#                                                          pfamA2.pfama_acc 
-#                                                          evalue ) ],
-#                              as                 => [ qw( l_pfama_id 
-#                                                          l_pfama_acc 
-#                                                          r_pfama_id 
-#                                                          r_pfama_acc 
-#                                                          evalue ) ],
-#                              order_by           => 'pfamA2.auto_pfama ASC'
-#                            } );
-#
-#  $xRefs->{atoaPRC} = [];
-#  foreach ( @atoaPRC ) {
-#    if ( $_->get_column( 'evalue' ) <= 0.001 and
-#         $_->get_column( 'l_pfama_id' ) ne $_->get_column( 'r_pfama_id' ) ) {
-#      push @{ $xRefs->{atoaPRC} }, $_;
-#    } 
-#  }
-
-  # PfamB to PfamA links based on PRC
-  my @atobPRC = $c->model('PfamDB::Pfamb2pfamaPrcResults')
-                  ->search( { 'auto_pfama.pfama_acc' => $c->stash->{pfam}->pfama_acc, },
-                            { join      => [ qw( auto_pfama auto_pfamb ) ],
-                              prefetch  => [ qw( auto_pfama auto_pfamb ) ]
-                            } );
-
-  # find the union between PRC and PRODOM PfamB links
-  my %atobPRC;
-  foreach ( @atobPRC ) {
-    $atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
-  }
-  # we should be able to filter the results of the query according to
-  # evalue using a call on the DBIx::Class object, but for some reason
-  # it's broken, hence that last loop rather than this neat map...
-  # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
-
-  my %atobBOTH;
-  foreach ( keys %atobPRC, keys %atobPRODOM ) {
-    $atobBOTH{$_} = $atobPRC{$_}
-      if ( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
-  }
-
-  # and then prune out those accessions that are in both lists
-  foreach ( keys %atobPRC ) {
-    delete $atobPRC{$_} if exists $atobBOTH{$_};
-  }
-
-  foreach ( keys %atobPRODOM ) {
-    delete $atobPRODOM{$_} if exists $atobBOTH{$_};
-  }
-
-  # now populate the hash of xRefs;
-  my @atobPRC_pruned;
-  foreach ( sort keys %atobPRC ) {
-    push @atobPRC_pruned, $atobPRC{$_};
-  }
-  $xRefs->{atobPRC} = \@atobPRC_pruned if scalar @atobPRC_pruned;
-
-  my @atobPRODOM;
-  foreach ( sort keys %atobPRODOM ) {
-    push @atobPRODOM, $atobPRODOM{$_};
-  }
-  $xRefs->{atobPRODOM} = \@atobPRODOM if scalar @atobPRODOM;
-
-  my @atobBOTH;
-  foreach ( sort keys %atobBOTH ) {
-    push @atobBOTH, $atobBOTH{$_};
-  }
-  $xRefs->{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
 
   $c->stash->{xrefs} = $xRefs;
 }
@@ -2209,13 +2134,9 @@ sub get_logo : Private {
     $c->log->debug( 'Family::FamilyActions::logo: failed to extract logo from cache; going to DB' )
       if $c->debug;
     
-#    my $rs = $c->model('PfamDB::PfamaHmm')
-#               ->find( $c->stash->{pfam}->auto_pfama );
-#    $logo = $rs->logo;
-    if ( defined $c->stash->{pfam} and 
-         defined $c->stash->{pfam}->pfama_hmms ) {
-      $logo = $c->stash->{pfam}->pfama_hmms->logo;
-    }
+    my $rs = $c->model('PfamDB::PfamaHmm')
+               ->find( $c->stash->{pfam}->auto_pfama );
+    $logo = $rs->logo;
 
     unless ( defined $logo ) {
       $c->log->debug( 'Family::FamilyActions::logo: failed to retrieve logo from DB' )
@@ -2350,7 +2271,7 @@ Retrieves a family alignment, seed or full, from the DAS sources.
 sub get_das_alignment : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::get_das_alignment: retrieving alignment' )
+  $c->log->debug( 'Family::get_das_alignment: retrieving alignment' )
     if $c->debug;
 
   # set the DAS dsn based on the alignment type parameter
@@ -2359,9 +2280,9 @@ sub get_das_alignment : Private {
             : $this->{urls}->{full};
 
   if ( $c->debug ) {
-    $c->log->debug( 'Family::Alignment::get_das_alignment: dsn:  |' . $dsn . '|' ); 
-    $c->log->debug( 'Family::Alignment::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' ); 
-    $c->log->debug( 'Family::Alignment::get_das_alignment: rows: |' . $c->stash->{rows} . '|' ); 
+    $c->log->debug( 'Family::get_das_alignment: dsn:  |' . $dsn . '|' ); 
+    $c->log->debug( 'Family::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' ); 
+    $c->log->debug( 'Family::get_das_alignment: rows: |' . $c->stash->{rows} . '|' ); 
   }
 
   # retrieve the DasLite client from the base model class and hand it the DSN
@@ -2412,11 +2333,11 @@ sub get_alignment_from_db : Private {
   my $alignment = $c->cache->get( $cacheKey );
 
   if ( defined $alignment ) {
-    $c->log->debug( 'Family::Alignment::get_alignment_from_db: extracted alignment from cache' )
+    $c->log->debug( 'Family::get_alignment_from_db: extracted alignment from cache' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::get_alignment_from_db: failed to extract alignment from cache; going to DB' )
+    $c->log->debug( 'Family::get_alignment_from_db: failed to extract alignment from cache; going to DB' )
       if $c->debug;
 
     # retrieve the alignment from the DB
@@ -2428,7 +2349,7 @@ sub get_alignment_from_db : Private {
 
     unless ( defined $row and defined $row->alignment ) {
 
-      $c->log->warn( 'Family::Alignment::get_alignment_from_db: failed to retrieve '
+      $c->log->warn( 'Family::get_alignment_from_db: failed to retrieve '
         . $c->stash->{alnType} . ' alignment for ' . $c->stash->{acc} )
         if $c->debug;
 
@@ -2441,7 +2362,7 @@ sub get_alignment_from_db : Private {
     $alignment = Compress::Zlib::memGunzip( $row->alignment );
     unless ( defined $alignment ) {
 
-      $c->log->warn( 'Family::Alignment::get_alignment_from_db: failed to uncompress '
+      $c->log->warn( 'Family::get_alignment_from_db: failed to uncompress '
         . $c->stash->{alnType} . ' alignment for ' . $c->stash->{acc} )
         if $c->debug;
 
@@ -2461,7 +2382,7 @@ sub get_alignment_from_db : Private {
   my @alignment = split /\n/, $alignment;
   $c->stash->{alignment_rows} = \@alignment;
   
-  $c->log->debug( 'Family::Alignment::get_alignment_from_db: got '
+  $c->log->debug( 'Family::get_alignment_from_db: got '
                   . scalar @alignment . ' rows in alignment' ) if $c->debug;
 }
 
@@ -2478,7 +2399,7 @@ Builds an alignment of the selected sequences.
 sub getAlignment : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::Builder::getAlignment: retrieving alignment...' )
+  $c->log->debug( 'Family::getAlignment: retrieving alignment...' )
     if $c->debug;
 
   # first get a job ID. The call to retrieve results will get the job ID for
@@ -2486,7 +2407,7 @@ sub getAlignment : Private {
   my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
 
   unless( defined $jobId ) {
-    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no job ID found' )
+    $c->log->debug( 'Family::getAlignment: no job ID found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
@@ -2495,13 +2416,13 @@ sub getAlignment : Private {
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no results found' )
+    $c->log->debug( 'Family::getAlignment: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
   }   
 
-#  $c->log->debug( 'Family::Alignment::Builder:getAlignment: job results: |'
+#  $c->log->debug( 'Family::etAlignment: job results: |'
 #                  . $c->stash->{results}->{$jobId}->{rawData} . '|' );
 
   # the rawData is just a string containing the alignment lines
@@ -2515,7 +2436,7 @@ sub getAlignment : Private {
   # Rows are numbered from 1, not zero, so we need to offset the row values
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
-  #$c->log->debug( 'Family::Alignment::Builder::getAlignment: showing rows |'
+  #$c->log->debug( 'Family::getAlignment: showing rows |'
   #                . "$from| to |$to|" );
   
   my %alignment;
@@ -2591,9 +2512,9 @@ sub queueAlignment : Private {
                   ];
   $c->stash->{jobStatusJSON} = to_json( $jobStatus );
 
-  $c->log->debug( 'Family::Alignment::Builder::queueAlignment: job status: ',
+  $c->log->debug( 'Family::queueAlignment: job status: ',
                   dump( $jobStatus ) ) if $c->debug;
-  $c->log->debug( 'Family::Alignment::Builder::queueAlignment: submitted job '
+  $c->log->debug( 'Family::queueAlignment: submitted job '
                   . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
                   
   return 0;
