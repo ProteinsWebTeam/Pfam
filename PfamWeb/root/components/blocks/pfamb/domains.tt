@@ -97,11 +97,12 @@ requirements.js.push( "domain_graphics_loader.js" );
   <script type="text/javascript">
     // <![CDATA[
 
-    Event.observe( window, "load", function() {
+    document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater(
         "dgph",
         "[% c.uri_for( '/domaingraphics', acc ) %]",
         {
+          method:      "get",
           evalScripts: true,
           onFailure:  function() {
             $("dgph").update( "Domain graphics loading failed." );
