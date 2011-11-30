@@ -2,7 +2,7 @@
 # PfamB.pm
 # jt6 20060809 WTSI
 #
-# Controller to build a PfamB  page.
+# Controller to build a PfamB page.
 #
 # $Id: PfamB.pm,v 1.21 2009-11-18 14:39:29 jt6 Exp $
 
@@ -150,7 +150,9 @@ sub get_data : Private {
 
   my $rs = $c->model('PfamDB::Pfamb')
              ->search( [ { pfamb_acc => $entry },
-                         { pfamb_id  => $entry } ] );
+                         { pfamb_id  => $entry } ],
+                       { join     => [ 'pfamb_species_trees' ],
+                         prefetch => [ 'pfamb_species_trees' ] } );
   my $pfam = $rs->first if defined $rs;
     
   return unless $pfam;
@@ -737,70 +739,6 @@ sub get_db_xrefs : Private {
       push @{ $xRefs{$xref->db_id} }, $xref;
     }
   }
-
-  # PfamB to PfamB links based on PRC
-  my @btobPRC = $c->model('PfamDB::Pfamb2pfambPrcResults')
-                  ->search( { 'pfamB1.pfamb_acc' => $c->stash->{pfam}->pfamb_acc },
-                            { join               => [ qw( pfamB1 pfamB2 ) ],
-                              select             => [ qw( pfamB1.pfamb_acc 
-                                                          pfamB2.pfamb_acc evalue ) ],
-                              as                 => [ qw( l_pfamb_acc 
-                                                          r_pfamb_acc 
-                                                          evalue ) ],
-                              order_by           => 'pfamB2.auto_pfamb ASC' } );
-
-  $xRefs{btobPRC} = [];
-  foreach ( @btobPRC ) {
-    next if $_->get_column( 'evalue' ) <= 0.001;
-    next if $_->get_column( 'l_pfamb_acc') eq $_->get_column( 'r_pfamb_acc' );
-    push @{$xRefs{btobPRC}}, $_;
-  }
-
-#  $xRefs{btobPRC} = \@btobPRC if scalar @btobPRC;
-
-  # PfamB to PfamA links based on PRC
-  my @btoaPRC = $c->model('PfamDB::Pfamb2pfamaPrcResults')
-                  ->search( { 'pfamB.pfamb_acc' => $c->stash->{pfam}->pfamb_acc, },
-                            { prefetch  => [ qw( pfamA pfamB ) ] } );
-
-  # find the union between PRC and PRODOM PfamB links
-  my %btoaPRC;
-  foreach ( @btoaPRC ) {
-    $btoaPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
-  }
-
-  my %btoaBOTH;
-  foreach ( keys %btoaPRC, keys %btoaPRODOM ) {
-    $btoaBOTH{$_} = $btoaPRC{$_}
-      if ( exists( $btoaPRC{$_} ) and exists( $btoaPRODOM{$_} ) );
-  }
-
-  # and then prune out those accessions that are in both lists
-  foreach ( keys %btoaPRC ) {
-    delete $btoaPRC{$_} if exists $btoaBOTH{$_};
-  }
-  foreach ( keys %btoaPRODOM ) {
-    delete $btoaPRODOM{$_} if exists $btoaBOTH{$_};
-  }
-
-  # now populate the hash of xRefs;
-  my @btoaPRC_pruned;
-  foreach ( sort keys %btoaPRC ) {
-    push @btoaPRC_pruned, $btoaPRC{$_};
-  }
-  $xRefs{btoaPRC} = \@btoaPRC_pruned if scalar @btoaPRC_pruned;
-
-  my @btoaPRODOM;
-  foreach ( sort keys %btoaPRODOM ) {
-    push @btoaPRODOM, $btoaPRODOM{$_};
-  }
-  $xRefs{btoaPRODOM} = \@btoaPRODOM if scalar @btoaPRODOM;
-
-  my @btoaBOTH;
-  foreach ( sort keys %btoaBOTH ) {
-    push @btoaBOTH, $btoaBOTH{$_};
-  }
-  $xRefs{btoaBOTH} = \@btoaBOTH if scalar @btoaBOTH;
 
   $c->stash->{xrefs} = \%xRefs;
 }
