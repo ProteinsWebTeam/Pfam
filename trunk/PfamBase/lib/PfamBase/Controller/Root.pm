@@ -106,7 +106,7 @@ sub announcements : Local {
 
   my $response = $ua->get( $this->{blog_uri} );
   unless ( $response->is_success ) {
-    $c->log->warn( "Root::announcements: could't retrieve blog content from |"
+    $c->log->warn( "Root::announcements: couldn't retrieve blog content from |"
                     . $this->{blog_uri} . "|" ) if $c->debug;
     $c->res->status( 204 );
     return;
