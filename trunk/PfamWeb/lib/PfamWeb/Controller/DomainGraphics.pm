@@ -948,23 +948,45 @@ sub get_proteome_data : Private {
     $c->log->debug( 'DomainGraphics::get_proteome_data: got neither auto_arch nor pfamAcc' )
       if $c->debug;
 
-    @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome },
-                        { join      => [ qw( proteome_pfamseqs
-                                             annseqs
-                                             auto_architecture ) ],
-                          select    => [ qw( pfamseq_id
-                                             annseqs.annseq_storable
-                                             auto_architecture.architecture
-                                             me.auto_architecture ),
-                                         { count => 'me.auto_pfamseq' } ],
-                          as        => [ qw( pfamseq_id
-                                             annseq_storable
-                                             architecture
-                                             auto_architecture
-                                             numberArchs ) ],
-                          group_by => [ qw( me.auto_architecture ) ],
-                          order_by => \'count(me.auto_pfamseq) DESC' } );
+    @rows = $c->model('PfamDB::ProteomeArchitecture')
+              ->search( { auto_proteome => $auto_proteome },
+                        { join   => [ { storable => 'auto_pfamseq' }, 'auto_architecture' ],
+                          select => [ qw( pfamseq_id
+                                          storable.annseq_storable
+                                          auto_architecture.architecture
+                                          me.auto_architecture
+                                          me.no_seqs ) ],
+                          as     => [ qw( pfamseq_id
+                                          annseq_storable
+                                          architecture
+                                          auto_architecture
+                                          numberSeqs ) ],
+                          order_by => 'me.no_seqs DESC' } );
+
+    # @rows = $c->model('PfamDB::ProteomeArchitecture')
+    #           ->search( { auto_proteome => $auto_proteome },
+    #                     { join   => [ { auto_architecture => { storable => 'auto_pfamseq' } } ],
+    #                       select => [ qw( pfamseq_id
+    #                                       storable.annseq_storable
+    #                                       auto_architecture.architecture
+    #                                       me.auto_architecture
+    #                                       me.no_seqs ) ],
+    #                       as     => [ qw( pfamseq_id
+    #                                       annseq_storable
+    #                                       architecture
+    #                                       auto_architecture
+    #                                       numberSeqs ) ] } );
+
+    # this is the query we're aiming for (join order is important):
+    #   SELECT s.pfamseq_id,
+    #          a.architecture,
+    #          length( pas.annseq_storable ),
+    #          pa.no_seqs
+    #   FROM   proteome_architecture pa 
+    #   JOIN   architecture a  ON  pa.auto_architecture =   a.auto_architecture 
+    #   JOIN   pfam_annseq pas ON  pa.type_example      = pas.auto_pfamseq
+    #   JOIN   pfamseq s       ON   s.auto_pfamseq      = pa.type_example
+    #   WHERE  auto_proteome = ?;
   }
 
   #----------------------------------------
@@ -996,7 +1018,7 @@ sub get_proteome_data : Private {
 
       $seqInfo{$id}{arch}      = \@domains;
       $seqInfo{$id}{auto_arch} = $row->get_column('auto_architecture');
-      $seqInfo{$id}{num}       = $row->get_column('numberArchs');
+      $seqInfo{$id}{num}       = $row->get_column('numberSeqs');
 
     }
 
