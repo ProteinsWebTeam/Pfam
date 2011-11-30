@@ -103,7 +103,7 @@
       of these tables, either directly or indirectly.
     </p>
     <p>
-      The table <span class="table">pfamA_reg_seed</span>contains the Pfam
+      The table <span class="table">pfamA_reg_seed</span> contains the Pfam
       regions that are present in a seed alignment, and the <span class="table">
         pfamA_reg_full_significant</span> table contains all of the sequence 
       regions that match the HMM and score above the curated threshold, i.e. are 
