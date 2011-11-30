@@ -129,7 +129,7 @@ sub begin : Private {
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
-  $c->stash->{pdbId} = $entry;
+  $c->stash->{pdbId} = lc $entry;
 
   # get the icon summary data, but only if we're in this top-level class, 
   # i.e. the one that generates the structure page rather than the sub-classes
