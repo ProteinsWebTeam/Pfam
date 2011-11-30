@@ -540,6 +540,11 @@ body.tool h1 {
   padding: 0.4em 0;
 }
 
+div.jalview {
+  width: 780px;
+  margin: 0 auto;
+}
+
 /* ======================================== */
 /* search results */
 
