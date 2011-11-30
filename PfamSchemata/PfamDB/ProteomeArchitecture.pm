@@ -27,6 +27,11 @@ __PACKAGE__->belongs_to(
   "PfamDB::Architecture",
   { auto_architecture => "auto_architecture" },
 );
+__PACKAGE__->has_one( 
+  "storable",
+  "PfamDB::PfamAnnseq",
+  { "foreign.auto_pfamseq" => "self.type_example" },
+);
 
 =head1 COPYRIGHT
 
