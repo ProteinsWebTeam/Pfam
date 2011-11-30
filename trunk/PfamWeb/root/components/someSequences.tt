@@ -99,7 +99,9 @@ END; # of "FOREACH id" -%]
           var r = new Ajax.Updater( 
             "next[% first %]",
             "[% c.uri_for( '/domaingraphics' ) %]",
-            { evalScripts: true,
+            {
+              method:      "get",
+              evalScripts: true,
               parameters:  { jobId:   "[% jobId %]",
                              start:   "[% last + 1 %]",
                              subTree: 1,
