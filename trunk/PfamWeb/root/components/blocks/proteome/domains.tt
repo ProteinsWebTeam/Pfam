@@ -45,8 +45,10 @@ requirements.js.push( "domain_graphics_loader.js" );
     </p>
     <div id="domainsNotes" style="display: none">
       <p>
-        The graphic that is shown by default represents a sequence containing that particular domain organisation or architecture. 
-        The images are order by the frequency that the architecture is observed. Each row contains the following information:
+        The graphic that is shown by default represents a sequence containing
+        that particular domain organisation or architecture. The images are
+        order by the frequency that the architecture is observed. Each row
+        contains the following information:
       </p>
       <ul>
         <li>
@@ -100,16 +102,17 @@ requirements.js.push( "domain_graphics_loader.js" );
     // <![CDATA[
 
     // set up the post-load AJAX call
-    Event.observe( window, "load", function() {
+    document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater(
         "pdgph",
         "[% c.uri_for( "/domaingraphics" ) %]",
         {
+               method: 'get',
           evalScripts: true,
-          parameters: { taxId: "[% taxId %]" },
-          onFailure:  function( oResponse ) {
-                        $("pdgph").update( "Domain graphics loading failed." );
-                      }
+           parameters: { taxId: "[% taxId %]" },
+            onFailure: function( oResponse ) {
+                         $("pdgph").update( "Domain graphics loading failed." );
+                       }
         }
       );
     } );
