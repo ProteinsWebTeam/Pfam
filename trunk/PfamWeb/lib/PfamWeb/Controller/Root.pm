@@ -44,7 +44,7 @@ sub auto : Private {
 
   # see if there's a maintenance message in the configuration file
   if ( $c->config->{maintenance} ) {
-    $c->log->debug( 'found a maintenance message' )
+    $c->log->debug( 'Root::auto: found a maintenance message' )
       if $c->debug;
 
     $c->stash->{title}   = $c->config->{maintenance}->{title};
@@ -110,9 +110,6 @@ potentially abusive usage.
 
 sub blocked : Global {
   my( $this, $c ) = @_;
-
-  # # set the page to be cached for one week
-  $c->cache_page( 604800 );
 
   $c->log->debug( 'Root::blocked: sending "blocked" message for IP: '
                   . $c->req->address ) if $c->debug;
