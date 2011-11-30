@@ -15,15 +15,9 @@ USE String;
 # these are the labels for the links that will appear in the internal or
 # external links tables
 labels = {
-    atoaPRC    = "Similarity to PfamA using PRC"
     atoaHH     = "Similarity to PfamA using HHSearch"
-    atobBOTH   = "Similarity to PfamB PRODOM &amp; PRC"
-    atobPRC    = "Similarity to PfamB PRC"
     atobPRODOM = "Similarity to PfamB PRODOM"
-    btoaBOTH   = "Similarity to PfamA PRODOM &amp; PRC"
-    btoaPRC    = "Similarity to PfamA PRC"
     btoaPRODOM = "Similarity to PfamA PRODOM"
-    btobPRC    = "Similarity to PfamB PRC"
     CATH       = "CATH"
     CAZY       = "CAZY"
     COGS       = "COGS"
@@ -53,14 +47,8 @@ labels = {
 internal = [
     "scoop",
     "atoaHH",
-    "atoaPRC",
-    "atobBOTH",
-    "atobPRC",   
     "atobPRODOM",
-    "btoaBOTH",
-    "btoaPRC",
     "btoaPRODOM",
-    "btobPRC"
 ]
 external = [
     "CATH",
@@ -241,20 +229,6 @@ BLOCK internalLinks;
                                         id=ref.get_column("r_pfama_id") -%]
                 </span>[%
               END;
-            CASE "atoaPRC";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.get_column("r_pfama_id") -%]
-                </span>[%
-              END;
-            CASE "atobPRC";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.pfamb_acc -%]
-                </span>
-              [%- END;
             CASE "atobPRODOM";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
@@ -262,39 +236,11 @@ BLOCK internalLinks;
                                         id=ref.db_link -%]
                 </span>
               [%- END;
-            CASE "atobBOTH";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.pfamb_acc -%]
-                </span>
-              [%- END;
-            CASE "btobPRC";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.get_column("r_pfamb_acc") -%]
-                </span>
-              [%- END;
-            CASE "btoaPRC";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.pfamb_id -%]
-                </span>
-              [%- END;
             CASE "btoaPRODOM";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMA" 
                                         id=ref.db_link -%]
-                </span>
-              [%- END;
-            CASE "btoaBOTH";
-              FOREACH ref IN xrefs.$db -%]
-                <span class="entry">
-                  [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.pfamb_id -%]
                 </span>
               [%- END;
             CASE "scoop";
