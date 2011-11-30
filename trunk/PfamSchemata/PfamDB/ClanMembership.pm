@@ -27,11 +27,15 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->add_unique_constraint("clanMembConst", [qw(auto_clan auto_pfama)]);
 
+__PACKAGE__->set_primary_key( 'auto_clan' );
+
 __PACKAGE__->has_many(
   "pdb_pfama_reg",
   "PfamDB::PdbPfamaReg",
   { "foreign.auto_pfama" => "self.auto_pfama" }
 );
+
+__PACKAGE__->belongs_to("clan", "PfamDB::Clans", 'auto_clan' );
 
           
 =head1 COPYRIGHT
