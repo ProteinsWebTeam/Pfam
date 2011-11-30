@@ -45,7 +45,7 @@ stUri = c.uri_for( "/speciestree" );
 
   // the URL to visit when the user selects nodes and wants to view the 
   // selected sequences as an alignment - Pfam specific
-  var selectPfamAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
+  var selectPfamAlignmentURI = "[% c.uri_for( '/family/' _ acc _ '/alignment/build' ) %]";
 
   // the URL to visit when the user selects nodes and wants to download the 
   // selected sequences as an alignment - Rfam specific
