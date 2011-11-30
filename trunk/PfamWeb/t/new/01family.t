@@ -2,7 +2,8 @@
 use strict;
 use warnings;
 
-use Test::More qw( no_plan );
+# use Test::More qw( no_plan );
+use Test::More tests => 120;
 
 use HTTP::Headers;
 use HTTP::Request::Common;
@@ -36,10 +37,21 @@ $res = request( $req );
 ok( $res->is_success, 'Access using accession as a URL argument' );
 like( $res->content, qr/$desc/, "Contains the words '$desc'" );
 
+# using an accession with a version number
+$req = GET( "$family/$acc.1" );
+$res = request( $req );
+ok( $res->is_success, 'Access using accession with a version as a URL argument' );
+like( $res->content, qr/$desc/, "Contains the words '$desc'" );
+
 # methods that will redirect
 $req = GET( "$family?acc=$acc" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using accession as a parameter' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' );
+
+$req = GET( "$family?acc=$acc.1" ); # legacy URL
+$res = request( $req );
+ok( $res->is_redirect, 'Access using accession with a version as a parameter' );
 like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' );
 
 $req = GET( "$family?id=$id" ); # legacy URL
@@ -236,15 +248,15 @@ like( $res->content, qr/# STOCKHOLM 1.0/, 'Looks like a Stockholm file' );
 like( $res->content, qr/\#=GS /, 'Has a sequence in it' );
 
 # gaps param can be default, dashes, dot or none  
-note( 'The following "format" tests are dependent on particular sequences being in the full or seed alignment for $id' );
+note( "The following 'format' tests are dependent on particular sequences being in the full or seed alignment for $id" );
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=dashes" );
 $res = request( $req );
-like( $res->content, qr/CQQTVDKM-----MG----GQGGRQ/, 'Appears to have dashes' );
+like( $res->content, qr/CQQTVDKM-----MGG----QGGRQ/, 'Appears to have dashes' );
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=dots" );
 $res = request( $req );
-like( $res->content, qr/CQQTVDKM.....MG....GQGGRQ/, 'Appears to have dots' );
+like( $res->content, qr/CQQTVDKM.....MGG....QGGRQ/, 'Appears to have dots' );
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=none" );
 $res = request( $req );
