@@ -508,7 +508,7 @@ sub html : Chained( 'alignment' )
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
   
-  my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
+  my $cacheKey = 'jtml' . $c->stash->{acc};
   
   my $jtml = $c->cache->get( $cacheKey );
   if ( defined $jtml ) {
