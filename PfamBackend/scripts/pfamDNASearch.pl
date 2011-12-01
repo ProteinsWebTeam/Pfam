@@ -58,13 +58,15 @@ if($help){
 unless (-d $tmpDir){
 	die "$tmpDir does not exist:[$!]\n";
 }
-unless (-s "$tmpDir/$faFile"){
-	die "Could not find fasta file ($faFile) in the tmp dir ($tmpDir):[$!]\n";
-}
+# unless (-s "$tmpDir/$faFile"){
+# 	die "Could not find fasta file ($faFile) in the tmp dir ($tmpDir):[$!]\n";
+# }
 
-foreach my $dataFile (qw/Pfam-A.fasta Pfam-A.fasta.phr  Pfam-A.fasta.pin  Pfam-A.fasta.psq Pfam-A.hmm/){
-  unless (-s "$dataFileDir/$dataFile"){
-	die "Could not find $dataFile in the data dir ($dataFileDir):[$!]\n";
+foreach my $dataFileGlob (qw/Pfam-A.fasta Pfam-A.fasta*.phr  Pfam-A.fasta*.pin  Pfam-A.fasta*.psq Pfam-A.hmm/){
+  foreach my $dataFile ( glob("$dataFileDir/$dataFileGlob") ) {
+    unless (-s $dataFile ){
+      die "Could not find '$dataFile' in the data dir: $!\n";
+    }
   }
 }
 
