@@ -149,11 +149,11 @@ title = "AstexViewer"
 <object classid="java:MoleculeViewerApplet.class" 
         id="av"
         type="application/x-java-applet"
-        archive="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" 
+        archive="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" 
         height="500"
         width="500">
   <!-- Konqueror browser needs the following param -->
-  <param name="archive" value="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" />
+  <param name="archive" value="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" />
   <param name="script" value="[% avScript %]" />
 <!--<![endif]-->
   <!-- MSIE (Microsoft Internet Explorer) will use inner object --> 
@@ -162,7 +162,7 @@ title = "AstexViewer"
           codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0-windows-i586.cab"
           height="500"
           width="500">
-    <param name="archive" value="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" />
+    <param name="archive" value="[% c.uri_for( '/static/av/AstexViewer2.jar' ) %]" />
     <param name="code" value="MoleculeViewerApplet" />
     <param name="script" value="[% avScript %]" />
     <strong>
@@ -233,22 +233,22 @@ hideButton = "${imageUri}/hideButton.png";
   <tbody>
     [% oe = 0;
     FOREACH m IN mapping %]
-    <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+    <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", m.auto_pfamseq.pfamseq_id ) %]" 
+        <a href="[% c.uri_for( '/protein', m.auto_pfamseq.pfamseq_id ) %]" 
            onclick="opener.location=this.href;return false;">
           [% m.auto_pfamseq.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", m.auto_pfama.pfama_id ) %]"
+        <a href="[% c.uri_for( '/family', m.auto_pfama.pfama_id ) %]"
           onclick="opener.location=this.href;return false;">
           [% m.auto_pfama.pfama_id %]</a>
-        (<a href="[% c.uri_for( "/family", m.auto_pfama.pfama_acc ) %]" 
+        (<a href="[% c.uri_for( '/family', m.auto_pfama.pfama_acc ) %]" 
           onclick="opener.location=this.href;return false;">
           [% m.auto_pfama.pfama_acc %]</a>)
       </td>
