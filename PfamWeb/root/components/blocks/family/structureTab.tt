@@ -98,7 +98,7 @@ END -%]
               <tr>
   		        [% IF seqKey != prevSeqKey -%]
   		          <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
-                  <a href="[% proteinUri %]?id=[% seqKey %]">[% seqKey %]</a>
+                  <a href="[% proteinUri %]/[% seqKey %]">[% seqKey %]</a>
                 </td>
               [% END;
 
@@ -110,7 +110,7 @@ END -%]
 
   		        IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
 	              <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                  <a href="[% structureUri %]?id=[% pdbKey %]">[% pdbKey %]</a>
+                  <a href="[% structureUri %]/[% pdbKey %]">[% pdbKey %]</a>
                 </td>
               [% END;
       				prevSeqKey = seqKey;
