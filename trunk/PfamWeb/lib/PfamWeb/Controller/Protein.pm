@@ -40,37 +40,6 @@ __PACKAGE__->config( SECTION => 'protein' );
 
 =head1 METHODS
 
-=head2 default : Path
-
-The entry point when the accession/ID is given as a parameter rather than an 
-argument.
-
-=cut
-
-sub default : Path {
-  my ( $this, $c ) = @_;
-
-  my $tainted_entry = $c->req->param('acc')   ||
-                      $c->req->param('id')    ||
-                      $c->req->param('entry') ||
-                      $c->req->param('name')  || # cope with redirects "swisspfamget.pl"
-                      '';
-
-  if ( $tainted_entry =~ m/\,/ ) {
-    $c->log->debug( 'Protein::default: got multiple accessions' )
-      if $c->debug;
-    $c->detach( 'proteins', [ $tainted_entry ] );
-  }
-  else {
-    $c->log->debug( 'Protein::default: got a single tainted entry' )
-      if $c->debug;
-    $c->detach( 'protein', [ $tainted_entry ] );
-  }
-
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 begin : Private
 
 Handles figuring out the output format and takes care of setting the
@@ -79,7 +48,7 @@ appropriate stash key for highlighting tracks.
 =cut
 
 sub begin : Private {
-  my ( $this, $c ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
 
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
@@ -106,6 +75,20 @@ sub begin : Private {
     }
   }
 
+  # see if the entry is specified as a parameter
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $c->req->param('name')  || # cope with redirects from "swisspfamget.pl"
+                      $entry_arg              ||
+                      '';
+
+  if ( $tainted_entry ) {
+    $c->log->debug( 'Protein::begin: got a tainted entry ' )
+      if $c->debug;
+    $c->stash->{param_entry} = $tainted_entry;
+  }
+
 }
 
 #-------------------------------------------------------------------------------
@@ -126,7 +109,18 @@ sub protein : Chained( '/' )
   my ( $this, $c, $entry_arg ) = @_;
 
   # get a handle on the entry and detaint it
-  my $tainted_entry = $entry_arg || '';
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
+
+  # check for multiple protein accessions; if found redirect to the method 
+  # that handles those specifically for PfamAlyzer
+  if ( $tainted_entry =~ m/\,/ ) {
+    $c->log->debug( 'Protein::default: got multiple accessions' )
+      if $c->debug;
+    $c->detach( 'proteins', [ $tainted_entry ] );
+    return;
+  }
   
   my $entry;
   if ( $tainted_entry ) {
@@ -146,8 +140,34 @@ sub protein : Chained( '/' )
 
   # retrieve the data for this sequence entry  
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+}
 
+#---------------------------------------
 
+=head2 old_protein : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_protein : Path( '/protein' ) {
+  my ( $this, $c ) = @_;
+
+  # $c->log->debug( 'Protein::old_protein: redirecting to "protein"' )
+  #   if $c->debug;
+  # $c->res->redirect( $c->uri_for( '/protein/' . $c->stash->{param_entry} ) );
+
+  if ( $c->stash->{param_entry} =~ m/\,/ ) {
+    $c->log->debug( 'Protein::old_protein: got multiple accessions; detaching to "proteins"' )
+      if $c->debug;
+    $c->detach( 'proteins', [ $c->stash->{param_entry} ] );
+    return;
+  }
+  else {
+    $c->log->debug( 'Protein::old_protein: single accession; redirecting to "protein"' )
+      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/protein', $c->stash->{param_entry} ) );
+  }
 }
 
 #-------------------------------------------------------------------------------
