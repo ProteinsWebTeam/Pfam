@@ -16,7 +16,7 @@ title = "Jalview: $alnType alignment for $acc";
 
 alignmentURI = "";
 IF entryType == "B";
-  alignmentURI = c.uri_for( '/pfamb/alignment/format' );
+  alignmentURI = c.uri_for( "/pfamb/$acc/alignment/format" );
 ELSE;
   alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType/format" );
 END;
