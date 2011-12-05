@@ -172,8 +172,8 @@ sub family_page : Chained( 'family' )
                   Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # if we don't have an entry to work with by now, we're done
   return unless $c->stash->{pfam};
@@ -346,8 +346,8 @@ sub logo : Chained( 'family' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   my $logo = $c->forward( 'get_logo' );    
   return if $c->stash->{errorMsg};
@@ -402,8 +402,8 @@ sub logo_image : Chained( 'family' )
                  Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->log->debug( 'Family::FamilyActions::logo_image: returning raw image' )
     if $c->debug;
@@ -461,8 +461,8 @@ sub hmm : Chained( 'family' )
 
   return unless defined $c->stash->{pfam};
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   my $cacheKey = 'hmm' . $c->stash->{acc};
   my $hmm      = $c->cache->get( $cacheKey );
@@ -550,8 +550,8 @@ sub id : Chained( 'family' )
          Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   if ( defined $c->stash->{pfam} ) {    
     if ( $c->stash->{output_xml} ) {
@@ -598,8 +598,8 @@ sub acc : Chained( 'family' )
           Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   if ( defined $c->stash->{pfam} ) {    
     if ( $c->stash->{output_xml} ) {
@@ -646,8 +646,8 @@ sub desc : Chained( 'family' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   if ( defined $c->stash->{pfam} ) {
 
@@ -692,8 +692,8 @@ sub structures : Chained( 'family' )
                  Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # see if we were handed a valid PDB ID and, if so, just stash it
   if ( defined $c->req->param('pdbId') and
@@ -776,8 +776,8 @@ sub mapping : Chained( 'family' )
               Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->log->debug( 'Family::FamilyActions::mapping: acc: |'
                   . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' )
@@ -853,8 +853,8 @@ sub tree : Chained( 'family' )
            CaptureArgs( 1 ) {
   my ( $this, $c, $aln_type ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->stash->{alnType} = 'seed';
 
@@ -894,7 +894,7 @@ sub tree_html : Chained( 'tree' )
   $c->stash->{template} = 'components/blocks/family/treeMap.tt';
 
   # cache the page (fragment) for one week
-  #$c->cache_page( 604800 );
+  $c->cache_page( 604800 );
 }
 
 #---------------------------------------
@@ -946,8 +946,8 @@ sub image : Chained( 'tree' )
             Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # stash the tree object
   $c->forward( 'get_tree' );
@@ -976,8 +976,8 @@ sub download : Chained( 'tree' )
                Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->log->debug( 'Family::Tree::download: dumping tree data to the response' )
     if $c->debug;
@@ -1015,8 +1015,8 @@ sub alignment : Chained( 'family' )
                 CaptureArgs( 1 ) {
   my ( $this, $c, $aln_type ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->stash->{alnType} = 'seed';
 
@@ -1055,8 +1055,8 @@ sub raw_alignment : Chained( 'alignment' )
                     Args( 0 ) {
 	my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
@@ -1079,8 +1079,8 @@ sub gzipped : Chained( 'alignment' )
               Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   my ( $alignment, $filename );
 
@@ -1205,8 +1205,8 @@ sub format : Chained( 'alignment' )
              Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
@@ -1342,8 +1342,8 @@ sub html : Chained( 'alignment' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
@@ -1432,8 +1432,8 @@ sub heatmap : Chained( 'alignment' )
               Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # heatmaps are only available for full alignments
   if ( $c->stash->{alnType} ne 'full' ) {
@@ -1519,8 +1519,8 @@ sub jalview : Chained( 'alignment' )
               Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->stash->{template} = 'components/tools/jalview.tt';
 }
@@ -1559,8 +1559,8 @@ sub dasviewer : Chained( 'alignment' )
                 Args( 0 ) {
   my ( $self, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # build a "title" string, which will be used as the heading for the
   # alignment tool window
@@ -1631,8 +1631,8 @@ sub build : Chained( 'alignment_link' )
             Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   $c->log->debug( 'Family::build: checking for sequences' )
     if $c->debug;
@@ -1714,8 +1714,8 @@ sub view : Chained( 'alignment_link' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # cache page for 12 hours
-  $c->cache_page( 43200 ); 
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
   
   # retrieve the job results
   my ( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
