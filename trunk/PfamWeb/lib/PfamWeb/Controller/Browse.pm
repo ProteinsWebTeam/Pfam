@@ -41,7 +41,7 @@ sub begin : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  #$c->cache_page( 604800 );
+  $c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'browse';
