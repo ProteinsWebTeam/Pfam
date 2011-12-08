@@ -59,6 +59,18 @@ sub auto : Private {
     # stash it and let the template stuff the value into the form    
     $c->stash->{preseq} = $1;
   }
+
+  # check if the preseq should be handled as DNA rather than protein
+  if ( defined $c->req->param('dnapreseq') and 
+       $c->req->param('dnapreseq') =~ m/^([A-Z]+)$/ and
+       length( $1 ) < $this->{maxPrefillLength} ) {
+    
+    $c->log->debug( 'Search::auto: found a DNA sequence with which to pre-fill the search form' )
+      if $c->debug;
+
+    # stash it and let the template stuff the value into the form    
+    $c->stash->{dnapreseq} = $1;
+  }
   
   return 1;
 }
