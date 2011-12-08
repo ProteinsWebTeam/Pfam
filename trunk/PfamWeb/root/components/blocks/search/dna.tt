@@ -79,9 +79,22 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           <textarea cols="60" 
                     rows="10"
                     name="seq"
-                    id="dnaSeq"></textarea>
+                    id="dnaSeq">[% dnapreseq %] </textarea>
         </div>
   
+        [% IF dnapreseq -%]
+        <div class="row">
+          <span class="label blankLabel">Pre-filled</span>
+          <span class="warning">Please note:</span> the sequence field has been 
+          pre-filled, based on the link that you clicked on
+          [% IF c.req.referer -%] 
+          <a class="ext" href="[% c.req.referer %]">the referring site</a>.
+          [% ELSE -%]
+          the referring site.
+          [% END -%]
+        </div>
+        [% END -%]
+
         <div class="row">
           <label for="dEmail">Email address</label>
           <input type="text" 
