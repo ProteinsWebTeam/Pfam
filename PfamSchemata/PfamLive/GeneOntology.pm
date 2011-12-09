@@ -42,6 +42,10 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9Jm6+n4C9o84GVj7Le/o5w
 
+__PACKAGE__->add_unique_constraint(
+  auto_go_unq => [ qw( auto_pfama go_id ) ] 
+);
+
 __PACKAGE__->has_one( pfama =>  'PfamLive::Pfama',
                       { 'foreign.auto_pfama'  => 'self.auto_pfama' },
                                             { proxy => [ qw( auto_pfama 
