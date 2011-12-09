@@ -36,6 +36,9 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lI3rC1SwrkXzLdm5LNyuDA
 
+__PACKAGE__->add_unique_constraint( 
+  auto_ip_unq => [ qw( auto_pfama interpro_id ) ] 
+); 
 
 __PACKAGE__->set_primary_key( 'auto_pfama' );
 
