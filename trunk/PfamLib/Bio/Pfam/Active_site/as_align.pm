@@ -133,11 +133,11 @@ sub full {
         
 	#Print out alignment of active site seq and upload to database
 	my $aln_as = $self->{_aln_as}->allgaps_columns_removed();
-	open(OUT, ">as_aln.$$") or croak "Can't open full.$$ for writing\n";
+	open(OUT, ">/tmp/as_aln.$$") or croak "Can't open full.$$ for writing\n";
 	$aln_as->write_Pfam(\*OUT);
 	close OUT;
 	
-	open(GZPP, "gzip -c as_aln.$$ |") or croak "Failed to gzip as_aln.$$:[$!]";
+	open(GZPP, "gzip -c /tmp/as_aln.$$ |") or croak "Failed to gzip as_aln.$$:[$!]";
 	my $db_as_alignment = join("", <GZPP>);
 	close GZPP; 
 
@@ -146,7 +146,7 @@ sub full {
 	    ->update_or_create( {auto_pfama => $self->{auto},
 				 alignment => $db_as_alignment,
 				 as_residues => $self->{_as_res_pos} });
-	unlink "as_aln.$$";
+	unlink "/tmp/as_aln.$$";
 
 
 	#Store as patterns

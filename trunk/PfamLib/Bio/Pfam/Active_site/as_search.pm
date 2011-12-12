@@ -24,7 +24,7 @@ sub find_as {
   my ($as_aln, $as_res, $seq_id, $seq_se, $seq_region, $family, $hmm_file) = @_;
 
 
-  system("hmmfetch $hmm_file $family > hmm.$$") and die "FATAL: Problem running [hmmfetch $hmm_file $family > hmm.$$]\n";
+  system("hmmfetch $hmm_file $family > /tmp/hmm.$$") and die "FATAL: Problem running [hmmfetch $hmm_file $family > /tmp/hmm.$$]\n";
 
   $seq_id = "Query_".$seq_id; 
 
@@ -36,12 +36,12 @@ sub find_as {
       $fasta .= ">" . $seq->id . "/" . $seq->start . "-" . $seq->end . "\n$s\n";
   }
   $fasta .= ">$seq_id/$seq_se\n$seq_region";
-  open(SEQ, ">seqs.$$") or die "Couldn't open file seqs.$$ $!\n";
+  open(SEQ, ">/tmp/seqs.$$") or die "Couldn't open file seqs.$$ $!\n";
   print SEQ $fasta;
   close SEQ;
  
 
-  open(OUT, "hmmalign --outformat Pfam hmm.$$ seqs.$$ |") or die "Couldn't open fh to hmmalign $!\n";
+  open(OUT, "hmmalign --outformat Pfam /tmp/hmm.$$ /tmp/seqs.$$ |") or die "Couldn't open fh to hmmalign $!\n";
 
   my $aln = new Bio::SimpleAlign;
   my ($name, $start, $end, $seq);
@@ -58,8 +58,8 @@ sub find_as {
   close OUT;
   
 
-  unlink "seqs.$$";
-  unlink "hmm.$$";
+  unlink "/tmp/seqs.$$";
+  unlink "/tmp/hmm.$$";
   
   #Locate exp as in fam
   _exp_as($aln, $as_res);
