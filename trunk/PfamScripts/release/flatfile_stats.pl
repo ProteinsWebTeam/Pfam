@@ -227,9 +227,9 @@ print "\tNumber of families: $pfamBfamilies\n";
 print "\tResidues: $pfamb_residues\n";
 print "\tSequences: $pfamb_sequences (with Pfam-B domains only = $pfamb_only_seqs)\n";
 print "\tPercent Pfamseq residues =",$pfamb_res_cov,"\n";
-print "\tPercent Pfamseq sequences =",$pfamb_res_cov,"\n";
+print "\tPercent Pfamseq sequences =",$pfamb_seq_cov,"\n";
 print "\tPercent Pfamseq residues additional =",$pfamb_add_res_cov,"\n";
-print "\tPercent Pfamseq sequences additional =",$pfamb_add_res_cov,"\n\n";
+print "\tPercent Pfamseq sequences additional =",$pfamb_add_seq_cov,"\n\n";
 
 
 
