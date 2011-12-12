@@ -24,13 +24,23 @@ FOREACH pfamseq_acc IN regions_iterator;
   pfamseq.taxonomy    _ "	" _
   pfamseq.pfamseq.is_fragment; %]
 [% FOREACH region IN regions.$pfamseq_acc;
-    "A	" _
-    region.pfama_id  _ "	" _
-    region.pfama_acc _ "	" _
-    region.seq_start _ "	" _
-    region.seq_end;
-    UNLESS ( loop.last AND regions_iterator.last ) %]
+    IF region.pfama_id;
+      "A	" _
+      region.pfama_id  _ "	" _
+      region.pfama_acc _ "	" _
+      region.seq_start _ "	" _
+      region.seq_end;
+      UNLESS ( loop.last AND regions_iterator.last ) %]
 [% END;
+    ELSIF region.auto_pfamb.pfamb_id;
+      "B	" _
+      region.auto_pfamb.pfamb_id  _ "	" _
+      region.auto_pfamb.pfamb_acc _ "	" _
+      region.seq_start _ "	" _
+      region.seq_end;
+      UNLESS ( loop.last AND regions_iterator.last ) %]
+[% END;
+    END; # of "IF pfama or pfamb"
   END; # of "FOREACH region"
 
 END; # of "FOREACH pfamseq_acc"
