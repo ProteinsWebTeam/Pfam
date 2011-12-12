@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -11,8 +11,10 @@ use Storable qw( freeze nfreeze );
 
 use Data::Dump qw( dump );
 
-my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
+my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 $ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
+
+print STDERR $ENV{PFAMOFFLINE_CONFIG}."\n";
 
 my $opts = {};
 
@@ -22,6 +24,13 @@ if (defined $ENV{PIDFILE}) {
 
 my $pq = Bio::Pfam::WebServices::PfamQueue->new('h3', $opts);
 $pq->daemonise unless $DEBUG;
+
+if ($DEBUG && $ENV{PIDFILE}) {
+  open my $pid, '>', $ENV{PIDFILE} 
+    or die "Couldn't open pidfile: $!";
+  print $pid $$;
+  close $pid;	
+}
 
 my $ps = Bio::Pfam::Scan::PfamScan->new();
 
@@ -80,6 +89,7 @@ JOB: while ( 1 ) {
     $DEBUG && print STDERR "dequeuer: running a search...\n";
     $ps->search( $input );
     $DEBUG && print STDERR "dequeuer: done\n";
+  #  print STDERR "**** ".dump($ps->results( $input->{-e_dom}));
     $results = nfreeze( $ps->results( $input->{-e_dom} ) );
   };
   if ( $@ ) {

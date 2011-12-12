@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 #
 # Authors: Rob Finn & John Tate 
 #
@@ -51,7 +51,7 @@ use Getopt::Long;
 # Our Module Found in Pfam-Core
 use Bio::Pfam::WebServices::PfamQueue;
 
-our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 
 my $opts = {};
 
@@ -59,12 +59,21 @@ if (defined $ENV{PIDFILE}) {
   $opts->{pidfile} = $ENV{PIDFILE};
 }
 
+
 # Get a new queue stub
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("slow", $opts);
 $qsout->daemonise unless($DEBUG);
+
+if ($DEBUG && $ENV{PIDFILE}) {
+  open my $pid, '>', $ENV{PIDFILE} 
+    or die "Couldn't open pidfile: $!";
+  print $pid $$;
+  close $pid;	
+}
+
 while(1) {
   my $job   = $qsout->satisfy_pending_job();
-  $DEBUG && print Dumper($job, $qsout->{'jobTypes'});
+  $DEBUG && print STDERR Dumper($job, $qsout->{'jobTypes'});
   
   unless($job->{'id'}) {
    	sleep 5; #Poll the database every 5 seconds....3 per LSF Poll
@@ -86,8 +95,7 @@ while(1) {
         $cmd .= " -e_seq ". $opts->{evalue}." -e_dom ".$opts->{evalue};
       }
     
-      if($opts->{searchBs}){
-        $DEBUG && print STDERR "dequeuer: searching for Pfam-Bs\n";
+      if($opts->{batchOpts}){
         #Run both a Pfam-A and a Pfam-B search
         $cmd .= " -pfamB "  
       }
