@@ -8,6 +8,7 @@ use File::Copy;
 use Cwd;
 use LWP::UserAgent;
 use Log::Log4perl qw(:easy);
+use DateTime;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -19,12 +20,13 @@ my $logger = get_logger();
 
 my $config = Bio::Pfam::Config->new;
 
-my ( $help, $newRelease, $oldRelease, $relDir );
+my ( $help, $newRelease, $oldRelease, $relDir, $updateDir );
 
 GetOptions(
   "new=s"    => \$newRelease,
   "old=s"    => \$oldRelease,
   "relDir=s" => \$relDir,
+  "upDir=s"  => \$updateDir,
   "h"        => \$help
 );
 
@@ -32,8 +34,16 @@ if ( !$newRelease || !$oldRelease ) {
   &help;
 }
 
-unless ($relDir) {
+if ($relDir) {
+  unless(-d $relDir){
+    die "Could not find the update dir\n";  
+  }
+}else{
   $relDir = '.';
+}
+
+unless( $updateDir and -d $updateDir ){
+  $logger->logdie("Please specify an update directory.\n");
 }
 
 #This takes the input release numbers and checks that the are sensible.
@@ -41,6 +51,7 @@ unless ($relDir) {
 $logger->info("Checking release numbers");
 my ( $major, $point, $old_major, $old_point ) =
   checkReleaseNumbers( $newRelease, $oldRelease );
+
 $logger->info("Making release dir");
 unless ( -e "$relDir/$major.$point" ) {
   mkdir("$relDir/$major.$point")
@@ -50,14 +61,25 @@ unless ( -e "$relDir/$major.$point" ) {
 my $thisRelDir = "$relDir/$major.$point";
 $logger->info("Made $thisRelDir");
 
+$logger->info("Making release log dir");
+my $logDir = "$relDir/Logs";
+unless ( -e $logDir ) {
+  mkdir($logDir)
+    or
+    $logger->logdie("Could not make release directory $logDir");
+}
+$logger->info("Made $logDir");
+
+
 #Can we connect to the PfamLive database?
 $logger->info("Going to connect to the live database\n");
 
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 unless ($pfamDB) {
   Bio::Pfam::ViewProcess::mailPfam(
     "View process failed as we could not connect to pfamlive");
 }
+
 
 $logger->debug("Got pfamlive database connection");
 my $dbh = $pfamDB->getSchema->storage->dbh;
@@ -80,10 +102,61 @@ my $noUnFinishedJobs = $jobsDB->getSchema->resultset('JobHistory')->search(
 );
 
 if ( $noUnFinishedJobs != 0 ) {
-  $logger->logdie("There are currently $noUnFinishedJobs in the jobs database");
-}
-else {
+  $logger->warn("There are currently $noUnFinishedJobs in the jobs database");
+  
+  if(-e $logDir."/overrideView"){
+  
+  }else{
+    print STDERR "\nDo you want to continue [y/n]:";
+
+    while(<STDIN>){
+      if(/y/i){
+        $logger->info("User confirmed all view processes are complete!");
+        open(O, ">".$logDir."/overrideView") or die "Could not open $logDir/overrideView:[$!]\n";
+        close(O);
+        last;
+      }else{
+        exit;  
+      }
+    }
+  }
+} else {
   $logger->info("All view processes are complete!");
+}
+
+my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
+if($version->pfam_release ne "$major.$point"){
+  my $dt = DateTime->now;
+  my $ymd = $dt->ymd; 
+  
+  my($sqV, $trV);
+  open(V, $updateDir."/reldate.txt");
+  while(<V>){
+    $sqV = $1 if(m|UniProtKB/Swiss-Prot Release (\S+)|);
+    $trV = $1 if(m|UniProtKB/TrEMBL Release (\S+)|);
+  }
+  close(V);
+  
+  #Set the hmmer version
+  my $hmmerVersion;
+  open(V, $config->hmmer3bin."/hmmsearch -h |") or $logger->logdie("Failed to get help on hmmsearch");
+  while(<V>){
+    if(/^# HMMER (\S+)/){
+      $hmmerVersion = $1;
+      last;  
+    }  
+  }
+  close(V);
+  
+  unless( $hmmerVersion ){
+    $logger->logdie("Failed to detect hmmer version!");  
+  }
+  
+  $version->update({pfam_release      => "$major.$point",
+                    pfam_release_date => $ymd,
+                    hmmer_version     => $hmmerVersion,
+                    swiss_prot_version => $sqV, 
+                    trembl_version => $trV});
 }
 
 #Get the latest userman.txt and relnotes.txt from the ftp site.
@@ -102,44 +175,68 @@ $logger->info("Got relnotes and userman");
 # 5. metaseq
 # 6. ncbi
 
-my $pfamseqdir = "/lustre/pfam/pfam/Production/pfamseq";
-my ( $numSeqs, $numRes );
-foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
-  unless ( -s "$thisRelDir/$f" ) {
+#Upto here......
 
-#($numSeqs, $numRes) = checkPfamseqSize($pfamseqdir, $pfamDB) if($f eq 'pfamseq');
+my ( $numSeqs, $numRes );
+
+if(-e $logDir."/pfamseqSize"){
+  open(S, $logDir."/pfamseqSize") or $logger->logdie( "Could not open $logDir./pfamseqSize:[$!]"); 
+  while(<S>){
+    $numSeqs = $1 if(/sequences\: (\d+)/);
+    $numRes = $1 if(/residues\: (\d+)/);
+  }
+  close(S);
+  $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
+}
+
+foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
+  unless ( -s "$thisRelDir/$f.gz" ) {
+    if($f eq 'pfamseq'){
+      ($numSeqs, $numRes) = checkPfamseqSize($updateDir, $pfamDB);
+      open(N, ">".$logDir."/pfamseqSize") or die "Could not open $logDir/pfamseqSize:[$!]";
+      print N "sequences: $numSeqs\n";
+      print N "residues: $numRes\n";
+      close( N );
+      
+    }  
     $logger->info("Fetching the the sequence files");
-    getPfamseqFiles( $thisRelDir, $pfamseqdir );
+    getPfamseqFiles( $thisRelDir, $updateDir );
   }
 }
 
 unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
-  #makePfamAFlat( $thisRelDir, $pfamDB );
+  makePfamAFlat( $thisRelDir, $pfamDB );
 }
 
-#foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
-#  $logger->info("Checking format of $f");
-#  checkflat($f);
-#}
-#
+unless(-e "$logDir/checkedA"){
+  foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
+    $logger->info("Checking format of $f");
+    checkflat($f);
+  }
+}
+
 unless ( -s "$thisRelDir/Pfam-B" and -s "$thisRelDir/Pfam-B.fasta" ) {
-
-  #TODO - uncomment this section
-  makePfamBFlat( $thisRelDir, $pfamDB );
+  $logger->logdie("Cannot find the Pfam-B files (Pfam-B and Pfam-B.fasta), which should be in the update directoru\n");
 }
 
-#foreach my $f ("$thisRelDir/Pfam-B") {
-#  $logger->info("Checking format of $f");
-#  checkflat_b($f);
-#}
+unless(-e "$logDir/checkedB"){
+  foreach my $f ("$thisRelDir/Pfam-B") {
+    $logger->info("Checking format of $f");
+    checkflat_b($f);
+  }
+}
 
 #Make the stats for the release
 unless ( -s "$thisRelDir/stats.txt" ) {
-  makeStats("$thisRelDir");
+  unless($numSeqs and $numRes){
+    $logger->logdie("Need to have the number of sequences and residues defined.\n");  
+  }
+  makeStats("$thisRelDir",  $numSeqs, $numRes);
 }
 $logger->info("Maded stats!");
 
 #Make the indexes HMMs
+unless(-e "$logDir/checkedA.hmm"){
 foreach my $f (qw(Pfam-A.hmm)) {
   $logger->info("Checking HMM flatfile $f");
   my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
@@ -158,7 +255,6 @@ foreach my $f (qw(Pfam-A.hmm)) {
 
   $logger->logdie("Error found in $f") if ($error);
   unless ( -s "$thisRelDir/$f.bin" ) {
-
     #Press and convert the files.
     $logger->debug("Making Pfam-A.hmm.bin");
 
@@ -174,10 +270,12 @@ foreach my $f (qw(Pfam-A.hmm)) {
     system( $config->hmmer3bin
         . "/hmmconvert -2 $thisRelDir/$f > $thisRelDir/$f.2 " )
       and $logger->logdie("Failed to run hmmconvert:[$!]");
-
   }
-
+  open(L, ">$logDir/checkedA.hmm") or $logger->logdie("Could not open $logDir/checkedA.hmm:[$!]\n");
+  print L "Checked!";
+  close(L);
   $logger->info("Checked $f and made $f.bin");
+}
 }
 
 #Make Pfam-A.scan.dat
@@ -193,6 +291,22 @@ unless ( -s "$thisRelDir/active_site.dat" ) {
 }
 $logger->info("Made activesite.dat");
 
+unless( -s "$thisRelDir/Pfam-A.dead"){
+  $logger->info("Making Pfam-A.dead.");
+  system("make_pfamA_dead.pl > $thisRelDir/Pfam-A.dead") 
+    and $logger->logdir("Failed to make Pfam-A.dead:[$!]");
+}
+$logger->info("Made Pfam-A.dead.");
+
+unless(-s "$thisRelDir/diff"){
+  $logger->info("Making diff file");
+  my $archive = $config->archiveLoc;
+  $archive .= "/$old_major.$old_point/diff.gz"; 
+  system("make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff") 
+    and $logger->logdie("Could not run make_diff.pl:[$!]");
+}
+$logger->info("Made diff file.");
+
 unless ( -s "$thisRelDir/Pfam-B.hmm" ) {
   $logger->info("Making Pfam-B.hmm");
   &makePfamBHmms("$thisRelDir");
@@ -200,17 +314,16 @@ unless ( -s "$thisRelDir/Pfam-B.hmm" ) {
 
 $logger->info("Made Pfam-B.hmm and Pfam-B.hmm.dat");
 
+my $pwd = cwd;
 #Index the fasta files!
 foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
-  unless ( -s "$thisRelDir/$f.phr" ) {
-    my $pwd = cwd;
+  unless ( -s "$thisRelDir/$f.00.phr" or -s "$thisRelDir/$f.phr" ) {
     chdir("$thisRelDir")
       || $logger->logdie("Could not change into $thisRelDir:[$!]");
     $logger->info("Indexing $f (formatdb)");
     system("formatdb -p T -i $f")
       and $logger->logdie("Failed to index $f:[$!]");
     chdir("$pwd") || $logger->logdie("Could not change into $pwd:[$!]");
-    $logger->info("");
   }
   $logger->info("Indexed $f");
 }
@@ -218,34 +331,124 @@ foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
 #Make the Pfam-C file......
 unless ( -s "$thisRelDir/Pfam-C" ) {
   $logger->info("Making Pfam-C");
+  chdir($thisRelDir) or $logger->logdie("Could not change to release dir:[$!]");
   system("make_pfamC.pl")
     and $logger->logdie("Failed to run make_pfamC.pl:[$!]");
+  chdir($pwd);
 }
 $logger->info("Made Pfam-C");
 
-$logger->info(
-"Run the following SQL statment: select pfamseq_acc, seq_version, crc64, md5, pfamA_acc,"
+
+unless(-e "$logDir/updatedClans"){
+  $logger->info("Updating clan information"); 
+  $logger->info("Updating number if architectures");
+  $dbh->do("UPDATE clans c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a  WHERE c.auto_clan=a.auto_clan);")
+    or $logger->logdie("Error updating clan architecture counts: ".$dbh->errstr);
+  $logger->info("Updating number of structures");
+  $dbh->do("UPDATE clans c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.auto_clan=c.auto_clan and m.auto_pfamA=r.auto_pfamA);")
+    or $logger->logdie("Error updating clan structure counts: ".$dbh->errstr);
+  open(L, ">$logDir/updatedClans") or $logger->logdie("Could not open $logDir/updatedClans for writing.:[$!]");
+  print L "Done\n";
+  close(L);
+}
+$logger->info("Updated clans table");
+
+unless( -s "$thisRelDir/metaseq.stats"){
+  $logger->info("Caclculating metaseq coverage stats");
+  chdir("$thisRelDir") or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+  system("calculate_coverage.pl -meta > metaseq.stats ") and $logger->logdie("Could not run calculate coverage:[$!]");
+  chdir($pwd);
+}
+
+unless( -s "$thisRelDir/ncbi.stats"){
+  $logger->info("Caclculating ncbi coverage stats");
+  chdir("$thisRelDir") or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+  system("calculate_coverage.pl -ncbi > ncbi.stats ") and $logger->logdie("Could not run calculate coverage:[$!]");
+  chdir($pwd);
+}
+
+unless(-e "$thisRelDir/PfamFamily.xml.gz"){
+  $logger->info("Making site search xml");
+  chdir("$thisRelDir") or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+  #TODO system("pfamSiteSearchXML.pl") and $logger->logdie("Could not run pfamSiteSearchXML.pl:[$!]");
+  chdir($pwd);
+}
+$logger->info("Made site search xml");
+
+unless(-e "$thisRelDir/pdbmap"){
+  $logger->info("Making pdbmap");
+  $dbh->do('select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a, pfamseq s where s.auto_pfamseq=r.auto_pfamseq and a.auto_pfamA=r.auto_pfamA into outfile "/tmp/pdbmap"') or $logger->logdie("Failed to make pdbmap:".$dbh->errstr);
+  system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/pdbmap ".$thisRelDir ) and $logger->logdie("Failed to run scp.");
+}
+
+unless(-e "$thisRelDir/Pfam.version"){
+  $logger->info("Making Pfam.version file");
+  my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
+  open(V, ">$thisRelDir/Pfam.version") or $logger->logdie("Could not open $thisRelDir/Pfam.version for writing:[$!]");
+  print V "Pfam release       : ".$version->pfam_release."\n";
+  print V "Pfam-A families    : ".$version->number_families."\n";
+  print V "Date               : ".substr($version->pfam_release_date, 0, 7)."\n";
+  print V "Based on UniProtKB : ".$version->trembl_version."\n";
+  close(V);
+}
+
+unless(-e "$thisRelDir/Pfam-A.regions.tsv"){
+  $logger->info("Making Pfam-A.regions.tsv");
+  $dbh->do(
+    "select pfamseq_acc, seq_version, crc64, md5, pfamA_acc,"
     . " seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s "
     . " where s.auto_pfamseq=r.auto_pfamseq and a.auto_pfamA=r.auto_pfamA and in_full=1"
-    . "  into outfile '/tmp/pdbeDataFile1.txt'" );
+    . "  into outfile '/tmp/Pfam-A.regions.$$.tsv'" ) or $logger->logdie("Failed to make Pfam-A.regions.tsv:".$dbh->errstr);
+  system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/Pfam-A.regions.$$.tsv ".$thisRelDir."/Pfam-A.regions.tsv" ) and $logger->logdie("Failed to run scp.");
+}
 
-$logger->info(
-"Run the following SQL statment:select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
-    . " from pfamA a  left join clan_membership m on a.auto_pfamA=m.auto_pfamA "
-    . "left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/pdbeDataFile2.txt'"
-);
+unless(-e "$thisRelDir/Pfam-A.clans.tsv"){
+  $logger->info("Making Pfam-A.clans.tsv");
+  $dbh->do("select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
+          ." from pfamA a  left join clan_membership m on a.auto_pfamA=m.auto_pfamA "
+          ."left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/Pfam-A.clans.$$.tsv'") or $logger->logdie("Failied to  make PfamA-.clans.tsv:".$dbh->errstr);
+  system("scp " . $config->pfamliveAdmin->{host}. ":/tmp/Pfam-A.clans.$$.tsv ".$thisRelDir."/Pfam-A.clans.tsv" ) and $logger->logdie("Failed to run scp.");
+}
 
 unless ( -s "$thisRelDir/swisspfam" ) {
   $logger->info("Going to make swisspfam\n");
-  makeSwissPfam( $thisRelDir, $pfamseqdir );
+  makeSwissPfam( $thisRelDir, $updateDir );
 }
 
-exit;    #TODO - remove this exit
+# TODO Swisspfam style file fpr meta and ncbi
+
+
+unless( -e "$logDir/madeSeqInfo"){
+  $logger->info("Making seq info, they will take about 48 hours!!!");
+  #TODO $dbh->do("drop table if exists seq_info") or $logger->logdie("Error dropping seq_info table:".$dbh->errstr);
+  $dbh->do("CREATE TABLE seq_info AS
+  SELECT DISTINCT( p.pfamA_acc ),
+         p.pfamA_id,
+         p.description,
+         prf.auto_pfamA,
+         prf.auto_pfamseq,
+         ps.pfamseq_id,
+         ps.pfamseq_acc,
+         ps.description AS seq_description,
+         ps.species
+  FROM   pfamA AS p, 
+         pfamseq AS ps,
+         pfamA_reg_full_significant AS prf
+  WHERE  prf.in_full = 1
+  AND    p.auto_pfamA     = prf.auto_pfamA
+  AND    prf.auto_pfamseq = ps.auto_pfamseq;") or $logger->logdie("Error generating seq_info table:".$dbh->errstr);
+  open(L, ">$logDir/madeSeqInfo") or $logger->logdie("Error opening $logDir/madeSeqInfo for writing:[$!]\n");
+  print L "Done\n";
+  close(L);
+}
+
+
 
 #Dump the database.
-$logger->info("Finished with the database lock");
-
-exit;
+# TODO - refactor make_ftp
+unless(-d "$thisRelDir/ftpa"){
+  make_ftp($thisRelDir, $logger);
+}
 
 sub checkPfamseqSize {
   my ( $pfamseqdir, $pfamDB ) = @_;
@@ -254,7 +457,7 @@ sub checkPfamseqSize {
   $logger->info("Running seqstat on pfamseq");
 
   # Use seqstat to make stats!
-  open( TMP, "seqstat $pfamseqdir/pfamseq |" )
+  open( TMP, "esl-seqstat $pfamseqdir/pfamseq |" )
     or $logger->logdie("Failed to run seqstat on $pfamseqdir/pfamseq:[$!]");
   while (<TMP>) {
     if (/^Total \# residues:\s+(\d+)/)   { $residues  = $1; }
@@ -288,10 +491,10 @@ sub checkPfamseqSize {
 }
 
 sub makeStats {
-  my $releasedir = shift;
+  my ($releasedir, $num_seqs, $num_res) = @_;
   $logger->info("Making stats.\n");
   system(
-"flatfile_stats.pl $releasedir/Pfam-A.full $releasedir/Pfam-B > $releasedir/stats.txt"
+"flatfile_stats.pl $releasedir/Pfam-A.full $releasedir/Pfam-B $num_seqs $num_res > $releasedir/stats.txt"
     )
     and $logger->logdie(
 "Failed to run flatfile_stats.pl $releasedir/Pfam-A.full $releasedir/Pfam-B:[$!]"
@@ -487,7 +690,6 @@ sub getPfamseqFiles {
       chdir($pwd) or $logger->logdie("Could not cd to $pwd:[$!]");
     }
   }
-
 }
 
 sub makePfamAFlat {
@@ -505,7 +707,7 @@ sub makePfamAFlat {
     || $logger->logdie("Could not open Pfam-A.seed");
   open( PFAMAFULL, ">$thisRelDir/Pfam-A.full" )
     || $logger->logdie("Could not open Pfam-A.full");
-  open( PFAMHMM, ">$thisRelDir/Pfam.hmm" )
+  open( PFAMHMM, ">$thisRelDir/Pfam-A.hmm" )
     || $logger->logdie("Could not open Pfam.hmm");
   open( PFAMAFA, ">$thisRelDir/Pfam-A.fasta" )
     || $logger->logdie("Could not open Pfam-A.fasta");
@@ -1055,7 +1257,7 @@ sub makePfamAFlat {
       "SERIOUS ERROR whilst making the flatfile!!! See thisRelDir/faltErrors");
   }
 
-  # /software/pfam/src/hmmer-3.0b2/bin/hmmconvert -2 Pfam.hmm > ! Pfam-A.h2.hmm
+  # /software/pfam/src/hmmer-3.0b2/bin/hmmconvert -2 Pfam-A.hmm > ! Pfam-A.h2.hmm
 
 }
 
@@ -1108,82 +1310,113 @@ sub checkflat_b {
 sub makeSwissPfam {
   my ( $releasedir, $pfamseqdir ) = @_;
   $logger->info("Making swisspfam\n");
+  $logger->logdie("Work to do on this bit, see code";)
 
-  #The next two system calls need to be reworked!
-  if ( !-s "$pfamseqdir/pfamseq.len" ) {
-    $logger->info("Going to needlessly waste time and run pfamseq_lengths.pl");
-    system("gunzip -c /lustre/pfam/pfam/Production/pfamseq/uniprot_sprot.dat.gz /lustre/pfam/pfam/Production/pfamseq/uniprot_trembl.dat.gz | pfamseq_lengths.pl >! /lustre/pfam/pfam/Production/pfamseq/pfamseq.len"
-    
-    
-    
-    
-    "pfamseq_lengths.pl $pfamseqdir/*.dat > $pfamseqdir/pfamseq.len")
-      and $logger->logdie("Failed to run pfamseq_lengths.pl:[$!]");
-  }
+#Run these queries, bring back and concatenate them together.
+#mysql> select length, pfamseq_id, concat(pfamseq_acc, ".", seq_version), seq_start, seq_end, pfamB_id, number_regions pfamB_acc from pfamseq s, pfamB_reg r, pfamB b where r.auto_pfamB=b.auto_pfamB and r.auto_pfamseq=s.auto_pfamseq into outfile "/tmp/sw-pf.b";
 
-  $logger->info(
-    "Going to needlessly waste some more time and run swisspfam_start_ends.pl");
-  system(
-"swisspfam_start_ends.pl $pfamseqdir/pfamseq.len $releasedir/Pfam-A.full $releasedir/Pfam-B > $releasedir/sw-pf"
-  ) and $logger->logdie("Failed to run swusspfam_start_ends.pl\n");
+#mysql> select length, pfamseq_id, concat(pfamseq_acc, ".", seq_version), seq_start, seq_end, concat(pfamA_acc, ".", version), a.description  from pfamseq s, pfamA_reg_full_significant r, pfamA a where r.auto_pfamseq=s.auto_pfamseq and a.auto_pfamA=r.auto_pfamA and in_full=1 into outfile '/tmp/sw-pf.a';
 
-  if ( !-s "$releasedir/sw-pf" ) {
-    $logger->logdie( "No $releasedir/sw-pf file made!\n", 'die' );
-  }
-
+#SCP back
+# cat sw-pf.a sw-pf.b | sort -k2 > sw-pf
   $logger->info("Going to make swisspfam");
   system("mkswissPfam $releasedir/sw-pf > $releasedir/swisspfam")
+    and $logger->logdie("Failed to run mkswissPfam:[$!]");
+
+
+#SCP back - probably quicker to sort once back?
+#select length, metaseq_acc, metaseq_acc, seq_start, seq_end, concat(pfamA_acc, ".", version), a.number_meta, a.description  from metaseq s, meta_pfamA_reg r, pfamA a where r.auto_metaseq=s.auto_metaseq and a.auto_pfamA=r.auto_pfamA order by metaseq_id into outfile '/tmp/mt-pf'
+
+  $logger->info("Going to make metapfam");
+  system("mkswissPfam $releasedir/mt-pf > $releasedir/metapfam")
+    and $logger->logdie("Failed to run mkswissPfam:[$!]");
+
+
+#SCP back - probably quicker to sort once back?
+#select length, s.gi, s.gi, seq_start, seq_end, concat(pfamA_acc, ".", version), a.number_ncbi, a.description  from ncbi_seq s, ncbi_pfamA_reg r, pfamA a where r.gi=s.gi and a.auto_pfamA=r.auto_pfamA order by s.gi into outfile '/tmp/gp-pf'
+
+
+  $logger->info("Going to make ncbipfam");
+  system("mkswissPfam $releasedir/gp-pf > $releasedir/ncbipfam")
     and $logger->logdie("Failed to run mkswissPfam:[$!]");
 }
 
 sub make_ftp {
-  my $scriptdir  = shift @_;
-  my $releasedir = shift @_;
-  my $tmpdir     = shift @_;
-  my $pfamseqdir = shift @_;
-  my $release    = shift;
-  &report("Making ftp files.\n");
+  my ($releasedir, $logger)    = @_;
+  $logger->info("Making ftp files.\n");
 
   mkdir( "$releasedir/ftp", 0775 );
   if ( !-d "$releasedir/ftp" ) {
-    &report( "Have not made ftp directory!\n", 'die' );
+    $logger->logdie( "Could not make ftp directory!");
   }
 
-  #	&execute("tar cf $releasedir/trees.tar $releasedir/trees");
-  &execute("tar cf $releasedir/database_files.tar $releasedir/database_files");
-
-  my @list = (
-    'Pfam-B.hmm',   'Pfam-A.hmm',
-    'Pfam-A.dead',  'Pfam-A.full',
-    'Pfam-A.seed',  'Pfam-B',
-    'swisspfam',    'diff',
-    'prior.tar',    'domain.pnh',
-    'Pfam-A.fasta', 'Pfam-C',
-    'diff.version', "version_$release",
-    'trees.tar',    'database_files.tar'
+  if(!-e "$releasedir/trees.tgz"){
+    system("tar zcf $releasedir/trees.tgz $releasedir/trees") 
+    and $logger->logdie("Failed to tgz trees directory");
+  }
+  my @list = qw(
+    active_site.dat
+    diff
+    metapfam
+    metaseq
+    ncbi
+    ncbipfam
+    pdbmap
+    Pfam-A.dead
+    Pfam-A.fasta
+    Pfam-A.full
+    Pfam-A.full.metagenomics
+    Pfam-A.full.ncbi
+    Pfam-A.hmm.dat
+    Pfam-A.hmm
+    Pfam-A.seed
+    Pfam-B.fasta
+    Pfam-B
+    Pfam-B.hmm.dat
+    Pfam-B.hmm
+    Pfam-C
+    pfamseq
+    relnotes.txt
+    swisspfam
+    uniprot_sprot.dat
+    uniprot_trembl.dat
+    userman.txt
+    Pfam.version
+    Pfam-A.regions.tsv
+    Pfam-A.clans.tsv
+    trees.tgz
   );
 
+  my @gzlist;
   foreach my $file (@list) {
-    &execute("gzip -c $releasedir/$file > $releasedir/ftp/$file.gz");
+    $logger->info("Working on $file");
+    unless(-e "$releasedir/$file" or -e "$releasedir/$file.gz"){
+      $logger->logdie("The file $file in not in the release directory");
+    }
+
+    next if(-e "$releasedir/ftp/$file.gz" or -e "$releasedir/ftp/$file.tgz");
+
+    if(-e "$releasedir/$file.gz"){
+      #copy it
+      system("cp $releasedir/$file.gz $releasedir/ftp/$file.gz");
+      push(@gzlist, $file);
+    }elsif( $file =~ /.*txt/ or $file =~ /\.*\.tgz/){
+      #copy it
+      system("cp $releasedir/$file $releasedir/ftp/$file");
+    }else{
+      #gzip it
+      system("gzip -c $releasedir/$file > $releasedir/ftp/$file.gz");
+      push(@gzlist, $file);
+    }
   }
-
-  # Now need to export pfamseq each time.
-  &execute("gzip -c $pfamseqdir/pfamseq > $releasedir/ftp/pfamseq.gz");
-  push( @list, "pfamseq" );
-
-  # Erik also wants the sprot.dat and uniprot.dat files.....
-  &execute("gzip -c $pfamseqdir/sprot.dat > $releasedir/ftp/sprot.dat.gz");
-  &execute("gzip -c $pfamseqdir/trembl.dat > $releasedir/ftp/trembl.dat.gz");
-  push( @list, "sprot.dat", "trembl.dat" );
 
   # Test all gzipped files exist and unzip ok
-  foreach my $file (@list) {
+  foreach my $file (@gzlist) {
     if ( !-s "$releasedir/ftp/$file.gz" ) {
-      &report( "Failed to make file $releasedir/ftp/$file.gz\n", 'die' );
+      $logger->logdie( "Failed to make file $releasedir/ftp/$file.gz" );
     }
-    &execute("gunzip -t $releasedir/ftp/$file.gz");
   }
-  &execute("touch $tmpdir/made_ftp");
+  #TODO copy whole dir tree to the ftp site.
 }
 
 sub makePfamBHmms {
@@ -1201,22 +1434,22 @@ sub makePfamBHmms {
 
   open( B, $dir . "/Pfam-B" )
     or $logger->logdie("Could not open Pfam-B:[$!]");
-  open( B2, ">" . $dir . "/Pfam-B.top20000" )
-    or $logger->logdie("Could not open Pfam-B.top20000:[$!]");
+  #open( B2, ">" . $dir . "/Pfam-B.top20000" )
+  #  or $logger->logdie("Could not open Pfam-B.top20000:[$!]");
 
-  $/ = "//";
-  while (<B>) {
-    print B2 $_;
-    if (/#=GF ID   Pfam-B_(\d+)/) {
-      if ( $1 == 20000 ) {
-        print B2 "\n";
-        close(B2);
-        last;
-      }
-    }
-  }
+  #$/ = "//";
+  #while (<B>) {
+  #  print B2 $_;
+  #  if (/#=GF ID   Pfam-B_(\d+)/) {
+  #    if ( $1 == 20000 ) {
+  #      print B2 "\n";
+  #      close(B2);
+  #      last;
+  #    }
+  #  }
+  #}
   close(B);
-  $/ = "\n";
+  #$/ = "\n";
 
   #system($config->hmmer3bin."/hmmbuild $dir/Pfam-B.hmm.a $dir/Pfam-B.top20000")
   # and $logger->logdie("Failed to run hmmbuild:[$!]");
@@ -1289,5 +1522,15 @@ sub makePfamBHmms {
 
 
 sub help {
+  print<<EOF;
+  
+  usage: $0 -old <Rel_old> -new <Rel_new> -relDir <dirlocation> -upDir <pfamseqDir>
+  
+  Options:
+  old   : Old release number, e.g. Rel25_0
+  
+  
+EOF
   print STDERR "Overrated!!!!\n";
+  exit;
 }

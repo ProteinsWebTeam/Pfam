@@ -256,8 +256,8 @@ foreach my $item (sort { $a <=> $b } keys %A2Blinknums) {
 
 
 my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
-$version->upadte({ pfamA_coverage => sprintf("%.1f", $pfama_seq_cov),
-                   pfamB_additional_coverage => sprintf("%.1f", $pfamb_add_seq_cov),
-                   pfamA_residue_coverage => sprintf("%.1f", $pfama_res_cov),
-                   pfamB_additional_residue_coverage => sprintf("%.1f", $pfamb_add_res_cov), 
+$version->update({ pfama_coverage => sprintf("%.1f", $pfama_seq_cov),
+                   pfamb_additional_coverage => sprintf("%.1f", $pfamb_add_seq_cov),
+                   pfama_residue_coverage => sprintf("%.1f", $pfama_res_cov),
+                   pfamb_additional_residue_coverage => sprintf("%.1f", $pfamb_add_res_cov), 
                    number_families => $pfamAfamilies });

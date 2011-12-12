@@ -261,7 +261,7 @@ $logger->warn('Until we have a good source of metaseq data, there is nothing to 
 
 if(! -e "$statusdir/done_upload_interpro") {
   $logger->info("Preparing to upload the new interpro database and GO data\n");
-  system("pud-updateInterproAndGo.pl") and $logger->logdie( "pud-update_interpro_and_go.pl failed:[$!]" );  
+  system("pud-buildInterproAndGo.pl") and $logger->logdie( "pud-buildInterproAndGo.pl failed:[$!]" );  
   system("touch $statusdir/done_upload_interpro") and $logger->logdie( "can't touch $statusdir/done_upload_interpro:[$!]");
 }else{
   $logger->info("Already done upload on interpro and GO\n");

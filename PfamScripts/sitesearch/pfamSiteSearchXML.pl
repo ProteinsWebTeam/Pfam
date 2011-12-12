@@ -21,6 +21,6 @@ gzip "PfamFamily.xml"  => "PfamFamily.xml.gz"
 #system("gzip PfamFamily.xml") and die "Failed to compress the 
 
 #Now move the files to the ftp site.
-move("PfamFamily.xml.gz", "/nfs/disk69/ftp/pub/databases/Pfam/sitesearch/PfamFamily.xml.gz")
- or die "Could not PfamFamily.xml.gz to the ftp site";
+#move("PfamFamily.xml.gz", "/nfs/disk69/ftp/pub/databases/Pfam/sitesearch/PfamFamily.xml.gz")
+# or die "Could not PfamFamily.xml.gz to the ftp site";
 
