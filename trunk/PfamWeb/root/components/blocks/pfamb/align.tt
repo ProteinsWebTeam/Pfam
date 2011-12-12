@@ -94,15 +94,13 @@ alignmentUri = c.uri_for( "/pfamb/$acc/alignment" );
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
-                <span class="button">
+                <span class="button wide">
                   <select name="viewer" id="viewer">
                     <option value="jalview" selected="selected">jalview</option>
                     <option value="html">HTML</option>
                   </select>
+                  <label for="viewer">([% pfam.number_regions %] sequences)</label>
                 </span>
-                [%# a warning message about settings in the form -%]
-                <span id="viewerMsg"
-                      class="small">&nbsp;</span>
       	      </td>
             </tr>
           </tbody>
@@ -207,45 +205,6 @@ alignmentUri = c.uri_for( "/pfamb/$acc/alignment" );
 
   </div>
 
-  [% IF entryType != 'B' %]
-
-  <script type="text/javascript">
-    // <![CDATA[
-    
-    $("myHitsSubmit").observe( "click", function( e ) {
-
-      // disable the form and show the spinner
-      $("myHitsLoading").show();
-
-      // set up an Updater that will retrieve the alignment
-      var r = new Ajax.Updater(
-        "myHitsText",
-        "[% alignmentUri %]/download/format",
-        {
-          parameters: { acc:     "[% acc %]",
-                        alnType: $F("mhTypeS") ? "seed" : "full", 
-                        format:  "fasta",
-                        gaps:    "dashes" },
-                        
-          onSuccess: function( oResponse ) { 
-            $("myHitsText").value = oResponse.responseText;
-            $("myHitsForm").submit();
-          },
-          
-          onFailure: function() {
-            $("myHitsLoading")
-              .removeClassName("loading")
-              .update( "There was a problem retrieving the alignment" );                                  
-          }
-        } );
-
-    } );
-
-    // ]]>
-  </script>
-
-  [% END; # of "if entryType != B" -%]
-  
 </div>
 
 <!-- end of align block -->
