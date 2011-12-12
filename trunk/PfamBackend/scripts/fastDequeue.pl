@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #
 # Authors: Rob Finn & John Tate 
 #
@@ -38,7 +38,7 @@ use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
 #Switch on or off debugging
-our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 
 my $opts = {};
 
@@ -49,6 +49,13 @@ if (defined $ENV{PIDFILE}) {
 # Get a new queue stub of the type fast
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast", $opts);
 $qsout->daemonise unless($DEBUG);
+
+if ($DEBUG && $ENV{PIDFILE}) {
+  open my $pid, '>', $ENV{PIDFILE} 
+    or die "Couldn't open pidfile: $!";
+  print $pid $$;
+  close $pid;	
+}
 
 while(1) {
   #Get a pending job
@@ -103,7 +110,7 @@ while(1) {
 		      $qsout->update_job_status($ref->{id}, 'FAIL');
 		      $qsout->update_job_stream($ref->{id}, 'stderr', $error);
 		      next;
-        }
+		    }
 		    #New Rfam scan line.
 		    $cmd = $ref->{'command'}." -f align  -blastdb ".$qsout->rfamDataFileDir."/Rfam.fasta ".$qsout->rfamDataFileDir."/Rfam.cm ". $qsout->tmpDir."/".$ref->{job_id}.".fa";
   	 } 

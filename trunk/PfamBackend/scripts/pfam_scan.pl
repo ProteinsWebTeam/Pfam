@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
-# $Id: pfam_scan.pl,v 1.14 2009-10-09 14:23:58 rdf Exp $
+# $Id: pfam_scan.pl,v 1.27 2009-12-16 11:44:16 jm14 Exp $
 
 use strict;
 use warnings;
@@ -8,14 +8,14 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-my $VERSION = "0.1b"; 
+my $VERSION = "1.2"; 
 
 #-------------------------------------------------------------------------------
 
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
      $clan_overlap, $fasta, $align, $help, $as, $pfamB, 
-     $json, $only_pfamB );
+     $json, $only_pfamB, $cpu );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -31,7 +31,11 @@ GetOptions( 'help'         => \$help,
             'pfamB'        => \$pfamB,
             'only_pfamB'   => \$only_pfamB,
             'json:s'       => \$json,
+	    'cpu=i'        => \$cpu
 );
+
+
+
 
 help() if $help;
 help() unless ( $dir and $fasta ); # required options
@@ -105,7 +109,8 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -align        => $align,
   -as           => $as,
   -hmmlib       => \@hmmlib,
-  -version      => $VERSION
+  -version      => $VERSION,
+  -cpu          => $cpu
 );
 
 # run the search
@@ -147,7 +152,7 @@ Usage: pfam_scan.pl -fasta <fasta_file> -dir <directory location of Pfam files>
 Additonal options:
 
   -h              : show this help
-  -o <file>       : output file, otherwise send to STDOUT
+  -outfile <file> : output file, otherwise send to STDOUT
   -clan_overlap   : show overlapping hits within clan member families (applies to Pfam-A families only)
   -align          : show the HMM-sequence alignment for each match
   -e_seq <n>      : specify hmmscan evalue sequence cutoff for Pfam-A searches (default Pfam defined)
@@ -161,6 +166,7 @@ Additonal options:
   -json [pretty]  : write results in JSON format. If the optional value "pretty" is given,
                     the JSON output will be formatted using the "pretty" option in the JSON
                     module
+  -cpu <n>        : number of parallel CPU workers to use for multithreads (default all)
 
   * Please note that the Pfam-B HMMs are of much lower quality than
     Pfam-A HMMs, and matches to Pfam-B families should always be treated
@@ -240,6 +246,10 @@ Search for active sites on Pfam-A matches [default: false]
 =item B<-json> [I<pretty>]
 
 Write the results in JSON format [default: false]
+
+=item B<-cpu>
+
+Number of parallel CPU workers to use for multithreads [default: all]
 
 =item B<-h>
 
