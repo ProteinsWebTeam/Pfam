@@ -50,7 +50,7 @@ sub auto : Private {
   # detaint it, naturally, and accept only sequences that are shorter than some
   # limit, which is set in the config
   if ( defined $c->req->param('preseq') and 
-       $c->req->param('preseq') =~ m/^([A-Z]+)$/ and
+       $c->req->param('preseq') =~ m/^([A-Za-z]+)$/ and
        length( $1 ) < $this->{maxPrefillLength} ) {
     
     $c->log->debug( 'Search::auto: found a sequence with which to pre-fill the search form' )
@@ -62,7 +62,7 @@ sub auto : Private {
 
   # check if the preseq should be handled as DNA rather than protein
   if ( defined $c->req->param('dnapreseq') and 
-       $c->req->param('dnapreseq') =~ m/^([A-Z]+)$/ and
+       $c->req->param('dnapreseq') =~ m/^([A-Za-z]+)$/ and
        length( $1 ) < $this->{maxPrefillLength} ) {
     
     $c->log->debug( 'Search::auto: found a DNA sequence with which to pre-fill the search form' )
