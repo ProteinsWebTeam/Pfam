@@ -208,7 +208,7 @@ sub get_list : Private {
         @rs = $c->model('PfamDB::Pfama')
                 ->search( {},
                           { columns  => [ qw( pfama_id pfama_acc ) ],
-                            prefetch => [ 'member' ],
+                            prefetch => [ { member => 'clan' } ],
                             order_by => [ 'pfama_id' ] } );
       }
       else {
