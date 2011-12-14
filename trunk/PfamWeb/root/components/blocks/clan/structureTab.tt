@@ -79,6 +79,10 @@ FOREACH pdbMap IN pdbMapIter;
 
 END -%]
 
+[% USE Dumper;
+#CALL c.log.debug( Dumper.dump( mapping ) );
+%]
+
 <table class="details" id="structuresTable">
   <thead>
     <tr class="caption">
@@ -92,7 +96,13 @@ END -%]
   </tr>
   </thead>
   <tbody>
-    [%- USE famKeyIter = iterator( mapping.keys.sort );
+    [%- 
+    familyUri          = c.uri_for( "/family" );
+    proteinUri         = c.uri_for( "/protein" );
+    structureUri       = c.uri_for( "/structure" );
+    structureViewerUri = c.uri_for( "/structure/viewer" );
+    
+    USE famKeyIter = iterator( mapping.keys.sort );
     FOREACH famKey IN famKeyIter;
       NEXT IF mapping.$famKey == "COUNT";
       oe=oe+1;
@@ -106,12 +116,12 @@ END -%]
                 <tr>
                 [% IF famKey != prevFamKey -%]
                   <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( '/family', { id = famKey } ) %]">[% famKey %]</a>
+                    <a href="[% familyUri _ '/' _ famKey %]">[% famKey %]</a>
                   </td>
                 [% END;
-                IF seqKey != prevSeqKey -%]
+                IF seqKey != prevSeqKey OR famKey != prevFamKey -%]
                   <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( '/protein', { id = seqKey } ) %]">[% seqKey %]</a>
+                    <a href="[% proteinUri _ '/' _ seqKey %]">[% seqKey %]</a>
                   </td>
                 [% END;
                 IF seqKey != prevSeqKey OR resKey != prevResKey -%]
@@ -119,7 +129,7 @@ END -%]
                 [% END;
                 IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
                   <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( '/structure', { id = pdbKey } ) %]">[% pdbKey %]</a>
+                    <a href="[% structureUri _ '/' _ pdbKey %]">[% pdbKey %]</a>
                   </td>
                 [% END;
                 prevFamKey = famKey;
@@ -135,10 +145,10 @@ END -%]
                   </td>
                   <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
                   <td class="[% oe % 2 ? 'odd' : 'even' %]">
-                    <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey } ) %]&amp;viewer=jmol"
+                    <a href="[% structureViewerUri %]?viewer=jmol&amp;id=[% pdbKey %]"
                        onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;">
                        Jmol</a>  
-                    <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey } ) %]&amp;viewer=av"
+                    <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
                        AstexViewer</a>  
                     <a href="http://www.dasregistry.org/runspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
