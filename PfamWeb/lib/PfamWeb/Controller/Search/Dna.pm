@@ -135,6 +135,7 @@ sub validate_input : Private {
 
   # tidy up the sequence and make sure it's only got the valid DNA characters
   my @seqs = split /\n/, $c->req->param('seq');
+  shift @seqs if $seqs[0] =~ m/^\>/;
   my $seq = uc( join '', @seqs );
   $seq =~ s/[\s\r\n]+//g;
   
