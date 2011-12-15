@@ -79,7 +79,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           <textarea cols="60" 
                     rows="10"
                     name="seq"
-                    id="dnaSeq">[% dnapreseq %] </textarea>
+                    id="dnaSeq">[% dnapreseq %]</textarea>
         </div>
   
         [% IF dnapreseq -%]
