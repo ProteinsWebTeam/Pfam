@@ -62,7 +62,7 @@ sub auto : Private {
 
   # check if the preseq should be handled as DNA rather than protein
   if ( defined $c->req->param('dnapreseq') and 
-       $c->req->param('dnapreseq') =~ m/^([A-Za-z]+)$/ and
+       $c->req->param('dnapreseq') =~ m/^([A-Za-z\>\_\-\s]+)$/ and
        length( $1 ) < $this->{maxPrefillLength} ) {
     
     $c->log->debug( 'Search::auto: found a DNA sequence with which to pre-fill the search form' )
