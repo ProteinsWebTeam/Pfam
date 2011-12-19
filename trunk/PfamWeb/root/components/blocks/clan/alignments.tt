@@ -103,14 +103,14 @@ tableFooter = BLOCK -%]
       percent = ( pfam.num_full / totalSeq ) * 100;
       percentS = String.new(percent).format("%.1f") -%]
 
-      <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+      <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
         <td>
-          <a href="[% c.uri_for( "/family", pfam.pfama_id  ) %]">[% pfam.pfama_id %]</a>
-         (<a href="[% c.uri_for( "/family", pfam.pfama_acc ) %]">[% pfam.pfama_acc %]</a>)
+          <a href="[% c.uri_for( '/family', pfam.pfama_id  ) %]">[% pfam.pfama_id %]</a>
+         (<a href="[% c.uri_for( '/family', pfam.pfama_acc ) %]">[% pfam.pfama_acc %]</a>)
         </td>
         <td>[% pfam.num_full %] ([% percentS %]%)</td>
         <td>
-          <a href="[% c.uri_for( "/family", pfam.pfama_id, { tab = "alignBlock" } ) | html %]">View</a>
+          <a href="[% c.uri_for( '/family', pfam.pfama_id, { tab = 'alignBlock' } ) | html %]">View</a>
         </td>
       </tr>
     
@@ -121,7 +121,7 @@ tableFooter = BLOCK -%]
       <td><strong>Total:</strong> [% totalSeq %]</td>
       <td>
         <strong>
-          <a href="[% c.uri_for( "/clan/alignment", { acc = clan.clan_acc } ) %]"
+          <a href="[% c.uri_for( '/clan', clan.clan_acc, 'alignment' ) %]"
              onclick="window.open( this.href );return false;">
              Clan alignment</a>  
         </strong>
