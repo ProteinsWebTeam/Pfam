@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+build.xml
+jt6 20111219 WTSI
+
+An ant build file for the PfamAlyzer applet. Just invoke "ant" to build the jar
+file. To see deprecation warnings from the compiler, use "ant -Dwarnings=true".
+
+$Id$
+-->
+
+<project name="PfamAlyzer" default="jar" basedir=".">
+
+	<property name="src"      value="src" />
+	<property name="dest"     value="classes" />
+	<property name="res_src"  value="${src}/resources" />
+	<property name="res_dest" value="${dest}/${ant.project.name}/resources" />
+	<property name="jar"      value="${ant.project.name}.jar" />
+
+	<target name="prepare">
+		<mkdir dir="${dest}" />
+		<mkdir dir="${res_dest}" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${dest}" />
+		<delete file="${jar}" />
+	</target>
+
+	<target name="compile" depends="prepare, compile_quietly, compile_loudly" />
+
+	<target name="compile_quietly" unless="warnings">
+		<echo>Use "-Dwarnings=true" to see deprecation and unchecked operations warnings.</echo>
+		<javac srcdir="${src}" destdir="${dest}" includeAntRuntime="false">
+			<compilerarg line="-g" />
+		</javac>
+	</target>
+
+	<target name="compile_loudly" if="warnings">
+		<javac srcdir="${src}" destdir="${dest}" includeAntRuntime="false">
+			<compilerarg line="-g -Xlint:deprecation -Xlint:unchecked" />
+		</javac>
+	</target>
+
+	<target name="copy" depends="prepare">
+		<copy todir="${res_dest}">
+			<fileset dir="${res_src}" excludes="**/*.java" />
+		</copy>
+	</target>
+
+	<target name="jar" depends="compile, copy">
+		<jar basedir="${dest}" destfile="${jar}" />
+	</target>
+	
+</project>
