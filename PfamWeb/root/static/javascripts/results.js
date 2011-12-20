@@ -194,6 +194,14 @@ var Results = Class.create( {
       link.observe( "click", this._showHideAll.bindAsEventListener( this ) );
     }.bind( this ) );
 
+    // and listeners to toggle between full and truncated family descriptions
+    $$("td.desc span.toggleFullDescLink").each( function( link ) {
+      link.observe( "click", function( e ) {
+        var link = e.findElement();
+        link.up("td").select("span.familyDesc").invoke("toggle");
+      }.bindAsEventListener( this ) );
+    }.bind( this ) );
+ 
     // set the widths for the alignment blocks, so that the scroll bars are
     // correctly added
     // $$("#results table.resultTable div.hmmWindow").each( function(a) {
@@ -201,7 +209,7 @@ var Results = Class.create( {
     //   a.setStyle( { width: alignmentWidth+"px" } );
     // } );
    
-    // console.log( "Results.jobDone: results loaded and switched wired in" );
+    // console.log( "Results.jobDone: results loaded and switches wired in" );
     
     //-----------------------------------
  
@@ -284,7 +292,7 @@ var Results = Class.create( {
    * Shows or hides the alignment rows
    *
    * @private
-   * @param {Event} e mouse click even on the domain graphic
+   * @param {Event} e mouse click event on the show/hide button
    */
   _toggleAlignment: function( e ) {
 
@@ -309,7 +317,7 @@ var Results = Class.create( {
    * Shows or hides all of the alignments in one fell swoop...
    *
    * @private
-   * @param {Event} e mouse click even on the domain graphic
+   * @param {Event} e mouse click event on the "show/hide all" link
    */
   _showHideAll: function( e ) {
 
