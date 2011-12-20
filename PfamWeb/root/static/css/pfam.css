@@ -726,6 +726,10 @@ div.pfamBSearch .progressBar {
   background-image: url(/shared/images/tick.gif);
 }
 
+.resultTable td.desc {
+  width: 22em;
+}
+
 .highlight {
   background: #c2d2e1 ! important; /* #CBD */
 }
