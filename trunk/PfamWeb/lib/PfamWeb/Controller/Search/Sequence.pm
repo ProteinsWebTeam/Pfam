@@ -284,6 +284,9 @@ sub resultset : Local {
     $c->log->debug( 'Search::Sequence::results: returning result_set as HTML' )
       if $c->debug;
     $c->stash->{template} = 'pages/search/sequence/results_table.tt';
+
+    # push the config setting for the maximum desc string length into the stash
+    $c->stash->{max_desc_length} = $this->{max_desc_length};
   }
 
   # parse the results
