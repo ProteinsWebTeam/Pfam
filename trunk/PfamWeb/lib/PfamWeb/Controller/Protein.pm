@@ -166,7 +166,8 @@ sub old_protein : Path( '/protein' ) {
   else {
     $c->log->debug( 'Protein::old_protein: single accession; redirecting to "protein"' )
       if $c->debug;
-    $c->res->redirect( $c->uri_for( '/protein', $c->stash->{param_entry} ) );
+
+    $c->res->redirect( $c->uri_for( '/protein', $c->stash->{param_entry}, $c->req->params ) );
   }
 }
 

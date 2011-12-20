@@ -133,7 +133,8 @@ sub old_clan : Path( '/clan' ) {
 
   $c->log->debug( 'Clan::old_clan: redirecting to "clan"' )
     if $c->debug;
-  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} ) );
+
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, $c->req->params ) );
 }
 
 
@@ -254,7 +255,7 @@ sub old_alignment : Path( '/clan/alignment' ) {
   $c->log->debug( 'Clan::old_alignment redirecting to "alignment"' )
     if $c->debug;
 
-  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/alignment' ) );
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, '/alignment', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -292,7 +293,8 @@ sub old_structures : Path( '/clan/structures' ) {
   $c->log->debug( 'Clan::old_structures: redirecting to "structures"' )
     if $c->debug;
 
-  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/structures' ) );
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, 'structures', $c->req->params ) );
+  # $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/structures' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -371,7 +373,8 @@ sub old_image : Path( '/clan/relationship/image' ) {
   $c->log->debug( 'Clan::old_image redirecting to "relationship_image"' )
     if $c->debug;
 
-  $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/relationship_image' ) );
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, 'relationship_image', $c->req->params ) );
+  # $c->res->redirect( $c->uri_for( '/clan/' . $c->stash->{param_entry} . '/relationship_image' ) );
 }
 
 #-------------------------------------------------------------------------------
