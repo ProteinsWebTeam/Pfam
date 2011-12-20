@@ -217,7 +217,19 @@ BLOCK buildTableBody;
       </td>
       <td class="desc">
         [% IF hit.desc;
-          hit.desc;
+        CALL c.log.debug( "DESC_LENGTH: " _ max_desc_length ); 
+          IF hit.desc.length > max_desc_length -%]
+            <span class="familyDesc" style="display: none">
+              [% hit.desc %]
+              <span class="toggleFullDescLink link small">(shorten)</span>
+            </span>
+            <span class="familyDesc">
+              [% hit.desc.substr( 0, max_desc_length ) -%]
+            <span class="toggleFullDescLink link">&hellip;</span>
+            </span>
+          [%- ELSE;
+            hit.desc;
+          END;
         ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]
@@ -246,6 +258,7 @@ BLOCK buildTableBody;
       <td[% IF hit.hmm.to != hit.model_length %] class="warning"[% END %]>
         [% hit.hmm.to %]
       </td>
+      <td>[% hit.model_length %]</td>
       <td>[% hit.bits %]</td>
       <td>[% hit.evalue %]</td>
       <td>
@@ -286,6 +299,7 @@ BLOCK tableHead;
       <th colspan="2">Envelope</th>
       <th colspan="2">Alignment</th>
       <th colspan="2">HMM</th>
+      <th rowspan="2">HMM<br />length</th>
       <th rowspan="2">Bit<br />score</th>
       <th rowspan="2">E-value</th>
       <th rowspan="2">Predicted<br />active sites</th>
