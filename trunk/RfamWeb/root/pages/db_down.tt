@@ -2,7 +2,7 @@
 # db_down.tt
 # jt6 20071109 WTSI
 #
-# A simple page to say that the Pfam database is currently down.
+# A simple page to say that the Rfam database is currently down.
 #
 # $Id: db_down.tt,v 1.3 2008-07-25 13:32:16 jt6 Exp $
 
@@ -33,7 +33,7 @@ sharedUri = c.uri_for( "/shared" );
              src="[% sharedUri %]/images/blank.gif" /></a>
       
       <a class="rfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
-        <img alt="Pfam" 
+        <img alt="Rfam" 
              id="rfamLogo" 
              src="[% sharedUri %]/images/blank.gif" /></a>
 

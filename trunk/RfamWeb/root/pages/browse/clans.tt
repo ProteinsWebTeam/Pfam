@@ -35,7 +35,7 @@ pageList = PROCESS "components/pageList.tt",
 
 <!-- start browse page -->
 
-<h1 class="pageHeader">Browse Pfam clans</h1>
+<h1 class="pageHeader">Browse Rfam clans</h1>
 
 <p class="browseSummary">
   Rfam has a total of <strong>[% clans.size %]</strong> clans. 
