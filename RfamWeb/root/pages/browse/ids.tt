@@ -9,8 +9,8 @@
 META naked = 1
 %]
 <select id="idSelection" size="15">
-[%- FOREACH pfam IN browse %]
-  <option value="[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</option>
+[%- FOREACH rfam IN browse %]
+  <option value="[% rfam.rfam_acc %]">[% rfam.rfam_id %]</option>
 [%- END %]
 </select>
 [%#
