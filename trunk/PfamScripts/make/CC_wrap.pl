@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+#Script to wrap CC lines to 70 characters in DESC files
+
 use strict;
 use warnings;
 use Text::Wrap;
