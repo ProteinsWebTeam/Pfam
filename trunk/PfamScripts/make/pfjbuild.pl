@@ -520,11 +520,12 @@ sub writePFAMOUT {
 	    }
 	    elsif(/^Query\:/) {
 		$header .= "\n$_";
+		$header_complete=1;
 	    }
-	    elsif(/^Description\:/) {
-		$header .= "$_\n";
-		$header_complete = 1;
-	    }
+		  
+	}
+	elsif(/^Description\:/) { #Not all files will have a description line
+	  $header .= "$_\n";
 	}
 	#Print header and results for this iteration, overwriting any previous iterations
 	elsif(/^Scores for complete sequences/) {
