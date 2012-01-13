@@ -48,7 +48,7 @@ sub families : Global {
 
   $c->log->debug( 'Lists::families: showing list of families' ) if $c->debug;
 
-  my ( $output, $format, $template );
+  my $output;
  
   if ( $c->stash->{output_xml} ) {
     $output = $c->forward( 'get_list', 
@@ -62,12 +62,12 @@ sub families : Global {
   }
   elsif ( $c->stash->{output_pfamalyzer} ) {
     $output = $c->forward( 'get_list', 
-                           [ 'family', 'text', 'rest/family/families_pfamalyzer.tt' ] );
-    $c->res->content_type('text/xml');
+                           [ 'family', 'pfamalyzer', 'rest/family/families_pfamalyzer.tt' ] );
+    $c->res->content_type('text/plain');
   }
   elsif ( $c->stash->{output_interpro} ) {
     $output = $c->forward( 'get_list', 
-                           [ 'family', 'text', 'rest/family/families_interpro.tt' ] );
+                           [ 'family', 'interpro', 'rest/family/families_interpro.tt' ] );
     $c->res->content_type('text/xml');
   }
   else {
@@ -93,7 +93,7 @@ sub clans : Global {
 
   $c->log->debug( 'Lists::clans: showing list of clans' ) if $c->debug;
 
-  my ( $output, $format, $template );
+  my $output;
  
   # if ( $c->stash->{output_xml} ) {
   #   $output = $c->forward( 'get_clans_list', 
