@@ -47,27 +47,27 @@ like( $res->content, qr/$desc/, "Contains the words '$desc'" );
 $req = GET( "$family?acc=$acc" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using accession as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?acc=$acc">/, 'Redirected correctly' );
 
 $req = GET( "$family?acc=$acc.1" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using accession with a version as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?acc=$acc(\.\d+)?">/, 'Redirected correctly' );
 
 $req = GET( "$family?id=$id" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using ID as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id">/, 'Redirected correctly' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id\?id=$id">/, 'Redirected correctly' );
 
 $req = GET( "$family?entry=$acc" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using the entry parameter with an accession' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?entry=$acc">/, 'Redirected correctly' );
 
 $req = GET( "$family?entry=$id" ); # legacy URL
 $res = request( $req );
 ok( $res->is_redirect, 'Access using the entry parameter with an ID' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id">/, 'Redirected correctly' );
+like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id\?entry=$id">/, 'Redirected correctly' );
 
 # bad accession/ID
 $req = GET( "$family/wibble" );
