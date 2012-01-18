@@ -153,10 +153,6 @@ Deprecated. Stub to redirect to the chained action.
 sub old_protein : Path( '/protein' ) {
   my ( $this, $c ) = @_;
 
-  # $c->log->debug( 'Protein::old_protein: redirecting to "protein"' )
-  #   if $c->debug;
-  # $c->res->redirect( $c->uri_for( '/protein/' . $c->stash->{param_entry} ) );
-
   if ( $c->stash->{param_entry} =~ m/\,/ ) {
     $c->log->debug( 'Protein::old_protein: got multiple accessions; detaching to "proteins"' )
       if $c->debug;
@@ -166,6 +162,10 @@ sub old_protein : Path( '/protein' ) {
   else {
     $c->log->debug( 'Protein::old_protein: single accession; redirecting to "protein"' )
       if $c->debug;
+
+    delete $c->req->params->{id};
+    delete $c->req->params->{acc};
+    delete $c->req->params->{entry};
 
     $c->res->redirect( $c->uri_for( '/protein', $c->stash->{param_entry}, $c->req->params ) );
   }

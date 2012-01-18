@@ -141,8 +141,11 @@ sub old_pfamb : Path( '/pfamb' ) {
   $c->log->debug( 'Family::old_pfamb: redirecting to "pfamb"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/pfamb/' . $c->stash->{param_entry} ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -234,8 +237,11 @@ sub old_structures : Path( '/pfamb/structures' ) {
   $c->log->debug( 'Family:FamilyActions::old_structures: redirecting to "structures"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, 'structures', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/pfamb/' . $c->stash->{param_entry} . '/structures' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -339,8 +345,11 @@ sub old_gzipped : Path( '/pfamb/alignment/download/gzipped' ) {
   $c->log->debug( 'PfamB::Alignment::old_gzipped: redirecting to "gzipped"' )
     if $c->debug;
   
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, 'alignment/gzipped', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/pfamb/'.$c->stash->{param_entry}.'/alignment/gzipped' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -494,6 +503,10 @@ sub old_format : Path( '/pfamb/alignment/download/format' ) {
   $c->log->debug( 'PfamB::Alignment::old_format: redirecting to "format"' )
     if $c->debug;
   
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, 'alignment/format', $c->req->params ) );
 }
 
@@ -565,8 +578,11 @@ sub old_html : Path( '/pfamb/alignment/download/html' ) {
   $c->log->debug( 'PfamB::Alignment::old_html: redirecting to "html"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, 'alignment/html', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/pfamb/'.$c->stash->{param_entry}.'/alignment/html' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -602,8 +618,11 @@ sub old_jalview : Path( '/pfamb/alignment/jalview' ) {
   $c->log->debug( 'PfamB::Alignment::old_jalview: redirecting to "jalview"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/pfamb', $c->stash->{param_entry}, 'alignment/jalview', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/pfamb/'.$c->stash->{param_entry}.'/alignment/jalview' ) );
 }
 
 #-------------------------------------------------------------------------------
