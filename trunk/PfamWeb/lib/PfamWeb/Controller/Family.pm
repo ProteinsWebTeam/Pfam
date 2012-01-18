@@ -323,6 +323,10 @@ sub old_family : Path( '/family' ) {
   $c->log->debug( 'Family::old_family: redirecting to "family"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
 }
 
@@ -388,8 +392,11 @@ sub old_logo : Path( '/family/logo' ) {
   $c->log->debug( 'Family::FamilyActions::old_logo: redirecting to "logo"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/logo' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -442,8 +449,11 @@ sub old_logo_image : Path( '/family/logo_image' ) {
   $c->log->debug( 'Family:FamilyActions::old_logo_image: redirecting to "logo_image"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'logo_image', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/logo_image' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -539,8 +549,11 @@ sub old_hmm : Path( '/family/hmm' ) {
   $c->log->debug( 'Family:FamilyActions::old_hmm: redirecting to "hmm"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'hmm', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/hmm' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -589,8 +602,11 @@ sub old_id : Path( '/family/id' ) {
   $c->log->debug( 'Family:FamilyActions::old_id: redirecting to "id"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'id', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/id' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -639,8 +655,11 @@ sub old_acc : Path( '/family/acc' ) {
   $c->log->debug( 'Family:FamilyActions::old_acc: redirecting to "acc"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'acc', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/acc' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -771,8 +790,11 @@ sub old_structures : Path( '/family/structures' ) {
   $c->log->debug( 'Family::old_structures: redirecting to "structures"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/structures' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -847,8 +869,11 @@ sub old_mapping : Path( '/family/structures/mapping' ) {
   $c->log->debug( 'Family::FamilyActions::old_mapping: redirecting to "mapping"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'mapping', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . '/mapping' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -930,23 +955,24 @@ sub old_tree : Path( '/family/tree' ) {
     $aln_type = $c->req->param('alnType');
   }
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   if ( ( $action || '' ) eq 'image' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "image"' )
       if $c->debug;
     $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/image", $c->req->params ) );
-    # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type/image" ) );
   }
   elsif ( ( $action || '' ) eq 'download' ) {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "download"' )
       if $c->debug;
     $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type/download", $c->req->params ) );
-    # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type/download" ) );
   }
 	else {
     $c->log->debug( 'Family::Tree::old_tree: redirecting to "tree"' )
       if $c->debug;
     $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "tree/$aln_type", $c->req->params ) );
-    # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/tree/$aln_type" ) );
   }
 }
 
@@ -1180,8 +1206,11 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
   $c->log->debug( 'Family::old_gzipped: redirecting to "gzipped"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/gzipped", $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/$aln_type/gzipped" ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1344,8 +1373,11 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   $c->log->debug( 'Family::old_format: redirecting to "format"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/format", $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} .  "/alignment/$aln_type/format", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1435,8 +1467,11 @@ sub old_html : Path( '/family/alignment/download/html' ) {
   $c->log->debug( 'Family::old_html: redirecting to "html"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/html", $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/$aln_type/html" ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1523,8 +1558,11 @@ sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
   $c->log->debug( 'Family::old_heatmap: redirecting to "heatmap"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/full/heatmap', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}."/alignment/full/heatmap" ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1569,8 +1607,11 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
   $c->log->debug( 'Family::old_jalview: redirecting to "jalview"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/jalview", $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} . "/alignment/$aln_type/jalview" ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1637,8 +1678,11 @@ sub old_dasviewer : Path( '/family/alignment/dasviewer' ) {
   $c->log->debug( 'Family::old_dasviewer: redirecting to "dasviewer"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, "alignment/$aln_type/dasViewer", $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/' . $c->stash->{param_entry} .  "/alignment/$aln_type/dasviewer", $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1724,8 +1768,11 @@ sub old_build : Path( '/family/alignment/builder' ) {
   $c->log->debug( 'Family::old_build: redirecting to "build"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/build', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/build' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1787,8 +1834,11 @@ sub old_view : Path( '/family/alignment/builder/view' ) {
   $c->log->debug( 'Family::old_view: redirecting to "view"' )
     if $c->debug;
 
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment/view', $c->req->params ) );
-  # $c->res->redirect( $c->uri_for( '/family/'.$c->stash->{param_entry}.'/alignment/view' ) );
 }
 
 #-------------------------------------------------------------------------------
