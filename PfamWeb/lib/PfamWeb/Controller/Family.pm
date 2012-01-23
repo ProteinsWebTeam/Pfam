@@ -351,9 +351,6 @@ sub logo : Chained( 'family' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
   my $logo = $c->forward( 'get_logo' );    
   return if $c->stash->{errorMsg};
   
