@@ -12,31 +12,27 @@
 
 <div class="block" id="helpInstallBlock">
   <div class="handle">
-    <h1>Installing the Pfam website</h1>
+    <h1>Pfam website virtual machine</h1>
   </div>
   <div class="blockContent">
 
     <p>
-      The source code for this website and the ancillary systems that it uses
-      are all freely available for download. The website is designed to be 
-      portable, so that it can be installed and run at your local site if
-      required. You can find the source code in our 
+      Installing the website has always been somewhat complex and we no longer
+      support direct installation of the site. Instead, we have built a 
+      <a class="ext" href="http://en.wikipedia.org/wiki/Virtual_machine">
+        virtual machine</a> that includes all of the software needed to run 
+      the Pfam website within your local environment.
+    </p>
+    <p>
+      You can find instructions on downloading and installing the VM on a
+      set of <a href="[% c.uri_for( '/vm' ) %]">dedicated pages</a>
+    </p>
+    <p>
+      You can still find the source code for the website and the ancillary
+      systems in our
       <a class="ext" href="http://subversion.apache.org/">SVN</a> repository,
       at <a class="ext" href="http://pfamsvn.sanger.ac.uk/"><code>
         http://pfamsvn.sanger.ac.uk/</code></a>.
-    </p>
-    <p>
-      Installing the website and search system has always been somewhat 
-      complex and we are no longer supporting direct installation of the site.
-      We are looking instead at distributing the site as a pre-built 
-      <a class="ext" href="http://en.wikipedia.org/wiki/Virtual_machine">
-        virtual machine</a> image. Installing the site would then require you
-      simply to open the VM image in suitable virtualisation software.
-    </p>
-    <p>
-      We hope to produce a distributable image soon, but if you would like 
-      more information or have questions about installing the site, please
-      contact us.
     </p>
 
   </div>
