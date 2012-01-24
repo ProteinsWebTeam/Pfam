@@ -1,0 +1,256 @@
+[%
+# install_vm.tt
+# jt6 20120119 WTSI
+# 
+# build the block detailing the installation of the VM image
+#
+# $Id$
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+requirements.cssIeAll.push( "help_ie.css" );
+
+#-------------------------------------------------------------------------------
+-%]
+
+<!-- start install VM block -->
+
+<div class="block" id="vmInstallVMBlock">
+  <div class="handle">
+    <h1>Install the VM image</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This page gives some pointers on how to install the virtual
+      machine image in your local virtualisation software. The
+      description covers the process in two of the most popular
+      packages, 
+      <a class="ext" href="http://www.vmware.com/products/fusion/overview.html">
+        VMware fusion</a> (for mac) and 
+      <a class="ext" href="https://www.virtualbox.org/">VirtualBox</a> (for mac,
+      linux and windows). The process of installing the VM in other
+      VMware software will be broadly similar to process with fusion.
+    </p>
+    <p>
+      The VM was built using VMware and tested only briefly under
+      VirtualBox and these instructions are based on running the
+      software on a desktop machine, rather than a full-blown
+      virtualisation infrastructure. 
+    </p>
+
+    <h2>Download the VM image</h2>
+
+    <p>
+      The VM is packaged as an Open Virtual Appliance (OVA) and should be
+      usable in many virtualisation frameworks. You can find the OVA file on
+      our FTP site.
+    </p>
+
+    <h2>Installing the image</h2>
+
+    <p>
+      The OVA packge must be converted to a VMX file for use in
+      <strong>VMware</strong>.  This is done using <code>ovftool</code>.
+      (You may need to install 
+      <a class="ext" href="http://communities.vmware.com/community/vmtn/server/vsphere/automationtools/ovf">
+        <code>ovftool</code></a> separately.)
+    </p>
+
+    <fieldset class="query">
+      <legend>VMware example</legend>
+      <div class="code">
+<pre>
+shell% ovftool PfamWeb.ova PfamWeb.vmx
+Opening OVA source: PfamWeb.ova
+The manifest validates
+Opening VMX target: PfamWeb.vmx
+Writing VMX file: PfamWeb.vmx
+Disk Transfer Completed                    
+
+Completed successfully
+shell% 
+</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      The OVA file can be imported directly into
+      <strong>VirtualBox</strong>. Choose "Import" from the "File" menu.
+      At this stage you can also set the name of the VM in VirtualBox,
+      as well as its memory- and device-allocations, if required.
+    </p>
+
+    <h2>Start the VM under the GUI</h2>
+
+    <p>
+      It&apos;s useful to start the VM at least once under the GUI of
+      your virtualisation software, if only to check that it boots and
+      allows you to log in. If you are using VirtualBox, you will also
+      need to install the "guest additions" using the GUI.
+    </p>
+
+    <h2>Start the VM in "headless" mode</h2>
+
+    <p>
+      Once you&apos;ve checked that you can successfully log into the VM
+      and that it connects to your network etc., you may want to start
+      it in "headless" mode, i.e. without a GUI interface. If
+      you&apos;re planning to run the VM as a server for a long period,
+      you will almost certainly want to run in this mode.
+    </p>
+
+    <fieldset class="query">
+      <legend>VMware example</legend>
+      <div class="code">
+<pre>
+shell% /Library/Application\ Support/VMware\ Fusion/vmrun start $HOME/Documents/Virtual\ Machines.localized/PfamWeb.vmwarevm/PfamWeb.vmx nogui
+</pre>
+      </div>
+    </fieldset>
+
+    <fieldset class="query">
+      <legend>VirtualBox example</legend>
+      <div class="code">
+<pre>
+shell% VBoxManage startvm PfamWeb --type headless
+Waiting for VM "PfamWeb" to power on...
+VM "PfamWeb" has been successfully started.
+</pre>
+      </div>
+    </fieldset>
+
+    <h2>Finding the IP address of the running VM</h2>
+
+    <p>
+      If you run your VM in a GUI, you will be able to log in directly, but if 
+      you run the VM in "headless" mode you may need to query the guest OS to
+      find the assigned IP address.
+    </p>
+
+    <p>
+      The following script gives an example of how to do retrieve the IP
+      address of the VM semi-automatically using the <a class="ext"
+        href="http://www.vmware.com/pdf/vix180_vmrun_command.pdf">vmrun</a>" (PDF)
+      command with <strong>VMware</strong>. The VMware tools must be
+      installed in the guest before this script will work. The VM comes
+      with VMware tools pre-installed but if you update packages in the
+      guest OS, you may need to re-install them.
+    </p>
+
+    <fieldset class="query">
+      <legend>VMware example script: <code>get_guest_ip.sh</code></legend>
+      <div class="code">
+<pre class="prettyprint">
+#!/bin/sh
+
+VMRUN=/Library/Application\ Support/VMware\ Fusion/vmrun
+GU=pfamadmin
+GP="admin password"
+VM=$HOME/Documents/Virtual\ Machines.localized/PfamWeb.vmwarevm/PfamWeb.vmx
+TMP_FILE=/tmp/IP_address
+
+"$VMRUN" -T fusion -gu "$GU" -gp "$GP" runScriptInGuest        "$VM" "/bin/bash" "/sbin/ifconfig eth0 | perl -ne 'print \$1 if m/inet addr:(\\d+\\.\\d+\\.\\d+\\.\\d+) /' > $TMP_FILE"
+"$VMRUN" -T fusion -gu "$GU" -gp "$GP" CopyFileFromGuestToHost "$VM" "$TMP_FILE" "$TMP_FILE"
+"$VMRUN" -T fusion -gu "$GU" -gp "$GP" deleteFileInGuest       "$VM" "$TMP_FILE"
+
+cat $TMP_FILE
+\rm $TMP_FILE
+</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      You can then log in using something like:
+    </p>
+    <fieldset class="query">
+      <legend>VMware example</legend>
+      <div class="code">
+<pre class="prettyprint">
+ssh pfamadmin@`get_guest_ip.sh`
+</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      As with VMware, <strong>VirtualBox</strong> allows querying of the
+      guest OS from the host. Also like VMware, VirtualBox requires
+      software on the guest to allow the host to interact with it. These
+      "<a class="ext" href="http://virtualboxes.org/doc/installing-guest-additions-on-ubuntu/">guest additions</a>"
+      need to be installed before you can query the VM for information
+      like its IP address.
+    </p>
+    <p>
+      Once the guest additions are installed, the VM can be interrogated from the 
+      host using <a class="ext" href="http://www.virtualbox.org/manual/ch08.html">
+        VBoxManage</a>, something like this:
+    </p>
+
+    <fieldset class="query">
+      <legend>VirtualBox example</legend>
+      <div class="code">
+<pre class="prettyprint">
+ssh pfamadmin@`VBoxManage guestproperty get "PfamWeb" "/VirtualBox/GuestInfo/Net/0/V4/IP" | awk '{ print $2 }'`
+</pre>
+      </div>
+    </fieldset>
+    <!-- via https://forums.virtualbox.org/viewtopic.php?f=1&t=36592 -->
+
+    <h2>Re-configuring the VM specification</h2>
+
+    <p>
+      The VM, as shipped, has 1Gb of memory, 20Gb of disk space and a
+      single CPU core. These are probably the minimum requirements for
+      running the PfamWeb server. If your server will be used heavily,
+      you may want to consider increasing the memory allocated to the VM
+      to 2Gb or more. Adding more CPUs or CPU cores will improve the
+      performance of the website, though the specification of your
+      database server will also have a significant effect. Consult the
+      documentation for your virtualisation software to find out how to
+      re-configure the VM.
+    </p>
+
+    <h2>Logging into the VM</h2>
+
+    <p>
+      The VM is configured with a single user account, "pfamadmin". The
+      password for the account is "admin password". <strong>It is highly
+      recommended that you 
+      <span class="link" onclick="tabPage.switchTab('vmConfigureVMBlock')">
+        change the password</span> immediately after you log in for the first
+      time</strong>.
+    </p>
+
+  </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    document.observe( "dom:loaded", prettyPrint );
+    // ]]>  
+  </script>
+
+</div>
+
+<!-- end install VM block -->
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
