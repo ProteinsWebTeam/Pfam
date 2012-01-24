@@ -124,7 +124,7 @@ sharedRequirements.css.push( "prettify.css" );
           <td class="label">OVA file</td>
           <td>
             <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/vm/PfamWeb_20120124.ova">PfamWeb_20120124.ova</a>
-            (1.0Gb) (md5 checksum 10df9f25b297ba0489728fead361e73a)
+            (1.0Gb) (md5 checksum 9777f4723a4a3f65ffa2ac8911a96115)
           </td>
         </tr>
       </tbody>
