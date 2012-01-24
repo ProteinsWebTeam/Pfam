@@ -44,6 +44,17 @@ sharedRequirements.css.push( "prettify.css" );
       same information in a set of text files in the home directory of the main
       "pfamadmin" user account within the VM itself.
     </p>
+    <p>
+      Note that this VM encapsulates only the code needed to run the Pfam
+      website. It does <strong>not</strong> include the Pfam database, since
+      that runs to several hundred gigabytes when installed and running. You
+      will need to retrieve and install the database separately. The VM also
+      does <strong>not</strong> include the code needed to run sequence and
+      other searches through the website. That functionality requires another
+      set of scripts and software and, in our case, an entirely separate set of
+      machines. We&apos;ll look at building another VM for that task later, if
+      there&apos;s interest.
+    </p>
 
     <h2>Setting up the VM</h2>
 
@@ -94,8 +105,8 @@ sharedRequirements.css.push( "prettify.css" );
           <td>Ubuntu 11.10 (oneiric) (64 bit)</td>
         </tr>
         <tr class="even">
-          <td class="label">Last update</td>
-          <td>2012-01-19</td>
+          <td class="label">Last package update</td>
+          <td>2012-01-24</td>
         </tr>
         <tr class="odd">
           <td class="label">CPU cores</td>
@@ -108,6 +119,13 @@ sharedRequirements.css.push( "prettify.css" );
         <tr class="odd">
           <td class="label">Hard drive</td>
           <td>20 Gb (virtual size, dynamically allocated)</td>
+        </tr>
+        <tr class="even">
+          <td class="label">OVA file</td>
+          <td>
+            <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/vm/PfamWeb_20120124.ova">PfamWeb_20120124.ova</a>
+            (1.0Gb) (md5 checksum 10df9f25b297ba0489728fead361e73a)
+          </td>
         </tr>
       </tbody>
     </table>
