@@ -226,12 +226,14 @@ span.column {
 
 pre {
   font-size: larger;
+  margin: 0;
 }
 
 fieldset {
   border: 1px solid #BBB;
   background: #EEE;
-  margin-bottom: 1em;
+  margin: 1em;
+  width: 75em;
 }
 
 legend {
@@ -248,10 +250,6 @@ img.tables {
 
 /* ---------------------------------------- */
 /* rest services documentation */
-
-pre {
-  margin: 0;
-}
 
 pre.url {
   margin-left: 2em;
@@ -271,14 +269,14 @@ pre.prettyprint {
 
 div.code {
   overflow: auto;
-  width: 100%;
+  width: 75em;
 }
 
 div.sections {
   border: 1px solid #CCC;
   background-color: #EEE;
   padding: 0.4em;
-  margin: 0.2em;
+  margin: 0.2em 0.2em 1em 1em;
   float: right;
 }
 
@@ -289,7 +287,7 @@ div.sections p {
 }
 
 div.sections ol {
-  width: 100%;
+  /* width: 100%; */
   margin: 0.2em;
   padding: 0 1.4em;
   margin: 0.2em 0.2em 0.2em 1.2em;
