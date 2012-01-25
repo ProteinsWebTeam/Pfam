@@ -238,6 +238,7 @@ legend {
   border: 1px solid #BBB;
   background: #DDD;
   padding: 0.4em;
+  font-weight: bold;
 }
 
 img.tables {
@@ -284,6 +285,7 @@ div.sections {
 div.sections p {
   margin: 0;
   padding: 0;
+  font-weight: bold;
 }
 
 div.sections ol {
