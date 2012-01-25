@@ -51,7 +51,7 @@ requirements.cssIeAll.push( "help_ie.css" );
         Open Virtualisation Format</a> (OVF) virtual machine. The package should be
       usable in many virtualisation frameworks. You can find the OVA file on
       our 
-      <a class="ext" href="ftp://ftp.sanger.ac.uk/ftp/pub/databases/Pfam/vm/">
+      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/vm/">
         FTP area</a>.
     </p>
 
