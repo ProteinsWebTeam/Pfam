@@ -25,6 +25,20 @@ requirements.cssIeAll.push( "help_ie.css" );
   </div>
   <div class="blockContent">
 
+    <div class="sections">
+      <p>Contents:</p>
+      <ol>
+        <li><a class="link" rel="dlVM">Download the VM image</a></li>
+        <li><a class="link" rel="installVM">Install the image</a></li>
+        <li><a class="link" rel="startVM">Start the VM under the GUI</a></li>
+        <li><a class="link" rel="startHeadlessVM">Start the VM in "headless" mode</a></li>
+        <li><a class="link" rel="findIP">Finding the IP address of the running VM</a></li>
+        <li><a class="link" rel="configureVM">Re-configuring the VM specification</a></li>
+        <li><a class="link" rel="loggingIn">Logging into the VM</a></li>
+        <li><a class="link" rel="installGA">Installing VirtualBox "guest additions"</a></li>
+      </ol> 
+    </div>
+  
     <p>
       This page gives some pointers on how to install the virtual
       machine image in your local virtualisation software. The
@@ -36,13 +50,13 @@ requirements.cssIeAll.push( "help_ie.css" );
       linux and windows).
     </p>
     <p>
-      The VM was built using VMware and tested only briefly under
-      VirtualBox and these instructions are based on running the
-      software on a desktop machine, rather than a full-blown
-      virtualisation infrastructure. 
+      <strong>Note</strong>: the VM was built using VMware and tested only
+      briefly under VirtualBox and these instructions are based on running the
+      software on a desktop machine, rather than a full-blown virtualisation
+      infrastructure. 
     </p>
 
-    <h2>Download the VM image</h2>
+    <h2><a name="dlVM">Download the VM image</a></h2>
 
     <p>
       The VM is packaged as an Open Virtual Appliance (OVA), essentially a
@@ -55,7 +69,7 @@ requirements.cssIeAll.push( "help_ie.css" );
         FTP area</a>.
     </p>
 
-    <h2>Install the image</h2>
+    <h2><a name="installVM">Install the image</a></h2>
 
     <p>
       The OVA packge must be converted to a VMX file for use in
@@ -85,11 +99,9 @@ shell%
     <p>
       The OVA file can be imported directly into
       <strong>VirtualBox</strong>. Choose "Import" from the "File" menu.
-      At this stage you can also set the name of the VM in VirtualBox,
-      as well as its memory- and device-allocations, if required.
     </p>
 
-    <h2>Start the VM under the GUI</h2>
+    <h2><a name="startVM">Start the VM under the GUI</a></h2>
 
     <p>
       It&apos;s useful to start the VM at least once under the GUI of
@@ -97,8 +109,8 @@ shell%
       allows you to log in. If you are using VirtualBox, you will also
       need to install the "guest additions" using the GUI.
     </p>
-
-    <h2>Start the VM in "headless" mode</h2>
+    
+    <h2><a name="startHeadlessVM">Start the VM in "headless" mode</a></h2>
 
     <p>
       Once you&apos;ve checked that you can successfully log into the VM
@@ -112,7 +124,8 @@ shell%
       <legend>VMware example</legend>
       <div class="code">
 <pre>
-shell% /Library/Application\ Support/VMware\ Fusion/vmrun start $HOME/Documents/Virtual\ Machines.localized/PfamWeb.vmwarevm/PfamWeb.vmx nogui
+shell% /Library/Application\ Support/VMware\ Fusion/vmrun start \
+  $HOME/Documents/Virtual\ Machines.localized/PfamWeb.vmwarevm/PfamWeb.vmx nogui
 </pre>
       </div>
     </fieldset>
@@ -128,7 +141,7 @@ VM "PfamWeb" has been successfully started.
       </div>
     </fieldset>
 
-    <h2>Finding the IP address of the running VM</h2>
+    <h2><a name="findIP">Finding the IP address of the running VM</a></h2>
 
     <p>
       If you run your VM in a GUI, you will be able to log in directly, but if 
@@ -204,7 +217,7 @@ ssh pfamadmin@`VBoxManage guestproperty get "PfamWeb" "/VirtualBox/GuestInfo/Net
     </fieldset>
     <!-- via https://forums.virtualbox.org/viewtopic.php?f=1&t=36592 -->
 
-    <h2>Re-configuring the VM specification</h2>
+    <h2><a name="configureVM">Re-configuring the VM specification</a></h2>
 
     <p>
       The VM, as shipped, has 1Gb of memory, 20Gb of disk space and a
@@ -218,7 +231,7 @@ ssh pfamadmin@`VBoxManage guestproperty get "PfamWeb" "/VirtualBox/GuestInfo/Net
       re-configure the VM.
     </p>
 
-    <h2>Logging into the VM</h2>
+    <h2><a name="loggingIn">Logging into the VM</a></h2>
 
     <p>
       The VM is configured with a single user account, "pfamadmin". The
@@ -229,11 +242,162 @@ ssh pfamadmin@`VBoxManage guestproperty get "PfamWeb" "/VirtualBox/GuestInfo/Net
       time</strong>.
     </p>
 
+    <hr />
+
+    <h2><a name="installGA">Installing VirtualBox "guest additions"</a></h2>
+
+    <p>
+      Installing the guest additions into VirtualBox can be somewhat involved.
+      Here are some pointers to getting it to work.
+    </p>
+    
+    <h3>Mount the guest additions CD in the VM</h3>
+
+    <p>
+      VirtualBox can present the guest additions installer to the VM as a CD
+      image. Choose "Install Guest Additions" from the "Devices" menu of the
+      VM, which effectively inserts a CD into the virtual CD drive of the
+      virtual machine. You then need to mount the CD:
+    </p>
+
+    <fieldset class="query">
+      <legend>Mount "guest additions" CD</legend>
+      <div class="code">
+<pre>
+pfamadmin@ubuntu:~$ ls /dev/cdrom*
+/dev/cdrom2@
+shell sudo mount /dev/cdrom2 /media
+[sudo] password for pfamadmin: 
+mount: block device /dev/sr0 is write-protected, mounting read-only
+pfamadmin@ubuntu:~$ 
+</pre>
+      </div>
+    </fieldset>
+
+    <h3>Install pre-requisites</h3>
+
+    <p>
+      Next you need to install the necessary pre-requisites for building linux
+      kernel modules: the guest additions include a module that allows the
+      host to interact with the guest.
+    </p>
+    <p>
+      First, install the <code>module-assistant</code> package, which helps
+      install the required kernel headers and other essentials for building
+      kernel modules. <strong>Note</strong>: since this involves using
+      <code>apt-get</code> to download and install packages, you may need to 
+      <span class="link" onclick="tabPage.switchTab('vmConfigureVMBlock')">
+        configure your proxy settings</span> before you can do this.
+    </p>
+
+    <fieldset class="query">
+      <legend>Install <code>module-assistant</code></legend>
+      <div class="code">
+<pre>
+pfamadmin@ubuntu:~$ sudo apt-get install module-assistant
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following NEW packages will be installed:
+  module-assistant
+0 upgraded, 1 newly installed, 0 to remove and 2 not upgraded.
+Need to get 0 B/101 kB of archives.
+After this operation, 582 kB of additional disk space will be used.
+Selecting previously deselected package module-assistant.
+(Reading database ... 34381 files and directories currently installed.)
+Unpacking module-assistant (from .../module-assistant_0.11.4_all.deb) ...
+Processing triggers for man-db ...
+Setting up module-assistant (0.11.4) ...
+pfamadmin@ubuntu:~$ 
+</pre>
+          </div>
+        </fieldset>
+        <fieldset class="query">
+          <legend>Install pre-requisites</legend>
+          <div class="code">
+<pre>
+pfamadmin@ubuntu:~$ sudo module-assistant prepare
+Getting source for kernel version: 3.0.0-12-generic
+apt-get install linux-headers-3.0.0-12-generic 
+Reading package lists... Done
+...
+</pre>
+      </div>
+    </fieldset>
+    
+    <h3>Install the guest additions</h3>
+
+    <p>
+      Finally, run the installer:
+    </p>
+    <fieldset class="query">
+      <legend>Install "guest additions"</legend>
+      <div class="code">
+<pre>
+pfamadmin@ubuntu:~$ sudo /media/VBoxLinuxAdditions.run 
+Verifying archive integrity... All good.
+Uncompressing VirtualBox 4.1.8 Guest Additions for Linux.........
+VirtualBox Guest Additions installer
+Removing installed version 4.1.8 of VirtualBox Guest Additions...
+Removing existing VirtualBox DKMS kernel modules ...done.
+Removing existing VirtualBox non-DKMS kernel modules ...done.
+Building the VirtualBox Guest Additions kernel modules
+The headers for the current running kernel were not found. If the following
+module compilation fails then this could be the reason.
+
+Building the main Guest Additions module ...done.
+Building the shared folder support module ...done.
+Building the OpenGL support module ...done.
+Doing non-kernel setup of the Guest Additions ...done.
+Starting the VirtualBox Guest Additions ...done.
+Installing the Window System drivers ...fail!
+(Could not find the X.Org or XFree86 Window System.)
+pfamadmin@ubuntu:~$ 
+</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      If the installation has been successful, you should now be able to probe
+      the VM from the host machine:
+    </p>
+
+    <fieldset class="query">
+      <legend>Check guest properties</legend>
+      <div class="code">
+<pre>
+shell% VBoxManage guestproperty enumerate vm
+Name: /VirtualBox/GuestInfo/OS/Product, value: Linux, timestamp: 1327501754794589000, flags: 
+Name: /VirtualBox/GuestInfo/Net/0/V4/IP, value: 193.62.207.242, timestamp: 1327501754802162000, flags: 
+Name: /VirtualBox/HostInfo/GUI/LanguageID, value: en_US, timestamp: 1327499066451493000, flags: 
+...
+</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      In particular you should now see an entry
+      <code>/VirtualBox/GuestInfo/Net/0/V4/IP</code>, which was not previously
+      visible. The value for that property gives the IP address for the
+      running VM.
+    </p>
+
   </div>
 
   <script type="text/javascript">
     // <![CDATA[
-    document.observe( "dom:loaded", prettyPrint );
+
+    document.observe( "dom:loaded", function() {
+      prettyPrint;
+      $$("a[rel]").each( function(el) {
+        el.observe( "click", function(e) {
+          var el = e.findElement();
+          var target = el.getAttribute("rel");
+          $$("a[name='"+target+"']").first().scrollTo();
+        } );
+      } );
+    } );
+    
     // ]]>  
   </script>
 
