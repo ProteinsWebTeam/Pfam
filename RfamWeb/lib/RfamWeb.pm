@@ -55,7 +55,9 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 
 # read the configuration, configure the application and load these 
 # catalyst plugins
-__PACKAGE__->setup( qw( PageCache ) );
+__PACKAGE__->setup( qw( PageCache 
+                        Unicode
+                        Static::Simple ) );
 
 #-------------------------------------------------------------------------------
 
