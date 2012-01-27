@@ -11,10 +11,10 @@
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "wp.css" );
-
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
+
+sharedRequirements.css.push( "wp.css" );
 
 #-------------------------------------------------------------------------------
 -%]
@@ -212,8 +212,7 @@ requirements.cssIe.push( "family_ie.css" );
     </div>
 
     [%- IF article.wikitext AND article.wikitext.text %]
-    <div id="wpData" 
-         class="controlTabContent">
+    <div class="wpData controlTabContent">
       [%- article.wikitext.text %]
     </div>
 
