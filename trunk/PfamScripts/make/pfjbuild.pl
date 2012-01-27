@@ -393,10 +393,18 @@ sub farmJackhmmer {
     . $farmConfig->{lsf}->{scratch}
     . "/$user/$uuid: [$!]";
 
-  copy( $fasta, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta" )
-    or die "Failed to copy SEED to scratch space:[$!]";
 
-  $fasta = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta";
+  my $fasta_name=$fasta;
+
+  if($fasta =~ /\S+\/(\S+)$/) {  #Need to do this if the full path to fasta file is specified
+    $fasta_name=$1;
+  }
+
+
+  copy( $fasta, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta_name" )
+    or die "Failed to copy fasta to scratch space:[$!]";
+
+  $fasta = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta_name";
 
 #  unless ( $seqDB =~ m|^/nfs/pfam_nfs| ) {
 #    warn
