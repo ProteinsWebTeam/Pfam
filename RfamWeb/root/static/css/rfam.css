@@ -966,6 +966,11 @@ ul.mirrors li {
 /* ======================================== */
 /* family page */
 
+/* put a border around the wikipedia content */
+.wpData {
+  border: 1px solid #CCC;
+}
+
 /* alignments and trees tab */
 #alignmentTree {
   margin: 0.4em 0;
