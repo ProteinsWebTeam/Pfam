@@ -19,109 +19,135 @@
       These are some of the commonly used terms in the Rfam website.			
     </p>
 
-<h3>ClustalW</h3>
+    <h3>ClustalW</h3>
 
-A general purpose multiple sequence alignment program for DNA(RNA)
-which we use while building our SEED alignments. See the <a
-href="http://www.clustal.org/">Clustal web server</a>.
+    <p>
+      A general purpose multiple sequence alignment program for DNA(RNA)
+      which we use while building our SEED alignments. See the 
+      <a class="ext" href="http://www.clustal.org/">Clustal web server</a>.
+    </p>
 
-<h3>Covariance model (CM)</h3>
+    <h3>Covariance model (CM)</h3>
 
-A secondary structure profile for a RNA structural alignment (also
-called profile stochastic context-free grammars).
+    <p>
+      A secondary structure profile for a RNA structural alignment (also
+      called profile stochastic context-free grammars).
+    </p>
 
-<h3>Family</h3>
+    <h3>Family</h3>
 
-A group of RNA sequences which we believe are related by evolution in
-sequence or secondary structure.
+    <p>
+      A group of RNA sequences which we believe are related by evolution in
+      sequence or secondary structure.
+    </p>
 
+    <h3>FULL alignment</h3>
 
-<h3>FULL alignment</h3>
+    <p>
+      An alignment of the set of related sequences which score higher than
+      the manually set threshold values for the CMs of a particular Rfam
+      family.
+    </p>
 
-An alignment of the set of related sequences which score higher than
-the manually set threshold values for the CMs of a particular Rfam
-family.
+    <h3>Gathering cut off (GA)</h3>
 
-<h3>Gathering cut off (GA)</h3>
+    <p>
+      The bit score gathering threshold set by our curators when building
+      the family. All sequences that score at or above this threshold will
+      be included in the full alignment.
+    </p>
 
-The bit score gathering threshold set by our curators when building
-the family. All sequences that score at or above this threshold will
-be included in the full alignment.
+    <h3>Infernal</h3>
 
+    <p>
+      Infernal is the core software which enables us to make consensus RNA
+      secondary structure profiles (covariance models (CMs)) for our
+      families and the searching of sequence databases for homologous
+      RNAs. See the <a class="ext" href="http://infernal.janelia.org/">Infernal</a>
+      site.
+    </p>
 
-<h3>Infernal</h3>
+    <h3>Mfold</h3>
 
-Infernal is the core software which enables us to make consensus RNA
-secondary structure profiles (covariance models (CMs)) for our
-families and the searching of sequence databases for homologous
-RNAs. See the<a href="http://infernal.janelia.org/"> Infernal
-</a>site.</dd> 
+    <p>
+      RNA structure prediction algorithm which utilises minimum free energy
+      information. See the 
+      <a class="ext" href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php">
+        Mfold webserver</a>.
+    </p>
 
-<h3>Mfold</h3>
+    <h3>Pfold</h3>
 
-RNA structure prediction algorithm which utilises minimum free energy
-information. See the <a
-  href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php">
-  Mfold webserver</a>.
+    <p>
+      RNA folding software which folds alignments using a SCFG (Stochastic
+      Context-Free Grammars) trained on rRNA alignments. It takes an
+      alignment of RNA sequences as input and predicts a common structure
+      for all sequences. See the 
+      <a class="ext" href="http://www.daimi.au.dk/~compbio/rnafold/">
+        Pfold webserver</a>.
+    </p>
 
-<h3>Pfold</h3>
+    <h3>Rfamseq</h3>
 
-RNA folding software which folds alignments using a SCFG (Stochastic
-Context-Free Grammars) trained on rRNA alignments. It takes an
-alignment of RNA sequences as input and predicts a common structure
-for all sequences. See the <a
-href="http://www.daimi.au.dk/~compbio/rnafold/">Pfold webserver</a>.
+    <p>
+      The underlying nucleotide sequence database on which Rfam is based. It
+      is derived from the <a class="ext" href="http://www.ebi.ac.uk/embl/">
+        EMBL nucleotide database</a>.
+    </p>
 
-<h3>Rfamseq</h3>
+    <h3>RNAalifold</h3>
 
-The underlying nucleotide sequence database on which Rfam is based. It
-is derived from the <a href="http://www.ebi.ac.uk/embl/"> EMBL
-nucleotide database</a>.
+    <p>
+      Folds precomputed alignments using a combination of free-energy and a
+      covariation measures. This is obtained with the 
+      <a class="ext" href="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna package</a>.
+    </p>
+      
+    <h3>SEED alignment</h3>
 
-<h3>RNAalifold</h3>
+    <p>
+      A manually curated sample of representative sequences for an
+      family. These sequences are aligned and annotated with a consensus
+      secondary structure. This alignment is used to build the covariance
+      model for the family.
+    </p>
 
-Folds precomputed alignments using a combination of free-energy and a
-covariation measures. This is obtained with the <a
-href="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna package</a>.
-  
-<h3>SEED alignment</h3>
+    <h3>Sequence region</h3>
 
-A manually curated sample of representative sequences for an
-family. These sequences are aligned and annotated with a consensus
-secondary structure. This alignment is used to build the covariance
-model for the family.
+    <p>
+      A single segment of nucleotide sequence in our alignments. Multiple
+      sequence regions from a single EMBL sequence may be in the same
+      family.
+    </p>
 
-<h3>Sequence region</h3>
+    <h3>Type</h3>
 
-A single segment of nucleotide sequence in our alignments. Multiple
-sequence regions from a single EMBL sequence may be in the same
-family.
+    <p>
+      A simple functional classification we use for our families. This is
+      our own ontology and does not current directly relate to the
+      ontologies used by other databases. For a full list of our current
+      ontologies see the help section on <span class="link"
+      onclick="tabPage.switchTab('helpgetStartedBlock');"> searching by family
+      type</span>.
+    </p>
 
-<h3>Type</h3>
+    <h3>Stockholm format</h3>
 
-A simple functional classification we use for our families. This is
-our own ontology and does not current directly relate to the
-ontologies used by other databases. For a full list of our current
-ontologies see the help section on <span class="link"
-onclick="tabPage.switchTab('helpgetStartedBlock');"> searching by family
-type</span>.
+    <p>
+      A multiple sequence alignment format used by Rfam (and Pfam) to
+      disseminate protein and RNA sequence alignments. For more information
+      see the <a class="ext" href="http://en.wikipedia.org/wiki/Stockholm_format">
+        Wikipedia article</a>.
+    </p>
 
-<h3>Stockholm format</h3>
+    <h3>WAR</h3>
 
-A multiple sequence alignment format used by Rfam (and Pfam) to
-disseminate protein and RNA sequence alignments. For more information
-see the<a
-href="http://en.wikipedia.org/wiki/Stockholm_format"> wikpeida
-article</a>.
-
-<h3>WAR</h3>
-
-A software tool which enables us to simultaneously run several
-different methods for performing multiple alignment and secondary
-structure prediction for noncoding RNA sequences. See the <a
-href="http://genome.ku.dk/resources/war"> War</a> site.
-
-  
+    <p>
+      A software tool which enables us to simultaneously run several
+      different methods for performing multiple alignment and secondary
+      structure prediction for noncoding RNA sequences. See the 
+      <a class="ext" href="http://genome.ku.dk/resources/war">War</a> site.
+    </p>
 
   </div>
 </div>
