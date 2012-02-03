@@ -22,9 +22,9 @@
     </p>
     <div id="relationshipNotes" style="display: none">
       <p>
-        Relationships between families in a clan are determined by a 
-        <a href="http://supfam.org/PRC/" class="ext">PRC</a>
-        alignment between family HMMs. Families are deemed to be closely
+        Relationships between families in a clan are determined using
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/15531603">
+          HHsearch</a>. Families are deemed to be closely
         related if their E-value is less than 10<sup>-3</sup> and these 
         relationships are shown with a solid line. Less closely related
         family pairs, with an E-value of between 10<sup>-3</sup> and
