@@ -31,9 +31,25 @@ use warnings;
 use Compress::Zlib;
 use MIME::Base64;
 use JSON;
+use File::Temp qw( tempfile );
 use Data::Dump qw( dump );
+use Moose;
+use namespace::autoclean;
+use treefam::nhx_plot;
 
-use base 'RfamWeb::Controller::Section';
+BEGIN {
+  extends 'Catalyst::Controller::REST';
+  extends 'RfamWeb::Controller::Section';
+}
+
+# set up the list of content-types that we handle
+__PACKAGE__->config(
+  'default' => 'text/html',
+  'map'     => {
+    'text/html' => [ 'View', 'TT' ],
+    'text/xml'  => [ 'View', 'TT' ],
+  }
+);
 
 # set the name of the section
 __PACKAGE__->config( SECTION => 'family' );
@@ -96,109 +112,222 @@ QAihQAihQAihQAihQAghFAghFAghFAghFAghFAghFAghFAghFAghFAghFAghhAIhhAIhREW00WgUHo+H
 
 =head2 begin : Private
 
-This is the guts of this controller. It's function is to extract
-the Rfam family ID or accession from the URL and get the row
-in the Rfam table for that entry. Expects one of three parameters:
-
-=over
-
-=item acc
-
-a valid Rfam accession
-
-=item id
-
-a valid Rfam accession
-
-=item entry
-
-either an ID or accession
-
-=back
+This is the guts of this controller. Its function is to extract
+values from the parameters. Accepts "acc", "id" and "entry", in
+lieu of having them as path components.
 
 =cut
 
 sub begin : Private {
-  my ( $this, $c, $entry_arg ) = @_;
+  my ( $this, $c ) = @_;
   
-  $c->cache_page( 43200 ); # cache for 12 hours
-  
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');
-  }
-  
-  # get a handle on the entry and detaint it
+  # get a handle on the entry, if supplied as params, and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
-                      $entry_arg              ||
                       '';
   
-  my ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
-
-  unless ( defined $entry ) {
-    $c->log->debug( 'Family::begin: no valid Rfam family accession or ID' )
+  if ( $tainted_entry ) {
+    $c->log->debug( 'Family::begin: got a tainted entry' )
       if $c->debug;
-
-    $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID';
-
-    return;
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w-]+)$/;
   }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 family : Chained('/') PathPart('family') CaptureArgs(1)
+
+Mid-point of a chain handling family-related data. Retrieves family information
+from the DB.
+
+=cut
+
+sub family : Chained( '/' )
+             PathPart( 'family' )
+             CaptureArgs( 1 ) {
+
+  my ( $this, $c, $entry_arg ) = @_;
+
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
   
-  # find out what type of alignment we need, seed, full, ncbi, etc
-  $c->stash->{alnType} = 'seed';
-  if ( defined $c->req->param('alnType') and
-       ( $c->req->param('alnType') eq 'seed' or 
-         $c->req->param('alnType') eq 'full' ) ) {
-    $c->stash->{alnType} = $c->req->param( 'alnType' );
+  $c->log->debug( "Family::family: tainted_entry: |$tainted_entry|" )
+    if $c->debug;
+
+  my $entry;
+  if ( $tainted_entry ) {
+    ( $entry ) = $tainted_entry =~ m/^([\w-]+)$/;
+    $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID' 
+      unless defined $entry;
   }
-
-  $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
-    if $c->debug;
-  
-  # for the benefit of the alignment generation controller, we also check to 
-  # see if alignments should be produced with the alternate label format, or
-  # in "colorstock" html format
-  $c->stash->{nseLabels}  = $c->req->param('nseLabels') ? 1 : 0;
-  $c->stash->{colorstock} = $c->req->param('cs') ? 1 : 0;
-
-  $c->log->debug( 'Family::begin: use name/start-end labels ? ' . $c->stash->{nseLabels} )
-    if $c->debug;
-  $c->log->debug( 'Family::begin: raw or colorstock ?         ' . $c->stash->{colorstock} )
-    if $c->debug;
-  
-  #----------------------------------------
+  else {
+    $c->stash->{errorMsg} = 'No Rfam family accession or ID specified';
+  }
 
   # retrieve data for the family
-  $c->forward( 'get_data', [ $entry ] );
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+}
 
-  if ( ref $this eq 'RfamWeb::Controller::Family' ) {
-    $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
+# TODO need to handle this URL, "/family", with no entry given, and have it
+# provide a list of all families.
+
+#-------------------------------------------------------------------------------
+
+=head2 family_page : Chained('family') PathPart('') Args(0) ActionClass('REST')
+
+End-point of a chain handling family data. Generates a family page (HTML) 
+or an XML output. Implemented using C::C::REST; accepts GET requests only.
+
+=cut
+
+sub family_page : Chained( 'family' )
+                  PathPart( '' )
+                  Args( 0 )
+                  ActionClass('REST') { }
+
+sub family_page_GET {
+  my ( $this, $c ) = @_;
+
+  return unless $c->stash->{rfam};
+
+  # load the data for all regions, provided the number of regions is less than
+  # the limit set in the config
+  if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showAll} ) {
+    $c->log->debug( 'Family::family_page: num_full <= showAll limit; retrieving regions' )
+      if $c->debug;
+    $c->stash->{showAll} = 1;
+    $c->forward( 'get_regions_data' );
+  }
+  elsif ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showText} ) {
+    $c->log->debug( 'Family::family_page: num_full <= showText limit; retrieving regions later' )
+      if $c->debug;
+    $c->stash->{showText} = 1;
+  }
+
+  # add the clan details, if any
+  my $clan = $c->model('RfamDB::Clans')
+               ->search( { 'clan_memberships.auto_rfam' => $c->stash->{rfam}->auto_rfam },
+                         { prefetch => [ qw(clan_memberships) ] } )
+               ->first;
+  
+  if ( $clan and defined $clan->clan_acc ) {
+    $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
+    $c->stash->{clan} = $clan;
+  }
+
+  $c->cache_page( 43200 ); # cache for 12 hours
+  
+  #---------------------------------------
+
+  # are we emitting XML or HTML ? We need to retrieve less data for XML...
+
+  # (should be able to use $request->preferred_content_types but it throws
+  # an exception in the tests for the controller, so we'll use this 
+  # work-around instead.)
+  if ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' ) {
+    $c->log->debug( 'Family::family_page: emitting XML' ) 
+      if $c->debug;
+
+    $c->stash->{template} = 'rest/family/rfam.tt';
+
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Family::family_page: there was an error: |' .
+                      $c->stash->{errorMsg} . '|' ) if $c->debug;
+      $c->stash->{template} = 'rest/family/error_xml.tt';
+      return;
+    }
+  }
+  else {
+    $c->log->debug( 'Family::family_page: emitting HTML' )
+      if $c->debug;
+
+    $c->log->debug( 'Family::family_page: adding summary info' ) 
+      if $c->debug;
+    $c->forward( 'get_summary_data' );
+
+    $c->log->debug( 'Family::family_page: adding wikipedia info' ) 
+      if $c->debug;
     $c->forward( 'get_wikipedia' );
   }
+}
+
+#---------------------------------------
+
+=head2 old_family : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_family : Path( '/family' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_family: redirecting to "family"' )
+    if $c->debug;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+#- family page components ------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 id : Chained
+
+Returns the ID for this family as a single, plain text string. Returns 404 if
+there's no family to work on.
+
+=cut
+
+sub id : Chained( 'family' )
+         PathPart( 'id' )
+         Args( 0 ) {
+  my ( $this, $c ) = @_;
   
-  #----------------------------------------
-
-  # if we're outputting HTML, we're done here
-  unless ( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Family::begin: emitting HTML' ) if $c->debug;
-    return;
+  # cache page for 1 week
+  $c->cache_page( 604800 ); 
+  
+  if ( defined $c->stash->{rfam} ) {    
+    $c->res->content_type( 'text/plain' );
+    $c->res->body( $c->stash->{rfam}->rfam_id );
   }
+  else { 
+    $c->res->status( 404 );
+    $c->res->body( 'No such family' );
+  }
+}
 
-  # from here on we're handling XML output
-  $c->log->debug( 'Family::begin: emitting XML' ) if $c->debug;
+#-------------------------------------------------------------------------------
 
-  # if there was an error...
-  if ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'Family::begin: there was an error: |' .
-                    $c->stash->{errorMsg} . '|' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/error_xml.tt';
-    return;
+=head2 acc : Chained
+
+Returns the accession for this family as a single, plain text string. Returns 
+404 if there's no family to work on.
+
+=cut
+
+sub acc : Chained( 'family' )
+          PathPart( 'acc' )
+          Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # cache page for 1 week
+  $c->cache_page( 604800 );
+
+  if ( defined $c->stash->{rfam} ) {
+    $c->res->content_type( 'text/plain' );
+    $c->res->body( $c->stash->{rfam}->rfam_acc );
+  }
+  else {
+    $c->res->status( 404 );
+    $c->res->body( 'No such family' );
   }
 }
 
@@ -217,7 +346,9 @@ VARNA applet.
 
 =cut
 
-sub varna : Local {
+sub varna : Chained( 'family' )
+            PathPart( 'varna' )
+            Args( 0 ) {
   my ( $this, $c ) = @_;
 
   $c->stash->{template} = 'components/tools/varna.tt';
@@ -245,23 +376,48 @@ sub varna : Local {
   $c->stash->{ss} = $json->encode( $ss );
 }
 
+#---------------------------------------
+
+=head2 old_varna : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_varna : Path( '/family/varna' ) {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  $c->log->debug( 'Family::old_varna: redirecting to "varna"' )
+    if $c->debug;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/family', $entry_arg, 'varna', $c->req->params ) );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 image : Local
 
-Retrieves and returns an image from the database. Cache the image, unless
+Retrieves and returns an image from the database. Caches the image, unless
 C<$ENV{NO_CACHE}> is true. 
 
 =cut
 
-sub image : Local {
-  my ( $this, $c ) = @_;
+sub image : Chained( 'family' )
+            PathPart( 'image' )
+            Args( 1 ) {
+  my ( $this, $c, $type ) = @_;
   
   $c->cache_page( 604800 );
 
-  my ( $image_type ) = $c->req->param('type') || '' =~ m/^(\w+)$/;
+  my ( $image_type ) = $type || '' =~ m/^(\w+)$/;
+  $c->log->debug( "Family::image: image_type: |$image_type|" )
+    if $c->debug;
 
-  unless ( defined $image_type ) {
+  unless ( defined $image_type and $image_type ) {
     $c->log->debug( 'Family::image: no valid type specified; defaulting to normal' )
       if $c->debug;
     $image_type = 'normal';
@@ -286,9 +442,6 @@ sub image : Local {
              defined $rs->image ) {
       $c->detach( 'no_alignment' );
       return;
-      $c->stash->{errorMsg} = 'We could not find an image for ' 
-                              . $c->stash->{acc};
-      return;
     }
 
     $image = $rs->image;
@@ -298,6 +451,30 @@ sub image : Local {
   
   $c->res->content_type( 'image/png' );
   $c->res->body( $image );
+}
+
+#---------------------------------------
+
+=head2 old_image : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_image : Path( '/family/image' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_image: redirecting to "image"' )
+    if $c->debug;
+
+  my ( $image_type ) = $c->req->param('type') || 'normal' =~ m/^(\w+)$/;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{type};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'image', $image_type, $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -348,13 +525,14 @@ Serves the CM file for this family.
 
 =cut
 
-sub cm : Local {
-  my ( $this, $c ) = @_;
-  
-  my ( $version ) = $c->req->param('version') =~ m/^(\d+\.\d+)$/;
+sub cm : Chained( 'family' )
+         PathPart( 'cm' )
+         Args() {
+  my ( $this, $c, $version ) = @_;
   
   my $rs;
-  if ( defined $version ) {
+  if ( defined $version and
+       $version =~ m/^\d+\.\d+$/ ) {
     $c->log->debug( "Family::cm: looking for CM built with infernal v. |$version| ")
       if $c->debug;
     $rs = $c->stash->{rfam}->search_related( 'rfam_cms',
@@ -369,6 +547,7 @@ sub cm : Local {
 
   my $gzipped_cm;
   unless ( defined $rs and 
+           $rs->first  and
            $gzipped_cm = $rs->first->cm ) {
     $c->stash->{errorMsg} = 'We could not find a covariance model that was built with that version of infernal.';
     return;
@@ -386,6 +565,30 @@ sub cm : Local {
   $c->res->body( $cm );
 }
 
+#---------------------------------------
+
+=head2 old_cm : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_cm : Path( '/family/cm' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_cm: redirecting to "cm"' )
+    if $c->debug;
+
+  my ( $version ) = $c->req->param('version') || 1.0 =~ m/^(\d+\.\d+)$/;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{version};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'cm', $version || '', $c->req->params ) );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 regions : Local
@@ -394,24 +597,35 @@ Builds a tab-delimited file containing all regions for this family
 
 =cut
 
-sub regions : Local {
+sub regions : Chained( 'family' )
+              PathPart( 'regions' )
+              Args( 0 ) {
   my ( $this, $c ) = @_;
   
   $c->log->debug( 'Family::regions: building tab-delimited list of regions' )
     if $c->debug;
 
-  if ( $c->stash->{showText} ) {
-    $c->log->debug( 'Family::regions: showText flag set earlier; retrieving regions' )
+  if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showText} ) {
+    $c->log->debug( 'Family::regions: num_full <= showText limit; retrieving regions later' )
       if $c->debug;
     $c->forward( 'get_regions_data' );
   }
-
-  unless ( defined $c->stash->{regions} ) {
+  else {
     $c->log->debug( 'Family::regions: num_full > showText limit; not showing regions' )
       if $c->debug;
 
     $c->res->status( 403 );
     $c->res->body( 'The family has too many regions to list.' );
+
+    return;
+  }
+
+  unless ( defined $c->stash->{regions} ) {
+    $c->log->debug( 'Family::regions: failed to retrieve regions' )
+      if $c->debug;
+
+    $c->res->status( 500 ); # Internal server error
+    $c->res->body( 'There was a problem retrieving the regions.' );
 
     return;
   }
@@ -432,16 +646,785 @@ sub regions : Local {
   foreach my $region ( @{ $c->stash->{regions} } ) {
     $regions .= $region->get_column('rfamseq_acc' ) . "\t";
     $regions .= $region->bits_score . "\t";
-#    $regions .= $region->type . "\t";
     $regions .= $region->seq_start . "\t";
     $regions .= $region->seq_end . "\t";
     $regions .= $region->get_column('description' ) . "\t";
     $regions .= $region->get_column('species' ) . "\n";
   }
 
-  # stuff the content into the response and we're done. The View won't try to 
-  # render a template, since the body already contains content
+  # stuff the content into the response and we're done
   $c->res->body( $regions );
+}
+
+#---------------------------------------
+
+=head2 old_regions : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_regions : Path( '/family/regions' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_regions: redirecting to "regions"' )
+    if $c->debug;
+
+  my ( $version ) = $c->req->param('version') || 1.0 =~ m/^(\d+\.\d+)$/;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'regions', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+#- tree actions ----------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 tree : Chained('family') PathPart('tree') CaptureArgs(1)
+
+Mid-point in a chain for handling trees for a family. Requires "seed" or "full"
+as the first argument.
+
+=cut
+
+sub tree : Chained( 'family' )
+           PathPart( 'tree' )
+           CaptureArgs( 1 ) {
+  my ( $this, $c, $aln_type ) = @_;
+  
+  $c->stash->{alnType} = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
+
+  $c->log->debug( 'Family::tree: looking for tree type ' . $c->stash->{alnType} )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 tree : Chained('family') PathPart('tree') CaptureArgs(1)
+
+Mid-point in a chain for handling trees for a family. Requires one argument,
+"species" or "acc", setting the label style to be applied.
+
+=cut
+
+sub tree_labels : Chained( 'tree' )
+                  PathPart( '' )
+                  CaptureArgs( 1 ) {
+  my ( $this, $c, $label ) = @_;
+  
+  $c->stash->{label} = ( $label || '' ) eq 'species' ? 'species' : 'acc';
+
+  $c->log->debug( 'Family::tree_labels: labelling ' . $c->stash->{alnType} 
+                  . ' tree with ' . $c->stash->{label} . ' labels' )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 tree_data : Chained('tree') PathPart('') Args(0)
+
+Returns the raw tree data.
+
+=cut
+
+sub tree_data : Chained( 'tree' )
+                PathPart( '' )
+                Args( 0 ) {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family::tree_data: returning ' . $c->stash->{alnType} . ' tree' )
+    if $c->debug;
+
+  # stash the raw tree data
+  $c->forward( 'get_tree_data' );
+
+  return unless defined $c->stash->{treeData};
+
+  my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
+  $c->log->debug( 'Family::tree_data: tree data: |' . $c->stash->{treeData} . '|' )
+    if $c->debug;
+
+  $c->log->debug( "Family::tree_data: tree filename: |$filename|" )
+    if $c->debug;
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $c->stash->{treeData} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 tree_map : Path
+
+Returns an HTML snippet with a link to the tree image and associated image map for 
+the specified seed/full alignment with the given label type (acc/species). Also
+builds the image and caches it, so that the request for the image won't have to
+wait.
+
+=cut
+
+sub tree_map : Chained( 'tree_labels' )
+               PathPart( 'map' )
+               Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # cache the page (fragment) for one week
+  $c->cache_page( 604800 );
+
+  # stash the tree object
+  $c->forward( 'get_tree' );
+
+  # populate the tree nodes with the areas for the image map
+  $c->stash->{tree}->plot_core 
+    if defined $c->stash->{tree};
+  # set up the TT view
+  $c->stash->{template} = 'components/blocks/family/treeMap.tt';
+
+  $c->log->debug( 'Family::tree_map: rendering treeMap.tt' )
+    if $c->debug;
+}
+
+#---------------------------------------
+
+=head2 old_tree_map : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_tree_map : Path( '/family/tree' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_tree_map: redirecting to "tree_map"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
+  my $label    = ( $c->req->param('label')   || '' ) eq 'species' ? 'species' : 'acc';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+  delete $c->req->params->{label};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'tree',
+                     $aln_type, $label, 'map', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 tree_image : Chained('tree_labels') PathPart('image') Args(0)
+
+If we successfully generated a tree image, returns it directly as
+an "image/gif". Otherwise returns a blank image.
+
+=cut
+
+sub tree_image : Chained( 'tree_labels' )
+                 PathPart( 'image' )
+                 Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # stash the tree object
+  $c->forward( 'get_tree' );
+
+  if ( defined $c->stash->{tree} ) {
+    $c->res->content_type( 'image/gif' );
+    $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
+  }
+  else {
+    # TODO this is bad. We should avoid hard-coding a path to an image here
+    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+  }
+
+  $c->log->debug( 'Family::Tree::image: returning raw tree image' )
+    if $c->debug;
+}
+
+#---------------------------------------
+
+=head2 old_tree_image : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_tree_image : Path( '/family/tree/image' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_tree_image: redirecting to "tree_image"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
+  my $label    = ( $c->req->param('label')   || '' ) eq 'species' ? 'species' : 'acc';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+  delete $c->req->params->{label};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'tree',
+                     $aln_type, $label, 'image', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+#- structure actions -----------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 structures : Path
+
+Retrieves the list of PDB entries for this family. If a PDB ID is specified,
+the method also retrieves the row of the "pdb" table for that entry.
+
+=cut
+
+# sub structures : Path {
+#   my ( $this, $c ) = @_;
+# 
+#   # see if we were handed a PDB ID and, if so, put the data for that entry into
+#   # the stash
+#   if ( defined $c->req->param('pdbId') and
+#       $c->req->param('pdbId') =~ m/^(\d\w{3})$/ ) {
+# 
+#     $c->stash->{pdbObj} = $c->model('RfamDB::Pdb')
+#                             ->find( { pdb_id => $1 } );
+#   }
+# 
+#   # retrieve the PDB entries for this family
+#   my @rs;
+#   if ( defined $c->stash->{rfam}->auto_rfam ) {
+#     @rs = $c->model('RfamDB::PdbRfamReg')
+#             ->search( { auto_rfam  => $c->stash->{rfam}->auto_rfam},
+#                       { join       => [ qw( pdb ) ],
+#                         prefetch   => [ qw( pdb ) ] } );
+#   }
+# 
+#   my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
+#   $c->stash->{pdbUnique} = \%pdbUnique;
+# 
+#   # set up the view and rely on "end" from the parent class to render it
+#   $c->stash->{template} = 'components/blocks/family/familyStructures.tt';
+# 
+#   # cache the template output for one week
+#   #$c->cache_page( 604800 );
+# }
+
+#-------------------------------------------------------------------------------
+
+=head2 structures : Chained('family') PathPart('structures') Args(0)
+
+Renders a table showing the mapping between Rfam family, UniProt region and
+PDB residues.
+
+=cut
+
+sub structures : Chained( 'family' )
+                 PathPart( 'structures' )
+                 Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+
+  $c->log->debug( 'Family::structures: showing structures that map to ' . $c->stash->{acc} )
+    if $c->debug;
+
+  my @mapping = $c->model('RfamDB::PdbRfamReg')
+                  ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
+                            {} );
+
+  $c->stash->{rfamMaps} = \@mapping;
+
+  $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+}
+
+#---------------------------------------
+
+=head2 old_structures : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_structures : Path( '/family/structures/mapping' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_structures: redirecting to "structures"' )
+    if $c->debug;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'structures', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+#- alignment actions -----------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 alignment : Chained('family') PathPart('alignment') CaptureArgs(1)
+
+Mid-point in a chain for handling alignments. Captures the alignment type, 
+"seed" or "full".
+
+=cut
+
+sub alignment : Chained( 'family' )
+                PathPart( 'alignment' )
+                CaptureArgs( 1 ) {
+  my ( $this, $c, $aln_type ) = @_;
+
+  # which alignment ?
+  $c->stash->{alnType}    = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
+
+  # for the benefit of the alignment generation controller, we also check to 
+  # see if alignments should be produced with the alternate label format, or
+  # in "colorstock" html format
+  $c->stash->{nseLabels}  = ( $c->req->param('nseLabels') || 0 ) ? 1 : 0;
+  $c->stash->{colorstock} = ( $c->req->param('cs')        || 0 ) ? 1 : 0;
+
+  # should we gzip the output, if that makes sense for the specified format ?
+  $c->stash->{gzip} = ( $c->req->param('gzip') || 0 ) ? 1 : 0;
+
+  if ( $c->debug ) {
+    $c->log->debug( 'Family::alignment: which alignment type ?      ' . $c->stash->{alnType} );
+    $c->log->debug( 'Family::alignment: use name/start-end labels ? ' . $c->stash->{nseLabels} );
+    $c->log->debug( 'Family::alignment: raw or colorstock ?         ' . $c->stash->{colorstock} );
+    $c->log->debug( 'Family::alignment: gzipped output ?            ' . $c->stash->{gzip} );
+  }
+
+  # if ( $aln_type eq 'html' ) {
+  #   $c->forward( 'html_alignment' );
+  # }
+  # elsif ( $aln_type eq 'jalview' ) {
+  #   $c->forward( 'show_jalview' );
+  # }
+  # else {
+  #   $c->forward( 'alignment' );
+  # }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 raw_alignment : Chained('alignment') PathPart('') Args(0)
+
+End-point for the "alignment" chain. Returns alignment as an uncompressed 
+Stockholm-format file.
+
+=cut
+
+sub raw_alignment : Chained( 'alignment' )
+                    PathPart( '' )
+                    Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # retrieve the alignment
+  $c->forward('get_raw_alignment');
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->body( join '', $c->stash->{alignment} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 show_jalview : Chained('alignment') PathPart('jalview') Args(0)
+
+This is the way into the JalView alignment viewer applet.
+
+Hands straight off to a template that generates a "tool" page containing the 
+JalView applet.
+
+=cut
+
+sub show_jalview : Chained( 'alignment' )
+                   PathPart( 'jalview' )
+                   Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->stash->{template} = 'components/tools/jalview.tt';
+}
+
+#---------------------------------------
+
+=head2 old_jalview : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_jalview : Path( '/family/alignment/jalview' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_jalview: redirecting to "jalview"' )
+    if $c->debug;
+
+  my $aln_type   = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+  delete $c->req->params->{viewer};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                     $aln_type, 'jalview', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 html_alignment : Chained('alignment') PathPart('html') Args(0)
+
+Retrieves the HTML alignment and dumps it to the response. We first try to 
+extract the HTML from the cache or, if that fails, we retrieve it from the DB.
+
+=cut
+
+sub html_alignment : Chained( 'alignment' )
+                     PathPart( 'html' )
+                     Args( 0 ) {
+# sub html_alignment : Private {
+  my ( $this, $c ) = @_;
+
+  # get all of the blocks  
+  my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
+                                              { type => $c->stash->{alnType} } );
+
+  unless ( scalar @rs ) {
+    $c->log->debug( 'Family::html_alignment: failed to retrieve an alignment block' )
+      if $c->debug;
+    $c->stash->{errorMsg} = 'We could not extract the requested alignment block for '
+                            . $c->stash->{acc};
+    return;
+  }
+
+  $c->log->debug( 'Family::html_alignment: found ' . scalar @rs . ' blocks' )
+    if $c->debug;
+
+  # decide which block to show
+  my ( $block_num ) = ( $c->req->param('block') || 0 ) =~ m/^(\d+)$/;
+  $block_num ||= 0;
+
+  $c->log->debug( "Family::html_alignment: showing block $block_num" )
+    if $c->debug;
+
+  # gunzip the html
+  my $gzipped_html = $rs[$block_num]->html;
+  my $block = Compress::Zlib::memGunzip( $gzipped_html );
+  unless ( defined $block ) {
+    $c->log->debug( 'Family::html_alignment: failed to gunzip the alignment block' )
+      if $c->debug;
+    $c->stash->{errorMsg} = 'There was a problem uncompressing an alignment block for '
+                            . $c->stash->{acc};
+    return;
+  }
+ 
+  # stash the stuff that's used for paging in the template
+  $c->stash->{alignment_block}   = $block;
+  $c->stash->{current_block_num} = $block_num;
+  $c->stash->{last_block_num}    = scalar @rs - 1;
+
+  $c->stash->{template} = 'components/tools/html_alignment.tt';
+}
+
+#---------------------------------------
+
+=head2 old_html : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+# http://rfam.sanger.ac.uk/family/alignment/html?acc=RF00002&alnType=seed&viewer=html
+
+sub old_html : Path( '/family/alignment/html' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_html: redirecting to "html"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+  delete $c->req->params->{viewer};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                     $aln_type, 'html', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 gzipped : Chained('alignment') PathPart('gzipped') Args(0) 
+
+Returns a gzip-compressed file with the full or seed alignment for the specified
+family. 
+
+=cut
+
+sub gzipped : Chained( 'alignment' )
+              PathPart( 'gzipped' )
+              Args( 0 ) {
+  my ( $this, $c ) = @_;
+  
+  # retrieve the alignment
+  my $filename;
+  if ( $c->stash->{colorstock} ) {
+    $c->forward('get_colorstock_alignment' );
+    $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html.gz';
+  }
+  else {
+    $c->forward('get_gzipped_alignment');
+    $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
+  }
+
+  return unless defined $c->stash->{gzipped_alignment};
+  
+  # dump the alignment straight to the response
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->content_type( 'application/x-gzip' );
+  $c->res->body( $c->stash->{gzipped_alignment} );
+}
+
+#---------------------------------------
+
+=head2 old_gzipped : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_gzipped: redirecting to "gzipped"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                     $aln_type, 'gzipped', $c->req->params ) );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 format : Local
+
+Serves the plain text (no markup) alignment. By default this method will 
+serve the Stockholm format file straight from the database, but will also 
+re-format it (using esl-reformat) into various other output formats:
+
+=over
+
+=item * pfam
+
+Stockholm with sequences on a single line
+
+=item * fasta
+
+Vanilla FASTA format; ungapped
+
+=item * fastau
+
+Gapped FASTA format
+
+=item * stockholm (default)
+
+Standard Stockholm format
+
+=back
+
+The exact styles (other than C<pfam>) are defined by C<esl-reformat>.
+
+=cut
+
+# these are the supported output file formats
+my %supported_formats = (
+  stockholm => 'stockholm',
+  pfam      => 'pfam',
+  fasta     => 'afa',   # regular, gapped fasta
+  fastau    => 'fasta', # ungapped fasta
+);                        
+
+sub format : Chained( 'alignment' )
+             PathPart( 'format' )
+             Args( 1 ) {
+# sub format : Private {
+  my ( $this, $c, $format ) = @_;
+
+  # retrieve the alignment
+  $c->forward('get_raw_alignment');
+
+  if ( defined $c->stash->{alignment} ) {
+    $c->log->debug( 'Family::format: successfully retrieved an alignment' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'Family::format: failed to retrieve an alignment' )
+      if $c->debug;
+    $c->stash->{errorMsg} = 'We could not extract the alignment for '
+                            . $c->stash->{acc};
+    return;
+  }
+
+  # check that the requested format is valid and, if so, map it to the 
+  # format recognised by esl-reformat
+  $format = lc $format if defined $format;
+  my $output_format = $this->{default_output_format};
+  if ( exists $supported_formats{ $format } ) {
+    $output_format = $supported_formats{ $format }
+  }
+
+  $c->log->debug( "Family::format: requested output format: |$format|, " 
+                  . "esl-reformat format: |$output_format|" )
+    if $c->debug;
+    
+  my $output;
+  # we can dump out the raw alignment directly if the user wants stockholm format
+  if ( $output_format eq 'stockholm' ) {
+    $c->log->debug( 'Family::format: stockholm format requested; returning alignment unchanged' )
+      if $c->debug;
+    $output = $c->stash->{alignment}
+  }
+  # otherwise we'll use esl-reformat to output the requested format
+  else {
+
+    # get a temporary file and filehandle
+    my ( $fh, $fn ) = tempfile();
+    unless ( $fn and $fh ) {
+      $c->log->error( "Family::format: couldn't open temp file for alignment: $!" );
+
+      $c->stash->{errorMsg} = 'There was a problem while reformatting the alignment for '
+                              . $c->stash->{acc};
+
+      return;
+    }
+
+    # dump the alignment to that file
+    print $fh $c->stash->{alignment};
+    close $fh;
+
+    # build the command for running esl-reformat    
+    my $cmd = $this->{eslreformat_binary} . " -u -r --mingap --informat stockholm $output_format $fn";
+    $c->log->debug( "Family::format: running system command: |$cmd|" )
+      if $c->debug;
+
+    unless ( open OUTPUT, "$cmd|" ) {    
+      $c->log->error( "Family::format: couldn't run esl-reformat: $!" );
+
+      $c->stash->{errorMsg} = 'There was a problem reformatting the alignment for '
+                              . $c->stash->{acc};
+
+      return;
+    }
+
+    # stick the output of esl-reformat back together and remove the temp file
+    $output = join '', <OUTPUT>;
+    close OUTPUT;
+
+    unlink $fn;
+
+    # as far as I can see, this SHOULD work too, and, if it did, would have the 
+    # advantage of not requiring any temp files at all...
+    #    my $cmd = $this->{eslreformat_binary} . " --informat stockholm $output_format -";
+    #    $c->log->debug( "Family::format: running esl-reformat command: |$cmd|" )
+    #      if $c->debug;
+    #     
+    #    my ( $out, $in );
+    #    my $pid = open2( $out, $in, $cmd );
+    #    unless ( $pid ) {
+    #      $c->log->error( "Family::format: failed to run esl-reformat command ($cmd): $!" );
+    #      return undef;
+    #    }
+    #    $c->log->debug( "Family::format: running esl-reformat with PID $pid" )
+    #      if $c->debug;
+    #
+    #    $c->log->debug( 'Family::format: raw alignment: '
+    #                    . $c->stash->{alignment} )
+    #      if $c->debug;
+    #
+    #    print $in $c->stash->{alignment};
+    #    close $in;
+    #    $c->log->debug( 'Family::format: printed input...' )
+    #      if $c->debug;
+    #
+    #    $output = join '', <$out>;
+    #
+    #    $c->log->debug( "Family::format: esl-reformat output: |$output|" )
+    #      if $c->debug;
+  }
+
+  # are we flagging this for download or just dumping it to the browser ?
+  if ( $c->req->param( 'download' ) ) {
+    $c->log->debug( 'Family::format: sending alignment as download' )
+      if $c->debug;
+
+    # figure out the filename
+    my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.txt';  
+    $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  }
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->body( join '', $output );
+}
+
+#---------------------------------------
+
+=head2 format_catch : Chained('alignment') PathPart('format') Args(0)
+
+Dummy action to catch requests for "format" that don't provide a format.
+Redirects straight to the "format" action using the default format.
+
+=cut
+
+sub format_catch : Chained( 'alignment' )
+                   PathPart( 'format' )
+                   Args( 1 ) {
+  my ( $this, $c ) = @_;
+
+
+}
+
+#---------------------------------------
+
+=head2 old_format : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_format : Path( '/family/alignment/download/format' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_format: redirecting to "format"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+
+  my $output_format = $this->{default_output_format};
+  if ( defined $c->req->param('format') and
+       exists $supported_formats{ $c->req->param('format') } ) {
+    $output_format = $c->req->param('format');
+  }
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+  delete $c->req->params->{format};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                     $aln_type, 'format', $output_format, $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -450,9 +1433,9 @@ sub regions : Local {
 
 =head2 get_data : Private
 
-Retrieves family data for the given entry. Accepts the entry ID or accession
-as the first argument. Does not return any value but drops the L<ResultSet>
-  for the relevant row into the stash.
+Retrieves family data for the given entry. Accepts the entry ID or accession as
+the first argument. Does not return any value but drops the L<ResultSet> for
+the relevant row into the stash.
 
 =cut
 
@@ -479,79 +1462,7 @@ sub get_data : Private {
 
   $c->stash->{rfam} = $rfam;
   $c->stash->{acc}  = $rfam->rfam_acc;
-  $c->stash->{entryType}  = 'R';
 
-  # get curation data
-  my $full_tree = $c->model( 'RfamDB::AlignmentsAndTrees' )
-                    ->find( { auto_rfam => $rfam->auto_rfam,
-                              type      => 'full' } );
-  $c->stash->{alignment_info}->{full} = $full_tree;
-
-  my $seed_tree = $c->model( 'RfamDB::AlignmentsAndTrees' )
-                    ->find( { auto_rfam => $rfam->auto_rfam,
-                              type      => 'seed' } );
-  $c->stash->{alignment_info}->{seed} = $seed_tree;
-
-  # my $rs = $c->model( 'RfamDB::AlignmentsAndTrees' )
-  #            ->search( {
-  #                        -and => [
-  #                                  auto_rfam => $rfam->auto_rfam,
-  #                                  -or => [
-  #                                           type => 'full',
-  #                                           type => 'seed'
-  #                                         ]
-  #                                ]
-  #                      },
-  #                      { order_by => 'type DESC' } );
-
-  # $c->stash->{alignment_info} = $rs;
-
-  # $c->log->debug( 'Family::get_data: found ' . $rs->count 
-  #                 . ' rows for alignment info' )
-  #   if $c->debug;
-
-  # if we're returning XML, we don't need the extra summary data etc.  
-  if ( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Family::get_data: returning XML; NOT adding extra info' ) 
-        if $c->debug;    
-    return;
-  }
-    
-  # unless this request originates at the top level of the object hierarchy,
-  # we don't need the extra summary data
-  unless ( ref $this eq 'RfamWeb::Controller::Family' ) {
-    $c->log->debug( 'Family::get_data: not the root Family controller; NOT adding extra family info' )
-      if $c->debug;
-    return;
-  }
-
-  # finally, having decided that we need it...
-  $c->forward( 'get_summary_data' );
-
-  # load the data for all regions, provided the number of regions is less than
-  # the limit set in the config
-  if ( $rfam->num_full <= $this->{regionsLimits}->{showAll} ) {
-    $c->log->debug( 'Family::get_data: num_full <= showAll limit; retrieving regions' )
-      if $c->debug;
-    $c->stash->{showAll} = 1;
-    $c->forward( 'get_regions_data' );
-  }
-  elsif ( $rfam->num_full <= $this->{regionsLimits}->{showText} ) {
-    $c->log->debug( 'Family::get_data: num_full <= showText limit; retrieving regions later' )
-      if $c->debug;
-    $c->stash->{showText} = 1;
-  }
-
-  # add the clan details, if any
-  my $clan = $c->model('RfamDB::Clans')
-               ->search( { 'clan_memberships.auto_rfam' => $rfam->auto_rfam },
-                         { prefetch => [ qw(clan_memberships) ] } )
-               ->first;
-  
-  if ( $clan and defined $clan->clan_acc ) {
-    $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
-    $c->stash->{clan} = $clan;
-  }
 }
 
 #-------------------------------------------------------------------------------
@@ -586,6 +1497,31 @@ sub get_summary_data : Private {
   $summaryData->{numInt} = 0;
 
   $c->stash->{summaryData} = $summaryData;
+
+  # get tree curation data. Limit retrieved columns to avoid pulling down
+  # alignments and tree data until we really need them.
+  my $full_tree_data = $c->model( 'RfamDB::AlignmentsAndTrees' )
+                         ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+                                   type      => 'full' },
+                                 { columns => [ qw{ type 
+                                                    treemethod 
+                                                    average_length 
+                                                    percent_id 
+                                                    number_of_sequences 
+                                                    most_unrelated_pair } ] } );
+
+  my $seed_tree_data = $c->model( 'RfamDB::AlignmentsAndTrees' )
+                         ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+                                   type      => 'seed' },
+                                 { columns => [ qw{ type 
+                                                    treemethod 
+                                                    average_length 
+                                                    percent_id 
+                                                    number_of_sequences 
+                                                    most_unrelated_pair } ] } );
+
+  $c->stash->{alignment_info}->{full} = $full_tree_data;
+  $c->stash->{alignment_info}->{seed} = $seed_tree_data;
 }
 
 #-------------------------------------------------------------------------------
@@ -619,7 +1555,6 @@ sub get_regions_data : Private {
                               order_by  => [ 'bits_score DESC' ] } );
                                             
   $c->stash->{regions} = \@regions;
-  $c->stash->{showAll} = 1;
 
   $c->log->debug( 'Family::get_regions_data: added |' . scalar @regions
                   . '| regions to stash' ) if $c->debug;
@@ -652,6 +1587,385 @@ sub get_wikipedia : Private {
 }
 
 #-------------------------------------------------------------------------------
+#- tree actions (private) ------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 get_tree : Private
+
+Builds the TreeFam tree object for the specified family and alignment type 
+(seed or full). We first check the cache for the pre-built tree object and 
+then fall back to the database if it's not already available in the cache.
+
+=cut
+
+sub get_tree : Private {
+  my ( $this, $c) = @_;
+
+  # retrieve the tree from the DB
+  $c->forward( 'get_tree_data' );
+
+  unless ( defined $c->stash->{treeData} ) {
+    $c->stash->{errorMsg} = 'We could not extract the ' . $c->stash->{alnType}
+                            . 'tree for ' . $c->stash->{acc};
+    return;
+  }
+  
+  # get the tree with accessions as labels and ask if for the maximum length of
+  # the labels
+  $c->log->debug( 'Family::Tree::get_tree: building tree labelled with accessions' )
+    if $c->debug;
+  my $acc_labelled_tree = $c->forward( 'build_labelled_tree', [ 0 ] );
+  my $acc_max_width = $acc_labelled_tree->calculate_max_label_width();
+
+    # get the tree again, this time with species as labels
+  $c->log->debug( 'Family::Tree::get_tree: building tree labelled with species names' )
+    if $c->debug;
+  my $species_labelled_tree = $c->forward( 'build_labelled_tree', [ 1 ] );
+  my $species_max_width = $species_labelled_tree->calculate_max_label_width();
+    
+  # work out which set of labels are longer, accession or species
+  my $max_width;
+  if ( $acc_max_width > $species_max_width ) {
+    $c->log->debug( 'Family::Tree::get_tree: using width calculated from accessions' )
+      if $c->debug;
+    $max_width = $acc_max_width;
+  }
+  else {
+    $c->log->debug( 'Family::Tree::get_tree: using width calculated from species names' )
+      if $c->debug;
+    $max_width = $species_max_width;
+  }
+
+  # make sure we catch parse failures from the forwards
+  return if $c->stash->{errorMsg};
+
+  # set the maximum label width explicitly on both trees, so that they'll 
+  # generate images with the same branch lengths
+  $acc_labelled_tree->max_label_width( $max_width );
+  $species_labelled_tree->max_label_width( $max_width );
+
+  # now, we really only need one of these for this hit, so stash just the 
+  # requested tree object
+  if ( $c->stash->{label} eq 'acc' ) {
+    $c->log->debug( 'Family::Tree::get_tree: returning tree labelled with accessions' )
+      if $c->debug;
+    $c->stash->{tree} = $acc_labelled_tree;
+  }
+  else {
+    $c->log->debug( 'Family::Tree::get_tree: returning tree labelled with species names' )
+      if $c->debug;
+    $c->stash->{tree} = $species_labelled_tree;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 build_labelled_tree : Private
+
+Builds a tree object with leaf nodes labelled either with species names or
+sequence accessions, depending on the value of the first argument (0 or 1
+respectively).
+
+=cut
+
+sub build_labelled_tree : Private {
+  my ( $this, $c, $use_species_labels ) = @_;
+  
+  my $cache_key = 'tree_' 
+                  . $c->stash->{acc} 
+                  . $c->stash->{alnType}
+                  . $use_species_labels;
+  my $tree = $c->cache->get( $cache_key );
+  
+  if ( defined $tree ) {
+    $c->log->debug( 'Family::Tree::build_labelled_tree: extracted tree object from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::Tree::build_labelled_tree: failed to extract tree object from cache; going to DB' )
+      if $c->debug;
+  
+    # get a new tree object...
+    $tree = treefam::nhx_plot->new( -width => 600,
+                                    -skip  => 14 );
+  
+    # parse the data
+    eval {
+      $tree->parse( $c->stash->{treeData} );
+    };
+    if ( $@ ) {
+      $c->log->error( "Family::Tree::build_labelled_tree: ERROR: failed to parse tree: $@" );
+      $c->stash->{errorMsg} = 'There was a problem with the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+  
+    # re-label the tree
+    foreach my $node ( $tree->node_array ) {
+  
+      # ignore everything but leaf nodes
+      next if $node->{C};
+  
+      # store the original label in a new slot, "L"
+      $node->{L} = $node->{N};
+  
+      # rebuild the label, converting underscores to spaces as we pass
+      if ( $node->{N} =~ m/^(\d+\.\d+)_(\w+\.?\d*)\/(\d+)\-(\d+)\_(.*)$/ ) {
+        $node->{N} = $use_species_labels ? $5 : "$2/$3-$4";
+        $node->{N} =~ s/_/ /g;
+      }
+      else {
+        $c->log->debug( 'Family::Tree::build_labelled_tree: couldn\'t match node name: |' . $node->{N} . '|')
+          if $c->debug;
+      }
+    }
+
+    # cache the tree
+    $c->cache->set( $cache_key, $tree ) unless $ENV{NO_CACHE};
+  }
+
+  return $tree;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_tree_data : Private
+
+Retrieves the raw tree data. We first check the cache and then fall back to the 
+database.
+
+=cut
+
+sub get_tree_data : Private {
+  my ( $this, $c) = @_;
+
+  # see if we can extract the pre-built tree object from cache
+  my $cacheKey = 'treeData' 
+                 . $c->stash->{acc}
+                 . $c->stash->{alnType};
+  my $tree_data = $c->cache->get( $cacheKey );
+  
+  if ( defined $tree_data ) {
+    $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' )
+      if $c->debug;  
+  }
+  else {
+    $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' )
+      if $c->debug;  
+
+    # retrieve the tree from the DB
+    my $rs = $c->model('RfamDB::AlignmentsAndTrees')
+               ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+                           type      => $c->stash->{alnType} },
+                         { columns => [ 'tree' ] } );
+    my $row = $rs->first;
+
+    if ( defined $row and 
+         defined $row->tree ) {
+      $c->log->debug( 'Family::Tree::get_tree_data: retrieved tree data from DB' )
+        if $c->debug;
+    }
+    else {
+      $c->log->debug( 'Family::Tree::get_tree_data: no rows from DB query' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # make sure we can uncompress it
+    $tree_data = Compress::Zlib::memGunzip( $row->tree );
+    if ( defined $tree_data ) {
+      $c->log->debug( 'Family::Tree::get_tree_data: successfully gunzipped tree data' )
+        if $c->debug;
+    }
+    else {
+      $c->log->debug( 'Family::Tree::get_tree_data: tree data not gzipped...' )
+        if $c->debug;
+      $tree_data = $row->tree;
+    }
+
+    unless ( defined $tree_data ) {
+      $c->log->debug( 'Family::Tree::get_tree_data: failed to retrieve tree data' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'We could not extract the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # and now cache the populated tree data
+    $c->cache->set( $cacheKey, $tree_data ) unless $ENV{NO_CACHE};
+  }
+
+  # stash the uncompressed tree
+  $c->stash->{treeData} = $tree_data;
+}
+
+#-------------------------------------------------------------------------------
+#- alignment download actions (private) -----------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 get_raw_alignment : Private
+
+Retrieves the alignment from the database and drops it into the stash. Note that
+the database stores the alignments in gzip format. This action uncompresses the
+alignment before stashing it.
+
+=cut
+
+sub get_raw_alignment : Private {
+  my ( $this, $c ) = @_;
+  
+  $c->forward('get_gzipped_alignment');
+  
+  return unless $c->stash->{gzipped_alignment};
+
+  $c->stash->{alignment} = Compress::Zlib::memGunzip( $c->stash->{gzipped_alignment} );
+  
+  unless ( defined $c->stash->{alignment} ) {
+    $c->log->debug( 'Family::get_raw_alignment: failed to gunzip the alignment' )
+      if $c->debug;      
+    $c->stash->{errorMsg} = 'There was a problem uncompressing the alignment data for '
+                            . $c->stash->{acc};
+    return;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_gzipped_alignment : Private
+
+Retrieves the gzipped alignment from the database and stashes it, still 
+compressed. Caches the gzipped alignment too, if caching is enabled. 
+
+=cut
+
+sub get_gzipped_alignment : Private {
+  my ( $this, $c ) = @_;
+
+  my $alnType = $c->stash->{alnType} . ( $c->stash->{nseLabels} ? '' : 'Tax' );
+  $c->log->debug( "Family::Alignment::Download::get_gzipped_alignment: setting alignment type to |$alnType|" )
+    if $c->debug;
+  
+  # first try the cache...
+  my $cacheKey = 'gzipped_alignment'
+                 . $c->stash->{acc}
+                 . $alnType;
+  my $gzipped_alignment = $c->cache->get( $cacheKey );
+
+  if ( defined $gzipped_alignment ) {
+    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: extracted gzipped alignment from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to extract gzipped alignment from cache; going to DB' )
+      if $c->debug;
+
+    # failed to get a cached version; retrieve the alignment from the DB
+    my $rs = $c->stash->{rfam}->search_related( 'alignments_and_trees',
+                                                { type => $alnType },
+                                                { columns => [ 'alignment' ] } );
+
+    # make sure the query returned something
+    unless ( defined $rs ) {
+      $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve a row' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'There was a problem retrieving the alignment data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # make sure we can get the alignment out of the returned row
+    unless ( $gzipped_alignment = $rs->first->alignment ) {
+      $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve an alignment' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'There was a problem uncompressing the alignment data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # cache the gzipped alignment
+    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: retrieved gzipped alignment from DB' )
+      if $c->debug;
+    $c->cache->set( $cacheKey, $gzipped_alignment ) unless $ENV{NO_CACHE};
+  }
+
+  # stash the gzipped alignment and let the actions themselves gunzip it if
+  # they need to
+  $c->stash->{gzipped_alignment} = $gzipped_alignment;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_colorstock_alignment : Private
+
+Retrieves the gzipped "colorstock" HTML alignment from the database and stashes 
+it, still compressed. Caches the gzipped alignment too, if caching is enabled.
+
+=cut
+
+sub get_colorstock_alignment : Private {
+  my ( $this, $c ) = @_;
+
+  my $alnType = $c->stash->{alnType} . 'Colorstock';
+  $c->log->debug( "Family::get_colorstock_alignment: setting alignment type to |$alnType|" )
+    if $c->debug;
+  
+  # first try the cache...
+  my $cache_key = 'gzipped_alignment'
+                  . $c->stash->{acc}
+                  . $alnType;
+  my $gzipped_alignment = $c->cache->get( $cache_key );
+  
+  if ( defined $gzipped_alignment ) {
+    $c->log->debug( 'Family::get_colorstock_alignment: extracted gzipped alignment from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::get_colorstock_alignment: failed to extract gzipped alignment from cache; going to DB' )
+      if $c->debug;
+
+    # failed to get a cached version; retrieve the alignment from the DB
+    my $rs = $c->stash->{rfam}->search_related( 'html_alignments',
+                                                { type => $alnType },
+                                                { columns => [ 'html' ] } );
+
+    # make sure the query returned something
+    unless ( defined $rs ) {
+      $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve a row' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'There was a problem retrieving the colorstock alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # make sure we can retrieve the gzipped HTML alignment from the row object
+    $gzipped_alignment = $rs->first->html;
+
+    unless ( defined $gzipped_alignment ) {
+      $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve HTML' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'There was a problem retrieving the HTML colorstock alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # cache the gzipped alignment
+    $c->log->debug( 'Family::get_colorstock_alignment: retrieved gzipped alignment from DB' )
+      if $c->debug;
+    $c->cache->set( $cache_key, $gzipped_alignment ) unless $ENV{NO_CACHE};
+  }
+
+  # stash the gzipped alignment and let the actions themselves gunzip it if
+  # they need to
+  $c->stash->{gzipped_alignment} = $gzipped_alignment;
+
+  $c->log->debug( 'Family::get_colorstock_alignment: gzipped alignment length: '
+                  . length $c->stash->{gzipped_alignment} )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------  
 
 =head1 AUTHOR
 
@@ -682,6 +1996,8 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
