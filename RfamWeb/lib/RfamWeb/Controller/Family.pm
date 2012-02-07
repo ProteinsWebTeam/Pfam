@@ -969,8 +969,27 @@ sub old_structures : Path( '/family/structures/mapping' ) {
 
 =head2 alignment : Chained('family') PathPart('alignment') CaptureArgs(1)
 
-Mid-point in a chain for handling alignments. Captures the alignment type, 
-"seed" or "full".
+Mid-point in a chain for handling alignments. Captures various parameters:
+
+=over
+
+=item alnType
+
+alignment type, "seed" or "full"
+
+=item nseLabels
+
+use "name/start-end" to label sequences ? default is to use species names
+
+=item view
+
+flag the alignment for download (add Content-Disposition header) ?
+
+=item gzip
+
+should the output alignment be gzip-compressed ?
+
+=back
 
 =cut
 
@@ -979,74 +998,202 @@ sub alignment : Chained( 'family' )
                 CaptureArgs( 1 ) {
   my ( $this, $c, $aln_type ) = @_;
 
-  # which alignment ?
+  # which alignment, what type of labels, view or download, and should we gzip
+  # the output, if that makes sense for the specified format ?
   $c->stash->{alnType}    = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
-
-  # for the benefit of the alignment generation controller, we also check to 
-  # see if alignments should be produced with the alternate label format, or
-  # in "colorstock" html format
   $c->stash->{nseLabels}  = ( $c->req->param('nseLabels') || 0 ) ? 1 : 0;
-  $c->stash->{colorstock} = ( $c->req->param('cs')        || 0 ) ? 1 : 0;
-
-  # should we gzip the output, if that makes sense for the specified format ?
-  $c->stash->{gzip} = ( $c->req->param('gzip') || 0 ) ? 1 : 0;
+  $c->stash->{view}       = ( $c->req->param('view')      || 0 ) ? 1 : 0;
+  $c->stash->{gzip}       = ( $c->req->param('gzip')      || 0 ) ? 1 : 0;
 
   if ( $c->debug ) {
     $c->log->debug( 'Family::alignment: which alignment type ?      ' . $c->stash->{alnType} );
     $c->log->debug( 'Family::alignment: use name/start-end labels ? ' . $c->stash->{nseLabels} );
-    $c->log->debug( 'Family::alignment: raw or colorstock ?         ' . $c->stash->{colorstock} );
+    $c->log->debug( 'Family::alignment: view rather than download ? ' . $c->stash->{view} );
     $c->log->debug( 'Family::alignment: gzipped output ?            ' . $c->stash->{gzip} );
   }
-
-  # if ( $aln_type eq 'html' ) {
-  #   $c->forward( 'html_alignment' );
-  # }
-  # elsif ( $aln_type eq 'jalview' ) {
-  #   $c->forward( 'show_jalview' );
-  # }
-  # else {
-  #   $c->forward( 'alignment' );
-  # }
 }
 
-#-------------------------------------------------------------------------------
+#---------------------------------------
 
-=head2 raw_alignment : Chained('alignment') PathPart('') Args(0)
+=head2 alignment_default : Chained('family') PathPart('alignment') Args(0)
 
-End-point for the "alignment" chain. Returns alignment as an uncompressed 
-Stockholm-format file.
+Catches requests with no alignment type (seed or full) and no format specified.
+Defaults to Stockholm-format seed alignment.
+
+=cut 
+
+sub alignment_default: Chained( 'family' ) 
+                       PathPart( 'alignment' )
+                       Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->forward( 'alignment',        [ 'seed' ] );
+  $c->forward( 'alignment_format', [ 'stockholm' ] );
+}
+
+#---------------------------------------
+
+=head2 alignment_format_default : Chained('alignment') PathPart('') Args(0)
+
+Catches requests with an alignment type (seed or full) given but no format
+specified. Defaults to Stockholm format alignment.
+
+=cut 
+
+sub alignment_format_default : Chained( 'alignment' ) 
+                               PathPart( '' )
+                               Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->forward( 'alignment_format', [ 'stockholm' ] );
+}
+
+#---------------------------------------
+
+=head2 alignment_format : Chained('alignment') PathPart('') Args(1)
+
+Outputs the specified seed or full alignment in the specified format.
+Supported formats, given as the first argument, are:
+
+=over
+
+=item * pfam
+
+Stockholm with sequences on a single line
+
+=item * fasta
+
+Gapped FASTA format
+
+=item * fastau
+
+Vanilla FASTA format; ungapped
+
+=item * stockholm
+
+Standard Stockholm format
+
+=back
+
+The exact styles (other than C<pfam>) are defined by C<esl-reformat>. There is
+no default. If the specified format is not in the supported list, we throw an
+error.
 
 =cut
 
-sub raw_alignment : Chained( 'alignment' )
-                    PathPart( '' )
-                    Args( 0 ) {
-  my ( $this, $c ) = @_;
+# these are the supported output file formats. This is a map between a format
+# specified by the user and the format name used by esl-reformat
+my %supported_formats = (
+  stockholm  => 'stockholm',
+  pfam       => 'pfam',
+  fasta      => 'afa',   # regular, gapped fasta
+  fastau     => 'fasta', # ungapped fasta
+);                        
 
-  # retrieve the alignment
-  $c->forward('get_raw_alignment');
+sub alignment_format : Chained( 'alignment' ) 
+                       PathPart( '' )
+                       Args( 1 ) {
+  my ( $this, $c, $format ) = @_;
 
-  $c->res->content_type( 'text/plain' );
-  $c->res->body( join '', $c->stash->{alignment} );
-}
+  unless ( defined $format and 
+           $format =~ m/^\w+$/ ) {
+    $c->detach( 'alignment_default' );
+    return;
+  }
 
-#-------------------------------------------------------------------------------
+  # the output...
+  $c->stash->{output_alignment} = ''; # a slot to hold the output alignment
+  $c->stash->{is_gzipped} = 0;        # a flag: is it gzipped ?
+  $c->stash->{filename} = '';         # the output filename, if needed
 
-=head2 show_jalview : Chained('alignment') PathPart('jalview') Args(0)
+  # what format should we write ?
+  if ( $format eq 'jalview' ) {
+    # hand off to a jalview tool window
+    $c->stash->{template} = 'components/tools/jalview.tt';
+    return;
+  }
+  elsif ( $format eq 'html' ) {
+    # builds an HTML page that displays the alignment as paged blocks
+    $c->forward( 'get_html_alignment' );
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Family::alignment_format: failed to retrieve HTML alignment' )
+        if $c->debug;
+      return;
+    }
 
-This is the way into the JalView alignment viewer applet.
+    $c->stash->{template} = 'components/tools/html_alignment.tt';
+    return;
+  }
+  elsif ( $format eq 'colorstock' ) {
+    # colorstock: HTML marked-up stockholm
+    $c->forward('get_colorstock_alignment' );
 
-Hands straight off to a template that generates a "tool" page containing the 
-JalView applet.
+    unless ( $c->stash->{gzipped_alignment} ) {
+      $c->log->debug( 'Family::alignment_format: failed to retrieve colorstock alignment' )
+        if $c->debug;
 
-=cut
+      $c->stash->{errorMsg} = 'There was a problem retrieving the colorstock alignment for '
+                              . $c->stash->{acc};
 
-sub show_jalview : Chained( 'alignment' )
-                   PathPart( 'jalview' )
-                   Args( 0 ) {
-  my ( $this, $c ) = @_;
+      return;
+    }
 
-  $c->stash->{template} = 'components/tools/jalview.tt';
+    $c->stash->{output_alignment} = $c->stash->{gzipped_alignment};
+    $c->stash->{is_gzipped}       = 1;
+    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html.gz';
+    # $c->stash->{gzip}             = 1; # force colorstock to be gzipped
+  }
+  else {
+    # everything else. This bit handles stockholm, pfam, fasta and ungapped fasta
+    $c->forward('get_gzipped_alignment');
+
+    unless ( $c->stash->{gzipped_alignment} ) {
+      $c->log->debug( 'Family::alignment_format: failed to retrieve raw alignment' )
+        if $c->debug;
+
+      $c->stash->{errorMsg} = 'There was a problem retrieving the raw alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->forward( 'format', [ $format ] );
+  }
+
+  # TODO check for an error in $c->stash->{errorMsg}, originating from the forward
+
+  my $output;
+
+  # should the output by gzipped ?
+  if ( $c->stash->{gzip} ) {
+    $c->res->content_type( 'application/x-gzip' );
+    $output = $c->stash->{is_gzipped}
+            ? $c->stash->{output_alignment}
+            : Compress::Zlib::memGzip( $c->stash->{output_alignment} );
+  }
+  else {
+    $c->res->content_type( 'text/plain' );
+    $output = $c->stash->{is_gzipped}
+            ? Compress::Zlib::memGunzip( $c->stash->{output_alignment} )
+            : $c->stash->{output_alignment};
+  }
+
+  unless ( defined $output ) {
+    $c->log->debug( 'Family::alignment_format: failed to gzip/gunzip the alignment' )
+      if $c->debug;      
+
+    $c->stash->{errorMsg} = 'There was a problem building the requested alignment for '
+                            . $c->stash->{acc};
+
+    return;
+  }
+
+  # should we mark the output for download ? (default is to set download header)
+  if ( not $c->stash->{view} ) {
+    $c->res->header( 'Content-disposition' => 'attachment; filename=' . $c->stash->{filename} );
+  }
+
+  # and dump the alignment to the response
+  $c->res->body( $output );
 }
 
 #---------------------------------------
@@ -1063,7 +1210,7 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
   $c->log->debug( 'Family::old_jalview: redirecting to "jalview"' )
     if $c->debug;
 
-  my $aln_type   = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
 
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
@@ -1075,62 +1222,6 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
                      $aln_type, 'jalview', $c->req->params ) );
 }
 
-#-------------------------------------------------------------------------------
-
-=head2 html_alignment : Chained('alignment') PathPart('html') Args(0)
-
-Retrieves the HTML alignment and dumps it to the response. We first try to 
-extract the HTML from the cache or, if that fails, we retrieve it from the DB.
-
-=cut
-
-sub html_alignment : Chained( 'alignment' )
-                     PathPart( 'html' )
-                     Args( 0 ) {
-# sub html_alignment : Private {
-  my ( $this, $c ) = @_;
-
-  # get all of the blocks  
-  my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
-                                              { type => $c->stash->{alnType} } );
-
-  unless ( scalar @rs ) {
-    $c->log->debug( 'Family::html_alignment: failed to retrieve an alignment block' )
-      if $c->debug;
-    $c->stash->{errorMsg} = 'We could not extract the requested alignment block for '
-                            . $c->stash->{acc};
-    return;
-  }
-
-  $c->log->debug( 'Family::html_alignment: found ' . scalar @rs . ' blocks' )
-    if $c->debug;
-
-  # decide which block to show
-  my ( $block_num ) = ( $c->req->param('block') || 0 ) =~ m/^(\d+)$/;
-  $block_num ||= 0;
-
-  $c->log->debug( "Family::html_alignment: showing block $block_num" )
-    if $c->debug;
-
-  # gunzip the html
-  my $gzipped_html = $rs[$block_num]->html;
-  my $block = Compress::Zlib::memGunzip( $gzipped_html );
-  unless ( defined $block ) {
-    $c->log->debug( 'Family::html_alignment: failed to gunzip the alignment block' )
-      if $c->debug;
-    $c->stash->{errorMsg} = 'There was a problem uncompressing an alignment block for '
-                            . $c->stash->{acc};
-    return;
-  }
- 
-  # stash the stuff that's used for paging in the template
-  $c->stash->{alignment_block}   = $block;
-  $c->stash->{current_block_num} = $block_num;
-  $c->stash->{last_block_num}    = scalar @rs - 1;
-
-  $c->stash->{template} = 'components/tools/html_alignment.tt';
-}
-
 #---------------------------------------
 
 =head2 old_html : Path
@@ -1138,8 +1229,6 @@ sub html_alignment : Chained( 'alignment' )
 Deprecated. Stub to redirect to the chained action.
 
 =cut
-
-# http://rfam.sanger.ac.uk/family/alignment/html?acc=RF00002&alnType=seed&viewer=html
 
 sub old_html : Path( '/family/alignment/html' ) {
   my ( $this, $c ) = @_;
@@ -1159,39 +1248,6 @@ sub old_html : Path( '/family/alignment/html' ) {
                      $aln_type, 'html', $c->req->params ) );
 }
 
-#-------------------------------------------------------------------------------
-
-=head2 gzipped : Chained('alignment') PathPart('gzipped') Args(0) 
-
-Returns a gzip-compressed file with the full or seed alignment for the specified
-family. 
-
-=cut
-
-sub gzipped : Chained( 'alignment' )
-              PathPart( 'gzipped' )
-              Args( 0 ) {
-  my ( $this, $c ) = @_;
-  
-  # retrieve the alignment
-  my $filename;
-  if ( $c->stash->{colorstock} ) {
-    $c->forward('get_colorstock_alignment' );
-    $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html.gz';
-  }
-  else {
-    $c->forward('get_gzipped_alignment');
-    $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
-  }
-
-  return unless defined $c->stash->{gzipped_alignment};
-  
-  # dump the alignment straight to the response
-  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
-  $c->res->content_type( 'application/x-gzip' );
-  $c->res->body( $c->stash->{gzipped_alignment} );
-}
-
 #---------------------------------------
 
 =head2 old_gzipped : Path
@@ -1206,193 +1262,27 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
   $c->log->debug( 'Family::old_gzipped: redirecting to "gzipped"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+  my $aln_type   = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
+  my $colorstock = ( $c->req->param('cs') || 0 ) ? 1 : 0;
 
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
   delete $c->req->params->{alnType};
+  delete $c->req->params->{cs};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                     $aln_type, 'gzipped', $c->req->params ) );
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 format : Local
-
-Serves the plain text (no markup) alignment. By default this method will 
-serve the Stockholm format file straight from the database, but will also 
-re-format it (using esl-reformat) into various other output formats:
-
-=over
-
-=item * pfam
-
-Stockholm with sequences on a single line
-
-=item * fasta
-
-Vanilla FASTA format; ungapped
-
-=item * fastau
-
-Gapped FASTA format
-
-=item * stockholm (default)
-
-Standard Stockholm format
-
-=back
-
-The exact styles (other than C<pfam>) are defined by C<esl-reformat>.
-
-=cut
-
-# these are the supported output file formats
-my %supported_formats = (
-  stockholm => 'stockholm',
-  pfam      => 'pfam',
-  fasta     => 'afa',   # regular, gapped fasta
-  fastau    => 'fasta', # ungapped fasta
-);                        
-
-sub format : Chained( 'alignment' )
-             PathPart( 'format' )
-             Args( 1 ) {
-# sub format : Private {
-  my ( $this, $c, $format ) = @_;
-
-  # retrieve the alignment
-  $c->forward('get_raw_alignment');
-
-  if ( defined $c->stash->{alignment} ) {
-    $c->log->debug( 'Family::format: successfully retrieved an alignment' )
-      if $c->debug;
-  } else {
-    $c->log->debug( 'Family::format: failed to retrieve an alignment' )
-      if $c->debug;
-    $c->stash->{errorMsg} = 'We could not extract the alignment for '
-                            . $c->stash->{acc};
-    return;
+  if ( $colorstock ) {
+    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                       $aln_type, 'colorstock', $c->req->params ) );
   }
-
-  # check that the requested format is valid and, if so, map it to the 
-  # format recognised by esl-reformat
-  $format = lc $format if defined $format;
-  my $output_format = $this->{default_output_format};
-  if ( exists $supported_formats{ $format } ) {
-    $output_format = $supported_formats{ $format }
-  }
-
-  $c->log->debug( "Family::format: requested output format: |$format|, " 
-                  . "esl-reformat format: |$output_format|" )
-    if $c->debug;
-    
-  my $output;
-  # we can dump out the raw alignment directly if the user wants stockholm format
-  if ( $output_format eq 'stockholm' ) {
-    $c->log->debug( 'Family::format: stockholm format requested; returning alignment unchanged' )
-      if $c->debug;
-    $output = $c->stash->{alignment}
-  }
-  # otherwise we'll use esl-reformat to output the requested format
   else {
+    # firkle with the params. Need to add "gzip=1" to make sure the output 
+    # really is gzipped
+    my $params = { %{ $c->req->params }, 'gzip' => 1 };
 
-    # get a temporary file and filehandle
-    my ( $fh, $fn ) = tempfile();
-    unless ( $fn and $fh ) {
-      $c->log->error( "Family::format: couldn't open temp file for alignment: $!" );
-
-      $c->stash->{errorMsg} = 'There was a problem while reformatting the alignment for '
-                              . $c->stash->{acc};
-
-      return;
-    }
-
-    # dump the alignment to that file
-    print $fh $c->stash->{alignment};
-    close $fh;
-
-    # build the command for running esl-reformat    
-    my $cmd = $this->{eslreformat_binary} . " -u -r --mingap --informat stockholm $output_format $fn";
-    $c->log->debug( "Family::format: running system command: |$cmd|" )
-      if $c->debug;
-
-    unless ( open OUTPUT, "$cmd|" ) {    
-      $c->log->error( "Family::format: couldn't run esl-reformat: $!" );
-
-      $c->stash->{errorMsg} = 'There was a problem reformatting the alignment for '
-                              . $c->stash->{acc};
-
-      return;
-    }
-
-    # stick the output of esl-reformat back together and remove the temp file
-    $output = join '', <OUTPUT>;
-    close OUTPUT;
-
-    unlink $fn;
-
-    # as far as I can see, this SHOULD work too, and, if it did, would have the 
-    # advantage of not requiring any temp files at all...
-    #    my $cmd = $this->{eslreformat_binary} . " --informat stockholm $output_format -";
-    #    $c->log->debug( "Family::format: running esl-reformat command: |$cmd|" )
-    #      if $c->debug;
-    #     
-    #    my ( $out, $in );
-    #    my $pid = open2( $out, $in, $cmd );
-    #    unless ( $pid ) {
-    #      $c->log->error( "Family::format: failed to run esl-reformat command ($cmd): $!" );
-    #      return undef;
-    #    }
-    #    $c->log->debug( "Family::format: running esl-reformat with PID $pid" )
-    #      if $c->debug;
-    #
-    #    $c->log->debug( 'Family::format: raw alignment: '
-    #                    . $c->stash->{alignment} )
-    #      if $c->debug;
-    #
-    #    print $in $c->stash->{alignment};
-    #    close $in;
-    #    $c->log->debug( 'Family::format: printed input...' )
-    #      if $c->debug;
-    #
-    #    $output = join '', <$out>;
-    #
-    #    $c->log->debug( "Family::format: esl-reformat output: |$output|" )
-    #      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
+                       $aln_type, 'stockholm', $params ) );
   }
-
-  # are we flagging this for download or just dumping it to the browser ?
-  if ( $c->req->param( 'download' ) ) {
-    $c->log->debug( 'Family::format: sending alignment as download' )
-      if $c->debug;
-
-    # figure out the filename
-    my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.txt';  
-    $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
-  }
-
-  $c->res->content_type( 'text/plain' );
-  $c->res->body( join '', $output );
-}
-
-#---------------------------------------
-
-=head2 format_catch : Chained('alignment') PathPart('format') Args(0)
-
-Dummy action to catch requests for "format" that don't provide a format.
-Redirects straight to the "format" action using the default format.
-
-=cut
-
-sub format_catch : Chained( 'alignment' )
-                   PathPart( 'format' )
-                   Args( 1 ) {
-  my ( $this, $c ) = @_;
-
-
 }
 
 #---------------------------------------
@@ -1424,7 +1314,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   delete $c->req->params->{format};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                     $aln_type, 'format', $output_format, $c->req->params ) );
+                     $aln_type, $output_format, $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -1802,33 +1692,180 @@ sub get_tree_data : Private {
 }
 
 #-------------------------------------------------------------------------------
-#- alignment download actions (private) -----------------------------------------
+#- private alignment download actions ------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 get_raw_alignment : Private
+=head2 format : Private
 
-Retrieves the alignment from the database and drops it into the stash. Note that
-the database stores the alignments in gzip format. This action uncompresses the
-alignment before stashing it.
+Builds a plain text (no markup) alignment. Re-formats alignments (using
+esl-reformat) into various output formats.
 
 =cut
 
-sub get_raw_alignment : Private {
-  my ( $this, $c ) = @_;
-  
-  $c->forward('get_gzipped_alignment');
-  
-  return unless $c->stash->{gzipped_alignment};
+sub format : Private {
+  my ( $this, $c, $format ) = @_;
 
-  $c->stash->{alignment} = Compress::Zlib::memGunzip( $c->stash->{gzipped_alignment} );
-  
-  unless ( defined $c->stash->{alignment} ) {
-    $c->log->debug( 'Family::get_raw_alignment: failed to gunzip the alignment' )
-      if $c->debug;      
-    $c->stash->{errorMsg} = 'There was a problem uncompressing the alignment data for '
-                            . $c->stash->{acc};
+  # translate the requested format into a real "output format". That is,
+  # something that esl-reformat will be happy with
+  $format ||= '';
+  $format   = lc $format;
+
+  my $output_format;
+  if ( exists $supported_formats{ $format } ) {
+    $output_format = $supported_formats{ $format };
+    $c->log->debug( "Family::format: generating '$output_format' alignment" )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::format: no supported format specified' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'Not a valid alignment format';
+
     return;
   }
+
+  #---------------------------------------
+
+  if ( $output_format eq 'stockholm' ) {
+
+    # special case: we can dump out the raw alignment directly if the user
+    # wants stockholm format
+    $c->log->debug( 'Family::format: stockholm format requested' )
+      if $c->debug;
+
+    $c->stash->{output_alignment} = $c->stash->{gzipped_alignment};
+    $c->stash->{is_gzipped}       = 1;
+    $c->stash->{filename}         = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.stockholm.txt';
+  }
+  else {
+
+    # use esl-reformat to output the requested format
+
+    # get a temporary file and filehandle
+    my ( $fh, $fn ) = tempfile();
+    unless ( $fn and $fh ) {
+      $c->log->debug( "Family::format: couldn't open temp file for alignment: $!" )
+        if $c->debug;
+
+      $c->stash->{errorMsg} = 'There was a problem while reformatting the alignment for '
+                              . $c->stash->{acc};
+
+      return;
+    }
+
+    # dump the alignment to that file
+    print $fh Compress::Zlib::memGunzip( $c->stash->{gzipped_alignment} );
+    close $fh;
+
+    # build the command for running esl-reformat    
+    my $cmd = $this->{eslreformat_binary} . " -u -r --mingap --informat stockholm $output_format $fn";
+    $c->log->debug( "Family::format: running system command: |$cmd|" )
+      if $c->debug;
+
+    unless ( open OUTPUT, "$cmd|" ) {    
+      $c->log->debug( "Family::format: couldn't run esl-reformat: $!" )
+        if $c->debug;
+
+      $c->stash->{errorMsg} = 'There was a problem reformatting the alignment for '
+                              . $c->stash->{acc};
+
+      return;
+    }
+
+    # stick the output of esl-reformat back together and we're done
+    $c->stash->{output_alignment} = join '', <OUTPUT>;
+    $c->stash->{is_gzipped}       = 0;
+    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . ".$output_format.txt";
+
+    # tidy up
+    close OUTPUT;
+    unlink $fn;
+
+    # as far as I can see, this SHOULD work too, and, if it did, would have the 
+    # advantage of not requiring any temp files at all...
+    #    my $cmd = $this->{eslreformat_binary} . " --informat stockholm $output_format -";
+    #    $c->log->debug( "Family::format: running esl-reformat command: |$cmd|" )
+    #      if $c->debug;
+    #     
+    #    my ( $out, $in );
+    #    my $pid = open2( $out, $in, $cmd );
+    #    unless ( $pid ) {
+    #      $c->log->error( "Family::format: failed to run esl-reformat command ($cmd): $!" );
+    #      return undef;
+    #    }
+    #    $c->log->debug( "Family::format: running esl-reformat with PID $pid" )
+    #      if $c->debug;
+    #
+    #    $c->log->debug( 'Family::format: raw alignment: '
+    #                    . $c->stash->{alignment} )
+    #      if $c->debug;
+    #
+    #    print $in $c->stash->{alignment};
+    #    close $in;
+    #    $c->log->debug( 'Family::format: printed input...' )
+    #      if $c->debug;
+    #
+    #    $output = join '', <$out>;
+    #
+    #    $c->log->debug( "Family::format: esl-reformat output: |$output|" )
+    #      if $c->debug;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_html_alignment : Private
+
+Retrieves the HTML alignment. We first try to extract the HTML from the cache
+or, if that fails, we retrieve it from the DB.
+
+=cut
+
+sub get_html_alignment : Private {
+  my ( $this, $c ) = @_;
+
+  # get all of the blocks  
+  my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
+                                              { type => $c->stash->{alnType} } );
+
+  unless ( scalar @rs ) {
+    $c->log->debug( 'Family::html_alignment: failed to retrieve an alignment block' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'There was a problem extracting the requested alignment block for '
+                            . $c->stash->{acc};
+
+    return;
+  }
+
+  $c->log->debug( 'Family::html_alignment: found ' . scalar @rs . ' blocks' )
+    if $c->debug;
+
+  # decide which block to show
+  my ( $block_num ) = ( $c->req->param('block') || 0 ) =~ m/^(\d+)$/;
+  $block_num ||= 0;
+
+  $c->log->debug( "Family::html_alignment: showing block $block_num" )
+    if $c->debug;
+
+  # gunzip the html
+  my $gzipped_html = $rs[$block_num]->html;
+  my $block = Compress::Zlib::memGunzip( $gzipped_html );
+  unless ( defined $block ) {
+    $c->log->debug( 'Family::html_alignment: failed to gunzip the alignment block' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'There was a problem uncompressing an alignment block for '
+                            . $c->stash->{acc};
+
+    return;
+  }
+ 
+  # stash the stuff that's used for paging in the template
+  $c->stash->{alignment_block}   = $block;
+  $c->stash->{current_block_num} = $block_num;
+  $c->stash->{last_block_num}    = scalar @rs - 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -1870,8 +1907,10 @@ sub get_gzipped_alignment : Private {
     unless ( defined $rs ) {
       $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve a row' )
         if $c->debug;
+
       $c->stash->{errorMsg} = 'There was a problem retrieving the alignment data for '
                               . $c->stash->{acc};
+
       return;
     }
 
@@ -1879,8 +1918,10 @@ sub get_gzipped_alignment : Private {
     unless ( $gzipped_alignment = $rs->first->alignment ) {
       $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve an alignment' )
         if $c->debug;
+
       $c->stash->{errorMsg} = 'There was a problem uncompressing the alignment data for '
                               . $c->stash->{acc};
+
       return;
     }
 
@@ -1890,8 +1931,6 @@ sub get_gzipped_alignment : Private {
     $c->cache->set( $cacheKey, $gzipped_alignment ) unless $ENV{NO_CACHE};
   }
 
-  # stash the gzipped alignment and let the actions themselves gunzip it if
-  # they need to
   $c->stash->{gzipped_alignment} = $gzipped_alignment;
 }
 
@@ -1934,8 +1973,10 @@ sub get_colorstock_alignment : Private {
     unless ( defined $rs ) {
       $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve a row' )
         if $c->debug;
+
       $c->stash->{errorMsg} = 'There was a problem retrieving the colorstock alignment for '
                               . $c->stash->{acc};
+
       return;
     }
 
@@ -1945,8 +1986,10 @@ sub get_colorstock_alignment : Private {
     unless ( defined $gzipped_alignment ) {
       $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve HTML' )
         if $c->debug;
+
       $c->stash->{errorMsg} = 'There was a problem retrieving the HTML colorstock alignment for '
                               . $c->stash->{acc};
+
       return;
     }
 
@@ -1956,13 +1999,7 @@ sub get_colorstock_alignment : Private {
     $c->cache->set( $cache_key, $gzipped_alignment ) unless $ENV{NO_CACHE};
   }
 
-  # stash the gzipped alignment and let the actions themselves gunzip it if
-  # they need to
   $c->stash->{gzipped_alignment} = $gzipped_alignment;
-
-  $c->log->debug( 'Family::get_colorstock_alignment: gzipped alignment length: '
-                  . length $c->stash->{gzipped_alignment} )
-    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------  
