@@ -1,10 +1,10 @@
 [%
 # jalview.tt
-# jt6 20061005 WTSI
+# jt6 20120207 WTSI
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.2 2008-09-22 15:42:37 jt6 Exp $
+# $Id$
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -12,28 +12,40 @@ META naked = 1;
 
 pageContent = BLOCK;
 
-title = "jalview";
-
-sequenceUri = c.uri_for( '/family/alignment/download/format', 
-                         { acc       = acc, 
-                           format    = 'fasta',
-                           alnType   = alnType,
-                           nseLabels = nseLabels } )
+title = "Jalview: $alnType alignment for $acc";
 -%]
 
-<h1>jalview: alignment<em> for [% acc %]</em></h1>
+<h1>
+  View [% alnType %] alignment for <em>[% acc %]</em> using <a class="ext" href="http://www.jalview.org/">Jalview</a>
+</h1>
 
- <applet code="jalview.bin.JalviewLite" 
-         width="140" 
-         height="35" 
-         archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
-  <param name="file"          value="[% sequenceUri %]" />
-  <param name="defaultColour" value="Taylor" />
-  <param name="RGB"           value="#FFFFCC" />
-  <param name="database"      value="pfamseq" />
-</applet>
+<div class="jalview">
+  <applet code="jalview.bin.JalviewLite" 
+          width="780" 
+          height="550"
+          archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+    <param name="file" value="[% c.uri_for( "/family/$acc/alignment/$alnType/fasta" ) %]" />
+    <param name="defaultColour" value="Taylor" />
+    <param name="linkLabel_1" value="UniProt" />
+    <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
+    <param name="linkLabel_2" value="Rfam sequence page" />
+    <param name="linkUrl_2" value="[% c.uri_for( '/sequence/$SEQUENCE_ID$' ) %]" />
+    <param name="database" value="rfamseq" />
+    <param name="embedded" value="true" /> 
+    <param name="nojmol" value="true" />
+  </applet>
+</div>
 
-<br />
+<p>
+  You can also 
+  <strong><a href="http://www.jalview.org/services/launchApp?colour=Taylor&amp;open=[% alignmentURI | uri %]">
+    start Jalview</a></strong> via 
+  <a class="ext" href="http://en.wikipedia.org/wiki/Java_Web_Start">Java Web Start</a>
+</p>
+<p>
+  Both versions of Jalview will enable you to view the sequence alignment interactively,
+  but the Web Start application offers slightly more functionality.
+</p>
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
 
@@ -41,9 +53,9 @@ sequenceUri = c.uri_for( '/family/alignment/download/format',
 
 PROCESS components/tools/toolWindow.tt %]
 [%#
-Copyright (c) 2007: Genome Research Ltd.
+Copyright (c) 2011: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
