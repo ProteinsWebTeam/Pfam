@@ -38,8 +38,8 @@ use namespace::autoclean;
 use treefam::nhx_plot;
 
 BEGIN {
-  extends 'Catalyst::Controller::REST';
   extends 'RfamWeb::Controller::Section';
+  extends 'Catalyst::Controller::REST';
 }
 
 # set up the list of content-types that we handle
@@ -48,6 +48,7 @@ __PACKAGE__->config(
   'map'     => {
     'text/html' => [ 'View', 'TT' ],
     'text/xml'  => [ 'View', 'TT' ],
+    'application/json' => 'JSON',
   }
 );
 
@@ -106,6 +107,30 @@ h5OTE2xublY9tsUCuU5G2W1Tg8zNzZUtxCtdSZ+eni77qOZqrmZXazitxr5qOT69Xo+5uTnJPpvRByW6
 B7PZjLGxMTgcjoozZrWG02rsS87ExARsNlvV92I12ocXL17g4OAAsVgM8Xgc6XRavBdLr9ejp6cHg4ODGBkZKRHidTLKpnk1IRdA82pCrkMNQggFQggFQggFQggFQggFQggFQgihQAihQAihQAihQAih
 QAihQAihQAihQAihQAghFAghFAghFAghFAghFAghFAghFAghFAghFAghFAghhAIhhAIhREW00WgUHo+HI0GIjGg0iv8Dd9PZl7tvX5gAAAAASUVORK5CYII=';
     
+#-------------------------------------------------------------------------------
+
+sub testaction : Chained( 'family' )
+                 PathPart( 'test' )
+                 Args( 0 ) 
+                 ActionClass( 'REST::ForBrowsers' ) {}
+
+sub testaction_GET {
+  my ( $this, $c ) = @_;
+
+  if ( $c->req->param('status') eq 'bad' ) {
+    $c->res->status( 500 ); # Internal server error
+    $c->stash->{rest} = { error => 'There was a problem.' };
+  }
+  else {
+    $this->status_ok( 
+      $c,
+      entity => {
+        foo => 'bar'
+      }
+    );
+  }
+}
+
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -185,12 +210,24 @@ or an XML output. Implemented using C::C::REST; accepts GET requests only.
 sub family_page : Chained( 'family' )
                   PathPart( '' )
                   Args( 0 )
-                  ActionClass('REST') { }
+                  ActionClass( 'REST::ForBrowsers' ) { }
 
-sub family_page_GET {
+sub family_page_GET : Private {
   my ( $this, $c ) = @_;
 
-  return unless $c->stash->{rfam};
+  # handle XML
+
+}
+
+sub family_page_GET_html : Private {
+  my ( $this, $c ) = @_;
+
+  unless ( $c->stash->{rfam} ) {
+    $c->stash->{template} = 'components/blocks/family/error.tt';
+    return;
+  }
+
+  #---------------------------------------
 
   # load the data for all regions, provided the number of regions is less than
   # the limit set in the config
@@ -252,6 +289,13 @@ sub family_page_GET {
       if $c->debug;
     $c->forward( 'get_wikipedia' );
   }
+
+  $c->stash->{pageType} ||= $this->{SECTION};
+  $c->forward( 'Section', 'end' );
+  $c->log->debug( 'section: ' . $this->{SECTION} )
+    if $c->debug;
+  # $c->stash->{pageType} ||= $this->{SECTION};
+  # $c->stash->{template} = 'pages/layout.tt';
 }
 
 #---------------------------------------
@@ -1035,8 +1079,8 @@ sub alignment_default: Chained( 'family' )
 
 =head2 alignment_format_default : Chained('alignment') PathPart('') Args(0)
 
-Catches requests with an alignment type (seed or full) given but no format
-specified. Defaults to Stockholm format alignment.
+Catches requests with an alignment type (seed or full) but no format specified.
+Defaults to Stockholm-format alignment.
 
 =cut 
 
@@ -1092,7 +1136,10 @@ my %supported_formats = (
 
 sub alignment_format : Chained( 'alignment' ) 
                        PathPart( '' )
-                       Args( 1 ) {
+                       Args( 1 ) 
+                       ActionClass( 'REST' ) { }
+
+sub alignment_format_GET {
   my ( $this, $c, $format ) = @_;
 
   unless ( defined $format and 
