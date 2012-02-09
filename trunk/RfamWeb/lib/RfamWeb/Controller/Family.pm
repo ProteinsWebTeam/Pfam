@@ -38,7 +38,6 @@ use namespace::autoclean;
 use treefam::nhx_plot;
 
 BEGIN {
-  extends 'RfamWeb::Controller::Section';
   extends 'Catalyst::Controller::REST';
 }
 
@@ -109,37 +108,12 @@ QAihQAihQAihQAihQAghFAghFAghFAghFAghFAghFAghFAghFAghFAghFAghhAIhhAIhREW00WgUHo+H
     
 #-------------------------------------------------------------------------------
 
-sub testaction : Chained( 'family' )
-                 PathPart( 'test' )
-                 Args( 0 ) 
-                 ActionClass( 'REST::ForBrowsers' ) {}
-
-sub testaction_GET {
-  my ( $this, $c ) = @_;
-
-  if ( $c->req->param('status') eq 'bad' ) {
-    $c->res->status( 500 ); # Internal server error
-    $c->stash->{rest} = { error => 'There was a problem.' };
-  }
-  else {
-    $this->status_ok( 
-      $c,
-      entity => {
-        foo => 'bar'
-      }
-    );
-  }
-}
-
-#-------------------------------------------------------------------------------
-
 =head1 METHODS
 
 =head2 begin : Private
 
-This is the guts of this controller. Its function is to extract
-values from the parameters. Accepts "acc", "id" and "entry", in
-lieu of having them as path components.
+Extracts values from the parameters. Accepts "acc", "id" and "entry", in lieu
+of having them as path components.
 
 =cut
 
@@ -184,11 +158,11 @@ sub family : Chained( '/' )
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w-]+)$/;
-    $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID' 
+    $c->stash->{rest}->{error} = 'Invalid Rfam family accession or ID' 
       unless defined $entry;
   }
   else {
-    $c->stash->{errorMsg} = 'No Rfam family accession or ID specified';
+    $c->stash->{rest}->{error} = 'No Rfam family accession or ID specified';
   }
 
   # retrieve data for the family
@@ -212,22 +186,15 @@ sub family_page : Chained( 'family' )
                   Args( 0 )
                   ActionClass( 'REST::ForBrowsers' ) { }
 
-sub family_page_GET : Private {
-  my ( $this, $c ) = @_;
-
-  # handle XML
-
-}
-
+# RESTful interface: builds a family page (HTML).
 sub family_page_GET_html : Private {
   my ( $this, $c ) = @_;
 
+  # fail fast if there was a problem retrieving family data
   unless ( $c->stash->{rfam} ) {
     $c->stash->{template} = 'components/blocks/family/error.tt';
     return;
   }
-
-  #---------------------------------------
 
   # load the data for all regions, provided the number of regions is less than
   # the limit set in the config
@@ -258,44 +225,65 @@ sub family_page_GET_html : Private {
   
   #---------------------------------------
 
-  # are we emitting XML or HTML ? We need to retrieve less data for XML...
+  $c->log->debug( 'Family::family_page: adding summary info' ) 
+    if $c->debug;
+  $c->forward( 'get_summary_data' );
 
-  # (should be able to use $request->preferred_content_types but it throws
-  # an exception in the tests for the controller, so we'll use this 
-  # work-around instead.)
-  if ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' ) {
-    $c->log->debug( 'Family::family_page: emitting XML' ) 
+  $c->log->debug( 'Family::family_page: adding wikipedia info' ) 
+    if $c->debug;
+  $c->forward( 'get_wikipedia' );
+
+  #---------------------------------------
+
+  $c->log->debug( 'Family::family_page: emitting HTML' )
+    if $c->debug;
+
+  $c->stash->{pageType} = 'family';
+  $c->stash->{template} = 'pages/layout.tt';
+}
+
+#---------------------------------------
+
+# RESTful interface: emits family data in non-HTML format.
+sub family_page_GET : Private {
+  my ( $this, $c ) = @_;
+
+  # there was a problem retrieving family data
+  unless ( $c->stash->{tree} ) {
+    $c->log->debug( 'Family::family_page_GET: problem retrieving family data' ) 
       if $c->debug;
 
-    $c->stash->{template} = 'rest/family/rfam.tt';
+    $c->stash->{rest}->{error} ||= 'Could not retrieve family data.';
+    $c->stash->{template} = 'rest/family/error_xml.tt';
 
-    # if there was an error...
-    if ( $c->stash->{errorMsg} ) {
-      $c->log->debug( 'Family::family_page: there was an error: |' .
-                      $c->stash->{errorMsg} . '|' ) if $c->debug;
-      $c->stash->{template} = 'rest/family/error_xml.tt';
-      return;
-    }
+    return;
+  }
+
+  # for XML output...
+  if ( $c->req->accepted_content_types->[0] eq 'text/xml' ) {
+
+    $c->log->debug( 'Family::family_page_GET: emitting XML' ) 
+      if $c->debug;
+
+    $c->stash->{template} = $c->stash->{rfam}
+                          ? 'rest/family/rfam.tt'
+                          : 'rest/family/error_xml.tt';
   }
   else {
-    $c->log->debug( 'Family::family_page: emitting HTML' )
+
+    $c->log->debug( 'Family::family_page_GET: emitting something other than XML or HTML' ) 
       if $c->debug;
 
-    $c->log->debug( 'Family::family_page: adding summary info' ) 
-      if $c->debug;
-    $c->forward( 'get_summary_data' );
+    $this->status_ok(
+      $c,
+      entity => {
+        # TODO populate this with family data that should go into, say, a JSON
+        # rendering of the home page data
+        rfam => 'data'
+      }
+    );
 
-    $c->log->debug( 'Family::family_page: adding wikipedia info' ) 
-      if $c->debug;
-    $c->forward( 'get_wikipedia' );
   }
-
-  $c->stash->{pageType} ||= $this->{SECTION};
-  $c->forward( 'Section', 'end' );
-  $c->log->debug( 'section: ' . $this->{SECTION} )
-    if $c->debug;
-  # $c->stash->{pageType} ||= $this->{SECTION};
-  # $c->stash->{template} = 'pages/layout.tt';
 }
 
 #---------------------------------------
@@ -316,7 +304,22 @@ sub old_family : Path( '/family' ) {
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
+  if ( $c->stash->{param_entry} ) {
+    $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, $c->req->params ) );
+  }
+  else {
+    $c->log->debug( 'Family::old_family: no entry specified' ) 
+      if $c->debug;
+
+    # TODO this is where we put the catch-all for "/family"
+
+    $c->stash->{rest}->{error} ||= 'No family accession or ID given.';
+    $c->stash->{template} = ( $c->req->accepted_content_types->[0] eq 'text/html' )
+                          ? 'components/blocks/family/error.tt'
+                          : 'rest/family/error_xml.tt';
+
+    return;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -523,46 +526,6 @@ sub old_image : Path( '/family/image' ) {
 
 #-------------------------------------------------------------------------------
 
-=head2 no_alignment : Private
-
-Drops a PNG image into the stash, with the message "we do not have this
-alignment in the database".
-
-=cut
-
-sub no_alignment : Private {
-  my ( $this, $c ) = @_;
-
-  $c->cache_page( 604800 );
-
-  my $cache_key = 'no_alignment_image';
-  my $image     = $c->cache->get( $cache_key );
-  
-  if ( defined $image ) {
-    $c->log->debug( 'Family::no_alignment: retrieved "no alignment" image from cache' )
-      if $c->debug;
-  }
-  else {
-    $c->log->debug( 'Family::no_alignment: failed to retrieve "no alignment" image from cache; building afresh' )
-      if $c->debug;
-
-    $image = decode_base64( $no_alignment_image );
-
-    unless ( defined $image ) {
-      $c->stash->{errorMsg} = 'We could not find an image for ' 
-                              . $c->stash->{acc};
-      return;
-    }
-
-    $c->cache->set( $cache_key, $image ) unless $ENV{NO_CACHE}
-  }
-  
-  $c->res->content_type( 'image/png' );
-  $c->res->body( $image );
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 cm : Local
 
 Serves the CM file for this family.
@@ -747,27 +710,6 @@ sub tree : Chained( 'family' )
 
 #-------------------------------------------------------------------------------
 
-=head2 tree : Chained('family') PathPart('tree') CaptureArgs(1)
-
-Mid-point in a chain for handling trees for a family. Requires one argument,
-"species" or "acc", setting the label style to be applied.
-
-=cut
-
-sub tree_labels : Chained( 'tree' )
-                  PathPart( '' )
-                  CaptureArgs( 1 ) {
-  my ( $this, $c, $label ) = @_;
-  
-  $c->stash->{label} = ( $label || '' ) eq 'species' ? 'species' : 'acc';
-
-  $c->log->debug( 'Family::tree_labels: labelling ' . $c->stash->{alnType} 
-                  . ' tree with ' . $c->stash->{label} . ' labels' )
-    if $c->debug;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 tree_data : Chained('tree') PathPart('') Args(0)
 
 Returns the raw tree data.
@@ -785,7 +727,14 @@ sub tree_data : Chained( 'tree' )
   # stash the raw tree data
   $c->forward( 'get_tree_data' );
 
-  return unless defined $c->stash->{treeData};
+  # fail fast if there was a problem retrieving family data
+  unless ( $c->stash->{treeData} ) {
+    $c->stash->{rest}->{error} ||= 'Could not retrieve tree data.';
+    $c->stash->{template} = ( $c->req->accepted_content_type->[0] eq 'text/html' )
+                          ? 'components/blocks/family/error.tt'
+                          : 'rest/family/error_xml.tt';
+    return;
+  }
 
   my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
   $c->log->debug( 'Family::tree_data: tree data: |' . $c->stash->{treeData} . '|' )
@@ -801,6 +750,30 @@ sub tree_data : Chained( 'tree' )
 
 #-------------------------------------------------------------------------------
 
+=head2 tree_labels : Chained('tree') PathPart('label') CaptureArgs(1)
+
+Mid-point in a chain for handling trees for a family. Requires one argument,
+"species" or "acc", setting the label style to be applied.
+
+=cut
+
+sub tree_labels : Chained( 'tree' )
+                  PathPart( 'label' )
+                  CaptureArgs( 1 ) {
+  my ( $this, $c, $label ) = @_;
+  
+  $c->stash->{label} = ( $label || '' ) eq 'species' ? 'species' : 'acc';
+
+  $c->log->debug( 'Family::tree_labels: labelling ' . $c->stash->{alnType} 
+                  . ' tree with ' . $c->stash->{label} . ' labels' )
+    if $c->debug;
+
+  # stash the tree object
+  $c->forward( 'get_tree' );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 tree_map : Path
 
 Returns an HTML snippet with a link to the tree image and associated image map for 
@@ -808,27 +781,53 @@ the specified seed/full alignment with the given label type (acc/species). Also
 builds the image and caches it, so that the request for the image won't have to
 wait.
 
+If the client is a web-browser, the image map is returned. Otherwise, an error
+message will be shown:
+
+  Image map only available as HTML.
+
 =cut
 
 sub tree_map : Chained( 'tree_labels' )
                PathPart( 'map' )
-               Args( 0 ) {
+               Args( 0 ) 
+               ActionClass( 'REST' ) {}
+
+# handles responses for all clients, browsers and otherwise
+sub tree_map_GET : Private {
   my ( $this, $c ) = @_;
+
+  # fail fast if there was a problem retrieving the tree
+  unless ( $c->stash->{tree} ) {
+    $c->stash->{rest}->{error} ||= 'Could not retrieve tree data.';
+    $c->stash->{template} = ( $c->req->accepted_content_type->[0] eq 'text/html' )
+                          ? 'components/blocks/family/error.tt'
+                          : 'rest/family/error_xml.tt';
+    return;
+  }
+
+  # it only makes sense to return an image map as HTML
+  unless ( grep m|text/html|, @{ $c->req->accepted_content_types } ) {
+    $c->stash->{template} = 'rest/family/error_xml.tt'; # just in case it's needed...
+    $this->status_bad_request(
+      $c,
+      message => 'Image map only available as HTML',
+    );
+    return;
+  }
 
   # cache the page (fragment) for one week
   $c->cache_page( 604800 );
 
-  # stash the tree object
-  $c->forward( 'get_tree' );
-
   # populate the tree nodes with the areas for the image map
   $c->stash->{tree}->plot_core 
     if defined $c->stash->{tree};
-  # set up the TT view
-  $c->stash->{template} = 'components/blocks/family/treeMap.tt';
 
   $c->log->debug( 'Family::tree_map: rendering treeMap.tt' )
     if $c->debug;
+
+  # set up the TT view
+  $c->stash->{template} = 'components/blocks/family/treeMap.tt';
 }
 
 #---------------------------------------
@@ -854,38 +853,59 @@ sub old_tree_map : Path( '/family/tree' ) {
   delete $c->req->params->{alnType};
   delete $c->req->params->{label};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'tree',
-                     $aln_type, $label, 'map', $c->req->params ) );
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 
+                                  'tree',  $aln_type, 
+                                  'label', $label, 
+                                  'map',   $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 tree_image : Chained('tree_labels') PathPart('image') Args(0)
 
-If we successfully generated a tree image, returns it directly as
-an "image/gif". Otherwise returns a blank image.
+If we successfully generated a tree image, returns it directly as an
+"image/gif". If an image could not be generated, either a blank, single-pixel
+gif is handed back (if the client looks like a browser), or an error message is
+returned.
 
 =cut
 
 sub tree_image : Chained( 'tree_labels' )
                  PathPart( 'image' )
-                 Args( 0 ) {
+                 Args( 0 ) 
+                 ActionClass( 'REST::ForBrowsers' ) {}
+
+# handle response for browsers only
+sub tree_image_GET_html : Private {
   my ( $this, $c ) = @_;
 
-  # stash the tree object
-  $c->forward( 'get_tree' );
+  if ( defined $c->stash->{tree} ) {
+    $c->log->debug( 'Family::tree_image: returning raw tree image' )
+      if $c->debug;
+    $c->res->content_type( 'image/gif' );
+    $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
+  }
+  else {
+    $c->log->debug( 'Family::tree_image: returning "blank.gif"' )
+      if $c->debug;
+    # TODO this is bad. We should avoid hard-coding a path to an image here
+    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+  }
+}
+
+#---------------------------------------
+
+# handle RESTful responses...
+sub tree_image_GET : Private {
+  my ( $this, $c ) = @_;
 
   if ( defined $c->stash->{tree} ) {
     $c->res->content_type( 'image/gif' );
     $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
   }
   else {
-    # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+    $c->stash->{rest}->{error} ||= 'Could not build tree image.';
   }
-
-  $c->log->debug( 'Family::Tree::image: returning raw tree image' )
-    if $c->debug;
 }
 
 #---------------------------------------
@@ -911,52 +931,14 @@ sub old_tree_image : Path( '/family/tree/image' ) {
   delete $c->req->params->{alnType};
   delete $c->req->params->{label};
 
-  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'tree',
-                     $aln_type, $label, 'image', $c->req->params ) );
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry},
+                                  'tree',  $aln_type, 
+                                  'label', $label, 
+                                  'image', $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
 #- structure actions -----------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 structures : Path
-
-Retrieves the list of PDB entries for this family. If a PDB ID is specified,
-the method also retrieves the row of the "pdb" table for that entry.
-
-=cut
-
-# sub structures : Path {
-#   my ( $this, $c ) = @_;
-# 
-#   # see if we were handed a PDB ID and, if so, put the data for that entry into
-#   # the stash
-#   if ( defined $c->req->param('pdbId') and
-#       $c->req->param('pdbId') =~ m/^(\d\w{3})$/ ) {
-# 
-#     $c->stash->{pdbObj} = $c->model('RfamDB::Pdb')
-#                             ->find( { pdb_id => $1 } );
-#   }
-# 
-#   # retrieve the PDB entries for this family
-#   my @rs;
-#   if ( defined $c->stash->{rfam}->auto_rfam ) {
-#     @rs = $c->model('RfamDB::PdbRfamReg')
-#             ->search( { auto_rfam  => $c->stash->{rfam}->auto_rfam},
-#                       { join       => [ qw( pdb ) ],
-#                         prefetch   => [ qw( pdb ) ] } );
-#   }
-# 
-#   my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
-#   $c->stash->{pdbUnique} = \%pdbUnique;
-# 
-#   # set up the view and rely on "end" from the parent class to render it
-#   $c->stash->{template} = 'components/blocks/family/familyStructures.tt';
-# 
-#   # cache the template output for one week
-#   #$c->cache_page( 604800 );
-# }
-
 #-------------------------------------------------------------------------------
 
 =head2 structures : Chained('family') PathPart('structures') Args(0)
@@ -1389,7 +1371,11 @@ sub get_data : Private {
     $c->log->debug( 'Family::get_data: no row for that accession/ID' )
       if $c->debug;
   
-    $c->stash->{errorMsg} = 'No valid Rfam family accession or ID';
+    # there's a status helper that fits here...
+    $this->status_not_found(
+      $c,
+      message => 'No valid Rfam family accession or ID'
+    );
 
     return;
   }  
@@ -1399,7 +1385,6 @@ sub get_data : Private {
 
   $c->stash->{rfam} = $rfam;
   $c->stash->{acc}  = $rfam->rfam_acc;
-
 }
 
 #-------------------------------------------------------------------------------
@@ -1524,6 +1509,46 @@ sub get_wikipedia : Private {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 no_alignment : Private
+
+Drops a PNG image into the stash, with the message "we do not have this
+alignment in the database".
+
+=cut
+
+sub no_alignment : Private {
+  my ( $this, $c ) = @_;
+
+  $c->cache_page( 604800 );
+
+  my $cache_key = 'no_alignment_image';
+  my $image     = $c->cache->get( $cache_key );
+  
+  if ( defined $image ) {
+    $c->log->debug( 'Family::no_alignment: retrieved "no alignment" image from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::no_alignment: failed to retrieve "no alignment" image from cache; building afresh' )
+      if $c->debug;
+
+    $image = decode_base64( $no_alignment_image );
+
+    unless ( defined $image ) {
+      $c->stash->{errorMsg} = 'We could not find an image for ' 
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->cache->set( $cache_key, $image ) unless $ENV{NO_CACHE}
+  }
+  
+  $c->res->content_type( 'image/png' );
+  $c->res->body( $image );
+}
+
+#-------------------------------------------------------------------------------
 #- tree actions (private) ------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -1541,9 +1566,13 @@ sub get_tree : Private {
   # retrieve the tree from the DB
   $c->forward( 'get_tree_data' );
 
-  unless ( defined $c->stash->{treeData} ) {
-    $c->stash->{errorMsg} = 'We could not extract the ' . $c->stash->{alnType}
-                            . 'tree for ' . $c->stash->{acc};
+  if ( ! defined $c->stash->{treeData} or $c->stash->{rest}->{error} ) {
+    $c->log->debug( 'Family::get_tree: no tree data or hit a previous error' )
+      if $c->debug;
+
+    $c->stash->{rest}->{error} ||= 'We could not extract the ' . $c->stash->{alnType} 
+                                   . 'tree for ' . $c->stash->{acc};
+
     return;
   }
   
@@ -1572,9 +1601,6 @@ sub get_tree : Private {
       if $c->debug;
     $max_width = $species_max_width;
   }
-
-  # make sure we catch parse failures from the forwards
-  return if $c->stash->{errorMsg};
 
   # set the maximum label width explicitly on both trees, so that they'll 
   # generate images with the same branch lengths
@@ -1615,11 +1641,11 @@ sub build_labelled_tree : Private {
   my $tree = $c->cache->get( $cache_key );
   
   if ( defined $tree ) {
-    $c->log->debug( 'Family::Tree::build_labelled_tree: extracted tree object from cache' )
+    $c->log->debug( 'Family::build_labelled_tree: extracted tree object from cache' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Tree::build_labelled_tree: failed to extract tree object from cache; going to DB' )
+    $c->log->debug( 'Family::build_labelled_tree: failed to extract tree object from cache; going to DB' )
       if $c->debug;
   
     # get a new tree object...
@@ -1631,9 +1657,12 @@ sub build_labelled_tree : Private {
       $tree->parse( $c->stash->{treeData} );
     };
     if ( $@ ) {
-      $c->log->error( "Family::Tree::build_labelled_tree: ERROR: failed to parse tree: $@" );
-      $c->stash->{errorMsg} = 'There was a problem with the tree data for '
-                              . $c->stash->{acc};
+      $c->log->debug( "Family::build_labelled_tree: ERROR: failed to parse tree: $@" )
+        if $c->debug;
+
+      $c->stash->{rest}->{error} ||= 'There was a problem with the tree data for '
+                                     . $c->stash->{acc};
+
       return;
     }
   
@@ -1683,11 +1712,11 @@ sub get_tree_data : Private {
   my $tree_data = $c->cache->get( $cacheKey );
   
   if ( defined $tree_data ) {
-    $c->log->debug( 'Family::Tree::get_tree_data: extracted tree data from cache' )
+    $c->log->debug( 'Family::get_tree_data: extracted tree data from cache' )
       if $c->debug;  
   }
   else {
-    $c->log->debug( 'Family::Tree::get_tree_data: failed to extract tree data from cache; going to DB' )
+    $c->log->debug( 'Family::get_tree_data: failed to extract tree data from cache; going to DB' )
       if $c->debug;  
 
     # retrieve the tree from the DB
@@ -1699,34 +1728,38 @@ sub get_tree_data : Private {
 
     if ( defined $row and 
          defined $row->tree ) {
-      $c->log->debug( 'Family::Tree::get_tree_data: retrieved tree data from DB' )
+      $c->log->debug( 'Family::get_tree_data: retrieved tree data from DB' )
         if $c->debug;
     }
     else {
-      $c->log->debug( 'Family::Tree::get_tree_data: no rows from DB query' )
+      $c->log->debug( 'Family::get_tree_data: no rows from DB query' )
         if $c->debug;
-      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
-                              . $c->stash->{acc};
+
+      $c->stash->{rest}->{error} ||= 'We could not retrieve the tree data for '
+                                     . $c->stash->{acc};
+
       return;
     }
 
     # make sure we can uncompress it
     $tree_data = Compress::Zlib::memGunzip( $row->tree );
     if ( defined $tree_data ) {
-      $c->log->debug( 'Family::Tree::get_tree_data: successfully gunzipped tree data' )
+      $c->log->debug( 'Family::get_tree_data: successfully gunzipped tree data' )
         if $c->debug;
     }
     else {
-      $c->log->debug( 'Family::Tree::get_tree_data: tree data not gzipped...' )
+      $c->log->debug( 'Family::get_tree_data: tree data not gzipped...' )
         if $c->debug;
       $tree_data = $row->tree;
     }
 
     unless ( defined $tree_data ) {
-      $c->log->debug( 'Family::Tree::get_tree_data: failed to retrieve tree data' )
+      $c->log->debug( 'Family::get_tree_data: failed to retrieve tree data' )
         if $c->debug;
-      $c->stash->{errorMsg} = 'We could not extract the tree data for '
-                              . $c->stash->{acc};
+
+      $c->stash->{rest}->{error} ||= 'We could not extract the tree data for '
+                                     . $c->stash->{acc};
+
       return;
     }
 
@@ -2085,4 +2118,3 @@ __PACKAGE__->meta->make_immutable;
 
 1;
 
-__DATA__
