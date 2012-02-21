@@ -503,7 +503,7 @@ public class HMMSearchPanel extends JPanel {
 		String options = "&altoutput=1&"+cs;
 		try {
 			String parameter = "seq="+URLEncoder.encode(sequence.getText(), "UTF-8")+options;
-			BufferedReader buf = server.doRequest("sequence/search/", parameter);
+			BufferedReader buf = server.doRequest("search/sequence/", parameter);
 
 			String s = buf.readLine();
 			if (s.equals("ERR:")) {
@@ -527,7 +527,7 @@ public class HMMSearchPanel extends JPanel {
 		setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		try {
 			String parameter = "jobId="+URLEncoder.encode(id.getText(), "UTF-8");
-			BufferedReader buf = server.doRequest("results/search/sequence", parameter + "&altoutput=2" );
+			BufferedReader buf = server.doRequest("search/sequence/resultset", parameter + "&altoutput=2" );
 			String s = buf.readLine();
 			if (s.equals("ERR:")) {
 				PfamAlyzerExceptionDialog ed = new PfamAlyzerExceptionDialog(frame, buf.readLine());
