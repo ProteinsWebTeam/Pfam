@@ -60,7 +60,7 @@ PROCESS components/links.tt; %]
         <li[% IF ( NOT hasWikiArticles ) OR is_duf %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
         <li[% ' class="disabled"' UNLESS pfam.interpro %]>
-          <a href="#interproContent">Interpro</a>
+          <a href="#interproContent">InterPro</a>
         </li>
    <!-- <li><a href="#topsanContent">TopSan</a></li> -->
       </ul>
@@ -314,7 +314,7 @@ PROCESS components/links.tt; %]
 
           <p>
             This tab holds annotation information from the 
-            <a class="ext" href="http://www.ebi.ac.uk/interpro/">Interpro</a> database.
+            <a class="ext" href="http://www.ebi.ac.uk/interpro/">InterPro</a> database.
           </p>
 
           [%- IF pfam.interpro %]
@@ -328,7 +328,13 @@ PROCESS components/links.tt; %]
 
             IF goTerms.size -%]
 
-              <h2>Gene Ontology</h2>
+              <h3>Gene Ontology</h3>
+
+              <p>
+                The mapping between Pfam and Gene Ontology is provided by InterPro.
+                If you use this data please 
+                <a class="ext" href="http://www.ebi.ac.uk/interpro/references.html">cite</a> InterPro.
+              </p>
 
               [% categories = { 
                 function  => { label   => "Molecular function",
@@ -369,7 +375,7 @@ PROCESS components/links.tt; %]
 
           ELSE %]
             <div id="interproContent">
-              <p>No Interpro data for this Pfam family.</p>
+              <p>No InterPro data for this Pfam family.</p>
             </div>
           [%- END %]
         </div>
