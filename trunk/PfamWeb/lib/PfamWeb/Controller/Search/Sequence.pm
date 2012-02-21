@@ -56,6 +56,23 @@ use base qw( PfamBase::Controller::Search::InteractiveSearch
 
 =head1 METHODS
 
+=head2 begin : Private
+
+Retrieves the job parameters from request params and stuffs them into the 
+stash.
+
+=cut
+
+sub begin : Private {
+  my ( $this, $c ) = @_;
+
+  foreach my $slot ( qw( seq ga evalue altoutput ) ) {
+    $c->stash->{data}->{$slot} = $c->req->param($slot) || '';
+  }
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 search : Path
 
 Queues a sequence search job and redirects to a page that polls the server for
@@ -72,12 +89,6 @@ sub search : Path {
   $c->log->debug( 'Search::Sequence::search: set template to layout' )
     if $c->debug;
 
-  # retrieve the job parameters
-  $c->stash->{data} = {};
-  foreach my $slot ( qw( seq ga evalue ) ) {
-    $c->stash->{data}->{$slot} = $c->req->param($slot) || '';
-  }
-  
   # validate the input
   unless ( $c->forward('validate_input') ) {
     $c->log->debug( 'Search::Sequence::search: problem validating input' )
@@ -123,13 +134,28 @@ Builds a page that will hold the results of the search(es).
 sub results : Local {
   my ( $this, $c, $arg ) = @_;
 
+  # get hold of the job ID
+  my $job_id = $c->req->param('jobId') ||
+               $arg                    ||
+               '';
+
   # decide which template to use. Both of these templates will handle showing 
   # an error message, in case something goes wrong when submitting the search
-  if ( $c->stash->{output_xml} ) {
+  if ( $c->stash->{output_xml} || '' ) {
     $c->log->debug( 'Search::Sequence::results: returning polling page as XML' )
       if $c->debug;
     $c->stash->{template} = 'rest/search/poll_xml.tt';
   }
+
+  # output just the job ID, for use by PfamAlyzer
+  elsif ( $c->stash->{data}->{altoutput} || 0 ) {
+    $c->log->debug( 'Search::Sequence::results: returning just the job ID for PfamAlyzer' )
+      if $c->debug;
+    $c->res->content_type( 'text/plain' );
+    $c->res->body( $c->stash->{jobId} );
+    return;
+  }
+
   else {
     $c->log->debug( 'Search::Sequence::results: returning polling page as HTML' )
       if $c->debug;
@@ -140,12 +166,20 @@ sub results : Local {
     if $c->debug;
 
   # retrieve job details
-  unless ( $c->forward( 'get_job_details', [ $arg ] ) ) {
-    $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
+  unless ( $c->forward( 'get_job_details', [ $job_id ] ) ) {
+    $c->log->debug( 'Search::Sequence::results: problems getting job details' )
       if $c->debug;
 
-    $c->stash->{seqSearchError} = $c->stash->{searchError}
-                                  || 'There was an unknown problem when retrieving your results.';
+    if ( $c->stash->{data}->{altoutput} || 0 ) {
+      $c->log->debug( 'Search::Sequence::results: outputting to PfamaAlyzer; returning empty response' )
+        if $c->debug;
+      $c->res->content_type( 'text/plain' );
+      $c->res->body( '' );
+    }
+    else {
+      $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                    || 'There was an unknown problem when retrieving your results.';
+    }
   }
 
 }
@@ -173,8 +207,16 @@ sub resultset : Local {
     $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
       if $c->debug;
 
-    $c->stash->{seqSearchError} = $c->stash->{searchError}
-                                  || 'There was an unknown problem when retrieving your result set.';
+    if ( $c->stash->{data}->{altoutput} || 0 ) {
+      $c->log->debug( 'Search::Sequence::resultset: outputting to PfamaAlyzer; returning empty response' )
+        if $c->debug;
+      $c->res->content_type( 'text/plain' );
+      $c->res->body( '' );
+    }
+    else {
+      $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                    || 'There was an unknown problem when retrieving your result set.';
+    }
 
     return;
   }
@@ -273,15 +315,20 @@ sub resultset : Local {
   $c->log->debug( 'Search::Sequence::resultset: all jobs completed; setting template' )
     if $c->debug;
 
-  # decide which template to use. Both of these templates will handle showing 
+  # decide which template to use. All of these templates will handle showing 
   # an error message, in case something goes wrong when submitting the search
   if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Search::Sequence::results: returning result set as XML' )
       if $c->debug;
     $c->stash->{template} = 'rest/search/results_xml.tt';
   }
+  elsif ( $c->stash->{data}->{altoutput} || 0 ) {
+    $c->log->debug( 'Search::Sequence::results: returning result set for PfamAlyzer' )
+      if $c->debug;
+    $c->stash->{template} = 'rest/search/pfamalyzer_results.tt';
+  }
   else {
-    $c->log->debug( 'Search::Sequence::results: returning result_set as HTML' )
+    $c->log->debug( 'Search::Sequence::results: returning result set as HTML' )
       if $c->debug;
     $c->stash->{template} = 'pages/search/sequence/results_table.tt';
 
@@ -293,7 +340,7 @@ sub resultset : Local {
   $c->forward( 'handle_results' );
 
   # build the domain graphics description
-  $c->forward( 'layout_dg' );
+  $c->forward( 'layout_dg' ) unless $c->stash->{data}->{altoutput};
 
   # put a reference to the results data structure in the "rest" slot in the 
   # stash, which is where the serialisers will be looking for it
