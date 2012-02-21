@@ -277,7 +277,7 @@ public class DomainQueryPanel extends JPanel implements ItemListener, ActionList
 		progress.done();
 		repaint();
 
-    System.err.println( "end of 'requestDone'" );
+    /* System.err.println( "end of 'requestDone'" ); */
 	}
 	
 	public void redisplay() {
@@ -293,21 +293,21 @@ public class DomainQueryPanel extends JPanel implements ItemListener, ActionList
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-    System.err.println( "start of 'actionPerformed'" );
+    /* System.err.println( "start of 'actionPerformed'" ); */
 		if (e.getActionCommand().equals("Search")) {
 			String queryString = proteinControl.getQueryString();
 			if (queryString != null) {
 				//System.out.println(queryString);
 				progress = new ProgressIndicator(this.frame);
 				progress.setText("Processing query ...");
-        System.err.println( "queryString: " + queryString );
+        /* System.err.println( "queryString: " + queryString ); */
 				ThreadedServerCommunication thread = new ThreadedServerCommunication("search/pfamalyzer/query", queryString, this, this.frame.applet);
 			}
 		}
 		else if (e.getActionCommand().equals("Clear")) {
 			proteinControl.clearQuery();
 		}
-    System.err.println( "end of 'actionPerformed'" );
+    /* System.err.println( "end of 'actionPerformed'" ); */
 	}
 	
 	public void itemStateChanged(ItemEvent e) {

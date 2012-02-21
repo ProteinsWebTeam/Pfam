@@ -238,12 +238,11 @@ public class DomainQueryResultPanel extends JPanel implements MouseListener, Mou
 			PfamAlyzerProtein p = null;
 			while ((line = buf.readLine()) != null) {
 			  
-        System.err.println( "tokenising line: |" + line + "|" );
 				StringTokenizer st = new StringTokenizer(line, "	");
 				if (st.hasMoreTokens()) {
 					String type = st.nextToken();
 					if (type.equals("P")) {
-            System.err.println( "type = P" );
+            /* System.err.println( "type = P" ); */
 						p = new PfamAlyzerProtein();
 						proteinList.add(p);
 						p.domains = new Vector();
@@ -260,7 +259,7 @@ public class DomainQueryResultPanel extends JPanel implements MouseListener, Mou
 							p.is_fragment = true;
 					}
 					else if (type.equals("A")) {
-            System.err.println( "type = A" );
+            /* System.err.println( "type = A" ); */
 						PfamAlyzerDomain domain = new PfamAlyzerDomain();
 						domain.id = st.nextToken();
 						domain.acc = st.nextToken();
@@ -274,7 +273,7 @@ public class DomainQueryResultPanel extends JPanel implements MouseListener, Mou
 						p.domains.add(k, domain);
 					}
 					else if (type.equals("B")) {
-            System.err.println( "type = B" );
+            /* System.err.println( "type = B" ); */
 						PfamAlyzerDomain domain = new PfamAlyzerDomain();
 						domain.id = st.nextToken();
 						domain.acc = st.nextToken();
