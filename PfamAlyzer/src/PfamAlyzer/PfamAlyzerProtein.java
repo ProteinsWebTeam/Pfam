@@ -184,7 +184,7 @@ public class PfamAlyzerProtein {
 					d = (PfamAlyzerDomain) domains.get(i);
 					d0 = (PfamAlyzerDomain) domains.get(i-1);
 					if (d.seq_start <= d0.seq_end) {
-						System.out.println("!!!");
+						/* System.out.println("!!!"); */
 						d.leftOverlap = d.stopX<d0.stopX?d.stopX:d0.stopX;
 					}
 				}

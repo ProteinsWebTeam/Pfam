@@ -85,7 +85,7 @@ public class SpeciesControl extends JPanel {
 					n = (DefaultMutableTreeNode) en.nextElement();
 					MyObject mo = (MyObject) n.getUserObject();
 					mo.checked = b;
-					System.out.println(mo.text);
+					/* System.out.println(mo.text); */
 				} 
 			}
 			tree.repaint();
