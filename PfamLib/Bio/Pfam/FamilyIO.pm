@@ -51,6 +51,7 @@ use File::Temp;
 use Text::Wrap;
 use Carp;
 use Data::Dumper;
+use Data::Printer;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::Family::PfamA;
@@ -75,7 +76,7 @@ sub new {
 }
 
 sub loadPfamAFromLocalFile {
-  my ( $self, $family, $dir, $source, $withoutAlign ) = @_;
+  my ( $self, $family, $dir, $source ) = @_;
 
   unless ( -d "$dir/$family" ) {
     confess("Could not find family directory $dir/$family");
@@ -87,19 +88,14 @@ sub loadPfamAFromLocalFile {
       confess("Could not find $dir/$family/$f\n");
     }
 
-    if(defined($source) and $source eq 'commit'){
-      next if($f eq 'ALIGN');  
+    if($f ne 'ALIGN'){
+      my $fh;
+      open( $fh, "$dir/$family/$f" )
+        or confess("Could not open $dir/$family/$f:[$!]");
+      $params{$f} = $fh;
+    }else{
+      $params{$f}= "$dir/$family/$f";
     }
-    if(defined($withoutAlign) and $withoutAlign == 1 ){
-      next if($f eq 'ALIGN');  
-    }
-
-    my $fh;
-
-    #print "Opening $dir/$family/$f\n";
-    open( $fh, "$dir/$family/$f" )
-      or confess("Could not open $dir/$family/$f:[$!]");
-    $params{$f} = $fh;
   }
 
   if ($source) {
@@ -107,12 +103,11 @@ sub loadPfamAFromLocalFile {
   }
 
   my $famObj = Bio::Pfam::Family::PfamA->new(%params);
-
   return ($famObj);
 }
 
 sub loadPfamAFromSVN {
-  my ( $self, $family, $client, $withoutAlign ) = @_;
+  my ( $self, $family, $client ) = @_;
 
   my $dir = File::Temp->newdir( 'CLEANUP' => 0 );
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
@@ -123,7 +118,7 @@ sub loadPfamAFromSVN {
     $client->catFile( $family, $f, $fh );
     close($fh);
   }
-  my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn', $withoutAlign );
+  my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn' );
   return $famObj;
 }
 
