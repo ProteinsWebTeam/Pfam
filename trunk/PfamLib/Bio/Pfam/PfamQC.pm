@@ -749,17 +749,26 @@ sub sequenceChecker {
   my $count = 0;
 
   foreach my $aln (qw(SEED ALIGN)) {
+    if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfamLite'){
+      foreach my $seq (@{$famObj->$aln->all_nse_with_seq}){
+        Bio::Pfam::SeqFetch::addSeqToVerify( $seq->[0],
+                                             $seq->[1], 
+                                             $seq->[2], 
+                                             $seq->[3], 
+                                             \%allseqs ); 
+      }
+    }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
     foreach my $seq ( $famObj->$aln->each_seq ) {
       $count++;
-
       my $str_ali = uc( $seq->seq() );
       $str_ali =~ s/[.-]//g;
       my $seqName = $seq->id;
       if($seq->version){
         $seqName .= ".".$seq->version;
       }
-      Bio::Pfam::SeqFetch::addSeqToVerify( $seqName,
-        $seq->start, $seq->end, $str_ali, \%allseqs );
+       Bio::Pfam::SeqFetch::addSeqToVerify( $seqName,
+          $seq->start, $seq->end, $str_ali, \%allseqs );
+      }
     }
   }
 
@@ -800,51 +809,56 @@ sub family_overlaps_with_signal_peptide {
  
     open(LOG, ">$family/sig_p_overlap") or die "Can't open file $family/sig_p_overlap for writing log.\n";
 
-    my (%seedRegions, %alignRegions, %count);
+    my ( %count);
     $count{seed} = $count{align} = 0;
-
-    foreach my $seq ($famObj->SEED->each_seq) {
-      if(exists($seedRegions{$seq->id})) {
-        if($seq->start < $seedRegions{$seq->id}{start}) { #Only store first region on the sequence
-          $seedRegions{$seq->id}{start}=$seq->start;
-          $seedRegions{$seq->id}{end}=$seq->end;
-         }
+    
+    
+    foreach my $aln (qw(SEED ALIGN)){
+     my(%regions);
+    if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
+        foreach my $seq ($famObj->$aln->each_seq) {
+          next if($seq->start > 120);
+          if(exists($regions{$seq->id})) {
+            if($seq->start < $regions{$seq->id}{start}) { #Only store first region on the sequence
+              $regions{$seq->id}{start}=$seq->start;
+              $regions{$seq->id}{end}=$seq->end;
+              $regions{$seq->id}{$aln}++;
+            }
+          }
+          else {
+            $regions{$seq->id}{start}=$seq->start;
+            $regions{$seq->id}{end}=$seq->end;
+            $regions{$seq->id}{$aln}++;
+          }
       }
-      else {
-        $seedRegions{$seq->id}{start}=$seq->start;
-        $seedRegions{$seq->id}{end}=$seq->end;
+    }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfamLite'){
+      foreach my $seq ($famObj->$aln->all_nse) {
+        next if($seq->[1] > 120);
+        if(exists($regions{$seq->id})) {
+          if($seq->start < $regions{$seq->id}{start}) { #Only store first region on the sequence
+            $regions{$seq->[0]}{start}=$seq->[1];
+            $regions{$seq->[0]}{end}=$seq->[2];
+          }
+       }else{
+         $regions{$seq->[0]}{start}=$seq->[1];
+         $regions{$seq->[0]}{end}=$seq->[2];
+       }
       }
+    }else{
+      die "Unkown alignment type!\n";
     }
-    my $overlap_hash = $pfamDB->getSignalPeptideRegion(\%seedRegions);
+    my $overlap_hash = $pfamDB->getSignalPeptideRegion(\%regions);
  
     foreach my $pfamseq_acc (keys %{$overlap_hash}) {
-      print LOG "Sequence $pfamseq_acc/" . $seedRegions{$pfamseq_acc}{start} . "-". $seedRegions{$pfamseq_acc}{end} . " in SEED overlaps with signal peptide $overlap_hash->{$pfamseq_acc}\n";
-      $count{seed}++;
-    } 
-    
-  foreach my $seq ($famObj->ALIGN->each_seq) {
-      if(exists($alignRegions{$seq->id})) {
-        if($seq->start < $alignRegions{$seq->id}{start}) {
-          $alignRegions{$seq->id}{start}=$seq->start;
-          $alignRegions{$seq->id}{end}=$seq->end;
-         }
-      }
-      else {
-        $alignRegions{$seq->id}{start}=$seq->start;
-        $alignRegions{$seq->id}{end}=$seq->end;
-      }
+      print LOG "Sequence $pfamseq_acc/" . 
+                  $regions{$pfamseq_acc}{start} . "-". $regions{$pfamseq_acc}{end} . " in ".$aln." overlaps with signal peptide ".$overlap_hash->{$pfamseq_acc}."\n";
+      $count{lc($aln)}++;
     }
+  }
+ 
+  $count{total}=$count{seed}+$count{align};
 
-    $overlap_hash = $pfamDB->getSignalPeptideRegion(\%alignRegions);
-
-    foreach my $pfamseq_acc (keys %{$overlap_hash}) {
-      print LOG "Sequence $pfamseq_acc/" . $alignRegions{$pfamseq_acc}{start} . "-". $alignRegions{$pfamseq_acc}{end} . " in ALIGN overlaps with signal peptide $overlap_hash->{$pfamseq_acc}\n";
-      $count{align}++;
-    } 
-
-   $count{total}=$count{seed}+$count{align};
-
-    return \%count;
+  return \%count;
 }
 
 #-------------------------------------------------------------------------------
@@ -1103,14 +1117,29 @@ sub seedIntOverlaps{
 sub noMissing {
   my ( $newFamObj, $oldFamObj, $family ) = @_;
 
-  my ( $oldSeqs, $newSeqs );
-  foreach my $aln (qw(SEED ALIGN)) {
-    foreach my $seq ( $newFamObj->$aln->each_seq ) {
-      $newSeqs->{ $seq->id }++;
+  my (@allnewseqs, @alloldseqs);
+  if(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){  
+    push(@allnewseqs, @{$newFamObj->ALIGN->all_seq_accs});          
+  }elsif(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
+    my $previous_id = '';
+    foreach my $seq ( sort{$a cmp $b} $newFamObj->ALIGN->each_seq ) {
+      push(@allnewseqs, $seq->id) if($seq->id ne $previous_id);
+      $previous_id = $seq->id;
     }
-    foreach my $seq ( $oldFamObj->$aln->each_seq ) {
-      $oldSeqs->{ $seq->id }++;
-    }
+  }else{
+    die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
+  }
+
+  my (@found);
+  NEW:
+  for (my $i =0; $i<= $#allnewseqs; $i++){
+    for(my $j = 0; $j <= $#alloldseqs; $j++){
+      if($allnewseqs[$i] eq $alloldseqs[$j]){
+        $alloldseqs[$j] = 0;
+        next NEW;  
+      }
+      push(@found, $allnewseqs[$i]);    
+    }  
   }
 
   ###########################################
@@ -1122,13 +1151,11 @@ sub noMissing {
   # Put missing sequences into a missing file in directory
   open( MISSING, "> $family/missing" )
     || die "Can't write to file $family/missing\n";
-  foreach my $element ( keys %{$oldSeqs} ) {
-    if ( !$newSeqs->{$element} ) {
-      print MISSING "$element not found\n";
-
-      # Add element to missing hash
-      $lost++;
-    }
+  foreach my $acc ( @alloldseqs ) {
+    next if($acc == 0);
+    print MISSING "$acc not found\n";
+    # Add element to missing hash
+    $lost++;
   }
   close(MISSING);
 
@@ -1137,11 +1164,8 @@ sub noMissing {
   ##################################
   open( FOUND, "> $family/found" )
     || die "Can't write to file $family/found\n";
-  foreach my $element ( keys %{$newSeqs} ) {
-    if ( !$oldSeqs->{$element} ) {
-      print FOUND "$element found\n";
-      $extra++;
-    }
+  foreach my $acc ( @found ) {
+    print FOUND "$acc found\n";
   }
   close(FOUND);
   print "Lost $lost. Found $extra.\n";
