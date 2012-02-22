@@ -24,10 +24,10 @@ subtype 'Domain'
 #    };
 #    
   
-subtype 'proteinCoos'
-  => as 'Int'
-  => where { $_ > 0 && $_ < 100000 }
-  => message { 'Protein coordinates are expected to be positive and less the 100,000'};
+#subtype 'proteinCoos'
+#  => as 'Int'
+#  => where { $_ > 0 && $_ < 100000 }
+#  => message { 'Protein coordinates are expected to be positive and less the 100,000'};
 
 
 has 'seqEvalue' => (
@@ -41,13 +41,13 @@ has 'domain' => (
 );
 
 has 'seqFrom' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is   => 'rw',
   required => 1
 );
 
 has 'seqTo' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is  => 'rw',
   required => 1
 );
@@ -70,24 +70,24 @@ has 'hmmalign' => (
 );
 
 has 'hmmFrom' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is   => 'rw',
   required => 1
 );
 
 has 'hmmTo' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is  => 'rw',
   required => 1
 );
 
 has 'envFrom' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is   => 'rw'
 );
 
 has 'envTo' => (
-  isa => 'proteinCoos',
+  isa => 'Int',
   is  => 'rw'
 );
 
