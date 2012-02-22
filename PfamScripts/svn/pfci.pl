@@ -83,7 +83,6 @@ if ($message) {
   print M $message;
   close(M);
 }
-
 #-------------------------------------------------------------------------------
 #Initial SVN stuff
 
@@ -102,26 +101,16 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 
 my ( $oldFamObj, $upFamObj );
 
-if ($onlydesc) {
-
-  print STDERR "Only considering the DESC file\n";
-  $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
-  print STDERR "Successfully loaded local copy $family through middleware\n";
-  $oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
-  print STDERR "Successfully loaded SVN copy of $family through middleware\n";
-}
-else {
-
+unless($onlydesc){
   if ( !Bio::Pfam::PfamQC::checkFamilyFiles($family) ) {
-    print "pfci: $family contains errors.  You should rebuild this family.\n";
-    exit(1);
+   print "pfci: $family contains errors.  You should rebuild this family.\n";
+   exit(1);
   }
-
-  $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
-  print STDERR "Successfully loaded local copy $family through middleware\n";
-  $oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
-  print STDERR "Successfully loaded SVN copy of $family through middleware\n";
 }
+$upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
+print STDERR "Successfully loaded local copy $family through middleware\n";
+$oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
+print STDERR "Successfully loaded SVN copy of $family through middleware\n";
 
 #-------------------------------------------------------------------------------
 #Common QC checks based on the user request flags.
@@ -366,6 +355,7 @@ if ($onlydesc) {
   $client->commitFamilyDESC($family);
 }
 else {
+  print "Going to commit family\n";
   $client->commitFamily($family);
 }
 
