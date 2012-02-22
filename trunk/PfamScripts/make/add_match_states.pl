@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use File::Copy;
 use Getopt::Long;
-
+use Data::Compare;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::FamilyIO;
@@ -19,8 +19,11 @@ my( $seq, $version, $start, $end, $family, $help );
 		"version=s" => \$version,
 		"family=s"  => \$family,
 		"h"         => \$help
-);
+) or die "Error parsing options.\n";
 
+if($help){
+  help();  
+}
 
 my $config = Bio::Pfam::Config->new;
 my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -34,14 +37,28 @@ unless(-s "DESC"){
   $familyIO->writeEmptyDESC;  
 }
 
-my $descObj = Bio::Pfam::FamilyIO->parseDESC("DESC");
+my $descObj = $familyIO->parseDESC("DESC");
 
 #Now add the new data to the DESC object (if we have any).
 if($seq and $version and $end and $start and $family){
   #We have all of the information to add to the nested location hash.
   my $nest;
+  my $add = 1;
+  my $newNest = { dom => $family, seq => "$seq.$version", from => $start, to => $end };
   $nest = $descObj->NESTS if($descObj->NESTS);
-  push(@$nest, { dom => $family, seq => "$seq.$version", from => $start, to => $end });   
+  
+  #Need to check that it is not a duplicate
+  if($nest){
+    foreach my $n (@$nest){
+      if(!Compare($newNest, $nest)){
+        #Hashes are identical
+        warn "New nesting is identical to an existing location\n";
+        $add = 0;  
+      }       
+    }  
+  }
+  
+  push(@$nest, $newNest) if($add);   
   $descObj->NESTS($nest);
 }
 
@@ -51,7 +68,12 @@ my $seed = Bio::Pfam::AlignPfam->new;
 $seed->read_selex(\*S);
 close(S);
 
-foreach my $nestLoc (@{ $descObj->NESTS }){
+my $nestings = $descObj->NESTS;
+if(!defined($nestings)){
+  die "No nested locations found in the DESC file\n";  
+}
+
+foreach my $nestLoc (@{ $nestings }){
   my ( $thisSeq, $thisVersion ) = $nestLoc->{seq} =~ /(\S+)\.(\d+)/; 
   my $seen = 0;
   foreach my $seqObj ($seed->each_seq_with_id($thisSeq)){
@@ -91,7 +113,6 @@ my $RFline = $seedRF->match_states_string->display;
 
 foreach my $nestLoc (@{ $descObj->NESTS }){
   my ( $thisSeq, $thisVersion ) = $nestLoc->{seq} =~ /(\S+)\.(\d+)/;
-  # $pos = $aln->column_from_residue_number('1433_LYCES', 14); # = 6;
   my $startPos = $seedRF->column_from_residue_number($thisSeq, $nestLoc->{from});
   my $endPos   = $seedRF->column_from_residue_number($thisSeq, $nestLoc->{to});
   my $length   = $endPos -$startPos + 1;
@@ -118,7 +139,7 @@ foreach my $f (qw(_SEED.sto _SEED.rf _HMM _SEED.slx)){
 copy("DESC", "DESC.beforeRF");
 $familyIO->writeDESC($descObj, ".");  
 
-warn "Please varify that the SEED alignment is okay as it may have been altered by HMMER!!\n";
+warn "SUCCESS:Please varify that the SEED alignment is okay as it may have been altered by HMMER!!\n";
         
 
 sub help {  
