@@ -53,7 +53,7 @@ use Moose::Util::TypeConstraints;
 use Bio::Pfam::HMM::HMMIO;
 use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::AlignPfam;
-
+use Bio::Pfam::AlignPfamLite;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -61,8 +61,8 @@ use Bio::Pfam::AlignPfam;
 
 subtype 'AlignPfamA'
   => as Object
-  => where { $_->isa('Bio::Pfam::AlignPfam') }
-  => message { "\n\n*** Couldn't find/create a valid Bio::Pfam::AlignPfam object ***\n".
+  => where { $_->isa('Bio::Pfam::AlignPfam') or $_->isa('Bio::Pfam::AlignPfamLite')  }
+  => message { "\n\n*** Couldn't find/create a valid Bio::Pfam::AlignPfam or BioPfam::AlignPfamLite object***\n".
                "There is likely to be something wrong with your ALIGN file.\n".
                "$@\n" };
 
@@ -100,16 +100,9 @@ subtype 'DESCPfamA'
 coerce 'AlignPfamA'
   => from 'Str'
     => via {
-         my $ap = Bio::Pfam::AlignPfam->new;
-         eval { 
-           $ap->read_stockholm( [ read_file($_) ] );
-           unless($ap->is_flush){
-              die "alignment is not flush\n" 
-           }
-           my $ngap = $ap->allgaps_columns_removed();
-           if ( $ngap->length() != $ap->length() ) {
-              die "alignment contains gap columns\n";
-           }
+         my $ap;
+         eval {
+           $ap = Bio::Pfam::AlignPfamLite->new($_);
          };
          return $@ ? undef : $ap;
        }
