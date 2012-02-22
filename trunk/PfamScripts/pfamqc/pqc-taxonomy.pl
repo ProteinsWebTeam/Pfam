@@ -89,12 +89,22 @@ $dbh->do($statement) or die $dbh->errstr;
 
 #now populate that table
 my ( $seqAccs, %seen );
-
-foreach my $seq ($localFamObj->ALIGN->each_seq ){
-  next if($seen{$seq->id}); 
-  $seqAccs .= "\'".$seq->id."\'),(";
-  $seen{$seq->id}++;
-}
+  if(ref($localFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){
+    foreach my $seq ( @{ $localFamObj->ALIGN->all_seq_acc }){
+      $seq =~ s/\.\d+//;
+      next if($seen{$seq}); 
+      $seqAccs .= "\'".$seq."\'),(";
+      $seen{$seq}++;  
+    }
+  }elsif(ref($$localFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
+    foreach my $seq ($localFamObj->ALIGN->each_seq ){
+      next if($seen{$seq->id}); 
+      $seqAccs .= "\'".$seq->id."\'),(";
+      $seen{$seq->id}++;
+    }
+  }else{
+    die "Unkown alignment object type\n";
+  }
 
 #Remove the last ),( from the string
 $seqAccs = substr( $seqAccs, 0, length($seqAccs) - 3);
