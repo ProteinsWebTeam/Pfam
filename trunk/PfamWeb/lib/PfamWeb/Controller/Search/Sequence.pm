@@ -56,19 +56,20 @@ use base qw( PfamBase::Controller::Search::InteractiveSearch
 
 =head1 METHODS
 
-=head2 begin : Private
+=head2 auto : Private
 
-Retrieves the job parameters from request params and stuffs them into the 
-stash.
+Retrieves the job parameters from request params and stuff them into the stash.
 
 =cut
 
-sub begin : Private {
+sub auto : Private {
   my ( $this, $c ) = @_;
 
   foreach my $slot ( qw( seq ga evalue altoutput ) ) {
     $c->stash->{data}->{$slot} = $c->req->param($slot) || '';
   }
+
+  1;
 }
 
 #-------------------------------------------------------------------------------
