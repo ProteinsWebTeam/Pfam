@@ -6,7 +6,6 @@ use Getopt::Long;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Client;
-use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
 my $config = Bio::Pfam::Config->new;
