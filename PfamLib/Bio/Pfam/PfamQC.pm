@@ -756,6 +756,7 @@ sub sequenceChecker {
                                              $seq->[2], 
                                              $seq->[3], 
                                              \%allseqs ); 
+        $count++;
       }
     }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
     foreach my $seq ( $famObj->$aln->each_seq ) {

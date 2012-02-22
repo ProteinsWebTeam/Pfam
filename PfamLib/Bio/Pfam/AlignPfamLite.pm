@@ -225,6 +225,7 @@ sub all_nse_with_seq {
   open(S, "sort ".$self->path."|") or confess "Could not open sort pipe:[$!]\n";
   while(<S>){
     if(my @nse = $_ =~ /^(\S+)\/(\d+)\-(\d+)\s+(\S+)/){
+      $nse[3] = uc($nse[3]);
       $nse[3] =~ s/[.-]//g;
       push(@nses,\@nse);
     }
