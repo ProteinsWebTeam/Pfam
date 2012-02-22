@@ -152,7 +152,7 @@ foreach my $fam (sort{ $fixes{$b} <=> $fixes{$a} }keys %fixes){
     my $hmmres = Bio::Pfam::HMM::HMMResultsIO->parsePFAMOUT('PFAMOUT');
     my $familyIO = Bio::Pfam::FamilyIO->new;
     
-    my $desc  = Bio::Pfam::FamilyIO->parseDESC('DESC');
+    my $desc  = $familyIO->parseDESC('DESC');
     copy('DESC', 'DESC.beforeEdit');
  
     unless ( $desc->EDITS ){
