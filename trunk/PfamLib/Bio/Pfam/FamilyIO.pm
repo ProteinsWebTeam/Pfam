@@ -51,7 +51,6 @@ use File::Temp;
 use Text::Wrap;
 use Carp;
 use Data::Dumper;
-use Data::Printer;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::Family::PfamA;

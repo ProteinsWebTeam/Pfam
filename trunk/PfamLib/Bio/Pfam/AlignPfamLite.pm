@@ -46,7 +46,6 @@ use strict;
 use warnings;
 use File::Temp qw(tempfile);
 use Carp;
-use Data::Printer;
 #-------------------------------------------------------------------------------
 
 =head2 new 
