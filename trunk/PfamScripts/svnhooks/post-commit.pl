@@ -204,7 +204,7 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
 };
 if($@){
   
-  my %header = (  To => 'rdf@sanger.ac.uk',
+  my %header = (  To => 'finnr@janelia.hhmi.org',
 					        From => 'rdf@sanger.ac.uk',
 					        Subject => 'Error in post-commit ' );
 	 $header{Cc} = $revlook->author.'@sanger.ac.uk' if($revlook);
