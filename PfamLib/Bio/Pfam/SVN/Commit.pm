@@ -110,10 +110,17 @@ sub commitFamily {
   
     #Okay, if we get to here, then we should be okay!
     #Now upload the family to Pfam  
-    $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
-    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
-    $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+    try{
+      $pfamDB->txn_begin;
+      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+      $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
+      $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
+      $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+      $pfamDB->txn_commit;
+    }catch{
+      warn "Something bad has happened, issuing  a rollback\n";
+      $pfamDB->txb_rollback;
+    }
   }  
   
   #If this family is part of a clan, we need to compete it
@@ -146,10 +153,17 @@ sub commitNewFamily {
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
   my $author = $self->author();
-  $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
-  $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
-  $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
+  try{
+    $pfamDB->txn_begin;
+    $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
+    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
+    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
+      $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
+      $pfamDB->txn_commit;
+    }catch{
+      warn "Something bad has happened, issuing  a rollback\n";
+      $pfamDB->txb_rollback;
+    }
   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
@@ -248,7 +262,6 @@ sub _getFamilyObjFromTrans {
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   my $params;
   foreach  my $f ( @{ $self->{config}->mandatoryFamilyFiles }) {
-    print STDERR "Catting $path/$f\n";
     my $fh;
     my @file =  $self->cat("$path/$f");
     open( $fh, ">$dir/$family/$f") or die "Could not open $dir/$f";
@@ -323,7 +336,6 @@ sub _qualityControlFamily {
   
   #Now apply any edits......
   if($famObj->DESC->EDITS){
-    print STDERR "Applying Edits\n";
     $famObj->PFAMOUT->applyEdits( $famObj->DESC->EDITS ) if( $famObj->DESC->EDITS ); 
   }
   
