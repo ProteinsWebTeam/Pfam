@@ -418,7 +418,6 @@ sub farmJackhmmer {
 #Build up the command we want to run.  We want to run this same script, but with the local option.
 
   my $cmd = "pfjbuild.pl";
- 
 
   if ( $$optCmdsRef{'--incT'} ) {
     $cmd .= " -T " . $$optCmdsRef{'--incT'};
@@ -458,7 +457,7 @@ sub farmJackhmmer {
   $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
-      . "/$user/$uuid/$$.log -Jjackhmmer$$" );
+      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[type==X86_64 && mem>2000] rusage[mem=2000]\" -M 2000000" );
   if($copyFiles){
     $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   }else{
