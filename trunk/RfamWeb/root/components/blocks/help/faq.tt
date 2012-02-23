@@ -36,7 +36,7 @@
       <li><a class="link" rel="validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
       <li><a class="link" rel="myseqmissing">Why is my favourite sequence not in the family?</a></li>
       <li><a class="link" rel="cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
-      <li><a class="link" rel="seqIds">What do the sequence identifiers in your alignments mean?</a>
+      <li><a class="link" rel="seqIds">What do the sequence identifiers in your alignments mean?</a></li>
     </ul>
     
     <h3 class="listTitle">Searching</h3>
@@ -576,11 +576,11 @@ why is the model truncated from published blah
 
     <p><a class="link" rel="faqTop">back to top of page</a></p>
 
-    // [%# the links to the individual questions used to be real links, using 
-         # anchors in the page to move around. However, that seems to interfere
-         # with the new tab manager, so we have to work around it. This snippet
-         # of JS adds a listener to each internal link and uses the "rel"
-         # attribute to get the name of the element to scroll to %]
+     [%# the links to the individual questions used to be real links, using 
+       # anchors in the page to move around. However, that seems to interfere
+       # with the new tab manager, so we have to work around it. This snippet
+       # of JS adds a listener to each internal link and uses the "rel"
+       # attribute to get the name of the element to scroll to %]
     <script type="text/javascript">
       // <![CDATA[
 
