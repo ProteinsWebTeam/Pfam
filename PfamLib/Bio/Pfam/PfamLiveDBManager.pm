@@ -448,6 +448,7 @@ sub updatePfamARegSeed {
       (auto_pfamseq, auto_pfamA, seq_start, seq_end) values ( ?, ?, ?, ?)'
   );
 
+
   #Get all the sequences that we need to work on
   my @seqs;
   foreach my $seq ( $famObj->SEED->each_seq ) {
@@ -469,6 +470,7 @@ sub updatePfamARegSeed {
     }
   }
 
+  $dbh->do('SET foreign_key_checks=0');
   foreach my $seq ( $famObj->SEED->each_seq ) {
     my $sauto;
     if ( $seqacc2auto{ $seq->id . "." . $seq->seq_version } ) {
@@ -486,6 +488,7 @@ sub updatePfamARegSeed {
 
     $up_sth->execute( $sauto, $auto, $seq->start, $seq->end );
   }
+  $dbh->do('SET foreign_key_checks=1');
   $dbh->commit;
 }
 
@@ -645,6 +648,7 @@ sub updatePfamARegFull {
     sequence_evalue_score) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
+      $dbh->do('SET foreign_key_checks=0');
 
 #-------------------------------------------------------------------------------
 #All of the quires are set up now prepare the data
@@ -715,6 +719,7 @@ sub updatePfamARegFull {
             }
           }
         }
+        $dbh->do('SET foreign_key_checks=1');
         $dbh->commit;
       }
     );
