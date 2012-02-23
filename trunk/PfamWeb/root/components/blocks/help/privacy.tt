@@ -112,10 +112,44 @@
     <h2><a name="cookies">Cookies</a></h2>
 
     <p>
-      We use <a class="ext" href="http://en.wikipedia.org/wiki/HTTP_cookie">
-        cookies</a> to maintain some information about you between your visits 
-      to the site. The information that is stored cannot be used to identify you 
-      personally and cannot be used to track your usage of the site.
+      We use the following
+      <a class="ext" href="http://en.wikipedia.org/wiki/HTTP_cookie">cookies</a> 
+      to maintain some information about you between your visits to the site.
+      The information that is stored cannot be used to identify you personally
+      and cannot be used to track your usage of the site.
+    </p>
+
+    <table summary="Cookies used in the Pfam site"
+           id="keyTable">
+      <thead>
+        <tr>
+          <td>Cookie name</td>
+          <td>Purpose</td>
+          <td>Criteria</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd">
+          <td>ts</td>
+          <td>Timestamp when annotation submission form was loaded in browser</td>
+          <td>Required</td>
+        </tr>
+        <tr class="even">
+          <td>hide_posts</td>
+          <td>Keep track of whether blog posts have been hidden in home page</td>
+          <td>Optional</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <p>
+      In addition to these Pfam-specific cookies, Urchin uses a series of
+      cookies. You can read more about these in the <a class="ext" 
+        href="http://code.google.com/apis/analytics/docs/concepts/gaConceptsOverview.html">
+        Urchin documentation</a>
+      [% IF c.config.site == "wtsi" %], or in the Sanger Institute's
+      <a class="ext" href="http://www.sanger.ac.uk/legal/cookiespolicy.html">
+        cookie policy</a>[% END %].
     </p>
     <p>      
       If you are at all concerned about the use of cookies in the Pfam site, 
