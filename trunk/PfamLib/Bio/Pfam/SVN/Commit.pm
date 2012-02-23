@@ -48,6 +48,7 @@ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 use strict;
 use warnings;
 use File::Temp;
+use Try::Tiny;
 use Carp;
 
 use Bio::Pfam::Config;
@@ -83,7 +84,7 @@ sub new {
   $self->{config} = Bio::Pfam::Config->new;
   $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
                                              port => 27017)->pfamseq->automap;
-                                             
+  $self->{mongo}->query_timeout(90000);                                         
   die "MongoDB size does not match pfamseq size!\n"
     if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
   return bless($self, $class);  
@@ -110,17 +111,18 @@ sub commitFamily {
   
     #Okay, if we get to here, then we should be okay!
     #Now upload the family to Pfam  
-    try{
-      $pfamDB->txn_begin;
+    #try{
+    #  $pfamDB->getSchema->txn_begin;
       $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
       $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
       $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
       $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
-      $pfamDB->txn_commit;
-    }catch{
-      warn "Something bad has happened, issuing  a rollback\n";
-      $pfamDB->txb_rollback;
-    }
+    #  $pfamDB->txn_commit;
+    #}catch{
+    #  warn "Something bad has happened, issuing  a rollback\n";
+    #  $pfamDB->getSchema->txn_rollback;
+    #  die;
+    #};
   }  
   
   #If this family is part of a clan, we need to compete it
@@ -153,17 +155,18 @@ sub commitNewFamily {
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
   my $author = $self->author();
-  try{
-    $pfamDB->txn_begin;
+  #try{
+  #  $pfamDB->getSchema->txn_begin;
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
     $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
       $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
-      $pfamDB->txn_commit;
-    }catch{
-      warn "Something bad has happened, issuing  a rollback\n";
-      $pfamDB->txb_rollback;
-    }
+  #    $pfamDB->getSchema->txn_commit;
+  #  }catch{
+  #    warn "Something bad has happened, issuing  a rollback\n";
+  #    $pfamDB->getSchema->txn_rollback;
+  #    die;
+  #  };
   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
