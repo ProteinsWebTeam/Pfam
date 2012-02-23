@@ -46,6 +46,9 @@ use strict;
 use warnings;
 use File::Temp qw(tempfile);
 use Carp;
+
+use Bio::Pfam::Config;
+
 #-------------------------------------------------------------------------------
 
 =head2 new 
@@ -62,12 +65,15 @@ sub new {
   my( $caller, $fileLocation ) = @_;
   my $class     = ref($caller) || $caller;
   my $self = {};
+
+  my $config = Bio::Pfam::Config->new;
+
   #First check that the file exists. If is exists,
   #run alistat on the alignment and use this information
   #to populate the object.
   if(-e $fileLocation){
     eval{
-      open(S, "esl-alistat --informat selex $fileLocation |") 
+      open(S, $config->hmmer3bin."/esl-alistat --informat selex $fileLocation |") 
         or confess "Could not open $fileLocation\n";   
       while(<S>){
         if(/Alignment number\:\s+(\d+)/){
