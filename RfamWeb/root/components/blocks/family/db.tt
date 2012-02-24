@@ -37,7 +37,7 @@ PROCESS components/links.tt
       <li>
         <p>
           [% ref.author; ' '; ref.journal; ' '; ref.title %]
-          <a name="ref[% refNum %]"
+          <a name="ref[% loop.index %]"
              class="ext" 
              href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">
             PUBMED:[% ref.medline %]</a>
