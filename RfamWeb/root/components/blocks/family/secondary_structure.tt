@@ -160,7 +160,7 @@ labels = [
     <div id="[% hash.type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
          class="controlTab ssImage">
       <img alt=""
-           src="[% c.uri_for( '/family/image', acc => acc, type => hash.type ) | html -%]" />
+           src="[% c.uri_for( '/family', acc, 'image', hash.type ) | html -%]" />
     </div>
 [% END -%]
 
@@ -175,7 +175,7 @@ labels = [
 
       // add a listener for the VARNA link
       $("varnaLink").observe( "click", function() {
-        popUp( "[% c.uri_for( '/family/varna', acc ) %]", 'console', 800, 800, 'varnaWin' );
+        popUp( "[% c.uri_for( '/family', acc, 'varna' ) %]", 'console', 800, 800, 'varnaWin' );
       } );
       // ]]>
     </script>
