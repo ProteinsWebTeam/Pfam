@@ -6,10 +6,22 @@
 #
 # $Id: align.tt,v 1.6 2009-05-06 11:51:01 jd7 Exp $
 
-# shortcut to the alignment tools
-alignmentUri = c.uri_for( "/family/alignment" );
-
 USE Number.Format( THOUSANDS_SEP = "," );
+
+alignmentUri = c.uri_for( '/family', acc, 'alignment' );
+
+IF ( ( alignment_info.seed AND NOT alignment_info.full ) OR
+     ( alignment_info.full AND NOT alignment_info.seed ) );
+  one = 1;
+ELSIF ( alignment_info.seed AND alignment_info.full );
+  both = 1;
+ELSE;
+  neither = 1;
+END;
+
+CALL c.log.debug( "one alignment only ? " _ one );
+CALL c.log.debug( "both alignments ?    " _ both );
+CALL c.log.debug( "neither alignment ?  " _ neither );
 %]
 
 <!-- start align block -->
@@ -84,7 +96,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     </p>
 
     <form id="viewerForm"
-          action="[% alignmentUri %]/html"
+          action="[% alignmentUri %]/full/html"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -145,7 +157,9 @@ USE Number.Format( THOUSANDS_SEP = "," );
           </tbody>
         </table>
   
-        <input type="button" value="View" onclick="launch();" />
+        <input type="button" value="View" id="viewerFormSubmit" />
+        <span id="viewerFormDisabled" style="display: none">
+          <strong>Note:</strong> you cannot view alignments for this entry</span>
   
       </div>
     </form>
@@ -160,7 +174,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     </p>
         
     <form id="optionsForm"
-          action="[% alignmentUri %]/download/format" 
+          action="[% alignmentUri %]" 
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -198,11 +212,18 @@ USE Number.Format( THOUSANDS_SEP = "," );
               <td class="label">Label format:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="nseLabels" id="formatSpeciesLabels" value="0" checked="checked" />
+                  <input type="radio" 
+                         name="nseLabels" 
+                         id="formatSpeciesLabels" 
+                         value="0" 
+                         checked="checked" />
                   <label for="formatSpeciesLabels">Species labels</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="nseLabels" id="formatNseLabels" value="1" />
+                  <input type="radio" 
+                         name="nseLabels" 
+                         id="formatNseLabels" 
+                         value="1" />
                   <label for="formatNseLabels">Name/start-end</label>
                 </span>
               </td>
@@ -237,13 +258,15 @@ USE Number.Format( THOUSANDS_SEP = "," );
         </table>    
     
         <input type="submit" value="Generate" />
+        <span id="optionsFormDisabled" style="display: none">
+          <strong>Note:</strong> we cannot re-format alignments for this entry</span>
     
       </div>
     </form>
 
     <h2>Download options</h2>
 
-    <p>
+    <p id="dlOptionsNotes">
       Very large alignments can often cause problems for the formatting
       tool above. If you find that downloading or viewing a large alignment is
       problematic, you can also download a 
@@ -253,20 +276,26 @@ USE Number.Format( THOUSANDS_SEP = "," );
         seed</a> or 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
       full</a> alignment for this family. Both 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed&amp;af=1">
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed&amp;nseLabels=1">
         seed</a> and
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full&amp;af=1">
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full&amp;nseLabels=1">
       full</a> alignments are also available with &quot;name/start-end&quot; 
       rather than species name labels. You may find
       <a class="ext" href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee">
         RALEE</a> useful when viewing sequence alignments.
     </p>
 
+    <p id="cantDlNotes" 
+       style="display: none">
+      The alignments for this family are not available. This could be due to problems
+      building or storing the alignments during the release, or because they are
+      simply too large to manipulate.
+    </p>
+
     <form id="downloadForm"
-          action="[% alignmentUri %]/download/gzipped"
+          action="[% alignmentUri %]"
           method="get">
       <div>
-        <input type="hidden" name="acc" value="[% acc %]" />
         
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
@@ -324,7 +353,9 @@ USE Number.Format( THOUSANDS_SEP = "," );
           </tbody>
         </table>
   
-        <input type="submit" value="Download" />
+        <input type="button" value="View" id="downloadFormSubmit" />
+        <span id="dlFormDisabled" style="display: none">
+          <strong>Note:</strong> we cannot alter download options for alignments for this entry</span>
   
       </div>
     </form>
@@ -332,20 +363,65 @@ USE Number.Format( THOUSANDS_SEP = "," );
   	<script type="text/javascript">
       // <![CDATA[
 
-      // wire up observers for the "view" and "download" forms
-      $("viewer").observe("change", function() {
-        $("viewerForm").select("[name=nseLabels]").each( function(input) {
-          if ( $F("viewer") == "html" ) {
-            input.disable()
-                 .next("label")
-                 .addClassName("inactive");
-          } else {
-            input.enable()
-                 .next("label")
-                 .removeClassName("inactive");
+      if ( [% neither || 0 %] ) {
+
+        $("viewerForm").disable();
+        $("viewerFormDisabled").show();
+
+        $("optionsForm").disable();
+        $("optionsFormDisabled").show();
+
+        $("downloadForm").disable();
+        $("dlFormDisabled").show();
+        $("dlOptionsNotes").hide();
+        $("cantDlNotes").show();
+
+      } else {
+
+        // wire up observers for the "view" form
+        $("viewer").observe("change", function() {
+          $("viewerForm").select("[name=nseLabels]").each( function(input) {
+            if ( $F("viewer") == "html" ) {
+              input.disable()
+                   .next("label")
+                   .addClassName("inactive");
+            } else {
+              input.enable()
+                   .next("label")
+                   .removeClassName("inactive");
+            }
+          } )
+        } );
+
+        // although the form action for the "view" form looks like it will 
+        // download the alignment, in fact we catch the submission here and 
+        // decide, based on the form values, which URL to go to next.
+        $("viewerFormSubmit").observe( "click", function() {
+          if ( $F("viewer") == "jalview" ) {
+            url = "[% alignmentUri %]/" +
+                  ( $("viewerTypeS").checked ? "seed" : "full" ) + 
+                  "/jalview?nseLabels=" + 
+                  ( $("viewNseLabels").checked ? 1 : 0 );
+            popUp( url, 'console', 800, 800, 'jalviewWin' );
+          } else if ( $F("viewer") == "html" ) {
+            url = "[% alignmentUri %]/" +
+                  ( $("viewerTypeS").checked ? "seed" : "full" ) +
+                  "/html";
+            popUp( url, 'console', 800, 800, 'viewerWin' );
           }
-        } )
+          return false;
+        } );
+
+      }
+
+      // observers for the download form
+      $("downloadFormSubmit").observe( "click", function() {
+        url = "[% alignmentUri %]/" + 
+              ( $("dlTypeS").checked ? "seed" : "full" ) +
+              "/stockholm?" + Form.serialize("downloadForm");
+        document.location = url;
       } );
+
       $("dlStyleCSS").observe("change", function() {
         if ( $("dlStyleCSS").checked == true ) {
           $("downloadForm").select("[name=nseLabels]").each( function(input) {
@@ -365,20 +441,6 @@ USE Number.Format( THOUSANDS_SEP = "," );
         }
       } );
 
-      // although the form action for the "view" form looks like it will 
-      // download the alignment, in fact we catch the submission here and 
-      // decide, based on the form values, which URL to go to next.
-      function launch() {
-        if( $F("viewer") == "jalview" ) {
-        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
-          popUp( url, 'console', 800, 800, 'jalviewWin');
-      
-        } else if( $F("viewer") == "html" ) {
-        	url = "[% alignmentUri %]/html?" + Form.serialize("viewerForm");
-          popUp( url, 'console', 800, 800, 'viewerWin');
-        }      
-        return false;
-      }
       // ]]>
     </script>
 
