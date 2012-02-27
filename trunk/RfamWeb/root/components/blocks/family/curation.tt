@@ -188,7 +188,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     <div id="dist" class="controlTab chart">
       <div class="controlTabContent">
         <h3>Full distribution</h3>
-        <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='dist' } ) | html %]" />
+        <img alt="" src="[% c.uri_for( '/family', acc, 'image/dist' ) | html %]" />
         <div class="chartKey">
           <ul>
             <li><span class="alignColour">&nbsp;</span>align</li>
@@ -207,7 +207,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     <div id="trunc" class="controlTab chart" style="display: none">
       <div class="controlTabContent">
         <h3>Truncated distribution</h3>
-        <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='disttrunc' } ) | html %]" />
+        <img alt="" src="[% c.uri_for( '/family', acc, 'image/disttrunc' ) | html %]" />
         <div class="chartKey">
           <ul>
             <li><span class="alignColour">&nbsp;</span>align</li>
