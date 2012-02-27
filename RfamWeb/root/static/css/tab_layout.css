@@ -87,7 +87,7 @@
 
 /* the overview bar */
 #icons {
-  width: 40%;
+  width: 30%;
   float: right;
   margin: -6px -5px 0 0;
 }
@@ -97,12 +97,12 @@
   outline: none;
   color: #EEE;
   text-decoration: none;
-  padding: 24px 0 0 0;
+  padding: 30px 0 0 0;
   text-align:center;
   background-repeat: no-repeat;
   background-position: top center;
   font-size: x-small;
-  width: 25%;
+  width: 33%;
   overflow: hidden;
 }
 
