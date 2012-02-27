@@ -137,7 +137,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
           <td class="label">Covariance model</td>
           <td class="data">
             [% FOREACH cm IN rfam.rfam_cms %]
-            <a href="[% c.uri_for( '/family/cm', acc => acc, version => cm.version ) | html %]">
+            <a href="[% c.uri_for( '/family', acc, 'cm', cm.version ) | html %]">
               Download</a> the CM built using Infernal version 
             [% cm.version %]
             <br />
@@ -151,7 +151,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
 
     <p>
       These graphics show the CM bit-score distributions for 
-      [% rfam.rfam_id %] ([% rfam.rfam_acc %]).
+      <strong>[% rfam.rfam_id %]</strong> ([% rfam.rfam_acc %]).
       <span onclick="reveal( this, 'chartsNotes', false, true );"
             class="moreLink">
         More...</span>
@@ -225,10 +225,12 @@ USE Number.Format( THOUSANDS_SEP = "," );
     
     <script type="text/javascript">
       // <![CDATA[
-      Event.observe( window, "load", function() {
+
+      document.observe( "dom:loaded", function() {
         var chartTabsController = new Control.Tabs( "chartTabs",
-                                                     { defaultTab: "dist" });
+                                                    { defaultTab: "dist" } );
       } );
+
       // ]]>
     </script>
 
