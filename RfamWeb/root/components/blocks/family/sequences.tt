@@ -32,13 +32,13 @@ USE String;
     <p>
       There are <strong>[% rfam.num_full %]</strong> sequence regions for this family.
     [% IF showAll %]
-      You can <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
+      You can <a href="[% c.uri_for( '/family', acc, 'regions' ) %]">download</a>
       the details of all regions as a tab-delimited file. The table of results 
       below may be sorted by clicking on the column titles, or restored to the 
       original order <span class="link" id="sortLink">here</span>. 
     [% ELSIF showText %]
       There are too many regions to show in this page, but you can still 
-      <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
+      <a href="[% c.uri_for('/family', acc, 'regions' ) %]">download</a>
       the details of all of them as a tab-delimited file.
     [% ELSE %]
       There are too many regions to show. If you really need a list of all 
@@ -47,7 +47,7 @@ USE String;
     [% END %]
     </p>
 
-    [% IF regions.defined %]
+    [% IF region_rows.defined %]
       <table summary="Rfam regions"
              id="regionsTable"
              class="details">
@@ -65,7 +65,7 @@ USE String;
         </thead>
         <tbody>
           [% seqUri = c.uri_for( '/sequence/' );
-          FOREACH region IN regions;
+          FOREACH region IN region_rows;
             seqAcc  = region.get_column('rfamseq_acc');
             
             # build the URL for the ENA image, expanding the region by
@@ -112,7 +112,7 @@ USE String;
           [% END %]
         </tbody>
       </table>
-    [% END; # of "IF regions.defined" %]
+    [% END; # of "IF region_rows.defined" %]
 
   </div>
 
