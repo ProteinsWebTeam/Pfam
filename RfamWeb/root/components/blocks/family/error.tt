@@ -14,15 +14,20 @@ META fullPage = 1;
 
   [% IF c.error.size AND constants.debug %]
 
-    <p>There was a <em>system error</em> when loading the requested family page:</p>
+    <p>
+      There was a <em>system error</em> when loading the requested family page
+      or component:
+    </p>
     <p class="message">[% c.error.first %]</p>
 
   [% ELSE %]
 
-    <p>There was a problem loading the requested family page.</p>
+    <p>
+      There was a problem loading the requested family page or page component.
+    </p>
 
-    [% IF errorMsg %]
-      <p class="message">[% errorMsg %]</p>
+    [% IF rest.error %]
+      <p class="message">[% rest.error %]</p>
     [% END %]
 
   [% END # of IF DEBUG... %]
