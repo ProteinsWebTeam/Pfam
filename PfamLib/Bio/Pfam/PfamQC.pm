@@ -1119,12 +1119,26 @@ sub noMissing {
   my ( $newFamObj, $oldFamObj, $family ) = @_;
 
   my (@allnewseqs, @alloldseqs);
+
   if(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){  
     push(@allnewseqs, @{$newFamObj->ALIGN->all_seq_accs});          
   }elsif(ref($newFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
     my $previous_id = '';
     foreach my $seq ( sort{$a cmp $b} $newFamObj->ALIGN->each_seq ) {
       push(@allnewseqs, $seq->id) if($seq->id ne $previous_id);
+      $previous_id = $seq->id;
+    }
+  }else{
+    die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
+  }
+
+
+  if(ref($oldFamObj->ALIGN) eq 'Bio::Pfam::AlignPfamLite'){  
+    push(@alloldseqs, @{$oldFamObj->ALIGN->all_seq_accs});          
+  }elsif(ref($oldFamObj->ALIGN) eq 'Bio::Pfam::AlignPfam'){
+    my $previous_id = '';
+    foreach my $seq ( sort{$a cmp $b} $oldFamObj->ALIGN->each_seq ) {
+      push(@alloldseqs, $seq->id) if($seq->id ne $previous_id);
       $previous_id = $seq->id;
     }
   }else{
@@ -1139,9 +1153,10 @@ sub noMissing {
         $alloldseqs[$j] = 0;
         next NEW;  
       }
-      push(@found, $allnewseqs[$i]);    
     }  
+    push(@found, $allnewseqs[$i]);    
   }
+
 
   ###########################################
   # Find missing sequences in edited family #
@@ -1152,9 +1167,9 @@ sub noMissing {
   # Put missing sequences into a missing file in directory
   open( MISSING, "> $family/missing" )
     || die "Can't write to file $family/missing\n";
-  foreach my $acc ( @alloldseqs ) {
-    next if($acc == 0);
-    print MISSING "$acc not found\n";
+  for( my $s =0; $s < scalar(@alloldseqs); $s++ ) {
+    next if($alloldseqs[$s] eq '0');
+    print MISSING $alloldseqs[$s]." not found\n";
     # Add element to missing hash
     $lost++;
   }
@@ -1167,6 +1182,7 @@ sub noMissing {
     || die "Can't write to file $family/found\n";
   foreach my $acc ( @found ) {
     print FOUND "$acc found\n";
+    $extra++;
   }
   close(FOUND);
   print "Lost $lost. Found $extra.\n";
