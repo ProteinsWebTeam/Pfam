@@ -28,9 +28,10 @@ while(<TMP>) {
   }
   else {
     if($found_CC) {
-      my $text = wrap( "CC   ", "CC   ", $CC_line . ".\n" );
+      my $text = wrap( "CC   ", "CC   ", $CC_line . "\n" );
       print DESC "$text";
       $found_CC="";
+      print DESC $_;
     }
     else {
       print DESC $_;
