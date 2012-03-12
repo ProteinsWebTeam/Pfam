@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Authors: John Tate, C<jt6@sanger.ac.uk>, Rob Finn, C<rdf@sanger.ac.uk>
+
+Copyright (c) 2007: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://rfam.sanger.ac.uk/"
+           targetNamespace="http://rfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://rfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <!-- widely used types -->
+  
+  <xs:element name="match">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="location" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="accession" type="rfamAccession" use="required" />
+      <xs:attribute name="id"        type="xs:string"     use="required" />
+      <xs:attribute name="class"     type="pfamAType"     use="optional" />
+      <xs:attribute name="type" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Pfam-A" />
+            <xs:enumeration value="Pfam-B" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="location">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="hmm"          type="xs:string" />
+        <xs:element name="match_string" type="xs:string" />
+        <xs:element name="pp"           type="xs:string" />
+        <xs:element name="seq"          type="xs:string" />
+        <xs:element name="raw"          type="xs:string" />
+      </xs:all>
+      <xs:attribute name="start"       type="xs:integer" use="required" />
+      <xs:attribute name="end"         type="xs:integer" use="required" />
+      <xs:attribute name="ali_start"   type="xs:integer" use="required" />
+      <xs:attribute name="ali_end"     type="xs:integer" use="required" />
+      <xs:attribute name="hmm_start"   type="xs:integer" use="required" />
+      <xs:attribute name="hmm_end"     type="xs:integer" use="required" />
+      <xs:attribute name="bitscore"    type="xs:float"   use="optional" />
+      <xs:attribute name="evalue"      type="xs:float"   use="optional" />
+      <xs:attribute name="evidence"    type="xs:string"  use="optional" />
+      <xs:attribute name="significant" type="xs:boolean" use="optional" />
+    </xs:complexType>
+  </xs:element>
+    
+</xs:schema>
