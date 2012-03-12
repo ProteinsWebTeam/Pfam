@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Authors: John Tate, C<jt6@sanger.ac.uk>
+
+Copyright (c) 2012: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://rfam.sanger.ac.uk/"
+           targetNamespace="http://rfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://rfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <xs:element name="jobs">
+    <xs:annotation>
+      <xs:documentation>Information about the jobs that were submitted</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="job" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+    <xs:key name="job">
+      <xs:selector xpath="job" />
+      <xs:field xpath="@job_id" />
+    </xs:key>
+  </xs:element>
+  
+  <xs:element name="job">
+    <xs:annotation>
+      <xs:documentation>Information about a particular sequence search job</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="opened" type="rfamDateTime" />
+        <xs:element name="result_url" type="xs:anyURI" />
+      </xs:all>
+      <xs:attribute name="job_id" type="jobId" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>
