@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<!--
+Authors: John Tate, C<jt6@sanger.ac.uk>
+
+Copyright (c) 2012: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://rfam.sanger.ac.uk/"
+           targetNamespace="http://rfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://rfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <xs:element name="rfam">
+    <xs:annotation>
+      <xs:documentation>Information from the rfam database</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="entry" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="release" type="xs:float" use="required" />
+      <xs:attribute name="release_date" type="rfamDate" use="required" />
+    </xs:complexType>
+    <xs:key name="entry">
+      <xs:selector xpath="entry" />
+      <xs:field xpath="@accession" />
+    </xs:key>
+  </xs:element>
+
+  <xs:element name="entry">
+    <xs:annotation>
+      <xs:documentation>Information about a rfam database entity</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="description" minOccurs="0" type="xs:string" />
+        <xs:element name="comment" minOccurs="0" type="xs:string" />
+        <xs:element ref="curation_details" minOccurs="0" />
+        <xs:element ref="cm_details" minOccurs="0" />
+      </xs:all>
+      <xs:attribute name="entry_type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Rfam" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="accession" type="rfamAccession" use="required" />
+      <xs:attribute name="id" type="rfamId" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="curation_details">
+    <xs:annotation>
+      <xs:documentation>Detailed curation information</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="author" type="xs:string" />
+        <xs:element name="seed_source" type="xs:string" />
+        <xs:element ref="num_seqs" />
+        <xs:element name="num_species" type="xs:positiveInteger" />
+        <xs:element name="type" type="xs:string" />
+        <xs:element name="structure_source" type="xs:string" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="cm_details">
+    <xs:annotation>
+      <xs:documentation>Detailed information about a model</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="build_command" type="xs:string" />
+        <xs:element name="search_command" type="xs:string" />
+        <xs:element name="calibrate_command" type="xs:string" />
+        <xs:element name="cutoffs">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="gathering" type="xs:float" />
+              <xs:element name="trusted" type="xs:float" />
+              <xs:element name="noise" type="xs:float" />
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
+      </xs:all>
+      <xs:attribute name="num_states" type="xs:positiveInteger" />
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="num_seqs">
+    <xs:annotation>
+      <xs:documentation>The number of sequences in the alignment(s)</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="seed" type="xs:integer" />
+        <xs:element name="full" type="xs:integer" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>
