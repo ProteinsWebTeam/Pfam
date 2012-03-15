@@ -17,7 +17,7 @@
 META naked = 1;
 %]
 
-<img src="[% c.uri_for( '/family/tree/image', { acc => acc, alnType => alnType, label => label } ) | html %]"
+<img src="[% c.uri_for( '/family', acc, 'tree', alnType, 'label', label, 'image' ) | html %]"
      id="[% label; '_'; alnType %]_img"
      usemap="#[% label; '_'; alnType %]_map" />
 
