@@ -85,7 +85,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <dt>Family:</dt>
       <dd>A collection of related protein regions</dd>
       <dt>Domain:</dt>
-      <dd>A structural unit which can be found in multiple protein contexts</dd>
+      <dd>A structural unit</dd>
       <dt>Repeat:</dt>
       <dd>A short unit which is unstable in isolation but forms a stable 
         structure when multiple copies are present</dd>
