@@ -45,7 +45,7 @@
     <h3><a name="glos_domain">Domain</a></h3>
     
     <p>
-      A structural unit which can be found in multiple protein contexts.
+      A structural unit.
     </p>
 
     <h3><a name="glos_domain_score">Domain score</a></h3>
@@ -72,7 +72,7 @@
     <h3><a name="glos_family">Family</a></h3>
     
     <p>
-      A collection of related proteins.
+      A collection of related protein regions.
     </p>
 
     <h3><a name="glos_full">Full alignment</a></h3>
