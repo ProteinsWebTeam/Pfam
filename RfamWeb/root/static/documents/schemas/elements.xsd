@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Authors: John Tate, C<jt6@sanger.ac.uk>, Rob Finn, C<rdf@sanger.ac.uk>
+Authors: John Tate, C<jt6@sanger.ac.uk>
 
-Copyright (c) 2007: Genome Research Ltd.
+Copyright (c) 2012: Genome Research Ltd.
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -34,12 +34,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       </xs:sequence>
       <xs:attribute name="accession" type="rfamAccession" use="required" />
       <xs:attribute name="id"        type="xs:string"     use="required" />
-      <xs:attribute name="class"     type="pfamAType"     use="optional" />
       <xs:attribute name="type" use="required">
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="Pfam-A" />
-            <xs:enumeration value="Pfam-B" />
+            <xs:enumeration value="Rfam" />
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -49,22 +47,25 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   <xs:element name="location">
     <xs:complexType>
       <xs:all>
-        <xs:element name="hmm"          type="xs:string" />
+        <xs:element name="ss"           type="xs:string" />
+        <xs:element name="hit_seq"      type="xs:string" />
         <xs:element name="match_string" type="xs:string" />
-        <xs:element name="pp"           type="xs:string" />
-        <xs:element name="seq"          type="xs:string" />
-        <xs:element name="raw"          type="xs:string" />
+        <xs:element name="user_seq"     type="xs:string" />
       </xs:all>
       <xs:attribute name="start"       type="xs:integer" use="required" />
       <xs:attribute name="end"         type="xs:integer" use="required" />
-      <xs:attribute name="ali_start"   type="xs:integer" use="required" />
-      <xs:attribute name="ali_end"     type="xs:integer" use="required" />
-      <xs:attribute name="hmm_start"   type="xs:integer" use="required" />
-      <xs:attribute name="hmm_end"     type="xs:integer" use="required" />
-      <xs:attribute name="bitscore"    type="xs:float"   use="optional" />
+      <xs:attribute name="score"       type="xs:float"   use="optional" />
       <xs:attribute name="evalue"      type="xs:float"   use="optional" />
-      <xs:attribute name="evidence"    type="xs:string"  use="optional" />
+      <xs:attribute name="pvalue"      type="xs:float"   use="optional" />
       <xs:attribute name="significant" type="xs:boolean" use="optional" />
+      <xs:attribute name="strand"                        use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="+" />
+            <xs:enumeration value="-" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
     </xs:complexType>
   </xs:element>
     
