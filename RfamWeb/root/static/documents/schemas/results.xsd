@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Authors: John Tate, C<jt6@sanger.ac.uk>
+
+Copyright (c) 2012: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://rfam.sanger.ac.uk/"
+           targetNamespace="http://rfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+  
+  <xs:include schemaLocation="http://rfam.sanger.ac.uk/static/documents/schemas/elements.xsd" />
+  
+  <xs:element name="rfam">
+    <xs:annotation>
+      <xs:documentation>Information from the Rfam database</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="results" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="release" type="xs:float" use="required" />
+      <xs:attribute name="release_date" type="rfamDate" use="required" />
+    </xs:complexType>
+    <xs:key name="entry">
+      <xs:selector xpath="results" />
+      <xs:field xpath="@job_id" />
+    </xs:key>
+  </xs:element>
+
+  <xs:element name="results">
+    <xs:annotation>
+      <xs:documentation>Sequence search results</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+	    <xs:all>
+	      <xs:element ref="matches"    minOccurs="0" />
+	      <xs:element ref="raw_output" minOccurs="0" />
+	    </xs:all>
+      <xs:attribute name="job_id" type="jobId" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="matches">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="rna" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="rna">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="database" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="length" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="database">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="match" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="id"           type="xs:string" use="required" />
+      <xs:attribute name="release"      type="xs:string" use="required" />
+      <xs:attribute name="release_date" type="rfamDate"  use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="raw_output" type="xs:string" />
+
+</xs:schema>
