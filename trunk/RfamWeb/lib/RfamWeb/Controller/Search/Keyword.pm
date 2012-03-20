@@ -25,6 +25,10 @@ $Id: Keyword.pm,v 1.3 2009-02-11 10:51:50 jt6 Exp $
 use strict;
 use warnings;
 
+# need to specify the search path, because they plugins aren't in the 
+# default location for Module::Pluggable
+use Module::Pluggable search_path => [ 'RfamWeb::Controller::Search' ];
+
 use base 'RfamWeb::Controller::Search';
 use base 'PfamBase::Controller::Search::Keyword';
 

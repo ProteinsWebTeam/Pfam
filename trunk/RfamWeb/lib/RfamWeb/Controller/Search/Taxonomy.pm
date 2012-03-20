@@ -33,7 +33,19 @@ use base 'RfamWeb::Controller::Search';
 
 =head1 METHODS
 
-=head2 taxonomy : Path
+=head2 taxonomy : Chained('search') PathPart('taxonomy') Args(0)
+
+Stub to start the chain for taxonomy-related searches.
+
+=cut
+
+sub taxonomy : Chained( 'search' )
+               PathPart( 'taxonomy' )
+               CaptureArgs( 0 ) { }
+
+#---------------------------------------
+
+=head2 tax_query : Chained('taxonomy') PathPart('') Args(0)
 
 Accepts the input from the taxonomy search form and returns the results page.
 The results page doesn't actually contain results but it does fire off an 
@@ -42,15 +54,17 @@ search and the unique domains search.
 
 =cut
 
-sub taxonomy : Path( '/search/taxonomy' ) {
-  my( $this, $c ) = @_;
+sub tax_query : Chained( 'taxonomy' )
+                PathPart( '' )
+                Args( 0 ) {
+  my ( $this, $c ) = @_;
   
   # detaint the input
   my $query = $c->forward('detaintQueryString', [ $c->req->param('q') ] );
 
   # there's something wrong with the basic string
-  unless( $query ) {
-    $c->log->debug( 'Search::Taxonomy::taxonomy: problem with queryString' )
+  unless ( $query ) {
+    $c->log->debug( 'Search::tax_query: problem with queryString' )
       if $c->debug;
     $c->stash->{taxSearchError} = $c->stash->{queryStringError};
     return;
@@ -72,9 +86,9 @@ sub taxonomy : Path( '/search/taxonomy' ) {
   $c->forward('parseTerms', [ $query ] );
 
   # make sure we got *some* terms in the stash
-  unless( defined $c->stash->{terms} and
-          scalar @{ $c->stash->{terms} } ) {
-    $c->log->debug( 'Search::Taxonomy::taxonomy: no terms found' )
+  unless ( defined $c->stash->{terms} and
+           scalar @{ $c->stash->{terms} } ) {
+    $c->log->debug( 'Search::tax_query: no terms found' )
       if $c->debug;
     $c->stash->{taxSearchError} =
       'We did not find any species names in the string that you entered: "' . 
@@ -83,25 +97,26 @@ sub taxonomy : Path( '/search/taxonomy' ) {
   }
 
   # see if we should be looking for families that are unique to a single species
-  if( $c->req->param('unique') ) {
+  if ( $c->req->param('unique') ) {
 
-    $c->log->debug( 'Search::Taxonomy::taxonomy: checking for a single term' )
+    $c->log->debug( 'Search::tax_query: checking for a single term' )
       if $c->debug;
 
     # we should have only one species name in the query
-    unless( scalar @{ $c->stash->{terms} } == 1 ) {
+    unless ( scalar @{ $c->stash->{terms} } == 1 ) {
       $c->stash->{taxSearchError} = 'You can only find unique families for a single species.'
         . ' Please enter only one species name and try again.';
       return;
     }
     
-    $c->log->debug( 'Search::Taxonomy::taxonomy: handing off to unique search template' )
+    $c->log->debug( 'Search::tax_query: handing off to unique search template' )
       if $c->debug;
     $c->stash->{template} = 'pages/search/taxonomy/uniqueResults.tt';  
 
-  } else {
+  }
+  else {
 
-    $c->log->debug( 'Search::Taxonomy::taxonomy: handing off to taxonomy search template' )
+    $c->log->debug( 'Search::tax_query: handing off to taxonomy search template' )
       if $c->debug;
     $c->stash->{template} = 'pages/search/taxonomy/taxonomyResults.tt';
   }
@@ -121,7 +136,9 @@ inserted into a page via an AJAX call.
 
 =cut
 
-sub taxonomyQuery : Path( '/search/taxonomy/results' ) {
+sub tax_query_results : Chained( 'taxonomy' )
+                        PathPart( 'results' )
+                        Args( 0 ) {
   my( $this, $c ) = @_;
   
   $c->log->debug( 'Search::Taxonomy::taxonomyQuery: starting a taxonomy search' )
@@ -205,10 +222,16 @@ inserted into a page via an AJAX call.
 
 =cut
 
-sub uniqueQuery : Path( '/search/unique/results' ) {
-  my( $this, $c ) = @_;
+sub unique_taxonomy : Chained( 'search' )
+                      PathPart( 'unique' )
+                      CaptureArgs( 0 ) { }
 
-  $c->log->debug( 'Search::Taxonomy::uniqueQuery: starting a unique family search' )
+sub unq_query : Chained( 'unique_taxonomy' )
+                PathPart( 'results' )
+                Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Search::unq_query: starting a unique family search' )
     if $c->debug;
 
   # set up the template early. The same template will handle both results and
@@ -218,10 +241,10 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
   #----------------------------------------
 
   # detaint the input
-  my $query = $c->forward('detaintQueryString', [ $c->req->param('q') ] );
+  my $query = $c->forward( 'detaintQueryString', [ $c->req->param('q') ] );
 
-  unless( $query ) {
-    $c->log->debug( 'Search::Taxonomy::uniqueQuery: problem with queryString' )
+  unless ( $query ) {
+    $c->log->debug( 'Search::unq_query: problem with queryString' )
       if $c->debug;
     $c->stash->{taxSearchError} = $c->stash->{queryStringError};
     return;
@@ -241,15 +264,15 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
   my $quotedQuery = $c->forward('parseTerms', [ $query ] );
 
   # we should have only one species name in the query
-  if( scalar @{ $c->stash->{terms} } > 1 ) {
-    $c->log->debug( 'Search::Taxonomy::uniqueQuery: multiple terms specified; detaching' );
+  if ( scalar @{ $c->stash->{terms} } > 1 ) {
+    $c->log->debug( 'Search::unq_query: multiple terms specified; detaching' );
     $c->stash->{uniqueSearchError} = 
       'You can only find unique families for a single species. ' .
       'Please enter just one species name and try again.';
     return;
   }
   
-  $c->log->debug( "Search::Taxonomy::uniqueQuery: finding unique matches for |$quotedQuery|" )
+  $c->log->debug( "Search::unq_query: finding unique matches for |$quotedQuery|" )
     if $c->debug;
 
   #----------------------------------------
@@ -260,11 +283,12 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
   $cacheKey =~ s/[\W\s]/_/g;
   my $unique = $c->cache->get( $cacheKey );
   
-  if( defined $unique ) {
-    $c->log->debug( 'Search::Taxonomy::uniqueQuery: retrieved unique families from cache' )
+  if ( defined $unique ) {
+    $c->log->debug( 'Search::unq_query: retrieved unique families from cache' )
       if $c->debug;
-  } else { 
-    $c->log->debug( 'Search::Taxonomy::uniqueQuery: failed to retrieve unique families from cache; going to DB' )
+  } 
+  else { 
+    $c->log->debug( 'Search::unq_query: failed to retrieve unique families from cache; going to DB' )
       if $c->debug;
 
     # get the hash containing the information we need about each family
@@ -277,8 +301,8 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
     
     # see if there was a problem down the line with getting the lft and rgt 
     # values from the species tree table
-    if( $c->stash->{rangeError} ) {
-      $c->log->debug( 'Search::Taxonomy::uniqueQuery: problem when getting range' )
+    if ( $c->stash->{rangeError} ) {
+      $c->log->debug( 'Search::unq_query: problem when getting range' )
         if $c->debug;
       $c->stash->{uniqueSearchError} = 
         'There was a problem with your query. ' .
@@ -287,9 +311,9 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
     }
 
     # see if we got back some term counts 
-    unless( defined $termCount and 
+    unless ( defined $termCount and 
             scalar( keys %$termCount ) ) {
-      $c->log->debug( 'Search::Taxonomy::uniqueQuery: no term counts retrieved' )
+      $c->log->debug( 'Search::unq_query: no term counts retrieved' )
         if $c->debug;
       $c->stash->{uniqueSearchError} = 
         'There was a problem with your query. ' .
@@ -298,7 +322,7 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
     }
 
     $unique = {};
-    while( my( $k, $v ) = each %$termCount ) {
+    while ( my ( $k, $v ) = each %$termCount ) {
       # now see if the count is the same; if it is then it must be unique to 
       # the term
       $unique->{$k} = $familyInfo->{$k}
@@ -635,7 +659,7 @@ hash containing the Rfam accession and the count of the number of families.
 =cut
 
 sub getFamilyCount : Private {
-  my( $this, $c, $term ) = @_;  
+  my ( $this, $c, $term ) = @_;  
 
   # see if we can retrieve the families from cache
   my $cacheKey = 'familyCount' . $term;
@@ -644,16 +668,17 @@ sub getFamilyCount : Private {
     if $c->debug;
   my $termCount = $c->cache->get( $cacheKey );
 
-  if( defined $termCount ) {
+  if ( defined $termCount ) {
     $c->log->debug( 'Search::Taxonomy::getFamilyCount: retrieved family counts from cache' )
       if $c->debug;
-  } else {
+  } 
+  else {
     $c->log->debug( 'Search::Taxonomy::getFamilyCount: failed to retrieve family counts from cache; going to DB' )
       if $c->debug;
 
     my $range = $c->forward('getRange', [ $term ] );
     
-    if( not $range ) {
+    if ( not $range ) {
       $c->log->debug( 'Search::Taxonomy::getFamilyCount: range error' );
       $c->stash->{rangeError} = "Could not find $term";
       return;
@@ -666,12 +691,13 @@ sub getFamilyCount : Private {
     my @rs = $c->model('RfamDB::TaxonomyWebsearch')
                ->search( { lft => { '>=' => $range->[0] },
                            rgt => { '<=' => $range->[1] } },
-                         { prefetch => [ 'rfam_ncbi' ],
+                         { join     => [ 'rfam_ncbi' ],
                            select   => [ 'rfam_ncbi.rfam_acc', 
                                          { count => 'rfam_ncbi.rfam_acc' } ],
                            as       => [ 'rfam_acc', 'count' ],
                            group_by => [ 'rfam_ncbi.rfam_acc' ],
                          } );
+
     foreach ( @rs ) {
       next unless( defined $_->get_column('rfam_acc') and
                    defined $_->get_column('count') );
@@ -700,17 +726,18 @@ and count.
 =cut
 
 sub getAllFamilyCount : Private {
-  my( $this, $c ) = @_;  
+  my ( $this, $c ) = @_;  
 
   my $cacheKey = 'allFamilyCount';
   $c->log->debug( "Search::Taxonomy::getAllFamilyCount: cacheKey: |$cacheKey|" )
     if $c->debug;
   my $res      = $c->cache->get( $cacheKey );
 
-  if( defined $res ) {
+  if(  defined $res ) {
     $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: retrieved family counts from cache' )
       if $c->debug;
-  } else {
+  } 
+  else {
     $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: failed to retrieve family counts from cache; going to DB' )
       if $c->debug;
 
