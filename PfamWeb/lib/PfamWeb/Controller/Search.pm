@@ -29,7 +29,11 @@ use warnings;
 # get correctly registered
 use Module::Pluggable;
 
-use base 'PfamBase::Controller::Search';
+use base qw( PfamBase::Controller::Search
+             PfamWeb::Controller::Section );
+
+# set the name of the section
+__PACKAGE__->config( { SECTION => 'search' } );
 
 #-------------------------------------------------------------------------------
 
