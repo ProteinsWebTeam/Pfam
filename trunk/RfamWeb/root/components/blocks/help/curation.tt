@@ -25,15 +25,6 @@
         href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a>.
     </p>
 
-<!--
-    <p>
-      An example set of data (RF01030):
-    </p>
-    <p>
-      Image instead of this boring boring list???
-    </p>
--->
-    
     <h2>Curation</h2>
     
     <img src="[% c.uri_for('/static/images/curation_info.gif') %]"
