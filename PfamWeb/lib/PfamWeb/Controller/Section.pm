@@ -28,6 +28,18 @@ use base 'PfamBase::Controller::Section';
 
 #-------------------------------------------------------------------------------
 
+=head1 METHODS 
+
+=head2 default : Path
+
+A stub method to capture requests using the controller name. 
+
+=cut
+
+sub default : Path { }
+
+#-------------------------------------------------------------------------------
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
