@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: rest.tt,v 1.12 2009-11-19 14:55:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,6 +14,7 @@ PROCESS "components/require.tt";
 
 sharedRequirements.js.push( "prettify.js" );
 sharedRequirements.css.push( "prettify.css" );
+sharedRequirements.css.push( "help.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -27,25 +28,35 @@ sharedRequirements.css.push( "prettify.css" );
   </div>
   <div class="blockContent">
 
-    <div id="sections">
+    <div class="sections">
       <p>Contents:</p>
       <ol>
         <li>
-          <span><a href="#basic">Basic concepts</a></span>
+          <span><a class="link" rel="basic">Basic concepts</a></span>
           <ol>
-            <li><a href="#urls">URLs</a></li>
-            <li><a href="#sending">Sending requests</a></li>
-            <li><a href="#retrieving">Retrieving data</a></li>
+            <li><a class="link" rel="urls">URLs</a></li>
+            <li><a class="link" rel="sending">Sending requests</a></li>
+            <li><a class="link" rel="retrieving">Retrieving data</a></li>
           </ol>
         </li>
         <li>
-          <span><a href="#services">Available services</a></span>
+          <span><a class="link" rel="search">Sequence searches</a></span>
           <ol>
-            <li><a href="#id2acc">ID/accession conversion</a></li>
-            <li><a href="#pfama">Pfam-A annotations</a></li>
-            <li><a href="#families">Pfam-A family list  </a></li>
-            <li><a href="#protein">Protein sequence data</a></li>
-            <li><a href="#search">Sequence searches</a></li>
+            <li><a class="link" rel="seqToFile">Save sequence</a></li>
+            <li><a class="link" rel="submit">Submit search</a></li>
+            <li><a class="link" rel="poll">Wait for completion</a></li>
+            <li><a class="link" rel="retrieve">Retrieve results</a></li>
+            <li><a class="link" rel="responses">Server responses</a></li>
+          </ol>
+        </li>
+        <li>
+          <span><a class="link" rel="services">Available services</a></span>
+          <ol>
+            <li><a class="link" rel="familyData">Family data</a></li>
+            <li><a class="link" rel="phyloTrees">Phylogenetic trees</a></li>
+            <li><a class="link" rel="structMapping">Structure mapping</a></li>
+            <li><a class="link" rel="alignments">Alignments</a></li>
+            <li><a class="link" rel="seqSearch">Sequence searches</a></li>
           </ol>
         </li>
       </ol>
@@ -54,7 +65,7 @@ sharedRequirements.css.push( "prettify.css" );
     <p>
       This is an introduction to the
       &quot;<a class="ext" href="http://www.xfront.com/REST-Web-Services.html">RESTful</a>&quot; 
-      interface to the Pfam website. 
+      interface to the Rfam website. 
       <a class="ext" href="http://en.wikipedia.org/wiki/Representational_State_Transfer">REST</a>
       (or Representation State Transfer) refers to a style of building websites 
       which makes it easy to interact programmatically with the services 
@@ -62,10 +73,6 @@ sharedRequirements.css.push( "prettify.css" );
       <a class="ext" href="http://en.wikipedia.org/wiki/Api">Application 
       Programming Interface</a> (API) allows users to write scripts or programs to
       access data, rather than having to rely on a browser to view a site.
-    </p>
-    <p>
-      We are currently testing a limited programmatic interface to the Pfam site and
-      this section explains how you can use this API in your own work.
     </p>
 
     <hr />
@@ -82,27 +89,31 @@ sharedRequirements.css.push( "prettify.css" );
       using URLs.
     </p>
     <p>
-      In the Pfam website we use the same basic URL to provide both the 
-      standard HTML representation of Pfam data and the alternative  
+      In the Rfam website we use the same basic URL to provide both the 
+      standard HTML representation of Rfam data and the alternative  
       <a class="ext" href="http://en.wikipedia.org/wiki/Xml">XML</a> 
-      representation. To see the data for a particular Pfam-A family, you 
+      representation. To see the data for a particular Rfam family, you 
       would visit the following URL in your browser:
     </p>
     <pre class="url">
-[% c.uri_for( '/family/Piwi' ) %]</pre>
+[% c.uri_for( '/family/RF00360' ) %]</pre>
     <p>
-      To retrieve the data in XML format, just add an extra parameter, 
-      <code>output=xml</code>, to the URL:
+      To retrieve the data in XML format, you can either add an "Accept"
+      header to your request, or just add an extra parameter, 
+      <code>content-type=text/xml</code>, to the URL:
     </p>
     <pre class="url">
-[% c.uri_for( '/family/Piwi', output => 'xml' ) %] </pre>
+[% c.uri_for( '/family/RF00360', 'content-type' = 'text/xml' ) | html %] </pre>
     <p>
-      The response from the server will now be an XML document, rather than an
+      The "/" in "text/xml" has been encoded here to make it safe for a URL.
+      The response from the server will now be an XML document, rather than an 
       HTML page.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="restTop">back to top</a></p>
 
     <h3><a name="sending">Sending requests</a></h3>
+
+    <h4>Using <code>curl</code></h4>
 
     <p>
       Although you can use a browser to retrieve family data in XML format, 
@@ -114,23 +125,37 @@ sharedRequirements.css.push( "prettify.css" );
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
+        <pre>shell% curl -H 'Expect:' -H 'Accept: text/xml' '[% c.uri_for( "/family/snoZ107_R87" ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:58:46 16-Apr-2008 --&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0"
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
-    ...  </pre>
+&lt;!-- information on Rfam family RF00360 (snoZ107_R87), generated: 10:36:20 13-Mar-2012 --&gt;
+&lt;rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://rfam.sanger.ac.uk/"
+      xsi:schemaLocation="http://rfam.sanger.ac.uk/
+                          http://rfam.sanger.ac.uk/static/documents/schemas/entry_xml.xsd"
+      release="10.1" 
+      release_date="2011-06-01"&gt;
+  &lt;entry entry_type="Rfam" accession="RF00360" id="snoZ107_R87"&gt;
+    &lt;description&gt;
+&lt;![CDATA[
+Small nucleolar RNA Z107/R87
+]]&gt;
+...</pre>
       </div>
     </fieldset>
+
+    <p>
+      <strong>Note:</strong> due to a bug in the web server that serves the
+      Rfam site, requests that come from <code>curl</code> are normally 
+      rejected. The current work-around is to add an extra parameter to the
+      <code>curl</code> command line: <code>-H 'Expect:'</code>. This should
+      avoid problems with requests being rejected.
+    </p>
     
+    <h4>Using a script</h4>
+
     <p>
       Most programming languages have the ability to send HTTP requests and 
-      receive HTTP responses. A perl script to retrieve data about a Pfam
+      receive HTTP responses. A Perl script to retrieve data about a Pfam
       family might be as trivial as this:
     </p>
 
@@ -142,20 +167,29 @@ sharedRequirements.css.push( "prettify.css" );
 use strict;
 use warnings;
 
-use LWP::Simple;
+use LWP::UserAgent;
 
-my $xml = get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
-print $xml; </pre>
+my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;env_proxy;
+
+my $res = $ua-&gt;get( '[% c.uri_for( "/family/snoZ107_R87", 'content-type' = "text/xml" ) | html %]' );
+
+if ( $res-&gt;is_success ) {
+  print $res-&gt;content;
+}
+else {
+  print STDERR $res-&gt;status_line, "\n";
+}</pre>
       </div>
     </fieldset>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="restTop">back to top</a></p>
 
     <h3><a name="retrieving">Retrieving data</a></h3>
 
     <p>
       Although XML is just plain text and therefore human-readable, it&#39;s
-      intended to be parsed into a data structure. Extending the perl script 
-      above, we can add the ability to parse the XML using an external perl 
+      intended to be parsed into a data structure. Extending the Perl script 
+      above, we can add the ability to parse the XML using an external Perl 
       module, 
       <a class="ext" href="http://search.cpan.org/dist/XML-LibXML/">XML::LibXML</a>:
     </p>
@@ -168,399 +202,73 @@ print $xml; </pre>
 use strict;
 use warnings;
 
-use LWP::Simple;
+use LWP::UserAgent;
 use XML::LibXML;
 
-my $xml = get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $ua = LWP::UserAgent-&gt;new;
+$ua-&gt;env_proxy;
+$ua-&gt;default_header( 'Accept' =&gt; 'text/xml' ); # set "Accept" header to request XML response
 
-my $xml_parser = XML::LibXML->new();
-my $dom = $xml_parser->parse_string( $xml );
+my $res = $ua-&gt;get( '[% c.uri_for( "/family/snoZ107_R87" ) | html %]' );
 
-my $root = $dom->documentElement();
-my ( $entry ) = $root->getChildrenByTagName( 'entry' );
+die "error: failed to retrieve XML: " . $res-&gt;status_line . "\n"
+  unless $res-&gt;is_success;
 
-print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
+my $xml = $res-&gt;content;
+my $xml_parser = XML::LibXML-&gt;new();
+my $dom = $xml_parser-&gt;parse_string( $xml );
+
+my $root = $dom-&gt;documentElement();
+my ( $entry ) = $root-&gt;getChildrenByTagName( 'entry' );
+
+print 'accession: ' . $entry-&gt;getAttribute( 'accession' ) . "\n";</pre>
       </div>
     </fieldset>
 
     <p>
-      This script now prints out the accession for the family &quot;Piwi&quot;
-      (<a href="[% c.uri_for( '/family/piwi' ) %]">PF02171</a>).
+      This script now prints out the accession for the family &quot;snoZ107_R87&quot;
+      (<a href="[% c.uri_for( '/family/RF00360' ) %]">RF00360</a>).
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="restTop">back to top</a></p>
 
     <hr />
-    
-    <h2><a name="services">Available services</a></h2>
 
-    <p>
-      As mentioned in the introduction, this interface is currently only
-      a proof of concept and a test of the usefulness of this sort of
-      service. The following is a list of the sections of the website 
-      which are currently available as RESTful services.
-    </p>
-    
-    <h3><a name="id2acc">Pfam ID/accession conversion</a></h3>
+    <h2><a name="search">Sequence searches</a></h2>
     
     <p>
-      This is a simple service to return the accession and ID for a Pfam family,
-      given either the ID or accession as input. Any of the following URLs will
-      return the same simple XML document: 
-    </p>
-
-    <pre class="url">
-[% c.uri_for( '/family/acc', id => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/acc/Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/id', acc => 'PF02171', output => 'xml' ) | html %]
-[% c.uri_for( '/family/id/Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]</pre>
-
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/acc/Piwi' ) | html %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:27:58 11-Apr-2008 --&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi" /&gt;
-&lt;/pfam&gt;</pre>
-      </div>
-    </fieldset>
-    
-    <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
-    </p>
-
-    <p>
-      Note that, as a convenience, you can also omit the <code>output=xml</code> 
-      parameter and the response will contain only the ID or accession, as a 
-      plain text string:
-    </p>
-
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl '[% c.uri_for( '/family/acc/Piwi' ) | html %]'
-PF02171
-shell% curl '[% c.uri_for( '/family/id/PF02171' ) | html %]'
-Piwi</pre>
-      </div>
-    </fieldset>
-
-    <p><a href="#restTop">back to top</a></p>
-    
-    <h3><a name="pfama">Pfam-A annotations</a></h3>
-
-    <p>
-      You can retrieve a sub-set of the data in a Pfam-A family page
-      as an XML document using any of the following styles of URL:
-    </p>
-
-    <pre class="url">
-[% c.uri_for( '/family', id    => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family', acc   => 'PF02171', output => 'xml' ) | html %]
-[% c.uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/Piwi', output => 'xml' ) | html %]</pre>
-
-    <p>
-      The last two styles, using the <code>entry</code> parameter or
-      an extended URL, accept either accessions or identifiers. The
-      accession/ID is case-insensitive in all cases.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:27:58 11-Apr-2008 --&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
-    &lt;description&gt;
-&lt;![CDATA[
-Piwi domain
-]]&gt;
-    &lt;/description&gt;
-    &lt;comment&gt;
-&lt;![CDATA[
- This domain is found in the protein Piwi and its relatives.  The function of 
- this domain is the dsRNA guided hydrolysis of ssRNA. Determination of the 
- crystal structure of Argonaute reveals that PIWI is an RNase H domain, and 
- identifies Argonaute as Slicer, the enzyme that cleaves mRNA in the RNAi RISC 
- complex [2].  In addition, Mg+2 dependence and production of 3'-OH and 5' 
- phosphate products are shared characteristics of RNaseH and RISC. The PIWI 
- domain core has a tertiary structure belonging to the RNase H family of 
- enzymes.  RNase H fold proteins all have a five-stranded mixed beta-sheet 
- surrounded by helices. By analogy to RNase H enzymes which cleave single-
- stranded RNA guided by the DNA strand in an RNA/DNA hybrid, the PIWI domain 
- can be inferred to cleave single-stranded RNA, for example mRNA, guided by 
- double stranded siRNA.
-]]&gt;
-    &lt;/comment&gt;
-    &lt;clan_membership clan_acc="CL0219" clan_id="RNase_H" /&gt;
-    &lt;curation_details&gt;
-      &lt;status&gt;CHANGE&lt;/status&gt;
-      &lt;seed_source&gt;Bateman A&lt;/seed_source&gt;
-      &lt;num_archs&gt;&lt;/num_archs&gt;
-      &lt;num_seqs&gt;
-        &lt;seed&gt;22&lt;/seed&gt;
-        &lt;full&gt;364&lt;/full&gt;
-      &lt;/num_seqs&gt;
-      &lt;num_species&gt;&lt;/num_species&gt;
-      &lt;percentage_identity&gt;30&lt;/percentage_identity&gt;
-      &lt;av_length&gt;292.2&lt;/av_length&gt;
-      &lt;av_coverage&gt;35.34&lt;/av_coverage&gt;
-    &lt;/curation_details&gt;
-    &lt;hmm_details hmmer_version="2.3.2" model_version="8" model_length="338"&gt;
-      &lt;ls&gt;
-        &lt;build_commands&gt;hmmbuild -F HMM_ls SEED&lt;/build_commands&gt;
-        &lt;cutoffs&gt;
-          &lt;gathering&gt;
-            &lt;sequence&gt;-90.0&lt;/sequence&gt;
-            &lt;domain&gt;-90.0&lt;/domain&gt;
-          &lt;/gathering&gt;
-          &lt;trusted&gt;
-            &lt;sequence&gt;-88.5&lt;/sequence&gt;
-            &lt;domain&gt;-88.5&lt;/domain&gt;
-          &lt;/trusted&gt;
-          &lt;noise&gt;
-            &lt;sequence&gt;-91.2&lt;/sequence&gt;
-            &lt;domain&gt;-91.2&lt;/domain&gt;
-          &lt;/noise&gt;
-        &lt;/cutoffs&gt;
-      &lt;/ls&gt;
-      &lt;fs&gt;
-        &lt;build_commands&gt;hmmbuild -f -F HMM_fs SEED&lt;/build_commands&gt;
-        &lt;cutoffs&gt;
-          &lt;gathering&gt;
-            &lt;sequence&gt;25.0&lt;/sequence&gt;
-            &lt;domain&gt;25.0&lt;/domain&gt;
-          &lt;/gathering&gt;
-          &lt;trusted&gt;
-            &lt;sequence&gt;26.8&lt;/sequence&gt;
-            &lt;domain&gt;26.8&lt;/domain&gt;
-          &lt;/trusted&gt;
-          &lt;noise&gt;
-            &lt;sequence&gt;20.6&lt;/sequence&gt;
-            &lt;domain&gt;24.6&lt;/domain&gt;
-          &lt;/noise&gt;
-        &lt;/cutoffs&gt;
-      &lt;/fs&gt;
-    &lt;/hmm_details&gt;
-  &lt;/entry&gt;
-&lt;/pfam&gt;</pre>
-      </div>
-    </fieldset>
-    
-    <p>
-      You can see the 
-      <a class="ext" href="http://en.wikipedia.org/wiki/Xml_schema">XML schema</a>
-      for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_family.xsd' ) %]">here</a>.
-    </p>
-
-    <p>
-      Some Pfam families are removed or merged into others, in which case they
-      become &quot;dead&quot; families. If you try to retrieve annotation
-      information about a dead family, you&#39;ll get a simple XML document
-      that only includes information on the replacement (if any) for the family:
-    </p>
-    
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
-        <pre class="prettyprint">&lt;/pre&gt;&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 14:01:27 21-Apr-2008 --&gt;
-&lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns="http://pfam.sanger.ac.uk/"
-           xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                               http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-           release="22.0"
-           release_date="2007-07-10"&gt;
-  &lt;entry accession="PF06700"
-         id="2oxo_fer_oxidoB"&gt;
-    &lt;forward_to&gt;PF02775&lt;/forward_to&gt;
-    &lt;comment&gt; Merged into TPP binding domain&lt;/comment&gt;
-  &lt;/entry&gt;
-&lt;/dead_pfam&gt;</pre>
-      </div>
-    </fieldset>
-
-    <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/dead_family.xsd' ) %]">
-        here</a>.
-    </p>
-    <p><a href="#restTop">back to top</a></p>
-
-    <h3><a name="families">Pfam-A family list</a></h3>
-
-    <p>
-      You can retrieve a list of all Pfam-A families in the latest Pfam release,
-      either as an XML document or as a tab-delimited text file. Both formats 
-      contain the Pfam-A accession, Pfam-A identifier and description:
-    </p>
-
-    <pre class="url">
-[% c.uri_for( '/families', output => 'xml' ) | html %]
-[% c.uri_for( '/families', output => 'text' ) | html %]</pre>
-
-    <p>
-      You can also view the list in a web browser by removing the 
-      <code>output=xml</code> parameter from the URL.
-    </p>
-
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- all Pfam-A families, generated: 11:35:35 07-May-2008 --&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_families.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="Pfam-A" accession="PF00001" id="7tm_1"&gt;
-    &lt;description&gt;
-&lt;![CDATA[
-7 transmembrane receptor (rhodopsin family)
-]]&gt;
-    &lt;/description&gt;
-  &lt;/entry&gt;
-  ...</pre>
-      </div>
-    </fieldset>
-
-    <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/pfam_families.xsd' ) %]">
-        here</a>.
-    </p>
-    <p><a href="#restTop">back to top</a></p>
-
-    <h3><a name="protein">Protein sequence data</a></h3>
-
-    <p>
-      You can retrieve a sub-set of the data in a protein page
-      as an XML document using any of the following styles of URL:
-    </p>
-
-    <pre class="url">
-[% c.uri_for( '/protein', id    => 'CANX_CHICK', output => 'xml' ) | html %]
-[% c.uri_for( '/protein', acc   => 'P00789', output => 'xml' ) | html %]
-[% c.uri_for( '/protein', entry => 'P00789', output => 'xml' ) | html %]
-[% c.uri_for( '/protein/P00789', output => 'xml' ) | html %]</pre>
-
-    <p>
-      As for Pfam-A families, arguments are all case-insensitive and the 
-      <code>entry</code> parameter accepts either ID or accession. 
-    </p>
-
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-        <pre>shell% curl -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 15:49:53 11-Apr-2008 --&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/protein.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="sequence" db="uniprot" db_release="51.7" accession="P00789" id="CANX_CHICK"&gt;
-    &lt;description&gt;
-&lt;![CDATA[
-Calpain-1 catalytic subunit (EC 3.4.22.52) (Calpain-1 large subunit)(Calcium-activated neutral proteinase) (CANP) (Mu/M-type).
-]]&gt;
-    &lt;/description&gt;
-    &lt;taxonomy tax_id="9031" species_name="Gallus gallus (Chicken)."&gt;Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;Archosauria; Aves; Neognathae; Galliformes; Phasianidae; Phasianinae;Gallus.&lt;/taxonomy&gt;
-    &lt;sequence length="705" md5="934014b14ecb71623fa5898c7f81862a" crc64="ABCDDC56298E48AA" version="2"&gt;
-      MMPFGGIAARLQRDRLRAEGVGEHNNAVKYLNQDYEALKQECIESGTLFRDPQFPAGPTALGFKELGPYSSKTR
-      GVEWKRPSELVDDPQFIVGGATRTDICQGALGDCWLLAAIGSLTLNEELLHRVVPHGQSFQEDYAGIFHFQIWQ
-      FGEWVDVVVDDLLPTKDGELLFVHSAECTEFWSALLEKAYAKLNGCYESLSGGSTTEGFEDFTGGVAEMYDLKR
-      APRNMGHIIRKALERGSLLGCSIDITSAFDMEAVTFKKLVKGHAYSVTAFKDVNYRGQQEQLIRIRNPWGQVEW
-      TGAWSDGSSEWDNIDPSDREELQLKMEDGEFWMSFRDFMREFSRLEICNLTPDALTKDELSRWHTQVFEGTWRR
-      GSTAGGCRNNPATFWINPQFKIKLLEEDDDPGDDEVACSFLVALMQKHRRRERRVGGDMHTIGFAVYEVPEEAQ
-      GSQNVHLKKDFFLRNQSRARSETFINLREVSNQIRLPPGEYIVVPSTFEPHKEADFILRVFTEKQSDTAELDEE
-      ISADLADEEEITEDDIEDGFKNMFQQLAGEDMEISVFELKTILNRVIARHKDLKTDGFSLDSCRNMVNLMDKDG
-      SARLGLVEFQILWNKIRSWLTIFRQYDLDKSGTMSSYEMRMALESAGFKLNNKLHQVVVARYADAETGVDFDNF
-      VCCLVKLETMFRFFHSMDRDGTGTAVMNLAEWLLLTMCG
-    &lt;/sequence&gt;
-    &lt;matches&gt;
-      &lt;match accession="PF01067" id="Calpain_III" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="358" end="513" /&gt;
-      &lt;/match&gt;
-      &lt;match accession="PF00648" id="Peptidase_C2" type="Pfam-A" class="Family"&gt;
-        &lt;location start="48" end="347" /&gt;
-      &lt;/match&gt;
-      &lt;match accession="PF00036" id="efhand" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="610" end="638" /&gt;
-      &lt;/match&gt;
-      &lt;match accession="PF00036" id="efhand" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="580" end="608" /&gt;
-      &lt;/match&gt;
-    &lt;/matches&gt;
-  &lt;/entry&gt;
-&lt;/pfam&gt;
-shell%</pre>
-      </div>
-    </fieldset>
-
-    <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/protein.xsd' ) %]">here</a>.
-    </p>
-    <p><a href="#restTop">back to top</a></p>
-
-    <h3><a name="search">Sequence searches</a></h3>
-    
-    <p>
-      The Pfam website includes a 
+      The Rfam website includes a 
       <a href="[% c.uri_for( '/search' ) %]">form</a> that allows users to 
-      upload a protein sequence and see a list of the Pfam domains that are 
+      upload a nucleic acid sequence and see a list of the Rfam families that are 
       found on their search sequence. We&#39;ve now implemented a RESTful 
       interface to this search tool, making it possible to run single-sequence 
-      Pfam searches programmatically.
+      Rfam searches programmatically.
     </p>
     <p>
       Running a search is a two step process:
     </p>
     <ol>
-      <li>submit the search sequence and specify search parameters</li>
-      <li>retrieve search results in XML format</li>
+      <li>submit the search sequence</li>
+      <li>retrieve search results</li>
     </ol>
     <p>
       The reason for separating the operation into two steps rather than  
-      performing a search in a single operation is that sequence searches can 
-      sometimes take as long as a few minutes. Most web clients, browsers or 
-      scripts, will simply time-out if a response is not received within a short 
-      time period, usually less than a minute. By submitting a search, waiting 
-      and then retrieving results as a separate operation, we avoid the risk of 
-      a client reaching a time-out before the results are returned.
+      performing a search in a single operation is that the time taken to
+      perform a sequence search will vary according to the length of the 
+      sequence searched. Most web clients, browsers or scripts, will simply 
+      time-out if a response is not received within a short time period, 
+      usually less than a minute. By submitting a search, waiting and then 
+      retrieving results as a separate operation, we avoid the risk of a 
+      client reaching a time-out before the results are returned.
     </p>
     <p>
       The following example uses simple command-line tools to submit the search
       and retrieve results, but the whole process is easily transferred to a 
       single script or program.
     </p>
-    <p><a href="#restTop">back to top</a></p>
 
-    <h4>Save your sequence to file</h4>
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="seqToFile">Save your sequence to file</a></h3>
 
     <p>    
       It is usually most convenient to save your sequence into a plain text
@@ -570,260 +278,702 @@ shell%</pre>
     <fieldset class="query">
       <legend>Example</legend>
     <pre class="prettyprint">shell% cat test.seq 
-MMASTENNEKDNFMRDTASRSKKSRRRSLWIAAGAVPTAIALSLSLASPA
-AVAQSSFGSSDIIDSGVLDSITRGLTDYLTPRDEALPAGEVTYPAIEGLP
-AGVRVNSAEYVTSHHVVLSIQSAAMPERPIKVQLLLPRDWYSSPDRDFPE
-IWALDGLRAIEKQSGWTIETNIEQFFADKNAIVVLPVGGESSFYTDWNEP
-NNGKNYQWETFLTEELAPILDKGFRSNGERAITGISMGGTAAVNIATHNP
-EMFNFVGSFSGYLDTTSNGMPAAIGAALADAGGYNVNAMWGPAGSERWLE
-NDPKRNVDQLRGKQVYVSAGSGADDYGQDGSVATGPANAAGVGLELISRM
-TSQTFVDAANGAGVNVIANFRPSGVHAWPYWQFEMTQAWPYMADSLGMSR
-EDRGADCVALGAIADATADGSLGSCLNNEYLVANGVGRAQDFTNGRAYWS
-PNTGAFGLFGRINARYSELGGPDSWLGFPKTRELSTPDGRGRYVHFENGS
-IYWSAATGPWEIPGDMFTAWGTQGYEAGGLGYPVGPAKDFNGGLAQEFQG
-GYVLRTPQNRAYWVRGAISAKYMEPGVATTLGFPTGNERLIPGGAFQEFT
-NGNIYWSASTGAHYILRGGIFDAWGAKGYEQGEYGWPTTDQTSIAAGGET
-ITFQNGTIRQVNGRIEESR
-shell%</pre>
+AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAA
+GTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGA
+ATACGACGTGCTGTAGCTT</pre>
     </fieldset>
 
     <p>
-      The sequence should contain only valid sequence characters, i.e. letters,
-      excluding &quot;J&quot; and &quot;O&quot;. You can break the sequence
-      across multiple lines to make it easier to handle.
+      The sequence should contain only valid sequence characters. You can break
+      the sequence across multiple lines to make it easier to handle.
     </p>
     
-    <h4>Submit the search</h4>
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="submit">Submit the search</a></h3>
+
+    <p>
+      When you send a request to the server, you can specify the format of the
+      response. The server supports 
+      <a class="ext" href="http://en.wikipedia.org/wiki/JSON">JSON</a>
+      (application/json) and XML (text/xml) output. In the examples below we'll
+      use the JSON output format by adding an &quot;Accept&quot; header to the
+      request, specifying the media type &quot;application/json&quot;. Again,
+      you could use the &quot;content-type&quot; parameter on the URL, rather
+      than setting a header.
+    </p>
 
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F seq='&lt;test.seq' -F output=xml '[% c.uri_for( "/search/sequence" ) %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd"&gt;
-  &lt;job job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2" type="pfamASearch"&gt;
-    &lt;opened&gt;2008-01-10 13:11:24&lt;/opened&gt;
-    &lt;estimated_time&gt;12&lt;/estimated_time&gt;
-    &lt;result_url&gt;[% c.uri_for( "/search/sequence/results", output => "xml", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]&lt;/result_url&gt;
-  &lt;/job&gt;
-&lt;/jobs&gt;
-shell%</pre>
+        <pre>shell% curl -H 'Expect:' -F seq='&lt;test.seq' -H "Accept: application/json" http://rfam.sanger.ac.uk/search/sequence</pre>
+        <pre class="prettyprint">
+{
+  "resultURL": "[% c.uri_for( '/search/sequence/d9b451d8-96e6-4234-9dbb-aa4806925353' ) %]",
+  "opened": "2012-03-15 16:20:39",
+  "estimatedTime": "3",
+  "jobId": "d9b451d8-96e6-4234-9dbb-aa4806925353"
+}</pre>
       </div>
     </fieldset>
     
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="poll">Wait for the search to complete</a></h3>
     <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/submission.xsd' ) %]">here</a>.
+      Having submitted the search, you now need to check the &quot;resultURL&quot;
+      given in the response, which will be simply the URL that you used for 
+      submitting the search, but with a job identifier appended. 
+    </p>
+    <p>
+      Although you can check for results immediately, if you poll before your
+      job has completed you won't receive a full response. Instead, the HTTP
+      response will have its status set appropriately and the body of the
+      response will contain only string giving the status. You should ideally
+      check the HTTP status of the response, rather than relying on the body of
+      the response.
+    </p>
+    <p>
+      When writing a script to submit searches and retrieve results, please add 
+      a short delay between the submission and the first attempt to retrieve 
+      results. Most search jobs are returned within four to five seconds of
+      submission, depending greatly on the length of the sequence to be 
+      searched. The &quot;estimatedTime&quot; given in the response provides
+      a very rough estimate of how long your job should take. You may want
+      to wait for this period before polling for the first time.
     </p>
 
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="retrieve">Retrieve results</a></h3>
     <p>
-      When using <code>curl</code> the value of the parameter &quot;seq&quot; 
-      needs to be quoted so that its value is taken correctly from the file 
-      &quot;test.seq&quot;. The second parameter can also be added directly to 
-      the URL, as a regular CGI-style parameter, if you prefer.
-    </p>
-    <p>
-      The search service accepts the following parameters (you can see a more
-      complete description of these settings 
-      <a href="[% c.uri_for('/search' ) %]">here</a>):
+      The response that was returned from the first query includes a URL from
+      which you can now retrieve results:
     </p>
 
-    <table class="details" summary="Accepted sequence search parameters">
+    <fieldset class="query">
+      <legend>Example</legend>
+      <div class="code">
+      <pre>shell% curl -H "Expect:" -H "Accept: application/json" http://rfam.sanger.ac.uk/search/sequence/01d3c704-591a-4a85-b7c1-366496c5a63</pre>
+      <pre class="prettyprint">{
+   "closed" : "2012-03-16 11:08:25",
+   "searchSequence" : "AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAAGTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGAATACGACGTGCTGTAGCTT",
+   "hits" : [
+      {
+         "blocks" : [
+            {
+               "ss" : "(((((((((,,,,&lt;&lt;-&lt;&lt;&lt;&lt;&lt;---&lt;&lt;--&lt;&lt;&lt;&lt;&lt;&lt;_______&gt;&gt;--&gt;&gt;&gt;&gt;--&gt;&gt;----&gt;&gt;&gt;",
+               "user" : {
+                  "seq" : "AGUUACGGCCAUACCUCAGAGAAUAUACCGUAUCCCGUUC-GAUCUGCGAAGUUAAGCUC",
+                  "end" : "59",
+                  "start" : "1"
+               },
+               "match" : ":: ::C:GCCAUA:C ::G:G+A A ACC: AUCCC U C GA CU :GAA UUAAGC:C",
+               "hit" : {
+                  "seq" : "gcuggCggccAUAgcaggguggAaaCACCcGauCCCAUccCGaACuCgGAAGuUAAGcac",
+                  "end" : "60",
+                  "start" : "1"
+               }
+            },
+            {
+               "ss" : "&gt;&gt;--&gt;&gt;&lt;&lt;&lt;-&lt;&lt;--.-&lt;-&lt;&lt;-----&lt;&lt;____&gt;&gt;-----&gt;&gt;-&gt;.-&gt;&gt;-&gt;&gt;&gt;,)))))))))",
+               "user" : {
+                  "seq" : "UGAAGGGCGUCGUCaGUACUAUAGUGGGUGACCAUAUGGGAAuACGACGU-GCUGUAGCU",
+                  "end" : "118",
+                  "start" : "60"
+               },
+               "match" : ":: AG:GC: :G+  GUACU++ GUGGGUGACCA+AUGGGAA AC:A:GU GC:G:: ::",
+               "hit" : {
+                  "seq" : "ccuagcgCcgaggu.GuACuggGgUggGugAccacaUGgGAa.AcuagGucgccGccagc",
+                  "end" : "118",
+                  "start" : "61"
+               }
+            },
+            {
+               "ss" : ":",
+               "user" : {
+                  "seq" : "U",
+                  "end" : "119",
+                  "start" : "119"
+               },
+               "match" : "U",
+               "hit" : {
+                  "seq" : "u",
+                  "end" : "119",
+                  "start" : "119"
+               }
+            }
+         ],
+         "P" : "4.708e-28",
+         "score" : "99.52",
+         "E" : "2.072e-26",
+         "end" : "119",
+         "alignment" : {
+            "user_seq" : "         1 AGUUACGGCCAUACCUCAGAGAAUAUACCGUAUCCCGUUC-GAUCUGCGAAGUUAAGCUCUGAAGGGCGUCGUCaGUACUAUAGUGGGUGACCAUAUGGGAAuACGACGU-GCUGUAGCUU 119       ",
+            "hit_seq" : "         1 gcuggCggccAUAgcaggguggAaaCACCcGauCCCAUccCGaACuCgGAAGuUAAGcacccuagcgCcgaggu.GuACuggGgUggGugAccacaUGgGAa.AcuagGucgccGccagcu 119       ",
+            "ss" : "           (((((((((,,,,&lt;&lt;-&lt;&lt;&lt;&lt;&lt;---&lt;&lt;--&lt;&lt;&lt;&lt;&lt;&lt;_______&gt;&gt;--&gt;&gt;&gt;&gt;--&gt;&gt;----&gt;&gt;&gt;&gt;&gt;--&gt;&gt;&lt;&lt;&lt;-&lt;&lt;--.-&lt;-&lt;&lt;-----&lt;&lt;____&gt;&gt;-----&gt;&gt;-&gt;.-&gt;&gt;-&gt;&gt;&gt;,))))))))):           ",
+            "match" : "           :: ::C:GCCAUA:C ::G:G+A A ACC: AUCCC U C GA CU :GAA UUAAGC:C:: AG:GC: :G+  GUACU++ GUGGGUGACCA+AUGGGAA AC:A:GU GC:G:: ::U           "
+         },
+         "strand" : "+",
+         "GC" : "49",
+         "family" : "5S_rRNA",
+         "start" : "1"
+      }
+   ],
+   "opened" : "2012-03-16 11:08:22",
+   "started" : "2012-03-16 11:08:23",
+   "jobId" : "01d3c704-591a-4a85-b7c1-366496c5a63c"
+}</pre>
+      </div>
+    </fieldset>
+    <p>
+      Note that old search results are generally cleared out after some time, so
+      if you wait too long before trying to view your hits in the website, you
+      may find that they are already gone.
+    </p>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="responses">Server responses</a></h3>
+    <p>
+      Server responses include a standard HTTP status code giving information
+      about the current state of your job. These are the possible status
+      codes:
+    </p>
+
+    <table class="details" summary="Search response status codes">
       <thead>
         <tr>
-          <th>Parameter</th>
-          <th>Description</th>
-          <th>Accepted values</th>
-          <th>Default</th>
+          <th>HTTP method</th>
+          <th>HTTP status<br />code</th>
+          <th>Status<br />description</th>
+          <th>Response<br />body</th>
           <th>Notes</th>
         </tr>
       </thead>
       <tbody>
         <tr class="even">
-          <td>evalue</td>
-          <td class="left">use this E-value cut-off</td> 
-          <td>valid float</td> 
-          <td>1.0</td> 
-          <td rowspan="2" class="left notes">
-            to use the gathering threshold for the family, set &quot;ga=1&quot; 
-            and don&#39;t specify an E-value. If an E-value is given, it will
-            be used, regardless of the value of &quot;ga&quot;
-          </td>
+          <td>POST</td>
+          <td>202</td>
+          <td>Accepted</td>
+          <td>PEND / RUN</td>
+          <td class="left">The job has been accepted by the search system and is 
+            either pending (waiting to be started) or running. After a short 
+            delay, your script should check for results again</td>
         </tr>
         <tr class="odd">
-          <td>ga</td>
-          <td class="left">use gathering threshhold</td> 
-          <td>0 | 1</td> 
-          <td>0</td> 
+          <td>POST</td>
+          <td>502</td>
+          <td>Bad gateway</td>
+          <td>Error message</td>
+          <td class="left">There was a problem scheduling or running the job. 
+            The job has failed and will not produce results. There is no need
+            to check the status again</td>
         </tr>
         <tr class="even">
-          <td>searchBs</td>
-          <td class="left">do search for Pfam-B hits</td>
-          <td>0 | 1</td>
-          <td>0</td>
-          <td rowspan="2" class="left notes">
-            setting &quot;skipAs=0&quot; implies &quot;searchBs=1&quot;; you 
-            must search for at least one type of family
-          </td>
+          <td>POST</td>
+          <td>503</td>
+          <td>Service unavailable</td>
+          <td>Error message</td>
+          <td class="left">Occasionally the search server may become overloaded.
+            If the error message suggests that the search queue is full, try
+            submitting your search later.</td>
         </tr>
         <tr class="odd">
-          <td>skipAs</td>
-          <td class="left">don&#39;t search for Pfam-A hits</td>
-          <td>0 | 1</td>
-          <td>0</td>
+          <td>GET</td>
+          <td>200</td>
+          <td>OK</td>
+          <td>Search results</td>
+          <td class="left">The job completed successfully and the results are
+            included in the response body.</td>
         </tr>
         <tr class="even">
-          <td>seq</td>
-          <td class="left">protein sequence</td> 
-          <td>valid sequence characters</td> 
-          <td>none</td> 
-          <td class="left notes">
-            <strong>required</strong>
-          </td>
+          <td>GET</td>
+          <td>410</td>
+          <td>Gone</td>
+          <td>DEL</td>
+          <td class="left">Your job was deleted from the search system. This 
+            status will not be assigned by the search system, but by an 
+            administrator. There was probably a problem with the job and you 
+            should contact the help desk for assistance with it</td>
         </tr>
         <tr class="odd">
-          <td>seqOpts</td>
-          <td class="left">search options</td> 
-          <td>both, bothNoMerge, ls or fs</td> 
-          <td>both</td> 
-          <td class="notes"></td>
+          <td>GET</td>
+          <td>503</td>
+          <td>Service unavailable</td>
+          <td>HOLD</td>
+          <td class="left">Your job was accepted but is on hold. This status 
+            will not be assigned by the search system, but by an administrator. 
+            There is probably a problem with the job and you should contact the 
+            help desk for assistance with it</td>
+        </tr>
+        <tr class="even">
+          <td>POST, GET</td>
+          <td>500</td>
+          <td>Internal server error</td>
+          <td>Error message</td>
+          <td class="left">There was some problem accepting or running your
+            job, but it does not fall into any of the other categories. The body
+            of the response will contain an error message from the server.
+            Contact the help desk for assistance with the problem</td>
         </tr>
       </tbody>
     </table>
-    
-    <p>
-      Note that if you set &quot;searchBs=1&quot;, the resulting XML document 
-      will contain two <code>&lt;job&gt;</code> tags, one for the Pfam-A search
-      job and a second for the Pfam-B job. You will need to retrieve results for
-      both of the jobs, using the two supplied URLs. 
-    </p>
-    
-    <h4>Wait for the search to complete</h4>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <hr />
+
+    <h2><a name="services">Available services</a></h2>
 
     <p>
-      Although you can check for results immediately, if you poll too soon you 
-      will simply receive an empty XML document. To avoid unnecessary hits on 
-      the server, the XML from the initial request includes a value for 
-      <code>&lt;estimated_time&gt;</code>. This is an estimate of the time, in 
-      seconds, that your search is likely to take.
-    </p>
-    <p>
-      When running the searches on the command line, as we are here, you can 
-      simply wait for that length of time before retrieving results. If you are 
-      using a script to run searches, please add a delay here.  
+      These are the services that are available from the Rfam website. In the
+      method descriptions below {<em>entry</em>} can be either accession, e.g.
+      RF00360, or identifier, e.g. snoZ107_R87. 
     </p>
 
-    <h4>Retrieve results</h4>
+    <h3><a name="familyData">Family data</a></h3>
+
+    [% familyURI = c.uri_for( "/family" ) -%]
+
+    <table id="familyResources"
+           class="details"
+           summary="Family methods">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>URI</th>
+          <th>HTTP<br />method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd">
+          <td>Family information</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns general information about an Rfam family, such as curation
+              details, search parameters, etc.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/html</li>
+              <li>text/xml</li>
+              <li>application/json</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360">
+                [% familyURI %]/RF00360</a></li>
+              <li><a href="[% familyURI %]/snoZ107_R87">
+                [% familyURI %]/snoZ107_R87</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Accession to ID</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/id</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the ID for the family with the given accession or ID.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns just the ID)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/snoZ107_R87/acc">
+                [% familyURI %]/snoZ107_R87/acc</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>ID to accession</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/acc</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the accession for the family with the given accession or ID.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns just the accession)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360/id">
+              [% familyURI %]/RF00360/id</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Secondary structure image</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/image/{type}</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the schematic secondary structure image for the family.
+              {<em>type</em>} must be one of:
+            </p>
+            <ul>
+              <li><em>cons</em> (sequence conservation)</li>
+              <li><em>fcbp</em> (basepair conservation)</li>
+              <li><em>cov</em> (covariation)</li>
+              <li><em>ent</em> (relative entropy)</li>
+              <li><em>maxcm</em> (maximum CM parse)</li>
+              <li><em>norm</em> (normal)</li>
+            </ul>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>image/png (always returns PNG image)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/snoZ107_R87/image/norm">
+                [% familyURI %]/snoZ107_R87/image/norm</a></li>
+              <li><a href="[% familyURI %]/RF00360/image/cov">
+                [% familyURI %]/RF00360/image/cov</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>Covariance model (CM)</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/cm</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the covariance model for the specified family.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns raw CM)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360/cm">
+                [% familyURI %]/RF00360/cm</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Regions</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/regions</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the list of all sequence regions for the specified
+              families. <strong>Note</strong> that some families have too many
+              regions to list. The server will return a status of 
+              <em>403 Forbidden</em> in these cases. The plain text list is a 
+              simple tab-delimited column file.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain</li>
+              <li>text/xml</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/snoZ107_R87/image/norm">
+                [% familyURI %]/snoZ107_R87/image/norm</a></li>
+              <li><a href="[% familyURI %]/RF00360/image/cov">
+                [% familyURI %]/RF00360/image/cov</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="phyloTrees">Phylogenetic trees</a></h3>
+
     <p>
-      The XML that was returned from the first query includes one or more URLs 
-      from which you can now retrieve results, given in the 
-      <code>&lt;result_url&gt;</code>. You can now poll these URLs to retrieve 
-      XML documents with the search hits.
+      These methods can be used to retrieve the phylogenetic tree data 
+      for Rfam families, as well as pre-generated PNG images showing 
+      these trees and the HTML image map associated with them.
     </p>
 
-    <fieldset class="query">
-      <legend>Example</legend>
-      <div class="code">
-      <pre>shell% curl '[% c.uri_for( "/search/sequence/results", output => "xml", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]'</pre>
-      <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/results.xsd"
-      release="22.0"
-      release_date="2007-07-10"&gt;
-  &lt;results job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2"&gt;
-    &lt;matches&gt;
-      &lt;protein length="669"&gt;
-        &lt;database id="pfam" pfam_release="22.0" pfam_release_date="2007-07-10"&gt;
-          &lt;match accession="PF08310" id="LGFP" type="Pfam-A" class="Repeat"&gt;
-            &lt;location start="422" end="475" hmm_start="1" hmm_end="55" evalue="7.9e-10" bitscore="43.4" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="476" end="529" hmm_start="1" hmm_end="55" evalue="9.2e-30" bitscore="109.6" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="530" end="579" hmm_start="1" hmm_end="55" evalue="0.0049" bitscore="13.3" mode="ls" evidence="hmmer v2.3.2" significant="0" /&gt;
-            &lt;location start="581" end="633" hmm_start="1" hmm_end="55" evalue="6.6e-25" bitscore="93.5" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="635" end="658" hmm_start="1" hmm_end="26" evalue="0.22" bitscore="7.5" mode="ls" evidence="hmmer v2.3.2" significant="0" /&gt;
-          &lt;/match&gt;
-          &lt;match accession="PF00756" id="Esterase" type="Pfam-A" class="Family"&gt;
-            &lt;location start="114" end="392" hmm_start="1" hmm_end="307" evalue="1.8e-94" bitscore="324.6" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-          &lt;/match&gt;
-          &lt;match accession="PF04310" id="MukB" type="Pfam-A" class="Family"&gt;
-            &lt;location start="66" end="85" hmm_start="208" hmm_end="227" evalue="0.62" bitscore="3.6" mode="fs" evidence="hmmer v2.3.2" significant="0" /&gt;
-          &lt;/match&gt;
-        &lt;/database&gt;
-      &lt;/protein&gt;
-    &lt;/matches&gt;
-    &lt;raw_output&gt;
-      &lt;![CDATA[
-UserSeq     66    85 PF04310.3     208   227 fs     3.6      0.62  MukB
-#HMM       *-&gt;GissAitRsLRDYLLPensG&lt;-*
-#MATCH        G+   itR L DYL P+
-#SEQ          GVLDSITRGLTDYLTPRDEA    85
-UserSeq    114   392 PF00756.11      1   307 ls   324.6   1.8e-94  Esterase
-#HMM       *-&gt;pleylrhnSeal.grerkvqvyLPpdYyappgrkyPvlylLDGLrAqddatgwfqngpakealerlaaegeippviivgiPaGdessfysdwdlgqGarfylnategpgayayeMYtfltqELlPlldanfptapdgdrravaGqSmGGlgALylALkyPdrFgsVssfSPivnPssafgpvaIgaaLsdAGGydansmWGpkafsaylgeddgaWqegdpvllakalsaslralrIyldvGtredflgdqlpvei.........levaarnrelaeqlaargvgghdhvyy.FppsGgHdwaydmWraaLiaalidl&lt;-*
-#MATCH         +++l+++S+a+++r++kvq++LP+d+y++p r +P +++LDGLrA++ ++gw +++++++++   a+++     +iv++P+G+essfy+dw ++          +++++y++e  tflt+EL P+ld+ f+ +++   ra++G+SmGG++A ++A ++P++F +V+sfS++++++s ++p aIgaaL+dAGGy+ n+mWGp        + +++W+e+dp  ++    + lr++ +y+ +G++ d++g + +v+ ++ +  + +le ++r+++++  ++++++g  + v ++F+psG+H w y  W++++++a +++
-#SEQ          HHVVLSIQSAAMpERPIKVQLLLPRDWYSSPDRDFPEIWALDGLRAIEKQSGWTIETNIEQFF---ADKN-----AIVVLPVGGESSFYTDWNEP----------NNGKNYQWE--TFLTEELAPILDKGFRSNGE---RAITGISMGGTAAVNIATHNPEMFNFVGSFSGYLDTTSNGMPAAIGAALADAGGYNVNAMWGP--------AGSERWLENDPKRNV----DQLRGKQVYVSAGSGADDYGQDGSVATgpanaagvgLELISRMTSQT--FVDAANGAGVNVIAnFRPSGVHAWPY--WQFEMTQAWPYM    392
-UserSeq    422   475 PF08310.2       1    55 ls    43.4   7.9e-10  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LG +  +E   ++GvGr q F +G  YWsp+TGA+    G I +++++lG+ +++
-#SEQ          LGSCLNNEYLVANGVGRAQDFTNGRAYWSPNTGAFGL-FGRINARYSELGGPDSW    475
-UserSeq    476   529 PF08310.2       1    55 ls   109.6   9.2e-30  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LGfP+t+E+ tpDG+Gr+++F++G+IYWs++TG++++ pG+++++Wg++G+E+G
-#SEQ          LGFPKTRELSTPDGRGRYVHFENGSIYWSAATGPWEI-PGDMFTAWGTQGYEAGG    529
-UserSeq    530   579 PF08310.2       1    55 ls    13.3    0.0049  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LG+P+++ ++ ++G    qeFqgG +  +pq  A+ V  GaI +k+ + G+++
-#SEQ          LGYPVGPAKDFNGG--LAQEFQGGYVLRTPQNRAYWV-RGAISAKYMEPGVAT--    579
-UserSeq    581   633 PF08310.2       1    55 ls    93.5   6.6e-25  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LGfP+++E  +p+G   fqeF +G+IYWs++TGAh +  G I+d+Wga+G+E+G+
-#SEQ          LGFPTGNERLIPGG--AFQEFTNGNIYWSASTGAHYILRGGIFDAWGAKGYEQGE    633
-UserSeq    635   658 PF08310.2       1    26 fs     7.5      0.22  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaI&lt;-*
-#MATCH         G P+td++ ++ G G   +Fq+G+I
-#SEQ          -GWPTTDQTSIAAG-GETITFQNGTI    658
-      ]]&gt;
-    &lt;/raw_output&gt;
-  &lt;/results&gt;
-&lt;/pfam&gt;
-shell%</pre>
-      </div>
-    </fieldset>
+    <table class="details"
+           summary="Phylogenetic tree methods">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>URI</th>
+          <th>HTTP<br />method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd">
+          <td>Tree data</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/tree/{<em>alnType</em>}</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the raw data (NHX) for the phylogenetic tree for the specified family
+              and alignment. {<em>alnType</em>} must be either <em>seed</em>
+              or <em>full</em>.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns raw NHX file)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360/tree/seed">
+                [% familyURI %]/RF00360/tree/seed</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Tree image</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/tree/{<em>alnType</em>}/label/{<em>label</em>}/image</td>
+          <td>GET</td>
+          <td class="left">
+
+            <p>
+              Returns a PNG image showing the phylogenetic tree for the specified family
+              and alignment. The image can be labelled either using species names or
+              sequence accessions. {<em>alnType</em>} must be either <em>seed</em> or 
+              <em>full</em>. {<em>label</em>} must be either <em>species</em> or
+              <em>acc</em>.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>image/png (always returns PNG image)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360/tree/seed/label/species/image">
+                [% familyURI %]/RF00360/tree/seed/label/species/image</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>Image map</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/tree/{<em>alnType</em>}/label/{<em>label</em>}/map</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the HTML image map that is used in conjunction with the tree image
+              to highlight tree nodes in the Rfam website. Note that the HTML snippet
+              contains an &lt;img&gt; tag that automatically loads the tree image.
+              <em>alnType</em>} must be either <em>seed</em> or <em>full</em>. 
+              {<em>label</em>} must be either <em>species</em> or <em>acc</em>.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/html (always returns HTML snippet)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00360/tree/seed/label/acc/map">
+                [% familyURI %]/RF00360/tree/seed/label/acc/map</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="structMapping">Structure mapping</a></h3>
 
     <p>
-      You can see the XML schema for this XML document 
-      <a href="[% c.uri_for('/static/documents/schemas/results.xsd' ) %]">here</a>.
+      These are methods related to the mapping between Rfam families, EMBL sequences
+      and PDB structures.
     </p>
 
+    <table class="details"
+           summary="Structure mapping methods">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>URI</th>
+          <th>HTTP<br />method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="even">
+          <td>Structure mapping</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/structures</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the mapping between an Rfam family, EMBL region and PDB residues.
+              The plain text file has a simple, tab-delimited format.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain</li>
+              <li>text/html</li>
+              <li>application/json</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% familyURI %]/RF00002/structures">
+                [% familyURI %]/RF00002/structures</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="alignments">Alignments</a></h3>
+
     <p>
-      Since the search is performed by the same server as searches in the Pfam
-      website, you can view your results in a web page by modifying the URL
-      to remove the <code>output=xml</code> parameter:
+      The following methods can be used to return family alignments in
+      various formats.
     </p>
-    
-    <pre class="url">
-[% c.uri_for( "/search/sequence/results", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]</pre>
-    
+
+    <table class="details"
+           summary="Alignment methods">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>URI</th>
+          <th>HTTP<br />method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd">
+          <td>Stockholm-format alignment</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/alignment</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the Stockholm-format seed alignment for the specified family.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns Stockholm-format alignment)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% c.uri_for( '/family/RF00360/alignment' ) %]">
+                [% c.uri_for( '/family/RF00360/alignment' ) %]</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Formatted alignment</td>
+          <td class="left">[% familyURI %]/{<em>entry</em>}/alignment/{<em>type</em>}/{<em>format</em>}</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the seed or full alignment for the specified family in the specified
+              format. {<em>type</em>} must be either <em>seed</em> or <em>full</em>. 
+              {<em>format</em>} must be one of:
+            </p>
+            <ul>
+              <li><em>pfam</em> (Stockholm with sequences on a single line conservation)</li>
+              <li><em>fasta</em> (gapped FASTA format)</li>
+              <li><em>fastau</em> (ungapped FASTA format)</li>
+              <li><em>stockholm</em> (standard Stockholm format)</li>
+            </ul>
+            <p>
+              If {<em>format</em>} is omitted, the output format defaults to Stockholm.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/plain (always returns Stockholm-format alignment)</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% c.uri_for( '/family/RF00360/alignment/seed/fasta' ) %]">
+                [% c.uri_for( '/family/RF00360/alignment/seed/fasta' ) %]</a></li>
+              <li><a href="[% c.uri_for( '/family/snoZ107_R87/alignment/full/fastau' ) %]">
+                [% c.uri_for( '/family/snoZ107_R87/alignment/full/fastau' ) %]</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
+
+    <h3><a name="seqSearch">Sequence searching</a></h3>
+
     <p>
-      Note that old search results are generally cleared out after some time, so
-      if you wait tool long before trying to view your hits in the website, you
-      may find that they are already gone.
+      The following methods can be used to submit and retrieve results of
+      single-sequence searches.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+
+    <table class="details"
+           summary="Sequence search methods">
+      <thead>
+        <tr>
+          <th>Resource</th>
+          <th>URI</th>
+          <th>HTTP<br />method</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd">
+          <td>Submit search</td>
+          <td class="left">[% c.uri_for( '/search/sequence' ) %]</td>
+          <td>POST</td>
+          <td class="left">
+            <p>
+              Submits a single-sequence search.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/xml</li>
+              <li>application/json</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% c.uri_for( '/search/sequence' ) %]">
+                [% c.uri_for( '/search/sequence' ) %]</a></li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="even">
+          <td>Retrieve search results</td>
+          <td class="left">[% c.uri_for( '/search/sequence' ) %]/{<em>job ID</em>}</td>
+          <td>GET</td>
+          <td class="left">
+            <p>
+              Returns the results of the job with specified ID. The job ID
+              is provided in the response when submitting a search.
+            </p>
+            <h4>Available formats:</h4>
+            <ul>
+              <li>text/xml</li>
+              <li>application/json</li>
+            </ul>
+            <h4>Examples:</h4>
+            <ul>
+              <li><a href="[% c.uri_for( '/search/sequence/01d3c704-591a-4a85-b7c1-366496c5a63' ) %]">
+                [% c.uri_for( '/search/sequence/01d3c704-591a-4a85-b7c1-366496c5a63' ) %]</a></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><a class="link" rel="restTop">back to top</a></p>
 
   </div>
     
-</div>
+  <script type="text/javascript">
+    // <![CDATA[
+    document.observe( "dom:loaded", prettyPrint );
+    // ]]>  
+  </script>
 
-<script type="text/javascript">
-  // <![CDATA[
-  // set up syntax highlighting of code blocks
-  Event.observe( window, 'load', prettyPrint );
-  // ]]>  
-</script>
+</div>
 
 <!-- end rest block -->
 [%#
