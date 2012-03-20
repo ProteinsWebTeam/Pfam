@@ -49,9 +49,9 @@ of URL to get here:
 
 =cut
 
-sub default : Path {
-  my ( $this, $c  ) = @_;
-}
+# sub default : Path {
+#   my ( $this, $c  ) = @_;
+# }
 
 #-------------------------------------------------------------------------------
 
