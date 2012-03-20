@@ -86,7 +86,7 @@ chained actions pick up.
 =cut
 
 sub begin : Private {
-  my ( $this, $c, $entry_arg ) = @_;
+  my ( $this, $c ) = @_;
 
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
@@ -107,7 +107,6 @@ sub begin : Private {
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
                       $c->req->query_keywords || # accept getacc-style params
-                      $entry_arg              ||
                       '';
   
   if ( $tainted_entry ) {
