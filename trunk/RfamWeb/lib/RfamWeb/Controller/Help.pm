@@ -25,8 +25,34 @@ $Id: Help.pm,v 1.1 2009-01-06 11:32:23 jt6 Exp $
 use strict;
 use warnings;
 
-use base 'PfamBase::Controller::Help';
+use base 'RfamWeb::Controller::Section';
 
+# set the name of the section
+__PACKAGE__->config( { SECTION => 'help' } );
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Just sets up the look of the page. Tell the navbar where we are and set the
+summary icons to "disabled".
+
+=cut
+
+sub begin : Private {
+ my( $this, $c ) = @_; 
+
+ $c->cache_page( 604800 );
+
+ # tell the navbar where we are
+ $c->stash->{nav} = 'help';
+
+ # tell the layout template to disable the summary icons
+ $c->stash->{iconsDisabled} = 1;
+}
+ 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
