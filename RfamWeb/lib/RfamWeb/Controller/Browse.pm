@@ -83,7 +83,7 @@ Retrieves the list of clans from the DB and stashes them for the template.
 =cut
 
 sub browse_clans : Chained( '/' )
-                   PathPart( 'clan' )
+                   PathPart( 'clans' )
                    CaptureArgs( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -103,7 +103,7 @@ template.
 =cut
 
 sub browse_clans_list : Chained( 'browse_clans' )
-                        PathPart( 'browse' )
+                        PathPart( '' )
                         Args( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -140,7 +140,7 @@ Retrieves the list of genomes from the DB and stashes them for the template.
 =cut
 
 sub browse_genomes : Chained( '/' )
-                     PathPart( 'genome' )
+                     PathPart( 'genomes' )
                      CaptureArgs( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -160,7 +160,7 @@ template.
 =cut
 
 sub browse_genomes_list : Chained( 'browse_genomes' )
-                          PathPart( 'browse' )
+                          PathPart( '' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -188,7 +188,7 @@ the template.
 =cut
 
 sub browse_genomes_by_kingdom : Chained( 'browse_genomes' )
-                                PathPart( 'browse' )
+                                PathPart( '' )
                                 Args( 1 ) {
   my ( $this, $c, $tainted_kingdom ) = @_;
 
@@ -241,7 +241,7 @@ Start of a chain for building the "browse families" pages.
 =cut
 
 sub browse_families : Chained( '/' )
-                      PathPart( 'family' )
+                      PathPart( 'families' )
                       CaptureArgs( 0 ) {
   my ( $this, $c ) = @_;
   
@@ -258,7 +258,7 @@ Build a page showing the list of all Rfam families. End of a dispatch chain.
 =cut
 
 sub browse_all_families : Chained( 'browse_families' )
-                          PathPart( 'browse' )
+                          PathPart( '' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -292,7 +292,7 @@ letter/number. End of a dispatch chain.
 =cut
 
 sub browse_families_by_letter : Chained( 'browse_families' )
-                                PathPart( 'browse' )
+                                PathPart( '' )
                                 Args( 1 ) {
   my ( $this, $c, $tainted_letter ) = @_;
 
@@ -352,7 +352,7 @@ letter/number. End of a dispatch chain.
 =cut
 
 sub browse_families_range : Chained( 'browse_families' ) 
-                            PathPart( 'browse' )
+                            PathPart( '' )
                             Args( 2 ) {
   my ( $this, $c, $tainted_a, $tainted_b ) = @_;
 
@@ -408,7 +408,7 @@ chain.
 =cut
 
 sub browse_all_articles : Chained( 'browse_articles' )
-                          PathPart( 'browse' )
+                          PathPart( '' )
                           Args( 0 ) {
   my ( $this, $c ) = @_;
 
