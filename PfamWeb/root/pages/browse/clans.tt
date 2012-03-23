@@ -86,7 +86,7 @@ pageList = PROCESS "components/pageList.tt",
           <span class="inactive">n/a</span> 
         [% END -%]
       </td>
-      <td>[% clan.clan_description %]</td>
+      <td>[% clan.clan_description | html %]</td>
     </tr>
   [% END # of FOREACH %]
   </tbody>
