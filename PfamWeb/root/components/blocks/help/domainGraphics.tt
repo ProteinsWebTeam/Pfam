@@ -701,7 +701,7 @@ family = c.uri_for( "/family" );
       three helices are involved, but cases of up to seven alpha-helices have 
       been reported. Coilded-coild are found in a wide variety of proteins, 
       many functionally very important. In Pfam we use 
-      <a class="ext" href="http://www.russell.embl-heidelberg.de/cgi-bin/coils-svr.pl">ncoils</a>,
+      <a class="ext" href="http://www.russelllab.org/cgi-bin/coils/coils-svr.pl">ncoils</a>,
       to identify these motifs. Coiled-coils are represented by a small 
       lime-green rectangle. 
     </p>
