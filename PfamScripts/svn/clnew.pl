@@ -26,6 +26,12 @@ print STDERR "Successfully loaded $clan through middleware\n";
 
 $client->checkNewClanDoesNotExists($clanObj->DESC->ID);
 
+#Now check that we do not have any MB lines
+if(defined( $clanObj->DESC->MEMB ) ){
+  print STDERR "Could can not make a new clan with members, you need to add families via pfci.pl\n";
+  exit(1);
+}
+
 #Automatically write the 'new' message and add it the binding.
 open(M, ">.default".$$."clnew") or die "Could not open .default".$$."clnew:[$!]\n";
 print M $clanObj->DESC->ID." deposited\n";
