@@ -45,8 +45,9 @@ BEGIN {
 __PACKAGE__->config(
   'default' => 'text/html',
   'map'     => {
-    'text/html' => [ 'View', 'TT' ],
-    'text/xml'  => [ 'View', 'TT' ],
+    'text/html'        => [ 'View', 'TT' ],
+    'text/xml'         => [ 'View', 'TT' ],
+    'text/plain'       => [ 'View', 'TT' ],
     'application/json' => 'JSON',
   }
 );
@@ -58,54 +59,101 @@ __PACKAGE__->config( SECTION => 'family' );
 # Ideally we'd use a __DATA__ stream, but that breaks in mod_perl and we
 # probably shouldn't try it in a FastCGI environment either. 
 # See: http://modperlbook.org/html/6-6-1-_-_END_-_-and-_-_DATA_-_-Tokens.html
-our $no_alignment_image = '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';
-    
+our $no_alignment_image = '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';
+ 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -169,9 +217,6 @@ sub family : Chained( '/' )
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 }
 
-# TODO need to handle this URL, "/family", with no entry given, and have it
-# provide a list of all families.
-
 #-------------------------------------------------------------------------------
 
 =head2 family_page : Chained('family') PathPart('') Args(0) ActionClass('REST')
@@ -192,7 +237,11 @@ sub family_page_GET_html : Private {
 
   # fail fast if there was a problem retrieving family data
   unless ( $c->stash->{rfam} ) {
+    $c->res->status(500); # Internal server error
+
+    $c->stash->{rest}->{error} ||= 'We could not find the data for Rfam family ' . $c->stash->{acc} . '.';
     $c->stash->{template} = 'components/blocks/family/error.tt';
+
     return;
   }
 
@@ -249,7 +298,7 @@ sub family_page_GET : Private {
   my ( $this, $c ) = @_;
 
   # there was a problem retrieving family data
-  unless ( $c->stash->{tree} ) {
+  unless ( $c->stash->{rfam} ) {
     $c->log->debug( 'Family::family_page_GET: problem retrieving family data' ) 
       if $c->debug;
 
@@ -260,7 +309,7 @@ sub family_page_GET : Private {
   }
 
   # for XML output...
-  if ( $c->req->accepted_content_types->[0] eq 'text/xml' ) {
+  if ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' ) {
 
     $c->log->debug( 'Family::family_page_GET: emitting XML' ) 
       if $c->debug;
@@ -274,13 +323,51 @@ sub family_page_GET : Private {
     $c->log->debug( 'Family::family_page_GET: emitting something other than XML or HTML' ) 
       if $c->debug;
 
+    # populate a data structure with family data that should go into, say, a JSON
+    # rendering of the home page data
+    my $r = $c->stash->{rfam}; # shortcut...
+    my $data = {
+      rfam => {
+        release => {
+          number => $c->stash->{relData}->rfam_release,
+          date => $c->stash->{relData}->rfam_release_date,
+        },
+        id => $r->rfam_id,
+        acc => $r->rfam_acc,
+        description => $r->description,
+        comment => $r->comment,
+        clan => { 
+          id => undef,
+          acc => undef,
+        },
+        curation => {
+          author => $r->author,
+          seed_source => $r->seed_source,
+          num_seed => $r->num_seed,
+          num_full => $r->num_full,
+          num_species => $r->number_of_species,
+          type => $r->type,
+          structure_source => $r->structure_source,
+        },
+        cm => {
+          build_command => $r->cmbuild,
+          calibrate_command => $r->cmcalibrate,
+          search_command => $r->cmsearch,
+          cutoffs => {
+            gathering => $r->gathering_cutoff,
+            trusted => $r->trusted_cutoff,
+            noise => $r->noise_cutoff,
+          }
+        }
+      }
+    };
+
+    # TODO populate the clan data...
+
+    # report success.
     $this->status_ok(
       $c,
-      entity => {
-        # TODO populate this with family data that should go into, say, a JSON
-        # rendering of the home page data
-        rfam => 'data'
-      }
+      entity => $data
     );
 
   }
@@ -311,16 +398,28 @@ sub old_family : Path( '/family' ) {
     $c->log->debug( 'Family::old_family: no entry specified' ) 
       if $c->debug;
 
-    # TODO this is where we put the catch-all for "/family"
-
-    $c->stash->{rest}->{error} ||= 'No family accession or ID given.';
-    $c->stash->{template} = ( $c->req->accepted_content_types->[0] eq 'text/html' )
-                          ? 'components/blocks/family/error.tt'
-                          : 'rest/family/error_xml.tt';
-
-    return;
+    $c->forward( 'families' );
   }
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 families : Chained('/') PathPart('family') Args(0)
+
+Returns the list of all families.
+
+=cut
+
+# sub families : Chained( '/' )
+#                PathPart( 'family' )
+#                Args( 0 ) {
+#   my ( $this, $c ) = @_;
+# 
+#   my @families = $c->model('RfamDB::Rfam')
+#                    ->search( {}, {} );
+# 
+#   # map { push @{ $c->stash->{rest}->{families} }, $_->rfam_acc } @families;
+# }
 
 #-------------------------------------------------------------------------------
 #- family page components ------------------------------------------------------
@@ -398,26 +497,41 @@ sub varna : Chained( 'family' )
             Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  $c->stash->{template} = 'components/tools/varna.tt';
-
-  my $json = JSON->new;
-
-  # retrieve the JSON string with the (broken) annotation
-  # my $json_string = $c->stash->{rfam}->structure_annotations;
-
   # get the gzip compressed JSON string for the structure annotation
   my $rs = $c->model('RfamDB::SecondaryStructureImages')
              ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
                        type      => 'ss' } );
-  return unless ( $rs and $rs->image );
+
+  unless ( $rs and $rs->image ) {
+    $c->stash->{rest}->{error} ||= 
+      'We could not retrieve the secondary structure data for Rfam family ' 
+      . $c->stash->{acc} . '.';
+  }
 
   # try to uncompress it
   my $json_string = Compress::Zlib::memGunzip( $rs->image );
-  return unless $json_string;
+  unless ( $json_string ) {
+    $c->stash->{rest}->{error} ||=
+      'We could not encode the secondary structure data for Rfam family ' 
+      . $c->stash->{acc} . '.';
+  }
 
-  # decode it so we can work with it as a regular perl data structure,
-  # convert the A/a notation to [/] and similarly for B/b to {/}, then
-  # re-encode it and stash it for the template
+  # bail out now if there was an error
+  if ( $c->stash->{rest}->{error} ) {
+    $c->res->status(500); # Internal server error
+
+    $c->stash->{template} = 'components/blocks/family/error.tt';
+
+    return;
+  }
+
+  # data appear to be intact; return the VARNA applet wrapper page
+  $c->stash->{template} = 'components/tools/varna.tt';
+
+  # for the benefit of VARNA, we need to decode the JSON so we can work with it
+  # as a regular perl data structure, convert the A/a notation to [/] and
+  # similarly for B/b to {/}, then re-encode it and stash it for the template
+  my $json = JSON->new;
   my $ss = $json->decode( $json_string );
   $ss->{reference_structure} =~ tr/AaBbC-Zc-z/[]{}../;
   $c->stash->{ss} = $json->encode( $ss );
@@ -448,8 +562,8 @@ sub old_varna : Path( '/family/varna' ) {
 
 =head2 image : Local
 
-Retrieves and returns an image from the database. Caches the image, unless
-C<$ENV{NO_CACHE}> is true. 
+Retrieves and returns a secondary structure image from the database. Caches the
+image, unless C<$ENV{NO_CACHE}> is true. 
 
 =cut
 
@@ -458,8 +572,6 @@ sub image : Chained( 'family' )
             Args( 1 ) {
   my ( $this, $c, $type ) = @_;
   
-  $c->cache_page( 604800 );
-
   my ( $image_type ) = $type || '' =~ m/^(\w+)$/;
   $c->log->debug( "Family::image: image_type: |$image_type|" )
     if $c->debug;
@@ -496,6 +608,9 @@ sub image : Chained( 'family' )
     $c->cache->set( $cache_key, $image ) unless $ENV{NO_CACHE}
   }
   
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+
   $c->res->content_type( 'image/png' );
   $c->res->body( $image );
 }
@@ -537,6 +652,12 @@ sub cm : Chained( 'family' )
          Args() {
   my ( $this, $c, $version ) = @_;
   
+  # set the template that will show any error messages, in cases when the
+  # client requests XML or HTML. Default to an HTML error message
+  $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                        ? 'rest/family/error_xml.tt'
+                        : 'components/blocks/family/error.tt';
+
   my $rs;
   if ( defined $version and
        $version =~ m/^\d+\.\d+$/ ) {
@@ -553,18 +674,29 @@ sub cm : Chained( 'family' )
   }
 
   my $gzipped_cm;
-  unless ( defined $rs and 
-           $rs->first  and
+  unless ( defined $rs and $rs->first and
            $gzipped_cm = $rs->first->cm ) {
-    $c->stash->{errorMsg} = 'We could not find a covariance model that was built with that version of infernal.';
+    $c->log->debug( 'Family::cm:: failed to retrieve a CM' )
+      if $c->debug;
+
+    $this->status_not_found( $c, message => 'Could not find a covariance model built with that version of infernal.' );
+
     return;
   }
   
   my $cm = Compress::Zlib::memGunzip( $gzipped_cm );
   unless ( defined $cm ) {
-    $c->stash->{errorMsg} = 'We could not uncompress the covariance model file.';
+    $c->log->debug( 'Family::cm:: failed to uncompress CM' )
+      if $c->debug;
+
+    $c->res->status(500); # Internal server error
+    $c->stash->{rest}->{error} = 'We could not uncompress the covariance model file.';
+
     return;
   }
+
+  # cache the template output for one week
+  $c->cache_page( 604800 );
 
   my $filename = $c->stash->{acc} . '.cm';
   $c->res->content_type( 'text/plain' );
@@ -606,61 +738,71 @@ Builds a tab-delimited file containing all regions for this family
 
 sub regions : Chained( 'family' )
               PathPart( 'regions' )
-              Args( 0 ) {
+              Args( 0 )
+              ActionClass( 'REST' ) {}
+
+sub regions_GET : Private {
   my ( $this, $c ) = @_;
   
   $c->log->debug( 'Family::regions: building tab-delimited list of regions' )
     if $c->debug;
 
-  if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showText} ) {
-    $c->log->debug( 'Family::regions: num_full <= showText limit; retrieving regions later' )
-      if $c->debug;
-    $c->forward( 'get_regions_data' );
-  }
-  else {
+  # default to the error template
+  $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' ) 
+                        ? 'rest/family/error_xml.tt'
+                        : 'rest/family/error_text.tt';
+
+  # impose a limit on the number of regions we're prepared to show
+  if ( $c->stash->{rfam}->num_full > $this->{regionsLimits}->{showText} ) {
     $c->log->debug( 'Family::regions: num_full > showText limit; not showing regions' )
       if $c->debug;
 
-    $c->res->status( 403 );
-    $c->res->body( 'The family has too many regions to list.' );
+    $this->status_forbidden( $c, message => 'The family has too many regions to list.' );
 
     return;
   }
 
-  unless ( defined $c->stash->{regions} ) {
+  $c->log->debug( 'Family::regions: num_full <= showText limit; retrieving regions' )
+    if $c->debug;
+
+  $c->forward( 'get_regions_data' );
+
+  # make sure we got *some* regions
+  unless ( defined $c->stash->{region_rows} ) {
     $c->log->debug( 'Family::regions: failed to retrieve regions' )
       if $c->debug;
 
-    $c->res->status( 500 ); # Internal server error
-    $c->res->body( 'There was a problem retrieving the regions.' );
+    $c->res->status(500); # Internal server error
+    $c->stash->{rest}->{error} ||= 'There was a problem retrieving the regions.';
 
     return;
   }
   
   # build a sensible filename
-  my $filename = $c->stash->{acc} . '_regions.txt';
-  $c->res->content_type( 'text/plain' );
+  my $filename = $c->stash->{acc} . '_regions';
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
 
-  # add a meaningful header
-  my $regions = '# Rfam regions for family ' . $c->stash->{rfam}->rfam_id 
-                . ' (' . $c->stash->{rfam}->rfam_acc . ")\n"
-                . '# file built ' . localtime(). ' using Rfam version ' 
-                . $c->stash->{relData}->rfam_release
-                . ' (released ' . $c->stash->{relData}->rfam_release_date . ")\n";
-
   # add the rows
-  foreach my $region ( @{ $c->stash->{regions} } ) {
-    $regions .= $region->get_column('rfamseq_acc' ) . "\t";
-    $regions .= $region->bits_score . "\t";
-    $regions .= $region->seq_start . "\t";
-    $regions .= $region->seq_end . "\t";
-    $regions .= $region->get_column('description' ) . "\t";
-    $regions .= $region->get_column('species' ) . "\n";
+  $c->stash->{rest}->{regions} = [];
+  foreach my $region ( @{ $c->stash->{region_rows} } ) {
+    push @{ $c->stash->{rest}->{regions} }, [
+      $region->get_column('rfamseq_acc' ),
+      $region->bits_score,
+      $region->seq_start,
+      $region->seq_end,
+      $region->get_column('description' ),
+      $region->get_column('species' ),
+      $region->get_column('ncbi_taxid' ),
+    ];
   }
 
-  # stuff the content into the response and we're done
-  $c->res->body( $regions );
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+
+  # set the template for serialisers that use TT. Default to plain text
+  $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml'  ) 
+                        ? 'rest/family/regions_xml.tt'
+                        : 'rest/family/regions_text.tt';
 }
 
 #---------------------------------------
@@ -729,23 +871,48 @@ sub tree_data : Chained( 'tree' )
 
   # fail fast if there was a problem retrieving family data
   unless ( $c->stash->{treeData} ) {
+    $c->res->status(500); # Internal server error
+
     $c->stash->{rest}->{error} ||= 'Could not retrieve tree data.';
-    $c->stash->{template} = ( $c->req->accepted_content_type->[0] eq 'text/html' )
+    $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/html' )
                           ? 'components/blocks/family/error.tt'
                           : 'rest/family/error_xml.tt';
+
     return;
   }
 
-  my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
   $c->log->debug( 'Family::tree_data: tree data: |' . $c->stash->{treeData} . '|' )
     if $c->debug;
 
-  $c->log->debug( "Family::tree_data: tree filename: |$filename|" )
-    if $c->debug;
-
+  my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
   $c->res->content_type( 'text/plain' );
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   $c->res->body( $c->stash->{treeData} );
+}
+
+#---------------------------------------
+
+=head2 old_tree_dl : Path
+
+Deprecated. Stub to redirect to the chained action(s).
+
+=cut
+
+sub old_tree_dl : Path( '/family/tree/download' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::old_tree_dl: redirecting to "tree_data"' )
+    if $c->debug;
+
+  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+  delete $c->req->params->{alnType};
+
+  $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 
+                                  'tree',  $aln_type ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -776,15 +943,14 @@ sub tree_labels : Chained( 'tree' )
 
 =head2 tree_map : Path
 
-Returns an HTML snippet with a link to the tree image and associated image map for 
-the specified seed/full alignment with the given label type (acc/species). Also
-builds the image and caches it, so that the request for the image won't have to
-wait.
+Returns an HTML snippet with a link to the tree image and associated image map
+for the specified seed/full alignment with the given label type (acc/species).
+Also builds the image and caches it, so that the request for the image won't
+have to wait.
 
 If the client is a web-browser, the image map is returned. Otherwise, an error
-message will be shown:
-
-  Image map only available as HTML.
+message will be shown, to the effect that it only makes sense to view this as
+HTML.
 
 =cut
 
@@ -797,24 +963,25 @@ sub tree_map : Chained( 'tree_labels' )
 sub tree_map_GET : Private {
   my ( $this, $c ) = @_;
 
+  # default to the error template
+  $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                        ? 'rest/family/error_xml.tt'
+                        : 'components/blocks/family/error.tt';
+
   # fail fast if there was a problem retrieving the tree
   unless ( $c->stash->{tree} ) {
+    $c->res->status( 500 ); # Internal server error
     $c->stash->{rest}->{error} ||= 'Could not retrieve tree data.';
-    $c->stash->{template} = ( $c->req->accepted_content_type->[0] eq 'text/html' )
-                          ? 'components/blocks/family/error.tt'
-                          : 'rest/family/error_xml.tt';
     return;
   }
 
   # it only makes sense to return an image map as HTML
-  unless ( grep m|text/html|, @{ $c->req->accepted_content_types } ) {
-    $c->stash->{template} = 'rest/family/error_xml.tt'; # just in case it's needed...
-    $this->status_bad_request(
-      $c,
-      message => 'Image map only available as HTML',
-    );
-    return;
-  }
+  # unless ( grep m|text/html|, @{ $c->req->accepted_content_types || [] } ) {
+  # unless ( $c->req->accepts( 'text/html' ) or
+  #          $c->req->accepts( '*/*' ) ) {
+  #   $this->status_bad_request( $c, message => 'Image map only available as HTML.' );
+  #   return;
+  # }
 
   # cache the page (fragment) for one week
   $c->cache_page( 604800 );
@@ -823,10 +990,9 @@ sub tree_map_GET : Private {
   $c->stash->{tree}->plot_core 
     if defined $c->stash->{tree};
 
-  $c->log->debug( 'Family::tree_map: rendering treeMap.tt' )
-    if $c->debug;
+  # cache the template output for one week
+  $c->cache_page( 604800 );
 
-  # set up the TT view
   $c->stash->{template} = 'components/blocks/family/treeMap.tt';
 }
 
@@ -879,33 +1045,43 @@ sub tree_image : Chained( 'tree_labels' )
 sub tree_image_GET_html : Private {
   my ( $this, $c ) = @_;
 
-  if ( defined $c->stash->{tree} ) {
-    $c->log->debug( 'Family::tree_image: returning raw tree image' )
-      if $c->debug;
-    $c->res->content_type( 'image/gif' );
-    $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
-  }
-  else {
+  unless ( $c->stash->{tree} ) {
     $c->log->debug( 'Family::tree_image: returning "blank.gif"' )
       if $c->debug;
     # TODO this is bad. We should avoid hard-coding a path to an image here
     $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
+    return;
   }
+
+  $c->log->debug( 'Family::tree_image: returning raw tree image' )
+    if $c->debug;
+
+  $c->res->content_type( 'image/gif' );
+  $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
 }
 
 #---------------------------------------
 
-# handle RESTful responses...
+# generate other output formats besides HTML
 sub tree_image_GET : Private {
   my ( $this, $c ) = @_;
 
-  if ( defined $c->stash->{tree} ) {
-    $c->res->content_type( 'image/gif' );
-    $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
+  unless ( defined $c->stash->{tree} ) {
+    $c->res->status( 500 ); # Internal server error
+
+    $c->stash->{rest}->{error} ||= 'There was a problem when plotting the tree.';
+    $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
+    
+    return;
   }
-  else {
-    $c->stash->{rest}->{error} ||= 'Could not build tree image.';
-  }
+
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+
+  $c->res->content_type( 'image/gif' );
+  $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
 }
 
 #---------------------------------------
@@ -950,11 +1126,11 @@ PDB residues.
 
 sub structures : Chained( 'family' )
                  PathPart( 'structures' )
-                 Args( 0 ) {
-  my ( $this, $c ) = @_;
+                 Args( 0 )
+                 ActionClass( 'REST' ) {}
 
-  # cache the template output for one week
-  $c->cache_page( 604800 );
+sub structures_GET : Private {
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Family::structures: showing structures that map to ' . $c->stash->{acc} )
     if $c->debug;
@@ -963,9 +1139,52 @@ sub structures : Chained( 'family' )
                   ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
                             {} );
 
+  unless ( scalar @mapping ) {
+    $c->log->debug( 'Family::structures: no rows found; returning 204 NO CONTENT' )
+      if $c->debug;
+
+    $this->status_no_content( $c );
+
+    return;
+  }
+
   $c->stash->{rfamMaps} = \@mapping;
 
-  $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+  # when specifically requested, or when the client will accept any format
+  # ("*/*"), render as HTML
+  if ( $c->req->accepts( 'text/xml' ) or
+       $c->req->accepts( 'text/plain' )  or
+       $c->req->accepts( 'application/json' )  ) {
+
+    # for anything other than HTML, we need to serialise a data structure
+    $c->log->debug( 'Family::structures: converting DBIC rows to perl data structure for serialisation' )
+      if $c->debug;
+
+    # load rows into a regular perl data structure
+    foreach my $row ( @mapping ) {
+      push @{ $c->stash->{rest}->{mapping} }, [
+        $row->rfamseq_acc,
+        $row->seq_start,
+        $row->seq_end,
+        $row->pdb_id,
+        $row->chain || '',
+        $row->pdb_res_start,
+        $row->pdb_res_end,
+      ];
+    }
+
+    # and pick a template
+    $c->stash->{template} = $c->req->accepts( 'text/xml' )
+                          ? 'rest/family/structure_mapping_xml.tt'
+                          : 'rest/family/structure_mapping_text.tt';
+  }
+  else {
+    # cache the template output for one week
+    $c->cache_page( 604800 );
+
+    # for HTML, we're dropping straight to a template
+    $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+  }
 }
 
 #---------------------------------------
@@ -993,6 +1212,24 @@ sub old_structures : Path( '/family/structures/mapping' ) {
 #- alignment actions -----------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 alignment_default : Chained('family') PathPart('alignment') Args(0)
+
+Catches alignment requests with no alignment type (seed or full) and no format
+specified. Defaults to Stockholm-format seed alignment.
+
+=cut 
+
+sub alignment_default: Chained( 'family' ) 
+                       PathPart( 'alignment' )
+                       Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->forward( 'alignment',        [ 'seed' ] );
+  $c->forward( 'alignment_format', [ 'stockholm' ] );
+}
+
+#---------------------------------------
+
 =head2 alignment : Chained('family') PathPart('alignment') CaptureArgs(1)
 
 Mid-point in a chain for handling alignments. Captures various parameters:
@@ -1001,7 +1238,7 @@ Mid-point in a chain for handling alignments. Captures various parameters:
 
 =item alnType
 
-alignment type, "seed" or "full"
+alignment type
 
 =item nseLabels
 
@@ -1037,24 +1274,6 @@ sub alignment : Chained( 'family' )
     $c->log->debug( 'Family::alignment: view rather than download ? ' . $c->stash->{view} );
     $c->log->debug( 'Family::alignment: gzipped output ?            ' . $c->stash->{gzip} );
   }
-}
-
-#---------------------------------------
-
-=head2 alignment_default : Chained('family') PathPart('alignment') Args(0)
-
-Catches requests with no alignment type (seed or full) and no format specified.
-Defaults to Stockholm-format seed alignment.
-
-=cut 
-
-sub alignment_default: Chained( 'family' ) 
-                       PathPart( 'alignment' )
-                       Args( 0 ) {
-  my ( $this, $c ) = @_;
-
-  $c->forward( 'alignment',        [ 'seed' ] );
-  $c->forward( 'alignment_format', [ 'stockholm' ] );
 }
 
 #---------------------------------------
@@ -1124,12 +1343,6 @@ sub alignment_format : Chained( 'alignment' )
 sub alignment_format_GET {
   my ( $this, $c, $format ) = @_;
 
-  unless ( defined $format and 
-           $format =~ m/^\w+$/ ) {
-    $c->detach( 'alignment_default' );
-    return;
-  }
-
   # the output...
   $c->stash->{output_alignment} = ''; # a slot to hold the output alignment
   $c->stash->{is_gzipped} = 0;        # a flag: is it gzipped ?
@@ -1138,32 +1351,46 @@ sub alignment_format_GET {
   # what format should we write ?
   if ( $format eq 'jalview' ) {
     # hand off to a jalview tool window
+    $c->log->debug( 'Family::alignment_format_GET: format: "jalview"' )
+      if $c->debug;
+
     $c->stash->{template} = 'components/tools/jalview.tt';
+
     return;
   }
+
   elsif ( $format eq 'html' ) {
     # builds an HTML page that displays the alignment as paged blocks
-    $c->forward( 'get_html_alignment' );
-    if ( $c->stash->{errorMsg} ) {
-      $c->log->debug( 'Family::alignment_format: failed to retrieve HTML alignment' )
-        if $c->debug;
-      return;
-    }
+    $c->log->debug( 'Family::alignment_format_GET: format: "html"' )
+      if $c->debug;
 
     $c->stash->{template} = 'components/tools/html_alignment.tt';
+    $c->forward( 'get_html_alignment' );
+
+    unless ( $c->stash->{alignment_block} ) {
+      $c->log->debug( 'Family::alignment_format: failed to retrieve HTML alignment block' )
+        if $c->debug;
+
+      $c->stash->{rest}->{error} ||= 'There was a problem retrieving the HTML alignment for '
+                                     . $c->stash->{acc};
+    }
+
     return;
   }
+
   elsif ( $format eq 'colorstock' ) {
     # colorstock: HTML marked-up stockholm
+    $c->log->debug( 'Family::alignment_format_GET: format: "colorstock"' )
+      if $c->debug;
+
     $c->forward('get_colorstock_alignment' );
 
     unless ( $c->stash->{gzipped_alignment} ) {
       $c->log->debug( 'Family::alignment_format: failed to retrieve colorstock alignment' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem retrieving the colorstock alignment for '
-                              . $c->stash->{acc};
-
+      $c->stash->{rest}->{error} ||= 'There was a problem retrieving the colorstock alignment for '
+                                     . $c->stash->{acc};
       return;
     }
 
@@ -1172,24 +1399,29 @@ sub alignment_format_GET {
     $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html.gz';
     # $c->stash->{gzip}             = 1; # force colorstock to be gzipped
   }
+
   else {
     # everything else. This bit handles stockholm, pfam, fasta and ungapped fasta
+    $c->log->debug( 'Family::alignment_format_GET: raw alignment format' )
+      if $c->debug;
     $c->forward('get_gzipped_alignment');
 
     unless ( $c->stash->{gzipped_alignment} ) {
       $c->log->debug( 'Family::alignment_format: failed to retrieve raw alignment' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem retrieving the raw alignment for '
-                              . $c->stash->{acc};
+      $c->stash->{rest}->{error} ||= 'There was a problem retrieving the raw alignment for '
+                                     . $c->stash->{acc};
+      $c->res->status( 500 ); # Internal server error
+
       return;
     }
 
     $c->forward( 'format', [ $format ] );
   }
 
-  # TODO check for an error in $c->stash->{errorMsg}, originating from the forward
-
+  # finally, having retrieved an alignment, decide if it needs to be gzipped
+  # before being dumped into the response
   my $output;
 
   # should the output by gzipped ?
@@ -1210,8 +1442,9 @@ sub alignment_format_GET {
     $c->log->debug( 'Family::alignment_format: failed to gzip/gunzip the alignment' )
       if $c->debug;      
 
-    $c->stash->{errorMsg} = 'There was a problem building the requested alignment for '
-                            . $c->stash->{acc};
+    $c->stash->{rest}->{error} ||= 'There was a problem building the requested alignment for '
+                                   . $c->stash->{acc};
+    $c->res->status(500); # Internal server error
 
     return;
   }
@@ -1371,11 +1604,11 @@ sub get_data : Private {
     $c->log->debug( 'Family::get_data: no row for that accession/ID' )
       if $c->debug;
   
-    # there's a status helper that fits here...
-    $this->status_not_found(
-      $c,
-      message => 'No valid Rfam family accession or ID'
-    );
+    $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
+
+    $this->status_not_found( $c, message => 'No valid Rfam family accession or ID' );
 
     return;
   }  
@@ -1457,26 +1690,25 @@ Retrieves sequence data for the family.
 sub get_regions_data : Private {
   my ( $this, $c ) = @_;
   
-  # save some typing...
-  my $rfam = $c->stash->{rfam};
-
   $c->log->debug( 'Family::get_regions_data: family has |'
-                  . $rfam->num_full . '| regions' ) if $c->debug;
+                  . $c->stash->{rfam}->num_full . '| regions' ) if $c->debug;
 
   my @regions = $c->model('RfamDB::RfamRegFull')
-                  ->search( { auto_rfam => $rfam->auto_rfam },
+                  ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
                             { join      => { 'auto_rfamseq' => 'ncbi_id' },
                               '+select' => [ qw( auto_rfamseq.rfamseq_acc
                                                  auto_rfamseq.description
                                                  ncbi_id.species
+                                                 ncbi_id.ncbi_id
                                                  auto_rfamseq.length ) ],
                               '+as'     => [ qw( rfamseq_acc
                                                  description
                                                  species
+                                                 ncbi_taxid
                                                  length ) ],
                               order_by  => [ 'bits_score DESC' ] } );
                                             
-  $c->stash->{regions} = \@regions;
+  $c->stash->{region_rows} = \@regions;
 
   $c->log->debug( 'Family::get_regions_data: added |' . scalar @regions
                   . '| regions to stash' ) if $c->debug;
@@ -1501,9 +1733,9 @@ sub get_wikipedia : Private {
   
   return unless ( $article and $article->wikitext );
 
-  $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
-                  . $article->title . '|' )
-    if $c->debug;
+  # $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
+  #                 . $article->title . '|' )
+  #   if $c->debug;
 
   $c->stash->{article} = $article;
 }
@@ -1536,8 +1768,13 @@ sub no_alignment : Private {
     $image = decode_base64( $no_alignment_image );
 
     unless ( defined $image ) {
-      $c->stash->{errorMsg} = 'We could not find an image for ' 
-                              . $c->stash->{acc};
+      $c->res->status( 500 ); # Internal server error
+
+      $c->stash->{rest}->{error} = 'We could not find an image for ' . $c->stash->{acc};
+      $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/html' )
+                            ? 'components/blocks/family/error.tt'
+                            : 'rest/family/error_xml.tt';
+
       return;
     }
 
@@ -1800,7 +2037,11 @@ sub format : Private {
     $c->log->debug( 'Family::format: no supported format specified' )
       if $c->debug;
 
-    $c->stash->{errorMsg} = 'Not a valid alignment format';
+    $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
+
+    $this->status_bad_request( $c, message => 'Not a valid alignment format');
 
     return;
   }
@@ -1910,35 +2151,33 @@ sub get_html_alignment : Private {
                                               { type => $c->stash->{alnType} } );
 
   unless ( scalar @rs ) {
-    $c->log->debug( 'Family::html_alignment: failed to retrieve an alignment block' )
+    $c->log->debug( 'Family::get_html_alignment: failed to retrieve an alignment block' )
       if $c->debug;
 
-    $c->stash->{errorMsg} = 'There was a problem extracting the requested alignment block for '
-                            . $c->stash->{acc};
-
+    $c->stash->{rest}->{error} = 'There was a problem extracting the requested alignment block for '
+                                 . $c->stash->{acc};
     return;
   }
 
-  $c->log->debug( 'Family::html_alignment: found ' . scalar @rs . ' blocks' )
+  $c->log->debug( 'Family::get_html_alignment: found ' . scalar @rs . ' blocks' )
     if $c->debug;
 
   # decide which block to show
   my ( $block_num ) = ( $c->req->param('block') || 0 ) =~ m/^(\d+)$/;
   $block_num ||= 0;
 
-  $c->log->debug( "Family::html_alignment: showing block $block_num" )
+  $c->log->debug( "Family::get_html_alignment: showing block $block_num" )
     if $c->debug;
 
   # gunzip the html
   my $gzipped_html = $rs[$block_num]->html;
   my $block = Compress::Zlib::memGunzip( $gzipped_html );
   unless ( defined $block ) {
-    $c->log->debug( 'Family::html_alignment: failed to gunzip the alignment block' )
+    $c->log->debug( 'Family::get_html_alignment: failed to gunzip the alignment block' )
       if $c->debug;
 
-    $c->stash->{errorMsg} = 'There was a problem uncompressing an alignment block for '
-                            . $c->stash->{acc};
-
+    $c->stash->{rest}->{error} = 'There was a problem uncompressing an alignment block for '
+                                 . $c->stash->{acc};
     return;
   }
  
@@ -1961,7 +2200,7 @@ sub get_gzipped_alignment : Private {
   my ( $this, $c ) = @_;
 
   my $alnType = $c->stash->{alnType} . ( $c->stash->{nseLabels} ? '' : 'Tax' );
-  $c->log->debug( "Family::Alignment::Download::get_gzipped_alignment: setting alignment type to |$alnType|" )
+  $c->log->debug( "Family::get_gzipped_alignment: setting alignment type to |$alnType|" )
     if $c->debug;
   
   # first try the cache...
@@ -1971,11 +2210,11 @@ sub get_gzipped_alignment : Private {
   my $gzipped_alignment = $c->cache->get( $cacheKey );
 
   if ( defined $gzipped_alignment ) {
-    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: extracted gzipped alignment from cache' )
+    $c->log->debug( 'Family::get_gzipped_alignment: extracted gzipped alignment from cache' )
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to extract gzipped alignment from cache; going to DB' )
+    $c->log->debug( 'Family::get_gzipped_alignment: failed to extract gzipped alignment from cache; going to DB' )
       if $c->debug;
 
     # failed to get a cached version; retrieve the alignment from the DB
@@ -1984,29 +2223,30 @@ sub get_gzipped_alignment : Private {
                                                 { columns => [ 'alignment' ] } );
 
     # make sure the query returned something
-    unless ( defined $rs ) {
-      $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve a row' )
+    unless ( defined $rs and
+             defined $rs->first ) {
+      $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve a row' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem retrieving the alignment data for '
-                              . $c->stash->{acc};
+      $c->stash->{rest}->{error} = 'There was a problem retrieving the alignment data for '
+                                   . $c->stash->{acc};
 
       return;
     }
 
     # make sure we can get the alignment out of the returned row
     unless ( $gzipped_alignment = $rs->first->alignment ) {
-      $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: failed to retrieve an alignment' )
+      $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve an alignment' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem uncompressing the alignment data for '
-                              . $c->stash->{acc};
+      $c->stash->{rest}->{error} = 'There was a problem uncompressing the alignment data for '
+                                   . $c->stash->{acc};
 
       return;
     }
 
     # cache the gzipped alignment
-    $c->log->debug( 'Family::Alignment::Download::get_gzipped_alignment: retrieved gzipped alignment from DB' )
+    $c->log->debug( 'Family::get_gzipped_alignment: retrieved gzipped alignment from DB' )
       if $c->debug;
     $c->cache->set( $cacheKey, $gzipped_alignment ) unless $ENV{NO_CACHE};
   }
@@ -2054,8 +2294,8 @@ sub get_colorstock_alignment : Private {
       $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve a row' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem retrieving the colorstock alignment for '
-                              . $c->stash->{acc};
+      $c->stash->{rest}->{error} = 'There was a problem retrieving the colorstock alignment for '
+                                   . $c->stash->{acc};
 
       return;
     }
@@ -2067,8 +2307,8 @@ sub get_colorstock_alignment : Private {
       $c->log->debug( 'Family::get_colorstock_alignment: failed to retrieve HTML' )
         if $c->debug;
 
-      $c->stash->{errorMsg} = 'There was a problem retrieving the HTML colorstock alignment for '
-                              . $c->stash->{acc};
+      $c->stash->{rest}->{error} = 'There was a problem retrieving the HTML colorstock alignment for '
+                                   . $c->stash->{acc};
 
       return;
     }
