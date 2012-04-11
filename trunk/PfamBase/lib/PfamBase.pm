@@ -50,11 +50,15 @@ module so that it will look along relative paths and will allow Apache-style
 "include" directives, both of which we need to load various configuration files
 into the main site config.
 
+C style comments have been disabled in the config since they wont allow the use
+of wild cards in the robots.txt urls.
+
 =cut
 
 __PACKAGE__->config->{'Plugin::ConfigLoader'}->{driver} =
   { General => { -IncludeRelative  => 1,
-                 -UseApacheInclude => 1 } };
+                 -UseApacheInclude => 1,
+                 -CComments        => 0 } };
 
 #-------------------------------------------------------------------------------
 
