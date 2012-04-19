@@ -34,8 +34,12 @@ META naked = 1;
              id="entry" />
     </div>
 
+<!--
   	<div onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}}"
   		   class="glassButton goButton">&nbsp;</div>
+-->
+    <button class="pretty"
+            onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}}">Go</button>
 
     <div style="display: none"
          class="jumpSpinner">Searching...</div>
