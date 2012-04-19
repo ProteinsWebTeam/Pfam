@@ -191,10 +191,9 @@ PROCESS components/links.tt; %]
               <div class="wpData">
                 <h1 class="firstHeading">
                   [% article.title.replace( "_", " " ) | html %]
-                  <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
-                  <img class="addAnnotation" 
-                       alt="Edit Wikipedia article" 
-                       src="[% c.uri_for( '/static/images/edit_wikipedia_button.png' ) %]" /></a>
+                  <a class="addAnnotation" 
+                     href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
+                    <button class="pretty">Edit Wikipedia article</button></a>
                 </h1>
                 [% article.wikitext.text %]
               </div>
@@ -247,13 +246,11 @@ PROCESS components/links.tt; %]
                style="display: none">&nbsp;</div>
 
           <h1>
-            [% pfam.description;
-            IF ( ! hasWikiArticles ) OR is_duf %]
-              <a href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
-                <img class="addAnnotation" 
-                     alt="Add an annotation" 
-                     src="[% c.uri_for( '/static/images/annotation.png' ) %]" /></a>
-            [%- END %]
+            [% pfam.description %]
+            <a id="addAnnotationButton" 
+               class="addAnnotation" 
+               href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
+              <button class="pretty">Provide feedback</button></a>
           </h1>
 
           [%- IF pfam.comment.length %]
@@ -401,6 +398,16 @@ PROCESS components/links.tt; %]
 
     document.observe( "dom:loaded", function() {
       extraContentTabView = new YAHOO.widget.TabView("summaryTabs");
+
+      var aat = new Tip( "addAnnotationButton",
+        { title: "If you have suggestions for improving this family, please let us know.",
+          hook: { target: 'bottomMiddle', tip: 'topMiddle', mouse: false },
+          delay: 0.5,
+          stem: "topMiddle",
+          style: "pfam",
+          width: "20em",
+          fixed: true }
+      );
 
       [%- IF hasWikiArticles;
         # set up the "show"/"hide" links in the wiki content %]
