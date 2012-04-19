@@ -119,10 +119,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                    name="entry" 
                    id="jumpField" 
                    size="30" />
-            <div id="jumpButton"
-                 class="glassButton goButton">&nbsp;</div>
-            <div onclick="fillJumpField();"
-                 class="glassButton exampleButton">&nbsp;</div>
+            <button id="jumpButton"
+                    class="pretty goButton">Go</button>
+            <button type="button"
+                    class="pretty"
+                    onclick="fillJumpField();">Example</button>
             <div style="display: none"
                  class="jumpSpinner">Searching...</div>
             <div style="display: none"
@@ -164,10 +165,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                   rows="6"></textarea>
       </div>
     </form>
-    <div onclick="if( $('seq').present() ){$('seqForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('seq').value=exSeq"
-         class="glassButton exampleButton">&nbsp;</div>
+    <button onclick="if( $('seq').present() ){$('seqForm').submit()};"
+            class="pretty goButton">Go</button>
+    <button onclick="$('seq').value=exSeq"
+            class="pretty"
+            type="button">Example</button>
     <p class="small nlh">
       This search will use and an E-value of 1.0. You can set your own search 
       parameters and perform a range of other searches 
@@ -192,10 +194,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                name="type"
                value="Family" />
       </div>
-      <div onclick="if( $('familyField').present() ){jump('familyForm');};"
-           class="glassButton goButton">&nbsp;</div>
-      <div onclick="$('familyField').value=exPfamId"
-           class="glassButton exampleButton">&nbsp;</div>
+      <button onclick="if( $('familyField').present() ){jump('familyForm');};"
+              class="pretty goButton">Go</button>
+      <button onclick="$('familyField').value=exPfamId"
+              class="pretty"
+              type="button">Example</button>
       <div style="display: none"
            class="jumpSpinner">Searching...</div>
       <div style="display: none"
@@ -224,10 +227,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                name="type"
                value="Clan" />
       </div>
-      <div onclick="if( $('clanField').present() ){jump('clanForm');};"
-           class="glassButton goButton">&nbsp;</div>
-      <div onclick="$('clanField').value=exClanId"
-           class="glassButton exampleButton">&nbsp;</div>
+      <button onclick="if( $('clanField').present() ){jump('clanForm');};"
+              class="pretty goButton">Go</button>
+      <button onclick="$('clanField').value=exClanId"
+              class="pretty"
+              type="button">Example</button>
       <div style="display: none"
            class="jumpSpinner">Searching...</div>
       <div style="display: none"
@@ -256,10 +260,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                name="type"
                value="Protein" />
       </div>
-      <div onclick="if( $('proteinField').present() ){jump('proteinForm');};"
-           class="glassButton goButton">&nbsp;</div>
-      <div onclick="$('proteinField').value=exUnpId"
-           class="glassButton exampleButton">&nbsp;</div>
+      <button onclick="if( $('proteinField').present() ){jump('proteinForm');};"
+              class="pretty goButton">Go</button>
+      <button onclick="$('proteinField').value=exUnpId"
+              class="pretty"
+              type="button">Example</button>
       <div style="display: none"
            class="jumpSpinner">Searching...</div>
       <div style="display: none"
@@ -292,10 +297,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                name="type"
                value="Structure" />
       </div>
-      <div onclick="if( $('structureField').present() ){jump('structureForm');};"
-           class="glassButton goButton">&nbsp;</div>
-      <div onclick="$('structureField').value=exPdbId"
-           class="glassButton exampleButton">&nbsp;</div>
+      <button onclick="if( $('structureField').present() ){jump('structureForm');};"
+              class="pretty goButton">Go</button>
+      <button onclick="$('structureField').value=exPdbId"
+              class="pretty"
+              type="button">Example</button>
       <div style="display: none"
            class="jumpSpinner">Searching...</div>
       <div style="display: none"
@@ -315,10 +321,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                id="keywordField"
                size="30" />
       </div>
-      <div onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
-           class="glassButton goButton">&nbsp;</div>
-      <div onclick="$('keywordField').value=exKw"
-           class="glassButton exampleButton">&nbsp;</div>
+      <button onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
+              class="pretty goButton">Go</button>
+      <button onclick="$('keywordField').value=exKw"
+              class="pretty"
+              type="button">Example</button>
       <p class="small nlh">
         You can also use the
         <a onclick="$('siteSearchField').focus();return false;" href="#">
