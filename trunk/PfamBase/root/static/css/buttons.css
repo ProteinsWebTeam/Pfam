@@ -1,0 +1,46 @@
+
+button.pretty {
+  border-radius:5px;
+  padding: 2px 3px 1px;
+  margin: 0 0 0 3px;
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.6);
+  font-family: sans-serif;
+  font-weight: bold;
+  color:rgba(255,255,255,1);
+  text-shadow:1px 1px 1px rgba(0,0,0,0.4);
+  position: relative;
+  cursor: pointer;
+  text-decoration: none ! important;
+}
+
+button.pretty:active, button.pretty:focus {
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.6);
+  top: 1px;
+  left: 1px;
+}
+
+button.pretty:disabled {
+  color:rgba(0,0,0,0.6);
+  border:1px solid rgba(163,163,163,1);
+  background-image: linear-gradient(top, rgb(163,163,163) 10%, rgb(212,212,212) 25%, rgb(163,163,163) 50%);
+  background-image: -o-linear-gradient(top, rgb(163,163,163) 10%, rgb(212,212,212) 25%, rgb(163,163,163) 50%);
+  background-image: -moz-linear-gradient(top, rgb(163,163,163) 10%, rgb(212,212,212) 25%, rgb(163,163,163) 50%);
+  background-image: -webkit-linear-gradient(top, rgb(163,163,163) 10%, rgb(212,212,212) 25%, rgb(163,163,163) 50%);
+  background-image: -ms-linear-gradient(top, rgb(163,163,163) 10%, rgb(212,212,212) 25%, rgb(163,163,163) 50%);
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.1, rgb(163,163,163)),
+    color-stop(0.25, rgb(212,212,212)),
+    color-stop(0.5, rgb(163,163,163))
+  );
+}
+
+button.pretty:disabled:active, 
+button.pretty:disabled:focus {
+  box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.6);
+  top: 0;
+  left: 0;
+}
+
