@@ -50,9 +50,16 @@ my $log = get_logger();
 
 #-------------------------------------------------------------------------------
 
-# find the config file
+# handle the command-line options
 my $config_file = 'conf/wiki.conf';
-GetOptions ( 'config=s' => \$config_file );
+my $verbosity = 0;
+GetOptions ( 'config=s' => \$config_file,
+             'v+'       => \$verbosity );
+
+# increase the amount of logging by one level for each "v" switch added
+$log->more_logging( $verbosity );
+
+# find the config file
 $log->logdie( "ERROR: couldn't read config from '$config_file': $!" )
   unless -e $config_file;
 
@@ -145,15 +152,22 @@ foreach ( @live_articles, @dead_titles, @dead_articles ) {
   push @{ $pfam_map{$acc} }, $title;
 }
 
-# $DB::single = 1;
+$DB::single = 1;
 
 #---------------------------------------
 
 # update the wikipedia and article_mapping tables with the new Pfam data
 
-# need to do a bit of work to handle the many-to-many relationship here
 foreach my $acc ( keys %pfam_map ) { 
   my $titles = $pfam_map{$acc};
+
+  $log->debug( "deleting mapping(s) for Pfam entry '$acc'" );
+  my $rv = $wa_schema->resultset('ArticleMapping')
+                     ->search( { accession => $acc } )
+                     ->delete;
+  
+  $log->logwarn( "warning: failed to delete old mapping for '$acc'" )
+    unless $rv > 0;
 
   $log->debug( "checking Pfam entry '$acc'" );
   foreach my $title ( @$titles ) {
@@ -252,13 +266,6 @@ sub add_row {
   my ( $acc, $title, $db ) = @_;
 
   # this should be in a transaction
-
-  my $rv = $wa_schema->resultset('ArticleMapping')
-                     ->search( { accession => $acc } )
-                     ->delete;
-  
-  $log->logwarn( "warning: failed to delete old mapping for '$acc' ('$title')" )
-    unless $rv > 0;
 
   $wa_schema->resultset('ArticleMapping')
             ->create( { title     => $title,
