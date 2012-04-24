@@ -233,14 +233,6 @@ foreach ( @live_articles, @dead_titles, @dead_articles ) {
 foreach my $acc ( keys %rfam_map ) { 
   my $titles = $rfam_map{$acc};
 
-  $log->debug( "deleting mapping(s) for Rfam entry '$acc'" );
-  my $rv = $wa_schema->resultset('ArticleMapping')
-                     ->search( { accession => $acc } )
-                     ->delete;
-  
-  $log->logwarn( "warning: failed to delete old mapping for '$acc'" )
-    unless $rv > 0;
-
   foreach my $title ( @$titles ) {
     $log->debug( "checking Rfam entry/title: |$acc|$title|" );
     eval {
@@ -276,10 +268,10 @@ sub add_row {
   # this should be in a transaction
 
   $wa_schema->resultset('ArticleMapping')
-            ->create( { title     => $title,
-                        accession => $acc,
-                        db        => $db },
-                      { key => 'primary' } )
+            ->update_or_create( { title     => $title,
+                                  accession => $acc,
+                                  db        => $db },
+                                { key => 'primary' } )
     or die "error: failed to add mapping for '$acc' --> '$title'";
                                     
   $wa_schema->resultset('Wikipedia')
