@@ -70,8 +70,8 @@ IF refreshUri != "";
 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> 
 
+[% IF c.config.analytics.grep('google').size -%]
 <!-- google analytics -->
-[% IF c.config.analytics == 'google' %]
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', '[% c.config.analytics_id %]']);
@@ -83,9 +83,13 @@ IF refreshUri != "";
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
-[% ELSE %]
+[% END;
+
+IF c.config.analytics.grep('urchin').size -%]
+<!-- urchin -->
 <script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
-[% END %]
+[% END -%]
+
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
 <script type='text/javascript' src='[% sharedUri %]/javascripts/styles.js'></script>
