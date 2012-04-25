@@ -27,7 +27,7 @@ use Data::Dump qw(dump);
 # table in the "web_user" database. Add the appropriate DBIC schema 
 # description to PERL5LIB
 
-my $DEBUG = 0;
+my $DEBUG = $ENV{DEBUG} || 0;
 
 # get a WikiScraper...
 my $scraper = Bio::Pfam::Wiki::Scraper->new;
@@ -96,6 +96,12 @@ while ( my ( $title, $revision ) = each %$revisions ) {
   # default revision number of 0 in that case.
   my $row = $schema->resultset('Wikitext')
                 ->find_or_create( { title => $title } );
+
+  # make sure the row object in memory matches the row in the database. We need
+  # to do this to make sure that a new row, which will be created by the DB
+  # with an approved_revision of 0, is correctly populated before we try the
+  # test below
+  $row->discard_changes;
 
 	print STDERR "revision: |$revision|, approved_revision: |" . $row->approved_revision . "|\n"
 	  if $DEBUG;
