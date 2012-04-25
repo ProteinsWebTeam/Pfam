@@ -69,7 +69,7 @@ requirements.js.push( "graphic_generator.js" );
       Enter your description of a Pfam domain graphic here.
     </p>
 
-    <textarea cols="40" rows="20" id="seq">
+    <textarea cols="10" rows="20" id="seq">
  {
   "length" : "534",
   "regions" : [
@@ -140,8 +140,8 @@ requirements.js.push( "graphic_generator.js" );
       contents of the description field entirely.
     </p>
 
-    <a class="button" id="submit">Generate graphic</a>
-    <a class="button" id="clear">Clear sequence</a>
+    <button id="submit">Generate graphic</button>
+    <button id="clear">Clear sequence</button>
 
     <div id="errors"
          style="display: none">
