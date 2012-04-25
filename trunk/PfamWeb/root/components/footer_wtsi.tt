@@ -15,7 +15,8 @@
   <p class="spaced"><a href="http://www.wellcome.ac.uk/">The Wellcome Trust</a></p>
 </div>
 
-<!-- google analytics code -->
+[% IF c.config.analytics.grep('urchin').size -%]
+<!-- urchin code -->
 <script type="text/javascript">
   // <![CDATA[
   _userv=0;
@@ -23,6 +24,7 @@
   urchinTracker();
   // ]]>
 </script>
+[% END -%]
 
 <!-- footer end -->
 [%#
