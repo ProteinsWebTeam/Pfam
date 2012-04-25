@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+!/usr/bin/env perl
 
 # This script tries to do two things.
 #
@@ -152,7 +152,7 @@ foreach ( @live_articles, @dead_titles, @dead_articles ) {
   push @{ $pfam_map{$acc} }, $title;
 }
 
-$DB::single = 1;
+# $DB::single = 1;
 
 #---------------------------------------
 
