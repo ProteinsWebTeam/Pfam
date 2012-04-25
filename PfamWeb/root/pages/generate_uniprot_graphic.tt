@@ -76,7 +76,7 @@ requirements.js.push( "uniprot_graphic_generator.js" );
     <h2>Example sequence</h2>
 
     <p>
-      Click to enter an <button id="example">example</button> UniProt ID.
+      Click to enter an <a class="button" id="example">example</a> UniProt ID.
     </p>
 
   </div>
