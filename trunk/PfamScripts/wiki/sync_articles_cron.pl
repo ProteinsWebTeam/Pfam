@@ -1,4 +1,4 @@
-!/usr/bin/env perl
+#!/usr/bin/env perl
 
 # This script tries to do two things.
 #
@@ -57,7 +57,7 @@ GetOptions ( 'config=s' => \$config_file,
              'v+'       => \$verbosity );
 
 # increase the amount of logging by one level for each "v" switch added
-$log->more_logging( $verbosity );
+$log->more_logging(1) while $verbosity-- > 0;
 
 # find the config file
 $log->logdie( "ERROR: couldn't read config from '$config_file': $!" )
