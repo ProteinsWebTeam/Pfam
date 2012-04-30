@@ -222,7 +222,7 @@
       thousand), you can use our batch upload facility. This allows you to
       upload a file of your sequences in FASTA format, and we will run them
       against our HMMs and email the results back to you, usually within 48
-      hours. We request that you put a maximum of 1000 sequences in each file.
+      hours. We request that you put a maximum of 5000 sequences in each file.
   	</p>
   
   	<h3>Local protein searches</h3>
