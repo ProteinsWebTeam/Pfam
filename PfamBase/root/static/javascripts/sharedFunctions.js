@@ -363,7 +363,7 @@ var TabPage = Class.create( {
     }
 
     // get an ID for the tab that was just selected and register the change
-    //with the trackers
+    // with the trackers
     var tabId = $$("#sidebar ul li")
                   .toArray()[newState.substr(3)]
                   .identify()
@@ -374,7 +374,6 @@ var TabPage = Class.create( {
       // don't care
     }
     _gaq.push( [ "trackEvent", "Tabs", "Tab change", tabId ] ); // GA
-    }    
     try {
       mixpanel.track( "Tabbed page tab switch", { tab: tabId } ); // mixpanel
     } catch ( ex ) {
