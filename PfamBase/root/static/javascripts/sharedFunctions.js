@@ -363,16 +363,17 @@ var TabPage = Class.create( {
     }
 
     // get an ID for the tab that was just selected and register the change
-    //with the urchin tracker
+    //with the tracker(s)
     var tabId = $$("#sidebar ul li")
                   .toArray()[newState.substr(3)]
                   .identify()
                   .replace( "Selector", "" );
     try {
-      urchinTracker( "/tab/" + tabId );
+      urchinTracker( "/tab/" + tabId ); // urchin
     } catch( ex ) {
       // don't care
     }
+    _gaq.push( [ "trackEvent", "Tabs", "Tab change", tabId ] ); // GA
   },
 
   //----------------------------------------
@@ -529,7 +530,10 @@ function switchPanel( oTrigger, sId ) {
   // tell urchin about the switch
   try {
     urchinTracker( "/index/switchPanel/" + sId );
-  } catch( e ) {}
+  } catch( ex ) {
+    // don't care
+  }
+  _gaq.push( [ "trackEvent", "Tabs", "Index panel change", sId ] ); // GA
   
   // hide all of the panels
   $$("div.panel").each(
@@ -955,7 +959,10 @@ function jump(form) {
         if ( jumpTarget !== "undefined") {
           try {
             urchinTracker("/jump" + jumpTarget);
-          } catch (e) {}
+          } catch( ex ) {
+            // don't care
+          }
+          _gaq.push( [ "trackEvent", "Jump", "Jump target", jumpTarget ] ); // GA
         }
       }
       window.location = uri;
@@ -967,6 +974,8 @@ function jump(form) {
                        .update( oResponse.responseText )
                        .show();
       
+      _gaq.push( [ "trackEvent", "Jump", "Failed to guess", $F(entryField) ] ); // GA
+
       // select the contents of the entry field, to make it easy for the
       // user to overwrite it
       entryField.select();
