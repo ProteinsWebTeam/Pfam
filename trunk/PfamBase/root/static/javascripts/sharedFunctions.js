@@ -373,7 +373,11 @@ var TabPage = Class.create( {
     } catch( ex ) {
       // don't care
     }
-    _gaq.push( [ "_trackEvent", "Tabs", "Tab change", tabId ] ); // GA
+    try {
+      _gaq.push( [ "_trackEvent", "Tabs", "Tab change", tabId ] ); // GA
+    } catch( ex ) {
+      // don't care
+    }
     try {
       mixpanel.track( "Tabbed page tab switch", { tab: tabId } ); // mixpanel
     } catch ( ex ) {
@@ -538,7 +542,11 @@ function switchPanel( oTrigger, sId ) {
   } catch( ex ) {
     // don't care
   }
-  _gaq.push( [ "_trackEvent", "Tabs", "Index panel change", sId ] ); // GA
+  try {
+    _gaq.push( [ "_trackEvent", "Tabs", "Index panel change", sId ] ); // GA
+  } catch( ex ) {
+    // don't care
+  }
   
   // hide all of the panels
   $$("div.panel").each(
@@ -967,7 +975,11 @@ function jump(form) {
           } catch( ex ) {
             // don't care
           }
-          _gaq.push( [ "_trackEvent", "Jump", "Jump target", jumpTarget ] ); // GA
+          try {
+            _gaq.push( [ "_trackEvent", "Jump", "Jump target", jumpTarget ] ); // GA
+          } catch( ex ) {
+            // don't care
+          }
         }
       }
       window.location = uri;
@@ -979,7 +991,11 @@ function jump(form) {
                        .update( oResponse.responseText )
                        .show();
       
-      _gaq.push( [ "_trackEvent", "Jump", "Failed to guess", $F(entryField) ] ); // GA
+      try {
+        _gaq.push( [ "_trackEvent", "Jump", "Failed to guess", $F(entryField) ] ); // GA
+      } catch( ex ) {
+        // don't care
+      }
 
       // select the contents of the entry field, to make it easy for the
       // user to overwrite it
