@@ -1072,7 +1072,7 @@ sub parse_sequence : Private {
 
   # check that the sequence string contains only the appropriate letters. Bail
   # if it has anything else in it
-  unless ( $seq =~ m/^[ACGUTSWMKRYBDHVN\-\.]+$/ ) {
+  unless ( $seq =~ m/^[ACGUTSWMKRYBDHVN\-]+$/ ) {
     $c->stash->{rest}->{error} = 
       'Invalid sequence. Please try again with a valid nucleic-acid sequence';
     
