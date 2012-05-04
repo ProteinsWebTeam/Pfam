@@ -81,10 +81,12 @@ img.info {
 
 .odd {
   background: #f3f3f3;
+  background: rgba(243, 243, 243, 0.5);
 }
 
 .even {
   background: #e7e7e7;
+  background: rgba(231, 231, 231, 0.5);
 }
 
 .small {
@@ -130,7 +132,7 @@ h4, h5, h6 {
  */
 
 #header {
-  padding: 0 250px 0 250px;
+  padding: 0 243px 0 250px;
   min-width: 300px;
 }
 
@@ -151,8 +153,14 @@ div.siteLogoHolder { /* left */
 }
 
 div.rfamLogoHolder { /* right */
-  width: 250px;
-  margin-right: -250px;
+  width: 240px;
+  margin-right: -240px;
+  padding: 10px 0 0 0;
+}
+
+div.rfamLogoHolder.pre { 
+  width: 240px;
+  margin-right: -240px;
   padding: 10px 0 0 0;
 }
 
@@ -163,9 +171,20 @@ div.rfamLogoHolder { /* right */
 /* we need the right "column" to be the same width as the left in order to 
  * centre the navbar, but then we need to push the contents of the right column
  * back right to account for that */
-div.rfamLogoHolder a,
+div.rfamLogoHolder a {
+  margin-left: 4px;
+}
+
 div.rfamLogoHolder #searchBox {
   margin-left: 66px;
+}
+
+/* div.rfamLogoHolder a.button { */
+/*   margin-left: 0px; */
+/* } */
+
+div.rfamLogoHolder.pre img {
+  margin-left: 0px;
 }
 
 #siteLogo {
@@ -178,14 +197,23 @@ div.rfamLogoHolder #searchBox {
 
 #rfamLogo {
   background: #FFF url(/static/images/rfam_logo.png) no-repeat;
-  width: 170px;
+  width: 230px;
   height: 50px;
 }
 
-/* tweak the site-wide search box so that it fits nicely under the Pfam logo */
+div.pre #rfamLogo {
+  background: #FFF url(/static/images/pre_rfam_logo.png) no-repeat ! important;
+  width: 230px;
+}
+
+/* tweak the site-wide search box so that it fits nicely under the Rfam logo */
 #siteSearchField {
-  width: 98px;
-  margin-left: 29px;
+  width: 90px;
+  margin-left: 38px;
+}
+
+div.pre #siteSearchField {
+  margin-left: 38px;
 }
 
 /* navbar styles */
@@ -325,6 +353,10 @@ div.jumpSpinner {
 /* ---------------------------------------- */
 /* search errors page */
 
+#errors {
+  text-align: left;
+}
+
 .tips {
 	margin: 0.2em auto;
   width: 60em;
@@ -430,6 +462,7 @@ table.details {
 
 table.details thead tr {
   background: #BBB;
+  background: rgba(187, 187, 187, 0.5);
 }
 
 table.details th {
@@ -447,6 +480,7 @@ table.details td.label {
   width: 14em;
   padding: 0.2em;
   background: #CCC;
+  background: rgba(204, 204, 204, 0.5);
   text-align: center ! important;
   font-weight: bold;
 }
@@ -559,12 +593,23 @@ a.sortheader {
 /* affects the key */
 
 .key {
+    background-color: #EEEEEE;
+    border: 1px solid #CCCCCC;
+    border-radius: 5px 5px 5px 5px;
+    box-shadow: 1px 1px 8px #AAAAAA;
+    margin: 8px;
+    padding: 4px;
+    text-align: center;
+}
+/* before we added CSS3 styles...
+.key {
   padding: 4px;
   margin: 6px;
   border: 1px solid #CCC;
   background-color: #EEE;
   text-align: center;
 }
+*/
 
 .key h2 {
   color: #621700;
@@ -619,12 +664,6 @@ a.sortheader {
 
 #keyTable tr.even {
   background-color: #CCC;
-}
-
-/* affects the results div */
-
-#results {
-  margin: 4px;
 }
 
 /* affects the results table */
@@ -1220,3 +1259,45 @@ div.SSSwitcher {
 #rSwitcher {
   width: 49%;
 }
+
+/* ======================================== */
+/* CSS buttons */
+
+a.button {
+  border:1px solid rgba(55,13,1,0.2);
+  background-image: linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+  background-image: -o-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+  background-image: -moz-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+  background-image: -webkit-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+  background-image: -ms-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.1, rgb(98,23,0)),
+    color-stop(0.25, rgb(143,86,68)),
+    color-stop(0.5, rgb(98,23,0))
+  );
+}
+
+
+a.button:hover {
+  background-image: linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
+  background-image: -o-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
+  background-image: -moz-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
+  background-image: -webkit-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
+  background-image: -ms-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.1, rgb(128,30,0)),
+    color-stop(0.25, rgb(143,86,68)),
+    color-stop(0.5, rgb(128,30,0))
+  );
+}
+
+a.button.go {
+  margin-left: 4px;
+}
+
