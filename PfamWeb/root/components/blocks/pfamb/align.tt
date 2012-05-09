@@ -12,7 +12,7 @@ alignmentUri = c.uri_for( "/pfamb/$acc/alignment" );
 
 <!-- start align block -->
 
-<div class="block" id="alignBlock">
+<div class="block" id="pfambAlignBlock">
   <div class="handle">
     <h1>Alignments</h1>
   </div>
