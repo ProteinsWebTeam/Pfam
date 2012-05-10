@@ -181,6 +181,7 @@ END -%]
       $("loadingSpinner").show();
       $("loadingButton").disable();
   
+      console.debug( "assignedColours: " + assignedColours );
       var r = new Ajax.Updater( 
         "next[% first %]",
         "[% c.uri_for( '/domaingraphics' ) %]",
@@ -190,14 +191,13 @@ END -%]
           parameters:  { acc:   "[% acc %]",
                          taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
                          start: "[% last + 1 %]",
-                         ac:    encodeURI( new Hash(assignedColours).toJSON() ) },
+                         ac:    encodeURI( JSON.stringify( assignedColours ) ) },
           onFailure:   function() {
             $("next[% first %]")
               .update("There was a problem retrieving the next set of domain graphics");
           }
         }
       );
-  
     } );
 
   }
