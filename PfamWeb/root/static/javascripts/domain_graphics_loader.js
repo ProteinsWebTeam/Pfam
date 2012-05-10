@@ -161,7 +161,7 @@ var DomainGraphicsLoader = Class.create( {
     // console.log( "DGL._loadDomains: setting up ac: ", this._assignedColours );
     if ( this._assignedColours !== undefined ) {
       options.parameters = {};
-      options.parameters.ac = encodeURI( new Hash(this._assignedColours).toJSON() );
+      options.parameters.ac = encodeURI( JSON.stringify( this._assignedColours ) );
       // console.log( "DGL._loadDomains: options now: ", options );
     }
 
