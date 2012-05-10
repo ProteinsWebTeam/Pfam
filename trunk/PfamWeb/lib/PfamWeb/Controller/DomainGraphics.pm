@@ -76,8 +76,6 @@ sub begin : Private {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: got a real auto_arch: |' 
       . $c->stash->{auto_arch} . '|') if $c->debug;
-      
-    $c->forward( 'get_family_data' );
   }
 
   #----------------------------------------
