@@ -318,7 +318,8 @@ sub satisfy_pending_jobs {
                                  job_type => [$self->knownJobTypes] },
                                 {join     => [ qw/job_stream/],
                                  prefetch => [ qw/job_stream/],
-                                 order_by => 'me.id ASC' });
+                                 order_by => 'me.id ASC',
+                                 rows     => 1});
    my $result = shift @results;
    if($result){
     $result->update( { status  => 'RUN',
