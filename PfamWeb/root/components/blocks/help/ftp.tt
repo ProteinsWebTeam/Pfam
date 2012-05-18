@@ -145,19 +145,20 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
-          Pfam-B.hmm.dat.gz</a>
-      </dt>
-      <dd>
-        A data file that contains information about each Pfam-B family
-      </dd>
-  
-      <dt>
         <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
           Pfam-B.hmm.gz</a>
       </dt>
       <dd>
-        The Pfam HMM library for Pfam-B families 
+        The Pfam HMM library for Pfam-B families. <strong>Note</strong> that we build HMMs
+        for only the largest 20,000 Pfam-Bs. 
+      </dd>
+  
+      <dt>
+        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
+          Pfam-B.hmm.dat.gz</a>
+      </dt>
+      <dd>
+        A data file containng information about each of the 20,000 Pfam-B HMMs.
       </dd>
   
       <dt>
