@@ -53,7 +53,7 @@
   float: left;
 }
 
-#titleFamily {
+#titlePage {
   float: left;
 }
 
@@ -89,7 +89,13 @@
 #icons {
   width: 30%;
   float: right;
-  margin: -6px -5px 0 0;
+  /* margin: -6px -5px 0 0; */
+  background-color: #b18b80;
+  border-radius: 3px;
+  margin: 1px 1px 5px 0;
+  padding: 4px;
+  box-shadow: 1px 1px 4px;
+  -webkit-box-shadow: 1px 1px 3px 1px #AAA;
 }
 
 #icons span {
@@ -181,10 +187,15 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 /* ---------------------------------------- */
 
 #contentContainer {
-  background-color: #e7edf3; /* Prime 1 */
+  background-color: #f0e8e6; /* Prime 1 */
   background-repeat: repeat-x;
   background-position: bottom left;
-  padding: 0;
+  padding: 5px;
+  margin: 10px;
+  /* border: 1px solid #b18b80; */
+  border-radius: 10px;
+  box-shadow: 1px 1px 4px;
+  -webkit-box-shadow: 1px 1px 3px 1px #AAA;
 }
 
 #sidebar ul {
