@@ -274,7 +274,7 @@ img.addAnnotation {
   padding: 2px;
   color: #621700;
   font-weight: bold;
-  font-size: x-small;
+  font-size: 10px;
   float: left;
 }
 .disabledEntryField {
@@ -508,15 +508,6 @@ table.details tr.summaryRow {
   background: #AAA;
 }
 
-/* up and down sort arrows */
-table.details .sortasc {
-  background-image: url(/shared/images/dark_up.gif);
-}
-
-table.details .sortdesc {
-  background-image: url(/shared/images/dark_down.gif);
-}
-
 /* these two rules are for the details table when it is split into
    two separate columns */
 div.floatLeft {
@@ -574,14 +565,27 @@ body.tool h1 {
   background-repeat: no-repeat;
   background-position: right center;
 }
+.sortIndicator th {
+  background-image: url(/shared/images/up-down.gif);
+}
 .sortasc {
   background-image: url(/shared/images/up.gif);
 }
 .sortdesc {
   background-image: url(/shared/images/down.gif);
 }
+.sortIndicator.dark th {
+  background-image: url(/shared/images/dark_up_down.gif);
+}
+.dark .sortasc {
+  background-image: url(/shared/images/dark_up.gif);
+}
+.dark .sortdesc {
+  background-image: url(/shared/images/dark_down.gif);
+}
 .nosort {
   cursor: default;
+  background-image: none
 }
 
 /* this is the auto-generated link for sorting the column */
@@ -1263,41 +1267,36 @@ div.SSSwitcher {
 /* ======================================== */
 /* CSS buttons */
 
-a.button {
-  border:1px solid rgba(55,13,1,0.2);
-  background-image: linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
-  background-image: -o-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
-  background-image: -moz-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
-  background-image: -webkit-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
-  background-image: -ms-linear-gradient(top, rgb(98,23,0) 10%, rgb(143,86,68) 25%, rgb(98,23,0) 50%);
+a.btn {
+  border:1px solid #471100;
+  background-image: linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
+  background-image: -o-linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
+  background-image: -moz-linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
+  background-image: -webkit-linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
+  background-image: -ms-linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
+
   background-image: -webkit-gradient(
     linear,
     left top,
     left bottom,
-    color-stop(0.1, rgb(98,23,0)),
-    color-stop(0.25, rgb(143,86,68)),
-    color-stop(0.5, rgb(98,23,0))
+    color-stop(0, rgb(168,39,0)),
+    color-stop(0.97, rgb(98,23,0))
   );
 }
 
+a.btn:hover {
+  background-image: linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
+  background-image: -o-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
+  background-image: -moz-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
+  background-image: -webkit-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
+  background-image: -ms-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
 
-a.button:hover {
-  background-image: linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
-  background-image: -o-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
-  background-image: -moz-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
-  background-image: -webkit-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
-  background-image: -ms-linear-gradient(top, rgb(128,30,0) 10%, rgb(143,86,68) 25%, rgb(128,30,0) 50%);
   background-image: -webkit-gradient(
     linear,
     left top,
     left bottom,
-    color-stop(0.1, rgb(128,30,0)),
-    color-stop(0.25, rgb(143,86,68)),
-    color-stop(0.5, rgb(128,30,0))
+    color-stop(0, rgb(166,101,83)),
+    color-stop(0.97, rgb(97,60,48))
   );
-}
-
-a.button.go {
-  margin-left: 4px;
 }
 
