@@ -22,37 +22,31 @@ $Id: Help.pm,v 1.1 2009-01-06 11:32:23 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'RfamWeb::Controller::Section';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::Help';
 
 # set the name of the section
-__PACKAGE__->config( { SECTION => 'help' } );
+__PACKAGE__->config( SECTION => 'help' );
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 begin : Private
+=head2 section : Path
 
-Just sets up the look of the page. Tell the navbar where we are and set the
-summary icons to "disabled".
+Override the default section-name action from the L<Section> role. We 
+need to override to avoid "/help" returning the 404 page.
 
 =cut
 
-sub begin : Private {
- my( $this, $c ) = @_; 
+sub section : Path { }
 
- $c->cache_page( 604800 );
-
- # tell the navbar where we are
- $c->stash->{nav} = 'help';
-
- # tell the layout template to disable the summary icons
- $c->stash->{iconsDisabled} = 1;
-}
- 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR

@@ -20,10 +20,14 @@ $Id: Utils.pm,v 1.1 2008-06-24 08:47:25 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'PfamBase::Controller::Utils';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::Utils';
 
 #-------------------------------------------------------------------------------
 

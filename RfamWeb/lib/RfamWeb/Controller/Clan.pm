@@ -23,10 +23,14 @@ $Id$
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'RfamWeb::Controller::Section';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::Section' => { -excludes => 'section' };
 
 # set the name of the section
 __PACKAGE__->config( SECTION => 'clan' );
@@ -37,32 +41,13 @@ __PACKAGE__->config( SECTION => 'clan' );
 
 =head2 begin : Private
 
-This is the guts of this controller. It's function is to extract
-the Rfam clan ID or accession from the URL and get the row
-in the clans table for that entry. Expects one of three parameters:
-
-=over
-
-=item acc
-
-a valid Rfam accession
-
-=item id
-
-a valid Rfam accession
-
-=item entry
-
-either an ID or accession
-
-=back
+Extracts values from the parameters. Accepts "acc", "id" and "entry", in lieu
+of having them as path components.
 
 =cut
 
 sub begin : Private {
-  my ( $this, $c, $entry_arg ) = @_;
-  
-  $c->cache_page( 604800 );
+  my ( $this, $c ) = @_;
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
@@ -77,8 +62,35 @@ sub begin : Private {
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
-                      $entry_arg              ||
                       '';
+
+  if ( $tainted_entry ) {
+    $c->log->debug( 'Clan::begin: got a tainted entry' )
+      if $c->debug;
+    ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\._-]+)$/;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 clan : Chained('/') PathPart('clan') CaptureArgs(1)
+
+Starting point of a chain handling clan-related data. Retrieves clan information
+from the DB. This is the way in if the clan acc/ID is given as an argument.
+
+=cut
+
+sub clan : Chained( '/' )
+           PathPart( 'clan' )
+           CaptureArgs( 1 ) {
+  my ( $this, $c, $entry_arg ) = @_;
+  
+  my $tainted_entry = $c->stash->{param_entry} ||
+                      $entry_arg               ||
+                      '';
+
+  $c->log->debug( "Clan::clan: tainted_entry: |$tainted_entry|" )
+    if $c->debug;
   
   my ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
 
@@ -86,34 +98,87 @@ sub begin : Private {
     $c->log->debug( 'Clan::begin: no valid Rfam clan accession or ID' )
       if $c->debug;
 
-    $c->stash->{errorMsg} = 'Invalid Rfam clan accession or ID';
+    $c->stash->{errorMsg} = 'No valid Rfam clan accession or ID';
 
     return;
   }
   
-  #----------------------------------------
-
   # retrieve data for the clan
   $c->forward( 'get_data', [ $entry ] );
+}
+
+#-------------------------------------------------------------------------------
+
+sub clan_page : Chained( 'clan' )
+                PathPart( '' )
+                Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # there was a problem retrieving clan data
+  unless ( $c->stash->{clan} ) {
+    $c->log->debug( 'Clan::begin: problem retrieving clan data' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} ||= 'We could not find the data for the Rfam clan ' . $c->stash->{acc} .'.';
+  }
+
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Clan::begin: emitting XML' ) if $c->debug;
+
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Clan::begin: there was an error: |' .  $c->stash->{errorMsg} . '|' )
+        if $c->debug;
+
+      $c->stash->{template} = 'rest/clan/error_xml.tt';
+
+      return;
+    }
+    else {
+      $c->stash->{template} = 'rest/clan/clan.tt'
+    }
   
-  #----------------------------------------
+  }
+  else {
+    $c->log->debug( 'Clan::begin: emitting HTML; retrieving summary data' )
+      if $c->debug;
 
-  # if we're outputting HTML, we're done here
-  unless ( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Clan::begin: emitting HTML' ) if $c->debug;
-    return;
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Clan::begin: there was an error: |' .  $c->stash->{errorMsg} . '|' )
+        if $c->debug;
+
+      $c->stash->{template} = 'components/blocks/clan/error.tt';
+
+      return;
+
+    }
   }
 
-  # from here on we're handling XML output
-  $c->log->debug( 'Clan::begin: emitting XML' ) if $c->debug;
+  $c->forward( 'get_summary_data' );
 
-  # if there was an error...
-  if ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'Clan::begin: there was an error: |' .
-                    $c->stash->{errorMsg} . '|' ) if $c->debug;
-    $c->stash->{template} = 'rest/clan/error_xml.tt';
-    return;
-  }
+  $c->cache_page( 604800 );
+}
+
+#---------------------------------------
+
+=head2 old_clan : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_clan : Path( '/clan' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'clan::old_clan: redirecting to "clan"' )
+    if $c->debug;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -125,8 +190,10 @@ to the template that generates a table showing that mapping.
 
 =cut
 
-sub structures : Local {
-  my( $this, $c) = @_;
+sub structures : Chained( 'clan' )
+                 PathPart( 'structures' )
+                 Args( 0 ) {
+  my ( $this, $c) = @_;
 
   $c->cache_page( 604800 );
   
@@ -136,6 +203,29 @@ sub structures : Local {
 
   $c->stash->{template} = 'components/blocks/clan/structureTab.tt';
 }
+
+#---------------------------------------
+
+=head2 old_structures : Path
+
+Deprecated. Stub to redirect to the chained action.
+
+=cut
+
+sub old_clan_structures : Path( '/clan/structures' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Clan::old_clan_structures: redirecting to "structures"' )
+    if $c->debug;
+
+  delete $c->req->params->{id};
+  delete $c->req->params->{acc};
+  delete $c->req->params->{entry};
+
+  $c->res->redirect( $c->uri_for( '/clan', $c->stash->{param_entry}, 'structures', 
+                     $c->req->params ) );
+}
+
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -179,24 +269,6 @@ sub get_data : Private {
 #                       { join      => [ 'auto_rfam' ],
 #                         prefetch  => [ 'auto_rfam' ] } );
 #  $c->stash->{clanMembers} = \@rs;
-  
-  # if we're returning XML, we don't need the extra summary data etc.  
-  if ( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Clan::get_data: returning XML; NOT adding extra info' ) 
-      if $c->debug;
-    return;
-  }
-    
-  # unless this request originates at the top level of the object hierarchy,
-  # we don't need the extra summary data
-  unless ( ref $this eq 'RfamWeb::Controller::Clan' ) {
-    $c->log->debug( 'Clan::get_data: not the root Clan controller; NOT adding extra family info' )
-      if $c->debug;
-    return;
-  }
-
-  # finally, having decided that we need it...
-  $c->forward( 'get_summary_data' );
 }
 
 #-------------------------------------------------------------------------------
