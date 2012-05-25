@@ -38,7 +38,7 @@
 
 td.type {
   padding-right: 2em;
-  width: 20%;
+  width: 25%;
   text-align: right;
   vertical-align: top;
   font-weight: bold;
@@ -135,10 +135,10 @@ dl.alphabetList dd {
   margin: 0 0 1em 0.4em;
 }
 
-p.browseSummary {
+.browseSummary {
 //  text-align: center;
   width: 60%;
-  margin: 0 auto;
+  margin: 1em auto 0;
 }
 
 #footerPageList {
@@ -154,3 +154,24 @@ p.browseSummary {
   height: 3.4em;
 }
 
+/* rules specific to the articles browse page */
+.titleCol {
+	width: 40em;
+	text-align: left ! important;
+}
+.numCol {
+	width: 2em;
+}
+.accCol {
+	width: 20em;
+	text-align: left ! important;
+}
+.expandFamilyList {
+	width: 10em;
+	float: left;
+	font-size: smaller;
+}
+.familyLink {
+	width: 5em;
+	float: left;
+}
