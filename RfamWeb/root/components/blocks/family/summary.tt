@@ -16,6 +16,10 @@ requirements.cssIe.push( "family_ie.css" );
 
 sharedRequirements.css.push( "wp.css" );
 
+IF live;
+  requirements.css.push( "tab_layout_live.css" );
+END;
+
 #-------------------------------------------------------------------------------
 -%]
 
@@ -73,10 +77,9 @@ sharedRequirements.css.push( "wp.css" );
 
     <h1>
       Wikipedia annotation
-      <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% normalizedTitle %]">
-        <img class="addAnnotation" 
-             alt="Add an annotation" 
-             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
+      <a class="btn lrg"
+         href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% normalizedTitle %]">
+        <span class="btn-inner">Edit Wikipedia article</span></a>
     </h1>
     <p>
       The Rfam group coordinates the annotation of Rfam families in  
