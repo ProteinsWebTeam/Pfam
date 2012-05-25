@@ -22,12 +22,14 @@ $Id: Browse.pm,v 1.3 2009-01-06 11:51:13 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
+
+BEGIN {
+  extends 'Catalyst::Controller';
+}
 
 use Data::Dump qw( dump );
-
-use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
 
@@ -40,7 +42,7 @@ Caches the page and notifies the navbar of the location.
 =cut
 
 sub begin : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # stash the parameters, after checking that they're valid
   ( $c->stash->{$_} ) = $c->req->param($_) || '' =~ m/^(\w)$/
@@ -150,6 +152,18 @@ sub browse_genomes : Chained( '/' )
   $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
+#---------------------------------------
+
+=head2 genomes : Global
+
+Shortcut to "/browse/genomes".
+
+=cut 
+sub genomes : Global {
+  my ( $this, $c ) = @_;
+  $c->forward( '/browse/genomes' );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 browse_genomes_list : Chained PathPart Args
@@ -247,6 +261,18 @@ sub browse_families : Chained( '/' )
   
   $c->log->debug( 'Browse::browse_families: building a list of families' )
     if $c->debug;
+}
+
+#---------------------------------------
+
+=head2 families : Global
+
+Shortcut to "/browse/families".
+
+=cut 
+sub families : Global {
+  my ( $this, $c ) = @_;
+  $c->forward( '/browse/families' );
 }
 
 #-------------------------------------------------------------------------------

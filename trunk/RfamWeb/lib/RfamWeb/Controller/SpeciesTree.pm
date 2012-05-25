@@ -24,14 +24,17 @@ $Id: SpeciesTree.pm,v 1.4 2008-11-04 15:07:56 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
 use File::Temp qw( tempfile );
-
 use Data::Dump qw( dump );
 
-use base 'PfamBase::Controller::SpeciesTree';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::SpeciesTree';
 
 #-------------------------------------------------------------------------------
 
@@ -305,7 +308,7 @@ sub getDataByType : Private {
   my @regions = $c->model('RfamDB::RfamRegFull')
                   ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam },
                             { join     => [ { 'auto_rfamseq' => 'ncbi_id' },
-                                              'auto_rfam' ],
+                                            'auto_rfam' ],
                               prefetch => [ 'auto_rfamseq' ] } );
 
   $c->stash->{regions} = \@regions;
@@ -323,7 +326,7 @@ sub getDataByType : Private {
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
-    $inSeed{ $region->auto_rfamseq->rfamseq_acc}++;
+    $inSeed{ $region->auto_rfamseq->rfamseq_acc }++;
   }
 
   $c->stash->{inSeed}  = \%inSeed;  

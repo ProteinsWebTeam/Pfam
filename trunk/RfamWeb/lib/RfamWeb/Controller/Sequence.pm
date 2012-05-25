@@ -21,10 +21,14 @@ $Id: Sequence.pm,v 1.2 2009-01-06 11:52:29 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'Catalyst::Controller';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::Section' => { -excludes => 'section' };
 
 #-------------------------------------------------------------------------------
 

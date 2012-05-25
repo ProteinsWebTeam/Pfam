@@ -21,10 +21,14 @@ $Id: JobManager.pm,v 1.1 2008-09-12 09:13:10 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'PfamBase::Controller::JobManager';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::JobManager';
 
 #-------------------------------------------------------------------------------
 

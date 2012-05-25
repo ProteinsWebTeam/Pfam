@@ -22,10 +22,16 @@ $Id: Root.pm,v 1.3 2008-07-25 13:25:40 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use base 'PfamBase::Controller::Root';
+BEGIN {
+  extends 'Catalyst::Controller';
+}
+
+with 'PfamBase::Roles::Root';
+
+__PACKAGE__->config( namespace => '' );
 
 #-------------------------------------------------------------------------------
 
@@ -33,12 +39,12 @@ use base 'PfamBase::Controller::Root';
 
 =head2 auto : Private
 
-Adds the version data to the stash, so that it's accessible 
-throughout the site.
+Adds the version data to the stash, so that it's accessible throughout the
+site. Runs before the "auto" from the Root role from PfamBase.
 
 =cut
 
-sub auto : Private {
+before 'auto' => sub {
   my $this = shift;
   my ( $c ) = @_;
 
@@ -76,17 +82,15 @@ sub auto : Private {
   
   $c->stash->{relData} = $releaseData if $releaseData;
 
-  # call the "auto" method on the super-class, which will do the work of
-  # picking the correct tab for us
-  return $c->SUPER::auto( @_ );
-}
+  # runs before the "auto" action from the role, which will return a true value
+  # so that we don't need to do that here
+};
 
 #-------------------------------------------------------------------------------
 
 =head2 index : Private
 
-Generates the main site index page. This action is cloned from PfamBase, so 
-that we can enable page caching for the Rfam index page.
+Generates the main site index page.
 
 =cut
 
