@@ -20,13 +20,13 @@ $Id: RfamWeb.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
+use Catalyst::Runtime 5.80;
 use Sys::Hostname;
-use Config::General;
 
-use base 'PfamBase';
+extends 'PfamBase';
 
 our $VERSION = '0.1';
 
@@ -42,21 +42,20 @@ configuration files.
 # add to the configuration the name of the host that's actually serving 
 # the site and its process ID. These will be pulled out later in the header 
 # template
-__PACKAGE__->config->{server_name} = hostname();
-__PACKAGE__->config->{server_pid}  = $$;
+__PACKAGE__->config( server_name => hostname() );
+__PACKAGE__->config( server_pid  => $$ );
 
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
 # config file in httpd.conf rather than in the code
-my( $conf ) = $ENV{RFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
+my ( $conf ) = $ENV{RFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
 # set up the ConfigLoader plugin. Point to the configuration file
-__PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
+__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 
 # read the configuration, configure the application and load these 
 # catalyst plugins
-__PACKAGE__->setup( qw( PageCache 
-                        Unicode
+__PACKAGE__->setup( qw( Unicode
                         Static::Simple ) );
 
 #-------------------------------------------------------------------------------
