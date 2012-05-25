@@ -26,6 +26,13 @@
 */   
 
 /* ---------------------------------------- */
+/* override YUI tabview setting for <em> within list items */
+
+.blockContent li em {
+  font-style: italic;
+}
+
+/* ---------------------------------------- */
 /* summary */
 
 #helpSummaryBlock dt {
@@ -74,3 +81,4 @@ img.example {
   display: block;
   margin: 0 auto;
 }
+
