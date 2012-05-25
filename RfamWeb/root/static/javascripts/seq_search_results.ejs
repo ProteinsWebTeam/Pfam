@@ -1,0 +1,52 @@
+
+<table summary="Search results"
+			 class="resultTable">
+	<caption>
+		<span class="link" id="showAll">Show</span> or
+		<span class="link" id="hideAll">hide</span> 
+		all alignments.
+	</caption>
+	<thead class="sortIndicator dark">
+		<tr>
+			<th>Id</th>
+			<th>Accession</th>
+			<th>Start</th>
+			<th>End</th>
+			<th>Bits score</th>
+			<th>E-value</th>
+			<th>Strand</th>
+			<th>Show/hide alignment</th>
+		</tr>
+	</thead>
+	<tbody>
+    <% for ( var h in hits ) { 
+      var hs = hits[h];
+      for ( var i = 0; i < hs.length; i++ ) {
+        var hit = hs[i]; %>
+        <tr class="<%= i % 2 ? 'odd' : 'even' %>">
+          <td class="rowNum"><%= i %></td>
+          <td><%= link_to( hit.id, '/family/' + hit.id ) %></td>
+          <td><%= link_to( hit.acc, '/family/' + hit.acc ) %></td>
+          <td><%= hit.start  %></td>
+          <td><%= hit.end    %></td>
+          <td><%= hit.score  %></td>
+          <td><%= hit.E      %></td>
+          <td><%= hit.strand %></td>
+          <td class="showSwitch">
+            <%= img_tag( "/static/images/showButton.png", "Show alignment" ) %>
+          </td>
+        </tr>
+        <tr class="alignment <%= i % 2 ? 'odd' : 'even' %>"
+            style="display: none">
+          <td colspan="8">
+            <pre><%= hit.alignment.ss       %>
+<%= hit.alignment.hit_seq  %>
+<%= hit.alignment.match    %>
+<%= hit.alignment.user_seq %></pre>
+          </td>
+        </tr>
+      <% }
+    } %>
+	</tbody>
+</table>
+
