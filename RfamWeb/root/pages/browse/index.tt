@@ -112,7 +112,7 @@ alphabet = [ "A" .. "Z" ];
       </tr>
       
       <tr>
-        <td class="type">WIKIPEDIA ARTICLES</td>
+        <td class="type">FAMILIES WITH<br />WIKIPEDIA ARTICLES</td>
         <td class="links">
           [% num = "0 - 9";
           IF active_letters.articles.$num -%]
