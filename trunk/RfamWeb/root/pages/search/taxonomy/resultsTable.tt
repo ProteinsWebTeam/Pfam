@@ -15,11 +15,11 @@ USE String;
 <table class="resultTable"
        id="resultTable"
        summary="Taxonomy search results">
-  <thead>
+  <thead class="sortIndicator">
     <tr>
       <th>Accession</th>
       <th>ID</th>
-      <th class="nosort">Description</th>
+      <th>Description</th>
     </tr>
   </thead>
   <tbody>
@@ -60,13 +60,18 @@ USE String;
 <script type="text/javascript">
   // <![CDATA[
   var sorter = new TableKit( "resultTable",
-                              {
-                                editable: false,
-                                resizable: false,
-                                rowEvenClass: "even",
-                                rowOddClass: "odd",
-                                stripe: true
-                              } );    
+                             {
+                               editable: false,
+                               resizable: false,
+                               rowEvenClass: "even",
+                               rowOddClass: "odd",
+                               stripe: true,
+                               observers: {
+                                 onSortStart: function( table, event ) { 
+                                   table.down("thead").removeClassName("sortIndicator");
+                                 }
+                               }
+                             } );    
   // ]]>
 </script>
 

@@ -52,13 +52,13 @@ USE String;
 
 <div id="results">
   <table class="resultTable" id="resultTable" summary="Search results">
-    <thead>
+    <thead class="sortIndicator">
       <tr>
         <th id="indexCol" class="rowNum">Original order</th>
         <th>Accession</th>
         <th>ID</th>
         <th>Type</th>
-        <th class="nosort">Description</th>
+        <th>Description</th>
       </tr>
     </thead>
     <tbody>
@@ -96,13 +96,18 @@ USE String;
 <script type="text/javascript">
   // <![CDATA[
   var sorter = new TableKit( "resultTable",
-                              {
-                                editable: false,
-                                resizable: false,
-                                rowEvenClass: "even",
-                                rowOddClass: "odd",
-                                stripe: true
-                              } );    
+                             {
+                               editable: false,
+                               resizable: false,
+                               rowEvenClass: "even",
+                               rowOddClass: "odd",
+                               stripe: true,
+                               observers: {
+                                 onSortStart: function( table, event ) { 
+                                   table.down("thead").removeClassName("sortIndicator");
+                                 }
+                               }
+                             } );    
   // ]]>
 </script>
 

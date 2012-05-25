@@ -16,7 +16,7 @@ oe = 0;
 <table summary="Rfam hits"
        id="resultTable"
        class="resultTable">
-  <thead>
+  <thead class="sortIndicator">
     <tr>
       <th id="indexCol" class="rowNum">Original order</th>
       <th>Rfam family</th>
