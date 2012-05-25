@@ -49,7 +49,7 @@ pageList = PROCESS "components/pageList.tt",
 <table class="details browse" 
        id="browseTable"
        summary="Browse Pfam clans">
-  <thead>
+  <thead class="sortIndicator dark">
     <tr class="caption">
       <th id="indexCol" class="rowNum">Original order</th>
       <th>ID</th>
@@ -92,7 +92,12 @@ pageList = PROCESS "components/pageList.tt",
                                 resizable: false,
                                 rowEvenClass: "even",
                                 rowOddClass: "odd",
-                                stripe: true
+                                stripe: true,
+                                observers: {
+                                  onSortStart: function( table, event ) { 
+                                    table.down("thead").removeClassName("sortIndicator");
+                                  }
+                                }
                               } );    
 
   [% # add a listener to the "return to original sort order" link,
