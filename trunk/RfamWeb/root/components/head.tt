@@ -73,6 +73,7 @@ IF refreshUri != "";
 
 <!-- global stylesheet -->
 <link rel="stylesheet" href="[% staticUri %]/css/rfam.css" type="text/css" />
+<link rel="stylesheet" href="[% sharedUri %]/css/buttons.css" type="text/css" />
 
 <!-- site-specific stylesheet -->
 <link rel="stylesheet" href="[% staticUri %]/css/[% c.config.site %].css" type="text/css" />
