@@ -13,25 +13,73 @@ package WebUser::JobHistory;
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components( qw( Core ) );
+use WebUser::DateTime;
+
+__PACKAGE__->load_components( qw( InflateColumn::DateTime ) );
+
+# use our customised DateTime class when converting DateTime values. The
+# subclass adds a TO_JSON method, so that the DateTime can be serialised
+# to JSON
+sub _inflate_to_datetime {
+   my $self = shift;
+   my $val = $self->next::method(@_);
+
+   return bless $val, 'WebUser::DateTime';
+}
 
 # set up the table
 __PACKAGE__->table( 'job_history' );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw( id
-                              job_id
-                              status
-                              options
-                              estimated_time
-                              opened
-                              closed
-                              started
-                              job_type
-                              email )
-                        );
+__PACKAGE__->add_columns( 
+  "id",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 0, size => 20 },
+  "job_id",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 0,
+    size => 40,
+  },
+  "status",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
+  "options",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 1, size => 255 },
+  "estimated_time",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 3 },
+  "opened",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "closed",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "started",
+  {
+    data_type => "DATETIME",
+    default_value => "0000-00-00 00:00:00",
+    is_nullable => 0,
+    size => 19,
+  },
+  "job_type",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 50 },
+  "email",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
+);
 
 # set up the primary keys/contraints
 __PACKAGE__->set_primary_key( "id" );
