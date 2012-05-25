@@ -107,7 +107,7 @@ EOF_data
     }
   }
 
-  my $filename = 'rfam_search_' . $c->stash->{jobId} . '.text';
+  my $filename = 'rfam_search_' . $c->stash->{jobId} . '.txt';
 
   return ( $data, $filename );
 }
