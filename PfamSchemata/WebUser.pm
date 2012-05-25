@@ -30,18 +30,18 @@ use base "DBIx::Class::Schema";
 
 #-------------------------------------------------------------------------------
 
-__PACKAGE__->load_classes;
-# __PACKAGE__->load_classes( qw/Feature_das_sources
-#                               Alignment_das_sources
-#                               Das_sources
-#                               ErrorLog
-#                               Family_count
-#                               JobHistory
-#                               JobStream
-#                               Species_collection
-#                               Wikitext
-#                               ArticleMapping
-#                               / );
+# we need to specify exactly which classes to load, otherwise DBIC tries to
+# load WebUser::DateTime as a ResultSource.
+__PACKAGE__->load_classes( qw/ Alignment_das_sources
+                               ArticleMapping
+                               Das_sources
+                               ErrorLog
+                               Family_count
+                               Feature_das_sources
+                               JobHistory
+                               JobStream
+                               Species_collection
+                               Wikitext / );
 
 #-------------------------------------------------------------------------------
 
