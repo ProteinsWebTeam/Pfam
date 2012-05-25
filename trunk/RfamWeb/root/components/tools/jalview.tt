@@ -24,7 +24,7 @@ title = "Jalview: $alnType alignment for $acc";
           width="780" 
           height="550"
           archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
-    <param name="file" value="[% c.uri_for( "/family/$acc/alignment/$alnType/fasta" ) %]" />
+    <param name="file" value="[% c.uri_for( "/family/$acc/alignment/$alnType/fasta", { 'nseLabels' => nseLabels } ) %]" />
     <param name="defaultColour" value="Taylor" />
     <param name="linkLabel_1" value="UniProt" />
     <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
