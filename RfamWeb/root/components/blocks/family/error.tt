@@ -16,7 +16,7 @@ META fullPage = 1;
 
     <p>
       There was a <em>system error</em> when loading the requested family page
-      or component:
+      or page component:
     </p>
     <p class="message">[% c.error.first %]</p>
 
