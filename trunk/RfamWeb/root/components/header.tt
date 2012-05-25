@@ -64,7 +64,7 @@ sharedUri = c.uri_for( "/shared" );
            src="[% sharedUri %]/images/blank.gif" /></a>
   </div>
 
-  <div class="rfamLogoHolder column">
+  <div class="rfamLogoHolder column[% IF live %] pre[% END %]">
     <a href="[% c.uri_for( "/" ) %]">
       <img alt="rfam" 
            id="rfamLogo" 
@@ -78,8 +78,9 @@ sharedUri = c.uri_for( "/shared" );
                onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
                name="query" 
                id="siteSearchField" />
-        <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
-             class="glassButton goButton">&nbsp;</div>
+        <a class="btn go"
+            onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}">
+          <span class="btn-inner">Go</span></a>
       </div>
     </form>
   </div>
