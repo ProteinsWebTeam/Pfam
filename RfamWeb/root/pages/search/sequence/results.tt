@@ -1,0 +1,191 @@
+[%
+# searchResults.tt
+# jt6 20070414 WTSI
+#
+# show the results of a sequence search
+#
+# $Id: results.tt,v 1.22 2009-10-28 14:06:56 jt6 Exp $
+
+META title    = "Sequence search results";
+META fullPage = 1;
+
+USE wrap;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "updater.js" );
+requirements.js.push( "results.js" );
+requirements.js.push( "ejs_production.js" );
+requirements.js.push( "ejs_fulljslint.js" );
+
+requirements.css.push( "search.css" );
+
+sharedRequirements.js.push( "tablekit.js" );
+
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.cssIe.push( "job_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+IF rest.error -%]
+
+  <div class="key">
+    
+    <h2>Sequence search results</h2>
+
+    <div id="errors">
+      <h1>Job failure</h1>
+      <p>There was a problem with your search job:</p>
+      <ul>
+        <li>[% rest.error %]</li>
+      </ul>
+			<p>
+				You can <a href="[% c.uri_for( '/search' ) %]">return</a>
+				to the search form to try searching again.
+			</p>
+    </div>
+
+  </div>
+
+  [% RETURN;
+
+END; # of "IF rest.error" -%]
+
+<div class="key">
+	
+	<h2>Sequence search results</h2>
+
+	<div id="loading"
+       class="hideOC">
+		<p>
+			Your results will appear in this page when the search is complete; please
+			don&apos;t close this window or browse to a different page until the
+			results are loaded. 
+		</p>
+		<div id="loadingMessage">
+			<img class="loadingBar"
+					 alt="Searching..."
+					 src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
+					 <br />
+		</div>
+	</div>
+
+	<div id="summary" 
+       class="showOC"
+       style="display: none">
+	
+		<p id="hitCount"></p>
+
+    [%- resultsURI = c.uri_for( "/search/sequence", jobId ) %]
+    <div class="yes">
+      <p>
+        You can bookmark
+        <a href="[% resultsURI %]">
+          this URL</a> to retrieve your results later:
+      </p>
+      <div class="centreWrapper">
+        <p id="resultsURL"
+           class="plainSequence centredBlock">[% resultsURI | html %]</p>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+    </div>
+
+    <div class="both">
+      <p>
+        This is the sequence that you submitted:
+      </p>
+      <div class="centreWrapper">
+        <p id="plainSequence" 
+           class="plainSequence centredBlock"></p>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+    </div>
+
+    <div class="fail error"
+         style="display: none">
+      <h2>Search failure</h2>
+      <p>There was a problem running your job:</p>
+      <ul>
+        <li id="errors">Error message</li>
+      </ul>
+      <p>
+        Errors are most commonly caused by problems with the search sequence,
+        but if you feel that there is a problem with the server itself, please
+        let us know via our help desk.
+      </p>
+    </div>
+
+		<p>
+			<a href="[% c.uri_for( '/search', { tab = 'searchSequenceBlock' } ) %]">Return</a>
+			to the search form to look for Rfam families on a new sequence.
+		</p>
+
+	</div><!-- end of "summary" --> 
+	
+</div><!-- end of "key" -->
+
+<div id="resultsHeader" 
+     class="yes"
+     style="display: none">
+
+  <h2>Rfam matches</h2>
+
+  <div id="dlLinks">
+    <span>Download your results as:</span>
+    <a href="[% c.uri_for( '/search/sequence', jobId, { 'content-type' = 'application/json' } ) %]"
+       title="JavaScript Object Notation">JSON</a> 
+    <a href="[% c.uri_for( '/search/sequence', jobId, { 'content-type' = 'text/plain' } ) %]"
+       title="Tab-Separated Values">TSV</a> 
+    <a href="[% c.uri_for( '/search/sequence', jobId, { 'content-type' = 'text/xml' } ) %]"
+       title="eXtentsible Markup Language">XML</a> 
+    <a href="[% c.uri_for( '/search/sequence', jobId, { 'content-type' = 'application/x-gff3' } ) %]"
+       title="Generic Feature Format (version 3) style">GFF</a> 
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var resultsConfig = {
+    templateUrl: "[% c.uri_for( '/static/javascripts/seq_search_results.ejs' ) %]",
+    resultsUrl:  "[% c.uri_for( '/search/sequence', jobId ) %]",
+    elements: {
+      hitCount: $("hitCount"),
+      results:  $("results"),
+			sequence: $("plainSequence"),
+      errors:   $("errors")
+    }
+  };
+
+  var resultsHandler;
+  document.observe( "dom:loaded", function() {
+    resultsHandler = new Results( "[% jobId %]", resultsConfig );
+  } );
+  
+  // ]]>
+</script>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
