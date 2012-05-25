@@ -1,26 +1,10 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
-use Getopt::Long;
-use Pod::Usage;
-use Catalyst::Helper;
 
-my $force = 0;
-my $mech  = 0;
-my $help  = 0;
-
-GetOptions(
-    'nonew|force'    => \$force,
-    'mech|mechanize' => \$mech,
-    'help|?'         => \$help
- );
-
-pod2usage(1) if ( $help || !$ARGV[0] );
-
-my $helper = Catalyst::Helper->new( { '.newfiles' => !$force, mech => $mech } );
-
-pod2usage(1) unless $helper->mk_component( 'RfamWeb', @ARGV );
+use Catalyst::ScriptRunner;
+Catalyst::ScriptRunner->run('RfamWeb', 'Create');
 
 1;
 
@@ -33,26 +17,28 @@ rfamweb_create.pl - Create a new Catalyst Component
 rfamweb_create.pl [options] model|view|controller name [helper] [options]
 
  Options:
-   -force        don't create a .new file where a file to be created exists
-   -mechanize    use Test::WWW::Mechanize::Catalyst for tests if available
-   -help         display this help and exits
+   --force        don't create a .new file where a file to be created exists
+   --mechanize    use Test::WWW::Mechanize::Catalyst for tests if available
+   --help         display this help and exits
 
  Examples:
    rfamweb_create.pl controller My::Controller
-   rfamweb_create.pl controller My::Controller BindLex
-   rfamweb_create.pl -mechanize controller My::Controller
+   rfamweb_create.pl --mechanize controller My::Controller
    rfamweb_create.pl view My::View
-   rfamweb_create.pl view MyView TT
-   rfamweb_create.pl view TT TT
+   rfamweb_create.pl view HTML TT
    rfamweb_create.pl model My::Model
    rfamweb_create.pl model SomeDB DBIC::Schema MyApp::Schema create=dynamic\
    dbi:SQLite:/tmp/my.db
    rfamweb_create.pl model AnotherDB DBIC::Schema MyApp::Schema create=static\
-   dbi:Pg:dbname=foo root 4321
+   [Loader opts like db_schema, naming] dbi:Pg:dbname=foo root 4321
+   [connect_info opts like quote_char, name_sep]
 
  See also:
    perldoc Catalyst::Manual
    perldoc Catalyst::Manual::Intro
+   perldoc Catalyst::Helper::Model::DBIC::Schema
+   perldoc Catalyst::Model::DBIC::Schema
+   perldoc Catalyst::View::TT
 
 =head1 DESCRIPTION
 
@@ -68,7 +54,7 @@ Catalyst Contributors, see Catalyst.pm
 
 =head1 COPYRIGHT
 
-This library is free software, you can redistribute it and/or modify
+This library is free software. You can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
