@@ -44,7 +44,7 @@ pageList = PROCESS "components/pageList.tt"
   families&quot; link. <strong>Note</strong> that we show only the
   first <strong>50</strong> families. If you need to see the complete
   list, you can download it as a tab-delimited text file
-  <a href="[% c.uri_for( '/articles/browse', { output => 'text' } ) %]">
+  <a href="[% c.uri_for( '/articles', { output => 'text' } ) %]">
     here</a>.
 </p>
 <p class="browseSummary">
@@ -59,7 +59,7 @@ pageList = PROCESS "components/pageList.tt"
 <table class="details browse" 
        id="browseTable"
        summary="Details of Wikipedia articles">
-  <thead>
+  <thead class="sortIndicator dark">
     <tr>
       <th id="indexCol" class="rowNum">Original order</th>
       <th>Title</th>
@@ -131,7 +131,12 @@ pageList = PROCESS "components/pageList.tt"
                                 resizable: false,
                                 rowEvenClass: "even",
                                 rowOddClass: "odd",
-                                stripe: true
+                                stripe: true,
+                                observers: {
+                                  onSortStart: function( table, event ) { 
+                                    table.down("thead").removeClassName("sortIndicator");
+                                  }
+                                }
                               } );    
 
   [% # add a listener to the "return to original sort order" link,
