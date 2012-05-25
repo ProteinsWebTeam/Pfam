@@ -17,11 +17,6 @@ sharedRequirements.js.push( "tablekit.js" );
 
 USE Number.Format( THOUSANDS_SEP = "," );
 
-# shortcuts to the show/hide glass buttons
-imageUri   = c.uri_for( "/static/images" );
-showButton = "${imageUri}/showButton.png";
-hideButton = "${imageUri}/hideButton.png";
-
 embl_seq = 1;
 
 tbody = BLOCK;
@@ -49,8 +44,7 @@ tbody = BLOCK;
         <td><span class="inactive">No GFF file</span></td>
       [%- END %]
       <td class="showSwitch">
-        <img src="[% showButton %]"
-          alt="Show/hide all regions" />
+        <a class="btn lrg fixedw"><span class="btn-inner">Show</span></a>
       </td>
     </tr>
     <tr class="[% oe % 2 ? 'odd' : 'even' %]" style="display: none">
@@ -144,10 +138,10 @@ END; # of BLOCK
     $$("#breakdownTable td.showSwitch").each( function( td ) {
       td.observe( "click", function( e ) { 
         var cell    = e.findElement("td");
-        var img     = cell.down("img");
+        var btn     = cell.down("span");
         var nextRow = cell.up("tr").next("tr");
         nextRow.toggle();
-        img.src = nextRow.visible() ? "[% hideButton %]" : "[% showButton %]";
+        btn.innerHTML = nextRow.visible() ? "Hide" : "Show";
       } );
     } );
 
