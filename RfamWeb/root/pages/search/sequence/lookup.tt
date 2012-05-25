@@ -73,13 +73,18 @@ oe = 0;
 
   [% # make the table sortable %]
   var sorter = new TableKit( "resultTable",
-                              {
-                                editable: false,
-                                resizable: false,
-                                rowEvenClass: "even",
-                                rowOddClass: "odd",
-                                stripe: true
-                              } );    
+                             {
+                               editable: false,
+                               resizable: false,
+                               rowEvenClass: "even",
+                               rowOddClass: "odd",
+                               stripe: true,
+                               observers: {
+                                 onSortStart: function( table, event ) { 
+                                   table.down("thead").removeClassName("sortIndicator");
+                                 }
+                               }
+                             } );    
 
   [% # add a listener to the "return to original sort order" link,
      # now that the table sort object is actually defined %]

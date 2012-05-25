@@ -64,20 +64,20 @@ META fullPage = 1;
 <script type="text/javascript">
   // <![CDATA[
 
-  new Ajax.Updater( "results",
-                    "[% c.uri_for( "/search/unique/results" ) %]",
-                    {
-                      evalScripts: true,
-                      parameters: { q: encodeURI('[% q %]') },
-                      onFailure: function() {
-                        $("results").update("There was a problem completing your query" );
-                      },
-                      onComplete: function( response ) {
-                        $("loadingDiv").hide();
-                        $("returnDiv").show();
-                      }
-                    }
-                  );
+  var r = new Ajax.Updater( "results",
+    "[% c.uri_for( '/search/unique/results' ) %]",
+    {
+      evalScripts: true,
+      parameters: { q: encodeURI('[% q %]') },
+      onFailure: function() {
+        $("results").update("There was a problem completing your query" );
+      },
+      onComplete: function( response ) {
+        $("loadingDiv").hide();
+        $("returnDiv").show();
+      }
+    }
+  );
 
   // ]]>
 </script>
