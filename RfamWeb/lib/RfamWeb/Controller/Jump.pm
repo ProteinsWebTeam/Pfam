@@ -110,9 +110,13 @@ sub guess_family : Private {
   
   # see if this could be a dead family
   my $dead = $c->model('RfamDB::DeadFamilies')
-               ->find( { rfam_acc => $entry } );
-  return 'family' if defined $dead;
+               ->find( { rfam_acc => $entry },
+                       { columns => [ 'rfam_acc' ] } );
+  # (We define the list of columns specifically, so that we avoid a mismatch 
+  # between the table structures for "dead_family" between the live and dev
+  # databases.)
   
+  return 'family' if defined $dead;
 }
 
 #-------------------------------------------------------------------------------
