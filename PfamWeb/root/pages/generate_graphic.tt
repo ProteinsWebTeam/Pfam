@@ -70,7 +70,7 @@ requirements.js.push( "graphic_generator.js" );
     </p>
 
     <textarea cols="10" rows="20" id="seq">
- {
+{
   "length" : "534",
   "regions" : [
     {
@@ -98,8 +98,7 @@ requirements.js.push( "graphic_generator.js" );
       "aliStart" : "396"
     }
   ]
-}
-    </textarea>
+}</textarea>
   </div>
 
   <div id="controls" class="panel">
@@ -127,8 +126,8 @@ requirements.js.push( "graphic_generator.js" );
       already in that field.
     </p>
 
-    <a class="button" id="small">Simple</a>
-    <a class="button" id="large">Complex</a>
+    <button id="small">Simple</button>
+    <button id="large">Complex</button>
 
     <h2>Generate</h2>
 
