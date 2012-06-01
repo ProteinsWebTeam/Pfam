@@ -152,18 +152,6 @@ sub browse_genomes : Chained( '/' )
   $c->stash->{template} = 'pages/browse/genomes.tt';
 }
 
-#---------------------------------------
-
-=head2 genomes : Global
-
-Shortcut to "/browse/genomes".
-
-=cut 
-sub genomes : Global {
-  my ( $this, $c ) = @_;
-  $c->forward( '/browse/genomes' );
-}
-
 #-------------------------------------------------------------------------------
 
 =head2 browse_genomes_list : Chained PathPart Args
@@ -261,18 +249,6 @@ sub browse_families : Chained( '/' )
   
   $c->log->debug( 'Browse::browse_families: building a list of families' )
     if $c->debug;
-}
-
-#---------------------------------------
-
-=head2 families : Global
-
-Shortcut to "/browse/families".
-
-=cut 
-sub families : Global {
-  my ( $this, $c ) = @_;
-  $c->forward( '/browse/families' );
 }
 
 #-------------------------------------------------------------------------------
