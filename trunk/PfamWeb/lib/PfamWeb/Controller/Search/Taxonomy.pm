@@ -484,7 +484,7 @@ sub detaint_query_string : Private {
   }
 
   # make sure it was plain text
-  unless ( $query_string =~ m/^([\w\s():\-%]+)$/ ) {
+  unless ( $query_string =~ m/^([\w\s():\-%\.]+)$/ ) {
     $c->log->debug( "Search::Taxonomy::detaint_query_string: rejecting query string: |$query_string|" )
       if $c->debug;
     $c->stash->{query_stringError} = 'There was a problem with your query. '
@@ -499,7 +499,7 @@ sub detaint_query_string : Private {
 
   # make sure we ended up with something after decoding it... We don't allow
   # "%" now, since that should have been there only to allow URI encoding
-  unless( $decoded_query_string =~ m/^([\w\s():\-]+)$/ ) {
+  unless( $decoded_query_string =~ m/^([\w\s():\-\.]+)$/ ) {
     $c->log->debug( "Search::Taxonomy::detaint_query_string: rejecting detainted query string: |$decoded_query_string|" )
       if $c->debug;
     $c->stash->{query_stringError} = 'There was a problem checking your query. '
