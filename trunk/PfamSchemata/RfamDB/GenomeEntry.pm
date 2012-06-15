@@ -27,7 +27,7 @@ __PACKAGE__->add_columns(
     size => 16777215,
   },
   "ncbi_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "taxonomy",
   {
     data_type => "MEDIUMTEXT",
