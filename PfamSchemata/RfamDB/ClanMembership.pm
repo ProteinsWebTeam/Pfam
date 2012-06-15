@@ -9,9 +9,9 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("clan_membership");
 __PACKAGE__->add_columns(
   "auto_clan",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "auto_rfam",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
 );
 __PACKAGE__->belongs_to("auto_clan", "RfamDB::Clans", { auto_clan => "auto_clan" });
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
