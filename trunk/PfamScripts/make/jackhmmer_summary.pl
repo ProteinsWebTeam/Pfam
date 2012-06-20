@@ -117,7 +117,7 @@ foreach my $dir (@dirs) {
 
     open(OUT, ">$full_dir/summary.txt") or $logger->logdie("Couldn't open fh to $full_dir/summary.txt, $!");
 
-    print OUT sprintf ("%6s totalseq:%7s  overlaps:%7s  Gain: %7s  Frac gained:%4s  ", $dir, $align, $overlap, $gain, $frac_gain);
+    print OUT sprintf ("%6s totalseq:%7s  overlaps:%7s  Gain: %7s  Frac gained: %4s  ", $dir, $align, $overlap, $gain, $frac_gain);
 
     if($clan_fam) {
 	print OUT "$clan_fam\n";
