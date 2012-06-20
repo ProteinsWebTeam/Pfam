@@ -86,15 +86,17 @@ else {
     my ($swiss_prot_rel, $trembl_rel);
     open(REL, "reldate.txt") or  $logger->logdie("Couldn't open reldate.txt");
     while(<REL>) {
-	if(/swiss_prot_version:\s+(\S+)/) {
+	if(/Swiss-Prot Release\s+(\S+)/) {
 	    $swiss_prot_rel = $1;
 	}
-	elsif(/trembl_version:\s+(\S+)/) {
+	elsif(/TrEMBL Release\s+(\S+)/) {
 	    $trembl_rel = $1;
 	}
     }
     close REL;
-
+    unless(defined($trembl_rel) and defined($swiss_prot_rel)){
+      $logger->logdie("Faied to get release information for reldate.txt.");  
+    }
     my $st_version = $dbh->prepare("update VERSION set swiss_prot_version = \"$swiss_prot_rel\"");
     $st_version->execute() or $logger->logdie("Failed to update version table with swiss prot version ". $st_version->errstr."\n");
     my $st_version2 = $dbh->prepare("update VERSION set trembl_version = \"$trembl_rel\"");
