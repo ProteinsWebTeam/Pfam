@@ -133,10 +133,11 @@ FAMILY: foreach my $dir (sort @dir_list){
 	next;
     }
 
-    if (! -s "$dir/scores"){
-	print STDERR "$dir has no scores probably not a family directory. Skipping ...!\n";
-	next;
-    }
+# Commented out by Alex as this is causing problems with running on pfjbuilt families
+#    if (! -s "$dir/scores"){
+#	print STDERR "$dir has no scores probably not a family directory. Skipping ...!\n";
+#	next;
+#    }
 
 
     # Preliminary overlap check
