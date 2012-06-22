@@ -75,7 +75,24 @@ if ($duf){
 }
 
 if (! $author){
-    $author="Bateman A";
+    open (FH, "whoami |");
+    my $userid;
+    while(<FH>){
+	if (/(\S+)/){$userid=$1;}
+    }
+    close FH;
+
+    if ($userid eq "agb"){
+	$author="Bateman A";
+    } elsif($userid eq "re3"){
+	$author="Eberhardt RY";
+    } elsif($userid eq "pcc"){
+	$author="Coggill P";
+    } elsif($userid eq "kh6"){
+	$author="Hetherington K";
+    } elsif($userid eq "mp13"){
+	$author="Punta M";
+    } 
 }
 
 # Get list of all families in directory
@@ -133,11 +150,10 @@ FAMILY: foreach my $dir (sort @dir_list){
 	next;
     }
 
-# Commented out by Alex as this is causing problems with running on pfjbuilt families
-#    if (! -s "$dir/scores"){
-#	print STDERR "$dir has no scores probably not a family directory. Skipping ...!\n";
-#	next;
-#    }
+    if (! -s "$dir/scores"){
+	print STDERR "$dir has no scores probably not a family directory. Skipping ...!\n";
+	next;
+    }
 
 
     # Preliminary overlap check
@@ -146,12 +162,8 @@ FAMILY: foreach my $dir (sort @dir_list){
 	next;
     }
 
-    system ("pqc-overlap-rdb.pl $dir") and warn "Cannot run pqc-overlap-rdb.pl or $dir has overlaps [$!]";
-    
-
-    if ((-s "$dir/overlap") and not $ignoreoverlaps){
-	print STDERR "$dir has overlaps. Skipping ...\n";
-	next;
+    if (! $ignoreoverlaps){
+	system ("pqc-overlap-rdb.pl $dir") and warn "Cannot run pqc-overlap-rdb.pl or $dir has overlaps [$!]";
     }
 
     # Get info for sequence to write annotation
@@ -169,6 +181,8 @@ FAMILY: foreach my $dir (sort @dir_list){
     my $id;
     my %interesting_id;
     my %interesting_ref;
+    my %interesting_pe;
+    my %interesting_reviewed;
     my %description;
     my $refnum;
     my %refhash;
@@ -195,9 +209,13 @@ FAMILY: foreach my $dir (sort @dir_list){
 	    }
 	}
 
-	if (/^ID   (\S+)\s.*\s(\d+) AA.$/){
+	if (/^ID   (\S+)\s(.*)\s(\d+) AA.$/){
 	    $id=$1;
-	    push (@lengths,$2);
+	    my $stuff=$2;
+	    if ($stuff=~/Reviewed/){
+		$interesting_reviewed{$id}=1;
+	    }
+	    push (@lengths,$3);
 	    $total_seq++;
 	    $interesting_id{$id}=1;
 	    $refnum="";
@@ -260,13 +278,13 @@ FAMILY: foreach my $dir (sort @dir_list){
 	    } elsif (/^RL   (.*)/){
 		$refhash{$id}{$refnum}.=$_;
 		my $rl=$1;
-		if ($rl =~ /EMBL/){
+		if ($rl =~ /EMBL|Submitted/){
 		    $interesting_ref{$id}{$refnum}=0;
 		}
 	    } elsif (/^RT   (.*)/){
 		$refhash{$id}{$refnum}.=$_;
 		my $rt=$1;
-		if ($rt =~ /Complete sequence|genome sequence|Whole genome|whole-genome|genome/i){
+		if ($rt =~ /Complete sequence|genome sequence|Whole genome|whole-genome|genome|sequencing|genomic|cDNA|Transcriptome/i){
 		    $interesting_ref{$id}{$refnum}=0;
 		}
 	    } elsif (/^RX   (.*)/){
@@ -280,11 +298,11 @@ FAMILY: foreach my $dir (sort @dir_list){
 		}
 	    }
 	    # Ignoring RC and RG lines
-
-
 	}
 
-
+	if (/^PE   1/){
+	    $interesting_pe{$id}=1;
+	}
     }
     close INFO;
 
@@ -585,13 +603,24 @@ FAMILY: foreach my $dir (sort @dir_list){
     }
 
 
-    ### KEYWORDS INFO ### Would be good to sort keywords by most prevalent first!
-    print STDERR "\nKEYWORDS\n\n";
-    print ANN "\nKEYWORDS\n\n";
-    foreach my $keyword (sort keys %keyword_hash){
-	my $fraction=$keyword_hash{$keyword}/$total_seq;
-	print STDERR "$keyword\t$keyword_hash{$keyword}/$total_seq\t",int($fraction*100),"%\n";
-	print ANN "$keyword\t$keyword_hash{$keyword}/$total_seq\t",int($fraction*100),"%\n";
+    ### PE line info ###
+    print STDERR "\nPROTEIN EVIDENCE\n\n";
+    print ANN "\nPROTEIN EVIDENCE\n\n";
+    foreach my $element (sort keys %interesting_pe){
+	if ($interesting_pe{$element}){
+	    print STDERR "$element has PE 1\n";
+	    print ANN "$element has PE 1\n";
+	}
+    }
+
+    ### Reviewed protein ###
+    print STDERR "\nREVIEWED PROTEIN\n\n";
+    print ANN "\nREVIEWED PROTEIN\n\n";
+    foreach my $element (sort keys %interesting_reviewed){
+	if ($interesting_reviewed{$element}){
+	    print STDERR "$element is reviewed protein\n";
+	    print ANN "$element is reviewed protein\n";
+	}
     }
 
     ### DE LINE INFO ###
@@ -602,6 +631,17 @@ FAMILY: foreach my $dir (sort @dir_list){
 	    print STDERR "$element\t$description{$element}\n";
 	    print ANN "$element\t$description{$element}\n";
 	}
+    }
+
+    ### KEYWORDS INFO ### Would be good to sort keywords by most prevalent first!
+    print STDERR "\nKEYWORDS\n\n";
+    print ANN "\nKEYWORDS\n\n";
+    foreach my $keyword (sort keys %keyword_hash){
+	next if ($keyword eq 'Complete proteome');
+	next if ($keyword eq 'Reference proteome');
+	my $fraction=$keyword_hash{$keyword}/$total_seq;
+	print STDERR "$keyword\t$keyword_hash{$keyword}/$total_seq\t",int($fraction*100),"%\n";
+	print ANN "$keyword\t$keyword_hash{$keyword}/$total_seq\t",int($fraction*100),"%\n";
     }
 
 
