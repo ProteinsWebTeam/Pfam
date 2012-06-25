@@ -124,7 +124,7 @@
       The tree is built by considering the taxonomic lineage of each
       sequence that has a match to this family. For each node in the
       resulting tree, we draw an arc in the sunburst. The radius of
-      the arc, it's distance from the root node at the centre of the
+      the arc, its distance from the root node at the centre of the
       sunburst, shows the taxonomic level (&quot;superkingdom&quot;,
       &quot;kingdom&quot;, etc). The length of the arc represents
       either the number of sequences represented at a given level, or
