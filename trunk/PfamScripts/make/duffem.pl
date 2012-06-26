@@ -9,8 +9,7 @@
 #  1) Subcellular localisation
 #  2) Look for structure - Use UniProt PDB link which includes residue numbers!
 #  3) Look for mutations in these domains - Use UniProt FT lines
-#  4) Look for proteins with protein evidence tag of 1
-#  5) Would be nice to order keywords by frequency
+#  4) Would be nice to order keywords by frequency
 
 use strict;
 use warnings;
@@ -74,26 +73,6 @@ if ($duf){
     print STDERR "Setting duf number to $duf\n";
 }
 
-if (! $author){
-    open (FH, "whoami |");
-    my $userid;
-    while(<FH>){
-	if (/(\S+)/){$userid=$1;}
-    }
-    close FH;
-
-    if ($userid eq "agb"){
-	$author="Bateman A";
-    } elsif($userid eq "re3"){
-	$author="Eberhardt RY";
-    } elsif($userid eq "pcc"){
-	$author="Coggill P";
-    } elsif($userid eq "kh6"){
-	$author="Hetherington K";
-    } elsif($userid eq "mp13"){
-	$author="Punta M";
-    } 
-}
 
 # Get list of all families in directory
 my @dir_list;
@@ -165,6 +144,57 @@ FAMILY: foreach my $dir (sort @dir_list){
     if (! $ignoreoverlaps){
 	system ("pqc-overlap-rdb.pl $dir") and warn "Cannot run pqc-overlap-rdb.pl or $dir has overlaps [$!]";
     }
+
+
+    # Add author and Jackhmmer lines to DESC
+    if (! $author){
+	open (FH, "whoami |");
+	my $userid;
+	while(<FH>){
+	    if (/(\S+)/){$userid=$1;}
+	}
+	close FH;
+	
+	if ($userid eq "agb"){
+	    $author="Bateman A";
+	} elsif($userid eq "re3"){
+	    $author="Eberhardt RY";
+	} elsif($userid eq "pcc"){
+	    $author="Coggill P";
+	} elsif($userid eq "kh6"){
+	    $author="Hetherington K";
+	} elsif($userid eq "mp13"){
+	    $author="Punta M";
+	} 
+	
+	warn "AUTHOR $author\n";
+
+	open (NEWDESC, "> $dir/DESC.new") or die "cannot write to new $dir/DESC.new file";
+	open (DESC, "$dir/DESC") or die "cannot open $dir/DESC";
+	while(<DESC>){
+	    if (/^AU   Who RU/){
+		warn "Changing author!!\n";
+		print NEWDESC "AU   $author\n";
+	    } elsif (/^AU/){
+		print NEWDESC;
+	    } elsif (/^SE   Where did the seed come from/){
+		print NEWDESC "SE   Jackhmmer:$dir\n";
+	    } elsif (/^SE/){
+		print NEWDESC;
+	    } else {
+		print NEWDESC;
+	    }
+	}
+	close NEWDESC;
+	close DESC;
+
+	# Move new DESC file sideways
+	system ("cp $dir/DESC $dir/DESC.old1") and die "Cannot copy $dir/DESC to $dir/DESC.old1 [$!]";
+	system ("cp $dir/DESC.new $dir/DESC") and die "Cannot copy $dir/DESC.new to $dir/DESC [$!]";
+
+
+    }
+
 
     # Get info for sequence to write annotation
     if (! -e "$dir/seq_info"){
