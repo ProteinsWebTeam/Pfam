@@ -137,7 +137,7 @@ empty_tables( $schema );
 #---------------------------------------
 
 # read in the XML string
-my $interpro_xml_string = read_interpro_xml( $ip_file );
+my $interpro_xml_string = read_interpro_xml( "$FILE_ROOT/$ip_file" );
 
 # parse it and walk over the DOM to get the abstracts
 my $dom  = XML::LibXML->load_xml( string => $interpro_xml_string );
@@ -151,7 +151,7 @@ my $ip2go = parse_interpro2go( "$FILE_ROOT/$ip2go_file" );
 
 my $terms = {};
 foreach my $go_file ( @$ontologies ) {
-  parse_ontology( $terms, $go_file );
+  parse_ontology( $terms, "$FILE_ROOT/$go_file" );
 }
 
 #---------------------------------------
@@ -287,7 +287,7 @@ sub retrieve_file {
   # gunzip it in situ
   if ( $file_path =~ m/\.gz$/ ) {
     $log->debug( "Gunzipping '$file_path'" );
-    system( "gunzip $file_path" ) == 0 
+    system( "gunzip -f $file_path" ) == 0 
       or $log->logdie( "Failed to uncompress '$file_path': $!" );
   }
 }
