@@ -139,7 +139,7 @@ sub validate_input : Private {
   my $seq = uc( join '', @seqs );
   $seq =~ s/[\s\r\n]+//g;
   
-  unless ( $seq =~ m/^[ACGT]+$/ ) {
+  unless ( $seq =~ m/^[ACGTRYKMSWBDHVN]+$/ ) {
     $c->stash->{searchError} =
       'No valid sequence found. Please enter a valid DNA sequence and try again.';
 
