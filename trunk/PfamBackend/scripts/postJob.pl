@@ -204,9 +204,9 @@ Wise2 at:
 http://www.ebi.ac.uk/Tools/Wise2/index.html
 
 If you have a large number of DNA searches, you can download the script 
-used to run these searches from the Pfam CVS repository:
+used to run these searches from the Pfam SVN repository:
 
-http://cvs.sanger.ac.uk/cgi-bin/viewcvs.cgi/PfamBackend/scripts/pfamDNASearch.pl?root=PfamWeb 
+https://pfamsvn.sanger.ac.uk/cgi-bin/viewvc.cgi/trunk/PfamBackend/scripts/pfamDNASearch.pl
 __MESSAGE__
 
   }elsif ($ref->{job_type} eq 'rfam_batch' ){
