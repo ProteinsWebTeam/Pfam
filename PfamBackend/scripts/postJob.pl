@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl
 
 # Copyright (c) 2007: Genome Research Ltd.
 #
