@@ -41,7 +41,8 @@ __PACKAGE__->load_classes( qw/ Alignment_das_sources
                                JobHistory
                                JobStream
                                Species_collection
-                               Wikitext / );
+                               Wikitext
+                               UnknownFunction / );
 
 #-------------------------------------------------------------------------------
 
