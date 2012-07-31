@@ -542,6 +542,42 @@ sub pfamOldRelAdmin {
 }
 
 
+=head2 webuser 
+
+  Title    : webuser
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
+
+sub webuser {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{Model}->{WebUser};  
+}
+
+=head2 webuser 
+
+  Title    : webuser
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
+
+sub webuseradmin {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{Model}->{WebUserAdmin};  
+}
+
 
 sub svnRepos {
   my $self = shift;
