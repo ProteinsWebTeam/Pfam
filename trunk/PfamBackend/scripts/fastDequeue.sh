@@ -17,9 +17,18 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
+### BEGIN INIT INFO
+# Provides:          fastDequeue
+# Required-Start:    $remote_fs $network
+# Required-Stop:     $remote_fs $network
+# Should-Start:      autofs
+# Should-Stop:       autofs
+# X-Start-Before:    monit
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Pfam queue listener
+# Description:       Pfam queue listener
+### END INIT INFO
 
 #You will need to configure this for your system.
 #General
@@ -28,19 +37,18 @@ export PFAMROOT=/software/pfam
 export PFAMWEBROOT=$PFAMROOT/pfamweb
 export WISECONFIGDIR=$PFAMWEBROOT/wisecfg 
 export PFAMOFFLINE_CONFIG=$PFAMWEBROOT/PfamBackend/conf/pfam_backend.conf
-export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:/sbin:/usr/bin:$PATH
+export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:$PFAMWEBROOT/src/wise2.2.0/src/bin:/sbin:/usr/bin:$PATH
 
 # Rfam config
 export RFAMROOT=/software/rfam
 export RFAMWEBROOT=$RFAMROOT/rfamweb 
-export PATH=/software/rfam/bin:$PATH
+export PATH=/software/rfam/bin:$RFAMWEBROOT/src/wublast:$PATH
 
 if [ "x$LD_LIBRARY_PATH" eq "x" ]; then
   export LD_LIBRARY_PATH=/software/openmpi-1.4.3/lib
 else
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/software/openmpi-1.4.3/lib
 fi
-
 
 #This is very WTSI specific.
 HOST=`hostname`
