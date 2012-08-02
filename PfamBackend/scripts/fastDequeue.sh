@@ -33,6 +33,14 @@ export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:/sbin:/usr/bin:$PA
 # Rfam config
 export RFAMROOT=/software/rfam
 export RFAMWEBROOT=$RFAMROOT/rfamweb 
+export PATH=/software/rfam/bin:$PATH
+
+if [ "x$LD_LIBRARY_PATH" eq "x" ]; then
+  export LD_LIBRARY_PATH=/software/openmpi-1.4.3/lib
+else
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/software/openmpi-1.4.3/lib
+fi
+
 
 #This is very WTSI specific.
 HOST=`hostname`
