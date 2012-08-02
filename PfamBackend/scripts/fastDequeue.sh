@@ -44,7 +44,7 @@ export RFAMROOT=/software/rfam
 export RFAMWEBROOT=$RFAMROOT/rfamweb 
 export PATH=/software/rfam/bin:$RFAMWEBROOT/src/wublast:$PATH
 
-if [ "x$LD_LIBRARY_PATH" eq "x" ]; then
+if [ "x$LD_LIBRARY_PATH" == "x" ]; then
   export LD_LIBRARY_PATH=/software/openmpi-1.4.3/lib
 else
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/software/openmpi-1.4.3/lib
