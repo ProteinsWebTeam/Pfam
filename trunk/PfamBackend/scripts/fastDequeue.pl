@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 #
 # Authors: Rob Finn & John Tate 
 #
@@ -38,7 +38,7 @@ use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
 #Switch on or off debugging
-our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
+our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 0;
 
 my $opts = {};
 
