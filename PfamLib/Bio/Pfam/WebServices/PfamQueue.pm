@@ -60,6 +60,7 @@ sub new {
   $self->dataFileDir($config{queue}->{$queueType}->{dataFileDir});
   $self->rfamDataFileDir($config{queue}->{$queueType}->{rfamDataFileDir});
   $self->cpus($config{queue}->{$queueType}->{cpus}) if($config{queue}->{$queueType}->{cpus});
+  $self->rfcpus($config{queue}->{$queueType}->{rfcpus}) if($config{queue}->{$queueType}->{rfcpus});
   $self->pvm($config{queue}->{$queueType}->{pvm}) if($config{queue}->{$queueType}->{pvm});
   $self->email($config{queue}->{$queueType}->{email}) if ($config{queue}->{$queueType}->{email});
   $self->rfamEmail($config{queue}->{$queueType}->{rfamEmail}) if ($config{queue}->{$queueType}->{rfamEmail});
@@ -164,6 +165,13 @@ sub cpus {
 		$self->{'cpus'} = $cpus;
 	}
 	return $self->{'cpus'} || 1;
+}
+sub rfcpus {
+	my ($self, $cpus) = @_;
+	if($cpus){
+		$self->{rfcpus} = $cpus;
+	}
+	return $self->{rfcpus} || 1;
 }
 
 sub job_type {
