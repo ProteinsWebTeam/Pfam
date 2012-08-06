@@ -284,13 +284,13 @@ END;
         problematic, you can also download a 
         <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
         Stockholm-format file containing the 
-        <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
+        <a href="[% alignmentUri %]/seed/stockholm?gzip=1&amp;download=1">
           seed</a> or 
-        <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
+        <a href="[% alignmentUri %]/full/stockholm?gzip=1&amp;download=1">
         full</a> alignment for this family. Both 
-        <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed&amp;nseLabels=1">
+        <a href="[% alignmentUri %]/seed/stockholm?gzip=1&amp;download=1&amp;nseLabels=1">
           seed</a> and
-        <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full&amp;nseLabels=1">
+        <a href="[% alignmentUri %]/full/stockholm?gzip=1&amp;download=1&amp;nseLabels=1">
         full</a> alignments are also available with &quot;name/start-end&quot; 
         rather than species name labels. You may find
         <a class="ext" href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee">
@@ -431,8 +431,9 @@ END;
       // observers for the download form
       $("downloadFormSubmit").observe( "click", function() {
         url = "[% alignmentUri %]/" + 
-              ( $("dlTypeS").checked ? "seed" : "full" ) +
-              "/stockholm?" + Form.serialize("downloadForm");
+              ( $("dlTypeS").checked    ? "seed/"        : "full/" ) +
+              ( $("dlStyleCSF").checked ? "colorstock?" : "stockholm?" ) +
+              Form.serialize("downloadForm");
         document.location = url;
       } );
 
