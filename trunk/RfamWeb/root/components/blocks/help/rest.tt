@@ -839,7 +839,8 @@ ATACGACGTGCTGTAGCTT</pre>
 
     <p>
       The following methods can be used to return family alignments in
-      various formats.
+      various formats. You can request that the alignment is gzip compressed
+      by adding the parameter &quot;<code>gzip=1</code>&quot;.
     </p>
 
     <table class="details"
@@ -869,6 +870,8 @@ ATACGACGTGCTGTAGCTT</pre>
             <ul>
               <li><a href="[% c.uri_for( '/family/RF00360/alignment' ) %]">
                 [% c.uri_for( '/family/RF00360/alignment' ) %]</a></li>
+              <li><a href="[% c.uri_for( '/family/RF00360/alignment', { gzip = 1 } ) %]">
+                [% c.uri_for( '/family/RF00360/alignment', { gzip = 1 } ) %]</a></li>
             </ul>
           </td>
         </tr>
