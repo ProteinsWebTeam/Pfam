@@ -53,7 +53,7 @@ var Results = Class.create( {
    * @param {Object} simple object with the page configuration
    */
   initialize: function( jobId, config ) {
-    console.log( "Results.initialize: setting up" );
+    // console.log( "Results.initialize: setting up" );
 
     // store the job ID and the configuration object
     this._jobId  = jobId;
@@ -82,7 +82,7 @@ var Results = Class.create( {
       }
     );
 
-    console.log( "Results.initialize: done setting up" );
+    // console.log( "Results.initialize: done setting up" );
   },  
 
   //----------------------------------------------------------------------------
@@ -101,8 +101,8 @@ var Results = Class.create( {
    * status "2XX" and considers it to be "success"
    */
   on202: function( response ) {
-    console.log( "Results.on202: job %s, status 202; no results; polling further", 
-      this._jobId );
+    // console.log( "Results.on202: job %s, status 202; no results; polling further", 
+    //   this._jobId );
   },
 
   //-----------------------------------
@@ -112,7 +112,7 @@ var Results = Class.create( {
    * @param {Object} response AJAX response object
    */
   onSuccess: function( response ) {
-    console.log( "Results.onSuccess: job %s, status 200; job done", this._jobId );
+    // console.log( "Results.onSuccess: job %s, status 200; job done", this._jobId );
 
     this._updater.stop();      // stop the updater polling for results
     this._response = response; // store the response for later
@@ -132,7 +132,7 @@ var Results = Class.create( {
    * @param {Object} response AJAX response object
    */
   onFailure: function( response ) {
-    console.log( "Results.onFailure: failure response for job %s; stopping polling", this._jobId );
+    // console.log( "Results.onFailure: failure response for job %s; stopping polling", this._jobId );
 
     this._updater.stop();
     this._response = response;
@@ -148,7 +148,7 @@ var Results = Class.create( {
    * Handles result page when there are no results to show.
    */
   _noResults: function() {
-    console.log( "Results._noResults: no results to show" );
+    // console.log( "Results._noResults: no results to show" );
 
     // update the summary with the hit count
     this._hitCountEl.update( "There were <strong>no</strong> hits to your search sequence." ); 
@@ -165,7 +165,7 @@ var Results = Class.create( {
    * Handles result page when there are results to show.
    */
   _showResults: function() {
-    console.log( "Results._showResults: showing results" );
+    // console.log( "Results._showResults: showing results" );
 
     // use the EJS template to build the results table
     this._template.update( this._resultsEl, this._response.responseJSON );
@@ -185,7 +185,7 @@ var Results = Class.create( {
 
     // add listeners to the show/hide buttons
     $$("td.showSwitch").each( function( toggleSwitch ) {
-      toggleSwitch.observe( "click", this._toggleAlignment.bindAsEventListener( this ) );
+      toggleSwitch.observe( "click", this._toggleAlignment.bindAsEventListener(this) );
     }.bind( this ) );
 
     // and something similar for the "show all" links
@@ -209,8 +209,8 @@ var Results = Class.create( {
    * @private
    */
   _failed: function() {
-    console.log( "Results._failure: showing error message: %s",
-      this._response.responseJSON.error );
+    // console.log( "Results._failure: showing error message: %s",
+    //   this._response.responseJSON.error );
 
     this._errorsEl.update(this._response.responseJSON.error);
 
@@ -240,7 +240,7 @@ var Results = Class.create( {
    * Updates the "this is your sequence" field in the key.
    */
   _updateSequence: function() {
-    console.log( "Results._updateSequence: updating 'this is your sequence' element" );
+    // console.log( "Results._updateSequence: updating 'this is your sequence' element" );
 
     // trim off the FASTA header line from the search sequence
     var plainSequence = this._response.responseJSON.searchSequence;
@@ -291,34 +291,22 @@ var Results = Class.create( {
       throw( "Error: couldn't find the element to hold error messages" );
     }
 
-    console.log( "Results._checkElements: all passed checks" );
+    // console.log( "Results._checkElements: all passed checks" );
   },
 
   //----------------------------------------------------------------------------
   /**
-   * Shows or hides the alignment rows
+   * Shows or hides a single alignment row.
    *
    * @private
    * @param {Event} e mouse click event on the show/hide button
    */
   _toggleAlignment: function( e ) {
-
-    // get the clicked table cell. If the click was actually on the img, we 
-    // need to walk up a little
-    var cell = e.findElement( "td" );
-
-    // the image in that cell
-    var img = cell.down("img");
-
-    // walk up the DOM and onto the next row in the table
-    var nextRow = cell.up("tr").next("tr");
-    
-    // toggle the state of the row and reset the image source to point to the
-    // new image
+    var cell    = e.findElement("td"),
+        btn     = cell.down("span"),
+        nextRow = cell.up("tr").next("tr");
     nextRow.toggle();
-    img.src = nextRow.visible()
-            ? "/static/images/hideButton.png"
-            : "/static/images/showButton.png";
+    btn.innerHTML = nextRow.visible() ? "Hide" : "Show";
   },
   
   //----------------------------------------------------------------------------
@@ -329,25 +317,15 @@ var Results = Class.create( {
    * @param {Event} e mouse click event on the "show/hide all" link
    */
   _showHideAll: function( e ) {
+    var link = e.findElement(),
+        show = link.innerHTML.match( "Show" ),
+        tbody = link.up("table").down("tbody");
 
-    // the clicked link
-    var link = e.findElement();
-
-    // decide whether it was "Show" or "hide"
-    var show = link.innerHTML.match( "Show" );
-
-    // get the table that corresponds to the clicked link, and then show/hide
-    // the alignment rows from that table
-    var tbody = link.up("table").down("tbody");
     tbody.select("tr.alignment").invoke( show ? "show" : "hide" );
 
-    // set the show/hide images for the toggled rows
-    var imgSrc = show
-              ? "/static/images/hideButton.png"
-              : "/static/images/showButton.png";
-    tbody.select("td.showSwitch img").each( function( img ) {
-      img.src = imgSrc;
-    } );    
+    tbody.select("span.btn-inner").each( function(toggle) {
+      toggle.innerHTML = show ? "Hide" : "Show";
+    } );
   }
 
   //----------------------------------------------------------------------------
