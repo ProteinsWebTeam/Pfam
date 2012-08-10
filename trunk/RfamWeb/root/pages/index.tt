@@ -134,7 +134,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                    name="entry" 
                    id="jumpField" 
                    size="30" />
-            <a id="jumpButton" class="btn go"><span class="btn-inner">Go</a></a>
+            <a id="jumpButton" class="btn go"><span class="btn-inner">Go</span></a>
             <a class="btn" onclick="fillJumpField();"><span class="btn-inner">Example</span></a>
             <div style="display: none"
                  class="jumpSpinner">Searching...</div>
