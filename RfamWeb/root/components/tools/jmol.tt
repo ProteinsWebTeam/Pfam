@@ -29,7 +29,7 @@ activeSites = String.new( 'select none; ' );
 unassigned  = String.new( 'select not (' );
 
 script      = String.new( 'background white; load "' );
-CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdbId ) );
+CALL script.append( c.uri_for( "/structure", "pdb" _ pdb_id _ ".ent" ) );
 CALL script.append( '"; select protein; color cartoons structure; select all; cartoons on; cpk off; wireframe off; ' );
 
 FOREACH m IN mapping;
@@ -124,16 +124,16 @@ CALL script.append( unassigned );
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", entry=m.rfamseq_acc ) %]" 
+        <a href="[% c.uri_for( "/protein", m.rfamseq_acc ) %]" 
            onclick="opener.location=this.href;return false;">[% m.rfamseq_acc %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", id=m.auto_rfam.rfam_id ) %]"
+        <a href="[% c.uri_for( "/family" m.auto_rfam.rfam_id ) %]"
           onclick="opener.location=this.href;return false;">
           [% m.auto_rfam.rfam_id %]</a>
-        (<a href="[% c.uri_for( "/family", acc=m.auto_rfam.rfam_acc ) %]" 
+        (<a href="[% c.uri_for( "/family", m.auto_rfam.rfam_acc ) %]" 
             onclick="opener.location=this.href;return false;">
           [% m.auto_rfam.rfam_acc %]</a>)
       </td>
