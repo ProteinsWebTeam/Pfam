@@ -13,6 +13,8 @@ META naked = 1;
 pageContent = BLOCK;
 
 title = "Jalview: $alnType alignment for $acc";
+
+alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType/fasta" );
 -%]
 
 <h1>
