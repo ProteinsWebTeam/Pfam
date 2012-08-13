@@ -1,0 +1,70 @@
+[% 
+# results_xml.tt
+# jt6 20120307 WTSI
+#
+# template for returning the results of a sequence search as XML
+#
+# $Id$
+
+META naked = 1;
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://rfam.sanger.ac.uk/"
+      xsi:schemaLocation="http://rfam.sanger.ac.uk/
+                          http://rfam.sanger.ac.uk/static/documents/schemas/results.xsd"
+      release="[% relData.rfam_release %]" 
+      release_date="[% relData.rfam_release_date %]">
+[% IF rest.error -%]
+<error>
+<![CDATA[
+[% rest.error %]
+]]>
+</error>
+[% RETURN;
+END; # of "IF rest.error"
+
+IF rest.hits.size -%]
+  <results job_id="[% jobId %]">
+    <matches>
+      <rna length="[% rest.searchSequence.length %]">
+        <database id="rfam" release="[% relData.rfam_release %]" release_date="[% relData.rfam_release_date %]">
+[% FOREACH id IN rest.hits.keys;
+  hits = rest.hits.$id;
+    FOREACH hit IN hits;
+    CALL c.log.debug( "results_xml.tt: hit: |" _ dumper.dump( hit ) _ "|" ) IF c.debug -%]
+          <match id="[% hit.id %]" accession="[% hit.acc %]" type="Rfam">
+            <location start="[% hit.start %]" end="[% hit.end %]" evalue="[% hit.E %]" pvalue="[% hit.P %]" score="[% hit.score %]" strand="[% hit.strand %]">
+              <ss><![CDATA[[% hit.alignment.ss %]]]></ss>
+              <hit_seq><![CDATA[[% hit.alignment.hit_seq %]]]></hit_seq>
+              <match_string><![CDATA[[% hit.alignment.match %]]]></match_string>
+              <user_seq><![CDATA[[% hit.alignment.user_seq %]]]></user_seq>
+            </location>
+          </match>
+[% END;
+END -%]
+        </database>
+      </rna>
+    </matches>
+  </results>
+[% ELSE -%]
+  <results />
+[% END; # of "if results..." -%]
+</rfam>[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

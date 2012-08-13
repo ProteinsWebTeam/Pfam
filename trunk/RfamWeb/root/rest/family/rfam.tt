@@ -1,0 +1,79 @@
+[% 
+# rfam_xml.tt
+# jt6 20120203 WTSI
+#
+# template for serialising Rfam data to XML format
+#
+# $Id$
+
+USE date;
+
+META naked = 1;
+
+baseUri = "http://rfam.sanger.ac.uk/";
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on Rfam family [% rfam.rfam_acc %] ([% rfam.rfam_id %]), generated: [% date.format %] -->
+<rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/entry_xml.xsd"
+      release="[% relData.rfam_release %]" 
+      release_date="[% relData.rfam_release_date %]">
+  <entry entry_type="Rfam" accession="[% rfam.rfam_acc %]" id="[% rfam.rfam_id %]">
+    <description>
+<![CDATA[
+[% rfam.description | html %]
+]]>
+    </description>
+[% IF rfam.comment -%]
+    <comment>
+<![CDATA[
+[% rfam.comment | html %]
+]]>
+    </comment>
+[% END;
+IF rfam.clan_acc -%]
+    <clan_membership clan_acc="[% rfam.clan_acc %]" clan_id="[% rfam.clan_id %]" />
+[% END -%]
+    <curation_details>
+      <author>[% rfam.author %]</author>
+      <seed_source>[% rfam.seed_source %]</seed_source>
+      <num_seqs>
+        <seed>[% rfam.num_seed %]</seed>
+        <full>[% rfam.num_full %]</full>
+      </num_seqs>
+      <num_species>[% rfam.number_of_species %]</num_species>
+      <type>[% rfam.type %]</type>
+      <structure_source>[% rfam.structure_source %]</structure_source>
+    </curation_details>
+    <cm_details num_states="[% rfam.number_of_states %]">
+      <build_command>[% rfam.cmbuild %]</build_command>
+      <calibrate_command>[% rfam.cmcalibrate %]</calibrate_command>
+      <search_command>[% rfam.cmsearch %]</search_command>
+      <cutoffs>
+        <gathering>[% rfam.gathering_cutoff | format( "%.1f" ) %]</gathering>
+        <trusted>[% rfam.trusted_cutoff | format( "%.1f" ) %]</trusted>
+        <noise>[% rfam.noise_cutoff | format( "%.1f" ) %]</noise>
+      </cutoffs>
+    </cm_details>
+  </entry>
+</rfam>
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
