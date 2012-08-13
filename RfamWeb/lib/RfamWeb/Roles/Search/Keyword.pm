@@ -81,9 +81,15 @@ sub process_pdb : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_pdb: querying PDB ID' )
     if $c->debug;
 
-  my $results = $c->model('RfamDB::PdbRfamReg')
-                  ->search( { pdb_id => $c->stash->{terms} },
-                            { join => [ 'auto_rfam' ] } );
+  # my $results = $c->model('RfamDB::PdbRfamReg')
+  #                 ->search( { pdb_id => $c->stash->{terms} },
+  #                           { join => [ 'auto_rfam' ] } );
+  my $results = $c->model('RfamDB::RfamKeywords')
+                  ->search( {},
+                            {} )
+                  ->search_literal( 'MATCH( pdb_mappings ) ' .
+                                    'AGAINST( ? IN BOOLEAN MODE )',
+                                    $c->stash->{terms} );
 
   return $results;
 }
@@ -198,17 +204,17 @@ sub process_clan : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_clan: text querying Rfam clan' )
     if $c->debug;
 
-  # my $m = $c->model('RfamDB::Clans');
+  my $m = $c->model('RfamDB::RfamKeywords');
 
-  # # do a full blown query...
-  # my $results =
-  #   $m->search( {},
-  #               {} )
-  #     ->search_literal( 'MATCH( literature ) ' .
-  #                       'AGAINST( ? IN BOOLEAN MODE )',
-  #                       $c->stash->{terms} );
+  # do a full blown query...
+  my $results =
+    $m->search( {},
+                {} )
+      ->search_literal( 'MATCH( clan_info ) ' .
+                        'AGAINST( ? IN BOOLEAN MODE )',
+                        $c->stash->{terms} );
 
-  # return $results;
+  return $results;
 }
 
 #-------------------------------------------------------------------------------
