@@ -277,6 +277,9 @@ Error messages are returned in the stash as "searchError".
 
 =cut
 
+# this method made a lot more sense in Pfam, where it was used for processing
+# fields in the form other than the sequence. In Rfam, there are no options, 
+# but this stub is here just in case we want to add them at some point
 sub validate_single_sequence : Private {
   my ( $this, $c ) = @_;
   
