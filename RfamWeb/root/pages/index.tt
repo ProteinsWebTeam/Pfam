@@ -177,9 +177,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                   rows="6"></textarea>
       </div>
     </form>
-    <a class="button go"
+    <a class="btn go"
        onclick="if( $('seq').present() ){$('seqForm').submit()};">Go</a>
-    <a class="button"
+    <a class="btn"
        onclick="$('seq').value=exSeq">Example</a>
     <p class="small nlh">
       This search will use blast to scan Rfam for any related sequences, 
@@ -206,9 +206,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           name="type"
           value="Family" />
       </div>
-      <a class="button go"
+      <a class="btn go"
          onclick="if( $('familyField').present() ){jump('familyForm');};">Go</a>
-      <a class="button"
+      <a class="btn"
          onclick="$('familyField').value=exRfamId">Example</a>
       <div style="display: none"
         class="jumpSpinner">Searching...</div>
@@ -238,9 +238,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           name="type"
           value="Clan" />
       </div>
-      <a class="button go"
+      <a class="btn go"
          onclick="if( $('clanField').present() ){jump('clanForm');};">Go</a>
-      <a class="button"
+      <a class="btn"
          onclick="$('clanField').value=exClanId">Example</a>
       <div style="display: none"
         class="jumpSpinner">Searching...</div>
@@ -343,9 +343,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                size="30" />
       </div>
     </form>
-    <a class="button go"
+    <a class="btn go"
        onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};">Go</a>
-    <a class="button"
+    <a class="btn"
        onclick="$('keywordField').value=exKw">Example</a>
     <p class="small nlh">
       You can also use the
@@ -367,9 +367,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                id="taxonomyField"
                size="30" />
       </div>
-      <a class="button go"
+      <a class="btn go"
          onclick="if( $('taxonomyField').present() ){;$('taxonomyForm').submit()};">Go</a>
-      <a class="button"
+      <a class="btn"
          onclick="$('taxonomyField').value=exTx">Example</a>
     </form>
   </div>
