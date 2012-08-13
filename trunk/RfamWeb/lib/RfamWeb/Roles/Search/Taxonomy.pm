@@ -788,7 +788,7 @@ sub getFamiliesForTerm : Private {
   $cacheKey =~ s/[\W\s]/_/g;  
   $c->log->debug( "Search::Taxonomy::getFamilies: cacheKey: |$cacheKey|" )
     if $c->debug;
-  my $res      = $c->cache->get( $cacheKey );
+  my $res = $c->cache->get( $cacheKey );
   
   if( defined $res ) {
     $c->log->debug( 'Search::Taxonomy::getFamiliesForTerm: retrieved families from cache' )
