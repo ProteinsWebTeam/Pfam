@@ -127,13 +127,22 @@ g4ODGBkZKRHidTLKpnk1IRdA82pCrkMNQggFQggFQggFQggFQggFQggFQgihQAihQAihQAihQAih
 QAihQAihQAihQAihQAghFAghFAghFAghFAghFAghFAghFAghFAghFAghFAghhAIhhAIhREW00WgU
 Ho+HI0GIjGg0iv8Dd9PZl7tvX5gAAAAASUVORK5CYII=';
  
+# these are the supported output file formats. This is a map between a format
+# specified by the user and the format name used by esl-reformat
+my %supported_formats = (
+  stockholm  => 'stockholm',
+  pfam       => 'pfam',
+  fasta      => 'afa',   # regular, gapped fasta
+  fastau     => 'fasta', # ungapped fasta
+);                        
 
 #-------------------------------------------------------------------------------
 
 =head2 alignment_default : Chained('family') PathPart('alignment') Args(0)
 
 Catches alignment requests with no alignment type (seed or full) and no format
-specified. Defaults to Stockholm-format seed alignment.
+specified. Defaults to Stockholm-format seed alignment. Still respects some
+params, "alnType" and "format".
 
 =cut 
 
@@ -142,8 +151,19 @@ sub alignment_default: Chained( 'family' )
                        Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  $c->forward( 'alignment',        [ 'seed' ] );
-  $c->forward( 'alignment_format', [ 'stockholm' ] );
+  # seed or full ?
+  # $c->stash->{alnType} = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full'; 
+  $c->stash->{alnType} = ( $c->req->param('alnType') || '' ) eq 'full' ? 'full' : 'seed'; 
+
+  # format ?
+  my $output_format = $this->{default_output_format};
+  if ( defined $c->req->param('format') and
+       exists $supported_formats{ $c->req->param('format') || '' } ) {
+    $output_format = $c->req->param('format');
+  }
+
+  $c->forward( 'alignment',        [ $c->stash->{alnType} ] );
+  $c->forward( 'alignment_format', [ $output_format ] );
 }
 
 #---------------------------------------
@@ -162,7 +182,7 @@ alignment type
 
 use "name/start-end" to label sequences ? default is to use species names
 
-=item view
+=item download
 
 flag the alignment for download (add Content-Disposition header) ?
 
@@ -183,13 +203,13 @@ sub alignment : Chained( 'family' )
   # the output, if that makes sense for the specified format ?
   $c->stash->{alnType}    = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
   $c->stash->{nseLabels}  = ( $c->req->param('nseLabels') || 0 ) ? 1 : 0;
-  $c->stash->{view}       = ( $c->req->param('view')      || 0 ) ? 1 : 0;
+  $c->stash->{download}   = ( $c->req->param('download')  || 0 ) ? 1 : 0;
   $c->stash->{gzip}       = ( $c->req->param('gzip')      || 0 ) ? 1 : 0;
 
   if ( $c->debug ) {
     $c->log->debug( 'Family::alignment: which alignment type ?      ' . $c->stash->{alnType} );
     $c->log->debug( 'Family::alignment: use name/start-end labels ? ' . $c->stash->{nseLabels} );
-    $c->log->debug( 'Family::alignment: view rather than download ? ' . $c->stash->{view} );
+    $c->log->debug( 'Family::alignment: download rather than view ? ' . $c->stash->{download} );
     $c->log->debug( 'Family::alignment: gzipped output ?            ' . $c->stash->{gzip} );
   }
 }
@@ -243,15 +263,6 @@ no default. If the specified format is not in the supported list, we throw an
 error.
 
 =cut
-
-# these are the supported output file formats. This is a map between a format
-# specified by the user and the format name used by esl-reformat
-my %supported_formats = (
-  stockholm  => 'stockholm',
-  pfam       => 'pfam',
-  fasta      => 'afa',   # regular, gapped fasta
-  fastau     => 'fasta', # ungapped fasta
-);                        
 
 sub alignment_format : Chained( 'alignment' ) 
                        PathPart( '' )
@@ -314,7 +325,7 @@ sub alignment_format_GET {
 
     $c->stash->{output_alignment} = $c->stash->{gzipped_alignment};
     $c->stash->{is_gzipped}       = 1;
-    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html.gz';
+    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html';
     # $c->stash->{gzip}             = 1; # force colorstock to be gzipped
   }
 
@@ -344,6 +355,7 @@ sub alignment_format_GET {
 
   # should the output by gzipped ?
   if ( $c->stash->{gzip} ) {
+    $c->stash->{filename} .= '.gz';
     $c->res->content_type( 'application/x-gzip' );
     $output = $c->stash->{is_gzipped}
             ? $c->stash->{output_alignment}
@@ -368,7 +380,7 @@ sub alignment_format_GET {
   }
 
   # should we mark the output for download ? (default is to set download header)
-  if ( not $c->stash->{view} ) {
+  if ( $c->stash->{download} ) {
     $c->res->header( 'Content-disposition' => 'attachment; filename=' . $c->stash->{filename} );
   }
 
@@ -483,7 +495,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
 
   my $output_format = $this->{default_output_format};
   if ( defined $c->req->param('format') and
-       exists $supported_formats{ $c->req->param('format') } ) {
+       exists $supported_formats{ $c->req->param('format') || '' } ) {
     $output_format = $c->req->param('format');
   }
 
@@ -735,14 +747,14 @@ compressed. Caches the gzipped alignment too, if caching is enabled.
 sub get_gzipped_alignment : Private {
   my ( $this, $c ) = @_;
 
-  my $alnType = $c->stash->{alnType} . ( $c->stash->{nseLabels} ? '' : 'Tax' );
-  $c->log->debug( "Family::get_gzipped_alignment: setting alignment type to |$alnType|" )
+  my $aln_type = $c->stash->{alnType} . ( $c->stash->{nseLabels} ? '' : 'Tax' );
+  $c->log->debug( "Family::get_gzipped_alignment: setting alignment type to |$aln_type|" )
     if $c->debug;
   
   # first try the cache...
   my $cacheKey = 'gzipped_alignment'
                  . $c->stash->{acc}
-                 . $alnType;
+                 . $aln_type;
   my $gzipped_alignment = $c->cache->get( $cacheKey );
 
   if ( defined $gzipped_alignment ) {
@@ -755,12 +767,13 @@ sub get_gzipped_alignment : Private {
 
     # failed to get a cached version; retrieve the alignment from the DB
     my $rs = $c->stash->{rfam}->search_related( 'alignments_and_trees',
-                                                { type => $alnType },
+                                                { type => $aln_type },
                                                 { columns => [ 'alignment' ] } );
 
     # make sure the query returned something
+    my $alignment_row;
     unless ( defined $rs and
-             defined $rs->first ) {
+             $alignment_row = $rs->first ) {
       $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve a row' )
         if $c->debug;
 
@@ -771,7 +784,7 @@ sub get_gzipped_alignment : Private {
     }
 
     # make sure we can get the alignment out of the returned row
-    unless ( $gzipped_alignment = $rs->first->alignment ) {
+    unless ( $gzipped_alignment = $alignment_row->alignment ) {
       $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve an alignment' )
         if $c->debug;
 

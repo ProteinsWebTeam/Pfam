@@ -24,6 +24,8 @@ $Id$
 use MooseX::MethodAttributes::Role;
 use namespace::autoclean;
 
+use LWP::Simple;
+
 #-------------------------------------------------------------------------------
 
 =head2 structures : Chained('family') PathPart('structures') Args(0)
