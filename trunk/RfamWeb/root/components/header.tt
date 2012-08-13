@@ -8,26 +8,28 @@
 
 # the names for the links in the page
 navNames = { 
-  home   = "HOME",
-  search = "SEARCH",
-  browse = "BROWSE",
-  ftp    = "FTP",
-  blog   = "BLOG",
-  help   = "HELP" };
+  home    = "HOME",
+  search  = "SEARCH",
+  browse  = "BROWSE",
+  ftp     = "FTP",
+  blog    = "BLOG",
+  biomart = "BIOMART",
+  help    = "HELP" };
 
 # the URIs for the links
 navLinks = {
-  home   = c.uri_for( "/" ),
-  search = c.uri_for( "/search" ),
-  browse = c.uri_for( "/browse" ),
-  ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Rfam",
-  blog   = "http://xfam.wordpress.com/tag/rfam/",
-  help   = c.uri_for( "/help" )
+  home    = c.uri_for( "/" ),
+  search  = c.uri_for( "/search" ),
+  browse  = c.uri_for( "/browse" ),
+  ftp     = "ftp://ftp.sanger.ac.uk/pub/databases/Rfam",
+  blog    = "http://xfam.wordpress.com/tag/rfam/",
+  biomart = "http://xfam-biomart.sanger.ac.uk/martwizard/#!/default?mart=Rfam+11.0&amp;step=2",
+  help    = c.uri_for( "/help" )
 };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
-navItems = [ "home", "search", "browse", "ftp", "blog", "help" ];
+navItems = [ "home", "search", "browse", "ftp", "biomart", "blog", "help" ];
 
 # the base URL for static content
 staticUri = c.uri_for( "/static" );
