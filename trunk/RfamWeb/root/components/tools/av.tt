@@ -31,7 +31,7 @@ avScript = BLOCK;
 background '0xEEEEEE';
 
 [%- # load the PDB file from the server -%]
-molecule load mol '[% c.uri_for( "/structure/getpdbfile", pdbId ) %].pdb';
+molecule load mol '[% c.uri_for( "/structure", pdb_id _ ".pdb" ) %]';
 
 [%- # hide the default wireframe display of atoms -%]
 display lines off all;
@@ -139,42 +139,7 @@ object surface_unassigned transparency 200;
 pageContent = BLOCK;
 
 title = "AstexViewer"
-# we apparently need to set explicitly the name of the window, otherwise it takes the 
-# name of the parent, so targetted links back to the parent wont work
 -%]
-<script type="text/javascript">
-  // <![CDATA[
-  window.name = "avWin";
-  // ]]>
-</script>
-
-<div id="explanation">
-<h1>PDB entry [% pdb.pdb_id %]</h1>
-<p>
-  The applet to the left shows the structure of PDB entry 
-  <strong>[% pdb.pdb_id %]</strong>, along with the Rfam families that map 
-  onto that structure. 
-</p>
-<p>
-  The <em>RNA backbone</em> is drawn as secondary structure elements, 
-  and is coloured according to the Rfam famillies found on the structure.
-  Regions of the RNA that represent Rfam families are also surrounded
-  by a semi-transparent <em>molecular surface</em>, representing the van 
-  der Waal&#39;s surface for the atoms that fall within the domain. Regions 
-  of RNA that are not assigned to an Rfam region are shown in grey.
-</p>
-<p>
-  Molecular surfaces can be turned on and off using the buttons in the table 
-  below. Details of the mapping between the PDB structure, EMBL sequence and 
-  Rfam families are also given in the table.
-</p>
-<p>
-  All surfaces are initially drawn as semi-transparent membranes, but you 
-  may find it quicker to manipulate the view if the surfaces are drawn as
-  solids. <span class="link" onclick="toggleTransparency();">
-    Toggle surface transparency</span>.
-</p>
-</div>
 
 <!--[if !IE]> Firefox and others will use outer object -->
 <object classid="java:MoleculeViewerApplet.class" 
@@ -207,6 +172,34 @@ title = "AstexViewer"
 <!--[if !IE]> close outer object -->
 </object>
 <!--<![endif]-->
+
+<div id="explanation">
+  <h1>PDB entry [% pdb_id %]</h1>
+  <p>
+    The applet to the left shows the structure of PDB entry 
+    <strong>[% pdb_id %]</strong>, along with the Rfam families that map 
+    onto that structure. 
+  </p>
+  <p>
+    The <em>RNA backbone</em> is drawn using a ball-and-stick representation, 
+    and is coloured according to the Rfam famillies found on the structure.
+    Regions of the RNA that represent Rfam families are also surrounded
+    by a semi-transparent <em>molecular surface</em>, representing the van 
+    der Waal&#39;s surface for the atoms that fall within the domain. Regions 
+    of RNA that are not assigned to an Rfam region are shown in grey.
+  </p>
+  <p>
+    Molecular surfaces can be turned on and off using the buttons in the table 
+    below. Details of the mapping between the PDB structure, EMBL sequence and 
+    Rfam families are also given in the table.
+  </p>
+  <p>
+    All surfaces are initially drawn as semi-transparent membranes, but you 
+    may find it quicker to manipulate the view if the surfaces are drawn as
+    solids. <span class="link" onclick="toggleTransparency();">
+      Toggle surface transparency</span>.
+  </p>
+</div>
 
 [% 
 imageUri   = c.uri_for( "/static/images" );
@@ -256,9 +249,8 @@ hideButton = "${imageUri}/hideButton.png";
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
       <td>
-        <img src="[% hideButton %]" 
-             onclick="toggleSurface('surface_[% m.surfLabel %]', this )"
-             alt="Show/hide surface" />
+        <a id="surface_[% m.surfLabel %]" 
+           class="btn showHide"><span class="btn-inner">Hide</span></a>
       </td>
     </tr>
     [% END %]
@@ -266,9 +258,8 @@ hideButton = "${imageUri}/hideButton.png";
       <td colspan="7">Not assigned to an Rfam region</td>
       <td style="background: #e7e7e7">&nbsp;</td>
       <td>
-        <img src="[% hideButton %]" 
-             onclick="toggleSurface('surface_unassigned', this )"
-             alt="Show/hide surface" />
+        <a id="surface_unassigned" 
+           class="btn showHide"><span class="btn-inner">Hide</span></a>
       </td>
     </tr>
   </tbody>
@@ -280,18 +271,30 @@ hideButton = "${imageUri}/hideButton.png";
 
 <script type="text/javascript">
   // <![CDATA[
-  function toggleSurface( sId, oSwitch ) {
-    var av = document.getElementById( "av" );
-    if( av == null ) {
+  [%# we apparently need to set explicitly the name of the window, otherwise it takes the 
+    # name of the parent, so targetted links back to the parent wont work -%]
+  window.name = "avWin";
+
+  var toggleSurf = function( e ) {
+    var toggleSwitch = e.target,
+        surfaceId = toggleSwitch.up("a").id,
+        av = document.getElementById( "av" ),
+        show = toggleSwitch.innerHTML.match("Hide");
+    if ( av == null ) {
       av = document.getElementById( "avIE" );
     }
-    av.execute( "object " + sId + " display toggle;");
-    if( '[% showButton %]' == oSwitch.src ) {
-      oSwitch.src = '[% hideButton %]';
-    } else {
-      oSwitch.src = '[% showButton %]';
+    if ( surfaceId !== null ) {
+      av.execute( "object " + surfaceId + " display toggle;" );
+      toggleSwitch.innerHTML = show 
+                             ? toggleSwitch.innerHTML.replace("Hide","Show")
+                             : toggleSwitch.innerHTML.replace("Show","Hide");
     }
-  }
+  };
+
+  document.observe( "dom:loaded", function() {
+    $$("a.showHide").invoke( "observe", "click", toggleSurf );
+  } );
+
   var transparent = true;
   function toggleTransparency() {
     var av = document.getElementById( "av" );
