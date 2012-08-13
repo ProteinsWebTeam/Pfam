@@ -28,16 +28,22 @@
 #explanation {
   border: 1px solid #CCC; 
   background: #EEE; 
-  width: 283px;
-  height:494px;
-  float: right;
-  margin: 2px 2px 0 0;
+  width: 260px;
+  height: 494px;
+  float: left;
+  margin: 2px 2px;
   padding: 2px;
   font-size: smaller;
   overflow: auto;
 }
 
 #av {
+  border: 1px solid #CCC; 
+  float: left;
   margin: 2px;
   padding: 0px;
+}
+
+table.details {
+  width: 773px;
 }
