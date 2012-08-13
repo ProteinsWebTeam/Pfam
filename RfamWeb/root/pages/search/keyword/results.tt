@@ -95,7 +95,7 @@ sharedRequirements.js.push( "tablekit.js" );
 
 <div id="results">
   <table class="resultTable" id="resultTable" summary="Search results">
-    <thead class="sortIndicator dark">
+    <thead class="sortIndicator light">
       <tr>
         <th id="indexCol" class="rowNum">Original order</th>
         <th>Accession</th>
