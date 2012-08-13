@@ -26,7 +26,7 @@ IF taxSearchError %]
 
 [% ELSE;
 
-  IF families.keys.size > 0 -%]
+  IF families.keys.size -%]
 
     <p>
       We found <strong>[% families.keys.size %]</strong> families matching your
