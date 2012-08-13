@@ -40,7 +40,8 @@ with 'PfamBase::Roles::Section' => { -excludes => 'section' },
      'RfamWeb::Roles::Family::Methods',
      'RfamWeb::Roles::Family::TreeMethods',
      'RfamWeb::Roles::Family::AlignmentMethods',
-     'RfamWeb::Roles::Family::StructureMethods';
+     'RfamWeb::Roles::Family::StructureMethods',
+     'RfamWeb::Roles::Family::SunburstMethods';
 
 # set up the list of content-types that we handle via REST
 __PACKAGE__->config(
@@ -60,16 +61,20 @@ __PACKAGE__->config( SECTION => 'family' );
 
 =head1 METHODS
 
-=head2 begin : Private
+=head2 auto : Private
 
 Extracts values from the parameters. Accepts "acc", "id" and "entry", in lieu
 of having them as path components.
 
+We're using C<auto> to do all of this, rather than C<begin>, because of problems
+with adding method modifiers when the C<begin> method has the C<Deserialize> 
+action class added, e.g. C<sub begin : ActionClass('Deserialize') { }>. Ideally
+we'd just do this stuff in an C<after> method, but it seems that method modifiers
+just don't work when the C<Deserialize> C<ActionClass> is applied..
+
 =cut
 
-# using "after" because there's a begin method in the C::C::REST controller that
-# we're extending
-after 'begin' => sub {
+sub auto : Private {
   my ( $this, $c ) = @_;
   
   # get a handle on the entry, if supplied as params, and detaint it
@@ -96,7 +101,23 @@ after 'begin' => sub {
       if $c->debug;
     $c->stash->{db} = $c->model('RfamDB');
   }
-};
+
+  # 'auto' has to return true or the dispatch short-circuits straight to 'end'
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 end : ActionClass( 'Serialize' )
+
+The L<Section> base class sets the C<end> action to use the L<RenderView>
+C<ActionClass>, but that screws up the RESTful serialisation. Reset C<end> here
+to use a serialiser to render the output, and rely on the mapping between 
+MIME type and serialiser to do the right thing.
+
+=cut
+
+sub end : ActionClass( 'Serialize' ) { } 
 
 #-------------------------------------------------------------------------------
 
@@ -162,19 +183,57 @@ sub family_page_GET_html : Private {
     return;
   }
 
+  #---------------------------------------
+
   # load the data for all regions, provided the number of regions is less than
   # the limit set in the config
   if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showAll} ) {
     $c->log->debug( 'Family::family_page: num_full <= showAll limit; retrieving regions' )
       if $c->debug;
-    $c->stash->{showAll} = 1;
+    $c->stash->{showAllSequences} = 1;
     $c->forward( 'get_regions_data' );
   }
   elsif ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showText} ) {
     $c->log->debug( 'Family::family_page: num_full <= showText limit; retrieving regions later' )
       if $c->debug;
-    $c->stash->{showText} = 1;
+    $c->stash->{showTextSequences} = 1;
+    $c->stash->{regionsLimit} = $this->{regionsLimits}->{showAll};
   }
+  else {
+    $c->stash->{regionsLimit} = $this->{regionsLimits}->{showText};
+  }
+
+  #---------------------------------------
+
+  # refseq data
+  my $regions = $c->stash->{db}->resultset('RfamRefseq')
+                  ->search( { rfam_acc => $c->stash->{acc} },
+                            { } );
+
+  if ( defined $regions ) {
+    $c->stash->{refseqRegions} = $regions;
+      $c->log->debug( 'Family::family_page: found ' 
+                      . $regions->count . ' refseq regions' )
+        if $c->debug;
+
+    if ( $regions->count <= $this->{refseqRegionsLimits}->{showAll} ) {
+      $c->log->debug( 'Family::family_page: refseq regions count <= showAll limit; returning '
+                      . $regions->count . ' regions' )
+        if $c->debug;
+      $c->stash->{showAllRefseq} = 1;
+    }
+    elsif ( $regions->count <= $this->{refseqRegionsLimits}->{showText} ) {
+      $c->log->debug( 'Family::family_page: refseq regions count <= showText limit; allowing text download' )
+        if $c->debug;
+      $c->stash->{showTextRefseq} = 1;
+      $c->stash->{regionsLimit} = $this->{regionsLimits}->{showAll};
+    }
+    else {
+      $c->stash->{regionsLimit} = $this->{regionsLimits}->{showText};
+    }
+  }
+
+  #---------------------------------------
 
   # add the clan details, if any
   my $clan = $c->stash->{db}->resultset('Clans')
@@ -187,8 +246,6 @@ sub family_page_GET_html : Private {
     $c->stash->{clan} = $clan;
   }
 
-  $c->cache_page( 43200 ); # cache for 12 hours
-  
   #---------------------------------------
 
   $c->log->debug( 'Family::family_page: adding summary info' ) 
@@ -204,6 +261,8 @@ sub family_page_GET_html : Private {
   $c->log->debug( 'Family::family_page: emitting HTML' )
     if $c->debug;
 
+  $c->cache_page( 43200 ); # cache for 12 hours
+  
   $c->stash->{pageType} = 'family';
   $c->stash->{template} = 'pages/layout.tt';
 }
