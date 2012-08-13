@@ -251,7 +251,7 @@ sub queue_search_transaction : Private {
                                  job_type       => $c->stash->{job_type},
                                  job_id         => $c->stash->{jobId},
                                  estimated_time => $c->stash->{estimated_time},
-                                 opened         => DateTime->now, # \'NOW()',
+                                 opened         => \'NOW()',
                                  status         => 'PEND',
                                  email          => $c->stash->{email} } );  
     
