@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 # use Test::More qw( no_plan );
-use Test::More tests => 103;
+use Test::More tests => 106;
 
 use HTTP::Headers;
 use HTTP::Request::Common;
@@ -124,15 +124,17 @@ $req = GET( "$family/$acc/cm" );
 $res = request( $req );
 ok( $res->is_success, 'CM request successful' );
 like( $res->header('Content-Disposition'), qr|filename=$acc.cm|, 'Returns correct filename' );
-like( $res->content, qr|^BCOM.*?^CCOM.*?^SCOM|ms, 'Looks like a CM' );
-like( $res->content, qr|NAME\s+$id\nACCESSION $acc|m, 'Looks like the right CM' );
+like( $res->content, qr|^INFERNAL.*?^NAME|ms, 'Looks like a CM' );
+# like( $res->content, qr|^BCOM.*?^CCOM.*?^SCOM|ms, 'Looks like a CM' ); # only valid for Infernal 1.0 CMs
+like( $res->content, qr|NAME\s+$id\nACC      $acc|m, 'Looks like the right CM' );
 
 $req = GET( "$family/$acc/cm/1.0" );
 $res = request( $req );
 ok( $res->is_success, 'CM request with version successful' );
 like( $res->header('Content-Disposition'), qr|filename=$acc.cm|, 'Still returns correct filename' );
-like( $res->content, qr|^BCOM.*?^CCOM.*?^SCOM|ms, 'Still looks like a CM' );
-like( $res->content, qr|NAME\s+$id\nACCESSION $acc|m, 'Still looks like the right CM' );
+like( $res->content, qr|^INFERNAL.*?^NAME|ms, 'Looks like a CM' );
+# like( $res->content, qr|^BCOM.*?^CCOM.*?^SCOM|ms, 'Looks like a CM' ); # only valid for Infernal 1.0 CMs
+like( $res->content, qr|NAME\s+$id\nACC      $acc|m, 'Still looks like the right CM' );
 
 $req = GET( "$family/cm?acc=$acc" ); # legacy URL
 $res = request( $req );
@@ -245,7 +247,7 @@ ok( $res->is_redirect, 'Old colorstock alignment URL redirects' );
 like( $res->content, qr|This item has moved <a href="http://localhost/family/$acc/alignment/seed/colorstock">|, 'Redirected correctly' );
 
 # stockholm format
-$req = GET( "$family/$acc/alignment/seed/stockholm" );
+$req = GET( "$family/$acc/alignment/seed/stockholm?download=1" );
 $res = request( $req );
 ok( $res->is_success, 'Stockholm alignment block request successful' );
 like( $res->content, qr|# STOCKHOLM 1.0\n#=GF ID    $id\n#=GF AC    $acc|ms, 'Looks like a stockholm alignment' );
@@ -255,7 +257,7 @@ like( $res->header('Content-Disposition'), qr|filename=${acc}_seed.stockholm.txt
 $req = GET( "$family/$acc/alignment/full/stockholm" );
 $res = request( $req );
 my $num_seqs_in_full = () = $res->content =~ m/^\#=GS /msg;
-ok( $num_seqs_in_full > $num_seqs_in_seed, 'More sequences in full Stockholm alignment than seed' );
+ok( $num_seqs_in_full > $num_seqs_in_seed, "More sequences in full alignment than seed in Stockholm file for $acc ($num_seqs_in_full > $num_seqs_in_seed)" );
 
 $req = GET( "$family/alignment/download/gzipped?acc=$acc&alnType=seed" ); # legacy URL
 $res = request( $req );
@@ -263,9 +265,9 @@ ok( $res->is_redirect, 'Old "gzipped" alignment URL redirects' );
 like( $res->content, qr|This item has moved <a href="http://localhost/family/$acc/alignment/seed/stockholm\?gzip=1">|, 'Redirected correctly' );
 
 # view rather than download
-$req = GET( "$family/$acc/alignment/full/stockholm?view=1" );
+$req = GET( "$family/$acc/alignment/full/stockholm" );
 $res = request( $req );
-is( $res->header('Content-Disposition'), undef, 'No "Content-Disposition" header when requesting view' );
+is( $res->header('Content-Disposition'), undef, 'No "Content-Disposition" header when not requesting download' );
 
 # no alignment type specified
 $req = GET( "$family/$acc/alignment" );
@@ -273,7 +275,7 @@ $res = request( $req );
 ok( $res->is_success, 'Alignment request with no alignment type or format specified' );
 like( $res->content, qr|# STOCKHOLM 1.0\n#=GF ID    $id\n#=GF AC    $acc|ms, 'Looks like a stockholm alignment' );
 my ( $sq ) = $res->content =~ m/\#=GF SQ\s+(\d+)/;
-is( $sq, $num_seqs_in_seed, "Correct number of rows for seed alignment" );
+is( $sq, $num_seqs_in_seed, 'Correct number of rows for seed alignment; default alignment type is seed' );
 
 # no format specified
 $req = GET( "$family/$acc/alignment/seed" );
@@ -282,6 +284,14 @@ ok( $res->is_success, 'Alignment request with alignment type but no format speci
 like( $res->content, qr|# STOCKHOLM 1.0\n#=GF ID    $id\n#=GF AC    $acc|ms, 'Looks like a stockholm alignment' );
 ( $sq ) = $res->content =~ m/\#=GF SQ\s+(\d+)/;
 is( $sq, $num_seqs_in_seed, "Correct number of rows for seed alignment" );
+
+# gzipped
+$req = GET( "$family/$acc/alignment/seed?gzip=1" );
+$res = request( $req );
+ok( $res->is_success, 'Compressed Stockholm alignment request successful' );
+is( $res->content_type, 'application/x-gzip', 'gzip Content-Type' );
+$uncompressed_content = Compress::Zlib::memGunzip( $res->content );
+like( $uncompressed_content, qr|# STOCKHOLM 1.0\n#=GF ID    $id\n#=GF AC    $acc|ms, 'Looks like a stockholm alignment' );
 
 # pfam
 $req = GET( "$family/$acc/alignment/seed/pfam" );
