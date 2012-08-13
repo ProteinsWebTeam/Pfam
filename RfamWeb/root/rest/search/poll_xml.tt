@@ -1,0 +1,45 @@
+[% 
+# poll_xml.tt
+# jt6 20120308 WTSI
+#
+# template for returning the URL for the results of a sequence search
+#
+# $Id$
+
+META naked = 1;
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://rfam.sanger.ac.uk/"
+      xsi:schemaLocation="http://rfam.sanger.ac.uk/
+                          http://rfam.sanger.ac.uk/static/documents/schemas/submission.xsd">
+[% IF rest.error -%]
+<error>
+<![CDATA[
+[% rest.error %]
+]]>
+</error>
+[% RETURN;
+END; # of "IF rest.error" -%]
+  <job job_id="[% jobId %]">
+    <opened>[% rest.opened %]</opened>
+    <result_url>[% c.uri_for( '/search/sequence', jobId ) %]</result_url>
+  </job>
+</jobs>[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -1,0 +1,55 @@
+[% 
+# regions_xml.tt
+# jt6 20120209 WTSI
+#
+# template for serialising Rfam regions as an XML file
+#
+# $Id$
+
+USE date;
+
+META naked = 1;
+
+baseUri = "http://rfam.sanger.ac.uk/";
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rfam regions for family [% rfam.rfam_id %] ([% rfam.rfam_acc %])
+     file built [% date.format %] -->
+<rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/rfam_regions.xsd"
+      release="[% relData.rfam_release %]" 
+      release_date="[% relData.rfam_release_date %]">
+  <regions accession="[% rfam.rfam_acc %]" id="[% rfam.rfam_id %]">
+[%- FOREACH region IN region_rows %]
+    <region type="rfamseq"
+            accession="[% region.get_column('rfamseq_acc' ) %]"
+            bits_score="[% region.bits_score %]"
+            start="[% region.seq_start %]"
+            end="[% region.seq_end %]"
+            description="[% region.get_column('description') | html %]"
+            species="[% region.get_column('species' ) | html %]"
+            ncbi_id="[% region.get_column('ncbi_taxid') %]" />
+[%- END %]
+  </regions>
+</rfam>
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
+

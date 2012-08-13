@@ -1,0 +1,53 @@
+[% 
+# structure_mapping_xml.tt
+# jt6 20120210 WTSI
+#
+# template for serialising Rfam-to-PDB mapping as an XML fileserve
+#
+# $Id$
+
+USE date;
+
+META naked = 1;
+
+baseUri = "http://rfam.sanger.ac.uk/";
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rfam regions for family [% rfam.rfam_id %] ([% rfam.rfam_acc %])
+     file built [% date.format %] -->
+<rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/rfam_structure_mapping.xsd"
+      release="[% relData.rfam_release %]" 
+      release_date="[% relData.rfam_release_date %]">
+  <structure_mapping accession="[% rfam.rfam_acc %]" id="[% rfam.rfam_id %]">
+[% FOREACH row IN rest.mapping -%]
+    <mapping rfamseq_acc="[% row.0 %]"
+             seq_start="[% row.1 %]"
+             seq_end="[% row.2 %]"
+             pdb_id="[% row.3 %]"
+             chain="[% row.4 %]"
+             pdb_seq_start="[% row.5 %]"
+             pdb_seq_end="[% row.6 %]" />
+[% END -%]
+  </structure_mapping>
+</rfam>
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
