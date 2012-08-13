@@ -890,24 +890,80 @@ h2.padded {
 /* ---------------------------------------- */
 /* tooltip styles */
 
-.tooltip {
-  background: #f0e8e6;
+.prototip .tooltip {
+  background: #efefef;
   border: 1px solid #621700;
-  font-size: 0.8em;
-  /* opacity: 0.8; */
 }
 
-.tooltip .title {
+.prototip .tooltip .title {
   background: #621700;
   color: #f0e8e6;
   font-weight: bold;
-  padding: 0.1em;
+  padding: 0 0.2em;
 }
 
-.tooltip .content {
+.prototip .tooltip .content {
   color: #621700;
-  padding: 0.1em;
+  margin: 0.2em;
 }
+
+/* for the benefit of IE, otherwise it leaves a great wide gap
+ * at the left of the <dl> */
+.prototip dl {
+  margin: 0;
+}
+
+.prototip p {
+  margin: 0;
+  padding: 0.2em;
+}
+
+.prototip div.scale {
+  font-family: monospace;
+  font-size: smaller;
+  text-align: left;
+}
+
+.prototip div.scale span {
+  margin: 0;
+  padding: 0;
+}
+
+.prototip dt {
+  padding: 0;
+  font-weight: bold;
+  float: left;
+}
+
+.prototip dd {
+  margin-left: 8em;
+  padding: 0 0.2em;
+}
+
+.prototip .inactive {
+  color: #aaaaaa;
+}
+
+/* we know that the terms are very small in the tooltip on the alignments */
+#alignmentKey dt {
+  width: 6em ! important;
+}
+
+#alignmentKey dd {
+  margin-left: 6em ! important;
+}
+
+/* tips in the sunburst */
+#treeTipTitle {
+  background-color: #621700;
+  color: #f0d9d3;
+}
+
+/* tweak the tooltips on the phylogenetic tree */
+/* .treetip {
+  background-color: #f0e8e6;
+  width: 32em;
+} */
 
 /* ---------------------------------------- */
 /* format the mirrors list and citation */
@@ -1033,12 +1089,7 @@ ul.mirrors li {
   /* z-index: -1; */
 }
 
-/* tweak the tooltips on the phylogenetic tree */
-/* .treetip {
-  background-color: #f0e8e6;
-  width: 32em;
-} */
-
+/*
 .tooltip .title {
   height: 18px;
   font-size: medium;
@@ -1061,6 +1112,7 @@ ul.mirrors li {
 .tipContents dd {
   margin-left: 8.2em;
 }
+*/
 
 .treeHolder {
   position: relative;
@@ -1204,8 +1256,9 @@ div.nodeSummary div {
   margin-right: 19em;
 }
 
-div.blockContent > #treeTools {
+div.blockContent #treeTools {
   position: fixed;
+  cursor: move;
 }
 
 #treeTools ul {
@@ -1267,7 +1320,7 @@ div.SSSwitcher {
 /* ======================================== */
 /* CSS buttons */
 
-a.btn {
+a.btn:hover {
   border:1px solid #471100;
   background-image: linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
   background-image: -o-linear-gradient(top, rgb(168,39,0) 0%, rgb(98,23,0) 97%);
@@ -1284,7 +1337,8 @@ a.btn {
   );
 }
 
-a.btn:hover {
+a.btn {
+  border:1px solid #471100;
   background-image: linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
   background-image: -o-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
   background-image: -moz-linear-gradient(top, rgb(166,101,83) 0%, rgb(97,60,48) 97%);
