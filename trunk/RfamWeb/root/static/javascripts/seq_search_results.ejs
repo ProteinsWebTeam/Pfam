@@ -6,7 +6,7 @@
 		<span class="link" id="hideAll">hide</span> 
 		all alignments.
 	</caption>
-	<thead class="sortIndicator dark">
+	<thead class="dark">
 		<tr>
 			<th>Id</th>
 			<th>Accession</th>
@@ -33,8 +33,13 @@
           <td><%= hit.E      %></td>
           <td><%= hit.strand %></td>
           <td class="showSwitch">
+            <a class="btn lrg fixedw"><span class="btn-inner">Show</span></a>
+          </td>
+          <!--
+          <td class="showSwitch">
             <%= img_tag( "/static/images/showButton.png", "Show alignment" ) %>
           </td>
+          -->
         </tr>
         <tr class="alignment <%= i % 2 ? 'odd' : 'even' %>"
             style="display: none">
