@@ -65,6 +65,9 @@ var SunburstNode = Class.create( {
     this.id           = null;
     this.children     = [];
     this.parentNode   = {};
+    this.taxid        = null;
+    this.sequences    = null;
+    this.isSelected   = false;
     Object.extend( this, nodeData );
   },
 
@@ -108,7 +111,9 @@ var TreeFactory = function( treeData, parentNode ) {
     numSpecies:   treeData.numSpecies,
     nodeName:     treeData.node || "Unknown",
     id:           treeData.id,
-    parentNode:   parentNode
+    parentNode:   parentNode,
+    taxid:        treeData.taxid,
+    sequences:    treeData.sequences
   } );
 
   if ( treeData.children !== undefined ) {

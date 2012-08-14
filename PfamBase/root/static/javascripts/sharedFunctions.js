@@ -405,8 +405,11 @@ var TabPage = Class.create( {
 
     // keep track of post-loading calls
      
-    // register listeners for the start and end of each ajax call
-    Ajax.Responders.register( {
+    // in order to be able to unregister responders, we need to use the exact 
+    // object, so here we build the mapping between Ajax events and functions,
+    // and then actually register them using Ajax.Responders.register. 
+    // (There are no references to "this", so skip the "bind" calls.
+    this.responders = {
       onCreate: function() {
         $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
         $('loadingComponents').show();
@@ -417,7 +420,10 @@ var TabPage = Class.create( {
           $('loadingComponents').hide();
         }
       }
-    } );
+    };
+
+    // register listeners for the start and end of each ajax call
+    Ajax.Responders.register( this.responders );
 
     // listen for keypresses and switch tabs based on which key was pressed
     document.observe( "keypress", function(e) {

@@ -60,42 +60,42 @@ var Sunburst = Class.create( {
    * @private
    */
   _colours: {
-    "Archaea":               { "minH": 0.017453292519943295,
-                               "maxH": 0.6981317007977318 },
-    "Bacteria":              { "minH": 0.8726646259971648,
-                               "maxH": 2.6179938779914944 },
-    "unclassified sequence": { "minH": 3.141592653589793,
-                               "maxH": 3.1764992386296798 },
-    "unclassified":          { "minH": 3.193952531149623,
-                               "maxH": 3.2288591161895095 },
-    "Eukaryota":             { "minH": 4.363323129985824,
-                               "maxH": 5.235987755982989 },
-    "Viruses":               { "minH": 5.410520681182422,
-                               "maxH": 5.759586531581287 },
-    "Viroids":               { "minH": 5.777039824101231,
-                               "maxH": 5.846852994181004 },
-    "other sequences":       { "minH": 5.8643062867009474,
-                               "maxH": 6.19591884457987 }
+    "Archaea":                { "minH": 0.017453292519943295,
+                                "maxH": 0.6981317007977318 },
+    "Bacteria":               { "minH": 0.8726646259971648,
+                                "maxH": 2.6179938779914944 },
+    "unclassified sequences": { "minH": 3.141592653589793,
+                                "maxH": 3.1764992386296798 },
+    "unclassified":           { "minH": 3.193952531149623,
+                                "maxH": 3.2288591161895095 },
+    "Eukaryota":              { "minH": 4.363323129985824,
+                                "maxH": 5.235987755982989 },
+    "Viruses":                { "minH": 5.410520681182422,
+                                "maxH": 5.759586531581287 },
+    "Viroids":                { "minH": 5.777039824101231,
+                                "maxH": 5.846852994181004 },
+    "other sequences":        { "minH": 5.8643062867009474,
+                                "maxH": 6.19591884457987 }
   },
 
   // these are the original angles, converted to radians above
   // _colours: { 
-  //   "Archaea":               { "minH": 1,
-  //                              "maxH": 40 },
-  //   "Bacteria":              { "minH": 50,
-  //                              "maxH": 150 },
-  //   "unclassified sequence": { "minH": 180,
-  //                              "maxH": 182 },
-  //   "unclassified":          { "minH": 183,
-  //                              "maxH": 185 },
-  //   "Eukaryota":             { "minH": 250,
-  //                              "maxH": 300 },
-  //   "Viruses":               { "minH": 310,
-  //                              "maxH": 330 },
-  //   "Viroids":               { "minH": 331,
-  //                              "maxH": 335 },
-  //   "other sequences":       { "minH": 336,
-  //                              "maxH": 355 }
+  //   "Archaea":                { "minH": 1,
+  //                               "maxH": 40 },
+  //   "Bacteria":               { "minH": 50,
+  //                               "maxH": 150 },
+  //   "unclassified sequences": { "minH": 180,
+  //                               "maxH": 182 },
+  //   "unclassified":           { "minH": 183,
+  //                               "maxH": 185 },
+  //   "Eukaryota":              { "minH": 250,
+  //                               "maxH": 300 },
+  //   "Viruses":                { "minH": 310,
+  //                               "maxH": 330 },
+  //   "Viroids":                { "minH": 331,
+  //                               "maxH": 335 },
+  //   "other sequences":        { "minH": 336,
+  //                               "maxH": 355 }
   // },
 
   // the eight major taxonomic levels. Used only when generating the 
@@ -114,6 +114,10 @@ var Sunburst = Class.create( {
 
   // a regex for testing whether a node name is something like "(No order)"
   _noLevelRE: new RegExp( '^\\\(No ' ),
+
+  // when the user selects or deselects a set of nodes, we colour each successive
+  // layer after a delay of "_selectAnimationDelay" milliseconds
+  _selectAnimationDelay: 10,
 
 /*
 +------------+--------------------+----------+---------+---------+--------+------------------------+---------+--------------+
@@ -137,7 +141,7 @@ var Sunburst = Class.create( {
    *
    * @private
    */
-  _enableClicks: false,
+  _enableClicks: true,
 
   /**
    * The time limit (in milliseconds) for registering a second click as a 
@@ -209,11 +213,12 @@ var Sunburst = Class.create( {
    * tree) will be draw in &quot;subTree&quot;
    * </p>
    */
-  initialize: function( treeParentEl, subTreeParentEl, treeData, w, h ) {
+  initialize: function( options ) {
 
-    this._treeParentEl    = $(treeParentEl);
-    this._subTreeParentEl = $(subTreeParentEl);
-    this._treeData        = treeData;
+    this._treeParentEl    = $(options.parent);
+    this._subTreeParentEl = $(options.subTreeParent);
+    this._treeData        = options.tree;
+    this._tipStyle        = options.tipStyle || "pfam";
 
     this._tree             = TreeFactory( treeData );
     this._layers           = [];
@@ -232,10 +237,10 @@ var Sunburst = Class.create( {
     this._depthLimit       = 50;
     this._layerSeparation  = 2;
                            
-    this._treeWidth        = w || 1000;
-    this._treeHeight       = h || 1000;
+    this._treeWidth        = options.w || 1000;
+    this._treeHeight       = options.h || 1000;
     this._subTreeWidth     = 246;
-    this._subTreeHeight    = 150;
+    this._subTreeHeight    = 125;
                            
     // this._centreX          = this._treeWidth  / 2;
     // this._centreY          = this._treeHeight / 2;
@@ -248,12 +253,15 @@ var Sunburst = Class.create( {
 
     this._radialLabels     = false; // true:  draw labels centred on arcs and radially
                                     // false: draw labels tangential to arcs
-    this._selected         = new Hash();
+    this._selectedArcs     = new Hash();
     this._highlightedArc   = null;
     this._clickedArc       = null;
 
     this._showSunburst     = true;
     this._showTree         = false;
+
+    this._selectedSequencesCount = 0;
+    this._selectedSpeciesCount   = 0;
 
     // this._tipStyle         = {
     //   border: 3,
@@ -276,7 +284,6 @@ var Sunburst = Class.create( {
    */
   build: function() {
     this._buildGraph( this._tree.children, this._layerWidth, 1, 0, 0, 0, 0 );
-
     return this;
   },
 
@@ -320,7 +327,7 @@ var Sunburst = Class.create( {
       }
       layer.each( function(arc) {
         // console.debug( "drawing arc: " + arc );
-        if ( arc._selected ) {
+        if ( arc.isSelected ) {
           this._drawArc( arc, this._selectedNodeColour );
         } else {
           this._drawArc( arc, arc._colour );
@@ -354,9 +361,64 @@ var Sunburst = Class.create( {
    * @returns {Array} list of selected <code>SunburstNode</code> objects
    */
   getSelected: function() {
-    return this._selected.values();
+    return this._selectedArcs.values();
   },
 
+  //----------------------------------------------------------------------------
+  /**
+   * Returns a list of the sequence accessions under the currently selected
+   * nodes.
+   *
+   * @returns {Array} list of selected sequence accessions
+   */
+  getSelectedSeqAccs: function() {
+    var accessions = new Hash();
+    this.getSelected().each( function( arc ) { 
+      if ( arc.sequences !== undefined ) {
+        arc.sequences.each( function( seq ) {
+          accessions.set( seq.seqAcc, null );
+        } );
+      }
+    } );
+    return accessions.keys();
+  },
+
+  //----------------------------------------------------------------------------
+  /**
+   * Returns a associative list of the sequence accessions under the currently
+   * selected nodes, grouped by taxonomy ID, e.g.
+   *   {
+   *     "213422":null,
+   *     "28231":null,
+   *     "35554":["AE017180","CP002031"],
+   *     "28232":["CP000148"],
+   *     "351604":["CP000698"],
+   *     "313985":["CP001089"],
+   *     "225194":["CP001124"],
+   *     "316067":["CP001390"],
+   *     "443144":["CP001661"],
+   *     "443143":["CP002479"]
+   *   }
+   *
+   * @returns {Object} list of selected sequence accessions grouped by tax ID
+   */
+  getSelectedSeqAccsByTaxa: function() {
+    var selection = new Hash();
+    this.getSelected().each( function( arc ) {
+      if ( arc.sequences === undefined ) {
+        selection.set( arc.taxid, null );
+      } else {
+        selection.set(
+           arc.taxid,
+           arc.sequences.collect( function( seq ) {
+            return seq.seqAcc;
+           } )
+        );
+      }
+    } );
+    return selection.toJSON();
+  },
+  
   //----------------------------------------------------------------------------
   /**
    * Clears the list of currently selected nodes. This also redraws the 
@@ -365,11 +427,19 @@ var Sunburst = Class.create( {
    * @returns {Sunburst} reference to this object
    */
   clearSelection: function() {
-    this._selected.values().each( function(arc) {
-      arc._selected = false;
+    this._selectedArcs.values().each( function(arc) {
+      arc.isSelected = false;
       this._drawArc( arc, arc._colour );
     }.bind(this) );
-    this._selected = new Hash();
+    this._selectedArcs = new Hash();
+    this._selectedSequencesCount = 0;
+    this._selectedSpeciesCount   = 0;
+
+    $("sunburst").fire( "sunburst:selectionChange", {
+      numSequences: 0,
+      numSpecies:   0
+    } );
+
     return this;
   },
   
@@ -522,15 +592,15 @@ var Sunburst = Class.create( {
     this._tip = new Tip( 
       this._treeCanvas, 
       this._tipContent,
-      { style: "pfam",
+      { style: this._tipStyle,
         delay: 0.75,
         width: "15em" }
     );
 
     // watch the main canvas for mouse events
-    this._treeCanvas.observe( "mousemove", this._handleMousemove.bind(this) );
+    this._treeCanvas.observe( "mousemove", this._highlightNode.bind(this) );
     if ( this._enableClicks ) {
-      this._treeCanvas.observe( "click", this._handleClick.bind(this) );
+      this._treeCanvas.observe( "click", this._selectNode.bind(this) );
     }
 
     this._builtMarkup = true;
@@ -574,12 +644,14 @@ var Sunburst = Class.create( {
    */
   _buildGraph: function( children, r, depth, initialH, initialAlpha, rootShare, range ) {
   
+    this._graphBuilt = true;
+
     children.each( function( child ) {
 
       // calculate the limits of the arc
       var fromAlpha  = this._layers[depth] && this._layers[depth].alpha ? this._layers[depth].alpha : 0,
           deltaAlpha, toAlpha, a, fractionOfRange, 
-          h, s, b, colours, RGBColours, rgb, nextR;
+          h, hc, s, v, colours, RGBColours, rgb, nextR;
 
       if ( this._weightByNumSeq ) {
         // weight arc length by number of sequences
@@ -633,13 +705,19 @@ var Sunburst = Class.create( {
       // calculate the colours for this arc
       h = ( ( initialH + fractionOfRange ) / ( 2 * Math.PI ) );
       s = this._layers[depth].sat;
-      b = this._layers[depth].sat;
+      v = this._layers[depth].sat;
+
+      // calculate a complementary colour for the sub-tree title
+      hc = h + 0.5;
+      while ( hc >= 1.0 ) hc -= 1.0;
+      while ( hc <  0.0 ) hc += 1.0;
 
       colours = [
-        [ h,       s,       b       ], // main
-        [ h,       s * 0.4, b * 1.2 ], // highlight
-        [ h * 0.8, s,       b       ]  // selected
-      ];
+        [ h,       s,       v              ], // main
+        [ h,       s * 0.4, v * 1.2        ], // highlight
+        [ h * 0.8, s,       v              ], // selected
+        [ hc,      s,       v              ]  // adjust the colour of the sub-tree title 
+      ];                                      // according to the segment colour
 
       RGBColours = colours.collect( function( c ) {
         rgb = this._hsvToRgb( c[0], c[1], c[2] );
@@ -649,10 +727,12 @@ var Sunburst = Class.create( {
       child._colour          = RGBColours[0];
       child._highlightColour = RGBColours[1];
       child._selectedColour  = RGBColours[2];
+      child._titleColour     = RGBColours[3];
 
       // store the arc in a data structure with nested arrays. The outer array stores
       // the layers, the inner arrays store the arcs in a particular layer
       if ( depth < this._depthLimit ) {
+
 
         if ( this._arcs[depth] === undefined ) {
           this._arcs[depth] = [];
@@ -970,11 +1050,13 @@ var Sunburst = Class.create( {
   //----------------------------------------------------------------------------
   /**
    * Handles the &quot;mousemove&quot; events from the main tree canvas.
+   * Highlights the hovered arc by changing its colour to a lighter version of
+   * the original colour.
    *
    * @private
    * @param e mouse event from tree canvas
    */
-  _handleMousemove: function(e) {
+  _highlightNode: function(e) {
 
     var arc = this._findArc( e ),
         tipTitle;
@@ -987,7 +1069,7 @@ var Sunburst = Class.create( {
 
       // return the highlighted arc to its original colour
       if ( this._highlightedArc ) {
-        if ( this._highlightedArc._selected ) {
+        if ( this._highlightedArc.isSelected ) {
           this._drawArc( this._highlightedArc, this._selectedNodeColour );
         } else {
           this._drawArc( this._highlightedArc, this._highlightedArc._colour );
@@ -1010,7 +1092,7 @@ var Sunburst = Class.create( {
 
     // return the highlighted arc to its original colour
     if ( this._highlightedArc ) {
-      if ( this._highlightedArc._selected ) {
+      if ( this._highlightedArc.isSelected ) {
         this._drawArc( this._highlightedArc, this._selectedNodeColour );
       } else {
         this._drawArc( this._highlightedArc, this._highlightedArc._colour );
@@ -1018,7 +1100,7 @@ var Sunburst = Class.create( {
     }
 
     // colour the new arc and store it
-    if ( arc._selected ) {
+    if ( arc.isSelected ) {
       this._drawArc( arc, this._highlightedSelectedNodeColour );
     } else {
       this._drawArc( arc, arc._highlightColour );
@@ -1046,13 +1128,13 @@ var Sunburst = Class.create( {
 
   //----------------------------------------------------------------------------
   /**
-   * Handles clicks on arcs. A single click selects a single node. A
-   * double-click is handled by <code>_endDoubleClick</code>.
+   * Handles clicks on arcs. A click selects the clicked node and the subtree
+   * below that node.
    *
    * @private
    * @param e mouse event from tree canvas
    */
-  _handleClick: function(e) {
+  _selectNode: function(e) {
 
     var arc = this._findArc( e );
 
@@ -1060,42 +1142,119 @@ var Sunburst = Class.create( {
       return;
     }
 
-    if ( this._clickedArc && this._clickedArc == arc ) {
-      // got a second click on the same arc
-      this._endDoubleClick();
-      this._setSubTreeSelectionStatus( arc, arc._selected );
+    if ( arc.isSelected ) {
+      this._drawArc( arc, arc._colour );
+      this._selectedArcs.unset( arc.id );
     } else {
-      this._clickedArc = arc;
-      this._doubleClickTimeout = setTimeout( this._endDoubleClick.bind(this),
-                                             this._doubleClickPeriod );
+      this._drawArc( arc, this._highlightedSelectedNodeColour );
+      this._selectedArcs.set( arc.id, arc );
+    }
+
+    arc.isSelected = ! arc.isSelected
+    this._setSubTreeSelectionStatus( arc, arc.isSelected );
+    
+    // walk back up the tree from the current node, deselecting parent nodes
+    // that have no other selected children
+    this._deselectParentNode( arc );
+
+    // notify observers of a change in the number of selected sequences and 
+    // species. Because the cascade has a delay, we need to wait until it's 
+    // done before calculating the counts and firing the event. There are 
+    // only 8 levels in the sunburst, but we'll add an extra buffer, just 
+    // to make sure we're done before firing
+    setTimeout( this._fireSelectionChangeEvent.bind(this), 9 * this._selectAnimationDelay );
+  },
+
+  //----------------------------------------------------------------------------
+  /**
+   * Walks up the tree from the de-selected node and de-selects any parents
+   * that have no other selected child nodes.
+   *
+   * @private
+   * @param arc node from which to walk up the tree
+   */
+  _deselectParentNode: function( arc ) {
+
+    var p = arc.parentNode;
+    // console.debug( "Sunburst._deselectParentNode: checking node %s", p.nodeName );
+
+    if ( ! p.isSelected ) {
+      // parent isn't selected itself, so we're done
+      // console.debug( "Sunburst._deselectParentNode:   node is not selected; done" );
+      return;
+    }
+
+    // the parent IS selected; see if it has selected children other than
+    // the current arc
+
+    if ( p.children.size() > 1 ) {
+      // console.debug( "Sunburst._deselectParentNode:   parent node has > 1 children" );
+      // parent has other children besides this one; see if any of those are selected
+      var selectedSibling = p.children.detect( function( child ) { return child.isSelected; } );
+
+      if ( selectedSibling !== undefined ) {
+        // console.debug( "Sunburst._deselectParentNode:   parent node has other selected children; done" );
+        // the parent of the current arc has another selected child, so it 
+        // should remain selected itself
+        return;
+      }
+      // console.debug( "Sunburst._deselectParentNode:   parent node has NO other selected children" );
+    }
+
+    // parent has only a single child node (this one) or has no selected children
+    // console.debug( "Sunburst._deselectParentNode:   de-selecting parent node" );
+    p.isSelected = false;
+    this._drawArc( p, p._colour );
+    this._selectedArcs.unset( p.id );
+
+    // because it could be confusing for the user to see a whole slice of the
+    // sunburst being immediately unselected, we add a short delay as we walk 
+    // back up the tree, so that the parent nodes will be deselected slightly
+    // more gradually. Need to work around the inability of IE to pass parameters
+    // using setTimeout...
+    if ( Prototype.Browser.IE ) {
+      this._deselectParentNode( p );
+    } else {
+      setTimeout( this._deselectParentNode.bind(this), this._selectAnimationDelay,
+                  p );
     }
   },
 
   //----------------------------------------------------------------------------
   /**
-   * Handles clicks on arcs. A single click selects a single node. A
-   * double-click is handled by <code>_endDoubleClick</code>.
+   * Walks the list of currently selected nodes and calculates the total number
+   * of selected sequences and species, then fires a custom event to notify
+   * listeners of the selection change. The event carries the counts as its
+   * payload:
+   *
+   *   { numSequences: N, numSpecies: M }
    *
    * @private
-   * @param e mouse event from tree canvas
    */
-  _endDoubleClick: function() {
+  _fireSelectionChangeEvent: function() {
 
-    if ( this._clickedArc._selected ) {
-      this._clickedArc._selected = false;
-      this._drawArc( this._clickedArc, this._clickedArc._colour );
-      this._selected.unset( this._clickedArc );
-    } else { 
-      this._clickedArc._selected = true;
-      this._drawArc( this._clickedArc, this._highlightedSelectedNodeColour );
-      // this._drawArc( this._clickedArc, this._clickedArc._selectedColour );
-      this._selected.set( this._clickedArc, this._clickedArc );
-    }
+    var seqCount = 0,
+        speciesCount = 0,
+        accessions = new Hash();
 
-    this._clickedArc = null;
-    if ( this._doubleClickTimeout !== undefined ) {
-      clearTimeout( this._doubleClickTimeout );
-    }
+    this.getSelected().each( function( arc ) {
+      if ( arc.children.size() == 0 ) {
+        speciesCount += Number(arc.numSpecies);
+      }
+      if ( arc.sequences !== undefined ) {
+        arc.sequences.each( function( seq ) {
+          accessions.set( seq.seqAcc, null );
+        } );
+      }
+    } );
+
+    seqCount = accessions.keys().size();
+
+    this._treeParentEl.fire( "sunburst:selectionChange", {
+      numSequences: seqCount,
+      numSpecies:   speciesCount
+    } );
+
   },
   
   //----------------------------------------------------------------------------
@@ -1110,17 +1269,32 @@ var Sunburst = Class.create( {
   _setSubTreeSelectionStatus: function( arc, selectionStatus ) {
 
     arc.children.each( function( child ) {
+
+      if ( child.isSelected == selectionStatus ) {
+        return;
+      }
       
-      child._selected = selectionStatus;
+      child.isSelected = selectionStatus;
       if ( selectionStatus ) {
-        this._selected.set( child.id, child );
+        child.isSelected = selectionStatus;
+        this._selectedArcs.set( child.id, child );
         this._drawArc( child, this._selectedNodeColour );
       } else {
-        this._selected.unset( child );
+        this._selectedArcs.unset( child.id );
         this._drawArc( child, child._colour );
       }
 
-      this._setSubTreeSelectionStatus( child, selectionStatus );
+      // because it could be confusing for the user to see a whole slice of the
+      // sunburst being immediately unselected, we add a short delay as we walk 
+      // back up the tree, so that the parent nodes will be deselected slightly
+      // more gradually. Need to work around the inability of IE to pass parameters
+      // using setTimeout...
+      if ( Prototype.Browser.IE ) {
+        this._setSubTreeSelectionStatus( child, selectionStatus );
+      } else {
+        setTimeout( this._setSubTreeSelectionStatus.bind(this), this._selectAnimationDelay, 
+                    child, selectionStatus );
+      }
 
     }.bind(this) );
 
@@ -1152,9 +1326,10 @@ var Sunburst = Class.create( {
 
     this._stctx.clearRect( 0, 0, this._subTreeWidth, this._subTreeHeight );
 
-    // set the name and the colour in the sub-tree
+    // set the name and the colours in the sub-tree
     this._speciesNameDiv.update( child.nodeName )
-                        .setStyle( { backgroundColor: child._colour } );
+                        .setStyle( { backgroundColor: child._colour,
+                                     color:           child._titleColour } );
 
     // walk back up the tree and get each parent node in turn
     parentNode = child.parentNode;

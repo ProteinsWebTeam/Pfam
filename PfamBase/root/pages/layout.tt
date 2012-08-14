@@ -20,7 +20,7 @@ requirements.cssIe.push( "tab_layout_ie.css" );
 
 # get the CSS for the curved corners from the application-specific area, so 
 # that we can have differently coloured backgrounds in each of the websites
-requirements.css.push( "cb.css" );
+#requirements.css.push( "cb.css" );
 
 #--------------------------------------
 # a BLOCK that will generate a sidebar tab
@@ -136,7 +136,7 @@ PROCESS components/icons.tt;
   document.observe( "dom:loaded", function() {
 
     [%-# add curved corners, where needed -%]
-    var cb = new CurvedBorders();
+    // var cb = new CurvedBorders();
 
     [%-# add the various behaviours to the page -%] 
     tabPage = new TabPage();

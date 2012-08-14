@@ -1,0 +1,111 @@
+
+/* help.css
+   jt6 20120313 WTSI
+
+   Common styles for the help pages.
+   
+   $Id$
+   
+   Copyright (c) 2012: Genome Research Ltd.
+    
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+   Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
+    
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+    
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+   
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+*/   
+
+/* ---------------------------------------- */
+/* database documentation */
+
+span.table {
+  font-weight: bold;
+}
+
+span.column {
+  font-style: italic;
+}
+
+pre {
+  font-size: larger;
+  margin: 0;
+}
+
+fieldset {
+  border: 1px solid #BBB;
+  background: #EEE;
+  margin: 1em;
+  width: 75em;
+}
+
+legend {
+  border: 1px solid #BBB;
+  background: #DDD;
+  padding: 0.4em;
+  font-weight: bold;
+}
+
+img.tables {
+  overflow: auto;
+  border: 1px solid #BBB;
+}
+
+/* ---------------------------------------- */
+/* rest services documentation */
+
+pre.url {
+  margin-left: 2em;
+}
+
+pre.script {
+  overflow: auto;
+  margin: 1em 2em;
+  border: 1px solid #CCC;
+  background-color: #EEE;
+  padding: 0.4em;
+}
+
+pre.prettyprint {
+  max-height: 30em;
+}
+
+div.code {
+  overflow: auto;
+  width: 75em;
+}
+
+div.sections {
+  border: 1px solid #CCC;
+  background-color: #EEE;
+  padding: 0.4em;
+  margin: 0.2em 0.2em 1em 1em;
+  float: right;
+}
+
+div.sections p { 
+  margin: 0;
+  padding: 0;
+  font-weight: bold;
+}
+
+div.sections ol {
+  /* width: 100%; */
+  margin: 0.2em;
+  padding: 0 1.4em;
+  margin: 0.2em 0.2em 0.2em 1.2em;
+}
+
+/* override the style used by the YUI tabview CSS */
+table.details li em {
+  font-style: italic;
+}
