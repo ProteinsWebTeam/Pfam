@@ -80,9 +80,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         sequence line should contain only valid IUPAC nucleotide symbols, 
         i.e. the characters A,C,G,U,T,R,Y,S,W,M,K,B,D,H,V and N, in either 
         upper and/or lower case. In the context of a Rfam search, gaps and 
-        translation stops have little meaning and should not normally be used, 
-        but we accept &quot;-&quot; or &quot;*&quot; to denote gaps and 
-        translation stops respectively.
+        translation stops have little meaning and should not be used.
+        <strong>We no longer accept gap characters</strong> such as
+        &quot;-&quot; or &quot;*&quot;.
       </p>
   
       <h2>Service limits</h2>
