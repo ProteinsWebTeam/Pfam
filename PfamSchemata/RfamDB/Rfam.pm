@@ -232,6 +232,12 @@ __PACKAGE__->belongs_to(
   { 'foreign.forward_to' => 'self.rfam_acc' }
 );
 
+__PACKAGE__->has_one(
+  'rfam_species_trees',
+  'RfamDB::RfamSpeciesTree',
+  { 'foreign.auto_rfam' => 'self.auto_rfam' },
+);
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
