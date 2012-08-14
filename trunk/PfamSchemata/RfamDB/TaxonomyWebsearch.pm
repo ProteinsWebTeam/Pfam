@@ -8,7 +8,7 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("taxonomy_websearch");
 __PACKAGE__->add_columns(
-  "ncbi_taxid",
+  "ncbi_id",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "species",
   {
@@ -43,11 +43,11 @@ __PACKAGE__->add_columns(
     size => 100,
   },
 );
-__PACKAGE__->set_primary_key("ncbi_taxid");
+__PACKAGE__->set_primary_key("ncbi_id");
 __PACKAGE__->has_many(
   "rfam_ncbis",
   "RfamDB::RfamNcbi",
-  { "foreign.ncbi_code" => "self.ncbi_taxid" },
+  { "foreign.ncbi_code" => "self.ncbi_id" },
 );
 
 
@@ -56,14 +56,6 @@ __PACKAGE__->has_many(
 
 
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::RfamNcbi", 'ncbi_code' );
-
-__PACKAGE__->set_primary_key( qw/ncbi_taxid/ );
-
-__PACKAGE__->has_many(
-  "rfam_ncbi",
-  "RfamDB::RfamNcbi",
-  { "foreign.ncbi_code" => "self.ncbi_taxid" },
-);
 
 #-------------------------------------------------------------------------------
 
