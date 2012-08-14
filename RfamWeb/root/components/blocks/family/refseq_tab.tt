@@ -1,0 +1,116 @@
+[%
+# refseq.tt
+# jt6 20120806 WTSI
+#
+# the refseq tab for the family section
+#
+# $Id$
+
+USE Number.Format( THOUSANDS_SEP = "," );
+%]
+
+<p>
+  [% IF refseqRegions.count %]
+    There are <strong>[% refseqRegions.count %]</strong> refseq sequence
+    regions for this family.
+    [% IF showAllRefseq %]
+      You can <a href="[% c.uri_for( '/family', acc, 'refseq' ) %]">download</a>
+      the details of all regions as a tab-delimited file. The table of
+      results below may be sorted by clicking on the column titles, or
+      restored to the original order 
+      <span class="link" id="rsSortLink">here</span>. 
+    [% ELSIF showTextRefseq %]
+      There are too many regions to show in this page (we show a maximum of
+      [% regionsLimit %]) , but you can still 
+      <a href="[% c.uri_for('/family', acc, 'refseq' ) %]">download</a> 
+      the details of all of them as a tab-delimited file.
+    [% ELSE %]
+      There are too many regions to show (&gt;[% regionsLimit %]). If you
+      really need a list of all regions for this family, please contact us at
+      the address below and we will do our best to help. 
+    [% END %]
+  [% ELSE %]
+  There are no refseq regions for this family.
+  [% END %]
+</p>
+
+[% IF refseqRegions.count AND showAllRefseq %]
+  <table summary="Rfam refseq regions"
+         id="refseqTable"
+         class="details">
+    <thead class="sortIndicator">
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Sequence accession</th>
+        <th>Bits score</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Description</th>
+        <th>Species</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% seqUri = c.uri_for( '/sequence/' );
+      FOREACH region IN refseqRegions.all %]
+        <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
+          <td class="rowNum">[% loop.index %]</td>
+          <td>
+            <a href="http://www.ncbi.nlm.nih.gov/nuccore/[% region.refseq_accession %]"
+               class="ext">[% region.refseq_accession %]</a>
+          </td>
+          <td>[% region.bits_score %]</td>
+          <td>[% region.refseq_start | format_number %]</td>
+          <td>[% region.refseq_end   | format_number %]</td>
+          <td class="left">[% region.description %]</td>
+          <td>[% region.species %]</td>
+        </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    document.observe( "dom:loaded", function() {
+      var rsSorter = new TableKit( "refseqTable",
+                                   {
+                                     editable: false,
+                                     resizable: false,
+                                     rowEvenClass: "even",
+                                     rowOddClass: "odd",
+                                     stripe: true,
+                                     observers: {
+                                       onSortStart: function( table, event ) { 
+                                         table.down("thead").removeClassName("sortIndicator");
+                                       }
+                                     }
+                                   } );    
+
+      $("rsSortLink").observe( "click", function() {
+        rsSorter.sort(0);
+      } );
+    } );
+
+    // ]]>
+  </script>
+[%- END %]
+
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Sarah Burge (sb30@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -29,120 +29,52 @@ USE String;
   </div>
   <div class="blockContent">
 
-    <p>
-      There are <strong>[% rfam.num_full %]</strong> sequence regions for this family.
-    [% IF showAll %]
-      You can <a href="[% c.uri_for( '/family', acc, 'regions' ) %]">download</a>
-      the details of all regions as a tab-delimited file. The table of results 
-      below may be sorted by clicking on the column titles, or restored to the 
-      original order <span class="link" id="sortLink">here</span>. 
-    [% ELSIF showText %]
-      There are too many regions to show in this page, but you can still 
-      <a href="[% c.uri_for('/family', acc, 'regions' ) %]">download</a>
-      the details of all of them as a tab-delimited file.
-    [% ELSE %]
-      There are too many regions to show. If you really need a list of all 
-      regions for this family, please contact us at the address below and we 
-      will do our best to help. 
-    [% END %]
-    </p>
+    <div id="sequencesTabs" class="nestedTabs yui-navset">
 
-    [% IF region_rows.defined %]
-      <table summary="Rfam regions"
-             id="regionsTable"
-             class="details">
-        <thead class="sortIndicator">
-          <tr>
-            <th id="indexCol" class="rowNum">Original order</th>
-            <th>Sequence accession</th>
-            <th>Bits score</th>
-            <th>Type</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Description</th>
-            <th>Species</th>
-          </tr>
-        </thead>
-        <tbody>
-          [% seqUri = c.uri_for( '/sequence/' );
-          FOREACH region IN region_rows;
-            seqAcc  = region.get_column('rfamseq_acc');
-            
-            # build the URL for the ENA image, expanding the region by
-            # 500 bases in each direction
-            from = region.seq_start - 500;
-            to   = region.seq_end   + 500;
-            IF from < 1;
-              from = 1;
-            END;
-            IF to > region.get_column('length');
-              to = region.get_column('length');
-            END;
+      <ul id="sequencesTabsNav" class="yui-nav">
+        <li class="selected">
+          <a href="#sequencesTab">Rfamseq ([% rfam.num_full %])</a>
+        </li>
+        <li>
+          <a href="#yuiTreeTab">Refseq ([% refseqRegions.count || 0 %])</a>
+        </li> 
+      </ul>
+      
+      <div class="yui-content">
+  
+        <!-- start of rfamseq sequences tab -->
 
-            enaURI = "http://www.ebi.ac.uk/ena/data/view/graphics/" 
-              _ seqAcc
-              _ "%26showSequence=false%26featureRange="
-              _ from _ "-" _ to
-              _ "%26sequenceRange=1-1000.jpg";
-              
-            enaTitle = "Sequence context for <strong>${rfam.rfam_id}</strong> in "
-              _ "<a href='http://www.ebi.ac.uk/ena/data/view/$seqAcc' class='ext'>$seqAcc</a>/"
-              _ region.seq_start _ " - " _ region.seq_end
-              | html -%]
-            <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
-              <td class="rowNum">[% loop.index %]</td>
-              <td>
-                <a title="[% rfam.rfam_acc %]" 
-                   href="[% seqUri; seqAcc %]">
-                  [% seqAcc %]</a>
-                <a href="[% enaURI %]" 
-                   rel="lightbox[seqs]" 
-                   title="[% enaTitle %]">
-                  <img src="/static/images/seq_icon.png"
-                       class="seqIcon"
-                       alt="ENA graphic" /></a>
-              </td>
-              <td>[% region.bits_score %]</td>
-              <td>[% region.type %]</td>
-              <td>[% region.seq_start | format_number %]</td>
-              <td>[% region.seq_end   | format_number %]</td>
-              <td class="left">[% region.get_column('description') %]</td>
-              <td>[% region.get_column('species') %]</td>
-            </tr>
-          [% END %]
-        </tbody>
-      </table>
-    [% END; # of "IF region_rows.defined" %]
+        <div id="sequencesTab"> 
+          [% PROCESS components/blocks/family/sequences_tab.tt %]
+        </div>
+
+        <!-- end of rfamseq sequences tab -->
+
+        <!-- start of refseq sequences tab -->
+
+        <div id="refseqTab">
+          [% PROCESS components/blocks/family/refseq_tab.tt %]
+        </div>
+
+        <!-- end of refseq sequences tab -->
+
+      </div> [%# end of "yui-content" %]
+      
+    </div> [%# end of "sequencesTabs" %]
 
   </div>
 
-  [% IF showAll %]
   <script type="text/javascript">
     // <![CDATA[
 
-    var sorter = new TableKit( "regionsTable",
-                               {
-                                 editable: false,
-                                 resizable: false,
-                                 rowEvenClass: "even",
-                                 rowOddClass: "odd",
-                                 stripe: true,
-                                 observers: {
-                                   onSortStart: function( table, event ) { 
-                                     table.down("thead").removeClassName("sortIndicator");
-                                   }
-                                 }
-                               } );    
-
-    $("sortLink").observe( "click", function() {
-      sorter.sort(0);
+    var sequencesTabView;
+    document.observe("dom:loaded", function() {
+      sequencesTabView = new YAHOO.widget.TabView("sequencesTabs");
     } );
-
-    var lb = new Lightbox();
 
     // ]]>
   </script>
-  [% END %]
+
 </div>
 
 <!-- end sequences block --> 
