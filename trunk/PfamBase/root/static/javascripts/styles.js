@@ -42,14 +42,32 @@ Prototip.Styles = {
   },
 
   'rfam': {
-    borderColor: "#621700",
-    className: "rfam",
-    border:    2,
-    radius:    2,
-    hook:      { target: "topLeft", tip: "bottomLeft" },
-    offset:    { x: -8, y: 1 },
-    stem:      { position: "bottomLeft", width: 9, height: 14 }
+    border: 3,
+    borderColor: '#621700',
+    className: 'rfam',
+    closeButton: false,
+    hideAfter: false,
+    hideOn: 'mouseleave',
+    hook: false,
+    radius: 3,
+    showOn: 'mousemove',
+    stem: {
+      position: 'topLeft',
+      height: 12,
+      width: 15
+    },
+    width: 'auto'
   },
+
+  // 'rfam': {
+  //   borderColor: "#621700",
+  //   className: "rfam",
+  //   border:    2,
+  //   radius:    2,
+  //   hook:      { target: "topLeft", tip: "bottomLeft" },
+  //   offset:    { x: -8, y: 1 },
+  //   stem:      { position: "bottomLeft", width: 9, height: 14 }
+  // },
 
   //------------------------------------------------------------------------------
 

@@ -1,57 +1,51 @@
 
 # Section.pm
-# jt6 20060922 WTSI
+# jt6 20120514 WTSI
 #
-# $Id: Section.pm,v 1.5 2009-09-04 13:55:40 jt6 Exp $
+# $Id$
 
 =head1 NAME
 
-PfamBase::Controller::Section - base class for section pages, e.g. Family
+PfamBase::Roles::Section - role to apply a sensible "end" method to a controller
 
 =cut
 
-package PfamBase::Controller::Section;
+package PfamBase::Roles::Section;
 
 =head1 DESCRIPTION
 
-This is the base class for the various "section" controllers, such as
-Family, Clan, etc. It contains an empty C<default> method that just
-captures the URL, and an C<end> that catches errors from earlier in
-the process and reports them. If there are no errors it renders the
-view that's for the section, e.g. "family.tt", etc.
+This role adds an "end" action that applies the "RenderView" action class and
+takes care of tracking and displaying errors in some cases.
 
-$Id: Section.pm,v 1.5 2009-09-04 13:55:40 jt6 Exp $
+$Id$
 
 =cut
 
-use strict;
-use warnings;
-
-use base 'Catalyst::Controller';
+use MooseX::MethodAttributes::Role;
+use namespace::autoclean;
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 section : Path
 
-A stub method to capture requests using the controller name. Tries to extract
-a single argument from the url, so that we can use either of these two styles
-of URL to get here:
+Default action. This should be over-ridden or excluded by any controllers that
+apply this role, otherwise the base section name will go straight to the 404
+page:
 
-=over
-
-=item http://pfam.sanger.ac.uk/family?entry=piwi 
-
-=item http://pfam.sanger.ac.uk/family/piwi
-
-=back 
+  with 'PfamBase::Roles::Section' => { -excludes => 'section' };
 
 =cut
 
-# sub default : Path {
-#   my ( $this, $c  ) = @_;
-# }
+sub section : Path {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'PfamBase::Roles::Section::section: defaulting to 404 page' )
+    if $c->debug;
+
+  $c->stash->{template} = 'pages/404.tt';
+}
 
 #-------------------------------------------------------------------------------
 
@@ -78,7 +72,7 @@ sub end : ActionClass( 'RenderView' ) {
   # and having made sure that we're not just being "detached", check for 
   # real errors now
   if ( scalar @{ $c->error } ) {
-    $c->log->debug( 'found errors' )
+    $c->log->debug( 'PfamBase::Roles::Section::end: found errors' )
       if $c->debug;
 
     $c->log->error( $_ ) for @{ $c->error };
@@ -93,7 +87,7 @@ sub end : ActionClass( 'RenderView' ) {
   	$c->clear_errors;
   }
   elsif ( $c->stash->{errorMsg} ) {
-    $c->log->debug( 'found error message' )
+    $c->log->debug( 'PfamBase::Roles::Section::end: found error message' )
       if $c->debug;
 
   	# there was an error with user input, e.g. bad ID or accession. Check the 
@@ -101,7 +95,7 @@ sub end : ActionClass( 'RenderView' ) {
   	$c->stash->{template} ||= 'components/blocks/' . $this->{SECTION} . '/error.tt';
   }
   else {
-    $c->log->debug( 'no errors; setting template' )
+    $c->log->debug( 'PfamBase::Roles::Section::end: no errors; setting template' )
       if $c->debug;
 
   	# no problems; set up the template and let it rip

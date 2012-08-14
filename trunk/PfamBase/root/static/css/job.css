@@ -155,7 +155,7 @@ img.graphicImage {
 }
 
 .resultTable td.showSwitch {
-  padding: 0;
+  padding: 0 0 4px 0;
   cursor: pointer;
 }
 
@@ -180,3 +180,17 @@ span.tableTitle {
 span.inactive {
   color: #AAA;
 }
+
+#resultsHeader {
+  padding: 0 8px;
+}
+
+#resultsHeader h2 {
+  float: left;
+}
+
+#dlLinks {
+  float: right;
+  padding: 0.8em 0;
+}
+

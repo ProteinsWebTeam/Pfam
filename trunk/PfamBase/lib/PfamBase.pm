@@ -22,21 +22,19 @@ $Id: PfamBase.pm,v 1.3 2010-01-19 09:57:49 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
-
-use Config::General;
+use Moose;
+use namespace::autoclean;
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
 # simply dying with a cryptic error about barewords
 #use Carp; $SIG{__DIE__} = \&Carp::confess;
 
 # load common plugins
-use Catalyst qw/
-                 ConfigLoader
+use Catalyst qw( ConfigLoader
                  Cache
-               /;
-# PageCache must be last in the list
+                 PageCache );
+
+extends 'Catalyst';
 
 our $VERSION = '0.1';
 
@@ -55,10 +53,14 @@ of wild cards in the robots.txt urls.
 
 =cut
 
-__PACKAGE__->config->{'Plugin::ConfigLoader'}->{driver} =
-  { General => { -IncludeRelative  => 1,
-                 -UseApacheInclude => 1,
-                 -CComments        => 0 } };
+__PACKAGE__->config( 'Plugin::ConfigLoader' => {
+    driver => { 
+       General => { -IncludeRelative  => 1,
+                    -UseApacheInclude => 1,
+                    -CComments        => 0 }
+    }
+  }
+);
 
 #-------------------------------------------------------------------------------
 
