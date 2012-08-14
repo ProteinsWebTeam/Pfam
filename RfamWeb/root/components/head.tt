@@ -59,8 +59,25 @@ IF refreshUri != "";
 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
 
+[% IF c.config.analytics.grep('google').size -%]
 <!-- google analytics -->
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '[% c.config.analytics_id %]']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+[% END;
+
+IF c.config.analytics.grep('urchin').size %]
+<!-- urchin -->
 <script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
+[% END %]
 
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
