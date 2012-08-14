@@ -16,13 +16,13 @@ USE wrap;
 
 PROCESS "components/require.tt";
 
-requirements.js.push( "updater.js" );
 requirements.js.push( "results.js" );
 requirements.js.push( "ejs_production.js" );
-requirements.js.push( "ejs_fulljslint.js" );
+# requirements.js.push( "ejs_fulljslint.js" );
 
 requirements.css.push( "search.css" );
 
+sharedRequirements.js.push( "updater.js" );
 sharedRequirements.js.push( "tablekit.js" );
 
 sharedRequirements.css.push( "job.css" );
