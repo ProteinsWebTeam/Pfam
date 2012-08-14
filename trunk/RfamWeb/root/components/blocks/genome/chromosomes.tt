@@ -44,7 +44,7 @@ tbody = BLOCK;
         <td><span class="inactive">No GFF file</span></td>
       [%- END %]
       <td class="showSwitch">
-        <a class="btn lrg fixedw"><span class="btn-inner">Show</span></a>
+        <a class="btn lrg fixedw[% ' disabled' UNLESS regions.$auto_genome.count %]"><span class="btn-inner">Show</span></a>
       </td>
     </tr>
     <tr class="[% oe % 2 ? 'odd' : 'even' %]" style="display: none">
@@ -135,13 +135,19 @@ END; # of BLOCK
   <script type="text/javascript">
     // <![CDATA[
 
-    $$("#breakdownTable td.showSwitch").each( function( td ) {
-      td.observe( "click", function( e ) { 
-        var cell    = e.findElement("td");
-        var btn     = cell.down("span");
-        var nextRow = cell.up("tr").next("tr");
-        nextRow.toggle();
-        btn.innerHTML = nextRow.visible() ? "Hide" : "Show";
+    document.observe( "dom:loaded", function() {
+      $$("#breakdownTable td.showSwitch").each( function( td ) {
+        td.observe( "click", function( e ) { 
+          var cell    = e.findElement("td"),
+              link    = cell.down("a"),
+              btn     = link.down("span"),
+              nextRow = cell.up("tr").next("tr");
+          if ( link.hasClassName("disabled") ) {
+            return;
+          }
+          nextRow.toggle();
+          btn.innerHTML = nextRow.visible() ? "Hide" : "Show";
+        } );
       } );
     } );
 
