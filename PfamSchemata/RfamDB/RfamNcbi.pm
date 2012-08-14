@@ -26,19 +26,21 @@ __PACKAGE__->set_primary_key("ncbi_code", "auto_rfam");
 __PACKAGE__->belongs_to(
   "ncbi_code",
   "RfamDB::TaxonomyWebsearch",
-  { ncbi_code => "ncbi_taxid" },
+  { ncbi_code => "ncbi_id" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:31
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LsRi7VzSY2s/aOTfg/BYWQ
 
-__PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_taxid' );
+# TODO we can't possibly need both of these two relationships as well as the
+# "belongs_to" above...
+__PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_id' );
 
 __PACKAGE__->has_one(
   "tax",
   "RfamDB::TaxonomyWebsearch",
-  { "foreign.ncbi_taxid" => "self.ncbi_code" },
+  { "foreign.ncbi_id" => "self.ncbi_code" },
 );
 
 #-------------------------------------------------------------------------------
