@@ -49,6 +49,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           symbols are as A,C,G,U,T,R,Y,S,W,M,K,B,D,H, and N. 
           Sequences containing other characters, such as &quot;#&quot; or 
           &quot;*&quot;, will not be accepted</li>
+        <li>gap characters such as &quot;.&quot; and &quot;-&quot; will not
+          be accepted</li>
         <li>FASTA-header lines are accepted but will be removed</li>
       </ul>
       <p>
