@@ -1,0 +1,124 @@
+[%
+# speciesTreeTab.tt
+# jt6 20110328 WTSI
+#
+# template for generating the YUI species tree. This should be called 
+# from a tab template using PROCESS.
+#
+# There are two separate templates for generating the sunburst and YUI
+# trees, so that we can use both for the Pfam-A families but only the
+# YUI tree for Pfam-Bs.
+#
+# $Id$
+
+PROCESS components/speciesTreeTools.tt  # add the "control panel %]
+
+<div id="speciesTreeDesc">
+  <p>
+    The tree shows the occurrence of this RNA across different species.
+    <span onclick="reveal( this, 'speciesNotes', false, true );"
+          class="moreLink">
+      More...</span>
+  </p>
+
+  <div id="speciesNotes" style="display: none">
+    <h2>Species trees</h2>
+    <p> 
+      For the majority of our families we provide an interactive tree
+      representation, which allows you to select specific nodes in the tree
+      and view the selected sequences as an alignment.
+    </p>
+    <p>
+      Unfortunately we have found that there are problems viewing the 
+      interactive tree when the it becomes larger than a certain limit. 
+      Furthermore, we have found that Internet Explorer can become 
+      unresponsive when viewing some trees, regardless of their size. 
+      We therefore show a text representation of the species tree when the
+      size is above a certain limit or if you are using Internet Explorer
+      to view the site.
+    </p>
+    <p>
+      If you are using IE you can still load the interactive tree by 
+      clicking the &quot;Generate interactive tree&quot; button, but please 
+      be aware of the potential problems that the interactive species tree 
+      can cause.
+    </p>
+    
+    <h3>Interactive tree</h3>
+    <p>
+      For all of the sequence regions (RNA annotations) in a full
+      alignment, we count the total number that are found in the
+      alignment. This total is shown in the <span
+      class="domSum">purple</span> box.
+    </p>
+    <p>
+      We also count the number of unique sequences on which each RNA is 
+      found, which is shown in <span class="seqSum">green</span>.
+      <strong>Note</strong> that an RNA annotation may appear
+      multiple times on the same sequence, leading to the difference between
+      these two numbers (think of repeats like tRNA where the same RNA is
+      found in tandem along a single sequence).
+    </p>
+    <p>
+      Finally, we group sequences from the same organism according
+      to the <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
+      title="National Center for Biotechnology Information">NCBI</acronym></a> 
+      code that is assigned by
+      <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>, 
+      allowing us to count the number of distinct sequences on which the 
+      RNA is found. This value is shown in the <span class="specSum">
+      pink</span> boxes.
+    </p>
+    <p>
+      We use the NCBI species tree to group organisms according to
+      their taxonomy and this forms the structure of the displayed tree.
+      <strong>Note</strong> that in some cases the trees are too large (have
+      too many nodes) to allow us to build an interactive tree. In
+      these few cases if you do really need to see a representation of the
+      tree for this entry, please contact us and we will be happy to discuss
+      ways to generate it for you.
+    </p>
+    <p>
+      You can use the tree controls to manipulate how the interactive tree
+      is displayed:
+    </p>
+    <ul>
+      <li>show/hide the summary boxes</li>
+      <li>highlight species that are represented in the seed alignment</li>
+      <li>expand/collapse the tree or expand it to a given depth</li>
+      <li>select a sub-tree or a set of species within the tree and view
+        them graphically or as an alignment</li>
+      <li>save a plain text representation of the tree</li>
+    </ul>
+    <hr />
+  </div>
+</div>
+
+<div id="treeDiv" class="ygtv-checkbox">
+  <p id="stph" class="loading">Loading...</p>
+  <p>
+    <strong>Please note:</strong> for large trees this can take some time.
+    While the tree is loading, you can safely switch away from this
+    tab but if you browse away from the family page entirely, the tree
+    will not be loaded.
+  </p>
+</div>
+
+[% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  document.observe("dom:loaded", function() {
+
+    // show/hide the species tree controls when the toggle button is clicked
+    var th  = $("toolsToggle");
+    th.observe("click",function() {
+      toggleTools( th, "toolsContent" );
+    } );
+
+  } );
+
+  // ]]>
+</script>
+
