@@ -295,9 +295,12 @@ sub parse_infernal_table {
 	    $rfamid = $1;
 	}
 	next if( /^\#/ );
-	if( my( $seqid, $start, $end, $modst, $moden, $bits, $evalue, $gc ) =
-	    /^\s*(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)/ ) {
-
+	my( $model, $seqid, $start, $end, $modst, $moden, $bits, $evalue, $gc );
+	if( (( $model, $seqid, $start, $end, $modst, $moden, $bits, $evalue, $gc ) =
+	    /^\s*(\S+)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)$/) || 
+	            (( $seqid, $start, $end, $modst, $moden, $bits, $evalue, $gc ) =
+	            /^\s*(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)$/) ) {
+	    
 	    my $strand = 1;
 	    if( $end < $start ) {
 		( $start, $end ) = ( $end, $start );
@@ -529,7 +532,7 @@ sub read_cm_library {
 	if( /^CLEN\s+(\d+)/ ) {
 	    $cm{$name}->{-length} = $1;
 	}
-	if( /^ACCESSION\s+(\S+)/ ) {
+	if(( /^ACCESSION\s+(\S+)/ ) || (/^ACC\s+(\S+)/)) {
 	    $cm{$name}->{-accession} = $1;
 	}
 	if( /^SCOM\s+cmsearch\s+(.*)\s+\S+\s+\S+/ ) {
@@ -543,8 +546,11 @@ sub read_cm_library {
 		elsif( $opt =~ /^-E$/ ) {
 		    shift @opts;
 		}
-		elsif( $opt =~ /--toponly/ ) {
+		elsif( $opt =~ /^--forward/){
+		     shift @opts;
 		}
+		elsif( $opt =~ /--toponly/ ) {
+		}		
 		else {
 		    $options .= $opt." ";
 		}
@@ -582,8 +588,8 @@ library of covariance models.
 
 =head1 VERSION
 
-This is version 1.0 of rfam_scan.pl.  It has been tested with Perl
-5.6.1, Rfam 10.0, Bioperl 1.5.2/1.6 and INFERNAL 1.0.  It should work with
+This is version 1.0.4 of rfam_scan.pl.  It has been tested with Perl
+5.6.1, Rfam 11.0, Bioperl 1.5.2/1.6 and INFERNAL 1.0.  It should work with
 versions higher than these, except where file formats change!
 
 =head1 REQUIREMENTS
@@ -648,6 +654,14 @@ with group I and group II catalytic introns) with the --nobig option.
    - The documentation is inadequate.
 
 =head1 HISTORY
+v1.0.4 2012-08-13
+    - Rfam 11.0 - minor edit to accommodate change to CM formatting
+
+V1.0.3 
+    -Rfam 10.1
+
+v1.0.2
+    -Rfam 10.0
 
 v1.0    2010-02-28
    - New style command line
