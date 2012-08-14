@@ -297,8 +297,7 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
 
   _alignSequences: function( response ) {
-
-    console.debug( 'SunburstController._alignSequences: accessions stored; submitting for alignment' );
+    // console.debug( 'SunburstController._alignSequences: accessions stored; submitting for alignment' );
 
     $("sunburstSpinner").update( "Aligning sequences&hellip;" );
 
@@ -310,8 +309,8 @@ var SunburstController = Class.create( {
 
     // TODO need to pass in this URL somehow, rather than assuming a location
     alignmentBuilderURI = '/family/' + acc + '/sunburst/alignment/' + jobId;
-    console.debug( 'SunburstController._alignSequences: alignment builder URI: %s',
-                   alignmentBuilderURI );
+    // console.debug( 'SunburstController._alignSequences: alignment builder URI: %s',
+    //                alignmentBuilderURI );
 
     r = new Ajax.Request( 
       alignmentBuilderURI,
@@ -323,13 +322,13 @@ var SunburstController = Class.create( {
       }
     );
 
-    console.debug( 'SunburstController._alignSequences: submitted AJAX call to build alignment' );
+    // console.debug( 'SunburstController._alignSequences: submitted AJAX call to build alignment' );
   },
 
   //----------------------------------------------------------------------------
 
   _pollForAlignment: function( response ) {
-    console.debug( "SunburstController._pollForAlignment: job submission succeeded" );
+    // console.debug( "SunburstController._pollForAlignment: job submission succeeded" );
 
     this._alignmentURI = response.getHeader('Location');
 
@@ -347,7 +346,7 @@ var SunburstController = Class.create( {
       }
     );
   
-    console.debug( "SunburstController._pollForAlignment: started updater; polling" );
+    // console.debug( "SunburstController._pollForAlignment: started updater; polling" );
   },
 
   //----------------------------------------------------------------------------
@@ -360,21 +359,21 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
   
   _alignmentRunning: function( response ) {
-    console.debug( 'SunburstController._align204: job %s, status 204; no results; polling further',
-      this._jobId );
+    // console.debug( 'SunburstController._align204: job %s, status 204; no results; polling further',
+    //   this._jobId );
   },
 
   //----------------------------------------------------------------------------
 
   _alignmentSucceeded: function( response ) {
-    console.debug( 'SunburstController._alignmentSucceeded: alignment generated: ', response );
+    // console.debug( 'SunburstController._alignmentSucceeded: alignment generated: ', response );
     this._updater.stop();
 
     $("sunburstSpinner").update( "Saving alignment&hellip;" );
     setTimeout( this._resetSpinner.bind(this), 2000 );
 
-    console.debug( 'SunburstController._alignmentSucceeded: setting window.location = "%s"',
-                   this._alignmentURI );
+    // console.debug( 'SunburstController._alignmentSucceeded: setting window.location = "%s"',
+    //                this._alignmentURI );
 
     var w = window.open( this._alignmentURI, "_blank", "width=300,height=300" );
   },
@@ -382,7 +381,7 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
 
   _alignmentFailed: function( response ) {
-    console.debug( 'SunburstController._alignmentFailed: alignment failed' );
+    // console.debug( 'SunburstController._alignmentFailed: alignment failed' );
     this._updater.stop();
     setTimeout( this._resetSpinner.bind(this), 1000 );
     $("sunburstErrors").update( "There was a problem aligning your sequences" )
@@ -394,7 +393,7 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
 
   _generateFasta: function( response ) {
-    console.debug( "SunburstController._generateFasta: accessions stored; retrieving FASTA file" );
+    // console.debug( "SunburstController._generateFasta: accessions stored; retrieving FASTA file" );
 
     var jobId = response.responseJSON.jobId,
         acc   = response.responseJSON.acc,
@@ -405,8 +404,8 @@ var SunburstController = Class.create( {
     $("sunburstSpinner").update( "Saving FASTA file&hellip;" );
     setTimeout( this._resetSpinner.bind(this), 2000 );
 
-    console.debug( 'SunburstController._generateFasta: setting window.location = "%s"',
-                   fastaBuilderURI );
+    // console.debug( 'SunburstController._generateFasta: setting window.location = "%s"',
+    //                fastaBuilderURI );
 
     w = window.open( fastaBuilderURI, "_blank", "width=300,height=300" );
   }
