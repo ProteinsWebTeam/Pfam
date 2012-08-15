@@ -185,6 +185,16 @@ sub family_page_GET_html : Private {
 
   #---------------------------------------
 
+  # should we decline to show the sunburst for this family ?
+  if ( $this->{no_sunburst}->{ $c->stash->{acc} } ) {
+    $c->log->debug( 'Family::family_page_GET_html: not showing sunburst for '
+                    . $c->stash->{acc} )
+      if $c->debug;
+    $c->stash->{no_sunburst} = $this->{no_sunburst}->{ $c->stash->{acc} };
+  }
+
+  #---------------------------------------
+
   # load the data for all regions, provided the number of regions is less than
   # the limit set in the config
   if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showAll} ) {
@@ -211,18 +221,17 @@ sub family_page_GET_html : Private {
                             { } );
 
   if ( defined $regions ) {
+    my $num_regions = $regions->count;
     $c->stash->{refseqRegions} = $regions;
-      $c->log->debug( 'Family::family_page: found ' 
-                      . $regions->count . ' refseq regions' )
+      $c->log->debug( "Family::family_page: found $num_regions refseq regions" )
         if $c->debug;
 
-    if ( $regions->count <= $this->{refseqRegionsLimits}->{showAll} ) {
-      $c->log->debug( 'Family::family_page: refseq regions count <= showAll limit; returning '
-                      . $regions->count . ' regions' )
+    if ( $num_regions <= $this->{refseqRegionsLimits}->{showAll} ) {
+      $c->log->debug( "Family::family_page: refseq regions count <= showAll limit; returning $num_regions regions" )
         if $c->debug;
       $c->stash->{showAllRefseq} = 1;
     }
-    elsif ( $regions->count <= $this->{refseqRegionsLimits}->{showText} ) {
+    elsif ( $num_regions <= $this->{refseqRegionsLimits}->{showText} ) {
       $c->log->debug( 'Family::family_page: refseq regions count <= showText limit; allowing text download' )
         if $c->debug;
       $c->stash->{showTextRefseq} = 1;
