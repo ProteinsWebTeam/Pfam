@@ -61,7 +61,16 @@ sharedRequirements.js.push( "faces/optimer-bold-normal.js" );
 
         <div id="sunburstTreeTab"> 
 
-          [% PROCESS components/blocks/family/sunburstTreeTab.tt %]
+          [% IF no_sunburst %]
+          <p>
+            We are unable to display the sunburst tree for this family.
+          </p>
+          <ul>
+            <li>[% no_sunburst %]</li>
+          </ul>
+          [% ELSE;
+            PROCESS components/blocks/family/sunburstTreeTab.tt;
+          END %]
 
         </div>
 
