@@ -56,6 +56,29 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 my $famObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 $verbose and print STDERR "Successfully loaded $family through middleware\n";
 
+#------------------------------------------------------------------------------------
+#Check user has filled in all the fields in DESC file
+#Could do this bit just for new families, but doing it for all families just in case
+my $user_fields;
+if($famObj->DESC->ID eq "ShortName") {
+  print STDERR "Need to change the id in the DESC file (currently 'ShortName')\n";
+  $user_fields=1;
+} 
+if($famObj->DESC->DE eq "Family description") {
+  print STDERR "Need to change the description in the DESC file (currently 'Family description')\n";
+  $user_fields=1;
+} 
+if($famObj->DESC->AU eq "Who RU") {
+  print STDERR "Need to change the author name in the DESC file (currently 'Who RU')\n";
+  $user_fields=1;
+}
+if($famObj->DESC->SE eq "Where did the seed come from") {
+  print STDERR "Need to change the seed source in the DESC file (currently 'Where did the seed come from')\n";
+  $user_fields=1;
+}
+print "\n" if($user_fields);
+
+
 #-------------------------------------------------------------------------------
 #Check DESC file for ID/AC and that if we have a CL line that we really meant it
 
@@ -114,6 +137,8 @@ unless ( $famObj->DESC->ID  and $famObj->DESC->ID =~ /\S+/   ) {
     . "The check-in process will automatically assign the accession and position it in the
   repository for you!\n";
 }
+
+
 
 if ( $famObj->DESC->CL ) {
   #Check clan is in the SVN repository.
