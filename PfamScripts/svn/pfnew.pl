@@ -101,6 +101,22 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 my $newFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded $family through middleware\n";
 
+#------------------------------------------------------------------------------------
+#Check user has filled in all the fields in DESC file
+if($newFamObj->DESC->ID eq "ShortName") {
+  die "Need to change the id in the DESC file (currently 'ShortName')\n";
+} 
+if($newFamObj->DESC->DE eq "Family description") {
+  die "Need to change the description in the DESC file (currently 'Family description')\n";
+} 
+if($newFamObj->DESC->AU eq "Who RU") {
+  die "Need to change the author name in the DESC file (currently 'Who RU')\n";
+}
+if($newFamObj->DESC->SE eq "Where did the seed come from") {
+  die "Need to change the seed source in the DESC file (currently 'Where did the seed come from')\n";
+}
+
+
 #-------------------------------------------------------------------------------
 #Check DESC file for ID/AC and that if we have a CL line that we really meant it
 
