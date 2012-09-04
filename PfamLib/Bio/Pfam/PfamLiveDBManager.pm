@@ -23,7 +23,7 @@ sub new {
   my %dbiParams = ();
   my $self      = {
     user     => "pfamro",
-    host     => "pfamdb2a",
+    host     => "mcs11",
     port     => "3303",
     database => "pfamH3live",
     driver   => "mysql",
@@ -468,6 +468,17 @@ sub updatePfamARegSeed {
     foreach my $d (@data) {
       $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
     }
+     
+    #my $cursor2 = $mongo2->find( { '_id' => { '$in' => \@seqs1000 } } );
+    #my @data2 = ();
+    #if ($cursor2) {
+    #  @data2 = $cursor2->all;
+    #}
+
+    #Store them in our hash for later
+    #foreach my $d (@data2) {
+    #  $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
+    #} 
   }
 
   $dbh->do('SET foreign_key_checks=0');
@@ -543,6 +554,17 @@ sub updatePfamARegFull {
     foreach my $d (@data) {
       $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
     }
+    #my $cursor2 = $mongo2->find( { '_id' => { '$in' => \@seqs1000 } } );
+    #my @data2 = ();
+    #if ($cursor2) {
+    #  @data2 = $cursor2->all;
+    #}
+
+    #Store them in our hash for later
+    #foreach my $d (@data2) {
+    #  $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
+    #}
+    
   }
 
 #-------------------------------------------------------------------------------
@@ -577,12 +599,12 @@ sub updatePfamARegFull {
 #As we are going to have to perform this upto 100K times
 #it is much faster to use place holders
 
-  my $dsn       = "dbi:mysql:database=pfam_live;host=pfamdb2a;port=3304";
+  my $dsn       = "dbi:mysql:database=pfam_live;host=mcs11;port=3304";
   my $user      = 'pfamadmin';
   my $pass      = 'mafpAdmin';
-  my $max_procs = 8;
+  my $max_procs = 0;
   if ( $rc > 10000 ) {
-    $max_procs = 2;
+    $max_procs = 0;
   }
   if ( $rc > 50000 ) {
     $max_procs = 0;
