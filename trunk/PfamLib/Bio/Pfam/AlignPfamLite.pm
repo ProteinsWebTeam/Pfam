@@ -95,7 +95,7 @@ sub new {
       close(S);
     };
     if($@){
-      confess("Error running alistat on $fileLocation\n"); 
+      confess("Error running alistat on $fileLocation, $@\n"); 
     }
     $self->{path} = $fileLocation;
   }else{
