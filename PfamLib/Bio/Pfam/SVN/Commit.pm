@@ -84,9 +84,18 @@ sub new {
   $self->{config} = Bio::Pfam::Config->new;
   $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
                                              port => 27017)->pfamseq->automap;
+  #$self->{mongo2} =  MongoDB::Connection->new(host => "localhost", 
+   #                                          port => 27019)->pfamseq->automap;                                           
   $self->{mongo}->query_timeout(90000);                                         
+  #$self->{mongo2}->query_timeout(90000);                                         
+  
   die "MongoDB size does not match pfamseq size!\n"
-    if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
+    if($self->{config}->dbsize !=  $self->{mongo}->count()); 
+  #$self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
+  #                                           port => 27017)->pfamseq->automap;
+  #$self->{mongo}->query_timeout(90000);                                         
+  #die "MongoDB size does not match pfamseq size!\n"
+  #  if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
   return bless($self, $class);  
 }
 
