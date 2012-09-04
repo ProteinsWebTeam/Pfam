@@ -651,7 +651,7 @@ sub updatePfamAInRDB {
 }
 
 sub updatePfamARegions {
-  my ( $self, $famObj, $pfamDB , $mongo) = @_;
+  my ( $self, $famObj, $pfamDB , $mongo ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
