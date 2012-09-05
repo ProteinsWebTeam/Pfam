@@ -366,7 +366,9 @@ Deprecated. Stub to redirect to the chained action.
 
 =cut
 
-sub old_family : Path( '/family' ) {
+sub old_family : Chained( '/' )
+                 PathPart( 'family' )
+                 Args( 0 ) {
   my ( $this, $c ) = @_;
 
   $c->log->debug( 'Family::old_family: redirecting to "family"' )
@@ -383,28 +385,10 @@ sub old_family : Path( '/family' ) {
     $c->log->debug( 'Family::old_family: no entry specified' ) 
       if $c->debug;
 
-    $c->forward( 'families' );
+    $c->stash->{rest}->{error} = 'No valid family accession/ID';
+    $c->forward( 'family_page' );
   }
 }
-
-#-------------------------------------------------------------------------------
-
-=head2 families : Chained('/') PathPart('family') Args(0)
-
-Returns the list of all families.
-
-=cut
-
-# sub families : Chained( '/' )
-#                PathPart( 'family' )
-#                Args( 0 ) {
-#   my ( $this, $c ) = @_;
-# 
-#   my @families = $c->stash->{db}->resultset('Rfam')
-#                    ->search( {}, {} );
-# 
-#   # map { push @{ $c->stash->{rest}->{families} }, $_->rfam_acc } @families;
-# }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
