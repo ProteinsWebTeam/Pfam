@@ -28,6 +28,10 @@ USE Number.Format( THOUSANDS_SEP = "," );
 
     <p>
       This section shows the detailed information about the Rfam family.
+      We're happy to receive updated or improved alignments for new or 
+      existing families. 
+      <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
+      Submit</a> your new alignment and we'll take a look.
     </p>
 
     <h2>Curation</h2>

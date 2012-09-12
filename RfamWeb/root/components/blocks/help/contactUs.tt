@@ -66,6 +66,15 @@
       <a href="mailto:rfamlist-unsubscribe@sanger.ac.uk">rfamlist-unsubscribe@sanger.ac.uk</a>.
     </p>
 
+    <h2>Submit an alignment</h2>
+
+    <p>
+      We're happy to receive updated or improved alignments for new or 
+      existing families. 
+      <a href="[% c.uri_for('/submit_alignment') %]">Submit</a> your
+      alignment and we'll take a look.
+    </p>
+
   </div>
 </div>
 [%#
