@@ -1,0 +1,42 @@
+[% META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "forms.css" );
+
+#-------------------------------------------------------------------------------
+%]
+<div id="annotationSubmission">
+
+[% IF c.errors %]
+
+<h1>There was a problem submitting your alignment</h1>
+
+<p>
+  We were not able to submit your uploaded alignment to our
+  tracking system. Please contact 
+  <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a> to submit your
+  alignment.
+</p>
+
+[% ELSE -%]
+<h1>Your annotation was submitted successfully</h1>
+
+<p>
+  [% IF form.field('new_family').value -%]
+    Thank you for submitting your alignment for consideration as a new 
+    Rfam family. 
+  [% ELSE -%]
+    Thank you for submitting your suggested alignment for Rfam family
+    [% form.field('accession').value %].
+  [% END -%]
+  Your submission will be looked at by our annotators and considered
+  for inclusion in the next Rfam release.
+</p>
+[% END %]
+
+</div>
+

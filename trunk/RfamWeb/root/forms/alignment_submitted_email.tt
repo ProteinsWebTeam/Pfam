@@ -1,0 +1,18 @@
+[% META naked = 1;
+USE wrap -%]
+
+Name:  [% form.field('name').value %]
+Email: [% form.field('email').value %]
+Submitter comments:
+[% IF form.field('comments').value;
+form.field('comments').value FILTER wrap( 60, '', '' );
+ELSE; "n/a"; END %]
+
+[% IF form.field('new_family').value -%]
+New family
+[%- ELSE -%]
+Replacement alignment for [% form.field('accession').value;
+END;
+IF form.field('pmid').value -%]
+, supported by PMID [% form.field('pmid').value %].
+[%- ELSE; "; no PMID supplied."; END %]

@@ -1,0 +1,94 @@
+[% META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "forms.css" );
+
+#-------------------------------------------------------------------------------
+META title = "Submit an alignment";
+
+accession = form.field("accession").value;
+%]
+
+<form enctype="multipart/form-data" 
+      id="annotationSubmission" 
+      action="[% c.req.uri_with( prefill = undef, accession = undef ) | html %]"
+      method="post">
+
+  <div class="preamble">
+    <h1>Submit an alignment[% " for $accession" IF accession %]</h1>
+    <p>
+      This form allows you to upload a Stockholm-format alignment for consideration
+      as a new alignment for an existing Rfam family or as the basis for an 
+      entirely new family.
+    </p>
+    <p>
+      Please complete all of the required fields (with bold labels). If this is a
+      new family then you must supply a PubMed ID for a supporting reference. If
+      this alignment is intended as a replacement for an existing family, you must
+      supply the accession for the family.
+    </p>
+  </div>
+
+  [% FOREACH field IN form.sorted_fields;
+    field.render;
+  END %]
+</form>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  document.observe( "dom:loaded", function() {
+    var nf = $("new_family");
+
+    if ( nf.checked ) {
+      $("accession").disable()
+        .previous("label").addClassName("inactive");
+      $("pmid").up("div").addClassName("required");
+    } else {
+      $("accession").enable()
+        .previous("label").removeClassName("inactive")
+        .up("div").addClassName("required");
+      $("pmid").up("div").removeClassName("required");
+    }
+
+    var o = new Form.Element.Observer( nf, 0.3, function() {
+      if ( nf.checked ) {
+        $("accession").disable()
+          .previous("label").addClassName("inactive")
+          .up("div").removeClassName("required");
+        $("pmid").up("div").addClassName("required");
+      } else {
+        $("accession").enable()
+          .previous("label").removeClassName("inactive")
+          .up("div").addClassName("required");
+        $("pmid").up("div").removeClassName("required");
+      }
+    } );
+  } );
+
+  // ]]>
+</script>
+
+[%#
+Copyright (c) 2012: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Sarah Burge (sb30@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
