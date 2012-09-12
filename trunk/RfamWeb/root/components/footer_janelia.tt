@@ -10,9 +10,7 @@
 <div id="siteFooter">
   <p>
     Questions or comments:
-    <img src="[% c.uri_for( '/static/images/pfam-email.png' ) %]" 
-         alt="pfam webmaster email"
-         id="emailImage"/>
+	<a href="mailto:&#114;&#102;&#097;&#109;&#064;&#106;&#097;&#110;&#101;&#108;&#105;&#097;&#046;&#104;&#104;&#109;&#105;&#046;&#111;&#114;&#103;">&#114;&#102;&#097;&#109;&#064;&#106;&#097;&#110;&#101;&#108;&#105;&#097;&#046;&#104;&#104;&#109;&#105;&#046;&#111;&#114;&#103;</a>
   </p>
   <p class="spaced">
     <a href="http://www.hhmi.org/" 
