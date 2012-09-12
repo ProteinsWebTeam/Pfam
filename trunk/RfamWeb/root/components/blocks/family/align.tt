@@ -370,6 +370,14 @@ END;
         </div>
       </form>
 
+    <h2>Submit a new alignment</h2>
+
+    <p>
+      We're happy receive updated seed alignments for new or existing families.
+      <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
+        Submit</a> your new alignment and we'll take a look.
+    </p>
+
     </div>[%# end of "alignmentActiveContent" %]
 
   	<script type="text/javascript">
