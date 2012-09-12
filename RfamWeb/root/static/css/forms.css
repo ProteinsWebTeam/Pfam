@@ -126,3 +126,54 @@ div.domainList select {
 	border-color: #D99;
 }
 
+/* ---------------------------------------- */
+/* annotation submission form */
+
+#annotationSubmission {
+  margin: 0 auto;
+  width: 70%;
+}
+
+#annotationSubmission div.preamble {
+  margin-bottom: 2em;
+}
+
+#annotationSubmission div.field {
+  clear: both;
+  margin: 0.4em 0;
+}
+
+#annotationSubmission div.required label {
+  font-weight: bold;
+}
+
+#annotationSubmission label {
+  float: left;
+  width: 7em;
+}
+
+#annotationSubmission label.inactive {
+  color: #CCC;
+}
+
+/* these may be a bit bling...
+#annotationSubmission textarea,
+#annotationSubmission input {
+  box-shadow: 2px 2px 4px #e0e0e0 inset;
+  border: 1px solid #CCC;
+}
+*/
+
+#annotationSubmission input[type=text] {
+  width: 200px;
+}
+
+#annotationSubmission textarea {
+  width: 400px;
+}
+
+#annotationSubmission .error_message {
+  font-weight: bold;
+  color: #800;
+}
+
