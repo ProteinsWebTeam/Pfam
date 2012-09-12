@@ -20,6 +20,8 @@ __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2010-01-12 10:09:30
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bDkm1rBrAyuqCFU+IE65Pg
 
+__PACKAGE__->set_primary_key("auto_clan");
+
 __PACKAGE__->might_have(
   "pdb_rfam_reg",
   "RfamDB::PdbRfamReg",
