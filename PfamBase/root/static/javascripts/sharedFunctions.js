@@ -378,11 +378,6 @@ var TabPage = Class.create( {
     } catch( ex ) {
       // don't care
     }
-    try {
-      mixpanel.track( "Tabbed page tab switch", { tab: tabId } ); // mixpanel
-    } catch ( ex ) {
-      // don't care
-    }
   },
 
   //----------------------------------------
