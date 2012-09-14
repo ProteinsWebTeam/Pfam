@@ -84,18 +84,10 @@ sub new {
   $self->{config} = Bio::Pfam::Config->new;
   $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
                                              port => 27017)->pfamseq->automap;
-  #$self->{mongo2} =  MongoDB::Connection->new(host => "localhost", 
-   #                                          port => 27019)->pfamseq->automap;                                           
   $self->{mongo}->query_timeout(90000);                                         
-  #$self->{mongo2}->query_timeout(90000);                                         
   
   die "MongoDB size does not match pfamseq size!\n"
     if($self->{config}->dbsize !=  $self->{mongo}->count()); 
-  #$self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
-  #                                           port => 27017)->pfamseq->automap;
-  #$self->{mongo}->query_timeout(90000);                                         
-  #die "MongoDB size does not match pfamseq size!\n"
-  #  if($self->{config}->dbsize !=  $self->{mongo}->count());                                      
   return bless($self, $class);  
 }
 
@@ -109,6 +101,7 @@ sub commitFamily {
   my ($famObj, $family, $dir);
   my @updated = $self->updated();
   
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   if(scalar(@updated) == 1 and $updated[0] eq 'DESC'){
      ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
@@ -118,22 +111,14 @@ sub commitFamily {
     #Perform QC on the family
     $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
   
-    #Okay, if we get to here, then we should be okay!
-    #Now upload the family to Pfam  
-    #try{
-    #  $pfamDB->getSchema->txn_begin;
-      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-      $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
-      $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
-      $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
-    #  $pfamDB->txn_commit;
-    #}catch{
-    #  warn "Something bad has happened, issuing  a rollback\n";
-    #  $pfamDB->getSchema->txn_rollback;
-    #  die;
-    #};
-  }  
-  
+
+    $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
+    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
+    $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+  }
+  $guard->commit;
+   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
     Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $author, $self->{config});
@@ -151,7 +136,10 @@ sub commitNewFamily {
   my $familyIO = Bio::Pfam::FamilyIO->new;
   my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 1);  
   
+  my $author = $self->author();
+   
   #Assign the accession.
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   my $acc = $self->_assignAccession($pfamDB);
   
   $famObj->DESC->AC($acc);
@@ -163,20 +151,12 @@ sub commitNewFamily {
   
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
-  my $author = $self->author();
-  #try{
-  #  $pfamDB->getSchema->txn_begin;
-    $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
-    $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
-      $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
-  #    $pfamDB->getSchema->txn_commit;
-  #  }catch{
-  #    warn "Something bad has happened, issuing  a rollback\n";
-  #    $pfamDB->getSchema->txn_rollback;
-  #    die;
-  #  };
-  
+  $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
+  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
+  $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
+  $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
+
+  $guard->commit;
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
     Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
@@ -210,8 +190,9 @@ sub commitNewClan {
   #
   my ($clanObj, $clan, $dir) = $self->_getClanObjFromTrans($clanIO, 1);  
   
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   #Assign the accession.
-  #
   my $acc = $self->_assignClanAccession($pfamDB);
   
   $clanObj->DESC->AC($acc);  
@@ -220,7 +201,7 @@ sub commitNewClan {
   #Now upload the family to Pfam  
   my $author = $self->author();
   $clanIO->updateClanInRDB($clanObj, $pfamDB, 1, $author );
-  
+  $guard->commit;
 }
 
 sub commitClan {
@@ -232,9 +213,10 @@ sub commitClan {
    
   #Okay, if we get to here, then we should be okay!
   #Now upload the clan to the database
-  
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $clanIO->updateClanInRDB($clanObj, $pfamDB, 0);
-  
+  $guard->commit;
 }
 
 sub _getFamilyObjFromTrans {
@@ -388,12 +370,12 @@ sub _qualityControlFamily {
   }  
   
   if(defined($msg) and $msg !~ /Release \d+ update/){
-    #my $compete = 1;
-    #my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
-    #warn "$family: found $overlaps overlaps\n";
-    #if ($overlaps) {
-    #  confess("Found overlaps\n");
-    #} 
+    my $compete = 1;
+    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
+    warn "$family: found $overlaps overlaps\n";
+    if ($overlaps) {
+      confess("Found overlaps\n");
+    } 
   }
 }
 
@@ -457,7 +439,11 @@ sub moveFamily {
   
   my $familyIO = Bio::Pfam::FamilyIO->new;
   my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
+  
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $familyIO->movePfamAInRDB($famObj, $pfamDB);
+  $guard->commit;
   
   #If we have not died, then we should be good to go! 
   Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
@@ -481,8 +467,10 @@ sub deleteFamily {
   
   my $familyIO = Bio::Pfam::FamilyIO->new;
   my $author = $self->author();
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $familyIO->deletePfamAInRDB($family, $pfamDB, $comment, $forward, $author);
-  
+  $guard->commit;
 }
 
 
@@ -504,7 +492,11 @@ sub deleteClan {
   
   my $clanIO = Bio::Pfam::ClanIO->new;
   my $author = $self->author();
+  
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $clanIO->deleteClanInRDB($clan, $pfamDB, $comment, $forward, $author);
+  $guard->commit;
 }
 
 sub _assignAccession {
@@ -571,8 +563,6 @@ sub allowCommit {
     }
 
 }
-
-
   
 #This should go in the Clan IO Module!  
 sub updateClanMembership{
@@ -582,84 +572,20 @@ sub updateClanMembership{
   
   
   my $clanRow = $pfamDB->getClanData($clan);
-  
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $pfamDB->updateClanMembership($clanRow->auto_clan, $pfamRow->auto_pfama);
+  $guard->commit;
 }
 
 sub removeFamilyFromClanMembership{
   my($self, $pfamDB, $clan, $pfam) = @_;
   my $pfamRow = $pfamDB->getPfamData($pfam);
   my $clanRow = $pfamDB->getClanData($clan);
-  
+  #Start the transation
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
   $pfamDB->removeFamilyFromClanMembership($clanRow->auto_clan, $pfamRow->auto_pfama);
+  $gaurd->commit;
 }
-
-
-#  #$self->familyName($family);
-#  #$self->pathToFamily($path);
-#  #my @added_files   = $txnlook->added();
-##  #my @updated_files = $txnlook->updated();
-#  #my @deleted_files = $txnlook->deleted();
-#  #my @changed_files = $txnlook->changed();
-#  
-#  #my $dir = "/tmp"; #=
-#  
-#  #Write all of the files for this transaction to disk and then read them
-#  my $dir =  File::Temp->newdir();
-#  mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
-#  my $params;
-#  foreach  my $f ( @{ $self->{config}->mandatoryFamilyFiles }) {
-#    my $fh;
-#    my @file =  $self->cat("$path/$f");
-#    open( $fh, ">$dir/$family/$f") or die "Could not open $dir/$f";
-#    foreach (@file){
-#      print $fh "$_\n";
-#    }
-#    close($fh);
-#  }
-#  
-#  my $familyIO = Bio::Pfam::FamilyIO->new;
-#  my $famObj = $familyIO->loadPfamAFromLocalFile($family, $dir);
-#  
-#  $famObj->DESC->ID($family);
-#  
-#  #Perform all of the format checks
-#  #unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family")){
-#  #  exit(1); 
-#  #}
-#  
-#  
-#  #Now find out what this family is _allowed_ to overlap with
-#  push (my @ignore, $family);
-#  
-#  
-#  
-#  my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( "$dir/$family", \@ignore, undef, $pfamDB );
-#  warn "$family: found $overlaps overlaps\n";
-#  #if ($overlaps) {
-#  #  confess("Found overlaps\n");
-#  #}else {
-#  #  exit(0);
-#  #}
-#  
-#  #Okay, if we get to here, then we should be okay!
-#  #Now upload the family to Pfam  
-#  $familyIO->updatePfamAInRDB($famObj, $pfamDB);
-#  $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir);
-#  $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir);
-#  #If we have not died, then we should be good to go! 
-#  Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->{config});
-
-
-#### DETRITUS
-
-#$self->familyName($family);
-  #$self->pathToFamily($path);
-  #my @added_files   = $txnlook->added();
-#  #my @updated_files = $txnlook->updated();
-  #my @deleted_files = $txnlook->deleted();
-  #my @changed_files = $txnlook->changed();
-  
-  #my $dir = "/tmp"; #=
 
 1;
