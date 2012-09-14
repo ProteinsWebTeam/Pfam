@@ -74,7 +74,7 @@ sub new {
   if(-e $fileLocation){
     eval{
       open(S, $config->hmmer3bin."/esl-alistat --informat selex $fileLocation |") 
-        or confess "Could not open $fileLocation\n";   
+        or confess "Could not open pipe on alistat.\n";   
       while(<S>){
         if(/Alignment number\:\s+(\d+)/){
           confess("File contains more than one alignment!\n") if($1 != 1);  
