@@ -432,7 +432,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           Rfam: Wikipedia, clans and the “decimal” release</a>
       </span>
       <span class="authors">
-        P.P. Gardner, J. Daub, J. Tate, B.L. Moore, I.H. Osuch, S. Griffiths-Jones, R.D. Finn
+        P.P. Gardner, J. Daub, J. Tate, B.L. Moore, I.H. Osuch, S. Griffiths-Jones, R.D. Finn,
         E.P. Nawrocki, D.L. Kolbe, S.R. Eddy, A. Bateman.
       </span>
       <span class="ref">
