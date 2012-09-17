@@ -1,0 +1,71 @@
+#!/bin/sh
+#
+# Copyright (c) 2011: Howard Hughes Medical Institute
+#
+# Authors: Jody Clements (clementsj@janelia.hhmi.org)
+#
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
+# 
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+# details.
+# 
+# You should have received a copy of the GNU General Public License along with
+# this program. If not, see <http://www.gnu.org/licenses/>.
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+#You will need to configure this for your system.
+#General
+ROOT=/opt/www
+
+PERL5LIB="/opt/lib/perl5/site_perl/5.14.2/x86_64-linux:/opt/lib/perl5/site_perl/5.14.2:/opt/lib/perl5/5.14.2/x86_64-linux:/opt/lib/perl5/5.14.2:$ROOT/PfamLib:$ROOT/PfamSchemata:$ROOT/BPModules:$PERL5LIB"
+PATH="/opt/bin:$ROOT/PfamBackend/scripts:$PATH";
+#Stuff required for dequeuer config.
+PFAMOFFLINE_CONFIG="$ROOT/XfamConfig/rfam/rfambackend.conf"
+
+NAME=slowDequeue
+
+#Config for this shell script
+DAEMON="$ROOT/PfamBackend/scripts/$NAME.pl"
+DESC="slow queue daemon"
+PID="/opt/run/dequeue/$NAME.pid"
+USER=nobody
+LOG="/dev/null"
+
+#End of config
+
+test -f $DAEMON || exit 0
+
+case $1 in
+    start)
+        echo -n "Starting $NAME (${NAME}.pl)..."
+
+	daemon --user=$USER --pidfile=$PID "export PATH=${PATH}; export PFAMOFFLINE_CONFIG=${PFAMOFFLINE_CONFIG}; export PERL5LIB=${PERL5LIB}; export PIDFILE=${PID}; /opt/bin/perl $DAEMON 1>>$LOG 2>&1 &"
+	
+   echo
+        ;;
+
+    stop)
+        echo -n "Attempting to stop $NAME: "
+	killproc -p $PID $NAME	
+	echo
+        ;;
+
+    status)
+        status -p $PID $NAME		
+	;;	
+
+    *)
+        echo "Usage: $0 { stop | start | status }"
+        exit 1
+        ;;
+esac
+
+
+exit 0
