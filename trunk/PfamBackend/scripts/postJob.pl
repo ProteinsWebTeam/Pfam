@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -64,6 +64,7 @@ my $status = $ref->{status};
 my ( $error, $results );
 
 if ( $status eq 'RUN' ) {
+
 
   my $err_file = $tmpDir . '/' . $ref->{job_id} . '.err';
   my $res_file = $tmpDir . '/' . $ref->{job_id} . '.res';
@@ -147,7 +148,6 @@ sub emailResults {
     $source = 'Pfam';	
   }
 
-
   # build email headers
   my %header = ( To      => $email,
                  Subject => 'Your '.$source.' search results for job ' . $ref->{job_id} );
@@ -159,7 +159,8 @@ sub emailResults {
   }
 
   # start an email...
-  my $mailer = Mail::Mailer->new;
+  
+  my $mailer = Mail::Mailer->new();
 
   $mailer->open( \%header );
   
@@ -212,7 +213,7 @@ __MESSAGE__
   }elsif ($ref->{job_type} eq 'rfam_batch' ){
  	$message .= <<'__MESSAGE__';
 
-Please find your rfamScanLite results below.
+Please find your Rfam + cmscan results below.
 
 If you have any comments or questions about the use of this service, 
 please contact Rfam at: rfam-help@sanger.ac.uk
@@ -222,6 +223,7 @@ __MESSAGE__
   #----------------------------------------
 
   # executed command
+  if($ref->{job_type} ne 'rfam_batch'){
 
   $message .= <<'__MESSAGE__';
 
@@ -235,7 +237,7 @@ __MESSAGE__
   $message .= " your_input.fa\n";
 
   #----------------------------------------
-  
+  }
   # search sequence
 
   $message .= <<'__MESSAGE__';
@@ -287,8 +289,6 @@ __MESSAGE__
 
 ----------------
 
-The output format is:
-<rfam acc> <rfam id> <seq id> <seq start> <seq end> <strand> <score>
 __MESSAGE__
       
     }
@@ -322,6 +322,9 @@ sub emailFail{
                  From    => 'pfam-help@sanger.ac.uk',
                  Subject => 'There was an ERROR running the job ' . $ref->{job_id} );
 
+  if($ref->{job_type} eq 'rfam_batch'){
+    $header{From} = 'rfam-help@sanger.ac.uk';
+  }
   if ( ref $emailHeader eq 'HASH' ) {
     while ( my ( $key, $value ) = each %$emailHeader ) {
       $header{$key} = $value;
