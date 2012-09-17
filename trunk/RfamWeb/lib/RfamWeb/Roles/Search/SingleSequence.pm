@@ -480,22 +480,28 @@ sub handle_results : Private {
       $c->log->debug( 'Search::handle_results: hit: ', dump( $hit ) )
         if $c->debug;
       
-      $hit->{alignment}->{ss}       = '           ';
-      $hit->{alignment}->{hit_seq}  = sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
-      $hit->{alignment}->{match}    = '           ';
-      $hit->{alignment}->{user_seq} = sprintf '%10d ', $hit->{start};
+      $hit->{alignment}->{nc}       = '#NC              ';
+      $hit->{alignment}->{ss}       = '#SS              ';
+      $hit->{alignment}->{hit_seq}  = '#SEQ  '.sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
+      $hit->{alignment}->{match}    = '#MATCH           ';
+      $hit->{alignment}->{user_seq} = '#CM   '.sprintf '%10d ', $hit->{start};
+      $hit->{alignment}->{pp}       = '#PP              ';
           
       foreach my $block ( @{ $hit->{blocks} } ) {
+	$hit->{alignment}->{nc}       .= $block->{nc};
         $hit->{alignment}->{ss}       .= $block->{ss};
         $hit->{alignment}->{hit_seq}  .= $block->{hit}->{seq};
         $hit->{alignment}->{match}    .= $block->{match};
         $hit->{alignment}->{user_seq} .= $block->{user}->{seq};
+	$hit->{alignment}->{pp}       .= $block->{pp};
       }
           
+      $hit->{alignment}->{nc}       .= '           ';
       $hit->{alignment}->{ss}       .= '           ';
       $hit->{alignment}->{hit_seq}  .= sprintf ' %-10d', $hit->{blocks}->[-1]->{hit}->{end};
       $hit->{alignment}->{match}    .= '           ';
       $hit->{alignment}->{user_seq} .= sprintf ' %-10d', $hit->{end};
+      $hit->{alignment}->{pp}       .= '           ';
 
       # the blocks are really only need for building up the complete alignment
       # snippet so we'll remove them here to avoid having them clutter up output
@@ -549,100 +555,101 @@ sub parse_log : Private {
   my $strand   = ''; # the current strand, plus or minus
   my ( $seq_start, $seq_end ); # sequence start/end positions
   my ( $hit_start, $hit_end ); # hit start/end positions
+  my @elA      = (); # for parsing multi-token lines
+  my $have_pp;       # 1 if we have PP for this aln, 0 if not
 
   for ( my $n = 0; $n < scalar @lines; $n++ ) {
-    my $line = $lines[$n];
-    
-    # $c->log->debug( sprintf "Search::Sequence::parse_log: line % 3d: %s",
-    #                         $n, $line ) if $c->debug;
-    
-    # store the name of the family for this hit
-    if ( $line =~ m/^CM: ([\w\-]+)/ ) {
-      # $c->log->debug( "Search::Sequence::parse_log: results for |$1|" )
-      #   if $c->debug;
-      $id = $1;
-    }
-
-    # sequence start/end
-    elsif ( $line =~ m|^>.*?/(\d+)\-(\d+)$| ) {
-      # $c->log->debug( "Search::Sequence::parse_log: sequence start-end: |$1-$2|" )
-      #   if $c->debug;
-
-      # store the ID for later
-      $seq_start = $1;
-      $seq_end   = $2;
-    }
-
-    # plus or minus strand
-    elsif ( $line =~ m/^\s*(.*?) strand results/ ) {
-      # $c->log->debug( "Search::Sequence::parse_log: results for |$1| strand" )
-      #   if $c->debug;
-
-      # store the strand
-      $strand = $1 eq 'Plus' ? '+' : '-';
-    }
-
-    # get the sequence, start and end
-    elsif ( $line =~ m|Query = (\d+) - (\d+), Target = (\d+) - (\d+)| ) {
-      # if ( $c->debug ) {
-      #   $c->log->debug( "Search::Sequence::parse_log: query start-end:  |$1 - $2|" );
-      #   $c->log->debug( "Search::Sequence::parse_log: target start-end: |$3 - $4|" );
-      # }
-
-      if ( $4 > $3 ) {
-        $hit_start = $3;
-        $hit_end   = $4;
-      }
-      else {
-        $hit_start = $4;
-        $hit_end   = $3;
-      }
-    }
-
-    # get the score, etc.
-    elsif ( $line =~ m|Score = (.*?), E = (.*?), P = (.*?), GC =\s+(.*)$| ) {
-      # if ( $c->debug ) {
-      #   $c->log->debug( "Search::Sequence::parse_log: score: |$1|" );
-      #   $c->log->debug( "Search::Sequence::parse_log: E:     |$2|" );
-      #   $c->log->debug( "Search::Sequence::parse_log: P:     |$3|" );
-      #   $c->log->debug( "Search::Sequence::parse_log: GC:    |$4|" );
-      # }
-
-      $hit = {
-        id     => $id,
-        strand => $strand,
-        start  => $hit_start + $seq_start - 1,
-        end    => $hit_end   + $seq_start - 1,
-        score  => $1,
-        E      => $2,
-        P      => $3,
-        GC     => $4,
-        blocks => []
-      };
-
-      # try to map the family ID to its accession and store that too
-      if ( $c->stash->{id_acc_mapping} and
-           $c->stash->{id_acc_mapping}->{$id}) {
-        $hit->{acc} = $c->stash->{id_acc_mapping}->{$id};
-      }
-
-      push @{ $hits->{$id} }, $hit;
+      my $line = $lines[$n];
       
-      # parse the alignment blocks
-      for ( my $b = $n + 2; $b < scalar @lines; $b += 5 ) {
-        last unless $lines[$b+1] =~ m/^\s+\d+.*?\s+\d+\s*$/;
-        
-        # $c->log->debug( 'Search::Sequence::parse_log: block constitutes lines ' .
-        #                 "$b - " . ( $b + 3 ) ) if $c->debug; 
-        
-        my $block = read_block( [ @lines[ $b .. $b+3 ] ] );
-  
-        # $c->log->debug( 'Search::Sequence::parse_log: block: ' .
-        #                 dump( $block ) ) if $c->debug; 
-        
-        push @{ $hit->{blocks} }, $block;
+      # $c->log->debug( sprintf "Search::Sequence::parse_log: line % 3d: %s",
+      #                         $n, $line ) if $c->debug;
+      
+      # store the name of the family for this hit
+      # Example:
+      # ......cut......
+      # >> 5S_rRNA  
+      # rank     E-value  score  bias mdl mdl from   mdl to       seq from      seq to       acc trunc   gc
+      # ----   --------- ------ ----- --- -------- --------    ----------- -----------      ---- ----- ----
+      #  (1) !     3e-18   84.2   3.7  cm        1      119 []          59         174 + .. 1.00    no 0.66
+      #                     v               v       v         v         v             v          v                  NC
+      #                    (((((((((,,,,<<-<<<<<---<<--<<<<<<_______>>-->>>>-->>---->>>>>-->><<<-<<---<-<<-----<<____>>--- CS
+      #        5S_rRNA   1 gcuggCggccAUAgcaggguggAaaCACCcGauCCCAUccCGaACuCgGAAGuUAAGcacccuagcgCcgagguGuACuggGgUggGugAccaca 95 
+      #                    :CUGGC:G C UAGC+:GG GG   CACC:GA CCCAU CCG ACUC:GAAG  AA C CC:UAGC CCGA:G G:A :G+G  GGGU  CC CA
+      # AAGA01015927.1  59 CCUGGCGGCCGUAGCGCGGUGGUCCCACCUGACCCCAUGCCGAACUCAGAAGUGAAACGCCGUAGCGCCGAUG-GUAGUGUG--GGGUCUCCCCA 150
+      #                    *************************************************************************.9*******..*********** PP
+      # 
+      #                    v        v v          NC
+      #                    -->>->->>->>>,))))))))): CS
+      #        5S_rRNA  96 UGgGAaAcuagGucgccGccagcu 119
+      #                    UG: A:A:UAGG   C:GCCAG:+
+      # AAGA01015927.1 151 UGCGAGAGUAGGGAACUGCCAGGC 174
+      #                    ************************ PP
+      # 
+      # >> tRNA
+      # ......cut......
+      
+      if ( $line =~ m/^>>\s+(\S+)/ ) {
+	  # $c->log->debug( "Search::Sequence::parse_log: results for |$1|" )
+	  #   if $c->debug;
+	  
+	  $id = $1;
+
+	  # field label line, used only to determine if we have PP annotation for this alignment or not
+	  # rank     E-value  score  bias mdl mdl from   mdl to       seq from      seq to       acc trunc   gc
+	  $n++;
+	  $line = $lines[$n];
+	  my @elA = split(/\s+/, $line);
+	  $have_pp = ($elA[14] eq "acc") ? 1 : 0;
+	  
+	
+	  # tabular results line:
+	  # Example: (1) !     3e-18   84.2   3.7  cm        1      119 []          59         174 + .. 1.00    no 0.66
+	  $n += 2; # skip next line after ">>"-prefixed line
+	  $line = $lines[$n];
+	  @elA = split(/\s+/, $line);
+	
+	  #   $c->log->debug( "Search::Sequence::parse_log: E:      |$elA[3]|" );
+	  #   $c->log->debug( "Search::Sequence::parse_log: score:  |$elA[4]|" );
+	  #   $c->log->debug( "Search::Sequence::parse_log: start:  |$elA[10]|");
+	  #   $c->log->debug( "Search::Sequence::parse_log: end:    |$elA[11]|");
+	  #   $c->log->debug( "Search::Sequence::parse_log: strand: |$elA[12|]");
+	#   $c->log->debug( "Search::Sequence::parse_log: GC:     |$elA[16]|");
+	  
+	  $hit = {
+	      id     => $id,
+	      E      => $elA[3],
+	      score  => $elA[4],
+	      start  => $elA[10],
+	      end    => $elA[11],
+	      strand => $elA[12],
+	      GC     => $elA[16],
+	      blocks => []
+	      };
+	  # try to map the family ID to its accession and store that too
+	  if ( $c->stash->{id_acc_mapping} and
+	       $c->stash->{id_acc_mapping}->{$id}) {
+	      $hit->{acc} = $c->stash->{id_acc_mapping}->{$id};
+	  }
+	  
+	  push @{ $hits->{$id} }, $hit;
+	  
+	  # parse the alignment block
+	  $b = $n + 2;
+	  # $c->log->debug( 'Search::Sequence::parse_log: block constitutes lines ' .
+	  #                 "$b - " . ( $b + 5 ) ) if $c->debug; 
+	  
+	  my $block;
+	  if ($have_pp) { # alignment has PP annotation so it's 6 lines
+	      $block = read_block( 1, [ @lines[ $b .. $b+5 ] ] );
+	  }
+	  else { # alignment has no PP annotation so it's 5 lines
+	      $block = read_block( 0, [ @lines[ $b .. $b+4 ] ] );
+	  }
+	  # $c->log->debug( 'Search::Sequence::parse_log: block: ' .
+	  #                 dump( $block ) ) if $c->debug; 
+	  
+	  push @{ $hit->{blocks} }, $block;
       }
-    }
   }
   
   # stash the parsed results
@@ -702,32 +709,47 @@ sub get_id_acc_mapping : Private {
 
 =head2 read_block
 
-Given a reference to an array containing the four lines of an alignment block,
-this function parses the block and returns a reference to a hash containing all 
-of the relevant information.
+Given a reference to an array containing the five or six lines of an 
+alignment block, this function parses the block and returns a reference 
+to a hash containing all of the relevant information. If $have_pp
+is 1, then we have six lines (we have PP annotation), else if $have_pp
+is 0, then we have five lines (no PP annotation).
 
 =cut
 
 sub read_block {
-  my $lines = shift;
+  my $have_pp = shift;
+  my $lines   = shift;
 
   my $block = {};
+  my $i;
 
-  $lines->[0] =~ s/^\s*(.*?)\s*$/$1/;
+  $lines->[1] =~ /^\s*(.*?)\s*CS$/;
   $block->{ss} = $1;
 
-  $lines->[1] =~ m/^\s+(\d+)\s+(.*?)\s+(\d+)\s*$/;
-  $block->{hit}->{seq}   = $2;
-  $block->{hit}->{start} = $1;
-  $block->{hit}->{end}   = $3;
+  $lines->[2] =~ m/^(\s+\S+\s+)(\d+)(\s+)(.*?)\s+(\d+)\s*$/;
+  $block->{hit}->{seq}   = $4;
+  $block->{hit}->{start} = $2;
+  $block->{hit}->{end}   = $5;
+  my $prefix_length = length($1) + length($2) + length($3);
 
-  $block->{match} = substr $lines->[2], 11, length $2;
+  $block->{match} = substr $lines->[3], $prefix_length, length $4;
 
-  $lines->[3] =~ m/^\s+(\d+)\s+(.*?)\s+(\d+)\s*$/;
+  $lines->[4] =~ m/^\s+\S+\s+(\d+)\s+(.*?)\s+(\d+)\s*$/;
   $block->{user}->{seq}   = $2;
   $block->{user}->{start} = $1;
   $block->{user}->{end}   = $3;
 
+  $block->{nc} = substr $lines->[0], $prefix_length, length $2;
+  
+  if($have_pp) { 
+      $block->{pp} = substr $lines->[5], $prefix_length, length $2;
+  }
+  else { 
+      $block->{pp} = ""; 
+      for($i = 0; $i < (length $2); $i++) { $block->{pp} .= " "; }
+  }
+  
   return $block;
 }
 
