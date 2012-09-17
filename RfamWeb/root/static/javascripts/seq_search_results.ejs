@@ -44,10 +44,12 @@
         <tr class="alignment <%= i % 2 ? 'odd' : 'even' %>"
             style="display: none">
           <td colspan="8">
-            <pre><%= hit.alignment.ss       %>
+            <pre><%= hit.alignment.nc       %>
+<%= hit.alignment.ss       %>
 <%= hit.alignment.hit_seq  %>
 <%= hit.alignment.match    %>
-<%= hit.alignment.user_seq %></pre>
+<%= hit.alignment.user_seq %>
+<%= hit.alignment.pp       %></pre>
           </td>
         </tr>
       <% }
