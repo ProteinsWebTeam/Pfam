@@ -187,16 +187,6 @@ __PACKAGE__->has_many(
   { "foreign.auto_pfama" => "self.auto_pfama" },
 );
 __PACKAGE__->has_many(
-  "meta_pfama_regs",
-  "PfamLive::MetaPfamaReg",
-  { "foreign.auto_pfama" => "self.auto_pfama" },
-);
-__PACKAGE__->has_many(
-  "ncbi_pfama_regs",
-  "PfamLive::NcbiPfamaReg",
-  { "foreign.auto_pfama" => "self.auto_pfama" },
-);
-__PACKAGE__->has_many(
   "nested_domains",
   "PfamLive::NestedDomains",
   { "foreign.auto_pfama" => "self.auto_pfama" },
