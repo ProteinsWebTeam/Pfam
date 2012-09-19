@@ -585,7 +585,7 @@ sub removeFamilyFromClanMembership{
   #Start the transation
   my $guard = $pfamDB->getSchema->txn_scope_guard;
   $pfamDB->removeFamilyFromClanMembership($clanRow->auto_clan, $pfamRow->auto_pfama);
-  $gaurd->commit;
+  $guard->commit;
 }
 
 1;
