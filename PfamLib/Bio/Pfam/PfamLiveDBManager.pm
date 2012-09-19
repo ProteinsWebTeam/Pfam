@@ -476,7 +476,7 @@ sub updatePfamARegSeed {
                   seq_end      => $seq->end});
   }
   
-  $self->getSchema->resultset('PfamaRegSeed')->populate(@rows);
+  $self->getSchema->resultset('PfamaRegSeed')->populate(\@rows);
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
@@ -592,7 +592,7 @@ sub updatePfamARegFull {
             foreach my $u ( @{ $seq->hmmUnits } ) {
               #Is it significant dom?
               if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
-                  push(@significant, { auto_pfamA => $auto, 
+                  push(@significant, { auto_pfama => $auto, 
                                        auto_pfamseq => $sauto, 
                                        seq_start => $u->envFrom, 
                                        seq_end => $u->envTo, 
@@ -601,7 +601,7 @@ sub updatePfamARegFull {
                                        model_start => $u->hmmFrom,
                                        model_end => $u->hmmTo,
                                        domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evaule,
+                                       domain_evalue_score => $u->evalue,
                                        sequence_bits_score => $seq->bits,
                                        sequence_evalue_score => $seq->evalue,
                                        in_full => $inFullHash->{ $u->name . "/"
@@ -613,16 +613,14 @@ sub updatePfamARegFull {
               }
               else {
                 push(@insignificant, 
-                  { auto_pfamA => $auto, 
-                    auto_pfamseq => $sauto, 
-                    seq_start => $u->envFrom, 
+                                     { auto_pfama => $auto, 
+                                       auto_pfamseq => $sauto, 
+                                       seq_start => $u->envFrom, 
                                        seq_end => $u->envTo, 
-                                       ali_start =>$u->seqFrom,, 
-                                       ali_end => $u->seqTo , 
                                        model_start => $u->hmmFrom,
                                        model_end => $u->hmmTo,
                                        domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evaule,
+                                       domain_evalue_score => $u->evalue,
                                        sequence_bits_score => $seq->bits,
                                        sequence_evalue_score => $seq->evalue });
                    }
@@ -633,16 +631,14 @@ sub updatePfamARegFull {
             #Sequence is insignifcant....Therefore all the domains have to be.
             foreach my $u ( @{ $seq->hmmUnits } ) {
                          push(@insignificant, 
-                  { auto_pfamA => $auto, 
-                    auto_pfamseq => $sauto, 
-                    seq_start => $u->envFrom, 
+                                     { auto_pfama => $auto, 
+                                       auto_pfamseq => $sauto, 
+                                       seq_start => $u->envFrom, 
                                        seq_end => $u->envTo, 
-                                       ali_start =>$u->seqFrom,, 
-                                       ali_end => $u->seqTo , 
                                        model_start => $u->hmmFrom,
                                        model_end => $u->hmmTo,
                                        domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evaule,
+                                       domain_evalue_score => $u->evalue,
                                        sequence_bits_score => $seq->bits,
                                        sequence_evalue_score => $seq->evalue });
 
