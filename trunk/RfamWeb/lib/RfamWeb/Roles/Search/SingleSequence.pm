@@ -482,9 +482,9 @@ sub handle_results : Private {
       
       $hit->{alignment}->{nc}       = '#NC              ';
       $hit->{alignment}->{ss}       = '#SS              ';
-      $hit->{alignment}->{hit_seq}  = '#SEQ  '.sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
+      $hit->{alignment}->{hit_seq}  = '#CM   '.sprintf '%10d ', $hit->{blocks}->[0]->{hit}->{start};
       $hit->{alignment}->{match}    = '#MATCH           ';
-      $hit->{alignment}->{user_seq} = '#CM   '.sprintf '%10d ', $hit->{start};
+      $hit->{alignment}->{user_seq} = '#SEQ  '.sprintf '%10d ', $hit->{start};
       $hit->{alignment}->{pp}       = '#PP              ';
           
       foreach my $block ( @{ $hit->{blocks} } ) {
