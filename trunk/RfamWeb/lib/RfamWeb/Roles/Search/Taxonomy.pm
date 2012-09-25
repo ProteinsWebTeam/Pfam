@@ -383,18 +383,23 @@ sub suggest : Chained( 'taxonomy' )
 
     # collect the list of matching species names    
     my @species = $c->model('RfamDB::TaxonomyWebsearch')
-                    ->search_like( { species => "$rawSpecies%" } );
+                    ->search( { species => { -like => "$rawSpecies%" } } );
+                    # ->search_like( { species => "$rawSpecies%" } );
     foreach ( @species ) {
       push @speciesSuggestions, $_->species;
     }
                  
     # collect the list of matching levels, which are distinct from the actual
     # species name    
-    my @levels  = $c->model('RfamDB::TaxonomyWebsearch')
-                    ->search_like( { level => "$rawSpecies%" } );
-    foreach ( @levels ) {
-      push @speciesSuggestions, $_->level;
-    }
+    # my @levels  = $c->model('RfamDB::TaxonomyWebsearch')
+    #                 ->search({ level => { -like => "$rawSpecies%" } } );
+    #                 # ->search_like( { level => "$rawSpecies%" } );
+    # foreach ( @levels ) {
+    #   push @speciesSuggestions, $_->level;
+    # }
+    # we don't need to add levels too, since level == species in the current
+    # version of the taxonomy tree table
+    # jt6 20120925 WTSI
   
     $c->log->debug( 'Search::Taxonomy::suggest: found a total of |'
                     . scalar @speciesSuggestions . "| suggestions for |$rawSpecies|" )
@@ -968,7 +973,7 @@ sub getRange : Private {
     if $c->debug;
 
   my $rs = $c->model('RfamDB::TaxonomyWebsearch')
-             ->find( { species => $term } );   
+             ->find( { level => $term } );   
   
   # $c->log->debug( "Search::Taxonomy::getRange: looking up term: |$term|" )
   #   if $c->debug;
