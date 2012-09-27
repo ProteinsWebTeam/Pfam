@@ -42,7 +42,7 @@ export PATH=$PFAMWEBROOT/PfamBackend/scripts:$PFAMWEBROOT/bin:$PFAMWEBROOT/src/w
 # Rfam config
 export RFAMROOT=/software/rfam
 export RFAMWEBROOT=$RFAMROOT/rfamweb 
-export PATH=$PFAMWEBROOT/bin:/software/rfam/bin:$RFAMWEBROOT/src/wublast:$RFAMWEBROOT/share/infernal-1.1dev/bin:$PATH
+export PATH=$RFAMWEBROOT/bin:/software/rfam/bin:$RFAMWEBROOT/src/wublast:$PATH
 
 # MPI
 if [ "x$LD_LIBRARY_PATH" == "x" ]; then
