@@ -150,6 +150,24 @@ sub hmmer3bin {
   return $self->{hmmer3bin};
 }
 
+=head2 hmmer3binDev
+
+  Title    : hmmer3binDev
+  Usage    : $config->hmmer3bin
+  Function : Returns the directory containing the HMMER3 development executables
+  Args     : None - read only operator
+  Returns  : string containing path  
+  
+=cut
+
+sub hmmer3binDev {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{hmmer3binDev};
+}
+
 =head2 hmmer2bin
 
   Title    : hmmer2bin
