@@ -1,11 +1,11 @@
-package PfamJobs::JobHistory;
+use utf8;
+package PfamJobs::Result::JobHistory;
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
 __PACKAGE__->table("job_history");
 __PACKAGE__->add_columns(
   "id",
@@ -77,4 +77,32 @@ __PACKAGE__->has_many(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N7z1gLorhA6OQScdkqokAA
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+
+sub run {
+  my $self = shift;
+   $self->update(
+      {
+        status  => 'RUN',
+        started => \'NOW()'
+      });
+}
+
+sub done {
+  my $self = shift;
+  $self->update(
+     {
+       status  => 'DONE',
+       closed => \'NOW()'
+      }) 
+  
+}
+
+sub fail {
+  my $self = shift;
+  $self->update({
+        status  => 'FAIL',
+        closed => \'NOW()'
+      });
+}
+
 1;
