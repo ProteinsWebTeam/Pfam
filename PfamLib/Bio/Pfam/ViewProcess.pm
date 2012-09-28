@@ -579,7 +579,10 @@ sub makeRPAligns {
     #with duplicate the alignment. Looked into eseal, but that it has a bug
     #rdf 26/09/2012
     $self->write_stockholm_file( $filename, $rpali, $GFAnn );
-
+    system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $l.ann > $l.ann.nogap")
+      and $self->mailUserAndFail("Problem running esl-reformat to remove gaps.");
+    rename("$l.ann.nogap", "$l.ann") or $self->mailUserAndFail("Failed to rename RP nogap alignment"); 
+     
     if ( $aliIds->no_sequences <= 5000 ) {
       $self->makeHTMLAlign( $filename, 80, $l );
     }
@@ -1767,8 +1770,7 @@ sub uploadTreesAndAlign {
   my ( $self, $filename, $type ) = @_;
 
   $self->logger->debug("Uploading $filename, $type");
-#TODO -  get this to work for the face that not all files are going to be present 
-#and we have the additional alignments.
+
 
   unless ( ( $type eq 'seed' )
     or ( $type eq 'full' )
@@ -2096,7 +2098,7 @@ sub make_tree {
 
   my ( $self, $filename, $regs, $pfamseq ) = @_;
 
-  #TODO double check this still works
+  #Double check this still works
   open( TREE, "esl-reformat --informat selex afa $filename | FastTree -fastest -nj -boot 100 |" )
     or $self->mailUserAndFail( 
     "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n" );
@@ -2613,7 +2615,6 @@ sub cleanUp {
   my @files = glob("ALIGN* SEED* HMM* family.fa*  hmmLogo.png*");
 
   foreach my $f (@files){
-    $self->logger->debug($f);
     unlink($f) or $self->mailUserAndFail("Could not remove file, $f");  
   }
     
