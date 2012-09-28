@@ -150,7 +150,6 @@ sub parseMultiHMMER3 {
     $self->_readUnitHits( $fh, $hmmRes );
     $self->_readFooter($fh, $hmmRes);
   }
-
   return (\@hmmResAll);
 }
 
@@ -429,7 +428,7 @@ sub _readHeader {
     }elsif (/(^#)|(^$)/) {
       next;
     }elsif(/^Accession/){
-      next;
+      next; 
     } else {
       die "Failed to parse hmmsearch results |$_| in header section\n";
     }
@@ -650,6 +649,7 @@ sub _readUnitData {
 #               L++++Gd+++++++++e++Ww++++++++++G++P+n+v+p
 #  P15498.4 617 LRLNPGDIVELTKAEAEqNWWEGRNTSTnEIGWFPCNRVKP 657
 #               7899**********9999*******************9987 PP
+
 
   if ($align) {
     my ($pattern1, $pattern2);
@@ -1022,7 +1022,7 @@ sub _readFooter {
   while(<$fh>){
     if(/\/\//){
       last;
-    }  
+    }
   }
 }
 
@@ -1140,6 +1140,23 @@ sub write_ascii_out {
 	    if($unit->{'act_site'}) {
 		local $" = ",";
 		print $fh "predicted_active_site[@{$unit->{'act_site'}}]";
+	    }
+	
+	    if($scanData->{_translate}){
+	      my $strand = '?';
+	      my $start = '-';
+	      my $end   = '-';
+	      if(exists($scanData->{_orf}->{$HMMResults->seqName})){
+	       $strand = $scanData->{_orf}->{$HMMResults->seqName}->{strand};  
+	       if($strand eq '+'){
+	         $start = $scanData->{_orf}->{$HMMResults->seqName}->{start} + ($unit->envFrom * 3) - 3;
+	         $end = $scanData->{_orf}->{$HMMResults->seqName}->{start} + ($unit->envTo * 3) - 3;
+	       }elsif($strand eq '-'){
+	         $start = $scanData->{_orf}->{$HMMResults->seqName}->{start} - ($unit->envFrom * 3) + 3;
+           $end = $scanData->{_orf}->{$HMMResults->seqName}->{start} - ($unit->envTo * 3) + 3;
+	       }
+	      }
+	      print $fh "$strand $start $end";
 	    }
 	
 	    print $fh "\n";
