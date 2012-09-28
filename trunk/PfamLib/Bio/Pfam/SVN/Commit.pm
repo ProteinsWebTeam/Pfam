@@ -86,9 +86,17 @@ sub new {
                                              port => 27017)->pfamseq->automap;
   $self->{mongo}->query_timeout(90000);                                         
   
+  $self->{view} = Bio::Pfam::ViewProcess->new;
+  
   die "MongoDB size does not match pfamseq size!\n"
     if($self->{config}->dbsize !=  $self->{mongo}->count()); 
   return bless($self, $class);  
+}
+
+sub view {
+  my($self) = @_;
+  
+  return($self->{view});  
 }
 
 sub commitFamily {
@@ -121,10 +129,10 @@ sub commitFamily {
    
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
-    Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $author, $self->{config});
+    $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
   }else{
     #If we have not died, then we should be good to go! 
-    Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $author, $self->{config});
+   $self->view->initiateViewProcess($famObj, $author);
   }
 
 }
@@ -159,10 +167,10 @@ sub commitNewFamily {
   $guard->commit;
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
-    Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
+    $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
   }else{
     #If we have not died, then we should be good to go! 
-    Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
+    $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
   }
 }
 
@@ -175,10 +183,10 @@ sub initiateFamilyView {
   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
-    Bio::Pfam::ViewProcess::initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
+    $self->view->initiateClanViewProcess($famObj->DESC->CL, $self->author, $self->{config});
   }else{
     #If we have not died, then we should be good to go! 
-    Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
+    $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
   }
 }
 
@@ -408,7 +416,7 @@ sub moveClan {
   $clanIO->moveClanInRDB($clanObj, $pfamDB);
   
   #If we have not died, then we should be good to go! 
-  Bio::Pfam::ViewProcess::initiateClanViewProcess($clan, $self->author, $self->{config});
+  $self->view->initiateClanViewProcess($clan, $self->author, $self->{config});
 }
 
 
@@ -446,7 +454,7 @@ sub moveFamily {
   $guard->commit;
   
   #If we have not died, then we should be good to go! 
-  Bio::Pfam::ViewProcess::initiateViewProcess($famObj, $self->author, $self->{config});
+  $self->view->initiateViewProcess($famObj, $self->author, $self->{config});
 }
 
 sub deleteFamily {
