@@ -1,11 +1,12 @@
-package PfamJobs::JobStream;
+use utf8;
+package PfamJobs::Result::JobStream;
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+#__PACKAGE__->load_components("Core");
 __PACKAGE__->table("job_stream");
 __PACKAGE__->add_columns(
   "id",
