@@ -44,7 +44,6 @@ sub new {
   my $args = ( ref $args[0] eq 'HASH' ) ? shift @args : { @args };
 
 
-  croak "FATAL - no alignment passed\n" unless( $args->{-alignment} || $args->{-ALIGNMENT});
   croak "FATAL - no auto number passed\n" unless( $args->{-auto} || $args->{-AUTO});
   croak "FATAL - no database object passed\n" unless( $args->{-database} || $args->{-DATABASE});
 
@@ -73,8 +72,10 @@ sub new {
 =cut
 
 sub full {
-    my ($self) = @_;
-
+    my ($self, $full_align) = @_;
+    if($full_align){
+      $self->{alignment} = $full_align; 
+    }
 
     $self->{_expAS} = {};
     $self->{_sprotAS} = {};
