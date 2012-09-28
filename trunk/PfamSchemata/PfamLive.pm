@@ -5,7 +5,7 @@ use warnings;
 
 use base 'DBIx::Class::Schema';
 
-__PACKAGE__->load_classes;
+__PACKAGE__->load_namespaces;
 
 
 # Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
