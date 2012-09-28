@@ -20,31 +20,13 @@ use Digest::MD5 qw(md5_hex);
 
 #-------------------------------------------------------------------------------
 #Initial things to start up - database connections and logger
-
-#Start up the logger
-Log::Log4perl->easy_init($DEBUG);
-my $logger = get_logger();
-
-#Lets get a new Pfam config object
-my $config = Bio::Pfam::Config->new;
-
 #Get a clan IO object
 my $clanIO = Bio::Pfam::ClanIO->new;
 
-#Can we get a PfamJobs Database
-my $jobDB = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
-unless ($jobDB) {
-  Bio::Pfam::ViewProcess::mailPfam( "Failed to run view process",
-    "Could not get connection to the pfam_jobs database" );
-}
+#Can we get a Pfam Database connections
+my $view = Bio::Pfam::ViewProcess->new;
 
-$logger->debug("Got pfam_job db connection");
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-unless ($pfamDB) {
-  Bio::Pfam::ViewProcess::mailPfam(
-    "View process failed as we could not connect to pfamlive");
-}
-$logger->debug("Got pfamlive database connection");
+$view->logger->debug("Got pfamlive database connection");
 
 #-------------------------------------------------------------------------------
 #Deal with the user input options
@@ -62,58 +44,59 @@ if ($help) {
 }
 
 unless ( $clanAcc =~ /CL\d{4}/ ) {
-  $logger->logdie("$clanAcc does not look like a clan accession\n");
+  $view->logger->logdie("$clanAcc does not look like a clan accession\n");
 }
 
 if ( !$uid ) {
   if ($clanAcc) {
-    Bio::Pfam::ViewProcess::mailPfam(
+    $view->mailPfam(
       "Failed to run view process for clan:$clanAcc",
       "No job id passed to $0"
       ),
       ;
   }
   else {
-    Bio::Pfam::ViewProcess::mailPfam(
+   $view->mailPfam(
       "Failed to run view process for a clan",
       "No job id or clan acc passed to $0"
       ),
       ;
   }
   help();
-  $logger->logdie("FATAL:No job id passed to script.....");
+  $view->logger->logdie("FATAL:No job id passed to script.....");
 }
 
 #-------------------------------------------------------------------------------
 #Can we find the record of this job
 my $job =
-  $jobDB->getSchema->resultset('JobHistory')->find( { 'job_id' => $uid } );
+  $view->jobdb->getSchema->resultset('JobHistory')->find( { 'job_id' => $uid } );
 
 unless ($job) {
-  Bio::Pfam::ViewProcess::mailPfam(
+  $view->mailPfam(
     "Failed to run view process for $clanAcc",
     "Could not get job information for $uid"
   );
 }
-$logger->debug("Got job databse object");
+
+$view->job($job);
+$view->logger->debug("Got job databse object");
 
 #Change the status of the job from pending to running.
-$job->update({status  => 'RUN',
-              started => \'NOW()'});
+$job->run;
 
 #-------------------------------------------------------------------------------
 #Make sure that the clan is in the databases.
-$logger->debug("Checking clan is in the database");
-my $clanData = $pfamDB->getClanData($clanAcc);
+$view->logger->debug("Checking clan is in the database");
+my $clanData = $view->pfamdb->getClanData($clanAcc);
 
 #Check that the clan is in the SVN system
-$logger->debug("Checking clan is in the SVN repository");
+$view->logger->debug("Checking clan is in the SVN repository");
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkClanExists($clanAcc);
 
 # Check all families exist in both the database and svn
 my $clanSVNObj = $clanIO->loadClanFromSVN( $clanAcc, $client );
-my $clanMemRef = $pfamDB->getClanMembership($clanAcc);
+my $clanMemRef = $view->pfamdb->getClanMembership($clanAcc);
 
 # Xref clan membership in the database and svn
 my $clanMemAcc;
@@ -124,8 +107,8 @@ foreach my $mem (@$clanMemRef) {
 }
 
 # Give a clan we want to first compete all of the members within that clan.
-$logger->debug("Competing the clan members");
-Bio::Pfam::Clan::Compete::competeClan( $clanAcc, $pfamDB );
+$view->logger->debug("Competing the clan members");
+Bio::Pfam::Clan::Compete::competeClan( $clanAcc, $view->pfamdb );
 
 #-------------------------------------------------------------------------------
 # Now trigger off the view processes for all of the family members.
@@ -141,15 +124,15 @@ foreach my $fam (@$clanMemAcc) {
   my ($hmmObj);
   eval {
     my $hmm =
-      $pfamDB->getSchema->resultset('PfamaHmm')
+      $view->pfamdb->getSchema->resultset('PfamaHmm')
       ->find( { auto_pfama => $clanMemAccAutoMap{$fam} } );
     $hmmObj = $hmmio->readHMM( $hmm->hmm );
   };
   if ($@) {
-    Bio::Pfam::ViewProcess::mailUserAndFail( $job,
+    $view->mailUserAndFail( $job,
       "Problem getting HMM for $fam:[$@]" );
   }
-  $logger->debug("Got hmm from $fam");
+  $view->logger->debug("Got hmm from $fam");
 
   #Set the name
   $hmmObj->name($fam);
@@ -157,18 +140,18 @@ foreach my $fam (@$clanMemAcc) {
 
   #Write to disk
   open( H, ">HMM.3.$fam" )
-    or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
+    or $view->mailUserAndFail( $job,
     "Could not open HMM.3.$fam :[$!]\n" );
   $hmmio->writeHMM( \*H, $hmmObj );
   close(H);
 
   #Convert to H2 format
-  system( $config->hmmer3bin . "/hmmconvert -2 HMM.3.$fam > HMM.$fam" )
-    and Bio::Pfam::ViewProcess::mailUserAndFail( $job,
+  system( $view->config->hmmer3bin . "/hmmconvert -2 HMM.3.$fam > HMM.$fam" )
+    and $view->mailUserAndFail( $job,
     "Failed to run hmmconvert:[$!]" );
 
   my $align =
-    $pfamDB->getSchema->resultset('PfamaInternal')
+    $view->pfamdb->getSchema->resultset('PfamaInternal')
     ->find( { auto_pfama => $clanMemAccAutoMap{$fam} } );
 
   open( S, ">seed.$fam" );
@@ -176,7 +159,7 @@ foreach my $fam (@$clanMemAcc) {
   close(S);
 
   unless ( -s "seed.$fam" ) {
-    Bio::Pfam::ViewProcess::mailUserAndFail( $job,
+    $view->mailUserAndFail( $job,
       "Failed to seed alignment for $fam:[$!]" );
   }
 
@@ -187,38 +170,38 @@ foreach my $fam (@$clanMemAcc) {
 #No archs
 my $noArch = 0;
 
-$logger->debug("Calculating the number of sequences");
+$view->logger->debug("Calculating the number of sequences");
 #No Seqs
-my $noSeqsRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(clan_membership)],
     columns => [ qw( auto_pfamA_reg_full ) ],
     distinct => 1 } );
 my $noSeqs = $noSeqsRS->count;
 
 #No Interactions
-$logger->debug("Calculating the number of interactions");
-my $noIntRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+$view->logger->debug("Calculating the number of interactions");
+my $noIntRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(clan_membership interactions)],
     columns => [ qw( interactions.auto_pfamA_A interactions.auto_pfamA_B ) ] } );
 my $noInt = $noIntRS->count;
 
 #Get list of unique species
-$logger->debug("Calculating the number of species");
-my $noSpeciesRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+$view->logger->debug("Calculating the number of species");
+my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(pfamseq clan_membership)],
     columns => [ qw(pfamseq.ncbi_taxid) ],
     distinct => 1 } );
 my $noSpecies = $noSpeciesRS->count;
 
 #Get Number of Structures;
-$logger->debug("Calculating the number of sturctures");
-my $noStructRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+$view->logger->debug("Calculating the number of sturctures");
+my $noStructRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(pdb_pfama_regs clan_membership)],
     columns => [ qw( pdb_pfama_regs.auto_pdb_reg ) ],
     distinct => 1 } );
 my $noStruct = $noStructRS->count;
 
-$logger->debug("Uploading the summary information");
+$view->logger->debug("Uploading the summary information");
 $clanData->update({ number_structures => $noStruct,
                     number_archs      => $noArch, 
                     number_species    => $noSpecies,
@@ -227,7 +210,7 @@ $clanData->update({ number_structures => $noStruct,
 
 #-------------------------------------------------------------------------------
 
-$logger->debug("Writing the clandesc file so that clan can be versioned");
+$view->logger->debug("Writing the clandesc file so that clan can be versioned");
 
 $clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
 open(C, "CLANDESC") or die;
@@ -237,7 +220,7 @@ close(C);
 
 my $clanDescCksum = md5_hex(join("", @clandesc));
 
-my $relClanVersion = $pfamDB->getSchema->resultset('ReleasedClanVersion')->find({auto_clan => $clanData->auto_clan});
+my $relClanVersion = $view->pfamdb->getSchema->resultset('ReleasedClanVersion')->find({auto_clan => $clanData->auto_clan});
 
 my $version;
 if($relClanVersion){
@@ -250,7 +233,7 @@ $clanData->update({version => $version});
 
 #-------------------------------------------------------------------------------
 #Make Stockholm version of CLANDESC
-$logger->debug("Writing Stockholm version of CLANDESC");
+$view->logger->debug("Writing Stockholm version of CLANDESC");
 
 $clanSVNObj->DESC->AC($clanSVNObj->DESC->AC.".$version");
 $clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
@@ -271,7 +254,7 @@ open( STO, "gzip -c CLANDESC.sto|" );
 my $clanDescZip = join("", <STO>);
 close(STO);
 
-$pfamDB->getSchema
+$view->pfamdb->getSchema
         ->resultset('ClanAlignmentsAndRelationships')
           ->update_or_create({ auto_clan => $clanData->auto_clan,
                                stockholm => $clanDescZip,
@@ -282,17 +265,17 @@ $pfamDB->getSchema
 #-------------------------------------------------------------------------------
 # Make clan alignment and relationship images
 if(scalar(@$clanMemAcc) <= 40){ 
-$logger->debug("Going to run hhsearch for clan members");
-my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $config, $job );
+$view->logger->debug("Going to run hhsearch for clan members");
+my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view->config, $job );
 
-$logger->debug("Making clan alignment");
-makeAlign( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
-$logger->debug("Making clan relationship diagram");
-makeGraph( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
+$view->logger->debug("Making clan alignment");
+makeAlign( $hhScores, $clanMemRef, $clanAcc, $view->pfamdb, $clanData->auto_clan );
+$view->logger->debug("Making clan relationship diagram");
+makeGraph( $hhScores, $clanMemRef, $clanAcc, $view->pfamdb, $clanData->auto_clan );
 }
 
 #-------------------------------------------------------------------------------
-$logger->debug("Initiating view process for family members");
+$view->logger->debug("Initiating view process for family members");
 
 # Set of family view processes 
 my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -303,12 +286,12 @@ foreach my $fam (@$clanMemAcc){
     $famObj = $familyIO->loadPfamAFromSVN($fam, $client, 1);
   };
   if($@){
-    Bio::Pfam::ViewProcess::mailUserAndFail( $job,
+    $view->mailUserAndFail( $job,
       "Failed to $fam:[$!]" );  
   }
-  $logger->debug("initiateFamily ViewProcess for $fam");
+  $view->logger->debug("initiateFamily ViewProcess for $fam");
   
-  Bio::Pfam::ViewProcess::initiateFamilyViewProcess($famObj, $job->user_id, $config);
+  $view->initiateFamilyViewProcess($famObj, $job->user_id);
 }
 
 #-------------------------------------------------------------------------------
@@ -341,7 +324,7 @@ sub runHHsearch {
 
   my %hhResults;
   foreach my $acc (@$clanMemAcc) {
-    $logger->debug( "Going to run "
+    $view->logger->debug( "Going to run "
         . $config->hhsearchBin
         . "/hhsearch -i HMM.$acc -d cal.hhm -o $acc.res" );
     system( $config->hhsearchBin
@@ -349,7 +332,7 @@ sub runHHsearch {
       and Bio::Pfam::ViewProcess::mailUserAndFail( $job,
       "Failed ro run hhsearch on HMM.$acc:[$!]\n" );
 
-    $logger->debug("Parsing hhsearch results for $acc");
+    $view->logger->debug("Parsing hhsearch results for $acc");
     open( R, "$acc.res" )
       or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
       "Failed to open hhsearch results for $acc" );
@@ -389,37 +372,37 @@ sub makeGraph {
     }
   }
 
-  $logger->info( "Processing table for ", $clanAcc );
+  $view->logger->info( "Processing table for ", $clanAcc );
   print Dumper(@table);
-  $logger->info( "Processing names", $clanAcc );
+  $view->logger->info( "Processing names", $clanAcc );
   print Dumper(@names);
-  $logger->info( "Processing accs", $clanAcc );
+  $view->logger->info( "Processing accs", $clanAcc );
   print Dumper(@accs);
 
-  $logger->info( "Processing ", $clanAcc );
+  $view->logger->info( "Processing ", $clanAcc );
   my $clan = Bio::Pfam::Clan::ClanGraphics->new(
     '-matrix' => [@table],
     '-names'  => [@names],
     '-accs'   => [@accs]
-  ) or $logger->logdie("Couldn't create Clan object for $clanAcc!");
+  ) or $view->logger->logdie("Couldn't create Clan object for $clanAcc!");
 
   unless ( $clan == -1 ) {
     my $image_map = $clan->drawGraph(
       '-file'     => "$clanAcc.png",
       '-fontpath' => '/nfs/phd/bsb/Documents/fonts/TTF',
       '-font'     => 'Arial'
-    );    # or $logger->logdie("Error drawing graph for $clan_acc: $!");
+    );    # or $view->logger->logdie("Error drawing graph for $clan_acc: $!");
     open( OUT, ">$clanAcc.html" )
-      ;    #or $logger->logdie("Error creating $clan_acc.html: $!");
+      ;    #or $view->logger->logdie("Error creating $clan_acc.html: $!");
     print OUT $image_map;
     close(OUT);
 
-    $logger->debug("Finished creating image and html for clan $clanAcc!");
+    $view->logger->debug("Finished creating image and html for clan $clanAcc!");
 
   }
   else {
 
-    $logger->warn("Clan $clanAcc has no connections!");
+    $view->logger->warn("Clan $clanAcc has no connections!");
 
   }
 
@@ -472,7 +455,7 @@ sub makeAlign {
     if ( !$families_in_align{$acc1} and !$families_in_align{$acc2} ) {
 
       #align the two seed alignments.
-      $logger->debug("Aligning $acc1 && $acc2");
+      $view->logger->debug("Aligning $acc1 && $acc2");
       system("sreformat a2m seed.$acc1 > tmp.$$.in1");
       system("sreformat a2m seed.$acc2 > tmp.$$.in2");
       system(
@@ -483,7 +466,7 @@ sub makeAlign {
       $align_no++;
     }
     elsif ( $families_in_align{$acc1} && !$families_in_align{$acc2} ) {
-      $logger->debug("Aligning $acc2 and $families_in_align{$acc1}");
+      $view->logger->debug("Aligning $acc2 and $families_in_align{$acc1}");
       system("sreformat a2m seed.$acc2 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc1} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
@@ -498,7 +481,7 @@ sub makeAlign {
       $align_no++;
     }
     elsif ( !$families_in_align{$acc1} && $families_in_align{$acc2} ) {
-      $logger->debug("Aligning $acc1 and $families_in_align{$acc2}");
+      $view->logger->debug("Aligning $acc1 and $families_in_align{$acc2}");
       system("sreformat a2m seed.$acc1 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc2} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
@@ -513,7 +496,7 @@ sub makeAlign {
       $align_no++;
     }
     else {
-      $logger->debug("$acc1 and $acc2 is already in the alignment");
+      $view->logger->debug("$acc1 and $acc2 is already in the alignment");
 
     }
   }
@@ -544,7 +527,7 @@ sub makeAlign {
   #Now add any other alignments that are not already included.
   foreach my $acc ( @$clanMemAcc ) {
     next if ( $families_in_align{$acc} );
-    $logger->debug("Adding orphan align $acc");
+    $view->logger->debug("Adding orphan align $acc");
     if ( !$master_align ) {
       system(
         "sreformat a2m seed.$acc > tmp.$$.$align_no.align");
@@ -565,10 +548,10 @@ sub makeAlign {
   }
 
   system("sreformat --pfam stockholm $master_align > $clanAcc.sto");
-  $logger->debug("Finished building clan alignment for $clanAcc");
+  $view->logger->debug("Finished building clan alignment for $clanAcc");
 
   #Need to Swap accs for ids;
-  $logger->debug("Getting regions for clan [$auto_clan]");
+  $view->logger->debug("Getting regions for clan [$auto_clan]");
   my @regs = $pfamDB->getSchema
 	 ->resultset('PfamaRegSeed')
 	   ->search( { 'clan_membership.auto_clan' => $auto_clan },
@@ -578,7 +561,7 @@ sub makeAlign {
   
   my %regs = map {$_->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
   
-  $logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
+  $view->logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
   system("consensus.pl -method clustal -file $clanAcc.sto > $clanAcc.con")
       and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run consensus.pl:[$!]");
   system("clustalX.pl -a $clanAcc.sto -c $clanAcc.con -b 80 > $clanAcc.nfb.html")
@@ -607,7 +590,7 @@ sub makeAlign {
       my $thisNse = $1;
       my $theRest = $2;
       unless($regs{$thisNse}){
-       $logger->debug("Failed to find nse for $thisNse");
+       $view->logger->debug("Failed to find nse for $thisNse");
        Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to find nse for $thisNse" ); 
       }
       my $accVerSE = $regs{$thisNse}->pfamseq_acc.".".$regs{$thisNse}->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
@@ -644,7 +627,7 @@ sub makeAlign {
   close(CNFB);
 
   
-  open(ALI, "gzip -c $clanAcc.withFamBlock.html |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to gzip clan alignment" );
+  open(ALI, "gzip -c $clanAcc.withFamBlock.html |") or $view->mailUserAndFail($job, "Failed to gzip clan alignment" );
   my $align = join("", <ALI>);
   $pfamDB->getSchema->resultset('ClanAlignmentsAndRelationships')
     ->update_or_create(

@@ -28,16 +28,13 @@ my $logger = get_logger();
 $logger->level($DEBUG);
 
 my $config = Bio::Pfam::Config->new;
+my $view = Bio::Pfam::ViewProcess->new;
 
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-unless ($pfamDB) {
-  Bio::Pfam::ViewProcess::mailPfam(
-    "View process failed as we could not connect to pfamlive");
-}
-my $dbh = $pfamDB->getSchema->storage->dbh;
+
+my $dbh = $view->pfamdb->getSchema->storage->dbh;
 $logger->debug("Got pfamlive database connection");
 
-my @pfamARS =  $pfamDB->getSchema->resultset('Pfama')->search();
+my @pfamARS =  $view->pfamdb->getSchema->resultset('Pfama')->search();
 
 my $acc2id;
 my $auto2row;
@@ -48,7 +45,7 @@ foreach my $p (@pfamARS){
 
 #For every architecture, check that the names are still valid.
 
-my @archs = $pfamDB->getSchema->resultset('Architecture')->search();
+my @archs = $view->pfamdb->getSchema->resultset('Architecture')->search();
 my $archs;
 my $fromToArchs;
 

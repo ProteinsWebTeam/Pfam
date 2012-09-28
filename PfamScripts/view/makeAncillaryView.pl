@@ -2,39 +2,34 @@
 
 use strict;
 use warnings;
-use Log::Log4perl qw(:easy);
 
-use Bio::Pfam::Config;
-use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::ViewProcess;
 
 -------------------------------------------------------------------------------
-#Initial things to start up - database connections and logger
 
-#Start up the logger
-Log::Log4perl->easy_init($DEBUG);
-my $logger = get_logger();
+#Lets get a new Pfam view object
 
-#Lets get a new Pfam config object
-my $config = Bio::Pfam::Config->new;
+my $view = Bio::Pfam::ViewProcess->new;
 
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-unless ($pfamDB) {
-  Bio::Pfam::ViewProcess::mailPfam(
-    "View process failed as we could not connect to pfamlive");
-}
-$logger->debug("Got pfamlive database connection");
-
-
-
-
+$view->logger->debug("Got pfamlive database connection");
 
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
-my $noPfama = $pfamDB->getSchema->resultset('Pfama')->search({})->count;
-my $version = $pfamDB->getSchema->resultset('Version')->find({});
-$version->update({ number_families => $noPfama });
+my $noPfama = $view->pfamdb->getSchema->resultset('Pfama')->search({})->count;
+my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
+$version->update({ number_families => $noPfama }) 
+  if($version->number_families != $noPfama);
+
+if($acc){
+  #Do it for a single family
+}elsif($ancillary){
+#Do it for a set of families
+}else{
+  #Do it for the whole database
+  
+}
+
 
 #-------------------------------------------------------------------------------
 #Find when this job was last run
