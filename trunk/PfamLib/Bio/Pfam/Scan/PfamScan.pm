@@ -1,3 +1,4 @@
+
 =head1 NAME
 
 Bio::Pfam::Scan::PfamScan
@@ -33,6 +34,7 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::Active_site::as_search;
 use Bio::SimpleAlign;
 use Bio::Pfam::Scan::Seq;
+use Data::Printer;
 
 use Carp;
 use IPC::Run qw( start finish );
@@ -76,7 +78,7 @@ sub new {
   my $self = {};
   bless $self, $class;
 
-  # To avoid hard coding the location for the binary, we assume it will be on the path.....
+# To avoid hard coding the location for the binary, we assume it will be on the path.....
   $self->{_HMMSCAN} = 'hmmscan';
 
   # handle arguments, if we were given any here
@@ -105,11 +107,11 @@ sub search {
   # set up the output header
   $self->_build_header;
 
-  croak qq(FATAL: no sequence given; set the search parameters before calling "search")
-    unless defined $self->{_sequence}; 
+  croak
+qq(FATAL: no sequence given; set the search parameters before calling "search")
+    unless defined $self->{_sequence};
 
   my ( %AllResults, $pfamB, $firstResult );
-
 
   foreach my $hmmlib ( @{ $self->{_hmmlib} } ) {
 
@@ -126,23 +128,35 @@ sub search {
       push @hmmscan_cut_off, '-E', $seq_evalue, '--domE', $dom_evalue;
     }
 
-    push @{ $self->{_header} }, "#     cpu number specified: " . $self->{_cpu} . "\n" if($hmmlib !~ /Pfam\-B/ and $self->{_cpu});
+    push @{ $self->{_header} },
+      "#     cpu number specified: " . $self->{_cpu} . "\n"
+      if ( $hmmlib !~ /Pfam\-B/ and $self->{_cpu} );
 
-    push @{ $self->{_header} }, "#        searching against: " 
-                                . $self->{_dir} . "/$hmmlib, with cut off " 
-                                . join( " ", @hmmscan_cut_off ) . "\n";
-    my @params;   
-   if($self->{_cpu}) {
-      @params = ( 'hmmscan', 
-                   '--notextw', '--cpu', $self->{_cpu}, @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );   
+    push @{ $self->{_header} },
+      "#        searching against: "
+      . $self->{_dir}
+      . "/$hmmlib, with cut off "
+      . join( " ", @hmmscan_cut_off ) . "\n";
+    my @params;
+    if ( $self->{_cpu} ) {
+      @params = (
+        'hmmscan', '--notextw', '--cpu', $self->{_cpu}, @hmmscan_cut_off,
+        $self->{_dir} . '/' . $hmmlib,
+        $self->{_fasta}
+      );
     }
     else {
-      @params = ( 'hmmscan', '--notextw', @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );
-    
-    }    
+      @params = (
+        'hmmscan', '--notextw', @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib,
+        $self->{_fasta}
+      );
 
-    print STDERR "PfamScan::search: hmmscan command: |@params|\n" if $ENV{DEBUG};
-    print STDERR 'PfamScan::search: sequence: |' . $self->{_sequence} . "|\n" if $ENV{DEBUG};
+    }
+
+    print STDERR "PfamScan::search: hmmscan command: |@params|\n"
+      if $ENV{DEBUG};
+    print STDERR 'PfamScan::search: sequence: |' . $self->{_sequence} . "|\n"
+      if $ENV{DEBUG};
 
     my $run = start \@params, '<pipe', \*IN, '>pipe', \*OUT, '2>pipe', \*ERR
       or croak qq(FATAL: error running hmmscan; IPC::Run returned '$?');
@@ -165,31 +179,35 @@ sub search {
 
     unless ( $hmmlib =~ /Pfam\-B/ ) {
 
-      if($self->{_clan_overlap}){
-        push(@{$self->{_header}}, "#    resolve clan overlaps: off\n"); 
+      if ( $self->{_clan_overlap} ) {
+        push( @{ $self->{_header} }, "#    resolve clan overlaps: off\n" );
       }
       else {
-        push(@{$self->{_header}}, "#    resolve clan overlaps: on\n"); 
+        push( @{ $self->{_header} }, "#    resolve clan overlaps: on\n" );
         $self->_resolve_clan_overlap;
       }
 
       if ( $self->{_as} ) {
-        push(@{$self->{_header}}, "#     predict active sites: on\n"); 
+        push( @{ $self->{_header} }, "#     predict active sites: on\n" );
         $self->_pred_act_sites;
       }
       else {
-          push(@{$self->{_header}}, "#     predict active sites: off\n"); 
+        push( @{ $self->{_header} }, "#     predict active sites: off\n" );
       }
     }
 
     # Determine which hits are significant
     foreach my $result ( @{ $self->{_all_results} } ) {
-      foreach my $unit ( sort { $a->seqFrom <=> $b->seqFrom } @{ $result->units } ) {
+      foreach
+        my $unit ( sort { $a->seqFrom <=> $b->seqFrom } @{ $result->units } )
+      {
 
         unless ($pfamB) {
 
           $unit->sig(0);
-          if ( $result->seqs->{ $unit->name }->bits >= $self->{_seqGA}->{ $unit->name } ) {
+          if ( $result->seqs->{ $unit->name }->bits >=
+            $self->{_seqGA}->{ $unit->name } )
+          {
             if ( $unit->bits >= $self->{_domGA}->{ $unit->name } ) {
               $unit->sig(1);
             }
@@ -205,25 +223,25 @@ sub search {
       $firstResult = $self->{_all_results};
     }
 
-  } # end of "foreach $hmmlib"
+  }    # end of "foreach $hmmlib"
 
   # If more than one search, merge results into one object
   if ( keys %AllResults ) {
 
-    foreach my $AllResult ( keys %AllResults ) { 
+    foreach my $AllResult ( keys %AllResults ) {
 
       foreach my $seq_id ( keys %{ $self->{_seq_hash} } ) {
-            
+
         my $flag;
-            
+
         #If seq exists in both, add all units from $AllResult to $firstResult
         foreach my $result ( @{$firstResult} ) {
-            
-          if( $result->seqName eq $seq_id ) {
+
+          if ( $result->seqName eq $seq_id ) {
             $flag = 1;
 
             foreach my $result2 ( @{ $AllResults{$AllResult} } ) {
-          
+
               if ( $result2->seqName eq $seq_id ) {
                 foreach my $hmmname ( keys %{ $result2->seqs } ) {
                   $result->addHMMSeq( $result2->seqs->{$hmmname} );
@@ -235,29 +253,37 @@ sub search {
             }
           }
         }
-            
-        #If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
+
+#If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
         unless ($flag) {
           foreach my $result2 ( @{ $AllResults{$AllResult} } ) {
             if ( $result2->seqName eq $seq_id ) {
-              push @{$firstResult}, $result2;                    
+              push @{$firstResult}, $result2;
             }
           }
-        }            
+        }
       }
     }
     $self->{_all_results} = $firstResult;
 
-  } # end of "if keys %AllResults"
+  }    # end of "if keys %AllResults"
 
-  push @{ $self->{_header} }, "# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n#\n";
+  push @{ $self->{_header} },
+"# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n#\n";
 
   if ( $self->{_as} ) {
-    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>\n";
+    push @{ $self->{_header} },
+"# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>";
   }
   else {
-    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>\n";
+    push @{ $self->{_header} },
+"# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>";
   }
+
+  if ( $self->{_translate} ) {
+    push @{ $self->{_header} }, " <strand> <nt start> <nt end>";
+  }
+  push @{ $self->{_header} }, "\n";
 }
 
 #-------------------------------------------------------------------------------
@@ -301,7 +327,8 @@ sub write_results {
   }
 
   foreach my $result ( @{ $self->{_all_results} } ) {
-    $self->{_hmmresultIO}->write_ascii_out( $result, $fh, $self, $e_seq, $e_dom, $b_seq, $b_dom );
+    $self->{_hmmresultIO}
+      ->write_ascii_out( $result, $fh, $self, $e_seq, $e_dom, $b_seq, $b_dom );
   }
   close $fh;
 }
@@ -315,7 +342,7 @@ Returns the search results.
 =cut
 
 sub results {
-  my ($self, $e_value) = @_;
+  my ( $self, $e_value ) = @_;
 
   unless ( defined $self->{_all_results} ) {
     carp "WARNING: call search() before trying to retrieve results";
@@ -325,7 +352,7 @@ sub results {
   my @search_results = ();
 
   foreach my $hmm_result ( @{ $self->{_all_results} } ) {
-    push @search_results, @{ $hmm_result->results($self, $e_value) };
+    push @search_results, @{ $hmm_result->results( $self, $e_value ) };
   }
 
   return \@search_results;
@@ -375,7 +402,8 @@ sub _process_args {
 
   $self->{_hmmscan_cutoff} = ();
   if ( $args->{-e_seq} ) {
-    croak qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
+    croak
+qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
       unless $args->{-e_seq} > 0;
 
     push @{ $self->{_hmmscan_cutoff} }, '-E', $args->{-e_seq};
@@ -385,7 +413,8 @@ sub _process_args {
     croak q(FATAL: if you supply "-e_dom" you must also supply "-e_seq")
       unless $args->{-e_seq};
 
-    croak qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
+    croak
+qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
       unless $args->{-e_dom} > 0;
 
     push @{ $self->{_hmmscan_cutoff} }, '--domE', $args->{-e_dom};
@@ -419,15 +448,16 @@ sub _process_args {
   $self->{_as}           = $args->{-as};
   $self->{_sequence}     = $args->{-sequence};
   $self->{_cpu}          = $args->{-cpu};
+  $self->{_translate}    = $args->{-translate};
 
   $self->{_hmmlib} = [];
   if ( $args->{-hmmlib} ) {
-      if( ref $args->{-hmmlib} eq 'ARRAY') {
-        push @{ $self->{_hmmlib} }, @{$args->{-hmmlib}};
-      }
-      else {
-        push @{ $self->{_hmmlib} }, $args->{-hmmlib};
-      }
+    if ( ref $args->{-hmmlib} eq 'ARRAY' ) {
+      push @{ $self->{_hmmlib} }, @{ $args->{-hmmlib} };
+    }
+    else {
+      push @{ $self->{_hmmlib} }, $args->{-hmmlib};
+    }
   }
   else {
     push @{ $self->{_hmmlib} }, "Pfam-A.hmm";
@@ -438,15 +468,18 @@ sub _process_args {
 
     croak
       qq(FATAL: can't find $hmmlib and/or $hmmlib binaries in "$args->{-dir}")
-      unless ( -s $self->{_dir} , "/$hmmlib" and 
-               -s $self->{_dir} . "/$hmmlib.h3f" and 
-               -s $self->{_dir} . "/$hmmlib.h3i" and 
-               -s $self->{_dir} . "/$hmmlib.h3m" and 
-               -s $self->{_dir} . "/$hmmlib.h3p" and 
-               -s $self->{_dir} . "/$hmmlib.dat" );
+      unless (
+      -s $self->{_dir},
+      "/$hmmlib"
+      and -s $self->{_dir} . "/$hmmlib.h3f"
+      and -s $self->{_dir} . "/$hmmlib.h3i"
+      and -s $self->{_dir} . "/$hmmlib.h3m"
+      and -s $self->{_dir} . "/$hmmlib.h3p"
+      and -s $self->{_dir} . "/$hmmlib.dat"
+      );
 
     # read the necessary data, if it's not been read already
-    $self->_read_pfam_data
+    $self->_read_pfam_data;
   }
 
   $self->{_max_seqname} = 0;
@@ -455,12 +488,12 @@ sub _process_args {
   $self->_read_fasta
     unless $self->{_sequence};
 
-  # check again for a sequence. If we don't have one at this point, bail with 
+  # check again for a sequence. If we don't have one at this point, bail with
   # an error
   croak qq(FATAL: no sequence given)
     unless $self->{_sequence};
 
-  # read fasta file, store maximum sequence name and store sequences for active 
+  # read fasta file, store maximum sequence name and store sequences for active
   # sites prediction
   $self->_parse_sequence
     unless $self->{_max_seqname};
@@ -470,9 +503,13 @@ sub _process_args {
       unless $self->{_read_read_act_site_data};
   }
 
+  if ( $self->{_translate} ) {
+    $self->_translate_fasta;
+  }
+
   # see if a version number was specified
   $self->{_version} = $args->{version};
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -486,7 +523,8 @@ Adds version to the header object
 sub _build_header {
   my ( $self, $version ) = @_;
 
-  unshift @{ $self->{_header} }, '#      query sequence file: ' . $self->{_fasta} . "\n";
+  unshift @{ $self->{_header} },
+    '#      query sequence file: ' . $self->{_fasta} . "\n";
 
   unshift @{ $self->{_header} }, <<EOF_license;
 # Copyright (c) 2009 Genome Research Ltd\n# Freely distributed under the GNU 
@@ -508,11 +546,13 @@ sub _build_header {
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 EOF_license
 
-  my $v= ( defined $self->{_version} ) 
-         ? "version $version, "
-         : '';
+  my $v =
+    ( defined $self->{_version} )
+    ? "version $version, "
+    : '';
 
-  unshift @{ $self->{_header} }, "# pfam_scan.pl, $v run at " . scalar(localtime) ."\n#\n";
+  unshift @{ $self->{_header} },
+    "# pfam_scan.pl, $v run at " . scalar(localtime) . "\n#\n";
 }
 
 #-------------------------------------------------------------------------------
@@ -550,7 +590,6 @@ sub _resolve_clan_overlap {
 
   my @no_clan_overlap = ();
   foreach my $result ( @{ $self->{_all_results} } ) {
-
     my $new =
       $result->remove_overlaps_by_clan( $self->{_clanmap}, $self->{_nested} );
 
@@ -674,7 +713,7 @@ sub _read_pfam_data {
     close SCANDAT;
 
     # set a flag to show that we've read the data files already
-    $self->{ '_read_'.$hmmlib } = 1;
+    $self->{ '_read_' . $hmmlib } = 1;
   }
 
 }
@@ -786,11 +825,110 @@ sub _parse_sequence {
 
 #-------------------------------------------------------------------------------
 
+sub _translate_fasta {
+  my ($self) = @_;
+  my $translatedFasta = $self->{_fasta} . ".translated";
+
+  my @params = ( 'translate', '-q', );
+  if ( $self->{_translate} eq 'all' ) {
+    push( @params, '-a' );
+  }
+  elsif ( $self->{_translate} eq 'orf' ) {
+    push( @params, '-l', '20' );
+  }
+  else {
+    croak qq(Unexpected parameter '$self->{_translate}');
+  }
+  push( @params, '-o', $translatedFasta, $self->{_fasta} );
+
+  print STDERR "PfamScan::translate_fasta: translate command: |@params|\n"
+    if $ENV{DEBUG};
+
+  my $run = start \@params, '<pipe', \*IN, '>pipe', \*OUT, '2>pipe', \*ERR
+    or croak qq(FATAL: error running translate; IPC::Run returned '$?');
+
+  close IN;
+  close OUT;
+
+  my $err;
+  while (<ERR>) {
+    $err .= $_;
+  }
+  close ERR;
+
+  finish $run
+    or croak qq|FATAL: error running translate ($err); ipc returned '$?'|;
+  open( F, "<", $translatedFasta )
+    or croak qw(Could not open $translatedFasta '$!');
+  if ( $self->{_translate} eq 'orf' ) {
+    while (<F>) {
+      if (/^>\s?(\S+).*nt (\d+)\.+(\d+)/) {
+        $self->{_orf}->{$1}->{start}  = $2;
+        $self->{_orf}->{$1}->{end}    = $3;
+        $self->{_orf}->{$1}->{strand} = ( $2 < $3 ) ? '+' : '-';
+      }
+    }
+  }
+  else {
+    my $currentSeq;
+    my $currentFrame;
+    my $currentLen = 0;
+    my $maxEnd = 0;
+    while (<F>) {
+      chomp;
+      if (/^>\s?(\S+\:)(\d+)/) {
+        if ( $currentLen > 0 ) {
+          my $seqName = $currentSeq . $currentFrame;
+          if ( $currentFrame < 3 ) {
+            my $start = 1 + $currentFrame;
+            my $end   = $start + $currentLen - 1;
+            $self->{_orf}->{$seqName}->{strand} = '+';
+            $self->{_orf}->{$seqName}->{start}  = $start;
+            $self->{_orf}->{$seqName}->{end}    = $end;
+            $maxEnd = $end if ( $end > $maxEnd );
+          }
+          else {
+            my $start = $maxEnd - ( $currentFrame - 3 );
+            my $end = $start - $currentLen + 1;
+            $self->{_orf}->{$seqName}->{strand} = '-';
+            $self->{_orf}->{$seqName}->{start}  = $start;
+            $self->{_orf}->{$seqName}->{end}    = $end;
+          }
+        }
+        $currentLen   = 0;
+        $currentSeq   = $1;
+        $currentFrame = $2;
+      }
+      else {
+        $currentLen += length($_) * 3;
+      }
+    }
+    my $seqName = $currentSeq . $currentFrame;
+    if ( $currentFrame < 3 ) {
+      my $start = 1 + $currentFrame;
+      my $end   = $start + $currentLen - 1;
+      $self->{_orf}->{$seqName}->{strand} = '+';
+      $self->{_orf}->{$seqName}->{start}  = $start;
+      $self->{_orf}->{$seqName}->{end}    = $end;
+      $maxEnd = $end if ( $end > $maxEnd );
+    }
+    else {
+      my $start = $maxEnd - ( $currentFrame - 3 );
+      my $end = $start - $currentLen + 1;
+      $self->{_orf}->{$seqName}->{strand} = '-';
+      $self->{_orf}->{$seqName}->{start}  = $start;
+      $self->{_orf}->{$seqName}->{end}    = $end;
+    }
+  }
+  $self->{_fasta} = $translatedFasta;
+}
+#-------------------------------------------------------------------------------
+
 =head1 COPYRIGHT
 
 Copyright (c) 2009: Genome Research Ltd.
 
-Authors: Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Rob Finn (finnr@janelia.hhmi.org)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -809,5 +947,5 @@ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
  
 =cut
 
-1;
+  1;
 
