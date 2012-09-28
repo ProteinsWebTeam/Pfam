@@ -579,9 +579,9 @@ sub makeRPAligns {
     #with duplicate the alignment. Looked into eseal, but that it has a bug
     #rdf 26/09/2012
     $self->write_stockholm_file( $filename, $rpali, $GFAnn );
-    system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $l.ann > $l.ann.nogap")
+    system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
       and $self->mailUserAndFail("Problem running esl-reformat to remove gaps.");
-    rename("$l.ann.nogap", "$l.ann") or $self->mailUserAndFail("Failed to rename RP nogap alignment"); 
+    rename("$filename.ann.nogap", "$filename.ann") or $self->mailUserAndFail("Failed to rename RP nogap alignment"); 
      
     if ( $aliIds->no_sequences <= 5000 ) {
       $self->makeHTMLAlign( $filename, 80, $l );
