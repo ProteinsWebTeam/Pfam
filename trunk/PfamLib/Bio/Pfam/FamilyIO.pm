@@ -314,6 +314,14 @@ sub parseDESC {
         }
       }
       $ref->{RN} =~ s/\[|\]//g;
+      unless(exists($ref->{RN}) and $ref->{RN} =~ /^\d+$/){
+        confess("Reference number should be defined and numeric\n");  
+      }
+      if(exists($ref->{RM})){
+        unless( $ref->{RM} =~ /^\d+$/){
+          confess("Reference medline should be numeric, got ".$ref->{RM}."\n");  
+        }
+      }
       push( @{ $params{REFS} }, $ref );
     }
     elsif ( $file[$i] =~ /^NE\s{3}(PF\d{5})\;$/ ) {
