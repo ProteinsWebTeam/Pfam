@@ -70,7 +70,7 @@ subtype 'PfamAuthor'
 subtype 'PfamDesc'
   => as Str
   => where { $_ =~ /^(.{1,75})$/ }
-  => message { 'Not a vailid Pfam author' };
+  => message { 'Not a vailid Pfam DE line' };
 
 subtype 'PfamRef'
   => as ArrayRef
@@ -156,7 +156,7 @@ has 'TP' => (
 );
 
 has 'WIKI' => (
-  is        => 'ro',
+  is        => 'rw',
   isa       => 'HashRef'
 );
 
