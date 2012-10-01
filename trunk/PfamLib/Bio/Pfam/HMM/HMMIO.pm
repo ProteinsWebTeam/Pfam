@@ -1,4 +1,4 @@
- # HMM.pm
+# HMM.pm
 #
 # Author:        finnr
 # Maintainer:    $Id: HMMIO.pm,v 1.3 2010-01-12 17:00:26 jm14 Exp $
@@ -63,11 +63,12 @@ sub readHMM {
   unless($hmm){
     confess("No HMM passed in!"); 
   }
+  chomp($hmm);
   
   my @input;
   if(ref($hmm) eq 'GLOB'){
     @input = <$hmm>;
-  }elsif(-e $hmm and -s $hmm){
+  }elsif($hmm !~ /\n/ and -e $hmm and -s $hmm){
     #Assume that we have a filename and try and open it;
     open(HMM, $hmm) || confess("Could not open $hmm:[$!]");
     @input = <HMM>;
