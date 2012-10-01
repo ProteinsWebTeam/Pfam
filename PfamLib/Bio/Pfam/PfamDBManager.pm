@@ -304,25 +304,23 @@ sub getPfamInterPro {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfama")->find(
+    $familyData = $self->getSchema->resultset("Pfama")->search(
       { "pfamA_acc" => $family },
       {
-        join     => qw( interpros ),
-        prefetch => qw( interpros )
+        join     => qw( interpros )
       }
-    );
+    )->first;
 
   }
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfama")->find(
+    $familyData = $self->getSchema->resultset("Pfama")->search(
       { "pfamA_id" => $family },
       {
-        join     => qw( interpros ),
-        prefetch => qw( interpros )
+        join     => qw( interpros )
       }
-    );
+    )->first;
   }
   else {
     cluck("$family does not look like a family accession or id");
@@ -344,7 +342,6 @@ sub getPfamGO {
       { "pfamA_acc" => $family },
       {
         join     => qw( gene_ontologies ),
-        prefetch => qw( gene_ontologies )
       }
     );
 
@@ -356,7 +353,6 @@ sub getPfamGO {
       { "pfamA_id" => $family },
       {
         join     => qw( gene_ontologies ),
-        prefetch => qw( gene_ontologies )
       }
     );
   }
