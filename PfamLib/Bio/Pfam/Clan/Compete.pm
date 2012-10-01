@@ -49,6 +49,7 @@ use strict;
 use warnings;
 
 use Bio::Pfam::PfamLiveDBManager;
+use Data::Dump qw(dump);
 
 #-------------------------------------------------------------------------------
 
@@ -84,11 +85,11 @@ sub competeClan {
     $dbh->prepare( "select s.auto_pfamA, auto_pfamseq, seq_start,"
       . " seq_end from pfamA_reg_seed s, clan_membership c"
       . " where c.auto_pfamA=s.auto_pfamA and auto_clan="
-      . $clan->auto );
+      . $clan->auto_clan );
   $sthSeedRegs->execute;
   my %clanSeed;
   foreach my $row ( @{ $sthSeedRegs->fetchall_arrayref } ) {
-    $clanSeed{ $row->[1] } = $row;    #keyed off auto_pfamseq
+    push(@{$clanSeed{ $row->[1] }}, $row);    #keyed off auto_pfamseq
   }
 
   #Get nested data for clan
@@ -96,7 +97,7 @@ sub competeClan {
     $dbh->prepare( "select n.auto_pfamA, nested_auto_pfamA from "
       . "nested_locations n, clan_membership c where "
       . "c.auto_pfamA=n.auto_pfamA and auto_clan="
-      . $clan->auto );
+      . $clan->auto_clan );
   $sthNest->execute;
   my %nested;
   foreach my $row ( @{ $sthNest->fetchall_arrayref } ) {
@@ -109,7 +110,7 @@ sub competeClan {
       . "ali_end, domain_evalue_score, in_full, auto_pfamA_reg_full from "
       . "pfamA_reg_full_significant s, clan_membership c where "
       . "c.auto_pfamA=s.auto_pfamA and auto_clan="
-      . $clan->auto
+      . $clan->auto_clan
       . " order by auto_pfamseq, domain_evalue_score" );
   $sthFullRegs->execute;
 
@@ -122,9 +123,9 @@ sub competeClan {
   my $currentPfamseq;
   my $count = 0;
   $dbh->{AutoCommit} = 0;
-  while ( my $row = $sthFullRegs->fetch ) {
-    if ( defined($currentPfamseq) and $currentPfamseq != $row->[1] ) {
-      my $loseRef = _competeSequence( \@seqRegions, \%clanSeed, \%nested, $updateSth );
+  while ( my @row = $sthFullRegs->fetchrow_array ) {
+    if ( defined($currentPfamseq) and $currentPfamseq != $row[1] ) {
+      my $loseRef = _competeSequence( \@seqRegions, \%clanSeed, \%nested );
       #Loop over and set any region that is out competed to be in_full=0, based 
       #on the region index;      
       foreach my $region ( @seqRegions ) {
@@ -136,15 +137,17 @@ sub competeClan {
         }
     }
       
-      @seqRegions = [];
+      @seqRegions = ();
       if ( $count > 1000 ) {
         $dbh->commit;
+        $count=0;
       }
     }
     $count++;
-    $currentPfamseq = $row->[1];
-    push( @seqRegions, $row );
+    $currentPfamseq = $row[1];
+    push( @seqRegions, \@row );
   }
+
   my $loseRef = _competeSequence(\@seqRegions, \%clanSeed, \%nested, $updateSth );
    foreach my $region ( @seqRegions ) {
         if(exists($loseRef->{ $region->[6] })){
@@ -174,7 +177,6 @@ sub _competeSequence {
 
 #Now go through all the sequence regions in clan and identify those that need to be removed
   foreach my $region1 ( @{$seqRegionsRef} ) {
-
     #Each regions should be an array ref of:
     #auto_pfamA, 0
     #auto_pfamseq,1
@@ -187,7 +189,7 @@ sub _competeSequence {
     my $overlap = "";
     
     #Identify any seed overlaps
-    if ( exists( $clanSeedRef->{ $region1->[1] } ) ) {
+    if ( defined($clanSeedRef) and exists( $clanSeedRef->{ $region1->[1] } ) ) {
       foreach my $seed_region (  @{ $clanSeedRef->{ $region1->[1] } } ) {
         #Does this region overlap with a SEED region?
         $overlap = _overlap( $seed_region, $region1 );
@@ -238,7 +240,7 @@ sub _competeSequence {
                  $nestedRef->{ $region1->[0] }->{ $region2->[0] }
               or $nestedRef->{ $region2->[0] }->{ $region1->[0] }
             );
-       
+      
       my $overlap = _overlap( $region1, $region2 );
       next unless ($overlap);
 
