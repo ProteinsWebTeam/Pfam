@@ -118,7 +118,6 @@ sub drawGraph
     $height /= 72;
     
     my $g;
-    print STDERR "This Module\n";
     if($algo)
     {
         $g = GraphViz->new({layout=> $algo,
