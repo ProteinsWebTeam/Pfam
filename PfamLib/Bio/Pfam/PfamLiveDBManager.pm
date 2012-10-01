@@ -199,7 +199,7 @@ sub createClan {
     }
   );
 
-  unless ( $clan and $clan->isa('PfamLive::Clans') ) {
+  unless ( $clan and $clan->isa('PfamLive::Result::Clans') ) {
     confess( 'Failed to get row for ' . $clanObj->DESC->ID . "....." );
   }
 
@@ -219,7 +219,7 @@ sub updatePfamA {
     $self->getSchema->resultset('Pfama')
     ->find( { pfamA_acc => $famObj->DESC->AC } );
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
   }
 
@@ -304,7 +304,7 @@ sub createPfamA {
     }
   );
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
   }
 
@@ -339,7 +339,7 @@ sub deletePfamA {
     $self->getSchema->resultset('Pfama')->search( { pfama_acc => $family },
     { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
 
@@ -372,7 +372,7 @@ sub deleteClan {
   my $clan =
     $self->getSchema->resultset('Clans')->find( { clan_acc => $clanAcc } );
 
-  unless ( $clan and $clan->isa('PfamLive::Clans') ) {
+  unless ( $clan and $clan->isa('PfamLive::Results::Clans') ) {
     confess( 'Failed to get row for ' . $clanAcc . "( Got $clan )....." );
   }
   my $clanMembership = $self->getClanMembership($clanAcc);
@@ -1346,7 +1346,7 @@ sub resetClanCompeteFlag {
     $clanData = $self->getClanData($clan);
   }
 
-  unless ( $clanData->isa('PfamLive::Clans') ) {
+  unless ( $clanData->isa('PfamLive::Results::Clans') ) {
     croak("Failed to get a clan row obkect for $clan");
   }
 
