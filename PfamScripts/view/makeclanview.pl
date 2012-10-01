@@ -216,7 +216,7 @@ if($relClanVersion){
 
 
 $view->logger->debug("Uploading the summary information and version.");
-$clanData->update({ version => $version,
+$clanData = $clanData->update({ version => $version,
                     number_structures => $noStruct,
                     number_archs      => $noArch, 
                     number_species    => $noSpecies,
