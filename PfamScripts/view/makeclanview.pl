@@ -115,6 +115,7 @@ Bio::Pfam::Clan::Compete::competeClan( $clanAcc, $view->pfamdb );
 # Needs to happen after the competion. Will need to tweak the view process
 # to make sure that the QC does not fail on alignment sizes compared with the database
 my $hmmio = Bio::Pfam::HMM::HMMIO->new;
+unlink("$clanAcc.lib");
 if(scalar(@$clanMemAcc) <= 40){
 foreach my $fam (@$clanMemAcc) {
 
@@ -139,16 +140,11 @@ foreach my $fam (@$clanMemAcc) {
   $hmmObj->accession($fam);
 
   #Write to disk
-  open( H, ">HMM.3.$fam" )
+  open( H, ">HMM.$fam" )
     or $view->mailUserAndFail( $job,
-    "Could not open HMM.3.$fam :[$!]\n" );
+    "Could not open HMM.$fam :[$!]\n" );
   $hmmio->writeHMM( \*H, $hmmObj );
   close(H);
-
-  #Convert to H2 format
-  system( $view->config->hmmer3bin . "/hmmconvert -2 HMM.3.$fam > HMM.$fam" )
-    and $view->mailUserAndFail( $job,
-    "Failed to run hmmconvert:[$!]" );
 
   my $align =
     $view->pfamdb->getSchema->resultset('PfamaInternal')
@@ -162,8 +158,10 @@ foreach my $fam (@$clanMemAcc) {
     $view->mailUserAndFail( $job,
       "Failed to seed alignment for $fam:[$!]" );
   }
-
-}
+  
+  system($view->config->hmmer3binDev."/esl-reformat --replace .:- --informat SELEX afa seed.$fam > seed.$fam.afa");
+  system("cat HMM.$fam >> $clanAcc.lib");
+  }
 }
 #-------------------------------------------------------------------------------
 # Would be good to add summary data to the clan table.
@@ -306,29 +304,14 @@ foreach my $fam (@$clanMemAcc){
 sub runHHsearch {
   my ( $clanAcc, $clanMemAcc, $config, $job ) = @_;
 
-  copy( $config->hhsearchCal . "/cal.hhm", "cal.hhm" )
-    or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-    "Failed to get calibration hmm" );
-  open( H, ">>cal.hhm" )
-    or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-    "Could not open calibration hmm for appending" );
-
-  foreach my $acc (@$clanMemAcc) {
-    open( NH, "HMM.$acc" );
-    while (<NH>) {
-      print H $_;
-    }
-    close(NH);
-  }
-  close(H);
 
   my %hhResults;
   foreach my $acc (@$clanMemAcc) {
     $view->logger->debug( "Going to run "
         . $config->hhsearchBin
-        . "/hhsearch -i HMM.$acc -d cal.hhm -o $acc.res" );
+        . "/hhsearch -cons -i seed.$acc.afa -M 50 -d $clanAcc.lib -e 0.01 -o $acc.res" );
     system( $config->hhsearchBin
-        . "/hhsearch -i HMM.$acc -d cal.hhm -o $acc.res" )
+        . "/hhsearch -cons -i seed.$acc.afa -M 50 -d $clanAcc.lib -e 0.01 -o $acc.res 2>&1 >/dev/null" )
       and Bio::Pfam::ViewProcess::mailUserAndFail( $job,
       "Failed ro run hhsearch on HMM.$acc:[$!]\n" );
 
@@ -337,7 +320,7 @@ sub runHHsearch {
       or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
       "Failed to open hhsearch results for $acc" );
     while (<R>) {
-      if (/\d+\s+(PF\d{5})(.{23})\s+(\S+)\s+(\S+)/) {
+      if (/\s+\d+\s+(PF\d{5})\s+(PF\d{5})\s+(\S+)\s+(\S+)/) {
         $hhResults{$acc}{$1} = $4;
       }
       elsif (/^No 1/) {
@@ -348,7 +331,7 @@ sub runHHsearch {
     }
     close(R);
   }
-  print Dumper (%hhResults);
+  #print Dumper (%hhResults);
   return ( \%hhResults );
 }
 
@@ -373,11 +356,11 @@ sub makeGraph {
   }
 
   $view->logger->info( "Processing table for ", $clanAcc );
-  print Dumper(@table);
+  #print Dumper(@table);
   $view->logger->info( "Processing names", $clanAcc );
-  print Dumper(@names);
+  #print Dumper(@names);
   $view->logger->info( "Processing accs", $clanAcc );
-  print Dumper(@accs);
+  #print Dumper(@accs);
 
   $view->logger->info( "Processing ", $clanAcc );
   my $clan = Bio::Pfam::Clan::ClanGraphics->new(
@@ -593,7 +576,7 @@ sub makeAlign {
        $view->logger->debug("Failed to find nse for $thisNse");
        Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to find nse for $thisNse" ); 
       }
-      my $accVerSE = $regs{$thisNse}->auto_pfamseq->pfamseq_acc.".".$regs{$thisNse}->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
+      my $accVerSE = $regs{$thisNse}->auto_pfamseq->pfamseq_acc.".".$regs{$thisNse}->auto_pfamseq->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
       
       unless(defined($famBlockColour{ $nse{$accVerSE} })){
         #Keyed of family accession
