@@ -372,7 +372,7 @@ sub deleteClan {
   my $clan =
     $self->getSchema->resultset('Clans')->find( { clan_acc => $clanAcc } );
 
-  unless ( $clan and $clan->isa('PfamLive::Results::Clans') ) {
+  unless ( $clan and $clan->isa('PfamLive::Result::Clans') ) {
     confess( 'Failed to get row for ' . $clanAcc . "( Got $clan )....." );
   }
   my $clanMembership = $self->getClanMembership($clanAcc);
@@ -1346,8 +1346,8 @@ sub resetClanCompeteFlag {
     $clanData = $self->getClanData($clan);
   }
 
-  unless ( $clanData->isa('PfamLive::Results::Clans') ) {
-    croak("Failed to get a clan row obkect for $clan");
+  unless ( $clanData->isa('PfamLive::Result::Clans') ) {
+    croak("Failed to get a clan row object for $clan");
   }
 
   $clanData->update( { competed => 0 } );
