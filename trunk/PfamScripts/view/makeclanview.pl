@@ -188,8 +188,8 @@ my $noInt = $noIntRS->count;
 #Get list of unique species
 $view->logger->debug("Calculating the number of species");
 my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-  { join => [qw(pfamseq clan_membership)],
-    columns => [ qw(pfamseq.ncbi_taxid) ],
+  { join => [qw(auto_pfamseq clan_membership)],
+    columns => [ qw(auto_pfamseq.ncbi_taxid) ],
     distinct => 1 } );
 my $noSpecies = $noSpeciesRS->count;
 
@@ -555,11 +555,11 @@ sub makeAlign {
   my @regs = $pfamDB->getSchema
 	 ->resultset('PfamaRegSeed')
 	   ->search( { 'clan_membership.auto_clan' => $auto_clan },
-		    { join       => [ qw (pfamseq clan_membership) ],
-		      prefetch   => [ qw (pfamseq) ] });                              
+		    { join       => [ qw (auto_pfamseq clan_membership) ],
+		      prefetch   => [ qw (auto_pfamseq) ] });                              
  
   
-  my %regs = map {$_->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
+  my %regs = map {$_->auto_pfamseq->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
   
   $view->logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
   system("consensus.pl -method clustal -file $clanAcc.sto > $clanAcc.con")
@@ -593,7 +593,7 @@ sub makeAlign {
        $view->logger->debug("Failed to find nse for $thisNse");
        Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to find nse for $thisNse" ); 
       }
-      my $accVerSE = $regs{$thisNse}->pfamseq_acc.".".$regs{$thisNse}->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
+      my $accVerSE = $regs{$thisNse}->auto_pfamseq->pfamseq_acc.".".$regs{$thisNse}->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
       
       unless(defined($famBlockColour{ $nse{$accVerSE} })){
         #Keyed of family accession
@@ -618,7 +618,7 @@ sub makeAlign {
       }
       $currentDiv=$div;
       print CALI "<span class=\"nse\">";
-      print CALI $regs{$thisNse}->pfamseq_id."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
+      print CALI $regs{$thisNse}->auto_pfamseq->pfamseq_id."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
     }else{
       print CALI $_;  
     }   
