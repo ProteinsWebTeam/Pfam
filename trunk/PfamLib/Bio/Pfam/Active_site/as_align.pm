@@ -83,24 +83,29 @@ sub full {
 
 
     #Delete old pfam predicted active sites
-    my @old_data = $self->{database}->getSchema
-	->resultset('PfamseqMarkup')
-	->search( { 'pfama_reg_full_significants.auto_pfama' => $self->{auto},
-		    auto_markup => '2' },
-		  { join    => [ qw ( pfama_reg_full_significants pfamseqs )] });
+    #my @old_data = $self->{database}->getSchema
+	#->resultset('PfamseqMarkup')
+	#->search( { 'pfama_reg_full_significaneqs.auto_pfama' => $self->{auto},
+	#	    auto_markup => '2' },
+#		  { join    => [ qw ( pfama_reg_full_significants pfamseqs )] });
     
 
-    foreach my $row (@old_data) {
-        $row->delete;
-    }
+ #   foreach my $row (@old_data) {
+ #       $row->delete;
+ #   }
 
+    #To replace the above with explicit SQL.
+    my $dbh = $self->{database}->getSchema->storage->dbh;
+    $dbh->do("select m.* from pfamseq_markup m inner join  pfamA_reg_full_significant r where auto_markup=2 and m.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=".$self->{auto}.";");
+    
     #Delete old active site alignment
-    my $old_aln = $self->{database}->getSchema->resultset('ActiveSiteAlignments')->find( {"auto_pfamA" => $self->{auto} });
-    if($old_aln) {
-	$old_aln->delete;
-    }
+    #my $old_aln = $self->{database}->getSchema->resultset('ActiveSiteAlignments')->find( {"auto_pfamA" => $self->{auto} });
+    #if($old_aln) {
+	#$old_aln->delete;
+    #}
 
-
+    #And again, replace with explicit SQL - one of these two queries were following the entry and deleting the entry!
+    $dbh->do("delete from _active_site_alignments where auto_pfamA=".$self->{auto}.";");
 
     
 
