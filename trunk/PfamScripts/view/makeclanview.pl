@@ -167,6 +167,7 @@ foreach my $fam (@$clanMemAcc) {
 # Would be good to add summary data to the clan table.
 #No archs
 my $noArch = 0;
+my $noStruct = 0;
 
 $view->logger->debug("Calculating the number of sequences");
 #No Seqs
@@ -176,12 +177,12 @@ my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->s
     distinct => 1 } );
 my $noSeqs = $noSeqsRS->count;
 
-#No Interactions
-$view->logger->debug("Calculating the number of interactions");
-my $noIntRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-  { join => [qw(clan_membership interactions)],
-    columns => [ qw( interactions.auto_pfamA_A interactions.auto_pfamA_B ) ] } );
-my $noInt = $noIntRS->count;
+#No Interactions - nothing is done with this at the moment....
+#$view->logger->debug("Calculating the number of interactions");
+#my $noIntRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+#  { join => [qw(clan_membership interactions)],
+#    columns => [ qw( interactions.auto_pfamA_A interactions.auto_pfamA_B ) ] } );
+#my $noInt = $noIntRS->count;
 
 #Get list of unique species
 $view->logger->debug("Calculating the number of species");
@@ -190,20 +191,6 @@ my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')
     columns => [ qw(auto_pfamseq.ncbi_taxid) ],
     distinct => 1 } );
 my $noSpecies = $noSpeciesRS->count;
-
-#Get Number of Structures;
-$view->logger->debug("Calculating the number of sturctures");
-my $noStructRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-  { join => [qw(pdb_pfama_regs clan_membership)],
-    columns => [ qw( pdb_pfama_regs.auto_pdb_reg ) ],
-    distinct => 1 } );
-my $noStruct = $noStructRS->count;
-
-$view->logger->debug("Uploading the summary information");
-$clanData->update({ number_structures => $noStruct,
-                    number_archs      => $noArch, 
-                    number_species    => $noSpecies,
-                    number_sequences  => $noSeqs    });
 
 
 #-------------------------------------------------------------------------------
@@ -227,7 +214,13 @@ if($relClanVersion){
   $version = 1;
 }
 
-$clanData->update({version => $version});
+
+$view->logger->debug("Uploading the summary information and version.");
+$clanData->update({ version => $version,
+                    number_structures => $noStruct,
+                    number_archs      => $noArch, 
+                    number_species    => $noSpecies,
+                    number_sequences  => $noSeqs   });
 
 #-------------------------------------------------------------------------------
 #Make Stockholm version of CLANDESC
