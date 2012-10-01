@@ -42,7 +42,8 @@ sub new {
   #All of this should really go into some sort of config
   #Lost of current jobs that can be dealt with	
   $self->knownJobs( { family   => 'makepfamview.pl',
-                      clan => 'makeclanview.pl' } );
+                      clan => 'makeclanview.pl' 
+                    } );
                       
   #Get a database connection
   my $config = Bio::Pfam::Config->new;
