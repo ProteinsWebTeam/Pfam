@@ -59,7 +59,7 @@ use Bio::Pfam::Family::DESC;
 
 subtype 'ClanAcc'
   => as Str
-  => where { $_ =~ m/^CL\d{4}$/ }
+  => where { $_ =~ m/^CL\d{4}$/ or $_ =~ /^CL\d{4}\.\d+$/ }
   => message { "\n\n*** $_ is not a valid clan accession. Expected CLXXXX ***\n\n" };
 
 subtype 'ClanId'
