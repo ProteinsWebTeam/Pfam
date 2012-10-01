@@ -255,9 +255,9 @@ sub writeHMM {
   printf $hmm ("%-5s %d\n", "NSEQ", $hmmObj->nSeq);
   printf $hmm ("%-5s %f\n", "EFFN", $hmmObj->effn);
   printf $hmm ("%-5s %d\n", "CKSUM", $hmmObj->cksum);
-  printf $hmm ("%-5s %.2f %.2f;\n", "GA", $hmmObj->seqGA, $hmmObj->domGA);
-  printf $hmm ("%-5s %.2f %.2f;\n", "TC", $hmmObj->seqTC, $hmmObj->domTC);
-  printf $hmm ("%-5s %.2f %.2f;\n", "NC", $hmmObj->seqNC, $hmmObj->domNC);
+  printf $hmm ("%-5s %.2f %.2f;\n", "GA", $hmmObj->seqGA, $hmmObj->domGA) if(defined($hmmObj->seqGA));
+  printf $hmm ("%-5s %.2f %.2f;\n", "TC", $hmmObj->seqTC, $hmmObj->domTC) if(defined($hmmObj->seqTC));
+  printf $hmm ("%-5s %.2f %.2f;\n", "NC", $hmmObj->seqNC, $hmmObj->domNC) if(defined($hmmObj->seqNC));
   
   printf $hmm ("%-5s %s %-9s %.4f  %.5f\n", "STATS", "LOCAL", "MSV", $hmmObj->msvStats->{mu},  $hmmObj->msvStats->{lambda});
   printf $hmm ("%-5s %s %-9s %.4f  %.5f\n", "STATS", "LOCAL", "VITERBI", $hmmObj->viterbiStats->{mu},  $hmmObj->viterbiStats->{lambda});
