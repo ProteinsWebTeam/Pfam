@@ -67,7 +67,7 @@ sub readHMM {
   my @input;
   if(ref($hmm) eq 'GLOB'){
     @input = <$hmm>;
-  }elsif(-s $hmm){
+  }elsif(-e $hmm and -s $hmm){
     #Assume that we have a filename and try and open it;
     open(HMM, $hmm) || confess("Could not open $hmm:[$!]");
     @input = <HMM>;
