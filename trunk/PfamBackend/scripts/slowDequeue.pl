@@ -132,24 +132,29 @@ while (1) {
     }
     elsif ( $job->{job_type} eq 'rfam_batch' ) {
 
-      #Get the users sequence from the database.
-      #NOTE: there are currently
+      #Get the user's sequence from the database.
       $input = ">UserSeq\n" if $job->{stdin} !~ /^>/;
       $input .= $job->{stdin} . "\n";
 
       my $outfile = $qsout->tmpDir . "/" . $job->{job_id} . ".res";
+      my $infile  = $qsout->thirdPartyQueue eq 'WTSI' 
+                  ? $qsout->tmpDir . '/' . $job->{job_id} . '.fa'
+                  : '-';
+      my $prejob  = $qsout->thirdPartyQueue eq 'WTSI' 
+                  ? 'preJob.pl -id ' . $job->{id} . ' -tmp ' . $qsout->tmpDir . ' && '
+                  : '';
 
       #The command we want to run.
-      $cmd =
-          "cmscan --cut_ga --cpu "
+      $cmd = $prejob
+        . 'cmscan --cut_ga --cpu '
         . $qsout->rfcpus
-        . " --FZ 5 --nohmmonly --notextw --glist "
+        . ' --FZ 5 --nohmmonly --notextw --glist '
         . $qsout->rfamDataFileDir
         . "/Rfam.glist --tblout $outfile "
         . $qsout->rfamDataFileDir
-        . "/Rfam.cm.1_1 - ; postJob.pl -id "
+        . "/Rfam.cm.1_1 $infile ; postJob.pl -id "
         . $job->{id}
-        . " -tmp "
+        . ' -tmp '
         . $qsout->tmpDir;
     }
 
