@@ -28,7 +28,7 @@ IF taxSearchError %]
 
   IF families.keys.size -%]
 
-    <p>
+    <p id="taxSearchResultsSummary">
       We found <strong>[% families.keys.size %]</strong> families matching your
       criteria:
     </p>
