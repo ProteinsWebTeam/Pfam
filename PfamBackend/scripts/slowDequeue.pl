@@ -97,7 +97,7 @@ while (1) {
           $cmd .= " -e_seq " . $opts->{evalue} . " -e_dom " . $opts->{evalue};
         }
 
-        if ( $opts->{batchOpts} ) {
+        if ( $opts->{searchBs} ) {
 
           #Run both a Pfam-A and a Pfam-B search
           $cmd .= " -pfamB ";
