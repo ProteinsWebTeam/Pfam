@@ -330,9 +330,9 @@ sub _qualityControlFamily {
   my  ($self, $famObj, $dir, $family, $pfamDB, $msg) = @_; 
   
  #Perform all of the format checks
-  #unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
-  #  exit(1); 
-  #}
+  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
+    exit(1); 
+  }
   
   #Need to add sequence checker here!
   
