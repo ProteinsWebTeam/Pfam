@@ -29,6 +29,7 @@ use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
+use Bio::Pfam::ViewProcess::Consensus;
 
 
 sub new {
@@ -1664,6 +1665,7 @@ sub makeNonRedundantFasta {
   my $identity = $self->options->{identity};
   if($self->pfam->percentage_id > $identity){
     $identity =   $self->pfam->percentage_id + 1;
+    $identity = 100 if($identity > 100);
   }
   
   #Use belvu to make the full alignment 90% non-redundant.
@@ -2070,18 +2072,11 @@ sub write_stockholm_file {
 sub consensus_line {
   my ( $self, $filename, $ali_length ) = @_;
 
-  my $consensus;
-  open( CON, "consensus.pl -file $filename -method pfam -thr 60|" )
-    or $self->mailUserAndFail( 
-    "Failed to run consensus.pl on $filename" );
-  while (<CON>) {
-    if (/^(consensus\/60%)(\s+)(\S+)/) {
-      $consensus = $3;
-      last;
-    }
-  }
-  close(CON);
-
+  my $c = Bio::Pfam::ViewProcess::Consensus->new( { alignfile => $filename });
+  $c->pfamStyle;
+  #Not fetch the pfam Consensus
+  my $consensus = $c->pfamStyleConsensus; 
+  
   #Check that the consensus line is the correct length.
   if ( $ali_length != length($consensus) ) {
     $self->mailUserAndFail( 
