@@ -391,6 +391,25 @@ sub dbsize {
   return $self->{pfamseq}->{dbsize};
 }
 
+
+=head2 totalRes
+
+  Title    : totalRes
+  Usage    : $config->totalRes
+  Function : Returns the number of residues in pfamseq
+  Args     : None - read only operator
+  Returns  : integer    
+  
+=cut
+
+sub totalRes {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{pfamseq}->{totalRes};
+}
+
 =head2 ncbi_dbsize
 
   Title    : ncbi_dbsize
