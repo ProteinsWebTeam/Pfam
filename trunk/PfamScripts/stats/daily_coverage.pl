@@ -13,36 +13,18 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
 
-
-
 my $config = Bio::Pfam::Config->new;
-
 
 #Set up database
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
+#Get total number of residues and sequences in pfamseq
 my $total_seq = $config->{pfamseq}->{dbsize};
+my $total_aa = $config->{pfamseq}->{totalRes};
 
-
-#Find total number of residues
-my $total_aa;
-if($total_seq == 15929002) { #Number of seq for release 26.0
-    $total_aa = 5169768107; #Number of aa for release 26.0
-}
-else {
-    my $st_len = $dbh->prepare("select length from pfamseq") or die "Failed to prepare statement:".$dbh->errstr."\n";
-    $st_len->execute() or die "Couldn't execute statement ".$st_len->errstr."\n";
-    my $array_ref_len = $st_len->fetchall_arrayref();
-
-    foreach my $element (@$array_ref_len) {
-	$total_aa += $$element[0];
-    }
-}
-
-
-
+print STDERR "Getting pfamA\n";
 #Get pfamA family ids and accessions
 my $st_pfamA = $dbh->prepare("select auto_pfamA, pfamA_acc, pfamA_id from pfamA") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_pfamA->execute() or die "Couldn't execute statement ".$st_pfamA->errstr."\n";
@@ -50,14 +32,13 @@ my $array_ref_pfamA = $st_pfamA->fetchall_arrayref();
 
 my (%pfamA_acc, %pfamA_id);
 foreach my $element (@$array_ref_pfamA) {
-    my ($auto_pfamA, $pfamA_acc, $pfamA_id) = ($$element[0], $$element[1], $$element[2]);
+    my ($auto_pfamA, $pfamA_acc, $pfamA_id) = ($element->[0], $element->[1], $element->[2]);
 
     $pfamA_acc{$auto_pfamA}=$pfamA_acc;
     $pfamA_id{$auto_pfamA}=$pfamA_id;
 }
 
-
-
+print STDERR "Getting nested\n";
 #Get nested families
 my $st_nested = $dbh->prepare("select auto_pfamA, nests_auto_pfamA from nested_domains") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_nested->execute() or die "Couldn't execute statement ".$st_nested->errstr."\n";
@@ -65,13 +46,13 @@ my $array_ref_nested = $st_nested->fetchall_arrayref();
 
 my (%nested);
 foreach my $element (@$array_ref_nested) {
-    my ($fam1, $fam2) = ($$element[0], $$element[1]);
+    my ($fam1, $fam2) = ($element->[0], $element->[1]);
 
     $nested{$fam1}{$fam2}=1;
     $nested{$fam2}{$fam1}=1;
 }
 
-
+print STDERR "GETting clan\n";
 #Get clan mapping
 my $st_clan = $dbh->prepare("select b.auto_pfamA, clan_acc from pfamA as a, clan_membership as b, clans as c where a.auto_pfamA = b.auto_pfamA and b.auto_clan = c.auto_clan") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_clan->execute or die "Couldn't execute statement ".$st_clan->errstr."\n";
@@ -79,21 +60,20 @@ my $array_ref_clan = $st_clan->fetchall_arrayref();
 
 my %clan;
 foreach my $element (@$array_ref_clan) {
-    $clan{$$element[0]}=$$element[1];
+    $clan{$element->[0]}=$element->[1];
 }
 
-
+print STDERR "Getting region data\n";
 #Get region data from rdb
 my $reg_file = "tmp.regions.dat.$$";
 my $sorted_reg ="pfamA.dat.$$";
 my $sorted_seq ="seq.dat.$$";
 
 
-my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end, ali_start, ali_end, domain_bits_score into outfile \"/tmp/$reg_file\" from pfamA_reg_full_significant as b where in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
+my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end, ali_start, ali_end, domain_evalue_score into outfile \"/tmp/$reg_file\" from pfamA_reg_full_significant where in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
 
-
-
+print STDERR "Copying regions\n";
 #Copy regions file to cwd
 my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
 $scp->get("/tmp/$reg_file") or die $scp->{errstr};
@@ -105,9 +85,9 @@ $dbh->disconnect;
 
 
 #Look at aa coverage first
-#Sort regions file by sequence, then by bit score
-
-system("sort $reg_file -k1n -k7nr > $sorted_seq") and die "Couldn't sort $reg_file by auto_pfamseq and bit score, $!"; 
+#Sort regions file by sequence, then by evalue score
+print STDERR "Sorted region file\n";
+system("sort $reg_file -k1n -k7n > $sorted_seq") and die "Couldn't sort $reg_file by auto_pfamseq and evalue score, $!"; 
 unlink($reg_file);
 
 my (%clan_regions, %nested_regions);
@@ -115,7 +95,7 @@ my $aa_covered;
 my $seq;
 my ($auto_pfamseq, $auto_pfamA, $start, $end, $ali_start, $ali_end);
 
-
+print STDERR "Calculating aa coverage\n";
 open(FH, $sorted_seq) or die "Couldn't open fh to $sorted_seq, $!";
 while(<FH>) {
     if(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/) {
@@ -198,14 +178,14 @@ print "Amino acid coverage is $aa_coverage" . "%\n\n";
 
 
 
-
+print STDERR "Sorting region file\n";
 #Now look at sequence coverage by family
 #Sort file by auto_pfamA
 system("sort $sorted_seq -k2n > $sorted_reg") and die "Couldn't sort $reg_file by auto_pfamA, $!"; 
 unlink($sorted_seq);
 
 
-
+print STDERR "Calculating seq coverage\n";
 #Go though each family and calculate cumulative sequence coverage
 my (%seq, %total_seq);
 my ($acc, $id, $pfamA_id, $pfamA_acc, $auto);
