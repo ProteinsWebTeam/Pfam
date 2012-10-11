@@ -56,7 +56,7 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p7pgogJbzXN6B35w0Ra+nw
 
 #Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfama", "auto_pfamseq", "seq_start");
+__PACKAGE__->set_primary_key("auto_pfama", "auto_pfamseq", "seq_start", "seq_end");
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamLive::Result::Pfamseq",
           { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
