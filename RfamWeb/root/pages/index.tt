@@ -205,19 +205,19 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         <input type="hidden"
           name="type"
           value="Family" />
+        <a class="btn go"
+           onclick="if( $('familyField').present() ){jump('familyForm');};">Go</a>
+        <a class="btn"
+           onclick="$('familyField').value=exRfamId">Example</a>
+        <div style="display: none"
+          class="jumpSpinner">Searching...</div>
+        <div style="display: none"
+          class="jumpError"></div>
+        <p class="small nlh">
+          You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
+          through the list of all Rfam families.
+        </p>
       </div>
-      <a class="btn go"
-         onclick="if( $('familyField').present() ){jump('familyForm');};">Go</a>
-      <a class="btn"
-         onclick="$('familyField').value=exRfamId">Example</a>
-      <div style="display: none"
-        class="jumpSpinner">Searching...</div>
-      <div style="display: none"
-        class="jumpError"></div>
-      <p class="small nlh">
-        You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
-        through the list of all Rfam families.
-      </p>
     </form>
   </div>
   
@@ -237,19 +237,19 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         <input type="hidden"
           name="type"
           value="Clan" />
+        <a class="btn go"
+           onclick="if( $('clanField').present() ){jump('clanForm');};">Go</a>
+        <a class="btn"
+           onclick="$('clanField').value=exClanId">Example</a>
+        <div style="display: none"
+          class="jumpSpinner">Searching...</div>
+        <div style="display: none"
+          class="jumpError"></div>
+        <p class="small nlh">
+          You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
+          through the list of all Rfam clans.
+        </p>
       </div>
-      <a class="btn go"
-         onclick="if( $('clanField').present() ){jump('clanForm');};">Go</a>
-      <a class="btn"
-         onclick="$('clanField').value=exClanId">Example</a>
-      <div style="display: none"
-        class="jumpSpinner">Searching...</div>
-      <div style="display: none"
-        class="jumpError"></div>
-      <p class="small nlh">
-        You can also <a href="[% c.uri_for( "/browse" ) %]">browse</a> 
-        through the list of all Rfam clans.
-      </p>
     </form>
   </div>
   
@@ -366,11 +366,11 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                name="q"
                id="taxonomyField"
                size="30" />
+        <a class="btn go"
+           onclick="if( $('taxonomyField').present() ){;$('taxonomyForm').submit()};">Go</a>
+        <a class="btn"
+           onclick="$('taxonomyField').value=exTx">Example</a>
       </div>
-      <a class="btn go"
-         onclick="if( $('taxonomyField').present() ){;$('taxonomyForm').submit()};">Go</a>
-      <a class="btn"
-         onclick="$('taxonomyField').value=exTx">Example</a>
     </form>
   </div>
     
