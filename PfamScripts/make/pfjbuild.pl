@@ -47,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy, $gzip
+    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy, $gzip, $memory
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -64,6 +64,7 @@ sub main {
     "copy"      => \$copy,
     "acc=s"     => \$acc,
     "gzip"      => \$gzip,
+    "M=i"    => \$memory,	      
     "help"      => \$help
   ) or help();
 
@@ -140,6 +141,13 @@ sub main {
   }
 
   help() if ($help);
+
+  $memory = 2 unless($memory); #Set default memory to 2Gb 
+  if($memory > 20) {
+    die "Memory must not be > 20 (unit is Gb)\n";
+  }
+
+
 
 
   #$check is true if the user requested the checkpoint files
@@ -251,7 +259,7 @@ sub main {
 
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $copy );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $copy, $memory );
   }
 
 }
@@ -364,7 +372,7 @@ sub runJackhmmer {
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $gzip, $check, $c,  $copyFiles ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $gzip, $check, $c,  $copyFiles, $memory ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -373,6 +381,9 @@ sub farmJackhmmer {
   unless ( -e $seqDB ) {
     die "FATAL: Could not find sequence database file: $seqDB\n";
   }
+
+  my $memory_mb = $memory * 1000;
+  my $memory_kb = $memory_mb * 1000;
 
   #We are going to use some sort of farm!
   my $farmConfig = $config->farm;
@@ -417,7 +428,7 @@ sub farmJackhmmer {
 #Okay, things should be in the right place for working on.
 #Build up the command we want to run.  We want to run this same script, but with the local option.
 
-  my $cmd = "pfjbuild.pl";
+  my $cmd = $0;
 
   if ( $$optCmdsRef{'--incT'} ) {
     $cmd .= " -T " . $$optCmdsRef{'--incT'};
@@ -457,7 +468,7 @@ sub farmJackhmmer {
   $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
-      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[type==X86_64 && mem>2000] rusage[mem=2000]\" -M 2000000" );
+      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[type==X86_64 && mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
   if($copyFiles){
     $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   }else{
@@ -611,6 +622,7 @@ Script Options
 -local        : Run script on local machine
 -gzip         : Gzips the JOUT and JALIGN files, this option is useful if you are running
                 a large number of pfjbuilds and are conscious of disk space
+-memory <int> : Amount of memory in Gb to request on farm (default 2 Gb)
 -help         : Prints out this help message
 
 Options that you can not control 
