@@ -521,7 +521,7 @@ sub main {
         my $fh = IO::File->new();
         $fh->open( "| bsub -q "
             . $farmConfig->{lsf}->{queue}
-            . " -n $cpu -R \"span[hosts=1] select[type==X86_64 && mem>7000] rusage[mem=7000]\" -M 7000000 -o /tmp/$$.log -Jhmmsearch$$"
+            . " -n $cpu -R \"span[hosts=1] select[mem>7000] rusage[mem=7000]\" -M 7000000 -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
         );
         if ($copy) {
           $fh->print(
