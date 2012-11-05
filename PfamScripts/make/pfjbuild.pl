@@ -468,7 +468,7 @@ sub farmJackhmmer {
   $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
-      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[type==X86_64 && mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
+      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
   if($copyFiles){
     $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   }else{
