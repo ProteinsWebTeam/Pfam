@@ -64,7 +64,7 @@ sub main {
     "copy"      => \$copy,
     "acc=s"     => \$acc,
     "gzip"      => \$gzip,
-    "M=i"    => \$memory,	      
+    "M=i"       => \$memory,	      
     "help"      => \$help
   ) or help();
 
@@ -622,7 +622,7 @@ Script Options
 -local        : Run script on local machine
 -gzip         : Gzips the JOUT and JALIGN files, this option is useful if you are running
                 a large number of pfjbuilds and are conscious of disk space
--memory <int> : Amount of memory in Gb to request on farm (default 2 Gb)
+-M <int>      : Amount of memory in Gb to request on farm (default 2 Gb)
 -help         : Prints out this help message
 
 Options that you can not control 
