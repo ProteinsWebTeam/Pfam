@@ -10,6 +10,7 @@ use File::Copy;
 use File::Rsync;
 use File::stat;
 use Data::UUID;
+use POSIX qw(ceil);
 
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
@@ -44,7 +45,7 @@ sub main {
     $help,  $evalCut,    $dbsize,     $max,     $bFilt,
     $null2, $f1,         $f2,         $f3,      $ibm,
     $ism,   $withpfmake, $makeEvalue, $db,      $cpu,
-    $copy,  $pfamseq_local
+    $copy,  $pfamseq_local, $memory_gb
   );
 
   &GetOptions(
@@ -68,6 +69,7 @@ sub main {
     'withpfmake' => \$withpfmake,
     'makeEval=s' => \$makeEvalue,
     'pfamseq=s'  => \$pfamseq_local,
+    'M=i'        => \$memory_gb,
     'db=s'       => \$db
     )
     or die "Unknown option, try running -help for more infortmation.\n";
@@ -175,6 +177,21 @@ sub main {
   unless ( int($dbsize) == $dbsize and $dbsize > 0 ) {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
   }
+
+  #If running at Sanger, need to estimate how much memory will be needed on farm, to do this we will need the HMM length
+  my $modelLength;
+  if ( $config->location eq 'WTSI' ) {
+    die "No HMM in cwd" unless(-s "HMM");
+    open(HMM, "HMM") or die "Couldn't open fh to HMM, $!";
+    while(<HMM>) {
+      if(/^LENG\s+(\d+)/) {
+	$modelLength=$1;
+	last;
+      }
+    }
+    close HMM;
+  }
+  
 
 #-------------------------------------------------------------------------------
 #Read in the DESC file.  This is now required!
@@ -519,9 +536,33 @@ sub main {
 
       unless ($split) {
         my $fh = IO::File->new();
+
+	unless($memory_gb) {
+	  #Going to estimate how much memory will be needed using this equation:
+	  #(Model length L * 40000 (longest sequence) * 48 (number of bytes in the dp) * number of cpus) /1,000,000 
+	  $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000); 
+	  
+	  #If estimated memory > 8Gb, reduce number of threads to see if memory can be reduced to less than 8Gb
+	  while($memory_gb >=8) {
+	    $cpu--;
+	    if($cpu == 0) {
+	      die "Cannot run pfbuild as estimated amount of memory required to run this pfbuild is more than 8Gb\n";
+	    } 
+	    $memory_gb = ceil(($modelLength * 40000 * 48 * $cpu)/1000000000);
+	    print STDERR "If $cpu cpus used, $memory_gb Gb memory required\n";
+	    if($memory_gb < 8) {
+	      print STDERR "Reducing number of cpus to $cpu to reduce the estimated amount of memory required to below 8Gb\n";
+	    }
+	  }
+	  print STDERR "Reserving $memory_gb Gb of memory on farm\n";
+	}
+	
+	my $memory_mb=$memory_gb*1000;
+	my $memory_kb=$memory_mb*1000;
+
         $fh->open( "| bsub -q "
             . $farmConfig->{lsf}->{queue}
-            . " -n $cpu -R \"span[hosts=1] select[mem>7000] rusage[mem=7000]\" -M 7000000 -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
+            . " -n $cpu -R \"span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
         );
         if ($copy) {
           $fh->print(
@@ -666,6 +707,7 @@ And Finally:
               : then it will use the threshold present in the file. Otherwise,
               : it will use a default threshold of 10e-2.
   -makeEval   : Will run pfmake with the specified evalue cut-off   
+  -M <int>    : Amount of memory in Gb to request (this option is only for Sanger farm)
   
 EOF
 
