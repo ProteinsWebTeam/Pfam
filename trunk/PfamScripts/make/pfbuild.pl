@@ -45,7 +45,7 @@ sub main {
     $help,  $evalCut,    $dbsize,     $max,     $bFilt,
     $null2, $f1,         $f2,         $f3,      $ibm,
     $ism,   $withpfmake, $makeEvalue, $db,      $cpu,
-    $copy,  $pfamseq_local, $memory_gb
+    $copy,  $pfamseq_local, $memory_gb, $modelLength
   );
 
   &GetOptions(
@@ -176,20 +176,6 @@ sub main {
   }
   unless ( int($dbsize) == $dbsize and $dbsize > 0 ) {
     die "dbsize ($dbsize) must be an integer greater than 1\n";
-  }
-
-  #If running at Sanger, need to estimate how much memory will be needed on farm, to do this we will need the HMM length
-  my $modelLength;
-  if ( $config->location eq 'WTSI' ) {
-    die "No HMM in cwd" unless(-s "HMM");
-    open(HMM, "HMM") or die "Couldn't open fh to HMM, $!";
-    while(<HMM>) {
-      if(/^LENG\s+(\d+)/) {
-	$modelLength=$1;
-	last;
-      }
-    }
-    close HMM;
   }
   
 
@@ -331,6 +317,20 @@ sub main {
     }
 
     rename( "SEED.$$.selex", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
+
+    #If running at Sanger, need to estimate how much memory will be needed on farm, to do this we will need the HMM length
+    if ( $config->location eq 'WTSI' ) {
+      die "No HMM in cwd" unless(-s "HMM");
+      open(HMM, "HMM") or die "Couldn't open fh to HMM, $!";
+      while(<HMM>) {
+	if(/^LENG\s+(\d+)/) {
+	  $modelLength=$1;
+	  last;
+	}
+      }
+      close HMM;
+    }
+
 
   }
   else {
