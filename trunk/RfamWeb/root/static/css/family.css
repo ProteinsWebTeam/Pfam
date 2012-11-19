@@ -236,3 +236,23 @@ div.dead_comment {
   font-style: italic;
 }
 
+/* ---------------------------------------- */
+/* Rchie SS image */
+
+#rchieImage {
+  min-height: 520px;
+}
+
+#rchieImage p {
+  margin-left: 1em;
+}
+
+#ss_rchie {
+  width: 500px;
+}
+
+#rchieNew {
+  color: #621700;
+  vertical-align: super;
+  font-size: xx-small;
+}
