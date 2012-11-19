@@ -12,7 +12,7 @@
 PROCESS "components/require.tt";
 
 sharedRequirements.js.push( "sharedFunctions.js" );
-requirements.js.push( "jquery.jqzoom-core.js" );
+requirements.js.push( "jquery.jqzoom-core-pack.js" );
 requirements.css.push( "jquery.jqzoom.css" );
 
 #-------------------------------------------------------------------------------
