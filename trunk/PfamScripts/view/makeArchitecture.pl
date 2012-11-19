@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 use strict;
 use warnings;
@@ -9,7 +9,6 @@ use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::ViewProcess;
-
 
 Log::Log4perl->init(
   \<<EOF
@@ -88,7 +87,7 @@ if($acc and $acc =~ /PF\d{5}/){
   my $dbh = $pfamDB->getSchema->storage->dbh;
   
   my $pfamArchSth = $dbh->prepare(
-      "INSERT INTO pfamA_architecture (auto_pfamA, auto_architecture) "
+     "REPLACE INTO pfamA_architecture (auto_pfamA, auto_architecture) "
     . " SELECT DISTINCT r.auto_pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
     . " WHERE s.auto_pfamseq=r.auto_pfamseq AND in_full=1 AND auto_pfamA= ? " )
   or $logger->logdie(
@@ -110,15 +109,13 @@ if($acc and $acc =~ /PF\d{5}/){
       }    
   }
   $dbh->do("UPDATE architecture a SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=a.auto_architecture)");
-  $dbh->do("UPDATE  pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.auto_pfamA=a.auto_pfamA)");
+  $dbh->do("UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.auto_pfamA=a.auto_pfamA)");
   exit;
 }elsif($chunk and $chunkSize){
-  exit;  
-  
 
-my $rangeFrom = (($chunk-1) * $chunkSize)+1; 
-my $rangeTo   = (($chunk) * $chunkSize); 
-$logger->debug("Calculating architectures in the range of $rangeFrom to $rangeTo.");
+  my $rangeFrom = (($chunk-1) * $chunkSize)+1; 
+  my $rangeTo   = (($chunk) * $chunkSize); 
+  $logger->debug("Calculating architectures in the range of $rangeFrom to $rangeTo.");
 #-------------------------------------------------------------------------------
 
 my $currentSeq = $rangeFrom;
@@ -223,8 +220,8 @@ sub updateArchiectures {
 #Need to update the architecture table names as well as remove architectures that
 #do not match anything in pfamseq any more....
   
- #my $archCountSth = $dbh->prepare("UPDATE architecture SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=?) where auto_architecture=?");
-  
-  #foreach my $archStr ( keys %cachedArchs){
-  #  $archCountSth->execute($cachedArchs{$archStr}->auto_architecture, $cachedArchs{$archStr}->auto_architecture);  
-  #}
+my $archCountSth = $dbh->prepare("UPDATE architecture SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=?) where auto_architecture=?");
+
+foreach my $archStr ( keys %cachedArchs){
+  $archCountSth->execute($cachedArchs{$archStr}->auto_architecture, $cachedArchs{$archStr}->auto_architecture);  
+}
