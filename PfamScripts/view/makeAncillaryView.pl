@@ -2,16 +2,13 @@
 
 use strict;
 use warnings;
-
-use Bio::Pfam::ViewProcess;
-
--------------------------------------------------------------------------------
+use Bio::Pfam::ViewProcess::Architecture;
+#-------------------------------------------------------------------------------
 
 #Lets get a new Pfam view object
-
 my $view = Bio::Pfam::ViewProcess->new;
-
-$view->logger->debug("Got pfamlive database connection");
+my $archView = Bio::Pfam::ViewProcess::Architecture->new;
+$archView->logger->debug("Got pfamlive database connection");
 
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
@@ -21,12 +18,34 @@ my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
 $version->update({ number_families => $noPfama }) 
   if($version->number_families != $noPfama);
 
-if($acc){
+if($archView->options->{acc}){
   #Do it for a single family
-}elsif($ancillary){
+}elsif($archView->options->{ancillary}){
 #Do it for a set of families
 }else{
   #Do it for the whole database
+
+  #Start off with the architecture stuff.
+  if(! $archView->statusCheck('doneArch')){
+    #Clear out all of the old data.
+    $archView->clearAllArchitecture;
+    
+    #Submit the architecture calulcations to the farm. This will not return until
+    #all jobs have completed.
+    $archView->submitToFarm(200);
+    
+    #Reset all of the counts in the architecture table and pfamA table
+    $archView->updateAllArchitecture;
+    $archView->touchStatus('doneArch');
+  }
+  
+  #Update clan architectures
+  
+  #Now make the storables.
+  
+  #Now make the structure images
+  
+  #run scoop
   
 }
 
