@@ -15,6 +15,7 @@ use Text::Wrap;
 use JSON;
 $Text::Wrap::columns = 75;
 use Data::Printer;
+use File::Touch;
 
 #Need the version from github https://github.com/DaGaMs/Logomat
 use HMM::Profile;
@@ -2422,7 +2423,6 @@ q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxi
       json_string => $json_string
     }
   );
-
 }
 
 sub processOptions {
@@ -2690,6 +2690,36 @@ sub searchShuffled {
   close(H);
   unlink('shuffled.hits');
   $self->pfam->update( { number_shuffled_hits => $noHits } );
+}
+
+sub statusCheck {
+  my($self, $file, $count) = @_;
+  
+  if(!defined($count)){
+    if(-e $self->options->{statusdir}."/".$file){
+      return 1;
+    }else{
+      return 0;
+    }
+  }else{
+    my @files = glob($self->options->{statusdir}.'/'.$file.'.*');
+    my $fCount = 0;
+    my $pat = $self->options->{statusdir}.'/'.$file.'.';
+    foreach my $f (@files){
+      $fCount++ if($f =~ /$pat\d+/); 
+    }
+    if($fCount == $count){
+      return 1;
+    }else{
+      return 0;
+    }
+  }
+}
+
+sub touchStatus {
+  my ($self, $file) = @_;
+  
+  touch([ $self->options->{statusdir}."/".$file]);
 }
 
 =head1 AUTHOR
