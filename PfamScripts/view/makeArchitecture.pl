@@ -10,7 +10,6 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::ViewProcess::Architecture;
 
 my $view = Bio::Pfam::ViewProcess::Architecture->new;
-p($view);
 $view->processOptions;
 
 if ( $view->options->{acc} ) {
