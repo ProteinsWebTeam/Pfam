@@ -2702,6 +2702,7 @@ sub statusCheck {
       return 0;
     }
   }else{
+    $self->logger->debug("Globing for ".$self->options->{statusdir}.'/'.$file);
     my @files = glob($self->options->{statusdir}.'/'.$file.'.*');
     my $fCount = 0;
     my $pat = $self->options->{statusdir}.'/'.$file.'.';
@@ -2718,8 +2719,9 @@ sub statusCheck {
 
 sub touchStatus {
   my ($self, $file) = @_;
-  
-  touch([ $self->options->{statusdir}."/".$file]);
+  my @files;
+  push(@files, $self->options->{statusdir}."/".$file);
+  touch(@files);
 }
 
 =head1 AUTHOR

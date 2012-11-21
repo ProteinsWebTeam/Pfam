@@ -632,12 +632,12 @@ sub getPfamRegionsForSeq {
     @pfamRegions =
       $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
-        "pfamseq.pfamseq_acc" => $seq,
+        "auto_pfamseq.pfamseq_acc" => $seq,
         "in_full"             => 1
       },
       {
-        join     => [qw( pfama pfamseq )],
-        prefetch => [qw( pfama pfamseq )],
+        join     => [qw( auto_pfama auto_pfamseq )],
+        prefetch => [qw( auto_pfama auto_pfamseq )],
         order_by => 'seq_start'
       }
       );
@@ -649,12 +649,12 @@ sub getPfamRegionsForSeq {
     @pfamRegions =
       $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
-        "pfamseq.pfamseq_id" => $seq,
+        "auto_pfamseq.pfamseq_id" => $seq,
         "in_full"            => 1
       },
       {
-        join     => [qw( pfama pfamseq )],
-        prefetch => [qw( pfama pfamseq )]
+        join     => [qw( auto_pfama auto_pfamseq )],
+        prefetch => [qw( auto_pfama auto_pfamseq )]
       }
       );
 
