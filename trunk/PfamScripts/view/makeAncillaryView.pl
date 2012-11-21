@@ -2,14 +2,14 @@
 
 use strict;
 use warnings;
+use Data::Printer;
 use Bio::Pfam::ViewProcess::Architecture;
 #-------------------------------------------------------------------------------
 
 #Lets get a new Pfam view object
 my $view = Bio::Pfam::ViewProcess->new;
 my $archView = Bio::Pfam::ViewProcess::Architecture->new;
-$archView->logger->debug("Got pfamlive database connection");
-
+$archView->processOptions;
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
@@ -18,13 +18,14 @@ my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
 $version->update({ number_families => $noPfama }) 
   if($version->number_families != $noPfama);
 
-if($archView->options->{acc}){
+if(exists($archView->options->{acc}) and $archView->options->{acc}){
   #Do it for a single family
-}elsif($archView->options->{ancillary}){
-#Do it for a set of families
+ p($archView->options);
+}elsif(exists($archView->options->{ancillary}) and $archView->options->{ancillary}){
+  #Do it for a set of families
 }else{
   #Do it for the whole database
-
+  $archView->logger->info("Calculating architectures for the whole database");
   #Start off with the architecture stuff.
   if(! $archView->statusCheck('doneArch')){
     #Clear out all of the old data.
