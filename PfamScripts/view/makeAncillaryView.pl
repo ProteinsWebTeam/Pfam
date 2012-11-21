@@ -33,7 +33,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     
     #Submit the architecture calulcations to the farm. This will not return until
     #all jobs have completed.
-    $archView->submitToFarm(200);
+    $archView->submitToFarm(300);
     
     #Reset all of the counts in the architecture table and pfamA table
     $archView->updateAllArchitecture;
@@ -41,8 +41,20 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   }
   
   #Update clan architectures
-  
+  if(! $archView->statusCheck('doneClanArch')){
+    #Determine the list of clans affected by the updated families
+    $archView->updateAllClanArchitectures;
+    $archView->touchStatus('doneClanArch');
+  }
+
   #Now make the storables.
+  if(! $storableView->statusCheck('doneStorables')){
+    #Submit the architecture calulcations to the farm. This will not return until
+    #all jobs have completed.
+    $storableView->submitToFarm(300);
+    #Reset all of the counts in the architecture table and pfamA table
+    $storableView->touchStatus('doneStorables');
+  }
   
   #Now make the structure images
   
