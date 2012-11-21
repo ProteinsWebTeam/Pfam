@@ -9,7 +9,7 @@ use Log::Log4perl qw(:easy);
 use Moose;
 use Moose::Util::TypeConstraints;
 
-extends 'Bio::Pfam::ViewProcess';
+use base 'Bio::Pfam::ViewProcess';
 
 has 'cachedRef' => (
   is    => 'rw',
@@ -19,10 +19,34 @@ has 'cachedRef' => (
 
 has 'statusFile' => (
   is  => 'ro',
-  isa => 'Str',
-  required => 1,
-  default => 'calArch'
+  #isa => 'Str',
+  default => 'calArch',
 );
+
+sub BUILD {
+  my( $self, $args ) = @_;
+  
+  
+  $self->{config} = Bio::Pfam::Config->new;
+  $self->{jobdb}  = Bio::Pfam::PfamJobsDBManager->new( %{ $self->config->pfamjobs } );
+  unless($self->{jobdb}){
+    $self->mailPfam( "Failed to run view process", "Could not get connection to the pfam_jobs database" );
+  }
+  
+  Log::Log4perl->easy_init($DEBUG);
+  my $logger = get_logger();
+  
+  $self->{logger} = $logger;
+
+  $self->logger->debug("Got pfam_job db connection");
+  $self->{pfamdb} = Bio::Pfam::PfamLiveDBManager->new( %{ $self->config->pfamliveAdmin } );
+  
+  unless ($self->{pfamdb}) {
+    $self->mailPfam( "Failed to run view process", "View process failed as we could not connect to pfamlive" );
+  }
+  $self->logger->debug("Got pfamlive database connection");
+  return($self);
+}
 
 sub updateSingleFamily {
   my($self) = @_;
@@ -125,7 +149,7 @@ sub updateSeqRange {
     my $nextCurrentSeq =
       ( $currentSeq + 1000 ) > $rangeTo ? $rangeTo : $currentSeq + 1000;
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
-        my @seqsRS = $self->pfamDB->getSchema->resultset('Pfamseq')->search(
+        my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
       {
         'me.auto_pfamseq' =>
           [ -and => { '>=', $currentSeq }, { '<=', $nextCurrentSeq } ]
@@ -140,7 +164,7 @@ sub updateSeqRange {
 }
 
 sub clearAllArchitecture {
-  my ($self);
+  my ($self) = @_;
   #Need set status direct
   if(!$self->statusCheck('clearedArchitecture')){
     $self->pfamdb->getSchema->resultset('Architecture')->delete;
@@ -201,7 +225,7 @@ sub updateArchiectures {
       next;
     }
 
-    #$logger->debug("Got regions for sequence");
+    #$self->logger->debug("Got regions for sequence");
     #Detterming the architecture....Also add kristoffers bit about domain order!
     my @archStringAcc;
     my @archStringId;
@@ -271,7 +295,7 @@ sub updateArchiectures {
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
-  my $rs = $self->pfamdb->resultset('Pfamseq')->search({});
+  my $rs = $self->pfamdb->getSchema->resultset('Pfamseq')->search({});
   my $max = $rs->get_column('auto_pfamseq')->max;
   my $chunkSize = ceil($max/$noJobs);
   
@@ -282,10 +306,10 @@ sub submitToFarm {
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
-  $fh->print( "makeArchitecture.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize \n");
+  $fh->print( "makeArchitecture.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
-
-  while(! $self->checkStatus($self->statusFile, $noJobs)){
+  $self->logger->debug("Status is:".$self->statusFile."\n");
+  while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
     sleep(600);
   }
