@@ -402,22 +402,25 @@ var Sunburst = Class.create( {
    *
    * @returns {Object} list of selected sequence accessions grouped by tax ID
    */
-  getSelectedSeqAccsByTaxa: function() {
-    var selection = new Hash();
-    this.getSelected().each( function( arc ) {
-      if ( arc.sequences === undefined ) {
-        selection.set( arc.taxid, null );
-      } else {
-        selection.set(
-           arc.taxid,
-           arc.sequences.collect( function( seq ) {
-            return seq.seqAcc;
-           } )
-        );
-      }
-    } );
-    return selection.toJSON();
-  },
+  // getSelectedSeqAccsByTaxa: function() {
+  //   var selection = new Hash();
+  //   this.getSelected().each( function( arc ) {
+  //     if ( arc.sequences === undefined ) {
+  //       selection.set( arc.taxid, null );
+  //     } else {
+  //       selection.set(
+  //          arc.taxid,
+  //          arc.sequences.collect( function( seq ) {
+  //           return seq.seqAcc;
+  //          } )
+  //       );
+  //     }
+  //   } );
+  //   return selection.toJSON();
+  // },
+  //
+  // N.B. This method relies on the key "taxid" in the sunburst data structure
+  // and that key is only found in Rfam, not Pfam.
   
   //----------------------------------------------------------------------------
   /**
@@ -1162,7 +1165,7 @@ var Sunburst = Class.create( {
     // done before calculating the counts and firing the event. There are 
     // only 8 levels in the sunburst, but we'll add an extra buffer, just 
     // to make sure we're done before firing
-    setTimeout( this._fireSelectionChangeEvent.bind(this), 9 * this._selectAnimationDelay );
+    setTimeout( this._fireSelectionChangeEvent.bind(this), 50 * this._selectAnimationDelay );
   },
 
   //----------------------------------------------------------------------------
