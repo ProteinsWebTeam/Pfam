@@ -249,6 +249,7 @@ div.dead_comment {
 
 #ss_rchie {
   width: 500px;
+  float: left;
 }
 
 #rchieNew {
@@ -256,3 +257,54 @@ div.dead_comment {
   vertical-align: super;
   font-size: xx-small;
 }
+
+div.loupe {
+  border: 1px solid #999;
+  background-color: #DDD;
+  cursor: crosshair;
+}
+
+div.loupe > img {
+  border: 1px solid #CCC;
+}
+
+#rchieKey {
+  border: 1px solid #999;
+  background-color: #EEE;
+  float: left;
+  margin: 0.4em;
+  padding: 0.4em;
+}
+
+#rchieKey ul {
+  margin: 0;
+  padding: 0;
+}
+
+#rchieKey li {
+  list-style-type: none;
+}
+
+#rchieKey li.label {
+  font-weight: bold;
+}
+
+#rchieKey span {
+  margin: 2px;
+  width: 10px;
+  height: 10px;
+  float: left;
+}
+
+#rchieKey span.full { background-color: #2166ac }
+#rchieKey span.half { background-color: #fddbc7 }
+#rchieKey span.none { background-color: #b2182b }
+
+#rchieKey span.valid { background-color: #00a651 }
+#rchieKey span.invalid { background-color: #f15a22 }
+#rchieKey span.unpaired { background-color: #000 }
+#rchieKey span.gap { background-color: #AAA }
+#rchieKey span.oneSidedCovar { background-color: #00b9f2 }
+#rchieKey span.twoSidedCovar { background-color: #0072bc }
+#rchieKey span.ambiguous { background-color: #675cfd }
+
