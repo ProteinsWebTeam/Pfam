@@ -12,8 +12,7 @@
 PROCESS "components/require.tt";
 
 sharedRequirements.js.push( "sharedFunctions.js" );
-requirements.js.push( "jquery.jqzoom-core-pack.js" );
-requirements.css.push( "jquery.jqzoom.css" );
+requirements.js.push( "jquery.loupe.min.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -198,17 +197,32 @@ labels = [
 [% FOREACH hash IN labels -%]
     <div id="[% hash.type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
          class="controlTab ssImage">
-      [% IF hash.type == 'rchie' -%]
+      [% IF hash.type == "rchie" -%]
       <p>
-        Move your mouse over the image to show details, use your scroll wheel
-        to change zoom level, and click to show full image.
+        Move your mouse over the image to show details and click to show full image.
       </p>
-      <a id="rchieZoom" href="[% c.uri_for( '/family', acc, 'image', hash.type ) | html -%]">
       [%- END %]
       <img alt="" 
            id="ss_[% hash.type %]"
            src="[% c.uri_for( '/family', acc, 'image', hash.type ) | html -%]" />
-[%- "</a>" IF hash.type == 'rchie' %]
+      [%- IF hash.type == "rchie" %]
+      <div id="rchieKey">
+        <ul>
+          <li class="label">Arc colours</li>
+          <li><span class="full">&nbsp;</span>100% canonical basepair</li>
+          <li><span class="half">&nbsp;</span>50%</li>
+          <li><span class="none">&nbsp;</span>0%</li>
+          <li class="label">Nucleotide colours</li>
+          <li><span class="valid">&nbsp;</span>Valid basepairing</li>
+          <li><span class="twoSidedCovar">&nbsp;</span>Two-sided covariation</li>
+          <li><span class="oneSidedCovar">&nbsp;</span>One-sided covariation</li>
+          <li><span class="invalid">&nbsp;</span>Invalid</li>
+          <li><span class="unpaired">&nbsp;</span>Unpaired</li>
+          <li><span class="gap">&nbsp;</span>Gap</li>
+          <li><span class="ambiguous">&nbsp;</span>Ambiguous</li>
+        </ul>
+      </div>
+      [%- END %]
     </div>
 [% END -%]
 
@@ -227,7 +241,14 @@ labels = [
                # to the R-chie tab, in order to avoid problems with the
                # mouseover lens size %]
             if ( newTab.id == "rchieImage" && ! zoomEnabled ) {
-              $("#rchieZoom").jqzoom( { title: false } );
+              $("#ss_rchie").loupe( {
+                width: 200, // width of magnifier
+                height: 200, // height of magnifier
+                loupe: "loupe" // css class for magnifier
+              } );
+              $("div.loupe").click( function() {
+                popUp( "[% c.uri_for( '/family', acc, 'image/rchie' ) %]", 'console', 800, 800, 'rchieWin' );
+              } );
               zoomEnabled = true;
             }
           }
