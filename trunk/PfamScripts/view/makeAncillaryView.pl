@@ -4,12 +4,14 @@ use strict;
 use warnings;
 use Data::Printer;
 use Bio::Pfam::ViewProcess::Architecture;
+use Bio::Pfam::ViewProcess::Storable;
 #-------------------------------------------------------------------------------
 
 #Lets get a new Pfam view object
 my $view = Bio::Pfam::ViewProcess->new;
 my $archView = Bio::Pfam::ViewProcess::Architecture->new;
-$archView->processOptions;
+my $storableView = Bio::Pfam::ViewProcess::Storable->new;
+
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
@@ -34,7 +36,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     #Submit the architecture calulcations to the farm. This will not return until
     #all jobs have completed.
     $archView->submitToFarm(300);
-    
     #Reset all of the counts in the architecture table and pfamA table
     $archView->updateAllArchitecture;
     $archView->touchStatus('doneArch');
