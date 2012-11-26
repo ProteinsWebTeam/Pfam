@@ -18,9 +18,7 @@ use Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
 has '+statusFile' => (
-  is  => 'ro',
-  isa => 'Str',
-  default => 'calArch',
+  default => 'calStore',
 );
 
 sub submitToFarm {
@@ -36,7 +34,7 @@ sub submitToFarm {
   my $memory = 2500000;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
-              $self->options->{statusdir}."/arch.\%J.\%I.log  -JStore\"[1-$noJobs]%70\"");
+              $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%70\"");
   $fh->print( "makeStorables.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
   $self->logger->debug("Status is:".$self->statusFile."\n");
@@ -50,8 +48,8 @@ sub updateSeqRange {
   my( $self ) = @_;
   my $chunk = $self->options->{chunk};
   my $chunkSize = $self->options->{chunkSize};
-  
-  open(S, '+>>', $self->statusFile.".$chunk") or 
+  $self->touchStatus($self->statusFile.".$chunk");
+  open(S, '+<', $self->options->{statusdir}.'/'.$self->statusFile.".$chunk") or 
       $self->logger->logdie("Could not open status file:[$!]"); 
   my $rangeFrom = ( ( $chunk - 1 ) * $chunkSize ) + 1;
   while(<S>){
@@ -64,7 +62,6 @@ sub updateSeqRange {
   my $rangeTo   = ( ($chunk) * $chunkSize );
   $self->logger->debug(
     "Building storables in the range of $rangeFrom to $rangeTo.");
-  
   
 #-------------------------------------------------------------------------------
 
@@ -88,6 +85,7 @@ sub updateSeqRange {
   }
   print S "$rangeTo\n";
   close(S);
+  $self->touchStatus($self->statusFile.".$chunk.done");
 }
 
 sub updateSingleFamily {
@@ -115,7 +113,7 @@ sub updateStorables {
   my $nestings;
   foreach my $n ( @{ $self->pfamdb->getAllNestedDomains } ) {
     my $npfamA =
-      $self->pfamdb->getSchema->resultset('Pfama')->find( $n->nests_auto_pfama )
+      $self->pfamdb->getSchema->resultset('Pfama')->find( { auto_pfama => $n->nests_auto_pfama } )
       ->pfama_acc;
     my $pfamA = $n->auto_pfama->pfama_acc;
     $nestings->{$pfamA}->{$npfamA}++;
@@ -124,7 +122,7 @@ sub updateStorables {
       my ( @markups, @motifs, @regions );
     #PfamA region statement
     my $pfamaRegionsRef = $self->pfamdb->getPfamRegionsForSeq( $seq->pfamseq_acc );
-
+    if(defined($pfamaRegionsRef) and ref($pfamaRegionsRef) eq 'ARRAY'){
     for ( my $i = 0 ; $i < scalar @$pfamaRegionsRef ; $i++ ) {
 
       #for ( my $i = 0 ; $i < 2 ; $i++ ) {
@@ -162,6 +160,7 @@ sub updateStorables {
           }
         )
       );
+      
 
       for ( my $j = ( $i + 1 ) ; $j < scalar(@$pfamaRegionsRef) ; $j++ ) {
         next unless ( $nestings->{ $region->pfama_acc } );
@@ -230,7 +229,7 @@ sub updateStorables {
         }
       }
     }
-
+  }
     #Context regions
     my $contextRegRef = $self->pfamdb->getContextRegionsForSeq( $seq->pfamseq_acc );
     foreach my $region (@$contextRegRef) {
@@ -264,7 +263,7 @@ sub updateStorables {
 #transmembrane regions etc
     my $otherRegRef = $self->pfamdb->getOtherRegs( $seq->auto_pfamseq );
     foreach my $motif (@$otherRegRef) {
-      $self->logger->debug("Found other region");
+      #$self->logger->debug("Found other region");
       push(
         @motifs,
         Bio::Pfam::Sequence::Motif->new(
@@ -404,7 +403,7 @@ sub updateStorables {
         taxid       => $seq->ncbi_taxid->ncbi_taxid,
         accession   => $seq->pfamseq_acc,
         identifier  => $seq->pfamseq_id,
-        description => $seq->pfamseq->description,
+        description => $seq->description,
         database    => 'uniprot'
       }
     );

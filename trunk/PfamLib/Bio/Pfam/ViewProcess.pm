@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Data::UUID;
 use Mail::Mailer;
-use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromArray);
 use Mail::Mailer;
 use Log::Log4perl qw(:easy);
 use Data::Dumper;
@@ -2431,9 +2431,10 @@ sub processOptions {
   my $options = {};
   #% identity used to threshold families for fasta file generation
   my $identity = 90;
-
+  my @opts = @ARGV;
   #Get and check the input parameters
-  GetOptions(
+  GetOptionsFromArray(
+    \@opts,
     "family=s" => \$famId,
     "id=s"     => \$uid,
     "fasta=s"  => \$identity,
@@ -2707,7 +2708,7 @@ sub statusCheck {
     my $fCount = 0;
     my $pat = $self->options->{statusdir}.'/'.$file.'.';
     foreach my $f (@files){
-      $fCount++ if($f =~ /$pat\d+/); 
+      $fCount++ if($f =~ /$pat\d+\.done/); 
     }
     if($fCount == $count){
       return 1;
