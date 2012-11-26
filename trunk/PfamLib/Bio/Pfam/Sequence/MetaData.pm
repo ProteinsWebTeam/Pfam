@@ -8,7 +8,7 @@ use Moose::Util::TypeConstraints qw(enum);
 
 
 has 'database' => (
-  isa => enum([ qw( pfam uniprot UniProt genpept metagenomics Phobius ncoils seg ) ] ),
+  isa => enum([ qw( pfam uniprot UniProt genpept metagenomics Phobius ncoils seg IUPred ) ] ),
   is  => 'rw',
 );
 
