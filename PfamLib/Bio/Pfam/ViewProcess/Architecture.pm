@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Data::Printer;
 use POSIX qw(ceil);
-use Getopt::Long;
+use Getopt::Long qw(GetOptionsFromArray);
 use Log::Log4perl qw(:easy);
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -166,6 +166,7 @@ sub updateSeqRange {
   #Note if you change the file name, fix the submit to farm
   $self->touchStatus($self->statusFile.".$chunk");
   }
+  $self->touchStatus($self->statusFile.".$chunk.done");
 }
 
 sub clearAllArchitecture {
@@ -375,8 +376,10 @@ sub processOptions {
   my ($statusDir, $acc, $help, $chunk, $chunkSize );
   my $options = {};
 
+  my @opts = @ARGV;
   #Get and check the input parameters
-  GetOptions(
+  GetOptionsFromArray(
+    \@opts, 
     "statusdir=s" => \$statusDir,
     "acc=s"       => \$acc,
     "chunk=i"     => \$chunk,
@@ -389,8 +392,8 @@ sub processOptions {
     return;
   }
 
-  if ( !$statusDir or !-e $statusDir) {
-    $self->logger->logdie("No status directory passed in or it is not present.....");
+  if ( !$statusDir or !-d $statusDir) {
+    $self->logger->logdie("No status directory passed in or it is not present $statusDir.....");
   }
 
   $options->{acc}       = $acc;
