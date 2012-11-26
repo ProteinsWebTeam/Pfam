@@ -9,7 +9,7 @@ use Moose::Util::TypeConstraints qw(enum);
 extends 'Bio::Pfam::Sequence::Feature';
 
 has 'type' => (
-  isa => enum([ qw(pfamb sig_p transmembrane coiled_coil low_complexity )]),
+  isa => enum([ qw(pfamb sig_p transmembrane coiled_coil low_complexity disorder)]),
   is  => 'rw'
 );
 
