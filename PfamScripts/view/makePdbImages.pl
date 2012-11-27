@@ -13,7 +13,7 @@ if($view->options->{help}){
 
 if ( $view->options->{acc} ) {
   $view->logger->info("Calculating pdb images for ".$view->options->{acc});
-  $view->updateSinglePdb;
+  $view->updateSinglePdb($view->options->{acc});
 }elsif($view->options->{chunk} and $view->options->{chunkSize}){
   $view->updatePdbRange;
 }else{
