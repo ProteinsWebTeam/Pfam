@@ -5,10 +5,14 @@ use warnings;
 use File::Temp qw( tempdir );
 use File::Path qw(remove_tree);
 use Cwd;
+use POSIX qw( ceil );
 use Getopt::Long;
 use Log::Log4perl qw(:easy);
 use Moose;
 use Moose::Util::TypeConstraints;
+
+use Bio::Pfam::Pfetch;
+use Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -73,7 +77,7 @@ sub makeImages {
   my ( $self, $pdbs, $filename ) = @_;
   
   #open up the status file. Read any contents, then write when pdb id and status.
-  
+  $self->touchStatus($filename); 
   open(S, '+<', $self->options->{statusdir}.'/'.$filename) or 
       $self->logger->logdie("Could not open status file:[$!]"); 
   
@@ -89,11 +93,12 @@ sub makeImages {
   
   foreach my $pdbRow (@$pdbs) {
     my $pdb = $pdbRow->pdb_id;
+    next if(exists($done{$pdb}));
     $self->logger->info("Working on $pdb");
     if ( $self->blacklist->{$pdb} ){
       print S "$pdb\tblacklist\n";
     }
-    my $tempDir = tempdir( CLEANUP => 1 );
+    my $tempDir = tempdir( CLEANUP => 0 );
 
     # Fetch the pdb file
     $self->logger->debug("Fetching $pdb");
@@ -157,7 +162,7 @@ sub makeImages {
       print S "$pdb\tfailed to render\n";
     }
     chdir($pwd);
-    remove_tree($tempDir);
+    #remove_tree($tempDir);
   }
   close(S);
 }
@@ -338,7 +343,7 @@ sub _munge_molauto {
         }
 
         push( @{ $coloured_residues{$chain} }, ( $start .. $end ) );
-        $line = $self->construct_line( $element, $chain, $start, $end );
+        $line = $self->_construct_line( $element, $chain, $start, $end );
         $colour = $domain->hex_colour;
       }
 
@@ -358,7 +363,7 @@ sub _munge_molauto {
           ( $start .. $domain->pdb_res_end )
         );
         $line =
-          $self->construct_line( $element, $chain, $start, $domain->pdb_res_end );
+          $self->_construct_line( $element, $chain, $start, $domain->pdb_res_end );
         $colour = $domain->hex_colour;
       }
 
@@ -378,7 +383,7 @@ sub _munge_molauto {
           ( $domain->pdb_res_start .. $end )
         );
         $line =
-          $self->construct_line( $element, $chain, $domain->pdb_res_start, $end );
+          $self->_construct_line( $element, $chain, $domain->pdb_res_start, $end );
         $colour = $domain->hex_colour;
 
       }
@@ -397,7 +402,7 @@ sub _munge_molauto {
           ( $domain->pdb_res_start .. $domain->pdb_res_end )
         );
         $line =
-          $self->construct_line( $element, $chain, $domain->pdb_res_start,
+          $self->_construct_line( $element, $chain, $domain->pdb_res_start,
           $domain->pdb_res_end );
         $colour = $domain->hex_colour;
       }
@@ -462,13 +467,13 @@ sub _munge_molauto {
             $white_end++ if ( $white_end < $end );
             if ( $white_start != $start ) {
               my $line =
-                $self->construct_line( $element, $chain, $white_start - 1,
+                $self->_construct_line( $element, $chain, $white_start - 1,
                 $white_end );
               push( @pfam_markup, $line );
             }
             elsif ( $white_start < $white_end ) {
               my $line =
-                $self->construct_line( $element, $chain, $white_start, $white_end );
+                $self->_construct_line( $element, $chain, $white_start, $white_end );
               push( @pfam_markup, $line );
             }
 
@@ -490,12 +495,12 @@ sub _munge_molauto {
 
         if ( $white_start != $start ) {
           my $line =
-            $self->construct_line( $element, $chain, $white_start - 1, $white_end );
+            $self->_construct_line( $element, $chain, $white_start - 1, $white_end );
           push( @pfam_markup, $line );
         }
         elsif ( $white_start < $white_end ) {
           my $line =
-            $self->construct_line( $element, $chain, $white_start, $white_end );
+            $self->_construct_line( $element, $chain, $white_start, $white_end );
           push( @pfam_markup, $line );
         }
       }

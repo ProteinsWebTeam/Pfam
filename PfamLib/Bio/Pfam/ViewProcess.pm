@@ -2708,6 +2708,7 @@ sub statusCheck {
     my $fCount = 0;
     my $pat = $self->options->{statusdir}.'/'.$file.'.';
     foreach my $f (@files){
+      
       $fCount++ if($f =~ /$pat\d+\.done/); 
     }
     if($fCount == $count){

@@ -2,8 +2,11 @@ package Bio::Pfam::ViewProcess::Scoop;
 
 use strict;
 use warnings;
+use Net::SCP;
 use Moose;
 use Moose::Util::TypeConstraints;
+use Bio::SCOOP::Region;
+use Bio::SCOOP::RegionSet;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -16,41 +19,44 @@ sub runScoop {
   
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
   my $scp = Net::SCP->new( { "host"=> $self->config->{pfamlive}->{host} } );
+  my $statusdir = $self->options->{statusdir};
   if(!$self->statusCheck("sigReg.txt")){
+    $self->logger->info('Getting significant regions');
     $dbh->do(
       "SELECT auto_pfamseq, auto_pfamA seq_start, seq_end, domain_evalue_score "
     . "INTO OUTFILE '/tmp/sigReg.txt' FROM pfamA_reg_full_significant" );
-    $scp->get('/tmp/sigReg.txt', $self->statusdir.'/sigReg.txt')
+    $scp->get('/tmp/sigReg.txt', $statusdir.'/sigReg.txt')
   }
   
   if(!$self->statusCheck("insigReg.txt")){
+    $self->logger->info('Getting insignificant regions');
     $dbh->do(
       "SELECT auto_pfamseq, auto_pfamA seq_start, seq_end, domain_evalue_score "
     . "INTO OUTFILE '/tmp/insigReg.txt' FROM pfamA_reg_full_insignificant" );
-    $scp->get('/tmp/insigReg.txt', $self->statusdir.'/insigReg.txt')
+    $scp->get('/tmp/insigReg.txt', $statusdir.'/insigReg.txt')
   }
   
   #Now sort the regions
   if(!$self->statusCheck("allReg.txt")){
-    system("cat ".$self->statusdir."/sigReg.txt ".$self->statusdir."/insigReg.txt >".$self->statusdir."/allReg.txt");
+    system("cat ".$statusdir."/sigReg.txt ".$statusdir."/insigReg.txt >".$statusdir."/allReg.txt");
   }
   if(!$self->statusCheck("allRegSort.txt")){
-    system("sort ".$self->statusdir."/allReg.txt > ".$self->statusdir."/allRegSort.txt") 
+    system("sort ".$statusdir."/allReg.txt > ".$statusdir."/allRegSort.txt") 
        and $self->logger->logdie("Failed to sort the regions:[$!]");
   }
   
    if(!$self->statusCheck("runScoop")){
-    open( my $upload, '>', $self->statusdir."/scoopRes.4upload.txt" )
-      or $self->logger->logdie("Failed to open file $self->statusdir/scoopRes.4upload.txt:[$!]");
+    open( my $upload, '>', $statusdir."/scoopRes.4upload.txt" )
+      or $self->logger->logdie("Failed to open file $statusdir/scoopRes.4upload.txt:[$!]");
     
-    $self->scoop($self->statusdir."/allRegSort.txt", $upload);
+    $self->scoop($statusdir."/allRegSort.txt", $upload, $statusdir);
     close($upload);
     $self->touchStatuc("runScoop");
    }
   
   $self->pfamdb->getSchema->resultset('Pfama2pfamaScoopResults')->delete;
 
-  $scp->put( $self->statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
+  $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
     or $self->logger->logdie("Failed to scp results file to instance");
   $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
 }
@@ -64,6 +70,7 @@ sub scoop {
   my %uber_matrix;
 
   open( FH, $file ) or die "Cannot open $file";
+  open( FHO, ">$tempDir/old_scores" ) or die "cannot write $tempDir/old_scores:[$!]";
   my $old_id;
   my ( $set, $new_set );
   foreach my $line (<FH>) {
@@ -81,9 +88,14 @@ sub scoop {
       'significant' => $line[5]
     );
 
-    if ( $id ne $old_id and $old_id ) {
+    if(!defined($old_id)){
+      $set = new Bio::SCOOP::RegionSet($id);
+      $set->add($region);
+      $total_region++;
+
+    }elsif ( $id ne $old_id ) {
       # Now add old set to uber_matrix
-      $self->add_set_to_matrix( $set, \%family_total, \%uber_matrix );
+      $self->_add_set_to_matrix( $set, \%family_total, \%uber_matrix );
       
       # Make new set
       $set = new Bio::SCOOP::RegionSet($id);
@@ -93,12 +105,6 @@ sub scoop {
     elsif ( $id eq $old_id ) {
       $set->add($region);
       $total_region++;
-    }
-    elsif ( $id ne $old_id and !$old_id ) {
-      $set = new Bio::SCOOP::RegionSet($id);
-      $set->add($region);
-      $total_region++;
-
     }
     $old_id = $id;
   }
@@ -112,7 +118,7 @@ sub scoop {
   my %family_score_denominator;
 
   # Loop over every pair of families in uber matrix and calculate score
-  open( FH, ">$tempDir/old_scores" ) or die "cannot write $tempDir/old_scores:[$!]";
+
   foreach my $x ( sort keys %uber_matrix ) {
     my %hash = %{ $uber_matrix{$x} };
     foreach my $y ( sort keys %hash ) {
@@ -126,7 +132,8 @@ sub scoop {
       else {
         $score = $uber_matrix{$x}{$y};
       }
-      print FH "$score $x $y $family_total{$y} Both $observed\n";
+
+      print FHO "$score $x $y $family_total{$y} Both $observed\n";
 
       # Store for each family the total score and the number of entries.
       $family_score_total{$x} += $score;
@@ -142,11 +149,11 @@ sub scoop {
     # Method d
     my $average_score =
       $family_score_total{$x} / ( 100 + $family_score_denominator{$x} );
-    print FH
+    print FHO
 "# Average score for $x is $average_score denominator is $family_score_denominator{$x}\n";
   }
-  print FH "# TOTAL REGIONS $total_region\n";
-  close FH;
+  print FHO "# TOTAL REGIONS $total_region\n";
+  close FHO;
 
   $self->logger->info("Second pass over Uber matrix\n");
   # Loop over every pair of families in uber matrix and calculate score

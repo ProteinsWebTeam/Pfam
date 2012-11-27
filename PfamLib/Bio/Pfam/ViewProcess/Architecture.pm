@@ -45,7 +45,7 @@ sub BUILD {
     $self->mailPfam( "Failed to run view process", "View process failed as we could not connect to pfamlive" );
   }
   $self->logger->debug("Got pfamlive database connection");
-  
+  $self->logger->debug('Processing options');  
   $self->processOptions;
   return($self);
 }
