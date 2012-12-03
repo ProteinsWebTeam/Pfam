@@ -1958,39 +1958,110 @@ sub write_stockholm_file {
 
   my $pfam = $self->pfam;
   open( ANNFILE, ">$filename.ann" )
-    or &exit_with_mail("Could not open $filename.ann for writing [$!]");
-  print ANNFILE "# STOCKHOLM 1.0\n";
+    or $self->mailUserAndExit("Could not open $filename.ann for writing [$!]");
+  $self->writeGFAnnotationBlock(\*ANNFILE, $pfam, $GFAnn);
+  
+  if(ref($aln) eq 'HashRef'){
+    if(exists($aln->{GS})){
+      print ANNFILE "#=GF SQ   ", scalar( @{$aln->{GS}} ), "\n";
+      foreach my $line (@{ $aln->{GS} }){
+        print ANNFILE $line;
+      }
+    }
+    if(exists($aln->{GR})){
+      foreach my $line ( @{ $aln->{GR} } ) {
+        print ANNFILE $line;
+      }
+    }
+    if(exists($aln->{GC})){
+      foreach my $line ( @{$aln->{GC}} ) {
+        print ANNFILE $line;
+      }
+    }
+    print ANNFILE "//\n";
+  }else{
+    print ANNFILE "#=GF SQ   ", scalar( $aln->no_sequences() ), "\n";
+    my $stock = $aln->write_stockholm;
+    if ( $$stock[0] =~ /^\# STOCKHOLM/ ) {
+      shift(@$stock);    #This removes the STOCKHOLM 1.0 tag, but nasty, but hey!
+    }
+    foreach my $line ( @{$stock} ) {
+      print ANNFILE $line;
+    }
+  }
+  close(ANNFILE);
+  
+  $self->checkflat( $filename . ".ann");
+}
+
+#Designed to read in a HMMER3 stockholm alignment and write out a Pfam annotated
+#alignment.
+sub writeAnnotateAlignment {
+  my ($self, $filename, $GFAnn) = @_;
+  
+  my $alignData = {};
+  
+  open(F, '<', $filename) or $self->logger->logdie("Could not open $filename:[$!]");
+  while(<F>){
+    if(/^STOCKHOLM 1.0/){
+      next;
+    }elsif(/^\/\/$/){
+      next;
+    }elsif(/^#=GS/){
+      push(@{ $alignData->{GS} }, $_);
+    }elsif(/^#=GR.*PP\s+\S+$/){
+      next;
+    }elsif(/^$/){
+      next;
+    }elsif(/^#=GC/){
+      push(@{ $alignData->{GC} }, $_);
+    }else{
+      #This contains all alignment lines and GR stockholm lines.
+      push(@{ $alignData->{GR} }, $_);
+    }
+  }
+
+  $self->write_stockholm_file($filename, $alignData, $GFAnn);
+  $filename .= ".ann";
+  return($filename);
+}
+
+
+sub writeGFAnnotationBlock {
+  my ($self, $annfile, $pfam, $GFAnn) = @_;
+  
+  print $annfile "# STOCKHOLM 1.0\n";
 
   #Mimic this with what is loaded in the database
-  #$en->write_stockholm_ann(\*ANNFILE);
-  print ANNFILE "#=GF ID   ", $pfam->pfama_id,    "\n";
-  print ANNFILE "#=GF AC   ", $pfam->pfama_acc,   ".", $pfam->version, "\n";
-  print ANNFILE "#=GF DE   ", $pfam->description, "\n";
+  #$en->write_stockholm_ann(\*$annfile);
+  print $annfile "#=GF ID   ", $pfam->pfama_id,    "\n";
+  print $annfile "#=GF AC   ", $pfam->pfama_acc,   ".", $pfam->version, "\n";
+  print $annfile "#=GF DE   ", $pfam->description, "\n";
   if ( $pfam->previous_id and $pfam->previous_id =~ /\S+/ ) {
-    print ANNFILE "#=GF PI   ", $pfam->previous_id, "\n";
+    print $annfile "#=GF PI   ", $pfam->previous_id, "\n";
   }
-  print ANNFILE "#=GF AU   ", $pfam->author,      "\n";
-  print ANNFILE "#=GF SE   ", $pfam->seed_source, "\n";
+  print $annfile "#=GF AU   ", $pfam->author,      "\n";
+  print $annfile "#=GF SE   ", $pfam->seed_source, "\n";
 
   #Put in the ga, nc, tc and also add the build and search method lines.
-  print ANNFILE "#=GF GA   " . sprintf "%.2f %.2f;\n", $pfam->sequence_ga,
+  print $annfile "#=GF GA   " . sprintf "%.2f %.2f;\n", $pfam->sequence_ga,
     $pfam->domain_ga;
-  print ANNFILE "#=GF TC   " . sprintf "%.2f %.2f;\n", $pfam->sequence_tc,
+  print $annfile "#=GF TC   " . sprintf "%.2f %.2f;\n", $pfam->sequence_tc,
     $pfam->domain_tc;
-  print ANNFILE "#=GF NC   " . sprintf "%.2f %.2f;\n", $pfam->sequence_nc,
+  print $annfile "#=GF NC   " . sprintf "%.2f %.2f;\n", $pfam->sequence_nc,
     $pfam->domain_nc;
-  print ANNFILE "#=GF BM   ", $self->_cleanBuildLine( $pfam->buildmethod ),
+  print $annfile "#=GF BM   ", $self->_cleanBuildLine( $pfam->buildmethod ),
     "HMM.ann SEED.ann\n";
-  print ANNFILE "#=GF SM   ", $pfam->searchmethod, "\n";
+  print $annfile "#=GF SM   ", $pfam->searchmethod, "\n";
 
-  print ANNFILE "#=GF TP   ", $pfam->type, "\n";
+  print $annfile "#=GF TP   ", $pfam->type, "\n";
 
   #If we find some wikipedia lines, print them out.
   if ( exists( $GFAnn->{wiki} ) and scalar( @{ $GFAnn->{wiki} } ) ) {
     my $wikiString;
     foreach my $w ( @{ $GFAnn->{wiki} } ) {
-      print ANNFILE wrap( "#=GF WK   ", "#=GF WK   ", $w->auto_wiki->title );
-      print ANNFILE "\n";
+      print $annfile wrap( "#=GF WK   ", "#=GF WK   ", $w->auto_wiki->title );
+      print $annfile "\n";
     }
   }
 
@@ -1999,12 +2070,12 @@ sub write_stockholm_file {
     and scalar( @{ $GFAnn->{nestL} } ) )
   {
     foreach my $n ( @{ $GFAnn->{nestL} } ) {
-      print ANNFILE "#=GF NE   ", $n->nested_pfama_acc, ";\n";
-      print ANNFILE "#=GF NL   ", $n->pfamseq_acc;
+      print $annfile "#=GF NE   ", $n->nested_pfama_acc, ";\n";
+      print $annfile "#=GF NL   ", $n->pfamseq_acc;
       if ( $n->seq_version and $n->seq_version =~ /\d+/ ) {
-        print ANNFILE "." . $n->seq_version;
+        print $annfile "." . $n->seq_version;
       }
-      print ANNFILE "/" . $n->seq_start . "-" . $n->seq_end . "\n";
+      print $annfile "/" . $n->seq_start . "-" . $n->seq_end . "\n";
     }
   }
 
@@ -2012,20 +2083,20 @@ sub write_stockholm_file {
   foreach my $ref ( @{ $GFAnn->{lrefs} } ) {
     if ( $ref->pmid ) {
       if ( ( $ref->comment ) && ( $ref->comment ne "NULL" ) ) {
-        print ANNFILE wrap( "#=GF RC   ", "#=GF RC   ", $ref->comment );
-        print ANNFILE "\n";
+        print $annfile wrap( "#=GF RC   ", "#=GF RC   ", $ref->comment );
+        print $annfile "\n";
       }
-      print ANNFILE "#=GF RN   [" . $ref->order_added . "]\n";
-      print ANNFILE "#=GF RM   " . $ref->pmid . "\n";
-      print ANNFILE wrap( "#=GF RT   ", "#=GF RT   ", $ref->title );
-      print ANNFILE "\n";
-      print ANNFILE wrap( "#=GF RA   ", "#=GF RA   ", $ref->author );
-      print ANNFILE "\n";
-      print ANNFILE "#=GF RL   " . $ref->journal . "\n";
+      print $annfile "#=GF RN   [" . $ref->order_added . "]\n";
+      print $annfile "#=GF RM   " . $ref->pmid . "\n";
+      print $annfile wrap( "#=GF RT   ", "#=GF RT   ", $ref->title );
+      print $annfile "\n";
+      print $annfile wrap( "#=GF RA   ", "#=GF RA   ", $ref->author );
+      print $annfile "\n";
+      print $annfile "#=GF RL   " . $ref->journal . "\n";
     }
   }
 
-  print ANNFILE "#=GF DR   INTERPRO; ", $GFAnn->{interpro}->interpro_id, ";\n"
+  print $annfile "#=GF DR   INTERPRO; ", $GFAnn->{interpro}->interpro_id, ";\n"
     if ( $GFAnn->{interpro} and $GFAnn->{interpro}->interpro_id =~ /\S+/ );
 
   foreach my $xref ( @{ $GFAnn->{xrefs} } ) {
@@ -2035,41 +2106,29 @@ sub write_stockholm_file {
 #one could simply use join!
 
     if ( $xref->other_params and $xref->other_params =~ /\S+/ ) {
-      print ANNFILE "#=GF DR   "
+      print $annfile "#=GF DR   "
         . $xref->db_id . "; "
         . $xref->db_link . "; "
         . $xref->other_params . ";\n";
     }
     else {
-      print ANNFILE "#=GF DR   " . $xref->db_id . "; " . $xref->db_link . ";\n";
+      print $annfile "#=GF DR   " . $xref->db_id . "; " . $xref->db_link . ";\n";
     }
 
     #Print out any comment
     if ( $xref->comment and $xref->comment =~ /\S+/ ) {
-      print ANNFILE "#=GF DC   " . $xref->comment . "\n";
+      print $annfile "#=GF DC   " . $xref->comment . "\n";
     }
   }
 
   #Annotation comments
   #Currently, the text wrap is handling this!
   if ( $pfam->comment and $pfam->comment =~ /\S+/ ) {
-    print ANNFILE wrap( "#=GF CC   ", "#=GF CC   ", $pfam->comment );
-    print ANNFILE "\n";
+    print $annfile wrap( "#=GF CC   ", "#=GF CC   ", $pfam->comment );
+    print $annfile "\n";
   }
-
-  print ANNFILE "#=GF SQ   ", scalar( $aln->no_sequences() ), "\n";
-  my $stock = $aln->write_stockholm;
-  if ( $$stock[0] =~ /^\# STOCKHOLM/ ) {
-    shift(@$stock);    #This removes the STOCKHOLM 1.0 tag, but nasty, but hey!
-  }
-  foreach my $line ( @{$stock} ) {
-    print ANNFILE $line;
-  }
-  close(ANNFILE);
   
-  $self->checkflat( $filename . ".ann");
 }
-
 sub consensus_line {
   my ( $self, $filename, $ali_length ) = @_;
 

@@ -96,6 +96,8 @@ sub updateSingleFamily {
   my %pfamAs;
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
 
+  die;
+#This takes ages and needs to be reworked!!!!
   my $pfamArchSth = $dbh->prepare(
         "REPLACE INTO pfamA_architecture (auto_pfamA, auto_architecture) "
       . " SELECT DISTINCT r.auto_pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
@@ -124,6 +126,7 @@ sub updateSingleFamily {
       }
     }
   }
+  
   $dbh->do(
 "UPDATE architecture a SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=a.auto_architecture)"
   );
@@ -190,6 +193,13 @@ sub updateAllArchitecture {
   
   #Remove any architectures that are obsolete, i.e. have zero sequences.
   $dbh->do( "DELETE FROM architecture WHERE no_seqs = 0" );
+  
+  
+   $dbh->do(
+        "REPLACE INTO pfamA_architecture (auto_pfamA, auto_architecture) "
+      . " SELECT DISTINCT r.auto_pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
+      . " WHERE s.auto_pfamseq=r.auto_pfamseq AND in_full=1"
+    );
   
   #Now update the counts.
   $dbh->do( "UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.auto_pfamA=a.auto_pfamA)");
