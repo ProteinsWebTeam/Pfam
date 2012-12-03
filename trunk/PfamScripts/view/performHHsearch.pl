@@ -92,7 +92,7 @@ name      : The label to be give to your hhm. If an accesion if supplied, the na
 newlib    : Generate a new HHlib for all families in the database. Be sure you
           : know what you are doing before running this. 
 onlylib   : Will only construct a new library and exit, regardless of anything
-          : else. Useful for generating a cron.
+          : else. Useful for generating a database via a cronjob.
 
 upload    : Upload the results in the database. Again, do not routinely use this
           : as this option is designed to run during the Ancillary view process.
@@ -107,7 +107,7 @@ The above submits ranges of the database, using the following options.
 
 chunk     : Used in combination with chunksize, this says which page
           : of the the results should be worked on. Essentially a  LIMIT OFFSET,LENGTH
-chunksize : The 
+chunksize : The size of each chunk
 h|help : prints this help message
 
 Synopsis
