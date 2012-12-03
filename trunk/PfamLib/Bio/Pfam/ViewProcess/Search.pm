@@ -80,7 +80,14 @@ sub search {
 }
 
 sub searchAll {
-  my ($self, $acc, $dbs, $tmpdir) = @_;
+  my ( $self ) = @_;
+  
+  my $acc = $self->options->{acc};
+  my $dbs = $self->options->{dbs};
+  my $tmpdir;
+  if(exists($self->options->{tmpdir})){
+    $tmpdir = $self->options->{tmpdir}
+  }
   
   foreach my $db (@$dbs){
     $self->database($db);
@@ -244,12 +251,14 @@ sub searchRange {
       $done{$1}++;
     }
   }
-  my $tempDir = tempdir( CLEANUP => 0 );
-  chdir($tempDir);
+  if(!$self->options->{tmpdir}){
+    my $tempDir = tempdir( CLEANUP => 0 );
+    $self->options->{tmpdir} = $tempDir;
+  }
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
     $self->logger->debug("Working on ".$a->pfama_acc);
-    $self->searchAll($a->pfam_acc, $self->options->{dbs}, $tempDir);
+    $self->searchAll();
     print S $a->pfama_acc."\n";
   }
   close(S);
