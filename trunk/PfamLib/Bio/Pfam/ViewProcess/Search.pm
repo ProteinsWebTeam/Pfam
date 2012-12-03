@@ -60,7 +60,8 @@ sub search {
     $self->logger->logdie("Failed to get a Pfam row for $acc.");
   }
   #Get the stockholm markup HMM, we need this as it has the GAs
-  $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->getAnnotatedHMM($acc, $tmpdir);
+  my $result = $self->pfamdb->getSchema->resultset('PfamaHmm')->search({ auto_pfama => $pfam->auto_pfamA});
+  $result->getHMMAsFile( $acc.".ann", $tmpdir );
   #Now perform the search
   my $database = $self->config->{$self->database}->location.'/'.$self->database;
   my $alifile =  "$tmpdir/$acc.".$self->database.".ali";
