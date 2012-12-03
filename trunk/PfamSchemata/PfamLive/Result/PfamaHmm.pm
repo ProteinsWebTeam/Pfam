@@ -37,4 +37,18 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->set_primary_key("auto_pfama");
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+
+sub getHMMAsFile {
+  my ($self, $filename, $path) = @_;
+  $filename = 'HMM' unless($filename);
+  $path = "." unless($path);
+  open( A, ">", "$path/$filename") or die "Could not open $path/$filename:[$!]\n";
+  print A $self->hmm;
+  close A;
+  unless ( -e "$path/$filename" and -s "$path/$filename" ) {
+    die "Failed to generate $path/$filename containing the HMM.";
+  }
+}
+
+
 1;
