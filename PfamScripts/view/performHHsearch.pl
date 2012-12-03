@@ -20,7 +20,7 @@ if($view->options->{help}){
 }
 
 #Make the HMM library if we need to
-$view->makeHMMlib;
+$view->makeHHLib;
 if($view->options->{onlylib}){
   $view->logger->info("Only building hhm-style HMM library.");
   exit;
@@ -61,7 +61,7 @@ elsif($view->options->{file}){
   }else{
     $name = 'Query'
   }
-  my $results = $view->makeHHMFileFromFileAndSearch($file, $name);
+  my $results = $view->makeHHMFromFileAndSearch($file, $name);
   $view->logger->info("Your resultst are in $results");
 }
 #We have been given a range, paging through families in the database
@@ -87,7 +87,7 @@ acc       : Use the SEED from this Pfam accession to search against the library.
 seed      : If you are working on a family, it will use the seed alignmnet in the
           : current working directory.
 file      : Specifiy an alignment to search against the hmm library.
-name      : The label to be give to your hhm. If an accesion if supplied, the name will be ignored
+name      : The label to be give to your hhm. If an accession if supplied, the name will be ignored
 
 newlib    : Generate a new HHlib for all families in the database. Be sure you
           : know what you are doing before running this. 
@@ -95,7 +95,7 @@ onlylib   : Will only construct a new library and exit, regardless of anything
           : else. Useful for generating a database via a cronjob.
 
 upload    : Upload the results in the database. Again, do not routinely use this
-          : as this option is designed to run during the Ancillary view process.
+          : as this option is designed to be run during the Ancillary view process.
 evalue    : The evalue threshold at which hits are deemed significant - default is
           : 0.01
 
@@ -108,11 +108,12 @@ The above submits ranges of the database, using the following options.
 chunk     : Used in combination with chunksize, this says which page
           : of the the results should be worked on. Essentially a  LIMIT OFFSET,LENGTH
 chunksize : The size of each chunk
+
 h|help : prints this help message
 
 Synopsis
 
-Takes one or more seed alignments and searches it against the collection of Pfam
+Takes one or more seed alignment and searches each against the collection of Pfam
 HMMs using hhsearch. Note, we have to use alignments as it appears that hhsearch
 has some serious issues estbliashing E-values for HMMER3 formated HMMs. Also, this
 should give you the best sensitivity as it is using native formats. The hhm-style
@@ -122,7 +123,7 @@ This will generate a results file for you to inspect.
 
 Example:
 
-1. You are building a new family an want to search it
+1. You are building a new family and want to search it
 
 $0 --seed --name 'CoolDom'
 
@@ -146,10 +147,10 @@ $0 --newlib --acc PF00001
 6. You want to perform an all against all search. This script will only finish/exit
 when all jobs have completed. If you find that there are no jobs running, then
 look at the logs in the statusdir. Restarting the script with the same parameters,
-should allow it to recover from the point in time. [Results!!!]
+should allow it to recover from the point in time. The results will be stored in
+the statusdir, with a results file for each chunk.
 
 $0 --allVsall --statusdir /tmp
-
 
 HELP
 
