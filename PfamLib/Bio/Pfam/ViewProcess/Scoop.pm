@@ -51,13 +51,13 @@ sub runScoop {
     
     $self->scoop($statusdir."/allRegSort.txt", $upload, $statusdir);
     close($upload);
-    $self->touchStatuc("runScoop");
+    $self->touchStatus("runScoop");
    }
   
   $self->pfamdb->getSchema->resultset('Pfama2pfamaScoopResults')->delete;
 
   $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
-    or $self->logger->logdie("Failed to scp results file to instance");
+    or $self->logger->logdie("Failed to scp results file to instance:". $scp->{errstr});
   $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
 }
 

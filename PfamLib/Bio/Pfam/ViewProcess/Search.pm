@@ -5,7 +5,10 @@ use warnings;
 use File::Copy;
 use Moose;
 use Moose::Util::TypeConstraints qw(enum);
-
+use Data::Printer;
+use POSIX qw(ceil);
+use Getopt::Long qw(GetOptionsFromArray);
+use Log::Log4perl qw(:easy);
 use File::Temp qw(tempdir);
 use File::Slurp qw(read_file append_file);
 
@@ -55,27 +58,40 @@ sub search {
   unless(-d $tmpdir){
     $self->logger->logdie("Failed to get a temporary directory.");
   }
-  my $pfam = $self->pfamdb->getSchema-resultset('Pfama')->find({pfama_acc => $acc});
+  my $pfam = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $acc});
   unless($pfam){
     $self->logger->logdie("Failed to get a Pfam row for $acc.");
   }
   #Get the stockholm markup HMM, we need this as it has the GAs
-  my $result = $self->pfamdb->getSchema->resultset('PfamaHmm')->search({ auto_pfama => $pfam->auto_pfamA});
-  $result->getHMMAsFile( $acc.".ann", $tmpdir );
+  my $result = $self->pfamdb->getSchema->resultset('PfamaHmm')->find({ auto_pfama => $pfam->auto_pfama});
+  $result->getHMMAsFile( $acc.".hmm", $tmpdir );
   #Now perform the search
-  my $database = $self->config->{$self->database}->location.'/'.$self->database;
+  my $database = $self->config->{$self->database}->{location}.'/'.$self->database;
   my $alifile =  "$tmpdir/$acc.".$self->database.".ali";
   my $cpu = '';
-  $cpu = ' --cpu '.$self->cpu if($self->cpus > 1);
+  $cpu = ' --cpu '.$self->cpus if($self->cpus > 1);
   system($self->config->hmmer3bin."/hmmsearch $cpu -A $alifile --cut_ga --notextw $tmpdir/$acc.hmm $database > /dev/null")
     and $self->logger->logdie("Failed to run hmmsearch with $acc.hmm against $database:[$!]");
+
+  my $field = 'number_'.$self->databaseToTag->{$self->database};
   
+  if(!-s $alifile){
+    $pfam->$field(0);
+    $pfam->update;
+  }else{
+  $pfam->searchmethod('hmmsearch --cut_ga HMM '.$self->database); 
   $self->pfam($pfam);
   my $GFAnn = $self->getGFAnnotations();
-  my $filename = $self->writeAnnotateAlignment("$alifile", $GFAnn);
-  #
+  my ($filename, $noSeqs) = $self->writeAnnotateAlignment("$alifile", $GFAnn);
+  
   if($self->upload){
-    $self->uploadTreesAndAlign($filename, $self->datbaseToTag->{$self->database});
+    #Due to a slight annoyance, strip off the trailing .ann
+    $self->uploadTreesAndAlign($filename, $self->databaseToTag->{$self->database});
+    #This may seem a bit of a waste, but I have modified 
+    $pfam = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $acc});
+    $pfam->$field($noSeqs);
+    $pfam->update;
+  }
   }
 }
 
@@ -97,7 +113,7 @@ sub searchAll {
 
 sub processOptions {
   my ( $self ) = @_;
-  my ($statusDir, $acc, $upload, @dbs, $dir, $chunk, $chunkSize, $help, $cpu, $all);
+  my ($statusDir, $acc, $upload, @dbs, $dir, $chunk, $chunkSize, $help, $cpu, $all, $tmpdir);
   my $options = {};
 
   my @opts = @ARGV;
@@ -105,6 +121,7 @@ sub processOptions {
   GetOptionsFromArray(
     \@opts, 
     "statusdir=s" => \$statusDir,
+    "tmpdir=s"    => \$tmpdir,
     "acc=s"       => \$acc,
     "upload"      => \$upload,
     "db=s"        => \@dbs,
@@ -138,14 +155,17 @@ sub processOptions {
       $self->logger->logdie("That does not look like a Pfam accession [$acc].");
     }
   }
-  
-  if(!scalar(@dbs)){
-    $self->logger->logdie("You need to specifiy one or more databases to search");
+ 
+  unless($all){
+    if(!scalar(@dbs)){
+      $self->logger->logdie("You need to specifiy one or more databases to search");
+    }
   }
   
   $options->{acc}       = $acc;
   $options->{dbs}       = \@dbs;
   $options->{statusdir} = $statusDir;
+  $options->{tmpdir}    = $tmpdir;
   $options->{chunk}     = $chunk;
   $options->{chunkSize} = $chunkSize;
   $options->{all}       = $all;
@@ -155,11 +175,11 @@ sub processOptions {
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
-  my $rs = $self->pfamdb->getSchema->resultset('PfamA')->search({});
+  my $rs = $self->pfamdb->getSchema->resultset('Pfama')->search({});
   my $chunkSize = ceil($rs->count/$noJobs);
   
   $self->logger->debug("Calculating PfamA paging");
-  my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
+  my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
       {},
       {
       page => 1,
@@ -190,17 +210,19 @@ sub submitToFarm {
       $resource = " -M$memory_kb -R'span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]'"
     }
     
-    $resource .= " -cpu ".$self->cpu;
-    
-    $options .= join(' -db ', @{$self->options->{dbs}});
+    $resource .= " -n ".$self->cpus;
+   
+    foreach my $d (@{$self->options->{dbs}}){
+      $options .= " -db $d ";
+    }
     if($self->options->{dir}){
       $options .= ' -dir '.$self->options->{dir};
     }
-    $options .= "-statusdir ".$self->options->{statusdir};
+    $options .= " -statusdir ".$self->options->{statusdir};
     
     my $fh = IO::File->new();
     $fh->open( "| bsub -G pfam-grp -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
-    $fh->print( "performOtherSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
+    $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
   
@@ -224,7 +246,7 @@ sub searchRange {
   if($chunk and $chunkSize ) {
     $self->logger->debug("Calculating PfamA paging");
 
-    my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
+    my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
       {},
       {
       page => 1,
@@ -258,6 +280,7 @@ sub searchRange {
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
     $self->logger->debug("Working on ".$a->pfama_acc);
+    $self->options->{acc} = $a->pfama_acc;
     $self->searchAll();
     print S $a->pfama_acc."\n";
   }
