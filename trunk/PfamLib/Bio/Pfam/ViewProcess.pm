@@ -1961,7 +1961,7 @@ sub write_stockholm_file {
     or $self->mailUserAndExit("Could not open $filename.ann for writing [$!]");
   $self->writeGFAnnotationBlock(\*ANNFILE, $pfam, $GFAnn);
   
-  if(ref($aln) eq 'HashRef'){
+  if(ref($aln) eq 'HASH'){
     if(exists($aln->{GS})){
       print ANNFILE "#=GF SQ   ", scalar( @{$aln->{GS}} ), "\n";
       foreach my $line (@{ $aln->{GS} }){
@@ -1979,6 +1979,7 @@ sub write_stockholm_file {
       }
     }
     print ANNFILE "//\n";
+    close(ANNFILE);
   }else{
     print ANNFILE "#=GF SQ   ", scalar( $aln->no_sequences() ), "\n";
     my $stock = $aln->write_stockholm;
@@ -1988,10 +1989,10 @@ sub write_stockholm_file {
     foreach my $line ( @{$stock} ) {
       print ANNFILE $line;
     }
+    close(ANNFILE);
+    $self->checkflat( $filename . ".ann"); 
   }
-  close(ANNFILE);
   
-  $self->checkflat( $filename . ".ann");
 }
 
 #Designed to read in a HMMER3 stockholm alignment and write out a Pfam annotated
@@ -2022,8 +2023,8 @@ sub writeAnnotateAlignment {
   }
 
   $self->write_stockholm_file($filename, $alignData, $GFAnn);
-  $filename .= ".ann";
-  return($filename);
+  #$filename .= ".ann";
+  return($filename, scalar( @{$alignData->{GS}} ));
 }
 
 

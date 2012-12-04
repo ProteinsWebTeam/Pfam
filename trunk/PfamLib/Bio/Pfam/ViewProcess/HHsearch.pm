@@ -3,8 +3,11 @@ package Bio::Pfam::ViewProcess::HHsearch;
 use strict;
 use warnings;
 use File::Copy;
+use POSIX qw(ceil);
 use Moose;
 use Moose::Util::TypeConstraints;
+use Data::Printer;
+use Getopt::Long qw(GetOptionsFromArray);
 use File::Temp qw(tempdir);
 use File::Slurp qw(read_file append_file);
 
@@ -81,9 +84,9 @@ sub makeHHMFromAcc {
     $self->logger->warn("Could not find accession $acc in the database.");
   }
   $self->logger->debug("Working on ".$a->pfama_acc."\n");
-  $self->_getSEED($a->pfama_acc);
+  $self->_getSEED($a->auto_pfama);
   my $hhm = $self->makeHHMFromFile("SEED", $acc);
-  retrun($hhm);
+  return($hhm);
 }  
 
 sub searchModel {
@@ -103,7 +106,7 @@ sub searchModel {
     }
   }
   #Run the search
-  system($self->config->hhsearchBin."/hhsearch -v 0 -i $hhm -d $hmmlib -o $hhm.hhr")
+  system($self->config->hhsearchBin."/hhsearch -v 0 -i $hhm -d $hmmlib -o $output")
     and $self->logger->logdie("Failed to run hhsearch");
   
   #Return the name of the output file.
@@ -112,7 +115,7 @@ sub searchModel {
 
 sub makeHHLib {
   my ( $self ) = @_;
-  
+
   my $hmmLib = $self->config->hhsearchLibDir."/Pfam-A.hhm";
   if(!$hmmLib and !$self->options->{newlib}){
     $self->logger->logdie("Could not find ".$self->config->hhLibDir."/Pfam-A.hhm, try building it by using -newlib option.");
@@ -153,9 +156,14 @@ sub submitToFarm {
   my $resource = "-M3500000 -R'select[mem>3500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=3500]'";
   my $memory = 3500000;  
   my $fh = IO::File->new();
+
+  my $options = '';
+  $options .= ' -upload ' if ($self->upload);
+  $options .= " -evalue ".$self->evalThres;;
+
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
               $self->options->{statusdir}."/hhsearch.\%J.\%I.log  -JHHsearch\"[1-$noJobs]\"");
-  $fh->print( "performHHsearch.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
+  $fh->print( "performHHsearch.pl $options -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
@@ -176,7 +184,7 @@ sub searchRange {
   if($chunk and $chunkSize ) {
     $self->logger->debug("Calculating PfamA paging");
 
-    my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
+    my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
       {},
       {
       page => 1,
@@ -209,9 +217,9 @@ sub searchRange {
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
     $self->logger->debug("Working on ".$a->pfama_acc);
-    $self->_getSEED($a->pfama_acc);
+    $self->_getSEED($a->auto_pfama);
     my $results = $self->makeHHMFromFileAndSearch("SEED", $a->pfama_acc);
-    if($self->options->{upload}){
+    if($self->upload){
       $self->uploadResult($results, $a);
     }
     my @data = read_file($results);
@@ -252,6 +260,7 @@ sub processOptions {
   );
 
   if ($help) {
+    $options->{help} = 1;
     $self->options($options);
     return;
   }
@@ -312,16 +321,16 @@ sub uploadResult {
   
   #Delete all regions belonging to this row.
   $self->logger->debug("Deleting rows for ".$pfamRow->pfama_acc);
-  $self->pfamdb->getSchema->resultset('Pfama2PfamaHhsearchResults')
+  $self->pfamdb->getSchema->resultset('Pfama2pfamaHhsearchResults')
                   ->search({auto_pfama1 => $pfamRow->auto_pfama})->delete;
   
   my @rows;
   
   while(<R>){
-    if(/^No/){
+    if(/^No\s+\d+/){
       #We have hit the end of the summary block.
       last;
-    }elsif(/^\s+\d+\s+\PF\d{5}/){
+    }elsif(/^\s+\d+\s+PF\d{5}/){
       #line should look like this:
 # No Hit                             Prob E-value P-value  Score    SS Cols Query HMM  Template HMM
 #  1 PF10000                        100.0 2.2E-43 1.8E-47  216.0   0.0   72    1-72      1-72  (72)
@@ -329,29 +338,30 @@ sub uploadResult {
 #  3 PF09866                         64.0    0.79 6.5E-05   23.6   0.0   14   17-30      1-14  (42)
       my @r = split(/\s+/, $_);
       my $pfam_acc = $r[2];
-      next if($pfam_acc eq $a->pfama_acc); #Do not stor self self matches
+      next if($pfam_acc eq $pfamRow->pfama_acc); #Do not stor self self matches
       my $evalue   = $r[4];
       if($evalue <= $self->evalThres){
         my $b = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $pfam_acc});
         if($b and $b->pfama_acc){
-          push(@rows, { auto_pfama1 => $a->auto_pfama,
+          push(@rows, { auto_pfama1 => $pfamRow->auto_pfama,
                         auto_pfama2 => $b->auto_pfama,
                         evalue      => $evalue });
         }
       }
     }
+    #$self->logger->debug($_);
   }
   close(R);
   if(scalar(@rows)){
-    $self->pfamdb->getSchema->resultset('Pfama2PfamaHhsearchResults')->populate(\@rows);
+    $self->pfamdb->getSchema->resultset('Pfama2pfamaHhsearchResults')->populate(\@rows);
   }
 }
 
 
 sub _getSEED {
-  my ($self, $acc) = @_;
+  my ($self, $auto) = @_;
   
-  my $row = $self->pfamdb->getSchema->resultset('PfamaInternal')->find( { auto_pfama => $a->auto_pfama } );
+  my $row = $self->pfamdb->getSchema->resultset('PfamaInternal')->find( { auto_pfama => $auto } );
   $row->seed_uncompressed();
   
 }
@@ -376,12 +386,12 @@ sub _buildHMM {
   }else{
     $outputCmd = " -o  $hmmfilename";
   }
-  system($self->config->hmmer3binDev."/esl-reformat --replace .:- afa $seedFile > $tempDir/$seedFile.$$.fasta") 
+  system($self->config->hmmer3binDev."/esl-reformat --replace .:- afa $seedFile > $tempDir/$$.fasta") 
         and $self->logger->logdie("Failed to run esl-reformat on $seedFile");
       
-  system($self->config->hhsearchBin."/hhmake -M ".$self->match." -id ".$self->identity." $nameCmd -i $tempDir/$seedFile.$$.fasta $outputCmd > /dev/null 2>&1 ")
-      and $self->logger->logdie("Failed to run hhmake on $seedFile");
-  unlink("$tempDir/$seedFile.$$.fasta");
+  system($self->config->hhsearchBin."/hhmake -M ".$self->match." -id ".$self->identity." $nameCmd -i $tempDir/$$.fasta $outputCmd > /dev/null 2>&1 ")
+      and $self->logger->logdie("Failed to run hhmake on $tempDir/$$.fasta [based on $seedFile]");
+  unlink("$tempDir/$$.fasta");
   return($hmmfilename);
 }
 

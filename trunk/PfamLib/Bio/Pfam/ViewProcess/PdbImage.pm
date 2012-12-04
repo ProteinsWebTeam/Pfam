@@ -195,11 +195,11 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'normal';
-  my $resource = "-M2500000 -R'select[mem>2500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=2500]'";
-  my $memory = 2500000;  
+  my $resource = "-M7500000 -R'select[mem>7500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=7500]'";
+  my $memory = 7500000;
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
-              $self->options->{statusdir}."/store.\%J.\%I.log  -JPDBImg\"[1-$noJobs]\"");
+              $self->options->{statusdir}."/pdb.\%J.\%I.log  -JPDBImg\"[1-$noJobs]\"");
   $fh->print( "makePdbImages.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
   $self->logger->debug("Status is:".$self->statusFile."\n");
@@ -505,7 +505,7 @@ sub _munge_molauto {
         }
       }
     }
-    $self->logger->debug( $pfam_markup[$#pfam_markup] );
+    #$self->logger->debug( $pfam_markup[$#pfam_markup] );
   }
 
   #close KEY;
