@@ -177,8 +177,8 @@ sharedRequirements.css.push( "tree.css" );
     var treeData = [
       { label: "Gene", path: "Gene;",
         children: [ { label: "CRISPR", path: "Gene; CRISPR;" },
-                    { label: "anti-sense", path: "Gene; antisense;" },
-                    { label: "anti-toxin", path: "Gene; antitoxin;" },
+                    { label: "antisense", path: "Gene; antisense;" },
+                    { label: "antitoxin", path: "Gene; antitoxin;" },
                     { label: "lncRNA", path: "Gene; lncRNA;" },
                     { label: "microRNA", path: "Gene; miRNA;" },
                     { label: "rRNA", path: "Gene; rRNA;" },
