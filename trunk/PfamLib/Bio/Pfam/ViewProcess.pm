@@ -603,7 +603,7 @@ sub _getFullRegions {
                     ->getSchema
                       ->resultset('Pfamseq')
                         ->search({'pfama_reg_full_significants.auto_pfama' => $self->pfam->auto_pfama,
-                                                  },
+                                  'pfama_reg_full_significants.in_full' => 1,                },
                                  { prefetch => 'pfama_reg_full_significants' });
 
   my %regs;
