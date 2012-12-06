@@ -13,7 +13,11 @@ my $view = Bio::Pfam::ViewProcess::Proteome->new;
 if($view->options->{species}){
   $view->speciesToTaxId;
   $view->makeTSV($view->options->{taxid});
-}#searching each in turn.
+}
+elsif($view->options->{taxid}){
+  $view->makeTSV($view->options->{taxid});
+}
+#searching each in turn.
 elsif($view->options->{chunk} and $view->options->{chunkSize}){
   $view->proteomeRange;
 }
