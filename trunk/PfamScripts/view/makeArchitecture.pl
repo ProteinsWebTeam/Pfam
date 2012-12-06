@@ -2,11 +2,8 @@
 
 use strict;
 use warnings;
-use Log::Log4perl qw(get_logger :levels);
 use Data::Printer;
 
-use Bio::Pfam::Config;
-use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::ViewProcess::Architecture;
 
 my $view = Bio::Pfam::ViewProcess::Architecture->new;
