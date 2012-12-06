@@ -20,7 +20,7 @@ if($view->options->{help}){
 #We have been given an accession, get the HMM from th
 if ( $view->options->{acc} ) {
   $view->logger->info("Preforming Search ".$view->options->{acc});
-  $view->searchAll
+  $view->searchAll;
 }
 #We have been given a range, paging through families in the database
 #searching each in turn.
