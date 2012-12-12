@@ -418,29 +418,29 @@ unless ( -s "$thisRelDir/swisspfam" ) {
 # TODO Swisspfam style file fpr meta and ncbi
 
 
-unless( -e "$logDir/madeSeqInfo"){
-  $logger->info("Making seq info, they will take about 48 hours!!!");
-  #TODO $dbh->do("drop table if exists seq_info") or $logger->logdie("Error dropping seq_info table:".$dbh->errstr);
-  $dbh->do("CREATE TABLE seq_info AS
-  SELECT DISTINCT( p.pfamA_acc ),
-         p.pfamA_id,
-         p.description,
-         prf.auto_pfamA,
-         prf.auto_pfamseq,
-         ps.pfamseq_id,
-         ps.pfamseq_acc,
-         ps.description AS seq_description,
-         ps.species
-  FROM   pfamA AS p, 
-         pfamseq AS ps,
-         pfamA_reg_full_significant AS prf
-  WHERE  prf.in_full = 1
-  AND    p.auto_pfamA     = prf.auto_pfamA
-  AND    prf.auto_pfamseq = ps.auto_pfamseq;") or $logger->logdie("Error generating seq_info table:".$dbh->errstr);
-  open(L, ">$logDir/madeSeqInfo") or $logger->logdie("Error opening $logDir/madeSeqInfo for writing:[$!]\n");
-  print L "Done\n";
-  close(L);
-}
+#unless( -e "$logDir/madeSeqInfo"){
+#  $logger->info("Making seq info, they will take about 48 hours!!!");
+#  #TODO $dbh->do("drop table if exists seq_info") or $logger->logdie("Error dropping seq_info table:".$dbh->errstr);
+#  $dbh->do("CREATE TABLE seq_info AS
+#  SELECT DISTINCT( p.pfamA_acc ),
+#         p.pfamA_id,
+#         p.description,
+#         prf.auto_pfamA,
+#         prf.auto_pfamseq,
+#         ps.pfamseq_id,
+#         ps.pfamseq_acc,
+#         ps.description AS seq_description,
+#         ps.species
+#  FROM   pfamA AS p, 
+#         pfamseq AS ps,
+#         pfamA_reg_full_significant AS prf
+#  WHERE  prf.in_full = 1
+#  AND    p.auto_pfamA     = prf.auto_pfamA
+#  AND    prf.auto_pfamseq = ps.auto_pfamseq;") or $logger->logdie("Error generating seq_info table:".$dbh->errstr);
+#  open(L, ">$logDir/madeSeqInfo") or $logger->logdie("Error opening $logDir/madeSeqInfo for writing:[$!]\n");
+#  print L "Done\n";
+#  close(L);
+#}
 
 
 
@@ -1310,34 +1310,26 @@ sub checkflat_b {
 sub makeSwissPfam {
   my ( $releasedir, $pfamseqdir ) = @_;
   $logger->info("Making swisspfam\n");
-  $logger->logdie("Work to do on this bit, see code";)
 
-#Run these queries, bring back and concatenate them together.
-#mysql> select length, pfamseq_id, concat(pfamseq_acc, ".", seq_version), seq_start, seq_end, pfamB_id, number_regions pfamB_acc from pfamseq s, pfamB_reg r, pfamB b where r.auto_pfamB=b.auto_pfamB and r.auto_pfamseq=s.auto_pfamseq into outfile "/tmp/sw-pf.b";
+  #The next two system calls need to be reworked!
+  if ( !-s "$pfamseqdir/pfamseq.len" ) {
+    $logger->info("Going to needlessly waste time and run pfamseq_lengths.pl, $pfamseqdir");
+    system("gunzip -c $pfamseqdir/uniprot_sprot.dat.gz $pfamseqdir/uniprot_trembl.dat.gz | pfamseq_lengths.pl > $pfamseqdir/pfamseq.len")
+      and $logger->logdie("Failed to run pfamseq_lengths.pl:[$!]");
+  }
 
-#mysql> select length, pfamseq_id, concat(pfamseq_acc, ".", seq_version), seq_start, seq_end, concat(pfamA_acc, ".", version), a.description  from pfamseq s, pfamA_reg_full_significant r, pfamA a where r.auto_pfamseq=s.auto_pfamseq and a.auto_pfamA=r.auto_pfamA and in_full=1 into outfile '/tmp/sw-pf.a';
+  $logger->info(
+    "Going to needlessly waste some more time and run swisspfam_start_ends.pl");
+  system(
+"swisspfam_start_ends.pl $pfamseqdir/pfamseq.len $releasedir/Pfam-A.full $releasedir/Pfam-B > $releasedir/sw-pf"
+  ) and $logger->logdie("Failed to run swusspfam_start_ends.pl\n");
 
-#SCP back
-# cat sw-pf.a sw-pf.b | sort -k2 > sw-pf
+  if ( !-s "$releasedir/sw-pf" ) {
+    $logger->logdie( "No $releasedir/sw-pf file made!\n", 'die' );
+  }
+
   $logger->info("Going to make swisspfam");
   system("mkswissPfam $releasedir/sw-pf > $releasedir/swisspfam")
-    and $logger->logdie("Failed to run mkswissPfam:[$!]");
-
-
-#SCP back - probably quicker to sort once back?
-#select length, metaseq_acc, metaseq_acc, seq_start, seq_end, concat(pfamA_acc, ".", version), a.number_meta, a.description  from metaseq s, meta_pfamA_reg r, pfamA a where r.auto_metaseq=s.auto_metaseq and a.auto_pfamA=r.auto_pfamA order by metaseq_id into outfile '/tmp/mt-pf'
-
-  $logger->info("Going to make metapfam");
-  system("mkswissPfam $releasedir/mt-pf > $releasedir/metapfam")
-    and $logger->logdie("Failed to run mkswissPfam:[$!]");
-
-
-#SCP back - probably quicker to sort once back?
-#select length, s.gi, s.gi, seq_start, seq_end, concat(pfamA_acc, ".", version), a.number_ncbi, a.description  from ncbi_seq s, ncbi_pfamA_reg r, pfamA a where r.gi=s.gi and a.auto_pfamA=r.auto_pfamA order by s.gi into outfile '/tmp/gp-pf'
-
-
-  $logger->info("Going to make ncbipfam");
-  system("mkswissPfam $releasedir/gp-pf > $releasedir/ncbipfam")
     and $logger->logdie("Failed to run mkswissPfam:[$!]");
 }
 
