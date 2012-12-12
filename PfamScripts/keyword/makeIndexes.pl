@@ -128,23 +128,91 @@ sub build_pfama_index {
 }
 
 sub build_pdb_index {
-  my $results = $schemata->resultset('PdbPfamaReg')->search({}, {'prefetch' => ['auto_pfama','pdb_id']});
 
-  build_index({
-    path    => $outdir . '/pdb',
-    results => $results,
-    pattern => '.',
-    fields  => [ 'id', 'title', 'keywords', 'accession', 'description' ],
-    mapping => sub {
-      return {
-        id          => $_[0]->auto_pfama->pfama_id,
-        accession   => $_[0]->auto_pfama->pfama_acc,
-        description => $_[0]->auto_pfama->description,
-        title       => $_[0]->pdb_id->title,
-        keywords    => $_[0]->pdb_id->keywords,
+  my $schema = Lucy::Plan::Schema->new;
+
+  my $char_tokenizer = Lucy::Analysis::RegexTokenizer->new( pattern => '.' );
+
+  my $acc_analyzer =
+    Lucy::Analysis::PolyAnalyzer->new(
+    analyzers => [ $case_folder, $char_tokenizer, $stemmer, ], );
+
+  my $acc_type = Lucy::Plan::FullTextType->new( analyzer => $acc_analyzer, );
+
+  my @fields = (
+    'id',            'description', 'pdb_keyword', 'pdb_title',
+    'pdb_accession', 'accession'
+  );
+
+  for my $field (@fields) {
+    $schema->spec_field( name => $field, type => $acc_type );
+  }
+
+  my $indexer = Lucy::Index::Indexer->new(
+    index    => $outdir . '/pdb',
+    schema   => $schema,
+    create   => 1,
+    truncate => 1,
+  );
+
+  #The query!
+  my $dbh = $schemata->storage->dbh;
+  my $sthRegions =
+    $dbh->prepare( "SELECT DISTINCT p.pdb_id, keywords, title   "
+      . "FROM pdb_pfamA_reg r, pdb p "
+      . "WHERE auto_pfamA=? AND p.pdb_id=r.pdb_id" );
+
+  #Now work out the range of accessions
+  my @pfams = $schemata->resultset('Pfama')->search( {} );
+
+  foreach my $p (@pfams) {
+    next if ( !$p->number_structures or $p->number_structures == 0 );
+    $sthRegions->execute( $p->auto_pfama );
+    my $allPdbs = $sthRegions->fetchall_arrayref;
+    my ( %title, %keyword, %acc );
+    foreach my $row (@$allPdbs) {
+      $acc{ lc( $row->[0] ) }++;
+      my @w = split( /\s+/, $row->[1] );
+      foreach my $w (@w) {
+        $w = lc($w);
+        $w =~ s/\,$//;    #Remove trailing commas
+        $w =~ s/\.$//;    #Remove trailing commas
+        $keyword{$w}++;
       }
-    },
-  });
+      my @t = split( /\s+/, $row->[2] );
+      foreach my $t (@t) {
+        $t = lc($t);
+        $t =~ s/\,$//;    #Remove trailing commas
+        $t =~ s/\.$//;    #Remove trailing commas
+        $title{$t}++;
+      }
+    }
+
+    my $title_str = '';
+    foreach my $w ( keys %title ) {
+      $title_str .= $w . ' ';
+    }
+    my $keyword_str = '';
+    foreach my $w ( keys %keyword ) {
+      $keyword_str .= $w . ' ';
+    }
+    my $acc_str = '';
+    foreach my $w ( keys %acc ) {
+      $acc_str .= $w . ' ';
+    }
+
+    $indexer->add_doc(
+      {
+        id            => $p->pfama_id,
+        accession     => $p->pfama_acc,
+        description   => $p->description,
+        pdb_keyword   => $keyword_str,
+        pdb_title     => $title_str,
+        pdb_accession => $acc_str
+      }
+    );
+  }
+  $indexer->commit;
   warn "PDB index completed\n";
 }
 
@@ -196,7 +264,7 @@ sub build_seqinfo_index {
 
 
   # get a list of all the directories in the dump from makeSeqInfo.pl
-  my @directories = glob("$seq_info*");
+  my @directories = glob("$seq_info/*");
   # traverse each one and get a list of the files in each directory
   for my $dir (@directories) {
     my @files = glob( "$dir/*.kw");
