@@ -1028,29 +1028,9 @@ sub makePfamAFlat {
       );
     }
 
-    my $fTree = Compress::Zlib::memGunzip( $row->tree );
-    unless ( length($fTree) > 10 ) {
-      $logger->warn('The tree file has no size');
-      push(
-        @errors,
-        {
-          family  => $family->pfama_acc,
-          file    => 'fullTree',
-          message => 'Inappropriate size'
-        }
-      );
-    }
-
     #
 
-    open( FULLTREE, ">$thisRelDir/trees/full/" . $family->pfama_acc . ".tree" )
-      || $logger->logdie;
-    print FULLTREE $fTree;
-    close(FULLTREE);
-    print PFAMAFULL $fAli;
-
     $fAli  = undef;
-    $fTree = undef;
     $row   = undef;
 
 #------------------------------------------------------------------------------------
@@ -1117,38 +1097,12 @@ sub makePfamAFlat {
       }
     );
 
-    #Get the number of expected regions pfamA_meta_reg
-    my $metaFullSigCount =
-      $pfamDB->getSchema->resultset('MetaPfamaReg')
-      ->search( { auto_pfama => $family->auto_pfama, } );
-    $logger->info("Got $metaFullSigCount");
-    if ( $row and $row->auto_pfama and ( $metaFullSigCount > 0 ) ) {
+    if ( $row and $row->auto_pfama and $family->number_meta > 0 ) {
 
       #Okay, looks like we have an alignments
       #PFAMAMETA
       $logger->info("Checking Metagenomics files");
 
-      my $tree = Compress::Zlib::memGunzip( $row->tree );
-      if ( $metaFullSigCount > 1 ) {
-        unless ( length($tree) > 10 ) {
-          $logger->warn("Metagenomics tree has incorrect size");
-          push(
-            @errors,
-            {
-              family  => $family->pfama_acc,
-              file    => 'metaTree',
-              message => 'No size'
-            }
-          );
-        }
-
-        #Write the SEED alignment and tree files to disk!
-        open( METATREE,
-          ">$thisRelDir/trees/meta/" . $family->pfama_acc . ".tree" )
-          || $logger->logdie("Error opening file");
-        print METATREE $tree;
-        close(METATREE);
-      }
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
       unless ( length($ali) > 10 ) {
         $logger->warn("Metagenomics ali has incorrect size");
@@ -1162,18 +1116,6 @@ sub makePfamAFlat {
         );
       }
       print PFAMAMETA $ali;
-
-      unless ( length( Compress::Zlib::memGunzip( $row->jtml ) ) > 10 ) {
-        $logger->warn("Metagenomics html has incorrect size");
-        push(
-          @errors,
-          {
-            family  => $family->pfama_acc,
-            file    => 'metaHTML',
-            message => 'No size'
-          }
-        );
-      }
     }
     $row              = undef;
     $metaFullSigCount = undef;
@@ -1187,35 +1129,11 @@ sub makePfamAFlat {
       }
     );
 
-    my $ncbiFullSigCount =
-      $pfamDB->getSchema->resultset('NcbiPfamaReg')
-      ->search( { auto_pfama => $family->auto_pfama, } );
-    if ( $row and $row->auto_pfama and ( $ncbiFullSigCount > 0 ) ) {
+    if ( $row and $row->auto_pfama and ( $family->number_ncbi> 0 ) ) {
 
       #Okay, looks like we have an alignments
       #PFAMAMETA
       $logger->info("Checking NCBI files");
-      my $tree = Compress::Zlib::memGunzip( $row->tree );
-      if ( $ncbiFullSigCount > 1 ) {
-        unless ( length($tree) > 10 ) {
-          $logger->warn("NCBI tree has incorrect size");
-          push(
-            @errors,
-            {
-              family  => $family->pfama_acc,
-              file    => 'ncbiTree',
-              message => 'No size'
-            }
-          );
-        }
-
-        #Write the SEED alignment and tree files to disk!
-        open( NCBITREE,
-          ">$thisRelDir/trees/ncbi/" . $family->pfama_acc . ".tree" )
-          || $logger->logdie("Error opening file");
-        print NCBITREE $tree;
-        close(NCBITREE);
-      }
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
       unless ( length($ali) > 10 ) {
         $logger->warn("Metagenomics ali has incorrect size");
