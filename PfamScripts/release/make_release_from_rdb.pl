@@ -9,6 +9,7 @@ use Cwd;
 use LWP::UserAgent;
 use Log::Log4perl qw(:easy);
 use DateTime;
+use File::Touch;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamJobsDBManager;
@@ -213,14 +214,15 @@ foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
   }
 }
 
-unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
-  makePfamAFlat( $thisRelDir, $pfamDB );
-}
+#unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
+makePfamAFlat( $thisRelDir, $pfamDB );
+#}
 
 unless ( -e "$logDir/checkedA" ) {
   foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
     $logger->info("Checking format of $f");
     checkflat($f);
+    touch("$logDir/checkedA");
   }
 }
 
@@ -234,6 +236,7 @@ unless ( -e "$logDir/checkedB" ) {
   foreach my $f ("$thisRelDir/Pfam-B") {
     $logger->info("Checking format of $f");
     checkflat_b($f);
+    touch("$logDir/checkedB");
   }
 }
 
@@ -760,15 +763,15 @@ sub makePfamAFlat {
   $logger->info(
     "There will be " . scalar(@families) . " families in this release" );
 
-  makePfamAFlatSeed( $thisRelDir, $pfamDB, \@families );
-  makePfamAFlatFull( $thisRelDir, $pfamDB, \@families );
-  makePfamAFasta( $thisRelDir, $pfamDB, \@families );
-  makePfamAHMMs( $thisRelDir, $pfamDB, \@families );
+  makePfamAFlatSeed( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.seed") ;
+  makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
+  makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
+  makePfamAHMMs( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.hmm");
   foreach my $level (qw(rp15 rp35 rp55 rp75)) {
-    makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level );
+    makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
   }
-  makePfamANcbi( $thisRelDir, $pfamDB, \@families, );
-  makePfamAMeta( $thisRelDir, $pfamDB, \@families );
+  makePfamANcbi( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.ncbi");
+  makePfamAMeta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.metagenomics");
 }
 
 sub makePfamAFlatSeed {
@@ -875,7 +878,7 @@ sub makePfamAFlatSeed {
 #-------------------------------------------------------------------------------
 }
 
-sub checkStockhomlFile {
+sub checkStockholmFile {
   my ( $acc, $type, $row, $outfile, $exptCount, $dbCount ) = @_;
 
   my @errors;
@@ -903,11 +906,11 @@ sub checkStockhomlFile {
   seek( TMP, 0, 0 );
   while (<TMP>) {
     unless ($fileSQCount) {
-      if (/^#=GF SQ   (\d+)/) {
+      if (/^#=GF\s+SQ\s+(\d+)/) {
         $fileSQCount = $1;
       }
     }
-
+    next if(/^$/);
     #This should be the raw lines in the file
     unless (/^(#|\/\/)/) {
       $fileCount++;
@@ -962,6 +965,7 @@ sub checkStockhomlFile {
       );
     }
   }
+  print $outfile $fileContent;
   return ( \@errors );
 }
 
@@ -1165,7 +1169,7 @@ sub makePfamAFlatRP {
 
       #$acc, $type, $row, $outfile, $exptCount, $dbCount
       my $stoErrors =
-        checkStockholmFile( $family->pfama_acc, 'full', $row, $PFAMARP,
+        checkStockholmFile( $family->pfama_acc, $level, $row, $PFAMARP,
         $family->$col );
     }
     else {
@@ -1259,14 +1263,14 @@ sub makePfamAMeta {
   errors( \@errors );
 }
 
-sub makePfamANCBI {
+sub makePfamANcbi {
 my ( $thisRelDir, $pfamDB, $families ) = @_;
 
   my @errors;
   open( PFAMANCBI, ">$thisRelDir/Pfam-A.full.ncbi" )
     || $logger->logdie("Could not open Pfam-A.full.ncbi");
 
-  $logger->info("Checking Metagenomics files");
+  $logger->info("Checking NCBI files");
   foreach my $family (@$families) {
     next
       if ( !defined( $family->number_ncbi ) or $family->number_ncbi == 0 );
