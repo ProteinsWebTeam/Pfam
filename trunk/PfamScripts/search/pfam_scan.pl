@@ -15,7 +15,7 @@ my $VERSION = "1.3";
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
      $clan_overlap, $fasta, $align, $help, $as, $pfamB, 
-     $json, $only_pfamB, $cpu );
+     $json, $only_pfamB, $cpu, $translate );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -31,11 +31,9 @@ GetOptions( 'help'         => \$help,
             'pfamB'        => \$pfamB,
             'only_pfamB'   => \$only_pfamB,
             'json:s'       => \$json,
-	    'cpu=i'        => \$cpu
+            'cpu=i'        => \$cpu,
+            'translate=s'  => \$translate
 );
-
-
-
 
 help() if $help;
 help() unless ( $dir and $fasta ); # required options
@@ -88,11 +86,16 @@ die qq(FATAL: output file "$outfile" already exists)
   if ( $outfile and -s $outfile );
 
 if ( $as ) {
-  die qq("FATAL: "-as" option only works on Pfam-A families")
+  die qq(FATAL: "-as" option only works on Pfam-A families)
     unless $pfamA;
 
   die qq(FATAL: can't find "active_site.dat" in "$dir")
     unless -s "$dir/active_site.dat";
+}
+
+if ( $translate ) {
+  die qq(FATAL: "-translate" option accepts only "all" and "orf")
+    unless ( $translate eq "all" or $translate eq "orf" );
 }
 
 #-------------------------------------------------------------------------------
@@ -110,7 +113,8 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -as           => $as,
   -hmmlib       => \@hmmlib,
   -version      => $VERSION,
-  -cpu          => $cpu
+  -cpu          => $cpu,
+  -translate    => $translate
 );
 
 # run the search
@@ -151,22 +155,25 @@ Usage: pfam_scan.pl -fasta <fasta_file> -dir <directory location of Pfam files>
 
 Additonal options:
 
-  -h              : show this help
-  -outfile <file> : output file, otherwise send to STDOUT
-  -clan_overlap   : show overlapping hits within clan member families (applies to Pfam-A families only)
-  -align          : show the HMM-sequence alignment for each match
-  -e_seq <n>      : specify hmmscan evalue sequence cutoff for Pfam-A searches (default Pfam defined)
-  -e_dom <n>      : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
-  -b_seq <n>      : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
-  -b_dom <n>      : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
-  -pfamB          : search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
-                    in addition to searching Pfam-A HMMs
-  -only_pfamB     : search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
-  -as             : predict active site residues for Pfam-A matches
-  -json [pretty]  : write results in JSON format. If the optional value "pretty" is given,
-                    the JSON output will be formatted using the "pretty" option in the JSON
-                    module
-  -cpu <n>        : number of parallel CPU workers to use for multithreads (default all)
+  -h                : show this help
+  -outfile <file>   : output file, otherwise send to STDOUT
+  -clan_overlap     : show overlapping hits within clan member families (applies to Pfam-A families only)
+  -align            : show the HMM-sequence alignment for each match
+  -e_seq <n>        : specify hmmscan evalue sequence cutoff for Pfam-A searches (default Pfam defined)
+  -e_dom <n>        : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
+  -b_seq <n>        : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
+  -b_dom <n>        : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
+  -pfamB            : search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
+                      in addition to searching Pfam-A HMMs
+  -only_pfamB       : search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
+  -as               : predict active site residues for Pfam-A matches
+  -json [pretty]    : write results in JSON format. If the optional value "pretty" is given,
+                      the JSON output will be formatted using the "pretty" option in the JSON
+                      module
+  -cpu <n>          : number of parallel CPU workers to use for multithreads (default all)
+  -translate <mode> : treat sequence as DNA and perform six-frame translation. The <mode> should be
+                      either "all", to translate everything and produce no individual ORFs, or "orf",
+                      to report only ORFs with length greater than 20 (default no translation)
 
   * Please note that the Pfam-B HMMs are of much lower quality than
     Pfam-A HMMs, and matches to Pfam-B families should always be treated
@@ -250,6 +257,14 @@ Write the results in JSON format [default: false]
 =item B<-cpu>
 
 Number of parallel CPU workers to use for multithreads [default: all]
+
+=item B<-translate> I<mode>
+
+Treat the input sequence as DNA and perform a six-frame translation before
+searching. I<Mode> must be either "all", meaning translate in full, with 
+stops, and produce no individual ORFs, or "orf", meaning translate and 
+report only ORFs of length greater than 20. The translation is performed
+using "translate", from the HMMER v2.3.2 package.
 
 =item B<-h>
 
