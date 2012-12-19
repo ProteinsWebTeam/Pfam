@@ -34,7 +34,6 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::Active_site::as_search;
 use Bio::SimpleAlign;
 use Bio::Pfam::Scan::Seq;
-use Data::Printer;
 
 use Carp;
 use IPC::Run qw( start finish );
@@ -78,7 +77,7 @@ sub new {
   my $self = {};
   bless $self, $class;
 
-# To avoid hard coding the location for the binary, we assume it will be on the path.....
+  # To avoid hard coding the location for the binary, we assume it will be on the path.....
   $self->{_HMMSCAN} = 'hmmscan';
 
   # handle arguments, if we were given any here
@@ -107,8 +106,7 @@ sub search {
   # set up the output header
   $self->_build_header;
 
-  croak
-qq(FATAL: no sequence given; set the search parameters before calling "search")
+  croak qq(FATAL: no sequence given; set the search parameters before calling "search")
     unless defined $self->{_sequence};
 
   my ( %AllResults, $pfamB, $firstResult );
@@ -194,6 +192,10 @@ qq(FATAL: no sequence given; set the search parameters before calling "search")
       else {
         push( @{ $self->{_header} }, "#     predict active sites: off\n" );
       }
+
+      if ( $self->{_translate} ) {
+        push @{ $self->{_header} },  "#   translate DNA sequence: " . $self->{_translate} . "\n";
+      }
     }
 
     # Determine which hits are significant
@@ -254,7 +256,7 @@ qq(FATAL: no sequence given; set the search parameters before calling "search")
           }
         }
 
-#If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
+        #If seq doesn't exist in $firstResult, need to add both sequence and units to $firstResult
         unless ($flag) {
           foreach my $result2 ( @{ $AllResults{$AllResult} } ) {
             if ( $result2->seqName eq $seq_id ) {
@@ -268,16 +270,13 @@ qq(FATAL: no sequence given; set the search parameters before calling "search")
 
   }    # end of "if keys %AllResults"
 
-  push @{ $self->{_header} },
-"# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n#\n";
+  push @{ $self->{_header} }, "# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =\n#\n";
 
   if ( $self->{_as} ) {
-    push @{ $self->{_header} },
-"# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>";
+    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>";
   }
   else {
-    push @{ $self->{_header} },
-"# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>";
+    push @{ $self->{_header} }, "# <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan>";
   }
 
   if ( $self->{_translate} ) {
@@ -402,8 +401,7 @@ sub _process_args {
 
   $self->{_hmmscan_cutoff} = ();
   if ( $args->{-e_seq} ) {
-    croak
-qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
+    croak qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-zero number)
       unless $args->{-e_seq} > 0;
 
     push @{ $self->{_hmmscan_cutoff} }, '-E', $args->{-e_seq};
@@ -413,8 +411,7 @@ qq(FATAL: the E-value sequence cut-off "$args->{-e_seq}" must be a positive non-
     croak q(FATAL: if you supply "-e_dom" you must also supply "-e_seq")
       unless $args->{-e_seq};
 
-    croak
-qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
+    croak qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero number)
       unless $args->{-e_dom} > 0;
 
     push @{ $self->{_hmmscan_cutoff} }, '--domE', $args->{-e_dom};
@@ -466,8 +463,7 @@ qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero
   # Now check that the library exists in the data dir!
   foreach my $hmmlib ( @{ $self->{_hmmlib} } ) {
 
-    croak
-      qq(FATAL: can't find $hmmlib and/or $hmmlib binaries in "$args->{-dir}")
+    croak qq(FATAL: can't find $hmmlib and/or $hmmlib binaries in "$args->{-dir}")
       unless (
       -s $self->{_dir},
       "/$hmmlib"
@@ -802,8 +798,7 @@ sub _parse_sequence {
       $seq_id = $1;
 
       if ( exists( $seq_hash->{$seq_id} ) ) {
-        croak
-"FATAL: Sequence identifiers must be unique. Your fasta file contains two sequences with the same id ($seq_id)";
+        croak "FATAL: Sequence identifiers must be unique. Your fasta file contains two sequences with the same id ($seq_id)";
       }
 
       #Store the max length of seq name, use this later when printing in ascii
@@ -812,8 +807,7 @@ sub _parse_sequence {
         or length($seq_id) > $self->{_max_seqname} );
     }
     else {
-      croak
-"FATAL: Unrecognised format of fasta file. Each sequence must have a header line in the format '>identifier  <optional description>'"
+      croak "FATAL: Unrecognised format of fasta file. Each sequence must have a header line in the format '>identifier  <optional description>'"
         unless $seq_id;
       chomp;
       $seq_hash->{$seq_id} .= $_;
@@ -824,6 +818,18 @@ sub _parse_sequence {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 _translate_fasta
+
+Uses the HMMER v2.3.2 progam "translate" to perform a six-frame translation of
+the input sequence. Checks the parameter "-translate". 
+
+Accepted arguments are "all" and "orf", where "all" means (from the "translate"
+help text) "translate in full, with stops; no individual ORFs" and "orf" means
+"report only ORFs greater than minlen" where minlen is set to the default of
+20.
+
+=cut
 
 sub _translate_fasta {
   my ($self) = @_;
