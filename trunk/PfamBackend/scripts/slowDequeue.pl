@@ -118,10 +118,10 @@ while (1) {
     elsif ( $job->{'job_type'} eq "dna" ) {
       $cmd = "preJob.pl -id " . $job->{id} . " -tmp " . $qsout->tmpDir . " && ";
       $cmd .= " " . $job->{'command'};
-      $cmd .= " -in " . $job->{job_id} . ".fa";
-      $cmd .= " -tmp " . $qsout->tmpDir;
-      $cmd .= " -data " . $qsout->dataFileDir;
+      $cmd .= " -fasta " . $qsout->tmpDir . '/' . $job->{job_id} . ".fa";
+      $cmd .= " -dir " . $qsout->dataFileDir;
       $cmd .= " -cpu " . $qsout->cpus;
+      $cmd .= " -translate";
       $cmd .= " > "
         . $qsout->tmpDir . "/"
         . $job->{job_id}
