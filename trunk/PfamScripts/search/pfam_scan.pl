@@ -32,7 +32,7 @@ GetOptions( 'help'         => \$help,
             'only_pfamB'   => \$only_pfamB,
             'json:s'       => \$json,
             'cpu=i'        => \$cpu,
-            'translate=s'  => \$translate
+            'translate:s'  => \$translate
 );
 
 help() if $help;
@@ -93,9 +93,17 @@ if ( $as ) {
     unless -s "$dir/active_site.dat";
 }
 
-if ( $translate ) {
-  die qq(FATAL: "-translate" option accepts only "all" and "orf")
-    unless ( $translate eq "all" or $translate eq "orf" );
+if ( defined $translate ) {
+  if ( $translate eq "" ) {
+    # no argument to "-translate" was given, so make "orf" the default
+    $translate = 'orf';
+  }
+  else {
+    # there was an argument to "-translate", so make sure it's valid
+    unless ( $translate eq "all" or $translate eq "orf" ) {
+      die qq(FATAL: "-translate" option accepts only "all" and "orf");
+    }
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -171,9 +179,11 @@ Additonal options:
                       the JSON output will be formatted using the "pretty" option in the JSON
                       module
   -cpu <n>          : number of parallel CPU workers to use for multithreads (default all)
-  -translate <mode> : treat sequence as DNA and perform six-frame translation. The <mode> should be
-                      either "all", to translate everything and produce no individual ORFs, or "orf",
-                      to report only ORFs with length greater than 20 (default no translation)
+  -translate [mode] : treat sequence as DNA and perform six-frame translation before searching. If the
+                      optional value "mode" is given it must be either "all", to translate everything 
+                      and produce no individual ORFs, or "orf", to report only ORFs with length greater 
+                      than 20. If "-translate" is used without a "mode" value, the default is to 
+                      report ORFs (default no translation)
 
   * Please note that the Pfam-B HMMs are of much lower quality than
     Pfam-A HMMs, and matches to Pfam-B families should always be treated
@@ -258,13 +268,15 @@ Write the results in JSON format [default: false]
 
 Number of parallel CPU workers to use for multithreads [default: all]
 
-=item B<-translate> I<mode>
+=item B<-translate> [I<mode>]
 
 Treat the input sequence as DNA and perform a six-frame translation before
-searching. I<Mode> must be either "all", meaning translate in full, with 
-stops, and produce no individual ORFs, or "orf", meaning translate and 
-report only ORFs of length greater than 20. The translation is performed
-using "translate", from the HMMER v2.3.2 package.
+searching, using the "translate" program from the HMMER v2.3.2 package. If the
+optional value I<mode> is given, it must be either "all" or "orf": "all" means
+translate in full, with stops, and produce no individual ORFs; "orf" means
+translate and report only ORFs of length greater than 20. If B<translate> is
+used but I<mode> is omitted, the default is to translate using the "orf"
+method [default: off (no translation)]
 
 =item B<-h>
 
