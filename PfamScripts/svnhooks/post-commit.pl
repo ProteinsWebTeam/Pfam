@@ -8,6 +8,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ClanIO;
+use Bio::Pfam::ViewProcess;
 use Mail::Mailer;
 
 my($rev, $repos);
@@ -143,8 +144,9 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
     %{ $config->pfamlive; }
   );
-  
-  Bio::Pfam::ViewProcess::initiateClanViewProcess($clan, $revlook->author, $revlook->{config} );
+ 
+  my $view = Bio::Pfam::ViewProcess->new;  
+  $view->initiateClanViewProcess($clan, $revlook->author, $revlook->{config} );
   
 }elsif($logMessage =~ /CLKILL/){
   my @deleted = $revlook->deleted;
