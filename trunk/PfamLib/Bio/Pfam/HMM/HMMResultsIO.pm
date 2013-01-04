@@ -322,8 +322,8 @@ sub parsePFAMOUT {
     /^# Domain scores/ && last;
 
     #if (/^(\S+)\s+(.*?)\s+(\S+)\s+(\S+)\s+(\d+)\s*$/) {
-    if (/^(\S+)\s+(.*?)\s+(\S+)\s+(\S+)\s+(\d+)\s+\S+\s+\S+\s*$/) {
-
+    if (/^(\S+)\s+(.*?)\s+(\S+)\s+(\S+)\s+(\d+)\s+\S+\s+(\S+)\s*$/) {
+      
       $hmmRes->addHMMSeq(
         Bio::Pfam::HMM::HMMSequence->new(
           {
@@ -331,7 +331,8 @@ sub parsePFAMOUT {
             desc       => $2,
             bits       => $3,
             evalue     => $4,
-            numberHits => $5
+            numberHits => $5,
+	    bias       => $6
           }
         )
       );
@@ -347,7 +348,7 @@ sub parsePFAMOUT {
 
     #if (/^(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s*$/) {
     if (
-      /^(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)/)
+      /^(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)/)
     {
       $hmmRes->addHMMUnit(
         Bio::Pfam::HMM::HMMUnit->new(
@@ -360,7 +361,8 @@ sub parsePFAMOUT {
             hmmFrom  => $6,
             hmmTo    => $7,
             bits     => $8,
-            evalue   => $9
+            evalue   => $9,
+	    bias     => $10
           }
         )
       );
@@ -689,6 +691,10 @@ sub _readUnitData {
       }
       elsif (/$pattern2/) {
         $units[ $matchNo - 1 ]->hmmalign->{seq} .= $1;
+      }
+      elsif (/^\s+([x\.]+)\s+RF$/) {
+        my $rf = $1;
+        $units[ $matchNo - 1 ]->hmmalign->{rf} .= $rf;
       }
       elsif (/^\s+([0-9\*\.]+)\s+PP$/) {
         my $pp = $1;
