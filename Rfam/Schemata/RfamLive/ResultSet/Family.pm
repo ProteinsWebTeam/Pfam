@@ -12,3 +12,4 @@ sub id2acc {
 
   return $fam->rfam_acc();
 }
+1;
