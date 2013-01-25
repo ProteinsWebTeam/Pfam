@@ -10,6 +10,6 @@ sub id2acc {
 
   my $fam = $self->find({rfam_id=> $id});
 
-  return (defined($fam->rfam_acc()) ? $fam->rfam_acc() : undef);
+  return (defined($fam) ? $fam->rfam_acc() : undef);
 }
 1;
