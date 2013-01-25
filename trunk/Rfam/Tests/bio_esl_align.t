@@ -12,10 +12,10 @@ my $test_file = $dir . '/data/test.sto';
 
 my $msa = Bio::Rfam::Family::MSA->new({
     fileLocation => $test_file,
-    type => 'seed'
+    aliType => 'seed'
 });
 
 isa_ok($msa, 'Bio::Rfam::Family::MSA');
 
-is($msa->type, 'seed', 'Expecting to see seed type');
+is($msa->aliType, 'seed', 'Expecting to see seed type');
 

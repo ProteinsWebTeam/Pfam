@@ -26,6 +26,7 @@ use strict;
 use warnings;
 use Moose;
 use MooseX::NonMoose;
+use Moose::Util::TypeConstraints;
 
 extends 'Bio::Easel::MSA';
 
@@ -35,10 +36,16 @@ extends 'Bio::Easel::MSA';
 
 =cut
 
-has 'type' => (
+has 'aliType' => (
   is       => 'ro',
-  isa      => 'Str',
+  isa      => enum([qw[ full seed ]]),
   required => 1,
 );
+
+#has 'type' => (
+#  is       => 'ro',
+#  isa      => 'Str',
+#  required => 1,
+#);
 
 1;
