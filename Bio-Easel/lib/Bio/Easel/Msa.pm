@@ -148,7 +148,8 @@ sub get_sqname_idx {
 sub set_sqname_idx { 
     my ($self, $idx, $newname) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
-    return c_set_sqname_idx($self->{esl_msa}, $idx, $newname);
+    c_set_sqname_idx($self->{esl_msa}, $idx, $newname);
+    return;
 }
 
 sub write_msa { 
