@@ -23,11 +23,11 @@ unless(defined $entry){
 }
 
 if ( $entry !~ /^RF\d{5}$/ ) {
-  warn "Looks like $model is an identifier, rather than an accession.\n"; 
+  warn "Looks like $entry is an identifier, rather than an accession.\n"; 
   my $entryOri = $entry;
   $entry = $db->resultset('Family')->id2acc($entry);
   unless($entry){
-    die "Could not find anything that looked like $oriModel, please try with an accession.\n";    
+    die "Could not find anything that looked like $entryOri, please try with an accession.\n";    
   }
 }
 
@@ -48,7 +48,7 @@ if (-d $dest ){
   exit(1); 
 }
 
-$client->checkAllFamilyFiles($model);
+$client->checkAllFamilyFiles($entry);
 
 #Okay- if we have not thrown an exception we should be good to go!
 
@@ -57,7 +57,7 @@ my $caught_cntrl_c;
 $SIG{INT} = sub {$caught_cntrl_c = 1;};   # don't allow control C for a bit!
 
 mkdir($dest) or die "Could not make directory $dest:[$!]\n";
-$client->checkoutFamily($model, $dest);
+$client->checkoutFamily($entry, $dest);
 
 #Fix timestamps.....
 
@@ -88,5 +88,5 @@ fail if it is already there.
 EOF
 
 exit;
-  
+
 }
