@@ -3,6 +3,7 @@ package Bio::Easel::MSA;
 use strict;
 use warnings;
 use File::Spec;
+use Carp;
 
 =head1 NAME
 
@@ -23,7 +24,7 @@ my $easel_src_dir = undef;
 BEGIN {
     $src_file = __FILE__;
     $src_file =~ s/\.pm/\.c/;
-    
+
     my $file = __FILE__;
     ($easel_src_dir) = $file =~ /^(.*)\/blib/;
     $easel_src_dir = File::Spec->catfile($easel_src_dir, 'src/easel');
@@ -75,7 +76,7 @@ if you don't export anything, such as for a purely object-oriented module.
 =cut
 
 sub new {
-    my( $caller, $fileLocation ) = @_;
+    my( $caller, $args) = @_;
     my $class = ref($caller) || $caller;
     my $self = {};
 
@@ -83,9 +84,9 @@ sub new {
 
     # First check that the file exists. If it exists, read it with 
     # Easel and populate the object from the ESL_MSA object
-    if(-e $fileLocation){
+    if(-e $args->{fileLocation}){
 	eval{
-	    $self->{path} = $fileLocation;
+	    $self->{path} = $args->{fileLocation};
 	    $self->read_msa();
 	    # should I populate the object here? Or wait until specific values are 
 	    # requested by caller, e.g. 'nseq' is requested which is actually a 
@@ -95,11 +96,11 @@ sub new {
 	}; # end of eval
 	
 	if($@) {
-	    confess("Error creating ESL_MSA from $fileLocation, $@\n"); 
+	    confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
 	}
     } 
     else {
-	confess("Expected to recieve a valid file location path ($fileLocation doesn\'t exist)");  
+	confess("Expected to recieve a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
     }
     return $self;
 }
