@@ -24,13 +24,21 @@ Incept: finnr, Jan 25, 2013 8:29:29 AM
 
 use strict;
 use warnings;
-use Bio::Easel::MSA;
+use Moose;
+use MooseX::NonMoose;
 
-use base qw(Bio::Easel::MSA);
+extends 'Bio::Easel::MSA';
+
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
 =cut
+
+has 'type' => (
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
+);
 
 1;
