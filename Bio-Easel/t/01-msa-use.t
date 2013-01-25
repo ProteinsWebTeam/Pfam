@@ -5,6 +5,6 @@ use Test::More;
 plan tests => 1;
 
 BEGIN {
-    use_ok( 'Bio::Easel::Msa' ) || print "Bail out!\n";
+    use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
 }
 
