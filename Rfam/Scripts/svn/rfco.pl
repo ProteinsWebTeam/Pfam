@@ -13,7 +13,7 @@ use Bio::Rfam::Config;
 use Bio::Rfam::SVN::Client;
 
 my $config = Bio::Rfam::Config->new;
-my $db     = Bio::Rfam::Config->rfamlive;
+my $db     = $config->rfamlive;
 
 my $entry = shift;
 
