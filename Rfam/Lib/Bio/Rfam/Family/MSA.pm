@@ -42,10 +42,4 @@ has 'aliType' => (
   required => 1,
 );
 
-#has 'type' => (
-#  is       => 'ro',
-#  isa      => 'Str',
-#  required => 1,
-#);
-
 1;

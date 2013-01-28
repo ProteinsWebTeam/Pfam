@@ -55,6 +55,7 @@ use warnings;
 use Moose;
 use Bio::Rfam::Types ':all';
 use Moose::Util::TypeConstraints;
+
 #use Bio::Rfam::Types qw(RfamAcc RfamId RfamDesc RfamAuthor RfamClanAcc hmmCutOff RfamRef faslseDiscoveryRate);
 #-------------------------------------------------------------------------------
 
@@ -118,10 +119,6 @@ has 'WIKI' => (
   isa       => 'HashRef'
 );
 
-has 'CLASS' => (
-  is        => 'ro',
-  isa       => 'HashRef'
-);
 
 has 'MSP' => (
   is        => 'ro',
@@ -182,7 +179,6 @@ has 'order' => (
   isa   => 'ArrayRef',
   default => sub {[ qw(ID AC PI DE AU SE SS CUTGA CUTTC CUTNC FR BM SM MSP TP SN WIKI CL CLASS NESTS REFS DBREFS CC SQ EDITS private ) ] }
 );
-
 
 __PACKAGE__->meta->make_immutable;
 1;

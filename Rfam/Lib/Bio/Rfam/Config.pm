@@ -6,6 +6,7 @@ use warnings;
 use Config::General;
 use Catalyst::Utils;
 use RfamLive;
+use Data::Printer;
 
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
@@ -175,6 +176,7 @@ sub rfamlive {
     @_,
     };
 
+    p($dbiParams);
     eval {
       $self->{'schema'} =
         RfamLive->connect( "dbi" . ":"
