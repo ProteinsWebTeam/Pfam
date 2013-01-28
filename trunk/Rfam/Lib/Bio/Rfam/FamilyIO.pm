@@ -86,11 +86,8 @@ sub loadRfamFromLocalFile {
   my $params = {'SEED'     => { fileLocation => "$dir/$family/SEED",
                                 aliType      => 'seed' },
                 'DESC'     => $self->parseDESC( "$dir/$family/DESC"),
-                'CM'       => $self->parseCM("$dir/$family/CM") };
-           
-                #'CM'       => to_CMRfam($params{'HMM'}),
-                #'DESC'     => to_DESCRfam($params{'DESC'}) };
-#                'scores'   => to_ScoresRfam($params{'scores'})};
+                'CM'       => $self->parseCM("$dir/$family/CM"),
+                'scores'   => $self->parseScores("$dir/$family/scores") };
                 
   #Use Moose to coerce these through!
   my $famObj = Bio::Rfam::Family->new( $params );
@@ -99,7 +96,7 @@ sub loadRfamFromLocalFile {
 }
 
 
-sub loadDfamFromSVN {
+sub loadRfamFromSVN {
   my ( $self, $family, $client ) = @_;
 
   my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
@@ -111,9 +108,30 @@ sub loadDfamFromSVN {
     $client->catFile( $family, $f, $fh );
     close($fh);
   }
-  my $famObj = $self->loadDfamFromLocalFile( $family, $dir, 'svn' );
+  my $famObj = $self->loadRfamFromLocalFile( $family, $dir, 'svn' );
   return $famObj;
 }
+
+
+
+sub parseCM {
+  my ( $self, $file ) = @_;
+
+  my @file;
+  if ( ref($file) eq "GLOB" ) {
+    @file = <$file>;
+  }
+  elsif ( ref($file) eq "ARRAY" ) {
+    @file = @{$file};
+  }
+  else {
+    open( my $fh, "$file" ) or die "Could not open $file:[$!]\n";
+    @file = <$fh>;
+  }
+}
+
+
+
 
 sub parseScores {
   my ( $self, $file ) = @_;
@@ -131,32 +149,50 @@ sub parseScores {
   }
 
   my $noHits = 0;
-  my %regions;
+  my @regions;
   foreach my $line (@file) {
-    if ( $line =~ /^(\S+)\s+(\S+)\/(\d+)\-(\d+)\s+(\d+)\-(\d+)/ ) {
-      push(
-        @{ $regions{$2} },
-        {
-          start    => $3,
-          end      => $4,
-          score    => $1,
-          aliStart => $5,
-          aliEnd   => $6,
-        }
-      );
-      $noHits++;
+    #How many scores file data elements
+    next if($line =~ /^#/);
+    my @row = split(/\t/, $line);
+    
+    if($row[0] !~ m|^\S+/\d+\-\d+$|){
+      die "First element in $line does not look like a name/start-end\n";
     }
-    else {
-      die "Failed to parse line in scores file: [$line]\n";
+    
+    foreach my $p (qw(1 2 6 7)){
+      if($row[$p] !~ m|^\d+$|){
+        die "$row[$p] in $line does not look like an integer\n";
+      }
     }
+    
+    if($row[0] ne $row[3].'/'.$row[1].'-'.$row[2]){
+      die "Expected $row[0] to match ".$row[3].'/'.$row[1].'-'.$row[2]."\n";
+    }
+    
+    foreach my $p (qw(4 5)){
+      local $^W = 0;
+      if ($row[$p] == 0 && $row[$p] ne '0') {
+        print "$row[$p] does not look like a number number\n";
+      }
+    }
+    if($row[8] !~ /^(53|0|3|5)$/){
+      die "Incorrect truncation type, $row[8] in $line\n";
+    }
+    
+    if(defined($row[9])){
+      if($row[9] ne 'seed' and $row[9] ne 'full'){
+        die "Incorrect type, $row[8] in $line\n";
+      }
+    }
+    push(@regions, \@row);
+    $noHits++;
   }
-  my $scoresObj = Bio::Dfam::Family::Scores->new(
+  my $scoresObj = Bio::Rfam::Family::Scores->new(
     {
       numRegions => $noHits,
-      regions    => \%regions
+      regions    => @regions
     }
   );
-
   return ($scoresObj);
 }
 
@@ -447,20 +483,17 @@ sub writeEmptyDESC {
     CUTGA => '27.00',
     CUTNC => '27.00',
     CUTTC => '27.00',
-    BM    => 'hmmbuild  -o /dev/null HMM SEED;',
-    SM    => 'nhmmer -Z ' . $self->{config}->dbsize . ' -E 1 HMM dfamseq',
-    TP    => 'Repeat'
   );
 
-  my $desc = 'Bio::Dfam::Family::DESC'->new(\%desc);
+  my $desc = 'Bio::Rfam::Family::DESC'->new(\%desc);
   $self->writeDESC($desc);
 }
 
 sub writeDESC {
   my ( $self, $desc, $path ) = @_;
 
-  unless ( $desc->isa('Bio::Dfam::Family::DESC') ) {
-    confess("You did not pass in a  Bio::Dfam::Family::DESC object");
+  unless ( $desc->isa('Bio::Rfam::Family::DESC') ) {
+    confess("You did not pass in a  Bio::Rfam::Family::DESC object");
   }
 
   my $descfile;
@@ -604,81 +637,53 @@ sub writeDESC {
   close(D);
 }
 
-sub updateDfamAInRDB {
-  my ( $self, $famObj, $dfamDB, $isNew, $depositor ) = @_;
+sub updateRfamAInRDB {
+  my ( $self, $famObj, $isNew, $depositor ) = @_;
 
   #This essential updates all of the content contained in the desc file
-  unless ( $famObj and $famObj->isa('Bio::Dfam::Family::DfamA') ) {
-    confess("Did not get a Bio::Dfam::Family::DfamA object");
+  unless ( $famObj and $famObj->isa('Bio::Rfam::Family') ) {
+    confess("Did not get a Bio::Rfam::Family object");
   }
 
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::DfamLiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::DfamLiveDBManager object");
-  }
+  my $rfamDB = $self->{config}->rfamlive;
 
   if ($isNew) {
-    $dfamDB->createDfamA( $famObj, $depositor );
+    $rfamDB->resultset('Family')->createFamily( $famObj, $depositor );
   }
   else {
-    $dfamDB->updateDfamA($famObj);
-  }
-
-
-  if ( $famObj->DESC->WIKI ) {
-    $dfamDB->updateDfamAWikipedia($famObj);
-  }
-
-  if ( $famObj->DESC->REFS ) {
-    $dfamDB->updateDfamALitRefs($famObj);
-  }
-
-  if ( $famObj->DESC->DBREFS ) {
-    $dfamDB->updateDfamADbXrefs($famObj);
-  }
-
-  if ( $famObj->DESC->NESTS ) {
-    $dfamDB->updateDfamANested($famObj);
-  }
-
-  if ( $famObj->DESC->EDITS ) {
-    $dfamDB->updateEdits($famObj);
-  }
-
-}
-
-sub updateDfamARegions {
-  my ( $self, $famObj, $dfamDB ) = @_;
-
-  unless ( $famObj and $famObj->isa('Bio::Dfam::Family::DfamA') ) {
-    confess("Did not get a Bio::Dfam::Family::DfamA object");
-  }
-
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::DfamLiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::DfamLiveDBManager object");
+    $rfamDB->resultset('Family')->updateFamily($famObj);
   }
   
-  $dfamDB->updateDfamARegSeed($famObj);
-  $dfamDB->updateDfamARegFull($famObj);  
+}
+
+sub updateFamilyRfamseqRegions {
+  my ( $self, $famObj ) = @_;
+
+  unless ( $famObj and $famObj->isa('Bio::Rfam::Family') ) {
+    confess("Did not get a Bio::Rfam::Family object");
+  }
+
+  my $rfamDB = $self->{config}->rfamlive;
+  
+  $rfamDB->resultset('SeedRegion')->updateSeedReg($famObj);
+  $rfamDB->resultset('FullRegion')->updateFullReg($famObj);  
   
 }
 
 
-sub moveDfamAInRDB {
+sub moveFamilyInRDB {
   my ( $self, $famObj, $dfamDB ) = @_;
 
-  unless ( $famObj and $famObj->isa('Bio::Dfam::Family::DfamA') ) {
-    confess("Did not get a Bio::Dfam::Family::DfamA object");
+  unless ( $famObj and $famObj->isa('Bio::Rfam::Family') ) {
+    confess("Did not get a Bio::Rfam::Family object");
   }
 
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::DfamLiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::DfamLiveDBManager object");
-  }
 
-  $dfamDB->updateDfamA($famObj);
+  $dfamDB->resultset('Family')->updateFamily($famObj);
 
 }
 
-sub deleteEntryInRDB {
+sub deleteFamilyInRDB {
   my ( $self, $family, $dfamDB, $comment, $forward, $user ) = @_;
 
   unless ( $family and $family =~ /RF\d{5}/ ) {
@@ -693,7 +698,7 @@ sub deleteEntryInRDB {
     confess('Did not get a comment as to why this family is being killed');
   }
 
-  $dfamDB->deleteEntry( $family, $comment, $forward, $user );
+  $dfamDB->deleteFamily( $family, $comment, $forward, $user );
 
 }
 
@@ -774,64 +779,25 @@ sub uploadDfamAAligns {
 
 sub results {
   my($self) = @_;
-  my $resIO = Bio::Dfam::HMM::HMMResultsIO->new();
-  my $dfamout = abs_path($resIO->dfamout);
-  my $reversed = abs_path($resIO->reversed) if(-e $resIO->reversed);
-  my $scores = $dfamout;
+  my $tabout = abs_path($self->tabout);
+  my $scores = $tabout;
   $scores =~ s/DFAMOUT$/scores/;
-  my $files = {dfamout => $dfamout,
+  my $files = {tabout => $tabout,
                scores  => $scores };
-  $files->{reversed} = $reversed if($reversed);
   my $resObj = Bio::Dfam::HMM::HMMResults->new( $files ); 
   return $resObj;
 }
 
 sub writeScoresFile {
   my($self, $resObj) = @_;
-  my $resIO = Bio::Dfam::HMM::HMMResultsIO->new();
-  $resIO->writeScoresFile($resObj);
-}
-
-sub hitBitsCutoffFromEvalue {
-  my($self, $resObj, $evalue, $descObj, $model_file, $config) = @_;
-  my $resIO = Bio::Dfam::HMM::HMMResultsIO->new();
-  my $bit = $resIO->hitBitsCutoffFromEvalue($resObj, $evalue, $descObj, $model_file, $config);
-  return defined($bit) ? $bit : undef;
-}
-
-sub hitBitsBasedOnFDR {
-  my($self, $resObj, $descObj, $model_file, $fdr, $config) = @_;
-  my $resIO = Bio::Dfam::HMM::HMMResultsIO->new();
-  $resIO->hitBitsBasedOnFDR( $resObj, $descObj, $model_file, $fdr, $config);
-}
-
-sub determineFDRBasedOnBits {
-  my($self, $resObj, $descObj,$model_file, $ga, $tc, $config) = @_;
-  my $resIO = Bio::Dfam::HMM::HMMResultsIO->new();
-  $resIO->determineFDRBasedOnBits( $resObj, $descObj, $model_file, $ga, $tc, $config);
+  #Todo - TABFILE Pasring code....
+  $self->writeScoresFile($resObj);
 }
 
 
-sub parseCM {
-  my ($self, $file) = @_;
-  
-  my $fh;
-  if(defined($file)){
-    if(ref($file) eq "GLOB"){
-      $fh = $file;
-    }else{
-      open($fh, '<', $file) or die "Failed to open $file for reading: [$!]\n";
-    }
-  }else{
-    die "Please specify a file that contains the CM for parsing.\n";
-  }
-  
-  my @cm = <$fh>;
-  
-  
-  
-  
-}
+
+
+
 
 
 1;
