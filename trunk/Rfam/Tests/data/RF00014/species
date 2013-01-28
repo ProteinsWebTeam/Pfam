@@ -1,0 +1,455 @@
+# bits	evalue	seqLab	name	ncbiId	species	taxString
+99.29	3.53e-16	ALIGN	ACXI01000067.1	         656380	Escherichia coli FVE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	ADUK01000026.1	         670888	Escherichia coli 182	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	AEHU01000041.1	         550687	Escherichia coli E48	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	AFDV01000045.1	         754086	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	AFRO01000130.1	        1048765	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	AFSO01000012.1	        1052677	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+99.29	3.53e-16	ALIGN	CP000970.1	         439855	Escherichia coli SMS	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEHW01000009.1	         656449	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEHZ01000004.1	         656420	Escherichia coli M86	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEJX01000267.1	         910237	Escherichia sp. TW15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEKA01000189.1	         754332	Escherichia sp. TW10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEXD01000014.1	         754082	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+97.04	1.24e-15	ALIGN	AEZI01000041.1	         869669	Escherichia coli 1.2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AAJU02000025.1	         340197	Escherichia coli F11	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AAKB02000001.1	         344610	Escherichia coli 536	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AAMJ02000018.1	         358708	Shigella dysenteriae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	AAMK02000031.1	         358709	Escherichia coli 101	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHK02000002.1	         444447	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHL02000003.1	         444448	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHM02000001.1	         444449	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHQ01000023.1	         444453	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHR01000039.1	         478004	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABHU01000022.1	         478008	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ABJT01000033.1	         444454	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACAC01000041.1	         469598	Escherichia sp. 3_2_	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACDL01000009.1	         556266	Shigella sp. D9	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	ACDM01000010.1	         457401	Escherichia sp. 4_1_	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACGN01000094.1	         525281	Escherichia coli 839	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXE01000075.1	         550672	Escherichia coli B08	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXF01000043.1	         550676	Escherichia coli B18	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXG01000025.1	         550677	Escherichia coli B35	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXH01000067.1	         656379	Escherichia coli FVE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXN01000010.1	         570506	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ACXO01000230.1	         637388	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADAU01000076.1	         656414	Escherichia coli H73	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADAV01000062.1	         656417	Escherichia coli M60	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADAX01000093.1	         656440	Escherichia coli TA2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADAY01000089.1	         656437	Escherichia coli TA1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADAZ01000106.1	         656443	Escherichia coli TA2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADBA01000084.1	         656444	Escherichia coli TA2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADBB01000108.1	         656408	Escherichia coli H59	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADBC01000117.1	         656393	Escherichia coli H29	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADMX01000204.1	         702430	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUL01000065.1	         670897	Escherichia coli 236	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUM01000081.1	         670892	Escherichia coli 343	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUN01000175.1	         670893	Escherichia coli EPE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUO01000202.1	         670894	Escherichia coli E12	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUP01000023.1	         670890	Escherichia coli LT-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUQ01000030.1	         670904	Escherichia coli 118	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUR01000058.1	         670905	Escherichia coli 135	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUS01000067.1	         670899	Escherichia coli RN5	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUT01000062.1	         754093	Shigella dysenteriae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	ADUU01000019.1	         216599	Shigella sonnei 53G	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	ADUX01000068.1	         702431	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUY01000804.1	         702432	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADUZ01000336.1	         702433	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADVA01000110.1	         702434	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADVB01000584.1	         702435	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADVC01000101.1	         702436	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWQ01000002.1	         679202	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWR01000009.1	         796392	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWS01000016.1	         679204	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWT01000021.1	         679205	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWU01000012.1	         679206	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	ADWV01000018.1	         679207	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AE005174.2	         155864	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AE014075.1	         199310	Escherichia coli CFT	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEDF01000010.1	         566546	Escherichia coli W	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEFA01000016.1	         753642	Escherichia coli NC1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEFE01000020.1	         879462	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEFI01000009.1	         656388	Escherichia coli H25	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEFJ01000045.1	         656390	Escherichia coli H26	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEHS01000014.1	         656372	Escherichia coli E11	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEHT01000035.1	         656374	Escherichia coli E15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEHV01000010.1	         656383	Escherichia coli H12	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEHX01000043.1	         656404	Escherichia coli H48	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEHY01000030.1	         656429	Escherichia coli TA0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AELA01000009.1	         913091	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AELB01000032.1	         913090	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AELC01000013.1	         913089	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AELD01000042.1	         913088	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AELE01000030.1	         913087	Escherichia coli TW1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AERM01000106.1	         941429	Shigella dysenteriae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	AERP01000044.1	         997824	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AERQ01000008.1	         941435	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AERR01000014.1	         997825	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AERT01000021.1	         945433	Escherichia coli WV_	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AERU01000033.1	         945434	Escherichia coli EC4	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AETX01000015.1	         926026	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AETY01000017.1	         926027	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AETZ01000025.1	         926028	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEUA01000015.1	         926029	Escherichia coli O55	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEUB01000150.1	         926030	Escherichia coli O55	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEUC01000013.1	         926032	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEYT01000025.1	         993513	Escherichia coli clo	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZK01000046.1	         869671	Escherichia coli 5.0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZM01000034.1	         869673	Escherichia coli H30	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZN01000046.1	         869674	Escherichia coli 95.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZO01000058.1	         869675	Escherichia coli 1.2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZP01000113.1	         869676	Escherichia coli 97.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZQ01000050.1	         869677	Escherichia coli 96.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZR01000027.1	         869678	Escherichia coli 99.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZS01000047.1	         869679	Escherichia coli 3.2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZT01000051.1	         869680	Escherichia coli 93.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZU01000097.1	         869681	Escherichia coli 4.0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZV01000094.1	         869682	Escherichia coli JB1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZW01000028.1	         869683	Escherichia coli 96.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZX01000061.1	         869684	Escherichia coli 5.0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZY01000027.1	         869685	Escherichia coli 9.1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AEZZ01000035.1	         869686	Escherichia coli 9.0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAA01000051.1	         869687	Escherichia coli 4.0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAB01000187.1	         869688	Escherichia coli 2.3	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAC01000022.1	         869689	Escherichia coli 3.3	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAD01000027.1	         869690	Escherichia coli 2.4	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAE01000040.1	         869691	Escherichia coli 3.2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAF01000018.1	         869692	Escherichia coli 300	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAG01000031.1	         869693	Escherichia coli TW0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAH01000030.1	         869694	Escherichia coli B41	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAI01000062.1	         869695	Escherichia coli 900	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFAT01000042.1	        1001989	Escherichia coli PCN	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDQ01000025.1	         754084	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDR01000017.1	         754085	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDS01000059.1	         754079	Escherichia coli 253	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDT01000033.1	         754080	Escherichia coli 303	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDU01000019.1	         754083	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDW01000022.1	         754087	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDX01000022.1	         754078	Escherichia coli G58	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDY01000029.1	         754088	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFDZ01000016.1	         754089	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFEA01000011.1	         754090	Escherichia coli STE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFEB01000035.1	         670903	Escherichia coli TX1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFFZ01000043.1	         766142	Shigella dysenteriae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	AFGC01000016.1	         766139	Shigella boydii 3594	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	AFGE01000026.1	         766141	Shigella boydii 5216	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	AFOB02000091.1	        1040638	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFOG01000181.1	        1038844	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFPN02000009.1	        1042804	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFPS01000083.1	        1042803	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFRH01000006.1	        1048254	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFRI01000007.1	        1048256	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFRK01000006.1	        1048266	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFRL01000007.1	        1048265	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFRM01000012.1	        1048334	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFST01000010.2	        1048254	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFUX01000005.1	        1068614	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFUY01000003.1	        1068615	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFUZ01000009.1	        1068616	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVA01000043.1	        1068617	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVB01000035.1	        1068618	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVC01000008.1	        1068619	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVD01000016.1	        1068620	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVE01000037.1	        1068621	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVF01000007.1	        1068622	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVG01000036.1	        1068624	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVH01000021.1	        1068623	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFVR01000224.1	        1038844	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFWO01000080.1	        1073985	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFWP01000121.1	        1073841	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AFYG01000001.1	        1069495	Escherichia coli XH0	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGSG01000118.1	        1101440	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTD01000001.1	        1050617	Escherichia coli UMN	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTG01000312.1	         926027	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTH01000189.1	        1078029	Escherichia coli O11	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTI01000044.1	        1078030	Escherichia coli O91	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTJ01000023.1	        1078031	Escherichia coli O12	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTK01000036.1	        1078033	Escherichia coli O45	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AGTL01000001.1	        1078035	Escherichia coli O14	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP009048.1	         316407	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP009240.1	         409438	Escherichia coli SE1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP009378.1	         431946	Escherichia coli SE1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP010953.1	         573235	Escherichia coli O26	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP010958.1	         585395	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP010960.1	         585396	Escherichia coli O11	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	AP012030.1	         536056	Escherichia coli DH1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	BA000007.2	         386585	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CADZ01000068.1	         752789	Escherichia coli HM6	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CAFL01000048.1	         941322	Escherichia coli O25	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000034.1	         300267	Shigella dysenteriae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	CP000036.1	         300268	Shigella boydii Sb22	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	CP000038.1	         300269	Shigella sonnei Ss04	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	CP000243.1	         364106	Escherichia coli UTI	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000247.1	         362663	Escherichia coli 536	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	SEED	CP000468.1	         405955	Escherichia coli APE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000800.1	         331111	Escherichia coli E24	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000802.1	         331112	Escherichia coli HS	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000946.1	         481805	Escherichia coli ATC	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP000948.1	         316385	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001063.1	         344609	Shigella boydii CDC 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+96.10	2.10e-15	ALIGN	CP001164.1	         444450	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001368.1	         544404	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001396.1	         595496	Escherichia coli BW2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001637.1	         536056	Escherichia coli DH1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001665.1	         866768	Escherichia coli 'BL	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001671.1	         655817	Escherichia coli ABU	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001846.1	         701177	Escherichia coli O55	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001855.1	         685038	Escherichia coli O83	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP001969.1	         714962	Escherichia coli IHE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002167.1	         869729	Escherichia coli UM1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002185.1	         566546	Escherichia coli W	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002211.1	         885276	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002212.1	         885275	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002516.1	         595495	Escherichia coli KO1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002729.1	         696406	Escherichia coli UMN	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP002797.2	        1033813	Escherichia coli NA1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CP003034.1	        1072459	Escherichia coli O7:	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU651637.1	            562	Escherichia coli	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928145.2	         585055	Escherichia coli 559	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928160.2	         585034	Escherichia coli IAI	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928161.2	         585035	Escherichia coli S88	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928162.2	         585397	Escherichia coli ED1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928163.2	         585056	Escherichia coli UMN	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	CU928164.2	         585057	Escherichia coli IAI	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	FM180568.1	         574521	Escherichia coli O12	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	FN554766.1	         216592	Escherichia coli 042	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	FN649414.1	         316401	Escherichia coli ETE	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	U00096.2	         511145	Escherichia coli str	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+96.10	2.10e-15	ALIGN	U17136.1	            562	Escherichia coli	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+95.72	2.62e-15	ALIGN	ACXA01000012.1	         469608	Klebsiella sp. 1_1_5	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	AFQK01000015.1	        1037890	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	AFQL01000018.1	        1037908	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	AFXH01000186.1	        1074486	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	AP006725.1	         484021	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	CP000647.1	         272620	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	CP000964.1	         507522	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	CP001891.1	         640131	Klebsiella variicola	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	ALIGN	CP002910.1	        1049565	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+95.72	2.62e-15	SEED	M15749.1	            548	Enterobacter aerogen	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter.
+95.03	3.84e-15	ALIGN	ADUV01000019.1	         198215	Shigella flexneri 2a	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AE005674.2	         198214	Shigella flexneri 2a	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AE014073.1	         198215	Shigella flexneri 2a	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFGV01000050.1	         766146	Shigella flexneri K-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFGW01000044.1	         766145	Shigella flexneri VA	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFGX01000036.1	         766148	Shigella flexneri K-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFGY01000029.1	         766147	Shigella flexneri K-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFGZ01000043.1	         766149	Shigella flexneri K-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFHA01000053.1	         766152	Shigella flexneri K-	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFHB01000021.1	         766157	Shigella flexneri 27	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFHC01000040.1	         766160	Shigella flexneri 43	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	AFHD01000028.1	         766159	Shigella flexneri 29	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	ALIGN	CP000266.1	         373384	Shigella flexneri 5 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+95.03	3.84e-15	SEED	CP001383.1	         591020	Shigella flexneri 20	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+94.57	4.97e-15	ALIGN	AEJZ01000086.1	         754336	Escherichia sp. TW14	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+94.57	4.97e-15	ALIGN	AEMF01000001.1	         754333	Escherichia albertii	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+94.07	6.56e-15	ALIGN	AERO01000132.1	         945360	Shigella flexneri CD	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+94.04	6.67e-15	ALIGN	AEJV01000098.1	         754330	Escherichia sp. TW09	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+94.04	6.67e-15	ALIGN	AEJW01000167.1	         754327	Escherichia sp. TW09	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+93.77	7.76e-15	ALIGN	AEZJ01000065.1	         869670	Escherichia coli 97.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+93.33	9.94e-15	ALIGN	AFWB01000307.1	        1069645	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+93.18	1.08e-14	ALIGN	AFWC01000151.1	        1069643	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+93.17	1.09e-14	ALIGN	AEWW01023768.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+93.17	1.09e-14	ALIGN	AGFS01051846.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+93.17	1.09e-14	ALIGN	AGFT01048353.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+93.17	1.09e-14	ALIGN	CP002824.1	        1028307	Enterobacter aerogen	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter.
+92.70	1.41e-14	ALIGN	FR877557.1	         218493	Salmonella bongori N	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+92.24	1.83e-14	SEED	CP000653.1	         399742	Enterobacter sp. 638	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter.
+91.78	2.37e-14	ALIGN	FN543502.1	         637910	Citrobacter rodentiu	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+91.74	2.42e-14	ALIGN	AEJY01000114.1	         910238	Escherichia albertii	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+91.17	3.33e-14	ALIGN	ADAW01000095.1	         656419	Escherichia coli M71	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+90.83	4.03e-14	ALIGN	ABWL02000002.1	         500640	Citrobacter youngae 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+90.65	4.47e-14	ALIGN	AERN01000002.1	         932676	Shigella boydii ATCC	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+90.51	4.84e-14	ALIGN	ABAK02000001.1	         439842	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Kentucky.
+90.51	4.84e-14	ALIGN	ABAM02000001.1	         439846	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Saintpaul.
+90.51	4.84e-14	ALIGN	ABAN01000022.1	         439847	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Saintpaul.
+90.51	4.84e-14	ALIGN	ABAO01000026.1	         440534	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar 4,[5],12:i:-.
+90.51	4.84e-14	ALIGN	ABEI01000026.1	         454231	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Kentucky.
+90.51	4.84e-14	ALIGN	ABEJ01000027.1	         454165	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	ABEL01000019.1	         454164	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Heidelberg.
+90.51	4.84e-14	ALIGN	ABEW01000001.1	         454168	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Newport.
+90.51	4.84e-14	ALIGN	ABFG01000001.1	         465516	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Hadar.
+90.51	4.84e-14	ALIGN	ABFH02000002.1	         465517	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Virchow.
+90.51	4.84e-14	ALIGN	ACBF01000013.1	         573395	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Tennessee.
+90.51	4.84e-14	ALIGN	AE006468.1	          99287	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	AE014613.1	         209261	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	AERV01000014.1	         946034	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	AESH01000005.1	         745015	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESI01000041.1	         745017	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESJ01000008.1	         745018	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESK01000044.1	         745019	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESL01000019.1	         745020	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESM01000002.1	         745021	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESN01000098.1	         745022	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESO01000031.1	         749949	NC_MB110209-0054	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESP01000071.1	         749950	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESQ01000027.1	         749951	CASC_09SCPH15965	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESV01000018.1	         763919	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AESZ01000027.1	         766762	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETA01000024.1	         789332	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETB01000006.1	         858313	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETC01000024.1	         858314	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETD01000005.1	         858315	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETE01000015.1	         858316	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETF01000024.1	         858317	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETG01000045.1	         858318	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETH01000030.1	         859198	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETI01000017.1	         859199	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETJ01000103.1	         871586	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETK01000014.1	         871587	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETL01000117.1	         871588	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETM01000065.1	         871589	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETN01000014.1	         871590	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETO01000011.1	         871591	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETP01000010.1	         871592	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETQ01000008.1	         871593	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETR01000063.1	         882863	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETS01000018.1	         882864	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETT01000121.1	         882865	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETU01000047.1	         882866	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETV01000017.1	         882867	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AETW01000037.1	         882869	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+90.51	4.84e-14	ALIGN	AEUK01000013.1	         909945	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Dublin.
+90.51	4.84e-14	ALIGN	AEUL01000001.1	         909947	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Gallinarum.
+90.51	4.84e-14	ALIGN	AF090431.1	          90371	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCI01000603.1	         913063	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Adelaide.
+90.51	4.84e-14	ALIGN	AFCJ01000726.1	         913241	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCK01000579.1	         913069	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCL01000516.1	         913071	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCM01000452.1	         913072	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Give.
+90.51	4.84e-14	ALIGN	AFCN01000609.1	         913073	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCO01000625.1	         913075	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCP01000690.1	         913077	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCR01000457.1	         913080	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCT01000241.1	         913081	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Rubislaw.
+90.51	4.84e-14	ALIGN	AFCU01000600.1	         913082	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Senftenberg.
+90.51	4.84e-14	ALIGN	AFCV01000459.1	         913083	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFCW01000698.1	         913084	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Urbana.
+90.51	4.84e-14	ALIGN	AFCX01000654.1	         913086	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AFYI01000002.1	         596155	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Infantis.
+90.51	4.84e-14	ALIGN	AL627272.1	          90370	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	AM933172.1	         550537	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Enteritidis.
+90.51	4.84e-14	ALIGN	AM933173.1	         550538	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Gallinarum.
+90.51	4.84e-14	ALIGN	CAAQ01003070.1	         497977	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAR01001323.1	         497976	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAS01001934.1	         497975	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAT01000041.1	         497974	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAU01000150.1	         497973	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAV01001964.1	         496068	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAW01001023.1	         496067	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAX01000711.1	         496066	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAY01007026.1	         496065	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CAAZ01000375.1	         496064	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhi.
+90.51	4.84e-14	ALIGN	CP000026.1	         295319	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	SEED	CP000857.1	         476213	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Paratyphi C.
+90.51	4.84e-14	ALIGN	CP000880.1	          41514	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	CP000886.1	        1016998	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Paratyphi B.
+90.51	4.84e-14	ALIGN	CP001113.1	         423368	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Newport.
+90.51	4.84e-14	ALIGN	CP001120.1	         454169	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Heidelberg.
+90.51	4.84e-14	ALIGN	CP001127.1	         439843	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	CP001138.1	         454166	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Agona.
+90.51	4.84e-14	ALIGN	CP001144.1	         439851	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Dublin.
+90.51	4.84e-14	ALIGN	CP001363.1	         588858	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	CP002487.1	         909946	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	CP002614.1	         990282	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	CP003047.1	        1081093	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Gallinarum.
+90.51	4.84e-14	ALIGN	FM200053.1	         554290	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+90.51	4.84e-14	ALIGN	FN424405.1	         568708	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	FQ312003.1	         216597	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Typhimurium.
+90.51	4.84e-14	ALIGN	FR775210.1	         936157	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Weltevreden.
+90.08	6.13e-14	ALIGN	ADUD01000637.1	         749548	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+89.77	7.30e-14	ALIGN	ACZD01000162.1	         667127	Klebsiella pneumonia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+89.77	7.32e-14	ALIGN	ADTR01000463.1	         749527	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+89.64	7.88e-14	ALIGN	AEME01000001.1	         754331	Escherichia sp. TW09	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+89.29	9.55e-14	ALIGN	AFOW01000028.1	         754092	Shigella flexneri J1	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Shigella.
+88.63	1.38e-13	ALIGN	AGSY01000066.1	        1104326	Enterobacter cloacae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+88.51	1.48e-13	ALIGN	ABKY02000004.1	         502346	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+88.24	1.72e-13	ALIGN	AEZL01000056.1	         869672	Escherichia coli 97.	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+88.05	1.91e-13	ALIGN	AE017220.1	         321314	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Choleraesuis.
+88.05	1.91e-13	ALIGN	AEJH01000015.1	         904139	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Choleraesuis.
+88.01	1.96e-13	ALIGN	CP000822.1	         290338	Citrobacter koseri A	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+87.82	2.18e-13	ALIGN	ABKX01000010.1	         502347	Escherichia albertii	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+87.16	3.15e-13	ALIGN	CP003026.1	         640513	Enterobacter asburia	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+86.86	3.74e-13	ALIGN	AEXB01000071.1	         980518	Enterobacter mori LM	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter.
+86.86	3.74e-13	ALIGN	AGFT01060680.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+86.35	4.96e-13	ALIGN	AEJU01000057.1	         909209	Escherichia albertii	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+86.30	5.10e-13	ALIGN	CACR01001771.1	         905052	Thauera selenatis AX	Bacteria; Proteobacteria; Betaproteobacteria; Rhodocyclales; Rhodocyclaceae; Thauera.
+86.30	5.10e-13	ALIGN	CP001918.1	         716541	Enterobacter cloacae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+84.15	1.71e-12	ALIGN	AEIA01000010.1	         550694	Escherichia ferguson	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+84.15	1.71e-12	ALIGN	AEVY01000022.1	         981367	Escherichia ferguson	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+84.15	1.71e-12	ALIGN	CU928158.2	         585054	Escherichia ferguson	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+84.03	1.82e-12	ALIGN	AGFS01064978.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+84.03	1.82e-12	ALIGN	AGFT01036910.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+82.66	3.93e-12	ALIGN	ACHR01059631.1	           3659	Cucumis sativus (cuc	Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta; Spermatophyta; Magnoliophyta; eudicotyledons; core eudicotyledons; rosids; fabids; Cucurbitales; Cucurbitaceae; Benincaseae; Cucumis.
+82.63	3.99e-12	ALIGN	AEWW01035345.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+82.63	3.99e-12	ALIGN	AFHR01000054.1	         888063	Enterobacter hormaec	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+82.63	3.99e-12	ALIGN	AGFS01082204.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+82.63	3.99e-12	ALIGN	AGFT01000913.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+82.63	3.99e-12	ALIGN	FP929040.1	         718254	Enterobacter cloacae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+81.53	7.40e-12	ALIGN	AGFT01133990.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+81.53	7.40e-12	ALIGN	CACD01000055.1	         670484	Citrobacter freundii	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+80.54	1.29e-11	ALIGN	ABWM02000009.1	         500639	Enterobacter cancero	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter.
+80.37	1.42e-11	ALIGN	AAAA02006309.1	          39946	Oryza sativa Indica 	Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta; Spermatophyta; Magnoliophyta; Liliopsida; Poales; Poaceae; BEP clade; Ehrhartoideae; Oryzeae; Oryza.
+79.85	1.89e-11	ALIGN	AEQT01000005.1	         941437	Citrobacter sp. UC1C	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+78.11	5.02e-11	ALIGN	AFCQ01000758.1	         913078	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Minnesota.
+77.73	6.20e-11	ALIGN	AFCS01000384.1	         913242	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella; Salmonella enterica subsp. enterica serovar Montevideo.
+77.58	6.73e-11	ALIGN	ACDJ01000013.1	         469595	Citrobacter sp. 30_2	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Citrobacter.
+76.17	1.49e-10	ALIGN	ADTO01000061.1	         749528	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+75.73	1.90e-10	ALIGN	AGFT01112056.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+74.43	3.93e-10	ALIGN	ADTX01000483.1	         749541	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+73.23	7.70e-10	ALIGN	ADTS01000213.1	         749539	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+71.81	1.71e-09	ALIGN	CP002272.1	         701347	Enterobacter cloacae	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Enterobacter; Enterobacter cloacae complex.
+70.98	2.72e-09	ALIGN	ADTW01000230.1	         749536	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+70.96	2.76e-09	ALIGN	AGFS01057005.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+67.88	1.55e-08	ALIGN	ADUG01000328.1	         749529	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+67.36	2.06e-08	ALIGN	AGFS01155364.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+67.36	2.06e-08	ALIGN	AGFT01035230.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+63.97	1.38e-07	ALIGN	AEWW01039936.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+63.97	1.38e-07	ALIGN	AGFT01060524.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+61.57	5.29e-07	ALIGN	ADTJ01000333.1	         749549	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTK01000211.1	         749533	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTL01000319.1	         749537	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTM01000153.1	         749545	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTN01000074.1	         749540	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTP01000032.1	         749531	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTQ01000225.1	         749547	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTY01000186.1	         749532	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADTZ01000452.1	         749538	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADUA01000332.1	         749542	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADUB01000199.1	         749544	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADUE01000326.1	         749546	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	ADUF01000193.1	         749530	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+60.17	1.16e-06	ALIGN	AFVS01001657.1	        1038844	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+58.78	2.53e-06	ALIGN	AFMO01000319.1	         930780	Cronobacter sakazaki	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Cronobacter.
+58.78	2.53e-06	ALIGN	FN543093.2	         693216	Cronobacter turicens	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Cronobacter.
+58.61	2.79e-06	ALIGN	AFBO01000194.1	         749535	Klebsiella sp. MS 92	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Klebsiella.
+57.54	5.08e-06	ALIGN	ADUC01000364.1	         749550	Escherichia coli MS 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+56.78	7.77e-06	ALIGN	AGFS01159802.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+56.15	1.10e-05	ALIGN	AEWW01044430.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+52.49	8.59e-05	ALIGN	CP000783.1	         290339	Cronobacter sakazaki	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Cronobacter.
+46.13	3.02e-03	ALIGN	AGFT01076311.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+#***********CURRENT THRESHOLD: 35.00 bits***********#
+#***********THE EXPONENT HAS CHANGED SIGN***********#
+30.97	1.47e+01	NOT	AGFS01105617.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+24.74	4.82e+02	NOT	ABEH02000011.1	         454167	Salmonella enterica 	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Salmonella.
+24.15	6.72e+02	NOT	AAJV02000063.1	         340185	Escherichia coli E22	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+24.15	6.72e+02	NOT	ABHP01000062.1	         444452	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+22.59	1.61e+03	NOT	AAJW02000052.1	         340186	Escherichia coli E11	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+22.40	1.79e+03	NOT	AAJV02000063.1	         340185	Escherichia coli E22	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+22.40	1.79e+03	NOT	ABHP01000062.1	         444452	Escherichia coli O15	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+17.44	2.87e+04	NOT	AGFT01032153.1	         797283	ant fungus garden me	unclassified sequences; metagenomes; ecological metagenomes.
+16.04	6.30e+04	NOT	AEYP01014553.1	           9669	Mustela putorius fur	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Laurasiatheria; Carnivora; Caniformia; Mustelidae; Mustelinae; Mustela.
+15.32	9.46e+04	NOT	BABY01000126.1	         891974	Plautia stali symbio	Bacteria.
+15.29	9.58e+04	NOT	AFTD01135149.1	          10029	Cricetulus griseus (	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Glires; Rodentia; Sciurognathi; Muroidea; Cricetidae; Cricetinae; Cricetulus.
+15.19	1.01e+05	NOT	ADFV01086295.1	          61853	Nomascus leucogenys 	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hylobatidae; Nomascus.
+14.68	1.35e+05	NOT	AGAI01006758.1	          13146	Melopsittacus undula	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Archosauria; Dinosauria; Saurischia; Theropoda; Coelurosauria; Aves; Neognathae; Psittaciformes; Psittacidae; Melopsittacus.
+14.61	1.40e+05	NOT	AFVS01001715.1	        1038844	Escherichia coli O10	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Escherichia.
+13.50	2.61e+05	NOT	AFYH01134432.1	           7897	Latimeria chalumnae 	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Coelacanthiformes; Coelacanthidae; Latimeria.
+12.67	4.16e+05	NOT	CP002433.1	         592316	Pantoea sp. At-9b	Bacteria; Proteobacteria; Gammaproteobacteria; Enterobacteriales; Enterobacteriaceae; Pantoea.
+12.46	4.69e+05	NOT	ABVD01060074.1	           9358	Choloepus hoffmanni 	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Xenarthra; Pilosa; Folivora; Megalonychidae; Choloepus.
+12.37	4.93e+05	NOT	AANU01169037.1	           9544	Macaca mulatta (Rhes	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Cercopithecidae; Cercopithecinae; Macaca.
+12.37	4.93e+05	NOT	AEHK01175871.1	           9544	Macaca mulatta (Rhes	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Cercopithecidae; Cercopithecinae; Macaca.
+12.37	4.93e+05	NOT	AEHL01248805.1	           9541	Macaca fascicularis 	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Cercopithecidae; Cercopithecinae; Macaca.
+12.37	4.93e+05	NOT	CAEC01330398.1	           9541	Macaca fascicularis 	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Cercopithecidae; Cercopithecinae; Macaca.
+12.11	5.69e+05	NOT	ABRR01028553.1	          30538	Vicugna pacos (alpac	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Laurasiatheria; Cetartiodactyla; Tylopoda; Camelidae; Vicugna.
+12.11	5.69e+05	NOT	EF135176.1	         214046	Viola kitaibeliana	Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta; Spermatophyta; Magnoliophyta; eudicotyledons; core eudicotyledons; rosids; fabids; Malpighiales; Violaceae; Viola.
+11.90	6.43e+05	NOT	AAGV020026512.1	           9361	Dasypus novemcinctus	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Xenarthra; Cingulata; Dasypodidae; Dasypus.
