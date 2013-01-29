@@ -100,6 +100,24 @@ has 'SE' => (
   required  => 0
 );
 
+has 'CUTGA' => (
+  is        => 'rw',
+  isa       => CmCutOff,
+  required  => 0
+);
+
+has 'CUTTC' => (
+  is        => 'rw',
+  isa       => CmCutOff,
+  required  => 0
+);
+
+has 'CUTNC' => (
+  is        => 'rw',
+  isa       => CmCutOff,
+  required  => 0
+);
+
 #has 'CL' => (
 #  is       => 'rw',
 #  isa      => RfamClanAcc,
