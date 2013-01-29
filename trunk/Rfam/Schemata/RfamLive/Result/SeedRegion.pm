@@ -35,7 +35,7 @@ __PACKAGE__->table("seed_region");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 13
+  size: 14
 
 =head2 seq_start
 
@@ -56,7 +56,7 @@ __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "rfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 13 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
   "seq_start",
   {
     data_type => "bigint",
@@ -101,8 +101,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RB/2S4UzIC2Fb/mISRwB4g
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FbQpKfPKp01IeOTo+346cg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

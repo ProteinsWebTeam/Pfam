@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::FullRegion;
+package RfamLive::Result::RefseqFullRegion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::FullRegion
+RfamLive::Result::RefseqFullRegion
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<full_region>
+=head1 TABLE: C<refseq_full_region>
 
 =cut
 
-__PACKAGE__->table("full_region");
+__PACKAGE__->table("refseq_full_region");
 
 =head1 ACCESSORS
 
@@ -30,7 +30,7 @@ __PACKAGE__->table("full_region");
   is_nullable: 0
   size: 7
 
-=head2 rfamseq_acc
+=head2 refseq_acc
 
   data_type: 'varchar'
   is_foreign_key: 1
@@ -84,19 +84,12 @@ __PACKAGE__->table("full_region");
   extra: {list => [0,5,3,53]}
   is_nullable: 0
 
-=head2 type
-
-  data_type: 'enum'
-  default_value: 'full'
-  extra: {list => ["seed","full"]}
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "rfamseq_acc",
+  "refseq_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
   "seq_start",
   {
@@ -126,16 +119,24 @@ __PACKAGE__->add_columns(
     extra => { list => [0, 5, 3, 53] },
     is_nullable => 0,
   },
-  "type",
-  {
-    data_type => "enum",
-    default_value => "full",
-    extra => { list => ["seed", "full"] },
-    is_nullable => 0,
-  },
 );
 
 =head1 RELATIONS
+
+=head2 refseq_acc
+
+Type: belongs_to
+
+Related object: L<RfamLive::Result::Refseq>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "refseq_acc",
+  "RfamLive::Result::Refseq",
+  { refseq_acc => "refseq_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
 
 =head2 rfam_acc
 
@@ -152,24 +153,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
-=head2 rfamseq_acc
-
-Type: belongs_to
-
-Related object: L<RfamLive::Result::Rfamseq>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "rfamseq_acc",
-  "RfamLive::Result::Rfamseq",
-  { rfamseq_acc => "rfamseq_acc" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
-);
-
 
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kajoBTgZ/Thw7m9Px2d6Rg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1gfEVnL9bEGlItykYJAQCA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

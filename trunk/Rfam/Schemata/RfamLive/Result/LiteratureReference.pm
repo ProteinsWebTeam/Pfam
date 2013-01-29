@@ -23,18 +23,11 @@ __PACKAGE__->table("literature_reference");
 
 =head1 ACCESSORS
 
-=head2 auto_lit
+=head2 pmid
 
   data_type: 'integer'
   is_auto_increment: 1
   is_nullable: 0
-
-=head2 pmid
-
-  data_type: 'integer'
-  is_nullable: 1
-
-Ever have reference without a PMID?
 
 =head2 title
 
@@ -54,10 +47,8 @@ Ever have reference without a PMID?
 =cut
 
 __PACKAGE__->add_columns(
-  "auto_lit",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "pmid",
-  { data_type => "integer", is_nullable => 1 },
+  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "title",
   { data_type => "tinytext", is_nullable => 1 },
   "author",
@@ -70,13 +61,13 @@ __PACKAGE__->add_columns(
 
 =over 4
 
-=item * L</auto_lit>
+=item * L</pmid>
 
 =back
 
 =cut
 
-__PACKAGE__->set_primary_key("auto_lit");
+__PACKAGE__->set_primary_key("pmid");
 
 =head1 RELATIONS
 
@@ -91,7 +82,7 @@ Related object: L<RfamLive::Result::ClanLiteratureReference>
 __PACKAGE__->has_many(
   "clan_literature_references",
   "RfamLive::Result::ClanLiteratureReference",
-  { "foreign.auto_lit" => "self.auto_lit" },
+  { "foreign.pmid" => "self.pmid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
@@ -106,13 +97,13 @@ Related object: L<RfamLive::Result::FamilyLiteratureReference>
 __PACKAGE__->has_many(
   "family_literature_references",
   "RfamLive::Result::FamilyLiteratureReference",
-  { "foreign.literature_reference_auto_lit" => "self.auto_lit" },
+  { "foreign.pmid" => "self.pmid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9F4sih6rPS4HyG77agi4Rg
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mOIeqhae2bNKb+iIrxt5FA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

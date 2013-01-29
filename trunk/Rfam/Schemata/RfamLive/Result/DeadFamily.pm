@@ -55,6 +55,13 @@ record the author???
   is_nullable: 1
   size: 150
 
+wikipedia page title\n
+
+=head2 user
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -68,6 +75,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 7 },
   "title",
   { data_type => "varchar", is_nullable => 1, size => 150 },
+  "user",
+  { data_type => "tinytext", is_nullable => 0 },
 );
 
 =head1 UNIQUE CONSTRAINTS
@@ -85,8 +94,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RBg80kDbfw4LId554l3T2w
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fZIXgfMDGvy2D5aCrKNO+Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

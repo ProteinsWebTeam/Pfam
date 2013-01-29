@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::FullRegion;
+package RfamLive::Result::GenomeFullRegion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::FullRegion
+RfamLive::Result::GenomeFullRegion
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<full_region>
+=head1 TABLE: C<genome_full_region>
 
 =cut
 
-__PACKAGE__->table("full_region");
+__PACKAGE__->table("genome_full_region");
 
 =head1 ACCESSORS
 
@@ -30,7 +30,14 @@ __PACKAGE__->table("full_region");
   is_nullable: 0
   size: 7
 
-=head2 rfamseq_acc
+=head2 genome_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 20
+
+=head2 seq_acc
 
   data_type: 'varchar'
   is_foreign_key: 1
@@ -84,19 +91,14 @@ __PACKAGE__->table("full_region");
   extra: {list => [0,5,3,53]}
   is_nullable: 0
 
-=head2 type
-
-  data_type: 'enum'
-  default_value: 'full'
-  extra: {list => ["seed","full"]}
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "rfamseq_acc",
+  "genome_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 20 },
+  "seq_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
   "seq_start",
   {
@@ -126,16 +128,24 @@ __PACKAGE__->add_columns(
     extra => { list => [0, 5, 3, 53] },
     is_nullable => 0,
   },
-  "type",
-  {
-    data_type => "enum",
-    default_value => "full",
-    extra => { list => ["seed", "full"] },
-    is_nullable => 0,
-  },
 );
 
 =head1 RELATIONS
+
+=head2 genome_acc
+
+Type: belongs_to
+
+Related object: L<RfamLive::Result::Genome>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "genome_acc",
+  "RfamLive::Result::Genome",
+  { genome_acc => "genome_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
 
 =head2 rfam_acc
 
@@ -152,24 +162,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
-=head2 rfamseq_acc
+=head2 seq_acc
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Rfamseq>
+Related object: L<RfamLive::Result::GenomeSeq>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "rfamseq_acc",
-  "RfamLive::Result::Rfamseq",
-  { rfamseq_acc => "rfamseq_acc" },
+  "seq_acc",
+  "RfamLive::Result::GenomeSeq",
+  { seq_acc => "seq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kajoBTgZ/Thw7m9Px2d6Rg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OA/ET8WwYgNNKsiRf+hIFg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

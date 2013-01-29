@@ -23,32 +23,45 @@ __PACKAGE__->table("_lock");
 
 =head1 ACCESSORS
 
+=head2 locked
+
+  data_type: 'tinyint'
+  is_nullable: 0
+
 =head2 locker
 
   data_type: 'varchar'
   is_nullable: 0
   size: 10
 
-=head2 rfam_acc
+=head2 allowcommits
 
-  data_type: 'varchar'
+  data_type: 'tinyint'
   is_nullable: 0
-  size: 40
 
 Do you lock individual families? Do ever lock the whole database?
+
+=head2 alsoallow
+
+  data_type: 'text'
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
+  "locked",
+  { data_type => "tinyint", is_nullable => 0 },
   "locker",
   { data_type => "varchar", is_nullable => 0, size => 10 },
-  "rfam_acc",
-  { data_type => "varchar", is_nullable => 0, size => 40 },
+  "allowcommits",
+  { data_type => "tinyint", is_nullable => 0 },
+  "alsoallow",
+  { data_type => "text", is_nullable => 1 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2CB4KOqmBKhhxGFryyaWqQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NRup1ddWOT3cVS844fOViA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -33,7 +33,7 @@ __PACKAGE__->table("cmodel");
 =head2 cm
 
   data_type: 'longblob'
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
@@ -41,7 +41,7 @@ __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "cm",
-  { data_type => "longblob", is_nullable => 1 },
+  { data_type => "longblob", is_nullable => 0 },
 );
 
 =head1 RELATIONS
@@ -62,8 +62,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FM0TgUtTcnVUzfNR30SOFw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i1gthOrjYKR7MXXjCXA+qA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
