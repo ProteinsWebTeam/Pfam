@@ -431,7 +431,7 @@ sub parseScores {
 
     #How many scores file data elements
     next if ( $line =~ /^#/ );
-    my @row = split( /\t/, $line );
+    my @row = split( /\s+/, $line );
 
     if ( $row[0] !~ m|^\S+/\d+\-\d+$| ) {
       die "First element in $line does not look like a name/start-end\n";
@@ -471,7 +471,7 @@ sub parseScores {
   my $scoresObj = Bio::Rfam::Family::Scores->new(
     {
       numRegions => $noHits,  
-      regions    => @regions
+      regions    => \@regions
     }
   );
   return ($scoresObj);
