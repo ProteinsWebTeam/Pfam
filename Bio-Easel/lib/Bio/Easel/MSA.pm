@@ -45,19 +45,18 @@ use Inline
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
+Multiple sequence alignment handling through inline C with Easel.
 
 Perhaps a little code snippet.
 
     use Bio::Easel::MSA;
 
-    my $foo = Bio::Easel::MSA->new($fileLocation);
+    my $foo = Bio::Easel::MSA->new({"fileLocation" => $alnfile});
     ...
 
 =head1 EXPORT
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+No functions currently exported.
 
 =head1 SUBROUTINES/METHODS
 
@@ -107,20 +106,18 @@ sub new {
 
 =head2 read_msa
 
-    HERE HERE HERE, fill me in
-
-  Title    : new
-  Incept   : EPN, Thu Jan 24 09:28:54 2013
-  Usage    : Bio::Easel::MSA->new
-  Function : Generates a new Bio::Easel::MSA object
+  Title    : read_msa
+  Incept   : EPN, Mon Jan 28 09:26:24 2013
+  Usage    : Bio::Easel::MSA->read_msa($fileLocation)
+  Function : Opens $fileLocation and updates 
   Args     : <fileLocation>: file location of alignment
-           : <nseq>: number of seqs
-  Returns  : Bio::EslMSA object
+  Returns  : ESL_MSA *C* object
   
 =cut
 
 sub read_msa { 
     my ($self, $fileLocation) = @_;
+
     if($fileLocation) { 
 	$self->{path} = $fileLocation;
     }
@@ -128,23 +125,100 @@ sub read_msa {
 	die "ERROR: path not set in Bio::Easel::MSA object"; 
     }
 
-    $self->{esl_msa} = c_read_msa($self->{path});
-    return $self->{esl_msa};
+    $self->{esl_msa} = c_read_msa($self->{path}, $self->{esl_abc});
+    return;
 }
+
+=head2 nseq
+
+  Title    : nseq
+  Incept   : EPN, Mon Jan 28 09:35:21 2013
+  Usage    : Bio::Easel::MSA->nseq()
+  Function : Sets (if nec) and returns number of sequences in MSA.
+  Args     : none
+  Returns  : number of sequences (esl_msa->nseq)
+  
+=cut
 
 sub nseq { 
     my ($self) = @_;
+    
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
     if (! defined $self->{nseq}) { 
 	$self->{nseq} = c_nseq($self->{esl_msa});
     }
     return $self->{nseq};
 }
 
+=head2 msa
+
+  Title    : msa
+  Incept   : EPN, Tue Jan 29 09:06:30 2013
+  Usage    : Bio::Easel::MSA->msa()
+  Function : Accessor for msa: sets (if nec) and returns MSA.
+  Args     : none
+  Returns  : msa   
+
+=cut
+
+sub msa {
+    my($self) = @_;
+
+    if(! defined ($self->{esl_msa})) { 
+	$self->read_msa();
+    }
+
+    return $self->{esl_msa};
+}
+
+=head2 alen
+
+  Title    : alen
+  Incept   : EPN, Tue Jan 29 07:41:08 2013
+  Usage    : Bio::Easel::MSA->alen()
+  Function : Sets (if nec) and returns alignment length.
+  Args     : none
+  Returns  : alignment length, number of columns (esl_msa->alen)
+  
+=cut
+
+sub alen { 
+    my ($self) = @_;
+    if (! defined $self->{alen}) { 
+	$self->{alen} = c_alen($self->{esl_msa});
+    }
+    return $self->{alen};
+}
+
+=head2 get_sqname_idx
+
+  Title    : get_sqname_idx
+  Incept   : EPN, Mon Jan 28 09:35:21 2013
+  Usage    : $msaObject->get_sqname_idx($idx)
+  Function : Returns name of sequence $idx in MSA.
+  Args     : index of sequence 
+  Returns  : name of sequence $idx (esl_msa->sqname[$idx])
+  
+=cut
+
 sub get_sqname_idx { 
     my ($self, $idx) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
     return c_get_sqname_idx($self->{esl_msa}, $idx);
 }
+
+=head2 set_sqname_idx
+
+  Title    : set_sqname_idx
+  Incept   : EPN, Mon Jan 28 09:48:42 2013
+  Usage    : $msaObject->set_sqname_idx($idx)
+  Function : Returns name of sequence $idx in MSA.
+  Args     : index of sequence 
+  Returns  : name of sequence index $idx 
+  
+=cut
 
 sub set_sqname_idx { 
     my ($self, $idx, $newname) = @_;
@@ -153,65 +227,72 @@ sub set_sqname_idx {
     return;
 }
 
+=head2 write_msa
+
+  Title    : write_msa
+  Incept   : EPN, Mon Jan 28 09:58:19 2013
+  Usage    : $msaObject->write_msa($fileLocation)
+  Function : Write MSA to a file
+  Args     : name of output file 
+  Returns  : void
+  
+=cut
+
 sub write_msa { 
     my ($self, $outfile) = @_;
     c_write_msa($self->{esl_msa}, $outfile);
     return;
 }
+
+=head2 any_allgap_columns
+
+  Title    : any_allgap_columns
+  Incept   : EPN, Mon Jan 28 10:44:12 2013
+  Usage    : Bio::Easel::MSA->any_allgap_columns()
+  Function : Return TRUE if any all gap columns exist in MSA
+  Args     : none
+  Returns  : TRUE if any all gap columns, FALSE if not
+  
+=cut
+
+sub any_allgap_columns {
+    my ($self) = @_;
+
+    # EPN should I do error checking in c_any_allgap_columns()? 
+    return c_any_allgap_columns($self->{esl_msa});
+}
+
+=head2 free_msa
+
+  Title    : free_msa
+  Incept   : EPN, Mon Jan 28 11:06:18 2013
+  Usage    : $msaObject->free_msa()
+  Function : Frees an MSA->{$esl_msa} object
+  Args     : name of output file 
+  Returns  : void
+  
+=cut
+
+sub free_msa { 
+    my ($self) = @_;
+    c_free_msa($self->{esl_msa});
+    return;
+}
+
+=head2 destroy
+
+  Title    : destroy
+  Incept   : EPN, Mon Jan 28 10:09:55 2013
+  Usage    : $msaObject->destroy()
+  Function : Frees an MSA object
+  Args     : name of output file 
+  Returns  : void
+  
+=cut
+
+sub destroy { 
+    my ($self) = @_;
+    c_destroy($self->{esl_msa}, $self->{esl_abc});
+    return;
+}
 1;
-
-__DATA__
-__C__
-#include "easel.h"
-#include "esl_msa.h"
-#include "esl_msafile.h"
-
-SV *c_read_msa (char *infile) 
-{
-    int           status;     /* Easel status code */
-    ESLX_MSAFILE *afp;        /* open input alignment file */
-    ESL_MSA      *msa;        /* an alignment */
-
-    /* open input file */
-    if ((status = eslx_msafile_Open(NULL, infile, NULL, eslMSAFILE_UNKNOWN, NULL, &afp)) != eslOK)
-      eslx_msafile_OpenFailure(afp, status);
-
-    /* read_msa */
-    status = eslx_msafile_Read(afp, &msa);
-    if(status != eslOK) esl_fatal("Alignment file %s read failed with error code %d\n", infile, status);
-
-    printf("read %d seqs\n", msa->nseq);
-    
-    return perl_obj(msa, "ESL_MSA");
-}    
-
-void c_write_msa (ESL_MSA *msa, char *outfile) 
-{
-    FILE         *ofp;        /* open output alignment file */
-
-    if ((ofp  = fopen(outfile, "w"))  == NULL) esl_fatal("Failed to open output file %s\n", outfile);
-    eslx_msafile_Write(ofp, msa, eslMSAFILE_STOCKHOLM);
-
-    return;
-}
-
-I32 c_nseq (ESL_MSA *msa)
-{
-    return msa->nseq;
-}   
-
-char *c_get_sqname_idx (ESL_MSA *msa, I32 idx)
-{
-    /* should this check if idx is valid? perl func that calls it already does... is that proper? */
-    return msa->sqname[idx];
-}
-
-char *c_set_sqname_idx (ESL_MSA *msa, I32 idx, char *newname)
-{
-
-    /* should this check if idx is valid? perl func that calls it already does... is that proper? */
-    if(msa->sqname[idx]) free(msa->sqname[idx]);
-    esl_strdup(newname, -1, &(msa->sqname[idx]));
-
-    return;
-}   

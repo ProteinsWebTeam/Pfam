@@ -3,7 +3,8 @@ use File::Temp qw(tempfile);
 
 #EslAlign::test("in.stk", "out.stk");
 
-my $ea = new EslAlign ("in.stk");
+my $ea = new EslAlign ($alnfile);
+
 printf("nseq: %d\n", $ea->nseq);
 
 for($i = 0; $i < $ea->nseq; $i++) { 
