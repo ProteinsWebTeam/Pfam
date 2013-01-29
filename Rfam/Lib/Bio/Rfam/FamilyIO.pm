@@ -135,8 +135,8 @@ sub parseCM {
   $self->_parseCMHeader( $cm, \$i );
   $self->_parseCMBodyForMatchPair( $cm, \$i );
   $self->_parseCMHMMHeader( $cm, \$i );
-
-  my $cmObj = Bio::Rfam::Family::CM->new($cm);
+  
+  my $cmObj = 'Bio::Rfam::Family::CM'->new($cm);
   return ($cmObj);
 }
 
@@ -174,12 +174,12 @@ sub _parseCMHeader {
 
   my $i = 0;
   for ( $i = $$iRef; $i <= scalar(@{$cm->{rawcm}}); ){  
-    $_ = my $cm->{rawcm}->[$i];
+    $_ = $cm->{rawcm}->[$i];
     if(my ($version) = $_ =~ /(INFERNAL1.*)/){
       $objHash->{version} = $version;
     }elsif(/NAME\s+(\S+)/){ 
       $objHash->{name} =  $1 ;
-    }elsif(/STATES\s(\d+)/){
+    }elsif(/STATES\s+(\d+)/){
       $objHash->{states} = $1;
     }elsif(/NODES\s+(\d+)/){
        $objHash->{nodes} = $1;
@@ -197,8 +197,11 @@ sub _parseCMHeader {
       $objHash->{map} = ($map eq "no") ? 0 : 1; 
     }elsif(my ($date) = $_ =~ /^DATE\s+(.*)/){
       $objHash->{date} =  $date; 
-    }elsif(my ($index, $line) = $cm->[$i] =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
+    }elsif(my ($index, $line) = $_ =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
       $index--;
+      if(!exists($objHash->{com})){
+        $objHash->{com} = [];
+      }
       $objHash->{com}->[$index] = $line;
     }
     
@@ -220,7 +223,7 @@ sub _parseCMHeader {
        $objHash->{pbegin} = $pbegin;
     }elsif( my $pend = $_ =~ /^PEND\s+(\d+\.\d+)/){
        $objHash->{pend} = $pend;
-    }elsif( my $wbeta = $_ =~ /^WBEAT\s+(\S+)/){
+    }elsif( my $wbeta = $_ =~ /^WBETA\s+(\S+)/){
        $objHash->{wbeta} = $wbeta;
     }elsif( my $qdbbeta1 = $_ =~ /^QDBBETA1\s+(\S+)/){
        $objHash->{qdbbeta1} = $qdbbeta1;
@@ -237,7 +240,7 @@ sub _parseCMHeader {
     }elsif( my($effn) = $_ =~ /^EFFN\s+(\d+\.\d+)/){
        #EFFN  4.966292
       $objHash->{effn} =  $effn ;
-    }elsif( my ( $cksum ) = $_ =~ /^CKSUM (\d+)/){
+    }elsif( my ( $cksum ) = $_ =~ /^CKSUM\s+(\d+)/){
       $objHash->{cksum} = $cksum ;
     }elsif( my $null = $_ =~ /^NULL\s+(.*)/){
        $objHash->{null} = $null;
@@ -271,11 +274,11 @@ sub _parseCMHeader {
       $$iRef = $i;
       last;
     }else{
-      confess("Got a bad HMM header line:".$cm->[$i]."\n"); 
+      confess("Got a bad CM header line:$_\n"); 
     }
     $i++;
   }
-  $cm->{cmhead} = $objHash;
+  $cm->{cmHeader} = $objHash;
 }
 
 sub _parseCMBodyForMatchPair {
@@ -297,7 +300,7 @@ sub _parseCMBodyForMatchPair {
     }elsif( $cm->{rawcm}->[$i] =~ /\/\//){
       #Should have reached the end of the CM body, so set the reference counter
       #to be equal to our counter.
-      $$i = $i;
+      $$iRef = ++$i;
       last;
     }
   }
@@ -306,7 +309,7 @@ sub _parseCMBodyForMatchPair {
 sub _parseCMHMMHeader {
   my ( $self, $cm, $iRef ) = @_;
     #Parse the header section of the HMM!
-      
+
 #HMMER3/f [i1.1rc2 | December 2012]
 #NAME  SEED
 #LENG  85
@@ -329,8 +332,8 @@ sub _parseCMHMMHeader {
   #To add GA, TC, NC, CKSUM, DESC
   my($objHash);
   my $i;
-  for ( $i = $$iRef; $i <= scalar(@{$cm->rawcm}); ){  
-    $_ = $cm->[$i];
+  for ( $i = $$iRef; $i <= scalar(@{$cm->{rawcm}}); ){  
+    $_ = $cm->{rawcm}->[$i];
     if(my ($version) = $_ =~ /(HMMER3.*)/){
       $objHash->{version} = $version;
     }elsif(/NAME\s+(\S+)/){ 
@@ -353,7 +356,7 @@ sub _parseCMHMMHeader {
       $objHash->{map} = ($map eq "no") ? 0 : 1; 
     }elsif(my ($date) = $_ =~ /^DATE\s+(.*)/){
       $objHash->{date} =  $date; 
-    }elsif(my ($index, $line) = $cm->[$i] =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
+    }elsif(my ($index, $line) = $_ =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
       $index--;
       $objHash->{com}->[$index] = $line;
     }elsif(my($noSeqs) = $_ =~ /^NSEQ\s+(\d+)/){
@@ -379,11 +382,11 @@ sub _parseCMHMMHeader {
       $$iRef = $i;
       last;
     }else{
-      confess("Got a bad HMM header line:".$cm->[$i]."\n"); 
+      confess("Got a bad HMM header line:$_\n"); 
     }
     $i++;
   }
-  $cm->{hmmheader} = $objHash;
+  $cm->{hmmHeader} = $objHash;
 
 }
 
@@ -506,7 +509,7 @@ sub parseDESC {
       next;
     }
     elsif ( $file[$i] =~ /^BM\s{3}(.*)$/ ) {
-      push( @{ $params{"BM"} }, $1 );
+      push( @{ $params{"BMETH"} }, $1 );
     }
     elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
       $params{ "CUT" . $1 } = $2;
@@ -805,13 +808,13 @@ sub writeDESC {
     else {
       next unless ( $desc->$tagOrder );
       if ( $tagOrder eq 'CUTTC' ) {
-        printf D "TC   %.2f;\n", $desc->$tagOrder;
+        printf D "TC   %.2f\n", $desc->$tagOrder;
       }
       elsif ( $tagOrder eq 'CUTGA' ) {
-        printf D "GA   %.2f;\n", $desc->$tagOrder;
+        printf D "GA   %.2f\n", $desc->$tagOrder;
       }
       elsif ( $tagOrder eq 'CUTNC' ) {
-        printf D "NC   %.2f;\n", $desc->$tagOrder;
+        printf D "NC   %.2f\n", $desc->$tagOrder;
       }
       elsif ( $tagOrder eq 'NESTS' ) {
         foreach my $n ( @{ $desc->$tagOrder } ) {
@@ -845,18 +848,16 @@ sub writeDESC {
           }
         }
       }
-      elsif ( $tagOrder eq 'MSP' ) {
-        if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-
-          print D wrap(
-            "MS   ",
-            "MS   ",
-            "TaxId:"
-              . $desc->$tagOrder->{TaxId}
-              . "; TaxName:"
-              . $desc->$tagOrder->{TaxName} . ";"
+      elsif ( $tagOrder eq 'BMETH' ) {
+        if ( ref( $desc->$tagOrder ) eq 'ARRAY' ) {
+          foreach my $line (@{$desc->$tagOrder}){
+            print D wrap(
+              "BM   ",
+              "BM   ",
+              $line
           );
           print D "\n";
+          }
         }
       }
       elsif ( $tagOrder eq 'CLASS' ) {
@@ -898,10 +899,21 @@ sub writeDESC {
           }
 
           if ( $xref->{other_params} ) {
-            print D "DR   "
+            #TODO - go back and remove this is a really nasty hack!!!
+            
+            if($xref->{db_id} eq 'SO'){
+              print D "DR   "
+              . $xref->{db_id} . ":"
+              . $xref->{db_link} . " ".$xref->{db_id}.":"
+              . $xref->{other_params} . "\n";
+              
+              
+            }else{
+              print D "DR   "
               . $xref->{db_id} . "; "
               . $xref->{db_link} . "; "
               . $xref->{other_params} . ";\n";
+            }
           }
           else {
             print D "DR   " . $xref->{db_id} . "; " . $xref->{db_link} . ";\n";
