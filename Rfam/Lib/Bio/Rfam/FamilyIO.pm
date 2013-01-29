@@ -133,9 +133,9 @@ sub parseCM {
   my $i = 0;
   my $cm = { 'rawcm' => \@file };
   $self->_parseCMHeader( $cm, \$i );
-  $self->_parseCMBodyForMatchPair( $cm, \$i );
+  $self->_parseCMBody( $cm, \$i );
   $self->_parseCMHMMHeader( $cm, \$i );
-  
+  $self->_parseHMMBody($cm, \$i);
   my $cmObj = 'Bio::Rfam::Family::CM'->new($cm);
   return ($cmObj);
 }
@@ -279,9 +279,13 @@ sub _parseCMHeader {
     $i++;
   }
   $cm->{cmHeader} = $objHash;
+  #See if the CM has a field indicating that it has been calibrated.
+  if(exists($cm->{cmHeader}->{ecmli})){
+    $cm->{is_calibrated}=1;
+  }
 }
 
-sub _parseCMBodyForMatchPair {
+sub _parseCMBody {
   my ( $self, $cm, $iRef ) = @_;
   
   #To determine if the CM has secondary structure we need to see if there are
@@ -295,7 +299,8 @@ sub _parseCMBodyForMatchPair {
     $i++
     )
   {
-    if ( $cm->{rawcm}->[$i] =~ /\s+\[ MATP \d+ \]/ ) {
+    push(@{ $cm->{cmBody} }, $cm->{rawcm}->[$i]);
+    if ( $cm->{rawcm}->[$i] =~ /\s+\[\s+MATP\s+\d+\s+\]/ ) {
       $cm->{'match_pair_node'} = 1;
     }elsif( $cm->{rawcm}->[$i] =~ /\/\//){
       #Should have reached the end of the CM body, so set the reference counter
@@ -390,6 +395,20 @@ sub _parseCMHMMHeader {
 
 }
 
+
+sub _parseHMMBody {
+  my ( $self, $cm, $iRef ) = @_;
+
+  #Should just be a read to the end of the file
+  for (
+    my $i = ( defined($iRef) ? $$iRef : 0 ) ;
+    $i < scalar( @{ $cm->{rawcm} } ) ;
+    $i++
+    )
+  {
+    push(@{ $cm->{hmmBody} }, $cm->{rawcm}->[$i]);
+  }
+}
 
 sub parseScores {
   my ( $self, $file ) = @_;

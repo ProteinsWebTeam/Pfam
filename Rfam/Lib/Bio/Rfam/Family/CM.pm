@@ -39,11 +39,24 @@ has 'cmHeader' => (
   required  => 1
 );
 
+has 'cmBody' => (
+  is        => 'ro',
+  isa       => 'ArrayRef',
+  required  => 1
+);
+
 has 'hmmHeader' => (
   is        => 'ro',
   isa       => 'HashRef',
   required  => 1
 );
+
+has 'hmmBody' => (
+  is        => 'ro',
+  isa       => 'ArrayRef',
+  required  => 1
+);
+
 
 has 'match_pair_node' => (
   is  => 'ro',
@@ -51,4 +64,10 @@ has 'match_pair_node' => (
   required => 1
 );
 
+has 'is_calibrated' => (
+  is  => 'ro',
+  isa => 'Bool',
+  required => 1,
+  default => 0
+);
 1;

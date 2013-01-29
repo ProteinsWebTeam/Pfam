@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 14;
 use FindBin;
 use Data::Printer;
 use File::Slurp;
@@ -19,14 +19,25 @@ my $familyIO = Bio::Rfam::FamilyIO->new( );
 isa_ok($familyIO, 'Bio::Rfam::FamilyIO');
 
 #test.cm.cal    test.cm.justbuild
-my $desc = $familyIO->parseCM( $test_data.'/test.cm.justbuild' );
-isa_ok($desc, 'Bio::Rfam::Family::CM');
+my $cm = $familyIO->parseCM( $test_data.'/test.cm.justbuild' );
+isa_ok($cm, 'Bio::Rfam::Family::CM');
+is($cm->is_calibrated, 0, 'Correctly not set calibration');
 
-#is($desc->AC, 'RF00014', 'The accesion for the DESC file is RF00014');
-#my $tdir  = tempdir( CLEANUP => 0 );
-#print STDERR $tdir;
-#$familyIO->writeDESC($desc, $tdir);
+#Checks on the CM body.
+is(defined($cm->cmBody), 1, 'has a cmBody defined');
+my $body = $cm->cmBody;
+is($body->[0],  "CM\n", 'Body started  with CM');
+is($body->[$#$body],  "//\n", 'Body finished with//');
+is($cm->match_pair_node, 1, 'Has found MATP line');
 
-#my @fileOld = read_file($test_data);
-#my @fileNew = read_file($tdir.'/DESC');
-#is_deeply(\@fileOld, \@fileNew, 'Check DESC files are the same');
+
+#Check on the HMM body.
+is(defined($cm->hmmBody), 1, 'has a hmmBody defined');
+$body = $cm->hmmBody;
+is($body->[0],  "HMM          A        C        G        U   \n", 'Body started  with RNA HMM line');
+is($body->[$#$body],  "//\n", 'Body finished with//');
+
+
+my $cm2 = $familyIO->parseCM( $test_data.'/test.cm.cal' );
+isa_ok($cm2, 'Bio::Rfam::Family::CM');
+is($cm2->is_calibrated, 1, 'Correctly set calibration');
