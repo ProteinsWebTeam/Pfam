@@ -1,3 +1,4 @@
+
 =head1 NAME
 
 Bio::Rfam::FamilyIO - a module that enables access to the Rfam SVN
@@ -22,7 +23,6 @@ Incept: finnr, Jan 24, 2013 9:33:51 PM
 
 =cut
 
-
 #-------------------------------------------------------------------------------
 
 use strict;
@@ -38,6 +38,7 @@ use Bio::Rfam::Config;
 use Bio::Rfam::Family;
 use Bio::Rfam::Family::DESC;
 use Bio::Rfam::Family::CM;
+
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -77,24 +78,26 @@ sub loadRfamFromLocalFile {
 
   if ($source) {
     $params{'source'} = $source;
-  }else{
+  }
+  else {
     $params{'source'} = 'file';
   }
-  
 
-                
-  my $params = {'SEED'     => { fileLocation => "$dir/$family/SEED",
-                                aliType      => 'seed' },
-                'DESC'     => $self->parseDESC( "$dir/$family/DESC"),
-                'CM'       => $self->parseCM("$dir/$family/CM"),
-                'scores'   => $self->parseScores("$dir/$family/scores") };
-                
+  my $params = {
+    'SEED' => {
+      fileLocation => "$dir/$family/SEED",
+      aliType      => 'seed'
+    },
+    'DESC'   => $self->parseDESC("$dir/$family/DESC"),
+    'CM'     => $self->parseCM("$dir/$family/CM"),
+    'scores' => $self->parseScores("$dir/$family/scores")
+  };
+
   #Use Moose to coerce these through!
-  my $famObj = Bio::Rfam::Family->new( $params );
+  my $famObj = Bio::Rfam::Family->new($params);
 
   return ($famObj);
 }
-
 
 sub loadRfamFromSVN {
   my ( $self, $family, $client ) = @_;
@@ -112,8 +115,6 @@ sub loadRfamFromSVN {
   return $famObj;
 }
 
-
-
 sub parseCM {
   my ( $self, $file ) = @_;
 
@@ -128,9 +129,155 @@ sub parseCM {
     open( my $fh, "$file" ) or die "Could not open $file:[$!]\n";
     @file = <$fh>;
   }
+
+  my $i = 0;
+  my $cm = { 'rawcm' => \@file };
+  $self->_parseCMHeader( $cm, \$i );
+  $self->_parseCMBodyForMatchPair( $cm, \$i );
+  $self->_parseCMHMMHeader( $cm, \$i );
+
+  my $cmObj = Bio::Rfam::Family::CM->new($cm);
+  return ($cmObj);
 }
 
+sub _parseCMHeaser {
+  my ($self, $cm, $iRef ) = @_;
+#INFERNAL1/a [1.1rc2 | December 2012]
+#NAME     SEED
+#STATES   269
+#NODES    66
+#CLEN     85
+#W        103
+#ALPH     RNA
+#RF       no
+#CONS     yes
+#MAP      yes
+#DATE     Fri Jan 25 17:21:03 2013
+#COM      [1] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmbuild test.cm.justbuild RF00014/SEED
+#PBEGIN   0.05
+#PEND     0.05
+#WBETA    1e-07
+#QDBBETA1 1e-07
+#QDBBETA2 1e-15
+#N2OMEGA  1.52588e-05
+#N3OMEGA  1.52588e-05
+#ELSELF   -0.08926734
+#NSEQ     5
+#EFFN     1.245117
+#CKSUM    3944183696
+#NULL     0.000  0.000  0.000  0.000 
+#EFP7GF   -7.2971 0.71888
+#CM
 
+
+
+}
+
+sub _parseCMBodyForMatchPair {
+  my ( $self, $cm, $iRef ) = @_;
+  
+  #To determine if the CM has secondary structure we need to see if there are
+  #positions in the CM marked as match pair nodes.
+  #e.g. [ MATP   52 ]     63     84 C G - -
+
+  $cm->{match_pair_node} = 0;
+  for (
+    my $i = ( defined($iRef) ? $$iRef : 0 ) ;
+    $i < scalar( @{ $cm->{rawcm} } ) ;
+    $i++
+    )
+  {
+    if ( $cm->{rawcm}->[$i] =~ /\s+\[ MATP \d+ \]/ ) {
+      $cm->{'match_pair_node'} = 1;
+    }elsif( $cm->{rawcm}->[$i] =~ /\/\//){
+      #Should have reached the end of the CM body, so set the reference counter
+      #to be equal to our counter.
+      $$i = $i;
+      last;
+    }
+  }
+}
+
+sub _parseCMHMMHeader {
+  my ( $self, $cm, $iRef ) = @_;
+    #Parse the header section of the HMM!
+      
+#HMMER3/f [i1.1rc2 | December 2012]
+#NAME  SEED
+#LENG  85
+#MAXL  177
+#ALPH  RNA
+#RF    no
+#MM    no
+#CONS  yes
+#CS    yes
+#MAP   yes
+#DATE  Fri Jan 25 17:21:03 2013
+#COM   [1] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmbuild test.cm.justbuild RF00014/SEED
+#NSEQ  5
+#EFFN  2.250977
+#CKSUM 3944183696
+#STATS LOCAL MSV       -9.1751  0.71888
+#STATS LOCAL VITERBI   -9.6795  0.71888
+#STATS LOCAL FORWARD   -3.3562  0.71888
+
+  #To add GA, TC, NC, CKSUM, DESC
+  my($objHash);
+  my $i;
+  for ( $i = $$iRef; $i <= scalar(@$cm); ){  
+    if(my ($version) = $_ =~ /(HMMER3.*)/){
+      $objHash->{version} = $version;
+    }elsif(/NAME\s+(\S+)/){ 
+      $objHash->{name} =  $1 ;
+    }elsif(my ($length) = $_ =~ /^LENG\s+(\d+)/){
+      $objHash->{length} = $length;
+    }elsif(/^MAXL\s+(\d+)$/){
+      $objHash->{maxl} = $1;
+    }elsif( my ($alpha) = $_ =~ /^ALPH\s+(\S+)/){
+      $objHash->{alpha} = $alpha;
+    }elsif( my ($rf) = $_ =~ /^RF\s+(no|yes)/){
+      $objHash->{rf} = ($rf eq "no") ? 0 : 1; 
+    }elsif( my ($mm) = $_ =~ /^MM\s+(no|yes)/){
+      $objHash->{mm} = ($mm eq "no") ? 0 : 1;
+    }elsif( my ($cons) = $_ =~ /^CONS\s+(no|yes)/){
+      $objHash->{cons} = ($cons eq "no") ? 0 : 1;
+    }elsif(my ($cs) = $_ =~ /^CS\s+(no|yes)/ ){
+      $objHash->{cs} =  ($cs eq "no") ? 0 : 1; 
+    }elsif(my ($map) = $_ =~ /^MAP\s+(no|yes)/){
+      $objHash->{map} = ($map eq "no") ? 0 : 1; 
+    }elsif(my ($date) = $_ =~ /^DATE\s+(.*)/){
+      $objHash->{date} =  $date; 
+    }elsif(my ($index, $line) = $cm->[$i] =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
+      $index--;
+      $objHash->{com}->[$index] = $line;
+    }elsif(my($noSeqs) = $_ =~ /^NSEQ\s+(\d+)/){
+      $objHash->{nSeq} = $noSeqs;
+    }elsif( my($effn) = $_ =~ /^EFFN\s+(\d+\.\d+)/){
+       #EFFN  4.966292
+      $objHash->{effn} =  $effn ;
+    }elsif( my ( $cksum ) = $_ =~ /^CKSUM (\d+)/){
+      $objHash->{cksum} = $cksum ;
+    }elsif(/GA\s+(\S+)\;/){ 
+      $objHash->{hitGA} = $1;
+    }elsif(/TC\s+(\S+)\;/){ 
+      $objHash->{hitTC} = $1;
+    }elsif(/NC\s+(\S+)\;/){ 
+      $objHash->{hitNC} = $1;
+    }elsif( my ($msv_mu, $msv_lambda ) = $_ =~ /^STATS LOCAL MSV\s+(\S+)\s+(0\.\d+)/){
+      $objHash->{msvStats} = { mu => $msv_mu, lambda => $msv_lambda};
+    }elsif( my ($viterbi_mu, $viterbi_lambda ) = $_ =~ /^STATS LOCAL VITERBI\s+(\S+)\s+(0\.\d+)/){
+      $objHash->{viterbiStats} = { mu => $viterbi_mu, lambda => $viterbi_lambda };
+    }elsif( my ($forward_tau, $forward_lambda ) = $_ =~ /^STATS LOCAL FORWARD\s+(\S+)\s+(0\.\d+)/){
+      $objHash->{forwardStats} = {tau => $forward_tau, lambda => $forward_lambda};
+    }elsif( $_ =~ /^HMM\s+A/){
+      last;
+    }else{
+      confess("Got a bad HMM header line:".$cm->[$i]."\n"); 
+    }
+    $i++;
+  }
+  $$iRef = $i;
+}
 
 
 sub parseScores {
@@ -151,45 +298,49 @@ sub parseScores {
   my $noHits = 0;
   my @regions;
   foreach my $line (@file) {
+
     #How many scores file data elements
-    next if($line =~ /^#/);
-    my @row = split(/\t/, $line);
-    
-    if($row[0] !~ m|^\S+/\d+\-\d+$|){
+    next if ( $line =~ /^#/ );
+    my @row = split( /\t/, $line );
+
+    if ( $row[0] !~ m|^\S+/\d+\-\d+$| ) {
       die "First element in $line does not look like a name/start-end\n";
     }
-    
-    foreach my $p (qw(1 2 6 7)){
-      if($row[$p] !~ m|^\d+$|){
+
+    foreach my $p (qw(1 2 6 7)) {
+      if ( $row[$p] !~ m|^\d+$| ) {
         die "$row[$p] in $line does not look like an integer\n";
       }
     }
-    
-    if($row[0] ne $row[3].'/'.$row[1].'-'.$row[2]){
-      die "Expected $row[0] to match ".$row[3].'/'.$row[1].'-'.$row[2]."\n";
+
+    if ( $row[0] ne $row[3] . '/' . $row[1] . '-' . $row[2] ) {
+      die "Expected $row[0] to match "
+        . $row[3] . '/'
+        . $row[1] . '-'
+        . $row[2] . "\n";
     }
-    
-    foreach my $p (qw(4 5)){
+
+    foreach my $p (qw(4 5)) {
       local $^W = 0;
-      if ($row[$p] == 0 && $row[$p] ne '0') {
+      if ( $row[$p] == 0 && $row[$p] ne '0' ) {
         print "$row[$p] does not look like a number number\n";
       }
     }
-    if($row[8] !~ /^(53|0|3|5)$/){
+    if ( $row[8] !~ /^(53|0|3|5)$/ ) {
       die "Incorrect truncation type, $row[8] in $line\n";
     }
-    
-    if(defined($row[9])){
-      if($row[9] ne 'seed' and $row[9] ne 'full'){
+
+    if ( defined( $row[9] ) ) {
+      if ( $row[9] ne 'seed' and $row[9] ne 'full' ) {
         die "Incorrect type, $row[8] in $line\n";
       }
     }
-    push(@regions, \@row);
+    push( @regions, \@row );
     $noHits++;
   }
   my $scoresObj = Bio::Rfam::Family::Scores->new(
     {
-      numRegions => $noHits,
+      numRegions => $noHits,  
       regions    => @regions
     }
   );
@@ -234,19 +385,20 @@ sub parseDESC {
     my $l = $file[$i];
     chomp($l);
     if ( length($l) > $expLen ) {
-      croak ("\nGot a DESC line that was longer than $expLen, $file[$i]\n\n"
+      croak("\nGot a DESC line that was longer than $expLen, $file[$i]\n\n"
           . "-" x 80
           . "\n" );
     }
 
     if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|TP|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
-      if(exists($params{$1})){
-        croak("Found second $1 line, only expecting one\n");  
+      if ( exists( $params{$1} ) ) {
+        croak("Found second $1 line, only expecting one\n");
       }
       $params{$1} = $2;
       next;
-    }elsif ($file[$i] =~ /^BM\s{3}(.*)$/){
-      push(@{$params{"BM"}}, $1);
+    }
+    elsif ( $file[$i] =~ /^BM\s{3}(.*)$/ ) {
+      push( @{ $params{"BM"} }, $1 );
     }
     elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
       $params{ "CUT" . $1 } = $2;
@@ -257,30 +409,34 @@ sub parseDESC {
     }
     elsif ( $file[$i] =~ /^WK\s{3}(.*)$/ ) {
       my $page = $1;
-      if($page =~ /^http.*\/(\S+)/){
+      if ( $page =~ /^http.*\/(\S+)/ ) {
+
         #TODO - supress warn, if we can remove URL. Page title sufficient.
         warn "$page going to be set to $1\n";
-        $page=$1; 
+        $page = $1;
       }
-        if ( defined( $params{"WIKI"} ) ) {
-          $params{"WIKI"}->{$page}++;
-        }
-        else {
-          $params{"WIKI"} = { $page => 1 };
-        }
-    } elsif ( $file[$i] =~ /^SM\s{3}(.*)$/ ) {
+      if ( defined( $params{"WIKI"} ) ) {
+        $params{"WIKI"}->{$page}++;
+      }
+      else {
+        $params{"WIKI"} = { $page => 1 };
+      }
+    }
+    elsif ( $file[$i] =~ /^SM\s{3}(.*)$/ ) {
       my $sm = $1;
       if ( $params{SM} ) {
         $params{SM} .= " ";
       }
       $params{SM} .= $sm;
       next;
-    }elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
+    }
+    elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
       while ( $cc =~ /(\w+):(\S+)/g ) {
         my $db  = $1;
         my $acc = $2;
-#TODO - check that there are no CC xrefs like this!
+
+        #TODO - check that there are no CC xrefs like this!
         if ( $db eq 'Swiss' ) {
           $acc =~ s/\W+//g;
           unless ( $acc =~ /^\S{6}$/ ) {
@@ -386,8 +542,9 @@ sub parseDESC {
       );
       next;
     }
-#------------------------------------------------------------------------------
-#Database cross references
+
+ #------------------------------------------------------------------------------
+ #Database cross references
     elsif ( $file[$i] =~ /^D[C|R]\s{3}/ ) {
       for ( ; $i <= $#file ; $i++ ) {
         my $com;
@@ -407,32 +564,55 @@ sub parseDESC {
 
         #TODO - Not this is not a comment, but an additional parameter!
         if ( $file[$i] =~ /^DR   SO:(\d+) SO:(.*)$/ ) {
+
           #GO:0010628 GO:positive regulation of gene expression
-          push( @{ $params{DBREFS} }, { db_id => 'SO', db_link => $1, other_params => $2 } );
-        }elsif ( $file[$i] =~ /^DR   GO:(\d+) GO:(.*)$/ ) {
+          push(
+            @{ $params{DBREFS} },
+            { db_id => 'SO', db_link => $1, other_params => $2 }
+          );
+        }
+        elsif ( $file[$i] =~ /^DR   GO:(\d+) GO:(.*)$/ ) {
+
           #GO:0010628 GO:positive regulation of gene expression
-          push( @{ $params{DBREFS} }, { db_id => 'GO', db_link => $1, other_params => $2 } );
-        }elsif ( $file[$i] =~ /^DR   (MIPF); (MIPF\d+)$/ ) {
+          push(
+            @{ $params{DBREFS} },
+            { db_id => 'GO', db_link => $1, other_params => $2 }
+          );
+        }
+        elsif ( $file[$i] =~ /^DR   (MIPF); (MIPF\d+)$/ ) {
+
           #MIPF; MIPF0000879
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }elsif( $file[$i] =~ /^DR   (snornadb);\s(.*?\d+)$/ ) {
+        }
+        elsif ( $file[$i] =~ /^DR   (snornadb);\s(.*?\d+)$/ ) {
+
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-#TODO - check that these are really different.
-        }elsif( $file[$i] =~ /^DR   (snoRNABase);\s(.*?\d+)$/ ) {
+
+          #TODO - check that these are really different.
+        }
+        elsif ( $file[$i] =~ /^DR   (snoRNABase);\s(.*?\d+)$/ ) {
+
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-          
-        }elsif( $file[$i] =~ /^DR   (PKBASE); (PKB\d+)$/ ) {
+
+        }
+        elsif ( $file[$i] =~ /^DR   (PKBASE); (PKB\d+)$/ ) {
+
           #PKBASE; PKB00277
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }elsif( $file[$i] =~ /^DR   (snoopy); (.*)$/ ) {
+        }
+        elsif ( $file[$i] =~ /^DR   (snoopy); (.*)$/ ) {
+
           #snoopy;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }elsif( $file[$i] =~ /^DR   (MIR); (.*)$/ ) {
+        }
+        elsif ( $file[$i] =~ /^DR   (MIR); (.*)$/ ) {
+
           #MIR; MI0001007;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }elsif( $file[$i] =~ /^DR   (URL); (.*)$/ ) {
+        }
+        elsif ( $file[$i] =~ /^DR   (URL); (.*)$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
         elsif ( $file[$i] =~ /^DR/ ) {
@@ -485,7 +665,7 @@ sub writeEmptyDESC {
     CUTTC => '27.00',
   );
 
-  my $desc = 'Bio::Rfam::Family::DESC'->new(\%desc);
+  my $desc = 'Bio::Rfam::Family::DESC'->new( \%desc );
   $self->writeDESC($desc);
 }
 
@@ -533,45 +713,56 @@ sub writeDESC {
             $n->{seq} . "/" . $n->{from} . "-" . $n->{to} . ";" );
           print D "\n";
         }
-      }elsif( $tagOrder eq 'CLASS' ){
-        foreach my $key (qw(Type Class Superfamily Comment)){
-          next if(!exists($desc->$tagOrder->{$key}));
-          my $value =   $desc->$tagOrder->{$key};
-          if($key eq 'Comment'){
-            print D wrap( "CN   ", "CN   ", $value );  
+      }
+      elsif ( $tagOrder eq 'CLASS' ) {
+        foreach my $key (qw(Type Class Superfamily Comment)) {
+          next if ( !exists( $desc->$tagOrder->{$key} ) );
+          my $value = $desc->$tagOrder->{$key};
+          if ( $key eq 'Comment' ) {
+            print D wrap( "CN   ", "CN   ", $value );
             print D "\n";
-          }else{
-            print D "CT   ".$key."; ".$value.";\n" 
+          }
+          else {
+            print D "CT   " . $key . "; " . $value . ";\n";
           }
         }
-        
-      }elsif ( $tagOrder eq 'WIKI' ) {
+
+      }
+      elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
           my @pages = keys( %{ $desc->$tagOrder } );
-          foreach my $p (@pages){
+          foreach my $p (@pages) {
             print D wrap( "WK   ", "WK   ", $p );
-            print D "\n"
+            print D "\n";
           }
         }
-      }elsif ( $tagOrder eq 'MSP' ) {
-        if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-         
-          print D wrap( "MS   ", "MS   ", "TaxId:".
-                          $desc->$tagOrder->{TaxId}. "; TaxName:".$desc->$tagOrder->{TaxName}.";"  );
-            print D "\n"
-         }
       }
-      elsif( $tagOrder eq 'CLASS' ){
-        foreach my $key (qw(Type Class Superfamily Comment)){
-          next if(!exists($desc->$tagOrder->{$key}));
-          my $value =   $desc->$tagOrder->{$key};
-          if($key eq 'Comment'){
-            print D wrap( "CN   ", "CN   ", $value );  
+      elsif ( $tagOrder eq 'MSP' ) {
+        if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
+
+          print D wrap(
+            "MS   ",
+            "MS   ",
+            "TaxId:"
+              . $desc->$tagOrder->{TaxId}
+              . "; TaxName:"
+              . $desc->$tagOrder->{TaxName} . ";"
+          );
+          print D "\n";
+        }
+      }
+      elsif ( $tagOrder eq 'CLASS' ) {
+        foreach my $key (qw(Type Class Superfamily Comment)) {
+          next if ( !exists( $desc->$tagOrder->{$key} ) );
+          my $value = $desc->$tagOrder->{$key};
+          if ( $key eq 'Comment' ) {
+            print D wrap( "CN   ", "CN   ", $value );
             print D "\n";
-          }else{
-            print D "CT   ".$key."; ".$value.";\n" 
           }
-        }  
+          else {
+            print D "CT   " . $key . "; " . $value . ";\n";
+          }
+        }
       }
       elsif ( $tagOrder eq 'REFS' ) {
         foreach my $ref ( @{ $desc->$tagOrder } ) {
@@ -653,7 +844,7 @@ sub updateRfamAInRDB {
   else {
     $rfamDB->resultset('Family')->updateFamily($famObj);
   }
-  
+
 }
 
 sub updateFamilyRfamseqRegions {
@@ -664,12 +855,11 @@ sub updateFamilyRfamseqRegions {
   }
 
   my $rfamDB = $self->{config}->rfamlive;
-  
-  $rfamDB->resultset('SeedRegion')->updateSeedReg($famObj);
-  $rfamDB->resultset('FullRegion')->updateFullReg($famObj);  
-  
-}
 
+  $rfamDB->resultset('SeedRegion')->updateSeedReg($famObj);
+  $rfamDB->resultset('FullRegion')->updateFullReg($famObj);
+
+}
 
 sub moveFamilyInRDB {
   my ( $self, $famObj, $dfamDB ) = @_;
@@ -677,7 +867,6 @@ sub moveFamilyInRDB {
   unless ( $famObj and $famObj->isa('Bio::Rfam::Family') ) {
     confess("Did not get a Bio::Rfam::Family object");
   }
-
 
   $dfamDB->resultset('Family')->updateFamily($famObj);
 
@@ -778,26 +967,23 @@ sub uploadDfamAAligns {
 }
 
 sub results {
-  my($self) = @_;
-  my $tabout = abs_path($self->tabout);
+  my ($self) = @_;
+  my $tabout = abs_path( $self->tabout );
   my $scores = $tabout;
   $scores =~ s/DFAMOUT$/scores/;
-  my $files = {tabout => $tabout,
-               scores  => $scores };
-  my $resObj = Bio::Dfam::HMM::HMMResults->new( $files ); 
+  my $files = {
+    tabout => $tabout,
+    scores => $scores
+  };
+  my $resObj = Bio::Dfam::HMM::HMMResults->new($files);
   return $resObj;
 }
 
 sub writeScoresFile {
-  my($self, $resObj) = @_;
+  my ( $self, $resObj ) = @_;
+
   #Todo - TABFILE Pasring code....
   $self->writeScoresFile($resObj);
 }
-
-
-
-
-
-
 
 1;
