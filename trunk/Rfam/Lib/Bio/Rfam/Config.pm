@@ -225,7 +225,7 @@ sub seqdbConfig {
 	warn "Passed variable to ro config\n";
     }
     
-    if(!exist $self->{'_config'}->{seqdb}->{$db}){
+    if(!exists $self->{'_config'}->{seqdb}->{$db}){
         my @dbfiles = keys (%{ $self->{'_config'}->{seqdb}});
 	die "Unknown database $db, must be one of [@dbfiles]\n";
     }
