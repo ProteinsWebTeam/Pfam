@@ -140,7 +140,7 @@ sub parseCM {
   return ($cmObj);
 }
 
-sub _parseCMHeaser {
+sub _parseCMHeader {
   my ($self, $cm, $iRef ) = @_;
 #INFERNAL1/a [1.1rc2 | December 2012]
 #NAME     SEED
@@ -169,8 +169,113 @@ sub _parseCMHeaser {
 #EFP7GF   -7.2971 0.71888
 #CM
 
+  #Store the CM header in here initally.
+  my $objHash = {};
 
-
+  my $i = 0;
+  for ( $i = $$iRef; $i <= scalar(@{$cm->{rawcm}}); ){  
+    $_ = my $cm->{rawcm}->[$i];
+    if(my ($version) = $_ =~ /(INFERNAL1.*)/){
+      $objHash->{version} = $version;
+    }elsif(/NAME\s+(\S+)/){ 
+      $objHash->{name} =  $1 ;
+    }elsif(/STATES\s(\d+)/){
+      $objHash->{states} = $1;
+    }elsif(/NODES\s+(\d+)/){
+       $objHash->{nodes} = $1;
+    }elsif(my ($length) = $_ =~ /^CLEN\s+(\d+)/){
+      $objHash->{length} = $length;
+    }elsif(/^W\s+(\d+)$/){
+      $objHash->{w} = $1;
+    }elsif( my ($alpha) = $_ =~ /^ALPH\s+(\S+)/){
+      $objHash->{alpha} = $alpha;
+    }elsif( my ($rf) = $_ =~ /^RF\s+(no|yes)/){
+      $objHash->{rf} = ($rf eq "no") ? 0 : 1; 
+    }elsif( my ($cons) = $_ =~ /^CONS\s+(no|yes)/){
+      $objHash->{cons} = ($cons eq "no") ? 0 : 1;
+    }elsif(my ($map) = $_ =~ /^MAP\s+(no|yes)/){
+      $objHash->{map} = ($map eq "no") ? 0 : 1; 
+    }elsif(my ($date) = $_ =~ /^DATE\s+(.*)/){
+      $objHash->{date} =  $date; 
+    }elsif(my ($index, $line) = $cm->[$i] =~ /^COM\s+\[(\d+)\]\s+(.*)$/){
+      $index--;
+      $objHash->{com}->[$index] = $line;
+    }
+    
+    #PBEGIN   0.05
+#PEND     0.05
+#WBETA    1e-07
+#QDBBETA1 1e-07
+#QDBBETA2 1e-15
+#N2OMEGA  1.52588e-05
+#N3OMEGA  1.52588e-05
+#ELSELF   -0.08926734
+#NSEQ     5
+#EFFN     1.245117
+#CKSUM    3944183696
+#NULL     0.000  0.000  0.000  0.000 
+#EFP7GF   -7.2971 0.71888
+#CM
+    elsif( my $pbegin = $_ =~ /^PBEGIN\s+(\d+\.\d+)/){
+       $objHash->{pbegin} = $pbegin;
+    }elsif( my $pend = $_ =~ /^PEND\s+(\d+\.\d+)/){
+       $objHash->{pend} = $pend;
+    }elsif( my $wbeta = $_ =~ /^WBEAT\s+(\S+)/){
+       $objHash->{wbeta} = $wbeta;
+    }elsif( my $qdbbeta1 = $_ =~ /^QDBBETA1\s+(\S+)/){
+       $objHash->{qdbbeta1} = $qdbbeta1;
+    }elsif( my $qdbbeta2 = $_ =~ /^QDBBETA2\s+(\S+)/){
+       $objHash->{qdbbeta2} = $qdbbeta2;
+    }elsif( my $n2omega = $_ =~ /^N2OMEGA\s+(\S+)/){
+       $objHash->{n2omega} = $n2omega;
+    }elsif( my $n3omega = $_ =~ /^N3OMEGA\s+(\S+)/){
+       $objHash->{n3omega} = $n3omega;
+    }elsif( my $elself = $_ =~ /^ELSELF\s+(\S+)/){
+       $objHash->{elself} = $elself;
+    }elsif(my($noSeqs) = $_ =~ /^NSEQ\s+(\d+)/){
+      $objHash->{nSeq} = $noSeqs;
+    }elsif( my($effn) = $_ =~ /^EFFN\s+(\d+\.\d+)/){
+       #EFFN  4.966292
+      $objHash->{effn} =  $effn ;
+    }elsif( my ( $cksum ) = $_ =~ /^CKSUM (\d+)/){
+      $objHash->{cksum} = $cksum ;
+    }elsif( my $null = $_ =~ /^NULL\s+(.*)/){
+       $objHash->{null} = $null;
+    }elsif( my $efp7gf = $_ =~ /^EFP7GF\s+(\S+)/){
+       $objHash->{efp7gf} = $efp7gf;
+    }
+    
+#If the model is calibrated, parse     
+#ECMLC    0.62369    -8.95393     0.81613     1600000      531557  0.002258
+#ECMGC    0.42792   -14.49103    -3.20105     1600000       50144  0.007977
+#ECMLI    0.53383    -8.38474     2.25076     1600000      350673  0.003422
+#ECMGI    0.47628    -9.31019     0.57693     1600000       44378  0.009013    
+    elsif( $_ =~ /^(ECM\S{2})\s+(.*)/){
+      my $rowLabel = lc($1);
+      my @values   = split(/\s+/, $2);
+      if(scalar(@values) != 6){
+        die "Expected 6 values on $rowLabel.\n";
+      } 
+      $objHash->{$rowLabel} = \@values;
+    }
+    
+#If the CM has had the thresholds entered.    
+    elsif(/GA\s+(\S+)/){ 
+      $objHash->{hitGA} = $1;
+    }elsif(/TC\s+(\S+)/){ 
+      $objHash->{hitTC} = $1;
+    }elsif(/NC\s+(\S+)/){ 
+      $objHash->{hitNC} = $1;
+    }elsif( $_ =~ /^CM/){
+      #Reached the end of the CM header
+      $$iRef = $i;
+      last;
+    }else{
+      confess("Got a bad HMM header line:".$cm->[$i]."\n"); 
+    }
+    $i++;
+  }
+  $cm->{cmhead} = $objHash;
 }
 
 sub _parseCMBodyForMatchPair {
@@ -224,7 +329,8 @@ sub _parseCMHMMHeader {
   #To add GA, TC, NC, CKSUM, DESC
   my($objHash);
   my $i;
-  for ( $i = $$iRef; $i <= scalar(@$cm); ){  
+  for ( $i = $$iRef; $i <= scalar(@{$cm->rawcm}); ){  
+    $_ = $cm->[$i];
     if(my ($version) = $_ =~ /(HMMER3.*)/){
       $objHash->{version} = $version;
     }elsif(/NAME\s+(\S+)/){ 
@@ -270,13 +376,15 @@ sub _parseCMHMMHeader {
     }elsif( my ($forward_tau, $forward_lambda ) = $_ =~ /^STATS LOCAL FORWARD\s+(\S+)\s+(0\.\d+)/){
       $objHash->{forwardStats} = {tau => $forward_tau, lambda => $forward_lambda};
     }elsif( $_ =~ /^HMM\s+A/){
+      $$iRef = $i;
       last;
     }else{
       confess("Got a bad HMM header line:".$cm->[$i]."\n"); 
     }
     $i++;
   }
-  $$iRef = $i;
+  $cm->{hmmheader} = $objHash;
+
 }
 
 
