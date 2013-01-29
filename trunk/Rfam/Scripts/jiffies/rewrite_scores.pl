@@ -26,7 +26,7 @@ print "$in... ";
 while ( <IN> ) {
   my ( $score, $evalue, $seq_acc, $start, $end ) = 
     m|^(\S+)\s+(\S+)\s+([A-Z0-9\.]+)/(\d+)\-(\d+)|;
-  print OUT "$seq_acc/$start-$end $start $end $seq_acc $score $evalue 1 100 no seed\n";
+  print OUT "$seq_acc/$start-$end $start $end $seq_acc $score $evalue 1 100 0 seed\n";
 }
 print "done\n";
 
