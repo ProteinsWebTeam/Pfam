@@ -312,6 +312,290 @@ sub wait_for_farm {
     
 }
 
+####################
+
+sub eslSfetch_Cf {
+    my ($sfetch, $dbfile, $infile, $outfile) = @_;
+
+    my $command = "$sfetch -Cf $dbfile $infile > $outfile";
+    system("$command");
+    if($?) { die "FAILED: $command"; }
+    return;
+}
+
+################################
+
+#cmAlign: takes a CM and sequence file and runs cmalign, either locally or on the farm using MPI
+
+#Systems MPI help documentation:
+#http://scratchy.internal.sanger.ac.uk/wiki/index.php/How_to_run_MPI_jobs_on_the_farm
+
+# For MPI to work, you need to make sure Infernal has been compiled correctly, with --enable-mpi flag to configure.
+# See Infernal user's guide. It should be compiled correctly, or else rfsearch wouldn't work (MPI cmcalibrate is used there).
+# Also, ssh keys need to be correct. Remove all ^"bc-*" entries from your ~/.ssh/known_hosts file.
+# Optionally add "StrictHostKeyChecking no" to your ~/.ssh/config
+
+sub cmAlign {
+    my $cmfile      = shift; #Handed a CM file
+    my $seqfile     = shift; #sequence file with seqs to align
+    my $alnfile     = shift; #alignment output file 
+    my $outfile     = shift; #cmalign output file 
+    my $opts        = shift; #string of cmalign options
+    my $nseq        = shift; #number of sequences in $seqfile
+    my $tot_len     = shift; #total number of nucleotides in $seqfile
+    my $always_farm = shift; # 1 to always use farm, 0 to only use farm if > 4 CPUs needed
+    my $never_farm  = shift; # 0 to never  use farm, 1 to only use farm if > 4 CPUs needed
+    my $qchoice     = shift; #preferred queue to submit to, "" if none
+    my $dirty       = shift; # 1 to leave files on farm, else remove them 
+
+    my @unlinkA = ();
+
+    die "cmfile \42$cmfile\42 either does not exist or is empty!" if !(-s $cmfile);
+
+    ####################################################################
+    # Predict running time and memory requirement of cmalign
+    # and use them to determine number of CPUs for MPI cmcalibrate call.
+    ####################################################################
+    # Get a rough estimate of running time on 1 CPU based on $tot_len (passed in)
+    my $sec_per_Kb = 4;
+    my $estimatedCpuSeconds = ($tot_len / 1000.) * $sec_per_Kb;
+
+    # Determine number of CPUs to use: target running time is 1 minute.
+    my $targetSeconds = 60;
+    my $cpus = int($estimatedCpuSeconds / $targetSeconds) + 1;
+    my $farm_max_ncpu  = 27; # (1028 * 27) = 27,756 (max memory usage is 28 Gb for any 1 job, cmalign requires up to 1028 Mb per CPU...)
+    my $farm_min_ncpu  = 4;
+    my $local_max_ncpu = 4;
+    my $local_min_ncpu = 2;
+
+    my $use_farm;
+    if   ($always_farm) { $use_farm = 1; }
+    elsif($never_farm)  { $use_farm = 0; }
+    elsif($cpus > 4)    { $use_farm = 1; }
+    else                { $use_farm = 0; }
+	
+    if($use_farm) { 
+	if($cpus > $farm_max_ncpu) { $cpus = $farm_max_ncpu; }
+	if($cpus < $farm_min_ncpu) { $cpus = $farm_min_ncpu; }
+    }
+    else { 
+	if($cpus > $local_max_ncpu) { $cpus = $local_max_ncpu; }
+	if($cpus < $local_min_ncpu) { $cpus = $local_min_ncpu; }
+    }
+
+    my $estimatedWallSeconds = $estimatedCpuSeconds / $cpus;
+
+    # Memory requirement is easy, cmalign caps DP matrix size at 1024 Mb
+    my $requiredMb = $cpus * 1024.0;
+
+    my $hrs = int($estimatedWallSeconds/3600);
+    my $min = int(($estimatedWallSeconds - ($hrs * 3600)) / 60);
+    my $sec = int($estimatedWallSeconds - ($hrs * 3600 + $min * 60));
+    
+    my $rounded_requiredMb = 500;
+    # pick smallest 500 Mb multiple that satisfies required memory estimate
+    while($rounded_requiredMb < $requiredMb) { 
+	$rounded_requiredMb += 500; 
+    }
+    $requiredMb = $rounded_requiredMb;
+    my $requiredKb = $requiredMb * 1000;
+
+    # determine which queue to submit to
+    if($qchoice eq "") { # else $qchoice was passed in
+	if   ($estimatedWallSeconds < (3600. * 8.))  { $qchoice = "normal";   } # less than 8 hours? normal queue
+	elsif($estimatedWallSeconds < (3600. * 36.)) { $qchoice = "long";     } # less than 36 hours? long queue
+	else                                         { $qchoice = "basement"; } # more than 36 hours? basement queue
+    }
+
+    printf("Aligning %7d sequences %s on %d cpus; predicted time (h:m:s): %02d:%02d:%02d %s", 
+	   $nseq, 
+	   ($use_farm) ? "on farm" : "locally",
+	   $cpus, $hrs, $min, $sec+0.5, 
+	   ($use_farm) ? "\n" : " ... ");
+
+    if(! $use_farm) { 
+	# run locally
+	# NOWTODO update with config infernal path, probably need to change cmAlign() subroutine args
+	my $command = "$Rfam::infernal_path/cmalign --cpu $cpus $opts -o $alnfile $cmfile $seqfile > $outfile";
+	system("$command");
+	if($?) { die "FAILED: $command"; }
+	printf("done.\n");
+	open(OUT, $outfile);
+    }
+    else { 
+	# run on farm with MPI 
+	# create directory on lustre to use, copy CM and seqfile there:
+	my $user =  getlogin() || getpwuid($<);
+	my $pwd = getcwd;
+	die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]" if not defined $user or length($user)==0;
+	my $lustre = "$Rfam::scratch_farm/$user/$$"; #path for dumping data to on the farm
+	mkdir("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
+
+	# don't worry about calling 'lfs setstripe' here like we do in rfsearch.pl
+	# because we won't be accessing a few very large files only (see: http://scratchy.internal.sanger.ac.uk/wiki/index.php/Farm_II_User_notes#Striping_options)
+
+	my $lustre_cmfile  = "$lustre/CM";
+	my $lustre_seqfile = "$lustre/$seqfile";
+	my $lustre_alnfile = "$lustre/$alnfile";
+	my $lustre_outfile = "$lustre/$outfile";
+	copy("$cmfile",  "$lustre_cmfile") or die "FATAL: failed to copy [$cmfile] to [$lustre_cmfile]\n[$!]";
+	copy("$seqfile", "$lustre_seqfile") or die "FATAL: failed to copy [$seqfile] to [$lustre_seqfile]\n[$!]";
+	push(@unlinkA, $lustre_cmfile);
+	push(@unlinkA, $lustre_seqfile);
+
+	my $alignCommand = "mpirun --mca mpi_paffinity_alone 1 --hostfile /tmp/hostfile.\$LSB_JOBID --np \$CPUS $Rfam::infernal_path/cmalign --mpi $opts -o $lustre_alnfile $lustre_cmfile $lustre_seqfile > $lustre_outfile";
+	
+	#Generate a MPI script:
+	my $mpiScript = "#!/bin/bash
+# An OPENMPI LSF script for running cmalign
+# Submit this script via bsub to use.
+ 
+# Parse the LSF hostlist into a format openmpi understands and find the number of CPUs we are running on.
+echo \$LSB_MCPU_HOSTS | awk '{for(i=1;i <=NF;i=i+2) print \$i \" slots=\" \$(i+1); }' >> /tmp/hostfile.\$LSB_JOBID
+CPUS=`echo \$LSB_MCPU_HOSTS | awk '{for(i=2;i <=NF;i=i+2) { tot+=\$i; } print tot }'` 
+
+# Now run our executable 
+$alignCommand
+";
+	my $mpiScriptFile = $lustre . '/' . $$ . '_cmalign_mpi_script.sh'; #be cleverer here
+	open(MS, "> $mpiScriptFile") or die "FATAL: failed to open file: $mpiScriptFile\n[$!]";
+	print MS $mpiScript;
+	close(MS);
+	
+	chmod 0775,  $mpiScriptFile or die "FATAL: failed to run [chmod 0775,  $mpiScriptFile]\n[$!]";
+	
+	my $mpiScriptOut =  $$ . '_cmalign_mpi_script.out';
+	my $bjobName = "cmaln" . $$ . hostname;
+	my $bsubOpts = "-o $lustre/$mpiScriptOut -q $qchoice  -J\"$bjobName\" -n$cpus -a openmpi -R \'select[mem>$requiredMb] rusage[mem=$requiredMb]\' -M $requiredKb";
+	
+	print "Running: bsub $bsubOpts $mpiScriptFile\n";
+	system("bsub $bsubOpts $mpiScriptFile > $lustre/$mpiScriptOut\.std") and die "FATAL: failed to run to run: bsub $bsubOpts $mpiScriptFile\n[$!]";
+	RfamUtils::wait_for_farm($bjobName, 'cmalign', $cpus, 100*$estimatedWallSeconds+120, undef ); #100*$estimatedWallSeconds() our timing estimates may be way off because job may be PENDING for a long time
+	push(@unlinkA, $lustre_alnfile);
+	push(@unlinkA, $lustre_outfile);
+	
+	#copy("$lustre/$mpiScriptOut", "$pwd/$mpiScriptOut") or die "FATAL: failed to copy $lustre/$mpiScriptOut to $pwd/$mpiScriptOut\n[$!]";
+	
+	open(OUT, "< $lustre/$mpiScriptOut") or die "FATAL: failed to open $lustre/$mpiScriptOut for reading\n[$!]";
+
+	copy("$lustre_alnfile",  "$alnfile") or die "FATAL: failed to copy [$lustre_alnfile] to [$alnfile]\n[$!]";
+	copy("$lustre_outfile",  "$outfile") or die "FATAL: failed to copy [$lustre_outfile] to [$outfile]\n[$!]";
+    }	
+    my $alignTime=0;
+    while(<OUT>){
+	if(/\#\s+CPU\s+time\:\s+(\S+)u\s+(\S+)s/){
+	    $alignTime=$1+$2;
+	    last;
+	}
+    }
+    close(OUT);
+
+    # clean up
+    if(! $dirty) { 
+	foreach my $file (@unlinkA) { 
+	    unlink $file;
+	}
+    }
+
+    $alignTime *= $cpus;
+    return $alignTime;
+}
+
+# FROM RfamUtils.pm:
+
+######################################################################
+#reorder: given 2 integers, return the smallest first & the largest last:
+sub reorder {
+    my ($x,$y)=@_;
+    
+    if ($y<$x){
+	my $tmp = $x;
+	$x = $y;
+	$y = $tmp;
+    }
+    return ($x,$y);
+}
+
+#max
+sub max {
+  return $_[0] if @_ == 1;
+  $_[0] > $_[1] ? $_[0] : $_[1]
+}
+
+
+######################################################################
+#Returns the extent of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
+# - assumes that $x1 < $y1 and $x2 < $y2.
+#
+# D = 2*|A n B|/(|A|+|B|)
+#
+sub overlapExtent {
+    my($x1, $y1, $x2, $y2) = @_;
+    
+    ($x1, $y1) = RfamUtils::reorder($x1, $y1);
+    ($x2, $y2) = RfamUtils::reorder($x2, $y2);
+    # 1.
+    # x1                   y1
+    # |<---------A--------->|
+    #    |<------B------>|
+    #    x2             y2
+    #    XXXXXXXXXXXXXXXXX
+    # 2.  x1                     y1
+    #     |<---------A----------->|
+    # |<-------------B------>|
+    # x2                    y2
+    #     XXXXXXXXXXXXXXXXXXXX
+    # 3. x1             y1
+    #    |<------A------>|
+    # |<---------B--------->|
+    # x2                   y2
+    #    XXXXXXXXXXXXXXXXX
+    # 4. x1                    y1
+    #    |<-------------A------>|
+    #        |<---------B----------->|
+    #        x2                     y2
+    #        XXXXXXXXXXXXXXXXXXXX
+    my $D=0;
+    my $int=0;
+    my $L1=$y1-$x1+1;
+    my $L2=$y2-$x2+1;
+    my $minL = RfamUtils::min($L1,$L2);
+    if ( ($x1<=$x2 && $x2<=$y1) && ($x1<=$y2 && $y2<=$y1) ){    #1.
+	$D = $L2;
+    }
+    elsif ( ($x2<=$x1) && ($x1<=$y2 && $y2<=$y1) ){              #2.
+	$D = $y2-$x1+1;
+    }
+    elsif ( ($x2<=$x1 && $x1<=$y2) && ($x2<=$y1 && $y1<=$y2) ){ #3.
+	$D = $L1;
+    }
+    elsif ( ($x1<=$x2 && $x2<=$y1) && ($y1<=$y2) ){              #4.
+	$D = $y1-$x2+1;
+    }
+    return $D/$minL;
+}
+
+=head2 cm_evalue2bitsc()
+
+  Title    : cm_evalue2bitsc()
+  Incept   : EPN, Tue Jan 29 17:18:43 2013
+  Usage    : cm_evalue2bitsc($cm, $evalue)
+  Function : Generates a new Bio::EslMSA object
+  Args     : <fileLocation>: file location of alignment
+           : <nseq>: number of seqs
+  Returns  : Bio::EslMSA object
+  
+=cut
+
+## following from infernal's cmstat.c line 295 
+## (else if(output_mode == OUTMODE_BITSCORES_E) {)
+## setting cur_eff_dbsize, from stats.c
+## if >= BPs
+#cur_eff_dbsize = (dbsize / cm->expA[i]->dbsize) * ((double) cm->expA[i]->nrandhits);
+#sc = exp->mu_extrap + ((log(E/exp->cur_eff_dbsize)) / (-1 * exp->lambda));
+
+## if 0 BPs
+#sc = cm_p7_E2Score(E, Z, cm->fp7->max_length, cm->fp7_evparam[CM_p7_LFTAU], cm->fp7_evparam[CM_p7_LFLAMBDA]);
 
 
 ######################################################################
