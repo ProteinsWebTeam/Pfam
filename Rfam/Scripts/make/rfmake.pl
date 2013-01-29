@@ -1,4 +1,4 @@
-#!/software/bin/perl -w
+#!/usr/local/bin/perl -w 
 
 #NOWTODO: put variable decalarations at top of block (PRELIMINARIES, PARSE TABFILE...)
 # TODO: put rfsearch list mode code into rfsearch
@@ -15,7 +15,7 @@ use File::Copy;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family::MSA;
-use myrfam; #TODO: put these functions into a new Rfam module
+use TempRfam; #TODO: put these functions into a new Rfam module
 
 use Data::Printer;
 
@@ -44,7 +44,6 @@ my $queue       = ""; # queue choice
 my @cmosA;            # extra single - cmalign options (e.g. -g)
 my @cmodA;            # extra double - cmalign options (e.g. --cyk)
 
-
 &GetOptions( "l"          => \$list,
 	     "t=s"        => \$thr,
 	     "e=s"        => \$evalue,
@@ -71,7 +70,7 @@ if((defined $thr) && (defined $evalue)) { die "ERROR -t and -e combination is in
 if((defined $thr) || (defined $evalue)) { $do_thr = 1; $do_list = 0; }
     
 # setup dbfile 
-$dbconfig = $config->seqdbConfig($config, $dbchoice);
+$dbconfig = $config->seqdbConfig($dbchoice);
 $dbfile   = $dbconfig->{"path"};
 
 # enforce -a or --subalign selected if used align-specific options used
@@ -97,13 +96,10 @@ foreach $file ($descI, $seedI, $tabfileI) {
     if(! -s $file) { die "ERROR: required file $file does not exist or is empty\n"; }
 }
 
-# TODO: find out if umask(002) is necessary
-# make sure files are writable by group
-umask(002);
-
 if(defined $evalue) { 
   # TODO: determine minimum bit score with E-value <= $evalue, set as $thr, 
-   # use CM's e-value parameters and dbsize
+    #$bitsc = int((evalue2bitsc($cm, $evalue)) + 0.5); # round up to nearest int bit score above exact bit score
+
     die "ERROR rfmake.pl not yet set up for -e E-value threshold, write code using CM E-value parameters DBSIZE etc...";
 }
 
