@@ -14,6 +14,7 @@ use File::Copy;
 
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
+use Bio::Rfam::Family::MSA;
 use myrfam; #TODO: put these functions into a new Rfam module
 
 my $config = Bio::Rfam::Config->new;
@@ -108,35 +109,37 @@ if(defined $evalue) {
 ######################################################################
 # Make hashes for checking overlaps with seeds:
 # NOWTODO: check over this code, use Easel MSA module and probably make into >=1 subroutines
-open( SEED, "< $seedI" ) or die "Can't open $seedI to determine overlapping hits\n";
 
-HERE HERE HERE 
-while( <SEED> ) {
-    /^(\S+)\/(\d+)\-(\d+)\s+\S+/ and do {
-	my ($id,$a,$b,$strand) = ($1,$2,$3,1);
-	my $n = $id . "/" . $a . "-" . $b;
-	next if defined $seen_id{$n};
-	$seen_id{$n}=1;
-	$seedseqs_found{$n}=0;
-	if ($b<$a){
-	    my $temp=$a;
-	    $a = $b;
-	    $b = $temp;
-	    $strand = -1;
-	    }
-	
-	if( int($a) == $a && $a>0 && int($b) == $b && $b>0 ){
-	    push(@{$seedseqs_start{$1}},$a);
-	    push(@{$seedseqs_end{$1}},$b);
-	    push(@{$seedseqs_strand{$1}},$strand);
-	}
-    };
-    
-    /^(\S+)\s+\S+\n/ and do {
-	$seedseqs_found{$1} = 0;
-    };
+my (%seedseqs_start, %seedseqs_end, %seedseqs_strand, %seedseqs_found);
+my $sqacc;  # sequence accession
+my $start;  # hit start
+my $end;    # hit end
+my $a;      # min of start, end
+my $b;      # max of start, end
+my $strand; # 1 if $start <= $end, else -1
+my $msa = Bio::Rfam::Family::MSA->new({
+    fileLocation => $seedI,
+    aliType => 'seed'
+});
+my $nseq = $msa->nseq();
+for($i = 0; $i < $nseq; $i++) { 
+    $sqname = $msa->get_sqname_idx($i);
+    if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
+	($sqacc, $start, $end) = ($1,$2,$3);
+	$seedseqs_found{$sqname} = 0;
+	if($s <= $e) { $strand =  1; $a = $start; $b = $end;   }
+	else         { $strand = -1; $a = $end;   $b = $start; }
+	push(@{$seedseqs_start{$n}}, $a); 
+	push(@{$seedseqs_end{$n}},   $b);  
+	push(@{$seedseqs_strand{$n}},$strand);     
+    } 
+    else { 
+	# SEED sqname of unexpected format
+	# I think we should possibly handle this (new families), but die for now
+	die "ERROR SEED sequence name of unexpected format $sqname"; 
+    }
 }
-close(SEED);
+
 
 # END of PRELIMINARIES block
 ######################################################################
@@ -251,7 +254,7 @@ if($do_list) {
 	  my $seqLabel = 'FULL';
 	  my $seqLabelExtent = '';
 	  my $overlapExtent = overlapsSeed($name,$start,$end,\%seedseqs_start, \%seedseqs_end, \%seedseqs_strand, \%seedseqs_found);
-	  if ($overlapExtent>0.1){#Must overlap significantly to be considered:
+	  if ($overlapExtent>0.1){ # Must overlap significantly to be considered:
 	      $seqLabel = 'SEED';
 	      $seqLabelExtent = sprintf ".%d", int(100*$overlapExtent);
 	  }
@@ -276,8 +279,9 @@ if($do_list) {
 	  }
 	  
 	  if ($evalue > 1 && $prev_evalue <= 1) { 
-	      printf OUT  "#***********E-VALUE OF 1**************#\n";
-	      printf SPEC "#***********E-VALUE OF 1**************#\n";
+	      $outline = "#***********E-VALUE OF 1**************#\n";
+	      printf OUT  $outline;
+	      printf SPEC $outline;
 	  }
 	  $prev_evalue = $evalue;
 	  
@@ -374,45 +378,17 @@ else {
 
         # remove temporary fasta file
 	if(! $dirty) { unlink "$$.fa"; }
-
-        # print warnings if scores are too low, or if seq in ALIGN not in scores file
-	open (CMA, "cmalign.out") or die "FATAL: failed to open cmalign.out\n[$!]";
-	my $alignTime = 0;
-	my $line;
-	while (my $cma = <CMA>){
-	    if($cma =~ /^\s+\d+\s+(\S+)\s+\d+\s+\d+\S+\s+([-]?\d+\.\d+)/){
-		#Print warning if cmalign bit score is significantly different from the cmsearch bit score?
-		if(defined($scores->{$1}) and 0.9*($scores->{$1}) > $2 ){
-		    chomp($cma);
-		    my $line = "WARNING: your cmalign score [$2] is significantly lower than the cmsearch score [$scores->{$1}]:\n\ttry re-running rfmake.pl with \42-cmod sums\42\n";
-		    print $line;
-		    push(@warnings, $line);
-		}
-		elsif(not defined($scores->{$1})){
-		    print          "WARNING: [$1] is in ALIGN but is not in the \42scores\42 file!\n";
-		    push(@warnings,"WARNING: [$1] is in ALIGN but is not in the \42scores\42 file!\n");    
-		}
-	    }
-	    if($cma =~ /\#\s+CPU\s+time\:\s+(\S+)u\s+(\S+)s/){
-		$alignTime=$1+$2;
-	    }
-	}
-	close(CMA);
     } # end of if($do_align)
 } # end of 'else' entered if do_thr is TRUE
-######################################################################
-#Record cpu time:
 
-######################################################################
-#NOWTODO use ROb's code to update DESC file
-#update DESC file! 
-# NOWTODO is findTcNc() necessary, if not cut it
+#TODO write function in Rob's DESC handling code to find TC, NC thresholds
 my ($tc_bits, $nc_bits) = findTcNc( $thr, $output );
 
 $desc->{'GA'}=$thr;
 $desc->{'TC'}=$tc_bits;
 $desc->{'NC'}=$nc_bits;
 
+#NOWTODO: write desc using Rob's code?
 #RfamUtils::writeDesc($desc);
 copy('DESC', $$ . '.DESC') if -e 'DESC';
 open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
@@ -428,6 +404,9 @@ close(DE);
 # close(WARN);
 # }
 exit(0);
+
+###########################
+# SUBROUTINES
 
 ######################################################################
 #lowest_true:
