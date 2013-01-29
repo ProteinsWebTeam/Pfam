@@ -580,22 +580,46 @@ sub overlapExtent {
   Title    : cm_evalue2bitsc()
   Incept   : EPN, Tue Jan 29 17:18:43 2013
   Usage    : cm_evalue2bitsc($cm, $evalue)
-  Function : Generates a new Bio::EslMSA object
-  Args     : <fileLocation>: file location of alignment
-           : <nseq>: number of seqs
-  Returns  : Bio::EslMSA object
+  Function : Returns bit score for a given E-value
+  Args     : <cm>:     Bio::Rfam::Family::CM object
+           : <evalue>: E-value we want bit score for
+           : <Z>:      database size (both strands) for E-value->bitsc calculation
+  Returns  : bit score for E-value for CM in db of $Z residues 
+           : (where $Z includes BOTH strands of target seqs)
   
 =cut
 
-## following from infernal's cmstat.c line 295 
-## (else if(output_mode == OUTMODE_BITSCORES_E) {)
-## setting cur_eff_dbsize, from stats.c
-## if >= BPs
-#cur_eff_dbsize = (dbsize / cm->expA[i]->dbsize) * ((double) cm->expA[i]->nrandhits);
-#sc = exp->mu_extrap + ((log(E/exp->cur_eff_dbsize)) / (-1 * exp->lambda));
+sub cm_evalue2bitsc { 
+    ($cm, $evalue, $Z) = @_;
 
-## if 0 BPs
-#sc = cm_p7_E2Score(E, Z, cm->fp7->max_length, cm->fp7_evparam[CM_p7_LFTAU], cm->fp7_evparam[CM_p7_LFLAMBDA]);
+    # following from infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
+    my $eline; # E-value stat line from CM file
+    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp); # E-value stat components from CM file
+    my $cur_eff_dbsize; # current effective dbsize
+    my $bitsc; # bit score to return;
+
+    # variables only used if HMM stats apply
+    my $tau; # used if HMM stats are used
+    my $maxlen; # maximum lenght
+
+    # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
+    if($cm->{match_pair_node}) { # use CM stats
+	# TODO, read SM in desc, and pick appropriate E-value line based on that
+	$eline = $cm->{cmHeader}->{ecmli};
+	($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = split(/s+/, $eline);
+	$cur_eff_dbsize = ($Z / $dbsize) * $nhits;
+	$bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
+    }
+    else { 
+	$eline = $cm->{cmHeader}->{efp7gf};
+	($tau, $lambda) = split(/s+/, $eline);
+	$maxlen = $cm->{cmHeader}->{maxl}
+	$bitsc = $tau + ((log($evalue / ($Z / (float) $maxlen))) / (-1 * $lambda));
+    }
+
+    printf("in cm_evalue2bitsc() converted E-value $evalue to bit $sc (Z: $Z)\nEline: $eline\n");
+    return $sc;
+}
 
 
 ######################################################################

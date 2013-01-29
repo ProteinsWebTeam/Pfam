@@ -72,6 +72,7 @@ if((defined $thr) || (defined $evalue)) { $do_thr = 1; $do_list = 0; }
 # setup dbfile 
 $dbconfig = $config->seqdbConfig($dbchoice);
 $dbfile   = $dbconfig->{"path"};
+my $Z     = $dbconfig->{"dbsize"};
 
 # enforce -a or --subalign selected if used align-specific options used
 if((! $do_align) && (! $do_subalign)) { 
@@ -83,6 +84,7 @@ if((! $do_align) && (! $do_subalign)) {
 
 # set input (suffix 'I') and output (suffix 'O') file names, ensure input file names exist
 my $descI    = "DESC";
+my $cmI      = "CM";
 my $seedI    = "SEED";
 my $tabfileI = "TABFILE";
 my $outlistO = "outlist";
@@ -91,16 +93,19 @@ my $taxinfoO = "taxinfo";
 my $rinO     = "rin.dat";
 my $rincO    = "rincounts.dat";
 
-foreach $file ($descI, $seedI, $tabfileI) { 
+foreach $file ($descI, $seedI, $cmI, $tabfileI) { 
     # write function: check for required input file, which should be able to take multiple input files
     if(! -s $file) { die "ERROR: required file $file does not exist or is empty\n"; }
 }
 
 if(defined $evalue) { 
-  # TODO: determine minimum bit score with E-value <= $evalue, set as $thr, 
-    #$bitsc = int((evalue2bitsc($cm, $evalue)) + 0.5); # round up to nearest int bit score above exact bit score
-
-    die "ERROR rfmake.pl not yet set up for -e E-value threshold, write code using CM E-value parameters DBSIZE etc...";
+   # TODO: use loadRfamFromLocalFile in FamilyIO.pm, but only if I can supply
+   # cwd as dir
+    # TODO, read SM in desc, and pick appropriate E-value line based on that
+   my $io = Bio::Rfam::FamilyIO->new;
+   my $cm = $io->parseCM($cmI);
+   $bitsc = int((evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
+   $thr = $bitsc;
 }
 
 ######################################################################
