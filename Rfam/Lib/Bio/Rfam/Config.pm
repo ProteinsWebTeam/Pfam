@@ -198,10 +198,37 @@ sub familyLocation {
   
 }
 
-
 sub location {
   
 }
 
+sub infernalPath {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{binaries}->{infernal};
+}
 
+sub easelPath {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{binaries}->{easel};
+}
+    
+sub seqdbConfig {
+    my $self = shift;
+    my $db = shift;
+    if ( $#_ >= 0 ) {
+	warn "Passed variable to ro config\n";
+    }
+    
+    if(!exist $self->{'_config'}->{seqdb}->{$db}){
+        my @dbfiles = keys (%{ $self->{'_config'}->{seqdb}});
+	die "Unknown database $db, must be one of [@dbfiles]\n";
+    }
+    return $self->{'_config'}->{seqdb}->{$db}
+}
 1;

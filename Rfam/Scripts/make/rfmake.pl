@@ -17,6 +17,8 @@ use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family::MSA;
 use myrfam; #TODO: put these functions into a new Rfam module
 
+use Data::Printer;
+
 my $config = Bio::Rfam::Config->new;
 
 ###################################################################
@@ -36,7 +38,7 @@ my $do_taxinfo = 1;   # TRUE to create taxinfo file, FALSE if --notaxinfo
 my $do_compare = 1;   # TRUE to create comparison file, FALSE if --nocompare
 my $dirty = 0;        # TRUE to leave files on file system
 my $thr;              # threshold, only defined if -t used
-my $dbchoice;         # database file to search, set as rfamseq unless --db used
+my $dbchoice = "rfamseq";
 my $farm = 0;         # TRUE to use farm for alignment jobs
 my $queue       = ""; # queue choice
 my @cmosA;            # extra single - cmalign options (e.g. -g)
@@ -50,7 +52,7 @@ my @cmodA;            # extra double - cmalign options (e.g. --cyk)
 	     "subalign"   => \$do_subalign,
 	     "queue=s"    => \$queue,
 	     "farm"       => \$farm,
-	     "dbchoice=s" => \$dbfile,
+	     "dbchoice=s" => \$dbchoice,
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmosD,
 	     "notaxinfo"  => \$no_taxinfo,
@@ -68,10 +70,9 @@ if( $do_help ) {
 if((defined $thr) && (defined $evalue)) { die "ERROR -t and -e combination is invalid, choose 1"; }
 if((defined $thr) || (defined $evalue)) { $do_thr = 1; $do_list = 0; }
     
-#TODO config function for validating dbchoice and setup default database (rfamseq)
-# THIS NEEDS TO SET dbfile_fetch or some such variable 
-if (defined $dbchoice) { die "ERROR need to set up dbchoice validation in config"; } 
-else                   { $dbfile = $config->rfamseq_for_sfetch; }
+# setup dbfile 
+$dbconfig = $config->seqdbConfig($config, $dbchoice);
+$dbfile   = $dbconfig->{"path"};
 
 # enforce -a or --subalign selected if used align-specific options used
 if((! $do_align) && (! $do_subalign)) { 
@@ -153,15 +154,11 @@ if($do_list) {
    my %kingdomCounts;             # counts of hits in each kingdom
    my %store;                     # stores N/S-E's for overlap checks
    my $printed_thresh;            # TRUE if threshold has already been printed
-
-   my $thrcurr; # current threshold, if defined in DESC
+   my $thrcurr;                   # current threshold, if defined in DESC
 
    # process desc file to get GA cutoff
-   my $desc;
-   my $io = Bio::Rfam::FamilyIO->new;
+   my $io   = Bio::Rfam::FamilyIO->new;
    my $desc = $io->parseDesc($descI);
-   #ASKROB: if desc->GA is undefined will thrcurr be undefined?
-   my $thrcurr;
    if(defined $desc->CUTGA) { $thrcurr = $desc->CUTGA; }
    else                     { $thrcurr = -1000; }
 
@@ -184,12 +181,12 @@ if($do_list) {
    my $sthTax = $rfdbh->prepare($queryTax);
    
    # open output files
-   rename("$outlistO", "$outlist.old")  if -e $outputO;
+   rename("$outlistO", "$outlist.old")  if -e $outlistO;
    rename("$speciesO", "$speciesO.old") if -e $speciesO;
 
-   open(OUT, "> $outputO") || die "FATAL: failed to open $outputO)\n[$!]";
-   printf OUT "# %0.4s\t%0.12s\t%s\t%0.20s\t%10s\t%10s\tqStart\tqEnd\ttermlabel\t%0.20s\t%0.70s\n", 
-   'bits', 'evalue', 'seqLabel', 'name', 'start', 'end', 'shortSpecies', 'description';    
+   open(OUT, "> $outlistO") || die "FATAL: failed to open $outlistO)\n[$!]";
+   printf OUT "# %0.4s\t%0.12s\t%s\t%0.20s\t%10s\t%10s\tqStart\tqEnd\t%0.20s\t%0.70s\n", 
+   'bits', 'evalue', 'seqLabel', 'name', 'start', 'end', 'mstart', 'mend', 'trunc', 'shortSpecies', 'description';    
    
    open(SPC,"> $speciesO") || die "FATAL: failed to open $speciesO\n[$!]\n";   
    printf SPC "# %0.4s\t%0.12s\t%0.6s\t%0.20s\t%0.15s\t%0.20s\t%s\n", 
@@ -209,10 +206,12 @@ if($do_list) {
    open(TAB, "grep -v ^'#' $tabfileI | sort -nrk 15 | ") or die "FATAL: could not open pipe for reading $tabfileI\n[$!]";
    my $tabline;
     while ($tabline = <TAB>){
+	
       # Infernal 1.1 example:  ABEF01002040.1       -         RF01714              -          cm        1       72      258      187      -    no    1 0.49   0.0  102.6   1.1e-19 !   Marine metagenome HOTS_Contig2040, whole genome shotgun sequence.
+      #                        0                    1         2                    3          4          5      6        7        8       9    10   11 12     13   14      15
       if($tabline !~ m/^\#/) { 
 	  my @tabA = split(/\s+/, $tabline);
-	  my ($name, $qStart, $qEnd, $start, $end, $strand, $bits, $evalue) = ($tabA[0], $tabA[5], $tabA[6], $tabA[7], $tabA[8], $tabA[9], $tabA[14], $tabA[15]);
+	  my ($name, $qStart, $qEnd, $start, $end, $strand, $trunc, $bits, $evalue) = ($tabA[0], $tabA[5], $tabA[6], $tabA[7], $tabA[8], $tabA[9], $tab[10], $tabA[14], $tabA[15])
 	  if($strand eq "+") { $strand = 1; } else { $strand = -1; }
 	  #print "$name,$start,$end,$strand\n";
 
@@ -285,7 +284,7 @@ if($do_list) {
 	  }
 	  $prev_evalue = $evalue;
 	  
-	  printf OUT  "%0.2f\t%0.12s\t%0.6s\t%0.20s\t%10d\t%10d\t$qStart\t$qEnd\t%0.20s\t%0.70s\n", $bits, $evalue, $seqLabel, $name, $start, $end, $shortSpecies, $description;
+	  printf OUT  "%0.2f\t%0.12s\t%0.6s\t%0.20s\t%10d\t%10d\t$%10d\t%10d\t%2d\t%0.20s\t%0.70s\n", $bits, $evalue, $seqLabel, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description;
 	  printf SPEC "%0.2f\t%0.12s\t%0.6s\t%0.20s\t%15d\t%0.20s\t%s\n", $bits, $evalue, $seqLabel, $name, $ncbiId, $species,$taxString;
 	  printf RIN  "%0.2f\t%0.6s\t$$domainKingdom\n", $bits, $seqLabel;
 	  
@@ -330,7 +329,7 @@ if($do_list) {
 	print WARN $w;
     }
     close(WARN);
-} # end of if($do_list) 
+} # end of if($do_list) end of LIST mode block
 ######################################################################
 # THRESHOLD mode
 else { 
@@ -343,67 +342,48 @@ else {
 	die "ERROR: threshold is not defined"; 
     }
 
+    make_scores($outlistI, $thr, \@scoresAA);
+    #NOWTODO 
+
     if($do_align) { 
-      # TODO: write easel module for fetching sequences
-      # Fetch sequences 
-      #NOWTODO: get easel path to sfetch
-	my $sfetch = $config->easel_path . "/esl-sfetch";
-	my ($scores, $nseq, $tot_len) = outlist2sfetchInput($outlistI, $thr);
-	printf STDERR ("Fetching %d seqs from $dbfile ... ", $nseq);
-	my $start_time = time();
-	eslSfetch_Cf($sfetch, $dbfile, "$$.sfetch", "$$.fa");
-        # remove sfetch file
-	if(! $dirty) { unlink "$$.sfetch"; }
-	my $end_time = time();
-	printf STDERR ("done [%d seconds; %d total residues]\n", ($end_time-$start_time+1), $tot_len);
+	# make sure we have a valid SCORES file
+	# TODO: replace this with FamilyIO
+	$sfetch = $config->easelPath;
+	if(! -s SCORES) { die "ERROR SCORES does not exist to supply to esl-sfetch"; }
+	eslSfetch_Cf($sfetch, $dbfile, "SCORES", "$$.fa");
 
         # use cmalign to do the alignment
-
 	my $options = "";
-
 	if (@cmosA){#covers the '-' options
 	    foreach my $opts (@cmosA){
 		$options .= " \-$opts ";
 	    }
 	}
-	
 	if (@cmodA){#covers the '--' options 
 	    foreach my $opts (@extraCmalignOptionsDouble){
 		$options .= " \-\-$opts ";
 	    }
 	}
-
         # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
 	cmAlign("CM", "$$.fa", "align", "cmalign.out", $options, $nseq, $tot_len, ($farm), (! $farm), $queue, $dirty);
 
         # remove temporary fasta file
 	if(! $dirty) { unlink "$$.fa"; }
     } # end of if($do_align)
-} # end of 'else' entered if do_thr is TRUE
 
-#TODO write function in Rob's DESC handling code to find TC, NC thresholds
-my ($tc_bits, $nc_bits) = findTcNc( $thr, $output );
+    # update DESC
+    my $io   = Bio::Rfam::FamilyIO->new;
+    my $desc = $io->parseDesc($descI);
+    my ($tc_bits, $nc_bits) = findTcNc( $thr, $outlistO);
+    $desc->{GA}($thr);
+    $desc->{TC}($tc_bits);
+    $desc->{NC}($nc_bits);
+    $io->writeDesc($desc);
 
-$desc->{'GA'}=$thr;
-$desc->{'TC'}=$tc_bits;
-$desc->{'NC'}=$nc_bits;
+    copy('DESC', $$ . '.DESC') if -e 'DESC';
+}
+exit 0;
 
-#NOWTODO: write desc using Rob's code?
-#RfamUtils::writeDesc($desc);
-copy('DESC', $$ . '.DESC') if -e 'DESC';
-open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
-#RfamUtils::writeDesc($desc,\*DE);
-close(DE);
-
-#Commented out, screws up a useful check in rfmake_resolve_warnings:
-# if(@warnings){
-# open( WARN, ">> warnings" ) or warn "Can't open warnings files\n";
-# foreach my $w (@warnings){
-#     printf WARN $w;
-# }
-# close(WARN);
-# }
-exit(0);
 
 ###########################
 # SUBROUTINES
@@ -520,41 +500,42 @@ sub tax2kingdom {
 }
 
 ######################################################################
-# outlist2sfetchInput: create esl-sfetch input file for sequence fetching
-sub outlist2sfetchInput {
-    my ($outlist,$threshold) = @_;
+# threshold_outlist: create scoresAA and esl-sfetch input file for sequence fetching
+sub make_scores {
+    my ($outlistI, $threshold, $scoresAAR) = @_;
     my $nseq    = 0;
     my $tot_len = 0;
-    open( OL,  "< $outlist")       or die "FATAL: failed to open $outlist\n[$!]";
-    open( SC,  ">scores" )         or die "FATAL: failed to open scores\n[$!]";
-    open( SCE, ">scores.evalue" )  or die "FATAL: failed to open scores.evalue\n[$!]";
-    open( SF,  ">$$.sfetch" )      or die "FATAL: failed to open $$.sfetch\n[$!]";
-    my (%scores);
-    my $longname;
-    while (<OL>){
-	if(/(\S+)\s+(\S+)\s+(SEED\.\d+|SEED|ALIGN|NOT)\s+(\S+)\s+(\d+)\s+(\d+)/){
-	    my ($bits,$evalue,$id,$start,$end)=($1,$2,$4,$5,$6);
-	    last if $bits < $threshold;
-	    
-	    $longname = "$id/$start-$end";
-	    print SF ("$longname $start $end $id\n");
-	    print SC $bits, " $longname\n";
-	    $scores{"$longname"}=$bits;
-	    print SCE "$bits $evalue $longname\n";
 
-	    $nseq++;
-	    if($end > $start) { $tot_len += ($end-$start+1); }
-	    else              { $tot_len += ($start-$end+1); }
+    my $name;
+    my $tcode;
+    while (<OL>){
+	if(! m/^\#/) { 
+	    my @elA = split(/\t/);
+	    # example line
+	    # 89.10	1e-15	ALIGN	ACFV01131345.1	     33633	     33533	1	101    no  Callithrix_jacchus_w	Callithrix jacchus Contig363.22, whole genome shotgun sequence.
+	    # 0     1       2       3                    4               5          6       7       8  9   
+	    my ($bits, $evalue, $id, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[9]);
+	    if($bits < $threshold) { last; }
+	    
+	    $name  = "$id/$start-$end";
+	    $tcode = truncString2Code($tstr);
+	    push(@{$scoresAAR->[$n]}, ($name, $start, $end, $id, $bits, $evalue, $qstart, $qend, $tcode));
+	    $n++;
 	}
     }
+    p($scoresAAR);
     close(OL);
-    close(SC);
-    close(SCE);
-    close(SF);
-    
+
     return (\%scores, $nseq, $tot_len);
 }
 #########################################################
+sub truncString2Code {
+    my $str = @_[0];
+    if($str eq "no")    { return 0;  }
+    if($str eq "5'")    { return 5;  }
+    if($str eq "3'")    { return 3;  }
+    if($str eq "5'&3'") { return 53; }
+}
 
 ######################################################################
 sub help {
