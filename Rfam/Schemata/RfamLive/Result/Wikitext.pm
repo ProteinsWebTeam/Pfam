@@ -30,11 +30,6 @@ __PACKAGE__->table("wikitext");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 text
-
-  data_type: 'longtext'
-  is_nullable: 1
-
 =head2 title
 
   data_type: 'varchar'
@@ -51,8 +46,6 @@ __PACKAGE__->add_columns(
     is_auto_increment => 1,
     is_nullable => 0,
   },
-  "text",
-  { data_type => "longtext", is_nullable => 1 },
   "title",
   { data_type => "varchar", is_nullable => 0, size => 150 },
 );
@@ -87,8 +80,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qIgyHrQaZJyOAVszLPTPOg
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MaenAt7+KSf32k2J3XMvJg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

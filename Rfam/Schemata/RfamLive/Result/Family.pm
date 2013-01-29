@@ -46,7 +46,7 @@ __PACKAGE__->table("family");
 
   data_type: 'varchar'
   is_nullable: 1
-  size: 100
+  size: 75
 
 =head2 author
 
@@ -54,11 +54,6 @@ __PACKAGE__->table("family");
   is_nullable: 1
 
 =head2 seed_source
-
-  data_type: 'tinytext'
-  is_nullable: 1
-
-=head2 alignment_method
 
   data_type: 'tinytext'
   is_nullable: 1
@@ -116,6 +111,16 @@ __PACKAGE__->table("family");
   data_type: 'bigint'
   is_nullable: 1
 
+=head2 num_genome_seq
+
+  data_type: 'bigint'
+  is_nullable: 1
+
+=head2 num_refseq
+
+  data_type: 'bigint'
+  is_nullable: 1
+
 =head2 type
 
   data_type: 'varchar'
@@ -127,50 +132,74 @@ __PACKAGE__->table("family");
   data_type: 'tinytext'
   is_nullable: 1
 
-=head2 number_of_states
-
-  data_type: 'mediumint'
-  is_nullable: 1
-
-=head2 number_of_nodes
-
-  data_type: 'mediumint'
-  is_nullable: 1
-
 =head2 number_of_species
 
   data_type: 'bigint'
   is_nullable: 1
 
-=head2 taxonomic_domain
+=head2 number_3d_structures
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 tax_seed
 
   data_type: 'mediumtext'
   is_nullable: 1
 
-=head2 taxonomic_root
+=head2 ecmli_lambda
 
-  data_type: 'mediumtext'
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [10,5]
+
+=head2 ecmli_mu
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [10,5]
+
+=head2 ecmli_cal_db
+
+  data_type: 'mediumint'
+  default_value: 0
   is_nullable: 1
 
-=head2 full_structure
+=head2 ecmli_cal_hits
 
-  data_type: 'longtext'
+  data_type: 'mediumint'
+  default_value: 0
   is_nullable: 1
 
-=head2 reference_structure
+=head2 maxl
 
-  data_type: 'longtext'
+  data_type: 'mediumint'
+  default_value: 0
   is_nullable: 1
 
-=head2 reference_sequence
+=head2 clen
 
-  data_type: 'longtext'
+  data_type: 'mediumint'
+  default_value: 0
   is_nullable: 1
 
-=head2 structure_annotations
+=head2 match_pair_node
 
-  data_type: 'longtext'
+  data_type: 'tinyint'
+  default_value: 0
   is_nullable: 1
+
+=head2 hmm_tau
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [10,5]
+
+=head2 hmm_lambda
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [10,5]
 
 =cut
 
@@ -187,12 +216,10 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "description",
-  { data_type => "varchar", is_nullable => 1, size => 100 },
+  { data_type => "varchar", is_nullable => 1, size => 75 },
   "author",
   { data_type => "tinytext", is_nullable => 1 },
   "seed_source",
-  { data_type => "tinytext", is_nullable => 1 },
-  "alignment_method",
   { data_type => "tinytext", is_nullable => 1 },
   "gathering_cutoff",
   { data_type => "double precision", is_nullable => 1, size => [5, 2] },
@@ -214,28 +241,38 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_nullable => 1 },
   "num_full",
   { data_type => "bigint", is_nullable => 1 },
+  "num_genome_seq",
+  { data_type => "bigint", is_nullable => 1 },
+  "num_refseq",
+  { data_type => "bigint", is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 50 },
   "structure_source",
   { data_type => "tinytext", is_nullable => 1 },
-  "number_of_states",
-  { data_type => "mediumint", is_nullable => 1 },
-  "number_of_nodes",
-  { data_type => "mediumint", is_nullable => 1 },
   "number_of_species",
   { data_type => "bigint", is_nullable => 1 },
-  "taxonomic_domain",
+  "number_3d_structures",
+  { data_type => "integer", is_nullable => 1 },
+  "tax_seed",
   { data_type => "mediumtext", is_nullable => 1 },
-  "taxonomic_root",
-  { data_type => "mediumtext", is_nullable => 1 },
-  "full_structure",
-  { data_type => "longtext", is_nullable => 1 },
-  "reference_structure",
-  { data_type => "longtext", is_nullable => 1 },
-  "reference_sequence",
-  { data_type => "longtext", is_nullable => 1 },
-  "structure_annotations",
-  { data_type => "longtext", is_nullable => 1 },
+  "ecmli_lambda",
+  { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "ecmli_mu",
+  { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "ecmli_cal_db",
+  { data_type => "mediumint", default_value => 0, is_nullable => 1 },
+  "ecmli_cal_hits",
+  { data_type => "mediumint", default_value => 0, is_nullable => 1 },
+  "maxl",
+  { data_type => "mediumint", default_value => 0, is_nullable => 1 },
+  "clen",
+  { data_type => "mediumint", default_value => 0, is_nullable => 1 },
+  "match_pair_node",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "hmm_tau",
+  { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "hmm_lambda",
+  { data_type => "double precision", is_nullable => 1, size => [10, 5] },
 );
 
 =head1 PRIMARY KEY
@@ -252,17 +289,17 @@ __PACKAGE__->set_primary_key("rfam_acc");
 
 =head1 RELATIONS
 
-=head2 alignments_and_trees
+=head2 alignments_and_tree
 
 Type: has_many
 
-Related object: L<RfamLive::Result::AlignmentAndTrees>
+Related object: L<RfamLive::Result::AlignmentAndTree>
 
 =cut
 
 __PACKAGE__->has_many(
-  "alignments_and_trees",
-  "RfamLive::Result::AlignmentAndTrees",
+  "alignments_and_tree",
+  "RfamLive::Result::AlignmentAndTree",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -327,6 +364,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 families_long
+
+Type: has_many
+
+Related object: L<RfamLive::Result::FamilyLong>
+
+=cut
+
+__PACKAGE__->has_many(
+  "families_long",
+  "RfamLive::Result::FamilyLong",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 family_files
 
 Type: has_many
@@ -383,6 +435,21 @@ Related object: L<RfamLive::Result::FullRegion>
 __PACKAGE__->has_many(
   "full_regions",
   "RfamLive::Result::FullRegion",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 genome_full_regions
+
+Type: has_many
+
+Related object: L<RfamLive::Result::GenomeFullRegion>
+
+=cut
+
+__PACKAGE__->has_many(
+  "genome_full_regions",
+  "RfamLive::Result::GenomeFullRegion",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -447,6 +514,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 refseq_full_regions
+
+Type: has_many
+
+Related object: L<RfamLive::Result::RefseqFullRegion>
+
+=cut
+
+__PACKAGE__->has_many(
+  "refseq_full_regions",
+  "RfamLive::Result::RefseqFullRegion",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 secondary_structure_images
 
 Type: has_many
@@ -478,8 +560,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Oj1xkm2elbHff0MYPy63Sw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HhBntZyMyadLRcNf92At/Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

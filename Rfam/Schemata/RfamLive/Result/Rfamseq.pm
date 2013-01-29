@@ -28,13 +28,20 @@ __PACKAGE__->table("rfamseq");
   data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 0
+  size: 14
+
+This should be 
+
+=head2 accession
+
+  data_type: 'varchar'
+  is_nullable: 0
   size: 13
 
 =head2 version
 
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 12
+  data_type: 'integer'
+  is_nullable: 0
 
 =head2 ncbi_id
 
@@ -74,19 +81,15 @@ __PACKAGE__->table("rfamseq");
   is_nullable: 0
   size: 20
 
-=head2 in_genome
-
-  data_type: 'bit'
-  is_nullable: 1
-  size: 1
-
 =cut
 
 __PACKAGE__->add_columns(
   "rfamseq_acc",
-  { data_type => "varchar", default_value => "", is_nullable => 0, size => 13 },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 14 },
+  "accession",
+  { data_type => "varchar", is_nullable => 0, size => 13 },
   "version",
-  { data_type => "varchar", is_nullable => 1, size => 12 },
+  { data_type => "integer", is_nullable => 0 },
   "ncbi_id",
   {
     data_type => "integer",
@@ -139,8 +142,6 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "source",
   { data_type => "char", is_nullable => 0, size => 20 },
-  "in_genome",
-  { data_type => "bit", is_nullable => 1, size => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -233,8 +234,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:l9AKeBpFcO18SJ2AO3MaAw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:049m7B2BqJz9OAMq+bUasg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

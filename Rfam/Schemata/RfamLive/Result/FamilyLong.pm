@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::FamilyFile;
+package RfamLive::Result::FamilyLong;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::FamilyFile
+RfamLive::Result::FamilyLong
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<_family_file>
+=head1 TABLE: C<family_long>
 
 =cut
 
-__PACKAGE__->table("_family_file");
+__PACKAGE__->table("family_long");
 
 =head1 ACCESSORS
 
@@ -30,25 +30,25 @@ __PACKAGE__->table("_family_file");
   is_nullable: 0
   size: 7
 
-=head2 seed
+=head2 refernece_structure
 
-  data_type: 'longblob'
-  is_nullable: 0
+  data_type: 'longtext'
+  is_nullable: 1
 
-=head2 cm
+=head2 reference_sequence
 
-  data_type: 'longblob'
-  is_nullable: 0
+  data_type: 'longtext'
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "seed",
-  { data_type => "longblob", is_nullable => 0 },
-  "cm",
-  { data_type => "longblob", is_nullable => 0 },
+  "refernece_structure",
+  { data_type => "longtext", is_nullable => 1 },
+  "reference_sequence",
+  { data_type => "longtext", is_nullable => 1 },
 );
 
 =head1 RELATIONS
@@ -70,7 +70,7 @@ __PACKAGE__->belongs_to(
 
 
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N6uku5X8JBlXO35Jbn5Siw
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:SNQyryTeXoYkOv5qJxTq+A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

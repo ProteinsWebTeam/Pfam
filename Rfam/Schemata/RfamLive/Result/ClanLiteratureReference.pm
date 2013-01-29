@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<clan_literature_references>
+=head1 TABLE: C<clan_literature_reference>
 
 =cut
 
-__PACKAGE__->table("clan_literature_references");
+__PACKAGE__->table("clan_literature_reference");
 
 =head1 ACCESSORS
 
@@ -30,7 +30,7 @@ __PACKAGE__->table("clan_literature_references");
   is_nullable: 0
   size: 7
 
-=head2 auto_lit
+=head2 pmid
 
   data_type: 'integer'
   is_foreign_key: 1
@@ -51,7 +51,7 @@ __PACKAGE__->table("clan_literature_references");
 __PACKAGE__->add_columns(
   "clan_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "auto_lit",
+  "pmid",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "comment",
   { data_type => "tinytext", is_nullable => 1 },
@@ -60,21 +60,6 @@ __PACKAGE__->add_columns(
 );
 
 =head1 RELATIONS
-
-=head2 auto_lit
-
-Type: belongs_to
-
-Related object: L<RfamLive::Result::LiteratureReference>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "auto_lit",
-  "RfamLive::Result::LiteratureReference",
-  { auto_lit => "auto_lit" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
-);
 
 =head2 clan_acc
 
@@ -91,9 +76,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
+=head2 pmid
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:O+QWb4USG8XZEPN0eiA60Q
+Type: belongs_to
+
+Related object: L<RfamLive::Result::LiteratureReference>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pmid",
+  "RfamLive::Result::LiteratureReference",
+  { pmid => "pmid" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:abSPyE0DF9iHY6G7PUQHDg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

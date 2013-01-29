@@ -49,11 +49,10 @@ Added. Add author?
   is_nullable: 1
   size: 7
 
-=head2 title
+=head2 user
 
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 150
+  data_type: 'tinytext'
+  is_nullable: 0
 
 =cut
 
@@ -66,8 +65,8 @@ __PACKAGE__->add_columns(
   { data_type => "mediumtext", is_nullable => 1 },
   "forward_to",
   { data_type => "varchar", is_nullable => 1, size => 7 },
-  "title",
-  { data_type => "varchar", is_nullable => 1, size => 150 },
+  "user",
+  { data_type => "tinytext", is_nullable => 0 },
 );
 
 =head1 UNIQUE CONSTRAINTS
@@ -85,8 +84,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("rfam_acc", ["clan_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tMeVuWPgETUliHC2M2S38Q
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZUVuMEFLIDLrimS567SKBA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

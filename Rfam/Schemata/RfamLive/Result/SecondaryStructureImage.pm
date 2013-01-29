@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<secondary_structure_images>
+=head1 TABLE: C<secondary_structure_image>
 
 =cut
 
-__PACKAGE__->table("secondary_structure_images");
+__PACKAGE__->table("secondary_structure_image");
 
 =head1 ACCESSORS
 
@@ -32,9 +32,9 @@ __PACKAGE__->table("secondary_structure_images");
 
 =head2 type
 
-  data_type: 'varchar'
+  data_type: 'enum'
+  extra: {list => ["cons","cov","dist","disttrunc","ent","fcbp","maxcm","norm","rchie","species","ss"]}
   is_nullable: 0
-  size: 10
 
 Should be ENUM list
 
@@ -49,7 +49,25 @@ __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "type",
-  { data_type => "varchar", is_nullable => 0, size => 10 },
+  {
+    data_type => "enum",
+    extra => {
+      list => [
+        "cons",
+        "cov",
+        "dist",
+        "disttrunc",
+        "ent",
+        "fcbp",
+        "maxcm",
+        "norm",
+        "rchie",
+        "species",
+        "ss",
+      ],
+    },
+    is_nullable => 0,
+  },
   "image",
   { data_type => "longblob", is_nullable => 1 },
 );
@@ -72,8 +90,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kIRLF3ICKPbMYczxR/8UkA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i3UAdDjdi71gNQEFCifZtw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

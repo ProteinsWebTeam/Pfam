@@ -37,11 +37,19 @@ __PACKAGE__->table("pdb_rfam_reg");
   is_nullable: 0
   size: 7
 
+=head2 pdb_seq
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 6
+
 =head2 pdb_id
 
   data_type: 'varchar'
-  is_nullable: 1
-  size: 6
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 4
 
 =head2 chain
 
@@ -65,7 +73,7 @@ __PACKAGE__->table("pdb_rfam_reg");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 13
+  size: 14
 
 =head2 seq_start
 
@@ -98,8 +106,10 @@ __PACKAGE__->add_columns(
   },
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
+  "pdb_seq",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 6 },
   "pdb_id",
-  { data_type => "varchar", is_nullable => 1, size => 6 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 4 },
   "chain",
   {
     data_type => "varchar",
@@ -112,7 +122,7 @@ __PACKAGE__->add_columns(
   "pdb_res_end",
   { data_type => "mediumint", is_nullable => 1 },
   "rfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 13 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
   "seq_start",
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "seq_end",
@@ -139,6 +149,36 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("auto_pdb_reg");
 
 =head1 RELATIONS
+
+=head2 pdb
+
+Type: belongs_to
+
+Related object: L<RfamLive::Result::Pdb>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pdb",
+  "RfamLive::Result::Pdb",
+  { pdb_id => "pdb_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
+
+=head2 pdb_seq
+
+Type: belongs_to
+
+Related object: L<RfamLive::Result::PdbSequence>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pdb_seq",
+  "RfamLive::Result::PdbSequence",
+  { pdb_seq => "pdb_seq" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
 
 =head2 rfam_acc
 
@@ -171,8 +211,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zkH3eD+N0TVE8seeI+QSAw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bnJ3u+Zk9yUExv0bVWf99g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
