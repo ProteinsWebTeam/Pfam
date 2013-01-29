@@ -24,11 +24,31 @@ Incept: finnr, Jan 25, 2013 8:32:16 AM
 
 use strict;
 use warnings;
-
+use Moose;
+use Bio::Rfam::Types ':all';
+use Moose::Util::TypeConstraints;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
 =cut
+
+has 'cmHeader' => (
+  is        => 'ro',
+  isa       => 'HashRef',
+  required  => 1
+);
+
+has 'hmmHeader' => (
+  is        => 'ro',
+  isa       => 'HashRef',
+  required  => 1
+);
+
+has 'match_pair_node' => (
+  is  => 'ro',
+  isa => 'Bool',
+  required => 1
+);
 
 1;
