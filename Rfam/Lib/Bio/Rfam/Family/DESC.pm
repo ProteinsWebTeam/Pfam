@@ -100,6 +100,12 @@ has 'SE' => (
   required  => 0
 );
 
+has 'SS' => (
+  is        => 'ro',
+  isa       => 'Str',
+  required  => 0
+);
+
 has 'CUTGA' => (
   is        => 'rw',
   isa       => CmCutOff,
@@ -118,11 +124,11 @@ has 'CUTNC' => (
   required  => 0
 );
 
-#has 'CL' => (
-#  is       => 'rw',
-#  isa      => RfamClanAcc,
-#  required => 0
-#);
+has 'CL' => (
+  is       => 'rw',
+  isa      => RfamClanAcc,
+  required => 0
+);
 
 
 has 'TP' => (
@@ -195,7 +201,7 @@ has 'private' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(ID AC PI DE AU SE SS CUTGA CUTTC CUTNC FR BM SM MSP TP SN WIKI CL CLASS NESTS REFS DBREFS CC SQ EDITS private ) ] }
+  default => sub {[ qw(ID AC PI DE AU SE SS CUTGA CUTTC CUTNC BM SM MSP TP SN WIKI CL REFS DBREFS CC SQ EDITS private ) ] }
 );
 
 __PACKAGE__->meta->make_immutable;

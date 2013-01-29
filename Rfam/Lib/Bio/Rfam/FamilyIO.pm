@@ -90,7 +90,7 @@ sub loadRfamFromLocalFile {
     },
     'DESC'   => $self->parseDESC("$dir/$family/DESC"),
     'CM'     => $self->parseCM("$dir/$family/CM"),
-    'scores' => $self->parseScores("$dir/$family/scores")
+    'SCORES' => $self->parseScores("$dir/$family/SCORES")
   };
 
   #Use Moose to coerce these through!
@@ -520,7 +520,7 @@ sub parseDESC {
       if ( $page =~ /^http.*\/(\S+)/ ) {
 
         #TODO - supress warn, if we can remove URL. Page title sufficient.
-        warn "$page going to be set to $1\n";
+        carp( "$page going to be set to $1\n" );
         $page = $1;
       }
       if ( defined( $params{"WIKI"} ) ) {

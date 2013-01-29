@@ -7,7 +7,7 @@ use warnings;
 use MooseX::Types -declare => [
   qw(
     EvalueStr RfamAcc RfamId RfamAuthor RfamDesc RfamRef hmmVersion 
-    hmmAlpha hmmViterbiStats hmmForwardStats 
+    hmmAlpha hmmViterbiStats hmmForwardStats RfamClanAcc 
     CmCutOff
     )
 ];
@@ -17,9 +17,15 @@ use MooseX::Types::Moose qw/Int Num Str ArrayRef HashRef Object GlobRef Bool/;
 
 subtype RfamAcc,
     as Str,
-    where { $_ =~ m/RF\d{5}/ },
+    where { $_ =~ m/^RF\d{5}$/ },
     message { 'Not a valid Rfam accession' };
   
+subtype RfamClanAcc,
+    as Str,
+    where { $_ =~ m/^CL\d{5}$/ },
+    message { 'Not a valid Rfam clan accession' };
+
+
 subtype RfamId,
   as Str,
   where { $_ =~ m/[\w_-]{1,15}/ },
@@ -44,7 +50,6 @@ subtype CmCutOff,
   as Str, 
   where { $_ =~ m/\d+\.\d{1,2}/ },
   message { "\n\nExpecting a floating point to two decimal places, but got |$_|\n\n" }; 
-
 
 subtype hmmAlpha,
   as Str,

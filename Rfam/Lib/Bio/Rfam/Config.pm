@@ -176,7 +176,6 @@ sub rfamlive {
     @_,
     };
 
-    p($dbiParams);
     eval {
       $self->{'schema'} =
         RfamLive->connect( "dbi" . ":"
