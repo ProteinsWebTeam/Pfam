@@ -167,11 +167,11 @@ sub rfamlive {
   
   if(!$self->{'schema'}){
     my $dbiParams = {
-      user     => $self->{_config}->{Model}->{RfamLive}->{user},
-      host     => $self->{_config}->{Model}->{RfamLive}->{host},
-      port     => $self->{_config}->{Model}->{RfamLive}->{port},
-      database => $self->{_config}->{Model}->{RfamLive}->{database},
-      password => $self->{_config}->{Model}->{RfamLive}->{password},
+      user     => $self->{_config}->{Model}->{Rfamlive}->{user},
+      host     => $self->{_config}->{Model}->{Rfamlive}->{host},
+      port     => $self->{_config}->{Model}->{Rfamlive}->{port},
+      database => $self->{_config}->{Model}->{Rfamlive}->{database},
+      password => $self->{_config}->{Model}->{Rfamlive}->{password},
       driver   => 'mysql',
     @_,
     };

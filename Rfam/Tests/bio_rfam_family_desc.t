@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use FindBin;
 use Data::Printer;
 use File::Slurp;
@@ -21,8 +21,7 @@ my $desc = $familyIO->parseDESC( $test_data );
 isa_ok($desc, 'Bio::Rfam::Family::DESC');
 
 is($desc->AC, 'RF00014', 'The accesion for the DESC file is RF00014');
-my $tdir  = tempdir( CLEANUP => 0 );
-print STDERR $tdir;
+my $tdir  = tempdir( CLEANUP => 1 );
 $familyIO->writeDESC($desc, $tdir);
 
 my @fileOld = read_file($test_data);

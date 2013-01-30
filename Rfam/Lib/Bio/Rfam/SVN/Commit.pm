@@ -1,50 +1,28 @@
-#
-#Commit.pm
-#
-# Author:        rdf
-# Maintainer:    $Id: Commit.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
-# Created:       Dec 2, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
-
 =head1 NAME
 
-Template - a short description of the class
+MODULENAME - a module that 
 
 =cut
 
-package Bio::Dfam::SVN::Commit;
+package Bio::Rfam::SVN::Commit;
 
 =head1 DESCRIPTION
 
 A more detailed description of what this class does and how it does it.
 
-$Id: Commit.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-
 =head1 COPYRIGHT
 
-File: Commit.pm
+File: Commit.pm 
 
-Copyright (c) 2007: Genome Research Ltd.
+Copyright (c) 2013: 
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
- This is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
- 
+Author: Rob Finn (rdf 'at' ebi.ac.uk or finnr 'at' janelia.hhmi.org)
+Incept: finnr, Jan 29, 2013 10:33:00 PM
+
 =cut
+
+#-------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -78,19 +56,19 @@ sub new {
   elsif ( $params->{txn} ) {
     $self = $class->SUPER::new( $params->{repos}, -t => $params->{txn} );
   }
-
-  $self->{config} = Bio::Dfam::Config->new;
+#Todo - pass in the config object if we have already made it.
+  $self->{config} = Bio::Rfam::Config->new;
 
   return bless( $self, $class );
 }
 
 sub commitEntry {
-  my ( $self, $dfamDB ) = @_;
+  my ( $self ) = @_;
 
   #Make an object to respresent the family based on the SVN transcation
-  my $familyIO = Bio::Dfam::FamilyIO->new;
+  my $familyIO = Bio::Rfam::FamilyIO->new;
 
-  my ( $modelObj, $model, $dir );
+  my ( $familyObj, $family, $dir );
   my @updated = $self->updated();
 
   #Need to put a transaction around this block
@@ -98,8 +76,8 @@ sub commitEntry {
 
   if ( scalar(@updated) == 1 and $updated[0] eq 'DESC' ) {
     ( $modelObj, $model, $dir ) = $self->_getEntryObjFromTrans( $familyIO, 0 );
-    #Perform QC on the family
-    $self->_qualityControlEntry( $modelObj, $dir, $model, $dfamDB );
+    #TODO - Perform QC on the family
+    #$self->_qualityControlEntry( $modelObj, $dir, $model, $dfamDB );
     $dfamDB->updateEntry($modelObj);
 
     if ( $modelObj->DESC->REFS ) {
@@ -327,48 +305,6 @@ sub _getEntryObjFromTrans {
   return ( $famObj, $family, $dir );
 }
 
-sub _getClassObjFromTrans {
-  my ( $self, $class ) = @_;
-
-  #Are we dealing with a new family, set path accordingly.
-  my $svnPath = $self->{config}->svnClassification;
-
-  #At this point we have no idea of the name of the family.
-  my @updated_files = $self->updated();
-
-  unless ( scalar(@updated_files) ) {
-    confess("Trying to commit a classifiation with no updated files\n");
-  }
-
-  print STDERR p(@updated_files);
-
-#unless($path and $family){
-#  confess("Failed to find path [$path] to classification [$c] in SVN repository\n");
-#}
-
-  #Write all of the files for this transaction to disk and then read them
-  my $dir = File::Temp->newdir();
-  my $params;
-  my $f = shift(@updated_files);
-  my $fh;
-  my @file = $self->cat("$f");
-
-  #
-  open( $fh, "+>", "$dir/classification" )
-    or die "Could not open $dir/classification";
-  foreach (@file) {
-    print $fh "$_\n";
-  }
-  close($fh);
-  open( $fh, "<", "$dir/classification" );
-
-  #seek($fh, 0, 1);
-
-  $class->parseClassificationFile($fh);
-  close($fh);
-  print STDERR p( $class->classification );
-}
-
 sub _qualityControlEntry {
   my ( $self, $modelObj, $dir, $model ) = @_;
   print STDERR "In  _qualityControlEntry, $modelObj\n";
@@ -379,6 +315,7 @@ sub _qualityControlEntry {
   }
 }
 
+#TODO - rewrite
 sub moveFamily {
   my ( $self, $pfamDB ) = @_;
 
@@ -438,16 +375,16 @@ sub deleteEntry {
 }
 
 sub allowCommit {
-  my ( $self, $dfamDB ) = @_;
-
+  my ( $self  ) = @_;
+  
+  my $rfamDB = $self->{config}->rfamlive;
   my @lock_data =
-    $dfamDB->getSchema->resultset('Lock')->search( { 'locked' => 1 } );
+    $rfamDB->resultset('Lock')->search( { 'locked' => 1 } );
 
   if (@lock_data) {
     my $lock_data = shift @lock_data;    #Should only ever be one row
     return $lock_data;
-  }
-  else {
+  } else {
     return 0;
   }
 }
