@@ -1,5 +1,0 @@
-#!/usr/bin/csh -f
-
-set path = ( /pfam/db/Rfam/scripts/view $path)
-
-belvu $*
