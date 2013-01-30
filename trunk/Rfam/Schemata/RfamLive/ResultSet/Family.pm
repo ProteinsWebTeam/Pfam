@@ -78,7 +78,7 @@ sub createFamilyFromObj{
                   clen => $familyObj->CM->cmHeader->{clen},
                   match_pair_node => $familyObj->CM->match_pair_node,
                   hmm_tau => $familyObj->CM->hmmHeader->{forwardStats}->{tau},
-                  hmm_tau => $familyObj->CM->hmmHeader->{forwardStats}->{lambda} });
+                  hmm_lambda => $familyObj->CM->hmmHeader->{forwardStats}->{lambda} });
   
 }
 1;
