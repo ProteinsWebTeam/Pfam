@@ -191,38 +191,38 @@ sub alen {
     return $self->{alen};
 }
 
-=head2 get_sqname_idx
+=head2 get_sqname
 
-  Title    : get_sqname_idx
+  Title    : get_sqname
   Incept   : EPN, Mon Jan 28 09:35:21 2013
-  Usage    : $msaObject->get_sqname_idx($idx)
+  Usage    : $msaObject->get_sqname($idx)
   Function : Returns name of sequence $idx in MSA.
   Args     : index of sequence 
   Returns  : name of sequence $idx (esl_msa->sqname[$idx])
   
 =cut
 
-sub get_sqname_idx { 
+sub get_sqname { 
     my ($self, $idx) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
-    return c_get_sqname_idx($self->{esl_msa}, $idx);
+    return c_get_sqname($self->{esl_msa}, $idx);
 }
 
-=head2 set_sqname_idx
+=head2 set_sqname
 
-  Title    : set_sqname_idx
+  Title    : set_sqname
   Incept   : EPN, Mon Jan 28 09:48:42 2013
-  Usage    : $msaObject->set_sqname_idx($idx)
+  Usage    : $msaObject->set_sqname($idx)
   Function : Returns name of sequence $idx in MSA.
   Args     : index of sequence 
   Returns  : name of sequence index $idx 
   
 =cut
 
-sub set_sqname_idx { 
+sub set_sqname { 
     my ($self, $idx, $newname) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
-    c_set_sqname_idx($self->{esl_msa}, $idx, $newname);
+    c_set_sqname($self->{esl_msa}, $idx, $newname);
     return;
 }
 
@@ -314,7 +314,7 @@ sub nse_create {
     }
 
     for($idx = 0; $idx < $self->nseq; $idx++) { 
-	$sqname = $self->get_sqname_idx($idx);
+	$sqname = $self->get_sqname($idx);
 	if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
 	    ($n, $s, $e) = ($1, $2, $3);
 	    if($s <= $e) { $a = $s; $b = $e; $strand =  1; }

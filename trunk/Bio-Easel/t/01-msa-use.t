@@ -10,7 +10,6 @@ BEGIN {
 my $alnfile = "./t/data/test.sto";
 my $msa = Bio::Easel::MSA->new({
    fileLocation => $alnfile, 
-   aliType      => 'seed'
 });
 isa_ok($msa, "Bio::Easel::MSA");
 
@@ -27,13 +26,13 @@ printf("nseq: %d\n", $msa->nseq);
 
 #for($i = 0; $i < $ea->nseq; $i++) { 
     # Q, we probably don't want to set sqname[] array for ESL_MSA, it's already 
-    # stored in ESL_MSA so $ea->sqname_idx doesn't set a value in $ea object, is
+    # stored in ESL_MSA so $ea->sqname doesn't set a value in $ea object, is
     # that kosher?
     # (actually: do weed need to store nseq...)
-#    printf("seq $i %s\n", $ea->get_sqname_idx($i));
+#    printf("seq $i %s\n", $ea->get_sqname($i));
 
-#    $ea->set_sqname_idx($i, "seq" . $i);
-#    printf("seq $i %s\n", $ea->get_sqname_idx($i));
+#    $ea->set_sqname($i, "seq" . $i);
+#    printf("seq $i %s\n", $ea->get_sqname($i));
 #    printf("\n");
 #}
 # Q: $ea->set_outfile? 
