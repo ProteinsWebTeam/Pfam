@@ -172,6 +172,22 @@ sub msa {
     return $self->{esl_msa};
 }
 
+=head2 path
+
+  Title    : path
+  Incept   : EPN, Tue Jan 30 15:42:30 2013
+  Usage    : Bio::Easel::MSA->path()
+  Function : Accessor for path, read only.
+  Args     : none
+  Returns  : string containing path to the SEED or undef.   
+
+=cut
+sub path {
+  my ($self) = @_;
+  return defined($self->{path}) ? $self->{path} : undef;
+}
+
+
 =head2 alen
 
   Title    : alen
