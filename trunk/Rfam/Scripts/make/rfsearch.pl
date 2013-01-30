@@ -27,6 +27,8 @@ use Rfamnew;
 
 my $starttime = time();
 
+#Variables passed from command line:
+#
 my( $help,
     $pname,
     $nostruct,
@@ -39,8 +41,10 @@ my( $help,
     @extraCmsearchOptionsSingle,
     @extraCmsearchOptionsDouble,
     $debug,
-    $bigmem,
-    $ncpus_cmsearch,
+    $bigmem);
+
+#Variables used by rfsearch.pl:
+my ($ncpus_cmsearch,
     $queue,
     $cqueue,
     $squeue,
@@ -88,7 +92,6 @@ $squeue        = "";
 #set some db options and some paths:
 my $config = Bio::Rfam::Config->new;
 $dbchoice = "testrfamseq" unless ($dbchoice);
-print "database size is $dbsize\n";
 $dbconfig = $config->seqdbConfig( $dbchoice);
 $dbpath   = $dbconfig->{"path"};
 $dbsize  = $dbconfig->{"dbsize"};
@@ -153,7 +156,6 @@ else {
 #Read cmbuild/cmsearch flags from the DESC file:
 $desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
     $buildopts = $1;
-	print "$buildopts\n";
 };
 
 # We no longer do glocal, since we switched to 1.1 which handles fragments sensibly
@@ -221,7 +223,7 @@ elsif (-e "rfsearch.log") {
 }
 ######################################################################
 #user must have log dir!
-&printlog( "Making farm and log directories....");
+print "Making farm and log directories....";
 #&printlog( "mkdir $pwd/$$" );
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
@@ -399,13 +401,13 @@ my $estimatedWallSeconds = cmstat_clen("$pwd/CM") * 0.032 * 3600.;
 # with CLEN >= 250 on the long queue, see
 # ~en1/notebook/12_1129_rfam_hangout_ga_threshold/00LOG, Nov 30, 2012 for 
 # details on why I choose 0.032.
-#
-if($qchoice eq "") { # else $qchoice was passed in
-    if($estimatedWallSeconds    < (60.   * 20.)) { $qchoice = "small";    } # less than 20 minutes? small queue
-    elsif($estimatedWallSeconds < (3600. * 8.))  { $qchoice = "normal";   } # less than 8 hours? normal queue
-    elsif($estimatedWallSeconds < (3600. * 36.)) { $qchoice = "long";     } # less than 36 hours? long queue
-    else                                         { $qchoice = "basement"; } # more than 36 hours? basement queue
-}
+# Removed by SWB as not relevant for EBI farm.
+#if($qchoice eq "") { # else $qchoice was passed in
+#    if($estimatedWallSeconds    < (60.   * 20.)) { $qchoice = "small";    } # less than 20 minutes? small queue
+#    elsif($estimatedWallSeconds < (3600. * 8.))  { $qchoice = "normal";   } # less than 8 hours? normal queue
+#    elsif($estimatedWallSeconds < (3600. * 36.)) { $qchoice = "long";     } # less than 36 hours? long queue
+#    else                                         { $qchoice = "basement"; } # more than 36 hours? basement queue
+#}
 
 #$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
 # swb: Changed $queue to always use production-rh6 at ebi:
@@ -427,30 +429,30 @@ my $bigCommand;
      #printf("EPN dbdir: $dbdir\n");
      my @seqdb = glob( "$dbpath/*.fa.gz" ) if not defined $failedCmsearchJobs;
      foreach my $sdb (@seqdb) {
-	 #printf("EPN sdb: $sdb\n");
-	 my $cmoutput        = "$$.OUTPUT.$cmround.$cmjobcount";
-         my $cmtabfile       = "$$.TABFILE.$cmround.$cmjobcount";
-	 my $cmsearchTimeOut = "$$.CPUTIME.$cmround.$cmjobcount";
-	 $db2ouput{$sdb}    = $cmoutput;
-	 #$sdb =~ s/$dbdir/$dbdir2/g;
+	 	#printf("EPN sdb: $sdb\n");
+	 	my $cmoutput        = "$$.OUTPUT.$cmround.$cmjobcount";
+        my $cmtabfile       = "$$.TABFILE.$cmround.$cmjobcount";
+		my $cmsearchTimeOut = "$$.CPUTIME.$cmround.$cmjobcount";
+	 	$db2ouput{$sdb}    = $cmoutput;
+	 	#$sdb =~ s/$dbdir/$dbdir2/g;
 
-	 $bigCommand = "/usr/bin/time -f \'\%S \%U\' -o $lustre/$cmsearchTimeOut $command $options --tblout $lustre/$cmtabfile $lustre/$$.CM $sdb > $lustre/$cmoutput;";
-	if($cmjobcount == 0) { 
-	     &printlog( "###########\nbsub -q $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" );
-	     &printlog( $bigCommand . "\n###########" );
-	     printf("Listing job submission index as they are submitted (%d total; only the first submission command (above) is printed):\n", scalar(@seqdb));
-	 }
+	 	$bigCommand = "/usr/bin/time -f \'\%S \%U\' -o $lustre/$cmsearchTimeOut $command $options --tblout $lustre/$cmtabfile $lustre/$$.CM $sdb > $lustre/$cmoutput;";
+		if($cmjobcount == 0) { 
+	     	&printlog( "###########\nbsub -q $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" );
+	     	&printlog( $bigCommand . "\n###########" );
+	     	printf("Listing job submission index as they are submitted (%d total; only the first submission command (above) is printed):\n", scalar(@seqdb));
+	 	}
 	 
-	 my $fh = new IO::File;
-	 $fh -> open("| bsub -q  $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" ) or die "$!";
-	 $fh -> print( "$bigCommand\n" );
-	 $fh -> close;
-	 $dbnames{$sdb}=1;
-	 $numdbs++;
-	 $cmjobcount++;
+	 	my $fh = new IO::File;
+	 	$fh -> open("| bsub -q  $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" ) or die "$!";
+	 	$fh -> print( "$bigCommand\n" );
+	 	$fh -> close;
+	 	$dbnames{$sdb}=1;
+	 	$numdbs++;
+	 	$cmjobcount++;
 
-	 printf("%2d ", $numdbs);
-	 if(($numdbs % 10 == 0) || ($numdbs == scalar(@seqdb))) { printf(" (%2d remaining)\n", scalar(@seqdb) - $numdbs); }; 
+	 	printf("%2d ", $numdbs);
+	 	if(($numdbs % 10 == 0) || ($numdbs == scalar(@seqdb))) { printf(" (%2d remaining)\n", scalar(@seqdb) - $numdbs); }; 
      }
  }
 
