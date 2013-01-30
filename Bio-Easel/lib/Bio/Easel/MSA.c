@@ -11,12 +11,12 @@
   sv_setiv(obj, (IV) pointer); SvREADONLY_on(obj); \
   ref;                                             \
 })
+
 #define c_obj(sv,type) (                           \
   (sv_isobject(sv) && sv_derived_from(sv, #type))  \
     ? ((type*)SvIV(SvRV(sv)))                      \
     : NULL                                         \
   )
-
 
 SV *c_read_msa (char *infile, SV *perl_abc) 
 {

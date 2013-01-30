@@ -87,11 +87,6 @@ sub new {
 	eval{
 	    $self->{path} = $args->{fileLocation};
 	    $self->read_msa();
-	    # should I populate the object here? Or wait until specific values are 
-	    # requested by caller, e.g. 'nseq' is requested which is actually a 
-	    # function that sets nseq if it's not already set? 
-	    # $self->{nseq} = new_sizeof_msa($self); # or should this be just a call to sizeof_msa() which defines $self->{nseq} if it's not already defined?
-
 	}; # end of eval
 	
 	if($@) {
@@ -99,8 +94,12 @@ sub new {
 	}
     } 
     else {
-	confess("Expected to recieve a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
+	confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
     }
+    if(defined $args->{aliType}){
+	$self->{aliType} = $args->{aliType};
+    }
+
     return $self;
 }
 
@@ -279,9 +278,142 @@ sub free_msa {
     return;
 }
 
-=head2 destroy
+=head2 nse_create
 
-  Title    : destroy
+  Title    : nse_create
+  Incept   : EPN, Wed Jan 30 10:37:54 2013
+  Usage    : $msaObject->nse_create
+  Function : Creates hash of two dim arrays (self->nseHAA) from MSA names that match N/S-E
+           : N: sq accession
+           : S: hit start (> end if on opposite strand)
+           : E: hit end   
+           : hash (self->nseHAA) key is N, value is array of arrays, 
+           : with 2nd array dim including 5 fields: $s, $e, $a, $b, $strand,
+           : $s=S and $e=E, in original order ("S" may be > "E")
+           : if ($a, $b, $strand) == ($s, $e, 1) else ($a, $b, $strand) = ($e, $s, -1)
+  Args     : none
+  Returns  : number of sequences with names that match format N/S-E
+  
+=cut
+
+sub nse_create {
+    my ($self) = @_;
+
+    my $idx;     # counter over names in msa
+    my $sqname;  # sequence name from msa
+    my $n;       # sqacc
+    my $s;       # start, from seq name (can be > $end)
+    my $e;       # end,   from seq name (can be < $start)
+    my $a;       # minimum of $s, $e
+    my $b;       # maximum of $s, $e
+    my $strand;  # strand
+    my $ctr = 0; # number of n/s-e names processed (added to hashes)
+    my $max_nseq = 1; # maximum numer of seqs we allow this subroutine to be called on
+    if($self->nseq >= $max_nseq) { 
+	die "ERROR trying to process name/start-end names of MSA with max num seqs ($self->nseq > $max_nseq seqs!)"
+    }
+
+    for($idx = 0; $idx < $self->nseq; $idx++) { 
+	$sqname = $self->get_sqname_idx($idx);
+	if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
+	    ($n, $s, $e) = ($1, $2, $3);
+	    if($s <= $e) { $a = $s; $b = $e; $strand =  1; }
+	    else         { $a = $e; $b = $s; $strand = -1; }
+	    push(@{$self->{nseHAA}{$n}}, [$s, $e, $a, $b, $strand]);
+	    $ctr++;
+	}
+    }	    
+    return $ctr;
+}
+
+=head2 nse_overlap
+
+  Title    : nse_overlap
+  Incept   : EPN, Wed Jan 30 09:37:31 2013
+  Usage    : $msaObject->nse_overlap_nres($nse)
+  Function : Checks if $nse of format "name/start-end" overlaps with
+           : any sequences stored in $self->{startHA}, $self->{endHA}, 
+           : $self->{strandHA}
+  Args     : <sqname>: seqname of format "name/start-end"
+  Returns  : 2 values:
+           : name of sequence in $self of maximum fractional overlap, "" if none
+           : fractional overlap of max fractional overlap
+=cut
+
+sub nse_overlap {
+    my ($self, $sqname) = @_;
+
+    my $n;       # sqacc
+    my ($s, $s2);  # start, from seq name (can be > $end)
+    my ($e, $e2);  # end,   from seq name (can be < $start)
+    my ($a, $a2);  # minimum of $s, $e
+    my ($b, $b2);  # maximum of $s, $e
+    my $strand;  # strand, 1 if $s < $e, else -1
+    my $strand2; # strand, 1 if $s2 < $e2, else -1
+    my $max_fract  = 0.;     # maximum fraction of overlap
+    my $max_sqname = "";     # name of seq in sqinfoHHA 
+    my $overlap_exists = 0;
+    my $is_nse;  # TRUE if $sqname adheres to format n/s-e
+    my $i;
+    my $fract_overlap; # fractional overlap
+
+    ($is_nse, $n, $a, $b, $strand) = $self->nse_breakdown($sqname);
+    if($is_nse) { 
+	if(exists $self->{nseHAA}->{$n}) { 
+	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
+		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}}[$i];
+		if($strand eq $strand2) { 
+		    $fract_overlap = Bio::Rfam::TempRfam::overlapExtent($a, $b, $a2, $b2);
+		    if($fract_overlap > $max_fract) { 
+			$max_fract  = $fract_overlap;
+			$max_sqname = $self->nse_create($a2, $b2, $strand2);
+			$overlap_exists = 1;
+		    }
+		}
+	    }
+	}
+    }
+    if($overlap_exists) { return ($max_sqname, $max_fract); }
+    else                { return ("", 0.); }
+}
+
+=head2 nse_breakdown
+
+  Title    : nse_breakdown
+  Incept   : EPN, Wed Jan 30 09:50:07 2013
+  Usage    : $msaObject->nse_breakdown($nse)
+  Function : Checks if $nse is of format "name/start-end" and if so
+           : breaks it down into $n, $a, $b, $strand (see 'Returns' section)
+  Args     : <sqname>: seqname, possibly of format "name/start-end"
+  Returns  : 5 values:
+           :   '1' if seqname was of "name/start-end" format, else '0'
+           :   $n: name ("" if seqname doesn't match "name/start-end")
+	   :   $a: minimum of start, end (0 if seqname doesn't match "name/start-end")
+	   :   $b: maximum of start, end (0 if seqname doesn't match "name/start-end")
+	   :   $strand: 1 if start <= $end, -1 if not (0 if seqname doesn't match "name/start-end")
+=cut
+sub nse_breakdown {
+    my ($self, $sqname) = @_;
+
+    my $n;       # sqacc
+    my $s;       # start, from seq name (can be > $end)
+    my $e;       # end,   from seq name (can be < $start)
+    my $a;       # minimum of $s, $e
+    my $b;       # maximum of $s, $e
+    my $strand;  # strand
+
+    if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
+	($n, $s, $e) = ($1,$2,$3);
+	if($s <= $e) { $strand =  1; $a = $s; $b = $e; }
+	else         { $strand = -1; $a = $e; $b = $s; }
+	return (1, $n, $a, $b, $strand);
+    }
+    return (0, "", 0, 0, 0);
+}
+
+=head2 DESTROY
+
+  Title    : DESTROY
   Incept   : EPN, Mon Jan 28 10:09:55 2013
   Usage    : $msaObject->destroy()
   Function : Frees an MSA object
@@ -290,7 +422,7 @@ sub free_msa {
   
 =cut
 
-sub destroy { 
+sub DESTROY { 
     my ($self) = @_;
     c_destroy($self->{esl_msa}, $self->{esl_abc});
     return;
