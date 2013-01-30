@@ -28,7 +28,7 @@ __PACKAGE__->table("features");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 14
+  size: 20
 
 =head2 database_id
 
@@ -78,7 +78,7 @@ __PACKAGE__->table("features");
 
 __PACKAGE__->add_columns(
   "rfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 20 },
   "database_id",
   { data_type => "varchar", is_nullable => 0, size => 50 },
   "primary_id",
@@ -123,8 +123,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Kc02A7YkUokpLALtShHGkg
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7oGhPBLDd6LEftQ4ERUKpw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

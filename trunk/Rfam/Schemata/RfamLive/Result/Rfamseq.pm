@@ -28,7 +28,7 @@ __PACKAGE__->table("rfamseq");
   data_type: 'varchar'
   default_value: (empty string)
   is_nullable: 0
-  size: 14
+  size: 20
 
 This should be 
 
@@ -36,7 +36,7 @@ This should be
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 13
+  size: 15
 
 =head2 version
 
@@ -85,9 +85,9 @@ This should be
 
 __PACKAGE__->add_columns(
   "rfamseq_acc",
-  { data_type => "varchar", default_value => "", is_nullable => 0, size => 14 },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 20 },
   "accession",
-  { data_type => "varchar", is_nullable => 0, size => 13 },
+  { data_type => "varchar", is_nullable => 0, size => 15 },
   "version",
   { data_type => "integer", is_nullable => 0 },
   "ncbi_id",
@@ -234,8 +234,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:049m7B2BqJz9OAMq+bUasg
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vzadw5JaeSWBWEuoSMNrmQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

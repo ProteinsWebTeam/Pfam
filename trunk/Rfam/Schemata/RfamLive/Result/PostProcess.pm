@@ -71,6 +71,12 @@ __PACKAGE__->table("_post_process");
   data_type: 'mediumtext'
   is_nullable: 1
 
+=head2 lsf_id
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -106,6 +112,8 @@ __PACKAGE__->add_columns(
   },
   "message",
   { data_type => "mediumtext", is_nullable => 1 },
+  "lsf_id",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
 );
 
 =head1 RELATIONS
@@ -126,8 +134,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 11:04:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7XFJ3XaL3kUe0o/EZkiuzA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6EXbOfOx1eKZvo93C9LX/g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

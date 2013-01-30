@@ -55,7 +55,8 @@ record the author???
   is_nullable: 1
   size: 150
 
-wikipedia page title\n
+wikipedia page title
+
 
 =head2 user
 
@@ -94,8 +95,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fZIXgfMDGvy2D5aCrKNO+Q
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8ypcT7jCgEzHpXUv4iYGuw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
