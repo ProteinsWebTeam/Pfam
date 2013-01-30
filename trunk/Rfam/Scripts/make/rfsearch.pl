@@ -1,4 +1,4 @@
-#!/software/bin/perl -w
+#!/usr/local/bin/perl -w
 
 use strict;
 use Getopt::Long;
@@ -9,12 +9,18 @@ use Sys::Hostname;
 use Cwd;
 use Data::Dumper; #Great for printing diverse data-structures.
 use DBI;
-
-use Rfam;
-use Rfam::RfamAlign;
-use RfamUtils;
-use Rfam::RfamSearch;
-use RfamTimes;
+use Bio::Rfam::Family::MSA;
+use Bio::Rfam::Config;
+use Bio::Rfam::FamilyIO;
+use Bio::Rfam::Family;
+#use Rfam;
+#use Rfam::RfamAlign;
+#use RfamUtils;
+use lib "/homes/swb/Rfam/Scripts/make";
+use Rfamnew;
+#use RfamUtils;
+#use Rfam::RfamSearch;
+#use RfamTimes;
 
 #BLOCK 0: INITIALISE: 
 
@@ -42,7 +48,12 @@ my( $help,
     %runTimes,
     $schema,
     $rfamTimes,
-    $status
+    $status,
+	$dbconfig,
+	$dbfile,
+	$dbchoice,
+	$binaryconfig,
+	$infernal_path
     );
 
 $cmsearch_eval = "";
@@ -68,8 +79,19 @@ $squeue        = "";
 	     "queue=s"                 => \$queue,
 	     "cqueue=s"                => \$squeue,
 	     "squeue=s"                => \$cqueue,
+		"dbchoice=s" => \$dbchoice,
              "dirty"                   => \$dirty
     );
+
+#set some db options and some paths:
+my $config = Bio::Rfam::Config->new;
+$dbchoice = "testrfamseq" unless ($dbchoice);
+
+$dbconfig = $config->seqdbConfig( $dbchoice);
+$dbfile   = $dbconfig->{"path"};
+
+$infernal_path = $config->infernalPath;
+###################################################################################################
 
 # determine if user set cmsearch E-value, if not we potentially use
 # bit score of (NC-2 bits) instead of an E-value cutoff.
@@ -80,22 +102,8 @@ if($cmsearch_eval eq "") {
 else { # user must have set cmsearch e-value
     $cme_option_set = 0;
 }
+#SWB removed sanger queue options
 # make sure queue options make sense
-if($queue ne "" && $queue ne "small" && $queue ne "normal" && $queue ne "long" && $queue ne "basement") { 
-    die "FATAL: with --queue <s>, <s> must be 'small', 'normal', 'long' or 'basement'"; 
-}
-if($cqueue ne "" && $cqueue ne "small" && $cqueue ne "normal" && $cqueue ne "long" && $cqueue ne "basement") { 
-    die "FATAL: with --cqueue <s>, <s> must be 'small', 'normal', 'long' or 'basement'"; 
-}
-if($squeue ne "" && $squeue ne "small" && $squeue ne "normal" && $squeue ne "long" && $squeue ne "basement") { 
-    die "FATAL: with --squeue <s>, <s> must be 'small', 'normal', 'long' or 'basement'"; 
-}
-if($queue ne "" && $cqueue ne "") { 
-    die "FATAL: --queue and --cqueue are incompatible"; 
-}
-if($queue ne "" && $squeue ne "") { 
-    die "FATAL: --queue and --squeue are incompatible"; 
-}
 
 if( $help ) {
     &help();
@@ -114,20 +122,19 @@ die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]" if not defined $use
 my $pwd = getcwd;
 my $phost = hostname;
 
-######################################################################
-#Determine if we're using v1.1 or v1.0 (this should be temporary,
-#eventually we'll only do 1.1).
-if($Rfam::infernal_path !~ /1\.1/) { 
-    die "FATAL: you're not using Infernal 1.1, check Rfam::infernal_path";
-}
 &printlog( "RFSEARCH USING INFERNAL VERSION 1.1");
-
-######################################################################
+&printlog( "Using database $dbchoice\n");
 my $buildopts;
 #Validate SEED and DESC files
-my $desc;
-if (-s 'DESC'){
-    $desc = RfamUtils::slurpDesc();
+#Replace with Rob's new code for parsing DESC files
+#
+
+my ($desc, $descfile);
+my $familyIO = Bio::Rfam::FamilyIO->new( ); 
+
+if (-s 'DESC') {
+	$descfile = 'DESC';
+	$desc = $familyIO->parseDESC( $descfile );
 }
 else {
     $desc = RfamUtils::generateDesc();
@@ -148,24 +155,12 @@ $desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
 #};
 
 ######################################################################
-#Give runTimes table an accession/ID
-if (defined $desc->{'AC'} && length($desc->{'AC'})>0){
-    $runTimes{'rfam_acc'}=$desc->{'AC'};
-}
-elsif (defined $desc->{'ID'} && length($desc->{'ID'})>0){
-    $runTimes{'rfam_acc'}=$desc->{'ID'};    
-}
-else {
-    my @pwd = split(/\//,$pwd);
-    $runTimes{'rfam_acc'} = '';
-    while(length($runTimes{'rfam_acc'})==0 && @pwd){
-	$runTimes{'rfam_acc'} = pop(@pwd);
-    }
-}
-&printlog( "RFSEARCH RUN ON: " . $runTimes{'rfam_acc'} . ":" . $desc->{'ID'} );
+#Give runTimes table an accession/ID - removed by SWB for EBI move, no longer necessary
 
 ######################################################################
 #Validate the SEED & check for RF and SS_cons annotation
+#Needs updating to RDFs family/DESC handler
+#
 $buildopts = "" unless $buildopts;
 if (-e "SEED"){
     open(S, "SEED") or die("SEED exists but couldn't be opened!");
@@ -219,22 +214,22 @@ elsif (-e "rfsearch.log") {
 }
 ######################################################################
 #user must have log dir!
-&printlog( "mkdir $phost:$pwd/$$" );
+&printlog( "mkdir $pwd/$$" );
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
 
 ######################################################################
-my $lustre = "$Rfam::scratch_farm/$user/$$"; #path for dumping data to on the farm
-
-#Set the stripe pattern on the lustre (farm) file system:
+#my $lustre = "$Rfam::scratch_farm/$user/$$"; #path for dumping data to on the farm
+my $lustre = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the farm
+#eet the stripe pattern on the lustre (farm) file system:- removed by SWB for move to EBI
 #http://scratchy.internal.sanger.ac.uk/wiki/index.php/Farm_II_User_notes
 &printlog( "mkdir $lustre" );
-mkdir("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
-system("lfs setstripe $lustre 0 -1 -1") and die "FATAL: \42lfs setstripe $lustre 0 -1 -1\42 on the farm failed\n[$!]";
-#See the wiki page "LustreStripeSize" for more detail. 
+mkdir ("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
+
 ######################################################################
 #open a connection to the DB:
-$schema = RfamTimes->connect("dbi:mysql:host=$Rfam::rdb_host;port=$Rfam::rdb_port;dbname=rfam_times",$Rfam::rdb_user,$Rfam::rdb_pass);
+#removed by SWB for EBI move
+#$schema = RfamTimes->connect("dbi:mysql:host=$Rfam::rdb_host;port=$Rfam::rdb_port;dbname=rfam_times",$Rfam::rdb_user,$Rfam::rdb_pass);
 #######
 
 #Build and calibrate the CM if necessary:
@@ -246,12 +241,12 @@ if ($cqueue ne "") { $qchoice = $cqueue; }
 unless( $nobuild) { 
     my $buildCm = 0;
 
-    $buildCm = 1 if RfamUtils::youngerThan("$pwd/SEED", "$pwd/CM");
+    $buildCm = 1 if Rfamnew::youngerThan("$pwd/SEED", "$pwd/CM");
     $buildCm = 1 if defined $forceCalibrate;
     $buildCm = 1 if defined $onlyCalibrate;
     #check if CM is calibrated: 
     if (-e "$pwd/CM"){
-	$buildCm = 1 if not Rfam::RfamSearch::isCmCalibrated("$pwd/CM"); 
+	$buildCm = 1 if not Rfamnew::isCmCalibrated("$pwd/CM"); 
     }
     else {
 	$buildCm = 1;
@@ -263,25 +258,21 @@ unless( $nobuild) {
     
     if ($buildCm){
 	unlink("$pwd/CM.xxx") if -e "$pwd/CM.xxx"; #Clean up old tmp files from cmbuild:
-	Rfam::RfamSearch::cmBuild("$pwd/CM","$pwd/SEED",'1.1', $buildopts, $desc->{'AC'});
+	Rfamnew::cmBuild("$pwd/CM","$pwd/SEED",'1.1', $buildopts, $desc->{'AC'});
 	#calibrate model:
 	my $iscalibrated=0;
 	for (my $try=1; $try<4; $try++){
 	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
 	    
-	    $runTimes{'calibration'}=Rfam::RfamSearch::cmCalibrate("CM",$lustre, $pwd, $debug, $bigmem, $qchoice);
+	    $runTimes{'calibration'}=Rfamnew::cmCalibrate("CM",$lustre, $pwd, $debug, $bigmem, $qchoice);
 	    # this should work for 1.0 or 1.1
-	    $iscalibrated=Rfam::RfamSearch::isCmCalibrated("$lustre/CM");
+	    $iscalibrated=Rfamnew::isCmCalibrated("$lustre/CM");
 	    &printlog( "        cmcalibration took:             " . $runTimes{'calibration'} . " secs" ) if $iscalibrated;
 	    last if $iscalibrated;
 	    &printlog( "FAILED to calibrate the $lustre/CM, retry number $try");
 	}
 	&printlog( "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ...") if !$iscalibrated;
 	die "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ..." if !$iscalibrated; 
-	#Update time DB now...
-	$rfamTimes   = $schema->resultset('RfamTimes')
-	    ->update_or_create(%runTimes
-			       ,);
 	exit(0) if defined $onlyCalibrate;
     }
     else {
@@ -291,14 +282,14 @@ unless( $nobuild) {
 
 my $initendtime = time();
 
-my $dbdir  = $Rfam::rfamseq_current_dir;        # glob files from here
-my $dbdir2 = $Rfam::rfamseq_farm2_run_dir;      # but run things from here
+my $dbdir  = $Rfamnew::rfamseq_current_dir;        # glob files from here
+my $dbdir2 = $Rfamnew::rfamseq_current_dir;      # but run things from here
 
 #Find out how big the database is (used for e-value computations for infernal)
 # (If we upgrade script to allow alternate databases, we'll need to update this to
 # determine size of alternate db.)
 my $dbsize=0;
-$dbsize  =  Rfam::RfamSearch::getDbSize();
+$dbsize  =  Rfamnew::getDbSize();
 
 &printlog( "DBSIZE: $dbsize");
 
@@ -346,7 +337,7 @@ else { # -cme not used
 }
 #####################################################
 
-my $command = "$Rfam::infernal_path/cmsearch";
+my $command = "$Rfamnew::infernal_path/cmsearch";
 my $ncpus; 
 if(! defined $ncpus_cmsearch) { 
     $ncpus_cmsearch = 2;
@@ -409,7 +400,11 @@ if($qchoice eq "") { # else $qchoice was passed in
     else                                         { $qchoice = "basement"; } # more than 36 hours? basement queue
 }
 
-$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
+#$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
+# swb: Changed $queue to always use production-rh6 at ebi:
+#
+
+$queue = "production-rh6 -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredMb";
 
 my $cmround=0;
 my $cmjobcount=0;
@@ -433,15 +428,14 @@ my $bigCommand;
 	 $sdb =~ s/$dbdir/$dbdir2/g;
 
 	 $bigCommand = "/usr/bin/time -f \'\%S \%U\' -o $lustre/$cmsearchTimeOut $command $options --tblout $lustre/$cmtabfile $lustre/$$.CM $sdb > $lustre/$cmoutput;";
-
-	 if($cmjobcount == 0) { 
-	     &printlog( "###########\nbsub  -G pfam-grp -q $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" );
+	if($cmjobcount == 0) { 
+	     &printlog( "###########\nbsub -q $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" );
 	     &printlog( $bigCommand . "\n###########" );
 	     printf("Listing job submission index as they are submitted (%d total; only the first submission command (above) is printed):\n", scalar(@seqdb));
 	 }
 	 
 	 my $fh = new IO::File;
-	 $fh -> open("| bsub  -G pfam-grp -q $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" ) or die "$!";
+	 $fh -> open("| bsub -q  $queue -J$pname -o $lustre/$$\.cmsearch.err.$cmround.$cmjobcount > $pwd/$$/$$\.cmsearch.out.$cmround.$cmjobcount" ) or die "$!";
 	 $fh -> print( "$bigCommand\n" );
 	 $fh -> close;
 	 $dbnames{$sdb}=1;
@@ -455,94 +449,52 @@ my $bigCommand;
 
 
 $cmopts=$options;
-RfamUtils::wait_for_farm($pname, "cmsearch", $numdbs ); 
-
+Rfamnew::wait_for_farm($pname, "cmsearch", $numdbs ); 
 #Check jobs completed normally...
-my @cmrerun = ();
-foreach my $db (@dbnames){
-    
-    my $cmoutput = $db2ouput{$db};
-    
-    if (-e "$lustre/$cmoutput\.err"){
-	&printlog( "WARNING: a cmsearch job didn't finish properly [$lustre/$cmoutput] saw:[$lustre/$cmoutput\.err] -- rerunning cmsearch search." );
-	push(@warnings,"WARNING: a cmsearch job didn't finish properly [$lustre/$cmoutput] saw:[$lustre/$cmoutput\.err] -- rerunning cmsearch search.");
-	push( @cmrerun, $db );
-	system("rm $lustre/$cmoutput\.err");
-	next; #Found a problem -- skip the below validation
-    }
-    
-##################VALIDATING $cmoutput
-    open(HD, "head -n 2 $lustre/$cmoutput | ") or warn "WARNING: failed to run head on [$lustre/$cmoutput]";
-    my $headOk=0;
-    while(my $hd=<HD>){
-	$headOk++ if $hd=~/\# cmsearch/;
-	$headOk++ if $hd=~/\# INFERNAL 1.1/;
-    }
-    close(HD);
-    
-    open(TL, "tail -n 3 $lustre/$cmoutput | ") or warn "WARNING: failed to run tail on [$lustre/$cmoutput]";
-    my $tailOk=0;
-    while(my $tl=<TL>){
-	$tailOk++ if $tl=~/\/\//;
-	$tailOk++ if $tl=~/\# CPU time/;
-	$tailOk++ if $tl=~/[ok]/;
-    }
-    close(TL);
-    
-    if ($headOk<2 or $tailOk<3){
-	&printlog( "WARNING: a cmsearch job didn't finish properly [$lustre/$cmoutput] [headOk:$headOk<2 or tailOk:$tailOk<3] -- rerunning cmsearch search." );
-	push(@warnings,"WARNING: a cmsearch job didn't finish properly [$lustre/$cmoutput] [headOk:$headOk<2 or tailOk:$tailOk<3] -- rerunning cmsearch search.");
-	push( @cmrerun, $db );
-    }
-###################
-}
-
-if( @cmrerun ) {
-    $cmround++;
-    @dbnames = @cmrerun;
-    $failedCmsearchJobs=scalar(@cmrerun);
-    if ($round < 4){#Retry a maximum of 3 times
-	&printlog( "WARNING: restarting jobs [$failedCmsearchJobs]!" );
-	redo CMSEARCH;
-    }
-    else {
-	&printlog( "FATAL: Maximum number of cmsearch failures, cleanup the farm \47$lustre\47 manually" );
-	die;
-    }
-}
+# removed as part of rfam code refactor
 ######################################################################
 # EPN: when we switch to infernal 1.1...get rid of this. I don't think 'mailUser' works anymore anyhow.
 #validate cmsearch LSF outputs:
-my @lsfOutputsCmsearch1 = glob("$lustre/$$.cmsearch.err.*");
-my @lsfOutputsCmsearch2 = glob("$lustre/$$.cmsearch.checkerrs.*");
-my @lsfOutputsCmsearch3 = glob("$lustre/$$.err.*");
-$dirty = 1 if not validateLsfOutputs($user, "cmsearchJobs:$pname", $runTimes{'rfam_acc'} . ":" . $desc->{'ID'} . " $pwd", \@lsfOutputsCmsearch1);
-$dirty = 1 if not validateLsfOutputs($user, "cmsearchJobs:$pname", $runTimes{'rfam_acc'} . ":" . $desc->{'ID'} . " $pwd", \@lsfOutputsCmsearch2);
-$dirty = 1 if not validateLsfOutputs($user, "cmsearchJobs:$pname", $runTimes{'rfam_acc'} . ":" . $desc->{'ID'} . " $pwd", \@lsfOutputsCmsearch3);
 
 
 # EPN original rfsearch.pl script does another validation check here. We've already done enough of that, right?
 ##############
 #Copy OUTPUT files from the farm -- do some validation to ensure all the nodes completed successfully:
-open (lOP, "cat $lustre/$$.OUTPUT.*  |") or die "FATAL: failed to open a pipe for cat $lustre/$$.OUTPUT.* > $pwd/OUTPUT\n[$!]";
-open(pOP, "> $pwd/OUTPUT") or die "FATAL: failed to open $pwd/OUTPUT\n[$!]";
-my $cmsearchTerminalCount=0;
-while(my $op = <lOP>){
-    print pOP $op; #print to the all important OUTPUT file!
-}
-close(lOP);
-close(pOP);
-
+#open (lOP, "cat $lustre/$$.OUTPUT.*  |") or die "FATAL: failed to open a pipe for cat $lustre/$$.OUTPUT.* > $pwd/OUTPUT\n[$!]";
+#open(pOP, "> $pwd/OUTPUT") or die "FATAL: failed to open $pwd/OUTPUT\n[$!]";
+#my $cmsearchTerminalCount=0;
+#while(my $op = <lOP>){
+#    print pOP $op; #print to the all important OUTPUT file!
+#}
+#close(lOP);
+#close(pOP);
 ###########validation block ends
 #system("cat $lustre/$$.OUTPUT.* > $pwd/OUTPUT")   and die "FATAL: cant concatenate output files on the farm\n[$!]";
 
 #system("cat $lustre/$$.TABFILE.* > $pwd/TABFILE") and die "FATAL: cant concatenate tabfile files on the farm\n[$!]";
 #Using glob because the above fails on SRP and friends:
+# Rewrite this bit using pg5's pipe method and check for [ok] for validation
+
 my @tabFiles = glob("$lustre/$$.TABFILE.*");
+my @notOkSearches;
+
 unlink "$pwd/TABFILE" if -e "$pwd/TABFILE";
 foreach my $tabFile (@tabFiles){
-    system("cat $tabFile >> $pwd/TABFILE") and die "FATAL: cant concatenate tabfile files on the farm [$tabFile >> $pwd/TABFILE]\n[$!]";
+    open (tF, "tail -1 $tabFile |") ;
+	while (my $l = <tF>) {
+		unless ($l =~ m/ok/) {
+			print "Job not ok!!\n";
+			push (@notOkSearches, $tabFile);
+		}
+	}
+my $number_failed_jobs = scalar @notOkSearches;
+if ($number_failed_jobs != 0) {
+	print "Some jobs have failed! consider rerunning!\n";
+} 
+
+	system("cat $tabFile >> $pwd/TABFILE") and die "FATAL: cant concatenate tabfile files on the farm [$tabFile >> $pwd/TABFILE]\n[$!]";
 }
+
 
 #system("cat $lustre/$$.CPUTIME.* > $pwd/CPUTIME") and die "FATAL: cant concatenate time files on the farm\n[$!]";
 my @cputimes = glob("$lustre/$$.CPUTIME.*");
@@ -596,9 +548,6 @@ foreach my $k (qw(calibration cmsearch rfsearchwall)){
 }
 &printlog( "##############" );
 
-$rfamTimes   = $schema->resultset('RfamTimes')
-    ->update_or_create(%runTimes
-		       ,);
 ###################################
 #Report warnings:
 if (scalar(@warnings)){
@@ -698,7 +647,7 @@ sub validateLsfOutputs {
 
 sub checkSEEDgap{
     my $file=shift;
-    system("sreformat --mingap stockholm $file > $file\.gaptmp") and die "FATAL: \47sreformat --mingap stockholm $file\47 failed";
+    system("esl-reformat --mingap stockholm $file > $file\.gaptmp") and die "FATAL: \47sreformat --mingap stockholm $file\47 failed";
     my ($alignmentLength, $alignmentLengthT);
     open(ALI,"esl-alistat $file |") or die( "FATAL: Could not open alistat pipe on $file:[$!]");
     while(<ALI>) {
@@ -750,7 +699,7 @@ sub cmstat_bit_from_E {
     my($cm_file, $dbsize, $evalue, $use_glocal) = @_;
 
     #printf("$Rfam::infernal_path/cmstat -E $evalue -Z $dbsize $cm_file");
-    open(CMS, "$Rfam::infernal_path/cmstat -E $evalue -Z $dbsize $cm_file | ") or die "FATAL: failed to open pipe for cmstat -E $dbsize $cm_file\n[$!]";
+    open(CMS, "$Rfamnew::infernal_path/cmstat -E $evalue -Z $dbsize $cm_file | ") or die "FATAL: failed to open pipe for cmstat -E $dbsize $cm_file\n[$!]";
     my $ok=0;
     my $bitsc;
     while(<CMS>){
@@ -778,7 +727,7 @@ sub cmstat_clen {
     my($cm_file) = $_[0];
 
     #printf("$Rfam::infernal_path/cmstat -$cm_file");
-    open(CMS, "$Rfam::infernal_path/cmstat $cm_file | ") or die "FATAL: failed to open pipe for cmstat $cm_file\n[$!]";
+    open(CMS, "$Rfamnew::infernal_path/cmstat $cm_file | ") or die "FATAL: failed to open pipe for cmstat $cm_file\n[$!]";
     my $ok=0;
     my $clen;
     while(<CMS>){
