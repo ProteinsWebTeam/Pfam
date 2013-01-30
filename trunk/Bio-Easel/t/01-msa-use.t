@@ -8,7 +8,10 @@ BEGIN {
 
 # test new 
 my $alnfile = "./t/data/test.sto";
-my $msa = Bio::Easel::MSA->new({"fileLocation" => $alnfile});
+my $msa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+   aliType      => 'seed'
+});
 isa_ok($msa, "Bio::Easel::MSA");
 
 # check nseq returns 3
