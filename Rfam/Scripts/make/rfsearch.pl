@@ -13,6 +13,7 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family;
+use Data::Printer;
 #use Rfam;
 #use Rfam::RfamAlign;
 #use RfamUtils;
@@ -50,8 +51,9 @@ my( $help,
     $rfamTimes,
     $status,
 	$dbconfig,
-	$dbfile,
+	$dbpath,
 	$dbchoice,
+	$dbsize,
 	$binaryconfig,
 	$infernal_path
     );
@@ -86,11 +88,13 @@ $squeue        = "";
 #set some db options and some paths:
 my $config = Bio::Rfam::Config->new;
 $dbchoice = "testrfamseq" unless ($dbchoice);
-
+print "database size is $dbsize\n";
 $dbconfig = $config->seqdbConfig( $dbchoice);
-$dbfile   = $dbconfig->{"path"};
+$dbpath   = $dbconfig->{"path"};
+$dbsize  = $dbconfig->{"dbsize"};
 
 $infernal_path = $config->infernalPath;
+
 ###################################################################################################
 
 # determine if user set cmsearch E-value, if not we potentially use
@@ -136,6 +140,8 @@ if (-s 'DESC') {
 	$descfile = 'DESC';
 	$desc = $familyIO->parseDESC( $descfile );
 }
+
+#Need to update this desc creation step to use RDFs new code:
 else {
     $desc = RfamUtils::generateDesc();
     open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
@@ -147,6 +153,7 @@ else {
 #Read cmbuild/cmsearch flags from the DESC file:
 $desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
     $buildopts = $1;
+	print "$buildopts\n";
 };
 
 # We no longer do glocal, since we switched to 1.1 which handles fragments sensibly
@@ -214,7 +221,8 @@ elsif (-e "rfsearch.log") {
 }
 ######################################################################
 #user must have log dir!
-&printlog( "mkdir $pwd/$$" );
+&printlog( "Making farm and log directories....");
+#&printlog( "mkdir $pwd/$$" );
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
 
@@ -223,9 +231,9 @@ mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
 my $lustre = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the farm
 #eet the stripe pattern on the lustre (farm) file system:- removed by SWB for move to EBI
 #http://scratchy.internal.sanger.ac.uk/wiki/index.php/Farm_II_User_notes
-&printlog( "mkdir $lustre" );
+#&printlog( "mkdir $lustre" );
 mkdir ("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
-
+&printlog ("done");
 ######################################################################
 #open a connection to the DB:
 #removed by SWB for EBI move
@@ -273,6 +281,7 @@ unless( $nobuild) {
 	}
 	&printlog( "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ...") if !$iscalibrated;
 	die "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ..." if !$iscalibrated; 
+	#Update time DB now...
 	exit(0) if defined $onlyCalibrate;
     }
     else {
@@ -281,15 +290,13 @@ unless( $nobuild) {
 }
 
 my $initendtime = time();
-
-my $dbdir  = $Rfamnew::rfamseq_current_dir;        # glob files from here
-my $dbdir2 = $Rfamnew::rfamseq_current_dir;      # but run things from here
+# swb removed $dbdir, $dbdir2 as redundant with new paths:
+#my $dbdir  = $Rfamnew::rfamseq_current_dir;        # glob files from here
+#my $dbdir2 = $Rfamnew::rfamseq_current_dir;      # but run things from here
 
 #Find out how big the database is (used for e-value computations for infernal)
 # (If we upgrade script to allow alternate databases, we'll need to update this to
 # determine size of alternate db.)
-my $dbsize=0;
-$dbsize  =  Rfamnew::getDbSize();
 
 &printlog( "DBSIZE: $dbsize");
 
@@ -297,7 +304,7 @@ $dbsize  =  Rfamnew::getDbSize();
 # Determine bit score or E-value threshold to use.
 # 4 possible cases:
 # Case 1: If user set -cme <f> option, use that with -E <f>.
-# If user did not use -cme option:
+# If user did not use -cme hn:
 # Case 2:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
 # Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
 # Case 4: else use -T <x>, where <x> = GA-2.
@@ -337,7 +344,7 @@ else { # -cme not used
 }
 #####################################################
 
-my $command = "$Rfamnew::infernal_path/cmsearch";
+my $command = "$infernal_path/cmsearch";
 my $ncpus; 
 if(! defined $ncpus_cmsearch) { 
     $ncpus_cmsearch = 2;
@@ -418,14 +425,14 @@ my $bigCommand;
 
  CMSEARCH: {
      #printf("EPN dbdir: $dbdir\n");
-     my @seqdb = glob( "$dbdir/*.fa.gz" ) if not defined $failedCmsearchJobs;
+     my @seqdb = glob( "$dbpath/*.fa.gz" ) if not defined $failedCmsearchJobs;
      foreach my $sdb (@seqdb) {
 	 #printf("EPN sdb: $sdb\n");
 	 my $cmoutput        = "$$.OUTPUT.$cmround.$cmjobcount";
          my $cmtabfile       = "$$.TABFILE.$cmround.$cmjobcount";
 	 my $cmsearchTimeOut = "$$.CPUTIME.$cmround.$cmjobcount";
 	 $db2ouput{$sdb}    = $cmoutput;
-	 $sdb =~ s/$dbdir/$dbdir2/g;
+	 #$sdb =~ s/$dbdir/$dbdir2/g;
 
 	 $bigCommand = "/usr/bin/time -f \'\%S \%U\' -o $lustre/$cmsearchTimeOut $command $options --tblout $lustre/$cmtabfile $lustre/$$.CM $sdb > $lustre/$cmoutput;";
 	if($cmjobcount == 0) { 
