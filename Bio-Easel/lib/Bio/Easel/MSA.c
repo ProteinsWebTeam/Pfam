@@ -77,13 +77,13 @@ I32 c_alen (ESL_MSA *msa)
   return msa->alen;
 }
 
-char *c_get_sqname_idx (ESL_MSA *msa, I32 idx)
+char *c_get_sqname (ESL_MSA *msa, I32 idx)
 {
     /* should this check if idx is valid? perl func that calls it already does... is that proper? */
     return msa->sqname[idx];
 }
 
-void c_set_sqname_idx (ESL_MSA *msa, I32 idx, char *newname)
+void c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
 {
 
     /* should this check if idx is valid? perl func that calls it already does... is that proper? */
