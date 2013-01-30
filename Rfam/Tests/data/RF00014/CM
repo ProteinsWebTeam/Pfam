@@ -10,6 +10,7 @@ CONS     yes
 MAP      yes
 DATE     Tue Jan 29 22:04:52 2013
 COM      [1] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmbuild CM SEED
+COM      [2] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmcalibrate CM
 PBEGIN   0.05
 PEND     0.05
 WBETA    1e-07
@@ -23,6 +24,10 @@ EFFN     1.245117
 CKSUM    3944183696
 NULL     0.000  0.000  0.000  0.000 
 EFP7GF   -7.2971 0.71888
+ECMLC    0.62369    -8.95393     0.81613     1600000      531557  0.002258
+ECMGC    0.42792   -14.49103    -3.20105     1600000       50144  0.007977
+ECMLI    0.53383    -8.38474     2.25076     1600000      350673  0.003422
+ECMGI    0.47628    -9.31019     0.57693     1600000       44378  0.009013
 CM
                                              [ ROOT    0 ]      -      - - - - -
      S     0    -1 0     1     4     0     1   103   123  -6.636  -6.843  -0.066  -5.257                 
