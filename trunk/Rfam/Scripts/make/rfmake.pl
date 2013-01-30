@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w 
 
-#NOWTODO: put variable decalarations at top of block (PRELIMINARIES, PARSE TABFILE...)
+#NOWTODO: put variable decalarations at top of block (PRELIMINARIES, PARSE TBLOUT...)
 # TODO: put rfsearch list mode code into rfsearch
 # TODO: abstract out creation of out.list into subroutine, it will get called from rfsearch and rfmake
 
@@ -86,7 +86,7 @@ if((! $do_align) && (! $do_subalign)) {
 my $descI    = "DESC";
 my $cmI      = "CM";
 my $seedI    = "SEED";
-my $tabfileI = "TABFILE";
+my $tabfileI = "TBLOUT";
 my $outlistO = "outlist";
 my $speciesO = "species";
 my $taxinfoO = "taxinfo";
@@ -141,13 +141,11 @@ for($i = 0; $i < $nseq; $i++) {
 	die "ERROR SEED sequence name of unexpected format $sqname"; 
     }
 }
-
-
 # END of PRELIMINARIES block
 ######################################################################
 # GIANT if statement (TODO: get rid of this, this will go into rfsearch.pl)
 if($do_list) { 
-   # Parse TABFILE block
+   # Parse TBLOUT block
    # define variables we'll need
    my $prv_bits   = 99999.00;     # previous bit score seen
    my $prv_evalue = 0.;           # previous E-value seen
@@ -252,16 +250,15 @@ if($do_list) {
 	  
 	  # determine seqLabel
 	  my $seqLabel = 'FULL';
-	  my $seqLabelExtent = '';
 	  my $overlapExtent = overlapsSeed($name,$start,$end,\%seedseqs_start, \%seedseqs_end, \%seedseqs_strand, \%seedseqs_found);
 	  if ($overlapExtent>0.1){ # Must overlap significantly to be considered:
 	      $seqLabel = 'SEED';
-	      $seqLabelExtent = sprintf ".%d", int(100*$overlapExtent);
 	  }
 	  if (($bits < $thrcurr) && ($seqLabel ne 'SEED')) { 
 	      $seqLabel    = 'NOT' 
 	  }
 
+	  # TODO: make printing of threshold line a function
 	  # print out threshold line if nec
 	  if ( $bits < $thrcurr && $thrcurr<=$prevBits){
 	      $outline = "#***********CURRENT THRESHOLD: $thrcurr bits***********#\n";
@@ -309,10 +306,8 @@ if($do_list) {
     close(RIN);
     close(RINc);
 
-    #Hard-coded paths are naughty!!! Here are 2:
-   # TODO: put path to R in config, update plot_outlist.R so it doesn't expect termLabels, then uncomment next line
-   # and update path with config variable
-   #system("/software/R-2.9.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and warn "WARNING: system call for /software/R-2.9.0/bin/R failed. Check binary exists and is executable.\n[/software/R-2.6.0/bin/R CMD BATCH --no-save ~pg5/scripts/make/plot_outlist.R]\n";
+   my $RPlot = $config->RPlotScriptPath;
+   system("R CMD BATCH --no-save $Rplot") and warn "WARNING: system call for R $RPlot failed. Check binary exists and is executable.\n[R CMD BATCH --no-save $RPlot]\n";
     
     #Complain loudly if seed sequences are missing from the output:
     foreach my $n (keys %seedseqs_found){
@@ -323,7 +318,7 @@ if($do_list) {
     }
 
     # TODO: hook taxinfo, subalign and comparison back up, look at make/orig-files/rfmake.pl for reference,
-    # I've deleted all the code here.
+    # I've deleted all that code here.
 
     open( WARN, ">warnings" ) or warn "Can't open warnings files\n";
     foreach my $w (@warnings){
@@ -354,6 +349,7 @@ else {
 	eslSfetch_Cf($sfetch, $dbfile, "SCORES", "$$.fa");
 
         # use cmalign to do the alignment
+	# write process_infernal_cmdline_options() to use with both rfsearch and rfmake
 	my $options = "";
 	if (@cmosA){#covers the '-' options
 	    foreach my $opts (@cmosA){
@@ -375,6 +371,7 @@ else {
     # update DESC
     my $io   = Bio::Rfam::FamilyIO->new;
     my $desc = $io->parseDesc($descI);
+    # TODO: put FindTcNc in Desc.pm
     my ($tc_bits, $nc_bits) = findTcNc( $thr, $outlistO);
     $desc->{GA}($thr);
     $desc->{TC}($tc_bits);

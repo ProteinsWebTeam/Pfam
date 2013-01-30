@@ -217,6 +217,14 @@ sub easelPath {
   }
   return $self->{'_config'}->{binaries}->{easel};
 }
+
+sub RPlotScriptPath {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{binaries}->{RPlotScript};
+}
     
 sub seqdbConfig {
     my $self = shift;
