@@ -79,21 +79,22 @@ if((! $do_align) && (! $do_subalign)) {
     if(defined $queue)  { die "ERROR --queue requires -a or --subalign"; }
     if($farm)           { die "ERROR --farm requires -a or --subalign";  }
     if(defined \@cmosA) { die "ERROR --cmosA requires -a or --subalign"; }
-    if(defined \@cmodA) { die "ERROR --cmosA requires -a or --subalign"; }
+    if(defined \@cmodA) { die "ERROR --cmodA requires -a or --subalign"; }
 }
 
 # set input (suffix 'I') and output (suffix 'O') file names, ensure input file names exist
 my $descI    = "DESC";
 my $cmI      = "CM";
 my $seedI    = "SEED";
-my $tabfileI = "TBLOUT";
+my $tbloutI = "TBLOUT";
+
 my $outlistO = "outlist";
 my $speciesO = "species";
 my $taxinfoO = "taxinfo";
 my $rinO     = "rin.dat";
-my $rincO    = "rincounts.dat";
+my $rincO    = "rinc.dat";
 
-foreach $file ($descI, $seedI, $cmI, $tabfileI) { 
+foreach $file ($descI, $seedI, $cmI, $tbloutI) { 
     # write function: check for required input file, which should be able to take multiple input files
     if(! -s $file) { die "ERROR: required file $file does not exist or is empty\n"; }
 }
@@ -124,6 +125,8 @@ my $msa = Bio::Rfam::Family::MSA->new({
     aliType => 'seed'
 });
 my $nseq = $msa->nseq();
+$msa->nse_create();
+
 for($i = 0; $i < $nseq; $i++) { 
     $sqname = $msa->get_sqname_idx($i);
     if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
@@ -202,7 +205,7 @@ if($do_list) {
    # Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents.
 
    # actually parse tabfile
-   open(TAB, "grep -v ^'#' $tabfileI | sort -nrk 15 | ") or die "FATAL: could not open pipe for reading $tabfileI\n[$!]";
+   open(TAB, "grep -v ^'#' $tbloutI | sort -nrk 15 | ") or die "FATAL: could not open pipe for reading $tbloutI\n[$!]";
    my $tabline;
     while ($tabline = <TAB>){
 	
@@ -250,13 +253,9 @@ if($do_list) {
 	  
 	  # determine seqLabel
 	  my $seqLabel = 'FULL';
-	  my $overlapExtent = overlapsSeed($name,$start,$end,\%seedseqs_start, \%seedseqs_end, \%seedseqs_strand, \%seedseqs_found);
-	  if ($overlapExtent>0.1){ # Must overlap significantly to be considered:
-	      $seqLabel = 'SEED';
-	  }
-	  if (($bits < $thrcurr) && ($seqLabel ne 'SEED')) { 
-	      $seqLabel    = 'NOT' 
-	  }
+	  ($max_overlap, $overlapExtent) = $msa->nse_overlap($name . "/" . $start . "-" . $end);
+	  if ($overlapExtent > 0.1)                        { $seqLabel = 'SEED'; }
+	  if (($bits < $thrcurr) && ($seqLabel ne 'SEED')) { $seqLabel = 'NOT' }
 
 	  # TODO: make printing of threshold line a function
 	  # print out threshold line if nec

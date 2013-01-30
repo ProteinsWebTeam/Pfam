@@ -1,4 +1,5 @@
-package Rfamnew; 
+package TempRfam
+#TODO: add pod documentation to all these functions
 
 #Occasionally useful Rfam utilities
 
@@ -522,34 +523,61 @@ sub max {
   $_[0] > $_[1] ? $_[0] : $_[1]
 }
 
+#min
+sub min {
+  return $_[0] if @_ == 1;
+  $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
 
 ######################################################################
-#Returns the extent of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
+# Returns the extent of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
 # - assumes that $x1 < $y1 and $x2 < $y2.
-#
-# D = 2*|A n B|/(|A|+|B|)
 #
 sub overlapExtent {
     my($x1, $y1, $x2, $y2) = @_;
     
-    ($x1, $y1) = RfamUtils::reorder($x1, $y1);
-    ($x2, $y2) = RfamUtils::reorder($x2, $y2);
+    if($x1 > $y1) { die "ERROR overlapExtent, expect x1 <= y1 but $x1 > $y1"; }
+    if($x2 > $y2) { die "ERROR overlapExtent, expect x2 <= y2 but $x2 > $y2"; }
+
+    my $L1=$y1-$x1+1;
+    my $L2=$y2-$x2+1;
+    my $minL = Bio::Rfam::TempRfam::min($L1, $L2);
+
+    $D = overlapNres($x1, $y1, $x2, $y2);
+    return $D/$minL;
+}
+
+######################################################################
+# Returns the number of residues of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
+# - assumes that $x1 < $y1 and $x2 < $y2.
+#
+sub overlapNres {
+
+    my($x1, $y1, $x2, $y2) = @_;
+    
+    if($x1 > $y1) { die "ERROR overlapNres, expect x1 <= y1 but $x1 > $y1"; }
+    if($x2 > $y2) { die "ERROR overlapNres, expect x2 <= y2 but $x2 > $y2"; }
+
     # 1.
     # x1                   y1
     # |<---------A--------->|
     #    |<------B------>|
     #    x2             y2
     #    XXXXXXXXXXXXXXXXX
+    #
     # 2.  x1                     y1
     #     |<---------A----------->|
     # |<-------------B------>|
     # x2                    y2
     #     XXXXXXXXXXXXXXXXXXXX
+    #
     # 3. x1             y1
     #    |<------A------>|
     # |<---------B--------->|
     # x2                   y2
     #    XXXXXXXXXXXXXXXXX
+    #
     # 4. x1                    y1
     #    |<-------------A------>|
     #        |<---------B----------->|
@@ -559,7 +587,8 @@ sub overlapExtent {
     my $int=0;
     my $L1=$y1-$x1+1;
     my $L2=$y2-$x2+1;
-    my $minL = RfamUtils::min($L1,$L2);
+    my $minL = Bio::Rfam::TempRfam::min($L1, $L2);
+
     if ( ($x1<=$x2 && $x2<=$y1) && ($x1<=$y2 && $y2<=$y1) ){    #1.
 	$D = $L2;
     }
@@ -572,7 +601,7 @@ sub overlapExtent {
     elsif ( ($x1<=$x2 && $x2<=$y1) && ($y1<=$y2) ){              #4.
 	$D = $y1-$x2+1;
     }
-    return $D/$minL;
+    return $D;
 }
 
 =head2 cm_evalue2bitsc()
