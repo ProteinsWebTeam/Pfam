@@ -69,6 +69,12 @@ __PACKAGE__->table("_genome_data");
   data_type: 'mediumtext'
   is_nullable: 1
 
+=head2 lsf_id
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -104,11 +110,13 @@ __PACKAGE__->add_columns(
   },
   "message",
   { data_type => "mediumtext", is_nullable => 1 },
+  "lsf_id",
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JJVruSJ6zk9ob+1QKilR4Q
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aHCcK7coSq3DiMxrsnOsCw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

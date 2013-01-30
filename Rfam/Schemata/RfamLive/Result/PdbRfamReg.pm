@@ -73,7 +73,7 @@ __PACKAGE__->table("pdb_rfam_reg");
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
-  size: 14
+  size: 20
 
 =head2 seq_start
 
@@ -122,7 +122,7 @@ __PACKAGE__->add_columns(
   "pdb_res_end",
   { data_type => "mediumint", is_nullable => 1 },
   "rfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 14 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 20 },
   "seq_start",
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "seq_end",
@@ -211,8 +211,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bnJ3u+Zk9yUExv0bVWf99g
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:o/LIyMuVnnyZeUy1YDXnTg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
