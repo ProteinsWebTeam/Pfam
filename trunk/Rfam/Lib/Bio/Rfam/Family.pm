@@ -34,7 +34,7 @@ use Moose::Util::TypeConstraints;
 
 use  Bio::Rfam::Family::MSA;
 use  Bio::Rfam::Family::CM;
-
+use  Bio::Rfam::Family::Scores;
 
 #-------------------------------------------------------------------------------
 
@@ -62,13 +62,13 @@ has 'SEED' => (
 has 'CM' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::CM',
-  required => 0,
+  required => 1,
 );
 
-has 'scores' => (
+has 'SCORES' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::Scores',
-  required => 0,
+  required => 1,
 );
 
 has 'DESC' => (

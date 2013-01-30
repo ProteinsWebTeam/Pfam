@@ -38,6 +38,7 @@ use Bio::Rfam::Config;
 use Bio::Rfam::Family;
 use Bio::Rfam::Family::DESC;
 use Bio::Rfam::Family::CM;
+use Bio::Rfam::Family::Scores;
 
 #-------------------------------------------------------------------------------
 
@@ -967,7 +968,7 @@ sub writeDESC {
   close(D);
 }
 
-sub updateRfamAInRDB {
+sub updateRfamInRDB {
   my ( $self, $famObj, $isNew, $depositor ) = @_;
 
   #This essential updates all of the content contained in the desc file
@@ -976,14 +977,12 @@ sub updateRfamAInRDB {
   }
 
   my $rfamDB = $self->{config}->rfamlive;
-
   if ($isNew) {
     $rfamDB->resultset('Family')->createFamily( $famObj, $depositor );
   }
   else {
     $rfamDB->resultset('Family')->updateFamily($famObj);
   }
-
 }
 
 sub updateFamilyRfamseqRegions {
@@ -1001,121 +1000,32 @@ sub updateFamilyRfamseqRegions {
 }
 
 sub moveFamilyInRDB {
-  my ( $self, $famObj, $dfamDB ) = @_;
+  my ( $self, $famObj ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Rfam::Family') ) {
     confess("Did not get a Bio::Rfam::Family object");
   }
-
-  $dfamDB->resultset('Family')->updateFamily($famObj);
+  my $rfamDB = $self->{config}->rfamlive;
+  $rfamDB->resultset('Family')->updateFamily($famObj);
 
 }
 
 sub deleteFamilyInRDB {
-  my ( $self, $family, $dfamDB, $comment, $forward, $user ) = @_;
-
+  my ( $self, $family, $comment, $forward, $user ) = @_;
+    
   unless ( $family and $family =~ /RF\d{5}/ ) {
     confess("Did not get a Dfam accession\n");
   }
-
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::LiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::LiveDBManager object");
-  }
-
+  
   unless ($comment) {
     confess('Did not get a comment as to why this family is being killed');
   }
 
-  $dfamDB->deleteFamily( $family, $comment, $forward, $user );
-
-}
-
-sub uploadDfamAHMM {
-  my ( $self, $famObj, $dfamDB, $dir, $isNew ) = @_;
-
-  unless ( $famObj and $famObj->isa('Bio::Dfam::Family::DfamA') ) {
-    confess("Did not get a Bio::Dfam::Family::DfamA object");
-  }
-
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::DfamLiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::DfamLiveDBManager object");
-  }
-
-  #my $hmmio = Bio::Dfam::HMM::HMMIO->new;
-
-  #my ($fh, $filename) = tempfile();
-  #$hmmio->writeHHMM($fh, $famObj->HMMDfamA);
-  #close($fh)
-  my $family;
-  if ($isNew) {
-    $family = $famObj->DESC->ID;
-  }
-  else {
-    $family = $famObj->DESC->AC;
-  }
-  open( HMM, "$dir/$family/HMM" )
-    or die "Could not open $dir/$family/HMM:[$!]\n";
-  my $hmmString;
-  while (<HMM>) {
-    $hmmString .= $_;
-  }
-
-  $dfamDB->uploadDfamAHMM( $famObj, $hmmString );
-
-}
-
-sub uploadDfamAAligns {
-  my ( $self, $famObj, $dfamDB, $dir, $isNew ) = @_;
-  unless ( $famObj and $famObj->isa('Bio::Dfam::Family::DfamA') ) {
-    confess("Did not get a Bio::Dfam::Family::DfamA object");
-  }
-
-  unless ( $dfamDB and $dfamDB->isa('Bio::Dfam::DfamLiveDBManager') ) {
-    confess("Did not get a Bio::Dfam::DfamLiveDBManager object");
-  }
-
-  my $family;
-  if ($isNew) {
-    $family = $famObj->DESC->ID;
-  }
-  else {
-    $family = $famObj->DESC->AC;
-  }
-
-  my $full;
-  my $seed;
-
-  #Read the FULL alignment into a string
-  open( F, "$dir/$family/ALIGN" )
-    or die "Could not open $dir/$family/ALIGN:[$!]\n";
-  while (<F>) {
-    $full .= $_;
-  }
-  close(F);
-
-  #Read the SEED alignment into a string;
-  open( S, "$dir/$family/SEED" )
-    or die "Could not open $dir/$family/SEED:[$!]\n";
-  while (<S>) {
-    $seed .= $_;
-  }
-  close(S);
-
-  $dfamDB->uploadDfamAInternal( $famObj, $seed, $full );
-
-}
-
-sub results {
-  my ($self) = @_;
-  my $tabout = abs_path( $self->tabout );
-  my $scores = $tabout;
-  $scores =~ s/DFAMOUT$/scores/;
-  my $files = {
-    tabout => $tabout,
-    scores => $scores
-  };
-  my $resObj = Bio::Dfam::HMM::HMMResults->new($files);
-  return $resObj;
+  my $rfamDB = $self->{config}->rfamlive;
+  my $entry = $rfamDB->resultset('Family')->find('rfam_acc' => $family);
+  
+  $rfamDB->resultset('Family')->delete('rfam_acc' => $family);
+  $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 }
 
 sub writeScoresFile {

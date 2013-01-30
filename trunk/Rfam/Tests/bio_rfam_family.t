@@ -9,7 +9,7 @@ BEGIN {
 }
 
 my $dir = $FindBin::Bin;
-my $test_file = $dir . '/data/test.sto';
+my $test_file = $dir . '/data/RF00014';
 
 my $msa = Bio::Rfam::Family::MSA->new({
       fileLocation => $test_file,
