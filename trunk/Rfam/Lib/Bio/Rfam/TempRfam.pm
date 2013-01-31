@@ -705,6 +705,32 @@ sub nse2len {
     die "ERROR: nse2len() $sqname doesn't match expected format of N/S-E";
 }
 
+=head2 stringize_infernal_cmdline_options()
+
+  Title    : stringize_infernal_cmdline_options()
+  Incept   : EPN, Thu Jan 31 16:52:35 2013
+  Usage    : stringize_infernal_cmdline_options($sdashAR, $ddashAR)
+  Function : Returns option string including single dash and double dash
+           : options in $sdashAR and $ddashAR.
+  Args     : Array ref to array of single dash options
+           : Array ref to array of double dash options
+  Returns  : string of options
+  
+=cut
+sub stringize_infernal_cmdline_options {
+    my ($sdashAR, $ddashAR) = @_;
+
+    my $optstring = "";
+    my $opt;
+
+    foreach $opt (@{$sdashAR}) { $optstring .= "\-$opt ";  }
+    foreach $opt (@{$ddashAR}) { $optstring .= "\--$opt "; }
+    
+    $optstring =~ s/\s+$//;
+
+    return $optstring;
+}
+
 ######################################################################
 
 =head1 AUTHOR
