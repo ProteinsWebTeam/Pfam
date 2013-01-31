@@ -40,6 +40,11 @@ __PACKAGE__->table("_family_file");
   data_type: 'longblob'
   is_nullable: 0
 
+=head2 tblout
+
+  data_type: 'longblob'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -48,6 +53,8 @@ __PACKAGE__->add_columns(
   "seed",
   { data_type => "longblob", is_nullable => 0 },
   "cm",
+  { data_type => "longblob", is_nullable => 0 },
+  "tblout",
   { data_type => "longblob", is_nullable => 0 },
 );
 
@@ -69,8 +76,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N6uku5X8JBlXO35Jbn5Siw
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-31 10:52:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bCRNX4sYvVEGgEFpOUB0CQ
 
 
 use Compress::Zlib;

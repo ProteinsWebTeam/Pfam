@@ -201,6 +201,19 @@ __PACKAGE__->table("family");
   is_nullable: 1
   size: [10,5]
 
+=head2 created
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 0
+
+=head2 updated
+
+  data_type: 'timestamp'
+  datetime_undef_if_invalid: 1
+  default_value: current_timestamp
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -273,6 +286,19 @@ __PACKAGE__->add_columns(
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
   "hmm_lambda",
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "created",
+  {
+    data_type => "datetime",
+    datetime_undef_if_invalid => 1,
+    is_nullable => 0,
+  },
+  "updated",
+  {
+    data_type => "timestamp",
+    datetime_undef_if_invalid => 1,
+    default_value => \"current_timestamp",
+    is_nullable => 0,
+  },
 );
 
 =head1 PRIMARY KEY
@@ -330,21 +356,6 @@ Related object: L<RfamLive::Result::ClanMembership>
 __PACKAGE__->might_have(
   "clan_membership",
   "RfamLive::Result::ClanMembership",
-  { "foreign.rfam_acc" => "self.rfam_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 cmodels
-
-Type: has_many
-
-Related object: L<RfamLive::Result::Cmodel>
-
-=cut
-
-__PACKAGE__->has_many(
-  "cmodels",
-  "RfamLive::Result::Cmodel",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -469,6 +480,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 matches_and_fasta
+
+Type: has_many
+
+Related object: L<RfamLive::Result::MatchAndFasta>
+
+=cut
+
+__PACKAGE__->has_many(
+  "matches_and_fasta",
+  "RfamLive::Result::MatchAndFasta",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 overlap_memberships
 
 Type: has_many
@@ -510,6 +536,21 @@ Related object: L<RfamLive::Result::PostProcess>
 __PACKAGE__->has_many(
   "post_processes",
   "RfamLive::Result::PostProcess",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 processed_datas
+
+Type: has_many
+
+Related object: L<RfamLive::Result::ProcessedData>
+
+=cut
+
+__PACKAGE__->has_many(
+  "processed_datas",
+  "RfamLive::Result::ProcessedData",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -559,9 +600,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 sunbursts
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HhBntZyMyadLRcNf92At/Q
+Type: has_many
+
+Related object: L<RfamLive::Result::Sunburst>
+
+=cut
+
+__PACKAGE__->has_many(
+  "sunbursts",
+  "RfamLive::Result::Sunburst",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-31 10:52:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ospgZVFhBs8GEMwUSX6j0w
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

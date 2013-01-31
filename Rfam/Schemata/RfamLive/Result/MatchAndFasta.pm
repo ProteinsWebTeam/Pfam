@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::FamilyLong;
+package RfamLive::Result::MatchAndFasta;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::FamilyLong
+RfamLive::Result::MatchAndFasta
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<family_long>
+=head1 TABLE: C<matches_and_fasta>
 
 =cut
 
-__PACKAGE__->table("family_long");
+__PACKAGE__->table("matches_and_fasta");
 
 =head1 ACCESSORS
 
@@ -30,25 +30,37 @@ __PACKAGE__->table("family_long");
   is_nullable: 0
   size: 7
 
-=head2 referenece_structure
+=head2 match_list
 
-  data_type: 'longtext'
+  data_type: 'longblob'
   is_nullable: 1
 
-=head2 reference_sequence
+=head2 fasta
 
-  data_type: 'longtext'
+  data_type: 'longblob'
   is_nullable: 1
+
+=head2 type
+
+  data_type: 'enum'
+  extra: {list => ["rfamseq","genome","refseq"]}
+  is_nullable: 0
 
 =cut
 
 __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "referenece_structure",
-  { data_type => "longtext", is_nullable => 1 },
-  "reference_sequence",
-  { data_type => "longtext", is_nullable => 1 },
+  "match_list",
+  { data_type => "longblob", is_nullable => 1 },
+  "fasta",
+  { data_type => "longblob", is_nullable => 1 },
+  "type",
+  {
+    data_type => "enum",
+    extra => { list => ["rfamseq", "genome", "refseq"] },
+    is_nullable => 0,
+  },
 );
 
 =head1 RELATIONS
@@ -65,12 +77,12 @@ __PACKAGE__->belongs_to(
   "rfam_acc",
   "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
 
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-31 10:52:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2o7BDHMk8rAb1r6erdc3jg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AnzJzPH8/J6QgS2vJOsPjQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
