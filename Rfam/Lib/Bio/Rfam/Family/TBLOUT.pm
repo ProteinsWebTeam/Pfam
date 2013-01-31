@@ -4,7 +4,7 @@ MODULENAME - a module that
 
 =cut
 
-package Bio::Rfam::Family::Scores;
+package Bio::Rfam::Family::TBLOUT;
 
 =head1 DESCRIPTION
 
@@ -12,7 +12,7 @@ A more detailed description of what this class does and how it does it.
 
 =head1 COPYRIGHT
 
-File: Scores.pm 
+File: TBLOUT.pm 
 
 Copyright (c) 2013: 
 
@@ -33,22 +33,10 @@ use Moose::Util::TypeConstraints;
 
 =cut
 
-has 'numRegions' => (
+has 'fileLocation' => (
   is        => 'ro',
-  isa       => 'Int',
+  isa       => 'Str',
   required  => 1
-);
-
-has 'regions' => (
-  is    => 'ro',
-  isa   => 'ArrayRef[ArrayRef]',
-  required => 1
-);
-
-has 'nres' => (
-  is    => 'ro',
-  isa   => 'Int',
-  required => 0
 );
 
 __PACKAGE__->meta->make_immutable;

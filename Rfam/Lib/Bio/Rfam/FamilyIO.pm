@@ -1024,11 +1024,101 @@ sub deleteFamilyInRDB {
   $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 }
 
-sub writeScoresFile {
-  my ( $self, $resObj ) = @_;
+# make scores 2D array from outlist, then write it by calling writeScores()
+sub makeAndWriteScores {
+    my ($self, $famObj, $outlistLocation) = @_;
 
-  #Todo - TABFILE Pasring code....
-  $self->writeScoresFile($resObj);
+    my $n    = 0; # number of hits
+    my $nres = 0; # total number of residues in all hits
+    my $name;     # sequence name (name/start-end)
+    my $tcode;    # truncation code ("no", "5'", "3'", "5'&3'")
+    my @scoresAA = (); # 2D array of scores
+    my $threshold = $famObj->DESC->CUTGA; # threshold
+
+    if(! defined $threshold)    { croak "ERROR GA not set"; }
+    open(OL, $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
+
+    # process the outlist
+    while (<OL>){
+	if(! m/^\#/) { 
+	    my @elA = split(/\s+/);
+	    # example line
+	    # 105.50	4.9e-16	FULL	CP000970.1	   1234057	   1234142	     1	    85	no (SPECIES DATA REMOVED)
+	    # 0         1       2                3          4              5                 6       7   8  
+	    my ($bits, $evalue, $id, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8]);
+	    if($bits < $threshold) { last; }
+	    
+	    $name  = "$id/$start-$end";
+	    if($tstr eq "no")       { $tcode = 0;  }
+	    elsif($tstr eq "5'")    { $tcode = 5;  }
+	    elsif($tstr eq "3'")    { $tcode = 3;  }
+	    elsif($tstr eq "5'&3'") { $tcode = 53; }
+	    else { croak "ERROR invalid truncation string $tstr"; }
+
+	    push(@{$scoresAA[$n]}, [$name, $start, $end, $id, $bits, $evalue, $qstart, $qend, $tcode]);
+	    if($start <= $end) { $nres += ($end - $start + 1); }
+	    else               { $nres += ($start - $end + 1); }
+	    $n++;
+	}
+    }
+    close(OL);
+
+    my $scoresObj = Bio::Rfam::Family::Scores->new(
+	{
+	    numRegions => $n,
+	    regions    => \@scoresAA,
+	    nres       => $nres,
+	}
+    );
+    
+    $famObj->SCORES($scoresObj);
+    $self->writeScores($famObj);
+
+    return;
 }
 
+# write scores to SCORES file
+sub writeScores {
+## example array of values in $scoresObj->regions:
+##
+#  AGFT01076311.1/81-1           81      1     AGFT01076311.1  46.13   3.02e-03 1        100    0       seed
+## <sqacc.version>/<start>-<end> <start> <end> <sqacc.version> <bitsc> <evalue> <qstart> <qend> <trunc> <type> 
+## 0                             1       2     3               4       5        6        7      8       9              
+    my ($self, $famObj) = @_;
+
+    my $scoresObj = $famObj->SCORES;
+    my $scoresAAR = $scoresObj->regions;
+    my $nels   = 10; # hard-coded KNOWN number of elements in each array
+    my ($i, $j);     # counters
+    my $aR;          # convenience ptr to an array
+    my @widthA = (); # max width of each field
+    my $wid;         # width of a field
+
+    open(SC, ">SCORES") || croak "ERROR unable to open SCORES for writing"; 
+
+    for($j = 0; $j < $nels; $j++) { $widthA[$j] = 0; }
+
+    for($i = 0; $i < $scoresObj->numRegions; $i++) { 
+	$aR = $scoresAAR->[$i];
+	for($j = 0; $j < $nels; $j++) { 
+	    $wid = length($aR->[$j]);
+	    $widthA[$j] = ($widthA[$j] > $wid) ? $widthA[$j] : $wid;
+	}
+    }		
+
+    for($i = 0; $i < $scoresObj->numRegions; $i++) { 
+	$aR = $scoresAAR->[$i];
+	printf SC ("%*-s  %*s  %*s  %*-s  %*s  %*s  %*s  %*s  %*s  %*s\n", 
+	       $widthA[0], $aR->[0], 
+	       $widthA[1], $aR->[1], 
+	       $widthA[2], $aR->[2], 
+	       $widthA[3], $aR->[3], 
+	       $widthA[4], $aR->[4], 
+	       $widthA[5], $aR->[5], 
+	       $widthA[6], $aR->[6], 
+	       $widthA[7], $aR->[7], 
+	       $widthA[8], $aR->[8], 
+	       $widthA[9], $aR->[9]);
+    }
+}
 1;
