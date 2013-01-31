@@ -45,7 +45,7 @@ __PACKAGE__->table("_post_process");
 =head2 status
 
   data_type: 'enum'
-  extra: {list => ["DONE","PEND","RUN","FAIL","KILL"]}
+  extra: {list => ["PEND","RUN","DONE","FAIL","KILL"]}
   is_nullable: 0
 
 =head2 created
@@ -89,7 +89,7 @@ __PACKAGE__->add_columns(
   "status",
   {
     data_type => "enum",
-    extra => { list => ["DONE", "PEND", "RUN", "FAIL", "KILL"] },
+    extra => { list => ["PEND", "RUN", "DONE", "FAIL", "KILL"] },
     is_nullable => 0,
   },
   "created",
@@ -134,8 +134,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6EXbOfOx1eKZvo93C9LX/g
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-31 10:52:01
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q1w5kc21RiaIunHSFxzKvA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
