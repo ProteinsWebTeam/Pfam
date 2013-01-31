@@ -105,5 +105,7 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7RkXNfiIgEpIABHy2lm7pw
 
 
+__PACKAGE__->set_primary_key('rfam_acc', 'rfamseq_acc');
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

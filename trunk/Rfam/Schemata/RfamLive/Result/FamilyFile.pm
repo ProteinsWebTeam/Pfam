@@ -80,6 +80,8 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bCRNX4sYvVEGgEFpOUB0CQ
 
 
+__PACKAGE__->set_primary_key('rfam_acc');
+
 use Compress::Zlib;
 
 sub unzipped_cm {
