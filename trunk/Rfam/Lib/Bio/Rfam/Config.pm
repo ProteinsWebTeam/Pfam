@@ -45,7 +45,7 @@ sub new {
     #This does the reading and merging.
     $self->load_config();
   }else{
-    die "No config file set in the environment vairable \$RFAM_CONFIG.\n";
+    die "No config file set in the environment variable \$RFAM_CONFIG.\n";
   }
   return $self;
 }

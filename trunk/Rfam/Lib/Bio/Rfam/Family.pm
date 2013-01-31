@@ -62,13 +62,19 @@ has 'SEED' => (
 has 'CM' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::CM',
-  required => 1,
+  required => 0,
 );
 
 has 'SCORES' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::Scores',
-  required => 1,
+  required => 0,
+);
+
+has 'TBLOUT' => (
+  is       => 'ro',
+  isa      => 'Bio::Rfam::Family::TBLOUT',
+  required => 0,
 );
 
 has 'DESC' => (
