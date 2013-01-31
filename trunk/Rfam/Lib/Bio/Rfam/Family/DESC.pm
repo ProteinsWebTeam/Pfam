@@ -106,6 +106,12 @@ has 'SS' => (
   required  => 0
 );
 
+has 'TX' => (
+  is        => 'ro',
+  isa       => 'Str',
+  required  => 0
+);
+
 has 'CUTGA' => (
   is        => 'rw',
   isa       => CmCutOff,
@@ -203,7 +209,7 @@ has 'private' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(AC ID PI DE AU SE SS CUTGA CUTTC CUTNC TP BM CB SM SN  CL DBREFS REFS CC WIKI SQ private ) ] }
+  default => sub {[ qw(AC ID PI DE AU SE SS CUTGA CUTTC CUTNC TP TX BM CB SM CL DBREFS REFS CC WIKI SQ private ) ] }
 );
 
 __PACKAGE__->meta->make_immutable;

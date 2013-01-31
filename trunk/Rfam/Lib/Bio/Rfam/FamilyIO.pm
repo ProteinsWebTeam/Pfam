@@ -521,7 +521,7 @@ sub parseDESC {
           . "\n" );
     }
 
-    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|BM|SM|CB|TP|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
+    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|BM|SM|CB|TP|TX|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
       if ( exists( $params{$1} ) ) {
         croak("Found second $1 line, only expecting one\n");
       }

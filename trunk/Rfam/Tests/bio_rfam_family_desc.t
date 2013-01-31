@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 use FindBin;
 use Data::Printer;
 use File::Slurp;
@@ -21,6 +21,7 @@ my $desc = $familyIO->parseDESC( $test_data );
 isa_ok($desc, 'Bio::Rfam::Family::DESC');
 
 is($desc->AC, 'RF00014', 'The accesion for the DESC file is RF00014');
+is($desc->TX, 'Bacteria;', 'Got correct tax type.');
 my $tdir  = tempdir( CLEANUP => 1 );
 $familyIO->writeDESC($desc, $tdir);
 

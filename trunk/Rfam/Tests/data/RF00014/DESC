@@ -8,6 +8,7 @@ GA   35.00
 TC   46.13
 NC   30.97
 TP   Gene; sRNA;
+TX   Bacteria;
 BM   cmbuild  -F CM SEED
 CB   cmcalibrate --mpi -s 1 CM
 SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB
