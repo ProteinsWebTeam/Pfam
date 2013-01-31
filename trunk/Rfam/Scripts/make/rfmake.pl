@@ -22,22 +22,23 @@ use Bio::Rfam::TempRfam;
 my $config = Bio::Rfam::Config->new;
 my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
-      'SEED' => {
-	  fileLocation => "SEED",
-	  aliType      => 'seed'
-      },
-      'DESC'   => $io->parseDESC("DESC"),
-      'CM'     => $io->parseCM("CM"),
-      'TBLOUT' => { 
-	  fileLocation => "TBLOUT",
-      }  
+    'SEED' => {
+	fileLocation => "SEED",
+	aliType      => 'seed'
+    },
+    'TBLOUT' => { 
+	fileLocation => "TBLOUT",
+    },
+    'DESC'   => $io->parseDESC("DESC"),
+    'CM'     => $io->parseCM("CM"),
     );
+#$msa = $famObj->SEED;
 
 ## write TBLOUT's set of dependent files: "outlist", "species", "rin.dat", and "rinc.dat"
 ## if any of them don't exist
-if((! -s "outlist") || (! -s "species") || (! -s "rin.dat") || (! -s "rinc.dat")){ 
-    $famObj->writeDependentFiles($famObj->TBLOUT);
-}
+#if((! -s "outlist") || (! -s "species") || (! -s "rin.dat") || (! -s "rinc.dat")){ 
+#    $io->writeTbloutDependentFiles($famObj->TBLOUT, );
+#}
 
 ###################################################################
 # PRELIMINARIES:
@@ -111,37 +112,24 @@ if((! $do_align) && (! $do_subalign)) {
     if(scalar(@cmodA) > 1) { die "ERROR --cmodA requires -a or --subalign"; }
 }
 
-# set input (suffix 'I') and output (suffix 'O') file names, ensure input file names exist
-my $descI    = "DESC";
-my $cmI      = "CM";
-my $seedI    = "SEED";
-my $tbloutI = "TBLOUT";
-
 my $outlistO = "outlist";
 my $speciesO = "species";
 my $taxinfoO = "taxinfo";
 my $rinO     = "rin.dat";
 my $rincO    = "rinc.dat";
 
-my $file;
-foreach $file ($descI, $seedI, $cmI, $tbloutI) { 
-    # write function: check for required input file, which should be able to take multiple input files
-    if(! -s $file) { die "ERROR: required file $file does not exist or is empty\n"; }
-}
-
 if(defined $evalue) { 
    # TODO: use loadRfamFromLocalFile in FamilyIO.pm, but only if I can supply
    # cwd as dir
     # TODO, read SM in desc, and pick appropriate E-value line based on that
-   my $io    = Bio::Rfam::FamilyIO->new;
-   my $cm    = $io->parseCM($cmI);
+   my $cm    = $famObj->CM;
    my $bitsc = int((evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
    $thr = $bitsc;
 }
 
 # Read in MSA
 my $msa = Bio::Rfam::Family::MSA->new({
-    fileLocation => $seedI,
+    fileLocation => "SEED",
     aliType => 'seed'
 });
 # TODO, this should automatically get called when some function that accesses gets called (lazy load, right?)
@@ -167,10 +155,8 @@ if($do_list) {
     my $thrcurr;                   # current threshold, if defined in DESC
     my ($qstart, $qend);           # query start, query end (model start/end) from TBLOUT
     # process desc file to get GA cutoff
-    my $io   = Bio::Rfam::FamilyIO->new;
-    my $desc = $io->parseDESC($descI);
-    if(defined $desc->CUTGA) { $thrcurr = $desc->CUTGA; }
-    else                     { $thrcurr = -1000; }
+    if(defined $famObj->DESC->CUTGA) { $thrcurr = $famObj->DESC->CUTGA; }
+    else                             { $thrcurr = -1000; }
 
    # db queries:
    # query to search for the description of embl entries with the embl id
@@ -213,6 +199,7 @@ if($do_list) {
    # Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents.
 
    # actually parse tblout
+    my $tbloutI = "TBLOUT";
    open(TBL, "grep -v ^'#' $tbloutI | sort -nrk 15 | ") or die "FATAL: could not open pipe for reading $tbloutI\n[$!]";
    my $tblline;
     while ($tblline = <TBL>){
@@ -342,12 +329,13 @@ if($do_list) {
 # THRESHOLD mode
 else { 
     if($do_X) { 
-	if(! defined $famObj->CUTGA) { die "ERROR with -X we expect GA set in DESC"; }
-	$thr = $desc->CUTGA;
+	if(! defined $famObj->DESC->CUTGA) { die "ERROR with -X we expect GA set in DESC"; }
+	$thr = $famObj->DESC->CUTGA;
     }	
 
     # check for required files
     my $outlistI = "outlist";
+    my $file;
     foreach $file ($outlistI) { 
 	if(! -s $file) { die "ERROR: required file $file does not exist or is empty\n"; }
     }
@@ -355,15 +343,9 @@ else {
 	die "ERROR: threshold is not defined"; 
     }
 
-    # update DESC
-    # TODO: put FindTcNc in Desc.pm
     setThresholds($famObj, $thr, $outlistO);
-    # put these in FindTcNc() 
-    #$desc->CUTGA($thr);
-    #   $desc->CUTTC($tc_bits);
-    #   $desc->CUTNC($nc_bits);
 
-    $io->makeAndWriteSCORES($famObj, "outlist");
+    $io->makeAndWriteScores($famObj, "outlist");
 
     if($do_align) { 
 	# make sure we have a valid SCORES file
@@ -387,17 +369,15 @@ else {
 	}
         # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
 	my $cmalignPath = $config->infernalPath . "/cmalign";
-	cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $nseq, $tot_len, ($farm), (! $farm), $dirty);
+	cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
 
         # remove temporary fasta file
 	if(! $dirty) { unlink "$$.fa"; }
     } # end of if($do_align)
-
-    copy('DESC', $$ . '.DESC') if -e 'DESC';
+    # VERY IMPORTANT, WRITE OUT DESC FILE!
+    $io->writeDESC($famObj->DESC);
 }
 
-# VERY IMPORTANT, WRITE OUT DESC FILE!
-$io->writeDesc($desc);
 
 exit 0;
 
@@ -406,7 +386,6 @@ exit 0;
 # SUBROUTINES
 
 ######################################################################
-#lowest_true:
 sub findTcNc {
     my ($thr, $output) = @_;
     my $nc_bits=0;
@@ -429,6 +408,37 @@ sub findTcNc {
     $nc_bits = "undefined" if not defined $nc_bits or $nc_bits==0;
 #    print "($tc_bits, $nc_bits)\n";
     return ($tc_bits, $nc_bits);
+}
+
+sub setThresholds { 
+    my ($famObj, $ga, $outlist) = @_;
+
+    my ($tc, $nc, $bits, $line);
+    $nc = 0;
+    $tc = 999999;
+
+    open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
+
+    while($line = <OUTLIST>){
+	if($line !~ m/^\#/) { 
+	    # first token is bit score
+	    chomp $line;
+	    $bits = $line;
+	    $bits =~ s/\s+.*$//;
+	    
+	    if($ga <= $bits && $bits < $tc) { $tc = $bits; }
+	    if($ga  > $bits && $bits > $nc) { $nc = $bits; }
+	}
+    }
+    
+    if((! defined $nc) || ($nc == 0)) { $nc = "undefined"; }
+    print "(GA: $ga, TC: $tc, NC: $nc)\n";
+
+    $famObj->DESC->CUTGA($ga);
+    $famObj->DESC->CUTTC($tc);
+    $famObj->DESC->CUTNC($nc);
+
+    return;
 }
 
 ######################################################################
