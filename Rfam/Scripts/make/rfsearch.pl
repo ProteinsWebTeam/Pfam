@@ -14,14 +14,8 @@ use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family;
 use Data::Printer;
-#use Rfam;
-#use Rfam::RfamAlign;
-#use RfamUtils;
 use lib "/homes/swb/Rfam/Scripts/make";
 use Rfamnew;
-#use RfamUtils;
-#use Rfam::RfamSearch;
-#use RfamTimes;
 
 #BLOCK 0: INITIALISE: 
 
@@ -131,52 +125,28 @@ my $phost = hostname;
 
 &printlog( "RFSEARCH USING INFERNAL VERSION 1.1");
 &printlog( "Using database $dbchoice\n");
-my $buildopts;
-my @method_params;
+
 #Validate SEED and DESC files
 #Replace with Rob's new code for parsing DESC files
 #
 
-my ($desc, $descfile);
+#my $descfile = 'DESC';
 my $familyIO = Bio::Rfam::FamilyIO->new( ); 
 
-if (-s 'DESC') {
-	$descfile = 'DESC';
-	$desc = $familyIO->parseDESC( $descfile );
-	$buildopts = $desc->{'BM'};
-	$buildopts =~ s/-F CM SEED//;
-	$buildopts =~ s/cmbuild//;
-} else {
-	$desc = $familyIO->writeEmptyDESC($descfile);
+unless (-s 'DESC') {
+	$familyIO->writeEmptyDESC('DESC');
 }
-#Need to update this desc creation step to use RDFs new code:
-#else {
-#    $desc = RfamUtils::generateDesc();
-#    open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
-#    RfamUtils::writeDesc($desc,\*DE);
-#    RfamUtils::writeDesc($desc,\*STDOUT);
-#    close(DE);
-#}
-
-#Read cmbuild/cmsearch flags from the DESC file:
-#$desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
-#    $buildopts = $1;
-#};
-
-#Populate array with cmbuild, calibrate,search options:
-# We no longer do glocal, since we switched to 1.1 which handles fragments sensibly
-#$desc->{'BM'} =~ /cmsearch.*\s+-g\s+/ and do {
-#    $glocal = 1;
-#};
-
-######################################################################
-#Give runTimes table an accession/ID - removed by SWB for EBI move, no longer necessary
+my $desc = $familyIO->parseDESC( 'DESC' );
+my $buildopts = $desc->{'BM'};
 
 ######################################################################
 #Validate the SEED & check for RF and SS_cons annotation
-#Needs updating to RDFs family/DESC handler
+#and set up some cm building options:
 #
 $buildopts = "" unless $buildopts;
+$buildopts =~ s/-F CM SEED//;
+$buildopts =~ s/cmbuild//;
+
 if (-e "SEED"){
     open(S, "SEED") or die("SEED exists but couldn't be opened!");
     my $seen_rf;
@@ -219,7 +189,6 @@ if (-e "SEED"){
     }
 }
 
-######################################################################
 #Check for the existence and correct permissions of essential files:
 if (-e "rfsearch.log" && -w "rfsearch.log"){
     unlink("rfsearch.log");
@@ -227,26 +196,14 @@ if (-e "rfsearch.log" && -w "rfsearch.log"){
 elsif (-e "rfsearch.log") {
     die("FATAL: check permissions on rfsearch.log");
 }
-######################################################################
+
 #user must have log dir!
+
 print "Making farm and log directories....";
-#&printlog( "mkdir $pwd/$$" );
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
-
-######################################################################
-#my $lustre = "$Rfam::scratch_farm/$user/$$"; #path for dumping data to on the farm
 my $lustre = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the farm
-#eet the stripe pattern on the lustre (farm) file system:- removed by SWB for move to EBI
-#http://scratchy.internal.sanger.ac.uk/wiki/index.php/Farm_II_User_notes
-#&printlog( "mkdir $lustre" );
 mkdir ("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
-&printlog ("done\n");
-######################################################################
-#open a connection to the DB:
-#removed by SWB for EBI move
-#$schema = RfamTimes->connect("dbi:mysql:host=$Rfam::rdb_host;port=$Rfam::rdb_port;dbname=rfam_times",$Rfam::rdb_user,$Rfam::rdb_pass);
-#######
 
 #Build and calibrate the CM if necessary:
 
@@ -285,15 +242,17 @@ unless( $nobuild) {
 	while (<CMB>) {
 
 	}
-	close CMB;
+	close (CMB);
 
 	#Update $buildopts and write to DESC file:
 	$buildopts = "cmbuild " . $buildopts . " -F CM SEED" unless ($buildopts =~ m/-F CM SEED/);
-	$desc->{'BM'}=$buildopts;
+	print "$buildopts\n";
+	$desc->{'BM'} = $buildopts;
 	$familyIO->writeDESC($desc);
 
 	#Now calibrate model:
 	my $iscalibrated=0;
+	 
 	for (my $try=1; $try<4; $try++){
 	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
 	    
@@ -331,7 +290,6 @@ my $initendtime = time();
 # Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
 # Case 4: else use -T <x>, where <x> = GA-2.
 
-$dbsize  = ($dbsize*2.)/1000000; #both strands in Mb for infernal
 
 my $use_cmsearch_eval;      # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
 my $cmsearch_bitsc = 0;     # irrelevant unless $use_cmsearch_eval is set to 0 below
@@ -481,6 +439,7 @@ foreach my $tabFile (@tabFiles){
 			push (@notOkSearches, $tabFile);
 		}
 	}
+	close tF;
 my $number_failed_jobs = scalar @notOkSearches;
 if ($number_failed_jobs != 0) {
 	print "Some jobs have failed! consider rerunning!\n";
@@ -500,8 +459,9 @@ system("date >> $pwd/CMSEARCH_JOBS_COMPLETE") and die "FATAL: failed to create $
 
 ###################################
 # Cleanup all the files on the farm:
+print "$lustre\n";
 if (!defined($dirty) && @warnings==0){
-    system("rm -rf $lustre") and die "FATAL: failed to clean up files on the farm\n[$!]";
+    system("rm -rf $lustre/") and die "FATAL: failed to clean up files on the farm\n[$!]";
 }
 
 #&update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
@@ -568,7 +528,6 @@ sub printlog {
     }
     close LOG;
 }
-
 sub update_desc {
     my ($buildopts, $searchopts) = @_;
     open( DNEW, ">DESC.new" ) or die;
