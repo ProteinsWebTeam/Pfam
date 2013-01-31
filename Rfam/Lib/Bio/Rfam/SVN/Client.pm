@@ -488,20 +488,19 @@ sub commitFamily {
 }
 
 
-sub commitModelDESC {
-  my ( $self, $model ) = @_;
+sub commitFamilyDESC {
+  my ( $self, $family ) = @_;
 
   #And finally commit them.
   my $cinfo;
-  eval { $cinfo = $self->{txn}->commit( $model."/DESC", 1 ); };
+  eval { $cinfo = $self->{txn}->commit( $family."/DESC", 1 ); };
 
   if ($@) {
-    confess("Failed to commit model, $model: [$@]\n");
+    confess("Failed to commit family, $family: [$@]\n");
   }
 
   #Now check that something happen!
   $self->_checkCommitObj($cinfo);
-
 }
 
 sub addModel {
