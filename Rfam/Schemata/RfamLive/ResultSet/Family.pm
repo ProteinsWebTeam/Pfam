@@ -69,7 +69,7 @@ sub createFamilyFromObj{
                   structure_source => $familyObj->DESC->SS,
                   number_of_species => 0,
                   number_3d_structures => 0,
-                  tax_seed => '',
+                  tax_seed => defined($familyObj->DESC->TX) ? $familyObj->DESC->TX : '',
                   ecmli_lambda => $familyObj->CM->cmHeader->{ecmli}->[0],
                   ecmli_mu => $familyObj->CM->cmHeader->{ecmli}->[1],
                   ecmli_cal_db => $familyObj->CM->cmHeader->{ecmli}->[3],
