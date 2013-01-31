@@ -361,11 +361,11 @@ sub any_allgap_columns {
     return _c_any_allgap_columns($self->{esl_msa});
 }
 
-=head2 nse_create
+=head2 nse_createHAA
 
-  Title    : nse_create
+  Title    : nse_createHAA
   Incept   : EPN, Wed Jan 30 10:37:54 2013
-  Usage    : $msaObject->nse_create
+  Usage    : $msaObject->nse_createHAA
   Function : Creates hash of two dim arrays (self->nseHAA) from MSA names that match N/S-E
            : N: sq accession
            : S: hit start (> end if on opposite strand)
@@ -379,7 +379,7 @@ sub any_allgap_columns {
   
 =cut
 
-sub nse_create {
+sub nse_createHAA {
     my ($self) = @_;
 
     my $idx;     # counter over names in msa
@@ -404,7 +404,6 @@ sub nse_create {
 	    ($n, $s, $e) = ($1, $2, $3);
 	    if($s <= $e) { $a = $s; $b = $e; $strand =  1; }
 	    else         { $a = $e; $b = $s; $strand = -1; }
-	    printf("pushing $s $e $a $b $strand to $n\n");
 	    push(@{$self->{nseHAA}{$n}}, [$s, $e, $a, $b, $strand]);
 	    $ctr++;
 	}
@@ -446,14 +445,13 @@ sub nse_overlap {
     ($is_nse, $n, $a, $b, $strand) = $self->nse_breakdown($sqname);
     if($is_nse) { 
 	if(exists $self->{nseHAA}->{$n}) { 
-
 	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
-		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}}[$i];
+		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}[$i]};
 		if($strand eq $strand2) { 
 		    $fract_overlap = _overlap_fraction($a, $b, $a2, $b2);
 		    if($fract_overlap > $max_fract) { 
 			$max_fract  = $fract_overlap;
-			$max_sqname = $self->nse_create($a2, $b2, $strand2);
+			$max_sqname = $self->nse_string($n, $a2, $b2, $strand2);
 			$overlap_exists = 1;
 		    }
 		}
@@ -496,6 +494,28 @@ sub nse_breakdown {
 	return (1, $n, $a, $b, $strand);
     }
     return (0, "", 0, 0, 0);
+}
+
+=head2 nse_string
+
+  Title    : nse_string
+  Incept   : EPN, Thu Jan 31 09:37:55 2013
+  Usage    : $msaObject->nse_string($name, $a, $b, $strand)
+  Function : Creates a "name/start-end" string from $name, $a, $b, $strand.
+             If $strand==1, returns "$name/$a-$b", else
+             returns "$name/$b-a".
+  Args     : $name:   name, usually a sqacc.version
+           : $a:      start coord, must be <= $b
+           : $b:      end coord
+           : $strand: 1 for positive, -1 for negative
+  Returns  : "$name/$a-$b" if ($strand==1) else "$name/$b-$a";
+=cut
+sub nse_string {
+    my ($self, $name, $a, $b, $strand) = @_;
+
+    if($strand    ==  1) { return $name . "/" . $a . "-" . $b; }
+    elsif($strand == -1) { return $name . "/" . $a . "-" . $b; }
+    die "ERROR nse_string, invalid strand valid $strand (should be 1 or -1)\n";
 }
 
 =head2 free_msa
@@ -592,6 +612,7 @@ sub _overlap_fraction {
     my $L2 =$to2 - $from2 + 1;
     my $minL = _min($L1, $L2);
     my $D    = _overlap_nres($from1, $to1, $from2, $to2);
+    # printf STDERR "D: $D minL: $minL\n";
     return $D / $minL;
 }
 
@@ -630,9 +651,9 @@ sub _overlap_nres {
     # Case 1. $from1 <=   $to1 <  $from2 <=   $to2  Overlap is 0
     # Case 2. $from1 <= $from2 <=   $to1 <    $to2  
     # Case 3. $from1 <= $from2 <=   $to2 <=   $to1
-    if($to1 < $from2) { return 0.; }                             # case 1
-    if($to1 <   $to2) { return ($to1 - $from2 + 1) / $minlen; }  # case 2
-    if($to2 <=  $to1) { return ($to2 - $from2 + 1) / $minlen; }  # case 3
+    if($to1 < $from2) { return 0; }                    # case 1
+    if($to1 <   $to2) { return ($to1 - $from2 + 1); }  # case 2
+    if($to2 <=  $to1) { return ($to2 - $from2 + 1); }  # case 3
     die "ERROR, unforeseen case in GetOverlap $from1..$to1 and $from2..$to2";
 }
 
