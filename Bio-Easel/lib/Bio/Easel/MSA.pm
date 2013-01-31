@@ -103,53 +103,6 @@ sub new {
     return $self;
 }
 
-=head2 read_msa
-
-  Title    : read_msa
-  Incept   : EPN, Mon Jan 28 09:26:24 2013
-  Usage    : Bio::Easel::MSA->read_msa($fileLocation)
-  Function : Opens $fileLocation and updates 
-  Args     : <fileLocation>: file location of alignment
-  Returns  : ESL_MSA *C* object
-  
-=cut
-
-sub read_msa { 
-    my ($self, $fileLocation) = @_;
-
-    if($fileLocation) { 
-	$self->{path} = $fileLocation;
-    }
-    if(! defined $self->{path}) { 
-	die "ERROR: path not set in Bio::Easel::MSA object"; 
-    }
-
-    $self->{esl_msa} = c_read_msa($self->{path}, $self->{esl_abc});
-    return;
-}
-
-=head2 nseq
-
-  Title    : nseq
-  Incept   : EPN, Mon Jan 28 09:35:21 2013
-  Usage    : Bio::Easel::MSA->nseq()
-  Function : Sets (if nec) and returns number of sequences in MSA.
-  Args     : none
-  Returns  : number of sequences (esl_msa->nseq)
-  
-=cut
-
-sub nseq { 
-    my ($self) = @_;
-    
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
-    }
-    if (! defined $self->{nseq}) { 
-	$self->{nseq} = c_nseq($self->{esl_msa});
-    }
-    return $self->{nseq};
-}
 
 =head2 msa
 
@@ -187,6 +140,76 @@ sub path {
   return defined($self->{path}) ? $self->{path} : undef;
 }
 
+=head2 read_msa
+
+  Title    : read_msa
+  Incept   : EPN, Mon Jan 28 09:26:24 2013
+  Usage    : Bio::Easel::MSA->read_msa($fileLocation)
+  Function : Opens $fileLocation, reads first MSA, returns it
+  Args     : <fileLocation>: file location of alignment
+  Returns  : ESL_MSA *C* object
+  
+=cut
+
+=head2 _c_read_msa
+
+  Title    : _c_read_msa
+  Incept   : EPN, Thu Jan 31 07:30:50 2013
+  Usage    : _c_read_msa(<fileLocation>, <abc>)
+  Function : In C, opens $fileLocation and reads first MSA
+  Args     : <fileLocation>: file location of alignment
+           : <abc>:          place holder for ESL_ALPHABET C object
+  Returns  : ESL_MSA C object, fills <abc> with ESL_ALPHABET C object
+  
+=cut
+
+sub read_msa { 
+    my ($self, $fileLocation) = @_;
+
+    if($fileLocation) { 
+	$self->{path} = $fileLocation;
+    }
+    if(! defined $self->{path}) { 
+	die "ERROR: path not set in Bio::Easel::MSA object"; 
+    }
+
+    $self->{esl_msa} = _c_read_msa($self->{path}, $self->{esl_abc});
+    return;
+}
+
+=head2 nseq
+
+  Title    : nseq
+  Incept   : EPN, Mon Jan 28 09:35:21 2013
+  Usage    : Bio::Easel::MSA->nseq()
+  Function : Sets (if nec) and returns number of sequences in MSA.
+  Args     : none
+  Returns  : number of sequences (esl_msa->nseq)
+  
+=cut
+
+=head2 _c_nseq
+
+  Title    : _c_nseq
+  Incept   : EPN, Thu Jan 31 07:35:23 2013
+  Usage    : _c_nseq(<msa>)
+  Function : Returns number of seqs in msa (msa->nseq)
+  Args     : ESL_MSA C object 
+  Returns  : number of sequences in msa (msa->nseq)
+  
+=cut
+
+sub nseq { 
+    my ($self) = @_;
+    
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
+    if (! defined $self->{nseq}) { 
+	$self->{nseq} = _c_nseq($self->{esl_msa});
+    }
+    return $self->{nseq};
+}
 
 =head2 alen
 
@@ -199,10 +222,21 @@ sub path {
   
 =cut
 
+=head2 alen
+
+  Title    : _c_alen
+  Incept   : EPN, Thu Jan 31 07:37:21 2013
+  Usage    : _c_alen(msa)
+  Function : Returns alignment length (msa->alen)
+  Args     : ESL_MSA C object
+  Returns  : alignment length, number of columns (msa->alen)
+  
+=cut
+
 sub alen { 
     my ($self) = @_;
     if (! defined $self->{alen}) { 
-	$self->{alen} = c_alen($self->{esl_msa});
+	$self->{alen} = _c_alen($self->{esl_msa});
     }
     return $self->{alen};
 }
@@ -218,10 +252,22 @@ sub alen {
   
 =cut
 
+=head2 _c_get_sqname
+
+  Title    : _c_get_sqname
+  Incept   : EPN, Thu Jan 31 07:38:13 2013
+  Usage    : _c_get_sqname(msa, idx)
+  Function : Returns name of sequence <idx> in <msa>.
+  Args     : <msa>: ESL_MSA C object
+           : <idx>: sequence index in <msa>
+  Returns  : name of sequence <idx> (msa->sqname[<idx>])
+  
+=cut
+
 sub get_sqname { 
     my ($self, $idx) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
-    return c_get_sqname($self->{esl_msa}, $idx);
+    return _c_get_sqname($self->{esl_msa}, $idx);
 }
 
 =head2 set_sqname
@@ -235,10 +281,23 @@ sub get_sqname {
   
 =cut
 
+=head2 _c_set_sqname
+
+  Title    : _c_set_sqname
+  Incept   : EPN, Thu Jan 31 07:39:18 2013
+  Usage    : _c_set_sqname(<msa>, <idx>, <newname>)
+  Function : Sets sqname of seq <idx> in <msa> to <newname>
+  Args     : <msa>: ESL_MSA C object
+           : <idx>: index of sequence to set name of
+           : <newname>: name for sequence <idx>
+  Returns  : void
+  
+=cut
+
 sub set_sqname { 
     my ($self, $idx, $newname) = @_;
     if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
-    c_set_sqname($self->{esl_msa}, $idx, $newname);
+    _c_set_sqname($self->{esl_msa}, $idx, $newname);
     return;
 }
 
@@ -253,9 +312,21 @@ sub set_sqname {
   
 =cut
 
+=head2 _c_write_msa
+
+  Title    : _c_write_msa
+  Incept   : EPN, Thu Jan 31 07:40:58 2013
+  Usage    : _c_write_msa(<msa>, <outfile>)
+  Function : Write MSA to a file
+  Args     : <msa>: ESL_MSA C object
+           : <outfile> name of output file 
+  Returns  : void
+  
+=cut
+
 sub write_msa { 
     my ($self, $outfile) = @_;
-    c_write_msa($self->{esl_msa}, $outfile);
+    _c_write_msa($self->{esl_msa}, $outfile);
     return;
 }
 
@@ -270,28 +341,23 @@ sub write_msa {
   
 =cut
 
+=head2 _c_any_allgap_columns
+
+  Title    : _c_any_allgap_columns
+  Incept   : EPN, Thu Jan 31 07:41:38 2013
+  Usage    : _c_any_allgap_columns(<msa>)
+  Function : Return TRUE if any all gap columns exist in <msa>
+  Args     : ESL_MSA C object
+  Returns  : TRUE if any all gap columns exist in <msa>, FALSE if not
+           : 'gap' defined as '.', '-', '_', or '~';
+  
+=cut
+
 sub any_allgap_columns {
     my ($self) = @_;
 
     # EPN should I do error checking in c_any_allgap_columns()? 
-    return c_any_allgap_columns($self->{esl_msa});
-}
-
-=head2 free_msa
-
-  Title    : free_msa
-  Incept   : EPN, Mon Jan 28 11:06:18 2013
-  Usage    : $msaObject->free_msa()
-  Function : Frees an MSA->{$esl_msa} object
-  Args     : name of output file 
-  Returns  : void
-  
-=cut
-
-sub free_msa { 
-    my ($self) = @_;
-    c_free_msa($self->{esl_msa});
-    return;
+    return _c_any_allgap_columns($self->{esl_msa});
 }
 
 =head2 nse_create
@@ -427,6 +493,23 @@ sub nse_breakdown {
     return (0, "", 0, 0, 0);
 }
 
+=head2 free_msa
+
+  Title    : free_msa
+  Incept   : EPN, Mon Jan 28 11:06:18 2013
+  Usage    : $msaObject->free_msa()
+  Function : Frees an MSA->{$esl_msa} object
+  Args     : name of output file 
+  Returns  : void
+  
+=cut
+
+sub free_msa { 
+    my ($self) = @_;
+    _c_free_msa($self->{esl_msa});
+    return;
+}
+
 =head2 DESTROY
 
   Title    : DESTROY
@@ -440,7 +523,81 @@ sub nse_breakdown {
 
 sub DESTROY { 
     my ($self) = @_;
-    c_destroy($self->{esl_msa}, $self->{esl_abc});
+    _c_destroy($self->{esl_msa}, $self->{esl_abc});
     return;
 }
+
+
+=head2 dl_load_flags
+
+  Title    : dl_load_flags
+  Incept   : ?
+  Usage    : ?
+  Function : ?
+  Args     : ?
+  Returns  : ?
+  
+=cut
+
+
+=head1 AUTHORS
+
+Eric Nawrocki, C<< <nawrockie at janelia.hhmi.org> >>
+Jody Clements, C<< <clementsj at janelia.hhmi.org> >>
+Rob Finn, C<< <finnr at janelia.hhmi.org> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-bio-easel at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Bio-HMM-Logo>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Bio::Easel::MSA
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker (report bugs here)
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Bio-HMM-Logo>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Bio-HMM-Logo>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Bio-HMM-Logo>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Bio-HMM-Logo/>
+
+=back
+
+
+=head1 ACKNOWLEDGEMENTS
+
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2013 Eric Nawrocki.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+
+
+=cut
+
+1; # End of Bio::HMM::Logo
+
 1;

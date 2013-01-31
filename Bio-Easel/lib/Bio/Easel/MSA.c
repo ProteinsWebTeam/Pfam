@@ -18,7 +18,7 @@
     : NULL                                         \
   )
 
-SV *c_read_msa (char *infile, SV *perl_abc) 
+SV *_c_read_msa (char *infile, SV *perl_abc) 
 {
     int           status;     /* Easel status code */
     ESLX_MSAFILE *afp;        /* open input alignment file */
@@ -44,7 +44,7 @@ SV *c_read_msa (char *infile, SV *perl_abc)
     return perl_obj(msa, "ESL_MSA");
 }    
 
-void c_write_msa (ESL_MSA *msa, char *outfile) 
+void _c_write_msa (ESL_MSA *msa, char *outfile) 
 {
     FILE         *ofp;        /* open output alignment file */
 
@@ -54,36 +54,36 @@ void c_write_msa (ESL_MSA *msa, char *outfile)
     return;
 }
 
-void c_free_msa (ESL_MSA *msa)
+void _c_free_msa (ESL_MSA *msa)
 {
   esl_msa_Destroy(msa);
   return;
 }
 
-void c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
+void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
 {
-  c_free_msa(msa);
+  _c_free_msa(msa);
   esl_alphabet_Destroy(abc);
   return;
 }
 
-I32 c_nseq (ESL_MSA *msa)
+I32 _c_nseq (ESL_MSA *msa)
 {
   return msa->nseq;
 }   
 
-I32 c_alen (ESL_MSA *msa)
+I32 _c_alen (ESL_MSA *msa)
 {
   return msa->alen;
 }
 
-char *c_get_sqname (ESL_MSA *msa, I32 idx)
+char *_c_get_sqname (ESL_MSA *msa, I32 idx)
 {
     /* should this check if idx is valid? perl func that calls it already does... is that proper? */
     return msa->sqname[idx];
 }
 
-void c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
+void _c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
 {
 
     /* should this check if idx is valid? perl func that calls it already does... is that proper? */
@@ -93,10 +93,10 @@ void c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
     return;
 }   
 
-int c_any_allgap_columns (ESL_MSA *msa) 
+int _c_any_allgap_columns (ESL_MSA *msa) 
 {
   /* determine if there's any all gap columns */
-  printf("in c_any_allgap_columns()\n");
+  printf("in _c_any_allgap_columns()\n");
   printf("msa->abc->type is %d\n", msa->abc->type);
 
   int apos, idx; 
@@ -116,5 +116,4 @@ int c_any_allgap_columns (ESL_MSA *msa)
   }
   return FALSE;
 }   
-
 
