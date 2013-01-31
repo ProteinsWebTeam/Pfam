@@ -166,9 +166,14 @@ has 'NESTS' => (
   isa      =>  'ArrayRef[ HashRef ]'
 );
   
-has 'BMETH' => (
+has 'BM' => (
   is    => 'rw',
-  isa   => 'ArrayRef'
+  isa   => 'Str'
+);
+
+has 'CB' => (
+  is    => 'rw',
+  isa   => 'Str'
 );
 
 has 'SM' => (
@@ -198,7 +203,7 @@ has 'private' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(AC ID PI DE AU SE SS CUTGA CUTTC CUTNC TP BMETH SM SN  CL DBREFS REFS CC WIKI SQ private ) ] }
+  default => sub {[ qw(AC ID PI DE AU SE SS CUTGA CUTTC CUTNC TP BM CB SM SN  CL DBREFS REFS CC WIKI SQ private ) ] }
 );
 
 __PACKAGE__->meta->make_immutable;

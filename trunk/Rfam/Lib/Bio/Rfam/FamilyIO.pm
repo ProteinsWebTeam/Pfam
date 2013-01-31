@@ -185,7 +185,7 @@ sub _parseCMHeader {
     }elsif(/NODES\s+(\d+)/){
        $objHash->{nodes} = $1;
     }elsif(my ($length) = $_ =~ /^CLEN\s+(\d+)/){
-      $objHash->{length} = $length;
+      $objHash->{clen} = $length;
     }elsif(/^W\s+(\d+)$/){
       $objHash->{w} = $1;
     }elsif( my ($alpha) = $_ =~ /^ALPH\s+(\S+)/){
@@ -521,17 +521,13 @@ sub parseDESC {
           . "\n" );
     }
 
-    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|TP|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
+    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|BM|SM|CB|TP|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
       if ( exists( $params{$1} ) ) {
         croak("Found second $1 line, only expecting one\n");
       }
       $params{$1} = $2;
       next;
-    }
-    elsif ( $file[$i] =~ /^BM\s{3}(.*)$/ ) {
-      push( @{ $params{"BMETH"} }, $1 );
-    }
-    elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
+    } elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
       $params{ "CUT" . $1 } = $2;
     }
     elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {

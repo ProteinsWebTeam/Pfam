@@ -57,6 +57,12 @@ has 'hmmBody' => (
   required  => 1
 );
 
+has 'rawcm' => (
+  is        => 'ro',
+  isa       => 'ArrayRef',
+  required  => 1
+);
+
 
 has 'match_pair_node' => (
   is  => 'ro',
