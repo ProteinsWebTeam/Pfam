@@ -35,6 +35,7 @@ use Moose::Util::TypeConstraints;
 use  Bio::Rfam::Family::MSA;
 use  Bio::Rfam::Family::CM;
 use  Bio::Rfam::Family::Scores;
+use  Bio::Rfam::Family::TBLOUT;
 
 #-------------------------------------------------------------------------------
 
@@ -51,13 +52,17 @@ coerce 'Bio::Rfam::Family::SEED',
   from 'HashRef',
     via { Bio::Rfam::Family::MSA->new($_);};
 
+coerce 'Bio::Rfam::Family::TBLOUT',
+  from 'HashRef',
+    via { Bio::Rfam::Family::TBLOUT->new($_);
+    };
+
 has 'SEED' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::SEED',
   required => 1,
   coerce   => 1
 );
-
 
 has 'CM' => (
   is       => 'ro',
@@ -75,6 +80,7 @@ has 'TBLOUT' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::TBLOUT',
   required => 0,
+  coerce   => 1
 );
 
 has 'DESC' => (
@@ -93,8 +99,6 @@ has 'rdb' => (
   is => 'rw',
   isa => 'HashRef'
 );
-
-
 
 __PACKAGE__->meta->make_immutable;
 1;
