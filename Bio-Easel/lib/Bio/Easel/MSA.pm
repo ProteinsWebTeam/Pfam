@@ -222,7 +222,7 @@ sub nseq {
   
 =cut
 
-=head2 alen
+=head2 _c_alen
 
   Title    : _c_alen
   Incept   : EPN, Thu Jan 31 07:37:21 2013
@@ -259,9 +259,10 @@ sub alen {
   Usage    : _c_get_sqname(msa, idx)
   Function : Returns name of sequence <idx> in <msa>.
   Args     : <msa>: ESL_MSA C object
-           : <idx>: sequence index in <msa>
+           : <idx>: sequence index in <msa> 
+           : NOTE: <idx> should be 0..nseq-1 (to return first sqname, pass 0)
   Returns  : name of sequence <idx> (msa->sqname[<idx>])
-  
+     
 =cut
 
 sub get_sqname { 
@@ -390,10 +391,12 @@ sub nse_create {
     my $b;       # maximum of $s, $e
     my $strand;  # strand
     my $ctr = 0; # number of n/s-e names processed (added to hashes)
-    my $max_nseq = 1; # maximum numer of seqs we allow this subroutine to be called on
+    my $max_nseq = 10000; # maximum numer of seqs we allow this subroutine to be called on
+
     if($self->nseq >= $max_nseq) { 
 	die "ERROR trying to process name/start-end names of MSA with max num seqs ($self->nseq > $max_nseq seqs!)"
     }
+
 
     for($idx = 0; $idx < $self->nseq; $idx++) { 
 	$sqname = $self->get_sqname($idx);
@@ -401,6 +404,7 @@ sub nse_create {
 	    ($n, $s, $e) = ($1, $2, $3);
 	    if($s <= $e) { $a = $s; $b = $e; $strand =  1; }
 	    else         { $a = $e; $b = $s; $strand = -1; }
+	    printf("pushing $s $e $a $b $strand to $n\n");
 	    push(@{$self->{nseHAA}{$n}}, [$s, $e, $a, $b, $strand]);
 	    $ctr++;
 	}
@@ -442,10 +446,11 @@ sub nse_overlap {
     ($is_nse, $n, $a, $b, $strand) = $self->nse_breakdown($sqname);
     if($is_nse) { 
 	if(exists $self->{nseHAA}->{$n}) { 
+
 	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
 		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}}[$i];
 		if($strand eq $strand2) { 
-		    $fract_overlap = Bio::Rfam::TempRfam::overlapExtent($a, $b, $a2, $b2);
+		    $fract_overlap = _overlap_fraction($a, $b, $a2, $b2);
 		    if($fract_overlap > $max_fract) { 
 			$max_fract  = $fract_overlap;
 			$max_sqname = $self->nse_create($a2, $b2, $strand2);
@@ -525,6 +530,110 @@ sub DESTROY {
     my ($self) = @_;
     _c_destroy($self->{esl_msa}, $self->{esl_abc});
     return;
+}
+
+#############################
+# Internal helper subroutines
+#############################
+
+=head2 _max
+
+  Title    : _max
+  Incept   : EPN, Thu Jan 31 08:55:18 2013
+  Usage    : _max($a, $b)
+  Function : Returns maximum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Maximum of $a and $b.
+=cut
+
+sub _max {
+  return $_[0] if @_ == 1;
+  $_[0] > $_[1] ? $_[0] : $_[1]
+}
+
+=head2 _min
+
+  Title    : _min
+  Incept   : EPN, Thu Jan 31 08:56:19 2013
+  Usage    : _min($a, $b)
+  Function : Returns minimum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Minimum of $a and $b.
+=cut
+
+sub _min {
+  return $_[0] if @_ == 1;
+  $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
+=head2 _overlap_fraction
+
+  Title    : _overlap_fraction
+  Incept   : EPN, Thu Jan 31 08:50:55 2013
+  Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
+  Function : Returns fractional overlap of two regions.
+  Args     : $from1: start point of first region (must be <= $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (must be <= $to2)
+           : $to2:   end   point of second region
+  Returns  : Fractional overlap, defined as nres_overlap / minL
+             where minL is minimum length of two regions
+=cut
+
+sub _overlap_fraction {
+    my($from1, $to1, $from2, $to2) = @_;
+    
+    if($from1 > $to1) { die "ERROR Bio-Easel's _overlap_fraction, expect from1 <= y1 but $from1 > $to1"; }
+    if($from2 > $to2) { die "ERROR Bio-Easel's _overlap_fraction, expect x2 <= y2 but $from2 > $to2"; }
+
+    my $L1 =$to1 - $from1 + 1;
+    my $L2 =$to2 - $from2 + 1;
+    my $minL = _min($L1, $L2);
+    my $D    = _overlap_nres($from1, $to1, $from2, $to2);
+    return $D / $minL;
+}
+
+=head2 _overlap_nres
+
+  Title    : _overlap_nres
+  Incept   : EPN, Thu Jan 31 08:50:55 2013
+  Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
+  Function : Returns number of overlapping residues of two regions.
+  Args     : $from1: start point of first region (must be <= $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (must be <= $to2)
+           : $to2:   end   point of second region
+  Returns  : Number of residues that overlap between the two regions.
+=cut
+
+sub _overlap_nres {
+    my ($from1, $to1, $from2, $to2) = @_;
+    
+    if($from1 > $to1) { die "ERROR, GetOverlap(), from1 > to1\n"; }
+    if($from2 > $to2) { die "ERROR, GetOverlap(), from2 > to2\n"; }
+
+    my $minlen = $to1 - $from1 + 1;
+    if($minlen > ($to2 - $from2 + 1)) { $minlen = ($to2 - $from2 + 1); }
+
+    # Given: $from1 <= $to1 and $from2 <= $to2.
+
+    # Swap if nec so that $from1 <= $from2.
+    if($from1 > $from2) { 
+	my $tmp;
+	$tmp   = $from1; $from1 = $from2; $from2 = $tmp;
+	$tmp   =   $to1;   $to1 =   $to2;   $to2 = $tmp;
+    }
+
+    # 3 possible cases:
+    # Case 1. $from1 <=   $to1 <  $from2 <=   $to2  Overlap is 0
+    # Case 2. $from1 <= $from2 <=   $to1 <    $to2  
+    # Case 3. $from1 <= $from2 <=   $to2 <=   $to1
+    if($to1 < $from2) { return 0.; }                             # case 1
+    if($to1 <   $to2) { return ($to1 - $from2 + 1) / $minlen; }  # case 2
+    if($to2 <=  $to1) { return ($to2 - $from2 + 1) / $minlen; }  # case 3
+    die "ERROR, unforeseen case in GetOverlap $from1..$to1 and $from2..$to2";
 }
 
 
