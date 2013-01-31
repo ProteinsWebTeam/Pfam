@@ -21,7 +21,6 @@ sub updateFullRegionsFromFamilyObj {
   my @row;
   
   foreach my $hit ( @{ $familyObj->SCORES->regions }){
-    p $hit;
     push(@row, { rfam_acc     => $rfam_acc,
                  rfamseq_acc  => $hit->[3],
                  seq_start    => $hit->[1],
