@@ -28,7 +28,7 @@ SV *_c_read_msa (char *infile, SV *perl_abc)
 			       */
 
     /* open input file */
-    if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_UNKNOWN, NULL, &afp)) != eslOK)
+    if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_STOCKHOLM, NULL, &afp)) != eslOK)
       eslx_msafile_OpenFailure(afp, status);
 
     /* read_msa */
@@ -37,7 +37,6 @@ SV *_c_read_msa (char *infile, SV *perl_abc)
 
     /* close msa file */
     if (afp) eslx_msafile_Close(afp);
-
     /* convert C abc object to perl */
     perl_abc = perl_obj(abc, "ESL_ALPHABET");
 
@@ -50,6 +49,7 @@ void _c_write_msa (ESL_MSA *msa, char *outfile)
 
     if ((ofp  = fopen(outfile, "w"))  == NULL) esl_fatal("Failed to open output file %s\n", outfile);
     eslx_msafile_Write(ofp, msa, eslMSAFILE_STOCKHOLM);
+    fclose(ofp);
 
     return;
 }
@@ -63,7 +63,7 @@ void _c_free_msa (ESL_MSA *msa)
 void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
 {
   _c_free_msa(msa);
-  esl_alphabet_Destroy(abc);
+  if(abc) esl_alphabet_Destroy(abc);
   return;
 }
 

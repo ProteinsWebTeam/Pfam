@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 10;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -13,33 +13,55 @@ my $msa = Bio::Easel::MSA->new({
 });
 isa_ok($msa, "Bio::Easel::MSA");
 
-# check nseq returns 3
-my $nseq = $msa->nseq();
+# test msa
+my $msa2 = $msa->msa;
+isa_ok($msa2, "ESL_MSA");
+# TODO: check that $msa and $msa2 are identical
+
+# test path
+my $path = $msa->path;
+is($path, "./t/data/test.sto");
+
+# test nseq
+my $nseq = $msa->nseq;
 is($nseq, 3, "nseq method failed to return correct number");
 
-# check alen returns 28
-my $alen = $msa->alen();
-is($alen, 28, "alen method failed to return correct number $alen != 28");
+# test get_sqname
+my $sqname = $msa->get_sqname(2);
+is($sqname, "orc", "get_sqname method failed to return correct value");
 
-=for comment
-printf("nseq: %d\n", $msa->nseq);
+# test set_sqname
+$msa->set_sqname(2, "Sauron");
+$sqname = $msa->get_sqname(2);
+is($sqname, "Sauron", "get_sqname method failed to return correct value following set_sqname() call");
 
-#for($i = 0; $i < $ea->nseq; $i++) { 
-    # Q, we probably don't want to set sqname[] array for ESL_MSA, it's already 
-    # stored in ESL_MSA so $ea->sqname doesn't set a value in $ea object, is
-    # that kosher?
-    # (actually: do weed need to store nseq...)
-#    printf("seq $i %s\n", $ea->get_sqname($i));
+# any_allgap_columns
+my $any_gaps = $msa->any_allgap_columns;
+is($any_gaps, 0, "any_allgap_columns failed to return correct value");
+# TODO add alignment that has >=1 all gap columns and use it here
 
-#    $ea->set_sqname($i, "seq" . $i);
-#    printf("seq $i %s\n", $ea->get_sqname($i));
-#    printf("\n");
-#}
-# Q: $ea->set_outfile? 
+# test write_msa
+my $outfile = "./t/data/test-msa.out";
+$msa->write_msa($outfile);
 
-#($fh, $filename) = tempfile();
-#$ea->write_msa($filename);
-#close($fh);
+# read it in
+my $msa3 = Bio::Easel::MSA->new({
+   fileLocation => $outfile,
+});
+isa_ok($msa3, "Bio::Easel::MSA");
+unlink $outfile;
 
-#my $ea2 = new EslAlign ($filename);
+# test nseq
+$nseq = $msa3->nseq;
+printf("HEY nseq $nseq\n");
+is($nseq, 3, "nseq method failed to return correct number (pass 2)");
+
+# FIX DESTROY CALL!
+#TODO: test free_msa
+# test DESTROY
+#$msa->DESTROY;
+#$msa2->DESTROY;
+#$msa3->DESTROY;
+#TODO: test that it was destroyed, don't know how to do that yet
+
 =cut
