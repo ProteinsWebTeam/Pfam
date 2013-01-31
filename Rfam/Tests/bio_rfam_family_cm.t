@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 16;
 use FindBin;
 use Data::Printer;
 use File::Slurp;
@@ -41,3 +41,6 @@ is($body->[$#$body],  "//\n", 'Body finished with//');
 my $cm2 = $familyIO->parseCM( $test_data.'/test.cm.cal' );
 isa_ok($cm2, 'Bio::Rfam::Family::CM');
 is($cm2->is_calibrated, 1, 'Correctly set calibration');
+is($cm2->cmHeader->{clen}, 85, 'Corrected clen');
+is($cm2->hmmHeader->{maxl}, 177, 'Corrected maxl');
+
