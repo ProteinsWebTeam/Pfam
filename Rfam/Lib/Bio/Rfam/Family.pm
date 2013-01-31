@@ -71,7 +71,7 @@ has 'CM' => (
 );
 
 has 'SCORES' => (
-  is       => 'ro',
+  is       => 'rw',
   isa      => 'Bio::Rfam::Family::Scores',
   required => 0,
 );

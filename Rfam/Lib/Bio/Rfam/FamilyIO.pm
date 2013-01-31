@@ -122,7 +122,7 @@ sub parseCM {
 
   my @file;
   if ( ref($file) eq "GLOB" ) {
-    @file = <$file>;
+      @file = <$file>;
   }
   elsif ( ref($file) eq "ARRAY" ) {
     @file = @{$file};
@@ -1035,6 +1035,7 @@ sub makeAndWriteScores {
     my $tcode;    # truncation code ("no", "5'", "3'", "5'&3'")
     my @scoresAA = (); # 2D array of scores
     my $threshold = $famObj->DESC->CUTGA; # threshold
+    my $stype;    # lowercase version of type ('seed' or 'full')
 
     if(! defined $threshold)    { croak "ERROR GA not set"; }
     open(OL, $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
@@ -1046,7 +1047,7 @@ sub makeAndWriteScores {
 	    # example line
 	    # 105.50	4.9e-16	FULL	CP000970.1	   1234057	   1234142	     1	    85	no (SPECIES DATA REMOVED)
 	    # 0         1       2                3          4              5                 6       7   8  
-	    my ($bits, $evalue, $id, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8]);
+	    my ($bits, $evalue, $type, $id, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[2], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8]);
 	    if($bits < $threshold) { last; }
 	    
 	    $name  = "$id/$start-$end";
@@ -1056,7 +1057,11 @@ sub makeAndWriteScores {
 	    elsif($tstr eq "5'&3'") { $tcode = 53; }
 	    else { croak "ERROR invalid truncation string $tstr"; }
 
-	    push(@{$scoresAA[$n]}, [$name, $start, $end, $id, $bits, $evalue, $qstart, $qend, $tcode]);
+	    if   ($type eq "SEED") { $stype = "seed"; }
+	    elsif($type eq "FULL") { $stype = "full"; }
+	    else { croak "ERROR invalid type $type"; }
+
+	    push(@{$scoresAA[$n]}, ($name, $start, $end, $id, $bits, $evalue, $qstart, $qend, $tcode, $stype));
 	    if($start <= $end) { $nres += ($end - $start + 1); }
 	    else               { $nres += ($start - $end + 1); }
 	    $n++;
@@ -1078,6 +1083,182 @@ sub makeAndWriteScores {
     return;
 }
 
+# given a TBLOUT file, write four files:
+# 'outlist', 'species', 'rin.dat', 'rinc.dat'
+sub writeTbloutDependentFiles {
+    my ($self, $rfdbh, $seedmsa, $ga, $RPlotScriptPath) = @_;
+
+    if(! defined $self->TBLOUT->fileLocation) { croak "TBLOUT's fileLocation not set"; }
+    my $tblI = $self->TBLOUT->fileLocation;
+
+    # output files
+    my $outlistO = "outlist";
+    my $speciesO = "species";
+    my $rinO     = "rin.dat";
+    my $rincO    = "rinc.dat";
+
+    # misc variables
+    my $prv_bits   = 99999.00;     # previous bit score seen
+    my $prv_evalue = 0.;           # previous E-value seen
+    my %kingdomCounts;             # counts of hits in each kingdom
+    my $printed_thresh;            # TRUE if threshold has already been printed
+    my $outline;                   # dividing line
+
+    # create nse HAA in msa for overlap checking
+    $seedmsa->nse_createHAA();
+    my $idx;
+    my %seedseq_foundH = ();
+    for($idx = 0; $idx < $seedmsa->nseq; $idx++) { 
+	$seedseq_foundH{$seedmsa->get_sqname($idx)} = 0;
+    }
+
+    # db queries:
+    # query to search for the description of embl entries with the embl id
+    my $queryDesc = qq( 
+           select description
+                   from rfamseq where rfamseq_acc=?;
+    );
+    # query to fetch the species name, full taxonomy string and ncbi id for a given embl id:
+    my $queryTax = qq(
+           select t.species, t.tax_string, t.ncbi_id 
+           from taxonomy as t, rfamseq as r 
+           where t.ncbi_id=r.ncbi_id and r.rfamseq_acc=?;
+    );
+
+    # Prepare the queries for execution.
+    my $sthDesc = $rfdbh->prepare($queryDesc);
+    my $sthTax  = $rfdbh->prepare($queryTax);
+
+    # open OUTPUT files
+    open(OUT, "> $outlistO") || die "FATAL: failed to open $outlistO)\n[$!]";
+    printf OUT "# %0.4s\t%0.12s\t%0.6s\t%0.20s\t%10s\t%10s\t%6s\t%6s\t%0.5s\t%0.20s\t%0.70s\n", 
+    'bits', 'evalue', 'seqLabel', 'name', 'start', 'end', 'qstart', 'qend', 'trunc', 'shortSpecies', 'description';    
+   
+    open(SPC,"> $speciesO") || die "FATAL: failed to open $speciesO\n[$!]\n";   
+    printf SPC "# %0.4s\t%0.12s\t%0.6s\t%0.20s\t%0.15s\t%0.20s\t%s\n", 
+    'bits', 'evalue', 'seqLabel', 'name', 'ncbiId', 'species','taxString';
+    
+    open(RIN,"> $rinO") || die "FATAL: failed to open $rinO\n[$!]\n";   
+    printf RIN "bits\ttype\ttrueOrFalse\ttax\n";
+    
+    open(RINc,"> $rincO") || die "FATAL: failed to open rincO\n[$!]\n";   
+    printf RINc "cnt\ttax\n";
+    
+    # TODO: don't use grep and sort, use PERL's sort, even though paul wrote this:
+    # If you don't like this you can fuck off!:
+    # Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents.
+    
+    # actually parse tblout
+    open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
+
+    ## example TBLOUT line:
+    ###target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+    ###------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+    ## AAAA02006309.1      -         RF00014              -          cm        1       85      192      105      -    no    1 0.44   0.0   86.0   1.6e-11 !   Oryza sativa Indica Group chromosome 2 Ctg006309, whole genome shotgun sequence.
+
+    my $tblline;
+    while ($tblline = <TBL>) {
+	my @tblA = split(/\s+/, $tblline);
+	my ($name, $qstart, $qend, $start, $end, $strand, $trunc, $bits, $evalue) = ($tblA[0], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]);
+	if($strand eq "+") { $strand = 1; } else { $strand = -1; }
+	
+	#Fetch info from the DB:
+	my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
+	if($name=~/(\S+)\.(\d+)/){
+	    $sthDesc->execute($name);
+	    my $res = $sthDesc->fetchall_arrayref;
+	    if(! defined $res) { die "ERROR unable to fetch desc info for $name"; }
+	    foreach my $row (@$res){ $description .= $row->[0]; }
+	    
+	    $sthTax->execute($name);
+	    my $rfres = $sthTax->fetchall_arrayref;
+	    if(! defined $rfres) { die "ERROR unable to fetch tax info for $name"; }
+	    foreach my $row (@$rfres){
+		$species   .= $row->[0];
+		$taxString .= $row->[1];
+		$ncbiId    .= $row->[2];
+	    }
+
+	    $shortSpecies  = species2shortspecies($species);
+	    $domainKingdom = tax2kingdom($taxString . '; ' . $species . ';');
+	    if(! defined $kingdomCounts{$domainKingdom}) { $kingdomCounts{$domainKingdom} = 0 }
+	    $kingdomCounts{$domainKingdom}++;
+	}	  
+
+	$description  = 'NA' if not defined $description;
+	$species      = 'NA' if not defined $species;
+	$shortSpecies = 'NA' if not defined $shortSpecies;
+	  
+	# determine seqLabel
+	my $seqLabel = 'FULL';
+	my ($seed_seq, $overlapExtent) = $seedmsa->nse_overlap($name . "/" . $start . "-" . $end);
+
+	if($seed_seq ne "") { 
+	    $seedseq_foundH{$seed_seq}++;
+	    if ($overlapExtent > 0.1) { $seqLabel = 'SEED'; }
+	}
+	if (($bits < $ga) && ($seqLabel ne 'SEED')) { $seqLabel = 'NOT' }
+
+	# print out threshold line if nec
+	if ( $bits < $ga && $ga<=$prv_bits){
+	    $outline = "#***********CURRENT THRESHOLD: $ga bits***********#\n";
+	    print OUT $outline;
+	    print SPC $outline;
+	    printf RIN  "%0.2f\tTHRESH\t\.\t.\n", $ga;
+	    $printed_thresh=1;
+	}
+	if ($evalue > 1 && $prv_evalue <= 1) { 
+	    $outline = "#***********E-VALUE OF 1**************#\n";
+	    printf OUT $outline;
+	    printf SPC $outline;
+	}
+	$prv_bits = $bits;
+	$prv_evalue = $evalue;
+
+	printf OUT ("%0.2f\t%0.12s\t%0.6s\t%0.20s\t%10d\t%10d\t%6d\t%6d\t%0.5s\t%0.20s\t%0.70s\n", 
+		    $bits, $evalue, $seqLabel, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description);
+	printf SPC ("%0.2f\t%0.12s\t%0.6s\t%0.20s\t%15d\t%0.20s\t%s\n", 
+		    $bits, $evalue, $seqLabel, $name, $ncbiId, $species, $taxString);
+	printf RIN  "%0.2f\t%0.6s\t$domainKingdom\n", $bits, $seqLabel;
+    } # closes 'while($tblline = <TBL>)'
+    
+    if ( not defined $printed_thresh){
+	printf OUT "#***********CURRENT THRESHOLD: $ga bits***********#\n";
+	printf SPC "#***********CURRENT THRESHOLD: $ga bits***********#\n";
+	printf RIN "%0.2f\tTHRESH\t\.\t\.\n", $ga;
+    }
+    
+    foreach my $king ( sort{ $a cmp $b } keys %kingdomCounts) {
+	printf RINc  "%d\t$king\n", $kingdomCounts{$king};
+    }
+    
+    # complain loudly if seed sequences are missing from the output:
+    my @warningsA = ();
+    foreach my $n (keys %seedseq_foundH){
+	if ($seedseq_foundH{$n} < 1){
+	    $outline = "WARNING: SEED sequence $n was not found (not in TBLOUT)\n";
+	    warn $outline;
+	    push(@warningsA, $outline);
+	}
+    }
+    if(scalar(@warningsA) > 0) { 
+	open(W, ">warnings") || croak "unable to open warnings file for writing";
+	foreach my $warning (@warningsA) { 
+	    print W $warning;
+	}
+	close(W);
+    }
+    
+    close(TBL);
+    close(OUT);
+    close(SPC);
+    close(RIN);
+    close(RINc);
+
+    # run R: 
+    system("R CMD BATCH --no-save $RPlotScriptPath") and warn "WARNING: system call for R $RPlotScriptPath failed. Check binary exists and is executable.\n[R CMD BATCH --no-save $RPlotScriptPath]\n";
+}
+
 # write scores to SCORES file
 sub writeScores {
 ## example array of values in $scoresObj->regions:
@@ -1092,8 +1273,8 @@ sub writeScores {
     my $nels   = 10; # hard-coded KNOWN number of elements in each array
     my ($i, $j);     # counters
     my $aR;          # convenience ptr to an array
-    my @widthA = (); # max width of each field
     my $wid;         # width of a field
+    my @widthA = (); # max width of each field
 
     open(SC, ">SCORES") || croak "ERROR unable to open SCORES for writing"; 
 
@@ -1109,7 +1290,7 @@ sub writeScores {
 
     for($i = 0; $i < $scoresObj->numRegions; $i++) { 
 	$aR = $scoresAAR->[$i];
-	printf SC ("%*-s  %*s  %*s  %*-s  %*s  %*s  %*s  %*s  %*s  %*s\n", 
+	printf SC ("%-*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %*s\n", 
 	       $widthA[0], $aR->[0], 
 	       $widthA[1], $aR->[1], 
 	       $widthA[2], $aR->[2], 
@@ -1122,4 +1303,60 @@ sub writeScores {
 	       $widthA[9], $aR->[9]);
     }
 }
+
+######################################################################
+sub tax2kingdom {
+    my ($species) = @_;
+    my $kingdom;
+    #unclassified sequences; metagenomes; ecological metagenomes.
+    if ($species=~/^(.+?);\s+(.+?)\.*?;/){
+	$kingdom = "$1; $2";
+    }
+    die "FATAL: failed to parse a kingdom from species string: [$species]" if not defined $kingdom;
+    
+    return $kingdom;
+}
+
+######################################################################
+#species2shortspecies: Given a species string eg. "Homo sapiens
+#                      (human)" generate a nicely formated short name
+#                      with no whitespace eg. "H.sapiens".
+sub species2shortspecies {
+    my $species = shift;
+
+    my $shortSpecies;
+    
+    if ($species=~/(.*)\s+sp\./){
+	$shortSpecies = $1;
+    }
+    elsif ($species=~/metagenome/i or $species=~/uncultured/i){
+	$species=~s/metagenome/metag\./gi;
+	$species=~s/uncultured/uncult\./gi;
+	my @w = split(/\s+/,$species);
+	if(scalar(@w)>2){
+	    foreach my $w (@w){
+		$shortSpecies .= substr($w, 0, 5) . '.';
+	    }
+	}
+	else {
+	    $shortSpecies = $species;
+	    $shortSpecies =~ s/\s+/_/g;
+	}
+    }#lots of conditions here. Need else you get some ridiculous species names.
+    elsif($species=~/^(\S+)\s+(\S{4,})/ && $species!~/[\/\-\_0-9]/ && $species!~/^[a-z]/ && $species!~/\svirus$/ && $species!~/\svirus\s/ && $species!~/^Plasmid\s/i && $species!~/\splasmid\s/i){
+	$shortSpecies = substr($1,0,1) . "." . $2; 
+    }
+    else {
+	$shortSpecies = $species;
+    }
+    
+    $shortSpecies =~ s/\s+/_/g;
+    $shortSpecies =~ s/[\'\(\)\:\/]//g;
+    $shortSpecies = substr($shortSpecies,0,20) if (length($shortSpecies) > 20);
+    
+    return $shortSpecies;
+}
+
+
+
 1;
