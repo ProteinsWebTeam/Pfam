@@ -132,6 +132,7 @@ my $phost = hostname;
 &printlog( "RFSEARCH USING INFERNAL VERSION 1.1");
 &printlog( "Using database $dbchoice\n");
 my $buildopts;
+my @method_params;
 #Validate SEED and DESC files
 #Replace with Rob's new code for parsing DESC files
 #
@@ -142,22 +143,27 @@ my $familyIO = Bio::Rfam::FamilyIO->new( );
 if (-s 'DESC') {
 	$descfile = 'DESC';
 	$desc = $familyIO->parseDESC( $descfile );
+	$buildopts = $desc->{'BM'};
+	$buildopts =~ s/-F CM SEED//;
+	$buildopts =~ s/cmbuild//;
+} else {
+	$desc = $familyIO->writeEmptyDESC($descfile);
 }
-
 #Need to update this desc creation step to use RDFs new code:
-else {
-    $desc = RfamUtils::generateDesc();
-    open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
-    RfamUtils::writeDesc($desc,\*DE);
-    RfamUtils::writeDesc($desc,\*STDOUT);
-    close(DE);
-}
+#else {
+#    $desc = RfamUtils::generateDesc();
+#    open(DE, "> DESC") or die "FATAL: failed to open DESC\n[$!]";
+#    RfamUtils::writeDesc($desc,\*DE);
+#    RfamUtils::writeDesc($desc,\*STDOUT);
+#    close(DE);
+#}
 
 #Read cmbuild/cmsearch flags from the DESC file:
-$desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
-    $buildopts = $1;
-};
+#$desc->{'BM'} =~ /cmbuild\s+(.*)\s+CM\s+SEED\s+;/ and do {
+#    $buildopts = $1;
+#};
 
+#Populate array with cmbuild, calibrate,search options:
 # We no longer do glocal, since we switched to 1.1 which handles fragments sensibly
 #$desc->{'BM'} =~ /cmsearch.*\s+-g\s+/ and do {
 #    $glocal = 1;
@@ -235,7 +241,7 @@ my $lustre = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the far
 #http://scratchy.internal.sanger.ac.uk/wiki/index.php/Farm_II_User_notes
 #&printlog( "mkdir $lustre" );
 mkdir ("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
-&printlog ("done");
+&printlog ("done\n");
 ######################################################################
 #open a connection to the DB:
 #removed by SWB for EBI move
@@ -264,12 +270,29 @@ unless( $nobuild) {
     
     if (-e "$pwd/CM" && not -w "$pwd/CM") {
 	die("FATAL: $pwd/CM file exists but you don't have write access");
-    }
+   	} 
     
+	#Clean up any files from previous runs
     if ($buildCm){
 	unlink("$pwd/CM.xxx") if -e "$pwd/CM.xxx"; #Clean up old tmp files from cmbuild:
-	Rfamnew::cmBuild("$pwd/CM","$pwd/SEED",'1.1', $buildopts, $desc->{'AC'});
-	#calibrate model:
+	unlink ("$pwd/CM") if -e "$pwd/CM";
+	
+	#Append -F and filenames to buildopts for cmbuild command:
+	my $buildcmd = "$infernal_path/cmbuild $buildopts -F CM SEED ";
+	
+	#Run cmbuild:
+	open (CMB, "$buildcmd |") or die "Can't open pipe to write CM file!\n";
+	while (<CMB>) {
+
+	}
+	close CMB;
+
+	#Update $buildopts and write to DESC file:
+	$buildopts = "cmbuild " . $buildopts . " -F CM SEED" unless ($buildopts =~ m/-F CM SEED/);
+	$desc->{'BM'}=$buildopts;
+	$familyIO->writeDESC($desc);
+
+	#Now calibrate model:
 	my $iscalibrated=0;
 	for (my $try=1; $try<4; $try++){
 	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
@@ -292,9 +315,6 @@ unless( $nobuild) {
 }
 
 my $initendtime = time();
-# swb removed $dbdir, $dbdir2 as redundant with new paths:
-#my $dbdir  = $Rfamnew::rfamseq_current_dir;        # glob files from here
-#my $dbdir2 = $Rfamnew::rfamseq_current_dir;      # but run things from here
 
 #Find out how big the database is (used for e-value computations for infernal)
 # (If we upgrade script to allow alternate databases, we'll need to update this to
@@ -334,7 +354,7 @@ else { # -cme not used
     if(-e "DESC") { 
 	$e_bitsc   = cmstat_bit_from_E("$pwd/CM", $dbsize, $cmsearch_eval, (defined $glocal) ? 1 : 0);
 	$min_bitsc = cmstat_bit_from_E("$pwd/CM", $dbsize, $max_eval,      (defined $glocal) ? 1 : 0);
-	$ga_bitsc  = ga_thresh_from_desc();
+	$ga_bitsc = $desc->{'CUTGA'};
 	if(($ga_bitsc-2) < $min_bitsc) { # case 3
 	    $cmsearch_eval = $max_eval; 
 	}
@@ -396,18 +416,6 @@ if(defined $bigmem) {
 
 # determine queue to use
 my $estimatedWallSeconds = cmstat_clen("$pwd/CM") * 0.032 * 3600.; 
-# 0.032 is a safe-ish estimate for hours per cpos for most cmsearches. Using
-# 0.032 will put all models with CLEN < 250 on the normal queue, and models
-# with CLEN >= 250 on the long queue, see
-# ~en1/notebook/12_1129_rfam_hangout_ga_threshold/00LOG, Nov 30, 2012 for 
-# details on why I choose 0.032.
-# Removed by SWB as not relevant for EBI farm.
-#if($qchoice eq "") { # else $qchoice was passed in
-#    if($estimatedWallSeconds    < (60.   * 20.)) { $qchoice = "small";    } # less than 20 minutes? small queue
-#    elsif($estimatedWallSeconds < (3600. * 8.))  { $qchoice = "normal";   } # less than 8 hours? normal queue
-#    elsif($estimatedWallSeconds < (3600. * 36.)) { $qchoice = "long";     } # less than 36 hours? long queue
-#    else                                         { $qchoice = "basement"; } # more than 36 hours? basement queue
-#}
 
 #$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
 # swb: Changed $queue to always use production-rh6 at ebi:
@@ -460,29 +468,6 @@ my $bigCommand;
 $cmopts=$options;
 Rfamnew::wait_for_farm($pname, "cmsearch", $numdbs ); 
 #Check jobs completed normally...
-# removed as part of rfam code refactor
-######################################################################
-# EPN: when we switch to infernal 1.1...get rid of this. I don't think 'mailUser' works anymore anyhow.
-#validate cmsearch LSF outputs:
-
-
-# EPN original rfsearch.pl script does another validation check here. We've already done enough of that, right?
-##############
-#Copy OUTPUT files from the farm -- do some validation to ensure all the nodes completed successfully:
-#open (lOP, "cat $lustre/$$.OUTPUT.*  |") or die "FATAL: failed to open a pipe for cat $lustre/$$.OUTPUT.* > $pwd/OUTPUT\n[$!]";
-#open(pOP, "> $pwd/OUTPUT") or die "FATAL: failed to open $pwd/OUTPUT\n[$!]";
-#my $cmsearchTerminalCount=0;
-#while(my $op = <lOP>){
-#    print pOP $op; #print to the all important OUTPUT file!
-#}
-#close(lOP);
-#close(pOP);
-###########validation block ends
-#system("cat $lustre/$$.OUTPUT.* > $pwd/OUTPUT")   and die "FATAL: cant concatenate output files on the farm\n[$!]";
-
-#system("cat $lustre/$$.TABFILE.* > $pwd/TABFILE") and die "FATAL: cant concatenate tabfile files on the farm\n[$!]";
-#Using glob because the above fails on SRP and friends:
-# Rewrite this bit using pg5's pipe method and check for [ok] for validation
 
 my @tabFiles = glob("$lustre/$$.TABFILE.*");
 my @notOkSearches;
@@ -505,7 +490,6 @@ if ($number_failed_jobs != 0) {
 }
 
 
-#system("cat $lustre/$$.CPUTIME.* > $pwd/CPUTIME") and die "FATAL: cant concatenate time files on the farm\n[$!]";
 my @cputimes = glob("$lustre/$$.CPUTIME.*");
 unlink "$pwd/CPUTIME" if -e "$pwd/CPUTIME";
 foreach my $cputime (@cputimes){
@@ -520,7 +504,8 @@ if (!defined($dirty) && @warnings==0){
     system("rm -rf $lustre") and die "FATAL: failed to clean up files on the farm\n[$!]";
 }
 
-&update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
+#&update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
+
 &printlog( "FINISHED! See OUTPUT and TABFILE." );
 
 ###################################
