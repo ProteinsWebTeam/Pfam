@@ -91,7 +91,8 @@ sub loadRfamFromLocalFile {
     },
     'DESC'   => $self->parseDESC("$dir/$family/DESC"),
     'CM'     => $self->parseCM("$dir/$family/CM"),
-    'SCORES' => $self->parseScores("$dir/$family/SCORES")
+    'SCORES' => $self->parseScores("$dir/$family/SCORES"),
+    'TBLOUT' => { fileLocation => "$dir/$family/TBLOUT" }
   };
 
   #Use Moose to coerce these through!
