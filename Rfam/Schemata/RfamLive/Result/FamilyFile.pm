@@ -73,5 +73,22 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N6uku5X8JBlXO35Jbn5Siw
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+use Compress::Zlib;
+
+sub unzipped_cm {
+  my $self = shift;
+  my $compressed = $self->cm;
+  my $cm = Compress::Zlib::memGunzip($compressed) or
+    carp("Failed to uncompress cm: $gzerrno");
+  return $cm;
+}
+
+sub unzipped_seed {
+  my $self = shift;
+  my $compressed = $self->seed;
+  my $seed = Compress::Zlib::memGunzip($compressed) or 
+    carp( "Failed to uncompress hmm: $gzerrno");
+  return $seed;
+}
+
 1;
