@@ -21,7 +21,7 @@ sub updateSeedRegionsFromFamilyObj {
   my @row;
   my $nseq = $familyObj->SEED->nseq;
   for( my $i = 0; $i< $nseq; $i++){
-    my $seq = $familyObj->SEED->get_sqname_idx($i);
+    my $seq = $familyObj->SEED->get_sqname($i);
     if( my($rfamseq_acc, $start, $end) = $seq =~ /^(\S+)\/(\d+)\-(\d+)$/){
     push(@row, { rfam_acc    => $rfam_acc,
                  rfamseq_acc => $rfamseq_acc,

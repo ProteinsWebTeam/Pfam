@@ -3,6 +3,8 @@ package RfamLive::ResultSet::Family;
 use strict;
 use warnings;
 use Carp;
+use DateTime;
+use DateTime::Format::MySQL;
 
 use base 'DBIx::Class::ResultSet';
 
@@ -66,6 +68,9 @@ sub updateFamilyFromObj {
   $fam->match_pair_node( $familyObj->CM->match_pair_node );
   $fam->hmm_tau( $familyObj->CM->hmmHeader->{forwardStats}->{tau} );
   $fam->hmm_lambda( $familyObj->CM->hmmHeader->{forwardStats}->{lambda} );
+  my $dt = DateTime->now( time_zone  => 'Europe/London');
+  $fam->updated( DateTime::Format::MySQL->format_datetime($dt));
+  
   $fam->update;
 }
 
@@ -82,7 +87,7 @@ sub createFamilyFromObj {
         . $familyObj->DESC->AC
         . " when there should not be one. This is really bad!\n" );
   }
-
+  my $dt = DateTime->now( time_zone  => 'Europe/London');
   $self->create(
     {
       rfam_acc         => $familyObj->DESC->AC,
@@ -117,7 +122,9 @@ sub createFamilyFromObj {
       clen            => $familyObj->CM->cmHeader->{clen},
       match_pair_node => $familyObj->CM->match_pair_node,
       hmm_tau         => $familyObj->CM->hmmHeader->{forwardStats}->{tau},
-      hmm_lambda      => $familyObj->CM->hmmHeader->{forwardStats}->{lambda}
+      hmm_lambda      => $familyObj->CM->hmmHeader->{forwardStats}->{lambda},
+      updated         => DateTime::Format::MySQL->format_datetime($dt),
+      created         => \'NOW()'
     }
   );
 
