@@ -57,10 +57,11 @@ sub cmCalibrate {
     die "cmfile \42$cm\42 either does not exist or is empty!" if !(-s $cm);
     
     #Want a runtime less than $preferedRunTime minutes: 
-    #$cpus = $maxCpus if $cpus>$maxCpus;
-    $cpus = 2;
-    
-        
+    $cpus = $maxCpus if $cpus>$maxCpus;
+    if($cpus < 2) $cpus = 2;
+
+    #TODO take original RfamSearch code and use it to predict memory and cpu requirements
+
     #Generate a MPI script:
     my $mpiScript = "#!/bin/bash
 # An OPENMPI LSF script for running cmcalibrate
@@ -91,7 +92,7 @@ $cmcalibratePath $lustre/$cm
 	print "Running: bsub $bsubOpts $mpiScriptFile\n";
     system("bsub $bsubOpts $mpiScriptFile > $pwd/$mpiScriptOut\.std") and die "FATAL: failed to run to run: bsub $bsubOpts $mpiScriptFile\n[$!]";
     $debug = 'cmcalibrate' if defined $debug;
-    wait_for_farm($bjobName, 'cmcalibrate', $cpus ); #wait an extra few mins then the job will be killed, assuming MPI+Farm badness.
+    Bio::Rfam::Utils::wait_for_farm($bjobName, 'cmcalibrate', $cpus ); #wait an extra few mins then the job will be killed, assuming MPI+Farm badness.
     
     copy( "$lustre/$cm", "$pwd/$cm" ) or die "FATAL: failed to copy $lustre/$cm to $pwd/$cm\n[$!]";
     copy("$lustre/$mpiScriptOut", "$pwd/$mpiScriptOut") or die "FATAL: failed to copy $lustre/$mpiScriptOut to $pwd/$mpiScriptOut\n[$!]";
@@ -250,7 +251,7 @@ $alignCommand
 	
 	print "Running: bsub $bsubOpts $mpiScriptFile\n";
 	system("bsub $bsubOpts $mpiScriptFile > $lustre/$mpiScriptOut\.std") and die "FATAL: failed to run to run: bsub $bsubOpts $mpiScriptFile\n[$!]";
-	wait_for_farm($bjobName, 'cmalign', $cpus, 100*$estimatedWallSeconds+120, undef ); #100*$estimatedWallSeconds() our timing estimates may be way off because job may be PENDING for a long time
+	Bio::Rfam::Utils::wait_for_farm($bjobName, 'cmalign', $cpus, 100*$estimatedWallSeconds+120, undef ); #100*$estimatedWallSeconds() our timing estimates may be way off because job may be PENDING for a long time
 	push(@unlinkA, $lustre_alnfile);
 	push(@unlinkA, $lustre_outfile);
 	
