@@ -378,6 +378,7 @@ sub set_accession {
   Usage    : $msaObject->write_msa($fileLocation)
   Function : Write MSA to a file
   Args     : name of output file 
+           : format ('stockholm', 'pfam' or 'afa')
   Returns  : void
   
 =cut
@@ -389,14 +390,24 @@ sub set_accession {
   Usage    : _c_write_msa(<msa>, <outfile>)
   Function : Write MSA to a file
   Args     : <msa>: ESL_MSA C object
-           : <outfile> name of output file 
+           : <outfile>: name of output file 
+           : <format>: string with file format
   Returns  : void
   
 =cut
 
 sub write_msa { 
-    my ($self, $outfile) = @_;
-    _c_write_msa($self->{esl_msa}, $outfile);
+    my ($self, $outfile, $format) = @_;
+
+    if(! defined $format) { 
+	$format = "stockholm";
+    }
+    if($format ne "stockholm" && 
+       $format ne "pfam" && 
+       $format ne "afa") { 
+	croak "format must be \"stockholm\" or \"pfam\" or \"afa\"";
+    }
+    _c_write_msa($self->{esl_msa}, $outfile, $format);
     return;
 }
 

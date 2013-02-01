@@ -46,15 +46,20 @@ SV *_c_read_msa (char *infile, SV *perl_abc)
     return perl_obj(msa, "ESL_MSA");
 }    
 
-void _c_write_msa (ESL_MSA *msa, char *outfile) 
+void _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
 {
-    FILE         *ofp;        /* open output alignment file */
+  FILE  *ofp; /* open output alignment file */
+  int   fmt; /* alignment output format */       
+ 
+  if((ofp  = fopen(outfile, "w"))  == NULL) esl_fatal("Failed to open output file %s\n", outfile);
+  if((fmt = eslx_msafile_EncodeFormat(format)) == eslMSAFILE_UNKNOWN) { 
+    esl_fatal("unknown format, even though perl subroutine should've checked..."); 
+  }
+  
+  eslx_msafile_Write(ofp, msa, fmt);
+  fclose(ofp);
 
-    if ((ofp  = fopen(outfile, "w"))  == NULL) esl_fatal("Failed to open output file %s\n", outfile);
-    eslx_msafile_Write(ofp, msa, eslMSAFILE_STOCKHOLM);
-    fclose(ofp);
-
-    return;
+  return;
 }
 
 void _c_free_msa (ESL_MSA *msa)
