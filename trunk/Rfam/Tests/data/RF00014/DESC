@@ -12,7 +12,7 @@ TX   Bacteria;
 BM   cmbuild  -F CM SEED
 CB   cmcalibrate --mpi -s 1 CM
 SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB
-DR   SO:0000378 SO:DsrA_RNA
+DR   SO; 0000378; DsrA_RNA;
 RN   [1]
 RM   7534408
 RT   A small RNA acts as an antisilencer of the H-NS-silenced rcsA gene of
