@@ -13,6 +13,7 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family;
+use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
 use Data::Printer;
 
@@ -249,7 +250,7 @@ unless( $nobuild) {
 	for (my $try=1; $try<4; $try++){
 	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
 	    
-	    $runTimes{'calibration'}=Bio::Rfam::Utils::cmCalibrate($infernal_path."/cmcalibrate", "CM", $lustre, $pwd, $debug, $bigmem, $qchoice);
+	    $runTimes{'calibration'}=Bio::Rfam::Infernal::cmCalibrate($infernal_path."/cmcalibrate", "CM", $lustre, $pwd, $debug, $bigmem, $qchoice);
 	    # this should work for 1.0 or 1.1
 	    $iscalibrated = Bio::Rfam::Utils::isCmCalibrated("$lustre/CM");
 	    &printlog( "        cmcalibration took:             " . $runTimes{'calibration'} . " secs" ) if $iscalibrated;
