@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# PRE-COMMIT HOOK - copy this file in to the reposiotry under the hook
+#directory and name it pre-commit. Fix the 
+
+#Do not change this.....
+
+REPOS="$1"
+TXN="$2"
+
+export RFAM_ROOT=/path/to/production/code/checkout 
+export RFAM_CONFIG=$RFAM_ROOT/trunk/Conf/rfam.conf
+export PERL5LIB=$RFAM_ROOT/Lib:$RFAM_ROOT/Schemata
+export PATH=$RFAM_ROOT/Scripts/svn:/opt/bin:$PATH
+#export LD_LIBRARY_PATH=/opt/lib
+
+/usr/bin/perl $RFAM_ROOT/Scripts/svnhooks/pre-commit.pl -txn $TXN -repos $REPOS || exit 1
+
+# All checks passed, so allow the commit.
+exit 0
