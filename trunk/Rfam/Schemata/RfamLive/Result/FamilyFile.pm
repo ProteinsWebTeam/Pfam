@@ -96,8 +96,16 @@ sub unzipped_seed {
   my $self = shift;
   my $compressed = $self->seed;
   my $seed = Compress::Zlib::memGunzip($compressed) or 
-    carp( "Failed to uncompress hmm: $gzerrno");
+    carp( "Failed to uncompress seed: $gzerrno");
   return $seed;
+}
+
+sub unzipped_tblout {
+  my $self = shift;
+  my $compressed = $self->tblout;
+  my $tblout = Compress::Zlib::memGunzip($compressed) or 
+    carp( "Failed to uncompress tblout: $gzerrno");
+  return $tblout;
 }
 
 1;

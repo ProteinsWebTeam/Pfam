@@ -18,7 +18,7 @@ sub uploadFilesFromFamilyObj{
   my $fam = $self->find({rfam_acc=> $familyObj->DESC->AC});
   $fam->delete if($fam);
   
-  my $compressedCm = Compress::Zlib::memGzip( join("",$familyObj->CM->rawcm ))
+  my $compressedCm = Compress::Zlib::memGzip( join("", @{ $familyObj->CM->rawcm } ))
     or carp( "Cannot compress: $gzerrno\n" );
   
   my $seed = read_file( $familyObj->SEED->path, err_mode => 'carp'  );
