@@ -302,6 +302,75 @@ sub set_sqname {
     return;
 }
 
+=head2 acc
+
+  Title    : acc
+  Incept   : EPN, Fri Feb  1 11:43:08 2013
+  Usage    : $msaObject->get_accession()
+  Function : Gets accession for MSA.
+  Args     : none
+  Returns  : the accession, a string
+  
+=cut
+
+=head2 _c_acc
+
+  Title    : _c_acc
+  Incept   : EPN, Fri Feb  1 11:43:31 2013
+  Usage    : _g_set_accession(<msa>)
+  Function : Returns msa->acc.
+  Args     : <msa>:    ESL_MSA C object
+  Returns  : msa->acc
+  
+=cut
+
+sub acc { 
+    my ($self) = @_;
+
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
+    if (! defined $self->{acc}) { 
+	$self->{acc} = _c_acc($self->{esl_msa});
+    }
+    return $self->{acc};
+}
+
+=head2 set_accession
+
+  Title    : set_accession
+  Incept   : EPN, Fri Feb  1 11:11:05 2013
+  Usage    : $msaObject->set_accession($acc)
+  Function : Sets accession for MSA.
+  Args     : accession string to set
+  Returns  : void
+  
+=cut
+
+=head2 _c_set_accession
+
+  Title    : _c_set_accession
+  Incept   : EPN, Fri Feb  1 11:12:15 2013
+  Usage    : _c_set_accession(<msa>, <newacc>)
+  Function : Sets acc of msa.
+  Args     : <msa>:    ESL_MSA C object
+           : <newacc>: string of new accession
+  Returns  : void
+  
+=cut
+
+sub set_accession { 
+    my ($self, $newacc) = @_;
+
+    my $success = _c_set_accession($self->{esl_msa}, $newacc);
+    if(! $success) { croak "unable to set accession (failure in C code)"; }
+
+    # set accession in perl object
+    $self->{acc} = _c_acc($self->{esl_msa});
+
+    return;
+}
+
 =head2 write_msa
 
   Title    : write_msa
@@ -582,6 +651,44 @@ sub average_pid {
 	$self->{average_pid} = _c_average_pid($self->{esl_msa}, $max_nseq);
     }
     return $self->{average_pid};
+}
+
+=head2 calc_and_write_bp_stats
+
+  Title    : calc_and_write_bp_stats
+  Incept   : EPN, Fri Feb  1 10:29:11 2013
+  Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
+  Function : Calculate per-basepair stats for an RNA alignment
+           : with SS_cons information and output it.
+  Args     : name of requested output file 
+  Returns  : void
+  
+=cut
+
+=head2 _c_calc_and_write_bp_stats
+
+  Title    : _c_calc_and_write_bp_stats
+  Incept   : EPN, Fri Feb  1 10:30:29 2013
+  Usage    : _c_calc_and_write_bp_stats(msa, outfile)
+  Function : C function for calc_and_write_bp_stats; does 
+           : all the actual calculations and output.
+  Args     : msa:     ESL_MSA C object
+           : outfile: name of file to print to
+  Returns  : '1' if file was successfully written
+             '0' if file was not written due to an error
+  
+=cut
+
+sub calc_and_write_bp_stats {
+    my ($self, $fileLocation) = @_;
+
+    my $errbuf = "";
+    # TODO: get this owrking with errbuf, I couldn't get this to work though:
+    #my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
+    my $success = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation);
+    if(! $success) { croak "ERROR: unable to calculate and write bp stats"; }
+
+    return;
 }
 
 =head2 free_msa
