@@ -2,6 +2,8 @@
 #include "esl_distance.h"
 #include "esl_msa.h"
 #include "esl_msafile.h"
+#include "esl_vectorops.h"
+#include "esl_wuss.h"
 
 /* Macros for converting C structs to perl, and back again)
 * from: http://www.mail-archive.com/inline@perl.org/msg03389.html
@@ -78,6 +80,22 @@ I32 _c_alen (ESL_MSA *msa)
   return msa->alen;
 }
 
+char *_c_acc (ESL_MSA *msa)
+{
+  if(msa->acc) return msa->acc;
+  else         return "none";
+}
+
+int _c_set_accession (ESL_MSA *msa, char *newacc)
+{
+  int status;
+
+  if((status = esl_msa_SetAccession(msa, newacc, -1)) != eslOK) {
+    return FALSE; /* failure */
+  }
+  return TRUE; /* success */
+}
+
 char *_c_get_sqname (ESL_MSA *msa, I32 idx)
 {
     /* should this check if idx is valid? perl func that calls it already does... is that proper? */
@@ -123,4 +141,45 @@ float _c_average_pid(ESL_MSA *msa, int max_nseq)
   esl_dst_XAverageId(msa->abc, msa->ax, msa->nseq, (max_nseq * max_nseq), &avgid);
   
   return (float) avgid;
+}
+
+int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
+{
+  int   status;
+  FILE *ofp;            /* open output alignment file */
+  int   apos;           /* counter over alignment positions */
+  int  *ct = NULL;      /* ct array of basepairs for SS_cons */
+
+  /* TODO: return errbuf, but I can't get that to work, left this block here as starting point for revisiting that:
+     if(msa->abc->type != eslRNA)              ESL_FAIL(eslEINVAL, errbuf, "msa type not eslRNA");
+     if(msa->ss_cons   != NULL)                ESL_FAIL(eslEINVAL, errbuf, "ss_cons is NULL");
+     if((ofp  = fopen(outfile, "w"))  == NULL) ESL_FAIL(eslEINVAL, errbuf, "unable to open %s for writing", outfile);
+  */
+
+  /* Do required preliminary steps, if any fail, return FALSE, to tell caller we failed */
+  if(msa->abc->type != eslRNA)             return FALSE;
+  if(msa->ss_cons   == NULL)               return FALSE;
+  if((ofp = fopen(outfile, "w"))  == NULL) return FALSE;
+
+  fprintf(ofp, "%-7s  %-11s  %-18s  %-7s\n", "# acc", "bp_coords", "canonical_fraction", "covariation");
+
+  ESL_ALLOC(ct, sizeof(int) * (msa->alen+1));
+  esl_vec_ISet(ct, (msa->alen+1), 0);
+  if((status = esl_wuss2ct(msa->ss_cons, msa->alen, ct)) != eslOK) return FALSE;
+  /* remember ct is indexed 1..alen */
+
+  for(apos = 1; apos <= msa->alen; apos++) { 
+    if(apos < ct[apos]) { 
+      fprintf(ofp,"%-7s  %5d:%-5d\n", msa->acc, apos, ct[apos]);
+    }  
+  }
+  
+  free(ct);
+  fclose(ofp);
+  
+  return TRUE; /* success */
+
+ ERROR: 
+  esl_fatal("out of memory");
+  return eslEMEM; /* NOTREACHED */
 }
