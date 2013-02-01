@@ -1,4 +1,5 @@
 #include "easel.h"
+#include "esl_distance.h"
 #include "esl_msa.h"
 #include "esl_msafile.h"
 
@@ -102,7 +103,6 @@ int _c_any_allgap_columns (ESL_MSA *msa)
   int apos, idx; 
   
   for (apos = 1; apos <= msa->alen; apos++) {
-    printf("apos: %d\n", apos);
     for (idx = 0; idx < msa->nseq; idx++) {
       if (! esl_abc_XIsGap(msa->abc, msa->ax[idx][apos]) &&
 	  ! esl_abc_XIsMissing(msa->abc, msa->ax[idx][apos])) { 
@@ -110,10 +110,17 @@ int _c_any_allgap_columns (ESL_MSA *msa)
       }
     }
     if(idx == msa->nseq) { 
-      printf("column apos is all gaps!\n"); 
       return TRUE;
     }
   }
   return FALSE;
 }   
 
+float _c_average_pid(ESL_MSA *msa, int max_nseq) 
+{
+  double avgid;
+  
+  esl_dst_XAverageId(msa->abc, msa->ax, msa->nseq, (max_nseq * max_nseq), &avgid);
+  
+  return (float) avgid;
+}

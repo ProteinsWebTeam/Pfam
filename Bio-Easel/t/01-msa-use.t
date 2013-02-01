@@ -40,6 +40,11 @@ my $any_gaps = $msa->any_allgap_columns;
 is($any_gaps, 0, "any_allgap_columns failed to return correct value");
 # TODO add alignment that has >=1 all gap columns and use it here
 
+# average_pid
+my $avgpid = $msa->average_pid(100);
+# TODO figure out how to check if a float is close to a predicted value
+print "average pid $avgpid\n";
+
 # test write_msa
 my $outfile = "./t/data/test-msa.out";
 $msa->write_msa($outfile);
@@ -53,7 +58,6 @@ unlink $outfile;
 
 # test nseq
 $nseq = $msa3->nseq;
-printf("HEY nseq $nseq\n");
 is($nseq, 3, "nseq method failed to return correct number (pass 2)");
 
 # FIX DESTROY CALL!

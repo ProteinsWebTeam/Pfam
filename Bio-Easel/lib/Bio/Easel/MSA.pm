@@ -514,8 +514,74 @@ sub nse_string {
     my ($self, $name, $a, $b, $strand) = @_;
 
     if($strand    ==  1) { return $name . "/" . $a . "-" . $b; }
-    elsif($strand == -1) { return $name . "/" . $a . "-" . $b; }
+    elsif($strand == -1) { return $name . "/" . $b . "-" . $a; }
     die "ERROR nse_string, invalid strand valid $strand (should be 1 or -1)\n";
+}
+
+=head2 nse_len
+
+  Title    : nse_len
+  Incept   : EPN, Thu Jan 31 10:08:24 2013
+  Usage    : $msaObject->nse_len($name);
+  Function : Returns length of sequence given $nse,
+           : where $nse is of format:
+           : <sqacc>/<start>-<end>
+           : and <start> may be > <end>.
+  Args     : $nse: sequence name in <sqacc>/<start>-<end> format
+  Returns  : Length in residues represented by $nse
+=cut
+sub nse_len {
+    my ($self, $nse) = @_;
+
+    if($nse =~ m/^\S+\/(\d+)\-(\d+)\s*/) {
+	my ($start, $end) = ($1, $2);
+	if($start <= $end) { return ($end - $start + 1); }
+	else               { return ($start - $end + 1); }
+    }
+    die "ERROR nse_len, invalid name, doesn't match <name>/<start>-<end>\n";
+}
+
+=head2 average_pid
+
+  Title    : average_pid
+  Incept   : EPN, Fri Feb  1 06:59:50 2013
+  Usage    : $msaObject->average_pid($max_nseq)
+  Function : Calculate and return average percent identity of 
+           : all pairs of sequences in msa. If more than $max_nseq
+           : sequences exist in the seed, an average is computed
+           : over a stochastic sample (the sample and thus the 
+           : result with vary over multiple runs).
+  Args     : max number of sequences for brute force calculation
+  Returns  : average percent id of all seq pairs or a sample
+  
+=cut
+
+=head2 _c_average_pid
+
+  Title    : _c_average_pid
+  Incept   : EPN, Fri Feb  1 07:29:53 2013
+  Usage    : _c_average_pid(msa, max_nseq)
+  Function : C function for average_pid, acutally calculates
+           : and return average percent identity of 
+           : all pairs of sequences in msa, or a sample of
+           : <max_nseq * max_nseq> if more than <max_nseq>
+           : sequences exist.
+  Args     : msa:      ESL_MSA C object
+           : max_nseq: max number of sequences for brute force calculation
+  Returns  : average percent id of all seq pairs or a sample
+  
+=cut
+
+sub average_pid { 
+    my ($self, $max_nseq) = @_;
+
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
+    if (! defined $self->{average_pid}) { 
+	$self->{average_pid} = _c_average_pid($self->{esl_msa}, $max_nseq);
+    }
+    return $self->{average_pid};
 }
 
 =head2 free_msa
