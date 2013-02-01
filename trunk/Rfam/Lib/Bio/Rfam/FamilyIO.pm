@@ -776,40 +776,40 @@ sub parseDESC {
           );
         }
         
-        elsif ( $file[$i] =~ /^DR   (MIPF); (MIPF\d+)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (MIPF); (MIPF\d+);?$/ ) {
 
           #MIPF; MIPF0000879
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (snornadb);\s(.*?\d+)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (snornadb);\s(.*?\d+);?$/ ) {
 
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
 
           #TODO - check that these are really different.
         }
-        elsif ( $file[$i] =~ /^DR   (snoRNABase);\s(.*?\d+)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (snoRNABase);\s(.*?\d+);?$/ ) {
 
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
 
         }
-        elsif ( $file[$i] =~ /^DR   (PKBASE); (PKB\d+)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (PKBASE); (PKB\d+);?$/ ) {
 
           #PKBASE; PKB00277
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (snoopy); (.*)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (snoopy); (.*);?$/ ) {
 
           #snoopy;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (MIR); (.*)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (MIR); (.*);?$/ ) {
 
           #MIR; MI0001007;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (URL); (.*)$/ ) {
+        elsif ( $file[$i] =~ /^DR   (URL); (.*);?$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
         elsif ( $file[$i] =~ /^DR/ ) {
