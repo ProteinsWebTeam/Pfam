@@ -767,7 +767,7 @@ sub parseDESC {
             @{ $params{DBREFS} },
             { db_id => 'GO', db_link => $1, other_params => $2 }
           );
-        }elsif ( $file[$i] =~ /^DR   GO; (\d+); (.*);$/ ) {
+        }elsif ( $file[$i] =~ /^DR   GO[;:] (\d+); (.*);$/ ) {
 
           #GO:0010628 GO:positive regulation of gene expression
           push(
