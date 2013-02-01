@@ -655,6 +655,10 @@ sub nse_len {
 sub average_pid { 
     my ($self, $max_nseq) = @_;
 
+    if(! defined $max_nseq) { 
+	$max_nseq = 100;
+    }
+
     if (! defined $self->{esl_msa}) { 
 	$self->read_msa();
     }
@@ -772,6 +776,38 @@ sub calc_and_write_bp_stats {
     my $success = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation);
     if(! $success) { croak "ERROR: unable to calculate and write bp stats"; }
 
+    return;
+}
+
+=head2 addGF
+
+  Title    : addGF
+  Incept   : EPN, Fri Feb  1 17:43:38 2013
+  Usage    : $msaObject->addGF($tag, $value)
+  Function : Add GF tag/value to a C ESL_MSA object.
+  Args     : $tag:   two letter tag 
+           : $value: text for the line
+  Returns  : void
+  
+=cut
+
+=head2 _c_addGF
+
+  Title    : _c_addGF
+  Incept   : EPN, Fri Feb  1 17:49:43 2013
+  Usage    : _c_addGF(msa, tag, value)
+  Function : C function for addGF
+  Args     : msa: ESL_MSA C object
+           : tag: two letter code (e.g. 'BM')
+           : value: actual line 
+  Returns  : void
+=cut
+
+sub addGF {
+    my ($self, $tag, $value) = @_;
+
+    _c_addGF($self->{esl_msa}, $tag, $value);
+    
     return;
 }
 
