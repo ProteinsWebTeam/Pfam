@@ -387,11 +387,11 @@ sub set_accession {
 
   Title    : _c_write_msa
   Incept   : EPN, Thu Jan 31 07:40:58 2013
-  Usage    : _c_write_msa(<msa>, <outfile>)
+  Usage    : _c_write_msa(<msa>, <outfile>, <format>)
   Function : Write MSA to a file
   Args     : <msa>: ESL_MSA C object
            : <outfile>: name of output file 
-           : <format>: string with file format
+           : <format>: string with file format, if none 'stockholm' is used
   Returns  : void
   
 =cut
