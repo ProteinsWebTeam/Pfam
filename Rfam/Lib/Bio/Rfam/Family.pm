@@ -57,6 +57,11 @@ coerce 'Bio::Rfam::Family::TBLOUT',
     via { Bio::Rfam::Family::TBLOUT->new($_);
     };
 
+coerce 'Bio::Rfam::Family::Scores',
+  from 'HashRef',
+    via { Bio::Rfam::Family::Scores->new($_);
+    };
+
 has 'SEED' => (
   is       => 'ro',
   isa      => 'Bio::Rfam::Family::SEED',
@@ -74,6 +79,7 @@ has 'SCORES' => (
   is       => 'rw',
   isa      => 'Bio::Rfam::Family::Scores',
   required => 0,
+  coerce   => 1,
 );
 
 has 'TBLOUT' => (
