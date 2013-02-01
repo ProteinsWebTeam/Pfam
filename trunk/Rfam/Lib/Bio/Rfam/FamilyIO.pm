@@ -132,7 +132,8 @@ sub loadRfamFromRDB {
   print T $files->unzipped_seed;
   close T;
   
-  
+  my $descData = {};
+  $rfamdb->resultset('Family')->getDESCData($family, $descData);
   
   my $params = {
     source => 'database',
@@ -140,7 +141,7 @@ sub loadRfamFromRDB {
       fileLocation => "$dir/$family/SEED",
       aliType      => 'seed'
     },
-    'DESC'   => $self->parseDESC("$dir/$family/DESC"),
+    'DESC'   => $descData,
     'CM'     => $self->parseCM("$dir/$family/CM"),
     'SCORES' => { numRegions => scalar(@$regions),
                   regions    => $regions },
@@ -153,6 +154,15 @@ sub loadRfamFromRDB {
   return $famObj;
 }
 
+
+sub getDESCFromRDB {
+  my ($self, $acc) = @_;
+  
+  my $descData = {};
+  my $rfamdb = $self->{config}->rfamlive;
+  $rfamdb->resultset('Family')->getDESCData($acc, $descData);
+  
+}
 
 sub loadRfamFromSVN {
   my ( $self, $family, $client ) = @_;
@@ -694,36 +704,7 @@ sub parseDESC {
       $ref->{RN} =~ s/\[|\]//g;
       push( @{ $params{REFS} }, $ref );
     }
-    elsif ( $file[$i] =~ /^NE\s{3}(PF\d{5})\;$/ ) {
-      my $nestAcc = $1;
-      if ( $file[ $i + 1 ] =~ /NL\s{3}(\S+)\/(\d+)\-(\d+)\;/ ) {
-        $i++;
-        push(
-          @{ $params{NESTS} },
-          { dom => $nestAcc, seq => $1, from => $2, to => $3 }
-        );
-      }
-      else {
-        confess("NE lines must be followed by an NL line");
-      }
-    }
-    elsif (
-      $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+(\S+)\/(\d+)\-(\d+)\;\s+$/ )
-    {
-      push(
-        @{ $params{EDITS} },
-        { seq => $1, oldFrom => $2, oldTo => $3, newFrom => $5, newTo => $6 }
-      );
-      next;
-    }
-    elsif ( $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+$/ ) {
-      push(
-        @{ $params{EDITS} },
-        { seq => $1, oldFrom => $2, oldTo => $3, delete => 1 }
-      );
-      next;
-    }
-
+   
  #------------------------------------------------------------------------------
  #Database cross references
     elsif ( $file[$i] =~ /^D[C|R]\s{3}/ ) {
@@ -902,48 +883,12 @@ sub writeDESC {
       elsif ( $tagOrder eq 'CUTNC' ) {
         printf D "NC   %.2f\n", $desc->$tagOrder;
       }
-      elsif ( $tagOrder eq 'NESTS' ) {
-        foreach my $n ( @{ $desc->$tagOrder } ) {
-          print D wrap( "NE   ", "NE   ", $n->{dom} . ";" );
-          print D "\n";
-          print D wrap( "NL   ", "NL   ",
-            $n->{seq} . "/" . $n->{from} . "-" . $n->{to} . ";" );
-          print D "\n";
-        }
-      }
-      elsif ( $tagOrder eq 'CLASS' ) {
-        foreach my $key (qw(Type Class Superfamily Comment)) {
-          next if ( !exists( $desc->$tagOrder->{$key} ) );
-          my $value = $desc->$tagOrder->{$key};
-          if ( $key eq 'Comment' ) {
-            print D wrap( "CN   ", "CN   ", $value );
-            print D "\n";
-          }
-          else {
-            print D "CT   " . $key . "; " . $value . ";\n";
-          }
-        }
-
-      }
       elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
           my @pages = keys( %{ $desc->$tagOrder } );
           foreach my $p (@pages) {
             print D wrap( "WK   ", "WK   ", $p );
             print D "\n";
-          }
-        }
-      }
-      elsif ( $tagOrder eq 'CLASS' ) {
-        foreach my $key (qw(Type Class Superfamily Comment)) {
-          next if ( !exists( $desc->$tagOrder->{$key} ) );
-          my $value = $desc->$tagOrder->{$key};
-          if ( $key eq 'Comment' ) {
-            print D wrap( "CN   ", "CN   ", $value );
-            print D "\n";
-          }
-          else {
-            print D "CT   " . $key . "; " . $value . ";\n";
           }
         }
       }
@@ -983,25 +928,6 @@ sub writeDESC {
           }
           else {
             print D "DR   " . $xref->{db_id} . "; " . $xref->{db_link} . ";\n";
-          }
-        }
-      }
-      elsif ( $tagOrder eq 'EDITS' ) {
-        foreach my $e ( @{ $desc->$tagOrder } ) {
-          if ( $e->{newTo} ) {
-            print D "ED   "
-              . $e->{seq} . "/"
-              . $e->{oldFrom} . "-"
-              . $e->{oldTo} . "; "
-              . $e->{seq} . "/"
-              . $e->{newFrom} . "-"
-              . $e->{newTo} . ";\n";
-          }
-          else {
-            print D "ED   "
-              . $e->{seq} . "/"
-              . $e->{oldFrom} . "-"
-              . $e->{oldTo} . ";\n";
           }
         }
       }
@@ -1351,59 +1277,6 @@ sub writeScores {
 	       $widthA[8], $aR->[8], 
 	       $widthA[9], $aR->[9]);
     }
-}
-
-######################################################################
-sub tax2kingdom {
-    my ($species) = @_;
-    my $kingdom;
-    #unclassified sequences; metagenomes; ecological metagenomes.
-    if ($species=~/^(.+?);\s+(.+?)\.*?;/){
-	$kingdom = "$1; $2";
-    }
-    die "FATAL: failed to parse a kingdom from species string: [$species]" if not defined $kingdom;
-    
-    return $kingdom;
-}
-
-######################################################################
-#species2shortspecies: Given a species string eg. "Homo sapiens
-#                      (human)" generate a nicely formated short name
-#                      with no whitespace eg. "H.sapiens".
-sub species2shortspecies {
-    my $species = shift;
-
-    my $shortSpecies;
-    
-    if ($species=~/(.*)\s+sp\./){
-	$shortSpecies = $1;
-    }
-    elsif ($species=~/metagenome/i or $species=~/uncultured/i){
-	$species=~s/metagenome/metag\./gi;
-	$species=~s/uncultured/uncult\./gi;
-	my @w = split(/\s+/,$species);
-	if(scalar(@w)>2){
-	    foreach my $w (@w){
-		$shortSpecies .= substr($w, 0, 5) . '.';
-	    }
-	}
-	else {
-	    $shortSpecies = $species;
-	    $shortSpecies =~ s/\s+/_/g;
-	}
-    }#lots of conditions here. Need else you get some ridiculous species names.
-    elsif($species=~/^(\S+)\s+(\S{4,})/ && $species!~/[\/\-\_0-9]/ && $species!~/^[a-z]/ && $species!~/\svirus$/ && $species!~/\svirus\s/ && $species!~/^Plasmid\s/i && $species!~/\splasmid\s/i){
-	$shortSpecies = substr($1,0,1) . "." . $2; 
-    }
-    else {
-	$shortSpecies = $species;
-    }
-    
-    $shortSpecies =~ s/\s+/_/g;
-    $shortSpecies =~ s/[\'\(\)\:\/]//g;
-    $shortSpecies = substr($shortSpecies,0,20) if (length($shortSpecies) > 20);
-    
-    return $shortSpecies;
 }
 
 

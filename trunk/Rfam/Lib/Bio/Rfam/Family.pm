@@ -32,8 +32,9 @@ use warnings;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-use  Bio::Rfam::Family::MSA;
 use  Bio::Rfam::Family::CM;
+use  Bio::Rfam::Family::MSA;
+use  Bio::Rfam::Family::DESC;
 use  Bio::Rfam::Family::Scores;
 use  Bio::Rfam::Family::TBLOUT;
 
@@ -51,6 +52,11 @@ subtype 'Bio::Rfam::Family::SEED' => as class_type('Bio::Rfam::Family::MSA');
 coerce 'Bio::Rfam::Family::SEED',
   from 'HashRef',
     via { Bio::Rfam::Family::MSA->new($_);};
+
+coerce 'Bio::Rfam::Family::DESC',
+  from 'HashRef',
+    via { Bio::Rfam::Family::DESC->new($_);
+    };
 
 coerce 'Bio::Rfam::Family::TBLOUT',
   from 'HashRef',
@@ -93,7 +99,7 @@ has 'DESC' => (
   is        => 'ro',
   isa       => 'Bio::Rfam::Family::DESC',
   required  => 1,
-  #coerce    => 1
+  coerce    => 1
 );
 
 has 'source' => (

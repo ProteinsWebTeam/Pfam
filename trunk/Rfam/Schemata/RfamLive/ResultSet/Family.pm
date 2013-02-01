@@ -3,6 +3,7 @@ package RfamLive::ResultSet::Family;
 use strict;
 use warnings;
 use Carp;
+use Data::Printer;
 use DateTime;
 use DateTime::Format::MySQL;
 
@@ -45,7 +46,7 @@ sub updateFamilyFromObj {
   $fam->trusted_cutoff( $familyObj->DESC->CUTTC );
   $fam->noise_cutoff( $familyObj->DESC->CUTNC );
   $fam->comment( $familyObj->DESC->CC );
-
+  $fam->previous_id( $familyObj->DESC->PI ) if(defined($familyObj->DESC->CC) );
   #NopreviousIDasitisnew.
   $fam->cmbuild( $familyObj->DESC->BM );
   $fam->cmcalibrate( $familyObj->DESC->CB );
@@ -127,6 +128,74 @@ sub createFamilyFromObj {
       created         => \'NOW()'
     }
   );
-
 }
+
+
+sub getDESCData {
+  my ($self, $acc, $descData) = @_;
+  
+  my $row = $self->find( { rfam_acc => $acc });
+  
+  $descData->{AC} = $row->rfam_acc;
+  $descData->{ID} = $row->rfam_id;
+  $descData->{AU} = $row->author;
+  $descData->{DE} = $row->description;
+  $descData->{SE} = $row->seed_source;
+  
+  $descData->{BM} = $row->cmbuild;
+  $descData->{CB} = $row->cmcalibrate;
+  $descData->{SM} = $row->cmsearch;
+  $descData->{TP} = $row->type;
+  $descData->{SS} = $row->structure_source;
+  
+  
+  $descData->{CC} = $row->comment 
+    if(defined($row->comment) and $row->comment =~ /\S+/);
+  $descData->{PI} = $row->previous_id 
+     if(defined($row->previous_id) and $row->previous_id =~ /\S+/);
+  $descData->{TX} = $row->tax_seed 
+     if(defined($row->tax_seed) and $row->tax_seed =~ /\S+/);
+  
+  
+  $descData->{CUTGA} = $row->gathering_cutoff;
+  $descData->{CUTTC} = $row->trusted_cutoff;
+  $descData->{CUTNC} = $row->noise_cutoff;
+  
+  
+  $descData->{WIKI}->{ $row->auto_wiki->title }++;
+
+  my @dblinks = $row->database_links;
+  foreach my $l (@dblinks){
+  
+   #These two should be there
+    my $lHash = { db_id   => $l->db_id,
+                  db_link => $l->db_link};
+                  
+    #These are optional.
+    $lHash->{other_params} = $l->other_params 
+      if (defined($l->other_params) and $l->other_params =~ /\S+/);
+    $lHash->{db_comment}   = $l->comment
+          if (defined($l->comment) and $l->comment =~ /\S+/);
+  
+    push(@{$descData->{DBREFS}}, $lHash);
+  }
+  
+  my @litRefs = $row->family_literature_references;
+  
+  my $lits;
+  foreach my $l ( @litRefs){
+    my $ref = {};
+    $ref->{RC} = $l->comment 
+      if(defined($l->comment) and $l->comment =~ /\S+/);
+    
+    $ref->{RN} = $l->order_added; 
+    $ref->{RM} = $l->pmid->pmid;
+    $ref->{RT} = $l->pmid->title;
+    $ref->{RA} = $l->pmid->author;
+    $ref->{RL} = $l->pmid->journal;
+    $lits->[($ref->{RN} - 1 )] = $ref;
+  }
+  $descData->{REFS} = $lits;
+}
+
 1;
