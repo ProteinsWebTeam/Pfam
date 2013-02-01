@@ -110,7 +110,7 @@ elsif ( $msg =~ /^NEW:/ ) {
 }elsif ( $msg =~ /^NEWMOV:/ ) {
   ;
 }elsif ( $msg =~ /^MOV:/ ) {
-  $txnlook->moveFamily($dfamDB);
+  $txnlook->moveFamily();
 }
 elsif ( $msg =~ /^KILL:/ ) {
   my ( $comment, $forward );
@@ -125,9 +125,10 @@ elsif ( $msg =~ /^KILL:/ ) {
   else {
     die "In KILL message, did not parse $msg\n";
   }
+  #TODO - this should go inside database code.
   my $author = $txnlook->author();
-  my $guard = $dfamDB->getSchema->txn_scope_guard;
-  $txnlook->deleteEntry( $dfamDB, $comment, $forward, $author );
+  my $guard =  $rfamdb->getSchema->txn_scope_guard;
+  $txnlook->deleteEntry( $comment, $forward, $author );
   $guard->commit;
 }
 elsif ( $msg =~ /SEQUP/ ) {
