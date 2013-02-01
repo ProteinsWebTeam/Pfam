@@ -1,4 +1,5 @@
-package TempRfam;
+package Bio::Rfam::Utils;
+
 #TODO: add pod documentation to all these functions
 
 #Occasionally useful Rfam utilities
@@ -35,21 +36,6 @@ sub isCmCalibrated {
 	}
     }
     return $ok;
-}
-
-#getDbSize: fetch the current size of RFAMSEQ
-##replace this once dbsize env variable set!!!!
-sub getDbSize {
-#    open(DBSIZE, "< $Rfam::rfamseq_current_dir/DBSIZE") or die "FATAL: failed to open $Rfam::rfamseq_current_dir/DBSIZE\n[$!]";
- #   my $dbsize=0;
-	my $dbsize=50000;
- #   while(<DBSIZE>){
-#	if (/(\d+)/){
-#	    $dbsize=$1;
-#	    last;
-#	}
- #   }
-    return $dbsize;
 }
 
 #cmBuild:
@@ -90,7 +76,7 @@ sub cmCalibrate {
     
     #Want a runtime less than $preferedRunTime minutes: 
     #$cpus = $maxCpus if $cpus>$maxCpus;
-    $cpus = 2        if $cpus<2;
+    $cpus = 2;
     
         
     #Generate a MPI script:

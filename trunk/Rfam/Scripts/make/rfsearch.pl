@@ -13,9 +13,8 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family;
+use Bio::Rfam::Utils;
 use Data::Printer;
-use lib "/homes/swb/Rfam/Scripts/make";
-use Rfamnew;
 
 #BLOCK 0: INITIALISE: 
 
@@ -214,12 +213,12 @@ if ($cqueue ne "") { $qchoice = $cqueue; }
 unless( $nobuild) { 
     my $buildCm = 0;
 
-    $buildCm = 1 if Rfamnew::youngerThan("$pwd/SEED", "$pwd/CM");
+    $buildCm = 1 if youngerThan("$pwd/SEED", "$pwd/CM");
     $buildCm = 1 if defined $forceCalibrate;
     $buildCm = 1 if defined $onlyCalibrate;
     #check if CM is calibrated: 
     if (-e "$pwd/CM"){
-	$buildCm = 1 if not Rfamnew::isCmCalibrated("$pwd/CM"); 
+	$buildCm = 1 if not Bio::Rfam::Utils::isCmCalibrated("$pwd/CM"); 
     }
     else {
 	$buildCm = 1;
@@ -250,9 +249,9 @@ unless( $nobuild) {
 	for (my $try=1; $try<4; $try++){
 	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
 	    
-	    $runTimes{'calibration'}=Rfamnew::cmCalibrate("CM",$lustre, $pwd, $debug, $bigmem, $qchoice);
+	    $runTimes{'calibration'}=Bio::Rfam::Utils::cmCalibrate($infernal_path."/cmcalibrate", "CM", $lustre, $pwd, $debug, $bigmem, $qchoice);
 	    # this should work for 1.0 or 1.1
-	    $iscalibrated=Rfamnew::isCmCalibrated("$lustre/CM");
+	    $iscalibrated = Bio::Rfam::Utils::isCmCalibrated("$lustre/CM");
 	    &printlog( "        cmcalibration took:             " . $runTimes{'calibration'} . " secs" ) if $iscalibrated;
 	    last if $iscalibrated;
 	    &printlog( "FAILED to calibrate the $lustre/CM, retry number $try");
@@ -304,8 +303,8 @@ else { # -cme not used
 
     # if DESC exists, get GA from that and check to see if cases 3 or 4 apply
     if(-e "DESC") { 
-	$e_bitsc   = cmstat_bit_from_E("$pwd/CM", $dbsize, $cmsearch_eval, (defined $glocal) ? 1 : 0);
-	$min_bitsc = cmstat_bit_from_E("$pwd/CM", $dbsize, $max_eval,      (defined $glocal) ? 1 : 0);
+	$e_bitsc   = cmstat_bit_from_E($infernal_path, "$pwd/CM", $dbsize, $cmsearch_eval, (defined $glocal) ? 1 : 0);
+	$min_bitsc = cmstat_bit_from_E($infernal_path, "$pwd/CM", $dbsize, $max_eval,      (defined $glocal) ? 1 : 0);
 	$ga_bitsc = $desc->{'CUTGA'};
 	if(($ga_bitsc-2) < $min_bitsc) { # case 3
 	    $cmsearch_eval = $max_eval; 
@@ -367,7 +366,7 @@ if(defined $bigmem) {
 }
 
 # determine queue to use
-my $estimatedWallSeconds = cmstat_clen("$pwd/CM") * 0.032 * 3600.; 
+my $estimatedWallSeconds = cmstat_clen($infernal_path, "$pwd/CM") * 0.032 * 3600.; 
 
 #$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
 # swb: Changed $queue to always use production-rh6 at ebi:
@@ -418,7 +417,7 @@ my $bigCommand;
 
 
 $cmopts=$options;
-Rfamnew::wait_for_farm($pname, "cmsearch", $numdbs ); 
+Bio::Rfam::Utils::wait_for_farm($pname, "cmsearch", $numdbs ); 
 #Check jobs completed normally...
 
 my @tabFiles = glob("$lustre/$$.TABFILE.*");
@@ -559,7 +558,7 @@ sub validateLsfOutputs {
     if (@warning){
 	my $msg = "There were problems with the following lustre output files from\n[$family]:\n";
 	$msg .= join("\n", @warning);
-	RfamUtils::mailUser($user, "rfsearch problem job: $jobName $family", $msg);
+	#Bio::Rfam::RfamUtils::mailUser($user, "rfsearch problem job: $jobName $family", $msg);
 	return 0;
     }
     else{
@@ -620,10 +619,9 @@ sub ga_thresh_from_desc {
 # using cmstat.
 
 sub cmstat_bit_from_E {
-    my($cm_file, $dbsize, $evalue, $use_glocal) = @_;
+    my($infernal_path, $cm_file, $dbsize, $evalue, $use_glocal) = @_;
 
-    #printf("$Rfam::infernal_path/cmstat -E $evalue -Z $dbsize $cm_file");
-    open(CMS, "$Rfamnew::infernal_path/cmstat -E $evalue -Z $dbsize $cm_file | ") or die "FATAL: failed to open pipe for cmstat -E $dbsize $cm_file\n[$!]";
+    open(CMS, "$infernal_path/cmstat -E $evalue -Z $dbsize $cm_file | ") or die "FATAL: failed to open pipe for cmstat -E $dbsize $cm_file\n[$!]";
     my $ok=0;
     my $bitsc;
     while(<CMS>){
@@ -648,10 +646,10 @@ sub cmstat_bit_from_E {
 # Determine consensus length using cmstat.
 
 sub cmstat_clen { 
-    my($cm_file) = $_[0];
+    my($infernal_path, $cm_file) = $_[0];
 
     #printf("$Rfam::infernal_path/cmstat -$cm_file");
-    open(CMS, "$Rfamnew::infernal_path/cmstat $cm_file | ") or die "FATAL: failed to open pipe for cmstat $cm_file\n[$!]";
+    open(CMS, "$infernal_path/cmstat $cm_file | ") or die "FATAL: failed to open pipe for cmstat $cm_file\n[$!]";
     my $ok=0;
     my $clen;
     while(<CMS>){
@@ -671,6 +669,21 @@ sub cmstat_clen {
     return $clen;
 }
 
+######################################################################
+#youngerThan(file1, file2): test if file1 is younger than file2 
+sub youngerThan {
+    my ($file1, $file2) = @_;
+    my ($t1,$t2) = (0,0);
+    $t1 = stat($file1)->mtime if -e $file1;
+    $t2 = stat($file2)->mtime if -e $file2;
+    
+    if($t1>$t2 or $t1==0 or $t2==0){
+	return 1;
+    }
+    else {
+	return 0;
+    }
+}
 ######################################################################
 
 sub help {

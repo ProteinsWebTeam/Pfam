@@ -17,7 +17,7 @@ use Carp;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family::MSA;
-use Bio::Rfam::TempRfam;
+use Bio::Rfam::Utils;
 
 ###################################################################
 # PRELIMINARIES:
