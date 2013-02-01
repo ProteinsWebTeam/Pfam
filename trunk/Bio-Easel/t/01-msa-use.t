@@ -73,4 +73,3 @@ $msa3->write_msa($outfile, "afa");
 #$msa3->DESTROY;
 #TODO: test that it was destroyed, don't know how to do that yet
 
-=cut
