@@ -664,6 +664,79 @@ sub average_pid {
     return $self->{average_pid};
 }
 
+
+=head2 get_sqlen
+
+  Title    : get_sqlen
+  Incept   : EPN, Fri Feb  1 16:56:24 2013
+  Usage    : $msaObject->get_sqlen()
+  Function : Return unaligned sequence length of 
+           : sequence <idx>.
+  Args     : index of sequence you want length of
+  Returns  : unaligned sequence length of sequence idx
+  
+=cut
+
+=head2 _c_get_sqlen
+
+  Title    : _c_get_sqlen
+  Incept   : EPN, Fri Feb  1 07:29:53 2013
+  Usage    : _c_get_sqlen(msa, idx)
+  Function : Return unaligned sequence length of sequence 
+           : index <idx>.
+  Args     : msa: ESL_MSA C object
+           : idx: sequence index to get length of (0..nseq-1)
+  Returns  : unaligned length of seq <idx>
+  
+=cut
+
+sub get_sqlen { 
+    my ($self, $idx) = @_;
+
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
+    if($idx < 0 || $idx > $self->nseq) { croak "$idx out of range" }
+
+    return _c_get_sqlen($self->{esl_msa}, $idx);
+}
+
+=head2 average_sqlen
+
+  Title    : average_sqlen
+  Incept   : EPN, Fri Feb  1 06:59:50 2013
+  Usage    : $msaObject->average_sqlen()
+  Function : Calculate and return average unaligned sequence length
+           : in the MSA.
+  Args     : none
+  Returns  : average unaligned sequence length
+  
+=cut
+
+=head2 _c_average_sqlen
+
+  Title    : _c_average_sqlen
+  Incept   : EPN, Fri Feb  1 16:54:58 2013
+  Usage    : $msaObject->_c_average_sqlen()
+  Function : Calculate and return average unaligned sequence length
+           : in the MSA.
+  Args     : ESL_MSA C object
+  Returns  : average unaligned sequence length
+  
+=cut
+
+sub average_sqlen { 
+    my ($self) = @_;
+
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa();
+    }
+    if (! defined $self->{average_sqlen}) { 
+	$self->{average_sqlen} = _c_average_sqlen($self->{esl_msa});
+    }
+    return $self->{average_sqlen};
+}
+
 =head2 calc_and_write_bp_stats
 
   Title    : calc_and_write_bp_stats

@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -43,7 +43,15 @@ is($any_gaps, 0, "any_allgap_columns failed to return correct value");
 # average_pid
 my $avgpid = $msa->average_pid(100);
 # TODO figure out how to check if a float is close to a predicted value
-print "average pid $avgpid\n";
+# print "average pid $avgpid\n";
+
+# get_sqlen
+my $len = $msa->get_sqlen(0);
+is($len, 24, "get_sqlen failed to return correct value");
+
+#TODO make this into a test:
+my $avglen = $msa->average_sqlen();
+#is($len, 24, "average_sqlen failed to return correct value");
 
 # test write_msa
 my $outfile = "./t/data/test-msa.out";

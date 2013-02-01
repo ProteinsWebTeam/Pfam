@@ -147,6 +147,21 @@ float _c_average_pid(ESL_MSA *msa, int max_nseq)
   return (float) avgid;
 }
 
+float _c_average_sqlen(ESL_MSA *msa)
+{
+  int i;
+  float len = 0.;
+  for(i = 0; i < msa->nseq; i++) { 
+    len += _c_get_sqlen(msa, i);
+  }
+  
+  return (len / msa->nseq);
+}
+
+int _c_get_sqlen(ESL_MSA *msa, int seqidx)
+{
+  return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
+}
 
 /* _c_count_msa()
  * 
