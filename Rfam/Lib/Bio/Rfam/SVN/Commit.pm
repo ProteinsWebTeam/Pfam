@@ -29,11 +29,9 @@ use warnings;
 use File::Temp;
 use Carp;
 
-use Bio::Dfam::Config;
-use Bio::Dfam::FamilyIO;
-use Bio::Dfam::LiveDBManager;
-use Bio::Dfam::QC;
-use Bio::Dfam::Classification;
+use Bio::Rfam::Config;
+use Bio::Rfam::FamilyIO;
+use Bio::Rfam::QC;
 use Data::Printer;
 
 use base "SVN::Look";
@@ -69,165 +67,101 @@ sub commitEntry {
   my $familyIO = Bio::Rfam::FamilyIO->new;
 
   my ( $familyObj, $family, $dir );
-  my @updated = $self->updated();
+ 
+  ( $familyObj, $family, $dir ) = $self->_getEntryObjFromTrans( $familyIO, 0 );
 
+  $self->_commitEntry($familyObj);
+
+}
+
+sub _commitEntry {
+  my ($self, $familyObj, $isNew) = @_;
+  
+  
+  my $rfamdb = $self->{config}->rfamlive;
   #Need to put a transaction around this block
-  my $guard = $dfamDB->getSchema->txn_scope_guard;
+  my $guard = $rfamdb->getSchema->txn_scope_guard;  
+  #Regardless of the way that we have come in to this part,
+  #update the database with the DESC file information.
+   my @updated = $self->updated(); 
+  my @pages = keys(%{$familyObj->DESC->WIKI});
+  my $row = $rfamdb->resultset('Wikitext')->find_or_create({'title' => $pages[0]});
+  if($isNew){
+    $rfamdb->resultset('Family')->createFamilyFromObj($familyObj, $row->auto_wiki);
+  }else {
+    $rfamdb->resultset('Family')->updateFamilyFromObj($familyObj, $row->auto_wiki);
+  }
+  $rfamdb->resultset('LiteratureReference')->find_or_createFromFamilyObj( $familyObj );
+  $rfamdb->resultset('DatabaseLink')->find_or_createFromFamilyObj( $familyObj );  
+ 
+
 
   if ( scalar(@updated) == 1 and $updated[0] eq 'DESC' ) {
-    ( $modelObj, $model, $dir ) = $self->_getEntryObjFromTrans( $familyIO, 0 );
-    #TODO - Perform QC on the family
-    #$self->_qualityControlEntry( $modelObj, $dir, $model, $dfamDB );
-    $dfamDB->updateEntry($modelObj);
-
-    if ( $modelObj->DESC->REFS ) {
-      $dfamDB->updateLitRefs($modelObj);
-    }
-    if ( $modelObj->DESC->CLASS ) {
-      $dfamDB->updateClassTags($modelObj);
-    }
-    if ( $modelObj->DESC->DBREFS ) {
-      $dfamDB->updateDbXrefs($modelObj);
-    }
+  }else{
+    #There is more to change than just the DESC file....
+    $rfamdb->resultset('SeedRegion')->updateSeedRegionsFromFamilyObj( $familyObj );
+    $rfamdb->resultset('FullRegion')->updateFullRegionsFromFamilyObj( $familyObj );
+    $rfamdb->resultset('FamilyFile')->uploadFilesFromFamilyObj( $familyObj );
   }
-  else {
-    ( $modelObj, $model, $dir ) = $self->_getEntryObjFromTrans( $familyIO, 0 );
-
-    #Perform QC on the family
-    $self->_qualityControlEntry( $modelObj, $dir, $model, $dfamDB );
-    $dfamDB->updateEntry($modelObj);
-
-    if ( $modelObj->DESC->REFS ) {
-      $dfamDB->updateLitRefs($modelObj);
-    }
-    if ( $modelObj->DESC->CLASS ) {
-      $dfamDB->updateClassTags($modelObj);
-    }
-    if ( $modelObj->DESC->DBREFS ) {
-      $dfamDB->updateDbXrefs($modelObj);
-    }
-    $dfamDB->updateSeedReg($modelObj);
-    $dfamDB->updateFullReg($modelObj);
-    $dfamDB->updateRevReg($modelObj);
-    $dfamDB->uploadHMMAndSEED( $modelObj, "$dir/$model", 0 );
-
-  }
-
+  
   #Need to intiate the view process.
-  $dfamDB->intiatePostProcessJob( $modelObj, $self->author );
+  $rfamdb->resultset('PostProcess')->initiatePostProcessJob( $familyObj, $self->author );
+  #Finish the transaction.
   $guard->commit;
 }
 
 sub commitNewEntry {
-  my ( $self, $dfamDB ) = @_;
+  my ( $self ) = @_;
 
   #Make an object to respresent the family based on the SVN transcation
-  my $familyIO = Bio::Dfam::FamilyIO->new;
+  my $familyIO = Bio::Rfam::FamilyIO->new;
 
+  #Determin who is adding this entry
   my $author = $self->author();
 
   my ( $newFamObj, $family, $dir ) =
     $self->_getEntryObjFromTrans( $familyIO, 1 );
 
-  my $acc = $self->_assignAccession($dfamDB);
+  my $acc = $self->_assignAccession();
 
   $newFamObj->DESC->AC($acc);
 
-  $self->_qualityControlEntry( $newFamObj, $dir, $family );
-
   #TODO  - put QC steps back in and sequence QC
+  #$self->_qualityControlEntry( $newFamObj, $dir, $family );
+
   #Okay, if we get to here, then we should be okay!
-  #Now upload the Entry to Dfam
-
-  #Need to put a transaction around this block
-  my $guard = $dfamDB->getSchema->txn_scope_guard;
-
-  $dfamDB->createEntry( $newFamObj, $author );
-
-  if ( $newFamObj->DESC->REFS ) {
-    $dfamDB->updateLitRefs($newFamObj);
-  }
-
-  if ( $newFamObj->DESC->DBREFS ) {
-    $dfamDB->updateDbXrefs($newFamObj);
-  }
-
-  if ( $newFamObj->DESC->CLASS ) {
-    $dfamDB->updateClassTags($newFamObj);
-  }
-
-  if ( $newFamObj->DESC->MSP ) {
-    $dfamDB->updateModelSpecificity($newFamObj);
-  }
-
-  $dfamDB->updateSeedReg($newFamObj);
-  $dfamDB->updateFullReg($newFamObj);
-  $dfamDB->updateRevReg($newFamObj);
-  $dfamDB->uploadHMMAndSEED( $newFamObj, "$dir/$family", 1 );
-
-  #Need to intiate the view process.
-  $dfamDB->intiatePostProcessJob( $newFamObj, $self->author );
-
-  $guard->commit;
+  #Now upload the Entry to Rfam
+  $self->_commitEntry($newFamObj, 1);
 }
 
 sub _assignAccession {
-  my ( $self, $dfamDB ) = @_;
+  my ( $self ) = @_;
 
   my @allAccessions;
-  my $allModelData     = $dfamDB->getAllModelData;
-  my $allDeadModelData = $dfamDB->getAllDeadModelData;
-  unless ($allModelData)     { $allModelData     = []; }
-  unless ($allDeadModelData) { $allDeadModelData = []; }
-  foreach my $fam ( @{$allModelData}, @{$allDeadModelData} ) {
-    my ($tmpAcc) = $fam->accession =~ /(\d+)/;
+  my $rfamdb = $self->{config}->rfamlive;
+  
+  my $allFamilyAccs = $rfamdb->resultset('Family')->getAllFamilyAcc;
+  my $allDeadFamilyAccs = $rfamdb->resultset('DeadFamily')->getAllDeadFamilyAcc;
+    
+  foreach my $fam ( @{$allFamilyAccs}, @{$allDeadFamilyAccs} ) {
+    my ($tmpAcc) = $fam->rfam_acc =~ /(\d+)/;
     push( @allAccessions, $tmpAcc );
   }
 
+  #Need this when the database is new, and there are no entries.
   push( @allAccessions, 0 );
   my @allAccSorted = sort { $a <=> $b } @allAccessions;
   my $nextAccNo = $allAccSorted[$#allAccSorted];
   $nextAccNo++;
 
-  if ( length($nextAccNo) > 7 ) {
+  if ( length($nextAccNo) > 5 ) {
     die "Accession length exceeded\n";
   }
 
   #Now put the number in the correct format.
-  my $acc = "DF" . "0" x ( 7 - length($nextAccNo) ) . $nextAccNo;
+  my $acc = "RF" . "0" x ( 5 - length($nextAccNo) ) . $nextAccNo;
 
   return ($acc);
-
-}
-
-sub commitClassification {
-  my ( $self, $dfamDB ) = @_;
-
-  my $classObj = Bio::Dfam::Classification->new( $self->{config} );
-  $self->_getClassObjFromTrans($classObj);
-
-  $dfamDB->updateClassification($classObj);
-  $dfamDB->updateWikipedia($classObj);
-}
-
-sub initiateModelView {
-  my ( $self, $dfamDB ) = @_;
-
-  #Make an object to respresent the family based on the SVN transcation
-  my $familyIO = Bio::Pfam::FamilyIO->new;
-  my ( $famObj, $family, $dir ) = $self->_getFamilyObjFromTrans( $familyIO, 0 );
-
-  #If this family is part of a clan, we need to compete it
-  if ( $famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/ ) {
-    Bio::Pfam::ViewProcess::initiateClanViewProcess( $famObj->DESC->CL,
-      $self->author, $self->{config} );
-  }
-  else {
-
-    #If we have not died, then we should be good to go!
-    Bio::Pfam::ViewProcess::initiateViewProcess( $famObj, $self->author,
-      $self->{config} );
-  }
 }
 
 sub _getEntryObjFromTrans {
