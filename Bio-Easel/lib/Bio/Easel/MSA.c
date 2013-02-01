@@ -147,6 +147,11 @@ float _c_average_pid(ESL_MSA *msa, int max_nseq)
   return (float) avgid;
 }
 
+int _c_get_sqlen(ESL_MSA *msa, int seqidx)
+{
+  return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
+}
+
 float _c_average_sqlen(ESL_MSA *msa)
 {
   int i;
@@ -156,11 +161,6 @@ float _c_average_sqlen(ESL_MSA *msa)
   }
   
   return (len / msa->nseq);
-}
-
-int _c_get_sqlen(ESL_MSA *msa, int seqidx)
-{
-  return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
 }
 
 /* _c_count_msa()
@@ -396,3 +396,12 @@ int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
   return FALSE; /* failure */
 }
 
+
+int _c_addGF(ESL_MSA *msa, char *tag, char *value)
+{
+  int    status;
+
+  status = esl_msa_AddGF(msa, tag, -1, value, -1);
+  
+  return status;
+}

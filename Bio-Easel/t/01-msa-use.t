@@ -43,7 +43,7 @@ is($any_gaps, 0, "any_allgap_columns failed to return correct value");
 # average_pid
 my $avgpid = $msa->average_pid(100);
 # TODO figure out how to check if a float is close to a predicted value
-# print "average pid $avgpid\n";
+#print STDERR "average pid $avgpid\n";
 
 # get_sqlen
 my $len = $msa->get_sqlen(0);
