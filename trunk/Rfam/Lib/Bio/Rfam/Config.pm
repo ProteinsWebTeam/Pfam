@@ -239,4 +239,19 @@ sub seqdbConfig {
     }
     return $self->{'_config'}->{seqdb}->{$db}
 }
+
+sub viewPluginSets {
+  my $self = shift;
+  my $category = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  if(!exists $self->{'_config'}->{view_sets}->{$category}){
+      my @cats = keys (%{ $self->{'_config'}->{view_sets}});
+      croak( "Unknown view set $category, must be one of [@cats]");
+    }
+
+  return $self->{'_config'}->{view_sets}->{$category};
+}
+
 1;
