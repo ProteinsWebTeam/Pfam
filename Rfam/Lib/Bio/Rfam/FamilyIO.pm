@@ -110,10 +110,10 @@ sub loadRfamFromRDB {
   
   my $files = $row->family_files->first;
   my $regions = $rfamdb->resultset('FullRegion')->allRegions($family);
-  #Do you have specific storage.
-  my $dir = '/tmp';
   
-  #File::Temp->newdir( 'CLEANUP' => 1 );
+  
+  #TODO - Do you have specific storage. You can specify areas as needed.
+  my $dir =  File::Temp->newdir( 'CLEANUP' => 1 );
   if(! -d "$dir/$family"){
     mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   }
@@ -152,16 +152,6 @@ sub loadRfamFromRDB {
   my $famObj = Bio::Rfam::Family->new($params);
   
   return $famObj;
-}
-
-
-sub getDESCFromRDB {
-  my ($self, $acc) = @_;
-  
-  my $descData = {};
-  my $rfamdb = $self->{config}->rfamlive;
-  $rfamdb->resultset('Family')->getDESCData($acc, $descData);
-  
 }
 
 sub loadRfamFromSVN {
