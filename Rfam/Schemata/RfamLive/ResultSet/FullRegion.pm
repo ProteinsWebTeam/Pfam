@@ -44,4 +44,26 @@ sub updateFullRegionsFromFamilyObj {
   #TODO - search related to check number of FULL sequence match num_seed.
 }
 
+sub allRegions {
+  my ($self, $rfam_acc) = @_;
+  
+  my @regions;
+  #TODO - add Pagination also stop row inflation - Jody did it for Dfam
+  my @row = $self->search({rfam_acc => $rfam_acc});
+  foreach my $r (@row){
+    push(@regions, [ $r->rfamseq_acc.'/'.$r->seq_start.'-'.$r->seq_end,
+                     $r->seq_start,
+                     $r->seq_end,
+                     $r->rfamseq_acc,
+                     $r->bit_score,
+                     $r->evalue_score,
+                     $r->cm_start,
+                     $r->cm_end,
+                     $r->truncated,
+                     $r->type ]) 
+  }
+  return \@regions;
+}
+
+
 1;
