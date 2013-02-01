@@ -17,6 +17,7 @@ use Carp;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family::MSA;
+use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
 
 ###################################################################
@@ -140,7 +141,7 @@ if($do_align) {
     my $options = stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
     # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
     my $cmalignPath = $config->infernalPath . "/cmalign";
-    cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
+    Bio::Rfam::Infernal::cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
 
     # remove temporary fasta file
     if(! $dirty) { unlink "$$.fa"; }
