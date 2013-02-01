@@ -60,6 +60,11 @@ unlink $outfile;
 $nseq = $msa3->nseq;
 is($nseq, 3, "nseq method failed to return correct number (pass 2)");
 
+# test write_msa with afa format
+$outfile = "./t/data/test-msa-afa.out";
+$msa3->write_msa($outfile, "afa");
+#unlink $outfile;
+
 # FIX DESTROY CALL!
 #TODO: test free_msa
 # test DESTROY
