@@ -246,7 +246,7 @@ unless( $nobuild) {
 
 	#Update $buildopts and write to DESC file:
 	$buildopts = "cmbuild " . $buildopts . " -F CM SEED" unless ($buildopts =~ m/-F CM SEED/);
-	print "$buildopts\n";
+	#print "$buildopts\n";
 	$desc->{'BM'} = $buildopts;
 	$familyIO->writeDESC($desc);
 
@@ -459,47 +459,51 @@ system("date >> $pwd/CMSEARCH_JOBS_COMPLETE") and die "FATAL: failed to create $
 
 ###################################
 # Cleanup all the files on the farm:
-print "$lustre\n";
 if (!defined($dirty) && @warnings==0){
-    system("rm -rf $lustre/") and die "FATAL: failed to clean up files on the farm\n[$!]";
+	system("rm -rf $lustre/*") == 0 or die "FATAL: failed to clean up files on the farm\n[$!]";
+	system("rm -rf $lustre") == 0 or die "FATAL: failed to clean up directories on farm!\n[$!]";
 }
 
-#&update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
+
+#Write cmopts to desc file:
+$desc->{'SM'} = "cmsearch " . $cmopts;
+$familyIO->writeDESC($desc);
 
 &printlog( "FINISHED! See OUTPUT and TABFILE." );
 
 ###################################
 #Time usage reports:
+#removed by SWB
 
-my $endtime = time();
-my $runtime = $endtime - $starttime;              my $runtimeH      = RfamUtils::secs2human($runtime);
-my $inittime = $initendtime - $starttime;         my $inittimeH     = RfamUtils::secs2human($inittime);
-my $cmsearchtime = $endtime - $initendtime;       my $cmsearchtimeH = RfamUtils::secs2human($cmsearchtime);
+#my $endtime = time();
+#my $runtime = $endtime - $starttime;              my $runtimeH      = RfamUtils::secs2human($runtime);
+#my $inittime = $initendtime - $starttime;         my $inittimeH     = RfamUtils::secs2human($inittime);
+#my $cmsearchtime = $endtime - $initendtime;       my $cmsearchtimeH = RfamUtils::secs2human($cmsearchtime);
 
-print( "##############\n" );
-&printlog( "INIT walltime:     $inittime secs    \t$inittimeH" );
-&printlog( "CMSEARCH walltime: $cmsearchtime secs\t$cmsearchtimeH" );
-&printlog( "Total walltime:    $runtime secs     \t$runtimeH" );
-&printlog( "##############" );
+#print( "##############\n" );
+#&printlog( "INIT walltime:     $inittime secs    \t$inittimeH" );
+#&printlog( "CMSEARCH walltime: $cmsearchtime secs\t$cmsearchtimeH" );
+#&printlog( "Total walltime:    $runtime secs     \t$runtimeH" );
+#&printlog( "##############" );
 
 #For the rfam_times DB:
-open(CPU, "< CPUTIME") or die "FATAL: could not open CPUTIME file for reading!\n[$!]";
-$runTimes{'cmsearch'}=0.0;
-while(<CPU>){
-    if(/(\d+\.\d+)\s+(\d+\.\d+)/){
-	$runTimes{'cmsearch'}+=($1+$2);
-    }
-}
-close(CPU);
-$runTimes{'rfsearchwall'}=$runtime;
+#open(CPU, "< CPUTIME") or die "FATAL: could not open CPUTIME file for reading!\n[$!]";
+#$runTimes{'cmsearch'}=0.0;
+#while(<CPU>){
+#    if(/(\d+\.\d+)\s+(\d+\.\d+)/){
+#	$runTimes{'cmsearch'}+=($1+$2);
+#    }
+#}
+#close(CPU);
+#$runTimes{'rfsearchwall'}=$runtime;
 
-&printlog( "CPU Times for rfam_acc: |" . $runTimes{'rfam_acc'} . "|" );
+#&printlog( "CPU Times for rfam_acc: |" . $runTimes{'rfam_acc'} . "|" );
 
-foreach my $k (qw(calibration cmsearch rfsearchwall)){
-    next if not defined $runTimes{$k};
-    my $humanTime = RfamUtils::secs2human($runTimes{$k}); 
-    &printlog( "CPU Times: $k\t$runTimes{$k} secs\t[$humanTime]" );
-}
+#foreach my $k (qw(calibration cmsearch rfsearchwall)){
+#    next if not defined $runTimes{$k};
+#    my $humanTime = RfamUtils::secs2human($runTimes{$k}); 
+#    &printlog( "CPU Times: $k\t$runTimes{$k} secs\t[$humanTime]" );
+#}
 &printlog( "##############" );
 
 ###################################
