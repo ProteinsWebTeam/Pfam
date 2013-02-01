@@ -101,6 +101,59 @@ sub loadRfamFromLocalFile {
   return ($famObj);
 }
 
+sub loadRfamFromRDB {
+  my ( $self, $family ) = @_;
+  
+  my $rfamdb = $self->{config}->rfamlive;
+  my $row = $rfamdb->resultset('Family')->find( { rfam_acc => $family }, 
+                                                { prefetch => 'family_files' });
+  
+  my $files = $row->family_files->first;
+  my $regions = $rfamdb->resultset('FullRegion')->allRegions($family);
+  #Do you have specific storage.
+  my $dir = '/tmp';
+  
+  #File::Temp->newdir( 'CLEANUP' => 1 );
+  if(! -d "$dir/$family"){
+    mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
+  }
+  open(S, '>', "$dir/$family/SEED") 
+    or croak("Could not open $dir/$family/SEED:[$!]\n");
+  print S $files->unzipped_seed;
+  close S;
+  
+  open(C, '>', "$dir/$family/CM") 
+    or croak("Could not open $dir/$family/CM:[$!]\n");
+  print C $files->unzipped_cm;
+  close C;
+  
+  open(T, '>', "$dir/$family/TBLOUT") 
+    or croak("Could not open $dir/$family/TBLOUT:[$!]\n");
+  print T $files->unzipped_seed;
+  close T;
+  
+  
+  
+  my $params = {
+    source => 'database',
+    'SEED' => {
+      fileLocation => "$dir/$family/SEED",
+      aliType      => 'seed'
+    },
+    'DESC'   => $self->parseDESC("$dir/$family/DESC"),
+    'CM'     => $self->parseCM("$dir/$family/CM"),
+    'SCORES' => { numRegions => scalar(@$regions),
+                  regions    => $regions },
+    'TBLOUT' => { fileLocation => "$dir/$family/TBLOUT" }
+  };
+
+  #Use Moose to coerce these through!
+  my $famObj = Bio::Rfam::Family->new($params);
+  
+  return $famObj;
+}
+
+
 sub loadRfamFromSVN {
   my ( $self, $family, $client ) = @_;
 
@@ -691,7 +744,14 @@ sub parseDESC {
         }
 
         #TODO - Not this is not a comment, but an additional parameter!
-        if ( $file[$i] =~ /^DR   SO:(\d+) SO:(.*)$/ ) {
+        if ( $file[$i] =~ /^DR   SO:(\d+) SO:(.*)$/ ) { #old style
+
+          #GO:0010628 GO:positive regulation of gene expression
+          push(
+            @{ $params{DBREFS} },
+            { db_id => 'SO', db_link => $1, other_params => $2 }
+          );
+        }elsif ( $file[$i] =~ /^DR   SO; (\d+); (.*);$/ ) {
 
           #GO:0010628 GO:positive regulation of gene expression
           push(
@@ -699,6 +759,7 @@ sub parseDESC {
             { db_id => 'SO', db_link => $1, other_params => $2 }
           );
         }
+        
         elsif ( $file[$i] =~ /^DR   GO:(\d+) GO:(.*)$/ ) {
 
           #GO:0010628 GO:positive regulation of gene expression
@@ -706,7 +767,15 @@ sub parseDESC {
             @{ $params{DBREFS} },
             { db_id => 'GO', db_link => $1, other_params => $2 }
           );
+        }elsif ( $file[$i] =~ /^DR   GO; (\d+); (.*);$/ ) {
+
+          #GO:0010628 GO:positive regulation of gene expression
+          push(
+            @{ $params{DBREFS} },
+            { db_id => 'GO', db_link => $1, other_params => $2 }
+          );
         }
+        
         elsif ( $file[$i] =~ /^DR   (MIPF); (MIPF\d+)$/ ) {
 
           #MIPF; MIPF0000879
@@ -865,18 +934,6 @@ sub writeDESC {
           }
         }
       }
-      elsif ( $tagOrder eq 'BMETH' ) {
-        if ( ref( $desc->$tagOrder ) eq 'ARRAY' ) {
-          foreach my $line (@{$desc->$tagOrder}){
-            print D wrap(
-              "BM   ",
-              "BM   ",
-              $line
-          );
-          print D "\n";
-          }
-        }
-      }
       elsif ( $tagOrder eq 'CLASS' ) {
         foreach my $key (qw(Type Class Superfamily Comment)) {
           next if ( !exists( $desc->$tagOrder->{$key} ) );
@@ -918,19 +975,11 @@ sub writeDESC {
           if ( $xref->{other_params} ) {
             #TODO - go back and remove this is a really nasty hack!!!
             
-            if($xref->{db_id} eq 'SO'){
-              print D "DR   "
-              . $xref->{db_id} . ":"
-              . $xref->{db_link} . " ".$xref->{db_id}.":"
-              . $xref->{other_params} . "\n";
-              
-              
-            }else{
+            
               print D "DR   "
               . $xref->{db_id} . "; "
               . $xref->{db_link} . "; "
               . $xref->{other_params} . ";\n";
-            }
           }
           else {
             print D "DR   " . $xref->{db_id} . "; " . $xref->{db_link} . ";\n";
