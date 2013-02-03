@@ -847,8 +847,22 @@ sub _overlap_nres {
 
 
 =head2 _c_read_msa
+=head2 _c_write_msa
 =head2 _c_nseq
-
+=head2 _c_alen
+=head2 _c_get_accession
+=head2 _c_set_accession
+=head2 _c_get_sqname
+=head2 _c_set_sqname
+=head2 _c_any_allgap_columns
+=head2 _c_average_id
+=head2 _c_get_sqlen
+=head2 _c_average_sqlen
+=head2 _c_addGF
+=head2 _c_addGS
+=head2 _c_count_msa
+=head2 _c_bp_is_canonical
+=head2 _c_calc_and_write_bp_stats
 =head2 dl_load_flags
 
 
