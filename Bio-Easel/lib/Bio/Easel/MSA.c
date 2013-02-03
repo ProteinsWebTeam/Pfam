@@ -21,6 +21,13 @@
     : NULL                                         \
   )
 
+
+/* Function:  _c_read_msa()
+ * Incept:    EPN, Sat Feb  2 14:14:20 2013
+ * Synopsis:  Open a alignment file, read an msa, and close the file.
+ * Returns:   an ESL_MSA
+ */
+
 SV *_c_read_msa (char *infile, SV *perl_abc) 
 {
     int           status;     /* Easel status code */
@@ -40,33 +47,51 @@ SV *_c_read_msa (char *infile, SV *perl_abc)
 
     /* close msa file */
     if (afp) eslx_msafile_Close(afp);
+
     /* convert C abc object to perl */
     perl_abc = perl_obj(abc, "ESL_ALPHABET");
 
     return perl_obj(msa, "ESL_MSA");
 }    
 
-void _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
+/* Function:  _c_write_msa()
+ * Incept:    EPN, Sat Feb  2 14:23:28 2013
+ * Synopsis:  Open an output file, write an msa, and close the file.
+ * Returns:   eslOK on success; eslEINVAL if format is invalid
+ */
+int _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
 {
   FILE  *ofp; /* open output alignment file */
   int   fmt; /* alignment output format */       
   
-  if((ofp  = fopen(outfile, "w"))  == NULL) esl_fatal("Failed to open output file %s\n", outfile);
-  if((fmt = eslx_msafile_EncodeFormat(format)) == eslMSAFILE_UNKNOWN) { 
-    esl_fatal("unknown format, even though perl subroutine should've checked..."); 
+  if((ofp  = fopen(outfile, "w"))  == NULL) { 
+    return eslFAIL;
   }
-  
+  if((fmt = eslx_msafile_EncodeFormat(format)) == eslMSAFILE_UNKNOWN) { 
+    return eslEINVAL;
+  }
   eslx_msafile_Write(ofp, msa, fmt);
   fclose(ofp);
-  return;
+
+  return eslOK;
 }
 
+/* Function:  _c_free_msa()
+ * Incept:    EPN, Sat Feb  2 14:33:15 2013
+ * Synopsis:  Free an MSA.
+ * Returns:   void
+ */
 void _c_free_msa (ESL_MSA *msa)
 {
   esl_msa_Destroy(msa);
   return;
 }
 
+/* Function:  _c_destroy()
+ * Incept:    EPN, Sat Feb  2 14:33:15 2013
+ * Synopsis:  Free an MSA and the alphabet it points to.
+ * Returns:   void
+ */
 void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
 {
   _c_free_msa(msa);
@@ -74,54 +99,78 @@ void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
   return;
 }
 
+/* Function:  _c_nseq()
+ * Incept:    EPN, Sat Feb  2 14:34:34 2013
+ * Synopsis:  Returns nseq
+ * Returns:   number of sequences in <msa>
+ */
 I32 _c_nseq (ESL_MSA *msa)
 {
   return msa->nseq;
 }   
 
+/* Function:  _c_alen()
+ * Incept:    EPN, Sat Feb  2 14:34:50 2013
+ * Synopsis:  Returns alen
+ * Returns:   number alignment length in columns
+ */
 I32 _c_alen (ESL_MSA *msa)
 {
   return msa->alen;
 }
 
-char *_c_acc (ESL_MSA *msa)
+/* Function:  _c_get_accession()
+ * Incept:    EPN, Sat Feb  2 14:35:18 2013
+ * Synopsis:  Returns msa->acc.
+ * Returns:   MSA's accession or 'none' if none set.
+ */
+char *_c_get_accession (ESL_MSA *msa)
 {
   if(msa->acc) return msa->acc;
   else         return "none";
 }
 
+/* Function:  _c_set_accession()
+ * Incept:    EPN, Sat Feb  2 14:36:27 2013
+ * Synopsis:  Sets msa->acc to newacc
+ * Returns:   eslOK on success.
+ */
 int _c_set_accession (ESL_MSA *msa, char *newacc)
 {
   int status;
-
-  if((status = esl_msa_SetAccession(msa, newacc, -1)) != eslOK) {
-    return FALSE; /* failure */
-  }
-  return TRUE; /* success */
+  status = esl_msa_SetAccession(msa, newacc, -1);
+  return status;
 }
 
+/* Function:  _c_get_sqname()
+ * Incept:    EPN, Sat Feb  2 14:37:09 2013
+ * Synopsis:  Returns msa->sqname[idx]
+ * Returns:   msa->sqname[idx]
+ */
 char *_c_get_sqname (ESL_MSA *msa, I32 idx)
 {
-    /* should this check if idx is valid? perl func that calls it already does... is that proper? */
     return msa->sqname[idx];
 }
 
+/* Function:  _c_set_sqname()
+ * Incept:    EPN, Sat Feb  2 14:37:34 2013
+ * Synopsis:  Sets msa->sqname[idx]
+ * Returns:   void
+ */
 void _c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
 {
-
-    /* should this check if idx is valid? perl func that calls it already does... is that proper? */
     if(msa->sqname[idx]) free(msa->sqname[idx]);
     esl_strdup(newname, -1, &(msa->sqname[idx]));
-
     return;
 }   
 
+/* Function:  _c_any_allgap_columns()
+ * Incept:    EPN, Sat Feb  2 14:38:18 2013
+ * Synopsis:  Checks for any all gap columns.
+ * Returns:   TRUE if any all gap columns exist, else FALSE.
+ */
 int _c_any_allgap_columns (ESL_MSA *msa) 
 {
-  /* determine if there's any all gap columns */
-  printf("in _c_any_allgap_columns()\n");
-  printf("msa->abc->type is %d\n", msa->abc->type);
-
   int apos, idx; 
   
   for (apos = 1; apos <= msa->alen; apos++) {
@@ -138,7 +187,15 @@ int _c_any_allgap_columns (ESL_MSA *msa)
   return FALSE;
 }   
 
-float _c_average_pid(ESL_MSA *msa, int max_nseq) 
+/* Function:  _c_average_id()
+ * Incept:    EPN, Sat Feb  2 14:38:18 2013
+ * Purpose:   Calculate and return average fractional identity of 
+ *            an alignment. If more than max_nseq sequences exist
+ *            take a sample of (max_nseq)^2 pairs and return the 
+ *            average fractional identity of those.
+ * Returns:   Average fractional identity.
+ */
+float _c_average_id(ESL_MSA *msa, int max_nseq) 
 {
   double avgid;
   
@@ -146,12 +203,22 @@ float _c_average_pid(ESL_MSA *msa, int max_nseq)
   
   return (float) avgid;
 }
-
+ 
+/* Function:  _c_get_sqlen()
+ * Incept:    EPN, Sat Feb  2 14:38:18 2013
+ * Purpose:   Return unaligned sequence length of sequence <seqidx>.
+ * Returns:   Sequence length of sequence <seqidx>.
+ */
 int _c_get_sqlen(ESL_MSA *msa, int seqidx)
 {
   return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
 }
 
+/* Function:  _c_average_sqlen()
+ * Incept:    EPN, Sat Feb  2 14:43:18 2013
+ * Purpose:   Calculate and return average unaligned sequence length.
+ * Returns:   Average unaligned sequence length.
+ */
 float _c_average_sqlen(ESL_MSA *msa)
 {
   int i;
@@ -163,32 +230,60 @@ float _c_average_sqlen(ESL_MSA *msa)
   return (len / msa->nseq);
 }
 
-/* _c_count_msa()
+
+/* Function:  _c_addGF()
+ * Incept:    EPN, Sat Feb  2 14:48:47 2013
+ * Purpose:   Add GF annotation to MSA.
+ * Returns:   eslOK on success, ! eslOK on failure.
+ */
+int _c_addGF(ESL_MSA *msa, char *tag, char *value)
+{
+  int    status;
+  status = esl_msa_AddGF(msa, tag, -1, value, -1);
+  return status;
+}
+
+/* Function:  _c_addGS()
+ * Incept:    EPN, Sat Feb  2 14:48:47 2013
+ * Purpose:   Add GS annotation to a sequence in a MSA.
+ * Returns:   eslOK on success, ! eslOK on failure.
+ */
+int _c_addGS(ESL_MSA *msa, int sqidx, char *tag, char *value)
+{
+  int    status;
+  status = esl_msa_AddGS(msa, tag, -1, sqidx, value, -1);
+  return status;
+}
+
+/* Function:  _c_count_msa()
+ * Incept:    EPN, Sat Feb  2 14:43:51 2013
+ * Purpose:   Calculate and return average unaligned sequence length.
+
+ * Purpose:   Given an msa, count residues and base pairs and store them in 
+ *            <ret_abc_ct> and <ret_bp_ct>.
+ *  
+ *            <ret_abc_ct> [0..apos..alen-1][0..abc->K]:
+ *            - per position count of each symbol in alphabet over all seqs.
  * 
- * Stolen from easel/miniapps/esl-alistat.c::count_msa() vi1.1rc2 and simplified
- * to not include PP counting.                  
+ *            <ret_bp_ct>  [0..apos..alen-1][0..abc->Kp-1][0..abc->Kp-1]
+ *            - per (non-pknotted) consensus basepair count of each
+ *              possible basepair over all seqs basepairs are indexed
+ *              by 'i' the minimum of 'i:j' for a pair between i and
+ *              j, where i < j. Note that non-canonicals and gaps and
+ *              the like are all stored independently.
  *
- * EPN, Fri Feb  1 12:46:48 2013
- * 
- * Given an msa, count residues and base pairs and store them in 
- * <ret_abc_ct> and <ret_bp_ct>.
- * 
- * <ret_abc_ct> [0..apos..alen-1][0..abc->K]:
- * - per position count of each symbol in alphabet over all seqs.
- * 
- * <ret_bp_ct>  [0..apos..alen-1][0..abc->Kp-1][0..abc->Kp-1] 
- * - per (non-pknotted) consensus basepair count of each possible basepair 
- *   over all seqs basepairs are indexed by 'i' the minimum of 'i:j' for a 
- *   pair between i and j, where i < j. Note that non-canonicals and 
- *   gaps and the like are all stored independently.
+ *            A 'gap' has a looser definition than in esl_abc here,
+ *            esl_abc's gap, missing residues and nonresidues are
+ *            all considered 'gaps' here.
  *
- * A 'gap' has a looser definition than in esl_abc here, esl_abc's gap, 
- * missing residues and nonresidues are all considered 'gaps' here.
+ *            If we encounter an error, we return non-eslOK status
+ *            and fill errbuf with error message.
  * 
- * If we encounter an error, we return non-eslOK status and fill
- * errbuf with error message.
- * 
- * Returns eslOK upon success.
+ *            This function was stolen from
+ *            easel/miniapps/esl-alistat.c::count_msa() vi1.1rc2 and
+ *            simplified to not include PP counting.
+ *
+ * Returns:   eslOK on success.
  */
 int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, double ***ret_abc_ct, double ****ret_bp_ct)
 {
@@ -265,15 +360,12 @@ int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, doub
   return status; /* NEVERREACHED */
 }
 
-
 /* Function: _c_bp_is_canonical
- * Date:     EPN, Wed Oct 14 06:17:27 2009
- *           [derived from Infernal 1.1rc2's display.c::bp_is_canonical]
- *
+ * Incept:   EPN, Wed Oct 14 06:17:27 2009
  * Purpose:  Determine if two residues form a canonical base pair or not.
  *           Works for RNA or DNA (because for some reason cmsearch allows
  *           the user to format output as DNA (with --dna)).
- *
+ *           [derived from Infernal 1.1rc2's display.c::bp_is_canonical]
  * Returns:  TRUE if:
  *            ldsq   rdsq
  *           -----  ------
@@ -322,6 +414,14 @@ _c_bp_is_canonical(ESL_DSQ ldsq, ESL_DSQ rdsq)
   return FALSE;
 }
 
+/* Function:  _c_calc_and_write_bp_stats()
+ * Incept:    EPN, Sat Feb  2 14:47:15 2013
+ * Purpose:   Calculate and output bp stats, including
+ *            fraction of canonical bps and covariation for 
+ *            each pair in msa->ss_cons.
+ * Returns:   eslOK on success
+ *            ! eslOK on failure
+ */
 int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
 {
   int   status;
@@ -355,7 +455,7 @@ int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
 			    FALSE, /* don't use msa->wgt sequence weights */
 			    &abc_ct, &bp_ct))
      != eslOK) {
-    return FALSE; /* failure */
+    return status;
   }
 
   /* output data */
@@ -388,20 +488,14 @@ int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
   if(ss_nopseudo != NULL) free(ss_nopseudo);
   if(ct != NULL) free(ct);
 
-  return TRUE; /* success */
+  return eslOK;
 
  ERROR:
+  fclose(ofp);
+  if(abc_ct != NULL) { esl_Free2D((void **) abc_ct, msa->alen);               abc_ct   = NULL; }
+  if(bp_ct != NULL)  { esl_Free3D((void ***) bp_ct, msa->alen, msa->abc->Kp); bp_ct = NULL; }
   if(ss_nopseudo != NULL) free(ss_nopseudo);
   if(ct != NULL) free(ct);
-  return FALSE; /* failure */
+  return status; /* failure */
 }
 
-
-int _c_addGF(ESL_MSA *msa, char *tag, char *value)
-{
-  int    status;
-
-  status = esl_msa_AddGF(msa, tag, -1, value, -1);
-  
-  return status;
-}

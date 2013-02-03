@@ -16,6 +16,35 @@ Version 0.01
 =cut
 
 our $VERSION = '0.01';
+# Easel status codes, these must be consistent with #define's in Bio-Easel/src/easel/easel.h
+our $ESLOK =              '0';    # no error/success            
+our $ESLFAIL =            '1';    # failure                     
+our $ESLEOL =             '2';    # end-of-line (often normal)  
+our $ESLEOF =             '3';    # end-of-file (often normal)  
+our $ESLEOD =             '4';    # end-of-data (often normal)  
+our $ESLEMEM =            '5';    # malloc or realloc failed    
+our $ESLENOTFOUND =       '6';    # file or key not found       
+our $ESLEFORMAT =         '7';    # file format not correct     
+our $ESLEAMBIGUOUS =      '8';    # an ambiguity of some sort   
+our $ESLEDIVZERO =        '9';    # attempted div by zero       
+our $ESLEINCOMPAT =      '10';    # incompatible parameters     
+our $ESLEINVAL =         '11';    # invalid argument/parameter  
+our $ESLESYS =           '12';    # generic system call failure 
+our $ESLECORRUPT =       '13';    # unexpected data corruption  
+our $ESLEINCONCEIVABLE = '14';    # "can't happen" error        
+our $ESLESYNTAX =        '15';    # invalid user input syntax   
+our $ESLERANGE =         '16';    # value out of allowed range  
+our $ESLEDUP =           '17';    # saw a duplicate of something
+our $ESLENOHALT =        '18';    # a failure to converge       
+our $ESLENORESULT =      '19';    # no result was obtained      
+our $ESLENODATA =        '20';    # no data provided, file empty
+our $ESLETYPE =          '21';    # invalid type of argument   
+our $ESLEOVERWRITE =     '22';    # attempted to overwrite data
+our $ESLENOSPACE =       '23';    # ran out of some resource   
+our $ESLEUNIMPLEMENTED = '24';    # feature is unimplemented   
+our $ESLENOFORMAT =      '25';    # couldn't guess file format 
+our $ESLENOALPHABET =    '26';    # couldn't guess seq alphabet
+our $ESLEWRITE =         '27';    # write failed (fprintf, etc)
 
 my $src_file      = undef;
 my $typemaps      = undef;
@@ -42,7 +71,6 @@ use Inline
   TYPEMAPS => $typemaps,
   NAME     => 'Bio::Easel::MSA';
 
-
 =head1 SYNOPSIS
 
 Multiple sequence alignment handling through inline C with Easel.
@@ -59,11 +87,9 @@ Perhaps a little code snippet.
 No functions currently exported.
 
 =head1 SUBROUTINES/METHODS
-
 =cut
 
 =head2 new 
-
   Title    : new
   Incept   : EPN, Thu Jan 24 09:28:54 2013
   Usage    : Bio::EslMSA->new
@@ -71,7 +97,6 @@ No functions currently exported.
   Args     : <fileLocation>: file location of alignment
            : <nseq>: number of seqs
   Returns  : Bio::EslMSA object
-  
 =cut
 
 sub new {
@@ -99,20 +124,17 @@ sub new {
     if(defined $args->{aliType}){
 	$self->{aliType} = $args->{aliType};
     }
-
     return $self;
 }
 
 
 =head2 msa
-
   Title    : msa
   Incept   : EPN, Tue Jan 29 09:06:30 2013
   Usage    : Bio::Easel::MSA->msa()
   Function : Accessor for msa: sets (if nec) and returns MSA.
   Args     : none
   Returns  : msa   
-
 =cut
 
 sub msa {
@@ -121,46 +143,31 @@ sub msa {
     if(! defined ($self->{esl_msa})) { 
 	$self->read_msa();
     }
-
     return $self->{esl_msa};
 }
 
 =head2 path
-
   Title    : path
   Incept   : EPN, Tue Jan 30 15:42:30 2013
   Usage    : Bio::Easel::MSA->path()
   Function : Accessor for path, read only.
   Args     : none
   Returns  : string containing path to the SEED or undef.   
-
 =cut
+
 sub path {
   my ($self) = @_;
+
   return defined($self->{path}) ? $self->{path} : undef;
 }
 
 =head2 read_msa
-
   Title    : read_msa
   Incept   : EPN, Mon Jan 28 09:26:24 2013
   Usage    : Bio::Easel::MSA->read_msa($fileLocation)
-  Function : Opens $fileLocation, reads first MSA, returns it
+  Function : Opens $fileLocation, reads first MSA, sets it.
   Args     : <fileLocation>: file location of alignment
-  Returns  : ESL_MSA *C* object
-  
-=cut
-
-=head2 _c_read_msa
-
-  Title    : _c_read_msa
-  Incept   : EPN, Thu Jan 31 07:30:50 2013
-  Usage    : _c_read_msa(<fileLocation>, <abc>)
-  Function : In C, opens $fileLocation and reads first MSA
-  Args     : <fileLocation>: file location of alignment
-           : <abc>:          place holder for ESL_ALPHABET C object
-  Returns  : ESL_MSA C object, fills <abc> with ESL_ALPHABET C object
-  
+  Returns  : void
 =cut
 
 sub read_msa { 
@@ -170,209 +177,117 @@ sub read_msa {
 	$self->{path} = $fileLocation;
     }
     if(! defined $self->{path}) { 
-	die "ERROR: path not set in Bio::Easel::MSA object"; 
+	croak "trying to read msa but path is not set";
     }
-
     $self->{esl_msa} = _c_read_msa($self->{path}, $self->{esl_abc});
     return;
 }
 
 =head2 nseq
-
   Title    : nseq
   Incept   : EPN, Mon Jan 28 09:35:21 2013
-  Usage    : Bio::Easel::MSA->nseq()
-  Function : Sets (if nec) and returns number of sequences in MSA.
+  Usage    : $msaObject->nseq()
+  Function : Gets number of seqs in MSA
   Args     : none
   Returns  : number of sequences (esl_msa->nseq)
-  
-=cut
-
-=head2 _c_nseq
-
-  Title    : _c_nseq
-  Incept   : EPN, Thu Jan 31 07:35:23 2013
-  Usage    : _c_nseq(<msa>)
-  Function : Returns number of seqs in msa (msa->nseq)
-  Args     : ESL_MSA C object 
-  Returns  : number of sequences in msa (msa->nseq)
-  
 =cut
 
 sub nseq { 
     my ($self) = @_;
-    
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
-    }
-    if (! defined $self->{nseq}) { 
-	$self->{nseq} = _c_nseq($self->{esl_msa});
-    }
-    return $self->{nseq};
+
+    $self->_check_msa(); 
+    return _c_nseq($self->{esl_msa});
 }
 
 =head2 alen
-
   Title    : alen
   Incept   : EPN, Tue Jan 29 07:41:08 2013
-  Usage    : Bio::Easel::MSA->alen()
-  Function : Sets (if nec) and returns alignment length.
+  Usage    : $msaObject->alen()
+  Function : Get alignment length.
   Args     : none
   Returns  : alignment length, number of columns (esl_msa->alen)
-  
-=cut
-
-=head2 _c_alen
-
-  Title    : _c_alen
-  Incept   : EPN, Thu Jan 31 07:37:21 2013
-  Usage    : _c_alen(msa)
-  Function : Returns alignment length (msa->alen)
-  Args     : ESL_MSA C object
-  Returns  : alignment length, number of columns (msa->alen)
-  
 =cut
 
 sub alen { 
     my ($self) = @_;
-    if (! defined $self->{alen}) { 
-	$self->{alen} = _c_alen($self->{esl_msa});
-    }
-    return $self->{alen};
+
+    $self->_check_msa(); 
+    return _c_alen($self->{esl_msa});
 }
 
 =head2 get_sqname
-
   Title    : get_sqname
   Incept   : EPN, Mon Jan 28 09:35:21 2013
   Usage    : $msaObject->get_sqname($idx)
   Function : Returns name of sequence $idx in MSA.
   Args     : index of sequence 
   Returns  : name of sequence $idx (esl_msa->sqname[$idx])
-  
-=cut
-
-=head2 _c_get_sqname
-
-  Title    : _c_get_sqname
-  Incept   : EPN, Thu Jan 31 07:38:13 2013
-  Usage    : _c_get_sqname(msa, idx)
-  Function : Returns name of sequence <idx> in <msa>.
-  Args     : <msa>: ESL_MSA C object
-           : <idx>: sequence index in <msa> 
-           : NOTE: <idx> should be 0..nseq-1 (to return first sqname, pass 0)
-  Returns  : name of sequence <idx> (msa->sqname[<idx>])
-     
+             ($idx runs 0..nseq-1)
 =cut
 
 sub get_sqname { 
     my ($self, $idx) = @_;
-    if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
+
+    $self->_check_msa(); 
+    $self->_check_sqidx($idx);
     return _c_get_sqname($self->{esl_msa}, $idx);
 }
 
 =head2 set_sqname
-
   Title    : set_sqname
   Incept   : EPN, Mon Jan 28 09:48:42 2013
   Usage    : $msaObject->set_sqname($idx)
   Function : Returns name of sequence $idx in MSA.
   Args     : index of sequence 
-  Returns  : name of sequence index $idx 
-  
-=cut
-
-=head2 _c_set_sqname
-
-  Title    : _c_set_sqname
-  Incept   : EPN, Thu Jan 31 07:39:18 2013
-  Usage    : _c_set_sqname(<msa>, <idx>, <newname>)
-  Function : Sets sqname of seq <idx> in <msa> to <newname>
-  Args     : <msa>: ESL_MSA C object
-           : <idx>: index of sequence to set name of
-           : <newname>: name for sequence <idx>
   Returns  : void
-  
 =cut
 
 sub set_sqname { 
     my ($self, $idx, $newname) = @_;
-    if($idx < 0 || $idx >= $self->nseq) { die "ERROR: how should we handle this?"; }
+
+    $self->_check_msa(); 
+    $self->_check_sqidx($idx);
     _c_set_sqname($self->{esl_msa}, $idx, $newname);
     return;
 }
 
-=head2 acc
-
-  Title    : acc
+=head2 get_accession
+  Title    : get_accession
   Incept   : EPN, Fri Feb  1 11:43:08 2013
   Usage    : $msaObject->get_accession()
   Function : Gets accession for MSA.
   Args     : none
   Returns  : the accession, a string
-  
 =cut
 
-=head2 _c_acc
-
-  Title    : _c_acc
-  Incept   : EPN, Fri Feb  1 11:43:31 2013
-  Usage    : _g_set_accession(<msa>)
-  Function : Returns msa->acc.
-  Args     : <msa>:    ESL_MSA C object
-  Returns  : msa->acc
-  
-=cut
-
-sub acc { 
+sub get_accession { 
     my ($self) = @_;
 
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
-    }
-    if (! defined $self->{acc}) { 
-	$self->{acc} = _c_acc($self->{esl_msa});
-    }
-    return $self->{acc};
+    $self->_check_msa(); 
+    return _c_get_accession($self->{esl_msa});
 }
 
 =head2 set_accession
-
   Title    : set_accession
   Incept   : EPN, Fri Feb  1 11:11:05 2013
   Usage    : $msaObject->set_accession($acc)
-  Function : Sets accession for MSA.
+  Function : Sets accession for MSA in <esl_msa>
   Args     : accession string to set
   Returns  : void
-  
-=cut
-
-=head2 _c_set_accession
-
-  Title    : _c_set_accession
-  Incept   : EPN, Fri Feb  1 11:12:15 2013
-  Usage    : _c_set_accession(<msa>, <newacc>)
-  Function : Sets acc of msa.
-  Args     : <msa>:    ESL_MSA C object
-           : <newacc>: string of new accession
-  Returns  : void
-  
 =cut
 
 sub set_accession { 
     my ($self, $newacc) = @_;
 
-    my $success = _c_set_accession($self->{esl_msa}, $newacc);
-    if(! $success) { croak "unable to set accession (failure in C code)"; }
-
-    # set accession in perl object
-    $self->{acc} = _c_acc($self->{esl_msa});
-
+    $self->_check_msa(); 
+    my $status = _c_set_accession($self->{esl_msa}, $newacc);
+    if($status != $ESLOK) { 
+	croak "unable to set accession (failure in C code)"; 
+    }
     return;
 }
 
 =head2 write_msa
-
   Title    : write_msa
   Incept   : EPN, Mon Jan 28 09:58:19 2013
   Usage    : $msaObject->write_msa($fileLocation)
@@ -380,25 +295,12 @@ sub set_accession {
   Args     : name of output file 
            : format ('stockholm', 'pfam' or 'afa')
   Returns  : void
-  
-=cut
-
-=head2 _c_write_msa
-
-  Title    : _c_write_msa
-  Incept   : EPN, Thu Jan 31 07:40:58 2013
-  Usage    : _c_write_msa(<msa>, <outfile>, <format>)
-  Function : Write MSA to a file
-  Args     : <msa>: ESL_MSA C object
-           : <outfile>: name of output file 
-           : <format>: string with file format, if none 'stockholm' is used
-  Returns  : void
-  
 =cut
 
 sub write_msa { 
     my ($self, $outfile, $format) = @_;
 
+    $self->_check_msa(); 
     if(! defined $format) { 
 	$format = "stockholm";
     }
@@ -407,42 +309,31 @@ sub write_msa {
        $format ne "afa") { 
 	croak "format must be \"stockholm\" or \"pfam\" or \"afa\"";
     }
-    _c_write_msa($self->{esl_msa}, $outfile, $format);
+    my $status = _c_write_msa($self->{esl_msa}, $outfile, $format);
+    if($status != $ESLOK) { 
+	if   ($status == $ESLEINVAL) { croak "problem writing out msa, invalid format $format"; }
+	elsif($status == $ESLFAIL)   { croak "problem writing out msa, unable to open output file $outfile for writing"; }
+    }
     return;
 }
 
 =head2 any_allgap_columns
-
   Title    : any_allgap_columns
   Incept   : EPN, Mon Jan 28 10:44:12 2013
   Usage    : Bio::Easel::MSA->any_allgap_columns()
   Function : Return TRUE if any all gap columns exist in MSA
   Args     : none
   Returns  : TRUE if any all gap columns, FALSE if not
-  
-=cut
-
-=head2 _c_any_allgap_columns
-
-  Title    : _c_any_allgap_columns
-  Incept   : EPN, Thu Jan 31 07:41:38 2013
-  Usage    : _c_any_allgap_columns(<msa>)
-  Function : Return TRUE if any all gap columns exist in <msa>
-  Args     : ESL_MSA C object
-  Returns  : TRUE if any all gap columns exist in <msa>, FALSE if not
-           : 'gap' defined as '.', '-', '_', or '~';
-  
 =cut
 
 sub any_allgap_columns {
     my ($self) = @_;
 
-    # EPN should I do error checking in c_any_allgap_columns()? 
+    $self->_check_msa(); 
     return _c_any_allgap_columns($self->{esl_msa});
 }
 
 =head2 nse_createHAA
-
   Title    : nse_createHAA
   Incept   : EPN, Wed Jan 30 10:37:54 2013
   Usage    : $msaObject->nse_createHAA
@@ -456,7 +347,6 @@ sub any_allgap_columns {
            : if ($a, $b, $strand) == ($s, $e, 1) else ($a, $b, $strand) = ($e, $s, -1)
   Args     : none
   Returns  : number of sequences with names that match format N/S-E
-  
 =cut
 
 sub nse_createHAA {
@@ -473,10 +363,10 @@ sub nse_createHAA {
     my $ctr = 0; # number of n/s-e names processed (added to hashes)
     my $max_nseq = 10000; # maximum numer of seqs we allow this subroutine to be called on
 
+    $self->_check_msa(); 
     if($self->nseq >= $max_nseq) { 
 	die "ERROR trying to process name/start-end names of MSA with max num seqs ($self->nseq > $max_nseq seqs!)"
     }
-
 
     for($idx = 0; $idx < $self->nseq; $idx++) { 
 	$sqname = $self->get_sqname($idx);
@@ -508,23 +398,29 @@ sub nse_createHAA {
 sub nse_overlap {
     my ($self, $sqname) = @_;
 
-    my $n;       # sqacc
+    my $n;         # sqacc
     my ($s, $s2);  # start, from seq name (can be > $end)
     my ($e, $e2);  # end,   from seq name (can be < $start)
     my ($a, $a2);  # minimum of $s, $e
     my ($b, $b2);  # maximum of $s, $e
-    my $strand;  # strand, 1 if $s < $e, else -1
-    my $strand2; # strand, 1 if $s2 < $e2, else -1
-    my $max_fract  = 0.;     # maximum fraction of overlap
-    my $max_sqname = "";     # name of seq in sqinfoHHA 
-    my $overlap_exists = 0;
-    my $is_nse;  # TRUE if $sqname adheres to format n/s-e
-    my $i;
-    my $fract_overlap; # fractional overlap
+    my $strand;    # strand, 1 if $s < $e, else -1
+    my $strand2;   # strand, 1 if $s2 < $e2, else -1
+    my $i;         # counter over sequences
+    my $is_nse;               # TRUE if $sqname adheres to format n/s-e
+    my $overlap_exists = 0;   # have we seen an overlap?
+    my $fract_overlap;        # fractional overlap
+    my $max_fract      = 0.;  # maximum fraction of overlap
+    my $max_sqname     = "";  # name of seq in sqinfoHHA 
 
+    $self->_check_msa(); 
+    if(! defined $self->{nseHAA}) { 
+	$self->nse_createHAA;
+    }
+
+    # check for overlaps
     ($is_nse, $n, $a, $b, $strand) = $self->nse_breakdown($sqname);
-    if($is_nse) { 
-	if(exists $self->{nseHAA}->{$n}) { 
+    if($is_nse) { # TRUE if name matches name/start-end format
+	if(exists $self->{nseHAA}->{$n}) { # TRUE if name is in nseHAA from MSA
 	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
 		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}[$i]};
 		if($strand eq $strand2) { 
@@ -543,7 +439,6 @@ sub nse_overlap {
 }
 
 =head2 nse_breakdown
-
   Title    : nse_breakdown
   Incept   : EPN, Wed Jan 30 09:50:07 2013
   Usage    : $msaObject->nse_breakdown($nse)
@@ -577,7 +472,6 @@ sub nse_breakdown {
 }
 
 =head2 nse_string
-
   Title    : nse_string
   Incept   : EPN, Thu Jan 31 09:37:55 2013
   Usage    : $msaObject->nse_string($name, $a, $b, $strand)
@@ -593,14 +487,15 @@ sub nse_breakdown {
 sub nse_string {
     my ($self, $name, $a, $b, $strand) = @_;
 
-    if($strand    ==  1) { return $name . "/" . $a . "-" . $b; }
-    elsif($strand == -1) { return $name . "/" . $b . "-" . $a; }
-    die "ERROR nse_string, invalid strand valid $strand (should be 1 or -1)\n";
+    my $nse;
+    if($strand    ==  1) { $nse = $name . "/" . $a . "-" . $b; }
+    elsif($strand == -1) { $nse = $name . "/" . $b . "-" . $a; }
+    else { croak "invalid strand $strand (should be 1 or -1)\n"; }
+    return $nse;
 }
 
-=head2 nse_len
-
-  Title    : nse_len
+=head2 nse_sqlen
+  Title    : nse_sqlen
   Incept   : EPN, Thu Jan 31 10:08:24 2013
   Usage    : $msaObject->nse_len($name);
   Function : Returns length of sequence given $nse,
@@ -610,23 +505,26 @@ sub nse_string {
   Args     : $nse: sequence name in <sqacc>/<start>-<end> format
   Returns  : Length in residues represented by $nse
 =cut
-sub nse_len {
+sub nse_sqlen {
     my ($self, $nse) = @_;
 
+    my $sqlen;
     if($nse =~ m/^\S+\/(\d+)\-(\d+)\s*/) {
 	my ($start, $end) = ($1, $2);
-	if($start <= $end) { return ($end - $start + 1); }
-	else               { return ($start - $end + 1); }
+	if($start <= $end) { $sqlen = $end - $start + 1; }
+	else               { $sqlen = $start - $end + 1; }
     }
-    die "ERROR nse_len, invalid name, doesn't match <name>/<start>-<end>\n";
+    else { 
+	croak "invalid name $nse doesn't match name/start-end format\n";
+    }
+    return $sqlen;
 }
 
-=head2 average_pid
-
-  Title    : average_pid
+=head2 average_id
+  Title    : average_id
   Incept   : EPN, Fri Feb  1 06:59:50 2013
-  Usage    : $msaObject->average_pid($max_nseq)
-  Function : Calculate and return average percent identity of 
+  Usage    : $msaObject->average_id($max_nseq)
+  Function : Calculate and return average fractional identity of 
            : all pairs of sequences in msa. If more than $max_nseq
            : sequences exist in the seed, an average is computed
            : over a stochastic sample (the sample and thus the 
@@ -636,41 +534,22 @@ sub nse_len {
   
 =cut
 
-=head2 _c_average_pid
-
-  Title    : _c_average_pid
-  Incept   : EPN, Fri Feb  1 07:29:53 2013
-  Usage    : _c_average_pid(msa, max_nseq)
-  Function : C function for average_pid, acutally calculates
-           : and return average percent identity of 
-           : all pairs of sequences in msa, or a sample of
-           : <max_nseq * max_nseq> if more than <max_nseq>
-           : sequences exist.
-  Args     : msa:      ESL_MSA C object
-           : max_nseq: max number of sequences for brute force calculation
-  Returns  : average percent id of all seq pairs or a sample
-  
-=cut
-
-sub average_pid { 
+sub average_id { 
     my ($self, $max_nseq) = @_;
 
+    $self->_check_msa(); 
     if(! defined $max_nseq) { 
 	$max_nseq = 100;
     }
-
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
+    # average percent id is expensive to calculate, so we set it once calc'ed
+    if (! defined $self->{average_id}) { 
+	$self->{average_id} = _c_average_id($self->{esl_msa}, $max_nseq);
     }
-    if (! defined $self->{average_pid}) { 
-	$self->{average_pid} = _c_average_pid($self->{esl_msa}, $max_nseq);
-    }
-    return $self->{average_pid};
+    return $self->{average_id};
 }
 
 
 =head2 get_sqlen
-
   Title    : get_sqlen
   Incept   : EPN, Fri Feb  1 16:56:24 2013
   Usage    : $msaObject->get_sqlen()
@@ -678,35 +557,17 @@ sub average_pid {
            : sequence <idx>.
   Args     : index of sequence you want length of
   Returns  : unaligned sequence length of sequence idx
-  
-=cut
-
-=head2 _c_get_sqlen
-
-  Title    : _c_get_sqlen
-  Incept   : EPN, Fri Feb  1 07:29:53 2013
-  Usage    : _c_get_sqlen(msa, idx)
-  Function : Return unaligned sequence length of sequence 
-           : index <idx>.
-  Args     : msa: ESL_MSA C object
-           : idx: sequence index to get length of (0..nseq-1)
-  Returns  : unaligned length of seq <idx>
-  
 =cut
 
 sub get_sqlen { 
     my ($self, $idx) = @_;
 
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
-    }
-    if($idx < 0 || $idx > $self->nseq) { croak "$idx out of range" }
-
+    $self->_check_msa(); 
+    $self->_check_sqidx($idx);
     return _c_get_sqlen($self->{esl_msa}, $idx);
 }
 
 =head2 average_sqlen
-
   Title    : average_sqlen
   Incept   : EPN, Fri Feb  1 06:59:50 2013
   Usage    : $msaObject->average_sqlen()
@@ -714,27 +575,13 @@ sub get_sqlen {
            : in the MSA.
   Args     : none
   Returns  : average unaligned sequence length
-  
-=cut
-
-=head2 _c_average_sqlen
-
-  Title    : _c_average_sqlen
-  Incept   : EPN, Fri Feb  1 16:54:58 2013
-  Usage    : $msaObject->_c_average_sqlen()
-  Function : Calculate and return average unaligned sequence length
-           : in the MSA.
-  Args     : ESL_MSA C object
-  Returns  : average unaligned sequence length
-  
 =cut
 
 sub average_sqlen { 
     my ($self) = @_;
 
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa();
-    }
+    $self->_check_msa(); 
+    # this could be expensive to calculate if nseq is very high, so we store it
     if (! defined $self->{average_sqlen}) { 
 	$self->{average_sqlen} = _c_average_sqlen($self->{esl_msa});
     }
@@ -742,7 +589,6 @@ sub average_sqlen {
 }
 
 =head2 calc_and_write_bp_stats
-
   Title    : calc_and_write_bp_stats
   Incept   : EPN, Fri Feb  1 10:29:11 2013
   Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
@@ -750,37 +596,22 @@ sub average_sqlen {
            : with SS_cons information and output it.
   Args     : name of requested output file 
   Returns  : void
-  
-=cut
-
-=head2 _c_calc_and_write_bp_stats
-
-  Title    : _c_calc_and_write_bp_stats
-  Incept   : EPN, Fri Feb  1 10:30:29 2013
-  Usage    : _c_calc_and_write_bp_stats(msa, outfile)
-  Function : C function for calc_and_write_bp_stats; does 
-           : all the actual calculations and output.
-  Args     : msa:     ESL_MSA C object
-           : outfile: name of file to print to
-  Returns  : '1' if file was successfully written
-             '0' if file was not written due to an error
-  
 =cut
 
 sub calc_and_write_bp_stats {
     my ($self, $fileLocation) = @_;
 
-    my $errbuf = "";
-    # TODO: get this owrking with errbuf, I couldn't get this to work though:
+    # TODO: get this working with errbuf, I couldn't get this to work though:
+    # my $errbuf = "";
     #my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
-    my $success = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation);
-    if(! $success) { croak "ERROR: unable to calculate and write bp stats"; }
+    $self->_check_msa(); 
+    my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation);
+    if($status != $ESLOK) { croak "ERROR: unable to calculate and write bp stats"; }
 
     return;
 }
 
 =head2 addGF
-
   Title    : addGF
   Incept   : EPN, Fri Feb  1 17:43:38 2013
   Usage    : $msaObject->addGF($tag, $value)
@@ -788,59 +619,88 @@ sub calc_and_write_bp_stats {
   Args     : $tag:   two letter tag 
            : $value: text for the line
   Returns  : void
-  
-=cut
-
-=head2 _c_addGF
-
-  Title    : _c_addGF
-  Incept   : EPN, Fri Feb  1 17:49:43 2013
-  Usage    : _c_addGF(msa, tag, value)
-  Function : C function for addGF
-  Args     : msa: ESL_MSA C object
-           : tag: two letter code (e.g. 'BM')
-           : value: actual line 
-  Returns  : void
 =cut
 
 sub addGF {
     my ($self, $tag, $value) = @_;
 
-    _c_addGF($self->{esl_msa}, $tag, $value);
-    
+    $self->_check_msa(); 
+    my $status = _c_addGF($self->{esl_msa}, $tag, $value);
+    if($status != $ESLOK) { croak "ERROR: unable to add GF annotation"; }
+    return;
+}
+
+=head2 addGS
+  Title    : addGS
+  Incept   : EPN, Fri Feb  1 17:43:38 2013
+  Usage    : $msaObject->addGF($tag, $value)
+  Function : Add GS tag/value for a specific sequence 
+           : to a C ESL_MSA object.
+  Args     : $tag:   two letter tag 
+           : $value: text for the line
+           : $sqidx: seq index to add GS for
+  Returns  : void
+=cut
+
+sub addGS {
+    my ($self, $tag, $value, $sqidx) = @_;
+
+    $self->_check_msa(); 
+    my $status = _c_addGF($self->{esl_msa}, $tag, $sqidx, $value);
+    if($status != $ESLOK) { croak "ERROR: unable to add GS annotation"; }
     return;
 }
 
 =head2 free_msa
-
   Title    : free_msa
   Incept   : EPN, Mon Jan 28 11:06:18 2013
   Usage    : $msaObject->free_msa()
   Function : Frees an MSA->{$esl_msa} object
   Args     : name of output file 
   Returns  : void
-  
 =cut
 
 sub free_msa { 
     my ($self) = @_;
+
+    # don't call _check_msa, if we don't have it, that's okay
     _c_free_msa($self->{esl_msa});
     return;
 }
 
-=head2 DESTROY
+=head2 revert_to_original
+  Title    : revert_to_original
+  Incept   : EPN, Sat Feb  2 14:53:27 2013
+  Usage    : $msaObject->revert_to_original()
+  Function : Frees current $msaObject->{esl_msa} object
+             and rereads it from $msaObject->{path}
+  Args     : none
+  Returns  : void
+=cut
 
+sub revert_to_original {
+    my ($self) = @_;
+
+    if(! defined $self->{path}) { 
+	croak "trying to revert_to_original but path not set";
+    }
+    $self->free_msa;
+    $self->read_msa;
+    return;
+}    
+
+=head2 DESTROY
   Title    : DESTROY
   Incept   : EPN, Mon Jan 28 10:09:55 2013
   Usage    : $msaObject->destroy()
   Function : Frees an MSA object
   Args     : name of output file 
   Returns  : void
-  
 =cut
 
 sub DESTROY { 
     my ($self) = @_;
+
     _c_destroy($self->{esl_msa}, $self->{esl_abc});
     return;
 }
@@ -849,8 +709,46 @@ sub DESTROY {
 # Internal helper subroutines
 #############################
 
-=head2 _max
+=head2 _check_msa
+  Title    : _check_msa
+  Incept   : EPN, Sat Feb  2 13:42:27 2013
+  Usage    : Bio::Easel::MSA->_check_msa()
+  Function : Reads msa only if it is currently undefined
+  Args     : none
+  Returns  : void
+=cut
 
+sub _check_msa { 
+    my ($self) = @_;
+
+    if (! defined $self->{esl_msa}) { 
+	$self->read_msa(); 
+    }
+    return;
+}
+
+=head2 _check_sqidx
+  Title    : _check_seqidx
+  Incept   : EPN, Sat Feb  2 13:46:08 2013
+  Usage    : $msaObject->_check_sqidx($idx)
+  Function : Check if $idx is in range 0..nseq-1,
+             if not, croak.
+  Args     : none
+  Returns  : void
+=cut
+
+sub _check_sqidx { 
+    my ($self, $idx) = @_;
+
+    $self->_check_msa(); 
+    my $nseq = $self->nseq;
+    if($idx < 0 || $idx >= $nseq) { 
+	croak "invalid sequence index %d (must be [0..%d])", $idx, $nseq;
+    }
+    return;
+}
+
+=head2 _max
   Title    : _max
   Incept   : EPN, Thu Jan 31 08:55:18 2013
   Usage    : _max($a, $b)
@@ -866,7 +764,6 @@ sub _max {
 }
 
 =head2 _min
-
   Title    : _min
   Incept   : EPN, Thu Jan 31 08:56:19 2013
   Usage    : _min($a, $b)
@@ -882,7 +779,6 @@ sub _min {
 }
 
 =head2 _overlap_fraction
-
   Title    : _overlap_fraction
   Incept   : EPN, Thu Jan 31 08:50:55 2013
   Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
@@ -910,7 +806,6 @@ sub _overlap_fraction {
 }
 
 =head2 _overlap_nres
-
   Title    : _overlap_nres
   Incept   : EPN, Thu Jan 31 08:50:55 2013
   Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
@@ -951,16 +846,10 @@ sub _overlap_nres {
 }
 
 
-=head2 dl_load_flags
+=head2 _c_read_msa
+=head2 _c_nseq
 
-  Title    : dl_load_flags
-  Incept   : ?
-  Usage    : ?
-  Function : ?
-  Args     : ?
-  Returns  : ?
-  
-=cut
+=head2 dl_load_flags
 
 
 =head1 AUTHORS

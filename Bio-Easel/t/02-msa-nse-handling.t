@@ -23,7 +23,7 @@ is($oname, "M15749.1/155-239", "nse_overlap method failed to return correct valu
 
 $testname = $msa->get_sqname(1);
 is($testname, "CP000653.1/2739273-2739189", "get_sqname method failed to return correct value");
-my $len = $msa->nse_len($testname);
-is($len, 85, "nse_len method failed to return correct value");
+my $len = $msa->nse_sqlen($testname);
+is($len, 85, "nse_sqlen method failed to return correct value");
 
 =cut
