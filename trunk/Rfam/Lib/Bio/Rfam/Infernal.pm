@@ -10,6 +10,7 @@ use Sys::Hostname;
 use File::stat;
 
 use Cwd;
+use Carp;
 use Data::Dumper;
 use Mail::Mailer;
 use File::Copy;
@@ -19,7 +20,7 @@ use vars qw( @ISA
 
 @ISA    = qw( Exporter );
 
-our $CMCALIBRATE_NCPU 81
+our $CMCALIBRATE_NCPU = 81;
 
 =head1 SUBROUTINES/METHODS
 =cut
@@ -43,7 +44,7 @@ sub cmbuild_wrapper {
     if($opts !~ m/\-F/) { $opts = "-F " . $opts; }
     $opts =~ s/\s+$//; # remove trailing whitespace
     $opts =~ s/^\s+//; # remove leading  whitespace
-    $cmd = $cmbuildPath . ' ' . $opts . ' ' . $cmPath . ' ' . $seedPath . '> /dev/null';
+    my $cmd = $cmbuildPath . ' ' . $opts . ' ' . $cmPath . ' ' . $seedPath . '> /dev/null';
     system($cmd);
     if($? != 0) { croak "$cmd failed"; }
     return;
@@ -73,26 +74,28 @@ sub cmcalibrate_wrapper {
     if(! defined $ncpu) { $ncpu = $CMCALIBRATE_NCPU; }
 
     # predict how long job will take
-    $cmd = "cmcalibratePath --forecast --nforecast $ncpu $cmPath";
+    my $cmd = "cmcalibratePath --forecast --nforecast $ncpu $cmPath";
     my $predicted_seconds;
     system($cmd);
     if($? != 0) { croak "$cmd failed"; }
+    my $forecast_out = "cmcalibrate-forecast.out";
     open(IN, $forecast_out) || croak "unable to open $forecast_out";
-    while($line = <IN>) { 
+    while(my $line = <IN>) { 
 	if($line !~ m/^\#/) { 
 	    $line =~ s/^\S+\s+//;
-	    ($h, $m, $s) = split(":", $line);
+	    my ($h, $m, $s) = split(":", $line);
 	    $predicted_seconds = 3600. * $h + 60. * $m + $s;
 	    last;
 	}
     }
     if(! defined $predicted_seconds) { croak "cmcalibrate prediction failed"; }
+    unlink $forecast_out;
        
     # submit MPI job
-    $mpi_output = "cmcalibrate-mpi.out";
-    $job_name   = "cmcal" . $$ . hostname;
-    system("module load openmpi-x86_64";
-    system("bsub -J $job_name -q mpi -I -n $ncpu -a openmpi mpirun.lsf -np $ncpu -mca btl tcp,self $cmcalibratePath --mpi $cmPath > $mpi_output";
+    my $mpi_output = "cmcalibrate-mpi.out";
+    my $job_name   = "cmcal" . $$ . hostname;
+    system("module load openmpi-x86_64");
+    system("bsub -J $job_name -q mpi -I -n $ncpu -a openmpi mpirun.lsf -np $ncpu -mca btl tcp,self $cmcalibratePath --mpi $cmPath > $mpi_output");
 
     Bio::Rfam::Utils::wait_for_farm($job_name, 'cmcalibrate', $ncpu, (2 * $predicted_seconds) + 180); #wait an extra few mins then the job will be killed, assuming MPI+Farm badness.
     return;

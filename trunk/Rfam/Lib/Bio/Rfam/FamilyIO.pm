@@ -1051,10 +1051,10 @@ sub makeAndWriteScores {
 # given a TBLOUT file, write four files:
 # 'outlist', 'species', 'rin.dat', 'rinc.dat'
 sub writeTbloutDependentFiles {
-    my ($self, $rfdbh, $seedmsa, $ga, $RPlotScriptPath) = @_;
+    my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath) = @_;
 
-    if(! defined $self->TBLOUT->fileLocation) { croak "TBLOUT's fileLocation not set"; }
-    my $tblI = $self->TBLOUT->fileLocation;
+    if(! defined $famObj->TBLOUT->fileLocation) { croak "TBLOUT's fileLocation not set"; }
+    my $tblI = $famObj->TBLOUT->fileLocation;
 
     # output files
     my $outlistO = "outlist";
