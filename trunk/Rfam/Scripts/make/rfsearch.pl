@@ -1,282 +1,210 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use Getopt::Long;
-use IO::File;
-use File::stat;
-use File::Copy;
-use Sys::Hostname;
 use Cwd;
-use Data::Dumper; #Great for printing diverse data-structures.
-use DBI;
-use Bio::Rfam::Family::MSA;
+use Getopt::Long;
+use File::Copy;
+use Data::Printer;
+use Carp;
+
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
-use Bio::Rfam::Family;
+use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
-use Data::Printer;
-
-#BLOCK 0: INITIALISE: 
 
 my $starttime = time();
 
-#Variables passed from command line:
-#
-my( $help,
-    $pname,
-    $nostruct,
-    $nobuild, 
-    $glocal,
-    $hmmonly,
-    $onlyCalibrate,
-    $forceCalibrate,
-    $cmsearch_eval,
-    @extraCmsearchOptionsSingle,
-    @extraCmsearchOptionsDouble,
-    $debug,
-    $bigmem);
+###################################################################
+# PRELIMINARIES:
+# - set default values that command line options may change
+# - process command line options
+# - set input/output file names, and ensure input files exist
+# - process DESC file
 
-#Variables used by rfsearch.pl:
-my ($ncpus_cmsearch,
-    $queue,
-    $cqueue,
-    $squeue,
-    $dirty,
-    @warnings,
-    %runTimes,
-    $schema,
-    $rfamTimes,
-    $status,
-	$dbconfig,
-	$dbpath,
-	$dbchoice,
-	$dbsize,
-	$binaryconfig,
-	$infernal_path
-    );
+# set default values that command line options may change
+# build related options
+my $force_build = 0;   # TRUE to force build
+my $do_nostruct = 0;   # TRUE to allow building of CMs with no structure
+# calibration related options
+my $force_calibrate = 0;  # TRUE to force calibration
+my $ncpus_cmcalibrate; # number of CPUs for cmsearch calls
+# search related options
+my $evalue;            # cmsearch E-value to use
+my $dbchoice = "rfamseq";
+my $no_search = 0;     # TRUE to do cmsearch
+my $ncpus_cmsearch;    # number of CPUs for cmsearch calls
+my @cmosA = ();        # extra single - cmalign options (e.g. -g)
+my @cmodA = ();        # extra double - cmalign options (e.g. --cyk)
+# other options
+my $queue;             # queue to submit all jobs to (default: auto-determined)
+my $dirty = 0;         # TRUE to leave files on file system
+my $verbose = 0;       # TRUE to be verbose with output
+my $do_help = 0;       # TRUE to print help and exit, if -h used
 
-$cmsearch_eval = "";
-$queue         = "";
-$cqueue        = "";
-$squeue        = "";
+&GetOptions( "b"          => \$force_build,
+	     "nostruct"   => \$do_nostruct,
+	     "c"          => \$force_calibrate,         
+	     "ccpu"       => \$ncpus_cmcalibrate
+	     "e=s",       => \$evalue,
+	     "dbchoice=s" => \$dbchoice,
+	     "nosearch"   => \$no_search,
+	     "scpu"       => \$ncpus_cmsearch
+             "cmos=s@"    => \@cmosA,
+             "cmod=s@"    => \@cmodA,
+	     "queue=s"    => \$queue,
+	     "dirty"      => \$dirty,
+	     "verbose"    => \$verbose,
+	     "h|help"     => \$do_help );
 
-&GetOptions( 
-	     "h|help"                  => \$help,
-	     "pname=s"                 => \$pname,
-             "nostruct"                => \$nostruct,
-	     "nobuild"                 => \$nobuild,
-	     "g|glocal"                => \$glocal,
-	     "hmmonly"                 => \$hmmonly,
-             "cal|calibrate"           => \$onlyCalibrate,
-             "fcal|forcecalibrate"     => \$forceCalibrate,
-             "cme|cmsearchevalue=s"    => \$cmsearch_eval,
-             "cmos|cmsearchoptions=s@" => \@extraCmsearchOptionsSingle,
-             "cmod|cmsearchoptiond=s@" => \@extraCmsearchOptionsDouble,
-             "debug"                   => \$debug,
-	     "bigmem"	     	       => \$bigmem,
-	     "cpu"	     	       => \$ncpus_cmsearch,
-	     "queue=s"                 => \$queue,
-	     "cqueue=s"                => \$squeue,
-	     "squeue=s"                => \$cqueue,
-		"dbchoice=s" => \$dbchoice,
-             "dirty"                   => \$dirty
-    );
-
-#set some db options and some paths:
-my $config = Bio::Rfam::Config->new;
-$dbchoice = "testrfamseq" unless ($dbchoice);
-$dbconfig = $config->seqdbConfig( $dbchoice);
-$dbpath   = $dbconfig->{"path"};
-$dbsize  = $dbconfig->{"dbsize"};
-
-$infernal_path = $config->infernalPath;
-
-###################################################################################################
-
-# determine if user set cmsearch E-value, if not we potentially use
-# bit score of (NC-2 bits) instead of an E-value cutoff.
-my $cme_option_set;
-if($cmsearch_eval eq "") { 
-    $cme_option_set = 0;
-}
-else { # user must have set cmsearch e-value
-    $cme_option_set = 0;
-}
-#SWB removed sanger queue options
-# make sure queue options make sense
-
-if( $help ) {
+if( $do_help ) {
     &help();
     exit(1);
 }
 
+# setup variables 
+my $config = Bio::Rfam::Config->new;
+my $io     = Bio::Rfam::FamilyIO->new;
+my $famObj = Bio::Rfam::Family->new(
+    'SEED' => {
+	fileLocation => "SEED",
+	aliType      => 'seed'
+    },
+    'TBLOUT' => { 
+	fileLocation => "TBLOUT",
+    },
+    'DESC'   => $io->parseDESC("DESC"),
+#    'CM'     => $io->parseCM("CM"),
+    );
+my $msa  = $famObj->SEED;
+my $desc = $famObj->DESC;
 
-# make sure files are writable by group
-umask(002);
+# extra processing of command-line options 
+# setup dbfile 
+my $dbconfig = $config->seqdbConfig($dbchoice);
+my $dbfile   = $dbconfig->{"path"};
+my $Z        = $dbconfig->{"dbsize"};
 
+if($do_nosearch) { # --nosearch, verify incompatible options are not set
+    if(defined $ncpus_cmsearch) { die "ERROR --nosearch and --scpu are incompatible"; }
+    if(defined $evalue)         { die "ERROR --nosearch and -e are incompatible"; }
+    if(defined @cmosA)          { die "ERROR --nosearch and --cmosA are incompatible"; }
+    if(defined @cmodA)          { die "ERROR --nosearch and --cmodA are incompatible"; }
+}
+
+# ncpus_cmsaerch and ncpus_cmcalibrate must be >= 0
+if(defined $ncpus_cmsearch    && $ncpus_cmsearch    < 0) { die "ERROR with --scpu <n>, <n> must be >= 0"; }
+if(defined $ncpus_cmcalibrate && $ncpus_cmcalibrate < 0) { die "ERROR with --ccpu <n>, <n> must be >= 0"; }
+
+
+if($do_nostruct) { # --nostruct: verify SEED either has SS_cons with 0 bps or does not have SS_cons
+    if($msa->has_sscons) { 
+	my $nbps = $msa->num_basepairs;
+	if($nbps > 0) { die "ERROR with --nostruct, SEED must have zero bp SS_cons, or no SS_cons"; }
+    }
+    else { # --nostruct enabled, but msa does not have one, add one
+	$msa->set_blank_sscons($sscons);
+    }
+}
+
+# no all gap columns allowed in SEED
+if($msa->any_allgap_columns) { 
+    die "ERROR all gap columns exist in SEED";
+}
+
+###################################################################################################
 #Gather some info for logging:
-my $user =  getlogin() || getpwuid($<);
-die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]" if not defined $user or length($user)==0;
-
-&printlog( "USER: [$user] " );
-my $pwd = getcwd;
+my $pwd   = getcwd;
 my $phost = hostname;
-
+my $user  = getlogin() || getpwuid($<);
+if(! defined $user || length($user) == 0) { 
+    die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]";
+}
+&printlog( "USER: [$user] " );
 &printlog( "RFSEARCH USING INFERNAL VERSION 1.1");
 &printlog( "Using database $dbchoice\n");
 
-#Validate SEED and DESC files
-#Replace with Rob's new code for parsing DESC files
-#
-
-#my $descfile = 'DESC';
-my $familyIO = Bio::Rfam::FamilyIO->new( ); 
-
-unless (-s 'DESC') {
-	$familyIO->writeEmptyDESC('DESC');
+# Deal with rfsearch.log and log directory
+if (-e "rfsearch.log") { 
+    if(! -w "rfsearch.log") { die("FATAL: check permissions on rfsearch.log"); }
+    unlink "rfsearch.log";
 }
-my $desc = $familyIO->parseDESC( 'DESC' );
-my $buildopts = $desc->{'BM'};
-
-######################################################################
-#Validate the SEED & check for RF and SS_cons annotation
-#and set up some cm building options:
-#
-$buildopts = "" unless $buildopts;
-$buildopts =~ s/-F CM SEED//;
-$buildopts =~ s/cmbuild//;
-
-if (-e "SEED"){
-    open(S, "SEED") or die("SEED exists but couldn't be opened!");
-    my $seen_rf;
-    my $seen_sscons;
-    while(<S>) {
-	if( /^\#=GC\s+RF/ ) {
-	    $seen_rf = 1;
-	}
-	if( /^\#=GC\s+SS_cons/ ) {
-	    $seen_sscons = 1;
-	}
-    }
-    close(S);
-
-    #check SEED for gaps
-    if(&checkSEEDgap("SEED")){
-	die  ("FATAL: gap columns in SEED!\n run sreformat --mingap SEED");
-    }
-    #Using a reference coordinate system
-    # Infernal v1.1
-    # if no RF in alignment, remove --rf or --hand from $buildopts
-    if( !$seen_rf ) { 
-	if($buildopts =~ /--rf\s+/)   { $buildopts =~ s/--rf\s+//g;   }
-	if($buildopts =~ /--hand\s+/) { $buildopts =~ s/--hand\s+//g; }
-    }
-    else { # RF does exist, if --rf is in $buildopts, replace with --hand
-	if($buildopts =~ /--rf\s+/)   { $buildopts =~ s/--rf\s+/--hand /g;   }
-    }
-    # Check if we need to add SS_cons to the SEED (only legal if --nostruct enabled)
-    if(! $seen_sscons) { # SS_cons does not exist in SEED
-	if(! $nostruct) { # --nostruct not enabled, die
-	    die("FATAL: no SS_cons in SEED, use --nostruct to build a 0 bp CM");
-	}
-	else { # --nostruct enabled, if v1p1: add --noss to buildopts, else add zero bp SS_cons to alignment
-	    $buildopts .= " --noss";
-	}
-    } # end of if(! $seen_sscons)
-    elsif($nostruct) { # --nostruct enabled, but SS_cons exists, die 
-	die "ERROR --nostruct enabled but SEED has SS_cons annotation";
-    }
-}
-
-#Check for the existence and correct permissions of essential files:
-if (-e "rfsearch.log" && -w "rfsearch.log"){
-    unlink("rfsearch.log");
-}
-elsif (-e "rfsearch.log") {
-    die("FATAL: check permissions on rfsearch.log");
-}
-
-#user must have log dir!
-
 print "Making farm and log directories....";
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or die "FATAL: failed to mkdir [$pwd/$$]\n[$!]";
-my $lustre = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the farm
-mkdir ("$lustre") or die "FATAL: failed to mkdir [$lustre]\n[$!]";
+my $dumpdir = "/nfs/nobackup/xfam/$user/$$"; #path for dumping data to on the farm
+mkdir ("$dumpdir") or die "FATAL: failed to mkdir [$dumpdir]\n[$!]";
 
-#Build and calibrate the CM if necessary:
-
-my $qchoice = "";
-if ($queue  ne "") { $qchoice = $queue; }
-if ($cqueue ne "") { $qchoice = $cqueue; }
-
-unless( $nobuild) { 
-    my $buildCm = 0;
-
-    $buildCm = 1 if youngerThan("$pwd/SEED", "$pwd/CM");
-    $buildCm = 1 if defined $forceCalibrate;
-    $buildCm = 1 if defined $onlyCalibrate;
-    #check if CM is calibrated: 
-    if (-e "$pwd/CM"){
-	$buildCm = 1 if not Bio::Rfam::Utils::isCmCalibrated("$pwd/CM"); 
-    }
-    else {
-	$buildCm = 1;
-    }
-    
-    if (-e "$pwd/CM" && not -w "$pwd/CM") {
-	die("FATAL: $pwd/CM file exists but you don't have write access");
-   	} 
-    
-	#Clean up any files from previous runs
-    if ($buildCm){
-	unlink("$pwd/CM.xxx") if -e "$pwd/CM.xxx"; #Clean up old tmp files from cmbuild:
-	unlink ("$pwd/CM") if -e "$pwd/CM";
-	
-	#Append -F and filenames to buildopts for cmbuild command:
-	my $buildcmd = "$infernal_path/cmbuild $buildopts -F CM SEED ";
-	
-	#Run cmbuild:
-	open (CMB, "$buildcmd |") or die "Can't open pipe to write CM file!\n";
-	while (<CMB>) {
-
-	}
-	close (CMB);
-
-		#Now calibrate model:
-	my $iscalibrated=0;
-	 
-	for (my $try=1; $try<4; $try++){
-	    copy("$pwd/CM", "$lustre/CM") or die "FATAL: failed to copy [$pwd/CM] to [$lustre/CM]\n[$!]";
-	    
-	    $runTimes{'calibration'}=Bio::Rfam::Infernal::cmCalibrate($infernal_path."/cmcalibrate", "CM", $lustre, $pwd, $debug, $bigmem, $qchoice);
-	    # this should work for 1.0 or 1.1
-	    $iscalibrated = Bio::Rfam::Utils::isCmCalibrated("$lustre/CM");
-	    &printlog( "        cmcalibration took:             " . $runTimes{'calibration'} . " secs" ) if $iscalibrated;
-	    last if $iscalibrated;
-	    &printlog( "FAILED to calibrate the $lustre/CM, retry number $try");
-	}
-	&printlog( "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ...") if !$iscalibrated;
-	die "FATAL: failed to calibrate the model after 3 tries! Check or ssh settings & ..." if !$iscalibrated; 
-	#Update time DB now...
-	exit(0) if defined $onlyCalibrate;
-    }
-    else {
-	&printlog( "$pwd/CM has already been calibrated, use -fcal if you want to re-calibrate..." );
-    }
+##############
+# Build step #
+##############
+# Get CM
+my $cm;
+if(-e "$pwd/CM") { 
+    $famObj->CM($io->parseCM("$pwd/CM"));
+    $cm = $famObj->CM($io->parseCM("$pwd/CM"));
 }
 
-my $initendtime = time();
+my $is_cm_calibrated = 0;
+if(defined $cm && $cm->is_calibrated) { 
+    $is_cm_calibrated = 1;
+}
 
-#Find out how big the database is (used for e-value computations for infernal)
-# (If we upgrade script to allow alternate databases, we'll need to update this to
-# determine size of alternate db.)
+# figure out if we have to build
+my $do_build = 0;
+if($force_build)                        { $do_build = 1; }
+if(! defined $cm)                       { $do_build = 1; }
+if(! $is_cm_calibrated)                 { $do_build = 1; }
+if(youngerThan("$pwd/SEED", "$pwd/CM")) { $do_build = 1; }
 
-&printlog( "DBSIZE: $dbsize");
+if($do_build) { 
+    # get cmbuild options 
+    my $buildopts = $desc->{'BM'};
+    if(! defined $buildopts) { $buildopts = ""; }
+    $buildopts = "" unless $buildopts;
+    $buildopts =~ s/-F CM SEED//;
+    $buildopts =~ s/cmbuild//;
+    # deal with RF related buildopts
+    # if RF exists:         replace --rf in $buildopts with --hand
+    # if RF does not exist: remove --rf or --hand from buildopts
+    if($msa->has_rf) { 
+	$buildopts =~ s/\-\-rf\s*/\-\-hand /;
+    }
+    else { # no RF
+	$buildopts =~ s/\-\-hand\s*//;
+	$buildopts =~ s/\-\-rf\s*//;
+    }
+    
+    # clean up any files from previous runs
+    if(-e "$pwd/CM")     unlink "$pwd/CM";
+    if(-e "$pwd/CM.xxx") unlink "$pwd/CM.xxx";
 
-#####################################################
-# Determine bit score or E-value threshold to use.
+    # run cmbuild to create new CM
+    #TODO don't use system call ask Rob about how he calls esl-sfetch
+    Bio::Rfam::Infernal::cmbuild_wrapper($config->infernal_path . "/cmbuild", "-F $buildopts", "CM", "SEED");
+
+    # define (or possibly) redefine $cm, or
+    if(! -e "CM") { die "ERROR CM does not exist after apparently successful cmbuild"; }
+
+    $famObj->CM($io->parseCM("CM"));
+    $cm = $famObj->CM($io->parseCM("CM"));
+    $is_cm_calibrated = 0;
+} # end of if($do_build)
+my $build_endtime = time();
+
+####################
+# Calibration step #
+####################
+if($force_calibrate || (! $is_cm_calibrated)) { 
+    Bio::Rfam::Infernal::cmcalibrate_wrapper($confif->infernal_path . "/cmcalibrate", "$pwd/CM");
+}
+my $calibrate_endtime = time();
+
+###############
+# Search step #
+###############
+
+# First, determine bit score or E-value threshold to use for cmsearch.
 # 4 possible cases:
 # Case 1: If user set -cme <f> option, use that with -E <f>.
 # If user did not use -cme hn:
@@ -284,9 +212,8 @@ my $initendtime = time();
 # Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
 # Case 4: else use -T <x>, where <x> = GA-2.
 
-
 my $use_cmsearch_eval;      # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
-my $cmsearch_bitsc = 0;     # irrelevant unless $use_cmsearch_eval is set to 0 below
+my $bitsc = 0;              # bit score thr to use, irrelevant unless $use_cmsearch_eval is set to 0 below
 my $e_bitsc        = 0;     # bit score corresponding to $cmsearch_eval
 my $ga_bitsc       = 0;     # GA bitscore for this model
 my $ga_eval        = 0;     # E-value corresponding to GA bit score
@@ -294,65 +221,42 @@ my $max_eval       = 50000; # hard-coded max E-value allowed, not applied if -cm
 my $min_bitsc      = 0;     # bit score corresponding to $max_eval, set below
 my $min_eval       = 1000;  # hard-coded min E-value allowed, not applied if -cme used
 
-if($cme_option_set) { # $cmsearch_eval already set during option processing, case 1:
+if(defined $evalue) { # -e option used on cmdline
     $use_cmsearch_eval = 1;
 }
-else { # -cme not used 
+else { # -e not used 
     # set default as case 2:
     $cmsearch_eval     = 1000;
     $use_cmsearch_eval = 1;
 
-    # if DESC exists, get GA from that and check to see if cases 3 or 4 apply
-    if(-e "DESC") { 
-	$e_bitsc   = cmstat_bit_from_E($infernal_path, "$pwd/CM", $dbsize, $cmsearch_eval, (defined $glocal) ? 1 : 0);
-	$min_bitsc = cmstat_bit_from_E($infernal_path, "$pwd/CM", $dbsize, $max_eval,      (defined $glocal) ? 1 : 0);
-	$ga_bitsc = $desc->{'CUTGA'};
-	if(($ga_bitsc-2) < $min_bitsc) { # case 3
-	    $cmsearch_eval = $max_eval; 
-	}
-	elsif(($ga_bitsc-2) < $e_bitsc) { # case 4
-	    $cmsearch_bitsc    = $ga_bitsc-2;
-	    $use_cmsearch_eval = 0;
-	}
+    # get GA from that and check to see if cases 3 or 4 apply
+    $ga = $famObj->DESC->CUTGA; 
+    $e_bitsc   = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z);
+    $min_bitsc = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $max_evalue, $Z);
+    if(($ga_bitsc-2) < $min_bitsc) { # case 3
+	$evalue = $max_eval; 
+    }
+    elsif(($ga_bitsc-2) < $e_bitsc) { # case 4
+	$bitsc = $ga_bitsc-2;
+	$use_cmsearch_eval = 0;
     }
 }
-#####################################################
 
-my $command = "$infernal_path/cmsearch";
+# define options for cmsearch
 my $ncpus; 
 if(! defined $ncpus_cmsearch) { 
-    $ncpus_cmsearch = 2;
+    $ncpus_cmsearch = 8;
 }
-if($ncpus_cmsearch == 0) { # special case use -n1 with bsub
-    $ncpus = 1; 
-}
-else { 
-    $ncpus = $ncpus_cmsearch; 
-}
-my $options = " -Z $dbsize --cpu $ncpus_cmsearch ";
-$options .= " --hmmonly " if( $hmmonly );
-$options .= " -g " if( defined $glocal );
-if($use_cmsearch_eval) { 
-    $options .= " -E $cmsearch_eval ";
-}
-else { 
-    $options .= " -T $cmsearch_bitsc ";
-}
+my $options = " -Z $Z --cpu $ncpus_cmsearch ";
+if($use_cmsearch_eval) { $options .= " -E $cmsearch_eval "; }
+else                   { $options .= " -T $cmsearch_bitsc "; }
+my $extra_options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+$options .= $extra_options;
 
-# add extra options    
-# "-<x>"
-if (@extraCmsearchOptionsSingle){ 
-    foreach my $opts (@extraCmsearchOptionsSingle){
-	$options .= " \-$opts ";
-    }
-}
-# "--<x>    
-if (@extraCmsearchOptionsDouble){
-    foreach my $opts (@extraCmsearchOptionsDouble){
-	$options .= " \-\-$opts ";
-    }
-}
-    
+# HERE HERE HERE 
+# update seqdbConfig to include array of db files to search, then read that array
+# and call cmsearch_wrapper for each file
+
 $pname = "cm$$" if( not $pname );
     
 &printlog( "Queueing cmsearch jobs" );
@@ -690,52 +594,36 @@ sub youngerThan {
 sub help {
     print STDERR <<EOF;
 
-rfsearch.pl: builds and searches a covariance model against a sequence database.
+rfsearch.pl: builds, calibrates and searches a CM against a sequence database.
              Run from within a directory containing "SEED" & "DESC" files. 
-	     Eg, after running "rfupdate.pl RFXXXXX" or "rfco.pl RFXXXXX".
+	     E.g., after running "rfupdate.pl RFXXXXX" or "rfco.pl RFXXXXX".
 	     SEED contains a stockholm format alignment and DESC is an internal 
 	     Rfam documentation describing each RNA family. 
 
-Usage:   rfsearch.pl <options>
-Options:       --h                           show this help
-	       
-	       --pname <s>                   Set name for jobs to <s> 
-	       --nobuild                     Skip the cmbuild step
-	       --nostruct                    Add a zero basepair SS_cons to SEED prior to cmbuild (requires that none exists in SEED)
-	       -g|--glocal                   Run cmsearch in glocal mode (DESC cmsearch command is always ignored!)
-	       --hmmonly                     An option for long models (eg. SSU/LSU rRNA,...),
-	                                     This runs "cmsearch -hmmonly", requires infernal version >=1.1 
-	       -cal|--calibrate              Calibrate model and exit
-	       -fcal|--forcecalibrate        Force re-calibrating the model
-	       -cme|--cmsearchevalue   <num> Set an evalue threshold for cmsearch [Default: 1000]
-	       -cmos|--cmsearchoptions <str> Add extra arbitrary options to cmsearch with a single '-'. For multiple options use multiple 
-	                                     -cmos lines. Eg. '-cmos g' will run cmsearch in global mode
-	       -cmod|--cmsearchoptiond <str> Add extra arbitrary options to cmsearch with a double '-'. For multiple options use multiple 
-	                                     -cmod lines. Eg. '-cmod mid' will run cmsearch in 'mid' filter mode
-	       --debug                       run cmcalibrate in special debugging mode to try to debug MPI problems			     
-	       --bigmem			     Request 3.5Gb memory for the cmalign step. This is only necessary for long alignments (over 1kb) 
-	       --cpu <n>	             pass --cpu <n> to cmsearch
+Usage:      rfsearch.pl [options]
 
-                QUEUE
-		--queue <s>                  Submit all         jobs to queue <s> (<s>=small, normal, long, basement)
-                --cqueue <s>                 Submit cmcalibrate jobs to queue <s>
-                --squeue <s>                 Submit cmsearch    jobs to queue <s>
+Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
+	    -b      always run cmbuild (default: only run if 'CM' is v1.0 or doesn't exist)
+	    --nostruct     set a zero basepair SS_cons in SEED prior to cmbuild (none must exist in SEED)
 
-		CLEANUP
-		--dirty                      Leave the files on the cluster. 
-		
-TO ADD:
-Alternative filters: fasta, hmmsearch, ...
-Add a cmsensitive option - using indels \& local
-Run and store local, glocal and trCYK modes. 
+            OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
+	    -c      always run cmcalibrate (default: only run if 'CM' is not calibrated)
+            --ccpu <n>     set number of CPUs for MPI cmcalibrate job to <n>
 
-ADD A CHECK THAT ALL THE CMSEARCH JOBS COMPLETED!
--(ls 22111.minidb* | wc -l) == (grep -c "//" OUTPUT)
-XNU filters also?
+            OPTIONS RELATED TO SEARCH STEP (cmsearch):
+            -e <f>  set cmsearch E-value threshold as <f> bits
+            --dbchoice <s> set sequence database to search as <s> ('rfamseq' or 'testrfamseq')
+            --nosearch     do not run cmsearch
+            --scpu <n>     set number of CPUs for cmsearch jobs to <n>
+	    --cmos <str> add extra arbitrary option to cmsearch with '-<str>'. (Infernal 1.1, only option is '-g')
+            --cmod <str> add extra arbitrary options to cmsearch with '--<str>'. For multiple options use multiple
+	                 -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
 
-checkpointing?
-http://scratchy.internal.sanger.ac.uk/wiki/index.php/Checkpoint_and_Restart
-
+            OTHER OPTIONS:
+            --queue <s>    submit all jobs to queue <s> 
+	    --dirty      leave temporary files, don't clean up
+  	    --verbose    print loads of cruft
+  	    -h|-help     print this help, then exit
 EOF
 }
 

@@ -240,52 +240,6 @@ sub overlapNres {
     return $D;
 }
 
-=head2 cm_evalue2bitsc()
-
-  Title    : cm_evalue2bitsc()
-  Incept   : EPN, Tue Jan 29 17:18:43 2013
-  Usage    : cm_evalue2bitsc($cm, $evalue)
-  Function : Returns bit score for a given E-value
-  Args     : <cm>:     Bio::Rfam::Family::CM object
-           : <evalue>: E-value we want bit score for
-           : <Z>:      database size (both strands) for E-value->bitsc calculation
-  Returns  : bit score for E-value for CM in db of $Z residues 
-           : (where $Z includes BOTH strands of target seqs)
-  
-=cut
-
-sub cm_evalue2bitsc { 
-    my ($cm, $evalue, $Z) = @_;
-    
-    # following from infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
-    my $eline; # E-value stat line from CM file
-    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp); # E-value stat components from CM file
-    my $cur_eff_dbsize; # current effective dbsize
-    my $bitsc; # bit score to return;
-
-    # variables only used if HMM stats apply
-    my $tau; # used if HMM stats are used
-    my $maxlen; # maximum lenght
-
-    # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
-    if($cm->{match_pair_node}) { # use CM stats
-	# TODO, read SM in desc, and pick appropriate E-value line based on that
-	$eline = $cm->{cmHeader}->{ecmli};
-	($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = split(/s+/, $eline);
-	$cur_eff_dbsize = ($Z / $dbsize) * $nhits;
-	$bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
-    }
-    else { 
-	$eline = $cm->{cmHeader}->{efp7gf};
-	($tau, $lambda) = split(/\s+/, $eline);
-	$maxlen = $cm->{cmHeader}->{maxl};
-	$bitsc = $tau + ((log($evalue / ($Z / $maxlen))) / (-1 * $lambda));
-    }
-    
-    printf("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\nEline: $eline\n");
-    return $bitsc;
-}
-
 ######################################################################
 #species2shortspecies: Given a species string eg. "Homo sapiens
 #                      (human)" generate a nicely formated short name
@@ -346,32 +300,6 @@ sub nse2len {
 	else         { return ($s-$e+1); }
     }
     die "ERROR: nse2len() $sqname doesn't match expected format of N/S-E";
-}
-
-=head2 stringize_infernal_cmdline_options()
-
-  Title    : stringize_infernal_cmdline_options()
-  Incept   : EPN, Thu Jan 31 16:52:35 2013
-  Usage    : stringize_infernal_cmdline_options($sdashAR, $ddashAR)
-  Function : Returns option string including single dash and double dash
-           : options in $sdashAR and $ddashAR.
-  Args     : Array ref to array of single dash options
-           : Array ref to array of double dash options
-  Returns  : string of options
-  
-=cut
-sub stringize_infernal_cmdline_options {
-    my ($sdashAR, $ddashAR) = @_;
-
-    my $optstring = "";
-    my $opt;
-
-    foreach $opt (@{$sdashAR}) { $optstring .= "\-$opt ";  }
-    foreach $opt (@{$ddashAR}) { $optstring .= "\--$opt "; }
-    
-    $optstring =~ s/\s+$//;
-
-    return $optstring;
 }
 
 ######################################################################
