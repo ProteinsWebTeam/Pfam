@@ -92,11 +92,10 @@ No functions currently exported.
 =head2 new 
   Title    : new
   Incept   : EPN, Thu Jan 24 09:28:54 2013
-  Usage    : Bio::EslMSA->new
-  Function : Generates a new Bio::EslMSA object
+  Usage    : Bio::Easel::MSA->new
+  Function : Generates a new Bio::Easel::MSA object
   Args     : <fileLocation>: file location of alignment
-           : <nseq>: number of seqs
-  Returns  : Bio::EslMSA object
+  Returns  : Bio::Easel::MSA object
 =cut
 
 sub new {
@@ -885,31 +884,10 @@ You can find documentation for this module with the perldoc command.
     perldoc Bio::Easel::MSA
 
 
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Bio-HMM-Logo>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Bio-HMM-Logo>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Bio-HMM-Logo>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Bio-HMM-Logo/>
-
-=back
-
-
 =head1 ACKNOWLEDGEMENTS
 
+Sean R. Eddy is the author of the Easel C library of functions for 
+biological sequence analysis, upon which this module is based.
 
 =head1 LICENSE AND COPYRIGHT
 
