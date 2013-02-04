@@ -47,7 +47,7 @@ my $verbose = 0;      # TRUE to be verbose with output
 	     "a",         => \$do_align,
 	     "subalign"   => \$do_subalign,
 	     "farm"       => \$farm,
-	     "dbchoice=s" => \$dbchoice,
+	     "dbchoice=s" => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
 	     "notaxinfo"  => \$no_taxinfo,
@@ -98,7 +98,7 @@ if((defined $thr) && (defined $evalue)) {
 elsif(defined $evalue) { 
     # TODO, read SM in desc, and pick appropriate E-value line based on that
     my $cm    = $famObj->CM;
-    my $bitsc = int((evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
+    my $bitsc = int((Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
     $thr = $bitsc;
     $changed_thr = 1;
     print STDERR  "Using GA threshold of $thr bits, converted from E-value of <x> from command line";
@@ -138,7 +138,7 @@ if($do_align) {
     eslSfetch_Cf($sfetchPath, $dbfile, "SCORES", "$$.fa");
 
     # use cmalign to do the alignment
-    my $options = stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+    my $options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
     # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
     my $cmalignPath = $config->infernalPath . "/cmalign";
     Bio::Rfam::Infernal::cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
@@ -200,9 +200,10 @@ rfmake.pl - Process the results of rfsearch.pl.
               2) use -e <x> to set it as <n> bits, where <n> is 
                  minimum bit score with E-value <= <x>.
 
-Usage:      rfmake.pl
+Usage:      rfmake.pl [options]
 
-Options:    -e <f>  set threshold as minimum integer bit score w/E-value <= <f>
+Options:    -t <f>  set threshold as <f> bits
+            -e <f>  set threshold as minimum integer bit score w/E-value <= <f>
 	    
 	    OPTIONS RELATED TO CREATING ALIGNMENTS (by default none are created):
 	    -a           create 'align' alignment with all hits above threshold, with cmalign (requires -t or -e)
@@ -212,12 +213,12 @@ Options:    -e <f>  set threshold as minimum integer bit score w/E-value <= <f>
             --cmod <str> add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
 	                 -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
 
-	     OTHER:
-	     --nocompare  do not create COMPARISON file
- 	     --notaxinfo  do not create TAXINFO file
-	     --dirty      leave temporary files, don't clean up
-  	     --verbose    print loads of cruft
-  	     -h|-help     print this help, then exit
+	    OTHER:
+            --nocompare  do not create COMPARISON file
+	    --notaxinfo  do not create TAXINFO file
+	    --dirty      leave temporary files, don't clean up
+  	    --verbose    print loads of cruft
+  	    -h|-help     print this help, then exit
 
 EOF
 }

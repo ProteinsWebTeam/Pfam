@@ -76,7 +76,7 @@ has 'SEED' => (
 );
 
 has 'CM' => (
-  is       => 'ro',
+  is       => 'rw',
   isa      => 'Bio::Rfam::Family::CM',
   required => 0,
 );
