@@ -24,6 +24,7 @@ my $view = Bio::Rfam::View->new ( {
   config    => $config,
   family    => $family,
   job_uuid  => $uuid,
+  seqdb     => 'rfamseq'
 } );
 
 $view->startJob;
