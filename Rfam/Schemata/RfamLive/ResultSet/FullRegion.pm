@@ -76,7 +76,7 @@ sub getMatchList{
   my ($list, $count);
   my $rfam_acc = $famRow->rfam_acc;
   
-  my $rs = $self->search({rfam_acc => 'RF00014'}, 
+  my $rs = $self->search({rfam_acc => $rfam_acc }, 
                 {select => [{'LENGTH' => 'rfamseq_acc.rfamseq_acc'}, { 'LENGTH' => 'ncbi.species'}],
                  join   => {'rfamseq_acc' => 'ncbi'},
                  as     => [ qw(acc_len species_len)] });
