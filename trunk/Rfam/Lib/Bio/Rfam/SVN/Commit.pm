@@ -80,7 +80,7 @@ sub _commitEntry {
   
   my $rfamdb = $self->{config}->rfamlive;
   #Need to put a transaction around this block
-  my $guard = $rfamdb->getSchema->txn_scope_guard;  
+  my $guard = $rfamdb->txn_scope_guard;  
   #Regardless of the way that we have come in to this part,
   #update the database with the DESC file information.
    my @updated = $self->updated(); 
@@ -170,8 +170,8 @@ sub _getEntryObjFromTrans {
   #Are we dealing with a new family, set path accordingly.
   my $svnPath =
     ( $isNew == 1 )
-    ? $self->{config}->svnNewModels
-    : $self->{config}->svnModels;
+    ? $self->{config}->svnNewFamilies
+    : $self->{config}->svnFamilies;
 
   #At this point we have no idea of the name of the family.
   my @updated_files = $self->updated();
@@ -234,7 +234,7 @@ sub _getEntryObjFromTrans {
     utime $atime, $mtime, "$dir/$family/$file";
   }
 
-  my $famObj = $familyIO->loadDfamFromLocalFile( $family, $dir, 'svn' );
+  my $famObj = $familyIO->loadRfamFromLocalFile( $family, $dir, 'svn' );
 
   return ( $famObj, $family, $dir );
 }
@@ -312,7 +312,7 @@ sub allowCommit {
   my ( $self  ) = @_;
   
   my $rfamDB = $self->{config}->rfamlive;
-  my @lock_data =
+  my @lock_data = 
     $rfamDB->resultset('Lock')->search( { 'locked' => 1 } );
 
   if (@lock_data) {

@@ -93,10 +93,10 @@ print STDERR "Successfully loaded local copy $family through middleware\n";
 
 unless($onlydesc){
   #TODO - put in lots ot QC here.
-  if ( !Bio::Rfam::QC::checkFamilyFiles($family, $upFamilyObj) ) {
-    print "$0: $family contains errors.  You should rebuild this model.\n";
-    exit(1);
-  } 
+  #if ( !Bio::Rfam::QC::checkFamilyFiles($family, $upFamilyObj) ) {
+  #  print "$0: $family contains errors.  You should rebuild this model.\n";
+  #  exit(1);
+  #} 
 }
 
 $oldFamilyObj = $familyIO->loadRfamFromSVN( $family, $client );
@@ -159,10 +159,10 @@ unless ($ignore) {
 
     #TODO - Add QC here
     
-    unless ( Bio::Rfam::QC::sequenceChecker( $family, $upFamilyObj ) ) {
-      print "%0: $family contains errors.  You should rebuild this family.\n";
-      exit(1);
-    }
+    #unless ( Bio::Rfam::QC::sequenceChecker( $family, $upFamilyObj ) ) {
+    #  print "%0: $family contains errors.  You should rebuild this family.\n";
+    #  exit(1);
+    #}
 
 #TOD - Add QC in here!
 #    unless ( Bio::Rfam::RfamQC::noMissing( $upFamilyObj, $oldFamilyObj, $family ) ) {
