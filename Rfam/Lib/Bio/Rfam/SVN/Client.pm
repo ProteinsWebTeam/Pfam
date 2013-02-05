@@ -424,7 +424,7 @@ sub catFile {
   my ( $self, $dir, $filename, $fh, $rev ) = @_;
 
   my $url =  $self->familyLocation . "/" . $dir;
-  my $revision = $self->{config}->revision ? $self->{config}->revision : 'HEAD';
+  my $revision = $self->{config}->svnRevision ? $self->{config}->svnRevision : 'HEAD';
   
   unless ($fh) {
     $fh = \*STDOUT;
