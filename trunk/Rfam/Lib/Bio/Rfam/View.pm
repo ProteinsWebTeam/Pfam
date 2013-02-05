@@ -34,7 +34,7 @@ has job_uuid => (
 );
 
 has family => (
-  is  => 'rw',
+  is  => 'ro',
   isa => 'Bio::Rfam::Family',
   required => 1,
   coerce => 1
@@ -44,6 +44,12 @@ has family => (
 has job => (
   is  => 'rw',
   isa => 'Object'
+);
+
+has seqdb => (
+  is => 'ro',
+  isa => enum(['rfamseq']),
+  required => 1
 );
 
 sub example_method_on_view_object {

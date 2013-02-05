@@ -49,12 +49,15 @@ sub allRegions {
   
   my @regions;
   #TODO - add Pagination also stop row inflation - Jody did it for Dfam
-  my @row = $self->search({rfam_acc => $rfam_acc});
+  my @row = $self->search({rfam_acc => $rfam_acc},
+                          { join => 'rfamseq_acc',
+                            '+select' => ['rfamseq_acc.rfamseq_acc'],
+                            '+as'     => ['seq_acc'] });
   foreach my $r (@row){
-    push(@regions, [ $r->rfamseq_acc.'/'.$r->seq_start.'-'.$r->seq_end,
+    push(@regions, [ $r->get_column('seq_acc').'/'.$r->seq_start.'-'.$r->seq_end,
                      $r->seq_start,
                      $r->seq_end,
-                     $r->rfamseq_acc,
+                     $r->get_column('seq_acc'),
                      $r->bit_score,
                      $r->evalue_score,
                      $r->cm_start,
@@ -65,5 +68,37 @@ sub allRegions {
   return \@regions;
 }
 
+sub getMatchList{
+  my ( $self, $famRow) = @_;
+  
+  my $expected = $famRow->num_full;
+  
+  my ($list, $count);
+  my $rfam_acc = $famRow->rfam_acc;
+  
+  my $rs = $self->search({rfam_acc => 'RF00014'}, 
+                {select => [{'LENGTH' => 'rfamseq_acc.rfamseq_acc'}, { 'LENGTH' => 'ncbi.species'}],
+                 join   => {'rfamseq_acc' => 'ncbi'},
+                 as     => [ qw(acc_len species_len)] });
+  my $spLen = $rs->get_column('species_len')->max;
+  my $acLen = $rs->get_column('acc_len')->max;
+  
+  p($acLen);
+  #TODO - add Pagination
+  # also stop row inflation
+  #  - use DBIx::Class::ResultClass::HashRefInflator!
+  my @row = $self->search({rfam_acc => $rfam_acc},
+                          { join => {'rfamseq_acc' => 'ncbi'},
+                            '+select' => ['rfamseq_acc.rfamseq_acc', 'ncbi.species'],
+                            '+as'     => ['seq_acc', 'species'] });
+  foreach my $r (@row){
+    $count++;
+    $list.= $rfam_acc.' '.$r->get_column('species').' '.$r->get_column('seq_acc').'/'.$r->seq_start.'-'.$r->seq_end."\n";
+  }
+  unless($count == $expected){
+    die "Monumental cock has occured, mismatch between the number of regions";
+  }
+  return $list;
+}
 
 1;
