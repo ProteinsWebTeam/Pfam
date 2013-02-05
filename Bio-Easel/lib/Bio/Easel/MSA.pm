@@ -90,12 +90,14 @@ No functions currently exported.
 =cut
 
 =head2 new 
+
   Title    : new
   Incept   : EPN, Thu Jan 24 09:28:54 2013
   Usage    : Bio::Easel::MSA->new
   Function : Generates a new Bio::Easel::MSA object
   Args     : <fileLocation>: file location of alignment
   Returns  : Bio::Easel::MSA object
+
 =cut
 
 sub new {
@@ -128,12 +130,14 @@ sub new {
 
 
 =head2 msa
+
   Title    : msa
   Incept   : EPN, Tue Jan 29 09:06:30 2013
   Usage    : Bio::Easel::MSA->msa()
   Function : Accessor for msa: sets (if nec) and returns MSA.
   Args     : none
   Returns  : msa   
+
 =cut
 
 sub msa {
@@ -146,12 +150,14 @@ sub msa {
 }
 
 =head2 path
+
   Title    : path
   Incept   : EPN, Tue Jan 30 15:42:30 2013
   Usage    : Bio::Easel::MSA->path()
   Function : Accessor for path, read only.
   Args     : none
   Returns  : string containing path to the SEED or undef.   
+
 =cut
 
 sub path {
@@ -161,12 +167,14 @@ sub path {
 }
 
 =head2 read_msa
+
   Title    : read_msa
   Incept   : EPN, Mon Jan 28 09:26:24 2013
   Usage    : Bio::Easel::MSA->read_msa($fileLocation)
   Function : Opens $fileLocation, reads first MSA, sets it.
   Args     : <fileLocation>: file location of alignment
   Returns  : void
+
 =cut
 
 sub read_msa { 
@@ -183,12 +191,14 @@ sub read_msa {
 }
 
 =head2 nseq
+
   Title    : nseq
   Incept   : EPN, Mon Jan 28 09:35:21 2013
   Usage    : $msaObject->nseq()
   Function : Gets number of seqs in MSA
   Args     : none
   Returns  : number of sequences (esl_msa->nseq)
+
 =cut
 
 sub nseq { 
@@ -199,12 +209,14 @@ sub nseq {
 }
 
 =head2 alen
+
   Title    : alen
   Incept   : EPN, Tue Jan 29 07:41:08 2013
   Usage    : $msaObject->alen()
   Function : Get alignment length.
   Args     : none
   Returns  : alignment length, number of columns (esl_msa->alen)
+
 =cut
 
 sub alen { 
@@ -215,6 +227,7 @@ sub alen {
 }
 
 =head2 get_sqname
+
   Title    : get_sqname
   Incept   : EPN, Mon Jan 28 09:35:21 2013
   Usage    : $msaObject->get_sqname($idx)
@@ -222,6 +235,7 @@ sub alen {
   Args     : index of sequence 
   Returns  : name of sequence $idx (esl_msa->sqname[$idx])
              ($idx runs 0..nseq-1)
+
 =cut
 
 sub get_sqname { 
@@ -233,12 +247,14 @@ sub get_sqname {
 }
 
 =head2 set_sqname
+
   Title    : set_sqname
   Incept   : EPN, Mon Jan 28 09:48:42 2013
   Usage    : $msaObject->set_sqname($idx)
   Function : Returns name of sequence $idx in MSA.
   Args     : index of sequence 
   Returns  : void
+
 =cut
 
 sub set_sqname { 
@@ -251,12 +267,14 @@ sub set_sqname {
 }
 
 =head2 get_accession
+
   Title    : get_accession
   Incept   : EPN, Fri Feb  1 11:43:08 2013
   Usage    : $msaObject->get_accession()
   Function : Gets accession for MSA.
   Args     : none
   Returns  : the accession, a string
+
 =cut
 
 sub get_accession { 
@@ -267,12 +285,14 @@ sub get_accession {
 }
 
 =head2 set_accession
+
   Title    : set_accession
   Incept   : EPN, Fri Feb  1 11:11:05 2013
   Usage    : $msaObject->set_accession($acc)
   Function : Sets accession for MSA in <esl_msa>
   Args     : accession string to set
   Returns  : void
+
 =cut
 
 sub set_accession { 
@@ -287,6 +307,7 @@ sub set_accession {
 }
 
 =head2 write_msa
+
   Title    : write_msa
   Incept   : EPN, Mon Jan 28 09:58:19 2013
   Usage    : $msaObject->write_msa($fileLocation)
@@ -294,6 +315,7 @@ sub set_accession {
   Args     : name of output file 
            : format ('stockholm', 'pfam' or 'afa')
   Returns  : void
+
 =cut
 
 sub write_msa { 
@@ -317,12 +339,14 @@ sub write_msa {
 }
 
 =head2 any_allgap_columns
+
   Title    : any_allgap_columns
   Incept   : EPN, Mon Jan 28 10:44:12 2013
   Usage    : Bio::Easel::MSA->any_allgap_columns()
   Function : Return TRUE if any all gap columns exist in MSA
   Args     : none
   Returns  : TRUE if any all gap columns, FALSE if not
+
 =cut
 
 sub any_allgap_columns {
@@ -333,6 +357,7 @@ sub any_allgap_columns {
 }
 
 =head2 nse_createHAA
+
   Title    : nse_createHAA
   Incept   : EPN, Wed Jan 30 10:37:54 2013
   Usage    : $msaObject->nse_createHAA
@@ -346,6 +371,7 @@ sub any_allgap_columns {
            : if ($a, $b, $strand) == ($s, $e, 1) else ($a, $b, $strand) = ($e, $s, -1)
   Args     : none
   Returns  : number of sequences with names that match format N/S-E
+
 =cut
 
 sub nse_createHAA {
@@ -438,6 +464,7 @@ sub nse_overlap {
 }
 
 =head2 nse_breakdown
+
   Title    : nse_breakdown
   Incept   : EPN, Wed Jan 30 09:50:07 2013
   Usage    : $msaObject->nse_breakdown($nse)
@@ -450,6 +477,7 @@ sub nse_overlap {
 	   :   $a: minimum of start, end (0 if seqname doesn't match "name/start-end")
 	   :   $b: maximum of start, end (0 if seqname doesn't match "name/start-end")
 	   :   $strand: 1 if start <= $end, -1 if not (0 if seqname doesn't match "name/start-end")
+
 =cut
 sub nse_breakdown {
     my ($self, $sqname) = @_;
@@ -471,6 +499,7 @@ sub nse_breakdown {
 }
 
 =head2 nse_string
+
   Title    : nse_string
   Incept   : EPN, Thu Jan 31 09:37:55 2013
   Usage    : $msaObject->nse_string($name, $a, $b, $strand)
@@ -482,6 +511,7 @@ sub nse_breakdown {
            : $b:      end coord
            : $strand: 1 for positive, -1 for negative
   Returns  : "$name/$a-$b" if ($strand==1) else "$name/$b-$a";
+
 =cut
 sub nse_string {
     my ($self, $name, $a, $b, $strand) = @_;
@@ -494,6 +524,7 @@ sub nse_string {
 }
 
 =head2 nse_sqlen
+
   Title    : nse_sqlen
   Incept   : EPN, Thu Jan 31 10:08:24 2013
   Usage    : $msaObject->nse_len($name);
@@ -503,6 +534,7 @@ sub nse_string {
            : and <start> may be > <end>.
   Args     : $nse: sequence name in <sqacc>/<start>-<end> format
   Returns  : Length in residues represented by $nse
+
 =cut
 sub nse_sqlen {
     my ($self, $nse) = @_;
@@ -520,6 +552,7 @@ sub nse_sqlen {
 }
 
 =head2 average_id
+
   Title    : average_id
   Incept   : EPN, Fri Feb  1 06:59:50 2013
   Usage    : $msaObject->average_id($max_nseq)
@@ -549,6 +582,7 @@ sub average_id {
 
 
 =head2 get_sqlen
+
   Title    : get_sqlen
   Incept   : EPN, Fri Feb  1 16:56:24 2013
   Usage    : $msaObject->get_sqlen()
@@ -556,6 +590,7 @@ sub average_id {
            : sequence <idx>.
   Args     : index of sequence you want length of
   Returns  : unaligned sequence length of sequence idx
+
 =cut
 
 sub get_sqlen { 
@@ -567,6 +602,7 @@ sub get_sqlen {
 }
 
 =head2 average_sqlen
+
   Title    : average_sqlen
   Incept   : EPN, Fri Feb  1 06:59:50 2013
   Usage    : $msaObject->average_sqlen()
@@ -574,6 +610,7 @@ sub get_sqlen {
            : in the MSA.
   Args     : none
   Returns  : average unaligned sequence length
+
 =cut
 
 sub average_sqlen { 
@@ -588,6 +625,7 @@ sub average_sqlen {
 }
 
 =head2 calc_and_write_bp_stats
+
   Title    : calc_and_write_bp_stats
   Incept   : EPN, Fri Feb  1 10:29:11 2013
   Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
@@ -595,6 +633,7 @@ sub average_sqlen {
            : with SS_cons information and output it.
   Args     : name of requested output file 
   Returns  : void
+
 =cut
 
 sub calc_and_write_bp_stats {
@@ -611,6 +650,7 @@ sub calc_and_write_bp_stats {
 }
 
 =head2 addGF
+
   Title    : addGF
   Incept   : EPN, Fri Feb  1 17:43:38 2013
   Usage    : $msaObject->addGF($tag, $value)
@@ -618,6 +658,7 @@ sub calc_and_write_bp_stats {
   Args     : $tag:   two letter tag 
            : $value: text for the line
   Returns  : void
+
 =cut
 
 sub addGF {
@@ -630,6 +671,7 @@ sub addGF {
 }
 
 =head2 addGS
+
   Title    : addGS
   Incept   : EPN, Fri Feb  1 17:43:38 2013
   Usage    : $msaObject->addGF($tag, $value)
@@ -639,6 +681,7 @@ sub addGF {
            : $value: text for the line
            : $sqidx: seq index to add GS for
   Returns  : void
+
 =cut
 
 sub addGS {
@@ -651,12 +694,14 @@ sub addGS {
 }
 
 =head2 free_msa
+
   Title    : free_msa
   Incept   : EPN, Mon Jan 28 11:06:18 2013
   Usage    : $msaObject->free_msa()
   Function : Frees an MSA->{$esl_msa} object
   Args     : name of output file 
   Returns  : void
+
 =cut
 
 sub free_msa { 
@@ -668,6 +713,7 @@ sub free_msa {
 }
 
 =head2 revert_to_original
+
   Title    : revert_to_original
   Incept   : EPN, Sat Feb  2 14:53:27 2013
   Usage    : $msaObject->revert_to_original()
@@ -675,6 +721,7 @@ sub free_msa {
              and rereads it from $msaObject->{path}
   Args     : none
   Returns  : void
+
 =cut
 
 sub revert_to_original {
@@ -689,12 +736,14 @@ sub revert_to_original {
 }    
 
 =head2 DESTROY
+
   Title    : DESTROY
   Incept   : EPN, Mon Jan 28 10:09:55 2013
   Usage    : $msaObject->destroy()
   Function : Frees an MSA object
   Args     : name of output file 
   Returns  : void
+
 =cut
 
 sub DESTROY { 
@@ -709,12 +758,14 @@ sub DESTROY {
 #############################
 
 =head2 _check_msa
+
   Title    : _check_msa
   Incept   : EPN, Sat Feb  2 13:42:27 2013
   Usage    : Bio::Easel::MSA->_check_msa()
   Function : Reads msa only if it is currently undefined
   Args     : none
   Returns  : void
+
 =cut
 
 sub _check_msa { 
@@ -727,6 +778,7 @@ sub _check_msa {
 }
 
 =head2 _check_sqidx
+
   Title    : _check_seqidx
   Incept   : EPN, Sat Feb  2 13:46:08 2013
   Usage    : $msaObject->_check_sqidx($idx)
@@ -734,6 +786,7 @@ sub _check_msa {
              if not, croak.
   Args     : none
   Returns  : void
+
 =cut
 
 sub _check_sqidx { 
@@ -748,6 +801,7 @@ sub _check_sqidx {
 }
 
 =head2 _max
+
   Title    : _max
   Incept   : EPN, Thu Jan 31 08:55:18 2013
   Usage    : _max($a, $b)
@@ -755,6 +809,7 @@ sub _check_sqidx {
   Args     : $a: scalar, usually a number
            : $b: scalar, usually a number
   Returns  : Maximum of $a and $b.
+
 =cut
 
 sub _max {
@@ -763,6 +818,7 @@ sub _max {
 }
 
 =head2 _min
+
   Title    : _min
   Incept   : EPN, Thu Jan 31 08:56:19 2013
   Usage    : _min($a, $b)
@@ -770,6 +826,7 @@ sub _max {
   Args     : $a: scalar, usually a number
            : $b: scalar, usually a number
   Returns  : Minimum of $a and $b.
+
 =cut
 
 sub _min {
@@ -778,6 +835,7 @@ sub _min {
 }
 
 =head2 _overlap_fraction
+
   Title    : _overlap_fraction
   Incept   : EPN, Thu Jan 31 08:50:55 2013
   Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
@@ -788,6 +846,7 @@ sub _min {
            : $to2:   end   point of second region
   Returns  : Fractional overlap, defined as nres_overlap / minL
              where minL is minimum length of two regions
+
 =cut
 
 sub _overlap_fraction {
@@ -805,6 +864,7 @@ sub _overlap_fraction {
 }
 
 =head2 _overlap_nres
+
   Title    : _overlap_nres
   Incept   : EPN, Thu Jan 31 08:50:55 2013
   Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
@@ -814,6 +874,7 @@ sub _overlap_fraction {
            : $from2: start point of second region (must be <= $to2)
            : $to2:   end   point of second region
   Returns  : Number of residues that overlap between the two regions.
+
 =cut
 
 sub _overlap_nres {
@@ -863,7 +924,6 @@ sub _overlap_nres {
 =head2 _c_bp_is_canonical
 =head2 _c_calc_and_write_bp_stats
 =head2 dl_load_flags
-
 
 =head1 AUTHORS
 
