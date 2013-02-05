@@ -157,7 +157,7 @@ sub mandatoryFiles {
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  my @files = keys (%{ $self->{'_config'}->{files}->{model} });
+  my @files = keys (%{ $self->{'_config'}->{files}->{family} });
   return \@files;
 }
 
