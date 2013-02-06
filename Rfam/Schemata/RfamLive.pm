@@ -29,5 +29,18 @@ sub prepare_seqaccToTaxon {
 }
 
 
+sub prepare_updateTaxonomy {
+  my ($self) = @_;
+  
+  my $dbh = $self->storage->dbh;
+  my $sth = $dbh->prepare("UPDATE taxonomy SET tree_display_name = ?, 
+                                               align_display_name = ?
+                                           WHERE  ncbi_id = ? ");
+                                           
+  return( $sth );
+}
+
+
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
