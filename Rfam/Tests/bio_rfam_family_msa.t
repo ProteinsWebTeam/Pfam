@@ -41,3 +41,11 @@ my $msaSp = Bio::Rfam::Family::MSA->new({
     aliType => 'seed'
 });
 is($msaSp->nseq, 5, 'Read in species SEED file');
+
+
+$msa->revert_to_original;
+$msa->seqToBitNSEAndSpecies($rfamdb, 'RF00014', 'tree', 1);
+$msa->write_msa('SEED.bit.nse.sp');
+
+
+
