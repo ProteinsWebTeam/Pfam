@@ -44,6 +44,19 @@ has 'aliType' => (
   required => 1,
 );
 
+#------------------------------------------------------------------------------
+=head2 seqToSpeciesNames
+
+  Title    : seqToSpeciesNames
+  Incept   : finnr, Feb 6, 2013 4:36:29 PM
+  Usage    : $msa->seqToSpeciesNames($rfamdb);
+  Function : Converts the NSE in the alignment to species names, based on
+           : precalculated alignment display names found in the taxonomy table.
+  Args     : RfamLive schema object
+  Returns  : Nothing
+  
+=cut
+
 sub seqToSpeciesNames {
   my ($self, $rfamdb) = @_;
   
@@ -61,43 +74,42 @@ sub seqToSpeciesNames {
     
     $sth->execute($name);
     my $row = $sth->fetchrow_hashref;
+    #Row will look like this....
+    #{
+    #align_display_name   "Enterobacter_aerogenes[548]",
+    #ncbi_id              548
+    #}
     
     #Idaelly we would use the taxid as the hash key and not
     #do this every time, but we can not due to subsp etc.
-    #
-    #This data should als go into the database taxonomy table.
-    
-    #Copy this sideway as we can not modify it.
-    
-    my $longSpecies = $row->{species};
-    if($longSpecies =~ /(.*)\s+(sp|subsp)\./){
-      $longSpecies = $1;
+
+    if(!exists($seenSpecies{$row->{align_display_name}})){
+      $seenSpecies{$row->{align_display_name}} = 1;
     }
-      
-    #Looks like this may have been going on....
-    #if(my ($genus, $species) = $longSpecies =~ /^(\S)\S+\s+(\.*)/){
-    #  $seenSpecies{$row->{ncbi_id}}->{name} = $genus.'.'.$species;
-    #}
-    #=GS Enterobacter.1         AC    CP000653.1/2739273-2739189
-    #=GS E.aerogenes.1          AC    M15749.1/155-239
-    #=GS Escherichia_coli_APE.1 AC    CP000468.1/2032638-2032552
-    #=GS Salmonella_enterica_.1 AC    CP000857.1/1802194-1802277
-    #=GS Shigella_flexneri_20.1 AC    CP001383.1/2080784-2080698
-    
-    
-    #TODO - need to check with JD
-    #I can not work out what Rfam has done in the past to this name!  
-    $longSpecies =~ s/\s+/\_/g;
-    
-    if(!exists($seenSpecies{$longSpecies})){
-      $seenSpecies{$longSpecies} = 1;
-    }
-    my $speciesName = $longSpecies.'.'.$seenSpecies{$longSpecies};
+    my $speciesName = $row->{align_display_name}.'.'.$seenSpecies{$row->{align_display_name}};
     $self->set_sqname($i, $speciesName);
     #Increment counter
-    $seenSpecies{$longSpecies}++;
+    $seenSpecies{$row->{align_display_name}}++;
   }
 }
+
+#------------------------------------------------------------------------------
+=head2 seqToBitNSEAndSpecies
+
+  Title    : seqToBitNSEAndSpecies
+  Incept   : finnr, Feb 6, 2013 4:38:52 PM
+  Usage    : $msa->seqToBitNSEAndSpecies($rfamdb, $rfam_acc, $isSeed);
+  Function : Looks up regions in the database full_region table to add the bit 
+           : score and species string to the alignment sequence name.  It determines
+           : the region using maximal overlap criteia as the regions may not be
+           : the same. This was incepted to work for SEED alignments and back
+           : estimate the bit score. Although, written slightly genericly, I
+           : have reservations of how else it could be used. 
+  Args     : RfamLive schema object, rfam accession and a boolean to restict
+           : to terms labeled as 'seed' in the full regions table.
+  Returns  : Nothing, results applied to the object.
+  
+=cut
 
 sub seqToBitNSEAndSpecies {
   my ($self, $rfamdb, $rfam_acc, $isSeed) = @_;
@@ -139,6 +151,8 @@ sub seqToBitNSEAndSpecies {
         #TODO - Eric put your region matching thing here if there are more than
         #one rows returned..
       }else{
+        #This is probably a bad assumption, but gets the code working until above
+        #is done.
         $row= $rows->[0];
       }
       
