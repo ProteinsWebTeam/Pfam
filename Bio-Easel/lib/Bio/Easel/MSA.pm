@@ -250,9 +250,9 @@ sub get_sqname {
 
   Title    : set_sqname
   Incept   : EPN, Mon Jan 28 09:48:42 2013
-  Usage    : $msaObject->set_sqname($idx)
-  Function : Returns name of sequence $idx in MSA.
-  Args     : index of sequence 
+  Usage    : $msaObject->set_sqname($idx, $newName)
+  Function : Returns nothing
+  Args     : index of sequence, new sequence name. 
   Returns  : void
 
 =cut
@@ -688,7 +688,7 @@ sub addGS {
     my ($self, $tag, $value, $sqidx) = @_;
 
     $self->_check_msa(); 
-    my $status = _c_addGF($self->{esl_msa}, $tag, $sqidx, $value);
+    my $status = _c_addGS($self->{esl_msa}, $sqidx, $tag, $value);
     if($status != $ESLOK) { croak "ERROR: unable to add GS annotation"; }
     return;
 }
