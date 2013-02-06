@@ -189,7 +189,7 @@ sub seedAlignmentAndTree {
   #This will not compile.
   $msa->write_msa($filename);
   
-  #Compress the Fasta file.
+  #Compress the alignment
   my $fileGzipped;
   gzip $filename => \$fileGzipped;
 
