@@ -20,7 +20,7 @@ sub prepare_seqaccToTaxon {
   my ($self) = @_;
   
   my $dbh = $self->storage->dbh;
-  my $sth = $dbh->prepare("SELECT ncbi.ncbi_id, ncbi.species 
+  my $sth = $dbh->prepare("SELECT ncbi.ncbi_id, ncbi.align_display_name 
                             FROM rfamseq me 
                             JOIN taxonomy ncbi 
                             ON ncbi.ncbi_id = me.ncbi_id 
