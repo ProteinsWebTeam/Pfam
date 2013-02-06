@@ -25,6 +25,7 @@ Incept: finnr, Jan 25, 2013 8:29:29 AM
 use strict;
 use warnings;
 use Data::Printer;
+use Carp;
 use Moose;
 use MooseX::NonMoose;
 use Moose::Util::TypeConstraints;
@@ -62,9 +63,12 @@ sub seqToSpeciesNames {
     my $row = $sth->fetchrow_hashref;
     
     #Idaelly we would use the taxid as the hash key and not
-    #do this every time, but we can not due to subsp etc
+    #do this every time, but we can not due to subsp etc.
     #
-    #Copy this sideway as we can not modify it
+    #This data should als go into the database taxonomy table.
+    
+    #Copy this sideway as we can not modify it.
+    
     my $longSpecies = $row->{species};
     if($longSpecies =~ /(.*)\s+(sp|subsp)\./){
       $longSpecies = $1;
@@ -92,6 +96,59 @@ sub seqToSpeciesNames {
     $self->set_sqname($i, $speciesName);
     #Increment counter
     $seenSpecies{$longSpecies}++;
+  }
+}
+
+sub seqToBitNSEAndSpecies {
+  my ($self, $rfamdb, $rfam_acc, $isSeed) = @_;
+  
+  #check the rfamlive object
+  croak("Expected an RfamLive object\n") if(!$rfamdb->isa('RfamLive'));
+  #check the rfam_acc looks real!
+  croak("$rfam_acc does not look like a Rfam accession\n") 
+    if($rfam_acc !~ /^RF\d{5}$/);
+  #Deal with isSeed being not defined
+  $isSeed = defined($isSeed) ? $isSeed : 0;
+  
+  #Get the statement handle - when Rfam expands to genomes etc, we are going
+  #to need to put a switch around the statement, so it uses the appropriate
+  #table.
+  my $sth = $rfamdb->prepare_fullRegionAndTaxonBySeqAcc( $isSeed );
+  
+  #Iternate over the alignment
+  for( my $i = 0; $i < $self->nseq; $i++){
+    my $nse = $self->get_sqname($i);
+    my ($name, $start, $end) = $nse =~ /^(\S+)\/(\d+)\-(\d+)$/; 
+    #Now get the list of potential hits
+    $sth->execute($name, $rfam_acc);
+    my $rows = $sth->fetchall_arrayref;
+    #$rows is a 2d array that looks like this:
+    #[
+    #[0] 155,
+    #[1] 239,
+    #[2] 95.72,
+    #[3] 548,
+    #[4] "Enterobacter_aerogenes"
+    #]
+    #
+    # seq_start, seq_end, bit_score, tax_id
+    #
+    if($rows){
+      my $row;
+      if(scalar(@$rows) > 1){
+        #TODO - Eric put your region matching thing here if there are more than
+        #one rows returned..
+      }else{
+        $row= $rows->[0];
+      }
+      
+      #Build up the name....
+      my $newName = $row->[2].'_'.$nse.'_'.$row->[4];
+       $self->set_sqname($i, $newName);
+      
+    }else{
+      croak("Failed to find region from database for $nse.");
+    }
   }
 }
 
