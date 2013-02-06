@@ -6,10 +6,10 @@ use Data::Printer;
 
 use Bio::Rfam::Config;
 
+my $mode = shift;
+
 my $config = Bio::Rfam::Config->new;
 my $rfamdb = $config->rfamlive;
-
-my $mode = shift;
 
 if($mode eq 'dbi'){
   my $rs = $rfamdb->resultset('Rfamseq');
@@ -19,9 +19,7 @@ if($mode eq 'dbi'){
     print STDERR "." if(($i % 100) == 0);
   }
 }elsif($mode eq 'dbh'){
-  my $dbh = $rfamdb->storage->dbh;
-  my $sth = $dbh->prepare("SELECT ncbi.ncbi_id, ncbi.species FROM rfamseq me  JOIN taxonomy ncbi ON ncbi.ncbi_id = me.ncbi_id WHERE ( me.rfamseq_acc = ? )");
-
+  my $sth = $rfamdb->prepare_seqaccToTaxon;
   for( my $i = 1; $i <= 10000; $i++){
     $sth->execute('AAAA02006309.1');
     my $row = $sth->fetchrow_hashref;
