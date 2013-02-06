@@ -8,7 +8,6 @@
 
 use strict;
 use warnings;
-use Net::SCP;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
@@ -69,13 +68,15 @@ my $sorted_reg ="pfamA.dat.$$";
 my $sorted_seq ="seq.dat.$$";
 
 
-my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end, ali_start, ali_end, domain_evalue_score into outfile \"/tmp/$reg_file\" from pfamA_reg_full_significant where in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
+my $st_reg = $dbh->prepare("select auto_pfamseq, auto_pfamA, seq_start, seq_end, ali_start, ali_end, domain_evalue_score from pfamA_reg_full_significant where in_full=1") or die "Failed to prepare statement:".$dbh->errstr."\n";
 $st_reg->execute() or die "Couldn't execute statement ".$st_reg->errstr."\n";
 
-
-#Copy regions file to cwd
-my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
-$scp->get("/tmp/$reg_file") or die $scp->{errstr};
+open(REG, ">$reg_file") or die "Couldn't open fh to $reg_file, $!";
+while (my @data = $st_reg->fetchrow_array()) {
+  print REG join("\t", @data),"\n";
+}
+close REG;
+$st_reg->finish();
 
 
 #All rdb queries done
