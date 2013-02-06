@@ -41,15 +41,16 @@ my $queue;             # queue to submit all jobs to (default: auto-determined)
 my $dirty = 0;         # TRUE to leave files on file system
 my $verbose = 0;       # TRUE to be verbose with output
 my $do_help = 0;       # TRUE to print help and exit, if -h used
+my $do_nosearch = 0;   # TRUE to set --nosearch 
 
 &GetOptions( "b"          => \$force_build,
 	     "nostruct"   => \$do_nostruct,
 	     "c"          => \$force_calibrate,         
-	     "ccpu"       => \$ncpus_cmcalibrate
+	     "ccpu"       => \$ncpus_cmcalibrate,
 	     "e=s",       => \$evalue,
 	     "dbchoice=s" => \$dbchoice,
 	     "nosearch"   => \$no_search,
-	     "scpu"       => \$ncpus_cmsearch
+	     "scpu"       => \$ncpus_cmsearch,
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
 	     "queue=s"    => \$queue,
@@ -88,8 +89,8 @@ my $Z        = $dbconfig->{"dbsize"};
 if($do_nosearch) { # --nosearch, verify incompatible options are not set
     if(defined $ncpus_cmsearch) { die "ERROR --nosearch and --scpu are incompatible"; }
     if(defined $evalue)         { die "ERROR --nosearch and -e are incompatible"; }
-    if(defined @cmosA)          { die "ERROR --nosearch and --cmosA are incompatible"; }
-    if(defined @cmodA)          { die "ERROR --nosearch and --cmodA are incompatible"; }
+    if(@cmosA)          { die "ERROR --nosearch and --cmosA are incompatible"; }
+    if(@cmodA)          { die "ERROR --nosearch and --cmodA are incompatible"; }
 }
 
 # ncpus_cmsaerch and ncpus_cmcalibrate must be >= 0
@@ -196,7 +197,7 @@ my $build_endtime = time();
 # Calibration step #
 ####################
 if($force_calibrate || (! $is_cm_calibrated)) { 
-    Bio::Rfam::Infernal::cmcalibrate_wrapper($confif->infernal_path . "/cmcalibrate", "$pwd/CM");
+    Bio::Rfam::Infernal::cmcalibrate_wrapper($config->infernal_path . "/cmcalibrate", "$pwd/CM");
 }
 my $calibrate_endtime = time();
 
