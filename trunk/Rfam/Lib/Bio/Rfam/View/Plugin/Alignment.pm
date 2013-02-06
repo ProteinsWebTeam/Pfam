@@ -50,9 +50,6 @@ sub makeMatchList {
   my ($self) = @_;
 
   my $rfamdb = $self->parent->config->rfamlive;
-  open( my $MLFH, '>', "matchList" )
-    or croak("Could not open matchlist file:[$!]\n");
-
   my $rfam_acc = $self->parent->family->DESC->AC;
 
   #Check family is present, get the expected number of hits from the table.
@@ -145,6 +142,7 @@ sub makeFasta {
     }
   );
   $row->update( { fasta => $fastaGzipped } );
+  unlink('eslInput');
 
 }
 
@@ -220,6 +218,8 @@ sub seedAlignmentAndTree {
                   percent_id          => $average_pid,
                   number_of_sequences => $msa->nseq
                    }, { key => 'rfam_acc_and_type' } );
+  unlink($filename);
+  unlink('DESC');
 }
 
 1;
