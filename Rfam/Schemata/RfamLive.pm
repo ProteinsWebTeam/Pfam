@@ -15,6 +15,19 @@ __PACKAGE__->load_namespaces;
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vx0ieMkE0tY9KVpwfNpWpw
 
+sub prepare_seqaccToTaxon {
+  my ($self) = @_;
+  
+  my $dbh = $self->storage->dbh;
+  my $sth = $dbh->prepare("SELECT ncbi.ncbi_id, ncbi.species 
+                            FROM rfamseq me 
+                            JOIN taxonomy ncbi 
+                            ON ncbi.ncbi_id = me.ncbi_id 
+                            WHERE ( me.rfamseq_acc = ? )");
+
+  return( $sth );
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

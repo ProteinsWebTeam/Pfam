@@ -38,8 +38,8 @@ sub process {
   #Only when we are dealing with Rfamseq do we need to do this.
   if($self->parent->seqdb eq 'rfamseq'){
     $self->seedAlignmentAndTree( "seed-annot.sto" );
-    #TODO - Write seed-annot.tax
-    #$self->seedAlignmentAndTree( "seedTax-annot.sto", 1 );
+    #Now do the tax version....
+    $self->seedAlignmentAndTree( "seedTax-annot.sto", 1 );
   }else{
     $self->fullAlignmentAndTree
   }
@@ -180,8 +180,12 @@ sub seedAlignmentAndTree {
     }
   }
   
+  my $type = 'seed';
   if($tax){
+    print STDERR "Doing species version\n"; 
     #Swap out the accessions for taxonomy
+    $msa->seqToSpeciesNames($rfamdb);
+    $type = 'seedTax';
   }
   
   #This will not compile.
@@ -204,7 +208,7 @@ sub seedAlignmentAndTree {
   my $row = $rfamdb->resultset('AlignmentAndTree')->find_or_create(
     {
       rfam_acc => $rfam_acc,
-      type     => 'seed'
+      type     => $type,
     },
     { key => 'rfam_acc_and_type' }
   );
@@ -215,7 +219,7 @@ sub seedAlignmentAndTree {
                   average_length      => $average_len,
                   percent_id          => $average_pid,
                   number_of_sequences => $msa->nseq
-                   } );
+                   }, { key => 'rfam_acc_and_type' } );
 }
 
 1;
