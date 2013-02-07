@@ -1,5 +1,29 @@
 #!/usr/bin/env perl
 
+=head1 NAME
+
+  rflock - script to perform high level locking of the database.
+
+=head1 DESCRIPTION
+
+This script can be used to 'lock' and 'unlock' the database.  When the
+database is in the 'locked' state, users will not be unable to use Rfam
+scripts to commit data, unless the allow_me or allow_user flags are used.
+
+Run with -h for more options
+
+=head1 COPYRIGHT
+
+File: rflock.pl 
+
+Copyright (c) 2013: 
+
+
+Author: Rob Finn (rdf 'at' ebi.ac.uk or finnr 'at' janelia.hhmi.org)
+Incept: finnr, Feb 7, 2013 3:18:36 PM
+
+=cut
+
 use strict;
 use warnings;
 use Getopt::Long;
