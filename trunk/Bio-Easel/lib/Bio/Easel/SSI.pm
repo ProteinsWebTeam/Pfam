@@ -123,6 +123,8 @@ sub new {
     return $self;
 }
 
+=head2 dl_load_flags
+
 =head1 AUTHORS
 
 Eric Nawrocki, C<< <nawrockie at janelia.hhmi.org> >>
