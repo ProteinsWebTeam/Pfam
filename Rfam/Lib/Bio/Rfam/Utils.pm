@@ -8,8 +8,8 @@ use strict;
 use warnings;
 use Sys::Hostname;
 use File::stat;
+use Carp;
 
-#use Rfam::RfamSearch;
 use Cwd;
 use Data::Dumper;
 use Mail::Mailer;
@@ -280,26 +280,212 @@ sub species2shortspecies {
     return $shortSpecies;
 }
 
-=head2 nse2len()
 
-  Title    : nse2len()
-  Incept   : EPN, Wed Jan 30 13:23:31 2013
-  Usage    : nse2len($sqname)
-  Function : Returns length of a sequence given a sqname in N/S-E format
-  Args     : $sqname in N/S-E format
-  Returns  : length in residues of sequence
-  
+=head2 nse_breakdown
+
+  Title    : nse_breakdown
+  Incept   : EPN, Wed Jan 30 09:50:07 2013
+  Usage    : nse_breakdown($nse)
+  Function : Checks if $nse is of format "name/start-end" and if so
+           : breaks it down into $n, $s, $e, $strand (see 'Returns' section)
+  Args     : <sqname>: seqname, possibly of format "name/start-end"
+  Returns  : 4 values:
+           :   '1' if seqname was of "name/start-end" format, else '0'
+           :   $n: name ("" if seqname doesn't match "name/start-end")
+	   :   $s: start, maybe <= or > than $e (0 if seqname doesn't match "name/start-end")
+	   :   $e: end,   maybe <= or > than $s (0 if seqname doesn't match "name/start-end")
+
 =cut
-sub nse2len {
-    my($sqname) = @_;
-    my($n, $s, $e);
-    
+sub nse_breakdown {
+    my ($sqname) = @_;
+
+    my $n;       # sqacc
+    my $s;       # start, from seq name (can be > $end)
+    my $e;       # end,   from seq name (can be < $start)
+
     if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
 	($n, $s, $e) = ($1,$2,$3);
-	if($s <= $e) { return ($e-$s+1); }
-	else         { return ($s-$e+1); }
+	return (1, $n, $s, $e);
     }
-    die "ERROR: nse2len() $sqname doesn't match expected format of N/S-E";
+    return (0, "", 0, 0);
+}
+
+
+=head2 nse_sqlen
+
+  Title    : nse_sqlen
+  Incept   : EPN, Thu Jan 31 10:08:24 2013
+  Usage    : nse_sqlen($name);
+  Function : Returns length of sequence given $nse,
+           : where $nse is of format:
+           : <sqacc>/<start>-<end>
+           : and <start> may be > <end>.
+  Args     : $nse: sequence name in <sqacc>/<start>-<end> format
+  Returns  : Length in residues represented by $nse
+
+=cut
+sub nse_sqlen {
+    my ($nse) = @_;
+
+    my $sqlen;
+    if($nse =~ m/^\S+\/(\d+)\-(\d+)\s*/) {
+	my ($start, $end) = ($1, $2);
+	if($start <= $end) { $sqlen = $end - $start + 1; }
+	else               { $sqlen = $start - $end + 1; }
+    }
+    else { 
+	croak "invalid name $nse doesn't match name/start-end format\n";
+    }
+    return $sqlen;
+}
+
+
+=head2 _max
+
+  Title    : _max
+  Incept   : EPN, Thu Jan 31 08:55:18 2013
+  Usage    : _max($a, $b)
+  Function : Returns maximum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Maximum of $a and $b.
+
+=cut
+
+sub _max {
+  return $_[0] if @_ == 1;
+  $_[0] > $_[1] ? $_[0] : $_[1]
+}
+
+=head2 _min
+
+  Title    : _min
+  Incept   : EPN, Thu Jan 31 08:56:19 2013
+  Usage    : _min($a, $b)
+  Function : Returns minimum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Minimum of $a and $b.
+
+=cut
+
+sub _min {
+  return $_[0] if @_ == 1;
+  $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
+=head2 overlap_fraction_two_nse
+
+  Title    : overlap_fraction_two_nse
+  Incept   : EPN, Thu Feb  7 14:47:37 2013
+  Usage    : overlap_fraction_two_nse($nse1, $nse2)
+  Function : Returns fractional overlap of two regions defined by
+           : $nse1 and $nse2. Where $nse1 and $nse2 are both of
+           : format "name/start-end".
+  Args     : <nse1>: "name/start-end" for region 1
+           : <nse2>: "name/start-end" for region 2
+  Returns  : Fractional overlap between region 1 and region 2
+           : (This will be 0. if names are different for regions 1 and 2.)
+           : (This will be 0. if regions are on different strands.)
+
+=cut
+
+sub overlap_fraction_two_nse {
+    my ($nse1, $nse2) = @_;
+
+    my($is1, $n1, $s1, $e1) = nse_breakdown($nse1);
+    if(! $is1) { croak "$nse1 not in name/start-end format"; }
+    my($is2, $n2, $s2, $e2) = nse_breakdown($nse2);
+    if(! $is2) { croak "$nse2 not in name/start-end format"; }
+
+    if($n1 ne $n2) { return 0.; } #names don't match
+
+    return overlap_fraction($s1, $e1, $s2, $e2);
+}
+
+=head2 overlap_fraction
+
+  Title    : overlap_fraction
+  Incept   : EPN, Thu Jan 31 08:50:55 2013
+  Usage    : overlap_fraction($from1, $to1, $from2, $to2)
+  Function : Returns fractional overlap of two regions.
+           : If $from1 is <= $to1 we assume first  region is 
+           : on + strand, else it's on -1.
+           : If $from2 is <= $to2 we assume second region is 
+           : on + strand, else it's on -1.
+           : If regions are on opposite strand, return 0.
+  Args     : $from1: start point of first region (maybe < or > than $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (maybe < or > than $to2)
+           : $to2:   end   point of second region
+  Returns  : Fractional overlap, defined as nres_overlap / minL
+             where minL is minimum length of two regions
+=cut
+
+sub overlap_fraction {
+    my($from1, $to1, $from2, $to2) = @_;
+    
+    my($a1, $b1, $strand1, $a2, $b2, $strand2);
+
+    if($from1 <= $to1) { $a1 = $from1; $b1 = $to1;   $strand1 = 1;  }
+    else               { $a1 = $to1;   $b1 = $from1; $strand1 = -1; }
+
+    if($from2 <= $to2) { $a2 = $from2; $b2 = $to2;   $strand2 = 1;  }
+    else               { $a2 = $to2;   $b2 = $from2; $strand2 = -1; }
+    
+    if($strand1 != $strand2) { 
+	return 0.; 
+    }
+
+    my $L1 = $b1 - $a1 + 1;
+    my $L2 = $b2 - $a2 + 1;
+    my $minL = _min($L1, $L2);
+    my $D    = overlap_nres_strict($a1, $b1, $a2, $b2);
+    # printf STDERR "D: $D minL: $minL\n";
+    return $D / $minL;
+}
+
+
+=head2 overlap_nres_strict
+
+  Title    : overlap_nres_strict
+  Incept   : EPN, Thu Jan 31 08:50:55 2013
+  Usage    : overlap_nres_strict($from1, $to1, $from2, $to2)
+  Function : Returns number of overlapping residues of two regions.
+  Args     : $from1: start point of first region (must be <= $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (must be <= $to2)
+           : $to2:   end   point of second region
+  Returns  : Number of residues that overlap between the two regions.
+
+=cut
+
+sub overlap_nres_strict {
+    my ($from1, $to1, $from2, $to2) = @_;
+    
+    if($from1 > $to1) { croak "overlap_nres_strict(), from1 > to1\n"; }
+    if($from2 > $to2) { croak "overlap_nres_strict(), from2 > to2\n"; }
+
+    my $minlen = $to1 - $from1 + 1;
+    if($minlen > ($to2 - $from2 + 1)) { $minlen = ($to2 - $from2 + 1); }
+
+    # Given: $from1 <= $to1 and $from2 <= $to2.
+
+    # Swap if nec so that $from1 <= $from2.
+    if($from1 > $from2) { 
+	my $tmp;
+	$tmp   = $from1; $from1 = $from2; $from2 = $tmp;
+	$tmp   =   $to1;   $to1 =   $to2;   $to2 = $tmp;
+    }
+
+    # 3 possible cases:
+    # Case 1. $from1 <=   $to1 <  $from2 <=   $to2  Overlap is 0
+    # Case 2. $from1 <= $from2 <=   $to1 <    $to2  
+    # Case 3. $from1 <= $from2 <=   $to2 <=   $to1
+    if($to1 < $from2) { return 0; }                    # case 1
+    if($to1 <   $to2) { return ($to1 - $from2 + 1); }  # case 2
+    if($to2 <=  $to1) { return ($to2 - $from2 + 1); }  # case 3
+    croak "unforeseen case in _overlap_nres_strict $from1..$to1 and $from2..$to2";
 }
 
 ######################################################################

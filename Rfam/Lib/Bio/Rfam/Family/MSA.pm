@@ -29,6 +29,7 @@ use Carp;
 use Moose;
 use MooseX::NonMoose;
 use Moose::Util::TypeConstraints;
+use Bio::Rfam::Utils;
 
 extends 'Bio::Easel::MSA';
 
@@ -150,7 +151,7 @@ sub seqToBitNSEAndSpecies {
       my $max_overlap = 0.;
       for(my $j = 0; $j < scalar(@$rows); $j++) { 
 	  # TODO: put overlap_fraction in Utils.pm? But then Bio-Easel would need Utils.pm...
-	  my $overlap = $self->overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
+	  my $overlap = overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
 	  if($overlap > $max_overlap) { 
 	      $row = $rows->[$j]; 
 	      $max_overlap = $overlap;
@@ -167,5 +168,102 @@ sub seqToBitNSEAndSpecies {
     }
   }
 }
+
+
+=head2 nse_createHAA
+
+  Title    : nse_createHAA
+  Incept   : EPN, Wed Jan 30 10:37:54 2013
+  Usage    : $msa->nse_createHAA
+  Function : Creates hash of two dim arrays (self->nseHAA) from MSA names that match N/S-E
+           : N: sq accession
+           : S: hit start (> end if on opposite strand)
+           : E: hit end   
+           : hash (self->nseHAA) key is N, value is array of arrays, 
+           : with 2nd array dim including 2 values: $s, $e
+           : $s=S and $e=E, in original order ("S" maybe <= or > "E")
+  Args     : none
+  Returns  : number of sequences with names that match format N/S-E
+
+=cut
+
+sub nse_createHAA {
+    my ($self) = @_;
+
+    my $idx;     # counter over names in msa
+    my $sqname;  # sequence name from msa
+    my $n;       # sqacc
+    my $s;       # start, from seq name (can be > $end)
+    my $e;       # end,   from seq name (can be < $start)
+    my $ctr = 0; # number of n/s-e names processed (added to hashes)
+    my $max_nseq = 10000; # maximum numer of seqs we allow this subroutine to be called on
+
+    $self->_check_msa(); 
+    if($self->nseq >= $max_nseq) { 
+	die "ERROR trying to process name/start-end names of MSA with max num seqs ($self->nseq > $max_nseq seqs!)"
+    }
+
+    for($idx = 0; $idx < $self->nseq; $idx++) { 
+	$sqname = $self->get_sqname($idx);
+	if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
+	    ($n, $s, $e) = ($1, $2, $3);
+	    push(@{$self->{nseHAA}{$n}}, [$s, $e]);
+	    $ctr++;
+	}
+    }	    
+    return $ctr;
+}
+
+=head2 nse_overlap
+
+  Title    : nse_overlap
+  Incept   : EPN, Wed Jan 30 09:37:31 2013
+  Usage    : $msaObject->nse_overlap($nse)
+  Function : Checks if $nse of format "name/start-end" overlaps with
+           : any sequences stored in $self->{startHA}, $self->{endHA}, 
+           : $self->{strandHA}
+  Args     : <sqname>: seqname of format "name/start-end"
+  Returns  : 2 values:
+           : name of sequence in $self of maximum fractional overlap, "" if none
+           : fractional overlap of max fractional overlap
+=cut
+
+sub nse_overlap {
+    my ($self, $sqname) = @_;
+
+    my $n;         # sqacc
+    my ($s, $s2);  # start, from seq name (can be > $end)
+    my ($e, $e2);  # end,   from seq name (can be < $start)
+    my $i;         # counter over sequences
+    my $is_nse;               # TRUE if $sqname adheres to format n/s-e
+    my $overlap_exists = 0;   # have we seen an overlap?
+    my $max_fract      = 0.;  # maximum fraction of overlap
+    my $max_sqname     = "";  # name of seq in sqinfoHHA 
+    my $fract_overlap;        # fractional overlap
+
+    $self->_check_msa(); 
+    if(! defined $self->{nseHAA}) { 
+	$self->nse_createHAA;
+    }
+
+    # check for overlaps
+    ($is_nse, $n, $s, $e) = $self->nse_breakdown($sqname);
+    if($is_nse) { # TRUE if name matches name/start-end format
+	if(exists $self->{nseHAA}->{$n}) { # TRUE if name is in nseHAA from MSA
+	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
+		($s2, $e2) = @{$self->{nseHAA}->{$n}[$i]};
+		$fract_overlap = overlap_fraction($s, $e, $s2, $e2);
+		if($fract_overlap > $max_fract) { 
+		    $max_fract  = $fract_overlap;
+		    $max_sqname = $n . "/" . $s2 . "-" . $e2;
+		    $overlap_exists = 1;
+		}
+	    }
+	}
+    }
+    if($overlap_exists) { return ($max_sqname, $max_fract); }
+    else                { return ("", 0.); }
+}
+
 
 1;
