@@ -732,7 +732,14 @@ sub revision {
 
 sub familyLocation {
   my ($self) = @_;
-  my $familyUrl = $self->{config}->svnRepos .'/'. $self->{config}->svnFamilies;
+  
+  my $familyUrl;
+  #As config URLs are inconsistent with trailing /, see if it is there.
+  if($self->{config}->svnRepos =~ m|.*/$|){
+    $familyUrl = $self->{config}->svnRepos . $self->{config}->svnFamilies;
+  }else{
+    $familyUrl = $self->{config}->svnRepos .'/'. $self->{config}->svnFamilies;
+  }
   return ($familyUrl);
 }
 
