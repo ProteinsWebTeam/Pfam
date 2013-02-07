@@ -77,7 +77,6 @@ sub commitEntry {
 sub _commitEntry {
   my ($self, $familyObj, $isNew) = @_;
   
-  
   my $rfamdb = $self->{config}->rfamlive;
   #Need to put a transaction around this block
   my $guard = $rfamdb->txn_scope_guard;  
@@ -244,14 +243,14 @@ sub _qualityControlEntry {
   print STDERR "In  _qualityControlEntry, $modelObj\n";
 
   #Perform all of the format checks
-  unless ( Bio::Dfam::QC::passesAllFormatChecks( $modelObj, "$dir/$model" ) ) {
+  unless ( Bio::Rfam::QC::passesAllFormatChecks( $modelObj, "$dir/$model" ) ) {
     exit(1);
   }
 }
 
 #TODO - rewrite
 sub moveFamily {
-  my ( $self, $pfamDB ) = @_;
+  my ( $self ) = @_;
 
   #At this point we have no idea of the name of the family.
   #Make sure that there are not files deleted or added,
@@ -277,12 +276,8 @@ sub moveFamily {
   }
 
   my $familyIO = Bio::Pfam::FamilyIO->new;
-  my ( $famObj, $family, $dir ) = $self->_getFamilyObjFromTrans( $familyIO, 0 );
-  $familyIO->movePfamAInRDB( $famObj, $pfamDB );
-
-  #If we have not died, then we should be good to go!
-  Bio::Pfam::ViewProcess::initiateViewProcess( $famObj, $self->author,
-    $self->{config} );
+  my ( $familyObj, $family, $dir ) = $self->_getFamilyObjFromTrans( $familyIO, 0 );
+  $self->_commitEntry($familyObj);
 }
 
 sub deleteFamily {
@@ -308,7 +303,20 @@ sub deleteFamily {
   }
 
   my $familyIO = Bio::Rfam::FamilyIO->new;
-  $familyIO->deleteFamilyInRDB( $family, $comment, $forward, $author );
+  unless ( $family and $family =~ /RF\d{5}/ ) {
+    confess("Did not get a Rfam accession\n");
+  }
+  
+  unless ($comment) {
+    confess('Did not get a comment as to why this family is being killed');
+  }
+
+  my $rfamDB = $self->{config}->rfamlive;
+  my $entry = $rfamDB->resultset('Family')->find('rfam_acc' => $family);
+  my $user = $self->author;
+  #Now make the dead family entry!
+  $rfamDB->resultset('Family')->delete('rfam_acc' => $family);
+  $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 }
 
 sub allowCommit {

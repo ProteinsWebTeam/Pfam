@@ -972,25 +972,6 @@ sub moveFamilyInRDB {
 
 }
 
-sub deleteFamilyInRDB {
-  my ( $self, $family, $comment, $forward, $user ) = @_;
-    
-  unless ( $family and $family =~ /RF\d{5}/ ) {
-    confess("Did not get a Rfam accession\n");
-  }
-  
-  unless ($comment) {
-    confess('Did not get a comment as to why this family is being killed');
-  }
-
-  my $rfamDB = $self->{config}->rfamlive;
-  my $entry = $rfamDB->resultset('Family')->find('rfam_acc' => $family);
-  
-  #Now make the dead family entry!
-  $rfamDB->resultset('Family')->delete('rfam_acc' => $family);
-  $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
-}
-
 # make scores 2D array from outlist, then write it by calling writeScores()
 sub makeAndWriteScores {
     my ($self, $famObj, $outlistLocation) = @_;
