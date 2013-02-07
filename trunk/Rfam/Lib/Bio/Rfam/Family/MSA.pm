@@ -151,7 +151,7 @@ sub seqToBitNSEAndSpecies {
       my $max_overlap = 0.;
       for(my $j = 0; $j < scalar(@$rows); $j++) { 
 	  # TODO: put overlap_fraction in Utils.pm? But then Bio-Easel would need Utils.pm...
-	  my $overlap = overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
+	  my $overlap = Bio::Rfam::Utils::overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
 	  if($overlap > $max_overlap) { 
 	      $row = $rows->[$j]; 
 	      $max_overlap = $overlap;
@@ -247,12 +247,12 @@ sub nse_overlap {
     }
 
     # check for overlaps
-    ($is_nse, $n, $s, $e) = $self->nse_breakdown($sqname);
+    ($is_nse, $n, $s, $e) = Bio::Rfam::Utils::nse_breakdown($sqname);
     if($is_nse) { # TRUE if name matches name/start-end format
 	if(exists $self->{nseHAA}->{$n}) { # TRUE if name is in nseHAA from MSA
 	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
 		($s2, $e2) = @{$self->{nseHAA}->{$n}[$i]};
-		$fract_overlap = overlap_fraction($s, $e, $s2, $e2);
+		$fract_overlap = Bio::Rfam::Utils::overlap_fraction($s, $e, $s2, $e2);
 		if($fract_overlap > $max_fract) { 
 		    $max_fract  = $fract_overlap;
 		    $max_sqname = $n . "/" . $s2 . "-" . $e2;
