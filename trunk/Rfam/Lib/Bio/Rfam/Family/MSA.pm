@@ -127,7 +127,7 @@ sub seqToBitNSEAndSpecies {
   #table.
   my $sth = $rfamdb->prepare_fullRegionAndTaxonBySeqAcc( $isSeed );
   
-  #Iternate over the alignment
+  #Iterate over the alignment
   for( my $i = 0; $i < $self->nseq; $i++){
     my $nse = $self->get_sqname($i);
     my ($name, $start, $end) = $nse =~ /^(\S+)\/(\d+)\-(\d+)$/; 
@@ -147,14 +147,16 @@ sub seqToBitNSEAndSpecies {
     #
     if($rows){
       my $row;
-      if(scalar(@$rows) > 1){
-        #TODO - Eric put your region matching thing here if there are more than
-        #one rows returned..
-      }else{
-        #This is probably a bad assumption, but gets the code working until above
-        #is done.
-        $row= $rows->[0];
+      my $max_overlap = 0.;
+      for($j = 0; $j < scalar(@rows); $j++) { 
+	  # TODO: put overlap_fraction in Utils.pm? But then Bio-Easel would need Utils.pm...
+	  $overlap = $self->overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
+	  if($overlap > $max_overlap) { 
+	      $row = $rows->[$j]; 
+	      $max_overlap = $overlap;
+	  }
       }
+      if(! defined $row) { croak "Unable to find overlapping hit for $nse"; }
       
       #Build up the name....
       my $newName = $row->[2].'_'.$nse.'_'.$row->[4];
