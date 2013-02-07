@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 8;
 use FindBin;
 use File::Temp qw(tempfile);
 use File::Slurp;
@@ -42,10 +42,17 @@ my $msaSp = Bio::Rfam::Family::MSA->new({
 });
 is($msaSp->nseq, 5, 'Read in species SEED file');
 
-
 $msa->revert_to_original;
 $msa->seqToBitNSEAndSpecies($rfamdb, 'RF00014', 'tree', 1);
 $msa->write_msa('SEED.bit.nse.sp');
 
 
+# test nse_create
+$msa->revert_to_original;
+my $nadded = $msa->nse_createHAA;
+is($nadded, 5, "nse_createHAA method returns correct value");
+
+my $testname = "M15749.1/140-200";
+my ($oname, $ofract) = $msa->nse_overlap($testname);
+is($oname, "M15749.1/155-239", "nse_overlap method returns correct value");
 
