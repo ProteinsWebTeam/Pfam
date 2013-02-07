@@ -148,9 +148,9 @@ sub seqToBitNSEAndSpecies {
     if($rows){
       my $row;
       my $max_overlap = 0.;
-      for($j = 0; $j < scalar(@rows); $j++) { 
+      for(my $j = 0; $j < scalar(@$rows); $j++) { 
 	  # TODO: put overlap_fraction in Utils.pm? But then Bio-Easel would need Utils.pm...
-	  $overlap = $self->overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
+	  my $overlap = $self->overlap_fraction($start, $end, $rows->[$j]->[0], $rows->[$j]->[1]);
 	  if($overlap > $max_overlap) { 
 	      $row = $rows->[$j]; 
 	      $max_overlap = $overlap;
