@@ -449,7 +449,7 @@ sub nse_overlap {
 	    for($i = 0; $i < scalar(@{$self->{nseHAA}->{$n}}); $i++) { 
 		($s2, $e2, $a2, $b2, $strand2) = @{$self->{nseHAA}->{$n}[$i]};
 		if($strand eq $strand2) { 
-		    $fract_overlap = _overlap_fraction($a, $b, $a2, $b2);
+		    $fract_overlap = _overlap_fraction_strict($a, $b, $a2, $b2);
 		    if($fract_overlap > $max_fract) { 
 			$max_fract  = $fract_overlap;
 			$max_sqname = $self->nse_string($n, $a2, $b2, $strand2);
@@ -753,6 +753,45 @@ sub DESTROY {
     return;
 }
 
+
+=head2 overlap_fraction
+
+  Title    : overlap_fraction
+  Incept   : EPN, Thu Jan 31 08:50:55 2013
+  Usage    : overlap_fraction($from1, $to1, $from2, $to2)
+  Function : Returns fractional overlap of two regions.
+           : If $from1 is <= $to1 we assume first  region is 
+           : on + strand, else it's on -1.
+           : If $from2 is <= $to2 we assume second region is 
+           : on + strand, else it's on -1.
+           : If regions are on opposite strand, return 0.
+  Args     : $from1: start point of first region (maybe < or > than $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (maybe < or > than $to2)
+           : $to2:   end   point of second region
+  Returns  : Fractional overlap, defined as nres_overlap / minL
+             where minL is minimum length of two regions
+=cut
+
+sub overlap_fraction {
+    my($from1, $to1, $from2, $to2) = @_;
+    
+    my $strand1;
+    my $strand2; 
+    $strand1 = ($from1 <= $to1) ? 1 : -1;
+    $strand2 = ($from2 <= $to2) ? 1 : -1;
+
+    if($strand1 != $strand2) { 
+	return 0.; 
+    }
+    if($strand1 == 1) { 
+	return _overlap_fraction_strict($to1, $from1, $to2, $from2); 
+    }
+    else { 
+	return _overlap_fraction_strict($from1, $to1, $from2, $to2); 
+    }
+}
+
 #############################
 # Internal helper subroutines
 #############################
@@ -834,12 +873,16 @@ sub _min {
   $_[0] < $_[1] ? $_[0] : $_[1]
 }
 
-=head2 _overlap_fraction
 
-  Title    : _overlap_fraction
+=head2 _overlap_fraction_strict
+
+  Title    : _overlap_fraction_strict
   Incept   : EPN, Thu Jan 31 08:50:55 2013
-  Usage    : _overlap_fraction($from1, $to1, $from2, $to2)
+  Usage    : _overlap_fraction_strict ($from1, $to1, $from2, $to2)
   Function : Returns fractional overlap of two regions.
+           : Called 'strict' because $from1 must be <= $to1
+           : and $from2 must be <= $to2. See non-strict version
+           : overlap_fraction() for alternative.
   Args     : $from1: start point of first region (must be <= $to1)
            : $to1:   end   point of first region
            : $from2: start point of second region (must be <= $to2)
@@ -849,11 +892,11 @@ sub _min {
 
 =cut
 
-sub _overlap_fraction {
+sub _overlap_fraction_strict {
     my($from1, $to1, $from2, $to2) = @_;
     
-    if($from1 > $to1) { die "ERROR Bio-Easel's _overlap_fraction, expect from1 <= y1 but $from1 > $to1"; }
-    if($from2 > $to2) { die "ERROR Bio-Easel's _overlap_fraction, expect x2 <= y2 but $from2 > $to2"; }
+    if($from1 > $to1) { croak "ERROR Bio-Easel's _overlap_fraction_strict, expect from1 <= to1 but $from1 > $to1"; }
+    if($from2 > $to2) { croak "ERROR Bio-Easel's _overlap_fraction_strict, expect from2 <= to2 but $from2 > $to2"; }
 
     my $L1 =$to1 - $from1 + 1;
     my $L2 =$to2 - $from2 + 1;
