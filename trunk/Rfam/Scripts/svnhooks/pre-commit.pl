@@ -128,7 +128,7 @@ elsif ( $msg =~ /^KILL:/ ) {
   #TODO - this should go inside database code.
   my $author = $txnlook->author();
   my $guard =  $rfamdb->getSchema->txn_scope_guard;
-  $txnlook->deleteEntry( $comment, $forward, $author );
+  $txnlook->deleteFamily( $comment, $forward, $author );
   $guard->commit;
 }
 elsif ( $msg =~ /SEQUP/ ) {
