@@ -976,7 +976,7 @@ sub deleteFamilyInRDB {
   my ( $self, $family, $comment, $forward, $user ) = @_;
     
   unless ( $family and $family =~ /RF\d{5}/ ) {
-    confess("Did not get a Dfam accession\n");
+    confess("Did not get a Rfam accession\n");
   }
   
   unless ($comment) {
@@ -986,6 +986,7 @@ sub deleteFamilyInRDB {
   my $rfamDB = $self->{config}->rfamlive;
   my $entry = $rfamDB->resultset('Family')->find('rfam_acc' => $family);
   
+  #Now make the dead family entry!
   $rfamDB->resultset('Family')->delete('rfam_acc' => $family);
   $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 }

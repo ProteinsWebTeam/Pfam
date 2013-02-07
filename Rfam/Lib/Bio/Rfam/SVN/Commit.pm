@@ -285,27 +285,30 @@ sub moveFamily {
     $self->{config} );
 }
 
-sub deleteEntry {
-  my ( $self, $dfamDB, $comment, $forward ) = @_;
+sub deleteFamily {
+  my ( $self, $comment, $forward, $author ) = @_;
 
   my ($family);
   my @deleted_files = $self->deleted();
-  my $svnPath       = $self->{config}->svnModels;
+  my $svnPath       = $self->{config}->svnFamilies;
   foreach my $f (@deleted_files) {
-    if ( $f =~ m|($svnPath/)(\S+)(/)| ) {
+    #Need to see if there is a / on $svnPath;
+    if($svnPath !~ m|\S+/|){
+      $svnPath .= '/';
+    }
+    
+    if ( $f =~ m|($svnPath)(\S+)(/)| ) {
       $family = "$2";
     }
   }
 
   unless ($family) {
     confess(
-      "Failed to find which family in to be removed from the SVN repository\n");
+      "Failed to find which family is to be removed from the SVN repository\n");
   }
 
-  my $familyIO = Bio::Dfam::FamilyIO->new;
-  my $author   = $self->author();
-  $familyIO->deleteEntryInRDB( $family, $dfamDB, $comment, $forward, $author );
-
+  my $familyIO = Bio::Rfam::FamilyIO->new;
+  $familyIO->deleteFamilyInRDB( $family, $comment, $forward, $author );
 }
 
 sub allowCommit {
