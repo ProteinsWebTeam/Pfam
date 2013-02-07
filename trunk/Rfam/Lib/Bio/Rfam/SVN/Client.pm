@@ -732,7 +732,7 @@ sub revision {
 
 sub familyLocation {
   my ($self) = @_;
-  my $familyUrl = $self->{config}->svnRepos . $self->{config}->svnFamilies;
+  my $familyUrl = $self->{config}->svnRepos .'/'. $self->{config}->svnFamilies;
   return ($familyUrl);
 }
 
