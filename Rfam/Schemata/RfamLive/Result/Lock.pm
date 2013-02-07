@@ -63,6 +63,6 @@ __PACKAGE__->add_columns(
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-29 23:35:51
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NRup1ddWOT3cVS844fOViA
 
+__PACKAGE__->set_primary_key('locked');
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
