@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# POST-COMMIT HOOK - copy this file in to the reposiotry under the hook
+#directory and name it post-commit. Fix the paths.
+
+#Do not change this.....
+
+REPOS="$1"
+REV="$2"
+
+export ROOT=/path/to/production/code/checkout 
+export RFAM_CONFIG=$ROOT/trunk/Rfam/Conf/rfam.conf
+export PERL5LIB=$ROOT/Rfam/Lib:$ROOT/Rfam/Schemata:$ROOT/Bio-Easel/blib/lib:$ROOT/Bio-Easel/blib/arch
+export PATH=$ROOT/Scripts/svn:/opt/bin:$PATH
+#export LD_LIBRARY_PATH=/opt/lib
+
+/usr/bin/perl $ROOT/Rfam/Scripts/svnhooks/post-commit.pl -rev $REV -repos $REPOS || exit 1
+
+# All checks passed, so allow the commit.
+exit 0
