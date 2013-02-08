@@ -503,7 +503,7 @@ sub commitFamilyDESC {
   $self->_checkCommitObj($cinfo);
 }
 
-sub addModel {
+sub addFamily {
   my ( $self, $family, $newFamilyId ) = @_;
 
   unless ($family) {
@@ -519,7 +519,7 @@ sub addModel {
   }
 
   #Repository location of where to put new families
-  my $url = $self->newModelLocation;
+  my $url = $self->newFamilyLocation;
 
   #Generate a new tempdir
   my $dir  = File::Temp->newdir();
