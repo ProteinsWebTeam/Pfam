@@ -101,23 +101,23 @@ elsif(defined $evalue) {
     my $bitsc = int((Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
     $thr = $bitsc;
     $changed_thr = 1;
-    print STDERR  "Using GA threshold of $thr bits, converted from E-value of <x> from command line";
+    print STDERR  "Using GA threshold of $thr bits, converted from E-value of <x> from command line\n";
 }
 elsif(defined $thr) { 
     print STDERR  "Using GA threshold of $thr from command line";
 }
 else { 
     $thr = $famObj->DESC->CUTGA; 
-    print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line";
+    print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line\n";
     $changed_thr = 1;
 }    
-if(! defined $thr) { die "ERROR: problem setting threshold"; }
+if(! defined $thr) { die "ERROR: problem setting threshold\n"; }
 
 # write TBLOUT's set of dependent files: "outlist", "species", "rin.dat", and "rinc.dat", if any of them don't exist
 if((! -s "outlist") || (! -s "species") || (! -s "rin.dat") || (! -s "rinc.dat")){ 
     my $rfamdb = $config->rfamlive;
     my $rfdbh  = $rfamdb->storage->dbh; # database connection
-    $io->writeTbloutDependentFiles($rfdbh, $famObj->SEED->msa, $thr, $config->RPlotScriptPath);
+    $io->writeTbloutDependentFiles($famObj, $rfdbh, $famObj->SEED, $thr, $config->RPlotScriptPath);
     $rfdbh->disconnect;
 }
 
