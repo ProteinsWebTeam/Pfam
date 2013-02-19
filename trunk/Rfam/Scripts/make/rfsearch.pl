@@ -81,11 +81,6 @@ my $msa  = $famObj->SEED;
 my $desc = $famObj->DESC;
 
 # extra processing of command-line options 
-# setup dbfile 
-my $dbconfig = $config->seqdbConfig($dbchoice);
-my $dbfile   = $dbconfig->{"path"};
-my $Z        = $dbconfig->{"dbsize"};
-
 if ($do_nosearch) { # --nosearch, verify incompatible options are not set
   if (defined $ncpus_cmsearch) {
     die "ERROR --nosearch and --scpu are incompatible";
@@ -230,84 +225,68 @@ my $calibrate_endtime = time();
 ###############
 # Search step #
 ###############
+if (! $no_search) { 
+  # First, determine bit score or E-value threshold to use for cmsearch.
+  # 4 possible cases:
+  # Case 1: If user set -cme <f> option, use that with -E <f>.
+  # If user did not use -cme hn:
+  # Case 2:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
+  # Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
+  # Case 4: else use -T <x>, where <x> = GA-2.
 
-# First, determine bit score or E-value threshold to use for cmsearch.
-# 4 possible cases:
-# Case 1: If user set -cme <f> option, use that with -E <f>.
-# If user did not use -cme hn:
-# Case 2:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
-# Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
-# Case 4: else use -T <x>, where <x> = GA-2.
+  my $use_cmsearch_eval; # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
+  my $bitsc          = 0; # bit score thr to use, irrelevant unless $use_cmsearch_eval is set to 0 below
+  my $e_bitsc        = 0; # bit score corresponding to $cmsearch_eval
+  my $ga_bitsc       = 0; # GA bitscore for this model
+  my $ga_eval        = 0; # E-value corresponding to GA bit score
+  my $max_eval       = 50000; # hard-coded max E-value allowed, not applied if -cme used
+  my $min_bitsc      = 0; # bit score corresponding to $max_eval, set below
+  my $min_eval       = 1000; # hard-coded min E-value allowed, not applied if -cme used
 
-my $use_cmsearch_eval;      # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
-my $bitsc          = 0;     # bit score thr to use, irrelevant unless $use_cmsearch_eval is set to 0 below
-my $e_bitsc        = 0;     # bit score corresponding to $cmsearch_eval
-my $ga_bitsc       = 0;     # GA bitscore for this model
-my $ga_eval        = 0;     # E-value corresponding to GA bit score
-my $max_eval       = 50000; # hard-coded max E-value allowed, not applied if -cme used
-my $min_bitsc      = 0;     # bit score corresponding to $max_eval, set below
-my $min_eval       = 1000;  # hard-coded min E-value allowed, not applied if -cme used
+  if (defined $evalue) {        # -e option used on cmdline
+    $use_cmsearch_eval = 1;
+  } else {                      # -e not used 
+    # set default as case 2:
+    $cmsearch_eval     = 1000;
+    $use_cmsearch_eval = 1;
 
-if (defined $evalue) {          # -e option used on cmdline
-  $use_cmsearch_eval = 1;
-} else {                        # -e not used 
-  # set default as case 2:
-  $cmsearch_eval     = 1000;
-  $use_cmsearch_eval = 1;
-
-  # get GA from that and check to see if cases 3 or 4 apply
-  $ga = $famObj->DESC->CUTGA; 
-  $e_bitsc   = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z);
-  $min_bitsc = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $max_evalue, $Z);
-  if (($ga_bitsc-2) < $min_bitsc) { # case 3
-    $evalue = $max_eval; 
-  } elsif (($ga_bitsc-2) < $e_bitsc) { # case 4
-    $bitsc = $ga_bitsc-2;
-    $use_cmsearch_eval = 0;
+    # get GA from that and check to see if cases 3 or 4 apply
+    $ga = $famObj->DESC->CUTGA; 
+    $e_bitsc   = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z);
+    $min_bitsc = Bio::Rfam::Infernal::evalue_to_bitsc($cm, $max_evalue, $Z);
+    if (($ga_bitsc-2) < $min_bitsc) { # case 3
+      $evalue = $max_eval; 
+    } elsif (($ga_bitsc-2) < $e_bitsc) { # case 4
+      $bitsc = $ga_bitsc-2;
+      $use_cmsearch_eval = 0;
+    }
   }
-}
 
-# define options for cmsearch
-my $ncpus; 
-if (! defined $ncpus_cmsearch) { 
-  $ncpus_cmsearch = 8;
-}
-my $options = " -Z $Z --cpu $ncpus_cmsearch ";
-if ($use_cmsearch_eval) {
-  $options .= " -E $cmsearch_eval ";
-} else {
-  $options .= " -T $cmsearch_bitsc ";
-}
-my $extra_options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-$options .= $extra_options;
+  # define options for cmsearch
+  my $ncpus; 
+  if (! defined $ncpus_cmsearch) { 
+    $ncpus_cmsearch = 4;
+  }
+  my $options = " -Z $Z --cpu $ncpus_cmsearch ";
+  if ($use_cmsearch_eval) {
+    $options .= " -E $cmsearch_eval ";
+  } else {
+    $options .= " -T $cmsearch_bitsc ";
+  }
+  my $extra_options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+  $options .= $extra_options;
 
-# HERE HERE HERE 
-# update seqdbConfig to include array of db files to search, then read that array
-# and call cmsearch_wrapper for each file
+  # TODO: fix this to use an array of sequence files
+  # setup dbfile 
+  my $dbconfig     = $config->seqdbConfig($dbchoice);
+  my $dbfile       = $dbconfig->{"path"};
+  my $Z            = $dbconfig->{"dbsize"};
+  my $cmsearchPath = $config->infernalPath . "/cmsearch";
+  my $requiredMb   = $ncpus * 4000;
 
-$pname = "cm$$" if( not $pname );
-    
-&printlog( "Queueing cmsearch jobs" );
-copy("$pwd/CM", "$lustre/$$.CM") or die "FATAL: failed to copy $pwd/$$.CM to $lustre/$$.CM\n[$!]";
+  $queue = "production-rh6 -n$ncpus [hosts=1]\" -M $requiredMb";
 
-# determine total amount of memory required 2Gb per CPU by default, 4Gb per cpu if $bigmem is required
-my $requiredMb  = 2000    * $ncpus;
-my $requiredKb  = 2000000 * $ncpus;
-if (defined $bigmem) { 
-  $requiredMb *= 2;
-  $requiredKb *= 2;
-}
-
-# determine queue to use
-my $estimatedWallSeconds = cmstat_clen($infernal_path, "$pwd/CM") * 0.032 * 3600.; 
-
-#$queue = "$qchoice -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredKb";
-# swb: Changed $queue to always use production-rh6 at ebi:
-#
-
-$queue = "production-rh6 -n$ncpus -R \"select[type==X86_64] && select[mem>$requiredMb] rusage[mem=$requiredMb] span[hosts=1]\" -M $requiredMb";
-
-my $cmround=0;
+  my $cmround=0;
 my $cmjobcount=0;
 my $failedCmsearchJobs;
 my $cmopts;
