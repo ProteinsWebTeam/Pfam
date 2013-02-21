@@ -27,8 +27,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 #requirements.js.push( "domain_graphics_loader.js" );
@@ -47,19 +47,14 @@ oe = 0;
   </div>
   <div class="blockContent">
     
-    <h1>
-      [% pfamseq.pfamseq_id;
-      IF from_secondary_acc -%]
-      (via secondary accession <strong>[% from_secondary_acc %]</strong>)
-      [%- END %]
-    </h1>
-
     <p>
       This is the summary of UniProt entry 
       <a href="http://www.uniprot.org/entry/[% pfamseq.pfamseq_acc %]"
          class="ext">[% pfamseq.pfamseq_id %]</a>
       (<a href="http://www.uniprot.org/entry/[% pfamseq.pfamseq_acc %]"
-          class="ext">[% pfamseq.pfamseq_acc %]</a>).
+          class="ext">[% pfamseq.pfamseq_acc %]</a>)[%
+      IF from_secondary_acc -%] (via secondary accession <strong>[% from_secondary_acc %]</strong>)[% END %].
+
     </p>
 
     <table class="layout" summary="Protein summary information">
@@ -73,20 +68,23 @@ oe = 0;
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
         <td class="label">Source organism:</td>
           <td class="data">
-            [% IF pfamseq.ncbi_taxid %]
-            <a class="ext" href="http://www.uniprot.org/taxonomy/[% pfamseq.ncbi_taxid.ncbi_taxid %]">
-              [% pfamseq.species %]</a> 
-            [% IF pfamseq.ncbi_taxid.ncbi_taxid != "0" -%]
-            (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
-            <a class="ext" href="http://www.uniprot.org/taxonomy/[% pfamseq.ncbi_taxid.ncbi_taxid %]">
-              [% pfamseq.ncbi_taxid.ncbi_taxid %]</a>)
-            [% END -%]
-            <br />
-            <a href="[% c.uri_for( "/proteome", { taxId = pfamseq.ncbi_taxid.ncbi_taxid } ) %]">
-              View</a> Pfam proteome data.
-            [% ELSE;  
+            [%- IF pfamseq.ncbi_taxid;
+              ncbi_taxid = pfamseq.ncbi_taxid.ncbi_taxid %]
+              <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
+                [% pfamseq.species %]</a> 
+              [%- IF ncbi_taxid != "0" %]
+                (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
+                <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
+                  [% ncbi_taxid %]</a>)
+              [% END -%]
+              <br />
+              [%- IF complete_proteome %]
+                <a href="[% c.uri_for( '/proteome', ncbi_taxid ) %]">
+                  View</a> Pfam proteome data.
+              [%- END;
+            ELSE;  
               pfamseq.species;
-            END -%]
+            END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
@@ -114,7 +112,13 @@ oe = 0;
         this sequence. Clicking on a domain will take you to the page describing 
         that Pfam entry. The table below gives the domain boundaries for each of 
         the domains.
+        <span onclick="reveal( this, 'domainTableNotes', false, true );"
+              class="moreLink">
+          More...</span>
       </p>
+    </div>
+    <div id="domainTableNotes">
+      <!-- empty -->
     </div>
 
     <div id="pgholder" class="pgholder"></div>
@@ -122,44 +126,78 @@ oe = 0;
     <table class="resultTable details"
            id="imageKey"
            summary="Key for the Pfam domain image">
-      <thead class="sortIndicator">
+      <thead>
         <tr>
-          <th>Source</th>
-          <th>Domain</th>
-          <th>Start</th>
-          <th>End</th>
+          <th class="dh" rowspan="2">Source</th>
+          <th class="dh" rowspan="2">Domain</th>
+          <th class="dh" rowspan="2">Start</th>
+          <th class="dh" rowspan="2">End</th>
+          <th class="sh" style="display: none" colspan="2">Gathering threshold (bits)</th>
+          <th class="sh" style="display: none" colspan="2">Score (bits)</th>
+          <th class="sh" style="display: none" colspan="2">E-value</th>
+        </tr>
+        <tr>
+          <th class="sh" style="display: none">Sequence</th>
+          <th class="sh" style="display: none">Domain</th>
+          <th class="sh" style="display: none">Sequence</th>
+          <th class="sh" style="display: none">Domain</th>
+          <th class="sh" style="display: none">Sequence</th>
+          <th class="sh" style="display: none">Domain</th>
         </tr>
       </thead>
-      <tbody>
-      [%- oe = 0;
-       FOREACH seq_start IN regions.keys.nsort;
+      <tbody> [%- 
+      FOREACH seq_start IN regions.keys.nsort;
         FOREACH row IN regions.$seq_start;
-          IF row.auto_pfama.pfama_acc %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+          IF row.auto_pfama %]
+            <tr class="[% loop.odd ? 'odd' : 'even' %]">
               <td class="pfama_[% row.auto_pfama.pfama_acc %]">Pfam A</td>
               <td><a href="[% c.uri_for( '/family', row.auto_pfama.pfama_id ) %]">[% row.auto_pfama.pfama_id %]</a></td>
               <td>[% row.seq_start %]</td>
               <td>[% row.seq_end %]</td>
+              <td class="sh" style="display: none">[% row.auto_pfama.sequence_ga %]</td>
+              <td class="sh" style="display: none">[% row.auto_pfama.domain_ga %]</td>
+              <td class="sh" style="display: none">[% row.sequence_bits_score %]</td>
+              <td class="sh" style="display: none">[% row.domain_bits_score %]</td>
+              <td class="sh" style="display: none">[% row.sequence_evalue_score %]</td>
+              <td class="sh" style="display: none">[% row.domain_evalue_score %]</td>
             </tr>
-          [%- ELSIF row.pfamb_acc %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+          [%- ELSIF row.auto_pfamb;
+            pfamb = row.auto_pfamb;
+            pfamb_id = pfamb.pfamb_id %]
+            <tr class="[% loop.odd ? 'odd' : 'even' %]">
               <td class="domain">Pfam B</td>
-              <td><a href="[% c.uri_for( '/pfamb', row.pfamb_id ) %]">[% row.pfamb_id %]</a></td>
+              <td><a href="[% c.uri_for( '/pfamb', pfamb_id ) %]">[% pfamb_id %]</a></td>
               <td>[% row.seq_start %]</td>
               <td>[% row.seq_end %]</td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
             </tr>
           [%- ELSE %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+            <tr class="[% loop.odd ? 'odd' : 'even' %]">
               <td class="domain">[% row.type_id %]</td>
               <td><span class="inactive">n/a</span></td>
               <td>[% row.seq_start %]</td>
               <td>[% row.seq_end %]</td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
+              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
             </tr>
           [%- END; # of IF
         END; # of FOREACH row
       END %]
       </tbody>
     </table>
+    <p>
+      <span id="showScores" class="link">Show</span> or 
+      <span id="hideScores" class="link">hide</span> domain scores.
+    </p>
 
     <script type="text/javascript">
       // <![CDATA[
@@ -203,6 +241,7 @@ oe = 0;
         $("imageKey").hide();
       }
 
+      /*
       var sorter = new TableKit( "imageKey",
                                  { editable:     false,
                                    resizable:    false,
@@ -216,6 +255,12 @@ oe = 0;
                                    }
                                  } );
       //sorter.sort(3);
+      */
+
+      document.observe( "dom:loaded", function() {
+        $("showScores").observe( "click", function() { $$(".sh").invoke( "show" ) } );
+        $("hideScores").observe( "click", function() { $$(".sh").invoke( "hide" ) } );
+      } );
 
       // ]]>
     </script>
