@@ -20,7 +20,6 @@
 
 PROCESS "components/require.tt";
 
-requirements.js.push( "faces/arial-normal-normal.js" );
 requirements.js.push( 'domain_graphics.js');
 
 #-------------------------------------------------------------------------------
