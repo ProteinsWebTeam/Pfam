@@ -24,8 +24,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
@@ -129,7 +129,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
         sequence within the same Pfam family to your query sequence. These
         are shown as &quot;Predicted active sites&quot;. Full details of Pfam
         active site prediction process can be found in 
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed17688688">
           the accompanying paper</a>.
       </p>
       <p>
@@ -297,8 +297,6 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
 
   var resultsConfig = {
     options:    [% json_options || "{}" %],
-    showButton: "[% c.uri_for( '/static/images/showButton.png' ) %]",
-    hideButton: "[% c.uri_for( '/static/images/hideButton.png' ) %]",
     pollUrl:    "[% c.uri_for( '/search/sequence/resultset', jobId ) %]",
     baseUrl:    "[% c.uri_for( '/' ) %]",
     elements: {
