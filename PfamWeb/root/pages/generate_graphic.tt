@@ -24,8 +24,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "graphic_generator.js" );
