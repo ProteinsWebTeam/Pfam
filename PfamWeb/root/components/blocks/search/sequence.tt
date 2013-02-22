@@ -37,32 +37,33 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
     [%- END %]
     <p>
-      Find Pfam families within your sequence of interest. Paste your protein
-      sequence into the box below, to have it searched for matching Pfam
-      families. 
+      Find Pfam families within your sequence of interest. Paste your 
+      <strong>protein</strong> or <strong>DNA</strong> sequence
+      into the box below to have it searched for matching Pfam families.
       <span class="moreLink" onclick="reveal(this,'seqNotes',false, true)">More...</span>
     </p>
 
     <div id="seqNotes" style="display: none">
+      <h3>Sequence alphabets</h3>
+      <p>
+        The form will accept both protein and DNA sequences. Protein sequences
+        are searched directly using our standard search methodology, using our
+        <code>pfam_scan.pl</code> wrapper around the 
+        <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> package. DNA
+        sequences are also searched using HMMER, but we use a six-frame
+        translation to generate six separate protein sequences from your
+        uploaded DNA and then search each frame separately. We make no attempt
+        to generate meaningful open reading frames. The matches from all
+        six searches are combined in the result tables.
+      </p>
+
       <h3>Sequence validation</h3>
       <p>
         We check all sequences before running a search. In order to avoid 
         problems with the validation of your sequence, you should use only
-        plain, unformatted text. Here are some of the validation checks
-        that we apply to sequences:
+        plain, unformatted text. Below are some of the validation checks
+        that we apply to sequences.
       </p>
-      <ul>
-        <li>sequence length must be less than 10,000 residues</li>
-        <li>the sequence must be a protein sequence; nucleotide sequences will 
-          not be accepted</li>
-        <li>only residue symbols allowed in the sequence (letters or &quot;*&quot;); 
-          sequences containing other characters will not be accepted.<br />
-          <strong>Note</strong> that &quot;-&quot; was previously accepted 
-          as a valid sequence character, but is not allowed in the latest
-          version of HMMER.
-        </li>
-        <li>FASTA-header lines are accepted but will be removed</li>
-      </ul>
       <p>
         If you have problems getting your sequence to upload, please check that
         it passes all of these tests. Note that although we do allow 
@@ -70,18 +71,45 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         can still cause the sequence to be rejected. If in doubt, please remove 
         header lines before pasting in your sequence.   
       </p>
+
+      <h4>Protein sequences</h4>
+      <ul>
+        <li>sequence length must be less than 10,000 residues</li>
+        <li>only residue symbols are allowed in the sequence (letters or &quot;*&quot;); 
+          sequences containing other characters will not be accepted.<br />
+          <strong>Note</strong> that &quot;-&quot; was previously accepted 
+          as a valid sequence character, but is not allowed in the latest
+          version of HMMER.
+        </li>
+        <li>FASTA-header lines are accepted but will be removed</li>
+      </ul>
+
+      <h4>DNA sequences</h4>
+      <ul>
+        <li>sequence length must be less than 80,000 nucleotides</li>
+        <li>only valid nucleotide symbols are allowed in the sequence 
+          (ACGTRYKMSWBDHVN); sequences containing other characters will not be
+          accepted.<br />
+        </li>
+        <li>FASTA-header lines are accepted but will be removed</li>
+      </ul>
+
       <p>
-        You can see an example of a sequence that will successfully pass all of
-        the validation tests by clicking the <em>Example</em> button below
+        You can see examples of sequences that will successfully pass all of
+        the validation tests by clicking the <em>Example</em> buttons below
         the search form.
       </p>
-
-      <h3>Search options</h3>
+      <h3>Protein search options</h3>
+      <p>
+        The form supports several search options for protein sequences. Note
+        that these controls will be disabled if you paste in a DNA sequence
+        and will be ignored by the server when it searches your DNA.
+      </p>
       <p>
         The default threshold for the HMM search is an <em>E-value</em> of 1.0,
         but you can also use the <em>gathering threshold</em> for each HMM, or
         you can specify your own E-value setting. Note that the E-value that 
-        you give must be positive and &lt 10.0.
+        you give must be positive and &lt; 10.0.
       </p>
       <p>
         By default the search will only look for Pfam-A families on your 
@@ -91,6 +119,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <strong>20,000</strong> largest Pfam-B families. 
       </p>
       
+      <h3>DNA search parameters</h3>
+      <p>
+        The threshold for HMM searches of DNA-derived protein sequences is 
+        the <em>gathering threshold</em>. <strong>Note</strong> that this is
+        different to the default for protein searches. 
+      </p>
+
       <hr />
     </div>
 
@@ -128,81 +163,107 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
         [% END -%]
 
-        <div class="row">
-          <span class="label">Cut-off</span>
-          <label for="gaButton" class="subLabel">
+        <div id="psControls">
+          <div class="row" 
+               id="proteinTooLong"
+               style="display: none">
+            <span class="label blankLabel">&nbsp;</span>
+            <span class="warning">
+              <strong>WARNING:</strong> your sequence is too long. The limit for 
+              protein sequences is <strong>[% maxProteinSeqLength %]</strong> residues.
+            </span>
+          </div>
+
+          <div class="row" 
+               id="dnaTooLong"
+               style="display: none">
+            <span class="label blankLabel">&nbsp;</span>
+            <span class="warning">
+              <strong>WARNING:</strong> your sequence is too long. The limit for 
+              DNA sequences is <strong>[% maxDnaSeqLength %]</strong> nucleotides.
+            </span>
+          </div>
+
+          <div class="row" 
+               id="cantGuess"
+               style="display: none">
+            <span class="label blankLabel">&nbsp;</span>
+            <span class="small">
+              <strong>Note:</strong> we cannot guess the type of this sequence
+              based on the alphabet. The controls below will remain enabled
+              but the values will be ignored by the server if your sequence is
+              DNA.
+            </span>
+          </div>
+
+          <div class="row">
+            <span class="label blankLabel">&nbsp;</span>
+            <h3>
+              Protein sequence options
+              <span id="psControlsLabel" style="display: none"> (disabled for DNA)</span>
+            </h3>
+          </div>
+
+          <div class="row">
+            <span class="label">Cut-off</span>
+            <label for="gaButton" class="subLabel">
+              <input class="radio"
+                     type="radio" 
+                     name="ga" 
+                     id="gaButton" 
+                     value="1"
+                     onclick="$('evalue').disable();" />
+              <span id="seqGaLabel">Gathering threshold</span>
+            </label>
+          </div>
+
+          <div class="row">
+            <span class="label blankLabel">Cut-off</span>
+            <label for="eButton" class="subLabel">
+              <input class="radio"
+                     type="radio" 
+                     name="ga" 
+                     id="eButton" 
+                     value="0"
+                     checked="checked" 
+                     onclick="$('evalue').enable();" />
+              Use E-value
+            </label>
+          </div>
+          
+          <div class="row">
+            <label for="evalue">E-value</label>
+            <input type="text" 
+                   size="10" 
+                   maxlength="10" 
+                   value="1.0" 
+                   name="evalue" 
+                   id="evalue" />
+          </div>
+    
+          <div class="row">
+            <label for="searchBs">Search for PfamBs</label>
             <input class="radio"
-                   type="radio" 
-                   name="ga" 
-                   id="gaButton" 
-                   value="1"
-                   onclick="$('evalue').disable();" />
-            <span id="seqGaLabel">Gathering threshold</span>
-          </label>
-        </div>
-        <script type="text/javascript">
-          // <![CDATA[
-
-          document.observe( "dom:loaded", function() {
-            var t = new Tip( "seqGaLabel", 
-  "The gathering threshold is assigned by a curator when the family is \
-  built. This is the minimum score a sequence must attain in order to \
-  belong to the full alignment of a Pfam entry.", 
-              {
-                title: "Gathering threshold",
-                style: "pfam",
-                hook: { target: "bottomRight", tip: "topLeft" },
-                width: "30em"
-            } );
-          } );
-
-          // ]]>
-        </script>
-
-        <div class="row">
-          <span class="label blankLabel">Cut-off</span>
-          <label for="eButton" class="subLabel">
-            <input class="radio"
-                   type="radio" 
-                   name="ga" 
-                   id="eButton" 
-                   value="0"
-                   checked="checked" 
-                   onclick="$('evalue').enable();" />
-            Use E-value
-          </label>
-        </div>
-        
-        <div class="row">
-          <label for="evalue">E-value</label>
-          <input type="text" 
-                 size="10" 
-                 maxlength="10" 
-                 value="1.0" 
-                 name="evalue" 
-                 id="evalue" />
-        </div>
-  
-        <div class="row">
-          <label for="searchBs">Search for PfamBs</label>
-          <input class="radio"
-                 type="checkbox" 
-                 name="searchBs" 
-                 id="searchBs" 
-                 value="1" />
-          <span class="small note">
-            <strong>Note</strong> that we search only the
-            20,000 largest Pfam-B families
-          </span>
-        </div>
+                   type="checkbox" 
+                   name="searchBs" 
+                   id="searchBs" 
+                   value="1" />
+            <span class="small note">
+              <strong>Note</strong> that we search only the
+              20,000 largest Pfam-B families
+            </span>
+          </div>
+        </div><!-- end of "psControls" -->
 
         <div class="row">
           <label class="blankLabel">Submit</label>
           <input class="submit"  type="submit" name="submit" value="Submit"
                  onclick="if(!$('seq').present()){return false};"/>
           <input class="reset"   type="reset"  name="reset" value="Reset" />
-          <input class="example" type="button" value="Example" 
-                 onclick="$('seq').value=exSeq;" />
+          <input class="example" type="button" value="Example protein sequence" 
+                 onclick="$('seq').value=exAASeq;" />
+          <input class="example" type="button" value="Example DNA sequence" 
+                 onclick="$('seq').value=exNTSeq;" />
         </div>
 
       </form>
@@ -220,7 +281,68 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     } );
     [% END %]
 
-    var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
+    document.observe( "dom:loaded", function() {
+      var t = new Tip( "seqGaLabel", 
+"The gathering threshold is assigned by a curator when the family is \
+built. This is the minimum score a sequence must attain in order to \
+belong to the full alignment of a Pfam entry.", 
+        {
+          title: "Gathering threshold",
+          style: "pfam",
+          hook: { target: "bottomRight", tip: "topLeft" },
+          width: "30em"
+      } );
+
+      // This listener ships off the first 500 characters of any new sequence,
+      // so that the server can determine the type (protein or DNA) of the new
+      // seq. Updates the forms appropriately.
+      var o = new Form.Element.Observer(
+        "seq",
+        1, // 1 second
+        function( el, pastedSequence ) {
+          var r = new Ajax.Request( 
+            "[% c.uri_for( '/search/sequence/type' ) %]",
+            { 
+              method: 'post',
+              parameters: { seq: pastedSequence.substr( 0, 500 ) },
+              onSuccess: function( response ) {
+                $("cantGuess").hide();
+                if ( response.responseText == "dna" ) {
+                  $("psControls").addClassName("disabled")
+                                 .select("input").each(Form.Element.disable);
+                  $("psControlsLabel").show();
+                  if ( pastedSequence.length > [% maxDnaSeqLength %] ) {
+                    $("dnaTooLong").show();
+                  } else {
+                    $("dnaTooLong").hide();
+                  }
+                } else {
+                  $("psControls").removeClassName("disabled")
+                                 .select("input").each(Form.Element.enable);
+                  $("psControlsLabel").hide();
+                  if ( pastedSequence.length > [% maxProteinSeqLength %] ) {
+                    $("proteinTooLong").show();
+                  } else {
+                    $("proteinTooLong").hide();
+                  }
+                }
+              },
+              onFailure: function() {
+                $("cantGuess").show();
+                $("psControls").removeClassName("disabled")
+                               .select("input").each(Form.Element.enable);
+                $("psControlsLabel").hide();
+                $("proteinTooLong").hide();
+                $("dnaTooLong").hide();
+              }
+            }
+          );
+        }
+      );
+
+    } );
+
+    var exAASeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
 SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
 LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
@@ -242,6 +364,18 @@ SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
 PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
 ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
 FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+    var exNTSeq = "GCTCACAGCTGTGTCCTCCCCACCCCCTGGGACCACAAAGCTCCACCCCTGCCACCCCCT\n\
+GACATCCTCAAGCCAAGGAGCCTGACCCAGGGCTCAGGGTGGGGTCACAAACCTGGGGGG\n\
+GGTCTGATTTGCATGGATGGACTCTCCCCCTCTCAGAGTATGAAGAAAGGGAGAGATTTG\n\
+GGGGAAGCTCAGCTTCAGCTGCGGGTAGAGAAGACAGGACTCAGGACAATCTCCAGCATG\n\
+GCCTGGTCCCCTCTCTTCCTCACCCTCATCACTCACTGTGCAGGGTCCTGGGCCCAGTCT\n\
+GTGCTGACTCAGCCACCCTCGGTGTCTGAAGCCCCCAGGCAGAGGGTCACCATCTCCTGT\n\
+TCTGGAAGCAGCTCCAACATCGGAAATAATGCTGTAAACTGGTACCAGCAGCTCCCAGGA\n\
+AAGGCTCCCAAACTCCTCATCTATTATGATGATCTGCTGCCCTCAGGGGTCTCTGACCGA\n\
+TTCTCTGGCTCCAAGTCTGGCACCTCAGCCTCCCTGGCCATCAGTGGGCTCCAGTCTGAG\n\
+GATGAGGCTGATTATTACTGTGCAGCATGGGATGACAGCCTGAATGGTCCCACAGTGCTC\n\
+CAGGCCCAGGGGGAACAGAGACAAGAACCCCCTTCCTTTTCTGCCAGGAGGTATAATGTT\n\
+GACTATGGGTTTGAAAGAGTGGGCTTTTCTTACCATAAG";
 
     // ]]>
   </script>
