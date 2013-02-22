@@ -64,13 +64,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         plain, unformatted text. Below are some of the validation checks
         that we apply to sequences.
       </p>
-      <p>
-        If you have problems getting your sequence to upload, please check that
-        it passes all of these tests. Note that although we do allow 
-        FASTA-style header lines on a sequence, some characters in header lines
-        can still cause the sequence to be rejected. If in doubt, please remove 
-        header lines before pasting in your sequence.   
-      </p>
 
       <h4>Protein sequences</h4>
       <ul>
@@ -95,10 +88,18 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </ul>
 
       <p>
+        If you have problems getting your sequence to upload, please check that
+        it passes all of these tests. Note that although we do allow 
+        FASTA-style header lines on a sequence, some characters in header lines
+        can still cause the sequence to be rejected. If in doubt, please remove 
+        header lines before pasting in your sequence.   
+      </p>
+      <p>
         You can see examples of sequences that will successfully pass all of
         the validation tests by clicking the <em>Example</em> buttons below
         the search form.
       </p>
+
       <h3>Protein search options</h3>
       <p>
         The form supports several search options for protein sequences. Note
