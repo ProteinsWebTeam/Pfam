@@ -252,9 +252,13 @@ sub cmalign_wrapper {
   
 sub cm_evalue2bitsc { 
   my ($cm, $evalue, $Z) = @_;
-  
+
   # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
-  my $bitsc;                  # bit score to return;
+  my $bitsc;  # bit score to return;
+
+  if(! $cm->{is_calibrated}) {  
+    die "ERROR CM is not calibrated, and we're trying to convert an E-value to a bit score"; 
+  }
   
   # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
   if ($cm->{match_pair_node}) { # use CM stats
