@@ -1,6 +1,5 @@
-#!/usr/local/bin/perl -w 
+#!/usr/bin/env perl 
 
-#NOWTODO: put variable decalarations at top of block (PRELIMINARIES, PARSE TBLOUT...)
 # TODO: put rfsearch list mode code into rfsearch
 # TODO: abstract out creation of 'list' into subroutine, it will get called from rfsearch and rfmake
 
@@ -8,6 +7,7 @@
 # $Id: rfmake.pl,v 1.71 2013-01-23 10:06:59 en1 Exp $
 
 use strict;
+use warnings;
 use Cwd;
 use Getopt::Long;
 use File::Copy;
@@ -29,18 +29,18 @@ use Bio::Rfam::Utils;
 
 # set default values that command line options may change
 my $dbchoice = "rfamseq";
-my $do_align = 0;     # TRUE to create align file
-my $do_subalign = 0;  # TRUE to create SUBALIGN
-my $do_help = 0;      # TRUE to print help and exit, if -h used
-my $no_taxinfo = 0;   # TRUE to NOT create taxinfo file
-my $no_compare = 0;   # TRUE to NOT create comparison file
-my $dirty = 0;        # TRUE to leave files on file system
-my $thr;              # threshold, only defined if -t used
-my $farm = 0;         # TRUE to use farm for alignment jobs
-my @cmosA = ();       # extra single - cmalign options (e.g. -g)
-my @cmodA = ();       # extra double - cmalign options (e.g. --cyk)
-my $evalue;           # E-value threshold to use, set with -e
-my $verbose = 0;      # TRUE to be verbose with output
+my $do_align = 0;               # TRUE to create align file
+my $do_subalign = 0;            # TRUE to create SUBALIGN
+my $do_help = 0;                # TRUE to print help and exit, if -h used
+my $no_taxinfo = 0;             # TRUE to NOT create taxinfo file
+my $no_compare = 0;             # TRUE to NOT create comparison file
+my $dirty = 0;                  # TRUE to leave files on file system
+my $thr;                        # threshold, only defined if -t used
+my $farm = 0;                   # TRUE to use farm for alignment jobs
+my @cmosA = ();                 # extra single - cmalign options (e.g. -g)
+my @cmodA = ();                 # extra double - cmalign options (e.g. --cyk)
+my $evalue;                     # E-value threshold to use, set with -e
+my $verbose = 0;                # TRUE to be verbose with output
 
 &GetOptions( "t=s"        => \$thr,
 	     "e=s"        => \$evalue,
@@ -56,73 +56,79 @@ my $verbose = 0;      # TRUE to be verbose with output
 	     "verbose"    => \$verbose,
 	     "h|help"     => \$do_help );
 
-if( $do_help ) {
-    &help();
-    exit(1);
+if ( $do_help ) {
+  &help();
+  exit(1);
 }
 
 # setup variables 
 my $config = Bio::Rfam::Config->new;
 my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
-    'SEED' => {
-	fileLocation => "SEED",
-	aliType      => 'seed'
-    },
-    'TBLOUT' => { 
-	fileLocation => "TBLOUT",
-    },
-    'DESC'   => $io->parseDESC("DESC"),
-    'CM'     => $io->parseCM("CM"),
-    );
+                                    'SEED' => {
+                                               fileLocation => "SEED",
+                                               aliType      => 'seed'
+                                              },
+                                    'TBLOUT' => { 
+                                                 fileLocation => "TBLOUT",
+                                                },
+                                    'DESC'   => $io->parseDESC("DESC"),
+                                    'CM'     => $io->parseCM("CM"),
+                                   );
 
 # extra processing of command-line options 
 
 # setup dbfile 
-my $dbconfig = $config->seqdbConfig($dbchoice);
-my $dbfile   = $dbconfig->{"path"};
-my $Z        = $dbconfig->{"dbsize"};
+my $dbconfig  = $config->seqdbConfig($dbchoice);
+my $dbfile    = $dbconfig->{"path"};
+my $fetchfile = $dbconfig->{"fetchpath"};
+my $Z         = $dbconfig->{"dbsize"};
 
 # enforce -a or --subalign selected if used align-specific options used
-if((! $do_align) && (! $do_subalign)) { 
-    if($farm)              { die "ERROR --farm requires -a or --subalign";  }
-    if(scalar(@cmosA) > 1) { die "ERROR --cmosA requires -a or --subalign"; }
-    if(scalar(@cmodA) > 1) { die "ERROR --cmodA requires -a or --subalign"; }
+if ((! $do_align) && (! $do_subalign)) { 
+  if ($farm) {
+    die "ERROR --farm requires -a or --subalign";
+  }
+  if (scalar(@cmosA) > 1) {
+    die "ERROR --cmosA requires -a or --subalign";
+  }
+  if (scalar(@cmodA) > 1) {
+    die "ERROR --cmodA requires -a or --subalign";
+  }
 }
 
-# Set threshold:
+# set threshold
 my $changed_thr = 0;
-if((defined $thr) && (defined $evalue)) { 
-    die "ERROR -t and -e combination is invalid, choose 1"; 
-}
-elsif(defined $evalue) { 
-    # TODO, read SM in desc, and pick appropriate E-value line based on that
-    my $cm    = $famObj->CM;
-    my $bitsc = int((Bio::Rfam::Infernal::evalue_to_bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
-    $thr = $bitsc;
-    $changed_thr = 1;
-    print STDERR  "Using GA threshold of $thr bits, converted from E-value of <x> from command line\n";
-}
-elsif(defined $thr) { 
-    print STDERR  "Using GA threshold of $thr from command line";
-}
-else { 
-    $thr = $famObj->DESC->CUTGA; 
-    print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line\n";
-    $changed_thr = 1;
+if ((defined $thr) && (defined $evalue)) { 
+  die "ERROR -t and -e combination is invalid, choose 1"; 
+} elsif (defined $evalue) { 
+  # TODO, read SM in desc, and pick appropriate E-value line based on that
+  my $cm    = $famObj->CM;
+  my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
+  $thr = sprintf("%d.00", $bitsc);
+  $changed_thr = 1;
+  print STDERR  "Using GA threshold of $thr bits, converted from E-value of $evalue from command line\n";
+} elsif (defined $thr) { 
+  print STDERR  "Using GA threshold of $thr from command line";
+} else { 
+  $thr = $famObj->DESC->CUTGA; 
+  print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line\n";
+  $changed_thr = 1;
 }    
-if(! defined $thr) { die "ERROR: problem setting threshold\n"; }
+if (! defined $thr) {
+  die "ERROR: problem setting threshold\n";
+}
 
 # write TBLOUT's set of dependent files: "outlist", "species", "rin.dat", and "rinc.dat", if any of them don't exist
-if((! -s "outlist") || (! -s "species") || (! -s "rin.dat") || (! -s "rinc.dat")){ 
-    my $rfamdb = $config->rfamlive;
-    my $rfdbh  = $rfamdb->storage->dbh; # database connection
-    $io->writeTbloutDependentFiles($famObj, $rfdbh, $famObj->SEED, $thr, $config->RPlotScriptPath);
-    $rfdbh->disconnect;
+if ((! -s "outlist") || (! -s "species") || (! -s "rin.dat") || (! -s "rinc.dat")) { 
+  my $rfamdb = $config->rfamlive;
+  $io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $thr, $config->RPlotScriptPath);
 }
 
 my $outlistI = "outlist";
-if(! -s $outlistI) { die "ERROR: required file $outlistI does not exist or is empty\n"; }
+if (! -s $outlistI) {
+  die "ERROR: required file $outlistI does not exist or is empty\n";
+}
 
 # set the thresholds based on outlistI
 setThresholds($famObj, $thr, $outlistI);
@@ -130,26 +136,29 @@ setThresholds($famObj, $thr, $outlistI);
 # make and write the SCORE file
 $io->makeAndWriteScores($famObj, "outlist");
 
-if($do_align) { 
-    # make sure we have a valid SCORES file
-    # TODO: replace this with FamilyIO
-    my $sfetchPath = $config->easelPath . "/esl-sfetch";
-    if(! -s "SCORES") { die "ERROR SCORES does not exist to supply to esl-sfetch"; }
-    eslSfetch_Cf($sfetchPath, $dbfile, "SCORES", "$$.fa");
+if ($do_align) { 
+  # make sure we have a valid SCORES file
+  # TODO: replace this with FamilyIO
+  my $sfetchPath = $config->easelPath . "/esl-sfetch";
+  if (! -s "SCORES") {
+    die "ERROR SCORES does not exist to supply to esl-sfetch";
+  }
+  Bio::Rfam::Utils::eslSfetch_Cf($sfetchPath, $fetchfile, "SCORES", "$$.fa");
 
-    # use cmalign to do the alignment
-    my $options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-    # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
-    my $cmalignPath = $config->infernalPath . "/cmalign";
-    Bio::Rfam::Infernal::cmAlign($cmalignPath, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
+  # use cmalign to do the alignment
+  my $options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+  # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
+  Bio::Rfam::Infernal::cmalign_wrapper($config, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
 
-    # remove temporary fasta file
-    if(! $dirty) { unlink "$$.fa"; }
+  # remove temporary fasta file
+  if (! $dirty) {
+    #unlink "$$.fa";
+  }
 } # end of if($do_align)
 
-# VERY IMPORTANT, WRITE OUT DESC FILE!
-if($changed_thr) { 
-    $io->writeDESC($famObj->DESC);
+# Output desc file
+if ($changed_thr) { 
+  $io->writeDESC($famObj->DESC);
 }
 
 exit 0;
@@ -158,47 +167,54 @@ exit 0;
 # SUBROUTINES #
 ###############
 sub setThresholds { 
-    my ($famObj, $ga, $outlist) = @_;
+  my ($famObj, $ga, $outlist) = @_;
 
-    my ($tc, $nc, $bits, $line);
-    $nc = 0;
-    $tc = 999999;
+  my ($tc, $nc, $bits, $line);
+  $nc = 0;
+  $tc = 999999;
 
-    open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
+  open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
 
-    while($line = <OUTLIST>){
-	if($line !~ m/^\#/) { 
-	    # first token is bit score
-	    chomp $line;
-	    $bits = $line;
-	    $bits =~ s/\s+.*$//;
+  while ($line = <OUTLIST>) {
+    if ($line !~ m/^\#/) { 
+      # first token is bit score
+      chomp $line;
+      $bits = $line;
+      $bits =~ s/^\s+//;  # remove leading whitespace
+      $bits =~ s/\s+.*$//;
 	    
-	    if($ga <= $bits && $bits < $tc) { $tc = $bits; }
-	    if($ga  > $bits && $bits > $nc) { $nc = $bits; }
-	}
+      if ($ga <= $bits && $bits < $tc) {
+        $tc = $bits;
+      }
+      if ($ga  > $bits && $bits > $nc) {
+        $nc = $bits;
+      }
     }
+  }
     
-    if((! defined $nc) || ($nc == 0)) { $nc = "undefined"; }
-    print "(GA: $ga, TC: $tc, NC: $nc)\n";
+  if ((! defined $nc) || ($nc == 0)) {
+    $nc = "undefined";
+    die "ERROR, unable to set NC threshold, GA set too low. Rerun rfmake.pl with higher bit-score threshold";
+  }
 
-    $famObj->DESC->CUTGA($ga);
-    $famObj->DESC->CUTTC($tc);
-    $famObj->DESC->CUTNC($nc);
+  $famObj->DESC->CUTGA($ga);
+  $famObj->DESC->CUTTC($tc);
+  $famObj->DESC->CUTNC($nc);
 
-    return;
+  return;
 }
 
 ######################################################################
 sub help {
-    print STDERR <<EOF;
+  print STDERR <<EOF;
     
-rfmake.pl - Process the results of rfsearch.pl.
+rfmake.pl - Process the results of rfsearch.pl. 
             Create SCORES file given the GA threshold.
 	    By default, the GA threshold in DESC is used.
 	    There are two ways to redefine the GA threshold: 
-	      1) use -t <x> to set it as <x> bits
-              2) use -e <x> to set it as <n> bits, where <n> is 
-                 minimum bit score with E-value <= <x>.
+	      1) use -t <f> to set it as <f> bits
+              2) use -e <f> to set it as <n> bits, where <n> is 
+                 minimum integer bit score with E-value <= <f>.
 
 Usage:      rfmake.pl [options]
 

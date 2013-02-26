@@ -29,6 +29,6 @@ while (my @t = $tax->next){
     $alignDN .= '..';
   }
   $alignDN .= '['.$ncbi.']';
-  #$upSth->execute($treeDN, $alignDN, $ncbi);
-  print "O $speciesOri\nT $treeDN\nA $alignDN\n\n"; 
+  $upSth->execute($treeDN, $alignDN, $ncbi);
+  #print "O $speciesOri\nT $treeDN\nA $alignDN\n\n"; 
 }

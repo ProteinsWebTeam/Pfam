@@ -77,4 +77,52 @@ sub prepare_fullRegionAndTaxonBySeqAcc {
   return( $sth );
 }
 
+=head2 prepare_seqaccToDescription
+
+  Title    : prepare_seqaccToDescription
+  Incept   : EPN, Mon Feb 25 10:09:11 2013
+  Usage    : $rfamdb->prepare_seqaccToDescription( )
+  Function : Returns a DBI statement handle for executing queries. This statement
+           : has one bind value: rfamseq_acc.
+  Args     : none
+  Returns  : DBI statement handle
+  
+=cut
+
+sub prepare_seqaccToDescription {
+  my ($self) = @_;
+  
+  my $dbh = $self->storage->dbh;
+  my $sth = $dbh->prepare("SELECT description
+                           FROM rfamseq me
+                           WHERE ( me.rfamseq_acc = ? )");
+
+  return( $sth );
+}
+
+=head2 prepare_seqaccToSpeciesTaxStringAndID
+
+  Title    : prepare_seqaccToSpeciesTaxStringAndID
+  Incept   : EPN, Mon Feb 25 10:27:25 2013
+  Usage    : $rfamdb->prepare_seqaccToSpeciesTaxStringAndID( )
+  Function : Returns a DBI statement handle for executing queries. This statement
+           : has one bind value: rfamseq_acc.
+  Args     : none
+  Returns  : DBI statement handle
+  
+=cut
+
+sub prepare_seqaccToSpeciesTaxStringAndID {
+  my ($self) = @_;
+  
+  my $dbh = $self->storage->dbh;
+  my $sth = $dbh->prepare("SELECT t.species, t.align_display_name, t.tax_string, t.ncbi_id
+                            FROM rfamseq r
+                            JOIN taxonomy t
+                            ON t.ncbi_id = r.ncbi_id 
+                            WHERE ( r.rfamseq_acc = ? )");
+
+  return( $sth );
+}
+
 1;
