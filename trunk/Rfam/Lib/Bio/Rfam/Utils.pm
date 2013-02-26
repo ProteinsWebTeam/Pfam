@@ -134,7 +134,10 @@ sub eslSfetch_Cf {
     my ($sfetch, $dbfile, $infile, $outfile) = @_;
 
     my $command = "$sfetch -Cf $dbfile $infile > $outfile";
+    my $time1 = time();
     system("$command");
+    my $time2 = time();
+    printf("$command seqs took %d seconds\n", $time2-$time1);
     if($?) { die "FAILED: $command"; }
     return;
 }
@@ -280,6 +283,18 @@ sub species2shortspecies {
     return $shortSpecies;
 }
 
+sub tax2kingdom {
+    my ($species, $huge) = @_;
+    my $kingdom;
+    #unclassified sequences; metagenomes; ecological metagenomes.
+    if ($species=~/^(.+?);\s+(.+?)\.*?;/){
+	$kingdom = "$1; $2";
+	$kingdom = $1 if defined $huge;
+    }
+    die "FATAL: failed to parse a kingdom from species string: [$species]. email pg5!" if not defined $kingdom;
+    
+    return $kingdom;
+}
 
 =head2 nse_breakdown
 

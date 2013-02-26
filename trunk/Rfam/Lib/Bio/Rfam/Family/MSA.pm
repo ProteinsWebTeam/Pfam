@@ -70,8 +70,8 @@ sub seqToSpeciesNames {
     #=GS Shigella_flexneri_20.1 AC    CP001383.1/2080784-2080698
     $self->addGS('AC', $nse, $i);
     
-    
-    my ($name, $start, $end) = $nse =~ /^(\S+)\/(\d+)\-(\d+)$/;
+    my ($is_nse, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
+    if(! $is_nse) { die "ERROR $nse not in name/start-end format"; }
     
     $sth->execute($name);
     my $row = $sth->fetchrow_hashref;
