@@ -29,35 +29,6 @@ stUri = c.uri_for( "/speciestree" );
   // <![CDATA[
 
   // set parameters that are used by the tree controls 
-  
-  // the URL for storing the list of selected IDs 
-  var selectStoreURI     = "[% stUri %]/store_ids";
-
-  // the URL to visit when the user selects nodes and wants to view the
-  // selected sequences as domain graphics
-  var selectGraphicsURI  = "[% stUri %]/graphics";
-
-  [%# there are two URIs for generating alignments. We have one specific to
-    # Pfam, which needs to run hmmalign to align selected sequences against
-    # the HMM. We have another that's specific to Rfam, which only needs to
-    # retrieve alignment snippets from a table and then format them as 
-    # a Stockholm file -%]
-
-  // the URL to visit when the user selects nodes and wants to view the 
-  // selected sequences as an alignment - Pfam specific
-  var selectPfamAlignmentURI = "[% c.uri_for( '/family/' _ acc _ '/alignment/build' ) %]";
-
-  // the URL to visit when the user selects nodes and wants to download the 
-  // selected sequences as an alignment - Rfam specific
-  var selectRfamAlignmentURI = "[% stUri %]/alignment";
-
-  // the URL to visit when the user selects nodes and wants to download the 
-  // selected sequence accessions
-  var selectAccessionsURI = "[% stUri %]/accessions";
-
-  // the URL to visit when the user selects nodes and wants to download the 
-  // selected sequences in FASTA format
-  var selectFastaURI = "[% stUri %]/sequences";
 
   // a hash that maps between the ID of the summary node and the TaskNode object
   var nodeMapping = {};

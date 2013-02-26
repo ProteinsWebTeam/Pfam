@@ -80,9 +80,21 @@ var SunburstController = Class.create( {
    * <code><pre>
    * var sc = new SunburstController( baseURL, treeData );</pre>
    * </code>
-   *
    */
-  initialize: function( baseURL, treeData, tipStyle ) {
+
+  /**
+   * Constructor. <b>Note</b> that the JSON-format tree definition must be
+   * passed in as a variable rather than as a literal. The tree is loaded
+   * using a factory class that expects to read it from a variable...
+   *
+   * @param baseURL  the URL for the family to which this sunburst belongs
+   * @param treeData the JSON string defining the species tree
+   * @param db       used to determine which method of returning the
+   *                 alignment should be used, as well as as the name of 
+   *                 the tip style that will be used by Prototip when 
+   *                 building tool tips
+   */
+  initialize: function( baseURL, treeData, db ) {
 
     // "constants" for identifying which method to use in response to mouse
     // clicks
@@ -90,7 +102,7 @@ var SunburstController = Class.create( {
     this._FASTA = 2;
 
     this._baseURL = baseURL;
-    this._tipStyle = tipStyle || "pfam";
+    this._db = db || "pfam";
 
     // the tree itself
     this._buildTree( treeData );
@@ -118,7 +130,7 @@ var SunburstController = Class.create( {
     this._sunburst = new Sunburst( { parent:        "sunburst", 
                                      subTreeParent: "sunburstControlsContent", 
                                      tree:          treeData,
-                                     tipStyle:      this._tipStyle } );
+                                     tipStyle:      this._db } );
     // build scale slider
     this._slider = new Control.Slider( 
       $("sliderScale").down('.handle'),  // handle element
@@ -273,6 +285,7 @@ var SunburstController = Class.create( {
       }
     );
 
+    // console.debug( "SunburstController._storeAccessions: store request submitted" );
   },
 
   //----------------------------------------------------------------------------
@@ -298,32 +311,30 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
 
   _alignSequences: function( response ) {
-    // console.debug( 'SunburstController._alignSequences: accessions stored; submitting for alignment' );
 
     $("sunburstSpinner").update( "Aligning sequences&hellip;" );
-
-    var alignmentBuilderURI, r;
+    setTimeout( this._resetSpinner.bind(this), 2000 );
 
     var jobId = response.responseJSON.jobId,
         acc   = response.responseJSON.acc,
-        alignmentBuilderURI, r;
+        r;
+        
+    if ( this._db == "pfam" ) {
+      // Pfam shows the alignment in a pfamviewer window
+      popUp( '/family/' + acc + '/alignment/build/?jobId=' + jobId, 'console', 800, 800, 'selectedSeqsWin' );
+    } else {
+      // Rfam just hands back the alignment
+      r = new Ajax.Request( 
+        '/family/' + acc + '/sunburst/alignment/' + jobId,
+        {
+          method: "post",
+          contentType: "application/json",
+          onSuccess: this._pollForAlignment.bind(this),
+          onFailure: this._alignmentSubmissionFailed.bind(this)
+        }
+      );
+    }
 
-    // TODO need to pass in this URL somehow, rather than assuming a location
-    alignmentBuilderURI = '/family/' + acc + '/sunburst/alignment/' + jobId;
-    // console.debug( 'SunburstController._alignSequences: alignment builder URI: %s',
-    //                alignmentBuilderURI );
-
-    r = new Ajax.Request( 
-      alignmentBuilderURI,
-      {
-        method: "post",
-        contentType: "application/json",
-        onSuccess: this._pollForAlignment.bind(this),
-        onFailure: this._alignmentSubmissionFailed.bind(this)
-      }
-    );
-
-    // console.debug( 'SunburstController._alignSequences: submitted AJAX call to build alignment' );
   },
 
   //----------------------------------------------------------------------------

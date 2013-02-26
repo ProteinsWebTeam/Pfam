@@ -87,7 +87,7 @@ sub queue_search_transaction : Private {
                                  job_id         => $c->stash->{jobId},
                                  estimated_time => $c->stash->{estimated_time},
                                  opened         => \'NOW()',
-                                 status         => 'PEND',
+                                 status         => $c->stash->{queued_status} || 'PEND',
                                  email          => $c->stash->{email} } );  
     
     die 'error: failed to add job_history row' unless defined $job_history;
