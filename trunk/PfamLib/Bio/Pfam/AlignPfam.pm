@@ -62,6 +62,7 @@ use Bio::Annotation::DBLink;
 use Bio::Pfam::OtherRegion;
 use Bio::Pfam::SeqPfam;
 use Bio::SimpleAlign;
+use Bio::Annotation::Comment;
 
 use base 'Bio::Pfam::Root';
 use base 'Bio::SimpleAlign';
@@ -944,7 +945,9 @@ sub read_stockholm {
 		#$annotation{$nse} = Bio::Annotation->new();
 	      $annotation{$nse} = Bio::Annotation::Collection->new();
 	    }
-	    $annotation{ $nse }->add_Annotation('description', $rest );
+            my $comment = new Bio::Annotation::Comment( -text => $rest );
+	    $annotation{ $nse }->add_Annotation('description', $comment );
+	    # $annotation{ $nse }->add_Annotation('description', $rest );
 	    next;
 	};
 
@@ -1406,8 +1409,11 @@ sub write_stockholm {
       $namestr = $seq->get_nse();
 	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\.\%s\n", $namestr, $seq->acc, $seq->seq_version);
 	  if ($annot = $seq->annotation) {
-	    $annot->get_Annotations('description') and 
-		  push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->get_Annotations('description'));
+                if ( my @descriptions = $annot->get_Annotations('description') ) {
+                    foreach my $description ( @descriptions ) {
+                        push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $description->text);
+                    }
+                }
 		foreach my $ln ($annot->get_Annotations('dblink') ) {
 		  my $dblink = sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
 		  if($ln->optional_id()){

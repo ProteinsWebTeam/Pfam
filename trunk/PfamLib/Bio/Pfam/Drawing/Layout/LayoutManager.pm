@@ -1,6 +1,5 @@
 # LayoutManager.pm
 #
-# Author:        rdf
 # Maintainer:    $Id: LayoutManager.pm,v 1.11 2010-01-12 09:41:41 jm14 Exp $
 # Version:       $Revision: 1.11 $
 # Created:       Jul 16, 2009
@@ -49,7 +48,7 @@ has 'regionAndMotifOrder' => (
   isa => 'ArrayRef',
   is  => 'rw',
   default =>
-    sub { [qw(pfama context pfamb sig_p transmembrane coiled_coil low_complexity)] }
+    sub { [qw(pfama context pfamb sig_p transmembrane coiled_coil low_complexity disorder)] }
 );
 
 has 'displayMarkups' => (
