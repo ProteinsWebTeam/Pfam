@@ -28,8 +28,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
@@ -144,14 +144,15 @@ oe    = 0;
               [% END %]
           </td>
     		</tr>
-        [% IF pdb.pubmed_id %]
-        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-    		  <td class="label">PubMed reference:</td>
-  	      <td class="data">
-  	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% pdb.pubmed_id %]">
-  	          [% pdb.pubmed_id %]</a>
-          </td>
-    		</tr>
+        [%- IF pdb.pubmed_id;
+          pmid = pdb.pubmed_id %]
+          <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+            <td class="label">PubMed reference:</td>
+            <td class="data">
+              <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/[% pmid %]">
+                [% pmid %]</a>
+            </td>
+          </tr>
         [% END %]
       </tbody>
   	</table>

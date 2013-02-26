@@ -8,9 +8,9 @@
 %]
 
 [% IF titleType == "tab" %]
-<h1>NCBI sequence: <em>GI:[% ncbiseq.gi %]</em> ([% ncbiseq.secondary_acc %])</h1>
+<h1>NCBI sequence: <em>GI:[% gi %]</em> ([% secondary_acc %])</h1>
 [% ELSIF titleType == "page" %]
-NCBI sequence: GI:[% ncbiseq.gi %] ([% ncbiseq.secondary_acc %])
+NCBI sequence: GI:[% gi %] ([% secondary_acc %])
 [% END %]
 [%#
 Copyright (c) 2007: Genome Research Ltd.

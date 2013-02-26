@@ -154,7 +154,7 @@ var Results = Class.create( {
   //----------------------------------------------------------------------------
   /**
    * This is a callback method that's called from the javascript snippet that
-   * is loaded under the results tables (from results_table.tt). It's job is
+   * is loaded under the results tables (from results_table.tt). Its job is
    * to load the results tables into the page and to set up the behaviours 
    * surrounding them (e.g. "show/hide" buttons)
    *
@@ -296,12 +296,11 @@ var Results = Class.create( {
    */
   _toggleAlignment: function( e ) {
 
-    // get the clicked table cell. If the click was actually on the img, we 
-    // need to walk up a little
+    // get the clicked table cell
     var cell = e.findElement( "td" );
 
-    // the image in that cell
-    var img = cell.down("img");
+    // the button inner in that cell
+    var btn = cell.down("span");
 
     // walk up the DOM and onto the next row in the table
     var nextRow = cell.up("tr").next("tr");
@@ -309,7 +308,9 @@ var Results = Class.create( {
     // toggle the state of the row and reset the image source to point to the
     // new image
     nextRow.toggle();
-    img.src = nextRow.visible() ? this._config.hideButton : this._config.showButton;
+    btn.innerHTML = nextRow.visible()
+                  ? btn.innerHTML.replace("Show","Hide")
+                  : btn.innerHTML.replace("Hide","Show");
   },
   
   //----------------------------------------------------------------------------
@@ -332,12 +333,12 @@ var Results = Class.create( {
     var tbody = link.up("table").down("tbody");
     tbody.select("tr.alignment").invoke( show ? "show" : "hide" );
 
-    // set the show/hide images for the toggled rows
-    var imgSrc = show ? this._config.hideButton : this._config.showButton;
-    tbody.select("td.showSwitch img").each( function( img ) {
-      img.src = imgSrc;
+    // set the text in the show/hide buttons for the toggled rows
+    tbody.select("td.showSwitch span").each( function( btn ) {
+      btn.innerHTML = ( show == null )
+                    ? btn.innerHTML.replace("Hide","Show")
+                    : btn.innerHTML.replace("Show","Hide");
     } );    
-    
   },
 
   //----------------------------------------------------------------------------

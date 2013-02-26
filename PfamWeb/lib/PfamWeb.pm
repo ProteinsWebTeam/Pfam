@@ -20,13 +20,14 @@ $Id: PfamWeb.pm,v 1.56 2010-01-19 09:45:09 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
+use Catalyst::Runtime 5.80;
 use Sys::Hostname;
 use Config::General;
 
-use base 'PfamBase';
+extends 'PfamBase';
 
 our $VERSION = '1.7';
 
@@ -42,51 +43,22 @@ configuration files.
 # add to the configuration the name of the host that's actually serving
 # the site and its process ID. These will be pulled out later in the header
 # template
-__PACKAGE__->config->{server_name} = hostname();
-__PACKAGE__->config->{server_pid}  = $$;
+__PACKAGE__->config( server_name => hostname() );
+__PACKAGE__->config( server_pid  => $$ );
 
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
 # config file in httpd.conf rather than in the code
-my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
+my ( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
 # set up the ConfigLoader plugin. Point to the configuration file
-__PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
+__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 
 # read the configuration, configure the application and load these
 # catalyst plugins
-__PACKAGE__->setup( qw(
-                        HTML::Widget
-                        PageCache
+__PACKAGE__->setup( qw( HTML::Widget
                         Unicode
-                        Static::Simple
-                      ) );
-                        # GzipCompressor
-
-                        # the session plugins were used by the protein features
-                        # viewer, but, since it's disabled...
-                        # Session
-                        # Session::Store::FastMmap
-                        # Session::State::Cookie
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 is_cache_enabled
-
-Returns true if the configuration parameter C<enable_cache> is defined and is
-set to a true value. Used by the PageCache plugin to decide if it should step
-in to cache a page/serve a page from cache.
-
-If C<enable_cache> is true, page caching will be enabled.
-
-=cut
-
-sub is_cache_enabled {
-  my ( $c ) = @_;
-  return ( exists $c->config->{enable_cache} and $c->config->{enable_cache} );
-}
+                        Static::Simple) );
 
 #-------------------------------------------------------------------------------
 

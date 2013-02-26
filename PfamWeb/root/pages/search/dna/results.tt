@@ -1,0 +1,441 @@
+[%
+# searchResults.tt
+# jt6 20070414 WTSI
+#
+# show the results of a sequence search
+#
+# $Id: results.tt,v 1.22 2009-10-28 14:06:56 jt6 Exp $
+
+META title    = "Sequence search results";
+META fullPage = 1;
+
+USE wrap;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+
+requirements.js.push( "underline.js" );
+requirements.js.push( "updater.js" );
+requirements.js.push( "dna_results.js" );
+
+requirements.css.push( "domain_graphics.css" );
+requirements.css.push( "search.css" );
+requirements.css.push( "heatmap.css" );
+
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.cssIe.push( "job_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+IF seqSearchError -%]
+
+  <div class="key">
+    
+    <h2>Sequence search results</h2>
+
+    <div id="errors">
+      <h1>Job failures</h1>
+      <p>One or more of the searches had errors during execution:</p>
+      <ul>
+        <li>[% seqSearchError %]</li>
+      </ul>
+    </div>
+
+  </div>
+
+  [% RETURN;
+
+END; # of "IF seqSearchError"
+-%]
+
+<div class="key">
+  <h2>DNA sequence search results</h2>
+
+  <p>
+    This page shows the results of searching your <strong>DNA</strong> sequence
+    for Pfam-A matches. To do this we perform a six-frame translation to
+    generate a set of <strong>protein</strong> sequence, which we then search
+    using the normal Pfam-A HMMs.
+  </p>
+
+  <p id="searchingMessage">
+    Your results will appear in this page when the searches are complete;
+    please don't close this window or browse to a different page until the
+    results are loaded. 
+  </p>
+
+  <p id="resultsNotesSwitch" style="display: none">
+    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+    the detailed description of this results page.
+  </p>
+  
+  <div id="resultsNotes" style="display: none">
+    <h3>DNA-to-protein translations</h3>
+    <p>
+      This page shows the results of searching your DNA sequence for matching
+      Pfam-A families. Since Pfam operates on proteins rather than DNA, we
+      perform a six-frame translation and submit each of the six frames as a
+      separate Pfam-A search. Any matches that we find are shown in the tables
+      below and as Pfam-A domain graphics.
+    </p>
+    <p>
+      <strong>Note</strong> that when we perform the translation, we make no
+      attempt to find meaningful Open Reading Frames (ORFs) within your
+      sequence. Instead, we generate a single, full-length protein sequence for
+      each frame, ignoring stops.
+    </p>
+    <h3>Coordinate systems</h3>
+    <p>
+      You can toggle the coordinate system of the start and end positions of
+      the envelope and alignment regions of a match, between the protein
+      coordinates for the translated frame and the nucleotide coordinates from
+      your original DNA sequence. DNA coordinates are 
+      <span class="dnaLabel">highlighted</span> to make clear the coordinate system
+      currently in use.
+    </p>
+    <p>
+      <strong>Note</strong> that we do not convert the coordinates that you see
+      in the tooltips for the domain graphics. These are always shown in the
+      amino-acid coordinate system. Similarly, we do not convert the
+      coordinates of the match to the HMM, since these have no correspondence
+      to the DNA sequence.
+    </p>
+    <h3>Significant versus insignificant matches</h3>
+    <p>
+      We separate Pfam-A matches into two tables, containing the significant
+      and insignificant matches. A significant match is one where the bits
+      score is greater than or equal to the gathering threshhold for the Pfam
+      domain. Hits which do not start and end at the end points of the matching
+      HMM are <span class="warning">highlighted</span>.
+    </p>
+    <p>
+      The Pfam graphics below show only the <strong>significant</strong>
+      matches to your sequence. Clicking on any of the domains in the image
+      will take you to a page of information about that domain.
+    </p>
+    <p>
+      Pfam does not allow any amino-acid to match more than one Pfam-A
+      family, unless the overlapping families are part of the same clan. In
+      cases where two members of the same clan match the same region of a
+      sequence, only one match is show, that with the lowest E-value.
+    </p>
+    <h3>Active site predictions</h3>
+    <p>
+      A small proportion of sequences within the enzymatic Pfam families
+      have had their active sites experimentally determined. Using a strict
+      set of rules, chosen to reduce the rate of false positives, we
+      transfer experimentally determined active site residue data from a
+      sequence within the same Pfam family to your query sequence. These
+      are shown as &quot;Predicted active sites&quot;. Full details of Pfam
+      active site prediction process can be found in 
+      <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed17688688">
+        the accompanying paper</a>.
+    </p>
+    <h3>HMM alignment</h3>
+    <p>
+      For Pfam-A hits we show the alignments between your search sequence and
+      the matching HMM. You can show individual alignments by clicking on the
+      &quot;Show&quot; button in each row of the result table, or you can show
+      all alignments using the links above each table.
+    </p>
+    <p>
+      This alignment row for each hit shows the alignment between your 
+      sequence and the matching HMM. The alignment fragment includes the 
+      following rows:
+    </p>
+    <dl>
+      <dt>#HMM:</dt>
+      <dd>
+        consensus of the HMM. Capital letters indicate the most conserved 
+        positions
+      </dd>
+      <dt>#MATCH:</dt>
+      <dd>
+        the match between the query sequence and the HMM. A '+' indicates a 
+        positive score which can be interpreted as a conservative substitution
+      </dd>
+      <dt>#PP:</dt>
+      <dd>
+        posterior probability. The degree of confidence in each individual 
+        aligned residue. 0 means 0-5%, 1 means 5-15% and so on; 9 means 85-95% 
+        and a '*' means 95-100% posterior probability
+      </dd>
+      <dt>#SEQ:</dt>
+      <dd>
+        query sequence. A '-' indicate deletions in the query sequence with 
+        respect to the HMM. Columns are coloured according to the posterior
+        probability
+        <div class="scale">
+          0% <span class="t0">&nbsp;&nbsp;</span><span class="t1">&nbsp;&nbsp;</span><span class="t2">&nbsp;&nbsp;</span><span class="t3">&nbsp;&nbsp;</span><span class="t4">&nbsp;&nbsp;</span><span class="t5">&nbsp;&nbsp;</span><span class="t6">&nbsp;&nbsp;</span><span class="t7">&nbsp;&nbsp;</span><span class="t8">&nbsp;&nbsp;</span><span class="t9">&nbsp;&nbsp;</span><span class="tm">&nbsp;&nbsp;</span> 100%
+        </div>
+      </dd>
+    </dl>
+    <h3>Saving your results</h3>
+    <p>
+      You can bookmark this page and return to it later, but please use the 
+      URL that you can find in the &quot;Search options&quot; section below. 
+      Please note that old results may be removed after 
+      <strong>one week</strong>.
+    </p>
+    <hr />
+  </div><!-- end of "resultsNotes" -->
+
+  <p id="summaryText">
+    We have found <strong id="numSig">0</strong> significant hit<span id="numSigPlural">s</span> and 
+    <strong id="numInsig">0</strong> insignificant hit<span id="numInsigPlural">s</span> in 
+    <strong id="numFramesHit">0</strong> frame<span id="numFramesHitPlural">s</span>.
+  </p>
+
+  <div id="dg">
+    <div style="display: none">
+      <span class="dgLabel">Frame 1 (<span class="sense">+</span>)</span>
+      <span class="dg" id="seq0"></span>
+    </div>
+    <div style="display: none">
+      <span class="dgLabel">Frame 2 (<span class="sense">+</span>)</span>
+      <span class="dg" id="seq1"></span>
+    </div>
+    <div style="display: none">
+      <span class="dgLabel">Frame 3 (<span class="sense">+</span>)</span>
+      <span class="dg" id="seq2"></span>
+    </div>
+    <div style="display: none">
+      <span class="dgLabel">Frame 4 (<span class="sense">-</span>)</span>
+      <span class="dg" id="seq3"></span>
+    </div>
+    <div style="display: none">
+      <span class="dgLabel">Frame 5 (<span class="sense">-</span>)</span>
+      <span class="dg" id="seq4"></span>
+    </div>
+    <div style="display: none">
+      <span class="dgLabel">Frame 6 (<span class="sense">-</span>)</span>
+      <span class="dg" id="seq5"></span>
+    </div>
+  </div>
+
+  <div id="loading">
+    <img class="loadingBar"
+         alt="Searching..."
+         src="[% c.uri_for( '/shared/images/blank.gif' ) %]" />
+         <br />
+    Waiting for the results of 
+    <span id="numJobs">6</span>
+    <span id="jobLabel">jobs</span>.
+  </div>
+
+  <p id="optionsListSwitch" style="display: none">
+    <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
+    the DNA and protein sequences, and the URL for bookmarking these results.
+  </p>
+
+  <div id="optionsList" style="display: none">
+
+    <div class="centreWrapper">
+      <table id="sequences" class="centredBlock">
+        <tbody>
+          <tr>
+            <td class="frame">DNA</td>
+            <td class="plainSequence">[% FILTER wrap(120, '      ', '<br />'); sequences.0; END %]</td>
+          </tr>
+          [% FOREACH sequence IN sequences.slice(1) %]
+          <tr>
+            <td class="frame">Frame [% loop.index + 1 %]</td>
+            <td class="plainSequence">[% FILTER wrap(120, '      ', '<br />'); sequence; END %]</td>
+          </tr>
+          [% END %]
+        </tbody>
+      </table>
+    </div>
+    <div class="cleaner"><!-- empty --></div>
+
+    [% redirectUri = c.uri_for( '/search/dna/results', jobId ) %]
+    <p>
+      You can bookmark
+      <a href="[% redirectUri | html %]">
+        this URL</a> to retrieve your results later:
+    </p>
+    <div class="centreWrapper">
+      <p class="plainSequence centredBlock">[% redirectUri | html %]</p>
+    </div>
+    <div class="cleaner"><!-- empty --></div>
+
+  </div><!-- end of "optionsList" -->
+
+  <div id="errors" style="display: none"></div>
+
+  <p id="searchFormLink" style="display: none">
+    <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
+    to the search form to look for Pfam domains on a new sequence.
+  </p>
+
+</div><!-- end of "key" -->
+
+<div id="results">
+  <table id="pfamASummary"
+         class="resultTable" 
+         style="display: none"
+         summary="Significant Pfam-A matches">
+    <caption>
+      <span class="tableTitle">
+        <span class="titlePrefix">Significant</span> Pfam-A Matches
+      </span>
+      <span class="showHideLink link">Show</span> or
+      <span class="showHideLink link">hide</span> 
+      all alignments.
+      <span class="toggleCoordType link aa">Toggle</span> between amino-acid and <span class="dnaLabel">DNA</span> sequence coordinates.
+    </caption>
+    <thead>
+      <tr class="titleRow">
+        <th rowspan="2" class="rowNum">Original order</th>
+        <th rowspan="2">Frame<br />(sense)</th>
+        <th rowspan="2">Family</th>
+        <th rowspan="2">Description</th>
+        <th rowspan="2">Entry<br />type</th>
+        <th rowspan="2">Clan</th>
+        <th colspan="2">Envelope</th>
+        <th colspan="2">Alignment</th>
+        <th colspan="2">HMM</th>
+        <th rowspan="2">HMM<br />length</th>
+        <th rowspan="2">Bit<br />score</th>
+        <th rowspan="2">E-value</th>
+        <th rowspan="2">Predicted<br />active sites</th>
+        <th rowspan="2">Show/hide<br />alignment</th>
+      </tr>
+      <tr class="titleRow">
+        <th>Start</th>
+        <th>End</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>From</th>
+        <th>To</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- significant matches go here -->
+    </tbody>
+  </table>
+
+  <table id="pfamASummaryI"
+         class="resultTable" 
+         style="display: none"
+         summary="Insignificant Pfam-A matches">
+    <caption>
+      <span class="tableTitle">
+        <span class="titlePrefix">Insignificant</span> Pfam-A Matches
+      </span>
+      <span class="showHideLink link">Show</span> or
+      <span class="showHideLink link">hide</span> 
+      all alignments.
+    </caption>
+    <thead>
+      <tr class="titleRow">
+        <th rowspan="2" class="rowNum">Original order</th>
+        <th rowspan="2">Frame<br />(sense)</th>
+        <th rowspan="2">Family</th>
+        <th rowspan="2">Description</th>
+        <th rowspan="2">Entry<br />type</th>
+        <th rowspan="2">Clan</th>
+        <th colspan="2">Envelope</th>
+        <th colspan="2">Alignment</th>
+        <th colspan="2">HMM</th>
+        <th rowspan="2">HMM<br />length</th>
+        <th rowspan="2">Bit<br />score</th>
+        <th rowspan="2">E-value</th>
+        <th rowspan="2">Predicted<br />active sites</th>
+        <th rowspan="2">Show/hide<br />alignment</th>
+      </tr>
+      <tr class="titleRow">
+        <th>Start</th>
+        <th>End</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>From</th>
+        <th>To</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- insignificant matches go here -->
+    </tbody>
+  </table>
+</div>
+
+<!-- placeholder for the rows coming back from the individual searches -->
+<div id="stagingDiv" style="display: none"></div>
+
+<!-- key for the sequence-to-HMM alignment block -->
+<div id="alignmentKey" style="display: none">
+  <p>
+    This row shows the alignment between your sequence and the matching HMM.
+  </p>
+  <dl>
+    <dt>#HMM:</dt>
+    <dd>consensus of the HMM</dd>
+    <dt>#MATCH:</dt>
+    <dd>the match between the query sequence and the HMM</dd>
+    <dt>#PP:</dt>
+    <dd>posterior probability, or the degree of confidence in each individual 
+        aligned residue</dd>
+    <dt>#SEQ:</dt>
+    <dd>
+      query sequence, coloured according to the posterior probability:
+      <div class="scale">
+        0% <span class="t0">&nbsp;&nbsp;</span><span class="t1">&nbsp;&nbsp;</span><span class="t2">&nbsp;&nbsp;</span><span class="t3">&nbsp;&nbsp;</span><span class="t4">&nbsp;&nbsp;</span><span class="t5">&nbsp;&nbsp;</span><span class="t6">&nbsp;&nbsp;</span><span class="t7">&nbsp;&nbsp;</span><span class="t8">&nbsp;&nbsp;</span><span class="t9">&nbsp;&nbsp;</span><span class="tm">&nbsp;&nbsp;</span> 100%
+      </div>
+    </dd>
+  </dl>
+  
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var resultsConfig = {
+    options:      [% json_options || "{}" %],
+    pollUrl:      "[% c.uri_for( '/search/dna/resultset', jobId ) %]",
+    loadTableUrl: "[% c.uri_for( '/search/dna/resulttable', jobId ) %]",
+    baseUrl:      "[% c.uri_for( '/' ) %]",
+    dnaSeq:       "[% sequences.0 %]"
+  };
+
+  var results;
+  document.observe( "dom:loaded", function() {
+    results = new DnaResults( "[% jobId %]", resultsConfig );
+  } );
+  
+  // ]]>
+</script>
+
+<!-- end of "results" -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

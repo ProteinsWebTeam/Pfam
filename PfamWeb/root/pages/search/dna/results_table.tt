@@ -1,0 +1,316 @@
+[%
+# result_table.tt
+# jt6 20090521 WTSI
+#
+# format the results of a H3 sequence search as a table.
+#
+# $Id: results_table.tt,v 1.8 2009-10-28 14:08:38 jt6 Exp $
+
+META naked = 1;
+
+USE Dumper;
+# CALL c.log.debug( "results_table.tt: results: " _ Dumper.dump( results ) );
+
+USE String;
+
+#-------------------------------------------------------------------------------
+#- BLOCKs ----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+BLOCK markupAlignment;
+
+  hmmLine   = alignment.0.substr(11);
+  matchLine = alignment.1.substr(11);
+  ppLine    = alignment.2.substr(11);
+  seqLine   = alignment.3.substr(11);
+  -%]
+  <div class="hmmAlignment">
+    <div class="hmmWindow">
+    #HMM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[% PROCESS markupHMM -%]
+    <br />
+    #MATCH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='match'>[% matchLine.replace( '\s', '&nbsp;' ) %]</span>
+    <br />
+    #PP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='match'>[% ppLine.replace( '\s', '&nbsp;' ) %]</span>
+    <br />
+    #SEQ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[% PROCESS markupSeq -%]
+    </div>
+  </div>[%
+
+END;
+
+#-------------------------------------------------------------------------------
+
+BLOCK markupSeq;
+
+  # CALL c.log.debug( "results_table.tt: markupSeq: pp:  $ppLine" );
+  # CALL c.log.debug( "results_table.tt: markupSeq: seq: $seqLine" );
+
+  max            = '';    # the class of the longest chunk
+  maxChunkLength = 0;     # the length of that chunk
+
+  pos      = 0;           # the position of the start of each chunk
+  prevChar = '';          # the type of the previous chunk
+
+  freq = {};              # essentially the lengths of the chunks
+
+  chunks = [];
+ 
+  # the regex produces a list of chunks, each one containing a string of 
+  # consecutive characters with the same type. Because the list of matches
+  # that is returned by "match" contains all matches, we can't pick out just
+  # $1, as we'd ideally like to. To get around this, we reject any chunks
+  # that are the same type as the previous one, since they are effectively $2.
+  
+  FOREACH chunk IN ppLine.match( '((.)\2*)', 1 );
+    char = chunk.substr( 0, 1 );
+    NEXT IF char == prevChar;
+    
+    chunks.push( chunk );
+    prevChar = char;
+    
+    # CALL c.log.debug( "results_table.tt: markupSeq: chunk: $chunk" );
+    freq.$char = chunk.length;
+    IF chunk.length > maxChunkLength;
+      max = char;
+      maxChunkLength = chunk.length;
+    END;
+  END;
+  
+  # CALL c.log.debug( "results_table.tt: markupSeq: longest chunk: $max" );
+  IF max == '*';
+    max = 'star';
+  ELSIF max == '.';
+    max = 'gap';
+  END;
+  # CALL c.log.debug( "results_table.tt: markupSeq: longest chunk style: $max" );
+  
+  # start the markup string with a span that has the same class as the 
+  # longest chunk
+  mapped = String.new( "<span class='heat$max'>" );
+  
+  FOREACH chunk IN chunks;
+    first = chunk.substr( 0, 1 );
+    IF first == '*';
+      first = 'star';
+    ELSIF first == '.';
+      first = 'gap';
+    END;
+    seqChunk = seqLine.substr( pos, chunk.length );
+    CALL mapped.append(
+      ( first == max ) 
+        ? seqChunk
+        : "<span title='$first' class='heat$first'>" _ seqChunk _ "</span>"    
+    );
+    pos = pos + chunk.length;
+  END;
+
+  # tack on the closing tag and let the result leak out, to form the return
+  # value of the BLOCK 
+  mapped.append( "</span>" ); 
+  
+END; # of "BLOCK markupSeq"
+
+#-------------------------------------------------------------------------------
+
+BLOCK markupHMM;
+
+  # CALL c.log.debug( "results_table.tt: markupHMM: hmm:   $hmmLine" );
+  # CALL c.log.debug( "results_table.tt: markupHMM: match: $matchLine" );
+
+  pos      = 0;           # the position of the start of each chunk
+  prevChar = '';          # the type of the previous chunk
+
+  mapped = String.new( "<span class='hmmmatch'>" );
+
+  FOREACH chunk IN matchLine.match( '((.)\2*)', 1 );
+    char = chunk.substr( 0, 1 );
+    NEXT IF char == prevChar;
+    
+    prevChar = char;
+    
+    # CALL c.log.debug( "results_table.tt: markupHMM: chunk: |$chunk|" );
+    
+    first    = chunk.substr( 0, 1 );
+    hmmChunk = hmmLine.substr( pos, chunk.length );
+    IF first == ' ';
+      CALL mapped.append( "<span class='hmmminus'>" _ hmmChunk _ "</span>" );
+    ELSIF first == '+';
+      CALL mapped.append( "<span class='hmmplus'>" _ hmmChunk _ "</span>" );
+    ELSE;
+      CALL mapped.append( hmmChunk );
+    END;
+    
+    pos = pos + chunk.length;
+  END; 
+  
+  mapped.append( "</span>" ); 
+
+  # CALL c.log.debug( "results_table.tt: markupHMM: match: $matchLine" );
+
+END; # of "BLOCK markupHMM"
+
+#-------------------------------------------------------------------------------
+
+# a block that builds a table of results
+BLOCK buildTableBody;
+  
+  # we use loop.index to build an ID for each row, since that really will
+  # be unique, but for the purposes of deciding if a row is odd or even, we
+  # need a separate counter, tableRow
+  tableRow = 0;
+  FOREACH hit IN resultsSlice;
+  
+    CALL c.log.debug( "results_table.tt: hit: |" _ Dumper.dump( hit ) _ "|" )
+      IF c.debug;
+
+    # entirely skip any hits that have an E-value greater than the global 
+    # E-value cut-off
+    IF options.evalue_cutoff AND hit.evalue > options.evalue_cutoff;
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue gt cut-off evalue: ${hit.evalue} gt ${options.evalue_cutoff}; skipping" )
+      #   IF c.debug;
+      NEXT;
+    ELSE;
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue lt cut-off evalue: ${hit.evalue} lt ${options.evalue_cutoff}" )
+      #   IF c.debug;
+    END;
+
+    # decide whether we should skip this row. If the parameter 
+    # "showSignificant" is true, we skip rows with insignificant matches, and 
+    # vice versa. We also set the row CSS class and the row ID here
+    IF showSignificant;
+
+      # show only significant hits
+      NEXT IF NOT hit.sig;
+
+      rowClass = tableRow % 2 ? "odd" : "even"; # previously oddlySignificant and evenlySignificant
+      rowId    = job_type _ loop.index;
+      numSignificantMatches = numSignificantMatches + 1;
+
+    ELSE;
+
+      # show only INsignificant hits
+      NEXT IF hit.sig;
+
+      rowClass = tableRow % 2 ? "odd" : "even";
+      rowId    = job_type _ "I" _ loop.index;
+      numInsignificantMatches = numInsignificantMatches + 1;
+
+    END;
+    
+    tableRow = tableRow + 1 -%]
+    <tr class="[% rowClass %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td><span class="frameNum">[% frame + 1 %]</span> ([% frame < 3 ? "+" : "-" %])</td>
+      <td>
+        [% IF hit.acc -%]
+        <a id="[% ( job_type == 'A' ? 'region_' : 'motif_' ) _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
+           href="[% c.uri_for( job_type == 'A' ? '/family' : '/pfamb', hit.acc ) %]">[% hit.name %]</a>
+        [% ELSE;
+          hit.name;
+        END -%]
+      </td>
+      <td class="desc">
+        [% IF hit.desc;
+        CALL c.log.debug( "DESC_LENGTH: " _ max_desc_length ) IF c.debug; 
+          IF hit.desc.length > max_desc_length -%]
+            <span class="familyDesc" style="display: none">
+              [% hit.desc %]
+              <span class="toggleFullDescLink link small">(shorten)</span>
+            </span>
+            <span class="familyDesc">
+              [% hit.desc.substr( 0, max_desc_length ) -%]
+            <span class="toggleFullDescLink link">&hellip;</span>
+            </span>
+          [%- ELSE;
+            hit.desc;
+          END;
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td>
+        [% IF hit.type;
+          hit.type;
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td>
+        [% IF hit.clan AND hit.clan != 'No_clan' -%]
+          <a href="[% c.uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
+        [% ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td class="aa start">[% hit.env.from %]</td>
+      <td class="aa end">[% hit.env.to %]</td>
+      <td class="aa start">[% hit.seq.from %]</td>
+      <td class="aa end">[% hit.seq.to %]</td>
+      <td class="start[% ' warning' IF hit.hmm.from != 1 %]">
+        [% hit.hmm.from %]
+      </td>
+      <td class="end[% ' warning' IF hit.hmm.to != hit.model_length %]">
+        [% hit.hmm.to %]
+      </td>
+      <td>[% hit.model_length %]</td>
+      <td>[% hit.bits %]</td>
+      <td>[% hit.evalue %]</td>
+      <td>
+        [% IF hit.act_site.size;
+          hit.act_site.join(",");
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td class="showSwitch">
+        <a class="btn showHide">
+          <span class="btn-inner">Show</span></a>
+      </td>
+    </tr>
+    <tr class="alignment [% rowClass %]" id="[% rowId %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td colspan="17">
+      [% PROCESS markupAlignment alignment = hit.align %]
+      </td>
+    </tr>
+  [% END; # of "FOREACH "
+END; # of "BLOCK buildTableBody"
+
+#-------------------------------------------------------------------------------
+#- "main" ----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# now we actually run the "buildTableRows" block for the significant and 
+# insignificant matches, so that we can see if we actually HAVE significant or
+# insignificant matches before we try to build the page
+  significantMatches = PROCESS buildTableBody resultsSlice    = results, 
+                                              jobType         = "A",
+                                              showSignificant = 1;
+insignificantMatches = PROCESS buildTableBody resultsSlice    = results,
+                                              jobType         = "A",
+                                              showSignificant = 0;
+-%]
+<table class="significantRows">
+  [% significantMatches -%]
+</table>
+<table class="insignificantRows">
+  [% insignificantMatches -%]
+</table>
+[%#
+Copyright (c) 2013: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

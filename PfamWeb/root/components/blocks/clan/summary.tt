@@ -23,8 +23,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "domain_graphics_loader.js" );
@@ -117,10 +117,18 @@ END;
              litRefs.${ref.order_added} = ref;
            END;
            FOREACH refNum IN litRefs.keys.nsort;
-             ref = litRefs.$refNum; -%]
+             ref = litRefs.$refNum;
+             pmid = ref.auto_lit.pmid -%]
           <li>
             [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
-            <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">[% ref.auto_lit.pmid %]</a>
+            <a name="ref[% refNum %]"
+               class="ext" 
+               href="http://www.ncbi.nlm.nih.gov/pubmed/[% pmid %]">
+              PUBMED:[% pmid %]</a>
+            <a name="epmc[% refNum %]"
+               class="ext" 
+               href="http://europepmc.org/abstract/MED/[% pmid %]">
+              EPMC:[% pmid %]</a>
           </li>
         [% END %]
       </ol>
@@ -146,7 +154,7 @@ END;
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater( 
         "siph",
-        "[% c.uri_for( '/family/structures', members.first.pfama_acc ) %]",
+        "[% c.uri_for( '/family', members.first.pfama_acc, 'structures' ) %]",
         {
           method:      "get",
           evalScripts: true,

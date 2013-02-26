@@ -25,7 +25,7 @@ $Id$
 use strict;
 use warnings;
 
-use base 'PfamBase::Controller::Section';
+use base 'PfamWeb::Controller::Section';
 
 # set the name of the section
 __PACKAGE__->config( { SECTION => 'vm' } );

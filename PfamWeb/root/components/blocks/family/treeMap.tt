@@ -13,25 +13,15 @@ META naked = 1;
 <div id="[% alnType %]_tree"
      class="treemap">
 
-  <img src="[% c.uri_for( '/family/' _ acc _ '/tree/' _ alnType _ '/image' ) %]" 
-       usemap="#nhxmap_[% alnType %]" />
+  <img src="[% c.uri_for( '/family', acc, 'tree/image' ) %]" 
+       usemap="#nhxmap" />
   
-  <map name="nhxmap_[% alnType %]">
-  [% FOREACH node IN tree.node_array;
+  <map name="nhxmap">
+  [%- FOREACH node IN tree.node_array;
     matches = node.N.match( '^(.*?)\/\d+-\d+$' );
-    IF node.area AND matches.0;
-  
-      SWITCH alnType;
-        CASE "ncbi";
-          url = c.uri_for( "/ncbiseq", { entry = matches.0 } );
-        CASE "meta";
-          url = c.uri_for( "/metaseq", { entry = matches.0 } );
-        CASE;
-          url = c.uri_for( "/protein", { entry = matches.0 } );
-      END;
-  -%]
-    <area coords="[% node.area.join( "," ) %]" 
-          href="[% url %]" />
+    IF node.area AND matches.0 %]
+    <area coords="[% node.area.join( ',' ) %]" 
+          href="[% c.uri_for( "/protein", matches.0 ) %]" />
     [% END; # of "IF node.area"
   END; # of "FOREACH" -%]
   </map>

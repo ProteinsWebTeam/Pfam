@@ -341,15 +341,19 @@ sub get_data : Private {
       if $c->debug;
 
     # see if this is really a secondary accession
-    $c->stash->{pfamseq} = $c->model('PfamDB::SecondaryPfamseqAcc')
-                             ->search( { secondary_acc => $entry },
-                                       { prefetch      => [ qw( auto_pfamseq ) ] } )
-                             ->single
-                             ->auto_pfamseq;
+    $c->stash->{secondary} = $c->model('PfamDB::SecondaryPfamseqAcc')
+                               ->search( { secondary_acc => $entry },
+                                         { prefetch      => [ qw( auto_pfamseq ) ] } )
+                               ->single;
 
     # set a flag to show that we got a secondary accession, so that the 
     # template add a message to that effect to the page
-    $c->stash->{from_secondary_acc} = $entry;
+    if ( $c->stash->{secondary} ) {
+      $c->log->debug( "Protein::get_data: '$entry' looks like a secondary accession" )
+        if $c->debug;
+      $c->stash->{pfamseq} = $c->stash->{secondary}->auto_pfamseq;
+      $c->stash->{from_secondary_acc} = $entry;
+    }
   }
   
   unless ( $c->stash->{pfamseq} ) {
@@ -383,7 +387,7 @@ sub get_regions : Private {
 
   $c->log->debug( 'Protein::get_regions: found ' 
                   . scalar( @{ $c->stash->{pfama_regions} } ) . ' Pfam-A hits' )
-      if $c->debug;
+    if $c->debug;
   
   # add Pfam-B regions
   my @pfamb_regions = $c->model('PfamDB::PfambReg')
@@ -393,7 +397,7 @@ sub get_regions : Private {
 
   $c->log->debug( 'Protein::get_regions: found ' 
                   . scalar( @{ $c->stash->{pfamb_regions} } ) . ' Pfam-B hits' )
-      if $c->debug;
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -412,7 +416,8 @@ sub get_annseq : Private {
   my $storable = thaw $c->stash->{pfamseq}->annseqs->annseq_storable;
   return unless defined $storable;
 
-  $c->log->debug( 'Protein::get_annseq: got a storable; encoding as JSON' ) if $c->debug;
+  $c->log->debug( 'Protein::get_annseq: got a storable; encoding as JSON' )
+    if $c->debug;
 
   $c->stash->{seqs} = [ $storable ];
 
@@ -606,6 +611,17 @@ sub get_summary_data : Private {
   }
 
   $c->stash->{regions} = $regions;
+
+  my $ncbi_taxid = $c->stash->{pfamseq}->ncbi_taxid->ncbi_taxid;
+
+  my $cp = $c->model('PfamDB::CompleteProteomes')
+             ->find( { ncbi_taxid => $ncbi_taxid } );
+
+  if ( $cp ) {
+    $c->log->debug("Protein::get_summary_data: found a complete proteome for $ncbi_taxid")
+      if $c->debug;
+    $c->stash->{complete_proteome} = 1;
+  }
 
   $c->log->debug('Protein::get_summary_data: added the summary data to the stash')
     if $c->debug;

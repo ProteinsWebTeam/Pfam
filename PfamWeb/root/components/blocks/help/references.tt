@@ -85,7 +85,7 @@
   
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/12668763">
           Enhanced protein domain discovery by using language modeling techniques from 
           speech recognition</a>: 
       </span>
@@ -166,7 +166,7 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;list_uids=9223186">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/9223186">
           Pfam: a comprehensive database of protein families based on seed alignments</a>: 
       </span>
       <span class="authors">

@@ -91,7 +91,7 @@ sub merge : Private {
         #                . " \$row->pfama_acc for plugin |$pluginName|: $@" )
         #   if $c->debug;
       }
-      
+
       if ( defined $acc ) {
         $hit = $c->stash->{results}->{$acc} ||= {};
         $hit->{dbObj} = $row;
@@ -109,19 +109,38 @@ sub merge : Private {
         $acc = $row->auto_pfama->pfama_acc;
       };
       if ( $@ ) {
-        $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
-                       . " \$row->auto_pfama->pfama_acc for plugin |$pluginName|: $@" )
-          if $c->debug;
+        # $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
+        #               . " \$row->auto_pfama->pfama_acc for plugin |$pluginName|: $@" )
+        #  if $c->debug;
+
       }
 
       if ( defined $acc ) {
         $hit = $c->stash->{results}->{$acc} ||= {};
         $hit->{dbObj} = $row->auto_pfama;
-        # last TRY;
+        last TRY;
       }
 
+      if (exists $row->{accession}) {
+
+        $hit = $c->stash->{results}->{$row->{accession}} ||= {};
+        # have to create an anonymous hash here as the Lucy::Hits object does not play
+        # nice with template toolkit. It might be something to do with it being an
+        # inside out object or because it is bound to a C backend which doesn't play
+        # well.
+        $hit->{dbObj} = {
+          'pfama_acc'   => $row->{accession},
+          'pfama_id'    => $row->{id},
+          'description' => $row->{description},
+        };
+      }
+      else {
+        $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
+                       . "to find an accession form plugin |$pluginName| results" )
+          if $c->debug;
+      }
     }
-    
+
     $hit->{query}->{$pluginName} = 1;
     $c->stash->{pluginHits}->{$pluginName} += 1;
 

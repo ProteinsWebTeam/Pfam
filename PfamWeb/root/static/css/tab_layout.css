@@ -71,7 +71,13 @@
 #icons {
   width: 50%;
   float: right;
-  margin: -6px -5px 0 0;
+  /* margin: -6px -5px 0 0; */
+  background-color: #c2d2e1;
+  border-radius: 3px;
+  margin: 1px 1px 5px 0;
+  padding: 4px;
+  box-shadow: 1px 1px 4px;
+  -webkit-box-shadow: 1px 1px 3px 1px #AAA;
 }
 
 #icons span {
@@ -159,6 +165,12 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   background-repeat: repeat-x;
   background-position: bottom left;
   padding: 0;
+  /* border: 1px solid #b18b80; */
+  border-radius: 10px;
+  box-shadow: 1px 1px 4px;
+  -webkit-box-shadow: 1px 1px 3px 1px #AAA;
+  padding: 5px;
+  margin: 10px;
 }
 
 #sidebar ul {

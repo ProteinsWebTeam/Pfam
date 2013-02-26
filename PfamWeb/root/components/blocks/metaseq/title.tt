@@ -9,12 +9,10 @@
 
 [% IF titleType == "tab" %]
 <h1>
-  Metagenomics: <em>[% metaseq.metaseq_acc %]</em>
-  [% IF metaseq.metaseq_id; "("; metaseq.metaseq_id; ")"; END %]
+  Metagenomics: <em>[% id %]</em>
 </h1>
 [% ELSIF titleType == "page" %]
-Metagenomics sequence: [% metaseq.metaseq_acc %]
-[% IF metaseq.metaseq_id; "("; metaseq.metaseq_id; ")"; END %]
+Metagenomics sequence: [% id %]
 [% END %]
 [%#
 Copyright (c) 2007: Genome Research Ltd.

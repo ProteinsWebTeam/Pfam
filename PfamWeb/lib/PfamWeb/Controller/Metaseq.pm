@@ -24,15 +24,6 @@ $Id: Metaseq.pm,v 1.7 2010-01-13 14:44:53 jt6 Exp $
 use strict;
 use warnings;
 
-use Bio::Pfam::Sequence;
-use Bio::Pfam::Sequence::Region;
-use Bio::Pfam::Sequence::MetaData;
-use Bio::Pfam::Drawing::Layout::LayoutManager;
-
-use JSON qw( -convert_blessed_universally );
-
-use Data::Dump qw( dump );
-
 use base 'PfamWeb::Controller::Section';
 
 __PACKAGE__->config( SECTION => 'metaseq' );
@@ -86,50 +77,14 @@ sub begin : Private {
 
   # retrieve data for this entry
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
-  
-}
 
-#-------------------------------------------------------------------------------
-#- exposed actions -------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 action : Attribute
-
-Description...
-
-=cut
-
-sub stats : Local{
-  my ( $this, $c ) = @_;
-
-  # detaint the source name
-  if ( defined $c->req->param('source') and 
-       $c->req->param('source') =~ m/^([A-Za-z\d_])+$/ ) {
-    $c->log->debug( "Metaseq::stats: got a valid source name: |$1|" )
-      if $c->debug;
-  }  
-  else {
-    $c->log->debug( 'Metaseq::stats: no valid source name' ) if $c->debug;
+  # if we need the domain graphic, which we don't for XML output, submit
+  # the sequence for a sequence search
+  if ( not $c->stash->{output_xml} ) {
+    $c->stash->{data}->{altoutput} = 2;
+    $c->stash->{data}->{seq}       = $c->stash->{sequence};
+    $c->forward( qw/ PfamWeb::Controller::Search::Sequence search / );
   }
-
-  my $source = $1;
-
-  # a long, long query...
-  my $rs = $c->model( 'PfamDB::Meta_pfama_reg' )
-             ->search( { 'metaseq.source' => $source },
-                       { join     => [ 'pfamA', 'metaseq' ],
-                         select   => [ qw( pfamA_id pfamA_acc ), { count => 'auto_pfamA' } ],
-                         as       => [ qw( pfamA_id pfamA_id num_domains ) ],
-                         group_by => 'auto_pfamA' } );
-
-  # SELECT   count(*), 
-  #          auto_pfamA 
-  # FROM     meta_pfamA_reg r,
-  #          metaseq m
-  # WHERE    source = 'acid_mine'
-  # AND      m.auto_metaseq = r.auto_metaseq
-  # GROUP BY auto_pfamA;
-  
 }
 
 #-------------------------------------------------------------------------------
@@ -138,184 +93,59 @@ sub stats : Local{
 
 =head2 get_data : Private
 
-Retrieves the data for the given metaseq accession or ID.
+Retrieves data for the given metagenomics identifier.
 
 =cut
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
-  my $rs = $c->model('PfamDB::Metaseq')
-             ->search( [ { metaseq_acc => $entry }, 
-                         { metaseq_id  => $entry } ] );
+  # use "esl-sfetch" to try to retrieve a sequence from the NCBI sequence
+  # file
+  my $opened = open( META, join ' ', ( $this->{sfetchBinary}, $this->{metaSeqFile}, $entry, '|' ) );
 
-  my $metaseq;
-  $metaseq = $rs->first if defined $rs;
-  
-  unless ( defined $metaseq ) {
-    $c->stash->{errorMsg} = 'No valid metaseq accession or ID';
+  unless ( $opened ) {
+    $c->log->debug( "Metaseq::get_data: problem running esl-sfetch: $!" )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'Could not open the metagenomics sequence file';
+
+    return;
+  }
+    
+  my @metaseq = <META>;
+  close META;
+ 
+  unless ( scalar @metaseq ) {
+    $c->log->debug( 'Metaseq::get_data: no sequence found with given ID' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'No valid metagenomics sequence identifier';
+
     return;
   }
   
-  $c->log->debug( 'Metaseq::get_data: got a metaseq entry' ) if $c->debug;
-  $c->stash->{metaseq}   = $metaseq;
-  $c->stash->{acc}       = $metaseq->metaseq_acc;
-  
-  # only add extra data to the stash if we're actually going to use it later
-  if ( not $c->stash->{output_xml} and 
-       ref $this eq 'PfamWeb::Controller::Metaseq' ) {
-    
-    $c->log->debug( 'Metaseq::get_data: adding extra metaseq info' )
-      if $c->debug;
-    
-    $c->forward('generate_pfam_graphic');
-    $c->forward('get_summary_data');
-  }
-  
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 generate_pfam_graphic : Private
-
-Generates the Pfam graphic.
-
-=cut
-
-sub generate_pfam_graphic : Private {
-  my( $this, $c ) = @_;
-  
-  my @rs = $c->model('PfamDB::MetaPfamaReg')
-             ->search( { 'me.auto_metaseq' => $c->stash->{metaseq}->auto_metaseq },
-                       { prefetch => [ qw( auto_pfama auto_metaseq ) ] } );
-
-  $c->log->debug( 'Metaseq::generate_pfam_graphic: got ' . scalar @rs . ' rows' )
+  $c->log->debug( 'Metaseq::get_data: got a metaseq entry' )
     if $c->debug;
-    
-  # build a Sequence object to describe the graphic
-  my @regions = ();
-  foreach my $row ( @rs ) {
 
-    my $region = Bio::Pfam::Sequence::Region->new( {
-      start      => $row->seq_start,
-      end        => $row->seq_end,
-      aliStart   => $row->ali_start,
-      aliEnd     => $row->ali_end,      
-      modelStart => $row->model_start,
-      modelEnd   => $row->model_end,
-      type       => 'pfama',
-      # label      => '',
-      # href       => '',
-      metadata   => Bio::Pfam::Sequence::MetaData->new( {
-        accession   => $row->auto_pfama->pfama_acc,
-        identifier  => $row->auto_pfama->pfama_id,
-        description => $row->auto_pfama->description,
-        score       => $row->domain_evalue_score,
-        scoreName   => 'e-value',
-        start       => $row->seq_start,
-        end         => $row->seq_end,
-        aliStart    => $row->ali_start,
-        aliEnd      => $row->ali_end,
-        type        => $row->auto_pfama->type,
-      } )
-    } );
+  $c->stash->{id} = $entry;
 
-    push @regions, $region;
-  }
-  
-  my $sequence = Bio::Pfam::Sequence->new( {
-    length   => $c->stash->{metaseq}->length,
-    regions  => \@regions,
-    motifs   => [],
-    markups  => [],
-    metadata => Bio::Pfam::Sequence::MetaData->new( {
-      accession   => $c->stash->{metaseq}->metaseq_acc,
-      identifier  => $c->stash->{metaseq}->metaseq_id,
-      description => $c->stash->{metaseq}->description,
-    } )
-  } );
-  
-  $c->log->debug( 'Metaseq::generate_pfam_graphic: sequence object: '
-                  . dump( $sequence ) ) if $c->debug;
-  
-  my $seqs = [ $sequence ];
-  
-  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
-  $lm->layoutSequences( $seqs );
+  # parse the FASTA header to get the secondary accession and description
+  my $header = shift @metaseq;
+  $c->stash->{sequence} = join '', @metaseq;
+  chomp $c->stash->{sequence};
 
-  $c->log->debug( 'Metaseq::generate_pfam_graphic: laid out sequences: '
-                  . dump( $seqs ) ) if $c->debug;
+  ( $c->stash->{desc} ) = $header =~ m/^>\d+\s+\'(.*?)\'/;
 
-  # configure the JSON object to correctly stringify the layout manager output
-  my $json = new JSON;
-  $json->pretty(1);
-  $json->allow_blessed;
-  $json->convert_blessed;
+  # add summary data for the icons, such as it is
+  $c->stash->{summaryData} = {
+    numSequences => 1,
+    numArchitectures => 1,
+    numSpecies => 0,
+    numStructures => 0,
+    numInt => 0,
+  };
 
-  # encode and stash the sequences as a JSON string
-  $c->stash->{layout} = $json->encode( $seqs );
-
-  #----------------------------------------
-  
-  # retrieve a hash of BioPerl objects indexed on sequence ID
-  my %hash = $lm->seqHash;
-
-  # pull out the sequence object for just the sequence that we're dealing with
-  # (there should be only that one anyway) 
-  my $seq = $hash{ $c->stash->{metaseq}->metaseq_id };
-
-  # and get the raw key data from that
-  my %key = $seq->getKey;
-
-  # from this point on we're mimicking old, crufty code...
-  
-  # sort the rows according to the start position of the domain
-  my @rows;
-  foreach my $row ( sort{$key{$a}{start} <=> $key{$b}{start} } keys %key ) {
-
-    # shouldn't they always be a number ?
-    next unless $key{$row}{start} =~ /^\d+$/;
-   
-    # just store the hash for this row and we're done here; let the view
-    # figure out what to render 
-    push @rows, $key{$row};
-  }
-  
-  $c->stash->{imageKey} = \@rows;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_summary_data : Private
-
-Gets the data items for the overview bar
-
-=cut
-
-sub get_summary_data : Private {
-  my ( $this, $c ) = @_;
-
-  my %summaryData;
-
-  # first, the number of sequences... pretty easy...
-  $summaryData{numSequences} = 1;
-
-  # also, the number of architectures
-  $summaryData{numArchitectures} = 1;
-
-  # number of species
-  $summaryData{numSpecies} = 0;
-
-  # number of structures
-  $summaryData{numStructures} = 0;
-
-  # number of interactions
-  $summaryData{numInt} = 0;
-
-  $c->stash->{summaryData} = \%summaryData;
-
-  $c->log->debug( 'Metaseq::get_summary_data: added the summary data to the stash' )
-    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------

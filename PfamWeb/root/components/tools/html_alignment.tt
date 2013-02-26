@@ -25,7 +25,7 @@ USE String;
 pageContent = BLOCK;
 
 type = alnType | ucfirst;
-title = String.new( type _ " sequence alignment for " _ acc );
+title = String.new( type _ ( heatmap ? " heatmap " : " sequence " ) _ "alignment for " _ acc );
 -%]
 
 <h1>[% title.trim.capital() %]</h1>
@@ -34,7 +34,7 @@ title = String.new( type _ " sequence alignment for " _ acc );
 [% html_alignment %]
 </div>
 
-[% IF alnType != "heatmap" -%]
+[% IF NOT heatmap -%]
 <div id="key">
 
   <p>
@@ -99,7 +99,7 @@ title = String.new( type _ " sequence alignment for " _ acc );
   </dl>
 
 </div>
-[% END; # of "IF ! heatmap" -%]
+[% END; # of "IF NOT heatmap" -%]
 
 [% IF errorMsg -%]
 <p>

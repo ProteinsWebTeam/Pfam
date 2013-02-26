@@ -60,13 +60,9 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::GO::process: text querying table gene_ontology' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::GeneOntology')
-                  ->search( {},
-                            { join     => [ qw( auto_pfama ) ],
-                              prefetch => [ qw( auto_pfama ) ] } )
-                  ->search_literal( 'MATCH( go_id, term ) ' .
-                                    'AGAINST( ? IN BOOLEAN MODE )',
-                                    $c->stash->{terms} );
+  my $results = $c->model('Keyword::GO')->search(
+    query => $c->stash->{rawQueryTerms},
+  );
 
   return $results;
 }

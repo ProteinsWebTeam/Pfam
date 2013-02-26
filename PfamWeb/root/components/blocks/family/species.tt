@@ -15,6 +15,7 @@ PROCESS "components/require.tt";
 sharedRequirements.js.push( "tree_factory.js" ); # handles tree data
 
 sharedRequirements.js.push( "sunburst.js" );     # sunburst tree
+sharedRequirements.js.push( "sunburst_controller.js" );
 sharedRequirements.css.push( "sunburst.css" );
 
 sharedRequirements.css.push( "tree.css" );       # YUI tree 
@@ -27,8 +28,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js" );
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js" );
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 #-------------------------------------------------------------------------------
 %]
@@ -76,11 +77,45 @@ requirements.js.push( "faces/optimer-bold-normal.js" );
 
   </div>
 
+  [% stUri = c.uri_for( "/speciestree" ); -%]
+
   <script type="text/javascript">
     // <![CDATA[
 
-    var treeData = [% pfam.pfama_species_trees.json_string || "{}" %],
-        YUITreeLoaded = false,
+    [%# these are URLs for the various actions that might be carried out on 
+      # the species trees, both sunburst and YUI tree -%]
+
+    // the URL for storing the list of selected IDs 
+    var selectStoreURI = "[% stUri %]/store_ids";
+
+    // the URL to visit when the user selects nodes and wants to view the
+    // selected sequences as domain graphics
+    var selectGraphicsURI = "[% stUri %]/graphics";
+
+    [%# there are two URIs for generating alignments. We have one specific to
+      # Pfam, which needs to run hmmalign to align selected sequences against
+      # the HMM. We have another that's specific to Rfam, which only needs to
+      # retrieve alignment snippets from a table and then format them as 
+      # a Stockholm file -%]
+
+    // the URL to visit when the user selects nodes and wants to view the 
+    // selected sequences as an alignment - Pfam specific
+    var selectPfamAlignmentURI = "[% c.uri_for( '/family/' _ acc _ '/alignment/build' ) %]";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequences as an alignment - Rfam specific
+    var selectRfamAlignmentURI = "[% stUri %]/alignment";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequence accessions
+    var selectAccessionsURI = "[% stUri %]/accessions";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequences in FASTA format
+    var selectFastaURI = "[% stUri %]/sequences";
+
+    [%# get the raw tree data from the model %]
+    var YUITreeLoaded = false,
         speciesTreeTabView,
         sunburst,
         slider;
@@ -118,7 +153,6 @@ requirements.js.push( "faces/optimer-bold-normal.js" );
   </script>
 
 </div>
-
 
 <!-- end of species block -->
 [%#

@@ -55,13 +55,9 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Pdb::process: text querying table pdb' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( {},
-                            { join        => [ qw( auto_pfama pdb_id ) ],
-                              prefetch    => [ qw( auto_pfama ) ] } )
-                  ->search_literal( 'MATCH( pdb_id.pdb_id, keywords, title ) ' .
-                                    'AGAINST( ? IN BOOLEAN MODE )',
-                                    $c->stash->{terms} );
+  my $results = $c->model('Keyword::Pdb')->search(
+    query => $c->stash->{rawQueryTerms},
+  );
 
   return $results;
 }

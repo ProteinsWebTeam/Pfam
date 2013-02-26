@@ -191,6 +191,10 @@ div.summaryGraphic {
   margin: 1em 0;
 }
 
+#imageKey th.dh {
+  height: 3.1em;
+}
+
 #imageKey td {
   width: auto;
 }

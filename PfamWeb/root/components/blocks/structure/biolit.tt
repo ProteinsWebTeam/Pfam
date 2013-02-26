@@ -75,20 +75,30 @@ FOREACH article IN articles -%]
         PubMed Central:
         <a class="ext" 
            href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=[% article.pmcid %]">
-          [% article.pmcid %]</a>
+          [% article.pmcid %]</a>, 
+      </span>
+      
+      [%- IF article.pmid;
+      pmid = article.pmid %]
+      <span>
+        European PubMed Central:
+        <a class="ext" 
+           href="http://europepmc.org/abstract/MED/[% pmid %]">
+          [% pmid %]</a>, 
       </span>
       
       <span>
         PubMed:
         <a class="ext" 
-           href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% article.pmid %]">
-          [% article.pmid %]</a>
+           href="http://www.ncbi.nlm.nih.gov/pubmed/[% pmid %]">
+          [% pmid %]</a>, 
       </span>
+      [%- END %]
       
       <span>
         DOI:
         <a class="ext" 
-           href="http://dx.doi.org/[% article.pmid %]">[% article.doi %]</a>
+           href="http://dx.doi.org/[% pmid %]">[% article.doi %]</a>
       </span>
       
       <h4>Abstract</h4>

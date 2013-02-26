@@ -33,8 +33,12 @@ oe = 0;
           <td class="label">Source:</td>
           <td class="data">
             [% entry.long_source %]
-            (<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% entry.pmid %]"
-             class="ext">PMID:[% entry.pmid %]</a>)
+            (<a class="ext" 
+               href="http://www.ncbi.nlm.nih.gov/pubmed/[% entry.pmid %]">
+              PUBMED:[% entry.pmid %]</a>
+            <a class="ext" 
+               href="http://europepmc.org/abstract/MED/[% entry.pmid %]">
+              EPMC:[% entry.pmid %]</a>)
           </td>
         </tr>
       </tbody>

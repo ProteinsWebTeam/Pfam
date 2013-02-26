@@ -53,13 +53,9 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Interpro::process: text querying table interpro' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::Interpro')
-                  ->search( {},
-                            { join     => [ qw( auto_pfama ) ],
-                              prefetch => [ qw( auto_pfama ) ] } )
-                  ->search_literal( 'MATCH( interpro_id, abstract ) ' .
-                                    'AGAINST( ? IN BOOLEAN MODE )',
-                                    $c->stash->{terms} );
+  my $results = $c->model('Keyword::Interpro')->search(
+    query => $c->stash->{rawQueryTerms},
+  );
 
   return $results;
 }

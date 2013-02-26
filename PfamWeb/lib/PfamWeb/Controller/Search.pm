@@ -76,6 +76,9 @@ sub auto : Private {
     $c->stash->{dnapreseq} = $1;
   }
   
+  # copy searchable sequence limits from config to stash
+  $c->stash->{$_} = $this->{$_} for qw( maxProteinSeqLength maxDnaSeqLength );
+
   return 1;
 }
 

@@ -21,8 +21,8 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file,
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
 
@@ -171,6 +171,14 @@ family = c.uri_for( "/family" );
 }</pre>
     </div>
   
+		<p>
+      From Pfam 24.0 onwards, Pfam has been generated using <a class="ext" 
+			  href="http://hmmer.janelia.org/">HMMER3</a>, which introduces the concept
+		  of &quot;<span class="link" onclick="tabPage.switchTab('helpGlossaryBlock')">envelope 
+        coordinates</span>&quot; for a match. Envelope regions are 
+			represented in domain graphics as lighter coloured regions. The graphic
+			above shows short envelope regions at the ends of both domains.
+		</p>
     <p>
       When the sequence does not match the full length of the HMM that models 
       a Pfam entry, matching domain fragments are shown. When a sequence match 
@@ -183,14 +191,6 @@ family = c.uri_for( "/family" );
       both sides are drawn with jagged edges. Examples of all three cases are
       shown here:
     </p>
-		<p>
-      From Pfam 24.0 onwards, Pfam has been generated using <a class="ext" 
-			  href="http://hmmer.janelia.org/">HMMER3</a>, which introduces the concept
-		  of &quot;<span class="link" onclick="tabPage.switchTab('helpGlossaryBlock')">
-			envelope coordinates</span>&quot; for a match. Envelope regions are 
-			represented in domain graphics as lighter coloured regions. The graphic
-			above shows short envelope regions at the ends of both domains.
-		</p>
      
     <img src="[% imgs %]/partial.png" alt="" />  
     <span class="link" onclick="reveal(this,'partialDomainJSON',false)">Show JSON</span>
@@ -392,7 +392,7 @@ family = c.uri_for( "/family" );
     </p>
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/12668763">
           Enhanced protein domain discovery by using language modeling techniques from 
           speech recognition</a>: 
       </span>
@@ -643,7 +643,7 @@ family = c.uri_for( "/family" );
     </p>
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=15111065&amp;query_hl=1&amp;itool=pubmed_docsum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/15111065">
           A combined transmembrane topology and signal peptide prediction method</a>: 
       </span>
       <span class="authors">L. Kall, A. Krogh and E.L.L. Sonnhammer</span>
@@ -670,7 +670,7 @@ family = c.uri_for( "/family" );
     </p>
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=10642881&amp;query_hl=1&amp;itool=pubmed_docsum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/10642881">
           A global compositional complexity measure for biological sequences: 
           AT-rich and GC-rich genomes encode less complex proteins</a>: 
       </span>
@@ -681,7 +681,7 @@ family = c.uri_for( "/family" );
     </div>
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=7952898&amp;query_hl=1&amp;itool=pubmed_docsum">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/7952898">
           Non-globular domains in protein sequences: automated segmentation 
           using complexity measures</a>: 
       </span>
@@ -693,6 +693,40 @@ family = c.uri_for( "/family" );
 
     <p><a class="link" rel="graphicsTop">back to top</a></p>
 
+    <h3>Disordered regions</h3>
+
+    <p>
+      We use the IUPred method for the prediction of disordered regions in the
+      query sequence. The 
+      <a class="ext" href="http://iupred.enzim.hu/">IUPred server</a>
+      provides more detailed disorder prediction results than currently offered
+      here.
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/20007729">
+          Bioinformatical approaches to characterize intrinsically
+          disordered/unstructured proteins.</a>
+      </span>
+      <span class="authors">Z. Dosztányi, B. Mészáros, I. Simon</span>
+      <span class="ref">
+        <span class="jrnl">Brief Bioinform</span>&nbsp;(2010)&nbsp;11:225-43
+      </span>
+    </div>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href=http://bioinformatics.oxfordjournals.org/content/21/16/3433.full">
+          IUPred: web server for the prediction of intrinsically unstructured
+          regions of proteins based on estimated energy content.</a>
+      </span>
+      <span class="authors">Z. Dosztányi, V. Csizmok, P. Tompa, I. Simon</span>
+      <span class="ref">
+        <span class="jrnl">Bioinformatics</span>&nbsp;(2005)&nbsp;21:3433-3434
+      </span>
+    </div>
+
+    <p><a class="link" rel="graphicsTop">back to top</a></p>
+    
     <h3>Coiled-coils</h3>
 
     <p>
