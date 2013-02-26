@@ -3,149 +3,175 @@ use strict;
 use warnings;
 
 # use Test::More qw( no_plan );
-use Test::More tests => 120;
+use Test::More tests => 121;
+use Test::Exception;
 
 use HTTP::Headers;
 use HTTP::Request::Common;
 use Data::Dump qw( dump );
 use Compress::Zlib;
 
-BEGIN { use_ok 'Catalyst::Test', 'PfamWeb' }
+BEGIN { use_ok 'Catalyst::Test', 'PfamWeb' } #1
 
 my $server = 'http://localhost';
 my $family = "$server/family";
+# my $family = "/family";
 my $acc    = 'PF02171';
 my $id     = 'Piwi';
 my $desc   = 'Piwi domain';
+my $small_acc = 'PF01097';
 
 my $req = GET( "$family/$id" );
 my $res = request( $req );
 
 # basic page
-ok( $res = request( $req ), 'Basic request to family page' );
-ok( $res->is_success, 'Family page successful' );
-is( $res->content_type, 'text/html', 'HTML Content-Type' );
+ok( $res = request( $req ), 'Basic request to family page' ); #2
+ok( $res->is_success, 'Family page successful' ); #3
+is( $res->content_type, 'text/html', 'HTML Content-Type' ); #4
 
-like( $res->content, qr/$desc/, "Contains the words '$desc'" );
-like( $res->content, qr/$acc/, 'Contains the word "$acc"' );
+like( $res->content, qr/$desc/, "Contains the words '$desc'" ); #5
+like( $res->content, qr/$acc/, 'Contains the word "$acc"' ); #6
+
+# check dynamically generated link
+# like( $res->content, qr|$server/static/css/pfam.css|, 'Link to "pfam.css" is correct' ); #7
+like( $res->content, qr|/static/css/pfam.css|, 'Link to "pfam.css" is correct' ); #7
 
 # different access methods
 
 # using an accession
 $req = GET( "$family/$acc" );
 $res = request( $req );
-ok( $res->is_success, 'Access using accession as a URL argument' );
-like( $res->content, qr/$desc/, "Contains the words '$desc'" );
+ok( $res->is_success, 'Access using accession as a URL argument' ); #8
+like( $res->content, qr/$desc/, "Contains the words '$desc'" ); #9
 
 # using an accession with a version number
 $req = GET( "$family/$acc.1" );
 $res = request( $req );
-ok( $res->is_success, 'Access using accession with a version as a URL argument' );
-like( $res->content, qr/$desc/, "Contains the words '$desc'" );
+ok( $res->is_success, 'Access using accession with a version as a URL argument' ); #10
+like( $res->content, qr/$desc/, "Contains the words '$desc'" ); #11
 
 # methods that will redirect
 $req = GET( "$family?acc=$acc" ); # legacy URL
 $res = request( $req );
-ok( $res->is_redirect, 'Access using accession as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?acc=$acc">/, 'Redirected correctly' );
+ok( $res->is_redirect, 'Access using accession as a parameter' ); #12
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' ); #13
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc">/, 'Redirected correctly' ); #13
 
 $req = GET( "$family?acc=$acc.1" ); # legacy URL
 $res = request( $req );
-ok( $res->is_redirect, 'Access using accession with a version as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?acc=$acc(\.\d+)?">/, 'Redirected correctly' );
+ok( $res->is_redirect, 'Access using accession with a version as a parameter' ); #14
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' ); #15
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc">/, 'Redirected correctly' ); #15
 
 $req = GET( "$family?id=$id" ); # legacy URL
 $res = request( $req );
-ok( $res->is_redirect, 'Access using ID as a parameter' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id\?id=$id">/, 'Redirected correctly' );
+ok( $res->is_redirect, 'Access using ID as a parameter' ); #16
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id">/, 'Redirected correctly' ); #17
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$id">/, 'Redirected correctly' ); #17
 
 $req = GET( "$family?entry=$acc" ); # legacy URL
 $res = request( $req );
-ok( $res->is_redirect, 'Access using the entry parameter with an accession' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?entry=$acc">/, 'Redirected correctly' );
+ok( $res->is_redirect, 'Access using the entry parameter with an accession' ); #18
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc">/, 'Redirected correctly' ); #19
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc">/, 'Redirected correctly' ); #19
 
 $req = GET( "$family?entry=$id" ); # legacy URL
 $res = request( $req );
-ok( $res->is_redirect, 'Access using the entry parameter with an ID' );
-like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id\?entry=$id">/, 'Redirected correctly' );
+ok( $res->is_redirect, 'Access using the entry parameter with an ID' ); #20
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$id">/, 'Redirected correctly' ); #21
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$id">/, 'Redirected correctly' ); #21
 
 # bad accession/ID
 $req = GET( "$family/wibble" );
-ok( $res = request( $req ), 'Request with bad ID still succeeded' );
-like( $res->content, qr/No valid Pfam family accession or ID/, 'Got "no valid family" message' );
+ok( $res = request( $req ), 'Request with bad ID still succeeded' ); #22
+like( $res->content, qr/No valid Pfam family accession or ID/, 'Got "no valid family" message' ); #23
 
 # accession/ID conversions
 $req = GET( "$family/$id/acc" );
 $res = request( $req );
-is( $res->content, $acc, 'Convert from accession to ID' );
+is( $res->content, $acc, 'Convert from accession to ID' ); #24
 
 $req = GET( "$family/$acc/id" );
 $res = request( $req );
-is( $res->content, $id, 'Convert from ID to accession' );
+is( $res->content, $id, 'Convert from ID to accession' ); #25
+
+# XML rendering of the family page
+$req = GET( "$family/$acc?output=xml" );
+$res = request( $req );
+is( $res->content_type, 'text/xml', 'XML Content-Type' ); #26
+like( $res->content, qr/^<\?xml version="1.0"/, 'Looks like XML' ); #27
+
+SKIP: {
+  eval { require XML::LibXML };
+  skip 'XML::LibXML not installed', 2 if $@;
+  my $dom;
+  lives_ok { $dom = XML::LibXML->load_xml( string => $res->content ) } 'Parsed XML successfully'; #28
+  isa_ok( $dom, 'XML::LibXML::Document' ); #29
+}
+
+$req = GET( "$family?acc=$acc&output=xml" );
+$res = request( $req );
+ok( $res->is_redirect, 'Access XML using the "acc" parameter with an accession' ); #30
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?output=xml">/, 'Redirected request for XML correctly' ); #31
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc\?output=xml">/, 'Redirected request for XML correctly' ); #31
 
 # page components
 
 # domain graphics
 $req = GET( "$server/domaingraphics/$acc" );
-ok( $res = request( $req ), 'Domain graphics request' );
-ok( $res->is_success, 'Domain graphics request successful' );
-like( $res->content, qr/start of graphics row \d/, 'Contains a domain graphic row' );
-like( $res->content, qr/There (is|are) \d+ sequences/, 'Got at least one architecture' );
+ok( $res = request( $req ), 'Domain graphics request' ); #32
+ok( $res->is_success, 'Domain graphics request successful' ); #33
+like( $res->content, qr/start of graphics row \d/, 'Contains a domain graphic row' ); #34
+like( $res->content, qr/There (is|are) \d+ sequences/, 'Got at least one architecture' ); #35
 
 # logo
 $req = GET( "$family/$id/logo" );
-ok( $res = request( $req ), 'Logo HTML request' );
-ok( $res->is_success, 'Logo HTML request successful' );
-like( $res->content, qr/<img .*?logo_image/, 'Contains link to image' );
+ok( $res = request( $req ), 'Logo HTML request' ); #36
+ok( $res->is_success, 'Logo HTML request successful' ); #37
+like( $res->content, qr/<img .*?logo_image/, 'Contains link to image' ); #38
 
 $req = GET( "$family/logo_image?entry=$acc" ); # legacy URL
-ok( $res = request( $req ), 'Old-style logo image request' );
-ok( $res->is_redirect, 'Old-style logo image redirects' );
+ok( $res = request( $req ), 'Old-style logo image request' ); #39
+ok( $res->is_redirect, 'Old-style logo image redirects' ); #40
 
 $req = GET( "$family/$id/logo_image" );
-ok( $res = request( $req ), 'Logo image request' );
-ok( $res->is_success, 'Logo image request successful' );
-is( $res->content_type, 'image/png', 'Got a PNG image' );
+ok( $res = request( $req ), 'Logo image request' ); #41
+ok( $res->is_success, 'Logo image request successful' ); #42
+is( $res->content_type, 'image/png', 'Got a PNG image' ); #43
 
 # trees
 $req = GET( "$family/tree?acc=$acc&alnType=seed" ); # legacy URL
-ok( $res = request( $req ), 'Old-style seed tree HTML request' );
-ok( $res->is_redirect, 'Old-style seed tree HTML request successful' );
+ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #44
+ok( $res->is_redirect, 'Old-style seed tree HTML request successful' ); #45
 
-$req = GET( "$family/$id/tree/seed/html" );
-ok( $res = request( $req ), 'Seed tree HTML request' );
-ok( $res->is_success, 'Seed tree HTML request successful' );
-like( $res->content, qr/seed_tree/, 'Seed tree HTML request successful' );
+$req = GET( "$family/$id/tree/html" );
+ok( $res = request( $req ), 'Seed tree HTML request' ); #46
+ok( $res->is_success, 'Seed tree HTML request successful' ); #47
+like( $res->content, qr/seed_tree/, 'Seed tree HTML request successful' ); #48
 
-$req = GET( "$family/$id/tree/seed/download" );
-ok( $res = request( $req ), 'Seed tree download request' );
-ok( $res->is_success, 'Seed tree download request successful' );
-like( $res->content, qr/^\(.*?\)\;/, 'Seed tree download request successful' );
+$req = GET( "$family/$id/tree/download" );
+ok( $res = request( $req ), 'Seed tree download request' ); #49
+ok( $res->is_success, 'Seed tree download request successful' ); #50
+like( $res->content, qr/^\(.*?\)\;/, 'Seed tree download request successful' ); #51
 
 # tree images
-$req = GET( "$family/$id/tree/seed/image" );
-ok( $res = request( $req ), 'Seed tree image request' );
-ok( $res->is_success, 'Seed tree image request successful' );
-is( $res->content_type, 'image/gif', 'Got a GIF image' );
-ok( length($res->content) > 62, 'Image has sensible size' );
+$req = GET( "$family/$id/tree/image" );
+ok( $res = request( $req ), 'Seed tree image request' ); #52
+ok( $res->is_success, 'Seed tree image request successful' ); #53
+is( $res->content_type, 'image/gif', 'Got a GIF image' ); #54
+ok( length($res->content) > 62, 'Image has sensible size' ); #55
 
-$req = GET( "$family/$id/tree/full/image" );
-ok( $res = request( $req ), 'Full tree image request' );
-ok( $res->is_success, 'Full tree image request successful' );
-is( $res->content_type, 'image/gif', 'Got a GIF image' );
-ok( length($res->content) > 62, 'Image has sensible size' );
+#************ fix these to check that /family/Piwi/seed/html works and /family/Piwi/full/html gives a warning
+$req = GET( "$family/$id/tree/seed/html" );
+ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #56
+ok( $res->is_redirect, 'Request is redirected' ); #57
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc\/tree\/html">/, 'Redirected request for seed HTML correctly' ); #58
 
-$req = GET( "$family/$id/tree/ncbi/image" );
-ok( $res = request( $req ), 'NCBI tree image request' );
-ok( $res->is_success, 'NCBI tree image request successful' );
-is( $res->content_type, 'image/gif', 'Got a GIF image' );
-ok( length($res->content) > 62, 'Image has sensible size' );
-
-$req = GET( "$family/$id/tree/meta/image" );
-ok( $res = request( $req ), 'Meta tree image request' );
-ok( $res->is_success, 'Meta tree image request successful' );
-is( $res->content_type, 'image/gif', 'Got a GIF image' );
-ok( length($res->content) > 62, 'Image has sensible size' );
+# $req = GET( "$family/$id/tree/full/image" );
+# ok( $res = request( $req ), 'Full tree image request' );
+# ok( $res->is_success, 'Full tree image request successful' );
+# is( $res->content_type, 'image/gif', 'Got a GIF image' );
+# ok( length($res->content) > 62, 'Image has sensible size' );
 
 # HMM file
 $req = GET( "$family/hmm?entry=$acc" ); # legacy URL
@@ -217,15 +243,20 @@ $req = GET( "$family/alignment/download/heatmap?acc=$acc" ); # legacy URL
 ok( $res = request( $req ), 'Old-style heatmap alignment request' );
 ok( $res->is_redirect, 'Old-style heatmap alignment request successful' );
 
-$req = GET( "$family/$id/alignment/full/heatmap" );
+$req = GET( "$family/$small_acc/alignment/full/heatmap" );
 ok( $res = request( $req ), 'Heatmap alignment request' );
 ok( $res->is_success, 'Heatmap alignment request successful' );
-like( $res->content, qr/Heatmap sequence alignment for $acc/, 'Heatmap alignment looks good' );
+like( $res->content, qr/Full heatmap alignment for $small_acc/, 'Heatmap alignment looks good' );
 
-$req = GET( "$family/$id/alignment/seed/heatmap" );
+$req = GET( "$family/$small_acc/alignment/rp15/heatmap" );
+ok( $res = request( $req ), 'RP15 heatmap alignment request' );
+ok( $res->is_success, 'RP15 heatmap alignment request successful' );
+like( $res->content, qr/Rp15 heatmap alignment for $small_acc/, 'RP15 heatmap alignment looks good' );
+
+$req = GET( "$family/$small_acc/alignment/seed/heatmap" );
 ok( $res = request( $req ), 'Bad heatmap alignment request' );
-ok( $res->is_success, 'Heatmap request successful' );
-like( $res->content, qr/Heatmaps are only available for full alignments/, 'Heatmaps only available for full alignments' );
+ok( $res->is_success, 'Missing heatmap request successful' );
+like( $res->content, qr/We do not have the seed heatmap alignment for $small_acc/, 'Heatmaps not always available' );
 
 # DAS alignment
 $req = GET( "$family/alignment/dasviewer?acc=$acc&alnType=full" ); # legacy URL
@@ -252,15 +283,15 @@ note( "The following 'format' tests are dependent on particular sequences being 
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=dashes" );
 $res = request( $req );
-like( $res->content, qr/CQQTVDKM-----MGG----QGGRQ/, 'Appears to have dashes' );
+like( $res->content, qr/CIIVVLQS-KNSDI-YMTVK/, 'Appears to have dashes' );
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=dots" );
 $res = request( $req );
-like( $res->content, qr/CQQTVDKM.....MGG....QGGRQ/, 'Appears to have dots' );
+like( $res->content, qr/CIIVVLQS.KNSDI.YMTVK/, 'Appears to have dots' );
 
 $req = GET( "$family/$id/alignment/seed/format?gaps=none" );
 $res = request( $req );
-like( $res->content, qr/CQQTVDKMMGGQGGRQ/, 'Appears to have no gaps' );
+like( $res->content, qr/CIIVVLQSKNSDIYMTVK/, 'Appears to have no gaps' );
 
 # case param can be u or l
 $req = GET( "$family/$id/alignment/full/format?case=u" );
@@ -291,11 +322,11 @@ foreach ( split m/\n/, $res ) {
 # format param can be one of pfam, stockholm, fasta or MSF
 $req = GET( "$family/$id/alignment/seed/format?format=pfam" );
 $res = request( $req );
-like( $res->content, qr/^YQ53_CAEEL/, 'Could be Pfam format...' );
+like( $res->content, qr/^TAG76_CAEEL/, 'Could be Pfam format...' );
 
 $req = GET( "$family/$id/alignment/seed/format?format=fasta" );
 $res = request( $req );
-like( $res->content, qr/^>YQ53_CAEEL/, 'Could be FASTA format...' );
+like( $res->content, qr/^>TAG76_CAEEL/, 'Could be FASTA format...' );
 
 $req = GET( "$family/$id/alignment/seed/format?format=msf" );
 $res = request( $req );

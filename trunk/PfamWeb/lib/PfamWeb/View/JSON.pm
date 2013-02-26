@@ -14,14 +14,41 @@ package PfamWeb::View::JSON;
 
 =head1 DESCRIPTION
 
-Wrapper for the JSON view.
+Wrapper for the JSON view. Patterned on the example here:
+
+  http://blog.afoolishmanifesto.com/archives/1273
+
+which shows, amongst other things, how to make the view use L<JSON::XS> and
+configure it to do C<convert_blessed>.
 
 =cut
 
-use strict;
-use warnings;
+# use strict;
+# use warnings;
+# 
+# use base 'Catalyst::View::JSON';
 
-use base 'Catalyst::View::JSON';
+use Moose;
+extends 'Catalyst::View::JSON';
+
+use JSON ();
+
+#-------------------------------------------------------------------------------
+
+has encoder => (
+  is => 'ro',
+  lazy_build => 1,
+);
+
+sub _build_encoder {
+  my $this = shift;
+  return JSON->new->utf8->convert_blessed;
+}
+
+sub encode_json {
+  my ( $this, $c, $data ) = @_;
+  $this->encoder->encode( $data );
+}
 
 #-------------------------------------------------------------------------------
 

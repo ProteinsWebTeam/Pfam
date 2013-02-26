@@ -211,6 +211,32 @@ div.hmmWindow {
   margin: 0;
 }
 
+span.dnaLabel {
+  background-color: #CCF;
+}
+
+td.dna {
+  background-color: #CCF;
+}
+
+span.dgLabel {
+  font-weight: bold;
+  vertical-align: super;
+}
+
+span.sense {
+  font-family: monospace;
+}
+
+#optionsList {
+  text-align: left;
+}
+
+#sequences td.frame {
+  text-align: right;
+  font-weight: bold;
+}
+
 
 /* ---------------------------------------- */
 /* domain query rules */

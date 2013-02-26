@@ -72,16 +72,14 @@ IF c.req.param('full');
       <td>[% row.get_column('numberSeqs')  %]</td>
       <td>[% row.get_column('numberRegs')  %]</td>
       <td class="showSwitch">
-        <img class="link" 
-             src="[% c.uri_for( '/static/images/showButton.png' ) %]"
-             alt="Show domain graphics"
-             onclick="popUp( '[% c.uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+        <a href="[% c.uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
+           class="btn showHide">
+          <span class="btn-inner">Show</span></a>
       </td>
       <td class="showSwitch">
-        <img class="link" 
-             src="[% c.uri_for( '/static/images/showButton.png' ) %]"
-             alt="Show sequence alignment"
-             onclick="popUp( '[% c.uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+        <a href="[% c.uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]"
+           class="btn showHide">
+          <span class="btn-inner">Show</span></a>
       </td>
     </tr>
     [% END -%]
@@ -90,6 +88,20 @@ IF c.req.param('full');
 
 <script type="text/javascript">
   // <![CDATA[
+
+  // document.observe( "dom:loaded", function() {
+    $$(".showHide").each( function(btn) {
+      btn.observe("click", function(e) {
+        var button = e.findElement("a");
+        if ( button      !== undefined &&
+             button.href !== undefined ) {
+          console.log( "popup at %s", button.href );
+          popUp( button.href, 'console', 800, 800, 'domainsWin' )
+        }
+        e.stop();
+      } );
+    } );
+  // } );
   
   $("loadFullTable").observe( "click", function() {
 

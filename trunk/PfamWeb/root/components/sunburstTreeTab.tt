@@ -5,24 +5,21 @@
 # template for generating the sunburst species tree. This should be called 
 # from a tab template using PROCESS.
 #
-# There are two separate templates for generating the sunburst and YUI
-# trees, so that we can use both for the Pfam-A families but only the
-# YUI tree for Pfam-Bs.
-#
 # $Id$
 %]
 
-<div id="sunburstSubTree">
+<div id="sunburstControls">
 
   <div id="sunburstControlsHeader">
     <h3>Sunburst controls</h3>
-    <span id="sunburstControlsToggle">Hide</span>
+    <span id="sunburstControlsToggle">Show</span>
     <div class="cleaner"><!-- empty --></div>
   </div>
 
-  <div id="sunburstControlsContent">
+  <div id="sunburstControlsContent" style="display: none">
     <!-- sub-tree markup will go here -->
-    <div id="weightWrapper">
+    <div id="weightWrapper"
+         class="sunburstControlPanel">
       <h3>Weight segments by...</h3>
       <span>
         <label for="weightSeq">
@@ -36,7 +33,8 @@
         </label>
       </span>
     </div>
-    <div id="sliderWrapper">
+    <div id="sliderWrapper"
+         class="sunburstControlPanel">
       <h3>Change the size of the sunburst</h3>
       <div id="sliderSmallScale">Small</div>
       <div id="sliderLargeScale">Large</div>
@@ -45,7 +43,8 @@
       </div>
     </div>
     [%- imgs = c.uri_for("/shared/images/sunburst_colours") %]
-    <div id="sunburstColours">
+    <div id="sunburstColours"
+         class="sunburstControlPanel">
       <h3>Colour assignments</h3>
       <table summary="Sunburst colour assignments">
         <tbody>
@@ -92,6 +91,46 @@
         </tbody>
       </table>
     </div>
+    <div id="selectionControls"
+         class="sunburstControlPanel">
+      <h3>Selections</h3>
+      <form action="[% c.req.uri %]" 
+            id="retrieveSelectedSeqs"
+            method="post">
+        <div>
+          <input type="hidden" name="dl" value="1" />
+          <input type="hidden" name="accessions" id="selectedAccessions" />
+        </div>
+      </form>
+      <div>
+        <div id="sunburstSelectionTools">
+          <p>
+            <span id="sunburstAlignSelectionSwitch"
+                  class="link">Align</span> selected sequences to HMM
+          </p>
+          <p>
+            <span id="sunburstDLSelectionSwitch"
+                  class="link">Generate</span> a FASTA-format file
+          </p>
+          <p>
+            <span id="sunburstClearSelection"
+                  class="link">Clear</span> selection
+          </p>
+        </div>
+        <div id="sunburstSpinner"
+              style="display: none"
+              class="loading">Storing selection&hellip;</div>
+      </div>
+      <div id="sunburstSelectionCount"
+           style="display: none">
+        <h4>Currently selected:</h4>
+        <ul>
+          <li><span id="sunburstSequencesCount">0</span> sequences</li>
+          <li><span id="sunburstSpeciesCount">0</span> species</li>
+        </ul>
+      </div>
+      <div style="display: none" class="errors" id="sunburstErrors"></div>
+    </div>
   </div>
 
 </div>
@@ -102,8 +141,7 @@
     the distribution of this family across species. You can find the 
     original interactive tree in the 
     <span class="link" onclick="speciesTreeTabView.selectTab(1)">
-      adjacent tab</span> if you need to select sub-trees and view 
-    sequence alignments.
+      adjacent tab</span>.
     <span onclick="reveal( this, 'sunburstNotes', false, true );"
           class="moreLink">
       More...</span>
@@ -234,65 +272,34 @@
 </div>
 
 <div id="sunburst">
-  <!-- tree markup will go here -->
+  <span class="loading">Loading sunburst data...</span>
 </div>
 
 <script type="text/javascript">
   // <![CDATA[
 
-  var sunburst,
-      slider;
+  var sunburstController,
+      treeData;
 
-  [%-# set up the "Show/Hide" buttons in the tool panels %]
   document.observe("dom:loaded", function() {
 
-    // build the sunburst immediately
-    sunburst = new Sunburst( "sunburst", "sunburstControlsContent", treeData );
-    sunburst.build()
-            .draw();
-
-    // set up the controls
-
-    // scale slider
-    slider = new Control.Slider( 
-      $("sliderScale").down('.handle'),  // handle element
-      $("sliderScale"),                  // track element
+    var r = new Ajax.Request( 
+      "[% c.uri_for( '/family', acc, 'sunburst', 'json' ) %]",
       {
-        range: $R(20, 50),
-        values: [ 20, 25, 30, 35, 40, 45, 50 ],
-        sliderValue: 35,
-        onSlide: function(value) {
-          sunburst.setScale( value )
-                  .draw();
+        method: "get",
+        onSuccess: function( response ) {
+          treeData = response.responseJSON;
+          sunburstController = new SunburstController( "[% c.req.uri %]", treeData, "pfam" );
+          $("sunburstControlsContent").show();
+          $("sunburstControlsToggle").update("Hide");
         },
-        onChange: function(value) {
-          sunburst.setScale( value )
-                  .draw();
+        onFailure: function( response ) {
+          $("sunburst").update( "There was a problem retrieving the sunburst date for this family." );
         }
       }
     );
 
-    // wire up the "weight by..." buttons
-    $("weightSeq").observe( "change", function() {
-      sunburst.weightByNumSeq()
-              .draw();
-    } );
-    $("weightSpecies").observe( "change", function() {
-      sunburst.weightByNumSpecies()
-              .draw();
-    } );
-
-    // make the sunburst controls draggable and translucent
-    new Draggable( "sunburstSubTree" );
-    $("sunburstSubTree").setOpacity(0.85);
-
-    // show/hide the sunburst controls when the toggle button is clicked
-    var sct = $("sunburstControlsToggle");
-    sct.observe("click",function() {
-      toggleTools( sct, "sunburstControlsContent" );
-    } );
-
-  } ); [%# end of "document.observe..." %]
+  } );
 
   // ]]>
 </script>

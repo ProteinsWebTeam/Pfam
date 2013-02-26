@@ -39,7 +39,10 @@ use base 'Catalyst::Controller';
 
 =head2 families : Global
   
-Lists all Pfam-A families.
+Lists all Pfam-A families. The list can be requested in various formats.  We
+try to cache the result. Since the list can be quite big, in whatever format we
+choose, and since the caching will silently fail to store something too large,
+we also try to compress the template output before we cache it. 
 
 =cut
 
@@ -48,36 +51,31 @@ sub families : Global {
 
   $c->log->debug( 'Lists::families: showing list of families' ) if $c->debug;
 
-  my $output;
+  my $args;
  
   if ( $c->stash->{output_xml} ) {
-    $output = $c->forward( 'get_list', 
-                           [ 'family', 'xml', 'rest/family/families.tt' ] );
+    $args = [ 'family', 'xml', 'rest/family/families.tt' ];
     $c->res->content_type('text/xml');
   }
   elsif ( $c->stash->{output_text} ) {
-    $output = $c->forward( 'get_list', 
-                           [ 'family', 'text', 'rest/family/families_text.tt' ] );
+    $args = [ 'family', 'text', 'rest/family/families_text.tt' ];
     $c->res->content_type('text/plain');
   }
   elsif ( $c->stash->{output_pfamalyzer} ) {
-    $output = $c->forward( 'get_list', 
-                           [ 'family', 'pfamalyzer', 'rest/family/families_pfamalyzer.tt' ] );
+    $args = [ 'family', 'pfamalyzer', 'rest/family/families_pfamalyzer.tt' ];
     $c->res->content_type('text/plain');
   }
   elsif ( $c->stash->{output_interpro} ) {
-    $output = $c->forward( 'get_list', 
-                           [ 'family', 'interpro', 'rest/family/families_interpro.tt' ] );
+    $args = [ 'family', 'interpro', 'rest/family/families_interpro.tt' ];
     $c->res->content_type('text/xml');
   }
   else {
-    $output = $c->forward( 'get_list', 
-                           [ 'family', 'html', 'rest/family/families_list.tt' ] );
+    $args = [ 'family', 'html', 'rest/family/families_list.tt' ];
     $c->res->content_type('text/html');
   }
 
+  my $output = $c->forward( 'get_list', [ $args ] );
   $c->res->output( $output );
-
 }
 
 #-------------------------------------------------------------------------------
@@ -93,24 +91,23 @@ sub clans : Global {
 
   $c->log->debug( 'Lists::clans: showing list of clans' ) if $c->debug;
 
-  my $output;
+  my $args;
  
   # if ( $c->stash->{output_xml} ) {
-  #   $output = $c->forward( 'get_clans_list', 
-  #                          [ 'clan', 'xml', 'rest/clan/clans.tt' ] );
+  #   $args = [ 'clan', 'xml', 'rest/clan/clans.tt' ];
   #   $c->res->content_type('text/xml');
   # }
-  if ( $c->stash->{output_text} or $c->stash->{output_pfamalyzer}) {
-    $output = $c->forward( 'get_list', 
-                           [ 'clan', 'text', 'rest/clan/clans_text.tt' ] );
+  if ( $c->stash->{output_text} or 
+       $c->stash->{output_pfamalyzer}) {
+    $args = [ 'clan', 'text', 'rest/clan/clans_text.tt' ];
     $c->res->content_type('text/plain');
   }
   else {
-    $output = $c->forward( 'get_list', 
-                           [ 'clan', 'html', 'rest/clan/clans_list.tt' ] );
+    $args = [ 'clan', 'html', 'rest/clan/clans_list.tt' ];
     $c->res->content_type('text/html');
   }
 
+  my $output = $c->forward( 'get_list', [ $args ] );
   $c->res->output( $output );
 }
 
@@ -153,33 +150,26 @@ sub auto : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_list : Private
-
-Retrieves the list of families or clans, either from cache or from the DB.
-Caches the result of transforming the list through the specified template.
-Since the list can be quite big, in whatever format we choose, and since the
-caching will silently fail to store something too large, we also try to
-compress the template output before we cache it. 
-
-=cut
-
 sub get_list : Private {
-  my ( $this, $c, $entity, $format, $template ) = @_;
-  
-  my $output;
+  my ( $this, $c, $args ) = @_;
 
-  my $cache_key = $entity . '_list_' . $format;
+  my $cache_key;
+  ( $cache_key = join '', @$args ) =~ s/[\W_]//g;
   my $cache_output = $c->cache->get( $cache_key );
+  my $output;
  
   # we got a cache hit 
   if ( defined $cache_output ) {
-    $c->log->debug( "Lists::get_list: retrieved $entity list from cache" )
+    $c->log->debug( "Lists::get_list: retrieved family list from cache" )
       if $c->debug;
-    
-    # try to uncompress the thing that we got back from the cache
+
+    # see if the cached output is actually compressed
     $output = Compress::Zlib::memGunzip( $cache_output );
+
+    # the compression code will return undef if there's any problem with the
+    # gunzipping
     if ( not defined $output ) {
-      $c->log->debug( "Lists::get_list: couldn't uncompress cache output; assuming uncompressed already" )
+      $c->log->warn( "Lists::get_list: couldn't uncompress formatted list" )
         if $c->debug;
       $output = $cache_output;
     }
@@ -190,58 +180,7 @@ sub get_list : Private {
     $c->log->debug( 'Lists::get_list: getting new list from DB' )
       if $c->debug;
 
-    my @rs;
-    if ( $entity eq 'family' ) {
-
-      if ( $c->stash->{output_pfamalyzer} ) {
-        $c->log->debug( 'Lists::get_list: getting pfamalyzer-specific list of families' )
-          if $c->debug;
-
-        # we should, in principle, be able to join from pfamA to clan_membership to
-        # clans, but although the join works in terms of the SQL, the resulting ResultSource
-        # doesn't seem to work. It seems to be a bug in the DBIC version that we're running
-        # in the VMs but seems fixed in the latest version in CPAN (0.08192). In lieu of 
-        # that bug, we join to clan_membership here and then let the template trigger
-        # a look-up of clan_acc in the clans table. Nasty, but hey, at least we cache the
-        # result...
-
-        @rs = $c->model('PfamDB::Pfama')
-                ->search( {},
-                          { columns  => [ qw( pfama_id pfama_acc ) ],
-                            prefetch => [ { member => 'clan' } ],
-                            order_by => [ 'pfama_id' ] } );
-      }
-      else {
-        @rs = $c->model('PfamDB::Pfama')
-                ->search( {},
-                          { order_by => [ 'pfama_acc' ] } );
-      }
-    }
-    elsif ( $entity eq 'clan' ) {
-
-      # pfamalyzer needs the clans list ordered by clan ID, but we order
-      # the families list by accession by default
-      my $order = $c->stash->{output_pfamalyzer} ? 'clan_id' : 'clan_acc';
-
-      @rs = $c->model('PfamDB::Clans')
-              ->search( {}, 
-                        { order_by => [ $order ] } );
-    }
-    else {
-      $c->log->debug( 'Lists::get_list: not a family or a clan; bailing' )
-        if $c->debug;
-
-      return;
-    }
-
-    $c->log->debug( 'Lists::get_list: found |' . scalar @rs . "| $entity rows in DB" )
-      if $c->debug;
-    
-    $c->stash->{entries} = \@rs;
-
-    # and use the specified template to generate the list. Capture the output
-    # of the template though, so that we can cache it
-    $output = $c->view('TT')->render( $c, $template );
+    $output = $c->forward( 'retrieve_list_from_db', $args );
 
     # the template output might be large, so, to give us the best chance of 
     # being able to cache it (memcached, for example, will silently refuse to 
@@ -263,6 +202,171 @@ sub get_list : Private {
   
   return $output;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 get_list : Private
+
+Retrieves the list of families or clans.
+
+=cut
+
+sub retrieve_list_from_db : Private {
+  my ( $this, $c, $entity, $format, $template ) = @_;
+  
+  my @rs;
+  if ( $entity eq 'family' ) {
+
+    if ( $c->stash->{output_pfamalyzer} ) {
+      $c->log->debug( 'Lists::retrieve_list_from_db: getting pfamalyzer-specific list of families' )
+        if $c->debug;
+
+      # we should, in principle, be able to join from pfamA to clan_membership to
+      # clans, but although the join works in terms of the SQL, the resulting ResultSource
+      # doesn't seem to work. It seems to be a bug in the DBIC version that we're running
+      # in the VMs but seems fixed in the latest version in CPAN (0.08192). In lieu of 
+      # that bug, we join to clan_membership here and then let the template trigger
+      # a look-up of clan_acc in the clans table. Nasty, but hey, at least we cache the
+      # result...
+
+      @rs = $c->model('PfamDB::Pfama')
+              ->search( {},
+                        { columns  => [ qw( pfama_id pfama_acc ) ],
+                          prefetch => [ { member => 'clan' } ],
+                          order_by => [ 'pfama_id' ] } );
+    }
+    else {
+      @rs = $c->model('PfamDB::Pfama')
+              ->search( {},
+                        { order_by => [ 'pfama_acc' ] } );
+    }
+  }
+  elsif ( $entity eq 'clan' ) {
+
+    # pfamalyzer needs the clans list ordered by clan ID, but we order
+    # the families list by accession by default
+    my $order = $c->stash->{output_pfamalyzer} ? 'clan_id' : 'clan_acc';
+
+    @rs = $c->model('PfamDB::Clans')
+            ->search( {}, 
+                      { order_by => [ $order ] } );
+  }
+  else {
+    $c->log->debug( 'Lists::retrieve_list_from_db: not a family or a clan; bailing' )
+      if $c->debug;
+
+    return;
+  }
+
+  $c->log->debug( 'Lists::retrieve_list_from_db: found |' . scalar @rs . "| $entity rows in DB" )
+    if $c->debug;
+  
+  $c->stash->{entries} = \@rs;
+
+  # and use the specified template to generate the list
+  return $c->view('TT')->render( $c, $template );
+}
+
+# sub get_list : Private {
+#   my ( $this, $c, $entity, $format, $template ) = @_;
+#   
+#   my $output;
+# 
+#   my $cache_key = $entity . '_list_' . $format;
+#   my $cache_output = $c->cache->get( $cache_key );
+#  
+#   # we got a cache hit 
+#   if ( defined $cache_output ) {
+#     $c->log->debug( "Lists::get_list: retrieved $entity list from cache" )
+#       if $c->debug;
+#     
+#     # try to uncompress the thing that we got back from the cache
+#     $output = Compress::Zlib::memGunzip( $cache_output );
+#     if ( not defined $output ) {
+#       $c->log->debug( "Lists::get_list: couldn't uncompress cache output; assuming uncompressed already" )
+#         if $c->debug;
+#       $output = $cache_output;
+#     }
+#   }
+#   
+#   # couldn't find the list in the cache; go generate it
+#   else {
+#     $c->log->debug( 'Lists::get_list: getting new list from DB' )
+#       if $c->debug;
+# 
+#     my @rs;
+#     if ( $entity eq 'family' ) {
+# 
+#       if ( $c->stash->{output_pfamalyzer} ) {
+#         $c->log->debug( 'Lists::get_list: getting pfamalyzer-specific list of families' )
+#           if $c->debug;
+# 
+#         # we should, in principle, be able to join from pfamA to clan_membership to
+#         # clans, but although the join works in terms of the SQL, the resulting ResultSource
+#         # doesn't seem to work. It seems to be a bug in the DBIC version that we're running
+#         # in the VMs but seems fixed in the latest version in CPAN (0.08192). In lieu of 
+#         # that bug, we join to clan_membership here and then let the template trigger
+#         # a look-up of clan_acc in the clans table. Nasty, but hey, at least we cache the
+#         # result...
+# 
+#         @rs = $c->model('PfamDB::Pfama')
+#                 ->search( {},
+#                           { columns  => [ qw( pfama_id pfama_acc ) ],
+#                             prefetch => [ { member => 'clan' } ],
+#                             order_by => [ 'pfama_id' ] } );
+#       }
+#       else {
+#         @rs = $c->model('PfamDB::Pfama')
+#                 ->search( {},
+#                           { order_by => [ 'pfama_acc' ] } );
+#       }
+#     }
+#     elsif ( $entity eq 'clan' ) {
+# 
+#       # pfamalyzer needs the clans list ordered by clan ID, but we order
+#       # the families list by accession by default
+#       my $order = $c->stash->{output_pfamalyzer} ? 'clan_id' : 'clan_acc';
+# 
+#       @rs = $c->model('PfamDB::Clans')
+#               ->search( {}, 
+#                         { order_by => [ $order ] } );
+#     }
+#     else {
+#       $c->log->debug( 'Lists::get_list: not a family or a clan; bailing' )
+#         if $c->debug;
+# 
+#       return;
+#     }
+# 
+#     $c->log->debug( 'Lists::get_list: found |' . scalar @rs . "| $entity rows in DB" )
+#       if $c->debug;
+#     
+#     $c->stash->{entries} = \@rs;
+# 
+#     # and use the specified template to generate the list. Capture the output
+#     # of the template though, so that we can cache it
+#     $output = $c->view('TT')->render( $c, $template );
+# 
+#     # the template output might be large, so, to give us the best chance of 
+#     # being able to cache it (memcached, for example, will silently refuse to 
+#     # cache anything larger than its hardcoded limit), we compress the template 
+#     # output
+#     my $compressed_output = Compress::Zlib::memGzip( $output );
+# 
+#     # the compression code will return undef if there's any problem with the
+#     # gzipping, in which case we'll try caching the uncompressed output anyway 
+#     if ( not defined $compressed_output ) {
+#       $c->log->warn( "Lists::get_list: couldn't compress formatted list" )
+#         if $c->debug;
+#       $compressed_output = $output;
+#     }
+#     
+#     # cache the (hopefully) compressed output
+#     $c->cache->set( $cache_key, $compressed_output ) unless $ENV{NO_CACHE};
+#   }
+#   
+#   return $output;
+# }
 
 #-------------------------------------------------------------------------------
 

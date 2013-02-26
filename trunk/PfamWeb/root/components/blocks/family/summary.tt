@@ -191,9 +191,9 @@ PROCESS components/links.tt; %]
               <div class="wpData">
                 <h1 class="firstHeading">
                   [% article.title.replace( "_", " " ) | html %]
-                  <a class="addAnnotation" 
+                  <a class="btn go"
                      href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% article.title | uri %]">
-                    <button class="pretty">Edit Wikipedia article</button></a>
+                    <span class="btn-inner">Edit Wikipedia article</span></a>
                 </h1>
                 [% article.wikitext.text %]
               </div>
@@ -248,9 +248,9 @@ PROCESS components/links.tt; %]
           <h1>
             [% pfam.description %]
             <a id="addAnnotationButton" 
-               class="addAnnotation" 
+               class="btn go" 
                href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
-              <button class="pretty">Provide feedback</button></a>
+              <span class="btn-inner">Provide feedback</span></a>
           </h1>
 
           [%- IF pfam.comment.length %]
@@ -270,14 +270,19 @@ PROCESS components/links.tt; %]
               litRefs.${ref.order_added} = ref;
             END;
             FOREACH refNum IN litRefs.keys.nsort;
-              ref = litRefs.$refNum; %]
+              ref = litRefs.$refNum;
+              pmid = ref.auto_lit.pmid %]
               <li>
                 <p>
                   [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
                   <a name="ref[% refNum %]"
                      class="ext" 
-                     href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">
-                    PUBMED:[% ref.auto_lit.pmid %]</a>
+                     href="http://www.ncbi.nlm.nih.gov/pubmed/[% pmid %]">
+                    PUBMED:[% pmid %]</a>
+                  <a name="epmc[% refNum %]"
+                     class="ext" 
+                     href="http://europepmc.org/abstract/MED/[% pmid %]">
+                    EPMC:[% pmid %]</a>
                 </p>
               </li>
             [%- END %]
@@ -286,21 +291,7 @@ PROCESS components/links.tt; %]
             <hr class="short"/>
           [% END %]
 
-          <hr class="short"/>
-
-          [%- IF clan %]
-            <h2>Clan</h2>
-            <p>
-              This family is a member of clan 
-              <strong><a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
-              (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
-              which has a total of 
-              <span class="link" onclick="tabPage.switchTab('clanBlock');">
-                <strong>[% clan.clan_memberships.size %]</strong> members</span>.
-            </p>
-          [%- END;
-
-          # add the tables showing internal and external database links 
+          [% # add the tables showing internal and external database links 
           PROCESS buildLinksTable; -%]
 
         </div> [%# end of "pfamContent" %]

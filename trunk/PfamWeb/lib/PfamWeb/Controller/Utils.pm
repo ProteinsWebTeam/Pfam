@@ -64,7 +64,7 @@ sub retrieve_ids : Private {
 
   # get the individual accessions
   my @seqAccs;
-  foreach ( split /\s+/, $rs->id_list ) {
+  foreach ( split /\s+|,/, $rs->id_list ) {
     next unless  m/^([A-Z]\d[A-Z0-9]{3}\d)$/i;
     push @seqAccs, $1;
   }

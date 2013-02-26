@@ -272,12 +272,11 @@
       combination (e.g. proteins containing both a CBS domain and an IMPDH
       domain) using the <a href="[% c.uri_for( '/search', tab =
       'searchDomainBlock' ) %]">domain query tool</a>. For a more detailed
-      study of domain architectures you should use <a class="ext"
-      href="http://pfamalyzer.sbc.su.se/pfamalyzer/">PfamAlyzer</a>, a tool
-      that is hosted by the Swedish Pfam site. PfamAlyzer allows the user to
-      find proteins which contain a specific combination of domains, and it
-      allows the user to specify particular species and the evolutionary
-      distances allowed between domains. 
+      study of domain architectures you can use 
+      <a href="[% c.uri_for( '/search', tab = 'searchDomainBlock' ) %]">
+        PfamAlyzer</a>. PfamAlyzer allows you to find proteins which contain a
+      specific combination of domains and to specify particular species and
+      the evolutionary distances allowed between domains. 
     </p>
   
     <p><a class="link" rel="getStartedTop">back to top</a></p>

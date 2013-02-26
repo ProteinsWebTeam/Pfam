@@ -120,8 +120,13 @@ alignments.alignments.0 %]
     <div class="cleaner"><!-- empty --></div>
 
   </div>
-  
+
 </form>
+
+<p>
+  <a href="[% c.uri_for('/family', acc, 'alignment/build/download', jobId=jobId ) %]">
+    Download</a> this alignment.
+</p>
 
 <script type="text/javascript">
   // <![CDATA[

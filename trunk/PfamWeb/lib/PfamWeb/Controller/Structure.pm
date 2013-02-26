@@ -250,7 +250,7 @@ sub add_mapping : Private {
   # add the structure-to-UniProt mapping to the stash
   my @unpMap = $c->model('PfamDB::PdbPfamaReg')
                  ->search( { pdb_id          => $c->stash->{pdb}->pdb_id, 
-                             'pdb_res_start' => { '!=' => 'pdb_res_end' } },
+                             'pdb_res_start' => \'!= pdb_res_end' },
                            { prefetch => [ qw( auto_pfama auto_pfamseq ) ],
                              order_by => 'chain ASC' } );
 

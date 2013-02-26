@@ -56,12 +56,9 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Seq_info::process: text querying table seq_info' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::SeqInfo')
-                  ->search( {},
-                            {} )
-                  ->search_literal( 'MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) ' .
-                                    'AGAINST( ? IN BOOLEAN MODE )',
-                                    $c->stash->{terms} );
+  my $results = $c->model('Keyword::SeqInfo')->search(
+    query => $c->stash->{rawQueryTerms},
+  );
 
   return $results;
 }

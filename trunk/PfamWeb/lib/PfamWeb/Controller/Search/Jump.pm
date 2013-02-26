@@ -54,7 +54,7 @@ sub guess : Private {
     if $c->debug;
     
   my %action_types = ( family    => [ 'guess_family',  'guess_other_family' ],
-                       protein   => [ 'guess_sequence' ],
+                       protein   => [ 'guess_sequence', 'guess_gi', 'guess_meta' ],
                        clan      => [ 'guess_clan' ],
                        structure => [ 'guess_structure' ], );
 #                       proteome  => [ 'guess_proteome' ] );
@@ -63,7 +63,9 @@ sub guess : Private {
                               guess_clan
                               guess_structure
                               guess_other_family
-                              guess_sequence );
+                              guess_sequence
+                              guess_gi
+                              guess_meta );
 #                              guess_proteome
 
   my $guess_actions;
@@ -219,17 +221,17 @@ sub guess_sequence : Private {
                         ->first;
   
   # an NCBI GI number ?
-  if ( $entry =~ m/^(gi)?(\d+)$/i ) {
-  
-    return 'ncbiseq' if $c->model('PfamDB::NcbiSeq')
-                          ->find( { gi => $2 } );
-  }
+  # if ( $entry =~ m/^(gi)?(\d+)$/i ) {
+  # 
+  #   return 'ncbiseq' if $c->model('PfamDB::NcbiSeq')
+  #                         ->find( { gi => $2 } );
+  # }
   
   # a metaseq ID or accession ?
-  my @rs = $c->model('PfamDB::Metaseq')
-             ->search( [ { metaseq_acc => $entry }, 
-                         { metaseq_id  => $entry } ] );
-  return 'metaseq' if scalar @rs;
+  # my @rs = $c->model('PfamDB::Metaseq')
+  #            ->search( [ { metaseq_acc => $entry }, 
+  #                        { metaseq_id  => $entry } ] );
+  # return 'metaseq' if scalar @rs;
 
   # an NCBI secondary accession ? Note: this was a really slow query when we
   # were being helpful and using "like", so it's the very last thing that
@@ -287,7 +289,7 @@ sub guess_structure : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 guess_structure : Private
+=head2 guess_proteome : Private
 
 Look for a proteome with the specified species name.
 
@@ -305,6 +307,42 @@ sub guess_proteome : Private {
   
   # a proteome ID ?
   return 'proteome' if scalar @rs;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 guess_gi : Private
+
+Look for a sequence with the specified GI number.
+
+=cut
+
+sub guess_gi : Private {
+  my ( $this, $c, $entry ) = @_;
+  
+  $c->log->debug( 'Search::Jump::guess_gi: looking for a gi...' )
+    if $c->debug;
+
+  my $rv = system( $this->{sfetchBinary}, $this->{ncbiSeqFile}, $entry ) == 0;
+  return 'ncbiseq' if $rv;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 guess_meta : Private
+
+Look for a metagenomics sequence with the specified ID.
+
+=cut
+
+sub guess_meta : Private {
+  my ( $this, $c, $entry ) = @_;
+  
+  $c->log->debug( 'Search::Jump::guess_meta: looking for a metagenomics sequence...' )
+    if $c->debug;
+
+  my $rv = system( $this->{sfetchBinary}, $this->{metaSeqFile}, $entry ) == 0;
+  return 'metaseq' if $rv;
 }
 
 #-------------------------------------------------------------------------------

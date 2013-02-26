@@ -217,7 +217,7 @@ BLOCK buildTableBody;
       </td>
       <td class="desc">
         [% IF hit.desc;
-        CALL c.log.debug( "DESC_LENGTH: " _ max_desc_length ); 
+        CALL c.log.debug( "DESC_LENGTH: " _ max_desc_length ) IF c.debug; 
           IF hit.desc.length > max_desc_length -%]
             <span class="familyDesc" style="display: none">
               [% hit.desc %]
@@ -269,13 +269,13 @@ BLOCK buildTableBody;
         [% END -%]
       </td>
       <td class="showSwitch">
-        <img src="[% showButton %]" 
-             alt="Show/hide alignment" />
+        <a class="btn showHide">
+          <span class="btn-inner">Show</span></a>
       </td>
     </tr>
     <tr class="alignment [% rowClass %]" id="[% rowId %]">
       <td class="rowNum">[% loop.index %]</td>
-      <td colspan="14">
+      <td colspan="15">
       [% PROCESS markupAlignment alignment = hit.align %]
       </td>
     </tr>

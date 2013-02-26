@@ -1,4 +1,3 @@
-
 /* family.css
    jt6 20060413 WTSI
 
@@ -231,5 +230,109 @@ table.alignOpts td span.wide {
 div.dead_comment {
   margin-left: 2em;
   font-style: italic;
+}
+
+/* ---------------------------------------- */
+/* alignment display options form */
+
+/*
+table.alignmentOpts {
+  border-collapse: collapse;
+}
+
+table.alignmentOpts th,
+table.alignmentOpts td {
+  border: 1px solid #FFF;
+  width: 4em;
+}
+table.alignmentOpts td.available   { background-color: #0C0 }
+table.alignmentOpts td.unavailable { background-color: #C33 }
+table.alignmentOpts td.na          { background-color: #CCC }
+table.alignmentOpts th.spacer,
+table.alignmentOpts td.spacer {
+  border-left: 4px solid #FFF;
+}
+*/
+
+#dlAlignOpts th,
+#dlAlignOpts td,
+#formatAlignOpts th,
+#formatAlignOpts td,
+#viewAlignOpts th,
+#viewAlignOpts td {
+  width: 6em;
+  height: 1.6em;
+}
+
+#dlAlignOpts td.label,
+#formatAlignOpts td.label,
+#viewAlignOpts td.label {
+  width: 14em;
+}
+
+#viewAlignOpts td a {
+  margin-left: 0.5em;
+}
+
+#formatAlignOpts td.radio {
+  text-align: center;
+}
+
+#dlAlignOpts td a {
+  font-size: 1em;
+  position: relative;
+  left: 0.3em;
+}
+
+/* formatAlignOpts isn't included here because we don't want the ticks
+ * and crosses, rather the radio buttons. */
+#dlAlignOpts td.available,
+#viewAlignOpts td.available {
+  cursor: pointer;
+  background: url("/static/images/tick_18.png") no-repeat center center;
+}
+
+#viewAlignOpts td.notgenerated {
+  background: url("/static/images/cross_18.png") no-repeat center center;
+}
+
+#dlAlignOpts td.unavailable,
+#viewAlignOpts td.unavailable {
+  background: url("/static/images/dash_18.png") no-repeat center center;
+}
+
+#dlAlignOpts td.dl {
+  background: url("/static/images/dl_18.png") no-repeat center center;
+}
+
+#dlAlignOpts td.empty,
+#viewAlignOpts td.empty {
+  background-image: none;
+}
+
+#dlAlignOpts th.corner,
+#formatAlignOpts th.corner,
+#viewAlignOpts th.corner {
+  background-color: #FFF;
+}
+
+#viewAlignOpts img.fn {
+  position: relative;
+  left: 0.5em;
+}
+
+#viewAlignOpts span.fn {
+  position: relative;
+  left: 1em;
+  top: 0.2em;
+}
+
+#viewAlignOptsKey img {
+  padding-bottom: 2px;
+  vertical-align: middle;
+}
+
+p.viewAlignOptsFootnote {
+  margin: 0;
 }
 

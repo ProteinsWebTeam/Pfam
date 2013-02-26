@@ -75,6 +75,14 @@ img {
   border: none;
 }
 
+rm:call <SNR>23_LustyJugglerKeyPressed('s')
+c:call <SNR>23_LustyJugglerKeyPressed('s')
+:call <SNR>23_LustyJugglerKeyPressed('s')
+:call <SNR>23_LustyJugglerCancel()
+u:call <SNR>23_LustyJugglerCancel()
+ZZ:call <SNR>23_LustyJugglerCancel()
+:call <SNR>23_LustyJugglerCancel()
+
 img.info {
   vertical-align: top;
 }
@@ -167,9 +175,13 @@ div.pfamLogoHolder { /* right */
 /* we need the right "column" to be the same width as the left in order to 
  * centre the navbar, but then we need to push the contents of the right column
  * back right to account for that */
+/* div.pfamLogoHolder a.button { */
+/*   margin-left: 0px; */
+/* } */
+
 div.pfamLogoHolder a,
 div.pfamLogoHolder #searchBox {
-  margin-left: 100px;
+  margin-left: 107px;
 }
 
 #siteLogo {
@@ -284,10 +296,6 @@ div.jumpSpinner {
   padding-left: 16px;
   clear: both;
   font-size: smaller;
-}
-
-.goButton {
-  margin-left: 5px;
 }
 
 /* ajax loading image */
@@ -568,6 +576,11 @@ a.sortheader {
   line-height: 1.4em;
 }
 
+.key h3 {
+  text-align: left;
+  margin: 0.4em 0;
+}
+
 /* other things in the key div: lists */
 
 .key ul {
@@ -640,6 +653,11 @@ div.pfamBSearch .progressBar {
 
 #results {
   margin: 5px;
+}
+
+#dg {
+  margin: 5px;
+  overflow-x: auto;
 }
 
 /* affects the results table */
@@ -1136,29 +1154,29 @@ div.blockContent #treeTools {
 /* ======================================== */
 /* CSS buttons */
 
-button.pretty {
-  border:1px solid rgba(45,83,124,0.2);
-  background-image: linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 25%, rgb(73,138,199) 50%);
-  background-image: -o-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 25%, rgb(73,138,199) 50%);
-  background-image: -moz-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 25%, rgb(73,138,199) 50%);
-  background-image: -webkit-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 25%, rgb(73,138,199) 50%);
-  background-image: -ms-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 25%, rgb(73,138,199) 50%);
+a.btn {
+  border:1px solid #07437a !important;
+  background-image: linear-gradient(top, rgb(82,141,204) 0%, rgb(7,73,135) 97%) !important;
+  background-image: -o-linear-gradient(top, rgb(82,141,204) 0%, rgb(7,73,135) 97%) !important;
+  background-image: -moz-linear-gradient(top, rgb(82,141,204) 0%, rgb(7,73,135) 97%) !important;
+  background-image: -webkit-linear-gradient(top, rgb(82,141,204) 0%, rgb(7,73,135) 97%) !important;
+  background-image: -ms-linear-gradient(top, rgb(82,141,204) 0%, rgb(7,73,135) 97%) !important;
+
   background-image: -webkit-gradient(
     linear,
     left top,
     left bottom,
-    color-stop(0.04, rgb(73,136,199)),
-    color-stop(0.25, rgb(83,158,219)),
-    color-stop(0.5, rgb(73,138,199))
-  );
+    color-stop(0, rgb(82,141,204)),
+    color-stop(0.97, rgb(7,73,135))
+  ) !important;
 }
 
-button.pretty:hover {
-  background-image: linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 25%, rgb(87,145,199) 50%);
-  background-image: -o-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 25%, rgb(87,145,199) 50%);
-  background-image: -moz-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 25%, rgb(87,145,199) 50%);
-  background-image: -webkit-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 25%, rgb(87,145,199) 50%);
-  background-image: -ms-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 25%, rgb(87,145,199) 50%);
+a.btn:hover {
+  background-image: linear-gradient(top,         rgb(90,144,199) 0%, rgb(87,145,199) 97%);
+  background-image: -o-linear-gradient(top,      rgb(90,144,199) 0%, rgb(87,145,199) 97%);
+  background-image: -moz-linear-gradient(top,    rgb(90,144,199) 0%, rgb(87,145,199) 97%);
+  background-image: -webkit-linear-gradient(top, rgb(90,144,199) 0%, rgb(87,145,199) 97%);
+  background-image: -ms-linear-gradient(top,     rgb(90,144,199) 0%, rgb(87,145,199) 97%);
   background-image: -webkit-gradient(
     linear,
     left top,
@@ -1169,21 +1187,42 @@ button.pretty:hover {
   );
 }
 
-/* the "add annotation" button image */
-.addAnnotation button.pretty {
-  margin-top: 2px;
+.wpData a.btn {
   vertical-align: top;
 }
 
-/* make sure the button text doesn't show an underline on hover */
-h1.firstHeading a:hover {
-  text-decoration: none ! important;
+/*
+a.button {
+  border: 1px solid rgba(45,83,124,0.2);
+  background-image: linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 10%, rgb(73,138,199) 50%) ! important;
+  background-image: -o-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 10%, rgb(73,138,199) 50%) ! important;
+  background-image: -moz-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 10%, rgb(73,138,199) 50%) ! important;
+  background-image: -webkit-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 10%, rgb(73,138,199) 50%) ! important;
+  background-image: -ms-linear-gradient(top, rgb(73,136,199) 4%, rgb(83,158,219) 10%, rgb(73,138,199) 50%) ! important;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.04, rgb(73,136,199)),
+    color-stop(0.25, rgb(83,158,219)),
+    color-stop(0.5, rgb(73,138,199))
+  ) ! important;
 }
 
-a.addAnnotation,
-a.addAnnotation:focus,
-a.addAnnotation:hover,
-a.addAnnotation:active {
-  text-decoration: none ! important;
+a.button:hover {
+  background-image: linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 10%, rgb(87,145,199) 50%) ! important;
+  background-image: -o-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 10%, rgb(87,145,199) 50%) ! important;
+  background-image: -moz-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 10%, rgb(87,145,199) 50%) ! important;
+  background-image: -webkit-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 10%, rgb(87,145,199) 50%) ! important;
+  background-image: -ms-linear-gradient(top, rgb(90,144,199) 4%, rgb(106,172,222) 10%, rgb(87,145,199) 50%) ! important;
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0.04, rgb(90,144,199)),
+    color-stop(0.25, rgb(106,172,222)),
+    color-stop(0.5, rgb(87,145,199))
+  ) ! important;
 }
+*/
 

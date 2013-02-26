@@ -19,6 +19,7 @@ requirements.css.push( "protein.css" );
 requirements.cssIeAll.push( "protein_all_ie.css" );
 
 requirements.js.push( "protein.js" );
+requirements.js.push( "updater.js" );
 
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
@@ -28,10 +29,11 @@ requirements.js.push( "excanvas.js" );
 
 # need to load the canvas.text.js file before trying to load the font file, 
 # otherwise it bails with an error about "face.glyphs is undefined"
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
-requirements.js.push( "faces/optimer-bold-normal.js" );
+requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.jsIe.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
+
 #-------------------------------------------------------------------------------
 
 # a row counter
@@ -46,11 +48,8 @@ oe = 0;
   </div>
   <div class="blockContent">
     
-    <h1>[% metaseq.metaseq_acc %]</h1>
-
     <p>
-      This is the summary of MetaSeq entry [% metaseq.metaseq_acc;
-      IF metaseq.metaseq_id; "("; metaseq.metaseq_id; ")"; END %].
+      This is the summary of metagenomics sequence entry <strong>[% id %]</strong>.
     </p>
 
     <table class="layout" summary="Metaseq summary information">
@@ -58,25 +57,17 @@ oe = 0;
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Description:</td>
           <td class="data"> 
-            [% IF metaseq.description == "'None'" %]
+            [% IF desc == "'None'" %]
               <span class="inactive">none</span>
             [% ELSE;
-              metaseq.description.replace( "^'|'$", "" );
+              desc.replace( "^'|'$", "" );
             END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Length:</td>
           <td class="data">
-            [% metaseq.length %] amino acids
-          </td>
-        </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Source:</td>
-          <td class="data">
-            [% metaseq.long_source %]
-            (<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% metaseq.pmid %]"
-             class="ext">PMID:[% metaseq.pmid %]</a>)
+            [% sequence.length %] amino acids
           </td>
         </tr>
       </tbody>
@@ -84,114 +75,52 @@ oe = 0;
 
     <h2>Pfam domains</h2>
 
-    [% IF imageKey.size %]
+    <div id="imageKey" style="display: none">
       <p>
         This image shows the arrangement of the Pfam domains that we found on 
         this sequence. Clicking on a domain will take you to the page describing 
-        that Pfam entry. The table below gives the domain boundaries for each of 
-        the domains. Note that some domains may be obscured by other, overlapping 
-        domains. This is noted in the table where applicable.
+        that Pfam entry.
       </p>
-      <p class="small">
-        <strong>Please note</strong> that partial domain matches and full length
-        domain matches are represented in the same way for metagenomics sequences.
-        This is not the case for the rest of Pfam, for which partial matches are 
-        depicted with a jagged edge.
-      </p>
-    [% ELSE %]
-      <p>
-        There were no Pfam domains found on this sequence.
-      </p>
-    [% END %]
-
-    <div class="summaryGraphic">
-      [% image = imageset.each_image;
-      CALL image.print_image;
-
-      IF c.config.use_image_store;
-        image_uri = c.uri_for( image.file_location );
-      ELSE;
-        image_uri = image.file_location;
-      END; %]
-      
-      <img class="graphicImage" 
-           src="[% image_uri %]" 
-           alt="" 
-           usemap="#singleImageMap" />
-      [% IF image.image_map %]
-        <map id="singleImageMap" name="singleImageMap">
-          [% image.image_map %]
-        </map>
-      [% END %]
     </div>
     
+    <div id="imageLoading" class="loading">Loading...</div>
+
     <div id="pgholder" class="pgholder"></div>
 
-    [% # only show the key if there was a domain hit
-    IF imageKey.size %]
-
-      <table id="imageKey"
-             class="details"
-             summary="Key for the Pfam domain image">
-        <thead>
-          <tr>
-            <th>Source</th>
-            <th>Domain</th>
-            <th>Start</th>
-            <th>End</th>
-          </tr>
-        </thead>
-        <tbody>
-          [% oe = 0; 
-          FOREACH row IN imageKey;
-            IF row.colour;
-              colour = " style=\"color: \#${row.colour}\"";
-            END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td [% IF row.type.match( '(?i)pfama' ); colour %] class="pfamA"[% END %]>
-                [% row.source ? row.source : row.type %]
-              </td>
-              <td>
-                [% IF row.type.match( '(?i)pfama' ) %]
-                  <a href="[% c.uri_for( "/family", { id = row.label } ) %]">
-                    [% row.label %]</a>
-                  [% IF row.hidden %] (hidden)[% END;
-                ELSIF row.type.match( '(?i)pfamb' ) %]
-                  <a href="[% c.uri_for( "/pfamb" { id = row.label } ) %]">
-                    [% row.label %]</a>
-                  [% IF row.hidden %] (hidden)[% END;
-                END %]
-              </td>
-              <td>[% row.start %]</td>
-              <td>[% row.end %]</td>
-            </tr>
-          [% END %]
-        </tbody>
-      </table>
-      
-    [% END %]
-    
     <script type="text/javascript">
       // <![CDATA[
 
-      var layout = [% layout || "[]" %];
-
-      if ( layout.size() ) {
-        $("imageKey").show();
-      } else {
-        $("imageKey").update( "There were no Pfam domains found on this sequence.")
-                     .show();
-      }
-      
-      var sequence = layout[0];
-
-      var pg = new PfamGraphic( "pgholder", sequence );
-      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
-      pg.render();
+      var u = new Updater(
+        "[% c.uri_for( '/search/sequence/graphic', jobId ) %]",
+        {
+          method:    "get",
+          frequency: 1,
+          decay:     1.2,
+          on202:     function( response ) { /* nothing to do; poll again */ },
+          onSuccess: function( response ) {
+            u.stop();
+            try {
+              var pg = new PfamGraphic( "pgholder", response.responseJSON[0] );
+              pg.render();
+            } catch ( e ) {
+              $("imageKey").update( "We could not load the domain graphic for this sequence" );
+            }
+            $("imageKey").show();
+            $("imageLoading").hide();
+          },
+          onFailure: function( response ) {
+            u.stop();
+            $("imageKey")
+              .update( "We could not load the domain graphic for this sequence" )
+              .show();
+            $("imageLoading").hide();
+          }
+        }
+      );
 
       // ]]>
     </script>
-
+      
   </div> <!-- end of "blockContent" -->
 </div>
 

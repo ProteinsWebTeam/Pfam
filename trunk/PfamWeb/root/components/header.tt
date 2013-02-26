@@ -77,8 +77,9 @@ sharedUri = c.uri_for( "/shared" );
              onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
              name="query" 
              id="siteSearchField" />
-        <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
-             class="glassButton goButton">&nbsp;</div>
+        <a class="btn go"
+           onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}">
+          <span class="btn-inner">Go</span></a>
       </div>
     </form>
   </div>

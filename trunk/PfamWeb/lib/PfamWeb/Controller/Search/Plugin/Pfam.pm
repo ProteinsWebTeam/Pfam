@@ -71,21 +71,10 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Pfam::process: text querying table pfamA using: |' .
                   $c->stash->{terms} . '|' ) if $c->debug;
 
-  my $results = $c->model('PfamDB::Pfama')
-                  ->search( {},
-                            {} )
-                  ->search_literal( 'MATCH( pfama_acc, pfama_id, description, comment, previous_id ) ' .
-                                    'AGAINST( ? IN BOOLEAN MODE )',
-                                    $c->stash->{terms} );
+  my $results = $c->model('Keyword::Pfam')->search(
+    query => $c->stash->{rawQueryTerms},
+  );
 
-  # do a simple lookup for the ID or accession...
-#  $c->log->debug( "Search::Plugin::Pfam::process: doing a lookup for ID or acc using: |" .
-#                  $c->stash->{rawQueryTerms} . '|' ) if $c->debug;
-
-#  my $lookup = $c->model('PfamDB::Pfama')->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-#                                                   { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
-
-#  return $results, $lookup;
   return $results;
 }
 

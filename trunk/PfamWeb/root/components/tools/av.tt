@@ -1,4 +1,3 @@
-
 [%
 # av.tt
 # jt6 20060802 WTSI
@@ -50,7 +49,6 @@ color '0xDDDDDD' aminoacid;
 unassigned = String.new( "select aminoacid; " );
 
 FOREACH m IN mapping;
-  NEXT UNLESS m.hex_colour;
 
   # add an "exclude" selection command for this region
   CALL unassigned.append( "exclude residue ${m.pdb_res_start} to ${ m.pdb_res_end }" );
@@ -60,18 +58,22 @@ FOREACH m IN mapping;
   # build a label for the surface from the chain ID and residue numbers. This
   # label is stuffed into the mapping hash, so that we can use it later when
   # building the key table at the bottom of the [age 
-  m.surfLabel = String.new( m.chain );
-  CALL m.surfLabel.append( m.pdb_res_start, m.pdb_res_end ) -%]
+  m.surfLabel = String.new( m.chain _ m.pdb_res_start _ "_" _ m.pdb_res_end );
   
+  IF m.hex_colour -%]
   color 
     '0x[% m.hex_colour ? m.hex_colour : "red" %]' 
     residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
     [% IF m.chain %]and chain '[% m.chain %]'[% END %];
+  [%- END %]
   surface -solid true
     surface_[% m.surfLabel %]
-    '0x[% m.hex_colour ? m.hex_colour : "red" %]'
+    '0x[% m.hex_colour ? m.hex_colour : "cccccc" %]'
     residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
     [% IF m.chain %]and chain '[% m.chain %]'[% END %];
+  object 
+    surface_[% m.surfLabel %]
+    display off;
   object 
     surface_[% m.surfLabel %]
     transparency 200;
@@ -123,7 +125,7 @@ FOREACH markup IN markups;
 # as the last thing in the script, put a surface around unassigned residues
 # NOTE: not using "CALL" here, because we actually want the output to appear
 # in the script
-unassigned.append( "surface -solid true surface_unassigned '0xE7E7E7' current; " );
+unassigned.append( "surface -solid true surface_unassigned '0xE7E7E7' current; object surface_unassigned display off; " );
 
 # set the transparency for the "unassigned" surface too -%]
 object surface_unassigned transparency 200;
@@ -136,14 +138,7 @@ object surface_unassigned transparency 200;
 pageContent = BLOCK;
 
 title = "AstexViewer"
-# we apparently need to set explicitly the name of the window, otherwise it takes the 
-# name of the parent, so targetted links back to the parent wont work
 -%]
-<script type="text/javascript">
-  // <![CDATA[
-  window.name = "avWin";
-  // ]]>
-</script>
 
 <!--[if !IE]> Firefox and others will use outer object -->
 <object classid="java:MoleculeViewerApplet.class" 
@@ -200,16 +195,10 @@ title = "AstexViewer"
   <p>
     All surfaces are initially drawn as semi-transparent membranes, but you 
     may find it quicker to manipulate the view if the surfaces are drawn as
-    solids. <span class="link" onclick="toggleTransparency();">
+    solids. <span class="link" id="transparencyToggle">
       Toggle surface transparency</span>.
   </p>
 </div>
-
-[% 
-imageUri   = c.uri_for( "/static/images" );
-showButton = "${imageUri}/showButton.png";
-hideButton = "${imageUri}/hideButton.png";
-%]
 
 <table class="details wide"
        summary="Mappings from PDB to UniProt to Pfam">
@@ -254,23 +243,32 @@ hideButton = "${imageUri}/hideButton.png";
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
       <td>
-        <img src="[% hideButton %]" 
-             onclick="toggleSurface('surface_[% m.surfLabel %]', this )"
-             alt="Show/hide surface" />
+        <a id="surface_[% m.surfLabel %]"
+           class="btn showHide">
+          <span class="btn-inner">Show</span></a>
       </td>
     </tr>
     [% END %]
-    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
+    <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
       <td colspan="7">Not assigned to a Pfam-A region</td>
       <td style="background: #e7e7e7">&nbsp;</td>
       <td>
-        <img src="[% hideButton %]" 
-             onclick="toggleSurface('surface_unassigned', this )"
-             alt="Show/hide surface" />
+        <a id="surface_unassigned"
+           class="btn showHide">
+          <span class="btn-inner">Show</span></a>
       </td>
     </tr>
   </tbody>
 </table>
+
+<p>
+  <a id="showAll" class="btn">
+    <span class="btn-inner">Show</span></a>
+  or
+  <a id="hideAll" class="btn">
+    <span class="btn-inner">Hide</span></a>
+  all surfaces
+</p>
 
 <div>
   <a href="#" onclick="window.close()" class="closer">Close window</a>
@@ -278,28 +276,66 @@ hideButton = "${imageUri}/hideButton.png";
 
 <script type="text/javascript">
   // <![CDATA[
-  function toggleSurface( sId, oSwitch ) {
-    var av = document.getElementById( "av" );
-    if( av == null ) {
+  [%# we apparently need to set explicitly the name of the window, otherwise it takes the 
+    # name of the parent, so targetted links back to the parent wont work -%]
+  window.name = "avWin";
+
+  var toggleSurf = function( e ) {
+    var toggleSwitch = Event.findElement(e,"a"),
+        surfaceId = toggleSwitch.id,
+        av = document.getElementById( "av" ),
+        show = toggleSwitch.innerHTML.match("Hide");
+    if ( av == null ) {
       av = document.getElementById( "avIE" );
     }
-    av.execute( "object " + sId + " display toggle;");
-    if( '[% showButton %]' == oSwitch.src ) {
-      oSwitch.src = '[% hideButton %]';
-    } else {
-      oSwitch.src = '[% showButton %]';
+    if ( surfaceId !== null ) {
+      av.execute( "object " + surfaceId + " display toggle;" );
+      toggleSwitch.innerHTML = show 
+                             ? toggleSwitch.innerHTML.replace("Hide","Show")
+                             : toggleSwitch.innerHTML.replace("Show","Hide");
     }
-  }
+  };
+
+  var showHideAll = function( show ) {
+    var onOff = show ? "on" : "off",
+        av = document.getElementById( "av" );
+    if ( av == null ) {
+      av = document.getElementById( "avIE" );
+    }
+    av.execute( "object surface_* display " + onOff + ";" );
+
+    $$("a.showHide").each( function(toggleSwitch) {
+      if ( show ) {
+        toggleSwitch.innerHTML = toggleSwitch.innerHTML.replace("Show","Hide");
+      } else {
+        toggleSwitch.innerHTML = toggleSwitch.innerHTML.replace("Hide","Show");
+      }
+    } );
+  };
+
   var transparent = true;
-  function toggleTransparency() {
-    var av = document.getElementById( "av" );
-    if( av == null ) {
-      av = document.getElementById( "avIE" );
-    }
-    var transparency = transparent ? 255 : 200;
-    transparent = ! transparent;
-    av.execute( 'object surface_* transparency ' + transparency + ';' );
-  }
+  document.observe( "dom:loaded", function() {
+    $$("a.showHide").invoke( "observe", "click", toggleSurf );
+
+    $("showAll").observe("click", function() {
+      showHideAll( true );
+    } );
+
+    $("hideAll").observe("click", function() {
+      showHideAll( false );
+    } );
+
+    $("transparencyToggle").observe("click", function() {
+      var av = document.getElementById("av"),
+          transparency = transparent ? 255 : 200;
+      if ( av == null ) {
+        av = document.getElementById( "avIE" );
+      }
+      transparent = ! transparent;
+      av.execute( 'object surface_* transparency ' + transparency + ';' );
+    } );
+  } );
+
   // ]]>  
 </script>
 
