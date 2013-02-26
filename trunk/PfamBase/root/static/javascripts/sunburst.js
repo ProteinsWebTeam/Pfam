@@ -220,7 +220,9 @@ var Sunburst = Class.create( {
     this._treeData        = options.tree;
     this._tipStyle        = options.tipStyle || "pfam";
 
-    this._tree             = TreeFactory( treeData );
+    this._tree             = treeData instanceof SunburstNode
+                           ? treeData
+                           : TreeFactory( treeData );
     this._layers           = [];
     this._arcs             = [];
 
@@ -463,7 +465,9 @@ var Sunburst = Class.create( {
 
       // convert the raw tree data into an object tree and get empty arrays for
       // storing the layers and arcs
-      this._treesAndArcs.numSeq.tree   = TreeFactory( this._treeData );
+      this._treesAndArcs.numSeq.tree   = this._treeData instanceof SunburstNode
+                                       ? this._treeData
+                                       : TreeFactory( this._treeData );
       this._treesAndArcs.numSeq.layers = [];
       this._treesAndArcs.numSeq.arcs   = [];
 
@@ -500,7 +504,9 @@ var Sunburst = Class.create( {
 
     if ( ! this._treesAndArcs.numSpecies.tree ) {
       
-      this._treesAndArcs.numSpecies.tree   = TreeFactory( this._treeData );
+      this._treesAndArcs.numSpecies.tree   = this._treeData instanceof SunburstNode
+                                           ? this._treeData
+                                           : TreeFactory( this._treeData );
       this._treesAndArcs.numSpecies.layers = [];
       this._treesAndArcs.numSpecies.arcs   = [];
 
@@ -656,12 +662,13 @@ var Sunburst = Class.create( {
           deltaAlpha, toAlpha, a, fractionOfRange, 
           h, hc, s, v, colours, RGBColours, rgb, nextR;
 
+      // 2 * Math.PI = 6.283185307179586
       if ( this._weightByNumSeq ) {
         // weight arc length by number of sequences
-        deltaAlpha = 2 * Math.PI / this._tree.numSequences * child.numSequences;
+        deltaAlpha = 6.283185307179586 / this._tree.numSequences * child.numSequences;
       } else {
         // weight arc length by number of species
-        deltaAlpha = 2 * Math.PI / this._tree.numSpecies * child.numSpecies;
+        deltaAlpha = 6.283185307179586 / this._tree.numSpecies * child.numSpecies;
       }
       toAlpha = fromAlpha + deltaAlpha; 
       a       = toAlpha;
@@ -706,7 +713,7 @@ var Sunburst = Class.create( {
       fractionOfRange = ( ( ( fromAlpha + deltaAlpha / 2 ) - initialAlpha ) / rootShare ) * range; 
 
       // calculate the colours for this arc
-      h = ( ( initialH + fractionOfRange ) / ( 2 * Math.PI ) );
+      h = ( initialH + fractionOfRange ) / 6.283185307179586;
       s = this._layers[depth].sat;
       v = this._layers[depth].sat;
 
@@ -1018,7 +1025,7 @@ var Sunburst = Class.create( {
     // range 0 to 2PI
     alpha   = Math.atan2( y, x );
     if ( alpha < 0 ) {
-      alpha += 2 * Math.PI;
+      alpha += 6.283185307179586; // 2 * Math.PI
     }
 
     // this is the binary search loop. Because I don't trust my code as far

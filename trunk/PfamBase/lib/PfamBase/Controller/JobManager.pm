@@ -90,10 +90,10 @@ sub checkStatus : Local {
                                        { count => 'id' },
                                        { sum   => 'estimated_time' }
                                      ],
-                         as       => [ qw( num wait ) ] }
-                     );
-  $c->stash->{status}->{numPending} = $rs->first()->get_column( 'num' );
-  $c->stash->{status}->{waitTime}   = $rs->first()->get_column( 'wait' ) || 0;
+                         as       => [ qw( num wait ) ] } )
+             ->first;
+  $c->stash->{status}->{numPending} = $rs->get_column( 'num' );
+  $c->stash->{status}->{waitTime}   = $rs->get_column( 'wait' ) || 0;
 
   $c->log->debug( 'JobManager::checkStatus: found      |' .
                   $c->stash->{status}->{numPending} . '| pending jobs' )
@@ -130,7 +130,8 @@ sub returnStatus : Private {
   # convert the status hash to a JSON object and return it
   $c->log->debug( 'JobManager::returnStatus: status: ' . $c->stash->{status} )
     if $c->debug;
-  my $status = to_json( $c->stash->{status} );
+  my $json = JSON::XS->new->utf8->convert_blessed;
+  my $status = $json->encode( $c->stash->{status} );
 
   $c->log->debug( 'JobManager::returnStatus: returning: ' ) if $c->debug;
   $c->log->debug( dump( $c->stash->{status} ) ) if $c->debug;

@@ -430,6 +430,11 @@ var TabPage = Class.create( {
         return;
       }
 
+      // we're not interested in events with a modifier pressed
+      if ( e.ctrlKey || e.altKey || e.shiftKey || e.metaKey ) {
+        return;
+      }
+
       var code;
       if ( e.keyCode ) {
         code = e.keyCode;

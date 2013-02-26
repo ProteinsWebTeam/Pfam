@@ -32,6 +32,29 @@ requires 'build_fasta';
 
 #-------------------------------------------------------------------------------
 
+=head2 json : Chained('sunburst') PathPart('json')
+
+=cut
+
+sub json : Chained( 'sunburst' )
+           PathPart( 'json' )
+           Args {
+  my ( $this, $c ) = @_;
+
+  my $gzipped_sunburst_json = $c->stash->{pfam}->pfama_species_trees->first->json_string;
+
+  unless ( $gzipped_sunburst_json ) {
+    $c->res->status( 500 ); # Internal server error
+    $c->res->body( 'We could not retrieve the sunburst data for ' . $c->stash->{acc} );
+    return;
+  }
+
+  $c->res->content_type( 'application/json' );
+  $c->res->body( Compress::Zlib::memGunzip( $gzipped_sunburst_json ) );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 accessions : Chained('sunburst') PathPart('accessions')
 
 Stub to add REST hooks at "family/ENTRY/sunburst/storeaccessions". The concrete
@@ -483,7 +506,7 @@ sub retrieve_accessions : Private {
     return;
   }
 
-  my @accessions = split /,/, $job->id_list;
+  my @accessions = split m/,/, $job->id_list;
 
   unless ( scalar @accessions ) {
     $c->log->debug( 'SunburstMethods::retrieve_accessions: no accessions in that job' )

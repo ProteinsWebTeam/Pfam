@@ -203,55 +203,44 @@ search mechanism can have multiple jobs with the same job ID.
 =cut
 
 sub retrieve_result_rows : Private {
-  my ( $this, $c, $jobId ) = @_;
+  my ( $this, $c, @jobIds ) = @_;
 
-  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
-    $c->log->debug( "JobManager::retrieve_result_rows: invalid job ID: |$jobId|" )
+  my $valid_ids;
+  foreach my $jobId ( @jobIds ) {
+    if ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
+      push @valid_ids, $jobId;
+    }
+    else {
+      $c->log->debug( "JobManager::retrieve_result_rows: invalid job ID: |$jobId|" )
+        if $c->debug;
+      next;
+    }
+  }
+
+  unless ( scalar @valid_ids ) {
+    $c->log->debug( 'JobManager::retrieve_result_rows: no valid job IDs presented' )
       if $c->debug;
     return;
   }
 
-  $c->log->debug( "JobManager::retrieve_result_rows: looking up details for job ID: |$jobId|" )
-    if $c->debug;
+  $c->log->debug( 'JobManager::retrieve_result_rows: looking up details for job IDs: |' 
+                  . join ',', @valid_ids ) . '|' ) if $c->debug;
   
-  # job ID *looks* valid; try looking for that job
   my @jobs = $c->model( 'WebUser::JobHistory' )
-               ->search( { job_id => $jobId },
+               ->search( { job_id => { '=', \@valid_ids } },
                          { prefetch => [ qw( job_stream ) ] } );
   
   # bail unless one or more matching jobs exists
   return unless scalar @jobs;
   
   # retrieve the results of the jobs and stash them
-  $c->stash->{results}->{$jobId}->{rows} = \@jobs;
+  foreach my $job ( @jobs ) {
+    $c->stash->{results}->{ $job->{job_id} }->{rows} = $job;
+  }
 
-  # my $job_data = { 
-  #   job     => $job,
-  #   status  => $job->status,
-  #   rawData => $job->stdout,
-  #   length  => length( $job->stdin ),
-  #   method  => $job->job_type,
-  #   options => $job->options,
-  # }
+  # $c->stash->{results}->{$jobId}->{rows} = \@jobs;
 
-  # the new searches store the user-specified options as a JSON object. Try
-  # converting it back to a perl data structure, but handle the possibility
-  # the the options were set by a job from the old (now Rfam only) search
-  # system. If we get an exception when trying to convert from JSON, we just
-  # ignore it, since the options were set by a search system that isn't 
-  # planning to use the user_options anyway
-  # eval {
-  #   $c->stash->{results}->{$jobId}->{user_options} = from_json( $job->options );
-  # };
-  # if ( $@ ) {
-  #   $c->log->debug( 'JobManager::retrieve_result_rows: could not convert options from JSON; no user options stashed' )
-  #     if $c->debug;
-  # }
-
-  # $c->stash->{seq} = $job->stdin;
-
-  $c->log->debug( 'JobManager::retrieve_result_rows: stashed results for ' . scalar @jobs
-                  . " jobs with ID |$jobId|" )
+  $c->log->debug( 'JobManager::retrieve_result_rows: stashed results for ' . scalar @jobs )
     if $c->debug;
 }
 
