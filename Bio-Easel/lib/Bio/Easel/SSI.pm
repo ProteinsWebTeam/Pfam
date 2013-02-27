@@ -133,9 +133,7 @@ Rob Finn, C<< <finnr at janelia.hhmi.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-bio-easel at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Bio-HMM-Logo>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-bio-easel at rt.cpan.org>.
 
 =head1 SUPPORT
 
@@ -145,7 +143,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 ACKNOWLEDGEMENTS
 
-Sean R. Eddy is the author of the Easel C library of functions for 
+Sean R. Eddy is the author of the Easel C library of functions for
 biological sequence analysis, upon which this module is based.
 
 =head1 LICENSE AND COPYRIGHT
@@ -160,7 +158,5 @@ See http://dev.perl.org/licenses/ for more information.
 
 
 =cut
-
-1; # End of Bio::HMM::Logo
 
 1;
