@@ -30,7 +30,7 @@ our $CMCALIBRATE_NCPU = 81;
 
     Title    : cmbuild_wrapper
     Incept   : EPN, Sun Feb  3 17:17:40 2013
-    Usage    : Bio::Rfam::Infernal::cmbuild_wrapper($cmbuildPath, $opts, $cmPath, $alnPath)
+    Usage    : Bio::Rfam::Infernal::cmbuild_wrapper($cmbuildPath, $options, $cmPath, $alnPath)
     Function : Runs Infernals cmbuild.
     Args     : <cmbuildPath>: path to cmbuild
              : <opts>:        option string for cmbuild (-F will be appended to this)
@@ -42,22 +42,24 @@ our $CMCALIBRATE_NCPU = 81;
 =cut
 
 sub cmbuild_wrapper {
-    my ($cmbuildPath, $opts, $cmPath, $seedPath) = @_;
+    my ($config, $options, $cmPath, $seedPath) = @_;
     
-    if($opts !~ m/\-F/) { $opts = "-F " . $opts; }
-    $opts =~ s/\s+$//; # remove trailing whitespace
-    $opts =~ s/^\s+//; # remove leading  whitespace
-    my $cmd = $cmbuildPath . ' ' . $opts . ' ' . $cmPath . ' ' . $seedPath . '> /dev/null';
+    if($options !~ m/\-F/) { $options = "-F " . $options; }
+    $options =~ s/\s+$//; # remove trailing whitespace
+    $options =~ s/^\s+//; # remove leading  whitespace
+    my $cmbuildPath = $config->infernalPath . "/cmbuild";
+    my $cmd = $cmbuildPath . ' ' . $options . ' ' . $cmPath . ' ' . $seedPath . '> /dev/null';
     system($cmd);
-    if($? != 0) { croak "$cmd failed"; }
+    if($? != 0) { die "$cmd failed"; }
+    if (! -e $cmPath) {  die "ERROR CM does not exist after apparently successful cmbuild [cmd: $cmd]"; }
     return;
 }
 
-=head2 cmbuild_wrapper
+=head2 cmcalibrate_wrapper
 
-  Title    : cmbuild_wrapper
+  Title    : cmcalibrate_wrapper
   Incept   : EPN, Sun Feb  3 19:58:11 2013
-  Usage    : Bio::Rfam::Infernal::cmcalibrate_wrapper($cmcalibratePath, $opts, $cmPath)
+  Usage    : Bio::Rfam::Infernal::cmcalibrate_wrapper($cmcalibratePath, $options, $cmPath)
   Function : Runs Infernals cmcalibrate.
   Args     : <cmcalibratedPath>: path to cmcalibrate
            : <opts>:             option string for cmcalibrate
@@ -69,7 +71,7 @@ sub cmbuild_wrapper {
 =cut
 
 sub cmcalibrate_wrapper {
-  my ($cmcalibratePath, $opts, $cmPath, $ncpu) = @_;
+  my ($cmcalibratePath, $options, $cmPath, $ncpu) = @_;
   
   # ensure $cmPath exists
   if (! -e $cmPath) {
@@ -113,6 +115,52 @@ sub cmcalibrate_wrapper {
   return;
 }
 
+
+################################
+
+# cmsearch_wrapper: takes a CM and sequence file and submits a cmsearch job to the cluster
+
+sub cmsearch_wrapper {
+  my $config  = shift; # config, used for cmalign path, location
+  my $cmfile  = shift; # CM file
+  my $seqfile = shift; # sequence file with seqs to align
+  my $tblO    = shift; # tblout output file
+  my $cmsO    = shift; # cmsearch output file 
+  my $options = shift; # string of cmalign options
+  my $cpus    = shift; # number of CPUs to run cmsearch with (SHOULD ALREADY BE PART OF $options)
+  my $acc     = shift; # Rfam accession, for constructing job id
+  my $idx     = shift; # idx, for constructing job id
+
+  if($options !~ m/\-\-cpu $cpus/) { die "ERROR cmsearch_wrapper option string ($options) does not contain --cpu $cpus"; }
+
+  my $cmsearchPath = $config->infernalPath . "/cmsearch";
+
+  my $location = $config->location;
+  my $command = "";
+  my $jobname = "$acc.cms.$idx";
+  my $errfile = "$jobname.err";
+  my $search_command = "$cmsearchPath $options --tblout $tblO $cmfile $seqfile > $cmsO";
+  if($location eq "EBI") { 
+    # pick smallest 500 Mb multiple that satisfies required memory estimate
+    my $requiredMb = $cpus * 3 * 1000.0; # ~3 Gb per thread
+    my $ebi_cpus   = ($cpus == 0) ? 1 : $cpus;
+    $command = "bsub -q research-rh6 -n $ebi_cpus -J $jobname -o /dev/null -e $errfile -M $requiredMb -R \"rusage[mem=$requiredMb]\" \"$search_command\"";
+  }
+  elsif($location eq "JFRC") { 
+    $command = "qsub -N $acc.cms.$idx -o /dev/null -e $acc.cms.$idx.err -b y -cwd -V -l excl=true \"$search_command\"";
+  }
+  else { 
+    die "ERROR unknown location $location in cmsearch_wrapper"; 
+  }
+  # submit job
+  printf STDERR "about to run command $command\n";
+  system("$command");
+  if ($?) { die "FAILED: $command"; }
+  print STDERR "search job $idx is now running";
+
+  return;
+}
+
 ################################
 
 #cmalign_wrapper: takes a CM and sequence file and runs cmalign, either locally or on the farm using MPI
@@ -131,7 +179,7 @@ sub cmalign_wrapper {
   my $seqfile     = shift; # sequence file with seqs to align
   my $alnfile     = shift; # alignment output file 
   my $outfile     = shift; # cmalign output file 
-  my $opts        = shift; # string of cmalign options
+  my $options        = shift; # string of cmalign options
   my $nseq        = shift; # number of sequences in $seqfile
   my $tot_len     = shift; # total number of nucleotides in $seqfile
   my $always_farm = shift; # 1 to always use farm, 0 to only use farm if > 4 CPUs needed
@@ -198,7 +246,7 @@ sub cmalign_wrapper {
 
   if (! $use_farm) { 
     # run locally, location-independent
-    my $command = "$cmalignPath --cpu $cpus $opts -o $alnfile $cmfile $seqfile > $outfile";
+    my $command = "$cmalignPath --cpu $cpus $options -o $alnfile $cmfile $seqfile > $outfile";
     system("$command");
     if ($?) {
       die "FAILED: $command";
@@ -208,7 +256,7 @@ sub cmalign_wrapper {
   } 
   else { 
     # run on farm with MPI 
-    my $command = "qsub -N J$$ -o /dev/null -e $$.err -b y -cwd -V -pe impi $cpus \"mpirun -np $cpus $cmalignPath --mpi $opts -o $alnfile $cmfile $seqfile > $outfile\"\n";
+    my $command = "qsub -N J$$ -o /dev/null -e $$.err -b y -cwd -V -pe impi $cpus \"mpirun -np $cpus $cmalignPath --mpi $options -o $alnfile $cmfile $seqfile > $outfile\"\n";
     system("$command");
     if ($?) {
       die "FAILED: $command";

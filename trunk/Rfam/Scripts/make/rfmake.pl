@@ -80,9 +80,8 @@ my $famObj = Bio::Rfam::Family->new(
 
 # setup dbfile 
 my $dbconfig  = $config->seqdbConfig($dbchoice);
-my $dbfile    = $dbconfig->{"path"};
-my $fetchfile = $dbconfig->{"fetchpath"};
-my $Z         = $dbconfig->{"dbsize"};
+my $fetchfile = $dbconfig->{"fetchPath"};
+my $Z         = $dbconfig->{"dbSize"};
 
 # enforce -a or --subalign selected if used align-specific options used
 if ((! $do_align) && (! $do_subalign)) { 
