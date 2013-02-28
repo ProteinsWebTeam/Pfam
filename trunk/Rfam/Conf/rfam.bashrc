@@ -1,5 +1,4 @@
 # example configuration file for the Rfam code base
-#
 export RFAM_ROOT=[PATH-TO-CODE-CHECKOUT]
 #override parameters with a rfam_local.conf
 export RFAM_CONFIG=$RFAM_ROOT/Conf/rfam.conf
