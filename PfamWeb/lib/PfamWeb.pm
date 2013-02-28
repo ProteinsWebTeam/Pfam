@@ -26,6 +26,7 @@ use namespace::autoclean;
 use Catalyst::Runtime 5.80;
 use Sys::Hostname;
 use Config::General;
+use Log::Log4perl::Catalyst;
 
 extends 'PfamBase';
 
@@ -59,6 +60,11 @@ __PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 __PACKAGE__->setup( qw( HTML::Widget
                         Unicode
                         Static::Simple) );
+
+# use Log4perl for logging to a separate log file. We need to set up the 
+# l4p output using a config file, which we specify in the main server 
+# config...
+__PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config} ) );
 
 #-------------------------------------------------------------------------------
 
