@@ -63,7 +63,7 @@ __PACKAGE__->setup( qw( HTML::Widget
 
 # use Log4perl for logging to a separate log file. We need to set up the 
 # l4p output using a config file, which we specify in the main server 
-# config...
+# config.
 __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config} ) );
 
 #-------------------------------------------------------------------------------
