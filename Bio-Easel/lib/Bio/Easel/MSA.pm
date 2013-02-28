@@ -16,50 +16,51 @@ Version 0.01
 =cut
 
 our $VERSION = '0.01';
+
 # Easel status codes, these must be consistent with #define's in Bio-Easel/src/easel/easel.h
-our $ESLOK =              '0';    # no error/success            
-our $ESLFAIL =            '1';    # failure                     
-our $ESLEOL =             '2';    # end-of-line (often normal)  
-our $ESLEOF =             '3';    # end-of-file (often normal)  
-our $ESLEOD =             '4';    # end-of-data (often normal)  
-our $ESLEMEM =            '5';    # malloc or realloc failed    
-our $ESLENOTFOUND =       '6';    # file or key not found       
-our $ESLEFORMAT =         '7';    # file format not correct     
-our $ESLEAMBIGUOUS =      '8';    # an ambiguity of some sort   
-our $ESLEDIVZERO =        '9';    # attempted div by zero       
-our $ESLEINCOMPAT =      '10';    # incompatible parameters     
-our $ESLEINVAL =         '11';    # invalid argument/parameter  
-our $ESLESYS =           '12';    # generic system call failure 
-our $ESLECORRUPT =       '13';    # unexpected data corruption  
-our $ESLEINCONCEIVABLE = '14';    # "can't happen" error        
-our $ESLESYNTAX =        '15';    # invalid user input syntax   
-our $ESLERANGE =         '16';    # value out of allowed range  
-our $ESLEDUP =           '17';    # saw a duplicate of something
-our $ESLENOHALT =        '18';    # a failure to converge       
-our $ESLENORESULT =      '19';    # no result was obtained      
-our $ESLENODATA =        '20';    # no data provided, file empty
-our $ESLETYPE =          '21';    # invalid type of argument   
-our $ESLEOVERWRITE =     '22';    # attempted to overwrite data
-our $ESLENOSPACE =       '23';    # ran out of some resource   
-our $ESLEUNIMPLEMENTED = '24';    # feature is unimplemented   
-our $ESLENOFORMAT =      '25';    # couldn't guess file format 
-our $ESLENOALPHABET =    '26';    # couldn't guess seq alphabet
-our $ESLEWRITE =         '27';    # write failed (fprintf, etc)
+our $ESLOK             = '0';     # no error/success
+our $ESLFAIL           = '1';     # failure
+our $ESLEOL            = '2';     # end-of-line (often normal)
+our $ESLEOF            = '3';     # end-of-file (often normal)
+our $ESLEOD            = '4';     # end-of-data (often normal)
+our $ESLEMEM           = '5';     # malloc or realloc failed
+our $ESLENOTFOUND      = '6';     # file or key not found
+our $ESLEFORMAT        = '7';     # file format not correct
+our $ESLEAMBIGUOUS     = '8';     # an ambiguity of some sort
+our $ESLEDIVZERO       = '9';     # attempted div by zero
+our $ESLEINCOMPAT      = '10';    # incompatible parameters
+our $ESLEINVAL         = '11';    # invalid argument/parameter
+our $ESLESYS           = '12';    # generic system call failure
+our $ESLECORRUPT       = '13';    # unexpected data corruption
+our $ESLEINCONCEIVABLE = '14';    # "can't happen" error
+our $ESLESYNTAX        = '15';    # invalid user input syntax
+our $ESLERANGE         = '16';    # value out of allowed range
+our $ESLEDUP           = '17';    # saw a duplicate of something
+our $ESLENOHALT        = '18';    # a failure to converge
+our $ESLENORESULT      = '19';    # no result was obtained
+our $ESLENODATA        = '20';    # no data provided, file empty
+our $ESLETYPE          = '21';    # invalid type of argument
+our $ESLEOVERWRITE     = '22';    # attempted to overwrite data
+our $ESLENOSPACE       = '23';    # ran out of some resource
+our $ESLEUNIMPLEMENTED = '24';    # feature is unimplemented
+our $ESLENOFORMAT      = '25';    # couldn't guess file format
+our $ESLENOALPHABET    = '26';    # couldn't guess seq alphabet
+our $ESLEWRITE         = '27';    # write failed (fprintf, etc)
 
 my $src_file      = undef;
 my $typemaps      = undef;
 my $easel_src_dir = undef;
 
 BEGIN {
-    $src_file = __FILE__;
-    $src_file =~ s/\.pm/\.c/;
+  $src_file = __FILE__;
+  $src_file =~ s/\.pm/\.c/;
 
-    my $file = __FILE__;
-    ($easel_src_dir) = $file =~ /^(.*)\/blib/;
-    $easel_src_dir = File::Spec->catfile($easel_src_dir, 'src/easel');
+  my $file = __FILE__;
+  ($easel_src_dir) = $file =~ /^(.*)\/blib/;
+  $easel_src_dir = File::Spec->catfile( $easel_src_dir, 'src/easel' );
 
-    $typemaps = __FILE__;
-    $typemaps =~ s/\.pm/\.typemap/;
+  $typemaps = __FILE__;
+  $typemaps =~ s/\.pm/\.typemap/;
 }
 
 use Inline
@@ -101,33 +102,33 @@ No functions currently exported.
 =cut
 
 sub new {
-    my( $caller, $args) = @_;
-    my $class = ref($caller) || $caller;
-    my $self = {};
+  my ( $caller, $args ) = @_;
+  my $class = ref($caller) || $caller;
+  my $self = {};
 
-    bless( $self, $caller );
+  bless( $self, $caller );
 
-    # First check that the file exists. If it exists, read it with 
-    # Easel and populate the object from the ESL_MSA object
-    if(-e $args->{fileLocation}){
-	eval{
-	    $self->{path} = $args->{fileLocation};
-	    $self->read_msa();
-	}; # end of eval
-	
-	if($@) {
-	    confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
-	}
-    } 
-    else {
-	confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
+  # First check that the file exists. If it exists, read it with
+  # Easel and populate the object from the ESL_MSA object
+  if ( -e $args->{fileLocation} ) {
+    eval {
+      $self->{path} = $args->{fileLocation};
+      $self->read_msa();
+    };    # end of eval
+
+    if ($@) {
+      confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
     }
-    if(defined $args->{aliType}){
-	$self->{aliType} = $args->{aliType};
-    }
-    return $self;
+  }
+  else {
+    confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)"
+    );
+  }
+  if ( defined $args->{aliType} ) {
+    $self->{aliType} = $args->{aliType};
+  }
+  return $self;
 }
-
 
 =head2 msa
 
@@ -141,12 +142,12 @@ sub new {
 =cut
 
 sub msa {
-    my($self) = @_;
+  my ($self) = @_;
 
-    if(! defined ($self->{esl_msa})) { 
-	$self->read_msa();
-    }
-    return $self->{esl_msa};
+  if ( !defined( $self->{esl_msa} ) ) {
+    $self->read_msa();
+  }
+  return $self->{esl_msa};
 }
 
 =head2 path
@@ -163,7 +164,7 @@ sub msa {
 sub path {
   my ($self) = @_;
 
-  return defined($self->{path}) ? $self->{path} : undef;
+  return defined( $self->{path} ) ? $self->{path} : undef;
 }
 
 =head2 read_msa
@@ -177,17 +178,17 @@ sub path {
 
 =cut
 
-sub read_msa { 
-    my ($self, $fileLocation) = @_;
+sub read_msa {
+  my ( $self, $fileLocation ) = @_;
 
-    if($fileLocation) { 
-	$self->{path} = $fileLocation;
-    }
-    if(! defined $self->{path}) { 
-	croak "trying to read msa but path is not set";
-    }
-    $self->{esl_msa} = _c_read_msa($self->{path}, $self->{esl_abc});
-    return;
+  if ($fileLocation) {
+    $self->{path} = $fileLocation;
+  }
+  if ( !defined $self->{path} ) {
+    croak "trying to read msa but path is not set";
+  }
+  $self->{esl_msa} = _c_read_msa( $self->{path}, $self->{esl_abc} );
+  return;
 }
 
 =head2 nseq
@@ -201,11 +202,11 @@ sub read_msa {
 
 =cut
 
-sub nseq { 
-    my ($self) = @_;
+sub nseq {
+  my ($self) = @_;
 
-    $self->_check_msa(); 
-    return _c_nseq($self->{esl_msa});
+  $self->_check_msa();
+  return _c_nseq( $self->{esl_msa} );
 }
 
 =head2 alen
@@ -219,11 +220,11 @@ sub nseq {
 
 =cut
 
-sub alen { 
-    my ($self) = @_;
+sub alen {
+  my ($self) = @_;
 
-    $self->_check_msa(); 
-    return _c_alen($self->{esl_msa});
+  $self->_check_msa();
+  return _c_alen( $self->{esl_msa} );
 }
 
 =head2 get_sqname
@@ -238,12 +239,12 @@ sub alen {
 
 =cut
 
-sub get_sqname { 
-    my ($self, $idx) = @_;
+sub get_sqname {
+  my ( $self, $idx ) = @_;
 
-    $self->_check_msa(); 
-    $self->_check_sqidx($idx);
-    return _c_get_sqname($self->{esl_msa}, $idx);
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  return _c_get_sqname( $self->{esl_msa}, $idx );
 }
 
 =head2 set_sqname
@@ -257,13 +258,13 @@ sub get_sqname {
 
 =cut
 
-sub set_sqname { 
-    my ($self, $idx, $newname) = @_;
+sub set_sqname {
+  my ( $self, $idx, $newname ) = @_;
 
-    $self->_check_msa(); 
-    $self->_check_sqidx($idx);
-    _c_set_sqname($self->{esl_msa}, $idx, $newname);
-    return;
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  _c_set_sqname( $self->{esl_msa}, $idx, $newname );
+  return;
 }
 
 =head2 get_accession
@@ -277,11 +278,11 @@ sub set_sqname {
 
 =cut
 
-sub get_accession { 
-    my ($self) = @_;
+sub get_accession {
+  my ($self) = @_;
 
-    $self->_check_msa(); 
-    return _c_get_accession($self->{esl_msa});
+  $self->_check_msa();
+  return _c_get_accession( $self->{esl_msa} );
 }
 
 =head2 set_accession
@@ -295,15 +296,15 @@ sub get_accession {
 
 =cut
 
-sub set_accession { 
-    my ($self, $newacc) = @_;
+sub set_accession {
+  my ( $self, $newacc ) = @_;
 
-    $self->_check_msa(); 
-    my $status = _c_set_accession($self->{esl_msa}, $newacc);
-    if($status != $ESLOK) { 
-	croak "unable to set accession (failure in C code)"; 
-    }
-    return;
+  $self->_check_msa();
+  my $status = _c_set_accession( $self->{esl_msa}, $newacc );
+  if ( $status != $ESLOK ) {
+    croak "unable to set accession (failure in C code)";
+  }
+  return;
 }
 
 =head2 write_msa
@@ -318,24 +319,30 @@ sub set_accession {
 
 =cut
 
-sub write_msa { 
-    my ($self, $outfile, $format) = @_;
+sub write_msa {
+  my ( $self, $outfile, $format ) = @_;
 
-    $self->_check_msa(); 
-    if(! defined $format) { 
-	$format = "stockholm";
+  $self->_check_msa();
+  if ( !defined $format ) {
+    $format = "stockholm";
+  }
+  if ( $format ne "stockholm"
+    && $format ne "pfam"
+    && $format ne "afa" )
+  {
+    croak "format must be \"stockholm\" or \"pfam\" or \"afa\"";
+  }
+  my $status = _c_write_msa( $self->{esl_msa}, $outfile, $format );
+  if ( $status != $ESLOK ) {
+    if ( $status == $ESLEINVAL ) {
+      croak "problem writing out msa, invalid format $format";
     }
-    if($format ne "stockholm" && 
-       $format ne "pfam" && 
-       $format ne "afa") { 
-	croak "format must be \"stockholm\" or \"pfam\" or \"afa\"";
+    elsif ( $status == $ESLFAIL ) {
+      croak
+"problem writing out msa, unable to open output file $outfile for writing";
     }
-    my $status = _c_write_msa($self->{esl_msa}, $outfile, $format);
-    if($status != $ESLOK) { 
-	if   ($status == $ESLEINVAL) { croak "problem writing out msa, invalid format $format"; }
-	elsif($status == $ESLFAIL)   { croak "problem writing out msa, unable to open output file $outfile for writing"; }
-    }
-    return;
+  }
+  return;
 }
 
 =head2 any_allgap_columns
@@ -350,10 +357,10 @@ sub write_msa {
 =cut
 
 sub any_allgap_columns {
-    my ($self) = @_;
+  my ($self) = @_;
 
-    $self->_check_msa(); 
-    return _c_any_allgap_columns($self->{esl_msa});
+  $self->_check_msa();
+  return _c_any_allgap_columns( $self->{esl_msa} );
 }
 
 =head2 average_id
@@ -371,20 +378,20 @@ sub any_allgap_columns {
   
 =cut
 
-sub average_id { 
-    my ($self, $max_nseq) = @_;
+sub average_id {
+  my ( $self, $max_nseq ) = @_;
 
-    $self->_check_msa(); 
-    if(! defined $max_nseq) { 
-	$max_nseq = 100;
-    }
-    # average percent id is expensive to calculate, so we set it once calc'ed
-    if (! defined $self->{average_id}) { 
-	$self->{average_id} = _c_average_id($self->{esl_msa}, $max_nseq);
-    }
-    return $self->{average_id};
+  $self->_check_msa();
+  if ( !defined $max_nseq ) {
+    $max_nseq = 100;
+  }
+
+  # average percent id is expensive to calculate, so we set it once calc'ed
+  if ( !defined $self->{average_id} ) {
+    $self->{average_id} = _c_average_id( $self->{esl_msa}, $max_nseq );
+  }
+  return $self->{average_id};
 }
-
 
 =head2 get_sqlen
 
@@ -398,12 +405,12 @@ sub average_id {
 
 =cut
 
-sub get_sqlen { 
-    my ($self, $idx) = @_;
+sub get_sqlen {
+  my ( $self, $idx ) = @_;
 
-    $self->_check_msa(); 
-    $self->_check_sqidx($idx);
-    return _c_get_sqlen($self->{esl_msa}, $idx);
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  return _c_get_sqlen( $self->{esl_msa}, $idx );
 }
 
 =head2 average_sqlen
@@ -418,15 +425,16 @@ sub get_sqlen {
 
 =cut
 
-sub average_sqlen { 
-    my ($self) = @_;
+sub average_sqlen {
+  my ($self) = @_;
 
-    $self->_check_msa(); 
-    # this could be expensive to calculate if nseq is very high, so we store it
-    if (! defined $self->{average_sqlen}) { 
-	$self->{average_sqlen} = _c_average_sqlen($self->{esl_msa});
-    }
-    return $self->{average_sqlen};
+  $self->_check_msa();
+
+  # this could be expensive to calculate if nseq is very high, so we store it
+  if ( !defined $self->{average_sqlen} ) {
+    $self->{average_sqlen} = _c_average_sqlen( $self->{esl_msa} );
+  }
+  return $self->{average_sqlen};
 }
 
 =head2 calc_and_write_bp_stats
@@ -442,16 +450,18 @@ sub average_sqlen {
 =cut
 
 sub calc_and_write_bp_stats {
-    my ($self, $fileLocation) = @_;
+  my ( $self, $fileLocation ) = @_;
 
-    # TODO: get this working with errbuf, I couldn't get this to work though:
-    # my $errbuf = "";
-    #my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
-    $self->_check_msa(); 
-    my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation);
-    if($status != $ESLOK) { croak "ERROR: unable to calculate and write bp stats"; }
+# TODO: get this working with errbuf, I couldn't get this to work though:
+# my $errbuf = "";
+#my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
+  $self->_check_msa();
+  my $status = _c_calc_and_write_bp_stats( $self->{esl_msa}, $fileLocation );
+  if ( $status != $ESLOK ) {
+    croak "ERROR: unable to calculate and write bp stats";
+  }
 
-    return;
+  return;
 }
 
 =head2 addGF
@@ -467,12 +477,12 @@ sub calc_and_write_bp_stats {
 =cut
 
 sub addGF {
-    my ($self, $tag, $value) = @_;
+  my ( $self, $tag, $value ) = @_;
 
-    $self->_check_msa(); 
-    my $status = _c_addGF($self->{esl_msa}, $tag, $value);
-    if($status != $ESLOK) { croak "ERROR: unable to add GF annotation"; }
-    return;
+  $self->_check_msa();
+  my $status = _c_addGF( $self->{esl_msa}, $tag, $value );
+  if ( $status != $ESLOK ) { croak "ERROR: unable to add GF annotation"; }
+  return;
 }
 
 =head2 addGS
@@ -490,12 +500,12 @@ sub addGF {
 =cut
 
 sub addGS {
-    my ($self, $tag, $value, $sqidx) = @_;
+  my ( $self, $tag, $value, $sqidx ) = @_;
 
-    $self->_check_msa(); 
-    my $status = _c_addGS($self->{esl_msa}, $sqidx, $tag, $value);
-    if($status != $ESLOK) { croak "ERROR: unable to add GS annotation"; }
-    return;
+  $self->_check_msa();
+  my $status = _c_addGS( $self->{esl_msa}, $sqidx, $tag, $value );
+  if ( $status != $ESLOK ) { croak "ERROR: unable to add GS annotation"; }
+  return;
 }
 
 =head2 free_msa
@@ -509,12 +519,12 @@ sub addGS {
 
 =cut
 
-sub free_msa { 
-    my ($self) = @_;
+sub free_msa {
+  my ($self) = @_;
 
-    # don't call _check_msa, if we don't have it, that's okay
-    _c_free_msa($self->{esl_msa});
-    return;
+  # don't call _check_msa, if we don't have it, that's okay
+  _c_free_msa( $self->{esl_msa} );
+  return;
 }
 
 =head2 revert_to_original
@@ -530,15 +540,15 @@ sub free_msa {
 =cut
 
 sub revert_to_original {
-    my ($self) = @_;
+  my ($self) = @_;
 
-    if(! defined $self->{path}) { 
-	croak "trying to revert_to_original but path not set";
-    }
-    $self->free_msa;
-    $self->read_msa;
-    return;
-}    
+  if ( !defined $self->{path} ) {
+    croak "trying to revert_to_original but path not set";
+  }
+  $self->free_msa;
+  $self->read_msa;
+  return;
+}
 
 =head2 DESTROY
 
@@ -551,13 +561,12 @@ sub revert_to_original {
 
 =cut
 
-sub DESTROY { 
-    my ($self) = @_;
+sub DESTROY {
+  my ($self) = @_;
 
-    _c_destroy($self->{esl_msa}, $self->{esl_abc});
-    return;
+  _c_destroy( $self->{esl_msa}, $self->{esl_abc} );
+  return;
 }
-
 
 #############################
 # Internal helper subroutines
@@ -574,13 +583,13 @@ sub DESTROY {
 
 =cut
 
-sub _check_msa { 
-    my ($self) = @_;
+sub _check_msa {
+  my ($self) = @_;
 
-    if (! defined $self->{esl_msa}) { 
-	$self->read_msa(); 
-    }
-    return;
+  if ( !defined $self->{esl_msa} ) {
+    $self->read_msa();
+  }
+  return;
 }
 
 =head2 _check_sqidx
@@ -595,17 +604,16 @@ sub _check_msa {
 
 =cut
 
-sub _check_sqidx { 
-    my ($self, $idx) = @_;
+sub _check_sqidx {
+  my ( $self, $idx ) = @_;
 
-    $self->_check_msa(); 
-    my $nseq = $self->nseq;
-    if($idx < 0 || $idx >= $nseq) { 
-	croak "invalid sequence index %d (must be [0..%d])", $idx, $nseq;
-    }
-    return;
+  $self->_check_msa();
+  my $nseq = $self->nseq;
+  if ( $idx < 0 || $idx >= $nseq ) {
+    croak "invalid sequence index %d (must be [0..%d])", $idx, $nseq;
+  }
+  return;
 }
-
 
 =head2 _c_read_msa
 =head2 _c_write_msa
