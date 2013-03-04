@@ -23,17 +23,21 @@
           Pfam-B families ?</a></li>
         <li><a class="link" rel="family">What is on a Pfam-A family page ?</a></li>
         <li><a class="link" rel="clan">What is a clan ?</a></li>
-        <li><a class="link" rel="clanBuilding">What criteria do you use for putting families into clans ?</a></li>
+        <li><a class="link" rel="clanBuilding">What criteria do you use for putting families<br />
+          into clans ?</a></li>
         <li><a class="link" rel="lsfs">What happened to the Pfam_ls and Pfam_fs files ?</a></li>
-        <li><a class="link" rel="wise">I was wondering if it is possible to build Wise2 with HMMER3 support ? </a></li>
+        <li><a class="link" rel="wise">I was wondering if it is possible to build Wise2 with<br />
+          HMMER3 support ? </a></li>
         <li><a class="link" rel="dnaSearch">Can I search DNA against Pfam ?</a></li>
         <li><a class="link" rel="localSearch">How can I search Pfam locally ?</a></li>
         <li><a class="link" rel="noSeq">Why doesn't Pfam include my sequence ?</a></li>
+        <li><a class="link" rel="whyDup">Why is there apparent redundancy of UniProt IDs in the<br />
+          full-length FASTA sequence file ?</a></li>
         <li><a class="link" rel="howMany">How many accurate alignments do you have ?</a></li>
         <li><a class="link" rel="submit">How can I submit a new domain ?</a></li>
         <li><a class="link" rel="ipfam">What is iPfam ?</a></li>
         <li><a class="link" rel="mySearch">Can I search my protein against Pfam ?</a></li>
-        <li><a class="link" rel="gaps">What is the difference between the '-' and '.' 
+        <li><a class="link" rel="gaps">What is the difference between the '-' and '.'<br />
           characters in your full alignments ?</a></li>
         <li><a class="link" rel="sssa">What do the SS lines in the alignment mean ?</a></li>
         <li><a class="link" rel="missing">You don't have domain YYYY in Pfam !</a></li>
@@ -260,6 +264,18 @@
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
+    <h3><a name="whyDup">Why is there apparent redundancy of UniProt IDs in the full-length FASTA sequence file ?</a></h3>
+  
+    <p>
+      A given Pfam family may match a single protein sequence multiple times,
+      if the domain/family is a repeating unit, for example, or when the HMM
+      matches only to short stretches of the sequence but matches several
+      times. In such cases the FASTA file with the full length sequences will
+      contain multiple copies of the same sequence.
+    </p>
+
+    <p><a class="link" rel="faqTop">back to top</a></p>
+  
     <h3><a name="howMany">How many accurate alignments do you have ?</a></h3>
   
     <p>
@@ -344,24 +360,16 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
       The following list gives the definitions for each code letter:
     </p>
   
-    <dl>
-      <dt>C</dt>
-      <dd>Random Coil</dd>
-      <dt>H</dt>
-      <dd>Alpha-helix</dd>
-      <dt>G</dt>
-      <dd>3(10) helix</dd>
-      <dt>I</dt>
-      <dd>Pi-helix</dd>
-      <dt>E</dt>
-      <dd>Hydrogen bonded beta-strand (extended strand)</dd>
-      <dt>B</dt>
-      <dd>Residue in isolated beta-bridge</dd>
-      <dt>T</dt>
-      <dd>H-bonded turn (3-turn, 4-turn, or 5-turn)</dd>
-      <dt>S</dt>
-      <dd>Bend (five-residue bend centered at residue i)</dd>
-    </dl>
+    <ul>
+      <li>C: random Coil</li>
+      <li>H: alpha-helix</li>
+      <li>G: 3(10) helix</li>
+      <li>I: pi-helix</li>
+      <li>E: hydrogen bonded beta-strand (extended strand)</li>
+      <li>B: residue in isolated beta-bridge</li>
+      <li>T: h-bonded turn (3-turn, 4-turn, or 5-turn)</li>
+      <li>S: bend (five-residue bend centered at residue i)</li>
+    </ul>
   
     <p><a class="link" rel="faqTop">back to top</a></p>
   
