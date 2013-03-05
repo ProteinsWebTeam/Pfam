@@ -413,6 +413,30 @@ sub get_sqlen {
   return _c_get_sqlen( $self->{esl_msa}, $idx );
 }
 
+=head2 count_residues
+
+  Title    : count_residues
+  Incept   : March 5, 2013
+  Usage    : $msaObject->count_residues()
+  Function : Calculate and return total sequence length
+           : in the MSA.
+  Args     : none
+  Returns  : total sequence length
+
+=cut
+
+sub count_residues
+{
+  my ($self) = @_;
+
+  $self->_check_msa();
+  if(!defined $self->{nresidue})
+  {
+    $self->{nresidue} = _c_count_residues($self->{esl_msa});
+  }
+  return $self->{nresidue};
+}
+
 =head2 average_sqlen
 
   Title    : average_sqlen
@@ -575,7 +599,7 @@ sub weight_id_filter
   return;
 }
 
-=head2 alignment_coverage_id
+=head2 alignment_coverage
 
   Title     : alignment_coverage_id
   Incept    : March 5, 2013

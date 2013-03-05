@@ -217,11 +217,11 @@ int _c_get_sqlen(ESL_MSA *msa, int seqidx)
 }
 
 /* Function:  _c_average_sqlen()
- * Incept:    EPN, Sat Feb  2 14:43:18 2013
- * Purpose:   Calculate and return average unaligned sequence length.
- * Returns:   Average unaligned sequence length.
+ * Incept:    March 5, 2013
+ * Purpose:   Count residues in all sequences;
+ * Returns:   Total residues.
  */
-float _c_average_sqlen(ESL_MSA *msa)
+float _c_count_residues(ESL_MSA *msa)
 {
   int i;
   float len = 0.;
@@ -229,7 +229,17 @@ float _c_average_sqlen(ESL_MSA *msa)
     len += _c_get_sqlen(msa, i);
   }
   
-  return (len / msa->nseq);
+  return len;
+}
+
+/* Function:  _c_average_sqlen()
+ * Incept:    EPN, Sat Feb  2 14:43:18 2013
+ * Purpose:   Calculate and return average unaligned sequence length.
+ * Returns:   Average unaligned sequence length.
+ */
+float _c_average_sqlen(ESL_MSA *msa)
+{ 
+  return (_c_count_residues(msa) / msa->nseq);
 }
 
 
@@ -576,7 +586,7 @@ void _c_percent_coverage(ESL_MSA *msa)
   for(apos = 0; apos < msa->alen; apos++)
   {
     ret = esl_vec_DSum(abc_ct[apos], msa->abc->K);
-    Inline_Stack_Push(sv_2mortal(newSVnv(ret / msa->nseq)));
+    Inline_Stack_Push(sv_2mortal(newSVnv(ret / (double) msa->nseq)));
   } 
   
   Inline_Stack_Done;
@@ -586,3 +596,4 @@ void _c_percent_coverage(ESL_MSA *msa)
     fprintf(stderr, "Memory allocation in _c_percent_coverage failed");
     return;
 }
+
