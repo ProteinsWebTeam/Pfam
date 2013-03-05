@@ -1,0 +1,14 @@
+TYPEMAP
+ESL_SQFILE* ESL_SQFILE
+
+INPUT
+ESL_SQFILE
+       $var = c_obj($arg,ESL_SQFILE);
+
+OUTPUT
+ESL_SQFILE
+       $arg = perl_obj($var,"ESL_SQFILE");
+
+
+
+
