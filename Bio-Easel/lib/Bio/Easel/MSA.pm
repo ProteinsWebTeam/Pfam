@@ -550,6 +550,57 @@ sub revert_to_original {
   return;
 }
 
+=head2 weight_id_filter
+
+  Title     : weight_id_filter
+  Incept    : March 1, 2013
+  Usage     : $msaObject->weight_id_filter($idf)
+  Function  : performs id weight filtering on the msa object
+  Args      : Identity floating point from 0 to 1, id ratio above which will be filtered
+  Returns   : void
+
+=cut
+
+sub weight_id_filter
+{
+  my($self, $idf) = @_;
+  
+  my $msa_in = $self->{esl_msa};
+  my $msa_out = _c_msaweight_IDFilter($msa_in, $idf);
+  
+  $self->{esl_msa} = $msa_out;
+  
+  _c_free_msa($msa_in);
+  
+  return;
+}
+
+=head2 alignment_coverage_id
+
+  Title     : alignment_coverage_id
+  Incept    : March 5, 2013
+  Usage     : $msaObject->alignment_coverage_id()
+  Function  : determine coverage ratios of msa
+  Args      : None
+  Returns   : Success:
+                Array from 0 to msa->alen, contains decimals from 0 to 1
+                representing coverage ratio of that msa position
+              Failure:
+                Nothing
+
+=cut
+
+sub alignment_coverage
+{
+  my ($self, $idf) = @_;
+  
+  my $msa_in = $self->{esl_msa};
+  
+  my @output = _c_percent_coverage($msa_in);
+  
+  return @output;
+}
+
 =head2 DESTROY
 
   Title    : DESTROY
@@ -564,9 +615,10 @@ sub revert_to_original {
 sub DESTROY {
   my ($self) = @_;
 
-  _c_destroy( $self->{esl_msa}, $self->{esl_abc} );
+  _c_destroy( $self->{esl_msa}, $self->{esl_abc}, $self->{coverage_id} );
   return;
 }
+
 
 #############################
 # Internal helper subroutines

@@ -4,6 +4,7 @@
 #include "esl_msafile.h"
 #include "esl_vectorops.h"
 #include "esl_wuss.h"
+#include "esl_msaweight.h"
 
 /* Macros for converting C structs to perl, and back again)
 * from: http://www.mail-archive.com/inline@perl.org/msg03389.html
@@ -92,10 +93,11 @@ void _c_free_msa (ESL_MSA *msa)
  * Synopsis:  Free an MSA and the alphabet it points to.
  * Returns:   void
  */
-void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc)
+void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc, double *coverage_id)
 {
   _c_free_msa(msa);
   if(abc) esl_alphabet_Destroy(abc);
+  if(coverage_id) free(coverage_id);
   return;
 }
 
@@ -499,3 +501,88 @@ int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
   return status; /* failure */
 }
 
+/* Function:  _c_msaweight_IDFilter()
+ * Incept:    March 1, 2013
+ * Purpose:   Calculate and output msa after %id weight filtering
+ * Returns:   weighted msa object on success
+ *            NULL on failure
+ */
+
+SV *_c_msaweight_IDFilter(ESL_MSA *msa_in, double maxid)
+{
+  int status;
+  ESL_MSA      *msa_out;        /* an alignment */
+  
+  status = esl_msaweight_IDFilter(msa_in, maxid, &msa_out);
+  if(status != eslOK)
+  {
+    fprintf(stderr, "Failure code %d when attempting to call esl_msaweight_IDFilter", status);
+    return NULL;
+  } 
+  
+  return perl_obj(msa_out, "ESL_MSA");
+}
+
+/* Function:  _c_percent_coverage()
+ * Incept:    March 4, 2013
+ * Purpose:   Calculate and output sequence coverage ratios for each alignment position in an msa
+ * Returns:   array of size 0 to msa->alen, represents position in alignemnt coverage ratio
+ *            Nothing on failure
+ */
+
+void _c_percent_coverage(ESL_MSA *msa)
+{
+  Inline_Stack_Vars;
+  
+  int status;
+  int apos, i;
+  double **abc_ct = NULL;
+  double ret = 0.0;
+  
+  //don't let user divide by 0
+  if(msa->nseq <= 0)
+  {
+    fprintf(stderr, "invalid number of sequences in msa: %d", msa->nseq);
+    return;// NULL;
+  }
+  
+  //first allocate abc_ct matrix
+  ESL_ALLOC(abc_ct, sizeof(double *) * msa->alen); 
+  for(apos = 0; apos < msa->alen; apos++) 
+  { 
+    ESL_ALLOC(abc_ct[apos], sizeof(double) * (msa->abc->K+1));
+    esl_vec_DSet(abc_ct[apos], (msa->abc->K+1), 0.);
+  }
+  
+  //populate abc_ct
+  for(i = 0; i < msa->nseq; i++) 
+  { 
+    for(apos = 0; apos < msa->alen; apos++) 
+    { /* update appropriate abc count, careful, ax ranges from 1..msa->alen (but abc_ct is 0..msa->alen-1) */
+      if(! esl_abc_XIsDegenerate(msa->abc, msa->ax[i][apos+1])) 
+      {
+	      if((status = esl_abc_DCount(msa->abc, abc_ct[apos], msa->ax[i][apos+1], 1.0)) != eslOK)
+        {
+          fprintf(stderr, "problem counting residue %d of seq %d", apos, i);
+          return;
+        }
+      }
+    }
+  }
+  
+  Inline_Stack_Reset;
+  
+  //determine coverage ratio for each position, push it onto the perl return stack
+  for(apos = 0; apos < msa->alen; apos++)
+  {
+    ret = esl_vec_DSum(abc_ct[apos], msa->abc->K);
+    Inline_Stack_Push(sv_2mortal(newSVnv(ret / msa->nseq)));
+  } 
+  
+  Inline_Stack_Done;
+  Inline_Stack_Return(msa->alen);
+  
+  ERROR:
+    fprintf(stderr, "Memory allocation in _c_percent_coverage failed");
+    return;
+}
