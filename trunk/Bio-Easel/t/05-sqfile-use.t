@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 
 BEGIN {
@@ -22,9 +22,8 @@ isa_ok($sqfile2, "ESL_SQFILE");
 my $path = $sqfile->path;
 is($path, "./t/data/test.fa");
 
-# test fetch_seq
-my $outfile = "./t/data/out.fa";
-$sqfile->fetch_seq("CP000857.1/1802194-1802277", $outfile);
-unlink $outfile
+# test fetch_seq_to_fasta_string
+my $seqstring = $sqfile->fetch_seq_to_fasta_string("CP000857.1/1802194-1802277");
+is ($seqstring, "CP000857.1/1802194-1802277\nCUCACAUCAGAUUUCCUGGUGUAACGAAUUUUCAAGUGCUUCUUGCAUAAGCAAGUUUGAUCCCGACCCGUAGGGCCGGGAUUU");
 
 

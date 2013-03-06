@@ -32,10 +32,6 @@ SV *_c_open_sqfile (char *seqfile)
   /* open input file */
   status = esl_sqfile_Open(seqfile, eslSQFILE_UNKNOWN, NULL, &sqfp);
 
-  if(sqfp != NULL) { 
-    fprintf(stderr, "_c_open_sqfile, sqfp != NULL\n");
-  }
-
   return perl_obj(sqfp, "ESL_SQFILE");
 }    
 
@@ -49,23 +45,11 @@ int _c_open_ssi (ESL_SQFILE *sqfp)
 {
   int           status;     /* Easel status code */
 
-  fprintf(stderr, "in _c_open_ssi, kachow0\n"); 
-
-  if(sqfp) { 
-    fprintf(stderr, "in _c_open_ssi, sqfp != NULL\n");
-  }
-  else { 
-    fprintf(stderr, "in _c_open_ssi, sqfp == NULL\n");
-  }
-  fprintf(stderr, "in _c_open_ssi, format is %d\n", sqfp->format);
-
   /* Open the SSI index for retrieval */
-  //if (sqfp->data.ascii.do_gzip)           return eslENOFORMAT; /* caller will know what this means */
-  if (esl_sqio_IsAlignment(sqfp->format)) return eslETYPE; /* caller will know what this means */
+  if (sqfp->data.ascii.do_gzip)           return eslENOFORMAT; /* caller will know what this means */
+  if (esl_sqio_IsAlignment(sqfp->format)) return eslETYPE;     /* caller will know what this means */
 
-  fprintf(stderr, "in _c_open_ssi, kachow1\n"); 
   status = esl_sqfile_OpenSSI(sqfp, NULL);
-  fprintf(stderr, "in _c_open_ssi, kachow2\n"); 
   /* this looks silly, since we always just return status, but we list
    * them so caller knows which different error status should be 
    * handled differently upon return.
@@ -78,44 +62,59 @@ int _c_open_ssi (ESL_SQFILE *sqfp)
   return status; /* status will be eslOK if we get here */
 }    
 
-/* Function:  _c_fetch_seq()
+/* Function:  _c_fetch_seq_to_fasta_string()
  * Incept:    EPN, Mon Mar  4 15:03:11 2013
- * Synopsis:  Fetch a sequence from an open sequence file.
- * Returns:   eslOK on success, some other status upon failure.
-
- * TODO: have this take an open file pointer, so it can output to an already open file 
+ * Synopsis:  Fetch a sequence from an open sequence file and return it as a string.
+ * Returns:   A pointer to a string that is the sequence in FASTA format.
  */
 
-int _c_fetch_seq (ESL_SQFILE *sqfp, char *outfile, char *key)
+char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key)
 {
-  int  status;     /* Easel status code */
-  FILE *ofp = NULL; /* output file */
-  ESL_SQ *sq = esl_sq_Create();
+  int     status;                /* Easel status code */
+  ESL_SQ *sq = esl_sq_Create();  /* the sequence */
+  char   *seqstring = NULL;      /* the sequence string */
+  int     n  = 0;                /* position in string */
+  int     n2 = 0;                /* position in string */
 
-  /* TEMP: open the output file for writing */
-  if ((ofp = fopen(outfile, "w")) == NULL) return eslEWRITE;
-
-  if (sqfp->data.ascii.ssi == NULL) { 
-    return eslEINVAL; /* caller will know what this means */
-  }
+  /* make sure we're not in digital mode */
+  if(sq->dsq)                       goto ERROR; 
+  if (sqfp->data.ascii.ssi == NULL) goto ERROR;
 
   /* from esl-sfetch.c's onefetch(), caller will output informative error message based on status returned here */
   status = esl_sqfile_PositionByKey(sqfp, key);
-  if      (status == eslENOTFOUND) return eslENOTFOUND;
-  else if (status == eslEFORMAT)   return eslERANGE; /* note we change status here */
-  else if (status != eslOK)        return eslFAIL;
+  if      (status == eslENOTFOUND) goto ERROR;
+  else if (status == eslEFORMAT)   goto ERROR;
+  else if (status != eslOK)        goto ERROR;
     
   status = esl_sqio_Read(sqfp, sq);
-  if      (status == eslEFORMAT) return eslEFORMAT;
-  else if (status == eslEOF)     return eslEOF;
-  else if (status != eslOK)      return eslETYPE;
+  if      (status == eslEFORMAT) goto ERROR;
+  else if (status == eslEOF)     goto ERROR;
+  else if (status != eslOK)      goto ERROR;
 
-  if (strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) return eslECORRUPT;
+  if (strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) goto ERROR;
     
-  if (esl_sqio_Echo(sqfp, sq, ofp) != eslOK) esl_fatal("Echo failed: %s\n", esl_sqfile_GetErrorBuf(sqfp));
+  /* create seqstring  */
+  n = strlen(sq->name);
+  if (esl_strdup(sq->name, n, &seqstring) != eslOK) goto ERROR;
+  if (sq->acc) { 
+    n2 = strlen(sq->acc);
+    if (esl_strcat(&seqstring, n, sq->acc, n2) != eslOK) goto ERROR;
+    n += n2;
+  }
+  if (sq->desc) { 
+    n2 = strlen(sq->desc);
+    if (esl_strcat(&seqstring, n, sq->desc, n2) != eslOK) goto ERROR;
+    n += n2;
+  }
+  /* add newline */
+  if (esl_strcat(&seqstring, n, "\n", 1) != eslOK) goto ERROR;
+  n++;
+  if (esl_strcat(&seqstring, n, sq->seq, sq->n) != eslOK) goto ERROR;
 
   esl_sq_Destroy(sq);
-  fclose(ofp);
 
-  return eslOK;
+  return seqstring;
+
+ ERROR: 
+  return NULL;
 }    
