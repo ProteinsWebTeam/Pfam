@@ -106,30 +106,22 @@ sub new {
   my $class = ref($caller) || $caller;
   my $self = {};
   
-  printf STDERR ("IN NEW KACHOW1\n");
-
   bless( $self, $caller );
 
-  printf STDERR ("IN NEW KACHOW2\n");
-  
   # First check that the file exists and it has a .ssi file associated with it.
   if(-e $args->{fileLocation}){
-    printf STDERR ("IN NEW KACHOW3\n");
     eval{
       $self->{path} = $args->{fileLocation};
       $self->open_sqfile();
     }; # end of eval
-    printf STDERR ("IN NEW KACHOW4\n");
     
     if($@) {
       confess("Error creating ESL_SQFILE from @{[$args->{fileLocation}]}, $@\n");
     }
-    printf STDERR ("IN NEW KACHOW5\n");
   } 
   else {
     confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
   }
-  printf STDERR ("IN NEW KACHOW6\n");
   return $self;
 }
 
@@ -186,17 +178,14 @@ sub path {
 sub open_sqfile {
   my ( $self, $fileLocation ) = @_;
 
-  printf STDERR ("IN open_sqfile KACHOW1\n");
   if ($fileLocation) {
     $self->{path} = $fileLocation;
   }
   if ( !defined $self->{path} ) {
     die "trying to read sequence file but path is not set";
   }
-  printf STDERR ("IN open_sqfile KACHOW2\n");
   $self->{esl_sqfile} = _c_open_sqfile( $self->{path} );
   #my $status = _c_open_sqfile( $self->{path}, ${$self->{esl_sqfile}});
-  printf STDERR ("IN open_sqfile KACHOW3\n");
 
   #if    ($status == $ESLENOTFOUND) { die "Sequence file $fileLocation not found."; }
   #elsif ($status == $ESLEFORMAT)   { die "Format of file $fileLocation unrecogized."; }
@@ -208,9 +197,7 @@ sub open_sqfile {
   }
 
   # open SSI file
-  printf STDERR ("IN open_sqfile KACHOW4\n");
   my $status = $self->open_ssi();
-  printf STDERR ("IN open_sqfile KACHOW5 status: $status\n");
   if($status == $ESLENOTFOUND) { 
     print STDERR ("NO SQFILE INDEX AVAILABLE\n"); 
     # $status = $self->create_index();
@@ -247,9 +234,7 @@ sub open_ssi {
     die "trying to open SSI but SQFILE not set";
   }
 
-  printf STDERR ("IN open_ssi KACHOW1\n");
   my $status = _c_open_ssi( $self->{esl_sqfile} );
-  printf STDERR ("IN open_ssi KACHOW2 status: $status\n");
 
   if    ($status == $ESLENOTFOUND) { return $status; }
   elsif ($status == $ESLENOFORMAT) { die "File $self->{path} is gzipped, can't use SSI."; }
@@ -262,29 +247,52 @@ sub open_ssi {
   return $ESLOK; 
 }
 
-=head2 fetch_seq
+=head2 fetch_seq_to_fasta_string
 
-  Title    : fetch_seq
+  Title    : fetch_seq_to_fasta_string
+  Incept   : EPN, Mon Mar  4 14:43:12 2013
+  Usage    : Bio::Easel::SQFILE->fetch_seq_to_fasta_string
+  Function : Fetches a sequence from a sequence file and returns it as a FASTA string
+  Args     : <seqname>: name or accession of desired sequence
+  Returns  : string, the sequence in FASTA format
+
+=cut
+
+sub fetch_seq_to_fasta_string {
+  my ( $self, $seqname, $outfile ) = @_;
+
+  $self->_check_sqfile();
+
+  my $seqstring = _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname); 
+  
+  return $seqstring;
+}
+
+=head2 fetch_seqs_to_fasta_file
+
+  Title    : fetch_seqs_to_fasta_file
   Incept   : EPN, Mon Mar  4 14:43:12 2013
   Usage    : Bio::Easel::SQFILE->fetch_seq
-  Function : Fetches a sequence from a sequence file 
-  Args     : <fileLocation>: file location of sequence file, <fileLocation.ssi> is index file.
+  Function : Fetch sequence(s) from a sequence file and outputs them to a FASTA file
+  Args     : 
   Returns  : void
   Dies     : if unable to open sequence file
 
 =cut
 
-sub fetch_seq {
-  my ( $self, $seqname, $outfile ) = @_;
-
-  $self->_check_sqfile();
-
-  my $status = _c_fetch_seq($self->{esl_sqfile}, $outfile, $seqname); 
-  
-  printf("sequence $seqname written to $outfile\n");
-
-  return;
-}
+#sub fetch_seqs_to_fasta_file { 
+#  my ( $self, $seqnameAR, $outfile ) = @_;
+#
+#  $self->_check_sqfile();
+#
+#  open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
+#
+#  foreach $seqname (@{$seqnameAR}) { 
+#    my $status = _c_fetch_seq($self->{esl_sqfile}, $seqname); 
+#  }
+#  
+#  return;
+#}
 
 
 =head2 dl_load_flags
@@ -319,6 +327,7 @@ sub _check_sqfile {
 Eric Nawrocki, C<< <nawrockie at janelia.hhmi.org> >>
 Jody Clements, C<< <clementsj at janelia.hhmi.org> >>
 Rob Finn, C<< <finnr at janelia.hhmi.org> >>
+William Arndt, C<< <arndtw at janelia.hhmi.org> >>
 
 =head1 BUGS
 

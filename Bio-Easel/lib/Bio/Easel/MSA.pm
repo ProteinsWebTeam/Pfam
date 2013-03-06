@@ -715,6 +715,7 @@ sub _check_sqidx {
 Eric Nawrocki, C<< <nawrockie at janelia.hhmi.org> >>
 Jody Clements, C<< <clementsj at janelia.hhmi.org> >>
 Rob Finn, C<< <finnr at janelia.hhmi.org> >>
+William Arndt, C<< <arndtw at janelia.hhmi.org> >>
 
 =head1 BUGS
 
