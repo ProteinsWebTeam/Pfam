@@ -1,4 +1,4 @@
-package Bio::Easel::SQFILE;
+package Bio::Easel::SqFile;
 
 use strict;
 use warnings;
@@ -69,17 +69,17 @@ use Inline
   INC      => "-I$easel_src_dir",
   LIBS     => "-L$easel_src_dir -leasel",
   TYPEMAPS => $typemaps,
-  NAME     => 'Bio::Easel::SQFILE';
+  NAME     => 'Bio::Easel::SqFile';
 
 =head1 SYNOPSIS
 
-SQFILE sequence file handling through inline C with Easel.
+Sequence file handling through inline C with Easel.
 
 Perhaps a little code snippet.
 
-    use Bio::Easel::SQFILE;
+    use Bio::Easel::SqFile;
 
-    my $foo = Bio::Easel::MSA->SQFILE({"fileLocation" => $sqfile});
+    my $foo = Bio::Easel::MSA->SqFile({"fileLocation" => $sqfile});
     ...
 
 =head1 EXPORT
@@ -94,10 +94,10 @@ No functions currently exported.
 
   Title    : new
   Incept   : EPN, Mon Feb  4 14:36:57 2013
-  Usage    : Bio::Easel::SQFILE->new
-  Function : Generates a new Bio::Easel::SQFILE object
+  Usage    : Bio::Easel::SqFile->new
+  Function : Generates a new Bio::Easel::SqFile object
   Args     : <fileLocation>: file location of sequence file, <fileLocation.ssi> is index file
-  Returns  : Bio::Easel::SQFILE object
+  Returns  : Bio::Easel::SqFile object
 
 =cut
 
@@ -129,7 +129,7 @@ sub new {
 
   Title    : sqfile
   Incept   : EPN, Tue Mar  5 05:44:10 2013
-  Usage    : Bio::Easel::SQFILE->sqfile()
+  Usage    : Bio::Easel::SqFile->sqfile()
   Function : Accessor for sqfile: sets/opens (if nec) and returns ESL_SQFILE.
   Args     : none
   Returns  : sqfile  
@@ -149,7 +149,7 @@ sub sqfile {
 
   Title    : path
   Incept   : EPN, Tue Mar  5 05:46:00 2013
-  Usage    : Bio::Easel::SQFILE->path()
+  Usage    : Bio::Easel::SqFile->path()
   Function : Accessor for path, read only.
   Args     : none
   Returns  : string containing path to the file or undef.   
@@ -167,8 +167,9 @@ sub path {
 
   Title    : open_sqfile
   Incept   : EPN, Mon Mar  4 11:10:33 2013
-  Usage    : Bio::Easel::SQFILE->open_seqfile
-  Function : Opens a sequence file and its SQFILE index file, and creates a ESL_SQFILE pointer to it.
+  Usage    : Bio::Easel::SqFile->open_seqfile
+  Function : Opens a sequence file and its SSI index file (if no SSI file exists, it creates one)
+           : and creates a ESL_SQFILE pointer to it.
   Args     : <fileLocation>: file location of sequence file, <fileLocation.ssi> is index file.
   Returns  : void
   Dies     : if unable to open sequence file
@@ -199,7 +200,7 @@ sub open_sqfile {
   # open SSI file
   my $status = $self->open_ssi();
   if($status == $ESLENOTFOUND) { 
-    print STDERR ("NO SQFILE INDEX AVAILABLE\n"); 
+    print STDERR ("NO SSI INDEX AVAILABLE\n"); 
     # $status = $self->create_index();
   }
 
@@ -210,12 +211,12 @@ sub open_sqfile {
 
   Title    : open_ssi
   Incept   : EPN, Mon Mar  4 13:55:40 2013
-  Usage    : Bio::Easel::SQFILE->open_ssi
-  Function : Opens a SQFILE file for a given sequence file (esl_sqfile)
+  Usage    : Bio::Easel::SqFile->open_ssi
+  Function : Opens a SSI file for a given sequence file.
   Args     : None
-  Returns  : $ESLOK if SQFILE file is successfully opened
-           : $ESLENOTFOUND if SQFILE file does not exist
-  Dies     : if SQFILE file exists but cannot be opened
+  Returns  : $ESLOK if SSI file is successfully opened
+           : $ESLENOTFOUND if SSI file does not exist
+  Dies     : if SSI file exists but cannot be opened
  
 =cut
 
@@ -231,7 +232,7 @@ sub open_ssi {
   }
 
   if ( ! defined $self->{esl_sqfile} ) {
-    die "trying to open SSI but SQFILE not set";
+    die "trying to open SSI but SSI not set";
   }
 
   my $status = _c_open_ssi( $self->{esl_sqfile} );
@@ -251,7 +252,7 @@ sub open_ssi {
 
   Title    : fetch_seq_to_fasta_string
   Incept   : EPN, Mon Mar  4 14:43:12 2013
-  Usage    : Bio::Easel::SQFILE->fetch_seq_to_fasta_string
+  Usage    : Bio::Easel::SqFile->fetch_seq_to_fasta_string
   Function : Fetches a sequence from a sequence file and returns it as a FASTA string
   Args     : <seqname>: name or accession of desired sequence
              <textw>  : width of FASTA seq lines, -1 for unlimited, if !defined 60 is used
@@ -274,7 +275,7 @@ sub fetch_seq_to_fasta_string {
 
   Title    : fetch_seqs_to_fasta_file
   Incept   : EPN, Mon Mar  4 14:43:12 2013
-  Usage    : Bio::Easel::SQFILE->fetch_seq
+  Usage    : Bio::Easel::SqFile->fetch_seq
   Function : Fetch sequence(s) from a sequence file and outputs them to a FASTA file
   Args     : 
   Returns  : void
@@ -308,7 +309,7 @@ sub fetch_seq_to_fasta_string {
 
   Title    : _check_sqfile
   Incept   : EPN, Mon Mar  4 14:57:35 2013
-  Usage    : Bio::Easel::SQFILE->_check_sqfile()
+  Usage    : Bio::Easel::SqFile->_check_sqfile()
   Function : Opens sqfile only if it is currently undefined
   Args     : none
   Returns  : void
@@ -339,7 +340,7 @@ Please report any bugs or feature requests to C<bug-bio-easel at rt.cpan.org>.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc Bio::Easel::SQFILE
+    perldoc Bio::Easel::SqFile
 
 =head1 ACKNOWLEDGEMENTS
 
