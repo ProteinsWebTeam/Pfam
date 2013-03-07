@@ -4,15 +4,15 @@ use Test::More tests => 6;
 
 
 BEGIN {
-    use_ok( 'Bio::Easel::SQFILE' ) || print "Bail out!\n";
+    use_ok( 'Bio::Easel::SqFile' ) || print "Bail out!\n";
 }
 
 # test new 
 my $infile = "./t/data/test.fa";
-my $sqfile = Bio::Easel::SQFILE->new({
+my $sqfile = Bio::Easel::SqFile->new({
    fileLocation => $infile, 
 });
-isa_ok($sqfile, "Bio::Easel::SQFILE");
+isa_ok($sqfile, "Bio::Easel::SqFile");
 
 # test sqfile
 my $sqfile2 = $sqfile->sqfile;
