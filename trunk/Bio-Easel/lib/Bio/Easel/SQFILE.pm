@@ -254,18 +254,20 @@ sub open_ssi {
   Usage    : Bio::Easel::SQFILE->fetch_seq_to_fasta_string
   Function : Fetches a sequence from a sequence file and returns it as a FASTA string
   Args     : <seqname>: name or accession of desired sequence
+             <textw>  : width of FASTA seq lines, -1 for unlimited, if !defined 60 is used
   Returns  : string, the sequence in FASTA format
+  Dies     : upon error in _c_fetch_seq_to_fasta_string(), with C croak() call
 
 =cut
 
 sub fetch_seq_to_fasta_string {
-  my ( $self, $seqname, $outfile ) = @_;
+  my ( $self, $seqname, $textw ) = @_;
 
   $self->_check_sqfile();
 
-  my $seqstring = _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname); 
-  
-  return $seqstring;
+  if(! defined $textw) { $textw = 60; }
+
+  return _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname, $textw); 
 }
 
 =head2 fetch_seqs_to_fasta_file
