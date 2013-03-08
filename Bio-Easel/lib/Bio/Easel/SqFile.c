@@ -31,35 +31,99 @@ SV *_c_open_sqfile (char *seqfile)
 
   /* open input file */
   status = esl_sqfile_Open(seqfile, eslSQFILE_UNKNOWN, NULL, &sqfp);
+  if      (status == eslENOTFOUND) croak("Sequence file %s not found.\n",     seqfile);
+  else if (status == eslEFORMAT)   croak("Format of file %s unrecognized.\n", seqfile);
+  else if (status == eslEINVAL)    croak("Can't autodetect stdin or .gz for sequence file %s\n", seqfile);
+  else if (status != eslOK)        croak("Open of sequence file %s failed, code %d.\n", seqfile, status);
 
   return perl_obj(sqfp, "ESL_SQFILE");
 }    
 
-/* Function:  _c_open_ssi()
+/* Function:  _c_open_ssi_index()
  * Incept:    EPN, Mon Mar  4 13:58:29 2013
  * Synopsis:  Open an SSI file for an open sequence file.
- * Returns:   eslOK on success, some other status upon failure.
+ * Returns:   eslOK on success, eslENOTFOUND if SSI file does not exist
+ *            dies via croak with informative error message upon an error
  */
 
-int _c_open_ssi (ESL_SQFILE *sqfp)
+int _c_open_ssi_index (ESL_SQFILE *sqfp)
 {
   int           status;     /* Easel status code */
 
   /* Open the SSI index for retrieval */
-  if (sqfp->data.ascii.do_gzip)           return eslENOFORMAT; /* caller will know what this means */
-  if (esl_sqio_IsAlignment(sqfp->format)) return eslETYPE;     /* caller will know what this means */
-
+  if (sqfp->data.ascii.do_gzip)           croak("can't use SSI index for file %s because it is gzipped", sqfp->filename);
+  if (esl_sqio_IsAlignment(sqfp->format)) croak("can't use SSI index for file %s because it is an alignment", sqfp->filename);
+  
   status = esl_sqfile_OpenSSI(sqfp, NULL);
-  /* this looks silly, since we always just return status, but we list
-   * them so caller knows which different error status should be 
-   * handled differently upon return.
-   */
-  if      (status == eslEFORMAT)   return status; 
-  else if (status == eslERANGE)    return status;
-  else if (status == eslENOTFOUND) return status;
-  else if (status != eslOK)        return status;
+  
+  if      (status == eslEFORMAT)   croak("SSI index for file %s is in incorrect format\n", sqfp->filename);
+  else if (status == eslERANGE)    croak("SSI index for file %s is in 64-bit format and we can't read it\n", sqfp->filename);
+  else if (status == eslENOTFOUND) return status; /* this is okay, caller may try to deal by creating a new SSI file */
+  else if (status != eslOK)        croak("Failed to open SSI index for file %s\n", sqfp->filename);
 
-  return status; /* status will be eslOK if we get here */
+  return eslOK;
+}    
+
+/* Function:  _c_create_ssi_index()
+ * Incept:    EPN, Fri Mar  8 09:46:52 2013
+ * Synopsis:  Create an SSI index file for an existing sequence file.
+ *            Based on and nearly identical to easel's miniapps/esl-sfetch.c::create_ssi_index.
+ * Returns:   eslOK on success, eslENOTFOUND if SSI file does not exist
+ *            dies via croak with informative error message upon an error
+ */
+
+void _c_create_ssi_index (ESL_SQFILE *sqfp)
+{
+  ESL_NEWSSI *ns      = NULL;
+  ESL_SQ     *sq      = esl_sq_Create();
+  int         nseq    = 0;
+  char       *ssifile = NULL;
+  uint16_t    fh;
+  int         status;
+
+  esl_strdup(sqfp->filename, -1, &ssifile);
+  esl_strcat(&ssifile, -1, ".ssi", 4);
+  status = esl_newssi_Open(ssifile, TRUE, &ns); /* TRUE is for allowing overwrite. */
+  if      (status == eslENOTFOUND)   croak("failed to open SSI index %s", ssifile);
+  else if (status == eslEOVERWRITE)  croak("SSI index %s already exists; delete or rename it", ssifile); /* won't happen, see TRUE above... */
+  else if (status != eslOK)          croak("failed to create a new SSI index");
+
+  if (esl_newssi_AddFile(ns, sqfp->filename, sqfp->format, &fh) != eslOK)
+    croak("Failed to add sequence file %s to new SSI index\n", sqfp->filename);
+
+  while ((status = esl_sqio_ReadInfo(sqfp, sq)) == eslOK)
+    {
+      nseq++;
+      if (sq->name == NULL) croak("Every sequence must have a name to be indexed. Failed to find name of seq #%d\n", nseq);
+
+      if (esl_newssi_AddKey(ns, sq->name, fh, sq->roff, sq->doff, sq->L) != eslOK)
+	croak("Failed to add key %s to SSI index", sq->name);
+
+      if (sq->acc[0] != '\0') {
+	if (esl_newssi_AddAlias(ns, sq->acc, sq->name) != eslOK)
+	  croak("Failed to add secondary key %s to SSI index", sq->acc);
+      }
+      esl_sq_Reuse(sq);
+    }
+  if      (status == eslEFORMAT) croak("Parse failed (sequence file %s):\n%s\n",
+					   sqfp->filename, esl_sqfile_GetErrorBuf(sqfp));
+  else if (status != eslEOF)     croak("Unexpected error %d reading sequence file %s",
+					    status, sqfp->filename);
+
+  /* Determine if the file was suitable for fast subseq lookup. */
+  if (sqfp->data.ascii.bpl > 0 && sqfp->data.ascii.rpl > 0) {
+    if ((status = esl_newssi_SetSubseq(ns, fh, sqfp->data.ascii.bpl, sqfp->data.ascii.rpl)) != eslOK) 
+      croak("Failed to set %s for fast subseq lookup.");
+  }
+
+  /* Save the SSI file to disk */
+  if (esl_newssi_Write(ns) != eslOK)  croak("Failed to write keys to ssi file %s\n", ssifile);
+
+  /* done */
+  free(ssifile);
+  esl_sq_Destroy(sq);
+  esl_newssi_Close(ns);
+  return;
 }    
 
 /* Function:  _c_fetch_seq_to_fasta_string()
@@ -89,17 +153,19 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
   if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
 
   /* from esl-sfetch.c's onefetch(), caller will output informative error message based on status returned here */
-  status = esl_sqfile_PositionByKey(sqfp, key);
-  if      (status == eslENOTFOUND) croak("seq %s not found in SSI index for file %s\n", key, sqfp->filename); 
-  else if (status == eslEFORMAT)   croak("Failed to parse SSI index for %s\n", sqfp->filename);
-  else if (status != eslOK)        croak("Failed to look up location of seq %s in SSI index of file %s\n", key, sqfp->filename);
-    
+  if(key != NULL) { 
+    status = esl_sqfile_PositionByKey(sqfp, key);
+    if      (status == eslENOTFOUND) croak("seq %s not found in SSI index for file %s\n", key, sqfp->filename); 
+    else if (status == eslEFORMAT)   croak("Failed to parse SSI index for %s\n", sqfp->filename);
+    else if (status != eslOK)        croak("Failed to look up location of seq %s in SSI index of file %s\n", key, sqfp->filename);
+  }
+
   status = esl_sqio_Read(sqfp, sq);
   if      (status == eslEFORMAT) croak("Parse failed (sequence file %s):\n%s\n",  sqfp->filename, esl_sqfile_GetErrorBuf(sqfp));
   else if (status == eslEOF)     croak("Unexpected EOF reading sequence file %s\n", sqfp->filename);
   else if (status != eslOK)      croak("Unexpected error %d reading sequence file %s\n", status, sqfp->filename);
 
-  if (strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) 
+  if (key != NULL && strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) 
     croak("whoa, internal error; found the wrong sequence %s, not %s\n", sq->name, key);
     
   /* create seqstring  */
@@ -148,8 +214,24 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
       n++;
     }
   }
-  /* fprintf(stderr, "in C, seqstring: %s\n", seqstring); */
   esl_sq_Destroy(sq);
 
   return seqstring;
 }    
+
+/* Function:  _c_fetch_next_seq_to_fasta_string()
+ * Incept:    EPN, Fri Mar  8 05:51:49 2013
+ * Synopsis:  Fetch the next sequence from an open sequence file and return it as a 
+ *            FASTA formatted string. This is a wrapper for _c_fetch_seq_to_fasta_string
+ *            that passes NULL for <key>. This function is only necessary because
+ *            I don't know how to pass a NULL value in for a char * to an inline C 
+ *            function from Perl (as far as I can tell, it can't be done).
+ * Args:      sqfp  - open ESL_SQFILE to fetch seq from
+ *            textw - width for each sequence of FASTA record, -1 for unlimited.
+ * Returns:   A pointer to a string that is the sequence in FASTA format.
+ */
+
+char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
+{
+  return _c_fetch_seq_to_fasta_string(sqfp, NULL, textw);
+}

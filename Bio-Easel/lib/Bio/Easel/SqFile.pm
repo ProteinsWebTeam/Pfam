@@ -46,6 +46,8 @@ our $ESLENOFORMAT =      '25';    # couldn't guess file format
 our $ESLENOALPHABET =    '26';    # couldn't guess seq alphabet
 our $ESLEWRITE =         '27';    # write failed (fprintf, etc)
 
+our $FASTATEXTW =        '60';    # 60 characters per line in FASTA seq output
+
 my $src_file      = undef;
 my $typemaps      = undef;
 my $easel_src_dir = undef;
@@ -182,45 +184,32 @@ sub open_sqfile {
   if ($fileLocation) {
     $self->{path} = $fileLocation;
   }
-  if ( !defined $self->{path} ) {
-    die "trying to read sequence file but path is not set";
-  }
+  if ( !defined $self->{path} ) { die "trying to read sequence file but path is not set"; }
+
   $self->{esl_sqfile} = _c_open_sqfile( $self->{path} );
-  #my $status = _c_open_sqfile( $self->{path}, ${$self->{esl_sqfile}});
 
-  #if    ($status == $ESLENOTFOUND) { die "Sequence file $fileLocation not found."; }
-  #elsif ($status == $ESLEFORMAT)   { die "Format of file $fileLocation unrecogized."; }
-  #elsif ($status == $ESLEINVAL)    { die "Can't autodetect stdin or .gz."; }
-  #elsif ($status != $ESLOK)        { die "Sequence file open failed, code $status."; }
-
-  if ( ! defined $self->{esl_sqfile} ) {
-    die "_c_open_sqfile returned eslOK status, but esl_sqfile still undefined"; 
-  }
-
-  # open SSI file
-  my $status = $self->open_ssi();
-  if($status == $ESLENOTFOUND) { 
-    print STDERR ("NO SSI INDEX AVAILABLE\n"); 
-    # $status = $self->create_index();
-  }
+  if ( ! defined $self->{esl_sqfile} ) { die "_c_open_sqfile returned, but esl_sqfile still undefined"; }
 
   return;
 }
 
-=head2 open_ssi
+=head2 open_ssi_index
 
-  Title    : open_ssi
+  Title    : open_ssi_index
   Incept   : EPN, Mon Mar  4 13:55:40 2013
-  Usage    : Bio::Easel::SqFile->open_ssi
+  Usage    : Bio::Easel::SqFile->open_ssi_index
   Function : Opens a SSI file for a given sequence file.
   Args     : None
   Returns  : $ESLOK if SSI file is successfully opened
            : $ESLENOTFOUND if SSI file does not exist
-  Dies     : if SSI file exists but cannot be opened
+  Dies     : with croak in _c_open_ssi_index if:
+             - SSI file exists but is wrong format or can't be opened
+             - $self->{esl_sqfile} is an alignment
+             - $self->{esl_sqfile} is gzipped
  
 =cut
 
-sub open_ssi {
+sub open_ssi_index {
   my ( $self ) = @_;
 
   if ( $self->{has_ssi} ) { 
@@ -232,30 +221,142 @@ sub open_ssi {
   }
 
   if ( ! defined $self->{esl_sqfile} ) {
-    die "trying to open SSI but SSI not set";
+    die "trying to open SSI for non-open sqfile";
   }
 
-  my $status = _c_open_ssi( $self->{esl_sqfile} );
+  my $status = _c_open_ssi_index( $self->{esl_sqfile} ); # this will call 'croak' upon an error 
 
-  if    ($status == $ESLENOTFOUND) { return $status; }
-  elsif ($status == $ESLENOFORMAT) { die "File $self->{path} is gzipped, can't use SSI."; }
-  elsif ($status == $ESLETYPE)     { die "File $self->{path} appears to be an alignment, not yet supported."; }
-  elsif ($status == $ESLEFORMAT)   { die "SSI index for $self->{path} is in incorrect format."; }
-  elsif ($status == $ESLERANGE)    { die "SSI index for $self->{path} is in 64-bit format and we can't read it."; }
-  elsif ($status != $ESLOK)        { die "Failed to open SSI index for $self->{path}"; }
+  if($status == $ESLOK) { $self->{has_ssi} = 1; }
+  return $status;
+}
 
-  $self->{has_ssi} = 1;
-  return $ESLOK; 
+=head2 create_ssi_index
+
+  Title    : create_ssi_index
+  Incept   : EPN, Fri Mar  8 06:09:51 2013
+  Usage    : Bio::Easel::SqFile->create_ssi_index
+  Function : Creates an SSI file for a given sequence file.
+  Args     : None
+  Returns  : void
+  Dies     : if SSI index creation fails, via croak in _c_create_ssi_index()
+ 
+=cut
+
+sub create_ssi_index {
+  my ( $self ) = @_;
+
+  if ( $self->{has_ssi} )              { die "trying to create SSI file but has_ssi flag already set!"; }
+  if ( ! defined $self->{path} )       { die "trying to create SSI file but path is not set"; }
+  if ( ! defined $self->{esl_sqfile} ) { die "trying to open SSI for non-open sqfile"; }
+
+  _c_create_ssi_index( $self->{esl_sqfile} ); # this C function calls 'croak' if there's an error
+
+  return;
+}
+
+=head2 fetch_seqs_given_names
+
+  Title    : fetch_seqs_given_names
+  Incept   : EPN, Mon Mar  4 14:43:12 2013
+  Usage    : Bio::Easel::SqFile->fetch_seqs_given_names
+  Function : Fetch sequence(s) with names listed in $seqnameAR from a 
+           : sequence file and either return them as a string (if 
+           : $outfile is !defined) or output them to a new FASTA file 
+           : called $outfile (if defined).
+  Args     : $seqnameAR: ref to array of seqnames to fetch
+           : $textw:     width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
+           : $outfile:   OPTIONAL; name of output FASTA file to create
+  Returns  : if $outfile is defined: string of all concatenated seqs
+             else                  : "" (empty string)
+  Dies     : if unable to open sequence file
+
+=cut
+
+sub fetch_seqs_given_names { 
+  my ( $self, $seqnameAR, $textw, $outfile ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();    # fetching sequences by name requires SSI index
+
+  my $retstring = "";
+  if(defined $outfile) { 
+    open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
+  }
+
+  my ($seqname, $seqstring);
+  foreach $seqname (@{$seqnameAR}) { 
+    $seqstring = _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname, $textw); 
+    if(defined $outfile) { print OUT $seqstring; }
+    else                 { $retstring .= $seqstring; }
+  }
+  if(defined $outfile) { close(OUT); }
+  
+  return $retstring; # this will be "" if $outfile is defined, else it is all fetched seqs concatenated
+}
+
+=head2 fetch_consecutive_seqs
+
+  Title    : fetch_consecutive_seqs
+  Incept   : EPN, Fri Mar  8 05:30:56 2013
+  Usage    : Bio::Easel::SqFile->fetch_consecutive_seqs
+  Function : Fetch $n consecutive sequence(s) from a 
+           : sequence file and either return them as a string (if 
+           : $outfile is !defined) or output them to a new FASTA file 
+           : called $outfile (if defined). The first sequence to fetch
+           : is named $startname (if $startname != ""), else if 
+           : $startname eq "" next sequence in the open file is the first 
+           : sequence.
+  Args     : $n:         number of sequences to fetch
+           : $startname: name of first sequence to fetch, "" for next seq in file
+           : $textw:     width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
+           : $outfile:   OPTIONAL: name of output FASTA file to create.
+  Returns  : if $outfile is defined: string of all concatenated seqs
+             else                  : "" (empty string)
+  Dies     : if unable to open sequence file
+
+=cut
+
+sub fetch_consecutive_seqs { 
+  my ( $self, $n, $startname, $textw, $outfile ) = @_;
+
+  $self->_check_sqfile();
+  if($startname ne "") { 
+    $self->_check_ssi(); # positioning file to beginning of seq $startname requires SSI index 
+  }
+
+  my $retstring = "";
+  if(defined $outfile) { 
+    open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
+  }
+
+  my ($seqstring, $i);
+  for($i = 1; $i <= $n; $i++) { 
+    printf("i: %d\n", $i);
+    # we fetch first seq in special way if $startname ne ""
+    if($i == 1 && $startname ne "") { 
+      $seqstring = _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $startname, $textw); 
+    }
+    else { 
+      $seqstring = _c_fetch_next_seq_to_fasta_string($self->{esl_sqfile}, $textw); 
+    }
+    if(defined $outfile) { print OUT $seqstring; }
+    else                 { $retstring .= $seqstring; }
+  }
+  if(defined $outfile) { close(OUT); }
+    
+  # printf STDERR ("in fetch_consecutive_seqs: returning $retstring");
+  
+  return $retstring; # this will be "" if $outfile is defined, else it is all fetched seqs concatenated
 }
 
 =head2 fetch_seq_to_fasta_string
 
   Title    : fetch_seq_to_fasta_string
-  Incept   : EPN, Mon Mar  4 14:43:12 2013
+  Incept   : EPN, Fri Mar  8 10:21:56 2013
   Usage    : Bio::Easel::SqFile->fetch_seq_to_fasta_string
-  Function : Fetches a sequence from a sequence file and returns it as a FASTA string
-  Args     : <seqname>: name or accession of desired sequence
-             <textw>  : width of FASTA seq lines, -1 for unlimited, if !defined 60 is used
+  Function : Fetches a sequence named $seqname from a sequence file and returns it as a FASTA string 
+  Args     : $seqname: name or accession of desired sequence
+             $textw  : width of FASTA seq lines, -1 for unlimited, if !defined $FASTATEXTW is used
   Returns  : string, the sequence in FASTA format
   Dies     : upon error in _c_fetch_seq_to_fasta_string(), with C croak() call
 
@@ -265,38 +366,12 @@ sub fetch_seq_to_fasta_string {
   my ( $self, $seqname, $textw ) = @_;
 
   $self->_check_sqfile();
+  $self->_check_ssi();
 
-  if(! defined $textw) { $textw = 60; }
+  if(! defined $textw) { $textw = $FASTATEXTW; }
 
   return _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname, $textw); 
 }
-
-=head2 fetch_seqs_to_fasta_file
-
-  Title    : fetch_seqs_to_fasta_file
-  Incept   : EPN, Mon Mar  4 14:43:12 2013
-  Usage    : Bio::Easel::SqFile->fetch_seq
-  Function : Fetch sequence(s) from a sequence file and outputs them to a FASTA file
-  Args     : 
-  Returns  : void
-  Dies     : if unable to open sequence file
-
-=cut
-
-#sub fetch_seqs_to_fasta_file { 
-#  my ( $self, $seqnameAR, $outfile ) = @_;
-#
-#  $self->_check_sqfile();
-#
-#  open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
-#
-#  foreach $seqname (@{$seqnameAR}) { 
-#    my $status = _c_fetch_seq($self->{esl_sqfile}, $seqname); 
-#  }
-#  
-#  return;
-#}
-
 
 =head2 dl_load_flags
 
@@ -321,6 +396,40 @@ sub _check_sqfile {
 
   if ( !defined $self->{esl_sqfile} ) {
     $self->open_seqfile();
+  }
+  return;
+}
+
+=head2 _check_ssi
+
+  Title    : _check_ssi
+  Incept   : EPN, Fri Mar  8 09:56:59 2013
+  Usage    : Bio::Easel::SqFile->_check_ssi()
+  Function : Opens SSI for sqfile if it's not already open,
+             or if it doesn't exist, we create and open it.
+  Args     : none
+  Returns  : void
+
+=cut
+
+sub _check_ssi {
+  my ($self) = @_;
+
+  $self->_check_sqfile();
+
+  if( ! $self->{has_ssi} ) { 
+    # try to open SSI file
+    my $status = $self->open_ssi_index();
+    if($status == $ESLENOTFOUND) { 
+      # SSI file does not exist, try to create one
+      $self->create_ssi_index(); # this will croak in C upon an error
+      $status = $self->open_ssi_index();
+    }
+
+    if($status != $ESLOK || (! $self->{has_ssi})) { 
+      die "unable to open newly created SSI index file for $self->{path}"; 
+    }
+
   }
   return;
 }
