@@ -36,7 +36,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
       <tr>
         <th id="indexCol" class="rowNum">Original order</th>
         <th>Sequence accession</th>
-        <th>Bits score</th>
+        <th>Bit score</th>
         <th>Type</th>
         <th>Start</th>
         <th>End</th>
