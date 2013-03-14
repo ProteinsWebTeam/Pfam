@@ -949,7 +949,7 @@ sub get_proteome_data : Private {
     @rows = $c->model('PfamDB::ProteomeArchitecture')
               ->search( { auto_proteome => $auto_proteome },
                         { join   => [ { storable => 'auto_pfamseq' }, 'auto_architecture' ],
-                          select => [ qw( pfamseq_id
+                          select => [ qw( auto_pfamseq.pfamseq_id
                                           storable.annseq_storable
                                           auto_architecture.architecture
                                           me.auto_architecture
