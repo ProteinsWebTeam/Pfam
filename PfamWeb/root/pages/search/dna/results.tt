@@ -146,6 +146,20 @@ END; # of "IF seqSearchError"
       <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed17688688">
         the accompanying paper</a>.
     </p>
+    <h3>Stop codons</h3>
+    <p>
+      When we translate your DNA sequence, we make no attempt to detect
+      meaningful open reading frames. This means that some protein sequences
+      will have stop codons in them. The HMMER program simply reads through
+      stops, but any matches that cross stop codons may not be meaningful
+      results. 
+    </p>
+    <p>
+      In order to highlight stop codons in the translated sequence, we mark
+      them in the domain graphic summaries. Each stop codon is shown with a red
+      "lollipop". You can move your mouse over the head of the lollipop to show
+      a tooltip giving its sequence position.
+    </p>
     <h3>HMM alignment</h3>
     <p>
       For Pfam-A hits we show the alignments between your search sequence and
@@ -409,7 +423,12 @@ END; # of "IF seqSearchError"
     pollUrl:      "[% c.uri_for( '/search/dna/resultset', jobId ) %]",
     loadTableUrl: "[% c.uri_for( '/search/dna/resulttable', jobId ) %]",
     baseUrl:      "[% c.uri_for( '/' ) %]",
-    dnaSeq:       "[% sequences.0 %]"
+    dnaSeq:       "[% sequences.0 %]",
+    proteinSeqs:  [
+      [% FOREACH sequence IN sequences.slice(1);
+        '"'; sequence; '"'; "," UNLESS loop.last %]
+      [% END -%]
+    ]
   };
 
   var results;
