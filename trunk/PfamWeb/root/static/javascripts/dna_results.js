@@ -193,21 +193,25 @@ var DnaResults = Class.create( {
       return;
     }
 
+    var failedList, r, pg, starSearch,
+        graphicDiv = $("seq"+frameNumber),
+        starRegex = /\*/g;  // used for finding "*" characters in protein sequences
+
     if ( job.status != "DONE" ) {
       this._jobComplete[frameNumber] = true;
       this._completedCount++;
       this._failedJobs.push(frameNumber);
 
-      var failedList = this._failedJobs.size() == 1 
-                     ? "The search for frame 1 failed."
-                     : "The searches for frames " + this._failedJobs.join(", ") + " failed.";
+      failedList = this._failedJobs.size() == 1 
+                 ? "The search for frame 1 failed."
+                 : "The searches for frames " + this._failedJobs.join(", ") + " failed.";
       $("errors").update( "There was a problem with one of more of the searches. " + failedList )
                  .show();
 
       return;
     }
     
-    var r = new Ajax.Updater(
+    r = new Ajax.Updater(
       "stagingDiv",
       this._config.loadTableUrl + "/" + frameNumber,
       {
@@ -219,10 +223,27 @@ var DnaResults = Class.create( {
     this._jobComplete[frameNumber] = true;
     this._completedCount++;
 
-    var graphicDiv = $("seq"+frameNumber);
+    // find the occurrences of "*" in the protein sequence and flag them
+    // with lollipops
+    while ( ( starSearch = starRegex.exec( this._config.proteinSeqs[frameNumber] ) ) ) {
+      job.graphic.markups.push( {
+        "lineColour": "#666",
+        "colour":     "#F36",
+        "display":    true,
+        "v_align":    "top",
+        "headStyle":  "square",
+        "type":       "Stop codon",
+        "start":      starSearch.index,
+        "metadata": { 
+          "database": "translate", 
+          "description": "Stop codon", 
+          "start": starSearch.index
+        }
+      } );
+    }
 
     // draw the domain graphics. Hand in the base URL for the links on the image
-    var pg = new PfamGraphic( graphicDiv, job.graphic );
+    pg = new PfamGraphic( graphicDiv, job.graphic );
     pg.setBaseUrl( this._config.baseUrl );
     pg.render();
 
