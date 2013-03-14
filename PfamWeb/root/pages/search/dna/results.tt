@@ -118,7 +118,7 @@ END; # of "IF seqSearchError"
     <h3>Significant versus insignificant matches</h3>
     <p>
       We separate Pfam-A matches into two tables, containing the significant
-      and insignificant matches. A significant match is one where the bits
+      and insignificant matches. A significant match is one where the bit
       score is greater than or equal to the gathering threshhold for the Pfam
       domain. Hits which do not start and end at the end points of the matching
       HMM are <span class="warning">highlighted</span>.
