@@ -172,7 +172,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <div class="row">
           <label for="batchSeq">Sequences file</label>
           <input type="file" 
-                 accept="text/plain"
                  size="20"
                  name="batchSeq"
                  id="batchSeq" />
