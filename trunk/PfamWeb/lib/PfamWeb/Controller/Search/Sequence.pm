@@ -184,6 +184,8 @@ sub results : Local {
     $c->log->debug( 'Search::Sequence::results: stashing the job ID for NCBISeq, etc.' )
       if $c->debug;
 
+    sleep(3);
+
     # because the other controller needs to set these values for itself but
     # they've already been set by the "search" method, we'll undef them here
     $c->stash->{pageType} = undef;
