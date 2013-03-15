@@ -936,7 +936,7 @@ sub get_proteome_data : Private {
                                              annseqs ) ],
                           select    => [ { distinct => [ 'me.auto_pfamseq' ] } ,
                                          qw( pfamseq_id
-                                             annseq_storable ) ],
+                                             annseqs.annseq_storable ) ],
                           as        => [ qw( auto_pfamseq 
                                              pfamseq_id
                                              annseq_storable ) ] } );
