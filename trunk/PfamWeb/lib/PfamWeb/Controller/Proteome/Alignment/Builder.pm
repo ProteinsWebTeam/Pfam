@@ -27,7 +27,7 @@ use strict;
 use warnings;
 
 use URI::Escape;
-use JSON;
+use JSON qw( -convert_blessed_universally );
 use Data::UUID;
 
 use Data::Dump qw( dump );
@@ -35,6 +35,8 @@ use Data::Dump qw( dump );
 use Bio::Pfam::ColourAlign;
 
 use base 'PfamWeb::Controller::Proteome::Alignment';
+
+our $json = JSON->new->utf8->convert_blessed;
 
 #-------------------------------------------------------------------------------
 
@@ -56,7 +58,7 @@ sub build : Path {
   $c->forward( 'get_sequences' );
   
   # make sure we got something...
-  unless ( length $c->stash->{fasta} ) {
+  unless ( exists $c->stash->{fasta} and length $c->stash->{fasta} ) {
     $c->log->debug( 'Proteome::Alignment::Builder::build: failed to get a FASTA sequence' )
       if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
@@ -234,7 +236,7 @@ sub queue_alignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
+  $c->stash->{jobStatusJSON} = $json->encode( $jobStatus );
 
   $c->log->debug( 'Proteome::Alignment::Builder::queueAlignment: built a job status string: ',
                   dump( $jobStatus ) ) if $c->debug;
