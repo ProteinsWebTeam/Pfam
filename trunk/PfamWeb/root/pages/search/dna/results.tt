@@ -70,7 +70,7 @@ END; # of "IF seqSearchError"
     This page shows the results of searching your <strong>DNA</strong> sequence
     for Pfam-A matches. To do this we perform a six-frame translation to
     generate a set of <strong>protein</strong> sequence, which we then search
-    using the normal Pfam-A HMMs.
+    using the normal Pfam-A HMMs and <strong>GA</strong> cut-offs.
   </p>
 
   <p id="searchingMessage">
