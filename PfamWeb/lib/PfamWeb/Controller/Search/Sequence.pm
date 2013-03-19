@@ -1229,7 +1229,7 @@ sub queue_dna_search : Private {
       $c->log->warn( "Search::Sequence::queue_dna_search: couldn't read sequence file for frame $i ($frame_file)" )
         if $c->debug;
 
-      # unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
+      unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
 
       return 0;
     } 
@@ -1251,7 +1251,7 @@ sub queue_dna_search : Private {
       $c->log->warn( "Search::Sequence::queue_dna_search: problem submitting search for frame $i" )
         if $c->debug;
 
-      # unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
+      unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
 
       return 0;
     } 
@@ -1264,19 +1264,17 @@ sub queue_dna_search : Private {
   
   #----------------------------------------
 
+  unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
+
   # make sure we have at least one job...
   unless ( $queued ) {
     $c->stash->{seqSearchError} = 'We did not successfully queue searches for any of the frames.';
     $c->log->warn( 'Search::Sequence::queue_dna_search: no searches submitted' )
       if $c->debug;
 
-    # unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
-
     return 0;
   }
 
-  # unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
-  
   return 1;
 }
 
