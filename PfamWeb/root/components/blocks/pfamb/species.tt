@@ -13,7 +13,8 @@ PROCESS "components/require.tt";
 
 sharedRequirements.js.push( "tree_factory.js" ); # handles tree data
 
-sharedRequirements.js.push( "sunburst.js" );     # sunburst tree
+sharedRequirements.js.push( "sunburst_controller.js" ); # sunburst manager
+sharedRequirements.js.push( "sunburst.js" );            # sunburst tree
 sharedRequirements.css.push( "sunburst.css" );
 
 sharedRequirements.css.push( "tree.css" );       # YUI tree 
