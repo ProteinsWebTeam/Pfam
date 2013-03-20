@@ -24,8 +24,8 @@ $Id: PfamB.pm,v 1.21 2009-11-18 14:39:29 jt6 Exp $
 
 =cut
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
 use Compress::Zlib;
 use Text::Wrap;
@@ -33,7 +33,13 @@ use Bio::Pfam::AlignPfam;
 
 use Data::Dump qw( dump );
 
-use base 'PfamWeb::Controller::Section';
+BEGIN {
+  extends 'Catalyst::Controller';
+  # extends 'PfamWeb::Controller::Section';
+}
+
+with 'PfamBase::Roles::Section' => { -excludes => 'section' },
+     'PfamBase::Roles::SunburstMethods';
 
 # define the name of the section...
 __PACKAGE__->config( SECTION => 'pfamb' );
@@ -86,7 +92,7 @@ sub pfamb : Chained( '/' )
                       $entry_arg               ||
                       '';
   
-  $c->log->debug( "Family::family: tainted_entry: |$tainted_entry|" )
+  $c->log->debug( "PfamB::pfamb: tainted_entry: |$tainted_entry|" )
     if $c->debug;
 
   my $entry;
@@ -138,7 +144,7 @@ Deprecated. Stub to redirect to the chained action.
 sub old_pfamb : Path( '/pfamb' ) {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::old_pfamb: redirecting to "pfamb"' )
+  $c->log->debug( 'PfamB::old_pfamb: redirecting to "pfamb"' )
     if $c->debug;
 
   delete $c->req->params->{id};
@@ -162,11 +168,31 @@ sub get_data : Private {
     
   return unless $pfam;
   
-  $c->log->debug( 'Family::get_data: got a Pfam-B' ) if $c->debug;
+  $c->log->debug( 'PfamB::get_data: got a Pfam-B' ) if $c->debug;
   $c->stash->{pfam}      = $pfam;
   $c->stash->{acc}       = $pfam->pfamb_acc;
   $c->stash->{entryType} = 'B';
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 sunburst
+
+Stub to add a "sunburst" pathpart. All methods from the L<SunburstMethods> Role
+will be hung off this stub.
+
+=cut
+
+sub sunburst : Chained( 'pfamb' )
+               PathPart( 'sunburst' )
+               CaptureArgs( 0 ) {
+  my ( $this, $c ) = @_; 
+
+  # specify the queue to use when submitting sunburst-related jobs
+  $c->stash->{alignment_job_type} = 'pfalign';
+}
+
+sub build_fasta {}
 
 #-------------------------------------------------------------------------------
 
@@ -832,6 +858,10 @@ sub get_alignment_from_db : Private {
   $c->log->debug( 'PfamB::Alignment::get_alignment_from_db: got '
                   . scalar @alignment . ' rows in alignment' ) if $c->debug;
 }
+
+#-------------------------------------------------------------------------------
+
+__PACKAGE__->meta->make_immutable;
 
 #-------------------------------------------------------------------------------
 
