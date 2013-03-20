@@ -1272,9 +1272,13 @@ sub queue_dna_search : Private {
     $c->log->warn( 'Search::Sequence::queue_dna_search: no searches submitted' )
       if $c->debug;
 
+      unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
+
     return 0;
   }
 
+  unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
+  
   return 1;
 }
 
