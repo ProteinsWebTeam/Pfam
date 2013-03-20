@@ -41,16 +41,31 @@ sub json : Chained( 'sunburst' )
            Args {
   my ( $this, $c ) = @_;
 
-  my $gzipped_sunburst_json = $c->stash->{pfam}->pfama_species_trees->first->json_string;
+  my $sunburst_json;
+  if ( $c->stash->{entryType} eq 'A' ) {
+    my $gzipped_sunburst_json = $c->stash->{pfam}->pfama_species_trees->first->json_string;
+    unless ( $gzipped_sunburst_json ) {
+      $c->res->status( 500 ); # Internal server error
+      $c->res->body( 'We could not retrieve the sunburst data for Pfam-A family ' . $c->stash->{acc} );
+      return;
+    }
 
-  unless ( $gzipped_sunburst_json ) {
+    $sunburst_json = Compress::Zlib::memGunzip( $gzipped_sunburst_json );
+  }
+  elsif ( $c->stash->{entryType} eq 'B' ) {
+    $sunburst_json = $c->stash->{pfam}->pfamb_species_trees->first->json_string;
+  }
+
+  unless ( $sunburst_json ) {
+    $c->log->debug( 'SunburstMethods::json: failed to retrieve/uncompress JSON string' )
+      if $c->debug;
     $c->res->status( 500 ); # Internal server error
     $c->res->body( 'We could not retrieve the sunburst data for ' . $c->stash->{acc} );
     return;
   }
 
   $c->res->content_type( 'application/json' );
-  $c->res->body( Compress::Zlib::memGunzip( $gzipped_sunburst_json ) );
+  $c->res->body( $sunburst_json );
 }
 
 #-------------------------------------------------------------------------------
