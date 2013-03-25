@@ -1,5 +1,6 @@
 #include "easel.h"
 #include "esl_sqio.h"
+#include "esl_sq.h"
 #include "esl_ssi.h"
 
 /* Macros for converting C structs to perl, and back again)
@@ -17,6 +18,7 @@
                         ? ((type*)SvIV(SvRV(sv)))                       \
                         : NULL                                          \
                                                    )
+
 
 /* Function:  _c_open_sqfile()
  * Incept:    EPN, Mon Mar  4 13:27:43 2013
@@ -113,7 +115,7 @@ void _c_create_ssi_index (ESL_SQFILE *sqfp)
   /* Determine if the file was suitable for fast subseq lookup. */
   if (sqfp->data.ascii.bpl > 0 && sqfp->data.ascii.rpl > 0) {
     if ((status = esl_newssi_SetSubseq(ns, fh, sqfp->data.ascii.bpl, sqfp->data.ascii.rpl)) != eslOK) 
-      croak("Failed to set %s for fast subseq lookup.");
+      croak("Failed to set %s for fast subseq lookup.", sqfp->filename);
   }
 
   /* Save the SSI file to disk */
@@ -126,49 +128,22 @@ void _c_create_ssi_index (ESL_SQFILE *sqfp)
   return;
 }    
 
-/* Function:  _c_fetch_seq_to_fasta_string()
- * Incept:    EPN, Mon Mar  4 15:03:11 2013
- * Synopsis:  Fetch a sequence from an open sequence file and return it as a FASTA
- *            formatted string.
- * Args:      sqfp  - open ESL_SQFILE to fetch seq from
- *            key   - name or accession of sequence to fetch
+
+/* Function:  _c_sq_to_seqstring()
+ * Incept:    EPN, Mon Mar 25 15:35:13 2013
+ * Synopsis:  Construct a sequence string from an ESL_SQ.
+ * Args:      sq    - the ESL_SQ object
  *            textw - width for each sequence of FASTA record, -1 for unlimited.
+ *            key   - key used to fetch sequence by caller, useful only for informative error output
  * Returns:   A pointer to a string that is the sequence in FASTA format.
  */
-
-char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
-{
-
-  int     status;                /* Easel status code */
-  ESL_SQ *sq = esl_sq_Create();  /* the sequence */
+char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key)
+{    
   char   *seqstring = NULL;      /* the sequence string */
   int     n   = 0;               /* position in string */
   int     n2  = 0;               /* position in string */
   int     pos = 0;               /* position in sq->seq */
 
-  /* make sure textw makes sense */
-  if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
-  /* make sure we're not in digital mode, and SSI is valid */
-  if (sq->dsq)                      croak("sequence file is unexpectedly digitized\n");
-  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
-
-  /* from esl-sfetch.c's onefetch(), caller will output informative error message based on status returned here */
-  if(key != NULL) { 
-    status = esl_sqfile_PositionByKey(sqfp, key);
-    if      (status == eslENOTFOUND) croak("seq %s not found in SSI index for file %s\n", key, sqfp->filename); 
-    else if (status == eslEFORMAT)   croak("Failed to parse SSI index for %s\n", sqfp->filename);
-    else if (status != eslOK)        croak("Failed to look up location of seq %s in SSI index of file %s\n", key, sqfp->filename);
-  }
-
-  status = esl_sqio_Read(sqfp, sq);
-  if      (status == eslEFORMAT) croak("Parse failed (sequence file %s):\n%s\n",  sqfp->filename, esl_sqfile_GetErrorBuf(sqfp));
-  else if (status == eslEOF)     croak("Unexpected EOF reading sequence file %s\n", sqfp->filename);
-  else if (status != eslOK)      croak("Unexpected error %d reading sequence file %s\n", status, sqfp->filename);
-
-  if (key != NULL && strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) 
-    croak("whoa, internal error; found the wrong sequence %s, not %s\n", sq->name, key);
-    
-  /* create seqstring  */
   /* '>' character */
   n = 0;
   if (esl_strdup(">", 1, &seqstring)              != eslOK) croak("out of memory while fetching sequence %s\n", key);
@@ -214,10 +189,53 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
       n++;
     }
   }
+
+  return seqstring;
+}
+
+/* Function:  _c_fetch_seq_to_fasta_string()
+ * Incept:    EPN, Mon Mar  4 15:03:11 2013
+ * Synopsis:  Fetch a sequence from an open sequence file and return it as a FASTA
+ *            formatted string.
+ * Args:      sqfp  - open ESL_SQFILE to fetch seq from
+ *            key   - name or accession of sequence to fetch
+ *            textw - width for each sequence of FASTA record, -1 for unlimited.
+ * Returns:   A pointer to a string that is the sequence in FASTA format.
+ */
+char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
+{
+
+  int     status;                /* Easel status code */
+  ESL_SQ *sq = esl_sq_Create();  /* the sequence */
+  char   *seqstring = NULL;      /* the sequence string */
+
+  /* make sure textw makes sense */
+  if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
+  /* make sure we're not in digital mode, and SSI is valid */
+  if (sq->dsq)                      croak("sequence file is unexpectedly digitized\n");
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+
+  /* from esl-sfetch.c's onefetch() */
+  if(key != NULL) { 
+    status = esl_sqfile_PositionByKey(sqfp, key);
+    if      (status == eslENOTFOUND) croak("seq %s not found in SSI index for file %s\n", key, sqfp->filename); 
+    else if (status == eslEFORMAT)   croak("Failed to parse SSI index for %s\n", sqfp->filename);
+    else if (status != eslOK)        croak("Failed to look up location of seq %s in SSI index of file %s\n", key, sqfp->filename);
+  }
+
+  status = esl_sqio_Read(sqfp, sq);
+  if      (status == eslEFORMAT) croak("Parse failed (sequence file %s):\n%s\n",  sqfp->filename, esl_sqfile_GetErrorBuf(sqfp));
+  else if (status == eslEOF)     croak("Unexpected EOF reading sequence file %s\n", sqfp->filename);
+  else if (status != eslOK)      croak("Unexpected error %d reading sequence file %s\n", status, sqfp->filename);
+
+  if (key != NULL && strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) 
+    croak("whoa, internal error; found the wrong sequence %s, not %s\n", sq->name, key);
+
+  seqstring = _c_sq_to_seqstring(sq, textw, key);
   esl_sq_Destroy(sq);
 
   return seqstring;
-}    
+}
 
 /* Function:  _c_fetch_next_seq_to_fasta_string()
  * Incept:    EPN, Fri Mar  8 05:51:49 2013
@@ -235,3 +253,68 @@ char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
 {
   return _c_fetch_seq_to_fasta_string(sqfp, NULL, textw);
 }
+
+
+/* Function:  _c_fetch_subseq_to_fasta_string()
+ * Incept:    EPN, Sat Mar 23 05:34:15 2013
+ * Synopsis:  Fetch a subsequence.
+ *
+ * Purpose:   Fetch a subsequence from an open sequence file and return
+ *            it as a FASTA formatted string. Based on esl-sfetch's
+ *            onefetch_subseq(). The subsequence fetched is from
+ *            position <given_start> to <given_end>, as a special case
+ *            if <given_end> is 0, then the subsequence is fetched all
+ *            the way to the end. If <given_start> > <given_end> (and
+ *            <given_end> != 0) the caller is indicating they want the
+ *            reverse complement of the subsequence from <given_end>
+ *            to <given_start>, we'll fetch the top strand
+ *            subsequence, then revcomp it, then return it.
+ *
+ *            <given_end> are 
+ * Args:      sqfp        - open ESL_SQFILE to fetch seq from
+ *            key         - name or accession of sequence to fetch
+ *            newname     - name to assign to fetched subsequence
+ *            given_start - first position of subseq
+ *            given_end   - final position of subseq 
+ *            textw - width for each sequence of FASTA record, -1 for unlimited.
+ *
+ * Returns:   A pointer to a string that is the subsequence in FASTA format.
+ */
+
+char *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw)
+{
+  int     status;                /* Easel status code */
+  int     start, end;            /* start/end for esl_sqio_FetchSubseq() */
+  int     do_revcomp;            /* are we revcomp'ing? */
+  ESL_SQ *sq = esl_sq_Create();  /* the sequence */
+  char   *seqstring = NULL;      /* the sequence string */
+
+  /* make sure textw makes sense */
+  if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
+  /* make sure we're not in digital mode, and SSI is valid */
+  if (sq->dsq)                      croak("sequence file is unexpectedly digitized\n");
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+
+  /* reverse complement indicated by coords. */
+  if (given_end != 0 && given_start > given_end)
+  { start = given_end;   end = given_start; do_revcomp = TRUE;  }
+  else
+  { start = given_start; end = given_end;   do_revcomp = FALSE; }
+
+  /* fetch the subsequence, croak upon an error */
+  if (esl_sqio_FetchSubseq(sqfp, key, start, end, sq) != eslOK) croak(esl_sqfile_GetErrorBuf(sqfp));
+
+  if      (newname != NULL) esl_sq_SetName(sq, newname);
+  else                      esl_sq_FormatName(sq, "%s/%d-%d", key, given_start, (given_end == 0) ? sq->L : given_end);
+
+  /* possibly reverse complement the subseq we just fetched */
+  if (do_revcomp) { 
+    if (esl_sq_ReverseComplement(sq) != eslOK) croak("Failed to reverse complement %s; is it a protein?\n", sq->name);
+  }
+
+  seqstring = _c_sq_to_seqstring(sq, textw, key);
+  esl_sq_Destroy(sq);
+
+  return seqstring;
+}
+

@@ -81,7 +81,7 @@ Perhaps a little code snippet.
 
     use Bio::Easel::SqFile;
 
-    my $foo = Bio::Easel::MSA->SqFile({"fileLocation" => $sqfile});
+    my $foo = Bio::Easel::SqFile({"fileLocation" => $sqfile});
     ...
 
 =head1 EXPORT
@@ -371,6 +371,37 @@ sub fetch_seq_to_fasta_string {
   if(! defined $textw) { $textw = $FASTATEXTW; }
 
   return _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname, $textw); 
+}
+
+=head2 fetch_subseq_to_fasta_string
+
+  Title    : fetch_subseq_to_fasta_string
+  Incept   : EPN, Sat Mar 23 05:51:51 2013
+  Usage    : Bio::Easel::SqFile->fetch_subseq_to_fasta_string
+  Function : Fetches a subsequence from a sequence named $seqname from a sequence file 
+             and returns it as a FASTA string. As a special case, if $end == 0, the 
+             sequence will be fetched all the way until the end. If $start > $end and
+             $end != 0, we'll reverse complement the subsequence before passing it back.
+             The name assigned to the subsequence is "$seqname/$start-$end".
+  Args     : $seqname: name or accession of desired sequence
+             $start  : first position of subseq
+             $end    : final position of subseq, 0 for all the way to end
+             $textw  : width of FASTA seq lines, -1 for unlimited, if !defined $FASTATEXTW is used
+  Returns  : string, the subsequence in FASTA format
+  Dies     : upon error in _c_fetch_suseq_to_fasta_string(), with C croak() call
+
+=cut
+
+sub fetch_subseq_to_fasta_string {
+  my ( $self, $seqname, $start, $end, $textw ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+
+  if(! defined $textw) { $textw = $FASTATEXTW; }
+
+  my $newname = "$seqname/$start-$end";
+  return _c_fetch_subseq_to_fasta_string_good($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
 }
 
 =head2 dl_load_flags
