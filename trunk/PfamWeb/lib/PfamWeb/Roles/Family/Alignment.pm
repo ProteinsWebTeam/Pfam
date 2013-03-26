@@ -149,8 +149,10 @@ sub gzipped : Chained( 'alignment' )
                           { columns    => [ qw( alignment ) ] } )
                 ->single();
 
-    $alignment = $rs->alignment;
-    $filename  = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
+    if ( defined $rs ) {
+      $alignment = $rs->alignment;
+      $filename  = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
+    }
   }
 
   unless ( defined $alignment ) {
