@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 # use Test::More qw( no_plan );
-use Test::More tests => 121;
+use Test::More tests => 122;
 use Test::Exception;
 
 use HTTP::Headers;
@@ -95,77 +95,82 @@ $req = GET( "$family/$acc/id" );
 $res = request( $req );
 is( $res->content, $id, 'Convert from ID to accession' ); #25
 
+# page redirects to dead family
+$req = GET( "$family/PF00065" );
+$res = request( $req );
+like( $res->content, qr/now a dead family/, 'Got "now a dead family" message' ); #25
+
 # XML rendering of the family page
 $req = GET( "$family/$acc?output=xml" );
 $res = request( $req );
-is( $res->content_type, 'text/xml', 'XML Content-Type' ); #26
-like( $res->content, qr/^<\?xml version="1.0"/, 'Looks like XML' ); #27
+is( $res->content_type, 'text/xml', 'XML Content-Type' ); #27
+like( $res->content, qr/^<\?xml version="1.0"/, 'Looks like XML' ); #28
 
 SKIP: {
   eval { require XML::LibXML };
   skip 'XML::LibXML not installed', 2 if $@;
   my $dom;
-  lives_ok { $dom = XML::LibXML->load_xml( string => $res->content ) } 'Parsed XML successfully'; #28
-  isa_ok( $dom, 'XML::LibXML::Document' ); #29
+  lives_ok { $dom = XML::LibXML->load_xml( string => $res->content ) } 'Parsed XML successfully'; #29
+  isa_ok( $dom, 'XML::LibXML::Document' ); #30
 }
 
 $req = GET( "$family?acc=$acc&output=xml" );
 $res = request( $req );
-ok( $res->is_redirect, 'Access XML using the "acc" parameter with an accession' ); #30
-# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?output=xml">/, 'Redirected request for XML correctly' ); #31
+ok( $res->is_redirect, 'Access XML using the "acc" parameter with an accession' ); #31
+# like( $res->content, qr/This item has moved <a href="http:\/\/localhost\/family\/$acc\?output=xml">/, 'Redirected request for XML correctly' ); #32
 like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc\?output=xml">/, 'Redirected request for XML correctly' ); #31
 
 # page components
 
 # domain graphics
 $req = GET( "$server/domaingraphics/$acc" );
-ok( $res = request( $req ), 'Domain graphics request' ); #32
-ok( $res->is_success, 'Domain graphics request successful' ); #33
-like( $res->content, qr/start of graphics row \d/, 'Contains a domain graphic row' ); #34
-like( $res->content, qr/There (is|are) \d+ sequences/, 'Got at least one architecture' ); #35
+ok( $res = request( $req ), 'Domain graphics request' ); #33
+ok( $res->is_success, 'Domain graphics request successful' ); #34
+like( $res->content, qr/start of graphics row \d/, 'Contains a domain graphic row' ); #35
+like( $res->content, qr/There (is|are) \d+ sequences/, 'Got at least one architecture' ); #36
 
 # logo
 $req = GET( "$family/$id/logo" );
-ok( $res = request( $req ), 'Logo HTML request' ); #36
-ok( $res->is_success, 'Logo HTML request successful' ); #37
-like( $res->content, qr/<img .*?logo_image/, 'Contains link to image' ); #38
+ok( $res = request( $req ), 'Logo HTML request' ); #37
+ok( $res->is_success, 'Logo HTML request successful' ); #38
+like( $res->content, qr/<img .*?logo_image/, 'Contains link to image' ); #39
 
 $req = GET( "$family/logo_image?entry=$acc" ); # legacy URL
-ok( $res = request( $req ), 'Old-style logo image request' ); #39
-ok( $res->is_redirect, 'Old-style logo image redirects' ); #40
+ok( $res = request( $req ), 'Old-style logo image request' ); #40
+ok( $res->is_redirect, 'Old-style logo image redirects' ); #41
 
 $req = GET( "$family/$id/logo_image" );
-ok( $res = request( $req ), 'Logo image request' ); #41
-ok( $res->is_success, 'Logo image request successful' ); #42
-is( $res->content_type, 'image/png', 'Got a PNG image' ); #43
+ok( $res = request( $req ), 'Logo image request' ); #42
+ok( $res->is_success, 'Logo image request successful' ); #43
+is( $res->content_type, 'image/png', 'Got a PNG image' ); #44
 
 # trees
 $req = GET( "$family/tree?acc=$acc&alnType=seed" ); # legacy URL
-ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #44
-ok( $res->is_redirect, 'Old-style seed tree HTML request successful' ); #45
+ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #45
+ok( $res->is_redirect, 'Old-style seed tree HTML request successful' ); #46
 
 $req = GET( "$family/$id/tree/html" );
-ok( $res = request( $req ), 'Seed tree HTML request' ); #46
-ok( $res->is_success, 'Seed tree HTML request successful' ); #47
-like( $res->content, qr/seed_tree/, 'Seed tree HTML request successful' ); #48
+ok( $res = request( $req ), 'Seed tree HTML request' ); #47
+ok( $res->is_success, 'Seed tree HTML request successful' ); #48
+like( $res->content, qr/seed_tree/, 'Seed tree HTML request successful' ); #49
 
 $req = GET( "$family/$id/tree/download" );
-ok( $res = request( $req ), 'Seed tree download request' ); #49
-ok( $res->is_success, 'Seed tree download request successful' ); #50
-like( $res->content, qr/^\(.*?\)\;/, 'Seed tree download request successful' ); #51
+ok( $res = request( $req ), 'Seed tree download request' ); #50
+ok( $res->is_success, 'Seed tree download request successful' ); #51
+like( $res->content, qr/^\(.*?\)\;/, 'Seed tree download request successful' ); #52
 
 # tree images
 $req = GET( "$family/$id/tree/image" );
-ok( $res = request( $req ), 'Seed tree image request' ); #52
-ok( $res->is_success, 'Seed tree image request successful' ); #53
-is( $res->content_type, 'image/gif', 'Got a GIF image' ); #54
-ok( length($res->content) > 62, 'Image has sensible size' ); #55
+ok( $res = request( $req ), 'Seed tree image request' ); #53
+ok( $res->is_success, 'Seed tree image request successful' ); #54
+is( $res->content_type, 'image/gif', 'Got a GIF image' ); #55
+ok( length($res->content) > 62, 'Image has sensible size' ); #56
 
 #************ fix these to check that /family/Piwi/seed/html works and /family/Piwi/full/html gives a warning
 $req = GET( "$family/$id/tree/seed/html" );
-ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #56
-ok( $res->is_redirect, 'Request is redirected' ); #57
-like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc\/tree\/html">/, 'Redirected request for seed HTML correctly' ); #58
+ok( $res = request( $req ), 'Old-style seed tree HTML request' ); #57
+ok( $res->is_redirect, 'Request is redirected' ); #58
+like( $res->content, qr/This item has moved <a href=".*?\/family\/$acc\/tree\/html">/, 'Redirected request for seed HTML correctly' ); #59
 
 # $req = GET( "$family/$id/tree/full/image" );
 # ok( $res = request( $req ), 'Full tree image request' );
