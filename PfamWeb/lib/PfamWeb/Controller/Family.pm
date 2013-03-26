@@ -234,26 +234,6 @@ sub family_page : Chained( 'family' )
   # cache page for 1 week
   $c->cache_page( 604800 ); 
 
-  # add extra data to the stash, stuff that's required only to generate a page
-
-  # GO data
-  my @goTerms = $c->model('PfamDB::GeneOntology')
-                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama } );
-
-  $c->stash->{goTerms} = \@goTerms;
-
-  # copy required config values into the stash
-  $c->stash->{sequence_size_display_limit} = $this->{sequence_size_display_limit};
-  $c->stash->{raw_sequence_scale}          = $this->{raw_sequence_scale};
-  # (scale is calculated as num seqs * av length)
-  
-  #----------------------------------------
-
-  # detect DUFs
-  $c->stash->{is_duf} = ( $c->stash->{pfam}->pfama_id =~ m/^DUF\d+$/ );
-
-  #----------------------------------------
-  
   # dead families are a special case...
   if ( defined $c->stash->{entryType} and
        $c->stash->{entryType} eq 'D' ) {
@@ -298,6 +278,26 @@ sub family_page : Chained( 'family' )
 
     return;
   }
+
+  #----------------------------------------
+  
+  # add extra data to the stash, stuff that's required only to generate a page
+
+  # GO data
+  my @goTerms = $c->model('PfamDB::GeneOntology')
+                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama } );
+
+  $c->stash->{goTerms} = \@goTerms;
+
+  # copy required config values into the stash
+  $c->stash->{sequence_size_display_limit} = $this->{sequence_size_display_limit};
+  $c->stash->{raw_sequence_scale}          = $this->{raw_sequence_scale};
+  # (scale is calculated as num seqs * av length)
+  
+  #----------------------------------------
+
+  # detect DUFs
+  $c->stash->{is_duf} = ( $c->stash->{pfam}->pfama_id =~ m/^DUF\d+$/ );
 
   #----------------------------------------
   
