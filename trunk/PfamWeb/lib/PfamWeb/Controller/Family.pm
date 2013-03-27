@@ -106,15 +106,9 @@ either an ID or accession
 This is the way in when there are parameters but for "RESTful" URLs, the
 chained actions pick up.
 
-We're using C<auto> to do all of this, rather than C<begin>, because of problems
-with adding method modifiers when the C<begin> method has the C<Deserialize>
-action class added, e.g. C<sub begin : ActionClass('Deserialize') { }>. Ideally
-we'd just do this stuff in an C<after> method, but it seems that method modifiers
-just don't work when the C<Deserialize> C<ActionClass> is applied.
-
 =cut
 
-sub auto : Private {
+sub begin : Private {
   my ( $this, $c ) = @_;
 
   # decide what format to emit. The default is HTML, in which case
@@ -153,12 +147,14 @@ sub auto : Private {
     ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w-]+)(\.\d+)?$/;
   }
 
-  return 1;
+  $c->forward('deserialize');
 }
+
+sub deserialize : ActionClass('Deserialize') {}
 
 #-------------------------------------------------------------------------------
 
-=head2 end : ActionClass( 'Serialize' )
+=head2 end : Private
 
 The L<Section> base class sets the C<end> action to use the L<RenderView>
 C<ActionClass>, but that screws up the RESTful serialisation. Reset C<end> here
@@ -167,7 +163,25 @@ MIME type and serialiser to do the right thing.
 
 =cut
 
-sub end : ActionClass( 'Serialize' ) { }
+sub end : Private {
+  my ( $this, $c ) = @_;
+
+  if ( scalar @{ $c->error } ) {
+    $c->log->debug( 'Family::end: caught an error; setting error template and serialising' )
+      if $c->debug;
+
+    $c->stash->{template} = $c->stash->{output_xml}
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
+
+    $c->clear_errors;
+  }
+
+  # hand off to the serialiser to do its thing
+  $c->forward('serialize');
+}
+
+sub serialize : ActionClass('Serialize') {}
 
 #-------------------------------------------------------------------------------
 #- main family actions ---------------------------------------------------------
@@ -227,7 +241,9 @@ sub family_page : Chained( 'family' )
   # if we don't have an entry to work with by now, we're done
   unless ( $c->stash->{pfam} ) {
     $c->stash->{errorMsg} = 'No valid Pfam family accession or ID specified';
-    $c->stash->{template} = 'components/blocks/family/error.tt';
+    $c->stash->{template} = $c->stash->{output_xml}
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
     return;
   }
 
@@ -408,7 +424,9 @@ sub old_family : Path( '/family' ) {
   }
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
-    $c->stash->{template} = 'components/blocks/family/error.tt';
+    $c->stash->{template} = $c->stash->{output_xml}
+                          ? 'rest/family/error_xml.tt'
+                          : 'components/blocks/family/error.tt';
   }
 }
 
