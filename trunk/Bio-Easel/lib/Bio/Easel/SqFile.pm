@@ -169,7 +169,7 @@ sub path {
 
   Title    : open_sqfile
   Incept   : EPN, Mon Mar  4 11:10:33 2013
-  Usage    : Bio::Easel::SqFile->open_seqfile
+  Usage    : Bio::Easel::SqFile->open_sqfile
   Function : Opens a sequence file and its SSI index file (if no SSI file exists, it creates one)
            : and creates a ESL_SQFILE pointer to it.
   Args     : <fileLocation>: file location of sequence file, <fileLocation.ssi> is index file.
@@ -373,6 +373,60 @@ sub fetch_seq_to_fasta_string {
   return _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $seqname, $textw); 
 }
 
+=head2 fetch_subseqs
+
+  Title    : fetch_subseqs
+  Incept   : EPN, Mon Mar 25 16:33:23 2013
+  Usage    : Bio::Easel::SqFile->fetch_subseqs
+  Function : Fetch subsequence(s) with names, start positions, 
+           : end positions, and newnames stored in a 2D array 
+           : referenced by $AAR. That is, $AAR->[x][0] is the name of
+           : the source sequence for the x'th subsequence to fetch, 
+           : $AAR->[x][1] and $AAR->[x][2] are the start and end 
+           : positions of the subsequence, and $AAR->[x][3] is the new 
+           : name for the x'th fetched subsequence. Subsequences are
+           : returned as a string, (if $outfile is !defined) or output
+           : to a new FASTA file called $outfile (if defined).  
+           : Regarding $start and $end positions. As a special case, if
+           : $end == 0, the sequence will be fetched all the way until
+           : the end. If $start > $end and $end != 0, we'll reverse
+           : complement the subsequence before passing it back.
+  Args     : $AAR    : ref to 2D array with subsequence names, start, ends, and new names
+           : $textw  : width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
+           : $outfile: OPTIONAL; name of output FASTA file to create
+  Returns  : if $outfile is defined: string of all concatenated subseqs
+           : else                  : "" (empty string)
+  Dies     : if unable to open sequence file
+
+=cut
+
+sub fetch_subseqs { 
+  my ( $self, $AAR, $textw, $outfile ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();    # fetching sequences by name requires SSI index
+
+  my $retstring = "";
+  if(defined $outfile) { 
+    open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
+  }
+
+  my ($i, $seqname, $start, $end, $newname, $nseq, $listsize, $seqstring);
+  $nseq = scalar(@{$AAR});
+  for($i = 0; $i < $nseq; $i++) { 
+    $listsize = scalar(@{$AAR->[$i]});
+    if($listsize < 3) { die "ERROR fetch_subseqs, array too small (< 3 elements)"; }
+    ($seqname, $start, $end) = ($AAR->[$i][0], $AAR->[$i][1], $AAR->[$i][2]);
+    $newname = ($listsize == 3) ? $seqname . "/" . $start . "-" . $end : $AAR->[$i][3];
+    $seqstring = _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+    if(defined $outfile) { print OUT $seqstring; }
+    else                 { $retstring .= $seqstring; }
+  }
+  if(defined $outfile) { close(OUT); }
+  
+  return $retstring; # this will be "" if $outfile is defined, else it is all fetched subseqs concatenated
+}
+
 =head2 fetch_subseq_to_fasta_string
 
   Title    : fetch_subseq_to_fasta_string
@@ -400,8 +454,8 @@ sub fetch_subseq_to_fasta_string {
 
   if(! defined $textw) { $textw = $FASTATEXTW; }
 
-  my $newname = "$seqname/$start-$end";
-  return _c_fetch_subseq_to_fasta_string_good($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+  my $newname = $seqname . "/" . $start . "-" . $end;
+  return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
 }
 
 =head2 dl_load_flags
@@ -426,7 +480,7 @@ sub _check_sqfile {
   my ($self) = @_;
 
   if ( !defined $self->{esl_sqfile} ) {
-    $self->open_seqfile();
+    $self->open_sqfile();
   }
   return;
 }
