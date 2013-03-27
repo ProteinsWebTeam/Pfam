@@ -564,18 +564,10 @@ sub get_summary_data : Private {
   # number of species
   $summaryData{numSpecies} = 1;
 
-  # number of structures
-  my $rs = $c->model('PfamDB::PdbResidueData')
-             ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
-                     { select       => [
-                                         {
-                                           count => [ { distinct => [ qw( pdb_id )] } ]
-                                         }
-                                       ],
-                       as           => [ qw( numberPdbs ) ] } )
-             ->single;
+  # number of structures. Take directly from the mapping that we already retrieved
+  my %pdb_ids = map { $_->pdb_id->pdb_id => 1 } @{ $c->stash->{pfamMaps} };
 
-  $summaryData{numStructures} = $rs->get_column( 'numberPdbs' );
+  $summaryData{numStructures} = scalar keys %pdb_ids;
 
   # number of interactions
   # TODO Has interactions
