@@ -29,7 +29,7 @@
  * Returns:   an ESL_MSA
  */
 
-SV *_c_read_msa (char *infile, SV *perl_abc) 
+SV *_c_read_msa (char *infile)
 {
     int           status;     /* Easel status code */
     ESLX_MSAFILE *afp;        /* open input alignment file */
@@ -48,9 +48,6 @@ SV *_c_read_msa (char *infile, SV *perl_abc)
 
     /* close msa file */
     if (afp) eslx_msafile_Close(afp);
-
-    /* convert C abc object to perl */
-    perl_abc = perl_obj(abc, "ESL_ALPHABET");
 
     return perl_obj(msa, "ESL_MSA");
 }    
@@ -90,14 +87,12 @@ void _c_free_msa (ESL_MSA *msa)
 
 /* Function:  _c_destroy()
  * Incept:    EPN, Sat Feb  2 14:33:15 2013
- * Synopsis:  Free an MSA and the alphabet it points to.
+ * Synopsis:  Free an MSA and associated data structures.
  * Returns:   void
  */
-void _c_destroy (ESL_MSA *msa, ESL_ALPHABET *abc, double *coverage_id)
+void _c_destroy (ESL_MSA *msa)
 {
   _c_free_msa(msa);
-  if(abc) esl_alphabet_Destroy(abc);
-  if(coverage_id) free(coverage_id);
   return;
 }
 

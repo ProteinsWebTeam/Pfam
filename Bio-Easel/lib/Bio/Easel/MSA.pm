@@ -187,7 +187,7 @@ sub read_msa {
   if ( !defined $self->{path} ) {
     croak "trying to read msa but path is not set";
   }
-  $self->{esl_msa} = _c_read_msa( $self->{path}, $self->{esl_abc} );
+  $self->{esl_msa} = _c_read_msa( $self->{path} );
   return;
 }
 
@@ -639,7 +639,7 @@ sub alignment_coverage
 sub DESTROY {
   my ($self) = @_;
 
-  _c_destroy( $self->{esl_msa}, $self->{esl_abc}, $self->{coverage_id} );
+  _c_destroy( $self->{esl_msa} );
   return;
 }
 
