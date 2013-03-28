@@ -1,9 +1,6 @@
 #!/usr/bin/env perl 
 
-# TODO: put rfsearch list mode code into rfsearch
-# TODO: abstract out creation of 'list' into subroutine, it will get called from rfsearch and rfmake
-
-#rfmake.pl - a script designed to process the results of rfsearch.pl. 
+# rfmake.pl - process the results of rfsearch.pl and set model thresholds.
 # $Id: rfmake.pl,v 1.71 2013-01-23 10:06:59 en1 Exp $
 
 use strict;
@@ -20,6 +17,8 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
 
+use Bio::Easel::SqFile;
+
 ###################################################################
 # PRELIMINARIES:
 # - set default values that command line options may change
@@ -29,18 +28,18 @@ use Bio::Rfam::Utils;
 
 # set default values that command line options may change
 my $dbchoice = "rfamseq";
-my $do_align = 0;               # TRUE to create align file
+my $do_align    = 0;            # TRUE to create align file
 my $do_subalign = 0;            # TRUE to create SUBALIGN
-my $do_help = 0;                # TRUE to print help and exit, if -h used
-my $no_taxinfo = 0;             # TRUE to NOT create taxinfo file
-my $no_compare = 0;             # TRUE to NOT create comparison file
-my $dirty = 0;                  # TRUE to leave files on file system
+my $do_help     = 0;            # TRUE to print help and exit, if -h used
+my $no_taxinfo  = 0;            # TRUE to NOT create taxinfo file
+my $no_compare  = 0;            # TRUE to NOT create comparison file
+my $dirty       = 0;            # TRUE to leave files on file system
 my $thr;                        # threshold, only defined if -t used
-my $farm = 0;                   # TRUE to use farm for alignment jobs
-my @cmosA = ();                 # extra single - cmalign options (e.g. -g)
-my @cmodA = ();                 # extra double - cmalign options (e.g. --cyk)
+my $farm        = 0;            # TRUE to use farm for alignment jobs
+my @cmosA       = ();           # extra single - cmalign options (e.g. -g)
+my @cmodA       = ();           # extra double - cmalign options (e.g. --cyk)
 my $evalue;                     # E-value threshold to use, set with -e
-my $verbose = 0;                # TRUE to be verbose with output
+my $verbose     = 0;            # TRUE to be verbose with output
 
 &GetOptions( "t=s"        => \$thr,
 	     "e=s"        => \$evalue,
@@ -54,6 +53,7 @@ my $verbose = 0;                # TRUE to be verbose with output
 	     "nocompare"  => \$no_compare,
 	     "dirty"      => \$dirty,
 	     "verbose"    => \$verbose,
+	     "x"          => \$do_x,
 	     "h|help"     => \$do_help );
 
 if ( $do_help ) {
@@ -104,11 +104,12 @@ if ((defined $thr) && (defined $evalue)) {
   # TODO, read SM in desc, and pick appropriate E-value line based on that
   my $cm    = $famObj->CM;
   my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
-  $thr = sprintf("%d.00", $bitsc);
+  $thr = sprintf("%.2f", $thr);
   $changed_thr = 1;
   print STDERR  "Using GA threshold of $thr bits, converted from E-value of $evalue from command line\n";
 } elsif (defined $thr) { 
-  print STDERR  "Using GA threshold of $thr from command line";
+  $thr = sprintf("%.2f", $thr);
+  print STDERR  "Using GA threshold of $thr from command line\n";
 } else { 
   $thr = $famObj->DESC->CUTGA; 
   print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line\n";
@@ -136,22 +137,21 @@ setThresholds($famObj, $thr, $outlistI);
 $io->makeAndWriteScores($famObj, "outlist");
 
 if ($do_align) { 
-  # make sure we have a valid SCORES file
-  # TODO: replace this with FamilyIO
-  my $sfetchPath = $config->easelPath . "/esl-sfetch";
-  if (! -s "SCORES") {
-    die "ERROR SCORES does not exist to supply to esl-sfetch";
-  }
-  Bio::Rfam::Utils::eslSfetch_Cf($sfetchPath, $fetchfile, "SCORES", "$$.fa");
+  # fetch sequences
+  my $fetch_sqfile = Bio::Easel::SqFile->new({
+    fileLocation => $fetchfile,
+  });
+  $fetch_sqfile->fetch_subseqs($famObj->SCORES->regions, 60, "$$.fa"); 
+  $fetch_sqfile->close_sqfile();
 
   # use cmalign to do the alignment
   my $options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-  # Run cmalign locally or on farm (autodetermined based on job size, unless -a or -n used)
+  # Run cmalign locally or on farm (autodetermined based on job size) 
   Bio::Rfam::Infernal::cmalign_wrapper($config, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
 
   # remove temporary fasta file
   if (! $dirty) {
-    #unlink "$$.fa";
+    unlink "$$.fa";
   }
 } # end of if($do_align)
 

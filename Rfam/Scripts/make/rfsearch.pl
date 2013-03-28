@@ -190,7 +190,6 @@ if ($do_build) {
   if (-e "CM.xxx") { unlink "CM.xxx"; }
 
   # run cmbuild to create new CM
-  #TODO don't use system call ask Rob about how he calls esl-sfetch
   Bio::Rfam::Infernal::cmbuild_wrapper($config, "-F $buildopts", $cmfile, $seedfile);
   $famObj->DESC->BM("cmbuild -F $buildopts CM");
 

@@ -128,19 +128,8 @@ sub wait_for_farm {
     
 }
 
-####################
+######################################################################
 
-sub eslSfetch_Cf {
-    my ($sfetch, $dbfile, $infile, $outfile) = @_;
-
-    my $command = "$sfetch -Cf $dbfile $infile > $outfile";
-    my $time1 = time();
-    system("$command");
-    my $time2 = time();
-    printf("$command seqs took %d seconds\n", $time2-$time1);
-    if($?) { die "FAILED: $command"; }
-    return;
-}
 # FROM RfamUtils.pm:
 
 ######################################################################
@@ -306,11 +295,12 @@ sub tax2kingdom {
   Args     : <sqname>: seqname, possibly of format "name/start-end"
   Returns  : 4 values:
            :   '1' if seqname was of "name/start-end" format, else '0'
-           :   $n: name ("" if seqname doesn't match "name/start-end")
-	   :   $s: start, maybe <= or > than $e (0 if seqname doesn't match "name/start-end")
-	   :   $e: end,   maybe <= or > than $s (0 if seqname doesn't match "name/start-end")
+           :   $n: name ("" if seqname does not match "name/start-end")
+	   :   $s: start, maybe <= or > than $e (0 if seqname does not match "name/start-end")
+	   :   $e: end,   maybe <= or > than $s (0 if seqname does not match "name/start-end")
 
 =cut
+
 sub nse_breakdown {
     my ($sqname) = @_;
 
@@ -339,6 +329,7 @@ sub nse_breakdown {
   Returns  : Length in residues represented by $nse
 
 =cut
+
 sub nse_sqlen {
     my ($nse) = @_;
 
@@ -349,7 +340,7 @@ sub nse_sqlen {
 	else               { $sqlen = $start - $end + 1; }
     }
     else { 
-	croak "invalid name $nse doesn't match name/start-end format\n";
+	croak "invalid name $nse does not match name/start-end format\n";
     }
     return $sqlen;
 }
