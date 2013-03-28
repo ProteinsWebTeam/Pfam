@@ -232,7 +232,7 @@ footnotes = [ [ ],
                   [%# CALL c.log.debug( "cellId: " _ cellId _ "; flag: " _ flag _ "; numSeq: " _ numSeq _ "; available" ); %]
                   <td id="[% cellId %]" 
                       class="available">
-                    <a href="#" rel="[% numSeq %]" style="display: none !important">View</a>
+                    <span class="link" rel="[% numSeq %]" style="display: none !important">View</span>
                     [%- IF footnote %]
                       <span class="fn"><sub>[% footnoteNumber %]</sub></span>
                       [%- footnoteNumber = footnoteNumber + 1;
@@ -294,8 +294,8 @@ footnotes = [ [ ],
           cell.observe( "mouseover", function(e) {
             var target = Event.findElement( e, "td" );
             target.addClassName("empty")
-                  .down("a").show();
-            var fn = target.down("span");
+                  .down("span.link").show();
+            var fn = target.down("span.fn");
             if ( fn !== undefined ) {
               fn.toggle();
             }
@@ -303,8 +303,8 @@ footnotes = [ [ ],
           cell.observe( "mouseout", function(e) {
             var target = Event.findElement( e, "td" );
             target.removeClassName("empty")
-                  .down("a").hide();
-            var fn = target.down("span");
+                  .down("span.link").hide();
+            var fn = target.down("span.fn");
             if ( fn !== undefined ) {
               fn.toggle();
             }
