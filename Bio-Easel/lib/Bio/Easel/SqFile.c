@@ -23,7 +23,7 @@
 /* Function:  _c_open_sqfile()
  * Incept:    EPN, Mon Mar  4 13:27:43 2013
  * Synopsis:  Open a sequence file and point a pointer at it.
- * Returns:   eslOK on success, some other status upon failure.
+ * Returns:   eslOK on success, dies with 'croak' upon an error.
  */
 
 SV *_c_open_sqfile (char *seqfile)
@@ -40,6 +40,18 @@ SV *_c_open_sqfile (char *seqfile)
 
   return perl_obj(sqfp, "ESL_SQFILE");
 }    
+
+/* Function:  _c_close_sqfile()
+ * Incept:    EPN, Thu Mar 28 10:42:34 2013
+ * Synopsis:  Close a sequence file and free the associated ESL_SQFILE.
+ * Returns:   eslOK on success, some other status upon failure.
+ */
+
+void *_c_close_sqfile (ESL_SQFILE *sqfp)
+{
+  esl_sqfile_Close(sqfp);
+  return;
+}
 
 /* Function:  _c_open_ssi_index()
  * Incept:    EPN, Mon Mar  4 13:58:29 2013
@@ -213,10 +225,10 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
   if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
   /* make sure we're not in digital mode, and SSI is valid */
   if (sq->dsq)                      croak("sequence file is unexpectedly digitized\n");
-  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
 
   /* from esl-sfetch.c's onefetch() */
   if(key != NULL) { 
+    if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
     status = esl_sqfile_PositionByKey(sqfp, key);
     if      (status == eslENOTFOUND) croak("seq %s not found in SSI index for file %s\n", key, sqfp->filename); 
     else if (status == eslEFORMAT)   croak("Failed to parse SSI index for %s\n", sqfp->filename);

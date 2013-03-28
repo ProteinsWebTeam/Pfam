@@ -193,6 +193,30 @@ sub open_sqfile {
   return;
 }
 
+=head2 close_sqfile
+
+  Title    : close_sqfile
+  Incept   : EPN, Thu Mar 28 10:36:06 2013
+  Usage    : Bio::Easel::SqFile->close_sqfile
+  Function : Closes a sequence file and its SSI index file, and free ESL_SQFILE associated object.
+           : If the file is not already open, we simply return (we do not throw an error).
+  Args     : none
+  Returns  : void
+  Dies     : if unable to close sequence file
+
+=cut
+
+sub close_sqfile {
+  my ( $self ) = @_;
+
+  if(defined $self->{esl_sqfile}) { 
+    _c_close_sqfile( $self->{esl_sqfile} );
+    $self->{esl_sqfile} = undef;
+  }
+
+  return;
+}
+
 =head2 open_ssi_index
 
   Title    : open_ssi_index
@@ -203,7 +227,7 @@ sub open_sqfile {
   Returns  : $ESLOK if SSI file is successfully opened
            : $ESLENOTFOUND if SSI file does not exist
   Dies     : with croak in _c_open_ssi_index if:
-             - SSI file exists but is wrong format or can't be opened
+             - SSI file exists but is wrong format or cannot be opened
              - $self->{esl_sqfile} is an alignment
              - $self->{esl_sqfile} is gzipped
  
@@ -331,7 +355,6 @@ sub fetch_consecutive_seqs {
 
   my ($seqstring, $i);
   for($i = 1; $i <= $n; $i++) { 
-    printf("i: %d\n", $i);
     # we fetch first seq in special way if $startname ne ""
     if($i == 1 && $startname ne "") { 
       $seqstring = _c_fetch_seq_to_fasta_string($self->{esl_sqfile}, $startname, $textw); 
@@ -378,24 +401,29 @@ sub fetch_seq_to_fasta_string {
   Title    : fetch_subseqs
   Incept   : EPN, Mon Mar 25 16:33:23 2013
   Usage    : Bio::Easel::SqFile->fetch_subseqs
-  Function : Fetch subsequence(s) with names, start positions, 
-           : end positions, and newnames stored in a 2D array 
-           : referenced by $AAR. That is, $AAR->[x][0] is the name of
-           : the source sequence for the x'th subsequence to fetch, 
-           : $AAR->[x][1] and $AAR->[x][2] are the start and end 
-           : positions of the subsequence, and $AAR->[x][3] is the new 
-           : name for the x'th fetched subsequence. Subsequences are
-           : returned as a string, (if $outfile is !defined) or output
-           : to a new FASTA file called $outfile (if defined).  
+  Function : Fetch subsequence(s) with new names, start positions, 
+           : end positions, and  source names stored in a 2D array 
+           : referenced by $AAR. That is, $AAR->[x][0] is the new name
+           : for the fetched sequence, $AAR->[x][1] and $AAR->[x][2] 
+           : are the start and end positions of the subsequence, and 
+           : $AAR->[x][3] is the name of the source sequence in the
+           : file we are fetching from. (This particular order of
+           : elements in the array is used because it corresponds with
+           : the order in "scores" files in Rfam and Dfam.)
+           :
+           : The sequences are returned as a string, (if $outfile is 
+           : !defined) or output to a new FASTA file called $outfile 
+           : (if it is defined).  
+           :
            : Regarding $start and $end positions. As a special case, if
            : $end == 0, the sequence will be fetched all the way until
-           : the end. If $start > $end and $end != 0, we'll reverse
+           : the end. If $start > $end and $end != 0, we will reverse
            : complement the subsequence before passing it back.
-  Args     : $AAR    : ref to 2D array with subsequence names, start, ends, and new names
+  Args     : $AAR    : ref to 2D array with subsequence new names, start, ends, and source names
            : $textw  : width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
            : $outfile: OPTIONAL; name of output FASTA file to create
-  Returns  : if $outfile is defined: string of all concatenated subseqs
-           : else                  : "" (empty string)
+  Returns  : if $outfile is !defined: string of all concatenated subseqs
+           : else                   : "" (empty string)
   Dies     : if unable to open sequence file
 
 =cut
@@ -415,9 +443,8 @@ sub fetch_subseqs {
   $nseq = scalar(@{$AAR});
   for($i = 0; $i < $nseq; $i++) { 
     $listsize = scalar(@{$AAR->[$i]});
-    if($listsize < 3) { die "ERROR fetch_subseqs, array too small (< 3 elements)"; }
-    ($seqname, $start, $end) = ($AAR->[$i][0], $AAR->[$i][1], $AAR->[$i][2]);
-    $newname = ($listsize == 3) ? $seqname . "/" . $start . "-" . $end : $AAR->[$i][3];
+    if($listsize < 4) { die "ERROR fetch_subseqs, array too small (< 4 elements)"; }
+    ($newname, $start, $end, $seqname) = ($AAR->[$i][0], $AAR->[$i][1], $AAR->[$i][2], $AAR->[$i][3]);
     $seqstring = _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
     if(defined $outfile) { print OUT $seqstring; }
     else                 { $retstring .= $seqstring; }
@@ -435,7 +462,7 @@ sub fetch_subseqs {
   Function : Fetches a subsequence from a sequence named $seqname from a sequence file 
              and returns it as a FASTA string. As a special case, if $end == 0, the 
              sequence will be fetched all the way until the end. If $start > $end and
-             $end != 0, we'll reverse complement the subsequence before passing it back.
+             $end != 0, we will reverse complement the subsequence before passing it back.
              The name assigned to the subsequence is "$seqname/$start-$end".
   Args     : $seqname: name or accession of desired sequence
              $start  : first position of subseq
@@ -458,8 +485,24 @@ sub fetch_subseq_to_fasta_string {
   return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
 }
 
-=head2 dl_load_flags
+=head2 DESTROY
 
+  Title    : DESTROY
+  Incept   : EPN, Thu Mar 28 10:45:25 2013
+  Usage    : Bio::Easel::SqFile->DESTROY()
+  Function : Closes and frees a SqFile object
+  Args     : none
+  Returns  : void
+
+=cut
+
+sub DESTROY {
+  my ($self) = @_;
+
+  $self->close_sqfile();
+
+  return;
+}
 
 #############################
 # Internal helper subroutines
@@ -518,6 +561,8 @@ sub _check_ssi {
   }
   return;
 }
+
+=head2 dl_load_flags
 
 =head1 AUTHORS
 
