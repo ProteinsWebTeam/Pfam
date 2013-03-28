@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 BEGIN {
     use_ok( 'Bio::Easel::SqFile' ) || print "Bail out!\n";
@@ -50,7 +50,14 @@ is ($seqstring, ">tRNA5-sample33\nAUAACCACAGCGAAGUGGCAUCGCACUUGACUUCCGAUCAAGAGAC
 $seqstring = $tmpsqfile->fetch_consecutive_seqs(3, "", 60);
 is ($seqstring,">tRNA5-sample34\nGUCCACAAAGCGUAAUGGUCAGCGUAGCCAACCUCAAGUUGGCAGGUCUUUGUUCGAUUC\nACAGUGUGGAC\n>tRNA5-sample35\nUCAAGGGGCGUAACUUCGGUAGCGUACCUUUCUGGCAAGAGGGAGAUUUGGGGUUCAACU\nCCCUACUUGAU\n>tRNA5-sample36\nUUGCCGAUGCGCCAGUGGGGAGGCGGACGUUCUGUCACUACGUAGGUCCGUUGUUCAAUA\nCAGUGUCGGCAAC\n");
 
+# close file, and then fetch again, which should open it 
+# note we get first three seqs this time
+$tmpsqfile->close_sqfile();
+$seqstring = $tmpsqfile->fetch_consecutive_seqs(3, "", 60);
+is ($seqstring, ">tRNA5-sample31\nGCUGACUUAUCGGAGAAGGCCACUAGGGGAGCUUGCCAUGCUUUCUACUCGAGCGCGAUC\nCUCGAAGUCAGCG\n>tRNA5-sample32\nUCGGCCUUGGUGUAAUGGUGUAUCACGGGAGGUUGCCGUCCUCCUAGGACCGGUUGGAUC\nCCGGUAGGCUGAC\n>tRNA5-sample33\nAUAACCACAGCGAAGUGGCAUCGCACUUGACUUCCGAUCAAGAGACCGCGGUUCGAUUCC\nGCUUGGUGAUA\n");
+
 # clean up files we just created
 unlink ($tmpfile);
 unlink ($tmpfile . ".ssi");
+
 

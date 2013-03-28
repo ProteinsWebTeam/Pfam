@@ -629,9 +629,9 @@ sub alignment_coverage
 
   Title    : DESTROY
   Incept   : EPN, Mon Jan 28 10:09:55 2013
-  Usage    : $msaObject->destroy()
+  Usage    : $msaObject->DESTROY()
   Function : Frees an MSA object
-  Args     : name of output file 
+  Args     : none
   Returns  : void
 
 =cut
