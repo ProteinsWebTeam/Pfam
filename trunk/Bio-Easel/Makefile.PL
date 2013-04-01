@@ -17,6 +17,7 @@ $easel_src =~ s/Makefile.PL/src\/easel/;
 
 chdir $easel_src;
 
+system("autoconf");
 system("./configure");
 system("make");
 
