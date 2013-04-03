@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 2;
+use Test::More tests => 4;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -20,5 +20,16 @@ $msa->addGF("BM", "cmbuild CM SEED");
 my $outfile = "./t/data/test-msa-annot.out";
 
 $msa->write_msa($outfile);
-#unlink $outfile;
+unlink $outfile;
+
+# test has_rf
+my $has_rf = $msa->has_rf;
+is($has_rf, "0");
+
+my $alnfile2 = "./t/data/test.rf.sto";
+my $msa2 = Bio::Easel::MSA->new({
+   fileLocation => $alnfile2, 
+});
+$has_rf = $msa2->has_rf;
+is($has_rf, "1");
 
