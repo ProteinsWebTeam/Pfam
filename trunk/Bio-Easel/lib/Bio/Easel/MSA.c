@@ -116,6 +116,17 @@ I32 _c_alen (ESL_MSA *msa)
   return msa->alen;
 }
 
+/* Function:  _c_has_rf()
+ * Incept:    EPN, Tue Apr  2 19:43:06 2013
+ * Synopsis:  Returns TRUE if msa->rf is valid
+ * Returns:   Returns '1' if msa->rf is non-NULL, else returns 0
+ */
+int _c_has_rf (ESL_MSA *msa)
+{
+  if(msa->rf) return 1;
+  else        return 0;
+}
+
 /* Function:  _c_get_accession()
  * Incept:    EPN, Sat Feb  2 14:35:18 2013
  * Synopsis:  Returns msa->acc.

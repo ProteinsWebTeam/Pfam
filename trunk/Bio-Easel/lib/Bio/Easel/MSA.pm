@@ -227,6 +227,24 @@ sub alen {
   return _c_alen( $self->{esl_msa} );
 }
 
+=head2 has_rf
+
+  Title    : has_rf
+  Incept   : EPN, Tue Apr  2 19:44:21 2013
+  Usage    : $msaObject->has_rf()
+  Function : Does MSA have RF annotation?
+  Args     : none
+  Returns  : '1' if MSA has RF annotation, else returns 0
+
+=cut
+
+sub has_rf {
+  my ($self) = @_;
+
+  $self->_check_msa();
+  return _c_has_rf( $self->{esl_msa} );
+}
+
 =head2 get_sqname
 
   Title    : get_sqname
