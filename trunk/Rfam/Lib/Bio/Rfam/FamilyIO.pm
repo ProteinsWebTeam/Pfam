@@ -1009,15 +1009,31 @@ sub makeAndWriteScores {
 
   return;
 }
+    
+=head2 writeTbloutDependentFiles
+
+    Title    : writeTbloutDependentFiles
+    Incept   : EPN, Wed Apr  3 05:51:56 2013 [added pod doc]
+    Usage    : $io->writeTbloutDependentFiles($famObj, $rfdbh, $seedObj, $thr, $RPlotScriptPath)
+    Function : Uses TBLOUT and database to create 'outlist', 'species', 
+             : 'rin.dat' and 'rinc.dat' files.
+    Args     : $famObj:  Bio::Rfam::Family object
+             : $rfdbh:   database 
+             : $seedObj: Bio::Rfam::Family::MSA object
+             : $thr:     GA threshold
+             : $RPlotScriptPath: path for R plot script
+    Returns  : void
+    Dies     : upon file input/output error
+
+=cut
 
 # given a TBLOUT file, write four files:
 # 'outlist', 'species', 'rin.dat', 'rinc.dat'
 sub writeTbloutDependentFiles {
   my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath) = @_;
 
-  if (! defined $famObj->TBLOUT->fileLocation) {
-    croak "TBLOUT's fileLocation not set";
-  }
+  if (! defined $famObj->TBLOUT->fileLocation) { die "TBLOUT's fileLocation not set"; }
+
   my $tblI = $famObj->TBLOUT->fileLocation;
 
   # output files
@@ -1051,7 +1067,7 @@ sub writeTbloutDependentFiles {
   open($outFH, "> $outlistO") || die "FATAL: failed to open $outlistO)\n[$!]";
   open($spcFH, "> $speciesO") || die "FATAL: failed to open $speciesO\n[$!]\n";   
   open(RIN,"> $rinO") || die "FATAL: failed to open $rinO\n[$!]\n";   
-  printf RIN "bits\ttype\ttrueOrFalse\ttax\n";
+  printf RIN "bits\ttype\ttax\n";
   open(RINc,"> $rincO") || die "FATAL: failed to open rincO\n[$!]\n";   
   printf RINc "cnt\ttax\n";
     
@@ -1137,7 +1153,7 @@ sub writeTbloutDependentFiles {
       $outline = "#CURRENT THRESHOLD: $ga bits";
       push(@{$outAA[$nlines]}, ($outline));
       push(@{$spcAA[$nlines]}, ($outline));
-      printf RIN  "%0.2f\tTHRESH\t\.\t.\n", $ga;
+      printf RIN  "%0.2f\tTHRESH\t.\n", $ga;
       $printed_thresh=1;
       $nlines++;
     }
@@ -1168,7 +1184,7 @@ sub writeTbloutDependentFiles {
     $outline = "#CURRENT THRESHOLD: $ga bits";
     push(@{$outAA[$nlines]}, ($outline));
     push(@{$spcAA[$nlines]}, ($outline));
-    printf RIN "%0.2f\tTHRESH\t\.\t\.\n", $ga;
+    printf RIN "%0.2f\tTHRESH\t\.\n", $ga;
     $nlines++;
   }
   if ($nlines > 0) { 
@@ -1205,8 +1221,16 @@ sub writeTbloutDependentFiles {
   close(RIN);
   close(RINc);
 
-  # run R: 
-  system("R CMD BATCH --no-save $RPlotScriptPath") and warn "WARNING: system call for R $RPlotScriptPath failed. Check binary exists and is executable.\n[R CMD BATCH --no-save $RPlotScriptPath]\n";
+  # run R script: 
+  Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
+  # Remove the plot_outlist.Rout, rin.dat, and rinc.dat files, 
+  # These are really only relevant if the R command failed
+  # (returned non-zero status), in which case run_local_command() 
+  # would have die'd (and we'd never have gotten to this point).
+  if(-e "plot_outlist.Rout") { unlink "plot_outlist.Rout"; } 
+  if(-e "rin.dat")           { unlink "rin.dat"; }
+  if(-e "rinc.dat")          { unlink "rinc.dat"; }
+  return;
 }
 
 # write scores to SCORES file
