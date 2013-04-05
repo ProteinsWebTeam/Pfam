@@ -130,9 +130,15 @@ sub auto : Private {
   if ( defined $c->req->param('output') ) {
     if( $c->req->param('output') eq 'xml' ) {
       $c->stash->{output_xml} = 1;
+
+      # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
+      $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param('output') eq 'text' ) {
       $c->stash->{output_text} = 1;
+
+      # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
+      $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param('output') eq 'interpro' ) {
       $c->stash->{output_interpro} = 1;

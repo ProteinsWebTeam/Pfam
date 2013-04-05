@@ -126,6 +126,9 @@ sub begin : Private {
       # necessary content type will override whatever C::A::Serialize would
       # otherwise use
       $c->stash->{serialize_to_content_type} = 'text/xml';
+
+      # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
+      $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
       $c->stash->{output_pfamalyzer} = 1;

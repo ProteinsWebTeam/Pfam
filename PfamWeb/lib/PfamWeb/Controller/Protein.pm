@@ -57,6 +57,9 @@ sub begin : Private {
     if ( $c->req->param('output') eq 'xml' ) {
       $c->stash->{output_xml} = 1;
       $c->res->content_type('text/xml');
+
+      # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
+      $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param('output') eq 'pfamalyzer' ) {
       $c->stash->{output_pfamalyzer} = 1;

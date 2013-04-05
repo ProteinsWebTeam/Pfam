@@ -43,7 +43,7 @@ sub begin : Private {
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-$c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
 
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('entry') ||

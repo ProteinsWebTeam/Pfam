@@ -60,6 +60,9 @@ sub begin : Private {
     if ( $c->req->param('output') eq 'xml' ) {
       $c->stash->{output_xml} = 1;
       $c->res->content_type('text/xml');    
+
+      # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
+      $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
       $c->stash->{output_pfamalyzer} = 1;
@@ -153,33 +156,33 @@ Stub action forming the end of a chain that catches the "/clan" URL.
 sub clan_end : Chained( 'clan' )
                PathPart( '' )
                Args( 0 ) {
-	my ( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
-	if ( $c->stash->{output_xml} ) {
+  if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Clan::clan_end: emitting XML' )
       if $c->debug;
 
-		# if there was an error...
-		if ( $c->stash->{errorMsg} ) {
-			$c->log->debug( 'Clan::clan_end: there was an error: |' .
-											$c->stash->{errorMsg} . '|' ) if $c->debug;
-			$c->stash->{template} = 'rest/clan/error_xml.tt';
-			return;
-		}
-  	else {
-			$c->stash->{template} = 'rest/clan/entry_xml.tt';
-		}
-	}
-	elsif( $c->stash->{output_pfamalyzer} ) {
-		$c->log->debug( 'Clan::clan_end: emitting text for PfamAlyzer' ) 
+    # if there was an error...
+    if ( $c->stash->{errorMsg} ) {
+      $c->log->debug( 'Clan::clan_end: there was an error: |' .
+                      $c->stash->{errorMsg} . '|' ) if $c->debug;
+      $c->stash->{template} = 'rest/clan/error_xml.tt';
+      return;
+    }
+    else {
+      $c->stash->{template} = 'rest/clan/entry_xml.tt';
+    }
+  }
+  elsif( $c->stash->{output_pfamalyzer} ) {
+    $c->log->debug( 'Clan::clan_end: emitting text for PfamAlyzer' ) 
       if $c->debug;
 
-		$c->stash->{template} = 'rest/clan/entry_pfamalyzer.tt';
-	}
-	else {
-		$c->log->debug( 'Clan::clan_end: emitting HTML' ) 
+    $c->stash->{template} = 'rest/clan/entry_pfamalyzer.tt';
+  }
+  else {
+    $c->log->debug( 'Clan::clan_end: emitting HTML' ) 
       if $c->debug;
-	}
+  }
 }
 
 #-------------------------------------------------------------------------------
