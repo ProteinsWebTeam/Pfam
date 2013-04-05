@@ -1,7 +1,5 @@
 package Bio::Rfam::Infernal;
 
-#TODO: add pod documentation to all these functions
-
 # Wrappers for Infernal executables called by rfsearch and rfmake.
 
 use strict;
@@ -30,167 +28,179 @@ our $CMCALIBRATE_NCPU = 81;
 
     Title    : cmbuild_wrapper
     Incept   : EPN, Sun Feb  3 17:17:40 2013
-    Usage    : Bio::Rfam::Infernal::cmbuild_wrapper($cmbuildPath, $options, $cmPath, $alnPath)
+    Usage    : Bio::Rfam::Infernal::cmbuild_wrapper($config, $options, $cmPath, $seedPath, $outPath)
     Function : Runs Infernals cmbuild.
-    Args     : <cmbuildPath>: path to cmbuild
-             : <opts>:        option string for cmbuild (-F will be appended to this)
-             : <cmPath>:      path to output CM (often 'CM')
-             : <seedPath>:    path to input alignment (often 'SEED')
-    Returns  : void
+    Args     : $config:   Rfam config, with infernalPath
+             : $options:  option string for cmbuild (-F will be appended to this, if it is not already there)
+             : $cmPath:   path to output CM (often 'CM')
+             : $seedPath: path to input alignment (often 'SEED')
+             : $outPath:  path for output alignment (must be defined)
+    Returns  : Number of seconds elapsed for all (from cmbuild output)
     Dies     : if cmbuild command fails
 
 =cut
 
-sub cmbuild_wrapper {
-    my ($config, $options, $cmPath, $seedPath) = @_;
-    
-    if($options !~ m/\-F/) { $options = "-F " . $options; }
-    $options =~ s/\s+$//; # remove trailing whitespace
-    $options =~ s/^\s+//; # remove leading  whitespace
-    my $cmbuildPath = $config->infernalPath . "/cmbuild";
-    my $cmd = $cmbuildPath . ' ' . $options . ' ' . $cmPath . ' ' . $seedPath . '> /dev/null';
-    system($cmd);
-    if($? != 0) { die "$cmd failed"; }
-    if (! -e $cmPath) {  die "ERROR CM does not exist after apparently successful cmbuild [cmd: $cmd]"; }
-    return;
+sub cmbuild_wrapper { 
+  my ($config, $options, $cmPath, $seedPath, $outPath) = @_;
+
+  if($options !~ m/\-F/) { $options = "-F " . $options; }
+  $options =~ s/\s+/ /g; # change multi-spaces into single spaces
+  $options =~ s/\s+$//;  # remove trailing whitespace
+  $options =~ s/^\s+//;  # remove leading  whitespace
+  my $cmbuildPath = $config->infernalPath . "cmbuild";
+  my $cmd = $cmbuildPath . ' ' . $options . ' ' . $cmPath . ' ' . $seedPath . '>' . $outPath;
+  Bio::Rfam::Utils::run_local_command($cmd);
+
+  # get running time (and verify output, this call will die if no 'CPU time' lines exist in output
+  my $elapsed_secs;
+  Bio::Rfam::Infernal::process_cpu_times($outPath, "# CPU time:", undef, \$elapsed_secs, undef, undef);
+
+  if (! -e $cmPath) {  die "ERROR CM does not exist after apparently successful cmbuild [cmd: $cmd]"; }
+
+  return $elapsed_secs;
 }
 
 =head2 cmcalibrate_wrapper
 
-  Title    : cmcalibrate_wrapper
+  Title    : cmcalibrate_wrapper()
   Incept   : EPN, Sun Feb  3 19:58:11 2013
-  Usage    : Bio::Rfam::Infernal::cmcalibrate_wrapper($cmcalibratePath, $options, $cmPath)
-  Function : Runs Infernals cmcalibrate.
-  Args     : <cmcalibratedPath>: path to cmcalibrate
-           : <opts>:             option string for cmcalibrate
-           : <cmPath>:           path to CM (often 'CM')
-           : <ncpu>:             number of CPUs to use, usually undefined
-  Returns  : void
-  Dies     : if cmcalibrate command fails
+  Usage    : Bio::Rfam::Infernal::cmcalibrate_wrapper($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc)
+  Function : Submit MPI cmcalibrate job to cluster.
+           : Command used is location-dependent. We 
+           : first predict how long the calibration 
+           : will take, then we submit the command 
+           : function only submits command it does not
+           : wait for it to finish. The predicted time
+           : for calibration in minutes is returned.
+  Args     : $config:  Rfam config, with infernalPath
+           : $jobname: name for MPI job we submit
+           : $options: option string for cmcalibrate (SHOULD NOT CONTAIN '--mpi')
+           : $cmPath:  path to CM (often 'CM')
+           : $outPath: path to output file, must be defined
+           : $errPath: path to error output file, must be defined
+           : $nproc:   number of CPUs to use, if undefined $CMCALIBRATE_NCPU is used
+  Returns  : Predicted number of minutes the calibration should take.
+  Dies     : if any command fails, including prediction or cluster submission
 
 =cut
 
 sub cmcalibrate_wrapper {
-  my ($cmcalibratePath, $options, $cmPath, $ncpu) = @_;
+  my ($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc) = @_;
   
   # ensure $cmPath exists
-  if (! -e $cmPath) {
-    croak "CM file $cmPath does not exist";
-  }
+  if (! -e $cmPath) { die "CM file $cmPath does not exist"; }
   
   # set number of CPUs to use, currently hard-coded
-  if (! defined $ncpu) {
-    $ncpu = $CMCALIBRATE_NCPU;
-  }
+  if (! defined $nproc) { $nproc = $CMCALIBRATE_NCPU; }
   
-  # predict how long job will take
-  my $cmd = "cmcalibratePath --forecast --nforecast $ncpu $cmPath";
+  my $cmcalibratePath = $config->infernalPath . "cmcalibrate";
+
+  # run cmcalibrate --forecast to predict how long job will take
+  my $forecast_out = "cfc.$$.out";
+  Bio::Rfam::Utils::run_local_command("$cmcalibratePath --forecast --nforecast $nproc $cmPath > $forecast_out");
+
+  # parse cmcalibrate output
   my $predicted_seconds;
-  system($cmd);
-  if ($? != 0) {
-    croak "$cmd failed";
-  }
-  my $forecast_out = "cmcalibrate-forecast.out";
-  open(IN, $forecast_out) || croak "unable to open $forecast_out";
+  open(IN, $forecast_out) || die "unable to open $forecast_out";
   while (my $line = <IN>) { 
     if ($line !~ m/^\#/) { 
-      $line =~ s/^\S+\s+//;
+      $line =~ s/^\s+\S+\s+//;
       my ($h, $m, $s) = split(":", $line);
       $predicted_seconds = 3600. * $h + 60. * $m + $s;
       last;
     }
   }
-  if (! defined $predicted_seconds) {
-    croak "cmcalibrate prediction failed";
-  }
+  if (! defined $predicted_seconds) { die "cmcalibrate prediction failed"; }
   unlink $forecast_out;
   
   # submit MPI job
-  my $mpi_output = "cmcalibrate-mpi.out";
-  my $job_name   = "cmcal" . $$ . hostname;
-  system("module load openmpi-x86_64");
-  system("bsub -J $job_name -q mpi -I -n $ncpu -a openmpi mpirun.lsf -np $ncpu -mca btl tcp,self $cmcalibratePath --mpi $cmPath > $mpi_output");
-  
-  Bio::Rfam::Utils::wait_for_farm($job_name, 'cmcalibrate', $ncpu, (2 * $predicted_seconds) + 180); #wait an extra few mins then the job will be killed, assuming MPI+Farm badness.
-  return;
+  Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmcalibratePath --mpi $cmPath > $outPath", $jobname, $errPath, $nproc);
+
+  return ($predicted_seconds / 60);
 }
 
+=head2 cmsearch_wrapper
 
-################################
+  Title    : cmsearch_wrapper
+  Incept   : EPN, Mon Apr  1 10:20:32 2013
+  Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath)
+  Function : Submit cmsearch job (non-MPI) to cluster.
+           : All options should already be specified in $options,
+           : including '--cpu <n>' and '--tblout <tblout>'.
+  Args     : $config:       Rfam config, with infernalPath
+           : $jobname:      name for job we submit
+           : $options:      option string for cmsearch (must contain --tblout and --cpu)
+           : $cmPath:       path to CM (often 'CM')
+           : $seqfilePath:  path to sequence file to search
+           : $outPath:      file to save standard output to, if undefined send to /dev/null.
+           : $errPath:      file to save standard error output to
+  Returns  : void
+  Dies     : if cmsearch command fails
 
-# cmsearch_wrapper: takes a CM and sequence file and submits a cmsearch job to the cluster
+=cut
 
-sub cmsearch_wrapper {
-  my $config  = shift; # config, used for cmalign path, location
-  my $cmfile  = shift; # CM file
-  my $seqfile = shift; # sequence file with seqs to align
-  my $tblO    = shift; # tblout output file
-  my $cmsO    = shift; # cmsearch output file 
-  my $options = shift; # string of cmalign options
-  my $cpus    = shift; # number of CPUs to run cmsearch with (SHOULD ALREADY BE PART OF $options)
-  my $acc     = shift; # Rfam accession, for constructing job id
-  my $idx     = shift; # idx, for constructing job id
+sub cmsearch_wrapper { 
+  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath) = @_;
 
-  if($options !~ m/\-\-cpu $cpus/) { die "ERROR cmsearch_wrapper option string ($options) does not contain --cpu $cpus"; }
-
-  my $cmsearchPath = $config->infernalPath . "/cmsearch";
-
-  my $location = $config->location;
-  my $command = "";
-  my $jobname = "$acc.cms.$idx";
-  my $errfile = "$jobname.err";
-  my $search_command = "$cmsearchPath $options --tblout $tblO $cmfile $seqfile > $cmsO";
-  if($location eq "EBI") { 
-    # pick smallest 500 Mb multiple that satisfies required memory estimate
-    my $requiredMb = $cpus * 3 * 1000.0; # ~3 Gb per thread
-    my $ebi_cpus   = ($cpus == 0) ? 1 : $cpus;
-    $command = "bsub -q research-rh6 -n $ebi_cpus -J $jobname -o /dev/null -e $errfile -M $requiredMb -R \"rusage[mem=$requiredMb]\" \"$search_command\"";
+  my $cpus;
+  # contract check, --tblout and --cpu must be defined in $options
+  if($options !~ m/\-\-tblout/) { 
+    die "ERROR cmsearch_wrapper() option string ($options) does not contain --tblout"; 
   }
-  elsif($location eq "JFRC") { 
-    $command = "qsub -N $acc.cms.$idx -o /dev/null -e $acc.cms.$idx.err -b y -cwd -V -l excl=true \"$search_command\"";
+  if($options =~ /\-\-cpu (\d+)/) { 
+    $cpus = $1; 
   }
   else { 
-    die "ERROR unknown location $location in cmsearch_wrapper"; 
+    die "ERROR cmsearch_wrapper() option string ($options) does not contain --cpu $cpus"; 
   }
-  # submit job
-  printf STDERR "about to run command $command\n";
-  system("$command");
-  if ($?) { die "FAILED: $command"; }
-  print STDERR "search job $idx is now running";
 
+  my $ncpu = ($cpus == 0) ? 1 : $cpus; # --cpu 0 actually means 'use 1 CPU'
+  my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
+
+  # submit non-MPI job
+  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb);
+  
   return;
 }
 
-################################
+=head2 cmalign_wrapper
 
-#cmalign_wrapper: takes a CM and sequence file and runs cmalign, either locally or on the farm using MPI
+  Title    : cmalign_wrapper
+  Incept   : EPN, Mon Apr  1 10:20:32 2013
+  Usage    : Bio::Rfam::Infernal::cmalign_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath)
+  Function : Run cmalign job or submit it to the cluster if its big.
+           : All options should already be specified in $options,
+           : including '-o <f>', if desired, EXCEPT for --cpu
+           : bc the number of CPUs to use is autodetermined 
+           : based on predicted running time. If we submit an
+           : MPI job, we wait for it to finish before returning.
+           : (This is different from cmsearch_wrapper() and cmcalibrate_wrapper())
+  Args     : $config:         Rfam config, with infernalPath
+           : $jobname:        name for job we submit
+           : $options:        option string for cmsearch (must contain --tblout and --cpu)
+           : $cmPath:         path to CM (often 'CM')
+           : $seqfilePath:    path to sequence file to search
+           : $outPath:        file to save standard output to, if undefined send to /dev/null.
+           : $errPath:        file to save standard error output to
+           : $nseq:           number of sequences in $seqfilePath file
+           : $tot_len:        total number of residues in $seqfilePath
+           : $always_local:   TRUE to always run job locally
+           : $always_cluster: TRUE to always run job on the cluster with MPi
+  Returns  : void
+  Dies     : if cmalign command fails (if running locally)
+           : if job submit command fails or MPI job fails (if running with MPI on cluster)
 
-#Systems MPI help documentation:
-#http://scratchy.internal.sanger.ac.uk/wiki/index.php/How_to_run_MPI_jobs_on_the_farm
-
-# For MPI to work, you need to make sure Infernal has been compiled correctly, with --enable-mpi flag to configure.
-# See Infernal user's guide. It should be compiled correctly, or else rfsearch wouldn't work (MPI cmcalibrate is used there).
-# Also, ssh keys need to be correct. Remove all ^"bc-*" entries from your ~/.ssh/known_hosts file.
-# Optionally add "StrictHostKeyChecking no" to your ~/.ssh/config
+=cut
 
 sub cmalign_wrapper {
-  my $config      = shift; # config, used for cmalign path, location
-  my $cmfile      = shift; # CM file
-  my $seqfile     = shift; # sequence file with seqs to align
-  my $alnfile     = shift; # alignment output file 
-  my $outfile     = shift; # cmalign output file 
-  my $options        = shift; # string of cmalign options
-  my $nseq        = shift; # number of sequences in $seqfile
-  my $tot_len     = shift; # total number of nucleotides in $seqfile
-  my $always_farm = shift; # 1 to always use farm, 0 to only use farm if > 4 CPUs needed
-  my $never_farm  = shift; # 0 to never  use farm, 1 to only use farm if > 4 CPUs needed
-  my $dirty       = shift; # 1 to leave files, else remove them 
+  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $nseq, $tot_len, $always_local, $always_cluster);
 
-  # TODO remove unlinkA if ebi farm works without copying files
-  my @unlinkA = ();
-
-  my $cmalignPath = $config->infernalPath . "/cmalign";
-
+  # contract check, --cpu MUST NOT be specified and -o <f> MUST be specified
+  if($options =~ m/\-\-cpu/)  { die "ERROR cmalign_wrapper() option string ($options) contains --cpu"; }
+  if($options !~ /\-o\s+\S+/) { die "ERROR cmalign_wrapper() option string ($options) does not contain -o <f>"; }
+  
+  my $cmalignPath = $config->infernalPath . "cmalign";
+  
   ####################################################################
   # Predict running time and memory requirement of cmalign
   # and use them to determine number of CPUs for MPI cmcalibrate call.
@@ -198,38 +208,38 @@ sub cmalign_wrapper {
   # Get a rough estimate of running time on 1 CPU based on $tot_len (passed in)
   my $sec_per_Kb = 4;
   my $estimatedCpuSeconds = ($tot_len / 1000.) * $sec_per_Kb;
-
+  
   # Determine number of CPUs to use: target running time is 1 minute.
   my $targetSeconds = 60;
-  my $cpus = int($estimatedCpuSeconds / $targetSeconds) + 1;
-  my $farm_max_ncpu  = 100; 
-  my $farm_min_ncpu  = 4;
+  my $nproc = int($estimatedCpuSeconds / $targetSeconds) + 1;
+  my $cluster_max_ncpu   = 100; 
+  my $cluster_min_ncpu   = 4;
   my $local_max_ncpu = 4;
   my $local_min_ncpu = 2;
-
-  my $use_farm;
-  if    ($always_farm) { $use_farm = 1; }
-  elsif ($never_farm)  { $use_farm = 0; }
-  elsif ($cpus > 4)    { $use_farm = 1; }
-  else                 { $use_farm = 0; }
-	
-  if ($use_farm) { 
-    if ($cpus > $farm_max_ncpu)  { $cpus = $farm_max_ncpu; }
-    if ($cpus < $farm_min_ncpu)  { $cpus = $farm_min_ncpu; }
+  
+  my $use_cluster;
+  if    ($always_cluster) { $use_cluster = 1; }
+  elsif ($always_local)   { $use_cluster = 0; }
+  elsif ($nproc > 4)      { $use_cluster = 1; }
+  else                    { $use_cluster = 0; }
+  
+  if ($use_cluster) { 
+    if ($nproc > $cluster_max_ncpu)  { $nproc = $cluster_max_ncpu; }
+    if ($nproc < $cluster_min_ncpu)  { $nproc = $cluster_min_ncpu; }
   } else { 
-    if ($cpus > $local_max_ncpu) { $cpus = $local_max_ncpu; }
-    if ($cpus < $local_min_ncpu) { $cpus = $local_min_ncpu; }
+    if ($nproc > $local_max_ncpu) { $nproc = $local_max_ncpu; }
+    if ($nproc < $local_min_ncpu) { $nproc = $local_min_ncpu; }
   }
-
-  my $estimatedWallSeconds = $estimatedCpuSeconds / $cpus;
-
+  
+  my $estimatedWallSeconds = $estimatedCpuSeconds / $nproc;
+  
   # Memory requirement is easy, cmalign caps DP matrix size at 1024 Mb
-  my $requiredMb = $cpus * 1024.0;
-
+  my $requiredMb = $nproc * 1024.0;
+  
   my $hrs = int($estimatedWallSeconds/3600);
   my $min = int(($estimatedWallSeconds - ($hrs * 3600)) / 60);
   my $sec = int($estimatedWallSeconds - ($hrs * 3600 + $min * 60));
-    
+  
   my $rounded_requiredMb = 500;
   # pick smallest 500 Mb multiple that satisfies required memory estimate
   while ($rounded_requiredMb < $requiredMb) { 
@@ -237,51 +247,29 @@ sub cmalign_wrapper {
   }
   $requiredMb = $rounded_requiredMb;
   my $requiredKb = $requiredMb * 1000;
-
-  printf("Aligning %7d sequences %s on %d cpus; predicted time (h:m:s): %02d:%02d:%02d %s", 
+  
+  printf("Aligning %7d sequences %s on %d nproc; predicted time (h:m:s): %02d:%02d:%02d %s", 
          $nseq, 
-         ($use_farm) ? "on farm" : "locally",
-         $cpus, $hrs, $min, $sec+0.5, 
-         ($use_farm) ? "\n" : " ... ");
-
-  if (! $use_farm) { 
-    # run locally, location-independent
-    my $command = "$cmalignPath --cpu $cpus $options -o $alnfile $cmfile $seqfile > $outfile";
-    system("$command");
-    if ($?) {
-      die "FAILED: $command";
-    }
-    printf("done.\n");
-    open(OUT, $outfile);
-  } 
+         ($use_cluster) ? "on cluster" : "locally",
+         $nproc, $hrs, $min, $sec+0.5, 
+         ($use_cluster) ? "\n" : " ... ");
+  
+  if ($use_cluster) { 
+    # submit MPI job
+    my $jobname = "a.$$";
+    my $errPath = "a.$$.err";
+    Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmalignPath --mpi $options $cmPath $seqfilePath > $outPath", "a.$$", "a.$$.err", $nproc);
+    my @jobnameA = ($jobname);
+    my @outnameA = ($outPath);
+    Bio::Rfam::Utils::wait_for_cluster(\@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
+    unlink $errPath;
+  }
   else { 
-    # run on farm with MPI 
-    my $command = "qsub -N J$$ -o /dev/null -e $$.err -b y -cwd -V -pe impi $cpus \"mpirun -np $cpus $cmalignPath --mpi $options -o $alnfile $cmfile $seqfile > $outfile\"\n";
-    system("$command");
-    if ($?) {
-      die "FAILED: $command";
-    }
-    die "alignment job is now running on the farm.";
+    # don't use cluster, run job locally
+    Bio::Rfam::Utils::run_local_command("$cmalignPath --cpu $nproc $options $cmPath $seqfilePath > $outPath"); 
   }
 
-  my $alignTime=0;
-  while (<OUT>) {
-    if (/\#\s+CPU\s+time\:\s+(\S+)u\s+(\S+)s/) {
-      $alignTime=$1+$2;
-      last;
-    }
-  }
-  close(OUT);
-
-  # clean up
-  if (! $dirty) { 
-    foreach my $file (@unlinkA) { 
-      unlink $file;
-    }
-  }
-
-  $alignTime *= $cpus;
-  return $alignTime;
+  return;
 }
 
 =head2 cm_evalue2bitsc()
@@ -331,8 +319,8 @@ sub cm_evalue2bitsc {
   Usage    : stringize_infernal_cmdline_options($sdashAR, $ddashAR)
   Function : Returns option string including single dash and double dash
            : options in $sdashAR and $ddashAR.
-  Args     : Array ref to array of single dash options
-           : Array ref to array of double dash options
+  Args     : $sdashAR: ref to array of single dash options
+           : $ddashAR: ref to array of double dash options
   Returns  : string of options
   
 =cut
@@ -353,6 +341,64 @@ sub stringize_infernal_cmdline_options {
   $optstring =~ s/\s+$//;
   
   return $optstring;
+}
+
+=head2 process_cpu_times()
+
+  Title    : process_cpu_times()
+  Incept   : EPN, Tue Apr  2 14:37:02 2013
+  Usage    : process_cpu_times($file)
+  Function : Sums CPU and elapsed run times in an Infernal output file
+           : (or a file of concatenated Infernal output files)
+           : and returns them, along with max values.
+  Args     : $file: file with "# CPU time:" lines 
+           : $time_string:       string that indicates timing line
+           : $ret_max_cpu_secsR: RETURN: number of CPU seconds (summed)
+           : $ret_max_elp_secsR: RETURN: number of elapsed seconds (summed)
+           : $ret_tot_cpu_secsR: RETURN: number of CPU seconds (summed)
+           : $ret_tot_elp_secsR: RETURN: number of elapsed seconds (summed)
+  Returns  : Maximum number of CPU     seconds in $ret_max_cpu_secsR.
+           : Maximum number of elapsed seconds in $ret_max_elp_secsR.
+           : Total   number of CPU     seconds in $ret_tot_cpu_secsR.
+           : Total   number of elapsed seconds in $ret_tot_elp_secsR.
+  Dies     : if no "CPU time" lines were found
+=cut
+
+sub process_cpu_times { 
+  my ($file, $time_string, $ret_max_cpu_secsR, $ret_max_elp_secsR, $ret_tot_cpu_secsR, $ret_tot_elp_secsR) = @_;
+
+  my $max_cpu_secs = 0;
+  my $max_elp_secs = 0;
+  my $tot_cpu_secs = 0;
+  my $tot_elp_secs = 0;
+
+  my $found_cpu = 0;
+  my ($cpu_secs, $elp_secs);
+  open(IN, $file) || die "process_cpu_times() can't open $file"; 
+  while(<IN>) { 
+     ## CPU time: 382.47u 117.85s 00:08:20.32 Elapsed: 00:01:57.46
+     #Total runtime:298.97u 8.23s 00:05:07.20 Elapsed: 00:01:32.74
+    if(s/\Q$time_string//) { 
+      /\s*\S+u \S+s (\d\d)\:(\d\d)\:(\S+)\s+Elapsed\:\s+(\d\d)\:(\d\d)\:(\S+)/;
+      $cpu_secs = (3600 * $1) + (60 * $2) + $3;
+      $elp_secs = (3600 * $4) + (60 * $5) + $6;
+      if($cpu_secs > $max_cpu_secs) { $max_cpu_secs = $cpu_secs; }
+      if($elp_secs > $max_elp_secs) { $max_elp_secs = $elp_secs; }
+      $tot_cpu_secs += $cpu_secs;
+      $tot_elp_secs += $elp_secs;
+      $found_cpu = 1;
+    }
+  }
+  close(IN);
+
+  if(defined $ret_max_cpu_secsR) { $$ret_max_cpu_secsR = $max_cpu_secs; }
+  if(defined $ret_max_elp_secsR) { $$ret_max_elp_secsR = $max_elp_secs; }
+  if(defined $ret_tot_cpu_secsR) { $$ret_tot_cpu_secsR = $tot_cpu_secs; }
+  if(defined $ret_tot_elp_secsR) { $$ret_tot_elp_secsR = $tot_elp_secs; }
+
+  if(! $found_cpu) { die "process_cpu_times() no time lines were found in $file"; }
+
+  return;
 }
 
 ######################################################################
