@@ -266,7 +266,6 @@ char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
   return _c_fetch_seq_to_fasta_string(sqfp, NULL, textw);
 }
 
-
 /* Function:  _c_fetch_subseq_to_fasta_string()
  * Incept:    EPN, Sat Mar 23 05:34:15 2013
  * Synopsis:  Fetch a subsequence.
@@ -282,7 +281,6 @@ char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
  *            to <given_start>, we'll fetch the top strand
  *            subsequence, then revcomp it, then return it.
  *
- *            <given_end> are 
  * Args:      sqfp        - open ESL_SQFILE to fetch seq from
  *            key         - name or accession of sequence to fetch
  *            newname     - name to assign to fetched subsequence
@@ -330,3 +328,77 @@ char *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newnam
   return seqstring;
 }
 
+/* Function:  _c_fetch_seq_name_and_length_given_ssi_number()
+ * Incept:    EPN, Mon Apr  8 09:34:01 2013
+ * Purpose:   Fetch the primary key of a sequence and the sequence length, 
+ *            given it's rank in the SSIindex for the file. This will not 
+ *            return the name and length of the <nkey>'th sequence in the 
+ *            file, but rather the <nkey>'th sequence as it's ordered in 
+ *            the SSI file. 
+ *
+ *            The return string is a concatenation of the primary key and
+ *            the sequence length, separated by a single space (' '). This
+ *            is done so we don't have to return two separate values.
+ *            
+ * Args:      sqfp        - open ESL_SQFILE to fetch seq from
+ *            nkey        - index of the key to return
+ *
+ * Returns:   A pointer to a string that is primary key of the <nkey>'th key
+ *            followed by a single ' ', followed by the length of the sequence.
+ *            Note that the key cannot contain any spaces, so the only ' '
+ *            in the returned string will be the divider between the key
+ *            and the sequence length.
+ */
+
+//char *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int64_t nkey) { 
+char *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) { 
+  int     status;             /* Easel status code */
+  char   *key_and_L = NULL;   /* key and L string to return */
+  int64_t L;                  /* length of sequence */
+  int64_t Ldup;               /* copy of L we can modify */
+  int     Lwidth = 0;         /* number of characters we need for a string conversion of L */
+  char   *Lstr = NULL;        /* string of just L */
+
+  /* make sure SSI is valid */
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+
+  /* fetch the seq name */
+  status = esl_ssi_FindNumber(sqfp->data.ascii.ssi, nkey, NULL, NULL, NULL, &L, &key_and_L);
+  if     (status == eslEMEM)      croak("out of memory");
+  else if(status == eslENOTFOUND) croak("there is no sequence %" PRId64 "\n", nkey);
+  else if(status == eslEFORMAT)   croak("error fetching sequence name %" PRId64 ", something wrong with SSI index?\n", nkey);
+  else if(status != eslOK)        croak("error fetching sequence name %" PRId64 "\n", nkey);
+
+  Ldup = L;
+  Lwidth = 1;
+  while(Ldup >= 10) { Ldup/=10; Lwidth++; }
+  ESL_ALLOC(Lstr, sizeof(char) * (Lwidth + 1));
+  snprintf(Lstr, Lwidth+1, "%" PRId64 "", L);
+  
+  /* add " " . L to end of key_and_L */
+  if((status = esl_strcat(&key_and_L, -1, " ", 1))        != eslOK) croak("out of memory");
+  if((status = esl_strcat(&key_and_L, -1, Lstr,  Lwidth)) != eslOK) croak("out of memory");
+  free(Lstr);
+
+  return key_and_L;
+
+ ERROR: 
+  croak("out of memory");
+  return NULL; /* NEVER REACHED */
+}
+
+/* Function:  _c_nseq_ssi
+ * Incept:    EPN, Mon Apr  8 13:05:39 2013
+ * Purpose:   Return the number of sequences in a sequence file.
+ *            
+ * Args:      sqfp - open ESL_SQFILE
+ *
+ * Returns:   Number of sequences in the file.
+ */
+
+long _c_nseq_ssi(ESL_SQFILE *sqfp) { 
+  /* make sure SSI is valid */
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+
+  return sqfp->data.ascii.ssi->nprimary;
+}

@@ -475,14 +475,128 @@ sub fetch_subseqs {
 
 sub fetch_subseq_to_fasta_string {
   my ( $self, $seqname, $start, $end, $textw ) = @_;
+  
+  $self->_check_sqfile();
+  $self->_check_ssi();
+  
+  if(! defined $textw) { $textw = $FASTATEXTW; }
+  
+  my $newname = $seqname . "/" . $start . "-" . $end;
+  return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+}
+
+=head2 fetch_seq_name_and_length_given_ssi_number
+
+  Title    : fetch_seq_name_and_length_given_ssi_number()
+  Incept   : EPN, Mon Apr  8 09:28:40 2013
+  Usage    : Bio::Easel::SqFile->fetch_seq_name_and_length_given_ssi_number($num)
+  Function : Fetches the name and length of sequence number <$num> in the SSI 
+           : index for an open sequence file. This will be the <$num>th sequence name
+           : in an alphabetically sorted list of names, NOT the <$num>th sequence as it
+           : appears in the sequence file.
+           : SSI positions range from 0..nkey-1
+  Args     : $num: index in SSI file
+  Returns  : List of values:
+           : 1st value: name of sequence <$num> in index
+           : 2nd value  length of sequence <$num> in index
+  Dies     : upon error in _c_fetch_seq_name_and_length_given_ssi_number() with C croak() call
+
+=cut
+  
+sub fetch_seq_name_and_length_given_ssi_number {
+  my ( $self, $num ) = @_;
 
   $self->_check_sqfile();
   $self->_check_ssi();
+  
+  my $seqname_and_L = _c_fetch_seq_name_and_length_given_ssi_number($self->{esl_sqfile}, $num);
+  # remove " " . $L;
+  my ($seqname, $L);
+  if($seqname_and_L =~ /^(\S+) (\d+)$/) { 
+    ($seqname, $L) = ($1, $2);
+    # printf STDERR ("seqname: $seqname L: $L\n");
+  }
+  else { 
+    die "ERROR _c_fetch_seq_name_and_length_given_ssi_number() returned unexpected string: $seqname_and_L"; 
+  }
 
-  if(! defined $textw) { $textw = $FASTATEXTW; }
+  return ($seqname, $L);
+}
 
-  my $newname = $seqname . "/" . $start . "-" . $end;
-  return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+=head2 fetch_seq_name_given_ssi_number
+
+  Title    : fetch_seq_name_given_ssi_number()
+  Incept   : EPN, Mon Apr  8 09:28:40 2013
+  Usage    : Bio::Easel::SqFile->fetch_seq_name_given_ssi_number($num)
+  Function : Fetches the primary key of sequence number <$num> in the SSI 
+           : index for an open sequence file. This will be the <$num>th sequence name
+           : in an alphabetically sorted list of names, NOT the <$num>th sequence as it
+           : appears in the sequence file.
+  Args     : $num: index in SSI file
+  Returns  : string, the primary key (seq name) of sequence <$num> in the SSI index
+  Dies     : upon error in _c_fetch_seq_name_and_length_given_ssi_number() with C croak() call
+
+=cut
+    
+sub fetch_seq_name_given_ssi_number {
+  my ( $self, $num ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+  
+  my $seqname; 
+  ($seqname, undef) = $self->fetch_seq_name_and_length_given_ssi_number($num);
+
+  return $seqname;
+}
+
+=head2 fetch_seq_length_given_ssi_number
+
+  Title    : fetch_seq_length_given_ssi_number()
+  Incept   : EPN, Mon Apr  8 13:34:13 2013
+  Usage    : Bio::Easel::SqFile->fetch_seq_length_given_ssi_number($num)
+  Function : Fetches the primary key of sequence number <$num> in the SSI 
+           : index for an open sequence file. This will be the <$num>th sequence name
+           : in an alphabetically sorted list of names, NOT the <$num>th sequence as it
+           : appears in the sequence file.
+  Args     : $num: index in SSI file
+  Returns  : string, the primary key (seq name) of sequence <$num> in the SSI index
+  Dies     : upon error in _c_fetch_seq_name_and_length_given_ssi_number() with C croak() call
+
+=cut
+    
+sub fetch_seq_length_given_ssi_number {
+  my ( $self, $num ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+  
+  my $L;
+  (undef, $L) = $self->fetch_seq_name_and_length_given_ssi_number($num);
+
+  return $L;
+}
+
+=head2 nseq_ssi
+
+  Title    : nseq_ssi
+  Incept   : EPN, Mon Apr  8 13:03:37 2013
+  Usage    : Bio::Easel::SqFile->nseq_ssi()
+  Function : Return the number of sequences in a sequence
+           : file using its SSI index.
+  Args     : NONE
+  Returns  : Number of sequences in the file.
+  Dies     : upon error in _c_nseq_ssi with C croak() call
+
+=cut
+    
+sub nseq_ssi { 
+  my ( $self ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+  
+  return _c_nseq_ssi($self->{esl_sqfile});
 }
 
 =head2 DESTROY
