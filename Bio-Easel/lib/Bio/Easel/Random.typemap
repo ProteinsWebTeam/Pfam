@@ -1,0 +1,14 @@
+TYPEMAP
+ESL_RANDOMNESS* ESL_RANDOMNESS
+
+INPUT
+ESL_RANDOMNESS
+       $var = c_obj($arg,ESL_RANDOMNESS);
+
+OUTPUT
+ESL_RANDOMNESS
+       $arg = perl_obj($var,"ESL_RANDOMNESS");
+
+
+
+
