@@ -149,12 +149,12 @@ void _c_create_ssi_index (ESL_SQFILE *sqfp)
  *            key   - key used to fetch sequence by caller, useful only for informative error output
  * Returns:   A pointer to a string that is the sequence in FASTA format.
  */
-char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key)
+char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key, int64_t *ret_n)
 {    
   char   *seqstring = NULL;      /* the sequence string */
-  int     n   = 0;               /* position in string */
-  int     n2  = 0;               /* position in string */
-  int     pos = 0;               /* position in sq->seq */
+  int64_t n   = 0;               /* position in string */
+  int64_t n2  = 0;               /* position in string */
+  int64_t pos = 0;               /* position in sq->seq */
 
   /* '>' character */
   n = 0;
@@ -202,6 +202,8 @@ char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key)
     }
   }
 
+  if(ret_n != NULL) *ret_n = n;
+  
   return seqstring;
 }
 
@@ -214,17 +216,19 @@ char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key)
  *            textw - width for each sequence of FASTA record, -1 for unlimited.
  * Returns:   A pointer to a string that is the sequence in FASTA format.
  */
-char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
+SV *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
 {
 
   int     status;                /* Easel status code */
   ESL_SQ *sq = esl_sq_Create();  /* the sequence */
   char   *seqstring = NULL;      /* the sequence string */
+  SV     *seqstringSV;           /* SV version of seqstring */
+  int64_t n;                     /* length of seqstring */
 
   /* make sure textw makes sense */
   if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
   /* make sure we're not in digital mode, and SSI is valid */
-  if (sq->dsq)                      croak("sequence file is unexpectedly digitized\n");
+  if (sq->dsq)                 croak("sequence file is unexpectedly digitized\n");
 
   /* from esl-sfetch.c's onefetch() */
   if(key != NULL) { 
@@ -243,10 +247,13 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
   if (key != NULL && strcmp(key, sq->name) != 0 && strcmp(key, sq->acc) != 0) 
     croak("whoa, internal error; found the wrong sequence %s, not %s\n", sq->name, key);
 
-  seqstring = _c_sq_to_seqstring(sq, textw, key);
+  seqstring = _c_sq_to_seqstring(sq, textw, key, &n);
   esl_sq_Destroy(sq);
 
-  return seqstring;
+  seqstringSV = newSVpv(seqstring, n);
+  free(seqstring);
+
+  return seqstringSV;
 }
 
 /* Function:  _c_fetch_next_seq_to_fasta_string()
@@ -261,7 +268,7 @@ char *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
  * Returns:   A pointer to a string that is the sequence in FASTA format.
  */
 
-char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
+SV *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
 {
   return _c_fetch_seq_to_fasta_string(sqfp, NULL, textw);
 }
@@ -291,13 +298,15 @@ char *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
  * Returns:   A pointer to a string that is the subsequence in FASTA format.
  */
 
-char *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw)
+SV *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw)
 {
   int     status;                /* Easel status code */
   int     start, end;            /* start/end for esl_sqio_FetchSubseq() */
   int     do_revcomp;            /* are we revcomp'ing? */
   ESL_SQ *sq = esl_sq_Create();  /* the sequence */
   char   *seqstring = NULL;      /* the sequence string */
+  SV     *seqstringSV;           /* SV version of seqstring */
+  int64_t n;                     /* length of seqstring */
 
   /* make sure textw makes sense */
   if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
@@ -322,10 +331,13 @@ char *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newnam
     if (esl_sq_ReverseComplement(sq) != eslOK) croak("Failed to reverse complement %s; is it a protein?\n", sq->name);
   }
 
-  seqstring = _c_sq_to_seqstring(sq, textw, key);
+  seqstring = _c_sq_to_seqstring(sq, textw, key, &n);
   esl_sq_Destroy(sq);
 
-  return seqstring;
+  seqstringSV = newSVpv(seqstring, n);
+  free(seqstring);
+
+  return seqstringSV;
 }
 
 /* Function:  _c_fetch_seq_name_and_length_given_ssi_number()
@@ -350,10 +362,10 @@ char *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newnam
  *            and the sequence length.
  */
 
-//char *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int64_t nkey) { 
-char *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) { 
+SV *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) { 
   int     status;             /* Easel status code */
-  char   *key_and_L = NULL;   /* key and L string to return */
+  char   *key_and_L   = NULL; /* key and L string to return */
+  SV     *key_and_LSV;        /* SV version of key and L string to return */
   int64_t L;                  /* length of sequence */
   int64_t Ldup;               /* copy of L we can modify */
   int     Lwidth = 0;         /* number of characters we need for a string conversion of L */
@@ -380,7 +392,10 @@ char *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) 
   if((status = esl_strcat(&key_and_L, -1, Lstr,  Lwidth)) != eslOK) croak("out of memory");
   free(Lstr);
 
-  return key_and_L;
+  key_and_LSV = newSVpv(key_and_L, strlen(key_and_L));
+  free(key_and_L);
+
+  return key_and_LSV;
 
  ERROR: 
   croak("out of memory");
