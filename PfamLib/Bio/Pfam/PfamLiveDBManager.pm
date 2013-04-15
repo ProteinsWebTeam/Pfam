@@ -89,8 +89,7 @@ sub updateClanMembership {
   my ($result);
   carp(
     "Updating clan membership with auto_clan: $autoClan, auto_pfamA: $autoPfamA"
-    )
-    if ( $self->{'debug'} );
+  ) if ( $self->{'debug'} );
   if ( $autoClan && $autoPfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find_or_create(
       {
@@ -169,11 +168,10 @@ sub updateClan {
       clan_description => $clanObj->DESC->DE,
       clan_author      => $clanObj->DESC->AU,
       clan_comment => defined( $clanObj->DESC->CC ) ? $clanObj->DESC->CC : '',
-      updated     =>  DateTime::Format::MySQL->format_datetime(DateTime->now)
+      updated      => DateTime::Format::MySQL->format_datetime( DateTime->now )
     }
   );
 
-  
   #Add the auto number to the clan Obj.
   $clanObj->rdb( { auto => $clan->auto_clan } );
 }
@@ -253,7 +251,7 @@ sub updatePfamA {
   #Now update the numbers in the SEED and FULL
   $pfamA->num_seed( $famObj->SEED->no_sequences );
   $pfamA->num_full( $famObj->scores->numRegions );
-  $pfamA->updated( DateTime::Format::MySQL->format_datetime(DateTime->now));
+  $pfamA->updated( DateTime::Format::MySQL->format_datetime( DateTime->now ) );
 
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
@@ -261,7 +259,6 @@ sub updatePfamA {
   if ( $famObj->DESC->CL ) {
     $self->resetClanCompeteFlag( $famObj->DESC->CL );
   }
- 
 
 }
 
@@ -401,7 +398,7 @@ sub deleteClan {
 }
 
 sub updatePfamARegSeed {
-  my ( $self, $famObj, $mongo ) = @_;
+  my ( $self, $famObj, $redis) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
@@ -426,32 +423,31 @@ sub updatePfamARegSeed {
     }
   }
 
- #Delete all the seed regions
- $self->getSchema->resultset('PfamaRegSeed')->search( { auto_pfama => $auto } )->delete;
+  #Delete all the seed regions
+  $self->getSchema->resultset('PfamaRegSeed')
+    ->search( { auto_pfama => $auto } )->delete;
 
   #Determing all surrogate keys for the sequences in the SEED alignment
-  #which are stored in a mongodb.
+  #which are stored in a nosql database - Redis.
   my %seqacc2auto;
 
   #Get all the sequences that we need to work on
   my @seqs;
   foreach my $seq ( $famObj->SEED->each_seq ) {
-    push( @seqs, $seq->id . "." . $seq->seq_version );
-  }
-
-  #Perform lookups in batches of 1000
-  while (@seqs) {
-    my @seqs1000 = splice( @seqs, 0, 1000 );
-    my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
-    my @data = ();
-    if ($cursor) {
-      @data = $cursor->all;
+    my $value;
+    my $key = $seq->id . "." . $seq->seq_version;
+    eval{
+      $value = $redis->get($key); 
+    };
+    if($@){
+      confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
     }
-
-    #Store them in our hash for later
-    foreach my $d (@data) {
-      $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
+    
+    if(!$value){
+      confess("Failed to get auto mapping for sequence: $key\n");
     }
+    
+    $seqacc2auto{ $key } = $value;
   }
 
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
@@ -459,7 +455,6 @@ sub updatePfamARegSeed {
   foreach my $seq ( $famObj->SEED->each_seq ) {
     my $sauto;
     if ( $seqacc2auto{ $seq->id . "." . $seq->seq_version } ) {
-
       #If we have not mapped them, then something has gone wrong!!!
       $sauto = $seqacc2auto{ $seq->id . "." . $seq->seq_version };
     }
@@ -470,18 +465,23 @@ sub updatePfamARegSeed {
           . $seq->seq_version
           . "\n" );
     }
-    push(@rows, { auto_pfamseq => $sauto,
-                  auto_pfama   => $auto,
-                  seq_start    => $seq->start,
-                  seq_end      => $seq->end});
+    push(
+      @rows,
+      {
+        auto_pfamseq => $sauto,
+        auto_pfama   => $auto,
+        seq_start    => $seq->start,
+        seq_end      => $seq->end
+      }
+    );
   }
-  
-  $self->getSchema->resultset('PfamaRegSeed')->populate(\@rows);
+
+  $self->getSchema->resultset('PfamaRegSeed')->populate( \@rows );
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
 sub updatePfamARegFull {
-  my ( $self, $famObj, $mongo ) = @_;
+  my ( $self, $famObj, $redis ) = @_;
 
 #-------------------------------------------------------------------------------
 #Check we have the correct object
@@ -515,24 +515,21 @@ sub updatePfamARegFull {
   my %seqacc2auto;
   my @seqs;
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
-    push( @seqs, $seq->name );
-  }
-
-  #Perform lookups in batches of 1000
-  while (@seqs) {
-    my @seqs1000 = splice( @seqs, 0, 1000 );
-    my $cursor = $mongo->find( { '_id' => { '$in' => \@seqs1000 } } );
-    my @data = ();
-    if ($cursor) {
-      @data = $cursor->all;
+    my $key = $seq->name;
+    my $value;
+    eval{
+      $value = $redis->get($key); 
+    };
+    if($@){
+      confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
     }
-
-    #Store them in our hash for later
-    foreach my $d (@data) {
-      $seqacc2auto{ $d->{'_id'} } = $d->{'auto'};
+    
+    if(!$value){
+      confess("Failed to get auto mapping for sequence: $key\n");
     }
+    
+    $seqacc2auto{ $key } = $value;
   }
-
 #-------------------------------------------------------------------------------
 #Now delete all regions in the two tables
 
@@ -541,10 +538,10 @@ sub updatePfamARegFull {
     ->delete;
 
   $self->getSchema->resultset('PfamaRegFullSignificant')
-          ->search( { auto_pfama => $auto } )->delete;
+    ->search( { auto_pfama => $auto } )->delete;
 
   $self->getSchema->resultset('PfamaRegFullInsignificant')
-        ->search( { auto_pfama => $auto } )->delete;
+    ->search( { auto_pfama => $auto } )->delete;
 
 #-------------------------------------------------------------------------------
 
@@ -561,105 +558,120 @@ sub updatePfamARegFull {
     }
   }
 
-  
-  $self->getSchema->resultset("PfamaRegFullSignificant")->search({ auto_pfamA => $auto})->delete;
-  $self->getSchema->resultset("PfamaRegFullInsignificant")->search({ auto_pfamA => $auto})->delete;
+  $self->getSchema->resultset("PfamaRegFullSignificant")
+    ->search( { auto_pfamA => $auto } )->delete;
+  $self->getSchema->resultset("PfamaRegFullInsignificant")
+    ->search( { auto_pfamA => $auto } )->delete;
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
 
 #-------------------------------------------------------------------------------
 #All of the quires are set up now prepare the data
-  
-   my(@significant, @insignificant);
-   
-   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq }) {
-          next unless ($seq);
 
-          #Get the auto number for this sequence
-          my $sauto;
-          if ( $seqacc2auto{ $seq->name } ) {
-            $sauto = $seqacc2auto{ $seq->name };
-          }
-          else {
-            confess( "Failed to find entry in pfamseq for "
-                . $seq->id . "."
-                . $seq->seq_version
-                . "\n" );
-          }
+  my ( @significant, @insignificant );
 
-   
-          #
-          if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
-            foreach my $u ( @{ $seq->hmmUnits } ) {
-              #Is it significant dom?
-              if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
-                  push(@significant, { auto_pfama => $auto, 
-                                       auto_pfamseq => $sauto, 
-                                       seq_start => $u->envFrom, 
-                                       seq_end => $u->envTo, 
-                                       ali_start =>$u->seqFrom,, 
-                                       ali_end => $u->seqTo , 
-                                       model_start => $u->hmmFrom,
-                                       model_end => $u->hmmTo,
-                                       domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evalue,
-                                       sequence_bits_score => $seq->bits,
-                                       sequence_evalue_score => $seq->evalue,
-                                       in_full => $inFullHash->{ $u->name . "/"
-                    . $u->envFrom . "-"
-                      . $u->envTo }
-                  ? 1
-                  : 0 }
-                                        ); 
-              }
-              else {
-                push(@insignificant, 
-                                     { auto_pfama => $auto, 
-                                       auto_pfamseq => $sauto, 
-                                       seq_start => $u->envFrom, 
-                                       seq_end => $u->envTo, 
-                                       model_start => $u->hmmFrom,
-                                       model_end => $u->hmmTo,
-                                       domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evalue,
-                                       sequence_bits_score => $seq->bits,
-                                       sequence_evalue_score => $seq->evalue });
-                   }
+  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
+    next unless ($seq);
+
+    #Get the auto number for this sequence
+    my $sauto;
+    if ( $seqacc2auto{ $seq->name } ) {
+      $sauto = $seqacc2auto{ $seq->name };
+    }
+    else {
+      confess( "Failed to find entry in pfamseq for "
+          . $seq->id . "."
+          . $seq->seq_version
+          . "\n" );
+    }
+
+    #
+    if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
+      foreach my $u ( @{ $seq->hmmUnits } ) {
+
+        #Is it significant dom?
+        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+          push(
+            @significant,
+            {
+              auto_pfama   => $auto,
+              auto_pfamseq => $sauto,
+              seq_start    => $u->envFrom,
+              seq_end      => $u->envTo,
+              ali_start    => $u->seqFrom,
+              ali_end               => $u->seqTo,
+              model_start           => $u->hmmFrom,
+              model_end             => $u->hmmTo,
+              domain_bits_score     => $u->bits,
+              domain_evalue_score   => $u->evalue,
+              sequence_bits_score   => $seq->bits,
+              sequence_evalue_score => $seq->evalue,
+              in_full =>
+                $inFullHash->{ $u->name . "/" . $u->envFrom . "-" . $u->envTo }
+              ? 1
+              : 0
             }
-          }
-          else {
-
-            #Sequence is insignifcant....Therefore all the domains have to be.
-            foreach my $u ( @{ $seq->hmmUnits } ) {
-                         push(@insignificant, 
-                                     { auto_pfama => $auto, 
-                                       auto_pfamseq => $sauto, 
-                                       seq_start => $u->envFrom, 
-                                       seq_end => $u->envTo, 
-                                       model_start => $u->hmmFrom,
-                                       model_end => $u->hmmTo,
-                                       domain_bits_score => $u->bits,
-                                       domain_evalue_score => $u->evalue,
-                                       sequence_bits_score => $seq->bits,
-                                       sequence_evalue_score => $seq->evalue });
-
+          );
+        }
+        else {
+          push(
+            @insignificant,
+            {
+              auto_pfama            => $auto,
+              auto_pfamseq          => $sauto,
+              seq_start             => $u->envFrom,
+              seq_end               => $u->envTo,
+              model_start           => $u->hmmFrom,
+              model_end             => $u->hmmTo,
+              domain_bits_score     => $u->bits,
+              domain_evalue_score   => $u->evalue,
+              sequence_bits_score   => $seq->bits,
+              sequence_evalue_score => $seq->evalue
             }
+          );
+        }
+      }
+    }
+    else {
+
+      #Sequence is insignifcant....Therefore all the domains have to be.
+      foreach my $u ( @{ $seq->hmmUnits } ) {
+        push(
+          @insignificant,
+          {
+            auto_pfama            => $auto,
+            auto_pfamseq          => $sauto,
+            seq_start             => $u->envFrom,
+            seq_end               => $u->envTo,
+            model_start           => $u->hmmFrom,
+            model_end             => $u->hmmTo,
+            domain_bits_score     => $u->bits,
+            domain_evalue_score   => $u->evalue,
+            sequence_bits_score   => $seq->bits,
+            sequence_evalue_score => $seq->evalue
           }
-          if(scalar(@insignificant) > 1000){
-            $self->getSchema->resultset("PfamaRegFullInsignificant")->populate(\@insignificant);
-            @insignificant = ();
-          }
-          if(scalar(@significant) > 1000){
-            $self->getSchema->resultset("PfamaRegFullSignificant")->populate(\@significant);    
-            @significant = ();
-          }
-        
+        );
+
+      }
+    }
+    if ( scalar(@insignificant) > 1000 ) {
+      $self->getSchema->resultset("PfamaRegFullInsignificant")
+        ->populate( \@insignificant );
+      @insignificant = ();
+    }
+    if ( scalar(@significant) > 1000 ) {
+      $self->getSchema->resultset("PfamaRegFullSignificant")
+        ->populate( \@significant );
+      @significant = ();
+    }
+
   }
-  $self->getSchema->resultset("PfamaRegFullInsignificant")->populate(\@insignificant);
-  $self->getSchema->resultset("PfamaRegFullSignificant")->populate(\@significant);
+  $self->getSchema->resultset("PfamaRegFullInsignificant")
+    ->populate( \@insignificant );
+  $self->getSchema->resultset("PfamaRegFullSignificant")
+    ->populate( \@significant );
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
-  
-}
 
+}
 
 sub updatePfamAWikipedia {
 
@@ -754,28 +766,29 @@ sub updatePfamALitRefs {
 #Then added the information pfamA_literature_reference table.
   $self->getSchema->resultset('PfamaLiteratureReferences')
     ->search( { auto_pfamA => $auto } )->delete;
-
-  foreach my $ref ( @{ $famObj->DESC->REFS } ) {
-    my $dbRef =
-      $self->getSchema->resultset('LiteratureReferences')->find_or_create(
-      {
-        pmid    => $ref->{RM},
-        title   => $ref->{RT} ? $ref->{RT} : '',
-        author  => $ref->{RA} ? $ref->{RA} : '',
-        journal => $ref->{RL} ? $ref->{RL} : ''
+  if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
+    foreach my $ref ( @{ $famObj->DESC->REFS } ) {
+      my $dbRef =
+        $self->getSchema->resultset('LiteratureReferences')->find_or_create(
+        {
+          pmid    => $ref->{RM},
+          title   => $ref->{RT} ? $ref->{RT} : '',
+          author  => $ref->{RA} ? $ref->{RA} : '',
+          journal => $ref->{RL} ? $ref->{RL} : ''
+        }
+        );
+      unless ( $dbRef->auto_lit ) {
+        confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
       }
+      $self->getSchema->resultset('PfamaLiteratureReferences')->create(
+        {
+          auto_pfama  => $auto,
+          auto_lit    => $dbRef,
+          comment     => $ref->{RC} ? $ref->{RC} : '',
+          order_added => $ref->{RN}
+        }
       );
-    unless ( $dbRef->auto_lit ) {
-      confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
     }
-    $self->getSchema->resultset('PfamaLiteratureReferences')->create(
-      {
-        auto_pfama  => $auto,
-        auto_lit    => $dbRef,
-        comment     => $ref->{RC} ? $ref->{RC} : '',
-        order_added => $ref->{RN}
-      }
-    );
   }
 }
 
@@ -825,17 +838,20 @@ sub updatePfamADbXrefs {
 #-------------------------------------------------------------------------------
   $self->getSchema->resultset('PfamaDatabaseLinks')
     ->search( { auto_pfamA => $auto } )->delete;
-
-  foreach my $dbLink ( @{ $famObj->DESC->DBREFS } ) {
-    $self->getSchema->resultset('PfamaDatabaseLinks')->create(
-      {
-        auto_pfama   => $auto,
-        db_id        => $dbLink->{db_id},
-        comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
-        db_link      => $dbLink->{db_link},
-        other_params => $dbLink->{other_params} ? $dbLink->{other_params} : ''
-      }
-    );
+  if ( $famObj->DESC->DBREFS and ref( $famObj->DESC->DBREFS ) eq 'ARRAY' ) {
+    foreach my $dbLink ( @{ $famObj->DESC->DBREFS } ) {
+      $self->getSchema->resultset('PfamaDatabaseLinks')->create(
+        {
+          auto_pfama   => $auto,
+          db_id        => $dbLink->{db_id},
+          comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
+          db_link      => $dbLink->{db_link},
+          other_params => $dbLink->{other_params}
+          ? $dbLink->{other_params}
+          : ''
+        }
+      );
+    }
   }
 }
 
@@ -888,52 +904,54 @@ sub updatePfamANested {
   $self->getSchema->resultset('NestedLocations')
     ->search( { auto_pfamA => $auto } )->delete;
 
-  foreach my $n ( @{ $famObj->DESC->NESTS } ) {
-    my $otherPfamA =
-      $self->getSchema->resultset('Pfama')->find( { pfamA_acc => $n->{dom} } );
+  if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
+    foreach my $n ( @{ $famObj->DESC->NESTS } ) {
+      my $otherPfamA =
+        $self->getSchema->resultset('Pfama')
+        ->find( { pfamA_acc => $n->{dom} } );
 
-    my $otherAuto;
-    if ( $otherPfamA->pfama_id ) {
-      $otherAuto = $otherPfamA->auto_pfama;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $n->{dom} . "\n" );
-    }
-
-    #Now look up the sequence
-    my ( $seqAcc, $version ) = $n->{seq} =~ /(\S+)\.(\d+)/;
-    my $seq = $self->getSchema->resultset('Pfamseq')->find(
-      {
-        pfamseq_acc => $seqAcc,
-        seq_version => $version
+      my $otherAuto;
+      if ( $otherPfamA->pfama_id ) {
+        $otherAuto = $otherPfamA->auto_pfama;
       }
-    );
+      else {
+        confess( "Did not find an mysql entry for " . $n->{dom} . "\n" );
+      }
 
-    unless ( $seq and $seq->auto_pfamseq ) {
-      confess(
-        'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
+      #Now look up the sequence
+      my ( $seqAcc, $version ) = $n->{seq} =~ /(\S+)\.(\d+)/;
+      my $seq = $self->getSchema->resultset('Pfamseq')->find(
+        {
+          pfamseq_acc => $seqAcc,
+          seq_version => $version
+        }
+      );
+
+      unless ( $seq and $seq->auto_pfamseq ) {
+        confess(
+          'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
+      }
+
+      $self->getSchema->resultset('NestedDomains')->create(
+        {
+          auto_pfama       => $auto,
+          nests_auto_pfama => $otherAuto
+        }
+      );
+
+      $self->getSchema->resultset('NestedLocations')->create(
+        {
+          auto_pfama        => $auto,
+          nested_auto_pfama => $otherAuto,
+          nested_pfama_acc  => $otherPfamA->pfama_acc,
+          pfamseq_acc       => $seq->pfamseq_acc,
+          seq_version       => $seq->seq_version,
+          seq_start         => $n->{from},
+          seq_end           => $n->{to},
+          auto_pfamseq      => $seq->auto_pfamseq
+        }
+      );
     }
-
-    $self->getSchema->resultset('NestedDomains')->create(
-      {
-        auto_pfama       => $auto,
-        nests_auto_pfama => $otherAuto
-      }
-    );
-
-    $self->getSchema->resultset('NestedLocations')->create(
-      {
-        auto_pfama        => $auto,
-        nested_auto_pfama => $otherAuto,
-        nested_pfama_acc  => $otherPfamA->pfama_acc,
-        pfamseq_acc       => $seq->pfamseq_acc,
-        seq_version       => $seq->seq_version,
-        seq_start         => $n->{from},
-        seq_end           => $n->{to},
-        auto_pfamseq      => $seq->auto_pfamseq
-      }
-    );
-
   }
 
 }
@@ -972,53 +990,54 @@ sub updateEdits {
   $self->getSchema->resultset('Edits')->search( { auto_pfama => $auto } )
     ->delete;
 
-  foreach my $n ( @{ $famObj->DESC->EDITS } ) {
+  if ( $famObj->DESC->EDITS and ref( $famObj->DESC->EDITS ) eq 'ARRAY' ) {
+    foreach my $n ( @{ $famObj->DESC->EDITS } ) {
 
-    #Now look up the sequence
-    my ( $seqAcc, $version ) = $n->{seq} =~ /(\S+)\.(\d+)/;
-    my $seq = $self->getSchema->resultset('Pfamseq')->find(
-      {
-        pfamseq_acc => $seqAcc,
-        seq_version => $version
+      #Now look up the sequence
+      my ( $seqAcc, $version ) = $n->{seq} =~ /(\S+)\.(\d+)/;
+      my $seq = $self->getSchema->resultset('Pfamseq')->find(
+        {
+          pfamseq_acc => $seqAcc,
+          seq_version => $version
+        }
+      );
+
+      unless ( $seq and $seq->auto_pfamseq ) {
+        confess(
+          'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
       }
-    );
 
-    unless ( $seq and $seq->auto_pfamseq ) {
-      confess(
-        'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
+      if (  $n->{newFrom}
+        and $n->{newTo}
+        and $n->{newFrom} >= 1
+        and $n->{newTo} > 1 )
+      {
+        $self->getSchema->resultset('Edits')->create(
+          {
+            auto_pfama     => $auto,
+            auto_pfamseq   => $seq->auto_pfamseq,
+            pfamseq_acc    => $seq->pfamseq_acc,
+            seq_version    => $seq->seq_version,
+            original_start => $n->{oldFrom},
+            original_end   => $n->{oldTo},
+            new_start      => $n->{newFrom},
+            new_end        => $n->{newTo}
+          }
+        );
+      }
+      else {
+        $self->getSchema->resultset('Edits')->create(
+          {
+            auto_pfama     => $auto,
+            auto_pfamseq   => $seq->auto_pfamseq,
+            pfamseq_acc    => $seq->pfamseq_acc,
+            seq_version    => $seq->seq_version,
+            original_start => $n->{oldFrom},
+            original_end   => $n->{oldTo},
+          }
+        );
+      }
     }
-
-    if (  $n->{newFrom}
-      and $n->{newTo}
-      and $n->{newFrom} >= 1
-      and $n->{newTo} > 1 )
-    {
-      $self->getSchema->resultset('Edits')->create(
-        {
-          auto_pfama     => $auto,
-          auto_pfamseq   => $seq->auto_pfamseq,
-          pfamseq_acc    => $seq->pfamseq_acc,
-          seq_version    => $seq->seq_version,
-          original_start => $n->{oldFrom},
-          original_end   => $n->{oldTo},
-          new_start      => $n->{newFrom},
-          new_end        => $n->{newTo}
-        }
-      );
-    }
-    else {
-      $self->getSchema->resultset('Edits')->create(
-        {
-          auto_pfama     => $auto,
-          auto_pfamseq   => $seq->auto_pfamseq,
-          pfamseq_acc    => $seq->pfamseq_acc,
-          seq_version    => $seq->seq_version,
-          original_start => $n->{oldFrom},
-          original_end   => $n->{oldTo},
-        }
-      );
-    }
-
   }
 }
 
