@@ -635,31 +635,16 @@ sub updatePfamAInRDB {
     $pfamDB->updatePfamA($famObj);
   }
 
-
-  if ( $famObj->DESC->WIKI ) {
-    $pfamDB->updatePfamAWikipedia($famObj);
-  }
-
-  if ( $famObj->DESC->REFS ) {
-    $pfamDB->updatePfamALitRefs($famObj);
-  }
-
-  if ( $famObj->DESC->DBREFS ) {
-    $pfamDB->updatePfamADbXrefs($famObj);
-  }
-
-  if ( $famObj->DESC->NESTS ) {
-    $pfamDB->updatePfamANested($famObj);
-  }
-
-  if ( $famObj->DESC->EDITS ) {
-    $pfamDB->updateEdits($famObj);
-  }
+  $pfamDB->updatePfamAWikipedia($famObj);
+  $pfamDB->updatePfamALitRefs($famObj);
+  $pfamDB->updatePfamADbXrefs($famObj);
+  $pfamDB->updatePfamANested($famObj);
+  $pfamDB->updateEdits($famObj);
 
 }
 
 sub updatePfamARegions {
-  my ( $self, $famObj, $pfamDB , $mongo ) = @_;
+  my ( $self, $famObj, $pfamDB , $redis ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
@@ -669,9 +654,9 @@ sub updatePfamARegions {
     confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
   }
   
-  $pfamDB->updatePfamARegSeed($famObj, $mongo);
-  $pfamDB->updatePfamARegFull($famObj, $mongo);  
-  
+  $pfamDB->updatePfamARegSeed($famObj, $redis);
+  $pfamDB->updatePfamARegFull($famObj, $redis);
+
 }
 
 

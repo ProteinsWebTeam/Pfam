@@ -50,6 +50,7 @@ use warnings;
 use File::Temp;
 use Try::Tiny;
 use Carp;
+use Redis;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::FamilyIO;
@@ -58,7 +59,6 @@ use Bio::Pfam::PfamQC;
 use Bio::Pfam::ViewProcess;
 use Bio::Pfam::ClanIO;
 use Bio::Pfam::Clan::Compete;
-use MongoDB;
 
 use base "SVN::Look";
 
@@ -82,14 +82,9 @@ sub new {
   }
   
   $self->{config} = Bio::Pfam::Config->new;
-  $self->{mongo} =  MongoDB::Connection->new(host => "localhost", 
-                                             port => 27017)->pfamseq->automap;
-  $self->{mongo}->query_timeout(90000);                                         
-  
+  $self->{redis}  = Redis->new(server => '127.0.0.1:6379'); #This is the standard Redis port
   $self->{view} = Bio::Pfam::ViewProcess->new;
   
-  die "MongoDB size does not match pfamseq size!\n"
-    if($self->{config}->dbsize !=  $self->{mongo}->count()); 
   return bless($self, $class);  
 }
 
@@ -121,7 +116,7 @@ sub commitFamily {
   
 
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 0);
+    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{redis});
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
   }
@@ -160,7 +155,7 @@ sub commitNewFamily {
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
   $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{mongo}, 1);
+  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{redis});
   $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
   $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
 
