@@ -2,7 +2,9 @@
 # result_table.tt
 # jt6 20090521 WTSI
 #
-# format the results of a H3 sequence search as a table.
+# format the results of a DNA sequence search as a table.
+# (for an example of a DNA sequence which produces Pfam-A hits on multiple
+# frames, see: http://www.ncbi.nlm.nih.gov/nuccore/126619870?report=fasta&from=73000&to=75000)
 #
 # $Id: results_table.tt,v 1.8 2009-10-28 14:08:38 jt6 Exp $
 
@@ -183,7 +185,7 @@ BLOCK buildTableBody;
       NEXT IF NOT hit.sig;
 
       rowClass = tableRow % 2 ? "odd" : "even"; # previously oddlySignificant and evenlySignificant
-      rowId    = job_type _ loop.index;
+      rowId    = "A" _ loop.index;
       numSignificantMatches = numSignificantMatches + 1;
 
     ELSE;
@@ -192,7 +194,7 @@ BLOCK buildTableBody;
       NEXT IF hit.sig;
 
       rowClass = tableRow % 2 ? "odd" : "even";
-      rowId    = job_type _ "I" _ loop.index;
+      rowId    = "AI" _ loop.index;
       numInsignificantMatches = numInsignificantMatches + 1;
 
     END;
@@ -203,8 +205,8 @@ BLOCK buildTableBody;
       <td><span class="frameNum">[% frame + 1 %]</span> ([% frame < 3 ? "+" : "-" %])</td>
       <td>
         [% IF hit.acc -%]
-        <a id="[% ( job_type == 'A' ? 'region_' : 'motif_' ) _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
-           href="[% c.uri_for( job_type == 'A' ? '/family' : '/pfamb', hit.acc ) %]">[% hit.name %]</a>
+        <a id="[% 'region_' _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
+           href="[% c.uri_for( '/family', hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
         END -%]
