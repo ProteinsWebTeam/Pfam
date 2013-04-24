@@ -71,13 +71,16 @@ sub submit_nonmpi_job {
     $submit_cmd = "bsub -q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\"";
   }
   elsif($location eq "JFRC") { 
-    $submit_cmd = "qsub -N $jobname -o /dev/null -e $errPath -b y -cwd -V -l excl=true \"$cmd\" > /dev/null"; 
+    my $batch_opt = "";
+    if($ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
+    $submit_cmd = "qsub -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
     die "ERROR unknown location $location in submit_nonmpi_job()";
   }
 
   # actually submit job
+  # print STDERR ("submit cmd: $submit_cmd\n");
   system($submit_cmd);
   if($? != 0) { die "Non-MPI submission command $submit_cmd failed"; }
 
@@ -705,6 +708,26 @@ sub file_tail {
   
   $filePath =~ s/^.+\///;
   return $filePath;
+}
+
+=head2 printToFileAndStdout
+
+  Title    : printToFileAndStdout
+  Incept   : EPN, Wed Apr 24 09:08:18 2013
+  Usage    : printToFileAndStdout($str)
+  Function : Print string to a file handle and to stdout.
+  Args     : $fh, $str
+  Returns  : void
+
+=cut
+
+sub printToFileAndStdout {
+  my ($fh, $str) = @_;
+
+  print $fh $str;
+  print $str;
+
+  return;
 }
 
 ######################################################################

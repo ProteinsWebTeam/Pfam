@@ -243,6 +243,20 @@ sub seqdbConfig {
     }
     return $self->{'_config'}->{seqdb}->{$db}
 }
+    
+sub revseqdbConfig {
+    my $self = shift;
+    my $revdb = shift;
+    if ( $#_ >= 0 ) {
+	warn "Passed variable to ro config\n";
+    }
+    
+    if(!exists $self->{'_config'}->{revseqdb}->{$revdb}){
+        my @revdbfiles = keys (%{ $self->{'_config'}->{revseqdb}});
+	die "Unknown reversed database $revdb, must be one of [@revdbfiles]\n";
+    }
+    return $self->{'_config'}->{revseqdb}->{$revdb}
+}
 
 sub viewPluginSets {
   my $self = shift;
