@@ -50,7 +50,6 @@ SV *_c_open_sqfile (char *seqfile)
 void *_c_close_sqfile (ESL_SQFILE *sqfp)
 {
   esl_sqfile_Close(sqfp);
-  return;
 }
 
 /* Function:  _c_open_ssi_index()
@@ -137,7 +136,6 @@ void _c_create_ssi_index (ESL_SQFILE *sqfp)
   free(ssifile);
   esl_sq_Destroy(sq);
   esl_newssi_Close(ns);
-  return;
 }    
 
 
