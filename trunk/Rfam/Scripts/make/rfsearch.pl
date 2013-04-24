@@ -121,7 +121,7 @@ Bio::Rfam::Utils::printToFileAndStdout($logFH, "# - - - - - - - - - - - - - - - 
 
 # create hash of potential output files
 my %outfileH = ();
-my @outfile_orderA = ("TBLOUT", "REVTBLOUT", "searchout", "revsearchout", "outlist", "revoutlist", "species", "outlist.pdf", "species.pdf");
+my @outfile_orderA = ("TBLOUT", "REVTBLOUT", "searchout", "revsearchout", "outlist", "revoutlist", "species", "revspecies", "outlist.pdf", "species.pdf");
 $outfileH{"TBLOUT"}       = "concatenated --tblout output from all searches";
 $outfileH{"REVTBLOUT"}    = "concatenated --tblout output from reversed searches";
 $outfileH{"searchout"}    = "concatenated standard output from all searches";
@@ -129,6 +129,7 @@ $outfileH{"revsearchout"} = "concatenated standard output from reversed searches
 $outfileH{"outlist"}      = "sorted list of all hits from TBLOUT";
 $outfileH{"revoutlist"}   = "sorted list of all hits from REVTBLOUT";
 $outfileH{"species"}      = "same as outlist, but with additional taxonomic information";
+$outfileH{"revspecies"}   = "same as revoutlist, but with additional taxonomic information";
 $outfileH{"outlist.pdf"}  = "bit score histograms of all hits";
 $outfileH{"species.pdf"}  = "bit score histogram hits, colored by taxonomy";
 
