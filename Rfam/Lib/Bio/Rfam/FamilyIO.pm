@@ -1051,7 +1051,8 @@ sub writeTbloutDependentFiles {
   # output files
   my $outlistO = "outlist";
   my $speciesO = "species";
-  my $revO     = "revoutlist";
+  my $revoutO  = "revoutlist";
+  my $revspcO  = "revspecies";
   my $rinO     = "rin.dat";
   my $rincO    = "rinc.dat";
 
@@ -1077,7 +1078,8 @@ sub writeTbloutDependentFiles {
   # open OUTPUT files
   my $outFH; 
   my $spcFH; 
-  my $revFH; 
+  my $revoutFH; 
+  my $revspcFH; 
   open($outFH, "> $outlistO") || die "FATAL: failed to open $outlistO)\n[$!]";
   open($spcFH, "> $speciesO") || die "FATAL: failed to open $speciesO\n[$!]\n";   
   open(RIN,"> $rinO") || die "FATAL: failed to open $rinO\n[$!]\n";   
@@ -1096,26 +1098,33 @@ sub writeTbloutDependentFiles {
   my $nlines = 0;
   if(-s $rtblI) { 
     my @rev_outAA = (); # we'll fill this with data for revoutlist
+    my @rev_spcAA = (); # we'll fill this with data for revspecies
     open(RTBL, "grep -v ^'#' $rtblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $rtblI\n[$!]";
     while ($tblline = <RTBL>) {
       my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
           processTbloutLine($tblline, $sthDesc, $sthTax, 1, $require_tax); # '1' says: yes this is a reversed search
       push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+      push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $ncbiId, $species, $taxString));
       $nlines++;
       if($rev_evalue eq "") { # first line
         $rev_evalue = $evalue; 
-        open($revFH, "> $revO") || die "FATAL: failed to open $revO\n[$!]\n";   
+        open($revoutFH, "> $revoutO") || die "FATAL: failed to open $revoutO\n[$!]\n";   
+        open($revspcFH, "> $revspcO") || die "FATAL: failed to open $revspcO\n[$!]\n";   
       }
       if($nlines % $chunksize == 0) { 
-        writeOutlistOrSpeciesChunk($revFH, \@rev_outAA, 1);
+        writeOutlistOrSpeciesChunk($revoutFH, \@rev_outAA, 1);
+        writeOutlistOrSpeciesChunk($revspcFH, \@rev_spcAA, 0);
         @rev_outAA = ();
+        @rev_spcAA = ();
         $nlines = 0;
       }
     }
     if ($nlines > 0) { 
-      writeOutlistOrSpeciesChunk($revFH, \@rev_outAA, 1);
+      writeOutlistOrSpeciesChunk($revoutFH, \@rev_outAA, 1);
+      writeOutlistOrSpeciesChunk($revspcFH, \@rev_spcAA, 0);
     }
-    close($revFH);
+    close($revoutFH);
+    close($revspcFH);
   }
 
   # parse TBLOUT
@@ -1337,7 +1346,7 @@ sub processTbloutLine {
   my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
   # potentially remove '-shuffled' suffix if nec from 'reversed searches'
   my $name2lookup = $name;
-  if($is_reversed) { $name =~ s/\-shuffled$//; }
+  if($is_reversed) { $name2lookup =~ s/\-shuffled$//; }
 
   # fetch description
   my $found_in_db = 1;
