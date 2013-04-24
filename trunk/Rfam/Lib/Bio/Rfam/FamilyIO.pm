@@ -197,6 +197,8 @@ sub _parseCMHeader {
   my ($self, $cm, $iRef ) = @_;
   #INFERNAL1/a [1.1rc2 | December 2012]
   #NAME     SEED
+  #ACC      RF99999
+  #DESC     An RNA
   #STATES   269
   #NODES    66
   #CLEN     85
@@ -232,6 +234,10 @@ sub _parseCMHeader {
       $objHash->{version} = $version;
     } elsif (/NAME\s+(\S+)/) { 
       $objHash->{name} =  $1 ;
+    } elsif (/ACC\s+(\S+)/) { 
+      $objHash->{acc} =  $1 ;
+    } elsif (/DESC\s+(.+)/) { 
+      $objHash->{desc} =  $1 ;
     } elsif (/STATES\s+(\d+)/) {
       $objHash->{states} = $1;
     } elsif (/NODES\s+(\d+)/) {
@@ -369,6 +375,8 @@ sub _parseCMHMMHeader {
 
   #HMMER3/f [i1.1rc2 | December 2012]
   #NAME  SEED
+  #ACC   RF99999
+  #DESC  An RNA
   #LENG  85
   #MAXL  177
   #ALPH  RNA
@@ -395,6 +403,10 @@ sub _parseCMHMMHeader {
       $objHash->{version} = $version;
     } elsif (/NAME\s+(\S+)/) { 
       $objHash->{name} =  $1 ;
+    } elsif (/ACC\s+(\S+)/) { 
+      $objHash->{acc} =  $1 ;
+    } elsif (/DESC\s+(.+)/) { 
+      $objHash->{desc} =  $1 ;
     } elsif (my ($length) = $_ =~ /^LENG\s+(\d+)/) {
       $objHash->{length} = $length;
     } elsif (/^MAXL\s+(\d+)$/) {
@@ -1019,26 +1031,27 @@ sub makeAndWriteScores {
              : 'rin.dat' and 'rinc.dat' files.
     Args     : $famObj:  Bio::Rfam::Family object
              : $rfdbh:   database 
-             : $seedObj: Bio::Rfam::Family::MSA object
-             : $thr:     GA threshold
+             : $seedmsa: Bio::Rfam::Family::MSA object
+             : $ga:      GA threshold
              : $RPlotScriptPath: path for R plot script
+             : $require_tax: '1' to require we find tax info in db for all hits
     Returns  : void
     Dies     : upon file input/output error
 
 =cut
 
-# given a TBLOUT file, write four files:
-# 'outlist', 'species', 'rin.dat', 'rinc.dat'
 sub writeTbloutDependentFiles {
-  my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath) = @_;
+  my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath, $require_tax) = @_;
 
   if (! defined $famObj->TBLOUT->fileLocation) { die "TBLOUT's fileLocation not set"; }
 
   my $tblI = $famObj->TBLOUT->fileLocation;
+  my $rtblI = "REVTBLOUT";
 
   # output files
   my $outlistO = "outlist";
   my $speciesO = "species";
+  my $revO     = "revoutlist";
   my $rinO     = "rin.dat";
   my $rincO    = "rinc.dat";
 
@@ -1064,6 +1077,7 @@ sub writeTbloutDependentFiles {
   # open OUTPUT files
   my $outFH; 
   my $spcFH; 
+  my $revFH; 
   open($outFH, "> $outlistO") || die "FATAL: failed to open $outlistO)\n[$!]";
   open($spcFH, "> $speciesO") || die "FATAL: failed to open $speciesO\n[$!]\n";   
   open(RIN,"> $rinO") || die "FATAL: failed to open $rinO\n[$!]\n";   
@@ -1071,67 +1085,51 @@ sub writeTbloutDependentFiles {
   open(RINc,"> $rincO") || die "FATAL: failed to open rincO\n[$!]\n";   
   printf RINc "cnt\ttax\n";
     
-  # TODO: don't use grep and sort, use PERL's sort, even though paul wrote this:
+  # Paul's comment:
   # If you don't like this you can fuck off!:
   # Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents.
-    
-  # actually parse tblout
-  open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
-
-  ## example TBLOUT line:
-  ###target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
-  ###------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
-  ## AAAA02006309.1      -         RF00014              -          cm        1       85      192      105      -    no    1 0.44   0.0   86.0   1.6e-11 !   Oryza sativa Indica Group chromosome 2 Ctg006309, whole genome shotgun sequence.
-
+  
+  # parse REVTBLOUT
   my $tblline;
-  my @outAA = ();               # we'll fill these with data for OUT 
-  my @spcAA = ();
-  my $nlines = 0;
+  my $rev_evalue = "";
   my $chunksize = 100;
-  while ($tblline = <TBL>) {
-    my @tblA = split(/\s+/, $tblline);
-    my ($name, $qstart, $qend, $start, $end, $strand, $trunc, $bits, $evalue) = ($tblA[0], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]);
-    if ($strand eq "+") {
-      $strand = 1;
-    } else {
-      $strand = -1;
-    }
-	
-    my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
-    if ($name !~ /(\S+)\.(\d+)/) {
-      die "ERROR, name $name not in expected <accession>.<version> format.";
-    }
-
-    # fetch description
-    $sthDesc->execute($name);
-    my $res = $sthDesc->fetchall_arrayref;
-    if (! defined $res) {
-      die "ERROR unable to fetch desc info for $name";
-    }
-    foreach my $row (@$res) {
-      $description .= $row->[0];
-    }
-
-    # fetch species, taxonomy string and ncbi id
-    $sthTax->execute($name);
-    my $rfres = $sthTax->fetchall_arrayref;
-    if ((! defined $rfres) || (scalar(@{$rfres}) < 1)) {
-      die "ERROR unable to fetch tax info for $name";
-    }
-    foreach my $row (@{$rfres}) {
-      if (scalar(@{$row}) < 4) {
-        die "ERROR unable to fetch tax info for $name";
+  my $nlines = 0;
+  if(-s $rtblI) { 
+    my @rev_outAA = (); # we'll fill this with data for revoutlist
+    open(RTBL, "grep -v ^'#' $rtblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $rtblI\n[$!]";
+    while ($tblline = <RTBL>) {
+      my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
+          processTbloutLine($tblline, $sthDesc, $sthTax, 1, $require_tax); # '1' says: yes this is a reversed search
+      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+      $nlines++;
+      if($rev_evalue eq "") { # first line
+        $rev_evalue = $evalue; 
+        open($revFH, "> $revO") || die "FATAL: failed to open $revO\n[$!]\n";   
       }
-      $species       .= $row->[0];
-      $shortSpecies  .= $row->[1];
-      $taxString     .= $row->[2];
-      $ncbiId        .= $row->[3];
+      if($nlines % $chunksize == 0) { 
+        writeOutlistOrSpeciesChunk($revFH, \@rev_outAA, 1);
+        @rev_outAA = ();
+        $nlines = 0;
+      }
     }
+    if ($nlines > 0) { 
+      writeOutlistOrSpeciesChunk($revFH, \@rev_outAA, 1);
+    }
+    close($revFH);
+  }
 
-    $domainKingdom = Bio::Rfam::Utils::tax2kingdom($taxString . '; ' . $species . ';');
-    if (! defined $kingdomCounts{$domainKingdom}) {
-      $kingdomCounts{$domainKingdom} = 0;
-    }
+  # parse TBLOUT
+  my @outAA = (); # we'll fill these with data for outlist
+  my @spcAA = (); # we'll fill these with data for species
+  my $have_all_tax_info = 1; # set to FALSE if we fail to find a 
+  $nlines = 0;
+  open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
+  while ($tblline = <TBL>) {
+    my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString, $got_tax) = 
+        processTbloutLine($tblline, $sthDesc, $sthTax, 0, $require_tax); #'0' says: no this is not a reversed search 
+
+    if($taxString eq "-") { $have_all_tax_info = 0; }
+    my $domainKingdom = Bio::Rfam::Utils::tax2kingdom($taxString . '; ' . $species . ';');
     $kingdomCounts{$domainKingdom}++;
 
     # determine seqLabel
@@ -1150,15 +1148,15 @@ sub writeTbloutDependentFiles {
 
     # print out threshold line if nec
     if ( $bits < $ga && $ga<=$prv_bits) {
-      $outline = "#CURRENT THRESHOLD: $ga bits";
+      $outline = commentLineForOutlistOrSpecies (" CURRENT THRESHOLD: $ga BITS ");
       push(@{$outAA[$nlines]}, ($outline));
       push(@{$spcAA[$nlines]}, ($outline));
       printf RIN  "%0.2f\tTHRESH\t.\n", $ga;
       $printed_thresh=1;
       $nlines++;
     }
-    if ($evalue > 1 && $prv_evalue <= 1) { 
-      $outline = "#E-VALUE OF 1";
+    if ( $rev_evalue ne "" && $evalue > $rev_evalue && $prv_evalue <= $rev_evalue) {
+      $outline = commentLineForOutlistOrSpecies(" BEST REVERSED HIT E-VALUE: $rev_evalue ");
       push(@{$outAA[$nlines]}, ($outline));
       push(@{$spcAA[$nlines]}, ($outline));
       $nlines++;
@@ -1181,38 +1179,47 @@ sub writeTbloutDependentFiles {
 
   # If we have any sequences 
   if (! defined $printed_thresh) {
-    $outline = "#CURRENT THRESHOLD: $ga bits";
+    $outline = commentLineForOutlistOrSpecies(" CURRENT THRESHOLD: $ga BITS ");
     push(@{$outAA[$nlines]}, ($outline));
     push(@{$spcAA[$nlines]}, ($outline));
     printf RIN "%0.2f\tTHRESH\t\.\n", $ga;
     $nlines++;
   }
+  if ($rev_evalue eq "") { 
+    if(-e $rtblI) { $outline = commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO HITS FOUND IN REVERSED DB) "); }
+    else          { $outline = commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) "); }
+    push(@{$outAA[$nlines]}, ($outline));
+    push(@{$spcAA[$nlines]}, ($outline));
+    $nlines++;
+  }
   if ($nlines > 0) { 
     writeOutlistOrSpeciesChunk($outFH, \@outAA, 1);
     writeOutlistOrSpeciesChunk($spcFH, \@spcAA, 0);
-    @outAA = ();
-    @spcAA = ();
   }
     
   foreach my $king ( sort{ $a cmp $b } keys %kingdomCounts) {
     printf RINc  "%d\t$king\n", $kingdomCounts{$king};
   }
     
-  # complain loudly if seed sequences are missing from the output:
+  # complain loudly if seed sequences are missing from the output, if 
+  # we have tax info for all hits (i.e. if we're doing a standard Rfam 
+  # search)
   my @warningsA = ();
-  foreach my $n (keys %seedseq_foundH) {
-    if ($seedseq_foundH{$n} < 1) {
-      $outline = "WARNING: SEED sequence $n was not found (not in TBLOUT)\n";
-      warn $outline;
-      push(@warningsA, $outline);
+  if($require_tax) { 
+    foreach my $n (keys %seedseq_foundH) {
+      if ($seedseq_foundH{$n} < 1) {
+        $outline = "WARNING: SEED sequence $n was not found (not in TBLOUT)\n";
+        warn $outline;
+        push(@warningsA, $outline);
+      }
     }
-  }
-  if (scalar(@warningsA) > 0) { 
-    open(W, ">warnings") || croak "unable to open warnings file for writing";
-    foreach my $warning (@warningsA) { 
-      print W $warning;
+    if (scalar(@warningsA) > 0) { 
+      open(W, ">warnings") || croak "unable to open warnings file for writing";
+      foreach my $warning (@warningsA) { 
+        print W $warning;
+      }
+      close(W);
     }
-    close(W);
   }
     
   close(TBL);
@@ -1221,8 +1228,10 @@ sub writeTbloutDependentFiles {
   close(RIN);
   close(RINc);
 
-  # run R script: 
-  Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
+  # run R script, if we have tax info for ALL hits 
+  if($have_all_tax_info) { 
+    Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
+  }
   # Remove the plot_outlist.Rout, rin.dat, and rinc.dat files, 
   # These are really only relevant if the R command failed
   # (returned non-zero status), in which case run_local_command() 
@@ -1280,72 +1289,97 @@ sub writeScores {
   }
 }
 
-# append chunk of lines to outlist file
-sub writeOutlistChunk {
-  ## array of values in $outAA[]:
-  ## 'bits', 'evalue', 'seqLabel', 'name', 'start', 'end', 'qstart', 'qend', 'trunc', 'shortSpecies', 'description';    
-  ##
-  my ($fh, $aaR) = @_;
+=head2 processTbloutLine
 
-  my ($i, $j, $k);              # counters
-  my $aR;                       # convenience ptr to an array
-  my $wid;                      # width of a field
-  my @widthA = ();              # max width of each field
-  my $nlines = scalar(@{$aaR}); # number of lines we'll print
+    Title    : processTbloutLine
+    Incept   : EPN, Tue Apr 23 13:23:50 2013
+    Usage    : processTbloutLine($tblline, $sthDesc, $sthTax, $is_reversed)
+    Function : Helper function for writeTbloutDependentFiles(). 
+             : Processes a TBLOUT line and returns all the useful information
+             : in it, after looking up description and taxonomic information
+             : in the database. 
+    Args     : $tblline:     a tabular output line from a cmsearch --tblout file.
+             : $sthDesc:     prepared database query for fetching description ($rfdbh->prepared_seqaccToDescription())
+             : $sthTax:      prepared database query for fetching tax info ($rfdbh->prepared_seqaccToSpeciesTaxStringAndID())
+             : $is_reversed: '1' for a line from a reversed search
+             : $require_tax: '1' to require each hit desc and tax info is found in database (die if it is not)
+             :               '0' to fill all desc and tax info with '-' if not found in database
+    Returns  : list of the following values:
+             : $bits:         bit score for the hit  
+             : $evalue:       E-value of the hit     
+             : $name:         name of the sequence the hit is in
+             : $start:        start position of the hit
+             : $end:          end position of the hit
+             : $qstart:       start position on the query model
+             : $qend:         end position on the query model
+             : $trunc:        truncation string for hit
+             : $shortSpecies: short string for species, '-' if not found in db
+             : $description:  description of seq, '-' if not found in db
+             : $ncbiId:       NCBI id for hit, '-' if not found in db
+             : $species:      species string for hit, '-' if not found in db
+             : $taxString:    taxonomic string for hit, '-' if not found in db
+             : $got_tax:      '1' if tax info is there, '0' if not
+    Dies     : upon file input/output error 
 
-  my @headA = ("# bits", "evalue", "seqLabel", "name", "start", "end", "qstart", "qend", "trunc", "species", "description");
-  my $nels = scalar(@headA);
+=cut
+sub processTbloutLine { 
+  my ($tblline, $sthDesc, $sthTax, $is_reversed, $require_tax) = @_;
 
-  # determine max width of each column
-  for ($j = 0; $j < $nels; $j++) { 
-    $widthA[$j] = length($headA[$j]);
+  ## example TBLOUT line:
+  ###target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+  ###------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+  ## AAAA02006309.1      -         RF00014              -          cm        1       85      192      105      -    no    1 0.44   0.0   86.0   1.6e-11 !   Oryza sativa Indica Group chromosome 2 Ctg006309, whole genome shotgun sequence.
+  my @tblA = split(/\s+/, $tblline);
+  my ($name, $qstart, $qend, $start, $end, $strand, $trunc, $bits, $evalue) = ($tblA[0], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]);
+  if ($strand eq "+") { $strand =  1; }
+  else                { $strand = -1; }
+
+  my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
+  # potentially remove '-shuffled' suffix if nec from 'reversed searches'
+  my $name2lookup = $name;
+  if($is_reversed) { $name =~ s/\-shuffled$//; }
+
+  # fetch description
+  my $found_in_db = 1;
+  if(defined $sthDesc) { 
+    $sthDesc->execute($name2lookup);
+    my $res = $sthDesc->fetchall_arrayref;
+    foreach my $row (@$res) {
+      $description .= $row->[0];
+    }
   }
-  for ($i = 0; $i < $nlines; $i++) { 
-    $aR = $aaR->[$i];
-    if($aR->[0] !~ m/^\#/) { # IMPORTANT: skip comment lines 
-      for ($j = 0; $j < $nels; $j++) { 
-        $wid = length($aR->[$j]);
-        $widthA[$j] = ($widthA[$j] > $wid) ? $widthA[$j] : $wid;
+  
+  # fetch species, taxonomy string and ncbi id
+  if(defined $sthTax) { 
+    $sthTax->execute($name2lookup);
+    my $rfres = $sthTax->fetchall_arrayref;
+    if(defined $rfres) { 
+      foreach my $row (@{$rfres}) {
+        if (scalar(@{$row}) < 4) { die "ERROR problem fetching tax info for $name2lookup"; }
+        $species       .= $row->[0];
+        $shortSpecies  .= $row->[1];
+        $taxString     .= $row->[2];
+        $ncbiId        .= $row->[3];
       }
-    }	
-  }	
-
-  # print header lines
-  for($j = 0; $j < $nels; $j++) { 
-    printf $fh ("%-*s", $widthA[$j], $headA[$j]);
-    if($j < ($nels-1)) { printf $fh "  "; }
-  }
-  printf $fh ("\n");
-  for($j = 0; $j < $nels; $j++) { 
-    my $dashline = "";
-    $wid = $widthA[$j];
-    if($j == 0) { $dashline = "#"; $wid--; }
-    for($k = 0; $k < $wid; $k++) { $dashline .= "="; }
-    printf $fh ("%-*s", $widthA[$j], $dashline);
-    if($j < ($nels-1)) { printf $fh "  "; }
-  }
-  printf $fh ("\n");
-
-  for ($i = 0; $i < $nlines; $i++) { 
-    $aR = $aaR->[$i];
-    if($aR->[0] =~ m/^\#/) { #comment line, just print it
-      print $fh ("$aR->[0]\n");
-    }
-    else { 
-      printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-*s\n", 
-                  $widthA[0], $aR->[0], 
-                  $widthA[1], $aR->[1], 
-                  $widthA[2], $aR->[2], 
-                  $widthA[3], $aR->[3], 
-                  $widthA[4], $aR->[4], 
-                  $widthA[5], $aR->[5], 
-                  $widthA[6], $aR->[6], 
-                  $widthA[7], $aR->[7], 
-                  $widthA[8], $aR->[8], 
-                  $widthA[9], $aR->[9],
-                  $widthA[10], $aR->[10]);
     }
   }
+
+  if($require_tax) { 
+    if(! defined $description)  { die "ERROR unable to fetch description for $name"; }
+    if(! defined $species)      { die "ERROR unable to fetch species for $name"; }
+    if(! defined $shortSpecies) { die "ERROR unable to fetch shortSpecies for $name"; }
+    if(! defined $taxString)    { die "ERROR unable to fetch taxString for $name"; }
+    if(! defined $ncbiId)       { die "ERROR unable to fetch ncbiId for $name"; }
+  }
+  else { 
+    if(! defined $description)  { $description  = "-"; }
+    if(! defined $species)      { $species      = "-"; }
+    if(! defined $shortSpecies) { $shortSpecies = "-"; }
+    if(! defined $taxString)    { $taxString    = "-"; }
+    if(! defined $ncbiId)       { $ncbiId       = "-"; }
+  } 
+
+  return ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString);
 }
 
 
@@ -1434,5 +1468,20 @@ sub writeOutlistOrSpeciesChunk {
   }
 }
 
+# return a comment line for output to an outlist or species file
+sub commentLineForOutlistOrSpecies {
+  my ($str) = $_[0];
+
+  my $tot_len = 120;
+  my $pre_len = ($tot_len - length($str)) / 2;
+  my $line = "";
+  my $i;
+  for($i = 0; $i < $pre_len; $i++) { $line .= "#"; }
+  $line .= $str;
+  $i += length($str);
+  for(; $i < $tot_len; $i++) { $line .= "#"; }
+
+  return $line;
+}
 
 1;
