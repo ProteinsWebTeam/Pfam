@@ -616,6 +616,15 @@ sub webuseradmin {
 }
 
 
+sub webuserarchive {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{Model}->{WebUserArchive};  
+}
+
+
 sub svnRepos {
   my $self = shift;
   if ( $#_ >= 0 ) {
