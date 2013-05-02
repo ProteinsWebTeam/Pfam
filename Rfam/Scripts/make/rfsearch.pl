@@ -52,6 +52,9 @@ my $rev_Zuser;                  # defined by GetOptions() if -rZ is enabled
 
 my $date = scalar localtime();
 my $logFH;
+
+my $config = Bio::Rfam::Config->new;
+
 open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
 output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM against a database", 1);
 
@@ -96,6 +99,7 @@ my $opt;
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user));
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date));
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd));
+Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
 
 if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]")); }
 elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir/" . " [-dbdir]")); }
@@ -142,7 +146,6 @@ foreach $outfile (@outfile_orderA) {
 }
 
 # setup variables 
-my $config = Bio::Rfam::Config->new;
 my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
                                     'SEED' => {
@@ -323,8 +326,8 @@ if ($force_calibrate || (! $is_cm_calibrated)) {
                                                                    $ncpus_cmcalibrate); # number of processors
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH);
-  if(-s $calibrate_errO) { die "Error output from cmcalibrate, see $calibrate_errO"; }
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH);
+  Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
   unlink $calibrate_errO; # this file is empty anyway
 
@@ -533,7 +536,7 @@ if (! $no_search) {
     push(@all_errOA,    @rev_errOA);
   }
   # wait for cluster jobs to finish
-  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH);
+  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH);
   $search_wall_secs     = time() - $search_start_time;
   
   # concatenate files (no need to validate output, we already did that in wait_for_cluster())
@@ -544,7 +547,10 @@ if (! $no_search) {
   my $all_rev_cmsO = "revsearchout";
   # first, create the concatenated error file, if it's not empty we'll die before creating TBLOUT
   Bio::Rfam::Utils::concatenate_files(\@all_errOA, $all_errO, 1); # '1' says delete original files after concatenation
-  if(-s $all_errO) { die "Error output by >=1 cmsearch runs, see $all_errO"; }
+  if(-s $all_errO) { 
+    Bio::Rfam::Utils::checkStderrFile($config->location, $all_errO); 
+  }
+
   # if we get here, all err files were empty, so we keep going
   unlink $all_errO; # this file is empty anyway
   Bio::Rfam::Utils::concatenate_files(\@tblOA,     $all_tblO,     1); # '1' says delete original files after concatenation
