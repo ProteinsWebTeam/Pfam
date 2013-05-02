@@ -68,7 +68,7 @@ sub submit_nonmpi_job {
   if($location eq "EBI") { 
     if(! defined $ncpu)  { die "submit_nonmpi_job(), location is EBI, but ncpu is undefined"; }
     if(! defined $reqMb) { die "submit_nonmpi_job(), location is EBI, but reqMb is undefined"; }
-    $submit_cmd = "bsub -q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\"";
+    $submit_cmd = "bsub -q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\" > /dev/null";
   }
   elsif($location eq "JFRC") { 
     my $batch_opt = "";
@@ -111,9 +111,10 @@ sub submit_mpi_job {
 
   my $submit_cmd = "";
   if($location eq "EBI") { 
-    my $prepcmd = "module load openmpi-x86_64";
-    system($prepcmd);
-    if($? != 0) { die "MPI prep command $prepcmd failed"; }
+    # EPN: for some reason, this 'module' command fails inside perl..., I think it may be unnecessary because it's in my .bashrc
+    #my $prepcmd = "module load openmpi-x86_64";
+    #system($prepcmd);
+    #if($? != 0) { die "MPI prep command $prepcmd failed"; }
 
     $submit_cmd = "bsub -J $jobname -e $errPath -q mpi -I -n $nproc -a openmpi mpirun.lsf -np $nproc -mca btl tcp,self $cmd";
   }
@@ -157,7 +158,8 @@ sub submit_mpi_job {
              : (3) Dies if $max_minutes is defined and != -1, and any
              :     job takes longer than $max_minutes to complete.
              :
-    Args     : $username:       username the cluster jobs belong to
+    Args     : $location:       location, e.g. "JFRC" or "EBI"
+             : $username:       username the cluster jobs belong to
              : $jobnameAR:      ref to array of list of job names on cluster
              : $outnameAR:      ref to array of list of output file names, one per job
              : $success_string: string expected to exist in each output file 
@@ -172,61 +174,97 @@ sub submit_mpi_job {
 =cut
 
 sub wait_for_cluster { 
-  my ($username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $max_minutes) = @_;
+  my ($location, $username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $max_minutes) = @_;
 
   my $start_time = time();
-
+  
   my $n = scalar(@{$jobnameAR});
+  my $i;
 
   # sanity check
   if(scalar(@{$outnameAR}) != $n) { die "wait_for_cluster(), internal error, number of elements in jobnameAR and outnameAR differ"; }
 
-  my $sleep_nsecs = 5;  # we'll call qstat every 5 seconds
+  # modify username > 7 characters and job names > 10 characters if we're at EBI, because bjobs truncates these
+  if($location eq "EBI") { 
+    if(length($username) > 7) { 
+      $username = substr($username, 0, 7); # bjobs at EBI only prints first 7 letters of username
+    }
+    for($i = 0; $i < $n; $i++) { 
+      if(length($jobnameAR->[$i]) > 10) { # NOTE: THIS WILL CHANGE THE VALUES IN THE ACTUAL ARRAY jobnameAR POINTS TO!
+        $jobnameAR->[$i] = "*" . substr($jobnameAR->[$i], -9);
+      }
+    }
+  }
+  elsif($location ne "JFRC") { 
+    die "ERROR in wait_for_cluster, unrecognized location: $location"; 
+  }
+
+  my $sleep_nsecs = 5;  # we'll call qstat/bjobs every 5 seconds
   my $print_freq  = 12; # print update every 12 loop iterations (about every 12*$sleep_nsecs seconds)
-  my @inqstatA = ();
+  my @ininfoA = ();
   my @successA = ();
-  my @qstatA = ();
+  my @infoA  = ();
   my @elA    = ();
   my $nsuccess = 0;
   my $max_wait_secs = 0;
-  my ($i, $minutes_elapsed, $nrunning, $nwaiting, $line, $uname, $jobname, $status, $i2);
+  my ($minutes_elapsed, $nrunning, $nwaiting, $line, $uname, $jobname, $status, $i2);
   $i2 = 0;
   for($i = 0; $i < $n; $i++) { $successA[$i] = 0; } 
 
   sleep(2); 
 
   while($nsuccess != $n) { 
-    @qstatA = split("\n", `qstat`);
-    for($i = 0; $i < $n; $i++) { $inqstatA[$i] = 0; } 
+    if   ($location eq "JFRC") { @infoA = split("\n", `qstat`); }
+    elsif($location eq "EBI")  { @infoA = split("\n", `bjobs`); }
+
+    for($i = 0; $i < $n; $i++) { $ininfoA[$i] = 0; } 
     $nrunning  = 0;
     $nwaiting  = 0;
-    foreach $line (@qstatA) { 
+    foreach $line (@infoA) { 
       if($line =~ m/^\d/) { 
-        #1232075 4.79167 QLOGIN     davisf       r     03/25/2013 14:24:11 f02.q@f02u09.int.janelia.org                                      8        
         @elA = split(/\s+/, $line);
-        ($jobname, $uname, $status) = ($elA[2], $elA[3], $elA[4]);
+        if($location eq "JFRC") { 
+          #1232075 4.79167 QLOGIN     davisf       r     03/25/2013 14:24:11 f02.q@f02u09.int.janelia.org                                      8        
+          ($jobname, $uname, $status) = ($elA[2], $elA[3], $elA[4]);
+        }
+        elsif($location eq "EBI") { 
+          # jobid   uname   status queue     sub node    run node    job name   date     
+          # 5134531 vitor   RUN   research-r ebi-004     ebi5-037    *lection.R Apr 29 18:00
+          # 4422939 stauch  PEND  research-r ebi-001                 *ay[16992] Apr 26 12:56
+          ($uname, $status) = ($elA[1], $elA[2]);
+          if($status eq "RUN") { $jobname = $elA[6]; }
+          else                 { $jobname = $elA[5]; }
+          #print STDERR ("uname: $uname status: $status; jobname: $jobname\n");
+        }
         #printf("\tjobname: $jobname uname: $uname status: $status\n");
         if($uname ne $username) { die "wait_for_cluster(), internal error, uname mismatch ($uname ne $username)"; }
         # look through our list of jobs and see if this one matches
         for($i = 0; $i < $n; $i++) { 
-          #printf("\t\tsuccess: %d\tinqstat: %d\tmatch: %d\n", $successA[$i], $inqstatA[$i], ($jobnameAR->[$i] eq $jobname) ? 1 : 0);
+          #printf("\t\tsuccess: %d\tininfo: %d\tmatch: %d\n", $successA[$i], $ininfoA[$i], ($jobnameAR->[$i] eq $jobname) ? 1 : 0);
           if((! $successA[$i]) &&              # job didn't successfully complete already 
-             (! $inqstatA[$i]) &&              # we didn't already find this job in the queue
+             (! $ininfoA[$i]) &&              # we didn't already find this job in the queue
              ($jobnameAR->[$i] eq $jobname)) { # jobname match
-            $inqstatA[$i] = 1; 
-            if($status eq "r")     { $nrunning++; }
-            elsif($status =~ m/E/) { die "wait_for_cluster(), internal error, qstat shows Error status: $line"; }
-            else                   { $nwaiting++; } 
+            $ininfoA[$i] = 1; 
+            if($location eq "JFRC") { 
+              if($status eq "r")     { $nrunning++; }
+              elsif($status =~ m/E/) { die "wait_for_cluster(), internal error, qstat shows Error status: $line"; }
+              else                   { $nwaiting++; } 
+            }
+            elsif($location eq "EBI") { 
+              if   ($status eq "RUN")  { $nrunning++; }
+              elsif($status eq "PEND") { $nwaiting++; } 
+              else                     { die "wait_for_cluster(), internal error, bjobs shows non-\"RUN\" and non-\"PEND\" status: $line"; }
+            }
           }
         }
       } # end of if($line =~ m/^\d/) 
-    } # end of 'foreach $line (@qstatA)'
+    } # end of 'foreach $line (@infoA)'
     if($nwaiting > 0) { $max_wait_secs = time() - $start_time; } 
 
     # for all jobs not found in the qstat output, make sure they finished properly
     for($i = 0; $i < $n; $i++) { 
       if((! $successA[$i]) && # job didn't successfully complete already 
-         (! $inqstatA[$i])) { # we didn't find this job in the queue
+         (! $ininfoA[$i])) { # we didn't find this job in the queue
         if(! -e $outnameAR->[$i]) { die "wait_for_cluster() job $i seems to be finished (not in queue) but expected output file ($outnameAR->[$i] does not exist"; }
         open(IN, $outnameAR->[$i]) || die "wait_for_cluster() job $i seems to be finished (not in queue) but expected output file ($outnameAR->[$i] can't be opened"; 
         while($line = <IN>) { 
@@ -727,6 +765,38 @@ sub printToFileAndStdout {
   print $fh $str;
   print $str;
 
+  return;
+}
+
+=head2 checkStderrFile
+
+  Title    : checkStderrFile
+  Incept   : EPN, Tue Apr 30 01:20:50 2013
+  Usage    : checkStderrFile($config->location, $calibrate_errO)
+  Function : Check output printed to STDERR in location-dependent. 
+           : If anything looks like a real error, then die.
+  Args     : $location, $errFile
+  Returns  : void
+
+=cut
+
+sub checkStderrFile { 
+  my ($location, $errFile) = @_;
+
+  if(-s $errFile) { 
+    if($location eq "JFRC") { 
+      die "Error output, see $errFile";
+    }
+    elsif($location eq "EBI") { 
+      open(IN, $errFile) || die "ERROR unable to open $errFile";
+      while(my $line = <IN>) { 
+        if($line !~ m/^Warning/) {
+          die "Error output, see $errFile";
+        }
+      }
+      close(IN);
+    }
+  }
   return;
 }
 

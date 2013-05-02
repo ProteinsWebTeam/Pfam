@@ -261,7 +261,7 @@ sub cmalign_wrapper {
     Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmalignPath --mpi $options $cmPath $seqfilePath > $outPath", "a.$$", "a.$$.err", $nproc);
     my @jobnameA = ($jobname);
     my @outnameA = ($outPath);
-    Bio::Rfam::Utils::wait_for_cluster(\@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
+    Bio::Rfam::Utils::wait_for_cluster($config->location, \@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
     unlink $errPath;
   }
   else { 
