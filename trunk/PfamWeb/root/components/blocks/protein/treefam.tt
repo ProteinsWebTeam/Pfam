@@ -27,7 +27,7 @@ RETURN UNLESS pfamseq.treefam_acc;
     # claiming to use, so this is pretty bad form... 
     # TODO don't use an iframe %]
   <iframe id="treeFamFrame" 
-          src="http://www.treefam.org/cgi-bin/treeview.pl?stype=clean&amp;ac=[% pfamseq.treefam_acc %]"
+          src="http://dev.treefam.org/viewtree/[% pfamseq.treefam_acc %]"
           title="TreeFam entry [% pfamseq.treefam_acc %]"></iframe>
 
   </div> <!-- end of "blockContent" -->
