@@ -18,7 +18,7 @@ use Log::Log4perl qw(get_logger :levels);
 # set up logging
 
 my $logger_conf = q(
-  log4perl.logger                   = DEBUG, Screen
+  log4perl.logger                   = INFO, Screen
   log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
   log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
   log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
@@ -103,7 +103,9 @@ ROW: while ( my $live_jh_row = $live_jh_rs->next ) {
   my $archive_js_row = $archive_schema->resultset('JobStream')
                                       ->find_or_new( \%stream_data );
 
-  if ( $archive_jh_row->in_storage or $archive_js_row->in_storage ) {
+  if ( ( $archive_jh_row->in_storage or $archive_js_row->in_storage ) and
+       $log->is_debug ) {
+
     $log->logwarn( "WARNING: row exists for job $id" );
     next ROW;
   }
