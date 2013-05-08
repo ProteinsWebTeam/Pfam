@@ -50,7 +50,7 @@ $log->info( 'set up DB connections' );
 $live_schema->storage->debug(1) if $log->is_debug;
 
 my $id_rs = $live_schema->resultset('JobHistory')
-                        ->search( { opened => { '>', \'DATE_SUB( NOW(), INTERVAL 1 WEEK )' } },
+                        ->search( { opened => { '>', \'DATE_SUB( NOW(), INTERVAL 2 WEEK )' } },
                                   { order_by => { -asc => [ 'id' ] },
                                     rows     => 1 } )
                         ->single;
