@@ -40,6 +40,7 @@ sub keyword : Local {
   # template that will render the search forms
   unless ( $c->req->param('query') ) {
     $c->stash->{kwSearchError} = 'You did not supply a query term.';
+    $c->stash->{template} = 'pages/search/keyword/error.tt';
 
     $c->log->debug( 'Roles::Search::Keyword::text_search: no query terms supplied' )
       if $c->debug;
@@ -53,6 +54,7 @@ sub keyword : Local {
   # we're done here unless there's a query specified
   unless ( defined $terms ) {
     $c->stash->{kwSearchError} = 'You did not supply any valid query terms.';
+    $c->stash->{template} = 'pages/search/keyword/error.tt';
 
     $c->log->debug( 'Roles::Search::Keyword::text_search: no *valid* query terms supplied' )
       if $c->debug;
@@ -63,6 +65,7 @@ sub keyword : Local {
   # stop Prasad submitting single character searches...
   unless ( length $terms > 1 ) {
     $c->stash->{kwSearchError} = 'You cannot use a single character as a query term.';
+    $c->stash->{template} = 'pages/search/keyword/error.tt';
 
     $c->log->debug( 'Roles::Search::Keyword::text_search: single character query term' )
       if $c->debug;
