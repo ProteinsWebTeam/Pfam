@@ -21,58 +21,58 @@ META fullPage = 1
   <p>Here are a few tips on how to get the most out of the Pfam search system:</p>
 
   <dl>
-	<dt>
+    <dt>
       avoid special characters
-	</dt>
-	<dd>
+    </dt>
+    <dd>
       your search term can only include standard word characters
       (letters and numbers), as well as
       space&nbsp;(&quot;&nbsp;&quot;),
       underscore&nbsp;(&quot;_&quot;), hyphen&nbsp;(&quot;-&quot;)
       and period&nbsp;(&quot;.&quot;). Search terms that include
       other characters will be rejected
-	</dd>
+    </dd>
 
-	<dt>
+    <dt>
       don&rsquo;t include wildcards
-	</dt>
-	<dd>
+    </dt>
+    <dd>
       the search system will automatically add wildcards to the end of
       your search terms, but will reject your search if it includes
       characters such as &quot;*&quot; or &quot;%&quot;
-	</dd>
+    </dd>
 
-	<dt>
+    <dt>
       don&rsquo;t worry about case
-	</dt>
-	<dd>
+    </dt>
+    <dd>
       the search is case insensitive, so changing the case of your
       search terms will not affect the results
-	</dd>
-	<dt>
-		try fewer words
-	</dt>
-	<dd>
+    </dd>
+    <dt>
+        try fewer words
+    </dt>
+    <dd>
       if you don&rsquo;t get any results, try making your query less
       specific, e.g. use &quot;rhinovirus&quot; instead of &quot;human
       rhinovirus&nbsp;14&quot;
-	</dd>
-	<dt>
+    </dd>
+    <dt>
       check your spelling
-	</dt>
-	<dd>
+    </dt>
+    <dd>
       make sure that the spelling of your search terms is accurate;
       the database can&rsquo;t compensate for incorrect spelling
-	</dd>
-	<dt>
+    </dd>
+    <dt>
       obsolete entries
-	</dt>
-	<dd>
+    </dt>
+    <dd>
       entries may be removed from the Pfam database occasionally, as
       they are included in larger families, etc. Because details of
       the &rsquo;dead&rsquo; entries are not in the database, they will
       not appear in your search results
-	</dd>
+    </dd>
 
   </dl>
 
