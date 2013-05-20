@@ -192,7 +192,7 @@
       <dd>
         Directory contains two files per table from the MySQL database.
         The .sql.gz file contains the table structure, the .txt.gz files
-        contains the contented of the table, as a tab delimited file with
+        contains the content of the table as a tab delimited file with
         field enclosed by a single quote (').
       </dd>
   
