@@ -372,7 +372,7 @@ sub regions_GET : Private {
   $c->forward( 'get_regions_data' );
 
   # make sure we got *some* regions
-  unless ( defined $c->stash->{region_rows} ) {
+  unless ( defined $c->stash->{region_rs} ) {
     $c->log->debug( 'Family::Methods::regions: failed to retrieve regions' )
       if $c->debug;
 
@@ -384,21 +384,12 @@ sub regions_GET : Private {
   
   # build a sensible filename
   my $filename = $c->stash->{acc} . '_regions';
-  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
 
-  # add the rows
-  $c->stash->{rest}->{regions} = [];
-  foreach my $region ( @{ $c->stash->{region_rows} } ) {
-    push @{ $c->stash->{rest}->{regions} }, [
-      $region->get_column('rfamseq_acc' ),
-      $region->bits_score,
-      $region->seq_start,
-      $region->seq_end,
-      $region->get_column('description' ),
-      $region->get_column('species' ),
-      $region->get_column('ncbi_taxid' ),
-    ];
-  }
+  $filename .= ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml'  ) 
+             ? '.xml'
+             : '.txt';
+
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
 
   # cache the template output for one week
   $c->cache_page( 604800 );
