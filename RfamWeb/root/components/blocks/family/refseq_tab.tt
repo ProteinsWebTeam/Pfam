@@ -61,7 +61,7 @@ refseqRegionsCount = refseqRegions.count;
     </thead>
     <tbody>
       [% seqUri = c.uri_for( '/sequence/' );
-      FOREACH region IN refseqRegions.slice(0, showAll) %]
+      FOREACH region IN refseqRegions.slice(0, limits.showAll) %]
         <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
           <td class="rowNum">[% loop.index %]</td>
           <td>
