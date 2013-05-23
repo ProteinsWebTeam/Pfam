@@ -6,29 +6,37 @@
 #
 # $Id$
 
+META naked = 1;
+
 USE Number.Format( THOUSANDS_SEP = "," );
 %]
 
 <p>
   There are <strong>[% rfam.num_full %]</strong> sequence regions for this family.
-  [% IF showAllSequences %]
+  [% IF rfam.num_full < limits.showAll;
+    tabLabel = rfam.num_full %]
     You can <a href="[% c.uri_for( '/family', acc, 'regions' ) %]">download</a>
     the details of all regions as a tab-delimited file. The table of results 
     below may be sorted by clicking on the column titles, or restored to the 
     original order <span class="link" id="sortLink">here</span>. 
-  [% ELSIF showTextSequences %]
-    There are too many regions to show in this page (we show a maximum of
-    [% regionsLimit %]), but you can still 
+  [% ELSIF rfam.num_full < limits.showText;
+    tabLabel = limits.showAll _ "+" %]
+    We are showing the first <strong>[% limits.showAll %]</strong>, sorted
+    by bit score, but you can still 
     <a href="[% c.uri_for('/family', acc, 'regions' ) %]">download</a> 
     the details of all of them as a tab-delimited file.
-  [% ELSE %]
-    There are too many regions to show (&gt;[% regionsLimit %]). If you
-    really need a list of all regions for this family, please contact us at
-    the address below and we will do our best to help. 
+    The table of results below may be sorted by clicking on the column titles, or 
+    restored to the original order <span class="link" id="sortLink">here</span>. 
+  [% ELSE;
+    tabLabel = limits.showText _ "+" %]
+    We are showing the first <strong>[% limits.showAll %]</strong>, sorted by
+    bit score, but there are too many regions to download. If you really need
+    a list of all regions for this family, please contact us at the address
+    below and we will do our best to help. 
   [% END %]
 </p>
 
-[% IF region_rows.defined %]
+[% IF region_rs.count %]
   <table summary="Rfam regions"
          id="regionsTable"
          class="details">
@@ -46,7 +54,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     </thead>
     <tbody>
       [% seqUri = c.uri_for( '/sequence/' );
-      FOREACH region IN region_rows;
+      FOREACH region IN region_rs.slice(0, limits.showAll);
         seqAcc  = region.get_column('rfamseq_acc');
         
         # build the URL for the ENA image, expanding the region by
@@ -70,7 +78,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
           _ "<a href='http://www.ebi.ac.uk/ena/data/view/$seqAcc' class='ext'>$seqAcc</a>/"
           _ region.seq_start _ " - " _ region.seq_end
           | html -%]
-        <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
+        <tr class="[% loop.parity %]">
           <td class="rowNum">[% loop.index %]</td>
           <td>
             <a title="[% rfam.rfam_acc %]" 
@@ -90,16 +98,25 @@ USE Number.Format( THOUSANDS_SEP = "," );
           <td class="left">[% region.get_column('description') %]</td>
           <td>[% region.get_column('species') %]</td>
         </tr>
+      [% END;
+      IF rfam.num_full > limits.showAll %]
+        <tr class="truncationWarning">
+          <td colspan="8">
+            <strong>Note</strong>: this table contains only the first
+            <strong>[% limits.showAll %]</strong> sequences. 
+            [% IF rfam.num_full < limits.showText %]
+              <a href="[% c.uri_for('/family', acc, 'regions' ) %]">Download</a> 
+              the full result set.
+            [% END %]
+          </td>
+        </tr>
       [% END %]
     </tbody>
   </table>
-[% END; # of "IF region_rows.defined" %]
 
-[% IF showAllSequences %]
-<script type="text/javascript">
-  // <![CDATA[
+  <script type="text/javascript">
+    // <![CDATA[
 
-  document.observe( "dom:loaded", function() {
     var sorter = new TableKit( "regionsTable",
                                {
                                  editable: false,
@@ -114,16 +131,19 @@ USE Number.Format( THOUSANDS_SEP = "," );
                                  }
                                } );
 
-    $("sortLink").observe( "click", function() {
-      sorter.sort(0);
-    } );
+    if ( $("sortLink") ) {
+      $("sortLink").observe( "click", function() {
+        sorter.sort(0);
+      } );
+    }
+
+    $("sequencesTabLabel").update( "Rfamseq ([% tabLabel %])" );
 
     var lb = new Lightbox();
-  } );
 
-  // ]]>
-</script>
-[% END %]
+    // ]]>
+  </script>
+[% END; # of "IF region_rows.defined" %]
 
 [%#
 Copyright (c) 2012: Genome Research Ltd.

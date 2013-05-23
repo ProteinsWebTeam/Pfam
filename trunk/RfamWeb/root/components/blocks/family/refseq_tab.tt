@@ -6,35 +6,45 @@
 #
 # $Id$
 
+META naked = 1;
+
 USE Number.Format( THOUSANDS_SEP = "," );
+
+refseqRegionsCount = refseqRegions.count;
 %]
 
 <p>
-  [% IF refseqRegions.count %]
-    There are <strong>[% refseqRegions.count %]</strong> refseq sequence
+  [% IF refseqRegionsCount %]
+    There are <strong>[% refseqRegionsCount %]</strong> refseq sequence
     regions for this family.
-    [% IF showAllRefseq %]
+    [% IF refseqRegionsCount < limits.showAll;
+      tabLabel = refseqRegionsCount %]
       You can <a href="[% c.uri_for( '/family', acc, 'refseq' ) %]">download</a>
-      the details of all regions as a tab-delimited file. The table of
-      results below may be sorted by clicking on the column titles, or
-      restored to the original order 
-      <span class="link" id="rsSortLink">here</span>. 
-    [% ELSIF showTextRefseq %]
-      There are too many regions to show in this page (we show a maximum of
-      [% regionsLimit %]) , but you can still 
-      <a href="[% c.uri_for('/family', acc, 'refseq' ) %]">download</a> 
+      the details of all regions as a tab-delimited file. The table of results
+      below may be sorted by clicking on the column titles, or restored to the 
+      original order <span class="link" id="rsSortLink">here</span>. 
+    [% ELSIF refseqRegionsCount < limits.showText;
+      tabLabel = limits.showAll _ "+" %]
+      We are showing the first <strong>[% limits.showAll %]</strong>, sorted
+      by bit score, but you can still 
+      <a href="[% c.uri_for('/family', acc, 'regions' ) %]">download</a> 
       the details of all of them as a tab-delimited file.
-    [% ELSE %]
-      There are too many regions to show (&gt;[% regionsLimit %]). If you
-      really need a list of all regions for this family, please contact us at
-      the address below and we will do our best to help. 
-    [% END %]
-  [% ELSE %]
-  There are no refseq regions for this family.
+      The table of results below may be sorted by clicking on the column titles, or 
+      restored to the original order <span class="link" id="sortLink">here</span>. 
+    [% ELSE;
+      tabLabel = limits.showText _ "+" %]
+      We are showing the first <strong>[% limits.showAll %]</strong>, sorted by
+      bit score, but there are too many regions to download. If you really need
+      a list of all regions for this family, please contact us at the address
+      below and we will do our best to help. 
+    [% END;
+  ELSE;
+    tabLabel = 0 %]
+    There are no refseq regions for this family.
   [% END %]
 </p>
 
-[% IF refseqRegions.count AND showAllRefseq %]
+[% IF refseqRegionsCount %]
   <table summary="Rfam refseq regions"
          id="refseqTable"
          class="details">
@@ -51,7 +61,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
     </thead>
     <tbody>
       [% seqUri = c.uri_for( '/sequence/' );
-      FOREACH region IN refseqRegions.all %]
+      FOREACH region IN refseqRegions.slice(0, showAll) %]
         <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
           <td class="rowNum">[% loop.index %]</td>
           <td>
@@ -64,36 +74,52 @@ USE Number.Format( THOUSANDS_SEP = "," );
           <td class="left">[% region.description %]</td>
           <td>[% region.species %]</td>
         </tr>
+      [% END;
+      IF refseqRegionsCount > limits.showAll %]
+        <tr class="truncationWarning">
+          <td colspan="8">
+            <strong>Note</strong>: this table contains only the first
+            <strong>[% limits.showAll %]</strong> sequences. 
+            [% IF refseqRegionsCount < limits.showText %]
+              <a href="[% c.uri_for('/family', acc, 'regions' ) %]">Download</a> 
+              the full result set.
+            [% END %]
+          </td>
+        </tr>
       [% END %]
     </tbody>
   </table>
+[%- END %]
 
-  <script type="text/javascript">
-    // <![CDATA[
+<script type="text/javascript">
+  // <![CDATA[
 
-    document.observe( "dom:loaded", function() {
-      var rsSorter = new TableKit( "refseqTable",
-                                   {
-                                     editable: false,
-                                     resizable: false,
-                                     rowEvenClass: "even",
-                                     rowOddClass: "odd",
-                                     stripe: true,
-                                     observers: {
-                                       onSortStart: function( table, event ) { 
-                                         table.down("thead").removeClassName("sortIndicator");
-                                       }
+  [% IF refseqRegionsCount %]
+    var rsSorter = new TableKit( "refseqTable",
+                                 {
+                                   editable: false,
+                                   resizable: false,
+                                   rowEvenClass: "even",
+                                   rowOddClass: "odd",
+                                   stripe: true,
+                                   observers: {
+                                     onSortStart: function( table, event ) { 
+                                       table.down("thead").removeClassName("sortIndicator");
                                      }
-                                   } );    
+                                   }
+                                 } );    
 
+    if ( $("rsSortLink") ) {
       $("rsSortLink").observe( "click", function() {
         rsSorter.sort(0);
       } );
-    } );
+    }
+  [% END %]
 
-    // ]]>
-  </script>
-[%- END %]
+  $("refseqTabLabel").update( "Refseq ([% tabLabel %])" );
+
+  // ]]>
+</script>
 
 [%#
 Copyright (c) 2012: Genome Research Ltd.
