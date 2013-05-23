@@ -129,6 +129,8 @@
           <li><span id="sunburstSequencesCount">0</span> sequences</li>
           <li><span id="sunburstSpeciesCount">0</span> species</li>
         </ul>
+        <div class="small"><strong>Note</strong>: selection tools show results in pop-up windows.
+          Please disable pop-up blockers.</div>
       </div>
       <div style="display: none" class="errors" id="sunburstErrors"></div>
     </div>
