@@ -28,6 +28,9 @@ use namespace::autoclean;
 use MIME::Base64;
 use JSON;
 use Data::Dump qw( dump );
+use Text::Wrap qw( $columns wrap );
+
+$Text::Wrap::columns = 60;
 
 BEGIN {
   extends 'Catalyst::Controller::REST';
@@ -41,7 +44,7 @@ with 'PfamBase::Roles::Section' => { -excludes => 'section' },
      'RfamWeb::Roles::Family::TreeMethods',
      'RfamWeb::Roles::Family::AlignmentMethods',
      'RfamWeb::Roles::Family::StructureMethods',
-     'RfamWeb::Roles::Family::SunburstMethods';
+     'PfamBase::Roles::SunburstMethods';
 
 # set up the list of content-types that we handle via REST
 __PACKAGE__->config(
@@ -195,55 +198,6 @@ sub family_page_GET_html : Private {
 
   #---------------------------------------
 
-  # load the data for all regions, provided the number of regions is less than
-  # the limit set in the config
-  if ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showAll} ) {
-    $c->log->debug( 'Family::family_page: num_full <= showAll limit; retrieving regions' )
-      if $c->debug;
-    $c->stash->{showAllSequences} = 1;
-    $c->forward( 'get_regions_data' );
-  }
-  elsif ( $c->stash->{rfam}->num_full <= $this->{regionsLimits}->{showText} ) {
-    $c->log->debug( 'Family::family_page: num_full <= showText limit; retrieving regions later' )
-      if $c->debug;
-    $c->stash->{showTextSequences} = 1;
-    $c->stash->{regionsLimit} = $this->{regionsLimits}->{showAll};
-  }
-  else {
-    $c->stash->{regionsLimit} = $this->{regionsLimits}->{showText};
-  }
-
-  #---------------------------------------
-
-  # refseq data
-  my $regions = $c->stash->{db}->resultset('RfamRefseq')
-                  ->search( { rfam_acc => $c->stash->{acc} },
-                            { } );
-
-  if ( defined $regions ) {
-    my $num_regions = $regions->count;
-    $c->stash->{refseqRegions} = $regions;
-      $c->log->debug( "Family::family_page: found $num_regions refseq regions" )
-        if $c->debug;
-
-    if ( $num_regions <= $this->{refseqRegionsLimits}->{showAll} ) {
-      $c->log->debug( "Family::family_page: refseq regions count <= showAll limit; returning $num_regions regions" )
-        if $c->debug;
-      $c->stash->{showAllRefseq} = 1;
-    }
-    elsif ( $num_regions <= $this->{refseqRegionsLimits}->{showText} ) {
-      $c->log->debug( 'Family::family_page: refseq regions count <= showText limit; allowing text download' )
-        if $c->debug;
-      $c->stash->{showTextRefseq} = 1;
-      $c->stash->{regionsLimit} = $this->{regionsLimits}->{showAll};
-    }
-    else {
-      $c->stash->{regionsLimit} = $this->{regionsLimits}->{showText};
-    }
-  }
-
-  #---------------------------------------
-
   # add the clan details, if any
   my $clan = $c->stash->{db}->resultset('Clans')
                ->search( { 'clan_memberships.auto_rfam' => $c->stash->{rfam}->auto_rfam },
@@ -391,6 +345,56 @@ sub old_family : Chained( '/' )
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 sunburst
+
+Stub to add a "sunburst" pathpart. All methods from the L<SunburstMethods> Role
+will be hung off this stub.
+
+=cut
+
+sub sunburst : Chained( 'family' )
+               PathPart( 'sunburst' )
+               CaptureArgs( 0 ) {
+  my ( $this, $c ) = @_;
+
+  # specify the queue to use when submitting sunburst-related jobs
+  $c->stash->{alignment_job_type} = 'rfalign';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 sequences
+
+=cut
+
+sub sequences : Chained( 'family' )
+                PathPart( 'sequences' )
+                Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->stash->{template} = "components/blocks/family/sequences_tab.tt";
+
+  $c->forward('get_regions_data');
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 refseq
+
+=cut
+
+sub refseq : Chained( 'family' )
+             PathPart( 'refseq' )
+             Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->stash->{template} = "components/blocks/family/refseq_tab.tt";
+
+  $c->forward('get_refseq_data');
+}
+
+#-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -493,6 +497,28 @@ sub get_summary_data : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 get_refseq_data : Private
+
+Retrieves refseq data for the family.
+
+=cut
+
+sub get_refseq_data : Private {
+  my ( $this, $c ) = @_;
+  
+  $c->stash->{refseqRegions} = 
+    $c->stash->{db}->resultset('RfamRefseq')
+      ->search( { rfam_acc => $c->stash->{acc} },
+                { order_by => [ 'bits_score DESC' ] } );
+
+  $c->stash->{limits} = $this->{regionsLimits};
+
+  $c->log->debug( 'Family::get_refseq_data: added refseq regions to stash' ) 
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 get_regions_data : Private
 
 Retrieves sequence data for the family.
@@ -505,25 +531,26 @@ sub get_regions_data : Private {
   $c->log->debug( 'Family::get_regions_data: family has |'
                   . $c->stash->{rfam}->num_full . '| regions' ) if $c->debug;
 
-  my @regions = $c->stash->{db}->resultset('RfamRegFull')
-                  ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
-                            { join      => { 'auto_rfamseq' => 'ncbi_id' },
-                              '+select' => [ qw( auto_rfamseq.rfamseq_acc
-                                                 auto_rfamseq.description
-                                                 ncbi_id.species
-                                                 ncbi_id.ncbi_id
-                                                 auto_rfamseq.length ) ],
-                              '+as'     => [ qw( rfamseq_acc
-                                                 description
-                                                 species
-                                                 ncbi_taxid
-                                                 length ) ],
-                              order_by  => [ 'bits_score DESC' ] } );
+  $c->stash->{region_rs} = 
+    $c->stash->{db}->resultset('RfamRegFull')
+      ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
+                { join      => { 'auto_rfamseq' => 'ncbi_id' },
+                  '+select' => [ qw( auto_rfamseq.rfamseq_acc
+                                     auto_rfamseq.description
+                                     ncbi_id.species
+                                     ncbi_id.ncbi_id
+                                     auto_rfamseq.length ) ],
+                  '+as'     => [ qw( rfamseq_acc
+                                     description
+                                     species
+                                     ncbi_taxid
+                                     length ) ],
+                  order_by  => [ 'bits_score DESC' ] } );
                                             
-  $c->stash->{region_rows} = \@regions;
+  $c->stash->{limits}  = $this->{refseqRegionsLimits};
 
-  $c->log->debug( 'Family::get_regions_data: added |' . scalar @regions
-                  . '| regions to stash' ) if $c->debug;
+$c->log->debug('Family::get_regions_data: added regions to stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -551,6 +578,97 @@ sub get_wikipedia : Private {
 
   $c->stash->{article} = $article;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 build_fasta : Private
+
+Builds a FASTA-format sequence file containing the region sequences for the
+supplied accessions. This is used by the "required" by the L<SunburstMethods>
+role.
+
+Takes two arguments: ref to an array with the list of
+accessions; boolean specifying whether or not to "pretty print" the sequences
+by wrapping at 60 characters per line.
+
+=cut
+
+sub build_fasta : Private {
+  my ( $this, $c, $accessions, $pretty ) = @_;
+
+  $c->log->debug( 'Family::build_fasta: wrapping sequence lines' )
+    if ( $c->debug and $pretty );
+
+  my $fasta = '';
+  foreach ( @$accessions ) {
+    next unless m/^\w+$/;
+    my $rs = $c->model( 'RfamDB::SeqInfo' )
+               ->search( { rfamseq_acc => $_,
+                           rfam_acc    => $c->stash->{acc} },
+                         { columns => [ qw( rfamseq_acc_v
+                                            seq_start 
+                                            seq_end 
+                                            sequence
+                                            description ) ] } );
+    while ( my $row = $rs->next ) {
+      my $header = '>' . 
+                   $row->rfamseq_acc_v . '/' .
+                   $row->seq_start . '-' . $row->seq_end . ' ' .
+                   $row->description;
+      my $sequence = uc $row->sequence;
+      $sequence =~ s/[-.]//g;
+      $sequence = wrap( '', '', $sequence ) if $pretty;
+
+      $fasta .= "$header\n$sequence\n";
+    }
+  }
+
+  return $fasta;
+}
+
+# this version of the "build_fasta" method uses a three-table join to get 
+# everything it needs. That should, in principle, be slower than getting it all
+# from a single table (shouldn't it ?).
+# sub old_build_fasta : Private {
+#   my ( $this, $c, $accessions, $pretty ) = @_;
+# 
+#   $c->log->debug( 'Family::SunburstMethods::build_fasta: wrapping sequence lines' )
+#     if ( $c->debug and $pretty );
+# 
+#   my $sequences = '';
+#   foreach my $acc ( split m/,/, $accessions ) {
+#     next unless $acc =~ m/^\w+$/;
+#     my $rs = $c->model( 'RfamDB::RfamRegFull' )
+#                ->search( { 'auto_rfamseq.rfamseq_acc' => $acc },
+#                          { join     => [ qw( auto_rfam auto_rfamseq ) ],
+#                            select   => [ qw( auto_rfamseq.rfamseq_acc 
+#                                              auto_rfamseq.version 
+#                                              seq_start 
+#                                              seq_end 
+#                                              sequence
+#                                              auto_rfamseq.description ) ],
+#                            as       => [ qw( rfamseq_acc 
+#                                              version 
+#                                              seq_start 
+#                                              seq_end 
+#                                              sequence
+#                                              description ) ] } );
+#     while ( my $row = $rs->next ) {
+#       my $header = '>' . 
+#                    $row->get_column('rfamseq_acc') . '.' . $row->get_column('version') . '/' .
+#                    $row->seq_start . '-' . $row->seq_end . ' ' .
+#                    $row->get_column('description');
+#       my $sequence = $row->sequence;
+#       $sequence =~ s/[-.]//g;
+#       $sequence = wrap( '', '', $sequence ) if $c->debug;
+#       # TODO should the sequence be forced to upper case ?
+# 
+#       $sequences .= "$header\n$sequence\n";
+#     }
+#   }
+# 
+#   return $sequences;
+# }
 
 #-------------------------------------------------------------------------------  
 
