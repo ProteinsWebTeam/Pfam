@@ -24,12 +24,12 @@
       <span>
         <label for="weightSeq">
           <input type="radio" name="weight" id="weightSeq" value="1" checked="checked" />
-          number of  sequences
+          number of sequences
         </label>
         <br />
         <label for="weightSpecies">
           <input type="radio" name="weight" id="weightSpecies" value="1" />
-          number of  species
+          number of species
         </label>
       </span>
     </div>
@@ -105,6 +105,9 @@
       <div>
         <div id="sunburstSelectionTools">
           <p>
+            Click on a node to select that node and its sub-tree.
+          </p>
+          <p>
             <span id="sunburstAlignSelectionSwitch"
                   class="link">Align</span> selected sequences to CM
           </p>
@@ -128,6 +131,8 @@
           <li><span id="sunburstSequencesCount">0</span> sequences</li>
           <li><span id="sunburstSpeciesCount">0</span> species</li>
         </ul>
+        <div class="small"><strong>Note</strong>: selection tools show 
+          results in pop-up windows. Please disable pop-up blockers.</div>
       </div>
       <div style="display: none" class="errors" id="sunburstErrors"></div>
     </div>
@@ -281,7 +286,7 @@
   var sunburstController;
 
   document.observe("dom:loaded", function() {
-    sunburstController = new SunburstController( "[% c.req.uri %]", treeData );
+    sunburstController = new SunburstController( "[% c.req.uri %]", treeData, "rfam" );
   } );
 
   // ]]>
