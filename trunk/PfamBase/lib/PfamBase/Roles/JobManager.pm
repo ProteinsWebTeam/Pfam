@@ -205,7 +205,7 @@ search mechanism can have multiple jobs with the same job ID.
 sub retrieve_result_rows : Private {
   my ( $this, $c, @jobIds ) = @_;
 
-  my $valid_ids;
+  my @valid_ids;
   foreach my $jobId ( @jobIds ) {
     if ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
       push @valid_ids, $jobId;
@@ -224,7 +224,7 @@ sub retrieve_result_rows : Private {
   }
 
   $c->log->debug( 'JobManager::retrieve_result_rows: looking up details for job IDs: |' 
-                  . join ',', @valid_ids ) . '|' ) if $c->debug;
+                  . join ',', @valid_ids . '|' ) if $c->debug;
   
   my @jobs = $c->model( 'WebUser::JobHistory' )
                ->search( { job_id => { '=', \@valid_ids } },
