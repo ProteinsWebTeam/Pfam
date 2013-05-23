@@ -33,10 +33,10 @@ USE String;
 
       <ul id="sequencesTabsNav" class="yui-nav">
         <li class="selected">
-          <a href="#sequencesTab">Rfamseq ([% rfam.num_full %])</a>
+          <a href="#sequencesTab" id="sequencesTabLabel">Rfamseq <span class="loading"></span></a>
         </li>
         <li>
-          <a href="#yuiTreeTab">Refseq ([% refseqRegions.count || 0 %])</a>
+          <a href="#yuiTreeTab" id="refseqTabLabel">Refseq <span class="loading"></span></a>
         </li> 
       </ul>
       
@@ -44,16 +44,14 @@ USE String;
   
         <!-- start of rfamseq sequences tab -->
 
-        <div id="sequencesTab"> 
-          [% PROCESS components/blocks/family/sequences_tab.tt %]
-        </div>
+        <div id="sequencesTab"></div>
 
         <!-- end of rfamseq sequences tab -->
 
         <!-- start of refseq sequences tab -->
 
         <div id="refseqTab">
-          [% PROCESS components/blocks/family/refseq_tab.tt %]
+          There are no refseq regions for this family.
         </div>
 
         <!-- end of refseq sequences tab -->
@@ -67,9 +65,28 @@ USE String;
   <script type="text/javascript">
     // <![CDATA[
 
-    var sequencesTabView;
-    document.observe("dom:loaded", function() {
-      sequencesTabView = new YAHOO.widget.TabView("sequencesTabs");
+    document.observe( "dom:loaded", function() {
+
+      var su = new Ajax.Updater(
+        "sequencesTab",
+        "[% c.uri_for('/family', acc, 'sequences') %]",
+        {
+          method: "get",
+          evalScripts: true
+        }
+      );
+
+      var rsu = new Ajax.Updater(
+        "refseqTab",
+        "[% c.uri_for('/family', acc, 'refseq') %]",
+        {
+          method: "get",
+          evalScripts: true
+        }
+      );
+
+      var sequencesTabView = new YAHOO.widget.TabView("sequencesTabs");
+
     } );
 
     // ]]>
