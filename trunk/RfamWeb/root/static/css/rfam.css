@@ -494,6 +494,14 @@ td.stripeHover {
   background: #c2d2e1;
 }
 
+table.details tr.truncationWarning {
+  background-color: #DDD ! important;
+}
+
+table.details tr.truncationWarning td {
+  padding: 0.4em;
+}
+
 /*
 table.details tr.odd {
   background: #CCC;
@@ -627,6 +635,10 @@ a.sortheader {
 .key p {
   margin: 0.4em 0;
   text-align: left;
+}
+
+#taxSearchResultsSummary {
+  text-align: center;
 }
 
 /* the top and bottom of the colour gradient in the functional similarity
