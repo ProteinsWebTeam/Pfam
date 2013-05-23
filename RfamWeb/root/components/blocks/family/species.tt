@@ -23,8 +23,8 @@ sharedRequirements.js.push( "sunburst.js" );     # sunburst tree
 sharedRequirements.css.push( "sunburst.css" );
 
 sharedRequirements.js.push( "updater.js" );
-requirements.js.push( "sunburst_controller.js" );# an object to handle wiring
-                                                 # the sunburst into the page
+sharedRequirements.js.push( "sunburst_controller.js" );# an object to handle wiring
+                                                       # the sunburst into the page
 
 # this needs to be loaded before we try to load the canvas text library,
 # but if we include it specifically for IE, it gets added below everything
