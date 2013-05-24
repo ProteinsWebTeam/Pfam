@@ -1,7 +1,9 @@
 #include "easel.h"
+#include "esl_alphabet.h"
 #include "esl_distance.h"
 #include "esl_msa.h"
 #include "esl_msafile.h"
+#include "esl_sq.h"
 #include "esl_vectorops.h"
 #include "esl_wuss.h"
 #include "esl_msaweight.h"
@@ -127,6 +129,29 @@ int _c_has_rf (ESL_MSA *msa)
   else        return 0;
 }
 
+/* Function:  _c_has_ss_cons()
+ * Incept:    EPN, Fri May 24 09:57:56 2013
+ * Synopsis:  Returns TRUE if msa->ss_cons is valid
+ * Returns:   Returns '1' if msa->ss_cons is non-NULL, else returns 0
+ */
+int _c_has_ss_cons (ESL_MSA *msa)
+{
+  if(msa->ss_cons) return 1;
+  else             return 0;
+}
+
+/* Function:  _c_get_ss_cons()
+ * Incept:    EPN, Fri May 24 09:58:32 2013
+ * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
+ *            Caller should have used _c_has_ss_cons to verify it exists.
+ * Returns:   msa->ss_cons()
+ */
+char *_c_get_ss_cons (ESL_MSA *msa)
+{
+  if(msa->ss_cons == NULL) esl_fatal("c_get_ss_cons, but SS_cons is NULL");
+  return msa->ss_cons;
+}
+
 /* Function:  _c_get_accession()
  * Incept:    EPN, Sat Feb  2 14:35:18 2013
  * Synopsis:  Returns msa->acc.
@@ -172,6 +197,16 @@ void _c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
     return;
 }   
 
+/* Function:  _c_get_sqwgt()
+ * Incept:    EPN, Fri May 24 10:48:17 2013
+ * Synopsis:  Returns msa->sqwgt[idx]
+ * Returns:   msa->sqwft[idx]
+ */
+double _c_get_sqwgt (ESL_MSA *msa, I32 idx)
+{
+    return msa->wgt[idx];
+}
+
 /* Function:  _c_any_allgap_columns()
  * Incept:    EPN, Sat Feb  2 14:38:18 2013
  * Synopsis:  Checks for any all gap columns.
@@ -210,6 +245,52 @@ float _c_average_id(ESL_MSA *msa, int max_nseq)
   esl_dst_XAverageId(msa->abc, msa->ax, msa->nseq, (max_nseq * max_nseq), &avgid);
   
   return (float) avgid;
+}
+
+/* Function:  _c_get_sqstring_aligned()
+ * Incept:    EPN, Fri May 24 11:03:49 2013
+ * Purpose:   Return aligned sequence <seqidx>.
+ * Returns:   Aligned sequence <seqidx>.
+ */
+SV *_c_get_sqstring_aligned(ESL_MSA *msa, int seqidx)
+{
+  int status;
+  SV *seqstringSV;  /* SV version of msa->ax[->seq */
+  char *seqstring;
+
+  ESL_ALLOC(seqstring, sizeof(char) * (msa->alen + 1));
+  if((status = esl_abc_Textize(msa->abc, msa->ax[seqidx], msa->alen, seqstring)) != eslOK) croak("failed to textize digitized aligned sequence");
+
+  seqstringSV = newSVpv(seqstring, msa->alen);
+  free(seqstring);
+
+  return seqstringSV;
+
+ ERROR: 
+  croak("out of memory");
+  return NULL;
+}
+
+/* Function:  _c_get_sqstring_unaligned()
+ * Incept:    EPN, Fri May 24 13:08:17 2013
+ * Purpose:   Return unaligned sequence <seqidx>.
+ * Returns:   Unaligned sequence <seqidx>.
+ */
+SV *_c_get_sqstring_unaligned(ESL_MSA *msa, int seqidx)
+{
+  int status;
+  ESL_SQ *sq = NULL;    /* the sequence, fetched from the msa */
+  SV     *seqstringSV;  /* SV version of sq->seq */
+  
+  status = esl_sq_FetchFromMSA(msa, seqidx, &sq);
+  if(status != eslOK) croak("failed to fetch seq %d from msa\n", seqidx);
+  /* convert digital mode to text mode */
+  if(sq->dsq == NULL) croak("fetched seq %d from msa, and it's unexpectedly NOT digitized", seqidx);
+  if((status = esl_sq_Textize(sq)) != eslOK) croak("failed to textize fetched seq from MSA");
+  seqstringSV = newSVpv(sq->seq, sq->n);
+  esl_sq_Destroy(sq);
+
+  return seqstringSV;
 }
  
 /* Function:  _c_get_sqlen()
@@ -270,6 +351,19 @@ int _c_addGS(ESL_MSA *msa, int sqidx, char *tag, char *value)
 {
   int    status;
   status = esl_msa_AddGS(msa, tag, -1, sqidx, value, -1);
+  return status;
+}
+
+/* Function:  _c_weight_GSC()
+ * Incept:    EPN, Fri May 24 10:40:00 2013
+ * Purpose:   Calculate sequence weights using the GSC (Gerstein/Sonnhammer/Chotia) 
+ *            algorithm.
+ * Returns:   eslOK on success, ! eslOK on failure.
+ */
+int _c_weight_GSC(ESL_MSA *msa) 
+{
+  int    status;
+  status = esl_msaweight_GSC(msa);
   return status;
 }
 
