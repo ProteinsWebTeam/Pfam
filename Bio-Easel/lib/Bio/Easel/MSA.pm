@@ -245,6 +245,43 @@ sub has_rf {
   return _c_has_rf( $self->{esl_msa} );
 }
 
+=head2 has_ss_cons
+
+  Title    : has_ss_cons
+  Incept   : EPN, Fri May 24 09:56:40 2013
+  Usage    : $msaObject->has_ss_cons()
+  Function : Does MSA have SS_cons annotation?
+  Args     : none
+  Returns  : '1' if MSA has SS_cons annotation, else returns 0
+
+=cut
+
+sub has_ss_cons {
+  my ($self) = @_;
+
+  $self->_check_msa();
+  return _c_has_ss_cons( $self->{esl_msa} );
+}
+
+=head2 get_ss_cons
+
+  Title    : get_ss_cons
+  Incept   : EPN, Fri May 24 10:03:41 2013
+  Usage    : $msaObject->get_ss_cons()
+  Function : Returns msa->ss_cons if it exists, else dies via croak.
+  Args     : None
+  Returns  : msa->ss_cons if it exists, else dies
+
+=cut
+
+sub get_ss_cons { 
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  if(! $self->has_ss_cons()) { croak "Trying to fetch SS_cons from MSA but it does not exist"; }
+  return _c_get_ss_cons( $self->{esl_msa} );
+}
+
 =head2 get_sqname
 
   Title    : get_sqname
@@ -283,6 +320,26 @@ sub set_sqname {
   $self->_check_sqidx($idx);
   _c_set_sqname( $self->{esl_msa}, $idx, $newname );
   return;
+}
+
+=head2 get_sqwgt
+
+  Title    : get_sqwgt
+  Incept   : EPN, Fri May 24 10:47:03 2013
+  Usage    : $msaObject->get_sqwgt($idx)
+  Function : Returns weight of sequence $idx in MSA.
+  Args     : index of sequence 
+  Returns  : weight of sequence $idx (esl_msa->wgt[$idx])
+             ($idx runs 0..nseq-1)
+
+=cut
+
+sub get_sqwgt {
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  return _c_get_sqwgt( $self->{esl_msa}, $idx );
 }
 
 =head2 get_accession
@@ -356,8 +413,7 @@ sub write_msa {
       croak "problem writing out msa, invalid format $format";
     }
     elsif ( $status == $ESLFAIL ) {
-      croak
-"problem writing out msa, unable to open output file $outfile for writing";
+      croak "problem writing out msa, unable to open output file $outfile for writing";
     }
   }
   return;
@@ -409,6 +465,44 @@ sub average_id {
     $self->{average_id} = _c_average_id( $self->{esl_msa}, $max_nseq );
   }
   return $self->{average_id};
+}
+
+=head2 get_sqstring_aligned
+
+  Title    : get_sqstring_aligned
+  Incept   : EPN, Fri May 24 11:02:21 2013
+  Usage    : $msaObject->get_sq_aligned()
+  Function : Return an aligned sequence from an MSA.
+  Args     : index of sequence you want
+  Returns  : aligned sequence index idx
+
+=cut
+
+sub get_sqstring_aligned {
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  return _c_get_sqstring_aligned( $self->{esl_msa}, $idx );
+}
+
+=head2 get_sqstring_unaligned
+
+  Title    : get_sqstring_unaligned
+  Incept   : EPN, Fri May 24 11:02:21 2013
+  Usage    : $msaObject->get_sqstring_unaligned()
+  Function : Return an unaligned sequence from an MSA.
+  Args     : index of sequence you want
+  Returns  : unaligned sequence index idx
+
+=cut
+
+sub get_sqstring_unaligned {
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  return _c_get_sqstring_unaligned( $self->{esl_msa}, $idx );
 }
 
 =head2 get_sqlen
@@ -547,6 +641,26 @@ sub addGS {
   $self->_check_msa();
   my $status = _c_addGS( $self->{esl_msa}, $sqidx, $tag, $value );
   if ( $status != $ESLOK ) { croak "ERROR: unable to add GS annotation"; }
+  return;
+}
+=head2 weight_GSC
+
+  Title    : weight_GSC
+  Incept   : EPN, Fri May 24 10:42:44 2013
+  Usage    : $msaObject->weight_GSC($tag, $value)
+  Function : Compute and annotate MSA with sequence weights using the 
+           : GSC algorithm. Dies with croak if something goes wrong.
+  Args     : none
+  Returns  : void
+
+=cut
+
+sub weight_GSC {
+  my ( $self ) = @_;
+
+  $self->_check_msa();
+  my $status = _c_weight_GSC( $self->{esl_msa} );
+  if ( $status != $ESLOK ) { croak "ERROR: unable to calculate GSC weights"; }
   return;
 }
 
