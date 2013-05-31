@@ -98,10 +98,10 @@ $fh->close;
 sub help {
 print STDERR << "EOF";
 
-This program splits a fasta file into smaller files named <fasta>1,
-<fasta>2 etc., and runs pfam_scan.pl on each one using the Sanger
-farm. The output will be pfam_scan.pl output files named <fasta>1.out,
-<fasta>2.out etc. in the cwd.
+This program splits a fasta file into smaller chunks named <fasta>1,
+<fasta>2 etc. It runs pfam_scan.pl using Pfam GA thresholds on each
+chunk on the Sanger farm. The output will be pfam_scan.pl output files
+named <fasta>1.out, <fasta>2.out etc. in the cwd.
 
 EXAMPLE:
 
