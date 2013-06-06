@@ -33,18 +33,6 @@ $Text::Wrap::columns = 60;
 
 #-------------------------------------------------------------------------------
 
-=head2 sunburst
-
-Stub to add a "sunburst" pathpart.
-
-=cut
-
-sub sunburst : Chained( 'family' )
-               PathPart( 'sunburst' )
-               CaptureArgs( 0 ) { }
-
-#-------------------------------------------------------------------------------
-
 =head2 accessions : Chained('sunburst') PathPart('accessions')
 
 Stub to add REST hooks at "family/ENTRY/sunburst/storeaccessions". The concrete
@@ -419,16 +407,26 @@ sub store_accessions : Private {
                   ' accession(s) in parameter' )
     if $c->debug;
 
-  # join the accessions into a string and validate that string
-  my $accessions = join ',', @$accessions_list;
-  unless ( $accessions =~ m/^((\w+,\s*)+)?\w+$/ ) {
-    $c->log->debug( 'Family::SunburstMethods::store_accessions: not a valid accessions string' )
+  # crudely validate the accessions
+  foreach ( @$accessions_list ) {
+    next if m/^(\w+)$/;
+    $c->log->debug( "Family::SunburstMethods::store_accessions: not a valid accession ($_)" )
       if $c->debug;
-
     $c->stash->{errorMsg} = 'Not a valid accessions list';
-
     return 0;
   }
+  my $accessions = join ',', @$accessions_list;
+  
+  # join the accessions into a string and validate that string
+  # my $accessions = join ',', @$accessions_list;
+  # unless ( $accessions =~ m/^((\w+,\s*)+)?\w+$/ ) {
+  #   $c->log->debug( 'Family::SunburstMethods::store_accessions: not a valid accessions string' )
+  #     if $c->debug;
+
+  #   $c->stash->{errorMsg} = 'Not a valid accessions list';
+
+  #   return 0;
+  # }
   
   $c->log->debug( 'Family::SunburstMethods::store_accessions: got some valid accessions' ) 
     if $c->debug;
@@ -515,7 +513,7 @@ sub queue_alignment_job : Private {
   # first, check there's room on the queue
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->find( { status   => 'PEND',
-                       job_type => 'rfalign' },
+                       job_type => $c->stash->{alignment_job_type} },
                      { select => [ { count => 'status' } ],
                        as     => [ 'number_pending' ] } );
   
@@ -607,7 +605,7 @@ sub enqueue_alignment : Private {
     # add this job to the tracking tables
     my $job_history = $c->model('WebUser::JobHistory')
                         ->create( { options        => $opts,
-                                    job_type       => 'rfalign',
+                                    job_type       => $c->stash->{alignment_job_type},
                                     estimated_time => $estimated_time,
                                     job_id         => $c->stash->{jobId},
                                     opened         => \'NOW()',
@@ -767,7 +765,7 @@ sub queue_alignment : Private {
   # add this job to the tracking tables
   my $job_history = $c->model('WebUser::JobHistory')
                       ->create( { options        => $c->stash->{acc},
-                                  job_type       => 'rfalign',
+                                  job_type       => $c->stash->{alignment_job_type},
                                   estimated_time => 0,
                                   job_id         => $job_id,
                                   opened         => \'NOW()',
