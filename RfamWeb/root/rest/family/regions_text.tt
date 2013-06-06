@@ -12,9 +12,9 @@ META naked = 1;
 -%]
 # Rfam regions for family [% rfam.rfam_id %] ([% rfam.rfam_acc %])
 # file built [% date.format %] using Rfam version [% relData.rfam_release %] (released [% relData.rfam_release_date %])
-# found [% region_rows.size %] regions
+# found [% region_rs.count %] regions
 # columns: sequence accession, bits score, region start, region end, sequence description, species, NCBI tax ID
-[% FOREACH region IN region_rows;
+[% FOREACH region IN region_rs.all;
   region.get_column('rfamseq_acc') _ "\t" _
   region.bits_score _ "\t" _
   region.seq_start _ "\t" _
