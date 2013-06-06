@@ -22,7 +22,7 @@ baseUri = "http://rfam.sanger.ac.uk/";
       release="[% relData.rfam_release %]" 
       release_date="[% relData.rfam_release_date %]">
   <regions accession="[% rfam.rfam_acc %]" id="[% rfam.rfam_id %]">
-[%- FOREACH region IN region_rows %]
+[%- FOREACH region IN region_rs.all %]
     <region type="rfamseq"
             accession="[% region.get_column('rfamseq_acc' ) %]"
             bits_score="[% region.bits_score %]"
