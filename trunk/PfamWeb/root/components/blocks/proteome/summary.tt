@@ -39,16 +39,7 @@ oe = 0;
       <a class="ext" href="http://www.uniprot.org/taxonomy/[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">UniProt</a> or at
       <a class="ext" href="http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">
         <acronym title="National Center for Biotechnology Information">NCBI</acronym></a>.
-      <span onclick="reveal( this, 'proteomeNotes', false, true )"
-            class="moreLink">
-        More...</span>
     </p>
-    <div id="proteomeNotes" style="display: none">
-      <p>
-        This is a placeholder for text describing the Pfam proteomes section.
-      </p>
-      <hr />
-    </div>
 
     <table class="layout" summary="Summary of information for the proteome">
       <tbody>
