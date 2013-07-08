@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -25,7 +25,14 @@ is($ss_cons, ".::<<<____>->>:<<-<.___.>>>.");
 #TODO: make this into a test somehow
 my $outfile = "./t/data/test-msa-bp.out";
 
-$msa->set_accession("RFXXXXX");
+my $acc = "RFXXXXX";
+$msa->set_accession($acc);
+is($msa->get_accession, $acc);
+
+my $name = "myRNA";
+$msa->set_name($name);
+is($msa->get_name, $name);
+
 $msa->calc_and_write_bp_stats($outfile);
 
 #unlink $outfile

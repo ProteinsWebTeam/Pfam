@@ -360,6 +360,24 @@ sub get_accession {
   return _c_get_accession( $self->{esl_msa} );
 }
 
+=head2 get_name
+
+  Title    : get_name
+  Incept   : EPN, Mon Jul  8 10:00:44 2013
+  Usage    : $msaObject->get_name($name)
+  Function : Gets name for MSA.
+  Args     : none
+  Returns  : the name, a string
+
+=cut
+
+sub get_name {
+  my ($self) = @_;
+
+  $self->_check_msa();
+  return _c_get_name( $self->{esl_msa} );
+}
+
 =head2 set_accession
 
   Title    : set_accession
@@ -372,12 +390,34 @@ sub get_accession {
 =cut
 
 sub set_accession {
-  my ( $self, $newacc ) = @_;
+  my ( $self, $newname ) = @_;
 
   $self->_check_msa();
-  my $status = _c_set_accession( $self->{esl_msa}, $newacc );
+  my $status = _c_set_accession( $self->{esl_msa}, $newname );
   if ( $status != $ESLOK ) {
-    croak "unable to set accession (failure in C code)";
+    croak "unable to set name (failure in C code)";
+  }
+  return;
+}
+
+=head2 set_name
+
+  Title    : set_name
+  Incept   : EPN, Fri Feb  1 11:11:05 2013
+  Usage    : $msaObject->set_name($acc)
+  Function : Sets name for MSA in <esl_msa>
+  Args     : name string to set
+  Returns  : void
+
+=cut
+
+sub set_name {
+  my ( $self, $newname ) = @_;
+
+  $self->_check_msa();
+  my $status = _c_set_name( $self->{esl_msa}, $newname );
+  if ( $status != $ESLOK ) {
+    croak "unable to set name (failure in C code)";
   }
   return;
 }
@@ -756,6 +796,28 @@ sub alignment_coverage
   
   return @output;
 }
+
+=head2 count_msa
+
+  Title     : count_msa
+  Incept    : EPN, Fri Jul  5 13:46:51 2013
+  Usage     : $msaObject->count_msa()
+  Function  : Count residues and basepairs in an MSA
+  Args      : None
+  Returns   : 
+
+=cut
+
+sub count_msa
+{
+  my ($self) = @_;
+
+  $self->_check_msa();
+  $self->_c_count_msa($self->{esl_msa}, 0, 0);
+
+  return;
+}
+
 
 =head2 DESTROY
 
