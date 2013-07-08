@@ -163,6 +163,17 @@ char *_c_get_accession (ESL_MSA *msa)
   else         return "none";
 }
 
+/* Function:  _c_get_name()
+ * Incept:    EPN, Mon Jul  8 10:01:47 2013
+ * Synopsis:  Returns msa->name.
+ * Returns:   MSA's name or 'none' if none set.
+ */
+char *_c_get_name (ESL_MSA *msa)
+{
+  if(msa->name) return msa->name;
+  else          return "none";
+}
+
 /* Function:  _c_set_accession()
  * Incept:    EPN, Sat Feb  2 14:36:27 2013
  * Synopsis:  Sets msa->acc to newacc
@@ -172,6 +183,18 @@ int _c_set_accession (ESL_MSA *msa, char *newacc)
 {
   int status;
   status = esl_msa_SetAccession(msa, newacc, -1);
+  return status;
+}
+
+/* Function:  _c_set_name()
+ * Incept:    EPN, Mon Jul  8 10:02:36 2013
+ * Synopsis:  Sets msa->name to newname
+ * Returns:   eslOK on success.
+ */
+int _c_set_name (ESL_MSA *msa, char *newname)
+{
+  int status;
+  status = esl_msa_SetName(msa, newname, -1);
   return status;
 }
 
@@ -388,16 +411,15 @@ int _c_weight_GSC(ESL_MSA *msa)
  *            esl_abc's gap, missing residues and nonresidues are
  *            all considered 'gaps' here.
  *
- *            If we encounter an error, we return non-eslOK status
- *            and fill errbuf with error message.
  * 
  *            This function was stolen from
- *            easel/miniapps/esl-alistat.c::count_msa() vi1.1rc2 and
+ *            easel/miniapps/esl-alistat.c::count_msa() i1.1rc2 and
  *            simplified to not include PP counting.
  *
  * Returns:   eslOK on success.
  */
-int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, double ***ret_abc_ct, double ****ret_bp_ct)
+
+int _c_count_msa(ESL_MSA *msa, int no_ambig, int use_weights, double ***ret_abc_ct, double ****ret_bp_ct)
 {
   int status;
   double  **abc_ct = NULL;
@@ -408,8 +430,8 @@ int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, doub
   char     *ss_nopseudo = NULL;   /* no-pseudoknot version of structure */
   double    seqwt;  /* weight of current sequence, always 1.0 if !use_weights */
 
-  if(! (msa->flags & eslMSA_DIGITAL)) ESL_FAIL(eslEINVAL, errbuf, "count_msa() contract violation, MSA is not digitized");
-  if(use_weights && msa->wgt == NULL) ESL_FAIL(eslEINCOMPAT, errbuf, "count_msa(): use_weights==TRUE but msa->wgt == NULL");
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("count_msa() contract violation, MSA is not digitized");
+  if(use_weights && msa->wgt == NULL) croak("count_msa(): use_weights==TRUE but msa->wgt == NULL");
 
   /* allocate and initialize bp_ct, if nec */
   ESL_ALLOC(bp_ct,  sizeof(double **) * msa->alen); 
@@ -418,7 +440,7 @@ int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, doub
   ESL_ALLOC(ss_nopseudo, sizeof(char) * (msa->alen+1));
   esl_wuss_nopseudo(msa->ss_cons, ss_nopseudo);
 
-  if ((status = esl_wuss2ct(ss_nopseudo, msa->alen, ct)) != eslOK) ESL_FAIL(status, errbuf, "Consensus structure string is inconsistent.");
+  if ((status = esl_wuss2ct(ss_nopseudo, msa->alen, ct)) != eslOK) croak("Consensus structure string is inconsistent.");
   for(apos = 0; apos < msa->alen; apos++) { 
     /* careful ct is indexed 1..alen, not 0..alen-1 */
     if(ct[(apos+1)] > (apos+1)) { /* apos+1 is an 'i' in an i:j pair, where i < j */
@@ -444,7 +466,7 @@ int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, doub
     
     for(apos = 0; apos < msa->alen; apos++) { /* update appropriate abc count, careful, ax ranges from 1..msa->alen (but abc_ct is 0..msa->alen-1) */
       if((! no_ambig) || (! esl_abc_XIsDegenerate(msa->abc, msa->ax[i][apos+1]))) { /* skip ambiguities (degenerate residues) if no_ambig is TRUE */
-	if((status = esl_abc_DCount(msa->abc, abc_ct[apos], msa->ax[i][apos+1], seqwt)) != eslOK) ESL_FAIL(status, errbuf, "problem counting residue %d of seq %d", apos, i);
+	if((status = esl_abc_DCount(msa->abc, abc_ct[apos], msa->ax[i][apos+1], seqwt)) != eslOK) croak("problem counting residue %d of seq %d", apos, i);
       }
     }
     
@@ -457,18 +479,18 @@ int _c_count_msa(ESL_MSA *msa, char *errbuf, int no_ambig, int use_weights, doub
     }
   }
 
-  *ret_abc_ct = abc_ct;
-  *ret_bp_ct  = bp_ct;
-
   if(ss_nopseudo != NULL) free(ss_nopseudo);
   if(ct != NULL) free(ct);
+
+  *ret_abc_ct = abc_ct;
+  *ret_bp_ct  = bp_ct;
 
   return eslOK;
 
  ERROR:
   if(abc_ct != NULL)  esl_Free2D((void **) abc_ct, msa->alen);
   if(bp_ct != NULL)   esl_Free3D((void ***) bp_ct, msa->alen, msa->abc->Kp);
-  ESL_FAIL(status, errbuf, "Error, out of memory while counting important values in the msa.");
+  croak("Error, out of memory while counting important values in the msa.");
   return status; /* NEVERREACHED */
 }
 
@@ -562,17 +584,52 @@ int _c_calc_and_write_bp_stats(ESL_MSA *msa, char *outfile)
   if((ofp = fopen(outfile, "w"))  == NULL) return FALSE;
 
   /* get counts */
-  if((status = _c_count_msa(msa, errbuf, 
+  if((status = _c_count_msa(msa,   /* the alignment */
 			    FALSE, /* don't ignore ambiguous residues */
 			    FALSE, /* don't use msa->wgt sequence weights */
-			    &abc_ct, &bp_ct))
+			    &abc_ct, &bp_ct)) /* we want these back */
      != eslOK) {
     return status;
   }
 
-  /* output data */
-  fprintf(ofp, "%-7s  %-11s  %-18s  %-7s\n", "# acc", "bp_coords", "canonical_fraction", "covariation");
+  if(msa->abc->type != eslRNA) croak("alignment alphabet type is not RNA");
 
+
+  /* calculate per-family stats */
+  int x;
+  float *abc_frac;
+  int    nnongap = 0;
+  ESL_ALLOC(abc_frac, sizeof(float) * msa->abc->K);
+  esl_vec_FSet(abc_frac, msa->abc->K, 0.);
+  for(apos = 0; apos < msa->alen; apos++) { 
+    for(x = 0; x < msa->abc->K; x++) { 
+      abc_frac[x] += abc_ct[apos][x];
+    }
+  }
+  nnongap = (int) esl_vec_FSum(abc_frac, msa->abc->K);
+  printf("NNONGAP: %d\n", nnongap);
+  esl_vec_FNorm(abc_frac, msa->abc->K);
+
+  /* print 'ss-stats-per-family' header line */
+  printf("%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
+         "FAMILY", "MEAN_FRACTN_CANONICAL_BPs", "COVARIATION", "NO_SEQs", "ALN_LENGTH", "NO_BPs", "NO_NUCs", "mean_PID", "max_PID", "min_PID", "mean_LEN", "max_LEN", "min_LEN", "FRACTN_NUCs", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
+  float frac_canon = 0.;
+  float covar      = 0.;
+  int   nbp        = 0;
+  float pid_mean   = 0.;
+  float pid_max    = 0.;
+  float pid_min    = 0.;
+  float len_mean   = 0.;
+  int   len_max    = 0;
+  int   len_min    = 0;
+  float max_dinuc  = 0.;
+  printf("%-20s  %25.5f  %11.5f  %7d  %10d  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %9.3f  %10.3f\n", 
+         msa->name, frac_canon, covar, msa->nseq, msa->alen, nbp, nnongap, pid_mean, pid_max, pid_min, len_mean, len_max, len_min, 
+         (float) nnongap / ((float) (msa->alen*msa->nseq)), abc_frac[0], abc_frac[1], abc_frac[2], abc_frac[3], max_dinuc, (abc_frac[1] + abc_frac[2]));
+
+  /* output data */
+  /*fprintf(ofp, "%-7s  %-11s  %-18s  %-7s\n", "# acc", "bp_coords", "canonical_fraction", "covariation");*/
+  
   /* get ct array which defines the consensus base pairs */
   ESL_ALLOC(ct,  sizeof(int) * (msa->alen+1));
   ESL_ALLOC(ss_nopseudo, sizeof(char) * (msa->alen+1));
