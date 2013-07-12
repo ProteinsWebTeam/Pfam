@@ -45,9 +45,11 @@ use warnings;
 use Data::Dumper;
 use JSON;
 use IPC::Cmd qw(run);
+use File::Temp qw(tempfile);
 use IO::File;
 use IPC::Open3;
 use IO::Handle;
+use IO::Select;
 use Getopt::Long;
 
 # Our Module Found in Pfam-Core
@@ -82,7 +84,7 @@ while (1) {
   else {
     my $error = 0;
     my ($cmd, $input);
-
+    my ($fh, $tempfile) = tempfile(); 
     if ( $job->{'job_type'} eq "batch" ) {
 
       $cmd = "preJob.pl -id " . $job->{id} . " -tmp " . $qsout->tmpDir . " && ";
@@ -97,7 +99,7 @@ while (1) {
           $cmd .= " -e_seq " . $opts->{evalue} . " -e_dom " . $opts->{evalue};
         }
 
-        if ( $opts->{searchBs} ) {
+        if ( $opts->{batchOpts} ) {
 
           #Run both a Pfam-A and a Pfam-B search
           $cmd .= " -pfamB ";
@@ -118,10 +120,10 @@ while (1) {
     elsif ( $job->{'job_type'} eq "dna" ) {
       $cmd = "preJob.pl -id " . $job->{id} . " -tmp " . $qsout->tmpDir . " && ";
       $cmd .= " " . $job->{'command'};
-      $cmd .= " -fasta " . $qsout->tmpDir . '/' . $job->{job_id} . ".fa";
-      $cmd .= " -dir " . $qsout->dataFileDir;
+      $cmd .= " -in " . $job->{job_id} . ".fa";
+      $cmd .= " -tmp " . $qsout->tmpDir;
+      $cmd .= " -data " . $qsout->dataFileDir;
       $cmd .= " -cpu " . $qsout->cpus;
-      $cmd .= " -translate";
       $cmd .= " > "
         . $qsout->tmpDir . "/"
         . $job->{job_id}
@@ -132,29 +134,30 @@ while (1) {
     }
     elsif ( $job->{job_type} eq 'rfam_batch' ) {
 
-      #Get the user's sequence from the database.
+      #Get the users sequence from the database.
+      #NOTE: there are currently
       $input = ">UserSeq\n" if $job->{stdin} !~ /^>/;
       $input .= $job->{stdin} . "\n";
 
+      
+      #my $infile   = $qsout->tmpDir . "/" . $job->{job_id} . ".in";
+      #open(I, '>', $infile);
+      #print I $input;
+      #close(I); 
+      
       my $outfile = $qsout->tmpDir . "/" . $job->{job_id} . ".res";
-      my $infile  = $qsout->thirdPartyQueue eq 'WTSI' 
-                  ? $qsout->tmpDir . '/' . $job->{job_id} . '.fa'
-                  : '-';
-      my $prejob  = $qsout->thirdPartyQueue eq 'WTSI' 
-                  ? 'preJob.pl -id ' . $job->{id} . ' -tmp ' . $qsout->tmpDir . ' && '
-                  : '';
 
       #The command we want to run.
-      $cmd = $prejob
-        . 'cmscan --cut_ga --cpu '
+      $cmd =
+          "cmscan -o $tempfile --cut_ga --cpu "
         . $qsout->rfcpus
-        . ' --FZ 5 --nohmmonly --notextw --glist '
+        . " --FZ 5 --nohmmonly --notextw --glist "
         . $qsout->rfamDataFileDir
         . "/Rfam.glist --tblout $outfile "
         . $qsout->rfamDataFileDir
-        . "/Rfam.cm.1_1 $infile ; postJob.pl -id "
+        . "/Rfam.cm.1_1 - ; postJob.pl -id "
         . $job->{id}
-        . ' -tmp '
+        . " -tmp "
         . $qsout->tmpDir;
     }
 
@@ -199,14 +202,22 @@ while (1) {
   }
 }
 
+sub executeCmd3Test {
+  my ( $cmd, $ref, $qsout, $input ) = @_;
+  system($cmd);
+}
+
 sub executeCmd3 {
   my ( $cmd, $ref, $qsout, $input ) = @_;
 
 #We are going to use IPC::Open3 to submit the search job. This allows us to pass the sequence in via STDIN.
 #NOTE: HMMER/Infernal does this via the - field in the command line.
 
-  my ( $reader, $writer, $err ) =
-    ( IO::Handle->new, IO::Handle->new, IO::Handle->new );
+  #my ( $reader, $writer, $err ) =
+  #  ( IO::Handle->new, IO::Handle->new, IO::Handle->new );
+ 
+  my ($reader, $writer, $err);
+  $writer = IO::Handle->new;
 
   $DEBUG && print "Going to run:$cmd\n";
 
@@ -221,23 +232,38 @@ sub executeCmd3 {
     die "open3 failed: $!\n$@\n";
   }
 
+
   if ( defined($input) ) {
     print $writer $input;
   }
   close $writer;
+  my(@stdout, @stderr);
+  my $sel = new IO::Select;
+  $sel->add($reader, $err);
+  while(my @fhs = $sel->can_read) {
+    foreach my $fh (@fhs) {
+            my $line = <$fh>;
+            unless(defined $line) {
+                $sel->remove($fh);
+                next;
+            }
+            if($fh == $reader) {
+                push(@stdout, $line);
+            }elsif($fh == $err) {
+                push(@stderr, $line);
+            }
+        }
+    } 
 
   #Put anything we have captured in stdout and stderr back in the database
-  my @stdout = $reader->getlines;
   if ( scalar(@stdout) ) {
     $qsout->update_job_stream( $ref->{id}, 'stdout', join "", @stdout );
   }
   close($reader);
 
-  my @stderr = $err->getlines;
   if ( scalar(@stderr) ) {
     $qsout->update_job_stream( $ref->{id}, 'stderr', join "", @stderr );
   }
-  close($err);
 
 #Failing to do this can result in an accumulation of defunct or "zombie" processes.
 #Only do it when we have closed all of the IO::Handles
