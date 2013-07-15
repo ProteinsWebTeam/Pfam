@@ -86,12 +86,11 @@ oe    = 0;
     </p>
 
     <p id="biolitSummary" style="display: none">
-      We found <strong id="numBiolitArticles">0</strong> 
-      <a class="ext" href="http://www.pubmedcentral.nih.gov/about/copyright.html">
-        Pubmed Central</a> article<span id="blArticlePlural">s</span> that 
+      You can see
+      <span class="link" onclick="tabPage.switchTab('structureLiteratureBlock')">
+        <strong><span id="numBiolitArticles">0</span> article<span id="blArticlePlural">s</span></strong>
+      </span> in Pubmed Central that 
         refer<span id="blReferPlural"></span> to <strong>[% pdbId %]</strong>.
-      You can see <span id="blThemIt">them</span> 
-      <span class="link" onclick="tabPage.switchTab('structureLiteratureBlock')">here</span>.
     </p>
 
     <table class="layout narrow"
