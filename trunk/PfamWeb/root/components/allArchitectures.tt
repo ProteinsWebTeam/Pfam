@@ -181,7 +181,7 @@ END -%]
       $("loadingSpinner").show();
       $("loadingButton").disable();
   
-      console.debug( "assignedColours: " + assignedColours );
+      // console.debug( "assignedColours: " + assignedColours );
       var r = new Ajax.Updater( 
         "next[% first %]",
         "[% c.uri_for( '/domaingraphics' ) %]",
