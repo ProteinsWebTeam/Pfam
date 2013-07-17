@@ -272,4 +272,12 @@ sub viewPluginSets {
   return $self->{'_config'}->{view_sets}->{$category};
 }
 
+sub dictionary {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{curation}->{dictionary};
+}
+
 1;
