@@ -24,7 +24,8 @@ Incept: finnr, Jan 25, 2013 8:43:56 AM
 
 use strict;
 use warnings;
-
+use File::Temp qw(tempfile);
+use File::Copy;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -123,5 +124,145 @@ sub valid_sequences {
 #
 #Coding - rpc-seqs_coding.pl
 #Get Eric to look at rpc-ss-cons.pl (does this work?)
+
+#------------------------------------------------------------------------------
+=head2 
+
+  Title    : checkSpell
+  Incept   : finnr, Jul 17, 2013 1:29:27 PM
+  Usage    : Bio::Rfam::QC::checkSpell($dir, $dictPath, $familyIOObj)
+  Function : This takes the DESC file and grabs out the free text fields, removes
+           : our tags and writes a temporary file. It then runs ispell over the
+           : contents of the file, interactively with the users. Finally, the 
+           : data is written back into the file.
+  Args     : Path containting the family, Path to dictionary file used by ispell,
+           : a familyIO object (optional)
+  Returns  : An error flag if encountered.
+  
+=cut
+
+sub checkSpell {
+  my ($fam, $dictionary, $familyIO) = @_;
+  
+  my $error = 0;
+  #
+  unless ($familyIO) {
+    $familyIO = Bio::Pfam::FamilyIO->new;
+  }
+
+  #Make sure that the DESC file is vaild to start off with
+  eval{
+    $familyIO->parseDESC("$fam/DESC");
+  };
+  if($@){
+    print STDERR $@;
+    $error = 1
+  }
+  
+  my (%line);
+  my ($lineNo) = 0;
+
+  open( DESC, "$fam/DESC" )
+    || die "Can't open DESC file for family $fam:[$!]\n";
+  
+  while (<DESC>) {
+    # If a free text line add to %lines
+    if (/^RT   (\.*)$/) {
+      $line{$lineNo} = $1;
+    }
+    elsif (/^CC   (.*)$/) {
+      $line{$lineNo} = $1;
+    }
+    elsif (/^RC   (.*)$/) {
+      $line{$lineNo} = $1;
+    }
+    elsif (/^DC   (.*)$/) {
+      $line{$lineNo} = $1;
+    }
+    elsif (/^DE   (.*)$/) {
+      $line{$lineNo} = $1;
+    }
+    $lineNo++;
+  }
+  close(DESC);
+
+  my @lineNos = sort { $a <=> $b; } keys %line;
+  
+  my ( $bit, @line_number_array );
+
+  #Now make temporary file and write free text
+  my ($tfh, $tfilename) = tempfile();
+  
+  foreach ( @lineNos ) {
+    #Print all free text lines.
+    print $tfh $line{ $_ }, "\n";
+  }
+  close $tfh;
+
+  # Start ispell session on file
+  system("ispell -W 0 -w 0123456789 -p$dictionary $tfilename");
+  
+  # Now need to put changes back into DESC file
+  my ( %editedline, $line_number );
+  open( TMP, '<', $tfilename ) || die "Can't open temp file $tfilename:[$!]\n";
+  
+  while (<TMP>) {
+    if (/^(.*)$/) {
+      $line_number = shift @lineNos;
+      $editedline{"$line_number"} = $1;
+    }
+    else {
+      die "unrecognised line [$_]\n Serious error!\n";
+    }
+  }
+  close(TMP);
+
+  # Write out new DESC file
+  open( TEMPDESC, ">$fam/DESC.$$" )
+    || die "Can't write to temp DESC file for family $fam\n";
+
+  open( DESC, "$fam/DESC" )
+    || die "Can't open DESC file for fam $fam\n";
+
+  my ($prefix);
+  $lineNo = 0;
+
+  while (<DESC>) {
+    if ( $editedline{$lineNo} ) {
+
+      # Find if DE, RT or CC line
+      if ( $_ =~ /^(\S+)/ ) {
+        $prefix = $1;
+      }
+      else {
+        die "unrecognised line [$_]\n";
+      }
+
+      # Write out line
+      print TEMPDESC "$prefix   $editedline{$lineNo}\n";
+    }
+    else {
+      print TEMPDESC;
+    }
+    $lineNo++;
+  }
+  close(DESC);
+  close(TEMPDESC);
+
+  # Move DESC across
+  copy( "$fam/DESC.$$", "$fam/DESC" );
+  # Clean up
+  unlink("$fam/DESC.$$");
+
+  #Now make sure that I have not screwed anyting up!  It is possible that the
+  #line lengths could overflow.
+  $familyIO->parseDESC("$fam/DESC");
+  
+  return ($error);
+}
+
+
+
+
 
 1;
