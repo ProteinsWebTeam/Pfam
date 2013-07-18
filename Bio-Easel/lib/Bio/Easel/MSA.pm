@@ -97,6 +97,12 @@ No functions currently exported.
   Usage    : Bio::Easel::MSA->new
   Function : Generates a new Bio::Easel::MSA object
   Args     : <fileLocation>: file location of alignment
+           : <reqdFormat>:   optional: string defining requested/required format
+           :                 valid format strings are: 
+           :                 "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", 
+           :                 "SELEX", "aligned FASTA", "Clustal", "Clustal-like", 
+           :                 "PHLYIP (interleaved)", or "PHYLIP (sequential)"
+           :                 
   Returns  : Bio::Easel::MSA object
 
 =cut
@@ -112,7 +118,11 @@ sub new {
   # Easel and populate the object from the ESL_MSA object
   if ( -e $args->{fileLocation} ) {
     eval {
-      $self->{path} = $args->{fileLocation};
+      $self->{path}   = $args->{fileLocation};
+      if(defined $args->{reqdFormat}) { 
+        $self->{reqdFormat} = $args->{reqdFormat};
+        $self->_check_reqd_format();
+      }
       $self->read_msa();
     };    # end of eval
 
@@ -121,8 +131,7 @@ sub new {
     }
   }
   else {
-    confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)"
-    );
+    confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
   }
   if ( defined $args->{aliType} ) {
     $self->{aliType} = $args->{aliType};
@@ -173,13 +182,14 @@ sub path {
   Incept   : EPN, Mon Jan 28 09:26:24 2013
   Usage    : Bio::Easel::MSA->read_msa($fileLocation)
   Function : Opens $fileLocation, reads first MSA, sets it.
-  Args     : <fileLocation>: file location of alignment
+  Args     : <fileLocation>: optional, file location of alignment
+           : <reqdFormat>:   optional, required format of alignment file
   Returns  : void
 
 =cut
 
 sub read_msa {
-  my ( $self, $fileLocation ) = @_;
+  my ( $self, $fileLocation, $reqdFormat ) = @_;
 
   if ($fileLocation) {
     $self->{path} = $fileLocation;
@@ -187,7 +197,18 @@ sub read_msa {
   if ( !defined $self->{path} ) {
     croak "trying to read msa but path is not set";
   }
-  ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path} );
+
+  if ($reqdFormat) { 
+    $self->{reqdFormat} = $reqdFormat;
+  }
+
+  my $informat = "unknown";
+  if (defined $self->{reqdFormat}) {
+    $informat = $self->{reqdFormat};
+    $self->_check_reqd_format();
+  }
+
+  ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path}, $informat);
 
   # Possible values for 'format', a string, derived from esl_msafile.c::eslx_msafile_DecodeFormat(): 
   # "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", "SELEX", "aligned FASTA", "Clustal", 
@@ -913,6 +934,30 @@ sub _check_sqidx {
   my $nseq = $self->nseq;
   if ( $idx < 0 || $idx >= $nseq ) {
     croak "invalid sequence index %d (must be [0..%d])", $idx, $nseq;
+  }
+  return;
+}
+
+=head2 _check_reqd_format
+
+  Title    : _check_reqd_format
+  Incept   : EPN, Thu Jul 18 11:06:02 2013
+  Usage    : $msaObject->_check_reqd_format()
+  Function : Check if $self->{reqd_format} is a valid format or 'unknown'
+           : if not, croak. Also returns fine if self->{reqd_format} is not
+           : defined.
+  Args     : none
+  Returns  : void
+
+=cut
+
+sub _check_reqd_format { 
+  my ( $self ) = @_;
+
+  if(defined $self->{reqd_format}) { 
+    if($self->{reqd_format} ne "unknown") { # unknown is valid, so we don't actually do the C check 
+      _c_check_reqd_format($self->{reqd_format}); 
+    }
   }
   return;
 }
