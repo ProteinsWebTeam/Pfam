@@ -189,7 +189,9 @@ sub read_msa {
   }
   ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path} );
 
-  printf("informat: $self->{informat}\n");
+  # Possible values for 'format', a string, derived from esl_msafile.c::eslx_msafile_DecodeFormat(): 
+  # "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", "SELEX", "aligned FASTA", "Clustal", 
+  # "Clustal-like", "PHYLIP (interleaved)", or "PHYLIP (sequential)".
 
   return;
 }
