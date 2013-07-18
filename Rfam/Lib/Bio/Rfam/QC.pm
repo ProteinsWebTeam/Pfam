@@ -261,6 +261,30 @@ sub checkSpell {
   return ($error);
 }
 
+=head2 
+
+  Title    : ssStats
+  Incept   : EPN, Thu Jul 18 15:34:22 2013
+  Usage    : Bio::Rfam::QC::checkSpell($dir, $dictPath, $familyIOObj)
+  Function : Calculates and outputs per-family, per-sequence and per-basepair
+           : statistics to 'ss-stats-perfamily', 'ss-stats-persequence' and 
+           : 'ss-stats-perbasepair' files.
+  Args     : A Family object.
+  Returns  : void
+  
+=cut
+
+sub ssStats {
+  my ( $famObj ) = @_;
+
+  my $seed = $famObj->SEED;
+  if($seed->any_allgap_columns) { die "ERROR, SEED has all gap columns"; }
+  if($seed->nseq < 2)           { die "ERROR, SEED has less than 2 sequences"; }
+  $seed->set_name($famObj->DESC->ID);
+  $seed->set_accession($famObj->DESC->AC);
+  $seed->weight_GSC();
+  $seed->rfam_qc_stats("ss-stats-perfamily", "ss-stats-persequence", "ss-stats-perbasepair");
+}
 
 
 
