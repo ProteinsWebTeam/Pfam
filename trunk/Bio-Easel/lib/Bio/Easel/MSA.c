@@ -42,8 +42,8 @@ void _c_read_msa (char *infile)
   char         *format = NULL; /* string describing format, e.g. "Stockholm" */
                              
   /* open input file */
-  if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_STOCKHOLM, NULL, &afp)) != eslOK)
-    eslx_msafile_OpenFailure(afp, status);
+  if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_UNKNOWN, NULL, &afp)) != eslOK)
+    croak("Error reading alignment file %s: %s\n", infile, afp->errmsg);
   
   /* read_msa */
   status = eslx_msafile_Read(afp, &msa);
