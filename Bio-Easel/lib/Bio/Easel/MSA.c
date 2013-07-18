@@ -1016,7 +1016,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   FILE  *bfp;   /* open output per-basepair stats output file */
   int i;        /* sequence index */
   int apos;     /* alignment position */
-  double seqwt; /* sequence weight;
+  double seqwt; /* sequence weight */
 
   /* variables related to seq composition statistics, mainly
    * used by _c_rfam_comp_stats() 
@@ -1067,7 +1067,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   /* print 'ss-stats-per-family' */
   fprintf(ffp, "%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
          "FAMILY", "MEAN_FRACTN_CANONICAL_BPs", "COVARIATION", "NO_SEQs", "ALN_LENGTH", "NO_BPs", "NO_NUCs", "mean_PID", "max_PID", "min_PID", "mean_LEN", "max_LEN", "min_LEN", "FRACTN_NUCs", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
-  fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10d  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
+  fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10lld  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
          msa->name,                                           /* family name */
          ((double) esl_vec_ISum(seq_canA, msa->nseq)) / ((double) msa->nseq * nbp), /* fractional canonical basepairs */
          mean_cov,                                            /* the 'covariation' statistic, mean */
@@ -1153,7 +1153,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
  *
  * Returns:  void
  */
-int
+void
 _c_check_reqd_format(char *format)
 {
   int fmt; /* int format code */
