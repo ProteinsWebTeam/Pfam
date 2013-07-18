@@ -779,16 +779,15 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   int        status;               /* Easel status */
   int       *ct = NULL;            /* 0..alen-1 base pair partners array for current sequence */
   char      *ss_nopseudo = NULL;   /* no-pseudoknot version of structure */
-  double     seqwt;                /* weight of current sequence */
+  double     seqwt1, seqwt2;       /* weight of current sequences */
   int        nbp = 0;              /* number of canonical basepairs in the (possibly deknotted) consensus secondary structure */
-  double  ***bpAAA = NULL;         /* [0..apos..msa->alen-1][0..a..abc->Kp-1][0..a..abc->Kp-1]: summed count of basepair a:b in position i:j all seqs, NULL if i is not left half of basepair (i.e. rposA[i] == -1) */
   int       *seq_canA = NULL;      /* [0..i..msa->nseq-1]: number of canonical basepairs in sequence i */
   int       *rposA    = NULL;      /* [0..apos..msa->alen-1]: right position for basepair with left half position of 'apos', else -1 if 'apos' is not left half of a pair (apos always < rpos) */
   int       *pos_canA = NULL;      /* [0..apos..msa->alen-1]: number of canonical basepairs with left half position of 'apos' */
   double    *covA     = NULL;      /* [0..apos..msa->alen-1]: covariation per basepair */
   double    *cov_cntA = NULL;      /* [0..apos..msa->alen-1]: weighted count of basepair covariation per basepair */
-  int        apos, rpos;           /* counter over alignment positions */
-  int        i;                    /* counter over sequences */
+  int        apos, rpos;           /* counters over alignment positions */
+  int        i, j;                 /* counters over sequences */
 
   /* variables used when calculating covariation statistic */
   int a, b;              /* indices */
@@ -807,7 +806,6 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   if ((status = esl_wuss2ct(ss_nopseudo, msa->alen, ct)) != eslOK) croak("Consensus structure string is inconsistent.");
 
   /* allocate and initialize */
-  ESL_ALLOC(bpAAA,    sizeof(double **) * msa->alen); 
   ESL_ALLOC(rposA,    sizeof(int)       * msa->alen); 
   ESL_ALLOC(pos_canA, sizeof(int)       * msa->alen); 
   ESL_ALLOC(seq_canA, sizeof(int)       * msa->nseq); 
@@ -815,38 +813,12 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   esl_vec_ISet(pos_canA, msa->alen, 0);
   esl_vec_ISet(seq_canA, msa->nseq, 0);
 
+  /* determine location of basepairs and count them */
   for(apos = 0; apos < msa->alen; apos++) { 
     /* careful ct is indexed 1..alen, not 0..alen-1 */
     if(ct[(apos+1)] > (apos+1)) { /* apos+1 is an 'i' in an i:j pair, where i < j */
       rposA[apos] = ct[(apos+1)]-1; /* rposA is indexed 0..msa->alen-1 */
       nbp++;
-      ESL_ALLOC(bpAAA[apos], sizeof(double *) * (msa->abc->Kp));
-      for(a = 0; a < msa->abc->Kp; a++) { 
-	ESL_ALLOC(bpAAA[apos][a], sizeof(double) * (msa->abc->Kp));
-	esl_vec_DSet(bpAAA[apos][a], msa->abc->Kp, 0.);
-      }
-    }
-    else { /* apos+1 is not an 'i' in an i:j pair, where i < j, set to NULL */
-      bpAAA[apos] = NULL;
-    }
-  }
-
-  /* fill bpAAA */
-  for(i = 0; i < msa->nseq; i++) { 
-    seqwt = msa->wgt[i];
-    for(apos = 0; apos < msa->alen; apos++) { 
-      /* update bpAAA, if we're a left half of a basepair */
-      if(rposA[apos] != -1) { 
-        rpos = rposA[apos]; 
-        a = msa->ax[i][apos+1];
-        b = msa->ax[i][rpos+1];
-	bpAAA[apos][a][b] += seqwt;
-        /* if a canonical pair, update canonical count for this seq */
-        if(_c_bp_is_canonical(a, b)) { 
-          seq_canA[i]++;
-          pos_canA[apos]++;
-        }
-      }
     }
   }
 
@@ -863,84 +835,65 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
    * what Paul had, so the new function exactly reproduced the
    * original script. Best documentation is probably the code below,
    * unfortunately.
+   *
+   *
+   * Note this is O(N^2) for N sequences because we have to look at
+   * each pair of sequences. I was fairly certain a O(N) algorithm
+   * existed, but I had trouble getting it to work properly and gave
+   * up lest I waste too much time trying to fix it. This O(N^2) 
+   * approach is from Paul's rqc-ss-cons.pl.
    */
   ESL_ALLOC(covA,     sizeof(double) * msa->alen);
   ESL_ALLOC(cov_cntA, sizeof(double) * msa->alen);
   esl_vec_DSet(covA,     msa->alen, 0.);
   esl_vec_DSet(cov_cntA, msa->alen, 0.);
-  for(apos = 0; apos < msa->alen; apos++) { 
-    if(rposA[apos] != -1) { 
-      rpos = rposA[apos]; 
-      for(a1 = 0; a1 < msa->abc->Kp; a1++) { 
-        for(b1 = 0; b1 < msa->abc->Kp; b1++) { 
-          if((bpAAA[apos][a1][b1] > 1E-10) &&            /* skip basepairs with zero counts */
-             (a1 != msa->abc->K || b1 != msa->abc->K)) { /* skip double gaps (a1==b1==gap) */
-            iscanonical1 = _c_bp_is_canonical(a1, b1);
-            for(a2 = 0; a2 < msa->abc->Kp; a2++) { 
-              for(b2 = 0; b2 < msa->abc->Kp; b2++) { 
-                if((bpAAA[apos][a2][b2] > 1E-10) &&             /* skip basepairs with zero counts */
-                   (a2 != msa->abc->K || b2 != msa->abc->K)) {  /* skip double gaps (a2==b2==gap) */
-                  if(a1 == a2 && b1 == b2) {                   
-                    /* odd case: a:b -> a:b, no change so there's no covariation score/penalty,
-                     * but we have to increment the cov_cntA[apos] (what we will divide covA[apos]
-                     * by at the end to get a average covariation for the pair that starts at apos)
-                     * because this count will count towards the average, however, we don't sum
-                     * (double) the bpAAA count, because then we'll have double counted for this
-                     * special case of a1==a2 and b1==b2
-                     */
-                    cov_cntA[apos] += (bpAAA[apos][a1][b1] + bpAAA[apos][a2][b2]) / 2.;
-                  }
-                  else { 
-                    iscanonical2 = _c_bp_is_canonical(a2, b2);
-                    d = _c_bp_dist(a1, b1, a2, b2);
-                    if(iscanonical1 && iscanonical2) { 
-                      contrib = d * (bpAAA[apos][a1][b1] + bpAAA[apos][a2][b2]);
-                    }
-                    else { 
-                      contrib = -1 * d * (bpAAA[apos][a1][b1] + bpAAA[apos][a2][b2]);
-                    }
-                    covA[apos]     += contrib;
-                    cov_cntA[apos] += bpAAA[apos][a1][b1] + bpAAA[apos][a2][b2];
-                    /* debugging print statements: */
-                    /*if(apos == 18 && (contrib > 0.1 || contrib < -0.1)) { 
-                      printf("\ti: %d j: %d a1: %d b1: %d (%5.2f) a2: %d b2: %d (%5.2f) d: %d covA added: %f  cov_cntA added: %f\n", 
-                      apos, rpos, a1, b1, bpAAA[apos][a1][b1], a2, b2, bpAAA[apos][a2][b2], d, contrib, bpAAA[apos][a1][b1] + bpAAA[apos][a2][b2]);
-                      printf("covA[%d]:     %f\n", apos, covA[apos]);
-                      printf("cov_cntA[%d]: %f\n", apos, cov_cntA[apos]);*/
-                    /*}*/
-                  }
-                }
-              }
+  for(i = 0; i < msa->nseq; i++) { 
+    seqwt1 = msa->wgt[i];
+    for(apos = 0; apos < msa->alen; apos++) { 
+      if(rposA[apos] != -1) { 
+        rpos = rposA[apos]; 
+        a1 = msa->ax[i][apos+1];
+        b1 = msa->ax[i][rpos+1];
+        if(a1 != msa->abc->K || b1 != msa->abc->K) { 
+          iscanonical1 = _c_bp_is_canonical(a1, b1);
+          if(iscanonical1) { 
+            seq_canA[i]++;
+            pos_canA[apos]++;
+          }
+          /* for every other sequence, add contribution of covariation */
+          for(j = i+1; j < msa->nseq; j++) { 
+            seqwt2 = msa->wgt[j];
+            a2 = msa->ax[j][apos+1];
+            b2 = msa->ax[j][rpos+1];
+            iscanonical2 = _c_bp_is_canonical(a2, b2);
+            d = _c_bp_dist(a1, b1, a2, b2);
+            if(iscanonical1 && iscanonical2) { 
+              contrib = d * (seqwt1 + seqwt2);
             }
+            else { 
+              contrib = -1 * d * (seqwt1 + seqwt2);
+            }
+            covA[apos]     += contrib;
+            cov_cntA[apos] += (seqwt1 + seqwt2);
           }
         }
       }
-      printf("%d:%d numerator:   %.2f\n", apos+1, rpos+1, covA[apos]);
-      printf("%d:%d denominator: %.2f\n", apos+1, rpos+1, cov_cntA[apos]);
     }
   }
+
   /* calculate mean covariation statistic */
   mean_cov = esl_vec_DSum(covA, msa->alen) / esl_vec_DSum(cov_cntA, msa->alen);
 
   /* divide covA values so their per-basepair-count, we make sure we do this after calc'ing the mean above */
   for(apos = 0; apos < msa->alen; apos++) { 
     if(rposA[apos] != -1) { 
-      if(fabs(covA[apos]) > 1E-10) {
+      if(fabs(cov_cntA[apos]) > 1E-10) { /* don't divide by zero */
         covA[apos] /= cov_cntA[apos];
       }
     }
   }
 
   /* clean up, and return */
-  for(apos = 0; apos < msa->alen; apos++) { 
-    if(bpAAA[apos]) { 
-      for(a = 0; a < msa->abc->Kp; a++) { 
-        if(bpAAA[apos][a]) free(bpAAA[apos][a]);
-      }
-      free(bpAAA[apos]);
-    }
-  }
-  free(bpAAA);
   if(cov_cntA) free(cov_cntA);
 
   *ret_nbp      = nbp;
@@ -954,17 +907,6 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
 
  ERROR:
   /* clean up, and return */
-  if(bpAAA) { 
-    for(apos = 0; apos < msa->alen; apos++) { 
-      if(bpAAA[apos]) { 
-        for(a = 0; a < msa->abc->Kp; a++) { 
-          if(bpAAA[apos][a]) free(bpAAA[apos][a]);
-        }
-        free(bpAAA[apos]);
-      }
-    }
-    free(bpAAA);
-  }
   if(cov_cntA) free(cov_cntA);
   if(rposA)    free(rposA);
   if(seq_canA) free(seq_canA);
@@ -1024,24 +966,54 @@ _c_rfam_pid_stats(ESL_MSA *msa, double *ret_pid_mean, double *ret_pid_min, doubl
 
 /* Function:  _c_rfam_qc_stats()
  * Incept:    EPN, Mon Jul 15 09:01:25 2013
- * Purpose:   
- *
- *            A very specialized function. Calculate and output
+ * Purpose:   A very specialized function. Calculate and output
  *            several statistics used for quality-control (qc) for
  *            Rfam seed alignments. Specifically the following stats are
- *            calculated:
+ *            calculated and output
  *
- * 
- * This function includes all functionality in Paul Gardner's
+ *            Per-family stats, output to 'fam_outfile':
+ *            fractional canonical basepairs
+ *            mean 'covariation' per basepair
+ *            number seqs
+ *            alignment length
+ *            number of consensus basepairs
+ *            total number of nucleotides (nongaps)
+ *            average/max/min pairwise percentage identity 
+ *            average/max/min sequence length
+ *            fraction of nongaps
+ *            fraction of A/C/G/U
+ *            most common 'dinucleotide' (two letter IUPAC ambiguity code)
+ *            fraction of 'CG'
+ *             
+ *            Per-sequence stats, output to 'seq_outfile':
+ *            fractional canonical basepairs
+ *            sequence length (ungapped)
+ *            fraction of A/C/G/U
+ *            most common 'dinucleotide' (two letter IUPAC ambiguity code)
+ *            fraction of 'CG'
+ *
+ *            Per-basepair stats, output to 'bp_outfile':
+ *            fraction canonical basepairs
+ *            'covariation' statistic
+ *
+ * Helper functions do all the dirty work for this function:
+ * _c_rfam_comp_and_len_stats(): sequence length and composition stats
+ * _c_rfam_bp_stats():           all basepair-related stats
+ * _c_rfam_pid_stats():          percent identity stats
+ *
+ * This function reproduces all functionality in Paul Gardner's
  * rqc-ss-cons.pl script, last used in Rfam 10.0 and deprecated during
  * Sanger->EBI transition code overhaul.
  * 
  * Returns:   eslOK on success.
  */
 
-int _c_rfam_qc_stats(ESL_MSA *msa)
+int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *bp_outfile)
 {
   int status;
+  FILE  *ffp;   /* open output per-family   stats output file */
+  FILE  *sfp;   /* open output per-sequence stats output file */
+  FILE  *bfp;   /* open output per-basepair stats output file */
   int i;        /* sequence index */
   int apos;     /* alignment position */
   double seqwt; /* sequence weight;
@@ -1080,6 +1052,11 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
 
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_rfam_qc_stats() contract violation, MSA is not digitized");
 
+  /* open output files */
+  if((ffp = fopen(fam_outfile, "w"))  == NULL) { croak("unable to open %s for writing", fam_outfile); }
+  if((sfp = fopen(seq_outfile, "w"))  == NULL) { croak("unable to open %s for writing", seq_outfile); }
+  if((bfp = fopen(bp_outfile,  "w"))  == NULL) { croak("unable to open %s for writing", bp_outfile); }
+
   _c_rfam_comp_and_len_stats(msa, &abcAA, &abc_totA, &lenA, &len_tot, &len_min, &len_max);
   _c_rfam_pid_stats         (msa, &pid_mean, &pid_min, &pid_max);
   _c_rfam_bp_stats          (msa, &nbp, &rposA, &seq_canA, &pos_canA, &covA, &mean_cov);
@@ -1088,9 +1065,9 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
   _c_max_rna_two_letter_ambiguity(abc_totA[0], abc_totA[1], abc_totA[2], abc_totA[3], &max_2l, &max_2l_frac);
 
   /* print 'ss-stats-per-family' */
-  printf("%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
+  fprintf(ffp, "%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
          "FAMILY", "MEAN_FRACTN_CANONICAL_BPs", "COVARIATION", "NO_SEQs", "ALN_LENGTH", "NO_BPs", "NO_NUCs", "mean_PID", "max_PID", "min_PID", "mean_LEN", "max_LEN", "min_LEN", "FRACTN_NUCs", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
-  printf("%-20s  %25.5f  %11.5f  %7d  %10d  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
+  fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10d  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
          msa->name,                                           /* family name */
          ((double) esl_vec_ISum(seq_canA, msa->nseq)) / ((double) msa->nseq * nbp), /* fractional canonical basepairs */
          mean_cov,                                            /* the 'covariation' statistic, mean */
@@ -1114,14 +1091,13 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
          (abc_totA[1] + abc_totA[2]) / (double) len_tot);     /* CG fraction */
 
   /* print ss-stats-persequence */
-  printf("%-20s  %-30s  %20s  %5s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
+  fprintf(sfp, "%-20s  %-30s  %20s  %5s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
          "FAMILY", "SEQID", "FRACTN_CANONICAL_BPs", "LEN", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
   for(i = 0; i < msa->nseq; i++) { 
     seqwt = msa->wgt[i];
-    printf("seqwt: %d %f\n", i, seqwt);
     /* get most common two-letter iupac ambiguity */
     _c_max_rna_two_letter_ambiguity(abcAA[i][0], abcAA[i][1], abcAA[i][2], abcAA[i][3], &max_2l, &max_2l_frac);
-    printf("%-20s  %-30s  %20.5f  %5d  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
+    fprintf(sfp, "%-20s  %-30s  %20.5f  %5d  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
            msa->name,                                         /* family name */
            msa->sqname[i],                                    /* seq name */
            (double) seq_canA[i] / (double) nbp,               /* fraction of canonical bps */
@@ -1136,17 +1112,22 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
   }
 
   /* print ss-stats-perbasepair */
-  printf("%-20s  %11s  %20s  %11s\n", 
+  fprintf(bfp, "%-20s  %11s  %20s  %11s\n", 
          "FAMILY", "BP_COORDS", "FRACTN_CANONICAL_BPs", "COVARIATION");
   for(apos = 0; apos < msa->alen; apos++) { 
     if(rposA[apos] != -1) { 
-      printf("%-20s  %5d:%-5d  %20.4f  %11.4f\n", 
-             msa->name,                                     /* family name */
-             (apos+1), (rposA[apos]+1),                     /* left and right position of bp, note off-by-one b/c apos is 0..alen-1 */
-             (double) pos_canA[apos] / (double) msa->nseq,  /* fraction of this bp that are canonical */
-             covA[apos]);                                   /* 'covariation statistic' for this bp */
+      fprintf(bfp, "%-20s  %5d:%-5d  %20.4f  %11.4f\n", 
+              msa->name,                                     /* family name */
+              (apos+1), (rposA[apos]+1),                     /* left and right position of bp, note off-by-one b/c apos is 0..alen-1 */
+              (double) pos_canA[apos] / (double) msa->nseq,  /* fraction of this bp that are canonical */
+              covA[apos]);                                   /* 'covariation statistic' for this bp */
     }
   }
+
+  /* close output files */
+  fclose(ffp);
+  fclose(sfp);
+  fclose(bfp);
 
   /* cleanup and exit */
   if(abcAA) { 
@@ -1163,23 +1144,6 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
   if(covA)     free(covA);
   
   return eslOK;
-
- ERROR:
-  if(abcAA) { 
-    for(i = 0; i < msa->nseq; i++) { 
-      if(abcAA[i]) free(abcAA[i]);
-    }
-    free(abcAA);
-  }
-  if(abc_totA) free(abc_totA);
-  if(lenA)     free(lenA);
-  if(rposA)    free(rposA);
-  if(seq_canA) free(seq_canA);
-  if(pos_canA) free(pos_canA);
-  if(covA)     free(covA);
-
-  croak("Error, out of memory while counting important values in the msa.");
-  return status; /* NEVERREACHED */
 }
 
 /* Function: _c_check_reqd_format
