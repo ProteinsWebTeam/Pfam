@@ -673,19 +673,18 @@ sub calc_and_write_bp_stats {
   Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
   Function : Calculate per-basepair stats for an RNA alignment
            : with SS_cons information and output it.
-  Args     : name of requested output file 
+  Args     : fam_outfile: name of output file for per-family stats
+           : seq_outfile: name of output file for per-sequence stats
+           : bp_outfile:  name of output file for per-basepair stats
   Returns  : void
 
 =cut
 
 sub rfam_qc_stats {
-  my ( $self, $fileLocation ) = @_;
+  my ( $self, $fam_outfile, $seq_outfile, $bp_outfile ) = @_;
 
-# TODO: get this working with errbuf, I couldn't get this to work though:
-# my $errbuf = "";
-#my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
   $self->_check_msa();
-  my $status = _c_rfam_qc_stats( $self->{esl_msa});
+  my $status = _c_rfam_qc_stats( $self->{esl_msa}, $fam_outfile, $seq_outfile, $bp_outfile);
   if ( $status != $ESLOK ) {
     croak "ERROR: unable to calculate rfam qc stats";
   }
