@@ -21,8 +21,6 @@ is($has_ss_cons, 1);
 my $ss_cons = $msa->get_ss_cons;
 is($ss_cons, ".::<<<____>->>:<<-<.___.>>>.");
 
-# test calc_and_write_bp_stats
-#TODO: make this into a test somehow
 my $outfile = "./t/data/test-msa-bp.out";
 
 my $acc = "RFXXXXX";
@@ -33,6 +31,6 @@ my $name = "myRNA";
 $msa->set_name($name);
 is($msa->get_name, $name);
 
-$msa->calc_and_write_bp_stats($outfile);
+$msa->rfam_qc_stats($outfile);
 
 #unlink $outfile

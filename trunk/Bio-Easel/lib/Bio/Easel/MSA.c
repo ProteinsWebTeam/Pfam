@@ -24,34 +24,45 @@
     : NULL                                         \
   )
 
-
 /* Function:  _c_read_msa()
  * Incept:    EPN, Sat Feb  2 14:14:20 2013
  * Synopsis:  Open a alignment file, read an msa, and close the file.
  * Returns:   an ESL_MSA
  */
 
-SV *_c_read_msa (char *infile)
+void _c_read_msa (char *infile)
 {
-    int           status;     /* Easel status code */
-    ESLX_MSAFILE *afp;        /* open input alignment file */
-    ESL_MSA      *msa;        /* an alignment */
-    ESL_ALPHABET *abc = NULL; /* alphabet for MSA, by passing this to 
-			       * eslx_msafile_Open(), we force digital MSA mode 
-			       */
+  Inline_Stack_Vars;
 
-    /* open input file */
-    if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_STOCKHOLM, NULL, &afp)) != eslOK)
-      eslx_msafile_OpenFailure(afp, status);
+  int           status;     /* Easel status code */
+  ESLX_MSAFILE *afp;        /* open input alignment file */
+  ESL_MSA      *msa;        /* an alignment */
+  ESL_ALPHABET *abc = NULL; /* alphabet for MSA, by passing this to 
+                             * eslx_msafile_Open(), we force digital MSA mode */
+  char         *format = NULL; /* string describing format, e.g. "Stockholm" */
+                             
+  /* open input file */
+  if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_STOCKHOLM, NULL, &afp)) != eslOK)
+    eslx_msafile_OpenFailure(afp, status);
+  
+  /* read_msa */
+  status = eslx_msafile_Read(afp, &msa);
+  if(status != eslOK) croak("Alignment file %s read failed with error code %d\n", infile, status);
 
-    /* read_msa */
-    status = eslx_msafile_Read(afp, &msa);
-    if(status != eslOK) esl_fatal("Alignment file %s read failed with error code %d\n", infile, status);
+  /* convert alignment file format to a string */
+  format = eslx_msafile_DecodeFormat(afp->format);
+  
+  Inline_Stack_Reset;
+  Inline_Stack_Push(perl_obj(msa, "ESL_MSA"));
+  Inline_Stack_Push(newSVpvn(format, strlen(format)));
+  Inline_Stack_Done;
+  Inline_Stack_Return(2);
 
-    /* close msa file */
-    if (afp) eslx_msafile_Close(afp);
-
-    return perl_obj(msa, "ESL_MSA");
+  /* close msa file */
+  free(format);
+  if (afp) eslx_msafile_Close(afp);
+  
+  return;
 }    
 
 /* Function:  _c_write_msa()
