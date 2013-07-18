@@ -187,7 +187,10 @@ sub read_msa {
   if ( !defined $self->{path} ) {
     croak "trying to read msa but path is not set";
   }
-  $self->{esl_msa} = _c_read_msa( $self->{path} );
+  ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path} );
+
+  printf("informat: $self->{informat}\n");
+
   return;
 }
 
@@ -661,7 +664,7 @@ sub rfam_qc_stats {
   $self->_check_msa();
   my $status = _c_rfam_qc_stats( $self->{esl_msa});
   if ( $status != $ESLOK ) {
-    croak "ERROR: unable to calculate and write bp stats";
+    croak "ERROR: unable to calculate rfam qc stats";
   }
 
   return;
