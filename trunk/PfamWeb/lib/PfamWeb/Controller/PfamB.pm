@@ -282,7 +282,24 @@ Start of a chain for the other methods in this controller.
 
 sub alignment : Chained( 'pfamb' )
                 PathPart( 'alignment' )
-								CaptureArgs( 0 ) { }
+                CaptureArgs( 0 ) { }
+
+#-------------------------------------------------------------------------------
+
+=head2 stockholm : Local
+
+Returns a Stockholm alignment. This method just forwards straight to "format",
+relying on the default there to send back something sensible.
+
+=cut
+
+sub raw : Chained( 'alignment' )
+          PathPart( '' )
+          Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->forward( 'format' );
+}
 
 #-------------------------------------------------------------------------------
 
@@ -812,6 +829,7 @@ sub get_alignment_from_db : Private {
   # see if we can extract the raw alignment from the cache first
   my $cache_key  = 'alignment' . $c->stash->{acc};
   my $alignment = $c->cache->get( $cache_key );
+  my $gzipped_alignment;
 
   if ( defined $alignment ) {
     $c->log->debug( 'PfamB::Alignment::get_alignment_from_db: extracted alignment from cache' )
@@ -822,7 +840,7 @@ sub get_alignment_from_db : Private {
       if $c->debug;
 
     # make sure the relationship to the pfamB_stockholm table works
-    unless ( $c->stash->{pfam}->pfamb_stockholms->single->stockholm_data ) {
+    unless ( $gzipped_alignment = $c->stash->{pfam}->pfamb_stockholms->single->stockholm_data ) {
 
       $c->log->warn( 'PfamB::Alignment::get_alignment: failed to retrieve '
         . ' alignment for Pfam-B ' . $c->stash->{acc} )
@@ -834,7 +852,8 @@ sub get_alignment_from_db : Private {
     }
 
     # uncompress it
-    $alignment = Compress::Zlib::memGunzip( $c->stash->{pfam}->pfamb_stockholms->single->stockholm_data );
+    # $alignment = Compress::Zlib::memGunzip( $c->stash->{pfam}->pfamb_stockholms->single->stockholm_data );
+    $alignment = Compress::Zlib::memGunzip( $gzipped_alignment );
 
     unless ( defined $alignment ) {
 
