@@ -640,6 +640,33 @@ sub calc_and_write_bp_stats {
   return;
 }
 
+=head2 calc_and_write_bp_stats
+
+  Title    : calc_and_write_bp_stats
+  Incept   : EPN, Fri Feb  1 10:29:11 2013
+  Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
+  Function : Calculate per-basepair stats for an RNA alignment
+           : with SS_cons information and output it.
+  Args     : name of requested output file 
+  Returns  : void
+
+=cut
+
+sub rfam_qc_stats {
+  my ( $self, $fileLocation ) = @_;
+
+# TODO: get this working with errbuf, I couldn't get this to work though:
+# my $errbuf = "";
+#my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
+  $self->_check_msa();
+  my $status = _c_rfam_qc_stats( $self->{esl_msa});
+  if ( $status != $ESLOK ) {
+    croak "ERROR: unable to calculate and write bp stats";
+  }
+
+  return;
+}
+
 =head2 addGF
 
   Title    : addGF
