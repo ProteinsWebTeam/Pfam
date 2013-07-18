@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -12,6 +12,13 @@ my $msa = Bio::Easel::MSA->new({
    fileLocation => $alnfile, 
 });
 isa_ok($msa, "Bio::Easel::MSA");
+
+# test new with required stockholm format
+my $omsa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+   reqdFormat   => "stockholm",
+});
+isa_ok($omsa, "Bio::Easel::MSA");
 
 # test msa
 my $msa2 = $msa->msa;

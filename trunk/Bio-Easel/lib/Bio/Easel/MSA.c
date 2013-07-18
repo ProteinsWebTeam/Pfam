@@ -27,10 +27,10 @@
 /* Function:  _c_read_msa()
  * Incept:    EPN, Sat Feb  2 14:14:20 2013
  * Synopsis:  Open a alignment file, read an msa, and close the file.
- * Returns:   an ESL_MSA
+ * Returns:   an ESL_MSA and a string describing it's format
  */
 
-void _c_read_msa (char *infile)
+void _c_read_msa (char *infile, char *reqdFormat)
 {
   Inline_Stack_Vars;
 
@@ -39,27 +39,31 @@ void _c_read_msa (char *infile)
   ESL_MSA      *msa;        /* an alignment */
   ESL_ALPHABET *abc = NULL; /* alphabet for MSA, by passing this to 
                              * eslx_msafile_Open(), we force digital MSA mode */
-  char         *format = NULL; /* string describing format, e.g. "Stockholm" */
+  int           fmt;        /* int code for format string */
+  char         *actual_format = NULL; /* string describing format of file, e.g. "Stockholm" */
                              
+  /* decode reqdFormat string */
+  fmt = eslx_msafile_EncodeFormat(reqdFormat);
+
   /* open input file */
-  if ((status = eslx_msafile_Open(&abc, infile, NULL, eslMSAFILE_UNKNOWN, NULL, &afp)) != eslOK)
+  if ((status = eslx_msafile_Open(&abc, infile, NULL, fmt, NULL, &afp)) != eslOK)
     croak("Error reading alignment file %s: %s\n", infile, afp->errmsg);
   
   /* read_msa */
   status = eslx_msafile_Read(afp, &msa);
   if(status != eslOK) croak("Alignment file %s read failed with error code %d\n", infile, status);
 
-  /* convert alignment file format to a string */
-  format = eslx_msafile_DecodeFormat(afp->format);
+  /* convert actual alignment file format to a string */
+  actual_format = eslx_msafile_DecodeFormat(afp->format);
   
   Inline_Stack_Reset;
   Inline_Stack_Push(perl_obj(msa, "ESL_MSA"));
-  Inline_Stack_Push(newSVpvn(format, strlen(format)));
+  Inline_Stack_Push(newSVpvn(actual_format, strlen(actual_format)));
   Inline_Stack_Done;
   Inline_Stack_Return(2);
 
   /* close msa file */
-  free(format);
+  free(actual_format);
   if (afp) eslx_msafile_Close(afp);
   
   return;
@@ -1176,4 +1180,23 @@ int _c_rfam_qc_stats(ESL_MSA *msa)
 
   croak("Error, out of memory while counting important values in the msa.");
   return status; /* NEVERREACHED */
+}
+
+/* Function: _c_check_reqd_format
+ * Incept:   EPN, Thu Jul 18 11:07:44 2013
+ * Purpose:  Check if <format> string is a valid format,
+ *           croak if it is not.
+ *
+ * Returns:  void
+ */
+int
+_c_check_reqd_format(char *format)
+{
+  int fmt; /* int format code */
+
+  fmt = eslx_msafile_EncodeFormat(format);
+
+  if(fmt == eslMSAFILE_UNKNOWN) croak ("required format string %s, is not valid, choose from: \"stockholm\", \"pfam\", \"a2m\", \"phylip\", \"phylips\", \"psiblast\", \"selex\", \"afa\", \"clustal\", \"clustallike\"\n", format);
+
+  return;
 }
