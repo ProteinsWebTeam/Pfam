@@ -961,6 +961,27 @@ sub _check_reqd_format {
   return;
 }
 
+=head2 format
+
+  Title    : format
+  Incept   : rdf, Fri Jul 19 14:05:01 2013
+  Usage    : $msaObject->format()
+  Function : Gets the format of the MSA
+  Args     : none
+  Returns  : String of the format.
+
+=cut
+
+sub format {
+  my ($self) = @_;
+  
+  if(!$self->{informat}){
+    $self->read_msa;
+  }
+
+  return ($self->{informat});
+}
+
 =head2 _c_read_msa
 =head2 _c_write_msa
 =head2 _c_nseq
