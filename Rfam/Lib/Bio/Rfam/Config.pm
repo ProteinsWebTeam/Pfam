@@ -272,6 +272,23 @@ sub viewPluginSets {
   return $self->{'_config'}->{view_sets}->{$category};
 }
 
+sub GOsuggestions {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{curation}->{GOsuggestions};
+}
+
+sub SOsuggestions {
+   my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{curation}->{SOsuggestions};
+}
+
+
 sub dictionary {
   my $self = shift;
   if ( $#_ >= 0 ) {
@@ -280,4 +297,11 @@ sub dictionary {
   return $self->{'_config'}->{curation}->{dictionary};
 }
 
+sub descTypes {
+    my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{curation}->{descTypes};
+}
 1;

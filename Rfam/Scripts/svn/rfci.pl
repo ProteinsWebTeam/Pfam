@@ -89,18 +89,22 @@ my ( $oldFamilyObj, $upFamilyObj );
 $upFamilyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded local copy $family through middleware\n";
 
-
+#Split QC into two parts. Basic new familiy checks, such as format
+#sequences and overlap.
 
 unless($onlydesc){
   #TODO - put in lots ot QC here.
-  #if ( !Bio::Rfam::QC::checkFamilyFiles($family, $upFamilyObj) ) {
-  #  print "$0: $family contains errors.  You should rebuild this model.\n";
-  #  exit(1);
-  #} 
+  if ( !Bio::Rfam::QC::checkFamilyFiles($family, $upFamilyObj) ) {
+    print "$0: $family contains errors.  You should rebuild this model.\n";
+    exit(1);
+  } 
 }
 
 $oldFamilyObj = $familyIO->loadRfamFromSVN( $family, $client );
 print STDERR "Successfully loaded SVN copy of $family through middleware\n";
+
+
+#Add secondary checks here, comparing old and new families.
 
 #-------------------------------------------------------------------------------
 #Add the appropriate callback to the client.
