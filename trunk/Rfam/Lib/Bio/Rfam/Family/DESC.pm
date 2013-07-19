@@ -139,8 +139,7 @@ has 'CL' => (
 
 has 'TP' => (
   is        => 'ro',
-  isa       => 'Str', 
-  #enum( [ qw( Family Domain Repeat Motif ) ]),
+  isa       => 'Str',
   required  => 0
 );
 
@@ -148,9 +147,6 @@ has 'WIKI' => (
   is        => 'ro',
   isa       => 'HashRef'
 );
-
-
-
 
 has 'REFS' => (
   is        => 'ro',
@@ -160,16 +156,6 @@ has 'REFS' => (
 has 'CC' => (
   is        => 'ro',
   isa       => 'Str',
-);
-
-has 'EDITS' => (
-  is       => 'rw',
-  isa      => 'ArrayRef[ HashRef ]'
-);
-
-has 'NESTS' => (
-  is       =>  'rw',
-  isa      =>  'ArrayRef[ HashRef ]'
 );
   
 has 'BM' => (
@@ -196,6 +182,7 @@ has 'SN' => (
   is    => 'rw',
   isa   => 'Str'
 );
+
 has 'DBREFS' => (
   is     => 'ro',
   isa    => 'ArrayRef[ HashRef ]'
@@ -211,6 +198,15 @@ has 'order' => (
   isa   => 'ArrayRef',
   default => sub {[ qw(AC ID PI DE AU SE SS CUTGA CUTTC CUTNC TP TX BM CB SM CL DBREFS REFS CC WIKI SQ private ) ] }
 );
+
+has 'requiredFields' => (
+  is    => 'ro',
+  isa   => 'ArrayRef',
+  default => sub {[ qw(ID DE AU CUTGA CUTTC CUTNC BM CB SM SE SS REFS WIKI) ]}
+);
+
+
+
 
 __PACKAGE__->meta->make_immutable;
 1;

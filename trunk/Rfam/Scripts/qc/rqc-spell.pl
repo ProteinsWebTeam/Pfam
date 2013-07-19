@@ -3,15 +3,12 @@
 
 use strict;
 use warnings;
-use Cwd;
 use File::Touch;
 
 use Bio::Rfam::QC;
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 
-
-my $pwd = getcwd;
 my $config = Bio::Rfam::Config->new;
 my $dictionary = $config->dictionary;
 
@@ -32,6 +29,7 @@ foreach my $fam (@ARGV){
   
   if($error){
     warn "Format error with spell QC.\n";
+    exit(1);
   }else{
     touch("$fam/spell");
   }

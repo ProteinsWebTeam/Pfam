@@ -579,14 +579,207 @@ sub parseDESC {
             . "-" x 80
             . "\n" );
     }
+    #Do not permit tabs.
+    if($l =~ /\t/ or $l =~ /.*\s$/){
+      craok("A tab character or a terminal whitespace found in $l of your DESC file!\n");
+    }
 
-    if ( $file[$i] =~ /^(AC|ID|DE|PI|AU|SE|SS|BM|SM|CB|TP|TX|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
+    if ( $file[$i] =~ /^(AC|ID|AU|SE|TP|TX|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
       if ( exists( $params{$1} ) ) {
         croak("Found second $1 line, only expecting one\n");
       }
       $params{$1} = $2;
       next;
-    } elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
+    }elsif( $file[$i] =~ /^DE\s{3}(.*)$/){
+      if ( exists( $params{DE} ) ) {
+        croak("Found second DE line, only expecting one\n");
+      }
+      my $deLine = $1;
+      my $error = 0;
+      if($deLine =~ /.*\s$/){
+        warn "\nFATAL: DE lines should not be plural!, please check and remove if plural\n";
+        $error = 1;
+      }
+      if ($deLine =~ /.*\.$/){
+         warn "\nFATAL: DE lines should not end with a fullstop\n";
+         $error = 1;
+      }
+      if ($deLine =~ /.*\;$/){
+         warn "\nFATAL: DE lines should not end with a semicolon\n";
+         $error = 1;
+      }
+      
+      if($deLine =~ /\t/){
+        warn "\nFATAL: DE lines contains a tab character\n";
+        $error = 1;
+      }
+      
+      if($error){
+        croak("\nError parsing DE line\n\n");
+      }else{
+        $params{'DE'} = $deLine;
+      }
+      
+    }elsif($file[$i] =~ /^(T[P|X])\s{3}(.*)$/){ 
+      my $tag = $1;
+      my $tLine = $2;
+      
+      if ( exists( $params{$tag} ) ) {
+        croak("Found second $tag line, only expecting one\n");
+      }
+     
+      if ($tLine !~/\;$/){
+        warn  "\nFATAL : Failed $tag line: no terminal semicolon";
+      }else{
+        $params{$tag} = $tLine;
+      }
+      
+    }elsif($file[$i] =~ /^SS\s{3}(.*)$/ ){
+      #Store the SS line
+      my $ssLine = $1;
+      
+      my $error = 0;
+      #Have we already seen one.
+      if ( exists( $params{SS} ) ) {
+        croak("Found second SS line, only expecting one\n");
+      }
+      
+      #Examples of SS lines
+      #Published; PMID:17630972
+      #Published; PMID:17630972; Bateman A 
+      #Predicted; RNAz;
+      #Predicted; FSA; RNAalifold
+      #Predicted; RNAalifold; Eberhardt R
+      #Predicted; Eberhardt R  
+      #Predicted; Moxon SJ, Daub J
+      
+      
+      if ( $ssLine =~ /^SS   (Published|Predicted)\; (.*)/){
+        my $class = $1;
+        my @rest = split(/\; /, $2);
+        foreach my $r (@rest) {
+          if(/\t/){
+            $error = 1;
+            warn "\n FATAL: DESC file SS line contains a tab character.\n";
+          }
+          if(/\;/){
+            $error = 1;
+            warn "\n FATAL: DESC file SS line contains a semicolon.\n";
+          }
+          
+        }
+        
+        if($class eq 'Published'){
+          #The first element has to end
+          my $pmid = shift @rest;
+          if($pmid != /^PMID\:\d+$/){
+            $error = 1;
+            warn "\n FATAL: DESC file SS line wrongly formated. Expexted PMID after published;";
+          }
+          
+          #Okay - now we can have either a method, author or author list.
+          #We want methods first, but this is optional.  So, as soon as we
+          #match something that looks like an author list, do not allow single
+          #words.
+          my $authors = 0;
+          foreach my $r (@rest){
+            if($r =~ /^\w+$/){
+              #Should be a method.
+              if($authors){
+                $error = 1;
+                warn "\n FATAL: DESC SS line wrongly formated. Expexted authors after a method.\n";
+                
+              }
+            }elsif( $r =~ /^\w+ \w+(, \w+ \w+)*$/){
+              #Looks like an author line.
+              $authors++;
+              #Once we have seen authors once, we can not see a method
+            }else{
+              #Unrecognized line
+              $error = 1;
+              warn "\n FATAL: DESC file SS line wrongly formated. Unrecognized part of SS lines.\n";
+            }
+          }
+          
+        }
+      }
+      
+      if($error){
+        croak("\nError parsing DESC SS line\n\n");
+      }else{
+        $params{'SS'} = $ssLine;
+      }
+    }elsif($file[$i] =~ /^PI\s{3}(\S+)$/ ){
+      #Store the PI line
+      my $piLine = $1;
+      
+      #Have we already seen one.
+      if ( exists( $params{PI} ) ) {
+        croak("Found second PI line, only expecting one\n");
+      }
+      
+      #Check the format as best as we can.
+      my $error = 0;
+      my @ids=split("\; ", $piLine);
+      foreach my $i (@ids){
+        if ($i=~/\;/){
+          $error = 1;
+          warn "\nFATAL: DESC file PI lines wrongly formatted, should be semicolon space separated list 'id1; ids2; id3' \n";      
+          last;
+        }
+      }
+      
+      #If we get an error fail
+      if($error){
+        croak("\nError parsing DE line\n\n");
+      }else{
+        $params{'PI'} = $piLine;
+      }
+    }
+#    BM   cmbuild  -F CM SEED
+#    CB   cmcalibrate --mpi -s 1 CM
+#    SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB  
+      
+    #This is quite strict to only allow parameted that Eric and Rob think will be used.
+    elsif($file[$i] =~ /^BM\s{3}(.*)$/){
+      my $bmLine = $1;
+      #Have we already seen one.
+      if ( exists( $params{BM} ) ) {
+        croak("Found second BM line, only expecting one\n");
+      }
+      
+      if($bmLine !~ /^cmbuild\s+(\-\w\s|\-\-\w+\s)*CM SEED$/){
+        croak("\nFATAL: Your BM cmbuild line doesn't look right [$bmLine]\n");
+      }else{
+        $params{'BM'} = $bmLine;
+      }
+    }elsif($file[$i] =~ /^CB\s{3}(.*)$/){
+      my $cbLine = $1;
+      #Have we already seen one.
+      if ( exists( $params{CB} ) ) {
+        croak("Found second CB line, only expecting one\n");
+      }
+      
+      if($cbLine !~ /^cmcalibrate\s+--mpi\sCM$/){
+        croak("\nFATAL: Your CB cmcalibrate line doesn't look right [$cbLine]\n");
+      }else{
+        $params{'CB'} = $cbLine;
+      }
+    }elsif($file[$i] =~ /^CM\s{3}(.*)$/){
+      my $cmLine = $1;
+      #Have we already seen one.
+      if ( exists( $params{CM} ) ) {
+        croak("Found second CM line, only expecting one\n");
+      }
+      
+      #--cpu <n> --verbose (-E or -T) <f> -Z <f>
+      if($cmLine !~ /^cmsearch\s+--cpu \d+ --verbose -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )?CM SEQDB$/){
+        croak("\nFATAL: Your CM cmsearch line doesn't look right [$cmLine]\n");
+      }else{
+        #If we get here, should be okay
+        $params{'CM'} = $cmLine;
+      }
+    }elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
       $params{ "CUT" . $1 } = $2;
     } elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
       $params{private} .= " " if ( $params{private} );
@@ -613,6 +806,11 @@ sub parseDESC {
       next;
     } elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
+      
+      if($cc =~ /\-\!\-/){
+        croak("FATAL: DESC CC line  should not contain -!- , please remove\n");
+      }
+      
       while ( $cc =~ /(\w+):(\S+)/g ) {
         my $db  = $1;
         my $acc = $2;
