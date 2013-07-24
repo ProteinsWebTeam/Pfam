@@ -194,6 +194,17 @@ sub rfamlive {
   return($self->{'schema'});
 }
 
+sub rfamseqObj {
+  my $self = shift;
+  my $seqdb = $self->seqdbConfig('rfamseq');
+  
+  if(!$self->{'rfamseqObj'}){
+    $self->{'rfamseqObj'} = Bio::Rfam::SeqDB->new( { fileLocation => $seqdb->{fetchPath },
+                                                     dbname       => 'rfamseq' });
+  }
+  return $self->{'rfamseqObj'};
+}
+
 sub familyLocation {
   
 }

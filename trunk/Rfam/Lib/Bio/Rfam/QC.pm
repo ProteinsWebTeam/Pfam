@@ -28,6 +28,7 @@ use warnings;
 use File::Temp qw(tempfile);
 use File::Copy;
 use Data::Printer;
+use Data::Dump qw(dump);
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -747,7 +748,64 @@ sub ssStats {
   }
 }
 
+sub checkSEEDSeqs {
+  my ($familyObj, $seqDBObj) = @_;
+  
+  #Check we have the correct family object.
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  my $error = 0;
+  
+  my @seedSeqs;
+  for( my $i = 0; $i < $familyObj->SEED->nseq; $i++){
+    my $nse = $familyObj->SEED->get_sqname($i);
+    my $seedSeq = $familyObj->SEED->get_sqstring_unaligned($i);
+    my ($is_nse, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
+    push(@seedSeqs, [$nse, $start, $end, $name, $seedSeq])
+  }
+    
+  #This next bit is a little inefficient
+  my $seqDBSeqs = $seqDBObj->fetch_subseqs(\@seedSeqs, -1);
+  
+  #Make RNA
+  $seqDBSeqs =~ s/T/U/g;
+  #now make array of alternatice head/sequence - Eric???? Can we avoid this.
+  my @s =  split( /\n/, $seqDBSeqs );
+ 
+  for( my $i = 0; $i < $familyObj->SEED->nseq; $i++){
+    if( $s[ ($i * 2 )+1] ne $seedSeqs[$i]->[4]){
+      $error =1;
+      warn "The sequence in the SEED, ".$seedSeqs[$i]->[0]." does not match the database.\n";
+      warn "SEED:".$seedSeqs[$i]->[4]."\n";
+      warn "DB  :".$s[ ($i * 2 )+1 ]."\n\n";
+    }
+  }
+}
 
-
+sub checkScoresSeqs {
+    my ($familyObj, $seqDBObj) = @_;
+  
+  #Check we have the correct family object.
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  #Check we have the correct seqDBobj object.
+  if(!$seqDBObj or !$seqDBObj->isa('Bio::Rfam::SeqDB')){
+    die "Did not get passed in a Bio::Rfam::SeqDB object\n";
+  }
+  
+  my $error = 0;
+  eval{
+    $seqDBObj->fetch_subseqs($familyObj->SCORES->regions);
+  };
+  if($@){
+    $error = 1;
+    warn "ERROR: $@\n";
+  }
+  return $error;
+}
 
 1;
