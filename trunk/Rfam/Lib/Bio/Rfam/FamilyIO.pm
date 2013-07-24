@@ -86,7 +86,8 @@ sub loadRfamFromLocalFile {
   my $params = {
                 'SEED' => {
                            fileLocation => "$dir/$family/SEED",
-                           aliType      => 'seed'
+                           aliType      => 'seed',
+                           reqdFormat   => 'Stockhom',
                           },
                 'DESC'   => $self->parseDESC("$dir/$family/DESC"),
                 'CM'     => $self->parseCM("$dir/$family/CM"),
@@ -139,7 +140,8 @@ sub loadRfamFromRDB {
                 source => 'database',
                 'SEED' => {
                            fileLocation => "$dir/$family/SEED",
-                           aliType      => 'seed'
+                           aliType      => 'seed',
+                           reqdFormat   => 'Stockholm'
                           },
                 'DESC'   => $descData,
                 'CM'     => $self->parseCM("$dir/$family/CM"),
