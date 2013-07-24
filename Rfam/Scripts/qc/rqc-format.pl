@@ -42,7 +42,7 @@ if(!$error){
   }
 }
 
-$error = Bio::Rfam::QC::checkFamily( $familyObj );
+$error = Bio::Rfam::QC::checkFamilyFormat( $familyObj );
 
 if($error){
   warn "There is a format error with the family\n";
