@@ -40,17 +40,24 @@ if(-e "$family/check"){
   unlink("$family/check");
 }
 
-Bio::Rfam::QC::compareSeedAndScores($familyObj);
+my $error = 0;
+#See if all sequences are recovered.
+$error = Bio::Rfam::QC::compareSeedAndScores($familyObj);
 
 #Check that the family already exists.
+eval{
+  $client->checkFamilyExists($family); #TODO uncomment, exit if new.
+};
+if($@){
+  warn "\nCan not find family, assuming it is new!\n\n";
+  exit($error);
+}
 
-
-#$client->checkFamilyExists($family); #TODO uncomment, exit if new.
 my ($oldFamilyObj);
 eval {
-#This needs to be put back at a later date.
-#my $oldFamily = $familyIO->loadRfamFromSVN( $family, $client );
-  $oldFamilyObj = $familyIO->loadRfamFromLocalFile( 'RF00014', $pwd );
+  $oldFamilyObj = $familyIO->loadRfamFromSVN( $family, $client );
+# This is how I tested the object.
+# $oldFamilyObj = $familyIO->loadRfamFromLocalFile( 'RF00014', $pwd );
 };
 if($@){
   die "There was a problem fetching/loading the old family from SVN:$@\n";
@@ -58,4 +65,18 @@ if($@){
   print STDERR "Successfully loaded (old) SVN copy of $family through middleware\n";
 }
 
-Bio::Rfam::QC::compareOldAndNew($oldFamilyObj, $familyObj, "$pwd/$family");
+my($found, $missing) = 
+  Bio::Rfam::QC::compareOldAndNew($oldFamilyObj, $familyObj, "$pwd/$family");
+
+if($error){
+  warn "There is a problem with your family. Please fix.\n";
+  exit(1);
+}else{
+  touch("$family/check");
+} 
+
+sub help {
+  
+  
+  exit;
+}

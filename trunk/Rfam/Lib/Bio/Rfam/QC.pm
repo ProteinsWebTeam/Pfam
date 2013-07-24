@@ -53,34 +53,72 @@ sub checkQCPerformed {
   }
 
   foreach my $f ( @{ $config->mandatoryFiles } ) {
-    if( -M "$dir/$acc/$f" < -M "$dir/$acc/qcpassed" ){
-    die
-  "You need to rerun the rqc-all.pl as $f has changed since you ran it last\n";
-    }
+#    if( -M "$dir/$acc/$f" < -M "$dir/$acc/qcpassed" ){
+#    die
+#  "You need to rerun the rqc-all.pl as $f has changed since you ran it last\n";
+#    }
   }
   
 }
 
-sub checkFamily {
+#Ended templating...I feel dirty.
+
+#------------------------------------------------------------------------------
+
+=head2 checkFamilyFormat
+
+  Title    : checkFamilyFormat
+  Incept   : finnr, Jul 24, 2013 2:29:22 PM
+  Usage    : Bio::Rfam::QC::checkFamily($familyObj)
+  Function : Performs series of format checks
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 if an error is found, 
+  
+=cut
+
+sub checkFamilyFormat {
   my ($familyObj) = @_;
   
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
   my $error = 0;
-  $error = checkDESC($familyObj);
+  $error = checkDESCFormat($familyObj);
   if($error){
     return $error;
   }
-  $error = checkSEED($familyObj);
+  $error = checkSEEDFormat($familyObj);
   if($error){
     return $error;
   }
-  
-  checkCM($familyObj);
-  
+  $error = checkCMFormat($familyObj);
+  if($error){
+    return $error;
+  }
+  checkScoresFormat($familyObj);
   return $error;
 }
 
-sub checkSEED {
+#------------------------------------------------------------------------------
+=head2 checkSEEDFormat
+
+  Title    : checkSEEDFormat
+  Incept   : finnr, Jul 24, 2013 2:36:13 PM
+  Usage    : Bio::Rfam::QC::checkSEEDFormat($familyObj)
+  Function : Performs format QC steps on the SEED, via the object.
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 on error, 0 on passing checks.
+  
+=cut
+
+sub checkSEEDFormat {
   my($familyObj) = @_;
+  
+  #
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
   
   my $error = 0;
   #Check that the SEED is in stockholm format
@@ -116,9 +154,24 @@ sub checkSEED {
   return $error;
 }
 
-sub checkCM {
+#------------------------------------------------------------------------------
+=head2 checkCMFormat
+
+  Title    : checkCMFormat
+  Incept   : finnr, Jul 24, 2013 2:36:13 PM
+  Usage    : Bio::Rfam::QC::checkCMFormat($familyObj)
+  Function : Performs format QC steps on the CM, via the object.
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 on error, 0 on passing checks.
+  
+=cut
+
+sub checkCMFormat {
   my ($familyObj) = @_;
 
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
   my $error = 0;
 
   #Check that the CM and internal HMM agree.
@@ -141,8 +194,24 @@ sub checkCM {
   return $error;
 }
 
-sub checkDESC {
+#------------------------------------------------------------------------------
+=head2 checkDESCFormat
+
+  Title    : checkDESCFormat
+  Incept   : finnr, Jul 24, 2013 2:36:13 PM
+  Usage    : Bio::Rfam::QC::checkDESCFormat($familyObj)
+  Function : Performs format QC steps on the DESC, via the object.
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 on error, 0 on passing checks.
+  
+=cut
+
+sub checkDESCFormat {
   my ($familyObj) = @_;
+  
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
   
   my $error = 0;
   #Get the required fields and check that they are present.
@@ -163,18 +232,50 @@ sub checkDESC {
   return $error;
 }
 
-sub checkScores {
+#------------------------------------------------------------------------------
+=head2 checkScoresFormat
+
+  Title    : checkSEEDFormat
+  Incept   : finnr, Jul 24, 2013 2:36:13 PM
+  Usage    : Bio::Rfam::QC::checkScoresFormat($familyObj)
+  Function : Performs format QC steps on the scores, via the object.
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 on error, 0 on passing checks.
+  
+=cut
+sub checkScoresFormat {
+  #TODO - check scores
   #need to check all seed sequences are present.
+  #Should check that no regions exceed threshold?
 }
 
+#------------------------------------------------------------------------------
+=head2 checkRequiredFields
+
+  Title    : checkRequiredFields
+  Incept   : finnr, Jul 24, 2013 2:47:01 PM
+  Usage    : Bio::Rfam::QC::checkRequiredFields($familyObj, $config)
+  Function : Ensures that all of the required fields and database cross references
+           : are present in the DESC file.
+  Args     : A Bio::Rfam::Family object, a Bio::Rfam::Config object (optional).
+  Returns  :  1 on error, 0 on passing checks.
+  
+=cut
 
 sub checkRequiredFields {
   my ($familyObj, $config) = @_;
+
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
   
   if(!$config){
     $config = Bio::Rfam::Config->new;
   }
   
+  if(!$config->isa('Bio::Rfam::Config')){
+    die "Expeceted an Bio::Rfam::Config object\n";
+  }
   my $error = 0;
   foreach my $f (@{$familyObj->DESC->requiredFields}){
     if(!defined($familyObj->DESC->$f)){
@@ -213,7 +314,18 @@ sub checkRequiredFields {
   return ($error);
 }
 
+#------------------------------------------------------------------------------
+=head2 checkTPField
 
+  Title    : checkTPField
+  Incept   : finnr, Jul 24, 2013 2:22:18 PM
+  Usage    : Bio::Rfam::QC::checkTPField( $familyObj, $config)
+  Function : Takes the DESC file and checks that the TP field conforms to the
+           : the expected data structure that is stored in the config.
+  Args     : A Bio::Rfam::Family object, a Bio::Rfam::Config object (optional)
+  Returns  : 0 if everything is okay, 1 if there is an error detected.
+  
+=cut
 
 sub checkTPField {
   my ($familyObj, $config) = @_;
@@ -222,18 +334,31 @@ sub checkTPField {
     $config = Bio::Rfam::Config->new;
   }
   
+  if(!$config->isa('Bio::Rfam::Config')){
+    die "Expeceted an Bio::Rfam::Config object\n";
+  }
+  
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
   my $error =0;
-
+  
+  #There should always be a TP line when the DESC has been written.
   if(!$familyObj->DESC->TP){
     warn "The DESC file has no TP line.\n";
+    $error = 1;
     return $error;
   }
   
+  #Process the DESC line, semi-colon separated list.
   my @TPline = split( /\; /, $familyObj->DESC->TP);
   $TPline[-1] =~ s/\;//;
+  
+  #Get the predefined, okay data structure
   my $tpHashRef = $config->descTypes;
 
-  #For each element/TP we find, descend down the list.
+  #For each element/TP we find, descend down the hash.
   for (my $i = 0; $i< scalar(@TPline); $i++){
      if($tpHashRef->{$TPline[$i]}){
         $tpHashRef = $tpHashRef->{$TPline[$i]};
@@ -246,22 +371,45 @@ sub checkTPField {
   return($error);
 }
 
+#------------------------------------------------------------------------------
+=head2 compareSeedAndScores
+
+  Title    : compareSeedAndScores
+  Incept   : finnr, Jul 24, 2013 1:03:53 PM
+  Usage    : Bio::Rfam::QC::compareSeedAndScores($familyObj);
+  Function : Takes a family object and compares the SEED to the scores file to
+           : ensure that all sequences are found. It does not look at co-ordinates
+           : just sequence accessions.
+  Args     : A Bio::Rfam::Family obkect
+  Returns  : 0 when all sequences found, otherwise 1
+  
+=cut
+
 sub compareSeedAndScores {
   my ( $familyObj ) = @_;
   
+  if(!$familyObj or !$familyObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  #Hash os SEED sequnece accessions
   my %seed;
   for(my $i = 0; $i < $familyObj->SEED->nseq; $i++){
     my $s = $familyObj->SEED->get_sqname($i);
     my ($seq) = $s =~ /^(\S+)\/\d+\-\d+$/;
     $seed{$seq} = 1;
   }
+  
+  #Now loop over the scores files and delete keys when we find accessions
+  #present, with the hope we have an empty seed hash
   foreach my $r (@{$familyObj->SCORES->regions}){
     if(exists($seed{$r->[3]}) ){
       delete($seed{$r->[3]});
     }
-    last if(!%seed);
+    last if(!%seed); #If we empty, break the loop
   }
   
+  #Report as necessary.
   if(%seed){
     foreach my $seq (keys %seed){
       warn "SERIOUS ERROR: $seq in SEED in not in SCORES list!\n";
@@ -272,8 +420,38 @@ sub compareSeedAndScores {
   }
 }
 
+#------------------------------------------------------------------------------
+=head2 compareOldAndNew
+
+  Title    : compareOldAndNew
+  Incept   : finnr, Jul 24, 2013 1:07:21 PM
+  Usage    : Bio::Rfam::QC::compareOldAndNew($oldFamily, $updatedFamily, $path)
+  Function : Comapres the SCORES files from the old and update family to identify
+           : new and missing sequences. If a path is supplied, it will write files
+           : containing the found/missing sequence accessions 
+  Args     : Two family objects, first the old, second the updated family.  Third
+           : argument is an optional path of the directory where missng and found
+           : files should be written
+  Returns  : array referneces to the arrays containing the found or missing 
+           : sequence accessions.
+  
+=cut
+
 sub compareOldAndNew {
   my($oldFamObj, $newFamObj, $path) = @_;
+
+  if(!$oldFamObj or !$oldFamObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object as first argument.\n";
+  }
+  if(!$newFamObj or !$newFamObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object as second argument.\n";
+  }
+  if($path){
+    if(!-d $path){
+      die "You passed in a path, but is does not appear to be a directory.\n";
+    }
+  }
+
   
   #Find the things that are in the old, but not the new. Generate a hash of the
   #new things the pull out the unique sequence accessions (fourth elemenet)
@@ -314,18 +492,44 @@ sub compareOldAndNew {
   if(!scalar(@found) and !scalar(@missing)){
     print STDERR "No change in SEED and ALIGN members.\n";
   }else{
-    print STDERR "Lost ".scalar(@missing).". Found ".scalar(@found).". See the missing and found files for details\n";
+    print STDERR "Lost ".scalar(@missing).". Found ".scalar(@found);
+    if($path){
+      print STDERR "See the missing and found files for details";
+    }
+    print STDERR "\n";
   }
 
   return(\@found, \@missing);
 } 
 
+#------------------------------------------------------------------------------
+=head2 checkTimestamps
+
+  Title    : checkTimestamps
+  Incept   : finnr, Jul 24, 2013 1:31:37 PM
+  Usage    : Bio::Rfam::QC::checkTimestamps($famDir, $config)
+  Function : Checks that all mandatory files are present in the directory and
+           : that have been built in the same way.
+  Args     : A path to family directory, a Bio::Rfam::Config object (optional).
+  Returns  : 0 on passing, 1 on issue.
+  
+=cut
 
 sub checkTimestamps {
   my ( $fam, $config ) = @_;
 
-  my $error = 0;
+  if(!$fam or ! -d $fam){
+    die "Did not get passed in a path to a directory\n";
+  }
 
+  if(!$config){
+    $config = Bio::Rfam::Config->new;
+  }
+  if(!$config->isa('Bio::Rfam::Config')){
+    die "Expeceted an Bio::Rfam::Config object\n";
+  }
+  
+  my $error = 0;
   #First check all files are present.
   foreach my $f ( @{ $config->mandatoryFiles } ) {
     if ( !-e "$fam/$f" ) {
@@ -385,12 +589,17 @@ sub checkSpell {
   unless ($familyIO) {
     $familyIO = Bio::Pfam::FamilyIO->new;
   }
+  
+  if(!$familyIO->isa('Bio::Rfam::FamilyIO')){
+    die "Did not get passed in a Bio::Rfam::FamilyIO object\n";
+  }
 
   #Make sure that the DESC file is vaild to start off with
   eval { $familyIO->parseDESC("$fam/DESC"); };
   if ($@) {
     print STDERR $@;
     $error = 1;
+    return $error;
   }
 
   my (%line);
@@ -496,7 +705,10 @@ sub checkSpell {
   $familyIO->parseDESC("$fam/DESC");
   return($error);
 }
-=head1
+
+#------------------------------------------------------------------------------
+=head2 ssStats
+
   Title    : ssStats
   Incept   : EPN, Thu Jul 18 15:34:22 2013
   Usage    : Bio::Rfam::QC::ssStats($familyObj, $outputDir)
@@ -510,6 +722,10 @@ sub checkSpell {
 
 sub ssStats {
   my ( $famObj , $outdir) = @_;
+
+  if(!$famObj or !$famObj->isa('Bio::Rfam::Family')){
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
 
   $outdir = '.' if(!$outdir);
   my $seed = $famObj->SEED;
