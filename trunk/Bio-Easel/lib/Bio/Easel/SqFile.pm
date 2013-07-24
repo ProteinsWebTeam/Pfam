@@ -304,7 +304,7 @@ sub fetch_seqs_given_names {
 
   my $retstring = "";
   if(defined $outfile) { 
-    open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
+    open(OUT, '>', $outfile) || die "ERROR unable to open $outfile for writing";
   }
 
   my ($seqname, $seqstring);
@@ -438,6 +438,8 @@ sub fetch_subseqs {
   if(defined $outfile) { 
     open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing";
   }
+  
+  if(! defined $textw) { $textw = $FASTATEXTW; }
 
   my ($i, $seqname, $start, $end, $newname, $nseq, $listsize, $seqstring);
   $nseq = scalar(@{$AAR});
