@@ -27,7 +27,7 @@ use strict;
 use warnings;
 use File::Temp qw(tempfile);
 use File::Copy;
-
+use Data::Printer;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -40,6 +40,7 @@ sub checkFamilyFiles {
 
   &checkQCPerformed();
   &checkTimestamps();
+  #return 1 on failure.
 }
 
 sub checkQCPerformed {
@@ -162,6 +163,10 @@ sub checkDESC {
   return $error;
 }
 
+sub checkScores {
+  #need to check all seed sequences are present.
+}
+
 
 sub checkRequiredFields {
   my ($familyObj, $config) = @_;
@@ -241,22 +246,80 @@ sub checkTPField {
   return($error);
 }
 
-sub checkSeedSeqsFound {
-
-  #Works of accessions only.
-
-  #No need for double loop, Hash the SEED sequences, Then loop over the full.
-  # Talk to Eric - he may have a better idea.
-
-  #
-
+sub compareSeedAndScores {
+  my ( $familyObj ) = @_;
+  
+  my %seed;
+  for(my $i = 0; $i < $familyObj->SEED->nseq; $i++){
+    my $s = $familyObj->SEED->get_sqname($i);
+    my ($seq) = $s =~ /^(\S+)\/\d+\-\d+$/;
+    $seed{$seq} = 1;
+  }
+  foreach my $r (@{$familyObj->SCORES->regions}){
+    if(exists($seed{$r->[3]}) ){
+      delete($seed{$r->[3]});
+    }
+    last if(!%seed);
+  }
+  
+  if(%seed){
+    foreach my $seq (keys %seed){
+      warn "SERIOUS ERROR: $seq in SEED in not in SCORES list!\n";
+    }
+    return 1;
+  }else{
+    return 0;
+  }
 }
 
-sub compareOldAndNewFull {
+sub compareOldAndNew {
+  my($oldFamObj, $newFamObj, $path) = @_;
+  
+  #Find the things that are in the old, but not the new. Generate a hash of the
+  #new things the pull out the unique sequence accessions (fourth elemenet)
+  my %e = map{ $_->[3] => undef } @{$newFamObj->SCORES->regions};
+  my @missing = keys %{{ map{ $_->[3] => 1 }
+                         sort{ $a->[3] cmp $b->[3] } 
+                         grep( ! exists( $e{$_->[3]} ), @{$oldFamObj->SCORES->regions} ) }}; 
+  
+  %e = map{ $_->[3] => undef } @{$oldFamObj->SCORES->regions};
+  my @found = keys %{{ map{ $_->[3] => 1 }
+                         sort{ $a->[3] cmp $b->[3] } 
+                         grep( ! exists( $e{$_->[3]} ), @{$newFamObj->SCORES->regions} ) }}; 
+  
+  if($path and -d $path){
+    #Remove the files if they are there.
+    unlink( $path.'/missing' ) if(-e ($path.'/missing'));
+    unlink( $path.'/found' ) if(-e ($path.'/found'));
+    
+    if(@missing){
+      open(M, '>', $path.'/missing') 
+        or die "Failed to open missing ($path/missing) file:[$!]\n";
+      foreach (@missing){
+        print M "$_ not found\n";
+      }
+      close(M);
+    }
+    if(@found){
+      open(M, '>', $path.'/found') 
+        or die "Failed to open found ($path/found) file:[$!]\n";
+      foreach (@found){
+        print M "$_ found\n";
+      }
+      close(M);
+    }
+  }
+  
+  
+  if(!scalar(@found) and !scalar(@missing)){
+    print STDERR "No change in SEED and ALIGN members.\n";
+  }else{
+    print STDERR "Lost ".scalar(@missing).". Found ".scalar(@found).". See the missing and found files for details\n";
+  }
 
-  #....
+  return(\@found, \@missing);
+} 
 
-}
 
 sub checkTimestamps {
   my ( $fam, $config ) = @_;
