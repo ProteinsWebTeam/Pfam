@@ -10,6 +10,10 @@ use Cwd;
 
 my $pwd = getcwd;
 
+my $family = shift;
+
+$family = '.' if(!$family);
+
 #-------------------------------------------------------------------------------
 #Initial SVN stuff
 
@@ -21,9 +25,9 @@ my $config = Bio::Rfam::Config->new;
 #-------------------------------------------------------------------------------
 # Load the family from disk and svn through the middleware
 my $familyIO = Bio::Rfam::FamilyIO->new;
-my $familyObj = $familyIO->loadRfamFromLocalFile( '.', $pwd );
-my $error = Bio::Rfam::QC::checkCM($familyObj);
+my $familyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
+my $error = Bio::Rfam::QC::checkCMFormat($familyObj);
 if($error){
   warn "Format error with CMs!\n";
+  exit(1);
 }
-
