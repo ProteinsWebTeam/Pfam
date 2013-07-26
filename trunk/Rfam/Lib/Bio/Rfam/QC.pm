@@ -191,7 +191,6 @@ sub checkCMFormat {
     return $error;
   }
   my $acc = $familyObj->DESC->AC;
-  print STDERR "SEED:CM:$acc: No serious format errors found\n";
   return $error;
 }
 

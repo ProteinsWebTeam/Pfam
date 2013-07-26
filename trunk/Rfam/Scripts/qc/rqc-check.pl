@@ -77,6 +77,8 @@ if($error){
 
 sub help {
   
+print "\n$0. Checks sequences of Rfam entry, warning of missing SEED sequneces and comparing old version to update version if applicable.".
+      "\n\nUsage $0 <rfam-dir>\n";
   
   exit;
 }

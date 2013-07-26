@@ -51,3 +51,14 @@ if($error){
   exit(1)
 }
 $error = Bio::Rfam::QC::checkScoresSeqs($familyObj, $rfamseqObj);
+if($error){
+  print STDERR "$family contains errors.  You should rebuild this family.\n";
+  exit(1)
+}
+
+sub help {
+  
+print "\n$0. Checks sequences of Rfam entry are in rfamseq.\n\nUsage $0 <rfam-dir>\n";
+  
+  exit;
+}
