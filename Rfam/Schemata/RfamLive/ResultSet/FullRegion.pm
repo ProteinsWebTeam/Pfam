@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use Data::Printer;
+use DBIx::Class::ResultClass::HashRefInflator;
 use base 'DBIx::Class::ResultSet';
 
 sub updateFullRegionsFromFamilyObj {
@@ -96,9 +97,26 @@ sub getMatchList{
     $list.= $rfam_acc.' '.$r->get_column('species').' '.$r->get_column('seq_acc').'/'.$r->seq_start.'-'.$r->seq_end."\n";
   }
   unless($count == $expected){
-    die "Monumental cock has occured, mismatch between the number of regions";
+    die "Monumental cock up has occured, mismatch between the number of regions";
   }
   return $list;
+}
+
+sub regionsByRfamseqAcc {
+  my ($self, $rfamseqAcc, $flipCoos) = @_;
+  
+  my $rs = $self->search({ 'me.rfamseq_acc' => $rfamseqAcc },
+                         { result_class => 'DBIx::Class::ResultClass::HashRefInflator'});
+  
+  my @regions;
+  while(my $rowHashRef = $rs->next){
+    push(@regions, [ $rowHashRef->{rfamseq_acc},
+                     $rowHashRef->{rfam_acc},
+                     $rowHashRef->{seq_start},
+                     $rowHashRef->{seq_end},
+                     $rowHashRef->{seq_start} > $rowHashRef->{seq_end} ? -1 : 1 ]);
+  }
+  return \@regions;
 }
 
 1;
