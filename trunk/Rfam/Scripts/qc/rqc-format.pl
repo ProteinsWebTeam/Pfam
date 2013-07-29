@@ -27,10 +27,16 @@ if(-e "$fam/format"){
   unlink("$fam/format");
 }
 
+#------------------------------------------------------------------------------
 #First check timestamps, because if they are wrong it is not worth doing anything
 my $error = 0;
-$error =  Bio::Rfam::QC::checkTimestamps($fam, $config) if(!$error);
-
+$error =  Bio::Rfam::QC::checkTimestamps($fam, $config);
+if($error){
+  warn "The file timestamps look out of sync! Please rebuild this family.\n";
+  exit(1);
+}
+#------------------------------------------------------------------------------
+#Load the family.
 my $familyObj;
 if(!$error){
   eval{
@@ -42,19 +48,15 @@ if(!$error){
   }
 }
 
+#------------------------------------------------------------------------------
+#Check the format of the files.
 $error = Bio::Rfam::QC::checkFamilyFormat( $familyObj );
+
+#------------------------------------------------------------------------------
 
 if($error){
   warn "There is a format error with the family\n";
 }
-
-#    $desc = RfamUtils::slurpDesc("$DESC");
-#    my $check=RfamUtils::qcslurp
-
-#Need to check that the SEED is in stokcholm format.
-
-#Need to check mandatory DESC line are present etc.
-
 
 if( $error ) {
   warn "\nQC-FORMAT:$fam: Serious format errors: ".
@@ -64,6 +66,7 @@ if( $error ) {
 print STDERR  "\nQC-FORMAT:$fam: No serious format errors found\n";
 touch("$fam/format");
 
+#------------------------------------------------------------------------------
 sub help {
   print "$0. Checks format of Rfam entry.\nUsage $0 <rfam-dir>\n";
   exit;

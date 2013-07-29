@@ -41,15 +41,16 @@ if (-e "$out"){
   unlink("$out");
 }
 
-my $ignore_string;
+#load the family.
+my $familyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
+
+#Build up the ignore hash.
+my %ignore;
 if (@ignore){
     print STDERR "A list of families to ignore in the overlap check has been given\n";
-    $ignore_string="-i ";
-    $ignore_string.=join( " -i ", @ignore);
-    print STDERR $ignore_string, "\n"; 
+   %ignore = map{$_ => 1}@ignore;
+   $ignore{ $familyObj->DESC->AC }++ if($familyObj->DESC->AC);
 }
-
-my $familyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
 
 open(my $L, '>', "$pwd/$family/allqc.log") 
   or die "Could not open $pwd/$family/allqc.log: [$!]\n";
@@ -87,22 +88,23 @@ if ($error){
   print STDERR "\t--FORMAT check completed with no major errors";
 }
 
-=head
+#------------------------------------------------------------------------------
 
+print STDERR "\n(3) OVERLAP CHECK\n";
+print $L "\n** OVERLAP check **\n";
 
-system ("echo '\n**OVERLAP ERRS**\n' >> $errlog");
-my $overlap;
-if($ignore_string){    
-    print STDERR "\n(3) OVERLAP CHECK - ignoring $family and $ignore_string\n";
-    $overlap=system ("rqc-overlap-rdb.pl $family -i $family $ignore_string 1>> $outlog 2>> $errlog");
-    }
-else{
-    print STDERR "\n(3) OVERLAP CHECK - ignoring $family\n";
-    $overlap=system ("rqc-overlap-rdb.pl $family -i $family 1>> $outlog 2>> $errlog");
+$error = 0;
+eval{
+  $error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore);
+};
+print $L $@ if($@);
+if ($error){ 
+  $masterError++;
+  print STDERR "\t--errors" 
+} else { 
+  print STDERR "\t--OVERLAP check completed with no major errors";
 }
-if ($overlap){ $error=1; print STDERR "\t--errors"} else{ print STDERR "\t--overlap check completed with no major errors";}
 
-=cut
 #------------------------------------------------------------------------------
 
 print STDERR "\n(4) STRUCTURE CHECK\n";
@@ -181,6 +183,24 @@ if ($error){
   print STDERR "\t--SEQUENCE check completed with no major errors";
 }
 #------------------------------------------------------------------------------
+print STDERR "\n(7) NON-CODING CHECK\n";
+print $L "\n** NON-CODING check **\n";
+
+$error = 0;
+my ($coding);
+eval{
+  ($error, $coding) = Bio::Rfam::QC::codingSeqs($familyObj, $config);
+};
+print $L $@ if($@);
+if ($error){ 
+  print $L $coding if($coding);
+  $masterError++;
+  print STDERR "\t--errors" 
+} else { 
+  print STDERR "\t--SEQUENCE check completed with no major errors";
+}
+#------------------------------------------------------------------------------
+
 #And in summary!
 
 if ($masterError){

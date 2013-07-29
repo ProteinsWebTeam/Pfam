@@ -11,23 +11,36 @@ use Cwd;
 my $pwd = getcwd;
 
 my $family = shift;
-
+if($family eq '-h' or $family eq '--help'){
+  help();
+}
 $family = '.' if(!$family);
 
 #-------------------------------------------------------------------------------
-#Initial SVN stuff
-
-#Check that family exists in svn
-
+# Get the config
 my $config = Bio::Rfam::Config->new;
-
-#
+my $familyIO = Bio::Rfam::FamilyIO->new;
 #-------------------------------------------------------------------------------
 # Load the family from disk and svn through the middleware
-my $familyIO = Bio::Rfam::FamilyIO->new;
 my $familyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
+
+#Now the QC bit...
 my $error = Bio::Rfam::QC::checkCMFormat($familyObj);
+
+#Handle the error
 if($error){
   warn "Format error with CMs!\n";
   exit(1);
+}else{
+  exit(0);
+}
+#------------------------------------------------------------------------------
+sub help {
+
+  print<<EOF;
+
+$0 <family> - Checks the format of the CM.\n";
+
+EOF
+exit(1);
 }
