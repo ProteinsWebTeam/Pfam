@@ -170,6 +170,10 @@ sub checkSEEDFormat {
   Incept   : finnr, Jul 24, 2013 2:36:13 PM
   Usage    : Bio::Rfam::QC::checkCMFormat($familyObj)
   Function : Performs format QC steps on the CM, via the object.
+           : Although largely done via the FamilyIO, that just parses fields and
+           : does not perform integrity checks. This checks that the number of
+           : SEED sequences and CM are consistent and that the number of sequneces
+           : in the CM and internal HMM agree. 
   Args     : A Bio::Rfam::Family object
   Returns  : 1 on error, 0 on passing checks.
   
@@ -198,7 +202,7 @@ sub checkCMFormat {
 "The number of sequences in the CM does not agree with the number in the SEED.\n";
     return $error;
   }
-  my $acc = $familyObj->DESC->AC;
+
   return $error;
 }
 
@@ -967,6 +971,20 @@ sub _atomizeNSE {
   return \@nse;
 }
 
+#------------------------------------------------------------------------------
+=head2 codingSeqs
+
+  Title    : codingSeqs
+  Incept   : finnr, Jul 29, 2013 3:10:48 PM
+  Usage    : Bio::Rfam::QC::codingSeqs($familyObj, $config)
+  Function : Takes the seed alignment, reformats it to clustal (with '-' as a 
+           : gap character). It then runs throd party software, RNACode to
+           : identify potential coding regions. The p-value threshold for this 
+           : comes from the config.
+  Args     : A Bio::Rfam::Family object, a Bio::Rfam::Config
+  Returns  : 0 when no errors, 1 and scalar of RNAcode output on error.
+  
+=cut
 
 sub codingSeqs {
   my ($familyObj, $config) = @_;

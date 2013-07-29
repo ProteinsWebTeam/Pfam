@@ -54,3 +54,14 @@ if($error){
 }else{
   touch("$family/nocoding");
 }
+
+#------------------------------------------------------------------------------
+sub help {
+
+  print<<EOF;
+
+$0 <family> - finds any potneital coding regions in the SEED sequences.\n";
+
+EOF
+exit;
+}
