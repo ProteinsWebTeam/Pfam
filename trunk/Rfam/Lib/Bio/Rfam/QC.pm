@@ -29,6 +29,7 @@ use File::Temp qw(tempfile);
 use File::Copy;
 use Data::Printer;
 use Data::Dump qw(dump);
+use IPC::Run qw(run);
 
 #-------------------------------------------------------------------------------
 
@@ -880,11 +881,13 @@ sub findExternalOverlaps{
           $overlap = 'fullOL' if ( $overlap == -1 );
           my $overlapType =  $dbReg->[4] eq $or1 ? 'SS' : 'OS';
           #TODO Fix reporting when I have information.
-          printf STDERR "External overlap [%s] of %s with %s by %s\n",
+          my $s = sprintf "External overlap [%s] of %s with %s by %s\n",
             $overlapType,
             $r->[0],
             $dbReg->[1].":".$dbReg->[0]."/".$dbReg->[2]."-".$dbReg->[3],
             $overlap;
+            
+         print "**".$s;   
       }
     }
   }
@@ -962,6 +965,38 @@ sub _atomizeNSE {
         $nse[4] = 1;
       }
   return \@nse;
+}
+
+
+sub codingSeqs {
+  my ($familyObj, $config) = @_;
+  
+  my ($fh, $filename) = tempfile();
+  close($fh);
+  $familyObj->SEED->write_msa($filename, 'afa');
+
+  #Need Eric to add method to print clustal alignments, switching gap chars.
+  warn "Replace system call!!!!\n";
+  system("esl-reformat -o /tmp/test.clu --gapsym='-' clustal $filename");
+  $filename = '/tmp/test.clu';
+
+    
+  my $pvalue = $config->rnacode_pvalue; #Get via the config.
+  #run fastree on fasta file and write out
+  my @cmd = qw(RNAcode -s -p );
+  push(@cmd, $pvalue, $filename);
+  my($out, $err, $in);
+  run \@cmd, \$in, \$out, \$err, or die "FATAL: Error running RNAcode: $?";
+  
+  if($out =~ /No significant coding regions found/){
+    #No errors
+    return 0;
+  }else{
+    #Errors...
+    my $error = 1;
+    my $out = "Found potential coding regions in SEED alignment.\n $out\n";
+    return ($error, $out);
+  }
 }
 
 1;
