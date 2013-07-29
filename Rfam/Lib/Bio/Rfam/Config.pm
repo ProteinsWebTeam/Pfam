@@ -315,4 +315,13 @@ sub descTypes {
   }
   return $self->{'_config'}->{curation}->{descTypes};
 }
+
+
+sub rnacode_pvalue {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{curation}->{RNAcode}->{pvalue};
+}
 1;
