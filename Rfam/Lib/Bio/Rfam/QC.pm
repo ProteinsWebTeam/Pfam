@@ -599,10 +599,6 @@ sub checkTimestamps {
   return $error;
 }
 
-sub valid_sequences {
-
-}
-
 #------------------------------------------------------------------------------
 
 =head2 
@@ -827,6 +823,7 @@ sub checkSEEDSeqs {
       warn "DB  :" . $s[ ( $i * 2 ) + 1 ] . "\n\n";
     }
   }
+  return $error;
 }
 
 sub checkScoresSeqs {
@@ -991,16 +988,13 @@ sub codingSeqs {
   
   my ($fh, $filename) = tempfile();
   close($fh);
-  $familyObj->SEED->write_msa($filename, 'afa');
-
-  #Need Eric to add method to print clustal alignments, switching gap chars.
-  warn "Replace system call!!!!\n";
-  system("esl-reformat -o /tmp/test.clu --gapsym='-' clustal $filename");
-  $filename = '/tmp/test.clu';
-
+  #Write the file out as clustal
+  $familyObj->SEED->write_msa($filename, 'clustal');
     
+  #Get the pvalue that we will use for cut-off.
   my $pvalue = $config->rnacode_pvalue; #Get via the config.
-  #run fastree on fasta file and write out
+  
+  #run RNAcode on clustal file and capture results in STDOUT pipe.
   my @cmd = qw(RNAcode -s -p );
   push(@cmd, $pvalue, $filename);
   my($out, $err, $in);
