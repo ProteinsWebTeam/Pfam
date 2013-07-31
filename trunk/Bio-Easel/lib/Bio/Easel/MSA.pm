@@ -469,9 +469,10 @@ sub write_msa {
   }
   if ( $format ne "stockholm"
     && $format ne "pfam"
-    && $format ne "afa" )
+    && $format ne "afa" 
+    && $format ne "clustal" )
   {
-    croak "format must be \"stockholm\" or \"pfam\" or \"afa\"";
+    croak "format must be \"stockholm\" or \"pfam\" or \"afa\" or \"clustal\"";
   }
   my $status = _c_write_msa( $self->{esl_msa}, $outfile, $format );
   if ( $status != $ESLOK ) {
