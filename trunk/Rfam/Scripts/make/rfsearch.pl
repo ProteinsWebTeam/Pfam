@@ -37,6 +37,8 @@ my $evalue;                     # cmsearch E-value to use, defined by GetOptions
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
 my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk)
+my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
+my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
 # other options
 
 my $do_help = 0;                # TRUE to print help and exit, if -h used
@@ -45,6 +47,8 @@ my $do_help = 0;                # TRUE to print help and exit, if -h used
 my $dbchoice = "r79rfamseq";    # dbchoice, by default 'r79rfamseq'
 my $dbfile;                     # defined by GetOptions() if -dbfile is enabled
 my $dbdir;                      # defined by GetOptions() if -dbdir is enabled
+my $dblist;                     # defined by GetOptions() if -dblist is enabled
+my $noZ = 0;                    # set to 1 if -noZ used
 my $rev_dbfile;                 # defined by GetOptions() if -rdbfile is enabled
 my $rev_dbdir;                  # defined by GetOptions() if -rdbdir is enabled
 my $Zuser;                      # defined by GetOptions() if -Z is enabled
@@ -66,6 +70,8 @@ output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM aga
 	     "dbchoice=s" => \$dbchoice,
 	     "dbfile=s"   => \$dbfile, 
 	     "dbdir=s"    => \$dbdir, 
+	     "dblist=s"   => \$dblist, 
+	     "noZ"        => \$noZ,
              "Z=s"        => \$Zuser,
 	     "rdbfile=s"  => \$rev_dbfile, 
 	     "rdbdir=s"   => \$rev_dbdir, 
@@ -75,6 +81,7 @@ output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM aga
 	     "scpu=s"     => \$ncpus_cmsearch,
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
+             "ssopt=s@"   => \@ssoptA,
 	     "h|help"     => \$do_help );
 
 if ( $do_help ) {
@@ -102,7 +109,8 @@ Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
 
 if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]")); }
-elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir/" . " [-dbdir]")); }
+elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]")); }
+elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]")); }
 else                           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice)); }
 if($force_build)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]")); }
 if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]")); }
@@ -113,6 +121,7 @@ if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]")); }
 if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]")); }
 if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]")); }
+if($noZ)                       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]")); }
 if($no_search)                 { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]")); }
 if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]")); }
 if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]")); }
@@ -120,7 +129,8 @@ $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
 if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]")); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
 if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]")); }
-
+$ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
+if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 
 # create hash of potential output files
@@ -189,17 +199,37 @@ if ($do_nostruct) { # -nostruct: verify SEED either has SS_cons with 0 bps or do
 if(defined $dbdir)     { $dbdir     =~ s/\/$//; } # remove trailing '/'
 if(defined $rev_dbdir) { $rev_dbdir =~ s/\/$//; } # remove trailing '/'
 
+# -Z and -noZ are exclusive
+if(defined $Zuser && $noZ) { 
+  die "ERROR only one of -Z and -noZ can be used"; 
+}
 # -dbdir and -dbfile are exclusive
 if(defined $dbdir && defined $dbfile) { 
   die "ERROR only one of -dbdir and -dbfile can be used"; 
+}
+# -dbdir and -dblist are exclusive
+if(defined $dbdir && defined $dblist) { 
+  die "ERROR only one of -dbdir and -dblist can be used"; 
+}
+# -dblist and -dbfile are exclusive
+if(defined $dblist && defined $dbfile) { 
+  die "ERROR only one of -dblist and -dbfile can be used"; 
 }
 # -rdbdir and -rdbfile are exclusive
 if(defined $rev_dbdir && defined $rev_dbfile) { 
   die "ERROR only one of -rdbdir and -rdbfile can be used"; 
 }
-# if -dbdir used, -Z must also be set
-if(defined $dbdir && (! defined $Zuser)) { 
-  die "ERROR -dbdir requires that -Z also be used to define total database size"; 
+# if -dbdir used, -Z or -noZ must also be set
+if(defined $dbdir && (! defined $Zuser) && (! $noZ)) { 
+  die "ERROR -dbdir requires that -Z or -noZ also be used"; 
+}
+# if -dblist used, -Z or -noZ must also be set
+if(defined $dblist && (! defined $Zuser) && (! $noZ)) { 
+  die "ERROR -dblist requires that -Z or -noZ also be used"; 
+}
+# -dbdir and -dbfile are exclusive
+if(defined $dbdir && defined $dbfile) { 
+  die "ERROR only one of -dbdir and -dbfile can be used"; 
 }
 # if -rdbdir used, -rZ must also be set
 if(defined $rev_dbdir && (! defined $rev_Zuser)) { 
@@ -382,6 +412,17 @@ if (! $no_search) {
   elsif(defined $dbdir) { # -dbdir used on command line
     push(@dbfileA, glob("$dbdir/*.fa $dbdir/*.fa.gz"));
   }
+  elsif(defined $dblist) { # -dblist used on command line
+    open(DBLIST, $dblist) || die "ERROR unable to open file $dblist (from -dblist option)"; 
+    while(my $file = <DBLIST>) { 
+      if($file =~ m/\w/) { 
+        chomp $file; 
+        push(@dbfileA, $file); 
+        if(! -e $file) { die "ERROR file $file listed in $dblist does not exist"; }
+      }
+    }
+    close(DBLIST);
+  }
   else { # default case: neither -dbfile nor -dbdir used, use database defined in config
     $dbconfig = $config->seqdbConfig($dbchoice);
     for($idx = 0; $idx < $dbconfig->{"nSearchFiles"}; $idx++) { 
@@ -410,7 +451,7 @@ if (! $no_search) {
     }
   }
   $rev_ndbfiles = scalar(@rev_dbfileA);
-  # note that if -dbdir or -dbfile used, no reversed searches are done unless -rdbfile or -rdbdir
+  # note that if -dbdir, -dbdir or -dbfile used, no reversed searches are done unless -rdbfile or -rdbdir
   #
   # end of database setup
   #################################################################################
@@ -465,7 +506,7 @@ if (! $no_search) {
     $use_cmsearch_evalue = 1;
     $cmsearch_evalue     = $evalue;
   }
-  elsif(! defined $dbsize) { # if we don't know the database size (probably b/c -dbfile or -dbdir was set), use -E 1000
+  elsif(! defined $dbsize) { # if we don't know the database size (probably b/c -dbfile, -dbdir or -dblist was set), use -E 1000
     $use_cmsearch_evalue = 1;
     $cmsearch_evalue     = $min_evalue;
   } 
@@ -565,8 +606,8 @@ if (! $no_search) {
 
   # timing info
   $search_wall_secs = time() - $search_start_time;
-  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total runtime:", undef, \$search_max_elp_secs,     \$search_cpu_secs,     undef);
-  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total runtime:", undef, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
+  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total CPU time:", undef, \$search_max_elp_secs,     \$search_cpu_secs,     undef);
+  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total CPU time:", undef, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
   if($rev_search_max_elp_secs > $search_max_elp_secs) { $search_max_elp_secs = $rev_search_max_elp_secs; }
   $search_cpu_secs += $rev_search_cpu_secs;
   $did_search = 1;
@@ -768,13 +809,14 @@ sub output_timing_summary {
 sub submit_cmsearch_jobs {
   my ($config, $ndbfiles, $prefix, $searchopts, $cmfile, $dbfileAR, $jobnameAR, $tblOAR, $cmsOAR, $errOAR) = @_;
   my ($idx, $file_idx, $dbfile);
+
   for($idx = 0; $idx < $ndbfiles; $idx++) { 
     $file_idx = $idx + 1; # off-by-one w.r.t $idx, because database file names are 1..$ndbfiles, not 1..$ndbfiles-1
     $jobnameAR->[$idx] = $prefix . "$$.$file_idx";  
     $tblOAR->[$idx]    = $prefix . "$$.$file_idx.tbl";
     $cmsOAR->[$idx]    = $prefix . "$$.$file_idx.cmsearch";
     $errOAR->[$idx]    = $prefix . "$$.$file_idx.err";
-    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx]);
+    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx]);  
   }
 }
 
@@ -807,7 +849,7 @@ rfsearch.pl: builds, calibrates and searches a CM against a sequence database.
              is used as the 'reversed' database. The E-value of the top hit in the reversed 
              database will be annotated in the \'outlist\' file, as an indication of the 
              expected score of a high scoring false positive for this model. By default, if
-             the -dbfile or -dbdir option is used then no reversed database will be
+             the -dbfile, -dbdir, or -dblist option is used then no reversed database will be
              searched, unless the -rdbfile or -rdbdir option is also used.
 
 Usage:      rfsearch.pl [options]
@@ -833,12 +875,15 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -dbchoice  <s> set sequence database to search as <s> ('rfamseq', 'testrfamseq', 'r79rfamseq')
             -dbfile <s>    set sequence database to search as file <s>
             -dbdir <s>     set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
+            -dblist <s>    set sequence database to search as all files listed in dir <s>
+            -noZ           with -dbdir or -dblist, do not set database size, E-values will pertain to per-file searches
             
             OPTIONS SPECIFYING REVERSED SEQUENCE DATABASE TO SEARCH:
             -rdbfile <s>   set reversed sequence database to search as file <s>
             -rdbdir <s>    set reversed sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
 
             OTHER OPTIONS:
+            -ssopt <str> add extra arbitrary string <str> to qsub cmsearch commands, for multiple options use multiple -ssopt <s>
   	    -h|-help     print this help, then exit
 EOF
 }

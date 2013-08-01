@@ -49,6 +49,7 @@ sub cmbuild_wrapper {
   $options =~ s/^\s+//;  # remove leading  whitespace
   my $cmbuildPath = $config->infernalPath . "cmbuild";
   my $cmd = $cmbuildPath . ' ' . $options . ' ' . $cmPath . ' ' . $seedPath . '>' . $outPath;
+
   Bio::Rfam::Utils::run_local_command($cmd);
 
   # get running time (and verify output, this call will die if no 'CPU time' lines exist in output
@@ -123,7 +124,7 @@ sub cmcalibrate_wrapper {
 
   Title    : cmsearch_wrapper
   Incept   : EPN, Mon Apr  1 10:20:32 2013
-  Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath)
+  Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr)
   Function : Submit cmsearch job (non-MPI) to cluster.
            : All options should already be specified in $options,
            : including '--cpu <n>' and '--tblout <tblout>'.
@@ -134,13 +135,14 @@ sub cmcalibrate_wrapper {
            : $seqfilePath:  path to sequence file to search
            : $outPath:      file to save standard output to, if undefined send to /dev/null.
            : $errPath:      file to save standard error output to
+           : $submitExStr:  extra string to add to qsub/bsub command
   Returns  : void
   Dies     : if cmsearch command fails
 
 =cut
 
 sub cmsearch_wrapper { 
-  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath) = @_;
+  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr) = @_;
 
   my $cpus;
   # contract check, --tblout and --cpu must be defined in $options
@@ -158,13 +160,12 @@ sub cmsearch_wrapper {
   my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
 
   # submit non-MPI job
-  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb);
+  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr);
   
   return;
 }
 
 =head2 cmalign_wrapper
-
   Title    : cmalign_wrapper
   Incept   : EPN, Mon Apr  1 10:20:32 2013
   Usage    : Bio::Rfam::Infernal::cmalign_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath)
@@ -176,6 +177,7 @@ sub cmsearch_wrapper {
            : MPI job, we wait for it to finish before returning.
            : (This is different from cmsearch_wrapper() and cmcalibrate_wrapper())
   Args     : $config:         Rfam config, with infernalPath
+           : $uname:          user name
            : $jobname:        name for job we submit
            : $options:        option string for cmsearch (must contain --tblout and --cpu)
            : $cmPath:         path to CM (often 'CM')
@@ -185,7 +187,7 @@ sub cmsearch_wrapper {
            : $nseq:           number of sequences in $seqfilePath file
            : $tot_len:        total number of residues in $seqfilePath
            : $always_local:   TRUE to always run job locally
-           : $always_cluster: TRUE to always run job on the cluster with MPi
+           : $always_cluster: TRUE to always run job on the cluster with MPI
   Returns  : void
   Dies     : if cmalign command fails (if running locally)
            : if job submit command fails or MPI job fails (if running with MPI on cluster)
@@ -193,7 +195,7 @@ sub cmsearch_wrapper {
 =cut
 
 sub cmalign_wrapper {
-  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $nseq, $tot_len, $always_local, $always_cluster);
+  my ($config, $uname, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $nseq, $tot_len, $always_local, $always_cluster) = @_;
 
   # contract check, --cpu MUST NOT be specified and -o <f> MUST be specified
   if($options =~ m/\-\-cpu/)  { die "ERROR cmalign_wrapper() option string ($options) contains --cpu"; }
@@ -261,7 +263,7 @@ sub cmalign_wrapper {
     Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmalignPath --mpi $options $cmPath $seqfilePath > $outPath", "a.$$", "a.$$.err", $nproc);
     my @jobnameA = ($jobname);
     my @outnameA = ($outPath);
-    Bio::Rfam::Utils::wait_for_cluster($config->location, \@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
+    Bio::Rfam::Utils::wait_for_cluster($config->location, $uname, \@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
     unlink $errPath;
   }
   else { 
@@ -280,7 +282,7 @@ sub cmalign_wrapper {
   Function : Returns bit score for a given E-value
   Args     : <cm>:     Bio::Rfam::Family::CM object
            : <evalue>: E-value we want bit score for
-           : <Z>:      database size (both strands) for E-value->bitsc calculation
+           : <Z>:      database size in Mb (both strands) for E-value->bitsc calculation
   Returns  : bit score for E-value for CM in db of $Z residues 
            : (where $Z includes BOTH strands of target seqs)
   
@@ -305,11 +307,55 @@ sub cm_evalue2bitsc {
   } else { 
     my ($tau, $lambda) = @{$cm->{cmHeader}->{efp7gf}};
     my $maxlen = $cm->{cmHeader}->{maxl};
-    $bitsc = $tau + ((log($evalue / ($Z / $maxlen))) / (-1 * $lambda));
+    $bitsc = $tau + ((log($evalue / (($Z * 1000000.) / $maxlen))) / (-1 * $lambda));
   }
   
   # printf("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
   return $bitsc;
+}
+
+
+=head2 cm_bitsc2evalue()
+
+  Title    : cm_bitsc2evalue()
+  Incept   : EPN, Thu Apr 25 14:01:51 2013
+  Usage    : cm_bitsc2evalue($cm, $bitsc, $Z)
+  Function : Returns E-value for a given bit score
+  Args     : <cm>:     Bio::Rfam::Family::CM object
+           : <bitsc>:  bit score we want E-value for
+           : <Z>:      database size in Mb (both strands) for E-value->bitsc calculation
+  Returns  : E-value for bit score for CM in db of $Z residues 
+           : (where $Z includes BOTH strands of target seqs)
+  
+=cut
+  
+sub cm_bitsc2evalue { 
+  my ($cm, $bitsc, $Z) = @_;
+
+  # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
+  my $evalue;  # evalue to return;
+  my $surv;    # survivor function value (calc'ed same as in esl_exp_surv())
+  if(! $cm->{is_calibrated}) {  
+    die "ERROR CM is not calibrated, and we're trying to convert a bit score to an E-value";
+  }
+  
+  # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
+  if ($cm->{match_pair_node}) { # use CM stats
+    # TODO, read SM in desc, and pick appropriate E-value line based on that
+    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = @{$cm->{cmHeader}->{ecmli}};
+    my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
+    # from easel's esl_exponential.c:esl_exp_surv
+    $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
+    $evalue = $surv * $cur_eff_dbsize;
+  } else { 
+    my ($tau, $lambda) = @{$cm->{cmHeader}->{efp7gf}};
+    my $maxlen = $cm->{cmHeader}->{maxl};
+    $surv = ($bitsc < $tau) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $tau));
+    $evalue = $surv * (($Z * 1000000) / $maxlen);
+  }
+  
+  # printf("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
+  return $evalue;
 }
 
 =head2 stringize_infernal_cmdline_options()
@@ -377,7 +423,7 @@ sub process_cpu_times {
   open(IN, $file) || die "process_cpu_times() can't open $file"; 
   while(<IN>) { 
      ## CPU time: 382.47u 117.85s 00:08:20.32 Elapsed: 00:01:57.46
-     #Total runtime:298.97u 8.23s 00:05:07.20 Elapsed: 00:01:32.74
+     ## Total CPU time:298.97u 8.23s 00:05:07.20 Elapsed: 00:01:32.74
     if(s/\Q$time_string//) { 
       /\s*\S+u \S+s (\d\d)\:(\d\d)\:(\S+)\s+Elapsed\:\s+(\d\d)\:(\d\d)\:(\S+)/;
       $cpu_secs = (3600 * $1) + (60 * $2) + $3;
