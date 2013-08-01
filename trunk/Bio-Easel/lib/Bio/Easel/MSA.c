@@ -882,7 +882,7 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   }
 
   /* calculate mean covariation statistic */
-  mean_cov = esl_vec_DSum(covA, msa->alen) / esl_vec_DSum(cov_cntA, msa->alen);
+  mean_cov = (nbp == 0) ? 0. : esl_vec_DSum(covA, msa->alen) / esl_vec_DSum(cov_cntA, msa->alen);
 
   /* divide covA values so their per-basepair-count, we make sure we do this after calc'ing the mean above */
   for(apos = 0; apos < msa->alen; apos++) { 
@@ -1068,47 +1068,47 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   fprintf(ffp, "%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
          "FAMILY", "MEAN_FRACTN_CANONICAL_BPs", "COVARIATION", "NO_SEQs", "ALN_LENGTH", "NO_BPs", "NO_NUCs", "mean_PID", "max_PID", "min_PID", "mean_LEN", "max_LEN", "min_LEN", "FRACTN_NUCs", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
   fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10lld  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
-         msa->name,                                           /* family name */
-         ((double) esl_vec_ISum(seq_canA, msa->nseq)) / ((double) msa->nseq * nbp), /* fractional canonical basepairs */
-         mean_cov,                                            /* the 'covariation' statistic, mean */
-         msa->nseq,                                           /* number of sequences */
-         msa->alen,                                           /* alignment length */
-         nbp,                                                 /* number of basepairs in (possibly deknotted) consensus secondary structure */
-         len_tot,                                             /* total number of non-gap/missing/nonresidues in alignment (non-weighted) */
-         pid_mean,                                            /* average pairwise seq identity */
-         pid_max,                                             /* max pairwise seq identity */
-         pid_min,                                             /* min pairwise seq identity */
-         (double) len_tot / msa->nseq,                        /* avg length */
-         len_max,                                             /* max sequence length */
-         len_min,                                             /* min sequence length */       
-         (double) len_tot / ((double) (msa->alen*msa->nseq)), /* fraction nucleotides (nongaps) */
-         abc_totA[0] / (double) len_tot,                      /* fraction of As */
-         abc_totA[1] / (double) len_tot,                      /* fraction of Cs */
-         abc_totA[2] / (double) len_tot,                      /* fraction of Gs */
-         abc_totA[3] / (double) len_tot,                      /* fraction of U/Ts */
-         max_2l,                                              /* identity of most common two-letter iupac code */
-         max_2l_frac,                                         /* fraction of most common two-letter iupac code */
-         (abc_totA[1] + abc_totA[2]) / (double) len_tot);     /* CG fraction */
-
+          msa->name,                                           /* family name */
+          (nbp == 0) ? 0. : ((double) esl_vec_ISum(seq_canA, msa->nseq)) / ((double) msa->nseq * nbp), /* fractional canonical basepairs */
+          mean_cov,                                            /* the 'covariation' statistic, mean */
+          msa->nseq,                                           /* number of sequences */
+          msa->alen,                                           /* alignment length */
+          nbp,                                                 /* number of basepairs in (possibly deknotted) consensus secondary structure */
+          len_tot,                                             /* total number of non-gap/missing/nonresidues in alignment (non-weighted) */
+          pid_mean,                                            /* average pairwise seq identity */
+          pid_max,                                             /* max pairwise seq identity */
+          pid_min,                                             /* min pairwise seq identity */
+          (double) len_tot / msa->nseq,                        /* avg length */
+          len_max,                                             /* max sequence length */
+          len_min,                                             /* min sequence length */       
+          (double) len_tot / ((double) (msa->alen*msa->nseq)), /* fraction nucleotides (nongaps) */
+          abc_totA[0] / (double) len_tot,                      /* fraction of As */
+          abc_totA[1] / (double) len_tot,                      /* fraction of Cs */
+          abc_totA[2] / (double) len_tot,                      /* fraction of Gs */
+          abc_totA[3] / (double) len_tot,                      /* fraction of U/Ts */
+          max_2l,                                              /* identity of most common two-letter iupac code */
+          max_2l_frac,                                         /* fraction of most common two-letter iupac code */
+          (abc_totA[1] + abc_totA[2]) / (double) len_tot);     /* CG fraction */
+  
   /* print ss-stats-persequence */
   fprintf(sfp, "%-20s  %-30s  %20s  %5s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
-         "FAMILY", "SEQID", "FRACTN_CANONICAL_BPs", "LEN", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
+          "FAMILY", "SEQID", "FRACTN_CANONICAL_BPs", "LEN", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
   for(i = 0; i < msa->nseq; i++) { 
     seqwt = msa->wgt[i];
     /* get most common two-letter iupac ambiguity */
     _c_max_rna_two_letter_ambiguity(abcAA[i][0], abcAA[i][1], abcAA[i][2], abcAA[i][3], &max_2l, &max_2l_frac);
     fprintf(sfp, "%-20s  %-30s  %20.5f  %5d  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
-           msa->name,                                         /* family name */
-           msa->sqname[i],                                    /* seq name */
-           (double) seq_canA[i] / (double) nbp,               /* fraction of canonical bps */
-           lenA[i],                                           /* seq length */
-           abcAA[i][0] / (seqwt * lenA[i]),                   /* fraction of As */
-           abcAA[i][1] / (seqwt * lenA[i]),                   /* fraction of Cs */
-           abcAA[i][2] / (seqwt * lenA[i]),                   /* fraction of Gs */
-           abcAA[i][3] / (seqwt * lenA[i]),                   /* fraction of Us */
-           max_2l,                                            /* identity of most common dinuc */
-           max_2l_frac,                                       /* fraction of most common dinuc */
-           (abcAA[i][1] + abcAA[i][2]) / (seqwt * lenA[i]));  /* CG fraction */
+            msa->name,                                         /* family name */
+            msa->sqname[i],                                    /* seq name */
+            (nbp == 0) ? 0. : (double) seq_canA[i] / (double) nbp, /* fraction of canonical bps */
+            lenA[i],                                           /* seq length */
+            abcAA[i][0] / (seqwt * lenA[i]),                   /* fraction of As */
+            abcAA[i][1] / (seqwt * lenA[i]),                   /* fraction of Cs */
+            abcAA[i][2] / (seqwt * lenA[i]),                   /* fraction of Gs */
+            abcAA[i][3] / (seqwt * lenA[i]),                   /* fraction of Us */
+            max_2l,                                            /* identity of most common dinuc */
+            max_2l_frac,                                       /* fraction of most common dinuc */
+            (abcAA[i][1] + abcAA[i][2]) / (seqwt * lenA[i]));  /* CG fraction */
   }
 
   /* print ss-stats-perbasepair */

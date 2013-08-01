@@ -21,8 +21,6 @@ is($has_ss_cons, 1);
 my $ss_cons = $msa->get_ss_cons;
 is($ss_cons, ".::<<<____>->>:<<-<.___.>>>.");
 
-my $outfile = "./t/data/test-msa-bp.out";
-
 my $acc = "RFXXXXX";
 $msa->set_accession($acc);
 is($msa->get_accession, $acc);
@@ -31,6 +29,12 @@ my $name = "myRNA";
 $msa->set_name($name);
 is($msa->get_name, $name);
 
-$msa->rfam_qc_stats($outfile);
+my $famout  = "./t/data/ss-stats-perfamily";
+my $seqout  = "./t/data/ss-stats-persequence";
+my $pairout = "./t/data/ss-stats-perbasepair";
 
-#unlink $outfile
+$msa->rfam_qc_stats($famout, $seqout, $pairout);
+
+unlink $famout;
+unlink $seqout;
+unlink $pairout;

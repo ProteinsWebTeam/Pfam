@@ -455,7 +455,7 @@ sub set_name {
   Usage    : $msaObject->write_msa($fileLocation)
   Function : Write MSA to a file
   Args     : name of output file 
-           : format ('stockholm', 'pfam' or 'afa')
+           : format ('stockholm', 'pfam', 'afa' or 'clustal')
   Returns  : void
 
 =cut
