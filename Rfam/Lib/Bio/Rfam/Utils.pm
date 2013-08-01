@@ -45,7 +45,7 @@ sub run_local_command {
 
   Title    : submit_nonmpi_job()
   Incept   : EPN, Tue Apr  2 05:59:40 2013
-  Usage    : submit_nonmpi_job($location, $cmd, $jobname, $errPath, $ncpu, $reqMb)
+  Usage    : submit_nonmpi_job($location, $cmd, $jobname, $errPath, $ncpu, $reqMb, $exStr)
   Function : Submits non-MPI job defined by command $cmd.
            : Submission syntax depends on $location value.
            : We do *not* wait for job to finish. Caller
@@ -56,24 +56,29 @@ sub run_local_command {
            : $errPath:  path for stderr output
            : $ncpu:     number of CPUs to run job on, can be undefined if location eq "JFRC"
            : $reqMb:    required number of Mb for job, can be undefined if location eq "JFRC"
+           : $exStr:    extra string to add to qsub/sub command
   Returns  : void
   Dies     : If MPI submit command fails.
 
 =cut
 
 sub submit_nonmpi_job { 
-  my ($location, $cmd, $jobname, $errPath, $ncpu, $reqMb) = @_;
+  my ($location, $cmd, $jobname, $errPath, $ncpu, $reqMb, $exStr) = @_;
 
   my $submit_cmd = "";
   if($location eq "EBI") { 
     if(! defined $ncpu)  { die "submit_nonmpi_job(), location is EBI, but ncpu is undefined"; }
     if(! defined $reqMb) { die "submit_nonmpi_job(), location is EBI, but reqMb is undefined"; }
-    $submit_cmd = "bsub -q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\" > /dev/null";
+    $submit_cmd = "bsub ";
+    if(defined $exStr) { $submit_cmd .= "$exStr "; }
+    $submit_cmd .= "-q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\" > /dev/null";
   }
   elsif($location eq "JFRC") { 
     my $batch_opt = "";
     if($ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
-    $submit_cmd = "qsub -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
+    $submit_cmd = "qsub ";
+    if(defined $exStr) { $submit_cmd .= "$exStr "; }
+    $submit_cmd .= " -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
     die "ERROR unknown location $location in submit_nonmpi_job()";
@@ -221,10 +226,13 @@ sub wait_for_cluster {
     $nrunning  = 0;
     $nwaiting  = 0;
     foreach $line (@infoA) { 
-      if($line =~ m/^\d/) { 
+      if($line =~ m/^\s*\d/) { 
+        $line =~ s/^\s*//;
         @elA = split(/\s+/, $line);
         if($location eq "JFRC") { 
           #1232075 4.79167 QLOGIN     davisf       r     03/25/2013 14:24:11 f02.q@f02u09.int.janelia.org                                      8        
+          # 396183 10.25000 QLOGIN     nawrockie    r     07/26/2013 10:10:41 new.q@h02u19.int.janelia.org                                      1        
+          # 565685 0.00000 c.25858    nawrockie    qw    08/01/2013 15:18:55                                                                  81        
           ($jobname, $uname, $status) = ($elA[2], $elA[3], $elA[4]);
         }
         elsif($location eq "EBI") { 

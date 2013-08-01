@@ -27,7 +27,7 @@ use Bio::Easel::SqFile;
 # - process DESC file
 
 # set default values that command line options may change
-my $dbchoice = "rfamseq";
+my $dbchoice = "r79rfamseq";
 my $do_align    = 0;            # TRUE to create align file
 my $do_subalign = 0;            # TRUE to create SUBALIGN
 my $do_help     = 0;            # TRUE to print help and exit, if -h used
@@ -53,12 +53,17 @@ my $verbose     = 0;            # TRUE to be verbose with output
 	     "nocompare"  => \$no_compare,
 	     "dirty"      => \$dirty,
 	     "verbose"    => \$verbose,
-	     "x"          => \$do_x,
 	     "h|help"     => \$do_help );
 
 if ( $do_help ) {
   &help();
   exit(1);
+}
+
+# output header
+my $user  = getlogin() || getpwuid($<);
+if (! defined $user || length($user) == 0) { 
+  die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]";
 }
 
 # setup variables 
@@ -145,9 +150,10 @@ if ($do_align) {
   $fetch_sqfile->close_sqfile();
 
   # use cmalign to do the alignment
-  my $options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+  my $options = "-o align ";
+  $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
   # Run cmalign locally or on farm (autodetermined based on job size) 
-  Bio::Rfam::Infernal::cmalign_wrapper($config, "CM", "$$.fa", "align", "cmalign.out", $options, $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm), $dirty);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.fa", "alignout", "a.$$.err", $famObj->SCORES->numRegions, $famObj->SCORES->nres, ($farm), (! $farm));
 
   # remove temporary fasta file
   if (! $dirty) {
