@@ -226,8 +226,10 @@ sub wait_for_cluster {
     $nrunning  = 0;
     $nwaiting  = 0;
     foreach $line (@infoA) { 
-      if($line =~ m/^\s*\d/) { 
+      if($line =~ m/^\s*\d+\s+/) { 
+        print ("line 0: $line\n");
         $line =~ s/^\s*//;
+        print ("line 1: $line\n");
         @elA = split(/\s+/, $line);
         if($location eq "JFRC") { 
           #1232075 4.79167 QLOGIN     davisf       r     03/25/2013 14:24:11 f02.q@f02u09.int.janelia.org                                      8        
