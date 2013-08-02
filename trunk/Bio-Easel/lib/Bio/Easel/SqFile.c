@@ -47,9 +47,10 @@ SV *_c_open_sqfile (char *seqfile)
  * Returns:   eslOK on success, some other status upon failure.
  */
 
-void *_c_close_sqfile (ESL_SQFILE *sqfp)
+void _c_close_sqfile (ESL_SQFILE *sqfp)
 {
   esl_sqfile_Close(sqfp);
+  return;
 }
 
 /* Function:  _c_open_ssi_index()
@@ -298,7 +299,6 @@ SV *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
 
 SV *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw)
 {
-  int     status;                /* Easel status code */
   int     start, end;            /* start/end for esl_sqio_FetchSubseq() */
   int     do_revcomp;            /* are we revcomp'ing? */
   ESL_SQ *sq = esl_sq_Create();  /* the sequence */

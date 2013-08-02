@@ -667,13 +667,15 @@ sub calc_and_write_bp_stats {
   return;
 }
 
-=head2 calc_and_write_bp_stats
+=head2 rfam_qc_stats
 
-  Title    : calc_and_write_bp_stats
+  Title    : rfam_qc_stats
   Incept   : EPN, Fri Feb  1 10:29:11 2013
-  Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
-  Function : Calculate per-basepair stats for an RNA alignment
-           : with SS_cons information and output it.
+  Usage    : $msaObject->rfam_qc_stats($fam_outfile, $seq_outfile, $bp_outfile)
+  Function : Calculate per-family, per-sequence and per-basepair stats for a
+           : SS_cons annotated RNA alignment and output it. 
+           : See 'Purpose' section of _c_rfam_qc_stats() C function in
+           : MSA.c for more information.
   Args     : fam_outfile: name of output file for per-family stats
            : seq_outfile: name of output file for per-sequence stats
            : bp_outfile:  name of output file for per-basepair stats
@@ -736,6 +738,7 @@ sub addGS {
   if ( $status != $ESLOK ) { croak "ERROR: unable to add GS annotation"; }
   return;
 }
+
 =head2 weight_GSC
 
   Title    : weight_GSC
