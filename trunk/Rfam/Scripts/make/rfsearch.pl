@@ -317,7 +317,8 @@ if ($do_build) {
   my $outfile = "b.$$.out";
   $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
   unlink $outfile;
-  $famObj->DESC->BM("cmbuild -F $buildopts CM SEED");
+  if($buildopts ne "") { $buildopts .= " "; } # add trailing single space so next line properly formats BM (and blank opts ("") will work too)
+  $famObj->DESC->BM("cmbuild -F " . $buildopts . "CM SEED");
 
   # define (or possibly redefine) $cm
   $famObj->CM($io->parseCM("CM"));
@@ -602,7 +603,8 @@ if (! $no_search) {
   }
 
   # update DESC with search method
-  $famObj->DESC->SM("cmsearch $searchopts CM SEQDB");
+  if($searchopts ne "") { $searchopts .= " "; } # add trailing single space so next line properly formats SM (and blank opts ("") will work too)
+  $famObj->DESC->SM("cmsearch " . $searchopts . "CM SEQDB");
 
   # timing info
   $search_wall_secs = time() - $search_start_time;
