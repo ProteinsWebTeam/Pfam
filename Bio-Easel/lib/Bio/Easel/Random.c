@@ -26,7 +26,6 @@
 
 SV *_c_create_randomness(U32 seed)
 {
-  int           status;      /* Easel status code */
   ESL_RANDOMNESS *r = NULL;  /* the RNG */
 
   r = esl_randomness_Create(seed);

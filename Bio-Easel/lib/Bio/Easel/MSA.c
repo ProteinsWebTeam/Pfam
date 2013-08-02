@@ -790,7 +790,6 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   int        i, j;                 /* counters over sequences */
 
   /* variables used when calculating covariation statistic */
-  int a, b;              /* indices */
   int a1, b1;            /* int index of left, right half of basepair 1 */
   int a2, b2;            /* int index of left, right half of basepair 1 */
   int d;                 /* distance between a1:b1 and a2:b2 (number of differences) */
@@ -1010,7 +1009,6 @@ _c_rfam_pid_stats(ESL_MSA *msa, double *ret_pid_mean, double *ret_pid_min, doubl
 
 int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *bp_outfile)
 {
-  int status;
   FILE  *ffp;   /* open output per-family   stats output file */
   FILE  *sfp;   /* open output per-sequence stats output file */
   FILE  *bfp;   /* open output per-basepair stats output file */
@@ -1067,7 +1065,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   /* print 'ss-stats-per-family' */
   fprintf(ffp, "%-20s  %25s  %11s  %7s  %10s  %6s  %7s  %8s  %7s  %7s  %8s  %7s  %7s  %11s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
          "FAMILY", "MEAN_FRACTN_CANONICAL_BPs", "COVARIATION", "NO_SEQs", "ALN_LENGTH", "NO_BPs", "NO_NUCs", "mean_PID", "max_PID", "min_PID", "mean_LEN", "max_LEN", "min_LEN", "FRACTN_NUCs", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
-  fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10lld  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
+  fprintf(ffp, "%-20s  %25.5f  %11.5f  %7d  %10" PRId64 "  %6d  %7d  %8.3f  %7.3f  %7.3f  %8.3f  %7d  %7d  %11.3f  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
           msa->name,                                           /* family name */
           (nbp == 0) ? 0. : ((double) esl_vec_ISum(seq_canA, msa->nseq)) / ((double) msa->nseq * nbp), /* fractional canonical basepairs */
           mean_cov,                                            /* the 'covariation' statistic, mean */
