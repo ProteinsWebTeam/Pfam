@@ -324,4 +324,25 @@ sub rnacode_pvalue {
   }
   return $self->{'_config'}->{curation}->{RNAcode}->{pvalue};
 }
+
+
+sub allowedOverlaps {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{'_config'}->{curation}->{overlap};
+}
+
+sub ignorableQC {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{'_config'}->{curation}->{ignorableQC};
+  
+}
+
 1;

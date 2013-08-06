@@ -32,8 +32,10 @@ if(!-d $family){
   help();
 }
 
-if(-e "$family/overlap"){
-  unlink("$family/overlap");
+my $famPath = "$pwd/$family";
+
+if(-e "$famPath/overlap"){
+  unlink("$famPath/overlap");
 }
 
 #First check timestamps, because if they are wrong it is not worth doing anything
@@ -62,7 +64,7 @@ my %ignore = map{$_ => 1}@ignore;
 #This should really go in the query! Should be implicit that you ignore self.
 $ignore{ $familyObj->DESC->AC }++ if($familyObj->DESC->AC);
 #Now run both overlap checls, external and internal SEED overlaps.
-$error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore);
+$error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore, $famPath);
 
 #------------------------------------------------------------------------------
 #Handle the error.
@@ -76,7 +78,7 @@ if($error){
 sub help {
   print<<EOF;
 
-$0 - finds the overlap between a Rfam family and the current Rfamlive database\n";
+$0 - finds the overlap between a Rfam family and the current Rfamlive database
 
 USAGE: $0 <model-directory>
 
