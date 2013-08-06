@@ -18,13 +18,13 @@ use Bio::Rfam::QC;
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-my ( $message, $ignore, $addToClan, $help );
+my ( $message, @ignore, $addToClan, $help );
 
 &GetOptions(
   "m=s"         => \$message,
-  "i"           => \$ignore,
+  "i=@"         => \@ignore,
   "help"        => \$help
-) or die "Error fetching options\n";
+) or die "Unrecognised option passed in to the script.\n";
 
 my $family = shift;
 
@@ -110,51 +110,20 @@ unless ( $newFamObj->DESC->ID ) {
 $client->checkNewFamilyDoesNotExists( $newFamObj->DESC->ID );
 
 #-------------------------------------------------------------------------------
+#Perform the QC on the family
 
-#These are more sanity checks
-unless ($ignore) {
+my $overrideHashRef = Bio::Rfam::QC::processIgnoreOpt(\@ignore, $config);
 
-  #If we are at sanger, perform an overlap check against the database.
-  if ( $config->location eq "EBI" ) {
-    my $rfamdb= $config->rfamlive;
 
-    #Find out if family is in rdb
-    #my $rdb_family = $dfamDB->getDfamData($family);
-    #my %ignore;
+my $error = 0;
+my $overlapIgnore = {};
 
-    #Need to populate the ignore hash with clan and nesting data......
+#Okay, this a full check-in, perform whole QC repetoire.
+$error = Bio::Rfam::QC::essential($newFamObj, "$pwd/$family", undef, $config);
+$error = Bio::Rfam::QC::optional( $newFamObj, "$pwd/$family", undef, 
+                                    $config, $overrideHashRef, $overlapIgnore );
 
-    my $overlaps =
-      &Bio::Rfam::QC::family_overlaps_with_db( );
-      #$family, \%ignore, undef,
-    #  $dfamDB, $newFamObj );
-    if ($overlaps) {
-      print "Looks like your family contains overlaps.\n";
-      exit(1);
-    }
-  }
 
-  Bio::Rfam::QC::checkDESCSpell( $family, $familyIO );
-
-  unless ( Bio::Rfam::QC::sequenceChecker( $family, $newFamObj ) ) {
-    print "dfnew: $family contains errors.  You should rebuild this family.\n";
-    exit(1);
-  }
-
-  #rqc-check $family
-  #unless ( Bio::Rfam::QC::noFragsInSeed( $family, $newFamObj ) ) {
-  #  exit(1);
-  #}
-
-  #unless ( Bio::Rfam::QC::nonRaggedSeed( $family, $newFamObj ) ) {
-  #  exit;
-  #}
-}
-
-#NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Rfam::QC::passesAllFormatChecks( $newFamObj, $family ) ) {
-  exit(1);
-}
 
 #Automatically write the 'new' message and add it the binding.
 open( M, ">.default" . $$ . "rfnew" )
