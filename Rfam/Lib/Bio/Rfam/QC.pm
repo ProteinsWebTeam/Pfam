@@ -101,7 +101,7 @@ sub checkFamilyFormat {
   if ($error) {
     return $error;
   }
-  checkScoresFormat($familyObj);
+  $error = checkScoresFormat($familyObj);
   return $error;
 }
 
@@ -250,7 +250,7 @@ sub checkDESCFormat {
 
 =head2 checkScoresFormat
 
-  Title    : checkSEEDFormat
+  Title    : checkScoresFormat
   Incept   : finnr, Jul 24, 2013 2:36:13 PM
   Usage    : Bio::Rfam::QC::checkScoresFormat($familyObj)
   Function : Performs format QC steps on the scores, via the object.
@@ -260,10 +260,71 @@ sub checkDESCFormat {
 =cut
 
 sub checkScoresFormat {
-  
-  #TODO - check scores
-  #need to check all seed sequences are present.
+  my ( $familyObj ) = @_;
+
+  my $threshold = $familyObj->DESC->CUTGA;
   #Should check that no regions exceed threshold?
+  
+  #Now we have to ensure that all sequences are present and correct w.r.t to the
+  #GA threshold. Run over the TBLOUT file and get all data from that raw,
+  #infernal output.
+
+  my $count = 0;
+  my(@tbloutMatches, $nres);
+  open(T, '<', $familyObj->TBLOUT->fileLocation) 
+      or die "Failed to open TBLOUT file for reading.[$!]\n";
+  
+  while(<T>){
+    next if(/^#/); #Ignore lines starting with #
+    my @line = split(/\s+/); #split on whitespace
+    if($line[14] >= $threshold){ #If above threshold (bit score)
+      $count++;
+      #array of nse
+      push(@tbloutMatches, $line[0].'/'.$line[7].'-'.$line[8]);
+      #Get the total number of residues
+      if($line[7] <= $line[8]){
+        $nres += (($line[8] - $line[7]) + 1);
+      }else{
+        #Reverse strand
+        $nres += (($line[7] - $line[8]) + 1);
+      }
+    }
+  }
+  close(T);
+
+  my $error = 0;
+  if($count != $familyObj->SCORES->numRegions){
+    warn "The number of regions scoring above threshold in the TBLOUT file and SCORES differs.\n";
+    $error = 1;
+  }
+  if(scalar( @{$familyObj->SCORES->regions}) != $familyObj->SCORES->numRegions){
+    warn "The number of regions in the SCORES [".scalar(@{$familyObj->SCORES->regions}).
+         "] array differs from the count [". ($familyObj->SCORES->numRegions) ."].\n";
+    $error = 1;
+  }
+  
+  $familyObj->SCORES->determineNres if(!$familyObj->SCORES->nres);
+  if($nres != $familyObj->SCORES->nres){
+    warn "The number of residues in the SCORES [".$familyObj->SCORES->nres.
+          "] and TBLOUT [$nres] do not match.\n";
+  }
+  
+  return($error) if($error);
+
+  #Now a deep comparison, if everything looks okay. Do this by making a string
+  #out of all of the NSE from the TBLOUT and SCORES - then compare.
+  my $scoresMatches = join(" ", 
+                           sort { $a cmp $b } 
+                           map { $_->[0]   }
+                           @{$familyObj->SCORES->regions});
+  
+  my $tbloutMatches = join(" ", sort { $a cmp $b } @tbloutMatches);
+
+  if($scoresMatches ne $tbloutMatches){
+    warn "The matches between SCORES and TBLOUT differ!\n"; 
+    $error = 1;
+  }
+  return($error);
 }
 
 #------------------------------------------------------------------------------
@@ -1021,7 +1082,12 @@ sub overlap {
 sub findExternalOverlaps {
   my ($familyObj, $rfamdb, $ignore, $config, $OVERLAP) = @_;
   
-    _addBlackListToIgnore($ignore, $config);
+  _addBlackListToIgnore($ignore, $config);
+  
+  if($config->location ne 'EBI'){
+    warn "This overlap test has been written assuming you have a local database.".
+         "Eventually, there needs to be a Web based overalp method\n.";
+  }
   
   my $currentAcc = '';
   my $regions;
@@ -1386,7 +1452,7 @@ sub optional {
            : corresponds to an allowed, overridable option as specified in the
            : config.  If the accession of the family is one of the few blacklisted
            : families, the overalp option will not be run.
-  Args     : Array containing options, Bio::Rfam::Config object, accession of family
+  Args     : Array containing options, Bio::Rfam::Config object, accession of family (optional)
   Returns  : hash, keys are allowed options.
   
 =cut

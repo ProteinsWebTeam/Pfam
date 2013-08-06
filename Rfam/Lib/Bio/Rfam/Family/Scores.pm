@@ -46,10 +46,28 @@ has 'regions' => (
 );
 
 has 'nres' => (
-  is    => 'ro',
+  is    => 'rw',
   isa   => 'Int',
   required => 0
 );
+
+sub determineNres {
+  my ($self) = @_;
+  use DDP;
+  my $res = 0;
+  foreach my $r (@{$self->regions}){
+    if($r->[1] <= $r->[2]){
+      $res += (($r->[2] - $r->[1]) + 1);
+    }else{
+      #Reverse strand
+      $res += (($r->[1] - $r->[2]) + 1);
+    }
+  }
+  
+  $self->nres($res);
+  return($self->nres);
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

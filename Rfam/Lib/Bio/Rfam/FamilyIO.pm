@@ -1153,7 +1153,7 @@ sub makeAndWriteScores {
   my $n    = 0;                 # number of hits
   my $nres = 0;                 # total number of residues in all hits
   my $name;                     # sequence name (name/start-end)
-  my $tcode;             # truncation code ("no", "5'", "3'", "5'&3'")
+  my $tcode;                    # truncation code ("no", "5'", "3'", "5'&3'")
   my @scoresAA = ();            # 2D array of scores
   my $threshold = $famObj->DESC->CUTGA; # threshold
   my $stype;            # lowercase version of type ('seed' or 'full')
@@ -1161,7 +1161,7 @@ sub makeAndWriteScores {
   if (! defined $threshold) {
     croak "ERROR GA not set";
   }
-  open(OL, $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
+  open(OL, '<', $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
 
   # process the outlist
   while (<OL>) {
