@@ -42,18 +42,18 @@ my $evalue;                     # E-value threshold to use, set with -e
 my $verbose     = 0;            # TRUE to be verbose with output
 
 &GetOptions( "t=s"        => \$thr,
-	     "e=s"        => \$evalue,
-	     "a",         => \$do_align,
-	     "subalign"   => \$do_subalign,
-	     "farm"       => \$farm,
-	     "dbchoice=s" => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
+             "e=s"        => \$evalue,
+             "a",         => \$do_align, 
+             "subalign"   => \$do_subalign,
+             "farm"       => \$farm,  
+             "dbchoice=s" => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
-	     "notaxinfo"  => \$no_taxinfo,
-	     "nocompare"  => \$no_compare,
-	     "dirty"      => \$dirty,
-	     "verbose"    => \$verbose,
-	     "h|help"     => \$do_help );
+             "notaxinfo"  => \$no_taxinfo,
+             "nocompare"  => \$no_compare,
+             "dirty"      => \$dirty,
+             "verbose"    => \$verbose,
+             "h|help"     => \$do_help );
 
 if ( $do_help ) {
   &help();
