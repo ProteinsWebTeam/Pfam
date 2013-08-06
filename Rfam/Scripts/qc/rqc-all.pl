@@ -23,15 +23,24 @@ if($#ARGV == -1) {
 }
 my $pwd = getcwd;
 
-my ($full, @ignore, $family);
+my ($full, @ignore, $family, $help, $nospell);
 &GetOptions(
       '-fam=s'=> \$family,
-      '-i=s@' => \@ignore
-      );
+      '-i=s@' => \@ignore,
+      '-h|help' => \$help,
+      'nospell' => \$nospell,
+      ) or die "Unknown option passed, try running $0 -h\n";
       
 #This is coded like this for legacy reasons. The family can be passed in
 #either way, an option or command line argument.
 $family = shift;
+
+
+help() if($help);
+
+if(!$family){
+  help();  
+}
 
 #rqc-passed file
 my $out="$pwd/$family/qcpassed";
@@ -79,6 +88,10 @@ $error = 0;
 eval{
   $error = Bio::Rfam::QC::checkTimestamps("$pwd/$family", $config);
   $error = Bio::Rfam::QC::checkFamilyFormat( $familyObj ) if(!$error);
+  #Spell check
+  if(!$nospell){
+    $error = Bio::Rfam::QC::checkSpell("$pwd/$family", $config) if(!$error);
+  }
 };
 print $L $@ if($@);
 if ($error){ 
@@ -138,7 +151,7 @@ if($error){
   print STDERR "\t--errors" 
 }
 
-#Check the old and new....
+#Check the old and new....but it may be a new family.
 $error = 0;
 my ($oldFamilyObj);
 eval{
@@ -154,6 +167,7 @@ if ($error){
   print STDERR "\t--errors" 
 }
 
+if(defined($oldFamilyObj)){
 my($found, $missing);
 eval {
  ($found, $missing) = 
@@ -165,7 +179,7 @@ if(scalar(@$missing)){
 } else { 
   print STDERR "\t--MISSING check completed with no major errors";
 }
-
+}
 #------------------------------------------------------------------------------
 print STDERR "\n(6) SEQUENCE CHECK\n";
 print $L "\n** SEQUENCE check **\n";
@@ -211,3 +225,26 @@ if ($masterError){
     touch($out);
 }
 close($L);
+
+sub help {
+  
+  print<<EOF;
+  
+USAGE: $0 <options> <family>
+
+Performs all QC steps against the family.
+
+OPTIONS:
+
+ fam             : family to be QC, instead of passing as a parameter via ARGV.
+ ignore <family> : List of accessions to ignore during the overlap check.
+ h|help          : prints thiss help message.
+ nospell         : Does not run the spelling QC check, thereby permitting running as
+                 : as non-interactive process, e.g. for f in `ls`; do rqc-all.pl \$f; done;
+
+EOF
+
+exit;
+
+}
+

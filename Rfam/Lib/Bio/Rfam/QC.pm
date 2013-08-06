@@ -260,7 +260,7 @@ sub checkDESCFormat {
 =cut
 
 sub checkScoresFormat {
-
+  
   #TODO - check scores
   #need to check all seed sequences are present.
   #Should check that no regions exceed threshold?
@@ -397,6 +397,102 @@ sub checkTPField {
   return ($error);
 }
 
+#------------------------------------------------------------------------------
+=head2 checkFixedFields
+
+  Title    : checkFixedFields
+  Incept   : finnr, Aug 5, 2013 10:51:59 AM
+  Usage    : Bio::Rfam::QC::checkFixedFields($newFamily, $oldFamily);
+  Function : Checks that nobody has changes the ID, AC, PI lines/
+  Args     : Bio::Rfam::Family object for old and new family.
+  Returns  : 1 on error, 0 on success.
+  
+=cut
+
+sub checkFixedFields {
+  my ($newFamilyObj, $oldFamilyObj) = @_;
+  
+  my $error = 0;
+  
+  if ( !$newFamilyObj or !$newFamilyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object (new)\n";
+  }
+  
+  if ( !$oldFamilyObj or !$oldFamilyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object (old)\n";
+  }
+  
+  if($newFamilyObj->DESC->AC ne $oldFamilyObj->DESC->AC){
+    warn "Your accession (AC) differs between the old and new version of the family.\n";
+    $error = 1;
+  }
+
+  if($newFamilyObj->DESC->ID ne $oldFamilyObj->DESC->ID){
+    warn "Your identifier (ID) differs between the old and new version of the family.\n";
+    $error = 1;
+  }
+  
+  if($newFamilyObj->DESC->PI ne $oldFamilyObj->DESC->PI){
+    warn "Your pervious identifers (PI) differs between the old and new version of the family.\n";
+    $error = 1;
+  }
+  
+  return $error;
+}
+
+#------------------------------------------------------------------------------
+=head2 checkNonFreeText
+
+  Title    : checkNonFreeText
+  Incept   : finnr, Aug 5, 2013 11:03:29 AM
+  Usage    : Bio::Rfam::QC::checkNonFreeText($newFamilyObj, $oldFamilyObj)
+  Function : Checks that certain fields in the DESC have not changed between 
+           : different the checked-in and modified versions
+  Args     : Bio::Rfam::Family object for both the old and updated families.
+  Returns  : 1 on error, 0 on success.
+  
+=cut
+
+sub checkNonFreeText {
+  my($upFamilyObj, $oldFamilyObj) = @_;
+  #Check that none of the lines that should not be touch are not
+
+  #Need to check that we have correct objects.
+  if ( !$upFamilyObj or !$upFamilyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  if ( !$oldFamilyObj or !$oldFamilyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  
+  #The list of fields  that cannot be alter are:
+  # NC, TC, GA,
+  my $error = 0;
+  foreach my $tag (qw(NC TC GA)) {
+    my $ftag = 'CUT'.$tag;
+    unless ( $oldFamilyObj->DESC->$ftag eq $upFamilyObj->DESC->$ftag )
+    {
+      warn
+"There is a differnce in your $tag lines between what is in the SVN repository and this local copy.".
+        " You can not do this when only commint a DESC file!\n";
+      $error = 1;
+    }
+  }
+
+  #ID, AC, PI, SE, SS, BM, SM
+  foreach my $tag (qw(ID AC PI SE BM SM CB CL)) {
+    next unless(defined($oldFamilyObj->DESC->$tag));
+    unless ( $oldFamilyObj->DESC->$tag eq $upFamilyObj->DESC->$tag ) {
+      warn
+"You are only checking in the DESC file, yet the $tag line has change. You can not do this!\n";
+      $error = 1;
+    }
+  }
+  
+  return ($error);
+}
 #------------------------------------------------------------------------------
 
 =head2 compareSeedAndScores
@@ -601,7 +697,7 @@ sub checkTimestamps {
 
 #------------------------------------------------------------------------------
 
-=head2 
+=head2 checkSpell
 
   Title    : checkSpell
   Incept   : finnr, Jul 17, 2013 1:29:27 PM
@@ -786,6 +882,18 @@ sub ssStats {
   }
 }
 
+#------------------------------------------------------------------------------
+=head2 checkSEEDSeqs
+
+  Title    : checkSEEDSeqs
+  Incept   : finnr, Aug 5, 2013 10:32:26 AM
+  Usage    : Bio::Rfam::QC::checkSEEDSeqs($familyObj, $seqDBObj)
+  Function : Checks that all SEED sequencs are valid
+  Args     : Bio::Rfam::Family object, Bio::Rfam::SeqDB object
+  Returns  : 1 on error, 0 on successully passing check
+  
+=cut
+
 sub checkSEEDSeqs {
   my ( $familyObj, $seqDBObj ) = @_;
 
@@ -826,6 +934,18 @@ sub checkSEEDSeqs {
   return $error;
 }
 
+#------------------------------------------------------------------------------
+=head2 checkScoresSeqs
+
+  Title    : checkScoresSeqs
+  Incept   : finnr, Jul 31, 2013 2:54:26 PM
+  Usage    : Bio::Rfam::QC::checkScoresSeqs($familyObj, $seqDBObj)
+  Function : 
+  Args     : 
+  Returns  : 
+
+=cut
+
 sub checkScoresSeqs {
   my ( $familyObj, $seqDBObj ) = @_;
 
@@ -848,18 +968,60 @@ sub checkScoresSeqs {
   return $error;
 }
 
+#------------------------------------------------------------------------------
+=head2 overlap
+
+  Title    : overlap
+  Incept   : finnr, Aug 5, 2013 4:08:00 PM
+  Usage    : 
+  Function : 
+  Args     : 
+  Returns  : 
+  
+=cut
+
 sub overlap {
-  my ( $familyObj, $config, $ignore, $type ) = @_;
+  my ( $familyObj, $config, $ignore, $famPath ) = @_;
+
+  #Check we have the correct family object.
+  if ( !$familyObj or !$familyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
 
   my $rfamdb = $config->rfamlive;
+  open(my $OVERLAP, '>', "$famPath/overlap") 
+    or die "Could not open $famPath/overlap:[$!]\n";
 
-  findExternalOverlaps($familyObj, $rfamdb, $ignore);
-  findInternalOverlaps($familyObj);
-
+  my $error = 0;
+  my $masterError = 0;
+  $error = findExternalOverlaps($familyObj, $rfamdb, $ignore, $config, $OVERLAP);
+  $masterError =  1 if($error);
+  
+  $error = findInternalOverlaps($familyObj, $OVERLAP);
+  $masterError =  1 if($error);
+  
+  close($OVERLAP);
+  
+  return $masterError;
 }
 
-sub findExternalOverlaps{
-  my ($familyObj, $rfamdb, $ignore) = @_;
+#------------------------------------------------------------------------------
+=head2 findExternalOverlaps
+
+  Title    :
+  Incept   : finnr, Aug 5, 2013 4:08:17 PM
+  Usage    : 
+  Function : 
+  Args     : 
+  Returns  : 
+  
+=cut
+
+
+sub findExternalOverlaps {
+  my ($familyObj, $rfamdb, $ignore, $config, $OVERLAP) = @_;
+  
+    _addBlackListToIgnore($ignore, $config);
   
   my $currentAcc = '';
   my $regions;
@@ -882,22 +1044,48 @@ sub findExternalOverlaps{
           $overlap = 'fullOL' if ( $overlap == -1 );
           my $overlapType =  $dbReg->[4] eq $or1 ? 'SS' : 'OS';
           #TODO Fix reporting when I have information.
-          my $s = sprintf "External overlap [%s] of %s with %s by %s\n",
+          my $eString = sprintf "External overlap [%s] of %s with %s by %s\n",
             $overlapType,
             $r->[0],
             $dbReg->[1].":".$dbReg->[0]."/".$dbReg->[2]."-".$dbReg->[3],
             $overlap;
-            
-         print "**".$s;   
+          print $OVERLAP $eString;
+          print STDERR $eString; 
       }
     }
   }
 }
 
-sub findInternalOverlaps {
-  my ($familyObj) = @_;
+#------------------------------------------------------------------------------
+=head2 findInternalOverlaps
 
-  my @atomizedNSE;
+  Title    : findInternalOverlaps
+  Incept   : finnr, Jul 31, 2013 2:28:40 PM
+  Usage    : Bio::Rfam::QC::findInternalOverlaps($familyObj, $OVERLAP)
+  Function : Takes a family object and looks for overalps within the SEED 
+           : alignment. It will report overlaps to STDERR and to the overlap
+           : file.
+  Args     : A Bio::Rfam::Family object, overlaps filehandle
+  Returns  : 1 on error, 0 if no overlaps are found. 
+  
+=cut
+
+sub findInternalOverlaps {
+  my ($familyObj, $OVERLAP) = @_;
+
+  #Check we have the correct family object.
+  if ( !$familyObj or !$familyObj->isa('Bio::Rfam::Family') ) {
+    die "Did not get passed in a Bio::Rfam::Family object\n";
+  }
+  
+  if(!$OVERLAP and ref($OVERLAP) ne 'GLOB'){
+    die "Did not get passed a filehandle for reporting\n";
+  }
+
+  my $error = 0;
+  my @atomizedNSE; #Avoid duplication of effort, once we have looped thrrough once
+                   #we should have all NSE.
+
   for ( my $i = 0 ; $i < $familyObj->SEED->nseq - 1 ; $i++ ) {
      $atomizedNSE[$i]  = _atomizeNSE($familyObj->SEED->get_sqname($i)) 
         if ( !$atomizedNSE[$i] );
@@ -923,18 +1111,35 @@ sub findInternalOverlaps {
             $atomizedNSE[$j]->[3], $atomizedNSE[$j]->[2]
           );
         }
+        #Do we have an overlap?
         if ( $overlap != 0 ) {
           $overlap = 'fullOL' if ( $overlap == -1 );
-          #TODO Fix reporting when I have information.
-          printf STDERR "Internal overlap of %s with %s by %s\n",
+          my $eString = sprintf "Internal overlap of %s with %s by %s\n",
             $familyObj->SEED->get_sqname($i),
             $familyObj->SEED->get_sqname($j),
             $overlap;
+          print $OVERLAP $eString;
+          print STDERR $eString;
+          $error = 1;
         }
       }
     }
   }
 }
+
+#------------------------------------------------------------------------------
+=head2 _overlapCoos
+
+  Title    : _overlapCoos
+  Incept   : finnr, Aug 5, 2013 9:31:07 AM
+  Usage    : _overlapCoos
+  Function : Internal function for assessing if there is an overlap between
+           : two sets of (forward strand) co-ordinates.
+  Args     : _overlpaCoos(1, 100, 50, 150);
+  Returns  : -1 first pair are completely within the second (full overlap).
+           : Otherwose the length of the overlap. 0 indicates no overlap.
+
+=cut
 
 sub _overlapCoos {
   my ( $s1, $e1, $s2, $e2 ) = @_;
@@ -953,6 +1158,20 @@ sub _overlapCoos {
   }
   return $len;
 }
+
+#------------------------------------------------------------------------------
+=head2 _atomizeNSE
+
+  Title    : _atomizeNSE
+  Incept   : finnr, Aug 5, 2013 9:47:22 AM
+  Usage    : Bio::Rfam::QC::_atomizeNSE();
+  Function : It calls the Bio::Rfam::Utils::nse_breakdown(), and pushes on the
+           : strand to the end of the array. This should proably move to the Utils
+           : module. Eric?
+  Args     : string containing SEQNAME/start-end
+  Returns  : Array in the form [name, start, end, strand]
+
+=cut
 
 sub _atomizeNSE {
   my ( $nse ) = @_;
@@ -1011,4 +1230,211 @@ sub codingSeqs {
   }
 }
 
+#------------------------------------------------------------------------------
+=head2 essential
+
+  Title    : essential
+  Incept   : finnr, Aug 5, 2013 3:55:24 PM
+  Usage    : Bio::Rfam::QC::essential($newFamilyObj, $dir, $oldFamily, $config)
+  Function : Takes the new family and performs all of the essential QC steps on
+           : the family. Due to the repetoire of QC, need file location, old family
+           : and config objects. 
+  Args     : Bio::Rfam::Family object for the new family,
+           : path to the family,
+           : Bio::Rfam::Family object for the old family or undef if new,
+           : A Bio::Rfam::Config object
+  Returns  : 1 on error, 0 on success.
+  
+=cut
+
+sub essential {
+  my ($newFamily, $dir, $oldFamily, $config) = @_; 
+
+  my $masterError = 0;
+  my $error = 0;
+  
+  my $seqDBObj = $config->rfamseqObj;
+  
+  $error = Bio::Rfam::QC::checkTimestamps($dir, $config);
+  if($error){
+    warn "Family failed essential foramt checks.\n";
+    $masterError = 1;
+  }
+  
+  $error = Bio::Rfam::QC::checkFamilyFormat($newFamily);
+  if($error){
+    warn "Family failed essential foramt checks.\n";
+    $masterError = 1;
+  }
+  
+  $error = checkSEEDSeqs($newFamily, $seqDBObj);
+  if($error){
+    warn "Family failed essential threshold check.\n";
+    $masterError = 1;
+  }
+  
+  $error = checkScoresSeqs($newFamily, $seqDBObj);
+  if($error){
+    warn "Family failed essential threshold check.\n";
+    $masterError = 1;
+  }
+  
+  if(defined($oldFamily)){
+    $error = checkFixedFields($newFamily, $oldFamily);
+    if($error){
+      warn "Family failed, illegal field changes in DESC file.\n";
+      $masterError = 1;
+    }
+  }
+  
+  open( my $OVERLAP, '>>', "$dir/overlap") or die "Could not open $dir/overlap:[$!]";
+  $error = findInternalOverlap($newFamily, $OVERLAP);
+  close($OVERLAP);
+  if($error){
+    warn "Found internal SEED overlaps.\n";
+    $masterError = 1;
+  }
+  
+  return( $masterError );
+}
+
+#------------------------------------------------------------------------------
+=head2 
+
+  Title    :
+  Incept   : finnr, Aug 5, 2013 3:55:47 PM
+  Usage    : 
+  Function : 
+  Args     : 
+  Returns  : 
+  
+=cut
+
+sub optional {
+  my ($newFamily, $dir, $oldFamily, $config, $override, $ignore) = @_;
+
+  my ($error, $masterError);
+  
+  if(!exists($override->{spell})){
+    $error = checkSpell($dir, $config->dictionary);
+    if($error){
+      warn "Failed running spelling QC.\n";
+      $masterError = 1;
+    }
+  }else{
+    warn "Ignoring spell check.\n";
+  }
+ 
+  
+  if(!exists($override->{seed})){
+    $error = compareSeedAndScores($newFamily);
+    if($error){
+      warn "Failed chcek to ensue all SEED sequences found.\n";
+      $masterError =1;
+    }
+  }else{
+    warn "Ignoring chcek to ensue all SEED sequences found.\n";
+  }
+  
+  if(!exists($override->{coding})){
+    $error = codingSeqs($newFamily);
+    if($error){
+      warn "Failed chcek to SEED sequences do not contain coding regions. Please check.\n";
+      $masterError =1;
+    }
+   }else{
+    warn "Ignoring chcek for coding regions in SEED sequences.\n";
+  }
+
+  if(!exists($override->{missing})){
+    if(defined($oldFamily)){
+      $error = compareOldAndNew($newFamily, $oldFamily);
+      print("Do you want to continue regardless? [y/n]  ");
+      my $reply = <STDIN>;
+      chomp $reply;
+      if ( $reply eq "y" ) {
+        #Override the error....
+        $error = 0;
+      }
+    }
+  }
+  
+  #Okay, hack time to allow overlaps....for some families
+  if(!exists($override->{overlap})){
+    open( my $OVERLAP, '>>', "$dir/overlap") or die "Could not open $dir/overlap:[$!]";
+    $error = findExternalOverlap($newFamily, $config, $ignore, $config, $OVERLAP);
+    close($OVERLAP);
+    if($error){
+      warn "Found overlaps.\n";
+      $masterError =1;
+    }
+   }else{
+    warn "Ignoring overlap check.\n";
+  }
+  
+  return($masterError);
+}
+
+#------------------------------------------------------------------------------
+=head2 processIgnoreOpt
+
+  Title    : processIgnoreOpt
+  Incept   : finnr, Aug 5, 2013 3:34:19 PM
+  Usage    : Bio::Rfam::QC::processIgnoreOpt($ignorableOpts, $config, $acc)
+  Function : As we need to relax the QC from time-to-time, this takes in the array
+           : captures typically by GetOpt::Long and checks to see if the option
+           : corresponds to an allowed, overridable option as specified in the
+           : config.  If the accession of the family is one of the few blacklisted
+           : families, the overalp option will not be run.
+  Args     : Array containing options, Bio::Rfam::Config object, accession of family
+  Returns  : hash, keys are allowed options.
+  
+=cut
+
+sub processIgnoreOpt {
+  my ($ignoreRef, $config, $acc) = @_;
+  
+  #See if the family if one of the few blacklisted? If so,
+  #do not bother running the overlap check.
+  if($acc){
+    if(exists $config->allowedOverlaps->{$acc}){
+      $ignoreRef->{overlap} = 1;
+    }
+  }
+  
+  my $allowedOpts = $config->ignorableQC;
+ 
+  #Go through each option passed in and see if it is allowed.
+  foreach my $i (@{$ignoreRef}){
+    if(! exists($allowedOpts->{$i})){
+      die "$i is an unknow QC 'ignore' option.\n";
+    }
+  }
+  #Now, convert it to a hash.
+  my $passback = map {$_ => 1 } $allowedOpts;
+  return $passback;
+}
+
+#------------------------------------------------------------------------------
+=head2 _addBlackListToIgnore
+
+  Title    : _addBlackListToIgnore
+  Incept   : finnr, Aug 5, 2013 3:51:09 PM
+  Usage    : _addBlackListToIgnore($ignore, $config);
+  Function : Added the accessions of blacklisted families to the hash of ignored
+           : families.
+  Args     : hash reference, Bio::Rfam::Config object.
+  Returns  : Nothing - hash reference is manipulated.
+  
+=cut
+
+sub _addBlackListToIgnore {
+  my ($ignore, $config) = @_;
+  
+  foreach my $k (keys( %{ $config->allowedOverlaps })){
+    $ignore->{$k} = 1;
+  }
+  
+  return;
+}
 1;
