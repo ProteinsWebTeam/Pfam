@@ -58,8 +58,8 @@ my %ignore;
 if (@ignore){
     print STDERR "A list of families to ignore in the overlap check has been given\n";
    %ignore = map{$_ => 1}@ignore;
-   $ignore{ $familyObj->DESC->AC }++ if($familyObj->DESC->AC);
 }
+$ignore{ $familyObj->DESC->AC }++ if($familyObj->DESC->AC);
 
 open(my $L, '>', "$pwd/$family/allqc.log") 
   or die "Could not open $pwd/$family/allqc.log: [$!]\n";
@@ -108,7 +108,7 @@ print $L "\n** OVERLAP check **\n";
 
 $error = 0;
 eval{
-  $error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore);
+  $error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore, "$pwd/$family");
 };
 print $L $@ if($@);
 if ($error){ 
