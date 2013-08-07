@@ -214,8 +214,9 @@ sub checkFamilyExists {
   };
   
   #Now see if that famuly is present!
+  my $revision = $self->revision;
   eval {
-     $self->{txn}->info( $url, undef, $self->{config}->svnRevision, $codeRef, 0 ); 
+     $self->{txn}->info( $url, undef, $revision, $codeRef, 0 ); 
   };
 
   if ($@) {
@@ -398,7 +399,7 @@ sub checkoutAllFamilies {
   my ( $self, $dest ) = @_;
   my $url = $self->familyLocation;
 
-  my $revision = $self->{config}->svnRevision ? $self->{config}->svnRevision : 'HEAD';
+  my $revision = $self->{config}->revision;
   
   eval {
     $self->{txn}
@@ -424,7 +425,7 @@ sub catFile {
   my ( $self, $dir, $filename, $fh, $rev ) = @_;
 
   my $url =  $self->familyLocation . "/" . $dir;
-  my $revision = $self->{config}->svnRevision ? $self->{config}->svnRevision : 'HEAD';
+  my $revision = $self->revision;
   
   unless ($fh) {
     $fh = \*STDOUT;
@@ -587,10 +588,11 @@ sub addFamily {
 sub update {
   my ( $self, $family ) = @_;
 
+  my $revision = $self->revision;
   #Okay, for each of the manditory files, run an SVN update.
   foreach my $file ( @{ $self->{config}->mandatoryFiles } ) {
     $self->{txn}
-      ->update( $family . "/" . $file, $self->{config}->svnRevision, 1 );
+      ->update( $family . "/" . $file, $revision, 1 );
   }
 
 }
@@ -716,7 +718,8 @@ sub _checkFile {
 
 sub revision {
   my ($self) = @_;
-  return ( $self->{config}->svnRevision );
+  my $revision = $self->{config}->svnRevision ? $self->{config}->svnRevision : 'HEAD';
+  return ( $revision );
 }
 
 =head2 familyLocation
