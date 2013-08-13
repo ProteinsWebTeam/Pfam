@@ -102,7 +102,6 @@ if ((! $do_align) && (! $do_subalign)) {
 }
 
 # set threshold
-my $changed_thr = 0;
 if ((defined $thr) && (defined $evalue)) { 
   die "ERROR -t and -e combination is invalid, choose 1"; 
 } elsif (defined $evalue) { 
@@ -110,7 +109,6 @@ if ((defined $thr) && (defined $evalue)) {
   my $cm    = $famObj->CM;
   my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
   $thr = sprintf("%.2f", $thr);
-  $changed_thr = 1;
   print STDERR  "Using GA threshold of $thr bits, converted from E-value of $evalue from command line\n";
 } elsif (defined $thr) { 
   $thr = sprintf("%.2f", $thr);
@@ -118,7 +116,6 @@ if ((defined $thr) && (defined $evalue)) {
 } else { 
   $thr = $famObj->DESC->CUTGA; 
   print STDERR  "Using GA threshold from DESC ($thr) b/c neither -t nor -e was set on command line\n";
-  $changed_thr = 1;
 }    
 if (! defined $thr) {
   die "ERROR: problem setting threshold\n";
@@ -161,10 +158,8 @@ if ($do_align) {
   }
 } # end of if($do_align)
 
-# Output desc file
-if ($changed_thr) { 
-  $io->writeDESC($famObj->DESC);
-}
+# Output desc file, with (probably) updated thresholds
+$io->writeDESC($famObj->DESC);
 
 exit 0;
 
@@ -175,8 +170,8 @@ sub setThresholds {
   my ($famObj, $ga, $outlist) = @_;
 
   my ($tc, $nc, $bits, $line);
-  $nc = 0;
-  $tc = 999999;
+  $nc = "undefined";
+  $tc = "undefined";
 
   open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
 
@@ -188,18 +183,20 @@ sub setThresholds {
       $bits =~ s/^\s+//;  # remove leading whitespace
       $bits =~ s/\s+.*$//;
 	    
-      if ($ga <= $bits && $bits < $tc) {
+      if ($ga <= $bits && ($tc eq "undefined" || ($bits < $tc))) {
         $tc = $bits;
       }
-      if ($ga  > $bits && $bits > $nc) {
+      if ($ga  > $bits && ($nc eq "undefined" || ($bits > $nc))) {
         $nc = $bits;
       }
     }
   }
-    
-  if ((! defined $nc) || ($nc == 0)) {
-    $nc = "undefined";
-    die "ERROR, unable to set NC threshold, GA set too low. Rerun rfmake.pl with higher bit-score threshold";
+
+  if ($tc eq "undefined") { 
+    die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
+  }    
+  if ($nc eq "undefined") { 
+    die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
   }
 
   $famObj->DESC->CUTGA($ga);
