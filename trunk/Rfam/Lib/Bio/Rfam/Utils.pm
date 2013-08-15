@@ -57,13 +57,14 @@ sub run_local_command {
            : $ncpu:     number of CPUs to run job on, can be undefined if location eq "JFRC"
            : $reqMb:    required number of Mb for job, can be undefined if location eq "JFRC"
            : $exStr:    extra string to add to qsub/sub command
+           : $queue:    queue to submit to, "" for default
   Returns  : void
   Dies     : If MPI submit command fails.
 
 =cut
 
 sub submit_nonmpi_job { 
-  my ($location, $cmd, $jobname, $errPath, $ncpu, $reqMb, $exStr) = @_;
+  my ($location, $cmd, $jobname, $errPath, $ncpu, $reqMb, $exStr, $queue) = @_;
 
   my $submit_cmd = "";
   if($location eq "EBI") { 
@@ -71,13 +72,20 @@ sub submit_nonmpi_job {
     if(! defined $reqMb) { die "submit_nonmpi_job(), location is EBI, but reqMb is undefined"; }
     $submit_cmd = "bsub ";
     if(defined $exStr) { $submit_cmd .= "$exStr "; }
-    $submit_cmd .= "-q research-rh6 -n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\" > /dev/null";
+    if(defined $queue) { 
+      $submit_cmd .= "-q $queue "; 
+    }
+    else { 
+      $submit_cmd .= "-q research-rh6 "; 
+    }
+    $submit_cmd .= "-n $ncpu -J $jobname -o /dev/null -e $errPath -M $reqMb -R \"rusage[mem=$reqMb]\" \"$cmd\" > /dev/null";
   }
   elsif($location eq "JFRC") { 
     my $batch_opt = "";
     if($ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
     $submit_cmd = "qsub ";
     if(defined $exStr) { $submit_cmd .= "$exStr "; }
+    if(defined $queue) { $submit_cmd .= "-l $queue=true "; }
     $submit_cmd .= " -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
@@ -106,13 +114,14 @@ sub submit_nonmpi_job {
            : $jobname:  name for job
            : $errPath:  path for stderr output
            : $nproc:    number of MPI processors to use
+           : $queue:    queue to submit to, "" for default, ignored if location eq "EBI"
   Returns  : void
   Dies     : If MPI submit command fails.
 
 =cut
 
 sub submit_mpi_job { 
-  my ($location, $cmd, $jobname, $errPath, $nproc) = @_;
+  my ($location, $cmd, $jobname, $errPath, $nproc, $queue) = @_;
 
   my $submit_cmd = "";
   if($location eq "EBI") { 
@@ -121,10 +130,13 @@ sub submit_mpi_job {
     #system($prepcmd);
     #if($? != 0) { die "MPI prep command $prepcmd failed"; }
 
+    # Need to use MPI queue ($queue is irrelevant)
     $submit_cmd = "bsub -J $jobname -e $errPath -q mpi -I -n $nproc -a openmpi mpirun.lsf -np $nproc -mca btl tcp,self $cmd";
   }
   elsif($location eq "JFRC") { 
-    $submit_cmd = "qsub -N $jobname -e $errPath -o /dev/null -b y -cwd -V -pe impi $nproc \"mpirun -np $nproc $cmd\" > /dev/null";
+    my $queue_opt = "";
+    if($queue ne "") { $queue_opt = "-l $queue=true "; }
+    $submit_cmd = "qsub -N $jobname -e $errPath -o /dev/null -b y -cwd -V -pe impi $nproc " . $queue_opt . "\"mpirun -np $nproc $cmd\" > /dev/null";
   }
   else { 
     die "ERROR unknown location $location in submit_mpi_job()";
