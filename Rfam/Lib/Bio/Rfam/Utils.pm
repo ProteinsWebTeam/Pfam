@@ -71,8 +71,8 @@ sub submit_nonmpi_job {
     if(! defined $ncpu)  { die "submit_nonmpi_job(), location is EBI, but ncpu is undefined"; }
     if(! defined $reqMb) { die "submit_nonmpi_job(), location is EBI, but reqMb is undefined"; }
     $submit_cmd = "bsub ";
-    if(defined $exStr) { $submit_cmd .= "$exStr "; }
-    if(defined $queue) { 
+    if(defined $exStr && $exStr ne "") { $submit_cmd .= "$exStr "; }
+    if(defined $queue && $queue ne "") { 
       $submit_cmd .= "-q $queue "; 
     }
     else { 
