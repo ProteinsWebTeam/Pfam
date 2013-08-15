@@ -80,13 +80,14 @@ sub cmbuild_wrapper {
            : $outPath: path to output file, must be defined
            : $errPath: path to error output file, must be defined
            : $nproc:   number of CPUs to use, if undefined $CMCALIBRATE_NCPU is used
+           : $queue:   queue to submit to, "" for default, ignored if location eq 'EBI'
   Returns  : Predicted number of minutes the calibration should take.
   Dies     : if any command fails, including prediction or cluster submission
 
 =cut
 
 sub cmcalibrate_wrapper {
-  my ($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc) = @_;
+  my ($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc, $queue) = @_;
   
   # ensure $cmPath exists
   if (! -e $cmPath) { die "CM file $cmPath does not exist"; }
@@ -115,7 +116,7 @@ sub cmcalibrate_wrapper {
   unlink $forecast_out;
   
   # submit MPI job
-  Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmcalibratePath --mpi $cmPath > $outPath", $jobname, $errPath, $nproc);
+  Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmcalibratePath --mpi $cmPath > $outPath", $jobname, $errPath, $nproc, $queue);
 
   return ($predicted_seconds / 60);
 }
@@ -124,7 +125,7 @@ sub cmcalibrate_wrapper {
 
   Title    : cmsearch_wrapper
   Incept   : EPN, Mon Apr  1 10:20:32 2013
-  Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr)
+  Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue)
   Function : Submit cmsearch job (non-MPI) to cluster.
            : All options should already be specified in $options,
            : including '--cpu <n>' and '--tblout <tblout>'.
@@ -136,13 +137,14 @@ sub cmcalibrate_wrapper {
            : $outPath:      file to save standard output to, if undefined send to /dev/null.
            : $errPath:      file to save standard error output to
            : $submitExStr:  extra string to add to qsub/bsub command
+           : $queue:        queue to submit to, "" for default
   Returns  : void
   Dies     : if cmsearch command fails
 
 =cut
 
 sub cmsearch_wrapper { 
-  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr) = @_;
+  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue) = @_;
 
   my $cpus;
   # contract check, --tblout and --cpu must be defined in $options
@@ -160,7 +162,7 @@ sub cmsearch_wrapper {
   my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
 
   # submit non-MPI job
-  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr);
+  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
   
   return;
 }

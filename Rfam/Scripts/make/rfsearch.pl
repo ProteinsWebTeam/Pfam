@@ -40,7 +40,8 @@ my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
 my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
 # other options
-
+my $q_opt = "";                 # <str> from -queue <str>
+my $do_dirty = 0;               # TRUE to not unlink files
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 # database related options:
@@ -82,6 +83,8 @@ output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM aga
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
              "ssopt=s@"   => \@ssoptA,
+	     "dirty"      => \$do_dirty,
+             "queue=s"    => \$q_opt, 
 	     "h|help"     => \$do_help );
 
 if ( $do_help ) {
@@ -316,7 +319,7 @@ if ($do_build) {
   # run cmbuild to create new CM
   my $outfile = "b.$$.out";
   $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
-  unlink $outfile;
+  if(! $do_dirty) { unlink $outfile; }
   if($buildopts ne "") { $buildopts .= " "; } # add trailing single space so next line properly formats BM (and blank opts ("") will work too)
   $famObj->DESC->BM("cmbuild -F " . $buildopts . "CM SEED");
 
@@ -354,13 +357,14 @@ if ($force_calibrate || (! $is_cm_calibrated)) {
                                                                    "CM",                # path to CM file
                                                                    $calibrateO,         # path to output file 
                                                                    $calibrate_errO,     # path to error output file 
-                                                                   $ncpus_cmcalibrate); # number of processors
+                                                                   $ncpus_cmcalibrate,  # number of processors
+                                                                   $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
   $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
-  unlink $calibrate_errO; # this file is empty anyway
+  if(! $do_dirty) { unlink $calibrate_errO; } # this file is empty anyway 
 
   $famObj->DESC->CB("cmcalibrate --mpi CM");
 
@@ -369,7 +373,7 @@ if ($force_calibrate || (! $is_cm_calibrated)) {
   my $mpi_overhead_secs = 10;
   $calibrate_elp_secs += $mpi_overhead_secs; # MPI slows things down, and we don't want our efficiency to be lower due to this
   $calibrate_cpu_secs *= $ncpus_cmcalibrate; # cmcalibrate doesn't report total running time
-  unlink $calibrateO;
+  if(! $do_dirty) { unlink $calibrateO; }
 
   # done the calibration, we need to redefine $cm
   $famObj->CM($io->parseCM("CM"));
@@ -565,9 +569,9 @@ if (! $no_search) {
   my @rev_cmsOA    = (); # names of cmsearch output files for reversed searches
   my @rev_errOA    = (); # names of error files for reversed searches
 
-  submit_cmsearch_jobs($config, $ndbfiles, "s.",  $searchopts, $cmfile, \@dbfileA, \@jobnameA, \@tblOA, \@cmsOA, \@errOA);
+  submit_cmsearch_jobs($config, $ndbfiles, "s.",  $searchopts, $cmfile, \@dbfileA, \@jobnameA, \@tblOA, \@cmsOA, \@errOA, $ssopt_str, $q_opt);
   if($rev_ndbfiles > 0) { 
-    submit_cmsearch_jobs($config, $rev_ndbfiles, "rs.", $rev_searchopts, $cmfile, \@rev_dbfileA, \@rev_jobnameA, \@rev_tblOA, \@rev_cmsOA, \@rev_errOA);
+    submit_cmsearch_jobs($config, $rev_ndbfiles, "rs.", $rev_searchopts, $cmfile, \@rev_dbfileA, \@rev_jobnameA, \@rev_tblOA, \@rev_cmsOA, \@rev_errOA, $ssopt_str, $q_opt);
   }
   my @all_jobnameA = @jobnameA;
   my @all_tblOA    = @tblOA;
@@ -588,18 +592,18 @@ if (! $no_search) {
   my $all_cmsO     = "searchout";
   my $all_rev_cmsO = "revsearchout";
   # first, create the concatenated error file, if it's not empty we'll die before creating TBLOUT
-  Bio::Rfam::Utils::concatenate_files(\@all_errOA, $all_errO, 1); # '1' says delete original files after concatenation
+  Bio::Rfam::Utils::concatenate_files(\@all_errOA, $all_errO, (! $do_dirty)); # '1' says delete original files after concatenation, unless -dirty
   if(-s $all_errO) { 
     Bio::Rfam::Utils::checkStderrFile($config->location, $all_errO); 
   }
 
   # if we get here, all err files were empty, so we keep going
-  unlink $all_errO; # this file is empty anyway
-  Bio::Rfam::Utils::concatenate_files(\@tblOA,     $all_tblO,     1); # '1' says delete original files after concatenation
-  Bio::Rfam::Utils::concatenate_files(\@cmsOA,     $all_cmsO,     1); # '1' says delete original files after concatenation
+  if(! $do_dirty) { unlink $all_errO; } # this file is empty anyway
+  Bio::Rfam::Utils::concatenate_files(\@tblOA,     $all_tblO,     (! $do_dirty)); # '! $do_dirty' says delete original files after concatenation, unless -dirty
+  Bio::Rfam::Utils::concatenate_files(\@cmsOA,     $all_cmsO,     (! $do_dirty)); # '! $do_dirty' says delete original files after concatenation, unless -dirty
   if($rev_ndbfiles > 0) { 
-    Bio::Rfam::Utils::concatenate_files(\@rev_tblOA, $all_rev_tblO, 1); # '1' says delete original files after concatenation
-    Bio::Rfam::Utils::concatenate_files(\@rev_cmsOA, $all_rev_cmsO, 1); # '1' says delete original files after concatenation
+    Bio::Rfam::Utils::concatenate_files(\@rev_tblOA, $all_rev_tblO, (! $do_dirty)); # '! $do_dirty' says delete original files after concatenation, unless -dirty
+    Bio::Rfam::Utils::concatenate_files(\@rev_cmsOA, $all_rev_cmsO, (! $do_dirty)); # '! $do_dirty' says delete original files after concatenation, unless -dirty
   }
 
   # update DESC with search method
@@ -809,7 +813,7 @@ sub output_timing_summary {
 }
 
 sub submit_cmsearch_jobs {
-  my ($config, $ndbfiles, $prefix, $searchopts, $cmfile, $dbfileAR, $jobnameAR, $tblOAR, $cmsOAR, $errOAR) = @_;
+  my ($config, $ndbfiles, $prefix, $searchopts, $cmfile, $dbfileAR, $jobnameAR, $tblOAR, $cmsOAR, $errOAR, $ssopt_str, $q_opt) = @_;
   my ($idx, $file_idx, $dbfile);
 
   for($idx = 0; $idx < $ndbfiles; $idx++) { 
@@ -818,7 +822,7 @@ sub submit_cmsearch_jobs {
     $tblOAR->[$idx]    = $prefix . "$$.$file_idx.tbl";
     $cmsOAR->[$idx]    = $prefix . "$$.$file_idx.cmsearch";
     $errOAR->[$idx]    = $prefix . "$$.$file_idx.err";
-    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx]);  
+    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt);  
   }
 }
 
@@ -886,6 +890,8 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
 
             OTHER OPTIONS:
             -ssopt <str> add extra arbitrary string <str> to qsub cmsearch commands, for multiple options use multiple -ssopt <s>
+            -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
+  	    -dirty       do not remove temporary/intermediate files that are normally removed
   	    -h|-help     print this help, then exit
 EOF
 }
