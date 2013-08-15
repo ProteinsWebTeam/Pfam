@@ -52,8 +52,7 @@ sub checkQCPerformed {
 
  #need to add in this for checking the qc has been done-dont allow ci otherwise.
   if ( !-e "$dir/$acc/qcpassed" ) {
-    die
-"rfci: [$acc] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
+    die "rfci: [$acc] has not been passed by qc checks so not ready to check in - run rqc-all.pl\n";
   }
 
   foreach my $f ( @{ $config->mandatoryFiles } ) {
@@ -135,14 +134,14 @@ sub checkSEEDFormat {
     $error++;
   }
 
-  #Check that the are no all gap columns
+  #Check that there are no all gap columns
   if ( $familyObj->SEED->any_allgap_columns ) {
     warn "FATAL: SEED has all gap columns";
     $error++;
   }
 
   #Check that there are more than 2 sequences in the SEED alignment
-  if ( $familyObj->SEED < 2 ) {
+  if ( $familyObj->SEED->nseq < 2 ) {
     warn "FATAL: SEED has less than 2 sequences";
     $error++;
   }
@@ -369,7 +368,7 @@ sub checkRequiredFields {
     }
   }
 
-  #There are also two specical cases......
+  #There are also two special cases......
   my ( $SOseen, $GOseen, $SOsuggestions, $GOsuggestions );
 
   $SOsuggestions = $config->SOsuggestions;
@@ -451,7 +450,7 @@ sub checkTPField {
       warn "\nFATAL: Invalid TP line: "
         . $familyObj->DESC->TP
         . ", because $TPline[$i] not found in hash\n";
-      $i     = scalar(@TPline);    #Break out as nothing will work
+      $i = scalar(@TPline);    #Break out as nothing will work
       $error = 1;
     }
   }
@@ -464,7 +463,7 @@ sub checkTPField {
   Title    : checkFixedFields
   Incept   : finnr, Aug 5, 2013 10:51:59 AM
   Usage    : Bio::Rfam::QC::checkFixedFields($newFamily, $oldFamily);
-  Function : Checks that nobody has changes the ID, AC, PI lines/
+  Function : Checks that nobody has changes the ID, AC, PI lines
   Args     : Bio::Rfam::Family object for old and new family.
   Returns  : 1 on error, 0 on success.
   
@@ -527,8 +526,7 @@ sub checkNonFreeText {
     die "Did not get passed in a Bio::Rfam::Family object\n";
   }
   
-  
-  #The list of fields  that cannot be alter are:
+  #The list of fields  that cannot be altered are:
   # NC, TC, GA,
   my $error = 0;
   foreach my $tag (qw(NC TC GA)) {
@@ -576,7 +574,7 @@ sub compareSeedAndScores {
     die "Did not get passed in a Bio::Rfam::Family object\n";
   }
 
-  #Hash os SEED sequnece accessions
+  #Hash of SEED sequence accessions
   my %seed;
   for ( my $i = 0 ; $i < $familyObj->SEED->nseq ; $i++ ) {
     my $s = $familyObj->SEED->get_sqname($i);
@@ -612,13 +610,13 @@ sub compareSeedAndScores {
   Title    : compareOldAndNew
   Incept   : finnr, Jul 24, 2013 1:07:21 PM
   Usage    : Bio::Rfam::QC::compareOldAndNew($oldFamily, $updatedFamily, $path)
-  Function : Comapres the SCORES files from the old and update family to identify
+  Function : Compares the SCORES files from the old and update family to identify
            : new and missing sequences. If a path is supplied, it will write files
            : containing the found/missing sequence accessions 
   Args     : Two family objects, first the old, second the updated family.  Third
            : argument is an optional path of the directory where missng and found
            : files should be written
-  Returns  : array referneces to the arrays containing the found or missing 
+  Returns  : array references to the arrays containing the found or missing 
            : sequence accessions.
   
 =cut
@@ -640,7 +638,7 @@ sub compareOldAndNew {
   }
 
   #Find the things that are in the old, but not the new. Generate a hash of the
-  #new things the pull out the unique sequence accessions (fourth elemenet)
+  #new things the pull out the unique sequence accessions (fourth element)
   my %e = map { $_->[3] => undef } @{ $newFamObj->SCORES->regions };
   my @missing = keys %{
     {
@@ -976,10 +974,10 @@ sub checkSEEDSeqs {
   #This next bit is a little inefficient
   my $seqDBSeqs = $seqDBObj->fetch_subseqs( \@seedSeqs, -1 );
 
-  #Make RNA
+  #Make RNA (need to do this bc currently RFAMSEQ is DNA and seed is read as RNA (digitized Easel MSA))
   $seqDBSeqs =~ s/T/U/g;
 
-  #now make array of alternatice head/sequence - Eric???? Can we avoid this.
+  #now make array of alternative head/sequence
   my @s = split( /\n/, $seqDBSeqs );
 
   for ( my $i = 0 ; $i < $familyObj->SEED->nseq ; $i++ ) {
@@ -1030,9 +1028,9 @@ sub checkScoresSeqs {
 }
 
 #------------------------------------------------------------------------------
-=head2 overlap
+=head2 checkOverlaps
 
-  Title    : overlap
+  Title    : checkOverlaps
   Incept   : finnr, Aug 5, 2013 4:08:00 PM
   Usage    : 
   Function : 
@@ -1041,7 +1039,7 @@ sub checkScoresSeqs {
   
 =cut
 
-sub overlap {
+sub checkOverlaps {
   my ( $familyObj, $config, $ignore, $famPath ) = @_;
 
   #Check we have the correct family object.
@@ -1069,7 +1067,7 @@ sub overlap {
 #------------------------------------------------------------------------------
 =head2 findExternalOverlaps
 
-  Title    :
+  Title    : findExternalOverlaps()
   Incept   : finnr, Aug 5, 2013 4:08:17 PM
   Usage    : 
   Function : 
@@ -1086,7 +1084,7 @@ sub findExternalOverlaps {
   
   if($config->location ne 'EBI'){
     warn "This overlap test has been written assuming you have a local database.".
-         "Eventually, there needs to be a Web based overalp method\n.";
+         "Eventually, there needs to be a Web based overlap method\n.";
   }
   
   my $currentAcc = '';
@@ -1105,7 +1103,9 @@ sub findExternalOverlaps {
       my ($s2, $e2) = 
         $dbReg->[4] == 1 ? ($dbReg->[2], $dbReg->[3]) : ($dbReg->[3], $dbReg->[2]);
       my $overlap = 0;
-      $overlap = _overlapCoos( $s1, $e1, $s2, $e2);
+      $overlap = Bio::Rfam::Utils::overlap_nres_or_full($s1, $e1, $s2, $e2);
+      # Careful, we need to use s1/e1 and s2/e2 (instead of just r->[1], r->[2] and
+      # dbReg->[2] and dbReg[3]) b/c we want to detect an overlap ON EITHER STRAND
       if($overlap != 0){
           $overlap = 'fullOL' if ( $overlap == -1 );
           my $overlapType =  $dbReg->[4] eq $or1 ? 'SS' : 'OS';
@@ -1128,7 +1128,7 @@ sub findExternalOverlaps {
   Title    : findInternalOverlaps
   Incept   : finnr, Jul 31, 2013 2:28:40 PM
   Usage    : Bio::Rfam::QC::findInternalOverlaps($familyObj, $OVERLAP)
-  Function : Takes a family object and looks for overalps within the SEED 
+  Function : Takes a family object and looks for overlaps within the SEED 
            : alignment. It will report overlaps to STDERR and to the overlap
            : file.
   Args     : A Bio::Rfam::Family object, overlaps filehandle
@@ -1149,108 +1149,33 @@ sub findInternalOverlaps {
   }
 
   my $error = 0;
-  my @atomizedNSE; #Avoid duplication of effort, once we have looped thrrough once
+  my @atomizedNSE; #Avoid duplication of effort, once we have looped through once
                    #we should have all NSE.
 
   for ( my $i = 0 ; $i < $familyObj->SEED->nseq - 1 ; $i++ ) {
-     $atomizedNSE[$i]  = _atomizeNSE($familyObj->SEED->get_sqname($i)) 
+     $atomizedNSE[$i]  = Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($i)) 
         if ( !$atomizedNSE[$i] );
     for ( my $j = $i + 1 ; $j < $familyObj->SEED->nseq ; $j++ ) {
-      $atomizedNSE[$j]  = _atomizeNSE($familyObj->SEED->get_sqname($j)) 
+      $atomizedNSE[$j]  = Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($j)) 
         if ( !$atomizedNSE[$j] );
 
-      #Name, start, end corresponds to
-      if (  ( $atomizedNSE[$i]->[1] eq $atomizedNSE[$j]->[1] )
-        and ( $atomizedNSE[$i]->[4] eq $atomizedNSE[$j]->[4] ) )
-      {
-        #Same sequence, same orientation, now see if they overlap.
-        my $overlap = 0;
-        if ( $atomizedNSE[$i]->[4] == 1 ) {
-          $overlap = _overlapCoos(
-            $atomizedNSE[$i]->[2], $atomizedNSE[$i]->[3],
-            $atomizedNSE[$j]->[2], $atomizedNSE[$j]->[3]
-          );
-        }
-        else {
-          $overlap = _overlapCoos(
-            $atomizedNSE[$i]->[3], $atomizedNSE[$i]->[2],
-            $atomizedNSE[$j]->[3], $atomizedNSE[$j]->[2]
-          );
-        }
-        #Do we have an overlap?
-        if ( $overlap != 0 ) {
-          $overlap = 'fullOL' if ( $overlap == -1 );
-          my $eString = sprintf "Internal overlap of %s with %s by %s\n",
-            $familyObj->SEED->get_sqname($i),
-            $familyObj->SEED->get_sqname($j),
-            $overlap;
-          print $OVERLAP $eString;
-          print STDERR $eString;
-          $error = 1;
-        }
+      # determine overlap fraction (overlap_nres_or_full() is robust to start < end or start > end)
+      my $overlap = Bio::Rfam::Utils::overlap_nres_or_full(
+        $atomizedNSE[$i]->[2], $atomizedNSE[$j]->[2], 
+        $atomizedNSE[$i]->[3], $atomizedNSE[$j]->[3]);
+      
+      if($overlap != 0) { 
+        $overlap = 'fullOL' if ( $overlap == -1 );
+        my $eString = sprintf "Internal overlap of %s with %s by %s\n",
+        $familyObj->SEED->get_sqname($i),
+        $familyObj->SEED->get_sqname($j),
+        $overlap;
+        print $OVERLAP $eString;
+        print STDERR $eString;
+        $error = 1;
       }
     }
   }
-}
-
-#------------------------------------------------------------------------------
-=head2 _overlapCoos
-
-  Title    : _overlapCoos
-  Incept   : finnr, Aug 5, 2013 9:31:07 AM
-  Usage    : _overlapCoos
-  Function : Internal function for assessing if there is an overlap between
-           : two sets of (forward strand) co-ordinates.
-  Args     : _overlpaCoos(1, 100, 50, 150);
-  Returns  : -1 first pair are completely within the second (full overlap).
-           : Otherwose the length of the overlap. 0 indicates no overlap.
-
-=cut
-
-sub _overlapCoos {
-  my ( $s1, $e1, $s2, $e2 ) = @_;
-
-  my $len = 0;
-  if ( $s1 >= $s2 and $e1 <= $e2 ) {    #full ol.
-    $len = -1;
-  }
-  elsif ( $s1 <= $e2 and $e1 >= $e2 )
-  {    #region 1 right extended or fully nested region 2
-    $len = $e2 - $s1;
-  }
-  elsif ( $s1 <= $s2 and $e1 >= $s2 )
-  {    #region 1 left extended or fully nested region 2
-    $len = $e1 - $s2;
-  }
-  return $len;
-}
-
-#------------------------------------------------------------------------------
-=head2 _atomizeNSE
-
-  Title    : _atomizeNSE
-  Incept   : finnr, Aug 5, 2013 9:47:22 AM
-  Usage    : Bio::Rfam::QC::_atomizeNSE();
-  Function : It calls the Bio::Rfam::Utils::nse_breakdown(), and pushes on the
-           : strand to the end of the array. This should proably move to the Utils
-           : module. Eric?
-  Args     : string containing SEQNAME/start-end
-  Returns  : Array in the form [name, start, end, strand]
-
-=cut
-
-sub _atomizeNSE {
-  my ( $nse ) = @_;
-  #Set orientation
-  my @nse =
-        Bio::Rfam::Utils::nse_breakdown( $nse );
-      if ( $nse[2] > $nse[3] ) {
-        $nse[4] = -1;
-      }
-      else {
-        $nse[4] = 1;
-      }
-  return \@nse;
 }
 
 #------------------------------------------------------------------------------
@@ -1260,7 +1185,7 @@ sub _atomizeNSE {
   Incept   : finnr, Jul 29, 2013 3:10:48 PM
   Usage    : Bio::Rfam::QC::codingSeqs($familyObj, $config)
   Function : Takes the seed alignment, reformats it to clustal (with '-' as a 
-           : gap character). It then runs throd party software, RNACode to
+           : gap character). It then runs third party software, RNACode to
            : identify potential coding regions. The p-value threshold for this 
            : comes from the config.
   Args     : A Bio::Rfam::Family object, a Bio::Rfam::Config
@@ -1367,11 +1292,12 @@ sub essential {
 #------------------------------------------------------------------------------
 =head2 
 
-  Title    :
+  Title    : optional
   Incept   : finnr, Aug 5, 2013 3:55:47 PM
-  Usage    : 
-  Function : 
-  Args     : 
+  Usage    : Bio::Rfam::QC::optional($newFamily, $dir, $oldFamily, $config, $override, $ignore)
+  Function : Takes the new family and performs all QC steps except
+           : those X for which $override->{X} is true.
+  Args     : HERE HERE HERE 
   Returns  : 
   
 =cut
@@ -1425,7 +1351,7 @@ sub optional {
     }
   }
   
-  #Okay, hack time to allow overlaps....for some families
+  #Okay, hack time; allow overlaps....for some families
   if(!exists($override->{overlap})){
     open( my $OVERLAP, '>>', "$dir/overlap") or die "Could not open $dir/overlap:[$!]";
     $error = findExternalOverlap($newFamily, $config, $ignore, $config, $OVERLAP);
@@ -1451,7 +1377,7 @@ sub optional {
            : captures typically by GetOpt::Long and checks to see if the option
            : corresponds to an allowed, overridable option as specified in the
            : config.  If the accession of the family is one of the few blacklisted
-           : families, the overalp option will not be run.
+           : families, the overlap option will not be run.
   Args     : Array containing options, Bio::Rfam::Config object, accession of family (optional)
   Returns  : hash, keys are allowed options.
   
