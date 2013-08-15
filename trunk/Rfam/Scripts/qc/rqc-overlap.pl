@@ -64,7 +64,7 @@ my %ignore = map{$_ => 1}@ignore;
 #This should really go in the query! Should be implicit that you ignore self.
 $ignore{ $familyObj->DESC->AC }++ if($familyObj->DESC->AC);
 #Now run both overlap checls, external and internal SEED overlaps.
-$error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore, $famPath);
+$error = Bio::Rfam::QC::checkOverlaps($familyObj, $config, \%ignore, $famPath);
 
 #------------------------------------------------------------------------------
 #Handle the error.

@@ -108,7 +108,7 @@ print $L "\n** OVERLAP check **\n";
 
 $error = 0;
 eval{
-  $error = Bio::Rfam::QC::overlap($familyObj, $config, \%ignore, "$pwd/$family");
+  $error = Bio::Rfam::QC::checkOverlaps($familyObj, $config, \%ignore, "$pwd/$family");
 };
 print $L $@ if($@);
 if ($error){ 

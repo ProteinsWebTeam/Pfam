@@ -542,14 +542,14 @@ sub tax2kingdom {
   Incept   : EPN, Wed Jan 30 09:50:07 2013
   Usage    : nse_breakdown($nse)
   Function : Checks if $nse is of format "name/start-end" and if so
-           : breaks it down into $n, $s, $e, $strand (see 'Returns' section)
+           : breaks it down into $n, $s, $e, $str (see 'Returns' section)
   Args     : <sqname>: seqname, possibly of format "name/start-end"
-  Returns  : 4 values:
+  Returns  : 5 values:
            :   '1' if seqname was of "name/start-end" format, else '0'
-           :   $n: name ("" if seqname does not match "name/start-end")
-	   :   $s: start, maybe <= or > than $e (0 if seqname does not match "name/start-end")
-	   :   $e: end,   maybe <= or > than $s (0 if seqname does not match "name/start-end")
-
+           :   $n:   name ("" if seqname does not match "name/start-end")
+	   :   $s:   start, maybe <= or > than $e (0 if seqname does not match "name/start-end")
+	   :   $e:   end,   maybe <= or > than $s (0 if seqname does not match "name/start-end")
+           :   $str: strand, 1 if $s <= $e, else -1
 =cut
 
 sub nse_breakdown {
@@ -558,12 +558,14 @@ sub nse_breakdown {
     my $n;       # sqacc
     my $s;       # start, from seq name (can be > $end)
     my $e;       # end,   from seq name (can be < $start)
+    my $str;     # strand, 1 if $start <= $end, else -1
 
     if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
 	($n, $s, $e) = ($1,$2,$3);
-	return (1, $n, $s, $e);
+        $str = ($s <= $e) ? 1 : -1; 
+	return (1, $n, $s, $e, $str);
     }
-    return (0, "", 0, 0);
+    return (0, "", 0, 0, 0);
 }
 
 =head2 nse_sqlen
@@ -649,9 +651,9 @@ sub _min {
 sub overlap_fraction_two_nse {
     my ($nse1, $nse2) = @_;
 
-    my($is1, $n1, $s1, $e1) = nse_breakdown($nse1);
+    my($is1, $n1, $s1, $e1, $str1) = nse_breakdown($nse1);
     if(! $is1) { croak "$nse1 not in name/start-end format"; }
-    my($is2, $n2, $s2, $e2) = nse_breakdown($nse2);
+    my($is2, $n2, $s2, $e2, $str2) = nse_breakdown($nse2);
     if(! $is2) { croak "$nse2 not in name/start-end format"; }
 
     if($n1 ne $n2) { return 0.; } #names don't match
@@ -666,9 +668,9 @@ sub overlap_fraction_two_nse {
   Usage    : overlap_fraction($from1, $to1, $from2, $to2)
   Function : Returns fractional overlap of two regions.
            : If $from1 is <= $to1 we assume first  region is 
-           : on + strand, else it's on -1.
+           : on + strand, else it's on - strand.
            : If $from2 is <= $to2 we assume second region is 
-           : on + strand, else it's on -1.
+           : on + strand, else it's on - strand.
            : If regions are on opposite strand, return 0.
   Args     : $from1: start point of first region (maybe < or > than $to1)
            : $to1:   end   point of first region
@@ -699,6 +701,49 @@ sub overlap_fraction {
     my $D    = overlap_nres_strict($a1, $b1, $a2, $b2);
     # printf STDERR "D: $D minL: $minL\n";
     return $D / $minL;
+}
+
+=head2 overlap_nres_or_full
+
+  Title    : overlap_nres_or_full
+  Incept   : EPN, Thu Aug  8 18:41:16 2013
+  Usage    : overlap_nres($from1, $to1, $from2, $to2)
+  Function : Returns number of residues of overlap between two regions.
+           : If $from1 is <= $to1 we assume first region is 
+           : on + strand, else it's on - strand.
+           : If $from2 is <= $to2 we assume second region is 
+           : on + strand, else it's on - strand.
+           : If regions are on opposite strand, return 0.
+  Args     : $from1: start point of first region (maybe < or > than $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (maybe < or > than $to2)
+           : $to2:   end   point of second region
+  Returns  : Number of residues of overlap, or -1 if the overlap is complete
+             (complete overlap: entire shorter sequence is contained within longer sequence).
+=cut
+
+sub overlap_nres_or_full {
+    my($from1, $to1, $from2, $to2) = @_;
+    
+    my($a1, $b1, $strand1, $a2, $b2, $strand2);
+
+    if($from1 <= $to1) { $a1 = $from1; $b1 = $to1;   $strand1 = 1;  }
+    else               { $a1 = $to1;   $b1 = $from1; $strand1 = -1; }
+
+    if($from2 <= $to2) { $a2 = $from2; $b2 = $to2;   $strand2 = 1;  }
+    else               { $a2 = $to2;   $b2 = $from2; $strand2 = -1; }
+    
+    if($strand1 != $strand2) { 
+	return 0.; 
+    }
+
+    my $L1 = $b1 - $a1 + 1;
+    my $L2 = $b2 - $a2 + 1;
+    my $minL = _min($L1, $L2);
+    my $D    = overlap_nres_strict($a1, $b1, $a2, $b2);
+    # printf STDERR "D: $D minL: $minL\n";
+    if($D == $minL) { return -1; } # complete overlap, special case: return -1
+    else            { return $D; } # non-complete overlap, return nres overlap
 }
 
 
