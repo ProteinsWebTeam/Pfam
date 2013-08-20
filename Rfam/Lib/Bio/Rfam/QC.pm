@@ -735,17 +735,17 @@ sub checkTimestamps {
   return $error if ($error);
 
   #Now check the timestamps.
-  if ( -M "$fam/SEED" <= -M "$fam/CM" ) {
+  if(Bio::Rfam::Utils::youngerThan("$fam/SEED", "$fam/CM")) { 
     warn
-"\nFATAL ERROR: $fam: Your SEED [$fam/SEED] is younger than your CM file [$fam/CM].\n";
+        "\nFATAL ERROR: $fam: Your SEED [$fam/SEED] is younger than your CM file [$fam/CM].\n";
     $error = 1;
   }
-  if ( -M "$fam/CM" <= -M "$fam/TBLOUT" ) {
+  if(Bio::Rfam::Utils::youngerThan("$fam/CM", "$fam/TBLOUT")) { 
     warn
 "\nFATAL ERROR: $fam: Your CM [$fam/CM] is younger than your TBLOUT file [$fam/TBLOUT].\n";
     $error = 1;
   }
-  if ( -M "$fam/TBLOUT" <= -M "$fam/SCORES" ) {
+  if(Bio::Rfam::Utils::youngerThan("$fam/TBLOUT", "$fam/SCORES")) { 
     warn
 "\nFATAL ERROR: $fam: Your TBLOUT [$fam/TBLOUT] is younger than your scores [$fam/scores].\n";
     $error = 1;

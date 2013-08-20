@@ -190,6 +190,9 @@ sub cmsearch_wrapper {
            : $tot_len:        total number of residues in $seqfilePath
            : $always_local:   TRUE to always run job locally
            : $always_cluster: TRUE to always run job on the cluster with MPI
+           : $queue:          queue to submit to, "" for default
+           : $nproc:          number of processors to align with, -1 to autodetect
+           : $logFH:          file handle for log output
   Returns  : void
   Dies     : if cmalign command fails (if running locally)
            : if job submit command fails or MPI job fails (if running with MPI on cluster)
@@ -197,11 +200,12 @@ sub cmsearch_wrapper {
 =cut
 
 sub cmalign_wrapper {
-  my ($config, $uname, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $nseq, $tot_len, $always_local, $always_cluster) = @_;
+  my ($config, $uname, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $nseq, $tot_len, $always_local, $always_cluster, $queue, $nproc, $logFH) = @_;
 
   # contract check, --cpu MUST NOT be specified and -o <f> MUST be specified
   if($options =~ m/\-\-cpu/)  { die "ERROR cmalign_wrapper() option string ($options) contains --cpu"; }
   if($options !~ /\-o\s+\S+/) { die "ERROR cmalign_wrapper() option string ($options) does not contain -o <f>"; }
+  if($nproc > 8 && $always_local) { die "ERROR cmalign_wrapper() nproc ($nproc) > 8 and always_local=1"; }
   
   my $cmalignPath = $config->infernalPath . "cmalign";
   
@@ -212,29 +216,38 @@ sub cmalign_wrapper {
   # Get a rough estimate of running time on 1 CPU based on $tot_len (passed in)
   my $sec_per_Kb = 4;
   my $estimatedCpuSeconds = ($tot_len / 1000.) * $sec_per_Kb;
+
+  my $cluster_max_ncpu = 200; 
+  my $cluster_min_ncpu = 4;
+  my $local_max_ncpu = 4;
+  my $local_min_ncpu = 2;
+  my $nproc_passed_in;
   
   # Determine number of CPUs to use: target running time is 1 minute.
   my $targetSeconds = 60;
-  my $nproc = int($estimatedCpuSeconds / $targetSeconds) + 1;
-  my $cluster_max_ncpu   = 100; 
-  my $cluster_min_ncpu   = 4;
-  my $local_max_ncpu = 4;
-  my $local_min_ncpu = 2;
+  if($nproc == -1) { 
+    $nproc = int($estimatedCpuSeconds / $targetSeconds) + 1;
+  }
+  else { 
+    $nproc_passed_in = 1;
+  }
   
   my $use_cluster;
   if    ($always_cluster) { $use_cluster = 1; }
   elsif ($always_local)   { $use_cluster = 0; }
   elsif ($nproc > 4)      { $use_cluster = 1; }
   else                    { $use_cluster = 0; }
-  
-  if ($use_cluster) { 
-    if ($nproc > $cluster_max_ncpu)  { $nproc = $cluster_max_ncpu; }
-    if ($nproc < $cluster_min_ncpu)  { $nproc = $cluster_min_ncpu; }
-  } else { 
-    if ($nproc > $local_max_ncpu) { $nproc = $local_max_ncpu; }
-    if ($nproc < $local_min_ncpu) { $nproc = $local_min_ncpu; }
+
+  if(! $nproc_passed_in) { 
+    if ($use_cluster) { 
+      if ($nproc > $cluster_max_ncpu)  { $nproc = $cluster_max_ncpu; }
+      if ($nproc < $cluster_min_ncpu)  { $nproc = $cluster_min_ncpu; }
+    } else { 
+      if ($nproc > $local_max_ncpu) { $nproc = $local_max_ncpu; }
+      if ($nproc < $local_min_ncpu) { $nproc = $local_min_ncpu; }
+    }
   }
-  
+
   my $estimatedWallSeconds = $estimatedCpuSeconds / $nproc;
   
   # Memory requirement is easy, cmalign caps DP matrix size at 1024 Mb
@@ -252,25 +265,21 @@ sub cmalign_wrapper {
   $requiredMb = $rounded_requiredMb;
   my $requiredKb = $requiredMb * 1000;
   
-  printf("Aligning %7d sequences %s on %d nproc; predicted time (h:m:s): %02d:%02d:%02d %s", 
-         $nseq, 
-         ($use_cluster) ? "on cluster" : "locally",
-         $nproc, $hrs, $min, $sec+0.5, 
-         ($use_cluster) ? "\n" : " ... ");
-  
+  my $align_start_time = time();
   if ($use_cluster) { 
     # submit MPI job
     my $jobname = "a.$$";
     my $errPath = "a.$$.err";
-    Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmalignPath --mpi $options $cmPath $seqfilePath > $outPath", "a.$$", "a.$$.err", $nproc);
+    Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmalignPath --mpi $options $cmPath $seqfilePath > $outPath", "a.$$", "a.$$.err", $nproc, $queue);
     my @jobnameA = ($jobname);
     my @outnameA = ($outPath);
-    Bio::Rfam::Utils::wait_for_cluster($config->location, $uname, \@jobnameA, \@outnameA, "\# CPU time:", "cmalign", "");
+    Bio::Rfam::Utils::wait_for_cluster($config->location, $uname, \@jobnameA, \@outnameA, "\# CPU time:", "cmalign-mpi", $logFH, "[$nproc processors]", -1);
     unlink $errPath;
   }
   else { 
-    # don't use cluster, run job locally
+    Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 1, 0, "[$nproc CPUs]", 1);
     Bio::Rfam::Utils::run_local_command("$cmalignPath --cpu $nproc $options $cmPath $seqfilePath > $outPath"); 
+    Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 0, 1, "", 1);
   }
 
   return;
