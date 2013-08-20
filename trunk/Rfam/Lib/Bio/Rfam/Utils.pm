@@ -20,6 +20,8 @@ use vars qw( @ISA
 
 @ISA    = qw( Exporter );
 
+#-------------------------------------------------------------------------------
+
 =head2 run_local_command
 
   Title    : run_local_command
@@ -40,6 +42,8 @@ sub run_local_command {
   if($? != 0) { die "$cmd failed"; }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 submit_nonmpi_job
 
@@ -84,8 +88,8 @@ sub submit_nonmpi_job {
     my $batch_opt = "";
     if($ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
     $submit_cmd = "qsub ";
-    if(defined $exStr) { $submit_cmd .= "$exStr "; }
-    if(defined $queue) { $submit_cmd .= "-l $queue=true "; }
+    if(defined $exStr && $exStr ne "") { $submit_cmd .= "$exStr "; }
+    if(defined $queue && $queue ne "") { $submit_cmd .= "-l $queue=true "; }
     $submit_cmd .= " -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
@@ -99,6 +103,8 @@ sub submit_nonmpi_job {
 
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 submit_mpi_job
 
@@ -149,6 +155,8 @@ sub submit_mpi_job {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 wait_for_cluster
 
     Title    : wait_for_cluster
@@ -182,7 +190,8 @@ sub submit_mpi_job {
              : $success_string: string expected to exist in each output file 
              : $program:        name of program running, if "": do not print updates
              : $outFH:          output file handle for updates, if "" only print to STDOUT
-             : $max_minutes:    OPTIONAL; max number of minutes to wait, -1 for no limit
+             : $extra_note:     extra information to output with progress, "" for none
+             : $max_minutes:    max number of minutes to wait, -1 for no limit
              :
     Returns  : Maximum number of seconds any job spent waiting in queue, rounded down to 
              : nearest 10 seconds.
@@ -191,12 +200,13 @@ sub submit_mpi_job {
 =cut
 
 sub wait_for_cluster { 
-  my ($location, $username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $max_minutes) = @_;
+  my ($location, $username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $extra_note, $max_minutes) = @_;
 
   my $start_time = time();
   
   my $n = scalar(@{$jobnameAR});
   my $i;
+  if($extra_note ne "") { $extra_note = "  " . $extra_note; }
 
   # sanity check
   if(scalar(@{$outnameAR}) != $n) { die "wait_for_cluster(), internal error, number of elements in jobnameAR and outnameAR differ"; }
@@ -302,13 +312,14 @@ sub wait_for_cluster {
     $minutes_elapsed = (time() - $start_time) / 60;
     if($program ne "") { 
       if($nsuccess == $n || $i2 % $print_freq == 0) { 
-        my $outstr = sprintf("  %-15s  %-10s  %10s  %10s  %10s  %10s\n", $program, "cluster", $nsuccess, $nrunning, $nwaiting, Bio::Rfam::Utils::format_time_string(time() - $start_time));
+        my $outstr = sprintf("  %-15s  %-10s  %10s  %10s  %10s  %10s%s\n", $program, "cluster", $nsuccess, $nrunning, $nwaiting, Bio::Rfam::Utils::format_time_string(time() - $start_time), $extra_note);
+        $extra_note = ""; # only print this once 
         print STDOUT $outstr;
         if($outFH ne "") { print $outFH $outstr; }
       }
     }
     $i2++;
-    if(defined $max_minutes && $minutes_elapsed > $max_minutes) { die "wait_for_cluster(), reached maximum time limit of $max_minutes minutes, exiting."; }
+    if(defined $max_minutes && $max_minutes != -1 && $minutes_elapsed > $max_minutes) { die "wait_for_cluster(), reached maximum time limit of $max_minutes minutes, exiting."; }
     if($nsuccess != $n) { sleep($sleep_nsecs); }
   }
   
@@ -316,6 +327,8 @@ sub wait_for_cluster {
   # The only way we'll get here is if all jobs are finished (not in queue) 
   # and have $success_string in output file, if not, we'll have die'd earlier
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 format_time_string
 
@@ -339,6 +352,8 @@ sub format_time_string {
 
   return sprintf("%02d:%02d:%02d", $h, $m, $seconds);
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 concatenate_files
 
@@ -378,163 +393,34 @@ sub concatenate_files {
   return;
 }
 
+#-------------------------------------------------------------------------------
 
-######################################################################
+=head2 tax2kingdom
 
-# FROM RfamUtils.pm:
+  Title    : tax2kingdom
+  Incept   : pg5
+  Usage    : tax2kingdom($species)
+  Function : Return kingdom string given a taxonomy string.
+  Args     : $species: the taxonomic string 
+  Returns  : kingdom string 
 
-######################################################################
-#reorder: given 2 integers, return the smallest first & the largest last:
-sub reorder {
-    my ($x,$y)=@_;
-    
-    if ($y<$x){
-	my $tmp = $x;
-	$x = $y;
-	$y = $tmp;
-    }
-    return ($x,$y);
-}
-
-#max
-sub max {
-  return $_[0] if @_ == 1;
-  $_[0] > $_[1] ? $_[0] : $_[1]
-}
-
-#min
-sub min {
-  return $_[0] if @_ == 1;
-  $_[0] < $_[1] ? $_[0] : $_[1]
-}
-
-
-######################################################################
-# Returns the extent of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
-# - assumes that $x1 < $y1 and $x2 < $y2.
-#
-sub overlapExtent {
-    my($x1, $y1, $x2, $y2) = @_;
-    
-    if($x1 > $y1) { die "ERROR overlapExtent, expect x1 <= y1 but $x1 > $y1"; }
-    if($x2 > $y2) { die "ERROR overlapExtent, expect x2 <= y2 but $x2 > $y2"; }
-
-    my $L1=$y1-$x1+1;
-    my $L2=$y2-$x2+1;
-    my $minL = Bio::Rfam::TempRfam::min($L1, $L2);
-    
-    my $D = overlapNres($x1, $y1, $x2, $y2);
-    return $D/$minL;
-}
-
-######################################################################
-# Returns the number of residues of overlap between two regions A=($x1, $y1) and B=($x2, $y2):
-# - assumes that $x1 < $y1 and $x2 < $y2.
-#
-sub overlapNres {
-
-    my($x1, $y1, $x2, $y2) = @_;
-    
-    if($x1 > $y1) { die "ERROR overlapNres, expect x1 <= y1 but $x1 > $y1"; }
-    if($x2 > $y2) { die "ERROR overlapNres, expect x2 <= y2 but $x2 > $y2"; }
-
-    # 1.
-    # x1                   y1
-    # |<---------A--------->|
-    #    |<------B------>|
-    #    x2             y2
-    #    XXXXXXXXXXXXXXXXX
-    #
-    # 2.  x1                     y1
-    #     |<---------A----------->|
-    # |<-------------B------>|
-    # x2                    y2
-    #     XXXXXXXXXXXXXXXXXXXX
-    #
-    # 3. x1             y1
-    #    |<------A------>|
-    # |<---------B--------->|
-    # x2                   y2
-    #    XXXXXXXXXXXXXXXXX
-    #
-    # 4. x1                    y1
-    #    |<-------------A------>|
-    #        |<---------B----------->|
-    #        x2                     y2
-    #        XXXXXXXXXXXXXXXXXXXX
-    my $D=0;
-    my $int=0;
-    my $L1=$y1-$x1+1;
-    my $L2=$y2-$x2+1;
-    my $minL = Bio::Rfam::TempRfam::min($L1, $L2);
-
-    if ( ($x1<=$x2 && $x2<=$y1) && ($x1<=$y2 && $y2<=$y1) ){    #1.
-	$D = $L2;
-    }
-    elsif ( ($x2<=$x1) && ($x1<=$y2 && $y2<=$y1) ){              #2.
-	$D = $y2-$x1+1;
-    }
-    elsif ( ($x2<=$x1 && $x1<=$y2) && ($x2<=$y1 && $y1<=$y2) ){ #3.
-	$D = $L1;
-    }
-    elsif ( ($x1<=$x2 && $x2<=$y1) && ($y1<=$y2) ){              #4.
-	$D = $y1-$x2+1;
-    }
-    return $D;
-}
-
-######################################################################
-#species2shortspecies: Given a species string eg. "Homo sapiens
-#                      (human)" generate a nicely formated short name
-#                      with no whitespace eg. "H.sapiens".
-sub species2shortspecies {
-    my $species = shift;
-    my $shortSpecies;
-    
-    if ($species=~/(.*)\s+sp\./){
-	$shortSpecies = $1;
-    }
-    elsif ($species=~/metagenome/i or $species=~/uncultured/i){
-	$species=~s/metagenome/metag\./gi;
-	$species=~s/uncultured/uncult\./gi;
-	my @w = split(/\s+/,$species);
-	if(scalar(@w)>2){
-	    foreach my $w (@w){
-		$shortSpecies .= substr($w, 0, 5) . '.';
-	    }
-	}
-	else {
-	    $shortSpecies = $species;
-	    $shortSpecies =~ s/\s+/_/g;
-	}
-    }#lots of conditions here. Need else you get some ridiculous species names.
-    elsif($species=~/^(\S+)\s+(\S{4,})/ && $species!~/[\/\-\_0-9]/ && $species!~/^[a-z]/ && $species!~/\svirus$/ && $species!~/\svirus\s/ && $species!~/^Plasmid\s/i && $species!~/\splasmid\s/i){
-	$shortSpecies = substr($1,0,1) . "." . $2; 
-    }
-    else {
-	$shortSpecies = $species;
-    }
-    
-    $shortSpecies =~ s/\s+/_/g;
-    $shortSpecies =~ s/[\'\(\)\:\/]//g;
-    $shortSpecies = substr($shortSpecies,0,20) if (length($shortSpecies) > 20);
-    
-#   H.P 
-    return $shortSpecies;
-}
+=cut
 
 sub tax2kingdom {
-    my ($species, $huge) = @_;
+    my ($species) = @_;
     my $kingdom;
     #unclassified sequences; metagenomes; ecological metagenomes.
     if ($species=~/^(.+?);\s+(.+?)\.*?;/){
 	$kingdom = "$1; $2";
-	$kingdom = $1 if defined $huge;
     }
-    die "FATAL: failed to parse a kingdom from species string: [$species]. email pg5!" if not defined $kingdom;
+    if(! defined $kingdom) { 
+      die "FATAL: failed to parse a kingdom from species string: [$species]. !"; 
+    }
     
     return $kingdom;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 nse_breakdown
 
@@ -568,6 +454,8 @@ sub nse_breakdown {
     return (0, "", 0, 0, 0);
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 nse_sqlen
 
   Title    : nse_sqlen
@@ -597,40 +485,7 @@ sub nse_sqlen {
     return $sqlen;
 }
 
-
-=head2 _max
-
-  Title    : _max
-  Incept   : EPN, Thu Jan 31 08:55:18 2013
-  Usage    : _max($a, $b)
-  Function : Returns maximum of $a and $b.
-  Args     : $a: scalar, usually a number
-           : $b: scalar, usually a number
-  Returns  : Maximum of $a and $b.
-
-=cut
-
-sub _max {
-  return $_[0] if @_ == 1;
-  $_[0] > $_[1] ? $_[0] : $_[1]
-}
-
-=head2 _min
-
-  Title    : _min
-  Incept   : EPN, Thu Jan 31 08:56:19 2013
-  Usage    : _min($a, $b)
-  Function : Returns minimum of $a and $b.
-  Args     : $a: scalar, usually a number
-           : $b: scalar, usually a number
-  Returns  : Minimum of $a and $b.
-
-=cut
-
-sub _min {
-  return $_[0] if @_ == 1;
-  $_[0] < $_[1] ? $_[0] : $_[1]
-}
+#-------------------------------------------------------------------------------
 
 =head2 overlap_fraction_two_nse
 
@@ -660,6 +515,8 @@ sub overlap_fraction_two_nse {
 
     return overlap_fraction($s1, $e1, $s2, $e2);
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 overlap_fraction
 
@@ -789,6 +646,301 @@ sub overlap_nres_strict {
     croak "unforeseen case in _overlap_nres_strict $from1..$to1 and $from2..$to2";
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 log_output_rfam_banner
+
+  Title    : log_output_rfam_banner
+  Incept   : EPN, Thu Aug 15 14:44:26 2013
+  Usage    : Bio::Rfam::Utils::log_output_rfam_banner($fh, $executable, $banner, $also_stdout)
+  Function : Outputs Rfam banner (for rfmake/rfsearch) to $fh and optionally stdout.
+  Args     : $fh:          file handle to output to
+           : $executable:  command used to execute program (e.g. rfsearch.pl)
+           : $banner:      one-line summary of program
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_rfam_banner { 
+  my ($fh, $executable, $banner, $also_stdout) = @_;
+
+  my $str;
+  $str = sprintf ("# %s :: %s\n", Bio::Rfam::Utils::file_tail($executable), $banner);
+  print $fh $str; if($also_stdout) { print $str; }
+  #printf $fp ("# RFAM\n");
+  #printf $fp ("# COPYRIGHT INFO GOES HERE\n");
+  #printf $fp ("# LICENSE INFO GOES HERE\n");
+  log_output_divider($fh, $also_stdout);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_divider
+
+  Title    : log_output_divider
+  Incept   : EPN, Mon Aug 19 09:45:26 2013
+  Usage    : Bio::Rfam::Utils::log_output_divider($fh, $also_stdout)
+  Function : Outputs a divider line to $fh and optionally stdout.
+  Args     : $fh:          file handle to output to
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_divider { 
+  my ($fh, $also_stdout) = @_;
+
+  my $str = "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n";
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_header
+
+  Title    : log_output_header
+  Incept   : EPN, Thu Aug 15 14:51:34 2013
+  Usage    : Bio::Rfam::Utils::log_output_header($fh, $user, $date, $dbchoice, $also_stdout);
+  Function : Outputs Rfam header (for rfmake/rfsearch) to $fh and optionally stdout.
+  Args     : $fh:          file handle to output to
+           : $user:        name of user
+           : $date:        date of execution
+           : $dbchoice:    string indicating what DB is being used (e.g. 'r79rfamseq')
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_header { 
+  my ($fh, $user, $date, $dbchoice, $also_stdout) = @_;
+
+  my $str;
+  $str = sprintf ("# user:               %s\n", $user);
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# date:               %s\n", $date);
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# pwd:                %s\n", getcwd);
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# db:                 %s\n", $dbchoice);
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = ("# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_progress_column_headings
+
+  Title    : log_output_progress_column_headings
+  Incept   : EPN, Thu Aug 15 14:51:30 2013
+  Usage    : Bio::Rfam::Utils::log_output_progress_column_headings($fh, $also_stdout);
+  Function : Outputs Rfam header (for rfmake/rfsearch) to $fh and optionally stdout.
+  Args     : $fh:          file handle to output to
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_progress_column_headings { 
+  my ($fh, $also_stdout) = @_;
+
+  my $str;
+  $str = "#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = "# per-stage progress:\n#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",           "type",       "\#finished", "\#running",  "\#waiting",  "stage-time");
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "===============", "==========", "==========", "==========", "==========", "==========");
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_progress_skipped
+
+  Title    : log_output_progress_skipped
+  Incept   : EPN, Thu Aug 15 14:53:06 2013
+  Usage    : Bio::Rfam::Utils::log_output_progress_skipped($fh, $stage, $also_stdout);
+  Function : Outputs line indicating a stage was skipped.
+  Args     : $fh:          file handle to output to
+           : $stage:       name of stage
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_progress_skipped { 
+  my ($fh, $stage, $also_stdout) = @_;
+
+  my $str = sprintf ("  %-15s  %-10s  %10s  %10s  %10s  %10s\n", $stage, "skipped", "-", "-", "-", "-");
+  print $fh $str; if($also_stdout) { print $str; }
+  
+  return;
+}  
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_progress_local
+
+  Title    : log_output_progress_local
+  Incept   : EPN, Thu Aug 15 14:52:12 2013
+  Usage    : Bio::Rfam::Utils::log_output_progress_local_finished($fh, $stage, $run_secs, $nrunning, $nfinished, $extra_note, $also_stdout);
+  Function : Outputs line indicating progress of script.
+  Args     : $fh:          file handle to output to
+           : $stage:       name of stage
+           : $run_secs:    number of seconds script has been running
+           : $nrunning:    number of jobs running (or about to be)
+           : $nfinished:   number of jobs finished
+           : $extra_note:  note to add at end of line ("" for none) 
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_progress_local { 
+  my ($fh, $stage, $run_secs, $nrunning, $nfinished, $extra_note, $also_stdout) = @_;
+
+  if($extra_note ne "") { $extra_note = "  " . $extra_note; }
+  my $str = sprintf ("  %-15s  %-10s  %10s  %10s  %10s  %10s%s\n", $stage, "local", $nfinished, $nrunning, "0", Bio::Rfam::Utils::format_time_string($run_secs), $extra_note);
+  print $fh $str; if($also_stdout) { print $str; }
+  
+  return;
+}  
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_file_summary_column_headings
+
+  Title    : log_output_file_summary_column_headings
+  Incept   : EPN, Thu Aug 15 14:54:22 2013
+  Usage    : Bio::Rfam::Utils::log_output_file_summary_column_headings($fh, $stage, $run_secs, $also_stdout);
+  Function : Outputs line indicating progress of script.
+  Args     : $fh:          file handle to output to
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_file_summary_column_headings { 
+  my ($fh, $also_stdout) = @_;
+
+  my $str;
+  $str = "#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = "# Output file summary:\n#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-12s    %-60s\n", "file name",  "description");
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-12s    %-60s\n", "============", "============================================================");
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_file_summary
+
+  Title    : log_output_file_summary
+  Incept   : EPN, Thu Aug 15 14:56:38 2013
+  Usage    : Bio::Rfam::Utils::log_output_file_summary($fh, $filename, $desc, $also_stdout);
+  Function : Outputs line indicating progress of script.
+  Args     : $fh:          file handle to output to
+           : $filename:    name of output file
+           : $desc:        description of file, to print
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_file_summary { 
+  my ($fh, $filename, $desc, $also_stdout) = @_;
+
+  my $str = sprintf ("  %-12s    %-60s\n", $filename, $desc);
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_timing_summary_column_headings
+
+  Title    : log_output_timing_summary_column_headings
+  Incept   : EPN, Thu Aug 15 14:57:51 2013
+  Usage    : Bio::Rfam::Utils::log_output_timing_summary_colum_headings($fh, $also_stdout);
+  Function : Outputs column headings for timing summary
+  Args     : $fh:          file handle to output to
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_timing_summary_column_headings { 
+  my ($fh, $also_stdout) = @_;
+
+  my $str;
+  $str = "#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = "# Timing summary:\n#\n";
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "efficiency");
+  print $fh $str; if($also_stdout) { print $str; }
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========");
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_timing_summary
+
+  Title    : log_output_timing_summary
+  Incept   : EPN, Thu Aug 15 14:59:21 2013
+  Usage    : Bio::Rfam::Utils::log_output_timing_summary($fh, $also_stdout);
+  Function : Outputs timing summary
+  Args     : $fh:           file handle to output to
+           : $stage:        stage 
+           : $wall_secs:    number of seconds elapsed
+           : $tot_cpu_secs: total number of CPU seconds reported
+           : $wait_secs:    total number of seconds waiting in queue
+           : $max_elp_secs: slowest jobs maximum elapsed seconds time
+           : $also_stdout:  '1' to also output to stdout, '0' not to
+  Returns  : void
+
+=cut
+
+sub log_output_timing_summary { 
+  my ($fh, $stage, $wall_secs, $tot_cpu_secs, $wait_secs, $max_elp_secs, $also_stdout) = @_;
+
+  my $efficiency = 1.0;
+  if($wall_secs > 0 && ($wall_secs > $max_elp_secs)) { 
+    $efficiency = $max_elp_secs / $wall_secs;
+  }
+  my $str = sprintf ("  %-15s  %10s  %10s  %10s  %10s  %10.2f\n",
+                     $stage, 
+                     Bio::Rfam::Utils::format_time_string($wall_secs),
+                     Bio::Rfam::Utils::format_time_string($max_elp_secs),
+                     Bio::Rfam::Utils::format_time_string($tot_cpu_secs),
+                     ($wait_secs eq "-") ? "-" : Bio::Rfam::Utils::format_time_string($wait_secs),
+                     $efficiency);
+  print $fh $str; if($also_stdout) { print $str; }
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 file_tail
 
@@ -796,7 +948,7 @@ sub overlap_nres_strict {
   Incept   : EPN, Thu Apr  4 05:45:14 2013
   Usage    : file_tail($filePath)
   Function : Extract filename, removing path prefix.
-           : Based on easel's esl_FileTail().
+           : Based on easel''s esl_FileTail().
            :     '/foo/bar/baz.1' becomes 'baz.1';
            :     'foo/bar'        becomes 'bar'; 
            :     'foo'            becomes 'foo'; and
@@ -813,13 +965,16 @@ sub file_tail {
   return $filePath;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 printToFileAndStdout
 
   Title    : printToFileAndStdout
   Incept   : EPN, Wed Apr 24 09:08:18 2013
   Usage    : printToFileAndStdout($str)
   Function : Print string to a file handle and to stdout.
-  Args     : $fh, $str
+  Args     : $fh:  file handle to print to
+           : $str: string to print
   Returns  : void
 
 =cut
@@ -832,6 +987,32 @@ sub printToFileAndStdout {
 
   return;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 youngerThan
+
+  Title    : youngerThan
+  Incept   : EPN, Thu Aug 15 15:34:39 2013
+  Usage    : Bio::Rfam::Utils::youngerThan($file1, $file2)
+  Function : Returns '1' if $file1 was created after $file2, else returns 0
+  Args     : $file1: name of file 1
+           : $file2: name of file 2
+  Returns  : '1' if $file1 was created after $file2, else 0
+
+=cut
+
+
+sub youngerThan {
+  my ($file1, $file2) = @_;
+
+  if( -M $file1 <= -M $file2 ) { 
+    return 1; 
+  }
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 checkStderrFile
 
@@ -865,17 +1046,56 @@ sub checkStderrFile {
   return;
 }
 
-######################################################################
+#-------------------------------------------------------------------------------
+
+=head2 _max
+
+  Title    : _max
+  Incept   : EPN, Thu Jan 31 08:55:18 2013
+  Usage    : _max($a, $b)
+  Function : Returns maximum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Maximum of $a and $b.
+
+=cut
+
+sub _max {
+  return $_[0] if @_ == 1;
+  $_[0] > $_[1] ? $_[0] : $_[1]
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _min
+
+  Title    : _min
+  Incept   : EPN, Thu Jan 31 08:56:19 2013
+  Usage    : _min($a, $b)
+  Function : Returns minimum of $a and $b.
+  Args     : $a: scalar, usually a number
+           : $b: scalar, usually a number
+  Returns  : Minimum of $a and $b.
+
+=cut
+
+sub _min {
+  return $_[0] if @_ == 1;
+  $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
+#-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 Sarah Burge, swb@ebi.ac.uk
+Eric Nawrocki, nawrocki@ebi.ac.uk
 
 =head1 COPYRIGHT
 
 Copyright (c) 2013: European Bioinformatics Institute
 
-Authors: Sarah Burge swb@ebi.ac.uk
+Authors: Sarah Burge swb@ebi.ac.uk, Eric Nawrocki nawrocki@ebi.ac.uk
 
 This is based on code taken from the Rfam modules at the Sanger institute.
 

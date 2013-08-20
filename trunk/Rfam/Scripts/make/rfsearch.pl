@@ -13,15 +13,15 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
 
-my $start_time = time();
-my $executable = $0;
-
 ###################################################################
 # Preliminaries:
 # - set default values that command line options may change
 # - process command line options
 # - set input/output file names, and ensure input files exist
 # - process DESC file
+
+my $start_time = time();
+my $executable = $0;
 
 # set default values that command line options may change
 # build related options
@@ -61,7 +61,7 @@ my $logFH;
 my $config = Bio::Rfam::Config->new;
 
 open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
-output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM against a database", 1);
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate, and search a CM against a database", 1);
 
 &GetOptions( "b"          => \$force_build,
 	     "nostruct"   => \$do_nostruct,
@@ -98,7 +98,32 @@ if (! defined $user || length($user) == 0) {
   die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]";
 }
 
-# by default we list user, date, pwd, and db choice,
+# setup variables 
+my $io     = Bio::Rfam::FamilyIO->new;
+my $famObj = Bio::Rfam::Family->new(
+                                    'SEED' => {
+                                               fileLocation => "SEED",
+                                               aliType      => 'seed'
+                                              },
+                                    'TBLOUT' => { 
+                                                 fileLocation => "TBLOUT",
+                                                },
+                                    'DESC'   => $io->parseDESC("DESC"),
+                                   );
+my $msa  = $famObj->SEED;
+my $desc = $famObj->DESC;
+my $id   = $desc->ID;
+my $acc  = $desc->AC;
+
+# extra processing of command-line options 
+if ($no_search) { # -nosearch, verify incompatible options are not set
+  if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
+  if (defined $evalue)         { die "ERROR -nosearch and -E are incompatible"; }
+  if (@cmosA)                  { die "ERROR -nosearch and -cmosA are incompatible"; }
+  if (@cmodA)                  { die "ERROR -nosearch and -cmodA are incompatible"; }
+}
+
+# by default we list user, date, pwd, family, and db choice,
 # and information for any command line flags set by
 # the user. This block should stay consistent with 
 # the GetOptions() call above, and with the help()
@@ -110,6 +135,8 @@ Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date));
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd));
 Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
+Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id));
+Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc));
 
 if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]")); }
 elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]")); }
@@ -135,6 +162,8 @@ if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
 if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
+if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]")); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-queue]")); }
 
 # create hash of potential output files
 my %outfileH = ();
@@ -158,30 +187,7 @@ foreach $outfile (@outfile_orderA) {
   } 
 }
 
-# setup variables 
-my $io     = Bio::Rfam::FamilyIO->new;
-my $famObj = Bio::Rfam::Family->new(
-                                    'SEED' => {
-                                               fileLocation => "SEED",
-                                               aliType      => 'seed'
-                                              },
-                                    'TBLOUT' => { 
-                                                 fileLocation => "TBLOUT",
-                                                },
-                                    'DESC'   => $io->parseDESC("DESC"),
-                                   );
-my $msa  = $famObj->SEED;
-my $desc = $famObj->DESC;
-
-# extra processing of command-line options 
-if ($no_search) { # -nosearch, verify incompatible options are not set
-  if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
-  if (defined $evalue)         { die "ERROR -nosearch and -E are incompatible"; }
-  if (@cmosA)                  { die "ERROR -nosearch and -cmosA are incompatible"; }
-  if (@cmodA)                  { die "ERROR -nosearch and -cmodA are incompatible"; }
-}
-
-# ncpus_cmsaerch and ncpus_cmcalibrate must be >= 0
+# ncpus_cmsearch and ncpus_cmcalibrate must be >= 0
 if (defined $ncpus_cmsearch    && $ncpus_cmsearch    < 0) {
   die "ERROR with -scpu <n>, <n> must be >= 0";
 }
@@ -257,7 +263,7 @@ if ($msa->any_allgap_columns) {
 
 
 ###################################################################################################
-output_progress_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_progress_column_headings($logFH, 1);
 
 ##############
 # Build step #
@@ -281,7 +287,7 @@ my $do_build = 0;
 if (($force_build)        ||             # user set -b on command line
     (! defined $cm)       ||             # 'CM' does not exist
     (! $is_cm_calibrated) ||             # 'CM' is not calibrated
-    (youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
+    (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
   $do_build = 1;
 }
 
@@ -330,11 +336,11 @@ if ($do_build) {
 
   $build_wall_secs = time() - $build_start_time;
   $did_build = 1;
-  output_progress_local($logFH,   "cmbuild", $build_wall_secs, $start_time, 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH,   "cmbuild", $build_wall_secs, 0, 1, "", 1);
 } # end of if($do_build)
 else { 
   $did_build = 0;
-  output_progress_skipped($logFH,   "cmbuild", 1);
+  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmbuild", 1);
 }
 
 ####################
@@ -361,7 +367,7 @@ if ($force_calibrate || (! $is_cm_calibrated)) {
                                                                    $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH);
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, -1, "[$ncpus_cmcalibrate processors]");
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
   if(! $do_dirty) { unlink $calibrate_errO; } # this file is empty anyway 
@@ -385,7 +391,7 @@ if ($force_calibrate || (! $is_cm_calibrated)) {
 }
 else { 
   $did_calibrate = 0;
-  output_progress_skipped($logFH,   "cmcalibrate", 1);
+  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmcalibrate", 1);
 }
   
 ###############
@@ -582,7 +588,7 @@ if (! $no_search) {
     push(@all_errOA,    @rev_errOA);
   }
   # wait for cluster jobs to finish
-  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH);
+  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH, -1, "");
   $search_wall_secs     = time() - $search_start_time;
   
   # concatenate files (no need to validate output, we already did that in wait_for_cluster())
@@ -632,48 +638,48 @@ if($did_build || $did_calibrate || $did_search) {
 }
 
 # finished all work, print output file summary
-output_file_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
 my $description;
 if($did_build || $did_calibrate) { 
   $description = sprintf("covariance model file (%s)", $did_build ? "built and calibrated" : "calibrated only");
-  output_file_summary($logFH,   "CM", $description, 1);
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, 1);
 }
 if($did_build || $did_calibrate || $did_search) { 
   $description = sprintf("desc file (updated:%s%s%s)", 
                          ($did_build)     ? " BM" : "", 
                          ($did_calibrate) ? " CB" : "", 
                          ($did_search)    ? " SM" : "");
-  output_file_summary($logFH,   "DESC", $description, 1);
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, 1);
 }
 
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
-    output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
+    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
   }
 }
 $description = sprintf("log file (*this* output, printed to stdout)");
-output_file_summary($logFH,   "rfsearch.log", $description, 1);
+Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfsearch.log", $description, 1);
 
 # output time summary
-output_timing_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_timing_summary_column_headings($logFH, 1);
 
 my $total_wall_secs = time() - $start_time;
 my $total_cpu_secs  = $build_wall_secs + $calibrate_cpu_secs + $search_cpu_secs;
 my $total_elp_secs  = $build_elp_secs + $calibrate_elp_secs + $search_max_elp_secs;
 
 if($did_build) { 
-  output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, 1);
 }
 if($did_calibrate) { 
-  output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, 1);
 }
 if($did_search) { 
-  output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, 1);
 }
 if($did_build || $did_calibrate || $did_search) { 
-  output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, 1);
 }
 printf("# [ok]\n");
 printf $logFH ("# [ok]\n");
@@ -682,135 +688,6 @@ exit(0);
 
 
 ######################################################################
-# output_* subroutines: for outputting to stdout and to a log file.
-######################################################################
-
-sub output_rfam_banner { 
-  my ($fh, $executable, $banner, $also_stdout) = @_;
-
-  my $str;
-  $str = sprintf ("# %s :: %s\n", Bio::Rfam::Utils::file_tail($executable), $banner);
-  print $fh $str; if($also_stdout) { print $str; }
-  #printf $fp ("# RFAM\n");
-  #printf $fp ("# COPYRIGHT INFO GOES HERE\n");
-  #printf $fp ("# LICENSE INFO GOES HERE\n");
-  $str = "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n";
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_header { 
-  my ($fh, $user, $date, $dbchoice, $also_stdout) = @_;
-
-  my $str;
-  $str = sprintf ("# user:               %s\n", $user);
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# date:               %s\n", $date);
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# pwd:                %s\n", getcwd);
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# db:                 %s\n", $dbchoice);
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = ("# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_progress_column_headings { 
-  my ($fh, $also_stdout) = @_;
-
-  my $str;
-  $str = "#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = "# Per-stage progress:\n#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",           "type",       "\#finished", "\#running",  "\#waiting",  "stage-time");
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "===============", "==========", "==========", "==========", "==========", "==========");
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_progress_skipped { 
-  my ($fh, $stage, $also_stdout) = @_;
-
-  my $str = sprintf ("  %-15s  %-10s  %10s  %10s  %10s  %10s\n", $stage, "skipped", "-", "-", "-", "-");
-  print $fh $str; if($also_stdout) { print $str; }
-  
-  return;
-}  
-
-sub output_progress_local {
-  my ($fh, $stage, $run_secs, $also_stdout) = @_;
-
-  my $str = sprintf ("  %-15s  %-10s  %10s  %10s  %10s  %10s\n", $stage, "local", "1", "0", "0", Bio::Rfam::Utils::format_time_string($run_secs));
-  print $fh $str; if($also_stdout) { print $str; }
-  
-  return;
-}  
-
-sub output_file_summary_column_headings { 
-  my ($fh, $also_stdout) = @_;
-
-  my $str;
-  $str = "#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = "# Output file summary:\n#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-12s    %-60s\n", "file name",  "description");
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-12s    %-60s\n", "============", "============================================================");
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_file_summary { 
-  my ($fh, $filename, $desc, $also_stdout) = @_;
-
-  my $str = sprintf ("  %-12s    %-60s\n", $filename, $desc);
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_timing_summary_column_headings { 
-  my ($fh, $also_stdout) = @_;
-
-  my $str;
-  $str = "#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = "# Timing summary:\n#\n";
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "efficiency");
-  print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========");
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
-
-sub output_timing_summary { 
-  my ($fh, $stage, $wall_secs, $tot_cpu_secs, $wait_secs, $max_elp_secs, $also_stdout) = @_;
-
-  my $efficiency = 1.0;
-  if($wall_secs > 0 && ($wall_secs > $max_elp_secs)) { 
-    $efficiency = $max_elp_secs / $wall_secs;
-  }
-  my $str = sprintf ("  %-15s  %10s  %10s  %10s  %10s  %10.2f\n",
-                     $stage, 
-                     Bio::Rfam::Utils::format_time_string($wall_secs),
-                     Bio::Rfam::Utils::format_time_string($max_elp_secs),
-                     Bio::Rfam::Utils::format_time_string($tot_cpu_secs),
-                     ($wait_secs eq "-") ? "-" : Bio::Rfam::Utils::format_time_string($wait_secs),
-                     $efficiency);
-  print $fh $str; if($also_stdout) { print $str; }
-
-  return;
-}
 
 sub submit_cmsearch_jobs {
   my ($config, $ndbfiles, $prefix, $searchopts, $cmfile, $dbfileAR, $jobnameAR, $tblOAR, $cmsOAR, $errOAR, $ssopt_str, $q_opt) = @_;
@@ -825,22 +702,6 @@ sub submit_cmsearch_jobs {
     Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt);  
   }
 }
-
-######################################################################
-# youngerThan(file1, file2): test if file1 is younger than file2 
-sub youngerThan {
-  my ($file1, $file2) = @_;
-  my ($t1,$t2) = (0,0);
-  $t1 = stat($file1)->mtime if -e $file1;
-  $t2 = stat($file2)->mtime if -e $file2;
-    
-  if ($t1>$t2 or $t1==0 or $t2==0) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-######################################################################
 
 sub help {
   print STDERR <<EOF;
