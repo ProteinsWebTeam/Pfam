@@ -711,7 +711,7 @@ sub parseDESC {
       }else{
         $params{'SS'} = $ssLine;
       }
-    }elsif($file[$i] =~ /^PI\s{3}(\S+)$/ ){
+    }elsif($file[$i] =~ /^PI\s{3}(.*)$/ ){
       #Store the PI line
       my $piLine = $1;
       
