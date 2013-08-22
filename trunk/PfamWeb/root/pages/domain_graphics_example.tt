@@ -40,6 +40,9 @@ META naked = 1;
     <!-- in order to standardize the look of text, and in order to make it work at
          all in older browsers (and IE), we need the canvas text library. And, in turn,
          that library uses a font description in a separate javascript file -->
+    <!-->
+      <script type="text/javascript" src="[% c.uri_for('/static/javascripts/canvas.text.js', reimplement='true', dontUseMoz='true') | html %]"></script>
+    </!-->
     <script type="text/javascript" src="[% c.uri_for('/static/javascripts/canvas.text.js', reimplement='true', dontUseMoz='true') | html %]"></script>
     <script type="text/javascript" src="[% c.uri_for('/static/javascripts/faces/optimer-bold-normal.js') %]"></script>
 
@@ -181,7 +184,7 @@ META naked = 1;
         // give the object the ID of the container that will hold the canvas.
         // We could have specified this when we instantiated the object instead.
         // We could also have supplied a reference to the element itself, rather
-        // than it's ID; the libary doesn't care.
+        // than its ID; the libary doesn't care.
         pg.setParent( "dg" );
 
         // get the values of X-scale and Y-scale from the form and set them
