@@ -83,7 +83,7 @@ META naked = 1;
     <h3>Domain graphics test page</h3>
 
     <p>
-      This page allows you test the domain graphics library with different
+      This page allows you to test the domain graphics library with different
       domain graphics descriptions. You can edit the string in the text area
       below and press &quot;submit&quot; to see the resulting graphic. If 
       there are problems with the description, you should see an explanatory
