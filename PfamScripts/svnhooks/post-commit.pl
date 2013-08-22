@@ -280,7 +280,7 @@ sub removeFromClan {
   my $clanIO = Bio::Pfam::ClanIO->new;
   my $clanObj = $clanIO->loadClanFromLocalFile($clan, $dest, "file");
   unlink("$clanDir/CLANDESC"); 
-  my $newMembership;
+  my $newMembership = [];
   if($clanObj->DESC->MEMB){
     foreach my $mem (@{ $clanObj->DESC->MEMB }){
       unless($mem eq $fam){
@@ -291,8 +291,8 @@ sub removeFromClan {
   }else{
     die;
   }
-  #Now replace
-  $clanObj->DESC->MEMB($newMembership);
+  #Now replace if there is a membership.
+  $clanObj->DESC->MEMB($newMembership) if(scalar(@{$newMembership}));
   $clanIO->writeCLANDESC($clanObj->DESC, $clanDir);
   
   #Now check the clan back in, adding a automatic comment.
@@ -302,4 +302,3 @@ sub removeFromClan {
   $client->commitClan($clanDir);
   print STDERR "Exiting\n";
 } 
-
