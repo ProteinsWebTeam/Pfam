@@ -200,7 +200,7 @@ if(! $do_repalign) {
   if ($nper   != $df_nper)   { die "ERROR -nper requires -r"; }
   if ($seed   != $df_seed)   { die "ERROR -seed requires -r"; }
   if ($emax   != $df_emax)   { die "ERROR -emax requires -r"; }
-  if ($bitmin != $df_bitmin) { die "ERROR -bitmin requires -r"; }
+  if ($bitmin ne $df_bitmin) { die "ERROR -bitmin requires -r"; }
 }
 
 ####################################################################
