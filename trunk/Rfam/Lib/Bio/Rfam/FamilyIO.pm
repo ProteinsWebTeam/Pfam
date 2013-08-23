@@ -1771,7 +1771,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
   #####################################################################
   # Parse out.list and species files to get stats and group assignments
   #####################################################################
-  _taxinfo_parse_out_list_and_species("outlist", "species", $emax, $ga, \%infoHH, \@nameOA, \%groupOHA);
+  $self->parseOutlistAndSpecies("outlist", "species", $emax, $ga, \%infoHH, \@nameOA, \%groupOHA);
   
   # fill %pfix_ctHH and %pfix_levelHH with counts/level of each prefix for each group
   foreach $group (@groupOA) { # "S", "F", or "O", seed, full or other
@@ -1908,7 +1908,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
   for($i = 0; $i < ($div_length-1); $i++) { $div_line .= "="; }
   
   push(@outputA, "$div_line\n");
-  push(@outputA, "# taxinfo: created by 'rfmake.pl', run 'rfmake.pl -h' for a list of command-line options that modify behavior\n");
+  push(@outputA, "# taxinfo: created by 'rfmake.pl', run 'rfmake.pl -h' for a list of cmd-line options that modify behavior\n");
   push(@outputA, "$div_line\n");
   push(@outputA, "# $acc   $id   $de\n");
   push(@outputA, sprintf("# GA bit-score:    $ga\n"));
@@ -2046,7 +2046,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
   push(@outputA, "# Explanation of data above:\n");
   push(@outputA, "#\n");
   push(@outputA, "# Listed above are counts of hits in various taxonomic groups for the\n");
-  push(@outputA, "# three categories of hits (SEED, FULL, OUTPUT, defined below), for the current\n");
+  push(@outputA, "# three categories of hits (SEED, FULL, OTHER, defined below), for the current\n");
   push(@outputA, "# GA threshold. There are several command-line options that modify this output,\n");
   push(@outputA, "# use rfmake.pl -h for more information.\n");
   push(@outputA, "#\n");
@@ -2068,11 +2068,11 @@ sub writeTaxinfoFromOutlistAndSpecies {
 
 #-------------------------------------------------
     
-=head2 _taxinfo_parse_out_list_and_species
+=head2 parseOutlistAndSpecies
 
-    Title    : _taxinfo_parse_out_list_and_species
+    Title    : parseOutlistAndSpecies
     Incept   : EPN, Mon Aug 19 15:17:17 2013
-    Usage    : _taxinfo_parse_out_list_and_species($outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR, $groupOAR)
+    Usage    : parseOutlistAndSpecies($outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR, $groupOAR)
     Function : Parses $outlist and $species files into data structures used
                by writeTaxinfoFromOutlistAndSpecies().
     Args     : $outlist:   name of outlist file, usually 'outlist'
@@ -2087,10 +2087,8 @@ sub writeTaxinfoFromOutlistAndSpecies {
 
 =cut
 
-sub _taxinfo_parse_out_list_and_species {
-    my $narg_expected = 7;
-    if(scalar(@_) != $narg_expected) { die "ERROR taxinfo_parse_out_list_and_species() unexpected number of arguments"; }
-    my($outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR) = @_;
+sub parseOutlistAndSpecies {
+    my($self, $outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR) = @_;
 
     my ($ct, $outline, $spcline, $name, $i, $i0, $key, $pkey, $group);
     my @out_elA = ();
@@ -2115,7 +2113,7 @@ sub _taxinfo_parse_out_list_and_species {
             #  27.7  3.2e+02      FULL  AAWR02038290.1     53057    53080       1    24     no  Equus_caballus_(horse)[9796]        Equus caballus cont2.38289, whole genome shotgun sequence.                                                    
             # example species line:
             #  27.7  3.2e+02      FULL  AAWR02038290.1      9796  Equus caballus (horse)                                          Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Laurasiatheria; Perissodactyla; Equidae; Equus.                                                                     
-	    @out_elA = split(/\s+/, $outline);   # note: we separate by double spaces
+	    @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
 	    @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
 
 	    #sanity check

@@ -263,7 +263,7 @@ if ($msa->any_allgap_columns) {
 
 
 ###################################################################################################
-Bio::Rfam::Utils::log_output_progress_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progress:", 1);
 
 ##############
 # Build step #
@@ -659,7 +659,7 @@ foreach $outfile (@outfile_orderA) {
     Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
   }
 }
-$description = sprintf("log file (*this* output, printed to stdout)");
+$description = sprintf("log file (*this* output)");
 Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfsearch.log", $description, 1);
 
 # output time summary
@@ -681,8 +681,16 @@ if($did_search) {
 if($did_build || $did_calibrate || $did_search) { 
   Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, 1);
 }
-printf("# [ok]\n");
-printf $logFH ("# [ok]\n");
+
+my $outstr = "#\n";
+printf $outstr; print $logFH $outstr;
+
+$outstr = sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time));
+printf $outstr; print $logFH $outstr;
+
+$outstr = "# [ok]\n";
+printf $outstr; print $logFH $outstr;
+
 close($logFH);
 exit(0);
 
