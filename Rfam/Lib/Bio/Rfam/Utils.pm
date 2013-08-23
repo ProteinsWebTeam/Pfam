@@ -440,7 +440,7 @@ sub tax2kingdom {
 =cut
 
 sub nse_breakdown {
-    my ($sqname) = @_;
+    my ($sqname) = $_[0];
 
     my $n;       # sqacc
     my $s;       # start, from seq name (can be > $end)
@@ -448,9 +448,9 @@ sub nse_breakdown {
     my $str;     # strand, 1 if $start <= $end, else -1
 
     if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
-	($n, $s, $e) = ($1,$2,$3);
-        $str = ($s <= $e) ? 1 : -1; 
-	return (1, $n, $s, $e, $str);
+      ($n, $s, $e) = ($1,$2,$3);
+      $str = ($s <= $e) ? 1 : -1; 
+      return (1, $n, $s, $e, $str);
     }
     return (0, "", 0, 0, 0);
 }
@@ -744,18 +744,19 @@ sub log_output_header {
   Usage    : Bio::Rfam::Utils::log_output_progress_column_headings($fh, $also_stdout);
   Function : Outputs Rfam header (for rfmake/rfsearch) to $fh and optionally stdout.
   Args     : $fh:          file handle to output to
+           : $header_str:  string to output at top of progress table
            : $also_stdout: '1' to also output to stdout, '0' not to
   Returns  : void
 
 =cut
 
 sub log_output_progress_column_headings { 
-  my ($fh, $also_stdout) = @_;
+  my ($fh, $header_str, $also_stdout) = @_;
 
   my $str;
   $str = "#\n";
   print $fh $str; if($also_stdout) { print $str; }
-  $str = "# per-stage progress:\n#\n";
+  $str = "# $header_str\n#\n";
   print $fh $str; if($also_stdout) { print $str; }
   $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",           "type",       "\#finished", "\#running",  "\#waiting",  "stage-time");
   print $fh $str; if($also_stdout) { print $str; }
@@ -1045,6 +1046,30 @@ sub checkStderrFile {
     }
   }
   return;
+}
+#-------------------------------------------------------------------------------
+
+=head2 sumArray
+
+  Title    : sumArray
+  Incept   : EPN, Wed Aug 21 13:21:47 2013
+  Usage    : sumArray($AR, $n)
+  Function : Return sum of first $n elements in array @{$AR}.
+  Args     : $AR: ref to array to sum
+           : $n:  size of array (we\'ll sum the first $n values)
+  Returns  : sum of first $n elements (usually all elements)
+
+=cut
+
+sub sumArray {
+  my ($AR, $n) = @_;
+
+  my $i;
+  my $sum = 0;
+  for($i = 0; $i < $n; $i++) { 
+    $sum += $AR->[$i];
+  }
+  return $sum;
 }
 
 #-------------------------------------------------------------------------------

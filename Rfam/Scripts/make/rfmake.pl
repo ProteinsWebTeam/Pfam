@@ -17,7 +17,9 @@ use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
 
+use Bio::Easel::MSA;
 use Bio::Easel::SqFile;
+use Bio::Easel::Random;
 
 ###################################################################
 # Preliminaries:
@@ -30,16 +32,26 @@ my $start_time = time();
 my $executable = $0;
 
 # set default values that command line options may change
+my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
 my $ga_thr;                     # GA threshold
 my $evalue;                     # E-value threshold to use, set with -e
+my $df_nper     = 30;           # with -r, default number of seqs to include in each group for representative alignment
+my $df_emax     = 10;           # with -r, default maximum E-value to include in "OTHER" group
+my $df_bitmin   = "";           # with -r, default minimum bitscore to include in "OTHER" group
+my $df_seed     = 181;          # RNG seed, set with -seed <n>, only relevant if -r used
+# options related to creating alignments
 my $do_align    = 0;            # TRUE to create align file
-my $do_subalign = 0;            # TRUE to create SUBALIGN
+my $do_repalign = 0;            # TRUE to create REPALIGN
 my $always_local= 0;            # TRUE to always run alignments locally (never on farm)
 my $always_farm = 0;            # TRUE to always run alignments on farm (never locally)
 my $nproc       = -1;           # number of processors to use for cmalign
+my $do_pp       = 0;            # TRUE to annotate alignments with posterior probabilities
+my $nper        = $df_nper;     # with -r, number of seqs to include in each group for representative alignment
+my $emax        = $df_emax;     # with -r, maximum E-value to include in "OTHER" group
+my $bitmin      = $df_bitmin;   # with -r, minimum bitscore to include in "OTHER" group
+my $seed        = $df_seed;     # RNG seed, set with -seed <n>, only relevant if -r used
 my @cmosA       = ();           # extra single - cmalign options (e.g. -g)
 my @cmodA       = ();           # extra double - cmalign options (e.g. --cyk)
-my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
 # tax info related options
 my $no_taxinfo  = 0;            # TRUE to NOT create taxinfo file
 my $n2print = 5;                # target number of SEED taxonomy prefixes to print (-n2print)
@@ -56,15 +68,20 @@ my $logFH;
 my $config = Bio::Rfam::Config->new;
 
 open($logFH, ">rfmake.log") || die "ERROR unable to open rfmake.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH,   $executable, "build, calibrate, and search a CM against a database", 1);
+Bio::Rfam::Utils::log_output_rfam_banner($logFH,   $executable, "investigate and set family score thresholds");
 
 &GetOptions( "t=s"        => \$ga_thr,
              "e=s"        => \$evalue,
              "a",         => \$do_align, 
-             "subalign"   => \$do_subalign,
+             "r"          => \$do_repalign,
              "farm"       => \$always_farm,  
              "local"      => \$always_local,
              "nproc=n"    => \$nproc,
+             "prob"       => \$do_pp,
+             "nper=n",    => \$nper,
+             "seed=n",    => \$seed,
+             "emax=s",    => \$emax,
+             "bitmin=s",  => \$bitmin,
              "dbchoice=s" => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
@@ -130,10 +147,15 @@ Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 
 if(defined $ga_thr)            { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score GA threshold:",            "$ga_thr" . " [-t]")); }
 if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value-based GA threshold:",        "$evalue" . " [-e]")); }
 if($do_align)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# full alignment:",                    "yes" . " [-a]")); }
-if($do_subalign)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 'representative' alignment:",        "yes" . " [-subalign]")); }
+if($do_repalign)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 'representative' alignment:",        "yes" . " [-r]")); }
 if($always_farm)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force farm/cluster alignment:",      "yes" . " [-farm]")); }
 if($always_local)              { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force local CPU alignment:",         "yes" . " [-local]")); }
 if($nproc != -1)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmalign:",        $nproc . " [-nproc]")); }
+if($do_pp)                     { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in alignments:",  "yes",   " [-prob]")); }
+if($nper != $df_nper)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of seqs per group:",          $nper,   " [-nper]")); }
+if($seed != $df_seed)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# RNG seed set to:",                   $seed,   " [-seed]")); }
+if($emax != $df_emax)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max E-value in \"OTHER\" group:",    $emax,   " [-emax]")); }
+if($bitmin ne $df_bitmin)      { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min bit score in \"OTHER\" group:",  $bitmin, " [-bitmin]")); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
 if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmalign options:",       $str . "[-cmos]")); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
@@ -146,15 +168,15 @@ Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
 
 # create hash of potential output files
 my %outfileH = ();
-my @outfile_orderA = ("SCORES", "outlist", "species", "taxinfo", "align", "alignout", "subalign", "subalignout"); 
+my @outfile_orderA = ("SCORES", "outlist", "species", "taxinfo", "align", "alignout", "repalign", "repalignout"); 
 $outfileH{"SCORES"}      = "tabular list of all hits above GA threshold";
 $outfileH{"outlist"}     = "sorted list of all hits from TBLOUT";
 $outfileH{"species"}     = "same as outlist, but with additional taxonomic information";
 $outfileH{"taxinfo"}     = "summary of taxonomic groups in seed/full/other sets";
 $outfileH{"align"}       = "alignment of all hits above GA threshold";
 $outfileH{"alignout"}    = "tabular cmalign output for 'align'";
-$outfileH{"subalign"}    = "alignment of sampling of hits above GA threshold";
-$outfileH{"subalignout"} = "tabular cmalign output for 'subalign'";
+$outfileH{"repalign"}    = "alignment of sampling of hits above GA threshold";
+$outfileH{"repalignout"} = "tabular cmalign output for 'repalign'";
 
 # remove any of these files that currently exist, they're no invalid, since we're now rerunning the search
 my $outfile;
@@ -165,15 +187,21 @@ foreach $outfile (@outfile_orderA) {
 }
 
 # extra processing of command-line options 
-# enforce -a or --subalign selected if used align-specific options used
-if ((! $do_align) && (! $do_subalign)) { 
-  if ($always_farm)       { die "ERROR -farm  requires -a or -subalign"; }
-  if ($always_local)      { die "ERROR -local requires -a or -subalign"; }
-  if (scalar(@cmosA) > 1) { die "ERROR -cmos requires -a or -subalign"; }
-  if (scalar(@cmodA) > 1) { die "ERROR -cmod requires -a or -subalign"; }
-  if ($nproc != -1)       { die "ERROR -nproc requires -a or -subalign"; }
+# enforce -a or --repalign selected if used align-specific options used
+if ((! $do_align) && (! $do_repalign)) { 
+  if ($always_farm)       { die "ERROR -farm  requires -a or -r"; }
+  if ($always_local)      { die "ERROR -local requires -a or -r"; }
+  if (scalar(@cmosA) > 1) { die "ERROR -cmos requires -a or -r"; }
+  if (scalar(@cmodA) > 1) { die "ERROR -cmod requires -a or -r"; }
+  if ($nproc != -1)       { die "ERROR -nproc requires -a or -r"; }
+  if ($do_pp)             { die "ERROR -prob requires -a or -r"; }
 }
-
+if(! $do_repalign) { 
+  if ($nper   != $df_nper)   { die "ERROR -nper requires -r"; }
+  if ($seed   != $df_seed)   { die "ERROR -seed requires -r"; }
+  if ($emax   != $df_emax)   { die "ERROR -emax requires -r"; }
+  if ($bitmin != $df_bitmin) { die "ERROR -bitmin requires -r"; }
+}
 
 ####################################################################
 # set thresholds, and write new tblout dependent files, incl. SCORES
@@ -206,7 +234,7 @@ $io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_thr, $config
 my $orig_ga_thr = $famObj->DESC->CUTGA;
 my $orig_nc_thr = $famObj->DESC->CUTNC;
 my $orig_tc_thr = $famObj->DESC->CUTTC;
-setThresholds($famObj, $ga_thr, "outlist");
+set_nc_and_tc($famObj, $ga_thr, "outlist");
 
 ####################
 # create SCORES file
@@ -220,35 +248,63 @@ if((! $no_taxinfo) && ($can_do_taxinfo)) {
   $io->writeTaxinfoFromOutlistAndSpecies($ga_thr, $evalue, $desc->ID, $desc->AC, $desc->DE, $n2print, $l2print, $do_nsort);
 }
 
-################
-# optional steps 
-################
+##################
+# OPTIONAL STEPS #
+#####################################
 # create full alignment, if necessary
+#####################################
 if ($do_align) { 
-  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, 1);
+  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("creating full alignment [enabled with -a, %d sequences]:", $famObj->SCORES->numRegions), 1);
     
   # fetch sequences
   my $fetch_start_time = time();  
   my $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
   });
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "esl-sfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $famObj->SCORES->numRegions), 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $famObj->SCORES->numRegions), 1);
   $fetch_sqfile->fetch_subseqs($famObj->SCORES->regions, 60, "$$.fa"); 
   $fetch_sqfile->close_sqfile();
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "esl-sfetch", time() - $fetch_start_time, 0, 1, "", 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", 1);
 
-  # use cmalign to do the alignment
-  my $options = "-o align ";
+  # align with cmalign
+  my $options = "-o align --outformat pfam ";
+  if(! $do_pp) { $options .= "--noprob " }
   $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-  # Run cmalign locally or on farm (autodetermined based on job size) 
   Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.fa", "alignout", "a.$$.err", $famObj->SCORES->numRegions, $famObj->SCORES->nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+  if (! $do_dirty) { unlink "$$.fa"; }
 
-  # remove temporary fasta file, if nec
-  if (! $do_dirty) {
-    unlink "$$.fa";
-  }
 } # end of if($do_align)
-# TODO: create sub alignment if nec
+
+###############################################
+# create representative alignment, if necessary
+###############################################
+if ($do_repalign) { 
+  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("creating representative alignment [enabled with -r]:", $famObj->SCORES->numRegions), 1);
+
+  # define each sequence into a group, filter groups down to size 
+  # of $nper (default:30) and return fasta string of all remaining seqs; 
+  # this is our 'representative set'.
+  if($bitmin ne $df_bitmin) { 
+    $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z);
+  }
+  my ($all_seqs, $all_nseq, $all_nres) = &get_representative_subset($io, $ga_thr, $fetchfile, $nper, $emax, $seed, \@cmosA, \@cmodA, $do_dirty);
+
+  # print representative seqs to file
+  open(OUT, ">$$.all.fa") || die "ERROR unable to open $$.all.fa for writing"; 
+  print OUT $all_seqs;
+  close(OUT);
+
+  # align representative seqs
+  my $options = "-o repalign --outformat pfam ";
+  if(! $do_pp) { $options .= "--noprob " }
+  $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.all.fa", "repalignout", "a.$$.all.err", $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+  if(! $do_dirty) { 
+    unlink "$$.all.fa"; 
+    unlink "a.$$.all.err";
+  }
+
+}  # end of if($do_repalign)
 
 #####################################################
 # write DESC file, with (probably) updated thresholds
@@ -274,7 +330,7 @@ foreach $outfile (@outfile_orderA) {
     Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
   }
 }
-$description = sprintf("log file (*this* output, printed to stdout)");
+$description = sprintf("log file (*this* output)");
 Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfmake.log", $description, 1);
 
 my $outstr = "#\n";
@@ -292,7 +348,11 @@ exit 0;
 ###############
 # SUBROUTINES #
 ###############
-sub setThresholds { 
+
+# set_nc_and_tc: given a GA bit score cutoff and an outlist, determines
+# the NC and TC thresholds.
+
+sub set_nc_and_tc { 
   my ($famObj, $ga, $outlist) = @_;
 
   my ($tc, $nc, $bits, $line);
@@ -331,8 +391,187 @@ sub setThresholds {
 
   return;
 }
-#########################################################
 
+#########################################################
+# get_representative_subset:
+#  For each of the three sequence groups ("SEED", "FULL" and "OTHER")
+#  filter the sequences in the group to get $nper sequences based on
+#  sequence identity in an alignment created by cmalign.
+#  Concatenate the resulting 'representative' sequences and return them.
+
+sub get_representative_subset { 
+  my($io, $ga_thr, $fetchfile, $nper, $emax, $seed, $cmosAR, $cmodAR, $do_dirty) = @_;
+
+  # preliminaries
+  my @groupOA  = ("S", "F", "O"); # "SEED", "FULL" and "OTHER", order of groups
+  my $max_nseq = 2000;
+  my $group;
+  my $rng = Bio::Easel::Random->new({ seed => 181 }); # TODO, allow user to set seed, or '0'
+  my $fetch_sqfile = Bio::Easel::SqFile->new({
+    fileLocation => $fetchfile,
+  });
+  my @unlinkA = (); # list of files to unlink before we return
+
+  # parse outlist and species to get info we need for annotating eventual representative alignment
+  my %infoHH   = ();      # 2D hash: information read from outlist and species for each hit
+  my @nameOA   = ();      # array: rank order of all hits, irrelevant
+  my %groupOHA = ();      # hash or arrays: rank order of hits in each group, key is group name
+  my @subsetA = ();
+  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_thr, \%infoHH, \@nameOA, \%groupOHA);
+
+  # for each group, pick a representative subset of $nper sequences based on pairwise identity
+  my $all_seqs = ""; # this will be all representative seqs, concatenated into one string
+  my $all_nseq = 0;  # number of representative seqs
+  my $all_nres = 0;  # total # residues in all representative seqs
+  foreach $group (@groupOA) { 
+    if(exists $groupOHA{$group}) { 
+      # first, if there's more than $max_nseq sequences, randomly select $max_nseq, 
+      # we do this so the all versus all doesn't take forever
+      if(scalar(@{$groupOHA{$group}}) > $max_nseq) { 
+        @subsetA = ();
+        $rng->random_subset_from_array(\@{$groupOHA{$group}}, \@subsetA, $max_nseq);
+        # overwrite full array with subset array
+        @{$groupOHA{$group}} = ();
+        @{$groupOHA{$group}} = @subsetA;
+      }
+      my %fgroupHA = (); # holds name of group members that survive the filtering
+
+      # fetch sequences
+      my $fetch_start_time = time();  
+      my $nseq = 0; 
+      my $nres = 0;
+      my @fetchAA = (); # temp 2D array for fetching subseqs
+      foreach my $nse (@{$groupOHA{$group}}) { 
+        my (undef, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($nse);
+        $nres += ($str == 1) ? ($end - $start + 1) : ($start - $end + 1); 
+        $nseq++;
+        push(@fetchAA, [$nse, $start, $end, $name]); 
+      }
+      Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $nseq), 1);
+      $fetch_sqfile->fetch_subseqs(\@fetchAA, 60, "$$.$group.fa"); 
+      Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", 1);
+
+      # align sequences
+      my $options = "-o $$.$group.stk --noprob ";
+      $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+      # run cmalign locally or on farm (autodetermined based on job size) 
+      Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.$group.fa", "$$.$group.cmalign", "a.$$.$group.err", $nseq, $nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+
+      # check for case where <= $nper total seqs exist, if so, just include all of them
+      if($nseq <= $nper) { 
+        @{$fgroupHA{$group}} = @{$groupOHA{$group}};
+      }
+      else { 
+        # open and read the MSA
+        my $msa = Bio::Easel::MSA->new({
+          fileLocation => "$$.$group.stk",
+        });
+        my $nseq = $msa->nseq;
+        
+        # binary search for max fractional id ($f_cur) that results in $nper sequences
+        # we'll filter the alignment such that no two seqs are more than $f_cur similar to each other
+        # (or as close as we can get to $nper by minimal change of 0.01)
+        # initializations
+        my $f_min = 0.2;
+        my $f_opt = 0.2;
+        my $f_prv = 1.0;
+        my $f_cur = $f_min;
+        my @usemeA = ();
+        my ($i, $n);
+        my $diff = abs($f_prv - $f_cur);
+        while($diff > 0.00999) { # while abs($f_prv - $f_cur) > 0.00999
+          @usemeA = ();
+          # filter based on percent identity
+          &filter_group($msa, $f_cur, $group, \@usemeA);
+          $n = Bio::Rfam::Utils::sumArray(\@usemeA, $nseq);
+          # printf STDERR ("$group: %.4f %4d seqs\n", $f_cur, $n);
+          
+          $f_prv = $f_cur;
+          # adjust $f_cur for next round based on how many seqs we have
+          if($n > $nper) { # too many seqs, lower $f_cur
+            $f_cur -= ($diff / 2.); 
+          }
+          else { # too few seqs, raise $f_cur
+            if($f_cur > $f_opt) { $f_opt = $f_cur; }
+            $f_cur += ($diff / 2.); 
+          }
+          
+          # round to nearest percentage point (0.01)
+          $f_cur = (int(($f_cur * 100) + 0.5)) / 100;
+          
+          if($f_cur < $f_min) { die "ERROR couldn't meet %d sequences, with fractional id > $f_min for group $group\n"; }
+          $diff = abs($f_prv - $f_cur);
+        }    
+        # $f_opt is our optimal fractional id, the max fractional id that gives <= $nper seqs
+        @usemeA = ();
+        &filter_group($msa, $f_opt, $group, \@usemeA);
+        
+        # get unaligned sequences and add to $all_seqs
+        $n = Bio::Rfam::Utils::sumArray(\@usemeA, $nseq);
+        my $ctr = 1;
+        for($i = 0; $i < $nseq; $i++) { 
+          if($usemeA[$i]) { 
+            my $sqname  = $msa->get_sqname($i);
+            my $sqstr   = $msa->get_sqstring_unaligned($i);
+            # replace name with more informative one and add taxstr as seq description
+            my $newname = sprintf("B%s|E%s|%s|%s", 
+                                  $infoHH{$sqname}{"bitsc"}, 
+                                  $infoHH{$sqname}{"evalue"},
+                                  $infoHH{$sqname}{"sspecies"},
+                                  $sqname);
+            $all_seqs .= sprintf(">%s%02d|%s %s\n%s\n", $group, $ctr++, $newname, $infoHH{$sqname}{"taxstr"}, $sqstr);
+            $all_nseq++;
+            $all_nres += length($sqstr);
+          }
+        } # done adding unaligned seqs to $all_seqs
+        push(@unlinkA, "$$.$group.stk");
+        push(@unlinkA, "$$.$group.fa");
+        push(@unlinkA, "$$.$group.cmalign");
+        push(@unlinkA, "a.$$.$group.err");
+      } # end of else entered if we have more than $nper seqs in group
+    } # end of if(exists($groupOHA{$group}))
+  }
+  $fetch_sqfile->close_sqfile();
+
+  #cleanup
+  if(! $do_dirty) { 
+    foreach my $file (@unlinkA) { 
+      if(-e $file) { unlink $file; }
+    }
+  }
+
+  return ($all_seqs, $all_nseq, $all_nres);
+}
+
+#########################################################
+# filter_group:
+#  Given an alignment, filter it such that no two sequences
+#  are more than $pid_thr fractionally identical. This *is*
+#  order dependent: keep earlier sequences, remove later ones.
+#
+sub filter_group { 
+  my ($msa, $pid_thr, $group, $usemeAR) = @_;
+
+  my ($i, $j, $pid);  # counters and a pid (pairwise identity) value
+  my $nseq = $msa->nseq;
+  
+  # initialize @{$usemeAR}
+  for($i = 0; $i < $nseq; $i++) { $usemeAR->[$i] = 1; }
+  # for each seq we haven't yet removed, remove any sequences more than $pid_thr identical to it
+  for($i = 0; $i < $nseq; $i++) { 
+    if($usemeAR->[$i]) { # we haven't removed it yet
+      for($j = $i+1; $j < $nseq; $j++) { # for every other seq that ... 
+        if($usemeAR->[$j]) { # ... we haven't removed yet
+          $pid = $msa->pairwise_identity($i, $j); # get fractional identity
+          if($pid > $pid_thr) { 
+            $usemeAR->[$j] = 0; # remove it
+          }
+        }
+      }
+    }
+  }
+}
+#########################################################
 
 sub help {
   print STDERR <<EOF;
@@ -351,11 +590,16 @@ Options:    -t <f>  set threshold as <f> bits
             -e <f>  set threshold as minimum integer bit score w/E-value <= <f>
 	    
 	    OPTIONS RELATED TO CREATING ALIGNMENTS (by default none are created):
-	    -a          create 'align' alignment with all hits above threshold, with cmalign (requires -t or -e)
-	    -subalign   create 'subalign' alignment, with sampling of representative hits
+	    -a          create 'align' (full) alignment with all hits above GA threshold
+	    -r          create 'repalign' alignment, with sampling of representative hits
  	    -local      always run cmalign locally     [default: autodetermined based on predicted time]
  	    -farm       always run cmalign on the farm [default: autodetermined based on predicted time]
             -nproc      specify number of CPUs for cmalign to use as <n>
+            -prob       annotate alignments with posterior probabilities [default: do not]
+            -nper <n>   with -r, set number of seqs per group (SEED, FULL, OTHER) to <n> [default: 30]
+            -seed <n>   with -r, set RNG seed to <n>, '0' for one-time arbitrary seed [default: 181]
+            -emax <f>   with -r, set maximum E-value   for inclusion in "OTHER" group to <f> [default: 10]
+            -minbit <f> with -r, set minimum bit score for inclusion in "OTHER" group to <f> [default: E-value of 10]
 	    -cmos <str> add extra arbitrary option to cmalign with '-<str>'. (Infernal 1.1, only option is '-g')
             -cmod <str> add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
 	                -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
