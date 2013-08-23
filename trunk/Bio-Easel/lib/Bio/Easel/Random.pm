@@ -205,6 +205,54 @@ sub roll {
   return _c_roll($self->{esl_randomness}, $range);
 }
 
+=head2 random_subset_from_array
+
+  Title    : random_subset_from_array
+  Incept   : EPN, Tue Aug 20 14:23:15 2013
+  Usage    : Bio::Easel::Random->random_subset_from_array($origAR, $subsetAR, $n2pick)
+  Function : Returns a uniformly distributed integer in the range 0..$range-1.
+  Args     : $origAR:   ref to original array we want a subset none
+           : $subsetAR: ref to array to fill with subset (probably should be empty upon entry)
+           : $n2pick:   number of elements to pick
+  Returns  : void, fills @{$subsetAR}
+  Dies     : if $n2pick > scalar(@{$subsetAR});
+=cut
+
+sub random_subset_from_array { 
+  my ( $self, $origAR, $subsetAR, $n2pick ) = @_;
+
+  $self->_check_randomness();
+
+  my $i;   # counter
+  my $idx; # randomly chosen number
+  my $norig = scalar(@{$origAR});
+  if($n2pick > $norig) { croak "trying to choose $n2pick elements from an array of size $norig"; }
+
+  # We define an array @mapA with an element for each seq.
+  # Initially $mapA[$i] == $i, but when if we pick seq $i
+  # we set $mapA[$i] to $mapA[$nremaining-1], then choose
+  # a random int between 0 and $nremaining-1. This gets us
+  # a random sample without replacement. Note that this 
+  # requires making an array the same size of @{$origAR}.
+  my @mapA = ();
+  for($i = 0; $i < $norig; $i++) { $mapA[$i] = $i; }
+  my $nremaining = $n2pick;
+
+  while($nremaining > 0) { 
+    $idx = $self->roll($nremaining - 1);
+    if($mapA[$idx] == -1) { croak "ERROR algorithm for randomly picking seqs is flawed..." }
+    push(@{$subsetAR}, $origAR->[$mapA[$idx]]);
+
+    # update mapA
+    if($idx != ($nremaining-1)) { # edge case
+      $mapA[$idx] = $mapA[($nremaining-1)];
+    }
+    $mapA[($nremaining-1)] = -1; # sanity check; if we pick one with a -1 value, we'll know something's wrong
+    $nremaining--;
+  }
+  return;
+}
+
 =head2 DESTROY
 
   Title    : DESTROY

@@ -874,6 +874,24 @@ sub count_msa
   return;
 }
 
+=head2 pairwise_identity
+
+  Title     : pairwise_identity
+  Incept    : EPN, Wed Aug 21 10:19:07 2013
+  Usage     : $msaObject->pairwise_identity($i, $j)
+  Function  : Return fractional identity between seqs $i and $j in the MSA
+  Args      : None
+  Returns   : fraction identity of i and j
+
+=cut
+
+sub pairwise_identity
+{
+  my ($self, $i, $j) = @_;
+
+  $self->_check_msa();
+  return _c_pairwise_identity($self->{esl_msa}, $i, $j);
+}
 
 =head2 DESTROY
 

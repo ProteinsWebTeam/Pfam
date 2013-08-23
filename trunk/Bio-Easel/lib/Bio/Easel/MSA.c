@@ -1162,3 +1162,28 @@ _c_check_reqd_format(char *format)
 
   return;
 }
+
+/* Function: _c_pairwise_identity
+ * Incept:   EPN, Wed Aug 21 10:13:35 2013
+ * Purpose:  Calculate pairwise identity [0..1] between two aligned
+ *           sequences (i and j)
+ *
+ * Args:     msa: the alignment
+ *           i:   idx of first seq 
+ *           j:   idx of second seq
+ * Returns:  fractional identity between seq i and j
+ * Dies:     if msa is not digitized or seq i or j does not exist
+ */
+double
+_c_pairwise_identity(ESL_MSA *msa, int i, int j)
+{
+  int status; 
+
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pairwise_identity() contract violation, MSA is not digitized");
+  if(i < 0 || i >= msa->nseq)         croak("_c_pairwise_identity() contract violation, idx i (%d) out of bounds (nseq: %d)", i, msa->nseq);
+  if(j < 0 || j >= msa->nseq)         croak("_c_pairwise_identity() contract violation, idx j (%d) out of bounds (nseq: %d)", j, msa->nseq);
+
+  double pid;
+  if ((status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL)) != eslOK) croak("_c_pairwise_identity() error, aligned seqs different lengths");
+  return pid;
+}
