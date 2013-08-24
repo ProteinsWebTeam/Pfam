@@ -9,7 +9,6 @@ use File::Copy;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
 use Text::Wrap;
-use Net::SCP;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
@@ -455,22 +454,22 @@ else {
 }
 
 my $cwd = getcwd;
-my $scp = Net::SCP->new( { "host"=> $pfamDB->{host} } );
 my $tmp = "/tmp";
 
 #Upload pfamseq data to temporary table
-if(-e "$statusdir/uploaded_pfamseq") {
-    $logger->info("Already uploaded $cwd/pfamseq.dat to tmp_pfamseq\n");
+if ( -e "$statusdir/uploaded_pfamseq" ) {
+  $logger->info("Already uploaded $cwd/pfamseq.dat to tmp_pfamseq\n");
 }
 else {
-    $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
+  $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
+    my $sth = $dbh->prepare(
+    'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+  _loadTable( $dbh, "$cwd/pfamseq.dat", $sth );
 
-    $scp->put("$cwd/pfamseq.dat", "$tmp/pfamseq.dat") or $logger->logdie("Could not scp pfamseq.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
-    
-    my $st_upload = $dbh->prepare("load data infile '/tmp/pfamseq.dat' into table tmp_pfamseq");
-    $st_upload->execute() or $logger->logdie("Failed to upload pfamseq.dat".$st_upload->errstr."\n");
-    system("touch $statusdir/uploaded_pfamseq") and $logger->logdie("Couldn't touch $statusdir/uploaded_pfamseq:[$!]\n"); 
+  system("touch $statusdir/uploaded_pfamseq")
+    and $logger->logdie("Couldn't touch $statusdir/uploaded_pfamseq:[$!]\n");
 }
+
 
 
 #Delete obsolete data from pfamseq
@@ -571,17 +570,17 @@ else {
 
 
 #Upload new active site and metal ion binding data
-if(-e "$statusdir/upload_active_metal") {
-    $logger->info("Already uploaded $cwd/active_site_metal.dat to pfamseq_markup\n");
+if ( -e "$statusdir/upload_active_metal" ) {
+  $logger->info(
+    "Already uploaded $cwd/active_site_metal.dat to pfamseq_markup\n");
 }
 else {
-    $logger->info("Uploading $cwd/active_site_metal.auto.dat to pfamseq_markup\n");
-    
-    $scp->put("$cwd/active_site_metal.auto.dat", "$tmp/active_site_metal.auto.dat") or $logger->logdie("Could not scp active_site_metal.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
-
-my $act_metal_new = $dbh->prepare("load data infile '/tmp/active_site_metal.auto.dat' into table pfamseq_markup (auto_pfamseq, auto_markup, residue, annotation) ");
-$act_metal_new->execute() or $logger->logdie("Failed to upload active site and metal ion binding data to pfamseq_markup ".$act_metal_new->errstr."\n");
-    system("touch $statusdir/upload_active_metal") and $logger->logdie("Couldn't touch $statusdir/upload_active_metal:[$!]\n"); 
+  $logger->info(
+    "Uploading $cwd/active_site_metal.auto.dat to pfamseq_markup\n");
+  my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?)');
+  _loadTable( $dbh, "$cwd/active_site_metal.auto.dat", $sth );
+  system("touch $statusdir/upload_active_metal")
+    and $logger->logdie("Couldn't touch $statusdir/upload_active_metal:[$!]\n");
 }
 
 
@@ -611,19 +610,14 @@ else {
 
 
 #Upload new disulphide bond data
-if(-e "$statusdir/upload_disulphide") {
-   $logger->info("Already uploaded $cwd/disulphide.dat to pfamseq_disulphide\n");
+if ( -e "$statusdir/upload_disulphide" ) {
+  $logger->info("Already uploaded $cwd/disulphide.dat to pfamseq_disulphide\n");
 }
 else {
-    $logger->info("Uploading $cwd/disulphide.auto.dat to pfamseq_disulphide\n");
-
-
-    $scp->put("$cwd/disulphide.auto.dat", "$tmp/disulphide.auto.dat") or $logger->logdie("Could not scp disulphide.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
-
-    
-    my $disulphide_new = $dbh->prepare("load data infile '/tmp/disulphide.auto.dat' into table pfamseq_disulphide (auto_pfamseq, bond_start, bond_end)");
-    $disulphide_new->execute() or $logger->logdie("Failed to upload disulphide bond data to pfamseq_disulphide ".$disulphide_new->errstr."\n");
-    system("touch $statusdir/upload_disulphide") and $logger->logdie("Couldn't touch $statusdir/upload_disulphide:[$!]\n"); 
+  $logger->info("Uploading $cwd/disulphide.auto.dat to pfamseq_disulphide\n");
+  #There are 3 rows in the the pfamseq_disulphide
+  my $sth = $dbh->prepare('INSERT into pfamseq_disulphide VALUES (?,?,?)');
+  _loadTable( $dbh, "$cwd/disulphide.auto.dat", $sth );
 }
 
 
@@ -656,13 +650,10 @@ if(-e "$statusdir/upload_secondary_acc") {
 }
 else {
     $logger->info("Uploading $cwd/secondary_acc.auto.dat to secondary_pfamseq_acc\n");
-
-    $scp->put("$cwd/secondary_acc.auto.dat", "$tmp/secondary_acc.auto.dat") or $logger->logdie("Could not scp secondary_acc.auto.dat to " . $pfamDB->{host} . " " . $scp->{errstr});
-
-    my $sec_acc_new = $dbh->prepare("load data infile '/tmp/secondary_acc.auto.dat' into table secondary_pfamseq_acc (auto_pfamseq, secondary_acc)");
-
-    $sec_acc_new->execute() or $logger->logdie("Failed to upload secondary pfamseq accessions to secondary_pfamseq_acc ".$sec_acc_new->errstr."\n");
-    system("touch $statusdir/upload_secondary_acc") and $logger->logdie("Couldn't touch $statusdir/upload_secondary_acc:[$!]\n"); 
+    #There are 2 columsn in the the secondary_pfamseq_acc table
+    my $sth = $dbh->prepare('INSERT INTO secondary_pfamseq_acc VALUES (?,?)');
+    _loadTable($dbh, "$cwd/secondary_acc.auto.dat", $sth);
+    system("touch $statusdir/upload_secondary_acc") and $logger->logdie("Couldn't touch $statusdir/upload_secondary_acc:[$!]\n");
 }
 
 
@@ -831,6 +822,48 @@ sub acc2auto_mapping {
 	$$hash{$row->[0]}= $row->[1];
     }
     
+}
+
+sub _loadTable {
+  my ( $dbh, $file, $sth ) = @_;
+
+  my $batchsize = 5000;
+  my $report    = 100000;
+  my $reportNo  = 1000000;
+  my $count     = 0;
+
+
+  $dbh->begin_work;    # start a transaction
+
+  open( my $input, '<', $file ) or die "Could not open $file:[$!]";
+
+  print STDERR "\nProgress: ";
+  while ( my $record = <$input> ) {
+    chomp $record;
+    my @values = split( /\t/, $record );
+    for ( my $i = 0 ; $i < 18 ; $i++ ) {
+      $values[$i] = undef if ( $values[$i] eq '\N' );
+    }
+    $sth->execute(@values);
+
+    $count += 1;
+    if ( $count % $batchsize == 0 ) {
+      $dbh->commit;    # doublecheck the commit statement too
+      if ( $count % $report == 0 ) {
+        if ( $count % $reportNo == 0 ) {
+          print STDERR "$count";
+        }
+        else {
+          print STDERR ".";
+        }
+      }
+
+      $dbh->begin_work;
+
+    }
+  }
+  $dbh->commit;
+  print STDERR "\n\n Uploaded $count records\n";
 }
 
 
