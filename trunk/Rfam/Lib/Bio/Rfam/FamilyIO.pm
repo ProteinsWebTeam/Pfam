@@ -1702,6 +1702,33 @@ sub commentLineForOutlistOrSpecies {
     Incept   : EPN, Mon Aug 19 15:04:50 2013
     Usage    : $io->writeTaxinfoFromOutlistAndSpecies($ga, $evalue, $desc, $n2print, $user_level2print, $do_nsort)
     Function : Uses outlist and species to create 'taxinfo' file.
+             :
+             : Purpose of 'taxinfo' is to concisely describe the taxonomic
+             : groups represented by all the hits for a family. To do this
+             : the taxonomic strings (e.g. Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.)
+             : are summarized by taking a prefix and the 'prefix level' 
+             : (the number of tokens in the prefix) that defines 5 distinct
+             : groups (at that prefix level) that comprise all SEED seqs.
+             : Families with large phylogenetic breadth will have lower
+             : prefix levels. Those with narrow breadth will have higher.
+             : We go through the considerable trouble to do this because
+             : we want the taxinfo output file to be relatively short and
+             : easy to digest by a curator. Much of the complexity of the 
+             : code for this subroutine is due to storing the taxonomic 
+             : strings in such a way that enables us to find the desired
+             : prefix level and then for finding it. 
+             :
+             : Once the desired prefix level is found, the remainder of
+             : the subroutine is dedicated to outputting a sorted list
+             : the taxonomic groups. This is also complicated because
+             : we first print out those groups that contain >= 1 seed
+             : seqs, in order of decreasing minimum E-value in the group. 
+             : Then those (that have not yet been printed) and contain 
+             : at least 1 full hit above GA threshold in order of 
+             : decreasing minimum E-value in the group and then all 
+             : remaining groups (with only 'other' seqs (not in seed 
+             : nor full)).
+             : 
     Args     : $ga:       GA bit score threshold
              : $evalue:   E-value for $ga
              : $id:       family ID
@@ -1812,7 +1839,8 @@ sub writeTaxinfoFromOutlistAndSpecies {
       
       ##################################################
       # Determine 'level2print', the number of prefixes we'll use for taxonomic strings we output.
-      #  group must be first one with > 0 seqs (usually SEED unless a new family)
+      # We do this only once for all groups, starting with the first group
+      # with > 0 seqs (usually SEED unless a new family)
       #
       if((($group eq "S" && $ngroupH{$group} > 0) ||
           ($group eq "F" && $ngroupH{"S"}   == 0) ||
@@ -1844,6 +1872,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
         
         #printf("nprint_actual: $nprint_actual\n");
         #printf("level2print:   $level2print\n");
+
         # nprint_actual is the number of prefixes we'll print for seed.
         # Now, pick min taxonomy level that has exactly nprint_actual prefixes,
         # to minimize length of prefix strings
@@ -1896,9 +1925,11 @@ sub writeTaxinfoFromOutlistAndSpecies {
   }
   # Now, print the prefixes and their counts out in a particular order
   # First print all prefixes with >=1 members in SEED in sorted order
-  # from high to low count, then print any with >= 1 members in FULL
-  # from high to low count, then print any with >= 1 members in OTHER
-  # from high to low count.
+  # from low to high minimum E-value in group, then print any with >= 1 members in FULL
+  # from low to high minimum E-value in group, then print any with >= 1 members in OTHER
+  # from low to high minimum E-value in group.
+  # (If $do_nsort is '1' we'll sort by total counts per group not 
+  # minimum E-value).
 
   my $div_line = "#";
   my $div_length = $max_length + 2 + 3 + 6 + 13 + 6 + 13 + 6 + 13;
@@ -2042,7 +2073,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
   my $line;
   open(OUT, ">taxinfo") || die "ERROR unable to open taxinfo for writing";
 
-# print info on how to interpret the file
+  # print info on how to interpret the file
   push(@outputA, "# Explanation of data above:\n");
   push(@outputA, "#\n");
   push(@outputA, "# Listed above are counts of hits in various taxonomic groups for the\n");
