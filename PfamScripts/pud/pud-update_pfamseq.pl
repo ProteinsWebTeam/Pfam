@@ -464,7 +464,7 @@ else {
   $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
     my $sth = $dbh->prepare(
     'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  _loadTable( $dbh, "$cwd/pfamseq.dat", $sth );
+  _loadTable( $dbh, "$cwd/pfamseq.dat", $sth, 18 );
 
   system("touch $statusdir/uploaded_pfamseq")
     and $logger->logdie("Couldn't touch $statusdir/uploaded_pfamseq:[$!]\n");
@@ -578,7 +578,7 @@ else {
   $logger->info(
     "Uploading $cwd/active_site_metal.auto.dat to pfamseq_markup\n");
   my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?)');
-  _loadTable( $dbh, "$cwd/active_site_metal.auto.dat", $sth );
+  _loadTable( $dbh, "$cwd/active_site_metal.auto.dat", $sth, 4 );
   system("touch $statusdir/upload_active_metal")
     and $logger->logdie("Couldn't touch $statusdir/upload_active_metal:[$!]\n");
 }
@@ -617,7 +617,7 @@ else {
   $logger->info("Uploading $cwd/disulphide.auto.dat to pfamseq_disulphide\n");
   #There are 3 rows in the the pfamseq_disulphide
   my $sth = $dbh->prepare('INSERT into pfamseq_disulphide VALUES (?,?,?)');
-  _loadTable( $dbh, "$cwd/disulphide.auto.dat", $sth );
+  _loadTable( $dbh, "$cwd/disulphide.auto.dat", $sth, 3 );
 }
 
 
@@ -652,7 +652,7 @@ else {
     $logger->info("Uploading $cwd/secondary_acc.auto.dat to secondary_pfamseq_acc\n");
     #There are 2 columsn in the the secondary_pfamseq_acc table
     my $sth = $dbh->prepare('INSERT INTO secondary_pfamseq_acc VALUES (?,?)');
-    _loadTable($dbh, "$cwd/secondary_acc.auto.dat", $sth);
+    _loadTable($dbh, "$cwd/secondary_acc.auto.dat", $sth, 2);
     system("touch $statusdir/upload_secondary_acc") and $logger->logdie("Couldn't touch $statusdir/upload_secondary_acc:[$!]\n");
 }
 
@@ -831,7 +831,7 @@ sub acc2auto_mapping {
 }
 
 sub _loadTable {
-  my ( $dbh, $file, $sth ) = @_;
+  my ( $dbh, $file, $sth, $cols ) = @_;
 
   my $batchsize = 5000;
   my $report    = 100000;
@@ -847,7 +847,7 @@ sub _loadTable {
   while ( my $record = <$input> ) {
     chomp $record;
     my @values = split( /\t/, $record );
-    for ( my $i = 0 ; $i < 18 ; $i++ ) {
+    for ( my $i = 0 ; $i < $cols ; $i++ ) {
       $values[$i] = undef if ( $values[$i] eq '\N' );
     }
     $sth->execute(@values);
