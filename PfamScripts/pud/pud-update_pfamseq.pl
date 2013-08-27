@@ -547,7 +547,7 @@ my %acc2auto;
 
 
 #Transform active site and metal ion binding data
-if(-e "$statusdir/upload_active_metal") {
+if(-e "active_site_metal.auto.dat") {
     $logger->info("Already transformed active_site_metal.dat file\n");
 }
 else {
