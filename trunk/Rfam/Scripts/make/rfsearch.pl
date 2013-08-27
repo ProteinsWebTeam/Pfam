@@ -542,8 +542,8 @@ if (! $no_search) {
   if (! defined $ncpus_cmsearch) { $ncpus_cmsearch = 4; }
 
   # use same reporting threshold for regular and reversed searches
-  my $searchopts     = "--cpu $ncpus_cmsearch --verbose";
-  my $rev_searchopts = "--cpu $ncpus_cmsearch --verbose";
+  my $searchopts     = "--cpu $ncpus_cmsearch --verbose --nohmmonly";
+  my $rev_searchopts = "--cpu $ncpus_cmsearch --verbose --nohmmonly";
   if ($use_cmsearch_evalue) { $searchopts .= " -E $cmsearch_evalue "; }
   else                      { $searchopts .= " -T $cmsearch_bitsc ";  }
 
