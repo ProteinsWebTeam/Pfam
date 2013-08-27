@@ -848,7 +848,7 @@ sub _loadTable {
     chomp $record;
     my @values = split( /\t/, $record );
     for ( my $i = 0 ; $i < $cols ; $i++ ) {
-      $values[$i] = undef if ( $values[$i] eq '\N' );
+      $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
     }
     $sth->execute(@values);
 
