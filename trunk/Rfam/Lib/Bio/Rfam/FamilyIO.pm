@@ -305,8 +305,9 @@ sub _parseCMHeader {
       $objHash->{cksum} = $cksum ;
     } elsif ( my $null = $_ =~ /^NULL\s+(.*)/) {
       $objHash->{null} = $null;
-    } elsif ( my $efp7gf = $_ =~ /^EFP7GF\s+(\S+)/) {
-      $objHash->{efp7gf} = $efp7gf;
+    } elsif ( $_ =~ /^EFP7GF\s+(\S+)\s+(\S+)/) {
+      my @values = ($1, $2);
+      $objHash->{efp7gf} = \@values;
     }
     
     #If the model is calibrated, parse     

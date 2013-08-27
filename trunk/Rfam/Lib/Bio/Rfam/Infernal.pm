@@ -289,18 +289,19 @@ sub cmalign_wrapper {
 
   Title    : cm_evalue2bitsc()
   Incept   : EPN, Tue Jan 29 17:18:43 2013
-  Usage    : cm_evalue2bitsc($cm, $evalue, $Z)
+  Usage    : cm_evalue2bitsc($cm, $evalue, $Z, $opts)
   Function : Returns bit score for a given E-value
   Args     : <cm>:     Bio::Rfam::Family::CM object
            : <evalue>: E-value we want bit score for
            : <Z>:      database size in Mb (both strands) for E-value->bitsc calculation
+           : <opts>:   string with cmsearch options (could be from DESC)
   Returns  : bit score for E-value for CM in db of $Z residues 
            : (where $Z includes BOTH strands of target seqs)
   
 =cut
   
 sub cm_evalue2bitsc { 
-  my ($cm, $evalue, $Z) = @_;
+  my ($cm, $evalue, $Z, $opts) = @_;
 
   # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
   my $bitsc;  # bit score to return;
@@ -308,20 +309,15 @@ sub cm_evalue2bitsc {
   if(! $cm->{is_calibrated}) {  
     die "ERROR CM is not calibrated, and we're trying to convert an E-value to a bit score"; 
   }
-  
-  # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
-  if ($cm->{match_pair_node}) { # use CM stats
-    # TODO, read SM in desc, and pick appropriate E-value line based on that
-    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = @{$cm->{cmHeader}->{ecmli}};
-    my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
-    $bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
-  } else { 
-    my ($tau, $lambda) = @{$cm->{cmHeader}->{efp7gf}};
-    my $maxlen = $cm->{cmHeader}->{maxl};
-    $bitsc = $tau + ((log($evalue / (($Z * 1000000.) / $maxlen))) / (-1 * $lambda));
+  if($opts =~ m/\-\-hmmonly/) { 
+    die "ERROR --hmmonly option used in search, this shouldn't happen."; 
   }
   
-  # printf("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
+  my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_evalue_stats($cm, $opts);
+  my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
+  $bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
+  
+  print STDERR ("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
   return $bitsc;
 }
 
@@ -330,18 +326,19 @@ sub cm_evalue2bitsc {
 
   Title    : cm_bitsc2evalue()
   Incept   : EPN, Thu Apr 25 14:01:51 2013
-  Usage    : cm_bitsc2evalue($cm, $bitsc, $Z)
+  Usage    : cm_bitsc2evalue($cm, $bitsc, $Z, $opts)
   Function : Returns E-value for a given bit score
   Args     : <cm>:     Bio::Rfam::Family::CM object
            : <bitsc>:  bit score we want E-value for
            : <Z>:      database size in Mb (both strands) for E-value->bitsc calculation
+           : <opts>:   string with cmsearch options (could be from DESC)
   Returns  : E-value for bit score for CM in db of $Z residues 
            : (where $Z includes BOTH strands of target seqs)
   
 =cut
   
 sub cm_bitsc2evalue { 
-  my ($cm, $bitsc, $Z) = @_;
+  my ($cm, $bitsc, $Z, $opts) = @_;
 
   # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
   my $evalue;  # evalue to return;
@@ -349,24 +346,61 @@ sub cm_bitsc2evalue {
   if(! $cm->{is_calibrated}) {  
     die "ERROR CM is not calibrated, and we're trying to convert a bit score to an E-value";
   }
-  
-  # TODO, only use HMM stat line if --nohmmonly was NOT used in SM
-  if ($cm->{match_pair_node}) { # use CM stats
-    # TODO, read SM in desc, and pick appropriate E-value line based on that
-    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = @{$cm->{cmHeader}->{ecmli}};
-    my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
-    # from easel's esl_exponential.c:esl_exp_surv
-    $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
-    $evalue = $surv * $cur_eff_dbsize;
-  } else { 
-    my ($tau, $lambda) = @{$cm->{cmHeader}->{efp7gf}};
-    my $maxlen = $cm->{cmHeader}->{maxl};
-    $surv = ($bitsc < $tau) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $tau));
-    $evalue = $surv * (($Z * 1000000) / $maxlen);
+  if($opts =~ m/\-\-hmmonly/) { 
+    die "ERROR --hmmonly option used in search, this shouldn't happen."; 
   }
   
-  # printf("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
+  #my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = @{$cm->{cmHeader}->{ecmli}};
+  my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_evalue_stats($cm, $opts);
+
+  my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
+  # from easel's esl_exponential.c:esl_exp_surv
+  $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
+  $evalue = $surv * $cur_eff_dbsize;
+  
+  print STDERR ("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
   return $evalue;
+}
+
+=head2 search_opts_to_evalue_stats()
+
+  Title    : search_opts_to_evalue_stats()
+  Incept   : EPN, Tue Aug 27 14:42:06 2013
+  Usage    : search_opts_to_evalue_stats($cm, $opts)
+  Function : Returns appropriate array of E-value stat parameters
+           : (lambda, mu_extrap, mu_orig, dbsize, nhits, tailp),
+           : from CM file (either ECMLI, ECMLC, ECMGI, ECMGC)
+           : based on cmsearch options from $opts (could be 
+           : from DESC file).
+  Args     : <cm>:     Bio::Rfam::Family::CM object
+           : <opts>:   search-method string, from DESC
+  Returns  : $lambda:    appropriate CM lambda exp tail parameter
+           : $mu_extrap: appropriate CM extrapolated mu exp tail parameter
+           : $mu_orig:   appropriate CM original mu exp tail parameter  
+           : $dbsize:    appropriate CM dbsize exp tail parameter  
+           : $nhits:     appropriate CM nhits exp tail parameter  
+           : $tailp:     appropriate CM tail prob exp tail parameter  
+=cut
+  
+sub search_opts_to_evalue_stats {
+  my ($cm, $opts) = @_;
+
+  if($opts =~ m/\s+\-g\s+/) { # glocal mode
+    if($opts =~ m/\s+\-\-cyk\s+/) { # cyk mode
+      return @{$cm->{cmHeader}->{ecmgc}};
+    }
+    else { # inside (default)
+      return @{$cm->{cmHeader}->{ecmgi}};
+    }
+  }
+  else { # local mode (default)
+    if($opts =~ m/\s+\-\-cyk\s+/) { # cyk mode
+      return @{$cm->{cmHeader}->{ecmlc}};
+    }
+    else { # inside (default)
+      return @{$cm->{cmHeader}->{ecmli}};
+    }
+  }
 }
 
 =head2 stringize_infernal_cmdline_options()

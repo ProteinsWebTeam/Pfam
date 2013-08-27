@@ -487,7 +487,7 @@ if (! $no_search) {
   if(defined $rev_dbsize) { $rev_Zopt = " -Z $rev_dbsize "; }
   else                    { $rev_Zopt = ""; }
   # use -FZ <x> with <x> equal to regular database size, to ensure we use same filter settings
-  if(defined $dbsize)     { $rev_Zopt .= " --FZ $dbsize "; }
+  if(defined $dbsize) { $rev_Zopt .= " --FZ $dbsize "; }
 
   # Now that we know database size, determine bit score or E-value threshold to use.
   # This section is complex, but should simplify post Rfam 12.0
@@ -512,6 +512,7 @@ if (! $no_search) {
   my $max_evalue     = 50000; # hard-coded max E-value allowed, not applied if -E used
   my $min_bitsc      = 0;     # bit score corresponding to $max_eval, set below
   my $min_evalue     = 1000;  # hard-coded min E-value allowed, not applied if -E used
+  my $extra_options  = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
 
   if (defined $evalue) {      # -cme option set on cmdline
     $use_cmsearch_evalue = 1;
@@ -527,8 +528,8 @@ if (! $no_search) {
     $use_cmsearch_evalue = 1;
     # get GA and check to see if cases 3 or 4 apply
     $ga_bitsc  = $famObj->DESC->CUTGA; 
-    $e_bitsc   = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $cmsearch_evalue, $dbsize);
-    $min_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $max_evalue,      $dbsize);
+    $e_bitsc   = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $cmsearch_evalue, $dbsize, $extra_options);
+    $min_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $max_evalue,      $dbsize, $extra_options);
     if (($ga_bitsc-2) < $min_bitsc) { # case 3
       $evalue = $max_evalue; 
     } elsif (($ga_bitsc-2) < $e_bitsc) { # case 4
@@ -550,7 +551,6 @@ if (! $no_search) {
   $rev_searchopts  = $searchopts . $rev_Zopt;
   $searchopts     .= $Zopt;
 
-  my $extra_options = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
   $searchopts     .= $extra_options;
   $rev_searchopts .= $extra_options;
   $searchopts      =~ s/\s+/ /g; # replace multiple spaces with single spaces
