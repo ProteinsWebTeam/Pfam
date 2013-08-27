@@ -137,7 +137,11 @@ sub submit_mpi_job {
     #if($? != 0) { die "MPI prep command $prepcmd failed"; }
 
     # Need to use MPI queue ($queue is irrelevant)
-    $submit_cmd = "bsub -J $jobname -e $errPath -q mpi -I -n $nproc -a openmpi mpirun.lsf -np $nproc -mca btl tcp,self $cmd";
+    # TEMPORARILY USING research-rh6 queue and span[ptile=8] as per Asier Roa's instructions, see email ("mpi jobs on cluster")
+    # forwarded from Jen, on 08.27.13.
+    $submit_cmd = "bsub -J $jobname -e $errPath -q research-rh6 -I -n $nproc -R \"span[ptile=8]\" -a openmpi mpirun.lsf -np $nproc -mca btl tcp,self $cmd";
+    # ORIGINAL COMMAND (I BELIEVE WE WILL REVERT TO THIS EVENTUALLY):
+    # $submit_cmd = "bsub -J $jobname -e $errPath -q mpi -I -n $nproc -a openmpi mpirun.lsf -np $nproc -mca btl tcp,self $cmd";
   }
   elsif($location eq "JFRC") { 
     my $queue_opt = "";
