@@ -552,8 +552,8 @@ if(-e "$statusdir/upload_active_metal") {
 }
 else {
     $logger->info("Transforming active_site_metal.dat file\n");
-    acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("active_site_metal.dat", "active_site_metal.auto.dat", \%acc2auto);
+    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
+    acc2auto("active_site_metal.dat", "active_site_metal.auto.dat", \%acc2auto, $dbh);
 }
 
 
@@ -590,8 +590,8 @@ if(-e "$statusdir/upload_disulphide") {
 }
 else {
     $logger->info("Transforming disulpide.dat file\n");
-    acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("disulphide.dat", "disulphide.auto.dat", \%acc2auto);
+    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
+    acc2auto("disulphide.dat", "disulphide.auto.dat", \%acc2auto, $dbh);
 }
 
 
@@ -627,8 +627,8 @@ if(-e "$statusdir/upload_secondary_acc") {
 }
 else {
     $logger->info("Transforming secondary accession data\n");
-    acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("secondary_acc.dat", "secondary_acc.auto.dat", \%acc2auto);
+    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
+    acc2auto("secondary_acc.dat", "secondary_acc.auto.dat", \%acc2auto, $dbh);
 }
 
 
@@ -781,9 +781,10 @@ sub _crc64 {
 
 
 sub acc2auto {
+    my ($infile, $outfile, $auto_hash, $dbh) = @_;
 
-    my ($infile, $outfile, $auto_hash) = @_;
-
+    my $sth = $dbh->prepare("select auto_pfamseq from pfamseq where pfamseq_acc = ?");
+     
     open(INFILE, $infile) or $logger->logdie("Couldn't open file handle to $infile $!\n");
 
     open(OUTFILE, "> $outfile") or $logger->logdie("Couldn't open $outfile for writing $!\n");
@@ -794,8 +795,13 @@ sub acc2auto {
             my ($acc, $rest) = ($1, $2);
  
             unless(exists($$auto_hash{$acc})) {
-                next;
-                $logger->logdie("This acc [$acc] is not in pfamseq!\n");
+                $sth->execute($acc);
+                my $row = $sth->fetchrow_arrayref;
+                if(!$row){
+                  $logger->logdie("This acc [$acc] is not in pfamseq!\n");
+                }else{
+                  $auto_hash->{$acc}=$row->[0];
+                }
             }
 
             print OUTFILE "$$auto_hash{$acc}\t$rest\n";
