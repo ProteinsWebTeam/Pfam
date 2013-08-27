@@ -118,10 +118,9 @@ my $famObj = Bio::Rfam::Family->new(
                                     'CM'     => $io->parseCM("CM"),
                                    );
 my $msa  = $famObj->SEED;
-my $desc = $famObj->DESC;
 my $cm   = $famObj->CM;
-my $id   = $desc->ID;
-my $acc  = $desc->AC;
+my $id   = $famObj->DESC->ID;
+my $acc  = $famObj->DESC->AC;
 
 # setup dbfile 
 my $dbconfig       = $config->seqdbConfig($dbchoice);
@@ -209,8 +208,7 @@ if(! $do_repalign) {
 if ((defined $ga_thr) && (defined $evalue)) { 
   die "ERROR -t and -e combination is invalid, choose 1"; 
 } elsif (defined $evalue) { 
-  # TODO, read SM in desc, and pick appropriate E-value line based on that
-  my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $evalue, $Z)) + 0.5); # round up to nearest int bit score above exact bit score
+  my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $evalue, $Z, $famObj->DESC->SM)) + 0.5); # round up to nearest int bit score above exact bit score
   $ga_thr = sprintf("%.2f", $bitsc);
   Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_thr bits [converted -e E-value]"));
 } elsif (defined $ga_thr) { 
@@ -223,7 +221,7 @@ if ((defined $ga_thr) && (defined $evalue)) {
 if (! defined $ga_thr) {
   die "ERROR: problem setting threshold\n";
 }
-$evalue = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $ga_thr, $Z);
+$evalue = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $ga_thr, $Z, $famObj->DESC->SM);
 
 # write TBLOUT's set of dependent files 
 # (we do this no matter what, to be safe)
@@ -245,7 +243,7 @@ $io->makeAndWriteScores($famObj, "outlist");
 # create taxinfo file, if possible and necessary
 ################################################
 if((! $no_taxinfo) && ($can_do_taxinfo)) { 
-  $io->writeTaxinfoFromOutlistAndSpecies($ga_thr, $evalue, $desc->ID, $desc->AC, $desc->DE, $n2print, $l2print, $do_nsort);
+  $io->writeTaxinfoFromOutlistAndSpecies($ga_thr, $evalue, $famObj->DESC->ID, $famObj->DESC->AC, $famObj->DESC->DE, $n2print, $l2print, $do_nsort);
 }
 
 ##################
@@ -285,7 +283,7 @@ if ($do_repalign) {
   # of $nper (default:30) and return fasta string of all remaining seqs; 
   # this is our 'representative set'.
   if($bitmin ne $df_bitmin) { 
-    $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z);
+    $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z, $famObj->DESC->SM);
   }
   my ($all_seqs, $all_nseq, $all_nres) = &get_representative_subset($io, $ga_thr, $fetchfile, $nper, $emax, $seed, \@cmosA, \@cmodA, $do_dirty);
 
@@ -406,7 +404,7 @@ sub get_representative_subset {
   my @groupOA  = ("S", "F", "O"); # "SEED", "FULL" and "OTHER", order of groups
   my $max_nseq = 2000;
   my $group;
-  my $rng = Bio::Easel::Random->new({ seed => 181 }); # TODO, allow user to set seed, or '0'
+  my $rng = Bio::Easel::Random->new({ seed => $seed }); 
   my $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
   });
