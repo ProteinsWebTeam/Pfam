@@ -1323,8 +1323,8 @@ sub writeTbloutDependentFiles {
       writeOutlistOrSpeciesChunk($revoutFH, \@rev_outAA, 1);
       writeOutlistOrSpeciesChunk($revspcFH, \@rev_spcAA, 0);
     }
-    close($revoutFH);
-    close($revspcFH);
+    close($revoutFH) if(defined($revoutFH));
+    close($revspcFH) if(defined($revspcFH));
   }
 
   # parse TBLOUT
