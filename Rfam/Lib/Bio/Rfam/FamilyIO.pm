@@ -584,7 +584,7 @@ sub parseDESC {
     }
     #Do not permit tabs.
     if($l =~ /\t/ or $l =~ /.*\s$/){
-      craok("A tab character or a terminal whitespace found in $l of your DESC file!\n");
+      croak("A tab character or a terminal whitespace found in $l of your DESC file!\n");
     }
 
     if ( $file[$i] =~ /^(AC|ID|AU|SE|TP|TX|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
