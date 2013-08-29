@@ -946,14 +946,11 @@ sub parseDESC {
 
           #MIPF; MIPF0000879
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (snornadb);\s(.*?\d+);?$/ ) {
-
+        } elsif ( $file[$i] =~ /^DR   (snornadb);\s(\S+?);?$/ ) {
+        
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-
-          #TODO - check that these are really different.
-        } elsif ( $file[$i] =~ /^DR   (snoRNABase);\s(.*?\d+);?$/ ) {
-
+        } elsif ( $file[$i] =~ /^DR   (snoRNABase);\s(\S+?);?$/ ) {
           #snornadb; snR49
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
 
