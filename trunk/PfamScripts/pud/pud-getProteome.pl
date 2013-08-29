@@ -33,7 +33,6 @@ die 'Failed, got ' . $response_list->status_line .
 open(L,">", "taxonomy_list") or die;
 print L $response_list->content;
 close(L);
-exit;
 
 
 # For each taxon, mirror its proteome set in FASTA format.
