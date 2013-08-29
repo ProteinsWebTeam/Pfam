@@ -61,7 +61,7 @@ sub run_local_command {
            : $ncpu:     number of CPUs to run job on, can be undefined if location eq "JFRC"
            : $reqMb:    required number of Mb for job, can be undefined if location eq "JFRC"
            : $exStr:    extra string to add to qsub/sub command
-           : $queue:    queue to submit to, "" for default
+           : $queue:    queue to submit to, "" for default, 'p' = "production-rh6", 'r' = "research-rh6";
   Returns  : void
   Dies     : If MPI submit command fails.
 
@@ -71,6 +71,9 @@ sub submit_nonmpi_job {
   my ($location, $cmd, $jobname, $errPath, $ncpu, $reqMb, $exStr, $queue) = @_;
 
   my $submit_cmd = "";
+  if(defined $queue && $queue eq "p") { $queue = "production-rh6"; }
+  if(defined $queue && $queue eq "r") { $queue = "research-rh6"; }
+
   if($location eq "EBI") { 
     if(! defined $ncpu)  { die "submit_nonmpi_job(), location is EBI, but ncpu is undefined"; }
     if(! defined $reqMb) { die "submit_nonmpi_job(), location is EBI, but reqMb is undefined"; }
@@ -1074,6 +1077,29 @@ sub sumArray {
     $sum += $AR->[$i];
   }
   return $sum;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 setArray
+
+  Title    : setArray
+  Incept   : EPN, Wed Aug 28 09:18:25 2013
+  Usage    : setArray($AR, $val, $n)
+  Function : Set all values in an array to $val.
+  Args     : $AR:  ref to array to sum
+           : $val: to set all array elements to
+           : $n:   size of array 
+  Returns  : void
+
+=cut
+
+sub setArray {
+  my ($AR, $val, $n) = @_;
+
+  my $i;
+  for($i = 0; $i < $n; $i++) { $AR->[$i] = $val; }
+  return;
 }
 
 #-------------------------------------------------------------------------------
