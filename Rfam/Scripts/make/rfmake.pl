@@ -58,7 +58,7 @@ my $n2print = 5;                # target number of SEED taxonomy prefixes to pri
 my $l2print = 0;                # print all unique prefixes of length <n> 
 my $do_nsort = 0;               # true to sort output by counts, not min E-value
 # other options
-my $q_opt = "";                 # <str> from -queue <str>
+my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
@@ -72,6 +72,7 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH,   $executable, "investigate and
 
 &GetOptions( "t=s"        => \$ga_thr,
              "e=s"        => \$evalue,
+             "q=s"        => \$q_opt, 
              "a",         => \$do_align, 
              "r"          => \$do_repalign,
              "farm"       => \$always_farm,  
@@ -90,7 +91,6 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH,   $executable, "investigate and
              "l2print=n"  => \$l2print,
              "nsort"      => \$do_nsort,
              "dirty"      => \$do_dirty,
-             "queue=s"    => \$q_opt, 
              "h|help"     => \$do_help );
 
 if ( $do_help ) {
@@ -162,7 +162,7 @@ if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [-notaxinfo]")); }
 elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]")); }
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]")); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]")); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-q]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
 
 # create hash of potential output files
@@ -590,6 +590,8 @@ Options:    -t <f>  set threshold as <f> bits
 	    OPTIONS RELATED TO CREATING ALIGNMENTS (by default none are created):
 	    -a          create 'align' (full) alignment with all hits above GA threshold
 	    -r          create 'repalign' alignment, with sampling of representative hits
+            -q <str>    specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
+                        (shortcuts: use <str>='p' for 'production-rh6', <str>='r' for 'research-rh6')
  	    -local      always run cmalign locally     [default: autodetermined based on predicted time]
  	    -farm       always run cmalign on the farm [default: autodetermined based on predicted time]
             -nproc      specify number of CPUs for cmalign to use as <n>
@@ -610,7 +612,6 @@ Options:    -t <f>  set threshold as <f> bits
 
 	    OTHER:
 	    -dirty       leave temporary files, don't clean up
-            -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
   	    -h|-help     print this help, then exit
 
 EOF

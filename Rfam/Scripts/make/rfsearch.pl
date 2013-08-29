@@ -1,5 +1,4 @@
 #!/usr/bin/env perl
-
 use strict;
 use Cwd;
 use Getopt::Long;
@@ -40,7 +39,7 @@ my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
 my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
 # other options
-my $q_opt = "";                 # <str> from -queue <str>
+my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
@@ -84,7 +83,6 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate,
              "cmod=s@"    => \@cmodA,
              "ssopt=s@"   => \@ssoptA,
 	     "dirty"      => \$do_dirty,
-             "queue=s"    => \$q_opt, 
 	     "h|help"     => \$do_help );
 
 if ( $do_help ) {
@@ -163,7 +161,7 @@ $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
 if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]")); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-queue]")); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]")); }
 
 # create hash of potential output files
 my %outfileH = ();
@@ -758,8 +756,9 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -rdbdir <s>    set reversed sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
 
             OTHER OPTIONS:
+            -q <str>     specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
+                         (shortcuts: use <str>='p' for 'production-rh6', <str>='r' for 'research-rh6')
             -ssopt <str> add extra arbitrary string <str> to qsub cmsearch commands, for multiple options use multiple -ssopt <s>
-            -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
   	    -dirty       do not remove temporary/intermediate files that are normally removed
   	    -h|-help     print this help, then exit
 EOF
