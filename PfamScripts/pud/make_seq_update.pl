@@ -233,34 +233,9 @@ if(! -e "$statusdir/downloaded_proteomes") {
     # This is a dumping ground for all proteomes.  
     my $dir = $config->localDbsLoc."/proteome/Release" . $num;
     if (! -d "$dir"){
-      mkdir ("$dir",0777) or die "Cannot make dir $dir";
+        mkdir ("$dir",0777) or die "Cannot make dir $dir";
     }
-
-    my $proteome = 'complete:yes';
-    my $url = 'www.uniprot.org';
-    my $agent = LWP::UserAgent->new;
-    # Get a list of all taxons below the top node with a complete/reference proteome.
-    my $query_list = 'http://'.$url."/taxonomy/?query=$proteome&format=list";
-    my $response_list = $agent->get($query_list);
-    $logger->logdie( 'Failed, got ' . $response_list->status_line .
-       ' for ' . $response_list->request->uri ) unless $response_list->is_success;
-
-    # For each taxon, mirror its proteome set in FASTA format.
-    open(L, '>', $dir.'/list') or $logger->logdie("Failed to open $dir/list:[$!]");
-    print L $response_list->content;
-    close(L);
-    
-    for my $taxon (split(/\n/, $response_list->content)) {
-      my $file = $dir.'/'.$taxon . '.fasta';
-      my $query_taxon = 'http://'.$url."/uniprot/?query=organism:$taxon&format=fasta&include=yes";
-      my $response_taxon = $agent->mirror($query_taxon, $file);
-      if ($response_taxon->is_success) {
-        $logger->debug("Got file");
-      }else{
-        $logger->logdie('Failed, got ' . $response_taxon->status_line .' for ' . $response_taxon->request->uri);
-      }
-    }
-
+    system("pud-getProteome.pl $dir") and $logger->logdie("Downloading proteomes failed:[$!]");
     system("touch $statusdir/downloaded_proteomes")   and $logger->logdie(die "couldn't touch $statusdir/downloaded_proteomes:[$!]");
     $logger->info("Downloaded proteome data");
 } else {
