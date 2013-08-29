@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use Data::Printer;
 
 use Log::Log4perl qw(:easy);
 #Start up the logger
@@ -45,65 +46,77 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(
 my $dbh = $pfamDB->getSchema->storage->dbh;
 #Still have not decieded how to do this! Return to later and fix
 
-my $proteomeSpeciesSth = $dbh->prepare("INSERT INTO complete_prote (ncbi_code, species) 
+my $proteomeSpeciesSth = $dbh->prepare("INSERT INTO complete_proteome (ncbi_code, species) 
 										VALUES (?, ?, ?)") or die $dbh->errstr;
 
 #Can we see the file containing the proteome data list. This will have been downloaded at sequence
-#update time to ensure maximum union of the sequence ids btween Integr8 and pfamseq.
+#update time to ensure maximum union of the sequence ids between uniprot complet proteiome and pfamseq.
 my $dir = $config->localDbsLoc."/proteome/Release" . $relNum;
-open(_PROT, "$dir/proteome_report.txt") || die "Could not open $dir/proteome_report.txt:[$!]\n";
+open(_PROT, "$dir/list") || die "Could not open $dir/list:[$!]\n";
 
 #-------------------------------------------------------------------------------
 #Start off with empty tables
-
+$logger->debug("Deleteing from complete_proteomes");
 my $st = $dbh->prepare("delete from complete_proteomes") or $logger->logdie( "Failed to delete from proteomes, could not prepare:".$dbh->errstr );
 $st->execute() or $logger->logdie( "Failed to delete from proteomes, could not execute:".$dbh->errstr );
 $st->finish() or $logger->logdie( "Failed to delete from proteomes, could not finish:".$dbh->errstr );
 
+#Reset all genome_seqs to be zero.
+$logger->debug("Reseting pfamseq genome seqs");
+$dbh->do('update pfamseq s set genome_seq = 0');
 #-------------------------------------------------------------------------------
 #Get auto_pfamseq mapping
 $logger->info("Getting pfamseq accessions/auto_pfamseq");
 
-my $newSeqSth =
-  $dbh->prepare("select pfamseq_acc, auto_pfamseq from pfamseq")
+my $seqSth =
+  $dbh->prepare("select auto_pfamseq from pfamseq where pfamseq_acc = ?")
   or $logger->logdie('select prepare failed:'. $dbh->errstr );
-$newSeqSth->execute or $logger->logdie('select execution failed:'. $dbh->errstr );
-my $res = $newSeqSth->fetchall_arrayref;
-my $pfamseqAutos;
-foreach my $r (@$res) {
-  $pfamseqAutos->{ $r->[0] } = $r->[1];
-}
+
 
 #-------------------------------------------------------------------------------
+#Right, we have had some issues with the kingdom not being set in the website
+#properly.....trying to fix here.....
 
+my @king = $pfamDB->getSchema->resultset('Taxonomy')->search({ 'rank' => 'superkingdom'});
 
 
 #Get the current list of complete proteomes
 my (%ncbi_codes);
 while(<_PROT>) {
-  if (/(\d+)\s+(\d+)\s+(.*)\s+(\S+)\s+(\d+)\s+$/) {
-      my $fp = $1;
-      my $text = $3; 
-      my $code = $2; 
-      my $filename = $4;
-	  #print "$code, $text, $filename\n";
-      $ncbi_codes{$filename}{"text"} = $text;
-      $ncbi_codes{$filename}{"code"} = $code;
-      $ncbi_codes{$filename}{"pref"} = $fp;
-  }else{
-  	warn "Unrecognised line:$_\n";
+  my @line  = split(/\t/, $_);
+  next if $line[0] eq 'Taxon';
+  #Conent should be smething lile
+  #Taxon  Mnemonic  |Scientific name |Common name |Synonym |Other Names |Reviewed  Rank  Lineage Parent
+  
+  #If this taxon in the database?
+  my $row = $pfamDB->getSchema->resultset('Taxonomy')->find({ncbi_taxid => $line[0]});
+  
+  next if(!$row);
+  
+  my $king = undef;
+  foreach my $k (@king){
+    if($row->lft >= $k->lft and $row->rgt <= $k->rgt){
+      $king = $k->level;
+    } 
   }
+  
+  
+  
+  $ncbi_codes{$line[0]}{"text"} = $line[2];
+  $ncbi_codes{$line[0]}{"code"} = $line[0];
 }
 close(_PROT);
 
+p(%ncbi_codes);
+exit;
 
 #For each proteome, get the list of sequences, then start working on combining with Pfam   
 foreach my $file (keys %ncbi_codes){
 	print "Working on $file\n";
 	#Try and open up the file
 	my ($genomic_sequence_length, %store_acc);
-	if(-s "$dir/".$ncbi_codes{$file}{"pref"}.".$file.fasta.gz"){
-		open(FILE, "gunzip -c $dir/".$ncbi_codes{$file}{"pref"}.".$file.fasta.gz|") || die "Counld not gunzip file\n";
+	if(-s "$dir/$file.fasta"){
+		open(FILE, "<", "$dir/$file.fasta") || die "Counld not open file, $dir/$file.fasta:[$!]\n";
 		my ($acc, $id);
     	while(<FILE>){
 	    	if ($_ =~ /\>\S{2}\|(\S{6})[\-\d]{0,2}\|(\S+)/){
@@ -112,7 +125,7 @@ foreach my $file (keys %ncbi_codes){
     		}
     	}
 		close(FILE);
-		process_proteome($ncbi_codes{$file}{"code"}, $ncbi_codes{$file}{"text"},  \%store_acc, $pfamseqAutos);
+		process_proteome($ncbi_codes{$file}{"code"}, $ncbi_codes{$file}{"text"},  \%store_acc, $seqSth);
 	}else{
 		warn "$dir/".$ncbi_codes{$file}{"pref"}.".$file.fasta.gz has no size\n";
 	}
@@ -122,7 +135,7 @@ $dbh->do('update complete_proteomes c set total_aa_length = (select sum(length) 
 $dbh->do('update pfamseq s, proteome_pfamseq p set genome_seq = 1 where  s.auto_pfamseq=p.auto_pfamseq');
 
 sub process_proteome {
-  my($ncbi_code, $ncbi_species, $storeAccRef, $pfamseqAutos) = @_;
+  my($ncbi_code, $ncbi_species, $storeAccRef, $seqSth) = @_;
   
   my $r =  $pfamDB->getSchema->resultset('CompleteProteomes')->find_or_create({ ncbi_taxid => $ncbi_code,
                                                                                 species    => $ncbi_species });
@@ -131,9 +144,11 @@ sub process_proteome {
   my $count = 0;
   my @insertThis;
   foreach my $gs (keys %{$storeAccRef}) {
-  	if($pfamseqAutos->{$gs}){
+    $seqSth->execute($gs);
+    my $rowRef = $seqSth->fetchrow_arrayref;
+    if(defined($rowRef)){
   	  $count++;
-  	  push(@insertThis, '('.$autoProteome.','.$pfamseqAutos->{$gs}.')' );
+  	  push(@insertThis, '('.$autoProteome.', '.$rowRef->[0].')' );
   	}else{
   	   $logger->debug($gs." is not in pfamseq"); 
   	}
