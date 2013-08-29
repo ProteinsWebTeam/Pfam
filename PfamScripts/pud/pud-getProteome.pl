@@ -25,15 +25,14 @@ die 'Failed, got ' . $response_list->status_line .
 
 my $summary = "http://www.uniprot.org/taxonomy/?query=$proteome&format=tab";
 
-$response_list = $agent->get($summary);
-die 'Failed, got ' . $response_list->status_line .
-  ' for ' . $response_list->request->uri . "\n"
-  unless $response_list->is_success;
+my $response_sum = $agent->get($summary);
+die 'Failed, got ' . $response_sum->status_line .
+  ' for ' . $response_sum->request->uri . "\n"
+  unless $response_sum->is_success;
 
 open(L,">", "taxonomy_list") or die;
-print L $response_list->content;
+print L $response_sum->content;
 close(L);
-
 
 # For each taxon, mirror its proteome set in FASTA format.
 for my $taxon (split(/\n/, $response_list->content)) {
