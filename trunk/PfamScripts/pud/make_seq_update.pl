@@ -24,11 +24,16 @@ use LWP::UserAgent;
 use Cwd;
 use Log::Log4perl qw(:easy);
 use Date::Object;
+use File::Touch;
+use Config::General qw(SaveConfig);
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::SVN::Client;
 my $config = Bio::Pfam::Config->new;
+
+my $connection = $config->pfamlive;
+
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
   %{  $config->pfamlive }
 );
@@ -195,6 +200,20 @@ unless(-e "$statusdir/updated_pfamseq"){
 
 
 #-------------------------------------------------------------------------------
+#Now run antifam against pfamseq and remove any sequences that match it. 
+#Will remove from the database and sequence file.  
+
+unless(-e "$statusdir/antifam_pfamseq"){
+  $logger->info("Removing antifam matches from pfamseq");
+  system("pud-removeAntiFamMatches.pl -status_dir $statusdir -pfamseq_dir $pfamseqdir$newrelease_num")
+    and $logger->logdie("Failed to run pud-update_pfamseq.pl:[$!]");
+  $logger->info("Updated pfamseq based on antifam matches.");
+  system("touch $statusdir/antifam_pfamseq") and $logger->logdie("Could not touch $statusdir/antifam_pfamseq");
+}else{
+  $logger->info("Already updated pfamseq based on antifam matches.");   
+}
+
+#-------------------------------------------------------------------------------
 ## get GenPept from NCBI - takes about 1 hour to download. 12 hours to upload 
 unless(-e "$statusdir/ncbi"){  
   system("pud-ncbi.pl -version $newrelease_num") and 
@@ -263,8 +282,16 @@ unless(-e "$statusdir/uploaded_proteomes"){
 #-------------------------------------------------------------------------------
 #Update metaseq!(takes 0 mins )
 
-#At the moment there is not update
-$logger->warn('Until we have a good source of metaseq data, there is nothing to do.'); 
+#Get the representative proteomes from PIR and set the flags in pfamseq.
+unless(-e "$statusdir/uploaded_reprentative_proteomes"){
+  $logger->info("Gathering representative proteomes");
+  system("pud-getRepresentativeProteomes.pl -statusdir $statusdir") 
+    and $logger->logdie("Failed to run |pud-getRepresentativeProteomes.pl -statusdir $statusdir|:[$!]");
+  $logger->info("Finished uploading reprentative proteomes");
+  system("touch $statusdir/uploaded_reprentative_proteomes") and $logger->logdie(die "couldn't touch $statusdir/uploaded_proteomes:[$!]");
+}else{
+  $logger->info("Already uploaded representative proteomes");  
+}
 
 #-------------------------------------------------------------------------------
 #SVN commit new sequence databases
@@ -292,15 +319,15 @@ $logger->warn('Until iPfam is resurrected, there is nothing to do.');
 # This took 2.5 without the upload (done manaually afterwards) - takes about another 2 hours to upload
 unless(-e "$statusdir/done_update_pdb" ){
   $logger->info("Preparing to fetch all the latest pdb data.");
-  system("pud-getPdbData.pl $statusdir") 
-    and $logger->logdie("Failed to run pud-getPdbData.pl:[$!]");
+  system("pud-getPdbDataFromSifts.pl $statusdir") 
+    and $logger->logdie("Failed to run pud-getPdbDataFromSifts.pl:[$!]");
   $logger->info("Updated pdb data");
   system("touch $statusdir/done_update_pdb") 
     and $logger->logdie("Failed to touch $statusdir/done_update_pdb");
 }else{
   $logger->info("Already done pdb upload\n");
 }
-
+exit;
 #-------------------------------------------------------------------------------
 #Calculate the other regions - This takes about 5 hours to calculate....Hmm we may want to fork here (rdf)
 unless(-e "$statusdir/done_other_reg_update"){
@@ -345,10 +372,124 @@ unless(-e "$statusdir/done_checked_out_families") {
   $logger->info("Already check out all families into $migrationDir/Families");
 }
 
+#Make the shuffled/reversed sequence database.
+if(-e "$statusdir/shuffled_pfamseq"){
+  $logger->info("Already made suffled pfamseq!");  
+}else{
+  $logger->info("Going to shuffle pfamseq");
+  my $pwd = getcwd;
+  chdir("$pfamseqdir$newrelease_num") 
+    or $logger->logdie("Failed to change directory to $pfamseqdir$newrelease_num");
+  
+  system("esl-shuffle pfamseq > shuffled") and $logger->logdie("failed to run esl-shuffle!");
+  system("esl-sfetch --index shuffled") and $logger->logdie("failed to index shuffled database!");
+  
+  touch("$statusdir/shuffled_pfamseq") or $logger->logdie("Failed to touch file");
+  
+  chdir("$pwd") 
+    or $logger->logdie("Failed to change directory to $pwd");
+}
+
+
+#Index pfamseq sequence database.
+if(-e "$statusdir/index_pfamseq"){
+  $logger->info("Already made index for pfamseq!");  
+}else{
+  $logger->info("Going to shuffle pfamseq");
+  my $pwd = getcwd;
+  chdir("$pfamseqdir$newrelease_num") 
+    or $logger->logdie("Failed to change directory to $pfamseqdir$newrelease_num");
+  
+  system("esl-sfetch --index pfamseq") and $logger->logdie("failed to index pfamseq database!");
+  
+  touch("$statusdir/index_pfamseq") or $logger->logdie("Failed to touch file");
+  
+  chdir("$pwd") 
+    or $logger->logdie("Failed to change directory to $pwd");
+}
+
+#Copy pfamseq to nfs
+if(-e "$statusdir/copied_pfamseq") {
+    $logger->info("Already copied pfamseq to nfs directory\n");
+} else {
+    $logger->info("Copying pfamseq to nfs directory\n");
+    my $pfamseq_nfs = $config->pfamseqLoc;
+
+    unlink glob("$pfamseq_nfs/*") or $logger->logdie("Problem deleting files in $pfamseq_nfs\n");
+    my @pfamseq_files = qw(pfamseq pfamseq.pal pfamseq.ssi);
+    open(PAL, "pfamseq.pal") or $logger->logdie("Could not open pfamseq.pal:[$!]");
+    while(<PAL>){
+      if(/^DBLIST\s+(.*)/){
+        my $l = $1; #$l contains the list of virtual databases;
+        foreach my $bit (split(/\s+/, $l)){
+          foreach my $ext (qw(phr pin psq)){
+            push(@pfamseq_files, $bit.".".$ext);
+          }
+        }
+      }
+    }
+    close(PAL);
+
+    foreach my $f (@pfamseq_files) {
+        $logger->debug("Copying $f");
+        copy($f, $pfamseq_nfs."/".$f) or $logger->logdie("Copy $f to $pfamseq_nfs failed: $!");
+    }
+    touch("$statusdir/copied_pfamseq") or $logger->logdie("Couldn't touch $statusdir/copied_pfamseq");
+    
+  $logger->info("Updating lustre pfamseq link");
+  unlink(  $config->pfamseqLustreLoc);
+  symlink( "$pfamseqdir$newrelease_num", $config->pfamseqLustreLoc );
+  unless(-e $config->pfamseqLustreLoc){
+    $logger->logdie("Failed to symlink lustre location of pfamseq\n");  
+  }
+}
 
 #Now check that the families agree with the database.
 #TODO.....Although this should never be out of sync.... ;-)
 
+#Change PFAM_CONFIG
+if(-e "$statusdir/changed_pfam_config") {
+    $logger->info("Already changed pfam config file\n");
+}
+else {
+    $logger->info("Changing pfam config file\n");
+    
+    my $dbsize = 0;
+    open(F, "<", "$pfamseqdir$newrelease_num/DBSIZE") or $logger->logdie("Could not open  $pfamseqdir$newrelease_num/DBSIZE:[$!]");
+    while(<F>){
+      if(/(\d+)/){
+        $dbsize = $1;   
+      }
+    }
+    close(F);
+    
+    unless($dbsize > 20000000){
+      $logger->logdie("Got database size of $dbsize, expected bigger!");   
+    }
+    
+    
+    my $c = new Config::General($ENV{PFAM_CONFIG}); 
+    my %ac = $c->getall; 
+    
+    my $pfam_config = $ENV{PFAM_CONFIG};
+    move($pfam_config, "$pfam_config.old") or $logger->logdie("Could not move config file");;
+    $ac{pfamseq}->{dbsize} = $dbsize; 
+    $ac{shuffled}->{dbsize} = $dbsize; 
+    
+    SaveConfig($pfam_config, \%ac);
+
+    my $newConfig;
+    eval { 
+  $newConfig = Bio::Pfam::Config->new; 
+
+    };
+    if($@) { 
+  $logger->logdie("Problem modifying the pfam_config ($pfam_config) file");
+    }
+    $config = $newConfig;
+
+  touch("$statusdir/changed_pfam_config") or $logger->logdie("Couldn't touch $statusdir/changed_pfam_config:[$!]\n"); 
+}
 
 #Find out which families require seed surgery and fix them. This will also check out families that do not require surgery....
 if(! -e "$statusdir/done_seed_surgery") {
@@ -419,6 +560,9 @@ if (! -e "$statusdir/searched_all_non_surgery_families"){
     if(-e "ALIGN"){
       move("ALIGN", "ALIGN.b4mig") or
         $logger->logdie("Failed to move ALIGN sideways because:[$!]");
+    }
+    if(-e "PFAMOUT"){
+      unlink("PFAMOUT");  
     } 
     eval{
       system("pfbuild.pl -withpfmake");
@@ -516,7 +660,7 @@ if(! -e "$statusdir/families_checked_in") {
     }
     system("touch $statusdir/families_checked_in") and die "Cannot run touch:[$!]";
 } else {
-    $logger->infot("Already checked in all families\n");
+    $logger->info("Already checked in all families\n");
 }
 
 #Start up the clan dequeuer

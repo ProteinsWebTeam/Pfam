@@ -1,41 +1,42 @@
 #!/usr/bin/env perl 
 
-# This script is designed to get the latest proteomes from Intergr8 at the ebi.
-# This data is processed by another script, this simply downloaded.
-# Author: mm1
-# Maintainer: rdf
-
-
 use strict;
 use warnings;
+use LWP::UserAgent;
+use File::Temp qw(tempdir);
+use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
+use IO::Compress::Gzip qw(gzip);
+use Data::Printer;
+use Log::Log4perl qw( :easy );
 
-my $output_dir = shift;
+use Bio::Pfam::Config;
+use Bio::Pfam::PfamLiveDBManager;
 
-chdir "$output_dir" or die "couln't change dir";
+#Start up the logger
+Log::Log4perl->easy_init($DEBUG);
+my $logger = get_logger();
 
-my $url = "ftp://ftp.ebi.ac.uk/pub/databases/SPproteomes/fasta/proteomes/";
+my $dir = 
 
+my $proteome = 'complete:yes';
+my $url = 'www.uniprot.org';
+my $agent = LWP::UserAgent->new;
+# Get a list of all taxons below the top node with a complete/reference proteome.
+my $query_list = 'http://'.$url."/taxonomy/?query=$proteome&format=list";
+my $response_list = $agent->get($query_list);
+$logger->logdie( 'Failed, got ' . $response_list->status_line .
+  ' for ' . $response_list->request->uri ) unless $response_list->is_success;
 
-system("wget $url") and die "wget failed";
+# For each taxon, mirror its proteome set in FASTA format.
 
-print STDERR "Getting list of genome fasta files\n";
- 
-open(_URL, "index.html") or die "Could not open index.html";
-
-while(<_URL>) {
-  if ($_ =~ /(\d+\.\S+\.FASTA\.gz)/i) {
-   
-    my $file = $1;
-   
-    my $new_url = $url . $file;
-    print "getting $new_url\n";
-    system ("wget  $new_url") and die "couln't download $new_url";
-    
+  my $version = 0;
+  for my $taxon (split(/\n/, $response_list->content)) {
+    my $file = $taxon . '.fasta';
+    my $query_taxon = 'http://'.$url."/uniprot/?query=organism:$taxon&format=fasta&include=yes";
+    my $response_taxon = $agent->mirror($query_taxon, $file);
+    if ($response_taxon->is_success) {
+      $logger->debug("Got file");
+    }else{
+      $logger->logdie('Failed, got ' . $response_taxon->status_line .' for ' . $response_taxon->request->uri);
+    }
   }
-}
-
-close(_URL);
-
-# Need to get the report so that we know which genome corresponds to which file
-print STDERR "Getting proteome report\n";
-system("wget ftp://ftp.ebi.ac.uk/pub/databases/SPproteomes/proteome_report.txt") and die "couldn't get proteome_report.txt" ;
