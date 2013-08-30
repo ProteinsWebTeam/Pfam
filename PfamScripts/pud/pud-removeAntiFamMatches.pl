@@ -220,8 +220,8 @@ if ( !-e "$statusdir/updated_pfamseq_antifam" ) {
       #Add the data to the antifam table
       $sthPfamseqAntifam->execute(@$newData) or $logger->logdie( $dbh->errstr );
 
-      #Now detele the rwo from pfamseq.
-      $sthDel->execute($key) or $logger->logdie( $dbh->errstr );
+      #Now detele the row from pfamseq.
+      $sthDel->execute($acc) or $logger->logdie( $dbh->errstr );
 
       $c++;
       if ( $c == 500 ) {
