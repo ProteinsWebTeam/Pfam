@@ -114,19 +114,12 @@ $logger->info("Finished secondary accession query");
 
 #-------------------------------------------------------------------------------
 #Get a list of new pfamseq Accessions and their md5 chechsums.
-$logger->info("Getting (new) pfamseq accessions");
+$logger->info("Preparing (new) pfamseq md5 lookup");
 
 my $newSeqSth =
-  $dbh->prepare("select pfamseq_acc, seq_version, md5 from pfamseq")
+  $dbh->prepare("select pfamseq_acc, seq_version from pfamseq where md5 = ?")
   or die $dbh->errstr;
-$newSeqSth->execute or die $dbh->errstr;
-$res = $newSeqSth->fetchall_arrayref;
-my $newSeqs;
 
-foreach my $r (@$res) {
-  $newSeqs->{ $r->[2] }->{version} = $r->[1];
-  $newSeqs->{ $r->[2] }->{acc}     = $r->[0];
-}
 
 $logger->info("Finished getting (new) pfamseq accessions");
 
@@ -183,7 +176,7 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
 
   #Find out which sequnces have changed in the alignment.
   my $needHMMAlign =
-    verifySeedSeqs( $oldseed, $newseed, $seedSeqsHash, $newSeqs, $oldMd5s,
+    verifySeedSeqs( $oldseed, $newseed, $seedSeqsHash, $newSeqSth, $oldMd5s,
     $secAccs, $descObj );
 
   #Those where the sequence has changed, the sequences need to aligned back
@@ -220,7 +213,8 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
 }
 
 sub verifySeedSeqs {
-  my ( $oldseed, $newseed, $seedSeqHash, $newSeqs, $oldMd5s, $secAccs,
+  my ( $oldseed, $newseed, $seedSeqHash, 
+  $newSeqsSth,  $oldMd5s, $secAccs,
     $descObj ) = @_;
   my $needHMMAlign = 0;
 
@@ -233,7 +227,13 @@ sub verifySeedSeqs {
   #Go through each sequence and see if it is still in pfamseq.
   foreach my $seq ( $oldseed->each_seq ) {
 
-    my ( $newsubseq, $deleted, $realign );
+    my ( $newsubseq, $deleted, $realign, $md5Map );
+    if($oldMd5s->{ $seq->id }){
+      #Perform a quick lookup to get the data;
+      $newSeqsSth->execute($oldMd5s->{ $seq->id });
+      $md5Map = $newSeqsSth->fetchrow_arrayref;  
+    }
+
 
     #Check that sequence is still in pfamseq;
     if ( $seedSeqHash->{ $seq->id } ) {
@@ -250,9 +250,9 @@ sub verifySeedSeqs {
       );
 
     } #Look to see if there is a sequence that is the same based on MD5 checksum.
-    elsif ( $oldMd5s->{ $seq->id } and $newSeqs->{ $oldMd5s->{ $seq->id } } ) {
-      my $newAcc = $newSeqs->{ $oldMd5s->{ $seq->id } }->{acc};
-      my $newVer = $newSeqs->{ $oldMd5s->{ $seq->id } }->{version};
+    elsif ( $oldMd5s->{ $seq->id } and defined($md5Map) ) {
+      my $newAcc = $md5Map->[0];
+      my $newVer = $md5Map->[1];
 
       $newsubseq = Bio::Pfam::SeqPfam->new(
         '-seq'     => $seq->seq,
@@ -393,7 +393,7 @@ sub replaceSequence {
 
   #Now perform the SW alingment - uses the EMBOSS binary.
   system(
-"/software/pubseq/bin/emboss/bin/water -asequence $$.seqa -bsequence $$.seqb -gapopen 10.0 -gapextend 0.5 -outfile $$.water"
+"water -asequence $$.seqa -bsequence $$.seqb -gapopen 10.0 -gapextend 0.5 -outfile $$.water"
   ) and $logger->logdie("Failed to run smith-waterman:[$!]");
 
   #Now parse the results of SW. We want the start end points of the new sequence
@@ -443,7 +443,7 @@ sub appendNewSequences {
   $ali1->write_Pfam( \*S );
   close(S);
   
-  #At the moment H£ does not support the --with
+  #At the moment H3 does not support the --withali
   unless(-e "HMM.2"){
    system( $config->hmmer3bin."/hmmconvert -2 HMM > HMM.2") 
       and $logger->logdie("Could not convert HMM to HMMER2 format");
