@@ -72,11 +72,11 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH,   $executable, "investigate and
 
 &GetOptions( "t=s"        => \$ga_thr,
              "e=s"        => \$evalue,
-             "q=s"        => \$q_opt, 
              "a",         => \$do_align, 
              "r"          => \$do_repalign,
-             "farm"       => \$always_farm,  
+             "q=s"        => \$q_opt, 
              "local"      => \$always_local,
+             "farm"       => \$always_farm,  
              "nproc=n"    => \$nproc,
              "prob"       => \$do_pp,
              "nper=n",    => \$nper,
@@ -423,6 +423,10 @@ sub get_representative_subset {
   my $all_nres = 0;  # total # residues in all representative seqs
   foreach $group (@groupOA) { 
     if(exists $groupOHA{$group}) { 
+      # HERE HERE HERE HERE: 
+      # 1. WRITE A FUNCTION TO RANDOMLY CHOOSE SEQS TO A CONCATNEATED STRING
+      # 2. 
+
       # first, if there's more than $max_nseq sequences, randomly select $max_nseq, 
       # we do this so the all versus all doesn't take forever
       if(scalar(@{$groupOHA{$group}}) > $max_nseq) { 
@@ -599,7 +603,7 @@ Options:    -t <f>  set threshold as <f> bits
             -nper <n>   with -r, set number of seqs per group (SEED, FULL, OTHER) to <n> [default: 30]
             -seed <n>   with -r, set RNG seed to <n>, '0' for one-time arbitrary seed [default: 181]
             -emax <f>   with -r, set maximum E-value   for inclusion in "OTHER" group to <f> [default: 10]
-            -minbit <f> with -r, set minimum bit score for inclusion in "OTHER" group to <f> [default: E-value of 10]
+            -bitmin <f> with -r, set minimum bit score for inclusion in "OTHER" group to <f> [default: E-value of 10]
 	    -cmos <str> add extra arbitrary option to cmalign with '-<str>'. (Infernal 1.1, only option is '-g')
             -cmod <str> add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
 	                -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
