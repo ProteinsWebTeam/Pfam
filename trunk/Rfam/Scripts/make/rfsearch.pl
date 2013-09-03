@@ -67,6 +67,11 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "E=s",       => \$evalue,
+	     "nosearch"   => \$no_search,
+	     "norev"      => \$no_rev_search, 
+	     "scpu=s"     => \$ncpus_cmsearch,
+             "cmos=s@"    => \@cmosA,
+             "cmod=s@"    => \@cmodA,
 	     "dbchoice=s" => \$dbchoice,
 	     "dbfile=s"   => \$dbfile, 
 	     "dbdir=s"    => \$dbdir, 
@@ -76,11 +81,7 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate,
 	     "rdbfile=s"  => \$rev_dbfile, 
 	     "rdbdir=s"   => \$rev_dbdir, 
              "rZ=s"       => \$rev_Zuser,
-	     "nosearch"   => \$no_search,
-	     "norev"      => \$no_rev_search, 
-	     "scpu=s"     => \$ncpus_cmsearch,
-             "cmos=s@"    => \@cmosA,
-             "cmod=s@"    => \@cmodA,
+             "q=s"        => \$q_opt, 
              "ssopt=s@"   => \@ssoptA,
 	     "dirty"      => \$do_dirty,
 	     "h|help"     => \$do_help );
@@ -750,10 +751,12 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -dbdir <s>     set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
             -dblist <s>    set sequence database to search as all files listed in dir <s>
             -noZ           with -dbdir or -dblist, do not set database size, E-values will pertain to per-file searches
+            -Z <f>         set database size as <f>
             
             OPTIONS SPECIFYING REVERSED SEQUENCE DATABASE TO SEARCH:
             -rdbfile <s>   set reversed sequence database to search as file <s>
             -rdbdir <s>    set reversed sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
+            -rZ <f>        set reversed sequence database size as <f>
 
             OTHER OPTIONS:
             -q <str>     specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
