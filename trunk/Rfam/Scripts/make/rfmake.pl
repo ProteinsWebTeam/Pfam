@@ -232,7 +232,8 @@ $io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_thr, $config
 my $orig_ga_thr = $famObj->DESC->CUTGA;
 my $orig_nc_thr = $famObj->DESC->CUTNC;
 my $orig_tc_thr = $famObj->DESC->CUTTC;
-set_nc_and_tc($famObj, $ga_thr, "outlist");
+#set_nc_and_tc($famObj, $ga_thr, "outlist");
+tmp_cvs2svn_set_nc_and_tc($famObj, $ga_thr, "outlist");
 
 ####################
 # create SCORES file
@@ -381,6 +382,54 @@ sub set_nc_and_tc {
   }    
   if ($nc eq "undefined") { 
     die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
+  }
+
+  $famObj->DESC->CUTGA($ga);
+  $famObj->DESC->CUTTC($tc);
+  $famObj->DESC->CUTNC($nc);
+
+  return;
+}
+# tmp_cvs2svn_set_nc_and_tc: 
+# TEMPORARY FUNCTION TO BE REPLACED WITH set_nc_and_tc
+# once conversion to SVN is complete (09/13 or 10/13).
+#
+# set_nc_and_tc: given a GA bit score cutoff and an outlist, determines
+# the NC and TC thresholds. If no hits below GA exist, set GA as defined
+# (input as $ga) and set NC as 1/2 bit lower than that.
+
+sub tmp_cvs2svn_set_nc_and_tc { 
+
+  my ($famObj, $ga, $outlist) = @_;
+  my ($tc, $nc, $bits, $line);
+  $nc = "undefined";
+  $tc = "undefined";
+
+  open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
+
+  while ($line = <OUTLIST>) {
+    if ($line !~ m/^\#/) { 
+      # first token is bit score
+      chomp $line;
+      $bits = $line;
+      $bits =~ s/^\s+//;  # remove leading whitespace
+      $bits =~ s/\s+.*$//;
+	    
+      if ($ga <= $bits && ($tc eq "undefined" || ($bits < $tc))) {
+        $tc = $bits;
+      }
+      if ($ga  > $bits && ($nc eq "undefined" || ($bits > $nc))) {
+        $nc = $bits;
+      }
+    }
+  }
+
+  if ($tc eq "undefined") { 
+    die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
+  }    
+  if ($nc eq "undefined") { 
+    #die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
+    $nc = $ga - 0.5;
   }
 
   $famObj->DESC->CUTGA($ga);
