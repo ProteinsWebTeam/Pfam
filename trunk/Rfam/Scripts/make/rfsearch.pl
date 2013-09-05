@@ -92,7 +92,7 @@ if ( $do_help ) {
 }
 
 # output header
-my $user  = getlogin() || getpwuid($<);
+my $user  = getpwuid($<);
 if (! defined $user || length($user) == 0) { 
   die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]";
 }
