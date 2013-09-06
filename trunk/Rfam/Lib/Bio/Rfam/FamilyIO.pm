@@ -32,6 +32,7 @@ use Text::Wrap;
 use Carp;
 use Data::Printer;
 use Cwd 'abs_path';
+use File::Copy;
 use Moose;
 
 use Bio::Rfam::Config;
@@ -576,17 +577,21 @@ sub parseDESC {
 
   for ( my $i = 0 ; $i <= $#file ; $i++ ) {
     my $l = $file[$i];
-    chomp($l);
     if ( length($l) > $expLen ) {
       croak("\nGot a DESC line that was longer than $expLen, $file[$i]\n\n"
             . "-" x 80
             . "\n" );
     }
+    
+    chomp($l);
     #Do not permit tabs.
-    if($l =~ /\t/ or $l =~ /.*\s$/){
+    if($l =~ /\t/ ){
       croak("A tab character or a terminal whitespace found in $l of your DESC file!\n");
     }
-
+    if( $l =~ /\s+\n/ms){
+      croak("A terminal whitespace found in $l of your DESC file!\n");
+    }
+    
     if ( $file[$i] =~ /^(AC|ID|AU|SE|TP|TX|SQ|CL|FR|SN)\s{3}(.*)$/ ) {
       if ( exists( $params{$1} ) ) {
         croak("Found second $1 line, only expecting one\n");
@@ -771,13 +776,13 @@ sub parseDESC {
     }elsif($file[$i] =~ /^CM\s{3}(.*)$/){
       my $cmLine = $1;
       #Have we already seen one.
-      if ( exists( $params{CM} ) ) {
-        croak("Found second CM line, only expecting one\n");
+      if ( exists( $params{SM} ) ) {
+        croak("Found second SM line, only expecting one\n");
       }
       
       #--cpu <n> --verbose (-E or -T) <f> -Z <f>
-      if($cmLine !~ /^cmsearch\s+--cpu \d+ --verbose -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )?CM SEQDB$/){
-        croak("\nFATAL: Your CM cmsearch line doesn't look right [$cmLine]\n");
+      if($cmLine !~ /^cmsearch\s+--cpu \d+ --verbose -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )? CM SEQDB$/){
+        croak("\nFATAL: Your SM cmsearch line doesn't look right [$cmLine]\n");
       }else{
         #If we get here, should be okay
         $params{'CM'} = $cmLine;
@@ -857,7 +862,11 @@ sub parseDESC {
       my $ref;
     REFLINE:
       foreach ( my $j = $i ; $j <= $#file ; $j++ ) {
-        if ( $file[$j] =~ /^(\w{2})\s{3}(.*)/ ) {
+        chomp($file[$j]);
+        if($file[$j] =~ /\t/ or $file[$j] =~ /\s$/ ){
+          croak("A terminal whitespace found in |$file[$j]| of your DESC file!\n");
+        }
+        if ( $file[$j] =~ /^(\w{2})\s{3}(.*?);?$/ ) {
           my $thisTag = $1;
           if ( $ref->{$1} ) {
             $ref->{$1} .= " $2";
@@ -958,15 +967,15 @@ sub parseDESC {
 
           #PKBASE; PKB00277
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (snoopy); (.*);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR   (snoopy); ([^;\s]*);?$/ ) {
 
           #snoopy;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (MIR); (.*);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR   (MIR); ([^;\s]*);?$/ ) {
 
           #MIR; MI0001007;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (URL); (.*);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR   (URL); ([^;\s]*);?$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         } elsif ( $file[$i] =~ /^DR/ ) {
           confess( "Bad reference line: unknown database |$file[$i]|.\n"
@@ -994,6 +1003,11 @@ sub parseDESC {
       #croak($msg);
       die $msg;
     }
+  }
+
+  if(exists($params{CC}) and defined($params{CC})){
+    $params{CC} =~ s/\t/ /g;
+    $params{CC} =~ s/\s+/ /g;
   }
 
   my $desc = 'Bio::Rfam::Family::DESC'->new(%params);
@@ -1032,9 +1046,14 @@ sub writeDESC {
   } else {
     $descfile = "DESC";
   }
+  
+  if(-e $descfile){
+    copy($descfile, $descfile.".$$");
+  }
   open( D, ">$descfile" )
-    or die "Could not open $descfile file for writing to\n";
-
+    or die "Could not open $descfile file for writing to\n"; 
+  
+  $Text::Wrap::unexpand = 0;
   $Text::Wrap::columns = 80;
   foreach my $tagOrder ( @{ $desc->order } ) {
     if ( length($tagOrder) == 2 ) {
