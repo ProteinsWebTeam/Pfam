@@ -747,8 +747,10 @@ sub parseDESC {
 #    BM   cmbuild  -F CM SEED
 #    CB   cmcalibrate --mpi -s 1 CM
 #    SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB  
-      
-    #This is quite strict to only allow parameted that Eric and Rob think will be used.
+#         note: SM can be multiple lines, so we concatenate it freely,
+#         then we validate it after all DESC lines have been parsed
+   
+    #This is quite strict to only allow parameters that Eric and Rob think will be used.
     elsif($file[$i] =~ /^BM\s{3}(.*)$/){
       my $bmLine = $1;
       #Have we already seen one.
@@ -773,20 +775,13 @@ sub parseDESC {
       }else{
         $params{'CB'} = $cbLine;
       }
-    }elsif($file[$i] =~ /^CM\s{3}(.*)$/){
-      my $cmLine = $1;
-      #Have we already seen one.
-      if ( exists( $params{SM} ) ) {
-        croak("Found second SM line, only expecting one\n");
+    }elsif($file[$i] =~ /^SM\s{3}(.*)$/){
+      my $sm = $1;
+      if ($params{SM}) {
+        $params{SM} .= " "; #simply concatenate it, it can be >1 line, so we validate later
       }
-      
-      #--cpu <n> --verbose (-E or -T) <f> -Z <f>
-      if($cmLine !~ /^cmsearch\s+--cpu \d+ --verbose -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )? CM SEQDB$/){
-        croak("\nFATAL: Your SM cmsearch line doesn't look right [$cmLine]\n");
-      }else{
-        #If we get here, should be okay
-        $params{'CM'} = $cmLine;
-      }
+      $params{SM} .= $sm;
+      next;
     }elsif ( $file[$i] =~ /^(TC|NC|GA)\s{3}(\S+)$/ ) {
       $params{ "CUT" . $1 } = $2;
     } elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
@@ -805,13 +800,6 @@ sub parseDESC {
       } else {
         $params{"WIKI"} = { $page => 1 };
       }
-    } elsif ( $file[$i] =~ /^SM\s{3}(.*)$/ ) {
-      my $sm = $1;
-      if ( $params{SM} ) {
-        $params{SM} .= " ";
-      }
-      $params{SM} .= $sm;
-      next;
     } elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
       
@@ -1008,6 +996,15 @@ sub parseDESC {
   if(exists($params{CC}) and defined($params{CC})){
     $params{CC} =~ s/\t/ /g;
     $params{CC} =~ s/\s+/ /g;
+  }
+
+  # validate SM syntax (need to do it here b/c it can be >1 lines)
+  # should begin with: --cpu <n> --verbose (-E or -T) <f> -Z <f>
+  if(exists($params{SM}) and defined($params{SM})) { 
+    if($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose --nohmmonly -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )? CM SEQDB$/){
+      my $errmsg = sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
+      croak $errmsg;
+    }
   }
 
   my $desc = 'Bio::Rfam::Family::DESC'->new(%params);
