@@ -3,19 +3,24 @@
 use strict;
 use warnings;
 use LWP::Simple qw( $ua );
-use Net::FTP;
+use File::Temp qw(tempfile);
+use File::Touch;
 use XML::XPath;
 use XML::XPath::XMLParser;
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError) ;
-use Net::SCP;
+use Cwd;
 use Log::Log4perl qw(:easy);
+use File::Path qw(make_path);
+use Parallel::ForkManager;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
 
-my($statusdir);
-&GetOptions( "statusdir=s"   => \$statusdir ) or die "Invalid option!\n";
+my($statusdir, $threads);
+$threads = 8;
+&GetOptions( "statusdir=s"   => \$statusdir,
+             "threads=i" ) or die "Invalid option!\n";
 
 
 
@@ -37,8 +42,6 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
-#SCP
-my $scp = Net::SCP->new( { "host"=> $config->pfamliveAdmin->{host} } );
 
 #---------------------------------------------------------------------------------
 #Main
@@ -50,17 +53,17 @@ if(-e "$statusdir/got_pdb_info"){
   $pdb_st->execute;
   %{$pdbs} = map {$_->[0] => 1 }  @{$pdb_st->fetchall_arrayref}; 
 }else{
-  $pdbs = getPdbInfo($logger, $config, $dbh, $scp);
-  system("touch $statusdir/got_pdb_info");
+  $pdbs = getPdbInfo($logger, $config, $dbh);
+  touch("$statusdir/got_pdb_info");
 }
 
-$logger->info("Going to get mapping, $pdbs");
+$logger->info("Going to get mapping");
 if(-e "$statusdir/got_pdb_mapping"){
   $logger->info("Already got the PDB mapping information");
 }else{
   $logger->info("Getting UniProt mapping");
-  getUniProtMapping($logger, $config, $scp, $pdbs, $dbh, $statusdir );
-  system("touch $statusdir/got_pdb_mapping");
+  getUniProtMapping($logger, $config, $pdbs, $dbh, $statusdir, $pfamDB, $threads );
+  touch("$statusdir/got_pdb_mapping");
 }
 
 
@@ -68,7 +71,7 @@ if(-e "$statusdir/got_pdb_mapping"){
 #---------------------------------------------------------------------------------
 
 sub getPdbInfo {
-  my($logger, $config, $dbh, $scp) = @_;
+  my($logger, $config, $dbh) = @_;
   
   #Set the proxy on the user agent if we have one
   #$ua->proxy( http => $config->proxy ) if($config->proxy);
@@ -108,70 +111,107 @@ sub getPdbInfo {
   my %currentPdbs;
   my @pdbIds = split(/\n/, $response->content);
   while(@pdbIds){
-    my @top1000 = splice(@pdbIds, 0, 1000);
-    foreach (@top1000){
+    my @top300 = splice(@pdbIds, 0, 300);
+    foreach (@top300){
       $currentPdbs{$_}++;
     }
-    my $list = join(",", @top1000);
+    my $list = join(",", @top300);
     my $request2 = HTTP::Request->new( GET => 'http://www.rcsb.org/pdb/rest/customReport?pdbids='.$list.
                                             '&customReportColumns=classification,structureTitle,releaseDate,'.
-                                            'resolution,experimentalTechnique,structureAuthor&service=wsdisplay&format=xml');
+                                            'resolution,experimentalTechnique,structureAuthor&service=wsdisplay&format=csv');
     my $response2 = $ua->request($request2);
     if($response2->is_success){
       #split on the br, and skip the first "header" line
       #print STDERR $response2->content;
-      my $xp = XML::XPath->new(xml => $response2->content);
-      my $records = $xp->find('/dataset/record');
-      #my @data = split(/<br \/>/, $response2->content);
+      #my $xp = XML::XPath->new(xml => $response2->content);
+      #my $records = $xp->find('/dataset/record');
+      my @data = split(/<br \/>/, $response2->content);
       #Skip first element as it has the header!
-      #for(my $i=1; $i<=$#data; $i++){
-      #  $data[$i] =~ s/""/"\\N"/g; #Change "" for nulls.
-      #  print PDB $data[$i]."\n";
-      #}
-      my $seen;
-      foreach my $record ($records->get_nodelist){
-        my $thisPdb = $xp->find('structureId', $record)->shift->string_value;
-        next if($seen->{$thisPdb});
-        $seen->{$thisPdb}++;
-        print PDB "$thisPdb\t";
-        foreach my $element (qw(classification structureTitle releaseDate resolution experimentalTechnique structureAuthor)){
-          my $d = $xp->find($element, $record)->shift;
-          print PDB (defined($d) ? ( $d->string_value eq 'null' ? '\N' : $d->string_value ) : '\N');
-          if($element eq 'structureAuthor'){
-            print PDB "\n";
-          }else{
-            print PDB "\t";
-          }
-        }
+      for(my $i=1; $i<=$#data; $i++){
+        $data[$i] =~ s/""/"\\N"/g; #Change "" for nulls.
+        $data[$i] =~ s/","/\t/g;
+        $data[$i] =~ s/"//g;
+        print PDB $data[$i]."\n";
       }
+#      my $seen;
+#      foreach my $record ($records->get_nodelist){
+#        if(!$xp->find('structureId', $record)->shift){
+#          $logger->logdie("Failed to get structureId for ".XML::XPath::XMLParser::as_string($recode));
+#        }
+#        my $thisPdb = $xp->find('structureId', $record)->shift->string_value;
+#        next if($seen->{$thisPdb});
+#        $seen->{$thisPdb}++;
+#        print PDB "$thisPdb\t";
+#        foreach my $element (qw(classification structureTitle releaseDate resolution experimentalTechnique structureAuthor)){
+#          my $d = $xp->find($element, $record)->shift;
+#          print PDB (defined($d) ? ( $d->string_value eq 'null' ? '\N' : $d->string_value ) : '\N');
+#          if($element eq 'structureAuthor'){
+#            print PDB "\n";
+#          }else{
+#            print PDB "\t";
+#          }
+#        }
+#      }
     }else{
       $logger->logdie("Failed to get info for $list:".$response2->status_line);
     }
   } 
   close(PDB);
   $logger->info("Got titles etc. for PDB IDs.");
-    
-  #Copy the file across and upload
-  scpFile($logger, $scp, $localdbs, "pdb.dat");
-  foreach my $table (qw(pdb_residue_data pdb_author pdb_image pdb_pfamA_reg pdb_pfamB_reg pdb)){
+   
+   
+  foreach my $table (qw(pdb_residue_data pdb_image pdb_pfamA_reg pdb_pfamB_reg pdb)){
     $dbh->do("truncate $table")
     or $logger->logdie("Failed to delete contents from $table:".$dbh->errstr);
   }
   $logger->info("Deleted content from PDB tables");
 
-  
+  #Now load into the table.
   $logger->info("Loading PDB table information.");
-  $dbh->do('load data infile "/tmp/pdb.dat" into table pdb;') #FIELDS TERMINATED BY \',\' ENCLOSED BY \'"\' LINES TERMINATED BY \'\n\';')
-    or $logger->logdie("Failed to upload pdb file:".$dbh->errstr );
+  my $sth = $dbh->prepare("INSERT INTO pdb (pdb_id, keywords, title, date, resolution, method, author) values (?, ?, ?, ?, ?, ?,?)"); 
+  _loadTable($dbh, "$localdbs/pdb.dat", $sth, 7); 
   return (\%currentPdbs);
 }
 
-sub scpFile {
-  my($logger, $scp, $path, $file) = @_;
-  
-  #Copy the file to tmp file
-  $scp->put($path."/".$file, "/tmp/".$file) 
-    or $logger->logdie("Could not scp $file to  database host:".$scp->{errstr});
+
+sub _loadTable {
+  my ( $dbh, $file, $sth, $cols ) = @_;
+
+  my $batchsize = 5000;
+  my $report    = 100000;
+  my $reportNo  = 1000000;
+  my $count     = 0;
+
+
+  $dbh->begin_work;    # start a transaction
+
+  open( my $input, '<', $file ) or die "Could not open $file:[$!]";
+
+  while ( my $record = <$input> ) {
+    chomp $record;
+    my @values = split( /\t/, $record );
+    for ( my $i = 0 ; $i < $cols ; $i++ ) {
+      $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
+    }
+    $sth->execute(@values);
+
+    $count += 1;
+    if ( $count % $batchsize == 0 ) {
+      $dbh->commit;    # doublecheck the commit statement too
+      if ( $count % $report == 0 ) {
+        if ( $count % $reportNo == 0 ) {
+          print STDERR "$count";
+        }
+        else {
+          print STDERR ".";
+        }
+      }
+
+      $dbh->begin_work;
+
+    }
+  }
+  $dbh->commit;
 }
 
 sub getPfamseqAccs {
@@ -190,61 +230,82 @@ sub getPfamseqAccs {
   return \%pfamseq;
 }
 
-sub getUniProtMapping {
-  my ($logger, $config, $scp, $pdbs, $dbh, $statusdir ) = @_;
-   $logger->debug("In getUniProtMapping");
-   my $destserv='ftp.ebi.ac.uk'; 
-  my $destpath = '/pub/databases/msd/sifts/xml-split/';
-  my $store = $config->localDbsLoc."/PDB";
 
-  my $ftp = Net::FTP->new($destserv) or $logger->logdie("error connecting");
-  $ftp->login();
-  $ftp->binary();
-  my %bits;
- 
-
-  my $st = $dbh->prepare("select pfamseq_acc, auto_pfamseq from pfamseq where pfamseq_acc = ?");
+sub mirrorSifts {
+  my ($logger, $url, $mirrorDir) = @_;
   
-  open(my $fh, ">>$store/pdb_residue_data.dat") 
-    or die "Could not open pdb_residue_data.dat\n";
-      
-   $logger->debug("Starting ftp");
-  foreach my $dir ( $ftp->ls($destpath) ) {
-    next unless $dir =~ m/.*\/(\S{2})$/;
-    #next unless $dir =~ m/.*\/(ab)$/;
-    my $bit = $1;
-    $logger->info("Working on $bit");
-    next if(-e "$statusdir/pdb_mapping_$bit");
-    open(my $fh2, ">$store/$bit") or $logger->logdie("Could not open $store/$bit for writing:$!");
-    foreach my $pdb ( $ftp->ls($dir) ){
-      my $id = uc(substr($pdb,38,4));
-      $logger->info("Working on $id");
-      next unless(exists($pdbs->{$id}));
-      $logger->info("Working on $id");
-      if( $pdb =~ m/.*\/(\S{4}\.xml\.gz)$/){
-        $ftp->get($pdb, $store."/$1");
-        $logger->debug("Extracting $1");
-        extractAndParse($store."/$1", $fh2, $st);
-      }
-    }
-    close($fh2);
-    open(F, "$store/$bit") or $logger->logdie("Could not open $store/$bit:$!");
-    while(<F>){
-      print $fh $_;
-    }
-    close($fh2);
-    unlink("$store/$bit");
-    system("touch $statusdir/pdb_mapping_$bit");
+  $logger->info("Updating sifts mirror directory");
+  
+  #Chdir
+  my $pwd = getcwd;
+  chdir($mirrorDir) 
+    or die "Could not chdir to ".$mirrorDir."\n";
+  
+  
+  my $cmd = 'wget --no-proxy -mq '.$url.' '.$mirrorDir;
+  print "\n\n$cmd\n\n";
+  #This uses wget to mirror the directory.
+  system( $cmd ) and 
+         $logger->logdie("Failed to wget sifts [ $cmd ] : [$?]");
+  
+  chdir($pwd);
+}
+
+
+sub parseUpdatedSifts{
+  my($logger, $dbh, $pfamdb, $dir, $statusdir, $threads) = @_;
+
+  #Get a list of all PDBs
+  my @rows = $pfamdb->getSchema->resultset('Pdb')->search;
+  my $pm = new Parallel::ForkManager($threads);
+  my $update = 0;
+  foreach my $row (@rows){
+    my $pdb_id = lc($row->pdb_id);
+    my $bit = substr($pdb_id, 1, 2);
+    
+    make_path("$statusdir/sifts/$bit");
+    next if( -e "$statusdir/sifts/$bit/$pdb_id");
+    my $f = $dir.'/'.$bit.'/'.$pdb_id.'.xml.gz';
+    next unless( -e $f);
+    $pm->start and next;
+     my $pfamDBThread = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+     my $dbhThread = $pfamDBThread->getSchema->storage->dbh;
+     extractAndParse($f, $dbhThread);
+     touch("$statusdir/sifts/$bit/$pdb_id");
+     $pm->finish;
   }
-  close($fh);
-  scpFile($logger, $scp, $store, 'pdb_residue_data.dat');
-  $dbh->do('load data infile "/tmp/pdb_residue_data.dat" into table pdb_residue_data')
-    or $logger->logdie("Failed to upload pdb file:".$dbh->errstr );
+  $pm->wait_all_children;
+}
+
+
+sub getUniProtMapping {
+  my ($logger, $config, $pdbs, $dbh, $statusdir, $pfamdb, $threads ) = @_;
+  $logger->debug("In getUniProtMapping");
+  my $destserv='ftp://ftp.ebi.ac.uk'; 
+  my $destpath = '/pub/databases/msd/sifts/split_xml/';
+  my $store = $config->localDbsLoc."/sifts";
+  if(-e "$statusdir/mirroredSifts"){
+    $logger->info("Already mirrored sifts\n");
+  }else{
+    mirrorSifts( $logger, $destserv.$destpath, $store);
+    touch("$statusdir/mirroredSifts");
+  }
+  
+  if(-e "$statusdir/updateSifts"){
+    $logger->info("Already updated sifts\n");
+  }else{
+    parseUpdatedSifts($logger, $dbh, $pfamdb, $store."/ftp.ebi.ac.uk".$destpath, $statusdir, $threads );
+    touch("$statusdir/updatedSifts");
+  }
 }
 
 sub extractAndParse {
-  my ($file, $fh, $st) = @_;
+  my ($file, $dbh) = @_;
+  
+  my $sth = $dbh->prepare("select pfamseq_acc, auto_pfamseq from pfamseq where pfamseq_acc = ?");
   my($accs);
+  
+  my ($fh, $filename) = tempfile();
   my ($output) = $file =~ /(.*\.xml)/;
   gunzip $file => $output or die "gunzip failed: $GunzipError\n";
   my $xp = XML::XPath->new(filename => $output);
@@ -264,17 +325,18 @@ sub extractAndParse {
        
         #Split off the insert code if we find one.
         my($resNum, $insertCode);
-        if($pdb->getAttribute("dbResNum") =~ /(\d+)([A-Z])/){
+        if($pdb->getAttribute("dbResNum") =~ /(\d+)([A-Za-z])/){
           $resNum     = $1;
           $insertCode = $2;
         }else{
           $resNum = $pdb->getAttribute("dbResNum");
           $insertCode = '\N';
         }
+        #Get the mapping to the auto number.
         if($uni){
           unless($accs->{$uni->getAttribute('dbAccessionId')}){
-            $st->execute($uni->getAttribute('dbAccessionId'));
-            my $row = $st->fetchrow_arrayref;
+            $sth->execute($uni->getAttribute('dbAccessionId'));
+            my $row = $sth->fetchrow_arrayref;
             $accs->{$row->[0]} = $row->[1];
           }
         } 
@@ -299,7 +361,23 @@ sub extractAndParse {
       }
     }
   }
-  #Remove the xml files (zipped and unzipped) 
+  close($fh);
+  #Remove the xml files (unzipped) 
   unlink($output);
-  unlink($file);
+  
+  my $resSth = $dbh->prepare("INSERT INTO pdb_residue_data (pdb_id, 
+                                                            chain, 
+                                                            serial, 
+                                                            pdb_res, 
+                                                            pdb_seq_number, 
+                                                            pdb_insert_code, 
+                                                            observed, 
+                                                            dssp_code, 
+                                                            pfamseq_acc, 
+                                                            auto_pfamseq, 
+                                                            pfamseq_res, 
+                                                            pfamseq_seq_number) 
+                                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)" );
+  _loadTable($dbh, $filename, $resSth, 12);
+  
 }
