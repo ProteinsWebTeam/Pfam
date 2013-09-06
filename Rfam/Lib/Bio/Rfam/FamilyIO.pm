@@ -1024,8 +1024,7 @@ sub parseDESC {
   # should begin with: --cpu <n> --verbose (-E or -T) <f> -Z <f>
   if(exists($params{SM}) and defined($params{SM})) { 
     if($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose --nohmmonly -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )? CM SEQDB$/){
-      my $errmsg = sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
-      croak $errmsg;
+      croak sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
     }
   }
 
