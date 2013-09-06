@@ -134,7 +134,7 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
   #Set up the job and copy the files over;
   $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue}
-      . " -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
+      . " -R \"select[mem>4000] rusage[mem=4000]\" -M 4000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
  
   #Change into the directory containing the shattered pfamseq files
   $fh->print("cd $pfamseqDir/otherReg\n");
@@ -148,19 +148,22 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
   $fh->print(
     "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
   $fh->print("seg pfamseq.\$\{LSB_JOBINDEX\} -l > seg.\$\{LSB_JOBINDEX\}\n");
- # $fh->print(
- #   "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
+  $fh->print(
+    "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
   $fh->print(
 "iupred_multifasta pfamseq.\$\{LSB_JOBINDEX\} long > iupred.\$\{LSB_JOBINDEX\}\n"
   );
   $fh->close;
 
   sleep(60);    #Give them change to get on to the farm queue!
-  system("touch $pfamseqDir/otherReg/doneFarm");
+  system("touch $statusdir/otherReg/doneFarm");
 }
 
 #-------------------------------------------------------------------------------
 ##Have all of the jobs finished
+if(-e "$statusdir/otherReg/doneFarmCheck"){
+  $logger->info("Already checked the all jobs have completed successfully");
+}else{
 $logger->info("Waiting for jobs to finish on the farm");
 my $finished = 0;
 while ( !$finished ) {
@@ -184,7 +187,10 @@ while ( !$finished ) {
   }
 }
 
+
 #-------------------------------------------------------------------------------
+
+
 #Now we should have every thing back to be joined together and uploaded.
 $logger->info("Checking all of the files have been retieved from the farm");
 my $error;
@@ -197,9 +203,11 @@ for ( my $i = 1 ; $i <= $n ; $i++ ) {
   }
 }
 
-$logger->logdie('Some of the files are other region files are missing')
-  if ($error);
-
+  $logger->logdie('Some of the files are other region files are missing')
+    if ($error);
+  
+  system("touch $statusdir/otherReg/doneFarmCheck");
+}
 #-------------------------------------------------------------------------------
 #Join and upload
 
@@ -207,17 +215,20 @@ my $orDir = "$pfamseqDir/otherReg";
 
 #-------------------------------------------------------------------------------
 #Now parse the data and write to the file
+if(-e "$orDir/allOtherReg.dat"){
+  $logger->info("Already made database upload file.");
+}else{
+  my $fhOut;
+  open( $fhOut, ">$orDir/allOtherReg.dat" )
+    or $logger->logdie("Could not open allOtherReg.dat");
 
-my $fhOut;
-open( $fhOut, ">$orDir/allOtherReg.dat" )
-  or $logger->logdie("Could not open allOtherReg.dat");
-
-for ( my $m = 1 ; $m <= $n ; $m++ ) {
-  my $pfamseq = getAutos($m, $orDir, $dbh);
+  for ( my $m = 1 ; $m <= $n ; $m++ ) {
+    my $pfamseq = getAutos($m, $orDir, $dbh);
   
-  foreach my $f (keys %subs) {
-    $logger->info("Parsing $f.$m");
-    $subs{$f}( $orDir, "$f.$m", $fhOut, $pfamseq );
+    foreach my $f (keys %subs) {
+      $logger->info("Parsing $f.$m");
+      $subs{$f}( $orDir, "$f.$m", $fhOut, $pfamseq );
+    }
   }
 }
 
@@ -228,23 +239,24 @@ for ( my $m = 1 ; $m <= $n ; $m++ ) {
 $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 $dbh    = $pfamDB->getSchema->storage->dbh;
 
-my $scp = Net::SCP->new( { "host" => $pfamDB->{host} } );
-my $tmp = "/tmp";
-$logger->info("scp data file to instance");
 
-$scp->put( "$orDir/allOtherReg.dat", "$tmp/allOtherReg.dat" )
-  or $logger->logdie( "Could not scp file ($orDir/allOtherReg.dat) to "
-    . $config->pfamliveAdmin->{host}
-    . " because: "
-    . $scp->{errstr} );
+if(-e "$statusdir/otherReg/doneUpload"){
+  $logger->info("Already uploaded the database");
+}else{
+  #Now load the file....
+  $logger->info('preparing to upload the file');
+  $dbh->do("delete from other_reg");
 
-$logger->info('preparing to upload the file');
-$dbh->do("delete from other_reg");
+  my $sthInsert = $dbh->prepare("INSERT INTO other_reg (auto_pfamseq, 
+                                                seq_start, 
+                                                seq_end, 
+                                                type_id, 
+                                                source_id, 
+                                                source, 
+                                                orientation) VALUES ( ?,?,?,?,?,?,?)");
 
-$dbh->do("LOAD DATA INFILE '/tmp/allOtherReg.dat' INTO TABLE other_reg")
-  or $logger->logdie( 'file upload failed:' . $dbh->errstr );
-
-
+  _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
+}
 #-------------------------------------------------------------------------------
 #Subroutines that parse each file type......
 #
@@ -414,4 +426,46 @@ sub parseIupred {
       $logger->logdie("Failed to parse line, $_");
     }
   }
+}
+
+sub _loadTable {
+  my ( $dbh, $file, $sth, $cols ) = @_;
+
+  my $batchsize = 5000;
+  my $report    = 100000;
+  my $reportNo  = 1000000;
+  my $count     = 0;
+
+
+  $dbh->begin_work;    # start a transaction
+
+  open( my $input, '<', $file ) or die "Could not open $file:[$!]";
+
+  print STDERR "\nProgress: ";
+  while ( my $record = <$input> ) {
+    chomp $record;
+    my @values = split( /\t/, $record );
+    for ( my $i = 0 ; $i < $cols ; $i++ ) {
+      $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
+    }
+    $sth->execute(@values);
+
+    $count += 1;
+    if ( $count % $batchsize == 0 ) {
+      $dbh->commit;    # doublecheck the commit statement too
+      if ( $count % $report == 0 ) {
+        if ( $count % $reportNo == 0 ) {
+          print STDERR "$count";
+        }
+        else {
+          print STDERR ".";
+        }
+      }
+
+      $dbh->begin_work;
+
+    }
+  }
+  $dbh->commit;
+  print STDERR "\n\n Uploaded $count records\n";
 }
