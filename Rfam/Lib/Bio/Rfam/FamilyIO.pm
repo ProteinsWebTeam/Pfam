@@ -578,6 +578,11 @@ sub parseDESC {
   for ( my $i = 0 ; $i <= $#file ; $i++ ) {
     my $l = $file[$i];
     if ( length($l) > $expLen ) {
+      if($l =~ /^WK /){
+        warn "$l looks like a long WK line. ".
+              "Please break the page title with a slash (/) and carry on to".
+              " a second WK line. e.g.\nWK   long_line/\nWK   rest_of_the_line\n";
+      }
       croak("\nGot a DESC line that was longer than $expLen, $file[$i]\n\n"
             . "-" x 80
             . "\n" );
@@ -787,7 +792,7 @@ sub parseDESC {
     } elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
       $params{private} .= " " if ( $params{private} );
       $params{private} .= $1;
-    } elsif ( $file[$i] =~ /^WK\s{3}(.*)$/ ) {
+    } elsif ( $file[$i] =~ /^WK\s{3}(\S+)$/ ) {
       my $page = $1;
       if ( $page =~ /^http.*\/(\S+)/ ) {
 
@@ -795,10 +800,27 @@ sub parseDESC {
         carp( "$page going to be set to $1\n" );
         $page = $1;
       }
+      my @bits;
+      push(@bits, $page);
+      if($page =~ /\/$/){ #Multi line article!
+        foreach ( my $j = $i+1 ; $j <= $#file ; $j++ ) {
+          if($file[$j] =~ /^WK\s{3}(\S+)$/){
+            my $nextBitOfPage = $1;
+            push(@bits, $nextBitOfPage);
+            $page .= $nextBitOfPage;
+            if($nextBitOfPage !~ /\/$/){
+              $i = $j;
+              last;
+            }
+          }
+        }
+      }
+      
+      $page =~ s/\///g; #Remove all / from the line.....
       if ( defined( $params{"WIKI"} ) ) {
-        $params{"WIKI"}->{$page}++;
+        $params{"WIKI"}->{$page} = \@bits;
       } else {
-        $params{"WIKI"} = { $page => 1 };
+        $params{"WIKI"} = { $page => \@bits };
       }
     } elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
@@ -1068,10 +1090,12 @@ sub writeDESC {
         printf D "NC   %.2f\n", $desc->$tagOrder;
       } elsif ( $tagOrder eq 'WIKI' ) {
         if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-          my @pages = keys( %{ $desc->$tagOrder } );
-          foreach my $p (@pages) {
-            print D wrap( "WK   ", "WK   ", $p );
-            print D "\n";
+          my @pages = values( %{ $desc->$tagOrder } );
+          foreach my $part (@pages) {
+            foreach my $p (@$part){
+              print D wrap( "WK   ", "WK   ", $p );
+              print D "\n";
+            }
           }
         }
       } elsif ( $tagOrder eq 'REFS' ) {
