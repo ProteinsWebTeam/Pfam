@@ -336,7 +336,6 @@ unless ( -e "$statusdir/done_update_pdb" ) {
 else {
   $logger->info("Already done pdb upload\n");
 }
-exit;
 
 #-------------------------------------------------------------------------------
 #Calculate the other regions - This takes about 5 hours to calculate....Hmm we may want to fork here (rdf)
@@ -426,7 +425,7 @@ die;
 #released_pfam_version
 #released_clan_version
 
-_lock
+#_lock
 
 
 #-------------------------------------------------------------------------------
