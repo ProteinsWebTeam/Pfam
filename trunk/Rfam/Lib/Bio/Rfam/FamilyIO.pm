@@ -31,7 +31,7 @@ use File::Temp;
 use Text::Wrap;
 use Carp;
 use Data::Printer;
-use Cwd 'abs_path';
+use Cwd;
 use File::Copy;
 use Moose;
 
@@ -1740,7 +1740,10 @@ sub commentLineForOutlistOrSpecies {
     Usage    : $io->writeTaxinfoFromOutlistAndSpecies($ga, $evalue, $desc, $n2print, $user_level2print, $do_nsort)
     Function : Uses outlist and species to create 'taxinfo' file.
              :
-             : Purpose of 'taxinfo' is to concisely describe the taxonomic
+             : $infoHHR, and $groupOHAR must supplied by caller,
+             : probably filled by a $io->parseOutlistAndSpecies() call.
+             :
+             : The purpose of 'taxinfo' is to concisely describe the taxonomic
              : groups represented by all the hits for a family. To do this
              : the taxonomic strings (e.g. Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.)
              : are summarized by taking a prefix and the 'prefix level' 
@@ -1766,22 +1769,22 @@ sub commentLineForOutlistOrSpecies {
              : remaining groups (with only 'other' seqs (not in seed 
              : nor full)).
              : 
-    Args     : $ga:       GA bit score threshold
-             : $evalue:   E-value for $ga
-             : $id:       family ID
-             : $acc:      family accession
-             : $de        family description
-             : $desc:     Bio::Rfam::Family::DESC object
-             : $n2print:  target number of SEED taxonomy prefixes to print (-n2print from rfmake.pl)
-             : $l2print:  print all unique prefixes of this length, if != 0 (-l2print from rfmake.pl)
-             : $do_nsort: '1' to sort output by counts (-nsort from rfmake.pl)
+    Args     : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
+             : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
+             : $desc:      Bio::Rfam::Family::DESC object
+             : $ga:        GA bit score threshold
+             : $evalue:    E-value for $ga
+             : $desc:      Bio::Rfam::Family::DESC object
+             : $n2print:   target number of SEED taxonomy prefixes to print (-n2print from rfmake.pl)
+             : $l2print:   print all unique prefixes of this length, if != 0 (-l2print from rfmake.pl)
+             : $do_nsort:  '1' to sort output by counts (-nsort from rfmake.pl)
     Returns  : void
     Dies     : upon file input/output error
 
 =cut
 
 sub writeTaxinfoFromOutlistAndSpecies {
-  my ($self, $ga, $evalue, $id, $acc, $de, $n2print, $user_level2print, $do_nsort) = @_;
+  my ($self, $infoHHR, $groupOHAR, $desc, $ga, $evalue, $desc, $n2print, $user_level2print, $do_nsort) = @_;
 
   ####################################################################
   # Set parameters to their defaults prior to parsing cmd line options
@@ -1791,9 +1794,6 @@ sub writeTaxinfoFromOutlistAndSpecies {
   my $level2print = 1;
   my $emax        = 10;
   my $min_level2print = 3;
-  my %infoHH   = ();      # information read from outlist and species for each hit
-  my @nameOA   = ();      # rank order of all hits
-  my %groupOHA = ();      # rank order of hits in each group
   my $taxstr;             # full taxonomy string from species
   my $prefix;             # a taxonomic string prefix 
   my $prv_prefix;         # previous prefix
@@ -1832,22 +1832,17 @@ sub writeTaxinfoFromOutlistAndSpecies {
   my @elA           = (); # for defining taxonomy string prefixes
   my @outputA = (); # all output lines will be pushed here and actually output at the end
 
-  #####################################################################
-  # Parse out.list and species files to get stats and group assignments
-  #####################################################################
-  $self->parseOutlistAndSpecies("outlist", "species", $emax, $ga, \%infoHH, \@nameOA, \%groupOHA);
-  
   # fill %pfix_ctHH and %pfix_levelHH with counts/level of each prefix for each group
   foreach $group (@groupOA) { # "S", "F", or "O", seed, full or other
-    if(! (exists $groupOHA{$group})) { 
+    if(! (exists $groupOHAR->{$group})) { 
       $ngroupH{$group} = 0;
     } 
     else { 
-      $ngroupH{$group} = scalar(@{$groupOHA{$group}});
+      $ngroupH{$group} = scalar(@{$groupOHAR->{$group}});
       
-      foreach $name (@{$groupOHA{$group}}) { 
-        $taxstr = $infoHH{$name}{"taxstr"};
-        $cur_evalue = $infoHH{$name}{"evalue"};
+      foreach $name (@{$groupOHAR->{$group}}) { 
+        $taxstr = $infoHHR->{$name}{"taxstr"};
+        $cur_evalue = $infoHHR->{$name}{"evalue"};
         @elA = split(" ", $taxstr);
         $parent_level = scalar(@elA);
         $prv_prefix = "";
@@ -1933,7 +1928,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
   foreach $group (@groupOA) { 
     if($ngroupH{$group} != 0) { 
       if($ngroupH{$group} > $max_ngroup) { 
-        $max_ngroup = scalar(@{$groupOHA{$group}});
+        $max_ngroup = scalar(@{$groupOHAR->{$group}});
       }
       
       # keep track of which prefixes to print
@@ -1978,7 +1973,9 @@ sub writeTaxinfoFromOutlistAndSpecies {
   push(@outputA, "$div_line\n");
   push(@outputA, "# taxinfo: created by 'rfmake.pl', run 'rfmake.pl -h' for a list of cmd-line options that modify behavior\n");
   push(@outputA, "$div_line\n");
-  push(@outputA, "# $acc   $id   $de\n");
+  push(@outputA, sprintf("# family-id:       %s\n", $desc->ID));
+  push(@outputA, sprintf("# family-acc:      %s\n", $desc->AC));
+  push(@outputA, sprintf("# pwd:             %s\n", getcwd));
   push(@outputA, sprintf("# GA bit-score:    $ga\n"));
   push(@outputA, sprintf("# GA E-value:      %6.1g\n", $evalue));
   push(@outputA, sprintf("# SEED:            %-5d hits (present in SEED)\n", $ngroupH{"S"}));
@@ -2148,8 +2145,11 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : $emax:      maximum E-value to consider, usually 10
              : $ga:        GA bit score threshold
              : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
+             :             can be undefined if caller does not need this
              : $nameOAR:   ref to array, all nse, in order, ranked by score/E-value
+             :             can be undefined if caller does not need this
              : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
+             :             can be undefined if caller does not need this
     Returns  : void
     Dies     : if outlist and species are not consistent, or do not exist
 
@@ -2192,7 +2192,7 @@ sub parseOutlistAndSpecies {
 	    }
 
 	    $name = $out_elA[3] . "/" . $out_elA[4] . "-" . $out_elA[5]; 
-	    push(@{$nameOAR}, $name);
+	    if(defined $nameOAR) { push(@{$nameOAR}, $name); }
 	    if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
 	    $nameIH{$name} = 1;
 
@@ -2201,18 +2201,259 @@ sub parseOutlistAndSpecies {
             if   ($out_elA[2] eq "SEED")  { $group = "S"; } # Seed
             elsif($out_elA[0] >= $ga)     { $group = "F"; } # Full
             elsif($out_elA[1] <= $emax)   { $group = "O"; } # Other
-	    push(@{$groupOHAR->{$group}}, $name);
+	    if(defined $groupOHAR) { push(@{$groupOHAR->{$group}}, $name); }
 
-	    $infoHHR->{$name}{"rank"}     = $ct;
-	    $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
-	    $infoHHR->{$name}{"evalue"}   = $out_elA[1];
-	    $infoHHR->{$name}{"sspecies"} = $out_elA[9];
-	    $infoHHR->{$name}{"taxstr"}   = $spc_elA[6];
-	}
+	    if(defined $infoHHR) { 
+              $infoHHR->{$name}{"rank"}     = $ct;
+              $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
+              $infoHHR->{$name}{"evalue"}   = $out_elA[1];
+              $infoHHR->{$name}{"sspecies"} = $out_elA[9];
+              $infoHHR->{$name}{"taxstr"}   = $spc_elA[6];
+              $infoHHR->{$name}{"trunc"}    = $out_elA[8];
+            }
+          }
     }
     close(OUT);
     close(SPC);
 }
+
+#-----------------------------------------------------------------
+
+
+#-------------------------------------------------
+    
+=head2 writeOldAndNewHitComparison
+
+    Title    : writeOldAndNewHitComparison
+    Incept   : EPN, Fri Aug 30 13:28:08 2013
+    Usage    : $io->writeOldAndNewHitComparison($infoHHR, $groupOHAR, $new_ga, $new_evalue, $old_ga, $olddir)
+    Function : Given 'new' hit information (infoHH and groupOHAR) from a 
+             : $io->parseOutlistAndSpecies call, as well as a directory
+             : with an 'old' 'out.list' from Rfam 11.0, compare the 
+             : hits found in SEED and FULL groups between the new
+             : hits and the old hits.
+             :
+             : Output a summary of the comparison to a file called 'comparison'.
+             : Output a subset of the new outlist lines, for the hits found in 
+             :   new but missed by old to a file called 'newoutlist'
+             : Output a subset of the new species lines, for the hits found in 
+             :   new but missed by old to a file called 'newspecies'
+             : Output a subset of the old out.list lines, for the hits found in 
+             :   old but missed by new to a file called 'oldoutlist'
+             : Output a subset of the old species lines, for the hits found in 
+             :   old but missed by new to a file called 'oldspecies'
+             :
+    Args     : $infoHHR:     2D hash ref, filled by caller via parseOutlistAndSpecies
+             : $groupOHAR:   hash of arrays ref, filled by caller via parseOutlistAndSpecies
+             : $olddir:      path to directory with 'old' results
+             : $avg_bitdiff: average bit score difference between old and new hits
+             : $ndiff:       number of hits used to get $avg_bitdiff
+             : $desc:        Bio::Rfam::Family::DESC object
+             : $new_ga:      GA bit score threshold for new searches
+             : $new_evalue:  E-value for GA threshold for new searches
+             : $old_ga:      GA bit score threshold for old searches
+             : $old_evalue:  E-value for GA threshold for old searches             
+             : $old_outlist: old search results, usually $old_dir . "/" . 'out.list'
+             : $old_species: old search results with tax info, usually $old_dir . "/" . 'species'
+             : $new_outlist: new search results, usually "outlist"
+             : $new_species: new search results with tax info, usually "species"
+    Returns  : void
+    Dies     : upon file input/output error
+
+=cut
+
+sub writeOldAndNewHitComparison {
+  my ($self, $infoHHR, $groupOHAR, $olddir, $avg_bitdiff, $ndiff, $desc, $new_ga, $new_evalue, $old_ga, $old_evalue, $old_outlist, $old_species, $new_outlist, $new_species) = @_;
+
+  my %newHHA; # 1st key: group ("S" or "F"), 2nd key: seqname (not nse), array of 'start-end';
+  my %newctH; # key: group ("S" or "F"), value number of new hits in group
+  my %oldctH; # key: group ("S" or "F"), value number of old hits in group
+  my %newolH; # key: group ("S" or "F"), value number of new hits that overlap >= 1 old hit
+  my %oldolH; # key: group ("S" or "F"), value number of old hits that overlap >= 1 new hit
+  # first recast infoHHR into newHHA
+  foreach my $group ("S", "F") { 
+    $newolH{$group} = 0;
+    $oldolH{$group} = 0;
+    foreach my $nse (@{$groupOHAR->{$group}}) { 
+      my (undef, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($nse);
+      push(@{$newHHA{$group}{$name}}, $start . ":" . $end);
+      $newctH{$group}++;
+    }
+  }
+
+  # now for each hit in out.list, do we have a match in the new outlist?
+  open(OLDOUT, $old_outlist) || die "ERROR unable to open $old_outlist";
+  open(OLDSPC, $old_species) || die "ERROR unable to open $old_species";
+  open(LOSTOUT, ">lostoutlist") || die "ERROR unable to open lostoutlist for writing";
+  open(LOSTSPC, ">lostspecies") || die "ERROR unable to open lostspecies for writing";
+  while(my $outline = <OLDOUT>) { 
+    my $spcline = <OLDSPC>;
+    if($outline =~ m/^\#/) { 
+      print LOSTOUT $outline; # print comment lines
+      if($spcline !~ m/^\#/) { croak "ERROR old out.list and species lines inconsistent!\n$outline\n$spcline\n"; }
+      print LOSTSPC $spcline; # print comment lines
+    }
+    else { 
+      #91.32	8.65e-15	ALIGN	ACFV01061888.1	      1855	      1756	1	100	.	Callithrix_jacchus_w	Callithrix jacchus Contig81.61, whole genome shotgun sequence.
+      my @elA = split(/\s+/, $outline);
+      my ($group, $bitsc, $evalue, $name, $start, $end) = ($elA[2], $elA[0], $elA[1], $elA[3], $elA[4], $elA[5]);
+      # note, we don't check to make sure species line corresponds to out.list line here, but we do below before outputting it
+      if($group eq "SEED")     { $group = "S"; }
+      elsif($group eq "ALIGN") { $group = "F"; }
+      else                     { next; }
+
+      $oldctH{$group}++;
+      my $found_overlap = 0;
+      # determine if there's an overlap in set of new hits
+      #
+      # we might get > 1 old hits overlapping with the same
+      # new hit but we don't want to double count that, so 
+      # we redefine the value $newHHA{$group}{$name}[$i] 
+      # by multiplying by -1 once we find an overlap to it,
+      # this negative value serves as a flag.
+      if(exists $newHHA{$group}{$name}) { 
+        for(my $i = 0; $i < scalar(@{$newHHA{$group}{$name}}); $i++) { 
+          my $already_hit = 0;
+          my ($start2, $end2) = split(":", $newHHA{$group}{$name}[$i]);
+          if($start2 < 0) { # this hit already overlapped a previous hit, we marked it previously
+            $already_hit = 1;
+            $start2 *= -1; # make it positive again
+          }
+          my $ol = Bio::Rfam::Utils::overlap_nres_or_full($start, $end, $start2, $end2);
+          if($ol != 0) { # careful, don't want to do 'if ($ol > 0)', because full overlaps, which have value -1, will be ignored
+            if(! $already_hit) { $newolH{$group}++; } # only count if not already marked
+            $oldolH{$group}++;
+            # update value in newHHA so we know this hit has already overlapped with an old hit
+            $newHHA{$group}{$name}[$i] = "-" . $start2 . ":" . $end2;
+            $found_overlap = 1;
+            last;
+          }
+        }
+      }
+      # if we didn't find an overlap output line to 'lostoutlist' and 'lostspecies' files
+      if(! $found_overlap) { 
+        # before printing, do a sanity check: does species line correspond to the same hit
+        my @spcelA = split(/\t/, $spcline);
+        #91.32	8.65e-15	ALIGN	ACFV01061888.1	           9483	Callithrix jacchus (	Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Platyrrhini; Cebidae; Callitrichinae; Callithrix.
+        if($spcelA[0] ne $bitsc || $spcelA[3] ne $name) { croak "ERROR old out.list and species lines inconsistent!\n$outline\n$spcline\n"; }
+        print LOSTOUT $outline; 
+        print LOSTSPC $spcline;
+      }
+    }
+  }
+  close(LOSTOUT);
+  close(LOSTSPC);
+  close(OLDOUT);
+  close(OLDSPC);
+  
+  # now go back through outlist and print any new hits to "newoutlist" and "newspecies"
+  # first, get a list of all the new hits
+  my ($group, $name, $startend);
+  my %newhitH = ();
+  foreach $group ("S", "F") { 
+    foreach $name (keys %{$newHHA{$group}}) { 
+      foreach $startend (@{$newHHA{$group}{$name}}) { 
+        my ($start, $end) = split(":", $startend);
+        if($start > 0) { # above, we marked each found hit by making start negative 
+          $newhitH{$name . "/" . $start . "-" . $end}  = 1;;
+        }
+      }
+    }
+  }
+  # now output them to a file "newoutlist" and "newspecies"
+  my $newoutFH;
+  my $newspcFH;
+  my @outAA = ();
+  my @spcAA = ();
+  my $nhit = 0;
+  my ($outline, $spcline);
+  open(NEWOUT, $new_outlist) || die "ERROR unable to open $new_outlist for reading";
+  open(NEWSPC, $new_species) || die "ERROR unable to open $new_species for reading";
+  open($newoutFH, ">newoutlist") || die "ERROR unable to open newoutlist for writing";
+  open($newspcFH, ">newspecies") || die "ERROR unable to open newspecies for writing";
+  while($outline = <NEWOUT>) { 
+    $spcline = <NEWSPC>;
+    if($outline !~ m/^\#/) { 
+      $outline =~ s/^\s+//; # remove leading whitespace
+      $spcline =~ s/^\s+//; # remove leading whitespace
+      my @elA = split(/\s\s+/, $outline);
+      # 89.5  7.7e-16      SEED  AADA01319887.1     7078     7176       1   101     no  Pan_troglodytes_(chimpa..[9598]    Pan troglodytes ctg_319886, whole genome shotgun sequence.
+      my $nse = $elA[3] . "/" . $elA[4] . "-" . $elA[5];
+      if(exists $newhitH{$nse}) { 
+        my @spcelA = split(/\s\s+/, $spcline);
+        # 89.5  7.7e-16      SEED  AADA01319887.1    9598  Pan troglodytes (chimpanzee)                                    Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.
+        if($spcelA[0] ne $elA[0] || $spcelA[3] ne $elA[3]) { 
+          croak "ERROR new outlist and species lines inconsistent!\n$outline\n$spcline\n"; 
+        }
+        push(@{$outAA[$nhit]}, @elA);
+        push(@{$spcAA[$nhit]}, @spcelA);
+        $nhit++;
+      }
+    }
+  }
+  close(NEWOUT);
+  close(NEWSPC);
+  writeOutlistOrSpeciesChunk($newoutFH, \@outAA, 1);
+  writeOutlistOrSpeciesChunk($newspcFH, \@spcAA, 0);
+
+  # Now, print the prefixes and their counts out in a particular order
+  # First print all prefixes with >=1 members in SEED in sorted order
+  # from low to high minimum E-value in group, then print any with >= 1 members in FULL
+  # from low to high minimum E-value in group, then print any with >= 1 members in OTHER
+  # from low to high minimum E-value in group.
+  # (If $do_nsort is '1' we'll sort by total counts per group not 
+  # minimum E-value).
+
+  my $div_line = "#=========================================================";
+  
+  open(COMP, ">comparison") || die "ERROR unable to open comparison for writing";
+
+  print  COMP ($div_line . "\n");
+  print  COMP ("# comparison: created by 'rfmake.pl' with \'-compare\' cmd-line option\n");
+  print  COMP ($div_line . "\n");
+  printf COMP ("# %s   %s   %s\n", $desc->AC, $desc->ID, $desc->DE);
+  printf COMP ("# current directory: %s\n", getcwd);
+  printf COMP ("# directory with old results (relative path): $olddir\n");
+  printf COMP ("# new GA bit-score:    $new_ga\n");
+  printf COMP ("# new GA E-value:      %6.1g\n", $new_evalue);
+  printf COMP ("# old GA bit-score:    $old_ga\n");
+  printf COMP ("# old GA E-value:      %6.1g\n", $old_evalue);
+  printf COMP ("#\n");
+  
+  if($newolH{"S"} > 0) { 
+    printf COMP ("# suggested new GA:    %.2f\n", int($old_ga + $avg_bitdiff + 0.5));
+    printf COMP ("# calc'ed as old GA ($old_ga) plus avg bitsc difference b/t %d old and new hits (%.5f) rounded to nearest integer\n", $ndiff, $avg_bitdiff);
+  }
+  else { 
+    printf COMP ("# WARNING: no hits overlap between old and new searches\n");
+  }
+
+  printf COMP ("#\n");
+  printf COMP ("# counts of hits in SEED and FULL from old and new searches:\n");
+  if($old_ga ne $new_ga) { 
+    printf COMP("# NOTE: GA used to define FULL differs b/t old and new ($old_ga != $new_ga)\n");
+  }
+  printf COMP ("#\n");
+  printf COMP ("# %8s  %7s  %7s\n", "", "SEED", "FULL");
+  printf COMP ("# %8s  %7s  %7s\n", "", "=======", "=======");
+  printf COMP ("%-10s  %7d  %7d\n", "old-total",  $oldctH{"S"}, $oldctH{"F"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-total",  $newctH{"S"}, $newctH{"F"});
+  printf COMP ("%-10s  %7d  %7d\n", "both",       $newolH{"S"}, $newolH{"F"});
+  printf COMP ("%-10s  %7d  %7d\n", "old-unique", $oldctH{"S"} - $newolH{"S"}, $oldctH{"F"} - $newolH{"F"}); 
+  printf COMP ("%-10s  %7d  %7d\n", "new-unique", $newctH{"S"} - $newolH{"S"}, $newctH{"F"} - $newolH{"F"}); 
+  printf COMP ("#\n");
+  printf COMP ("# \'old-total\':  total number of old hits in SEED and FULL\n");
+  printf COMP ("# \'new-total\':  total number of new hits in SEED and FULL\n");
+  printf COMP ("# \'both\':       number of hits that exist in both old and new results (overlap by at least 1 nt)\n");
+  printf COMP ("# \'old-unique\': hits in old results not present in new results\n");
+  printf COMP ("# \'new-unique\': hits in new results not present in old results\n");
+  printf COMP ("#\n");
+  printf COMP ("# see 'lostoutlist' and 'lostspecies' files for list of 'old-unique' hits (lost in new searches).\n");
+  printf COMP ("# see 'newoutlist'  and 'newspecies'  files for list of 'new-unique' hits.\n"); 
+  close(COMP);
+}
+
+#-------------------------------------------------------
 
 =head2 _taxinfo_get_sortable_exponent
 

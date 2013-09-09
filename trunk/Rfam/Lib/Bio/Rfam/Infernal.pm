@@ -317,7 +317,7 @@ sub cm_evalue2bitsc {
   my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
   $bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
   
-  print STDERR ("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
+  # print STDERR ("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
   return $bitsc;
 }
 
@@ -358,7 +358,7 @@ sub cm_bitsc2evalue {
   $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
   $evalue = $surv * $cur_eff_dbsize;
   
-  print STDERR ("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
+  # print STDERR ("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
   return $evalue;
 }
 
