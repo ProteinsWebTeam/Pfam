@@ -1023,7 +1023,7 @@ sub parseDESC {
   # validate SM syntax (need to do it here b/c it can be >1 lines)
   # should begin with: --cpu <n> --verbose (-E or -T) <f> -Z <f>
   if(exists($params{SM}) and defined($params{SM})) { 
-    if($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose --nohmmonly -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )? CM SEQDB$/){
+    if($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose --nohmmonly -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )?CM SEQDB$/){
       croak sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
     }
   }
