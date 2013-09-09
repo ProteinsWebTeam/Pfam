@@ -156,7 +156,7 @@ sub submit_mpi_job {
   }
 
   # actually submit job
-  print STDERR "about to execute system call: \"$submit_cmd\"\n";
+  # print STDERR "about to execute system call: \"$submit_cmd\"\n";
   system($submit_cmd);
   if($? != 0) { die "MPI submission command $submit_cmd failed"; }
 

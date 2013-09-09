@@ -169,6 +169,9 @@ if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
 
+# make sure we have the all-important TBLOUT file
+if(! -s 'TBLOUT') { die "ERROR: TBLOUT does not exist, did you run rfsearch.pl?"; }
+
 # create hash of potential output files
 my %outfileH = ();
 my @outfile_orderA = ("SCORES", "outlist", "species", "taxinfo", "align", "alignout", "repalign", "repalignout", "comparison", "lostoutlist", "newoutlist", "lostspecies", "newspecies"); 
@@ -275,7 +278,7 @@ if($do_align || $do_repalign || $do_comp) {
 # create taxinfo file, if possible and necessary
 ################################################
 if($do_taxinfo) { 
-  $io->writeTaxinfoFromOutlistAndSpecies(\%infoHH, \%groupOHA, $desc, $ga_bitsc, $ga_evalue, $desc, $n2print, $l2print, $do_nsort);
+  $io->writeTaxinfoFromOutlistAndSpecies(\%infoHH, \%groupOHA, $desc, $ga_bitsc, $ga_evalue, $n2print, $l2print, $do_nsort);
 }
 
 ##################
@@ -347,8 +350,7 @@ if($do_comp) {
   # pick sequences to align with new and old CM
   my $fafile = "c.$$.fa";
   my $comp_nseq = 100;
-  my ($all_nseq, $all_nres) = &get_comparison_seqs(\%infoHH, \%groupOHA, $fetch_sqfile, $fafile, $comp_nseq, $logFH)
-
+  my ($all_nseq, $all_nres) = &get_comparison_seqs(\%infoHH, \%groupOHA, $fetch_sqfile, $fafile, $comp_nseq, $logFH);
 
   # align sequences to both old and new CM
   my $stkfile =  "$$.ca.stk";
@@ -504,7 +506,7 @@ sub get_representative_subset {
       # sequences we'll randomly sample only $max_nseq, this
       # is so the pairwise sequence comparison step doesn't 
       # take forever
-      my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@{$groupOHA{$group}}, $max_nseq, $logFH);
+      my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@{$groupOHA{$group}}, $nper, $logFH);
 
       open(OUT, ">" . $fafile) || die "ERROR unable to open $fafile for writing";
       print OUT $concat_seqstring;
@@ -565,7 +567,7 @@ sub get_representative_subset {
         &filter_group($msa, $f_opt, $group, \@usemeA);
       } # end of else entered if we have more than $nper seqs in group       
       # get unaligned sequences and add to $all_seqs
-      print STDERR ("nseq: $nseq\n");
+
       my $n = Bio::Rfam::Utils::sumArray(\@usemeA, $nseq);
       my $ctr = 1;
       my $i;
