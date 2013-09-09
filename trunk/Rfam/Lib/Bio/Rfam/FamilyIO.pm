@@ -1774,7 +1774,6 @@ sub commentLineForOutlistOrSpecies {
              : $desc:      Bio::Rfam::Family::DESC object
              : $ga:        GA bit score threshold
              : $evalue:    E-value for $ga
-             : $desc:      Bio::Rfam::Family::DESC object
              : $n2print:   target number of SEED taxonomy prefixes to print (-n2print from rfmake.pl)
              : $l2print:   print all unique prefixes of this length, if != 0 (-l2print from rfmake.pl)
              : $do_nsort:  '1' to sort output by counts (-nsort from rfmake.pl)
@@ -1784,7 +1783,7 @@ sub commentLineForOutlistOrSpecies {
 =cut
 
 sub writeTaxinfoFromOutlistAndSpecies {
-  my ($self, $infoHHR, $groupOHAR, $desc, $ga, $evalue, $desc, $n2print, $user_level2print, $do_nsort) = @_;
+  my ($self, $infoHHR, $groupOHAR, $desc, $ga, $evalue, $n2print, $user_level2print, $do_nsort) = @_;
 
   ####################################################################
   # Set parameters to their defaults prior to parsing cmd line options
