@@ -61,6 +61,7 @@ my $compdir = "";               # location of directory with files for 'comparis
 # other options
 my $q_opt = "";                 # <str> from -queue <str>
 my $do_dirty = 0;               # TRUE to not unlink files
+my $do_force = 0;               # TRUE to force GA threshold, even if not hits exist above/below GA
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 my $date = scalar localtime();
@@ -92,6 +93,7 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "investigate and s
              "nsort"      => \$do_nsort,
              "compare=s"  => \$compdir,
              "dirty"      => \$do_dirty,
+             "force"      => \$do_force,
              "queue=s"    => \$q_opt, 
              "h|help"     => \$do_help );
 
@@ -166,6 +168,7 @@ if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]")); }
 if($compdir ne "")             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# comparing to Rfam 11.0 results in:", $compdir . " [-compare]")); }
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]")); }
+if($do_force)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# forcing GA threshold:",              "yes [-force]")); }
 if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]")); }
 Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
 
@@ -242,7 +245,7 @@ $io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_bitsc, $conf
 my $orig_ga_bitsc = $famObj->DESC->CUTGA;
 my $orig_nc_bitsc = $famObj->DESC->CUTNC;
 my $orig_tc_bitsc = $famObj->DESC->CUTTC;
-set_nc_and_tc($famObj, $ga_bitsc, "outlist");
+set_nc_and_tc($famObj, $ga_bitsc, "outlist", $do_force, $logFH);
 
 ####################
 # create SCORES file
@@ -424,10 +427,12 @@ exit 0;
 
 #########################################################
 # set_nc_and_tc: given a GA bit score cutoff and an outlist, determines
-# the NC and TC thresholds.
+# the NC and TC thresholds. If $do_force is '1' then we
+# allow the case where 0 hits exist above or below GA,
+# else we die in error.
 
 sub set_nc_and_tc { 
-  my ($famObj, $ga, $outlist) = @_;
+  my ($famObj, $ga, $outlist, $do_force, $logFH) = @_;
 
   my ($tc, $nc, $bits, $line);
   $nc = "undefined";
@@ -453,10 +458,22 @@ sub set_nc_and_tc {
   }
 
   if ($tc eq "undefined") { 
-    die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
+    if($do_force) { 
+      $tc = $ga + 0.5; 
+      Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("# Warning: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc));
+    }
+    else { 
+      die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
+    }
   }    
   if ($nc eq "undefined") { 
-    die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
+    if($do_force) { 
+      $nc = $ga - 0.5; 
+      Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("# Warning: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
+    }
+    else { 
+      die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
+    }
   }
 
   $famObj->DESC->CUTGA($ga);
@@ -900,6 +917,7 @@ Options:    -t <f>  set threshold as <f> bits
 
 	    OTHER:
 	    -dirty       leave temporary files, don't clean up
+            -force       force threshold; even if no hits exist above and/or below GA
             -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
   	    -h|-help     print this help, then exit
 
