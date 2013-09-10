@@ -1738,7 +1738,7 @@ sub makeHTMLAlign {
   if ( ( $type ne 'seed' ) ) {
 
     #Make the posterior probablility alignment.
-    system("heatMap.pl -a $filename.ann -b $block > $filename.pp")
+    system("heatMap.pl -a $filename -b $block > $filename.pp")
       and $self->mailUserAndFail( 
       "Failed to run heatMap.pl ($type):[$!}" );
 
@@ -1767,6 +1767,35 @@ sub makeHTMLAlign {
     { key => 'UQ_alignments_and_trees_1' }
   );
   $self->logger->debug("Finished making $type HTML alignment");
+}
+
+sub makePPAlign {
+  my ( $self, $filename, $block, $type ) = @_;
+  $self->logger->debug("Making PP aligment for $type $filename");
+
+  if ( ( $type ne 'seed' ) ) {
+
+    #Make the posterior probablility alignment.
+    system("heatMap.pl -a $filename -b $block > $filename.pp")
+      and $self->mailUserAndFail( 
+      "Failed to run heatMap.pl ($type):[$!}" );
+
+    open( GZPP, "gzip -c $filename.pp |" )
+      or $self->mailUserAndFail( 
+      "Failed to gzip $filename.pp:[$!]" );
+    my $pp = join( "", <GZPP> );
+
+    $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->update_or_create(
+      {
+        auto_pfama => $self->pfam->auto_pfama,
+        type       => $type,
+        post       => $pp
+      },
+      { key => 'UQ_alignments_and_trees_1' }
+    );
+
+  }
+  $self->logger->debug("Finished making $type PP alignment");
 }
 
 sub uploadTreesAndAlign {
