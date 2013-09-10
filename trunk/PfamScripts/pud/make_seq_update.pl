@@ -398,9 +398,6 @@ else {
 #------------------------------
 #Lock and load!!!!
 
-
-die;
-
 #Copy Pfam-A table across, then Pfam-A seed, join against new pfamseq.
 #Copy Clans and clan, literature references, 
 
@@ -558,6 +555,8 @@ else {
   touch("$statusdir/changed_pfam_config")
     or $logger->logdie("Couldn't touch $statusdir/changed_pfam_config:[$!]\n");
 }
+
+die; 
 
 #Find out which families require seed surgery and fix them. This will also check out families that do not require surgery....
 if ( !-e "$statusdir/done_seed_surgery" ) {
