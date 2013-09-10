@@ -454,6 +454,20 @@ unless ( -e "$statusdir/done_checked_out_families" ) {
   my $client = Bio::Pfam::SVN::Client->new;
   $logger->info(
     "Proceeding to check out all families into $migrationDir/Families");
+  my $famRefs = $pfamDB->getAllPfamFamilyData;
+  my $dir = "$migrationDir/Families";
+  foreach my $fam (@$famRefs){
+    unless( -d $dir."/".$fam->pfama_acc){
+      $logger->debug("Going to check out family ".$fam->pfama_acc." [".$fam->pfama_id."]"); 
+      my $dest = $dir."/".$fam->pfama_acc;
+      $client->checkoutFamily($fam->pfama_acc, $dest); 
+    }
+  }   
+}
+$logger->debug($dir." now has a copy of all families");  
+    
+    
+    
   $client->checkoutAllFamilies( $migrationDir . "/Families" );
   open( F, ">$statusdir/done_checked_out_families" )
     or $logger->logdie("Could not open $statusdir/done_checked_out_families");
