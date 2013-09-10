@@ -462,13 +462,9 @@ unless ( -e "$statusdir/done_checked_out_families" ) {
       my $dest = $dir."/".$fam->pfama_acc;
       $client->checkoutFamily($fam->pfama_acc, $dest); 
     }
-  }   
-}
-$logger->debug($dir." now has a copy of all families");  
+  }
+  $logger->debug($dir." now has a copy of all families");  
     
-    
-    
-  $client->checkoutAllFamilies( $migrationDir . "/Families" );
   open( F, ">$statusdir/done_checked_out_families" )
     or $logger->logdie("Could not open $statusdir/done_checked_out_families");
   close(F);
