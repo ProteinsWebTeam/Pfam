@@ -10,6 +10,7 @@ use Data::UUID;
 use Net::SCP;
 use Getopt::Long;
 use File::Touch;
+use Data::Printer;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -252,7 +253,7 @@ if(-e "$statusdir/otherReg/doneUpload"){
                                                 seq_end, 
                                                 type_id, 
                                                 source_id, 
-                                                source, 
+                                                score, 
                                                 orientation) VALUES ( ?,?,?,?,?,?,?)");
 
   _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
@@ -445,9 +446,10 @@ sub _loadTable {
   while ( my $record = <$input> ) {
     chomp $record;
     my @values = split( /\t/, $record );
-    for ( my $i = 0 ; $i < $cols ; $i++ ) {
+    shift(@values); #Take the first element off.
+    for ( my $i = 0; $i < $cols ; $i++ ) {
       $values[$i] = undef if ( !defined($values[$i]) or $values[$i] eq '\N');
-    }
+    } 
     $sth->execute(@values);
 
     $count += 1;
