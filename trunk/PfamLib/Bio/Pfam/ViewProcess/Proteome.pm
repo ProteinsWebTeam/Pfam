@@ -6,6 +6,8 @@ use File::Copy;
 use Getopt::Long qw(GetOptionsFromArray);
 use Log::Log4perl qw(:easy);
 use IO::Compress::Gzip qw(gzip $GzipError);
+use Data::Printer;
+use POSIX qw(ceil);
 use Moose;
 use Moose::Util::TypeConstraints qw(enum);
 
@@ -134,21 +136,21 @@ sub makeTSV {
                                    FROM pfamseq
                                    LEFT JOIN  pfamA_reg_full_significant reg ON pfamseq.auto_pfamseq=reg.auto_pfamseq 
                                    LEFT JOIN proteome_pfamseq ON proteome_pfamseq.auto_pfamseq=pfamseq.auto_pfamseq 
-                                   WHERE auto_proteome = 
+                                   WHERE auto_proteome = ? 
                                    AND in_full=1"
   ) or $self->logger->logdie( "Failed to prepare statement:" . $dbh->errstr );
 
   #Go through each sequence for the taxid and get Pfam-A regions
   my $proteome =
-    $self->pfamdb->getSchema->resultset('CompleteProteome')
+    $self->pfamdb->getSchema->resultset('CompleteProteomes')
     ->find( { ncbi_taxid => $ncbi_taxid } );
 
   #Set up filehandle for printing
-  my $outfile = $self->releasedir . "/proteomes/" . $ncbi_taxid . ".tsv";
+  my $outfile = $self->options->{releasedir} . "/proteomes/" . $ncbi_taxid . ".tsv";
   if ( -s "$outfile.gz" ) {
     $self->logger->info(
       "Already done ncbi taxid $ncbi_taxid '" . $proteome->species . "'" );
-    next;
+    return;
   }
   open( OUT, ">$outfile" )
     or $self->logger->logdie("Couldn't open fh to $outfile, $!");
@@ -224,7 +226,7 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'normal';
-  my $resource = "-M3500000 -R'select[mem>3500 && mypfamstage<500] rusage[mypfamstage=10:mem=3500]'";
+  my $resource = "-M3500000 -R'select[mem>3500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=3500]'";
   my $memory = 3500000;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
@@ -244,14 +246,14 @@ sub proteomeRange {
   my ($self)    = @_;
   my $chunk     = $self->options->{chunk};
   my $chunkSize = $self->options->{chunkSize};
-
-  if ( !$self->statusCheck( $self->statusFile . ".$chunk" ) ) {
+ 
+  if ( !$self->statusCheck( $self->statusFile . ".$chunk.done" ) ) {
 
     if ( $chunk and $chunkSize ) {
-      $self->logger->debug("Calculating PfamA paging");
+      $self->logger->debug("Calculating proteome paging");
 
       my $proteomesAll =
-        $self->pfamdb->getSchema->resultset('CompleteProteome')->search(
+        $self->pfamdb->getSchema->resultset('CompleteProteomes')->search(
         {},
         {
           page => 1,
@@ -279,14 +281,12 @@ sub proteomeRange {
           $done{$1}++;
         }
       }
-      my $filenameRes = $self->options->{statusdir} . "/$filename.res";
-      my $tempDir = tempdir( CLEANUP => 0 );
-      chdir($tempDir);
+      p(%done);
       foreach my $p (@proteomes) {
-        next if ( exists( $done{ $a->ncbi_taxid } ) );
+        next if ( exists( $done{ $p->ncbi_taxid } ) );
         $self->logger->debug( "Working on " . $p->ncbi_taxid );
         $self->makeTSV( $p->ncbi_taxid );
-        print S $a->pfama_acc . "\n";
+        print S $p->ncbi_taxid . "\n";
       }
       close(S);
       $self->touchStatus( $self->statusFile . ".$chunk.done" );
