@@ -340,6 +340,28 @@ var DnaResults = Class.create( {
   //
   //  coordinate system maths...
   //
+  //
+  //  frames
+  //
+  //      1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+  //      a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  
+  //   
+  //       1    2    3    4    5    6    7    8
+  //   1  abc  def  ghi  jkl  mno  pqr  stu  vwx      
+  //   2   bcd  efg  hij  klm  nop  qrs  tuv  wxy
+  //   3    cde  fgh  ijk  lmn  opq  rst  uvw  xyz
+  //      
+  //       1    2    3    4    5    6    7    8
+  //   4  ZYX  WVU  TSR  QPO  NML  KJI  HGF  EDC  
+  //   5   YXW  VUT  SRQ  PON  MLK  JIH  GFE  DCB
+  //   6    XWV  UTS  RQP  ONM  LKJ  IHG  FED  CBA  
+  // 
+  //    Z  Y  X  W  V  U  T  S  R  Q  P  O  N  M  L  K  J  I  H  G  F  E  D  C  B  A
+  //   26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1
+  //
+  // 
+  //   end points
+  //
   //       1  2  3    4  5  6    7  8  9   10 11 12   13 14 15   16 17 18   19 20 21   22 23 24
   //       a  a  a    b  b  b    c  c  c    d  d  d    e  e  e    f  f  f    g  g  g    h  h  h
   //       |          |          |          |          |          |          |          |
@@ -349,14 +371,14 @@ var DnaResults = Class.create( {
   //       a          b          c          d          e          f          g          h
   //       1          2          3          4          5          6          7          8
   //
-  //    +ve strand:
-  //    protein --> DNA
-  //    d start = 3ps - 2
-  //    d end   = 3pe
+  //   +ve strand:
+  //   protein --> DNA
+  //   d start = 3ps - 3 + f
+  //   d end   = 3pe - 3 + f + 2
   //
-  //    DNA --> protein
-  //    p start = ( ds + 2 ) / 3
-  //    p end   = de / 3
+  //   DNA --> protein
+  //   p start = ( ds + 3 - f ) / 3
+  //   p end   = ( de + 1 - f ) / 3
   //
   //      24 23 22   21 20 19   18 17 16   15 14 13   12 11 10    9  8  7    6  5  4    3  2  1
   //       a  a  a    b  b  b    c  c  c    d  d  d    e  e  e    f  f  f    g  g  g    h  h  h
@@ -369,17 +391,17 @@ var DnaResults = Class.create( {
   //
   //    -ve strand
   //    protein --> DNA
-  //    d start = dl - 3 ( ps - 1 )
-  //    d end   = dl - 3 ( pe - 1 ) - 2
+  //    d start = dl - 3ps + 7 - f
+  //    d end   = dl - 3pe + 5 - f
   //
   //    DNA --> protein
-  //    p start = ( dl - ds ) / 3 + 1
-  //    p end   = ( dl - de - 2 ) / 3 + 1
+  //    p start = ( dl - ds + 7 - f ) / 3
+  //    p end   = ( dl - de + 5 - f ) / 3
   //
   //    examples
-  //    p1 = 2p to 6p  -->  d1 = 4d to 18p
-  //    d1 = 4d to 18p -->  p1 = 2p to 6p
-  //    p4 = 2p to 6p  -->  d4 = 21d to 7d
+  //    p1 = 2p to 6p --> d1 = 4d to 18p
+  //    d1 = 4d to 18p --> p1 = 2p to 6p
+  //    p4 = 2p to 6p --> d4 = 21d to 7d
   //
   //----------------------------------------------------------------------------
   /**
@@ -402,11 +424,11 @@ var DnaResults = Class.create( {
             c        = Number( cell.innerHTML );
 
         if ( frameNum < 4 ) { // positive strand
-          if      ( cell.hasClassName("start") ) { cell.innerHTML = 3 * c - 2; }
-          else if ( cell.hasClassName("end")   ) { cell.innerHTML = 3 * c; }
+          if      ( cell.hasClassName("start") ) { cell.innerHTML = 3 * c - 3 + frameNum; }
+          else if ( cell.hasClassName("end")   ) { cell.innerHTML = 3 * c - 3 + frameNum + 2; }
         } else {              // negative strand
-          if      ( cell.hasClassName("start") ) { cell.innerHTML = this._dl - 3 * ( c - 1 );     }
-          else if ( cell.hasClassName("end")   ) { cell.innerHTML = this._dl - 3 * ( c - 1 ) - 2; }
+          if      ( cell.hasClassName("start") ) { cell.innerHTML = this._dl - 3 * c + 7 - frameNum; }
+          else if ( cell.hasClassName("end")   ) { cell.innerHTML = this._dl - 3 * c + 5 - frameNum; }
         }
 
         cell.removeClassName("aa")
@@ -427,11 +449,11 @@ var DnaResults = Class.create( {
             c        = Number( cell.innerHTML );
 
         if ( frameNum < 4 ) { // positive strand
-          if      ( cell.hasClassName("start") ) { cell.innerHTML = ( c + 2 ) / 3; }
-          else if ( cell.hasClassName("end")   ) { cell.innerHTML = c / 3;         }
+          if      ( cell.hasClassName("start") ) { cell.innerHTML = ( c + 3 - frameNum ) / 3; }
+          else if ( cell.hasClassName("end")   ) { cell.innerHTML = ( c + 1 - frameNum ) / 3; }
         } else {                // negative strand
-          if      ( cell.hasClassName("start") ) { cell.innerHTML = ( this._dl - c ) / 3 + 1;     }
-          else if ( cell.hasClassName("end")   ) { cell.innerHTML = ( this._dl - c - 2 ) / 3 + 1; }
+          if      ( cell.hasClassName("start") ) { cell.innerHTML = ( this._dl - c + 7 - frameNum ) / 3; }
+          else if ( cell.hasClassName("end")   ) { cell.innerHTML = ( this._dl - c + 5 - frameNum ) / 3; }
         }
 
         cell.removeClassName("dna")
