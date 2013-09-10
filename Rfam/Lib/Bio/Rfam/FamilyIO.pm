@@ -2026,13 +2026,13 @@ sub writeTaxinfoFromOutlistAndSpecies {
                 $best_prefix = $prefix;
               }
             }
-            else { # sort by minimum E-value
+            else { # sort by minimum E-value as first key, count as second
               if(($eff_Eexp < $min_eff_Eexp) || 
                  ($eff_Eexp == $min_eff_Eexp && $eff_ct > $max_eff_ct)) {
                 #printf("reset min_eff_Eexp as $eff_Eexp, $prefix ($pfix_minEexpHH{$group}{$prefix}  $pfix_minEHH{$group}{$prefix})\n");
                 $min_eff_Eexp = $eff_Eexp;
                 $max_eff_ct   = $eff_ct;
-                  $best_prefix  = $prefix;
+                $best_prefix  = $prefix;
               }
             }
           }
@@ -2462,7 +2462,11 @@ sub writeOldAndNewHitComparison {
     Function : Given an E-value output by cmsearch, return a PERL-sortable
              : version of it. We return it''s exponent plus something extra
              : (see examples below). We need to do this because PERL cannot
-             : sort very low E-values (< ~E-20) (they are all treated as zeroes.
+             : sort very low E-values (< ~E-20) (they are all treated as zeroes).
+             : We take extra care such that an E-value of 0 is always sorted
+             : as the minimal possible E-value, by returning -1000 as it''s key,
+             : this will be lower than all E-values > 1.0E-1000, which means
+             : it will always be the minimum.                                   
     Args     : $evalue:   name of outlist file, usually 'outlist'
     Returns  : sortable version of $evalue
 =cut
@@ -2480,7 +2484,7 @@ sub _taxinfo_get_sortable_exponent {
     my $ret_val;
 
     if($evalue eq "0") { 
-      $ret_val = 0; 
+      $ret_val = -1000; 
     }
     elsif($evalue <= 1) { 
       while($evalue <= 1) { $exp--; $evalue *= 10; } 
