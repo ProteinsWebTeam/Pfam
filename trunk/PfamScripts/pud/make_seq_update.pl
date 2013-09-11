@@ -566,8 +566,6 @@ else {
     or $logger->logdie("Couldn't touch $statusdir/changed_pfam_config:[$!]\n");
 }
 
-die; 
-
 #Find out which families require seed surgery and fix them. This will also check out families that do not require surgery....
 if ( !-e "$statusdir/done_seed_surgery" ) {
   $logger->info("Finding out which families require seed surgery\n");
