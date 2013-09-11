@@ -58,10 +58,9 @@ use Carp;
 =cut
 
 
-
 subtype 'hmmVersion'
   => as Str
-  => where { $_ =~ m/^HMMER3\/[ab]\s+\[.*\]/ }
+  => where { $_ =~ m/^HMMER3\/f\s+\[3\.\d+[ab](\d+)?\s+|\s+\[.*\]/ }
   => message { "|$_| does not look like as HMMER3 version" };
 
 subtype 'hmmName'
