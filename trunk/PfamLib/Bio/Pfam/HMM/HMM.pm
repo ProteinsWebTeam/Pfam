@@ -136,6 +136,18 @@ has 'rf' => (
   required => 1
 );
 
+has 'mm' => (
+  isa  => 'Bool',
+  is   => 'rw',
+  required => 1
+);
+
+has 'cons' => (
+  isa  => 'Bool',
+  is   => 'rw',
+  required => 1
+);
+
 has 'cs' => (
   isa  => 'Bool',
   is   => 'rw',
