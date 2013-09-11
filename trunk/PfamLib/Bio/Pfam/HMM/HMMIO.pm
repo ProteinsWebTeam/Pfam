@@ -79,13 +79,15 @@ sub readHMM {
   
   
   #Parse the header section!  
-  #HMMER3/a [3.0.dev | October 2008]
+  #HMMER3/f [3.1b1 | May 2013]
   #NAME  SEED
   #ACC   PF000001.1
   #DESC  A description
   #LENG  55
   #ALPH  amino
   #RF    no
+  #MM    no
+  #CONS  yes
   #CS    no
   #MAP   yes
   #DATE  Fri Nov 21 09:58:16 2008
@@ -114,6 +116,10 @@ sub readHMM {
       $objHash->{alpha} = $alpha;
     }elsif( my ($rf) = $_ =~ /^RF\s+(no|yes)/){
       $objHash->{rf} = ($rf eq "no") ? 0 : 1; 
+    }elsif( my ($mm) = $_ =~ /^MM\s+(no|yes)/){
+      $objHash->{mm} = ($mm eq "no") ? 0 : 1; 
+    }elsif( my ($cons) = $_ =~ /^CONS\s+(no|yes)/){
+      $objHash->{cons} = ($cons eq "no") ? 0 : 1; 
     }elsif(my ($cs) = $_ =~ /^CS\s+(no|yes)/ ){
       $objHash->{cs} =  ($cs eq "no") ? 0 : 1; 
     }elsif(my ($map) = $_ =~ /^MAP\s+(no|yes)/){
@@ -243,13 +249,14 @@ sub writeHMM {
   }
 
   print  $hmm $hmmObj->version."\n";
-  #print  $hmm "HMMER3/b [3.0b3 | November 2009]\n";
   printf $hmm ("%-5s %s\n", "NAME", $hmmObj->name);
   printf $hmm ("%-5s %s\n", "ACC",  $hmmObj->accession) if($hmmObj->accession);
   printf $hmm ("%-5s %s\n", "DESC", $hmmObj->description) if($hmmObj->description);
   printf $hmm ("%-5s %d\n", "LENG", $hmmObj->length);
   printf $hmm ("%-5s %s\n", "ALPH", $hmmObj->alpha);
   printf $hmm ("%-5s %s\n", "RF", ($hmmObj->rf ? "yes" : "no"));
+  printf $hmm ("%-5s %s\n", "MM", ($hmmObj->mm ? "yes" : "no"));
+  printf $hmm ("%-5s %s\n", "CONS", ($hmmObj->cons ? "yes" : "no"));
   printf $hmm ("%-5s %s\n", "CS", ($hmmObj->cs ? "yes" : "no"));
   printf $hmm ("%-5s %s\n", "MAP", ($hmmObj->map ? "yes" : "no"));
   printf $hmm ("%-5s %s\n", "DATE", $hmmObj->date);
