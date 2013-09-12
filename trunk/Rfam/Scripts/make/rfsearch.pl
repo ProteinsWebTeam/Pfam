@@ -32,7 +32,8 @@ my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
 # search related options
 my $no_search = 0;              # TRUE to skip search
 my $no_rev_search = 0;          # TRUE to skip reversed search
-my $evalue;                     # cmsearch E-value to use, defined by GetOptions, if -E
+my $evalue;                     # cmsearch E-value to use, defined by GetOptions, if -e
+my $t_opt;                      # cmsearch bit score cutoff to use, defined by GetOptions, if -t
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
 my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk)
@@ -66,7 +67,8 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate,
 	     "nostruct"   => \$do_nostruct,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
-             "E=s",       => \$evalue,
+             "e=s",       => \$evalue,
+             "t=s",       => \$t_opt,
 	     "nosearch"   => \$no_search,
 	     "norev"      => \$no_rev_search, 
 	     "scpu=s"     => \$ncpus_cmsearch,
@@ -117,10 +119,12 @@ my $acc  = $desc->AC;
 # extra processing of command-line options 
 if ($no_search) { # -nosearch, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
-  if (defined $evalue)         { die "ERROR -nosearch and -E are incompatible"; }
+  if (defined $evalue)         { die "ERROR -nosearch and -e are incompatible"; }
+  if (defined $t_opt)          { die "ERROR -nosearch and -t are incompatible"; }
   if (@cmosA)                  { die "ERROR -nosearch and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -nosearch and -cmodA are incompatible"; }
 }
+if ((defined $evalue) && (defined $t_opt)) { die "ERROR you can't use both -t and -e, pick one"; }
 
 # by default we list user, date, pwd, family, and db choice,
 # and information for any command line flags set by
@@ -145,7 +149,8 @@ if($force_build)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]")); }
 if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]")); }
 if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]")); }
-if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-E]")); }
+if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-e]")); }
+if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]")); }
 if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]")); }
 if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]")); }
 if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]")); }
@@ -495,12 +500,13 @@ if (! $no_search) {
   # Infernal 1.1, we want to set thresholds similar to how they 
   # were before the switch.
   #
-  # 4 possible cases:
-  # Case 1: If user set -cme <f> option, use that with -E <f>.
-  # If user did not use -cme:
-  # Case 2:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
-  # Case 3: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
-  # Case 4: else use -T <x>, where <x> = GA-2.
+  # 5 possible cases:
+  # Case 1: If user set -e <f> option, use that with -E <f>.
+  # Case 2: If user set -t <f> option, use that with -T <f>.
+  # If user did not use -e:
+  # Case 3:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
+  # Case 4: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
+  # Case 5: else use -T <x>, where <x> = GA-2.
 
   my $use_cmsearch_evalue;    # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
   my $cmsearch_evalue;        # E-value to use with cmsearch
@@ -513,9 +519,13 @@ if (! $no_search) {
   my $min_evalue     = 1000;  # hard-coded min E-value allowed, not applied if -E used
   my $extra_options  = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
 
-  if (defined $evalue) {      # -cme option set on cmdline
+  if (defined $evalue) {      # -e option set on cmdline
     $use_cmsearch_evalue = 1;
     $cmsearch_evalue     = $evalue;
+  }
+  elsif (defined $t_opt) {      # -t option set on cmdline
+    $use_cmsearch_evalue = 0;
+    $cmsearch_bitsc      = $t_opt;
   }
   elsif(! defined $dbsize) { # if we don't know the database size (probably b/c -dbfile, -dbdir or -dblist was set), use -E 1000
     $use_cmsearch_evalue = 1;
@@ -737,7 +747,8 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -ccpu <n>  set number of CPUs for MPI cmcalibrate job to <n>
 
             OPTIONS RELATED TO SEARCH STEP (cmsearch):
-            -E <f>        set cmsearch E-value threshold as <f>
+            -e <f>        set cmsearch E-value threshold as <f>
+            -t <f>        set cmsearch bit score threshold as <f>
             -nosearch     do not run cmsearch
             -norev        do not run cmsearch on reversed database files
             -scpu <n>     set number of CPUs for cmsearch jobs to <n>
