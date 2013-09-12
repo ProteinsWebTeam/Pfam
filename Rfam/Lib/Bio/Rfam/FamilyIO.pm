@@ -749,9 +749,9 @@ sub parseDESC {
         $params{'PI'} = $piLine;
       }
     }
-#    BM   cmbuild  -F CM SEED
-#    CB   cmcalibrate --mpi -s 1 CM
-#    SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB  
+#    BM   cmbuild -F CM SEED
+#    CB   cmcalibrate --mpi CM
+#    SM   cmsearch --cpu 4 --verbose --nohmmonly -E 1000 -Z 549862.597050 CM SEQDB
 #         note: SM can be multiple lines, so we concatenate it freely,
 #         then we validate it after all DESC lines have been parsed
    
