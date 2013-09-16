@@ -499,6 +499,7 @@ sub writeCLANDESC {
   open( D, ">$descfile" )
     or die "Could not open $descfile file for writing to\n";
 
+  $Text::Wrap::unexpand = 0;
   $Text::Wrap::columns = 75;
   foreach my $tagOrder ( @{ $desc->order } ) {
     if ( length($tagOrder) == 2 ) {
