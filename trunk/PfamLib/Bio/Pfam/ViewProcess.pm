@@ -13,7 +13,6 @@ use Digest::MD5 qw(md5_hex);
 use Cwd;
 use Text::Wrap;
 use JSON;
-$Text::Wrap::columns = 75;
 use Data::Printer;
 use File::Touch;
 
@@ -31,6 +30,9 @@ use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
+
+$Text::Wrap::unexpand = 0;
+$Text::Wrap::columns = 75;
 
 
 sub new {
@@ -197,7 +199,7 @@ sub initiateClanViewProcess {
   foreach my $memb (@$clanMembs) {
 
     #Now look for any families belonging to that jobs.
-    print "*** $memb ***\n";
+    #print "*** $memb ***\n";
     $self->killFamilyJob( $memb->auto_pfama->pfama_acc);
   }
 
