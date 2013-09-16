@@ -73,6 +73,85 @@ sub updatePdbRange {
   $self->touchStatus($self->statusFile.".$chunk.done");
 }
 
+sub updatePdbColourRange {
+  my ( $self ) = @_;
+  
+  my $chunk = $self->options->{chunk};
+  my $chunkSize = $self->options->{chunkSize};
+
+  if(!$self->statusCheck($self->statusFile.".$chunk.done")){
+  
+    my(@pdbRS);
+  if($chunk and $chunkSize ) {
+    $self->logger->debug("Calculating pdbs paging");
+
+    my $pdbsAll = $self->pfamdb->getSchema->resultset('Pdb')->search(
+      { hex_colour => 'NULL'},
+      {
+      page => 1,
+      rows => $chunkSize
+    });
+
+    my $pager = $pdbsAll->pager;
+    $self->logger->info( "Working on page $chunk out of " . $pager->last_page );
+
+    @pdbRS = $pdbsAll->page($chunk)->all;
+  }
+  
+  $self->logger->debug("Making pdb images, chunk $chunk.");
+
+  $self->setColours( \@pdbRS, $self->statusFile.".$chunk" );
+    
+    #Note if you change the file name, fix the submit to farm
+    $self->touchStatus($self->statusFile.".$chunk");
+  }
+  $self->touchStatus($self->statusFile.".$chunk.done");
+}
+
+sub setColours {
+  my ( $self, $pdbs, $filename ) = @_;
+  
+  #open up the status file. Read any contents, then write when pdb id and status.
+  $self->touchStatus($filename); 
+  open(S, '+<', $self->options->{statusdir}.'/'.$filename) or 
+      $self->logger->logdie("Could not open status file:[$!]"); 
+  
+  my %done;
+  while(<S>){
+    if(/^(\S+)/){
+      $done{$1}++;
+    }
+  }
+  
+  my $pwd = getcwd;
+  
+  foreach my $pdbRow (@$pdbs) {
+    my $pdb = $pdbRow->pdb_id;
+    next if(exists($done{$pdb}));
+    $self->logger->info("Working on $pdb");
+    if ( $self->blacklist->{$pdb} ){
+      print S "$pdb\tblacklist\n";
+    }
+   
+   #Now get the region information for this pdb
+    my @regions =
+      $self->pfamdb->getSchema->resultset('PdbPfamaReg')
+      ->search( { pdb_id => $pdb },
+      { order_by => 'chain, pdb_res_start ASC' } );
+
+    my $pfamaConfig = Bio::Pfam::Drawing::Layout::Config::PfamaConfig->new;
+    
+    #Assign all of the colours and update the regions.
+    $self->pfamdb->getSchema->txn_begin;
+    foreach my $domain (@regions) {
+      $self->assignColour( $pfamaConfig, $domain );
+    }
+    $self->pfamdb->getSchema->txn_commit;
+  }
+  close(S);
+}
+
+
 sub makeImages {
   my ( $self, $pdbs, $filename ) = @_;
   
