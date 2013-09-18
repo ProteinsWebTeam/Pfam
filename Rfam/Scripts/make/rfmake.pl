@@ -53,7 +53,8 @@ my @cmosA       = ();           # extra single - cmalign options (e.g. -g)
 my @cmodA       = ();           # extra double - cmalign options (e.g. --cyk)
 # taxinfo related options
 my $no_taxinfo  = 0;            # TRUE to NOT create taxinfo file
-my $n2print = 5;                # target number of SEED taxonomy prefixes to print (-n2print)
+my $df_n2print = 5;             # target number of SEED taxonomy prefixes to print (-n2print)
+my $n2print = $df_n2print;      # target number of SEED taxonomy prefixes to print (-n2print)
 my $l2print = 0;                # print all unique prefixes of length <n> 
 my $do_nsort = 0;               # true to sort output by counts, not min E-value
 # comparison related options
@@ -166,6 +167,9 @@ $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
 if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmalign options:",       $str . " [-cmod]")); }
 if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [-notaxinfo]")); }
 elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]")); }
+if($n2print != $df_n2print)    { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# target \# of SEED groups for taxinfo:", $n2print . " [-n2print]")); }
+if($l2print != 0)              { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo unique prefix token length:", $l2print . " [-l2print]")); }
+if($do_nsort)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo sort by count:",             "yes [-nsort]")); }
 if($compdir ne "")             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# comparing to Rfam 11.0 results in:", $compdir . " [-compare]")); }
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]")); }
 if($do_force)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# forcing GA threshold:",              "yes [-force]")); }
