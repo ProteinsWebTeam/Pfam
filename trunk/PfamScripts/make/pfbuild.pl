@@ -30,7 +30,7 @@ sub main {
     die
 "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
-  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' ) {
+  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
     warn "Unkown location.....things will probably break\n";
   }
   unless ( -d $config->hmmer3bin ) {
@@ -319,7 +319,7 @@ sub main {
     rename( "SEED.$$.selex", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
 
     #If running at Sanger, need to estimate how much memory will be needed on farm, to do this we will need the HMM length
-    if ( $config->location eq 'WTSI' ) {
+    if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
       die "No HMM in cwd" unless(-s "HMM");
       open(HMM, "HMM") or die "Couldn't open fh to HMM, $!";
       while(<HMM>) {
@@ -560,10 +560,24 @@ sub main {
 	my $memory_mb=$memory_gb*1000;
 	my $memory_kb=$memory_mb*1000;
 
-        $fh->open( "| bsub -q "
-            . $farmConfig->{lsf}->{queue}
-            . " -n $cpu -R \"span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
-        );
+
+	if( $config->location eq "WTSI") {
+	  $fh->open( "| bsub -q "
+		     . $farmConfig->{lsf}->{queue}
+		     . " -n $cpu -R \"span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -o /tmp/$$.log -Jhmmsearch$$ -G pfam-grp"
+		   );
+	}
+	elsif( $config->location eq "EBI") {
+
+	  $fh->open( "| bsub -q "
+		     . $farmConfig->{lsf}->{queue}
+		     . " -n $cpu -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o /dev/null -Jhmmsearch$$"
+		   );
+	}
+	else {
+	  die "Config is not WTSI or EBI, do not know what to do";
+	}
+
         if ($copy) {
           $fh->print(
             "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" )
