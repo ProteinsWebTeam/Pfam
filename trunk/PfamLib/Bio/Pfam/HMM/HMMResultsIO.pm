@@ -138,8 +138,9 @@ sub parseMultiHMMER3 {
   my $program;
   while(!eof($fh)){
     my $hmmRes = Bio::Pfam::HMM::HMMResults->new;
+    my $eof = $self->_readHeader( $fh, $hmmRes ); 
+    last if($eof);
     push(@hmmResAll, $hmmRes);
-    $self->_readHeader( $fh, $hmmRes );
     if($hmmRes->program) {
 	$program = $hmmRes->program;
     }
@@ -431,6 +432,8 @@ sub _readHeader {
       next;
     }elsif(/^Accession/){
       next; 
+    } elsif(/^\[ok\]/) {
+      return(1);
     } else {
       die "Failed to parse hmmsearch results |$_| in header section\n";
     }
