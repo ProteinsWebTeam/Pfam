@@ -2430,7 +2430,7 @@ sub writeOldAndNewHitComparison {
   printf COMP ("#\n");
   printf COMP ("# counts of hits in SEED and FULL from old and new searches:\n");
   if($old_ga ne $new_ga) { 
-    printf COMP("# NOTE: GA used to define FULL differs b/t old and new ($old_ga != $new_ga)\n");
+    printf COMP ("# NOTE: GA used to define FULL differs b/t old and new ($old_ga != $new_ga)\n");
   }
   printf COMP ("#\n");
   printf COMP ("# %8s  %7s  %7s\n", "", "SEED", "FULL");
