@@ -52,7 +52,7 @@ sub cmbuild_wrapper {
 
   Bio::Rfam::Utils::run_local_command($cmd);
 
-  # get running time (and verify output, this call will die if no 'CPU time' lines exist in output
+  # get running time (and verify output, this call will die if no 'CPU time' lines exist in output)
   my $elapsed_secs;
   Bio::Rfam::Infernal::process_cpu_times($outPath, "# CPU time:", undef, \$elapsed_secs, undef, undef);
 

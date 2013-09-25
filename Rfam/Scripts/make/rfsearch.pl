@@ -25,6 +25,7 @@ my $executable = $0;
 # set default values that command line options may change
 # build related options
 my $force_build = 0;            # TRUE to force build
+my $only_build  = 0;            # TRUE to only build and then exit
 my $do_nostruct = 0;            # TRUE to allow building of CMs with no structure
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
@@ -64,6 +65,7 @@ open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writ
 Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate, and search a CM against a database", 1);
 
 &GetOptions( "b"          => \$force_build,
+             "onlybuild"  => \$only_build,
 	     "nostruct"   => \$do_nostruct,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
@@ -117,6 +119,13 @@ my $id   = $desc->ID;
 my $acc  = $desc->AC;
 
 # extra processing of command-line options 
+if ($only_build) { # -onlybuild, verify incompatible options are not set
+  if (defined $ncpus_cmsearch) { die "ERROR -onlybuild and -scpu are incompatible"; }
+  if (defined $evalue)         { die "ERROR -onlybuild and -e are incompatible"; }
+  if (defined $t_opt)          { die "ERROR -onlybuild and -t are incompatible"; }
+  if (@cmosA)                  { die "ERROR -onlybuild and -cmosA are incompatible"; }
+  if (@cmodA)                  { die "ERROR -onlybuild and -cmodA are incompatible"; }
+}
 if ($no_search) { # -nosearch, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
   if (defined $evalue)         { die "ERROR -nosearch and -e are incompatible"; }
@@ -146,6 +155,7 @@ elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, 
 elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]")); }
 else                           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice)); }
 if($force_build)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]")); }
+if($only_build)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]")); }
 if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]")); }
 if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]")); }
 if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]")); }
@@ -289,6 +299,7 @@ if (defined $cm && $cm->is_calibrated) {
 # figure out if we have to build
 my $do_build = 0;
 if (($force_build)        ||             # user set -b on command line
+    ($only_build)         ||             # user set -onlybuild on command line
     (! defined $cm)       ||             # 'CM' does not exist
     (! $is_cm_calibrated) ||             # 'CM' is not calibrated
     (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
@@ -358,7 +369,8 @@ my $calibrateO     = "c.$$.out"; # cmcalibrate output file
 my $calibrate_errO = "c.$$.err"; # error output
 my $did_calibrate = 0;
 if(! defined $ncpus_cmcalibrate) { $ncpus_cmcalibrate = 81; }
-if ($force_calibrate || (! $is_cm_calibrated)) { 
+my $do_calibrate = (! $only_build) && ($force_calibrate || (! $is_cm_calibrated)) ? 1 : 0;
+if($do_calibrate) { 
   my $calibrate_start_time = time();
 #  Calibration prediction time not currently used, since we can't accurately predict search time anyway
   my $predicted_minutes = Bio::Rfam::Infernal::cmcalibrate_wrapper($config, 
@@ -409,7 +421,7 @@ my $search_max_elp_secs     = 0; # max time (secs) elapsed a regular db search j
 my $rev_search_cpu_secs     = 0; # CPU time (secs) for all reversed db searches
 my $rev_search_max_elp_secs = 0; # max time (secs) elapsed a reversed db search job took
 my $did_search              = 0;
-if (! $no_search) { 
+if ((! $only_build) && (! $no_search)) { 
   my $search_start_time = time();
 
   #################################################################################
@@ -739,7 +751,8 @@ rfsearch.pl: builds, calibrates and searches a CM against a sequence database.
 Usage:      rfsearch.pl [options]
 
 Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
-	    -b         always run cmbuild (default: only run if 'CM' is v1.0 or doesn't exist)
+	    -b         always run cmbuild (default: only run if 'CM' is v1.0, is older than SEED or doesn't exist)
+	    -onlybuild build CM and then exit, do not calibrate, do not search
 	    -nostruct  set a zero basepair SS_cons in SEED prior to cmbuild (none must exist in SEED)
 
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
