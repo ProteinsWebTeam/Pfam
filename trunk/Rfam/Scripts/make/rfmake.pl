@@ -104,9 +104,9 @@ if ( $do_help ) {
 }
 
 # output header
-my $user  = getlogin() || getpwuid($<);
+my $user  = getpwuid($<);
 if (! defined $user || length($user) == 0) { 
-  die "FATAL: failed to run [getlogin or getpwuid($<)]!\n[$!]";
+  die "FATAL: failed to run [getpwuid($<)]!\n[$!]";
 }
 
 # setup variables 
@@ -205,7 +205,7 @@ foreach $outfile (@outfile_orderA) {
 }
 
 # extra processing of command-line options 
-# enforce -a or --repalign selected if used align-specific options used
+# enforce -a or --repalign selected if align-specific options used
 if ((! $do_align) && (! $do_repalign)) { 
   if ($always_farm)       { die "ERROR -farm  requires -a or -r"; }
   if ($always_local)      { die "ERROR -local requires -a or -r"; }

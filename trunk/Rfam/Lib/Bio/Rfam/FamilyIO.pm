@@ -1756,7 +1756,7 @@ sub commentLineForOutlistOrSpecies {
              : easy to digest by a curator. Much of the complexity of the 
              : code for this subroutine is due to storing the taxonomic 
              : strings in such a way that enables us to find the desired
-             : prefix level and then for finding it. 
+             : prefix level as well as for actually finding it. 
              :
              : Once the desired prefix level is found, the remainder of
              : the subroutine is dedicated to outputting a sorted list
