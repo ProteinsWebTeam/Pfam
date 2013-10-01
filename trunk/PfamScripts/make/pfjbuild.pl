@@ -30,7 +30,7 @@ sub main {
     die
 "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
-  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' ) {
+  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
     warn "Unkown location.....things will probably break\n";
   }
   unless ( -d $config->hmmer3bin ) {
@@ -465,10 +465,20 @@ sub farmJackhmmer {
 
   #Now submit the command!
   my $fh = IO::File->new();
-  $fh->open( "| bsub -q "
+
+  if($config->location eq 'WTSI') { #Sanger farm requires the group to be specified in bsub commands
+    $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
       . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
+  }
+  else {
+    $fh->open( "| bsub -q "
+      . $farmConfig->{lsf}->{queue} . " -o "
+      . $farmConfig->{lsf}->{scratch}
+      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
+  }
+
   if($copyFiles){
     $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   }else{
