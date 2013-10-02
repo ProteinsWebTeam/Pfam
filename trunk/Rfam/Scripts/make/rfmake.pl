@@ -62,6 +62,8 @@ my $compdir = "";               # location of directory with files for 'comparis
 # other options
 my $q_opt = "";                 # <str> from -queue <str>
 my $do_dirty = 0;               # TRUE to not unlink files
+my $do_stdout = 1;              # TRUE to output to STDOUT
+my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
 my $do_force = 0;               # TRUE to force GA threshold, even if not hits exist above/below GA
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
@@ -69,9 +71,6 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
-
-open($logFH, ">rfmake.log") || die "ERROR unable to open rfmake.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "investigate and set family score thresholds", 1);
 
 &GetOptions( "t=s"        => \$ga_bitsc,
              "e=s"        => \$ga_evalue,
@@ -94,9 +93,14 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "investigate and s
              "nsort"      => \$do_nsort,
              "compare=s"  => \$compdir,
              "dirty"      => \$do_dirty,
+             "quiet",     => \$do_quiet,
              "force"      => \$do_force,
              "queue=s"    => \$q_opt, 
              "h|help"     => \$do_help );
+
+$do_stdout = ($do_quiet) ? 0 : 1;
+open($logFH, ">rfmake.log") || die "ERROR unable to open rfmake.log for writing";
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "investigate and set family score thresholds", $do_stdout);
 
 if ( $do_help ) {
   &help();
@@ -142,39 +146,39 @@ my $can_do_taxinfo = $dbconfig->{"haveTax"};
 my $cwidth = 40;
 my $str;
 my $opt;
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC));
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC), $do_stdout);
 
-if(defined $ga_bitsc)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score GA threshold:",            "$ga_bitsc" . " [-t]")); }
-if(defined $ga_evalue)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value-based GA threshold:",        "$ga_evalue" . " [-e]")); }
-if($do_align)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# full alignment:",                    "yes" . " [-a]")); }
-if($do_repalign)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 'representative' alignment:",        "yes" . " [-r]")); }
-if($always_farm)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force farm/cluster alignment:",      "yes" . " [-farm]")); }
-if($always_local)              { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force local CPU alignment:",         "yes" . " [-local]")); }
-if($nproc != -1)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmalign:",        $nproc . " [-nproc]")); }
-if($do_pp)                     { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in alignments:",  "yes",   " [-prob]")); }
-if($nper != $df_nper)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of seqs per group:",          $nper,   " [-nper]")); }
-if($seed != $df_seed)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# RNG seed set to:",                   $seed,   " [-seed]")); }
-if($emax != $df_emax)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max E-value in \"OTHER\" group:",    $emax,   " [-emax]")); }
-if($bitmin ne $df_bitmin)      { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min bit score in \"OTHER\" group:",  $bitmin, " [-bitmin]")); }
+if(defined $ga_bitsc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score GA threshold:",            "$ga_bitsc" . " [-t]"), $do_stdout); }
+if(defined $ga_evalue)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value-based GA threshold:",        "$ga_evalue" . " [-e]"), $do_stdout); }
+if($do_align)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# full alignment:",                    "yes" . " [-a]"), $do_stdout); }
+if($do_repalign)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 'representative' alignment:",        "yes" . " [-r]"), $do_stdout); }
+if($always_farm)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force farm/cluster alignment:",      "yes" . " [-farm]"), $do_stdout); }
+if($always_local)              { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force local CPU alignment:",         "yes" . " [-local]"), $do_stdout); }
+if($nproc != -1)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmalign:",        $nproc . " [-nproc]"), $do_stdout); }
+if($do_pp)                     { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in alignments:",  "yes",   " [-prob]"), $do_stdout); }
+if($nper != $df_nper)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of seqs per group:",          $nper,   " [-nper]"), $do_stdout); }
+if($seed != $df_seed)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# RNG seed set to:",                   $seed,   " [-seed]"), $do_stdout); }
+if($emax != $df_emax)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max E-value in \"OTHER\" group:",    $emax,   " [-emax]"), $do_stdout); }
+if($bitmin ne $df_bitmin)      { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min bit score in \"OTHER\" group:",  $bitmin, " [-bitmin]"), $do_stdout); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
-if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmalign options:",       $str . " [-cmos]")); }
+if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmalign options:",       $str . " [-cmos]"), $do_stdout); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
-if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmalign options:",       $str . " [-cmod]")); }
-if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [-notaxinfo]")); }
-elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]")); }
-if($n2print != $df_n2print)    { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# target \# of SEED groups for taxinfo:", $n2print . " [-n2print]")); }
-if($l2print != 0)              { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo unique prefix token length:", $l2print . " [-l2print]")); }
-if($do_nsort)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo sort by count:",             "yes [-nsort]")); }
-if($compdir ne "")             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# comparing to Rfam 11.0 results in:", $compdir . " [-compare]")); }
-if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]")); }
-if($do_force)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# forcing GA threshold:",              "yes [-force]")); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]")); }
-Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
+if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmalign options:",       $str . " [-cmod]"), $do_stdout); }
+if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [-notaxinfo]"), $do_stdout); }
+elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]"), $do_stdout); }
+if($n2print != $df_n2print)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# target \# of SEED groups for taxinfo:", $n2print . " [-n2print]"), $do_stdout); }
+if($l2print != 0)              { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo unique prefix token length:", $l2print . " [-l2print]"), $do_stdout); }
+if($do_nsort)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo sort by count:",             "yes [-nsort]"), $do_stdout); }
+if($compdir ne "")             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# comparing to Rfam 11.0 results in:", $compdir . " [-compare]"), $do_stdout); }
+if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]"), $do_stdout); }
+if($do_force)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# forcing GA threshold:",              "yes [-force]"), $do_stdout); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]"), $do_stdout); }
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "#\n", $do_stdout);
 
 # make sure we have the all-important TBLOUT file
 if(! -s 'TBLOUT') { die "ERROR: TBLOUT does not exist, did you run rfsearch.pl?"; }
@@ -227,13 +231,13 @@ if ((defined $ga_bitsc) && (defined $ga_evalue)) {
 } elsif (defined $ga_evalue) { 
   my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $ga_evalue, $Z, $desc->SM)) + 0.5); # round up to nearest int bit score above exact bit score
   $ga_bitsc = sprintf("%.2f", $bitsc);
-  Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [converted -e E-value]"));
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [converted -e E-value]"), $do_stdout);
 } elsif (defined $ga_bitsc) { 
   $ga_bitsc = sprintf("%.2f", $ga_bitsc);
-  Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [-t]"));
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [-t]"), $do_stdout);
 } else { 
   $ga_bitsc = $famObj->DESC->CUTGA; 
-  Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [from DESC (neither -t nor -e used)]"));
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [from DESC (neither -t nor -e used)]"), $do_stdout);
 }    
 if (! defined $ga_bitsc) {
   die "ERROR: problem setting threshold\n";
@@ -294,20 +298,20 @@ if($do_taxinfo) {
 # create full alignment, if necessary
 #####################################
 if ($do_align) { 
-  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("creating full alignment [enabled with -a, %d sequences]:", $famObj->SCORES->numRegions), 1);
+  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("creating full alignment [enabled with -a, %d sequences]:", $famObj->SCORES->numRegions), $do_stdout);
 
   # fetch sequences
   my $fetch_start_time = time();  
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $famObj->SCORES->numRegions), 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $famObj->SCORES->numRegions), $do_stdout);
   $fetch_sqfile->fetch_subseqs($famObj->SCORES->regions, 60, "$$.fa"); 
   $fetch_sqfile->close_sqfile();
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", $do_stdout);
 
   # align with cmalign
   my $options = "-o align --outformat pfam ";
   if(! $do_pp) { $options .= "--noprob " }
   $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.fa", "alignout", "a.$$.err", $famObj->SCORES->numRegions, $famObj->SCORES->nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.fa", "alignout", "a.$$.err", $famObj->SCORES->numRegions, $famObj->SCORES->nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
   if (! $do_dirty) { unlink "$$.fa"; }
 
 } # end of if($do_align)
@@ -316,12 +320,12 @@ if ($do_align) {
 # create representative alignment, if necessary
 ###############################################
 if ($do_repalign) { 
-  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "creating representative alignment [enabled with -r]:", 1);
+  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "creating representative alignment [enabled with -r]:", $do_stdout);
 
   # define each sequence into a group, filter groups down to size 
   # of $nper (default:30) and return fasta string of all remaining seqs; 
   # this is our 'representative set'.
-  my ($all_seqs, $all_nseq, $all_nres) = &get_representative_subset($io, $ga_bitsc, $fetch_sqfile, $nper, $emax, $seed, \@cmosA, \@cmodA, $do_dirty);
+  my ($all_seqs, $all_nseq, $all_nres) = &get_representative_subset($io, $ga_bitsc, $fetch_sqfile, $nper, $emax, $seed, \@cmosA, \@cmodA, $do_dirty, $do_stdout);
 
   # print representative seqs to file
   open(OUT, ">$$.all.fa") || die "ERROR unable to open $$.all.fa for writing"; 
@@ -332,7 +336,7 @@ if ($do_repalign) {
   my $options = "-o repalign --outformat pfam ";
   if(! $do_pp) { $options .= "--noprob " }
   $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.all.fa", "repalignout", "a.$$.all.err", $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", "$$.all.fa", "repalignout", "a.$$.all.err", $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
   if(! $do_dirty) { 
     unlink "$$.all.fa"; 
     unlink "a.$$.all.err";
@@ -357,7 +361,7 @@ if($do_comp) {
   # pick sequences to align with new and old CM
   my $fafile = "c.$$.fa";
   my $comp_nseq = 100;
-  my ($all_nseq, $all_nres) = &get_comparison_seqs(\%infoHH, \%groupOHA, $fetch_sqfile, $fafile, $comp_nseq, $logFH);
+  my ($all_nseq, $all_nres) = &get_comparison_seqs(\%infoHH, \%groupOHA, $fetch_sqfile, $fafile, $comp_nseq, $logFH, $do_stdout);
 
   # align sequences to both old and new CM
   my $stkfile =  "$$.ca.stk";
@@ -369,8 +373,8 @@ if($do_comp) {
   my $options  = "-o $stkfile --noprob";
   my $ooptions = "-o $ostkfile --noprob";
   if($old_is_glocal) { $ooptions .= " -g"; }
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "ca.$$",  $options,  "CM",     $fafile,  $cmafile,  $errfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "oca.$$", $ooptions, "CM.1p0", $fafile, $ocmafile, $oerrfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "ca.$$",  $options,  "CM",     $fafile,  $cmafile,  $errfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "oca.$$", $ooptions, "CM.1p0", $fafile, $ocmafile, $oerrfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
 
   # parse cmalign output files to get avg bit score differences
   my $avg_bitdiff = &compare_cmalign_files($cmafile, $ocmafile);
@@ -390,33 +394,28 @@ $io->writeDESC($famObj->DESC);
 ##############################################
 # finished all work, print output file summary
 ##############################################
-Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
 my $description = sprintf("%s%s%s", 
     ($famObj->DESC->CUTTC == $orig_tc_bitsc)   ? " TC" : "", 
     ($famObj->DESC->CUTGA == $orig_ga_bitsc)   ? " GA" : "", 
     ($famObj->DESC->CUTNC == $orig_nc_bitsc)     ? " NC" : "");
 if($description ne "") { $description = "desc file (updated:$description)"; }
 else                   { $description = "desc file (unchanged)"; }
-Bio::Rfam::Utils::log_output_file_summary($logFH, "DESC", $description, 1);
+Bio::Rfam::Utils::log_output_file_summary($logFH, "DESC", $description, $do_stdout);
 
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
-    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
+    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, $do_stdout);
   }
 }
 $description = sprintf("log file (*this* output)");
-Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfmake.log", $description, 1);
+Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfmake.log", $description, $do_stdout);
 
-my $outstr = "#\n";
-printf $outstr; print $logFH $outstr;
-
-$outstr = sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time));
-printf $outstr; print $logFH $outstr;
-
-$outstr = "# [ok]\n";
-printf $outstr; print $logFH $outstr;
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time)), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# [ok]\n"), $do_stdout);
 
 if(defined $fetch_sqfile) {
   $fetch_sqfile->close_sqfile();
@@ -464,7 +463,7 @@ sub set_nc_and_tc {
   if ($tc eq "undefined") { 
     if($do_force) { 
       $tc = $ga + 0.5; 
-      Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("# Warning: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc));
+      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("# Warning: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc), $do_stdout);
     }
     else { 
       die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
@@ -473,7 +472,7 @@ sub set_nc_and_tc {
   if ($nc eq "undefined") { 
     if($do_force) { 
       $nc = $ga - 0.5; 
-      Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("# Warning: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
+      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("# Warning: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
     }
     else { 
       die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
@@ -495,7 +494,7 @@ sub set_nc_and_tc {
 #  Concatenate the resulting 'representative' sequences and return them.
 
 sub get_representative_subset { 
-  my($io, $ga_bitsc, $fetch_sqfile, $nper, $emax, $seed, $cmosAR, $cmodAR, $do_dirty) = @_;
+  my($io, $ga_bitsc, $fetch_sqfile, $nper, $emax, $seed, $cmosAR, $cmodAR, $do_dirty, $do_stdout) = @_;
 
   # preliminaries
   my @groupOA  = ("S", "F", "O"); # "SEED", "FULL" and "OTHER", order of groups
@@ -527,7 +526,7 @@ sub get_representative_subset {
       # sequences we'll randomly sample only $max_nseq, this
       # is so the pairwise sequence comparison step doesn't 
       # take forever
-      my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@{$groupOHA{$group}}, $nper, $logFH);
+      my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@{$groupOHA{$group}}, $nper, $logFH, $do_stdout);
 
       open(OUT, ">" . $fafile) || die "ERROR unable to open $fafile for writing";
       print OUT $concat_seqstring;
@@ -537,7 +536,7 @@ sub get_representative_subset {
       my $options = "-o $stkfile --noprob ";
       $options .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
       # run cmalign locally or on farm (autodetermined based on job size) 
-      Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", $fafile, $cmafile, $errfile, $nseq, $nres, $always_local, $always_farm, $q_opt, $nproc, $logFH);
+      Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $options, "CM", $fafile, $cmafile, $errfile, $nseq, $nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
 
       # open and read the MSA
       $msa = Bio::Easel::MSA->new({
@@ -661,7 +660,7 @@ sub filter_group {
 #  them all
 #
 sub get_random_sequence_subset {
-  my ($rng, $fetch_sqfile, $AR, $n, $logFH) = @_;
+  my ($rng, $fetch_sqfile, $AR, $n, $logFH, $do_stdout) = @_;
 
   my $orig_nseq = scalar(@{$AR});
   my @chosenA = ();
@@ -686,9 +685,9 @@ sub get_random_sequence_subset {
     $nseq++;
     push(@fetchAA, [$nse, $start, $end, $name]); 
   }
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $nseq), 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", $nseq), $do_stdout);
   my $concat_seqstring = $fetch_sqfile->fetch_subseqs(\@fetchAA, 60); 
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", $do_stdout);
   
   return ($concat_seqstring, $nseq, $nres);
 }
@@ -779,7 +778,7 @@ sub compare_cmalign_files {
 #  that are NOT TRUNCATED, fetch them and output them to a file.
 #
 sub get_comparison_seqs { 
-  my ($infoHHR, $groupOHAR, $fetch_sqfile, $fafile, $comp_nseq, $logFH) = @_;
+  my ($infoHHR, $groupOHAR, $fetch_sqfile, $fafile, $comp_nseq, $logFH, $do_stdout) = @_;
 
   my $all_seqstring = "";
   my $all_nseq = 0;
@@ -794,7 +793,7 @@ sub get_comparison_seqs {
         push(@tmpA, $seqname);
       }
     }
-    my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@tmpA, $comp_nseq, $logFH);
+    my ($concat_seqstring, $nseq, $nres) = &get_random_sequence_subset($rng, $fetch_sqfile, \@tmpA, $comp_nseq, $logFH, $do_stdout);
     $all_seqstring .= $concat_seqstring;
     $all_nseq += $nseq;
     $all_nres += $nres;
@@ -921,6 +920,7 @@ Options:    -t <f>  set threshold as <f> bits
 
 	    OTHER:
 	    -dirty       leave temporary files, don't clean up
+            -quiet       be quiet; do not output anything to stdout (rfmake.log still created)
             -force       force threshold; even if no hits exist above and/or below GA
             -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
   	    -h|-help     print this help, then exit

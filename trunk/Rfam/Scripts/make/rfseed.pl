@@ -32,19 +32,25 @@ my $executable = $0;
 # set default values that command line options may change
 my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
 # other options
-my $do_local = 0;               # TRUE to align locally w.r.t. the CM
-my $do_help = 0;                # TRUE to print help and exit, if -h used
+my $do_stdout = 1;              # TRUE to output to STDOUT
+my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
+my $do_local  = 0;              # TRUE to align locally w.r.t. the CM
+my $do_prob   = 0;              # TRUE to include PPs in output alignment
+my $do_help   = 0;              # TRUE to print help and exit, if -h used
 
 my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
 
-open($logFH, ">rfseed.log") || die "ERROR unable to open rfseed.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "add sequences to SEED", 1);
-
 &GetOptions( "l"          => \$do_local,
+             "p"          => \$do_prob,
+             "quiet",     => \$do_quiet,
              "h|help"     => \$do_help );
+
+$do_stdout = ($do_quiet) ? 0 : 1;
+open($logFH, ">rfseed.log") || die "ERROR unable to open rfseed.log for writing";
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "add sequences to SEED", $do_stdout);
 
 # read in command line variables
 my $infile = "";
@@ -97,15 +103,17 @@ my $fetchfile = $dbconfig->{"fetchPath"};
 my $cwidth = 40;
 my $str;
 my $opt;
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC));
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user),                 $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date),                 $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd),                 $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID),        $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC),       $do_stdout);
 
-if($do_local)       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# align new sequences locally w.r.t. CM:",  "yes [-l]")); }
-Bio::Rfam::Utils::printToFileAndStdout($logFH, "#\n");
+if($do_local)  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# align new sequences locally w.r.t. CM: ",   "yes [-l]"), $do_stdout); }
+if($do_prob)   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in new seed: ",          "yes [-p]"), $do_stdout); }
+if($do_quiet)  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                              "on  [-quiet]"), $do_stdout); }
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "#\n", $do_stdout);
 
 # make sure we have a CM file, and that it's newer than the SEED
 if(! -s 'CM') { die "ERROR: CM does not exist, did you run rfsearch.pl?"; }
@@ -127,7 +135,7 @@ foreach $outfile (@outfile_orderA) {
   } 
 }
 
-Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("per-stage progress:"), 1);
+Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("per-stage progress:"), $do_stdout);
 
 # parse infile to get list of new seqs to fetch
 my @fetchAA = (); 
@@ -138,12 +146,13 @@ if (-e "SEED") { copy("SEED", "SEED.$$"); }
 if (-e "CM")   { copy("CM",   "CM.$$"); }
 
 # fetch sequences
-fetch_new_seed_seqs($fetchfile, \@fetchAA, "$$.fa", $logFH);
+fetch_new_seed_seqs($fetchfile, \@fetchAA, "$$.fa", $logFH, $do_stdout);
 
 # align new sequences to CM, using --mapali with original SEED
 my $align_opts = "-o SEED --mapali SEED.$$";
+if(! $do_prob)  { $align_opts .= " --noprob"; }
 if(! $do_local) { $align_opts .= " -g"; }
-Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $align_opts, "CM", "$$.fa", "seedalignout", "a.$$.err", $nseq, $nres, 1, 0, "", -1, $logFH);
+Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $align_opts, "CM", "$$.fa", "seedalignout", "a.$$.err", $nseq, $nres, 1, 0, "", -1, $logFH, $do_stdout);
 unlink "$$.fa";
 
 # pause 1 second before building CM, so we can tell CM file was created after SEED file
@@ -156,30 +165,25 @@ $build_opts =~ s/CM\s+SEED$//;   # remove trailing 'CM SEED';
 my $build_start_time = time();
 Bio::Rfam::Infernal::cmbuild_wrapper($config, $build_opts, "CM", "SEED", "b.$$.out");
 unlink "b.$$.out";
-Bio::Rfam::Utils::log_output_progress_local($logFH, "cmbuild", time() - $build_start_time, 0, 1, "", 1);
+Bio::Rfam::Utils::log_output_progress_local($logFH, "cmbuild", time() - $build_start_time, 0, 1, "", $do_stdout);
 
 ##############################################
 # finished all work, print output file summary
 ##############################################
-Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
-    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
+    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, $do_stdout);
  }
 }
 my $description = sprintf("log file (*this* output)");
-Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfseed.log", $description, 1);
+Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfseed.log", $description, $do_stdout);
 
-my $outstr = "#\n";
-printf $outstr; print $logFH $outstr;
-
-$outstr = sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time));
-printf $outstr; print $logFH $outstr;
-
-$outstr = "# [ok]\n";
-printf $outstr; print $logFH $outstr;
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time)), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# [ok]\n"), $do_stdout);
 
 close($logFH);
 exit 0;
@@ -235,7 +239,7 @@ sub parse_outlist {
 # fetch_new_seed_seqs
 #
 sub fetch_new_seed_seqs { 
-  my ($fetchfile, $fetchAAR, $seqfile, $logFH) = @_;
+  my ($fetchfile, $fetchAAR, $seqfile, $logFH, $do_stdout) = @_;
 
   my $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
@@ -244,9 +248,9 @@ sub fetch_new_seed_seqs {
   # fetch sequences
   my $fetch_start_time = time();  
   
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", scalar(@{$fetchAAR}), 1));
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", scalar(@{$fetchAAR}), $do_stdout));
   my $concat_seqstring = $fetch_sqfile->fetch_subseqs($fetchAAR, 60, $seqfile); 
-  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", $do_stdout);
 
   $fetch_sqfile->close_sqfile();
 
@@ -260,9 +264,11 @@ sub help {
   
   rfseed.pl - Add sequences to a SEED.
 
-Usage:      rfseed.pl <file with subset of outlist lines for sequences to add to SEED> [options]
+Usage:      rfseed.pl [options] <file with subset of outlist lines for sequences to add to SEED>
 
 Options:    -l        align locally w.r.t the CM [default: globally]
+            -p        include posterior probabilities in new SEED [default: don't]
+            -quiet    be quiet; do not output anything to stdout (rfseed.log still created)
             -h|-help  print this help, then exit
 
 EOF
