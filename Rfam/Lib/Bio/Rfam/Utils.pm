@@ -200,6 +200,7 @@ sub submit_mpi_job {
              : $outFH:          output file handle for updates, if "" only print to STDOUT
              : $extra_note:     extra information to output with progress, "" for none
              : $max_minutes:    max number of minutes to wait, -1 for no limit
+             : $do_stdout:      1 to print updates to stdout, 0 not to
              :
     Returns  : Maximum number of seconds any job spent waiting in queue, rounded down to 
              : nearest 10 seconds.
@@ -208,7 +209,7 @@ sub submit_mpi_job {
 =cut
 
 sub wait_for_cluster { 
-  my ($location, $username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $extra_note, $max_minutes) = @_;
+  my ($location, $username, $jobnameAR, $outnameAR, $success_string, $program, $outFH, $extra_note, $max_minutes, $do_stdout) = @_;
 
   my $start_time = time();
   
@@ -322,7 +323,7 @@ sub wait_for_cluster {
       if($nsuccess == $n || $i2 % $print_freq == 0) { 
         my $outstr = sprintf("  %-15s  %-10s  %10s  %10s  %10s  %10s%s\n", $program, "cluster", $nsuccess, $nrunning, $nwaiting, Bio::Rfam::Utils::format_time_string(time() - $start_time), $extra_note);
         $extra_note = ""; # only print this once 
-        print STDOUT $outstr;
+        if($do_stdout) { print STDOUT $outstr; }
         if($outFH ne "") { print $outFH $outstr; }
       }
     }
@@ -976,23 +977,28 @@ sub file_tail {
 
 #-------------------------------------------------------------------------------
 
-=head2 printToFileAndStdout
+=head2 printToFileAndOrStdout
 
-  Title    : printToFileAndStdout
+  Title    : printToFileAndOrStdout
   Incept   : EPN, Wed Apr 24 09:08:18 2013
   Usage    : printToFileAndStdout($str)
-  Function : Print string to a file handle and to stdout.
-  Args     : $fh:  file handle to print to
-           : $str: string to print
+  Function : Print string to a file handle and/or to stdout.
+  Args     : $fh:        file handle to print to, "" to not print to fh
+           : $str:       string to print
+           : $do_stdout: 1 to print to stdout, 0 to not
   Returns  : void
 
 =cut
 
-sub printToFileAndStdout {
-  my ($fh, $str) = @_;
+sub printToFileAndOrStdout {
+  my ($fh, $str, $do_stdout) = @_;
 
-  print $fh $str;
-  print $str;
+  if($fh ne "") { 
+    print $fh $str;
+  } 
+  if((! defined $do_stdout) || $do_stdout) { 
+    print $str;
+  }
 
   return;
 }

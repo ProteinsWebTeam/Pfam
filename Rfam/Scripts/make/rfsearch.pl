@@ -43,6 +43,8 @@ my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
 # other options
 my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
+my $do_stdout = 1;              # TRUE to output to STDOUT
+my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 # database related options:
@@ -60,9 +62,6 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
-
-open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate, and search a CM against a database", 1);
 
 &GetOptions( "b"          => \$force_build,
              "onlybuild"  => \$only_build,
@@ -87,8 +86,13 @@ Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate,
              "rZ=s"       => \$rev_Zuser,
              "q=s"        => \$q_opt, 
              "ssopt=s@"   => \@ssoptA,
+             "quiet",     => \$do_quiet,
 	     "dirty"      => \$do_dirty,
 	     "h|help"     => \$do_help );
+
+$do_stdout = ($do_quiet) ? 0 : 1;
+open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate, and search a CM against a database", $do_stdout);
 
 if ( $do_help ) {
   &help();
@@ -143,41 +147,43 @@ if ((defined $evalue) && (defined $t_opt)) { die "ERROR you can't use both -t an
 my $cwidth = 40;
 my $str;
 my $opt;
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id));
-Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc));
+if($do_quiet) { $do_stdout = 0; }
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc), $do_stdout);
 
-if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]")); }
-elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]")); }
-elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]")); }
-else                           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice)); }
-if($force_build)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]")); }
-if($only_build)                { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]")); }
-if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]")); }
-if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]")); }
-if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]")); }
-if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-e]")); }
-if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]")); }
-if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]")); }
-if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]")); }
-if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]")); }
-if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]")); }
-if($noZ)                       { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]")); }
-if($no_search)                 { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]")); }
-if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]")); }
-if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]")); }
+if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]"), $do_stdout); }
+elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]"), $do_stdout); }
+elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]"), $do_stdout); }
+else                           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice), $do_stdout); }
+if($force_build)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]"), $do_stdout); }
+if($only_build)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]"), $do_stdout); }
+if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]"), $do_stdout); }
+if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
+if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
+if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-e]"), $do_stdout); }
+if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]"), $do_stdout); }
+if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]"), $do_stdout); }
+if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]"), $do_stdout); }
+if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]"), $do_stdout); }
+if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]"), $do_stdout); }
+if($noZ)                       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]"), $do_stdout); }
+if($no_search)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]"), $do_stdout); }
+if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]"), $do_stdout); }
+if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]"), $do_stdout); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
-if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]")); }
+if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]"), $do_stdout); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
-if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]")); }
+if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]"), $do_stdout); }
 $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
-if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]")); }
-Bio::Rfam::Utils::printToFileAndStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n");
-if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]")); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]")); }
+if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]"), $do_stdout); }
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", $do_stdout);
+if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
+if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
 
 # create hash of potential output files
 my %outfileH = ();
@@ -277,7 +283,7 @@ if ($msa->any_allgap_columns) {
 
 
 ###################################################################################################
-Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progress:", 1);
+Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progress:", $do_stdout);
 
 ##############
 # Build step #
@@ -351,11 +357,11 @@ if ($do_build) {
 
   $build_wall_secs = time() - $build_start_time;
   $did_build = 1;
-  Bio::Rfam::Utils::log_output_progress_local($logFH,   "cmbuild", $build_wall_secs, 0, 1, "", 1);
+  Bio::Rfam::Utils::log_output_progress_local($logFH,   "cmbuild", $build_wall_secs, 0, 1, "", $do_stdout);
 } # end of if($do_build)
 else { 
   $did_build = 0;
-  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmbuild", 1);
+  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmbuild", $do_stdout);
 }
 
 ####################
@@ -383,7 +389,7 @@ if($do_calibrate) {
                                                                    $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, "[$ncpus_cmcalibrate processors]", -1);
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, "[$ncpus_cmcalibrate procs, should take ~$predicted_minutes minutes]", -1, $do_stdout);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
   if(! $do_dirty) { unlink $calibrate_errO; } # this file is empty anyway 
@@ -407,7 +413,7 @@ if($do_calibrate) {
 }
 else { 
   $did_calibrate = 0;
-  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmcalibrate", 1);
+  Bio::Rfam::Utils::log_output_progress_skipped($logFH,   "cmcalibrate", $do_stdout);
 }
   
 ###############
@@ -609,7 +615,7 @@ if ((! $only_build) && (! $no_search)) {
     push(@all_errOA,    @rev_errOA);
   }
   # wait for cluster jobs to finish
-  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH, "", -1);
+  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH, "", -1, $do_stdout);
   $search_wall_secs     = time() - $search_start_time;
   
   # concatenate files (no need to validate output, we already did that in wait_for_cluster())
@@ -659,58 +665,53 @@ if($did_build || $did_calibrate || $did_search) {
 }
 
 # finished all work, print output file summary
-Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
 my $description;
 if($did_build || $did_calibrate) { 
   $description = sprintf("covariance model file (%s)", $did_build ? "built and calibrated" : "calibrated only");
-  Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, 1);
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, $do_stdout);
 }
 if($did_build || $did_calibrate || $did_search) { 
   $description = sprintf("desc file (updated:%s%s%s)", 
                          ($did_build)     ? " BM" : "", 
                          ($did_calibrate) ? " CB" : "", 
                          ($did_search)    ? " SM" : "");
-  Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, 1);
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, $do_stdout);
 }
 
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
-    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
+    Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, $do_stdout);
   }
 }
 $description = sprintf("log file (*this* output)");
-Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfsearch.log", $description, 1);
+Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfsearch.log", $description, $do_stdout);
 
 # output time summary
-Bio::Rfam::Utils::log_output_timing_summary_column_headings($logFH, 1);
+Bio::Rfam::Utils::log_output_timing_summary_column_headings($logFH, $do_stdout);
 
 my $total_wall_secs = time() - $start_time;
 my $total_cpu_secs  = $build_wall_secs + $calibrate_cpu_secs + $search_cpu_secs;
 my $total_elp_secs  = $build_elp_secs + $calibrate_elp_secs + $search_max_elp_secs;
 
 if($did_build) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, $do_stdout);
 }
 if($did_calibrate) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, $do_stdout);
 }
 if($did_search) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, $do_stdout);
 }
 if($did_build || $did_calibrate || $did_search) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, 1);
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, $do_stdout);
 }
 
-my $outstr = "#\n";
-printf $outstr; print $logFH $outstr;
-
-$outstr = sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time));
-printf $outstr; print $logFH $outstr;
-
-$outstr = "# [ok]\n";
-printf $outstr; print $logFH $outstr;
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time)), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# [ok]\n"), $do_stdout);
 
 close($logFH);
 exit(0);
@@ -770,7 +771,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
 	                   -cmod lines. e.g. '-cmod toponly -cmod anytrunc' will run cmsearch with --toponly and --anytrunc.
 
             OPTIONS SPECIFYING SEARCH DATABASE:
-            -dbchoice  <s> set sequence database to search as <s> ('rfamseq', 'testrfamseq', 'r79rfamseq')
+            -dbchoice <s>  set sequence database to search as <s> ('rfamseq', 'testrfamseq', 'r79rfamseq')
             -dbfile <s>    set sequence database to search as file <s>
             -dbdir <s>     set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
             -dblist <s>    set sequence database to search as all files listed in dir <s>
@@ -786,6 +787,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -q <str>     specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
                          (shortcuts: use <str>='p' for 'production-rh6', <str>='r' for 'research-rh6')
             -ssopt <str> add extra arbitrary string <str> to qsub cmsearch commands, for multiple options use multiple -ssopt <s>
+            -quiet       be quiet; do not output anything to stdout (rfsearch.log still created)
   	    -dirty       do not remove temporary/intermediate files that are normally removed
   	    -h|-help     print this help, then exit
 EOF
