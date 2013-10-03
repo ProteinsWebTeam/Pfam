@@ -63,7 +63,7 @@ sub new {
 
     print "Enter authentication info for realm: $realm\n";
     print "Username: ";
-    my $username = <>;
+    my $username = <STDIN>;
     chomp($username);
 
     $cred->may_save(1);
@@ -222,10 +222,10 @@ sub checkFamilyExists {
   if ($@) {
     #Check to see if the family has been killed, if so give details and exit
     if ( $self->{config}->location eq 'EBI' ) {
-      my $rfamDB = $self->config->rfamlive;
+      my $rfamDB = $self->{config}->rfamlive;
 
       my @dead =
-        $rfamDB->resultset("DeadModel")->search( { rfam_acc=> $family } );
+        $rfamDB->resultset("DeadFamily")->search( { rfam_acc=> $family } );
       foreach my $dead (@dead) {
 
         print "$family "
