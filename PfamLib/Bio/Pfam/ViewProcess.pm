@@ -1091,6 +1091,11 @@ sub pfamTaxDepth {
   }
   $sthTaxDepth->finish;
   $sthMinMax->finish;
+  
+  use DDP;
+  p(%depth);
+  p(%count);
+  
 }
 
 sub processHMMs {
