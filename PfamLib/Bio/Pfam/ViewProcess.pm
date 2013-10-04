@@ -1185,7 +1185,7 @@ sub _makeHMMLogo {
   my ( $self, $file) = @_;
 
   $self->logger->debug("Making logo HMM");
-
+  return;
   my $logo = HMM::Profile->new( -hmmerfile => $file )
     or $self->mailUserAndFail( "Failed in making HMM logo, couldn't open $file!\n" );
   my $outfile     = "hmmLogo.png";
@@ -1225,6 +1225,7 @@ sub _makeHMMLogo {
       logo       => $hmmLogo
     }
   );
+  return;
 }
 
 sub _generateCigarString {
