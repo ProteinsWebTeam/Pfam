@@ -5,8 +5,11 @@ use warnings;
 
 use Config::General;
 use Catalyst::Utils;
-use RfamLive;
 use Data::Printer;
+
+use RfamLive;
+use Bio::Rfam::SeqDB;
+
 
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
