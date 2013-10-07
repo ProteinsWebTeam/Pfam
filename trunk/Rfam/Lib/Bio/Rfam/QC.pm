@@ -492,9 +492,11 @@ sub checkFixedFields {
     $error = 1;
   }
   
-  if($newFamilyObj->DESC->PI ne $oldFamilyObj->DESC->PI){
-    warn "Your pervious identifers (PI) differs between the old and new version of the family.\n";
-    $error = 1;
+  if( defined( $newFamilyObj->DESC->PI )){
+    if($newFamilyObj->DESC->PI ne $oldFamilyObj->DESC->PI){
+      warn "Your pervious identifers (PI) differs between the old and new version of the family.\n";
+      $error = 1;
+    }
   }
   
   return $error;
@@ -777,7 +779,7 @@ sub checkSpell {
   my $error = 0;
   #
   unless ($familyIO) {
-    $familyIO = Bio::Pfam::FamilyIO->new;
+    $familyIO = Bio::Rfam::FamilyIO->new;
   }
 
   if ( !$familyIO->isa('Bio::Rfam::FamilyIO') ) {
@@ -1086,7 +1088,7 @@ sub findExternalOverlaps {
     warn "This overlap test has been written assuming you have a local database.".
          "Eventually, there needs to be a Web based overlap method\n.";
   }
-  
+  my $error = 0; 
   my $currentAcc = '';
   my $regions;
   foreach my $r (sort{$a->[3] cmp $b->[3]} @{$familyObj->SCORES->regions}){
@@ -1117,9 +1119,11 @@ sub findExternalOverlaps {
             $overlap;
           print $OVERLAP $eString;
           print STDERR $eString; 
+	  $error++;
       }
     }
   }
+  return $error;
 }
 
 #------------------------------------------------------------------------------
@@ -1153,12 +1157,12 @@ sub findInternalOverlaps {
                    #we should have all NSE.
 
   for ( my $i = 0 ; $i < $familyObj->SEED->nseq - 1 ; $i++ ) {
-     $atomizedNSE[$i]  = Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($i)) 
+     $atomizedNSE[$i]  = [Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($i))] 
         if ( !$atomizedNSE[$i] );
     for ( my $j = $i + 1 ; $j < $familyObj->SEED->nseq ; $j++ ) {
-      $atomizedNSE[$j]  = Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($j)) 
+      $atomizedNSE[$j]  = [Bio::Rfam::Utils::nse_breakdown($familyObj->SEED->get_sqname($j))] 
         if ( !$atomizedNSE[$j] );
-
+      next if($atomizedNSE[$i]->[1] ne $atomizedNSE[$j]->[1]);
       # determine overlap fraction (overlap_nres_or_full() is robust to start < end or start > end)
       my $overlap = Bio::Rfam::Utils::overlap_nres_or_full(
         $atomizedNSE[$i]->[2], $atomizedNSE[$j]->[2], 
@@ -1279,7 +1283,7 @@ sub essential {
   }
   
   open( my $OVERLAP, '>>', "$dir/overlap") or die "Could not open $dir/overlap:[$!]";
-  $error = findInternalOverlap($newFamily, $OVERLAP);
+  $error = findInternalOverlaps($newFamily, $OVERLAP);
   close($OVERLAP);
   if($error){
     warn "Found internal SEED overlaps.\n";
@@ -1329,7 +1333,7 @@ sub optional {
   }
   
   if(!exists($override->{coding})){
-    $error = codingSeqs($newFamily);
+    $error = codingSeqs($newFamily, $config);
     if($error){
       warn "Failed chcek to SEED sequences do not contain coding regions. Please check.\n";
       $masterError =1;
@@ -1340,13 +1344,15 @@ sub optional {
 
   if(!exists($override->{missing})){
     if(defined($oldFamily)){
-      $error = compareOldAndNew($newFamily, $oldFamily);
-      print("Do you want to continue regardless? [y/n]  ");
-      my $reply = <STDIN>;
-      chomp $reply;
-      if ( $reply eq "y" ) {
-        #Override the error....
-        $error = 0;
+      my ($found, $missing) = compareOldAndNew($newFamily, $oldFamily);
+      if(scalar(@$missing)){
+      	print("Do you want to continue regardless? [y/n]  ");
+      	my $reply = <STDIN>;
+      	chomp $reply;
+      	if ( $reply eq "y" ) {
+          #Override the error....
+          $error = 0;
+        }
       }
     }
   }
@@ -1354,7 +1360,7 @@ sub optional {
   #Okay, hack time; allow overlaps....for some families
   if(!exists($override->{overlap})){
     open( my $OVERLAP, '>>', "$dir/overlap") or die "Could not open $dir/overlap:[$!]";
-    $error = findExternalOverlap($newFamily, $config, $ignore, $config, $OVERLAP);
+    $error = findExternalOverlaps($newFamily, $config->rfamlive, $ignore, $config, $OVERLAP);
     close($OVERLAP);
     if($error){
       warn "Found overlaps.\n";
@@ -1403,8 +1409,8 @@ sub processIgnoreOpt {
     }
   }
   #Now, convert it to a hash.
-  my $passback = map {$_ => 1 } $allowedOpts;
-  return $passback;
+  my %passback = map {$_ => 1 } @{$ignoreRef};
+  return \%passback;
 }
 
 #------------------------------------------------------------------------------
