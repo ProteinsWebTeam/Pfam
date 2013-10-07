@@ -21,7 +21,7 @@ my ( $message, @ignore, $onlydesc, $help );
 
 &GetOptions(
   "m=s"              => \$message,
-  "i=@"              => \@ignore,
+  "i=s"              => \@ignore,
   "onlydesc"         => \$onlydesc,
   "help"             => \$help
 ) or die "Unrecognised option passed in to the script.\n";
