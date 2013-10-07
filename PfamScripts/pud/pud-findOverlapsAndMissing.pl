@@ -1,49 +1,138 @@
 #!/usr/bin/env perl
 #
 # A script to determine overlaps across all Pfam families found within a single directory
+# During overlap resolution, all families should be in a single directory.  The script is
+# designed to operate in one of two ways.
 #
+#  1. Slow and accurate, where all information is read into the file.
+#  2. Faster, with the possibility that some overlap information will be missed.
+#       - requires that the slow step has been run at least once.
+#
+# Some other points about these overlaps.
+#   1.  All nestings where the families involved will be expanded to the whole
+#       of the clan.
+#   2.  Information collected from the DESC file will be stored between runs
+#       and only re-read for families that still have overlaps.
+
 use strict;
 use warnings;
+use Log::Log4perl qw(:easy);
 use Cwd;
-use Bio::Pfam::FamilyIO;
 use Data::Dumper;
 use Date::Object;
 use Getopt::Long;
+use Storable;
 
-my $logdir = shift;
-my $families = shift;
-my $familiesToCi = shift;
+use Bio::Pfam::FamilyIO;
+
+#Start up the logger
+my $logger = get_logger();
+
+my $no_compete;    # Use this option to not do the clan competition step
+my ( $statusdir, $clans, $clan2fam, $fast, $oldOverlaps, $families );
+
+GetOptions(
+  'fast'        => \$fast,
+  'previous'    => \$oldOverlaps,
+  'no_compete!' => \$no_compete,
+  'statusdir=s' => \$statusdir,
+  'datadir=s'   => \$families
+  )
+  or $logger->logdie("Invalid options passed in!\n");
+
+if ($fast) {
+  unless ($oldOverlaps) {
+    $logger->warn("-fast requires information about the old overlaps");
+  }
+}
+
+unless ($statusdir) {
+  $logger->logdie("Need to know where to put status information");
+}
+
+my $posOverlaps;
+if ($fast) {
+  #Which families have overlaps?
+  $posOverlaps = parsePreviousOverlaps($oldOverlaps);
+}
+else {
+  opendir( DIR, $families ) or $logger->logdie("Could not opendir $families");
+  my @dirs = grep { $_ =~ /^PF\d{5}$/ } readdir(DIR);
+  close(DIR);
+
+  #now these all have 'possible' overlaps
+  $posOverlaps = \@dirs;
+}
+
+my $familiesData = {};
+if ( $fast and -e $statusdir . "/family.dat" ) {
+  $familiesData = retrieve( $statusdir . "/family.dat" );
+}
+
+
+#Some initial set up things.
 my $date       = new Date::Object( time() );
 my $filePrefix = $date->year.$date->month.$date->day."overlaps"; 
-my $clans;
-my $clan2fam;
 my $nestClans = 1;
-my $famData;
 
-my $no_compete; # Use this option to not do the clan competition step
-GetOptions( 'no_compete!'     => \$no_compete);
+#Retrieve DESC data from all of the possible overlapping families.
+getDescData( $familiesData, $posOverlaps );
+
+#Save the information for later
+store( $familiesData, $statusdir . "/family.dat" );
+
+#Now go and get all of the region information
+getRegions( $families, $posOverlaps, $familiesData );
+
+#Now see if there are any overlaps between these regions.
+checkForOverlap($familiesData);
+
+#-------------------------------------------------------------------------------
+
+sub getRegions {
+  my ( $families, $posOverlaps, $familiesData ) = @_;
 
 
-my $allowed;
-open( R, ">$logdir/$filePrefix.allRegions.txt" ) 
-  or die "Could not open $logdir/$filePrefix.allRegions.txt\n";
-
-open( SKIP, ">$logdir/$filePrefix.skipping" ) 
-  or die "Could not open $logdir/$filePrefix.skipping\n";
   
+  open( R, ">$statusdir/$filePrefix.allRegions.txt" ) 
+    or die "Could not open $statusdir/$filePrefix.allRegions.txt\n";
 
-my $io = Bio::Pfam::FamilyIO->new;
+  foreach my $fDir ( @{$posOverlaps} ) {
+    my $id = $familiesData->{$fDir}->{id};
+    open( S, "$families/$fDir/SEED" );
+    while (<S>) {
+      if (/(\S+)\/(\d+)\-(\d+)/) {
+        $familiesData->{$fDir}->{seed}++;
+        print R "$1\t$2\t$3\t$fDir\t$id\tSEED\t**\n";
+      }
+    }
+    close(S);
 
-if(defined($familiesToCi) and $familiesToCi){
-  print STDERR "Parsing DESC files of families that have no overlaps\n";
-  opendir( DIR, "$familiesToCi" ) or die "Could not open dir, $familiesToCi:[$!]\n";
-  my @dirs = grep { $_ ne ".." and $_ ne "." and $_ ne ".svn" } readdir(DIR);
-  FAM:
-  foreach my $fDir ( sort @dirs) {
-    next unless($fDir =~ /PF\d+/);
-    open( D, "$familiesToCi/$fDir/DESC" ) or die "Could not open $fDir/DESC:[$!]\n";
+    open( S, "$families/$fDir/scores" )
+      or warn "Could not open scores file $fDir\n";
+    while (<S>) {
+      if (/(\S+)\s+(\S+)\/(\d+\-\d+)\s+(\d+)\-(\d+)/) {
+        print R "$2\t$4\t$5\t$fDir\t$id\tALIGN\t$1\n";
+        $familiesData->{$fDir}->{align}++;
+      }
+    }
+    close(S);
+  }
+}
+
+sub getDescData {
+  my ( $familiesData, $posOverlaps ) = @_;
+  
+  
+  open( SKIP, ">$statusdir/$filePrefix.skipping" ) 
+    or die "Could not open $statusdir/$filePrefix.skipping\n";
+  
+  my $io = Bio::Pfam::FamilyIO->new;
+FAM:
+  foreach my $fDir (@{ $posOverlaps }){
+     open( D, "$families/$fDir/DESC" ) or die "Could not open $fDir/DESC:[$!]\n";
     #Now read the DESC to see it we have nested domains;
-
+    
     my $descObj;
     eval{
       $descObj = $io->parseDESC( \*D );
@@ -54,323 +143,254 @@ if(defined($familiesToCi) and $familiesToCi){
       next FAM;  
     } 
   
-    my $acc     = $descObj->AC;
-    my $id      = $descObj->ID;
+    $familiesData->{$fDir}->{acc} = $descObj->AC;
+    $familiesData->{$fDir}->{id}  = $descObj->ID;
+    
     if ( $descObj->NESTS ) {
       foreach my $n ( @{ $descObj->NESTS } ) {
-        push( @{ $allowed->{$fDir} }, $n->{'dom'} );
-        push( @{ $allowed->{$n->{'dom'} }}, $fDir );
+        push( @{ $familiesData->{$fDir}->{allowed} }, $n->{'dom'} );
+        push( @{ $familiesData->{$n->{'dom'}}->{allowed} }, $fDir );
       }
     }
+    
     if($descObj->CL) {
       $clans->{$fDir} = $descObj->CL;
       push (@{ $clan2fam->{ $descObj->CL } },  $fDir);
     }
     close(D);
   }
-  close(DIR);
+  close(SKIP); 
 }
 
-opendir( DIR, "$families" ) or die "Could not open dir, $families:[$!]\n";
-my @dirs = grep { $_ ne ".." and $_ ne "." and $_ ne ".svn" } readdir(DIR);
-
-
-FAM:
-foreach my $fDir ( sort @dirs) {
-  next unless($fDir =~ /PF\d+/);
-  open( D, "$families/$fDir/DESC" ) or die "Could not open $fDir/DESC:[$!]\n";
-  #Now read the DESC to see it we have nested domains;
-
-  my $descObj;
-  eval{
-      $descObj = $io->parseDESC( \*D );
-  };
-  if($@){
-    print SKIP "$fDir\n";
-    close(D);
-    next FAM;  
-  }
+sub checkForOverlap { 
   
-  my $acc     = $descObj->AC;
-  my $id      = $descObj->ID;
-  if ( $descObj->NESTS ) {
-    foreach my $n ( @{ $descObj->NESTS } ) {
-      push( @{ $allowed->{$fDir} }, $n->{'dom'} );
-      push( @{ $allowed->{$n->{'dom'} }}, $fDir );
-    }
-  }
-  my ( %new, %old, %seed);
+  print STDERR "Sorting all regions\n";
+  system(
+    "sort -k1,1 -k7,7nr $statusdir/$filePrefix.allRegions.txt > $statusdir/$filePrefix.allRegionsSorted.txt"
+    )
+    and $logger->logdie("Failed to sort regions.");
+  print STDERR "Finished sorting, looking for overlaps\n";
+
+  open( S, "$statusdir/$filePrefix.allRegionsSorted.txt" )
+    or die "Could not open allRegionsSorted.txt:[$!]\n";
+
+  my $previousAcc = '';
+  my $regions;
+  my %overlaps;
   
-  open(A, "$families/$fDir/ALIGN");
-  while(<A>){
-    if(/(\S+)\/(\d+)\-(\d+)/){
-      $new{$1}++;
-    }
-  }
-  close(A);
-  
-  open(S, "$families/$fDir/SEED");
-  while(<S>){
-    if(/(\S+)\/(\d+)\-(\d+)/){
-      $seed{$1}++;
-      print R "$1\t$2\t$3\t$fDir\t$id\tSEED\t**\n";
-    }
-  }
-  close(S);
-  
-  my $seedInFull;
-  my $noInSeed;
-  foreach my $s (keys %seed){
-    $noInSeed++;
-    $seedInFull++ if($new{$s});
-  }
-  
-  my $oldInNew = 0;
-  my $noInNew = scalar(keys(%new));
-  my $noInOld = scalar(keys(%old));
-  open(M, ">$families/$fDir/missing");
-  foreach my $s (keys %old){
-    if($new{$s}){
-      $oldInNew++;
-    }else{
-      print M "$s is missing\n";
-    }
-  }
-  close(M);
-
-  $famData->{$fDir} = { id                  => $descObj->ID,
-                        NumberInSeed        => $noInSeed,
-                        NumberSeedInFull    => $seedInFull,
-                        NumberMissingSeed   => ($seedInFull - $noInSeed),
-                        NumberInFull        => $noInNew,
-                        NumberInH2Full      => $noInOld,
-                        NumberH2inFull      => $oldInNew,
-                        NumberMissingInFull => ($oldInNew-$noInOld),
-                        NumberIncreaseInFull=> ($noInNew-$noInOld)   };
-  
-  open( S, "$families/$fDir/scores" ) or warn "Could not open scores file $fDir\n";
-  while (<S>) {
-    if (/(\S+)\s+(\S+)\/(\d+\-\d+)\s+(\d+)\-(\d+)/) {
-      print R "$2\t$4\t$5\t$fDir\t$id\tALIGN\t$1\n";
-    }
-  }
-  close(S);
-  
-  if($descObj->CL) {
-    $clans->{$fDir} = $descObj->CL;
-    push (@{ $clan2fam->{ $descObj->CL } },  $fDir);
-  }
-}
-close(R);
-close(SKIP);
-print STDERR "Sorting all regions\n";
-system("sort -k1,1 -k7,7nr $logdir/$filePrefix.allRegions.txt > $logdir/$filePrefix.allRegionsSorted.txt")
-  and die "Failed to sort regions\n";
-print STDERR "Finished sorting, looking for overlaps\n";
-
-open( S, "$logdir/$filePrefix.allRegionsSorted.txt" )
-  or die "Could not open allRegionsSorted.txt:[$!]\n";
-
-my $previousAcc = '';
-my $regions;
-my %overlaps;
-
-if(-e "$logdir/$filePrefix.overlaps"){
-  unlink("$logdir/$filePrefix.overlaps");
-}
-
-while (<S>) {
-  chomp;
-  my @line = split( /\s+/, $_ );
-  # If we have got to a new accession check all regions. Note there is possibly
-  # a bug here.  The final set of regions will never get inspected.
-  if ( $previousAcc and $line[0] ne $previousAcc ) {
-    checkRegions($previousAcc, $regions, $allowed, $clans, \%overlaps);
-    $regions = undef;
-  }
-
-  push(
-    @{$regions},
-    {
-      fam   => $line[4],
-      acc   => $line[3],
-      start => $line[1],
-      end   => $line[2],
-      score => $line[6],
-      ali   => $line[5],
-      skip  => 0 # Identify region that get outcompeted
-    }
-  );
-  $previousAcc=$line[0];
-}
-
-# Write out summary of all overlaps
-open(F, ">$logdir/$filePrefix.familyOverlaps"); 
-print F "acc\tid\tNoSeed\tNoSeedinFull\tNoSeedMissing\tNoFull\tNoInH2Full\tNoH2Recovered\tNoMissing\tNoGains\tNoOverlaps\tOverlapFams\n";
-  foreach my $f (keys %$famData){
-    my ($overlaps, $list);
-    $overlaps = 0;
-    $list = '';
-    foreach my $of (keys %{ $overlaps{$f} }){
-      $list .= $of.",";
-      $overlaps += $overlaps{$f}->{$of};
-    }
-    print F "$f\t";
-    foreach my $k (qw( id NumberInSeed NumberSeedInFull NumberMissingSeed NumberInFull NumberInH2Full NumberH2inFull NumberMissingInFull NumberIncreaseInFull)){
-      print F $famData->{$f}->{$k}."\t";
-    }
-    print F $overlaps."\t".$list."\n";
-  }
-
-
-
-sub checkRegions {
-  my ( $protein, $regions, $allowed, $clans, $overlaps ) = @_;
-
-  open( OVERLAPS, ">>$logdir/$filePrefix.overlaps" )
+  open( OVERLAPS, ">$statusdir/$filePrefix.overlaps" )
     || die "Could not open overlap file: $!";
 
-  # Do all competition comparisons first to set all the skip flags
-  # This means if there are two overlapping regions that are to families in the same clan
-  # only the highest scoring match will be kept
-  if (! $no_compete){
-      for ( my $i = 0 ; $i <= $#{ $regions } ; $i++ ) {
-	  for ( my $j = $i + 1 ; $j <= $#{$regions} ; $j++ ) {
-	      if( $clans->{$regions->[$i]->{acc}} and $clans->{$regions->[$j]->{acc}}){
-		  if($clans->{$regions->[$i]->{acc}} eq $clans->{$regions->[$j]->{acc}} ){
-		      my $remove=0;
-		      
-		      # Short circuit tests to try and speed up
-		      #if ($regions->[$i]->{end} < $regions->[$j]->{start}){next;}
-		      #if ($regions->[$i]->{start} > $regions->[$j]->{end}){next;}
-		      
-		      #print STDERR "Both regions are in the same clan\n";
-		      # I should delete the lowest scoring one if they overlap!
-		      if ( $regions->[$i]->{start} <= $regions->[$j]->{start}
-			   && $regions->[$i]->{end} >= $regions->[$j]->{start} )
-		      {$remove=1;} 
-		      
-		      elsif ( $regions->[$i]->{start} <= $regions->[$j]->{end}
-			      && $regions->[$i]->{end} >= $regions->[$j]->{end} )
-		      {$remove=1;}
-		      
-		      elsif ( $regions->[$i]->{start} >= $regions->[$j]->{start}
-			      && $regions->[$i]->{end} <= $regions->[$j]->{end} )
-		      {$remove=1;}
-		      
-		      if ($remove){
-			  my $score_i=$regions->[$i]->{score};
-			  my $score_j=$regions->[$j]->{score};
-			  
+  while (<S>) {
+    chomp;
+    my @line = split( /\s+/, $_ );
 
-			  if ($score_i eq '**' or $score_j eq '**'){
-			      # Ignore removal one is a SEED sequence
-			  } elsif ($score_i<$score_j){
-			      #print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
-			      $regions->[$i]->{skip}=1;
-			  } else {
-			      #print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
-			      $regions->[$j]->{skip}=1;
-			  }
-		      }
-		  }
-	      }
-	  }
+   # If we have got to a new accession check all regions. Note there is possibly
+   # a bug here.  The final set of regions will never get inspected.
+    if ( $previousAcc and $line[0] ne $previousAcc ) {
+      checkRegions( $previousAcc, $regions, $clans, \%overlaps );
+      $regions = undef;
+    }
+
+    push(
+      @{$regions},
+      {
+        fam   => $line[4],
+        acc   => $line[3],
+        start => $line[1],
+        end   => $line[2],
+        score => $line[6],
+        ali   => $line[5],
+        skip  => 0           # Identify region that get outcompeted
       }
+    );
+    $previousAcc = $line[0];
+  }
+  checkRegions( $previousAcc, $regions, $clans, \%overlaps );
+
+  # Write out summary of all overlaps
+  open( F, ">$statusdir/$filePrefix.familyOverlaps" );
+  printf( F "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n",  "acc", "id", "NoSeed", "NoFull", "NoOverlaps", "OverlapFams");
+  foreach my $f ( keys %$familiesData ) {
+    my ( $overlaps, $list );
+    $overlaps = 0;
+    $list     = '';
+    foreach my $of ( keys %{ $overlaps{$f} } ) {
+      $list .= $of . ",";
+      $overlaps += $overlaps{$f}->{$of};
+    }
+    $list = '-' unless($list =~ /\S+/);
+    
+    printf( F "%-7s\t%-20s\t%-8d\t%-8d\t%-8s\t%s\n", $f, $familiesData->{$f}->{id}, $familiesData->{$f}->{seed}, $familiesData->{$f}->{align}, $overlaps, $list );
+  }
+}
+
+sub checkRegions {
+  my ( $protein, $regions, $clans, $overlaps ) = @_;
+  
+# Do all competition comparisons first to set all the skip flags
+# This means if there are two overlapping regions that are to families in the same clan
+# only the highest scoring match will be kept
+  if ( !$no_compete ) {
+    for ( my $i = 0 ; $i <= $#{$regions} ; $i++ ) {
+      for ( my $j = $i + 1 ; $j <= $#{$regions} ; $j++ ) {
+        if (  $clans->{ $regions->[$i]->{acc} }
+          and $clans->{ $regions->[$j]->{acc} } )
+        {
+          if ( $clans->{ $regions->[$i]->{acc} } eq
+            $clans->{ $regions->[$j]->{acc} } )
+          {
+            my $remove = 0;
+
+            # Short circuit tests to try and speed up
+            #if ($regions->[$i]->{end} < $regions->[$j]->{start}){next;}
+            #if ($regions->[$i]->{start} > $regions->[$j]->{end}){next;}
+
+            #print STDERR "Both regions are in the same clan\n";
+            # I should delete the lowest scoring one if they overlap!
+            if ( $regions->[$i]->{start} <= $regions->[$j]->{start}
+              && $regions->[$i]->{end} >= $regions->[$j]->{start} )
+            {
+              $remove = 1;
+            }
+
+            elsif ( $regions->[$i]->{start} <= $regions->[$j]->{end}
+              && $regions->[$i]->{end} >= $regions->[$j]->{end} )
+            {
+              $remove = 1;
+            }
+
+            elsif ( $regions->[$i]->{start} >= $regions->[$j]->{start}
+              && $regions->[$i]->{end} <= $regions->[$j]->{end} )
+            {
+              $remove = 1;
+            }
+
+            if ($remove) {
+              my $score_i = $regions->[$i]->{score};
+              my $score_j = $regions->[$j]->{score};
+
+              if ( $score_i eq '**' or $score_j eq '**' ) {
+
+                # Ignore removal one is a SEED sequence
+              }
+              elsif ( $score_i < $score_j ) {
+
+#print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
+                $regions->[$i]->{skip} = 1;
+              }
+              else {
+
+#print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
+                $regions->[$j]->{skip} = 1;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
-
   # OK now do the real overlap checking section.
-  for ( my $i = 0 ; $i <= $#{ $regions } ; $i++ ) {
-      if ($regions->[$i]->{skip}){
-	  next;
-      }
+  for ( my $i = 0 ; $i <= $#{$regions} ; $i++ ) {
+    if ( $regions->[$i]->{skip} ) {
+      next;
+    }
   REGION:
     for ( my $j = $i + 1 ; $j <= $#{$regions} ; $j++ ) {
 
       # Ignore if regions are in same family
-      if ( $regions->[$i]->{fam} eq $regions->[$j]->{fam} ){next REGION;} ;
+      if ( $regions->[$i]->{fam} eq $regions->[$j]->{fam} ) { next REGION; }
 
-      if ($regions->[$j]->{skip}){
-	  #print "Skipping because region was already outcompeted!\n";
-	  next REGION;
+      if ( $regions->[$j]->{skip} ) {
+
+        #print "Skipping because region was already outcompeted!\n";
+        next REGION;
       }
 
-      if( $clans->{$regions->[$i]->{acc}} and $clans->{$regions->[$j]->{acc}}){
-	  if($clans->{$regions->[$i]->{acc}} eq $clans->{$regions->[$j]->{acc}} ){
-	      next REGION;
-	  }
-      }
-
-
-      # Possibly don't need both of these next two tests! Although they don't both get run!
-
-      # Ignore if in list of allowed families
-      if ( $allowed->{ $regions->[$i]->{acc} } ) {
-        foreach my $aFam ( @{ $allowed->{ $regions->[$i]->{acc} } } ) {
-          if ( $aFam eq $regions->[$j]->{acc} ){
-	      #print  "Ignored due to allowed nested families A $protein\n";
-	      #print "$regions->[$i]->{acc} with $regions->[$j]->{acc}\n";
-	      next REGION;
-	  };
+      if (  $clans->{ $regions->[$i]->{acc} }
+        and $clans->{ $regions->[$j]->{acc} } )
+      {
+        if ( $clans->{ $regions->[$i]->{acc} } eq
+          $clans->{ $regions->[$j]->{acc} } )
+        {
+          next REGION;
         }
       }
 
+# Possibly don't need both of these next two tests! Although they don't both get run!
+
       # Ignore if in list of allowed families
-      if ( $allowed->{ $regions->[$j]->{acc} } ) {
-        foreach my $aFam ( @{ $allowed->{ $regions->[$j]->{acc} } } ) {
-          if ( $aFam eq $regions->[$i]->{acc} ){
-	      #print STDERR "Ignored due to allowed families B\n";
-	      next REGION;
-	  };
-        }
-      }
-      
-      if( $nestClans ){
-        if($clans->{ $regions->[$j]->{acc} }){
-          foreach my $relFam (@{ $clan2fam->{ $clans->{$regions->[$j]->{acc} }} }){
-            next if($relFam eq $regions->[$j]->{acc});
-            next unless ($allowed->{$relFam});
-            foreach my $aFam (@{ $allowed->{ $relFam } }){
-              if ( $regions->[$i]->{acc} eq $aFam ){
-		  #print STDERR "Ignored due to nesting\n";
-		  next REGION;
-	      };
-            }
-          }
-       } 
-        
-        if($clans->{ $regions->[$i]->{acc} }){
-          foreach my $relFam (@{ $clan2fam->{$clans->{$regions->[$i]->{acc}} }}){
-            next if($relFam eq $regions->[$j]->{acc});
-            next unless ($allowed->{$relFam});
-            foreach my $aFam (@{ $allowed->{ $relFam } }){
-              if ( $regions->[$j]->{acc} eq $aFam ){
-		  #print STDERR "Ignored due to nesting\n";
-		  next REGION;
-	      };
-            }
+      if ( $familiesData->{ $regions->[$i]->{acc} }->{allowed} ) {
+        foreach my $aFam ( @{ $familiesData->{ $regions->[$i]->{acc} }->{allowed} } ) {
+          if ( $aFam eq $regions->[$j]->{acc} ) {
+
+            #print  "Ignored due to allowed nested families A $protein\n";
+            #print "$regions->[$i]->{acc} with $regions->[$j]->{acc}\n";
+            next REGION;
           }
         }
       }
-      
 
+      # Ignore if in list of allowed families
+      if ( $familiesData->{ $regions->[$j]->{acc} }->{allowed} ) {
+        foreach my $aFam (  @{ $familiesData->{ $regions->[$j]->{acc} }->{allowed} } ) {
+          if ( $aFam eq $regions->[$i]->{acc} ) {
 
-      # Sigh. I'm not sure why we need this. I thought these should all be skipped earlier :(
-      if ($regions->[$i]->{skip}){
-	  next REGION;
+            #print STDERR "Ignored due to allowed families B\n";
+            next REGION;
+          }
+        }
       }
-      if ($regions->[$j]->{skip}){
-	  next REGION;
+
+      if ($nestClans) {
+        if ( $clans->{ $regions->[$j]->{acc} } ) {
+          foreach
+            my $relFam ( @{ $clan2fam->{ $clans->{ $regions->[$j]->{acc} } } } )
+          {
+            next if ( $relFam eq $regions->[$j]->{acc} );
+            next unless ( $familiesData->{$relFam}->{allowed} );
+            foreach my $aFam ( @{ $familiesData->{$relFam}->{allowed} } ) {
+              if ( $regions->[$i]->{acc} eq $aFam ) {
+
+                #print STDERR "Ignored due to nesting\n";
+                next REGION;
+              }
+            }
+          }
+        }
+
+        if ( $clans->{ $regions->[$i]->{acc} } ) {
+          foreach
+            my $relFam ( @{ $clan2fam->{ $clans->{ $regions->[$i]->{acc} } } } )
+          {
+            next if ( $relFam eq $regions->[$j]->{acc} );
+            next unless ( $familiesData->{$relFam}->{allowed} );
+            foreach my $aFam ( @{ $familiesData->{$relFam}->{allowed} } ) {
+              if ( $regions->[$j]->{acc} eq $aFam ) {
+                #print STDERR "Ignored due to nesting\n";
+                next REGION;
+              }
+            }
+          }
+        }
       }
-     # print Dumper($regions->[$i]);
-     # print Dumper($regions->[$j]);
+
+# Sigh. I'm not sure why we need this. I thought these should all be skipped earlier :(
+      if ( $regions->[$i]->{skip} ) {
+        next REGION;
+      }
+      if ( $regions->[$j]->{skip} ) {
+        next REGION;
+      }
+
+      # print Dumper($regions->[$i]);
+      # print Dumper($regions->[$j]);
       if ( $regions->[$i]->{start} <= $regions->[$j]->{start}
         && $regions->[$i]->{end} >= $regions->[$j]->{start} )
       {
 
-        my $string =
-            "(1) In "
+        my $string = "(1) In "
           . $regions->[$j]->{fam} . " "
           . $regions->[$j]->{acc} . " "
           . $regions->[$j]->{ali} . " " . ": "
@@ -390,8 +410,11 @@ sub checkRegions {
 
         #print $string;
         print OVERLAPS $string;
-        $overlaps->{$regions->[$i]->{acc}}->{$regions->[$j]->{acc}.":".$regions->[$j]->{fam}}++;
-        $overlaps->{$regions->[$j]->{acc}}->{$regions->[$i]->{acc}.":".$regions->[$i]->{fam}}++;
+        $overlaps->{ $regions->[$i]->{acc} }
+          ->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
+        $overlaps->{ $regions->[$j]->{acc} }
+          ->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
+
         #}
 
       }
@@ -399,8 +422,7 @@ sub checkRegions {
         && $regions->[$i]->{end} >= $regions->[$j]->{end} )
       {
 
-        my $string =
-            "(2) In "
+        my $string = "(2) In "
           . $regions->[$j]->{fam} . " "
           . $regions->[$j]->{acc} . " "
           . $regions->[$j]->{ali} . " " . ": "
@@ -417,17 +439,19 @@ sub checkRegions {
           . $regions->[$i]->{end} . " ("
           . $regions->[$i]->{score}
           . " bits)\n";
+
         #print $string;
         print OVERLAPS $string;
-        $overlaps->{$regions->[$i]->{acc}}->{$regions->[$j]->{acc}.":".$regions->[$j]->{fam}}++;
-        $overlaps->{$regions->[$j]->{acc}}->{$regions->[$i]->{acc}.":".$regions->[$i]->{fam}}++;
+        $overlaps->{ $regions->[$i]->{acc} }
+          ->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
+        $overlaps->{ $regions->[$j]->{acc} }
+          ->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
       }
       elsif ( $regions->[$i]->{start} >= $regions->[$j]->{start}
         && $regions->[$i]->{end} <= $regions->[$j]->{end} )
       {
 
-        my $string =
-            "(3) In "
+        my $string = "(3) In "
           . $regions->[$j]->{fam} . " "
           . $regions->[$j]->{acc} . " "
           . $regions->[$j]->{ali} . " " . ": "
@@ -444,10 +468,13 @@ sub checkRegions {
           . $regions->[$i]->{end} . " ("
           . $regions->[$i]->{score}
           . " bits)\n";
+
         #print $string;
         print OVERLAPS $string;
-        $overlaps->{$regions->[$i]->{acc}}->{$regions->[$j]->{acc}.":".$regions->[$j]->{fam}}++;
-        $overlaps->{$regions->[$j]->{acc}}->{$regions->[$i]->{acc}.":".$regions->[$i]->{fam}}++;
+        $overlaps->{ $regions->[$i]->{acc} }
+          ->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
+        $overlaps->{ $regions->[$j]->{acc} }
+          ->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
       }
     }
   }
