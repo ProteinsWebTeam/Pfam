@@ -1687,7 +1687,7 @@ sub writeOutlistOrSpeciesChunk {
     }
     else { 
       if($is_outlist) { 
-        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-*s\n", 
+        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-s\n", 
                     $widthA[0], $aR->[0], 
                     $widthA[1], $aR->[1], 
                     $widthA[2], $aR->[2], 
@@ -1698,17 +1698,17 @@ sub writeOutlistOrSpeciesChunk {
                     $widthA[7], $aR->[7], 
                     $widthA[8], $aR->[8], 
                     $widthA[9], $aR->[9],
-                    $widthA[10], $aR->[10]);
+                    $aR->[10]); # final column doesn't need to be fixed-width, just flush left
       }
       else { # species line
-        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %-*s  %-*s\n",
+        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %-*s  %-s\n",
                     $widthA[0], $aR->[0], 
                     $widthA[1], $aR->[1], 
                     $widthA[2], $aR->[2], 
                     $widthA[3], $aR->[3], 
                     $widthA[4], $aR->[4], 
                     $widthA[5], $aR->[5], 
-                    $widthA[6], $aR->[6]);
+                    $aR->[6]); # final column doesn't need to be fixed-width, just flush left
       }
     }
   }
@@ -1842,13 +1842,14 @@ sub writeTaxinfoFromOutlistAndSpecies {
       foreach $name (@{$groupOHAR->{$group}}) { 
         $taxstr = $infoHHR->{$name}{"taxstr"};
         $cur_evalue = $infoHHR->{$name}{"evalue"};
-        @elA = split(" ", $taxstr);
+        #@elA = split(" ", $taxstr);
+        @elA = split(";", $taxstr);
         $parent_level = scalar(@elA);
         $prv_prefix = "";
         $prefix     = "";
         for($i = 0; $i < scalar(@elA); $i++) { 
           $prefix = $prv_prefix;
-          if($prv_prefix ne "") { $prefix .= " "; }
+          if($prv_prefix ne "") { $prefix .= ";"; }
           $prefix .= $elA[$i];
           $prv_prefix = $prefix;
           $pfix_ctHH{$group}{$prefix}++;
@@ -1897,8 +1898,8 @@ sub writeTaxinfoFromOutlistAndSpecies {
         while(($level2print < $maxlevel) && ($level_ctA[($level2print+1)] < $nprint)) { 
           $level2print++; 
           if($level_ctA[$level2print] > $nprint_actual) { 
-              $nprint_actual = $level_ctA[$level2print];
-            }
+            $nprint_actual = $level_ctA[$level2print];
+          }
         }
         
         #printf("nprint_actual: $nprint_actual\n");
@@ -2027,7 +2028,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
               }
             }
             else { # sort by minimum E-value as first key, count as second
-              if(($eff_Eexp < $min_eff_Eexp) || 
+              if(($eff_Eexp <  $min_eff_Eexp) || 
                  ($eff_Eexp == $min_eff_Eexp && $eff_ct > $max_eff_ct)) {
                 #printf("reset min_eff_Eexp as $eff_Eexp, $prefix ($pfix_minEexpHH{$group}{$prefix}  $pfix_minEHH{$group}{$prefix})\n");
                 $min_eff_Eexp = $eff_Eexp;
