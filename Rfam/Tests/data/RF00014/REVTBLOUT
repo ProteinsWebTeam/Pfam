@@ -1,0 +1,136 @@
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAGF03001352.1-shuffled  -         SEED                 -          cm        1       85   277719   277796      +    no    1 0.29   0.0   26.3   1.1e+02 ?   -
+AACY020023922.1-shuffled -         SEED                 -          cm        1       85      357      275      -    no    1 0.54   0.0   23.8   4.2e+02 ?   -
+AAGW02038030.1-shuffled  -         SEED                 -          cm        1       85    26504    26594      +    no    1 0.30   0.1   23.7   4.4e+02 ?   -
+ABQF01050457.1-shuffled  -         SEED                 -          cm        1       85     7983     7902      -    no    1 0.34   0.0   22.8   7.2e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_1.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.1.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_1.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:19 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ACUQ01002147.1-shuffled -         SEED                 -          cm        1       85    40875    40976      +    no    1 0.28   0.8   26.3   1.1e+02 ?   -
+AAPY01696986.1-shuffled -         SEED                 -          cm        1       85     3602     3530      -    no    1 0.25   0.5   23.9   3.9e+02 ?   -
+ABPO01000668.1-shuffled -         SEED                 -          cm        1       85     3686     3752      +    no    1 0.43   0.0   23.6   4.6e+02 ?   -
+ABXC01000932.1-shuffled -         SEED                 -          cm        1       85    46280    46177      -    no    1 0.46   0.0   23.1   6.1e+02 ?   -
+ABVD01002701.1-shuffled -         SEED                 -          cm        1       85    20393    20478      +    no    1 0.42   0.0   23.1   6.2e+02 ?   -
+AAFR03040887.1-shuffled -         SEED                 -          cm        1       85   133292   133360      +    no    1 0.39   0.0   23.0   6.5e+02 ?   -
+ABMM01167105.1-shuffled -         SEED                 -          cm        1       85       87        7      -    no    1 0.63   0.0   22.3   9.4e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_2.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.2.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_2.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:13 2013
+# [ok]
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRT010241929.1-shuffled -         SEED                 -          cm        1       85    10662    10574      -    no    1 0.33   0.0   24.2   3.4e+02 ?   -
+AP010471.1-shuffled      -         SEED                 -          cm        1       85    88471    88538      +    no    1 0.46   0.0   23.3   5.5e+02 ?   -
+AEKP01063229.1-shuffled  -         SEED                 -          cm        1       85     2658     2744      +    no    1 0.47   0.0   23.3   5.6e+02 ?   -
+AGCE01121624.1-shuffled  -         SEED                 -          cm        1       85   108333   108416      +    no    1 0.57   0.0   23.0   6.2e+02 ?   -
+AAWZ02001872.1-shuffled  -         SEED                 -          cm        1       85     5488     5406      -    no    1 0.30   0.0   22.8     7e+02 ?   -
+ABDC01356694.1-shuffled  -         SEED                 -          cm        1       85     2138     2053      -    no    1 0.59   0.0   22.5   8.5e+02 ?   -
+AEQU010298064.1-shuffled -         SEED                 -          cm        1       85      692      611      -    no    1 0.38   0.0   22.3   9.3e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_3.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.3.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_3.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:24 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAWU01001559.1-shuffled -         SEED                 -          cm        1       85    42065    42159      +    no    1 0.37   0.1   23.6   4.6e+02 ?   -
+BABK01076799.1-shuffled -         SEED                 -          cm        1       85      422      489      +    no    1 0.46   0.0   23.3   5.5e+02 ?   -
+ADDN01000199.1-shuffled -         SEED                 -          cm        1       85    25018    25080      +    no    1 0.49   0.0   23.3   5.5e+02 ?   -
+AEHL01232073.1-shuffled -         SEED                 -          cm        1       85    13036    13089      +    no    1 0.37   0.0   23.2   5.8e+02 ?   -
+AAQA01000044.1-shuffled -         SEED                 -          cm        1       85    38258    38332      +    no    1 0.36   0.0   23.2   5.8e+02 ?   -
+ADUW01000022.1-shuffled -         SEED                 -          cm        1       85   502730   502652      -    no    1 0.66   0.0   23.1     6e+02 ?   -
+AAHY01136725.1-shuffled -         SEED                 -          cm        1       85     7617     7696      +    no    1 0.47   0.0   22.8   7.3e+02 ?   -
+AAWU01004667.1-shuffled -         SEED                 -          cm        1       85    55194    55279      +    no    1 0.35   0.1   22.5   8.3e+02 ?   -
+AASC02026593.1-shuffled -         SEED                 -          cm        1       85      659      588      -    no    1 0.31   0.0   22.4   8.9e+02 ?   -
+AAWU01014410.1-shuffled -         SEED                 -          cm        1       85    34360    34426      +    no    1 0.22   1.1   22.4     9e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_4.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.4.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_4.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:29 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AABU01002693.1-shuffled -         SEED                 -          cm        1       85   905106   905191      +    no    1 0.37   0.0   29.5        20 ?   -
+AAEX03004892.1-shuffled -         SEED                 -          cm        1       85    45069    44991      -    no    1 0.43   0.0   27.2        68 ?   -
+AAEX03015309.1-shuffled -         SEED                 -          cm        1       85    66304    66241      -    no    1 0.67   0.0   26.0   1.3e+02 ?   -
+ABGA01066536.1-shuffled -         SEED                 -          cm        1       85     4490     4546      +    no    1 0.40   0.0   22.7   7.6e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_5.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.5.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_5.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:34 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAPY01639217.1-shuffled -         SEED                 -          cm        1       85       99       15      -    no    1 0.29   0.1   22.6   7.9e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_6.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.6.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_6.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:31 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AASW01046700.1-shuffled -         SEED                 -          cm        1       85       22       95      +    no    1 0.23   1.3   24.5   2.8e+02 ?   -
+AAZX01009162.1-shuffled -         SEED                 -          cm        1       85    60268    60196      -    no    1 0.44   0.0   24.3   3.3e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_7.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.7.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_7.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:33 2013
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAKN02028276.1-shuffled -         SEED                 -          cm        1       85     4302     4378      +    no    1 0.44   0.0   26.3   1.1e+02 ?   -
+AAQR03025644.1-shuffled -         SEED                 -          cm        1       85     4921     4839      -    no    1 0.36   0.0   25.3   1.9e+02 ?   -
+AEJG01000161.1-shuffled -         SEED                 -          cm        1       85     1144     1209      +    no    1 0.35   0.0   22.7   7.5e+02 ?   -
+AACD01000064.1-shuffled -         SEED                 -          cm        1       85   156792   156710      -    no    1 0.52   0.0   22.2   9.6e+02 ?   -
+AGFS01022260.1-shuffled -         SEED                 -          cm        1       85      146       85      -    no    1 0.39   0.0   22.2   9.8e+02 ?   -
+#
+# Program:         cmsearch
+# Version:         1.1rc4 (June 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_8.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 54985.980676 --tblout rs.32520.8.tbl --verbose -E 1000 --FZ 549862.597050 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/rev-rfamseq11_8.fa.gz 
+# Current dir:     /nfs/production/xfam/rfam/CURRENT_2svn/RF00014
+# Date:            Thu Aug 29 15:07:28 2013
+# [ok]

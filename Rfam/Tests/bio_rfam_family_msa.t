@@ -35,7 +35,6 @@ my @fileOld = read_file($filename);
 my @fileNew = read_file($test_file.'.species.sto');
 is_deeply(\@fileOld, \@fileNew, 'Check SEED species files are the same');
 
-
 my $msaSp = Bio::Rfam::Family::MSA->new({
     fileLocation => $test_file.'.species.sto',
     aliType => 'seed'

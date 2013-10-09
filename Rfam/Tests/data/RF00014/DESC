@@ -10,25 +10,25 @@ NC   30.97
 TP   Gene; sRNA;
 TX   Bacteria;
 BM   cmbuild  -F CM SEED
-CB   cmcalibrate --mpi -s 1 CM
-SM   cmsearch  -Z 274931 -E 1000000 --toponly CM SEQDB
+CB   cmcalibrate --mpi CM
+SM   cmsearch --cpu 4 --verbose --nohmmonly -E 1000 -Z 549862.597050 CM SEQDB
 DR   SO; 0000378; DsrA_RNA;
 RN   [1]
 RM   7534408
 RT   A small RNA acts as an antisilencer of the H-NS-silenced rcsA gene of
 RT   Escherichia coli.
-RA   Sledjeski D, Gottesman S;
+RA   Sledjeski D, Gottesman S
 RL   Proc Natl Acad Sci USA 1995;92:2003-2007.
 RN   [2]
 RM   9770508
 RT   DsrA RNA regulates translation of RpoS message by an anti-antisense
 RT   mechanism, independent of its action as an antisilencer of transcription.
-RA   Majdalani N, Cunning C, Sledjeski D, Elliott T, Gottesman S;
+RA   Majdalani N, Cunning C, Sledjeski D, Elliott T, Gottesman S
 RL   Proc Natl Acad Sci USA 1998;95:12462-12467.
 RN   [3]
 RM   15913835
 RT   Micros for microbes: non-coding regulatory RNAs in bacteria.
-RA   Gottesman S;
+RA   Gottesman S
 RL   Trends Genet 2005;21:399-404.
 CC   DsrA RNA regulates both transcription, by overcoming transcriptional
 CC   silencing by the nucleoid-associated H-NS protein, and translation, by
