@@ -1744,30 +1744,30 @@ sub commentLineForOutlistOrSpecies {
              : probably filled by a $io->parseOutlistAndSpecies() call.
              :
              : The purpose of 'taxinfo' is to concisely describe the taxonomic
-             : groups represented by all the hits for a family. To do this
+             : groups represented by all of the hits for a family. To do this
              : the taxonomic strings (e.g. Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.)
-             : are summarized by taking a prefix and the 'prefix level' 
+             : are summarized by taking a prefix and a 'prefix level' 
              : (the number of tokens in the prefix) that defines 5 distinct
-             : groups (at that prefix level) that comprise all SEED seqs.
+             : taxa groups (at that prefix level) that comprise all SEED seqs.
              : Families with large phylogenetic breadth will have lower
              : prefix levels. Those with narrow breadth will have higher.
-             : We go through the considerable trouble to do this because
+             : We go through considerable trouble to do this because
              : we want the taxinfo output file to be relatively short and
              : easy to digest by a curator. Much of the complexity of the 
-             : code for this subroutine is due to storing the taxonomic 
+             : code for this subroutine is for storing the taxonomic 
              : strings in such a way that enables us to find the desired
+             : prefix level and for finding that prefix level. 
              : prefix level as well as for actually finding it. 
              :
-             : Once the desired prefix level is found, the remainder of
-             : the subroutine is dedicated to outputting a sorted list
-             : the taxonomic groups. This is also complicated because
-             : we first print out those groups that contain >= 1 seed
-             : seqs, in order of decreasing minimum E-value in the group. 
-             : Then those (that have not yet been printed) and contain 
-             : at least 1 full hit above GA threshold in order of 
-             : decreasing minimum E-value in the group and then all 
-             : remaining groups (with only 'other' seqs (not in seed 
-             : nor full)).
+             : Once the desired prefix level is found, the remainder
+             : of the subroutine outputs a sorted list of the taxonomic
+             : groups. This is also complicated because we first print
+             : out those groups that contain >= 1 seed seqs, in order of
+             : decreasing minimum E-value in the group.  Next, those
+             : (not yet printed) that contain at least 1 full hit above
+             : GA threshold in order of decreasing minimum E-value in
+             : the group and then all remaining groups (with only
+             : 'other' seqs (not in seed nor full)).
              : 
     Args     : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
              : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
