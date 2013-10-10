@@ -1206,9 +1206,10 @@ sub makeAndWriteScores {
       s/^\s+//; # remove leading whitespace
       my @elA = split(/\s+/);
       # example line
-      # 105.50	4.9e-16	FULL	CP000970.1	   1234057	   1234142	     1	    85	no (SPECIES DATA REMOVED)
-      # 0         1       2                3          4              5                 6       7   8  
-      my ($bits, $evalue, $type, $id, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[2], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8]);
+      # 111.2  5.3e-19      FULL  AEHL01281174.1    v:75.1   10015   10102       1    88  no     33
+      # 0      1            2     3                 4        5       6           7    8   9      10
+
+      my ($bits, $evalue, $type, $id, $overlap, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[2], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8], $elA[9]);
       if ($bits < $threshold) {
         last;
       }
@@ -1353,7 +1354,9 @@ sub writeTbloutDependentFiles {
       push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
       push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $ncbiId, $species, $taxString));
       $nlines++;
-      if($rev_evalue eq "") { # first line
+      # TODO?: change so top scoring rev hit that does not overlap with any other hits is marked up, not just top rev hit
+      #         if($overlap_str eq "-" && $rev_evalue eq "") { # first hit that does not overlap with a true hit of higher value
+      if($rev_evalue eq "") { # first hit 
         $rev_evalue = $evalue; 
         open($revoutFH, "> $revoutO") || die "FATAL: failed to open $revoutO\n[$!]\n";   
         open($revspcFH, "> $revspcO") || die "FATAL: failed to open $revspcO\n[$!]\n";   
@@ -1407,7 +1410,7 @@ sub writeTbloutDependentFiles {
 
     # print out threshold line if nec
     if ( $bits < $ga && $ga<=$prv_bits) {
-      $outline = commentLineForOutlistOrSpecies (" CURRENT THRESHOLD: $ga BITS ");
+      $outline = _commentLineForOutlistOrSpecies (" CURRENT THRESHOLD: $ga BITS ");
       push(@{$outAA[$nlines]}, ($outline));
       push(@{$spcAA[$nlines]}, ($outline));
       printf RIN  "%0.2f\tTHRESH\t.\n", $ga;
@@ -1415,7 +1418,7 @@ sub writeTbloutDependentFiles {
       $nlines++;
     }
     if ( $rev_evalue ne "" && $evalue > $rev_evalue && $prv_evalue <= $rev_evalue) {
-      $outline = commentLineForOutlistOrSpecies(" BEST REVERSED HIT E-VALUE: $rev_evalue ");
+      $outline = _commentLineForOutlistOrSpecies(" BEST REVERSED HIT E-VALUE: $rev_evalue ");
       push(@{$outAA[$nlines]}, ($outline));
       push(@{$spcAA[$nlines]}, ($outline));
       $nlines++;
@@ -1423,8 +1426,8 @@ sub writeTbloutDependentFiles {
     $prv_bits = $bits;
     $prv_evalue = $evalue;
 
-    push(@{$outAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
-    push(@{$spcAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $ncbiId, $species, $taxString));
+    push(@{$outAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+    push(@{$spcAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $ncbiId, $species, $taxString));
     $nlines++;
     if($nlines % $chunksize == 0) { 
       writeOutlistOrSpeciesChunk($outFH, \@outAA, 1);
@@ -1438,15 +1441,15 @@ sub writeTbloutDependentFiles {
 
   # If we have any sequences 
   if (! defined $printed_thresh) {
-    $outline = commentLineForOutlistOrSpecies(" CURRENT THRESHOLD: $ga BITS ");
+    $outline = _commentLineForOutlistOrSpecies(" CURRENT THRESHOLD: $ga BITS ");
     push(@{$outAA[$nlines]}, ($outline));
     push(@{$spcAA[$nlines]}, ($outline));
     printf RIN "%0.2f\tTHRESH\t\.\n", $ga;
     $nlines++;
   }
   if ($rev_evalue eq "") { 
-    if(-e $rtblI) { $outline = commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO HITS FOUND IN REVERSED DB) "); }
-    else          { $outline = commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) "); }
+    if(-e $rtblI) { $outline = _commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO HITS FOUND IN REVERSED DB) "); }
+    else          { $outline = _commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) "); }
     push(@{$outAA[$nlines]}, ($outline));
     push(@{$spcAA[$nlines]}, ($outline));
     $nlines++;
@@ -1700,7 +1703,7 @@ sub writeOutlistOrSpeciesChunk {
     }
     else { 
       if($is_outlist) { 
-        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-s\n", 
+        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-s\n", 
                     $widthA[0], $aR->[0], 
                     $widthA[1], $aR->[1], 
                     $widthA[2], $aR->[2], 
@@ -1715,7 +1718,7 @@ sub writeOutlistOrSpeciesChunk {
                     $aR->[11]); # final column doesn't need to be fixed-width, just flush left
       }
       else { # species line
-        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %-*s  %-s\n",
+        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %-*s  %-s\n",
                     $widthA[0], $aR->[0], 
                     $widthA[1], $aR->[1], 
                     $widthA[2], $aR->[2], 
@@ -1723,14 +1726,14 @@ sub writeOutlistOrSpeciesChunk {
                     $widthA[4], $aR->[4], 
                     $widthA[5], $aR->[5], 
                     $widthA[6], $aR->[6], 
-                    $aR->[6]); # final column doesn't need to be fixed-width, just flush left
+                    $aR->[7]); # final column doesn't need to be fixed-width, just flush left
       }
     }
   }
 }
 
 # return a comment line for output to an outlist or species file
-sub commentLineForOutlistOrSpecies {
+sub _commentLineForOutlistOrSpecies {
   my ($str) = $_[0];
 
   my $tot_len = 120;
@@ -2260,10 +2263,12 @@ sub parseTblout {
     open(TBL, $tblout) || die "ERROR unable to open $tblout";
     # note that we do not need to sort by score
     while(my $line = <TBL>) { 
-      my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
-          processTbloutLine($line, undef, undef, 0, 0); 
-      #                               sthDesc, sthTax, is_reversed, require_tax: we don't care about tax info
-      push(@{$tbloutHAR->{$name}}, $start . ":" . $end . ":" . $bits);
+      if($line !~ m/^\#/) { 
+        my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
+            processTbloutLine($line, undef, undef, 0, 0); 
+        #                               sthDesc, sthTax, is_reversed, require_tax: we don't care about tax info
+        push(@{$tbloutHAR->{$name}}, $start . ":" . $end . ":" . $bits);
+      }
     }
     close(TBL);
 }
@@ -2610,11 +2615,16 @@ sub _outlist_species_get_overlap_string {
         my ($nres_overlap, $strand1, $strand2) = Bio::Rfam::Utils::overlap_nres_either_strand($start, $end, $start2, $end2);
         if(($nres_overlap > 0) && # we have overlap 
            ($overlap_str eq "-" || $bits2 > $overlap_bits)) { # either first overlap, or highest scoring overlap
-          if($bits2 > $bits)       { $overlap_str  = "^:"; }
-          else                     { $overlap_str  = "v:"; }
-          $overlap_str .= "$bits2:";
-          if($strand1 eq $strand2) { $overlap_str .= "same"; }
-          else                     { $overlap_str .= "oppo"; }
+          if($bits2 > $bits)       { $overlap_str  = "^"; }
+          else                     { $overlap_str  = "v"; }
+          if($is_reversed) { 
+            if($strand1 eq $strand2) { $overlap_str .= ":same"; }
+            else                     { $overlap_str .= ":oppo"; }
+          }
+          elsif($strand1 eq $strand2) { 
+            die "ERROR, two hits overlap on same strand ($name/$start-$end and $name/$start2-$end2)"; 
+          }
+          $overlap_str .= ":$bits2";
         }
       }
     }
