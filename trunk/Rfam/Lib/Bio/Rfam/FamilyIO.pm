@@ -1324,6 +1324,11 @@ sub writeTbloutDependentFiles {
   open(RINc,"> $rincO") || die "FATAL: failed to open rincO\n[$!]\n";   
   printf RINc "cnt\ttax\n";
     
+  # parse TBLOUT to get tbloutHAR, a hash of arrays:
+  my %tbloutHA; # hash of arrays, key is source sequence name of hit, value is array of scalars
+                # of form: "<start>:<end>:<bitscore>"
+  parseTblout("TBLOUT", \%tbloutHA);
+
   # Paul's comment:
   # If you don't like this you can fuck off!:
   # Shell grep & sort are a hell of a lot less resource greedy than perl's equivalents.
@@ -1338,10 +1343,15 @@ sub writeTbloutDependentFiles {
     my @rev_spcAA = (); # we'll fill this with data for revspecies
     open(RTBL, "grep -v ^'#' $rtblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $rtblI\n[$!]";
     while ($tblline = <RTBL>) {
+      # extract data from this REVTBLOUT line into variables we'll print out using processTbloutLine() subroutine
       my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
           processTbloutLine($tblline, $sthDesc, $sthTax, 1, $require_tax); # '1' says: yes this is a reversed search
-      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
-      push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $ncbiId, $species, $taxString));
+
+      # determine if this reverse hit overlaps with any positive hits
+      my $overlap_str = _outlist_species_get_overlap_string(\%tbloutHA, $name, $start, $end, $bits, 1); # '1' says this is a reversed hit
+
+      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+      push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $ncbiId, $species, $taxString));
       $nlines++;
       if($rev_evalue eq "") { # first line
         $rev_evalue = $evalue; 
@@ -1373,6 +1383,9 @@ sub writeTbloutDependentFiles {
   while ($tblline = <TBL>) {
     my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString, $got_tax) = 
         processTbloutLine($tblline, $sthDesc, $sthTax, 0, $require_tax); #'0' says: no this is not a reversed search 
+
+    # determine if this hit overlaps with any other hits on opposite strand
+    my $overlap_str = _outlist_species_get_overlap_string(\%tbloutHA, $name, $start, $end, $bits, 0); # '0' says this is not a reversed hit
 
     if($taxString eq "-") { $have_all_tax_info = 0; }
     my $domainKingdom = Bio::Rfam::Utils::tax2kingdom($taxString . '; ' . $species . ';');
@@ -1641,10 +1654,10 @@ sub writeOutlistOrSpeciesChunk {
 
   my @headA = ();
   if($is_outlist) { 
-    @headA = ("# bits", "evalue", "seqLabel", "name", "start", "end", "qstart", "qend", "trunc", "species", "description");
+    @headA = ("# bits", "evalue", "seqLabel", "name", "overlap", "start", "end", "qstart", "qend", "trunc", "species", "description");
   }
   else { # species data 
-    @headA = ("# bits", "evalue", "seqLabel", "name", "ncbiId", "species", "taxString");
+    @headA = ("# bits", "evalue", "seqLabel", "name", "overlap", "ncbiId", "species", "taxString");
   }
     
   my $nels = scalar(@headA);
@@ -1698,7 +1711,8 @@ sub writeOutlistOrSpeciesChunk {
                     $widthA[7], $aR->[7], 
                     $widthA[8], $aR->[8], 
                     $widthA[9], $aR->[9],
-                    $aR->[10]); # final column doesn't need to be fixed-width, just flush left
+                    $widthA[10], $aR->[10],
+                    $aR->[11]); # final column doesn't need to be fixed-width, just flush left
       }
       else { # species line
         printf $fh ("%*s  %*s  %*s  %-*s  %*s  %-*s  %-s\n",
@@ -1708,6 +1722,7 @@ sub writeOutlistOrSpeciesChunk {
                     $widthA[3], $aR->[3], 
                     $widthA[4], $aR->[4], 
                     $widthA[5], $aR->[5], 
+                    $widthA[6], $aR->[6], 
                     $aR->[6]); # final column doesn't need to be fixed-width, just flush left
       }
     }
@@ -2219,6 +2234,42 @@ sub parseOutlistAndSpecies {
 
 #-----------------------------------------------------------------
 
+#-------------------------------------------------
+    
+=head2 parseTblout
+
+    Title    : parseTblout
+    Incept   : EPN, Wed Oct  9 12:58:13 2013
+    Usage    : parseTblout($tblout, $tbloutHAR)
+    Function : Parses $tblout out into a very specific hash, referenced by $tbloutHR
+             : key is source sequence name of each hit, value is an array of scalars
+             : of the form "<start>:<end>:<bitsc>".
+             : This hash of arrays is used to determine the highest scoring overlapping 
+             : hit on the opposite strand (if any) which is part of 'outlist' and 'species'.
+    Args     : $tblout:    name of TBLOUT file, usually 'TBLOUT'
+             : $tbloutHAR: ref to hash of arrays, key is source sequence name, value is array
+             :             of scalars of form "<start>:<end>:<bitscore>"
+    Returns  : void
+    Dies     : if TBLOUT is not readable
+
+=cut
+
+sub parseTblout {
+    my($tblout, $tbloutHAR) = @_;
+
+    open(TBL, $tblout) || die "ERROR unable to open $tblout";
+    # note that we do not need to sort by score
+    while(my $line = <TBL>) { 
+      my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
+          processTbloutLine($line, undef, undef, 0, 0); 
+      #                               sthDesc, sthTax, is_reversed, require_tax: we don't care about tax info
+      push(@{$tbloutHAR->{$name}}, $start . ":" . $end . ":" . $bits);
+    }
+    close(TBL);
+}
+
+#-----------------------------------------------------------------
+
 
 #-------------------------------------------------
     
@@ -2498,6 +2549,78 @@ sub _taxinfo_get_sortable_exponent {
 
     return $ret_val;
   }
+######################################################################
+
+#-------------------------------------------------------
+
+=head2 _outlist_species_get_overlap_string
+
+    Title    : _outlist_species_get_overlap_string
+    Incept   : EPN, Thu Oct 10 09:40:31 2013E
+    Usage    : _outlist_species_get_overlap_string($tbloutHAR, $name, $start, $end, $bits, $is_reversed)
+    Function : Given a hit H and a tbloutHA reference (defined below) determine 
+             : if hit H overlaps with any of the hits in the tbloutHA, and if so
+             : create an 'overlap string' for the outlist and species file.
+             : If not the overlap string is '-'.
+             :
+             : The $tbloutHAR refers to a hash of arrays filled from the 'TBLOUT' file
+             : by parseTblout(). Each key is a target sequence name T, and each
+             : value is an array of strings that define all hits found in T.
+             : The strings have a specific format: "<start>:<end>:<bitscore>"
+             : A contrived format that includes all the necessary information
+             : for doing this overlap check.
+             : 
+             : Obviously the hit may overlap with itself (if ! $is_reversed).
+             : We allow this, but check to make sure that the bit scores
+             : are identical, else we die.
+             :
+    Args     : $tbloutHAR:    ref to hash of arrays (see 'Function' section)
+             : $name:         target sequence name of hit H we are checking overlaps for
+             : $start:        start position of hit H (if > end, hit is on opposite strand)
+             : $end:          end position of hit H
+             : $bits:         bit score of hit H
+             : $is_reveresed: '1' if hit is a reversed hit, we will remove 
+    Returns  : sortable version of $evalue
+    Dies     : if there is an overlap on the *same strand* to any hit *and* $is_reversed 
+             : is FALSE (0), because we do not expect any overlapping hits on same
+             : strand returned from Infernal.
+             : If hit overlaps with itself in $tbloutHAR, but bit scores do not match
+=cut  
+
+sub _outlist_species_get_overlap_string { 
+  my ($tbloutHAR, $name, $start, $end, $bits, $is_reversed) = @_;
+  
+  my $overlap_str = "-";
+  
+  # potentially remove '-shuffled' suffix if nec from 'reversed searches'
+  my $name2lookup = $name;
+  if($is_reversed) { $name2lookup =~ s/\-shuffled$// }
+  
+  if(exists($tbloutHAR->{$name2lookup})) { 
+    my $overlap_bits = "";  # initial value doesn't matter, overlap_str of "-" triggers redefinition
+    my $startendbits; 
+    # there's at least one hit somewhere on this target sequence
+    foreach $startendbits (@{$tbloutHAR->{$name2lookup}}) { 
+      my ($start2, $end2, $bits2) = split(":", $startendbits);
+      # check if it is ourself (identical), and if so move on (only do this if we're not reversed)
+      if((! $is_reversed) && ($start == $start2 && $end == $end2)) { 
+        if($bits ne $bits2) { die "ERROR, two hits overlap perfectly, with different scores ($name $start $end $bits != $bits2)" }
+      }
+      else { # not identical hit, determine if there's any overlap
+        my ($nres_overlap, $strand1, $strand2) = Bio::Rfam::Utils::overlap_nres_either_strand($start, $end, $start2, $end2);
+        if(($nres_overlap > 0) && # we have overlap 
+           ($overlap_str eq "-" || $bits2 > $overlap_bits)) { # either first overlap, or highest scoring overlap
+          if($bits2 > $bits)       { $overlap_str  = "^:"; }
+          else                     { $overlap_str  = "v:"; }
+          $overlap_str .= "$bits2:";
+          if($strand1 eq $strand2) { $overlap_str .= "same"; }
+          else                     { $overlap_str .= "oppo"; }
+        }
+      }
+    }
+  }
+  return $overlap_str;
+}
 ######################################################################
 
 1;

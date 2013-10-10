@@ -633,9 +633,6 @@ sub overlap_nres_strict {
     if($from1 > $to1) { croak "overlap_nres_strict(), from1 > to1\n"; }
     if($from2 > $to2) { croak "overlap_nres_strict(), from2 > to2\n"; }
 
-    my $minlen = $to1 - $from1 + 1;
-    if($minlen > ($to2 - $from2 + 1)) { $minlen = ($to2 - $from2 + 1); }
-
     # Given: $from1 <= $to1 and $from2 <= $to2.
 
     # Swap if nec so that $from1 <= $from2.
@@ -653,6 +650,42 @@ sub overlap_nres_strict {
     if($to1 <   $to2) { return ($to1 - $from2 + 1); }  # case 2
     if($to2 <=  $to1) { return ($to2 - $from2 + 1); }  # case 3
     croak "unforeseen case in _overlap_nres_strict $from1..$to1 and $from2..$to2";
+}
+
+=head2 overlap_nres_either_strand
+
+  Title    : overlap_nres_either_strand
+  Incept   : EPN, Thu Oct 10 09:24:57 2013
+  Usage    : overlap_nres_either_strand($from1, $to1, $from2, $to2)
+  Function : Returns number of overlapping residues between two 
+           : regions, irrespective of strand. That is, if two
+           : regions overlap by 10 residues but on opposite residues
+           : we return 10. (overlap_nres_strict() would return 0.)
+           : If $from1 is <= $to1 we assume first region is 
+           : on + strand, else it's on - strand.
+           : If $from2 is <= $to2 we assume second region is 
+           : on + strand, else it's on - strand.
+  Args     : $from1: start point of first region (must be <= $to1)
+           : $to1:   end   point of first region
+           : $from2: start point of second region (must be <= $to2)
+           : $to2:   end   point of second region
+  Returns  : $nres_overlap: number of residues that overlap between the two regions.
+           : $strand1:      strand of region 1 ('1' if $from1 <= $to1, else '-1')
+           : $strand2:      strand of region 2 ('1' if $from2 <= $to2, else '-1')
+=cut
+
+sub overlap_nres_either_strand {
+    my ($from1, $to1, $from2, $to2) = @_;
+
+    my ($strand1, $strand2, $tmpfrom1, $tmpto1, $tmpfrom2, $tmpto2);
+    if($from1  <= $to1)  { $strand1 =  1; $tmpfrom1 = $from1; $tmpto1 = $to1;   }
+    else                 { $strand1 = -1; $tmpfrom1 = $to1;   $tmpto1 = $from1; }
+    if($from2  <= $to2)  { $strand2 =  1; $tmpfrom2 = $from2; $tmpto2 = $to2;   }
+    else                 { $strand2 = -1; $tmpfrom1 = $to2;   $tmpto2 = $from2; }
+
+    my $nres_overlap = overlap_nres_strict($tmpfrom1, $tmpto1, $tmpfrom2, $tmpto2);
+    
+    return($nres_overlap, $strand1, $strand2);
 }
 
 #-------------------------------------------------------------------------------
