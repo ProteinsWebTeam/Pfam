@@ -389,7 +389,8 @@ if($do_calibrate) {
                                                                    $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, "[$ncpus_cmcalibrate procs, should take ~$predicted_minutes minutes]", -1, $do_stdout);
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
+                                                                sprintf("[$ncpus_cmcalibrate procs, should take ~%.1f minutes]", $predicted_minutes), -1, $do_stdout);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
   if(! $do_dirty) { unlink $calibrate_errO; } # this file is empty anyway 
