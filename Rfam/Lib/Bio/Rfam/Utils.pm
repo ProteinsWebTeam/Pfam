@@ -681,7 +681,7 @@ sub overlap_nres_either_strand {
     if($from1  <= $to1)  { $strand1 =  1; $tmpfrom1 = $from1; $tmpto1 = $to1;   }
     else                 { $strand1 = -1; $tmpfrom1 = $to1;   $tmpto1 = $from1; }
     if($from2  <= $to2)  { $strand2 =  1; $tmpfrom2 = $from2; $tmpto2 = $to2;   }
-    else                 { $strand2 = -1; $tmpfrom1 = $to2;   $tmpto2 = $from2; }
+    else                 { $strand2 = -1; $tmpfrom2 = $to2;   $tmpto2 = $from2; }
 
     my $nres_overlap = overlap_nres_strict($tmpfrom1, $tmpto1, $tmpfrom2, $tmpto2);
     
