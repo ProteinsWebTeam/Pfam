@@ -55,3 +55,6 @@ my $testname = "M15749.1/140-200";
 my ($oname, $ofract) = $msa->nse_overlap($testname);
 is($oname, "M15749.1/155-239", "nse_overlap method returns correct value");
 
+END {
+  unlink('SEED.bit.nse.sp') if(-e "SEED.bit.nse.sp");
+}
