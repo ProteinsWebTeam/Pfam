@@ -8,5 +8,5 @@ cp /Users/finnr/Work/Projects/Rfam/NewStuff/code/trunk/Rfam/Conf/rfam_local.conf
 mkdir $OUTPUT
 
 export PERL5LIB=$WORKSPACE/Schemata:$WORKSPACE/Lib:/Users/finnr/Work/Projects/Rfam/NewStuff/code/trunk/Bio-Easel/blib/lib:/Users/finnr/Work/Projects/Rfam/NewStuff/code/trunk/Bio-Easel/blib/arch
-export RFAM_CONF=$WORKSPACE/Conf/rfam.conf
+export RFAM_CONFIG=$WORKSPACE/Conf/rfam.conf
 /opt/bin/prove -v $WORKSPACE/Tests/*.t > $OUTPUT/tests.xml
