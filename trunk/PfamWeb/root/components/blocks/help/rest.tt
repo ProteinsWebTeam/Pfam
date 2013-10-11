@@ -112,7 +112,7 @@ sharedRequirements.css.push( "prettify.css" );
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -234,15 +234,15 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
 
     <pre class="url">
 [% c.uri_for( '/family/acc', id => 'Piwi', output => 'xml' ) | html %]
-[% c.uri_for( '/family/acc/Piwi', output => 'xml' ) | html %]
+[% c.uri_for( '/family/Piwi/acc', output => 'xml' ) | html %]
 [% c.uri_for( '/family/id', acc => 'PF02171', output => 'xml' ) | html %]
-[% c.uri_for( '/family/id/Piwi', output => 'xml' ) | html %]
+[% c.uri_for( '/family/Piwi/id', output => 'xml' ) | html %]
 [% c.uri_for( '/family', entry => 'Piwi', output => 'xml' ) | html %]</pre>
 
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/acc/Piwi' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi/acc' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:37:09 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -270,9 +270,9 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' '[% c.uri_for( '/family/acc/Piwi' ) | html %]'
+        <pre>shell% curl -LH 'Expect:' '[% c.uri_for( '/family/Piwi/acc' ) | html %]'
 PF02171
-shell% curl -H 'Expect:' '[% c.uri_for( '/family/id/PF02171' ) | html %]'
+shell% curl -LH 'Expect:' '[% c.uri_for( '/family/PF02171/id' ) | html %]'
 Piwi</pre>
       </div>
     </fieldset>
@@ -301,7 +301,7 @@ Piwi</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -386,7 +386,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 16:34:44 26-Oct-2009 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -432,7 +432,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- all Pfam-A families, generated: 16:12:54 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -480,7 +480,7 @@ for example mRNA, guided by double stranded siRNA.
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
+        <pre>shell% curl -LH 'Expect:' -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 16:28:26 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -602,7 +602,7 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
+        <pre>shell% curl -LH 'Expect:' -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
         <pre class="prettyprint">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -787,7 +787,7 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-      <pre>shell% curl -H 'Expect:' 'http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml'</pre>
+      <pre>shell% curl -LH 'Expect:' 'http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml'</pre>
       <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
