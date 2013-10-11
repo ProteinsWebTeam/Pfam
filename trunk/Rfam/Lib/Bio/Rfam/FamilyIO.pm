@@ -1206,10 +1206,10 @@ sub makeAndWriteScores {
       s/^\s+//; # remove leading whitespace
       my @elA = split(/\s+/);
       # example line
-      # 111.2  5.3e-19      FULL  AEHL01281174.1    v:75.1   10015   10102       1    88  no     33
-      # 0      1            2     3                 4        5       6           7    8   9      10
+      # 111.2  5.3e-19      FULL  AEHL01281174.1    v:75.1   10015   10102   +     1    88  no     33
+      # 0      1            2     3                 4        5       6       7     8    8   9      10
 
-      my ($bits, $evalue, $type, $id, $overlap, $start, $end, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[2], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8], $elA[9]);
+      my ($bits, $evalue, $type, $id, $overlap, $start, $end, $strand, $qstart, $qend, $tstr) = ($elA[0], $elA[1], $elA[2], $elA[3], $elA[4], $elA[5], $elA[6], $elA[7], $elA[8], $elA[9], $elA[10]);
       if ($bits < $threshold) {
         last;
       }
@@ -1328,7 +1328,7 @@ sub writeTbloutDependentFiles {
   # parse TBLOUT to get tbloutHAR, a hash of arrays:
   my %tbloutHA; # hash of arrays, key is source sequence name of hit, value is array of scalars
                 # of form: "<start>:<end>:<bitscore>"
-  parseTblout("TBLOUT", \%tbloutHA);
+  parseTbloutForOverlapCheck("TBLOUT", \%tbloutHA);
 
   # Paul's comment:
   # If you don't like this you can fuck off!:
@@ -1345,13 +1345,13 @@ sub writeTbloutDependentFiles {
     open(RTBL, "grep -v ^'#' $rtblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $rtblI\n[$!]";
     while ($tblline = <RTBL>) {
       # extract data from this REVTBLOUT line into variables we'll print out using processTbloutLine() subroutine
-      my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
+      my ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
           processTbloutLine($tblline, $sthDesc, $sthTax, 1, $require_tax); # '1' says: yes this is a reversed search
 
       # determine if this reverse hit overlaps with any positive hits
       my $overlap_str = _outlist_species_get_overlap_string(\%tbloutHA, $name, $start, $end, $bits, 1); # '1' says this is a reversed hit
 
-      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
       push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $ncbiId, $species, $taxString));
       $nlines++;
       # TODO?: change so top scoring rev hit that does not overlap with any other hits is marked up, not just top rev hit
@@ -1384,7 +1384,7 @@ sub writeTbloutDependentFiles {
   $nlines = 0;
   open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
   while ($tblline = <TBL>) {
-    my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString, $got_tax) = 
+    my ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString, $got_tax) = 
         processTbloutLine($tblline, $sthDesc, $sthTax, 0, $require_tax); #'0' says: no this is not a reversed search 
 
     # determine if this hit overlaps with any other hits on opposite strand
@@ -1426,7 +1426,7 @@ sub writeTbloutDependentFiles {
     $prv_bits = $bits;
     $prv_evalue = $evalue;
 
-    push(@{$outAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description));
+    push(@{$outAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
     push(@{$spcAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $ncbiId, $species, $taxString));
     $nlines++;
     if($nlines % $chunksize == 0) { 
@@ -1572,6 +1572,7 @@ sub writeScores {
              : $name:         name of the sequence the hit is in
              : $start:        start position of the hit
              : $end:          end position of the hit
+             : $strand:       strand of hit ('+' or '-')
              : $qstart:       start position on the query model
              : $qend:         end position on the query model
              : $trunc:        truncation string for hit
@@ -1593,8 +1594,6 @@ sub processTbloutLine {
   ## AAAA02006309.1      -         RF00014              -          cm        1       85      192      105      -    no    1 0.44   0.0   86.0   1.6e-11 !   Oryza sativa Indica Group chromosome 2 Ctg006309, whole genome shotgun sequence.
   my @tblA = split(/\s+/, $tblline);
   my ($name, $qstart, $qend, $start, $end, $strand, $trunc, $bits, $evalue) = ($tblA[0], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]);
-  if ($strand eq "+") { $strand =  1; }
-  else                { $strand = -1; }
 
   my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
   # potentially remove '-shuffled' suffix if nec from 'reversed searches'
@@ -1641,7 +1640,7 @@ sub processTbloutLine {
     if(! defined $ncbiId)       { $ncbiId       = "-"; }
   } 
 
-  return ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString);
+  return ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString);
 }
 
 
@@ -1657,7 +1656,7 @@ sub writeOutlistOrSpeciesChunk {
 
   my @headA = ();
   if($is_outlist) { 
-    @headA = ("# bits", "evalue", "seqLabel", "name", "overlap", "start", "end", "qstart", "qend", "trunc", "species", "description");
+    @headA = ("# bits", "evalue", "seqLabel", "name", "overlap", "start", "end", "str", "qstart", "qend", "trunc", "species", "description");
   }
   else { # species data 
     @headA = ("# bits", "evalue", "seqLabel", "name", "overlap", "ncbiId", "species", "taxString");
@@ -1703,7 +1702,7 @@ sub writeOutlistOrSpeciesChunk {
     }
     else { 
       if($is_outlist) { 
-        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-s\n", 
+        printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %*s  %*s  %*s  %*s  %*s  %-*s  %-s\n", 
                     $widthA[0], $aR->[0], 
                     $widthA[1], $aR->[1], 
                     $widthA[2], $aR->[2], 
@@ -1715,7 +1714,8 @@ sub writeOutlistOrSpeciesChunk {
                     $widthA[8], $aR->[8], 
                     $widthA[9], $aR->[9],
                     $widthA[10], $aR->[10],
-                    $aR->[11]); # final column doesn't need to be fixed-width, just flush left
+                    $widthA[11], $aR->[11],
+                    $aR->[12]); # final column doesn't need to be fixed-width, just flush left
       }
       else { # species line
         printf $fh ("%*s  %*s  %*s  %-*s  %*s  %*s  %-*s  %-s\n",
@@ -2239,9 +2239,9 @@ sub parseOutlistAndSpecies {
 
 #-------------------------------------------------
     
-=head2 parseTblout
+=head2 parseTbloutForOverlapCheck
 
-    Title    : parseTblout
+    Title    : parseTbloutForOverlapCheck
     Incept   : EPN, Wed Oct  9 12:58:13 2013
     Usage    : parseTblout($tblout, $tbloutHAR)
     Function : Parses $tblout out into a very specific hash, referenced by $tbloutHR
@@ -2257,14 +2257,14 @@ sub parseOutlistAndSpecies {
 
 =cut
 
-sub parseTblout {
+sub parseTbloutForOverlapCheck {
     my($tblout, $tbloutHAR) = @_;
 
     open(TBL, $tblout) || die "ERROR unable to open $tblout";
     # note that we do not need to sort by score
     while(my $line = <TBL>) { 
       if($line !~ m/^\#/) { 
-        my ($bits, $evalue, $name, $start, $end, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
+        my ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString) = 
             processTbloutLine($line, undef, undef, 0, 0); 
         #                               sthDesc, sthTax, is_reversed, require_tax: we don't care about tax info
         push(@{$tbloutHAR->{$name}}, $start . ":" . $end . ":" . $bits);
@@ -2569,7 +2569,7 @@ sub _taxinfo_get_sortable_exponent {
              : If not the overlap string is '-'.
              :
              : The $tbloutHAR refers to a hash of arrays filled from the 'TBLOUT' file
-             : by parseTblout(). Each key is a target sequence name T, and each
+             : by parseTbloutForOverlapCheck(). Each key is a target sequence name T, and each
              : value is an array of strings that define all hits found in T.
              : The strings have a specific format: "<start>:<end>:<bitscore>"
              : A contrived format that includes all the necessary information
