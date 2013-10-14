@@ -2196,9 +2196,9 @@ sub parseOutlistAndSpecies {
 	if($outline !~ m/^\#/) { 
 	    $ct++;
 	    # example outlist line:
-            #  27.7  3.2e+02      FULL  AAWR02038290.1     53057    53080       1    24     no  Equus_caballus_(horse)[9796]        Equus caballus cont2.38289, whole genome shotgun sequence.                                                    
+            # 108.5  4.2e-20      SEED  Z97632.3          v:73.4   23636   23554    -       1    83     no  Homo_sapiens_(human)[9606]        Human DNA sequence from clone RP1-196E23 on chromosome Xq26.1-27.2 Description...
             # example species line:
-            #  27.7  3.2e+02      FULL  AAWR02038290.1      9796  Equus caballus (horse)                                          Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Laurasiatheria; Perissodactyla; Equidae; Equus.                                                                     
+            # 108.5  4.2e-20      SEED  Z97632.3          v:73.4    9606  Homo sapiens (human)                                        Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Homo.
 	    @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
 	    @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
 
@@ -2209,7 +2209,7 @@ sub parseOutlistAndSpecies {
               }
 	    }
 
-	    $name = $out_elA[3] . "/" . $out_elA[4] . "-" . $out_elA[5]; 
+	    $name = $out_elA[3] . "/" . $out_elA[5] . "-" . $out_elA[6]; 
 	    if(defined $nameOAR) { push(@{$nameOAR}, $name); }
 	    if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
 	    $nameIH{$name} = 1;
@@ -2225,9 +2225,9 @@ sub parseOutlistAndSpecies {
               $infoHHR->{$name}{"rank"}     = $ct;
               $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
               $infoHHR->{$name}{"evalue"}   = $out_elA[1];
-              $infoHHR->{$name}{"sspecies"} = $out_elA[9];
-              $infoHHR->{$name}{"taxstr"}   = $spc_elA[6];
-              $infoHHR->{$name}{"trunc"}    = $out_elA[8];
+              $infoHHR->{$name}{"sspecies"} = $out_elA[11];
+              $infoHHR->{$name}{"taxstr"}   = $spc_elA[7];
+              $infoHHR->{$name}{"trunc"}    = $out_elA[10];
             }
           }
     }
@@ -2433,11 +2433,11 @@ sub writeOldAndNewHitComparison {
       $outline =~ s/^\s+//; # remove leading whitespace
       $spcline =~ s/^\s+//; # remove leading whitespace
       my @elA = split(/\s\s+/, $outline);
-      # 89.5  7.7e-16      SEED  AADA01319887.1     7078     7176       1   101     no  Pan_troglodytes_(chimpa..[9598]    Pan troglodytes ctg_319886, whole genome shotgun sequence.
-      my $nse = $elA[3] . "/" . $elA[4] . "-" . $elA[5];
+      # 108.5  4.2e-20      SEED  Z97632.3          v:73.4   23636   23554    -       1    83     no  Homo_sapiens_(human)[9606]        Description...
+      my $nse = $elA[3] . "/" . $elA[5] . "-" . $elA[6];
       if(exists $newhitH{$nse}) { 
         my @spcelA = split(/\s\s+/, $spcline);
-        # 89.5  7.7e-16      SEED  AADA01319887.1    9598  Pan troglodytes (chimpanzee)                                    Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.
+        # 108.5  4.2e-20      SEED  Z97632.3          v:73.4    9606  Homo sapiens (human)                                        Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Homo.
         if($spcelA[0] ne $elA[0] || $spcelA[3] ne $elA[3]) { 
           croak "ERROR new outlist and species lines inconsistent!\n$outline\n$spcline\n"; 
         }
