@@ -24,6 +24,13 @@
   urchinTracker();
   // ]]>
 </script>
+[% END;
+
+IF c.config.analytics.grep('piwik').size;
+# note that this will only work on the live Sanger servers, which are sitting
+# behind the ZXTM front ends -%]
+<!-- piwik -->
+<script type="text/javascript" src="[% c.uri_for( '/zxtm/piwik2.js' ) %]"></script>
 [% END -%]
 
 <!-- footer end -->
