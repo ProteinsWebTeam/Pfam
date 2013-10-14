@@ -23,6 +23,11 @@
   // ]]>
 </script>
 
+[%- IF c.config.analytics.grep('piwik').size %]
+<!-- piwik -->
+<script type="text/javascript" src="[% c.uri_for( '/zxtm/piwik2.js' ) %]" ></script>
+[% END %]
+
 <!-- footer end -->
 [%#
 Copyright (c) 2007: Genome Research Ltd.
