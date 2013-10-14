@@ -29,14 +29,15 @@ use Bio::Pfam::FamilyIO;
 my $logger = get_logger();
 
 my $no_compete;    # Use this option to not do the clan competition step
-my ( $statusdir, $clans, $clan2fam, $fast, $oldOverlaps, $families );
+my ( $statusdir, $clans, $clan2fam, $fast, $oldOverlaps, $families, $ciFamilies );
 
 GetOptions(
   'fast'        => \$fast,
   'previous'    => \$oldOverlaps,
   'no_compete!' => \$no_compete,
   'statusdir=s' => \$statusdir,
-  'datadir=s'   => \$families
+  'datadir=s'   => \$families,
+  'checked=s'   => \$ciFamilies
   )
   or $logger->logdie("Invalid options passed in!\n");
 
@@ -78,6 +79,14 @@ my $nestClans = 1;
 #Retrieve DESC data from all of the possible overlapping families.
 getDescData( $familiesData, $posOverlaps );
 
+if(defined($ciFamilies)){
+  opendir( DIR, $ciFamilies ) or $logger->logdie("Could not opendir $ciFamilies");
+  my @ciDirs = grep { $_ =~ /^PF\d{5}$/ } readdir(DIR);
+  close(DIR);
+  #now these all have 'possible' overlaps
+  getDescData( $familiesData, \@ciDirs);
+}
+
 #Save the information for later
 store( $familiesData, $statusdir . "/family.dat" );
 
@@ -93,7 +102,6 @@ sub getRegions {
   my ( $families, $posOverlaps, $familiesData ) = @_;
 
 
-  
   open( R, ">$statusdir/$filePrefix.allRegions.txt" ) 
     or die "Could not open $statusdir/$filePrefix.allRegions.txt\n";
 
