@@ -185,10 +185,14 @@ if(! -s 'TBLOUT') { die "ERROR: TBLOUT does not exist, did you run rfsearch.pl?"
 
 # create hash of potential output files
 my %outfileH = ();
-my @outfile_orderA = ("SCORES", "outlist", "species", "taxinfo", "align", "alignout", "repalign", "repalignout", "comparison", "lostoutlist", "newoutlist", "lostspecies", "newspecies"); 
+my @outfile_orderA = ("SCORES", "outlist", "revoutlist", "species", "revspecies", "outlist.pdf", "species.pdf", "taxinfo", "align", "alignout", "repalign", "repalignout", "comparison", "lostoutlist", "newoutlist", "lostspecies", "newspecies"); 
 $outfileH{"SCORES"}      = "tabular list of all hits above GA threshold";
 $outfileH{"outlist"}     = "sorted list of all hits from TBLOUT";
+$outfileH{"revoutlist"}  = "sorted list of all hits from REVTBLOUT";
 $outfileH{"species"}     = "same as outlist, but with additional taxonomic information";
+$outfileH{"revspecies"}  = "same as revoutlist, but with additional taxonomic information";
+$outfileH{"outlist.pdf"} = "bit score histograms of all hits";
+$outfileH{"species.pdf"} = "bit score histogram hits, colored by taxonomy";
 $outfileH{"taxinfo"}     = "summary of taxonomic groups in seed/full/other sets";
 $outfileH{"align"}       = "alignment of all hits above GA threshold";
 $outfileH{"alignout"}    = "tabular cmalign output for 'align'";
@@ -395,12 +399,15 @@ $io->writeDESC($famObj->DESC);
 # finished all work, print output file summary
 ##############################################
 Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
+if(-e "DESC.$$") { 
+  Bio::Rfam::Utils::log_output_file_summary($logFH, "DESC.$$", "copy of old DESC file from before this rfmake", $do_stdout);
+}
 my $description = sprintf("%s%s%s", 
     ($famObj->DESC->CUTTC == $orig_tc_bitsc)   ? " TC" : "", 
     ($famObj->DESC->CUTGA == $orig_ga_bitsc)   ? " GA" : "", 
     ($famObj->DESC->CUTNC == $orig_nc_bitsc)     ? " NC" : "");
-if($description ne "") { $description = "desc file (updated:$description)"; }
-else                   { $description = "desc file (unchanged)"; }
+if($description ne "") { $description = "family description file (updated:$description)"; }
+else                   { $description = "family description file (unchanged)"; }
 Bio::Rfam::Utils::log_output_file_summary($logFH, "DESC", $description, $do_stdout);
 
 # output brief descriptions of the files we just created, we know that if these files exist that 

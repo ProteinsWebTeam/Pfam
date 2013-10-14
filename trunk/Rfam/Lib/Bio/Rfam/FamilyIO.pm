@@ -1497,10 +1497,12 @@ sub writeTbloutDependentFiles {
   # Remove the plot_outlist.Rout, rin.dat, and rinc.dat files, 
   # These are really only relevant if the R command failed
   # (returned non-zero status), in which case run_local_command() 
-  # would have die'd (and we'd never have gotten to this point).
+  # would have died (and we'd never have gotten to this point).
   if(-e "plot_outlist.Rout") { unlink "plot_outlist.Rout"; } 
   if(-e "rin.dat")           { unlink "rin.dat"; }
   if(-e "rinc.dat")          { unlink "rinc.dat"; }
+  if(! -e "outlist.pdf")     { die "ERROR outlist.pdf not created"; }
+  if(! -e "species.pdf")     { die "ERROR species.pdf not created"; }
   return;
 }
 
