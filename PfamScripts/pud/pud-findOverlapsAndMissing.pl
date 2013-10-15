@@ -153,7 +153,8 @@ FAM:
   
     $familiesData->{$fDir}->{acc} = $descObj->AC;
     $familiesData->{$fDir}->{id}  = $descObj->ID;
-    
+    $familiesData->{$fDir}->{seed} = 0;
+    $familiesData->{$fDir}->{align} = 0;
     if ( $descObj->NESTS ) {
       foreach my $n ( @{ $descObj->NESTS } ) {
         push( @{ $familiesData->{$fDir}->{allowed} }, $n->{'dom'} );
