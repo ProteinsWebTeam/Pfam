@@ -8,7 +8,7 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-my $VERSION = "1.4"; 
+my $VERSION = "1.5"; 
 
 #-------------------------------------------------------------------------------
 
