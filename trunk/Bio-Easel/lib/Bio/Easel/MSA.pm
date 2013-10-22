@@ -308,6 +308,24 @@ sub get_ss_cons {
   return _c_get_ss_cons( $self->{esl_msa} );
 }
 
+=head2 set_blank_ss_cons
+
+  Title    : set_blank_ss_cons
+  Incept   : EPN, Tue Oct 22 10:38:39 2013
+  Usage    : $msaObject->set_blank_ss_cons()
+  Function : Sets msa->ss_cons as all '.' characters (zero basepairs).
+  Args     : None
+  Returns  : Nothing
+
+=cut
+
+sub set_blank_ss_cons { 
+  my ( $self ) = @_;
+
+  $self->_check_msa();
+  return _c_set_blank_ss_cons( $self->{esl_msa} );
+}
+
 =head2 get_sqname
 
   Title    : get_sqname
@@ -954,7 +972,7 @@ sub _check_sqidx {
   $self->_check_msa();
   my $nseq = $self->nseq;
   if ( $idx < 0 || $idx >= $nseq ) {
-    croak "invalid sequence index %d (must be [0..%d])", $idx, $nseq;
+    croak (sprintf("invalid sequence index %d (must be [0..%d])", $idx, $nseq));
   }
   return;
 }
