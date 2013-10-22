@@ -167,6 +167,31 @@ char *_c_get_ss_cons (ESL_MSA *msa)
   return msa->ss_cons;
 }
 
+/* Function:  _c_set_blank_ss_cons()
+ * Incept:    EPN, Tue Oct 22 10:39:59 2013
+ * Synopsis:  Sets msa->ss_cons as all '.' (no basepairs).
+ * Returns:   void
+ */
+char *_c_set_blank_ss_cons (ESL_MSA *msa)
+{
+  int status;
+  int i;
+
+  if(msa->ss_cons == NULL) { 
+    ESL_ALLOC(msa->ss_cons, sizeof(char) * (msa->alen+1)); 
+  }
+  for(i = 0; i < msa->alen; i++) { 
+    msa->ss_cons[i] = '.';
+  }
+  msa->ss_cons[msa->alen] = '\0';
+
+  return;
+
+ ERROR: 
+  croak("out of memory");
+  return; /* NEVER REACHED */
+}
+
 /* Function:  _c_get_accession()
  * Incept:    EPN, Sat Feb  2 14:35:18 2013
  * Synopsis:  Returns msa->acc.
