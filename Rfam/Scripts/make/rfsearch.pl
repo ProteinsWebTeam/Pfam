@@ -4,6 +4,7 @@ use Cwd;
 use Getopt::Long;
 use File::stat;
 use Data::Printer;
+use File::Copy;
 use Carp;
 
 use Bio::Rfam::Config;
@@ -26,7 +27,7 @@ my $executable = $0;
 # build related options
 my $force_build = 0;            # TRUE to force build
 my $only_build  = 0;            # TRUE to only build and then exit
-my $do_nostruct = 0;            # TRUE to allow building of CMs with no structure
+my $do_noss     = 0;            # TRUE to allow building of CMs with no structure
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
@@ -65,7 +66,7 @@ my $config = Bio::Rfam::Config->new;
 
 &GetOptions( "b"          => \$force_build,
              "onlybuild"  => \$only_build,
-	     "nostruct"   => \$do_nostruct,
+	     "noss"       => \$do_noss,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "e=s",       => \$evalue,
@@ -161,7 +162,7 @@ elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH
 else                           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice), $do_stdout); }
 if($force_build)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]"), $do_stdout); }
 if($only_build)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]"), $do_stdout); }
-if($do_nostruct)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# allow zero basepair model:",          "yes [-nostruct]"), $do_stdout); }
+if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# rewrite SEED with zero bp SS_cons:",  "yes [-noss]"), $do_stdout); }
 if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
 if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
 if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-e]"), $do_stdout); }
@@ -215,14 +216,17 @@ if (defined $ncpus_cmcalibrate && $ncpus_cmcalibrate < 0) {
   die "ERROR with -ccpu <n>, <n> must be >= 0";
 }
 
-if ($do_nostruct) { # -nostruct: verify SEED either has SS_cons with 0 bps or does not have SS_cons
-  if ($msa->has_sscons) {
-    my $nbps = $msa->num_basepairs;
-    if ($nbps > 0) { die "ERROR with -nostruct, SEED must have zero bp SS_cons, or no SS_cons"; }
-    else {  # -nostruct enabled, but msa does not have one, add one
-      $msa->set_blank_sscons;
-    }
-  }
+if ($do_noss) { # -noss: rewrite SEED's SS_cons as blank
+  # copy existing SEED sideways
+  if(-e "SEED") { copy("SEED", "SEED.$$"); }
+  $msa->set_blank_ss_cons;
+  $msa->write_msa("SEED");
+  # TODO: update this so, we read SEED back in and keep going, instead of exiting
+  Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
+  Bio::Rfam::Utils::log_output_file_summary($logFH, "SEED.$$", "copy of old SEED file from before this rfsearch", $do_stdout);
+  Bio::Rfam::Utils::log_output_file_summary($logFH, "SEED",    "rewritten SEED, with zero basepair SS_cons annotation", $do_stdout);
+  close($logFH);
+  exit(0);
 }
 
 if(defined $dbdir)     { $dbdir     =~ s/\/$//; } # remove trailing '/'
@@ -755,7 +759,7 @@ Usage:      rfsearch.pl [options]
 Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
 	    -b         always run cmbuild (default: only run if 'CM' is v1.0, is older than SEED or doesn't exist)
 	    -onlybuild build CM and then exit, do not calibrate, do not search
-	    -nostruct  set a zero basepair SS_cons in SEED prior to cmbuild (none must exist in SEED)
+	    -noss      rewrite SEED with zero basepairs, then exit; do not build, calibrate, or search
 
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
 	    -c         always run cmcalibrate (default: only run if 'CM' is not calibrated)
