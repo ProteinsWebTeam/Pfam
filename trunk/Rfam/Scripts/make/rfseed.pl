@@ -34,6 +34,7 @@ my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
 # other options
 my $do_stdout = 1;              # TRUE to output to STDOUT
 my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
+my $do_name   = 0;              # TRUE if input file only includes name/start-end names
 my $do_local  = 0;              # TRUE to align locally w.r.t. the CM
 my $do_prob   = 0;              # TRUE to include PPs in output alignment
 my $do_help   = 0;              # TRUE to print help and exit, if -h used
@@ -45,6 +46,7 @@ my $config = Bio::Rfam::Config->new;
 
 &GetOptions( "l"          => \$do_local,
              "p"          => \$do_prob,
+             "n"          => \$do_name,
              "quiet",     => \$do_quiet,
              "h|help"     => \$do_help );
 
@@ -112,6 +114,7 @@ Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "
 
 if($do_local)  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# align new sequences locally w.r.t. CM: ",   "yes [-l]"), $do_stdout); }
 if($do_prob)   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in new seed: ",          "yes [-p]"), $do_stdout); }
+if($do_name)   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# input file is only sequence names",         "yes [-n]"), $do_stdout); }
 if($do_quiet)  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                              "on  [-quiet]"), $do_stdout); }
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "#\n", $do_stdout);
 
@@ -119,7 +122,6 @@ Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "#\n", $do_stdout);
 if(! -s 'CM') { die "ERROR: CM does not exist, did you run rfsearch.pl?"; }
 if(Bio::Rfam::Utils::youngerThan("SEED", "CM")) { die "ERROR SEED is younger than CM, did you run rfsearch.pl (possibly with -onlybuild)?"; }
                                                   
-
 # create hash of potential output files
 my %outfileH = ();
 my @outfile_orderA = ("SEED.$$", "CM.$$", "seedalignout");
@@ -139,7 +141,13 @@ Bio::Rfam::Utils::log_output_progress_column_headings($logFH, sprintf("per-stage
 
 # parse infile to get list of new seqs to fetch
 my @fetchAA = (); 
-my ($nseq, $nres) = parse_outlist($infile, $oseedmsa, \@fetchAA);
+my ($nseq, $nres);
+if($do_name) { # -n used on command line
+  ($nseq, $nres) = parse_namelist($infile, $oseedmsa, \@fetchAA);
+}
+else { # -n not used, default 'outlist' subset file format
+  ($nseq, $nres) = parse_outlist($infile, $oseedmsa, \@fetchAA);
+}
 
 # copy SEED and CM sideways, do this after we parse the outlist, which checks for overlaps between new seqs and seed seqs
 if (-e "SEED") { copy("SEED", "SEED.$$"); }
@@ -173,6 +181,9 @@ Bio::Rfam::Utils::log_output_progress_local($logFH, "cmbuild", time() - $build_s
 Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
+if(-e "SEED") { 
+  Bio::Rfam::Utils::log_output_file_summary($logFH, "SEED", sprintf("new seed alignment; %d seqs added with cmalign [NOTE: inserts in old seqs may have shifted!]", $nseq), $do_stdout);
+}  
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
     Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, $do_stdout);
@@ -199,33 +210,33 @@ sub parse_outlist {
 
   open(IN, $outlist) || die "ERROR unable to open $outlist"; 
 
-  my @tmp_nseA = ();    # temporary array of nse we've added, which we'll use for overlap checking
-  my $overlap_name;     # name/start-end for overlap check
-  my $overlap_fraction; # fraction of overlap
+  my @new_nseA = ();    # temporary array of nse we've added, which we'll use for overlap checking
+  my $nseq = 0;
+  my $nres = 0;
 
   while(my $line = <IN>) { 
     # example outlist line:
+    #  87.5  4.8e-18      FULL  AACZ03038953.1        -    25367    25465    +       1   101     no  Pan_troglodytes_(chimpa..[9598]    Pan troglodytes chromosome 5 Contig52.80, whole genome shotgun sequence.
     #  27.7  3.2e+02      FULL  AAWR02038290.1     53057    53080       1    24     no  Equus_caballus_(horse)[9796]        Equus caballus cont2.38289, whole genome shotgun sequence.                                                    
     if($line !~ m/^\#/) { 
       $line =~ s/^\s+//; # remove leading whitespace
       my @out_elA = split(/\s\s+/, $line); # note: we separate by double spaces
-      my ($name, $start, $end) = ($out_elA[3], $out_elA[4], $out_elA[5]);
+      my ($name, $start, $end) = ($out_elA[3], $out_elA[5], $out_elA[6]);
       $nres += ($start <= $end) ? ($end - $start + 1) : ($start - $end + 1);
       $nseq++;
 
       my $nse = "$name/$start-$end";
-      # make sure this sequence does not overlap with any existing seed sequence
-      # or any other sequence we're trying to add
-      ($overlap_name, $overlap_fraction) = $oseedmsa->nse_overlap($nse);
-      if($overlap_name ne "") { die "ERROR new sequence to add $nse overlaps with sequence already in SEED ($overlap_name)"; }
+      my ($validated, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
+      if(! $validated) { die "ERROR something wrong with outlist line, can't break it down to name/start-end format ($line)"; }
       
-      foreach $overlap_name (@tmp_nseA) { 
-        $overlap_fraction = Bio::Rfam::Utils::overlap_fraction_two_nse($nse, $overlap_name);
-        if($overlap_fraction > 0.) { die "ERROR two sequences to add overlap with each other: $overlap_name and $nse"; }
-      }
+      # make sure this sequence does not overlap with any existing seed sequence
+      # or any other sequence we're trying to add, these will die with an error if
+      # there's a problem
+      check_overlap_with_seed($oseedmsa, $nse);
+      check_overlap_with_new_seqs(\@new_nseA, $nse);
 
       push(@fetchAA, [$nse, $start, $end, $name]); 
-      push(@tmp_nseA, $nse);
+      push(@new_nseA, $nse);
       # print ("added $name/$start-$end\n");
     }
   }
@@ -235,6 +246,46 @@ sub parse_outlist {
 }
 
 #########################################################
+# parse_namelist
+#
+sub parse_namelist {
+  my ($namelist, $oseedmsa, $fetchAAR) = @_;
+
+  open(IN, $namelist) || die "ERROR unable to open $namelist"; 
+
+  my @new_nseA = ();    # temporary array of nse we've added, which we'll use for overlap checking
+  my $line_ctr = 0;
+  my $nseq = 0;
+  my $nres = 0;
+
+  while(my $line = <IN>) { 
+    $line_ctr++;
+    if($line =~ m/\w/ && $line !~ m/^\#/) { 
+      chomp $line;
+      $line =~ s/^\s+//; # remove leading whitespace
+      $line =~ s/^\s+.*$//; # remove trailing whitespace, and everything after
+      my $nse = $line;
+      my ($validated, $name, $start, $end, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
+      if(! $validated) { die "ERROR first token on line $line_ctr is not in name/start-end format ($nse)"; }
+      $nres += ($start <= $end) ? ($end - $start + 1) : ($start - $end + 1);
+      $nseq++;
+
+      # make sure this sequence does not overlap with any existing seed sequence
+      # or any other sequence we're trying to add, these will die with an error if
+      # there's a problem
+      check_overlap_with_seed($oseedmsa, $nse);
+      check_overlap_with_new_seqs(\@new_nseA, $nse);
+
+      push(@fetchAA, [$nse, $start, $end, $name]); 
+      push(@new_nseA, $nse);
+      # print ("added $name/$start-$end\n");
+    }
+  }
+  close(IN);
+
+  return ($nseq, $nres);
+}
+
 #########################################################
 # fetch_new_seed_seqs
 #
@@ -258,6 +309,36 @@ sub fetch_new_seed_seqs {
 }
 
 #########################################################
+# check_overlap_with_seed: check if a name/start-end ($nse)
+# overlaps with any sequence already in the seed, die
+# if there is an overlap
+#
+sub check_overlap_with_seed {
+  my ($oseedmsa, $nse) = @_;
+
+  my ($overlap_name, $overlap_fraction) = $oseedmsa->nse_overlap($nse);
+  if($overlap_name ne "") { die "ERROR new sequence to add $nse overlaps with sequence already in SEED ($overlap_name)"; }
+
+  return;
+}
+
+#########################################################
+# check_overlap_with_new_seqs: check if a name/start-end ($nse)
+# overlaps with any new sequence we've just added to the 
+# seed (in new_nseAR), die if there is an overlap
+#
+sub check_overlap_with_new_seqs { 
+  my ($new_nseAR, $nse) = @_;
+
+  foreach my $overlap_name (@{$new_nseAR}) { 
+    my $overlap_fraction = Bio::Rfam::Utils::overlap_fraction_two_nse($nse, $overlap_name);
+    if($overlap_fraction > 0.) { die "ERROR two sequences to add overlap with each other: $overlap_name and $nse"; }
+  }
+
+  return;
+}
+
+#########################################################
 
 sub help {
   print STDERR <<EOF;
@@ -268,6 +349,7 @@ Usage:      rfseed.pl [options] <file with subset of outlist lines for sequences
 
 Options:    -l        align locally w.r.t the CM [default: globally]
             -p        include posterior probabilities in new SEED [default: don't]
+            -n        <file> includes only sequence names in name/start-end format, one per line
             -quiet    be quiet; do not output anything to stdout (rfseed.log still created)
             -h|-help  print this help, then exit
 
