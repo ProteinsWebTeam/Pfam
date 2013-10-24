@@ -160,7 +160,9 @@ sub mandatoryFiles {
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  my @files = keys (%{ $self->{'_config'}->{files}->{family} });
+  my @files = sort{ $self->{'_config'}->{files}->{family}->{$a} <=> 
+                      $self->{'_config'}->{files}->{family}->{$b}} 
+                    keys (%{ $self->{'_config'}->{files}->{family} });
   return \@files;
 }
 
