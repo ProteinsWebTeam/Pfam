@@ -54,7 +54,7 @@ sub cmbuild_wrapper {
 
   # get running time (and verify output, this call will die if no 'CPU time' lines exist in output)
   my $elapsed_secs;
-  Bio::Rfam::Infernal::process_cpu_times($outPath, "# CPU time:", undef, \$elapsed_secs, undef, undef);
+  Bio::Rfam::Infernal::process_cpu_times($outPath, "# CPU time:", undef, undef, undef, \$elapsed_secs);
 
   if (! -e $cmPath) {  die "ERROR CM does not exist after apparently successful cmbuild [cmd: $cmd]"; }
 
@@ -445,10 +445,10 @@ sub stringize_infernal_cmdline_options {
            : and returns them, along with max values.
   Args     : $file: file with "# CPU time:" lines 
            : $time_string:       string that indicates timing line
-           : $ret_max_cpu_secsR: RETURN: number of CPU seconds (summed)
-           : $ret_max_elp_secsR: RETURN: number of elapsed seconds (summed)
-           : $ret_tot_cpu_secsR: RETURN: number of CPU seconds (summed)
-           : $ret_tot_elp_secsR: RETURN: number of elapsed seconds (summed)
+           : $ret_max_cpu_secsR: RETURN: number of max CPU seconds
+           : $ret_max_elp_secsR: RETURN: number of max elapsed seconds
+           : $ret_tot_cpu_secsR: RETURN: number of total CPU seconds (summed)
+           : $ret_tot_elp_secsR: RETURN: number of total elapsed seconds (summed)
   Returns  : Maximum number of CPU     seconds in $ret_max_cpu_secsR.
            : Maximum number of elapsed seconds in $ret_max_elp_secsR.
            : Total   number of CPU     seconds in $ret_tot_cpu_secsR.

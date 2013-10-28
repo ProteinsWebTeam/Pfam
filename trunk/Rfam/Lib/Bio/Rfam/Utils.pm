@@ -937,9 +937,11 @@ sub log_output_timing_summary_column_headings {
   print $fh $str; if($also_stdout) { print $str; }
   $str = "# Timing summary:\n#\n";
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "efficiency");
+#  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "efficiency");
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "wait fract", "efficiency");
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========");
+#  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========");
+  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========", "==========");
   print $fh $str; if($also_stdout) { print $str; }
 
   return;
@@ -958,25 +960,35 @@ sub log_output_timing_summary_column_headings {
            : $wall_secs:    number of seconds elapsed
            : $tot_cpu_secs: total number of CPU seconds reported
            : $wait_secs:    total number of seconds waiting in queue
-           : $max_elp_secs: slowest jobs maximum elapsed seconds time
+           : $max_elp_secs: slowest jobs maximum elapsed seconds
+           : $ideal_secs:   total num elapsed secs it would have taken if all CPUs took identical time
            : $also_stdout:  '1' to also output to stdout, '0' not to
   Returns  : void
 
 =cut
 
 sub log_output_timing_summary { 
-  my ($fh, $stage, $wall_secs, $tot_cpu_secs, $wait_secs, $max_elp_secs, $also_stdout) = @_;
+  my ($fh, $stage, $wall_secs, $tot_cpu_secs, $wait_secs, $max_elp_secs, $ideal_secs, $also_stdout) = @_;
 
+  # $ideal_secs: time it would have taken if all jobs took equal time (the goal of parallelization)
+  # efficiency: $ideal_secs / $max_elp_secs
   my $efficiency = 1.0;
-  if($wall_secs > 0 && ($wall_secs > $max_elp_secs)) { 
-    $efficiency = $max_elp_secs / $wall_secs;
+  if($ideal_secs > 0 && ($ideal_secs < $max_elp_secs)) { 
+    $efficiency = $ideal_secs / $max_elp_secs;
   }
-  my $str = sprintf ("  %-15s  %10s  %10s  %10s  %10s  %10.2f\n",
+  # wait fraction: fraction of time spent waiting
+  my $wait_fract = 0.;
+  if($wait_secs ne "-" && $wait_secs > 0) { 
+    if($wait_secs > $wall_secs) { die "ERROR in log_output_timing_summary(): wait_secs exceeds wall_secs ($wait_secs > $wall_secs)"; }
+    $wait_fract = $wait_secs / $wall_secs;
+  }
+  my $str = sprintf ("  %-15s  %10s  %10s  %10s  %10s  %10.2f  %10.2f\n",
                      $stage, 
                      Bio::Rfam::Utils::format_time_string($wall_secs),
-                     Bio::Rfam::Utils::format_time_string($max_elp_secs),
+                     Bio::Rfam::Utils::format_time_string($ideal_secs),
                      Bio::Rfam::Utils::format_time_string($tot_cpu_secs),
                      ($wait_secs eq "-") ? "-" : Bio::Rfam::Utils::format_time_string($wait_secs),
+                     $wait_fract,
                      $efficiency);
   print $fh $str; if($also_stdout) { print $str; }
 

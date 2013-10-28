@@ -394,7 +394,7 @@ if($do_calibrate) {
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
   $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
-                                                                sprintf("[$ncpus_cmcalibrate procs, should take ~%.1f minutes]", $predicted_minutes), -1, $do_stdout);
+                                                                sprintf("[$ncpus_cmcalibrate procs, should take ~%.0f minute(s)]", $predicted_minutes), -1, $do_stdout);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
   if(! $do_dirty) { unlink $calibrate_errO; } # this file is empty anyway 
@@ -428,9 +428,13 @@ my $idx;                         # counter
 my $search_wall_secs        = 0; # wall time (secs) for search
 my $search_cpu_secs         = 0; # CPU time (secs) for all regular (non-reversed) db searches 
 my $search_max_wait_secs    = 0; # max time (secs) a job waited on cluster
+my $search_max_cpu_secs     = 0; # max CPU time (secs) a regular db search job took
 my $search_max_elp_secs     = 0; # max time (secs) elapsed a regular db search job took
 my $rev_search_cpu_secs     = 0; # CPU time (secs) for all reversed db searches
+my $rev_search_max_cpu_secs = 0; # max CPU time (secs) a reversed db search job took
 my $rev_search_max_elp_secs = 0; # max time (secs) elapsed a reversed db search job took
+my $ndbfiles                = 0; # number of db files searched (number of cmsearch calls)
+my $rev_ndbfiles            = 0; # number of reversed db files searched (number of cmsearch calls)
 my $did_search              = 0;
 if ((! $only_build) && (! $no_search)) { 
   my $search_start_time = time();
@@ -441,7 +445,7 @@ if ((! $only_build) && (! $no_search)) {
   # would greatly simplify this.
 
   # first, the regular (non-reversed) database:
-  my $ndbfiles = 0;  # number of sequence files to search
+  $ndbfiles = 0;  # number of sequence files to search
   my @dbfileA  = (); # array of seq file names for regular search
   my $dbconfig;      # db info from config, defined if neither -dbfile nor -dbdir used on cmd line
   if(defined $dbfile) { # -dbfile used on command line 
@@ -470,7 +474,7 @@ if ((! $only_build) && (! $no_search)) {
   $ndbfiles = scalar(@dbfileA);
 
   # setup reversed database to search (this block is analogous to one above for regular (non-reversed) search)
-  my $rev_ndbfiles;     # number of reversed seq files to search
+  $rev_ndbfiles;     # number of reversed seq files to search
   my @rev_dbfileA = (); # array of seq file names for reversed search
   my $rev_dbconfig;     # rev db info from config, defined only if $dbconfig already defined and "revMate" exists
   if(! $no_rev_search) { 
@@ -650,8 +654,9 @@ if ((! $only_build) && (! $no_search)) {
 
   # timing info
   $search_wall_secs = time() - $search_start_time;
-  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total CPU time:", undef, \$search_max_elp_secs,     \$search_cpu_secs,     undef);
-  Bio::Rfam::Infernal::process_cpu_times($all_cmsO, "Total CPU time:", undef, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
+  Bio::Rfam::Infernal::process_cpu_times($all_cmsO,     "Total CPU time:", \$search_max_cpu_secs,     \$search_max_elp_secs,     \$search_cpu_secs,     undef);
+  Bio::Rfam::Infernal::process_cpu_times($all_rev_cmsO, "Total CPU time:", \$rev_search_max_cpu_secs, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
+  if($rev_search_max_cpu_secs > $search_max_cpu_secs) { $search_max_cpu_secs = $rev_search_max_cpu_secs; }
   if($rev_search_max_elp_secs > $search_max_elp_secs) { $search_max_elp_secs = $rev_search_max_elp_secs; }
   $search_cpu_secs += $rev_search_cpu_secs;
   $did_search = 1;
@@ -659,7 +664,7 @@ if ((! $only_build) && (! $no_search)) {
   # write TBLOUT-dependent files
   my $require_tax = 0;
   if(defined $dbconfig) { $require_tax; } # we require tax info if we're doing standard search against a db in the config
-  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax);
+#TEMP#  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax);
 
   # End of block for submitting and processing cmsearch jobs
   #################################################################################
@@ -700,18 +705,31 @@ Bio::Rfam::Utils::log_output_timing_summary_column_headings($logFH, $do_stdout);
 my $total_wall_secs = time() - $start_time;
 my $total_cpu_secs  = $build_wall_secs + $calibrate_cpu_secs + $search_cpu_secs;
 my $total_elp_secs  = $build_elp_secs + $calibrate_elp_secs + $search_max_elp_secs;
+# define ideal_*_secs: the amount of time each stage takes if max efficiency parallelism achieved: all CPUs take equal time
+my $ideal_build_secs     = 0;
+my $ideal_calibrate_secs = 0;
+my $ideal_search_secs    = 0;
+my $ideal_tot_wall_secs  = 0;
+my $tot_ncpus_cmsearch = $ncpus_cmsearch * ($ndbfiles + $rev_ndbfiles);
 
 if($did_build) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, $do_stdout);
+  $ideal_build_secs = $build_elp_secs / 1.; 
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmbuild", $build_wall_secs, $build_elp_secs, "-", $build_elp_secs, $ideal_build_secs, $do_stdout);
+  # Note: we fudge the timing a bit for cmbuild by using 'build_elp_secs' where we should use 'build_cpu_secs'
+  # in the 3rd to last argument. This shouldn't make any significant difference though since it's safe to 
+  # assume CPU and Elapsed time for single CPU cmbuild processes are approx equal.
 }
 if($did_calibrate) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, $do_stdout);
+  $ideal_calibrate_secs = $calibrate_cpu_secs / $ncpus_cmcalibrate;
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmcalibrate", $calibrate_wall_secs, $calibrate_cpu_secs, $calibrate_max_wait_secs, $calibrate_elp_secs, $ideal_calibrate_secs, $do_stdout);
 }
 if($did_search) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, $do_stdout);
+  $ideal_search_secs = $search_cpu_secs / $tot_ncpus_cmsearch;
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "cmsearch", $search_wall_secs, $search_cpu_secs, $search_max_wait_secs, $search_max_elp_secs, $ideal_search_secs, $do_stdout);
 }
 if($did_build || $did_calibrate || $did_search) { 
-  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, $do_stdout);
+  $ideal_tot_wall_secs = $ideal_build_secs + $ideal_calibrate_secs + $ideal_search_secs;
+  Bio::Rfam::Utils::log_output_timing_summary($logFH,   "total", $total_wall_secs, $total_cpu_secs, "-", $total_elp_secs, $ideal_tot_wall_secs, $do_stdout);
 }
 
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), $do_stdout);
