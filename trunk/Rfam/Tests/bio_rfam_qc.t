@@ -1,6 +1,7 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 4;
+use Bio::Rfam::FamilyIO;
 use FindBin;
 
 BEGIN {
@@ -8,12 +9,12 @@ BEGIN {
 }
 
 my $dir = $FindBin::Bin;
-#my $test_data = $dir . '/data/RF00014';
+my $test_data= $dir . '/data';
+my $test_family= 'RF00014';
 
-#my $familyIO = Bio::Rfam::FamilyIO->new( );
+my $familyIO = Bio::Rfam::FamilyIO->new( );
+isa_ok($familyIO, 'Bio::Rfam::FamilyIO');
+my $family = $familyIO->loadRfamFromLocalFile($test_family, $test_data);
 
-#my $family = Bio::Rfam::Family->new( { SEED => { aliType => 'seed',
-#                                                 fileLocation => $test_data.'/SEED'},
-#                                       DESC  => $desc,
-#                                       TBLOUT => { fileLocation => $test_data.'/TBLOUT'} });
-#isa_ok($family, 'Bio::Rfam::Family');
+isa_ok($family, 'Bio::Rfam::Family');
+ok( Bio::Rfam::QC::checkFamilyFormat($family), "Family passes check");
