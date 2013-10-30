@@ -79,6 +79,7 @@ my $config = Bio::Rfam::Config->new;
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "e=s",       => \$e_opt,
              "t=s",       => \$t_opt,
+             "cut_ga",    => \$do_cutga,
 	     "nosearch"   => \$no_search,
 	     "norev"      => \$no_rev_search, 
 	     "scpu=s"     => \$ncpus_cmsearch,
@@ -336,7 +337,7 @@ if($ignore_sm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH
 if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
 if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
-if(! $do_update_desc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"); }
+if(! $do_update_desc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"), $do_stdout); }
 
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", $do_stdout);
 
@@ -610,6 +611,7 @@ if ((! $only_build) && (! $no_search)) {
   my $rfamseq_dbsize   = $rfamseq_dbconfig->{"dbSize"}; 
   my $e_sm_bitsc       = undef;
   my $e_opt_bitsc      = undef;
+  my $ga_opt_bitsc     = undef
   my $thr_searchopts   = undef;
 
   # are we going to ignore the SM methods? If not, then we will use the -E or -T
@@ -633,28 +635,33 @@ if ((! $only_build) && (! $no_search)) {
     # because that's the only database we update on.
     $e_opt_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $e_opt, $rfamseq_dbsize, $extra_searchopts);
   }
+
   # define threshold option for cmsearch, we ALWAYS use one 
   # and while we do this, perform a sanity check, only one 
   # of $t_sm, $e_sm_bitsc, $t_opt, $e_opt_bitsc should be defined.
   # If this isn't true then there's a bug in the code.
   if(defined $t_sm) { 
-    if(defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (1)." }
+    if($do_cutga || defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (1)." }
     $thr_searchopts = "-T $t_sm";
   }
   elsif(defined $e_sm_bitsc) { 
-    if(defined $t_sm || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (2)." }
+    if($do_cutga || defined $t_sm || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (2)." }
     $thr_searchopts = "-T $e_sm_bitsc";
   }
   elsif(defined $t_opt) { 
-    if(defined $t_sm || defined $e_sm_bitsc || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (3)." }
+    if($do_cutga || defined $t_sm || defined $e_sm_bitsc || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (3)." }
     $thr_searchopts = "-T $t_opt";
   }
   elsif(defined $e_opt_bitsc) { 
-    if(defined $t_sm || defined $e_sm_bitsc || defined $t_opt) { die "ERROR processing search threshold, bug in code (4)." }
+    if($do_cutga || defined $t_sm || defined $e_sm_bitsc || defined $t_opt) { die "ERROR processing search threshold, bug in code (4)." }
     $thr_searchopts = "-T $e_opt_bitsc";
   }
+  elsif($do_cutga) { 
+    if(defined $t_sm || defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (5)." }
+    $thr_searchopts = "-T " . $desc->CUTGA;
+  }
   else { 
-    die "ERROR processing search threshold, bug in code (5)." 
+    die "ERROR processing search threshold, bug in code (6)." 
   }
   # define other options for cmsearch
   my $ncpus; 
