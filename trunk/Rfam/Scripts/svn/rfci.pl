@@ -119,14 +119,18 @@ my $error = 0;
 if ($onlydesc) {
   #If people are only making an annotation change....We just need to check this.
   $error = Bio::Rfam::QC::checkNonFreeText($upFamilyObj, $oldFamilyObj);
+  die "You have modified illegal fields.\n" if($error);
   $error = Bio::Rfam::QC::checkDESCFormat( $upFamilyObj ) if(!$error);
+  die "DESC fails format QC.\n" if($error);
 }else{
   my $overlapIgnore = {};
   $overlapIgnore->{$acc} = 1;
   #Okay, this a full check-in, perform whole QC repetoire.
   $error = Bio::Rfam::QC::essential($upFamilyObj, "$pwd/$family", $oldFamilyObj, $config);
+  die "Failed essential QC step.\n" if($error);
   $error = Bio::Rfam::QC::optional( $upFamilyObj, "$pwd/$family", $oldFamilyObj, 
                                     $config, $overrideHashRef, $overlapIgnore );
+  die "Failed QC.\n" if($error);
 }
 
 #-------------------------------------------------------------------------------
