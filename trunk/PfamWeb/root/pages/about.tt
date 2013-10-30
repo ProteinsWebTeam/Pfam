@@ -36,7 +36,7 @@ META fullPage = 1;
     Howard Hughes Janelia Farm Research Campus</a>.
   </p>
   <p>  
-    Pfam mirror sites are maintained at three main locations:
+    Pfam mirror sites are maintained at two locations:
   </p>
   <ul>
     <li>in the UK, at the <a class="ext" href="http://www.sanger.ac.uk/">
@@ -44,8 +44,6 @@ META fullPage = 1;
     <li>in the US, at <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
       Howard Hughes Janelia Farm Research Campus</a>, by Rob Finn, Jody Clements
       and Goran Ceric</li>
-    <li>in Sweden, at the <a class="ext" href="http://www.sbc.su.se/">Stockholm 
-      Bioinformatics Centre</a>, by Kristoffer Forslund and Erik Sonnhammer</li>
   </ul>
 
 </div>
