@@ -120,9 +120,10 @@ my $overlapIgnore = {};
 
 #Okay, this a full check-in, perform whole QC repetoire.
 $error = Bio::Rfam::QC::essential($newFamObj, "$pwd/$family", undef, $config);
+  die "Failed essential QC step.\n" if($error);
 $error = Bio::Rfam::QC::optional( $newFamObj, "$pwd/$family", undef, 
                                     $config, $overrideHashRef, $overlapIgnore );
-
+die "Failed QC step.\n" if($error);
 
 
 #Automatically write the 'new' message and add it the binding.
