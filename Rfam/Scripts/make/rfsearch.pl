@@ -28,19 +28,24 @@ my $executable = $0;
 my $force_build = 0;            # TRUE to force build
 my $only_build  = 0;            # TRUE to only build and then exit
 my $do_noss     = 0;            # TRUE to allow building of CMs with no structure
+my $do_hand     = 0;            # TRUE to pass --hand to cmbuild
+my $do_enone    = 0;            # TRUE to pass --enone to cmbuild
+my $ignore_bm   = 0;            # TRUE to ignore BM in DESC for cmbuild options
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
 # search related options
 my $no_search = 0;              # TRUE to skip search
 my $no_rev_search = 0;          # TRUE to skip reversed search
-my $evalue;                     # cmsearch E-value to use, defined by GetOptions, if -e
+my $e_opt;                      # cmsearch E-value to use, defined by GetOptions, if -e
 my $t_opt;                      # cmsearch bit score cutoff to use, defined by GetOptions, if -t
+my $do_cutga = 0;               # TRUE to use GA threshold as bit score cutoff
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
 my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk)
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
 my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
+my $ignore_sm = 0;              # TRUE to ignore BM in DESC for cmbuild options
 # other options
 my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
@@ -67,15 +72,19 @@ my $config = Bio::Rfam::Config->new;
 &GetOptions( "b"          => \$force_build,
              "onlybuild"  => \$only_build,
 	     "noss"       => \$do_noss,
+	     "hand"       => \$do_hand,
+	     "enone"      => \$do_enone,
+	     "ignorebm"   => \$ignore_bm,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
-             "e=s",       => \$evalue,
+             "e=s",       => \$e_opt,
              "t=s",       => \$t_opt,
 	     "nosearch"   => \$no_search,
 	     "norev"      => \$no_rev_search, 
 	     "scpu=s"     => \$ncpus_cmsearch,
              "cmos=s@"    => \@cmosA,
              "cmod=s@"    => \@cmodA,
+	     "ignoresm"   => \$ignore_sm,
 	     "dbchoice=s" => \$dbchoice,
 	     "dbfile=s"   => \$dbfile, 
 	     "dbdir=s"    => \$dbdir, 
@@ -126,88 +135,61 @@ my $acc  = $desc->AC;
 # extra processing of command-line options 
 if ($only_build) { # -onlybuild, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -onlybuild and -scpu are incompatible"; }
-  if (defined $evalue)         { die "ERROR -onlybuild and -e are incompatible"; }
+  if (defined $e_opt)          { die "ERROR -onlybuild and -e are incompatible"; }
   if (defined $t_opt)          { die "ERROR -onlybuild and -t are incompatible"; }
+  if (defined $do_cutga)       { die "ERROR -onlybuild and -cut_ga are incompatible"; }
   if (@cmosA)                  { die "ERROR -onlybuild and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -onlybuild and -cmodA are incompatible"; }
 }
 if ($no_search) { # -nosearch, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
-  if (defined $evalue)         { die "ERROR -nosearch and -e are incompatible"; }
+  if (defined $e_opt)          { die "ERROR -nosearch and -e are incompatible"; }
   if (defined $t_opt)          { die "ERROR -nosearch and -t are incompatible"; }
+  if (defined $do_cutga)       { die "ERROR -nosearch and -cutga are incompatible"; }
   if (@cmosA)                  { die "ERROR -nosearch and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -nosearch and -cmodA are incompatible"; }
 }
-if ((defined $evalue) && (defined $t_opt)) { die "ERROR you can't use both -t and -e, pick one"; }
+if ((defined $e_opt) && (defined $t_opt)) { die "ERROR you can't use both -t and -e, pick one"; }
+if ((defined $e_opt) && ($do_cutga))      { die "ERROR you can't use both -e and -cut_ga, pick one"; }
+if ((defined $t_opt) && ($do_cutga))      { die "ERROR you can't use both -t and -cut_ga, pick one"; }
+# A few complicated checks about the search thresholds, we want to do this here, before
+# the build step (and not wait til the search step) so we exit early and don't waste 
+# the user's time.
+# if a threshold already exists in SM (-E or -T) and rfsearch.pl -e or -t was used without -ignoresm, then die
+my $desc_searchopts  = strip_default_options_from_sm($desc->{'SM'});
+my $t_sm = undef;
+my $e_sm = undef;
+if($desc_searchopts =~/\s*\-T\s+(\S+)\s+/) { $t_sm = $1; }
+if($desc_searchopts =~/\s*\-E\s+(\S+)\s+/) { $e_sm = $1; }
+if(defined $t_sm && defined $e_sm) { die "ERROR, DESC SM has both -T and -E!"; }
 
-# by default we list user, date, pwd, family, and db choice,
-# and information for any command line flags set by
-# the user. This block should stay consistent with 
-# the GetOptions() call above, and with the help()
-# subroutine.
-my $cwidth = 40;
-my $str;
-my $opt;
-if($do_quiet) { $do_stdout = 0; }
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc), $do_stdout);
-
-if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]"), $do_stdout); }
-elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]"), $do_stdout); }
-elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]"), $do_stdout); }
-else                           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice), $do_stdout); }
-if($force_build)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]"), $do_stdout); }
-if($only_build)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]"), $do_stdout); }
-if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# rewrite SEED with zero bp SS_cons:",  "yes [-noss]"), $do_stdout); }
-if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
-if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
-if(defined $evalue)            { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $evalue . " [-e]"), $do_stdout); }
-if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]"), $do_stdout); }
-if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]"), $do_stdout); }
-if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]"), $do_stdout); }
-if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]"), $do_stdout); }
-if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]"), $do_stdout); }
-if($noZ)                       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]"), $do_stdout); }
-if($no_search)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]"), $do_stdout); }
-if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]"), $do_stdout); }
-if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]"), $do_stdout); }
-$str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
-if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]"), $do_stdout); }
-$str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
-if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]"), $do_stdout); }
-$ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
-if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]"), $do_stdout); }
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", $do_stdout);
-if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
-if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
-
-# create hash of potential output files
-my %outfileH = ();
-my @outfile_orderA = ("TBLOUT", "REVTBLOUT", "searchout", "revsearchout", "outlist", "revoutlist", "species", "revspecies", "outlist.pdf", "species.pdf");
-$outfileH{"TBLOUT"}       = "concatenated --tblout output from all searches";
-$outfileH{"REVTBLOUT"}    = "concatenated --tblout output from reversed searches";
-$outfileH{"searchout"}    = "concatenated standard output from all searches";
-$outfileH{"revsearchout"} = "concatenated standard output from reversed searches";
-$outfileH{"outlist"}      = "sorted list of all hits from TBLOUT";
-$outfileH{"revoutlist"}   = "sorted list of all hits from REVTBLOUT";
-$outfileH{"species"}      = "same as outlist, but with additional taxonomic information";
-$outfileH{"revspecies"}   = "same as revoutlist, but with additional taxonomic information";
-$outfileH{"outlist.pdf"}  = "bit score histograms of all hits";
-$outfileH{"species.pdf"}  = "bit score histogram of all hits, colored by taxonomy";
-
-# remove any of these files that currently exist, they're no invalid, since we're now rerunning the search
-my $outfile;
-foreach $outfile (@outfile_orderA) {
-  if (-e $outfile) { 
-    unlink $outfile; 
-  } 
+if(! $ignore_sm) { 
+  if(defined $e_opt) { 
+    if(defined $t_sm) { die "ERROR, multiple thresholds: -e set at cmdline, but -T $t_sm already exists in SM, consider -ignoresm"; }
+    if(defined $e_sm) { die "ERROR, multiple thresholds: -e set at cmdline, but -E $e_sm already exists in SM, consider -ignoresm"; }
+  }
+  elsif(defined $t_opt) { 
+    if(defined $t_sm) { die "ERROR, multiple thresholds: -t set at cmdline, but -T $t_sm already exists in SM, consider -ignoresm"; }
+    if(defined $e_sm) { die "ERROR, multiple thresholds: -t set at cmdline, but -E $e_sm already exists in SM, consider -ignoresm"; }
+  }
+  elsif($do_cutga) { 
+    if(defined $t_sm) { die "ERROR, multiple thresholds: -cut_ga set at cmdline, but -T $t_sm already exists in SM, consider -ignoresm"; }
+    if(defined $e_sm) { die "ERROR, multiple thresholds: -cut_ga set at cmdline, but -E $e_sm already exists in SM, consider -ignoresm"; }
+  }
 }
-
+# if a threshold DOES NOT exist in SM (-E or -T), then user MUST use -t, -e or -cut_ga
+if((! defined $t_sm) && (! defined $e_sm)) { 
+  if((! defined $e_opt) && (! defined $t_opt) && (! $do_cutga)) { 
+    die "ERROR, no threshold set in SM, you must use one of: -t, -e, or -cut_ga"; 
+  }
+}
+# make sure that user didn't specify -T, -E, --cut_ga, --cut_tc, --cut_nc with -cmos or -cmod
+my $extra_searchopts = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+if($extra_searchopts =~/\s*\-T^\s+(\S+)\s+/) { die "ERROR, -cmos T is not allowed, use -t"; }
+if($extra_searchopts =~/\s*\-E^\s+(\S+)\s+/) { die "ERROR, -cmos E is not allowed, use -e"; }
+if($extra_searchopts =~/\-\-cut_ga/) { die "ERROR, -cmod cut_ga is not allowed, use -cut_ga"; }
+if($extra_searchopts =~/\-\-cut_nc/) { die "ERROR, -cmod cut_nc is not allowed, only -t, -e, or -cut_ga are allowed"; }
+if($extra_searchopts =~/\-\-cut_tc/) { die "ERROR, -cmod cut_tc is not allowed, only -t, -e, or -cut_ga are allowed"; }
 # ncpus_cmsearch and ncpus_cmcalibrate must be >= 0
 if (defined $ncpus_cmsearch    && $ncpus_cmsearch    < 0) {
   die "ERROR with -scpu <n>, <n> must be >= 0";
@@ -215,7 +197,11 @@ if (defined $ncpus_cmsearch    && $ncpus_cmsearch    < 0) {
 if (defined $ncpus_cmcalibrate && $ncpus_cmcalibrate < 0) {
   die "ERROR with -ccpu <n>, <n> must be >= 0";
 }
-
+# if -hand, make sure SEED has RF annotation, if not die in error
+if ($do_hand) { 
+  if(! $msa->has_rf) { die "ERROR, -hand requires RF annotation in SEED, but none exists"; }
+}
+# if -noss used, rewrite SEED's SS_cons as blank, and exit
 if ($do_noss) { # -noss: rewrite SEED's SS_cons as blank
   # copy existing SEED sideways
   if(-e "SEED") { copy("SEED", "SEED.$$"); }
@@ -284,9 +270,98 @@ if(defined $dbfile && defined $rev_dbfile && $dbfile eq $rev_dbfile) {
 if ($msa->any_allgap_columns) { 
   die "ERROR all gap columns exist in SEED";
 }
+# done with command line option processing
+#
+#
+#
+# determine if we'll udpate the DESC file at the end of the script
+my $dbconfig = undef;     # db info from config, defined if neither -dbfile nor -dbdir used on cmd line
+my $do_update_desc = 0;   # should we update DESC at end of script? Only if dbfile, dbdir, and dblist are all undefined and dbconfig->{"updateDesc"} is 1
+if((! defined $dbfile) && # -dbfile not set
+   (! defined $dbdir)  && # -dbdir not set
+   (! defined $dblist))   # -dblist not set
+{
+  $dbconfig = $config->seqdbConfig($dbchoice);
+  $do_update_desc = $dbconfig->{"updateDesc"};
+}
+#
+# ============================================
+# 
+# by default we list user, date, pwd, family, and db choice,
+# and information for any command line flags set by
+# the user. This block should stay consistent with 
+# the GetOptions() call above, and with the help()
+# subroutine.
+my $cwidth = 40;
+my $str;
+my $opt;
+if($do_quiet) { $do_stdout = 0; }
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id), $do_stdout);
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc), $do_stdout);
 
+if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]"), $do_stdout); }
+elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]"), $do_stdout); }
+elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]"), $do_stdout); }
+else                           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice), $do_stdout); }
+if($force_build)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]"), $do_stdout); }
+if($only_build)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]"), $do_stdout); }
+if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# rewrite SEED with zero bp SS_cons:",  "yes [-noss]"), $do_stdout); }
+if($do_hand)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --hand to cmbuild:",             "yes [-hand]"), $do_stdout); }
+if($do_enone)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --enone to cmbuild:",            "yes [-enone]"), $do_stdout); }
+if($ignore_bm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's BM line:",              "yes [-ignorebm]"), $do_stdout); }
+if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
+if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
+if(defined $e_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $e_opt . " [-e]"), $do_stdout); }
+if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]"), $do_stdout); }
+if($do_cutga)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# use GA bit score threshold:",         "yes [-cut_ga]"), $do_stdout); }
+if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]"), $do_stdout); }
+if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]"), $do_stdout); }
+if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]"), $do_stdout); }
+if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]"), $do_stdout); }
+if($noZ)                       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]"), $do_stdout); }
+if($no_search)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]"), $do_stdout); }
+if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]"), $do_stdout); }
+if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]"), $do_stdout); }
+$str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
+if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]"), $do_stdout); }
+$str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
+if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]"), $do_stdout); }
+$ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
+if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]"), $do_stdout); }
+if($ignore_sm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's SM line:",              "yes [-ignoresm]"), $do_stdout); }
+if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
+if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
+if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
+if(! $do_update_desc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"); }
 
-###################################################################################################
+Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", $do_stdout);
+
+# create hash of potential output files
+my %outfileH = ();
+my @outfile_orderA = ("TBLOUT", "REVTBLOUT", "searchout", "revsearchout", "outlist", "revoutlist", "species", "revspecies", "outlist.pdf", "species.pdf");
+$outfileH{"TBLOUT"}       = "concatenated --tblout output from all searches";
+$outfileH{"REVTBLOUT"}    = "concatenated --tblout output from reversed searches";
+$outfileH{"searchout"}    = "concatenated standard output from all searches";
+$outfileH{"revsearchout"} = "concatenated standard output from reversed searches";
+$outfileH{"outlist"}      = "sorted list of all hits from TBLOUT";
+$outfileH{"revoutlist"}   = "sorted list of all hits from REVTBLOUT";
+$outfileH{"species"}      = "same as outlist, but with additional taxonomic information";
+$outfileH{"revspecies"}   = "same as revoutlist, but with additional taxonomic information";
+$outfileH{"outlist.pdf"}  = "bit score histograms of all hits";
+$outfileH{"species.pdf"}  = "bit score histogram of all hits, colored by taxonomy";
+
+# remove any of these files that currently exist, they're no invalid, since we're now rerunning the search
+my $outfile;
+foreach $outfile (@outfile_orderA) {
+  if (-e $outfile) { 
+    unlink $outfile; 
+  } 
+}
+
 Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progress:", $do_stdout);
 
 ##############
@@ -308,10 +383,11 @@ if (defined $cm && $cm->is_calibrated) {
 
 # figure out if we have to build
 my $do_build = 0;
-if (($force_build)        ||             # user set -b on command line
-    ($only_build)         ||             # user set -onlybuild on command line
-    (! defined $cm)       ||             # 'CM' does not exist
-    (! $is_cm_calibrated) ||             # 'CM' is not calibrated
+if (($force_build)        ||                # user set -b on command line
+    ($only_build)         ||                # user set -onlybuild on command line
+    (! defined $cm)       ||                # 'CM' does not exist
+    (! $is_cm_calibrated) ||                # 'CM' is not calibrated
+    ($do_noss || $do_hand || $do_enone)  || # -noss, -hand or -enone set on cmdline
     (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
   $do_build = 1;
 }
@@ -324,22 +400,19 @@ if ($do_build) {
   my $build_start_time = time();
   my $buildopts = $desc->{'BM'};
 
-  if (! defined $buildopts) {
-    $buildopts = "";
-  }
-  $buildopts =~ s/\s*-F\s*/ /;
-  $buildopts =~ s/\s*CM\s*/ /;
-  $buildopts =~ s/\s*SEED\s*/ /;
-  $buildopts =~ s/cmbuild//;
-  # if --rf exists in BM:
-  # if MSA RF exists:         replace --rf in $buildopts with --hand
-  # if MSA RF does not exist: remove --rf or --hand from buildopts
-  if ($msa->has_rf) { 
-    $buildopts =~ s/\-\-rf\s*/\-\-hand /;
-  } else {  # no RF
-    $buildopts =~ s/\-\-hand\s*//;
-    $buildopts =~ s/\-\-rf\s*//;
-  }
+  if (! defined $buildopts) { die "ERROR unable to read BM (build method) from DESC"; }
+  if ($ignore_bm) { $buildopts = ""; } # ignore the BM line
+
+  $buildopts =~ s/\s*-F\s*/ /;   # remove -F,     cmbuild_wrapper will automatically add this
+  $buildopts =~ s/\s*CM\s*/ /;   # remove 'CM',   cmbuild_wrapper will automatically add this
+  $buildopts =~ s/\s*SEED\s*/ /; # remove 'SEED', cmbuild_wrapper will automatically add this
+  $buildopts =~ s/cmbuild//;     # remove 'cmbuild'
+  
+  # add in user options, two possibilities: --hand and --enone
+  if($do_hand)  { $buildopts .= " --hand";  }
+  if($do_enone) { $buildopts .= " --enone"; }
+
+  # clean up buildopts string
   $buildopts =~ s/\s+/ /g; # replace multiple spaces with single spaces
   $buildopts =~ s/\s+$//;  # remove trailing spaces
   $buildopts =~ s/^\s+//;  # remove leading spaces
@@ -385,7 +458,7 @@ if($do_calibrate) {
 #  Calibration prediction time not currently used, since we can't accurately predict search time anyway
   my $predicted_minutes = Bio::Rfam::Infernal::cmcalibrate_wrapper($config, 
                                                                   "c.$$",               # job name
-                                                                   "",                  # options for cmcalibrate 
+                                                                   "",                  # options for cmcalibrate, NOTE: we don't allow ANY 
                                                                    "CM",                # path to CM file
                                                                    $calibrateO,         # path to output file 
                                                                    $calibrate_errO,     # path to error output file 
@@ -436,6 +509,7 @@ my $rev_search_max_elp_secs = 0; # max time (secs) elapsed a reversed db search 
 my $ndbfiles                = 0; # number of db files searched (number of cmsearch calls)
 my $rev_ndbfiles            = 0; # number of reversed db files searched (number of cmsearch calls)
 my $did_search              = 0;
+
 if ((! $only_build) && (! $no_search)) { 
   my $search_start_time = time();
 
@@ -445,10 +519,9 @@ if ((! $only_build) && (! $no_search)) {
   # would greatly simplify this.
 
   # first, the regular (non-reversed) database:
-  $ndbfiles = 0;  # number of sequence files to search
-  my @dbfileA  = (); # array of seq file names for regular search
-  my $dbconfig;      # db info from config, defined if neither -dbfile nor -dbdir used on cmd line
-  if(defined $dbfile) { # -dbfile used on command line 
+  $ndbfiles = 0;          # number of sequence files to search
+  my @dbfileA  = ();      # array of seq file names for regular search
+  if(defined $dbfile) {  # -dbfile used on command line 
     push(@dbfileA, $dbfile);
   }
   elsif(defined $dbdir) { # -dbdir used on command line
@@ -466,7 +539,7 @@ if ((! $only_build) && (! $no_search)) {
     close(DBLIST);
   }
   else { # default case: neither -dbfile nor -dbdir used, use database defined in config
-    $dbconfig = $config->seqdbConfig($dbchoice);
+    # we defined $dbconfig earlier, when we determined if we need to update DESC at end of script or not
     for($idx = 0; $idx < $dbconfig->{"nSearchFiles"}; $idx++) { 
       $dbfileA[$idx] = $dbconfig->{"searchPathPrefix"} . ($idx+1) . $dbconfig->{"searchPathSuffix"};
     }
@@ -493,6 +566,7 @@ if ((! $only_build) && (! $no_search)) {
     }
   }
   $rev_ndbfiles = scalar(@rev_dbfileA);
+  if($rev_ndbfiles == 0) { $no_rev_search = 1; }
   # note that if -dbdir, -dbdir or -dbfile used, no reversed searches are done unless -rdbfile or -rdbdir
   #
   # end of database setup
@@ -501,7 +575,7 @@ if ((! $only_build) && (! $no_search)) {
   #################################################################################
   # Determine cmsearch command line options:
   # 
-  # First, determine database size, if nec
+  # First, determine database size, if nec.
   my $dbsize;        # database size in Mb
   my $rev_dbsize;    # reversed database size in Mb
   my $Zopt;          # -Z option for cmsearch 
@@ -520,75 +594,81 @@ if ((! $only_build) && (! $no_search)) {
   # use -FZ <x> with <x> equal to regular database size, to ensure we use same filter settings
   if(defined $dbsize) { $rev_Zopt .= " --FZ $dbsize "; }
 
-  # Now that we know database size, determine bit score or E-value threshold to use.
-  # This section is complex, but should simplify post Rfam 12.0
-  # when we should be able to use a single E-value threshold (e.g. 1000)
-  # for all searches. Currently though, with the transition to 
-  # Infernal 1.1, we want to set thresholds similar to how they 
-  # were before the switch.
-  #
-  # 5 possible cases:
-  # Case 1: If user set -e <f> option, use that with -E <f>.
-  # Case 2: If user set -t <f> option, use that with -T <f>.
-  # If user did not use -e:
-  # Case 3:      if GA-2 corresponds to an E-value <= 1000  then use -E 1000
-  # Case 4: else if GA-2 corresponds to an E-value >= 50000 then use -E 50000
-  # Case 5: else use -T <x>, where <x> = GA-2.
+  # We want to use the options in DESC's SM unless user set -ignoresm
+  # remove default options that always get set automatically by rfsearch:
+  # -Z <f>, --FZ <f>, --cpu <n>, --verbose, --nohmmonly, 
+  # we defined $desc_searchopts way above, when we were processing cmdline options
 
-  my $use_cmsearch_evalue;    # true to use -E $cmsearch_eval, false to use -T $cmsearch_bitsc
-  my $cmsearch_evalue;        # E-value to use with cmsearch
-  my $cmsearch_bitsc;         # bit score thr to use, irrelevant unless $use_cmsearch_eval is set to 0 below
-  my $e_bitsc        = 0;     # bit score corresponding to $cmsearch_eval
-  my $ga_bitsc       = 0;     # GA bitscore for this model
-  my $ga_evalue      = 0;     # E-value corresponding to GA bit score
-  my $max_evalue     = 50000; # hard-coded max E-value allowed, not applied if -E used
-  my $min_bitsc      = 0;     # bit score corresponding to $max_eval, set below
-  my $min_evalue     = 1000;  # hard-coded min E-value allowed, not applied if -E used
-  my $extra_options  = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+  # Currently we may need to convert a search E-value threshold in the DESC's SM
+  # to a bit score. To do that we need to know the size of rfamseq, which is
+  # the only type of search that the SM line can be set on.
+  # Hopefully, in the future, will disallow -E in the SM lines, and always use
+  # -T (in fact this script only writes -T to DESC's SM). This needs to be revisited
+  # when all families are done being rethresholded (and all DESC's SM's contain -T
+  # and not -E). EPN, Tue Oct 29 14:38:07 2013
+  my $rfamseq_dbconfig = $config->seqdbConfig("r79rfamseq"); # db info for rfamseq, we may need this to determine database size for -E 
+  my $rfamseq_dbsize   = $rfamseq_dbconfig->{"dbSize"}; 
+  my $e_sm_bitsc       = undef;
+  my $e_opt_bitsc      = undef;
+  my $thr_searchopts   = undef;
 
-  if (defined $evalue) {      # -e option set on cmdline
-    $use_cmsearch_evalue = 1;
-    $cmsearch_evalue     = $evalue;
+  # are we going to ignore the SM methods? If not, then we will use the -E or -T
+  # from that line. We checked for this above during option processing/checking.
+  if($ignore_sm) { 
+    $desc_searchopts = ""; 
+    $t_sm = undef;
+    $e_sm = undef;
   }
-  elsif (defined $t_opt) {      # -t option set on cmdline
-    $use_cmsearch_evalue = 0;
-    $cmsearch_bitsc      = $t_opt;
+  if(defined $e_sm) { 
+    # convert E-value to bit score in database size of rfamseq, 
+    # note this only works because we know if it's in DESC's SM
+    # than it MUST have been defined for a search of r79rfamseq,
+    # because that's the only database we update on.
+    $e_sm_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $e_sm, $rfamseq_dbsize, $extra_searchopts);
   }
-  elsif(! defined $dbsize) { # if we don't know the database size (probably b/c -dbfile, -dbdir or -dblist was set), use -E 1000
-    $use_cmsearch_evalue = 1;
-    $cmsearch_evalue     = $min_evalue;
-  } 
-  else  { # -E not set, and database size is known
-    # set default as Case 2, we'll change if nec below:
-    $cmsearch_evalue     = 1000;
-    $use_cmsearch_evalue = 1;
-    # get GA and check to see if cases 3 or 4 apply
-    $ga_bitsc  = $famObj->DESC->CUTGA; 
-    $e_bitsc   = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $cmsearch_evalue, $dbsize, $extra_options);
-    $min_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $max_evalue,      $dbsize, $extra_options);
-    if (($ga_bitsc-2) < $min_bitsc) { # case 3
-      $evalue = $max_evalue; 
-    } elsif (($ga_bitsc-2) < $e_bitsc) { # case 4
-      $cmsearch_bitsc = $ga_bitsc-2;
-      $use_cmsearch_evalue = 0;
-    }
+  if(defined $e_opt) { 
+    # convert E-value to bit score in database size of rfamseq, 
+    # note this only works because we know if it's in DESC's SM
+    # than it MUST have been defined for a search of r79rfamseq,
+    # because that's the only database we update on.
+    $e_opt_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $e_opt, $rfamseq_dbsize, $extra_searchopts);
   }
-
+  # define threshold option for cmsearch, we ALWAYS use one 
+  # and while we do this, perform a sanity check, only one 
+  # of $t_sm, $e_sm_bitsc, $t_opt, $e_opt_bitsc should be defined.
+  # If this isn't true then there's a bug in the code.
+  if(defined $t_sm) { 
+    if(defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (1)." }
+    $thr_searchopts = "-T $t_sm";
+  }
+  elsif(defined $e_sm_bitsc) { 
+    if(defined $t_sm || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (2)." }
+    $thr_searchopts = "-T $e_sm_bitsc";
+  }
+  elsif(defined $t_opt) { 
+    if(defined $t_sm || defined $e_sm_bitsc || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (3)." }
+    $thr_searchopts = "-T $t_opt";
+  }
+  elsif(defined $e_opt_bitsc) { 
+    if(defined $t_sm || defined $e_sm_bitsc || defined $t_opt) { die "ERROR processing search threshold, bug in code (4)." }
+    $thr_searchopts = "-T $e_opt_bitsc";
+  }
+  else { 
+    die "ERROR processing search threshold, bug in code (5)." 
+  }
   # define other options for cmsearch
   my $ncpus; 
   if (! defined $ncpus_cmsearch) { $ncpus_cmsearch = 4; }
 
   # use same reporting threshold for regular and reversed searches
-  my $searchopts     = "--cpu $ncpus_cmsearch --verbose --nohmmonly";
+  my $searchopts     = "--cpu $ncpus_cmsearch --verbose --nohmmonly $thr_searchopts";
   my $rev_searchopts = "--cpu $ncpus_cmsearch --verbose --nohmmonly";
-  if ($use_cmsearch_evalue) { $searchopts .= " -E $cmsearch_evalue "; }
-  else                      { $searchopts .= " -T $cmsearch_bitsc ";  }
 
   $rev_searchopts  = $searchopts . $rev_Zopt;
   $searchopts     .= $Zopt;
 
-  $searchopts     .= $extra_options;
-  $rev_searchopts .= $extra_options;
+  $searchopts     .= $extra_searchopts;
+  $rev_searchopts .= $extra_searchopts;
   $searchopts      =~ s/\s+/ /g; # replace multiple spaces with single spaces
   $searchopts      =~ s/\s+$//;  # remove trailing spaces
   $searchopts      =~ s/^\s+//;  # remove leading spaces
@@ -655,10 +735,12 @@ if ((! $only_build) && (! $no_search)) {
   # timing info
   $search_wall_secs = time() - $search_start_time;
   Bio::Rfam::Infernal::process_cpu_times($all_cmsO,     "Total CPU time:", \$search_max_cpu_secs,     \$search_max_elp_secs,     \$search_cpu_secs,     undef);
-  Bio::Rfam::Infernal::process_cpu_times($all_rev_cmsO, "Total CPU time:", \$rev_search_max_cpu_secs, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
-  if($rev_search_max_cpu_secs > $search_max_cpu_secs) { $search_max_cpu_secs = $rev_search_max_cpu_secs; }
-  if($rev_search_max_elp_secs > $search_max_elp_secs) { $search_max_elp_secs = $rev_search_max_elp_secs; }
-  $search_cpu_secs += $rev_search_cpu_secs;
+  if($rev_ndbfiles > 0) { 
+    Bio::Rfam::Infernal::process_cpu_times($all_rev_cmsO, "Total CPU time:", \$rev_search_max_cpu_secs, \$rev_search_max_elp_secs, \$rev_search_cpu_secs, undef);
+    if($rev_search_max_cpu_secs > $search_max_cpu_secs) { $search_max_cpu_secs = $rev_search_max_cpu_secs; }
+    if($rev_search_max_elp_secs > $search_max_elp_secs) { $search_max_elp_secs = $rev_search_max_elp_secs; }
+    $search_cpu_secs += $rev_search_cpu_secs;
+  }
   $did_search = 1;
 
   # write TBLOUT-dependent files
@@ -670,7 +752,7 @@ if ((! $only_build) && (! $no_search)) {
   #################################################################################
 }
 # update DESC
-if($did_build || $did_calibrate || $did_search) { 
+if($do_update_desc && ($did_build || $did_calibrate || $did_search)) { 
   $io->writeDESC($famObj->DESC);
 }
 
@@ -681,7 +763,7 @@ if($did_build || $did_calibrate) {
   $description = sprintf("covariance model file (%s)", $did_build ? "built and calibrated" : "calibrated only");
   Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, $do_stdout);
 }
-if($did_build || $did_calibrate || $did_search) { 
+if($do_update_desc && ($did_build || $did_calibrate || $did_search)) { 
   $description = sprintf("desc file (updated:%s%s%s)", 
                          ($did_build)     ? " BM" : "", 
                          ($did_calibrate) ? " CB" : "", 
@@ -756,6 +838,24 @@ sub submit_cmsearch_jobs {
   }
 }
 
+######################################################################
+
+sub strip_default_options_from_sm { 
+  my $desc_sm = $_[0];
+
+  my $desc_searchopts = $desc_sm;
+  $desc_searchopts =~ s/\s*-Z\s+\S+\s*/ /;    # remove '-Z <f>'
+  $desc_searchopts =~ s/\s*--FZ\s+\S+\s*/ /;  # remove '--FZ <f>'    
+  $desc_searchopts =~ s/\s*--cpu\s+\d+\s*/ /; # remove '--cpu <n>'    
+  $desc_searchopts =~ s/\s*--verbose\s*/ /;   # remove '--verbose'
+  $desc_searchopts =~ s/\s*--nohmmonly\s*/ /; # remove '--nohmmonly'
+  $desc_searchopts =~ s/\s*CM\s*/ /;          # remove 'CM',  
+  $desc_searchopts =~ s/\s*SEQDB\s*/ /;       # remove 'SEQDB'
+  $desc_searchopts =~ s/cmsearch//;           # remove 'cmsearch'
+  
+  return $desc_searchopts;
+}
+
 sub help {
   print STDERR <<EOF;
 
@@ -778,6 +878,9 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
 	    -b         always run cmbuild (default: only run if 'CM' is v1.0, is older than SEED or doesn't exist)
 	    -onlybuild build CM and then exit, do not calibrate, do not search
 	    -noss      rewrite SEED with zero basepairs, then exit; do not build, calibrate, or search
+            -hand      pass --hand option to cmbuild, SEED must have nongap RF annotation
+            -enone     pass --enone option to cmbuild
+            -ignorebm  ignore build method (BM) in DESC
 
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
 	    -c         always run cmcalibrate (default: only run if 'CM' is not calibrated)
@@ -786,12 +889,14 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             OPTIONS RELATED TO SEARCH STEP (cmsearch):
             -e <f>        set cmsearch E-value threshold as <f>
             -t <f>        set cmsearch bit score threshold as <f>
+            -cut_ga       set cmsearch bit score threshold as GA threshold
             -nosearch     do not run cmsearch
             -norev        do not run cmsearch on reversed database files
             -scpu <n>     set number of CPUs for cmsearch jobs to <n>
 	    -cmos <str>   add extra arbitrary option to cmsearch with '-<str>'. (Infernal 1.1, only option is '-g')
             -cmod <str>   add extra arbitrary options to cmsearch with '--<str>'. For multiple options use multiple
 	                   -cmod lines. e.g. '-cmod toponly -cmod anytrunc' will run cmsearch with --toponly and --anytrunc.
+            -ignoresm     ignore the DESC SM command line options
 
             OPTIONS SPECIFYING SEARCH DATABASE:
             -dbchoice <s>  set sequence database to search as <s> ('rfamseq', 'testrfamseq', 'r79rfamseq')
