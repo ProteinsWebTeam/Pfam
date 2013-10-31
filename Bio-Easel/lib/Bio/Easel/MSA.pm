@@ -473,7 +473,8 @@ sub set_name {
   Usage    : $msaObject->write_msa($fileLocation)
   Function : Write MSA to a file
   Args     : name of output file 
-           : format ('stockholm', 'pfam', 'afa' or 'clustal')
+           : format ('stockholm', 'pfam', 'afa', 'clustal', or 'fasta')
+           : if 'fasta', write out seqs in unaligned fasta.
   Returns  : void
 
 =cut
@@ -481,24 +482,33 @@ sub set_name {
 sub write_msa {
   my ( $self, $outfile, $format ) = @_;
 
+  my $status;
   $self->_check_msa();
   if ( !defined $format ) {
     $format = "stockholm";
   }
-  if ( $format ne "stockholm"
-    && $format ne "pfam"
-    && $format ne "afa" 
-    && $format ne "clustal" )
-  {
-    croak "format must be \"stockholm\" or \"pfam\" or \"afa\" or \"clustal\"";
+  if ($format eq "fasta") { # special case, write as unaligned fasta
+    $status = _c_write_msa_unaligned_fasta( $self->{esl_msa}, $outfile );
   }
-  my $status = _c_write_msa( $self->{esl_msa}, $outfile, $format );
+  elsif ( $format eq "stockholm"
+          || $format eq "pfam"
+          || $format eq "afa" 
+          || $format eq "clustal" )
+  {
+    $status = _c_write_msa( $self->{esl_msa}, $outfile, $format );
+  }
+  else { 
+    croak "format must be \"stockholm\" or \"pfam\" or \"afa\" or \"clustal\" or \"fasta\"";
+  }
   if ( $status != $ESLOK ) {
     if ( $status == $ESLEINVAL ) {
       croak "problem writing out msa, invalid format $format";
     }
     elsif ( $status == $ESLFAIL ) {
       croak "problem writing out msa, unable to open output file $outfile for writing";
+    }
+    elsif ( $status == $ESLEMEM ) {
+      croak "problem writing out msa, out of memory";
     }
   }
   return;

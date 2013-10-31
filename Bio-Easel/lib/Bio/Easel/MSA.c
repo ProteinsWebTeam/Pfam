@@ -4,6 +4,7 @@
 #include "esl_msa.h"
 #include "esl_msafile.h"
 #include "esl_sq.h"
+#include "esl_sqio.h"
 #include "esl_vectorops.h"
 #include "esl_wuss.h"
 #include "esl_msaweight.h"
@@ -72,7 +73,8 @@ void _c_read_msa (char *infile, char *reqdFormat)
 /* Function:  _c_write_msa()
  * Incept:    EPN, Sat Feb  2 14:23:28 2013
  * Synopsis:  Open an output file, write an msa, and close the file.
- * Returns:   eslOK on success; eslEINVAL if format is invalid
+ * Returns:   eslOK on success; eslEINVAL if format is invalid;
+ *            eslFAIL if unable to open file for writing.
  */
 int _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
 {
@@ -88,6 +90,36 @@ int _c_write_msa (ESL_MSA *msa, char *outfile, char *format)
   eslx_msafile_Write(ofp, msa, fmt);
   fclose(ofp);
 
+  return eslOK;
+}
+
+/* Function:  _c_write_msa_unaligned_fasta()
+ * Incept:    EPN, Thu Oct 31 11:03:29 2013
+ * Synopsis:  Open an output file, write individual seqs in an msa as unaligned
+ *            FASTA, and close the file.
+ * Returns:   eslOK on success; 
+ *            eslFAIL if unable to open file for writing.
+ *            eslEMEM if out of memory
+ */
+int _c_write_msa_unaligned_fasta (ESL_MSA *msa, char *outfile)
+{
+  FILE   *ofp; /* open output alignment file */
+  ESL_SQ *sq = NULL;
+  int     i;
+  int     status;
+
+  if((ofp  = fopen(outfile, "w"))  == NULL) { 
+    return eslFAIL;
+  }
+
+  for(i = 0; i < msa->nseq; i++) { 
+    status = esl_sq_FetchFromMSA(msa, i, &sq);
+    if(status != eslOK) return status;
+    esl_sqio_Write(ofp, sq, eslSQFILE_FASTA, FALSE);
+    esl_sq_Destroy(sq); /* note: this is inefficient, FetchFromMSA allocates a new seq each time */
+  }    
+
+  fclose(ofp);
   return eslOK;
 }
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 12;
+use Test::More tests => 16;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -78,8 +78,24 @@ is($nseq, 3, "nseq method failed to return correct number (pass 2)");
 # test write_msa with afa format
 $outfile = "./t/data/test-msa-afa.out";
 $msa3->write_msa($outfile, "afa");
+open(IN, $outfile);
+my $line1 = <IN>;
+my $line2 = <IN>;
+close(IN);
+is($line1, ">human\n", "write_msa() failed to output AFA");
+is($line2, "-AAGACUUCGGAUCUGGCG-ACA-CCC-\n", "write_msa() failed to output AFA");
 unlink $outfile;
 
+# test write_msa with unaligned fasta format
+$outfile = "./t/data/test-msa-fa.out";
+$msa3->write_msa($outfile, "fasta");
+open(IN, $outfile);
+$line1 = <IN>;
+$line2 = <IN>;
+close(IN);
+is($line1, ">human\n", "write_msa() failed to output fasta");
+is($line2, "AAGACUUCGGAUCUGGCGACACCC\n", "write_msa() failed to output fasta");
+unlink $outfile;
 
 
 # FIX DESTROY CALL!
