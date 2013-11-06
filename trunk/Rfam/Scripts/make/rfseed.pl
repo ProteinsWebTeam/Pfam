@@ -156,9 +156,9 @@ if (-e "CM")   { copy("CM",   "CM.$$"); }
 # fetch sequences
 fetch_new_seed_seqs($fetchfile, \@fetchAA, "$$.fa", $logFH, $do_stdout);
 
-# align new sequences to CM, using --mapali with original SEED
-my $align_opts = "-o SEED --mapali SEED.$$";
-if(! $do_prob)  { $align_opts .= " --noprob"; }
+# align new sequences to CM, using --mapali and --mapstr with original SEED
+my $align_opts = "-o SEED --mapali SEED.$$ --mapstr";
+SEEDif(! $do_prob)  { $align_opts .= " --noprob"; }
 if(! $do_local) { $align_opts .= " -g"; }
 Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $align_opts, "CM", "$$.fa", "seedalignout", "a.$$.err", $nseq, $nres, 1, 0, "", -1, $logFH, $do_stdout);
 unlink "$$.fa";

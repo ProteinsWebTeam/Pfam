@@ -138,7 +138,7 @@ if ($only_build) { # -onlybuild, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -onlybuild and -scpu are incompatible"; }
   if (defined $e_opt)          { die "ERROR -onlybuild and -e are incompatible"; }
   if (defined $t_opt)          { die "ERROR -onlybuild and -t are incompatible"; }
-  if (defined $do_cutga)       { die "ERROR -onlybuild and -cut_ga are incompatible"; }
+  if ($do_cutga)               { die "ERROR -onlybuild and -cut_ga are incompatible"; }
   if (@cmosA)                  { die "ERROR -onlybuild and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -onlybuild and -cmodA are incompatible"; }
 }
@@ -146,7 +146,7 @@ if ($no_search) { # -nosearch, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -nosearch and -scpu are incompatible"; }
   if (defined $e_opt)          { die "ERROR -nosearch and -e are incompatible"; }
   if (defined $t_opt)          { die "ERROR -nosearch and -t are incompatible"; }
-  if (defined $do_cutga)       { die "ERROR -nosearch and -cutga are incompatible"; }
+  if ($do_cutga)               { die "ERROR -nosearch and -cutga are incompatible"; }
   if (@cmosA)                  { die "ERROR -nosearch and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -nosearch and -cmodA are incompatible"; }
 }
@@ -642,19 +642,19 @@ if ((! $only_build) && (! $no_search)) {
   # If this isn't true then there's a bug in the code.
   if(defined $t_sm) { 
     if($do_cutga || defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (1)." }
-    $thr_searchopts = "-T $t_sm";
+    $thr_searchopts = sprintf("-T %.2f", $t_sm);
   }
   elsif(defined $e_sm_bitsc) { 
     if($do_cutga || defined $t_sm || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (2)." }
-    $thr_searchopts = "-T $e_sm_bitsc";
+    $thr_searchopts = sprintf("-T %.2f", $e_sm_bitsc);
   }
   elsif(defined $t_opt) { 
     if($do_cutga || defined $t_sm || defined $e_sm_bitsc || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (3)." }
-    $thr_searchopts = "-T $t_opt";
+    $thr_searchopts = sprintf("-T %.2f", $t_opt);
   }
   elsif(defined $e_opt_bitsc) { 
     if($do_cutga || defined $t_sm || defined $e_sm_bitsc || defined $t_opt) { die "ERROR processing search threshold, bug in code (4)." }
-    $thr_searchopts = "-T $e_opt_bitsc";
+    $thr_searchopts = sprintf("-T %.2f", $e_opt_bitsc);
   }
   elsif($do_cutga) { 
     if(defined $t_sm || defined $e_sm_bitsc || defined $t_opt || defined $e_opt_bitsc) { die "ERROR processing search threshold, bug in code (5)." }
@@ -841,7 +841,7 @@ sub submit_cmsearch_jobs {
     $tblOAR->[$idx]    = $prefix . "$$.$file_idx.tbl";
     $cmsOAR->[$idx]    = $prefix . "$$.$file_idx.cmsearch";
     $errOAR->[$idx]    = $prefix . "$$.$file_idx.err";
-    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt);  
+    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt, 0);  
   }
 }
 
