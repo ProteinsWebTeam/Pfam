@@ -31,7 +31,7 @@ my $start_time = time();
 my $executable = $0;
 
 # set default values that command line options may change
-my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
+my $dbchoice = "rfamseq";    # TODO: read this from SM in DESC
 my $ga_bitsc;                   # GA threshold
 my $ga_evalue;                  # E-value threshold to use, set with -e
 my $df_nper     = 30;           # with -r, default number of seqs to include in each group for representative alignment

@@ -54,7 +54,7 @@ my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 # database related options:
-my $dbchoice = "r79rfamseq";    # dbchoice, by default 'r79rfamseq'
+my $dbchoice = "rfamseq";    # dbchoice, by default 'rfamseq'
 my $dbfile;                     # defined by GetOptions() if -dbfile is enabled
 my $dbdir;                      # defined by GetOptions() if -dbdir is enabled
 my $dblist;                     # defined by GetOptions() if -dblist is enabled
@@ -607,7 +607,7 @@ if ((! $only_build) && (! $no_search)) {
   # -T (in fact this script only writes -T to DESC's SM). This needs to be revisited
   # when all families are done being rethresholded (and all DESC's SM's contain -T
   # and not -E). EPN, Tue Oct 29 14:38:07 2013
-  my $rfamseq_dbconfig = $config->seqdbConfig("r79rfamseq"); # db info for rfamseq, we may need this to determine database size for -E 
+  my $rfamseq_dbconfig = $config->seqdbConfig("rfamseq"); # db info for rfamseq, we may need this to determine database size for -E 
   my $rfamseq_dbsize   = $rfamseq_dbconfig->{"dbSize"}; 
   my $e_sm_bitsc       = undef;
   my $e_opt_bitsc      = undef;
@@ -624,14 +624,14 @@ if ((! $only_build) && (! $no_search)) {
   if(defined $e_sm) { 
     # convert E-value to bit score in database size of rfamseq, 
     # note this only works because we know if it's in DESC's SM
-    # than it MUST have been defined for a search of r79rfamseq,
+    # than it MUST have been defined for a search of rfamseq,
     # because that's the only database we update on.
     $e_sm_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $e_sm, $rfamseq_dbsize, $extra_searchopts);
   }
   if(defined $e_opt) { 
     # convert E-value to bit score in database size of rfamseq, 
     # note this only works because we know if it's in DESC's SM
-    # than it MUST have been defined for a search of r79rfamseq,
+    # than it MUST have been defined for a search of rfamseq,
     # because that's the only database we update on.
     $e_opt_bitsc = Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $e_opt, $rfamseq_dbsize, $extra_searchopts);
   }
@@ -906,7 +906,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -ignoresm     ignore the DESC SM command line options
 
             OPTIONS SPECIFYING SEARCH DATABASE:
-            -dbchoice <s>  set sequence database to search as <s> ('rfamseq', 'testrfamseq', 'r79rfamseq')
+            -dbchoice <s>  set sequence database to search as <s> ('rfamseq', 'testrfamseq')
             -dbfile <s>    set sequence database to search as file <s>
             -dbdir <s>     set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
             -dblist <s>    set sequence database to search as all files listed in dir <s>

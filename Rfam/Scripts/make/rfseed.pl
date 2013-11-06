@@ -30,7 +30,7 @@ my $start_time = time();
 my $executable = $0;
 
 # set default values that command line options may change
-my $dbchoice = "r79rfamseq";    # TODO: read this from SM in DESC
+my $dbchoice = "rfamseq";    # TODO: read this from SM in DESC
 # other options
 my $do_stdout = 1;              # TRUE to output to STDOUT
 my $do_quiet  = 0;              # TRUE to not output anything to STDOUT

@@ -752,7 +752,7 @@ sub log_output_divider {
   Args     : $fh:          file handle to output to
            : $user:        name of user
            : $date:        date of execution
-           : $dbchoice:    string indicating what DB is being used (e.g. 'r79rfamseq')
+           : $dbchoice:    string indicating what DB is being used (e.g. 'rfamseq')
            : $also_stdout: '1' to also output to stdout, '0' not to
   Returns  : void
 
