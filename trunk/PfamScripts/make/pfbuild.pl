@@ -455,7 +455,7 @@ sub main {
     #run pfmake if we need to
     if ($withpfmake) {
       my $pfmake_db;
-      if ( $db eq "pfamseq" and $config->location eq "WTSI" ) {
+      if ( $db eq "pfamseq" and ($config->location eq "WTSI" or $config->location eq "EBI") ) {
         $pfmake_db = $config->pfamseqLoc . "/$db";
       }
       else {
