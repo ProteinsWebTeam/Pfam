@@ -514,6 +514,39 @@ sub write_msa {
   return;
 }
 
+=head2 write_single_unaligned_seq
+
+  Title    : write_single_unaligned_seq
+  Incept   : EPN, Mon Nov  4 09:53:50 2013
+  Usage    : Bio::Easel::MSA->write_single_unaligned_seq($idx)
+  Function : Writes out a single seq from MSA in FASTA format to a file.
+  Args     : $idx:     index of seq in MSA to output
+           : $outfile: name of file to create
+  Returns  : void
+
+=cut
+
+sub write_single_unaligned_seq { 
+  my ($self, $idx, $outfile) = @_;
+
+  my $status;
+
+  $self->_check_msa();
+  $status = _c_write_single_unaligned_seq( $self->{esl_msa}, $idx, $outfile );
+  if($status != $ESLOK) { 
+    if   ($status == $ESLEINVAL) { 
+      croak "problem writing out single seq idx $idx, idx out of bounds";
+    }
+    elsif($status == $ESLFAIL) { 
+      croak "problem writing out single seq idx $idx, unable to open $outfile for writing"; 
+    }
+    elsif ( $status == $ESLEMEM ) {
+      croak "problem writing out msa, out of memory";
+    }
+  }
+  return;
+}
+
 =head2 any_allgap_columns
 
   Title    : any_allgap_columns
@@ -767,6 +800,31 @@ sub addGS {
   return;
 }
 
+=head2 addGC_identity
+
+  Title    : addGC_identity
+  Incept   : EPN, Fri Nov  8 09:31:00 2013
+  Usage    : $msaObject->addGCidentity($use_)
+  Function : Add GC annotation to an ESL_MSA with
+           : tag 'ID' with a '*' indicating columns
+           : for which all sequences have an identical
+           : residue, or instead of '*' use the
+           : residue itself, if $use_res is 1.
+  Args     : $use_res: '1' to use residue for marking 100% 
+           :          identical columns, '0' to use '*'.
+  Returns  : void
+
+=cut
+
+sub addGC_identity {
+  my ( $self, $use_res ) = @_;
+
+  $self->_check_msa();
+  my $status = _c_addGC_identity( $self->{esl_msa}, $use_res );
+  if ( $status != $ESLOK ) { croak "ERROR: unable to add GC ID annotation"; }
+  return;
+}
+
 =head2 weight_GSC
 
   Title    : weight_GSC
@@ -919,6 +977,79 @@ sub pairwise_identity
 
   $self->_check_msa();
   return _c_pairwise_identity($self->{esl_msa}, $i, $j);
+}
+
+=head2 check_if_prefix_added_to_sqnames
+
+  Title     : check_if_prefix_added_to_sqnames
+  Incept    : EPN, Fri Nov  1 15:15:12 2013
+  Usage     : $msaObject->check_if_prefix_added_to_sqnames
+  Function  : Return '1' if it appears that prefixes were added
+            : to all sqnames in the MSA, by Easel to avoid two
+            : sequences having an identical name.
+  Args      : None
+  Returns   : '1' of '0'
+
+=cut
+
+sub check_if_prefix_added_to_sqnames
+{
+  my ($self) = @_;
+
+  $self->_check_msa();
+
+  # we'll return TRUE only if the following 2 criteria are satisfied:
+  # 1) all seqs begin with numerical prefix: \d+\|, e.g. "0001|"
+  # 2) at least one duplicated seq name exists AFTER removing numerical prefixes
+  my @nameA = ();       # we'll keep track of all names we've seen thus far, to check for dups with
+  my $prefix_added = 1; # we'll set to FALSE once we find a counterexample
+  my $found_dup    = 0; # we'll set to TRUE once we find a dup
+  for(my $i = 0; $i < $self->nseq; $i++) { 
+    my $sqname = $self->get_sqname($i);
+    if($sqname !~ m/^\d+\|/) { 
+      $prefix_added = 0;
+      last;
+    }
+    $sqname =~ s/^\d+\|//;
+    if(! $found_dup) { # check if we have a duplicate of this name
+      foreach my $sqname2 (@nameA) { 
+        if($sqname eq $sqname2) { 
+          $found_dup = 1;
+          last;
+        }
+      }
+      push(@nameA, $sqname);
+    }
+  }
+
+  my $ret_val = ($prefix_added && $found_dup) ? 1 : 0;
+  return $ret_val;
+}
+
+=head2 remove_prefix_from_sqname
+
+  Title     : remove_prefix_from_sqname
+  Incept    : EPN, Fri Nov  1 15:25:27 2013
+  Usage     : $msaObject->remove_prefix_from_sqname
+  Function  : Remove a numerical prefix from a sequence name.
+            : Only meant to be used for MSAs for which 
+            : check_if_prefix_added_to_sqnames returned
+            : TRUE (which had numerical prefixes added to
+            : sqnames to avoid duplicate names).
+  Args      : $sqname
+  Returns   : $sqname with numerical prefix removed.
+  Dies      : If $sqname does not have a numerical prefix,
+            : this means caller does not know what its doing.
+=cut
+
+sub remove_prefix_from_sqname
+{
+  my ($self, $sqname) = @_;
+
+  if($sqname !~ m/^\d+\|/) { die "ERROR trying to remove numerical prefix from $sqname, but it doesn't have one"; }
+  $sqname =~ s/^\d+\|//;
+
+  return $sqname
 }
 
 =head2 DESTROY

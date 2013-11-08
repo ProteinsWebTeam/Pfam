@@ -74,6 +74,7 @@ void _c_read_msa (char *infile, char *reqdFormat)
  * Incept:    EPN, Sat Feb  2 14:23:28 2013
  * Synopsis:  Open an output file, write an msa, and close the file.
  * Returns:   eslOK on success; eslEINVAL if format is invalid;
+ *            eslEINVAL if format invalid
  *            eslFAIL if unable to open file for writing.
  */
 int _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
@@ -114,12 +115,43 @@ int _c_write_msa_unaligned_fasta (ESL_MSA *msa, char *outfile)
 
   for(i = 0; i < msa->nseq; i++) { 
     status = esl_sq_FetchFromMSA(msa, i, &sq);
-    if(status != eslOK) return status;
+    if(status != eslOK) { fclose(ofp); return status; }
     esl_sqio_Write(ofp, sq, eslSQFILE_FASTA, FALSE);
     esl_sq_Destroy(sq); /* note: this is inefficient, FetchFromMSA allocates a new seq each time */
   }    
 
   fclose(ofp);
+  return eslOK;
+}
+
+/* Function:  _c_write_single_unaligned_seq
+ * Incept:    EPN, Mon Nov  4 09:57:43 2013
+ * Synopsis:  Open an output file, and write a single unaligned sequence to it, in
+ *            FASTA format, then close the file.
+ * Returns:   eslOK on success; 
+ *            eslFAIL if unable to open file for writing.
+ *            eslEINVAL if idx is out of bounds < 0 || >= msa->nseq
+ *            eslEMEM if out of memory
+ */
+int _c_write_single_unaligned_seq(ESL_MSA *msa, int idx, char *outfile)
+{
+  FILE   *ofp; /* open output alignment file */
+  ESL_SQ *sq = NULL;
+  int     status;
+
+  if(idx < 0 || idx >= msa->nseq) { 
+    return eslEINVAL;
+  }
+  status = esl_sq_FetchFromMSA(msa, idx, &sq);
+  if(status != eslOK) return status;
+
+  if((ofp  = fopen(outfile, "w"))  == NULL) { 
+    return eslFAIL;
+  }
+  esl_sqio_Write(ofp, sq, eslSQFILE_FASTA, FALSE);
+  esl_sq_Destroy(sq); /* note: this is inefficient, FetchFromMSA allocates a new seq each time */
+  fclose(ofp);
+
   return eslOK;
 }
 
@@ -447,6 +479,55 @@ int _c_addGS(ESL_MSA *msa, int sqidx, char *tag, char *value)
   int    status;
   status = esl_msa_AddGS(msa, tag, -1, sqidx, value, -1);
   return status;
+}
+
+/* Function:  _c_addGC_identity()
+ * Incept:    EPN, Fri Nov  8 09:36:24 2013
+ * Purpose:   Determine and add GC ID annotation to a MSA.
+ *            all columns that are 100% identical will 
+ *            be indicated with either the residue that
+ *            occurs in all seqs (if $use_res) or a 
+ *            '*' (if ! $use_res). Non-identical columns
+ *            are annotated as '.'.
+ *
+ *            Gaps are considered residues. That is,
+ *            a column in which nseq-1 sequences are
+ *            an 'A', but 1 sequence is a gap is NOT
+ *            100% identical.
+ * 
+ * Returns:   eslOK on success, ! eslOK on failure.
+ */
+int _c_addGC_identity(ESL_MSA *msa, int use_res) 
+{
+  int     status;
+  int     apos, idx;
+  ESL_DSQ res;
+  char    *id = NULL;
+
+  ESL_ALLOC(id, sizeof(char) * (msa->alen + 1));
+  id[msa->alen-1] = '\0';
+
+  /* first create the annotation */
+  for (apos = 1; apos <= msa->alen; apos++) {
+    res = msa->ax[0][apos];
+    for (idx = 1; idx < msa->nseq; idx++) {
+      if(msa->ax[idx][apos] != res) break;
+    }
+    if(idx == msa->nseq) { /* column is same residue in all seqs */
+      id[apos-1] = (use_res) ? msa->abc->sym[res] : '*';
+    }
+    else { /* column has at least 2 different residues */
+      id[apos-1] = '.';
+    }
+  }
+  status = esl_msa_AppendGC(msa, "ID", id);
+  free(id);
+
+  return status;
+
+ ERROR: 
+  if(id) free(id);
+  return status; 
 }
 
 /* Function:  _c_weight_GSC()
