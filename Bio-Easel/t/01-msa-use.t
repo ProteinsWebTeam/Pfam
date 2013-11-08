@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 16;
+use Test::More tests => 19;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -60,6 +60,9 @@ is($len, 24, "get_sqlen failed to return correct value");
 my $avglen = $msa->average_sqlen();
 #is($len, 24, "average_sqlen failed to return correct value");
 
+# test addGC_identity
+$msa->addGC_identity(1); # '1' says: indicated identical columns with conserved residue, not a '*'
+
 # test write_msa
 my $outfile = "./t/data/test-msa.out";
 $msa->write_msa($outfile);
@@ -69,6 +72,18 @@ my $msa3 = Bio::Easel::MSA->new({
    fileLocation => $outfile,
 });
 isa_ok($msa3, "Bio::Easel::MSA");
+
+#make sure ID annotation correctly set by addGC_identity
+open(IN, $outfile);
+my $trash = <IN>;
+$trash = <IN>;
+$trash = <IN>;
+$trash = <IN>;
+$trash = <IN>;
+$trash = <IN>;
+my $id    = <IN>;
+chomp $id;
+is($id, "#=GC ID      .....CUUC.G......C....A.....", "addGC_identity method failed to properly calculate and/or set ID annotation");
 unlink $outfile;
 
 # test nseq
@@ -95,6 +110,17 @@ $line2 = <IN>;
 close(IN);
 is($line1, ">human\n", "write_msa() failed to output fasta");
 is($line2, "AAGACUUCGGAUCUGGCGACACCC\n", "write_msa() failed to output fasta");
+unlink $outfile;
+
+# test write_single_unaligned_seq
+$outfile = "./t/data/test-msa-fa.out";
+$msa3->write_single_unaligned_seq(0, $outfile);
+open(IN, $outfile);
+$line1 = <IN>;
+$line2 = <IN>;
+close(IN);
+is($line1, ">human\n", "write_single_unaligned_seq() failed to output fasta");
+is($line2, "AAGACUUCGGAUCUGGCGACACCC\n", "write_single_unaligned_seq() failed to output correctly");
 unlink $outfile;
 
 
