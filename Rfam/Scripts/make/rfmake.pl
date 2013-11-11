@@ -280,7 +280,7 @@ if($bitmin ne $df_bitmin) {
   $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z, $desc->SM);
 }
 if($do_taxinfo || $do_comp) { 
-  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, \%infoHH, \@nameOA, \%groupOHA);
+  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, undef, \%infoHH, \@nameOA, \%groupOHA);
 }  
 if($do_align || $do_repalign || $do_comp) { 
   # open sequence file for fetching seqs
