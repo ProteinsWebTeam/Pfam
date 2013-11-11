@@ -359,7 +359,7 @@ sub format_time_string {
   my $m = int($seconds / 60.);
   $seconds -= $m * 60;
 
-  return sprintf("%02d:%02d:%02d", $h, $m, $seconds);
+  return sprintf("%02d:%02d:%02d", $h, $m, int($seconds + 0.5));
 }
 
 #-------------------------------------------------------------------------------
@@ -484,12 +484,12 @@ sub nse_sqlen {
 
     my $sqlen;
     if($nse =~ m/^\S+\/(\d+)\-(\d+)\s*/) {
-	my ($start, $end) = ($1, $2);
-	if($start <= $end) { $sqlen = $end - $start + 1; }
-	else               { $sqlen = $start - $end + 1; }
+      my ($start, $end) = ($1, $2);
+      if($start <= $end) { $sqlen = $end - $start + 1; }
+      else               { $sqlen = $start - $end + 1; }
     }
     else { 
-	croak "invalid name $nse does not match name/start-end format\n";
+      croak "invalid name $nse does not match name/start-end format\n";
     }
     return $sqlen;
 }
@@ -882,9 +882,9 @@ sub log_output_file_summary_column_headings {
   print $fh $str; if($also_stdout) { print $str; }
   $str = "# Output file summary:\n#\n";
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-12s    %-60s\n", "file name",  "description");
+  $str = sprintf ("# %-20s    %-60s\n", "file name",  "description");
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-12s    %-60s\n", "============", "============================================================");
+  $str = sprintf ("# %-20s    %-60s\n", "====================", "============================================================");
   print $fh $str; if($also_stdout) { print $str; }
 
   return;
@@ -909,7 +909,7 @@ sub log_output_file_summary_column_headings {
 sub log_output_file_summary { 
   my ($fh, $filename, $desc, $also_stdout) = @_;
 
-  my $str = sprintf ("  %-12s    %-60s\n", $filename, $desc);
+  my $str = sprintf ("  %-20s    %-60s\n", $filename, $desc);
   print $fh $str; if($also_stdout) { print $str; }
 
   return;
@@ -937,10 +937,8 @@ sub log_output_timing_summary_column_headings {
   print $fh $str; if($also_stdout) { print $str; }
   $str = "# Timing summary:\n#\n";
   print $fh $str; if($also_stdout) { print $str; }
-#  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "efficiency");
   $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s  %10s\n", "stage",          "wall time",  "ideal time",  "cpu time",   "wait time",  "wait fract", "efficiency");
   print $fh $str; if($also_stdout) { print $str; }
-#  $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========");
   $str = sprintf ("# %-15s  %-10s  %10s  %10s  %10s  %10s  %10s\n", "==============", "==========", "==========", "==========", "==========", "==========", "==========");
   print $fh $str; if($also_stdout) { print $str; }
 
@@ -997,6 +995,162 @@ sub log_output_timing_summary {
 
 #-------------------------------------------------------------------------------
 
+=head2 fetch_from_sqfile_wrapper
+
+  Title    : fetch_from_sqfile_wrapper
+  Incept   : EPN, Thu Oct 31 15:07:56 2013
+  Usage    : Bio::Rfam::Utils::fetch_seqs_wrapper($fetchfile, $fetchAAR, $logFH, $also_stdout, $seqfile);
+  Function : Fetches complete sequences or subsequences (if $do_subseqs == 1) from a
+           : sequence file and either outputs them to a file or returns them 
+           : concatenated together in a string.
+  Args     : $fetchfile:    file to fetch seqs from
+           : $fetchAR:      reference to array of names to fetch, or 2D arrays (if $do_subseqs),
+           :                in which case, 2nd array is [$nse, $start, $end, $name] for seqs to fetch
+           : $do_subseqs:   '1' if fetchAAR is really a ref to a 2D array for subseq fetching
+           : $logFH:        log file to output timing info to, undef for none
+           : $do_stdout:    '1' to output updates to stdout also, ignored if $logFH is ""
+           : $outfile:      seq file to print sequences to, if "" or undefined, return string of all fetch seqs
+  Returns  : IF $seqfile is "" or undefined: string of all fetch seqs, concatenated, else ""
+
+=cut
+
+sub fetch_from_sqfile_wrapper { 
+  my ($fetchfile, $fetchAR, $do_subseqs, $logFH, $do_stdout, $outfile) = @_;
+
+  my $fetch_sqfile = Bio::Easel::SqFile->new({
+    fileLocation => $fetchfile,
+  });
+
+  my $ret_str = "";
+
+  my $fetch_start_time = time();  
+  
+  if(defined $logFH) { 
+    Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", scalar(@{$fetchAR})), $do_stdout);
+  }
+  if(defined $outfile && $outfile ne "") { 
+    if($do_subseqs) { $fetch_sqfile->fetch_subseqs($fetchAR, 60, $outfile); }
+    else            { $fetch_sqfile->fetch_seqs_given_names($fetchAR, 60, $outfile); }
+  } 
+  else { # outfile is undefined, 
+    if($do_subseqs) { $ret_str = $fetch_sqfile->fetch_subseqs($fetchAR, 60); }
+    else            { $ret_str = $fetch_sqfile->fetch_seqs_given_names($fetchAR, 60); }
+  } 
+
+  if(defined $logFH) { 
+    Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", $do_stdout);
+  }
+
+  $fetch_sqfile->close_sqfile();
+
+  return $ret_str; # this will be "" if $outfile was defined and ne ""
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 validate_outlist_format
+
+  Title    : validate_outlist_format
+  Incept   : EPN, Fri Nov  1 06:08:04 2013
+  Usage    : Bio::Rfam::Utils::validate_outlist_format($outlist)
+  Function : Validate an outlist file is up-to-date by ensuring its header line 
+           : is what we expect.
+  Args     : $outlist:    outlist file to validate
+  Returns  : void
+  Dies     : if outlist header line is unexpected indicating
+           : outlist is in an old format.
+
+=cut
+
+sub validate_outlist_format { 
+  my ($outlist) = @_;
+
+  open(IN, $outlist) || die "ERROR unable to open $outlist to validate it's format";
+
+  # Expected line 1: 
+  # #
+  my $line = <IN>;
+  chomp $line;
+  if($line !~ m/^\#$/) { die "ERROR unable to validate outlist format (first line not \"\#\"); rerun rfmake.pl"; }
+
+  # Expected line 2: 
+  # # bits  evalue   seqLabel  name            overlap  start    end      str  qstart  qend  trunc  species                            description                                                                                                  
+  $line = <IN>;
+  chomp $line;
+  if($line !~ m/^\#\s+bits\s+evalue\s+seqLabel\s+name\s+overlap\s+start\s+end\s+str\s+qstart\s+qend\s+trunc\s+species\s+description/) { 
+    die "ERROR unable to validate outlist format (second line invalid); rerun rfmake.pl"; 
+  }
+
+  close(IN);
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 validate_species_format
+
+  Title    : validate_species_format
+  Incept   : EPN, Fri Nov  1 06:14:15 2013
+  Usage    : Bio::Rfam::Utils::validate_species_format($species)
+  Function : Validate an species file is up-to-date by ensuring its header line 
+           : is what we expect.
+  Args     : $species:    species file to validate
+  Returns  : void
+  Dies     : if species header line is unexpected indicating
+           : species is in an old format.
+
+=cut
+
+sub validate_species_format { 
+  my ($species) = @_;
+
+  open(IN, $species) || die "ERROR unable to open $species to validate it's format";
+
+  # Expected line 1: 
+  # #
+  my $line = <IN>;
+  chomp $line;
+  if($line !~ m/^\#$/) { die "ERROR unable to validate species format (first line not \"\#\"); rerun rfmake.pl"; }
+
+  # Expected line 2: 
+  # # bits  evalue   seqLabel  name            overlap  ncbiId  species                                                         taxString
+  $line = <IN>;
+  chomp $line;
+  if($line !~ m/^\#\s+bits\s+evalue\s+seqLabel\s+name\s+overlap\s+ncbiId\s+species\s+taxString/) { 
+    die "ERROR unable to validate species format (second line invalid); rerun rfmake.pl"; 
+  }
+
+  close(IN);
+  return;
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 remove_descriptions_from_fasta_seq_string
+
+  Title    : remove_descriptions_from_fasta_seq_string
+  Incept   : EPN, Fri Nov  1 10:03:45 2013
+  Usage    : Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($seqstring)
+  Function : Remove descriptions from a string that includes sequence data in
+           : FASTA format.
+  Args     : $seqstring:    sequence string, possibly including multiple sequences in FASTA format
+  Returns  : string that is $seqstring with descriptions removed
+
+=cut
+
+sub remove_descriptions_from_fasta_seq_string { 
+  my ($seqstring) = @_;
+
+  # want to only remove Descriptions
+  # [^\S\n] says match anything that's not (not-whitespace or newline)
+  $seqstring =~ s/\>(\S+)[^\S\n]+.*\n/\>$1\n/g;
+
+  return $seqstring;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 file_tail
 
   Title    : file_tail
@@ -1018,6 +1172,32 @@ sub file_tail {
   
   $filePath =~ s/^.+\///;
   return $filePath;
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 file2string
+
+  Title    : file2string
+  Incept   : EPN, Fri Nov  1 10:16:06 2013
+  Usage    : file2string($filePath)
+  Function : Open a file, copy it in its entirety to a string
+           : and return that string.
+  Args     : $filePath: full path to file
+  Returns  : $str: the full files contents as a string
+
+=cut
+
+sub file2string { 
+  my ($filePath) = @_;
+  
+  my $ret_str = "";
+  open(IN, $filePath) || die "ERROR unable to open $filePath, to convert it to a string";
+  while(my $line = <IN>) { 
+    $ret_str .= $line;
+  }
+  return $ret_str;
 }
 
 #-------------------------------------------------------------------------------
@@ -1151,6 +1331,142 @@ sub setArray {
   my $i;
   for($i = 0; $i < $n; $i++) { $AR->[$i] = $val; }
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 maxArray
+
+  Title    : maxArray
+  Incept   : EPN, Thu Nov  7 15:00:05 2013
+  Usage    : maxArray($AR, $n)
+  Function : Return max value in first $n elements in array @{$AR}.
+  Args     : $AR: ref to array to sum
+           : $n:  size of array (we\'ll find max of first $n values)
+  Returns  : maximum of first $n elements (usually all elements)
+
+=cut
+
+sub maxArray {
+  my ($AR, $n) = @_;
+
+  my $i;
+  if($n == 0) { die "ERROR, maxArray entered with empty array";  }
+
+  my $max = $AR->[0];
+  for($i = 0; $i < $n; $i++) { 
+    $max = ($AR->[$i] > $max) ? $AR->[$i] : $max;
+  }
+  return $max;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 minArray
+
+  Title    : minArray
+  Incept   : EPN, Thu Nov  7 15:01:43 2013
+  Usage    : minArray($AR, $n)
+  Function : Return min value in first $n elements in array @{$AR}.
+  Args     : $AR: ref to array to sum
+           : $n:  size of array (we\'ll find min of first $n values)
+  Returns  : minimum of first $n elements (usually all elements)
+
+=cut
+
+sub minArray {
+  my ($AR, $n) = @_;
+
+  my $i;
+  if($n == 0) { die "ERROR, minArray entered with empty array"; }
+
+  my $min = $AR->[0];
+  for($i = 0; $i < $n; $i++) { 
+    $min = ($AR->[$i] < $min) ? $AR->[$i] : $min;
+  }
+  return $min;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 maxLenStringInArray
+
+  Title    : maxLenStringInArray
+  Incept   : EPN, Fri Nov  1 10:53:59 2013
+  Usage    : maxLenStringInArray($AR, $n)
+  Function : Determine length of longest string in array referenced
+           : by $AR, and return that length
+  Args     : $AR:  ref to array to examine
+           : $n:   size of array, if known, can be undef
+  Returns  : length (num chars) in longest string in $AR
+
+=cut
+
+sub maxLenStringInArray { 
+  my ($AR, $n) = @_;
+
+  if(! defined $n) { $n = scalar(@{$AR}); }
+  if($n == 0) { return 0; }
+  my $i;
+  my $xlen = length($AR->[0]);
+  for($i = 1; $i < $n; $i++) { 
+    my $len = length($AR->[$i]);
+    if($len > $xlen) { $xlen = $len; }
+  }
+  return $xlen;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 minLenStringInArray
+
+  Title    : minLenStringInArray
+  Incept   : EPN, Thu Nov  7 14:52:11 2013
+  Usage    : minLenStringInArray($AR, $n)
+  Function : Determine length of shortest string in array referenced
+           : by $AR, and return that length
+  Args     : $AR:  ref to array to examine
+           : $n:   size of array, if known, can be undef
+  Returns  : length (num chars) in shortest string in $AR
+
+=cut
+
+sub minLenStringInArray { 
+  my ($AR, $n) = @_;
+
+  if(! defined $n) { $n = scalar(@{$AR}); }
+  if($n == 0) { return 0; }
+  my $i;
+  my $nlen = length($AR->[0]);
+  for($i = 1; $i < $n; $i++) { 
+    my $len = length($AR->[$i]);
+    if($len < $nlen) { $nlen = $len; }
+  }
+  return $nlen;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 monocharacterString
+
+  Title    : monocharacterString
+  Incept   : EPN, Wed Nov  6 09:35:11 2013
+  Usage    : monocharacterString($char, $len)
+  Function : Return a string of $char repeated $len times.
+  Args     : $char:  single character that will compose returned string
+           : $len:   number of times to repeat $char to make return string
+  Returns  : string of $char repeated $len times
+
+=cut
+
+sub monocharacterString { 
+  my ($char, $len) = @_;
+
+  my $ret_str = "";
+  for(my $i = 0; $i < $len; $i++) { 
+    $ret_str .= $char;
+  }
+  return $ret_str;
 }
 
 #-------------------------------------------------------------------------------

@@ -31,7 +31,7 @@ my $start_time = time();
 my $executable = $0;
 
 # set default values that command line options may change
-my $dbchoice = "rfamseq";    # TODO: read this from SM in DESC
+my $dbchoice = "rfamseq";       # TODO: read this from SM in DESC
 my $ga_bitsc;                   # GA threshold
 my $ga_evalue;                  # E-value threshold to use, set with -e
 my $df_nper     = 30;           # with -r, default number of seqs to include in each group for representative alignment
@@ -448,6 +448,8 @@ sub set_nc_and_tc {
   $nc = "undefined";
   $tc = "undefined";
 
+  # no need to validate outlist format, we just created it
+
   open(OUTLIST, "$outlist") or die "FATAL: failed to open $outlist\n[$!]";
 
   while ($line = <OUTLIST>) {
@@ -515,7 +517,7 @@ sub get_representative_subset {
   my @nameOA   = ();      # array: rank order of all hits, irrelevant
   my %groupOHA = ();      # hash or arrays: rank order of hits in each group, key is group name
   my @subsetA = ();
-  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, \%infoHH, \@nameOA, \%groupOHA);
+  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, undef, \%infoHH, \@nameOA, \%groupOHA);
 
   # for each group, pick a representative subset of $nper sequences based on pairwise identity
   my $all_seqs = ""; # this will be all representative seqs, concatenated into one string

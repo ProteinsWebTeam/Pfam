@@ -54,7 +54,7 @@ my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 # database related options:
-my $dbchoice = "rfamseq";    # dbchoice, by default 'rfamseq'
+my $dbchoice = "rfamseq";       # dbchoice, by default 'rfamseq'
 my $dbfile;                     # defined by GetOptions() if -dbfile is enabled
 my $dbdir;                      # defined by GetOptions() if -dbdir is enabled
 my $dblist;                     # defined by GetOptions() if -dblist is enabled

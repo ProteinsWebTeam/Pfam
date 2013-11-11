@@ -1198,6 +1198,9 @@ sub makeAndWriteScores {
   if (! defined $threshold) {
     croak "ERROR GA not set";
   }
+
+  Bio::Rfam::Utils::validate_outlist_format($outlistLocation);
+
   open(OL, '<', $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
 
   # process the outlist
@@ -1683,8 +1686,12 @@ sub writeOutlistOrSpeciesChunk {
   # print header lines
   printf $fh ("#\n");
   for($j = 0; $j < $nels; $j++) { 
-    printf $fh ("%-*s", $widthA[$j], $headA[$j]);
-    if($j < ($nels-1)) { printf $fh "  "; }
+    if($j < ($nels-1)) { 
+      printf $fh ("%-*s  ", $widthA[$j], $headA[$j]);
+    }
+    else { 
+      printf $fh ("%s", $headA[$j]); # final column doesn't need to be fixed-width, just flush left
+    }
   }
   printf $fh ("\n");
   for($j = 0; $j < $nels; $j++) { 
@@ -2164,6 +2171,8 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : $species:   name of species file, usually 'species'
              : $emax:      maximum E-value to consider, usually 10
              : $ga:        GA bit score threshold
+             : $minsc:     only collect info on hits above this score
+             :             if undefined, collect info on all hits
              : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
              :             can be undefined if caller does not need this
              : $nameOAR:   ref to array, all nse, in order, ranked by score/E-value
@@ -2176,65 +2185,72 @@ sub writeTaxinfoFromOutlistAndSpecies {
 =cut
 
 sub parseOutlistAndSpecies {
-    my($self, $outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR) = @_;
+  my($self, $outlist, $species, $emax, $ga, $minsc, $infoHHR, $nameOAR, $groupOHAR) = @_;
+  
+  my ($ct, $outline, $spcline, $name, $i, $i0, $key, $pkey, $group);
+  my @out_elA = ();
+  my @spc_elA = ();
+  my %nameIH  = ();
+  $ct = 0;
+  
+  Bio::Rfam::Utils::validate_outlist_format($outlist);
+  Bio::Rfam::Utils::validate_species_format($species);
+  
+  open(OUT, $outlist) || die "ERROR unable to open $outlist";
+  open(SPC, $species) || die "ERROR unable to open $species";
+  
+  while($outline = <OUT>) { 
+    $spcline = <SPC>;
+    #print("OUT: $outline");
+    #print("SPC: $spcline\n");
+    $outline =~ s/^\s+//;
+    $spcline =~ s/^\s+//;
+    chomp $outline;
+    chomp $spcline;
+    if($outline !~ m/^\#/) { 
+      $ct++;
+      # example outlist line:
+      # 108.5  4.2e-20      SEED  Z97632.3          v:73.4   23636   23554    -       1    83     no  Homo_sapiens_(human)[9606]        Human DNA sequence from clone RP1-196E23 on chromosome Xq26.1-27.2 Description...
+      # example species line:
+      # 108.5  4.2e-20      SEED  Z97632.3          v:73.4    9606  Homo sapiens (human)                                        Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Homo.
+      @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
+      @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
 
-    my ($ct, $outline, $spcline, $name, $i, $i0, $key, $pkey, $group);
-    my @out_elA = ();
-    my @spc_elA = ();
-    my %nameIH  = ();
-    $ct = 0;
-
-    open(OUT, $outlist) || die "ERROR unable to open $outlist";
-    open(SPC, $species) || die "ERROR unable to open $species";
-
-    while($outline = <OUT>) { 
-	$spcline = <SPC>;
-	#print("OUT: $outline");
-	#print("SPC: $spcline\n");
-        $outline =~ s/^\s+//;
-        $spcline =~ s/^\s+//;
-	chomp $outline;
-	chomp $spcline;
-	if($outline !~ m/^\#/) { 
-	    $ct++;
-	    # example outlist line:
-            # 108.5  4.2e-20      SEED  Z97632.3          v:73.4   23636   23554    -       1    83     no  Homo_sapiens_(human)[9606]        Human DNA sequence from clone RP1-196E23 on chromosome Xq26.1-27.2 Description...
-            # example species line:
-            # 108.5  4.2e-20      SEED  Z97632.3          v:73.4    9606  Homo sapiens (human)                                        Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Homo.
-	    @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
-	    @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
-
-	    #sanity check
-	    for($i = 0; $i <= 3; $i++) { 
-              if($out_elA[$i] ne $spc_elA[$i]) { 
-                die "ERROR, hit $ct, element $i does not match b/t out.list and species files ($out_elA[$i] ne $spc_elA[$i])"; 
-              }
-	    }
-
-	    $name = $out_elA[3] . "/" . $out_elA[5] . "-" . $out_elA[6]; 
-	    if(defined $nameOAR) { push(@{$nameOAR}, $name); }
-	    if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
-	    $nameIH{$name} = 1;
-
-	    # determine group
-            $group = "";
-            if   ($out_elA[2] eq "SEED")  { $group = "S"; } # Seed
-            elsif($out_elA[0] >= $ga)     { $group = "F"; } # Full
-            elsif($out_elA[1] <= $emax)   { $group = "O"; } # Other
-	    if(defined $groupOHAR) { push(@{$groupOHAR->{$group}}, $name); }
-
-	    if(defined $infoHHR) { 
-              $infoHHR->{$name}{"rank"}     = $ct;
-              $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
-              $infoHHR->{$name}{"evalue"}   = $out_elA[1];
-              $infoHHR->{$name}{"sspecies"} = $out_elA[11];
-              $infoHHR->{$name}{"taxstr"}   = $spc_elA[7];
-              $infoHHR->{$name}{"trunc"}    = $out_elA[10];
-            }
-          }
+      if(defined $minsc && $out_elA[0] < $minsc) { 
+        last; # we've dropped below our minimum score, we're done
+      }
+      
+      #sanity check
+      for($i = 0; $i <= 3; $i++) { 
+        if($out_elA[$i] ne $spc_elA[$i]) { 
+          die "ERROR, hit $ct, element $i does not match b/t out.list and species files ($out_elA[$i] ne $spc_elA[$i])"; 
+        }
+      }
+      
+      $name = $out_elA[3] . "/" . $out_elA[5] . "-" . $out_elA[6]; 
+      if(defined $nameOAR) { push(@{$nameOAR}, $name); }
+      if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
+      $nameIH{$name} = 1;
+      
+      # determine group
+      $group = "";
+      if   ($out_elA[2] eq "SEED")  { $group = "S"; } # Seed
+      elsif($out_elA[0] >= $ga)     { $group = "F"; } # Full
+      elsif($out_elA[1] <= $emax)   { $group = "O"; } # Other
+      if(defined $groupOHAR) { push(@{$groupOHAR->{$group}}, $name); }
+      
+      if(defined $infoHHR) { 
+        $infoHHR->{$name}{"rank"}     = $ct;
+        $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
+        $infoHHR->{$name}{"evalue"}   = $out_elA[1];
+        $infoHHR->{$name}{"sspecies"} = $out_elA[11];
+        $infoHHR->{$name}{"taxstr"}   = $spc_elA[7];
+        $infoHHR->{$name}{"trunc"}    = $out_elA[10];
+      }
     }
-    close(OUT);
-    close(SPC);
+  }
+  close(OUT);
+  close(SPC);
 }
 
 #-----------------------------------------------------------------
@@ -2425,6 +2441,8 @@ sub writeOldAndNewHitComparison {
   my @spcAA = ();
   my $nhit = 0;
   my ($outline, $spcline);
+  Bio::Rfam::Utils::validate_outlist_format($new_outlist);
+  Bio::Rfam::Utils::validate_species_format($new_species);
   open(NEWOUT, $new_outlist) || die "ERROR unable to open $new_outlist for reading";
   open(NEWSPC, $new_species) || die "ERROR unable to open $new_species for reading";
   open($newoutFH, ">newoutlist") || die "ERROR unable to open newoutlist for writing";
