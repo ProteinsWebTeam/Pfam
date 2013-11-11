@@ -138,15 +138,17 @@ sub cmcalibrate_wrapper {
            : $errPath:      file to save standard error output to
            : $submitExStr:  extra string to add to qsub/bsub command
            : $queue:        queue to submit to, "" for default
+           : $do_locally:   '1' to run locally, else run on cluster
   Returns  : void
   Dies     : if cmsearch command fails
 
 =cut
 
 sub cmsearch_wrapper { 
-  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue) = @_;
-
+  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue, $do_locally) = @_;
   my $cpus;
+  if(! defined $outPath || $outPath eq "") { $outPath = "/dev/null"; }
+
   # contract check, --tblout and --cpu must be defined in $options
   if($options !~ m/\-\-tblout/) { 
     die "ERROR cmsearch_wrapper() option string ($options) does not contain --tblout"; 
@@ -155,15 +157,19 @@ sub cmsearch_wrapper {
     $cpus = $1; 
   }
   else { 
-    die "ERROR cmsearch_wrapper() option string ($options) does not contain --cpu $cpus"; 
+    die "ERROR cmsearch_wrapper() option string ($options) does not contain --cpu"; 
   }
 
-  my $ncpu = ($cpus == 0) ? 1 : $cpus; # --cpu 0 actually means 'use 1 CPU'
-  my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
+  # run job locally or submit non-MPI job to cluster
+  if($do_locally) { 
+    Bio::Rfam::Utils::run_local_command($config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath"); 
+  }
+  else { # submit to cluster
+    my $ncpu = ($cpus == 0) ? 1 : $cpus; # --cpu 0 actually means 'use 1 CPU'
+    my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
+    Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
+  }
 
-  # submit non-MPI job
-  Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
-  
   return;
 }
 
