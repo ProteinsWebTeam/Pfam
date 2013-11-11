@@ -2172,7 +2172,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : $emax:      maximum E-value to consider, usually 10
              : $ga:        GA bit score threshold
              : $minsc:     only collect info on hits above this score
-             :             if undefined, collect info on all hits
+             :             if undefined or "", collect info on all hits
              : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
              :             can be undefined if caller does not need this
              : $nameOAR:   ref to array, all nse, in order, ranked by score/E-value
@@ -2216,7 +2216,7 @@ sub parseOutlistAndSpecies {
       @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
       @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
 
-      if(defined $minsc && $out_elA[0] < $minsc) { 
+      if(defined $minsc && $minsc ne "" && $out_elA[0] < $minsc) { 
         last; # we've dropped below our minimum score, we're done
       }
       
