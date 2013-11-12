@@ -2531,6 +2531,35 @@ sub writeOldAndNewHitComparison {
 
 #-------------------------------------------------------
 
+=head2 cmsearchReadySearchopts
+
+    Title    : cmsearchReadySearchopts
+    Incept   : EPN, Tue Nov 12 10:55:54 2013
+    Usage    : cmsearchReadySearchopts($desc)
+    Function : Return a string we can pass to cmsearch as an options string.
+             : This requires stripping off CM, SEQDB etc. from $desc->SM.
+    Args     : $desc:  the DESC object, with SM
+             : $ncpu:  number of CPUs to use, if undefined or "", use whats in $desc->SM
+    Returns  : string of options that can be passed to cmsearch
+=cut
+    
+sub cmsearchReadySearchopts {
+  my ($desc, $ncpu) = @_;
+  
+  my $searchopts = $desc->{'SM'};
+  $searchopts =~ s/\s*CM\s*/ /;     # remove 'CM',  
+  $searchopts =~ s/\s*SEQDB\s*/ /;  # remove 'SEQDB'
+  $searchopts =~ s/cmsearch//;      # remove 'cmsearch'
+
+  if(defined $ncpu && $ncpu ne "") { 
+    if($searchopts !~ /\-\-cpu\s+\S+/) { die "ERROR, SM from DESC ($searchopts) does not include --cpu <>, it should..."; }
+    $searchopts =~ s/\-\-cpu\s+\S+/\-\-cpu $ncpu/;  
+  }
+
+  return $searchopts;
+}
+######################################################################
+
 =head2 _taxinfo_get_sortable_exponent
 
     Title    : _taxinfo_get_sortable_exponent
@@ -2547,34 +2576,32 @@ sub writeOldAndNewHitComparison {
     Args     : $evalue:   name of outlist file, usually 'outlist'
     Returns  : sortable version of $evalue
 =cut
-
-
+    
 sub _taxinfo_get_sortable_exponent { 
-    #examples: 
-    # input($evalue) = 2.3E-5 return -5.77 (0.77 = 1.0 - 0.23)
-    # input($evalue) = 6.7E-5 return -5.33 (0.33 = 1.0 - 0.67)
-    # input($evalue) = 2.3E+5 return  5.23
-    # input($evalue) = 6.7E+5 return  5.67 
-
-    my $evalue = $_[0];
-    my $exp = 0;
-    my $ret_val;
-
-    if($evalue eq "0") { 
-      $ret_val = -1000; 
-    }
-    elsif($evalue <= 1) { 
-      while($evalue <= 1) { $exp--; $evalue *= 10; } 
-      $ret_val = $exp - (1. - ($evalue / 10.)); 
-    }
-    elsif($evalue > 1) { 
-      while($evalue > 1) { $exp++; $evalue /= 10; }
-      $ret_val = $exp + $evalue;
-    }
-
-    return $ret_val;
+  #examples: 
+  # input($evalue) = 2.3E-5 return -5.77 (0.77 = 1.0 - 0.23)
+  # input($evalue) = 6.7E-5 return -5.33 (0.33 = 1.0 - 0.67)
+  # input($evalue) = 2.3E+5 return  5.23
+  # input($evalue) = 6.7E+5 return  5.67 
+  
+  my $evalue = $_[0];
+  my $exp = 0;
+  my $ret_val;
+  
+  if($evalue eq "0") { 
+    $ret_val = -1000; 
   }
-######################################################################
+  elsif($evalue <= 1) { 
+    while($evalue <= 1) { $exp--; $evalue *= 10; } 
+    $ret_val = $exp - (1. - ($evalue / 10.)); 
+  }
+  elsif($evalue > 1) { 
+    while($evalue > 1) { $exp++; $evalue /= 10; }
+    $ret_val = $exp + $evalue;
+  }
+
+  return $ret_val;
+}
 
 #-------------------------------------------------------
 
@@ -2633,6 +2660,7 @@ sub _outlist_species_get_overlap_string {
       }
       else { # not identical hit, determine if there's any overlap
         my ($nres_overlap, $strand1, $strand2) = Bio::Rfam::Utils::overlap_nres_either_strand($start, $end, $start2, $end2);
+        # printf STDERR ("calling overlap_nres_either_strand($start, $end, $start2, $end2) got ($nres_overlap, $strand1, $strand2) bits2: $bits2 overlap_bits: $overlap_bits\n");
         if(($nres_overlap > 0) && # we have overlap 
            ($overlap_str eq "-" || $bits2 > $overlap_bits)) { # either first overlap, or highest scoring overlap
           if($bits2 > $bits)       { $overlap_str  = "^"; }
@@ -2645,12 +2673,14 @@ sub _outlist_species_get_overlap_string {
             die "ERROR, two hits overlap on same strand ($name/$start-$end and $name/$start2-$end2)"; 
           }
           $overlap_str .= ":$bits2";
+          $overlap_bits = $bits2;
         }
       }
     }
   }
   return $overlap_str;
 }
+
 ######################################################################
 
 1;
