@@ -569,6 +569,8 @@ sub overlap_fraction {
     return $D / $minL;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 overlap_nres_or_full
 
   Title    : overlap_nres_or_full
@@ -612,6 +614,7 @@ sub overlap_nres_or_full {
     else            { return $D; } # non-complete overlap, return nres overlap
 }
 
+#-------------------------------------------------------------------------------
 
 =head2 overlap_nres_strict
 
@@ -651,6 +654,8 @@ sub overlap_nres_strict {
     if($to2 <=  $to1) { return ($to2 - $from2 + 1); }  # case 3
     croak "unforeseen case in _overlap_nres_strict $from1..$to1 and $from2..$to2";
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 overlap_nres_either_strand
 
@@ -714,6 +719,38 @@ sub log_output_rfam_banner {
   #printf $fp ("# COPYRIGHT INFO GOES HERE\n");
   #printf $fp ("# LICENSE INFO GOES HERE\n");
   log_output_divider($fh, $also_stdout);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 log_output_preamble
+
+  Title    : log_output_preamble
+  Incept   : EPN, Tue Nov 12 10:33:05 2013
+  Usage    : Bio::Rfam::Utils::log_output_preamble($fh, $cwidth, $config, $desc, $also_stdout);
+  Function : Outputs Rfam preamble (user, date, pwd etc.) to $fh and optionally stdout.
+  Args     : $fh:          file handle to output to
+           : $cwidth:      column width, usually 40
+           : $user:        user name
+           : $config:      Bio::Rfam::Config object
+           : $desc:        famObj->desc file 
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+=cut
+
+sub log_output_preamble {
+  my ($fh, $cwidth, $user, $config, $desc, $also_stdout) = @_;
+
+  my $date = scalar localtime();
+
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# user:", $user),                 $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# date:", $date),                 $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd),                 $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID),        $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC),       $also_stdout);
 
   return;
 }
@@ -1538,6 +1575,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
+
 
 
 

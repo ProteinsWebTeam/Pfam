@@ -288,6 +288,8 @@ sub parse_namelist {
 
 #########################################################
 # fetch_new_seed_seqs
+# Fetch seqs described in $fetchAAR from $fetchfile into
+# $seqfile.
 #
 sub fetch_new_seed_seqs { 
   my ($fetchfile, $fetchAAR, $seqfile, $logFH, $do_stdout) = @_;
@@ -300,10 +302,16 @@ sub fetch_new_seed_seqs {
   my $fetch_start_time = time();  
   
   Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", scalar(@{$fetchAAR}), $do_stdout));
-  my $concat_seqstring = $fetch_sqfile->fetch_subseqs($fetchAAR, 60, $seqfile); 
+
+  my $concat_seqstring = $fetch_sqfile->fetch_subseqs($fetchAAR, 60);
+  # now remove descriptions from the $concat_seqstring before we output to $seqfile.
+  my $nodesc_concat_seqstring = Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($concat_seqstring);
+  open(OUT, ">" . $seqfile) || die "ERROR unable to open $seqfile for writing";
+  print OUT $nodesc_concat_seqstring;
+  $fetch_sqfile->close_sqfile();
+
   Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 0, 1, "", $do_stdout);
 
-  $fetch_sqfile->close_sqfile();
 
   return;
 }
