@@ -375,9 +375,9 @@ SV *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) {
   /* fetch the seq name */
   status = esl_ssi_FindNumber(sqfp->data.ascii.ssi, nkey, NULL, NULL, NULL, &L, &key_and_L);
   if     (status == eslEMEM)      croak("out of memory");
-  else if(status == eslENOTFOUND) croak("there is no sequence %" PRId64 "\n", nkey);
-  else if(status == eslEFORMAT)   croak("error fetching sequence name %" PRId64 ", something wrong with SSI index?\n", nkey);
-  else if(status != eslOK)        croak("error fetching sequence name %" PRId64 "\n", nkey);
+  else if(status == eslENOTFOUND) croak("there is no sequence %d\n", nkey);
+  else if(status == eslEFORMAT)   croak("error fetching sequence name %d, something wrong with SSI index?\n", nkey);
+  else if(status != eslOK)        croak("error fetching sequence name %d\n", nkey);
 
   Ldup = L;
   Lwidth = 1;
