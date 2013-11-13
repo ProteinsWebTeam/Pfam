@@ -750,8 +750,12 @@ sub log_output_preamble {
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd),                 $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID),        $also_stdout);
-  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC),       $also_stdout);
-
+  if(defined $desc->AC) { 
+    Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC),       $also_stdout);
+  }
+  else { 
+    Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", "undef"),       $also_stdout);
+  }
   return;
 }
 
@@ -1504,6 +1508,29 @@ sub monocharacterString {
     $ret_str .= $char;
   }
   return $ret_str;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 percentize
+
+  Title    : percentize
+  Incept   : EPN, Wed Nov 13 09:19:16 2013
+  Usage    : percentize($val)
+  Function : Convert a real into a (rounded) percent
+           : Examples:
+           : $val: 0.73    returns 73
+           : $val: 0.7349  returns 73
+           : $val: 0.7350  returns 74
+           : $val: 1.0     returns 100
+           : $val: 5.3     returns 530
+  Args     : $val: real value
+  Returns  : real value converted to a percentage
+
+=cut
+
+sub percentize {
+  return int (($_[0] * 100) + .5);
 }
 
 #-------------------------------------------------------------------------------
