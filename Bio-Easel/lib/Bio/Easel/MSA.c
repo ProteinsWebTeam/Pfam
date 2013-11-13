@@ -236,7 +236,7 @@ char *_c_get_ss_cons (ESL_MSA *msa)
  * Synopsis:  Sets msa->ss_cons as all '.' (no basepairs).
  * Returns:   void
  */
-char *_c_set_blank_ss_cons (ESL_MSA *msa)
+void _c_set_blank_ss_cons (ESL_MSA *msa)
 {
   int status;
   int i;
