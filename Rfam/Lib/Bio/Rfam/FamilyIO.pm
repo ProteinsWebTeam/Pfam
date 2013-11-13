@@ -1037,17 +1037,23 @@ sub parseDESC {
 sub writeEmptyDESC {
   my ($self) = @_;
 
-  my %desc = (
-              ID    => 'ShortName',
-              DE    => 'Family description',
-              AU    => 'Who RU',
-              SE    => 'Where did the seed come from',
-              CUTGA => '27.00',
-              CUTNC => '27.00',
-              CUTTC => '27.00',
-             );
+  # we only need 'tmpdesc' below so we can get at the defaultButIllegalFields field
+  my $tmpdesc = 'Bio::Rfam::Family::DESC'->new( );
 
-  my $desc = 'Bio::Rfam::Family::DESC'->new( \%desc );
+  # default values for fields that don't have to be changed before a checkin
+  my %descH = (
+               CUTGA => '27.00',
+               CUTNC => '27.00',
+               CUTTC => '27.00',
+               );
+
+  # now add default fields that must be changed prior to checkin 
+  # (QC will check that these have been changed away from their default values before a checkin)
+  foreach my $key (keys (%{$tmpdesc->defaultButIllegalFields})) { 
+    $descH{$key} = $tmpdesc->defaultButIllegalFields->{$key};
+  }  
+
+  my $desc = 'Bio::Rfam::Family::DESC'->new( \%descH );
   $self->writeDESC($desc);
 }
 
@@ -2255,6 +2261,97 @@ sub parseOutlistAndSpecies {
 
 #-----------------------------------------------------------------
 
+=head2 fetchFromOutlist
+
+    Title    : fetchFromOutlistOrTblout
+    Incept   : EPN, Tue Nov 12 14:27:20 2013
+    Usage    : fetchFromOutlist($infile, $intype, $fetchfile, $min_bitsc, $outfile, $logFH)
+    Function : Fetch all hits listed in an 'outlist' file with bit scores
+             : >= $min_bitsc (if $min_bitsc is "", fetch all seqs) 
+             : from $fetchfile and output to $outfile (or return 
+             : seqstring if $outfile is "" or undefined).
+    Args     : $infile:    outlist file or tblout file with list of hits
+             : $intype:    either 'outlist' or 'tblout', so we know format of $infile
+             : $fetchfile: file to fetch seqs from
+             : $min_bitsc: fetch all hits >= $min_bitsc, if undefined or "", fetch all hits
+             : $outfile:   output file for fetched seqs, if undefined or "", return $seqstring
+             : $logFH:     file handle to output progress info on fetching to, unless undefined
+             : $do_stdout: output progress to stdout too
+    Returns  : $nseq:      number of sequences fetched
+             : $nres:      number of residues fetched
+             : $seqstring: string of all seqs, IFF $outfile is undefined or ""
+=cut
+
+sub fetchFromOutlistOrTblout {
+  my ($infile, $intype, $fetchfile, $min_bitsc, $outfile, $logFH, $do_stdout) = @_;
+
+  if($intype eq "outlist") { 
+    Bio::Rfam::Utils::validate_outlist_format($infile);
+  }
+  elsif($intype ne "tblout") { 
+    die "ERROR Bio::Rfam::FamilyIO::fetchFromOutlistOrTblout: intype is not \'outlist\' nor \'tblout\'";
+  }
+
+  my @fetchAA; # array with info on seqs to fetch
+  my $nseq = 0;
+  my $nres = 0;
+  my $line; 
+  my $cur_bitsc = "";
+  my $fetch_all_hits = 0;
+  if(defined $min_bitsc && $min_bitsc ne "") { 
+    $cur_bitsc = $min_bitsc + 1;
+  }
+  else { 
+    $fetch_all_hits = 1;
+  }
+
+  open(IN, $infile) || die "ERROR unable to open $infile"; 
+  while($line = <IN>) {
+    if($line !~ m/^\#/) { 
+      $line =~ s/^\s+//; # remove leading whitespace
+      my @elA = split(/\s\s+/, $line); # note: we separate by double spaces
+      my ($cur_bitsc, $name, $start, $end);
+      if($intype eq "outlist") { 
+        # example outlist line:
+        # 122.1  9.5e-28      FULL  CAAA01222947.1         -    8801    8703    -       1    99     no  Mus_musculus_(house_mou..[10090]   Mus musculus whole genome shotgun assembly contig 222946
+        ($cur_bitsc, $name, $start, $end) = ($elA[0], $elA[3], $elA[5], $elA[6]);
+      }
+      else { # tblout
+        # example tblout line:
+        # CAAA01222947.1       -         mir-351              RF00805    cm        1       99     8801     8703      -    no    1 0.51   0.0  122.1   9.5e-28 !   Mus musculus whole genome shotgun assembly contig 222946
+        ($cur_bitsc, $name, $start, $end) = ($elA[14], $elA[0], $elA[7], $elA[8]);
+      }
+      if($fetch_all_hits || $cur_bitsc >= $min_bitsc) { 
+        my $nse = "$name/$start-$end";
+        $nres += Bio::Rfam::Utils::nse_sqlen($nse);
+        $nseq++;
+        
+        my ($validated, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
+        if(! $validated) { die "ERROR something wrong with outlist line, can't break it down to name/start-end format ($line)"; }
+        
+        push(@fetchAA, [$nse, $start, $end, $name]); 
+        #print ("added $name/$start-$end\n");
+      }
+      else { # bit score is below our minimum: stop if we have an outlist, but not if we have tblout (cmsearch sorts them, but it may be concatenated)
+        if($intype eq "outlist") { 
+          last;
+        }
+      }
+    }
+  }
+  close(IN);
+
+  my $seqstring = undef;
+  if(defined $outfile && $outfile ne "") { 
+    Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, $outfile); 
+  }
+  else { 
+    $seqstring = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, ""); # "" means return a string of all seqs
+  }
+
+  return ($nseq, $nres, $seqstring); # note: seqstring is undefined if $outfile was passed in
+}
+
 #-------------------------------------------------
     
 =head2 parseTbloutForOverlapCheck
@@ -2558,7 +2655,8 @@ sub cmsearchReadySearchopts {
 
   return $searchopts;
 }
-######################################################################
+
+#-------------------------------------------------------
 
 =head2 _taxinfo_get_sortable_exponent
 

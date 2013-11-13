@@ -205,6 +205,12 @@ has 'requiredFields' => (
   default => sub {[ qw(ID DE AU CUTGA CUTTC CUTNC BM CB SM SE SS REFS WIKI) ]}
 );
 
+has 'defaultButIllegalFields' => (
+  is    => 'ro',
+  isa   => 'HashRef',
+  default => sub {{ 'ID' => 'ShortName', 'DE' => 'Family description', 'AU' => 'Who RU', 'SE' => 'Where did the seed come from' }}
+);
+
 
 
 

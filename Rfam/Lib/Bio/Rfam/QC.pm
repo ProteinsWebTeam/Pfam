@@ -368,6 +368,18 @@ sub checkRequiredFields {
     }
   }
 
+  #Make sure none of the default values set in writeEmptyDESC still exist
+  foreach my $key ( keys %{ $familyObj->DESC->defaultButIllegalFields } ) { 
+    if ( !defined( $familyObj->DESC->$key ) ) { #make sure it's defined first
+      warn "Required DESC field $key not defined.\n";
+      $error++;
+    }
+    elsif( $familyObj->DESC->$key eq $familyObj->DESC->illegalFields->{$key} ) { 
+      warn "DESC field $key illegal value (appears unchanged from an 'rfsearch.pl -nodesc' call).\n";
+      $error++;
+    }      
+  }
+
   #There are also two special cases......
   my ( $SOseen, $GOseen, $SOsuggestions, $GOsuggestions );
 

@@ -50,6 +50,7 @@ my $ignore_sm = 0;              # TRUE to ignore BM in DESC for cmbuild options
 my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
 my $do_stdout = 1;              # TRUE to output to STDOUT
+my $allow_no_desc = 0;          # TRUE to let rfsearch run without a DESC file (we'll create it)
 my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
@@ -97,9 +98,11 @@ my $config = Bio::Rfam::Config->new;
              "rZ=s"       => \$rev_Zuser,
              "q=s"        => \$q_opt, 
              "ssopt=s@"   => \@ssoptA,
+             "nodesc"     => \$allow_no_desc,
              "quiet",     => \$do_quiet,
 	     "dirty"      => \$do_dirty,
-	     "h|help"     => \$do_help );
+	     "h|help"     => \$do_help )
+    || die "ERROR, unrecognized option\n";
 
 $do_stdout = ($do_quiet) ? 0 : 1;
 open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
@@ -118,6 +121,29 @@ if (! defined $user || length($user) == 0) {
 
 # setup variables 
 my $io     = Bio::Rfam::FamilyIO->new;
+
+# determine if we'll udpate the DESC file at the end of the script
+my $dbconfig = undef;     # db info from config, defined if neither -dbfile nor -dbdir used on cmd line
+my $do_update_desc = 0;   # should we update DESC at end of script? Only if dbfile, dbdir, and dblist are all undefined and dbconfig->{"updateDesc"} is 1
+if((! defined $dbfile) && # -dbfile not set
+   (! defined $dbdir)  && # -dbdir not set
+   (! defined $dblist))   # -dblist not set
+{
+  $dbconfig = $config->seqdbConfig($dbchoice);
+  $do_update_desc = $dbconfig->{"updateDesc"};
+}
+
+# deal with -nodesc option and check for DESC file
+if($allow_no_desc) { # user wants us to allow no DESC file
+  # make sure there isn't one
+  if(-s "DESC")         { die "ERROR, -nodesc enabled, but a DESC file exists."; }
+  if(! $do_update_desc) { die "ERROR, you can only create a DESC (-nodesc) if you're searching rfamseq\nOtherwise BM, CB, and SM would be invalid in new DESC"; }
+  $io->writeEmptyDESC();
+}
+elsif(! -s "DESC") { 
+  die "ERROR, no DESC file. If you want to create one, use the -nodesc option\n";
+}
+
 my $famObj = Bio::Rfam::Family->new(
                                     'SEED' => {
                                                fileLocation => "SEED",
@@ -275,35 +301,17 @@ if ($msa->any_allgap_columns) {
 #
 #
 #
-# determine if we'll udpate the DESC file at the end of the script
-my $dbconfig = undef;     # db info from config, defined if neither -dbfile nor -dbdir used on cmd line
-my $do_update_desc = 0;   # should we update DESC at end of script? Only if dbfile, dbdir, and dblist are all undefined and dbconfig->{"updateDesc"} is 1
-if((! defined $dbfile) && # -dbfile not set
-   (! defined $dbdir)  && # -dbdir not set
-   (! defined $dblist))   # -dblist not set
-{
-  $dbconfig = $config->seqdbConfig($dbchoice);
-  $do_update_desc = $dbconfig->{"updateDesc"};
-}
 #
 # ============================================
 # 
-# by default we list user, date, pwd, family, and db choice,
-# and information for any command line flags set by
-# the user. This block should stay consistent with 
-# the GetOptions() call above, and with the help()
-# subroutine.
+# output preamble: user, date, location, etc.
+if($do_quiet) { $do_stdout = 0; }
 my $cwidth = 40;
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+
+# and report options enabled by the user
 my $str;
 my $opt;
-if($do_quiet) { $do_stdout = 0; }
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $id), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $acc), $do_stdout);
-
 if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]"), $do_stdout); }
 elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]"), $do_stdout); }
 elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]"), $do_stdout); }
@@ -334,12 +342,14 @@ if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH
 $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
 if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]"), $do_stdout); }
 if($ignore_sm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's SM line:",              "yes [-ignoresm]"), $do_stdout); }
+if($allow_no_desc)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# create new DESC b/c none exists:",    "yes [-nodesc]"), $do_stdout); }
 if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
 if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
 if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
-if(! $do_update_desc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"), $do_stdout); }
-
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", $do_stdout);
+if(! $allow_no_desc) { 
+  if(! $do_update_desc)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"), $do_stdout); }
+}
+Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
 # create hash of potential output files
 my %outfileH = ();
@@ -384,11 +394,12 @@ if (defined $cm && $cm->is_calibrated) {
 
 # figure out if we have to build
 my $do_build = 0;
-if (($force_build)        ||                # user set -b on command line
-    ($only_build)         ||                # user set -onlybuild on command line
-    (! defined $cm)       ||                # 'CM' does not exist
-    (! $is_cm_calibrated) ||                # 'CM' is not calibrated
+if (($force_build)                       || # user set -b on command line
+    ($only_build)                        || # user set -onlybuild on command line
+    (! defined $cm)                      || # 'CM' does not exist
+    (! $is_cm_calibrated)                || # 'CM' is not calibrated
     ($do_noss || $do_hand || $do_enone)  || # -noss, -hand or -enone set on cmdline
+    ($allow_no_desc)                     || # -nodesc, DESC just created, we'll need a BM line so rebuild
     (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
   $do_build = 1;
 }
@@ -401,8 +412,8 @@ if ($do_build) {
   my $build_start_time = time();
   my $buildopts = $desc->{'BM'};
 
-  if (! defined $buildopts) { die "ERROR unable to read BM (build method) from DESC"; }
-  if ($ignore_bm) { $buildopts = ""; } # ignore the BM line
+  if (! defined $buildopts && ! $allow_no_desc) { die "ERROR unable to read BM (build method) from DESC"; }
+  if ($ignore_bm || $allow_no_desc) { $buildopts = ""; } # ignore the BM line
 
   $buildopts =~ s/\s*-F\s*/ /;   # remove -F,     cmbuild_wrapper will automatically add this
   $buildopts =~ s/\s*CM\s*/ /;   # remove 'CM',   cmbuild_wrapper will automatically add this
@@ -453,7 +464,12 @@ my $calibrateO     = "c.$$.out"; # cmcalibrate output file
 my $calibrate_errO = "c.$$.err"; # error output
 my $did_calibrate = 0;
 if(! defined $ncpus_cmcalibrate) { $ncpus_cmcalibrate = 81; }
-my $do_calibrate = (! $only_build) && ($force_calibrate || (! $is_cm_calibrated)) ? 1 : 0;
+my $do_calibrate = 
+    (! $only_build) &&         # -onlybuild NOT enabled
+    ($force_calibrate      ||  # -c used
+     (! $is_cm_calibrated) ||  # CM not calibrated
+     ($allow_no_desc))         # -nodesc enabled, we'll create a new DESC file and we'll want a CB line
+    ? 1 : 0;
 if($do_calibrate) { 
   my $calibrate_start_time = time();
 #  Calibration prediction time not currently used, since we can't accurately predict search time anyway
@@ -511,7 +527,7 @@ my $ndbfiles                = 0; # number of db files searched (number of cmsear
 my $rev_ndbfiles            = 0; # number of reversed db files searched (number of cmsearch calls)
 my $did_search              = 0;
 
-if ((! $only_build) && (! $no_search)) { 
+if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) { 
   my $search_start_time = time();
 
   #################################################################################
@@ -770,7 +786,11 @@ if($did_build || $did_calibrate) {
   $description = sprintf("covariance model file (%s)", $did_build ? "built and calibrated" : "calibrated only");
   Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, $do_stdout);
 }
-if($do_update_desc && ($did_build || $did_calibrate || $did_search)) { 
+if($allow_no_desc) { 
+  $description = "desc file (created, with some nonsense values that you should change)";
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, $do_stdout);
+}
+elsif($do_update_desc && ($did_build || $did_calibrate || $did_search)) { 
   $description = sprintf("desc file (updated:%s%s%s)", 
                          ($did_build)     ? " BM" : "", 
                          ($did_calibrate) ? " CB" : "", 
@@ -866,7 +886,7 @@ sub strip_default_options_from_sm {
 sub help {
   print STDERR <<EOF;
 
-rfsearch.pl: builds, calibrates and searches a CM against a sequence database.
+rfsearch.pl: build, calibrate and search a CM against a sequence database.
              Run from within a directory containing "SEED" & "DESC" files. 
 	     E.g., after running "rfupdate.pl RFXXXXX" or "rfco.pl RFXXXXX".
 	     SEED contains a stockholm format alignment and DESC is an internal 
@@ -922,6 +942,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -q <str>     specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
                          (shortcuts: use <str>='p' for 'production-rh6', <str>='r' for 'research-rh6')
             -ssopt <str> add extra arbitrary string <str> to qsub cmsearch commands, for multiple options use multiple -ssopt <s>
+            -nodesc      create a default DESC file, because none exists, also requires one of -t, -e or -cut_ga
             -quiet       be quiet; do not output anything to stdout (rfsearch.log still created)
   	    -dirty       do not remove temporary/intermediate files that are normally removed
   	    -h|-help     print this help, then exit
