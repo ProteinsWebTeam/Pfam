@@ -430,7 +430,7 @@ int _c_get_sqlen(ESL_MSA *msa, int seqidx)
   return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
 }
 
-/* Function:  _c_average_sqlen()
+/* Function:  _c_count_residues()
  * Incept:    March 5, 2013
  * Purpose:   Count residues in all sequences;
  * Returns:   Total residues.
@@ -1324,4 +1324,110 @@ _c_pairwise_identity(ESL_MSA *msa, int i, int j)
   double pid;
   if ((status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL)) != eslOK) croak("_c_pairwise_identity() error, aligned seqs different lengths");
   return pid;
+}
+
+/* Function: _c_sequence_subset
+ * Incept:   EPN, Thu Nov 14 10:41:06 2013
+ * Purpose:  Create a new MSA and return it, with a 
+ *           subset of the sequences in <msa>.
+ *           Keep only those sequences i for which
+ *           usemeAR[i] is TRUE, remove all others.
+ *
+ * From esl_msa_SequenceSubset() comments:
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ *            The smaller alignment might now contain columns
+ *            consisting entirely of gaps or missing data, depending
+ *            on what sequence subset was extracted. The caller may
+ *            want to immediately call <esl_msa_MinimGaps()> on the
+ *            new alignment to clean this up.
+ *
+ *            Unparsed GS and GR Stockholm annotation that is presumably still
+ *            valid is transferred to the new alignment. Unparsed GC, GF, and
+ *            comments that are potentially invalidated by taking the subset
+ *            of sequences are not transferred to the new MSA.
+ *            
+ *            Weights are transferred exactly. If they need to be
+ *            renormalized to some new total weight (such as the new,
+ *            smaller total sequence number), the caller must do that.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ *
+ * Args:     msa:   the input alignment
+ *           useme: [0..i..msa->nseq-1]: TRUE to keep seq i, FALSE to remove it
+ *
+ * Returns:  new subset msa upon success
+ *           NULL on error
+ */
+SV *
+_c_sequence_subset(ESL_MSA *msa, AV *usemeAR)
+{
+  int status;              /* status */
+  ESL_MSA *new_msa = NULL; /* the new_msa we'll create and return */
+  int i;                   /* counter over sequences */
+  /* for manipulating the perl usemeAR */
+  SV **value; /* this will hold the value we extract */
+
+  /* create C int array useme */
+  int *useme = NULL;
+  ESL_ALLOC(useme, sizeof(int) * msa->nseq);
+
+  for(i = 0; i < msa->nseq; i++) { 
+    /* look up the ith element, which is yet another SV */
+    value = av_fetch(usemeAR, i, 0);
+    /* a couple of sanity checks */
+    if (value == NULL)  croak( "_c_sequence_subset, failed array lookup for element %d", i );
+    if (!SvIOK(*value)) croak( "array element %d is not an integer", i);
+    useme[i] = SvIV(*value);
+  }
+
+  status = esl_msa_SequenceSubset(msa, useme, &new_msa);
+  if     (status == eslEINVAL) croak("in _c_sequence_subset(), no sequences in input msa"); 
+  else if(status == eslEMEM)   croak("in _c_sequence_subset(), out of memory");
+  else if(status != eslOK)     croak("in _c_sequence_subset(), esl_msa_SequenceSubset() had a problem");
+
+  free(useme);
+
+  return perl_obj(new_msa, "ESL_MSA");
+
+ ERROR:
+  if(useme) free(useme);
+  croak("in _c_sequence_subset(), out of memory");
+  return NULL; /* NEVERREACHED */
+}
+
+/* Function: _c_remove_all_gap_columns
+ * Incept:   EPN, Thu Nov 14 13:44:02 2013
+ * Purpose:  Remove columns containing all gap symbols
+ *           by calling esl_msa_MinimGaps().
+ *
+ * From comments in esl_msa_MinimGaps():
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ *            If <consider_rf> is TRUE, only columns that are gaps
+ *            in all sequences of <msa> and a gap in the RF annotation 
+ *            of the alignment (<msa->rf>) will be removed. It is 
+ *            okay if <consider_rf> is TRUE and <msa->rf> is NULL
+ *            (no error is thrown), the function will behave as if 
+ *            <consider_rf> is FALSE.
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ * 
+ * Args:     msa:         the input alignment
+ *           consider_rf: TRUE to not delete any nongap RF column
+ * 
+ * Returns:  void
+ * Dies:     with croak upon an erro
+ *           NULL on error
+ */
+void
+_c_remove_all_gap_columns(ESL_MSA *msa, int consider_rf)
+{
+  int  status;              /* status */
+  char errbuf[eslERRBUFSIZE];
+
+  if (! (msa->flags & eslMSA_DIGITAL)) { 
+    croak ("ERROR, _c_remove_all_gap_columns, MSA is in text mode..."); 
+  }           
+
+  status = esl_msa_MinimGaps(msa, errbuf, NULL, consider_rf); 
+  if(status != eslOK) croak ("ERROR, _c_remove_all_gap_columns: %s\n", errbuf);
+  
+  return;
 }
