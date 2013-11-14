@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 19;
+use Test::More tests => 25;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -123,6 +123,47 @@ is($line1, ">human\n", "write_single_unaligned_seq() failed to output fasta");
 is($line2, "AAGACUUCGGAUCUGGCGACACCC\n", "write_single_unaligned_seq() failed to output correctly");
 unlink $outfile;
 
+#######################################################
+# test functions that replace msa with a new ESL_MSA:
+# sequence_subset()
+# 
+$msa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+});
+isa_ok($msa, "Bio::Easel::MSA");
+my @keepmeA = (1, 0, 1);
+my $new_msa = $msa->sequence_subset(\@keepmeA);
+isa_ok($new_msa, "Bio::Easel::MSA");
+my $sub_nseq = $new_msa->nseq;
+is($sub_nseq, "2", "sequence_subset failed to work");
+
+# write it out
+$outfile = "./t/data/test-msa-fa.out";
+$new_msa->write_msa($outfile, "stockholm");
+open(IN, $outfile);
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+close(IN);
+is($line1, "orc          -AGGUCUUC-GCACGGGCAGCCACUUC-\n", "sequence_subset failed");
+unlink $outfile;
+
+# now test remove_all_gap_columns
+$new_msa->remove_all_gap_columns(0);
+my $sub_alen = $new_msa->alen;
+is($sub_alen, "26", "remove_all_gap_columns failed to work");
+$new_msa->write_msa($outfile, "stockholm");
+open(IN, $outfile);
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+close(IN);
+is($line1, "orc          AGGUCUUC-GCACGGGCAGCCACUUC\n", "remove_all_gap_columns failed");
+unlink $outfile;
+
+#######################################################
 
 # FIX DESTROY CALL!
 #TODO: test free_msa

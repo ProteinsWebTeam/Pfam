@@ -95,8 +95,10 @@ No functions currently exported.
   Title    : new
   Incept   : EPN, Thu Jan 24 09:28:54 2013
   Usage    : Bio::Easel::MSA->new
-  Function : Generates a new Bio::Easel::MSA object
-  Args     : <fileLocation>: file location of alignment
+  Function : Generates a new Bio::Easel::MSA object.
+           : Either <fileLocation> or <esl_msa> must be passed in.
+  Args     : <fileLocation>: optional: file location of alignment
+           : <esl_msa>:      optional: ptr to an Easel ESL_MSA object
            : <reqdFormat>:   optional: string defining requested/required format
            :                 valid format strings are: 
            :                 "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", 
@@ -116,7 +118,7 @@ sub new {
 
   # First check that the file exists. If it exists, read it with
   # Easel and populate the object from the ESL_MSA object
-  if ( -e $args->{fileLocation} ) {
+  if ( defined $args->{fileLocation} && -e $args->{fileLocation} ) {
     eval {
       $self->{path}   = $args->{fileLocation};
       if(defined $args->{reqdFormat}) { 
@@ -125,10 +127,12 @@ sub new {
       }
       $self->read_msa();
     };    # end of eval
-
     if ($@) {
       confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
     }
+  }
+  elsif (defined $args->{esl_msa}) { 
+    $self->{esl_msa} = $args->{esl_msa};
   }
   else {
     confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
@@ -1049,7 +1053,66 @@ sub remove_prefix_from_sqname
   if($sqname !~ m/^\d+\|/) { die "ERROR trying to remove numerical prefix from $sqname, but it doesn't have one"; }
   $sqname =~ s/^\d+\|//;
 
-  return $sqname
+  return $sqname;
+}
+
+=head2 sequence_subset
+
+  Title     : sequence_subset
+  Incept    : EPN, Thu Nov 14 10:24:50 2013
+  Usage     : $newmsaObject = $msaObject->sequence_subset($usemeAR)
+  Function  : Create a new MSA containing a subset of the
+            : sequences in a passed in MSA. 
+            : Keep any sequence with index i if 
+            : usemeAR->[i] == 1, else remove it.
+            : All gap columns will not be removed from the MSA,
+            : caller may want to do that immediately with
+            : remove_all_gap_columns().
+  Args      : $usemeAR: [0..i..nseq-1] ref to array with value
+            :           '1' to useme seq i, '0' to remove it
+  Returns   : $new_msa: a new Bio::Easel::MSA object, with 
+            :           a subset of the sequences in $self.
+=cut
+
+sub sequence_subset
+{
+  my ($self, $usemeAR) = @_;
+
+  $self->_check_msa();
+
+  my $new_esl_msa = _c_sequence_subset($self->{esl_msa}, $usemeAR);
+
+  # create new Bio::Easel::MSA object from $new_esl_msa
+  my $new_msa = Bio::Easel::MSA->new({
+    esl_msa => $new_esl_msa,
+  });
+
+  return $new_msa;
+}
+
+=head2 remove_all_gap_columns
+
+  Title     : remove_all_gap_columns
+  Incept    : EPN, Thu Nov 14 13:39:42 2013
+  Usage     : $msaObject->remove_all_gap_columns
+  Function  : Remove all gap columns from an MSA.
+            : If the column for one half of a SS_cons basepair is 
+            : removed but not the other half, the basepair
+            : will be removed from SS_cons.
+  Args      : $consider_rf: '1' to not delete any nongap RF column, else '0'
+  Returns   : void
+  Dies      : upon an error with croak
+=cut
+
+sub remove_all_gap_columns
+{
+  my ($self, $consider_rf) = @_;
+
+  $self->_check_msa();
+
+  _c_remove_all_gap_columns($self->{esl_msa}, $consider_rf);
+
+  return;
 }
 
 =head2 DESTROY
