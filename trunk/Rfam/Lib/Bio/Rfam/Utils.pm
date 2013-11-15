@@ -1034,6 +1034,55 @@ sub log_output_timing_summary {
   return;
 }
 
+
+#-----------------------------------------------------------------
+
+=head2 fetchSubseqsGivenNseArray
+
+    Title    : fetchSubseqsGivenNseArray
+    Incept   : EPN, Thu Nov 14 10:02:34 2013
+    Usage    : fetchSubseqsGivenNseArray($fetchfile, $nseAR, $outfile, $logFH, $do_stdout)
+    Function : Fetch all hits listed in name/start-end format in @{$nseAR}
+             : from $fetchfile and output to $outfile (or return 
+             : seqstring if $outfile is "" or undefined).
+    Args     : $nseAR:     ref to array of name/start-end, we will fetch a subset 
+             :             from seq 'name' from 'start' to 'end' and rename the 
+             :             subseq 'name/start-end'.
+             : $fetchfile: file to fetch seqs from
+             : $outfile:   output file for fetched seqs, if undefined or "", return $seqstring
+             : $logFH:     file handle to output progress info on fetching to, unless undefined
+             : $do_stdout: output progress to stdout too
+    Returns  : $nseq:      number of sequences fetched
+             : $nres:      number of residues fetched
+             : $seqstring: string of all seqs, IFF $outfile is undefined or ""
+=cut
+
+sub fetchSubseqsGivenNseArray { 
+  my ($nseAR, $fetchfile, $outfile, $logFH, $do_stdout) = @_;
+
+  my @fetchAA; # array with info on seqs to fetch
+  my $nseq = 0;
+  my $nres = 0;
+  foreach my $nse (@{$nseAR}) { 
+    my ($validated, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
+    if(! $validated) { die "ERROR, $nse not in name/start-end format"; }
+    $nres += Bio::Rfam::Utils::nse_sqlen($nse);
+    $nseq++;
+    push(@fetchAA, [$nse, $start, $end, $name]); 
+  }
+  close(IN);
+
+  my $seqstring = undef;
+  if(defined $outfile && $outfile ne "") { 
+    Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, $outfile); 
+  }
+  else { 
+    $seqstring = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, ""); # "" means return a string of all seqs
+  }
+
+  return ($nseq, $nres, $seqstring); # note: seqstring is undefined if $outfile was passed in
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 fetch_from_sqfile_wrapper
@@ -1218,11 +1267,11 @@ sub file_tail {
 
 #-------------------------------------------------------------------------------
 
-=head2 file2string
+=head2 fileToString
 
-  Title    : file2string
+  Title    : fileToString
   Incept   : EPN, Fri Nov  1 10:16:06 2013
-  Usage    : file2string($filePath)
+  Usage    : fileToString($filePath)
   Function : Open a file, copy it in its entirety to a string
            : and return that string.
   Args     : $filePath: full path to file
@@ -1230,7 +1279,7 @@ sub file_tail {
 
 =cut
 
-sub file2string { 
+sub fileToString { 
   my ($filePath) = @_;
   
   my $ret_str = "";
@@ -1239,6 +1288,33 @@ sub file2string {
     $ret_str .= $line;
   }
   return $ret_str;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 fileToArray
+
+  Title    : fileToArray
+  Incept   : EPN, Thu Nov 14 09:29:06 2013
+  Usage    : fileToArray($filePath)
+  Function : Open a file, and push each line as an element onto
+           : a provided array (referred to by $AR).
+  Args     : $filePath:        full path to file
+           : $AR:              ref to array to push each line to
+           : $remove_newlines: '1' to remove newlines from each line before pushing to array, '0' not to
+  Returns  : void
+
+=cut
+
+sub fileToArray { 
+  my ($filePath, $AR, $remove_newlines) = @_;
+  
+  open(IN, $filePath) || die "ERROR unable to open $filePath, to convert it to a string";
+  while(my $line = <IN>) { 
+    if(defined $remove_newlines && $remove_newlines) { chomp $line; }
+    push(@{$AR}, $line);
+  }
+  return;
 }
 
 #-------------------------------------------------------------------------------
