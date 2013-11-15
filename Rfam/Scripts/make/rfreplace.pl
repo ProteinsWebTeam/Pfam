@@ -52,22 +52,26 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
+my $exec_description = "replace non-Rfamseq seqs in a SEED with Rfamseq seqs";
 
-&GetOptions( "1=s"       => \$id1_thr,
-             "2=s"       => \$id2_thr,
-             "x=s"        => \$maxcands,
-             "b=s"        => \$bitdiff,
-             "p"          => \$do_prob,
-             "alocal"     => \$do_local,
-             "inseed=s"   => \$inseed,
-             "outseed=s"  => \$outseed,
-             "h|help"     => \$do_help);
+my $options_okay = &GetOptions( "1=s"       => \$id1_thr,
+                                "2=s"       => \$id2_thr,
+                                "x=s"        => \$maxcands,
+                                "b=s"        => \$bitdiff,
+                                "p"          => \$do_prob,
+                                "alocal"     => \$do_local,
+                                "inseed=s"   => \$inseed,
+                                "outseed=s"  => \$outseed,
+                                "h|help"     => \$do_help);
+if(! $options_okay) { 
+  &help($exec_description); 
+  die "ERROR, unrecognized option; "; 
+}
 
 # copy rfseed.log sideways if it exists
 if (-e "rfreplace.log") { copy("rfreplace.log", "rfreplace.log.$$"); }
 
 open($logFH, ">rfreplace.log") || die "ERROR unable to open rfreplace.log for writing";
-my $exec_description = "replace non-Rfamseq seqs in a SEED with Rfamseq seqs";
 Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, $exec_description, 1);
 
 # read in command line variables
@@ -114,7 +118,14 @@ my $outlist = "outlist";
 my $species = "species";
 if(! -s $outlist) { die "ERROR $outlist does not exist, did you run rfsearch.pl and rfmake.pl?"; }
 if(! -s $species) { die "ERROR $species does not exist, did you run rfsearch.pl and rfmake.pl?"; }
-
+# make sure we have a CM file, and that it's newer than the SEED
+if(! -s 'CM') { die "ERROR: CM does not exist, did you run rfsearch.pl?"; }
+if(Bio::Rfam::Utils::youngerThan("SEED", "CM")) { die "ERROR SEED is younger than CM, did you run rfsearch.pl?"; }
+# make sure we have an outlist and species file, and that they're newer than the CM
+if(! -s $outlist) { die "ERROR: $outlist does not exist, did you run rfsearch.pl and rfmake.pl?"; }
+if(! -s $species) { die "ERROR: $species does not exist, did you run rfsearch.pl and rfmake.pl?"; }
+if(Bio::Rfam::Utils::youngerThan("CM", "$outlist")) { die "ERROR CM is younger than $outlist, did you run rfsearch.pl and rfmake.pl?"; }
+if(Bio::Rfam::Utils::youngerThan("CM", "$species")) { die "ERROR CM is younger than $species, did you run rfsearch.pl and rfmake.pl?"; }
 if($inseed ne "SEED" && $inseed eq $outseed) { 
   die "ERROR, with -inseed <f1> and -outseed <f2>, <f1> can't equal <f2>";
 }
@@ -124,15 +135,8 @@ if($inseed ne "SEED" && $inseed eq $outseed) {
 # the user. This block should stay consistent with 
 # the GetOptions() call above, and with the help()
 # subroutine.
-my $cwidth = 40;
-my $str;
-my $opt;
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user),                 1);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date),                 1);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd),                 1);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), 1);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID),        1);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC),       1);
+my $cwidth = 60;
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
 
 if($id1_thr    ne $df_id1_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min fractional identity for a replacement candidate: ", "$id1_thr [-1]"),       1); }
 if($id2_thr    ne $df_id2_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max fractional id b/t two replacement candidates: ",    "$id2_thr [-2]"),       1); }
@@ -145,12 +149,13 @@ if($outseed ne "SEED")            { Bio::Rfam::Utils::printToFileAndOrStdout($lo
 
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", 1);
 
+
 # create hash of potential output files
 my %outfileH = ();
-my @outfile_orderA = ("$outseed.$$", "rfreplace.log.$$", "seedalignout");
+my @outfile_orderA = ("$outseed.$$", "seedalignout", "rfreplace.log.$$");
 $outfileH{"$outseed.$$"}      = "old seed alignment, copy of '$inseed' from before this script was run";
-$outfileH{"rfreplace.log.$$"} = "old rfreplace.log file, copy of 'rfreplace.log' from before this script was run";
 $outfileH{"seedalignout"}     = "tabular cmalign output for 'SEED')";
+$outfileH{"rfreplace.log.$$"} = "old rfreplace.log file, copy of 'rfreplace.log' from before this script was run";
 
 my $searchopts = get_searchopts($desc);
 
@@ -235,16 +240,17 @@ redo_cmalign_alignment_of_subset($config, $fafile, "CM", $outseed, "seedalignout
 Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, 1);
 # output brief descriptions of the files we just created, we know that if these files exist that 
 # we just created them, because we deleted them at the beginning of the script if they existed
-if(-e $outseed) { 
-  Bio::Rfam::Utils::log_output_file_summary($logFH, $outseed, sprintf("new seed alignment; %d seq(s) replaced; %d seq(s) deleted", $nnew, ($nseed - $nnew)), 1);
-}  
 foreach my $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
     Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, 1);
   }
 }
-my $description = sprintf("log file (*this* output)");
-Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfreplace.log", $description, 1);
+if(-e $outseed) { 
+  Bio::Rfam::Utils::log_output_file_summary($logFH, $outseed, sprintf("new seed alignment; %d seq(s) replaced; %d seq(s) deleted", $nnew, ($nseed - $nnew)), 1);
+}  
+if( -e "rfreplace.log") { 
+  Bio::Rfam::Utils::log_output_file_summary($logFH,   "rfreplace.log", "log file (*this* output)", 1);
+}
 
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("#\n"), 1);
 Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time)), 1);
@@ -329,7 +335,7 @@ sub cmsearch_seed {
   my $seed_fafile = "s.$$.fa";
   my $nseed = $seedmsa->nseq;
   $seedmsa->write_msa($seed_fafile, "fasta");
-  my $seed_seqstring = Bio::Rfam::Utils::file2string($seed_fafile);
+  my $seed_seqstring = Bio::Rfam::Utils::fileToString($seed_fafile);
   my $seed_search_start_time = time();
 
   my $tblout = "s.$$.tbl";

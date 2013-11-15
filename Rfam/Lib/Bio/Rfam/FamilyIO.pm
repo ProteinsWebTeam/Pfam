@@ -2163,7 +2163,6 @@ sub writeTaxinfoFromOutlistAndSpecies {
   close(OUT);
 }
 
-
 #-------------------------------------------------
     
 =head2 parseOutlistAndSpecies
@@ -2259,9 +2258,79 @@ sub parseOutlistAndSpecies {
   close(SPC);
 }
 
+#-------------------------------------------------
+    
+=head2 nseArrayFromOutlistOrTblout
+
+    Title    : nseArrayFromOutlistOrTblout
+    Incept   : EPN, Thu Nov 14 09:34:21 2013
+    Usage    : nseArraryFromOutlistOrTblout($infile, $intype, $min_bitsc, $nseAR)
+    Function : Read an outlist or --tblout Infernal file and push each name/start-end
+             : above $min_bitsc to $nseAR. 
+    Args     : $infile:    outlist file or tblout file with list of hits
+             : $intype:    either 'outlist' or 'tblout', so we know format of $infile
+             : $min_bitsc: fetch all hits >= $min_bitsc, if undefined or "", do all hits
+             : $nseAR:     ref to array to push "name/start-end" to
+    Returns  : void
+=cut
+
+sub nseArrayFromOutlistOrTblout {
+  my ($infile, $intype, $min_bitsc, $nseAR) = @_;
+
+  if($intype eq "outlist") { 
+    Bio::Rfam::Utils::validate_outlist_format($infile);
+  }
+  elsif($intype ne "tblout") { 
+    die "ERROR Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout: intype is not \'outlist\' nor \'tblout\'";
+  }
+
+  my $fetch_all_hits = 0;
+  my $cur_bitsc = "";
+  if(defined $min_bitsc && $min_bitsc ne "") { 
+    $cur_bitsc = $min_bitsc + 1;
+  }
+  else { 
+    $fetch_all_hits = 1;
+  }
+
+  open(IN, $infile) || die "ERROR unable to open $infile"; 
+  while(my $line = <IN>) {
+    if($line !~ m/^\#/) { 
+      $line =~ s/^\s+//; # remove leading whitespace
+      my @elA = split(/\s\s+/, $line); # note: we separate by double spaces
+      my ($cur_bitsc, $name, $start, $end);
+      if($intype eq "outlist") { 
+        # example outlist line:
+        # 122.1  9.5e-28      FULL  CAAA01222947.1         -    8801    8703    -       1    99     no  Mus_musculus_(house_mou..[10090]   Mus musculus whole genome shotgun assembly contig 222946
+        ($cur_bitsc, $name, $start, $end) = ($elA[0], $elA[3], $elA[5], $elA[6]);
+      }
+      else { # tblout
+        # example tblout line:
+        # CAAA01222947.1       -         mir-351              RF00805    cm        1       99     8801     8703      -    no    1 0.51   0.0  122.1   9.5e-28 !   Mus musculus whole genome shotgun assembly contig 222946
+        ($cur_bitsc, $name, $start, $end) = ($elA[14], $elA[0], $elA[7], $elA[8]);
+      }
+      if($fetch_all_hits || $cur_bitsc >= $min_bitsc) { 
+        my $nse = "$name/$start-$end";
+        # validate it
+        my ($validated, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
+        if(! $validated) { die "ERROR something wrong with outlist or TBLOUT line, can't break it down to name/start-end format ($line)"; }
+        # if we get here, it's been validated
+        push(@{$nseAR}, $nse);
+      }
+      # we could optimize slightly here, by stopping if we're an outlist 
+      # and we've dropped below our min score, but that would only work
+      # if the outlist were sorted, which it should be, but it's probably
+      # better not to assume that, so we just go through all lines
+    }
+  }
+  close(IN);
+
+  return;
+}
+
 #-----------------------------------------------------------------
 
-=head2 fetchFromOutlist
+=head2 fetchFromOutlistOrTblout
 
     Title    : fetchFromOutlistOrTblout
     Incept   : EPN, Tue Nov 12 14:27:20 2013
@@ -2285,71 +2354,13 @@ sub parseOutlistAndSpecies {
 sub fetchFromOutlistOrTblout {
   my ($infile, $intype, $fetchfile, $min_bitsc, $outfile, $logFH, $do_stdout) = @_;
 
-  if($intype eq "outlist") { 
-    Bio::Rfam::Utils::validate_outlist_format($infile);
-  }
-  elsif($intype ne "tblout") { 
-    die "ERROR Bio::Rfam::FamilyIO::fetchFromOutlistOrTblout: intype is not \'outlist\' nor \'tblout\'";
-  }
+  my @nseA = (); 
 
-  my @fetchAA; # array with info on seqs to fetch
-  my $nseq = 0;
-  my $nres = 0;
-  my $line; 
-  my $cur_bitsc = "";
-  my $fetch_all_hits = 0;
-  if(defined $min_bitsc && $min_bitsc ne "") { 
-    $cur_bitsc = $min_bitsc + 1;
-  }
-  else { 
-    $fetch_all_hits = 1;
-  }
+  # get array of name/start-end, this function will validate the input also
+  Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout($infile, $intype, $min_bitsc, \@nseA);
 
-  open(IN, $infile) || die "ERROR unable to open $infile"; 
-  while($line = <IN>) {
-    if($line !~ m/^\#/) { 
-      $line =~ s/^\s+//; # remove leading whitespace
-      my @elA = split(/\s\s+/, $line); # note: we separate by double spaces
-      my ($cur_bitsc, $name, $start, $end);
-      if($intype eq "outlist") { 
-        # example outlist line:
-        # 122.1  9.5e-28      FULL  CAAA01222947.1         -    8801    8703    -       1    99     no  Mus_musculus_(house_mou..[10090]   Mus musculus whole genome shotgun assembly contig 222946
-        ($cur_bitsc, $name, $start, $end) = ($elA[0], $elA[3], $elA[5], $elA[6]);
-      }
-      else { # tblout
-        # example tblout line:
-        # CAAA01222947.1       -         mir-351              RF00805    cm        1       99     8801     8703      -    no    1 0.51   0.0  122.1   9.5e-28 !   Mus musculus whole genome shotgun assembly contig 222946
-        ($cur_bitsc, $name, $start, $end) = ($elA[14], $elA[0], $elA[7], $elA[8]);
-      }
-      if($fetch_all_hits || $cur_bitsc >= $min_bitsc) { 
-        my $nse = "$name/$start-$end";
-        $nres += Bio::Rfam::Utils::nse_sqlen($nse);
-        $nseq++;
-        
-        my ($validated, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
-        if(! $validated) { die "ERROR something wrong with outlist line, can't break it down to name/start-end format ($line)"; }
-        
-        push(@fetchAA, [$nse, $start, $end, $name]); 
-        #print ("added $name/$start-$end\n");
-      }
-      else { # bit score is below our minimum: stop if we have an outlist, but not if we have tblout (cmsearch sorts them, but it may be concatenated)
-        if($intype eq "outlist") { 
-          last;
-        }
-      }
-    }
-  }
-  close(IN);
-
-  my $seqstring = undef;
-  if(defined $outfile && $outfile ne "") { 
-    Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, $outfile); 
-  }
-  else { 
-    $seqstring = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, ""); # "" means return a string of all seqs
-  }
-
-  return ($nseq, $nres, $seqstring); # note: seqstring is undefined if $outfile was passed in
+  # and fetch the seqs
+  return Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@nseA, $fetchfile, $outfile, $logFH, $do_stdout);
 }
 
 #-------------------------------------------------
