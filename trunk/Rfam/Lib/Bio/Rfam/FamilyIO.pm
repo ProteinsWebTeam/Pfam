@@ -1205,7 +1205,7 @@ sub makeAndWriteScores {
     croak "ERROR GA not set";
   }
 
-  Bio::Rfam::Utils::validate_outlist_format($outlistLocation);
+  Bio::Rfam::FamilyIO::validate_outlist_format($outlistLocation, 1); # '1' says: require full file, with first 3 lines prefixed with '#'
 
   open(OL, '<', $outlistLocation) || croak "ERROR unable to open $outlistLocation for reading";
 
@@ -2198,8 +2198,8 @@ sub parseOutlistAndSpecies {
   my %nameIH  = ();
   $ct = 0;
   
-  Bio::Rfam::Utils::validate_outlist_format($outlist);
-  Bio::Rfam::Utils::validate_species_format($species);
+  Bio::Rfam::FamilyIO::validate_outlist_format($outlist, 0); # '0' says, don't require 'full' outlist file
+  Bio::Rfam::FamilyIO::validate_species_format($species, 0); # '0' says, don't require 'full' species file
   
   open(OUT, $outlist) || die "ERROR unable to open $outlist";
   open(SPC, $species) || die "ERROR unable to open $species";
@@ -2278,7 +2278,7 @@ sub nseArrayFromOutlistOrTblout {
   my ($infile, $intype, $min_bitsc, $nseAR) = @_;
 
   if($intype eq "outlist") { 
-    Bio::Rfam::Utils::validate_outlist_format($infile);
+    Bio::Rfam::FamilyIO::validate_outlist_format($infile, 0); # '0' says, don't require 'full' species file
   }
   elsif($intype ne "tblout") { 
     die "ERROR Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout: intype is not \'outlist\' nor \'tblout\'";
@@ -2549,8 +2549,8 @@ sub writeOldAndNewHitComparison {
   my @spcAA = ();
   my $nhit = 0;
   my ($outline, $spcline);
-  Bio::Rfam::Utils::validate_outlist_format($new_outlist);
-  Bio::Rfam::Utils::validate_species_format($new_species);
+  Bio::Rfam::FamilyIO::validate_outlist_format($new_outlist, 1); # '1' says, require 'full' outlist file
+  Bio::Rfam::FamilyIO::validate_species_format($new_species, 1); # '1' says, require 'full' species file
   open(NEWOUT, $new_outlist) || die "ERROR unable to open $new_outlist for reading";
   open(NEWSPC, $new_species) || die "ERROR unable to open $new_species for reading";
   open($newoutFH, ">newoutlist") || die "ERROR unable to open newoutlist for writing";
@@ -2789,6 +2789,128 @@ sub _outlist_species_get_overlap_string {
   }
   return $overlap_str;
 }
+
+
+#-------------------------------------------------------------------------------
+
+=head2 validate_outlist_format
+
+  Title    : validate_outlist_format
+  Incept   : EPN, Fri Nov  1 06:08:04 2013
+  Usage    : Bio::Rfam::Utils::validate_outlist_format($outlist)
+  Function : Validate an outlist file is up-to-date by ensuring its header line 
+           : is what we expect.
+  Args     : $outlist:     outlist file to validate
+           : $requireFull: '1' to require full file, first 2 lines should be '#' prefixed
+  Returns  : void
+  Dies     : if outlist header line is unexpected indicating
+           : outlist is in an old format.
+
+=cut
+
+sub validate_outlist_format { 
+  my ($outlist, $requireFull) = @_;
+
+  open(IN, $outlist) || die "ERROR unable to open $outlist to validate it's format";
+
+  if($requireFull) { 
+    # Expected line 1: 
+    # #
+    my $line = <IN>;
+    chomp $line;
+    if($line !~ m/^\#$/) { die "ERROR unable to validate outlist format (first line not \"\#\"); rerun rfmake.pl"; }
+    
+    # Expected line 2: 
+    # # bits  evalue   seqLabel  name            overlap  start    end      str  qstart  qend  trunc  species                            description                                                                                                  
+    $line = <IN>;
+    chomp $line;
+    if($line !~ m/^\#\s+bits\s+evalue\s+seqLabel\s+name\s+overlap\s+start\s+end\s+str\s+qstart\s+qend\s+trunc\s+species\s+description/) { 
+      die "ERROR unable to validate outlist format (second line invalid); rerun rfmake.pl"; 
+    }
+  }
+  else { # requireFull is FALSE, check that first non-comment line has correct format
+    # example line
+    # 93.2  5.3e-16      FULL  AAPY01617272.1        -      690      825    +       1   106     no  Tupaia_belangeri_(north..[37347]   Tupaia belangeri cont1.617271, whole genome shotgun sequence.
+    my $line = <IN>;
+    my $passed = 0;
+    while($line =~ m/^\#/) { $line = <IN>; }
+    chomp $line;
+    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\d+\s+\d+\s+[\-+]\s+\d+\s+\d+\s+\w+\s+\S+\s+/) { 
+      $passed = 1;
+    }
+    else { 
+      die "ERROR unable to validate outlist format (first non-comment line invalid); rerun rfmake.pl"; 
+    }
+    if(! $passed) { 
+      die "ERROR unable to validate outlist format (no non-comment lines found!); rerun rfmake.pl"; 
+    }
+  }
+
+  close(IN);
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 validate_species_format
+
+  Title    : validate_species_format
+  Incept   : EPN, Fri Nov  1 06:14:15 2013
+  Usage    : Bio::Rfam::Utils::validate_species_format($species)
+  Function : Validate an species file is up-to-date by ensuring its header line 
+           : is what we expect.
+  Args     : $species:     species file to validate
+           : $requireFull: '1' to require full file, first 2 lines should be '#' prefixed
+  Returns  : void
+  Dies     : if species header line is unexpected indicating
+           : species is in an old format.
+
+=cut
+
+sub validate_species_format { 
+  my ($species, $requireFull) = @_;
+
+  open(IN, $species) || die "ERROR unable to open $species to validate it's format";
+
+  if($requireFull) { 
+    # Expected line 1: 
+    # #
+    my $line = <IN>;
+    chomp $line;
+    if($line !~ m/^\#$/) { die "ERROR unable to validate species format (first line not \"\#\"); rerun rfmake.pl"; }
+    
+    # Expected line 2: 
+    # # bits  evalue   seqLabel  name            overlap  ncbiId  species                                                         taxString
+    $line = <IN>;
+    chomp $line;
+    if($line !~ m/^\#\s+bits\s+evalue\s+seqLabel\s+name\s+overlap\s+ncbiId\s+species\s+taxString/) { 
+      die "ERROR unable to validate species format (second line invalid); rerun rfmake.pl"; 
+    }
+  } 
+  else { # requireFull is FALSE, check that first non-comment line has correct format
+    # example line: 
+    # 93.2  5.3e-16      FULL  AAPY01617272.1        -   37347  Tupaia belangeri (northern tree shrew)                      Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Scandentia; Tupaiidae; Tupaia.
+    my $line = <IN>;
+    my $passed = 0;
+    while($line =~ m/^\#/) { $line = <IN>; }
+    chomp $line;
+    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\S+.+  .*$/) { 
+      $passed = 1;
+    }
+    else { 
+      die "ERROR unable to validate species format (first non-comment line invalid); rerun rfmake.pl"; 
+    }
+    if(! $passed) { 
+      die "ERROR unable to validate species format (no non-comment lines found!); rerun rfmake.pl"; 
+    }
+  }
+
+  close(IN);
+  return;
+}
+
+
+
 
 ######################################################################
 
