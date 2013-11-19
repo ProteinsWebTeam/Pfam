@@ -160,7 +160,7 @@ $client->checkNewFamilyDoesNotExists( $newFamObj->DESC->ID );
 unless ($ignore) {
 
   #If we are at sanger, perform an overlap check against the database.
-  if ( $config->location eq "WTSI" ) {
+  if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
     my $connect = $config->pfamlive;
     my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
@@ -231,14 +231,15 @@ if ($caught_cntrl_c) {
 }
 
 
-#It may be nice to report the accession of the new family.....This will only work at WTSI, as this is the only place where the database
-#sits. Could replace with a webservice!
+#It may be nice to report the accession of the new family.....This will only
+#work at WTSI/EBI, as these are the only places where the database sits. Could replace
+#with a webservice!
 
-if ( $config->location eq "WTSI" ) {
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect   = $config->pfamlive;
   my $pfamDB    = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
   my $pfamEntry = $pfamDB->getPfamData( $newFamObj->DESC->ID );
-  print STDERR "This family has been asssigned the accession:"
+  print STDERR 'This family has been asssigned the accession: '
     . $pfamEntry->pfama_acc . "\n"
     if ( $pfamEntry->pfama_acc );
 }
