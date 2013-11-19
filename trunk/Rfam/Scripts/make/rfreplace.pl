@@ -272,7 +272,7 @@ exit 0;
 sub parse_outlist {
   my ($outlist, $min_bitsc, $fetchAAR) = @_;
 
-  Bio::Rfam::Utils::validate_outlist_format($outlist);
+  Bio::Rfam::FamilyIO::validate_outlist_format($outlist);
 
   my $cur_bitsc = $min_bitsc + 1;
   my $nseq = 0;
