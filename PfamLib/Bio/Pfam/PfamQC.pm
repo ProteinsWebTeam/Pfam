@@ -705,7 +705,7 @@ sub nonRaggedSeed {
 
   if ( ( $bad_n > 0.5 ) || ( $bad_c > 0.5 ) ) {
     $error = 1;
-    print STDERR "\n--- SEED alignment is ragged ---\n\n";
+    print STDERR "\n*** ERROR: SEED alignment is ragged ***\n\n";
     printf STDERR "%7s\t%7s\n", "N-term", "C-term";
     printf STDERR "%5.2f\t%5.2f\n", $bad_n, $bad_c;
   }
@@ -780,7 +780,7 @@ sub sequenceChecker {
     print STDERR "\n--- All sequences match the pfamseq database ---\n\n";
   }
   else {
-    print STDERR "\n--- Mismatch of sequences in family --- \n\n";
+    print STDERR "\n*** ERROR: mismatch of sequences in family ***\n\n";
     $error = 1;
   }
 
@@ -1189,11 +1189,11 @@ sub noMissing {
 
   my $error;
   if ($lost) {
-    print STDERR "\n--- Missing members compared to svn copy --- \n\n";
+    print STDERR "\n*** ERROR: missing members compared to svn copy ***\n\n";
     $error = 1;
   }
   else {
-    print STDERR "\n--- No missing sequences compared to svn copy --- \n\n";
+    print STDERR "\n--- No missing sequences compared to svn copy ---\n\n";
   }
 
   if ($error) {
@@ -1248,7 +1248,7 @@ sub noFragsInSeed {
 
   if ( keys %bad_seq ) {
     $error = 1;
-    print STDERR "\n--- Your seed contains fragments! ---\n\n";
+    print STDERR "\n*** ERROR: your seed contains fragments! ***\n\n";
   }
   else {
     print STDERR "\n--- Your seed does not contain fragments! ---\n\n";
