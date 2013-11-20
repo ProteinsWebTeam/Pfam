@@ -514,22 +514,22 @@ sub updatePfamARegFull {
 #-------------------------------------------------------------------------------
   my %seqacc2auto;
   my @seqs;
-  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
-    my $key = $seq->name;
-    my $value;
-    eval{
-      $value = $redis->get($key); 
-    };
-    if($@){
-      confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
-    }
+  #foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
+  #  my $key = $seq->name;
+  #  my $value;
+  #  eval{
+  #    $value = $redis->get($key); 
+  #  };
+  #  if($@){
+  #    confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
+  #  }
     
-    if(!$value){
-      confess("Failed to get auto mapping for sequence: $key\n");
-    }
-    
-    $seqacc2auto{ $key } = $value;
-  }
+  #  if(!$value){
+  #    confess("Failed to get auto mapping for sequence: $key\n");
+  #  }
+  #  #This is exploding the size!!!!
+  #  #$seqacc2auto{ $key } = $value;
+  #}
 #-------------------------------------------------------------------------------
 #Now delete all regions in the two tables
 
@@ -572,14 +572,19 @@ sub updatePfamARegFull {
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
     next unless ($seq);
 
-    #Get the auto number for this sequence
+    #Get the auto number for this sequenceq->name;
     my $sauto;
-    if ( $seqacc2auto{ $seq->name } ) {
-      $sauto = $seqacc2auto{ $seq->name };
+    eval{
+      $sauto = $redis->get($seq->name); 
+    };
+    if($@){
+      confess("Failed to get auto mapping [".$seq->name."] from redis as redis threw an error:\n\n$@");
     }
-    else {
+
+    if (!$sauto){
+
       confess( "Failed to find entry in pfamseq for "
-          . $seq->id . "."
+          . $seq->name . "."
           . $seq->seq_version
           . "\n" );
     }
