@@ -80,10 +80,13 @@ sub new {
   }elsif($params->{txn}){
     $self = $class->SUPER::new( $params->{repos}, -t => $params->{txn} );
   }
-  
+
   $self->{config} = Bio::Pfam::Config->new;
-  $self->{redis}  = Redis->new(server => '127.0.0.1:6379'); #This is the standard Redis port
-  $self->{view} = Bio::Pfam::ViewProcess->new;
+
+  my $redis_server = $self->{config}->{redisHost} . ':' . $self->{config}->{redisPort};
+  
+  $self->{redis} = Redis->new( server => $redis_server );
+  $self->{view}  = Bio::Pfam::ViewProcess->new;
   
   return bless($self, $class);  
 }
@@ -255,7 +258,7 @@ sub _getFamilyObjFromTrans {
   
   
   #Write all of the files for this transaction to disk and then read them
-  my $dir =  File::Temp->newdir( DIR => "/pfam/repos/tmp");
+  my $dir =  File::Temp->newdir( DIR => $self->{config}->tempDir );
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   my $params;
   foreach  my $f ( @{ $self->{config}->mandatoryFamilyFiles }) {
