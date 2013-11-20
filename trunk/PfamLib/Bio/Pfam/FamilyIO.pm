@@ -750,22 +750,15 @@ sub uploadPfamAAligns {
   my $seed;
 
   #Read the FULL alignment into a string
-  open( F, "$dir/$family/ALIGN" )
+  open( $full , "$dir/$family/ALIGN" )
     or die "Could not open $dir/$family/ALIGN:[$!]\n";
-  while (<F>) {
-    $full .= $_;
-  }
-  close(F);
 
   #Read the SEED alignment into a string;
-  open( S, "$dir/$family/SEED" )
+  open( $seed, "$dir/$family/SEED" )
     or die "Could not open $dir/$family/SEED:[$!]\n";
-  while (<S>) {
-    $seed .= $_;
-  }
-  close(S);
 
   $pfamDB->uploadPfamAInternal( $famObj, $seed, $full );
-
+  close($full);
+  close($seed);
 }
 1;
