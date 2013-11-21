@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 27;
+use Test::More tests => 32;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -177,6 +177,26 @@ $line1 = <IN>;
 close(IN);
 is($line1, "orc          AGCU-CCGCGCCU\n", "column_subset failed");
 unlink $outfile;
+
+# test remove_rf_gap_columns
+$alnfile = "./t/data/test.rf.sto";
+$msa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+});
+isa_ok($msa, "Bio::Easel::MSA");
+$msa->remove_rf_gap_columns();
+$sub_alen = $msa->alen;
+is($sub_alen, "24", "remove_rf_gap_columns failed to work");
+
+$msa->revert_to_original();
+my $alen = $msa->alen;
+is($alen, "28", "revert_to_original() failed to work");
+
+isa_ok($msa, "Bio::Easel::MSA");
+$msa->remove_rf_gap_columns("~-");
+# no gaps should be removed
+$sub_alen = $msa->alen;
+is($sub_alen, "28", "remove_rf_gap_columns failed to work");
 
 #######################################################
 
