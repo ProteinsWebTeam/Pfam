@@ -293,6 +293,25 @@ sub has_ss_cons {
   return _c_has_ss_cons( $self->{esl_msa} );
 }
 
+=head2 get_rf
+
+  Title    : get_rf
+  Incept   : EPN, Thu Nov 21 10:10:00 2013
+  Usage    : $msaObject->get_rf()
+  Function : Returns msa->rf if it exists, else dies via croak.
+  Args     : None
+  Returns  : msa->rf if it exists, else dies
+
+=cut
+
+sub get_rf { 
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  if(! $self->has_rf()) { croak "Trying to fetch RF from MSA but it does not exist"; }
+  return _c_get_rf( $self->{esl_msa} );
+}
+
 =head2 get_ss_cons
 
   Title    : get_ss_cons
@@ -1163,6 +1182,42 @@ sub remove_all_gap_columns
 
   _c_remove_all_gap_columns($self->{esl_msa}, $consider_rf);
 
+  return;
+}
+
+=head2 remove_rf_gap_columns
+
+  Title     : remove_rf_gap_columns
+  Incept    : EPN, Thu Nov 21 10:07:07 2013
+  Usage     : $msaObject->remove_rf_gap_columns
+  Function  : Remove any column from an MSA that is a gap (exists in $gapstr)
+            : in the GC RF annotation of the MSA.
+  Args      : $gapstring: string of characters to consider as gaps,
+            :             if undefined we use '.-~'
+  Returns   : void
+  Dies      : upon an error with croak
+=cut
+    
+sub remove_rf_gap_columns
+{
+  my ($self, $gapstring) = @_;
+
+  $self->_check_msa();
+  if(! defined $gapstring) { $gapstring = ".-~"; }
+  
+  if(! $self->has_rf) { croak "Trying to remove RF gap columns, but no RF annotation exists in the MSA"; }
+  my $rf = $self->get_rf;
+  my @rfA = split("", $rf);
+  my $rflen = scalar(@rfA);
+  if($self->alen != $rflen) { croak "RF length $rflen not equal to alignment length"; }
+
+  my @usemeA = ();
+  for(my $apos = 0; $apos < $rflen; $apos++) { 
+    $usemeA[$apos] = ($rfA[$apos] =~ m/[\Q$gapstring\E]/) ? 0 : 1;
+  }      
+  
+  _c_column_subset($self->{esl_msa}, \@usemeA);
+  
   return;
 }
 

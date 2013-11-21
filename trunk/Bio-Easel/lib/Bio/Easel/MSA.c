@@ -244,6 +244,18 @@ int _c_has_ss_cons (ESL_MSA *msa)
   else             return 0;
 }
 
+/* Function:  _c_get_rf()
+ * Incept:    EPN, Thu Nov 21 10:10:51 2013
+ * Synopsis:  Returns msa->rf if non-NULL, else dies.
+ *            Caller should have used _c_has_rf to verify it exists.
+ * Returns:   msa->rf()
+ */
+char *_c_get_rf (ESL_MSA *msa)
+{
+  if(msa->rf == NULL) esl_fatal("_c_get_rf, but RF is NULL");
+  return msa->rf;
+}
+
 /* Function:  _c_get_ss_cons()
  * Incept:    EPN, Fri May 24 09:58:32 2013
  * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
@@ -252,7 +264,7 @@ int _c_has_ss_cons (ESL_MSA *msa)
  */
 char *_c_get_ss_cons (ESL_MSA *msa)
 {
-  if(msa->ss_cons == NULL) esl_fatal("c_get_ss_cons, but SS_cons is NULL");
+  if(msa->ss_cons == NULL) esl_fatal("_c_get_ss_cons, but SS_cons is NULL");
   return msa->ss_cons;
 }
 
