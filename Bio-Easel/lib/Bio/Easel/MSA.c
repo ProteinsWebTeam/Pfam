@@ -25,6 +25,31 @@
     : NULL                                         \
   )
 
+/* Function:  _c_int_copy_array_perl_to_c()
+ * Incept:    EPN, Thu Nov 21 09:07:47 2013
+ * Synopsis:  Copy a perl array of ints into a C array of ints
+ *            <cA> must already be allocated to proper length (<len>).
+ * Returns:   void
+ *
+ */
+
+void _c_int_copy_array_perl_to_c (AV *perlAR, int *cA, int len)
+{
+  int i;
+  SV **value; /* this will hold the value we extract */
+
+  for(i = 0; i < len; i++) { 
+    /* look up the i'th element, which is an SV */
+    value = av_fetch(perlAR, i, 0);
+    /* a couple of sanity checks */
+    if (value == NULL)  croak( "_c_int_copy_array_perl_to_c, failed array lookup for element %d", i);
+    if (!SvIOK(*value)) croak( "_c_int_copy_array_perl_to_c, array element %d is not an integer", i);
+    cA[i] = SvIV(*value);
+  }
+
+  return;
+}
+
 /* Function:  _c_read_msa()
  * Incept:    EPN, Sat Feb  2 14:14:20 2013
  * Synopsis:  Open a alignment file, read an msa, and close the file.
@@ -1326,6 +1351,28 @@ _c_pairwise_identity(ESL_MSA *msa, int i, int j)
   return pid;
 }
 
+/* Function: _c_clone_msa
+ * Incept:   EPN, Thu Nov 21 09:12:49 2013
+ * Purpose:  Duplicates an MSA, and returns the newly created duplicate.
+ *
+ * Args:     msa:   the input alignment
+ *
+ * Returns:  upon success: a new msa, a duplicate of the input msa
+ *           NULL on error
+ */
+SV *
+_c_clone_msa(ESL_MSA *msa)
+{
+  int status;
+  ESL_MSA *new_msa = NULL;
+
+  new_msa = esl_msa_Clone(msa);
+
+  if(new_msa == NULL) return NULL;
+
+  return perl_obj(new_msa, "ESL_MSA");
+}
+
 /* Function: _c_sequence_subset
  * Incept:   EPN, Thu Nov 14 10:41:06 2013
  * Purpose:  Create a new MSA and return it, with a 
@@ -1363,21 +1410,13 @@ _c_sequence_subset(ESL_MSA *msa, AV *usemeAR)
   int status;              /* status */
   ESL_MSA *new_msa = NULL; /* the new_msa we'll create and return */
   int i;                   /* counter over sequences */
-  /* for manipulating the perl usemeAR */
-  SV **value; /* this will hold the value we extract */
 
   /* create C int array useme */
   int *useme = NULL;
   ESL_ALLOC(useme, sizeof(int) * msa->nseq);
 
-  for(i = 0; i < msa->nseq; i++) { 
-    /* look up the ith element, which is yet another SV */
-    value = av_fetch(usemeAR, i, 0);
-    /* a couple of sanity checks */
-    if (value == NULL)  croak( "_c_sequence_subset, failed array lookup for element %d", i );
-    if (!SvIOK(*value)) croak( "array element %d is not an integer", i);
-    useme[i] = SvIV(*value);
-  }
+  /* copy the perl array into the C one */
+  _c_int_copy_array_perl_to_c(usemeAR, useme, msa->nseq);
 
   status = esl_msa_SequenceSubset(msa, useme, &new_msa);
   if     (status == eslEINVAL) croak("in _c_sequence_subset(), no sequences in input msa"); 
@@ -1431,3 +1470,52 @@ _c_remove_all_gap_columns(ESL_MSA *msa, int consider_rf)
   
   return;
 }
+
+/* Function: _c_column_subset
+ * Incept:   EPN, Thu Nov 21 09:01:02 2013
+ * Purpose:  Remove columns from an MSA based on
+ *           usemeAR. If $usemeAR->[$i] is '1' then
+ *           keep column $i, else remove it.
+ * 
+ *           Real work is done by esl_msa_ColumnSubset().
+ *
+ * Args:     msa:         the input alignment
+ *           useme: [0..apos..msa->alen-1]: TRUE to keep col i, FALSE to remove it
+ * 
+ * Returns:  void
+ * Dies:     with croak upon an erro
+ *           NULL on error
+ */
+void
+_c_column_subset(ESL_MSA *msa, AV *usemeAR)
+{
+  int  status;              /* status */
+  int  apos;                /* counter over alignment positions */
+  char errbuf[eslERRBUFSIZE];
+  /* for manipulating the perl usemeAR */
+  SV **value; /* this will hold the value we extract */
+
+  if (! (msa->flags & eslMSA_DIGITAL)) { 
+    croak ("ERROR, _c_column_subset, MSA is in text mode..."); 
+  }           
+
+  /* create C int array useme */
+  int *useme = NULL;
+  ESL_ALLOC(useme, sizeof(int) * msa->alen);
+
+  /* copy the perl array into the C one */
+  _c_int_copy_array_perl_to_c(usemeAR, useme, msa->alen);
+
+  /* remove the columns in place */
+  status = esl_msa_ColumnSubset(msa, errbuf, useme);
+  if(status != eslOK) croak ("ERROR, _c_column_subset: %s\n", errbuf);
+  
+  return;
+
+ ERROR:
+  if(useme) free(useme);
+  croak("in _c_column_subset(), out of memory");
+  return; /* NEVERREACHED */
+}
+
+

@@ -1056,6 +1056,32 @@ sub remove_prefix_from_sqname
   return $sqname;
 }
 
+=head2 clone_msa
+
+  Title     : clone_msa
+  Incept    : EPN, Thu Nov 21 09:38:23 2013
+  Usage     : $newmsaObject = $msaObject->clone_msa()
+  Function  : Creates a new MSA, a duplicate of $self.
+  Args      : None
+  Returns   : $new_msa: a new Bio::Easel::MSA object, a duplicate of $self
+
+=cut
+
+sub clone_msa
+{
+  my ($self) = @_;
+
+  $self->_check_msa();
+
+  my $new_esl_msa = _c_clone_msa($self->{esl_msa});
+
+  my $new_msa = Bio::Easel::MSA->new({
+    esl_msa => $new_esl_msa,
+  });
+
+  return $new_msa;
+}
+
 =head2 sequence_subset
 
   Title     : sequence_subset
@@ -1069,7 +1095,7 @@ sub remove_prefix_from_sqname
             : caller may want to do that immediately with
             : remove_all_gap_columns().
   Args      : $usemeAR: [0..i..nseq-1] ref to array with value
-            :           '1' to useme seq i, '0' to remove it
+            :           '1' to keep seq i, '0' to remove it
   Returns   : $new_msa: a new Bio::Easel::MSA object, with 
             :           a subset of the sequences in $self.
 =cut
@@ -1088,6 +1114,31 @@ sub sequence_subset
   });
 
   return $new_msa;
+}
+
+=head2 column_subset
+
+  Title     : column_subset
+  Incept    : EPN, Thu Nov 14 10:24:50 2013
+  Usage     : $msaObject->column_subset($usemeAR)
+  Function  : Remove a subset of columns from an MSA.
+            : If the column for one half of a SS_cons basepair is 
+            : removed but not the other half, the basepair
+            : will be removed from SS_cons.
+  Args      : $usemeAR: [0..i..alen-1] ref to array with value
+            :           '1' to keep column i, '0' to remove it
+  Returns   : void
+=cut
+
+sub column_subset
+{
+  my ($self, $usemeAR) = @_;
+
+  $self->_check_msa();
+
+  _c_column_subset($self->{esl_msa}, $usemeAR);
+
+  return;
 }
 
 =head2 remove_all_gap_columns
@@ -1113,6 +1164,63 @@ sub remove_all_gap_columns
   _c_remove_all_gap_columns($self->{esl_msa}, $consider_rf);
 
   return;
+}
+
+=head2 find_divergent_seqs_from_subset
+
+  Title     : find_divergent_seqs_from_subset
+  Incept    : EPN, Thu Nov 21 08:41:06 2013
+  Usage     : $msaObject->find_divergent_seqs_from_subset
+  Function  : Given a subset of sequences, find all other sequences
+            : not in the subset that are <= $id_thr fractionally
+            : identical to *all* seqs in the subset.
+  Args      : $subsetAR: [0..$i..$msa->nseq-1] '1' if sequence i is in the subset, else 0
+            : $id_thr:   fractional identity threshold
+            : $divAR:    FILLED HERE: ref to array of sequence indices that are <= 
+            :            $id_thr fractionally identical to all seqs in subset
+            : $nnidxAR:  FILLED HERE: ref to array of nearest neighbor indices
+            :            for each seq in $divAR. For example, if divAR[0] is 3 and nnidxAR[0] 
+            :            is 1, then the most similar sequence in the subset to sequence 3
+            :            is sequence 1.
+            : $nnfidAR:  FILLED HERE: ref to array of nearest neighbor fractional identities
+            :            for each seq in $divAR. For example, if divAR[0] is 3 and nnfidAR[0] 
+            :            is 0.75, then the most similar sequence in the subset to sequence 3
+            :            is 75% identical to it.
+  Returns   : Number of divergent seqs found. This will also be the size of @{$divAR}, @{$nnidxAR} and @{$nnfidAR}
+  Dies      : if no sequences exist in $subsetAR, or any indices are invalid
+            : with croak
+=cut
+
+sub find_divergent_seqs_from_subset
+{
+  my ($self, $subsetAR, $id_thr, $divAR, $nnidxAR, $nnfidAR) = @_;
+
+  $self->_check_msa();
+
+  my $nseq = $self->nseq;
+  my $ndiv = 0;
+  for(my $i = 0; $i < $self->nseq; $i++) { 
+    my $maxid  = -1.;
+    my $maxidx = -1;
+    my $exceeded_thr = 0;
+    if(! $subsetAR->[$i]) { 
+      for(my $j = 0; $j < $self->nseq; $j++) {
+        if($subsetAR->[$j]) { 
+          my $id = $self->pairwise_identity($i, $j);
+          if($id > $id_thr)    { $exceeded_thr = 1; $j = $self->nseq+1; } # setting j this way breaks us out of the loop
+          elsif($id > $maxid)  { $maxidx = $j; $maxid = $id; }
+        }
+      }
+    }
+    if(! $exceeded_thr) { 
+      if(defined $divAR)   { push(@{$divAR},   $i); }
+      if(defined $nnidxAR) { push(@{$nnidxAR}, $maxidx); }
+      if(defined $nnfidAR) { push(@{$nnfidAR}, $maxid); }
+      $ndiv++;
+    }
+  }
+
+  return $ndiv;
 }
 
 =head2 DESTROY

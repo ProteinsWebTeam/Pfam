@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 25;
+use Test::More tests => 27;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -161,6 +161,21 @@ $line1 = <IN>;
 $line1 = <IN>;
 close(IN);
 is($line1, "orc          AGGUCUUC-GCACGGGCAGCCACUUC\n", "remove_all_gap_columns failed");
+unlink $outfile;
+
+# test clone and column_subset
+my $newer_msa = $new_msa->clone_msa();
+isa_ok($newer_msa, "Bio::Easel::MSA");
+my @usemeA = (1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0);
+$newer_msa->column_subset(\@usemeA);
+$newer_msa->write_msa($outfile, "stockholm");
+open(IN, $outfile);
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+$line1 = <IN>;
+close(IN);
+is($line1, "orc          AGCU-CCGCGCCU\n", "column_subset failed");
 unlink $outfile;
 
 #######################################################
