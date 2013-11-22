@@ -338,7 +338,7 @@ sub parseDESC {
       }
     }
     elsif (
-      $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+(\S+)\/(\d+)\-(\d+)\;\s+$/ )
+      $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+(\S+)\/(\d+)\-(\d+)\;\s*$/ )
     {
       push(
         @{ $params{EDITS} },
@@ -346,7 +346,7 @@ sub parseDESC {
       );
       next;
     }
-    elsif ( $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s+$/ ) {
+    elsif ( $file[$i] =~ /^ED\s{3}(\S+)\/(\d+)\-(\d+)\;\s*$/ ) {
       push(
         @{ $params{EDITS} },
         { seq => $1, oldFrom => $2, oldTo => $3, delete => 1 }
