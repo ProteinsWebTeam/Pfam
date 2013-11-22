@@ -47,7 +47,7 @@ my $outseed = "SEED";               # name for output seed alignment, redefined 
 my $do_local  = 0;                  # TRUE to align locally w.r.t. the CM
 my $do_prob   = 0;                  # TRUE to include PPs in output alignment
 my $do_help   = 0;                  # TRUE to print help and exit, if -h used
-
+my $do_stdout;
 my $date = scalar localtime();
 my $logFH;
 
