@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 32;
+use Test::More tests => 42;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -199,6 +199,32 @@ $sub_alen = $msa->alen;
 is($sub_alen, "28", "remove_rf_gap_columns failed to work");
 
 #######################################################
+# avg_min_max_pid_to_seq
+$msa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+});
+my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx) = $msa->avg_min_max_pid_to_seq(1);
+# round pids
+$avg_pid = int(($avg_pid * 100) + 0.5);
+$min_pid = int(($min_pid * 100) + 0.5);
+$max_pid = int(($max_pid * 100) + 0.5);
+is($avg_pid, 43);
+is($min_pid, 32);
+is($min_idx, 2);
+is($max_pid, 54);
+is($max_idx, 0);
+
+@usemeA = ('1', '1', '0');
+($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx) = $msa->avg_min_max_pid_to_seq(1, \@usemeA);
+# round pids
+$avg_pid = int(($avg_pid * 100) + 0.5);
+$min_pid = int(($min_pid * 100) + 0.5);
+$max_pid = int(($max_pid * 100) + 0.5);
+is($avg_pid, 54);
+is($min_pid, 54);
+is($min_idx, 0);
+is($max_pid, 54);
+is($max_idx, 0);
 
 # FIX DESTROY CALL!
 #TODO: test free_msa

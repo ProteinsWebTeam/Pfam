@@ -15,6 +15,8 @@ Version 0.01
 
 =cut
 
+#-------------------------------------------------------------------------------
+
 our $VERSION = '0.01';
 
 # Easel status codes, these must be consistent with #define's in Bio-Easel/src/easel/easel.h
@@ -90,6 +92,8 @@ No functions currently exported.
 =head1 SUBROUTINES/METHODS
 =cut
 
+#-------------------------------------------------------------------------------
+
 =head2 new 
 
   Title    : new
@@ -143,6 +147,8 @@ sub new {
   return $self;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 msa
 
   Title    : msa
@@ -163,6 +169,8 @@ sub msa {
   return $self->{esl_msa};
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 path
 
   Title    : path
@@ -179,6 +187,31 @@ sub path {
 
   return defined( $self->{path} ) ? $self->{path} : undef;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 format
+
+  Title    : format
+  Incept   : rdf, Fri Jul 19 14:05:01 2013
+  Usage    : $msaObject->format()
+  Function : Gets the format of the MSA
+  Args     : none
+  Returns  : String of the format.
+
+=cut
+
+sub format {
+  my ($self) = @_;
+  
+  if(!$self->{informat}){
+    $self->read_msa;
+  }
+
+  return ($self->{informat});
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 read_msa
 
@@ -221,6 +254,8 @@ sub read_msa {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 nseq
 
   Title    : nseq
@@ -238,6 +273,8 @@ sub nseq {
   $self->_check_msa();
   return _c_nseq( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 alen
 
@@ -268,12 +305,16 @@ sub alen {
 
 =cut
 
+#-------------------------------------------------------------------------------
+
 sub has_rf {
   my ($self) = @_;
 
   $self->_check_msa();
   return _c_has_rf( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 has_ss_cons
 
@@ -292,6 +333,8 @@ sub has_ss_cons {
   $self->_check_msa();
   return _c_has_ss_cons( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 get_rf
 
@@ -312,6 +355,8 @@ sub get_rf {
   return _c_get_rf( $self->{esl_msa} );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 get_ss_cons
 
   Title    : get_ss_cons
@@ -331,6 +376,8 @@ sub get_ss_cons {
   return _c_get_ss_cons( $self->{esl_msa} );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 set_blank_ss_cons
 
   Title    : set_blank_ss_cons
@@ -348,6 +395,8 @@ sub set_blank_ss_cons {
   $self->_check_msa();
   return _c_set_blank_ss_cons( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 get_sqname
 
@@ -369,6 +418,8 @@ sub get_sqname {
   return _c_get_sqname( $self->{esl_msa}, $idx );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 set_sqname
 
   Title    : set_sqname
@@ -388,6 +439,8 @@ sub set_sqname {
   _c_set_sqname( $self->{esl_msa}, $idx, $newname );
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 get_sqwgt
 
@@ -409,6 +462,8 @@ sub get_sqwgt {
   return _c_get_sqwgt( $self->{esl_msa}, $idx );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 get_accession
 
   Title    : get_accession
@@ -427,6 +482,8 @@ sub get_accession {
   return _c_get_accession( $self->{esl_msa} );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 get_name
 
   Title    : get_name
@@ -444,6 +501,8 @@ sub get_name {
   $self->_check_msa();
   return _c_get_name( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 set_accession
 
@@ -467,6 +526,8 @@ sub set_accession {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 set_name
 
   Title    : set_name
@@ -488,6 +549,8 @@ sub set_name {
   }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 write_msa
 
@@ -537,6 +600,8 @@ sub write_msa {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 write_single_unaligned_seq
 
   Title    : write_single_unaligned_seq
@@ -570,6 +635,8 @@ sub write_single_unaligned_seq {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 any_allgap_columns
 
   Title    : any_allgap_columns
@@ -587,6 +654,8 @@ sub any_allgap_columns {
   $self->_check_msa();
   return _c_any_allgap_columns( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 average_id
 
@@ -618,6 +687,8 @@ sub average_id {
   return $self->{average_id};
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 get_sqstring_aligned
 
   Title    : get_sqstring_aligned
@@ -636,6 +707,8 @@ sub get_sqstring_aligned {
   $self->_check_sqidx($idx);
   return _c_get_sqstring_aligned( $self->{esl_msa}, $idx );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 get_sqstring_unaligned
 
@@ -656,6 +729,8 @@ sub get_sqstring_unaligned {
   return _c_get_sqstring_unaligned( $self->{esl_msa}, $idx );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 get_sqlen
 
   Title    : get_sqlen
@@ -675,6 +750,8 @@ sub get_sqlen {
   $self->_check_sqidx($idx);
   return _c_get_sqlen( $self->{esl_msa}, $idx );
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 count_residues
 
@@ -700,6 +777,8 @@ sub count_residues
   return $self->{nresidue};
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 average_sqlen
 
   Title    : average_sqlen
@@ -723,6 +802,8 @@ sub average_sqlen {
   }
   return $self->{average_sqlen};
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 calc_and_write_bp_stats
 
@@ -750,6 +831,8 @@ sub calc_and_write_bp_stats {
 
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 rfam_qc_stats
 
@@ -779,6 +862,8 @@ sub rfam_qc_stats {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 addGF
 
   Title    : addGF
@@ -799,6 +884,8 @@ sub addGF {
   if ( $status != $ESLOK ) { croak "ERROR: unable to add GF annotation"; }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 addGS
 
@@ -822,6 +909,8 @@ sub addGS {
   if ( $status != $ESLOK ) { croak "ERROR: unable to add GS annotation"; }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 addGC_identity
 
@@ -848,6 +937,8 @@ sub addGC_identity {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 weight_GSC
 
   Title    : weight_GSC
@@ -869,6 +960,8 @@ sub weight_GSC {
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 free_msa
 
   Title    : free_msa
@@ -887,6 +980,8 @@ sub free_msa {
   _c_free_msa( $self->{esl_msa} );
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 revert_to_original
 
@@ -910,6 +1005,8 @@ sub revert_to_original {
   $self->read_msa;
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 weight_id_filter
 
@@ -935,6 +1032,125 @@ sub weight_id_filter
   
   return;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 filter_msa_subset_target_nseq
+
+  Title     : filter_msa_subset_target_nseq
+  Incept    : EPN, Thu Nov 21 13:40:52 2013
+  Usage     : $msaObject->filter_msa_subset_target_nseq($idf)
+  Function  : Filter a subset of sequences in an MSA such that no
+            : two sequences in the filtered subset are more than $idf
+            : fractionally identical, where $idf is the maximum value
+            : that results in <= $nseq sequences (within 0.01, that is, 
+            : $idf + 0.01 gives > $nseq sequences).
+            : $idf is found by a binary search.
+  Args      : $usemeAR:  [0..$i..$self->nseq]: '1' if we should consider sequence $i, else ignore it.
+            :            set to all '1' to consider all sequences in the msa.
+            : $nseq:     fractional identity threshold no pair of seqs in $keepmeAR will exceed
+            : $keepmeAR: [0..$i..$self->nseq]: '1' if seq $i survives the filtering.
+            :            note that $keepmeAR->[$i] can only be '1' if $usemeAR->[$i] is also '1'.
+  Returns   : $idf:   the fractional identity used to fill keepmeAR
+            : $nkeep: number of '1' in keepmeAR
+
+=cut
+
+sub filter_msa_subset_target_nseq
+{
+  my($self, $usemeAR, $nseq, $keepmeAR) = @_;
+  
+  # binary search for max fractional id ($f_cur) that results in $nseq sequences
+  # we'll filter the alignment such that no two seqs are more than $f_cur similar to each other
+  # (or as close as we can get to $nseq by minimal change of 0.01)
+  # initializations
+  my $f_min = 0.01;
+  my $f_opt = 0.01;
+  my $f_prv = 1.0;
+  my $f_cur = $f_min;
+  my ($i, $n);
+  my $diff = abs($f_prv - $f_cur);
+  while($diff > 0.00999) { # while abs($f_prv - $f_cur) > 0.00999
+    # filter based on percent identity
+    $n = $self->filter_msa_subset($usemeAR, $f_cur, $keepmeAR);
+    printf STDERR ("filter_msa_subset_target_nseq: %.4f %4d seqs\n", $f_cur, $n);
+          
+    $f_prv = $f_cur;
+    # adjust $f_cur for next round based on how many seqs we have
+    if($n > $nseq) { # too many seqs, lower $f_cur
+      $f_cur -= ($diff / 2.); 
+    }
+    else { # too few seqs, raise $f_cur
+      if($f_cur > $f_opt) { $f_opt = $f_cur; }
+      $f_cur += ($diff / 2.); 
+    }
+          
+    # round to nearest percentage point (0.01)
+    $f_cur = (int(($f_cur * 100) + 0.5)) / 100;
+          
+    if($f_cur < $f_min) { croak "filter_msa_subset_target_nseq: couldn't reach $nseq sequences, with fractional id > $f_min\n"; }
+    $diff = abs($f_prv - $f_cur);
+  }    
+  # $f_opt is our optimal fractional id, the max fractional id that gives <= $nseq seqs
+  # call filter_msa_subset once more, to redefine keepmeA
+  $n = $self->filter_msa_subset($usemeAR, $f_opt, $keepmeAR);
+
+  return($f_opt, $n);
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 filter_msa_subset
+
+  Title     : filter_msa_subset
+  Incept    : EPN, Thu Nov 21 13:30:15 2013
+  Usage     : $nkept = $msaObject->filter_msa_subset($usmeAR, $idf, $keepmeAR)
+  Function  : Filter a subset of sequences in an MSA such that no
+            : two sequences in the filtered subset are more than $idf
+            : fractionally identical.
+            : Similar to weight_id_filter() except does not create a new
+            : MSA of only the filtered set, and this function is flexible
+            : to only considering a subset of the passed in alignment.
+  Args      : $usemeAR:  [0..$i..$self->nseq]: '1' if we should consider sequence $i, else ignore it.
+            : $idf:      fractional identity threshold no pair of seqs in $keepmeAR will exceed
+            : $keepmeAR: [0..$i..$self->nseq]: '1' if seq $i survives the filtering.
+            :            note that $keepmeAR->[$i] can only be '1' if $usemeAR->[$i] is also '1'.
+  Returns   : Number of sequences that are '1' in $keepmeAR upon exit.
+
+=cut
+
+sub filter_msa_subset
+{
+  my($self, $usemeAR, $idf, $keepmeAR) = @_;
+  
+  my ($i, $j, $pid);  # counters and a pid (pairwise identity) value
+  my $nseq = $self->nseq;
+  my $nkeep = 0;
+
+  # copy usemeA to keepmeA
+  for($i = 0; $i < $nseq; $i++) { 
+    $keepmeAR->[$i] = $usemeAR->[$i]; 
+    if($keepmeAR->[$i]) { $nkeep++; }
+  }
+  
+  for($i = 0; $i < $nseq; $i++) { 
+    if($keepmeAR->[$i]) { # we haven't removed it yet
+      for($j = $i+1; $j < $nseq; $j++) { # for every other seq that ... 
+        if($keepmeAR->[$j]) { # ... we haven't removed yet
+          $pid = _c_pairwise_identity($self->{esl_msa}, $i, $j); # get fractional identity
+          if($pid > $idf) { 
+            $keepmeAR->[$j] = 0; # remove it
+            $nkeep--;
+          }
+        }
+      }
+    }
+  }
+
+  return $nkeep;
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 alignment_coverage
 
@@ -962,6 +1178,8 @@ sub alignment_coverage
   return @output;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 count_msa
 
   Title     : count_msa
@@ -983,6 +1201,8 @@ sub count_msa
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 pairwise_identity
 
   Title     : pairwise_identity
@@ -1001,6 +1221,8 @@ sub pairwise_identity
   $self->_check_msa();
   return _c_pairwise_identity($self->{esl_msa}, $i, $j);
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 check_if_prefix_added_to_sqnames
 
@@ -1049,6 +1271,8 @@ sub check_if_prefix_added_to_sqnames
   return $ret_val;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 remove_prefix_from_sqname
 
   Title     : remove_prefix_from_sqname
@@ -1075,6 +1299,8 @@ sub remove_prefix_from_sqname
   return $sqname;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 clone_msa
 
   Title     : clone_msa
@@ -1100,6 +1326,8 @@ sub clone_msa
 
   return $new_msa;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 sequence_subset
 
@@ -1135,6 +1363,8 @@ sub sequence_subset
   return $new_msa;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 column_subset
 
   Title     : column_subset
@@ -1160,6 +1390,8 @@ sub column_subset
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 remove_all_gap_columns
 
   Title     : remove_all_gap_columns
@@ -1184,6 +1416,8 @@ sub remove_all_gap_columns
 
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 remove_rf_gap_columns
 
@@ -1221,6 +1455,8 @@ sub remove_rf_gap_columns
   return;
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 find_divergent_seqs_from_subset
 
   Title     : find_divergent_seqs_from_subset
@@ -1231,16 +1467,15 @@ sub remove_rf_gap_columns
             : identical to *all* seqs in the subset.
   Args      : $subsetAR: [0..$i..$msa->nseq-1] '1' if sequence i is in the subset, else 0
             : $id_thr:   fractional identity threshold
-            : $divAR:    FILLED HERE: ref to array of sequence indices that are <= 
-            :            $id_thr fractionally identical to all seqs in subset
-            : $nnidxAR:  FILLED HERE: ref to array of nearest neighbor indices
-            :            for each seq in $divAR. For example, if divAR[0] is 3 and nnidxAR[0] 
-            :            is 1, then the most similar sequence in the subset to sequence 3
-            :            is sequence 1.
-            : $nnfidAR:  FILLED HERE: ref to array of nearest neighbor fractional identities
-            :            for each seq in $divAR. For example, if divAR[0] is 3 and nnfidAR[0] 
-            :            is 0.75, then the most similar sequence in the subset to sequence 3
-            :            is 75% identical to it.
+            : $divAR:    FILLED HERE: [0..$i..$msa->nseq-1] ref to array, '1'  if a sequence
+            :            is <= $id_thr fractionally identical to all seqs in subset, else 0
+            : $nnidxAR:  FILLED HERE: [0..$i..$msa->nseq-1] ref to array, index of nearest
+            :            neighbor (index that is '1' in subsetAR) if $divAR->[$i] == 1, else -1
+            : $nnfidAR:  FILLED HERE: [0..$i..$msa->nseq-1] ref to array, index of fractional
+            :            identity to nearest neighbor, if $divAR->[$i] == 1, else 0.
+            : Example: if sequence idx 5 is $id_thr or less fractionally identical to all
+            :          sequences in the subset, but closest to sequence index 11 at 0.73,
+            :          then $divAR->[5] = 1, $nnidxAR->[5] = 11, $nnfidAR->[5] = 0.73.
   Returns   : Number of divergent seqs found. This will also be the size of @{$divAR}, @{$nnidxAR} and @{$nnfidAR}
   Dies      : if no sequences exist in $subsetAR, or any indices are invalid
             : with croak
@@ -1261,22 +1496,82 @@ sub find_divergent_seqs_from_subset
     if(! $subsetAR->[$i]) { 
       for(my $j = 0; $j < $self->nseq; $j++) {
         if($subsetAR->[$j]) { 
-          my $id = $self->pairwise_identity($i, $j);
+          my $id = _c_pairwise_identity($self->{esl_msa}, $i, $j);
           if($id > $id_thr)    { $exceeded_thr = 1; $j = $self->nseq+1; } # setting j this way breaks us out of the loop
           elsif($id > $maxid)  { $maxidx = $j; $maxid = $id; }
         }
       }
     }
     if(! $exceeded_thr) { 
-      if(defined $divAR)   { push(@{$divAR},   $i); }
-      if(defined $nnidxAR) { push(@{$nnidxAR}, $maxidx); }
-      if(defined $nnfidAR) { push(@{$nnfidAR}, $maxid); }
+      if(defined $divAR)   { $divAR->[$i]   = 1; }
+      if(defined $nnidxAR) { $nnidxAR->[$i] = $maxidx; }
+      if(defined $nnfidAR) { $nnfidAR->[$i] = $maxid;  }
       $ndiv++;
+    }
+    else { 
+      if(defined $divAR)   { $divAR->[$i]   = 0;  }
+      if(defined $nnidxAR) { $nnidxAR->[$i] = -1; }
+      if(defined $nnfidAR) { $nnfidAR->[$i] = 0.; }
     }
   }
 
   return $ndiv;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 avg_min_max_pid_to_seq
+
+  Title    : avg_min_max_pid_to_seq
+  Incept   : EPN, Fri Nov 22 08:53:56 2013
+  Usage    : $msaObject->avg_min_max_pid_to_seq($i);
+  Function : Calculates the average, minimum and maximum 
+           : fractional identity of seq $idx to all other seqs.
+           : If optional parameter, $usemeAR is passed in
+           : then only consider sequences $j for which
+           : $usemeAR->[$j] is '1' (except $idx even if
+           : $usemeAR->[$idx] is '1').
+  Args     : $idx:     index of sequence we want avg/min/max pid to
+           : $usemeAR: OPTIONAL: if defined: 
+           :           [0..$j..nseq-1]: '1' if we should consider
+           :           seq $j in calculation of avg/min/max.
+  Returns  : $avg_pid: average fractional id b/t $idx and all other seqs
+           : $min_pid: minimum fractional id b/t $idx and all other seqs
+           : $min_idx: index of seq that gives $min_pid to $idx
+           : $max_pid: minimum fractional id b/t $idx and all other seqs
+           : $max_idx: index of seq that gives $max_pid to $idx
+
+=cut
+
+sub avg_min_max_pid_to_seq {
+  my ($self, $idx, $usemeAR) = @_;
+  
+  my $pid;
+  my $avg_pid = 0.;
+  my $n = 0;
+  my $min_pid = 1.1;
+  my $min_idx = -1;
+  my $max_pid = -1.;
+  my $max_idx = -1;
+
+  $self->_check_msa();
+
+  for(my $i = 0; $i < $self->nseq; $i++) { 
+    if($i != $idx && (! defined $usemeAR || $usemeAR->[$i])) { 
+      $pid = _c_pairwise_identity($self->{esl_msa}, $idx, $i); # get fractional identity
+      if($pid < $min_pid) { $min_pid = $pid; $min_idx = $i; }
+      if($pid > $max_pid) { $max_pid = $pid; $max_idx = $i; }
+      $avg_pid += $pid;
+      $n++;
+    }
+  }
+  if($n == 0) { croak "ERROR Bio::Easel::MSA::avg_min_max_pid_to_seq(): no sequences to compare seq $idx to"; }
+  $avg_pid /= $n;
+
+  return ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 DESTROY
 
@@ -1301,6 +1596,8 @@ sub DESTROY {
 # Internal helper subroutines
 #############################
 
+#-------------------------------------------------------------------------------
+
 =head2 _check_msa
 
   Title    : _check_msa
@@ -1320,6 +1617,8 @@ sub _check_msa {
   }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 _check_sqidx
 
@@ -1343,6 +1642,8 @@ sub _check_sqidx {
   }
   return;
 }
+
+#-------------------------------------------------------------------------------
 
 =head2 _check_reqd_format
 
@@ -1368,26 +1669,7 @@ sub _check_reqd_format {
   return;
 }
 
-=head2 format
-
-  Title    : format
-  Incept   : rdf, Fri Jul 19 14:05:01 2013
-  Usage    : $msaObject->format()
-  Function : Gets the format of the MSA
-  Args     : none
-  Returns  : String of the format.
-
-=cut
-
-sub format {
-  my ($self) = @_;
-  
-  if(!$self->{informat}){
-    $self->read_msa;
-  }
-
-  return ($self->{informat});
-}
+#-------------------------------------------------------------------------------
 
 =head2 _c_read_msa
 =head2 _c_write_msa
