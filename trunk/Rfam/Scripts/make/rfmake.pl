@@ -558,6 +558,10 @@ sub get_representative_subset {
         Bio::Rfam::Utils::setArray(\@usemeA, 1, $nseq);
       }
       else { 
+        # TODO: replace this block with $msa->filter_msa_subset_target_nseq() 
+        # (you can get rid of filter_group too, MSA::filter_msa_subset replaces that)
+        # and make sure we get the same answer.
+        # 
         # binary search for max fractional id ($f_cur) that results in $nper sequences
         # we'll filter the alignment such that no two seqs are more than $f_cur similar to each other
         # (or as close as we can get to $nper by minimal change of 0.01)

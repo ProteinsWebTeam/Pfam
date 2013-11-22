@@ -47,7 +47,6 @@ my $outseed = "SEED";               # name for output seed alignment, redefined 
 my $do_local  = 0;                  # TRUE to align locally w.r.t. the CM
 my $do_prob   = 0;                  # TRUE to include PPs in output alignment
 my $do_help   = 0;                  # TRUE to print help and exit, if -h used
-my $do_stdout;
 my $date = scalar localtime();
 my $logFH;
 
@@ -136,7 +135,7 @@ if($inseed ne "SEED" && $inseed eq $outseed) {
 # the GetOptions() call above, and with the help()
 # subroutine.
 my $cwidth = 60;
-Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, 1);
 
 if($id1_thr    ne $df_id1_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min fractional identity for a replacement candidate: ", "$id1_thr [-1]"),       1); }
 if($id2_thr    ne $df_id2_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max fractional id b/t two replacement candidates: ",    "$id2_thr [-2]"),       1); }
