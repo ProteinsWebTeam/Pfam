@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 
 BEGIN {
@@ -32,3 +32,7 @@ is ($seqname, "tRNA5-sample45");
 # test fetch_seq_name_given_ssi_number
 $L = $sqfile->fetch_seq_length_given_ssi_number(40);
 is ($L, 73);
+
+# test fetch_seq_length_given_name
+my $len = $sqfile->fetch_seq_length_given_name("tRNA5-sample31");
+is ($len, 73, "fetch_seq_length_given_name() failed");

@@ -376,8 +376,8 @@ SV *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) {
   status = esl_ssi_FindNumber(sqfp->data.ascii.ssi, nkey, NULL, NULL, NULL, &L, &key_and_L);
   if     (status == eslEMEM)      croak("out of memory");
   else if(status == eslENOTFOUND) croak("there is no sequence %d\n", nkey);
-  else if(status == eslEFORMAT)   croak("error fetching sequence name %d, something wrong with SSI index?\n", nkey);
-  else if(status != eslOK)        croak("error fetching sequence name %d\n", nkey);
+  else if(status == eslEFORMAT)   croak("error fetching sequence num %d, something wrong with SSI index?\n", nkey);
+  else if(status != eslOK)        croak("error fetching sequence num %d\n", nkey);
 
   Ldup = L;
   Lwidth = 1;
@@ -398,6 +398,40 @@ SV *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) {
  ERROR: 
   croak("out of memory");
   return NULL; /* NEVER REACHED */
+}
+
+/* Function:  _c_fetch_seq_length_given_name()
+ * Incept:    EPN, Mon Nov 25 05:09:35 2013
+ * Purpose:   Fetch the length of a sequence given its name (primary key).
+ *
+ *            If the fetched length is 0, then the lengths are unset in
+ *            the SSI file. Caller must deal with this.
+ *            
+ * Args:      sqfp   - open ESL_SQFILE to fetch seq from
+ *            sqname - name of sequence we want the length of
+ *
+ * Returns:   the length of the sequence named <sqname> in <sqfp>,
+ *            '0' if lengths are unset in <sqfp>.
+ * Dies:      if unable to find <sqname> in <sqfp>
+ */
+
+long _c_fetch_seq_length_given_name(ESL_SQFILE *sqfp, char *sqname) { 
+  int      status;   /* Easel status code */
+  int64_t  L;        /* length of sequence */
+  uint16_t fh;       /* file handle sequence is in, irrelevant since we only have 1 file */
+  off_t    roff;     /* offset of start of sqname's record, irrelevant here */
+
+  /* make sure SSI is valid */
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+
+  /* fetch the length */
+  status = esl_ssi_FindName(sqfp->data.ascii.ssi, sqname, &fh, &roff, NULL, &L);
+  if     (status == eslEMEM)      croak("out of memory");
+  else if(status == eslENOTFOUND) croak("there is no sequence named %s\n", sqname);
+  else if(status == eslEFORMAT)   croak("error fetching sequence name %s, something wrong with SSI index?\n", sqname);
+  else if(status != eslOK)        croak("error fetching sequence name %s\n", sqname);
+
+  return L;
 }
 
 /* Function:  _c_nseq_ssi

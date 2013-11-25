@@ -1490,19 +1490,20 @@ sub find_divergent_seqs_from_subset
   my $nseq = $self->nseq;
   my $ndiv = 0;
   for(my $i = 0; $i < $self->nseq; $i++) { 
+    my $iamdivergent = 0;
     my $maxid  = -1.;
     my $maxidx = -1;
-    my $exceeded_thr = 0;
     if(! $subsetAR->[$i]) { 
+      $iamdivergent = 1; # until proven otherwise
       for(my $j = 0; $j < $self->nseq; $j++) {
         if($subsetAR->[$j]) { 
           my $id = _c_pairwise_identity($self->{esl_msa}, $i, $j);
-          if($id > $id_thr)    { $exceeded_thr = 1; $j = $self->nseq+1; } # setting j this way breaks us out of the loop
-          elsif($id > $maxid)  { $maxidx = $j; $maxid = $id; }
+          if($id > $id_thr) { $iamdivergent = 0; $j = $self->nseq+1; } # setting j this way breaks us out of the loop
+          if($id > $maxid)  { $maxidx = $j; $maxid = $id; }
         }
       }
     }
-    if(! $exceeded_thr) { 
+    if($iamdivergent) { 
       if(defined $divAR)   { $divAR->[$i]   = 1; }
       if(defined $nnidxAR) { $nnidxAR->[$i] = $maxidx; }
       if(defined $nnfidAR) { $nnfidAR->[$i] = $maxid;  }
