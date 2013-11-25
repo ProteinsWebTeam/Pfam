@@ -212,6 +212,7 @@ sub close_sqfile {
   if(defined $self->{esl_sqfile}) { 
     _c_close_sqfile( $self->{esl_sqfile} );
     $self->{esl_sqfile} = undef;
+    $self->{has_ssi}    = undef;
   }
 
   return;
@@ -236,7 +237,7 @@ sub close_sqfile {
 sub open_ssi_index {
   my ( $self ) = @_;
 
-  if ( $self->{has_ssi} ) { 
+  if ( defined $self->{has_ssi} && $self->{has_ssi}) { 
     return $ESLOK;
   }
 
@@ -269,9 +270,9 @@ sub open_ssi_index {
 sub create_ssi_index {
   my ( $self ) = @_;
 
-  if ( $self->{has_ssi} )              { die "trying to create SSI file but has_ssi flag already set!"; }
-  if ( ! defined $self->{path} )       { die "trying to create SSI file but path is not set"; }
-  if ( ! defined $self->{esl_sqfile} ) { die "trying to open SSI for non-open sqfile"; }
+  if ( defined $self->{has_ssi} && $self->{has_ssi} )  { die "trying to create SSI file but has_ssi flag already set!"; }
+  if ( ! defined $self->{path} )                       { die "trying to create SSI file but path is not set"; }
+  if ( ! defined $self->{esl_sqfile} )                 { die "trying to open SSI for non-open sqfile"; }
 
   _c_create_ssi_index( $self->{esl_sqfile} ); # this C function calls 'croak' if there's an error
 
@@ -579,6 +580,29 @@ sub fetch_seq_length_given_ssi_number {
   return $L;
 }
 
+=head2 fetch_seq_length_given_name
+
+  Title    : fetch_seq_length_given_name()
+  Incept   : EPN, Mon Nov 25 05:18:32 2013
+  Usage    : Bio::Easel::SqFile->fetch_seq_length_given_name($sqname)
+  Function : Fetches the length of the sequence named <$sqname> in the SSI 
+           : index for an open sequence file. If '0' then seq lengths are
+           : unset, and we return 0.
+  Args     : $sqname: name of sequence we want length of
+  Returns  : length of sequence
+  Dies     : upon error in _c_fetch_seq_length_given_name() with C croak() call
+
+=cut
+    
+sub fetch_seq_length_given_name { 
+  my ( $self, $sqname ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+
+  return _c_fetch_seq_length_given_name($self->{esl_sqfile}, $sqname);
+}
+
 =head2 nseq_ssi
 
   Title    : nseq_ssi
@@ -661,7 +685,7 @@ sub _check_ssi {
 
   $self->_check_sqfile();
 
-  if( ! $self->{has_ssi} ) { 
+  if( (! defined $self->{has_ssi}) || (! $self->{has_ssi}) ) { 
     # try to open SSI file
     my $status = $self->open_ssi_index();
     if($status == $ESLENOTFOUND) { 
@@ -670,7 +694,7 @@ sub _check_ssi {
       $status = $self->open_ssi_index();
     }
 
-    if($status != $ESLOK || (! $self->{has_ssi})) { 
+    if($status != $ESLOK || (! defined $self->{has_ssi}) || (! $self->{has_ssi})) { 
       die "unable to open newly created SSI index file for $self->{path}"; 
     }
 
