@@ -761,6 +761,30 @@ sub log_output_preamble {
 
 #-------------------------------------------------------------------------------
 
+=head2 log_output_tail
+
+  Title    : log_output_tail
+  Incept   : EPN, Wed Nov 20 10:40:40 2013
+  Usage    : Bio::Rfam::Utils::log_output_tail($fh, $start_time);;
+  Function : Outputs final 3 lines of all log files, run time and [ok] stamp.
+  Args     : $fh:          file handle to output to
+           : $start_time:  time() returned this when script started
+           : $also_stdout: '1' to also output to stdout, '0' not to
+  Returns  : void
+=cut
+
+sub log_output_tail { 
+  my ($fh, $start_time, $also_stdout) = @_;
+
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf("#\n"), $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf("# Total time elapsed: %s\n", Bio::Rfam::Utils::format_time_string(time() - $start_time)), $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf("# [ok]\n"), $also_stdout);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 log_output_divider
 
   Title    : log_output_divider
@@ -769,14 +793,19 @@ sub log_output_preamble {
   Function : Outputs a divider line to $fh and optionally stdout.
   Args     : $fh:          file handle to output to
            : $also_stdout: '1' to also output to stdout, '0' not to
+           : $len:         length of divider line, 80 if ! defined, 
   Returns  : void
 
 =cut
 
 sub log_output_divider { 
-  my ($fh, $also_stdout) = @_;
-
-  my $str = "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n";
+  my ($fh, $also_stdout, $len) = @_;
+  if(! defined $len || $len eq "") { $len = 80; }
+  my $str = "# -";
+  my $curlen = 3;
+  while($curlen < $len) { $str .= " -"; $curlen += 2; }
+  $str .= "\n";
+  
   print $fh $str; if($also_stdout) { print $str; }
 
   return;

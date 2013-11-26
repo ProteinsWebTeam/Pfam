@@ -2369,14 +2369,14 @@ sub fetchFromOutlistOrTblout {
 
     Title    : parseTbloutForOverlapCheck
     Incept   : EPN, Wed Oct  9 12:58:13 2013
-    Usage    : parseTblout($tblout, $tbloutHAR)
+    Usage    : parseTbloutForOverlapCheck($tblout, $tbloutHAR)
     Function : Parses $tblout out into a very specific hash, referenced by $tbloutHR
-             : key is source sequence name of each hit, value is an array of scalars
+             : key is target sequence name of each hit, value is an array of scalars
              : of the form "<start>:<end>:<bitsc>".
              : This hash of arrays is used to determine the highest scoring overlapping 
              : hit on the opposite strand (if any) which is part of 'outlist' and 'species'.
     Args     : $tblout:    name of TBLOUT file, usually 'TBLOUT'
-             : $tbloutHAR: ref to hash of arrays, key is source sequence name, value is array
+             : $tbloutHAR: ref to hash of arrays, key is target sequence name, value is array
              :             of scalars of form "<start>:<end>:<bitscore>"
     Returns  : void
     Dies     : if TBLOUT is not readable
@@ -2399,10 +2399,58 @@ sub parseTbloutForOverlapCheck {
     close(TBL);
 }
 
-#-----------------------------------------------------------------
-
-
 #-------------------------------------------------
+    
+=head2 parseTbloutForMinimumScore
+
+    Title    : parseTbloutForMinimumScore
+    Incept   : EPN, Wed Nov 20 12:30:20 2013
+    Usage    : parseTbloutForMinimumScore($tblout, $do_pertarget)
+    Function : Returns minimum score in a 'tblout' file. If $do_pertarget we return
+             : minimum per-target score, so if one target has > 1 hits, only its
+             : highest score is considered a candidate for the minimum score returned.
+    Args     : $tblout:       name of TBLOUT file, usually 'TBLOUT'
+             : $do_pertarget: TRUE to only consider top scoring hit per target
+    Returns  : minimum score
+    Dies     : if TBLOUT is not readable
+
+=cut
+
+sub parseTbloutForMinimumScore {
+  my($tblout, $do_pertarget) = @_;
+  
+  my $minbits = undef;
+  
+  if(! $do_pertarget) { # simpler case, just look at all lines and return lowest scoring hit
+    open(TBL, $tblout) || die "ERROR unable to open $tblout";
+    # note that we do not need to sort by score
+    while(my $line = <TBL>) { 
+      if($line !~ m/^\#/) { 
+        my ($bits) = processTbloutLine($line, undef, undef, 0, 0); 
+        #                                     sthDesc, sthTax, is_reversed, require_tax: we don't care about tax info
+        if((! defined $minbits) || $bits < $minbits) { $minbits = $bits; }
+      }
+    }
+    close(TBL);
+  }
+  else { # $do_pertarget is TRUE, more complex case, need to do two passes
+    # first, use parseTbloutForOverlapCheck() to get an array of hits for each target sequence
+    my %tbloutHA = ();
+    Bio::Rfam::FamilyIO::parseTbloutForOverlapCheck($tblout, \%tbloutHA);
+    # now go through each target, find it's maximum and use that as a candidate for the minimum
+    foreach my $target (keys %tbloutHA) { 
+      my $max = undef;
+      foreach my $startendbits (@{$tbloutHA{$target}}) { 
+        my ($start, $end, $bits) = split(":", $startendbits);
+        if((! defined $max) || $max < $bits) { $max = $bits; }
+      }
+      if((! defined $minbits) || $minbits > $max) { $minbits = $max; }
+    }
+  }
+  return $minbits;
+}
+
+#-----------------------------------------------------------------
     
 =head2 writeOldAndNewHitComparison
 
