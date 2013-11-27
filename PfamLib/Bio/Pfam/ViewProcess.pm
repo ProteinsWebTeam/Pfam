@@ -8,6 +8,7 @@ use Getopt::Long qw(GetOptionsFromArray);
 use Mail::Mailer;
 use Log::Log4perl qw(:easy);
 use Data::Dumper;
+use Data::Dump;
 use Data::UUID;
 use Digest::MD5 qw(md5_hex);
 use Cwd;
@@ -501,7 +502,7 @@ sub processALIGN {
   $self->logger->debug("Making stockholm file for $filename");
   $self->write_stockholm_file( $filename, $aliIds, $GFAnn);
 
-  if ( $aliIds->no_sequences <= 5000 ) {
+  if ( $aliIds->num_sequences <= 5000 ) {
     $self->makeHTMLAlign( $filename, 80, $type );
   }
 
@@ -568,9 +569,9 @@ sub makeRPAligns {
         }
       }
     }
-    $counts->{'number_'.$l} = $rpali->no_sequences;
+    $counts->{'number_'.$l} = $rpali->num_sequences;
     #IT is feasible that no sequences in the family are in RP.
-    next if($rpali->no_sequences == 0);
+    next if($rpali->num_sequences == 0);
     my $filename = "ALIGN.$l";
   
 #Secondary Structure from RPs
@@ -583,11 +584,12 @@ sub makeRPAligns {
     #with duplicate the alignment. Looked into eseal, but that it has a bug
     #rdf 26/09/2012
     $self->write_stockholm_file( $filename, $rpali, $GFAnn );
-    system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
+    # system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
+    system("esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
       and $self->mailUserAndFail("Problem running esl-reformat to remove gaps.");
     rename("$filename.ann.nogap", "$filename.ann") or $self->mailUserAndFail("Failed to rename RP nogap alignment"); 
      
-    if ( $aliIds->no_sequences <= 5000 ) {
+    if ( $aliIds->num_sequences <= 5000 ) {
       $self->makeHTMLAlign( $filename, 80, $l );
     }
     $self->uploadTreesAndAlign($filename, $l );
@@ -658,12 +660,12 @@ sub _verifyFullRegions {
 
 #Need to remove sequences in alignment which are outcompeted if family is in a clan
   my @regs = keys(%$regs);
-  if ( $a->no_sequences eq @regs ) {
+  if ( $a->num_sequences eq @regs ) {
     $ali = $a;
-    if ( $ali->no_sequences != $self->pfam->num_full ) {
+    if ( $ali->num_sequences != $self->pfam->num_full ) {
       $self->mailUserAndFail( 
 "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
-          . $ali->no_sequences
+          . $ali->num_sequences
           . ")" );
     }
   }
@@ -685,10 +687,10 @@ sub _verifyFullRegions {
         $ali->add_seq($seq);
       }
     }
-    unless ( $ali->no_sequences eq @regs ) {
+    unless ( $ali->num_sequences eq @regs ) {
       $self->mailUserAndFail(
 "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file ("
-          . $ali->no_sequences
+          . $ali->num_sequences
           . ")" );
     }
     if ( defined $a->match_states_string() ) {
@@ -705,8 +707,8 @@ sub _verifySeedRegions {
   my @regs = keys(%$regs);
 
   #QC check
-  if ( ( $ali->no_sequences != $self->pfam->num_seed )
-    or ( $ali->no_sequences != scalar(@regs) ) )
+  if ( ( $ali->num_sequences != $self->pfam->num_seed )
+    or ( $ali->num_sequences != scalar(@regs) ) )
   {
     $self->mailUserAndFail(
           "Missmatch between number of regions in PfamA table (num_seed),"
@@ -815,7 +817,7 @@ sub _fullAlignmentStats {
   my ( $averageLength, $percentageId );
 
   #to run into issues making FASTA....
-  open( ALI, "esl-alistat --amino --informat SELEX ALIGN |" )
+  open( ALI, $self->config->binLocation . '/esl-alistat --amino --informat SELEX ALIGN |' )
     or $self->mailUserAndFail( 
     "Could not open alistat pipe:[$!]" );
 
@@ -847,7 +849,7 @@ sub _fullAlignmentStats {
       average_length   => $averageLength,
       average_coverage => $averageCoverage,
       full_consensus   => $aliIds->cons_sequence->display,
-      num_full         => $aliIds->no_sequences,
+      num_full         => $aliIds->num_sequences,
       number_archs     => 0
     }
   );
@@ -908,7 +910,7 @@ sub processSEED {
   $self->pfam->update(
     {
       seed_consensus => $aliIds->cons_sequence->display,
-      num_seed       => $aliIds->no_sequences,
+      num_seed       => $aliIds->num_sequences,
     }
   );
 
@@ -1209,7 +1211,9 @@ sub _makeHMMLogo {
     -y_title        => 'Contribution',
     -graph_title    => $graph_title,
     -greyscale      => $greyscale,
-    -height_logodds => 1
+    -height_logodds => 1,
+    -regular_font   => $self->config->fontDir . '/arial.ttf',
+    -bold_font      => $self->config->fontDir . '/arialbd.ttf'
     )
     || mailUSerAndFail("Error writing $file!\n");
 
@@ -1679,18 +1683,15 @@ sub makeNonRedundantFasta {
   
   #Use belvu to make the full alignment 90% non-redundant.
   $identity = $identity / 100;
-  system(
-"esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null"
-    )
-    and $self->mailUserAndFail(
-"esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann\":[$!]\n"
-    );
+  my $system_command = $self->config->binLocation . "/esl-weight --informat stockholm --amino -f --idf $identity -o ALIGN.90 ALIGN.ann 2> /dev/null";
+  system( $system_command ) == 0
+    or $self->mailUserAndFail( "System command failed ($system_command): [$!]\n");
 
-  open( BEL, "esl-reformat fasta ALIGN.90 2> /dev/null |" )
-    or $self->mailUserAndFail( 
-    "Could not open command \"belvu -n $identity -o fasta ALIGN.ann\":[$!]\n" );
+  $system_command = $self->config->binLocation . '/esl-reformat fasta ALIGN.90 2> /dev/null |';
+  open( BEL, $system_command )
+    or $self->mailUserAndFail( "Could not open command ($system_command): [$!]\n" );
 
-  open( FAMFA, ">family.fa" )
+  open( FAMFA, '>family.fa' )
     or $self->mailUserAndFail( "Failed to open family.fa:[$!]" );
 
 #Parse the output, remove gap charcaters and put the family accessions and name as part of the
@@ -2018,7 +2019,7 @@ sub write_stockholm_file {
     print ANNFILE "//\n";
     close(ANNFILE);
   }else{
-    print ANNFILE "#=GF SQ   ", scalar( $aln->no_sequences() ), "\n";
+    print ANNFILE "#=GF SQ   ", scalar( $aln->num_sequences() ), "\n";
     my $stock = $aln->write_stockholm;
     if ( $$stock[0] =~ /^\# STOCKHOLM/ ) {
       shift(@$stock);    #This removes the STOCKHOLM 1.0 tag, but nasty, but hey!
