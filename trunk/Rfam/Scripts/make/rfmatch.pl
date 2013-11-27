@@ -191,11 +191,17 @@ Bio::Rfam::Utils::log_output_progress_local($logFH, "cmsearch", time() - $search
 Bio::Rfam::Infernal::cmsearch_wrapper($config, "", "--tblout $tblout " . $searchopts, "CM", $infile, $searchout, "s.$$.err", "", "", 1);
 Bio::Rfam::Utils::log_output_progress_local($logFH, "cmsearch", time() - $search_start_time, 0, 1, "", 1);
 
-# get string of all hits found in $infile
-my ($nmatch, $nmatch_res, $match_seqstring) = Bio::Rfam::FamilyIO::fetchFromOutlistOrTblout($tblout,  "tblout",  $infile,        "", "", $logFH, $do_stdout); # "" means return a string of all seqs
-# get string of all hits from outlist above $minsc
-my ($nhit,   $nhit_res,   $hit_seqstring)   = Bio::Rfam::FamilyIO::fetchFromOutlistOrTblout($outlist, "outlist", $fetchfile, $minsc, "", $logFH, $do_stdout); # "" means return a string of all seqs
-if(($nmatch + $nhit) > $maxhits) { die "ERROR, more than $maxhits hits exist, increase maximum with -x, or consider lowering threshold with -e, -t or -b."; }
+# get string of all hits found in $infile and all hits above $minsc, we do this in two steps so we can exit if we have more than $maxhits hits
+my @match_nseA = ();
+my @hit_nseA   = ();
+Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout($tblout,  "tblout",  "",     \@match_nseA);
+Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout($outlist, "outlist", $minsc, \@hit_nseA);
+my $nalign = scalar(@match_nseA) + scalar(@hit_nseA);
+if($nalign > $maxhits) { 
+  die "ERROR, $nalign > $maxhits hits to align exist, increase maximum with -x, or consider lowering threshold with -e, -t or -b."; 
+}
+my ($nmatch, $nmatch_res, $match_seqstring) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@match_nseA, $infile,    "", $logFH, $do_stdout); # "" means return a string of all seqs
+my ($nhit,   $nhit_res,   $hit_seqstring)   = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@hit_nseA,   $fetchfile, "", $logFH, $do_stdout); # "" means return a string of all seqs
 
 # output all seqs to a single file
 my $fa_file  = "$$.fa";
