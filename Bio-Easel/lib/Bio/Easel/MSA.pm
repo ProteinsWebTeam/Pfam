@@ -1611,6 +1611,32 @@ sub create_from_string
 
 #-------------------------------------------------------------------------------
 
+=head2 is_residue
+
+  Title     : is_residue
+  Incept    : EPN, Fri Nov 29 17:05:44 2013
+  Usage     : $msaObject->is_residue($sqidx, $apos)
+  Function  : Return '1' if alignment position $apos of sequence $sqidx
+            : is a residue, and '0' if not.
+  Args      : $sqidx:   sequence index in MSA
+            : $apos:    alignment position
+  Returns   : '1' if position $apos of $sqidx is a residue, else '0'
+  Dies      : with 'croak' if sequence $sqidx or apos $apos is invalid
+=cut
+
+sub is_residue
+{
+  my ($self, $sqidx, $apos) = @_;
+
+  $self->_check_msa();
+  $self->_check_sqidx($sqidx);
+  $self->_check_ax_apos($apos);
+
+  return _c_is_residue($self->{esl_msa}, $sqidx, $apos);
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 DESTROY
 
   Title    : DESTROY
@@ -1665,7 +1691,7 @@ sub _check_msa {
   Usage    : $msaObject->_check_sqidx($idx)
   Function : Check if $idx is in range 0..nseq-1,
              if not, croak.
-  Args     : none
+  Args     : $idx
   Returns  : void
 
 =cut
@@ -1677,6 +1703,31 @@ sub _check_sqidx {
   my $nseq = $self->nseq;
   if ( $idx < 0 || $idx >= $nseq ) {
     croak (sprintf("invalid sequence index %d (must be [0..%d])", $idx, $nseq));
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _check_ax_apos
+
+  Title    : _check_ax_apos
+  Incept   : EPN, Fri Nov 29 17:09:11 2013
+  Usage    : $msaObject->_check_ax_apos($apos)
+  Function : Check if $apos is in range 0..alen-1,
+             if not, croak.
+  Args     : $apos
+  Returns  : void
+
+=cut
+
+sub _check_ax_apos {
+  my ( $self, $apos ) = @_;
+
+  $self->_check_msa();
+  my $alen = $self->alen;
+  if ( $apos < 1 || $apos > $alen ) {
+    croak (sprintf("invalid alignment position %d (must be [0..%d])", $apos, $alen));
   }
   return;
 }
