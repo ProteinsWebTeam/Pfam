@@ -1559,3 +1559,24 @@ _c_create_from_string(char *msa_str, char *fmt_str)
   
   return perl_obj(ret_msa, "ESL_MSA");
 }
+
+/* Function: _c_is_residue
+ * Incept:   EPN, Fri Nov 29 17:11:15 2013
+ * Purpose:  Return TRUE if msa->ax[sqidx][apos]
+ *           is a residue, else return 0.
+ *
+ * Args:     sqidx: sequence index
+ *           apos:  alignment position
+ * 
+ * Returns:  TRUE if msa->ax[sqidx][apos] is a residue, else FALSE
+ * Dies:     with croak upon an error
+ */
+
+int
+_c_is_residue(ESL_MSA *msa, int sqidx, int apos)
+{
+
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_is_residue() contract violation, MSA is not digitized");
+
+  return esl_abc_XIsResidue(msa->abc, msa->ax[sqidx][apos]);
+}

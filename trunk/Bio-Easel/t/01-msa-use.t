@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 46;
+use Test::More tests => 48;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -197,6 +197,15 @@ $msa->remove_rf_gap_columns("~-");
 # no gaps should be removed
 $sub_alen = $msa->alen;
 is($sub_alen, "28", "remove_rf_gap_columns failed to work");
+
+###############################
+# is_residue
+my $isres = $msa->is_residue(2, 9);
+is($isres, "1", "is_residue failed");
+
+$isres = $msa->is_residue(2, 10);
+is($isres, "0", "is_residue failed");
+
 
 #######################################################
 # avg_min_max_pid_to_seq
