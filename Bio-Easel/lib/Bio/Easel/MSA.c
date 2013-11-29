@@ -1530,4 +1530,32 @@ _c_column_subset(ESL_MSA *msa, AV *usemeAR)
   return; /* NEVERREACHED */
 }
 
+/* Function: _c_create_from_string
+ * Incept:   EPN, Fri Nov 29 08:30:42 2013
+ * Purpose:  Create a new ESL_MSA object from an
+ *           input string in format <fmt_str>
+ *           and return it. If <fmt_str> is 
+ *           not recognized we'll try to parse
+ *           the alignment as an unknown format.
+ *
+ * Args:     msa_str: the alignment string
+ *           fmt_str: the format string
+ * 
+ * Returns:  ESL_MSA created here, from <msa_str>
+ * Dies:     with croak upon an error
+ */
 
+SV *
+_c_create_from_string(char *msa_str, char *fmt_str)
+{
+  int  status;
+  int  fmt;   
+  ESL_MSA *ret_msa = NULL;
+
+  fmt = eslx_msafile_EncodeFormat(fmt_str);
+
+  ret_msa = esl_msa_CreateFromString(msa_str, fmt);
+  if(ret_msa == NULL) croak("ERROR, problem creating MSA from string");
+  
+  return perl_obj(ret_msa, "ESL_MSA");
+}
