@@ -294,6 +294,8 @@ sub alen {
   return _c_alen( $self->{esl_msa} );
 }
 
+#-------------------------------------------------------------------------------
+
 =head2 has_rf
 
   Title    : has_rf
@@ -304,8 +306,6 @@ sub alen {
   Returns  : '1' if MSA has RF annotation, else returns 0
 
 =cut
-
-#-------------------------------------------------------------------------------
 
 sub has_rf {
   my ($self) = @_;
@@ -1570,6 +1570,43 @@ sub avg_min_max_pid_to_seq {
   $avg_pid /= $n;
 
   return ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 create_from_string
+
+  Title     : create_from_string
+  Incept    : EPN, Fri Nov 29 07:03:12 2013
+  Usage     : $newmsaObject = Bio::Easel::MSA::create_from_string($msa_str, $format)
+  Function  : Create a new MSA from a string that is a properly 
+            : formatted MSA in format <$format>. If $format is undefined
+            : we autoguess.
+  Args      : $msa_str: the string that is an MSA
+            : $format:  OPTIONAL: string defining format of $msa_str.
+            :           valid format strings are: 
+            :           "stockholm", "pfam", "a2m", "phylip", "phylips", "psiblast",
+            :           "selex", "afa", "clustal", "clustallike", "unknown", or undefined
+  Returns   : $new_msa: a new Bio::Easel::MSA object, created
+            :           from $msa_str
+=cut
+
+sub create_from_string
+{
+  my ($msa_str, $format) = @_;
+
+  if(! defined $format) { 
+    $format = "unknown";
+  }
+  my $new_esl_msa = _c_create_from_string($msa_str, $format);
+
+  # create new Bio::Easel::MSA object from $new_esl_msa
+  my $new_msa = Bio::Easel::MSA->new({
+    esl_msa => $new_esl_msa,
+  });
+
+  return $new_msa;
 }
 
 #-------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 42;
+use Test::More tests => 46;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -226,6 +226,35 @@ is($min_idx, 0);
 is($max_pid, 54);
 is($max_idx, 0);
 
+#######################################################
+# create_from_string
+$msa = Bio::Easel::MSA->new({
+   fileLocation => $alnfile, 
+});
+$outfile = "./t/data/test-msa.out";
+$msa->write_msa($outfile);
+open(IN, $outfile) || die "ERROR, unable to open $outfile for reading";
+my $msa_str = "";
+while(my $line = <IN>) { $msa_str .= $line; }
+close(IN);
+my $newmsa = Bio::Easel::MSA::create_from_string($msa_str);
+isa_ok($msa, "Bio::Easel::MSA");
+is($nseq, 3, "create_from_string method failed");
+$nseq = $newmsa->nseq;
+unlink $outfile;
+
+# try again with afa format
+$msa->write_msa($outfile, "afa");
+open(IN, $outfile) || die "ERROR, unable to open $outfile for reading";
+$msa_str = "";
+while(my $line = <IN>) { $msa_str .= $line; }
+close(IN);
+$newmsa = Bio::Easel::MSA::create_from_string($msa_str, "afa");
+isa_ok($msa, "Bio::Easel::MSA");
+$nseq = $newmsa->nseq;
+is($nseq, 3, "create_from_string method failed");
+unlink $outfile;
+
 # FIX DESTROY CALL!
 #TODO: test free_msa
 # test DESTROY
@@ -233,4 +262,5 @@ is($max_idx, 0);
 #$msa2->DESTROY;
 #$msa3->DESTROY;
 #TODO: test that it was destroyed, don't know how to do that yet
+
 
