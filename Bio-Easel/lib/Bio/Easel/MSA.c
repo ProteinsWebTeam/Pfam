@@ -1375,7 +1375,6 @@ _c_pairwise_identity(ESL_MSA *msa, int i, int j)
 SV *
 _c_clone_msa(ESL_MSA *msa)
 {
-  int status;
   ESL_MSA *new_msa = NULL;
 
   new_msa = esl_msa_Clone(msa);
@@ -1421,7 +1420,6 @@ _c_sequence_subset(ESL_MSA *msa, AV *usemeAR)
 {
   int status;              /* status */
   ESL_MSA *new_msa = NULL; /* the new_msa we'll create and return */
-  int i;                   /* counter over sequences */
 
   /* create C int array useme */
   int *useme = NULL;
@@ -1502,10 +1500,8 @@ void
 _c_column_subset(ESL_MSA *msa, AV *usemeAR)
 {
   int  status;              /* status */
-  int  apos;                /* counter over alignment positions */
   char errbuf[eslERRBUFSIZE];
   /* for manipulating the perl usemeAR */
-  SV **value; /* this will hold the value we extract */
 
   if (! (msa->flags & eslMSA_DIGITAL)) { 
     croak ("ERROR, _c_column_subset, MSA is in text mode..."); 
