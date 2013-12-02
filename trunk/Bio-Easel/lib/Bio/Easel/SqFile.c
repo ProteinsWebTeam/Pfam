@@ -293,11 +293,14 @@ SV *_c_fetch_next_seq_to_fasta_string (ESL_SQFILE *sqfp, int textw)
  *            given_start - first position of subseq
  *            given_end   - final position of subseq 
  *            textw - width for each sequence of FASTA record, -1 for unlimited.
+ *            do_res_revcomp - TRUE to force revcomp of a length 1 sequence, since
+ *                             it's impossible to tell from given_start/given_end
+ *                             if a 1 residue sequence should be revcomp'ed.
  *
  * Returns:   A pointer to a string that is the subsequence in FASTA format.
  */
 
-SV *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw)
+SV *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname, int given_start, int given_end, int textw, int do_res_revcomp)
 {
   int     start, end;            /* start/end for esl_sqio_FetchSubseq() */
   int     do_revcomp;            /* are we revcomp'ing? */
@@ -313,9 +316,11 @@ SV *_c_fetch_subseq_to_fasta_string (ESL_SQFILE *sqfp, char *key, char *newname,
   if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
 
   /* reverse complement indicated by coords. */
-  if (given_end != 0 && given_start > given_end)
+  if (given_end != 0 && given_start > given_end)  
+  { start = given_end;   end = given_start; do_revcomp = TRUE; }
+  else if (given_end == given_start && do_res_revcomp) /* odd case: single residue, can't tell from given_start/given_end if we should revcomp */
   { start = given_end;   end = given_start; do_revcomp = TRUE;  }
-  else
+  else 
   { start = given_start; end = given_end;   do_revcomp = FALSE; }
 
   /* fetch the subsequence, croak upon an error */
