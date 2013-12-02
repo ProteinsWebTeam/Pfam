@@ -705,20 +705,22 @@ sub overlap_nres_either_strand {
            : $executable:  command used to execute program (e.g. rfsearch.pl)
            : $banner:      one-line summary of program
            : $also_stdout: '1' to also output to stdout, '0' not to
+           : $dlen:        length of divider line, 80 if ! defined
   Returns  : void
 
 =cut
 
 sub log_output_rfam_banner { 
-  my ($fh, $executable, $banner, $also_stdout) = @_;
+  my ($fh, $executable, $banner, $also_stdout, $dlen) = @_;
 
+  if(! defined $dlen) { $dlen = 80; }
   my $str;
   $str = sprintf ("# %s :: %s\n", Bio::Rfam::Utils::file_tail($executable), $banner);
   print $fh $str; if($also_stdout) { print $str; }
   #printf $fp ("# RFAM\n");
   #printf $fp ("# COPYRIGHT INFO GOES HERE\n");
   #printf $fp ("# LICENSE INFO GOES HERE\n");
-  log_output_divider($fh, $also_stdout);
+  log_output_divider($fh, $also_stdout, $dlen);
 
   return;
 }
@@ -940,21 +942,28 @@ sub log_output_progress_local {
   Function : Outputs line indicating progress of script.
   Args     : $fh:          file handle to output to
            : $also_stdout: '1' to also output to stdout, '0' not to
+           : $fwidth:      width of file name, set to "20" if undefined
+           : $dwidth:      width of description, set to "60" if undefined
   Returns  : void
 
 =cut
 
 sub log_output_file_summary_column_headings { 
-  my ($fh, $also_stdout) = @_;
+  my ($fh, $also_stdout, $fwidth, $dwidth) = @_;
+
+  if(! defined $fwidth) { $fwidth = 20; }
+  if(! defined $dwidth) { $fwidth = 60; }
 
   my $str;
   $str = "#\n";
   print $fh $str; if($also_stdout) { print $str; }
   $str = "# Output file summary:\n#\n";
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-20s    %-60s\n", "file name",  "description");
+  $str = sprintf ("# %-*s    %-*s\n", $fwidth, "file name",  $dwidth, "description");
   print $fh $str; if($also_stdout) { print $str; }
-  $str = sprintf ("# %-20s    %-60s\n", "====================", "============================================================");
+  my $fstr = monocharacterString("=", $fwidth);
+  my $dstr = monocharacterString("=", $dwidth);
+  $str = sprintf ("# %-*s    %-*s\n", $fwidth, $fstr, $dwidth, $dstr);
   print $fh $str; if($also_stdout) { print $str; }
 
   return;
@@ -972,14 +981,19 @@ sub log_output_file_summary_column_headings {
            : $filename:    name of output file
            : $desc:        description of file, to print
            : $also_stdout: '1' to also output to stdout, '0' not to
+           : $fwidth:      width of file name, set to "20" if undefined
+           : $dwidth:      width of description, set to "60" if undefined
   Returns  : void
 
 =cut
 
 sub log_output_file_summary { 
-  my ($fh, $filename, $desc, $also_stdout) = @_;
+  my ($fh, $filename, $desc, $also_stdout, $fwidth, $dwidth) = @_;
 
-  my $str = sprintf ("  %-20s    %-60s\n", $filename, $desc);
+  if(! defined $fwidth) { $fwidth = 20; }
+  if(! defined $dwidth) { $fwidth = 60; }
+
+  my $str = sprintf ("  %-*s    %-*s\n", $fwidth, $filename, $dwidth, $desc);
   print $fh $str; if($also_stdout) { print $str; }
 
   return;
