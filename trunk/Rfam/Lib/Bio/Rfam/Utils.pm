@@ -952,7 +952,7 @@ sub log_output_file_summary_column_headings {
   my ($fh, $also_stdout, $fwidth, $dwidth) = @_;
 
   if(! defined $fwidth) { $fwidth = 20; }
-  if(! defined $dwidth) { $fwidth = 60; }
+  if(! defined $dwidth) { $dwidth = 60; }
 
   my $str;
   $str = "#\n";
@@ -991,7 +991,7 @@ sub log_output_file_summary {
   my ($fh, $filename, $desc, $also_stdout, $fwidth, $dwidth) = @_;
 
   if(! defined $fwidth) { $fwidth = 20; }
-  if(! defined $dwidth) { $fwidth = 60; }
+  if(! defined $dwidth) { $dwidth = 60; }
 
   my $str = sprintf ("  %-*s    %-*s\n", $fwidth, $filename, $dwidth, $desc);
   print $fh $str; if($also_stdout) { print $str; }
