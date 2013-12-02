@@ -225,6 +225,7 @@ else { # not trim mode, adding columns
       my ($fetch_start, $fetch_end, $nres);
       my $n5subseq = "";
       my $n3subseq = "";
+      my $do_revcomp = 0;
       if($n5 > 0) { 
         if($strand == 1) { # top strand 
           if   (exists $skipmeH{$nse}) { $nres = 0;   }         # skipping this seq, don't fetch any extra res
@@ -232,6 +233,7 @@ else { # not trim mode, adding columns
           else                         { $nres = $ostart - 1; } # can only fetch $ostart-1 residues before running out of sequence (nres be 0 if $ostart==1)
           $fetch_start = $ostart - $nres;
           $fetch_end   = $ostart - 1;
+          $do_revcomp  = 0;
         }
         else { # bottom strand
           my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name);
@@ -240,8 +242,9 @@ else { # not trim mode, adding columns
           else                                 { $nres = $sqlen - $ostart; } # can only fetch $sqlen - $ostart residues before running out of sequence (nres be 0 if $ostart==$sqlen)
           $fetch_start = $ostart + $nres;
           $fetch_end   = $ostart + 1;
+          $do_revcomp  = 1;
         }
-        $n5subseq = get_subseq($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $n5, 1);
+        $n5subseq = get_subseq($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $n5, 1, $do_revcomp);
       }
       if($n3 > 0) { 
         if($strand == 1) { # top strand 
@@ -250,18 +253,20 @@ else { # not trim mode, adding columns
           if($skipmeH{$nse})                 { $nres = 0; }              # skipping this seq, don't fetch any extra res
           elsif(($oend + $n3 - 1) <= $sqlen) { $nres = $n3; }            # can fetch $n3 residues without running out
           else                               { $nres = $sqlen - $oend; } # can only fetch $sqlen - $oend residues before running out of sequence (nres be 0 if $oend==$sqlen)
-          $fetch_start = $oend + $nres;
-          $fetch_end   = $oend + 1;
+          $fetch_start = $oend + 1;
+          $fetch_end   = $oend + $nres;
+          $do_revcomp  = 0;
         }
         else { # bottom strand
           # this block mirrors top strand 5' block, but with $n3 and $oend replacing $n5 and $ostart
           if   (exists $skipmeH{$nse}) { $nres = 0; }         # skipping this seq, don't fetch any extra res
           elsif($n3 < $oend)           { $nres = $n3; }       # can fetch $n3 residues without running out
           else                         { $nres = $oend - 1; } # can only fetch $oend-1 residues before running out of sequence (nres be 0 if $oend==1)
-          $fetch_start = $oend - $nres;
-          $fetch_end   = $oend - 1;
+          $fetch_start = $oend - 1;
+          $fetch_end   = $oend - $nres;
+          $do_revcomp  = 1;
         }
-        $n3subseq = get_subseq($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $n3, 0);
+        $n3subseq = get_subseq($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $n3, 0, $do_revcomp);
       }
       $newseed_str .= $oname . " " . $n5subseq . $oseq . $n3subseq . "\n";
     } # end of sequence line block
@@ -325,7 +330,7 @@ exit 0;
 # SUBROUTINES #
 ###############
 sub get_subseq { 
-  my ($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $ntot, $gap_before) = @_;
+  my ($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $ntot, $gap_before, $do_revcomp) = @_;
 
   my $ngap = $ntot - $nres;
   my $gapstr = "";
@@ -334,7 +339,8 @@ sub get_subseq {
   if($ngap > 0) { $gapstr .= Bio::Rfam::Utils::monocharacterString(".", $ngap); }
 
   if($nres > 0) { 
-    $seqstr = $fetch_sqfile->fetch_subseq_to_fasta_string($name, $fetch_start, $fetch_end, -1);     
+    printf("in get_subseq() fetching $fetch_start..$fetch_end\n");
+    $seqstr = $fetch_sqfile->fetch_subseq_to_fasta_string($name, $fetch_start, $fetch_end, -1, $do_revcomp);     
     # remove sequence name, description and newlines
     if($seqstr !~ s/^\>\S+\s*.*\n//) { die "ERROR, unable to process beginning of fetched sequence: $seqstr"; } 
     if($seqstr !~ s/\n$//)           { die "ERROR, unable to process end of fetched sequence: $seqstr"; } 
