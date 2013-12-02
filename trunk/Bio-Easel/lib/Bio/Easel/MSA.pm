@@ -1582,24 +1582,42 @@ sub avg_min_max_pid_to_seq {
   Usage     : $newmsaObject = Bio::Easel::MSA::create_from_string($msa_str, $format)
   Function  : Create a new MSA from a string that is a properly 
             : formatted MSA in format <$format>. If $format is undefined
-            : we autoguess.
-  Args      : $msa_str: the string that is an MSA
-            : $format:  OPTIONAL: string defining format of $msa_str.
-            :           valid format strings are: 
-            :           "stockholm", "pfam", "a2m", "phylip", "phylips", "psiblast",
-            :           "selex", "afa", "clustal", "clustallike", "unknown", or undefined
+            : we will use Easels format autodetection capability.
+            : If <$do_digitize> we will digitize the alignment before
+            : returning, if this is undefined, we do it anyway since
+            : most of the BioEasel MSA code requires a digitized MSA.
+            : 
+  Args      : $msa_str:     the string that is an MSA
+            : $format:      string defining format of $msa_str.
+            :               valid format strings are: 
+            :               "stockholm", "pfam", "a2m", "phylip", "phylips", "psiblast",
+            :               "selex", "afa", "clustal", "clustallike", "unknown", or undefined
+            : $abc:         string defining alphabet of MSA, valid options:
+            :               "amino", "rna", "dna", "coins", "dice", "custom"
+            : $do_digitize: '1' to digitize alignment, '0' not do, use '1' unless you know 
+            :               what you are doing.
   Returns   : $new_msa: a new Bio::Easel::MSA object, created
             :           from $msa_str
 =cut
 
 sub create_from_string
 {
-  my ($msa_str, $format) = @_;
+  my ($msa_str, $format, $abc, $do_digitize) = @_;
 
   if(! defined $format) { 
     $format = "unknown";
   }
-  my $new_esl_msa = _c_create_from_string($msa_str, $format);
+  if(! defined $abc) { 
+    croak "ERROR, alphabet is undefined in create_from_string()"; 
+  }
+  if($abc ne "amino" && $abc ne "rna" && $abc ne "dna" && $abc ne "coins" && $abc ne "dice" && $abc ne "custom") { 
+    croak ("ERROR, alphabet $abc is invalid, valid options are \"amino\", \"rna\", \"dna\", \"coins\", \"dice\", and \"custom\"");
+  }
+  if(! defined $do_digitize) { # default to TRUE
+    $do_digitize = 1; 
+  }
+
+  my $new_esl_msa = _c_create_from_string($msa_str, $format, $abc, $do_digitize);
 
   # create new Bio::Easel::MSA object from $new_esl_msa
   my $new_msa = Bio::Easel::MSA->new({

@@ -1537,26 +1537,47 @@ _c_column_subset(ESL_MSA *msa, AV *usemeAR)
  *           and return it. If <fmt_str> is 
  *           not recognized we'll try to parse
  *           the alignment as an unknown format.
+ *           If <do_digitize> we also digitize 
+ *           the alignment, since most of the 
+ *           BioEasel MSA code requires a digitized
+ *           MSA.
  *
  * Args:     msa_str: the alignment string
  *           fmt_str: the format string
- * 
+ *           abc_str: string describing alphabet, 
+ *                    either "amino", "rna", "dna", "coins", "dice", "custom";
+ *                    irrelevant unless 'do_digitize' is TRUE
+ *           do_digitize: '1' to digitize ESL_MSA before returning, else do not
  * Returns:  ESL_MSA created here, from <msa_str>
  * Dies:     with croak upon an error
  */
 
 SV *
-_c_create_from_string(char *msa_str, char *fmt_str)
+_c_create_from_string(char *msa_str, char *fmt_str, char *abc_str, int do_digitize)
 {
   int  status;
   int  fmt;   
+  int  abc_type; 
   ESL_MSA *ret_msa = NULL;
+  ESL_ALPHABET *abc = NULL; 
+  char errbuf[eslERRBUFSIZE];
 
   fmt = eslx_msafile_EncodeFormat(fmt_str);
 
   ret_msa = esl_msa_CreateFromString(msa_str, fmt);
   if(ret_msa == NULL) croak("ERROR, problem creating MSA from string");
-  
+
+  if(do_digitize) { 
+    abc_type = esl_abc_EncodeType(abc_str);
+    if(abc_type == eslUNKNOWN) croak ("ERROR, unable to create alphabet of type %s", abc_str);
+
+    abc = esl_alphabet_Create(abc_type);
+    if(abc == NULL) croak ("ERROR, problem creating alphabet of type code %d", abc_type);
+    
+    status = esl_msa_Digitize(abc, ret_msa, errbuf);
+    if(status != eslOK) croak ("ERROR, digitizing alignment: %s", errbuf);
+  }
+
   return perl_obj(ret_msa, "ESL_MSA");
 }
 
@@ -1566,7 +1587,7 @@ _c_create_from_string(char *msa_str, char *fmt_str)
  *           is a residue, else return 0.
  *
  * Args:     sqidx: sequence index
- *           apos:  alignment position
+ *           apos:  alignment position [1..alen] (NOT 0..alen-1)
  * 
  * Returns:  TRUE if msa->ax[sqidx][apos] is a residue, else FALSE
  * Dies:     with croak upon an error
@@ -1576,7 +1597,9 @@ int
 _c_is_residue(ESL_MSA *msa, int sqidx, int apos)
 {
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_is_residue() contract violation, MSA is not digitized");
+  if(! (msa->flags & eslMSA_DIGITAL)) { 
+    croak("ERROR, _c_is_residue, MSA is not digitized");
+  }
 
   return esl_abc_XIsResidue(msa->abc, msa->ax[sqidx][apos]);
 }

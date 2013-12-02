@@ -246,7 +246,7 @@ open(IN, $outfile) || die "ERROR, unable to open $outfile for reading";
 my $msa_str = "";
 while(my $line = <IN>) { $msa_str .= $line; }
 close(IN);
-my $newmsa = Bio::Easel::MSA::create_from_string($msa_str);
+my $newmsa = Bio::Easel::MSA::create_from_string($msa_str, undef, "rna", 1);
 isa_ok($msa, "Bio::Easel::MSA");
 is($nseq, 3, "create_from_string method failed");
 $nseq = $newmsa->nseq;
@@ -258,7 +258,7 @@ open(IN, $outfile) || die "ERROR, unable to open $outfile for reading";
 $msa_str = "";
 while(my $line = <IN>) { $msa_str .= $line; }
 close(IN);
-$newmsa = Bio::Easel::MSA::create_from_string($msa_str, "afa");
+$newmsa = Bio::Easel::MSA::create_from_string($msa_str, "afa", "dna", 1);
 isa_ok($msa, "Bio::Easel::MSA");
 $nseq = $newmsa->nseq;
 is($nseq, 3, "create_from_string method failed");
