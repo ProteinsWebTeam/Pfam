@@ -448,7 +448,7 @@ sub fetch_subseqs {
     $listsize = scalar(@{$AAR->[$i]});
     if($listsize < 4) { die "ERROR fetch_subseqs, array too small (< 4 elements)"; }
     ($newname, $start, $end, $seqname) = ($AAR->[$i][0], $AAR->[$i][1], $AAR->[$i][2], $AAR->[$i][3]);
-    $seqstring = _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+    $seqstring = _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw, 0); 
     if(defined $outfile) { print OUT $seqstring; }
     else                 { $retstring .= $seqstring; }
   }
@@ -471,21 +471,23 @@ sub fetch_subseqs {
              $start  : first position of subseq
              $end    : final position of subseq, 0 for all the way to end
              $textw  : width of FASTA seq lines, -1 for unlimited, if !defined $FASTATEXTW is used
+             $do_res_revcomp: '1' to reverse complement sequence even if its 1 residue (set to 0 if !defined)
   Returns  : string, the subsequence in FASTA format
   Dies     : upon error in _c_fetch_suseq_to_fasta_string(), with C croak() call
 
 =cut
 
 sub fetch_subseq_to_fasta_string {
-  my ( $self, $seqname, $start, $end, $textw ) = @_;
+  my ( $self, $seqname, $start, $end, $textw, $do_res_revcomp ) = @_;
   
   $self->_check_sqfile();
   $self->_check_ssi();
   
-  if(! defined $textw) { $textw = $FASTATEXTW; }
+  if(! defined $textw)          { $textw = $FASTATEXTW; }
+  if(! defined $do_res_revcomp) { $do_res_revcomp = 0; }
   
   my $newname = $seqname . "/" . $start . "-" . $end;
-  return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw); 
+  return _c_fetch_subseq_to_fasta_string($self->{esl_sqfile}, $seqname, $newname, $start, $end, $textw, $do_res_revcomp); 
 }
 
 =head2 fetch_seq_name_and_length_given_ssi_number
