@@ -197,7 +197,7 @@ if($do_delete) { # delete mode
 else { # adding seqs
   # fetch sequences to add
   my $fafile = "$$.fa";
-  my ($nseq, $nres) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@nseA, $fetchfile, $fafile, $logFH, $do_stdout);
+  my ($nseq, $nres) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@nseA, $fetchfile, undef, $fafile, $logFH, $do_stdout); #undef: default line len
   $nadd = $nseq;
 
   # align new sequences to CM, using --mapali and --mapstr with original SEED

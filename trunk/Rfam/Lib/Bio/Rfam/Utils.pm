@@ -18,6 +18,8 @@ use vars qw( @ISA
              @EXPORT
 );
 
+our $FASTATEXTW =        '60';    # 60 characters per line in FASTA seq output
+
 @ISA    = qw( Exporter );
 
 #-------------------------------------------------------------------------------
@@ -1092,6 +1094,7 @@ sub log_output_timing_summary {
              :             from seq 'name' from 'start' to 'end' and rename the 
              :             subseq 'name/start-end'.
              : $fetchfile: file to fetch seqs from
+             : $textw:     width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
              : $outfile:   output file for fetched seqs, if undefined or "", return $seqstring
              : $logFH:     file handle to output progress info on fetching to, unless undefined
              : $do_stdout: output progress to stdout too
@@ -1101,7 +1104,9 @@ sub log_output_timing_summary {
 =cut
 
 sub fetchSubseqsGivenNseArray { 
-  my ($nseAR, $fetchfile, $outfile, $logFH, $do_stdout) = @_;
+  my ($nseAR, $fetchfile, $textw, $outfile, $logFH, $do_stdout) = @_;
+
+  if(! defined $textw) { $textw = $FASTATEXTW; }
 
   my @fetchAA; # array with info on seqs to fetch
   my $nseq = 0;
@@ -1117,10 +1122,10 @@ sub fetchSubseqsGivenNseArray {
 
   my $seqstring = undef;
   if(defined $outfile && $outfile ne "") { 
-    Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, $outfile); 
+    Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $textw, $logFH, 1, $outfile); 
   }
   else { 
-    $seqstring = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, ""); # "" means return a string of all seqs
+    $seqstring = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $textw, $logFH, 1, ""); # "" means return a string of all seqs
   }
 
   return ($nseq, $nres, $seqstring); # note: seqstring is undefined if $outfile was passed in
@@ -1140,6 +1145,7 @@ sub fetchSubseqsGivenNseArray {
            : $fetchAR:      reference to array of names to fetch, or 2D arrays (if $do_subseqs),
            :                in which case, 2nd array is [$nse, $start, $end, $name] for seqs to fetch
            : $do_subseqs:   '1' if fetchAAR is really a ref to a 2D array for subseq fetching
+           : $textw:        width of FASTA seq lines, usually $FASTATEXTW, -1 for unlimited
            : $logFH:        log file to output timing info to, undef for none
            : $do_stdout:    '1' to output updates to stdout also, ignored if $logFH is ""
            : $outfile:      seq file to print sequences to, if "" or undefined, return string of all fetch seqs
@@ -1148,7 +1154,9 @@ sub fetchSubseqsGivenNseArray {
 =cut
 
 sub fetch_from_sqfile_wrapper { 
-  my ($fetchfile, $fetchAR, $do_subseqs, $logFH, $do_stdout, $outfile) = @_;
+  my ($fetchfile, $fetchAR, $do_subseqs, $textw, $logFH, $do_stdout, $outfile) = @_;
+
+  if(! defined $textw) { $textw = $FASTATEXTW; }
 
   my $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
@@ -1162,12 +1170,12 @@ sub fetch_from_sqfile_wrapper {
     Bio::Rfam::Utils::log_output_progress_local($logFH, "seqfetch", time() - $fetch_start_time, 1, 0, sprintf("[fetching %d seqs]", scalar(@{$fetchAR})), $do_stdout);
   }
   if(defined $outfile && $outfile ne "") { 
-    if($do_subseqs) { $fetch_sqfile->fetch_subseqs($fetchAR, 60, $outfile); }
-    else            { $fetch_sqfile->fetch_seqs_given_names($fetchAR, 60, $outfile); }
+    if($do_subseqs) { $fetch_sqfile->fetch_subseqs($fetchAR, $textw, $outfile); }
+    else            { $fetch_sqfile->fetch_seqs_given_names($fetchAR, $textw, $outfile); }
   } 
   else { # outfile is undefined, 
-    if($do_subseqs) { $ret_str = $fetch_sqfile->fetch_subseqs($fetchAR, 60); }
-    else            { $ret_str = $fetch_sqfile->fetch_seqs_given_names($fetchAR, 60); }
+    if($do_subseqs) { $ret_str = $fetch_sqfile->fetch_subseqs($fetchAR, $textw); }
+    else            { $ret_str = $fetch_sqfile->fetch_seqs_given_names($fetchAR, $textw); }
   } 
 
   if(defined $logFH) { 

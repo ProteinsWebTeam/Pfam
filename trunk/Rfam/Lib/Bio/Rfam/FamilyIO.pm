@@ -2360,7 +2360,7 @@ sub fetchFromOutlistOrTblout {
   Bio::Rfam::FamilyIO::nseArrayFromOutlistOrTblout($infile, $intype, $min_bitsc, \@nseA);
 
   # and fetch the seqs
-  return Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@nseA, $fetchfile, $outfile, $logFH, $do_stdout);
+  return Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@nseA, $fetchfile, undef, $outfile, $logFH, $do_stdout); #undef: default line length for fasta seqs
 }
 
 #-------------------------------------------------
