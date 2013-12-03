@@ -30,9 +30,11 @@ use Bio::Easel::Random;
 
 my $start_time = time();
 my $executable = $0;
-my $dbchoice   = "rfamseq";  # We'll always use this database.
 my $do_stdout  = 1;
 
+# variables changeable by options
+my $df_dbchoice = "rfamseq"; 
+my $dbchoice    = $df_dbchoice;  
 my $do_trim = 0; # '1' to trim alignment instead of extend, '0' to extend instead of trim
 my $n5 = undef;  # number of residues to extend/trim in 5' (left  hand) direction
 my $n3 = undef;  # number of residues to extend/trim in 3' (right hand) direction
@@ -57,11 +59,16 @@ my $options_okay = &GetOptions( "5=s"        => \$n5,
                                 "t"          => \$do_trim,
                                 "i=s"        => \$inseed,
                                 "o=s"        => \$outseed,
+                                "dbchoice=s" => \$dbchoice,
                                 "h|help"     => \$do_help);
 if(! $options_okay) { 
   &help($exec_description); 
   die "ERROR, unrecognized option; "; 
 }
+
+# read in command line variables
+if(scalar(@ARGV) != 0) { $do_help = 1; }
+if ($do_help) { &help(); exit(1); }
 
 # check that at least one of -5 or -3 was used
 if(! defined $n5 && ! defined $n3) { die "ERROR, at least one of -5 or -3 must be used."; }
@@ -78,10 +85,6 @@ if (-e $logfile) { copy($logfile, $logfile . ".$$"); }
 open($logFH, ">" . $logfile) || die "ERROR unable to open $logfile for writing";
 my $dwidth = 100;
 Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, $exec_description, 1, $dwidth);
-
-# read in command line variables
-if(scalar(@ARGV) != 0) { $do_help = 1; }
-if ($do_help) { &help(); exit(1); }
 
 # get user
 my $user  = getpwuid($<);
@@ -407,12 +410,13 @@ sub help {
 
 Usage:      rfseed-extend.pl [options]
 
-Options:    -5 <n>  : extend each sequence <n> residues in 5 prime direction (left  hand side)
-            -3 <n>  : extend each sequence <n> residues in 3 prime direction (right hand side)
-            -l <f>  : only extend sequences listed in file <f> (one seq name per line) [df: extend all]
-            -t      : trim alignment instead of extending it [df: extend]
-            -i <s>  : input  alignment is file <s> [df: SEED]
-            -o <s>  : output alignment to file <s> [df: SEED]
+Options:    -5 <n>        : extend each sequence <n> residues in 5 prime direction (left  hand side)
+            -3 <n>        : extend each sequence <n> residues in 3 prime direction (right hand side)
+            -l <f>        : only extend sequences listed in file <f> (one seq name per line) [df: extend all]
+            -t            : trim alignment instead of extending it [df: extend]
+            -i <s>        : input  alignment is file <s> [df: SEED]
+            -o <s>        : output alignment to file <s> [df: SEED]
+            -dbchoice <s> : database that sequences in seed are from [df: $df_dbchoice]
             -h|-help: print this help, then exit
 
 EOF
