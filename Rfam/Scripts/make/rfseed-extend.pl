@@ -34,7 +34,8 @@ my $do_stdout  = 1;
 
 # variables changeable by options
 my $df_dbchoice = "rfamseq"; 
-my $dbchoice    = $df_dbchoice;  
+my $dbchoice    = $df_dbchoice;  # changeable with -dbchoice
+my $dbfile      = undef;         # set to a file name if -dbfile used
 my $do_trim = 0; # '1' to trim alignment instead of extend, '0' to extend instead of trim
 my $n5 = undef;  # number of residues to extend/trim in 5' (left  hand) direction
 my $n3 = undef;  # number of residues to extend/trim in 3' (right hand) direction
@@ -60,6 +61,7 @@ my $options_okay = &GetOptions( "5=s"        => \$n5,
                                 "i=s"        => \$inseed,
                                 "o=s"        => \$outseed,
                                 "dbchoice=s" => \$dbchoice,
+                                "dbfile=s"   => \$dbfile,
                                 "h|help"     => \$do_help);
 if(! $options_okay) { 
   &help($exec_description); 
@@ -77,6 +79,7 @@ if(defined $n3 && $n3 !~ m/\d+/)   { die "ERROR, with -3 <n>, <n> must be positi
 # handle -l
 if(defined $listfile) { $do_list = 1; }
 if($do_list && $do_trim) { die "ERROR, -l and -t are incompatible, choose one."; }
+if((defined $dbfile) && ($dbchoice ne $df_dbchoice)) { die "ERROR, -dbchoice and -dbfile are incompatible, choose one."; }
 
 # copy rfseed-extend.log sideways if it exists
 my $logfile = "rfseed-extend.log";
@@ -105,10 +108,15 @@ my $oseedmsa = $famObj->SEED;
 my $desc     = $famObj->DESC;
 my $id       = $desc->ID;
 my $acc      = $desc->AC;
-# setup dbfile 
-my $dbconfig   = $config->seqdbConfig($dbchoice);
-my $Z          = $dbconfig->{"dbSize"};
-my $fetchfile  = $dbconfig->{"fetchPath"};
+# setup fetchfile 
+my $fetchfile = undef;
+if(! defined $dbfile) { 
+  my $dbconfig   = $config->seqdbConfig($dbchoice);
+  $fetchfile  = $dbconfig->{"fetchPath"};
+}
+else { 
+  $fetchfile  = $dbfile;
+}
 
 if(! defined $n5) { $n5 = 0; }
 if(! defined $n3) { $n3 = 0; }
@@ -342,11 +350,11 @@ sub get_subseq {
   if($ngap > 0) { $gapstr .= Bio::Rfam::Utils::monocharacterString(".", $ngap); }
 
   if($nres > 0) { 
-    printf("in get_subseq() fetching $fetch_start..$fetch_end\n");
+    # printf("in get_subseq() fetching $fetch_start..$fetch_end from $name\n");
     $seqstr = $fetch_sqfile->fetch_subseq_to_fasta_string($name, $fetch_start, $fetch_end, -1, $do_revcomp);     
     # remove sequence name, description and newlines
-    if($seqstr !~ s/^\>\S+\s*.*\n//) { die "ERROR, unable to process beginning of fetched sequence: $seqstr"; } 
-    if($seqstr !~ s/\n$//)           { die "ERROR, unable to process end of fetched sequence: $seqstr"; } 
+    if($seqstr !~ s/^\>\S+.*\n//) { die "ERROR, unable to process beginning of fetched sequence: $seqstr"; } 
+    if($seqstr !~ s/\n$//)        { die "ERROR, unable to process end of fetched sequence: $seqstr"; } 
   }
   
   my $ret_str = ($gap_before) ? ($gapstr . $seqstr) : ($seqstr . $gapstr);
@@ -417,6 +425,7 @@ Options:    -5 <n>        : extend each sequence <n> residues in 5 prime directi
             -i <s>        : input  alignment is file <s> [df: SEED]
             -o <s>        : output alignment to file <s> [df: SEED]
             -dbchoice <s> : database that sequences in seed are from [df: $df_dbchoice]
+            -dbfile <s>   : seed sequences are from sequence file <s>
             -h|-help: print this help, then exit
 
 EOF

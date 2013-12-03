@@ -402,7 +402,7 @@ sub cmalign_seed_and_hits {
 
   my @fetchAA = (); 
   my ($nhit, $nhit_res) = parse_outlist($outlist, $min_bitsc, \@fetchAA);
-  my $hit_seqstring     = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, $logFH, 1, ""); # "" means return a string of all seqs
+  my $hit_seqstring     = Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fetchfile, \@fetchAA, 1, undef, $logFH, 1, ""); # undef is for default line width, "" means return a string of all seqs
 
   # Remove descriptions from the sequences. We do this because Easel
   # indexes the sequences in an MSA by including the seqs with
@@ -984,7 +984,7 @@ sub do_and_display_cmsearch_alignment {
   # fetch fasta seq to single seq fasta file
   my @nameA = ($sqname);
   my $tmpfile = "single.$$.fa";
-  Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fafile, \@nameA, 0, undef, 0, $tmpfile); # undef, 0 means don't update log file
+  Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fafile, \@nameA, 0, undef, undef, 0, $tmpfile); # undef: default line length, undef, 0 means don't update log file
       
   # cmsearch against that seq, with -Z, --toponly
   my $tblout     = "single.$$.tblout";
@@ -1038,7 +1038,7 @@ sub redo_cmalign_alignment_of_subset {
 
   # fetch fasta seqs to a single seq fasta file
   my $tmp_fafile = "tmp.$$.fa";
-  Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fafile, $nameAR, 0, undef, 0, $tmp_fafile); # undef, 0 means don't update log file
+  Bio::Rfam::Utils::fetch_from_sqfile_wrapper($fafile, $nameAR, 0, undef, undef, 0, $tmp_fafile); # undef: default line length, undef, 0 means don't update log file
 
   # don't use cmalign_wrapper, we'll do this always locally and always with 1 CPU
   my $local_opt = ($do_local) ? "" : "-g";

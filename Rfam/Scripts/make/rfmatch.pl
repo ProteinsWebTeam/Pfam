@@ -200,8 +200,8 @@ my $nalign = scalar(@match_nseA) + scalar(@hit_nseA);
 if($nalign > $maxhits) { 
   die "ERROR, $nalign > $maxhits hits to align exist, increase maximum with -x, or consider lowering threshold with -e, -t or -b."; 
 }
-my ($nmatch, $nmatch_res, $match_seqstring) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@match_nseA, $infile,    "", $logFH, $do_stdout); # "" means return a string of all seqs
-my ($nhit,   $nhit_res,   $hit_seqstring)   = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@hit_nseA,   $fetchfile, "", $logFH, $do_stdout); # "" means return a string of all seqs
+my ($nmatch, $nmatch_res, $match_seqstring) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@match_nseA, $infile,    undef, "", $logFH, $do_stdout); # undef: default line len, "" means return a string of all seqs
+my ($nhit,   $nhit_res,   $hit_seqstring)   = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@hit_nseA,   $fetchfile, undef, "", $logFH, $do_stdout); # undef: default line len, "" means return a string of all seqsli
 
 # output all seqs to a single file
 my $fa_file  = "$$.fa";
