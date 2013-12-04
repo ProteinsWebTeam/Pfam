@@ -399,17 +399,30 @@ sub highestNoise {
 
 
 sub applyEdits {
-  my ($self, $edits) = @_;
+  my ($self, $edits, $removeBadEd) = @_;
+
+  my @validEd; #If removeBadEd flag is on, collect all the valid ED lines in this array and return at end of sub 
   foreach my $e (@$edits){
     #{ seq => $1, oldFrom => $2, oldTo => $3, newFrom => $5, newTo => $6 }  
     if($self->seqs->{$e->{seq}}){
       my $matched = 0;
       foreach my $u (@{ $self->seqs->{ $e->{seq} }->hmmUnits }){
-          if($u->envFrom == $e->{oldFrom} and 
-             $u->envTo == $e->{oldTo}) {
-            $matched = 1;
+          if($u->envFrom == $e->{oldFrom} and $u->envTo == $e->{oldTo}) {
+	    $matched = 1; #HMM unit found
+
             if(defined $e->{newFrom} and $e->{newTo}){
-              
+	     
+	      #Check co-ordinates of new start and end positions are in range
+	      if( $e->{newFrom} < $u->{envFrom} or $e->{newTo} > $u->{envTo} or $e->{newFrom} > $e->{newTo}) {
+		if($removeBadEd) {
+		  warn "Removing ED line due to out of range co-ordinates: " . $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}. "\n";
+		}
+		else {
+		  warn $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}." contains out of range co-ordinates - bad ED line\n";
+		}
+		last;
+	      }
+
               #Modify the start end positions
               $u->envFrom($e->{newFrom});
               $u->envTo($e->{newTo});
@@ -425,16 +438,29 @@ sub applyEdits {
               #Set the score so low it will never get in the align
               $u->bits(-999999.99);
             }
+
+	    push(@validEd, $e) if($removeBadEd);  
             last;    
           }  
       }
-      unless($matched){
-        warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of hmm units - bad ED line\n";
+      unless($matched){ #HMM unit not found - bad ED
+	if($removeBadEd) {
+	  warn "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+	}
+	else {
+	  warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of hmm units - bad ED line\n";
+	}
       }
-    }else{
-      warn $e->{seq}." does not appear in the list of hmm units - bad ED line\n";  
+    }else{ #Sequence not found - bad ED
+      if($removeBadEd) {
+	warn "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+      }
+      else {
+	warn $e->{seq}." does not appear in the list of hmm units - bad ED line\n";  
+      }
     }
   }
+  return(\@validEd) if($removeBadEd);
   
 }
 
