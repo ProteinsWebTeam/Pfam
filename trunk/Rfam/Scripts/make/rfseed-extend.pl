@@ -298,10 +298,9 @@ else { # not trim mode, adding columns
 if($inseed eq $outseed) { 
   if (-e $inseed) { copy($inseed, $inseed . ".$$"); }
 }
-# update names in new SEED
+# update names in new SEED and output it
 update_names($nseedmsa, $oseedmsa, $do_trim, $n5, $n3, \%skipmeH);
-if($do_trim) { $oseedmsa->write_msa($outseed, "stockholm"); }
-else         { $nseedmsa->write_msa($outseed, "stockholm"); }
+$nseedmsa->write_msa($outseed, "stockholm");
 
 # done all work, print output file summary
 my $fwidth = 25;
@@ -368,7 +367,6 @@ sub update_names {
   my ($nseedmsa, $oseedmsa, $do_trim, $n5, $n3, $skipmeHR) = @_;
 
   my($i, $apos, $nstart, $nend);
-  my $nalen = $nseedmsa->alen;
   for($i = 0; $i < $nseedmsa->nseq; $i++) { 
     my $onse =$oseedmsa->get_sqname($i);
     if(! $skipmeHR->{$onse}) { 
@@ -377,25 +375,30 @@ sub update_names {
       my $nend   = $oend;
       # we'll only enter this for loop if $n5 > 0
       for($apos = 1; $apos <= $n5; $apos++) { 
-        if($nseedmsa->is_residue($i, $apos)) { 
-          if($do_trim) { 
+        if($do_trim) { 
+          if($oseedmsa->is_residue($i, $apos)) { # trimming: look at original MSA, not new one
             if($strand eq "1") { $nstart++; }
             else               { $nstart--; }
           }
-          else { 
+        }
+        else { 
+          if($nseedmsa->is_residue($i, $apos)) { # extending: look at new MSA, not original one
             if($strand eq "1") { $nstart--; }
             else               { $nstart++; }
           }
         }
       }
       # we'll only enter this for loop if $n3 > 0
-      for($apos = $nalen-$n3+1; $apos <= $nalen; $apos++) { 
-        if($nseedmsa->is_residue($i, $apos)) { 
-          if($do_trim) { 
+      my $eff_alen = ($do_trim) ? $oseedmsa->alen : $nseedmsa->alen; # careful: end aln posn is different depending on $do_trim
+      for($apos = $eff_alen-$n3+1; $apos <= $eff_alen; $apos++) { 
+        if($do_trim) { 
+          if($oseedmsa->is_residue($i, $apos)) { # trimming: look at original MSA, not new one
             if($strand eq "1") { $nend--; }
             else               { $nend++; }
           }
-          else { 
+        }
+        else { 
+          if($nseedmsa->is_residue($i, $apos)) { # extending: look at new MSA, not original one
             if($strand eq "1") { $nend++; }
             else               { $nend--; }
           }
