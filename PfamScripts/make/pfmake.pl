@@ -16,18 +16,19 @@ main( @ARGV ) unless caller(  );
 
 
 sub main {
-  my( $seqThrs, $domThrs, $evalue, $seqDB, $help);
+  my( $seqThrs, $domThrs, $evalue, $seqDB, $help, $removeBadEd);
 #-----------------------------------------------------------------------------------------
 #Read options
 
   Getopt::Long::Configure('no_ignore_case');
   
   GetOptions (
-    "e=s" => \$evalue,
-    "T=s" => \$seqThrs,
-    "t=s" => \$domThrs,
-    "d=s" => \$seqDB,
-    "h"   => \$help,
+        "e=s" => \$evalue,
+        "T=s" => \$seqThrs,
+        "t=s" => \$domThrs,
+        "d=s" => \$seqDB,
+          "h" => \$help,
+"removeBadEd" => \$removeBadEd    
   );
 
   if($help){
@@ -90,11 +91,15 @@ sub main {
   }
   my $oldSeqThrs = $descObj->CUTGA->{seq};
   my $oldDomThrs = $descObj->CUTGA->{dom};
-  
-  
-  
-  
-  $HMMResults->applyEdits( $descObj->EDITS ) if( $descObj->EDITS );  
+
+  if( $descObj->EDITS ) {
+    if($removeBadEd) { #Remove ED lines that do not correspond to valid HMM units, and those that have out of range co-ordinates
+      $descObj->EDITS($HMMResults->applyEdits( $descObj->EDITS, 1 ));
+    }
+    else {
+      $HMMResults->applyEdits( $descObj->EDITS );
+    }
+  }
   
   #Set the thresholds on the results set.  
   if(defined $domThrs and defined $seqThrs){
@@ -173,6 +178,8 @@ print<<EOF;
       -e             Evalue based Domain threshold
       -d             set the full path to pfamseq, e.g. /data/blastdb/pfamseq
       -h             prints this help
+      -removeBadEd   Remove ED lines that do not correspond to a valid HMM unit, or that have out of range co-ordinates
+
 
 EOF
     exit(1);  
