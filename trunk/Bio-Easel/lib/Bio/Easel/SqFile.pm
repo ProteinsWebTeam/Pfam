@@ -627,6 +627,31 @@ sub nseq_ssi {
   return _c_nseq_ssi($self->{esl_sqfile});
 }
 
+=head2 nres_ssi
+
+  Title    : nres_ssi
+  Incept   : EPN, Thu Dec  5 06:09:21 2013
+  Usage    : Bio::Easel::SqFile->nres_ssi()
+  Function : Returns the number of residues in a sequence file
+           : using its SSI index.
+  Args     : NONE
+  Returns  : number of residues in the file.
+  Dies     : upon error in _c_nres_ssi with C croak() call
+
+=cut
+    
+sub nres_ssi { 
+  my ( $self ) = @_;
+
+  $self->_check_sqfile();
+  $self->_check_ssi();
+  
+  my $Lstr; # _c_nres_ssi returns length as a string, so as not to overflow a 32-bit int
+  $Lstr = _c_nres_ssi($self->{esl_sqfile});
+
+  return $Lstr;
+}
+
 =head2 DESTROY
 
   Title    : DESTROY

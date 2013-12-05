@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 
 BEGIN {
@@ -18,6 +18,11 @@ isa_ok($sqfile, "Bio::Easel::SqFile");
 my $nseq;
 $nseq = $sqfile->nseq_ssi();
 is ($nseq, 100);
+
+# test nres_ssi
+my $nres;
+$nres = $sqfile->nres_ssi();
+is ($nres, 7087);
 
 # test fetch_seq_name_and_length_given_ssi_number
 my ($seqname, $L);
