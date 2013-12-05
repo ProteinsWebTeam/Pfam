@@ -454,3 +454,55 @@ long _c_nseq_ssi(ESL_SQFILE *sqfp) {
 
   return sqfp->data.ascii.ssi->nprimary;
 }
+
+/* Function:  _c_nres_ssi
+ * Incept:    EPN, Thu Dec  5 06:14:02 2013
+ * Purpose:   Return the number of residues in a sequence file.
+ *            
+ * Args:      sqfp - open ESL_SQFILE
+ *
+ * Returns:   Number of residues in the file.
+ */
+
+SV * _c_nres_ssi(ESL_SQFILE *sqfp) { 
+  int status;
+  int i;                    /* counter over seqs */
+  int64_t nseq;             /* number of seqs in sqfp */
+  int64_t nres = 0;         /* summed length of all seqs */
+  int64_t nres_dup;         /* duplicate of nres, used to create nres_str */
+  char   *nres_str = NULL;  /* string version of nres, to return */
+  int     nres_wid = 0;     /* num digits in nres */
+  SV     *nres_str_SV;      /* SV version of nres_str, to return */
+  int64_t L;                /* length of current seq */
+
+  /* make sure SSI is valid */
+  if (sqfp->data.ascii.ssi == NULL) croak("sequence file has no SSI information\n"); 
+  
+  nseq = sqfp->data.ascii.ssi->nprimary;
+  
+  for(i = 0; i < nseq; i++) { 
+    status = esl_ssi_FindNumber(sqfp->data.ascii.ssi, i, NULL, NULL, NULL, &L, NULL);
+    if     (status == eslEMEM)      croak("out of memory");
+    else if(status == eslENOTFOUND) croak("there is no sequence %d\n", i);
+    else if(status == eslEFORMAT)   croak("error fetching sequence num %d, something wrong with SSI index?\n", i);
+    else if(status != eslOK)        croak("error fetching sequence num %d\n", i);
+    if(L == 0)                      croak("error fetching sequence num %d, seq length unknown\n", i);
+    nres += L;
+  }
+  /* convert nres to a string to return (so we don't overflow an int or a long) */
+  /* determine number of digits in nres */
+  nres_dup = nres;
+  nres_wid = 1;
+  while(nres_dup >= 10) { nres_dup/=10; nres_wid++; }
+  ESL_ALLOC(nres_str, sizeof(char) * (nres_wid + 1));
+  snprintf(nres_str, nres_wid+1, "%" PRId64 "", nres);
+
+  nres_str_SV = newSVpv(nres_str, nres_wid);
+  free(nres_str);
+
+  return nres_str_SV;
+
+ ERROR: 
+  croak("out of memory");
+  return NULL; /* NEVER REACHED */
+}
