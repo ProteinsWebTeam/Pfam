@@ -703,7 +703,6 @@ sub requireMods {
     Moose::Util
     Moose::Util::MetaRole
     Moose::Util::TypeConstraints
-    Moose::Util::TypeConstraints::OptimizedConstraints
     POSIX
     Params::Util
     SVN::Client
