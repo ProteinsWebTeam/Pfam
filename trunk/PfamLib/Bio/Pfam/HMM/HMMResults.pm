@@ -415,7 +415,7 @@ sub applyEdits {
 	      #Check co-ordinates of new start and end positions are in range
 	      if( $e->{newFrom} < $u->{envFrom} or $e->{newTo} > $u->{envTo} or $e->{newFrom} > $e->{newTo}) {
 		if($removeBadEd) {
-		  warn "Removing ED line due to out of range co-ordinates: " . $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}. "\n";
+		  print "Removing ED line due to out of range co-ordinates: " . $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}. "\n";
 		}
 		else {
 		  warn $e->{seq}."/".$e->{newFrom}."-".$e->{newTo}." contains out of range co-ordinates - bad ED line\n";
@@ -445,7 +445,7 @@ sub applyEdits {
       }
       unless($matched){ #HMM unit not found - bad ED
 	if($removeBadEd) {
-	  warn "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+	  print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
 	}
 	else {
 	  warn $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}." does not appear in the list of hmm units - bad ED line\n";
@@ -453,7 +453,7 @@ sub applyEdits {
       }
     }else{ #Sequence not found - bad ED
       if($removeBadEd) {
-	warn "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
+	print "Removing ED line for invalid hmm unit: " . $e->{seq}."/".$e->{oldFrom}."-".$e->{oldTo}. "\n";
       }
       else {
 	warn $e->{seq}." does not appear in the list of hmm units - bad ED line\n";  
