@@ -44,7 +44,7 @@ sub main {
     $fname, $hand,       $local,      $nobuild, $split,
     $help,  $evalCut,    $dbsize,     $max,     $bFilt,
     $null2, $f1,         $f2,         $f3,      $ibm,
-    $ism,   $withpfmake, $makeEvalue, $db,      $cpu,
+    $ism,   $withpfmake, $makeEvalue, $removeBadEd, $db,      $cpu,
     $copy,  $pfamseq_local, $memory_gb, $modelLength
   );
 
@@ -68,6 +68,7 @@ sub main {
     'F3=s'       => \$f3,
     'withpfmake' => \$withpfmake,
     'makeEval=s' => \$makeEvalue,
+    'removeBadEd'=> \$removeBadEd,     
     'pfamseq=s'  => \$pfamseq_local,
     'M=i'        => \$memory_gb,
     'db=s'       => \$db
@@ -77,6 +78,10 @@ sub main {
   help() if ($help);
   if ( $hand and $nobuild ) {
     warn "\n***** Can not specfiy -hand and -build together *****\n\n";
+  }
+
+  if($removeBadEd and !$withpfmake) {
+    die "Cannot specify -removeBadEd option without specifying -withpfmake option.\n";
   }
 
   if ($pfamseq_local) {
@@ -461,20 +466,22 @@ sub main {
       else {
         $pfmake_db = $db_location;
       }
+      my $pfmake_cmd.="pfmake.pl -d $pfmake_db ";
+
+      if($removeBadEd) {
+	$pfmake_cmd.= "-removeBadEd ";
+      }
 
       if ($makeEvalue) {
-        system("pfmake.pl -e $makeEvalue -d $pfmake_db\n")
-          and die "Failed to run pfmake\n";
+	$pfmake_cmd .= "-e $makeEvalue ";
       }
-      else {
-        if ( -e "DESC" ) {
-          system("pfmake.pl -d $pfmake_db\n") and die "Failed to run pfmake\n";
-        }
-        else {
-          system("pfmake.pl -e 0.01 -d $pfmake_db\n")
-            and die "Failed to run pfmake\n";
-        }
+      elsif(!-e "DESC" ) {
+	$pfmake_cmd .= "-e 0.01 ";
       }
+      #else DESC must exist so it will use the GA in the DESC file
+
+      system("$pfmake_cmd\n") and die "Failed to run pfmake\n";
+      
     }
   }
   else {
@@ -600,18 +607,21 @@ sub main {
           else {
             $pfmake_db = $db_location;
           }
+	  my $pfmake_cmd.="pfmake.pl -d $pfmake_db ";
+
+	  if($removeBadEd) {
+	    $pfmake_cmd.= "-removeBadEd ";
+	  }
 
           if ($makeEvalue) {
-            $fh->print("pfmake.pl -e $makeEvalue -d $pfmake_db\n");
+	    $pfmake_cmd .= "-e $makeEvalue ";
           }
-          else {
-            if ( -e "$pwd/DESC" ) {
-              $fh->print("pfmake.pl -d $pfmake_db\n");
-            }
-            else {
-              $fh->print("pfmake.pl -e 0.01 -d $pfmake_db\n");
-            }
-          }
+          elsif (!-e "$pwd/DESC" ) {
+	    $pfmake_cmd .= "-e 0.01 ";
+	  }
+	  #else DESC must exist so it will use the GA in the DESC file
+
+          $fh->print("$pfmake_cmd\n");
         }
 
         #Now bring back all of the files
@@ -721,6 +731,7 @@ And Finally:
               : then it will use the threshold present in the file. Otherwise,
               : it will use a default threshold of 10e-2.
   -makeEval   : Will run pfmake with the specified evalue cut-off   
+  -removeBadEd: Will run pfmake with -removeBadEd option (need to use this option in conjuction with -withpfmake option)
   -M <int>    : Amount of memory in Gb to request (this option is only for Sanger farm)
   
 EOF
