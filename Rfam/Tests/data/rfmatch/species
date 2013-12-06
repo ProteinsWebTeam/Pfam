@@ -1,0 +1,10 @@
+#
+# bits  evalue   seqLabel  name             overlap  ncbiId  species                           taxString
+#=====  =======  ========  ===============  =======  ======  ================================  =========================================================================================================================================================================================
+  73.6  2.3e-17      SEED  AADA01028285.1         -    9598  Pan troglodytes (chimpanzee)      Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.
+  67.7  9.4e-16      FULL  AGKD01004498.1         -    8030  Salmo salar (Atlantic salmon)     Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Actinopterygii; Neopterygii; Teleostei; Euteleostei; Protacanthopterygii; Salmoniformes; Salmonidae; Salmoninae; Salmo.
+  58.2  4.1e-13      FULL  ADDF012560685.1        -    9606  Homo sapiens (human)              Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Homo.
+  43.0  6.5e-09      FULL  ACUQ01001661.1         -  400682  Amphimedon queenslandica          Eukaryota; Metazoa; Porifera; Demospongiae; Ceractinomorpha; Haplosclerida; Niphatidae; Amphimedon.
+  38.1  1.4e-07      FULL  ACFS01000363.1         -  595528  Capsaspora owczarzaki ATCC 30864  Eukaryota; Ichthyosporea; Capsaspora.
+############################################# CURRENT THRESHOLD: 29.00 BITS ############################################
+#################################### NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) ###################################

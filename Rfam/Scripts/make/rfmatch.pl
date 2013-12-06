@@ -29,7 +29,6 @@ use Bio::Easel::Random;
 
 my $start_time = time();
 my $executable = $0;
-my $dbchoice   = "rfamseq";         # We'll always use this database.
 
 # set default values that command line options may change
 my $do_stdout     = 1;              # TRUE to output to STDOUT
@@ -49,7 +48,12 @@ my $in_prefix     = $df_in_prefix;  # prefix for input  files, $in_prefix  . "ou
 my $do_local      = 0;              # TRUE to align locally w.r.t. the CM
 my $do_force      = 0;              # TRUE with -f, overwrite files 
 my $do_help       = 0;              # TRUE to print help and exit, if -h used
+my $df_dbchoice   = "rfamseq"; 
+my $dbchoice      = $df_dbchoice;  # changeable with -dbchoice
+my $dbfile        = undef;         # set to a file name if -dbfile used
+my $Z             = undef;         # set to <n> with -Z <n>
 
+my @unlinkA       = ();            # array of files to unlink before exiting.
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
@@ -63,6 +67,9 @@ my $config = Bio::Rfam::Config->new;
              "in=s"       => \$in_prefix,
              "f"          => \$do_force,
              "quiet"      => \$do_quiet,
+             "dbchoice=s" => \$dbchoice,
+             "dbfile=s"   => \$dbfile,
+             "Z=s"        => \$Z,
              "h|help"     => \$do_help);
 
 $do_stdout = ($do_quiet) ? 0 : 1;
@@ -82,6 +89,14 @@ $out_prefix =~ s/\.+$//;
 if ( $do_help ) {
   &help($exec_description);
   exit(1);
+}
+
+# check for incompatible option combos
+if((defined $dbfile) && ($dbchoice ne $df_dbchoice)) { 
+  die "ERROR, -dbchoice and -dbfile are incompatible, choose one."; 
+}
+if((defined $Z) && (! defined $dbfile)) { 
+  die "ERROR, -Z only works in combination with -dbfile."; 
 }
 
 # copy rfmatch.$out_prefix.log sideways if it exists
@@ -122,9 +137,20 @@ my $id      = $desc->ID;
 my $acc     = $desc->AC;
 
 # setup dbfile 
-my $dbconfig  = $config->seqdbConfig($dbchoice);
-my $Z         = $dbconfig->{"dbSize"};
-my $fetchfile = $dbconfig->{"fetchPath"};
+my $fetchfile = undef;
+# note: -Z was set as undefined before options were read, possibly set to a value with -Z if -dbfile also used
+if(defined $dbfile) { # -dbfile used, we're using a specified sequence file, we won't have a dbconfig
+  $fetchfile = $dbfile;
+  if(! defined $Z) { 
+    my $fetch_sqfile = Bio::Easel::SqFile->new({ fileLocation => $fetchfile });
+    $Z = ($fetch_sqfile->nres_ssi() * 2.) / 1000000.; # 2 strands and convert to Mb
+  }
+}
+else { # -dbfile not used, 
+  my $dbconfig  = $config->seqdbConfig($dbchoice);
+  $fetchfile = $dbconfig->{"fetchPath"};
+  $Z         = $dbconfig->{"dbSize"};
+}
 my $outlist   = $in_prefix . "outlist";
 my $species   = $in_prefix . "species";
 if($in_prefix eq "") { 
@@ -190,6 +216,7 @@ my $searchout = "s.$$.cmsearch";
 Bio::Rfam::Utils::log_output_progress_local($logFH, "cmsearch", time() - $search_start_time, 1, 0, "[$infile]", 1);
 Bio::Rfam::Infernal::cmsearch_wrapper($config, "", "--tblout $tblout " . $searchopts, "CM", $infile, $searchout, "s.$$.err", "", "", 1);
 Bio::Rfam::Utils::log_output_progress_local($logFH, "cmsearch", time() - $search_start_time, 0, 1, "", 1);
+push(@unlinkA, ($tblout, $searchout));
 
 # get string of all hits found in $infile and all hits above $minsc, we do this in two steps so we can exit if we have more than $maxhits hits
 my @match_nseA = ();
@@ -203,11 +230,14 @@ if($nalign > $maxhits) {
 my ($nmatch, $nmatch_res, $match_seqstring) = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@match_nseA, $infile,    undef, "", $logFH, $do_stdout); # undef: default line len, "" means return a string of all seqs
 my ($nhit,   $nhit_res,   $hit_seqstring)   = Bio::Rfam::Utils::fetchSubseqsGivenNseArray(\@hit_nseA,   $fetchfile, undef, "", $logFH, $do_stdout); # undef: default line len, "" means return a string of all seqsli
 
+my $nodesc_match_seqstring = Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($match_seqstring);
+my $nodesc_hit_seqstring   = Bio::Rfam::Utils::remove_descriptions_from_fasta_seq_string($hit_seqstring);
+
 # output all seqs to a single file
 my $fa_file  = "$$.fa";
 open(OUT, ">" . $fa_file) || die "ERROR unable to open $fa_file for writing seqs to";
-print OUT $match_seqstring;
-print OUT $hit_seqstring;
+print OUT $nodesc_match_seqstring;
+print OUT $nodesc_hit_seqstring;
 close(OUT);
 
 # align all seqs
@@ -217,11 +247,7 @@ my $err_file     = "a.$$.err";
 my $align_opts = "-o $stk_file --noprob"; # PPs will just increase size of file -- we won't use them
 if(! $do_local) { $align_opts .= " -g"; }
 Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "a.$$", $align_opts, "CM", $fa_file, $cmalign_file, "a.$$.err", $nhit + $nmatch, $nhit_res + $nmatch_res, 1, 0, "", -1, $logFH, 1);
-foreach my $file ($cmalign_file, $err_file) { 
-  if(-s $file) { 
-    unlink $file; 
-  }
-}
+push(@unlinkA, ($cmalign_file, $err_file, $fa_file, $stk_file));
 
 # read in MSA we just created
 my $msa = Bio::Easel::MSA->new({
@@ -238,6 +264,7 @@ for(my $i = $nmatch; $i < $nall; $i++) {
   my $match = "";
   for(my $j = 0; $j < $nmatch; $j++) { 
     my $pid = $msa->pairwise_identity($i, $j);
+    # printf("pid %2d %2d: %s\n", $i, $j, $pid);
     if($pid > $id1_thr && $pid > $maxid) { 
       $maxid = $pid;
       $match = $j;
@@ -325,6 +352,11 @@ foreach my $outfile (@outfile_orderA) {
 Bio::Rfam::Utils::log_output_tail($logFH, $start_time, $do_stdout);
 
 close($logFH);
+
+foreach my $outfile (@unlinkA) { 
+#  if(-e $outfile) { unlink $outfile; }
+}
+
 exit 0;
 
 ########################################
@@ -386,16 +418,19 @@ Usage:      rfmatch.pl [options]
                        <fasta seq file to search for high identity matches to hits in outlist>
                        <prefix for output files, e.g. 'mirbase' => 'mirbase.outlist' will be created>
 
-Options:    -1 <f>       : set minimum fractional id for definition of a match to <f> [df: $df_id1_thr]
-            -e <f>       : set maximum hit E-value to search for matches to <f> [df: do all hits]
-            -t <f>       : set minimum hit bit score to search for matches to <f> [df: do all hits]
-            -b <f>       : set minimum hit score to search for matches to GA - <f> bits [df: do all hits]
-            -x <n>       : set maximum number of hits to consider as <n>, die if exceeded [df: $df_maxhits]
-            -alocal      : align locally w.r.t. the CM [default: globally]
-            -in <s>      : input 'outlist' and 'species' files are prefixed with <s> [df: $df_in_prefix]
-            -f           : force; files may be overwritten
-            -quiet       : be quiet; do not output anything to stdout (rfmatch.log still created)
-            -h|-help     : print this help, then exit
+Options:    -1 <f>        : set minimum fractional id for definition of a match to <f> [df: $df_id1_thr]
+            -e <f>        : set maximum hit E-value to search for matches to <f> [df: do all hits]
+            -t <f>        : set minimum hit bit score to search for matches to <f> [df: do all hits]
+            -b <f>        : set minimum hit score to search for matches to GA - <f> bits [df: do all hits]
+            -x <n>        : set maximum number of hits to consider as <n>, die if exceeded [df: $df_maxhits]
+            -alocal       : align locally w.r.t. the CM [default: globally]
+            -in <s>       : input 'outlist' and 'species' files are prefixed with <s> [df: $df_in_prefix]
+            -f            : force; files may be overwritten
+            -quiet        : be quiet; do not output anything to stdout (rfmatch.log still created)
+            -dbchoice <s> : database that sequences in seed are from [df: $df_dbchoice]
+            -dbfile <s>   : seed sequences are from sequence file <s>
+            -Z <n>        : with -dbfile, define database size as <n> *Mb*
+            -h|-help      : print this help, then exit
 
 EOF
 }

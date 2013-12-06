@@ -1,0 +1,10 @@
+#
+# bits  evalue   seqLabel  name             overlap  start  end    str  qstart  qend  trunc  species                            description
+#=====  =======  ========  ===============  =======  =====  =====  ===  ======  ====  =====  =================================  =====================================================================================
+  73.6  2.3e-17      SEED  AADA01028285.1         -   4499   4587    +       1   101     no  Pan_troglodytes_(chimpa..[9598]    Pan troglodytes ctg_28284, whole genome shotgun sequence.
+  67.7  9.4e-16      FULL  AGKD01004498.1         -  20595  20495    -       1   101     no  Salmo_salar_(Atlantic_s..[8030]    Salmo salar Contig_004499, whole genome shotgun sequence.
+  58.2  4.1e-13      FULL  ADDF012560685.1        -    108     14    -       8   101     5'  Homo_sapiens_(human)[9606]         Homo sapiens contig2560685, whole genome shotgun sequence.
+  43.0  6.5e-09      FULL  ACUQ01001661.1         -  44488  44391    -       1   101     no  Amphimedon_queenslandica[400682]   Amphimedon queenslandica AMPQUscaffold_13478_Cont1661, whole genome shotgun sequence.
+  38.1  1.4e-07      FULL  ACFS01000363.1         -  70424  70314    -       1   101     no  Capsaspora_owczarzaki_A..[595528]  Capsaspora owczarzaki ATCC 30864 cont1.363, whole genome shotgun sequence.
+############################################# CURRENT THRESHOLD: 29.00 BITS ############################################
+#################################### NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) ###################################
