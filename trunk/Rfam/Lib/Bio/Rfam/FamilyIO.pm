@@ -2297,16 +2297,17 @@ sub nseArrayFromOutlistOrTblout {
   while(my $line = <IN>) {
     if($line !~ m/^\#/) { 
       $line =~ s/^\s+//; # remove leading whitespace
-      my @elA = split(/\s\s+/, $line); # note: we separate by double spaces
       my ($cur_bitsc, $name, $start, $end);
       if($intype eq "outlist") { 
         # example outlist line:
         # 122.1  9.5e-28      FULL  CAAA01222947.1         -    8801    8703    -       1    99     no  Mus_musculus_(house_mou..[10090]   Mus musculus whole genome shotgun assembly contig 222946
+        my @elA = split(/\s\s+/, $line); # note: we separate by double spaces
         ($cur_bitsc, $name, $start, $end) = ($elA[0], $elA[3], $elA[5], $elA[6]);
       }
       else { # tblout
         # example tblout line:
         # CAAA01222947.1       -         mir-351              RF00805    cm        1       99     8801     8703      -    no    1 0.51   0.0  122.1   9.5e-28 !   Mus musculus whole genome shotgun assembly contig 222946
+        my @elA = split(/\s+/, $line); # note: we separate by single spaces
         ($cur_bitsc, $name, $start, $end) = ($elA[14], $elA[0], $elA[7], $elA[8]);
       }
       if($fetch_all_hits || $cur_bitsc >= $min_bitsc) { 
@@ -2956,9 +2957,6 @@ sub validate_species_format {
   close(IN);
   return;
 }
-
-
-
 
 ######################################################################
 

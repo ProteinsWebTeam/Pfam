@@ -439,7 +439,7 @@ sub copy_orig_files {
 sub run_script { 
   if(scalar(@_) != 4) { die "ERROR run_script entered with wrong number of input args"; }
   my ($script, $options, $unlinkAR, $testctr) = (@_);
-  my $output = `$script $options`;
+  run_command("$script $options");
 
   # parse output, find files we output and add them to unlinkAR
   my $logfile = $script;
