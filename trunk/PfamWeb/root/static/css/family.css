@@ -333,3 +333,7 @@ p.viewAlignOptsFootnote {
   margin: 0;
 }
 
+p.quote {
+  margin-left: 2em;
+  margin-right: 2em;
+}
