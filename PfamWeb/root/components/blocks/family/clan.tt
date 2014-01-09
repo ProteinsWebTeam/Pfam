@@ -45,10 +45,16 @@ oe = 0;
     <p>
       This family is a member of clan <strong>
       <a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
-      (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
-      which contains the following [% total > 1 ? total _ " members" : "member" %]:
+      (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>), 
+      which has the following description:
     </p>
-  
+    <p class="quote">
+      [%- clan.clan_comment %]
+    </p>
+    <p>
+      The clan contains the following [% total > 1 ? total _ " members" : "member" %]:
+    </p>
+
     [% membershipList %]
   
     <div class="cleaner"><!-- empty --></div>
