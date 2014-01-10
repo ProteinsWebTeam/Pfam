@@ -1,14 +1,15 @@
 #!/usr/bin/env perl
 
 #Script to split a fasta file into smaller chunks, and run pfam_scan.pl on each chunk
-#Input is fasta file
-#Optional: Location of HMMs to use, the number of sequences to spilt this file into, name of ouput file
+#Input: Fasta file and directory location of Pfam-A.hmm files
+#Optional: the number of sequences to spilt this file into, name of ouput file
 #Output is in cwd
 
 use strict;
 use warnings;
 use Getopt::Long;
 use IO::File;
+use Bio::Pfam::Config;
 
 #Get user options
 my ($help, $fasta, $split_number, $hmm_dir, $output);
@@ -20,6 +21,14 @@ my ($help, $fasta, $split_number, $hmm_dir, $output);
 #Does fasta file exist
 unless($fasta and -s $fasta) {
   help();
+}
+
+#Check can get pfam config okay
+my $config = Bio::Pfam::Config->new;
+die "No pfam config file" unless($config);
+
+unless($config->location eq "EBI") {
+  die "This script currently only works at EBI";
 }
 
 #Define output file if not defined already
@@ -35,7 +44,7 @@ else {
   $split_number = 1000;
 }
 
-#Check $hmm_dir contains the right files, if $hmm_dir not specified, use HMMs from current release
+#Check $hmm_dir contains the right files
 if($hmm_dir) {
   my $error;
   foreach my $file (qw(Pfam-A.hmm  Pfam-A.hmm.dat  Pfam-A.hmm.h3f  Pfam-A.hmm.h3i  Pfam-A.hmm.h3m  Pfam-A.hmm.h3p)) {
@@ -49,8 +58,8 @@ if($hmm_dir) {
   }
 }
 else {
-  $hmm_dir="/lustre/scratch110/blastdb/Supported";
-  print STDERR "Using HMMs in /lustre/scratch110/blastdb/Supported\n"; 
+  die "Need to specify hmm_dir\n";
+  help();
 }
 
 #Set up counters
@@ -89,13 +98,14 @@ while(<FASTA>) {
 close FASTA;
 close FH;
 
-#Run pfam_scan.pl on farm using job arrays, submit to long queue, select 2Gb memory
+#Run pfam_scan.pl on farm using job arrays, select 2Gb memory
 print STDERR "Submitting $j+1 pfam_scan.pl jobs to farm\n";
 my $num_files = "1-$j";
 my $fh = IO::File->new();
 
-$fh->open( "| bsub -q normal -o $name.err -J$name\"[$num_files]\" -R \"select[type==X86_64 && mem>2000] rusage[mem=2000]\" -M 2000000") or die "Couldn't open file handle\n";
-$fh->print( "pfam_scan.pl -dir $hmm_dir -fasta $name\$\{LSB_JOBINDEX} > $name\$\{LSB_JOBINDEX}.out\n"); 
+
+$fh->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.err -J$name\"[$num_files]\" -R \"rusage[mem=2000]\" -M 2000") or die "Couldn't open file handle\n";
+$fh->print( "pfam_scan.pl -dir $hmm_dir -fasta $name\$\{LSB_JOBINDEX} -cpu 4 > $name\$\{LSB_JOBINDEX}.out\n"); 
 $fh->close;
 
 
@@ -103,7 +113,7 @@ $fh->close;
 #Remove intermediate files
 my $fh2 = IO::File->new();
 
-$fh2->open( "| bsub -q normal -o $name.log -J$name -w\'done($name)\'") or die "Couldn't open file handle\n";
+$fh2->open( "| bsub -q ". $config->farm->{lsf}->{queue}." -o $name.log -Jcat_$name -w 'done($name)' " ) or die "Couldn't open file handle\n";
 $fh2->print("cat $name*out > $output\n");
 $fh2->print("rm -fr $name*\[0-9\]\n");
 $fh2->print("rm -fr $name*out\n");
@@ -115,20 +125,17 @@ print STDERR << "EOF";
 
 This program splits a fasta file into smaller chunks named <fasta>1,
 <fasta>2 etc. It runs pfam_scan.pl using Pfam GA thresholds on each
-chunk on the Sanger farm. If all chunks run on the farm successfully,
+chunk on the farm. If all chunks run on the farm successfully,
 the script will concantenate all output files into a single file
 called 'pfam_scan_result', and delete the intermediate files.
 
 EXAMPLE:
 
-$0 -fasta NR_PDB.fasta
+$0 -fasta NR_PDB.fasta -hmm_dir <directory location of HMMs>
 
 OPTIONS:
   -split <integer>    Number of sequences to put in each smaller file 
                       (value must be >=50 and <=10000, default: 1000)
-
-  -hmm_dir <dir>      Directory location of HMMs 
-                      (default: HMMs from current release)
 
   -output <filename>  Name of output file (default: pfam_scan_result)
  
