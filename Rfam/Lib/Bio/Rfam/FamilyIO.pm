@@ -1606,34 +1606,22 @@ sub processTbloutLine {
   my @tblA = split(/\s+/, $tblline);
   my ($name, $qstart, $qend, $start, $end, $strand, $trunc, $bits, $evalue) = ($tblA[0], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]);
 
-  my ($description, $species, $shortSpecies, $domainKingdom, $taxString, $ncbiId);
+  my $description  = undef;
+  my $species      = undef;
+  my $shortSpecies = undef;
+  my $taxString    = undef;
+  my $ncbiId       = undef;
+
   # potentially remove '-shuffled' suffix if nec from 'reversed searches'
   my $name2lookup = $name;
   if($is_reversed) { $name2lookup =~ s/\-shuffled$//; }
 
   # fetch description
-  my $found_in_db = 1;
   if(defined $sthDesc) { 
-    $sthDesc->execute($name2lookup);
-    my $res = $sthDesc->fetchall_arrayref;
-    foreach my $row (@$res) {
-      $description .= $row->[0];
-    }
+    $description = fetchDescription($sthDesc, $name2lookup);
   }
-  
-  # fetch species, taxonomy string and ncbi id
   if(defined $sthTax) { 
-    $sthTax->execute($name2lookup);
-    my $rfres = $sthTax->fetchall_arrayref;
-    if(defined $rfres) { 
-      foreach my $row (@{$rfres}) {
-        if (scalar(@{$row}) < 4) { die "ERROR problem fetching tax info for $name2lookup"; }
-        $species       .= $row->[0];
-        $shortSpecies  .= $row->[1];
-        $taxString     .= $row->[2];
-        $ncbiId        .= $row->[3];
-      }
-    }
+    ($species, $shortSpecies, $taxString, $ncbiId) = fetchSpeciesTaxStringAndID($sthTax, $name2lookup);
   }
 
   if($require_tax) { 
@@ -1654,6 +1642,80 @@ sub processTbloutLine {
   return ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString);
 }
 
+=head2 fetchDescription
+
+    Title    : fetchDescription()
+    Incept   : EPN, Tue Dec 10 06:34:22 2013
+    Usage    : fetchDescription($sthDesc, $seqAcc)
+    Function : Fetch a description from RfamLive for a sequence accession
+             : given a DBI statement handle ($sthDesc) for executing
+             : queries with a single bind value: rfamseq_acc.
+    Args     : $sthDesc: prepared database query for fetching description ($rfdbh->prepared_seqaccToDescription())
+             : $seqacc:  sequence accession (name) to get description for
+    Returns  : $desc:    the description, fetched from RfamLive DB.
+    Dies     : if $sthDesc or $seqacc is not defined
+
+=cut
+
+sub fetchDescription { 
+  my ($sthDesc, $seqacc) = @_;
+
+  if(! defined $sthDesc) { die "ERROR, fetchDescription, sthDesc is undefined"; }
+  if(! defined $seqacc)  { die "ERROR, fetchDescription, seqacc is undefined"; }
+
+  my $description;
+
+  $sthDesc->execute($seqacc);
+  my $res = $sthDesc->fetchall_arrayref;
+  foreach my $row (@$res) {
+    $description .= $row->[0];
+  }
+
+  return $description;
+}
+
+=head2 fetchSpeciesTaxStringAndID
+
+    Title    : fetchSpeciesTaxStringAndID()
+    Incept   : EPN, Tue Dec 10 06:39:12 2013
+    Usage    : fetchSpeciesTaxStringAndID($sthTax, $seqAcc)
+    Function : Fetch a species string, tax string, and NCBI ID from RfamLive 
+             : for a sequence accession given a DBI statement handle 
+             : ($sthTax) for executing queries with a single bind 
+             : value: rfamseq_acc.
+    Args     : $sthTax:  prepared database query for fetching tax info ($rfdbh->prepared_seqaccToSpeciesTaxStringAndID())
+             : $seqacc: sequence accession (name) to get description for
+    Returns  : list of:
+             : $species:      species string
+             : $shortSpecies: short version of $species
+             : $taxString:    taxonomy string
+             : $ncbiId:       NCBI taxonomy id
+    Dies     : if $sthTax or $seqacc is not defined
+
+=cut
+
+sub fetchSpeciesTaxStringAndID { 
+  my ($sthTax, $seqacc) = @_;
+
+  if(! defined $sthTax) { die "ERROR, fetchSpeciesTaxStringAndID, sthTax is undefined"; }
+  if(! defined $seqacc) { die "ERROR, fetchSpeciesTaxStringAndID, seqacc is undefined"; }
+
+  my ($species, $shortSpecies, $taxString, $ncbiId);
+
+  $sthTax->execute($seqacc);
+  my $rfres = $sthTax->fetchall_arrayref;
+  if(defined $rfres) { 
+    foreach my $row (@{$rfres}) {
+      if (scalar(@{$row}) < 4) { die "ERROR problem fetching tax info for $seqacc"; }
+      $species       .= $row->[0];
+      $shortSpecies  .= $row->[1];
+      $taxString     .= $row->[2];
+      $ncbiId        .= $row->[3];
+    }
+  }
+
+  return ($species, $shortSpecies, $taxString, $ncbiId);
+}
 
 # append chunk of lines to 'outlist' or 'species' file 
 sub writeOutlistOrSpeciesChunk {

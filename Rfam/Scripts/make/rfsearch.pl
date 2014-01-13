@@ -769,7 +769,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   # write TBLOUT-dependent files
   my $require_tax = 0;
   if(defined $dbconfig) { $require_tax; } # we require tax info if we're doing standard search against a db in the config
-#TEMP#  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax);
+  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax);
 
   # End of block for submitting and processing cmsearch jobs
   #################################################################################

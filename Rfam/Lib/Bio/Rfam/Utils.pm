@@ -1086,7 +1086,7 @@ sub log_output_timing_summary {
 
     Title    : fetchSubseqsGivenNseArray
     Incept   : EPN, Thu Nov 14 10:02:34 2013
-    Usage    : fetchSubseqsGivenNseArray($fetchfile, $nseAR, $outfile, $logFH, $do_stdout)
+    Usage    : fetchSubseqsGivenNseArray($nseAR, $fetchfile, $textw, $outfile, $logFH, $do_stdout)
     Function : Fetch all hits listed in name/start-end format in @{$nseAR}
              : from $fetchfile and output to $outfile (or return 
              : seqstring if $outfile is "" or undefined).
