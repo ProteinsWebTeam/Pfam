@@ -1073,7 +1073,6 @@ sub filter_msa_subset_target_nseq
   while($diff > 0.00999) { # while abs($f_prv - $f_cur) > 0.00999
     # filter based on percent identity
     $n = $self->filter_msa_subset($usemeAR, $f_cur, $keepmeAR);
-    printf STDERR ("filter_msa_subset_target_nseq: %.4f %4d seqs\n", $f_cur, $n);
           
     $f_prv = $f_cur;
     # adjust $f_cur for next round based on how many seqs we have
