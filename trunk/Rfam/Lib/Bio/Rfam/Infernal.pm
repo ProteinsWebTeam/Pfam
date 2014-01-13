@@ -126,7 +126,8 @@ sub cmcalibrate_wrapper {
   Title    : cmsearch_wrapper
   Incept   : EPN, Mon Apr  1 10:20:32 2013
   Usage    : Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue)
-  Function : Submit cmsearch job (non-MPI) to cluster.
+  Function : Submit cmsearch job (non-MPI) either to the cluster, or run it locally,
+           : by calling cmsearch_or_cmscan_wrapper
            : All options should already be specified in $options,
            : including '--cpu <n>' and '--tblout <tblout>'.
   Args     : $config:       Rfam config, with infernalPath
@@ -145,29 +146,88 @@ sub cmcalibrate_wrapper {
 =cut
 
 sub cmsearch_wrapper { 
-  my ($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue, $do_locally) = @_;
+  cmsearch_or_cmscan_wrapper("cmsearch", @_);
+}
+
+=head2 cmscan_wrapper
+
+  Title    : cmscan_wrapper
+  Incept   : EPN, Mon Dec  9 17:17:32 2013
+  Usage    : Bio::Rfam::Infernal::cmscan_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue)
+  Function : Submit cmscan job (non-MPI) either to the cluster, or run it locally,
+           : by calling cmsearch_or_cmscan_wrapper
+           : All options should already be specified in $options,
+           : including '--cpu <n>' and '--tblout <tblout>'.
+  Args     : $config:       Rfam config, with infernalPath
+           : $jobname:      name for job we submit
+           : $options:      option string for cmsearch (must contain --tblout and --cpu)
+           : $cmPath:       path to CM (often 'CM')
+           : $seqfilePath:  path to sequence file to search
+           : $outPath:      file to save standard output to, if undefined send to /dev/null.
+           : $errPath:      file to save standard error output to
+           : $submitExStr:  extra string to add to qsub/bsub command
+           : $queue:        queue to submit to, "" for default
+           : $do_locally:   '1' to run locally, else run on cluster
+  Returns  : void
+  Dies     : if cmsearch command fails
+
+=cut
+
+sub cmscan_wrapper { 
+  cmsearch_or_cmscan_wrapper("cmscan", @_);
+}
+
+=head2 cmsearch_or_cmscan_wrapper
+
+  Title    : cmsearch_or_cmscan_wrapper
+  Incept   : EPN, Mon Apr  1 10:20:32 2013
+  Usage    : Bio::Rfam::Infernal::cmsearch_or_cmscan_wrapper($config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue)
+  Function : Submit cmsearch or cmscan job (non-MPI) either to the cluster, or run it locally.
+           : All options should already be specified in $options,
+           : including '--cpu <n>' and '--tblout <tblout>'.
+  Args     : $program:      "cmsearch" or "cmscan"
+           : $config:       Rfam config, with infernalPath
+           : $jobname:      name for job we submit
+           : $options:      option string for cmsearch (must contain --tblout and --cpu)
+           : $cmPath:       path to CM (often 'CM')
+           : $seqfilePath:  path to sequence file to search
+           : $outPath:      file to save standard output to, if undefined send to /dev/null.
+           : $errPath:      file to save standard error output to
+           : $submitExStr:  extra string to add to qsub/bsub command
+           : $queue:        queue to submit to, "" for default
+           : $do_locally:   '1' to run locally, else run on cluster
+  Returns  : void
+  Dies     : if cmsearch/cmscan command fails
+
+=cut
+
+sub cmsearch_or_cmscan_wrapper { 
+  my ($program, $config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue, $do_locally) = @_;
   my $cpus;
   if(! defined $outPath || $outPath eq "") { $outPath = "/dev/null"; }
 
-  # contract check, --tblout and --cpu must be defined in $options
+  # contract check: $program must be cmsearch or cmscan, $options must include --tblout and --cpu
+  if($program ne "cmsearch" && $program ne "cmscan") { 
+    die "ERROR, do_and_display_cmsearch_or_cmscan, program eq $program"; 
+  }
   if($options !~ m/\-\-tblout/) { 
-    die "ERROR cmsearch_wrapper() option string ($options) does not contain --tblout"; 
+    die "ERROR cmsearch_or_cmscan_wrapper() option string ($options) does not contain --tblout"; 
   }
   if($options =~ /\-\-cpu (\d+)/) { 
     $cpus = $1; 
   }
   else { 
-    die "ERROR cmsearch_wrapper() option string ($options) does not contain --cpu"; 
+    die "ERROR cmsearch_or_cmscan_wrapper() option string ($options) does not contain --cpu"; 
   }
 
   # run job locally or submit non-MPI job to cluster
   if($do_locally) { 
-    Bio::Rfam::Utils::run_local_command($config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath"); 
+    Bio::Rfam::Utils::run_local_command($config->infernalPath . "$program $options $cmPath $seqfilePath > $outPath"); 
   }
   else { # submit to cluster
     my $ncpu = ($cpus == 0) ? 1 : $cpus; # --cpu 0 actually means 'use 1 CPU'
     my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
-    Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "cmsearch $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
+    Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "$program $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
   }
 
   return;
@@ -284,9 +344,9 @@ sub cmalign_wrapper {
     unlink $errPath;
   }
   else { 
-    Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 1, 0, "[$nproc CPUs]", $do_stdout);
+    if(defined $logFH) { Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 1, 0, "[$nproc CPUs]", $do_stdout); }
     Bio::Rfam::Utils::run_local_command("$cmalignPath --cpu $nproc $options $cmPath $seqfilePath > $outPath"); 
-    Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 0, 1, "", $do_stdout);
+    if(defined $logFH) { Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 0, 1, "", $do_stdout); }
   }
 
   return;

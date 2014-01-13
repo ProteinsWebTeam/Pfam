@@ -273,6 +273,20 @@ sub revseqdbConfig {
     }
     return $self->{'_config'}->{revseqdb}->{$revdb}
 }
+    
+sub cmdbConfig {
+    my $self = shift;
+    my $cmdb = shift;
+    if ( $#_ >= 0 ) {
+	warn "Passed variable to ro config\n";
+    }
+    
+    if(!exists $self->{'_config'}->{cmdb}->{$cmdb}){
+        my @cmdbfiles = keys (%{ $self->{'_config'}->{cmdb}});
+	die "Unknown CM database $cmdb, must be one of [@cmdbfiles]\n";
+    }
+    return $self->{'_config'}->{cmdb}->{$cmdb}
+}
 
 sub viewPluginSets {
   my $self = shift;
