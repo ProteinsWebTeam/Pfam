@@ -310,34 +310,34 @@ div.jumpSpinner {
 /* search errors page */
 
 .tips {
-	margin: 0.2em auto;
+  margin: 0.2em auto;
   padding: 0.2em;
   width: 60em;
 }
 
 .tips h2 {
-	margin-top: 1em;
+  margin-top: 1em;
 }
 
 .tips dt {
   float: left;
   font-weight: bold;
-	text-align: right;
+  text-align: right;
   width: 15em;
 }
 
 .tips dd {
   margin-left: 16em;
-	margin-bottom: 0.4em;
+  margin-bottom: 0.4em;
 }
 
 .tips p.back {
   text-align: center;
-	font-size: large;
+  font-size: large;
 }
 
 .tips p.back a {
-	font-size: large;
+  font-size: large;
 }
 
 /* ======================================== */
