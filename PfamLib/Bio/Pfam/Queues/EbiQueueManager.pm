@@ -355,7 +355,7 @@ sub _mail_batch_results {
   my $msg = Mail::Send->new;
   $msg->to( $email );
   $msg->subject( "Results for batch search job $job_id" );
-  $msg->bcc( $self->_queue_spec->{admin_email} );
+  $msg->bcc( @{ $self->_queue_spec->{admin_email} } );
 
   my $body_fh = $msg->open;
   print $body_fh $results;
