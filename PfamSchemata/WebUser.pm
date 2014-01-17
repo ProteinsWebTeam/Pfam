@@ -28,21 +28,23 @@ use warnings;
 
 use base "DBIx::Class::Schema";
 
+__PACKAGE__->load_namespaces;
+
 #-------------------------------------------------------------------------------
 
 # we need to specify exactly which classes to load, otherwise DBIC tries to
 # load WebUser::DateTime as a ResultSource.
-__PACKAGE__->load_classes( qw/ Alignment_das_sources
-                               ArticleMapping
-                               Das_sources
-                               ErrorLog
-                               Family_count
-                               Feature_das_sources
-                               JobHistory
-                               JobStream
-                               Species_collection
-                               Wikitext
-                               UnknownFunction / );
+# __PACKAGE__->load_classes( qw/ Alignment_das_sources
+#                                ArticleMapping
+#                                Das_sources
+#                                ErrorLog
+#                                Family_count
+#                                Feature_das_sources
+#                                JobHistory
+#                                JobStream
+#                                Species_collection
+#                                Wikitext
+#                                UnknownFunction / );
 
 #-------------------------------------------------------------------------------
 
