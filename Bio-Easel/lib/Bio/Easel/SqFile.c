@@ -134,6 +134,7 @@ void _c_create_ssi_index (ESL_SQFILE *sqfp)
   if (esl_newssi_Write(ns) != eslOK)  croak("Failed to write keys to ssi file %s\n", ssifile);
 
   /* done */
+  esl_sqfile_Position(sqfp, 0); /* rewind b/c we're at the end of the file, and if we try to read it we'll get EOF */
   free(ssifile);
   esl_sq_Destroy(sq);
   esl_newssi_Close(ns);
@@ -214,6 +215,7 @@ char *_c_sq_to_seqstring (ESL_SQ *sq, int textw, char *key, int64_t *ret_n)
  *            key   - name or accession of sequence to fetch
  *            textw - width for each sequence of FASTA record, -1 for unlimited.
  * Returns:   A pointer to a string that is the sequence in FASTA format.
+ * Dies:      if problem reading sequence
  */
 SV *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
 {
@@ -224,9 +226,8 @@ SV *_c_fetch_seq_to_fasta_string (ESL_SQFILE *sqfp, char *key, int textw)
   SV     *seqstringSV;           /* SV version of seqstring */
   int64_t n;                     /* length of seqstring */
 
-  /* make sure textw makes sense */
+  /* make sure textw makes sense and we're not in digital mode */
   if(textw < 0 && textw != -1) croak("invalid value for textw\n"); 
-  /* make sure we're not in digital mode, and SSI is valid */
   if (sq->dsq)                 croak("sequence file is unexpectedly digitized\n");
 
   /* from esl-sfetch.c's onefetch() */
