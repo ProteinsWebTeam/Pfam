@@ -101,6 +101,7 @@ WriteMultiInlineMakefile(
     LICENSE          => 'GPL_3',
     PL_FILES         => {},
     MIN_PERL_VERSION => 5.006,
+    EXE_FILES        => ['scripts/esl-ssplit.pl'], 
     CONFIGURE_REQUIRES  =>  {
       'Inline::MakeMaker'     => 0.45,
       'ExtUtils::MakeMaker'   => 6.52,
