@@ -337,7 +337,7 @@ sub fetch_seqs_given_names {
            : $outfile:   OPTIONAL: name of output FASTA file to create.
   Returns  : if $outfile is defined: string of all concatenated seqs
              else                  : "" (empty string)
-  Dies     : if unable to open sequence file
+  Dies     : if $outfile is defined and we are unable to open it
 
 =cut
 
