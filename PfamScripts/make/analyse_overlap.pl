@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl
+#! /usr/bin/env perl
 
 #To analyse Pfam overlap files - counts number of overlapping sequences, finds which families/clans these are in and gives details of any which include a sequence in the seed of either family.
 use strict;
