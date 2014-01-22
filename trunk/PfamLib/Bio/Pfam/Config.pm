@@ -717,6 +717,8 @@ sub hhsearchLibDir {
   return $self->{hhsearchLibDir};
 }
 
+# doesn't look like this is used anywhere, so I'm leaving it untouched
+# jgt 20131024 EBI
 sub warnIfNotWTSI {
   my $self = shift;
 
@@ -725,17 +727,35 @@ sub warnIfNotWTSI {
   }
 }
 
-sub dieIfNotWTSI {
-
+sub dieIfNotEBI {
   my $self = shift;
-
-  if($self->location ne "WTSI") {
-      die "This script will not work outside WTSI\n";
-  }
+  die "This script will not work outside EBI\n"
+    if $self->location ne 'EBI';
 }
 
+# sub dieIfNotWTSI {
+# 
+#   my $self = shift;
+# 
+#   if($self->location ne "WTSI") {
+#       die "This script will not work outside WTSI\n";
+#   }
+# }
 
+# returns the location of a temp directory; defaults to /tmp if no value is supplied
+# in the config file that is read in
+sub tempDir {
+  my $self = shift;
+  return $self->{tempDir} || '/tmp';
+}
 
+# returns the location of the directory containing fonts. This is used by the 
+# HMM::Profile code but we don't want to hard code it into the ViewProcess
+# module really.
+sub fontDir {
+  my $self = shift;
+  return $self->{fontDir} || '/usr/share/X11/fonts/TTF';
+}
 
 
 1;
