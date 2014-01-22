@@ -1215,7 +1215,7 @@ sub _makeHMMLogo {
     -regular_font   => $self->config->fontDir . '/arial.ttf',
     -bold_font      => $self->config->fontDir . '/arialbd.ttf'
     )
-    || mailUSerAndFail("Error writing $file!\n");
+    || $self->mailUserAndFail("Error writing logo $file!\n");
 
   $self->logger->debug("Finished drawing Logo...");
   unless ( -s "hmmLogo.png" ) {
@@ -2670,12 +2670,11 @@ sub getAllFiles {
     $self->pfamdb->getSchema->resultset('PfamaInternal')
     ->find( { auto_pfama => $self->pfam->auto_pfama } );
 
-  #eval{
-  $row->msas_uncompressed;
-
-  #};
+  eval{
+    $row->msas_uncompressed;
+  };
   if ($@) {
-    $self->mailUserAndFail( $@ );
+    $self->mailUserAndFail( "Failed to uncompress all files: $@" );
   }
   my $hmm =
     $self->pfamdb->getSchema->resultset('PfamaHmm')
