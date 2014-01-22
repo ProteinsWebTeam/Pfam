@@ -23,6 +23,17 @@ use Data::Dumper;
 use File::Basename;
 #use Config::General;
 use POSIX qw(setsid);
+use Class::Accessor "antlers";
+
+has 'tmpDir'        => ( is => 'rw' );
+has 'hugeMemTmpDir' => ( is => 'rw' );
+has 'hugeMemNode'   => ( is => 'rw' );
+has 'group'         => ( is => 'rw' );
+has 'currentDir'    => ( is => 'rw' );
+has 'farmNode'      => ( is => 'rw' );
+has 'pollInt'       => ( is => 'rw' );
+has 'tracker'       => ( is => 'rw' );
+
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamJobsDBManager;
 
@@ -51,6 +62,8 @@ sub new {
   #Start setting up the local information for setting up the jobs
   my $farmConfig = $config->farm;
   $self->tmpDir($farmConfig->{lsf}->{scratch});
+  $self->group($farmConfig->{lsf}->{group});
+  $self->pollInt($farmConfig->{lsf}->{pollInt});
   #$self->farmNode("farm-login");
   #$self->hugeMemNode("turing");
   #$self->hugeMemTmpDir("/tmp");
@@ -76,30 +89,30 @@ sub knownJobs{
 	}
 }
 
-sub hugeMemNode{
-	my ($self, $farmNode) = @_;
-	if($farmNode){
-		$self->{'hugeMemNode'} = $farmNode
-	}
-	return $self->{'hugMemNode'};
-}
+# sub hugeMemNode{
+# 	my ($self, $farmNode) = @_;
+# 	if($farmNode){
+# 		$self->{'hugeMemNode'} = $farmNode
+# 	}
+# 	return $self->{'hugMemNode'};
+# }
 
-sub hugeMemTmpDir{
-	my ($self, $tmpDir) = @_;
-	if($tmpDir){
-		$self->{'hugeMemTmpDir'} = $tmpDir;
-	}
-	return $self->{'hugMemTmpDir'};
-}
+# sub hugeMemTmpDir{
+# 	my ($self, $tmpDir) = @_;
+# 	if($tmpDir){
+# 		$self->{'hugeMemTmpDir'} = $tmpDir;
+# 	}
+# 	return $self->{'hugMemTmpDir'};
+# }
 
 
-sub farmNode{
-	my ($self, $farmNode) = @_;
-	if($farmNode){
-		$self->{'farmNode'} = $farmNode
-	}
-	return $self->{'farmNode'};
-}
+# sub farmNode{
+# 	my ($self, $farmNode) = @_;
+# 	if($farmNode){
+# 		$self->{'farmNode'} = $farmNode
+# 	}
+# 	return $self->{'farmNode'};
+# }
 
 sub knownJobTypes{
 	my $self = shift;
@@ -108,21 +121,29 @@ sub knownJobTypes{
 	}
 }
 
-sub tmpDir {
-	my ($self, $tmpDir) = @_;
-	if($tmpDir){
-		$self->{'tmpDir'} = $tmpDir;
-	}
-	return $self->{'tmpDir'};
-}
-
-sub currentDir {
-	my ($self, $cDir) = @_;
-	if($cDir){
-		$self->{'currentDir'} = $cDir;
-	}
-	return $self->{'currentDir'};
-}
+# sub tmpDir {
+# 	my ($self, $tmpDir) = @_;
+# 	if($tmpDir){
+# 		$self->{'tmpDir'} = $tmpDir;
+# 	}
+# 	return $self->{'tmpDir'};
+# }
+# 
+# sub group {
+# 	my ($self, $group) = @_;
+# 	if($group){
+# 		$self->{group} = $group;
+# 	}
+# 	return $self->{group};
+# }
+# 
+# sub currentDir {
+# 	my ($self, $cDir) = @_;
+# 	if($cDir){
+# 		$self->{'currentDir'} = $cDir;
+# 	}
+# 	return $self->{'currentDir'};
+# }
 
 #sub job_type {
 #  my ($self, $job_type) = @_;
