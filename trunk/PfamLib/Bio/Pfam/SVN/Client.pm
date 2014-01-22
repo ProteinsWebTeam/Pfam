@@ -229,7 +229,7 @@ sub checkFamilyExists {
   if ($@) {
 
     #Check to see if the family has been killed, if so give details and exit
-    if ( $config and $config->location eq 'WTSI' ) {
+    if ( $config and $config->location eq 'EBI' ) {
       my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
       my @dead =
@@ -304,7 +304,7 @@ sub checkClanExists {
   if ($@) {
 
     #Check to see if the clan has been killed, if so give details and exit
-    if ( $config and $config->location eq 'WTSI' ) {
+    if ( $config and $config->location eq 'EBI' ) {
       my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
       my @dead =
         $pfamDB->getSchema->resultset("DeadClans")
@@ -631,9 +631,7 @@ sub addFamily {
     push( @files, "$dest/$newFamilyId/$file" );
   }
   
-
   eval { $cinfo = $self->{txn}->commit( \@files, 1 ); };
-
   if ($@) {
     confess("\n*** Failed to commit new family to $newFamilyId ***\n\n[$@]\n");
   }
@@ -813,7 +811,8 @@ sub moveNewFamily {
 
   #Catch any error and report.
   if ($@) {
-    die "\n*** MAJOR ERROR during post commit for pfnew! FAILURE***\n\n$@";
+    print STDERR "Old url: |$oldUrl|\nNew url: |$newUrl|\n";
+    die "\n*** MAJOR ERROR during post commit for pfnew (Old url: |$oldUrl|, New url: |$newUrl|) ! FAILURE***\n\n$@";
   }
 
   $self->_checkCommitObj($cinfo);
