@@ -188,7 +188,7 @@ sub first_last_ungapped_column {
     my( $self, $percent ) = @_;
 
     my @columns;
-    my $numseqs = $self->no_sequences();
+    my $numseqs = $self->num_sequences();
     my @residues;
     foreach my $seq ( $self->each_seq() ) {
 	@residues = split( //, $seq->seq() );
@@ -1651,7 +1651,7 @@ sub write_MSF {
         $name = "Align";
     }
     
-    push @output , sprintf("\n%s   MSF: %d  Type: P  %s  Check: 00 ..\n\n",$name,$self->no_sequences,$date);
+    push @output , sprintf("\n%s   MSF: %d  Type: P  %s  Check: 00 ..\n\n",$name,$self->num_sequences,$date);
 
     foreach $seq ( $self->each_seq() ) {
         $name = $self->displayname($seq->get_nse());
