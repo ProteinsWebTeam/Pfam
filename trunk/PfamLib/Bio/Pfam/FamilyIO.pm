@@ -746,19 +746,19 @@ sub uploadPfamAAligns {
     $family = $famObj->DESC->AC;
   }
 
-  my $full;
-  my $seed;
-
   #Read the FULL alignment into a string
-  open( $full , "$dir/$family/ALIGN" )
+  open( FULL, "$dir/$family/ALIGN" )
     or die "Could not open $dir/$family/ALIGN:[$!]\n";
+  my $full = join '', <FULL>;
+  close FULL;
 
   #Read the SEED alignment into a string;
-  open( $seed, "$dir/$family/SEED" )
+  open( SEED, "$dir/$family/SEED" )
     or die "Could not open $dir/$family/SEED:[$!]\n";
+  my $seed = join '', <SEED>;
+  close SEED;
 
   $pfamDB->uploadPfamAInternal( $famObj, $seed, $full );
-  close($full);
-  close($seed);
 }
+
 1;
