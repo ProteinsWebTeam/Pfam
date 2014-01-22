@@ -28,6 +28,8 @@ use Bio::Pfam::SeqFetch;
 use Bio::Pfam::FamilyIO;
 use Carp;
 use Data::Dumper;
+use Cwd;
+use File::Basename;
 
 my $CONFIG = Bio::Pfam::Config->new;
 
@@ -535,7 +537,7 @@ sub compareAlignToScores {
 
 sub moreInSEEDthanALIGN {
   my $famObj = shift;
-  if ( $famObj->SEED->no_sequences > $famObj->ALIGN->no_sequences ) {
+  if ( $famObj->SEED->num_sequences > $famObj->ALIGN->no_sequences ) {
     return 0;
   }
   else {
@@ -1237,7 +1239,7 @@ sub noFragsInSeed {
 
   my $error = 0;
 
-  if ( $famObj->SEED->no_sequences <= 1 ) {
+  if ( $famObj->SEED->num_sequences <= 1 ) {
     print STDERR
 "\n--- Only 1 sequence in the seed.  Your seed should contain more than one sequence! ---\n\n";
     $error = 1;
@@ -1577,7 +1579,7 @@ sub checkCLANDESCSpell {
   close TMP;
 
   # Start ispell session on file
-  system("ispell -W 0 -w 0123456789 -p$dictionary tmp.$$");
+  system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
 
   # Now need to put changes back into DESC file
   my ( %editedline, $line_number );
@@ -1706,7 +1708,11 @@ sub checkDESCSpell {
   close TMP;
 
   # Start ispell session on file
-  system("ispell -W 0 -w 0123456789 -p$dictionary tmp.$$");
+  # system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
+  my $cwd = cwd;
+  my ( $dictionary_file, $path_to_dictionary, $suffix ) = fileparse( $dictionary );
+  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p${dictionary_file}${suffix} check $cwd/tmp.$$") == 0
+    or warn "WARNING: couldn't run spell checker: $!";
 
   # Now need to put changes back into DESC file
   my ( %editedline, $line_number );
