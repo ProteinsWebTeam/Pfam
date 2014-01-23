@@ -20,7 +20,7 @@ __PACKAGE__->add_columns(
     size => 40,
   },
   "ncbi_taxid",
-  { data_type => "INT", default_value => 0, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
 );
 __PACKAGE__->belongs_to(
   "auto_pfama",
