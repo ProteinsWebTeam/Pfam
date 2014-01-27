@@ -1,11 +1,59 @@
 #! /usr/bin/env perl
 
-# A script to remove overlap sequence from an alignment
+# A script to remove overlapping sequences from an alignment
 
 my $align=shift @ARGV;
 my $overlap=shift @ARGV;;
 
-if (! -e $overlap and ! -e $align){
+
+#Check input files exist
+unless($align and $overlap) {
+  help();
+}
+if (! -e $overlap or ! -s $align){
+  print "Check overlap and align files exist\n\n";
+  help();
+}
+
+#Read overlap data
+my %overlap;
+open (OVERLAP, $overlap) or die "Cannot open $overlap file, $!";
+while(<OVERLAP>){
+  if (/\[(\S+)\].*SEED with/){
+    $overlap{$1}=1;
+  } 
+  elsif (/\[(\S+)\].*JALIGN with/){
+    $overlap{$1}=1;
+  } 
+  elsif (/\[(\S+)\].*FULL with/){
+    $overlap{$1}=1;
+  } 
+  else {
+    warn "Unrecognized line in overlap file: $_";
+  }
+}
+close OVERLAP;
+
+#Go through align file and print all ids that do not appear in overlap file
+open (ALIGN, $align) or die "Cannot open $align file, $!";
+while(<ALIGN>){
+  if (/^(\S+).\d+\/\d+-\d+\s+\S+$/){
+    my $name=$1;
+    
+    next if(exists($overlap{$name})); #Don't print if $name is in overlap file
+    print $_;
+    
+  } 
+  elsif(/^\/\//) { #Don't print // at end of alignment
+  }
+  else {
+    warn "Unrecognized line: $_";
+  }
+}
+close ALIGN;
+
+
+sub help {
     print STDERR <<"EOF";
 Usage: $0 <align file> <overlap file>
 
@@ -16,53 +64,4 @@ and print the result to STDOUT.
 EOF
 exit 0;
 }
-
-if (! -s $align){die "align file $align has no size!"}
-if (! -e $overlap){die "overlap file $overlap does not exist!"}
-
-my %id;
-open (OVERLAP, "$overlap") or die "Cannot open $overlap file";
-while(<OVERLAP>){
-    if (/\[(\S+)\].*SEED with/){
-	$id{$1}=1;
-#	print "Yay $1\n";
-    } elsif (/\[(\S+)\].*JALIGN with/){
-	$id{$1}=1;
-#	print "Yay $1\n";
-    } elsif (/\[(\S+)\].*FULL with/){
-	$id{$1}=1;
-#	print "Yay $1\n";
-    } else {
-	warn "Unrecognized line in overlap file $_";
-    }
-}
-close OVERLAP;
-
-if ($id{"B9KL46"}){
-    warn "B9KL46 exists\n";
-}#
-
-#print %id,"\n";
-
-open (ALIGN, "$align") or die "Cannot open $align file";
-while(<ALIGN>){
-    if (/^(\S+).\d+\/\d+-\d+\s+\S+$/){
-	my $name=$1;
-
-#	if ($name eq "B9KL46"){
-    #die "B9KL46 exists in alignment\n";
-	#}
-
-	if ($id{$name}){
-	 #   print;
-	} else {
-	  #  print "removing $name\n";
-	    print;
-	}
-    } else {
-	warn "Unrecognized line $_";
-    }
-}
-close OVERLAP;
-
-
+ 
