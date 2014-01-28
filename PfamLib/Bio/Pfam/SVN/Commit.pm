@@ -151,7 +151,7 @@ sub commitNewFamily {
   $famObj->DESC->AC($acc);
 
   #Now perform the QC steps.....
-  $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB);
+  $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg, 1);
   #Need to check the sequences.....
 #TODO 
   
@@ -325,10 +325,11 @@ sub _getClanObjFromTrans {
 }
 
 sub _qualityControlFamily {
-  my  ($self, $famObj, $dir, $family, $pfamDB, $msg) = @_; 
+  my  ($self, $famObj, $dir, $family, $pfamDB, $msg, $isNew) = @_; 
   
  #Perform all of the format checks
-  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family" )){
+  my $ignoreTimestamps
+  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family", $isNew, $ignoreTimestamps )){
     exit(1); 
   }
   
@@ -375,13 +376,13 @@ sub _qualityControlFamily {
      
   }  
   
-  if(defined($msg) and $msg !~ /Release \d+ update/){
+  if(defined($msg) and $msg !~ /Release \S+ update/){
     my $compete = 1;
     my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
     warn "$family: found $overlaps overlaps\n";
     if ($overlaps) {
       confess("Found overlaps\n");
-    } 
+    }
   }
 }
 

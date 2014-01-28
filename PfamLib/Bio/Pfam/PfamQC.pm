@@ -45,7 +45,7 @@ my $CONFIG = Bio::Pfam::Config->new;
 =cut
 
 sub passesAllFormatChecks {
-  my ( $famObj, $family, $isNew ) = @_;
+  my ( $famObj, $family, $isNew, $ignoreTime ) = @_;
 
   # check directory exists
   if ( !-d "$family" ) {
@@ -60,12 +60,14 @@ sub passesAllFormatChecks {
     warn "|$family|: your family identifier contains disallowed characters\n";
   }
 
-  unless ( &checkFamilyFiles( $family, $famObj ) ) {
-    $error = 1;
+  unless($ignoreTime){
+    unless ( &checkFamilyFiles( $family, $famObj ) ) {
+      $error = 1;
+    }
   }
 
   if ($isNew) {
-
+    
     # Check name is unused
     my $clash = &name_clashes($family);
     if ($clash) {
