@@ -151,7 +151,7 @@ sub commitNewFamily {
   $famObj->DESC->AC($acc);
 
   #Now perform the QC steps.....
-  $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg, 1);
+  $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, "", 1);
   #Need to check the sequences.....
 #TODO 
   
@@ -328,7 +328,7 @@ sub _qualityControlFamily {
   my  ($self, $famObj, $dir, $family, $pfamDB, $msg, $isNew) = @_; 
   
  #Perform all of the format checks
-  my $ignoreTimestamps
+  my $ignoreTimestamps = 1;
   unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family", $isNew, $ignoreTimestamps )){
     exit(1); 
   }
