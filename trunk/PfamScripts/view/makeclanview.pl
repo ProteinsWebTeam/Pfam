@@ -130,8 +130,7 @@ foreach my $fam (@$clanMemAcc) {
     $hmmObj = $hmmio->readHMM( $hmm->hmm );
   };
   if ($@) {
-    $view->mailUserAndFail( $job,
-      "Problem getting HMM for $fam:[$@]" );
+    $view->mailUserAndFail( "makeclanview: Problem getting HMM for $fam:[$@]" );
   }
   $view->logger->debug("Got hmm from $fam");
 
@@ -141,8 +140,7 @@ foreach my $fam (@$clanMemAcc) {
 
   #Write to disk
   open( H, ">HMM.$fam" )
-    or $view->mailUserAndFail( $job,
-    "Could not open HMM.$fam :[$!]\n" );
+    or $view->mailUserAndFail( "makeclanview: Could not open HMM.$fam :[$!]\n" );
   $hmmio->writeHMM( \*H, $hmmObj );
   close(H);
 
@@ -151,15 +149,15 @@ foreach my $fam (@$clanMemAcc) {
     ->find( { auto_pfama => $clanMemAccAutoMap{$fam} } );
 
   open( S, ">seed.$fam" );
-  print S Compress::Zlib::memGunzip( $align->seed );
+  print S Compress::Zlib::memGunzip( $align->seed )
+    or $view->mailUserAndFail( "makeclanview: Failed to uncompress seed alignment for $fam:[$!]" );
   close(S);
 
   unless ( -s "seed.$fam" ) {
-    $view->mailUserAndFail( $job,
-      "Failed to seed alignment for $fam:[$!]" );
+    $view->mailUserAndFail( "makeclanview: Wrote seed alignment for $fam but it was empty:[$!]" );
   }
   
-  system($view->config->hmmer3binDev."/esl-reformat --replace .:- --informat SELEX afa seed.$fam > seed.$fam.afa");
+  system($view->config->hmmer3bin."/esl-reformat --replace .:- --informat SELEX afa seed.$fam > seed.$fam.afa");
   system("cat HMM.$fam >> $clanAcc.lib");
   }
 }
@@ -257,12 +255,12 @@ $view->pfamdb->getSchema
 # Make clan alignment and relationship images
 if(scalar(@$clanMemAcc) <= 40){ 
 $view->logger->debug("Going to run hhsearch for clan members");
-my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view->config, $job );
+my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view );
 
 $view->logger->debug("Making clan alignment");
-makeAlign( $hhScores, $clanMemRef, $clanAcc, $view->pfamdb, $clanData->auto_clan );
+makeAlign( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->auto_clan );
 $view->logger->debug("Making clan relationship diagram");
-makeGraph( $hhScores, $clanMemRef, $clanAcc, $view->pfamdb, $clanData->auto_clan );
+makeGraph( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->auto_clan );
 }
 
 #-------------------------------------------------------------------------------
@@ -277,8 +275,7 @@ foreach my $fam (@$clanMemAcc){
     $famObj = $familyIO->loadPfamAFromSVN($fam, $client, 1);
   };
   if($@){
-    $view->mailUserAndFail( $job,
-      "Failed to $fam:[$!]" );  
+    $view->mailUserAndFail( "makeclanview: Failed to $fam:[$!]" );  
   }
   $view->logger->debug("initiateFamily ViewProcess for $fam");
   
@@ -291,27 +288,30 @@ foreach my $fam (@$clanMemAcc){
   $job->update({status => 'DONE',
                 closed => \'NOW()'}); 
 
+exit;
+
 #-------------------------------------------------------------------------------
-#Subroutines
+#- subroutines -----------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 sub runHHsearch {
-  my ( $clanAcc, $clanMemAcc, $config, $job ) = @_;
+  my ( $clanAcc, $clanMemAcc, $view ) = @_;
 
 
   my %hhResults;
   foreach my $acc (@$clanMemAcc) {
-    $view->logger->debug( "Going to run "
-        . $config->hhsearchBin
-        . "/hhsearch -cons -i seed.$acc.afa -M 50 -d $clanAcc.lib -e 0.01 -o $acc.res" );
-    system( $config->hhsearchBin
-        . "/hhsearch -cons -i seed.$acc.afa -M 50 -d $clanAcc.lib -e 0.01 -o $acc.res 2>&1 >/dev/null" )
-      and Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-      "Failed ro run hhsearch on HMM.$acc:[$!]\n" );
+
+    my $hhsearch_command = 'HHLIB=' . $view->config->hhsearchLibDir . ' ' 
+                           . $view->config->hhsearchBin . '/hhsearch '
+                           . "-cons -i seed.$acc.afa -M 50 -d $clanAcc.lib -e 0.01 -o $acc.res";
+    $view->logger->debug( "Going to run |$hhsearch_command|" );
+
+    system( $hhsearch_command . " 2>&1 > /dev/null" ) == 0
+      or $view->mailUserAndFail( "makeclanview: Failed to run hhsearch ($hhsearch_command) for $acc:[$!]\n" );
 
     $view->logger->debug("Parsing hhsearch results for $acc");
     open( R, "$acc.res" )
-      or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-      "Failed to open hhsearch results for $acc" );
+      or $view->mailUserAndFail( "makeclanview: Failed to open hhsearch results for $acc" );
     while (<R>) {
       if (/\s+\d+\s+(PF\d{5})\s+(PF\d{5})\s+(\S+)\s+(\S+)/) {
         $hhResults{$acc}{$1} = $4;
@@ -329,7 +329,7 @@ sub runHHsearch {
 }
 
 sub makeGraph {
-  my ( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $auto_clan ) = @_;
+  my ( $hhScores, $clanMemRef, $clanAcc, $view, $auto_clan ) = @_;
 
   # The first line of the table is a list of member names
   my @table;
@@ -386,22 +386,20 @@ sub makeGraph {
   my ( $clanImage, $clanIM );
 
   open( HTML, "gzip -c $clanAcc.html|" )
-    or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-    "Failed to run gzip -c $clanAcc.html:[$!]" );
+    or $view->mailUserAndFail( "makeclanview: Failed to run gzip -c $clanAcc.html:[$!]" );
   while (<HTML>) {
     $clanIM .= $_;
   }
   close(HTML);
 
   open( PNG, "gzip -c $clanAcc.png|" )
-    or Bio::Pfam::ViewProcess::mailUserAndFail( $job,
-    "Failed to run gzip -c $clanAcc.png:[$!]" );
+    or $view->mailUserAndFail( "makeclanview: Failed to run gzip -c $clanAcc.png:[$!]" );
   while (<PNG>) {
     $clanImage .= $_;
   }
   close(PNG);
 
-  $pfamDB->getSchema->resultset('ClanAlignmentsAndRelationships')
+  $view->pfamdb->getSchema->resultset('ClanAlignmentsAndRelationships')
     ->update_or_create(
     {
       auto_clan    => $auto_clan,
@@ -413,7 +411,7 @@ sub makeGraph {
 }
 
 sub makeAlign {
-  my ( $hhScoresRef, $clanMemRef, $clanAcc, $pfamDB, $auto_clan ) = @_;
+  my ( $hhScoresRef, $clanMemRef, $clanAcc, $view, $auto_clan ) = @_;
 
   my %families_in_align;
   my %hhScores;
@@ -432,8 +430,8 @@ sub makeAlign {
 
       #align the two seed alignments.
       $view->logger->debug("Aligning $acc1 && $acc2");
-      system("sreformat a2m seed.$acc1 > tmp.$$.in1");
-      system("sreformat a2m seed.$acc2 > tmp.$$.in2");
+      system($view->config->binLocation."/sreformat a2m seed.$acc1 > tmp.$$.in1");
+      system($view->config->binLocation."/sreformat a2m seed.$acc2 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 tmp.$$.in1 -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -443,7 +441,7 @@ sub makeAlign {
     }
     elsif ( $families_in_align{$acc1} && !$families_in_align{$acc2} ) {
       $view->logger->debug("Aligning $acc2 and $families_in_align{$acc1}");
-      system("sreformat a2m seed.$acc2 > tmp.$$.in2");
+      system($view->config->binLocation."/sreformat a2m seed.$acc2 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc1} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -458,7 +456,7 @@ sub makeAlign {
     }
     elsif ( !$families_in_align{$acc1} && $families_in_align{$acc2} ) {
       $view->logger->debug("Aligning $acc1 and $families_in_align{$acc2}");
-      system("sreformat a2m seed.$acc1 > tmp.$$.in2");
+      system($view->config->binLocation."/sreformat a2m seed.$acc1 > tmp.$$.in2");
       system(
 "muscle -quiet -profile -in1 $families_in_align{$acc2} -in2 tmp.$$.in2 -out tmp.$$.$align_no.align"
       ) && die;
@@ -506,13 +504,13 @@ sub makeAlign {
     $view->logger->debug("Adding orphan align $acc");
     if ( !$master_align ) {
       system(
-        "sreformat a2m seed.$acc > tmp.$$.$align_no.align");
+        $view->config->binLocation."/sreformat a2m seed.$acc > tmp.$$.$align_no.align");
         $master_align = "tmp.$$.$align_no.align";
         $align_no++;
       }
     else {
       system(
-        "sreformat a2m seed.$acc > tmp.$$.$align_no.align");
+        $view->config->binLocation."/sreformat a2m seed.$acc > tmp.$$.$align_no.align");
         my $in1 = "tmp.$$.$align_no.align";
         $align_no++;
         print "$in1, $master_align\n";
@@ -523,12 +521,12 @@ sub makeAlign {
     }
   }
 
-  system("sreformat --pfam stockholm $master_align > $clanAcc.sto");
+  system($view->config->binLocation."/sreformat --pfam stockholm $master_align > $clanAcc.sto");
   $view->logger->debug("Finished building clan alignment for $clanAcc");
 
   #Need to Swap accs for ids;
   $view->logger->debug("Getting regions for clan [$auto_clan]");
-  my @regs = $pfamDB->getSchema
+  my @regs = $view->pfamdb->getSchema
 	 ->resultset('PfamaRegSeed')
 	   ->search( { 'clan_membership.auto_clan' => $auto_clan },
 		    { join       => [ qw (auto_pfamseq clan_membership) ],
@@ -539,9 +537,9 @@ sub makeAlign {
   
   $view->logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
   system("consensus.pl -method clustal -file $clanAcc.sto > $clanAcc.con")
-      and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run consensus.pl:[$!]");
+     and $view->mailUserAndFail( "makeclanview: Failed to run consensus.pl:[$!]");
   system("clustalX.pl -a $clanAcc.sto -c $clanAcc.con -b 80 > $clanAcc.nfb.html")
-     and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run clustalX.pl:[$!]" );
+     and $view->mailUserAndFail( "makeclanview: Failed to run clustalX.pl:[$!]" );
 
 
   my %nse;
@@ -567,7 +565,7 @@ sub makeAlign {
       my $theRest = $2;
       unless($regs{$thisNse}){
        $view->logger->debug("Failed to find nse for $thisNse");
-       Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to find nse for $thisNse" ); 
+       $view->mailUserAndFail( "makeclanview: Failed to find nse for $thisNse" ); 
       }
       my $accVerSE = $regs{$thisNse}->auto_pfamseq->pfamseq_acc.".".$regs{$thisNse}->auto_pfamseq->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
       
@@ -603,9 +601,10 @@ sub makeAlign {
   close(CNFB);
 
   
-  open(ALI, "gzip -c $clanAcc.withFamBlock.html |") or $view->mailUserAndFail($job, "Failed to gzip clan alignment" );
+  open(ALI, "gzip -c $clanAcc.withFamBlock.html |") 
+    or $view->mailUserAndFail( "makeclanview: Failed to gzip clan alignment" );
   my $align = join("", <ALI>);
-  $pfamDB->getSchema->resultset('ClanAlignmentsAndRelationships')
+  $view->pfamdb->getSchema->resultset('ClanAlignmentsAndRelationships')
     ->update_or_create(
     {
       auto_clan    => $auto_clan,
