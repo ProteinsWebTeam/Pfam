@@ -13,11 +13,11 @@ my $config = Bio::Pfam::Config->new;
 my $familyIO = Bio::Pfam::FamilyIO->new;
 
 my $pfamDB;
-if ( $config->location eq "WTSI" ) {
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
       my $connect = $config->pfamlive;
       $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 }else{
-  die "This can only be performed at WTSI!\n";  
+  die "This can only be performed at WTSI/EBI!\n";  
 }
 
 print STDOUT "This script will perform a whole series of steps designed to bring ".

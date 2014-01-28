@@ -21,7 +21,7 @@ my ($help, $lock, $unlock, @user_list, $commit, @commit_list, $commit_list, $for
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
-$config->dieIfNotWTSI;
+$config->dieIfNotEBI;
 
 help() if($help);
 
