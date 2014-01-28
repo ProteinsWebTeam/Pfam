@@ -58,7 +58,7 @@ use Bio::Pfam::Config;
 use Bio::Pfam::FamilyIO;
 
 my $config = Bio::Pfam::Config->new;
-$config->dieIfNotWTSI;
+$config->dieIfNotEBI;
 
 my $family = shift;
 
