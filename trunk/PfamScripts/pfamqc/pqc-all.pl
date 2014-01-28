@@ -153,7 +153,7 @@ if ( $famObj->DESC->CL ) {
 }
 
 #If we are at sanger, perform an overlap check against the database.
-if ( $config->location eq "WTSI" ) {
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
   my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
