@@ -31,7 +31,7 @@ sub main {
 "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
   unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
-    warn "Unkown location.....things will probably break\n";
+    warn "Unknown location... things will probably break\n";
   }
   unless ( -d $config->hmmer3bin ) {
     die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
@@ -471,6 +471,13 @@ sub farmJackhmmer {
       . $farmConfig->{lsf}->{queue} . " -o "
       . $farmConfig->{lsf}->{scratch}
       . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
+  }
+  elsif($config->location eq 'EBI') { # EBI memory requirement is specified in Mb
+    $fh->open( "| bsub -q " . $farmConfig->{lsf}->{queue} . 
+                     " -o " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$$.log" .
+                     " -Jjackhmmer$$ " .
+                     " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " . 
+                     " -M $memory_mb" );
   }
   else {
     $fh->open( "| bsub -q "
