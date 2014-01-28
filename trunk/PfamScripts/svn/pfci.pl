@@ -152,7 +152,7 @@ if ($addToClan) {
       . " in SVN copy\n";
   }
 
-#Need to propergate the fact we want to add this family to a clan via the log message.
+#Need to propagate the fact we want to add this family to a clan via the log message.
   open( C, ">.atc" . $$ ) or die "Could not open .atc:[$!]\n";
   print C $upFamObj->DESC->CL . ":" . $upFamObj->DESC->AC;
   close(C);
@@ -296,7 +296,7 @@ unless ($ignore) {
   unless ($onlydesc) {
 
     #If we are at sanger, perform an overlap check against the database.
-    if ( $config->location eq "WTSI" ) {
+    if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
       my $connect = $config->pfamlive;
       my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 

@@ -19,7 +19,7 @@ unless(defined $family){
 }
 
 if ( $family !~ /^(PF\d{5})$/ ) {
- if($config->location eq 'WTSI'){
+ if($config->location eq 'WTSI' or $config->location eq 'EBI'){
   my $connect = $config->pfamlive;
   my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
     %{ $connect }
@@ -27,7 +27,7 @@ if ( $family !~ /^(PF\d{5})$/ ) {
   my $pfamAcc = $pfamDB->id2acc($family);
   unless($pfamAcc =~ /PF\d{5}/){
     warn "You passed in something that did not look like an accession.\n"; 
-    warn "Because you are at WTSI, tried to map it to an accession, but failed.\n";
+    warn "Because you are at WTSI/EBI, tried to map it to an accession, but failed.\n";
     help();
   }
   $family = $pfamAcc;   
@@ -88,7 +88,7 @@ usage: $0 <PFAM ACCESSION>
 
 Checks out the latest version of the family from the SVN repository.  
 It makes a directory for the family according to its accession and will fail if it is already there. 
-If you are WTSI, you can use family ids.
+If you are WTSI/EBI, you can use family ids.
 
 EOF
  

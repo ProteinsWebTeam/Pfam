@@ -63,7 +63,7 @@ unless($newName and $newName =~ /\S+/){
 
 #Check that the family looks like a pfam accession
 unless($family =~ /PF\d{5}/){
-  if($config->location eq 'WTSI'){
+  if($config->location eq 'WTSI' or $config->location eq 'EBI'){
     my $connect = $config->pfamlive;
     my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
       %{ $connect }
@@ -71,7 +71,7 @@ unless($family =~ /PF\d{5}/){
     my $pfamAcc = $pfamDB->id2acc($family);
     unless($pfamAcc =~ /PF\d{5}/){
       warn "You passed in something that did not look like an accession.\n"; 
-      warn "Because you are at WTSI, tried to map it to an accession, but failed.\n";
+      warn "Because you are at WTSI/EBI, tried to map it to an accession, but failed.\n";
       help();
     }
     $family = $pfamAcc;
@@ -180,7 +180,7 @@ usage: $0 <PFAM ACCESSION> <NEW NAME>
   Family names must conform to the following pattern [\\w_-]{1,15}. i.e. between 1 and 15 
   alpha-numeric characters and/or the following symbols: '_' '-'
   
-  Note: If you are at WTSI, you can use family ids instead of accessions.
+  Note: If you are at WTSI/EBI, you can use family ids instead of accessions.
   
   If you are told to remove a wikipedia line and really do not want to, use the -wiki flag.
 

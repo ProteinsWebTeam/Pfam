@@ -38,7 +38,7 @@ use Bio::Pfam::PfamLiveDBManager;
 unless ( scalar(@ARGV) ) { useage(); }
 
 my $config = Bio::Pfam::Config->new;
-$config->dieIfNotWTSI;
+$config->dieIfNotEBI;
 
 
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );

@@ -4,8 +4,8 @@
 # clan from the svn repository. 
 #
 # Author:        rdf
-# Maintainer:    $Author: rdf $
-# Version:       $Rev: 4401 $
+# Maintainer:    $Author$
+# Version:       $Rev$
 # Created:       Feb 18, 2010
 # Last Modified: $Date$
 #
@@ -30,7 +30,7 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
   if ( $clan =~ /^PF\d{5}$/ ) {
     die "That looks like a Pfam accession, do you mean pfinfo.pl?\n";
   }
-  elsif ( $config->location eq 'WTSI' ) {
+  elsif ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
     warn
 "Looks like you have passed in an ID rather than accession, got [$clan]\n";
     print STDERR "Will try and look up based on ID\n";
@@ -40,7 +40,7 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
     unless ( $clanAcc =~ /CL\d{4}/ ) {
       warn "You passed in something that did not look like an accession.\n";
       warn
-"Because you are at WTSI, tried to map it to a Clan accession, but failed.\n";
+"Because you are at WTSI/EBI, tried to map it to a Clan accession, but failed.\n";
       help();
     }
     $clan = $clanAcc;
@@ -85,7 +85,7 @@ sub help {
 usage: $0 <CLAN ACCESSION>
 
 Prints the SVN revision history for the family. 
-At WTSI this will work with IDs as the database is local.
+At WTSI/EBI this will work with IDs as the database is local.
 
 EOF
 
@@ -104,7 +104,7 @@ EOF
                   print the help message. Finally, if you are lucky, it will try and work
                   out the clan accession if you pass in the identifier.
 
-  $Author: rdf $
+  $Author$
 
 =head1 COPYRIGHT
 

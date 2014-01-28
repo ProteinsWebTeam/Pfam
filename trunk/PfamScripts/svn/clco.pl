@@ -26,7 +26,7 @@ unless(defined $clan){
 }
 
 if ( $clan !~ /^(CL\d{4})$/ ) {
- if($config->location eq 'WTSI'){
+ if($config->location eq 'WTSI' or $config->location eq 'EBI'){
   my $connect = $config->pfamlive;
   my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
     %{ $connect }
@@ -34,7 +34,7 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
   my $clanAcc = $pfamDB->clanId2Acc($clan);
   unless($clanAcc =~ /CL\d{4}/){
     warn "You passed in something that did not look like an accession.\n"; 
-    warn "Because you are at WTSI, tried to map it to a Clan accession, but failed.\n";
+    warn "Because you are at WTSI/EBI, tried to map it to a Clan accession, but failed.\n";
     help();
   }
   $clan = $clanAcc;   
@@ -82,7 +82,7 @@ usage: $0 <PFAM CLAN ACCESSION>
 
 Checks out the latest version of the clan from the SVN repository.  
 It makes a directory for the clan according to its accession and will fail if it is already there. 
-If you are WTSI, you can use clan ids.
+If you are WTSI/EBI, you can use clan ids.
 
 EOF
  

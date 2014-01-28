@@ -60,7 +60,7 @@ unless($newClanName and $newClanName =~ /\S+/){
 
 
 if ( $clan !~ /^(CL\d{4})$/ ) {
- if($config->location eq 'WTSI'){
+ if($config->location eq 'WTSI' or $config->location eq 'EBI'){
   my $connect = $config->pfamlive;
   my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
     %{ $connect }
@@ -68,7 +68,7 @@ if ( $clan !~ /^(CL\d{4})$/ ) {
   my $clanAcc = $pfamDB->clanId2Acc( $clan );
   unless($clanAcc =~ /CL\d{4}/){
     warn "You passed in something that did not look like an accession.\n"; 
-    warn "Because you are at WTSI, tried to map it to a Clan accession, but failed.\n";
+    warn "Because you are at WTSI/EBI, tried to map it to a Clan accession, but failed.\n";
     help();
   }
   $clan = $clanAcc;   
@@ -169,7 +169,7 @@ usage: $0 <CLAN ACCESSION> <NEW NAME>
   Clan names must conform to the following pattern [\\w_-]{1,15}. i.e. between 1 and 15 
   alpha-numeric characters and/or the following symbols: '_' '-'
   
-  Note: If you are at WTSI, you can use family ids instead of accessions.
+  Note: If you are at WTSI/EBI, you can use family ids instead of accessions.
 
 EOF
 
