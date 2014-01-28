@@ -91,8 +91,10 @@ if ( $option{n} ) {
 #-------------------------------------------------------------------------------
 #
 unlink("fa.ann");
-system("sreformat fasta ALIGN.ann > fa.ann") and die "Failed to run sreformat:[$!]\n";
-system($config->hmmer3bin."/hmmalign HMM fa.ann > ALIGN.pp.wsto") and die "Failed to run hmmalign:[$!]\n";
+system($config->binLocation . '/esl-reformat fasta ALIGN.ann > fa.ann') == 0 
+  or die "Failed to run esl-reformat:[$!]\n";
+system($config->binLocation . '/hmmalign HMM fa.ann > ALIGN.pp.wsto') == 0
+  or die "Failed to run hmmalign:[$!]\n";
 unlink("fa.ann");
 my ($aliHash, $aliOrder) = read_alignment(); 
 my ($aliHM);
