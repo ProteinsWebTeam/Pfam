@@ -66,23 +66,15 @@ sub passesAllFormatChecks {
     }
   }
 
-  if ($isNew) {
-    
-    # Check name is unused
-    my $clash = &name_clashes($family);
-    if ($clash) {
-      $error = 1;
-      warn "$family: your family identifier clashes with existing id $clash\n";
-    }
-  }
-  else {
-    print STDERR "check acc vs name\n";
+  # TODO need to add code to check that the family name doesn't clash if new family
+  # TODO if family exists, check name and accession match in DB
 
-    #Check that the accession and name match with stored copy
-    #if ( &check_acc_vs_name($family) ) {
-    #   $error = 1;
-    # }
-  }
+  # if ($isNew) {
+  #   
+  # }
+  # else {
+  #   print STDERR "check acc vs name\n";
+  # }
 
   if ( !&checkSearchMethod( $family, $famObj ) ) {
     warn "$family: Bad search method (SM), databases are different sizes\n";
@@ -331,43 +323,6 @@ sub passesAllFormatChecks {
 #  close(OVERLAPS) || die "Could not close $dir/overlap file: $!\n";
 #  return $error;
 #}
-
-#=head2 name_clashes
-#
-# Title    : name_clashes
-# Usage    : &PfamQC::name_clashes("family_id","ignore")
-# Function : Checks to see if the family name has been used before
-#            in case independant fashion
-# Returns  : id of any clashing family name or 0 if no clashes
-# Args     : family id, optional 2nd id to ignore (when we want to use
-#	    pfmove to change the case of an id for example)
-#
-#=cut
-
-sub name_clashes {
-
- # returns 0 if all is OK, id of clashing family if all is not OK
- my $family    = shift;
- my $ignore    = shift;
- my $lc_family = $family;
- $lc_family =~ tr/A-Z/a-z/;
-
- my $db       = Bio::Pfam->default_db();
- my @fam_list = $db->get_allacc();
-
- foreach my $acc (@fam_list) {
-   my $id = $db->acc2id("$acc");
-   if ($ignore) {
-     next if ( $id eq $ignore );
-   }
-   my $lc_id = $id;
-   $lc_id =~ tr/A-Z/a-z/;
-   if ( $lc_family eq $lc_id ) {
-     return $id;
-   }
- }
- return 0;
-}
 
 #=head2 _get_DESC_overlaps
 #
