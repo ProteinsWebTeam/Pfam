@@ -343,31 +343,31 @@ sub passesAllFormatChecks {
 #	    pfmove to change the case of an id for example)
 #
 #=cut
-#
-#sub name_clashes {
-#
-#  # returns 0 if all is OK, id of clashing family if all is not OK
-#  my $family    = shift;
-#  my $ignore    = shift;
-#  my $lc_family = $family;
-#  $lc_family =~ tr/A-Z/a-z/;
-#
-#  my $db       = Bio::Pfam->default_db();
-#  my @fam_list = $db->get_allacc();
-#
-#  foreach my $acc (@fam_list) {
-#    my $id = $db->acc2id("$acc");
-#    if ($ignore) {
-#      next if ( $id eq $ignore );
-#    }
-#    my $lc_id = $id;
-#    $lc_id =~ tr/A-Z/a-z/;
-#    if ( $lc_family eq $lc_id ) {
-#      return $id;
-#    }
-#  }
-#  return 0;
-#}
+
+sub name_clashes {
+
+ # returns 0 if all is OK, id of clashing family if all is not OK
+ my $family    = shift;
+ my $ignore    = shift;
+ my $lc_family = $family;
+ $lc_family =~ tr/A-Z/a-z/;
+
+ my $db       = Bio::Pfam->default_db();
+ my @fam_list = $db->get_allacc();
+
+ foreach my $acc (@fam_list) {
+   my $id = $db->acc2id("$acc");
+   if ($ignore) {
+     next if ( $id eq $ignore );
+   }
+   my $lc_id = $id;
+   $lc_id =~ tr/A-Z/a-z/;
+   if ( $lc_family eq $lc_id ) {
+     return $id;
+   }
+ }
+ return 0;
+}
 
 #=head2 _get_DESC_overlaps
 #
@@ -514,7 +514,7 @@ sub passesAllFormatChecks {
 sub compareAlignToScores {
   my $famObj = shift;
 
-  if ( $famObj->scores->numRegions != $famObj->ALIGN->no_sequences ) {
+  if ( $famObj->scores->numRegions != $famObj->ALIGN->num_sequences ) {
 
     #TODO - would be good to actually print these out!
     return 0;
@@ -539,7 +539,7 @@ sub compareAlignToScores {
 
 sub moreInSEEDthanALIGN {
   my $famObj = shift;
-  if ( $famObj->SEED->num_sequences > $famObj->ALIGN->no_sequences ) {
+  if ( $famObj->SEED->num_sequences > $famObj->ALIGN->num_sequences ) {
     return 0;
   }
   else {
