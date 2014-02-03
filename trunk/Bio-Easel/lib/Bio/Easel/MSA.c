@@ -356,6 +356,20 @@ char *_c_get_sqname (ESL_MSA *msa, I32 idx)
     return msa->sqname[idx];
 }
 
+/* Function:  _c_get_sqidx()
+ * Incept:    EPN, Mon Feb  3 14:22:06 2014
+ * Synopsis:  Returns sequence index of seq named <sqname>
+ */
+int _c_get_sqidx (ESL_MSA *msa, char *sqname)
+{
+  int idx, status;
+  if(msa->index == NULL) croak ("ERROR, msa->index is NULL in _c_get_sqidx");
+  status = esl_keyhash_Lookup(msa->index, sqname, -1, &idx);
+  if(status == eslENOTFOUND) return -1;
+  else if(status == eslOK)   return idx;
+  else                       croak ("ERROR, unexpected error in _c_get_sqidx");
+}
+
 /* Function:  _c_set_sqname()
  * Incept:    EPN, Sat Feb  2 14:37:34 2013
  * Synopsis:  Sets msa->sqname[idx]
@@ -1687,4 +1701,109 @@ _c_is_residue(ESL_MSA *msa, int sqidx, int apos)
   else { 
     return (isalpha(msa->aseq[sqidx][apos-1])) ? 1 : 0;
   }
+}
+
+/* Function: _c_reorder
+ * Incept:   EPN, Mon Feb  3 14:43:36 2014
+ * Purpose:  Reorder sequences in an MSA by swapping pointers.
+ *           Copied and slightly modified from esl-alimanip.c's
+ *           reorder_msa().
+ *
+ * Args:     msa:     the alignment
+ *           orderAR: int array specifying new order (orderAR[2] = x ==> x becomes 3rd sequence)
+ * 
+ * Returns:  void
+ * Dies:     with croak upon an error
+ */
+void
+_c_reorder(ESL_MSA *msa, AV *orderAR)
+{
+
+  int status;
+  char **tmp; 
+  int i, a;
+  int *order = NULL;
+  ESL_ALLOC(tmp, sizeof(char *) * msa->nseq);
+
+  /* create C int array useme */
+  ESL_ALLOC(order, sizeof(int) * msa->nseq);
+  /* copy the perl array into the C one */
+  _c_int_copy_array_perl_to_c(orderAR, order, msa->nseq);
+
+  /* contract check */
+  /* 'order' must be have nseq elements, elements must be in range [0..nseq-1], no duplicates  */
+  int *covered;
+  ESL_ALLOC(covered, sizeof(int) * msa->nseq);
+  esl_vec_ISet(covered, msa->nseq, 0);
+  for(i = 0; i < msa->nseq; i++) { 
+    if(covered[order[i]]) croak("_c_reorder() order array has duplicate entries for i: %d\n", i);
+    covered[order[i]] = 1;
+  }
+  free(covered);
+
+  /* swap aseq or ax (one or the other must be non-NULL) */
+  if(msa->flags & eslMSA_DIGITAL) { /* digital MSA */
+    ESL_DSQ **tmp_dsq; 
+    ESL_ALLOC(tmp_dsq, sizeof(ESL_DSQ *) * msa->nseq);
+    for(i = 0; i < msa->nseq; i++) tmp_dsq[i] = msa->ax[i];
+    for(i = 0; i < msa->nseq; i++) msa->ax[i] = tmp_dsq[order[i]];
+    free(tmp_dsq);
+  }
+  else { /* text MSA */
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->aseq[i];
+    for(i = 0; i < msa->nseq; i++) msa->aseq[i] = tmp[order[i]];
+  }
+
+  /* swap sqnames (mandatory) */
+  for(i = 0; i < msa->nseq; i++) tmp[i] = msa->sqname[i];
+  for(i = 0; i < msa->nseq; i++) msa->sqname[i] = tmp[order[i]];
+
+  /* swap sqacc, if they exist */
+  if(msa->sqacc != NULL) { 
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->sqacc[i];
+    for(i = 0; i < msa->nseq; i++) msa->sqacc[i] = tmp[order[i]];
+  }
+
+  /* swap sqdesc, if they exist */
+  if(msa->sqdesc != NULL) { 
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->sqdesc[i];
+    for(i = 0; i < msa->nseq; i++) msa->sqdesc[i] = tmp[order[i]];
+  }
+
+  /* swap ss, if they exist */
+  if(msa->ss != NULL) { 
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->ss[i];
+    for(i = 0; i < msa->nseq; i++) msa->ss[i] = tmp[order[i]];
+  }
+
+  /* swap sa, if they exist */
+  if(msa->sa != NULL) { 
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->sa[i];
+    for(i = 0; i < msa->nseq; i++) msa->sa[i] = tmp[order[i]];
+  }
+
+  /* swap pp, if they exist */
+  if(msa->pp != NULL) { 
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->pp[i];
+    for(i = 0; i < msa->nseq; i++) msa->pp[i] = tmp[order[i]];
+  }
+
+  /* swap gs annotation, if it exists */
+  for(a = 0; a < msa->ngs; a++) {
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->gs[a][i];
+    for(i = 0; i < msa->nseq; i++) msa->gs[a][i] = tmp[order[i]];
+  }
+
+  /* swap gr annotation, if it exists */
+  for(a = 0; a < msa->ngr; a++) {
+    for(i = 0; i < msa->nseq; i++) tmp[i] = msa->gr[a][i];
+    for(i = 0; i < msa->nseq; i++) msa->gr[a][i] = tmp[order[i]];
+  }
+  free(tmp);
+
+  free(order);
+  return;
+
+ ERROR:
+  croak("_c_reorder() out of memory");
 }
