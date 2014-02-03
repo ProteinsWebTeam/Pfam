@@ -108,7 +108,7 @@ No functions currently exported.
            :                 "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", 
            :                 "SELEX", "aligned FASTA", "Clustal", "Clustal-like", 
            :                 "PHLYIP (interleaved)", or "PHYLIP (sequential)"
-           :                 
+           : <forceText>:    '1' to read the alignment in text mode
   Returns  : Bio::Easel::MSA object
 
 =cut
@@ -119,6 +119,14 @@ sub new {
   my $self = {};
 
   bless( $self, $caller );
+
+  # set flag to digitize, unless forceText passed in
+  if ( defined $args->{forceText} && $args->{forceText}) { 
+    $self->{digitize} = 0;
+  }
+  else { 
+    $self->{digitize} = 1;
+  }
 
   # First check that the file exists. If it exists, read it with
   # Easel and populate the object from the ESL_MSA object
@@ -139,11 +147,12 @@ sub new {
     $self->{esl_msa} = $args->{esl_msa};
   }
   else {
-    confess("Expected to receive a valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
+    confess("Expected to receive an ESL_MSA or valid file location path (@{[$args->{fileLocation}]} doesn\'t exist)");
   }
   if ( defined $args->{aliType} ) {
     $self->{aliType} = $args->{aliType};
   }
+  
   return $self;
 }
 
@@ -219,14 +228,15 @@ sub format {
   Incept   : EPN, Mon Jan 28 09:26:24 2013
   Usage    : Bio::Easel::MSA->read_msa($fileLocation)
   Function : Opens $fileLocation, reads first MSA, sets it.
-  Args     : <fileLocation>: optional, file location of alignment
+  Args     : <fileLocation>: file location of alignment, required unless $self->{path} already set
            : <reqdFormat>:   optional, required format of alignment file
+           : <do_text>:      optional, TRUE to read alignment in text mode
   Returns  : void
 
 =cut
 
 sub read_msa {
-  my ( $self, $fileLocation, $reqdFormat ) = @_;
+  my ( $self, $fileLocation, $reqdFormat, $do_text ) = @_;
 
   if ($fileLocation) {
     $self->{path} = $fileLocation;
@@ -239,14 +249,21 @@ sub read_msa {
     $self->{reqdFormat} = $reqdFormat;
   }
 
+  # default is to read in digital mode
+  if (defined $do_text && $do_text) { 
+    $self->{digitize} = 0;
+  }
+  elsif(! defined $self->{digitize}) { 
+    $self->{digitize} = 1; 
+  }
+
   my $informat = "unknown";
   if (defined $self->{reqdFormat}) {
     $informat = $self->{reqdFormat};
     $self->_check_reqd_format();
   }
 
-  ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path}, $informat);
-
+  ($self->{esl_msa}, $self->{informat}) = _c_read_msa( $self->{path}, $informat, $self->{digitize});
   # Possible values for 'format', a string, derived from esl_msafile.c::eslx_msafile_DecodeFormat(): 
   # "unknown", "Stockholm", "Pfam", "UCSC A2M", "PSI-BLAST", "SELEX", "aligned FASTA", "Clustal", 
   # "Clustal-like", "PHYLIP (interleaved)", or "PHYLIP (sequential)".
@@ -652,7 +669,7 @@ sub any_allgap_columns {
   my ($self) = @_;
 
   $self->_check_msa();
-  return _c_any_allgap_columns( $self->{esl_msa} );
+  return _c_any_allgap_columns( $self->{esl_msa}, "-_.~" ); # gap string of "-_.~" only relevant if MSA is not digitized 
 }
 
 #-------------------------------------------------------------------------------
