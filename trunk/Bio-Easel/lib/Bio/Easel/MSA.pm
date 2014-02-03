@@ -1383,6 +1383,7 @@ sub reorder_all
   my ($self, $nameorderAR) = @_;
 
   $self->_check_msa();
+  $self->_check_index();
 
   my $nseq = $self->nseq();
   if(scalar(@{$nameorderAR}) != $nseq) { croak "ERROR, reorder_all() wrong num seqs in input array"; }
@@ -1850,6 +1851,28 @@ sub _check_reqd_format {
       _c_check_reqd_format($self->{reqd_format}); 
     }
   }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _check_index
+
+  Title    : _check_index
+  Incept   : EPN, Mon Feb  3 15:17:21 2014
+  Usage    : $msaObject->_check_index()
+  Function : Check if an MSA has a hash and if not, create one.
+  Args     : none
+  Returns  : void
+  Dies     : If no index exists and unable to create one.
+
+=cut
+
+sub _check_index { 
+  my ( $self ) = @_;
+
+  _c_check_index($self->{esl_msa});
+
   return;
 }
 
