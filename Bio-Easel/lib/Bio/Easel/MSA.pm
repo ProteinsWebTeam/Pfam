@@ -437,6 +437,27 @@ sub get_sqname {
 
 #-------------------------------------------------------------------------------
 
+=head2 get_sqidx
+
+  Title    : get_seqidx
+  Incept   : EPN, Mon Feb  3 14:20:07 2014
+  Usage    : $msaObject->_get_sqidx($sqname)
+  Function : Return the index of sequence $sqname in the MSA.
+  Args     : $sqname: the sequence of interest
+  Returns  : index of $sqname in $msa, or -1 if it does not exit
+  Dies     : if msa->index is not setup
+=cut
+
+sub get_sqidx {
+  my ( $self, $sqname ) = @_;
+
+  $self->_check_msa();
+  
+  return _c_get_sqidx($self->{esl_msa}, $sqname);
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 set_sqname
 
   Title    : set_sqname
@@ -1341,6 +1362,46 @@ sub clone_msa
   });
 
   return $new_msa;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 reorder_all
+
+  Title     : reorder_msa_all
+  Incept    : EPN, Mon Feb  3 14:32:59 2014
+  Usage     : $msaObject->reorder_all
+  Function  : Reorder all sequences in an MSA by swapping pointers.
+  Args      : $nameorderAR: [0..i..nseq-1] ref to array with names
+            :               of sequences in preferred order.
+  Returns   : void
+  Dies      : If not all sequences are listed exactly once in $nameorderAR.
+=cut
+
+sub reorder_all
+{
+  my ($self, $nameorderAR) = @_;
+
+  $self->_check_msa();
+
+  my $nseq = $self->nseq();
+  if(scalar(@{$nameorderAR}) != $nseq) { croak "ERROR, reorder_all() wrong num seqs in input array"; }
+
+  # initialize idxorderA
+  my @idxorderA = ();
+  my @coveredA  = (); # coveredA[$i] is '1' if seq $i has already been reordered, else '0'
+  my $i;
+  for($i = 0; $i < $nseq; $i++) { $coveredA[$i] = 0; }
+  for($i = 0; $i < $nseq; $i++) { 
+    my $seqidx = _c_get_sqidx($self->{esl_msa}, $nameorderAR->[$i]);
+    if($seqidx == -1)           { croak "ERROR, reorder_all() unable to find sequence $nameorderAR->[$i]"; }
+    if($coveredA[$seqidx] != 0) { croak "ERROR, reorder_all() has sequence $nameorderAR->[$i] listed twice"; }
+    $idxorderA[$i] = $seqidx;
+  }
+
+  _c_reorder($self->{esl_msa}, \@idxorderA);
+
+  return;
 }
 
 #-------------------------------------------------------------------------------

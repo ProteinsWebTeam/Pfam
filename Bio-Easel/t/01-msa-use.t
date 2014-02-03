@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 104;
+use Test::More tests => 114;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -15,12 +15,13 @@ my $alnfile     = "./t/data/test.sto";
 my $rf_alnfile  = "./t/data/test.rf.sto";
 my $gap_alnfile = "./t/data/test-gap.sto";
 my ($msa1, $msa2);
-my ($path, $nseq, $sqname, $any_gaps, $len, $avglen, $outfile, $id);
+my ($path, $nseq, $sqname, $sqidx, $any_gaps, $len, $avglen, $outfile, $id);
 my ($line, $line1, $line2, $mode, $msa_str, $trash);
 my ($sub_nseq, $sub_alen, $isres, $alen);
 my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
 my @keepmeA;
 my @usemeA;
+my @orderA;
 
 # first test new without a forcetext value
 $msa1 = Bio::Easel::MSA->new({
@@ -63,6 +64,12 @@ for($mode = 0; $mode <= 1; $mode++) {
   # test get_sqname
   $sqname = $msa1->get_sqname(2);
   is($sqname, "orc", "get_sqname method returned correct value (mode $mode).");
+
+  # test get_sqidx
+  $sqidx = $msa1->get_sqidx("mouse");
+  is($sqidx, "1", "get_sqidx method returned correct value for valid sequence (mode $mode).");
+  $sqidx = $msa1->get_sqidx("non-existent");
+  is($sqidx, "-1", "get_sqidx method returned correct value for invalid sequence (mode $mode).");
 
   # test set_sqname
   $msa1->set_sqname(2, "Sauron");
@@ -336,6 +343,32 @@ for($mode = 0; $mode <= 1; $mode++) {
   is($nseq, 3, "create_from_string method worked (mode $mode)");
   unlink $outfile;
 
-  
+  ################################################
+  # reorder_all
+  undef $msa1;
+  $msa1 = Bio::Easel::MSA->new({
+     fileLocation => $alnfile, 
+     forceText    => $mode,
+  });
+  @orderA = ();
+  $orderA[0] = $msa1->get_sqname(2);
+  $orderA[1] = $msa1->get_sqname(0);
+  $orderA[2] = $msa1->get_sqname(1);
+  $msa1->reorder_all(\@orderA);
+
+  # write it out 
+  $msa1->write_msa($outfile);
+  undef $msa1;
+
+  # read it back in
+  $msa1 = Bio::Easel::MSA->new({
+     fileLocation => $outfile,
+     forceText    => $mode,
+  });
+  is($orderA[0], $msa1->get_sqname(0), "reorder_msa seems to be working (mode: $mode)");
+  is($orderA[1], $msa1->get_sqname(1), "reorder_msa seems to be working (mode: $mode)");
+  is($orderA[2], $msa1->get_sqname(2), "reorder_msa seems to be working (mode: $mode)");
+  undef $msa1;
+  #unlink $outfile;
 }
 
