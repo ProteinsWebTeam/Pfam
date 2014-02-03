@@ -1,0 +1,117 @@
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADB02062601.1-shuffled -         Vault                RF00006    cm        1      101      433      334      -    no    1 0.37   0.0   24.4        82 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_1.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.1.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_1.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:57 2014
+# [ok]
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAPN01122032.1-shuffled  -         Vault                RF00006    cm        1      101      376      253      -    no    1 0.53   0.0   34.7      0.11 !   -
+AADC01136478.1-shuffled  -         Vault                RF00006    cm        1      101    40359    40262      -    no    1 0.40   0.4   33.4      0.26 !   -
+AGTP01064319.1-shuffled  -         Vault                RF00006    cm        1      101     1409     1534      +    no    1 0.40   0.0   25.4        41 !   -
+ABJB010482031.1-shuffled -         Vault                RF00006    cm        1      101      750      667      -    no    1 0.69   0.1   25.3        46 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_2.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.2.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_2.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:38 2014
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAFC03034217.1-shuffled -         Vault                RF00006    cm        1      101      480      382      -    no    1 0.38   0.0   26.8        17 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_3.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.3.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_3.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:42 2014
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ADMH01002394.1-shuffled -         Vault                RF00006    cm        1      101     5987     5890      -    no    1 0.51   0.0   27.2        13 !   -
+AANN01688719.1-shuffled -         Vault                RF00006    cm        1      101     1105     1193      +    no    1 0.38   0.0   24.4        78 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_4.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.4.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_4.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:49 2014
+# [ok]
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AFSQ01003276.1-shuffled  -         Vault                RF00006    cm        1      101     4513     4569      +    no    1 0.39   0.0   26.7        18 !   -
+ABJB010458096.1-shuffled -         Vault                RF00006    cm        1      101      207      124      -    no    1 0.62   0.0   24.7        68 !   -
+ABBA01067787.1-shuffled  -         Vault                RF00006    cm        1      101     1299     1200      -    no    1 0.37   0.0   24.4        82 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_5.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.5.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_5.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:51 2014
+# [ok]
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AACZ03120775.1-shuffled  -         Vault                RF00006    cm        1      101     1987     2082      +    no    1 0.40   0.1   33.9      0.19 !   -
+DAAA02010619.1-shuffled  -         Vault                RF00006    cm        1      101     9569     9668      +    no    1 0.50   0.0   32.1       0.6 !   -
+AATB01005484.1-shuffled  -         Vault                RF00006    cm        1      101      738      604      -    no    1 0.56   0.2   25.8        34 !   -
+ABJB010065432.1-shuffled -         Vault                RF00006    cm        1      101      440      523      +    no    1 0.69   0.2   25.1        53 !   -
+ADDN01001347.1-shuffled  -         Vault                RF00006    cm        1      101   104240   104138      -    no    1 0.47   0.0   25.0        56 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_6.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.6.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_6.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:50 2014
+# [ok]
+#target name             accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#----------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEKP01198483.1-shuffled  -         Vault                RF00006    cm        1      101    10889    10986      +    no    1 0.40   0.4   33.4      0.26 !   -
+ABQO010029846.1-shuffled -         Vault                RF00006    cm        1      101     3537     3625      +    no    1 0.44   0.0   25.8        33 !   -
+ABSL01138941.1-shuffled  -         Vault                RF00006    cm        1      101      969      870      -    no    1 0.37   0.0   24.4        82 !   -
+ACZU01050736.1-shuffled  -         Vault                RF00006    cm        1      101      279      199      -    no    1 0.38   0.0   24.0     1e+02 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_7.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.7.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_7.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:30:02 2014
+# [ok]
+#target name            accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#---------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRE01001010.1-shuffled -         Vault                RF00006    cm        1      101      650      742      +    no    1 0.55   0.0   25.5        41 !   -
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_8.fa.gz
+# Option settings: /misc/data0/databases/XfamProduction/Rfam/bin/cmsearch -Z 54985.980676 --tblout rs.20329.8.tbl --verbose -T 23.93 --FZ 549862.597050 --cpu 4 --nohmmonly CM /misc/data0/databases/XfamProduction/Rfam/data/sequences/all/rev-rfamseq11_8.fa.gz 
+# Current dir:     /groups/eddy/home/nawrockie/notebook/14_0123_esl_aliviewer_support/testing/RF00006
+# Date:            Mon Feb  3 13:29:37 2014
+# [ok]
