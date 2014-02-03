@@ -364,6 +364,7 @@ int _c_get_sqidx (ESL_MSA *msa, char *sqname)
 {
   int idx, status;
   if(msa->index == NULL) croak ("ERROR, msa->index is NULL in _c_get_sqidx");
+  if(esl_keyhash_GetNumber(msa->index) == 0) croak ("ERROR, msa->index has no keys in _c_get_sqidx");
   status = esl_keyhash_Lookup(msa->index, sqname, -1, &idx);
   if(status == eslENOTFOUND) return -1;
   else if(status == eslOK)   return idx;
@@ -1806,4 +1807,24 @@ _c_reorder(ESL_MSA *msa, AV *orderAR)
 
  ERROR:
   croak("_c_reorder() out of memory");
+}
+
+/* Function:  _c_check_index()
+ * Incept:    EPN, Mon Feb  3 15:18:15 2014
+ * Synopsis:  Check if an MSA has a valid index and if not, create it.
+ * Dies:      If unable to create an index.
+ */
+void _c_check_index (ESL_MSA *msa)
+{
+  int status;
+
+  /* create the index if it doesn't exist or it seems incorrect (num keys != num seqs) */
+  if(msa->index == NULL || (esl_keyhash_GetNumber(msa->index) != msa->nseq)) { 
+    status = esl_msa_Hash(msa);
+    if(status == eslEDUP)      { croak ("ERROR, _c_check_index() MSA has duplicated names in it"); }
+    else if(status == eslEMEM) { croak ("ERROR, _c_check_index() out of memory"); }
+    else if(status != eslOK)   { croak ("ERROR, _c_check_index() unexpected error"); }
+  }
+
+  return;
 }
