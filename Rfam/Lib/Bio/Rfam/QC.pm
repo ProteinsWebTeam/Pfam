@@ -374,7 +374,7 @@ sub checkRequiredFields {
       warn "Required DESC field $key not defined.\n";
       $error++;
     }
-    elsif( $familyObj->DESC->$key eq $familyObj->DESC->illegalFields->{$key} ) { 
+    elsif( $familyObj->DESC->$key eq $familyObj->DESC->defaultButIllegalFields->{$key} ) { 
       warn "DESC field $key illegal value (appears unchanged from an 'rfsearch.pl -nodesc' call).\n";
       $error++;
     }      
