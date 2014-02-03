@@ -53,10 +53,15 @@ void _c_int_copy_array_perl_to_c (AV *perlAR, int *cA, int len)
 /* Function:  _c_read_msa()
  * Incept:    EPN, Sat Feb  2 14:14:20 2013
  * Synopsis:  Open a alignment file, read an msa, and close the file.
+ * Args:      infile:     name of file to read MSA from (one alignment per
+ *                        file required currently, should probably fix this one day.)
+ *            reqdFormat: required format, "unknown" for no specific format required
+ *            digitize:   '1' to read alignment in digital mode, '0' to read in text mode
+ *                        digital mode is faster, safer, text preserves case, exact characters in input msa
  * Returns:   an ESL_MSA and a string describing it's format
  */
 
-void _c_read_msa (char *infile, char *reqdFormat)
+void _c_read_msa (char *infile, char *reqdFormat, int digitize)
 {
   Inline_Stack_Vars;
 
@@ -71,9 +76,11 @@ void _c_read_msa (char *infile, char *reqdFormat)
   /* decode reqdFormat string */
   fmt = eslx_msafile_EncodeFormat(reqdFormat);
 
-  /* open input file */
-  if ((status = eslx_msafile_Open(&abc, infile, NULL, fmt, NULL, &afp)) != eslOK)
+  /* open input file, either in text or digital mode */
+  if ((status = eslx_msafile_Open((digitize) ? &abc : NULL, /* digitize or text mode */
+                                  infile, NULL, fmt, NULL, &afp)) != eslOK) { 
     croak("Error reading alignment file %s: %s\n", infile, afp->errmsg);
+  }
   
   /* read_msa */
   status = eslx_msafile_Read(afp, &msa);
@@ -374,23 +381,44 @@ double _c_get_sqwgt (ESL_MSA *msa, I32 idx)
 /* Function:  _c_any_allgap_columns()
  * Incept:    EPN, Sat Feb  2 14:38:18 2013
  * Synopsis:  Checks for any all gap columns.
+ * Args:      msa: the alignment
+ *            gapstr: string of gaps (e.g. "-_.~"), can be NULL if msa is digitized.
  * Returns:   TRUE if any all gap columns exist, else FALSE.
  */
-int _c_any_allgap_columns (ESL_MSA *msa) 
+int _c_any_allgap_columns (ESL_MSA *msa, char *gapstr) 
 {
   int apos, idx; 
   
-  for (apos = 1; apos <= msa->alen; apos++) {
-    for (idx = 0; idx < msa->nseq; idx++) {
-      if (! esl_abc_XIsGap(msa->abc, msa->ax[idx][apos]) &&
-	  ! esl_abc_XIsMissing(msa->abc, msa->ax[idx][apos])) { 
-	break;
+  /***************** digital mode **************************/
+  if(msa->flags & eslMSA_DIGITAL) { 
+    for (apos = 1; apos <= msa->alen; apos++) {
+      for (idx = 0; idx < msa->nseq; idx++) {
+        if (! esl_abc_XIsGap(msa->abc, msa->ax[idx][apos]) &&
+            ! esl_abc_XIsMissing(msa->abc, msa->ax[idx][apos])) { 
+          break;
+        }
+      }
+      if(idx == msa->nseq) { /* apos is an all gap column */
+        return TRUE; 
       }
     }
-    if(idx == msa->nseq) { 
-      return TRUE; 
+  }
+  /***************** text mode **************************/
+  else { 
+    for (apos = 0; apos < msa->alen; apos++) {
+      for (idx = 0; idx < msa->nseq; idx++) {
+	{ /* check all seqs to see if this column is all gaps */
+          if (strchr(gapstr, msa->aseq[idx][apos]) == NULL) { 
+            break;
+          }
+        }
+      }
+      if(idx == msa->nseq) { /* apos is an all gap column */
+        return TRUE; 
+      }
     }
   }
+  /****************************************************/
   return FALSE;
 }   
 
@@ -406,8 +434,12 @@ float _c_average_id(ESL_MSA *msa, int max_nseq)
 {
   double avgid;
   
-  esl_dst_XAverageId(msa->abc, msa->ax, msa->nseq, (max_nseq * max_nseq), &avgid);
-  
+  if(msa->flags & eslMSA_DIGITAL) { 
+    esl_dst_XAverageId(msa->abc, msa->ax, msa->nseq, (max_nseq * max_nseq), &avgid);
+  }
+  else { 
+    esl_dst_CAverageId(msa->aseq, msa->nseq, (max_nseq * max_nseq), &avgid);
+  }
   return (float) avgid;
 }
 
@@ -423,7 +455,12 @@ SV *_c_get_sqstring_aligned(ESL_MSA *msa, int seqidx)
   char *seqstring;
 
   ESL_ALLOC(seqstring, sizeof(char) * (msa->alen + 1));
-  if((status = esl_abc_Textize(msa->abc, msa->ax[seqidx], msa->alen, seqstring)) != eslOK) croak("failed to textize digitized aligned sequence");
+  if(msa->flags & eslMSA_DIGITAL) { 
+    if((status = esl_abc_Textize(msa->abc, msa->ax[seqidx], msa->alen, seqstring)) != eslOK) croak("failed to textize digitized aligned sequence");
+  }
+  else { /* text mode */
+    if((status = esl_strdup(msa->aseq[seqidx], msa->alen, &seqstring)) != eslOK) croak("failed to duplicate text aligned sequence");
+  }    
 
   seqstringSV = newSVpv(seqstring, msa->alen);
   free(seqstring);
@@ -448,9 +485,16 @@ SV *_c_get_sqstring_unaligned(ESL_MSA *msa, int seqidx)
   
   status = esl_sq_FetchFromMSA(msa, seqidx, &sq);
   if(status != eslOK) croak("failed to fetch seq %d from msa\n", seqidx);
-  /* convert digital mode to text mode */
-  if(sq->dsq == NULL) croak("fetched seq %d from msa, and it's unexpectedly NOT digitized", seqidx);
-  if((status = esl_sq_Textize(sq)) != eslOK) croak("failed to textize fetched seq from MSA");
+
+  if(msa->flags & eslMSA_DIGITAL) { 
+    /* convert digital mode to text mode */
+    if(sq->dsq == NULL) croak("fetched seq %d from digitized msa, and it's unexpectedly NOT digitized", seqidx);
+    if((status = esl_sq_Textize(sq)) != eslOK) croak("failed to textize fetched seq from MSA");
+  }
+  else { /*text mode, no need to digitize, but verify */
+    if(sq->seq == NULL) croak("fetched seq %d from textized msa, and it's unexpectedly not in text mode", seqidx);
+  }
+
   seqstringSV = newSVpv(sq->seq, sq->n);
   esl_sq_Destroy(sq);
 
@@ -464,7 +508,18 @@ SV *_c_get_sqstring_unaligned(ESL_MSA *msa, int seqidx)
  */
 int _c_get_sqlen(ESL_MSA *msa, int seqidx)
 {
-  return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
+  int apos;
+  int len = 0;
+
+  if(msa->flags & eslMSA_DIGITAL) { 
+    return (int) esl_abc_dsqrlen(msa->abc, msa->ax[seqidx]);
+  }
+  else { 
+    for (apos=0; apos < msa->alen; apos++) { 
+      if (strchr("-_.~", msa->aseq[seqidx][apos]) == NULL) len++; 
+    }
+    return len;
+  }
 }
 
 /* Function:  _c_count_residues()
@@ -538,25 +593,48 @@ int _c_addGC_identity(ESL_MSA *msa, int use_res)
 {
   int     status;
   int     apos, idx;
-  ESL_DSQ res;
+  ESL_DSQ dres;
+  char    cres, cres2;
   char    *id = NULL;
 
   ESL_ALLOC(id, sizeof(char) * (msa->alen + 1));
-  id[msa->alen-1] = '\0';
+  id[msa->alen] = '\0';
 
   /* first create the annotation */
-  for (apos = 1; apos <= msa->alen; apos++) {
-    res = msa->ax[0][apos];
-    for (idx = 1; idx < msa->nseq; idx++) {
-      if(msa->ax[idx][apos] != res) break;
+  /********************** digital mode ****************************/
+  if(msa->flags & eslMSA_DIGITAL) { 
+    for (apos = 1; apos <= msa->alen; apos++) {
+      dres = msa->ax[0][apos];
+      for (idx = 1; idx < msa->nseq; idx++) {
+        if(msa->ax[idx][apos] != dres) break;
+      }
+      if(idx == msa->nseq) { /* column is same dresidue in all seqs */
+        id[apos-1] = (use_res) ? msa->abc->sym[dres] : '*';
+      }
+      else { /* column has at least 2 different residues */
+        id[apos-1] = '.';
+      }
     }
-    if(idx == msa->nseq) { /* column is same residue in all seqs */
-      id[apos-1] = (use_res) ? msa->abc->sym[res] : '*';
-    }
-    else { /* column has at least 2 different residues */
-      id[apos-1] = '.';
+    /********************** text mode ****************************/
+  }
+  else { 
+    for (apos = 0; apos < msa->alen; apos++) {
+      cres = msa->aseq[0][apos];
+      if (islower(cres)) cres = toupper(cres);
+      for (idx = 1; idx < msa->nseq; idx++) {
+        cres2 = msa->aseq[idx][apos];
+        if (islower(cres2)) cres2 = toupper(cres2);
+        if(cres2 != cres) break;
+      }
+      if(idx == msa->nseq) { /* column is same residue in all seqs */
+        id[apos] = (use_res) ? cres : '*';
+      }
+      else { /* column has at least 2 different residues */
+        id[apos] = '.';
+      }
     }
   }
+
   status = esl_msa_AppendGC(msa, "ID", id);
   free(id);
 
@@ -845,6 +923,9 @@ _c_max_rna_two_letter_ambiguity(double act, double cct, double gct, double uct, 
  *           per-sequence and total sequence counts of an
  *           MSA as well as unaligned lengths of all seqs and total
  *           summed length.
+ * 
+ *           MSA must be digitized because we count up number of
+ *           each residue.
  *
  * Returns:  Allocated and returned:
  *         
@@ -921,7 +1002,7 @@ _c_rfam_comp_and_len_stats(ESL_MSA *msa, double ***ret_abcAA, double **ret_abc_t
   if(lenA)     free(lenA);
 
   croak("out of memory");
-  return eslEMEM; /* NEVERREACHED */
+  return eslEMEM; /* NOTREACHED */
 }
 
 /* Function: _c_rfam_bp_stats
@@ -1119,11 +1200,14 @@ _c_rfam_pid_stats(ESL_MSA *msa, double *ret_pid_mean, double *ret_pid_min, doubl
   double pid_max  = 0.;  /* maximum pairwise id between all pairs of seqs */
   double pid;            /* current pairwise id */
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_rfam_pid_stats() contract violation, MSA is not digitized");
-
   for (i = 0; i < msa->nseq; i++) { 
     for (j = i+1; j < msa->nseq; j++) { 
-      if ((status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL)) != eslOK) return status;
+      if(msa->flags & eslMSA_DIGITAL) { 
+        if ((status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL)) != eslOK) return status;
+      }
+      else { /* text mode */
+        if ((status = esl_dst_CPairId(msa->aseq[i], msa->aseq[j], &pid, NULL, NULL)) != eslOK) return status;
+      }
       pid_min   = ESL_MIN(pid_min, pid);
       pid_max   = ESL_MAX(pid_max, pid);
       pid_mean += pid;
@@ -1353,13 +1437,18 @@ double
 _c_pairwise_identity(ESL_MSA *msa, int i, int j)
 {
   int status; 
+  double pid;
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pairwise_identity() contract violation, MSA is not digitized");
   if(i < 0 || i >= msa->nseq)         croak("_c_pairwise_identity() contract violation, idx i (%d) out of bounds (nseq: %d)", i, msa->nseq);
   if(j < 0 || j >= msa->nseq)         croak("_c_pairwise_identity() contract violation, idx j (%d) out of bounds (nseq: %d)", j, msa->nseq);
 
-  double pid;
-  if ((status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL)) != eslOK) croak("_c_pairwise_identity() error, aligned seqs different lengths");
+  if(msa->flags & eslMSA_DIGITAL) { 
+    status = esl_dst_XPairId(msa->abc, msa->ax[i], msa->ax[j], &pid, NULL, NULL);
+  }
+  else { 
+    status = esl_dst_CPairId(msa->aseq[i], msa->aseq[j], &pid, NULL, NULL); 
+  }
+  if(status != eslOK) croak("_c_pairwise_identity() error, aligned seqs different lengths");
   return pid;
 }
 
@@ -1471,11 +1560,13 @@ _c_remove_all_gap_columns(ESL_MSA *msa, int consider_rf)
   int  status;              /* status */
   char errbuf[eslERRBUFSIZE];
 
-  if (! (msa->flags & eslMSA_DIGITAL)) { 
-    croak ("ERROR, _c_remove_all_gap_columns, MSA is in text mode..."); 
-  }           
+  if (msa->flags & eslMSA_DIGITAL) { /* digital mode, pass in NULL for gap string */
+    status = esl_msa_MinimGaps(msa, errbuf, NULL, consider_rf); 
+  }
+  else { /* text mode */
+    status = esl_msa_MinimGaps(msa, errbuf, "-_.~", consider_rf); 
+  }
 
-  status = esl_msa_MinimGaps(msa, errbuf, NULL, consider_rf); 
   if(status != eslOK) croak ("ERROR, _c_remove_all_gap_columns: %s\n", errbuf);
   
   return;
@@ -1502,10 +1593,6 @@ _c_column_subset(ESL_MSA *msa, AV *usemeAR)
   int  status;              /* status */
   char errbuf[eslERRBUFSIZE];
   /* for manipulating the perl usemeAR */
-
-  if (! (msa->flags & eslMSA_DIGITAL)) { 
-    croak ("ERROR, _c_column_subset, MSA is in text mode..."); 
-  }           
 
   /* create C int array useme */
   int *useme = NULL;
@@ -1585,7 +1672,8 @@ _c_create_from_string(char *msa_str, char *fmt_str, char *abc_str, int do_digiti
  * Args:     sqidx: sequence index
  *           apos:  alignment position [1..alen] (NOT 0..alen-1)
  * 
- * Returns:  TRUE if msa->ax[sqidx][apos] is a residue, else FALSE
+ * Returns:  TRUE if digitized and msa->ax[sqidx][apos] is a residue, or 
+ *                if text      and msa->aseq[sqidx][apos-1] is a alphabetic character, else FALSE
  * Dies:     with croak upon an error
  */
 
@@ -1593,9 +1681,10 @@ int
 _c_is_residue(ESL_MSA *msa, int sqidx, int apos)
 {
 
-  if(! (msa->flags & eslMSA_DIGITAL)) { 
-    croak("ERROR, _c_is_residue, MSA is not digitized");
+  if(msa->flags & eslMSA_DIGITAL) { 
+    return esl_abc_XIsResidue(msa->abc, msa->ax[sqidx][apos]);
   }
-
-  return esl_abc_XIsResidue(msa->abc, msa->ax[sqidx][apos]);
+  else { 
+    return (isalpha(msa->aseq[sqidx][apos-1])) ? 1 : 0;
+  }
 }

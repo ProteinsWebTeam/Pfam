@@ -1,35 +1,46 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 9;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
 }
 
-# test new 
-my $alnfile = "./t/data/test.sto";
-my $msa = Bio::Easel::MSA->new({
-   fileLocation => $alnfile, 
-});
-isa_ok($msa, "Bio::Easel::MSA");
+my ($alnfile, $line, $msa, $outfile, $has_rf, $alnfile2);
+$alnfile = "./t/data/test.sto";
 
-# test addGF
-#TODO: make this into a test somehow
-$msa->addGF("BM", "cmbuild CM SEED");
+# do all tests twice, once in digital and once in text mode
+for(my $mode = 0; $mode <= 1; $mode++) { 
+   my $msa = Bio::Easel::MSA->new({
+     fileLocation => $alnfile, 
+     forceText    => $mode,
+   });
+   isa_ok($msa, "Bio::Easel::MSA");
 
-my $outfile = "./t/data/test-msa-annot.out";
+   # test addGF
+   $msa->addGF("BM", "cmbuild CM SEED");
+   $outfile = "./t/data/test-msa-annot.out";
 
-$msa->write_msa($outfile);
-unlink $outfile;
+   $msa->write_msa($outfile);
 
-# test has_rf
-my $has_rf = $msa->has_rf;
-is($has_rf, "0");
+   open(IN, $outfile) || die "ERROR unable to open $outfile";
+   $line = <IN>;
+   $line = <IN>;
+   chomp $line;
+   is($line, "#=GF BM cmbuild CM SEED", "addGF properly added GF annotation (mode $mode)");
+   unlink $outfile;
 
-my $alnfile2 = "./t/data/test.rf.sto";
-my $msa2 = Bio::Easel::MSA->new({
-   fileLocation => $alnfile2, 
-});
-$has_rf = $msa2->has_rf;
-is($has_rf, "1");
+   # test has_rf
+   $has_rf = $msa->has_rf;
+   is($has_rf, "0", "has_rf correctly noted absence of RF annotation (mode $mode)");
+   undef $msa;
 
+   $alnfile2 = "./t/data/test.rf.sto";
+   $msa = Bio::Easel::MSA->new({
+     fileLocation => $alnfile2, 
+     forceText    => $mode,
+   });
+
+   $has_rf = $msa->has_rf;
+   is($has_rf, "1", "has_rf correctly detected RF annotation (mode $mode)");
+}
