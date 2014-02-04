@@ -452,6 +452,7 @@ sub get_sqidx {
   my ( $self, $sqname ) = @_;
 
   $self->_check_msa();
+  $self->_check_index();
   
   return _c_get_sqidx($self->{esl_msa}, $sqname);
 }
@@ -1441,6 +1442,84 @@ sub sequence_subset
   return $new_msa;
 }
 
+
+#-------------------------------------------------------------------------------
+
+=head2 sequence_subset_given_names
+
+  Title     : sequence_subset_given_names
+  Incept    : EPN, Tue Feb  4 09:17:37 2014
+  Usage     : $newmsaObject = $msaObject->sequence_subset_given_names($nameAR)
+  Function  : Create a new MSA containing a subset of the
+            : sequences in a passed in MSA. 
+            : Keep any sequence with name listed in @{$nameAR}
+            : All gap columns will not be removed from the MSA,
+            : caller may want to do that immediately with
+            : remove_all_gap_columns().
+  Args      : $nameAR: ref to array with list of names of seqs to keep
+  Returns   : $new_msa: a new Bio::Easel::MSA object, with 
+            :           a subset of the sequences in $self.
+=cut
+
+sub sequence_subset_given_names
+{
+  my ($self, $nameAR) = @_;
+
+  $self->_check_msa();
+  $self->_check_index();
+
+  # step 1: determine which sequences to keep
+  my @usemeA = ();
+  my $orig_nseq = $self->nseq();
+  my $sub_nseq  = scalar(@{$nameAR});
+  my $i;
+  for($i = 0; $i < $orig_nseq; $i++) { $usemeA[$i] = 0; }
+  for($i = 0; $i < $sub_nseq;  $i++) { 
+    my $seqidx = _c_get_sqidx($self->{esl_msa}, $nameAR->[$i]);    
+    if($seqidx == -1)         { croak "ERROR, sequence_subset_and_reorder() unable to find sequence $nameAR->[$i]"; }
+    if($usemeA[$seqidx] != 0) { croak "ERROR, sequence_subset_and_reorder() has sequence $nameAR->[$i] listed twice"; }
+    $usemeA[$seqidx] = 1; 
+  }
+  my $new_esl_msa = _c_sequence_subset($self->{esl_msa}, \@usemeA);
+
+  # create new Bio::Easel::MSA object from $new_esl_msa
+  my $new_msa = Bio::Easel::MSA->new({
+    esl_msa => $new_esl_msa,
+  });
+
+  return $new_msa;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 sequence_subset_and_reorder
+
+  Title     : sequence_subset_and_reorder
+   Incept    : EPN, Tue Feb  4 08:54:13 2014
+  Usage     : $newmsaObject = $msaObject->sequence_subset_and_reorder($nameorderAR)
+  Function  : Create a new MSA containing a subset of the
+            : sequences in a passed in MSA reordered to
+            : the order in @{$nameorderAR}. 
+            : @{$nameorderAR} contains a subset of the sequences
+            : in the MSA with no duplicates.
+            : All gap columns will not be removed from the MSA,
+            : caller may want to do that immediately with
+            : remove_all_gap_columns().
+  Args      : $nameorderAR: names of sequences to put in subset in desired order.
+  Returns   : $new_msa: a new Bio::Easel::MSA object, with 
+            :           a subset of the sequences in $self,
+            :           reordered to the order in @{$nameorderAR}.
+=cut
+
+sub sequence_subset_and_reorder
+{
+  my ($self, $nameorderAR) = @_;
+
+  my $new_msa = $self->sequence_subset_given_names($nameorderAR);
+  $new_msa->reorder_all($nameorderAR);
+
+  return $new_msa;
+}
 #-------------------------------------------------------------------------------
 
 =head2 column_subset
