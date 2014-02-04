@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 114;
+use Test::More tests => 120;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -369,6 +369,35 @@ for($mode = 0; $mode <= 1; $mode++) {
   is($orderA[1], $msa1->get_sqname(1), "reorder_msa seems to be working (mode: $mode)");
   is($orderA[2], $msa1->get_sqname(2), "reorder_msa seems to be working (mode: $mode)");
   undef $msa1;
-  #unlink $outfile;
+  unlink $outfile;
+
+  ################################################
+  # sequence_subset_and_reorder
+  undef $msa1;
+  $msa1 = Bio::Easel::MSA->new({
+     fileLocation => $alnfile, 
+     forceText    => $mode,
+  });
+  @orderA = ();
+  $orderA[0] = $msa1->get_sqname(1);
+  $orderA[1] = $msa1->get_sqname(0);
+  undef $msa2;
+  $msa2 = $msa1->sequence_subset_and_reorder(\@orderA);
+  undef $msa1;
+
+  # write it out 
+  $msa2->write_msa($outfile);
+  undef $msa2;
+
+  # read it back in
+  $msa1 = Bio::Easel::MSA->new({
+     fileLocation => $outfile,
+     forceText    => $mode,
+  });
+  is($msa1->nseq(), 2, "sequence_subset_and_reorder() seems to be working");
+  is($orderA[0], $msa1->get_sqname(0), "sequence_subset_and_reorder() seems to be working (mode: $mode)");
+  is($orderA[1], $msa1->get_sqname(1), "sequence_subset_and_reorder() seems to be working (mode: $mode)");
+  undef $msa1;
+  unlink $outfile;
 }
 
