@@ -1582,6 +1582,31 @@ sub percentize {
 
 #-------------------------------------------------------------------------------
 
+=head2 numLinesInFile
+
+  Title    : numLinesInFile
+  Incept   : EPN, Tue Feb  4 09:43:32 2014
+  Usage    : numLinesInFile($filename)
+  Function : Determine number of lines in a file and return it.
+  Args     : $filename: path to the file of interest
+  Returns  : number of lines in $filename
+  Dies     : if unable to open the file
+=cut
+
+sub numLinesInFile {
+  my ($filename) = @_;
+
+  open(IN, $filename) || die "ERROR unable to open file $filename in numLinesInFile()"; 
+  my $line_cnt = 0;
+
+  while(<IN>) { $line_cnt++; }
+
+  close(IN);
+  return $line_cnt;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 _max
 
   Title    : _max

@@ -6,12 +6,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Test::More tests => 20;
-
-BEGIN {
-#    use_ok( 'Bio::Easel::MSA'    ) || print "Bail out!\n";
-#    use_ok( 'Bio::Easel::SqFile' ) || print "Bail out!\n";
-#    use_ok( 'Bio::Rfam::Utils'   ) || print "Bail out!\n";
-}
+require "./tests.pm";
 
 my $datadir   = "./data/rfmatch";
 my $scriptdir = "../Scripts/make/";
@@ -23,16 +18,18 @@ my $testctr   = 0; # counter over script runs
 my $matchfile = $datadir . "/tinymatch.fa"; # the database file
 my ($oline, $oname, $opid);
 my ($sline, $sname, $spid);
+my $status; # return value from a T* test subroutine, if != "", we've got an ERROR and we need to do the drill for cleaning up and exiting.
 
 ###################################
 # Script test 1: Default parameters
 ###################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfmatch.pl", "-f $matchfile test > /dev/null", "rfmatch.test.log", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfmatchA.pl", "-f $matchfile test > /dev/null", "rfmatch.test.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # verify that test.outlist and test.species are correct
 open(OUTLIST, "test.outlist") || die "ERROR unable to open test.outlist";
 open(SPECIES, "test.species") || die "ERROR unable to open test.species";
@@ -93,78 +90,8 @@ is($spid,  $opid,                              "rfmatch test $testctr: match 5 p
 close(OUTLIST);
 close(SPECIES);
 
-clean_up(\@unlinkA);
+$status = TcleanUp(\@unlinkA);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 exit 0;
 
-###############
-# SUBROUTINES #
-###############
-sub run_command {
-  if(scalar(@_) != 1) { die "ERROR run_command entered with wrong number of input args"; }
-  my ($cmd) = (@_);
-  system($cmd);
-  if($? != 0) { die "ERROR command $cmd failed"; }
-  return;
-}
-###############
-sub clean_up {
-  if(scalar(@_) != 1) { die "ERROR clean_up entered with wrong number of input args"; }
-  my ($unlinkAR) = (@_);
-  foreach my $file (@{$unlinkAR}) { 
-    if(-e $file) { unlink $file; }
-    if(-e $file) { die "ERROR, unable to unlink $file"; }
-  }
-  return;
-}
-###############
-sub copy_orig_files {
-  if(scalar(@_) != 2) { die "ERROR copy_orig_files entered with wrong number of input args"; }
-  my ($datadir, $fileAR) = (@_);
-  foreach my $file (@{$fileAR}) { 
-    if(! -e $datadir . "/" . $file) { die "ERROR, unable to copy required file $file from $datadir"; }
-    run_command("cp $datadir/$file .");
-  }
-  return;
-}
-###############
-sub run_script { 
-  if(scalar(@_) != 5) { die "ERROR run_script entered with wrong number of input args"; }
-  my ($script, $options, $logfile, $unlinkAR, $testctr) = (@_);
-  run_command("$script $options");
-
-  # parse output, find files we output and add them to unlinkAR
-  my @newfilesA = parse_log_for_output_files($logfile);
-  push(@{$unlinkAR}, @newfilesA);
-
-  return;
-}
-###############
-sub parse_log_for_output_files {
-  if(scalar(@_) != 1) { die "ERROR parse_log_for_output_files entered with wrong number of input args"; }
-  my ($logfile) = (@_);
-  
-  my @newfileA = ();
-
-  open(LOG, $logfile) || die "ERROR unable to open $logfile";
-  my $found_outfiles = 0;
-  my $line;
-  while($line = <LOG>) { 
-    if($line =~ m/^\# file name\s+description\s*\n$/) { 
-      $found_outfiles = 1;
-      $line = <LOG>; # next line is just ====== ======= line
-      $line = <LOG>;
-      while($line !~ m/^\#/) { 
-        chomp $line;
-        $line =~ s/^\s+//;
-        $line =~ s/\s+.*$//;
-        push(@newfileA, $line);
-        $line = <LOG>;
-      }
-    }
-  }
-  if(! $found_outfiles) { die "ERROR, unable to find output file list in $logfile"; }
-
-  return (@newfileA);
-}
-###############
