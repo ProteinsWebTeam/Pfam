@@ -293,7 +293,12 @@ if($do_align || $do_repalign || $do_comp) {
 # create taxinfo file, if possible and necessary
 ################################################
 if($do_taxinfo) { 
-  $io->writeTaxinfoFromOutlistAndSpecies(\%infoHH, \%groupOHA, $desc, $ga_bitsc, $ga_evalue, $n2print, $l2print, $do_nsort);
+  my $tiFH;
+  open($tiFH, ">taxinfo") || die "ERROR unable to open taxinfo for writing";
+  write_taxinfo_file_preamble($tiFH, \%groupOHA, $desc, $ga_bitsc, $ga_evalue);
+  $io->taxinfoForHits($tiFH, \%infoHH, \%groupOHA, ["SEED", "FULL", "OTHER"], 1, $n2print, $l2print, $do_nsort);
+  write_taxinfo_file_end($tiFH);
+  close($tiFH);
 }
 
 ##################
@@ -885,6 +890,91 @@ sub compare_old_and_new_hits {
   close(OLD);
 
   
+
+  return;
+}
+
+######################################
+    
+=head2 write_taxinfo_file_preamble
+
+    Title    : write_taxinfo_file_preamble
+    Incept   : EPN, Mon Aug 19 15:04:50 2013
+    Usage    : write_taxinfo_file_preamble($groupOHAR, $ga, $evalue, $desc)
+    Function : Write preamble for 'taxinfo' output file.
+    Args     : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
+             : $desc:      Bio::Rfam::Family::DESC object
+             : $ga:        GA bit score threshold
+             : $evalue:    E-value for $ga
+    Returns  : void
+    Dies     : upon file input/output error
+
+=cut
+
+sub write_taxinfo_file_preamble { 
+  my ($outFH, $groupOHAR, $desc, $ga, $evalue) = @_;
+
+  my %ngroupH       = (); # key: $group, value: number of sequences in a group
+
+  foreach my $group ("SEED", "FULL", "OTHER") { 
+    if(! (exists $groupOHAR->{$group})) { 
+      $ngroupH{$group} = 0;
+    } 
+    else { 
+      $ngroupH{$group} = scalar(@{$groupOHAR->{$group}});
+    }
+  }
+
+  printf $outFH ("# =======================================================================================================\n");
+  printf $outFH ("# taxinfo: created by 'rfmake.pl', run 'rfmake.pl -h' for a list of cmd-line options that modify behavior\n");
+  printf $outFH ("# =======================================================================================================\n");
+  printf $outFH ("# family-id:       %s\n", $desc->ID);
+  printf $outFH ("# family-acc:      %s\n", $desc->AC);
+  printf $outFH ("# pwd:             %s\n", getcwd);
+  printf $outFH ("# GA bit-score:    $ga\n");
+  printf $outFH ("# GA E-value:      %6.1g\n", $evalue);
+  printf $outFH ("# SEED:            %-5d hits (present in SEED)\n", $ngroupH{"SEED"});
+  printf $outFH ("# FULL:            %-5d hits (not in SEED, with bitsc >= $ga,  E-value <= %6.1g)\n", $ngroupH{"FULL"}, $evalue);
+  printf $outFH ("# OTHER:           %-5d hits (not in SEED or FULL, with E-value <= $emax)\n", $ngroupH{"OTHER"});
+  printf $outFH ("#\n");
+
+  return;
+}
+
+=head2 write_taxinfo_file_end
+
+    Title    : write_taxinfo_file_end
+    Incept   : EPN, Tue Jan 21 14:15:50 2014
+    Usage    : write_taxinfo_file_end($fh)
+    Function : Write end of taxinfo file: an explanation of the data
+             : in the taxinfo file.
+    Args     : $fh: output file handle to write to
+    Returns  : void
+    Dies     : upon file input/output error
+
+=cut
+
+sub write_taxinfo_file_end { 
+  my ($fh) = @_;
+
+  # print info on how to interpret the file
+  print $fh ("# Explanation of data above:\n");
+  print $fh ("#\n");
+  print $fh ("# Listed above are counts of hits in various taxonomic groups for the\n");
+  print $fh ("# three categories of hits (SEED, FULL, OTHER, defined below), for the current\n");
+  print $fh ("# GA threshold. There are several command-line options that modify this output,\n");
+  print $fh ("# use rfmake.pl -h for more information.\n");
+  print $fh ("#\n");
+  print $fh ("# Column abbreviations:\n");
+  print $fh ("#   'mem'  column:  three letter summary of which groups have at least 1 hit in this taxonomic group\n");
+  print $fh ("#   'ct'   columns: number of hits per hit category for this taxonomic group ('-' if none)\n");
+  print $fh ("#   'minE' columns: minimum E-value of all hits in this category and taxonomic group ('-' if none)\n");
+  print $fh ("#\n");
+  print $fh ("# Definition of the three hit categories:\n");
+  print $fh ("#   [S]EED:  seed sequences\n");
+  print $fh ("#   [F]ULL:  sequences above current GA\n");
+  print $fh ("#   [O]THER: sequences below GA, with E <= 10\n");
+  print $fh ("#\n");
 
   return;
 }

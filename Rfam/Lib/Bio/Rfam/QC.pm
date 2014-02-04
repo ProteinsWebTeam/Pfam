@@ -76,7 +76,7 @@ sub checkQCPerformed {
   Usage    : Bio::Rfam::QC::checkFamily($familyObj)
   Function : Performs series of format checks
   Args     : A Bio::Rfam::Family object
-  Returns  : 1 if an error is found, 
+  Returns  : 1 if an error is found, 0 if not
   
 =cut
 
@@ -92,14 +92,17 @@ sub checkFamilyFormat {
   if ($error) {
     return $error;
   }
+
   $error = checkSEEDFormat($familyObj);
   if ($error) {
     return $error;
   }
+
   $error = checkCMFormat($familyObj);
   if ($error) {
     return $error;
   }
+
   $error = checkScoresFormat($familyObj);
   return $error;
 }

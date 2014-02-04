@@ -6,6 +6,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Test::More tests => 158;
+require "./tests.pm";
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA'    ) || print "Bail out!\n";
@@ -30,16 +31,18 @@ my $alistr;  # string of an aligned sequence
 my $i;       # counter over sequences
 my $fetched_seqstring = ""; # fetched sequences, in a string
 my $msa_seqstring = "";     # sequences taken from MSA, in a string
+my $status; # return value from a T* test subroutine, if != "", we've got an ERROR and we need to do the drill for cleaning up and exiting.
 
 ###########################################################################################
 # Script test 1: Extending a SEED 5' and 3': 'rfseed-extend.pl -dbfile $dbfile -5 5 -3 3'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -5 5 -3 3", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -5 5 -3 3", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -72,17 +75,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "CUACCCAGGUCAUUCCACUUACCACU
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "--GUCAGGUGGCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA--GCU", "rfseed-extend test $testctr: sequence 6 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "GAGCG-CCCGCGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCAGCC-", "rfseed-extend test $testctr: sequence 7 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "-----U--GGUGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--CC--", "rfseed-extend test $testctr: sequence 8 extended into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ###########################################################################################
 # Script test 2: Extending a SEED 5' only 'rfseed-extend.pl -dbfile $dbfile -5 7'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -5 7", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -5 7", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -115,17 +119,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "ACCUACCCAGGUCAUUCCACUUACCA
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "----GUCAGGUGGCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA--", "rfseed-extend test $testctr: sequence 6 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "GAGAGCG-CCCGCGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCAG", "rfseed-extend test $testctr: sequence 7 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "-------U--GGUGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--C", "rfseed-extend test $testctr: sequence 8 trimmed into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ###########################################################################################
 # Script test 3: Extending a SEED 3' only: 'rfseed-extend.pl -dbfile $dbfile -3 6'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -3 6", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-dbfile $dbfile -3 6", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -158,17 +163,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "CAGGUCAUUCCACUUACCACUCCCUA
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "AGGUGGCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA--GCUGUU", "rfseed-extend test $testctr: sequence 6 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "-CCCGCGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCAGCC----", "rfseed-extend test $testctr: sequence 7 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "U--GGUGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--CC-----", "rfseed-extend test $testctr: sequence 8 extended into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ###########################################################################################
 # Script test 4: Trimming a SEED 5' and 3' 'rfseed-extend.pl -t -dbfile $dbfile -5 5 -3 3'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -5 5 -3 3", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -5 5 -3 3", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -201,17 +207,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "CAUUCCACUUACCACUCCCUAGAGAG
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "GCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUG", "rfseed-extend test $testctr: sequence 6 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "CGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGC", "rfseed-extend test $testctr: sequence 7 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "UGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC", "rfseed-extend test $testctr: sequence 8 trimmed into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ###########################################################################################
 # Script test 5: Trimming a SEED 5' only 'rfseed-extend.pl -t -dbfile $dbfile -5 8'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -5 8", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -5 8", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -244,17 +251,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "UCCACUUACCACUCCCUAGAGAGUUU
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "CCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA--", "rfseed-extend test $testctr: sequence 6 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "GUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCAG", "rfseed-extend test $testctr: sequence 7 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "GGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--C", "rfseed-extend test $testctr: sequence 8 trimmed into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ###########################################################################################
 # Script test 6: Trimming a SEED 3' only 'rfseed-extend.pl -t -dbfile $dbfile -3 1'
 ###########################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -3 1", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-t -dbfile $dbfile -3 1", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -287,17 +295,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "CAGGUCAUUCCACUUACCACUCCCUA
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "AGGUGGCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA-", "rfseed-extend test $testctr: sequence 6 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "-CCCGCGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCA", "rfseed-extend test $testctr: sequence 7 trimmed into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "U--GGUGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--", "rfseed-extend test $testctr: sequence 8 trimmed into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ######################################################################################################################
 # Script test 7: -l option to specify a subset of sequences  'rfseed-extend.pl -l list.txt -dbfile $dbfile -5 5 -3 3'
 ######################################################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-l $listfile -dbfile $dbfile -5 5 -3 3", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-l $listfile -dbfile $dbfile -5 5 -3 3", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -330,17 +339,18 @@ $alistr = $msa->get_sqstring_aligned(4); is($alistr, "CUACCCAGGUCAUUCCACUUACCACU
 $alistr = $msa->get_sqstring_aligned(5); is($alistr, "-----AGGUGGCGCCCGCGGGUUUCGAACCCCGAAAGGUUUUCAGAAUUACAAUUCCGUGGUAUUUCGAGAAGUAACCGCUGA-----", "rfseed-extend test $testctr: sequence 6 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(6); is($alistr, "------CCCGCGGGUCUCGAACAACCCAGACAGGUUGCUUGUUUCAAUUAAAGAACUGUCGAAGUAACCGCUGAGCUAAAGCCAG---", "rfseed-extend test $testctr: sequence 7 extended into alignment correctly");
 $alistr = $msa->get_sqstring_aligned(7); is($alistr, "-----U--GGUGGGGCCGGAGGGAUUCGAACCCCCGAUCGACUGAUCUGGAGUCAGUCGCCAUGCCGGGAUUGGCCACAGCC--C---", "rfseed-extend test $testctr: sequence 8 extended into alignment correctly");
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ######################################################################################################################
 # Script test 8: -i option to specify input seed file name 'rfseed-extend.pl -i $seedfile -dbfile $dbfile -5 5 -3 3'
 ######################################################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-i $seedfile -dbfile $dbfile -5 5 -3 3", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-i $seedfile -dbfile $dbfile -5 5 -3 3", "rfseed-extend.log", \@unlinkA, $testctr);
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "SEED", });
@@ -365,18 +375,19 @@ for($i = 0; $i < $msa->nseq; $i++) { $msa_seqstring .= ">$sqnameA[$i]\n" . $msa-
 $fetched_seqstring =~ tr/T/U/;
 is($msa_seqstring, $fetched_seqstring, "rfseed-extend test $testctr: sequences extended with correct residues");
 # don't bother testing aligned seqs, we already did that in test 1
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 ######################################################################################################################
 # Script test 9: -o option to specify output seed file name 'rfseed-extend.pl -o test.seed -dbfile $dbfile -5 5 -3 3'
 ######################################################################################################################
 $testctr++;
 @unlinkA = ();
-copy_orig_files($datadir, \@reqdfilesA);
 push(@unlinkA, @reqdfilesA);
+if(($status = TcopyFiles($datadir, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # run the script
-run_script($scriptdir . "/rfseed-extend.pl", "-o test.seed -dbfile $dbfile -5 5 -3 3", \@unlinkA, $testctr);
+$status = TrunScript($scriptdir . "/rfseed-extend.pl", "-o test.seed -dbfile $dbfile -5 5 -3 3", "rfseed-extend.log", \@unlinkA, $testctr);
 push(@unlinkA, "test.seed");
+if($status ne "") { TcleanUpAndDie($status, \@unlinkA); }
 # open MSA and do some checks on it
 # make sure we have the correct output, by comparing it to what we expect
 $msa = Bio::Easel::MSA->new({ fileLocation => "test.seed", });
@@ -401,81 +412,7 @@ for($i = 0; $i < $msa->nseq; $i++) { $msa_seqstring .= ">$sqnameA[$i]\n" . $msa-
 $fetched_seqstring =~ tr/T/U/;
 is($msa_seqstring, $fetched_seqstring, "rfseed-extend test $testctr: sequences extended with correct residues");
 # don't bother testing aligned seqs, we already did that in test 1
-clean_up(\@unlinkA);
+if(($status = TcleanUp(\@unlinkA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
 
 exit 0;
 
-###############
-# SUBROUTINES #
-###############
-sub run_command {
-  if(scalar(@_) != 1) { die "ERROR run_command entered with wrong number of input args"; }
-  my ($cmd) = (@_);
-  system($cmd);
-  if($? != 0) { die "ERROR command $cmd failed"; }
-  return;
-}
-###############
-sub clean_up {
-  if(scalar(@_) != 1) { die "ERROR clean_up entered with wrong number of input args"; }
-  my ($unlinkAR) = (@_);
-  foreach my $file (@{$unlinkAR}) { 
-    if(-e $file) { unlink $file; }
-    if(-e $file) { die "ERROR, unable to unlink $file"; }
-  }
-  return;
-}
-###############
-sub copy_orig_files {
-  if(scalar(@_) != 2) { die "ERROR copy_orig_files entered with wrong number of input args"; }
-  my ($datadir, $fileAR) = (@_);
-  foreach my $file (@{$fileAR}) { 
-    if(! -e $datadir . "/" . $file) { die "ERROR, unable to copy required file $file from $datadir"; }
-    run_command("cp $datadir/$file .");
-  }
-  return;
-}
-###############
-sub run_script { 
-  if(scalar(@_) != 4) { die "ERROR run_script entered with wrong number of input args"; }
-  my ($script, $options, $unlinkAR, $testctr) = (@_);
-  run_command("$script $options");
-
-  # parse output, find files we output and add them to unlinkAR
-  my $logfile = $script;
-  $logfile =~ s/^.+\///;
-  $logfile =~ s/\.pl/\.log/;
-  my @newfilesA = parse_log_for_output_files($logfile);
-  push(@{$unlinkAR}, @newfilesA);
-
-  return;
-}
-###############
-sub parse_log_for_output_files {
-  if(scalar(@_) != 1) { die "ERROR parse_log_for_output_files entered with wrong number of input args"; }
-  my ($logfile) = (@_);
-  
-  my @newfileA = ();
-
-  open(LOG, $logfile) || die "ERROR unable to open $logfile";
-  my $found_outfiles = 0;
-  my $line;
-  while($line = <LOG>) { 
-    if($line =~ m/^\# file name\s+description\s*\n$/) { 
-      $found_outfiles = 1;
-      $line = <LOG>; # next line is just ====== ======= line
-      $line = <LOG>;
-      while($line !~ m/^\#/) { 
-        chomp $line;
-        $line =~ s/^\s+//;
-        $line =~ s/\s+.*$//;
-        push(@newfileA, $line);
-        $line = <LOG>;
-      }
-    }
-  }
-  if(! $found_outfiles) { die "ERROR, unable to find output file list in $logfile"; }
-
-  return (@newfileA);
-}
-###############
