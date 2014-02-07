@@ -280,7 +280,7 @@ if($bitmin ne $df_bitmin) {
   $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z, $desc->SM);
 }
 if($do_taxinfo || $do_comp) { 
-  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, undef, \%infoHH, \@nameOA, \%groupOHA);
+  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, "", 0, \%infoHH, \@nameOA, \%groupOHA);
 }  
 if($do_align || $do_repalign || $do_comp) { 
   # open sequence file for fetching seqs
@@ -522,7 +522,7 @@ sub get_representative_subset {
   my @nameOA   = ();      # array: rank order of all hits, irrelevant
   my %groupOHA = ();      # hash or arrays: rank order of hits in each group, key is group name
   my @subsetA = ();
-  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, undef, \%infoHH, \@nameOA, \%groupOHA);
+  $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, "", 0, \%infoHH, \@nameOA, \%groupOHA);
 
   # for each group, pick a representative subset of $nper sequences based on pairwise identity
   my $all_seqs = ""; # this will be all representative seqs, concatenated into one string

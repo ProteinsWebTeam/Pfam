@@ -54,8 +54,8 @@ for(my $t = 1; $t <= 3; $t++) {
   isa_ok($io, "Bio::Rfam::FamilyIO");
   my @nameOA   = ();
   my %groupOHA = ();
-  $io->parseOutlistAndSpecies("outlist", "species", 1000, 20, $ga_exp, undef, \@nameOA, \%groupOHA);
-  #                                                emax   ga  minsc      infoHH nameOA   groupOHA
+  $io->parseOutlistAndSpecies("outlist", "species", 1000, 20, $ga_exp, 0,            undef, \@nameOA, \%groupOHA);
+  #                                                emax   ga  minsc    do_allseed   infoHH   nameOA   groupOHA
   my $nabove_ga_obs = scalar(@nameOA);
   is($nabove_ga_obs, $nabove_ga_exp, "correct number of hits above GA in outlist/species files (test: $t)");
 

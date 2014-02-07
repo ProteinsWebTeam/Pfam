@@ -196,7 +196,7 @@ preliminary_replacement_check($msa, $nseed, $id1_thr, $prefix_added, \@ridxA, $l
 # which we'll present to the user to aide their decision on
 # which replacement candidate seq to pick.
 my %infoHH;    # 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
-$io->parseOutlistAndSpecies($outlist, $species, 0, 0, $min_bitsc, \%infoHH, undef, undef);
+$io->parseOutlistAndSpecies($outlist, $species, 0, 0, $min_bitsc, 0, \%infoHH, undef, undef);
 # '0, 0,' are the $emax and $ga_bitsc values, which are irrelevant for our purposes here
 
 # For each seed sequence, collect replacement candidates and
