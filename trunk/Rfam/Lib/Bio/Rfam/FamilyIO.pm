@@ -17,7 +17,6 @@ File: FamilyIO.pm
 
 Copyright (c) 2013: 
 
-
 Author: Rob Finn (rdf 'at' ebi.ac.uk or finnr 'at' janelia.hhmi.org)
 Incept: finnr, Jan 24, 2013 9:33:51 PM
 
@@ -2266,7 +2265,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : the group and then all remaining groups (with only
              : 'other' seqs (not in seed nor full)).
              : 
-    Args     : $outFH:          file handle for output
+    Args     : $outFH:          file handle for output, if undef: print to STDOUT
              : $infoHHR:        ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
              : $groupOHAR:      ref to hash of arrays, nse in score rank order, by group
              : $groupOAR:       order of groups to use
@@ -2274,13 +2273,16 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : $nprint:         target number of SEED taxonomy prefixes to print (-nprint from rfmake.pl)
              : $l2print:        print all unique prefixes of this length, if != 0 (-l2print from rfmake.pl)
              : $do_nsort:       '1' to sort output by counts (-nsort from rfmake.pl)
-    Returns  : void
+             : $prefixAR:       ref to array of prefixes (taxonomic groups) output in this function
+             :                  filled if defined, but can be undefined
+             :
+    Returns  : $level_printed: prefix token length used for defining groups
     Dies     : upon file input/output error
 
 =cut
 
 sub taxinfoForHits {
-  my ($self, $outFH, $infoHHR, $groupOHAR, $groupOAR, $use_lead_group, $nprint, $user_level2print, $do_nsort) = @_;
+  my ($self, $outFH, $infoHHR, $groupOHAR, $groupOAR, $use_lead_group, $nprint, $user_level2print, $do_nsort, $prefixAR) = @_;
 
   ####################################################################
   # Set parameters to their defaults prior to parsing cmd line options
@@ -2298,7 +2300,7 @@ sub taxinfoForHits {
   my $level;              # number of tokens in prefix; e.g. Eukaryota; Metazoa; Mollusca; == 3)
   my $parent_level;       # number of tokens in full parent string this prefix comes from
   my $maxlevel     = 1;   # maximum observed level
-  my $nprint_actual;     # actual number of prefixes we will print for SEED group
+  my $nprint_actual;      # actual number of prefixes we will print for SEED group
   my $max_ngroup   = 0;   # maximum count of any prefix in any group
   my $nprefix      = 0;   # number of prefixes to print
   my $best_prefix;        # current prefix to print 
@@ -2597,6 +2599,7 @@ sub taxinfoForHits {
       }
     }
     push(@outputA, sprintf("%-*s  %3s", $max_length, $best_prefix, $group_string));
+    if(defined $prefixAR) { push(@{$prefixAR}, $best_prefix); }
 
     # print counts for each group for this prefix
     $cur_group = undef;
@@ -2631,9 +2634,13 @@ sub taxinfoForHits {
   push(@outputA, $total_line);
   push(@outputA, "$div_line\n#\n");
 
-  foreach my $line (@outputA) { print $outFH $line; }
-
-  return;
+  if(defined $outFH) { 
+    foreach my $line (@outputA) { print $outFH $line; }
+  }
+  else { # print to STDOUT
+    foreach my $line (@outputA) { print STDOUT $line; }
+  }
+  return $level2print;
 }
 
 #-------------------------------------------------
@@ -2642,28 +2649,30 @@ sub taxinfoForHits {
 
     Title    : parseOutlistAndSpecies
     Incept   : EPN, Mon Aug 19 15:17:17 2013
-    Usage    : parseOutlistAndSpecies($outlist, $species, $emax, $ga, $infoHHR, $nameOAR, $groupOHAR, $groupOAR) 
-   Function  : Parses $outlist and $species files into data structures used
-               by writeTaxinfoFromOutlistAndSpecies().
-    Args     : $outlist:   name of outlist file, usually 'outlist'
-             : $species:   name of species file, usually 'species'
-             : $emax:      maximum E-value to consider, usually 10
-             : $ga:        GA bit score threshold
-             : $minsc:     only collect info on hits above this score
-             :             if undefined or "", collect info on all hits
-             : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
-             :             can be undefined if caller does not need this
-             : $nameOAR:   ref to array, all nse, in order, ranked by score/E-value
-             :             can be undefined if caller does not need this
-             : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
-             :             can be undefined if caller does not need this
+    Usage    : parseOutlistAndSpecies($outlist, $species, $emax, $ga, $do_allseed, $infoHHR, $nameOAR, $groupOHAR, $groupOAR) 
+    Function : Parses $outlist and $species files into infoHHR, nameOAR, groupOHAR
+             : and groupOAR data structures, which are used by writeTaxinfoFromOutlistAndSpecies()
+             : among other functions. 
+    Args     : $outlist:    name of outlist file, usually 'outlist'
+             : $species:    name of species file, usually 'species'
+             : $emax:       maximum E-value to consider, usually 10
+             : $ga:         GA bit score threshold
+             : $minsc:      only collect info on hits above this score
+             :              if undefined or "", collect info on all hits
+             : $do_allseed: '1' to force all seed sequences be included if $minsc != ""
+             : $infoHHR:    ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
+             :              can be undefined if caller does not need this
+             : $nameOAR:    ref to array, all nse, in order, ranked by score/E-value
+             :              can be undefined if caller does not need this
+             : $groupOHAR:  ref to hash of arrays, nse in score rank order, by group
+             :              can be undefined if caller does not need this
     Returns  : void
     Dies     : if outlist and species are not consistent, or do not exist
 
 =cut
 
 sub parseOutlistAndSpecies {
-  my($self, $outlist, $species, $emax, $ga, $minsc, $infoHHR, $nameOAR, $groupOHAR) = @_;
+  my($self, $outlist, $species, $emax, $ga, $minsc, $do_allseed, $infoHHR, $nameOAR, $groupOHAR) = @_;
   
   my ($ct, $outline, $spcline, $name, $i, $i0, $key, $pkey, $group);
   my @out_elA = ();
@@ -2694,36 +2703,40 @@ sub parseOutlistAndSpecies {
       @out_elA = split(/\s\s+/, $outline); # note: we separate by double spaces
       @spc_elA = split(/\s\s+/, $spcline); # note: we separate by double spaces
 
-      if(defined $minsc && $minsc ne "" && $out_elA[0] < $minsc) { 
-        last; # we've dropped below our minimum score, we're done
+      if((defined $minsc && $minsc ne "" && $out_elA[0] < $minsc) && (! $do_allseed)) { 
+        last; # breaks us out of 'while($outline = <OUT>)' loop
       }
       
-      #sanity check
-      for($i = 0; $i <= 3; $i++) { 
-        if($out_elA[$i] ne $spc_elA[$i]) { 
-          die "ERROR, hit $ct, element $i does not match b/t out.list and species files ($out_elA[$i] ne $spc_elA[$i])"; 
+      if((! defined $minsc || $minsc eq "")          || # no minimum being enforced
+         ($out_elA[0] >= $minsc)                     || # we're above our minimum
+         ($do_allseed && $out_elA[2] eq "SEED")) {      # we're forcing info collection on all seed seqs and we've got one here        
+        #sanity check
+        for($i = 0; $i <= 3; $i++) { 
+          if($out_elA[$i] ne $spc_elA[$i]) { 
+            die "ERROR, hit $ct, element $i does not match b/t outlist and species files ($out_elA[$i] ne $spc_elA[$i])"; 
+          }
         }
-      }
-      
-      $name = $out_elA[3] . "/" . $out_elA[5] . "-" . $out_elA[6]; 
-      if(defined $nameOAR) { push(@{$nameOAR}, $name); }
-      if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
-      $nameIH{$name} = 1;
-      
-      # determine group
-      $group = "";
-      if   ($out_elA[2] eq "SEED")  { $group = "SEED"; } 
-      elsif($out_elA[0] >= $ga)     { $group = "FULL"; } 
-      elsif($out_elA[1] <= $emax)   { $group = "OTHER"; } 
-      if(defined $groupOHAR) { push(@{$groupOHAR->{$group}}, $name); }
-      
-      if(defined $infoHHR) { 
-        $infoHHR->{$name}{"rank"}     = $ct;
-        $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
-        $infoHHR->{$name}{"evalue"}   = $out_elA[1];
-        $infoHHR->{$name}{"sspecies"} = $out_elA[11];
-        $infoHHR->{$name}{"taxstr"}   = $spc_elA[7];
-        $infoHHR->{$name}{"trunc"}    = $out_elA[10];
+        
+        $name = $out_elA[3] . "/" . $out_elA[5] . "-" . $out_elA[6]; 
+        if(defined $nameOAR) { push(@{$nameOAR}, $name); }
+        if(exists ($nameIH{$name})) { die "ERROR $name is duplicated"; }
+        $nameIH{$name} = 1;
+        
+        # determine group
+        $group = "";
+        if   ($out_elA[2] eq "SEED")  { $group = "SEED"; } 
+        elsif($out_elA[0] >= $ga)     { $group = "FULL"; } 
+        elsif($out_elA[1] <= $emax)   { $group = "OTHER"; } 
+        if(defined $groupOHAR) { push(@{$groupOHAR->{$group}}, $name); }
+        
+        if(defined $infoHHR) { 
+          $infoHHR->{$name}{"rank"}     = $ct;
+          $infoHHR->{$name}{"bitsc"}    = $out_elA[0];
+          $infoHHR->{$name}{"evalue"}   = $out_elA[1];
+          $infoHHR->{$name}{"sspecies"} = $out_elA[11];
+          $infoHHR->{$name}{"taxstr"}   = $spc_elA[7];
+          $infoHHR->{$name}{"trunc"}    = $out_elA[10];
+        }
       }
     }
   }
