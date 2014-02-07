@@ -511,7 +511,7 @@ sub get_representative_subset {
   my($io, $ga_bitsc, $fetch_sqfile, $nper, $emax, $seed, $cmosAR, $cmodAR, $do_dirty, $do_stdout) = @_;
 
   # preliminaries
-  my @groupOA  = ("S", "F", "O"); # "SEED", "FULL" and "OTHER", order of groups
+  my @groupOA  = ("SEED", "FULL", "OTHER"); # "SEED", "FULL" and "OTHER", order of groups
   my $max_nseq = 2000;
   my $group;
   my $rng = Bio::Easel::Random->new({ seed => $seed});
