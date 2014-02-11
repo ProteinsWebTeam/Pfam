@@ -105,23 +105,35 @@ void _c_read_msa (char *infile, char *reqdFormat, int digitize)
 /* Function:  _c_write_msa()
  * Incept:    EPN, Sat Feb  2 14:23:28 2013
  * Synopsis:  Open an output file, write an msa, and close the file.
+ *            If the outfile string is STDOUT than output the alignment
+ *            to stdout, not to a file.
  * Returns:   eslOK on success; eslEINVAL if format is invalid;
  *            eslEINVAL if format invalid
  *            eslFAIL if unable to open file for writing.
  */
 int _c_write_msa (ESL_MSA *msa, char *outfile, char *format) 
 {
-  FILE  *ofp; /* open output alignment file */
-  int   fmt; /* alignment output format */       
-  
-  if((ofp  = fopen(outfile, "w"))  == NULL) { 
-    return eslFAIL;
+  FILE  *ofp;      /* open output alignment file */
+  int   fmt;       /* alignment output format */       
+  int   do_stdout; /* TRUE to output to stdout instead of a file */
+  do_stdout = (strcmp(outfile, "STDOUT") == 0) ? 1 : 0;
+    
+  if(do_stdout) { 
+    ofp = stdout;
+  }
+  else { 
+    if((ofp  = fopen(outfile, "w"))  == NULL) { 
+      return eslFAIL;
+    }
   }
   if((fmt = eslx_msafile_EncodeFormat(format)) == eslMSAFILE_UNKNOWN) { 
     return eslEINVAL;
   }
   eslx_msafile_Write(ofp, msa, fmt);
-  fclose(ofp);
+
+  if(! do_stdout) {
+    fclose(ofp);
+  }
 
   return eslOK;
 }
@@ -130,6 +142,8 @@ int _c_write_msa (ESL_MSA *msa, char *outfile, char *format)
  * Incept:    EPN, Thu Oct 31 11:03:29 2013
  * Synopsis:  Open an output file, write individual seqs in an msa as unaligned
  *            FASTA, and close the file.
+ *            If the outfile string is STDOUT than output the alignment
+ *            to stdout, not to a file.
  * Returns:   eslOK on success; 
  *            eslFAIL if unable to open file for writing.
  *            eslEMEM if out of memory
@@ -140,9 +154,16 @@ int _c_write_msa_unaligned_fasta (ESL_MSA *msa, char *outfile)
   ESL_SQ *sq = NULL;
   int     i;
   int     status;
+  int   do_stdout; /* TRUE to output to stdout instead of a file */
+  do_stdout = (strcmp(outfile, "STDOUT") == 0) ? 1 : 0;
 
-  if((ofp  = fopen(outfile, "w"))  == NULL) { 
-    return eslFAIL;
+  if(do_stdout) { 
+    ofp = stdout;
+  }
+  else { 
+    if((ofp  = fopen(outfile, "w"))  == NULL) { 
+      return eslFAIL;
+    }
   }
 
   for(i = 0; i < msa->nseq; i++) { 
@@ -152,7 +173,9 @@ int _c_write_msa_unaligned_fasta (ESL_MSA *msa, char *outfile)
     esl_sq_Destroy(sq); /* note: this is inefficient, FetchFromMSA allocates a new seq each time */
   }    
 
-  fclose(ofp);
+  if(! do_stdout) {
+    fclose(ofp);
+  }
   return eslOK;
 }
 
@@ -620,11 +643,14 @@ int _c_addGC_identity(ESL_MSA *msa, int use_res)
   if(msa->flags & eslMSA_DIGITAL) { 
     for (apos = 1; apos <= msa->alen; apos++) {
       dres = msa->ax[0][apos];
-      for (idx = 1; idx < msa->nseq; idx++) {
-        if(msa->ax[idx][apos] != dres) break;
+      idx = 1;
+      if(esl_abc_XIsResidue(msa->abc, dres)) { 
+        for (; idx < msa->nseq; idx++) {
+          if(msa->ax[idx][apos] != dres) break;
+        }
       }
       if(idx == msa->nseq) { /* column is same dresidue in all seqs */
-        id[apos-1] = (use_res) ? msa->abc->sym[dres] : '*';
+          id[apos-1] = (use_res) ? msa->abc->sym[dres] : '*';
       }
       else { /* column has at least 2 different residues */
         id[apos-1] = '.';
@@ -635,11 +661,14 @@ int _c_addGC_identity(ESL_MSA *msa, int use_res)
   else { 
     for (apos = 0; apos < msa->alen; apos++) {
       cres = msa->aseq[0][apos];
-      if (islower(cres)) cres = toupper(cres);
-      for (idx = 1; idx < msa->nseq; idx++) {
-        cres2 = msa->aseq[idx][apos];
-        if (islower(cres2)) cres2 = toupper(cres2);
-        if(cres2 != cres) break;
+      idx = 1;
+      if (isalpha(cres)) { 
+        if (islower(cres)) cres = toupper(cres);
+        for (; idx < msa->nseq; idx++) {
+          cres2 = msa->aseq[idx][apos];
+          if (islower(cres2)) cres2 = toupper(cres2);
+          if(cres2 != cres) break;
+        }
       }
       if(idx == msa->nseq) { /* column is same residue in all seqs */
         id[apos] = (use_res) ? cres : '*';
