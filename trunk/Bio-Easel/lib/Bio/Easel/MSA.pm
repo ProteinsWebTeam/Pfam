@@ -597,9 +597,9 @@ sub set_name {
   Incept   : EPN, Mon Jan 28 09:58:19 2013
   Usage    : $msaObject->write_msa($fileLocation)
   Function : Write MSA to a file
-  Args     : name of output file 
-           : format ('stockholm', 'pfam', 'afa', 'clustal', or 'fasta')
-           : if 'fasta', write out seqs in unaligned fasta.
+  Args     : $outfile: name of output file, if "STDOUT" output to stdout, not to a file
+           : $format:  ('stockholm', 'pfam', 'afa', 'clustal', or 'fasta')
+           :           if 'fasta', write out seqs in unaligned fasta.
   Returns  : void
 
 =cut
