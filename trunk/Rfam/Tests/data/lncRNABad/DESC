@@ -1,0 +1,24 @@
+AC   RF02104
+ID   DLEU1_2
+DE   Deleted in lymphocytic leukemia 1 conserved region 2
+AU   Eberhardt R
+SE   Predicted; CMfinder; Eberhardt R
+SS   Predicted; CMfinder;
+GA   100.00
+TC   100.00
+NC   83.20
+TP   Gene; lncRNA;
+BM   cmbuild -F CM SEED
+CB   cmcalibrate --mpi CM
+SM   cmsearch --cpu 4 --verbose --nohmmonly -T 34.10 -Z 549862.597050 CM SEQDB
+DR   SO; 0001463; lincRNA;
+RN   [1]
+RM   9395242
+RT   Cloning of two candidate tumor suppressor genes within a 10 kb region on
+RT   chromosome 13q14, frequently deleted in chronic lymphocytic leukemia.
+RA   Liu Y, Corcoran M, Rasool O, Ivanova G, Ibbotson R, Grander D, Iyengar A,
+RA   Baranova A, Kashuba V, Merup M, Wu X, Gardiner A, Mullenbach R, Poltaraus
+RA   A, Hultstrom AL, Juliusson G, Chapman R, Tiller M, Cotter F, Gahrton G,
+RA   Yankovsky N, Zabarovsky E, Einhorn S, Oscier D
+RL   Oncogene. 1997;15:2463-2473.
+WK   DLEU1_(gene)

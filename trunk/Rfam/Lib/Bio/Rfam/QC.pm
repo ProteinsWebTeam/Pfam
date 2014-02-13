@@ -160,6 +160,18 @@ sub checkSEEDFormat {
     warn "FATAL: SEED does not have an SS_cons line\n";
     $error++;
   }
+  
+  #Check that is the family is a lncRNA, that it does not have any secondary
+  #structure in the SS line.
+  if( defined($familyObj->DESC->TP) and 
+      $familyObj->DESC->TP eq 'Gene; lncRNA;' ){
+      if(!($familyObj->SEED->get_ss_cons =~ /^\.*$/)){
+        warn "Found family type lncRNA (TP line in DESC), but the seed contains secondary structure.\n";
+        $error++;
+      }
+    
+  }
+  
 
   return $error;
 }
