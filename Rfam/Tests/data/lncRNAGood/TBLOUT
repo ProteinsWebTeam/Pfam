@@ -1,0 +1,1132 @@
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAEX03013094.1       -         SEED                 -          cm        1      344    17820    17496      -    no    1 0.34  16.5  234.3     7e-29 !   Canis lupus familiaris cont3.13094, whole genome shotgun sequence.
+ADAS01013440.1       -         SEED                 -          cm        1      344     2058     1771      -    no    1 0.38   0.1   39.1   1.7e+02 !   Puccinia triticina 1-1 BBBD Race 1 cont1.13440, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_1.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.1.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_1.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:50 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABBA01051035.1       -         SEED                 -          cm        1      344    15900    16241      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens CTG_1103279022821, whole genome shotgun sequence.
+AL137060.13          -         SEED                 -          cm        1      344    98292    98633      +    no    1 0.38   1.7  296.8   1.3e-38 !   Human DNA sequence from clone RP11-34F20 on chromosome 13 Contains the 3' end of the RFP2 gene for ret finger protein 2, the DLEU2 gene for deleted in lymphocytic leukemia 2 (LEU2 BCMSUN), the 5' end of the DLEU1 gene for deleted in lymphoc
+AAFR03039640.1       -         SEED                 -          cm        1      344      574      230      -    no    1 0.36   6.4   36.2   4.8e+02 !   Monodelphis domestica cont3.039639, whole genome shotgun sequence.
+CAEC01562049.1       -         SEED                 -          cm        1      344     2386     2017      -    no    1 0.39   0.7   35.7   5.6e+02 !   Macaca fascicularis, whole genome shotgun sequence, contig chr6_36277
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_2.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.2.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_2.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:20:04 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AGCE01133272.1       -         SEED                 -          cm        1      344    38078    38421      +    no    1 0.38   2.0  283.6   1.5e-36 !   Saimiri boliviensis boliviensis contig133272, whole genome shotgun sequence.
+AAKN02011212.1       -         SEED                 -          cm        1      344    27032    27359      +    no    1 0.36   4.5  217.5   2.9e-26 !   Cavia porcellus strain inbred line 2N cont2.11211, whole genome shotgun sequence.
+AAHX01085420.1       -         SEED                 -          cm        1      344    54766    54437      -    no    1 0.35   8.5   35.1   6.9e+02 !   Rattus norvegicus strain BN; Sprague-Dawley chromosome 15 CRA_213000034366713, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_3.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.3.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_3.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:14:18 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABSL01061331.1       -         SEED                 -          cm        1      344    45607    45933      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens CTG_1112749596353, whole genome shotgun sequence.
+AAWZ02024260.1       -         SEED                 -          cm        1      344    10479    10783      +    no    1 0.40   0.0   36.0     5e+02 !   Anolis carolinensis chromosome 2 cont2.24259, whole genome shotgun sequence.
+ACOI01000011.1       -         SEED                 -          cm        1      344   172762   173094      +    no    1 0.39   2.7   34.9   7.4e+02 !   Streptococcus sp. 2_1_36FAA cont1.11, whole genome shotgun sequence.
+ABQF01070108.1       -         SEED                 -          cm        1      344     2489     2864      +    no    1 0.39   0.4   34.2   9.6e+02 !   Taeniopygia guttata Contig1933.1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_4.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.4.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_4.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:30:49 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRQ01373520.1       -         SEED                 -          cm        1      316     9530     9805      +    3'    3 0.38   0.2  157.7   5.9e-17 !   Procavia capensis cont1.373519, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_5.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.5.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_5.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:27:51 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAGV020752725.1      -         SEED                 -          cm       94      344     1401     1570      +    no    1 0.32   1.0   83.2   2.3e-05 !   Dasypus novemcinctus cont2.752724, whole genome shotgun sequence.
+AGCE01064542.1       -         SEED                 -          cm        1      344    71795    71453      -    no    1 0.42   0.0   39.0   1.7e+02 !   Saimiri boliviensis boliviensis contig064542, whole genome shotgun sequence.
+AADC01075846.1       -         SEED                 -          cm        1      344    44835    45142      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens chromosome 8 CSA:75845 contig 75845 scaffold 18703, whole genome shotgun sequence.
+ABSL01064710.1       -         SEED                 -          cm        1      344    51600    51907      +    no    1 0.38   0.9   37.3   3.2e+02 !   Homo sapiens CTG_1112749599732, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_6.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.6.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_6.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:05:24 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AACN010111542.1      -         SEED                 -          cm      158      344        1      183      +    5'    2 0.36   2.2  136.6   1.1e-13 !   Canis familiaris ctg19866850845757, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_7.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.7.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_7.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:19 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_8.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.8.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_8.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:06 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ACFV01081786.1       -         SEED                 -          cm        1      344    12774    12431      -    no    1 0.38   3.4  277.6   1.3e-35 !   Callithrix jacchus Contig131.88, whole genome shotgun sequence.
+AEKR01061188.1       -         SEED                 -          cm        1      344    17538    17154      -    no    1 0.43   0.0   36.1   4.8e+02 !   Mus musculus strain C57BL/6J cont1.61187, whole genome shotgun sequence.
+AFYH01051715.1       -         SEED                 -          cm        1      344     8964     9336      +    no    1 0.41   0.3   35.6   5.9e+02 !   Latimeria chalumnae contig051715, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_9.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.9.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_9.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:25 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AC113114.9           -         SEED                 -          cm        1      344   135796   136180      +    no    1 0.43   0.0   36.1   4.8e+02 !   Mus musculus chromosome 17, clone RP23-338H10, complete sequence.
+AAWZ02010579.1       -         SEED                 -          cm        1      344    17862    17538      -    no    1 0.37   2.4   34.6   8.3e+02 !   Anolis carolinensis chromosome 2 cont2.10578, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_10.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.10.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_10.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:10 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRO01525825.1       -         SEED                 -          cm        1      344      445      747      +    no    1 0.38   0.3  135.8   1.5e-13 !   Dipodomys ordii cont1.525824, whole genome shotgun sequence.
+AANU01300904.1       -         SEED                 -          cm        1      126      123        1      -    3'    3 0.37   0.0  100.0   5.6e-08 !   Macaca mulatta 4262711, whole genome shotgun sequence.
+CAAA01138841.1       -         SEED                 -          cm        1      344    16498    16215      -    no    1 0.40   0.2   56.0      0.39 !   Mus musculus whole genome shotgun assembly contig 91517
+ABQO010618011.1      -         SEED                 -          cm        1      344      493      155      -    no    1 0.41   0.0   36.3   4.6e+02 !   Macropus eugenii Contig618038, whole genome shotgun sequence.
+ABRO01144341.1       -         SEED                 -          cm        1      344     3103     2776      -    no    1 0.41   0.1   35.9   5.3e+02 !   Dipodomys ordii cont1.144340, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_11.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.11.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_11.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:48 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AANU01125897.1       -         SEED                 -          cm        1      344     9237     9577      +    no    1 0.38   1.3  287.5   3.6e-37 !   Macaca mulatta 1099214723325, whole genome shotgun sequence.
+AFSB01050317.1       -         SEED                 -          cm        1      344     2848     3163      +    no    1 0.42   0.2   44.9        21 !   Heterocephalus glaber contig50317, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_12.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.12.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_12.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:14:04 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AK095311.1           -         SEED                 -          cm        1      344      492      833      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens cDNA FLJ37992 fis, clone CTONG2011779.
+AEMK01092417.1       -         SEED                 -          cm        1      344     1429     1105      -    no    1 0.43   0.0  197.9   3.2e-23 !   Sus scrofa, whole genome shotgun sequence.
+AEYP01004843.1       -         SEED                 -          cm        1      344    47507    47876      +    no    1 0.40   0.1   35.0   7.1e+02 !   Mustela putorius furo contig004843, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_13.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.13.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_13.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:09 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAWR02021491.1       -         SEED                 -          cm        1      344    64780    65122      +    no    1 0.41   0.1   41.0        83 !   Equus caballus cont2.21490, whole genome shotgun sequence.
+AGCE01046895.1       -         SEED                 -          cm        1      344    30179    29798      -    no    1 0.39   5.2   36.1   4.8e+02 !   Saimiri boliviensis boliviensis contig046895, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_14.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.14.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_14.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:56 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADA01008901.1       -         SEED                 -          cm        1      344     8903     9244      +    no    1 0.38   1.1  296.3   1.6e-38 !   Pan troglodytes ctg_8900, whole genome shotgun sequence.
+ABRT010259048.1      -         SEED                 -          cm        1      344     1136      788      -    no    1 0.41   0.0   35.2   6.8e+02 !   Tarsius syrichta cont1.259047, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_15.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.15.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_15.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:29 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEKP01135563.1       -         SEED                 -          cm        1      344     3796     3455      -    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens cont1.135562, whole genome shotgun sequence.
+ABRT010386162.1      -         SEED                 -          cm        1      344      373       38      -    no    1 0.41   0.1  264.5   1.4e-33 !   Tarsius syrichta cont1.386161, whole genome shotgun sequence.
+ABBA01041678.1       -         SEED                 -          cm        1      344    51590    51897      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens CTG_1103279017463, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_16.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.16.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_16.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:12 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEYP01003673.1       -         SEED                 -          cm        1      344     1776     1384      -    no    1 0.40   0.1   34.5   8.7e+02 !   Mustela putorius furo contig003673, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_17.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.17.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_17.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:35 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADC01113046.1       -         SEED                 -          cm        1      344   450595   450254      -    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens chromosome 13 CSA:113045 contig 113045 scaffold 29124, whole genome shotgun sequence.
+ABRR01156768.1       -         SEED                 -          cm        1      344     5884     5568      -    no    1 0.38   2.4   36.9   3.7e+02 !   Vicugna pacos cont1.156767, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_18.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.18.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_18.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:11:00 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEQU010065020.1      -         SEED                 -          cm        1      344      430      806      +    no    1 0.40   0.2   38.8   1.8e+02 !   Python molurus contig26279980, whole genome shotgun sequence.
+AAKN02021244.1       -         SEED                 -          cm        1      344    18901    19254      +    no    1 0.37   2.0   35.0   7.2e+02 !   Cavia porcellus strain inbred line 2N cont2.21243, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_19.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.19.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_19.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:14:39 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AACZ03092651.1       -         SEED                 -          cm        1      344    60246    59905      -    no    1 0.38   1.1  296.3   1.6e-38 !   Pan troglodytes chromosome 13 Contig128.78, whole genome shotgun sequence.
+ADFV01166950.1       -         SEED                 -          cm        1      344    13958    14269      +    no    1 0.38   1.2   37.6   2.8e+02 !   Nomascus leucogenys contig_19049, whole genome shotgun sequence.
+AFTD01008835.1       -         SEED                 -          cm        1      344     8869     9204      +    no    1 0.43   0.0   35.9   5.3e+02 !   Cricetulus griseus cell line CHO-K1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_20.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.20.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_20.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:57 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+Y15227.1             -         SEED                 -          cm        1      344      519      860      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens mRNA for leukemia associated gene 1
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_21.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.21.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_21.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:35 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAFC03023620.1       -         SEED                 -          cm        1      344   122485   122099      -    no    1 0.38   2.7   37.1   3.5e+02 !   Bos taurus Ctg12.CH240-20O15, whole genome shotgun sequence.
+AADC01000460.1       -         SEED                 -          cm        1      344     2896     3222      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens chromosome 1 CSA:459 contig 459 scaffold 98, whole genome shotgun sequence.
+AABR05054139.1       -         SEED                 -          cm        1      344    28746    28417      -    no    1 0.35   8.5   35.1   6.9e+02 !   Rattus norvegicus strain BN/SsNHsdMCW Contig54115, whole genome shotgun sequence.
+AAWZ02004551.1       -         SEED                 -          cm        1      344      810     1208      +    no    1 0.40   0.5   34.8   7.7e+02 !   Anolis carolinensis chromosome 3 cont2.4550, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_22.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.22.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_22.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:11:27 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_23.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.23.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_23.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:11:57 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABBA01035586.1       -         SEED                 -          cm        1      344    45598    45924      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens CTG_1103279013466, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_24.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.24.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_24.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:45 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AJ411976.1           -         SEED                 -          cm        1      344      130      471      +    no    1 0.38   1.1  295.1   2.5e-38 !   Homo sapiens partial BCMS gene for B-cell neoplasia associated transcript, exon 4
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_25.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.25.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_25.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:31 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAGU03046469.1       -         SEED                 -          cm        1      344    58026    58335      +    no    1 0.37   4.4  244.1   2.1e-30 !   Loxodonta africana cont3.46468, whole genome shotgun sequence.
+AAFR03005822.1       -         SEED                 -          cm        1      344    22619    22993      +    no    1 0.38   1.2   35.2   6.7e+02 !   Monodelphis domestica cont3.005821, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_26.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.26.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_26.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:23:37 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAHX01101292.1       -         SEED                 -          cm        1      344    13637    13284      -    no    1 0.44   0.1   42.1        56 !   Rattus norvegicus strain BN; Sprague-Dawley chromosome 20 CRA_213000034410871, whole genome shotgun sequence.
+AGKD01015492.1       -         SEED                 -          cm        1      344     3311     3689      +    no    1 0.41   0.0   34.2   9.7e+02 !   Salmo salar Contig_015493, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_27.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.27.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_27.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:54 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEQU010354586.1      -         SEED                 -          cm        1      344     2705     2333      -    no    1 0.37   2.5   42.2        54 !   Python molurus contig26859098, whole genome shotgun sequence.
+ABRO01028245.1       -         SEED                 -          cm        1      344    73886    74182      +    no    1 0.37   1.2   36.7   3.9e+02 !   Dipodomys ordii cont1.28244, whole genome shotgun sequence.
+AAFR03049427.1       -         SEED                 -          cm        1      344    40311    40632      +    no    1 0.34  10.3   34.3   9.3e+02 !   Monodelphis domestica cont3.049426, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_28.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.28.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_28.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:34:14 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AFSB01099071.1       -         SEED                 -          cm        1      344   110003   110414      +    no    1 0.42   0.1  191.7     3e-22 !   Heterocephalus glaber contig99071, whole genome shotgun sequence.
+AC154660.2           -         SEED                 -          cm        1      344   112152   112435      +    no    1 0.40   0.2   56.0      0.39 !   Mus musculus BAC clone RP24-271M20 from chromosome 14, complete sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_29.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.29.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_29.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:54 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADD01131589.1       -         SEED                 -          cm        1      344     4835     5176      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens chromosome 13 WGSA:131588 contig 131588 scaffold 209, whole genome shotgun sequence.
+AAQR03165214.1       -         SEED                 -          cm        1      344      415       78      -    no    1 0.39   0.2  245.8   1.1e-30 !   Otolemur garnettii contig165214, whole genome shotgun sequence.
+AAWZ02015703.1       -         SEED                 -          cm        1      344    86604    86928      +    no    1 0.37   1.5   41.7        67 !   Anolis carolinensis chromosome 6 cont2.15702, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_30.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.30.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_30.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:17:54 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+DAAA02032923.1       -         SEED                 -          cm        1      344    17829    18158      +    no    1 0.42   0.0  229.0   4.6e-28 !   TPA: Bos taurus chromosome 12 7180002025041, whole genome shotgun sequence.
+AEKR01146751.1       -         SEED                 -          cm        1      344      171      538      +    no    1 0.42   0.2   38.9   1.8e+02 !   Mus musculus strain C57BL/6J cont1.146750, whole genome shotgun sequence.
+ADFV01128487.1       -         SEED                 -          cm        1      344      838     1202      +    no    1 0.39   1.6   36.5   4.2e+02 !   Nomascus leucogenys contig_163495, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_31.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.31.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_31.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:26 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ACTA01122908.1       -         SEED                 -          cm        1      344    10622    10291      -    no    1 0.37   6.5  277.6   1.3e-35 !   Ailuropoda melanoleuca scaffold1367_46, whole genome shotgun sequence.
+AADN03006023.1       -         SEED                 -          cm        1      344    87024    87395      +    no    1 0.43   0.0   35.1   6.9e+02 !   Gallus gallus chromosome 10 ctg7180000927129, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_32.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.32.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_32.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:11 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEYP01085994.1       -         SEED                 -          cm        1      344    17944    17625      -    no    1 0.37   8.0  231.7   1.8e-28 !   Mustela putorius furo contig085994, whole genome shotgun sequence.
+AAFR03042548.1       -         SEED                 -          cm        1      344    34665    35003      +    no    1 0.40   0.2   38.6     2e+02 !   Monodelphis domestica cont3.042547, whole genome shotgun sequence.
+AAHY01139048.1       -         SEED                 -          cm        1      344    83757    83393      -    no    1 0.43   0.0   36.5   4.2e+02 !   Mus musculus strain 129X1/SvJ chromosome 18 CRA_211000021978332, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_33.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.33.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_33.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:07:45 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_34.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.34.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_34.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:11:23 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+DAAA02020354.1       -         SEED                 -          cm        1      344   235557   235171      -    no    1 0.38   2.7   37.1   3.5e+02 !   TPA: Bos taurus chromosome 7 7180002030164, whole genome shotgun sequence.
+CAEC01134153.1       -         SEED                 -          cm        1      344     2975     2676      -    no    1 0.39   0.2   34.2   9.6e+02 !   Macaca fascicularis, whole genome shotgun sequence, contig chr14_16628
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_35.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.35.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_35.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:49 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ADDF010167772.1      -         SEED                 -          cm        1      344      411       70      -    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens contig167772, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_36.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.36.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_36.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:21:16 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAGV020578463.1      -         SEED                 -          cm       94      344     4903     5072      +    no    1 0.32   1.0   83.2   2.3e-05 !   Dasypus novemcinctus cont2.578462, whole genome shotgun sequence.
+AADB02000176.1       -         SEED                 -          cm        1      344   134481   134807      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens chromosome 1 CRA_219000002693742, whole genome shotgun sequence.
+AEYP01031834.1       -         SEED                 -          cm        1      344     4848     4499      -    no    1 0.40   0.1   36.8   3.8e+02 !   Mustela putorius furo contig031834, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_37.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.37.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_37.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:45 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAKN02054464.1       -         SEED                 -          cm        1      344   520575   520192      -    no    1 0.40   4.4   35.5   6.1e+02 !   Cavia porcellus strain inbred line 2N cont2.54463, whole genome shotgun sequence.
+ABRN01435440.1       -         SEED                 -          cm        1      344     2351     2032      -    no    1 0.44   0.0   35.2   6.7e+02 !   Tursiops truncatus cont1.435439, whole genome shotgun sequence.
+AEYP01006484.1       -         SEED                 -          cm        1      344     9271     9602      +    no    1 0.45   0.0   35.0   7.1e+02 !   Mustela putorius furo contig006484, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_38.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.38.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_38.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:28 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AF440619.1           -         SEED                 -          cm        1      344   155488   155829      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens 13q14 chronic lymphocytic leukemia suppressor locus section 1 of 2.
+AAHX01083322.1       -         SEED                 -          cm        1      344    10772    11086      +    no    1 0.45   0.0   39.9   1.2e+02 !   Rattus norvegicus strain BN; Sprague-Dawley chromosome 15 CRA_213000034355618, whole genome shotgun sequence.
+ADDD01058752.1       -         SEED                 -          cm        1      344        3      342      +    no    1 0.39   0.1   39.1   1.7e+02 !   Meleagris gallopavo CTG_7180002075738, whole genome shotgun sequence.
+CAAA01161643.1       -         SEED                 -          cm        1      344     4594     4248      -    no    1 0.42   0.0   37.1   3.5e+02 !   Mus musculus whole genome shotgun assembly contig 97206
+AEKP01162942.1       -         SEED                 -          cm        1      344    13235    13561      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens cont1.162941, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_39.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.39.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_39.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:11:33 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAFR03000722.1       -         SEED                 -          cm        1      344    58722    59027      +    no    1 0.36   5.5   37.3   3.2e+02 !   Monodelphis domestica cont3.000721, whole genome shotgun sequence.
+AAGV020608142.1      -         SEED                 -          cm        1      344     1370     1048      -    no    1 0.38   5.2   35.3   6.5e+02 !   Dasypus novemcinctus cont2.608141, whole genome shotgun sequence.
+AAFR03014400.1       -         SEED                 -          cm        1      344    18926    19276      +    no    1 0.40   3.1   34.6   8.3e+02 !   Monodelphis domestica cont3.014399, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_40.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.40.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_40.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:22:43 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRN01179171.1       -         SEED                 -          cm        1      344     8411     8110      -    no    1 0.38   0.7  267.3   5.2e-34 !   Tursiops truncatus cont1.179170, whole genome shotgun sequence.
+AAFC03089646.1       -         SEED                 -          cm        1      344     9898     9569      -    no    1 0.42   0.0  229.0   4.6e-28 !   Bos taurus Ctg25.CH240-6A19, whole genome shotgun sequence.
+AERX01033880.2       -         SEED                 -          cm        1      344    17934    17574      -    no    1 0.38   1.0   38.9   1.8e+02 !   Oreochromis niloticus contig033880, whole genome shotgun sequence.
+AFTD01065144.1       -         SEED                 -          cm        1      344     7846     7495      -    no    1 0.45   0.1   34.8   7.7e+02 !   Cricetulus griseus cell line CHO-K1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_41.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.41.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_41.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:19:23 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEYP01049938.1       -         SEED                 -          cm        1      344    35978    36376      +    no    1 0.41   0.1   38.0   2.5e+02 !   Mustela putorius furo contig049938, whole genome shotgun sequence.
+AANU01212963.1       -         SEED                 -          cm        1      344     5496     5873      +    no    1 0.41   0.1   37.8   2.7e+02 !   Macaca mulatta 1099214028797, whole genome shotgun sequence.
+AAHY01131033.1       -         SEED                 -          cm        1      344    29544    29928      +    no    1 0.43   0.0   36.1   4.8e+02 !   Mus musculus strain 129X1/SvJ chromosome 17 CRA_211000022007600, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_42.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.42.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_42.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:59 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABVD01914036.1       -         SEED                 -          cm        1      344      325      639      +    no    1 0.37   4.0  242.2   4.1e-30 !   Choloepus hoffmanni cont1.914035, whole genome shotgun sequence.
+AABR05096782.1       -         SEED                 -          cm        1      344     2660     3013      +    no    1 0.44   0.1   42.1        56 !   Rattus norvegicus strain BN/SsNHsdMCW Contig96749, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_43.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.43.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_43.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:44 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAEX03013588.1       -         SEED                 -          cm        1      344    62813    63235      +    no    1 0.38   2.6   37.7   2.7e+02 !   Canis lupus familiaris cont3.13588, whole genome shotgun sequence.
+AL096841.6           -         SEED                 -          cm        1      344    39193    39519      +    no    1 0.37   1.0   36.9   3.6e+02 !   Human DNA sequence from clone RP4-575L21 on chromosome 1p36.13-36.31 Contains the 3' end of the UBE4B gene for ubiquitination factor E4B (UFD2 homolog, yeast).
+AAPN01270701.1       -         SEED                 -          cm        1      344     1299     1615      +    no    1 0.38   0.3   36.2   4.7e+02 !   Ornithorhynchus anatinus Cont1975.5, whole genome shotgun sequence.
+AAKN02001159.1       -         SEED                 -          cm        1      344    66022    66383      +    no    1 0.41   0.2   35.1   6.9e+02 !   Cavia porcellus strain inbred line 2N cont2.1158, whole genome shotgun sequence.
+CABD02402277.1       -         SEED                 -          cm        1      344      441      126      -    no    1 0.36   1.8   34.4     9e+02 !   Gorilla gorilla gorilla whole genome shotgun sequence assembly, chrX_83692044_1222342.59
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_44.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.44.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_44.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:10 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AC069475.27          -         SEED                 -          cm        1      344    56098    56439      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens chromosome 13 clone 317g11 map 13q14, complete sequence.
+CAEC01209982.1       -         SEED                 -          cm        1      344       51      391      +    no    1 0.39   0.9  287.5   3.7e-37 !   Macaca fascicularis, whole genome shotgun sequence, contig chr17_06732
+ACTA01098898.1       -         SEED                 -          cm        1      344     9810     9429      -    no    1 0.40   0.7   35.8   5.5e+02 !   Ailuropoda melanoleuca scaffold1350_61, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_45.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.45.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_45.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:30:18 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRP01175984.1       -         SEED                 -          cm        1      344     3916     3615      -    no    1 0.35   8.3  241.5   5.2e-30 !   Pteropus vampyrus cont1.175983, whole genome shotgun sequence.
+AAFC03026269.1       -         SEED                 -          cm        1      344     2222     1836      -    no    1 0.38   2.7   37.1   3.5e+02 !   Bos taurus Ctg4.CH240-224N20, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_46.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.46.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_46.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:15:23 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AABR05051398.1       -         SEED                 -          cm        1      344   101769   101445      -    no    1 0.45   0.0   36.1   4.9e+02 !   Rattus norvegicus strain BN/SsNHsdMCW Contig51377, whole genome shotgun sequence.
+AANG01037220.1       -         SEED                 -          cm        1      344      291      632      +    no    1 0.46   0.0   34.3   9.2e+02 !   Felis catus cont1.037219, whole genome shotgun sequence.
+EU365401.1           -         SEED                 -          cm        1      344   101386   101032      -    no    1 0.46   0.0   34.1   9.9e+02 !   Bambusa oldhamii mitochondrion, complete genome.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_47.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.47.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_47.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:51 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+BC020692.1           -         SEED                 -          cm        1      344      447      788      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens deleted in lymphocytic leukemia 1 (non-protein coding), mRNA (cDNA clone IMAGE:4731854).
+AEKR01007933.1       -         SEED                 -          cm        1      344    17320    17603      +    no    1 0.40   0.2   56.0      0.39 !   Mus musculus strain C57BL/6J cont1.7932, whole genome shotgun sequence.
+AAPN01097258.1       -         SEED                 -          cm        1      344    23693    23362      -    no    1 0.36   5.7   34.7   8.1e+02 !   Ornithorhynchus anatinus Cont57.103, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_48.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.48.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_48.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:37:58 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAPN01190030.1       -         SEED                 -          cm        1      344    24420    24758      +    no    1 0.42   0.0   38.0   2.4e+02 !   Ornithorhynchus anatinus Cont119.57, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_49.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.49.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_49.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:04 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_50.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.50.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_50.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:27:47 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABGA01025385.1       -         SEED                 -          cm        1      344    12337    12678      +    no    1 0.38   1.4  293.9   3.7e-38 !   Pongo abelii chromosome 13 P_pygmaeus2.0.2_Contig315.80, whole genome shotgun sequence.
+AAGV020165551.1      -         SEED                 -          cm        1      344     7227     6882      -    no    1 0.37   6.5  268.0   3.9e-34 !   Dasypus novemcinctus cont2.165550, whole genome shotgun sequence.
+AEQU010192552.1      -         SEED                 -          cm        1      344     1122     1448      +    no    1 0.43   0.0   36.9   3.6e+02 !   Python molurus contig26535039, whole genome shotgun sequence.
+ABRT010003899.1      -         SEED                 -          cm        1      344     1830     2154      +    no    1 0.38   0.8   36.6   4.1e+02 !   Tarsius syrichta cont1.3898, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_51.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.51.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_51.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:07:03 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AC023842.5           -         SEED                 -          cm        1      344    55430    55123      -    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens chromosome 8, clone RP11-374M4, complete sequence.
+AADD01000778.1       -         SEED                 -          cm        1      344     1597     1923      +    no    1 0.37   1.0   36.9   3.6e+02 !   Homo sapiens chromosome 1 WGSA:777 contig 777 scaffold 3, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_52.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.52.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_52.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:05:54 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+CABD02097652.1       -         SEED                 -          cm        1      344     1889     2230      +    no    1 0.38   1.7  294.9   2.6e-38 !   Gorilla gorilla gorilla whole genome shotgun sequence assembly, chr13_48914440_2815299.179
+AACN010045397.1      -         SEED                 -          cm        1      344      873     1293      +    no    1 0.38   2.8   37.0   3.6e+02 !   Canis familiaris ctg19866850083565, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_53.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.53.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_53.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:33 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_54.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.54.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_54.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:07:55 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADB02015966.1       -         SEED                 -          cm        1      344   725490   725831      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens chromosome 13 CRA_219000002708999, whole genome shotgun sequence.
+AFEY01432711.1       -         SEED                 -          cm        1      344    16842    16542      -    no    1 0.40   0.1   35.4   6.2e+02 !   Sarcophilus harrisii ctg7180002500850, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_55.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.55.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_55.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:48 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEYP01095771.1       -         SEED                 -          cm        1      344    10190    10517      +    no    1 0.45   0.0   40.4     1e+02 !   Mustela putorius furo contig095771, whole genome shotgun sequence.
+AABR05138122.1       -         SEED                 -          cm        1      344     1577     1197      -    no    1 0.41   0.1   34.8   7.7e+02 !   Rattus norvegicus strain BN/SsNHsdMCW Contig138079, whole genome shotgun sequence.
+AGKD01020106.1       -         SEED                 -          cm        1      344    10761    11086      +    no    1 0.38   0.5   34.4     9e+02 !   Salmo salar Contig_020108, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_56.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.56.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_56.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:45 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AFTD01044037.1       -         SEED                 -          cm        1      344     4236     3913      -    no    1 0.40   2.2   34.7   8.1e+02 !   Cricetulus griseus cell line CHO-K1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_57.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.57.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_57.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:44 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABRO01181233.1       -         SEED                 -          cm        1      344     4180     4517      +    no    1 0.38   0.8   36.8   3.7e+02 !   Dipodomys ordii cont1.181232, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_58.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.58.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_58.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:14 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAFR03013791.1       -         SEED                 -          cm        1      344   250919   251251      +    no    1 0.37   2.3   36.7   3.9e+02 !   Monodelphis domestica cont3.013790, whole genome shotgun sequence.
+CAAA01005029.1       -         SEED                 -          cm        1      344    19699    19315      -    no    1 0.43   0.0   36.1   4.8e+02 !   Mus musculus whole genome shotgun assembly contig 26634
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_59.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.59.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_59.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:49 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+FP085596.4           -         SEED                 -          cm        1      344   119328   119009      -    no    1 0.41   0.0   37.5   2.9e+02 !   Pig DNA sequence from clone CH242-208M4 on chromosome X
+AACZ03115304.1       -         SEED                 -          cm        1      344    12887    12535      -    no    1 0.36   5.6   34.6   8.3e+02 !   Pan troglodytes chromosome 18 Contig214.18, whole genome shotgun sequence.
+AC160563.2           -         SEED                 -          cm        1      344    28099    27783      -    no    1 0.38   0.3   34.4     9e+02 !   Ornithorhynchus anatinus BAC clone OABb-456P24 from chromosome unknown, complete sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_60.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.60.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_60.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:15:44 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AGCE01076017.1       -         SEED                 -          cm        1      344    39716    39388      -    no    1 0.39   0.4   37.8   2.6e+02 !   Saimiri boliviensis boliviensis contig076017, whole genome shotgun sequence.
+AALT01660900.1       -         SEED                 -          cm        1      344    37110    37457      +    no    1 0.40   0.1   36.4   4.5e+02 !   Sorex araneus cont1.660899, whole genome shotgun sequence.
+ABRR01275287.1       -         SEED                 -          cm        1      344     7659     7307      -    no    1 0.42   0.0   36.3   4.6e+02 !   Vicugna pacos cont1.275286, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_61.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.61.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_61.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:16 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAFR03035617.1       -         SEED                 -          cm        1      344    43025    43381      +    no    1 0.40   0.3   36.7   3.9e+02 !   Monodelphis domestica cont3.035616, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_62.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.62.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_62.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:19 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AF279660.2           -         SEED                 -          cm        1      344   107776   108117      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens CAR (RFP2) gene, complete cds; DLEU2 and DLEU1 genes, complete sequence; and RPL18 and p48/Hip pseudogenes, complete sequence.
+ADFV01053592.1       -         SEED                 -          cm        1      344    12981    13322      +    no    1 0.39   0.9  295.7   1.9e-38 !   Nomascus leucogenys contig_98597, whole genome shotgun sequence.
+AEKP01009647.1       -         SEED                 -          cm        1      344     2175     2482      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens cont1.9646, whole genome shotgun sequence.
+AANU01122357.1       -         SEED                 -          cm        1      344     4051     3682      -    no    1 0.38   0.7   35.5   6.1e+02 !   Macaca mulatta 1099214634814, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_63.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.63.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_63.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:14:44 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AANG01107293.1       -         SEED                 -          cm        1      344      241      574      +    no    1 0.37   5.7  269.9     2e-34 !   Felis catus cont1.107292, whole genome shotgun sequence.
+AERX01002116.1       -         SEED                 -          cm        1      344    28096    27734      -    no    1 0.42   0.0   40.2   1.1e+02 !   Oreochromis niloticus contig002116, whole genome shotgun sequence.
+CAEC01338868.1       -         SEED                 -          cm        1      344     2661     3038      +    no    1 0.41   0.1   37.8   2.7e+02 !   Macaca fascicularis, whole genome shotgun sequence, contig chr20_08254
+AAEX03005486.1       -         SEED                 -          cm        1      344    90735    91101      +    no    1 0.39   2.1   35.1     7e+02 !   Canis lupus familiaris cont3.5486, whole genome shotgun sequence.
+AAFR03029495.1       -         SEED                 -          cm        1      344   109932   109595      -    no    1 0.38   0.4   34.7     8e+02 !   Monodelphis domestica cont3.029494, whole genome shotgun sequence.
+AANH01003707.1       -         SEED                 -          cm        1      344    81533    81211      -    no    1 0.38   0.5   34.7     8e+02 !   Gasterosteus aculeatus cont1.003706, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_64.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.64.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_64.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:15 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEKQ01060128.1       -         SEED                 -          cm        1      344    20234    19951      -    no    1 0.40   0.2   56.0      0.39 !   Mus musculus strain C57BL/6J cont1.60127, whole genome shotgun sequence.
+AAHY01114434.1       -         SEED                 -          cm        1      344    18074    17791      -    no    1 0.40   0.2   56.0      0.39 !   Mus musculus strain 129X1/SvJ chromosome 14 CRA_211000022072860, whole genome shotgun sequence.
+ADDF011209495.1      -         SEED                 -          cm        1      344      538      231      -    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens contig1209495, whole genome shotgun sequence.
+AAHX01045668.1       -         SEED                 -          cm        1      344    10172    10552      +    no    1 0.41   0.1   34.8   7.7e+02 !   Rattus norvegicus strain BN; Sprague-Dawley chromosome 6 CRA_213000034329506, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_65.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.65.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_65.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:08:23 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AC104376.6           -         SEED                 -          cm        1      344    28624    28931      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens chromosome 8, clone CTD-2242O8, complete sequence.
+AEHL01365787.1       -         SEED                 -          cm        1      344     8484     8115      -    no    1 0.38   0.7   35.5   6.1e+02 !   Macaca fascicularis contig365787, whole genome shotgun sequence.
+AFEY01379647.1       -         SEED                 -          cm        1      344    14144    13828      -    no    1 0.38   1.1   35.2   6.7e+02 !   Sarcophilus harrisii ctg7180002447784, whole genome shotgun sequence.
+ABRP01061690.1       -         SEED                 -          cm        1      344     3069     3410      +    no    1 0.39   0.2   35.2   6.8e+02 !   Pteropus vampyrus cont1.61689, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_66.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.66.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_66.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:15:25 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AABR05051047.1       -         SEED                 -          cm        1      344    10180    10494      +    no    1 0.45   0.0   39.9   1.2e+02 !   Rattus norvegicus strain BN/SsNHsdMCW Contig51026, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_67.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.67.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_67.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:46 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AEKQ01149718.1       -         SEED                 -          cm        1      344    22373    21989      -    no    1 0.43   0.0   36.1   4.8e+02 !   Mus musculus strain C57BL/6J cont1.149717, whole genome shotgun sequence.
+AEKQ01199856.1       -         SEED                 -          cm        1      344     4828     4429      -    no    1 0.43   0.0   35.9   5.3e+02 !   Mus musculus strain C57BL/6J cont1.199855, whole genome shotgun sequence.
+ABVD01933587.1       -         SEED                 -          cm        1      344      135      484      +    no    1 0.40   0.0   35.2   6.6e+02 !   Choloepus hoffmanni cont1.933586, whole genome shotgun sequence.
+AAFR03007047.1       -         SEED                 -          cm        1      344   117633   117315      -    no    1 0.38   0.5   34.6   8.4e+02 !   Monodelphis domestica cont3.007046, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_68.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.68.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_68.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:26 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+DAAB014576316.1      -         SEED                 -          cm        1      344      411       70      -    no    1 0.38   1.7  296.8   1.3e-38 !   TPA: Homo sapiens contig4576316, whole genome shotgun sequence.
+ABRT010980224.1      -         SEED                 -          cm        1      344     1025      690      -    no    1 0.42   0.0  267.5   4.8e-34 !   Tarsius syrichta cont1.980223, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_69.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.69.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_69.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:06:01 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABVD01070546.1       -         SEED                 -          cm        1      344     2229     2552      +    no    1 0.42   0.0  186.9   1.6e-21 !   Choloepus hoffmanni cont1.70545, whole genome shotgun sequence.
+AEYP01068784.1       -         SEED                 -          cm        1      344     3844     3501      -    no    1 0.42   0.0   36.5   4.3e+02 !   Mustela putorius furo contig068784, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_70.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.70.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_70.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:14:55 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AADD01091084.1       -         SEED                 -          cm        1      344    18097    18404      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens chromosome 8 WGSA:91083 contig 91083 scaffold 161, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_71.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.71.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_71.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:16:27 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_72.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.72.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_72.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:07:41 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AFTD01077232.1       -         SEED                 -          cm        1      344    78067    78382      +    no    1 0.39   1.2   35.8   5.5e+02 !   Cricetulus griseus cell line CHO-K1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_73.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.73.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_73.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:25 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AAPY01234246.1       -         SEED                 -          cm        1      344     1444     1759      +    no    1 0.37   0.7   36.1   4.9e+02 !   Tupaia belangeri cont1.234245, whole genome shotgun sequence.
+AAEX03019214.1       -         SEED                 -          cm        1      344    27986    28293      +    no    1 0.41   0.5   34.9   7.4e+02 !   Canis lupus familiaris cont3.19214, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_74.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.74.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_74.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:22 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_75.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.75.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_75.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:18:06 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+EU660899.1           -         SEED                 -          cm        1      344    44027    44315      +    no    1 0.37   0.7   34.7   8.2e+02 !   Triticum turgidum subsp. durum clone BAC 1100E3 plastid acetyl-CoA carboxylase (Acc-1) gene, complete cds; nuclear gene for plastid product.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_76.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.76.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_76.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:12:09 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AJ412024.1           -         SEED                 -          cm        1      344      570      911      +    no    1 0.38   1.1  295.1   2.5e-38 !   Homo sapiens mRNA for B-cell neoplasia associated transcript, (BCMS gene), splice variant B, non coding transcript
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_77.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.77.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_77.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:13:19 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+AJ412023.1           -         SEED                 -          cm        1      344      517      858      +    no    1 0.38   1.1  295.1   2.5e-38 !   Homo sapiens mRNA for B-cell neoplasia associated transcript, (BCMS gene), splice variant A, non coding transcript
+AEHL01189131.1       -         SEED                 -          cm        1      344     9203     9543      +    no    1 0.38   1.3  287.5   3.6e-37 !   Macaca fascicularis contig189131, whole genome shotgun sequence.
+AAWR02010524.1       -         SEED                 -          cm        1      344    17521    17198      -    no    1 0.38   5.3  258.4   1.2e-32 !   Equus caballus cont2.10523, whole genome shotgun sequence.
+AEHK01179167.1       -         SEED                 -          cm        1      344     9995    10372      +    no    1 0.41   0.1   37.8   2.7e+02 !   Macaca mulatta contig179167, whole genome shotgun sequence.
+AEYP01046665.1       -         SEED                 -          cm        1      344    13097    13449      +    no    1 0.41   0.2   35.4   6.3e+02 !   Mustela putorius furo contig046665, whole genome shotgun sequence.
+AFTD01070547.1       -         SEED                 -          cm        1      344    21960    22324      +    no    1 0.43   0.0   34.4   8.9e+02 !   Cricetulus griseus cell line CHO-K1, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_78.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.78.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_78.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:10:36 2014
+# [ok]
+#target name         accession query name           accession mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc description of target
+#------------------- --------- -------------------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- ---------------------
+ABSL01068945.1       -         SEED                 -          cm        1      344    15909    16250      +    no    1 0.38   1.7  296.8   1.3e-38 !   Homo sapiens CTG_1112749603967, whole genome shotgun sequence.
+AADB02011474.1       -         SEED                 -          cm        1      344   362968   363275      +    no    1 0.38   1.0   37.8   2.7e+02 !   Homo sapiens chromosome 8 CRA_219000002697163, whole genome shotgun sequence.
+#
+# Program:         cmsearch
+# Version:         1.1 (October 2013)
+# Pipeline mode:   SEARCH
+# Query file:      CM
+# Target file:     /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_79.fa.gz
+# Option settings: /nfs/production/xfam/rfam/software/bin/cmsearch -Z 549862.597050 --tblout s.14286.79.tbl --verbose -T 34.10 --cpu 4 --nohmmonly CM /nfs/production/xfam/rfam/rfamseq/11/r79_rfamseq11_79.fa.gz 
+# Current dir:     /nfs/gns/homes/swb/RETHRESHOLDING/lncRNA/RF02104
+# Date:            Wed Jan 22 14:09:55 2014
+# [ok]
