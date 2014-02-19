@@ -286,6 +286,21 @@ char *_c_get_rf (ESL_MSA *msa)
   return msa->rf;
 }
 
+/* Function:  _c_set_rf()
+ * Incept:    EPN, Tue Feb 18 09:56:35 2014
+ * Synopsis:  Sets msa->rf
+ * Returns:   void
+ */
+void _c_set_rf (ESL_MSA *msa, char *rfstr)
+{
+  int rflen = strlen(rfstr);
+  if(rflen != msa->alen) croak("_c_set_rf() trying to set RF with string of incorrect length");
+  if(msa->rf) free(msa->rf);
+
+  esl_strdup(rfstr, rflen, &(msa->rf));
+  return;
+}   
+
 /* Function:  _c_get_ss_cons()
  * Incept:    EPN, Fri May 24 09:58:32 2013
  * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
@@ -297,6 +312,21 @@ char *_c_get_ss_cons (ESL_MSA *msa)
   if(msa->ss_cons == NULL) esl_fatal("_c_get_ss_cons, but SS_cons is NULL");
   return msa->ss_cons;
 }
+
+/* Function:  _c_set_ss_cons()
+ * Incept:    EPN, Tue Feb 18 10:18:29 2014
+ * Synopsis:  Sets msa->ss_cons
+ * Returns:   void
+ */
+void _c_set_ss_cons (ESL_MSA *msa, char *ss_cons_str)
+{
+  int ss_cons_len = strlen(ss_cons_str);
+  if(ss_cons_len != msa->alen) croak("_c_set_ss_cons() trying to set SS_cons with string of incorrect length");
+  if(msa->ss_cons) free(msa->ss_cons);
+
+  esl_strdup(ss_cons_str, ss_cons_len, &(msa->ss_cons));
+  return;
+}   
 
 /* Function:  _c_set_blank_ss_cons()
  * Incept:    EPN, Tue Oct 22 10:39:59 2013
@@ -558,6 +588,41 @@ int _c_get_sqlen(ESL_MSA *msa, int seqidx)
     }
     return len;
   }
+}
+
+/* Function:  _c_get_column()
+ * Incept:    EPN, Tue Feb 18 09:25:07 2014
+ * Purpose:   Return alignment column <apos> (1..alen)
+ * Returns:   Alignment column <apos> as a PERLized string
+ */
+SV *_c_get_column(ESL_MSA *msa, int apos)
+{
+  int status;
+  SV *columnSV;  /* SV version of column */
+  char *column;
+  int i;
+
+  ESL_ALLOC(column, sizeof(char) * (msa->nseq + 1));
+  column[msa->nseq] = '\0';
+  if(msa->flags & eslMSA_DIGITAL) { /* digital mode */
+    for(i = 0; i < msa->nseq; i++) { 
+      column[i] = msa->abc->sym[msa->ax[i][apos]];
+    }
+  }
+  else { /* text mode */
+    for(i = 0; i < msa->nseq; i++) { 
+      column[i] = msa->aseq[i][apos-1];
+    }
+  }
+
+  columnSV = newSVpv(column, msa->nseq);
+  free(column);
+
+  return columnSV;
+
+ ERROR: 
+  croak("out of memory");
+  return NULL;
 }
 
 /* Function:  _c_count_residues()
@@ -1857,3 +1922,45 @@ void _c_check_index (ESL_MSA *msa)
 
   return;
 }
+
+/* Function:  _c_capitalize_based_on_rf()
+ * Incept:    EPN, Tue Feb 18 10:56:26 2014
+ * Synposis:  Set all residues in nongap RF columns as uppercase,
+              and all gap characters ('.-_') to '-'. Set all residues
+              in gap RF columns to lowercase and all gap characters
+              '.-_' to '.'.
+ * Dies:      If msa is not in text mode, or does not have RF annotation.
+ */
+void _c_capitalize_based_on_rf(ESL_MSA *msa)
+{
+  int i, apos;
+
+  if(msa->rf == NULL)             croak("ERROR, _c_capitalize_based_on_rf() RF annotation does not exist"); 
+  if(msa->flags & eslMSA_DIGITAL) croak("ERROR, _c_capitalize_based_on_rf() MSA is not in text mode"); 
+
+  for (apos = 0; apos < msa->alen; apos++) {
+    if(strchr("-_.~", msa->rf[apos]) == NULL) { /* nongap RF character */
+      for(i = 0; i < msa->nseq; i++) { 
+        if(isalpha(msa->aseq[i][apos])) { /* residue: convert to uppercase */
+          msa->aseq[i][apos] = toupper(msa->aseq[i][apos]);
+        }
+        else if(strchr("._", msa->aseq[i][apos]) != NULL) { /* gap: convert to '-' */
+          msa->aseq[i][apos] = '-';
+        }
+      }
+    }
+    else { /* gap RF character */
+      for(i = 0; i < msa->nseq; i++) { 
+        if(isalpha(msa->aseq[i][apos])) { /* residue: convert to lowercase */
+          msa->aseq[i][apos] = tolower(msa->aseq[i][apos]);
+        }
+        else if(strchr("-_", msa->aseq[i][apos]) != NULL) { /* gap: convert to '.' */
+          msa->aseq[i][apos] = '.';
+        }
+      }
+    }
+  }
+
+  return;
+}
+    

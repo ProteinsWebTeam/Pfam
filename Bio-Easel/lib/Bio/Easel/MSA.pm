@@ -374,6 +374,28 @@ sub get_rf {
 
 #-------------------------------------------------------------------------------
 
+=head2 set_rf
+
+  Title    : set_rf
+  Incept   : EPN, Tue Feb 18 09:54:20 2014
+  Usage    : $msaObject->set_rf()
+  Function : Sets msa->rf given a string.
+  Args     : $rfstr: string that will become RF
+  Returns  : void
+  Dies     : if length($rfstr) != msa->alen
+
+=cut
+
+sub set_rf { 
+  my ( $self, $rfstr ) = @_;
+
+  $self->_check_msa();
+  if(length($rfstr) != $self->alen) { croak "Trying to set RF with string of incorrect length"; }
+  return _c_set_rf( $self->{esl_msa}, $rfstr );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 get_ss_cons
 
   Title    : get_ss_cons
@@ -391,6 +413,28 @@ sub get_ss_cons {
   $self->_check_msa();
   if(! $self->has_ss_cons()) { croak "Trying to fetch SS_cons from MSA but it does not exist"; }
   return _c_get_ss_cons( $self->{esl_msa} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 set_ss_cons
+
+  Title    : set_ss_cons
+  Incept   : EPN, Tue Feb 18 10:15:25 2014
+  Usage    : $msaObject->set_ss_cons()
+  Function : Sets msa->ss_cons given a string.
+  Args     : $ss_cons_str: string that will become msa->ss_cons
+  Returns  : void
+  Dies     : if length($ss_cons_str) != msa->alen
+
+=cut
+
+sub set_ss_cons { 
+  my ( $self, $ss_cons_str ) = @_;
+
+  $self->_check_msa();
+  if(length($ss_cons_str) != $self->alen) { croak "Trying to set SS_cons with string of incorrect length"; }
+  return _c_set_ss_cons( $self->{esl_msa}, $ss_cons_str );
 }
 
 #-------------------------------------------------------------------------------
@@ -756,7 +800,7 @@ sub get_sqstring_aligned {
   Usage    : $msaObject->get_sqstring_unaligned()
   Function : Return an unaligned sequence from an MSA.
   Args     : index of sequence you want
-  Returns  : unaligned sequence index idx
+  Returns  : unaligned sequence, index idx
 
 =cut
 
@@ -790,6 +834,30 @@ sub get_sqlen {
   return _c_get_sqlen( $self->{esl_msa}, $idx );
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 get_column
+
+  Title    : get_column
+  Incept   : EPN, Tue Feb 18 09:22:05 2014
+  Usage    : $msaObject->get_column($apos)
+  Function : Return a string that is column $apos of the alignment,
+           : where apos runs 1..alen. So to get the first column
+           : of the alignment pass in 0 for $apos, pass in 1 for the
+           : second column, etc.
+  Args     : $apos: [1..alen] the desired column of the alignment 
+  Returns  : $column: column $apos of the alignment, as a string
+
+=cut
+
+sub get_column {
+  my ( $self, $apos ) = @_;
+
+  $self->_check_msa();
+  $self->_check_ax_apos($apos);
+
+  return _c_get_column( $self->{esl_msa}, $apos );
+}
 #-------------------------------------------------------------------------------
 
 =head2 count_residues
@@ -1794,7 +1862,7 @@ sub create_from_string
   Function  : Return '1' if alignment position $apos of sequence $sqidx
             : is a residue, and '0' if not.
   Args      : $sqidx:   sequence index in MSA
-            : $apos:    alignment position
+            : $apos:    alignment position [1..alen]
   Returns   : '1' if position $apos of $sqidx is a residue, else '0'
   Dies      : with 'croak' if sequence $sqidx or apos $apos is invalid
 =cut
@@ -1808,6 +1876,33 @@ sub is_residue
   $self->_check_ax_apos($apos);
 
   return _c_is_residue($self->{esl_msa}, $sqidx, $apos);
+}
+
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+
+=head2 capitalize_based_on_rf
+
+  Title     : capitalize_based_on_rf
+  Incept    : EPN, Tue Feb 18 10:44:11 2014
+  Usage     : $msaObject->capitalize_based_on_rf
+  Function  : Set all residues in nongap RF columns as uppercase,
+            : and all gap characters ('.-_') to '-'. Set all residues
+            : in gap RF columns to lowercase and all gap characters
+            : '.-_' to '.'.
+  Args      : none
+  Returns   : void
+  Dies      : if RF annotation does not exist, or alignment is not in text mode.
+=cut
+
+sub capitalize_based_on_rf
+{
+  my ($self) = @_;
+
+  _c_capitalize_based_on_rf($self->{esl_msa});
+
+  return;
 }
 
 #-------------------------------------------------------------------------------
@@ -1889,7 +1984,7 @@ sub _check_sqidx {
   Title    : _check_ax_apos
   Incept   : EPN, Fri Nov 29 17:09:11 2013
   Usage    : $msaObject->_check_ax_apos($apos)
-  Function : Check if $apos is in range 0..alen-1,
+  Function : Check if $apos is in range 1..alen,
              if not, croak.
   Args     : $apos
   Returns  : void
@@ -1902,7 +1997,32 @@ sub _check_ax_apos {
   $self->_check_msa();
   my $alen = $self->alen;
   if ( $apos < 1 || $apos > $alen ) {
-    croak (sprintf("invalid alignment position %d (must be [0..%d])", $apos, $alen));
+    croak (sprintf("invalid alignment position %d (must be [1..%d])", $apos, $alen));
+  }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _check_aseq_apos
+
+  Title    : _check_aseq_apos
+  Incept   : EPN, Fri Nov 29 17:09:11 2013
+  Usage    : $msaObject->_check_aseq_apos($apos)
+  Function : Check if $apos is in range 0..alen-1,
+             if not, croak.
+  Args     : $apos
+  Returns  : void
+
+=cut
+
+sub _check_aseq_apos {
+  my ( $self, $apos ) = @_;
+
+  $self->_check_msa();
+  my $alen = $self->alen;
+  if ( $apos < 0 || $apos >= $alen ) {
+    croak (sprintf("invalid alignment position %d (must be [0..%d])", $apos, $alen-1));
   }
   return;
 }
