@@ -247,7 +247,7 @@ sub cmsearch_or_cmscan_wrapper {
   Args     : $config:         Rfam config, with infernalPath
            : $uname:          user name
            : $jobname:        name for job we submit
-           : $options:        option string for cmsearch (must contain --tblout and --cpu)
+           : $options:        option string for cmalign
            : $cmPath:         path to CM (often 'CM')
            : $seqfilePath:    path to sequence file to search
            : $outPath:        file to save standard output to, if undefined send to /dev/null.
@@ -275,6 +275,8 @@ sub cmalign_wrapper {
   if($nproc > 8 && $always_local) { die "ERROR cmalign_wrapper() nproc ($nproc) > 8 and always_local=1"; }
   
   my $cmalignPath = $config->infernalPath . "cmalign";
+
+  if((! defined $outPath) || ($outPath eq "")) { $outPath = "/dev/null"; }
   
   ####################################################################
   # Predict running time and memory requirement of cmalign
@@ -348,6 +350,37 @@ sub cmalign_wrapper {
     Bio::Rfam::Utils::run_local_command("$cmalignPath --cpu $nproc $options $cmPath $seqfilePath > $outPath"); 
     if(defined $logFH) { Bio::Rfam::Utils::log_output_progress_local($logFH, "cmalign", time() - $align_start_time, 0, 1, "", $do_stdout); }
   }
+
+  return;
+}
+
+=head2 cmemit_wrapper
+  Title    : cmemit_wrapper
+  Incept   : EPN, Wed Feb 12 10:19:39 2014
+  Usage    : Bio::Rfam::Infernal::cmemit_wrapper($config, $options, $cmPath, $logFH, $do_stdout)
+  Function : Run cmemit job locally.
+           : All options should already be specified in $options,
+           : including '-o <f>', if desired. If '-o <f>' is not
+           : in $options we will output to stdout.
+  Args     : $config:         Rfam config, with infernalPath
+           : $options:        option string for cmsearch (must contain --tblout and --cpu)
+           : $cmPath:         path to CM (often 'CM')
+           : $logFH:          file handle for log output, if ! defined, do not output to log output
+           : $do_stdout:      1 to output log to stdout, 0 not to
+  Returns  : void
+  Dies     : if cmemit command fails
+
+=cut
+
+sub cmemit_wrapper {
+  my ($config, $options, $cmPath, $logFH, $do_stdout) = @_;
+
+  my $cmemitPath = $config->infernalPath . "cmemit";
+  my $emit_start_time = time();
+
+  if(defined $logFH) { Bio::Rfam::Utils::log_output_progress_local($logFH, "cmemit", time() - $emit_start_time, 1, 0, "", $do_stdout); }
+  Bio::Rfam::Utils::run_local_command("$cmemitPath $options $cmPath"); 
+  if(defined $logFH) { Bio::Rfam::Utils::log_output_progress_local($logFH, "cmemit", time() - $emit_start_time, 0, 1, "", $do_stdout); }
 
   return;
 }
