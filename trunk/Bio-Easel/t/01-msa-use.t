@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 120;
+use Test::More tests => 129;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -13,6 +13,7 @@ BEGIN {
 #####################################################################
 my $alnfile     = "./t/data/test.sto";
 my $rf_alnfile  = "./t/data/test.rf.sto";
+my $rf_alnfile2 = "./t/data/test2.rf.sto";
 my $gap_alnfile = "./t/data/test-gap.sto";
 my ($msa1, $msa2);
 my ($path, $nseq, $sqname, $sqidx, $any_gaps, $len, $avglen, $outfile, $id);
@@ -399,5 +400,58 @@ for($mode = 0; $mode <= 1; $mode++) {
   is($orderA[1], $msa1->get_sqname(1), "sequence_subset_and_reorder() seems to be working (mode: $mode)");
   undef $msa1;
   unlink $outfile;
+
+  ################################################
+  # get_column
+  $msa1 = Bio::Easel::MSA->new({
+     fileLocation => $alnfile, 
+     forceText    => $mode,
+  });
+  my $col = $msa1->get_column(20);
+  if($mode == 0) { # digital mode
+    is($col, "--G", "get_column() seems to be working");
+  }   
+  else { # text mode 
+    is($col, "..g", "get_column() seems to be working");
+  }   
+
+  ################################################
+  # set_rf
+  my $rfstr = ".abcdefghijklmnopqr.stu.vwx.";
+  $msa1->set_rf($rfstr);
+  is($msa1->get_rf(), $rfstr, "set_rf() seems to be working");
+
+  ################################################
+  # set_ss_cons
+  my $ss_cons_str = "<<<<<<<<<<<<<<<>>>>>>>>>>>>>";
+  $msa1->set_ss_cons($ss_cons_str);
+  is($msa1->get_ss_cons(), $ss_cons_str, "set_ss_cons() seems to be working");
+
+  ################################################
+  # capitalize_based_on_rf
+  if($mode == 1) { # text mode
+    undef $msa1;
+    $msa1 = Bio::Easel::MSA->new({
+      fileLocation => $rf_alnfile2,
+      forceText    => $mode,
+    });
+    $msa1->capitalize_based_on_rf();
+    $outfile = "./t/data/test-msa.out";
+    $msa1->write_msa($outfile);
+    undef $msa1;
+
+    # read in the alignment
+    open(IN, $outfile);
+    $line = <IN>;
+    $line = <IN>;
+    $line = <IN>; chomp $line;
+    is($line, "human        .AAGACUUCGGAUCUGGCG.ACA.CCC.", "capitalize_based_on_rf() seems to be working");
+    $line = <IN>; chomp $line;
+    is($line, "mouse        aUACACUUCGGAUG-CACC.AAA.GUGa", "capitalize_based_on_rf() seems to be working");
+    $line = <IN>; chomp $line;
+    is($line, "orc          .AGGUCUUC-GCACGGGCAgCCAcUUC.", "capitalize_based_on_rf() seems to be working");
+    close(IN);
+    unlink $outfile;
+  }
 }
 
