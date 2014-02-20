@@ -300,7 +300,7 @@ sub add_rf_and_ss_cons_given_cmbuild_O {
   $orig_seed->set_ss_cons($orig_ss_cons);
   $orig_seed->capitalize_based_on_rf();
   
-  $orig_seed->write_msa($outfile, "pfam");
+  $orig_seed->write_msa($outfile);
   
   return;
 }
