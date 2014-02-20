@@ -74,7 +74,7 @@ my $client = Bio::Rfam::SVN::Client->new;
 #-------------------------------------------------------------------------------
 #First QC step is to check the timestamps on the files
 
-if ( !Bio::Rfam::QC::checkModelFiles($family) ) {
+if ( Bio::Rfam::QC::checkFamilyFiles($family, $config) ) {
   print "$0: $family contains errors.  You should rebuild this family.\n";
   exit(1);
 }
@@ -107,7 +107,7 @@ unless ( $newFamObj->DESC->ID ) {
 #Check that the pending model does ot already exist. Parnoid check as new models
 #should be removed immediately into the main respository.
 
-$client->checkNewFamilyDoesNotExists( $newFamObj->DESC->ID );
+$client->checkNewFamilyDoesNotExist($newFamObj->DESC->ID );
 
 #-------------------------------------------------------------------------------
 #Perform the QC on the family
