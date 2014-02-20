@@ -438,12 +438,28 @@ void _c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
 
 /* Function:  _c_get_sqwgt()
  * Incept:    EPN, Fri May 24 10:48:17 2013
- * Synopsis:  Returns msa->sqwgt[idx]
- * Returns:   msa->sqwft[idx]
+ * Synopsis:  Returns msa->wgt[idx]
+ * Returns:   msa->wgt[idx]
  */
 double _c_get_sqwgt (ESL_MSA *msa, I32 idx)
 {
-    return msa->wgt[idx];
+  return msa->wgt[idx];
+}
+
+/* Function:  _c_remove_sqwgts()
+ * Incept:    EPN, Thu Feb 20 14:34:20 2014
+ * Synopsis:  Removes sequence weights from an MSA.
+ * Returns:   void
+ */
+double _c_remove_sqwgts(ESL_MSA *msa)
+{
+  int i;
+  for(i = 0; i < msa->nseq; i++) { 
+    msa->wgt[i] = -1.0;
+  }
+  msa->flags &= ~eslMSA_HASWGTS;
+
+  return;
 }
 
 /* Function:  _c_any_allgap_columns()

@@ -547,6 +547,27 @@ sub get_sqwgt {
 
 #-------------------------------------------------------------------------------
 
+=head2 remove_sqwgts
+
+  Title    : remove_sqwgts
+  Incept   : EPN, Thu Feb 20 14:25:35 2014
+  Usage    : $msaObject->remove_sqwgts()
+  Function : Removes GF WT annotation from an MSA.
+  Args     : none
+  Returns  : void
+
+=cut
+
+sub remove_sqwgts {
+  my ( $self ) = @_;
+
+  $self->_check_msa();
+  _c_remove_sqwgts( $self->{esl_msa} );
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 get_accession
 
   Title    : get_accession
