@@ -40,15 +40,21 @@ use IPC::Run qw(run);
 #Templating this off the old code......
 sub checkFamilyFiles {
   my ( $family, $upFamilyObj ) = @_;
+  
+  #Removed QC check below; this is now conducted as part of the checkin, and
+  #not prior to checkin as it was in Sanger. Therefore no point looking for
+  #qcpassed file:
 
-  &checkQCPerformed();
-  &checkTimestamps();
-
-  #return 1 on failure.
+  #&checkQCPerformed($family, $upFamilyObj);
+  
+  #Now return result of timestamp check:
+  return checkTimestamps($family,$upFamilyObj);
+	#return 1 on failure.
 }
 
 sub checkQCPerformed {
-  my ( $dir, $acc, $config );
+  #my ($dir, $acc, $config ) = @_;
+  my ($dir, $config, $acc ) = @_;
 
  #need to add in this for checking the qc has been done-dont allow ci otherwise.
   if ( !-e "$dir/$acc/qcpassed" ) {
@@ -57,10 +63,10 @@ sub checkQCPerformed {
 
   foreach my $f ( @{ $config->mandatoryFiles } ) {
 
-#    if( -M "$dir/$acc/$f" < -M "$dir/$acc/qcpassed" ){
-#    die
-#  "You need to rerun the rqc-all.pl as $f has changed since you ran it last\n";
-#    }
+    if( -M "$dir/$acc/$f" < -M "$dir/$acc/qcpassed" ){
+    die
+  "You need to rerun the rqc-all.pl as $f has changed since you ran it last\n";
+    }
   }
 
 }
@@ -76,15 +82,16 @@ sub checkQCPerformed {
   Usage    : Bio::Rfam::QC::checkFamily($familyObj)
   Function : Performs series of format checks
   Args     : A Bio::Rfam::Family object
-  Returns  : 1 if an error is found, 0 if not
+  Returns  : 1 if an error is found, 
   
 =cut
 
 sub checkFamilyFormat {
   my ($familyObj) = @_;
-
+	#print "$familyObj\n";
   if ( !$familyObj or !$familyObj->isa('Bio::Rfam::Family') ) {
-    die "Did not get passed in a Bio::Rfam::Family object\n";
+    #print "$familyObj\n";
+	die "Did not get passed in a Bio::Rfam::Family object\n";
   }
 
   my $error = 0;
@@ -92,17 +99,14 @@ sub checkFamilyFormat {
   if ($error) {
     return $error;
   }
-
   $error = checkSEEDFormat($familyObj);
   if ($error) {
     return $error;
   }
-
   $error = checkCMFormat($familyObj);
   if ($error) {
     return $error;
   }
-
   $error = checkScoresFormat($familyObj);
   return $error;
 }
@@ -160,18 +164,6 @@ sub checkSEEDFormat {
     warn "FATAL: SEED does not have an SS_cons line\n";
     $error++;
   }
-  
-  #Check that is the family is a lncRNA, that it does not have any secondary
-  #structure in the SS line.
-  if( defined($familyObj->DESC->TP) and 
-      $familyObj->DESC->TP eq 'Gene; lncRNA;' ){
-      if(!($familyObj->SEED->get_ss_cons =~ /^\.*$/)){
-        warn "Found family type lncRNA (TP line in DESC), but the seed contains secondary structure.\n";
-        $error++;
-      }
-    
-  }
-  
 
   return $error;
 }
@@ -740,7 +732,6 @@ sub compareOldAndNew {
 
 sub checkTimestamps {
   my ( $fam, $config ) = @_;
-
   if ( !$fam or !-d $fam ) {
     die "Did not get passed in a path to a directory\n";
   }
@@ -759,12 +750,12 @@ sub checkTimestamps {
     if ( !-e "$fam/$f" ) {
       warn "$f is missing from $fam\n";
       $error++;
-    }
+    } 
   }
   return $error if ($error);
 
   #Now check the timestamps.
-  if(Bio::Rfam::Utils::youngerThan("$fam/SEED", "$fam/CM")) { 
+	if(Bio::Rfam::Utils::youngerThan("$fam/SEED", "$fam/CM")) { 
     warn
         "\nFATAL ERROR: $fam: Your SEED [$fam/SEED] is younger than your CM file [$fam/CM].\n";
     $error = 1;
@@ -779,7 +770,6 @@ sub checkTimestamps {
 "\nFATAL ERROR: $fam: Your TBLOUT [$fam/TBLOUT] is younger than your scores [$fam/scores].\n";
     $error = 1;
   }
-
   return $error;
 }
 
