@@ -31,6 +31,7 @@ my $do_noss     = 0;            # TRUE to allow building of CMs with no structur
 my $do_hand     = 0;            # TRUE to pass --hand to cmbuild
 my $do_enone    = 0;            # TRUE to pass --enone to cmbuild
 my $ignore_bm   = 0;            # TRUE to ignore BM in DESC for cmbuild options
+my $infernalize_seed = 0;       # TRUE to rewrite SEED as cmbuild -O output
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
@@ -76,6 +77,7 @@ my $config = Bio::Rfam::Config->new;
 	     "hand"       => \$do_hand,
 	     "enone"      => \$do_enone,
 	     "ignorebm"   => \$ignore_bm,
+             "iseed"      => \$infernalize_seed,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "e=s",       => \$e_opt,
@@ -299,9 +301,6 @@ if ($msa->any_allgap_columns) {
 }
 # done with command line option processing
 #
-#
-#
-#
 # ============================================
 # 
 # output preamble: user, date, location, etc.
@@ -322,6 +321,7 @@ if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH
 if($do_hand)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --hand to cmbuild:",             "yes [-hand]"), $do_stdout); }
 if($do_enone)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --enone to cmbuild:",            "yes [-enone]"), $do_stdout); }
 if($ignore_bm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's BM line:",              "yes [-ignorebm]"), $do_stdout); }
+if($infernalize_seed)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# replacing SEED with cmbuild -O aln:", "yes [-iseed]"), $do_stdout); }
 if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
 if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
 if(defined $e_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $e_opt . " [-e]"), $do_stdout); }
@@ -351,6 +351,10 @@ if(! $allow_no_desc) {
 }
 Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
+my $seedfile        = "SEED";
+my $copied_seedfile = $seedfile . ".$$";
+my $cmfile          = "CM";
+
 # create hash of potential output files
 my %outfileH = ();
 my @outfile_orderA = ("TBLOUT", "REVTBLOUT", "searchout", "revsearchout", "outlist", "revoutlist", "species", "revspecies", "outlist.pdf", "species.pdf");
@@ -379,8 +383,6 @@ Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progres
 # Build step #
 ##############
 # Get CM
-my $seedfile = "SEED";
-my $cmfile   = "CM";
 my $cm;
 if (-s $cmfile) { 
   $famObj->CM($io->parseCM($cmfile));
@@ -399,6 +401,7 @@ if (($force_build)                       || # user set -b on command line
     (! defined $cm)                      || # 'CM' does not exist
     (! $is_cm_calibrated)                || # 'CM' is not calibrated
     ($do_noss || $do_hand || $do_enone)  || # -noss, -hand or -enone set on cmdline
+    ($infernalize_seed)                  || # -iseed set on cmdline
     ($allow_no_desc)                     || # -nodesc, DESC just created, we'll need a BM line so rebuild
     (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
   $do_build = 1;
@@ -428,13 +431,23 @@ if ($do_build) {
   $buildopts =~ s/\s+/ /g; # replace multiple spaces with single spaces
   $buildopts =~ s/\s+$//;  # remove trailing spaces
   $buildopts =~ s/^\s+//;  # remove leading spaces
-    
+
+  if(-e $seedfile) { copy($seedfile, $copied_seedfile); } else { die "ERROR $seedfile no longer exists"; }
+
+  my $outfile       = "b.$$.out";
+  my $cmbuildO_file = "b.$$.stk";
+  # we'll save the output alignment so we can map the RF annotation
+
   # clean up any files from previous runs
   if (-e "CM.xxx") { unlink "CM.xxx"; }
 
   # run cmbuild to create new CM
-  my $outfile = "b.$$.out";
-  $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
+  # we use cmbuild -O to create a copy of the SEED with RF annotation, we'll add this RF annotation 
+  # to $seedfile (because QC requires SEEDs have RF annotation). If -iseed was used at the
+  # command line, we'll just use the cmbuild -O output alignment as the new $seedfile. 
+  # We'll then rebuild the CM from the RF annotated $seedfile, so cmalign --mapali 
+  # will work with $seedfile.
+  $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts -O $cmbuildO_file", $cmfile, $seedfile, $outfile);
   if(! $do_dirty) { unlink $outfile; }
   if($buildopts ne "") { $buildopts .= " "; } # add trailing single space so next line properly formats BM (and blank opts ("") will work too)
   $famObj->DESC->BM("cmbuild -F " . $buildopts . "CM SEED");
@@ -443,6 +456,38 @@ if ($do_build) {
   $famObj->CM($io->parseCM("CM"));
   $cm = $famObj->CM($io->parseCM("CM"));
   $is_cm_calibrated = 0;
+
+  if($infernalize_seed) { 
+    # cmbuildO output alignment, but first we need to remove the WT annotation
+    my $new_seed  = Bio::Easel::MSA->new({
+      fileLocation => $cmbuildO_file,
+      forceText    => 1
+    });
+    $new_seed->remove_sqwgts();
+    $new_seed->write_msa($seedfile);
+  }
+  else { 
+    # add RF annotation from cmbuild -O output file to original SEED
+    # to create a new SEED file
+    add_rf_and_ss_cons_given_cmbuild_O($copied_seedfile, $cmbuildO_file, $seedfile, $cm->{cmHeader}->{clen});
+  }
+
+  # rebuild CM from new SEED
+  my $copied_cmfile = $cmfile . ".$$";
+  if(-e $cmfile) { copy($cmfile, $copied_cmfile); } else { die "ERROR $cmfile no longer exists"; }
+  $outfile = "b2.$$.out";
+  $build_elp_secs += Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
+  if(! $infernalize_seed) { 
+    # verify that this new CM is the same as the original
+    verify_two_cms_have_identical_parameters($cmfile, $copied_cmfile, 0.00000001);
+  }
+
+  # clean up
+  if(! $do_dirty) { 
+    if(-e $outfile)       { unlink $outfile; }
+    if(-e $copied_cmfile) { unlink $copied_cmfile; }
+    if(-e $cmbuildO_file && ! $infernalize_seed) { unlink $cmbuildO_file; }
+  }
 
   $build_wall_secs = time() - $build_start_time;
   $did_build = 1;
@@ -782,24 +827,47 @@ if($do_update_desc && ($did_build || $did_calibrate || $did_search)) {
 # finished all work, print output file summary
 Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
 my $description;
+# first report about SEED, we may have modified it, if so we made a copy first
+my $seed_changed = 0;
+if(! -e "$seedfile") { die "ERROR, $seedfile does not exist at end of script..."; }
+if((! -e $copied_seedfile) || (! Bio::Rfam::Utils::checkIfTwoFilesAreIdentical($seedfile, $copied_seedfile))) { 
+  # SEED was changed, keep copy
+  Bio::Rfam::Utils::log_output_file_summary($logFH, $seedfile.".$$", "old seed alignment, copy of '$seedfile' from before this script was run", $do_stdout);
+  Bio::Rfam::Utils::log_output_file_summary($logFH, $seedfile,       "new seed alignment, RF potentially added, SS_cons potentially updated", $do_stdout);
+}
+else { 
+  if(-e $copied_seedfile) { unlink $copied_seedfile; } # SEED unchanged, delete copy 
+  Bio::Rfam::Utils::log_output_file_summary($logFH, $seedfile, "seed alignment (unchanged by this script)", $do_stdout);
+} 
+# report about CM
 if($did_build || $did_calibrate) { 
   $description = sprintf("covariance model file (%s)", $did_build ? "built and calibrated" : "calibrated only");
+  if   ($did_build && $did_calibrate) { $description = "covariance model file (built and calibrated)"; }
+  elsif(              $did_calibrate) { $description = "covariance model file (calibrated only)"; }
+  else                                { $description = "covariance model file (built but not calibrated)"; }
   Bio::Rfam::Utils::log_output_file_summary($logFH,   "CM", $description, $do_stdout);
 }
+# report about DESC
 if($allow_no_desc) { 
   $description = "desc file (created, with some nonsense values that you should change)";
   Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, $do_stdout);
 }
 elsif($do_update_desc && ($did_build || $did_calibrate || $did_search)) { 
-  $description = sprintf("desc file (updated:%s%s%s)", 
-                         ($did_build)     ? " BM" : "", 
-                         ($did_calibrate) ? " CB" : "", 
-                         ($did_search)    ? " SM" : "");
-  Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, $do_stdout);
+  if((-e "DESC.$$") && (Bio::Rfam::Utils::checkIfTwoFilesAreIdentical("DESC", "DESC.$$"))) {
+    unlink "DESC.$$"; 
+    Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", "desc file (unchanged by this script)", $do_stdout);
+  } # DESC.$$ is same as DESC, no need to keep the former
+  else { 
+    $description = sprintf("desc file (updated:%s%s%s)", 
+                           ($did_build)     ? " BM" : "", 
+                           ($did_calibrate) ? " CB" : "", 
+                           ($did_search)    ? " SM" : "");
+    Bio::Rfam::Utils::log_output_file_summary($logFH,   "DESC", $description, $do_stdout);
+  }
 }
 
-# output brief descriptions of the files we just created, we know that if these files exist that 
-# we just created them, because we deleted them at the beginning of the script if they existed
+# output brief descriptions of the files we just created, 
+# for files in @outfile_orderA, we know that if these files exist that we just created them, because we deleted them at the beginning of the script if they existed
 foreach $outfile (@outfile_orderA) { 
   if(-e $outfile) { 
     Bio::Rfam::Utils::log_output_file_summary($logFH, $outfile, $outfileH{$outfile}, $do_stdout);
@@ -883,6 +951,178 @@ sub strip_default_options_from_sm {
   return $desc_searchopts;
 }
 
+######################################################################
+
+# add_rf_and_ss_cons_given_cmbuild_O():
+# Given an original SEED alignment ($orig_infile) used to build a CM, and the output -O 
+# alignment from cmbuild ($cmbuild_O_infile) created when the CM was built from the SEED,
+# add RF and SS_cons annotation to the original SEED alignment and save it as $outfile in
+# Pfam format.
+sub add_rf_and_ss_cons_given_cmbuild_O {
+
+  my ($orig_infile, $cmbuild_O_infile, $outfile, $clen) = @_;
+
+  # read in original seed
+  my $orig_seed = Bio::Easel::MSA->new({
+    fileLocation => $orig_infile,
+    forceText    => 1
+      });
+  
+  # read in new seed (created with cmbuild -O)
+  my $new_seed  = Bio::Easel::MSA->new({
+    fileLocation => $cmbuild_O_infile,
+    forceText    => 1
+      });
+  
+
+  # verify sequences are in the same order in each MSA
+  for(my $i = 0; $i < $orig_seed->nseq(); $i++) { 
+    if($orig_seed->get_sqname($i) ne $new_seed->get_sqname($i)) { 
+      die "ERROR sequences in SEED and SEED.1 are in a different order.";
+    }
+  }
+
+  # Map the two alignments: for each nongap RF column in the $new_seed,
+  # we should be able to unambiguously match an identical column in the $orig_seed.
+  # We'll use this map to create the RF and SS_cons strings for the original
+  # alignments.
+  my $orig_alen = $orig_seed->alen();
+  my $new_alen  = $new_seed->alen();
+  
+  my $new_rf       = $new_seed->get_rf();
+  my @new_rfA      = split("", $new_rf);
+  
+  my $new_ss_cons  = $new_seed->get_ss_cons();
+  my @new_ss_consA = split("", $new_ss_cons);
+  
+  my $cpos         = 0;
+  my $new_apos     = 0;
+  my $orig_apos    = 0;
+  my $orig_rf      = "";
+  my $orig_ss_cons = "";
+  while(($new_apos < $new_alen) && ($cpos < $clen)) { 
+    while($new_rfA[$new_apos] !~ m/[a-zA-Z]/) { 
+      $new_apos++;
+    }
+    $cpos++;
+    # printf("cpos: $cpos new_apos: $new_apos orig_apos: $orig_apos\n");
+    # get this column of the original seed
+    my $new_col = $new_seed->get_column($new_apos+1);
+    # find identical column in new seed
+    my $found_match = 0;
+    while((! $found_match) && ($orig_apos < $orig_alen)) { 
+      my $orig_col = $orig_seed->get_column($orig_apos+1);
+      $orig_col =~ tr/a-z/A-Z/;     # translate to upper case
+      $orig_col =~ s/[^A-Za-z]/-/g; # translate non-alphacharacters to Infernal consensus gap char: '-'
+      if($orig_col eq $new_col) { 
+        $found_match = 1; 
+        # printf("\tfound match new:orig $new_apos:$orig_apos\n"); 
+        $orig_rf      .= "$new_rfA[$new_apos]";
+        $orig_ss_cons .= "$new_ss_consA[$new_apos]";
+      }
+      else { 
+        $orig_rf      .= ".";
+        $orig_ss_cons .= ".";
+      }
+      $orig_apos++;
+    }
+    $new_apos++;
+    if((! $found_match) && ($orig_apos == $orig_alen)) { die "ERROR unable to find match for consensus position $cpos"; }
+  }
+  $orig_seed->set_rf($orig_rf);
+  $orig_seed->set_ss_cons($orig_ss_cons);
+  $orig_seed->capitalize_based_on_rf();
+  
+  $orig_seed->write_msa($outfile);
+  
+  return;
+}
+
+
+#################################
+# verify_two_cms_have_identical_parameters()
+# Given the names of two CM files, verify that they 
+# have identical model parameters, including profile
+# HMM filter parameters. Do not check that other information
+# is identical, e.g. checksum, or E-value statistics.
+
+sub verify_two_cms_have_identical_parameters { 
+
+  my ($cmfile1, $cmfile2, $thr) = @_;
+
+  my ($line1, $line2, $i, $nlines);
+  my $cm1 = $io->parseCM($cmfile1);
+  my $cm2 = $io->parseCM($cmfile2);
+
+  # check CM parameters
+  $nlines = scalar(@{$cm1->{cmBody}});
+  for($i = 0; $i < $nlines; $i++) { 
+    $line1 = $cm1->{cmBody}->[$i];
+    $line2  = $cm2->{cmBody}->[$i];
+    if($line1 ne $line2) { 
+      validate_line_given_precision_threshold($line1, $line2, $thr);
+      # this will die if lines are not equal with allowed precision difference
+    }
+  }
+
+  # check profile HMM filter parameters
+  $nlines = scalar(@{$cm1->{hmmBody}});
+  for(my $i = 0; $i < $nlines; $i++) { 
+    $line1 = $cm1->{hmmBody}->[$i];
+    $line2  = $cm2->{hmmBody}->[$i];
+    if($line1 ne $line2) { 
+      validate_line_given_precision_threshold($line1, $line2, $thr); 
+      # this will die if lines are not equal with allowed precision difference
+    }
+  }
+
+  # printf("$cmfile1 and $cmfile2 have identical model parameters.\n");
+  return;
+}
+
+
+##########################################
+# validate_line_given_precision_threshold
+# Given two parameter lines of a CM and a precision threshold,
+# ensure that they are 
+sub validate_line_given_precision_threshold { 
+  my($line1, $line2, $thr) = @_;
+
+  if($thr >= 1) { die "in validate_line_given_precision_threshold() threshold too high"; }
+  
+  my @elA1 = split(/\s+/, $line1);
+  my @elA2 = split(/\s+/, $line2);
+
+  my $nel1 = scalar(@elA1);
+  my $nel2 = scalar(@elA2);
+  if($nel1 != $nel2) { die "validate_line_given_precision_threshold() different number of elements on lines:\n$line1\n$line2"; }
+
+  for(my $i = 0; $i < $nel1; $i++) { 
+    my $el1 = $elA1[$i];
+    my $el2 = $elA2[$i];
+    if($el1 ne $el2) { 
+      # check if it's a number
+      if($el1 =~ /(\d+)(\.\d+)/) { 
+        my($n1a, $n1b) = ($1, $2);
+        if($el2 =~ /(\d+)(\.\d+)/) { 
+          my($n2a, $n2b) = ($1, $2);
+          if($n1a ne $n2a) { die "validate_line_given_precision_threshold() number mismatch $n1a != $n2a in ($el1 vs $el2) on lines:\n$line1\n$line2"; }
+          if($n1b ne $n2b) { 
+            if(abs($n1b - $n2b) > $thr) { 
+              die "validate_line_given_precision_threshold() number mismatch given precision $thr, $n1b != $n2b in ($el1 vs $el2) on lines:\n$line1\n$line2"; 
+            }
+          }
+        }
+      }
+      else { 
+        die "validate_line_given_precision_threshold() mismatch that isn't a real number on lines:\n$line1\n$line2"; 
+      }
+    }
+  }
+  return;
+}
+######################################################################
+
 sub help {
   print STDERR <<EOF;
 
@@ -948,4 +1188,3 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
   	    -h|-help     print this help, then exit
 EOF
 }
-

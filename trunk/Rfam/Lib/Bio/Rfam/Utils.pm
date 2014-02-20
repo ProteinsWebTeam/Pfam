@@ -1290,6 +1290,41 @@ sub fileToArray {
 
 #-------------------------------------------------------------------------------
 
+=head2 checkIfTwoFilesAreIdentical
+
+  Title    : checkIfTwoFilesAreIdentical
+  Incept   : EPN, Thu Feb 20 13:23:20 2014
+  Usage    : checkIfTwoFilesAreIdentical($file1, $file2)
+  Function : Open two files and return 1 if they are identical
+           : (same number of lines and each line is identical).
+           : else return 0;
+  Args     : $file1: path to first file
+           : $file1: path to second file
+  Returns  : void
+
+=cut
+
+sub checkIfTwoFilesAreIdentical { 
+  my ($file1, $file2) = @_;
+
+  my ($line1, $line2);
+  open(IN1, $file1) || die "ERROR unable to open $file1 in checkIfTwoFilesAreIdentical()";
+  open(IN2, $file2) || die "ERROR unable to open $file2 in checkIfTwoFilesAreIdentical()";
+
+  while($line1 = <IN1>) { 
+    if(! ($line2 = <IN2>)) { close(IN1); close(IN2); return 0; } # more lines in file 1 than file 2
+    if($line1 ne $line2)   { close(IN1); close(IN2); return 0; } # difference in current line
+  }
+  while($line2 = <IN2>) { close(IN1); close(IN2); return 0; } # more lines in file 2 than file 1
+  
+  close(IN1);
+  close(IN2);
+
+  return 1;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 printToFileAndOrStdout
 
   Title    : printToFileAndOrStdout
