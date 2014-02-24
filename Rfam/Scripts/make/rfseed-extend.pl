@@ -100,7 +100,8 @@ my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
                                     'SEED' => {
                                                fileLocation => "SEED",
-                                               aliType      => 'seed'
+                                               aliType      => 'seed',
+                                               forceText    => 1
                                               },
                                     'DESC'   => $io->parseDESC("DESC"),
                                    );
@@ -201,7 +202,6 @@ else { # not trim mode, adding columns
   my $newseed_str = "";
   my $sqidx = 0;    # index of current seq in $oseedmsa Bio::Easel::MSA object
   $oseedmsa->write_msa($tmpseed, "pfam");
-  push(@unlinkA, $tmpseed);
   open(INSEED, $tmpseed) || die "ERROR unable to open $tmpseed for reading";
   my $line = <INSEED>;
   my $linectr = 1;
@@ -279,6 +279,8 @@ else { # not trim mode, adding columns
         }
         $n3subseq = get_subseq($name, $fetch_sqfile, $fetch_start, $fetch_end, $nres, $n3, 0, $do_revcomp);
       }
+      if($n3subseq ne "") { $n3subseq =~ tr/T/U/; } # change T to U
+      if($n5subseq ne "") { $n5subseq =~ tr/T/U/; } # change T to U
       $newseed_str .= $oname . " " . $n5subseq . $oseq . $n3subseq . "\n";
     } # end of sequence line block
     else { # unrecognized line, exit
@@ -290,7 +292,7 @@ else { # not trim mode, adding columns
   # now $newseed_str is the full MSA, create a Bio::Easel::MSA object from it
   unlink $tmpseed;
   # printf("$newseed_str");
-  $nseedmsa = Bio::Easel::MSA::create_from_string($newseed_str, "stockholm", "rna", 1);
+  $nseedmsa = Bio::Easel::MSA::create_from_string($newseed_str, "stockholm", "rna", 0);
 }
 
 # create new SEED
