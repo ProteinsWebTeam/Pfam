@@ -141,7 +141,8 @@ sub loadRfamFromRDB {
                 'SEED' => {
                            fileLocation => "$dir/$family/SEED",
                            aliType      => 'seed',
-                           reqdFormat   => 'Stockholm'
+                           reqdFormat   => 'Stockholm',
+                           forceText    => 1
                           },
                 'DESC'   => $descData,
                 'CM'     => $self->parseCM("$dir/$family/CM"),

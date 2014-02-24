@@ -1029,6 +1029,9 @@ sub add_rf_and_ss_cons_given_cmbuild_O {
     $new_apos++;
     if((! $found_match) && ($orig_apos == $orig_alen)) { die "ERROR unable to find match for consensus position $cpos"; }
   }
+  # we've reached clen, deal with possibility of inserts after final cpos
+  while(length($orig_rf) < $orig_alen) { $orig_rf .= "."; $orig_ss_cons .= "."; }
+  
   $orig_seed->set_rf($orig_rf);
   $orig_seed->set_ss_cons($orig_ss_cons);
   $orig_seed->capitalize_based_on_rf();
