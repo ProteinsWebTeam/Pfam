@@ -381,7 +381,7 @@ sub checkoutFamily {
 
   #Confess if we observe a proble,
   if ($@) {
-    confess("Failed to check out family, ".$self->modelLocation."/$entry, :[$@]\n");
+    confess("Failed to check out family, ".$self->familyLocation."/$entry, :[$@]\n");
   }
 }
 
