@@ -31,7 +31,6 @@ my $do_noss     = 0;            # TRUE to allow building of CMs with no structur
 my $do_hand     = 0;            # TRUE to pass --hand to cmbuild
 my $do_enone    = 0;            # TRUE to pass --enone to cmbuild
 my $ignore_bm   = 0;            # TRUE to ignore BM in DESC for cmbuild options
-my $infernalize_seed = 0;       # TRUE to rewrite SEED as cmbuild -O output
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
@@ -77,7 +76,6 @@ my $config = Bio::Rfam::Config->new;
 	     "hand"       => \$do_hand,
 	     "enone"      => \$do_enone,
 	     "ignorebm"   => \$ignore_bm,
-             "iseed"      => \$infernalize_seed,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "e=s",       => \$e_opt,
@@ -321,7 +319,6 @@ if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH
 if($do_hand)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --hand to cmbuild:",             "yes [-hand]"), $do_stdout); }
 if($do_enone)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --enone to cmbuild:",            "yes [-enone]"), $do_stdout); }
 if($ignore_bm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's BM line:",              "yes [-ignorebm]"), $do_stdout); }
-if($infernalize_seed)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# replacing SEED with cmbuild -O aln:", "yes [-iseed]"), $do_stdout); }
 if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
 if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
 if(defined $e_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $e_opt . " [-e]"), $do_stdout); }
@@ -401,7 +398,6 @@ if (($force_build)                       || # user set -b on command line
     (! defined $cm)                      || # 'CM' does not exist
     (! $is_cm_calibrated)                || # 'CM' is not calibrated
     ($do_noss || $do_hand || $do_enone)  || # -noss, -hand or -enone set on cmdline
-    ($infernalize_seed)                  || # -iseed set on cmdline
     ($allow_no_desc)                     || # -nodesc, DESC just created, we'll need a BM line so rebuild
     (Bio::Rfam::Utils::youngerThan($seedfile, $cmfile))) { # SEED is younger than CM file
   $do_build = 1;
@@ -442,12 +438,7 @@ if ($do_build) {
   if (-e "CM.xxx") { unlink "CM.xxx"; }
 
   # run cmbuild to create new CM
-  # we use cmbuild -O to create a copy of the SEED with RF annotation, we'll add this RF annotation 
-  # to $seedfile (because QC requires SEEDs have RF annotation). If -iseed was used at the
-  # command line, we'll just use the cmbuild -O output alignment as the new $seedfile. 
-  # We'll then rebuild the CM from the RF annotated $seedfile, so cmalign --mapali 
-  # will work with $seedfile.
-  $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts -O $cmbuildO_file", $cmfile, $seedfile, $outfile);
+  $build_elp_secs = Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
   if(! $do_dirty) { unlink $outfile; }
   if($buildopts ne "") { $buildopts .= " "; } # add trailing single space so next line properly formats BM (and blank opts ("") will work too)
   $famObj->DESC->BM("cmbuild -F " . $buildopts . "CM SEED");
@@ -457,36 +448,36 @@ if ($do_build) {
   $cm = $famObj->CM($io->parseCM("CM"));
   $is_cm_calibrated = 0;
 
-  if($infernalize_seed) { 
-    # cmbuildO output alignment, but first we need to remove the WT annotation
-    my $new_seed  = Bio::Easel::MSA->new({
-      fileLocation => $cmbuildO_file,
-      forceText    => 1
-    });
-    $new_seed->remove_sqwgts();
-    $new_seed->write_msa($seedfile);
-  }
-  else { 
-    # add RF annotation from cmbuild -O output file to original SEED
-    # to create a new SEED file
-    add_rf_and_ss_cons_given_cmbuild_O($copied_seedfile, $cmbuildO_file, $seedfile, $cm->{cmHeader}->{clen});
-  }
+  # use cmalign --mapali to get an RF annotation version of the SEED that we 
+  # can use to map the RF onto the original seed. Actually we'll get an alignment
+  # that is the seed plus the consensus sequence, but then we'll remove the consensus
+  # sequence in add_rf_and_ss_cons_given_cmalign_mapali_output().
+  # first, generate $fafile using 'cmemit -c'
+  my $emit_fafile         = "e.$$.fa";
+  my $cmalign_mapali_file = "ma.$$.stk";
+  Bio::Rfam::Infernal::cmemit_wrapper($config, "-c -o $emit_fafile", $cmfile, undef, 0);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, "", "", "--mapali SEED -o $cmalign_mapali_file", "CM", $emit_fafile, undef, "", 1, 100, 1, 0, "", 1, undef, 0);
+  unlink $emit_fafile;
+
+  # add RF annotation from cmalign --mapali output file to original SEED
+  # to create a new SEED file 
+  # (this subroutine expects the extra consensus sequence in the $cmalign_mapali_file alignment)
+  add_rf_and_ss_cons_given_cmalign_mapali_output($copied_seedfile, $cmalign_mapali_file, $seedfile, $cm->{cmHeader}->{clen});
+  unlink $cmalign_mapali_file;
 
   # rebuild CM from new SEED
   my $copied_cmfile = $cmfile . ".$$";
   if(-e $cmfile) { copy($cmfile, $copied_cmfile); } else { die "ERROR $cmfile no longer exists"; }
   $outfile = "b2.$$.out";
   $build_elp_secs += Bio::Rfam::Infernal::cmbuild_wrapper($config, "$buildopts", $cmfile, $seedfile, $outfile);
-  if(! $infernalize_seed) { 
-    # verify that this new CM is the same as the original
-    verify_two_cms_have_identical_parameters($cmfile, $copied_cmfile, 0.00000001);
-  }
+
+  # verify that this new CM is the same as the original
+  verify_two_cms_have_identical_parameters($cmfile, $copied_cmfile, 0.00000001);
 
   # clean up
   if(! $do_dirty) { 
     if(-e $outfile)       { unlink $outfile; }
     if(-e $copied_cmfile) { unlink $copied_cmfile; }
-    if(-e $cmbuildO_file && ! $infernalize_seed) { unlink $cmbuildO_file; }
   }
 
   $build_wall_secs = time() - $build_start_time;
@@ -953,14 +944,14 @@ sub strip_default_options_from_sm {
 
 ######################################################################
 
-# add_rf_and_ss_cons_given_cmbuild_O():
-# Given an original SEED alignment ($orig_infile) used to build a CM, and the output -O 
-# alignment from cmbuild ($cmbuild_O_infile) created when the CM was built from the SEED,
-# add RF and SS_cons annotation to the original SEED alignment and save it as $outfile in
-# Pfam format.
-sub add_rf_and_ss_cons_given_cmbuild_O {
+# add_rf_and_ss_cons_given_cmalign_mapali_output():
+# Given an original SEED alignment ($orig_infile) used to build a CM, and an alignment
+# output from cmalign --mapali ($cmalign_mapali_infile) with a single extra sequence other
+# than the original SEED, add RF and SS_cons annotation to the original SEED alignment 
+# and save it as $outfile.
+sub add_rf_and_ss_cons_given_cmalign_mapali_output {
 
-  my ($orig_infile, $cmbuild_O_infile, $outfile, $clen) = @_;
+  my ($orig_infile, $cmalign_mapali_infile, $outfile, $clen) = @_;
 
   # read in original seed
   my $orig_seed = Bio::Easel::MSA->new({
@@ -968,13 +959,20 @@ sub add_rf_and_ss_cons_given_cmbuild_O {
     forceText    => 1
       });
   
-  # read in new seed (created with cmbuild -O)
-  my $new_seed  = Bio::Easel::MSA->new({
-    fileLocation => $cmbuild_O_infile,
+  # read in new seed plus consensus sequence aligned (created with cmalign --mapali SEED CM c.fa)
+  my $tmp_seed  = Bio::Easel::MSA->new({
+    fileLocation => $cmalign_mapali_infile,
     forceText    => 1
-      });
+   });
   
-
+  # remove final sequence, the consensus sequence, to get a new alignment
+  my @usemeA = ();
+  my $i;
+  for($i = 0;                  $i < $orig_seed->nseq; $i++) { $usemeA[$i] = 1; }
+  for($i = $orig_seed->nseq(); $i < $tmp_seed->nseq;  $i++) { $usemeA[$i] = 0; }
+  my $new_seed = $tmp_seed->sequence_subset(\@usemeA);
+  undef $tmp_seed;
+  
   # verify sequences are in the same order in each MSA
   for(my $i = 0; $i < $orig_seed->nseq(); $i++) { 
     if($orig_seed->get_sqname($i) ne $new_seed->get_sqname($i)) { 
@@ -1005,7 +1003,7 @@ sub add_rf_and_ss_cons_given_cmbuild_O {
       $new_apos++;
     }
     $cpos++;
-    # printf("cpos: $cpos new_apos: $new_apos orig_apos: $orig_apos\n");
+    #printf("cpos: $cpos new_apos: $new_apos orig_apos: $orig_apos\n");
     # get this column of the original seed
     my $new_col = $new_seed->get_column($new_apos+1);
     # find identical column in new seed
@@ -1031,7 +1029,7 @@ sub add_rf_and_ss_cons_given_cmbuild_O {
   }
   # we've reached clen, deal with possibility of inserts after final cpos
   while(length($orig_rf) < $orig_alen) { $orig_rf .= "."; $orig_ss_cons .= "."; }
-  
+
   $orig_seed->set_rf($orig_rf);
   $orig_seed->set_ss_cons($orig_ss_cons);
   $orig_seed->capitalize_based_on_rf();
