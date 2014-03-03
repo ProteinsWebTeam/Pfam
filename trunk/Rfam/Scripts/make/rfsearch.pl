@@ -162,9 +162,6 @@ my $acc  = $desc->AC;
 # extra processing of command-line options 
 if ($only_build) { # -onlybuild, verify incompatible options are not set
   if (defined $ncpus_cmsearch) { die "ERROR -onlybuild and -scpu are incompatible"; }
-  if (defined $e_opt)          { die "ERROR -onlybuild and -e are incompatible"; }
-  if (defined $t_opt)          { die "ERROR -onlybuild and -t are incompatible"; }
-  if ($do_cutga)               { die "ERROR -onlybuild and -cut_ga are incompatible"; }
   if (@cmosA)                  { die "ERROR -onlybuild and -cmosA are incompatible"; }
   if (@cmodA)                  { die "ERROR -onlybuild and -cmodA are incompatible"; }
 }
@@ -1011,6 +1008,7 @@ sub add_rf_and_ss_cons_given_cmalign_mapali_output {
     while((! $found_match) && ($orig_apos < $orig_alen)) { 
       my $orig_col = $orig_seed->get_column($orig_apos+1);
       $orig_col =~ tr/a-z/A-Z/;     # translate to upper case
+      $orig_col =~ tr/T/U/;         # translate Ts to Us
       $orig_col =~ s/[^A-Za-z]/-/g; # translate non-alphacharacters to Infernal consensus gap char: '-'
       if($orig_col eq $new_col) { 
         $found_match = 1; 
