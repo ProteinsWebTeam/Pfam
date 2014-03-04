@@ -241,16 +241,16 @@ else { # not trim mode, adding columns
         if($strand == 1) { # top strand 
           if   (exists $skipmeH{$nse}) { $nres = 0;   }         # skipping this seq, don't fetch any extra res
           elsif($n5 < $ostart)         { $nres = $n5; }         # can fetch $n5 residues without running out
-          else                         { $nres = $ostart - 1; } # can only fetch $ostart-1 residues before running out of sequence (nres be 0 if $ostart==1)
+          else                         { $nres = $ostart - 1; } # can only fetch $ostart-1 residues before running out of sequence (nres will be 0 if $ostart==1)
           $fetch_start = $ostart - $nres;
           $fetch_end   = $ostart - 1;
           $do_revcomp  = 0;
         }
         else { # bottom strand
           my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name);
-          if   (exists $skipmeH{$nse})         { $nres = 0;   }              # skipping this seq, don't fetch any extra res
-          elsif(($ostart + $n5 - 1) <= $sqlen) { $nres = $n5; }              # can fetch $n5 residues without running out
-          else                                 { $nres = $sqlen - $ostart; } # can only fetch $sqlen - $ostart residues before running out of sequence (nres be 0 if $ostart==$sqlen)
+          if   (exists $skipmeH{$nse})     { $nres = 0;   }              # skipping this seq, don't fetch any extra res
+          elsif(($ostart + $n5) <= $sqlen) { $nres = $n5; }              # can fetch $n5 residues without running out
+          else                             { $nres = $sqlen - $ostart; } # can only fetch $sqlen - $ostart residues before running out of sequence (nres will be 0 if $ostart==$sqlen)
           $fetch_start = $ostart + $nres;
           $fetch_end   = $ostart + 1;
           $do_revcomp  = 1;
@@ -261,9 +261,10 @@ else { # not trim mode, adding columns
         if($strand == 1) { # top strand 
           # this block mirrors bottom strand 5' block, but with $n3 and $oend replacing $n5 and $ostart
           my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name);
-          if($skipmeH{$nse})                 { $nres = 0; }              # skipping this seq, don't fetch any extra res
-          elsif(($oend + $n3 - 1) <= $sqlen) { $nres = $n3; }            # can fetch $n3 residues without running out
-          else                               { $nres = $sqlen - $oend; } # can only fetch $sqlen - $oend residues before running out of sequence (nres be 0 if $oend==$sqlen)
+          # printf("sqlen: $sqlen oend: $oend n3: $n3 x: %d\n", ($oend + $n3 - 1));
+          if($skipmeH{$nse})             { $nres = 0; }              # skipping this seq, don't fetch any extra res
+          elsif(($oend + $n3) <= $sqlen) { $nres = $n3; }            # can fetch $n3 residues without running out
+          else                           { $nres = $sqlen - $oend; } # can only fetch $sqlen - $oend residues before running out of sequence (nres will be 0 if $oend==$sqlen)
           $fetch_start = $oend + 1;
           $fetch_end   = $oend + $nres;
           $do_revcomp  = 0;
@@ -272,7 +273,7 @@ else { # not trim mode, adding columns
           # this block mirrors top strand 5' block, but with $n3 and $oend replacing $n5 and $ostart
           if   (exists $skipmeH{$nse}) { $nres = 0; }         # skipping this seq, don't fetch any extra res
           elsif($n3 < $oend)           { $nres = $n3; }       # can fetch $n3 residues without running out
-          else                         { $nres = $oend - 1; } # can only fetch $oend-1 residues before running out of sequence (nres be 0 if $oend==1)
+          else                         { $nres = $oend - 1; } # can only fetch $oend-1 residues before running out of sequence (nres will be 0 if $oend==1)
           $fetch_start = $oend - 1;
           $fetch_end   = $oend - $nres;
           $do_revcomp  = 1;
