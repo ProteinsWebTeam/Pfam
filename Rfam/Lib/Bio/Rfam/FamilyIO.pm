@@ -88,6 +88,7 @@ sub loadRfamFromLocalFile {
                            fileLocation => "$dir/$family/SEED",
                            aliType      => 'seed',
                            reqdFormat   => 'Stockhom',
+                           # NOTE: we don't pass 'forceText => 1', if we did we'd read the alignment in text mode...
                           },
                 'DESC'   => $self->parseDESC("$dir/$family/DESC"),
                 'CM'     => $self->parseCM("$dir/$family/CM"),
@@ -2266,7 +2267,7 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : the group and then all remaining groups (with only
              : 'other' seqs (not in seed nor full)).
              : 
-    Args     : $outFH:          file handle for output, if undef: print to STDOUT
+    Args     : $outFH:          file handle for output, if undef: print only to STDOUT
              : $infoHHR:        ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
              : $groupOHAR:      ref to hash of arrays, nse in score rank order, by group
              : $groupOAR:       order of groups to use
@@ -2276,14 +2277,19 @@ sub writeTaxinfoFromOutlistAndSpecies {
              : $do_nsort:       '1' to sort output by counts (-nsort from rfmake.pl)
              : $prefixAR:       ref to array of prefixes (taxonomic groups) output in this function
              :                  filled if defined, but can be undefined
-             :
+             : $also_stdout:    '1' to also print to STDOUT, cannot be 1 if $outFH is undef
     Returns  : $level_printed: prefix token length used for defining groups
     Dies     : upon file input/output error
 
 =cut
 
 sub taxinfoForHits {
-  my ($self, $outFH, $infoHHR, $groupOHAR, $groupOAR, $use_lead_group, $nprint, $user_level2print, $do_nsort, $prefixAR) = @_;
+  my ($self, $outFH, $infoHHR, $groupOHAR, $groupOAR, $use_lead_group, $nprint, $user_level2print, $do_nsort, $prefixAR, $also_stdout) = @_;
+
+  # contract check
+  if((! defined $outFH) && (defined $also_stdout) && ($also_stdout)) { 
+    die "ERROR taxinfoForHits(): outFH undef but also_stdout is 1"; 
+  }
 
   ####################################################################
   # Set parameters to their defaults prior to parsing cmd line options
@@ -2635,10 +2641,12 @@ sub taxinfoForHits {
   push(@outputA, $total_line);
   push(@outputA, "$div_line\n#\n");
 
+  # potentially print to a file handle
   if(defined $outFH) { 
     foreach my $line (@outputA) { print $outFH $line; }
   }
-  else { # print to STDOUT
+  # potentially print to STDOUT
+  if((! defined $outFH) || (defined $also_stdout && $also_stdout)) { 
     foreach my $line (@outputA) { print STDOUT $line; }
   }
   return $level2print;

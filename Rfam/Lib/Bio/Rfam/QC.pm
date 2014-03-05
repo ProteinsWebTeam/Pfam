@@ -109,6 +109,7 @@ sub checkFamilyFormat {
   }
   $error = checkScoresFormat($familyObj);
   return $error;
+
 }
 
 #------------------------------------------------------------------------------
@@ -164,7 +165,18 @@ sub checkSEEDFormat {
     warn "FATAL: SEED does not have an SS_cons line\n";
     $error++;
   }
-
+  
+  #If family is a lncRNA, ensure it does not have any secondary
+  #structure in the SS line.
+  if( defined($familyObj->DESC->TP) and 
+      $familyObj->DESC->TP eq 'Gene; lncRNA;' ){
+      if(!($familyObj->SEED->get_ss_cons =~ /^\.*$/)){
+        warn "Found family type lncRNA (TP line in DESC), but the seed contains secondary structure.\n";
+        $error++;
+      }
+    
+  }
+  
   return $error;
 }
 
@@ -206,6 +218,19 @@ sub checkCMFormat {
     $error = 1;
     print STDERR
 "The number of sequences in the CM does not agree with the number in the SEED.\n";
+    return $error;
+  }
+
+  # Make sure the checksums match between the SEED and the CM
+  if($familyObj->CM->cmHeader->{cksum} != $familyObj->SEED->checksum) { 
+    $error = 1;
+    # checksums don't match, SEED may not be in digital mode
+    if(! $familyObj->SEED->is_digitized) { 
+      printf STDERR ("Checksum mismatch between SEED and CM, possibly because SEED was read in text mode, inspect Bio::Rfam::Family object declaration.\n");
+    }
+    else { 
+      printf STDERR ("Checksum mismatch between SEED and CM, CM was not built from SEED.\n");
+    }
     return $error;
   }
 
