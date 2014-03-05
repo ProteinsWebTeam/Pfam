@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 129;
+use Test::More tests => 135;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -16,7 +16,7 @@ my $rf_alnfile  = "./t/data/test.rf.sto";
 my $rf_alnfile2 = "./t/data/test2.rf.sto";
 my $gap_alnfile = "./t/data/test-gap.sto";
 my ($msa1, $msa2);
-my ($path, $nseq, $sqname, $sqidx, $any_gaps, $len, $avglen, $outfile, $id);
+my ($path, $nseq, $sqname, $sqidx, $any_gaps, $len, $avglen, $outfile, $id, $checksum, $format, $is_digitized);
 my ($line, $line1, $line2, $mode, $msa_str, $trash);
 my ($sub_nseq, $sub_alen, $isres, $alen);
 my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
@@ -54,6 +54,19 @@ for($mode = 0; $mode <= 1; $mode++) {
   isa_ok($msa2, "ESL_MSA");
   # TODO: check that $msa1 and $msa2 are identical
 
+  # test format
+  $format = $msa1->format;
+  is($format, "Stockholm", "format accessor worked (mode $mode).");
+
+  # test is_digitized;
+  $is_digitized = $msa1->is_digitized;
+  if($mode == 0) { # digitized
+    is($is_digitized, 1, "is_digitized returned correct value (mode $mode)");
+  }   
+  else { # text 
+    is($is_digitized, 0, "is_digitized returned correct value (mode $mode)");
+  }   
+
   # test path
   $path = $msa1->path;
   is($path, "./t/data/test.sto", "path accessor worked (mode $mode).");
@@ -61,6 +74,16 @@ for($mode = 0; $mode <= 1; $mode++) {
   # test nseq
   $nseq = $msa1->nseq;
   is($nseq, 3, "nseq method returned correct number (mode $mode).");
+
+  # test checksum
+  $checksum = $msa1->checksum;
+  # digitized checksum differs from text checksum:
+  if($mode == 0) { # digitized
+    is($checksum, "3414500222", "checksum returned correct value (mode $mode)");
+  }   
+  else { # text 
+    is($checksum, "679166796", "checksum returned correct value (mode $mode)");
+  }   
 
   # test get_sqname
   $sqname = $msa1->get_sqname(2);
