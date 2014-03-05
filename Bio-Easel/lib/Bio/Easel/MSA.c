@@ -252,6 +252,37 @@ I32 _c_alen (ESL_MSA *msa)
   return msa->alen;
 }
 
+/* Function:  _c_checksum()
+ * Incept:    EPN, Tue Mar  4 09:53:19 2014
+ * Synopsis:  Returns checksum. Caution: the same 
+ *            MSA will return a different checksum
+ *            depending on whether it was read in 
+ *            digital or text mode.
+ * Returns:   checksum for the MSA
+ * Dies:      if checksum cannot be determined
+ */
+U32 _c_checksum (ESL_MSA *msa)
+{
+  int status;
+  uint32_t checksum;
+
+  if((status = esl_msa_Checksum(msa, &checksum)) != eslOK) { 
+    croak("_c_checksum() problem calculating checksum"); 
+  }
+
+  return checksum;
+}   
+
+/* Function:  _c_is_digitized()
+ * Incept:    EPN, Wed Mar  5 09:16:47 2014
+ * Synopsis:  Returns '1' if MSA is digitized, else '0' (if MSA is in text mode).
+ * Returns:   '1' if MSA is digitized, else '0'
+ */
+int _c_is_digitized (ESL_MSA *msa)
+{
+  return (msa->flags & eslMSA_DIGITAL) ? 1 : 0;
+}   
+
 /* Function:  _c_has_rf()
  * Incept:    EPN, Tue Apr  2 19:43:06 2013
  * Synopsis:  Returns TRUE if msa->rf is valid

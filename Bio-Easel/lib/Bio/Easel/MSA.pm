@@ -222,6 +222,25 @@ sub format {
 
 #-------------------------------------------------------------------------------
 
+=head2 is_digitized
+
+  Title    : is_digitized
+  Incept   : EPN, Wed Mar  5 09:14:34 2014
+  Usage    : $msaObject->is_digitized()
+  Function : Returns '1' is MSA is digitized, else returns '0'
+  Args     : none
+  Returns  : '1' if MSA is digitized, else returns '0'.
+
+=cut
+
+sub is_digitized {
+  my ($self) = @_;
+  
+  return _c_is_digitized( $self->{esl_msa} );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 read_msa
 
   Title    : read_msa
@@ -310,6 +329,29 @@ sub alen {
   $self->_check_msa();
   return _c_alen( $self->{esl_msa} );
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 checksum
+
+  Title    : checksum
+  Incept   : EPN, Tue Mar  4 09:42:52 2014
+  Usage    : $msaObject->checksum()
+  Function : Determine the checksum for an MSA. Caution: the 
+           : same MSA will give a different checksum depending
+           : on whether it was read in text or digital mode.
+  Args     : none
+  Returns  : checksum as in integer.
+
+=cut
+
+sub checksum {
+  my ($self) = @_;
+
+  $self->_check_msa();
+  return _c_checksum( $self->{esl_msa} );
+}
+
 
 #-------------------------------------------------------------------------------
 
@@ -1735,6 +1777,7 @@ sub find_divergent_seqs_from_subset
 
   my $nseq = $self->nseq;
   my $ndiv = 0;
+  my $nsubset = 0;
   for(my $i = 0; $i < $self->nseq; $i++) { 
     my $iamdivergent = 0;
     my $maxid  = -1.;
@@ -1749,6 +1792,9 @@ sub find_divergent_seqs_from_subset
         }
       }
     }
+    else { 
+      $nsubset++; 
+    }
     if($iamdivergent) { 
       if(defined $divAR)   { $divAR->[$i]   = 1; }
       if(defined $nnidxAR) { $nnidxAR->[$i] = $maxidx; }
@@ -1762,7 +1808,67 @@ sub find_divergent_seqs_from_subset
     }
   }
 
+  if($nsubset == 0) { die "ERROR in find_most_divergent_seq_from_subset(), no seqs in subset"; }
   return $ndiv;
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 find_most_divergent_seq_from_subset
+
+  Title     : find_most_divergent_seq_from_subset
+  Incept    : EPN, Thu Nov 21 08:41:06 2013
+  Usage     : $msaObject->find_most_divergent_seq_from_subset
+  Function  : Given a subset of sequences, find all other sequences
+            : not in the subset that are <= $id_thr fractionally
+            : identical to *all* seqs in the subset.
+  Args      : $subsetAR: [0..$i..$msa->nseq-1] '1' if sequence i is in the subset, else 0
+  Returns   : $idx: Index of sequence in $msa that is most divergent from all seqs in
+            :       subsetAR, that is, the sequence for which the fractional identity
+            :       to its closest neighbor in subsetAR is minimized.
+            : $fid: fractional identity of idx to its closest neighbor in msa
+            : $nnidx: idx of <$idx>s nearest neighbor in $msa
+  Dies      : if no sequences exist in $subsetAR, or any indices are invalid
+            : with croak
+=cut
+
+sub find_most_divergent_seq_from_subset
+{
+  my ($self, $subsetAR) = @_;
+
+  $self->_check_msa();
+  my $nsubset = 0;
+
+  my $nseq = $self->nseq;
+  my $min_max_id = 1.0;
+  my $ret_idx = -1;
+  my $ret_nnidx = -1;
+  for(my $i = 0; $i < $self->nseq; $i++) { 
+    if(! $subsetAR->[$i]) { 
+      my $max_id = 0.;
+      my $max_idx = -1;
+      for(my $j = 0; $j < $self->nseq; $j++) {
+        if($subsetAR->[$j]) { 
+          my $id = _c_pairwise_identity($self->{esl_msa}, $i, $j);
+          if($id > $min_max_id) { $j = $self->nseq+1; } # setting j this way breaks us out of the loop
+          if($id > $max_id)     { $max_id = $id; $max_idx = $j; }
+        }
+      }
+      if($max_id < $min_max_id) { 
+        $ret_idx    = $i;
+        $min_max_id = $max_id;
+        $ret_nnidx  = $max_idx;
+      }
+    }
+    else { 
+      $nsubset++;
+    }
+  }
+
+  if($nsubset == 0) { die "ERROR in find_most_divergent_seq_from_subset(), no seqs in subset"; }
+
+  return ($ret_idx, $min_max_id, $ret_nnidx);
 }
 
 #-------------------------------------------------------------------------------
