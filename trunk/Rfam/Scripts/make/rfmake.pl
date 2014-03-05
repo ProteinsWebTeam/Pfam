@@ -296,7 +296,7 @@ if($do_taxinfo) {
   my $tiFH;
   open($tiFH, ">taxinfo") || die "ERROR unable to open taxinfo for writing";
   write_taxinfo_file_preamble($tiFH, \%groupOHA, $desc, $ga_bitsc, $ga_evalue);
-  $io->taxinfoForHits($tiFH, \%infoHH, \%groupOHA, ["SEED", "FULL", "OTHER"], 1, $n2print, $l2print, $do_nsort);
+  $io->taxinfoForHits($tiFH, \%infoHH, \%groupOHA, ["SEED", "FULL", "OTHER"], 1, $n2print, $l2print, $do_nsort, undef, 0);
   write_taxinfo_file_end($tiFH);
   close($tiFH);
 }

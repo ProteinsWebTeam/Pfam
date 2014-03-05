@@ -153,7 +153,7 @@ Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - 
 my %outfileH = ();
 my @outfile_orderA = ("$outseed.$$", "seedalignout", "rfreplace.log.$$");
 $outfileH{"$outseed.$$"}      = "old seed alignment, copy of '$inseed' from before this script was run";
-$outfileH{"seedalignout"}     = "tabular cmalign output for 'SEED')";
+$outfileH{"seedalignout"}     = "tabular cmalign output for 'SEED'";
 $outfileH{"rfreplace.log.$$"} = "old rfreplace.log file, copy of 'rfreplace.log' from before this script was run";
 
 my $searchopts = get_searchopts($desc);
@@ -481,7 +481,7 @@ sub preliminary_replacement_check {
     }
     if(! $passed_id1) { 
       if($nfailed_id1 == 0) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\n", 1); }
-      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("! Warning: didn't find any hits with >= $id1_thr fractional identity (max found: %.2f) to $seed_name.", $max_id1), 1); 
+      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("! Warning: didn't find any hits with >= $id1_thr fractional identity (max found: %.2f) to $seed_name.\n", $max_id1), 1); 
       $min_max_id1 = ($max_id1 < $min_max_id1) ? $max_id1 : $min_max_id1;        
       $nfailed_id1++;
       $ridxAR->[$i] = -2; # flag for deleting this hit
@@ -791,7 +791,7 @@ sub process_choice_taxinfo_single {
     Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("\tClosest seed match [%3d%% id]: $eid_taxstr\n", id2percent($eid)), 1);
   }
   else { 
-    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tClosest seed match           : N/A, no seqs in seed yet\n", 1);
+    Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "\tClosest seed match          : N/A, no seqs in seed yet\n", 1);
   }
   return 3;
 }

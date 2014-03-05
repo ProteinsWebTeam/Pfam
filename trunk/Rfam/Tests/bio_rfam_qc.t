@@ -19,8 +19,6 @@ my $family = $familyIO->loadRfamFromLocalFile($test_family, $test_data);
 isa_ok($family, 'Bio::Rfam::Family');
 is( Bio::Rfam::QC::checkFamilyFormat($family), 0, "Family passes check");
 
-
-
 my $lncRNA = 'lncRNAGood';
 $family = $familyIO->loadRfamFromLocalFile($lncRNA, $test_data);
 is( Bio::Rfam::QC::checkSEEDFormat($family), 0, "Good lncRNA family passes no structure check.");
