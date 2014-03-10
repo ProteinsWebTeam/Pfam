@@ -1368,10 +1368,16 @@ sub printToFileAndOrStdout {
 
 sub youngerThan {
   my ($file1, $file2) = @_;
-
-  if( -M $file1 <= -M $file2 ) { 
-    return 1; 
+  my $age1 = (stat($file1))[9];
+  my $age2 = (stat($file2))[9];
+ 
+  if ($age1 <= $age2) {
+		return 1;
   }
+  
+  #if( -M $file1 <= -M $file2 ) { 
+  #  return 1; 
+  #}
   return 0;
 }
 
