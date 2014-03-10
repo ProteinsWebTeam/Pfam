@@ -234,6 +234,20 @@ sub checkCMFormat {
     return $error;
   }
 
+  # Make sure the CLEN in the CM is the same as the nongap RF length in the SEED
+  if(! $familyObj->SEED->has_rf) { 
+    printf STDERR "FATAL: SEED does not have an RF line\n";
+    $error = 1;
+    return $error;
+  }
+  my $rf = $familyObj->SEED->get_rf;
+  $rf =~ s/\.//g; # remove gaps
+  if(length($rf) != $familyObj->CM->cmHeader->{clen}) {
+    printf STDERR ("FATAL: CLEN in CM does not match nogap RF length in SEED.\n");
+    $error = 1;
+    return $error;
+  }    
+
   return $error;
 }
 
