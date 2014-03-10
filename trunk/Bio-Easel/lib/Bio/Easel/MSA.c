@@ -1720,7 +1720,7 @@ _c_remove_all_gap_columns(ESL_MSA *msa, int consider_rf)
     status = esl_msa_MinimGaps(msa, errbuf, NULL, consider_rf); 
   }
   else { /* text mode */
-    status = esl_msa_MinimGaps(msa, errbuf, "-_.~", consider_rf); 
+    status = esl_msa_MinimGapsText(msa, errbuf, "-_.~", consider_rf, 1); /* TRUE says: fix broken basepairs */
   }
 
   if(status != eslOK) croak ("ERROR, _c_remove_all_gap_columns: %s\n", errbuf);
