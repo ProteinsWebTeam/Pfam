@@ -140,7 +140,12 @@ sub new {
       $self->read_msa();
     };    # end of eval
     if ($@) {
-      confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
+      if(defined $args->{reqdFormat}) { 
+        confess("Error creating ESL_MSA from @{[$args->{fileLocation}]} if code 7 probably wrong format, $@\n");
+      }
+      else { 
+        confess("Error creating ESL_MSA from @{[$args->{fileLocation}]}, $@\n");
+      }
     }
   }
   elsif (defined $args->{esl_msa}) { 
@@ -2161,8 +2166,8 @@ sub _check_aseq_apos {
   Title    : _check_reqd_format
   Incept   : EPN, Thu Jul 18 11:06:02 2013
   Usage    : $msaObject->_check_reqd_format()
-  Function : Check if $self->{reqd_format} is a valid format or 'unknown'
-           : if not, croak. Also returns fine if self->{reqd_format} is not
+  Function : Check if $self->{reqdFormat} is a valid format or 'unknown'
+           : if not, croak. Also returns fine if self->{reqdFormat} is not
            : defined.
   Args     : none
   Returns  : void
@@ -2172,9 +2177,9 @@ sub _check_aseq_apos {
 sub _check_reqd_format { 
   my ( $self ) = @_;
 
-  if(defined $self->{reqd_format}) { 
-    if($self->{reqd_format} ne "unknown") { # unknown is valid, so we don't actually do the C check 
-      _c_check_reqd_format($self->{reqd_format}); 
+  if(defined $self->{reqdFormat}) { 
+    if($self->{reqdFormat} ne "unknown") { # unknown is valid, so we don't actually do the C check 
+      _c_check_reqd_format($self->{reqdFormat}); 
     }
   }
   return;
