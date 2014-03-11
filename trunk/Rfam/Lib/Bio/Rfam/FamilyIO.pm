@@ -87,7 +87,7 @@ sub loadRfamFromLocalFile {
                 'SEED' => {
                            fileLocation => "$dir/$family/SEED",
                            aliType      => 'seed',
-                           reqdFormat   => 'Stockhom',
+                           reqdFormat   => 'Stockholm',
                            # NOTE: we don't pass 'forceText => 1', if we did we'd read the alignment in text mode...
                           },
                 'DESC'   => $self->parseDESC("$dir/$family/DESC"),

@@ -1258,6 +1258,7 @@ sub codingSeqs {
   
   my ($fh, $filename) = tempfile();
   close($fh);
+
   #Write the file out as clustal
   $familyObj->SEED->write_msa($filename, 'clustal');
     
@@ -1357,15 +1358,20 @@ sub essential {
   Usage    : Bio::Rfam::QC::optional($newFamily, $dir, $oldFamily, $config, $override, $ignore)
   Function : Takes the new family and performs all QC steps except
            : those X for which $override->{X} is true.
-  Args     : HERE HERE HERE 
-  Returns  : 
-  
+  Args     : $newFamily: Bio::Rfam::Family object for the new family
+           : $dir:       path to the family
+           : $oldFamily: Bio::Rfam::Family object for the old family or undef if new
+           : $config:    Bio::Rfam::Config object
+           : $override:  hash with keys as names of tests to skip ('seed', 'coding', 'spell', 'missing', 'overlap')
+           : $ignore:    hash with keys as families to ignore in overlap test
+  Returns  : '0' if all tests pass, '1' if any fail
 =cut
 
 sub optional {
   my ($newFamily, $dir, $oldFamily, $config, $override, $ignore) = @_;
 
-  my ($error, $masterError);
+  my $error       = 0;
+  my $masterError = 0;
   
   if(!exists($override->{spell})){
     $error = checkSpell($dir, $config->dictionary);
@@ -1381,11 +1387,11 @@ sub optional {
   if(!exists($override->{seed})){
     $error = compareSeedAndScores($newFamily);
     if($error){
-      warn "Failed chcek to ensue all SEED sequences found.\n";
+      warn "Failed check to ensue all SEED sequences found.\n";
       $masterError =1;
     }
   }else{
-    warn "Ignoring chcek to ensue all SEED sequences found.\n";
+    warn "Ignoring check to ensue all SEED sequences found.\n";
   }
   
   if(!exists($override->{coding})){
@@ -1395,7 +1401,7 @@ sub optional {
       $masterError =1;
     }
    }else{
-    warn "Ignoring chcek for coding regions in SEED sequences.\n";
+    warn "Ignoring check for coding regions in SEED sequences.\n";
   }
 
   if(!exists($override->{missing})){
@@ -1408,6 +1414,9 @@ sub optional {
       	if ( $reply eq "y" ) {
           #Override the error....
           $error = 0;
+        }
+        else { 
+          $masterError = 1;
         }
       }
     }
