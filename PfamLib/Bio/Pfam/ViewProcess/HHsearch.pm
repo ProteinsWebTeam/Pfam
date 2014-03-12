@@ -386,7 +386,7 @@ sub _buildHMM {
   }else{
     $outputCmd = " -o  $hmmfilename";
   }
-  system($self->config->hmmer3binDev."/esl-reformat --replace .:- afa $seedFile > $tempDir/$$.fasta") 
+  system($self->config->hmmer3bin."/esl-reformat --replace .:- afa $seedFile > $tempDir/$$.fasta") 
         and $self->logger->logdie("Failed to run esl-reformat on $seedFile");
       
   system($self->config->hhsearchBin."/hhmake -M ".$self->match." -id ".$self->identity." $nameCmd -i $tempDir/$$.fasta $outputCmd > /dev/null 2>&1 ")
