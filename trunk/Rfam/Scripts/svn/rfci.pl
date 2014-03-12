@@ -128,6 +128,7 @@ if ($onlydesc) {
   #Okay, this a full check-in, perform whole QC repetoire.
   $error = Bio::Rfam::QC::essential($upFamilyObj, "$pwd/$family", $oldFamilyObj, $config);
   die "Failed essential QC step.\n" if($error);
+  
   $error = Bio::Rfam::QC::optional( $upFamilyObj, "$pwd/$family", $oldFamilyObj, 
                                     $config, $overrideHashRef, $overlapIgnore );
   die "Failed QC.\n" if($error);

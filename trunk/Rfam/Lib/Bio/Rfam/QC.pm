@@ -1270,7 +1270,7 @@ sub codingSeqs {
   push(@cmd, $pvalue, $filename);
   my($out, $err, $in);
   run \@cmd, \$in, \$out, \$err, or die "FATAL: Error running RNAcode: $?";
-  
+
   if($out =~ /No significant coding regions found/){
     #No errors
     return 0;
@@ -1372,6 +1372,7 @@ sub optional {
 
   my $error       = 0;
   my $masterError = 0;
+  my $msg         = "";
   
   if(!exists($override->{spell})){
     $error = checkSpell($dir, $config->dictionary);
@@ -1395,9 +1396,9 @@ sub optional {
   }
   
   if(!exists($override->{coding})){
-    $error = codingSeqs($newFamily, $config);
+    ($error, $msg) = codingSeqs($newFamily, $config);
     if($error){
-      warn "Failed chcek to SEED sequences do not contain coding regions. Please check.\n";
+      warn "Failed check to SEED sequences do not contain coding regions.\nPlease check RNAcode output below:\n\n--------------------\n$msg--------------------\n";
       $masterError =1;
     }
    }else{
