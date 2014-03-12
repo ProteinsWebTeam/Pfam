@@ -29,15 +29,15 @@ if($view->options->{onlylib}){
 #We have been given an accession, get the SEED file from the database, construct
 #a hhm style HMM and search it against the library.
 if ( $view->options->{acc} ) {
-  $view->logger->info("Preforming hhsearch ".$view->options->{acc});
+  $view->logger->info("Performing hhsearch ".$view->options->{acc});
   my $results = $view->makeHHMFromAccAndSearch($view->options->{acc});
-  $view->logger->info("Your resultst are in $results");
+  $view->logger->info("Your results are in $results");
 }
 
 #We have been given the flag -seed, use the SEED file in the current working
 #directory, construct an hhm style HMM and search it against the library.
 elsif($view->options->{seed}){
-  $view->logger->info("Preforming hhsearch SEED file");
+  $view->logger->info("Performing hhsearch SEED file");
   
   my $name;
   if($view->options->{name}){
@@ -46,14 +46,14 @@ elsif($view->options->{seed}){
     $name = 'SEED'
   }
   my $results = $view->makeHHMFromFileAndSearch('SEED', $name);
-  $view->logger->info("Your resultst are in $results");
+  $view->logger->info("Your results are in $results");
 }
 #We have been given a file, use that to construct an hhm style HMM and 
 #search it against the library.
 
 elsif($view->options->{file}){
   my $file =  $view->options->{file};
-  $view->logger->info("Preforming hhsearch $file file");
+  $view->logger->info("Performing hhsearch $file file");
   
   my $name;
   if($view->options->{name}){
@@ -62,7 +62,7 @@ elsif($view->options->{file}){
     $name = 'Query'
   }
   my $results = $view->makeHHMFromFileAndSearch($file, $name);
-  $view->logger->info("Your resultst are in $results");
+  $view->logger->info("Your results are in $results");
 }
 #We have been given a range, paging through families in the database
 #searching each in turn.
