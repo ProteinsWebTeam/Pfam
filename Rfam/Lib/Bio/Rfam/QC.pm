@@ -30,7 +30,7 @@ use File::Copy;
 use Data::Printer;
 use Data::Dump qw(dump);
 use IPC::Run qw(run);
-
+use Data::Dumper;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -170,7 +170,7 @@ sub checkSEEDFormat {
   #structure in the SS line.
   if( defined($familyObj->DESC->TP) and 
       $familyObj->DESC->TP eq 'Gene; lncRNA;' ){
-      if(!($familyObj->SEED->get_ss_cons =~ /^\.*$/)){
+      if(!($familyObj->SEED->get_ss_cons =~ /^(\.|\:)*$/)){
         warn "Found family type lncRNA (TP line in DESC), but the seed contains secondary structure.\n";
         $error++;
       }
@@ -498,17 +498,17 @@ sub checkTPField {
 
   #Get the predefined, okay data structure
   my $tpHashRef = $config->descTypes;
-
+  print Dumper $tpHashRef;
   #For each element/TP we find, descend down the hash.
   for ( my $i = 0 ; $i < scalar(@TPline) ; $i++ ) {
-    if ( $tpHashRef->{ $TPline[$i] } ) {
+	if ( $tpHashRef->{ $TPline[$i] } ) {
       $tpHashRef = $tpHashRef->{ $TPline[$i] };
     }
     else {
       warn "\nFATAL: Invalid TP line: "
         . $familyObj->DESC->TP
         . ", because $TPline[$i] not found in hash\n";
-      $i = scalar(@TPline);    #Break out as nothing will work
+      #$i = scalar(@TPline);    #Break out as nothing will work
       $error = 1;
     }
   }
