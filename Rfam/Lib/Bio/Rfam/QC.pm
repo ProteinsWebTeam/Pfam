@@ -1462,8 +1462,9 @@ sub processIgnoreOpt {
   #do not bother running the overlap check.
   if($acc){
     if(exists $config->allowedOverlaps->{$acc}){
-      $ignoreRef->{overlap} = 1;
-    }
+      #$ignoreRef->{overlap} = 1;
+	  push (@$ignoreRef, 'overlap');
+	}
   }
   
   my $allowedOpts = $config->ignorableQC;
