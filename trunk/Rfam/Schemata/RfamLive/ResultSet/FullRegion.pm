@@ -40,7 +40,7 @@ sub updateFullRegionsFromFamilyObj {
   
   $self->populate(\@row);
   if($count != $familyObj->SCORES->numRegions){
-    craok("Did not upload the correct number of full regions.\n");
+    croak("Did not upload the correct number of full regions.\n");
   }
   #TODO - search related to check number of FULL sequence match num_seed.
 }
