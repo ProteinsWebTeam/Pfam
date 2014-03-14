@@ -498,7 +498,6 @@ sub checkTPField {
 
   #Get the predefined, okay data structure
   my $tpHashRef = $config->descTypes;
-  print Dumper $tpHashRef;
   #For each element/TP we find, descend down the hash.
   for ( my $i = 0 ; $i < scalar(@TPline) ; $i++ ) {
 	if ( $tpHashRef->{ $TPline[$i] } ) {
