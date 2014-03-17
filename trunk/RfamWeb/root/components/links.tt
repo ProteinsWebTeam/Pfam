@@ -109,7 +109,7 @@ END; # of "addLinks" block
 BLOCK buildLink;
   SWITCH type %]
     [%- CASE "GO" -%]
-<a class="ext" href="http://amigo.geneontology.org/cgi-bin/amigo/term_details?term=GO:[% id %]">[% id %]</a>
+<a class="ext" href="http://amigo.geneontology.org/amigo/term/GO:[% id %]">[% id %]</a>
     [%- CASE "SO" -%]
 <a class="ext" href="http://www.sequenceontology.org/miso/current_release/term/SO:[% id %]">[% id %]</a>
     [%- CASE "MIR" -%]
