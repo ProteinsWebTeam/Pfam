@@ -9,16 +9,14 @@ use warnings;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
-use lib "/homes/swb/Rfam/Lib";
+
 use Bio::Rfam::SVN::Client;
 use Bio::Rfam::FamilyIO;
-
 use Bio::Rfam::QC;
 
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-print "USING LOCAL COPY!!!\n";
 
 my ( $message, @ignore, $onlydesc, $help );
 
