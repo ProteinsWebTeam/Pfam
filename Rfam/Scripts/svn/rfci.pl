@@ -9,13 +9,16 @@ use warnings;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
-
+use lib "/homes/swb/Rfam/Lib";
 use Bio::Rfam::SVN::Client;
 use Bio::Rfam::FamilyIO;
+
 use Bio::Rfam::QC;
 
 #-------------------------------------------------------------------------------
 # Deal with all of the options
+
+print "USING LOCAL COPY!!!\n";
 
 my ( $message, @ignore, $onlydesc, $help );
 
@@ -34,6 +37,9 @@ unless ($family) {
 chomp($family);
 
 help() if ($help);
+
+#ly %ignore = map {$_ => 1} @ignore;
+#lprint Dumper %ignore;
 
 #-------------------------------------------------------------------------------
 my $pwd = getcwd;
@@ -83,6 +89,15 @@ $client->checkFamilyExists($family);
 # Load the family from disk and svn through the middleware
 my ( $oldFamilyObj, $upFamilyObj );
 my $familyIO = Bio::Rfam::FamilyIO->new;
+
+#my %h = %$config;
+#for my $k (keys %{$config}) {
+#	print $k;
+#	print "$h{$k}\n";
+#}
+#foreach my $j (keys %{$config->allowedOverlaps}) {
+#	print "$j\n" if ($j eq 'RF00177');
+#}
 $upFamilyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded local copy $family through middleware\n";
 
@@ -110,6 +125,10 @@ if ( $upFamilyObj->DESC->ID ne $oldFamilyObj->DESC->ID ) {
 
 #-------------------------------------------------------------------------------
 #Perform the QC on the family
+
+#Map the ignore flags into a hash:
+
+
 
 my $acc = defined($upFamilyObj->DESC->AC) ? $upFamilyObj->DESC->AC : '';
 my $overrideHashRef = Bio::Rfam::QC::processIgnoreOpt(\@ignore, $config, $acc);
@@ -145,7 +164,7 @@ if ($onlydesc) {
 else {
   $client->commitFamily($family);
 }
-
+print STDERR "Successfully checked family in\n";
 #------------------------------------------------------------------------------
 #Clean-up
 #Remove any file containing the check-in message
