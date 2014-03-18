@@ -1370,7 +1370,7 @@ sub youngerThan {
   my ($file1, $file2) = @_;
   my $age1 = stat($file1)->mtime;
   my $age2 = stat($file2)->mtime;
-  if ($age2 <= $age1) {
+  if ($age2 < $age1) {
 	return 1;
  }
   
