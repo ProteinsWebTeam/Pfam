@@ -14,10 +14,10 @@ use Bio::Pfam::Queues::EbiQueueManager;
 # set up logging
 
 my $logger_conf = q(
-  log4perl.logger                   = DEBUG, Screen
+  log4perl.logger                   = WARN, Screen
   log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
   log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
-  log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
+  log4perl.appender.Screen.layout.ConversionPattern = %d %M:%L %p: %m%n
 );
 
 Log::Log4perl->init( \$logger_conf );
