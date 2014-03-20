@@ -450,8 +450,7 @@ sub _handle_batch_job {
   $self->_log->debug( "all chunks complete for batch job $job_id" );
   # TODO not taking into account failed chunks
 
-  my $results = $self->_assemble_chunk_results( $all_chunks_rs );
-  $results =~ s/^\s*\n//mg; # strip blank lines
+  my $results = $self->_assemble_chunk_results( $all_chunks_rs, $job );
 
   # since all chunks are done, delete the rows from the DB
   $all_chunks_rs->delete;
@@ -520,36 +519,47 @@ sub _handle_running_chunks {
 # "rfam_batch".
 
 sub _assemble_chunk_results {
-  my ( $self, $all_chunks_rs ) = @_;
+  my ( $self, $all_chunks_rs, $job ) = @_;
 
+  my $job_id = $job->job_id;
   my $results;
+  my @chunks = $all_chunks_rs->all;
 
   if ( $self->_queue_spec->{job_type} eq 'batch' ) {
 
-    foreach my $chunk ( $all_chunks_rs->all ) {
+    my $header = '';
+    if ( $self->_queue_spec->{header} ) {
+      $header = "\n" . $self->_queue_spec->{header} . "\n";
+      $header =~ s/\$JOBID/$job_id/;
+      my $input = join "\n", ( split /\n/, $job->job_stream->stdin )[0..9];
+      $header =~ s/\$INPUT/$input\n.../;
+    }
+
+    # get the header text from the first result chunk. This should be possible
+    # with a single regex and a lot less faffing about, but hey
+    my @comment_rows = grep( /^#/, split( /\n/, $chunks[0]->job_stream->stdout || '' ) );
+    $header .= join( "\n", @comment_rows ) . "\n\n";
+
+    # collect the actual results from all chunks
+    my @matches;
+    foreach my $chunk ( @chunks ) {
       my $ebi_id = $chunk->ebi_id;
       $self->_log->debug( "getting results for chunk $ebi_id" );
 
-      my $chunk_results = $chunk->job_stream->stdout;
+      my $chunk_results = $chunk->job_stream->stdout || '';
       # TODO check for failed job
 
       $self->_log->debug( 'results for chunk with EBI job ID ' . $ebi_id
                           . ":\n$chunk_results" );
 
-      if ( not defined $results ) {
-        # take the whole log from the first job, since we want the header too
-        $results = $chunk_results;
-      }
-      else {
-        # for the rest of the chunks, grep out just the result rows
-        $results .= join( "\n", grep( !/^#/, split( /\n/, $chunk_results ) ) );
-      }
+      push @matches, grep !/^(#.*|\s*)?$/, split( /\n/, $chunk_results );
     }
+
+    $results = $header . join "\n", sort @matches;
   }
   elsif ( $self->_queue_spec->{job_type} eq 'rfam_batch' ) {
-    my @chunks = $all_chunks_rs->all;
 
-    # keep the first two rows of the first result log as the header for the 
+    # keep the first two rows of the first result log as the header for the
     # combined output, and then the remainder as the footer
     my @rows   = grep( /^#/, split( /\n/, $chunks[0]->job_stream->stdout ) );
     $results   = join "\n", splice( @rows, 0, 2 );
@@ -557,11 +567,13 @@ sub _assemble_chunk_results {
 
     my $footer = "\n";
     $footer   .= join "\n", @rows;
-    
-    foreach my $chunk ( $all_chunks_rs->all ) {
+
+    foreach my $chunk ( @chunks ) {
       $results .= join( "\n", grep( !/^#/, split( /\n/, $chunk->job_stream->stdout ) ) );
     }
     $results .= $footer;
+
+    $results =~ s/^\s*\n//mg; # strip blank lines
   }
 
   return $results;
