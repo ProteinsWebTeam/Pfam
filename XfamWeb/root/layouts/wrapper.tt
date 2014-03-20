@@ -1,0 +1,14 @@
+[%
+# wrapper.tt
+#
+# wrapper for all page content. Contains the page header and footer. This
+# allows us to set the no_wrapper flag at any point and remove the
+# navigation chrome from the output. Useful during ajax requests.
+IF c.stash.no_wrapper;
+  content;
+ELSE;
+  wrapper = c.stash.wrapper || 'layouts/full.tt';
+  content WRAPPER $wrapper;
+END;
+-%]
+

@@ -1,0 +1,98 @@
+      <div class="row hidden-phone">
+        <div class="span12">
+          <div id="myCarousel" class="carousel slide">
+            <!-- Carousel items -->
+            <div class="carousel-inner">
+              <div class="active item hero-unit pfam-hero">
+                <h1 class="pfam">Pfam</h1>
+                <p>The Pfam database is a large collection of protein families, each represented by multiple sequence alignments and hidden Markov models (HMMs).</p>
+                <p><a class="btn btn-success btn-large" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+              </div>
+              <div class="item hero-unit rfam-hero">
+                <h1 class="rfam">Rfam</h1>
+                <p>The Rfam database is a collection of RNA families, each represented by multiple sequence alignments, consensus secondary structures and covariance models (CMs).</p>
+                <p><a class="btn btn-success btn-large" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+              </div>
+              <div class="item hero-unit dfam-hero">
+                <h1 class="dfam">Dfam</h1>
+                <p>The Dfam database is a collection of Repetitive DNA element sequence alignments, hidden Markov models (HMMs) and matches lists for complete Eukaryote genomes.</p>
+                <p><a class="btn btn-success btn-large" href="http://dfam.org">Go to site &raquo;</a></p>
+              </div>
+              <div class="item hero-unit treefam-hero">
+                <h1 class="treefam">Treefam</h1>
+                <p>Treefam is a database composed of phylogenetic trees inferred from animal genomes. It provides orthology/parology predictions as well the evolutionary history of genes.</p>
+                <p><a class="btn btn-success btn-large" href="http://treefam.org">Go to site &raquo;</a></p>
+              </div>
+              <div class="item hero-unit ipfam-hero">
+                <h1 class="ipfam">iPfam</h1>
+                <p>The iPfam database is a catalog of protein family interactions, including domain and ligand interactions, calculated from known structures.</p>
+                <p><a class="btn btn-success btn-large" href="http://ipfam.org">Go to site &raquo;</a></p>
+              </div>
+            </div>
+            <!-- Carousel nav -->
+            <a class="carousel-control left" href="#myCarousel" data-slide="prev">&lsaquo;</a>
+            <a class="carousel-control right" href="#myCarousel" data-slide="next">&rsaquo;</a>
+          </div>
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <div class="row">
+        <div class="span4">
+          <h2 class="pfam">Pfam</h2>
+          <p>The Pfam database is a large collection of protein families, each represented by multiple sequence alignments and hidden Markov models (HMMs).</p>
+          <p><a class="btn visible-phone" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <h2 class="rfam">Rfam</h2>
+          <p>The Rfam database is a collection of RNA families, each represented by multiple sequence alignments, consensus secondary structures and covariance models (CMs).</p>
+          <p><a class="btn visible-phone" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <h2 class="dfam">Dfam</h2>
+          <p>The Dfam database is a collection of Repetitive DNA element sequence alignments, hidden Markov models (HMMs) and matches lists for complete Eukaryote genomes.<p>
+          <p><a class="btn visible-phone" href="http://dfam.org">Go to site &raquo;</a></p>
+        </div>
+      </div>
+
+      <div class="row hidden-phone">
+        <div class="span4">
+          <p><a class="btn" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <p><a class="btn" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <p><a class="btn" href="http://dfam.org">Go to site &raquo;</a></p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span4">
+          <h2 class="treefam">Treefam</h2>
+          <p>Treefam is a database composed of phylogenetic trees inferred from animal genomes. It provides orthology/parology predictions as well the evolutionary history of genes.</p>
+          <p><a class="btn visible-phone" href="http://www.treefam.org">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <h2 class="ipfam">iPfam</h2>
+          <p>The iPfam database is a catalog of protein family interactions, including domain and ligand interactions, calculated from known structures.</p>
+          <p><a class="btn visible-phone" href="http://ipfam.org">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <h2 class="antifam">AntiFam</h2>
+          <p>AntiFam is a collection of hidden Markov models (HMMs) designed to identify spurious open reading frames (ORFs). </p>
+          <p><a class="btn visible-phone" href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam">Go to FTP site &raquo;</a></p>
+        </div>
+      </div>
+
+      <div class="row hidden-phone">
+        <div class="span4">
+          <p><a class="btn" href="http://www.treefam.org">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <p><a class="btn" href="http://ipfam.org">Go to site &raquo;</a></p>
+        </div>
+        <div class="span4">
+          <p><a class="btn" href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam">Go to FTP site &raquo;</a></p>
+        </div>
+      </div>
+
