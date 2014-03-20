@@ -1,0 +1,55 @@
+      <div class="row">
+        <div class="span12">
+          <h1>Send Us Feedback</h1>
+          <p></p>
+        </div>
+      </div>
+
+      <form method="post" action="">
+        <div class="row">
+          <div class="span6 control-group [% IF c.stash.error.site %]error[% END %]">
+            <label for="site">Site<span>*</span></label>
+            <select id="site" name="site" required="required">
+              <option>Pfam</option>
+              <option>Rfam</option>
+              <option>Dfam</option>
+              <option>Treefam</option>
+              <option>iPfam</option>
+              <option>Antifam</option>
+            </select>
+          </div>
+          <div class="span6 control-group [% IF c.stash.error.name %]error[% END %]">
+            <label class="control-label" for="name">Name</label>
+            <input type="text" id="name" name="name" value="[% c.req.params.name %]"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span6 control-group [% IF c.stash.error.type %]error[% END %]">
+            <label for="select">Issue Type<span>*</span></label>
+            <select id="type" name="type" required="required">
+              <option>Improvement</option>
+              <option>Feature</option>
+              <option>Bug</option>
+            </select>
+          </div>
+          <div class="span6 control-group [% IF c.stash.error.email %]error[% END %]">
+            <label class="control-label" for="email">Email Address<span>*</span></label>
+            <input type="email" id="email" name="email" value="[% c.req.params.email | html %]" required="required"/>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span12 control-group [% IF c.stash.error.feedback %]error[% END %]">
+            <label for="feedback">Feedback Details<span>*</span></label>
+            <textarea name="feedback" id="feedback" required="required">[% c.req.params.feedback | html %]</textarea>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span12">
+            <p><span>*</span> indicates a required field</p>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-success">Send</button>
+          <button type="reset" class="btn">Reset</button>
+        </div>
+      </form>
