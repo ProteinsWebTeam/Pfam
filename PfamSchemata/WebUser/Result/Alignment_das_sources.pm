@@ -28,11 +28,11 @@ __PACKAGE__->set_primary_key( qw/ from_system from_type to_system to_type / );
 
 # relationships
 
-__PACKAGE__->might_have( feature_sources_to => "WebUser::Feature_das_sources",
+__PACKAGE__->might_have( feature_sources_to => "WebUser::Result::Feature_das_sources",
 						{	"foreign.system"		=> "self.to_system",
 						 	"foreign.sequence_type"	=> "self.to_type"	} );
 							
-__PACKAGE__->might_have( feature_sources_from => "WebUser::Feature_das_sources",
+__PACKAGE__->might_have( feature_sources_from => "WebUser::Result::Feature_das_sources",
 						{	"foreign.system"		=> "self.from_system",
 						 	"foreign.sequence_type"	=> "self.from_type"	} );
 
