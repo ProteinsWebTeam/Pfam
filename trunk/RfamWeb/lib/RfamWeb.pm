@@ -25,6 +25,7 @@ use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
 use Sys::Hostname;
+use Log::Log4perl::Catalyst;
 
 extends 'PfamBase';
 
@@ -57,6 +58,9 @@ __PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 # catalyst plugins
 __PACKAGE__->setup( qw( Unicode
                         Static::Simple ) );
+
+# set up thel4p
+__PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config} ) ); 
 
 #-------------------------------------------------------------------------------
 
