@@ -28,11 +28,11 @@ __PACKAGE__->set_primary_key( qw/ server_id system sequence_type / );
 
 # relationships
 
-__PACKAGE__->might_have( alignment_sources_from => "WebUser::Alignment_das_sources",
+__PACKAGE__->might_have( alignment_sources_from => "WebUser::Result::Alignment_das_sources",
 						{	"foreign.from_system"	=> "self.system",
 						 	"foreign.from_type"		=> "self.sequence_type"	} );
 
-__PACKAGE__->might_have( alignment_sources_to => "WebUser::Alignment_das_sources",
+__PACKAGE__->might_have( alignment_sources_to => "WebUser::Result::Alignment_das_sources",
 						{	"foreign.to_system"	=> "self.system",
 						 	"foreign.to_type"	=> "self.sequence_type"	} );
 
