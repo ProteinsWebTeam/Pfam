@@ -248,6 +248,7 @@ else { # not trim mode, adding columns
         }
         else { # bottom strand
           my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name);
+          if($sqlen == -1) { die "ERROR seq $name does not exist in $fetch_sqfile->{path}"; }
           if   (exists $skipmeH{$nse})     { $nres = 0;   }              # skipping this seq, don't fetch any extra res
           elsif(($ostart + $n5) <= $sqlen) { $nres = $n5; }              # can fetch $n5 residues without running out
           else                             { $nres = $sqlen - $ostart; } # can only fetch $sqlen - $ostart residues before running out of sequence (nres will be 0 if $ostart==$sqlen)
@@ -261,6 +262,7 @@ else { # not trim mode, adding columns
         if($strand == 1) { # top strand 
           # this block mirrors bottom strand 5' block, but with $n3 and $oend replacing $n5 and $ostart
           my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name);
+          if($sqlen == -1) { die "ERROR seq $name does not exist in $fetch_sqfile->{path}"; }
           # printf("sqlen: $sqlen oend: $oend n3: $n3 x: %d\n", ($oend + $n3 - 1));
           if($skipmeH{$nse})             { $nres = 0; }              # skipping this seq, don't fetch any extra res
           elsif(($oend + $n3) <= $sqlen) { $nres = $n3; }            # can fetch $n3 residues without running out

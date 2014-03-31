@@ -251,9 +251,11 @@ $ga_evalue = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $ga_bitsc, $Z, $desc->SM)
 # write TBLOUT's set of dependent files 
 # (we do this no matter what, to be safe)
 my $rfamdb = $config->rfamlive;
-$io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_bitsc, $config->RPlotScriptPath);
+my $require_tax = 0;
+if(defined $dbconfig) { $require_tax = 1; } # we require tax info if we're doing standard search against a db in the config
+$io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_bitsc, $config->RPlotScriptPath, $require_tax, $logFH);
 
-# set the thresholds based on outlist
+# set the thresholds based on outlist, also determine if any SEED seqs are below GA or missed altogether
 my $orig_ga_bitsc = $famObj->DESC->CUTGA;
 my $orig_nc_bitsc = $famObj->DESC->CUTNC;
 my $orig_tc_bitsc = $famObj->DESC->CUTTC;
@@ -440,6 +442,7 @@ exit 0;
 # SUBROUTINES #
 ###############
 
+
 #########################################################
 # set_nc_and_tc: given a GA bit score cutoff and an outlist, determines
 # the NC and TC thresholds. If $do_force is '1' then we
@@ -477,7 +480,7 @@ sub set_nc_and_tc {
   if ($tc eq "undefined") { 
     if($do_force) { 
       $tc = $ga + 0.5; 
-      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("# Warning: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc), $do_stdout);
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc));
     }
     else { 
       die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
@@ -486,7 +489,7 @@ sub set_nc_and_tc {
   if ($nc eq "undefined") { 
     if($do_force) { 
       $nc = $ga - 0.5; 
-      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("# Warning: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
     }
     else { 
       die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";

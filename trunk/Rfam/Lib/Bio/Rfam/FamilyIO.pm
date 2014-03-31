@@ -1283,13 +1283,14 @@ sub makeAndWriteScores {
              : $ga:      GA threshold
              : $RPlotScriptPath: path for R plot script
              : $require_tax: '1' to require we find tax info in db for all hits
+             : $logFH:   log output file handle
     Returns  : void
     Dies     : upon file input/output error
 
 =cut
 
 sub writeTbloutDependentFiles {
-  my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath, $require_tax) = @_;
+  my ($self, $famObj, $rfdbh, $seedmsa, $ga, $RPlotScriptPath, $require_tax, $logFH) = @_;
 
   if (! defined $famObj->TBLOUT->fileLocation) { die "TBLOUT's fileLocation not set"; }
 
@@ -1314,10 +1315,9 @@ sub writeTbloutDependentFiles {
   # create nse HAA in msa for overlap checking
   $seedmsa->nse_createHAA();
   my $idx;
-  my %seedseq_foundH = ();
-  for ($idx = 0; $idx < $seedmsa->nseq; $idx++) { 
-    $seedseq_foundH{$seedmsa->get_sqname($idx)} = 0;
-  }
+  my %seedseq_overlap_above_gaH    = (); # key: SEED sequence, value name of best hit >= GA that overlaps with it
+  my %seedseq_overlap_below_gaH    = (); # key: SEED sequence, value name of best hit <  GA that overlaps with it
+  my %seedseq_overlap_below_ga_scH = (); # key: SEED sequence, score of best hit   <  GA that overlaps with it
 
   # Prepare the queries for execution.
   my $sthDesc = $rfdbh->prepare_seqaccToDescription();
@@ -1406,12 +1406,22 @@ sub writeTbloutDependentFiles {
 
     # determine seqLabel
     my $seqLabel = 'FULL';
-    my ($seed_seq, $overlapExtent) = $seedmsa->nse_overlap($name . "/" . $start . "-" . $end);
-
+    my $nse = $name . "/" . $start . "-" . $end;
+    my ($seed_seq, $overlapExtent) = $seedmsa->nse_overlap($nse);
     if ($seed_seq ne "") { 
-      $seedseq_foundH{$seed_seq}++;
       if ($overlapExtent > 0.1) {
         $seqLabel = 'SEED';
+        if($bits >= $ga) { 
+          if(! exists $seedseq_overlap_above_gaH{$seed_seq}) { 
+            $seedseq_overlap_above_gaH{$seed_seq} = $nse; 
+          }
+        }
+        else { # bits < $ga
+          if(! exists $seedseq_overlap_below_gaH{$seed_seq}) { 
+            $seedseq_overlap_below_gaH{$seed_seq} = $nse; 
+            $seedseq_overlap_below_ga_scH{$seed_seq} = $bits; 
+          }
+        }
       }
     }
     if (($bits < $ga) && ($seqLabel ne 'SEED')) {
@@ -1476,20 +1486,60 @@ sub writeTbloutDependentFiles {
   # complain loudly if seed sequences are missing from the output, if 
   # we have tax info for all hits (i.e. if we're doing a standard Rfam 
   # search)
-  my @warningsA = ();
+  # store warnings in separate arrays so we can print them out in order, for easier interpretation by user
+  my @warnings_case1A = ();
+  my @warnings_case2A = ();
+  my @warnings_case3A = ();
+  my @warnings_case4A = ();
   if($require_tax) { 
-    foreach my $n (keys %seedseq_foundH) {
-      if ($seedseq_foundH{$n} < 1) {
-        $outline = "WARNING: SEED sequence $n was not found (not in TBLOUT)\n";
-        warn $outline;
-        push(@warningsA, $outline);
+    # for each SEED sequence, determine which of the following 5 cases applies:
+    #
+    # 0)     exact hit to SEED exists >= GA (this is good)
+    # 1) non-exact hit to SEED exists >= GA (this might be okay)
+    # 2)     exact hit to SEED exists <  GA 
+    # 3) non-exact hit to SEED exists <  GA
+    # 4) no        hit to SEED exists at all 
+    #
+    # where 'hit to SEED' means a hit overlaps more than 10% coverage with the SEED seq
+    # We warn the user about cases 1-4. (Case 2 is probably okay though.)
+    for ($idx = 0; $idx < $seedmsa->nseq; $idx++) { 
+      my $n = $seedmsa->get_sqname($idx);
+      if(exists $seedseq_overlap_above_gaH{$n}) { # case 0 or 1
+        if($seedseq_overlap_above_gaH{$n} eq $n) { 
+          ;# case 0, do nothing.
+        }
+        else { 
+          # case 1, warn
+          push(@warnings_case1A, sprintf("! WARNING (case 1): Overlapping hit to SEED sequence exists > GA but it's not an exact match (%s (seed) != %s (hit))\n", 
+                                         $n, $seedseq_overlap_above_gaH{$n}));
+        }
       }
+      elsif(exists $seedseq_overlap_below_gaH{$n}) { # case 2 or 3
+        if($seedseq_overlap_below_gaH{$n} eq $n) { 
+          # case 2, warn
+          push(@warnings_case2A, sprintf("! WARNING (case 2): Exact match to SEED sequence exists but it is below GA (%s < $ga for $n)\n", 
+                                         $seedseq_overlap_below_ga_scH{$n}));
+        }
+        else { 
+          # case 3, warn
+          push(@warnings_case3A, sprintf("! WARNING (case 3): Overlapping hit to SEED sequence exists but it is below GA and it's not an exact match (%s < $ga and %s (seed) != %s (hit))\n", 
+                                         $seedseq_overlap_below_ga_scH{$n}, $n, $seedseq_overlap_below_gaH{$n}));
+        }
+      }
+      else { 
+        # case 4, warn
+        push(@warnings_case4A, "! WARNING (case 4): No overlapping hit to SEED sequence $n exists in outlist/species\n");
+      }        
     }
-    if (scalar(@warningsA) > 0) { 
+
+    my @warnings_allA = (@warnings_case1A, @warnings_case2A, @warnings_case3A, @warnings_case4A);
+    if (scalar(@warnings_allA) > 0) { 
       open(W, ">warnings") || croak "unable to open warnings file for writing";
-      foreach my $warning (@warningsA) { 
+      foreach my $warning (@warnings_allA) {  
         print W $warning;
+        Bio::Rfam::Utils::printToFileAndStderr($logFH, $warning);
       }
+      Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("! WARNING: warnings about SEED sequences (%d of them) written to warnings file\n", scalar(@warnings_allA)), 1);
       close(W);
     }
   }
@@ -2507,7 +2557,7 @@ sub taxinfoForHits {
   my $tax_uline  = "#";
   for($i = 0; $i < $max_length-1; $i++) { $tax_uline .= "-"; }
 
-  my $mem_length = ($ngroups >= 3) ? 3 : $ngroups;
+  my $mem_length = ($ngroups < 3) ? 3 : $ngroups;
 
   # line 1
   my $outstr = sprintf("%-*s  %-*s", $max_length, "#", $mem_length, "");
@@ -2626,19 +2676,28 @@ sub taxinfoForHits {
     push(@outputA, "\n");
     $printedH{$best_prefix} = 1;
   } # end of loop over all prefixes
-  my $total_line = "# total hits:";
-  for($i = 0; $i < ($max_length-13 + 5); $i++) { $total_line .= " "; }
+  # make dividing line
+  my $tmp_line = "";
+  $tmp_line .= sprintf("%-*s  %3s", $max_length, "#", "");
+  foreach $group (@{$groupOAR}) { 
+    $tmp_line .= sprintf("      %-13s", "-------------");
+  }
+  $tmp_line .= "\n";
+  push(@outputA, $tmp_line);
+
+  $tmp_line = "# total hits:";
+  for($i = 0; $i < ($max_length-13 + 5); $i++) { $tmp_line .= " "; }
   foreach $group (@{$groupOAR}) { 
     if($ngroupH{$group} == 0) { $nprintedH{$group} = 0; }
     if($nprintedH{$group} != $ngroupH{$group}) { 
       printf STDERR ("ERROR incorrect number of $group seqs (%d != %d)\n", $nprintedH{$group}, $ngroupH{$group}); 
       exit(1);
     }
-    $total_line .= sprintf("      %5d        ", $nprintedH{$group});
+    $tmp_line .= sprintf("      %5d        ", $nprintedH{$group});
   }
-  $total_line .= "\n";
-  push(@outputA, sprintf("%-*s  %3s      %-13s      %-13s      %-13s\n", $max_length, "#", "", "-------------", "-------------", "-------------"));
-  push(@outputA, $total_line);
+  $tmp_line .= "\n";
+  push(@outputA, $tmp_line);
+
   push(@outputA, "$div_line\n#\n");
 
   # potentially print to a file handle

@@ -1389,24 +1389,24 @@ sub printToFileAndOrStdout {
 }
 #-------------------------------------------------------------------------------
 
-=head2 printToFileAndOrStderr
+=head2 printToFileAndStderr
 
-  Title    : printToFileAndOrStderr
+  Title    : printToFileAndStderr
   Incept   : EPN, Mon Mar 31 11:26:56 2014
-  Usage    : printToFileAndStdout($str)
-  Function : Print string to a file handle and/or to stdout.
-  Args     : $fh:        file handle to print to, "" to not print to fh
-           : $str:       string to print
-           : $do_stderr: 1 to print to stderr, 0 to not to
+  Usage    : printToFileAndStderr($str)
+  Function : Print string to a file handle and to stderr.
+  Args     : $fh:   file handle to print to, "" to not print to fh
+           : $str:  string to print
   Returns  : void
 
 =cut
 
-sub printToFileAndOrStderr {
-  my ($fh, $str, $do_stderr) = @_;
-  
-  if(defined $do_stderr && $do_stderr) { $do_stderr = 2; }
-  Bio::Rfam::Utils::printToFileAndOrStdout($fh, $str, $do_stderr);
+sub printToFileAndStderr {
+  my ($fh, $str) = @_;
+
+  if($fh ne "") { print $fh $str; }
+  print STDERR $str;
+
   return;
 }
 
@@ -1652,6 +1652,34 @@ sub monocharacterString {
   my $ret_str = "";
   for(my $i = 0; $i < $len; $i++) { 
     $ret_str .= $char;
+  }
+  return $ret_str;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 padString
+
+  Title    : padString
+  Incept   : EPN, Mon Mar 24 13:56:56 2014
+  Usage    : padString($orig_str, $tot_len, $pad_char)
+  Function : Return a string that is of total length $tot_len and composed of $orig_str 
+           : appended with repeating $padchar.
+  Args     : $orig_str:  original string
+           : $tot_len:   desired length
+           : $pad_char:  character to add to $orig_str
+  Returns  : string of $orig_str followed by repeating $pad_char
+
+=cut
+
+sub padString { 
+  my ($orig_str, $tot_len, $pad_char) = @_;
+
+  my $ret_str = $orig_str;
+  my $nadd = $tot_len - length($orig_str);
+  if($nadd > 0) { 
+    $nadd /= length($pad_char);
+    $ret_str .= Bio::Rfam::Utils::monocharacterString($pad_char, $nadd);
   }
   return $ret_str;
 }
