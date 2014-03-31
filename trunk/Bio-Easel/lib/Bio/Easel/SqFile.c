@@ -417,8 +417,9 @@ SV *_c_fetch_seq_name_and_length_given_ssi_number(ESL_SQFILE *sqfp, int nkey) {
  *            sqname - name of sequence we want the length of
  *
  * Returns:   the length of the sequence named <sqname> in <sqfp>,
- *            '0' if lengths are unset in <sqfp>.
- * Dies:      if unable to find <sqname> in <sqfp>
+ *            '0' if lengths are unset in <sqfp>
+ *            '-1' if no sequence named <sqname> exists in <sqfp>
+ * Dies:      if out of memory or somethings wrong with the SSI file
  */
 
 long _c_fetch_seq_length_given_name(ESL_SQFILE *sqfp, char *sqname) { 
@@ -433,7 +434,7 @@ long _c_fetch_seq_length_given_name(ESL_SQFILE *sqfp, char *sqname) {
   /* fetch the length */
   status = esl_ssi_FindName(sqfp->data.ascii.ssi, sqname, &fh, &roff, NULL, &L);
   if     (status == eslEMEM)      croak("out of memory");
-  else if(status == eslENOTFOUND) croak("there is no sequence named %s\n", sqname);
+  else if(status == eslENOTFOUND) return -1; /* if seq does not exist, we don't die but return -1, caller must deal */
   else if(status == eslEFORMAT)   croak("error fetching sequence name %s, something wrong with SSI index?\n", sqname);
   else if(status != eslOK)        croak("error fetching sequence name %s\n", sqname);
 
