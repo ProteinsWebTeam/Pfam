@@ -526,6 +526,39 @@ sub overlap_fraction_two_nse {
 
     return overlap_fraction($s1, $e1, $s2, $e2);
 }
+#-------------------------------------------------------------------------------
+
+=head2 overlap_nres_two_nse
+
+  Title    : overlap_nres_two_nse
+  Incept   : EPN, Mon Mar 31 11:17:20 2014
+  Usage    : overlap_nres_two_nse($nse1, $nse2)
+  Function : Returns number of residue overlap of two regions defined by
+           : $nse1 and $nse2. Where $nse1 and $nse2 are both of
+           : format "name/start-end".
+  Args     : <nse1>: "name/start-end" for region 1
+           : <nse2>: "name/start-end" for region 2
+  Returns  : Number of residue overlap between region 1 and region 2
+           : (This will be 0 if names are different for regions 1 and 2.)
+           : (This will be 0 if regions are on different strands.)
+
+=cut
+
+sub overlap_nres_two_nse {
+    my ($nse1, $nse2) = @_;
+
+    my($is1, $n1, $s1, $e1, $str1) = nse_breakdown($nse1);
+    if(! $is1) { croak "$nse1 not in name/start-end format"; }
+    my($is2, $n2, $s2, $e2, $str2) = nse_breakdown($nse2);
+    if(! $is2) { croak "$nse2 not in name/start-end format"; }
+
+    if($n1   ne $n2)   { return 0; } #names don't match
+    if($str1 ne $str2) { return 0; } #strands don't match
+
+    my $nres_overlap = 0;
+    ($nres_overlap, $str1, $str2) = overlap_nres_either_strand($s1, $e1, $s2, $e2);
+    return $nres_overlap;
+}
 
 #-------------------------------------------------------------------------------
 
@@ -1333,7 +1366,8 @@ sub checkIfTwoFilesAreIdentical {
   Function : Print string to a file handle and/or to stdout.
   Args     : $fh:        file handle to print to, "" to not print to fh
            : $str:       string to print
-           : $do_stdout: 1 to print to stdout, 0 to not
+           : $do_stdout: 1 to print to stdout, 2 to print to stderr, 0 to 
+           :             print to neither
   Returns  : void
 
 =cut
@@ -1344,10 +1378,35 @@ sub printToFileAndOrStdout {
   if($fh ne "") { 
     print $fh $str;
   } 
-  if((! defined $do_stdout) || $do_stdout) { 
+  if(defined $do_stdout && $do_stdout == 2) { 
+    print STDERR $str;
+  }
+  elsif((! defined $do_stdout) || $do_stdout) { 
     print $str;
   }
 
+  return;
+}
+#-------------------------------------------------------------------------------
+
+=head2 printToFileAndOrStderr
+
+  Title    : printToFileAndOrStderr
+  Incept   : EPN, Mon Mar 31 11:26:56 2014
+  Usage    : printToFileAndStdout($str)
+  Function : Print string to a file handle and/or to stdout.
+  Args     : $fh:        file handle to print to, "" to not print to fh
+           : $str:       string to print
+           : $do_stderr: 1 to print to stderr, 0 to not to
+  Returns  : void
+
+=cut
+
+sub printToFileAndOrStderr {
+  my ($fh, $str, $do_stderr) = @_;
+  
+  if(defined $do_stderr && $do_stderr) { $do_stderr = 2; }
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, $str, $do_stderr);
   return;
 }
 

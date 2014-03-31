@@ -311,19 +311,58 @@ sub die_if_two_nse_overlap {
 # SEEDs are typically small, and only very rarely exceed
 # 200 or so seqs.
 #
+# If no sequence named $nse exists in the SEED, but $nse
+# is in name/start-end format and another sequence in 
+# name/start-end format exists in the seed that overlaps
+# with $nse, then return the index of that sequence but
+# warn the user. If more than one overlapping sequence
+# die.
+#
 sub get_seed_idx {
   my ($oseedmsa, $nse) = @_;
 
-  my $ret_idx = -1;
+  my $eq_idx   = -1; # index of sequence that matches exactly, if any
+  my $ol_idx   = -1; # index of sequence that overlaps on same strand, if any
+  my $ret_idx  = -1; # index to return
+  my $ol_name  = ""; # name sequence that overlaps on same strand, if any
+  my $tmp_name = ""; # temporary sequence name
   my $nseq = $oseedmsa->nseq;
   for(my $i = 0; $i < $nseq; $i++) { 
-    if($oseedmsa->get_sqname($i) eq $nse) { 
-      if($ret_idx != -1) { die "ERROR two sequences in the SEED with the same name... shouldn't happen."; }
-      $ret_idx = $i;
+    $tmp_name = $oseedmsa->get_sqname($i);
+    if($tmp_name eq $nse) { 
+      if($eq_idx != -1) { die "ERROR two sequences in the SEED with the same name ($nse)... this shouldn't happen."; }
+      if($ol_idx != -1) { die "ERROR two sequences in the SEED overlap ($nse and $ol_name)... this shouldn't happen."; }
+      $eq_idx = $i;
+    }
+    else { 
+      # not an exact match, if the sequences are in nse format, check if they overlap 
+      my ($is_nse1, $is_nse2);
+      ($is_nse1, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($nse);
+      ($is_nse2, undef, undef, undef, undef) = Bio::Rfam::Utils::nse_breakdown($tmp_name);
+      if($is_nse1 && $is_nse2) { 
+        if(Bio::Rfam::Utils::overlap_nres_two_nse($nse, $tmp_name) > 0) { # they overlap
+          if($ol_idx != -1) { 
+            die "ERROR two sequences in the SEED overlap with $nse ($ol_name and $tmp_name).";
+          }
+          $ol_idx  = $i;
+          $ol_name = $tmp_name;
+        }
+      }
     }
   }
-  if($ret_idx == -1) { die "ERROR unable to find $nse in SEED"; }
-
+  if($eq_idx != -1) { 
+    $ret_idx = $eq_idx;
+  }
+  else { 
+    # exact match was not found, was an overlapping hit found?
+    if($ol_idx != -1) { 
+      Bio::Rfam::Utils::printToFileAndOrStderr($logFH, "! WARNING: no exact match for $nse found. Replacing with overlapping sequence $ol_name instead.\n", 1);
+      $ret_idx = $ol_idx;
+    }
+  }
+  # if not found look for a hit that overlaps, if you find one, use it
+  # but warn user.
+  if($ret_idx == -1) { die "ERROR unable to find $nse (or overlapping seq in N/S-E format) in SEED"; }
   return $ret_idx;
 }
 
