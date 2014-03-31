@@ -356,7 +356,7 @@ sub get_seed_idx {
   else { 
     # exact match was not found, was an overlapping hit found?
     if($ol_idx != -1) { 
-      Bio::Rfam::Utils::printToFileAndOrStderr($logFH, "! WARNING: no exact match for $nse found. Replacing with overlapping sequence $ol_name instead.\n", 1);
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: no exact match for $nse found. Replacing with overlapping sequence $ol_name instead.\n");
       $ret_idx = $ol_idx;
     }
   }

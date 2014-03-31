@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use strict;
+use warnings;
 use Cwd;
 use Getopt::Long;
 use File::stat;
@@ -12,6 +13,8 @@ use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Family::MSA;
 use Bio::Rfam::Infernal;
 use Bio::Rfam::Utils;
+
+use Bio::Easel::SqFile;
 
 ###################################################################
 # Preliminaries:
@@ -31,6 +34,7 @@ my $do_noss     = 0;            # TRUE to allow building of CMs with no structur
 my $do_hand     = 0;            # TRUE to pass --hand to cmbuild
 my $do_enone    = 0;            # TRUE to pass --enone to cmbuild
 my $ignore_bm   = 0;            # TRUE to ignore BM in DESC for cmbuild options
+my $relax_about_seed = 0;       # TRUE to allow SEED sequences to not be in the database
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
@@ -76,6 +80,7 @@ my $config = Bio::Rfam::Config->new;
 	     "hand"       => \$do_hand,
 	     "enone"      => \$do_enone,
 	     "ignorebm"   => \$ignore_bm,
+	     "relax"      => \$relax_about_seed,
 	     "c"          => \$force_calibrate,
 	     "ccpu=s"     => \$ncpus_cmcalibrate,
              "e=s",       => \$e_opt,
@@ -299,49 +304,60 @@ if ($msa->any_allgap_columns) {
 # ============================================
 # 
 # output preamble: user, date, location, etc.
-if($do_quiet) { $do_stdout = 0; }
-my $cwidth = 40;
-Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
-
-# and report options enabled by the user
+# first, determine maximum column width for pretty formatting
+my @opt_lhsA = ();
+my @opt_rhsA = ();
 my $str;
 my $opt;
-if   (defined $dbfile)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db file:",                        "$dbfile" . " [-dbfile]"), $do_stdout); }
-elsif(defined $dbdir)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db dir:",                         "$dbdir" . " [-dbdir]"), $do_stdout); }
-elsif(defined $dblist)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db list file:",                   "$dblist" . " [-dblist]"), $do_stdout); }
-else                           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# seq db:",                             $dbchoice), $do_stdout); }
-if($force_build)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmbuild step:",                 "yes [-b]"), $do_stdout); }
-if($only_build)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# build-only mode:",                    "on [-onlybuild]"), $do_stdout); }
-if($do_noss)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# rewrite SEED with zero bp SS_cons:",  "yes [-noss]"), $do_stdout); }
-if($do_hand)                   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --hand to cmbuild:",             "yes [-hand]"), $do_stdout); }
-if($do_enone)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pass --enone to cmbuild:",            "yes [-enone]"), $do_stdout); }
-if($ignore_bm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's BM line:",              "yes [-ignorebm]"), $do_stdout); }
-if($force_calibrate)           { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force cmcalibrate step:",             "yes [-c]"), $do_stdout); }
-if(defined $ncpus_cmcalibrate) { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# num processors for MPI cmcalibrate:", "$ncpus_cmcalibrate [-ccpu]"), $do_stdout); }
-if(defined $e_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value cutoff:",                     $e_opt . " [-e]"), $do_stdout); }
-if(defined $t_opt)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score cutoff:",                   $t_opt . " [-t]"), $do_stdout); }
-if($do_cutga)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# use GA bit score threshold:",         "yes [-cut_ga]"), $do_stdout); }
-if(defined $Zuser)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb):",                   $Zuser . " [-Z]"), $do_stdout); }
-if(defined $rev_dbfile)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db file:",                   $rev_dbfile . " [-rdbfile]"), $do_stdout); }
-if(defined $rev_dbdir)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# reversed db dir:",                    $rev_dbdir . " [-rdbdir]"), $do_stdout); }
-if(defined $rev_Zuser)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# Z (dbsize in Mb) for reversed db:",   $rev_Zuser . " [-rZ]"), $do_stdout); }
-if($noZ)                       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# per-database-file E-values:",         "on [-noZ]"), $do_stdout); }
-if($no_search)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip cmsearch stage:",                "yes [-nosearch]"), $do_stdout); }
-if($no_rev_search)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# omit reversed db search:",            "yes [-norev]"), $do_stdout); }
-if(defined $ncpus_cmsearch)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmsearch jobs:",   "$ncpus_cmsearch [-scpu]"), $do_stdout); }
+if   (defined $dbfile)         { push(@opt_lhsA, "# seq db file: ");                        push(@opt_rhsA, "$dbfile" . " [-dbfile]"); }
+elsif(defined $dbdir)          { push(@opt_lhsA, "# seq db dir: ");                         push(@opt_rhsA, "$dbdir" . " [-dbdir]"); }
+elsif(defined $dblist)         { push(@opt_lhsA, "# seq db list file: ");                   push(@opt_rhsA, "$dblist" . " [-dblist]"); }
+else                           { push(@opt_lhsA, "# seq db: ");                             push(@opt_rhsA, $dbchoice); }
+if($force_build)               { push(@opt_lhsA, "# force cmbuild step: ");                 push(@opt_rhsA, "yes [-b]"); }
+if($only_build)                { push(@opt_lhsA, "# build-only mode: ");                    push(@opt_rhsA, "on [-onlybuild]"); }
+if($do_noss)                   { push(@opt_lhsA, "# rewrite SEED with zero bp SS_cons: ");  push(@opt_rhsA, "yes [-noss]"); }
+if($do_hand)                   { push(@opt_lhsA, "# pass --hand to cmbuild: ");             push(@opt_rhsA, "yes [-hand]"); }
+if($do_enone)                  { push(@opt_lhsA, "# pass --enone to cmbuild: ");            push(@opt_rhsA, "yes [-enone]"); }
+if($ignore_bm)                 { push(@opt_lhsA, "# ignore DESC's BM line: ");              push(@opt_rhsA, "yes [-ignorebm]"); }
+if($relax_about_seed)          { push(@opt_lhsA, "# allowing SEED seqs not in database: "); push(@opt_rhsA, "yes [-relax]"); }
+if($force_calibrate)           { push(@opt_lhsA, "# force cmcalibrate step: ");             push(@opt_rhsA, "yes [-c]"); }
+if(defined $ncpus_cmcalibrate) { push(@opt_lhsA, "# num processors for MPI cmcalibrate: "); push(@opt_rhsA, "$ncpus_cmcalibrate [-ccpu]"); }
+if(defined $e_opt)             { push(@opt_lhsA, "# E-value cutoff: ");                     push(@opt_rhsA, $e_opt . " [-e]"); }
+if(defined $t_opt)             { push(@opt_lhsA, "# bit score cutoff: ");                   push(@opt_rhsA, $t_opt . " [-t]"); }
+if($do_cutga)                  { push(@opt_lhsA, "# use GA bit score threshold: ");         push(@opt_rhsA, "yes [-cut_ga]"); }
+if(defined $Zuser)             { push(@opt_lhsA, "# Z (dbsize in Mb): ");                   push(@opt_rhsA, $Zuser . " [-Z]"); }
+if(defined $rev_dbfile)        { push(@opt_lhsA, "# reversed db file: ");                   push(@opt_rhsA, $rev_dbfile . " [-rdbfile]"); }
+if(defined $rev_dbdir)         { push(@opt_lhsA, "# reversed db dir: ");                    push(@opt_rhsA, $rev_dbdir . " [-rdbdir]"); }
+if(defined $rev_Zuser)         { push(@opt_lhsA, "# Z (dbsize in Mb) for reversed db: ");   push(@opt_rhsA, $rev_Zuser . " [-rZ]"); }
+if($noZ)                       { push(@opt_lhsA, "# per-database-file E-values: ");         push(@opt_rhsA, "on [-noZ]"); }
+if($no_search)                 { push(@opt_lhsA, "# skip cmsearch stage: ");                push(@opt_rhsA, "yes [-nosearch]"); }
+if($no_rev_search)             { push(@opt_lhsA, "# omit reversed db search: ");            push(@opt_rhsA, "yes [-norev]"); }
+if(defined $ncpus_cmsearch)    { push(@opt_lhsA, "# number of CPUs for cmsearch jobs: ");   push(@opt_rhsA, "$ncpus_cmsearch [-scpu]"); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
-if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmsearch options:",       $str . "[-cmos]"), $do_stdout); }
+if(scalar(@cmosA) > 0)         { push(@opt_lhsA, "# single dash cmsearch options: ");       push(@opt_rhsA, $str . "[-cmos]"); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
-if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmsearch options:",       $str . "[-cmod]"), $do_stdout); }
+if(scalar(@cmodA) > 0)         { push(@opt_lhsA, "# double dash cmsearch options: ");       push(@opt_rhsA, $str . "[-cmod]"); }
 $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
-if(scalar(@ssoptA) > 0)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add to cmsearch submit commands:",    $ssopt_str . "[-ssopt]"), $do_stdout); }
-if($ignore_sm)                 { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# ignore DESC's SM line:",              "yes [-ignoresm]"), $do_stdout); }
-if($allow_no_desc)             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# create new DESC b/c none exists:",    "yes [-nodesc]"), $do_stdout); }
-if($do_quiet)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# quiet mode: ",                        "on  [-quiet]"), $do_stdout); }
-if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",   "yes [-dirty]"), $do_stdout); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                    "$q_opt [-q]"), $do_stdout); }
+if(scalar(@ssoptA) > 0)        { push(@opt_lhsA, "# add to cmsearch submit commands: ");    push(@opt_rhsA, $ssopt_str . "[-ssopt]"); }
+if($ignore_sm)                 { push(@opt_lhsA, "# ignore DESC's SM line: ");              push(@opt_rhsA, "yes [-ignoresm]"); }
+if($allow_no_desc)             { push(@opt_lhsA, "# create new DESC b/c none exists: ");    push(@opt_rhsA, "yes [-nodesc]"); }
+if($do_quiet)                  { push(@opt_lhsA, "# quiet mode: ");                         push(@opt_rhsA, "on  [-quiet]"); }
+if($do_dirty)                  { push(@opt_lhsA, "# do not unlink intermediate files: ");   push(@opt_rhsA, "yes [-dirty]"); }
+if($q_opt ne "")               { push(@opt_lhsA, "# submit to queue: ");                    push(@opt_rhsA, "$q_opt [-q]"); }
 if(! $allow_no_desc) { 
-  if(! $do_update_desc)        { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# updating DESC at end of script:",     "no"), $do_stdout); }
+  if(! $do_update_desc)        { push(@opt_lhsA, "# updating DESC at end of script: ");     push(@opt_rhsA, "no"); }
+}
+my $nopt = scalar(@opt_lhsA);
+my $cwidth = ($nopt > 0) ? Bio::Rfam::Utils::maxLenStringInArray(\@opt_lhsA, $nopt) : 0;
+if($cwidth < 14) { $cwidth = 14; } ; # max length of lhs string in log_output_preamble
+$cwidth++; # one extra space
+
+# now we have column width output preamble
+if($do_quiet) { $do_stdout = 0; }
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+# and report options enabled by the user
+for(my $z = 0; $z < $nopt; $z++) { 
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("%-*s%s\n", $cwidth, $opt_lhsA[$z], $opt_rhsA[$z]), $do_stdout);
 }
 Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
@@ -372,6 +388,35 @@ foreach $outfile (@outfile_orderA) {
 }
 
 Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progress:", $do_stdout);
+
+###########################################################################################################
+# Preliminary check: verify that all sequences in the SEED derive from the database we're about to search #
+###########################################################################################################
+my $name2lookup;
+my $nwarnings = 0;
+my $fetch_sqfile;
+$fetch_sqfile = Bio::Easel::SqFile->new({
+  fileLocation => $dbconfig->{"fetchPath"}
+});
+for(my $i = 0; $i < $msa->nseq; $i++) { 
+  my $sqname = $msa->get_sqname($i);
+  my($is_nse, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($sqname);
+  $name2lookup = ($is_nse) ? $name : $sqname;
+  my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name2lookup);
+  if($sqlen == -1) { # sequence not in database
+    Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup not in database"); 
+    $nwarnings++;
+  }
+  elsif($sqlen != 0) { # we have a valid sequence length
+    if($start > $sqlen || $end > $sqlen) { # sequence in database but not long enough to cover $start-$end
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup exists in database but seq length is $sqlen\n");
+      $nwarnings++;
+    }
+  }
+}
+if($nwarnings > 0 && (! $relax_about_seed)) { 
+  die "ERROR: at least 1 sequence in SEED does not derive from database (permit this with -relax)\ndatabase file: $fetch_sqfile->{path}"; 
+}
 
 ##############
 # Build step #
@@ -597,7 +642,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   $ndbfiles = scalar(@dbfileA);
 
   # setup reversed database to search (this block is analogous to one above for regular (non-reversed) search)
-  $rev_ndbfiles;     # number of reversed seq files to search
+  $rev_ndbfiles = 0;    # number of reversed seq files to search
   my @rev_dbfileA = (); # array of seq file names for reversed search
   my $rev_dbconfig;     # rev db info from config, defined only if $dbconfig already defined and "revMate" exists
   if(! $no_rev_search) { 
@@ -801,8 +846,8 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
 
   # write TBLOUT-dependent files
   my $require_tax = 0;
-  if(defined $dbconfig) { $require_tax; } # we require tax info if we're doing standard search against a db in the config
-  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax);
+  if(defined $dbconfig) { $require_tax = 1; } # we require tax info if we're doing standard search against a db in the config
+  $io->writeTbloutDependentFiles($famObj, $config->rfamlive, $famObj->SEED, $famObj->DESC->CUTGA, $config->RPlotScriptPath, $require_tax, $logFH);
 
   # End of block for submitting and processing cmsearch jobs
   #################################################################################
@@ -1147,6 +1192,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -hand      pass --hand option to cmbuild, SEED must have nongap RF annotation
             -enone     pass --enone option to cmbuild
             -ignorebm  ignore build method (BM) in DESC
+            -relax     relax requirement that all SEED seqs exist in target database
 
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
 	    -c         always run cmcalibrate (default: only run if 'CM' is not calibrated)

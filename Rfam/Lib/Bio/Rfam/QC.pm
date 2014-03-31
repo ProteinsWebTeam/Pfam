@@ -190,7 +190,7 @@ sub checkSEEDFormat {
   Function : Performs format QC steps on the CM, via the object.
            : Although largely done via the FamilyIO, that just parses fields and
            : does not perform integrity checks. This checks that the number of
-           : SEED sequences and CM are consistent and that the number of sequneces
+           : SEED sequences and CM are consistent and that the number of sequences
            : in the CM and internal HMM agree. 
   Args     : A Bio::Rfam::Family object
   Returns  : 1 on error, 0 on passing checks.
@@ -621,7 +621,7 @@ sub checkNonFreeText {
   Function : Takes a family object and compares the SEED to the scores file to
            : ensure that all sequences are found. It does not look at co-ordinates
            : just sequence accessions.
-  Args     : A Bio::Rfam::Family obkect
+  Args     : A Bio::Rfam::Family object
   Returns  : 0 when all sequences found, otherwise 1
   
 =cut
