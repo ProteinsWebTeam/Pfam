@@ -560,14 +560,14 @@ sub fetch_seq_name_given_ssi_number {
   Title    : fetch_seq_length_given_ssi_number()
   Incept   : EPN, Mon Apr  8 13:34:13 2013
   Usage    : Bio::Easel::SqFile->fetch_seq_length_given_ssi_number($num)
-  Function : Fetches the primary key of sequence number <$num> in the SSI 
+  Function : Fetches the length of sequence number <$num> in the SSI 
            : index for an open sequence file. This will be the <$num>th sequence name
            : in an alphabetically sorted list of names, NOT the <$num>th sequence as it
            : appears in the sequence file.
   Args     : $num: index in SSI file
-  Returns  : string, the primary key (seq name) of sequence <$num> in the SSI index
+  Returns  : the length of of sequence <$num> in the SSI index, 0 if lengths are unset
   Dies     : upon error in _c_fetch_seq_name_and_length_given_ssi_number() with C croak() call
-
+           : including if there are not $num sequences in the SSI index.
 =cut
     
 sub fetch_seq_length_given_ssi_number {
@@ -589,9 +589,10 @@ sub fetch_seq_length_given_ssi_number {
   Usage    : Bio::Easel::SqFile->fetch_seq_length_given_name($sqname)
   Function : Fetches the length of the sequence named <$sqname> in the SSI 
            : index for an open sequence file. If '0' then seq lengths are
-           : unset, and we return 0.
+           : unset, and we return 0. If sequence does not exist we return -1.
   Args     : $sqname: name of sequence we want length of
-  Returns  : length of sequence
+  Returns  : length of sequence, 0 if lengths are unset but sequence exists
+           : -1 if no sequence named $sqname exists in the file
   Dies     : upon error in _c_fetch_seq_length_given_name() with C croak() call
 
 =cut
