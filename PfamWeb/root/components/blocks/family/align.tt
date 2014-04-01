@@ -583,6 +583,7 @@ footnotes = [ [ ],
         <input type="hidden" name="action" value="to MSA hub" />
   
         [% oe = 0 %]
+        <!-- [%# the submission of a full alignment just doesn't work
         <table class="details alignOpts" summary="Download options">
           <tbody>
             <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
@@ -600,9 +601,10 @@ footnotes = [ [ ],
             </tr>
           </tbody>
         </table>
+        -->
   
         <input type="button" 
-               value="Submit to MyHits" 
+               value="Use seed alignment with MyHits" 
                id="myHitsSubmit" />
                
         <span id="myHitsLoading" 
@@ -624,15 +626,14 @@ footnotes = [ [ ],
         // disable the form and show the spinner
         $("myHitsLoading").show();
 
+        // var alignmentUrl = "[% alignmentUri %]/" + ( $("mhTypeS").checked ? "seed" : "full" );
+        var alignmentUrl = "[% alignmentUri %]/seed/format?format=fasta";
+
         // set up an Updater that will retrieve the alignment
         var r = new Ajax.Updater(
           "myHitsText",
-          "[% alignmentUri %]/download/format",
+          alignmentUrl,
           {
-            parameters: { acc:     "[% acc %]",
-                          alnType: $F("mhTypeS") ? "seed" : "full", 
-                          format:  "fasta",
-                          gaps:    "dashes" },
             onSuccess: function( oResponse ) { 
               $("myHitsText").value = oResponse.responseText;
               $("myHitsForm").submit();
