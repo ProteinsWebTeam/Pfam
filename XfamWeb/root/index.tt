@@ -6,12 +6,12 @@
               <div class="active item hero-unit pfam-hero">
                 <h1 class="pfam">Pfam</h1>
                 <p>The Pfam database is a large collection of protein families, each represented by multiple sequence alignments and hidden Markov models (HMMs).</p>
-                <p><a class="btn btn-success btn-large" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+                <p><a class="btn btn-success btn-large" href="http://pfam.xfam.org">Go to site &raquo;</a></p>
               </div>
               <div class="item hero-unit rfam-hero">
                 <h1 class="rfam">Rfam</h1>
                 <p>The Rfam database is a collection of RNA families, each represented by multiple sequence alignments, consensus secondary structures and covariance models (CMs).</p>
-                <p><a class="btn btn-success btn-large" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+                <p><a class="btn btn-success btn-large" href="http://rfam.xfam.org">Go to site &raquo;</a></p>
               </div>
               <div class="item hero-unit dfam-hero">
                 <h1 class="dfam">Dfam</h1>
@@ -40,12 +40,12 @@
         <div class="span4">
           <h2 class="pfam">Pfam</h2>
           <p>The Pfam database is a large collection of protein families, each represented by multiple sequence alignments and hidden Markov models (HMMs).</p>
-          <p><a class="btn visible-phone" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+          <p><a class="btn visible-phone" href="http://pfam.xfam.org">Go to site &raquo;</a></p>
         </div>
         <div class="span4">
           <h2 class="rfam">Rfam</h2>
           <p>The Rfam database is a collection of RNA families, each represented by multiple sequence alignments, consensus secondary structures and covariance models (CMs).</p>
-          <p><a class="btn visible-phone" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+          <p><a class="btn visible-phone" href="http://rfam.xfam.org">Go to site &raquo;</a></p>
         </div>
         <div class="span4">
           <h2 class="dfam">Dfam</h2>
@@ -56,10 +56,10 @@
 
       <div class="row hidden-phone">
         <div class="span4">
-          <p><a class="btn" href="http://pfam.sanger.ac.uk">Go to site &raquo;</a></p>
+          <p><a class="btn" href="http://pfam.xfam.org">Go to site &raquo;</a></p>
         </div>
         <div class="span4">
-          <p><a class="btn" href="http://rfam.sanger.ac.uk">Go to site &raquo;</a></p>
+          <p><a class="btn" href="http://rfam.xfam.org">Go to site &raquo;</a></p>
         </div>
         <div class="span4">
           <p><a class="btn" href="http://dfam.org">Go to site &raquo;</a></p>
