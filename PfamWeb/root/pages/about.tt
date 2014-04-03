@@ -14,11 +14,10 @@ META fullPage = 1;
   <h1>About Pfam</h1>
   
   <p>
-    Pfam version [% relData.pfam_release %] was produced at the <a class="ext" 
-      href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a> 
-    and <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Farm Research Campus</a>. Pfam is built using a 
-    sequence database called <em>Pfamseq</em>, which is based on 
+    Pfam version [% relData.pfam_release %] was produced at the 
+    <a class="ext"
+      href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> 
+    using a sequence database called <em>Pfamseq</em>, which is based on
     <a class="ext" href="http://www.uniprot.org/">UniProt</a> release 
     [% relData.swiss_prot_version %].
   </p>
@@ -33,19 +32,27 @@ META fullPage = 1;
     Pfam is powered by the <a class="ext" href="http://hmmer.janelia.org/">HMMER3</a>
     package written by <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
     Sean Eddy</a> at the <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-    Howard Hughes Janelia Farm Research Campus</a>.
+    Howard Hughes Janelia Farm Research Campus</a>, and built by the 
+    <a class="ext" href="http://xfam.org/">Xfam consortium</a>.
   </p>
-  <p>  
-    Pfam mirror sites are maintained at two locations:
-  </p>
-  <ul>
-    <li>in the UK, at the <a class="ext" href="http://www.sanger.ac.uk/">
-      Wellcome Trust Sanger Institute</a>, by John Tate</li>
-    <li>in the US, at <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Farm Research Campus</a>, by Rob Finn, Jody Clements
-      and Goran Ceric</li>
-  </ul>
-
+  <div id="logos">
+    <div class="logo">
+      <a href="http://www.ebi.ac.uk/">
+        <img src="[% c.uri_for('/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg') %]" alt="EMBL-EBI"></img></a>
+    </div>
+    <div class="logo">
+      <a href="http://janelia.hhmi.org/">
+        <img src="[% c.uri_for('/static/images/janelia_logo.gif') %]" alt="JFRC"></img></a>
+    </div>
+    <div class="logo">
+      <a href="http://www.sanger.ac.uk/">
+        <img src="[% c.uri_for('/static/images/sanger_logo_light.png') %]" alt="WTSI"></img></a>
+    </div>
+    <div class="logo">
+      <a href="https://www.sbc.su.se/">
+        <img src="[% c.uri_for('/static/images/sbc_logo.png') %]" alt="SBC"></img></a>
+    </div>
+  </div>
 </div>
 
 [%#
