@@ -185,7 +185,8 @@ div.pfamLogoHolder #searchBox {
 }
 
 #siteLogo {
-  background-image: url(/shared/images/sanger_logo_light.png);
+  background-image: url(/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg);
+/*  background-image: url(/shared/images/sanger_logo_light.png); */
 /*  background-image: url(jfrc_gray_logo.gif); */
   background-repeat: no-repeat;
   width: 218px;
@@ -949,14 +950,6 @@ h2.padded {
 /* ---------------------------------------- */
 /* format the mirrors list and citation */
 
-/* the citation on the index page */
-#citation {
-  width: 60%;
-  float: left;
-}
-
-/* all other citations */
-
 div.citation {
   padding-bottom: 0.8em;
 }
@@ -970,45 +963,6 @@ div.citation span.ref {
 }
 div.citation span.jrnl {
   font-weight: bold;
-}
-
-/* mirrors list */
-
-ul.mirrors {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-ul.mirrors li {
-  padding: 0.2em 0 ! important;
-}
-
-.flag {
-  padding-left: 14px;
-}
-
-.mirror {
-  padding-left: 14px;
-  background-position: left;
-  background-repeat: no-repeat;
-}
-
-/* the national flags */
-.uk {
-  background-image: url(/static/images/flags/british_flag.gif);
-}
-.us {
-  background-image: url(/static/images/flags/american_flag.gif);
-}
-.se {
-  background-image: url(/static/images/flags/swedish_flag.gif);
-}
-.kr {
-  background-image: url(/static/images/flags/south_korea.gif);
-}
-.fr {
-  background-image: url(/static/images/flags/french_flag.gif);
 }
 
 /* ======================================== */
@@ -1028,7 +982,7 @@ ul.mirrors li {
 }
 
 #dbdSiteLogo {
-  background: url(/shared/images/sanger_logo_light.png) no-repeat;
+  background: url(/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg) no-repeat;
   width: 200px;
   height: 70px;
   left: 0;
@@ -1143,12 +1097,17 @@ div.blockContent #treeTools {
 /* about page */
 
 #about {
-  width: 700px;
+  width: 800px;
   margin: 0 auto;
 }
 
 #about p {
   line-height: 1.6em;
+}
+
+div.logo {
+  float: left;
+  margin: 20px 30px 20px 0;
 }
 
 /* ======================================== */
