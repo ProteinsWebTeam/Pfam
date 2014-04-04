@@ -15,8 +15,8 @@
   </div>
   <div class="blockContent">
     <p>
-     	The Rfam database is curated and maintained at the <a class="ext" 
-        href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a>. 
+      The Rfam database is curated and maintained at the <a class="ext" 
+        href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a>. 
       The resource is a collaboration with researchers at <a class="ext" 
         href="http://rfam.janelia.org/">Janelia Farm</a>, Maryland, VA, USA,
       and the <a class="ext" href="http://www.ls.manchester.ac.uk/">
@@ -24,13 +24,14 @@
       members, their institutes and primary role is listed below.
     </p>  
   
-    <h3>Wellcome Trust Sanger Institute (UK)</h3>
+    <h3>European Bioinformatics Institute (UK)</h3>
   
     <ul>
-      <li>Alex Bateman - coordinator of the Pfam, Merops and Rfam databases</li>
+      <li>Alex Bateman - EBI cluster head</li>
+      <li>Rob Finn - team lead</li>
       <li>Sarah Burge - Rfam project leader</li>
-      <li>Jennifer Daub - Rfam research and development</li>
       <li>Ruth Eberhardt - curator</li>
+      <li>Evan Floden - bioinformatician</li>
       <li>John Tate - web developer</li>
     </ul>
     
@@ -42,26 +43,13 @@
       <li>Eric Nawrocki - developer of Infernal software</li>  
     </ul>
     
-    <h3>Manchester University (UK)</h3>
-  
-    <ul>
-      <li>Sam Griffiths-Jones - founding Rfam developer and continued 
-        collaborator</li>
-    </ul>
-    
-    <h3>University of Canterbury (NZ)</h3>
-
-    <ul>
-      <li>Paul Gardner - former Rfam project leader and continued collaborator</li>
-    </ul>
-
-    <h3>Mirror Sites</h3>
-
-    [% PROCESS "components/mirrors.tt" %]  
-  
     <h3>Previous contributors</h3>
   
     <ul>
+       <li>Sam Griffiths-Jones - founding Rfam project leader</li>
+       <li>Paul Gardner - former Rfam project leader</li>
+       <li>Jennifer Daub</li>
+       <li>Ben Moore</li>
        <li>Mhairi Marshall</li>
        <li>Simon Moxon</li>  
        <li>Adam Wilkinson</li>

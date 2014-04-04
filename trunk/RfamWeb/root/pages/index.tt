@@ -442,15 +442,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     </div>
   </div>
 
-  <div id="mirrors">
-    <h2>Mirrors</h2>
-    <p>The following are official Rfam 
-      <a href="[% helpBase %]?tab=helpTheTeamBlock">mirror</a> sites:
-    </p>
-    [% PROCESS "components/mirrors.tt" %]
-
-  </div>
-
   <div class="cleaner"><!-- empty --></div>
 
   <div id="restore" class="announcements" style="display: none">
