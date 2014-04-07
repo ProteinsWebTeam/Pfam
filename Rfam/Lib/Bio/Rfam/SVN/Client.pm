@@ -614,8 +614,8 @@ sub killFamily {
   my $url;
   if ( $family =~ /RF\d{5}/ ) {
 
-    #Looks like a Dfam entry
-    $url = $self->modelLocation . "/" . $family;
+    #Looks like a Rfam entry
+    $url = $self->familyLocation . "/" . $family;
   }else{
     confess("\n*** $family does not look like a Rfam accession. ***\n\n");
   }
