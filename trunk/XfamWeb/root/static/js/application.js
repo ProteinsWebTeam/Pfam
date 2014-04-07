@@ -12,6 +12,12 @@
     $('h2.dfam').bind('mouseover', function() {
       $('.carousel').carousel(2);
     });
+    $('h2.treefam').bind('mouseover', function() {
+      $('.carousel').carousel(3);
+    });
+    $('h2.ipfam').bind('mouseover', function() {
+      $('.carousel').carousel(4);
+    });
 
   })
 
