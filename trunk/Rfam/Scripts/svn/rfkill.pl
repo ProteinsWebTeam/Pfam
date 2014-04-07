@@ -71,7 +71,7 @@ if ( $forward and $forward !~ /^RF\d{5}$/ ) {
 # Now check that the entry we want to kill is part of the SVN repository
 
 my $client = Bio::Rfam::SVN::Client->new;
-$client->checkModelExists($entry);
+$client->checkFamilyExists($entry);
 
 #-------------------------------------------------------------------------------
 # This bit is based on the old pfkill. Get a comment as to why the entry has been
