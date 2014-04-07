@@ -1,0 +1,52 @@
+
+.pfam    { color:#004a87 }
+.rfam    { color:#621700 }
+.treefam { color:#a2d46e }
+.dfam    { color:#739025 } 
+.ipfam   { color:#d14719 }
+.antifam { color:#004a87 }
+
+#feedback {
+  width:100%;
+  height: 25em;
+}
+
+.hero-unit {
+  min-height: 225px;
+  background-color: #eeeeee;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-position: 87% 0;
+}
+
+.hero-unit p {
+  width: 50%;
+  margin-left: 2px;
+}
+
+.pfam-hero    { background-image: url('/static/gfx/pfam.png') }
+.rfam-hero    { background-image: url('/static/gfx/rfam.png') }
+.dfam-hero    { background-image: url('/static/gfx/dfam.png') }
+.treefam-hero { background-image: url('/static/gfx/treefam.png') }
+.ipfam-hero   { background-image: url('/static/gfx/ipfam.png') }
+
+.pfam-hero    > h1 { background: url('/static/gfx/pfam_label_l.png')    no-repeat scroll 0 0 transparent }
+.rfam-hero    > h1 { background: url('/static/gfx/rfam_label_l.png')    no-repeat scroll 0 0 transparent }
+.dfam-hero    > h1 { background: url('/static/gfx/dfam_label_l.png')    no-repeat scroll 0 0 transparent }
+.treefam-hero > h1 { background: url('/static/gfx/treefam_label_l.png') no-repeat scroll 0 0 transparent }
+.ipfam-hero   > h1 { background: url('/static/gfx/ipfam_label_l.png')   no-repeat scroll 0 0 transparent }
+
+h2.small-label {
+  background-repeat: no-repeat;
+  background-scroll: scroll;
+  background-position: 0 8px;
+  background-color: transparent;
+}
+
+h2.small-label.pfam    { background-image: url('/static/gfx/pfam_label_s.png') }
+h2.small-label.rfam    { background-image: url('/static/gfx/rfam_label_s.png') }
+h2.small-label.dfam    { background-image: url('/static/gfx/dfam_label_s.png') }
+h2.small-label.treefam { background-image: url('/static/gfx/treefam_label_s.png') }
+h2.small-label.ipfam   { background-image: url('/static/gfx/ipfam_label_s.png') }
+h2.small-label.antifam { background-image: url('/static/gfx/antifam_label_s.png') }
+
