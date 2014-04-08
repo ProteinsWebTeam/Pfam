@@ -186,12 +186,12 @@ sub _getEntryObjFromTrans {
   #Determine where the path is!
   my ( $path, $family );
   foreach my $f ( @updated_files, @added_files, @deleted_files ) {
-    if ( $f =~ m|($svnPath/)(\S+)(/\w+)| ) {
+    if ( $f =~ m|($svnPath/)(\S+)(\/\w+)| ) {
       $path   = "$1$2";
       $family = $2;
       last;
     }
-    elsif ( $f =~ m|($svnPath/)(\S+)(/)| ) {
+    elsif ( $f =~ m|($svnPath/)(\S+)(\/)| ) {
       $path   = "$1$2";
       $family = "$2";
     }
@@ -303,7 +303,7 @@ sub deleteFamily {
       $svnPath .= '/';
     }
     
-    if ( $f =~ m|($svnPath)(\S+)(/)| ) {
+    if ( $f =~ m|($svnPath)(\S+)(\/)| ) {
       $family = "$2";
     }
   }
@@ -318,7 +318,7 @@ sub deleteFamily {
     confess("Did not get a Rfam accession\n");
   }
 
-  my $entry = $rfamdb->resultset('Family')->find('rfam_acc' => $family);
+  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
   my $user = $self->author;
   #Now make the dead family entry!
   $rfamdb->resultset('Family')->delete('rfam_acc' => $family);
