@@ -1105,9 +1105,8 @@ div.blockContent #treeTools {
   line-height: 1.6em;
 }
 
-div.logo {
-  float: left;
-  margin: 20px 30px 20px 0;
+#logos {
+  width: 100%;
 }
 
 /* ======================================== */

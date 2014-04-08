@@ -30,29 +30,35 @@ META fullPage = 1;
   </p>
   <p> 
     Pfam is powered by the <a class="ext" href="http://hmmer.janelia.org/">HMMER3</a>
-    package written by <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
-    Sean Eddy</a> at the <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-    Howard Hughes Janelia Farm Research Campus</a>, and built by the 
+    package written by 
+    <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
+      Sean Eddy and his group</a> at the 
+    <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
+      Howard Hughes Janelia Farm Research Campus</a>, and built by the 
     <a class="ext" href="http://xfam.org/">Xfam consortium</a>.
   </p>
-  <div id="logos">
-    <div class="logo">
-      <a href="http://www.ebi.ac.uk/">
-        <img src="[% c.uri_for('/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg') %]" alt="EMBL-EBI"></img></a>
-    </div>
-    <div class="logo">
-      <a href="http://janelia.hhmi.org/">
-        <img src="[% c.uri_for('/static/images/janelia_logo.gif') %]" alt="JFRC"></img></a>
-    </div>
-    <div class="logo">
-      <a href="http://www.sanger.ac.uk/">
-        <img src="[% c.uri_for('/static/images/sanger_logo_light.png') %]" alt="WTSI"></img></a>
-    </div>
-    <div class="logo">
-      <a href="https://www.sbc.su.se/">
-        <img src="[% c.uri_for('/static/images/sbc_logo.png') %]" alt="SBC"></img></a>
-    </div>
-  </div>
+  <table id="logos">
+    <tbody>
+      <tr>
+        <td>
+          <a href="http://www.ebi.ac.uk/">
+            <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.png') %]" alt="EMBL-EBI"></img></a>
+        </td>
+        <td>
+          <a href="http://janelia.hhmi.org/">
+            <img src="[% c.uri_for('/static/images/site_logos/janelia_logo.png') %]" alt="JFRC"></img></a>
+        </td>
+        <td>
+          <a href="http://www.sanger.ac.uk/">
+            <img src="[% c.uri_for('/static/images/site_logos/sanger_logo.png') %]" alt="WTSI"></img></a>
+        </td>
+        <td>
+          <a href="https://www.sbc.su.se/">
+            <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC"></img></a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 [%#
