@@ -28,7 +28,7 @@ sub unlockTheDatabase {
 
   if($lock_data){   
     if($user ne $lock_data->locker and !$force) {
-        croack("The database is locked by ".$lock_data->locker.
+        croak("The database is locked by ".$lock_data->locker.
                 ", if you [$user] want to unlock it, you need to use the -force option");
     } else {
       $lock_data->delete;
