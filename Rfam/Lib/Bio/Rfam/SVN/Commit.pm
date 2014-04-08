@@ -283,6 +283,17 @@ sub moveFamily {
 sub deleteFamily {
   my ( $self, $comment, $forward, $author ) = @_;
 
+  #Check we got a comment
+  unless ($comment) {
+    confess('Did not get a comment as to why this family is being killed');
+  }
+
+  #Get the database connection.
+  my $rfamdb = $self->{config}->rfamlive;
+  #Need to put a transaction around this block
+  my $guard = $rfamdb->txn_scope_guard;
+  
+  #Determine the family from the transaction
   my ($family);
   my @deleted_files = $self->deleted();
   my $svnPath       = $self->{config}->svnFamilies;
@@ -302,21 +313,19 @@ sub deleteFamily {
       "Failed to find which family is to be removed from the SVN repository\n");
   }
 
-  my $familyIO = Bio::Rfam::FamilyIO->new;
+
   unless ( $family and $family =~ /RF\d{5}/ ) {
     confess("Did not get a Rfam accession\n");
   }
-  
-  unless ($comment) {
-    confess('Did not get a comment as to why this family is being killed');
-  }
 
-  my $rfamDB = $self->{config}->rfamlive;
-  my $entry = $rfamDB->resultset('Family')->find('rfam_acc' => $family);
+  my $entry = $rfamdb->resultset('Family')->find('rfam_acc' => $family);
   my $user = $self->author;
   #Now make the dead family entry!
-  $rfamDB->resultset('Family')->delete('rfam_acc' => $family);
-  $rfamDB->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
+  $rfamdb->resultset('Family')->delete('rfam_acc' => $family);
+  $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
+
+  #Finish the transaction.
+  $guard->commit;
 }
 
 sub allowCommit {

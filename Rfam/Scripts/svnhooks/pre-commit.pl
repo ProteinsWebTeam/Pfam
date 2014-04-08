@@ -125,11 +125,11 @@ elsif ( $msg =~ /^KILL:/ ) {
   else {
     die "In KILL message, did not parse $msg\n";
   }
-  #TODO - this should go inside database code.
+
+  #Find out the author so we know who has done this.
   my $author = $txnlook->author();
-  my $guard =  $rfamdb->getSchema->txn_scope_guard;
+  #Go and delete the family.
   $txnlook->deleteFamily( $comment, $forward, $author );
-  $guard->commit;
 }
 elsif ( $msg =~ /SEQUP/ ) {
   foreach my $file ( $txnlook->updated() ) {
