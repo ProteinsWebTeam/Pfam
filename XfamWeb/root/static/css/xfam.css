@@ -19,6 +19,14 @@
   background-position: 87% 0;
 }
 
+@media (min-width: 768px) and (max-width: 979px) {
+  .hero-unit {
+    min-height: 16em;
+    background-size: 300px;
+    background-position: 87% 50%;
+  }
+}
+
 .hero-unit p {
   width: 50%;
   margin-left: 2px;
