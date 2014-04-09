@@ -321,7 +321,7 @@ sub deleteFamily {
   my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
   my $user = $self->author;
   #Now make the dead family entry!
-  $entry->delete;
+  $entry->delete();
   #$rfamdb->resultset('Family')->delete('rfam_acc' => $family);
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 
