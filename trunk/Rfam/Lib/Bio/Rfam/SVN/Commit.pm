@@ -33,7 +33,7 @@ use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::QC;
 use Data::Printer;
-
+use Data::Dumper;
 use base "SVN::Look";
 
 #-------------------------------------------------------------------------------
@@ -319,7 +319,8 @@ sub deleteFamily {
   }
 
   #Now make the dead family entry!
-  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family})->delete();
+  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
+  print Dumper $entry;
   my $user = $self->author;
   #$rfamdb->resultset('Family')->delete('rfam_acc' => $family);
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
