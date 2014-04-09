@@ -318,10 +318,9 @@ sub deleteFamily {
     confess("Did not get a Rfam accession\n");
   }
 
-  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
-  my $user = $self->author;
   #Now make the dead family entry!
-  $entry->delete();
+  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family})->delete();
+  my $user = $self->author;
   #$rfamdb->resultset('Family')->delete('rfam_acc' => $family);
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 
