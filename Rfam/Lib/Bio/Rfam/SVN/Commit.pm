@@ -28,7 +28,6 @@ use strict;
 use warnings;
 use File::Temp;
 use Carp;
-
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::QC;
@@ -276,8 +275,9 @@ sub moveFamily {
   }
 
   my $familyIO = Bio::Rfam::FamilyIO->new;
-  my ( $familyObj, $family, $dir ) = $self->_getFamilyObjFromTrans( $familyIO, 0 );
-  $self->_commitEntry($familyObj);
+  my ( $familyObj, $family, $dir ) = $self->_getEntryObjFromTrans( $familyIO, 0 );
+  print "Using Local Modified _getEntryObj vs _getFamilyObj";
+ $self->_commitEntry($familyObj);
 }
 
 sub deleteFamily {
