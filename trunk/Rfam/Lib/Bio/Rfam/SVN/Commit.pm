@@ -275,7 +275,7 @@ sub moveFamily {
     confess("Trying to move a family with added files\n");
   }
 
-  my $familyIO = Bio::Pfam::FamilyIO->new;
+  my $familyIO = Bio::Rfam::FamilyIO->new;
   my ( $familyObj, $family, $dir ) = $self->_getFamilyObjFromTrans( $familyIO, 0 );
   $self->_commitEntry($familyObj);
 }
