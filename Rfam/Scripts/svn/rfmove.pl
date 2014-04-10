@@ -57,7 +57,7 @@ unless($family =~ /^RF\d{5}$/){
 }
 
 #Check that the new name is okay
-unless( Bio::Rfam::QC::nameFormatIsOK($newName)) {
+if( Bio::Rfam::QC::nameFormatIsOK($newName)) {
   die "\n***** There appears to be a problem with the format of the new name. ****\n".
   "***** Remember, it should be between 1 and 15 characters and not contain symbols other than _ and/or - *****\n\n";  
 }
