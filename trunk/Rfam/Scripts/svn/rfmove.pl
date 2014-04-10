@@ -65,7 +65,7 @@ if( Bio::Rfam::QC::nameFormatIsOK($newName)) {
 #Now check that the new name does not already exist.
 if($config->location eq 'EBI'){
   my $rfamdb = $config->rfamlive;
-  my $row = $rfamdb->$rfamdb->resultset('Family')->find({ rfam_id => $newName});
+  my $row = $rfamdb->resultset('Family')->find({ rfam_id => $newName});
   if(defined($row)){
     die "$newName is already in use for ".$row->rfam_acc."\n";
   }
