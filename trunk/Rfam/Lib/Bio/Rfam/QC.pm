@@ -30,7 +30,6 @@ use File::Copy;
 use Data::Printer;
 use Data::Dump qw(dump);
 use IPC::Run qw(run);
-use Data::Dumper;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -1500,4 +1499,37 @@ sub _addBlackListToIgnore {
   
   return;
 }
+
+#------------------------------------------------------------------------------
+=head2 nameFormatIsOK
+
+  Title    : nameFormatIsOK
+  Incept   : swb, Apr 9, 2014 4:42:09 PM
+  Usage    : nameFormatIsOK($ignore, $config);
+  Function : Checks ID line conforms to required format
+  Args     : A Bio::Rfam::Family object
+  Returns  : 1 on success, 0 on error
+
+=cut
+
+sub nameFormatIsOK {
+	my ($newName) = @_;
+
+	#if ( !$familyObj or !$familyObj->isa('Bio::Rfam::Family') ) {
+    #	die "Did not get passed in a Bio::Rfam::Family object\n";
+  	#}
+  	my $error = 0;
+
+	#my $IDline = $familyObj->DESC->ID;
+	print Dumper $newName;
+	if ($newName =~ /[\w-]{1,15}/) {
+		#warn "The new ID line does not match the correct format!\n";
+		print "Name is ok!\n";
+		$error = 0;
+		return $error;
+	}
+
+}
+
+
 1;
