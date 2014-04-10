@@ -1521,7 +1521,6 @@ sub nameFormatIsOK {
   	my $error = 0;
 
 	#my $IDline = $familyObj->DESC->ID;
-	print Dumper $newName;
 	if ($newName =~ /[\w-]{1,15}/) {
 		#warn "The new ID line does not match the correct format!\n";
 		print "Name is ok!\n";
