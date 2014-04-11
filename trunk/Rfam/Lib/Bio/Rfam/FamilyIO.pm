@@ -734,7 +734,7 @@ sub parseDESC {
       
       #Check the format as best as we can.
       my $error = 0;
-      my @ids=split("\; ", $piLine);
+      my @ids=split("\;", $piLine);
       foreach my $i (@ids){
         if ($i=~/\;/){
           $error = 1;
