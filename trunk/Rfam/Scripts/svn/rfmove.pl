@@ -106,7 +106,7 @@ if($oldName eq $newName){
 }
 
 if($descObj->PI and $descObj->PI =~ /\S+/){
-  $descObj->PI( $descObj->PI." $oldName;");
+  $descObj->PI( $descObj->PI."; $oldName");
 }else{
   $descObj->PI("$oldName;");
 }
