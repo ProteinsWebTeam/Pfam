@@ -323,6 +323,7 @@ sub deleteFamily {
   print Dumper $entry;
   my $user = $self->author;
   #$rfamdb->resultset('Family')->delete('rfam_acc' => $family);
+  print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
 
   #Finish the transaction.
