@@ -433,6 +433,40 @@ sub tax2kingdom {
 
 #-------------------------------------------------------------------------------
 
+=head2 capitalize_token_in_taxstring
+
+  Title    : capitalize_token_in_taxstring
+  Incept   : EPN, Thu Apr 10 10:01:41 2014
+  Usage    : capitalize_token_in_taxstring($species)
+  Function : Given a taxonomy string capitalize a given token within it.
+           : Tokens are delimited by ';'.
+  Args     : $taxstr: the taxonomic string 
+           : $level:  the level of token to capitalize NOTE '0' means 1st token [0..ntok-1]
+  Returns  : $taxstr with token number $level capitalize
+  Dies     : If there are less than ($level+1) tokens in $taxstr.
+
+=cut
+
+sub capitalize_token_in_taxstring { 
+  my ($taxstr, $level) = @_;
+  if(! defined $level) { die "ERROR, level not defined in capitalize_token_in_taxstring"; }
+  
+  my @elA = split(";", $taxstr);
+  my $ntok = scalar(@elA);
+  if($ntok < ($level+1)) { $level++; die "ERROR, trying to capitalize token number $level but only $ntok exist in $taxstr"; }
+  
+  my $ret_tok = "";
+  for(my $i = 0; $i < $ntok; $i++) { 
+    if($level == $i) { $elA[$i] =~ tr/a-z/A-Z/; }
+    $ret_tok .= $elA[$i];
+    if($i < ($ntok-1)) { $ret_tok .= ";"; }
+  }
+  
+  return $ret_tok;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 nse_breakdown
 
   Title    : nse_breakdown
@@ -785,6 +819,7 @@ sub log_output_preamble {
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# user:", $user),                 $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# date:", $date),                 $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd),                 $also_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# process-id:", $$),              $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $also_stdout);
   Bio::Rfam::Utils::printToFileAndOrStdout($fh, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID),        $also_stdout);
   if(defined $desc->AC) { 
