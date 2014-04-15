@@ -36,7 +36,8 @@ sub createFromFamilyRow {
       comment     => $comment,
       forward_to  => $forward,
       user        => $user,
-      killed      => \'NOW()'
+      title       => $entry->auto_wiki->title,
+      #killed      => \'NOW()' - TODO - you probably needs this in the future.
     }
   );
 }
