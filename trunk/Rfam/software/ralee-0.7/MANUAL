@@ -1,0 +1,205 @@
+RALEE -- RNA alignment editor in Emacs
+--------------------------------------
+
+See the 00README file included with the RALEE distribution for
+installation instructions.
+
+
+Commands and shortcuts
+----------------------
+
+In addition to the standard emacs editing commands (C-x C-s to save
+etc), RALEE includes some commands to edit and markup alignments of
+structured RNAs.  
+
+M-x means "hold down alt and press x", or "press Escape then x" on
+sensible systems; C-c means "hold down Ctrl and press c".  The full
+command is on the left with the shortcut on the right.
+
+Most commands can be run from the menus, so exploration there is a
+great way to learn what does what.
+
+
+Movement
+--------
+
+   M-x jump-right				C-right
+   M-x jump-left				C-left
+   M-x jump-up					C-up
+   M-x jump-down				C-down
+
+     Control-arrow keys scroll the alignment a page at a time in all
+     directions.
+
+   M-x jump-to-pair				C-c C-p
+   M-x jump-to-pair-in-other-window		C-c C-o
+
+   M-x center-on-point                          C-l
+
+
+Editing
+-------
+
+   M-x insert-gap				.
+   M-x delete-gap				C-d
+   M-x insert-gap-column			C-c C-i
+   M-x delete-gap-column			C-c C-d
+   M-x delete-all-gap-columns
+
+   M-x shift-sequence-left                      C-,
+   M-x shift-sequence-right                     C-.
+
+     shift-sequence-(left|right) pushes the sequence, removing and
+     inserting gaps to leave the rest of the sequence alone.  This is a
+     core editing move which you should be using often!
+
+   M-x throw-sequence-left                      C-<
+   M-x throw-sequence-right                     C->
+
+     throw-sequence-(left|right) do the same as shift methods, but
+     pushing the sequence as far as it will go (until it hits another
+     sequence chunk).
+
+   M-x trim-left
+   M-x trim-right
+
+     Remove columns of the alignment to the left or right of the
+     cursor.
+
+   M-x uppercase-alignment
+   M-x lowercase-alignment
+   M-x t-to-u
+   M-x u-to-t
+   M-x gap-to-dot
+
+     Some functions assume that gap characters are represented by '.'s
+     so you may be wise to convert all gaps to '.'s using this
+     function.
+
+   M-x unblock-alignment
+
+     unblock-alignment takes a blocked Stockholm alignment file and
+     unblocks it, saving the original file with a .bak extension.
+     This function is not well tested -- beware that your data may get
+     corrupted.
+
+   M-x make-flush-alignment
+
+     Pad the right end of each sequence with gaps characters to make
+     it flush.
+
+
+Painting
+--------
+
+   M-x paint-buffer-by-ss			C-c C-b
+   M-x paint-buffer-by-cons			C-c C-c
+   M-x paint-buffer-by-base			C-c C-v
+   M-x paint-buffer-by-current-ss-line		C-c C-n
+
+     Show color mark-up based on the secondary structure and
+     conservation.
+
+   M-x paint-buffer-by-compensatory-changes	C-c C-x
+
+     Show compensatory base changes with respect to the first sequence
+     in the alignment.  Colors:
+     	green        double compatible substitution
+	light-green  single compatible substitution
+	red	     double incompatible substitution
+	orange	     single incompatible substitution
+	magenta      base involving a gap symbol
+
+   M-x paint-char                               C-#
+
+     paint-char allows you to add temporary colour mark-up by hand.
+     The changes disappear next time yuo paint by any other method.
+
+   M-x toggle-highlight-current-line            C-c C-h
+
+     Highlight the current line in bold.
+
+
+Blocks
+------
+
+   M-x define-block                             C-\
+   M-x undefine-block                           C-c C-\
+
+     Define blocks of sequence to perform other actions on.
+     Define the top left corner of the block with C-space, and the
+     bottom right with the define-block function.
+
+   M-x unalign-block
+
+     Unalign the residues in the current block, pushing them left,
+     right, to the center, or to the edges.
+
+
+Helper applications
+-------------------
+
+   M-x fold-sequence				C-c C-f
+
+     fold-sequence calculates and adds secondary structure markup for
+     a given sequence in a #=GR line.  This assumes that you have
+     ViennaRNA (http://www.tbi.univie.ac.at/~ivo/RNA/) installed and
+     that RNAfold is on your path.
+
+   M-x fold-all-sequences
+   M-x fold-sequence-block
+
+     fold-sequence-block folds only the subsequences defined in the
+     current block.  This is mostly useful for folding single helices
+     in one or more sequences.
+
+   M-x show-structure-ps
+
+     show-structure-ps requires ViennaRNA and gv to be on your path.
+
+   M-x remove-all-gr-lines
+
+     Remove all the #=GR lines that fold-sequence methods add.
+
+
+Output
+------
+
+   M-x write-ps
+   M-x page-setup
+
+     write-ps dumps a postscript file of your alignment, complete with
+     the current colour markup.  page-setup allows you to choose things
+     like fontsize, page orientation etc.
+
+
+Minor modes
+-----------
+
+   M-x protect-mode
+
+     protect-mode protects the alignment from inadvertant insertion or
+     deletion.  The delete and backspace keys are reconfigured to only
+     allow deletion of gaps.  Keys that normally insert
+     letters/numbers/symbols are disabled.
+
+   M-x highlight-current-line-mode
+
+     Not strictly a minor mode, but hey.  highlight-current-line-mode
+     allows you to switch off the behaviour that a left mouse click
+     highlights a sequence.  This is useful if you want to use a font
+     which looks bad in bold.
+
+
+Misc
+----
+
+   Changing font size:
+     - GNU Emacs: hold down shift and left click for a font menu
+     - XEmacs: use the Options menu (which has disappeared in
+       ralee-mode - doh!)
+
+
+
+---
+SGJ
