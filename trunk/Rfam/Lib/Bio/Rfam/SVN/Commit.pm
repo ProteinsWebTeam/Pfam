@@ -320,12 +320,20 @@ sub deleteFamily {
 
   #Now make the dead family entry!
   my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
-  print Dumper $entry;
+  #print Dumper $entry;
+  
+  unless($entry and $entry->rfam_acc eq $family){
+    confess("Failed to get an Rfam entry for $family\n");   
+  }
   my $user = $self->author;
-  #$rfamdb->resultset('Family')->delete('rfam_acc' => $family);
-  print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
+  #print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
+  
+  #Create the dead family and then finally delete the row.
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
-
+  #We should have create the dead row if we get here, so now delete it and let the
+  #database cascade the delete.
+  $rfamdb->resultset('Family')->delete('rfam_acc' => $family);
+  
   #Finish the transaction.
   $guard->commit;
 }
