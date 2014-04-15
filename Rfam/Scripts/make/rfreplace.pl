@@ -20,6 +20,54 @@ use Bio::Easel::MSA;
 use Bio::Easel::SqFile;
 use Bio::Easel::Random;
 
+##################################################################
+# EPN, Tue Apr 15 11:28:04 2014
+# Notes on how to overhaul this script, when possible.
+#
+# From Janelia: /groups/eddy/home/nawrockie/notebook/14_0401_lsu_rfam/00LOG
+# on April 15
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# What it should do is the following:
+# - take rfmake.log (or maybe 'warnings') file as input
+#  for each sequence that has a warning listed in rfmake.log:
+#  interact with user to replace that sequence
+#
+#  case 1: user can delete it, replace with overlap, or leave it as is
+#          and user can specify all other case 1s be handled as this
+#          one was (save preference)
+#  case 2: user can delete it or leave it alone and save preference
+#  case 3: same options as case 1
+#  case 4: we'll have to do the full drill of looking for highly
+#          similar seqs in the hit list (much like what rfreplace.pl
+#          currently does).
+#          
+#  for any sequence that does NOT have a warning, leave it in the
+#  SEED, AS IT IS CURRENTLY ALIGNED! I know how to do this with
+#  changes in inserts, but if we don't even want to change inserts
+#  we'll have to map the consensus positions.... like I do in
+#  rfsearch.pl to output a RF annotated SEED.. This will require some thought
+#  IMPT: we can assume SEED has RF annotation (it should from rfsearch.pl)
+#  
+#  If there's no case 4s then we don't need to do the full drill of
+#  looking for highly similar sequences in the hit list, which is good.
+#
+#  If there's no warnings at all, we can just exit: no replacement necessary.
+#
+#  -ALSO need a way of preventing duplicate seqs in the final SEED,
+#   possibly by a final pass to remove duplicates prior to exit.
+#
+# I also have notes on new features I need in rfreplace in
+# ~/notebook/14_0223_lm/00LOG, on Feb 23.  Fortuantely, the idea above
+# of using the rfmake.log file as required input gets around the nasty
+# issue of finding highly similar seqs to all SEED seqs as a first pass
+# from the 0223 log, because rfmake essentially already did that, and
+# output the results to rfmake.log and warnings.
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+##################################################################
+
+
 ###################################################################
 # Preliminaries:
 # - set default values that command line options may change
@@ -129,25 +177,31 @@ if($inseed ne "SEED" && $inseed eq $outseed) {
   die "ERROR, with -inseed <f1> and -outseed <f2>, <f1> can't equal <f2>";
 }
 
-# by default we list user, date, pwd, family, etc.
-# and information for any command line flags set by
-# the user. This block should stay consistent with 
-# the GetOptions() call above, and with the help()
-# subroutine.
-my $cwidth = 60;
-Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, 1);
+# output preamble: user, date, location, etc.
+# first, determine maximum column width for pretty formatting
+my @opt_lhsA = ();
+my @opt_rhsA = ();
+if($id1_thr    ne $df_id1_thr)    { push(@opt_lhsA, "# min fractional identity for a replacement candidate: "); push(@opt_rhsA, "$id1_thr [-1]"); }
+if($id2_thr    ne $df_id2_thr)    { push(@opt_lhsA, "# max fractional id b/t two replacement candidates: ");    push(@opt_rhsA, "$id2_thr [-2]"); }
+if($maxcands   ne $df_maxcands)   { push(@opt_lhsA, "# max num of replacement candidates per SEED seq: ");      push(@opt_rhsA, "$maxcands [-x]"); }
+if($bitdiff    ne $df_bitdiff)    { push(@opt_lhsA, "# bit score difference from lowest scoring SEED: ");       push(@opt_rhsA, "$bitdiff [-b]"); }
+if($do_prob)                      { push(@opt_lhsA, "# add posterior probs to output seed: ");                  push(@opt_rhsA, "yes [-p]"); }
+if($do_local)                     { push(@opt_lhsA, "# align new sequences locally w.r.t. CM: ");               push(@opt_rhsA, "yes [-alocal]"); }
+if($inseed ne "SEED")             { push(@opt_lhsA, "# input seed alignment in file: ");                        push(@opt_rhsA, "$inseed [-inseed]"); }
+if($outseed ne "SEED")            { push(@opt_lhsA, "# output seed alignment to file: ");                       push(@opt_rhsA, "$outseed [-outseed]"); }
+my $nopt = scalar(@opt_lhsA);
+my $cwidth = ($nopt > 0) ? Bio::Rfam::Utils::maxLenStringInArray(\@opt_lhsA, $nopt) : 0;
+if($cwidth < 14) { $cwidth = 14; } ; # max length of lhs string in log_output_preamble
+$cwidth++; # one extra space
 
-if($id1_thr    ne $df_id1_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min fractional identity for a replacement candidate: ", "$id1_thr [-1]"),       1); }
-if($id2_thr    ne $df_id2_thr)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max fractional id b/t two replacement candidates: ",    "$id2_thr [-2]"),       1); }
-if($maxcands   ne $df_maxcands)   { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max num of replacement candidates per SEED seq: ",      "$maxcands [-x]"),      1); }
-if($bitdiff    ne $df_bitdiff)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score difference from lowest scoring SEED: ",       "$bitdiff [-b]"),       1); }
-if($do_prob)                      { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# add posterior probs to output seed:",                   "yes [-p]"),            1); }
-if($do_local)                     { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# align new sequences locally w.r.t. CM: ",               "yes [-alocal]"),       1); }
-if($inseed ne "SEED")             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# input seed alignment in file:",                         "$inseed [-inseed]"),   1); }
-if($outseed ne "SEED")            { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# output seed alignment to file:",                        "$outseed [-outseed]"), 1); }
-
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n", 1);
-
+# now we have column width output preamble
+my $do_stdout = 1;
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+# and report options enabled by the user
+for(my $z = 0; $z < $nopt; $z++) { 
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("%-*s%s\n", $cwidth, $opt_lhsA[$z], $opt_rhsA[$z]), $do_stdout);
+}
+Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
 # create hash of potential output files
 my %outfileH = ();
