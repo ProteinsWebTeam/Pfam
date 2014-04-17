@@ -467,6 +467,17 @@ void _c_set_sqname (ESL_MSA *msa, I32 idx, char *newname)
     return;
 }   
 
+/* Function:  _c_has_sqwgts()
+ * Incept:    EPN, Tue Apr  1 13:49:31 2014
+ * Synopsis:  Returns '1' if msa has weights, as indicated by
+ *            eslMSA_HASWGTS flag.
+ * Returns:   '1' if eslMSA_HASWGTS flag is up, else returns 0.
+ */
+int _c_has_sqwgts (ESL_MSA *msa)
+{
+  return (msa->flags & eslMSA_HASWGTS) ? 1 : 0;
+}
+
 /* Function:  _c_get_sqwgt()
  * Incept:    EPN, Fri May 24 10:48:17 2013
  * Synopsis:  Returns msa->wgt[idx]

@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 135;
+use Test::More tests => 149;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -12,6 +12,7 @@ BEGIN {
 # loop is for.                                                      #
 #####################################################################
 my $alnfile     = "./t/data/test.sto";
+my $rfamfile    = "./t/data/RF00014-seed.sto";
 my $rf_alnfile  = "./t/data/test.rf.sto";
 my $rf_alnfile2 = "./t/data/test2.rf.sto";
 my $gap_alnfile = "./t/data/test-gap.sto";
@@ -476,5 +477,38 @@ for($mode = 0; $mode <= 1; $mode++) {
     close(IN);
     unlink $outfile;
   }
-}
+  undef $msa1;
 
+  # test column_subset_rename_nse
+  @usemeA = ();
+  $msa1 = Bio::Easel::MSA->new({
+      fileLocation => $rfamfile, 
+  });
+  isa_ok($msa1, "Bio::Easel::MSA");
+  $alen = $msa1->alen;
+  for(my $i = 0; $i < $alen; $i++) { $usemeA[$i] = 1; }
+  # remove first 3 and final 4 columns
+  $usemeA[0] = 0;
+  $usemeA[1] = 0;
+  $usemeA[2] = 0;
+  $usemeA[($alen-4)] = 0;
+  $usemeA[($alen-3)] = 0;
+  $usemeA[($alen-2)] = 0;
+  $usemeA[($alen-1)] = 0;
+  
+  $msa1->column_subset_rename_nse(\@usemeA, 1);
+
+  is($msa1->alen(), ($alen-7), "column_subset_rename_nse() removed correct number of columns.");
+  
+  $sqname = $msa1->get_sqname(0);
+  is($sqname, "M15749.1/158-235", "column_subset_rename_nse() renamed sequence 1 properly.");
+  $sqname = $msa1->get_sqname(1);
+  is($sqname, "CP000653.1/2739270-2739193", "column_subset_rename_nse() renamed sequence 2 properly.");
+  $sqname = $msa1->get_sqname(2);
+  is($sqname, "CP000468.1/2032635-2032556", "column_subset_rename_nse() renamed sequence 3 properly.");
+  $sqname = $msa1->get_sqname(3);
+  is($sqname, "CP000857.1/1802197-1802273", "column_subset_rename_nse() renamed sequence 4 properly.");
+  $sqname = $msa1->get_sqname(4);
+  is($sqname, "CP001383.1/2080781-2080702", "column_subset_rename_nse() renamed sequence 5 properly.");
+}
+  

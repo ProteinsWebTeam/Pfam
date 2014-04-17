@@ -572,6 +572,26 @@ sub set_sqname {
 
 #-------------------------------------------------------------------------------
 
+=head2 has_sqwgts
+
+  Title    : has_sqwgts
+  Incept   : EPN, Tue Apr  1 13:50:53 2014
+  Usage    : $msaObject->has_sqwgts()
+  Function : Returns '1' if MSA has valid sequence weights, else returns '0'
+  Args     : none
+  Returns  : '1' if MSA has valid sequence weights, else '0'
+
+=cut
+
+sub has_sqwgts {
+  my ( $self ) = @_;
+
+  $self->_check_msa();
+  return _c_has_sqwgts( $self->{esl_msa} );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 get_sqwgt
 
   Title    : get_sqwgt
@@ -581,7 +601,7 @@ sub set_sqname {
   Args     : index of sequence 
   Returns  : weight of sequence $idx (esl_msa->wgt[$idx])
              ($idx runs 0..nseq-1)
-
+  Dies     : if MSA does not have sequence weight annotation
 =cut
 
 sub get_sqwgt {
@@ -589,6 +609,7 @@ sub get_sqwgt {
 
   $self->_check_msa();
   $self->_check_sqidx($idx);
+  if(! $self->has_sqwgts) { croak "trying to get sequence weight, but none exist."; }
   return _c_get_sqwgt( $self->{esl_msa}, $idx );
 }
 
@@ -976,35 +997,6 @@ sub average_sqlen {
     $self->{average_sqlen} = _c_average_sqlen( $self->{esl_msa} );
   }
   return $self->{average_sqlen};
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 calc_and_write_bp_stats
-
-  Title    : calc_and_write_bp_stats
-  Incept   : EPN, Fri Feb  1 10:29:11 2013
-  Usage    : $msaObject->calc_and_write_bp_stats($fileLocation)
-  Function : Calculate per-basepair stats for an RNA alignment
-           : with SS_cons information and output it.
-  Args     : name of requested output file 
-  Returns  : void
-
-=cut
-
-sub calc_and_write_bp_stats {
-  my ( $self, $fileLocation ) = @_;
-
-# TODO: get this working with errbuf, I couldn't get this to work though:
-# my $errbuf = "";
-#my $status = _c_calc_and_write_bp_stats($self->{esl_msa}, $fileLocation, $errbuf);
-  $self->_check_msa();
-  my $status = _c_calc_and_write_bp_stats( $self->{esl_msa}, $fileLocation );
-  if ( $status != $ESLOK ) {
-    croak "ERROR: unable to calculate and write bp stats";
-  }
-
-  return;
 }
 
 #-------------------------------------------------------------------------------
@@ -1677,6 +1669,102 @@ sub column_subset
   my ($self, $usemeAR) = @_;
 
   $self->_check_msa();
+  _c_column_subset($self->{esl_msa}, $usemeAR);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 column_subset_rename_nse
+
+  Title     : column_subset_rename_nse
+  Incept    : EPN, Thu Apr 17 09:59:48 2014
+  Usage     : $msaObject->column_subset_rename_nse($usemeAR)
+  Function  : Remove a subset of columns from an MSA and
+            : rename any sequences in name/start-end format
+            : so they are consistent with removed residues
+            : at the alignment ends. 
+            :
+            : For example, imagine a two seq alignment:
+            : seq1/5-9   AAAAA
+            : seq2/12-13 --AA-
+            : seq3       AABAA
+            : with a @{$usemeAR} of (0, 0, 1, 1, 0).
+            :
+            : The returned alignment would be:
+            : seq1/7-8    AA
+            : seq2/12-13  AA
+            : seq3        BA
+            : 
+            : Note the first sequence has been renamed, the second
+            : has not because no residues were removed. The third
+            : did have residues removed but it is not in 
+            : "name/start-end" format so it was not renamed.
+            :
+            : If ($do_internal_check == 1) this function 
+            : also checks if any internal residues (non-terminii)
+            : are going to be removed. If so it will croak with 
+            : an error message.
+            :
+  Args      : $usemeAR: [0..i..alen-1] ref to array with value
+            :           '1' to keep column i, '0' to remove it
+  Returns   : void
+=cut
+
+sub column_subset_rename_nse
+{
+  my ($self, $usemeAR, $do_internal_check) = @_;
+
+  $self->_check_msa();
+
+  # find first and final position we'll include
+  my $apos;  # counter over alignment positions
+  my $nseq = $self->nseq();
+  my $spos = 0;
+  my $epos = $self->alen() - 1;
+
+  while($usemeAR->[$spos] == 0 && $spos < $epos) { $spos++; }
+  while($usemeAR->[$epos] == 0 && $epos > 1)     { $epos--; }
+  if($epos < $spos) { croak "ERROR in column_subset_rename_nse, trying to remove all columns"; }
+
+  $spos++; # to fix off-by-one; spos is now 1..alen
+  $epos++; # to fix off-by-one; epos is now 1..alen
+
+  for(my $i = 0; $i < $nseq; $i++) { 
+    my ($is_nse, $name, $start, $end, $strand) = $self->_sqname_nse_breakdown($i);
+    # if we're in name/start-end format, check to see if we should change the sequence name
+    if($is_nse) { 
+      my $rename_flag = 0;
+      for($apos = 1; $apos < $spos; $apos++) {
+        if($self->is_residue($i, $apos)) { 
+          $rename_flag = 1;
+          if($strand == 1) { $start++; } # forward strand
+          else             { $start--; } # reverse strand
+        }
+      }
+      for($apos = $self->alen(); $apos > $epos; $apos--) {
+        if($self->is_residue($i, $apos)) { 
+          $rename_flag = 1;
+          if($strand == 1) { $end--; } # forward strand
+          else             { $end++; } # reverse strand
+        }
+      }
+      # check for any internal residues being removed (and croak if we find any) if $do_internal_check flag passed in
+      if(defined $do_internal_check && $do_internal_check) { 
+        for($apos = $spos; $apos <= $epos; $apos++) { 
+          if($usemeAR->[($apos-1)] == 0) { # remember off-by-one: usemeA is 0..alen-1 which apos, spos and epos are 1..alen
+            if($self->is_residue($i, $apos)) { 
+              my $name = $self->get_sqname($i);
+              croak("ERROR in column_subset_rename_nse, trying to remove internal residue for sequence $i ($name) at position $apos"); 
+            }
+          }
+        }
+      }
+      # rename the sequence with new start-end
+      if($rename_flag) { $self->set_sqname($i, $name."/".$start."-".$end); }
+    }
+  }
 
   _c_column_subset($self->{esl_msa}, $usemeAR);
 
@@ -2012,8 +2100,6 @@ sub is_residue
 
 #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-
 =head2 capitalize_based_on_rf
 
   Title     : capitalize_based_on_rf
@@ -2049,6 +2135,8 @@ sub capitalize_based_on_rf
   Returns  : void
 
 =cut
+
+#-------------------------------------------------------------------------------
 
 sub DESTROY {
   my ($self) = @_;
@@ -2205,6 +2293,71 @@ sub _check_index {
   _c_check_index($self->{esl_msa});
 
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _sqname_nse_breakdown
+
+  Title    : _sqname_nse_breakdown
+  Incept   : EPN, Thu Apr 17 10:05:51 2014
+  Usage    : $msaObject->_sqname_nse_breakdown($i)
+  Function : Checks if sequence $i name is of format "name/start-end" and if so
+           : breaks it down into $n, $s, $e, $str (see 'Returns' section)
+  Args     : <sqname>: seqname, possibly of format "name/start-end"
+  Returns  : 5 values:
+           :   '1' if seqname was of "name/start-end" format, else '0'
+           :   $n:   name ("" if seqname does not match "name/start-end")
+	   :   $s:   start, maybe <= or > than $e (0 if seqname does not match "name/start-end")
+	   :   $e:   end,   maybe <= or > than $s (0 if seqname does not match "name/start-end")
+           :   $str: strand, 1 if $s <= $e, else -1
+=cut
+
+sub _sqname_nse_breakdown {
+  my ( $self, $sqidx ) = @_;
+  
+  $self->_check_msa();
+  my $sqname = $self->get_sqname($sqidx);
+  
+  my $n;       # sqacc
+  my $s;       # start, from seq name (can be > $end)
+  my $e;       # end,   from seq name (can be < $start)
+  my $str;     # strand, 1 if $start <= $end, else -1
+
+  if($sqname =~ m/^(\S+)\/(\d+)\-(\d+)\s*/) {
+    ($n, $s, $e) = ($1,$2,$3);
+    $str = ($s <= $e) ? 1 : -1; 
+    return (1, $n, $s, $e, $str);
+  }
+  # if we get here, seq name is not in name/start-end format
+  return (0, "", 0, 0, 0);
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _check_all_sqname_nse
+
+  Title    : _check_all_sqname_nse
+  Incept   : EPN, Thu Apr 17 10:06:36 2014
+  Usage    : $msaObject->_check_all_sqname_nse()
+  Function : Check if all sequence names in the msa are in 'name/start-end' format. 
+           : If so, return '1', else return '0'.
+  Args     : none
+  Returns  : '1' if all sequence names are in name/start-end format, else '0'.
+
+=cut
+
+sub _check_all_sqname_nse {
+  my ( $self ) = @_;
+  my $is_nse;
+  
+  my $nseq = $self->nseq();
+  for(my $i = 0; $i < $nseq; $i++) { 
+    ($is_nse, undef, undef, undef, undef) = $self->_sqname_nse_breakdown_c_check_index($i);
+    if($is_nse == 0) { return 0; }
+  }
+  # if we get here, all seq names are in name/start-end format
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
