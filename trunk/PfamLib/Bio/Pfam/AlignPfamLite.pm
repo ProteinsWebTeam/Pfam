@@ -19,7 +19,7 @@ Bio::Pfam::AlignPfamLite - Lighter weight alignment object for Pfam
     use Bio::Pfam::AlignPfamLite;
 
     $pfamaln = new Bio::Pfam::AlignPfamLite->new($filelocation);
-    print $pfamaln->no_sequences;
+    print $pfamaln->num_sequences;
     $pfamaln->no_residues;
     $pfamaln->percentage_identity;
     
@@ -111,6 +111,11 @@ sub no_sequences {
     warn "Number of sequences is intialized during new! (read only method).\n";  
   }
   return $self->{no_seqs};   
+}
+
+sub num_sequences {
+  my $self = shift;
+  return $self->no_sequences(@_);
 }
 
 sub length {
