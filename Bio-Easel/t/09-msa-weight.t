@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -13,16 +13,11 @@ my $msa = Bio::Easel::MSA->new({
 });
 isa_ok($msa, "Bio::Easel::MSA");
 
-# test getwgt before calc'ing weights
-my $wgt = $msa->get_sqwgt(2);
-$wgt = sprintf("%.2f", $wgt);
-is($wgt, "1.00");
-
 # test weight_GSC
 $msa->weight_GSC;
 
 # test getwgt after calc'ing weights
-$wgt = $msa->get_sqwgt(2);
+my $wgt = $msa->get_sqwgt(2);
 $wgt = sprintf("%.2f", $wgt);
 is($wgt, "0.95");
 
