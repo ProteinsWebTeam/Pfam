@@ -53,6 +53,7 @@ use Term::ReadPassword;
 use SVN::Client;
 use File::Copy;
 use File::Temp;
+use Data::Dump qw(dump);
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -633,7 +634,7 @@ sub addFamily {
   
   eval { $cinfo = $self->{txn}->commit( \@files, 1 ); };
   if ($@) {
-    confess("\n*** Failed to commit new family to $newFamilyId ***\n\n[$@]\n");
+    confess("\n*** Failed to commit new family to $newFamilyId ***\n\n$@\n\n" . dump($cinfo) );
   }
 
   #Now check that something happen!
