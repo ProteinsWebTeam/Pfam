@@ -106,8 +106,9 @@ sub searchModel {
     }
   }
   #Run the search
-  system($self->config->hhsearchBin."/hhsearch -v 0 -i $hhm -d $hmmlib -o $output")
-    and $self->logger->logdie("Failed to run hhsearch");
+  my $cmd = $self->config->hhsearchBin."/hhsearch -v 0 -i $hhm -d $hmmlib -o $output";
+  system($cmd) == 0
+    or $self->logger->logdie("Failed to run hhsearch");
   
   #Return the name of the output file.
   return($output);
@@ -386,11 +387,15 @@ sub _buildHMM {
   }else{
     $outputCmd = " -o  $hmmfilename";
   }
-  system($self->config->hmmer3bin."/esl-reformat --replace .:- afa $seedFile > $tempDir/$$.fasta") 
-        and $self->logger->logdie("Failed to run esl-reformat on $seedFile");
+  
+  my $cmd = $self->config->hmmer3bin."/esl-reformat --replace .:- afa $seedFile > $tempDir/$$.fasta";
+  system($cmd) == 0
+    or $self->logger->logdie("Failed to run esl-reformat on $seedFile");
       
-  system($self->config->hhsearchBin."/hhmake -M ".$self->match." -id ".$self->identity." $nameCmd -i $tempDir/$$.fasta $outputCmd > /dev/null 2>&1 ")
-      and $self->logger->logdie("Failed to run hhmake on $tempDir/$$.fasta [based on $seedFile]");
+  $cmd = $self->config->hhsearchBin."/hhmake -M ".$self->match." -id ".$self->identity." $nameCmd -i $tempDir/$$.fasta $outputCmd > /dev/null 2>&1 ";
+  system($cmd) == 0
+    or $self->logger->logdie("Failed to run hhmake on $tempDir/$$.fasta [based on $seedFile]");
+
   unlink("$tempDir/$$.fasta");
   return($hmmfilename);
 }
