@@ -504,7 +504,7 @@ sub _add_pred_as {
 
 
        
-       $num_seq = $aligns_with->no_sequences();
+       $num_seq = $aligns_with->num_sequences();
        next unless($num_seq);   
        my (%seq_to_remove, %seq_to_rem);  #two hashes used to collect seq that need removing
 
@@ -574,7 +574,7 @@ sub _add_pred_as {
 
 
 
-        $num_seq = $aligns_with->no_sequences();
+        $num_seq = $aligns_with->num_sequences();
         #and then any patterns that overlap
         if($num_seq>1) { 
 
@@ -613,12 +613,12 @@ sub _add_pred_as {
        #Now remove any patterns which need removing
        foreach my $remove (keys %seq_to_remove) {
            $aligns_with->remove_seq($seq_to_remove{$remove});
-           $num_seq = $aligns_with->no_sequences();
+           $num_seq = $aligns_with->num_sequences();
            last if($num_seq eq "1"); #just in case the % identities are identical
        }
 
          
-       $num_seq = $aligns_with->no_sequences();
+       $num_seq = $aligns_with->num_sequences();
        unless($num_seq >=1) {
 	   croak "All sequences that align with seq have been removed - this shouldn't happen\n";
        } 

@@ -249,7 +249,7 @@ sub updatePfamA {
   $pfamA->model_length( $famObj->HMM->length );
 
   #Now update the numbers in the SEED and FULL
-  $pfamA->num_seed( $famObj->SEED->no_sequences );
+  $pfamA->num_seed( $famObj->SEED->num_sequences );
   $pfamA->num_full( $famObj->scores->numRegions );
   $pfamA->updated( DateTime::Format::MySQL->format_datetime( DateTime->now ) );
 
@@ -295,7 +295,7 @@ sub createPfamA {
       forward_tau    => $famObj->HMM->forwardStats->{tau},
       forward_lambda => $famObj->HMM->forwardStats->{lambda},
       model_length   => $famObj->HMM->length,
-      num_seed       => $famObj->SEED->no_sequences,
+      num_seed       => $famObj->SEED->num_sequences,
       num_full       => $famObj->scores->numRegions,
       created        => \'NOW()',
     }
