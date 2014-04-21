@@ -493,7 +493,7 @@ double _c_get_sqwgt (ESL_MSA *msa, I32 idx)
  * Synopsis:  Removes sequence weights from an MSA.
  * Returns:   void
  */
-double _c_remove_sqwgts(ESL_MSA *msa)
+int _c_remove_sqwgts(ESL_MSA *msa)
 {
   int i;
   for(i = 0; i < msa->nseq; i++) { 
@@ -501,7 +501,7 @@ double _c_remove_sqwgts(ESL_MSA *msa)
   }
   msa->flags &= ~eslMSA_HASWGTS;
 
-  return;
+  return 1;
 }
 
 /* Function:  _c_any_allgap_columns()
