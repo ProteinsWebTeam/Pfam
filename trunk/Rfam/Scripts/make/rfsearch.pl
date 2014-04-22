@@ -41,8 +41,8 @@ my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
 # search related options
 my $no_search = 0;              # TRUE to skip search
 my $no_rev_search = 0;          # TRUE to skip reversed search
-my $e_opt;                      # cmsearch E-value to use, defined by GetOptions, if -e
-my $t_opt;                      # cmsearch bit score cutoff to use, defined by GetOptions, if -t
+my $e_opt = undef;              # cmsearch E-value to use, defined by GetOptions, if -e
+my $t_opt = undef;              # cmsearch bit score cutoff to use, defined by GetOptions, if -t
 my $do_cutga = 0;               # TRUE to use GA threshold as bit score cutoff
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
@@ -50,6 +50,8 @@ my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
 my $ssopt_str = "";             # string to add to cmsearch qsub/bsub commands
 my $ignore_sm = 0;              # TRUE to ignore BM in DESC for cmbuild options
+# debugging options
+my $do_hmmonly = 0;             # TRUE to run cmsearch in hmmonly mode
 # other options
 my $q_opt = "";                 # <str> from -q <str>
 my $do_dirty = 0;               # TRUE to not unlink files
@@ -101,6 +103,7 @@ my $config = Bio::Rfam::Config->new;
 	     "rdbfile=s"  => \$rev_dbfile, 
 	     "rdbdir=s"   => \$rev_dbdir, 
              "rZ=s"       => \$rev_Zuser,
+             "hmmonly"    => \$do_hmmonly,
              "q=s"        => \$q_opt, 
              "ssopt=s@"   => \@ssoptA,
              "nodesc"     => \$allow_no_desc,
@@ -157,7 +160,7 @@ my $famObj = Bio::Rfam::Family->new(
                                     'TBLOUT' => { 
                                                  fileLocation => "TBLOUT",
                                                 },
-                                    'DESC'   => $io->parseDESC("DESC"),
+                                    'DESC'   => ($do_hmmonly) ? $io->parseDESCallowHmmonly("DESC") : $io->parseDESC("DESC"),
                                    );
 my $msa  = $famObj->SEED;
 my $desc = $famObj->DESC;
@@ -213,7 +216,9 @@ if((! defined $t_sm) && (! defined $e_sm)) {
   }
 }
 # make sure that user didn't specify -T, -E, --cut_ga, --cut_tc, --cut_nc with -cmos or -cmod
-my $extra_searchopts = Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
+my $extra_searchopts = "";
+if($do_hmmonly) { $extra_searchopts = "--hmmonly "; }
+$extra_searchopts .= Bio::Rfam::Infernal::stringize_infernal_cmdline_options(\@cmosA, \@cmodA);
 if($extra_searchopts =~/\s*\-T^\s+(\S+)\s+/) { die "ERROR, -cmos T is not allowed, use -t"; }
 if($extra_searchopts =~/\s*\-E^\s+(\S+)\s+/) { die "ERROR, -cmos E is not allowed, use -e"; }
 if($extra_searchopts =~/\-\-cut_ga/) { die "ERROR, -cmod cut_ga is not allowed, use -cut_ga"; }
@@ -299,6 +304,11 @@ if(defined $dbfile && defined $rev_dbfile && $dbfile eq $rev_dbfile) {
 if ($msa->any_allgap_columns) { 
   die "ERROR all gap columns exist in SEED";
 }
+# -hmmonly requires -e
+if((defined $do_hmmonly) && (! defined $e_opt)) { 
+  die "ERROR -hmmonly requires -e also be used"; 
+}
+
 # done with command line option processing
 #
 # ============================================
@@ -325,11 +335,6 @@ if(defined $ncpus_cmcalibrate) { push(@opt_lhsA, "# num processors for MPI cmcal
 if(defined $e_opt)             { push(@opt_lhsA, "# E-value cutoff: ");                     push(@opt_rhsA, $e_opt . " [-e]"); }
 if(defined $t_opt)             { push(@opt_lhsA, "# bit score cutoff: ");                   push(@opt_rhsA, $t_opt . " [-t]"); }
 if($do_cutga)                  { push(@opt_lhsA, "# use GA bit score threshold: ");         push(@opt_rhsA, "yes [-cut_ga]"); }
-if(defined $Zuser)             { push(@opt_lhsA, "# Z (dbsize in Mb): ");                   push(@opt_rhsA, $Zuser . " [-Z]"); }
-if(defined $rev_dbfile)        { push(@opt_lhsA, "# reversed db file: ");                   push(@opt_rhsA, $rev_dbfile . " [-rdbfile]"); }
-if(defined $rev_dbdir)         { push(@opt_lhsA, "# reversed db dir: ");                    push(@opt_rhsA, $rev_dbdir . " [-rdbdir]"); }
-if(defined $rev_Zuser)         { push(@opt_lhsA, "# Z (dbsize in Mb) for reversed db: ");   push(@opt_rhsA, $rev_Zuser . " [-rZ]"); }
-if($noZ)                       { push(@opt_lhsA, "# per-database-file E-values: ");         push(@opt_rhsA, "on [-noZ]"); }
 if($no_search)                 { push(@opt_lhsA, "# skip cmsearch stage: ");                push(@opt_rhsA, "yes [-nosearch]"); }
 if($no_rev_search)             { push(@opt_lhsA, "# omit reversed db search: ");            push(@opt_rhsA, "yes [-norev]"); }
 if(defined $ncpus_cmsearch)    { push(@opt_lhsA, "# number of CPUs for cmsearch jobs: ");   push(@opt_rhsA, "$ncpus_cmsearch [-scpu]"); }
@@ -338,12 +343,18 @@ if(scalar(@cmosA) > 0)         { push(@opt_lhsA, "# single dash cmsearch options
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
 if(scalar(@cmodA) > 0)         { push(@opt_lhsA, "# double dash cmsearch options: ");       push(@opt_rhsA, $str . "[-cmod]"); }
 $ssopt_str = ""; foreach $opt (@ssoptA) { $ssopt_str .= $opt . " "; }
-if(scalar(@ssoptA) > 0)        { push(@opt_lhsA, "# add to cmsearch submit commands: ");    push(@opt_rhsA, $ssopt_str . "[-ssopt]"); }
 if($ignore_sm)                 { push(@opt_lhsA, "# ignore DESC's SM line: ");              push(@opt_rhsA, "yes [-ignoresm]"); }
+if($noZ)                       { push(@opt_lhsA, "# per-database-file E-values: ");         push(@opt_rhsA, "on [-noZ]"); }
+if(defined $Zuser)             { push(@opt_lhsA, "# Z (dbsize in Mb): ");                   push(@opt_rhsA, $Zuser . " [-Z]"); }
+if(defined $rev_dbfile)        { push(@opt_lhsA, "# reversed db file: ");                   push(@opt_rhsA, $rev_dbfile . " [-rdbfile]"); }
+if(defined $rev_dbdir)         { push(@opt_lhsA, "# reversed db dir: ");                    push(@opt_rhsA, $rev_dbdir . " [-rdbdir]"); }
+if(defined $rev_Zuser)         { push(@opt_lhsA, "# Z (dbsize in Mb) for reversed db: ");   push(@opt_rhsA, $rev_Zuser . " [-rZ]"); }
+if($do_hmmonly)                { push(@opt_lhsA, "# searching in HMM mode (debugging):");   push(@opt_rhsA, "yes [-hmmonly]"); }
+if($q_opt ne "")               { push(@opt_lhsA, "# submit to queue: ");                    push(@opt_rhsA, "$q_opt [-q]"); }
+if(scalar(@ssoptA) > 0)        { push(@opt_lhsA, "# add to cmsearch submit commands: ");    push(@opt_rhsA, $ssopt_str . "[-ssopt]"); }
 if($allow_no_desc)             { push(@opt_lhsA, "# create new DESC b/c none exists: ");    push(@opt_rhsA, "yes [-nodesc]"); }
 if($do_quiet)                  { push(@opt_lhsA, "# quiet mode: ");                         push(@opt_rhsA, "on  [-quiet]"); }
 if($do_dirty)                  { push(@opt_lhsA, "# do not unlink intermediate files: ");   push(@opt_rhsA, "yes [-dirty]"); }
-if($q_opt ne "")               { push(@opt_lhsA, "# submit to queue: ");                    push(@opt_rhsA, "$q_opt [-q]"); }
 if(! $allow_no_desc) { 
   if(! $do_update_desc)        { push(@opt_lhsA, "# updating DESC at end of script: ");     push(@opt_rhsA, "no"); }
 }
@@ -404,7 +415,7 @@ for(my $i = 0; $i < $msa->nseq; $i++) {
   $name2lookup = ($is_nse) ? $name : $sqname;
   my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name2lookup);
   if($sqlen == -1) { # sequence not in database
-    Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup not in database"); 
+    Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup not in database\n"); 
     $nwarnings++;
   }
   elsif($sqlen != 0) { # we have a valid sequence length
@@ -544,6 +555,7 @@ my $did_calibrate = 0;
 if(! defined $ncpus_cmcalibrate) { $ncpus_cmcalibrate = 81; }
 my $do_calibrate = 
     (! $only_build) &&         # -onlybuild NOT enabled
+    (! $do_hmmonly) &&         # -hmmonly NOT enabled
     ($force_calibrate      ||  # -c used
      (! $is_cm_calibrated) ||  # CM not calibrated
      ($allow_no_desc))         # -nodesc enabled, we'll create a new DESC file and we'll want a CB line
@@ -687,7 +699,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   if(defined $rev_dbsize) { $rev_Zopt = " -Z $rev_dbsize "; }
   else                    { $rev_Zopt = ""; }
   # use -FZ <x> with <x> equal to regular database size, to ensure we use same filter settings
-  if(defined $dbsize) { $rev_Zopt .= " --FZ $dbsize "; }
+  if(defined $dbsize && (! $do_hmmonly)) { $rev_Zopt .= " --FZ $dbsize "; }
 
   # We want to use the options in DESC's SM unless user set -ignoresm
   # remove default options that always get set automatically by rfsearch:
@@ -762,8 +774,9 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   if (! defined $ncpus_cmsearch) { $ncpus_cmsearch = 4; }
 
   # use same reporting threshold for regular and reversed searches
-  my $searchopts     = "--cpu $ncpus_cmsearch --verbose --nohmmonly $thr_searchopts";
-  my $rev_searchopts = "--cpu $ncpus_cmsearch --verbose --nohmmonly";
+  my $nohmm_opt = ($do_hmmonly) ? "" : "--nohmmonly "; # if $do_hmmonly we've already added --hmmonly to $extra_searchopts above
+  my $searchopts     = "--cpu $ncpus_cmsearch --verbose " . $nohmm_opt . $thr_searchopts;
+  my $rev_searchopts = "--cpu $ncpus_cmsearch --verbose " . $nohmm_opt;
 
   $rev_searchopts  = $searchopts . $rev_Zopt;
   $searchopts     .= $Zopt;
@@ -977,6 +990,7 @@ sub strip_default_options_from_sm {
   $desc_searchopts =~ s/\s*--cpu\s+\d+\s*/ /; # remove '--cpu <n>'    
   $desc_searchopts =~ s/\s*--verbose\s*/ /;   # remove '--verbose'
   $desc_searchopts =~ s/\s*--nohmmonly\s*/ /; # remove '--nohmmonly'
+  $desc_searchopts =~ s/\s*--hmmonly\s*/ /;   # remove '--hmmonly'
   $desc_searchopts =~ s/\s*CM\s*/ /;          # remove 'CM',  
   $desc_searchopts =~ s/\s*SEQDB\s*/ /;       # remove 'SEQDB'
   $desc_searchopts =~ s/cmsearch//;           # remove 'cmsearch'
@@ -1186,42 +1200,45 @@ rfsearch.pl: build, calibrate and search a CM against a sequence database.
 Usage:      rfsearch.pl [options]
 
 Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
-	    -b         always run cmbuild (default: only run if 'CM' is v1.0, is older than SEED or doesn't exist)
-	    -onlybuild build CM and then exit, do not calibrate, do not search
-	    -noss      rewrite SEED with zero basepairs, then exit; do not build, calibrate, or search
-            -hand      pass --hand option to cmbuild, SEED must have nongap RF annotation
-            -enone     pass --enone option to cmbuild
-            -ignorebm  ignore build method (BM) in DESC
-            -relax     relax requirement that all SEED seqs exist in target database
+	    -b         : always run cmbuild (default: only run if 'CM' is v1.0, is older than SEED or doesn't exist)
+	    -onlybuild : build CM and then exit, do not calibrate, do not search
+	    -noss      : rewrite SEED with zero basepairs, then exit; do not build, calibrate, or search
+            -hand      : pass --hand option to cmbuild, SEED must have nongap RF annotation
+            -enone     : pass --enone option to cmbuild
+            -ignorebm  : ignore build method (BM) in DESC
+            -relax     : relax requirement that all SEED seqs exist in target database
 
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
-	    -c         always run cmcalibrate (default: only run if 'CM' is not calibrated)
-            -ccpu <n>  set number of CPUs for MPI cmcalibrate job to <n>
+	    -c         : always run cmcalibrate (default: only run if 'CM' is not calibrated)
+            -ccpu <n>  : set number of CPUs for MPI cmcalibrate job to <n>
 
             OPTIONS RELATED TO SEARCH STEP (cmsearch):
-            -e <f>        set cmsearch E-value threshold as <f>
-            -t <f>        set cmsearch bit score threshold as <f>
-            -cut_ga       set cmsearch bit score threshold as GA threshold
-            -nosearch     do not run cmsearch
-            -norev        do not run cmsearch on reversed database files
-            -scpu <n>     set number of CPUs for cmsearch jobs to <n>
-	    -cmos <str>   add extra arbitrary option to cmsearch with '-<str>'. (Infernal 1.1, only option is '-g')
-            -cmod <str>   add extra arbitrary options to cmsearch with '--<str>'. For multiple options use multiple
+            -e <f>      : set cmsearch E-value threshold as <f>
+            -t <f>      : set cmsearch bit score threshold as <f>
+            -cut_ga     : set cmsearch bit score threshold as GA threshold
+            -nosearch   : do not run cmsearch
+            -norev      : do not run cmsearch on reversed database files
+            -scpu <n>   : set number of CPUs for cmsearch jobs to <n>
+	    -cmos <str> : add extra arbitrary option to cmsearch with '-<str>'. (Infernal 1.1, only option is '-g')
+            -cmod <str> : add extra arbitrary options to cmsearch with '--<str>'. For multiple options use multiple
 	                   -cmod lines. e.g. '-cmod toponly -cmod anytrunc' will run cmsearch with --toponly and --anytrunc.
-            -ignoresm     ignore the DESC SM command line options
+            -ignoresm   : ignore the DESC SM command line options
 
             OPTIONS SPECIFYING SEARCH DATABASE:
-            -dbchoice <s>  set sequence database to search as <s> ('rfamseq', 'testrfamseq')
-            -dbfile <s>    set sequence database to search as file <s>
-            -dbdir <s>     set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
-            -dblist <s>    set sequence database to search as all files listed in dir <s>
-            -noZ           with -dbdir or -dblist, do not set database size, E-values will pertain to per-file searches
-            -Z <f>         set database size as <f>
+            -dbchoice <s> : set sequence database to search as <s> ('rfamseq', 'testrfamseq')
+            -dbfile <s>   : set sequence database to search as file <s>
+            -dbdir <s>    : set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
+            -dblist <s>   : set sequence database to search as all files listed in dir <s>
+            -noZ          : with -dbdir or -dblist, do not set database size, E-values will pertain to per-file searches
+            -Z <f>        : set database size as <f>
             
             OPTIONS SPECIFYING REVERSED SEQUENCE DATABASE TO SEARCH:
-            -rdbfile <s>   set reversed sequence database to search as file <s>
-            -rdbdir <s>    set reversed sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
-            -rZ <f>        set reversed sequence database size as <f>
+            -rdbfile <s> : set reversed sequence database to search as file <s>
+            -rdbdir <s>  : set reversed sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
+            -rZ <f>      : set reversed sequence database size as <f>
+
+            OPTIONS FOR DEBUGGING:
+            -hmmonly     : run searches in HMM-only mode; -e must also be used
 
             OTHER OPTIONS:
             -q <str>     specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')

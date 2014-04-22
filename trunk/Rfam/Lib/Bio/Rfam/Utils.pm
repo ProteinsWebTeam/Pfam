@@ -102,7 +102,7 @@ sub submit_nonmpi_job {
   }
 
   # actually submit job
-  # print STDERR ("submit cmd: $submit_cmd\n");
+   print STDERR ("submit cmd: $submit_cmd\n");
   system($submit_cmd);
   if($? != 0) { die "Non-MPI submission command $submit_cmd failed"; }
 

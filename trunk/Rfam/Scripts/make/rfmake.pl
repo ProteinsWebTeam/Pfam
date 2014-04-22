@@ -59,6 +59,8 @@ my $l2print = 0;                # print all unique prefixes of length <n>
 my $do_nsort = 0;               # true to sort output by counts, not min E-value
 # comparison related options
 my $compdir = "";               # location of directory with files for 'comparison' output
+# debugging options
+my $do_hmmonly = 0;             # TRUE to run cmsearch in hmmonly mode
 # other options
 my $q_opt = "";                 # <str> from -queue <str>
 my $do_dirty = 0;               # TRUE to not unlink files
@@ -92,6 +94,7 @@ my $config = Bio::Rfam::Config->new;
              "l2print=n"  => \$l2print,
              "nsort"      => \$do_nsort,
              "compare=s"  => \$compdir,
+             "hmmonly"    => \$do_hmmonly,
              "dirty"      => \$do_dirty,
              "quiet",     => \$do_quiet,
              "force"      => \$do_force,
@@ -123,7 +126,7 @@ my $famObj = Bio::Rfam::Family->new(
                                     'TBLOUT' => { 
                                                  fileLocation => "TBLOUT",
                                                 },
-                                    'DESC'   => $io->parseDESC("DESC"),
+                                    'DESC'   => ($do_hmmonly) ? $io->parseDESCallowHmmonly("DESC") : $io->parseDESC("DESC"),
                                     'CM'     => $io->parseCM("CM"),
                                    );
 my $msa  = $famObj->SEED;
@@ -997,29 +1000,32 @@ rfmake.pl - Process the results of rfsearch.pl.
 
 Usage:      rfmake.pl [options]
 
-Options:    -t <f>  set threshold as <f> bits
-            -e <f>  set threshold as minimum integer bit score w/E-value <= <f>
+Options:    -t <f> : set threshold as <f> bits
+            -e <f> : set threshold as minimum integer bit score w/E-value <= <f>
 	    
 	    OPTIONS RELATED TO CREATING ALIGNMENTS (by default none are created):
-	    -a          create 'align' (full) alignment with all hits above GA threshold
-	    -r          create 'repalign' alignment, with sampling of representative hits
- 	    -local      always run cmalign locally     [default: autodetermined based on predicted time]
- 	    -farm       always run cmalign on the farm [default: autodetermined based on predicted time]
-            -nproc      specify number of CPUs for cmalign to use as <n>
-            -prob       annotate alignments with posterior probabilities [default: do not]
-            -nper <n>   with -r, set number of seqs per group (SEED, FULL, OTHER) to <n> [default: 30]
-            -seed <n>   with -r, set RNG seed to <n>, '0' for one-time arbitrary seed [default: 181]
-            -emax <f>   with -r, set maximum E-value   for inclusion in "OTHER" group to <f> [default: 10]
-            -minbit <f> with -r, set minimum bit score for inclusion in "OTHER" group to <f> [default: E-value of 10]
-	    -cmos <str> add extra arbitrary option to cmalign with '-<str>'. (Infernal 1.1, only option is '-g')
-            -cmod <str> add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
-	                -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
+	    -a          : create 'align' (full) alignment with all hits above GA threshold
+	    -r          : create 'repalign' alignment, with sampling of representative hits
+ 	    -local      : always run cmalign locally     [default: autodetermined based on predicted time]
+ 	    -farm       : always run cmalign on the farm [default: autodetermined based on predicted time]
+            -nproc      : specify number of CPUs for cmalign to use as <n>
+            -prob       : annotate alignments with posterior probabilities [default: do not]
+            -nper <n>   : with -r, set number of seqs per group (SEED, FULL, OTHER) to <n> [default: 30]
+            -seed <n>   : with -r, set RNG seed to <n>, '0' for one-time arbitrary seed [default: 181]
+            -emax <f>   : with -r, set maximum E-value   for inclusion in "OTHER" group to <f> [default: 10]
+            -minbit <f> : with -r, set minimum bit score for inclusion in "OTHER" group to <f> [default: E-value of 10]
+	    -cmos <str> : add extra arbitrary option to cmalign with '-<str>'. (Infernal 1.1, only option is '-g')
+            -cmod <str> : add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
+	                  -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
 
 	    OPTIONS RELATED TO OUTPUT 'taxinfo' FILE:
-	    -notaxinfo    do not create taxinfo file
-            -n2print <n>  target number of SEED taxonomy prefixes to print [default: 5]
-            -l2print <n>  print all unique prefixes of length <n>, regardless of number
-            -nsort        sort output by counts, not minimum E-value
+	    -notaxinfo   : do not create taxinfo file
+            -n2print <n> : target number of SEED taxonomy prefixes to print [default: 5]
+            -l2print <n> : print all unique prefixes of length <n>, regardless of number
+            -nsort       : sort output by counts, not minimum E-value
+
+            OPTIONS FOR DEBUGGING:
+            -hmmonly : rfsearch.pl was run with -hmmonly
 
 	    OPTIONS RELATED TO OUTPUT 'comparison' FILE:
 	    -compare <s>  create comparison file by comparing with old dir <s>
