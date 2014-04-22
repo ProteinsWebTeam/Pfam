@@ -543,8 +543,17 @@ sub parseScores {
   return ($scoresObj);
 }
 
-sub parseDESC {
+sub parseDESCallowHmmonly {
   my ( $self, $file ) = @_;
+  # call parseDesc with special flag to allow --hmmonly in search options
+  return $self->parseDESC($file, 1);
+}
+
+# parseDESC: normally takes two arguments, but if we want to allow
+# the --hmmonly option in 'SM' pass a third argument: '1'.
+
+sub parseDESC {
+  my ( $self, $file, $allow_hmmonly ) = @_;
 
   my @file;
   if ( ref($file) eq "GLOB" ) {
@@ -753,6 +762,15 @@ sub parseDESC {
 #    BM   cmbuild -F CM SEED
 #    CB   cmcalibrate --mpi CM
 #    SM   cmsearch --cpu 4 --verbose --nohmmonly -E 1000 -Z 549862.597050 CM SEQDB
+#
+#    or   (ONLY if $allow_hmmonly) is passed in as '1':
+#
+#    SM   cmsearch --cpu 4 --verbose --hmmonly -E 1000 -Z 549862.597050 CM SEQDB
+#         (this 2nd SM line will only rarely happen if we use the 'debugging' -hmmonly
+#          flag in rfsearch. --hmmonly is NOT permitted when a family is checked in,
+#          and Bio::Rfam::QC::checkRequiredFields() enforces this to prevent
+#          a check in of an hmmonly search)
+#
 #         note: SM can be multiple lines, so we concatenate it freely,
 #         then we validate it after all DESC lines have been parsed
    
@@ -1025,8 +1043,12 @@ sub parseDESC {
   # should begin with: --cpu <n> --verbose (-E or -T) <f> -Z <f>
   if(exists($params{SM}) and defined($params{SM})) { 
     if($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose --nohmmonly -[E|T]\s+\d+(\.\d+)? -Z (\S+) (\-.* )?CM SEQDB$/){
-      croak sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
-    }
+      # okay if ($allow_hmmonly) we do one last try it has to be --hmmonly
+      if((! $allow_hmmonly) || 
+         ($params{SM} !~ /^cmsearch\s+--cpu \d+ --verbose -[E|T]\s+\d+(\.\d+)? -Z (\S+) --hmmonly (\-.* )?CM SEQDB$/)) {
+        croak sprintf("\nFATAL: Your SM cmsearch line doesn't look right [%s]\n", $params{SM});
+      }
+    }    
   }
 
   my $desc = 'Bio::Rfam::Family::DESC'->new(%params);
@@ -1232,6 +1254,8 @@ sub makeAndWriteScores {
       } elsif ($tstr eq "3'") {
         $tcode = 3;
       } elsif ($tstr eq "5'&3'") {
+        $tcode = 53;
+      } elsif ($tstr eq "-") { # --hmmonly, this should never get into the db
         $tcode = 53;
       } else {
         croak "ERROR invalid truncation string $tstr";
@@ -1876,407 +1900,6 @@ sub _commentLineForOutlistOrSpecies {
   return $line;
 }
 
-
-#-------------------------------------------------
-    
-=head2 writeTaxinfoFromOutlistAndSpecies
-
-    Title    : writeTaxinfoFromOutlistAndSpecies
-    Incept   : EPN, Mon Aug 19 15:04:50 2013
-    Usage    : $io->writeTaxinfoFromOutlistAndSpecies($ga, $evalue, $desc, $n2print, $user_level2print, $do_nsort)
-    Function : Uses outlist and species to create 'taxinfo' file.
-             :
-             : $infoHHR, and $groupOHAR must supplied by caller,
-             : probably filled by a $io->parseOutlistAndSpecies() call.
-             :
-             : The purpose of 'taxinfo' is to concisely describe the taxonomic
-             : groups represented by all of the hits for a family. To do this
-             : the taxonomic strings (e.g. Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae; Pan.)
-             : are summarized by taking a prefix and a 'prefix level' 
-             : (the number of tokens in the prefix) that defines 5 distinct
-             : taxa groups (at that prefix level) that comprise all SEED seqs.
-             : Families with large phylogenetic breadth will have lower
-             : prefix levels. Those with narrow breadth will have higher.
-             : We go through considerable trouble to do this because
-             : we want the taxinfo output file to be relatively short and
-             : easy to digest by a curator. Much of the complexity of the 
-             : code for this subroutine is for storing the taxonomic 
-             : strings in such a way that enables us to find the desired
-             : prefix level and for finding that prefix level. 
-             : prefix level as well as for actually finding it. 
-             :
-             : Once the desired prefix level is found, the remainder
-             : of the subroutine outputs a sorted list of the taxonomic
-             : groups. This is also complicated because we first print
-             : out those groups that contain >= 1 seed seqs, in order of
-             : decreasing minimum E-value in the group.  Next, those
-             : (not yet printed) that contain at least 1 full hit above
-             : GA threshold in order of decreasing minimum E-value in
-             : the group and then all remaining groups (with only
-             : 'other' seqs (not in seed nor full)).
-             : 
-    Args     : $infoHHR:   ref to 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "evalue", "sspecies" or "taxstr"
-             : $groupOHAR: ref to hash of arrays, nse in score rank order, by group
-             : $desc:      Bio::Rfam::Family::DESC object
-             : $ga:        GA bit score threshold
-             : $evalue:    E-value for $ga
-             : $n2print:   target number of SEED taxonomy prefixes to print (-n2print from rfmake.pl)
-             : $l2print:   print all unique prefixes of this length, if != 0 (-l2print from rfmake.pl)
-             : $do_nsort:  '1' to sort output by counts (-nsort from rfmake.pl)
-    Returns  : void
-    Dies     : upon file input/output error
-
-=cut
-
-sub writeTaxinfoFromOutlistAndSpecies {
-  my ($self, $infoHHR, $groupOHAR, $desc, $ga, $evalue, $n2print, $user_level2print, $do_nsort) = @_;
-
-  ####################################################################
-  # Set parameters to their defaults prior to parsing cmd line options
-  ####################################################################
-  my @groupOA     = ("S", "F", "O"); # order of groups
-  my @groupaddA   = ("100", "10", "0"); # how much to add to order of groups
-  my $level2print = 1;
-  my $emax        = 10;
-  my $min_level2print = 3;
-  my $taxstr;             # full taxonomy string from species
-  my $prefix;             # a taxonomic string prefix 
-  my $prv_prefix;         # previous prefix
-  my $group;              # group, e.g. "SEED"
-  my $name;               # name of hit
-  my ($i, $j);            # counters
-  my %ngroup = ();        # key: group name, value number of seqs in a group
-  my $level;              # number of tokens in prefix; e.g. Eukaryota; Metazoa; Mollusca; == 3)
-  my $parent_level;       # number of tokens in full parent string this prefix comes from
-  my $maxlevel     = 1;   # maximum observed level
-  my $nprint       = 5;   # number of prefixes we want to print for SEED group, we find the $level2print that achieves this
-  my $nprint_actual;      # actual number of prefixes we will print for SEED group
-  my $max_ngroup   = 0;   # maximum count of any prefix in any group
-  my $nprefix      = 0;   # number of prefixes to print
-  my $best_prefix;        # current prefix to print 
-  my $eff_Eexp;           # effective E-value exponent, used for sorting prefixes for printing
-  my $min_eff_Eexp;       # min effective E-value exponent, used for sorting prefixes for printing
-  my $eff_ct;             # effective count, used for sorting prefixes for printing
-  my $max_eff_ct;         # max effective count, used for sorting prefixes for printing
-  my $group_string;       # string summarizing what groups a prefix is present in
-  my $cur_evalue;         # current e-value
-  my $cur_exp;            # current e-value exponent
-  my $maxE = 0;           # maximum E-value 
-  my %pfix_ctHH     = (); # 1D key group, 2D key prefix, value: count (number of hits for group with taxonomic prefix)
-  my %pfix_levelHH  = (); # 1D key group, 2D key prefix, value: prefix level (number of tokens in prefix; e.g. Eukaryota; Metazoa; Mollusca; == 3)
-  my %pfix_plevelHH = (); # 1D key group, 2D key prefix, value: number of levels in parent of this prefix
-  my %pfix_minEHH   = (); # 1D key group, 2D key prefix, value: minimum E-value of all hits for this group and prefix
-  my %pfix_minEexpHH= (); # 1D key group, 2D key prefix, value: minimum E-value EXPONENT of all hits for this group and prefix
-  my %toprintH      = (); # key is prefix, value is 1 if we want to print it
-  my %toaddH        = (); # value to add to each prefix count when sorting prior to printing
-  my %printedH      = (); # key: prefix, value, '1' if we've already printed prefix
-  my %nprintedH     = (); # key: group, value: number of total hits all printed prefixes include
-  my %prvH          = (); # key: group, value: '1' if previous prefix existed in group 
-  my %ngroupH       = (); # key: $group, value: number of sequences in a group
-  my @level_ctA     = (); # number of unique taxonomic prefixes at each level 
-  my @elA           = (); # for defining taxonomy string prefixes
-  my @outputA = (); # all output lines will be pushed here and actually output at the end
-
-  # fill %pfix_ctHH and %pfix_levelHH with counts/level of each prefix for each group
-  foreach $group (@groupOA) { # "S", "F", or "O", seed, full or other
-    if(! (exists $groupOHAR->{$group})) { 
-      $ngroupH{$group} = 0;
-    } 
-    else { 
-      $ngroupH{$group} = scalar(@{$groupOHAR->{$group}});
-      
-      foreach $name (@{$groupOHAR->{$group}}) { 
-        $taxstr = $infoHHR->{$name}{"taxstr"};
-        $cur_evalue = $infoHHR->{$name}{"evalue"};
-        #@elA = split(" ", $taxstr);
-        @elA = split(";", $taxstr);
-        $parent_level = scalar(@elA);
-        $prv_prefix = "";
-        $prefix     = "";
-        for($i = 0; $i < scalar(@elA); $i++) { 
-          $prefix = $prv_prefix;
-          if($prv_prefix ne "") { $prefix .= ";"; }
-          $prefix .= $elA[$i];
-          $prv_prefix = $prefix;
-          $pfix_ctHH{$group}{$prefix}++;
-          $pfix_levelHH{$group}{$prefix}  = $i+1;
-          $pfix_plevelHH{$group}{$prefix} = $parent_level;
-          $cur_exp = _taxinfo_get_sortable_exponent($cur_evalue);
-          
-          if((! exists $pfix_minEHH{$group}{$prefix}) ||
-             ($cur_exp < $pfix_minEexpHH{$group}{$prefix})) { 
-            $pfix_minEexpHH{$group}{$prefix} = $cur_exp;
-            $pfix_minEHH{$group}{$prefix}    = $cur_evalue;
-            if($cur_exp < -1000) { die "ERROR E-value exponent fell below -1000, shouldn't happen"; }
-          }
-          if(($i+1) > $maxlevel) { 
-            $maxlevel = $i+1;
-          }
-        }
-      }
-      
-      ##################################################
-      # Determine 'level2print', the number of prefixes we'll use for taxonomic strings we output.
-      # We do this only once for all groups, starting with the first group
-      # with > 0 seqs (usually SEED unless a new family)
-      #
-      if((($group eq "S" && $ngroupH{$group} > 0) ||
-          ($group eq "F" && $ngroupH{"S"}   == 0) ||
-          ($group eq "O" && $ngroupH{"S"}   == 0 && $ngroupH{"F"} == 0))) {
-        # determine number of unique prefixes at each taxonomy level
-        @level_ctA = ();
-        for($i = 0; $i <= $maxlevel; $i++) { $level_ctA[$i] = 0; }
-        foreach $prefix (sort keys(%{$pfix_ctHH{$group}})) { 
-          $level = $pfix_levelHH{$group}{$prefix};
-          $level_ctA[$level]++;
-          # if prefix level == parent level, increase level_ctA[i] for j == level..maxlevel
-          # b/c we'll have to print $prefix if level2print is any value level..maxlevel
-          if($level == $pfix_plevelHH{$group}{$prefix}) { 
-            for($j = $level+1; $j <= $maxlevel; $j++) { 
-              $level_ctA[$j]++;
-            }
-          }
-        }
-        $level2print = 0;
-        $nprint_actual = $level_ctA[0];
-        
-        # determine maximum taxonomy level at which no more than $nprint prefixes exist
-        while(($level2print < $maxlevel) && ($level_ctA[($level2print+1)] < $nprint)) { 
-          $level2print++; 
-          if($level_ctA[$level2print] > $nprint_actual) { 
-            $nprint_actual = $level_ctA[$level2print];
-          }
-        }
-        
-        #printf("nprint_actual: $nprint_actual\n");
-        #printf("level2print:   $level2print\n");
-
-        # nprint_actual is the number of prefixes we'll print for seed.
-        # Now, pick min taxonomy level that has exactly nprint_actual prefixes,
-        # to minimize length of prefix strings
-        while(($level2print >= 1) && ($level_ctA[$level2print-1] >= $nprint_actual)) { 
-          #printf("level_ctA[%d] is %d (<= %d) decreasing level2print by 1\n", $level2print-1, $level_ctA[$level2print-1], $nprint_actual);
-          $level2print--; 
-        }
-        # if level2print is less than our minimum, use that
-        if($level2print < $min_level2print) { $level2print = $min_level2print; }
-      } # end of if statement for determining level2print
-    } # end of else, entered if >= 1 member in group
-  } # end of 'foreach group'
-  
-  # user defined what level2print they want, ignore the one we just determined
-  if($user_level2print > 0) { $level2print = $user_level2print; }
-  
-  # determine max count of any prefix in any group,
-  # label which ones to print in %toprintH and 
-  # determine and max length of all prefix strings
-  my $max_length = length("# taxonomy string prefix (xx levels)");
-  foreach $group (@groupOA) { 
-    if($ngroupH{$group} != 0) { 
-      if($ngroupH{$group} > $max_ngroup) { 
-        $max_ngroup = scalar(@{$groupOHAR->{$group}});
-      }
-      
-      # keep track of which prefixes to print
-      foreach $prefix (sort keys(%{$pfix_ctHH{$group}})) { 
-        # There's two cases in which we'll print this prefix:
-        # (1): level of prefix == level2print
-        # (2): parent level of prefix == level of prefix AND
-        #      parent level of prefix <  level2print 
-        #
-        # Case 2 is tricky, it makes us (correctly) print 
-        # prefixes like "metatgenomes; organismal metagenomes;" (parent level 2)
-        # even when level2print is something like 5. (Otherwise, we wouldn't
-        # print it).
-        # 
-        if(($pfix_levelHH{$group}{$prefix} == $level2print) || 
-           (($pfix_plevelHH{$group}{$prefix} == $pfix_levelHH{$group}{$prefix}) && 
-            ($pfix_plevelHH{$group}{$prefix} < $level2print))) { 
-          $toprintH{$prefix} = 1;
-          
-          if(length($prefix) > $max_length) { 
-            $max_length = length($prefix);
-          }
-        }
-      }
-    }
-  }
-  # Now, print the prefixes and their counts out in a particular order
-  # First print all prefixes with >=1 members in SEED in sorted order
-  # from low to high minimum E-value in group, then print any with >= 1 members in FULL
-  # from low to high minimum E-value in group, then print any with >= 1 members in OTHER
-  # from low to high minimum E-value in group.
-  # (If $do_nsort is '1' we'll sort by total counts per group not 
-  # minimum E-value).
-
-  my $div_line = "#";
-  my $div_length = $max_length + 2 + 3 + 6 + 13 + 6 + 13 + 6 + 13;
-  my $printed_seed_sep = 0;
-  
-  if($ngroupH{"S"} == 0) { $printed_seed_sep = 1; }
-  for($i = 0; $i < ($div_length-1); $i++) { $div_line .= "="; }
-  
-  push(@outputA, "$div_line\n");
-  push(@outputA, "# taxinfo: created by 'rfmake.pl', run 'rfmake.pl -h' for a list of cmd-line options that modify behavior\n");
-  push(@outputA, "$div_line\n");
-  push(@outputA, sprintf("# family-id:       %s\n", $desc->ID));
-  push(@outputA, sprintf("# family-acc:      %s\n", $desc->AC));
-  push(@outputA, sprintf("# pwd:             %s\n", getcwd));
-  push(@outputA, sprintf("# GA bit-score:    $ga\n"));
-  push(@outputA, sprintf("# GA E-value:      %6.1g\n", $evalue));
-  push(@outputA, sprintf("# SEED:            %-5d hits (present in SEED)\n", $ngroupH{"S"}));
-  push(@outputA, sprintf("# FULL:            %-5d hits (not in SEED, with bitsc >= $ga,  E-value <= %6.1g)\n", $ngroupH{"F"}, $evalue));
-  push(@outputA, sprintf("# OTHER:           %-5d hits (not in SEED or FULL, with E-value <= $emax)\n", $ngroupH{"O"}));
-  push(@outputA, sprintf("#\n"));
-
-  # first print column headings
-  my $tax_header = sprintf("# taxonomy string prefix (%d levels)", $level2print);
-  my $tax_uline  = "#";
-  for($i = 0; $i < $max_length-1; $i++) { $tax_uline .= "-"; }
-
-  push(@outputA, sprintf("%-*s  %3s      %-13s      %-13s      %-13s\n", $max_length, "#", "", "    SEED", "    FULL", "   OTHER"));
-  push(@outputA, sprintf("%-*s  %3s      %-13s      %-13s      %-13s\n", $max_length, "#", "", "-------------", "-------------", "-------------"));
-  push(@outputA, sprintf("%-*s  %3s      %5s  %6s      %5s  %6s      %5s  %6s \n", $max_length, $tax_header, "mem", "ct", "minE", "ct", "minE", "ct", "minE"));
-  push(@outputA, sprintf("%-*s  %3s      %5s  %6s      %5s  %6s      %5s  %6s \n", $max_length, $tax_uline, "---", "-----", "------", "-----", "------", "-----", "------"));
-  
-  # this simplifies sorting prefixes when printing
-  if($do_nsort) { 
-    $toaddH{"S"} = 2 * $max_ngroup;
-    $toaddH{"F"} = 1 * $max_ngroup;
-    $toaddH{"O"} = 0;
-  }
-  else { 
-    $toaddH{"S"} = -30000;
-    $toaddH{"F"} = -20000;
-    $toaddH{"O"} = -10000;
-  }
-  
-  $nprefix = scalar(keys %toprintH);
-  
-  # this is a laborious sort, go through all remaining prefixes that we haven't 
-  # printed yet, looking for the correct one to print next.
-  for($i = 1; $i <= $nprefix; $i++) { 
-    $max_eff_ct   = 0;
-    $min_eff_Eexp = 1000000000;
-    $best_prefix = "";
-    foreach $prefix (keys %toprintH) {
-      if(! exists ($printedH{$prefix})) {
-        foreach $group (@groupOA) { 
-          if(exists ($pfix_ctHH{$group}{$prefix})) {
-            $eff_ct   = $pfix_ctHH{$group}{$prefix} + $toaddH{$group};
-            $eff_Eexp = $pfix_minEexpHH{$group}{$prefix} + $toaddH{$group};
-            
-            if($do_nsort) { # sort by maximum count
-              if($eff_ct > $max_eff_ct) { 
-                #printf("reset max_eff_ct as $max_eff_ct, $prefix\n");
-                $max_eff_ct = $eff_ct;
-                $best_prefix = $prefix;
-              }
-            }
-            else { # sort by minimum E-value as first key, count as second
-              if(($eff_Eexp <  $min_eff_Eexp) || 
-                 ($eff_Eexp == $min_eff_Eexp && $eff_ct > $max_eff_ct)) {
-                #printf("reset min_eff_Eexp as $eff_Eexp, $prefix ($pfix_minEexpHH{$group}{$prefix}  $pfix_minEHH{$group}{$prefix})\n");
-                $min_eff_Eexp = $eff_Eexp;
-                $max_eff_ct   = $eff_ct;
-                $best_prefix  = $prefix;
-              }
-            }
-          }
-        }
-      }
-    }
-    #printf("found next best prefix: $best_prefix ($min_eff_Eexp)\n");
-    
-    # determine if we need a newline because prev line included >=1 count in SEED or FULL and next line will not
-    if($i > 1) { 
-      if($prvH{"S"} == 1 && 
-         (! exists ($pfix_ctHH{"S"}{$best_prefix}))) { 
-        # line above had >= 1 in SEED, but next line has 0
-        push(@outputA, "#\n");
-        $printed_seed_sep = 1;
-      }
-      if($prvH{"F"} == 1 && 
-         (! exists ($pfix_ctHH{"F"}{$best_prefix})) && 
-         $printed_seed_sep) { 
-        # line above had >= 1 in FULL, but next line has 0
-        push(@outputA, "#\n");
-      }
-    }
-    
-    # determine group string (e.g. SFO) summarizing group membership for this prefix
-    $group_string = "";
-    foreach $group (@groupOA) { 
-      if(exists ($pfix_ctHH{$group}{$best_prefix})) { 
-        $group_string .= $group;
-      }
-      else { 
-        $group_string .= "-";
-      }
-    }
-    
-    push(@outputA, sprintf("%-*s  %3s", $max_length, $best_prefix, $group_string));
-    
-    # print counts for each group for this prefix
-    foreach $group (@groupOA) { 
-      if(exists ($pfix_ctHH{$group}{$best_prefix})) { 
-        push(@outputA, sprintf("      %5d  %6.1g", 
-                               $pfix_ctHH{$group}{$best_prefix}, 
-                               $pfix_minEHH{$group}{$best_prefix}));
-        $prvH{$group} = 1;
-        $nprintedH{$group} += $pfix_ctHH{$group}{$best_prefix};
-      }
-      else { 
-        push(@outputA, sprintf("      %5s  %6s", "-", "-"));
-        $prvH{$group} = 0;
-      }
-    }
-    push(@outputA, sprintf("\n"));
-    
-    $printedH{$best_prefix} = 1;
-  }
-  my $total_line = "# total hits:";
-  for($i = 0; $i < ($max_length-13 + 5); $i++) { $total_line .= " "; }
-  foreach $group (@groupOA) { 
-    if($ngroupH{$group} == 0) { $nprintedH{$group} = 0; }
-    if($nprintedH{$group} != $ngroupH{$group}) { 
-      printf STDERR ("ERROR incorrect number of $group seqs (%d != %d)\n", $nprintedH{$group}, $ngroupH{$group}); 
-      exit(1);
-    }
-    $total_line .= sprintf("      %5d        ", $nprintedH{$group});
-  }
-  $total_line .= "\n";
-  push(@outputA, sprintf("%-*s  %3s      %-13s      %-13s      %-13s\n", $max_length, "#", "", "-------------", "-------------", "-------------"));
-  push(@outputA, $total_line);
-  push(@outputA, "$div_line\n#\n");
-  
-  my $line;
-  open(OUT, ">taxinfo") || die "ERROR unable to open taxinfo for writing";
-
-  # print info on how to interpret the file
-  push(@outputA, "# Explanation of data above:\n");
-  push(@outputA, "#\n");
-  push(@outputA, "# Listed above are counts of hits in various taxonomic groups for the\n");
-  push(@outputA, "# three categories of hits (SEED, FULL, OTHER, defined below), for the current\n");
-  push(@outputA, "# GA threshold. There are several command-line options that modify this output,\n");
-  push(@outputA, "# use rfmake.pl -h for more information.\n");
-  push(@outputA, "#\n");
-  push(@outputA, "# Column abbreviations:\n");
-  push(@outputA, "#   'mem'  column:  three letter summary of which groups have at least 1 hit in this taxonomic group\n");
-  push(@outputA, "#   'ct'   columns: number of hits per hit category for this taxonomic group ('-' if none)\n");
-  push(@outputA, "#   'minE' columns: minimum E-value of all hits in this category and taxonomic group ('-' if none)\n");
-  push(@outputA, "#\n");
-  push(@outputA, "# Definition of the three hit categories:\n");
-  push(@outputA, "#   [S]EED:  seed sequences\n");
-  push(@outputA, "#   [F]ULL:  sequences above current GA\n");
-  push(@outputA, "#   [O]THER: sequences below GA, with E <= 10\n");
-  push(@outputA, "#\n");
-
-  foreach $line (@outputA) { print OUT $line; }
-  close(OUT);
-}
-
-
 #-------------------------------------------------
     
 =head2 taxinfoForHits
@@ -2534,6 +2157,50 @@ sub taxinfoForHits {
       }
     }
   }
+
+  # We now know all the prefixes we will print. Go back through and determine 
+  # the index of the first unique token in each prefix, we will capitalize this 
+  # when we print it out below. This makes it easier for a user to get an idea
+  # of how far apart (diverged) each group is from all other groups.
+  
+  # make a 2D array of the tokens of each prefix
+  my @pAA = ();  # array of arrays, each prefix broken down into tokens
+  my @pA  = ();  # temporary full prefix array
+  my %pfix_unq_levelH = (); # key: $prefix ($toprintH{$prefix} is 1);  value is 1st token level that is unique (differs from all other prefixes we'll print at that level)
+
+  $nprefix = scalar(keys %toprintH);
+  # fill pAA with all tokens, remember to remove whitespace
+  foreach $prefix (keys %toprintH) { 
+    push(@pA, $prefix);
+    my @tmpA = split(";", $prefix);
+    for(my $tmp_i = 0; $tmp_i < scalar(@tmpA); $tmp_i++) { 
+      $tmpA[$tmp_i] =~ s/\s+//g; # remove whitespace
+    }
+    push(@pAA, [@tmpA]);
+  }
+  # foreach prefix, find first token level that is unique
+  for(my $i = 0; $i < $nprefix; $i++) { 
+    $prefix = $pA[$i];
+    my $ntok = scalar(@{$pAA[$i]});
+    for(my $level = 0; $level < $ntok; $level++) { 
+      my $tok = $pAA[$i][$level];
+      for($j = 0; $j < $nprefix; $j++) { 
+        if($j != $i) { # skip self
+          if($pAA[$j][$level] eq $tok) { 
+            # match, $tok is not unique, break loop 
+            $j = $nprefix + 1; # this will be our flag for knowing $tok is NOT unique
+          }
+        }
+      }
+      if($j == $nprefix) { 
+        # $tok is unique
+        $pfix_unq_levelH{$prefix} = $level;
+        last;
+      }
+    }
+    if($level == $ntok) { die "ERROR, taxinfoForHits() $prefix should have a unique token, but it does not"; }
+  }
+
   # Now, print the prefixes and their counts out in a particular order
   # First print all prefixes with >=1 members in SEED in sorted order
   # from low to high minimum E-value in group, then print any with >= 1 members in FULL
@@ -2541,15 +2208,26 @@ sub taxinfoForHits {
   # from low to high minimum E-value in group.
   # (If $do_nsort is '1' we'll sort by total counts per group not 
   # minimum E-value).
-
-  my $div_line = "#";
+  
+  # first determine width for each group block
+  my %group_lenH  = ();  # length of each group block
+  my %ct_lenH     = ();  # length of each ct string
   my $div_length = $max_length + 2;
   if($ngroups <= 3) { $div_length += 3; }
   else              { $div_length += $ngroups; }
-  $div_length += $ngroups * (6 + 13);
+  foreach $group (@{$groupOAR}) { 
+    $ct_lenH{$group}    = 7;
+    $group_lenH{$group} = $ct_lenH{$group} + 2 + 6; # 2 spaces after 'ct' column, 6 for 'minE' column
+    if($group_lenH{$group} < length($group)) { 
+      $group_lenH{$group} = length($group);
+      $ct_lenH{$group}    = $group_lenH{$group} - (6+2); 
+    }
+    $div_length += $group_lenH{$group};
+  }
+  my $div_line = "#" . Bio::Rfam::Utils::monocharacterString("=", $div_length);
+
   my $printed_sep = 0;
   if($use_lead_group && $ngroupH{$groupOAR->[0]} == 0) { $printed_sep = 1; }
-  for($i = 0; $i < ($div_length-1); $i++) { $div_line .= "="; }
   push(@outputA, "$div_line\n");
 
   # first print column headings
@@ -2562,31 +2240,31 @@ sub taxinfoForHits {
   # line 1
   my $outstr = sprintf("%-*s  %-*s", $max_length, "#", $mem_length, "");
   foreach $group (@{$groupOAR}) {
-    $outstr .= sprintf("      %-13s", $group);
+    $outstr .= sprintf("      %*s", $group_lenH{$group}, $group);
   }
   $outstr .= "\n";
   push(@outputA, $outstr);
 
   # line 2
   $outstr = sprintf("%-*s  %-*s", $max_length, "#", $mem_length, "");
-  for(my $g = 0; $g < $ngroups; $g++) { 
-    $outstr .= sprintf("      %-13s", "-------------");
+  foreach $group (@{$groupOAR}) { 
+    $outstr .= sprintf("      %s", Bio::Rfam::Utils::monocharacterString("-", $group_lenH{$group}));
   }
   $outstr .= "\n";
   push(@outputA, $outstr);
 
   # line 3
   $outstr = sprintf("%-*s  %-*s", $max_length, $tax_header, $mem_length, "mem");
-  for(my $g = 0; $g < $ngroups; $g++) { 
-    $outstr .= sprintf("      %5s  %6s", "ct", "minE");
+  foreach $group (@{$groupOAR}) { 
+    $outstr .= sprintf("      %*s  %6s", $ct_lenH{$group}, "ct", "minE");
   }
   $outstr .= "\n";
   push(@outputA, $outstr);
 
   # line 4
   $outstr = sprintf("%-*s  %-*s", $max_length, $tax_uline, $mem_length, "---");
-  for(my $g = 0; $g < $ngroups; $g++) { 
-    $outstr .= sprintf("      %5s  %6s", "-----", "------");
+  foreach $group (@{$groupOAR}) { 
+    $outstr .= sprintf("      %-*s  %6s", $ct_lenH{$group}, Bio::Rfam::Utils::monocharacterString("-", $ct_lenH{$group}), "------");
   }
   $outstr .= "\n";
   push(@outputA, $outstr);
@@ -2600,7 +2278,6 @@ sub taxinfoForHits {
       $toaddH{$groupOAR->[$g]} = -10000 * ($ngroups - $g);
     }
   }
-  $nprefix = scalar(keys %toprintH);
   
   # this is a laborious sort, go through all remaining prefixes that we haven't 
   # printed yet, looking for the correct one to print next.
@@ -2655,22 +2332,28 @@ sub taxinfoForHits {
         $group_string .= "-";
       }
     }
-    push(@outputA, sprintf("%-*s  %3s", $max_length, $best_prefix, $group_string));
-    if(defined $prefixAR) { push(@{$prefixAR}, $best_prefix); }
+    # when printing the prefix, capitalize the first unique token in each prefix (we calculated
+    # which token this is already above and stored it pfix_unq_levelH), 
+    # we'll call this $prefix2print.
+    if(! exists ($pfix_unq_levelH{$best_prefix})) { die "ERROR unexpectedly don't have token level to capitalize for $best_prefix"; }
+    my $prefix2print = Bio::Rfam::Utils::capitalize_token_in_taxstring($best_prefix, $pfix_unq_levelH{$best_prefix});
+    push(@outputA, sprintf("%-*s  %3s", $max_length, $prefix2print, $group_string));
+    if(defined $prefixAR) { push(@{$prefixAR}, $prefix2print); }
 
     # print counts for each group for this prefix
     $cur_group = undef;
     for($g = 0; $g < $ngroups; $g++) { 
       $group = $groupOAR->[$g];
       if(exists ($pfix_ctHH{$group}{$best_prefix})) { 
-        push(@outputA, sprintf("      %5d  %6.1g", 
+        push(@outputA, sprintf("      %*d  %6.1g", 
+                               $ct_lenH{$group},
                                $pfix_ctHH{$group}{$best_prefix}, 
                                $pfix_minEHH{$group}{$best_prefix}));
         if(! defined $cur_group) { $cur_group = $group; }
         $nprintedH{$group} += $pfix_ctHH{$group}{$best_prefix};
       }
       else { 
-        push(@outputA, sprintf("      %5s  %6s", "-", "-"));
+        push(@outputA, sprintf("      %*s  %6s", $ct_lenH{$group}, "-", "-"));
       }
     }
     push(@outputA, "\n");
@@ -2680,7 +2363,7 @@ sub taxinfoForHits {
   my $tmp_line = "";
   $tmp_line .= sprintf("%-*s  %3s", $max_length, "#", "");
   foreach $group (@{$groupOAR}) { 
-    $tmp_line .= sprintf("      %-13s", "-------------");
+    $tmp_line .= sprintf("      %-s", Bio::Rfam::Utils::monocharacterString("-", $group_lenH{$group}));
   }
   $tmp_line .= "\n";
   push(@outputA, $tmp_line);
@@ -2693,7 +2376,7 @@ sub taxinfoForHits {
       printf STDERR ("ERROR incorrect number of $group seqs (%d != %d)\n", $nprintedH{$group}, $ngroupH{$group}); 
       exit(1);
     }
-    $tmp_line .= sprintf("      %5d        ", $nprintedH{$group});
+    $tmp_line .= sprintf("      %*d        ", $ct_lenH{$group}, $nprintedH{$group});
   }
   $tmp_line .= "\n";
   push(@outputA, $tmp_line);
@@ -3438,7 +3121,7 @@ sub validate_outlist_format {
     my $passed = 0;
     while($line =~ m/^\#/) { $line = <IN>; }
     chomp $line;
-    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\d+\s+\d+\s+[\-+]\s+\d+\s+\d+\s+\w+\s+\S+\s+/) { 
+    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\d+\s+\d+\s+[\-+]\s+\d+\s+\d+\s+\S+\s+\S+\s+/) { 
       $passed = 1;
     }
     else { 

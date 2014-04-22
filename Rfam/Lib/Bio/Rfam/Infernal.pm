@@ -403,21 +403,33 @@ sub cmemit_wrapper {
 sub cm_evalue2bitsc { 
   my ($cm, $evalue, $Z, $opts) = @_;
 
-  # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
+  # this subroutine corresponds to infernal 1.1's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
   my $bitsc;  # bit score to return;
 
-  if(! $cm->{is_calibrated}) {  
-    die "ERROR CM is not calibrated, and we're trying to convert an E-value to a bit score"; 
-  }
+  # two seperate blocks: are we using an HMM or a CM to search?
+  #######
+  # HMM #
+  #######
   if($opts =~ m/\-\-hmmonly/) { 
-    die "ERROR --hmmonly option used in search, this shouldn't happen."; 
+    # HMM only search, use HMM E-value parameters
+    my ($hitlen, $tau, $lambda) = Bio::Rfam::Infernal::search_opts_to_hmm_evalue_stats($cm);
+    $bitsc = $tau + ((log($evalue / (($Z * 1000000.) / $hitlen))) / (-1 * $lambda));
+    # print STDERR ("in cm_evalue2bitsc() converted HMM E-value $evalue to bit $bitsc (Z: $Z)\n");
   }
+  ######
+  # CM #
+  ######
+  else { # --hmmonly not in $opts, we want CM stats:
+    if(! $cm->{is_calibrated}) {  
+      die "ERROR CM is not calibrated, and we're trying to convert an E-value to a bit score"; 
+    }
   
-  my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_evalue_stats($cm, $opts);
-  my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
-  $bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
-  
-  # print STDERR ("in cm_evalue2bitsc() converted E-value $evalue to bit $bitsc (Z: $Z)\n");
+    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_cm_evalue_stats($cm, $opts);
+    my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
+    $bitsc = $mu_extrap + ((log($evalue / $cur_eff_dbsize)) / (-1 * $lambda));
+    # print STDERR ("in cm_evalue2bitsc() converted CM E-value $evalue to bit $bitsc (Z: $Z)\n");
+  }
+
   return $bitsc;
 }
 
@@ -443,30 +455,44 @@ sub cm_bitsc2evalue {
   # this subroutine corresponds to infernal's cmstat.c line 295 ('else if(output_mode == OUTMODE_BITSCORES_E) {')
   my $evalue;  # evalue to return;
   my $surv;    # survivor function value (calc'ed same as in esl_exp_surv())
-  if(! $cm->{is_calibrated}) {  
-    die "ERROR CM is not calibrated, and we're trying to convert a bit score to an E-value";
-  }
-  if($opts =~ m/\-\-hmmonly/) { 
-    die "ERROR --hmmonly option used in search, this shouldn't happen."; 
-  }
-  
-  #my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = @{$cm->{cmHeader}->{ecmli}};
-  my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_evalue_stats($cm, $opts);
 
-  my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
-  # from easel's esl_exponential.c:esl_exp_surv
-  $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
-  $evalue = $surv * $cur_eff_dbsize;
-  
-  # print STDERR ("in cm_bitsc2evalue() converted bit score $bitsc to E-value $evalue (Z: $Z)\n");
+
+  # two seperate blocks: are we using an HMM or a CM to search?
+  #######
+  # HMM #
+  #######
+  if($opts =~ m/\-\-hmmonly/) { 
+    # HMM only search, use HMM E-value parameters
+    my ($hitlen, $tau, $lambda) = Bio::Rfam::Infernal::search_opts_to_hmm_evalue_stats($cm);
+    # See C code esl_exp_surv && Infernal 1.1 stats.c:Score2E
+    my $cur_eff_dbsize = ($Z * 1000000.) / $hitlen;
+    $surv = ($bitsc < $tau) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $tau));
+    $evalue = $surv * $cur_eff_dbsize;
+    # print STDERR ("in cm_bitsc2eevalue() converted HMM E-value $evalue to bit $bitsc (Z: $Z)\n");
+  }
+  ######
+  # CM #
+  ######
+  else { 
+    if(! $cm->{is_calibrated}) {  
+      die "ERROR CM is not calibrated, and we're trying to convert a bit score to an E-value";
+    }
+    my ($lambda, $mu_extrap, $mu_orig, $dbsize, $nhits, $tailp) = Bio::Rfam::Infernal::search_opts_to_cm_evalue_stats($cm, $opts);
+
+    my $cur_eff_dbsize = (($Z * 1000000.) / $dbsize) * $nhits;
+    # from easel's esl_exponential.c:esl_exp_surv
+    $surv = ($bitsc < $mu_extrap) ? 1.0 : exp((-1 * $lambda) * ($bitsc - $mu_extrap));
+    $evalue = $surv * $cur_eff_dbsize;
+    # print STDERR ("in cm_bitsc2evalue() converted CM bit score $bitsc to E-value $evalue (Z: $Z)\n");
+  }
   return $evalue;
 }
 
-=head2 search_opts_to_evalue_stats()
+=head2 search_opts_to_cm_evalue_stats()
 
-  Title    : search_opts_to_evalue_stats()
+  Title    : search_opts_to_cm_evalue_stats()
   Incept   : EPN, Tue Aug 27 14:42:06 2013
-  Usage    : search_opts_to_evalue_stats($cm, $opts)
+  Usage    : search_opts_to_cm_evalue_stats($cm, $opts)
   Function : Returns appropriate array of E-value stat parameters
            : (lambda, mu_extrap, mu_orig, dbsize, nhits, tailp),
            : from CM file (either ECMLI, ECMLC, ECMGI, ECMGC)
@@ -482,7 +508,7 @@ sub cm_bitsc2evalue {
            : $tailp:     appropriate CM tail prob exp tail parameter  
 =cut
   
-sub search_opts_to_evalue_stats {
+sub search_opts_to_cm_evalue_stats {
   my ($cm, $opts) = @_;
 
   if($opts =~ m/\s+\-g\s+/) { # glocal mode
@@ -501,6 +527,29 @@ sub search_opts_to_evalue_stats {
       return @{$cm->{cmHeader}->{ecmli}};
     }
   }
+}
+
+=head2 search_opts_to_cm_evalue_stats()
+
+  Title    : search_opts_to_hmm_evalue_stats()
+  Incept   : EPN, Tue Apr 22 10:49:08 2014
+  Usage    : search_opts_to_hmm_evalue_stats($cm)
+  Function : Returns appropriate array of E-value stat parameters
+           : for the CMs filter p7 HMM
+           : (hitlen, mu, lambda),
+           : from CM file (STATS LOCAL FORWARD and MAXL lines)
+  Args     : <cm>:     Bio::Rfam::Family::CM object
+  Returns  : $hitlen:    from MAXL line in filter HMM section of the CM file
+           : $tau:       tau from STATS LOCAL FORWARD line of CM file
+           : $lambda:    lambda from STATS LOCAL FORWARD line of CM file
+=cut
+  
+sub search_opts_to_hmm_evalue_stats {
+  my ($cm) = @_;
+
+  return ($cm->{hmmHeader}->{maxl},
+          $cm->{hmmHeader}->{forwardStats}->{tau}, 
+          $cm->{hmmHeader}->{forwardStats}->{lambda});
 }
 
 =head2 stringize_infernal_cmdline_options()

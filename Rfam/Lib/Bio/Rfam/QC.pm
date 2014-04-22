@@ -422,7 +422,17 @@ sub checkRequiredFields {
     elsif( $familyObj->DESC->$key eq $familyObj->DESC->defaultButIllegalFields->{$key} ) { 
       warn "DESC field $key illegal value (appears unchanged from an 'rfsearch.pl -nodesc' call).\n";
       $error++;
-    }      
+    }
+
+    # a special case: make sure that --nohmmonly appears in the SM (search method)
+    # so we can't check-in a family run with the -hmmonly option in rfsearch, which
+    # is meant to be a option used for debugging only, not for production.
+    if(defined $familyObj->DESC->SM) { 
+      if($familyObj->DESC->SM !~ m/\-\-nohmmonly/) { 
+        warn "DESC SM field does not contain --nohmmonly.\n"; 
+        $error++;
+      }
+    }
   }
 
   #There are also two special cases......
