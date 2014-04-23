@@ -305,7 +305,7 @@ if ($msa->any_allgap_columns) {
   die "ERROR all gap columns exist in SEED";
 }
 # -hmmonly requires -e
-if((defined $do_hmmonly) && (! defined $e_opt)) { 
+if($do_hmmonly && (! defined $e_opt)) { 
   die "ERROR -hmmonly requires -e also be used"; 
 }
 
