@@ -184,6 +184,7 @@ if ($no_search) { # -nosearch, verify incompatible options are not set
 if ((defined $e_opt) && (defined $t_opt)) { die "ERROR you can't use both -t and -e, pick one"; }
 if ((defined $e_opt) && ($do_cutga))      { die "ERROR you can't use both -e and -cut_ga, pick one"; }
 if ((defined $t_opt) && ($do_cutga))      { die "ERROR you can't use both -t and -cut_ga, pick one"; }
+
 # A few complicated checks about the search thresholds, we want to do this here, before
 # the build step (and not wait til the search step) so we exit early and don't waste 
 # the user's time.
