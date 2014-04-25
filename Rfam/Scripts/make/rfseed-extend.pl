@@ -65,7 +65,7 @@ my $options_okay = &GetOptions( "5=s"        => \$n5,
                                 "h|help"     => \$do_help);
 if(! $options_okay) { 
   &help($exec_description); 
-  die "ERROR, unrecognized option; "; 
+  die "ERROR, unrecognized option;"; 
 }
 
 # read in command line variables

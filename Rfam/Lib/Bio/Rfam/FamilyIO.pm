@@ -2404,7 +2404,7 @@ sub taxinfoForHits {
 
     Title    : parseOutlistAndSpecies
     Incept   : EPN, Mon Aug 19 15:17:17 2013
-    Usage    : parseOutlistAndSpecies($outlist, $species, $emax, $ga, $do_allseed, $infoHHR, $nameOAR, $groupOHAR, $groupOAR) 
+    Usage    : parseOutlistAndSpecies($outlist, $species, $emax, $ga, $do_allseed, $infoHHR, $nameOAR, $groupOHAR)
     Function : Parses $outlist and $species files into infoHHR, nameOAR, groupOHAR
              : and groupOAR data structures, which are used by writeTaxinfoFromOutlistAndSpecies()
              : among other functions. 

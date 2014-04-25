@@ -46,7 +46,7 @@ for(my $t = 1; $t <= 3; $t++) {
   push(@unlinkA, @reqdfilesA);
   if(($status = TcopyFiles($datadir1, \@reqdfilesA)) ne "") { TcleanUpAndDie($status, \@unlinkA); }
   # run the script
-  TrunScript($scriptdir . "/rfmake.pl $opt", "> /dev/null", "rfmake.log", \@unlinkA, $t);
+  TrunScript($scriptdir . "/rfmake.pl $opt", "> /dev/null 2>&1", "rfmake.log", \@unlinkA, $t);
 
   # test 1: verify 'species' and 'outlist'
   # process the 'species' and 'outlist' files, this will verify their format 

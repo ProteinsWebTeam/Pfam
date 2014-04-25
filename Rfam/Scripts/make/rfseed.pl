@@ -56,7 +56,7 @@ my $options_okay = &GetOptions( "d"          => \$do_delete,
                                 "h|help"     => \$do_help );
 if(! $options_okay) { 
   &help($exec_description); 
-  die "ERROR, unrecognized option; "; 
+  die "ERROR, unrecognized option;"; 
 }
 
 $do_stdout = ($do_quiet) ? 0 : 1;

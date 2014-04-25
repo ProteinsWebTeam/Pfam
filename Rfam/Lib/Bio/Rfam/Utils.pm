@@ -94,7 +94,9 @@ sub submit_nonmpi_job {
     if($ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
     $submit_cmd = "qsub ";
     if(defined $exStr && $exStr ne "") { $submit_cmd .= "$exStr "; }
+    # set -l option specifying a queue, use '-l new' unless $queue is defined
     if(defined $queue && $queue ne "") { $submit_cmd .= "-l $queue=true "; }
+    else                               { $submit_cmd .= "-q new.q "; }
     $submit_cmd .= " -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
@@ -102,7 +104,7 @@ sub submit_nonmpi_job {
   }
 
   # actually submit job
-   print STDERR ("submit cmd: $submit_cmd\n");
+  print STDERR ("submit cmd: $submit_cmd\n");
   system($submit_cmd);
   if($? != 0) { die "Non-MPI submission command $submit_cmd failed"; }
 

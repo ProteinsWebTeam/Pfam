@@ -99,7 +99,7 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
-my $exec_description = "replace non-Rfamseq seqs in a SEED with Rfamseq seqs";
+my $exec_description = "replace non-Rfamseq seqs in a SEED with Rfamseq seqs.";
 
 my $options_okay = &GetOptions( "1=s"       => \$id1_thr,
                                 "2=s"       => \$id2_thr,
@@ -113,6 +113,10 @@ my $options_okay = &GetOptions( "1=s"       => \$id1_thr,
 if(! $options_okay) { 
   &help($exec_description); 
   die "ERROR, unrecognized option; "; 
+}
+if ( $do_help ) {
+  &help($exec_description);
+  exit(1);
 }
 
 # copy rfseed.log sideways if it exists
@@ -1170,6 +1174,7 @@ sub quit_early {
 ################################################
 
 sub help {
+  my ($exec_description) = (@_);
   print STDERR <<EOF;
   
   rfreplace.pl - $exec_description

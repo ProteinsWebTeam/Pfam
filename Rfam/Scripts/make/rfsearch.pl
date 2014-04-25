@@ -75,51 +75,57 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
+my $exec_description = "build, calibrate, and search a CM against a database.";
 
-&GetOptions( "b"          => \$force_build,
-             "onlybuild"  => \$only_build,
-	     "noss"       => \$do_noss,
-	     "hand"       => \$do_hand,
-	     "enone"      => \$do_enone,
-	     "ignorebm"   => \$ignore_bm,
-	     "relax"      => \$relax_about_seed,
-	     "c"          => \$force_calibrate,
-	     "ccpu=s"     => \$ncpus_cmcalibrate,
-             "e=s",       => \$e_opt,
-             "t=s",       => \$t_opt,
-             "cut_ga",    => \$do_cutga,
-	     "nosearch"   => \$no_search,
-	     "norev"      => \$no_rev_search, 
-	     "scpu=s"     => \$ncpus_cmsearch,
-             "cmos=s@"    => \@cmosA,
-             "cmod=s@"    => \@cmodA,
-	     "ignoresm"   => \$ignore_sm,
-	     "dbchoice=s" => \$dbchoice,
-	     "dbfile=s"   => \$dbfile, 
-	     "dbdir=s"    => \$dbdir, 
-	     "dblist=s"   => \$dblist, 
-	     "noZ"        => \$noZ,
-             "Z=s"        => \$Zuser,
-	     "rdbfile=s"  => \$rev_dbfile, 
-	     "rdbdir=s"   => \$rev_dbdir, 
-             "rZ=s"       => \$rev_Zuser,
-             "hmmonly"    => \$do_hmmonly,
-             "q=s"        => \$q_opt, 
-             "ssopt=s@"   => \@ssoptA,
-             "nodesc"     => \$allow_no_desc,
-             "quiet",     => \$do_quiet,
-	     "dirty"      => \$do_dirty,
-	     "h|help"     => \$do_help )
-    || die "ERROR, unrecognized option\n";
+my $options_okay = 
+    &GetOptions( "b"          => \$force_build,
+                 "onlybuild"  => \$only_build,
+                 "noss"       => \$do_noss,
+                 "hand"       => \$do_hand,
+                 "enone"      => \$do_enone,
+                 "ignorebm"   => \$ignore_bm,
+                 "relax"      => \$relax_about_seed,
+                 "c"          => \$force_calibrate,
+                 "ccpu=s"     => \$ncpus_cmcalibrate,
+                 "e=s",       => \$e_opt,
+                 "t=s",       => \$t_opt,
+                 "cut_ga",    => \$do_cutga,
+                 "nosearch"   => \$no_search,
+                 "norev"      => \$no_rev_search, 
+                 "scpu=s"     => \$ncpus_cmsearch,
+                 "cmos=s@"    => \@cmosA,
+                 "cmod=s@"    => \@cmodA,
+                 "ignoresm"   => \$ignore_sm,
+                 "dbchoice=s" => \$dbchoice,
+                 "dbfile=s"   => \$dbfile, 
+                 "dbdir=s"    => \$dbdir, 
+                 "dblist=s"   => \$dblist, 
+                 "noZ"        => \$noZ,
+                 "Z=s"        => \$Zuser,
+                 "rdbfile=s"  => \$rev_dbfile, 
+                 "rdbdir=s"   => \$rev_dbdir, 
+                 "rZ=s"       => \$rev_Zuser,
+                 "hmmonly"    => \$do_hmmonly,
+                 "q=s"        => \$q_opt, 
+                 "ssopt=s@"   => \@ssoptA,
+                 "nodesc"     => \$allow_no_desc,
+                 "quiet",     => \$do_quiet,
+                 "dirty"      => \$do_dirty,
+                 "h|help"     => \$do_help );
+
+if(! $options_okay) { 
+  &help($exec_description); 
+  die "ERROR, unrecognized option;"; 
+}
+
+if ( $do_help ) {
+  &help($exec_description);
+  exit(1);
+}
 
 $do_stdout = ($do_quiet) ? 0 : 1;
 open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "build, calibrate, and search a CM against a database", $do_stdout);
-
-if ( $do_help ) {
-  &help();
-  exit(1);
-}
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, $exec_description, $do_stdout);
 
 # output header
 my $user  = getpwuid($<);
@@ -1183,9 +1189,10 @@ sub validate_line_given_precision_threshold {
 ######################################################################
 
 sub help {
+  my ($exec_description) = (@_);
   print STDERR <<EOF;
 
-rfsearch.pl: build, calibrate and search a CM against a sequence database.
+rfsearch.pl: $exec_description
              Run from within a directory containing "SEED" & "DESC" files. 
 	     E.g., after running "rfupdate.pl RFXXXXX" or "rfco.pl RFXXXXX".
 	     SEED contains a stockholm format alignment and DESC is an internal 
