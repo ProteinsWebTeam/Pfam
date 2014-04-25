@@ -58,7 +58,9 @@ my $n2print = $df_n2print;      # target number of SEED taxonomy prefixes to pri
 my $l2print = 0;                # print all unique prefixes of length <n> 
 my $do_nsort = 0;               # true to sort output by counts, not min E-value
 # comparison related options
-my $compdir = "";               # location of directory with files for 'comparison' output
+my $oldcompdir = "";            # location of Rfam 11 directory with files for comparison to current ones
+my $curcompdir = "";            # location of other rfsearch/rfmake directory with files for comparison to current ones
+my $do_forcecomp = 0;           # '1' to allow overwrite of 'comparison' files
 # debugging options
 my $do_hmmonly = 0;             # TRUE to run cmsearch in hmmonly mode
 # other options
@@ -66,7 +68,7 @@ my $q_opt = "";                 # <str> from -queue <str>
 my $do_dirty = 0;               # TRUE to not unlink files
 my $do_stdout = 1;              # TRUE to output to STDOUT
 my $do_quiet  = 0;              # TRUE to not output anything to STDOUT
-my $do_force = 0;               # TRUE to force GA threshold, even if not hits exist above/below GA
+my $do_forcethr = 0;            # TRUE to force GA threshold, even if not hits exist above/below GA
 my $do_help = 0;                # TRUE to print help and exit, if -h used
 
 my $date = scalar localtime();
@@ -74,32 +76,35 @@ my $logFH;
 
 my $config = Bio::Rfam::Config->new;
 
-&GetOptions( "t=s"        => \$ga_bitsc,
-             "e=s"        => \$ga_evalue,
-             "a",         => \$do_align, 
-             "r"          => \$do_repalign,
-             "farm"       => \$always_farm,  
-             "local"      => \$always_local,
-             "nproc=n"    => \$nproc,
-             "prob"       => \$do_pp,
-             "nper=n",    => \$nper,
-             "seed=n",    => \$seed,
-             "emax=s",    => \$emax,
-             "bitmin=s",  => \$bitmin,
-             "dbchoice=s" => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
-             "cmos=s@"    => \@cmosA,
-             "cmod=s@"    => \@cmodA,
-             "notaxinfo"  => \$no_taxinfo,
-             "n2print=n"  => \$n2print,
-             "l2print=n"  => \$l2print,
-             "nsort"      => \$do_nsort,
-             "compare=s"  => \$compdir,
-             "hmmonly"    => \$do_hmmonly,
-             "dirty"      => \$do_dirty,
-             "quiet",     => \$do_quiet,
-             "force"      => \$do_force,
-             "queue=s"    => \$q_opt, 
-             "h|help"     => \$do_help );
+&GetOptions( "t=s"          => \$ga_bitsc,
+             "e=s"          => \$ga_evalue,
+             "a",           => \$do_align, 
+             "r"            => \$do_repalign,
+             "farm"         => \$always_farm,  
+             "local"        => \$always_local,
+             "nproc=n"      => \$nproc,
+             "prob"         => \$do_pp,
+             "nper=n",      => \$nper,
+             "seed=n",      => \$seed,
+             "emax=s",      => \$emax,
+             "bitmin=s",    => \$bitmin,
+             "dbchoice=s"   => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
+             "cmos=s@"      => \@cmosA,
+             "cmod=s@"      => \@cmodA,
+             "notaxinfo"    => \$no_taxinfo,
+             "n2print=n"    => \$n2print,
+             "l2print=n"    => \$l2print,
+             "nsort"        => \$do_nsort,
+             "oldcompare=s" => \$oldcompdir,
+             "curcompare=s" => \$curcompdir,
+             "forcecomp"    => \$do_forcecomp,
+             "hmmonly"      => \$do_hmmonly,
+             "dirty"        => \$do_dirty,
+             "quiet",       => \$do_quiet,
+             "forcethr"     => \$do_forcethr,
+             "queue=s"      => \$q_opt, 
+             "h|help"       => \$do_help )
+    || die "ERROR, unrecognized option\n";
 
 $do_stdout = ($do_quiet) ? 0 : 1;
 open($logFH, ">rfmake.log") || die "ERROR unable to open rfmake.log for writing";
@@ -141,50 +146,81 @@ my $fetchfile      = $dbconfig->{"fetchPath"};
 my $Z              = $dbconfig->{"dbSize"};
 my $can_do_taxinfo = $dbconfig->{"haveTax"};
 
-# by default we list user, date, pwd, family, and db choice,
-# and information for any command line flags set by
-# the user. This block should stay consistent with 
-# the GetOptions() call above, and with the help()
-# subroutine.
-my $cwidth = 40;
+# ============================================
+# 
+# output preamble: user, date, location, etc.
+# first, determine maximum column width for pretty formatting
+my @opt_lhsA = ();
+my @opt_rhsA = ();
 my $str;
 my $opt;
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# user:", $user), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# date:", $date), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# pwd:", getcwd), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# location:", $config->location), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-id:", $desc->ID), $do_stdout);
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# family-acc:", $desc->AC), $do_stdout);
 
-if(defined $ga_bitsc)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# bit score GA threshold:",            "$ga_bitsc" . " [-t]"), $do_stdout); }
-if(defined $ga_evalue)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# E-value-based GA threshold:",        "$ga_evalue" . " [-e]"), $do_stdout); }
-if($do_align)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# full alignment:",                    "yes" . " [-a]"), $do_stdout); }
-if($do_repalign)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# 'representative' alignment:",        "yes" . " [-r]"), $do_stdout); }
-if($always_farm)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force farm/cluster alignment:",      "yes" . " [-farm]"), $do_stdout); }
-if($always_local)              { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# force local CPU alignment:",         "yes" . " [-local]"), $do_stdout); }
-if($nproc != -1)               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of CPUs for cmalign:",        $nproc . " [-nproc]"), $do_stdout); }
-if($do_pp)                     { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# include post probs in alignments:",  "yes",   " [-prob]"), $do_stdout); }
-if($nper != $df_nper)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of seqs per group:",          $nper,   " [-nper]"), $do_stdout); }
-if($seed != $df_seed)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# RNG seed set to:",                   $seed,   " [-seed]"), $do_stdout); }
-if($emax != $df_emax)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# max E-value in \"OTHER\" group:",    $emax,   " [-emax]"), $do_stdout); }
-if($bitmin ne $df_bitmin)      { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# min bit score in \"OTHER\" group:",  $bitmin, " [-bitmin]"), $do_stdout); }
+if(defined $ga_bitsc)          { push(@opt_lhsA, "# bit score GA threshold:");               push(@opt_rhsA, "$ga_bitsc [-t]"); }
+if(defined $ga_evalue)         { push(@opt_lhsA, "# E-value-based GA threshold:");           push(@opt_rhsA, "$ga_evalue [-e]"); }
+if($do_align)                  { push(@opt_lhsA, "# full alignment:");                       push(@opt_rhsA, "yes [-a]"); }
+if($do_repalign)               { push(@opt_lhsA, "# 'representative' alignment:");           push(@opt_rhsA, "yes [-r]"); }
+if($always_farm)               { push(@opt_lhsA, "# force farm/cluster alignment:");         push(@opt_rhsA, "yes [-farm]"); }
+if($always_local)              { push(@opt_lhsA, "# force local CPU alignment:");            push(@opt_rhsA, "yes [-local]"); }
+if($nproc != -1)               { push(@opt_lhsA, "# number of CPUs for cmalign:");           push(@opt_rhsA, $nproc . " [-nproc]"); }
+if($do_pp)                     { push(@opt_lhsA, "# include post probs in alignments:");     push(@opt_rhsA, "yes [-prob]"); }
+if($nper != $df_nper)          { push(@opt_lhsA, "# number of seqs per group:");             push(@opt_rhsA, $nper . " [-nper]"); }
+if($seed != $df_seed)          { push(@opt_lhsA, "# RNG seed set to:");                      push(@opt_rhsA, $seed . " [-seed]"); }
+if($emax != $df_emax)          { push(@opt_lhsA, "# max E-value in \"OTHER\" group:");       push(@opt_rhsA, $emax . " [-emax]"); }
+if($bitmin ne $df_bitmin)      { push(@opt_lhsA, "# min bit score in \"OTHER\" group:");     push(@opt_rhsA, $bitmin . " [-bitmin]"); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
-if(scalar(@cmosA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# single dash cmalign options:",       $str . " [-cmos]"), $do_stdout); }
+if(scalar(@cmosA) > 0)         { push(@opt_lhsA, "# single dash cmalign options:");          push(@opt_rhsA, $str . " [-cmos]"); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
-if(scalar(@cmodA) > 0)         { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# double dash cmalign options:",       $str . " [-cmod]"), $do_stdout); }
-if($no_taxinfo)                { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [-notaxinfo]"), $do_stdout); }
-elsif(! $can_do_taxinfo)       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# skip creation of 'taxinfo' file:",   "yes [no tax info for db]"), $do_stdout); }
-if($n2print != $df_n2print)    { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# target \# of SEED groups for taxinfo:", $n2print . " [-n2print]"), $do_stdout); }
-if($l2print != 0)              { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo unique prefix token length:", $l2print . " [-l2print]"), $do_stdout); }
-if($do_nsort)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# taxinfo sort by count:",             "yes [-nsort]"), $do_stdout); }
-if($compdir ne "")             { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# comparing to Rfam 11.0 results in:", $compdir . " [-compare]"), $do_stdout); }
-if($do_dirty)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# do not unlink intermediate files:",  "yes [-dirty]"), $do_stdout); }
-if($do_force)                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# forcing GA threshold:",              "yes [-force]"), $do_stdout); }
-if($q_opt ne "")               { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# submit to queue:",                   "$q_opt [-queue]"), $do_stdout); }
-Bio::Rfam::Utils::printToFileAndOrStdout($logFH, "#\n", $do_stdout);
+if(scalar(@cmodA) > 0)         { push(@opt_lhsA, "# double dash cmalign options:");          push(@opt_rhsA, $str . " [-cmod]"); }
+if($no_taxinfo)                { push(@opt_lhsA, "# skip creation of 'taxinfo' file:");      push(@opt_rhsA, "yes [-notaxinfo]"); }
+elsif(! $can_do_taxinfo)       { push(@opt_lhsA, "# skip creation of 'taxinfo' file:");      push(@opt_rhsA, "yes [no tax info for db]"); }
+if($n2print != $df_n2print)    { push(@opt_lhsA, "# target \# of SEED groups for taxinfo:"); push(@opt_rhsA, $n2print . " [-n2print]"); }
+if($l2print != 0)              { push(@opt_lhsA, "# taxinfo unique prefix token length:");   push(@opt_rhsA, $l2print . " [-l2print]"); }
+if($do_nsort)                  { push(@opt_lhsA, "# taxinfo sort by count:");                push(@opt_rhsA, "yes [-nsort]"); }
+if($oldcompdir ne "")          { push(@opt_lhsA, "# comparing to Rfam 11.0 results in:");    push(@opt_rhsA, $oldcompdir . " [-oldcompare]"); }
+if($curcompdir ne "")          { push(@opt_lhsA, "# comparing to other results in:");        push(@opt_rhsA, $oldcompdir . " [-curcompare]"); }
+if($do_forcecomp)              { push(@opt_lhsA, "# forcing comparison:");                   push(@opt_rhsA, "yes [-forcecomp]"); }
+if($do_dirty)                  { push(@opt_lhsA, "# do not unlink intermediate files:");     push(@opt_rhsA, "yes [-dirty]"); }
+if($do_forcethr)               { push(@opt_lhsA, "# forcing GA threshold:");                 push(@opt_rhsA, "yes [-forcethr]"); }
+if($q_opt ne "")               { push(@opt_lhsA, "# submit to queue:");                      push(@opt_rhsA, "$q_opt [-queue]"); }
+my $nopt = scalar(@opt_lhsA);
+my $cwidth = ($nopt > 0) ? Bio::Rfam::Utils::maxLenStringInArray(\@opt_lhsA, $nopt) : 0;
+if($cwidth < 14) { $cwidth = 14; } ; # max length of lhs string in log_output_preamble
+$cwidth++; # one extra space
+
+# now we have column width output preamble
+if($do_quiet) { $do_stdout = 0; }
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+# and report options enabled by the user
+for(my $z = 0; $z < $nopt; $z++) { 
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("%-*s%s\n", $cwidth, $opt_lhsA[$z], $opt_rhsA[$z]), $do_stdout);
+}
+Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
 # make sure we have the all-important TBLOUT file
 if(! -s 'TBLOUT') { die "ERROR: TBLOUT does not exist, did you run rfsearch.pl?"; }
+
+# extra processing of command-line options 
+my $do_curcomp = ($curcompdir eq "") ? 0 : 1;
+my $do_oldcomp = ($oldcompdir eq "") ? 0 : 1;
+# enforce -a or --repalign selected if align-specific options used
+if ((! $do_align) && (! $do_repalign)) { 
+  if ($always_farm)       { die "ERROR -farm  requires -a or -r"; }
+  if ($always_local)      { die "ERROR -local requires -a or -r"; }
+  if (scalar(@cmosA) > 1) { die "ERROR -cmos requires -a or -r"; }
+  if (scalar(@cmodA) > 1) { die "ERROR -cmod requires -a or -r"; }
+  if ($nproc != -1)       { die "ERROR -nproc requires -a or -r"; }
+  if ($do_pp)             { die "ERROR -prob requires -a or -r"; }
+}
+if(! $do_repalign) { 
+  if ($nper   != $df_nper)   { die "ERROR -nper requires -r"; }
+  if ($seed   != $df_seed)   { die "ERROR -seed requires -r"; }
+}
+if($do_curcomp && $do_oldcomp) { die "ERROR, -oldcompare and -curcompare are incompatible, pick one"; }
+if((! $do_forcecomp) && ($do_curcomp || $do_oldcomp)) { 
+  foreach my $compfile ("comparison", "lostoutlist", "lostspecies", "newoutlist", "newspecies") {
+    if(-e $compfile) { die "ERROR, comparison file \"$compfile\" already exists, rename or delete it, or use -forcecomp option to overwrite it"; }
+  }
+}
 
 # create hash of potential output files
 my %outfileH = ();
@@ -201,33 +237,26 @@ $outfileH{"align"}       = "alignment of all hits above GA threshold";
 $outfileH{"alignout"}    = "tabular cmalign output for 'align'";
 $outfileH{"repalign"}    = "alignment of sampling of hits above GA threshold";
 $outfileH{"repalignout"} = "tabular cmalign output for 'repalign'";
-$outfileH{"comparison"}  = "comparison of old (Rfam 11.0) and current search results";
-$outfileH{"lostoutlist"} = "subset of hits (>GA) from Rfam 11.0 \'out.list\' lost by current search";
-$outfileH{"newoutlist"}  = "subset of hits (>GA) from current search \'outlist\' not in Rfam 11.0";
-$outfileH{"lostspecies"} = "same as lostoutlist but \'species\' lines instead of out.list lines";
-$outfileH{"newspecies"}  = "same as newoutlist  but \'species\' lines instead of out.list lines";
-
+if($do_curcomp) { 
+  $outfileH{"comparison"}  = "comparison of current search results and another rfsearch dir";
+  $outfileH{"lostoutlist"} = "subset of hits (>GA) from other search lost by current search";
+  $outfileH{"newoutlist"}  = "subset of hits (>GA) from current search \'outlist\' not in other search \'outlist\'";
+  $outfileH{"lostspecies"} = "same as lostoutlist but \'species\' lines instead of outlist lines";
+  $outfileH{"newspecies"}  = "same as newoutlist  but \'species\' lines instead of outlist lines";
+}
+else { 
+  $outfileH{"comparison"}  = "comparison of old (Rfam 11.0) and current search results";
+  $outfileH{"lostoutlist"} = "subset of hits (>GA) from Rfam 11.0 \'out.list\' lost by current search";
+  $outfileH{"newoutlist"}  = "subset of hits (>GA) from current search \'outlist\' not in Rfam 11.0";
+  $outfileH{"lostspecies"} = "same as lostoutlist but \'species\' lines instead of out.list lines";
+  $outfileH{"newspecies"}  = "same as newoutlist  but \'species\' lines instead of out.list lines";
+}
 # remove any of these files that currently exist, they're no invalid, since we're now rerunning the search
 my $outfile;
 foreach $outfile (@outfile_orderA) {
   if (-e $outfile) { 
     unlink $outfile; 
   } 
-}
-
-# extra processing of command-line options 
-# enforce -a or --repalign selected if align-specific options used
-if ((! $do_align) && (! $do_repalign)) { 
-  if ($always_farm)       { die "ERROR -farm  requires -a or -r"; }
-  if ($always_local)      { die "ERROR -local requires -a or -r"; }
-  if (scalar(@cmosA) > 1) { die "ERROR -cmos requires -a or -r"; }
-  if (scalar(@cmodA) > 1) { die "ERROR -cmod requires -a or -r"; }
-  if ($nproc != -1)       { die "ERROR -nproc requires -a or -r"; }
-  if ($do_pp)             { die "ERROR -prob requires -a or -r"; }
-}
-if(! $do_repalign) { 
-  if ($nper   != $df_nper)   { die "ERROR -nper requires -r"; }
-  if ($seed   != $df_seed)   { die "ERROR -seed requires -r"; }
 }
 
 ####################################################################
@@ -238,13 +267,13 @@ if ((defined $ga_bitsc) && (defined $ga_evalue)) {
 } elsif (defined $ga_evalue) { 
   my $bitsc = int((Bio::Rfam::Infernal::cm_evalue2bitsc($cm, $ga_evalue, $Z, $desc->SM)) + 0.5); # round up to nearest int bit score above exact bit score
   $ga_bitsc = sprintf("%.2f", $bitsc);
-  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [converted -e E-value]"), $do_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as: ", "$ga_bitsc bits [converted -e E-value]"), $do_stdout);
 } elsif (defined $ga_bitsc) { 
   $ga_bitsc = sprintf("%.2f", $ga_bitsc);
-  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [-t]"), $do_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as: ", "$ga_bitsc bits [-t]"), $do_stdout);
 } else { 
   $ga_bitsc = $famObj->DESC->CUTGA; 
-  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as:", "$ga_bitsc bits [from DESC (neither -t nor -e used)]"), $do_stdout);
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# setting threshold as: ", "$ga_bitsc bits [from DESC (neither -t nor -e used)]"), $do_stdout);
 }    
 if (! defined $ga_bitsc) {
   die "ERROR: problem setting threshold\n";
@@ -262,7 +291,7 @@ $io->writeTbloutDependentFiles($famObj, $rfamdb, $famObj->SEED, $ga_bitsc, $conf
 my $orig_ga_bitsc = $famObj->DESC->CUTGA;
 my $orig_nc_bitsc = $famObj->DESC->CUTNC;
 my $orig_tc_bitsc = $famObj->DESC->CUTTC;
-set_nc_and_tc($famObj, $ga_bitsc, "outlist", $do_force, $logFH);
+set_nc_and_tc($famObj, $ga_bitsc, "outlist", $do_forcethr, $logFH);
 
 ####################
 # create SCORES file
@@ -278,16 +307,15 @@ my %infoHH;    # 2D hash, key 1: name/start-end (nse), key 2: "rank", "bitsc", "
 my @nameOA;    # array, all nse, in order, ranked by score/E-value
 my %groupOHA;  # hash of arrays, nse in score rank order, by group
 my $do_taxinfo   = ((! $no_taxinfo) && ($can_do_taxinfo)) ? 1 : 0;
-my $do_comp      = ($compdir ne "") ? 1 : 0;
 my $fetch_sqfile = undef;
 
 if($bitmin ne $df_bitmin) { 
   $emax = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $bitmin, $Z, $desc->SM);
 }
-if($do_taxinfo || $do_comp) { 
+if($do_taxinfo || $do_oldcomp || $do_curcomp) { 
   $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, "", 0, \%infoHH, \@nameOA, \%groupOHA);
 }  
-if($do_align || $do_repalign || $do_comp) { 
+if($do_align || $do_repalign || $do_oldcomp) { 
   # open sequence file for fetching seqs
   $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
@@ -358,46 +386,50 @@ if ($do_repalign) {
 
 }  # end of if($do_repalign)
 
-###############################################
-# compare with old search results, if necessary
-###############################################
-if($do_comp) {
-  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "estimating change in bit scores relative to Rfam 11.0 and Infernal 1.0:", 1);
-
-  # process old DESC file, we don't do this the same way we process 
-  my ($old_ga_bitsc, $old_is_glocal, $old_buildopts) = &parse_old_desc($compdir);
-  my $old_ga_evalue = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $old_ga_bitsc, $Z, $desc->SM);
-
-  # build CM with '--v1p0' option
-  Bio::Rfam::Infernal::cmbuild_wrapper($config, $old_buildopts . " --v1p0 ", "CM.1p0", "SEED", "b.$$.out");
-  unlink "b.$$.out";
-
-  # pick sequences to align with new and old CM
-  my $fafile = "c.$$.fa";
-  my $comp_nseq = 100;
-  my ($all_nseq, $all_nres) = &get_comparison_seqs(\%infoHH, \%groupOHA, $fetch_sqfile, $fafile, $comp_nseq, $logFH, $do_stdout);
-
-  # align sequences to both old and new CM
-  my $stkfile =  "$$.ca.stk";
-  my $cmafile  = "$$.ca.cmalign";
-  my $errfile  = "$$.ca.err";
-  my $ostkfile = "$$.oca.stk";
-  my $ocmafile = "$$.oca.cmalign";
-  my $oerrfile = "$$.oca.err";
-  my $options  = "-o $stkfile --noprob";
-  my $ooptions = "-o $ostkfile --noprob";
-  if($old_is_glocal) { $ooptions .= " -g"; }
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "ca.$$",  $options,  "CM",     $fafile,  $cmafile,  $errfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
-  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "oca.$$", $ooptions, "CM.1p0", $fafile, $ocmafile, $oerrfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
-
-  # parse cmalign output files to get avg bit score differences
-  my $avg_bitdiff = &compare_cmalign_files($cmafile, $ocmafile);
-
-  $io->writeOldAndNewHitComparison(\%infoHH, \%groupOHA, $compdir, $avg_bitdiff, $all_nseq, $desc, $ga_bitsc, $ga_evalue, $old_ga_bitsc, $old_ga_evalue, $compdir . "/out.list", $compdir . "/species", "outlist", "species");
-
-  if(! $do_dirty) { 
-    unlink ($fafile, $stkfile, $cmafile, $errfile, $ostkfile, $ocmafile, $oerrfile);
+################################################################################################
+# compare with other search results, either Rfam11 (if $do_oldcomp) or current (if $do_curcomp)
+################################################################################################
+my ($old_ga_bitsc, $old_ga_evalue, $avg_bitdiff);
+my $ncompared = 100;
+if($do_oldcomp) { 
+  ($old_ga_bitsc, $old_ga_evalue, $avg_bitdiff, $ncompared) = preliminaries_for_comparison_with_old(\%infoHH, \%groupOHA, $oldcompdir, $cm, $Z, $desc, $fetch_sqfile, $logFH, $do_stdout, $do_dirty);
+}
+if($do_curcomp) { 
+  my $other_desc = $io->parseDESCallowHmmonly($curcompdir . "/DESC");
+  $old_ga_bitsc = $other_desc->CUTGA;
+}
+if($do_oldcomp || $do_curcomp) { 
+  my $div_line = "#=========================================================";
+  
+  my $comparison = "comparison";
+  open(COMP, ">" . $comparison) || die "ERROR unable to open $comparison for writing";
+  
+  print  COMP ($div_line . "\n");
+  printf COMP ("# $comparison: created by 'rfmake.pl' with \'%s\' cmd-line option\n", ($do_curcomp) ? "-curcomp" : "-oldcomp"); 
+  print  COMP ($div_line . "\n");
+  printf COMP ("# %s   %s   %s\n", $desc->AC, $desc->ID, $desc->DE);
+  printf COMP ("# current directory: %s\n", getcwd);
+  printf COMP ("# directory with old results (relative path): %s\n", ($do_curcomp) ? $curcompdir : $oldcompdir);
+  if($do_oldcomp) { 
+    printf COMP ("# old results are in old Rfam 11.0 format\n");
   }
+  printf COMP ("# new GA bit-score:    $ga_bitsc\n");
+  printf COMP ("# new GA E-value:      %6.1g\n", $ga_evalue);
+  printf COMP ("# old GA bit-score:    $old_ga_bitsc\n");
+  if($do_oldcomp) { 
+    printf COMP ("# old GA E-value:      %6.1g\n", $old_ga_evalue);
+    printf COMP ("# suggested new GA:    %.2f\n", int($old_ga_bitsc + $avg_bitdiff + 0.5));
+    printf COMP ("# calc'ed as old GA ($old_ga_bitsc) plus avg bitsc difference b/t %d old and new hits (%.5f) rounded to nearest integer\n", $ncompared, $avg_bitdiff);
+  }
+  printf COMP ("#\n");
+
+  if($old_ga_bitsc ne $ga_bitsc) { 
+    printf COMP ("# NOTE: GA used to define FULL differs b/t old and new ($old_ga_bitsc != $ga_bitsc)\n");
+  }
+  close(COMP);
+  my $old_outlist = ($do_curcomp) ? $curcompdir . "/outlist" : $oldcompdir . "/out.list";
+  my $old_species = ($do_curcomp) ? $curcompdir . "/species" : $oldcompdir . "/species";
+  $io->writeHitComparison(\%infoHH, \%groupOHA, $old_outlist, $old_species, "outlist", "species", $do_oldcomp, 1);
 }
 
 #####################################################
@@ -448,12 +480,12 @@ exit 0;
 
 #########################################################
 # set_nc_and_tc: given a GA bit score cutoff and an outlist, determines
-# the NC and TC thresholds. If $do_force is '1' then we
+# the NC and TC thresholds. If $do_forcethr is '1' then we
 # allow the case where 0 hits exist above or below GA,
 # else we die in error.
 
 sub set_nc_and_tc { 
-  my ($famObj, $ga, $outlist, $do_force, $logFH) = @_;
+  my ($famObj, $ga, $outlist, $do_forcethr, $logFH) = @_;
 
   my ($tc, $nc, $bits, $line);
   $nc = "undefined";
@@ -481,7 +513,7 @@ sub set_nc_and_tc {
   }
 
   if ($tc eq "undefined") { 
-    if($do_force) { 
+    if($do_forcethr) { 
       $tc = $ga + 0.5; 
       Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc));
     }
@@ -490,7 +522,7 @@ sub set_nc_and_tc {
     }
   }    
   if ($nc eq "undefined") { 
-    if($do_force) { 
+    if($do_forcethr) { 
       $nc = $ga - 0.5; 
       Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
     }
@@ -809,7 +841,7 @@ sub get_comparison_seqs {
   my $all_nres = 0;  
   my $rng = Bio::Easel::Random->new({ seed => $seed });
 
-  foreach my $group ("S", "F") { 
+  foreach my $group ("SEED", "FULL") { 
     # only choose from hits that are NOT truncated
     my @tmpA = ();
     foreach my $seqname (@{$groupOHA{$group}}) { 
@@ -836,13 +868,13 @@ sub get_comparison_seqs {
 sub compare_old_and_new_hits { 
   my ($infoHHR, $groupOHAR, $compdir) = @_;
 
-  my %newHHA; # 1st key: group ("S" or "F"), 2nd key: seqname (not nse), array of 'start-end';
-  my %newctH; # key: group ("S" or "F"), value number of new hits in group
-  my %oldctH; # key: group ("S" or "F"), value number of old hits in group
-  my %newolH; # key: group ("S" or "F"), value number of new hits that overlap >= 1 old hit
-  my %oldolH; # key: group ("S" or "F"), value number of old hits that overlap >= 1 new hit
+  my %newHHA; # 1st key: group ("SEED" or "FULL"), 2nd key: seqname (not nse), array of 'start-end';
+  my %newctH; # key: group ("SEED" or "FULL"), value number of new hits in group
+  my %oldctH; # key: group ("SEED" or "FULL"), value number of old hits in group
+  my %newolH; # key: group ("SEED" or "FULL"), value number of new hits that overlap >= 1 old hit
+  my %oldolH; # key: group ("SEED" or "FULL"), value number of old hits that overlap >= 1 new hit
   # first recast infoHHR into newHHA
-  foreach my $group ("S", "F") { 
+  foreach my $group ("SEED", "FULL") { 
     $newolH{$group} = 0;
     $oldolH{$group} = 0;
     foreach my $nse (@{$groupOHAR->{$group}}) { 
@@ -861,8 +893,8 @@ sub compare_old_and_new_hits {
       my @elA = split(/\s+/, $line);
       my ($group, $bitsc, $name, $start, $end) = ($elA[2], $elA[0], $elA[3], $elA[4], $elA[5]);
 
-      if($group eq "SEED")     { $group = "S"; }
-      elsif($group eq "ALIGN") { $group = "F"; }
+      if($group eq "SEED")     { $group = "SEED"; }
+      elsif($group eq "ALIGN") { $group = "FULL"; }
       else                     { next; }
 
       $oldctH{$group}++;
@@ -987,6 +1019,72 @@ sub write_taxinfo_file_end {
 
 #########################################################
 
+=head2 preliminaries_for_comparison_with_old
+
+    Title    : preliminaries_for_comparison_with_old
+    Incept   : EPN, Fri Apr 25 10:18:56 2014
+    Usage    : preliminaries_for_comparison_with_old()
+    Function : Do some computations and write the beginning of
+             : the 'comparison' file for an old Rfam 11 dir.
+    Args     : $infoHHR:       ref to 2D info hash, filled by FamilyIO:parseOutlistAndSpecies
+             : $groupOHAR:     ref to hash of arrays, filled by FamilyIO:parseOutlistAndSpecies
+             : $oldcompdir:    path to dir with old files we are comparing to
+             : $cm:            the CM object
+             : $Z:             database size 
+             : $desc:          the DESC object
+             : $fetch_sqfile:  to fetch seqs from to cmalign
+             : $logFH:         log file handle for output
+             : $do_stdout:     '1' to echo log statements to stdout
+             : $do_dirty:      '1' to leave intermediate files on disk
+    Returns  : $old_ga_bitsc:  GA bit score from old DESC
+             : $old_ga_evalue: GA E-value from old DESC
+             : $avg_bitdiff:   average bit score difference for $ndiff seqs analyzed with cmalign
+             : $all_nseq:      number of sequences compared to get avg_bitdiff
+=cut
+
+sub preliminaries_for_comparison_with_old
+{
+  my ($infoHHR, $groupOHAR, $oldcompdir, $cm, $Z, $desc, $fetch_sqfile, $logFH, $do_stdout, $do_dirty) = @_;
+
+  Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "estimating change in bit scores relative to Rfam 11.0 and Infernal 1.0:", 1);
+    
+  # process old DESC file, we don't do this the same way we process current DESC
+  my ($old_ga_bitsc, $old_is_glocal, $old_buildopts) = &parse_old_desc($oldcompdir);
+  my $old_ga_evalue = Bio::Rfam::Infernal::cm_bitsc2evalue($cm, $old_ga_bitsc, $Z, $desc->SM);
+
+  # build CM with '--v1p0' option
+  Bio::Rfam::Infernal::cmbuild_wrapper($config, $old_buildopts . " --v1p0 ", "CM.1p0", "SEED", "b.$$.out");
+  unlink "b.$$.out";
+
+  # pick sequences to align with new and old CM
+  my $fafile = "c.$$.fa";
+  my $comp_nseq = 100;
+  my ($all_nseq, $all_nres) = &get_comparison_seqs($infoHHR, $groupOHAR, $fetch_sqfile, $fafile, $comp_nseq, $logFH, $do_stdout);
+
+  # align sequences to both old and new CM
+  my $stkfile =  "$$.ca.stk";
+  my $cmafile  = "$$.ca.cmalign";
+  my $errfile  = "$$.ca.err";
+  my $ostkfile = "$$.oca.stk";
+  my $ocmafile = "$$.oca.cmalign";
+  my $oerrfile = "$$.oca.err";
+  my $options  = "-o $stkfile --noprob";
+  my $ooptions = "-o $ostkfile --noprob";
+  if($old_is_glocal) { $ooptions .= " -g"; }
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "ca.$$",  $options,  "CM",     $fafile,  $cmafile,  $errfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
+  Bio::Rfam::Infernal::cmalign_wrapper($config, $user, "oca.$$", $ooptions, "CM.1p0", $fafile, $ocmafile, $oerrfile, $all_nseq, $all_nres, $always_local, $always_farm, $q_opt, $nproc, $logFH, $do_stdout);
+
+  # parse cmalign output files to get avg bit score differences
+  my $avg_bitdiff = &compare_cmalign_files($cmafile, $ocmafile);
+  if(! $do_dirty) { 
+    unlink ($fafile, $stkfile, $cmafile, $errfile, $ostkfile, $ocmafile, $oerrfile);
+  }
+
+  return ($old_ga_bitsc, $old_ga_evalue, $avg_bitdiff, $all_nseq);
+}
+
+#########################################################
+
 sub help {
   print STDERR <<EOF;
     
@@ -1028,14 +1126,18 @@ Options:    -t <f> : set threshold as <f> bits
             -hmmonly : rfsearch.pl was run with -hmmonly
 
 	    OPTIONS RELATED TO OUTPUT 'comparison' FILE:
-	    -compare <s>  create comparison file by comparing with old dir <s>
+	    -oldcompare <s> : create comparison file by comparing with old dir <s>
+	    -curcompare <s> : create comparison file by comparing with current (not old) dir <s>
+            -forcecompare <s> : prefix all comparison files with <s>
 
 	    OTHER:
-	    -dirty       leave temporary files, don't clean up
+	    -dirty       leave temporary files, do not clean up
             -quiet       be quiet; do not output anything to stdout (rfmake.log still created)
-            -force       force threshold; even if no hits exist above and/or below GA
+            -forcethr    force threshold; even if no hits exist above and/or below GA
             -queue <str> specify queue to submit job to as <str> (EBI \'-q <str>\' JFRC: \'-l <str>=true\')
   	    -h|-help     print this help, then exit
 
 EOF
 }
+
+
