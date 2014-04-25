@@ -75,45 +75,51 @@ my $date = scalar localtime();
 my $logFH;
 
 my $config = Bio::Rfam::Config->new;
+my $exec_description = "investigate and set family score thresholds.";
 
-&GetOptions( "t=s"          => \$ga_bitsc,
-             "e=s"          => \$ga_evalue,
-             "a",           => \$do_align, 
-             "r"            => \$do_repalign,
-             "farm"         => \$always_farm,  
-             "local"        => \$always_local,
-             "nproc=n"      => \$nproc,
-             "prob"         => \$do_pp,
-             "nper=n",      => \$nper,
-             "seed=n",      => \$seed,
-             "emax=s",      => \$emax,
-             "bitmin=s",    => \$bitmin,
-             "dbchoice=s"   => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
-             "cmos=s@"      => \@cmosA,
-             "cmod=s@"      => \@cmodA,
-             "notaxinfo"    => \$no_taxinfo,
-             "n2print=n"    => \$n2print,
-             "l2print=n"    => \$l2print,
-             "nsort"        => \$do_nsort,
-             "oldcompare=s" => \$oldcompdir,
-             "curcompare=s" => \$curcompdir,
-             "forcecomp"    => \$do_forcecomp,
-             "hmmonly"      => \$do_hmmonly,
-             "dirty"        => \$do_dirty,
-             "quiet",       => \$do_quiet,
-             "forcethr"     => \$do_forcethr,
-             "queue=s"      => \$q_opt, 
-             "h|help"       => \$do_help )
-    || die "ERROR, unrecognized option\n";
+my $options_okay = 
+    &GetOptions( "t=s"          => \$ga_bitsc,
+                 "e=s"          => \$ga_evalue,
+                 "a",           => \$do_align, 
+                 "r"            => \$do_repalign,
+                 "farm"         => \$always_farm,  
+                 "local"        => \$always_local,
+                 "nproc=n"      => \$nproc,
+                 "prob"         => \$do_pp,
+                 "nper=n",      => \$nper,
+                 "seed=n",      => \$seed,
+                 "emax=s",      => \$emax,
+                 "bitmin=s",    => \$bitmin,
+                 "dbchoice=s"   => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
+                 "cmos=s@"      => \@cmosA,
+                 "cmod=s@"      => \@cmodA,
+                 "notaxinfo"    => \$no_taxinfo,
+                 "n2print=n"    => \$n2print,
+                 "l2print=n"    => \$l2print,
+                 "nsort"        => \$do_nsort,
+                 "oldcompare=s" => \$oldcompdir,
+                 "curcompare=s" => \$curcompdir,
+                 "forcecomp"    => \$do_forcecomp,
+                 "hmmonly"      => \$do_hmmonly,
+                 "dirty"        => \$do_dirty,
+                 "quiet",       => \$do_quiet,
+                 "forcethr"     => \$do_forcethr,
+                 "queue=s"      => \$q_opt, 
+                 "h|help"       => \$do_help );
+
+if(! $options_okay) { 
+  &help($exec_description); 
+  die "ERROR, unrecognized option;"; 
+}
+
+if ( $do_help ) {
+  &help($exec_description);
+  exit(1);
+}
 
 $do_stdout = ($do_quiet) ? 0 : 1;
 open($logFH, ">rfmake.log") || die "ERROR unable to open rfmake.log for writing";
-Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, "investigate and set family score thresholds", $do_stdout);
-
-if ( $do_help ) {
-  &help();
-  exit(1);
-}
+Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, $exec_description, $do_stdout);
 
 # output header
 my $user  = getpwuid($<);
@@ -1086,9 +1092,11 @@ sub preliminaries_for_comparison_with_old
 #########################################################
 
 sub help {
+  my ($exec_description) = (@_);
   print STDERR <<EOF;
     
-rfmake.pl - Process the results of rfsearch.pl. 
+rfmake.pl - $exec_description
+            Process the results of rfsearch.pl. 
             Create SCORES file given the GA threshold.
 	    By default, the GA threshold in DESC is used.
 	    There are two ways to redefine the GA threshold: 
@@ -1126,8 +1134,8 @@ Options:    -t <f> : set threshold as <f> bits
             -hmmonly : rfsearch.pl was run with -hmmonly
 
 	    OPTIONS RELATED TO OUTPUT 'comparison' FILE:
-	    -oldcompare <s> : create comparison file by comparing with old dir <s>
-	    -curcompare <s> : create comparison file by comparing with current (not old) dir <s>
+	    -oldcompare <s>   : create comparison file by comparing with old dir <s>
+	    -curcompare <s>   : create comparison file by comparing with current (not old) dir <s>
             -forcecompare <s> : prefix all comparison files with <s>
 
 	    OTHER:

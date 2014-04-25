@@ -58,38 +58,41 @@ my $logFH;
 
 my $config = Bio::Rfam::Config->new;
 
-&GetOptions( "1=s"        => \$id1_thr,
-             "e=s"        => \$e_thr,
-             "t=s"        => \$t_thr,
-             "b=s"        => \$b_thr,
-             "x=s"        => \$maxhits,
-             "alocal"     => \$do_local,
-             "in=s"       => \$in_prefix,
-             "f"          => \$do_force,
-             "quiet"      => \$do_quiet,
-             "dbchoice=s" => \$dbchoice,
-             "dbfile=s"   => \$dbfile,
-             "Z=s"        => \$Z,
-             "h|help"     => \$do_help);
+my $exec_description = "find near identical matches to 'outlist' hits in a sequence file.";
+my $options_okay = 
+    &GetOptions( "1=s"        => \$id1_thr,
+                 "e=s"        => \$e_thr,
+                 "t=s"        => \$t_thr,
+                 "b=s"        => \$b_thr,
+                 "x=s"        => \$maxhits,
+                 "alocal"     => \$do_local,
+                 "in=s"       => \$in_prefix,
+                 "f"          => \$do_force,
+                 "quiet"      => \$do_quiet,
+                 "dbchoice=s" => \$dbchoice,
+                 "dbfile=s"   => \$dbfile,
+                 "Z=s"        => \$Z,
+                 "h|help"     => \$do_help);
 
-$do_stdout = ($do_quiet) ? 0 : 1;
+
+if(! $options_okay) { 
+  &help($exec_description); 
+  die "ERROR, unrecognized option;"; 
+}
 
 # read in command line variables
 my $infile     = "";
 my $out_prefix = "";
-my $exec_description = "find near identical matches to 'outlist' hits in a sequence file";
 if(scalar(@ARGV) != 2) { 
   $do_help = 1; 
 }
 else { 
   ($infile, $out_prefix) = @ARGV;
+  $out_prefix =~ s/\.+$//;
 }
-$out_prefix =~ s/\.+$//;
+if ($do_help) { &help(); exit(1); }
 
-if ( $do_help ) {
-  &help($exec_description);
-  exit(1);
-}
+$do_stdout = ($do_quiet) ? 0 : 1;
 
 # check for incompatible option combos
 if((defined $dbfile) && ($dbchoice ne $df_dbchoice)) { 
