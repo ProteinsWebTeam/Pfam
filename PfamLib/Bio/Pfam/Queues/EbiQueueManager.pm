@@ -8,14 +8,18 @@ use Moose;
 use Log::Log4perl qw(get_logger :levels);
 use POSIX qw(setsid);
 use File::Basename;
+use File::Find;
+use File::Temp;
 use Carp;
 use JSON;
 use Storable qw( nfreeze );
 use Data::Printer;
-use File::Temp;
-use File::Find;
 use Mail::Send;
 use Parallel::ForkManager;
+use Try::Tiny;
+use IPC::Cmd qw( run );
+use IPC::Open3;
+use IO::Handle;
 
 use WebUser;
 use Bio::Pfam::EbiRestClient;
@@ -36,11 +40,6 @@ has 'queue' => (
   is       => 'ro',
   isa      => 'Str',
   required => 1,
-);
-
-has 'async' => (
-  is  => 'ro',
-  isa => 'Bool',
 );
 
 #-------------------------------------------------------------------------------
@@ -113,7 +112,8 @@ sub BUILD {
   $self->_job_type( $self->_queue_spec->{job_type} );
 
   # set up the REST client
-  $self->_rc->base_url( $self->_queue_spec->{base_url} );
+  $self->_rc->base_url( $self->_queue_spec->{base_url} )
+    if defined $self->_queue_spec->{base_url};
 }
 
 #-------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ sub start_polling {
   my $self = shift;
 
   $self->_log->info( 'starting polling loop' );
-  my $delay = $self->_queue_spec->{polling_interval};
+  my $delay = $self->_queue_spec->{polling_interval} || 2;
 
   while ( 1 ) {
 
@@ -192,10 +192,20 @@ sub _enqueue_pending_jobs {
   JOB: foreach my $job ( @jobs ) {
 
     # these are the options specified by the user who submitted the search
-    my $job_options = from_json( $job->options || '{}' );
-    $self->_log->debug( "job options: ", p( $job_options ) );
+    my $job_options;
+    try {
+      $job_options = from_json( $job->options );
+    }
+    catch {
+      $self->_log->debug( 'job options is not a JSON string' );
+    };
+    $job_options ||= {};
 
-    # these are the options that we're going to hand to the EBI search service
+    $self->_log->debug( 'job options: ', p( $job_options ) );
+
+    # these are the options that we're going to hand to the EBI search service.
+    # It spits the dummy over 'key=<undef>' pairs, so we have to be careful to
+    # add only those keys that actually have a value in the config
     my $search_options = {};
     $search_options->{database} = $self->_queue_spec->{database}
       if defined $self->_queue_spec->{database};
@@ -205,24 +215,38 @@ sub _enqueue_pending_jobs {
     $self->_log->info( 'search options: ', p( $search_options ) );
 
     my $rv;
-    if ( $self->_queue_spec->{async} ) {
+    if ( $self->_queue_spec->{synchronisation} eq 'async' ) {
+      # it's a batch job...
       $rv = $self->_submit_batch_job( $job, $search_options );
     }
-    else {
+    elsif ( $self->_queue_spec->{synchronisation} eq 'local' ) {
+      # it's a job that runs on the machine that's running the dequeuer...
+      $rv = $self->_run_local_job( $job );
+    }
+    else { # $self->_queue_spec->{synchronisation} eq 'sync'
+      # and everything else is an interactive job
       $rv = $self->_submit_interactive_job( $job, $search_options );
     }
 
-    if ( $rv ) {
-      $job->update( { status => 'RUN',
-                      started => \'NOW()', } );
-    }
-    else {
-      $job->update( { status => 'FAIL',
-                      closed => \'NOW()',
-                      job_stream => [
-                        { stderr => 'There was a problem submitting your job.' }
-                      ]
-                    } );
+    # for batch and interactive jobs that get queued to the EBI ES farm, we
+    # need to update the tracking database with things like start time and
+    # status. For jobs that run locally on the server where the dequeuer runs,
+    # the job runs synchronously, so the start and stop times, and the status,
+    # are set by the method that actually runs the job
+
+    unless ( $self->_queue_spec->{synchronisation} eq 'local' ) {
+      if ( $rv ) {
+        $job->update( { status => 'RUN',
+                        started => \'NOW()', } );
+      }
+      else {
+        $job->update( { status => 'FAIL',
+                        closed => \'NOW()',
+                        job_stream => [
+                          { stderr => 'There was a problem submitting your job.' }
+                        ]
+                      } );
+      }
     }
   }
 
@@ -347,6 +371,124 @@ sub _split_batch_file {
   $self->_log->info( 'batch file was split into ' . scalar @chunks . ' chunks' );
 
   return \@chunks;
+}
+
+#-------------------------------------------------------------------------------
+# runs a job locally on the machine where this dequeuer is running
+
+sub _run_local_job {
+  my ( $self, $job ) = @_;
+
+  my ( $command, $tmp_file );
+  
+  if ( $self->_queue_spec->{job_type} eq 'pfalign' ) {
+
+    try {
+      $tmp_file = $self->_write_alignment_to_tmp_file( $job );
+    }
+    catch {
+      $self->_log->warn( "couldn't write temp file: $_" );
+      return;
+    };
+
+    # build the command that we're going to run
+    $command = 
+      'align2seed.pl'
+    . ' -in ' . $job->job_id . '.fa'
+    . ' -tmp ' . $self->config->{tempDir}
+    . ' -data ' . $self->_queue_spec->{data_dir} . ' '
+    . $job->options;
+  }
+  elsif ( $self->_queue_spec->{job_type} eq 'rfalign' ) {
+
+    try {
+      $tmp_file = $self->_write_list_to_tmp_file( $job );
+    }
+    catch {
+      $self->_log->warn( "couldn't write temp file: $_" );
+      return;
+    };
+
+    $command = 
+         'esl-afetch ' . $self->_queue_spec->{data_dir} . '/Rfam.full ' . $job->options
+    . " | esl-alimanip --informat stockholm --seq-k $tmp_file - " 
+    . ' | esl-alimask --informat stockholm -g --gapthresh 0.9999999 - ';
+  }
+
+  $self->_log->debug( "running command: |$command|" );
+
+  # and execute the command. IPC::Cmd will use IPC::Open3 behind the scenes
+  # to capture STDOUT and STDERR from the executed command
+  my ( $success, $error_msg, $full_buf, $stdout_buf, $stderr_buf ) =
+    run( command => $command, verbose => 0 );
+
+  if ( $success ) {
+    $job->update( { status => 'DONE',
+                    closed => \'NOW()' } );
+  }
+  else {
+    $job->update( { status => 'FAIL',
+                    closed => \'NOW()' } );
+    $self->_log->warn( "couldn't run command: $error_msg" );
+    return;
+  }
+
+  # store the output from the job
+  my $results = {};
+  $results->{stdout} = join '', @$stdout_buf if scalar @$stdout_buf;
+  $results->{stderr} = join '', @$stderr_buf if scalar @$stderr_buf;
+  $job->job_stream->update( $results );
+
+  # clean up
+  unlink $tmp_file
+    or $self->_log->warn( "couldn't remove temp file: $!" );
+}
+
+#-------------------------------------------------------------------------------
+# writes the alignment (stdin) for a job to a temporary file
+
+sub _write_alignment_to_tmp_file {
+  my ( $self, $job ) = @_;
+
+  my $stdin = $job->job_stream->stdin;
+
+  my $filename = $self->config->{tempDir} . '/' . $job->job_id . '.fa';
+  $self->_log->debug( "writing stdin to '$filename'" );
+
+  open ( FA, ">$filename" )
+    or die "Couldn't write alignment to temporary file: $!";
+
+  print FA ">UserSeq\n" unless $stdin =~ m/^>/;
+  print FA $stdin . "\n";
+
+  close FA
+    or die "Couldn't close temporary file: $!";
+
+  return $filename;
+}
+
+#-------------------------------------------------------------------------------
+# strips out a list of accessions from the job's stdin and writes it to file
+
+sub _write_list_to_tmp_file {
+  my ( $self, $job ) = @_;
+
+  my $stdin = $job->job_stream->stdin;
+
+  my $filename = $self->config->{tempDir} . '/' . $job->job_id . '.list';
+  $self->_log->debug( "writing list to '$filename'" );
+
+  open ( LIST, ">$filename" )
+    or die "Couldn't write list to temporary file: $!";
+
+  foreach ( split /\n/, $stdin ) {
+    print LIST $1 . "\n" if m/^\>(\S+)/;
+  }
+
+  close LIST
+    or die "Couldn't close temporary file: $!";
+
+  return $filename;
 }
 
 #-------------------------------------------------------------------------------
