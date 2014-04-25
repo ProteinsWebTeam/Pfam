@@ -492,6 +492,8 @@ sub get_seq_type : Private {
   # turn sequence into a FASTA file...
   print $seq_file ">user_seq\n";
   print $seq_file substr( $c->stash->{data}->{seq}, 0, 500 );
+
+  $seq_file->close;
   
   $c->log->debug( 'Search::Sequence::get_seq_type: esl-seqstat command: '
                   . $this->{seqstatBinary} . ' ' . $seq_file->filename . ' |')
