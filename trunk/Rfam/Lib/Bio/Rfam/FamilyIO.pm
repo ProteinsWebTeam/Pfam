@@ -2124,9 +2124,7 @@ sub taxinfoForHits {
   ###########################################################
   
   # determine max count of any prefix in any group,
-  # label which ones to print in %toprintH and 
-  # determine and max length of all prefix strings
-  my $max_length = length("# taxonomy string prefix (xx levels)");
+  # label which ones to print in %toprintH
   foreach $group (@{$groupOAR}) { 
     if($ngroupH{$group} != 0) { 
       if($ngroupH{$group} > $max_ngroup) { 
@@ -2149,10 +2147,6 @@ sub taxinfoForHits {
            (($pfix_plevelHH{$group}{$prefix} == $pfix_levelHH{$group}{$prefix}) && 
             ($pfix_plevelHH{$group}{$prefix} < $level2print))) { 
           $toprintH{$prefix} = 1;
-          
-          if(length($prefix) > $max_length) { 
-            $max_length = length($prefix);
-          }
         }
       }
     }
@@ -2167,28 +2161,48 @@ sub taxinfoForHits {
   my @pAA = ();  # array of arrays, each prefix broken down into tokens
   my @pA  = ();  # temporary full prefix array
   my %pfix_unq_levelH = (); # key: $prefix ($toprintH{$prefix} is 1);  value is 1st token level that is unique (differs from all other prefixes we'll print at that level)
+  my @ntokA    = (); # 0..$i..$nprefix: number of tokens in prefix $i
+  my $x_ntok   = 0;  # maximum number of tokens in all prefixes
+  my @xtoklenA = (); # 0..$i..$x_ntok-1: maximum length of all tokens at level $i in all prefixes
 
   $nprefix = scalar(keys %toprintH);
   # fill pAA with all tokens, remember to remove whitespace
+  # also determine maximum length token at each level for pretty output formatting
+  $i = -1;
   foreach $prefix (keys %toprintH) { 
     push(@pA, $prefix);
+    $i++;
     my @tmpA = split(";", $prefix);
-    for(my $tmp_i = 0; $tmp_i < scalar(@tmpA); $tmp_i++) { 
-      $tmpA[$tmp_i] =~ s/\s+//g; # remove whitespace
+    $ntokA[$i] = scalar(@tmpA);
+    if($ntokA[$i] > $x_ntok) { 
+      for($j = $x_ntok; $j < $ntokA[$i]; $j++) { 
+        $xtoklenA[$j] = 0;
+      }
+      $x_ntok = $ntokA[$i]; 
+    }
+    for($j = 0; $j < scalar($ntokA[$i]); $j++) { 
+      if(length($tmpA[$j]) > $xtoklenA[$j]) { $xtoklenA[$j] = length($tmpA[$j]); }
+      $tmpA[$j] =~ s/\s+//g; # remove whitespace
     }
     push(@pAA, [@tmpA]);
   }
-  # determine number of tokens for each prefix:
-  my @ntokA = ();
-  for(my $i = 0; $i < $nprefix; $i++) { 
-    $ntokA[$i] = scalar(@{$pAA[$i]});
+  # determine total width of prefix string in output
+  my $prefix_width = 0;
+  for($j = 0; $j < $x_ntok; $j++) { 
+    $prefix_width += $xtoklenA[$j] + 2; # the + 2 is for ' |' which we append to each token
   }
+  if($prefix_width < length("# taxonomy string prefix (xx levels)")) { 
+    $prefix_width = length("# taxonomy string prefix (xx levels)");
+  }
+
   # foreach prefix, find first token level that is unique
-  for(my $i = 0; $i < $nprefix; $i++) { 
+  for($i = 0; $i < $nprefix; $i++) { 
     $prefix = $pA[$i];
-    for(my $level = 0; $level < $ntokA[$i]; $level++) { 
+    # printf STDERR "prefix: $prefix\n";
+    for($level = 0; $level < $ntokA[$i]; $level++) { 
       my $tok = $pAA[$i][$level];
       for($j = 0; $j < $nprefix; $j++) { 
+        # printf STDERR ("\tj: $j i: $i level: $level ntokA[$j] $ntokA[$j]\n");
         if($j != $i && $level < $ntokA[$j]) { # skip self and any tokens that have run off bounds of this prefix
           if($pAA[$j][$level] eq $tok) { 
             # match, $tok is not unique, break loop 
@@ -2199,10 +2213,25 @@ sub taxinfoForHits {
       if($j == $nprefix) { 
         # $tok is unique
         $pfix_unq_levelH{$prefix} = $level;
-        last;
+        # printf STDERR ("setting pfix_unq_levelH{$prefix} to $level\n");
+        $level = $ntokA[$i] + 1; 
+        # this breaks us out of the 'for (my $level' loop and acts as a flag for 'we found a unique token'
+        # for that will fail the 'if($level == $ntokA[$i])' statement below
       }
     }
-    if($level == $ntokA[$i]) { die "ERROR, taxinfoForHits() $prefix should have a unique token, but it does not"; }
+    # *!* Do not check to make sure that each prefix has a unique token, some may not.
+    # for example: 
+    #   Bacteria; Gemmatimonadetes; Gemmatimonadales
+    #   Bacteria; Spirochaetes; environmental samples.
+    #   Bacteria; Gemmatimonadetes; environmental samples.
+    #
+    # The third prefix does not have a unique token. We could automatically
+    # capitalize the final token in these cases, but currently we don't
+    # capitalize any when this happens.
+    #
+    if($level == $ntokA[$i]) { 
+      $pfix_unq_levelH{$prefix} = -1;
+    }
   }
 
   # Now, print the prefixes and their counts out in a particular order
@@ -2216,7 +2245,7 @@ sub taxinfoForHits {
   # first determine width for each group block
   my %group_lenH  = ();  # length of each group block
   my %ct_lenH     = ();  # length of each ct string
-  my $div_length = $max_length + 2;
+  my $div_length = $prefix_width + 2;
   if($ngroups <= 3) { $div_length += 3; }
   else              { $div_length += $ngroups; }
   foreach $group (@{$groupOAR}) { 
@@ -2237,12 +2266,12 @@ sub taxinfoForHits {
   # first print column headings
   my $tax_header = sprintf("# taxonomy string prefix (%d levels)", $level2print);
   my $tax_uline  = "#";
-  for($i = 0; $i < $max_length-1; $i++) { $tax_uline .= "-"; }
+  for($i = 0; $i < $prefix_width-1; $i++) { $tax_uline .= "-"; }
 
   my $mem_length = ($ngroups < 3) ? 3 : $ngroups;
 
   # line 1
-  my $outstr = sprintf("%-*s  %-*s", $max_length, "#", $mem_length, "");
+  my $outstr = sprintf("%-*s  %-*s", $prefix_width, "#", $mem_length, "");
   foreach $group (@{$groupOAR}) {
     $outstr .= sprintf("      %*s", $group_lenH{$group}, $group);
   }
@@ -2250,7 +2279,7 @@ sub taxinfoForHits {
   push(@outputA, $outstr);
 
   # line 2
-  $outstr = sprintf("%-*s  %-*s", $max_length, "#", $mem_length, "");
+  $outstr = sprintf("%-*s  %-*s", $prefix_width, "#", $mem_length, "");
   foreach $group (@{$groupOAR}) { 
     $outstr .= sprintf("      %s", Bio::Rfam::Utils::monocharacterString("-", $group_lenH{$group}));
   }
@@ -2258,7 +2287,7 @@ sub taxinfoForHits {
   push(@outputA, $outstr);
 
   # line 3
-  $outstr = sprintf("%-*s  %-*s", $max_length, $tax_header, $mem_length, "mem");
+  $outstr = sprintf("%-*s  %-*s", $prefix_width, $tax_header, $mem_length, "mem");
   foreach $group (@{$groupOAR}) { 
     $outstr .= sprintf("      %*s  %6s", $ct_lenH{$group}, "ct", "minE");
   }
@@ -2266,7 +2295,7 @@ sub taxinfoForHits {
   push(@outputA, $outstr);
 
   # line 4
-  $outstr = sprintf("%-*s  %-*s", $max_length, $tax_uline, $mem_length, "---");
+  $outstr = sprintf("%-*s  %-*s", $prefix_width, $tax_uline, $mem_length, "---");
   foreach $group (@{$groupOAR}) { 
     $outstr .= sprintf("      %-*s  %6s", $ct_lenH{$group}, Bio::Rfam::Utils::monocharacterString("-", $ct_lenH{$group}), "------");
   }
@@ -2340,8 +2369,15 @@ sub taxinfoForHits {
     # which token this is already above and stored it pfix_unq_levelH), 
     # we'll call this $prefix2print.
     if(! exists ($pfix_unq_levelH{$best_prefix})) { die "ERROR unexpectedly don't have token level to capitalize for $best_prefix"; }
-    my $prefix2print = Bio::Rfam::Utils::capitalize_token_in_taxstring($best_prefix, $pfix_unq_levelH{$best_prefix});
-    push(@outputA, sprintf("%-*s  %3s", $max_length, $prefix2print, $group_string));
+    my $cap_prefix;
+    if($pfix_unq_levelH{$best_prefix} == -1) { # our flag for 'this token has no unique prefix' (see example above, search for '*!*')
+      $cap_prefix = $best_prefix;
+    }
+    else { # this prefix DOES have a unique token:
+      $cap_prefix = Bio::Rfam::Utils::capitalize_token_in_taxstring($best_prefix, $pfix_unq_levelH{$best_prefix});
+    }
+    my $prefix2print = Bio::Rfam::Utils::pad_tokens_in_taxstring($cap_prefix, \@xtoklenA, " |"); 
+    push(@outputA, sprintf("%-*s  %3s", $prefix_width, $prefix2print, $group_string));
     if(defined $prefixAR) { push(@{$prefixAR}, $prefix2print); }
 
     # print counts for each group for this prefix
@@ -2365,7 +2401,7 @@ sub taxinfoForHits {
   } # end of loop over all prefixes
   # make dividing line
   my $tmp_line = "";
-  $tmp_line .= sprintf("%-*s  %3s", $max_length, "#", "");
+  $tmp_line .= sprintf("%-*s  %3s", $prefix_width, "#", "");
   foreach $group (@{$groupOAR}) { 
     $tmp_line .= sprintf("      %-s", Bio::Rfam::Utils::monocharacterString("-", $group_lenH{$group}));
   }
@@ -2373,7 +2409,7 @@ sub taxinfoForHits {
   push(@outputA, $tmp_line);
 
   $tmp_line = "# total hits:";
-  for($i = 0; $i < ($max_length-13 + 5); $i++) { $tmp_line .= " "; }
+  for($i = 0; $i < ($prefix_width-13 + 5); $i++) { $tmp_line .= " "; }
   foreach $group (@{$groupOAR}) { 
     if($ngroupH{$group} == 0) { $nprintedH{$group} = 0; }
     if($nprintedH{$group} != $ngroupH{$group}) { 
