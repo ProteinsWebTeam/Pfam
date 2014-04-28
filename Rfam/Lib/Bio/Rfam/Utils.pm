@@ -439,7 +439,7 @@ sub tax2kingdom {
 
   Title    : capitalize_token_in_taxstring
   Incept   : EPN, Thu Apr 10 10:01:41 2014
-  Usage    : capitalize_token_in_taxstring($species)
+  Usage    : capitalize_token_in_taxstring($taxstr, $level)
   Function : Given a taxonomy string capitalize a given token within it.
            : Tokens are delimited by ';'.
   Args     : $taxstr: the taxonomic string 
@@ -465,6 +465,38 @@ sub capitalize_token_in_taxstring {
   }
   
   return $ret_tok;
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 pad_tokens_in_taxstring
+
+  Title    : pad_tokens_in_taxstring
+  Incept   : EPN, Mon Apr 28 11:38:15 2014
+  Usage    : pad_tokens_in_tax_string($taxstr, $widthAR, $sepchar)
+  Function : Given a taxonomy string and a width for each token, return a string
+           : where each string is printed as a separate string of the proper 
+           : width, for pretty output formatting.
+  Args     : $taxstr:   the taxonomic string 
+           : $widthAR:  ref to array of width for each token
+           : $sepchar:  character to separate tokens (e.g. ';' '|' or ' ')
+  Returns  : $taxstr with new desired spacing
+  Dies     : if more tokens in $taxstr than widths in @{$widthAR}
+=cut
+
+sub pad_tokens_in_taxstring { 
+  my ($taxstr, $widthAR, $sepchar) = @_;
+  
+  my @elA = split(";", $taxstr);
+  my $ntok = scalar(@elA);
+  my $nwid = scalar(@{$widthAR});
+  if($ntok > $nwid) { die "ERROR in pad_tokens_in_taxstring: $ntok tokens in taxstr, but only $nwid widths"; }
+  my $retstr = "";
+  for(my $i = 0; $i < $ntok; $i++) { 
+    $retstr .= sprintf("%-*s%s", $widthAR->[$i], $elA[$i], $sepchar);
+  }
+  return $retstr;
 }
 
 #-------------------------------------------------------------------------------
