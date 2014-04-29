@@ -139,12 +139,12 @@ sub _assignAccession {
   my @allAccessions;
   my $rfamdb = $self->{config}->rfamlive;
   
-  my $allFamilyAccs = $rfamdb->resultset('Family')->getAllFamilyAcc;
-  my $allDeadFamilyAccs = $rfamdb->resultset('DeadFamily')->getAllDeadFamilyAcc;
-    
-  foreach my $fam ( @{$allFamilyAccs}, @{$allDeadFamilyAccs} ) {
-    my ($tmpAcc) = $fam->rfam_acc =~ /(\d+)/;
-    push( @allAccessions, $tmpAcc );
+  my @families = $rfamdb->resultset('Family')->all;
+  my @dead_families = $rfamdb->resultset('DeadFamily')->all;
+
+  foreach my $family ( @families, @dead_families ) {
+    my ( $acc ) = $family->rfam_acc =~ m/(\d+)/;
+    push @allAccessions, $acc;
   }
 
   #Need this when the database is new, and there are no entries.
