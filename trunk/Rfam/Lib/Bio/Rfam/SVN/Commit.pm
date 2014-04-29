@@ -299,9 +299,7 @@ sub deleteFamily {
   my $svnPath       = $self->{config}->svnFamilies;
   foreach my $f (@deleted_files) {
     #Need to see if there is a / on $svnPath;
-    if($svnPath !~ m|\S+/|){
-      $svnPath .= '/';
-    }
+    $svnPath .= '/' unless $svnPath =~ m|.*?/$|;
     
     if ( $f =~ m|($svnPath)(\S+)(\/)| ) {
       $family = "$2";
@@ -319,11 +317,11 @@ sub deleteFamily {
   }
 
   #Now make the dead family entry!
-  my $entry = $rfamdb->resultset('Family')->find({'rfam_acc' => $family});
+  my $entry = $rfamdb->resultset('Family')->find({rfam_acc => $family});
   #print Dumper $entry;
   
   unless($entry and $entry->rfam_acc eq $family){
-    confess("Failed to get an Rfam entry for $family\n");   
+    confess("Failed to get an Rfam entry for $family.\n");   
   }
   my $user = $self->author;
   #print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
@@ -332,7 +330,7 @@ sub deleteFamily {
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
   #We should have create the dead row if we get here, so now delete it and let the
   #database cascade the delete.
-  $rfamdb->resultset('Family')->delete('rfam_acc' => $family);
+  $entry->delete();
   
   #Finish the transaction.
   $guard->commit;
