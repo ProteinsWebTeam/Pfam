@@ -407,7 +407,7 @@ sub checkoutAllFamilies {
   };
 
   if ($@) {
-    confess("Failed to check out all families:[$!]\n");
+    confess("Failed to check out all families:[$@]\n");
   }
 }
 
@@ -533,7 +533,7 @@ sub addFamily {
   };
 
   if ($@) {
-    confess("Failed to check out new families dir, $url to $dest:[$!]\n");
+    confess("Failed to check out new families dir, $url to $dest:[$@]\n");
   }
 
  #Copy the directory to pending families directory. Only copy the files we need!
@@ -647,8 +647,8 @@ sub killFamily {
 sub moveNewFamily {
   my ( $self, $familyOld, $familyNew, $rev ) = @_;
 
-  my $oldUrl = $self->newModelLocation . "/" . $familyOld;
-  my $newUrl = $self->modelLocation . "/" . $familyNew;
+  my $oldUrl = $self->newFamilyLocation . "/" . $familyOld;
+  my $newUrl = $self->familyLocation . "/" . $familyNew;
 
   my $cinfo;
   eval {
