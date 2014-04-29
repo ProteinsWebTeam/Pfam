@@ -71,7 +71,7 @@ eval {
     close(M);
     print STDERR $entry->rfam_acc."\n";
     $client->addRFNEWMOVELog;
-    $client->moveNewEntry( $family, $entry->rfam_acc );
+    $client->moveNewFamily( $family, $entry->rfam_acc );
 
     #Now checkout and automatically add the accession to the DESC file
     open( M, ">.default" . $$ . "rfnewmove" )
@@ -101,7 +101,7 @@ eval {
 if ($@) {
   
   my %header = (
-    To      => 'finnr@janelia.hhmi.org',
+    To      => 'jgt@ebi.ac.uk',
     From    => 'rfam@ebi.ac.uk',
     Subject => 'Error in post-commit '
   );
