@@ -100,7 +100,7 @@ unless ( $comment =~ /\S+/ ) {
 if ($forward) {
 
   #Now check that the entry we want to kill is part of the SVN repository
-  $client->checkModelExists($forward);
+  $client->checkFamilyExists($forward);
 }
 
 unless ( $nforward or $forward ) {
@@ -111,7 +111,7 @@ unless ( $nforward or $forward ) {
     chop;
     if ( $_ =~ /^(RF\d{5}$)/ ) {
       my $acc = $1;
-      eval { $client->checkModelExists($acc); };
+      eval { $client->checkFamilyExists($acc); };
       if ($@) {
         warn "Acc $acc does not exist in the database";
         next;
