@@ -183,7 +183,7 @@ if($n2print != $df_n2print)    { push(@opt_lhsA, "# target \# of SEED groups for
 if($l2print != 0)              { push(@opt_lhsA, "# taxinfo unique prefix token length:");   push(@opt_rhsA, $l2print . " [-l2print]"); }
 if($do_nsort)                  { push(@opt_lhsA, "# taxinfo sort by count:");                push(@opt_rhsA, "yes [-nsort]"); }
 if($oldcompdir ne "")          { push(@opt_lhsA, "# comparing to Rfam 11.0 results in:");    push(@opt_rhsA, $oldcompdir . " [-oldcompare]"); }
-if($curcompdir ne "")          { push(@opt_lhsA, "# comparing to other results in:");        push(@opt_rhsA, $oldcompdir . " [-curcompare]"); }
+if($curcompdir ne "")          { push(@opt_lhsA, "# comparing to other results in:");        push(@opt_rhsA, $curcompdir . " [-curcompare]"); }
 if($do_forcecomp)              { push(@opt_lhsA, "# forcing comparison:");                   push(@opt_rhsA, "yes [-forcecomp]"); }
 if($do_dirty)                  { push(@opt_lhsA, "# do not unlink intermediate files:");     push(@opt_rhsA, "yes [-dirty]"); }
 if($do_forcethr)               { push(@opt_lhsA, "# forcing GA threshold:");                 push(@opt_rhsA, "yes [-forcethr]"); }

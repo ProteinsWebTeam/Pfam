@@ -2777,12 +2777,16 @@ sub writeHitComparison {
   my %newHHA; # 1st key: group ("SEED" or "FULL"), 2nd key: seqname (not nse), array of 'start-end';
   my %newctH; # key: group ("SEED" or "FULL"), value number of new hits in group
   my %oldctH; # key: group ("SEED" or "FULL"), value number of old hits in group
+  my %nnewH;  # key: group ("SEED" or "FULL"), value number of new hits with no overlaps in old hits
+  my %nlostH; # key: group ("SEED" or "FULL"), value number of old hits with no overlaps in new hits
   my %newolH; # key: group ("SEED" or "FULL"), value number of new hits that overlap >= 1 old hit
   my %oldolH; # key: group ("SEED" or "FULL"), value number of old hits that overlap >= 1 new hit
   # first recast infoHHR into newHHA
   foreach my $group ("SEED", "FULL") { 
-    $newolH{$group} = 0;
-    $oldolH{$group} = 0;
+    $nlostH{$group}   = 0;  # number of hits lost (in old results but not new results)
+    $nnewH{$group}    = 0;  # number of new hits  (in new results but not old results)
+    $newolH{$group} = 0;  # number of new hits that overlap with an old hit 
+    $oldolH{$group} = 0;  # number of old hits that overlap with a  new hit 
     foreach my $nse (@{$groupOHAR->{$group}}) { 
       my (undef, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($nse);
       push(@{$newHHA{$group}{$name}}, $start . ":" . $end);
@@ -2851,6 +2855,7 @@ sub writeHitComparison {
             # update value in newHHA so we know this hit has already overlapped with an old hit
             $newHHA{$group}{$name}[$i] = "-" . $start2 . ":" . $end2;
             $found_overlap = 1;
+            printf STDERR ("found overlap between $name/$start-$end and $name/$start2-$end2\n");
             $i = scalar(@{$newHHA{$group}{$name}}); # breaks us out of the 'for(my $i' loop
           }
         }
@@ -2873,6 +2878,7 @@ sub writeHitComparison {
         if($spc_elA[0] ne $bitsc || $spc_elA[3] ne $name) { croak "ERROR old outlist and species lines inconsistent!\n$outline\n$spcline\n"; }
         print LOSTOUT $outline; 
         print LOSTSPC $spcline;
+        $nlostH{$group}++;
       }
     }
   }
@@ -2891,6 +2897,7 @@ sub writeHitComparison {
         my ($start, $end) = split(":", $startend);
         if($start > 0) { # above, we marked each found hit by making start negative 
           $newhitH{$name . "/" . $start . "-" . $end}  = 1;;
+          $nnewH{$group}++;
         }
       }
     }
@@ -2944,22 +2951,24 @@ sub writeHitComparison {
   else { 
     open(COMP, ">" . $comparison) || die "ERROR unable to open $comparison for writing";
   }
-  if($newolH{"SEED"} == 0) { 
+  if($newolH{"SEED"} == 0 && $newolH{"FULL"} == 0) { 
     printf COMP ("# WARNING: no hits overlap between old and new searches\n#\n");
   }
   printf COMP ("# counts of hits in SEED and FULL from old and new searches:\n");
   printf COMP ("#\n");
   printf COMP ("# %8s  %7s  %7s\n", "", "SEED", "FULL");
   printf COMP ("# %8s  %7s  %7s\n", "", "=======", "=======");
-  printf COMP ("%-10s  %7d  %7d\n", "old-total",  $oldctH{"SEED"}, $oldctH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "new-total",  $newctH{"SEED"}, $newctH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "both",       $newolH{"SEED"}, $newolH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "old-unique", $oldctH{"SEED"} - $newolH{"SEED"}, $oldctH{"FULL"} - $newolH{"FULL"}); 
-  printf COMP ("%-10s  %7d  %7d\n", "new-unique", $newctH{"SEED"} - $newolH{"SEED"}, $newctH{"FULL"} - $newolH{"FULL"}); 
+  printf COMP ("%-10s  %7d  %7d\n", "old-total",  $oldctH{"SEED"},   $oldctH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-total",  $newctH{"SEED"},   $newctH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "old-both",   $oldolH{"SEED"},   $oldolH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-both",   $newolH{"SEED"},   $newolH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "old-unique", $nlostH{"SEED"},   $nlostH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-unique", $nnewH{"SEED"},    $nnewH{"FULL"}); 
   printf COMP ("#\n");
   printf COMP ("# \'old-total\':  total number of old hits in SEED and FULL\n");
   printf COMP ("# \'new-total\':  total number of new hits in SEED and FULL\n");
-  printf COMP ("# \'both\':       number of hits that exist in both old and new results (overlap by at least 1 nt)\n");
+  printf COMP ("# \'old-both\':   number of old hits that overlap with a  new hit by at least 1 nt\n");
+  printf COMP ("# \'new-both\':   number of new hits that overlap with an old hit by at least 1 nt\n");
   printf COMP ("# \'old-unique\': hits in old results not present in new results\n");
   printf COMP ("# \'new-unique\': hits in new results not present in old results\n");
   printf COMP ("#\n");
