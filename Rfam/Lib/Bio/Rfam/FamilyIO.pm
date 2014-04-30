@@ -2797,12 +2797,14 @@ sub writeHitComparison {
   my $out_lostspecies = "lostspecies";
   open(LOSTOUT, ">$out_lostoutlist") || die "ERROR unable to open $out_lostoutlist for writing";
   open(LOSTSPC, ">$out_lostspecies") || die "ERROR unable to open $out_lostspecies for writing";
+  my $ncomment = 0;
   while(my $outline = <OLDOUT>) { 
     my $spcline = <OLDSPC>;
     if($outline =~ m/^\#/) { 
-      print LOSTOUT $outline; # print comment lines
+      if($ncomment < 3) { print LOSTOUT $outline; } # print first 3 comment lines
       if($spcline !~ m/^\#/) { croak "ERROR old out.list and species lines inconsistent!\n$outline\n$spcline\n"; }
-      print LOSTSPC $spcline; # print comment lines
+      if($ncomment < 3) { print LOSTSPC $spcline; } # print first 3 comment lines
+      $ncomment++;
     }
     else { 
       my ($group, $bitsc, $evalue, $name, $start, $end);
@@ -2820,7 +2822,7 @@ sub writeHitComparison {
         ($group, $bitsc, $evalue, $name, $start, $end) = ($elA[2], $elA[0], $elA[1], $elA[3], $elA[5], $elA[6]);
       }
       # note, we don't check to make sure species line corresponds to outlist line here, but we do below before outputting it
-      if($group eq "SEED")     { $group = "SEED"; }
+      if   ($group eq "SEED")  { $group = "SEED"; }
       elsif($group eq "ALIGN") { $group = "FULL"; }
       elsif($group eq "FULL")  { ; } # leave it alone
       else                     { next; }
@@ -2849,7 +2851,7 @@ sub writeHitComparison {
             # update value in newHHA so we know this hit has already overlapped with an old hit
             $newHHA{$group}{$name}[$i] = "-" . $start2 . ":" . $end2;
             $found_overlap = 1;
-            last;
+            $i = scalar(@{$newHHA{$group}{$name}}); # breaks us out of the 'for(my $i' loop
           }
         }
       }
@@ -2913,6 +2915,8 @@ sub writeHitComparison {
     if($outline !~ m/^\#/) { 
       $outline =~ s/^\s+//; # remove leading whitespace
       $spcline =~ s/^\s+//; # remove leading whitespace
+      chomp $outline;
+      chomp $spcline;
       my @elA = split(/\s\s+/, $outline);
       # 108.5  4.2e-20      SEED  Z97632.3          v:73.4   23636   23554    -       1    83     no  Homo_sapiens_(human)[9606]        Description...
       my $nse = $elA[3] . "/" . $elA[5] . "-" . $elA[6];
