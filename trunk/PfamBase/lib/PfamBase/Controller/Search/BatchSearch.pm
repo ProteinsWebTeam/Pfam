@@ -140,7 +140,7 @@ sub parse_upload : Private {
     #----------------------------------------
 
     # look at header lines
-    if ( m/^>(\S+)/ ) {
+    if ( m/^>(.*?)$/ ) {
       # my $raw_header = $1;
       $header = $1;
 
