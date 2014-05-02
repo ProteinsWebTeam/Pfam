@@ -47,8 +47,16 @@ has 'queue' => (
 
 has '_log' => (
   is      => 'ro',
-  default => sub { get_logger() }, # TODO this needs to be more robust when the
-                                   # calling script doesn't init Log4perl
+  default => sub { 
+    my $log = get_logger();
+    if ( $ENV{DEBUG_DEQUEUER} ) {
+      $log->level($DEBUG);
+      $log->debug( 'enabling verbose logging (in response to DEBUG_DEQUEUER env variable)' );
+    }
+    return $log;
+  }, 
+  # TODO this needs to be more robust when the calling script doesn't init
+  # Log4perl
 );
 
 has '_schema' => (
@@ -205,7 +213,7 @@ sub _enqueue_pending_jobs {
 
     # these are the options that we're going to hand to the EBI search service.
     # It spits the dummy over 'key=<undef>' pairs, so we have to be careful to
-    # add only those keys that actually have a value in the config
+    # add only those keys that actually have a value
     my $search_options = {};
     $search_options->{database} = $self->_queue_spec->{database}
       if defined $self->_queue_spec->{database};
@@ -241,11 +249,8 @@ sub _enqueue_pending_jobs {
       }
       else {
         $job->update( { status => 'FAIL',
-                        closed => \'NOW()',
-                        job_stream => [
-                          { stderr => 'There was a problem submitting your job.' }
-                        ]
-                      } );
+                        closed => \'NOW()', } );
+        $job->job_stream->update ( { stderr => 'There was a problem submitting your job.' } );
       }
     }
   }
@@ -277,10 +282,14 @@ sub _submit_batch_job {
   my $jh = $self->_schema->resultset('JobHistory');
   my $js = $self->_schema->resultset('JobStream');
 
-  my $pfm = Parallel::ForkManager->new( $self->_queue_spec->{num_submission_forks} );
+  my $pfm;
+  $pfm = Parallel::ForkManager->new( $self->_queue_spec->{num_submission_forks} )
+    unless $ENV{SINGLE_THREADED_DEQUEUER};
 
   CHUNK: foreach my $chunk ( @$chunks ) {
-    my $pid = $pfm->start and next;
+    unless ( $ENV{SINGLE_THREADED_DEQUEUER} ) {
+      $pfm->start and next;
+    }
 
     # ignore the child processes when running under the perl debugger
     $DB::inhibit_exit = 0;
@@ -298,7 +307,7 @@ sub _submit_batch_job {
     if ( $@ ) {
       $self->_log->logwarn( 'there was a problem submitting a chunk for job '
                             . $job->job_id );
-      next CHUNK;
+      last CHUNK;
     }
 
     $self->_log->debug( "submitted batch chunk, given EBI job ID $ebi_id" );
@@ -317,7 +326,7 @@ sub _submit_batch_job {
     unless ( $jh_row ) {
       $self->_log->logwarn( 'there was a problem storing job info for chunk for batch job '
                             . $job->job_id );
-      next CHUNK;
+      last CHUNK;
     }
 
     my $rv = $js->create( {
@@ -328,12 +337,12 @@ sub _submit_batch_job {
     unless ( $rv ) {
       $self->_log->logwarn( 'there was a problem storing the sequence for chunk for batch job '
                             . $job->job_id );
-      next CHUNK;
+      last CHUNK;
     }
 
-    $pfm->finish;
+    $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
   }
-  $pfm->wait_all_children;
+  $pfm->wait_all_children unless $ENV{SINGLE_THREADED_DEQUEUER};
 
   my $chunks_rs = $jh->search( { job_id   => $job->job_id,
                                  job_type => 'chunk' } );
@@ -381,7 +390,8 @@ sub _run_local_job {
 
   my ( $command, $tmp_file );
   
-  if ( $self->_queue_spec->{job_type} eq 'pfalign' ) {
+  if ( $self->_queue_spec->{job_type} eq 'align' ) {
+    $self->_log->debug( 'got a Pfam sunburst alignment job' );
 
     try {
       $tmp_file = $self->_write_alignment_to_tmp_file( $job );
@@ -400,6 +410,7 @@ sub _run_local_job {
     . $job->options;
   }
   elsif ( $self->_queue_spec->{job_type} eq 'rfalign' ) {
+    $self->_log->debug( 'got an Rfam sunburst alignment job' );
 
     try {
       $tmp_file = $self->_write_list_to_tmp_file( $job );
@@ -531,7 +542,7 @@ sub _check_running_jobs {
     my $job_id = $job->job_id;
 
     my $results;
-    if ( $self->_queue_spec->{async} ) {
+    if ( $self->_queue_spec->{synchronisation} eq 'async' ) {
       $results = $self->_handle_batch_job( $job );
     }
     else {
@@ -558,10 +569,11 @@ sub _handle_batch_job {
 
   my $all_chunks_rs  = $self->_schema->resultset('JobHistory')
                          ->get_chunks_for_job( $job_id );
+  my $num_chunks = $all_chunks_rs->count;
 
   # there should always be at least one chunk for a running batch job, so fail
   # if we can't find any
-  unless ( $all_chunks_rs->count > 0 ) {
+  unless ( $num_chunks > 0 ) {
     $self->_log->logwarn( "no chunks found for job $job_id" );
 
     $job->update( { status => 'FAIL',
@@ -580,13 +592,13 @@ sub _handle_batch_job {
 
     $self->_handle_running_chunks( $running_chunks_rs );
 
-    my $num_done = $all_chunks_rs->search( { status => 'DONE' } );
+    my $still_running = $all_chunks_rs->search( { status => 'RUN' } );
 
-    $self->_log->debug( "still $num_done chunks running" );
+    $self->_log->debug( "still $still_running chunks running" );
 
     # if there are still jobs running, bail out and come back to check
     # their status on the next polling cycle
-    return if $num_done > 0;
+    return if $still_running > 0;
   }
 
   $self->_log->debug( "all chunks complete for batch job $job_id" );
@@ -620,10 +632,14 @@ sub _handle_batch_job {
 sub _handle_running_chunks {
   my ( $self, $running_chunks_rs ) = @_;
 
-  my $pfm = Parallel::ForkManager->new( $self->_queue_spec->{num_submission_forks} );
+  my $pfm;
+  $pfm = Parallel::ForkManager->new( $self->_queue_spec->{num_submission_forks} )
+    unless $ENV{SINGLE_THREADED_DEQUEUER};
 
   foreach my $chunk ( $running_chunks_rs->all ) {
-    my $pid = $pfm->start and next;
+    unless ( $ENV{SINGLE_THREADED_DEQUEUER} ) {
+      $pfm->start and next;
+    }
 
     # ignore the child processes when running under the perl debugger
     $DB::inhibit_exit = 0;
@@ -648,9 +664,9 @@ sub _handle_running_chunks {
     # TODO need to look for failed chunks. We need to re-submit a failed
     # chunk to the web service again, which will be a pain
 
-    $pfm->finish;
+    $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
   }
-  $pfm->wait_all_children;
+  $pfm->wait_all_children unless $ENV{SINGLE_THREADED_DEQUEUER};
 }
 
 #-------------------------------------------------------------------------------
