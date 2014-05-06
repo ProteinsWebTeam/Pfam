@@ -47,14 +47,14 @@ has 'queue' => (
 
 has '_log' => (
   is      => 'ro',
-  default => sub { 
+  default => sub {
     my $log = get_logger();
     if ( $ENV{DEBUG_DEQUEUER} ) {
       $log->level($DEBUG);
       $log->debug( 'enabling verbose logging (in response to DEBUG_DEQUEUER env variable)' );
     }
     return $log;
-  }, 
+  },
   # TODO this needs to be more robust when the calling script doesn't init
   # Log4perl
 );
@@ -199,7 +199,11 @@ sub _enqueue_pending_jobs {
 
   JOB: foreach my $job ( @jobs ) {
 
-    # these are the options specified by the user who submitted the search
+    # these are the options specified by the user who submitted the search.
+    # We need to catch a potential exception from "from_json", because
+    # the alignment jobs have their options specified as a non-JSON string
+    # like "-acc RF12345"
+
     my $job_options;
     try {
       $job_options = from_json( $job->options );
@@ -222,37 +226,57 @@ sub _enqueue_pending_jobs {
 
     $self->_log->info( 'search options: ', p( $search_options ) );
 
-    my $rv;
+    # submit the job
+
+    # it's a batch job...
     if ( $self->_queue_spec->{synchronisation} eq 'async' ) {
-      # it's a batch job...
-      $rv = $self->_submit_batch_job( $job, $search_options );
-    }
-    elsif ( $self->_queue_spec->{synchronisation} eq 'local' ) {
-      # it's a job that runs on the machine that's running the dequeuer...
-      $rv = $self->_run_local_job( $job );
-    }
-    else { # $self->_queue_spec->{synchronisation} eq 'sync'
-      # and everything else is an interactive job
-      $rv = $self->_submit_interactive_job( $job, $search_options );
-    }
 
-    # for batch and interactive jobs that get queued to the EBI ES farm, we
-    # need to update the tracking database with things like start time and
-    # status. For jobs that run locally on the server where the dequeuer runs,
-    # the job runs synchronously, so the start and stop times, and the status,
-    # are set by the method that actually runs the job
+      my $error_message = $self->_submit_batch_job( $job, $search_options );
 
-    unless ( $self->_queue_spec->{synchronisation} eq 'local' ) {
-      if ( $rv ) {
-        $job->update( { status => 'RUN',
-                        started => \'NOW()', } );
-      }
-      else {
+      if ( defined $error_message ) {
         $job->update( { status => 'FAIL',
                         closed => \'NOW()', } );
-        $job->job_stream->update ( { stderr => 'There was a problem submitting your job.' } );
+        $job->job_stream->update ( { stderr => $error_message } );
+
+        $self->_mail_error_message( $job, $error_message );
+
+        $self->_log->warn( 'failed to submit a chunk for job ' . $job->job_id
+                           . '; added error to job_stream and mailed user' );
+      }
+      else {
+        $job->update( { status => 'RUN',
+                        started => \'NOW()', } );
+
+        $self->_log->debug( 'successfully submitted job and updated job_history' );
       }
     }
+
+    # it's an interactive job
+    elsif ( $self->_queue_spec->{synchronisation} eq 'sync' ) {
+
+      my $error_message = $self->_submit_interactive_job( $job, $search_options );
+
+      if ( $error_message ) {
+        $job->update( { status => 'FAIL',
+                        closed => \'NOW()', } );
+        $job->job_stream->update ( { stderr => $_ } );
+
+        $self->_log->warn( 'failed to submit interactive job ' . $job->job_id
+                           . '; added error to job_stream' );
+      }
+      else {
+        $job->update( { status => 'RUN',
+                        started => \'NOW()', } );
+
+        $self->_log->debug( 'successfully submitted job and updated job_history' );
+      }
+    }
+
+    # and everything else is a job that runs on the machine where the dequeuer sits...
+    else {
+      $self->_run_local_job( $job );
+    }
+
   }
 
 }
@@ -271,7 +295,7 @@ sub _submit_batch_job {
   my $email = $job->email;
   unless ( $email and Email::Valid->address( $email ) ) {
     $self->_log->logwarn( 'no valid email address supplied' );
-    return 0;
+    die 'No valid email address supplied.';
   }
 
   $search_options->{format} = 'txt';
@@ -285,6 +309,8 @@ sub _submit_batch_job {
   my $pfm;
   $pfm = Parallel::ForkManager->new( $self->_queue_spec->{num_submission_forks} )
     unless $ENV{SINGLE_THREADED_DEQUEUER};
+
+  my $error_message;
 
   CHUNK: foreach my $chunk ( @$chunks ) {
     unless ( $ENV{SINGLE_THREADED_DEQUEUER} ) {
@@ -307,6 +333,8 @@ sub _submit_batch_job {
     if ( $@ ) {
       $self->_log->logwarn( 'there was a problem submitting a chunk for job '
                             . $job->job_id );
+      $error_message = 'There was a problem queueing one of your sequences.';
+
       last CHUNK;
     }
 
@@ -326,6 +354,8 @@ sub _submit_batch_job {
     unless ( $jh_row ) {
       $self->_log->logwarn( 'there was a problem storing job info for chunk for batch job '
                             . $job->job_id );
+      $error_message = 'There was a problem recording the details of your search.';
+
       last CHUNK;
     }
 
@@ -337,6 +367,8 @@ sub _submit_batch_job {
     unless ( $rv ) {
       $self->_log->logwarn( 'there was a problem storing the sequence for chunk for batch job '
                             . $job->job_id );
+      $error_message = 'There was a problem storing one of your sequences.';
+
       last CHUNK;
     }
 
@@ -347,18 +379,16 @@ sub _submit_batch_job {
   my $chunks_rs = $jh->search( { job_id   => $job->job_id,
                                  job_type => 'chunk' } );
 
-  my $rv;
-  if ( $chunks_rs->count == scalar @$chunks ) {
-    $self->_log->debug( 'correct number of chunk jobs submitted' );
-    $rv = 1;
-  }
-  else {
+  if ( $error_message or
+       $chunks_rs->count != scalar @$chunks ) {
     $self->_log->debug( 'found ' . scalar @$chunks . ' chunks, but submitted only '
                         . $chunks_rs->count . ' jobs' );
-    $rv = 0;
+    return $error_message;
   }
 
-  return $rv;
+  $self->_log->debug( 'no errors and correct number of chunk jobs submitted' );
+
+  return;
 }
 
 #-------------------------------------------------------------------------------
@@ -389,7 +419,7 @@ sub _run_local_job {
   my ( $self, $job ) = @_;
 
   my ( $command, $tmp_file );
-  
+
   if ( $self->_queue_spec->{job_type} eq 'align' ) {
     $self->_log->debug( 'got a Pfam sunburst alignment job' );
 
@@ -402,7 +432,7 @@ sub _run_local_job {
     };
 
     # build the command that we're going to run
-    $command = 
+    $command =
       'align2seed.pl'
     . ' -in ' . $job->job_id . '.fa'
     . ' -tmp ' . $self->config->{tempDir}
@@ -420,9 +450,9 @@ sub _run_local_job {
       return;
     };
 
-    $command = 
+    $command =
          'esl-afetch ' . $self->_queue_spec->{data_dir} . '/Rfam.full ' . $job->options
-    . " | esl-alimanip --informat stockholm --seq-k $tmp_file - " 
+    . " | esl-alimanip --informat stockholm --seq-k $tmp_file - "
     . ' | esl-alimask --informat stockholm -g --gapthresh 0.9999999 - ';
   }
 
@@ -517,13 +547,18 @@ sub _submit_interactive_job {
 
   my $ebi_id = $self->_rc->search( $search_options );
 
-  $job->update( { ebi_id  => $ebi_id,
-                  status  => 'RUN',
-                  started => \'NOW()' } );
+  unless ( $ebi_id ) {
+    return 'There was a problem submitting your interactive search.';
+  }
+
+  my $rv = $job->update( { ebi_id  => $ebi_id,
+                           status  => 'RUN',
+                           started => \'NOW()' } );
+  unless ( $rv ) {
+    return 'There was a problem storing the details of your search.';
+  }
 
   $self->_log->debug( "submitted search; internal EBI job ID: $ebi_id" );
-
-  return 1;
 }
 
 #-------------------------------------------------------------------------------
@@ -760,6 +795,49 @@ sub _mail_batch_results {
 
   my $body_fh = $msg->open;
   print $body_fh $results;
+  $body_fh->close
+    or $self->_log->warn( "failed to send email to $email with results of job $job_id" );
+}
+
+#-------------------------------------------------------------------------------
+# sends an email to the job submitter with an error message
+
+sub _mail_error_message {
+  my ( $self, $job, $error_message ) = @_;
+
+  my $job_id = $job->job_id;
+  my $email  = $job->email;
+
+  # there might be multiple admin email addresses
+  my $admin_emails = ref $self->_queue_spec->{admin_email}
+                   ?   $self->_queue_spec->{admin_email}
+                   : [ $self->_queue_spec->{admin_email} ];
+
+  $self->_log->info( "mailing error message from job $job_id to '$email'" );
+
+  my $msg = Mail::Send->new;
+  $msg->to( $email );
+  $msg->bcc( @{ $admin_emails } );
+  $msg->subject( "There was a problem with your batch search job $job_id" );
+
+  my $body_fh = $msg->open;
+  print $body_fh <<EOF_mail;
+
+There was a problem when submitting your batch search with the job ID
+$job_id. The error message that we
+received from the queueing system was:
+
+    $error_message
+
+Please check the input file that you uploaded and make sure that it meets
+the format requirements in the batch search documentation.
+
+If you think that the problem is with the search system rather than your file,
+please let us know. You can submit a help-desk ticket using the email at the
+bottom of the search page.
+
+EOF_mail
+
   $body_fh->close
     or $self->_log->warn( "failed to send email to $email with results of job $job_id" );
 }
