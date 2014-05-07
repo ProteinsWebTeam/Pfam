@@ -364,7 +364,7 @@ sub _validate_search_params {
     @_, {
       sequence => {
         type  => SCALAR,
-        regex => qr/^(>.*?\n)?[A-Z\s\n\*]+$/s,
+        regex => qr/^(>.*?\n)?[A-Za-z\s\n\*]+$/s,
       },
       database => {
         optional  => 1,
