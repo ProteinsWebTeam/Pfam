@@ -1,6 +1,6 @@
 use strict;
 
-my $usage = "jiffy-replace-rfmake-case1-warnings.pl <list of all SEED sequences (esl-alistat --list)> <root for output files>\n\nNOTE: rfmake.log must exist in present dir\n\n";
+my $usage = "replace-rfmake-case1-warnings.pl <list of all SEED sequences (esl-alistat --list)> <root for output files>\n\nNOTE: rfmake.log must exist in present dir\n\n";
 
 if(scalar(@ARGV) != 2) { die "$usage\n"; }
 
