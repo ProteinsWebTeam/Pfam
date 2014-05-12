@@ -437,7 +437,7 @@ int _c_set_name (ESL_MSA *msa, char *newname)
  */
 char *_c_get_sqname (ESL_MSA *msa, I32 idx)
 {
-    return msa->sqname[idx];
+  return msa->sqname[idx];
 }
 
 /* Function:  _c_get_sqidx()
@@ -2021,4 +2021,36 @@ void _c_capitalize_based_on_rf(ESL_MSA *msa)
 
   return;
 }
+
+/* Function:  _c_get_gf_num()
+ * Incept:    EPN, Thu May  8 13:44:36 2014
+ * Synposis:  Return the number of GF annotations (msa->ngf).
+ */
+int _c_get_gf_num(ESL_MSA *msa)
+{
+  return msa->ngf;
+}
+
+/* Function:  _c_get_gf_tag()
+ * Incept:    EPN, Thu May  8 13:45:23 2014
+ * Synposis:  Return the tag for GF annotation num <idx>
+ * Dies:      If GF annotation num <idx> does not exist.
+ */
+char *_c_get_gf_tag(ESL_MSA *msa, int idx)
+{
+  if(idx >= msa->ngf) croak("ERROR, _c_get_gf_tag(), asking for tag %d, but only %d exist.", idx+1, msa->ngf); 
+  return msa->gf_tag[idx];
+}
+
+/* Function:  _c_get_gf()
+ * Incept:    EPN, Thu May  8 13:45:23 2014
+ * Synposis:  Return GF annotation num <idx>
+ * Dies:      If GF annotation num <idx> does not exist.
+ */
+char *_c_get_gf(ESL_MSA *msa, int idx)
+{
+  if(idx >= msa->ngf) croak("ERROR, _c_get_gf(), asking for GF annotation %d, but only %d exist.", idx+1, msa->ngf); 
+  return msa->gf[idx];
+}
+
     
