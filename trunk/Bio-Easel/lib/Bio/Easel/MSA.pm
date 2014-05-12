@@ -731,7 +731,7 @@ sub set_name {
   Usage    : $msaObject->write_msa($fileLocation)
   Function : Write MSA to a file
   Args     : $outfile: name of output file, if "STDOUT" output to stdout, not to a file
-           : $format:  ('stockholm', 'pfam', 'afa', 'clustal', or 'fasta')
+           : $format:  ('stockholm', 'pfam', 'a2m', 'phylip', 'phylips', 'psiblast', 'selex', 'afa', 'clustal', 'clustallike', 'fasta')
            :           if 'fasta', write out seqs in unaligned fasta.
   Returns  : void
 
@@ -748,10 +748,16 @@ sub write_msa {
   if ($format eq "fasta") { # special case, write as unaligned fasta
     $status = _c_write_msa_unaligned_fasta( $self->{esl_msa}, $outfile );
   }
-  elsif ( $format eq "stockholm"
+  elsif (    $format eq "stockholm"
           || $format eq "pfam"
+          || $format eq "a2m"
+          || $format eq "phylip"
+          || $format eq "phylips"
+          || $format eq "psiblast"
+          || $format eq "selex"
           || $format eq "afa" 
-          || $format eq "clustal" )
+          || $format eq "clustal"
+          || $format eq "clustallike")
   {
     $status = _c_write_msa( $self->{esl_msa}, $outfile, $format );
   }
@@ -2120,6 +2126,30 @@ sub capitalize_based_on_rf
 
   _c_capitalize_based_on_rf($self->{esl_msa});
 
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_all_GF
+
+  Title     : get_all_GF
+  Incept    : EPN, Thu May  8 13:40:50 2014
+  Usage     : $msaObject->get_all_GF
+  Function  : Get all GF annotation for an MSA by filling a passed in hash.
+  Args      : none
+  Returns   : void
+=cut
+
+sub get_all_GF
+{
+  my ($self, $gfHR) = @_;
+
+  my $ngf = _c_get_gf_num($self->{esl_msa});
+  for(my $i = 0; $i < $ngf; $i++) { 
+    my $tag       = _c_get_gf_tag($self->{esl_msa}, $i);
+    $gfHR->{$tag} = _c_get_gf    ($self->{esl_msa}, $i);
+  }
   return;
 }
 
