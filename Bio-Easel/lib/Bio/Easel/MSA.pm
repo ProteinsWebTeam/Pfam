@@ -455,7 +455,7 @@ sub set_rf {
 =cut
 
 sub get_ss_cons { 
-  my ( $self, $idx ) = @_;
+  my ( $self ) = @_;
 
   $self->_check_msa();
   if(! $self->has_ss_cons()) { croak "Trying to fetch SS_cons from MSA but it does not exist"; }
