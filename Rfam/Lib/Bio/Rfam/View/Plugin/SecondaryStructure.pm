@@ -13,15 +13,24 @@ has foo => (
 
 sub process {
   my $self = shift;
-  print 'Work on this ' . $self->parent->family->SEED->path . "\n";
+ # print 'Work on this ' . $self->parent->family->SEED->path . "\n";
 
   $self->makeRchie;
 }
 
-#Make Rchie arc diagrams
+
+#Make coloured base pair diagrams
+#
+sub makeBling {
+	my ($self) = @_;
+	my $rfamdb = $self->parent->config->rfamlive;
+	my $rfam_acc = $self->parent->family->DESC->AC;
+}
+
+
+#Make Rchie arc l
 #
 sub makeRchie {
-	print "job id: $$\n";
 	my ($self) = @_;
 	
 	my $rfamdb = $self->parent->config->rfamlive;
@@ -39,16 +48,13 @@ sub makeRchie {
 	}
 
 	my $Rchie_cmd = "stockholm2Arc.R $seed_loc $rchie_img 2> $location/$$.err";
-	print "Making arc diagram for $rfam_acc: $Rchie_cmd\n";
+	print "Making arc diagram for $rfam_acc\n";
 	system ($Rchie_cmd);
 	if ($? == -1) {
 		croak ("Failed to generate Rchie image for $rfam_acc!\n");
 	}
 	my $fileGzipped;
 	gzip $rchie_img => \$fileGzipped;
-	#my $resultset = $rfamdb->resultset('Family')->find({"me.rfam_acc" => $rfam_acc,
-	#													"secondary_structure_images.type" => "rchie"},
-	#														{join =>"secondary_structure_images"});	
 	
 	my $resultset = $rfamdb->resultset('SecondaryStructureImage')->find(
 										{rfam_acc => $rfam_acc,
@@ -67,19 +73,7 @@ sub makeRchie {
 				image => $fileGzipped}
 		);
 	}
-	#my $famRow = $rfamdb->resultset('Family')->find({"rfam_acc" => $rfam_acc});	
-	#my $row = $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
-	#	{
-	#		rfam_acc => $rfam_acc,
-	#		type => 'rchie',
-	#		image => $fileGzipped
-	#	},
-	#	{key => 'acc_and_type'}
-	#	);
-	#$resultset->update_or_create( { secondary_structure_images =>[ 
-	#		{image =>$fileGzipped,
-	#		type => 'rchie',
-	#		rfam_acc => $rfam_acc}]});
-
+	unlink($seed_loc);
+	unlink($rchie_img);
 }
 1;
