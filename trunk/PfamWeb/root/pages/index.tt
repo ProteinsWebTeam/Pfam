@@ -392,17 +392,17 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/40/D1/D290.full">
+           href="http://nar.oxfordjournals.org/content/42/D1/D222.long">
            The Pfam protein families database</a>: 
       </span>
       <span class="authors">
-        M. Punta, P.C. Coggill, R.Y. Eberhardt, J. Mistry, J. Tate, C. Boursnell,
-        N. Pang, K. Forslund, G. Ceric, J. Clements, A. Heger, L. Holm, E.L.L. Sonnhammer,
-        S.R. Eddy, A. Bateman, R.D. Finn
+        M. Punta, P.C. Coggill, R.Y. Eberhardt, J. Mistry, J. Tate, C. Boursnell, 
+        N. Pang, K. Forslund, G. Ceric, J. Clements, A. Heger, L. Holm, E.L.L. Sonnhammer, 
+        S.R. Eddy, A. Bateman, R.D. Finn 
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2012)
-        &nbsp;Database Issue 40:D290-D301 
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
+        &nbsp;Database Issue 42:D222-D230 
       </span>
     </div>
   </div>
