@@ -599,7 +599,7 @@ mysql> SELECT pfamA_acc, \
       seed and full alignment. The <span
         class="table">pfamA_interactions</span> table contains, where data are
       available, pairs of interacting Pfam domains. The data in this table are
-      taken from the <a class="ext" href="http://ipfam.sanger.ac.uk/">iPfam</a>
+      taken from the <a class="ext" href="http://www.ipfam.org/">iPfam</a>
       resource, which describes physical interactions between Pfam domains that
       have a representative structure in the PDB.
     </p>
