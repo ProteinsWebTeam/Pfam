@@ -11,84 +11,11 @@
 
 <div class="block" id="helpLinkingBlock">
   <div class="handle">
-    <h1>How to link to Pfam?</h1>
+    <h1>Linking to the Pfam website</h1>
   </div>
   <div class="blockContent">
-    <p>
-      Pfam is maintained by a consortium of researchers based at the 
-      <a class="ext" href="http://www.sanger.ac.uk/">Wellcome Trust 
-        Sanger Institute</a>, Cambridge, UK (WTSI), 
-      <a class="ext" href="http://www.sbc.su.se/">Stockholm Bioinformatics Center</a>, 
-      Stockholm, Sweden (SBC), and 
-      <a class="ext" href="http://pfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
-      All three sites run the same Pfam website and linking to different sites
-      only requires that you change the site name, not the parameters in the URL.
-    </p>
-    <p>
-      Although we have no plans to change the locations of resources within 
-      this site dramatically, webmasters are advised to link only to the 
-      following types of page within the site.
-    </p>
-    
-    <h3>Home pages</h3>
-    <dl class="sitesList">
-      <dt>WTSI:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/">http://pfam.sanger.ac.uk/</a>
-      </dd>
-      <dt>SBC:</dt>
-      <dd>
-        <a class="ext" href="http://pfam.sbc.su.se/">http://pfam.sbc.su.se/</a>
-      </dd>
-      <dt>Janelia:</dt>
-      <dd>
-        <a class="ext" href="http://pfam.janelia.org/">http://pfam.janelia.org/</a>
-      </dd>
-    </dl>
-    
-    <h3>Searching a protein sequence against Pfam</h3>
-    <dl class="sitesList">
-      <dt>WTSI:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
-          http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a>
-      </dd>
-      <dt>SBC:</dt>
-      <dd>
-        <a class="ext" 
-           href="http://pfam.sbc.su.se/search?tab=sequenceSearchBlock">
-          http://pfam.sbc.su.se/search?tab=sequenceSearchBlock</a>
-      </dd>
-      <dt>Janelia:</dt>
-      <dd>
-        <a class="ext" 
-           href="http://pfam.janelia.org/search?tab=sequenceSearchBlock">
-          http://pfam.janelia.org/search?tab=sequenceSearchBlock</a>
-      </dd>
-    </dl>
 
-    <h3>Searching a DNA sequence against Pfam</h3>
-    <dl class="sitesList">
-      <dt>WTSI:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock">
-          http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock</a>
-      </dd>
-      <dt>SBC:</dt>
-      <dd>
-        <a class="ext" 
-           href="http://pfam.sbc.su.se/search?tab=sequenceDnaBlock">
-          http://pfam.sbc.su.se/search?tab=sequenceDnaBlock</a>
-      </dd>
-      <dt>Janelia:</dt>
-      <dd>
-         <a class="ext" 
-            href="http://pfam.janelia.org/search?tab=sequenceDnaBlock">
-           http://pfam.janelia.org/search?tab=sequenceDnaBlock</a>
-      </dd>
-    </dl>
-
-    <h3>Linking to Pfam family pages</h3>
+    <h3>Linking to family pages</h3>
     
     <p>
       You can refer to Pfam families either by accession or ID. You can also 
@@ -104,39 +31,33 @@
       Here are some examples of linking to Pfam at WTSI: 
     </p>
     <dl class="sitesList">
-      <dt>By accession:</dt>
+      <dt>Directly, using either accession or ID:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/family?acc=PF00002">
-          http://pfam.sanger.ac.uk/family?acc=PF00002</a>
-      </dd>
-      <dt>By ID:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/family?id=7tm_2">
-          http://pfam.sanger.ac.uk/family?id=7tm_2</a>
-      </dd>
-      <dt>Using &quot;entry&quot;:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/family?entry=PF00002">
-          http://pfam.sanger.ac.uk/family?entry=PF00002</a>
+        <a href="[% c.uri_for('/family','PF00002') %]">
+          [% c.uri_for('/family','PF00002') %]</a>
         or<br />
-        <a href="http://pfam.sanger.ac.uk/family?entry=7tm_2">
-          http://pfam.sanger.ac.uk/family?entry=7tm_2</a>
+        <a href="[% c.uri_for('/family','7tm_2') %]">
+          [% c.uri_for('/family','7tm_2') %]</a>
       </dd>
-      <dt>Directly:</dt>
+      <dt>Using a parameter, by accession:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/family/PF00002">
-          http://pfam.sanger.ac.uk/family/PF00002</a>
+        <a href="[% c.uri_for('/family', acc='PF00002') %]">
+          [% c.uri_for('/family', acc='PF00002') %]</a>
+      </dd>
+      <dt>Using a parameter, by ID:</dt>
+      <dd>
+        <a href="[% c.uri_for('/family', id='7tm_2') %]">
+          [% c.uri_for('/family', id='7tm_2') %]</a>
+      </dd>
+      <dt>Using the &quot;entry&quot; parameter with either accession or ID:</dt>
+      <dd>
+        <a href="[% c.uri_for('/family',entry='PF00002') %]">
+          [% c.uri_for('/family',entry='PF00002') %]</a>
         or<br />
-        <a href="http://pfam.sanger.ac.uk/family/7tm_2">
-          http://pfam.sanger.ac.uk/family/7tm_2</a>
+        <a href="[% c.uri_for('/family', entry='7tm_2') %]">
+          [% c.uri_for('/family', entry='7tm_2') %]</a>
       </dd>
     </dl>
-
-    <p>
-      You can link to Pfam family data at the other sites by changing
-      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
-      or &quot;<tt>pfam.janelia.org</tt>&quot;.
-    </p>
 
     <h3>Linking to protein sequence pages</h3>
     
@@ -150,39 +71,33 @@
       Here are some examples of linking to protein sequence pages at WTSI: 
     </p>
     <dl class="sitesList">
+      <dt>Directly:</dt>
+      <dd>
+        <a href="[% c.uri_for('/protein', 'P15498') %]">
+          [% c.uri_for('/protein', 'P15498') %]</a>
+        or<br />
+        <a href="[% c.uri_for('/protein', 'VAV_HUMAN') %]">
+          [% c.uri_for('/protein', 'VAV_HUMAN') %]</a>
+      </dd>
       <dt>By accession:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/protein?acc=P15498">
-          http://pfam.sanger.ac.uk/protein?acc=P15498</a>
+        <a href="[% c.uri_for('/protein', acc='P15498') %]">
+          [% c.uri_for('/protein', acc='P15498') %]</a>
       </dd>
       <dt>By ID:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN">
-          http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN</a>
+        <a href="[% c.uri_for('/protein', id='VAV_HUMAN') %]">
+          [% c.uri_for('/protein', id='VAV_HUMAN') %]</a>
       </dd>
       <dt>Using &quot;entry&quot;:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/protein?entry=P15498">
-          http://pfam.sanger.ac.uk/protein?entry=P15498</a>
+        <a href="[% c.uri_for('/protein', entry='P15498') %]">
+          [% c.uri_for('/protein', entry='P15498') %]</a>
         or<br />
-        <a href="http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN">
-          http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN</a>
-      </dd>
-      <dt>Directly:</dt>
-      <dd>
-        <a href="http://pfam.sanger.ac.uk/protein/P15498">
-          http://pfam.sanger.ac.uk/protein/P15498</a>
-        or<br />
-        <a href="http://pfam.sanger.ac.uk/protein/VAV_HUMAN">
-          http://pfam.sanger.ac.uk/protein/VAV_HUMAN</a>
+        <a href="[% c.uri_for('/protein', entry='VAV_HUMAN') %]">
+          [% c.uri_for('/protein', entry='VAV_HUMAN') %]</a>
       </dd>
     </dl>
-
-    <p>
-      Again, to generate links to the other Pfam sites, change
-      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
-      or &quot;<tt>pfam.janelia.org</tt>&quot;.
-    </p>
 
     <h3><a name="jump">Linking to the &quot;jump to&quot; search</a></h3>
       
@@ -206,13 +121,13 @@
     <dl class="sitesList">
       <dt>Return URL:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498">
-          http://pfam.sanger.ac.uk/search/jump?entry=P15498</a>
+        <a href="[% c.uri_for('/search/jump', entry='P15498') %]">
+          [% c.uri_for('/search/jump', entry='P15498') %]</a>
       </dd>
       <dt>Redirect:</dt>
       <dd>
-        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1">
-          http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1</a>
+        <a href="[% c.uri_for('/search/jump', entry='P15498',redirect=1) %]">
+          [% c.uri_for('/search/jump', entry='P15498',redirect=1) %]</a>
       </dd>
     </dl>
     <p>
