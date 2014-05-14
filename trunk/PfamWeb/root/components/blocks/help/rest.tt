@@ -116,9 +116,9 @@ sharedRequirements.css.push( "prettify.css" );
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/pfam_family.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
@@ -246,9 +246,9 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:37:09 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/pfam_family.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi" /&gt;
@@ -305,9 +305,9 @@ Piwi</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/pfam_family.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
@@ -390,9 +390,9 @@ for example mRNA, guided by double stranded siRNA.
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 16:34:44 26-Oct-2009 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns="http://pfam.sanger.ac.uk/"
-           xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                               http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
+           xmlns="http://pfam.xfam.org/"
+           xsi:schemaLocation="http://pfam.xfam.org/
+                               http://pfam.xfam.org/static/documents/schemas/pfam_family.xsd"
            release="24.0"
            release_date="2009-10-07"&gt;
   &lt;entry accession="PF06700"
@@ -436,9 +436,9 @@ for example mRNA, guided by double stranded siRNA.
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- all Pfam-A families, generated: 16:12:54 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_families.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/pfam_families.xsd"
       release="24.0" 
       release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF00001" id="7tm_1"&gt;
@@ -484,9 +484,9 @@ for example mRNA, guided by double stranded siRNA.
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 16:28:26 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/protein.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/protein.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;entry entry_type="sequence" db="uniprot" db_release="57.6" accession="P00789" id="CANX_CHICK"&gt;
@@ -602,16 +602,16 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -LH 'Expect:' -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
+        <pre>shell% curl -LH 'Expect:' -F seq='&lt;test.seq' -F output=xml 'http://pfam.xfam.org/search/sequence'</pre>
         <pre class="prettyprint">
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd"&gt;
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/submission.xsd"&gt;
   &lt;job job_id="adabec68-703f-48c4-bec7-07f1ab965fbb"&gt;
     &lt;opened&gt;2010-03-26 11:25:57&lt;/opened&gt;
-    &lt;result_url&gt;http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml&lt;/result_url&gt;
+    &lt;result_url&gt;http://pfam.xfam.org/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml&lt;/result_url&gt;
   &lt;/job&gt;
 &lt;/jobs&gt;</pre>
       </div>
@@ -787,12 +787,12 @@ ITFQNGTIRQVNGRIEESR</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-      <pre>shell% curl -LH 'Expect:' 'http://pfam.sanger.ac.uk/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml'</pre>
+      <pre>shell% curl -LH 'Expect:' 'http://pfam.xfam.org/search/sequence/resultset/adabec68-703f-48c4-bec7-07f1ab965fbb?output=xml'</pre>
       <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/results.xsd"
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/results.xsd"
       release="24.0"
       release_date="2009-10-07"&gt;
   &lt;results job_id="adabec68-703f-48c4-bec7-07f1ab965fbb"&gt;

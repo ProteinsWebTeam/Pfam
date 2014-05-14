@@ -12,7 +12,7 @@ USE dumper;
 USE String;
 USE date;
 
-baseUri = "http://pfam.sanger.ac.uk/";
+baseUri = "http://pfam.xfam.org/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on UniProt entry [% pfamseq.pfamseq_acc %] ([% pfamseq.pfamseq_id %]), generated: [% date.format %] -->

@@ -11,8 +11,7 @@ USE String;
 
 META naked = 1;
 
-baseUri = "http://pfam.sanger.ac.uk/";
-#baseUri = "http://web-vm-pfam.internal.sanger.ac.uk:8000/";
+baseUri = "http://pfam.xfam.org/";
 
 totalFam = 0;
 totalSeq = 0;
