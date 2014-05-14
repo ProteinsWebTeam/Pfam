@@ -10,7 +10,7 @@ USE dumper;
 
 META naked = 1;
 
-baseUri = "http://pfam.sanger.ac.uk/";
+baseUri = "http://pfam.xfam.org/";
 
 # get the job ID
 jobId = results.keys.shift;
@@ -39,9 +39,9 @@ END;
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          [% baseUri %]static/documents/schemas/results.xsd"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/pfam_family.xsd"
       release="[% relData.pfam_release %]" 
       release_date="[% relData.pfam_release_date %]">
 [% IF seqSearchError -%]

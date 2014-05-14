@@ -10,7 +10,7 @@ USE date;
 
 META naked = 1;
 
-baseUri = "http://pfam.sanger.ac.uk/";
+baseUri = "http://pfam.xfam.org/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam-B family [% pfam.pfamb_acc %] ([% pfam.pfamb_id %]), generated: [% date.format %] -->

@@ -17,9 +17,9 @@ META naked = 1;
 </error>
 [% ELSE -%]
 <jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://pfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://pfam.sanger.ac.uk/
-                          http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd">
+      xmlns="http://pfam.xfam.org/"
+      xsi:schemaLocation="http://pfam.xfam.org/
+                          http://pfam.xfam.org/static/documents/schemas/submission.xsd">
 [% FOREACH jobId IN results.keys -%]
   <job job_id="[% jobId %]">
     <opened>[% results.$jobId.rows.0.opened %]</opened>
