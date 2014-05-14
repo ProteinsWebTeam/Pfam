@@ -224,7 +224,7 @@
       DNA. We use this package to allow users to search single DNA sequences
       against the library of Pfam HMMs. Paste your DNA sequence into the DNA 
       search box on the
-      <a href="http://pfam.sanger.ac.uk/search?tab=searchDnaBlock">search page</a>.
+      <a href="[% c.uri_for('/search', tab='searchDnaBlock') %]">search page</a>.
       The results take approximately 2 minutes for
       a 1kb sequence, and approximately 1 hour for a 80kb sequence. 
     </p>
@@ -247,7 +247,7 @@
     <p>
       Full details on how to get 'pfam_scan.pl' up and running can be found on
       our <a class="ext"
-      href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/Tools/README"> FTP site</a>.
+      href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/Tools/README"> FTP site</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
@@ -260,7 +260,7 @@
       in the most up-to-date versions of the sequence databases. If your sequence
       isn't in Pfam, you can still find out what domains it contains by pasting it
       into the sequence search box on the 
-      <a href="http://pfam.sanger.ac.uk/search">search page</a>.
+      <a href="[% c.uri_for('/search') %]">search page</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
@@ -291,7 +291,8 @@
     <p>
       If you know of a domain that is not present in Pfam, you can
       submit it to us by email 
-      (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>) and we will endeavour to build a Pfam entry
+      (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;</a>)
+      and we will endeavour to build a Pfam entry
       for it. We ask that you supply us with a multiple sequence
       alignment of the domain (please send the alignment file as a
       text file (e.g. <code>.txt</code>) and <strong>not</strong> in the format of
@@ -381,7 +382,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
       incorporate it into the database. If you know of a domain, but
       don't have a multiple alignment, we still want to know, for
       simple families just one sequence is enough. Again E-mail 
-      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>.
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   
