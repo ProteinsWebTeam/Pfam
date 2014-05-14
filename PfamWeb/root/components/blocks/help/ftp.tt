@@ -16,7 +16,7 @@
   <div class="blockContent">
 	
     <p>
-      The Pfam <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">
+      The Pfam <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam">
         FTP site</a> is organised into the following structure: 
     </p>
 
@@ -49,7 +49,7 @@
       This contains the flat-files for the current release. Some of these files 
       may be <em>very</em> large (of the order of several hundred megabytes). 
       Please check the sizes on the
-      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
+      <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam">FTP site</a> 
       before trying to download them over a slow connection. The files, most of 
       which are compressed using <a class="ext" href="http://www.gzip.org/">
         gzip</a>, are:
@@ -57,7 +57,7 @@
   
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.dead.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.dead.gz">
           Pfam-A.dead.gz</a>
       </dt>
       <dd>
@@ -65,7 +65,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.fasta.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.fasta.gz">
           Pfam-A.fasta.gz</a>
       </dt>
       <dd>
@@ -75,7 +75,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
           Pfam-A.full.gz</a>
       </dt>
       <dd>
@@ -84,7 +84,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.metagenomcis.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.metagenomcis.gz">
           Pfam-A.full.metagenomcis.gz</a>
       </dt>
       <dd>
@@ -93,7 +93,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.ncbi.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.ncbi.gz">
           Pfam-A.full.ncbi.gz</a>
       </dt>
       <dd>
@@ -102,7 +102,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.dat.gz">
           Pfam-A.hmm.dat.gz</a>
       </dt>
       <dd>
@@ -110,7 +110,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz">
           Pfam-A.hmm.gz</a>
       </dt>
       <dd>
@@ -118,7 +118,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
           Pfam-A.seed.gz</a>
       </dt>
       <dd>
@@ -126,7 +126,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.fasta.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.fasta.gz">
           Pfam-B.fasta.gz</a>
       </dt>
       <dd>
@@ -136,7 +136,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
           Pfam-B.gz</a>
       </dt>
       <dd>
@@ -145,7 +145,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
           Pfam-B.hmm.gz</a>
       </dt>
       <dd>
@@ -154,7 +154,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
           Pfam-B.hmm.dat.gz</a>
       </dt>
       <dd>
@@ -162,7 +162,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
           Pfam-C.gz</a>
       </dt>
       <dd>
@@ -170,7 +170,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/active_site.dat.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/active_site.dat.gz">
           active_site.dat.gz</a>
       </dt>
       <dd>
@@ -178,7 +178,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database.tar">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database.tar">
           database.tar</a>
       </dt>
       <dd>
@@ -186,7 +186,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/database_files">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files">
           database_files</a>
       </dt>
       <dd>
@@ -197,7 +197,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/diff.gz">
           diff.gz</a>
       </dt>
       <dd>
@@ -205,7 +205,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/metapfam.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/metapfam.gz">
           metapfam.gz</a>
       </dt>
       <dd>
@@ -213,7 +213,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/metaseq.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/metaseq.gz">
           metaseq.gz</a>
       </dt>
       <dd>
@@ -221,7 +221,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/ncbi.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/ncbi.gz">
           ncbi.gz</a>
       </dt>
       <dd>
@@ -229,7 +229,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/ncbipfam.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/ncbipfam.gz">
           ncbipfam.gz</a>
       </dt>
       <dd>
@@ -237,7 +237,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pdbmap.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/pdbmap.gz">
           pdbmap.gz</a>
       </dt>
       <dd>
@@ -245,7 +245,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
           pfamseq.gz</a>
       </dt>
       <dd>
@@ -253,7 +253,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
           relnotes.txt</a>
       </dt>
       <dd>
@@ -261,7 +261,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
           swisspfam.gz</a>
       </dt>
       <dd>
@@ -269,7 +269,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/uniprot_sprot.dat.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/uniprot_sprot.dat.gz">
           uniprot_sprot.dat.gz</a>
       </dt>
       <dd>
@@ -277,7 +277,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/uniprot_trembl.dat.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/uniprot_trembl.dat.gz">
           uniprot_trembl.dat.gz</a>
       </dt>
       <dd>
@@ -285,7 +285,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/userman.txt">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/userman.txt">
           userman.txt</a>
       </dt>
       <dd>
@@ -293,7 +293,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.regions.tsv.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.regions.tsv.gz">
           Pfam-A.regions.tsv.gz</a>
       </dt>
       <dd>
@@ -301,7 +301,7 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz">
           Pfam-A.clans.tsv.gz</a>
       </dt>
       <dd>
