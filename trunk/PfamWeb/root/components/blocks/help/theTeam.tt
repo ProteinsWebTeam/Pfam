@@ -21,29 +21,28 @@
       and primary roles are listed below.
     </p>  
   
-    <h3>Wellcome Trust Sanger Institute (UK)</h3>
+    <h3>European Bioinformatics Institute (EMBL-EBI), UK</h3>
   
     <ul>
-      <li><strong>Marco Punta - Pfam project leader</strong></li>
+      <li>Alex Bateman - EMBL-EBI Protein cluster head</li>
+      <li>Rob Finn - Protein Families team leader</li>
+      <li>Marco Punta - Pfam project leader</li>
       <li>Penny Coggill - Pfam database annotator</li>
       <li>Ruth Eberhardt - Pfam database annotator</li>
       <li>Jaina Mistry - Pfam developer</li>
       <li>John Tate - Web developer</li>
-      <li>Alex Bateman - Faculty lead</li>
     </ul>
     
-    <h3>Janelia Farm Research Campus (USA)</h3>
+    <h3>Janelia Farm Research Campus, USA</h3>
   
     <ul>
-      <li><strong>Rob Finn - Pfam project leader</strong></li>
       <li>Jody Clements - Web developer</li>
       <li>Sean Eddy - Founding developer and author of HMMER software</li>
     </ul>
     
-    <h3>Stockholm Bioinformatics Center (Sweden)</h3>
+    <h3>Stockholm Bioinformatics Center, Sweden</h3>
   
     <ul>
-      <li>Kristoffer Forslund - Pfam developer</li>
       <li>Erik Sonnhammer - Coordinator of Pfam-Sweden and founding developer</li>
     </ul>
     
@@ -53,7 +52,7 @@
       Pfam includes families that have been built by external contributors:
     </p>
 
-    <h4>NCBI</h4>
+    <h4>NCBI, USA</h4>
     <ul>
       <li>Lakshminarayan Iyer</li>
       <li>L. Aravind</li>
@@ -62,7 +61,7 @@
       <li>Vivek Anantharaman</li>
     </ul>
 
-    <h4>Sanford-Burnham Medical Research Institute</h4>
+    <h4>Sanford-Burnham Medical Research Institute, USA</h4>
     <ul>
       <li>Adam Godizk</li>
       <li>Lukasz Jaroszewski</li>
@@ -80,6 +79,7 @@
       <li>Lachlan Coin</li>
       <li>Richard Durbin</li>
       <li>Matthew Fenech</li>
+      <li>Kristoffer Forslund</li>
       <li>O. Luke Gavin</li>
       <li>Prasad Gunasekaran</li>
       <li>Sam Griffiths-Jones</li>
