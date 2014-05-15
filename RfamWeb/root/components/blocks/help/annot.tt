@@ -29,7 +29,7 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       check that the following resources do not provide the annotation for you:
     </p>
     <ol>
-      <li><a href="http://rfam.sanger.ac.uk/genome/browse">Rfam genomes</a></li>
+      <li><a href="[% c.uri_for('/genome/browse') %]">Rfam genomes</a></li>
       <li><a class="ext" href="http://www.ebi.ac.uk/GenomeReviews/">Genome Reviews</a></li>
       <li><a class="ext" href="http://www.ensembl.org/index.html">ENSEMBL Genomes</a></li>
       <li><a class="ext" href="http://www.genome.ucsc.edu/">UCSC Genome Browser</a></li>
@@ -42,7 +42,7 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       conjunction with the <a class="ext" 
         href="http://infernal.janelia.org/">Infernal</a> software. We 
       pre-calculate Rfam hits to a large number of complete genomes. These 
-      results are presented <a href="http://rfam.sanger.ac.uk/genome/browse">
+      results are presented <a href="[% c.uri_for('/genome/browse') %]">
         here</a>. This approach seems to work well for prokaryotic genomes but 
       there are some important drawbacks to the approach for larger genomes,
       particularly vertebrates.
@@ -59,10 +59,10 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
     </p>
     <p>
       A currently unsupported Perl script, 
-      <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">
+      <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">
         rfam_scan.pl</a>, which uses BLAST to increase search speed,
          can be downloaded from
-      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/">
+      <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/tools/">
         here</a>. This script is currently being updated to support Infernal 
       version 1.0.
     </p>

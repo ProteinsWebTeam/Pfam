@@ -129,9 +129,9 @@ sharedRequirements.css.push( "help.css" );
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on Rfam family RF00360 (snoZ107_R87), generated: 10:36:20 13-Mar-2012 --&gt;
 &lt;rfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="http://rfam.sanger.ac.uk/"
-      xsi:schemaLocation="http://rfam.sanger.ac.uk/
-                          http://rfam.sanger.ac.uk/static/documents/schemas/entry_xml.xsd"
+      xmlns="[% c.uri_for('/') %]"
+      xsi:schemaLocation="[% c.uri_for('/') %]
+                          [% c.uri_for('/') %]/static/documents/schemas/entry_xml.xsd"
       release="10.1" 
       release_date="2011-06-01"&gt;
   &lt;entry entry_type="Rfam" accession="RF00360" id="snoZ107_R87"&gt;
@@ -306,7 +306,7 @@ ATACGACGTGCTGTAGCTT</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -H 'Expect:' -F seq='&lt;test.seq' -H "Accept: application/json" http://rfam.sanger.ac.uk/search/sequence</pre>
+        <pre>shell% curl -H 'Expect:' -F seq='&lt;test.seq' -H "Accept: application/json" [% c.uri_for('/search/sequence') %]</pre>
         <pre class="prettyprint">
 {
   "resultURL": "[% c.uri_for( '/search/sequence/d9b451d8-96e6-4234-9dbb-aa4806925353' ) %]",
@@ -360,7 +360,7 @@ ATACGACGTGCTGTAGCTT</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-      <pre>shell% curl -H "Expect:" -H "Accept: application/json" http://rfam.sanger.ac.uk/search/sequence/01d3c704-591a-4a85-b7c1-366496c5a63</pre>
+      <pre>shell% curl -H "Expect:" -H "Accept: application/json" [% c.uri_for('/search/sequence/01d3c704-591a-4a85-b7c1-366496c5a63') %]</pre>
       <pre class="prettyprint">{
    "closed" : "2012-03-16 11:08:25",
    "searchSequence" : "AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAAGTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGAATACGACGTGCTGTAGCTT",

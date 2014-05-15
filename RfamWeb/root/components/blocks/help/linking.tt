@@ -14,43 +14,6 @@
     <h1>How to link to Rfam?</h1>
   </div>
   <div class="blockContent">
-    <p>
-      Rfam is maintained by a consortium of researchers and hosted at two sites: the 
-      <a class="ext" href="http://www.sanger.ac.uk/">Wellcome Trust 
-        Sanger Institute</a>, Cambridge, UK (WTSI),  and 
-      <a class="ext" href="http://rfam.janelia.org/">Janelia Farm</a>, Ashburn, 
-      VA, USA. Currently these sites do not run the same Rfam website, but
-      we hope that the Janelia site will be updated to the new Rfam
-      website with the next release of Rfam.
-    </p>
-    <p>
-      Although we have no plans to change the locations of resources within 
-      this site dramatically, webmasters are advised to link only to the 
-      following types of page within the site.
-    </p>
-    
-    <h3>Home pages</h3>
-    <dl class="sitesList">
-      <dt>WTSI:</dt>
-      <dd>
-        <a href="http://rfam.sanger.ac.uk/">http://rfam.sanger.ac.uk/</a>
-      </dd>
-      <dt>Janelia:</dt>
-      <dd>
-        <a class="ext" href="http://rfam.janelia.org/">http://rfam.janelia.org/</a>
-      </dd>
-    </dl>
-    
-   <h3>Searching a nucleotide sequence against Rfam</h3>
-    <dl class="sitesList">
-      <dt>WTSI:</dt>
-      <dd>
-        <a href="http://rfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
-          http://rfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a>
-      </dd>
-      </dl>
-   
-    <h3>Linking to Rfam family pages</h3>
     
     <p>
       You can refer to Rfam families either by accession or ID. You can also 
@@ -63,30 +26,37 @@
       we <strong>strongly</strong> recommend that you link by accession number.
     </p>
     <p>
-      Here are some examples of linking to Rfam at WTSI: 
+      Here are some examples of linking to Rfam: 
     </p>
     <dl class="sitesList">
+      <dt>Directly, using either accession or ID:</dt>
+      <dd>
+        <a href="[% c.uri_for('/family', 'RF00360') %]">
+          [% c.uri_for('/family', 'RF00360') %]</a>
+        or<br />
+        <a href="[% c.uri_for('/family', 'snoZ107_R87') %]">
+          [% c.uri_for('/family', 'snoZ107_R87') %]</a>
+      </dd>
       <dt>By accession:</dt>
       <dd>
-        <a href="http://rfam.sanger.ac.uk/family?acc=RF00360">
-          http://rfam.sanger.ac.uk/family?acc=RF00360</a>
+        <a href="[% c.uri_for('/family', acc='RF00360') %]">
+          [% c.uri_for('/family', acc='RF00360') %]</a>
       </dd>
       <dt>By ID:</dt>
       <dd>
-        <a href="http://rfam.sanger.ac.uk/family?id=snoZ107_R87">
-          http://rfam.sanger.ac.uk/family?id=snoZ107_R87</a>
+        <a href="[% c.uri_for('/family', id='snoZ107_R87') %]">
+          [% c.uri_for('/family', id='snoZ107_R87') %]</a>
       </dd>
       <dt>Using &quot;entry&quot;:</dt>
       <dd>
-        <a href="http://rfam.sanger.ac.uk/family?entry=RF00360">
-          http://rfam.sanger.ac.uk/family?entry=RF00360</a>
+        <a href="[% c.uri_for('/family', entry='RF00360') %]">
+          [% c.uri_for('/family', entry='RF00360') %]</a>
         or<br />
-        <a href="http://rfam.sanger.ac.uk/family?entry=snoZ107_R87">
-          http://rfam.sanger.ac.uk/family?entry=snoZ107_R87</a>
+        <a href="[% c.uri_for('/family', entry='snoZ107_R87') %]">
+          [% c.uri_for('/family', entry='snoZ107_R87') %]</a>
       </dd>
     </dl>
 
-  
   </div>
 </div>
 

@@ -17,7 +17,7 @@
   
     <p>
       The following list describes a few of the important files in the Rfam 
-      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">
+      <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam">
         FTP site</a>. Some of these files may be <em>very</em> large (of the 
       order of several hundred  megabytes). Please check the sizes 
       before trying to download them over a slow connection.
@@ -27,21 +27,21 @@
     
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/README">
           README</a>
       </dt>
       <dd>
         Release notes
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/COPYING">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/COPYING">
           COPYING</a>
       </dt>
       <dd>
         Public Domain Information for Rfam
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/USERMAN">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/USERMAN">
           USERMAN</a>
       </dt>
       <dd>
@@ -53,56 +53,56 @@
     
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz">
           Rfam.tar.gz</a>
       </dt>
       <dd>
         Rfam covariance models in ascii INFERNAL format [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed.gz">
           Rfam.seed.gz</a>
       </dt>
       <dd>
        Annotated seed alignments in STOCKHOLM format
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full.gz">
           Rfam.full.gz</a>
       </dt>
       <dd>
        Annotated full alignments in STOCKHOLM format
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.fasta.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.fasta.gz">
           Rfam.fasta.gz</a>
       </dt>
       <dd>
         Fasta sequences of Rfam members filtered to &lt;90% identity
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.qc">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.qc">
           Rfam.qc</a>
       </dt>
       <dd>
         Sequence and structure measures for each family
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed_tree.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed_tree.tar.gz">
           Rfam.seed_tree.tar.gz</a>
       </dt>
       <dd>
         Annotated tree files for each seed alignment [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full_tree.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full_tree.tar.gz">
           Rfam.full_tree.tar.gz</a>
       </dt>
       <dd>
         Annotated tree files for each full alignment [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.thr.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.thr.gz">
           Rfam.thr.gz</a>
       </dt>
       <dd>
@@ -114,7 +114,7 @@
     
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/genome.gff3.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/genome.gff3.tar.gz">
           genome.gff3.tar.gz</a>
       </dt>
       <dd>
@@ -126,21 +126,21 @@
   
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc4-cm.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc4-cm.tar.gz">
           infernal-1.0rc4-cm.tar.gz</a>
       </dt>
       <dd>
         Calibrated CMs for Infernal 1.0rc4. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc5-cm.tar.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc5-cm.tar.gz">
           infernal-1.0rc5-cm.tar.gz</a>
       </dt>
       <dd>
         Calibrated CMs for Infernal 1.0rc5. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/rfam2embl_crossrefs.txt.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/rfam2embl_crossrefs.txt.gz">
           rfam2embl_crossrefs.txt.gz</a>
       </dt>
       <dd>
@@ -152,7 +152,7 @@
   
     <dl>
       <dt>
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/database_files">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/database_files">
           database_files</a>
       </dt>
       <dd>
