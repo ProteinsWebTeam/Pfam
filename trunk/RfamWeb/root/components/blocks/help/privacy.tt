@@ -137,10 +137,10 @@
     </table>
     
     <p>
-      In addition to this Rfam-specific cookie, Urchin uses a series of
+      In addition to this Rfam-specific cookie, GA uses a series of
       cookies. You can read more about these in the <a class="ext" 
         href="http://code.google.com/apis/analytics/docs/concepts/gaConceptsOverview.html">
-        Urchin documentation</a>
+        GA documentation</a>
       [% IF c.config.site == "wtsi" %], or in the Sanger Institute's
       <a class="ext" href="http://www.sanger.ac.uk/legal/cookiespolicy.html">
         cookie policy</a>[% END %].
