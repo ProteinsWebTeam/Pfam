@@ -183,7 +183,7 @@
     <p>
       You can find out which version of EMBL we are currently using in the
       release README file on our <a class="ext"
-        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a>, or
+        href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam">ftp site</a>, or
       at the top of the help summary page. 
     </p>
      
@@ -193,7 +193,7 @@
       If you have multiple nucleotide sequences to search, you can use our
       batch upload facility to upload a file of your sequences in FASTA
       format. Information on the format for this file can be found under the
-      more link <a href="http://rfam.sanger.ac.uk/search">here</a>. We will
+      more link <a href="[% c.uri_for('/search') %]">here</a>. We will
       search your sequences against our library of CMs and email the results
       back to you, usually within 48 hours. We request that you search a
       maximum of 1000 sequences in each file. Each sequence may be up to 200kb 

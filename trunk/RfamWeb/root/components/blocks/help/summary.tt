@@ -49,7 +49,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       website to obtain information about an individual family, or browse
       our families and genome annotations. Alternatively you can download
       all of the Rfam data from our <a class="ext"
-      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.  
+      href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.  
     </p> 
 
     <hr/>
@@ -124,7 +124,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       Rfamseq is usually updated with each major Rfam release, e.g., 8.0, 9.0. 
       You can find out the the EMBL version currently in use in the
       release README file on our <a class="ext"
-      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.     
+      href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.     
     </p>
   
     <h3>Seed alignments and secondary structure annotation</h3> 

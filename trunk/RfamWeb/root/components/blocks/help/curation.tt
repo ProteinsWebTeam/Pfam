@@ -22,7 +22,7 @@
       information is also available in the Stockholm format flat files 
       (<strong>Rfam.seed</strong> and <strong>Rfam.full</strong>) that are 
       available from our <a class="ext" 
-        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a>.
+        href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam">ftp site</a>.
     </p>
 
     <h2>Curation</h2>
@@ -144,7 +144,7 @@
         A link to download the covariance model for this family. If you want 
         to download multiple CMs, you can obtain a tar file containing all 
         of the CMs for an Rfam release the <a class="ext" 
-        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a> 
+        href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam">ftp site</a> 
         (Rfam.tar.gz).
       </dd>
     </dl>

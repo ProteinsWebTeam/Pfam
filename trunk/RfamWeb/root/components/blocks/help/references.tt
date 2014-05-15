@@ -29,6 +29,22 @@
     <div class="citation">
       <span class="title">
         <a class="ext" 
+           href="http://nar.oxfordjournals.org/content/early/2012/11/02/nar.gks1005.long">
+          Rfam 11.0: 10 years of RNA families.</a>
+      </span>
+      <span class="authors">
+        S.W. Burge, J. Daub, R. Eberhardt, J. Tate, L. Barquist, E.P. Nawrocki, S.R. Eddy, 
+        P.P. Gardner, A. Bateman.
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2012)
+        &nbsp;doi: 10.1093/nar/gks1005
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" 
            href="http://nar.oxfordjournals.org/content/early/2010/11/08/nar.gkq1129">
           Rfam: Wikipedia, clans and the “decimal” release</a>
       </span>

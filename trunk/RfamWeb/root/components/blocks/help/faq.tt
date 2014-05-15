@@ -236,7 +236,7 @@ why is the model truncated from published blah
       is based on. With each major release, e.g. 8.0, 9.0, we update the
       underlying nucleotide database. You can check which version we are 
       currently using <a class="ext" 
-        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">
+        href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/README">
           here</a>. If, however, your sequence <em>is</em> in the relevant EMBL 
       release but is still absent from a relevant family, it is possible that 
       our model may need to be improved. Please <span class="link" 
@@ -295,18 +295,18 @@ why is the model truncated from published blah
       RNA genes?</a></h3>
 
     <p> 
-      Both our <a href="http://rfam.sanger.ac.uk/search">single sequence</a> 
-      and <a href="http://rfam.sanger.ac.uk/search?tab=searchBatchBlock">
+      Both our <a href="[% c.uri_for('/search') %]">single sequence</a> 
+      and <a href="[% c.uri_for('/search', tab='searchBatchBlock') %]">
         batch</a> searches allow you to search a nucleotide sequences against 
       the Rfam model library. Any hits to Rfam families will be returned with 
       start and end coordinates, orientation and a score for each hit.
     </p>
     <p> 
-      For short single sequences, our <a href="http://rfam.sanger.ac.uk/search">
+      For short single sequences, our <a href="[% c.uri_for('/search') %]">
         single sequence</a> search tool will return Rfam matches to your sequence
       interactively. However,  if your sequence is longer than 2Kbp, we suggest 
       that you fragment it into smaller, overlapping segments and use the 
-      <a href="http://rfam.sanger.ac.uk/search">batch search</a>
+      <a href="h[% c.uri_for('/search') %]">batch search</a>
       facility. You might find <a class="ext"
         href="http://emboss.bioinformatics.nl/cgi-bin/emboss/splitter">
         this tool</a> useful for splitting large sequences into fragments.
@@ -359,7 +359,7 @@ why is the model truncated from published blah
       If you are interested retrieving alignments for multiple families, you 
       can download all our seed and full alignments in Stockholm format 
       flat-files from our <a class="ext"
-      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
+      href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
 
@@ -383,7 +383,7 @@ why is the model truncated from published blah
       that will allow these queries. Meanwhile, if you 
       <span class="link" onclick="tabPage.switchTab('helpContactUsBlock');">
         contact us</span> and 
-      <a href="mailto:rfam-help@sanger.ac.uk">ask us</a> very nicely, 
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">ask us</a> very nicely, 
       and we have have time, then one of our engineers may be able to help.     
     </p>
     <p>
