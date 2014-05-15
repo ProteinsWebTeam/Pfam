@@ -98,7 +98,7 @@ __PACKAGE__->add_unique_constraint(
 	acc_and_type => ["rfam_acc", "type"]
 );
 
-__PACKAGE__->set_primary_key(__PACKAGE__->columns);
-
+#__PACKAGE__->set_primary_key(__PACKAGE__->columns);
+__PACKAGE__->set_primary_key('rfam_acc');
 
 1;
