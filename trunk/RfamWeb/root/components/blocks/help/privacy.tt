@@ -141,8 +141,8 @@
       cookies. You can read more about these in the <a class="ext" 
         href="http://code.google.com/apis/analytics/docs/concepts/gaConceptsOverview.html">
         GA documentation</a>
-      [% IF c.config.site == "wtsi" %], or in the Sanger Institute's
-      <a class="ext" href="http://www.sanger.ac.uk/legal/cookiespolicy.html">
+      [% IF c.config.site == "ebi" %], or in EMBL-EBI's
+      <a class="ext" href="http://www.ebi.ac.uk/about/cookies#cookies">
         cookie policy</a>[% END %].
     </p>
     <p>      
