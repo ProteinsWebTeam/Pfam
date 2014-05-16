@@ -87,15 +87,25 @@ subtype 'PfamClanAcc'
   => where { $_ =~ m/^CL\d{4}$/ }
   => message { "\n\n*** $_ is not a valid clan accession. Expected CLXXXX ***\n\n" };
 
+subtype 'DescPfamAcc'
+  => as Str
+  => where { $_ =~ m/^PF\d{5}$/ }
+  => message { 'Not a valid Pfam-A accession' };
+
+subtype 'DescPfamId'
+  => as Str
+  => where { $_ =~ m/^[\w_-]+$/ }
+  => message { 'Not a valid Pfam-A accession' };
+
 has 'AC' => (
   is        => 'rw',
-  isa       => 'PfamAcc',
+  isa       => 'DescPfamAcc',
   required  => 0
 );
 
 has 'ID' => (
   is        => 'rw',
-  isa       => 'PfamId',
+  isa       => 'DescPfamId',
   required  => 0
   
 );  
