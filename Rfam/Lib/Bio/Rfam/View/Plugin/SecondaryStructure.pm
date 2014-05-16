@@ -58,7 +58,7 @@ sub makeRchie {
 	
 	my $resultset = $rfamdb->resultset('SecondaryStructureImage')->find(
 										{rfam_acc => $rfam_acc,
-										type => "rchie"},
+										type => 'rchie'},
 										{key => 'acc_and_type'});
 	if (!$resultset) {
 		$rfamdb->resultset('SecondaryStructureImage')->create({
@@ -67,7 +67,7 @@ sub makeRchie {
 				image => $fileGzipped
 		});
 	} else {
-		$resultset->update({
+		$rfamdb->resultset('SecondaryStructureImage')->update({
 				rfam_acc => $rfam_acc,
 				type => 'rchie',
 				image => $fileGzipped}

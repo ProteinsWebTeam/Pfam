@@ -41,7 +41,8 @@ sub process {
     #Now do the tax version....
     $self->seedAlignmentAndTree( "seedTax-annot.sto", 1 );
   }else{
-    $self->fullAlignmentAndTree
+    $self->fullAlignmentAndTree;
+ 	$self->HTMLAlignment;
   }
   
 }
@@ -197,7 +198,6 @@ sub seedAlignmentAndTree {
 
 
 #------------------------------------------------------------------------------
-#TODO - put calls the the tree generation stuff here.
 
 
   my $average_pid = sprintf( "%5.2f", ( $msa->average_id * 100 ) );
@@ -223,5 +223,13 @@ sub seedAlignmentAndTree {
   unlink($filename);
   unlink('DESC');
 }
+
+
+
+
+
+
+
+
 
 1;
