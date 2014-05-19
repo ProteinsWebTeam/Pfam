@@ -24,10 +24,7 @@ if(! $options_okay) {
   printf("ERROR, unrecognized option;\n\n"); 
   $exit_early = 1;
 }
-if((! defined $e_opt) && (! defined $t_opt)) { 
-  printf("You must use either -t <x> or -e <x> to set a bit score or E-value threshold for the SM line.\n\n");
-  $exit_early = 1;
-}
+
 if($exit_early) { 
   printf $usage;
   exit 0;
