@@ -13,20 +13,20 @@ use Bio::Rfam::Config;
 use Bio::Rfam::SVN::Commit;
 use Data::Printer;
 
-use Log::Log4perl qw(:easy);
- 
- # set up logging
+use Log::Log4perl qw(get_logger);
+
+# set up logging
 my $logger_conf = q(
   log4perl.logger                         = DEBUG, FileAppender
   log4perl.appender.FileAppender          = Log::Log4perl::Appender::File
   log4perl.appender.FileAppender.filename = /tmp/pre-commit.log
   log4perl.appender.FileAppender.layout   = Log::Log4perl::Layout::PatternLayout
-  log4perl.appender.FileAppender.layout.ConversionPattern = %M:%L %p: %m%n
+  log4perl.appender.FileAppender.layout.ConversionPattern = %d %F{1}: %M %L> %m %n
 );
 
 Log::Log4perl->init( \$logger_conf );
 
-my $log = get_logger(); 
+my $logger = get_logger();
 
 my $DEBUG = defined( $ENV{DEBUG} ) ? $ENV{DEBUG} : 0;
 
@@ -38,10 +38,10 @@ GetOptions(
   "repos=s" => \$repos
 );
 
-$log->debug('successfully processed options');
+$logger->debug('successfully processed options');
 
 if ( $rev and $txn ) {
-  die "Can not define both and revision and a transaction\n";
+  $logger->logdie( "ERROR: you cannot specify both a revision and a transaction" );
 }
 
 my %params;
@@ -54,26 +54,33 @@ else {
 
 $params{repos} = $repos;
 
-$log->debug("got revision number ($rev) and transaction ($txn) from command-line options");
+$logger->debug("got repository location ($repos) and "
+            . ( defined $rev ? "revision number ($rev) " : "" )
+            . ( defined $txn ? "transaction ($txn) " : "" )
+            . "from command-line options");
 
 my $txnlook = Bio::Rfam::SVN::Commit->new( \%params );
 
 unless ( $txnlook and $txnlook->isa('SVN::Look') ) {
-  die "Failed to get a SVN::Look object for txn:$txn and repos:$repos\n";
+  $logger->logdie( "ERROR: failed to get a SVN::Look object for txn:$txn and repos:$repos" );
 }
 
 my $msg = $txnlook->log_msg();
 unless ($msg) {
-  die "No commit message passed in!\n";
+  $logger->logdie( "ERROR: no commit message passed in!" );
 }
 
-$log->debug( qw(got log message from transaction: "$msg") );
+if ( $logger->is_debug ) {
+  my $log_message = $msg;
+  chomp $log_message;
+  $logger->debug( qq(got log message from transaction: "$log_message") );
+}
 
 my $config  = Bio::Rfam::Config->new;
-$log->debug('got config object');
+$logger->debug('got config object');
 
 my $rfamdb = $config->rfamlive;
-$log->debug('got database connection');
+$logger->debug('got database connection');
 
 if ($DEBUG) {
   print STDERR "*** $msg ***\n";
@@ -96,11 +103,11 @@ if ($DEBUG) {
     print STDERR "Deleted:" . $f . "\n";
   }
 }
-$log->debug('printed modified file list');
+$logger->debug('printed modified file list');
 
 #Make sure the database isn't locked
 my $lock = $txnlook->allowCommit($rfamdb);
-$log->debug('retrieved lock status');
+$logger->debug('retrieved lock status');
 my $allow_commit;
 if ($lock) {
 
@@ -123,34 +130,34 @@ else {
   $allow_commit = 1;
 }
 unless ($allow_commit) {
-  die "The database is currently locked by " . $lock->locker . "\n";
+  $logger->logdie( "ERROR: the database is currently locked by " . $lock->locker );
 }
 
-$log->debug('database is not locked (or committer has permission to commit anyway)');
+$logger->debug('database is not locked (or committer has permission to commit anyway)');
 
 if ( $msg =~ /^CI:/ ) {
-  $log->debug('got a commit');
+  $logger->debug('parsing msg; got a commit');
   $txnlook->commitEntry;
-  $log->debug('committed');
+  $logger->debug('committed');
 }
 elsif ( $msg =~ /^NEW:/ ) {
-  $log->debug('got a new entry');
+  $logger->debug('parsing msg; got a new entry');
   $txnlook->commitNewEntry;
-  $log->debug('committed');
+  $logger->debug('committed');
 }elsif( $msg =~ /CIDESC:/){
-  $log->debug('got a modified DESC');
-  $txnlook->commitEntryDESC;   
-  $log->debug('committed');
+  $logger->debug('parsing msg; got a modified DESC');
+  $txnlook->commitEntryDESC;
+  $logger->debug('committed');
 }elsif ( $msg =~ /^NEWMOV:/ ) {
-  $log->debug('got a NEWMOV message');
+  $logger->debug('parsing msg; got a NEWMOV message');
   ;
 }elsif ( $msg =~ /^MOV:/ ) {
-  $log->debug('got a move');
+  $logger->debug('parsing msg; got a move');
   $txnlook->moveFamily();
-  $log->debug('committed');
+  $logger->debug('committed');
 }
 elsif ( $msg =~ /^KILL:/ ) {
-  $log->debug('got a kill');
+  $logger->debug('parsing msg; got a kill');
   my ( $comment, $forward );
   if ( $msg =~ /^KILL:Comment;(.*)\nKILL:Forward;(.*)/ ) {
     $comment = $1;
@@ -161,35 +168,34 @@ elsif ( $msg =~ /^KILL:/ ) {
     $forward = '';
   }
   else {
-    die "In KILL message, did not parse $msg\n";
+    $logger->logdie( "ERROR: In KILL message, did not parse $msg" );
   }
-  $log->debug( qw(kill comment: "$comment") );
-  $log->debug( qw(forward to:   "$forward") );
+  $logger->debug( qq(kill comment: "$comment") );
+  $logger->debug( qq(forward to:   "$forward") );
 
   #Find out the author so we know who has done this.
   my $author = $txnlook->author();
-  $log->debug( qw(kill author:  "$author") );
+  $logger->debug( qq(kill author:  "$author") );
   #Go and delete the family.
   $txnlook->deleteFamily( $comment, $forward, $author );
-  $log->debug('killed family');
+  $logger->debug('killed family');
 }
 elsif ( $msg =~ /SEQUP/ ) {
-  $log->debug('got a sequence update');
+  $logger->debug('parsing msg; got a sequence update');
   foreach my $file ( $txnlook->updated() ) {
-    $log->debug("changed file: $file");
+    $logger->debug("changed file: $file");
     unless ( $file =~ /Sequences/ ) {
-      $log->debug('dying; not a valid sequence update file');
-      die "Got sequence update message, but the file ($file) does not look"
-        . " like it has come from the sequence part of the repository\n";
+      $logger->debug('dying; not a valid sequence update file');
+      $logger->logdie( "ERROR: got sequence update message, but the file ($file) does not look"
+        . " like it has come from the sequence part of the repository" );
     }
   }
 }elsif( $msg =~ /ADMINBYPASS/ ) {
-  $log->debug('admin bypass');
-  ; 
+  $logger->debug('parsing msg; admin bypass');
 }
 else {
-  $log->debug( qw(unknown commit message: "$msg") );
-  die "Do not know here this commit has come from, [$msg]!\n";
+  $logger->debug( qq(parsing msg; unrecognised commit message: "$msg") );
+  $logger->logdie( qq(ERROR: do not know here this commit has come from: "$msg") );
 }
 
 exit(0);
