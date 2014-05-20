@@ -2183,7 +2183,7 @@ sub calculate_most_informative_sequence
 
   Title     : calculate_pos_fcbp
   Incept    : EPN, Mon May 19 13:23:33 2014
-  Usage     : $msaObject->calculate_rfpos_fcbp_and_covariation
+  Usage     : $msaObject->calculate_rfpos_fcbp
   Function  : Calculate the fraction of canonical basepairs for each nongap RF position in a MSA. 
   Args      : none
   Returns   : array of length msa->alen: the fraction of canonical bps
@@ -2195,6 +2195,28 @@ sub calculate_pos_fcbp
   my ($self) = @_;
 
   my @retA = _c_calculate_pos_fcbp($self->{esl_msa});
+  return @retA;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 calculate_pos_covariation
+
+  Title     : calculate_pos_covariation
+  Incept    : EPN, Tue May 20 09:23:26 2014
+  Usage     : $msaObject->calculate_rfpos_covariation
+  Function  : Calculate the 'RNAalifold covariation statistic (Lindgreen, Gardner, Krogh, 2006)'
+            : for each basepair in an alignment and return as an array [0..alen-1].
+  Args      : none
+  Returns   : array of length msa->alen: the covariation statistic
+            : at each position, 0. for non-paired positions.
+=cut
+
+sub calculate_pos_covariation
+{
+  my ($self) = @_;
+
+  my @retA = _c_calculate_pos_covariation($self->{esl_msa});
   return @retA;
 }
 

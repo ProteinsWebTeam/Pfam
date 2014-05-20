@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 155;
+use Test::More tests => 149;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -24,7 +24,6 @@ my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
 my @keepmeA;
 my @usemeA;
 my @orderA;
-my @fcbpA;
 
 # first test new without a forcetext value
 $msa1 = Bio::Easel::MSA->new({
@@ -478,24 +477,6 @@ for($mode = 0; $mode <= 1; $mode++) {
     close(IN);
     unlink $outfile;
   }
-  else { # digital mode, test calculate_most_informative_sequence(),
-         # calculate_pos_fcbp() and calculate_pos_covariation()
-    if(defined $msa1) { undef $msa1; }
-    $msa1 = Bio::Easel::MSA->new({
-      fileLocation => $rf_alnfile,
-      forceText    => $mode,
-    });
-    my $mis = $msa1->calculate_most_informative_sequence(0);
-    is($mis, "-WRSWCUUCGGMWSKSRCV-MMA-BYS-", "calculate_most_informative_sequence() worked.");
-
-    $msa1->calculate_pos_fcbp();        
-    @fcbpA = $msa1->calculate_pos_fcbp();
-    is(int(($fcbpA[2] * 100) + 0.5), 0,   "calculate_pos_fcbp() seems to work (pos 2)");
-    is(int(($fcbpA[3] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 3)");
-    is(int(($fcbpA[4] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 4)");
-    is(int(($fcbpA[5] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 5)");
-    is(int(($fcbpA[6] * 100) + 0.5), 0,   "calculate_pos_fcbp() seems to work (pos 6)");
-  }     
   if(defined $msa1) { undef $msa1; }
 
   # test column_subset_rename_nse
