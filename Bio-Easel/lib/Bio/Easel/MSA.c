@@ -1119,8 +1119,10 @@ _c_rfam_comp_and_len_stats(ESL_MSA *msa, double ***ret_abcAA, double **ret_abc_t
   int        len_min  = 0;     /* minimum seq length */
   int        len_max  = 0;     /* maximum seq length */
   double     seqwt;            /* sequence weight */
+  int        have_weights;     /* set to '1' if MSA has valid weights, else it does not and we'll use 1.0 as the weight for all sequences */
   
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_rfam_comp_stats() contract violation, MSA is not digitized");
+  have_weights = (msa->flags & eslMSA_HASWGTS) ? 1 : 0;
 
   /* allocate and initialize */
   ESL_ALLOC(abcAA,       sizeof(double *)  * msa->nseq); 
@@ -1136,7 +1138,7 @@ _c_rfam_comp_and_len_stats(ESL_MSA *msa, double ***ret_abcAA, double **ret_abc_t
 
   /* add counts and compute lengths */
   for(i = 0; i < msa->nseq; i++) { 
-    seqwt = msa->wgt[i];
+    seqwt = (have_weights) ? msa->wgt[i] : 1.0;
     for(apos = 0; apos < msa->alen; apos++) { 
       if(esl_abc_XIsResidue(msa->abc, msa->ax[i][apos+1])) lenA[i]++; 
       if((status = esl_abc_DCount(msa->abc, abcAA[i], msa->ax[i][apos+1], seqwt)) != eslOK) croak("problem counting residue %d of seq %d", apos, i);
@@ -1202,6 +1204,7 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   int        status;               /* Easel status */
   int       *ct = NULL;            /* 0..alen-1 base pair partners array for current sequence */
   char      *ss_nopseudo = NULL;   /* no-pseudoknot version of structure */
+  int        have_weights;         /* set to '1' if MSA has valid weights, else it does not and we'll use 1.0 as the weight for all sequences */
   double     seqwt1, seqwt2;       /* weight of current sequences */
   int        nbp = 0;              /* number of canonical basepairs in the (possibly deknotted) consensus secondary structure */
   int       *seq_canA = NULL;      /* [0..i..msa->nseq-1]: number of canonical basepairs in sequence i */
@@ -1220,6 +1223,8 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   int iscanonical2;      /* is a2:b2 a canonical pair? (by Paul's definition, see _c_bp_is_canonical() */
   double contrib = 0.;   /* contribution of current a1:b1 compared to a2:b2 */
   double mean_cov = 0.;  /* mean covariation statistic */
+
+  have_weights = (msa->flags & eslMSA_HASWGTS) ? 1 : 0;
 
   /* get ct array which defines the consensus base pairs */
   ESL_ALLOC(ct,  sizeof(int)  * (msa->alen+1));
@@ -1269,7 +1274,7 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
   esl_vec_DSet(covA,     msa->alen, 0.);
   esl_vec_DSet(cov_cntA, msa->alen, 0.);
   for(i = 0; i < msa->nseq; i++) { 
-    seqwt1 = msa->wgt[i];
+    seqwt1 = (have_weights) ? msa->wgt[i] : 1.0;
     for(apos = 0; apos < msa->alen; apos++) { 
       if(rposA[apos] != -1) { 
         rpos = rposA[apos]; 
@@ -1283,7 +1288,7 @@ _c_rfam_bp_stats(ESL_MSA *msa, int *ret_nbp, int **ret_rposA, int **ret_seq_canA
           }
           /* for every other sequence, add contribution of covariation */
           for(j = i+1; j < msa->nseq; j++) { 
-            seqwt2 = msa->wgt[j];
+            seqwt2 = (have_weights) ? msa->wgt[j] : 1.0;
             a2 = msa->ax[j][apos+1];
             b2 = msa->ax[j][rpos+1];
             iscanonical2 = _c_bp_is_canonical(a2, b2);
@@ -1433,12 +1438,13 @@ _c_rfam_pid_stats(ESL_MSA *msa, double *ret_pid_mean, double *ret_pid_min, doubl
 
 int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *bp_outfile)
 {
-  FILE  *ffp;   /* open output per-family   stats output file */
-  FILE  *sfp;   /* open output per-sequence stats output file */
-  FILE  *bfp;   /* open output per-basepair stats output file */
-  int i;        /* sequence index */
-  int apos;     /* alignment position */
-  double seqwt; /* sequence weight */
+  FILE  *ffp;          /* open output per-family   stats output file */
+  FILE  *sfp;          /* open output per-sequence stats output file */
+  FILE  *bfp;          /* open output per-basepair stats output file */
+  int    i;            /* sequence index */
+  int    apos;         /* alignment position */
+  double seqwt;        /* sequence weight */
+  int    have_weights; /* set to '1' if MSA has valid weights, else it does not and we'll use 1.0 as the weight for all sequences */
 
   /* variables related to seq composition statistics, mainly
    * used by _c_rfam_comp_stats() 
@@ -1473,6 +1479,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   double     max_2l_frac;      /* fraction of residues represented by most common 2-letter ambiguity */
 
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_rfam_qc_stats() contract violation, MSA is not digitized");
+  have_weights = (msa->flags & eslMSA_HASWGTS) ? 1 : 0;
 
   /* open output files */
   if((ffp = fopen(fam_outfile, "w"))  == NULL) { croak("unable to open %s for writing", fam_outfile); }
@@ -1516,7 +1523,7 @@ int _c_rfam_qc_stats(ESL_MSA *msa, char *fam_outfile, char *seq_outfile, char *b
   fprintf(sfp, "%-20s  %-30s  %20s  %5s  %6s  %6s  %6s  %6s  %9s  %10s\n", 
           "FAMILY", "SEQID", "FRACTN_CANONICAL_BPs", "LEN", "FRAC_A", "FRAC_C", "FRAC_G", "FRAC_U", "MAX_DINUC", "CG_CONTENT");
   for(i = 0; i < msa->nseq; i++) { 
-    seqwt = msa->wgt[i];
+    seqwt = (have_weights) ? msa->wgt[i] : 1.0;
     /* get most common two-letter iupac ambiguity */
     _c_max_rna_two_letter_ambiguity(abcAA[i][0], abcAA[i][1], abcAA[i][2], abcAA[i][3], &max_2l, &max_2l_frac);
     fprintf(sfp, "%-20s  %-30s  %20.5f  %5d  %6.3f  %6.3f  %6.3f  %6.3f  %c:%-7.3f  %10.3f\n", 
@@ -2090,7 +2097,8 @@ char *_c_calculate_most_informative_sequence(ESL_MSA *msa, int use_weights)
                                 */
 
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_most_informative_sequence() contract violation, MSA is not digitized");
-
+  if((! (msa->flags & eslMSA_HASWGTS)) && (use_weights)) croak("_c_calculate_most_informative_sequence() trying to use weights, but they're not valid in the msa");
+    
   /* allocate and initialize */
   ESL_ALLOC(abcAA,       sizeof(double *)  * msa->alen); 
   ESL_ALLOC(abc_totA,    sizeof(double) * (msa->abc->K+1)); 
@@ -2264,13 +2272,12 @@ void _c_calculate_pos_fcbp(ESL_MSA *msa)
   int     apos;             /* counter over alignment positions */
   int    *rposA    = NULL;  /* [0..apos..msa->alen-1]: right position for basepair with left half position of 'i', else -1 if 'i' is not left half of a pair (i always < j) */
   int    *pos_canA = NULL;  /* [0..apos..msa->alen-1]: number of canonical basepairs with left half position of 'i' */
-  int     nbp = 0;          /* number of canonical basepairs in the (possibly deknotted) consensus secondary structure */
   double *fcbpA    = NULL;  /* [0..apos..msa->alen-1]: fraction of canonical basepairs at alignment position apos */
 
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_pos_fcbp() contract violation, MSA is not digitized");
 
   /* calculate fraction of canonicals per alignment position */
-  _c_rfam_bp_stats (msa, &nbp, &rposA, NULL, &pos_canA, NULL, NULL);
+  _c_rfam_bp_stats (msa, NULL, &rposA, NULL, &pos_canA, NULL, NULL);
 
   /* fill fcbpA with fraction of canoncial bps per position */
   ESL_ALLOC(fcbpA, sizeof(double) * msa->alen); 
@@ -2305,6 +2312,57 @@ void _c_calculate_pos_fcbp(ESL_MSA *msa)
   if(rposA)    free(rposA);
   if(pos_canA) free(pos_canA);
   croak("ERROR: _c_calculate_pos_fcbp(), out of memory");
+  return;
+}
+
+/* Function:  _c_calculate_pos_covariation()
+ * Incept:    EPN, Tue May 20 09:26:03 2014
+ * Synopsis:  Calculate and return the covariation statistic (Lindgreen, Gardner, Krogh, 2006) at each alignment position.
+ * Args:      msa: the alignment
+ * Returns:   the covariation statistics at each aln position (as an array in Perl's return stack) 
+ */
+void _c_calculate_pos_covariation(ESL_MSA *msa)
+{
+  Inline_Stack_Vars;
+
+  int     status;           /* error status */
+  int     apos;             /* counter over alignment positions */
+  int    *rposA   = NULL;   /* [0..apos..msa->alen-1]: right position for basepair with left half position of 'i', else -1 if 'i' is not left half of a pair (i always < j) */
+  double *covA    = NULL;   /* [0..apos..msa->alen-1]: covariation per basepair */
+
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_pos_covariation() contract violation, MSA is not digitized");
+
+  /* calculate covariation statistic */
+  _c_rfam_bp_stats (msa, NULL, &rposA, NULL, NULL, &covA, NULL);
+  
+  /* _c_rfam_bp_stats() only sets covA to a non-zero value for the left half posns of basepairs, copy those values to the corresponding right half posns */
+  for(apos = 0; apos < msa->alen; apos++) { 
+    if(rposA[apos] != -1) { 
+      covA[rposA[apos]] = covA[apos]; /* set covA value for right position equal to left position */
+    }
+  }
+
+  /* fill Perl's return stack */
+  Inline_Stack_Reset;
+  for(apos = 0; apos < msa->alen; apos++) { 
+    /* fprintf(stderr, "C: apos: %3d fcbp: %.3f\n", apos, fcbpA[apos]); */
+    Inline_Stack_Push(newSVnv(covA[apos])); 
+    /* is the following line the proper way? both this and the above line seem to work fine...: 
+     * Inline_Stack_Push(sv_2mortal(newSVnv(covA[apos]))); 
+     */
+  }
+  Inline_Stack_Done;
+  Inline_Stack_Return(msa->alen);
+  
+  /* clean up and return */
+  if(rposA) free(rposA);
+  if(covA)  free(covA);
+  return;
+
+ ERROR:
+  if(rposA) free(rposA);
+  if(covA)  free(covA);
+  croak("ERROR: _c_calculate_pos_covariation(), out of memory");
   return;
 }
     
