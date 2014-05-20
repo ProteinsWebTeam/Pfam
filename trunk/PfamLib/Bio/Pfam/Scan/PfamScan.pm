@@ -808,7 +808,7 @@ sub _parse_sequence {
     }
     else {
       croak "FATAL: Unrecognised format of fasta file. Each sequence must have a header line in the format '>identifier  <optional description>'"
-        unless $seq_id;
+        unless defined $seq_id;
       chomp;
       $seq_hash->{$seq_id} .= $_;
     }
