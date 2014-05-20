@@ -2155,6 +2155,51 @@ sub get_all_GF
 
 #-------------------------------------------------------------------------------
 
+=head2 calculate_most_informative_sequence
+
+  Title     : calculate_most_informative_sequence
+  Incept    : EPN, Thu May 15 13:16:06 2014
+  Usage     : $msaObject->calculate_most_informative_sequence
+  Function  : Calculate the "most informative sequence" (Freyhult, Moulton and Gardner, 2005) 
+            : Taken from pre-2013 Rfam codebase (Rfam/RfamAlign.pm module).
+            : Website definition: "Any residue that has
+            : a higher frequency than than the background frequency is projected
+            : into the IUPAC redundancy codes."
+  Args      : $use_weights: '1' to use weights in the MSA, '0' not to
+  Returns   : a string, the most informative sequence
+=cut
+
+sub calculate_most_informative_sequence
+{
+  my ($self, $use_weights) = @_;
+
+  if(! defined $use_weights) { $use_weights = 0; }
+  return _c_calculate_most_informative_sequence($self->{esl_msa}, $use_weights);
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 calculate_pos_fcbp
+
+  Title     : calculate_pos_fcbp
+  Incept    : EPN, Mon May 19 13:23:33 2014
+  Usage     : $msaObject->calculate_rfpos_fcbp_and_covariation
+  Function  : Calculate the fraction of canonical basepairs for each nongap RF position in a MSA. 
+  Args      : none
+  Returns   : array of length msa->alen: the fraction of canonical bps
+            : at each position, 0. for non-paired positions.
+=cut
+
+sub calculate_pos_fcbp
+{
+  my ($self) = @_;
+
+  my @retA = _c_calculate_pos_fcbp($self->{esl_msa});
+  return @retA;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 DESTROY
 
   Title    : DESTROY

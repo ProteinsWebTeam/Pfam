@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 149;
+use Test::More tests => 155;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -24,6 +24,7 @@ my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
 my @keepmeA;
 my @usemeA;
 my @orderA;
+my @fcbpA;
 
 # first test new without a forcetext value
 $msa1 = Bio::Easel::MSA->new({
@@ -477,7 +478,25 @@ for($mode = 0; $mode <= 1; $mode++) {
     close(IN);
     unlink $outfile;
   }
-  undef $msa1;
+  else { # digital mode, test calculate_most_informative_sequence(),
+         # calculate_pos_fcbp() and calculate_pos_covariation()
+    if(defined $msa1) { undef $msa1; }
+    $msa1 = Bio::Easel::MSA->new({
+      fileLocation => $rf_alnfile,
+      forceText    => $mode,
+    });
+    my $mis = $msa1->calculate_most_informative_sequence(0);
+    is($mis, "-WRSWCUUCGGMWSKSRCV-MMA-BYS-", "calculate_most_informative_sequence() worked.");
+
+    $msa1->calculate_pos_fcbp();        
+    @fcbpA = $msa1->calculate_pos_fcbp();
+    is(int(($fcbpA[2] * 100) + 0.5), 0,   "calculate_pos_fcbp() seems to work (pos 2)");
+    is(int(($fcbpA[3] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 3)");
+    is(int(($fcbpA[4] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 4)");
+    is(int(($fcbpA[5] * 100) + 0.5), 100, "calculate_pos_fcbp() seems to work (pos 5)");
+    is(int(($fcbpA[6] * 100) + 0.5), 0,   "calculate_pos_fcbp() seems to work (pos 6)");
+  }     
+  if(defined $msa1) { undef $msa1; }
 
   # test column_subset_rename_nse
   @usemeA = ();
@@ -499,7 +518,7 @@ for($mode = 0; $mode <= 1; $mode++) {
   $msa1->column_subset_rename_nse(\@usemeA, 1);
 
   is($msa1->alen(), ($alen-7), "column_subset_rename_nse() removed correct number of columns.");
-  
+ 
   $sqname = $msa1->get_sqname(0);
   is($sqname, "M15749.1/158-235", "column_subset_rename_nse() renamed sequence 1 properly.");
   $sqname = $msa1->get_sqname(1);
