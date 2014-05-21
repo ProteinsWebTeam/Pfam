@@ -372,6 +372,41 @@ sub archiveLoc {
   return $self->{archiveLocation};
 }
 
+=head2 uniprotPrivateLoc
+
+  Title    : uniprotPrivateLoc
+  Usage    : $config->uniprotPrivateLoc
+  Function : Returns the location of the uniprot private/pre-release data
+  Args     : None - read only operator
+  Returns  : string containing path to the uniprot private/pre-release data
+
+=cut
+
+sub uniprotPrivateLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{uniprotPrivateLocation};
+}
+
+=head2 antifamLoc
+
+  Title    : antifamLoc
+  Usage    : $config->antifamLoc
+  Function : Returns the location of the current release of AntiFam
+  Args     : None - read only operator
+  Returns  : string containing path to the current release of AntiFam
+
+=cut
+
+sub antifamLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{antifamLocation};
+}
 
 =head2 dbsize
 
