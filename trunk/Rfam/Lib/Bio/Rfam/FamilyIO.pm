@@ -1070,7 +1070,13 @@ sub parseDESC {
 
           #MIR; MI0001007;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (URL); ([^;\s]*);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR   (RFAM); (RF\d+);?$/ ) {
+
+          #RFAM; RF00001
+          push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
+         } elsif ( $file[$i] =~ /^DR   (URL); ([^;\s]*);?$/ ) {
+          
+          #URL; http://www.someRNAresource.org/987654321/page.html
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         } elsif ( $file[$i] =~ /^DR/ ) {
           confess( "Bad reference line: unknown database |$file[$i]|.\n"
