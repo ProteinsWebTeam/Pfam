@@ -247,7 +247,7 @@ sub parseDESC {
         $params{$tag} = $tLine;
       }
       
-    }elsif($file[$i] =~ /^MB\s{3}(RF\d{5};)$/ ){
+    }elsif($file[$i] =~ /^MB\s{3}(RF\d{5});$/ ){
       push(@{$params{MEMB}}, $1);
     }elsif($file[$i] =~ /^PI\s{3}(.*)$/ ){
       #Store the PI line
@@ -606,7 +606,11 @@ sub writeDESC {
             print D "DR   " . $xref->{db_id} . "; " . $xref->{db_link} . ";\n";
           }
         }
-      } elsif ( $tagOrder eq 'private' ) {
+      } elsif ( $tagOrder eq 'MEMB' ) {
+        foreach my $member (@{$desc->{$tagOrder}}){
+          print D "MB   $member;\n";
+        }
+      }elsif ( $tagOrder eq 'private' ) {
         print D wrap "**   ", "**   ", $desc->{$tagOrder};
         print D "\n";
       }
