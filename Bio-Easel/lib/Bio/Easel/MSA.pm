@@ -464,6 +464,33 @@ sub get_ss_cons {
 
 #-------------------------------------------------------------------------------
 
+=head2 get_ss_cons_dot_parantheses
+
+  Title    : get_ss_cons_dot_parantheses
+  Incept   : EPN, Wed May 21 12:01:48 2014
+  Usage    : $msaObject->get_ss_cons_dot_parantheses()
+  Function : Returns a dot-parantheses format of msa->ss_cons if it exists, else dies via croak.
+  Args     : None
+  Returns  : msa->ss_cons in dot-parantheses format, if it exists, else dies
+
+=cut
+
+sub get_ss_cons_dot_parantheses { 
+  my ( $self ) = @_;
+
+  $self->_check_msa();
+  if(! $self->has_ss_cons()) { croak "Trying to fetch SS_cons from MSA but it does not exist"; }
+  my $ss_cons = _c_get_ss_cons( $self->{esl_msa} );
+  # convert all basepairs to '(' and ')'
+  $ss_cons =~ tr/[\<\>\[\]\{\}]/[\(\)\(\)\(\)]/; 
+  # convert all single stranded positions (everything but '(' and ')') to '.'
+  $ss_cons =~ s/[^\(\)]/\./g;
+  
+  return $ss_cons;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 set_ss_cons
 
   Title    : set_ss_cons
@@ -2155,56 +2182,59 @@ sub get_all_GF
 
 #-------------------------------------------------------------------------------
 
-=head2 calculate_most_informative_sequence
+=head2 most_informative_sequence
 
-  Title     : calculate_most_informative_sequence
+  Title     : most_informative_sequence
   Incept    : EPN, Thu May 15 13:16:06 2014
-  Usage     : $msaObject->calculate_most_informative_sequence
+  Usage     : $msaObject->most_informative_sequence
   Function  : Calculate the "most informative sequence" (Freyhult, Moulton and Gardner, 2005) 
             : Taken from pre-2013 Rfam codebase (Rfam/RfamAlign.pm module).
             : Website definition: "Any residue that has
             : a higher frequency than than the background frequency is projected
             : into the IUPAC redundancy codes."
-  Args      : $use_weights: '1' to use weights in the MSA, '0' not to
+  Args      : $gapthresh: only columns with >= $gapthresh nongaps will be converted to a nongap residue in the most informative sequence 
+            : $use_weights: '1' to use weights in the MSA, '0' not to
   Returns   : a string, the most informative sequence
 =cut
 
-sub calculate_most_informative_sequence
+sub most_informative_sequence
 {
-  my ($self, $use_weights) = @_;
+  my ($self, $gapthresh, $use_weights) = @_;
 
+  if(! defined $gapthresh)   { $gapthresh = 0.5; }
   if(! defined $use_weights) { $use_weights = 0; }
-  return _c_calculate_most_informative_sequence($self->{esl_msa}, $use_weights);
+
+  return _c_most_informative_sequence($self->{esl_msa}, $gapthresh, $use_weights);
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 calculate_pos_fcbp
+=head2 pos_fcbp
 
-  Title     : calculate_pos_fcbp
+  Title     : pos_fcbp
   Incept    : EPN, Mon May 19 13:23:33 2014
-  Usage     : $msaObject->calculate_rfpos_fcbp
+  Usage     : $msaObject->pos_fcbp
   Function  : Calculate the fraction of canonical basepairs for each nongap RF position in a MSA. 
   Args      : none
   Returns   : array of length msa->alen: the fraction of canonical bps
             : at each position, 0. for non-paired positions.
 =cut
 
-sub calculate_pos_fcbp
+sub pos_fcbp
 {
   my ($self) = @_;
 
-  my @retA = _c_calculate_pos_fcbp($self->{esl_msa});
+  my @retA = _c_pos_fcbp($self->{esl_msa});
   return @retA;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 calculate_pos_covariation
+=head2 pos_covariation
 
-  Title     : calculate_pos_covariation
+  Title     : pos_covariation
   Incept    : EPN, Tue May 20 09:23:26 2014
-  Usage     : $msaObject->calculate_rfpos_covariation
+  Usage     : $msaObject->pos_covariation
   Function  : Calculate the 'RNAalifold covariation statistic (Lindgreen, Gardner, Krogh, 2006)'
             : for each basepair in an alignment and return as an array [0..alen-1].
   Args      : none
@@ -2212,11 +2242,61 @@ sub calculate_pos_fcbp
             : at each position, 0. for non-paired positions.
 =cut
 
-sub calculate_pos_covariation
+sub pos_covariation
 {
   my ($self) = @_;
 
-  my @retA = _c_calculate_pos_covariation($self->{esl_msa});
+  my @retA = _c_pos_covariation($self->{esl_msa});
+  return @retA;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 pos_entropy
+
+  Title     : pos_entropy
+  Incept    : EPN, Tue May 20 10:44:33 2014
+  Usage     : $msaObject->pos_entropy
+  Function  : Calculate and return the entropy at each position of an msa.
+  Args      : $use_weights: '1' to use weights in the MSA, '0' not to
+  Returns   : array of length msa->alen: the entropy at each posn
+=cut
+
+sub pos_entropy
+{
+  my ($self, $use_weights) = @_;
+
+  if(! defined $use_weights) { $use_weights = 0; }
+
+  my @retA = _c_pos_entropy($self->{esl_msa}, $use_weights);
+
+  return @retA;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 pos_conservation
+
+  Title     : pos_conservation
+  Incept    : EPN, Tue May 20 15:00:12 2014
+  Usage     : $msaObject->pos_conservation
+  Function  : Calculate and return the 'sequence conservation' at each position of an msa.
+            : 'sequence conservation' of a position is the maximum frequency of any
+            :  residue in a column, where frequency is number of occurences divided by
+            :  number of sequences (so no column with >=1 gap can have a conservation of 1.0).
+            :  And all gap columns have a conservation of 0.0.
+  Args      : $use_weights: '1' to use weights in the MSA, '0' not to
+  Returns   : array of length msa->alen: the 'sequence conservation' at each posn
+=cut
+
+sub pos_conservation
+{
+  my ($self, $use_weights) = @_;
+
+  if(! defined $use_weights) { $use_weights = 0; }
+
+  my @retA = _c_pos_conservation($self->{esl_msa}, $use_weights);
+
   return @retA;
 }
 
