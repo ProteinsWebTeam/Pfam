@@ -161,9 +161,11 @@ sub _commitEntry {
   }else{
     #There is more to change than just the DESC file....
     $rfamdb->resultset('SeedRegion')->updateSeedRegionsFromFamilyObj( $familyObj );
+    $self->{logger}->debug( 'updated seed regions' );
     $rfamdb->resultset('FullRegion')->updateFullRegionsFromFamilyObj( $familyObj );
+    $self->{logger}->debug( 'updated full regions' );
     $rfamdb->resultset('FamilyFile')->uploadFilesFromFamilyObj( $familyObj );
-    $self->{logger}->debug( 'updated seed and full regions, and family files' );
+    $self->{logger}->debug( 'updated family files' );
   }
   
   #Need to intiate the view process.
