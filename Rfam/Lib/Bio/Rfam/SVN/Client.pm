@@ -258,6 +258,7 @@ sub checkFamilyExists {
   return 1;
 }
 
+
 #------------------------------------------------------------------------------
 =head2 checkNewFamilyDoesNotExist
 
@@ -423,8 +424,13 @@ sub checkoutAllFamilies {
 
 sub catFile {
   my ( $self, $dir, $filename, $fh, $rev ) = @_;
-
-  my $url =  $self->familyLocation . "/" . $dir;
+  
+  my $url;
+  if($dir =~ /^RF/){
+    $url =  $self->familyLocation . "/" . $dir;
+  }elsif($dir =~ /^CL/){
+    $url =  $self->clanLocation . "/" . $dir;
+  }
   my $revision = $self->revision;
   
   unless ($fh) {
@@ -1027,6 +1033,93 @@ sub addRFNEWMOVELog {
 
   #Add the commit sub reference
   $self->{txn}->log_msg($commit);
+}
+
+#------------------------------------------------------------------------------
+=head2 checkFamilyExists
+
+  Title    : checkClanExists
+  Incept   : finnr, Jan 24, 2013 3:19:25 PM
+  Usage    : $client->checkFamilyExists($rfam_acc);
+  Function : Checks that a family is present in the repository
+  Args     : A Rfam accession
+  Returns  : Nothing
+  
+=cut
+
+sub checkClanExists {
+  my ( $self, $clan) = @_;
+
+  my $url     = $self->clanLocation . "/" . $clan;
+  
+  #Set up the call back code reference
+  my $codeRef = sub {
+    my ( $path, $info, $pool ) = @_;
+    unless ($info) {
+      die "$path is invalid\n";
+    }
+  };
+  
+  #Now see if that famuly is present!
+  my $revision = $self->revision;
+  eval {
+     $self->{txn}->info( $url, undef, $revision, $codeRef, 0 ); 
+  };
+
+  if ($@) {
+    #Check to see if the family has been killed, if so give details and exit
+    if ( $self->{config}->location eq 'EBI' ) {
+      my $rfamDB = $self->{config}->rfamlive;
+
+      my @dead =
+        $rfamDB->resultset("DeadClan")->search( { clan_acc=> $clan } );
+      foreach my $dead (@dead) {
+
+        print "$clan "
+          ." was killed by "
+          . $dead->user . " on "
+          . $dead->killed . "\n";
+
+        if ( $dead->comment ) {
+          print "Comment: " . $dead->comment . "\n";
+        }
+        else {
+          print "Comment:\n";
+        }
+
+        exit 0;
+      }
+    }
+    
+    confess("\n*** $clan does not exist in the respository ***\n\n".
+            "Looking at $url.\n[$@]\n");
+  }
+  return 1;
+}
+
+
+=head2 clanLocation
+
+  Title    : clanLocation
+  Usage    : $client->clanLocation
+  Function : Returns the path in the repository where clans are stored.
+  Args     : None
+  Returns  : String that is the URL of the clans.
+  
+=cut
+
+
+sub clanLocation {
+  my ($self) = @_;
+  
+  my $url;
+  #As config URLs are inconsistent with trailing /, see if it is there.
+  if($self->{config}->svnRepos =~ m|.*/$|){
+    $url = $self->{config}->svnRepos . $self->{config}->svnClans;
+  }else{
+    $url = $self->{config}->svnRepos .'/'. $self->{config}->svnClans;
+  }
+  return ($url);
 }
 
 1;
