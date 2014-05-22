@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 149;
+use Test::More tests => 151;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -447,9 +447,11 @@ for($mode = 0; $mode <= 1; $mode++) {
 
   ################################################
   # set_ss_cons
-  my $ss_cons_str = "<<<<<<<<<<<<<<<>>>>>>>>>>>>>";
+  my $ss_cons_str    = "<<<<<<<<<<<------>>>>>>>>>>>";
+  my $ss_cons_str_dp = "(((((((((((......)))))))))))";
   $msa1->set_ss_cons($ss_cons_str);
   is($msa1->get_ss_cons(), $ss_cons_str, "set_ss_cons() seems to be working");
+  is($msa1->get_ss_cons_dot_parantheses(), $ss_cons_str_dp, "get_ss_cons_dot_parantheses() seems to be working");
 
   ################################################
   # capitalize_based_on_rf

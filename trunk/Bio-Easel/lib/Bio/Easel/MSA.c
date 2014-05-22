@@ -2058,7 +2058,7 @@ char *_c_get_gf(ESL_MSA *msa, int idx)
   return msa->gf[idx];
 }
 
-/* Function:  _c_calculate_most_informative_sequence()
+/* Function:  _c_most_informative_sequence()
  * Incept:    EPN, Thu May 15 13:21:13 2014
  * Synposis:  Calculate and return the 'most informative sequence'
  *            (Freyhult, Moulton and Gardner, 2005)
@@ -2070,11 +2070,12 @@ char *_c_get_gf(ESL_MSA *msa, int idx)
  *            (If you only want nongap RF positions, remove all
  *             gap RF columns with column_subset() first.)
  * Args:      msa: the alignment
+ *            gapthresh: only positions with >= gapthresh nongaps will become a nongap residue in the MIS
  *            use_weights: '1' to use weights, '0' not to
  * Returns:   the 'most informative sequence' calculated here.
  * Dies:      if MSA is NOT digitized, or if use_weights is '1' and weights are invalid
  */
-char *_c_calculate_most_informative_sequence(ESL_MSA *msa, int use_weights)
+char *_c_most_informative_sequence(ESL_MSA *msa, float gapthresh, int use_weights)
 {
   int        status;           /* Easel status */
   int        i;                /* counter over sequences */
@@ -2083,21 +2084,20 @@ char *_c_calculate_most_informative_sequence(ESL_MSA *msa, int use_weights)
   double   **abcAA    = NULL;  /* [0..apos..msa->alen-1][0..a..abc->K]: count of nt 'a' in column 'apos', a==abc->K are gaps, missing residues or nonresidues */
   double    *abc_totA = NULL;  /* [0..a..abc->K]: count of nt 'a' in all sequences, a==abc->K are gaps, missing residues or nonresidues */
   double     sum;              /* sum of a vector, used in several contexts */
-  double     gapthresh = 0.5;  /* any column with more than this fraction of gaps will be a '-' in the most informative sequence */
   char      *mis = NULL;       /* the most informative sequence, allocated below */
   int       *above_bgA = NULL; /* [0..a..abc->K-1] above_bg[a] is '1' if freq of nt 'a' is above background in current column */
   char       gapchar = '-';    /* gap character */
   int        amatch;           /* degenerate residue index that matches current column */
   int        found_mismatch;   /* set to '1' when we found a mismatch for current column and candidate degenerate residue */
   float      seqwt = 0.;       /* weight of current sequence, always 1.0 if use_weights == FALSE */
-  float      tol = 0.05;       /* tolerance, amount of leeway we allow for defining if a nt in a column is above background, 
+  float      tol = 0.0001;     /* tolerance, amount of leeway we allow for defining if a nt in a column is above background, 
                                 * we add this to the observed frequency. This reproduces how Paul Gardner implemented the MSI 
                                 * calculation originally for Rfam 11.0 and earlier, possibly because it guarantees at least one nt is 
                                 * always above background.
                                 */
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_most_informative_sequence() contract violation, MSA is not digitized");
-  if((! (msa->flags & eslMSA_HASWGTS)) && (use_weights)) croak("_c_calculate_most_informative_sequence() trying to use weights, but they're not valid in the msa");
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_most_informative_sequence() contract violation, MSA is not digitized");
+  if((! (msa->flags & eslMSA_HASWGTS)) && (use_weights)) croak("_c_most_informative_sequence() trying to use weights, but they're not valid in the msa");
     
   /* allocate and initialize */
   ESL_ALLOC(abcAA,       sizeof(double *)  * msa->alen); 
@@ -2122,22 +2122,22 @@ char *_c_calculate_most_informative_sequence(ESL_MSA *msa, int use_weights)
   }
 
   /* normalize the nongap chars in the abc_totA vector */
-  sum = esl_vec_DSum(abc_totA, msa->abc->K); /* only sum first K values (omit nonresidues) */
-  for(a = 0; a < msa->abc->K; a++) abc_totA[a] /= sum;
+  esl_vec_DNorm(abc_totA, msa->abc->K); /* only normalize the first K values (omit gaps) */
 
-  /* determine the most informative residue at each position */
+  /* determine the most informative (possibly degenerate) residue at each position */
   for(apos = 0; apos < msa->alen; apos++) { 
     esl_vec_ISet(above_bgA, msa->abc->K, 0);  /* initialize above_bgA */
     sum = esl_vec_DSum(abcAA[apos], msa->abc->K); /* only sum first K values (omit nonresidues) */
     amatch = -1; /* this is set to a valid a [0..msa->abc->Kp-3] when we find it, and acts as a flag if we don't find one (which is an error) */
     /* fprintf(stderr, "apos: %4d sum/nseq: %.3f gapthresh: %.3f\n", apos, sum/msa->nseq, gapthresh); */
-    if((sum / msa->nseq) < gapthresh) { /* most seqs are gaps, set mis residue as a gap */
+    if((sum / msa->nseq) < gapthresh) { /* most seqs are gaps at this posn, set mis residue as a gap */
       amatch = msa->abc->K; /* gap character */
     }
     else { /* not mostly gaps, calculate most informative residue */
       esl_vec_ISet(above_bgA, msa->abc->K, 0);
       for(a = 0; a < msa->abc->K; a++) { 
-        abcAA[apos][a] = abcAA[apos][a] + tol / sum; /* normalize, after adding a 'tolerance' of 0.05 (which guarantees at least one nt is above bg) */
+        abcAA[apos][a] = (abcAA[apos][a] / sum) + tol; /* normalize, then add  a 'tolerance' of 0.0001 (which guarantees at least one nt is above bg) */
+        /*fprintf(stderr, "apos: %3d a: %d freq: %.3f bg: %.3f\n", apos, a, abcAA[apos][a], abc_totA[a]);*/
         if(abcAA[apos][a] > abc_totA[a]) above_bgA[a] = 1;
       }
       for(a = 0; a <= msa->abc->Kp-3; a++) { /* for each nucleotide, including degenerate ones */
@@ -2182,7 +2182,7 @@ char *_c_calculate_most_informative_sequence(ESL_MSA *msa, int use_weights)
   free(abcAA);
   if(above_bgA) free(above_bgA);
   if(abc_totA) free(abc_totA);
-  croak("out of memory in _c_calculate_most_informative_sequence()");
+  croak("out of memory in _c_most_informative_sequence()");
   return NULL; /* not reached */
 }
 
@@ -2258,13 +2258,13 @@ int _c_map_rfpos_to_apos(ESL_MSA *msa, ESL_ALPHABET *abc, int **ret_i_am_rf, int
   return eslEMEM; /* NEVER REACHED */
 }
 
-/* Function:  _c_calculate_pos_fcbp()
+/* Function:  _c_pos_fcbp()
  * Incept:    EPN, Mon May 19 13:39:53 2014
  * Synopsis:  Calculate and return fraction of canonical basepairs at each alignment position.
  * Args:      msa: the alignment
  * Returns:   the fraction of canonical basepairs at each aln position (as an array in Perl's return stack) 
  */
-void _c_calculate_pos_fcbp(ESL_MSA *msa)
+void _c_pos_fcbp(ESL_MSA *msa)
 {
   Inline_Stack_Vars;
 
@@ -2274,7 +2274,7 @@ void _c_calculate_pos_fcbp(ESL_MSA *msa)
   int    *pos_canA = NULL;  /* [0..apos..msa->alen-1]: number of canonical basepairs with left half position of 'i' */
   double *fcbpA    = NULL;  /* [0..apos..msa->alen-1]: fraction of canonical basepairs at alignment position apos */
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_pos_fcbp() contract violation, MSA is not digitized");
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pos_fcbp() contract violation, MSA is not digitized");
 
   /* calculate fraction of canonicals per alignment position */
   _c_rfam_bp_stats (msa, NULL, &rposA, NULL, &pos_canA, NULL, NULL);
@@ -2311,17 +2311,17 @@ void _c_calculate_pos_fcbp(ESL_MSA *msa)
   if(fcbpA)    free(fcbpA);
   if(rposA)    free(rposA);
   if(pos_canA) free(pos_canA);
-  croak("ERROR: _c_calculate_pos_fcbp(), out of memory");
+  croak("ERROR: _c_pos_fcbp(), out of memory");
   return;
 }
 
-/* Function:  _c_calculate_pos_covariation()
+/* Function:  _c_pos_covariation()
  * Incept:    EPN, Tue May 20 09:26:03 2014
  * Synopsis:  Calculate and return the covariation statistic (Lindgreen, Gardner, Krogh, 2006) at each alignment position.
  * Args:      msa: the alignment
  * Returns:   the covariation statistics at each aln position (as an array in Perl's return stack) 
  */
-void _c_calculate_pos_covariation(ESL_MSA *msa)
+void _c_pos_covariation(ESL_MSA *msa)
 {
   Inline_Stack_Vars;
 
@@ -2329,27 +2329,23 @@ void _c_calculate_pos_covariation(ESL_MSA *msa)
   int     apos;             /* counter over alignment positions */
   int    *rposA   = NULL;   /* [0..apos..msa->alen-1]: right position for basepair with left half position of 'i', else -1 if 'i' is not left half of a pair (i always < j) */
   double *covA    = NULL;   /* [0..apos..msa->alen-1]: covariation per basepair */
+  float   seqwt = 0.;       /* weight of current sequence, always 1.0 if use_weights == FALSE */
 
-  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_calculate_pos_covariation() contract violation, MSA is not digitized");
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pos_covariation() contract violation, MSA is not digitized");
 
   /* calculate covariation statistic */
   _c_rfam_bp_stats (msa, NULL, &rposA, NULL, NULL, &covA, NULL);
   
-  /* _c_rfam_bp_stats() only sets covA to a non-zero value for the left half posns of basepairs, copy those values to the corresponding right half posns */
+  /* _c_rfam_bp_stats() only sets covA to a non-zero value for the left half posns of basepairs, 
+   * copy those values to the corresponding right half posns, and while you're at it, fill the
+   * return array. 
+   */
+  Inline_Stack_Reset;
   for(apos = 0; apos < msa->alen; apos++) { 
     if(rposA[apos] != -1) { 
       covA[rposA[apos]] = covA[apos]; /* set covA value for right position equal to left position */
     }
-  }
-
-  /* fill Perl's return stack */
-  Inline_Stack_Reset;
-  for(apos = 0; apos < msa->alen; apos++) { 
-    /* fprintf(stderr, "C: apos: %3d fcbp: %.3f\n", apos, fcbpA[apos]); */
     Inline_Stack_Push(newSVnv(covA[apos])); 
-    /* is the following line the proper way? both this and the above line seem to work fine...: 
-     * Inline_Stack_Push(sv_2mortal(newSVnv(covA[apos]))); 
-     */
   }
   Inline_Stack_Done;
   Inline_Stack_Return(msa->alen);
@@ -2362,7 +2358,161 @@ void _c_calculate_pos_covariation(ESL_MSA *msa)
  ERROR:
   if(rposA) free(rposA);
   if(covA)  free(covA);
-  croak("ERROR: _c_calculate_pos_covariation(), out of memory");
+  croak("ERROR: _c_pos_covariation(), out of memory");
+  return;
+}
+
+/* Function:  _c_pos_entropy()
+ * Incept:    EPN, Tue May 20 10:45:41 2014
+ * Synopsis:  Calculate and return the entropy at each alignment position.
+ * Args:      msa: the alignment
+ * Returns:   the entropy at each aln position (as an array in Perl's return stack) 
+ */
+void _c_pos_entropy(ESL_MSA *msa, int use_weights)
+{
+  Inline_Stack_Vars;
+
+  int        status;           /* error status */
+  int        apos;             /* counter over alignment positions */
+  int        i;                /* counter over sequences */
+  int        a;                /* counter over residues in an alphabet */
+  float      seqwt = 0.;       /* weight of current sequence, always 1.0 if use_weights == FALSE */
+  double   **abcAA    = NULL;  /* [0..apos..msa->alen-1][0..a..abc->K]: count of nt 'a' in column 'apos', a==abc->K are gaps, missing residues or nonresidues */
+  double    *entA     = NULL;  /* [0..apos..msa->alen-1] entropy of column apos */
+
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pos_entropy() contract violation, MSA is not digitized");
+  if((! (msa->flags & eslMSA_HASWGTS)) && (use_weights)) croak("_c_pos_entropy() trying to use weights, but they're not valid in the msa");
+
+  /* entropy (eqn 11.8, BSA book; Durbin, Eddy, Krogh, Mitchison 1998) 
+   * - sum_i P(x_i) log P(x_i)
+   * where i ranges over each residue in the alphabet (e.g. nucleotides) 
+   */
+
+  /* allocate and initialize */
+  ESL_ALLOC(abcAA, sizeof(double *)  * msa->alen); 
+  for(apos = 0; apos < msa->alen; apos++) { 
+    ESL_ALLOC(abcAA[apos], sizeof(double) * (msa->abc->K+1));
+    esl_vec_DSet(abcAA[apos], (msa->abc->K+1), 0.);
+  }
+  ESL_ALLOC(entA, sizeof(double) * msa->alen);
+  esl_vec_DSet(entA, msa->alen, 0.);
+
+  /* compile counts */
+  for(i = 0; i < msa->nseq; i++) { 
+    seqwt = (use_weights) ? msa->wgt[i] : 1.0;
+    for(apos = 0; apos < msa->alen; apos++) { 
+      if((status = esl_abc_DCount(msa->abc, abcAA[apos], msa->ax[i][apos+1], seqwt)) != eslOK) croak("problem counting residue %d of seq %d", apos, i);
+    }
+  }
+
+  /* calculate entropy, and fill return array */
+  Inline_Stack_Reset;
+  for(apos = 0; apos < msa->alen; apos++) { 
+    esl_vec_DNorm(abcAA[apos], msa->abc->K); /* note: only normalize the first msa->abc->K values, this will ignore gaps and normalize nongap counts */
+    for(a = 0; a < msa->abc->K; a++) { 
+      if(abcAA[apos][a] > eslSMALLX1) { /* above zero */
+        entA[apos] += abcAA[apos][a] * (log(abcAA[apos][a]) / log(2)); /* convert natural log to log base 2 */
+        /*fprintf(stderr, "apos %3d a %3d added %5.3f to entA[apos], new value: %5.3f\n", apos, a, abcAA[apos][a] * (log(abcAA[apos][a]) / log(2)), entA[apos]);*/
+      }
+    }
+    entA[apos] *= -1.; /* convert to a negative number */
+    /*fprintf(stderr, "entA[%2d]: %.3f\n", apos, entA[apos]);*/
+    Inline_Stack_Push(newSVnv(entA[apos])); 
+  }
+  Inline_Stack_Done;
+  Inline_Stack_Return(msa->alen);
+
+  /* clean up and return */
+  if(abcAA) { 
+    for(i = 0; i < msa->nseq; i++) { if(abcAA[i]) free(abcAA[i]); }
+    free(abcAA);
+  }
+  if(entA)  free(entA);
+  return;
+
+ ERROR:
+  if(abcAA) { 
+    for(i = 0; i < msa->nseq; i++) { if(abcAA[i]) free(abcAA[i]); }
+    free(abcAA);
+  }
+  if(entA)  free(entA);
+  croak("ERROR: _c_pos_entropy(), out of memory");
+  return;
+}
+
+
+/* Function:  _c_pos_conservation()
+ * Incept:    EPN, Tue May 20 15:04:29 2014
+ * Synopsis:  Calculate and return the 'sequence conservation' at each alignment position.
+ *            'sequence conservation' of a position is the maximum frequency of any
+ *            residue in a column, where frequency is number of occurences divided by
+ *            number of sequences (so no column with >=1 gap can have a conservation of 1.0).
+ *            And all gap columns have a conservation of 0.0.
+ * Args:      msa: the alignment
+ * Returns:   the sequence conservation at each aln position (as an array in Perl's return stack) 
+ */
+void _c_pos_conservation(ESL_MSA *msa, int use_weights)
+{
+  Inline_Stack_Vars;
+
+  int        status;           /* error status */
+  int        apos;             /* counter over alignment positions */
+  int        i;                /* counter over sequences */
+  int        a;                /* counter over residues in an alphabet */
+  float      seqwt = 0.;       /* weight of current sequence, always 1.0 if use_weights == FALSE */
+  double   **abcAA    = NULL;  /* [0..apos..msa->alen-1][0..a..abc->K]: count of nt 'a' in column 'apos', a==abc->K are gaps, missing residues or nonresidues */
+  double    *consA    = NULL;  /* [0..apos..msa->alen-1] sequence conservation of column apos */
+
+  if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pos_conservation() contract violation, MSA is not digitized");
+  if((! (msa->flags & eslMSA_HASWGTS)) && (use_weights)) croak("_c_pos_conservation() trying to use weights, but they're not valid in the msa");
+
+  /* allocate and initialize */
+  ESL_ALLOC(abcAA, sizeof(double *)  * msa->alen); 
+  for(apos = 0; apos < msa->alen; apos++) { 
+    ESL_ALLOC(abcAA[apos], sizeof(double) * (msa->abc->K+1));
+    esl_vec_DSet(abcAA[apos], (msa->abc->K+1), 0.);
+  }
+  ESL_ALLOC(consA, sizeof(double) * msa->alen);
+  esl_vec_DSet(consA, msa->alen, 0.);
+
+  /* compile counts */
+  for(i = 0; i < msa->nseq; i++) { 
+    seqwt = (use_weights) ? msa->wgt[i] : 1.0;
+    for(apos = 0; apos < msa->alen; apos++) { 
+      if((status = esl_abc_DCount(msa->abc, abcAA[apos], msa->ax[i][apos+1], seqwt)) != eslOK) croak("problem counting residue %d of seq %d", apos, i);
+    }
+  }
+
+  /* calculate sequence conservation, and fill return array */
+  Inline_Stack_Reset;
+  for(apos = 0; apos < msa->alen; apos++) { 
+    esl_vec_DNorm(abcAA[apos], msa->abc->K+1); /* note: normalize all msa->abc->K+1 values (including gaps) this differs from what we did in _c_pos_entropy() */
+    for(a = 0; a < msa->abc->K; a++) { /* look at all non-gaps for most common one */
+      if(abcAA[apos][a] > consA[apos]) { 
+        consA[apos] = abcAA[apos][a];
+      }
+    }
+    /*fprintf(stderr, "consA[%2d]: %.3f\n", apos, consA[apos]);*/
+    Inline_Stack_Push(newSVnv(consA[apos])); 
+  }
+  Inline_Stack_Done;
+  Inline_Stack_Return(msa->alen);
+
+  /* clean up and return */
+  if(abcAA) { 
+    for(i = 0; i < msa->nseq; i++) { if(abcAA[i]) free(abcAA[i]); }
+    free(abcAA);
+  }
+  if(consA)  free(consA);
+  return;
+
+ ERROR:
+  if(abcAA) { 
+    for(i = 0; i < msa->nseq; i++) { if(abcAA[i]) free(abcAA[i]); }
+    free(abcAA);
+  }
+  if(consA)  free(consA);
+  croak("ERROR: _c_pos_conservation(), out of memory");
   return;
 }
     
