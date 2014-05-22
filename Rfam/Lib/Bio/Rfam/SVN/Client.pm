@@ -412,6 +412,67 @@ sub checkoutAllFamilies {
   }
 }
 
+
+#------------------------------------------------------------------------------
+=head2 
+
+  Title    :
+  Incept   : finnr, Jan 24, 2013 5:50:30 PM
+  Usage    : 
+  Function : 
+  Args     : 
+  Returns  : 
+  
+=cut
+
+sub checkClanFile {
+  my ( $self, $clan ) = @_;
+
+  my $url = $self->clanLocation . "/" . $clan;
+
+  eval {
+
+      $self->{txn}
+        ->info( $url . "/" . 'CLANDESC', undef, 'HEAD', $self->_checkFile, 0 );
+    };
+    if ($@) {
+
+      #Todo, should change this to confess
+      warn
+"CLANDESC for $clan does not exist in the respository at $url.  This is very bad [$@]\n";
+    }
+}
+
+
+=head2 checkoutClan
+
+  Title    : checkoutClan
+  Usage    : $client->checkoutFamily('CL00001', '/path/to/local/checkout');
+  Function : Checks out a clan to the specified directory
+  Args     : Clan accession, path to checkout directory
+  Returns  : Nothing
+  
+=cut
+
+sub checkoutClan {
+  my ( $self, $entry, $dest ) = @_;
+  
+  #Work out the repo path for the family
+  my $url = $self->clanLocation . "/" . $entry;
+  
+  #try and check it out
+  eval {
+    $self->{txn}
+      ->checkout( $url, $dest, $self->revision ? $self->revision : 'HEAD', 1 );
+  };
+
+  #Confess if we observe a proble,
+  if ($@) {
+    confess("Failed to check out family, ".$self->clanLocation."/$entry, :[$@]\n");
+  }
+}
+
+
 =head2 
 
   Title    : 
