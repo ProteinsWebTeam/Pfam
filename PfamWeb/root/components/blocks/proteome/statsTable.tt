@@ -89,7 +89,8 @@ IF c.req.param('full') OR statsData.size < 500;
 <script type="text/javascript">
   // <![CDATA[
 
-  // document.observe( "dom:loaded", function() {
+  document.observe( "dom:loaded", function() {
+
     $$(".showHide").each( function(btn) {
       btn.observe("click", function(e) {
         var button = e.findElement("a");
@@ -101,31 +102,34 @@ IF c.req.param('full') OR statsData.size < 500;
         e.stop();
       } );
     } );
-  // } );
   
-  $("loadFullTable").observe( "click", function() {
+    if ( $("loadFullTable") ) {
+      $("loadFullTable").observe( "click", function() {
 
-    // first, hide the switch and show the spinner
-    $( "loadSwitch").hide();
-    
-    // then show the spinner
-    $("spinner").show();
-    
-    // and finally make the AJAX call
-    var r = new Ajax.Updater( 
-      "statsTableDiv",
-      "[% c.uri_for( '/proteome/stats' ) %]",
-      { 
-        method:     "get",
-        parameters: { taxId: "[% taxId %]",
-                      full:  1 },
-        onFailure:  function( oResponse ) {
-          $("statsTableDiv")
-            .update( "There was a problem loading the statistics table." );
-        }
-      }
-    );
-    
+        // first, hide the switch and show the spinner
+        $( "loadSwitch").hide();
+        
+        // then show the spinner
+        $("spinner").show();
+        
+        // and finally make the AJAX call
+        var r = new Ajax.Updater( 
+          "statsTableDiv",
+          "[% c.uri_for( '/proteome/stats' ) %]",
+          { 
+            method:     "get",
+            parameters: { taxId: "[% taxId %]",
+                          full:  1 },
+            onFailure:  function( oResponse ) {
+              $("statsTableDiv")
+                .update( "There was a problem loading the statistics table." );
+            }
+          }
+        );
+        
+      } );
+    }
+
   } );
   
   // ]]>
