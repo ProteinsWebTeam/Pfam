@@ -46,7 +46,7 @@ sub updateFamilyFromObj {
   $fam->trusted_cutoff( $familyObj->DESC->CUTTC );
   $fam->noise_cutoff( $familyObj->DESC->CUTNC );
   $fam->comment( $familyObj->DESC->CC );
-  $fam->previous_id( $familyObj->DESC->PI ) if(defined($familyObj->DESC->CC) );
+  $fam->previous_id( $familyObj->DESC->PI ) if(defined($familyObj->DESC->PI) );
   #NopreviousIDasitisnew.
   $fam->cmbuild( $familyObj->DESC->BM );
   $fam->cmcalibrate( $familyObj->DESC->CB );

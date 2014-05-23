@@ -181,6 +181,44 @@ sub _commitEntry {
   $self->{logger}->debug( 'closed database transaction' );
 }
 
+
+sub _commitClan {
+  my ($self, $clanObj, $isNew) = @_;
+  
+  my $rfamdb = $self->{config}->rfamlive;
+  $self->{logger}->debug( 'got a database connection' );
+
+  #Need to put a transaction around this block
+  my $guard = $rfamdb->txn_scope_guard;  
+  $self->{logger}->debug( 'started database transaction' );
+
+  #update the database with the CLANDESC file information.
+  my $auto_wiki;
+  if($clanObj->DESC->WIKI){
+    my @pages = keys(%{$clanObj->DESC->WIKI});
+    $self->{logger}->debug( 'found ' . scalar @pages . ' wikipedia entries' );
+    my $row = $rfamdb->resultset('Wikitext')->find_or_create({'title' => $pages[0]});
+    $auto_wiki = $row->auto_wiki;
+  }
+  if ( $isNew ) {
+    $self->{logger}->debug( 'Clan is new; creating from object' );
+    $rfamdb->resultset('Clan')->createClanFromObj($clanObj, $auto_wiki);
+  }
+  else {
+    $self->{logger}->debug( 'Clan exists; updating from object' );
+    $rfamdb->resultset('Clan')->updateClanFromObj($clanObj, $auto_wiki);
+  }
+  $self->{logger}->debug( 'clan creation/update complete' );
+
+  $rfamdb->resultset('LiteratureReference')->find_or_createFromClanObj( $clanObj );
+  $rfamdb->resultset('ClanDatabaseLink')->find_or_createFromClanObj( $clanObj );  
+
+  $self->{logger}->debug( 'updated literature references and database links' );
+
+  #Finish the transaction.
+  $guard->commit;
+  $self->{logger}->debug( 'closed database transaction' );
+}
 #-------------------------------------------------------------------------------
 
 sub _assignAccession {
