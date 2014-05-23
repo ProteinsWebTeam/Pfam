@@ -230,8 +230,7 @@ sub checkFamilyExists {
 
         print "$family "
           ." was killed by "
-          . $dead->user . " on "
-          . $dead->killed . "\n";
+          . $dead->user . "\n";
 
         if ( $dead->comment ) {
           print "Comment: " . $dead->comment . "\n";
