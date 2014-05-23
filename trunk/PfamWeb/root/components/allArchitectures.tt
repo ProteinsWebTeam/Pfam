@@ -169,7 +169,13 @@ END -%]
 
   var layout = [% layout OR "{}" %];
   var assignedColours = [% assignedColours OR "{}" %];
+  [% IF acc %]
   var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
+  [% ELSIF taxId %]
+  var loadUri = "[% c.uri_for( '/domaingraphics', taxId ) %]";
+  [% ELSE %]
+  var loadUri = "[% c.uri_for( '/domaingraphics' ) %]";
+  [% END %]
   var baseUri = "[% c.uri_for( '/' ) %]";
 
   var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
@@ -184,12 +190,11 @@ END -%]
       // console.debug( "assignedColours: " + assignedColours );
       var r = new Ajax.Updater( 
         "next[% first %]",
-        "[% c.uri_for( '/domaingraphics' ) %]",
+        "[% c.uri_for( '/domaingraphics', taxId ) %]",
         {
-          method:      "get",
+          method:      "post",
           evalScripts: true,
           parameters:  { acc:   "[% acc %]",
-                         taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
                          start: "[% last + 1 %]",
                          ac:    encodeURI( JSON.stringify( assignedColours ) ) },
           onFailure:   function() {
