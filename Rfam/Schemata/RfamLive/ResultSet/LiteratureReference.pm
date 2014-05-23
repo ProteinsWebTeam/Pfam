@@ -28,4 +28,26 @@ sub find_or_createFromFamilyObj {
   }
 }
 
+sub find_or_createFromClanObj {
+  my ($self, $clanObj) = @_;
+  
+  if(!$clanObj or !$clanObj->isa('Bio::Rfam::Clan')){
+    croak('Either the Bio::Rfam::Clan object was undefined or not an object of that type.');
+  }
+  if(defined($clanObj->DESC->REFS)){
+    foreach my $ref (@{$clanObj->DESC->REFS}){
+      my $lit = $self->find_or_create( { pmid => $ref->{RM},
+                                         title => $ref->{RT},
+                                         author => $ref->{RA},
+                                         journal => $ref->{RL}
+      } );
+      $lit->update_or_create_related( 'clan_literature_references', #the relationship
+                                      { clan_acc    => $clanObj->DESC->AC,
+                                        pmid        => $ref->{RM},
+                                        comment     => defined($ref->{RC}) ? $ref->{RC} : '',
+                                        order_added => $ref->{RN}} );
+    }
+  }
+}
+
 1;
