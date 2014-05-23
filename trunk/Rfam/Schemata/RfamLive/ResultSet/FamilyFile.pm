@@ -19,21 +19,23 @@ sub uploadFilesFromFamilyObj{
   $fam->delete if($fam);
   
   my $compressedCm = Compress::Zlib::memGzip( join("", @{ $familyObj->CM->rawcm } ))
-    or carp( "Cannot compress: $gzerrno\n" );
+    or carp( "Cannot compress CM: $gzerrno\n" );
   
   my $seed = read_file( $familyObj->SEED->path, err_mode => 'carp'  );
   my $compressedSeed = Compress::Zlib::memGzip( $seed )
-    or carp( "Cannot compress: $gzerrno\n" );
+    or carp( "Cannot compress seed: $gzerrno\n" );
   
   my $tblout = read_file( $familyObj->TBLOUT->fileLocation, err_mode => 'carp'  );
   my $compressedTbl = Compress::Zlib::memGzip( $tblout )
-    or carp( "Cannot compress: $gzerrno\n" );
+    or carp( "Cannot compress tblout: $gzerrno\n" );
   
-  
-  $self->create({ rfam_acc => $familyObj->DESC->AC,
-                  seed     => $compressedSeed,
-                  cm       => $compressedCm,
-                  tblout   => $compressedTbl });
+  my $result = $self->create({ rfam_acc => $familyObj->DESC->AC,
+                               seed     => $compressedSeed,
+                               cm       => $compressedCm,
+                               tblout   => $compressedTbl });
+
+  carp 'Failed to created a new FamilyFile row for ' . $familyObj->DESC->AC
+    unless $result;
 }
 
 1;

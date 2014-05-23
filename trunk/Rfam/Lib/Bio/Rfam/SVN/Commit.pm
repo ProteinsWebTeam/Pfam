@@ -164,8 +164,15 @@ sub _commitEntry {
     $self->{logger}->debug( 'updated seed regions' );
     $rfamdb->resultset('FullRegion')->updateFullRegionsFromFamilyObj( $familyObj );
     $self->{logger}->debug( 'updated full regions' );
-    $rfamdb->resultset('FamilyFile')->uploadFilesFromFamilyObj( $familyObj );
-    $self->{logger}->debug( 'updated family files' );
+    eval {
+      $rfamdb->resultset('FamilyFile')->uploadFilesFromFamilyObj( $familyObj );
+    };
+    if ( $@ ) {
+      $self->{logger}->warn( 'failure while updating family files: $@' );
+    }
+    else {
+      $self->{logger}->debug( 'updated family files' );
+    }
   }
   
   #Need to intiate the view process.
