@@ -190,6 +190,8 @@ elsif ( $msg =~ /SEQUP/ ) {
         . " like it has come from the sequence part of the repository" );
     }
   }
+}elsif ( $msg =~ /^CLCI:/ ) {
+  $txnlook->commitClan;
 }elsif( $msg =~ /ADMINBYPASS/ ) {
   $logger->debug('parsing msg; admin bypass');
 }

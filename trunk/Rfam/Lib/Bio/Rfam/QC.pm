@@ -62,7 +62,7 @@ sub checkQCPerformed {
 
   foreach my $f ( @{ $config->mandatoryFiles } ) {
 
-    if( -M "$dir/$acc/$f" < -M "$dir/$acc/qcpassed" ){
+    if( -M "$dir/$acc/$f" <= -M "$dir/$acc/qcpassed" ){
     die
   "You need to rerun the rqc-all.pl as $f has changed since you ran it last\n";
     }
@@ -562,6 +562,75 @@ sub checkFixedFields {
     if($newFamilyObj->DESC->PI ne $oldFamilyObj->DESC->PI){
       warn "Your pervious identifers (PI) differs between the old and new version of the family.\n";
       $error = 1;
+    }
+  }
+  
+  return $error;
+}
+
+
+#------------------------------------------------------------------------------
+=head2 checkClanFixedFields
+
+  Title    : checkClanFixedFields
+  Incept   : finnr, Aug 5, 2013 10:51:59 AM
+  Usage    : Bio::Rfam::QC::checkClanFixedFields($newClan, $oldClan);
+  Function : Checks that nobody has changes the ID, AC, PI and MB lines
+  Args     : Bio::Rfam::Clan object for old and new clan.
+  Returns  : 1 on error, 0 on success.
+  
+=cut
+
+sub checkClanFixedFields {
+  my ($newClanObj, $oldClanObj) = @_;
+  
+  my $error = 0;
+  
+  if ( !$newClanObj or !$newClanObj->isa('Bio::Rfam::Clan') ) {
+    die "Did not get passed in a Bio::Rfam::Clan object (new)\n";
+  }
+  
+  if ( !$oldClanObj or !$oldClanObj->isa('Bio::Rfam::Clan') ) {
+    die "Did not get passed in a Bio::Rfam::Clan object (old)\n";
+  }
+  
+  if($newClanObj->DESC->AC ne $oldClanObj->DESC->AC){
+    warn "Your accession (AC) differs between the old and new version of the clan.\n";
+    $error = 1;
+  }
+
+  if($newClanObj->DESC->ID ne $oldClanObj->DESC->ID){
+    warn "Your identifier (ID) differs between the old and new version of the clan.\n";
+    $error = 1;
+  }
+  
+  if( defined( $newClanObj->DESC->PI )){
+    if($newClanObj->DESC->PI ne $oldClanObj->DESC->PI){
+      warn "Your pervious identifers (PI) differs between the old and new version of the Clan. This should be performed by CL move.\n";
+      $error = 1;
+    }
+  }
+  
+  #Now compare the membership of the old and new to check that nobody has change it here.
+  my %count;
+  foreach my $m ( @{$oldClanObj->DESC->MEMB}, @{$newClanObj->DESC->MEMB} ) {
+    $count{$m}++;
+  }
+
+  my ( @isect, @diff );
+  foreach my $m ( keys %count ) {
+    push @{ $count{$m} == 2 ? \@isect : \@diff }, $m;
+  }
+
+  $error = 0;
+  if ( scalar(@diff) ) {
+    $error =1;
+    warn "Detected the following differences between the memberships\n";
+    my %newMem = map { $_ => 1 } @{$newClanObj->MEMB};
+    foreach my $d (@diff) {
+      print STDERR defined( $newMem{$d} )
+        ? "$d is not in the old membership\n"
+        : "$d is not in the new membership\n";
     }
   }
   
@@ -1487,6 +1556,68 @@ sub processIgnoreOpt {
   return \%passback;
 }
 
+sub essentialClan {
+  my ($newClan, $oldClan, $config) = @_; 
+
+  my $masterError = 0;
+  my $error = 0;
+  
+  $error = Bio::Rfam::QC::checkClanFormat($newClan);
+  
+  if($error){
+    warn "Family failed essential foramt checks.\n";
+    $masterError = 1;
+  }
+  
+  
+  if(defined($oldClan)){
+    $error = checkClanFixedFields( $newClan, $oldClan );
+    if($error){
+      warn "Clan failed, illegal field changes in DESC file.\n";
+      $masterError = 1;
+    }
+  }
+  
+  return $masterError;
+}
+
+
+sub checkClanFormat {
+  my ($clanObj) = @_;
+  
+  my $error = 0;
+   #Make sure none of the default values set in writeEmptyDESC still exist
+  foreach my $key ( keys %{ $clanObj->DESC->defaultButIllegalFields } ) { 
+    if ( !defined( $clanObj->DESC->$key ) ) { #make sure it's defined first
+      warn "Required CLANDESC field $key not defined.\n";
+      $error++;
+    }
+    elsif( $clanObj->DESC->$key eq $clanObj->DESC->defaultButIllegalFields->{$key} ) { 
+      warn "CLANDESC field $key illegal value (appears unchanged from default).\n";
+      $error++;
+    }
+  }
+  return $error;
+}
+
+#TODO
+sub optionalClan{
+  my ($newFamily, $dir, $oldFamily, $config, $override, $ignore) = @_;
+
+  my $error       = 0;
+  my $masterError = 0;
+  my $msg         = "";
+  
+  if(!exists($override->{spell})){
+    $error = checkSpell($dir, $config->dictionary);
+    if($error){
+      warn "Failed running spelling QC.\n";
+      $masterError = 1;
+    }
+  }else{
+    warn "Ignoring spell check.\n";
+  } 
+}
 #------------------------------------------------------------------------------
 =head2 _addBlackListToIgnore
 

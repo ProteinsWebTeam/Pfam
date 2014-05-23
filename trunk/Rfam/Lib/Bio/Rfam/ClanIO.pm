@@ -56,39 +56,24 @@ sub new {
 }
 
 sub loadClanFromLocalFile {
-  my ( $self, $family, $dir, $source ) = @_;
+  my ( $self, $clan, $dir, $source ) = @_;
 
-  unless ( -d "$dir/$family" ) {
-    confess("Could not find family directory $dir/$family");
+  unless ( -d "$dir/$clan" ) {
+    confess("Could not find clan directory $dir/$clan");
   }
 
   my %params;
-  foreach my $f ( @{ $self->{config}->mandatoryFiles } ) {
-    unless ( -e "$dir/$family/$f" ) {
-      confess("Could not find $dir/$family/$f\n");
-    }
-    my $fh;
-
-    #print "Opening $dir/$family/$f\n";
-    open( $fh, "$dir/$family/$f" )
-      or confess("Could not open $dir/$family/$f:[$!]");
-    $params{$f} = $fh;
-  }
-
   if ($source) {
     $params{'source'} = $source;
   } else {
     $params{'source'} = 'file';
   }
 
-  my $params = {
-                'DESC'   => $self->parseDESC("$dir/$family/CLANDESC"),
-               };
+ $params{'DESC'}    = $self->parseDESC("$dir/$clan/CLANDESC");
+ #Use Moose to coerce these through!
+ my $clanObj = Bio::Rfam::Clan->new(\%params);
 
-  #Use Moose to coerce these through!
-  my $famObj = Bio::Rfam::Family->new($params);
-
-  return ($famObj);
+ return ($clanObj);
 }
 
 sub loadClanFromRDB {
@@ -122,20 +107,20 @@ sub loadClanFromRDB {
   return $clanObj;
 }
 
-sub loadRfamFromSVN {
-  my ( $self, $family, $client ) = @_;
+sub loadClanFromSVN {
+  my ( $self, $clan, $client ) = @_;
 
   my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
-  mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
+  mkdir("$dir/$clan") or confess("Could not make $dir/$clan:[$!]");
 
-  foreach my $f ( @{ $self->{config}->mandatoryFiles } ) {
-    my $fh;
-    open( $fh, ">$dir/$family/$f" ) or die "Could not open $dir/$f";
-    $client->catFile( $family, $f, $fh );
-    close($fh);
-  }
-  my $famObj = $self->loadRfamFromLocalFile( $family, $dir, 'svn' );
-  return $famObj;
+  my $f = 'CLANDESC';
+  my $fh;
+  open( $fh, ">$dir/$clan/$f" ) or die "Could not open $dir/$f";
+  $client->catFile( $clan, $f, $fh );
+  close($fh);
+
+  my $clanObj = $self->loadClanFromLocalFile( $clan, $dir, 'svn' );
+  return $clanObj;
 }
 
 

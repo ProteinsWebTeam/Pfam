@@ -1,3 +1,4 @@
+
 =head1 NAME
 
 Bio::Rfam::SVN::Commit - a module that commits to the Rfam SVN 
@@ -31,6 +32,7 @@ use Carp;
 
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
+use Bio::Rfam::ClanIO;
 use Bio::Rfam::QC;
 use Data::Printer;
 use Data::Dumper;
@@ -64,8 +66,6 @@ sub new {
   return bless( $self, $class );
 }
 
-#-------------------------------------------------------------------------------
-
 sub commitEntry {
   my ( $self ) = @_;
 
@@ -81,14 +81,11 @@ sub commitEntry {
   $self->{logger}->debug( 'got a family object; committing' );
 
   $self->_commitEntry($familyObj);
+
 }
 
-#-------------------------------------------------------------------------------
-
 sub commitNewEntry {
-  my ( $self ) = @_;
-
-  $self->{logger}->debug( 'committing a new entry' );
+  my ($self) = @_;
 
   #Make an object to respresent the family based on the SVN transcation
   my $familyIO = Bio::Rfam::FamilyIO->new;
@@ -201,7 +198,7 @@ sub _assignAccession {
                        . scalar @dead_families . ' dead families' );
 
   foreach my $family ( @families, @dead_families ) {
-    my ( $acc ) = $family->rfam_acc =~ m/(\d+)/;
+    my ($acc) = $family->rfam_acc =~ m/(\d+)/;
     push @allAccessions, $acc;
   }
   $self->{logger}->debug( 'retrieved a total of ' . scalar @allAccessions . ' accessions' );
@@ -270,15 +267,14 @@ sub _getEntryObjFromTrans {
       $family = "$2";
     }
   }
-  $self->{logger}->debug( "from the files lists we got path '$path' and family '$family'" );
- 
+
   print STDERR p(@updated_files);
   print STDERR p(@added_files);
   print STDERR p(@deleted_files);
 
   unless ( $path and $family ) {
-    $self->{logger}->warn( 'either path or family was not determined; throwing an error' );
-    confess( "Failed to find path [$path] to family [$family] in SVN repository\n");
+    confess(
+      "Failed to find path [$path] to family [$family] in SVN repository\n");
   }
 
   #Write all of the files for this transaction to disk and then read them
@@ -370,8 +366,6 @@ sub moveFamily {
   $self->_commitEntry($familyObj);
 }
 
-#-------------------------------------------------------------------------------
-
 sub deleteFamily {
   my ( $self, $comment, $forward, $author ) = @_;
 
@@ -394,9 +388,10 @@ sub deleteFamily {
   my @deleted_files = $self->deleted();
   my $svnPath       = $self->{config}->svnFamilies;
   foreach my $f (@deleted_files) {
+
     #Need to see if there is a / on $svnPath;
     $svnPath .= '/' unless $svnPath =~ m|.*?/$|;
-    
+
     if ( $f =~ m|($svnPath)(\S+)(\/)| ) {
       $family = "$2";
     }
@@ -414,7 +409,8 @@ sub deleteFamily {
   }
 
   #Now make the dead family entry!
-  my $entry = $rfamdb->resultset('Family')->find({rfam_acc => $family});
+  my $entry = $rfamdb->resultset('Family')->find( { rfam_acc => $family } );
+
   #print Dumper $entry;
 
   unless($entry and $entry->rfam_acc eq $family){
@@ -422,14 +418,15 @@ sub deleteFamily {
     confess("Failed to get an Rfam entry for $family.\n");
   }
   my $user = $self->author;
+
   #print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
-  
+
   #Create the dead family and then finally delete the row.
   $rfamdb->resultset('DeadFamily')->createFromFamilyRow($entry, $comment, $forward, $user);
   $self->{logger}->debug( 'created a dead family row from the family row' );
 
-  #We should have create the dead row if we get here, so now delete it and let the
-  #database cascade the delete.
+#We should have create the dead row if we get here, so now delete it and let the
+#database cascade the delete.
   $entry->delete();
   $self->{logger}->debug( 'deleted the family' );
   
@@ -437,8 +434,6 @@ sub deleteFamily {
   $guard->commit;
   $self->{logger}->debug( 'closed the database transaction' );
 }
-
-#-------------------------------------------------------------------------------
 
 sub allowCommit {
   my ( $self  ) = @_;
@@ -450,12 +445,87 @@ sub allowCommit {
   if (@lock_data) {
     my $lock_data = shift @lock_data;    #Should only ever be one row
     return $lock_data;
-  } else {
+  }
+  else {
     return 0;
   }
 }
 
-#-------------------------------------------------------------------------------
+sub commitClan {
+  my ($self) = @_;
+
+  #Make an object to respresent the family based on the SVN transcation
+  my $clanIO = Bio::Rfam::ClanIO->new;
+
+  my ( $clanObj, $clan, $dir );
+
+  ( $clanObj, $clan, $dir ) = $self->_getClanObjFromTrans( $clanIO, 0 );
+
+  $self->_commitClan($clanObj);
+
+}
+
+sub _getClanObjFromTrans {
+  my ( $self, $clanIO, $isNew ) = @_;
+
+  #Are we dealing with a new family, set path accordingly.
+  my $svnPath =
+    ( $isNew == 1 )
+    ? $self->{config}->svnNewClans
+    : $self->{config}->svnClans;
+
+  #At this point we have no idea of the name of the family.
+  my @updated_files = $self->updated();
+  my @added_files   = $self->added();
+  my @deleted_files = $self->deleted();
+  unless ( scalar(@updated_files)
+    or scalar(@added_files)
+    or scalar(@deleted_files) )
+  {
+    confess("Trying to commit a clan with no updated/added/deleted files\n");
+  }
+
+  #Determine where the path is! #Modularise
+  my ( $path, $clan );
+  foreach my $f ( @updated_files, @added_files, @deleted_files ) {
+    if ( $f =~ m|($svnPath/)(\S+)(\/\w+)| ) {
+      $path = "$1$2";
+      $clan = $2;
+      last;
+    }
+    elsif ( $f =~ m|($svnPath/)(\S+)(\/)| ) {
+      $path = "$1$2";
+      $clan = "$2";
+    }
+  }
+
+  print STDERR p(@updated_files);
+  print STDERR p(@added_files);
+  print STDERR p(@deleted_files);
+
+  unless ( $path and $clan ) {
+    confess("Failed to find path [$path] to clan [$clan] in SVN repository\n");
+  }
+
+  #Write all of the files for this transaction to disk and then read them
+  my $dir = File::Temp->newdir( CLEANUP => 1 );
+  mkdir("$dir/$clan") or confess("Could not make $dir/$clan:[$!]");
+  my $params;
+  my $f = 'CLANDESC';
+  print STDERR "Catting $f\n";
+  my $fh;
+  my @file = $self->cat("$path/$f");
+  open( $fh, ">$dir/$clan/$f" ) or die "Could not open $dir/$f";
+
+  foreach (@file) {
+    print $fh "$_\n";
+  }
+  close($fh);
+
+  my $clanObj = $clanIO->loadClanFromLocalFile( $clan, $dir, 'svn' );
+
+  return ( $clanObj, $clan, $dir );
+}
 
 =head1 COPYRIGHT
 
