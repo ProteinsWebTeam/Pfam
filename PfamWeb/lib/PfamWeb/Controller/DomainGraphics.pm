@@ -127,6 +127,27 @@ sub begin : Private {
 
       $c->forward( 'get_clan_data' );
     }
+    elsif ( $tainted_entry =~ m/^(\d+)$/ ){
+      # looks like an NCBI tax ID
+
+      $c->log->debug( 'DomainGraphics::begin: found NCBI tax ID' )
+        if $c->debug;
+      $c->stash->{taxId} = $1;
+
+      # see if we have a pfam family accession, which, when found in conjunction
+      # with the taxId, means that we need to draw all of the architectures for
+      # which include the given family from the given species
+      if( defined $c->req->param('pfamAcc') and
+          $c->req->param('pfamAcc')=~ m/(PF\d{5})(\.\d+)?$/ ) {
+        $c->stash->{acc} = $1;
+        $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
+      }
+
+      # retrieve the data for we need regarding the specified proteome. This
+      # action will decide for itself which exact query to run...
+      $c->forward( 'get_proteome_data' );
+    }
+
   }
 
   #----------------------------------------
@@ -160,32 +181,6 @@ sub begin : Private {
     $c->stash->{selectedSeqAccs} = $accession_list;
 
     $c->forward( 'get_selected_seqs' );
-  }
-
-  #----------------------------------------
-
-  # do we have an NCBI-code ?
-
-  elsif ( $c->req->param('taxId') and
-          $c->req->param('taxId') =~ m/^(\d+)$/i ){
-
-    $c->log->debug( 'DomainGraphics::begin: getting proteome sequences' )
-      if $c->debug;
-    $c->stash->{taxId} = $1;
-
-    # see if we have a pfam family accession, which, when found in conjunction
-    # with the taxId, means that we need to draw all of the architectures for
-    # which include the given family from the given species
-    if( defined $c->req->param('pfamAcc') and
-        $c->req->param('pfamAcc')=~ m/(PF\d{5})(\.\d+)?$/ ) {
-      $c->stash->{acc} = $1;
-      $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
-    }
-
-    # retrieve the data for we need regarding the specified proteome. This
-    # action will decide for itself which exact query to run...
-    $c->forward( 'get_proteome_data' );
-
   }
 
 } # end of the "begin" method
@@ -383,7 +378,7 @@ sub get_family_data : Private {
   my ( $this, $c ) = @_;
 
   $c->stash->{pfam} = $c->model('PfamDB::Pfama')
-                        ->find( { pfamA_acc => $c->stash->{acc} } );
+                        ->find( { pfama_acc => $c->stash->{acc} } );
 
   # decide if we're showing the individual architectures or all sequences
   # for a particular architecture
@@ -916,10 +911,10 @@ sub get_proteome_data : Private {
               ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome,
                           genome_seq                        => 1,
                           auto_architecture => $c->stash->{auto_arch} },
-                        { join      => [ qw( annseqs
-                                             proteome_pfamseqs ) ],
+                        { join      => [ qw( proteome_pfamseqs
+                                             annseqs ) ],
                           select    => [ qw( pfamseq_id
-                                             annseq_storable ) ],
+                                             annseqs.annseq_storable ) ],
                           as        => [ qw( pfamseq_id
                                              annseq_storable  ) ] } );
   }

@@ -105,11 +105,10 @@ requirements.js.push( "domain_graphics_loader.js" );
     document.observe( "dom:loaded", function() {
       var r = new Ajax.Updater(
         "pdgph",
-        "[% c.uri_for( "/domaingraphics" ) %]",
+        "[% c.uri_for( '/domaingraphics', taxId ) %]",
         {
                method: 'get',
           evalScripts: true,
-           parameters: { taxId: "[% taxId %]" },
             onFailure: function( oResponse ) {
                          $("pdgph").update( "Domain graphics loading failed." );
                        }

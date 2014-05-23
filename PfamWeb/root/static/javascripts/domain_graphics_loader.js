@@ -156,7 +156,7 @@ var DomainGraphicsLoader = Class.create( {
     loadLink.up("div").down(".revealLink").up().show();
 
     var options = { evalScripts: true,
-                    method: "get" };
+                    method: "post" };
 
     // console.log( "DGL._loadDomains: setting up ac: ", this._assignedColours );
     if ( this._assignedColours !== undefined ) {
