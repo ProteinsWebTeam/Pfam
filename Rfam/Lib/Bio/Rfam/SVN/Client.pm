@@ -327,7 +327,7 @@ sub checkFamilyDoesNotExist {
 #------------------------------------------------------------------------------
 =head2 
 
-  Title    :
+  Title    : checkAllFamilyFiles
   Incept   : finnr, Jan 24, 2013 5:50:30 PM
   Usage    : 
   Function : 
@@ -554,6 +554,32 @@ sub commitFamily {
 
 }
 
+
+=head2 commitCLan
+
+  Title    : 
+  Usage    :   
+  Function : 
+  Args     : 
+  Returns  : 
+  
+=cut
+
+sub commitClan {
+  my ( $self, $entry ) = @_;
+
+ my @files = ("$entry/CLANDESC");
+ #And finally commit them.
+ my $cinfo;
+  eval { $cinfo = $self->{txn}->commit( \@files, 1 ); };
+
+  if ($@) {
+    confess("Failed to commit clan, $entry: [$@]\n");
+  }
+  #Now check that something happen!
+  $self->_checkCommitObj($cinfo);
+
+}
 
 sub commitFamilyDESC {
   my ( $self, $family ) = @_;
@@ -1089,6 +1115,54 @@ sub addRFNEWMOVELog {
 
     #Now add the message to the scalar ref
     $$passmessage .= "NEWMOV:" . $message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
+=head2 addCICLLog
+
+  Title    : addCICLLog
+  Usage    : $client->addCICLLog
+  Function : Internal call back method for setting the message for the
+           : svn history when a clan is commited back.
+  Args     : None
+  Returns  : Nothing
+  
+=cut
+
+sub addCLCILog {
+  my ($self) = @_;
+
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "clci" ) {
+      open( M, ".default" . $$ . "clci" )
+        or die "Could not open .default" . $$ . "rfci";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+
+    #Else ask for a message
+    if ( !defined $message ) {
+      print "Please give a comment for the changes to this entry\n";
+      print "Finish comment by a . on the line by itself\n";
+      while (<STDIN>) {
+        chomp;
+        /^\s*\.\s*$/ && last;
+        $message .= "$_\n";
+      }
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= "CLCI:" . $message;
   };
 
   #Add the commit sub reference
