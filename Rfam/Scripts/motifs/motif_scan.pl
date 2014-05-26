@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# rmfam_scan.pl - 	RNA Motif Family Scan - Searches a database of motif CMs (made using cmpress) 
+# motif_scan.pl - 	RNA Motif Family Scan - Searches a database of motif CMs (made using cmpress) 
 #                       against a Rfam family SEED stockholm file and populates the RMfam database with the results 
 #                       linking families to motifs and vice-versa. Much of this is based on rfsearch.pl
 # 			with the difference that is uses cmscan. It has been written in manner as to allow
@@ -80,7 +80,7 @@ GetOptions( 	"local"		=> \$local,
            || die "ERROR, unrecognized option\n";	
 
 # Get the CMdb file name and the Rfam Accession from the command line arguments
-my $CMdb = shift;
+my $CMdb = "CM";
 my $rfam_acc = shift;
 
 # ADD A LINE TO LOG STOUT HERE
@@ -95,25 +95,23 @@ if ( $help ) {
   exit(1);
 }
 
-# Specify the CMdb directory and seed directory. We must change this to retrieve from config once the 
-# database has actually been setup.
-my $CM_dir;
-my $SEED_dir;
-my $CMdb_loc;
-my $rfam_seed_loc; 
-$CM_dir="/homes/evan/RMfam/RMfam/CMs/";
-$SEED_dir="/homes/evan/RMfam/RMfam/Rfam_SEEDS/";
-$CMdb_loc=$CM_dir . $CMdb;
-$rfam_seed_loc=$SEED_dir . $rfam_acc;
+# Specify the CMdb directory.
+my $CM_dir="/nfs/production/xfam/rfam/MOTIFS/cmdb/";
+my $CMdb_loc=$CM_dir.$CMdb;
 
+# Load the family object from the database
+my $famIO=Bio::Rfam::FamilyIO->new;
+my $familyObj=$famIO->loadRfamFromRDB($rfam_acc);
 
-# Determine if files specified as arguments exist
-if(not -e $CMdb_loc or not -e $rfam_seed_loc) {    
+# Determine if CMdb file specified as arguments exist
+if(not -e $CMdb_loc) {    
+  print "$CMdb_loc\n";
   print "MISSING the essential CM file or Family Accession!\n";
   &help();
   exit(1);
 }     
 
+#------------------------------------------------------------------------------------
   #################
   # cmscan step # 
   #################
@@ -130,11 +128,12 @@ if(not -e $CMdb_loc or not -e $rfam_seed_loc) {
   my $ndbfiles                = 0; # number of db files searched (number of cmsearch calls)
   my $rev_ndbfiles            = 0; # number of reversed db files searched (number of cmsearch calls)
   my $did_search              = 0;
+  my $tmpSeed;
 
   ################################################################################
   # Database setup; Defining the database which is the simply the family SEED file in this case.
-  # This is complete overkill for the purposes of RMfam however it has been included for re-use in the
-  # future if cmscan is used with Rfam and to be as analagous to the rfsearch.pl script as possible.
+  # This is complete overkill for the purposes of motifs however it has been included for re-use in the
+  # future if cmscan is used with Rfam. It also acts to be as analagous to the rfsearch.pl script as possible.
   
   # first, the regular (non-reversed) database:
   $ndbfiles = 0;          # number of sequence files to search
@@ -155,17 +154,19 @@ if(not -e $CMdb_loc or not -e $rfam_seed_loc) {
     }
     close(DBLIST);
   }
-   
-  # The following lines are commented out as they pertain to searching a db whilst we wish to
-  # search a single SEED against a single CMdb. This currently points to a local SEED but will
-  # must be changed in the future.
-  #
-  #else { # default case: neither -dbfile nor -dbdir used, use database defined in config
-  #  for($idx = 0; $idx < $dbconfig->{"nSearchFiles"}; $idx++) { 
-  #    $dbfileA[$idx] = $dbconfig->{"searchPathPrefix"} . ($idx+1) . $dbconfig->{"searchPathSuffix"};
-  #  }
-  #}
-  else { $dbfileA[0] = "/homes/evan/RMfam/RMfam/Rfam_SEEDS/$rfam_acc"} 
+  
+  # Write the SEED associated to the family object as stockholm file. Change DIR in future for production use!!
+  # Make the path for the results and errors to be deposited.
+  else { 
+    
+    File::Path::make_path("/nfs/production/xfam/rfam/MOTIFS/results/$rfam_acc/");
+    my $fam_dir="/nfs/production/xfam/rfam/MOTIFS/results/$rfam_acc/";
+ 
+    my $famSeed=$familyObj->SEED;
+    my $Seed = "$fam_dir/STK"; 
+    $famSeed->write_msa($Seed, "stockholm");
+    
+    $dbfileA[0] = $Seed;} 
   
   $ndbfiles = scalar(@dbfileA);
 
@@ -197,25 +198,14 @@ if(not -e $CMdb_loc or not -e $rfam_seed_loc) {
 
   ##################################################################################
   # Determine cmscan command line options: 
-  # Currently -E (E-value threshold) and --ncpu are the only options however this 
-  # could incorperate any of the cmscan option as is done with cmsearch in the 
-  # rfsearch script.
   
-  # Define either a threshold value: either E-value or bit score, only one and it 
-  # must always be defined
-  my $thr_scanopts;
-  if (defined $evalueThresh) { #Must change to check if a bit score threshold has been set as well)
-    $thr_scanopts = sprintf("-T %.2f", $evalueThresh);
-  }
-  else {die "No e-value or bitscore option defined\n"}
-   
   # Define the ncpus option for cmscan
   my $ncpus_cmscan; 
   if (! defined $ncpus_cmscan) { $ncpus_cmscan = 4; }
      
   # Use the same reporting threshold for regular and reversed searches
-  my $searchopts     = "--cpu $ncpus_cmscan --verbose " . $thr_scanopts;
-  my $rev_searchopts = "--cpu $ncpus_cmscan --verbose " . $thr_scanopts;
+  my $searchopts     = "--cpu $ncpus_cmscan --max --toponly --verbose --cut_ga";
+  my $rev_searchopts = "--cpu $ncpus_cmscan --max --toponly --verbose --cut_ga";
 
   $searchopts      =~ s/\s+/ /g; # replace multiple spaces with single spaces
   $searchopts      =~ s/\s+$//;  # remove trailing spaces
@@ -241,8 +231,9 @@ if(not -e $CMdb_loc or not -e $rfam_seed_loc) {
   my @rev_errOA    = (); # names of error files for reversed searches
   my $ssopt_str    = ""; 
   my $q_opt        = "";
-
-  submit_cmscan_jobs($config, $ndbfiles, "/homes/evan/RMfam/RMfam/$rfam_acc/",  $searchopts, $CMdb_loc, \@dbfileA, \@jobnameA, \@tblOA, \@cmsOA, \@errOA, $ssopt_str, $q_opt); 
+  my $prefix        = "/nfs/production/xfam/rfam/MOTIFS/results/$rfam_acc/";
+  
+  submit_cmscan_jobs($config, $ndbfiles, $prefix,  $searchopts, $CMdb_loc, \@dbfileA, \@jobnameA, \@tblOA, \@cmsOA, \@errOA, $ssopt_str, $q_opt); 
 
   if($rev_ndbfiles > 0) { 
     submit_cmsearch_jobs($config, $rev_ndbfiles, "s.", $rev_searchopts, $CMdb_loc, \@rev_dbfileA, \@rev_jobnameA, \@rev_tblOA, \@rev_cmsOA, \@rev_errOA, $ssopt_str, $q_opt);
@@ -258,12 +249,13 @@ sub submit_cmscan_jobs {
   for($idx = 0; $idx < $ndbfiles; $idx++) { 
     $file_idx = $idx + 1; # off-by-one w.r.t $idx, because database file names are 1..$ndbfiles, not 1..$ndbfiles-1
     $jobnameAR->[$idx] = $prefix . "$$.$file_idx";
-    $tblOAR->[$idx]    = $prefix . "$$.$file_idx.tbl";
+    $tblOAR->[$idx]    = $prefix . "TBL";
     $cmsOAR->[$idx]    = $prefix . "$$.$file_idx.cmscan";
     $errOAR->[$idx]    = $prefix . "$$.$file_idx.err";
     Bio::Rfam::Infernal::cmscan_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt, 0);
   }
 }
+
 
 ######################################################################################
 
@@ -272,9 +264,9 @@ sub help {
 
 # TO BE UPDATED
 
-rmfam_scan.pl: 	Search using motif CMs against a database of sequences or alignments
+motif_scan.pl: 	Scan using motif CMs against sequences or alignments
 
-Usage:      	rmfam_scan.pl [options] <CM> <STOCKHOLM/FASTA>
+Usage:      	motif_scan.pl [options] <CM> <STOCKHOLM/FASTA>
 
 Options:	    
 
