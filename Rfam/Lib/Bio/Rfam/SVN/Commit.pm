@@ -165,7 +165,7 @@ sub _commitEntry {
       $rfamdb->resultset('FamilyFile')->uploadFilesFromFamilyObj( $familyObj );
     };
     if ( $@ ) {
-      $self->{logger}->warn( 'failure while updating family files: $@' );
+      $self->{logger}->warn( "failure while updating family files: $@" );
     }
     else {
       $self->{logger}->debug( 'updated family files' );
