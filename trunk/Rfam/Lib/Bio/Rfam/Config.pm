@@ -205,8 +205,7 @@ sub rfamlive {
         . ". Error:[$@]\n" );
     };
   }
-  #We have a couple of long running processes, try and auto reconnect if things die..
-  $self->{'schema'}->{mysql_auto_reconnect} = 1;
+  
   return($self->{'schema'});
 }
 

@@ -32,7 +32,15 @@ sub uploadFilesFromFamilyObj{
   my $result = $self->create({ rfam_acc => $familyObj->DESC->AC,
                                seed     => $compressedSeed,
                                cm       => $compressedCm,
-                               tblout   => $compressedTbl });
+			       tblout   => '' });
+
+  #We can not load the large families into the database 
+  #as the tblout exceeds the max_allowed_packet size. 
+  #It is unclear whether we need this file or not.  Therefore,
+  #we are going to set the field to be blank and see if
+  #we need the file. If so we will return to this part. Otherwise
+  #we will delete the column and ensure the consistency. 
+                               #tblout   => $compressedTbl });
 
   carp 'Failed to created a new FamilyFile row for ' . $familyObj->DESC->AC
     unless $result;

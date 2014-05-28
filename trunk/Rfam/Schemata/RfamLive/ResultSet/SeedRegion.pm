@@ -15,7 +15,7 @@ sub updateSeedRegionsFromFamilyObj {
   
   #Always start of with no regions!
   my $rfam_acc = $familyObj->DESC->AC;
-  $self->search({rfam_acc => $rfam_acc})->delete_all;
+  $self->search({rfam_acc => $rfam_acc})->delete;
   
   my $count = 0;
   my @row;
