@@ -124,7 +124,7 @@ if ( $do_help ) {
 }
 
 $do_stdout = ($do_quiet) ? 0 : 1;
-open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
+ open($logFH, ">rfsearch.log") || die "ERROR unable to open rfsearch.log for writing";
 Bio::Rfam::Utils::log_output_rfam_banner($logFH, $executable, $exec_description, $do_stdout);
 
 # output header
@@ -442,7 +442,6 @@ if($nwarnings > 0 && (! $relax_about_seed)) {
 # Get CM
 my $cm;
 if (-s $cmfile) { 
-  $famObj->CM($io->parseCM($cmfile));
   $cm = $famObj->CM($io->parseCM($cmfile));
 }
 
