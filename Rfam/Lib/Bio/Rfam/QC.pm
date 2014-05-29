@@ -1190,7 +1190,6 @@ sub checkOverlaps {
   my $masterError = 0;
   $error = findExternalOverlaps($familyObj, $rfamdb, $ignore, $config, $OVERLAP);
   $masterError =  1 if($error);
-  
   $error = findInternalOverlaps($familyObj, $OVERLAP);
   $masterError =  1 if($error);
   
@@ -1198,6 +1197,138 @@ sub checkOverlaps {
   
   return $masterError;
 }
+
+#-----------------------------------------------------------------------------
+=head2 findClanOverlaps
+
+  Title		: findClanOverlaps
+  Incept    : swb Tues 27 May 2014
+  Useage    :
+  Function 	:
+  Args 	 	: Rfam family object, database, config, OVERLAP and other clan families
+  Returns   :
+
+=cut
+
+sub findClanOverlaps {
+	my ($familyObj, $rfamdb, $config, $OVERLAP, $clan_members) = @_;
+	if($config->location ne 'EBI'){
+    	warn "This overlap test has been written assuming you have a local database.".
+        	 "Eventually, there needs to be a Web based overlap method\n.";
+  	}
+
+	# Get some basic information: the first family we want to look at, make a map of all the clan families
+	#
+	my $this_family = $familyObj->DESC->AC;
+	my %members = map { $_ => 1 } @$clan_members;
+	my $clerror = 0;
+	my $currentAcc ='';
+	my @not_significant;
+	my $strand;
+	my @clan_regions;
+	
+	#Get all regions for all families in the clan:
+	#
+	for my $family (@$clan_members) {
+		my $regions = $rfamdb->resultset('FullRegion')->allRegions($family);
+	
+	#For each region, get start and end coordinates and figure out which strand it is on:
+	#
+		for my $r ( @$regions) {
+			my ($s1, $e1, $or1) = 
+        	$r->[1] <= $r->[2] ? ($r->[1], $r->[2], 1) : ($r->[2], $r->[1], -1);
+			if ($s1 > $e1) {
+				$strand = -1;
+			} else {
+				$strand = 1;
+			}
+	# Add hash of each region to the clan_regions array:
+	#
+		push @clan_regions ,( {rfamseq_acc => $r->[3],
+						start => $s1,
+						end => $e1,
+						strand => $strand,
+						evalue => $r->[5],
+						family => $family,
+						type => $r->[9]});
+	
+		}	
+	}
+ 	# Now look for overlaps for every region:
+ 	#
+	for my $region (@clan_regions) {
+
+	# Counter to avoid checking the same sequence twice:
+		my %seen;
+
+	# Store the accession of our query :
+		my $orig_acc = $region->{rfamseq_acc};
+	# Set overlap counter to zero for starters:
+	#
+		my $ol = 0;
+		my @overlaps;
+	
+	# Now, compare our query sequence with every other region in the clan:
+	#
+		for my $poss_overlap( @clan_regions) {
+			#Ignore any regions which come from the same family
+			#
+			next if ($region->{family} eq $poss_overlap->{family});
+			#Ignore any sequence accessions which we have seen before, as we will already have
+			#checked these for overlaps:
+			#
+			my $acc = $poss_overlap->{rfamseq_acc};
+			if ($seen{$acc}) {
+				print "Skipping, already seen $poss_overlap->{rfamseq_acc}\n";
+			}
+			#Ignore any regions with a different sequence accession:
+			#
+			next unless ($region->{rfamseq_acc} eq $poss_overlap->{rfamseq_acc});
+			#Set start and end coordinates of query and possible overlap:
+			#
+			my ($s1, $e1) = ($region->{start},$region->{end});
+			my ($s2, $e2) = ($poss_overlap->{start}, $poss_overlap->{end});
+			my $overlap = 0;
+			#Now check for overlaps:
+			$overlap = Bio::Rfam::Utils::overlap_nres_or_full($s1, $e1, $s2, $e2);
+			if ($overlap != 0) {
+				$overlap = 'fullOL' if ($overlap == -1);
+				my $overlap_type = $poss_overlap->{strand} eq $region->{strand} ? 'SS' : 'OS';
+				$ol++;
+				#Add the overlapping region to @overlaps:
+				push (@overlaps, $poss_overlap);
+			}
+		}
+		#Now we know the query sequence has an overlap, add this to @overlaps:
+		#
+		if ($ol != 0) {
+			push @overlaps, $region;
+		}
+		#print "More than one overlap!\n" if (scalar @overlaps > 2);
+		
+		#Sort the overlaps by e value and then take the highest match as the significant match:
+		#
+		my @sorted_overlap = sort {$a->{evalue} <=> $b->{evalue}} @overlaps;
+		foreach my $hash (@sorted_overlap) {
+			if ($hash eq $sorted_overlap[0] ){
+				$hash->{'is_significant'} = 1;
+			} else {
+				$hash->{'is_significant'} = 0;
+			}
+		#This print statement needs to be replaced with a db loading statement, as the values in the full_region table need to be updated (well, the is_significant flag needs to be set to 0 if a match looses in the clan:
+		#
+			print "$hash->{rfamseq_acc}\t$hash->{start}\t$hash->{end}\t$hash->{strand}\t$hash->{evalue}\t$hash->{family}\t$hash->{type}\t$hash->{is_significant}\n";
+		}	
+		#Update counter now we've done this region:
+		$seen{$orig_acc}++;
+	}
+
+	
+
+	return $clerror;	
+ 
+}
+
 
 #------------------------------------------------------------------------------
 =head2 findExternalOverlaps
@@ -1668,7 +1799,6 @@ sub nameFormatIsOK {
 	#my $IDline = $familyObj->DESC->ID;
 	if ($newName =~ /[\w-]{1,15}/) {
 		#warn "The new ID line does not match the correct format!\n";
-		print "Name is ok!\n";
 		$error = 0;
 		return $error;
 	}
