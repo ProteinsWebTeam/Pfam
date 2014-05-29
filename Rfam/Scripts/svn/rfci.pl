@@ -17,7 +17,6 @@ use Bio::Rfam::QC;
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-print "Using local copy!!!\n";
 my ( $message, @ignore, $onlydesc, $help );
 
 &GetOptions(
