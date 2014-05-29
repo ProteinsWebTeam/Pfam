@@ -9,7 +9,7 @@ use warnings;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
-
+use lib "/homes/swb/Rfam/Lib";
 use Bio::Rfam::SVN::Client;
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::QC;
@@ -17,7 +17,7 @@ use Bio::Rfam::QC;
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-
+print "Using local copy!!!\n";
 my ( $message, @ignore, $onlydesc, $help );
 
 &GetOptions(
@@ -88,14 +88,6 @@ $client->checkFamilyExists($family);
 my ( $oldFamilyObj, $upFamilyObj );
 my $familyIO = Bio::Rfam::FamilyIO->new;
 
-#my %h = %$config;
-#for my $k (keys %{$config}) {
-#	print $k;
-#	print "$h{$k}\n";
-#}
-#foreach my $j (keys %{$config->allowedOverlaps}) {
-#	print "$j\n" if ($j eq 'RF00177');
-#}
 $upFamilyObj = $familyIO->loadRfamFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded local copy $family through middleware\n";
 
