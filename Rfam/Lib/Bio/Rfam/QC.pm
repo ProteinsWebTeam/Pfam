@@ -1298,8 +1298,10 @@ sub findInternalOverlaps {
       next if($atomizedNSE[$i]->[1] ne $atomizedNSE[$j]->[1]);
       # determine overlap fraction (overlap_nres_or_full() is robust to start < end or start > end)
       my $overlap = Bio::Rfam::Utils::overlap_nres_or_full(
-        $atomizedNSE[$i]->[2], $atomizedNSE[$j]->[2], 
-        $atomizedNSE[$i]->[3], $atomizedNSE[$j]->[3]);
+        $atomizedNSE[$i]->[2], 
+        $atomizedNSE[$i]->[3], 
+	$atomizedNSE[$j]->[2], 
+        $atomizedNSE[$j]->[3]);
       
       if($overlap != 0) { 
         $overlap = 'fullOL' if ( $overlap == -1 );
@@ -1313,6 +1315,7 @@ sub findInternalOverlaps {
       }
     }
   }
+  return $error;
 }
 
 #------------------------------------------------------------------------------
@@ -1401,7 +1404,8 @@ sub essential {
     $masterError = 1;
   }
   
-  $error = checkScoresSeqs($newFamily, $seqDBObj);
+  #TODO - remove this commented out line, once the solution has been found.
+  #$error = checkScoresSeqs($newFamily, $seqDBObj);
   if($error){
     warn "Family failed essential threshold check.\n";
     $masterError = 1;
