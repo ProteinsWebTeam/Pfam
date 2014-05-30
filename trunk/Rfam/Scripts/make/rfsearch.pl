@@ -45,6 +45,7 @@ my $e_opt = undef;              # cmsearch E-value to use, defined by GetOptions
 my $t_opt = undef;              # cmsearch bit score cutoff to use, defined by GetOptions, if -t
 my $do_cutga = 0;               # TRUE to use GA threshold as bit score cutoff
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
+my $mxsize_opt;                 # we'll pass '--mxsize $mxsize_opt' to cmsearch
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
 my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk)
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
@@ -93,6 +94,7 @@ my $options_okay =
                  "nosearch"   => \$no_search,
                  "norev"      => \$no_rev_search, 
                  "scpu=s"     => \$ncpus_cmsearch,
+                 "mxsize=s"   => \$mxsize_opt,
                  "cmos=s@"    => \@cmosA,
                  "cmod=s@"    => \@cmodA,
                  "ignoresm"   => \$ignore_sm,
@@ -345,6 +347,7 @@ if($do_cutga)                  { push(@opt_lhsA, "# use GA bit score threshold: 
 if($no_search)                 { push(@opt_lhsA, "# skip cmsearch stage: ");                push(@opt_rhsA, "yes [-nosearch]"); }
 if($no_rev_search)             { push(@opt_lhsA, "# omit reversed db search: ");            push(@opt_rhsA, "yes [-norev]"); }
 if(defined $ncpus_cmsearch)    { push(@opt_lhsA, "# number of CPUs for cmsearch jobs: ");   push(@opt_rhsA, "$ncpus_cmsearch [-scpu]"); }
+if(defined $mxsize_opt)        { push(@opt_lhsA, "# max cmsearch DP matrix size (Mb): ");   push(@opt_rhsA, "$mxsize_opt [-mxsize]"); }
 $str = ""; foreach $opt (@cmosA) { $str .= $opt . " "; }
 if(scalar(@cmosA) > 0)         { push(@opt_lhsA, "# single dash cmsearch options: ");       push(@opt_rhsA, $str . "[-cmos]"); }
 $str = ""; foreach $opt (@cmodA) { $str .= $opt . " "; }
@@ -503,8 +506,15 @@ if ($do_build) {
   $famObj->DESC->BM("cmbuild -F " . $buildopts . "CM SEED");
 
   # define (or possibly redefine) $cm
-  $famObj->CM($io->parseCM("CM"));
   $cm = $famObj->CM($io->parseCM("CM"));
+  # now that we have the CM, if -mxsize was not set on the cmdline, set it now
+  if(! defined $mxsize_opt) { 
+    # use --mxsize=512 for models > 2000 (currently only LSU) and --mxsize=128 for all other models 
+    $mxsize_opt = ($cm->{cmHeader}->{clen} >= 2000) ? 512 : 128; 
+  }
+  $famObj->CM($io->parseCM("CM"));
+
+
   $is_cm_calibrated = 0;
 
   # use cmalign --mapali to get an RF annotation version of the SEED that we 
@@ -709,7 +719,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
 
   # We want to use the options in DESC's SM unless user set -ignoresm
   # remove default options that always get set automatically by rfsearch:
-  # -Z <f>, --FZ <f>, --cpu <n>, --verbose, --nohmmonly, 
+  # -Z <f>, --FZ <f>, --cpu <n>, --verbose, --nohmmonly, --mxsize <f>
   # we defined $desc_searchopts way above, when we were processing cmdline options
 
   # Currently we may need to convert a search E-value threshold in the DESC's SM
@@ -786,6 +796,8 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
 
   $rev_searchopts  = $searchopts . $rev_Zopt;
   $searchopts     .= $Zopt;
+  # and finally, add the --mxsize opt, added relatively close to 12.0 release (after nearly all families were done, to deal with LSU (EPN, Fri May 30 14:53:47 2014))
+  $searchopts     .= " --mxsize $mxsize_opt"; 
 
   $searchopts     .= $extra_searchopts;
   $rev_searchopts .= $extra_searchopts;
@@ -1226,6 +1238,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -nosearch   : do not run cmsearch
             -norev      : do not run cmsearch on reversed database files
             -scpu <n>   : set number of CPUs for cmsearch jobs to <n>
+            -mxsize <f> : set --mxsize <f> option for cmsearch [default: auto-determined]
 	    -cmos <str> : add extra arbitrary option to cmsearch with '-<str>'. (Infernal 1.1, only option is '-g')
             -cmod <str> : add extra arbitrary options to cmsearch with '--<str>'. For multiple options use multiple
 	                   -cmod lines. e.g. '-cmod toponly -cmod anytrunc' will run cmsearch with --toponly and --anytrunc.
