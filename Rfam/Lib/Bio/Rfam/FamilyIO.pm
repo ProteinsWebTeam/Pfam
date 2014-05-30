@@ -3069,7 +3069,6 @@ sub writeHitComparison {
             # update value in newHHA so we know this hit has already overlapped with an old hit
             $newHHA{$group}{$name}[$i] = "-" . $start2 . ":" . $end2;
             $found_overlap = 1;
-            printf STDERR ("found overlap between $name/$start-$end and $name/$start2-$end2\n");
             $i = scalar(@{$newHHA{$group}{$name}}); # breaks us out of the 'for(my $i' loop
           }
         }
