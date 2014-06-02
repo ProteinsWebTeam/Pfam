@@ -4,18 +4,15 @@ use strict;
 use warnings;
 
 use Bio::Rfam::Config;
-use Bio::Rfam::FamilyIO;
+use Bio::Rfam::ClanIO;
 use Data::Printer;
 
 my $dir    = shift;
 my $family = shift;
 
-print "$dir, $family\n";
-unless(defined($family)){
-  print STDERR "Please provide a family:\n";
-}
+print "$dir\n";
 if(!-d ($dir)){
-  print STDERR "Please provide a path to a family directory, one was specified, but does not exist\n";
+  print STDERR "Please provide a path to a clan directory, one was specified, but does not exist\n";
 }
 
 my $config = Bio::Rfam::Config->new;
@@ -26,7 +23,7 @@ my $rfamdb = $config->rfamlive;
 #Need to put a transaction around this block
 my $guard = $rfamdb->txn_scope_guard;
 
-  my $clanObj = $familyIO->loadClanFromLocalFile($family, $dir, 'file');
+  my $clanObj = $clanIO->loadClanFromLocalFile($dir, '.', 'file');
 
   #Perform QC on the family
   #$self->_qualityControlEntry( $modelObj, $dir, $model, $dfamDB );
@@ -42,7 +39,6 @@ my $guard = $rfamdb->txn_scope_guard;
 
   #Now populate the 
   foreach my $member (@{$clanObj->DESC->MEMB}){
-     $rfamdb->resultset('ClanMembership')->find_or_create({ rfam_acc => $member, clan_acc => $clanObk->DESC->AC});
+     $rfamdb->resultset('ClanMembership')->find_or_create({ rfam_acc => $member, clan_acc => $clanObj->DESC->AC});
   }
-  die;
 $guard->commit;
