@@ -313,20 +313,6 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("rfam_acc");
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<rfam_id_UNIQUE>
-
-=over 4
-
-=item * L</rfam_id>
-
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("rfam_id_UNIQUE", ["rfam_id"]);
-
 =head1 RELATIONS
 
 =head2 alignments_and_tree
@@ -630,8 +616,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-02-12 15:37:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0WIWf+YhAzIt9KKJgMZXRw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-06-02 13:07:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UrIoPFlsjSho8XhSCvBmeA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

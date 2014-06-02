@@ -91,6 +91,12 @@ __PACKAGE__->table("full_region");
   extra: {list => ["seed","full"]}
   is_nullable: 0
 
+=head2 is_significant
+
+  data_type: 'tinyint'
+  extra: {unsigned => 1}
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -133,6 +139,8 @@ __PACKAGE__->add_columns(
     extra => { list => ["seed", "full"] },
     is_nullable => 0,
   },
+  "is_significant",
+  { data_type => "tinyint", extra => { unsigned => 1 }, is_nullable => 0 },
 );
 
 =head1 RELATIONS
@@ -168,8 +176,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-30 15:46:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U1avMLHy3rAhU9qk8r8bqw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-06-02 12:58:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1M0NCKOQoUpTdhB7vaYCA
 
 
 __PACKAGE__->set_primary_key('rfam_acc', 'rfamseq_acc');
