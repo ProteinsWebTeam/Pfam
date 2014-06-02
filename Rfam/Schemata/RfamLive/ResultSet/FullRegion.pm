@@ -22,16 +22,17 @@ sub updateFullRegionsFromFamilyObj {
   my @row;
   
   foreach my $hit ( @{ $familyObj->SCORES->regions }){
-    push(@row, { rfam_acc     => $rfam_acc,
-                 rfamseq_acc  => $hit->[3],
-                 seq_start    => $hit->[1],
-                 seq_end      => $hit->[2],
-                 bit_score    => $hit->[4],
-                 evalue_score => $hit->[5],
-                 cm_start     => $hit->[6],
-                 cm_end       => $hit->[7],
-                 truncated    => $hit->[8],
-                 type         => $hit->[9]} );
+    push(@row, { rfam_acc       => $rfam_acc,
+                 rfamseq_acc    => $hit->[3],
+                 seq_start      => $hit->[1],
+                 seq_end        => $hit->[2],
+                 bit_score      => $hit->[4],
+                 evalue_score   => $hit->[5],
+                 cm_start       => $hit->[6],
+                 cm_end         => $hit->[7],
+                 truncated      => $hit->[8],
+                 type           => $hit->[9],
+                 is_significant => 1} );
     $count++;
     next if(scalar(@row) < 1000);
     $self->populate(\@row);
@@ -64,7 +65,8 @@ sub allRegions {
                      $r->cm_start,
                      $r->cm_end,
                      $r->truncated,
-                     $r->type ]) 
+                     $r->type,
+                     1]) 
   }
   return \@regions;
 }
