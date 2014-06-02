@@ -1256,4 +1256,79 @@ sub clanLocation {
   return ($url);
 }
 
+
+=head2 addRCLKILLLog
+
+  Title    : addRFKILLLog
+  Usage    : $client->addRFKILLLog();
+  Function : Internal call back method for setting the message for the
+           : svn history when killing a family.
+  Args     : None
+  Returns  : Nothing
+  
+=cut
+
+sub addRCLKILLLog {
+  my ($self) = @_;
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "rclkill" ) {
+      open( M, ".default" . $$ . "rclkill" )
+        or die "Could not open .default" . $$ . "rclkill";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+    else {
+      die
+        "No rclkill message as to why the entry is being removed from Rfam!\n";
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= $message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
+=head2 killFamily 
+
+  Title    : killFamily
+  Usage    : $client->killFamily($rfam_acc)
+  Function : Delete a family from the repository
+  Args     : Rfam accession
+  Returns  : Nothing
+  
+=cut
+
+sub killClan {
+  my ( $self, $clan ) = @_;
+
+  #Okay, get the URL of the families location
+  my $url;
+  if ( $clan =~ /CL\d{5}/ ) {
+
+    #Looks like a Rfam entry
+    $url = $self->clanLocation . "/" . $clan;
+  }else{
+    confess("\n*** $clan does not look like a Rfam clan accession. ***\n\n");
+  }
+
+  #Now delete the family
+  my $kinfo;
+  eval { $kinfo = $self->{txn}->delete( $url, 0 ); };
+
+  if ($@) {
+    confess("Failed to delete clan, $clan: [$@]\n");
+  }
+
+  #Now check that something happen to the repository!
+  $self->_checkCommitObj($kinfo);
+}
 1;

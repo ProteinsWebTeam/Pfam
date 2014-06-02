@@ -144,7 +144,7 @@ elsif ( $msg =~ /^NEW:/ ) {
   $logger->debug('parsing msg; got a new entry');
   $txnlook->commitNewEntry;
   $logger->debug('committed');
-}elsif( $msg =~ /CIDESC:/){
+}elsif( $msg =~ /^CIDESC:/){
   $logger->debug('parsing msg; got a modified DESC');
   $txnlook->commitEntryDESC;
   $logger->debug('committed');
@@ -163,7 +163,7 @@ elsif ( $msg =~ /^KILL:/ ) {
     $comment = $1;
     $forward = $2;
   }
-  elsif ( $msg =~ /KILL:Comment;(.*)/ ) {
+  elsif ( $msg =~ /^KILL:Comment;(.*)/ ) {
     $comment = $1;
     $forward = '';
   }
@@ -192,6 +192,30 @@ elsif ( $msg =~ /SEQUP/ ) {
   }
 }elsif ( $msg =~ /^CLCI:/ ) {
   $txnlook->commitClan;
+}elsif ( $msg =~ /^CLKILL:Comment;/ ) {
+  
+  #Killing clan commit message parsing
+  $logger->debug('parsing msg; got a kill');
+  my ( $comment, $forward );
+  if ( $msg =~ /^CLKILL:Comment;(.*)\nCLKILL:Forward;(.*)/ ) {
+    $comment = $1;
+    $forward = $2;
+  }
+  elsif ( $msg =~ /^CLKILL:Comment;(.*)/ ) {
+    $comment = $1;
+    $forward = '';
+  }
+  else {
+    $logger->logdie( "ERROR: In CLKILL message, did not parse $msg" );
+  }
+  
+  #Find out the author so we know who has done this.
+  my $author = $txnlook->author();
+  $logger->debug( qq(kill author:  "$author") );
+  #Go and delete the family.
+  $txnlook->deleteClan( $comment, $forward, $author );
+  $logger->debug('killed clan');
+
 }elsif( $msg =~ /ADMINBYPASS/ ) {
   $logger->debug('parsing msg; admin bypass');
 }

@@ -473,6 +473,76 @@ sub deleteFamily {
   $self->{logger}->debug( 'closed the database transaction' );
 }
 
+
+sub deleteClan {
+  my ( $self, $comment, $forward, $author ) = @_;
+
+  #Check we got a comment
+  unless ($comment) {
+    $self->{logger}->warn( 'tried to kill a clan without a comment; throwing an error' );
+    confess("Did not get a comment as to why this clan is being killed\n");
+  }
+
+  #Get the database connection.
+  my $rfamdb = $self->{config}->rfamlive;
+  $self->{logger}->debug( 'got a database connection' );
+
+  #Need to put a transaction around this block
+  my $guard = $rfamdb->txn_scope_guard;
+  $self->{logger}->debug( 'opened a database transaction' );
+  
+  #Determine the clan that we are going to remove from the transaction deleted files/
+  my ($clan);
+  my @deleted_files = $self->deleted();
+  my $svnPath       = $self->{config}->svnClans;
+  foreach my $f (@deleted_files) {
+
+    #Need to see if there is a / on $svnPath;
+    $svnPath .= '/' unless $svnPath =~ m|.*?/$|;
+
+    if ( $f =~ m|($svnPath)(\S+)(\/)| ) {
+      $clan = "$2";
+    }
+  }
+  $self->{logger}->debug( "got clan '$clan' from SVN path" );
+
+  unless ($clan) {
+    $self->{logger}->warn( 'Clan to delete is not found in SVN repository; throwing an error' );
+    confess( "Failed to find which clan is to be removed from the SVN repository\n");
+  }
+
+  unless ( $clan and $clan =~ /^CL\d{5}$/ ) {
+    $self->{logger}->warn( 'failed to get a valid Rfam clan accession; throwing an error' );
+    confess("Did not get a Clan accession\n");
+  }
+
+  #Now make the dead family entry!
+  my $entry = $rfamdb->resultset('Clan')->find( { clan_acc => $clan } );
+
+  #print Dumper $entry;
+
+  unless($entry and $entry->clan_acc eq $clan){
+    $self->{logger}->warn( 'failed to find this clan in the database; throwing an error' );
+    confess("Failed to get a clan entry for $clan.\n");
+  }
+  my $user = $self->author;
+
+  #print "Entry: $entry \nComment: $comment\nFoward: $forward\nUser: $user\n";
+
+  #Create the dead family and then finally delete the row.
+  $rfamdb->resultset('DeadClan')->createFromClanRow($entry, $comment, $forward, $user);
+  $self->{logger}->debug( 'created a dead clan row from the family row' );
+
+  #We should have create the dead row if we get here, so now delete it and let the
+  #database cascade the delete.
+  $entry->delete();
+  $self->{logger}->debug( 'deleted the clan' );
+  
+  #Finish the transaction.
+  $guard->commit;
+  $self->{logger}->debug( 'closed the database transaction' );
+}
+
 sub allowCommit {
   my ( $self  ) = @_;
   
