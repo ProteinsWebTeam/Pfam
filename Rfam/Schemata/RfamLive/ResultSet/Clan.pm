@@ -70,7 +70,7 @@ sub createClanFromObj {
       id          =>  $clanObj->DESC->ID,
       description =>  $clanObj->DESC->DE, 
       author      => $clanObj->DESC->AU,
-      comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : ''.
+      comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
       updated     => DateTime::Format::MySQL->format_datetime($dt),
       created     => \'NOW()'
     }
