@@ -33,6 +33,7 @@ __PACKAGE__->table("taxonomy");
 =head2 species
 
   data_type: 'varchar'
+  default_value: (empty string)
   is_nullable: 0
   size: 100
 
@@ -64,7 +65,7 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
   },
   "species",
-  { data_type => "varchar", is_nullable => 0, size => 100 },
+  { data_type => "varchar", default_value => "", is_nullable => 0, size => 100 },
   "tax_string",
   { data_type => "mediumtext", is_nullable => 1 },
   "tree_display_name",
@@ -118,8 +119,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-02-06 14:26:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CR1XfR6thVAA2KtCvw7o4g
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-06-02 12:58:16
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lZKy2uppmjVo7Nf/Meqx5A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
