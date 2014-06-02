@@ -263,36 +263,6 @@ sub parseDESC {
     } elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
       $params{private} .= " " if ( $params{private} );
       $params{private} .= $1;
-    } elsif ( $file[$i] =~ /^WK\s{3}(\S+)$/ ) {
-      my $page = $1;
-      if ( $page =~ /^http.*\/(\S+)/ ) {
-
-        #TODO - supress warn, if we can remove URL. Page title sufficient.
-        carp( "$page going to be set to $1\n" );
-        $page = $1;
-      }
-      my @bits;
-      push(@bits, $page);
-      if($page =~ /\/$/){ #Multi line article!
-        foreach ( my $j = $i+1 ; $j <= $#file ; $j++ ) {
-          if($file[$j] =~ /^WK\s{3}(\S+)$/){
-            my $nextBitOfPage = $1;
-            push(@bits, $nextBitOfPage);
-            $page .= $nextBitOfPage;
-            if($nextBitOfPage !~ /\/$/){
-              $i = $j;
-              last;
-            }
-          }
-        }
-      }
-      
-      $page =~ s/\///g; #Remove all / from the line.....
-      if ( defined( $params{"WIKI"} ) ) {
-        $params{"WIKI"}->{$page} = \@bits;
-      } else {
-        $params{"WIKI"} = { $page => \@bits };
-      }
     } elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
       
@@ -539,23 +509,7 @@ sub writeDESC {
       }
     } else {
       next unless ( $desc->$tagOrder );
-      if ( $tagOrder eq 'CUTTC' ) {
-        printf D "TC   %.2f\n", $desc->$tagOrder;
-      } elsif ( $tagOrder eq 'CUTGA' ) {
-        printf D "GA   %.2f\n", $desc->$tagOrder;
-      } elsif ( $tagOrder eq 'CUTNC' ) {
-        printf D "NC   %.2f\n", $desc->$tagOrder;
-      } elsif ( $tagOrder eq 'WIKI' ) {
-        if ( ref( $desc->$tagOrder ) eq 'HASH' ) {
-          my @pages = values( %{ $desc->$tagOrder } );
-          foreach my $part (@pages) {
-            foreach my $p (@$part){
-              print D wrap( "WK   ", "WK   ", $p );
-              print D "\n";
-            }
-          }
-        }
-      } elsif ( $tagOrder eq 'REFS' ) {
+      if ( $tagOrder eq 'REFS' ) {
         foreach my $ref ( @{ $desc->$tagOrder } ) {
           if ( $ref->{RC} ) {
             print D wrap( "RC   ", "RC   ", $ref->{RC} );
