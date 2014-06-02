@@ -68,12 +68,6 @@ has 'AU' => (
   required  => 0
 );
 
-
-has 'WIKI' => (
-  is        => 'ro',
-  isa       => 'HashRef'
-);
-
 has 'REFS' => (
   is        => 'ro',
   isa       => RfamRef
@@ -102,7 +96,7 @@ has 'private' => (
 has 'order' => (
   is    => 'ro',
   isa   => 'ArrayRef',
-  default => sub {[ qw(AC ID PI DE AU DBREFS REFS CC WIKI MEMB private ) ] }
+  default => sub {[ qw(AC ID PI DE AU DBREFS REFS CC MEMB private ) ] }
 );
 
 has 'requiredFields' => (
