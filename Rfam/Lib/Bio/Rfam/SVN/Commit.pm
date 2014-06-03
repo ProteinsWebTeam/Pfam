@@ -193,20 +193,13 @@ sub _commitClan {
   $self->{logger}->debug( 'started database transaction' );
 
   #update the database with the CLANDESC file information.
-  my $auto_wiki;
-  if($clanObj->DESC->WIKI){
-    my @pages = keys(%{$clanObj->DESC->WIKI});
-    $self->{logger}->debug( 'found ' . scalar @pages . ' wikipedia entries' );
-    my $row = $rfamdb->resultset('Wikitext')->find_or_create({'title' => $pages[0]});
-    $auto_wiki = $row->auto_wiki;
-  }
   if ( $isNew ) {
     $self->{logger}->debug( 'Clan is new; creating from object' );
-    $rfamdb->resultset('Clan')->createClanFromObj($clanObj, $auto_wiki);
+    $rfamdb->resultset('Clan')->createClanFromObj($clanObj);
   }
   else {
     $self->{logger}->debug( 'Clan exists; updating from object' );
-    $rfamdb->resultset('Clan')->updateClanFromObj($clanObj, $auto_wiki);
+    $rfamdb->resultset('Clan')->updateClanFromObj($clanObj);
   }
   $self->{logger}->debug( 'clan creation/update complete' );
 
@@ -571,6 +564,45 @@ sub commitClan {
 
   $self->_commitClan($clanObj);
 
+}
+
+
+sub moveClan {
+  my ( $self ) = @_;
+
+  $self->{logger}->debug( 'moving a clan' );
+
+  #At this point we have no idea of the name of the clan.
+  #Make sure that there are not files deleted or added,
+  #and that the CLANDESC file is the only file modifies.
+
+  my @updated_files = $self->updated();
+ 
+  foreach my $f (@updated_files) {
+    if ( $f !~ m|(.*/Clans/\S+/CLANDESC)$| ) {
+      $self->{logger}->warn( 'tried to move a clan with updated files; throwing an error' );
+      confess( "Trying to move aclan with updated files (other than the CLANDESC file)\n");
+    }
+  }
+
+  my @deleted_files = $self->deleted();
+  if ( scalar(@deleted_files) ) {
+    $self->{logger}->warn( 'tried to move a clan with deleted files; throwing an error' );
+    confess("Trying to move a clan with deleted files\n");
+  }
+
+  my @added_files = $self->added();
+  if ( scalar(@added_files) ) {
+    $self->{logger}->warn( 'tried to move a clan with added files; throwing an error' );
+    confess("Trying to move a clan with added files\n");
+  }
+
+  my $clanIO = Bio::Rfam::ClanIO->new;
+  $self->{logger}->debug( 'populating family object from SVN transaction' );
+  my ( $clanObj, $family, $dir ) = $self->_getClanObjFromTrans( $clanIO, 0 );
+  $self->{logger}->debug( 'done populating clan; committing entry' );
+
+  $self->_commitClan($clanObj);
 }
 
 sub _getClanObjFromTrans {
