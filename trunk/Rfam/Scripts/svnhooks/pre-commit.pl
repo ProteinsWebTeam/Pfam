@@ -216,6 +216,10 @@ elsif ( $msg =~ /SEQUP/ ) {
   $txnlook->deleteClan( $comment, $forward, $author );
   $logger->debug('killed clan');
 
+}elsif ( $msg =~ /^CLMOV:/ ) {
+  $logger->debug('parsing msg; got a move');
+  $txnlook->moveClan();
+  $logger->debug('committed');
 }elsif( $msg =~ /ADMINBYPASS/ ) {
   $logger->debug('parsing msg; admin bypass');
 }

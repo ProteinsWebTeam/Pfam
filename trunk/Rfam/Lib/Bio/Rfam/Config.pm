@@ -179,6 +179,8 @@ sub mandatoryFiles {
 sub rfamlive {
   my $self = shift;
   
+  return undef if($self->location ne 'EBI');
+  
   if(!$self->{'schema'}){
     my $dbiParams = {
       user     => $self->{_config}->{Model}->{Rfamlive}->{user},

@@ -1331,4 +1331,34 @@ sub killClan {
   #Now check that something happen to the repository!
   $self->_checkCommitObj($kinfo);
 }
+
+
+sub addRCLMOVELog {
+  my ($self) = @_;
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "rclmove" ) {
+      open( M, ".default" . $$ . "rclmove" )
+        or die "Could not open .default" . $$ . "rclmove";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+    else {
+      die
+        "No rclmove message as to why the entry is being moved from Rfam!\n";
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= 'CLMOV:'.$message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
 1;
