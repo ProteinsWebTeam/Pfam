@@ -1211,7 +1211,7 @@ sub checkOverlaps {
 =cut
 
 sub findClanOverlaps {
-	my ($familyObj, $rfamdb, $config, $OVERLAP, $clan_members) = @_;
+	my ($familyObj, $rfamdb, $config, $clan_members) = @_;
 	if($config->location ne 'EBI'){
     	warn "This overlap test has been written assuming you have a local database.".
         	 "Eventually, there needs to be a Web based overlap method\n.";
@@ -1244,13 +1244,13 @@ sub findClanOverlaps {
 			}
 	# Add hash of each region to the clan_regions array:
 	#
-		push @clan_regions ,( {rfamseq_acc => $r->[3],
+		push @clan_regions , {rfamseq_acc => $r->[3],
 						start => $s1,
 						end => $e1,
 						strand => $strand,
 						evalue => $r->[5],
 						family => $family,
-						type => $r->[9]});
+						type => $r->[9]};
 	
 		}	
 	}
@@ -1317,7 +1317,7 @@ sub findClanOverlaps {
 			}
 		#This print statement needs to be replaced with a db loading statement, as the values in the full_region table need to be updated (well, the is_significant flag needs to be set to 0 if a match looses in the clan:
 		#
-			print "$hash->{rfamseq_acc}\t$hash->{start}\t$hash->{end}\t$hash->{strand}\t$hash->{evalue}\t$hash->{family}\t$hash->{type}\t$hash->{is_significant}\n";
+			print $OVERLAP "$hash->{rfamseq_acc}\t$hash->{start}\t$hash->{end}\t$hash->{strand}\t$hash->{evalue}\t$hash->{family}\t$hash->{type}\t$hash->{is_significant}\n";
 		}	
 		#Update counter now we've done this region:
 		$seen{$orig_acc}++;
