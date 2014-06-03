@@ -34,28 +34,28 @@ my $git_source = "https://github.com/ppgardne/RMfam";
 my $git_local = "/nfs/production/xfam/rfam/MOTIFS/RMfam";
 my $motif_local = "/nfs/production/xfam/rfam/MOTIFS";
 
-## Determine if a local version of RMfam exists as a .git clone
-#if ( -d "$git_local"."/.git" ) {
-#  print "Local RMfam git found. Updating the local version of RMfam to the latest GitHub version ...\n"; 
-#  chdir($git_local) or die "Unable to open the local git repository";
-#  system ("git pull origin master");
-#  print "Local version succesfully updated.\n";
-#}
+# Determine if a local version of RMfam exists as a .git clone
+if ( -d "$git_local"."/.git" ) {
+  print "Local RMfam git found. Updating the local version of RMfam to the latest GitHub version ...\n"; 
+  chdir($git_local) or die "Unable to open the local git repository";
+  system ("git pull origin master");
+  print "Local version succesfully updated.\n";
+}
 
 # If a local version does not exist, clone it from GitHub
-#else {
-#  print "No local RMfam git found. Cloning RMfam from GitHub ...\n";
-#  chdir($motif_local) or die "Unable to open the local MOTIF folder at $motif_local\n";
-#  system ("git clone $git_source");
-#  print "RMfam successfully cloned from Github.\n";
-#}
-#
-## Check that the motifs directory exitst and can be written to
-#if (!(-w "$pwd") or !(-d "$pwd")) {
-#  die
-#    "$0: Can't find/write to directory [$pwd].  Check the folder exists and/or permissions.\n";
-#}
-#
+else {
+  print "No local RMfam git found. Cloning RMfam from GitHub ...\n";
+  chdir($motif_local) or die "Unable to open the local MOTIF folder at $motif_local\n";
+  system ("git clone $git_source");
+  print "RMfam successfully cloned from Github.\n";
+}
+
+# Check that the motifs directory exitst and can be written to
+if (!(-w "$pwd") or !(-d "$pwd")) {
+  die
+    "$0: Can't find/write to directory [$pwd].  Check the folder exists and/or permissions.\n";
+}
+
 #----------------------------------------------------------------------------
 # Parse the data from the local GitHub repository into a CM, DESC and SEED file
 
@@ -131,63 +131,6 @@ print "Running cmpress to compress the CMs into a CMdb\n";
 system("cmpress -F $motif_local/cmdb/CM");
 
 #--------------------------------------------------------------------------------- 
-# Create a compressed stockholm of every family in the database
-my $config = Bio::Rfam::Config->new;
-my $rfamdb = $config->rfamlive;
-my @completeFamResultSet = $rfamdb->resultset('Family')->search(undef, {columns => 'rfam_acc'});
-
-# Create an empty file which will contain the concatenated stockholms
-open(STK,">","/nfs/production/xfam/rfam/MOTIFS/FULL_RFAM_SEED");
-print STK "";
-
-foreach my $fam (@completeFamResultSet) {
-  my $rfam_acc = $fam->rfam_acc;
-  
-  # Load the family object from the database
-  my $famIO=Bio::Rfam::FamilyIO->new;
-  my $familyObj=$famIO->loadRfamFromRDB($rfam_acc);
-  
-  # Write the SEED associated to the family object to the concatenated stockholm
-  my $famSeed=$familyObj->SEED;
-  my $tmpSeed = File::Temp->new(DIR => &cwd, UNLINK => 0);
-  $famSeed->write_msa($tmpSeed, "stockholm");
-    
-  # Add the Rfam Accession to a temp seed file
-  my $tmpSeed2 = File::Temp->new(DIR => &cwd, UNLINK => 0);
-  open my $in , '<', $tmpSeed or die "Can't read temp seed: $!";
-  open my $out, '>', $tmpSeed2 or die "Can't read temp seed: $!";
-  while ( <$in> ) {
-    print $out $_;
-    last if $. == 1;
-  }
-  
-  my $new_line = "#=GF AC $rfam_acc\n";
-  print $out $new_line;
-  
-  while ( <$in> ) {
-    print $out $_;
-  }
-
-  close ($in);
-  close ($out); 
- 
-  # Join all the modified SEED files into one named FULL_RFAM_SEED
-  open ( STK, ">>", "/nfs/production/xfam/rfam/MOTIFS/FULL_RFAM_SEED")
-    or die "Cannot open the stockholm file to write the seed results\n";
-
-  open ( SEED, "<", $tmpSeed2 )
-    or die "Cannot open the temp seed file to write the seed results\n";  
-
-  while ( my $line = <SEED> ) {
-    print STK $line;
-  }
-
-  # Remove the temp files
-  if (-e $tmpSeed) { unlink $tmpSeed;}
-  if (-e $tmpSeed2) { unlink $tmpSeed2;}
-}
-
-#----------------------------------------------------------------------------------------
 
 
 
