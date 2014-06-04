@@ -23,7 +23,8 @@ my ( $message, @ignore, $addToClan, $help );
 &GetOptions(
   "m=s"         => \$message,
   "i=s"         => \@ignore,
-  "help"        => \$help
+  "help"        => \$help,
+  "add_to_clan" => \$addToClan,
 ) or die "Unrecognised option passed in to the script.\n";
 
 my $family = shift;
@@ -104,6 +105,26 @@ unless ( $newFamObj->DESC->ID ) {
 }
 
 #-------------------------------------------------------------------------------
+if($newFamObj->DESC->CL){
+  #Okay, we have a clan added to the DESC file.
+  unless($addToClan){
+    die "Found a CL line in the DESC file and you have not explicitly said you".
+        " are going to add to a clan. See $0 -help!\n";  
+  }
+  #Check that the clan accession is valid.
+  eval{
+    $client->checkClanExists($newFamObj->DESC->CL);  
+  };
+  if($@){
+    die "\nERROR:There was an issue finding the clan referenced in the DESC file, ".
+         $newFamObj->DESC->CL."\n\nSee:$@\n";
+  }
+  #If we get to here, then the clan is okay and the users has appropriately triggered.
+}
+
+ exit;
+
+#-------------------------------------------------------------------------------
 #Check that the pending model does ot already exist. Parnoid check as new models
 #should be removed immediately into the main respository.
 
@@ -181,7 +202,8 @@ print<<EOF;
   
   -i                - Ignore some of the QC steps to speed up check-in.
   -m                - Specify the message that describes the changes you have made to this family 
-                      on the command line, avoid being prompted for it at a later satge.                   
+                      on the command line, avoid being prompted for it at a later satge.
+  -add_to_clan      - Add this family to a clan.                                       
                       
 EOF
 
