@@ -1226,7 +1226,6 @@ sub findClanOverlaps {
 	my @not_significant;
 	my $strand;
 	my @clan_regions;
-	
 	#Get all regions for all families in the clan:
 	#
 	for my $family (@$clan_members) {
@@ -1235,13 +1234,9 @@ sub findClanOverlaps {
 	#For each region, get start and end coordinates and figure out which strand it is on:
 	#
 		for my $r ( @$regions) {
-			my ($s1, $e1, $or1) = 
+			my ($s1, $e1, $strand) = 
         	$r->[1] <= $r->[2] ? ($r->[1], $r->[2], 1) : ($r->[2], $r->[1], -1);
-			if ($s1 > $e1) {
-				$strand = -1;
-			} else {
-				$strand = 1;
-			}
+		
 	# Add hash of each region to the clan_regions array:
 	#
 		push @clan_regions , {rfamseq_acc => $r->[3],
@@ -1304,7 +1299,6 @@ sub findClanOverlaps {
 		if ($ol != 0) {
 			push @overlaps, $region;
 		}
-		#print "More than one overlap!\n" if (scalar @overlaps > 2);
 		
 		#Sort the overlaps by e value and then take the highest match as the significant match:
 		#
@@ -1314,10 +1308,19 @@ sub findClanOverlaps {
 				$hash->{'is_significant'} = 1;
 			} else {
 				$hash->{'is_significant'} = 0;
+				my ($start, $end) = $hash->{strand} eq 1 ? ($hash->{start}, $hash->{end}):($hash->{end}, $hash->{start}); 
+				my $resultset = $rfamdb->resultset('FullRegion')->search( {rfam_acc => $hash->{family},
+																		rfamseq_acc => $hash->{rfamseq_acc},
+																		seq_start => $start,
+																		seq_end => $end,
+																		evalue_score => $hash->{evalue}
+																	})->single;
+				
+				
+				$resultset->update({is_significant => '0'});
 			}
-		#This print statement needs to be replaced with a db loading statement, as the values in the full_region table need to be updated (well, the is_significant flag needs to be set to 0 if a match looses in the clan:
 		#
-			print $OVERLAP "$hash->{rfamseq_acc}\t$hash->{start}\t$hash->{end}\t$hash->{strand}\t$hash->{evalue}\t$hash->{family}\t$hash->{type}\t$hash->{is_significant}\n";
+		#	print $OVERLAP "$hash->{rfamseq_acc}\t$hash->{start}\t$hash->{end}\t$hash->{strand}\t$hash->{evalue}\t$hash->{family}\t$hash->{type}\t$hash->{is_significant}\n";
 		}	
 		#Update counter now we've done this region:
 		$seen{$orig_acc}++;
