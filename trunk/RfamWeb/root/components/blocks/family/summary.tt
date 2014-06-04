@@ -38,19 +38,15 @@ END;
       total = 0;
       members = [];
       
-      # can't sort the contents of "clan.clan_memberships" directly. Convert the 
-      # list into rows from the rfam table first
-      FOREACH member IN clan.clan_memberships;
-      members.push( member.auto_rfam );
-      END;
-      FOREACH member IN members.sort("rfam_id") %]
+      CALL c.log.debug( "got " _ clan_members.size _ " members in clan" );
+      WHILE ( member = clan_members.next ) %]
         <span class="listItem">
-          [% IF member.rfam_acc == rfam.rfam_acc;
-            member.rfam_id;
+          [% IF member.auto_rfam.rfam_acc == rfam.rfam_acc;
+            member.auto_rfam.rfam_id;
             ELSE %]
-            <a title="[% member.rfam_acc %]"
-              href="[% c.uri_for( '/family', member.rfam_acc ) %]">
-              [% member.rfam_id %]</a>
+            <a title="[% member.auto_rfam.rfam_acc %]"
+              href="[% c.uri_for( '/family', member.auto_rfam.rfam_acc ) %]">
+              [% member.auto_rfam.rfam_id %]</a>
           [% END %]
         </span>
         [% total = total + 1;
