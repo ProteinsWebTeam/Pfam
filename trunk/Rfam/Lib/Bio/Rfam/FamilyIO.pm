@@ -2238,6 +2238,10 @@ sub taxinfoForHits {
         $cur_evalue = $infoHHR->{$name}{"evalue"};
         #@elA = split(" ", $taxstr);
         @elA = split(";", $taxstr);
+        # remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
+        for($i = 0; $i < scalar(@elA); $i++) { 
+          $elA[i] =~ s/\.$//;
+        }
         $parent_level = scalar(@elA);
         $prv_prefix = "";
         $prefix     = "";
@@ -2387,6 +2391,10 @@ sub taxinfoForHits {
     push(@pA, $prefix);
     $i++;
     my @tmpA = split(";", $prefix);
+    # remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
+    for(my $z = 0; $z < scalar(@tmpA); $z++) { 
+      $tmpA[i] =~ s/\.$//;
+    }
     $ntokA[$i] = scalar(@tmpA);
     if($ntokA[$i] > $x_ntok) { 
       for($j = $x_ntok; $j < $ntokA[$i]; $j++) { 
