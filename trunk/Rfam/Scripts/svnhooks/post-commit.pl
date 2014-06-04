@@ -110,19 +110,6 @@ eval {
     
     #Move the entry
     my $dest = $tmpDir->dirname;
-#    chdir($dest) or die "Could not change into $dest dir:$!";
-#    open( M, ">.default" . $$ . "rclnewmove" )
-#      or die "Could not open $dest/.default" . $$ . "rclnewmove:$!";
-#    print M "Moving from pending to main repository.";
-#    close(M);
-#    print STDERR $clan->clan_acc." - got acc\n";
-#    print STDERR "Adding commit message\n";
-#    $client->addRCLNEWMOVELog;
-#    print STDERR "Going to move new clan\n";
-#    $client->moveNewClan( $clan_id, $clan->clan_acc );
-#
-#    print STDERR "Done moving new clan\n";
-#
     #Now checkout and automatically add the accession to the DESC file
     open( M, ">.default" . $$ . "rclnewmove" )
       or die "Could not open $dest/.default" . $$ . "rclnewmove:$!";
