@@ -204,15 +204,17 @@ sub family_page_GET_html : Private {
                          { prefetch => [ qw(clan_memberships) ] } )
                ->first;
 
-  my $members = $c->stash->{db}->resultset('ClanMembership')
-                  ->search( { auto_clan => $clan->auto_clan },
-                            { join => [ 'auto_rfam' ],
-                              order_by => [ 'rfam_id' ] } );
-  
-  if ( $clan and defined $clan->clan_acc ) {
-    $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
-    $c->stash->{clan} = $clan;
-    $c->stash->{clan_members} = $members;
+  if ( $clan ) {
+    my $members = $c->stash->{db}->resultset('ClanMembership')
+                    ->search( { auto_clan => $clan->auto_clan },
+                              { join => [ 'auto_rfam' ],
+                                order_by => [ 'rfam_id' ] } );
+    
+    if ( $clan and defined $clan->clan_acc ) {
+      $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
+      $c->stash->{clan} = $clan;
+      $c->stash->{clan_members} = $members;
+    }
   }
 
   #---------------------------------------
