@@ -220,6 +220,12 @@ elsif ( $msg =~ /SEQUP/ ) {
   $logger->debug('parsing msg; got a move');
   $txnlook->moveClan();
   $logger->debug('committed');
+}elsif ( $msg =~ /^CLNEW:/ ) {
+  $logger->debug('parsing msg; got a new entry');
+  $txnlook->commitNewClan;
+  $logger->debug('committed');
+}elsif ( $msg =~ /^CLNEWMOV:/ ) {
+  $logger->debug('parsing msg; got a CLNEWMOV message');
 }elsif( $msg =~ /ADMINBYPASS/ ) {
   $logger->debug('parsing msg; admin bypass');
 }

@@ -109,7 +109,7 @@ if ( $upClanObj->DESC->ID ne $oldClanObj->DESC->ID ) {
 }
 
 #-------------------------------------------------------------------------------
-#Perform the QC on the family
+#Perform the QC on the clan
 
 #Map the ignore flags into a hash:
 my $error = 0;
