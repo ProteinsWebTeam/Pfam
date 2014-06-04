@@ -133,6 +133,14 @@ sub svnClans {
   return $self->{'_config'}->{svn}->{svnClans};
 }
 
+sub svnNewClans {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{'_config'}->{svn}->{svnNewClans};
+}
+
 =head2 svnRevision
 
   Title    : svnRevision

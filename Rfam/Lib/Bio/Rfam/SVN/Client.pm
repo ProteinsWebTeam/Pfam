@@ -492,7 +492,7 @@ sub catFile {
     $url =  $self->clanLocation . "/" . $dir;
   }
   my $revision = $self->revision;
-  
+
   unless ($fh) {
     $fh = \*STDOUT;
   }
@@ -505,8 +505,16 @@ sub catFile {
 
 sub log {
   my ( $self, $dir, $rev ) = @_;
-  my $url = $self->familyLocation . "/" . $dir;
- 
+
+  my $url;
+  if($dir =~ /^RF/){
+    $url =  $self->familyLocation . "/" . $dir;
+  }elsif($dir =~ /^CL/){
+    $url =  $self->clanLocation . "/" . $dir;
+  }else{
+    die "Did not recognise accession $dir\n"; 
+  }
+  
   my $subRef = sub {
     my ( $changed_paths, $revision, $author, $date, $message ) = @_;
     chomp($message);
@@ -1256,6 +1264,30 @@ sub clanLocation {
   return ($url);
 }
 
+=head2 newClanLocation
+
+  Title    : newClanLocation
+  Usage    : $client->newClanLocation
+  Function : Returns the path in the repository where new clans are stored temporarily.
+  Args     : None
+  Returns  : String that is the URL of the pending clan location.
+  
+=cut
+
+
+sub newClanLocation {
+  my ($self) = @_;
+  
+  my $url;
+  #As config URLs are inconsistent with trailing /, see if it is there.
+  if($self->{config}->svnRepos =~ m|.*/$|){
+    $url = $self->{config}->svnRepos . $self->{config}->svnNewClans;
+  }else{
+    $url = $self->{config}->svnRepos .'/'. $self->{config}->svnNewClans;
+  }
+  return ($url);
+}
+
 
 =head2 addRCLKILLLog
 
@@ -1360,5 +1392,201 @@ sub addRCLMOVELog {
 
   #Add the commit sub reference
   $self->{txn}->log_msg($commit);
+}
+
+sub addRCLNEWMOVELog {
+  my ($self) = @_;
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "rclnewmove" ) {
+      open( M, ".default" . $$ . "rclnewmove" )
+        or die "Could not open .default" . $$ . "rclnewmove";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+    else {
+      die
+        "No rclmove message as to why the entry is being moved from Rfam!\n";
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= 'CLNEWMOV:'.$message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
+sub addRCLNEWLog {
+  my ($self) = @_;
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "rclnew" ) {
+      open( M, ".default" . $$ . "rclnew" )
+        or die "Could not open .default" . $$ . "rclnew";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+    else {
+      die
+        "No rclmove message as to why the entry is being moved from Rfam!\n";
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= 'CLNEW:'.$message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
+#------------------------------------------------------------------------------
+=head2 checkNewClanDoesNotExist
+
+  Title    : checkNewClanDoesNotExists
+  Incept   : finnr, Jan 24, 2013 3:23:56 PM
+  Usage    : $client->checkNewClanDoesNotExist($name)
+  Function : Tests that a directory is not already present in the PendingClan
+           : location.
+  Args     : Name of the directory to be tested.
+  Returns  : Nothing
+  
+=cut
+
+sub checkNewClanDoesNotExist {
+  my ( $self, $entry ) = @_;
+
+  my $url     = $self->newClanLocation . "/" . $entry;
+  my $codeRef = sub {
+    my ( $path, $info, $pool ) = @_;
+    unless ($info) {
+      die "$path is invalid\n";
+    }
+  };
+
+  #This should throw a warning!
+  eval { $self->{txn}->info( $url, undef, 'HEAD', $codeRef, 0 ); };
+
+  unless ($@) {
+    confess( "$entry exist in the respository, at $url.  "
+        . "This should not happen, as the new family should be moved into "
+        . "the repoistory shortly after being added.  Please try again in a "
+        . "few minutes, if the problem persists, then something is wrong!\n" );
+  }
+}
+
+sub addClan {
+  my ( $self, $clan, $newClanId ) = @_;
+
+  unless ($clan) {
+    confess("Did not get the local directory name for the clan\n");
+  }
+
+  unless ($newClanId) {
+    confess("Did not get the new clan identifier\n");
+  }
+
+  unless ( -d $clan ) {
+    confess("$clan is not a directory\n");
+  }
+
+  #Repository location of where to put new families
+  my $url = $self->newClanLocation;
+
+  #Generate a new tempdir
+  my $dir  = File::Temp->newdir('CLEANUP' => 1);
+  my $dest = $dir . "/ClansPending";
+
+  #Now check out the latest version the holding area.
+  eval {
+    $self->{txn}
+      ->checkout( $url, $dest, $self->revision ? $self->revision : 'HEAD', 1 );
+  };
+
+  if ($@) {
+    confess("Failed to check out new clan dir, $url to $dest:[$@]\n");
+  }
+
+ #Copy the directory to pending families directory. Only copy the files we need!
+  unless ( -e "$dest/$newClanId" ) {
+    mkdir("$dest/$newClanId")
+      or confess("Could not make directory $dest/$newClanId:[$!]\n");
+  }
+  
+  my @files;
+  push(@files, "$dest/$newClanId");
+  foreach my $file ( qw(CLANDESC) ) {
+    copy( "$clan/$file", "$dest/$newClanId/$file" )
+      or confess("Failed to copy $clan/$file to $dest/$newClanId/$file");
+    #List of files 
+    push( @files, "$dest/$newClanId/$file" );
+  }
+
+  #Now add the families.
+  eval { $self->{txn}->add( "$dest/$newClanId", 1 ); };
+
+  if ($@) {
+    confess(
+"\n*** Failed to add clan, $newClanId to the respository ***\n\n[$@]\n"
+    );
+  }
+
+  #And finally commit them.
+  my $cinfo;
+  eval { $cinfo = $self->{txn}->commit( \@files, 1 ); };
+
+  if ($@) {
+    confess("\n*** Failed to commit new clan to $newClanId ***\n\n[$@]\n");
+  }
+  
+  #Now check that something happen!
+  $self->_checkCommitObj($cinfo);
+}
+
+
+=head2 moveNewClan
+
+  Title    : moveNewClan
+  Usage    : $client->moveNewClan('initialName', 'CLXXXXX', $rev)
+  Function : Moves a newly commit clan from the PendingClans dir to the Clans
+           : dir. It then checks the return svn_commit_info_object.
+  Args     : The name of the directory to move, the newly assigned clan accession, 
+           : a revision (optional).
+  Returns  : Nothing.
+  
+=cut
+
+sub moveNewClan {
+  my ( $self, $clanOld, $clanNew, $rev ) = @_;
+
+  my $oldUrl = $self->newClanLocation . "/" . $clanOld;
+  my $newUrl = $self->clanLocation . "/" . $clanNew;
+
+  my $cinfo;
+  eval {
+    $cinfo =
+      $self->{txn}->move( $oldUrl,
+      defined($rev) ? $rev : ( $self->revision ? $self->revision : 'HEAD' ),
+      $newUrl, 0 );
+  };
+
+  #Catch any error and report.
+  if ($@) {
+    die "\n*** MAJOR ERROR during post commit for rfnew! FAILURE***\n\n$@";
+  }
+
+  $self->_checkCommitObj($cinfo);
 }
 1;

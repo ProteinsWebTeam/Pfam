@@ -11,6 +11,8 @@ use Getopt::Long;
 use Bio::Rfam::Config;
 use Bio::Rfam::SVN::Commit;
 use Bio::Rfam::SVN::Client;
+use Bio::Rfam::ClanIO;
+use Bio::Rfam::FamilyIO;
 use Mail::Mailer;
 use Cwd;
 
@@ -91,17 +93,64 @@ eval {
     #Commit back in
     $client->commitFamily($dest);
     chdir($cwd);
-  }
-  else {
+  }elsif ( $logMessage =~ /^CLNEW\:(\S+)/ ) {
+    
+    my $clan_id = $1;
+    
+    print STDERR "Working on $clan_id\n";
+    
+    my $rfamdb = $config->rfamlive;
+    my $clan = $rfamdb->resultset('Clan')->find({ id => $clan_id });
+    
+    
+    my $client = Bio::Rfam::SVN::Client->new;
+    my $cwd = getcwd;
+    
+    my $tmpDir = File::Temp->newdir( 'CLEANUP' => 1 );
+    
+    #Move the entry
+    my $dest = $tmpDir->dirname;
+#    chdir($dest) or die "Could not change into $dest dir:$!";
+#    open( M, ">.default" . $$ . "rclnewmove" )
+#      or die "Could not open $dest/.default" . $$ . "rclnewmove:$!";
+#    print M "Moving from pending to main repository.";
+#    close(M);
+#    print STDERR $clan->clan_acc." - got acc\n";
+#    print STDERR "Adding commit message\n";
+#    $client->addRCLNEWMOVELog;
+#    print STDERR "Going to move new clan\n";
+#    $client->moveNewClan( $clan_id, $clan->clan_acc );
+#
+#    print STDERR "Done moving new clan\n";
+#
+    #Now checkout and automatically add the accession to the DESC file
+    open( M, ">.default" . $$ . "rclnewmove" )
+      or die "Could not open $dest/.default" . $$ . "rclnewmove:$!";
+    print M "Automatically adding accession.";
+    close(M);
+    $client->addRCLNEWMOVELog;
+    #Now checkout and add the accession to the DESC file!
+    $client->checkoutClan( $clan->clan_acc, $dest );
+
+    #parse the CLANDESC file
+    my $clanIO = Bio::Rfam::ClanIO->new;
+    my $descObj = $clanIO->parseDESC("$dest/CLANDESC");
+    $descObj->AC( $clan->clan_acc );
+    $clanIO->writeDESC( $descObj, $dest );
+
+    #Commit back in
+    $client->commitClan($dest);
+    chdir($cwd);
+  }else {
     #No other commits require post-commit processing
     ;
   }
 };
 
 if ($@) {
-  
+  print STDERR $@;
   my %header = (
-    To      => 'jgt@ebi.ac.uk',
+    To      => ['jgt@ebi.ac.uk', 'rdf@ebi.ac.uk'],
     From    => 'rfam@ebi.ac.uk',
     Subject => 'Error in post-commit '
   );

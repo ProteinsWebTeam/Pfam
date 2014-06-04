@@ -114,6 +114,34 @@ sub commitNewEntry {
   $self->{logger}->debug( 'committed new object to SVN' );
 }
 
+
+sub commitNewClan {
+  my ($self) = @_;
+
+  #Make an object to respresent the family based on the SVN transcation
+  my $clanIO = Bio::Rfam::ClanIO->new;
+
+  #Determin who is adding this entry
+  my $author = $self->author();
+
+  $self->{logger}->debug( 'created a new ClanIO object and set author name' );
+
+  my ( $newClanObj, $clan, $dir ) =
+    $self->_getClanObjFromTrans( $clanIO, 1 );
+  $self->{logger}->debug( 'populated clan object from SVN transaction' );
+
+  my $acc = $self->_assignClanAccession();
+  $self->{logger}->debug( "assigned clan accession '$acc'" );
+
+   $newClanObj->DESC->AC($acc);
+  $self->{logger}->debug( 'added accession to CLANDESC object' );
+
+  #Okay, if we get to here, then we should be okay!
+  #Now upload the clan to Rfam
+  $self->_commitClan($newClanObj, 1);
+  $self->{logger}->debug( 'committed new object to SVN' );
+}
+
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -207,7 +235,7 @@ sub _commitClan {
   $rfamdb->resultset('ClanDatabaseLink')->find_or_createFromClanObj( $clanObj );  
 
   $self->{logger}->debug( 'updated literature references and database links' );
-
+  
   #Finish the transaction.
   $guard->commit;
   $self->{logger}->debug( 'closed database transaction' );
@@ -248,6 +276,48 @@ sub _assignAccession {
 
   #Now put the number in the correct format.
   my $acc = "RF" . "0" x ( 5 - length($nextAccNo) ) . $nextAccNo;
+
+  $self->{logger}->debug( "built new accession '$acc'" );
+
+  return ($acc);
+}
+
+#-------------------------------------------------------------------------------
+
+sub _assignClanAccession {
+  my ( $self ) = @_;
+
+  $self->{logger}->debug( 'assigning accession to new clan' );
+
+  my @allAccessions;
+  my $rfamdb = $self->{config}->rfamlive;
+  $self->{logger}->debug( 'got a connection to rfam_live' );
+  
+  my @clans = $rfamdb->resultset('Clan')->all;
+  my @dead_clans = $rfamdb->resultset('DeadClan')->all;
+  $self->{logger}->debug( 'found ' . scalar @clans . ' clans and '
+                       . scalar @dead_clans. ' dead clans' );
+
+  foreach my $clan ( @clans, @dead_clans ) {
+    my ($acc) = $clan->clan_acc =~ m/CL(\d+)/;
+    push @allAccessions, $acc;
+  }
+  $self->{logger}->debug( 'retrieved a total of ' . scalar @allAccessions . ' accessions' );
+
+  #Need this when the database is new, and there are no entries.
+  push( @allAccessions, 0 );
+  my @allAccSorted = sort { $a <=> $b } @allAccessions;
+  my $nextAccNo = $allAccSorted[$#allAccSorted];
+  $nextAccNo++;
+  $self->{logger}->debug( "next accession number is $nextAccNo" );
+
+  if ( length($nextAccNo) > 5 ) {
+    $self->{logger}->warn( 'generated accession is too short; throwing an error' );
+    die "Accession length exceeded\n";
+  }
+
+  #Now put the number in the correct format.
+  my $acc = "CL" . "0" x ( 5 - length($nextAccNo) ) . $nextAccNo;
 
   $self->{logger}->debug( "built new accession '$acc'" );
 
