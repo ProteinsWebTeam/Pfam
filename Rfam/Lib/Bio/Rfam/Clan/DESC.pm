@@ -84,7 +84,7 @@ has 'DBREFS' => (
 );
 
 has 'MEMB' => (
-  is        => 'ro',
+  is        => 'rw',
   isa       => 'ArrayRef'
 );
 
