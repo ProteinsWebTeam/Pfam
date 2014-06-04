@@ -122,7 +122,6 @@ if($newFamObj->DESC->CL){
   #If we get to here, then the clan is okay and the users has appropriately triggered.
 }
 
- exit;
 
 #-------------------------------------------------------------------------------
 #Check that the pending model does ot already exist. Parnoid check as new models

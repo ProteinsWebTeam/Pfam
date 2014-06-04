@@ -17,12 +17,14 @@ use Bio::Rfam::QC;
 #-------------------------------------------------------------------------------
 # Deal with all of the options
 
-my ( $message, @ignore, $onlydesc, $help );
+my ( $message, @ignore, $onlydesc, $help, $addToClan, $removeFromClan );
 
 &GetOptions(
   "m=s"              => \$message,
   "i=s"              => \@ignore,
   "onlydesc"         => \$onlydesc,
+  "add_to_clan"      => \$addToClan,
+  "remove_from_clan" => \$removeFromClan,
   "help"             => \$help
 ) or die "Unrecognised option passed in to the script.\n";
 
@@ -113,12 +115,36 @@ if ( $upFamilyObj->DESC->ID ne $oldFamilyObj->DESC->ID ) {
 }
 
 #-------------------------------------------------------------------------------
+#Clan sainity checks 
+if ( defined($upFamilyObj->DESC->CL) and !defined($oldFamilyObj->DESC->CL)){
+  #The updated family has a clan line
+  unless($addToClan){
+    die "Found a CL line in the DESC file and you have not explicitly said you".
+        " are going to add to a clan. See $0 -help!\n";  
+  }
+  #Check that the clan accession is valid.
+  eval{
+    $client->checkClanExists($upFamilyObj->DESC->CL);  
+  };
+  if($@){
+    die "\nERROR:There was an issue finding the clan referenced in the DESC file, ".
+         $upFamilyObj->DESC->CL."\n\nSee:$@\n";
+  } 
+}elsif(!defined($upFamilyObj->DESC->CL) and defined($oldFamilyObj->DESC->CL)){
+  unless($removeFromClan){
+    die "Found a CL line in the previous DESC file and you have not explicitly said you".
+        " are going to remove the family from the clan. See $0 -help!\n";  
+  }
+}elsif($addToClan){
+  die;  
+}elsif($removeFromClan){
+  die;  
+}
+
+#-------------------------------------------------------------------------------
 #Perform the QC on the family
 
 #Map the ignore flags into a hash:
-
-
-
 my $acc = defined($upFamilyObj->DESC->AC) ? $upFamilyObj->DESC->AC : '';
 my $overrideHashRef = Bio::Rfam::QC::processIgnoreOpt(\@ignore, $config, $acc);
 

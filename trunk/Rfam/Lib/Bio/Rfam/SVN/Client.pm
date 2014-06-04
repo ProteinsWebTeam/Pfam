@@ -1423,6 +1423,35 @@ sub addRCLNEWMOVELog {
   $self->{txn}->log_msg($commit);
 }
 
+sub addRCLMEMLog {
+  my ($self) = @_;
+  my $commit = sub {
+    my $passmessage = shift;    #Scalar reference passed by svn binding
+
+    my $message;
+
+    #See if we have a default messge to use.
+    if ( -s ".default" . $$ . "rclmem" ) {
+      open( M, ".default" . $$ . "rclmem" )
+        or die "Could not open .default" . $$ . "rclmem";
+      while (<M>) {
+        $message .= $_;
+      }
+      close(M);
+    }
+    else {
+      die
+        "No rclmem message as to the change in membership!\n";
+    }
+
+    #Now add the message to the scalar ref
+    $$passmessage .= 'MEMB:'.$message;
+  };
+
+  #Add the commit sub reference
+  $self->{txn}->log_msg($commit);
+}
+
 sub addRCLNEWLog {
   my ($self) = @_;
   my $commit = sub {

@@ -127,7 +127,40 @@ eval {
 
     #Commit back in
     $client->commitClan($dest);
+    
+    
+    
     chdir($cwd);
+  }elsif( $logMessage =~ /^CI\:/ ){
+    
+      print STDERR "Working on CI/membership\n";
+     my $tmpDir = File::Temp->newdir( 'CLEANUP' => 1 );
+     my $dest = $tmpDir->dirname();
+     
+     
+     my @updated_files = $revlook->updated();
+     use DDP;
+     p(@updated_files);
+     my $family;
+     foreach my $file (@updated_files){
+       if($file =~ /(RF\d{5})/){
+          $family = $1;
+          last;  
+       }
+     }
+     
+     my $client = Bio::Rfam::SVN::Client->new;
+     #parse the DESC file
+     my $familyIO = Bio::Rfam::FamilyIO->new;
+     print STDERR "Checking out $family to $dest\n";
+     
+     $client->checkoutFamily( $family, $dest );
+     print STDERR "Parsing DESC\n";
+     my $descObj = $familyIO->parseDESC("$dest/DESC");
+    
+     #Now validate clan membership.
+     validateClanMembership($descObj, $config, $client);
+     
   }else {
     #No other commits require post-commit processing
     ;
@@ -148,12 +181,97 @@ if ($@) {
   $message .= "Repository: $repos" if ($repos);
   $message .= "\n$@\n";
   
-  my $mailer = Mail::Mailer->new();
-  $mailer->open( \%header );
-  print $mailer $message;
-  $mailer->close;
-
+  _mail(\%header, $message);
   exit(1);
+}
+
+sub validateClanMembership{ 
+  my ($descObj, $config, $client) = @_;
+  
+  my($add, $remove);
+  $add = $remove = 0;
+  my $rfamdb = $config->rfamlive;
+  $client = Bio::Rfam::SVN::Client->new if(!$client);
+  my @row = $rfamdb->resultset('ClanMembership')->search({ rfam_acc => $descObj->AC });
+  #Need to put a transaction around this block
+  my $guard = $rfamdb->txn_scope_guard;
+
+  if(defined($descObj->CL) and $descObj->CL =~ /CL\d{5}/ ){
+    if(scalar(@row)){
+      if($row[0]->clan_acc->clan_acc ne $descObj->CL){
+        die "Major error ".$row[0]->clan_acc." does not match ".$descObj->CL."\n";
+      }
+    }else{
+      #The clan must have been added, so add to the table.
+      $rfamdb->resultset('ClanMembership')
+              ->create({rfam_acc => $descObj->AC, 
+                        clan_acc => $descObj->CL});
+      $add = 1;
+    }  
+  }elsif(scalar(@row)){
+    foreach my $row (@row){
+      $row->delete;
+      $remove = 1;  
+    }
+  }
+  if($add or $remove){
+    #Check out the clan and update the MEMB-ership.
+    
+    my $tmpDir = File::Temp->newdir( 'CLEANUP' => 1 );
+    my $dest = $tmpDir->dirname;
+    my $clan_acc;
+    if($descObj->CL){
+     $clan_acc = $descObj->CL; 
+    }else{
+     $clan_acc = $row[0]->clan_acc->clan_acc; 
+    }
+    #Now checkout and add the accession to the DESC file!
+    $client->checkoutClan( $clan_acc, $dest );
+    #parse the CLANDESC file
+    my $clanIO = Bio::Rfam::ClanIO->new;
+    my $clanDescObj = $clanIO->parseDESC("$dest/CLANDESC");
+    
+    if($add){
+     #In the case of new clans, this will be undefined.
+     if(!defined($clanDescObj->MEMB)){
+        $clanDescObj->MEMB([]); 
+     } 
+     push(@{$clanDescObj->MEMB}, $descObj->AC);
+    }elsif($remove){
+      my @newMemb;
+      foreach my $mem (@{$clanDescObj->MEMB}){
+        if($mem ne $descObj->AC){
+          push(@newMemb, $mem);  
+        }  
+      }
+      $clanDescObj->MEMB(\@newMemb);
+    }
+    $clanIO->writeDESC( $clanDescObj, $dest );
+    
+        
+    #Now checkout and automatically add the accession to the DESC file
+    open( M, ">.default" . $$ . "rclmem" )
+      or die "Could not open $dest/.default" . $$ . "rclmem:$!";
+    print M "Automatically updating memberhsip, ";
+    print M ($add == 1 ? 'add' : 'removed');
+    print M " ".$descObj->AC;
+    close(M);
+    $client->addRCLMEMLog;
+    
+    #Commit back in
+    $client->commitClan($dest);
+  }
+  $guard->commit;
+}
+
+sub _mail {
+ my($headerRef, $message) = @_;
+ 
+ my $mailer = Mail::Mailer->new();
+ $mailer->open( $headerRef );
+ print $mailer $message;
+ $mailer->close; 
+  
 }
 
 =head1 COPYRIGHT

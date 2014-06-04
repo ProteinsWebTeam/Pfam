@@ -18,7 +18,7 @@ use Bio::Rfam::QC;
 # Deal with all of the options
 
 
-my ( $message, $help );
+my ( $message, $help);
 
 &GetOptions(
   "m=s"              => \$message,
