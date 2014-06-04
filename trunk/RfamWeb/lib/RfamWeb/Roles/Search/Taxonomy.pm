@@ -265,7 +265,8 @@ sub unq_query : Chained( 'unique_taxonomy' )
 
   # we should have only one species name in the query
   if ( scalar @{ $c->stash->{terms} } > 1 ) {
-    $c->log->debug( 'Search::unq_query: multiple terms specified; detaching' );
+    $c->log->debug( 'Search::unq_query: multiple terms specified; detaching' )
+      if $c->debug;
     $c->stash->{uniqueSearchError} = 
       'You can only find unique families for a single species. ' .
       'Please enter just one species name and try again.';
@@ -428,7 +429,8 @@ sub suggest : Chained( 'taxonomy' )
 
   WORD:
   foreach my $word ( @{ $c->stash->{sentence} } ) {
-    $c->log->debug( "Search::Taxonomy::suggest: suggesting for word |$word|" );
+    $c->log->debug( "Search::Taxonomy::suggest: suggesting for word |$word|" )
+     if $c->debug;
 
     # if this word is not the same as the last search term (which will be the
     # case if it's AND, OR, NOT or a brace), include it as is
@@ -686,7 +688,8 @@ sub getFamilyCount : Private {
     my $range = $c->forward('getRange', [ $term ] );
     
     if ( not $range ) {
-      $c->log->debug( 'Search::Taxonomy::getFamilyCount: range error' );
+      $c->log->debug( 'Search::Taxonomy::getFamilyCount: range error' )
+        if $c->debug; 
       $c->stash->{rangeError} = "Could not find $term";
       return;
     }
@@ -859,9 +862,11 @@ sub getFamilyInfo : Private {
   my $familyInfo = $c->cache->get( $cacheKey );
 
   if( defined $familyInfo ) {
-    $c->log->debug( 'Search::Taxonomy::getFamilyInfo: retrieved family info from cache' );
+    $c->log->debug( 'Search::Taxonomy::getFamilyInfo: retrieved family info from cache' )
+      if $c->debug;
   } else {
-    $c->log->debug( 'Search::Taxonomy::getFamilyInfo: failed to retrieve family info from cache; going to DB' );
+    $c->log->debug( 'Search::Taxonomy::getFamilyInfo: failed to retrieve family info from cache; going to DB' )
+      if $c->debug;
 
     my @rs = $c->model('RfamDB::Rfam')
                ->search( {},
@@ -873,7 +878,8 @@ sub getFamilyInfo : Private {
                                              description => $_->description } } @rs;
 
     $c->log->debug( 'Search::Taxonomy::getFamilyInfo: found info for |'
-                    . scalar( keys %familyInfo ). '| families' );
+                    . scalar( keys %familyInfo ). '| families' )
+      if $c->debug;
 
     $familyInfo = \%familyInfo;
     $c->cache->set( $cacheKey, $familyInfo ) unless $ENV{NO_CACHE};
@@ -943,7 +949,8 @@ sub descend : Private {
         $collectedFamilies = $c->forward('getFamiliesForTerm', [ $v ] );
       } 
     } else {
-      $c->log->warn( "Search::Taxonomy::descend: didn't do anything with |$k|$v|" );
+      $c->log->warn( "Search::Taxonomy::descend: didn't do anything with |$k|$v|" )
+        if $c->debug;
     }
   }
 
