@@ -27,7 +27,11 @@ my $dt = DateTime->now;
 
 my $time = join ' ', $dt->ymd, $dt->hms;
 
-print "$time\n";
+print "***************************************************************************************\n";
+print "* compete_clans.pl: Competing clan matchlists\n";
+print "* \n"; 
+print "* Starting run at $time\n";
+print "* \n";                                                           
 
 my $interval = "> now() - interval 1 week";
 
@@ -36,6 +40,12 @@ my $clan_update = $rfamdb->resultset('Clan')->search({updated => \$interval});
 
 while (my $cl = $clan_update->next) {
 	push @clans_to_update,  $cl->clan_acc;
+}
+
+if (scalar @clans_to_update eq 0) {
+	print "* No clans need updating, exiting.\n";
+} else {
+	print "* Updating ". scalar @clans_to_update . " clans...\n";
 }
 
 for my $clan (@clans_to_update) {
@@ -48,14 +58,14 @@ for my $clan (@clans_to_update) {
 
 for my $clan (keys %clans) {
 	my $start_family = shift @{$clans{$clan}};
-	print "$start_family\n";
+	print "* Checking clan $clan\n";
 	my $familyIO = Bio::Rfam::FamilyIO->new;
 	my $familyObj = $familyIO->loadRfamFromSVN($start_family, $client);
     my $error = Bio::Rfam::QC::findClanOverlaps($familyObj, $rfamdb, $config,  \@{$clans{$clan}});
 }
 
+print "*\n";
+print "***************************************************************************************\n";
+
 exit;
-
-
-
 
