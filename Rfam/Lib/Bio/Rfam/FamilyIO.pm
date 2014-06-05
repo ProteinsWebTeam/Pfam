@@ -2237,10 +2237,6 @@ sub taxinfoForHits {
         $cur_evalue = $infoHHR->{$name}{"evalue"};
         #@elA = split(" ", $taxstr);
         @elA = split(";", $taxstr);
-        ## remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
-        #for($i = 0; $i < scalar(@elA); $i++) { 
-         # $elA[$i] =~ s/\.$//;
-        #}
         $parent_level = scalar(@elA);
         $prv_prefix = "";
         $prefix     = "";
@@ -2253,6 +2249,8 @@ sub taxinfoForHits {
           $pfix_levelHH{$group}{$prefix}  = $i+1;
           $pfix_plevelHH{$group}{$prefix} = $parent_level;
           $cur_exp = _taxinfo_get_sortable_exponent($cur_evalue);
+
+          # printf("prefix: $prefix (name: $name)\n");
           
           if((! exists $pfix_minEHH{$group}{$prefix}) ||
              ($cur_exp < $pfix_minEexpHH{$group}{$prefix})) { 
@@ -2267,6 +2265,7 @@ sub taxinfoForHits {
       }
     }
   } # end of foreach group
+
       
   ##################################################
   # Determine 'level2print', the number of prefixes we'll use for taxonomic strings we output.
@@ -2369,10 +2368,43 @@ sub taxinfoForHits {
     }
   }
 
-  # We now know all the prefixes we will print. Go back through and determine 
-  # the index of the first unique token in each prefix, we will capitalize this 
-  # when we print it out below. This makes it easier for a user to get an idea
-  # of how far apart (diverged) each group is from all other groups.
+  # We now know all the prefixes we will print.  Go back through and
+  # collapse identical prefixes that we want to print that differ by
+  # only a period at the end: e.g.: "Bacteria; Proteobacteria" and
+  # "Bacteria; Proteobacteria."  into one (the one without the period,
+  # in this case "Bacteria; Proteobacteria").
+  my $period_prefix;
+  foreach $period_prefix (keys (%toprintH)) { 
+    if($period_prefix =~ m/\.$/) { 
+      my $new_prefix = $period_prefix;
+      $new_prefix =~ s/\.$//; 
+      if(exists $toprintH{$new_prefix}) { # only collapse those which have a match without the trailing '.' that we're also printing
+        foreach $group (@{$groupOAR}) { 
+          if(exists($pfix_ctHH{$group}{$period_prefix})) { 
+            # collapse
+            $pfix_ctHH{$group}{$new_prefix} += $pfix_ctHH{$group}{$period_prefix};
+            if($pfix_minEexpHH{$group}{$period_prefix} < $pfix_minEexpHH{$group}{$new_prefix}) { 
+              $pfix_minEexpHH{$group}{$new_prefix} = $pfix_minEexpHH{$group}{$period_prefix};
+              $pfix_minEHH{$group}{$new_prefix}    = $pfix_minEHH{$group}{$period_prefix};
+            }
+            # delete $period_prefix
+            delete $pfix_ctHH{$group}{$period_prefix};
+            delete $pfix_levelHH{$group}{$period_prefix};
+            delete $pfix_minEexpHH{$group}{$period_prefix};
+            delete $pfix_minEHH{$group}{$period_prefix};
+          }
+        }
+        delete $toprintH{$period_prefix};
+      }
+    }
+  }
+
+
+  # Now, that period-ending prefixes have been collapsed, 
+  # go back through and determine the index of the first unique token
+  # in each prefix, we will capitalize this when we print it out
+  # below. This makes it easier for a user to get an idea of how far
+  # apart (diverged) each group is from all other groups.
   
   # make a 2D array of the tokens of each prefix
   my @pAA = ();  # array of arrays, each prefix broken down into tokens
@@ -2608,6 +2640,7 @@ sub taxinfoForHits {
                                $pfix_minEHH{$group}{$best_prefix}));
         if(! defined $cur_group) { $cur_group = $group; }
         $nprintedH{$group} += $pfix_ctHH{$group}{$best_prefix};
+        # printf("adding %d to nprintedH{$group} (total: %d) prefix: $best_prefix\n", $pfix_ctHH{$group}{$best_prefix}, $nprintedH{$group});
       }
       else { 
         push(@outputA, sprintf("      %*s  %6s", $ct_lenH{$group}, "-", "-"));
@@ -2631,7 +2664,7 @@ sub taxinfoForHits {
     if($ngroupH{$group} == 0) { $nprintedH{$group} = 0; }
     if($nprintedH{$group} != $ngroupH{$group}) { 
       printf STDERR ("ERROR incorrect number of $group seqs (%d != %d)\n", $nprintedH{$group}, $ngroupH{$group}); 
-      exit(1);
+      #exit(1);
     }
     $tmp_line .= sprintf("      %*d        ", $ct_lenH{$group}, $nprintedH{$group});
   }
