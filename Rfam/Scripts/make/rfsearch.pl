@@ -45,7 +45,7 @@ my $e_opt = undef;              # cmsearch E-value to use, defined by GetOptions
 my $t_opt = undef;              # cmsearch bit score cutoff to use, defined by GetOptions, if -t
 my $do_cutga = 0;               # TRUE to use GA threshold as bit score cutoff
 my $ncpus_cmsearch;             # number of CPUs for cmsearch calls
-my $mxsize_opt;                 # we'll pass '--mxsize $mxsize_opt' to cmsearch
+my $mxsize_opt = undef;         # we'll pass '--mxsize $mxsize_opt' to cmsearch
 my @cmosA = ();                 # extra single '-' cmsearch options (e.g. -g)
 my @cmodA = ();                 # extra double '--' cmsearch options (e.g. --cyk)
 my @ssoptA = ();                # strings to add to cmsearch qsub/bsub commands
@@ -507,11 +507,6 @@ if ($do_build) {
 
   # define (or possibly redefine) $cm
   $cm = $famObj->CM($io->parseCM("CM"));
-  # now that we have the CM, if -mxsize was not set on the cmdline, set it now
-  if(! defined $mxsize_opt) { 
-    # use --mxsize=512 for models > 2000 (currently only LSU) and --mxsize=128 for all other models 
-    $mxsize_opt = ($cm->{cmHeader}->{clen} >= 2000) ? 512 : 128; 
-  }
   $famObj->CM($io->parseCM("CM"));
 
 
@@ -735,6 +730,11 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   my $e_opt_bitsc      = undef;
   my $ga_opt_bitsc     = undef
   my $thr_searchopts   = undef;
+  # unless --mxsize set on command line, set it to the default
+  if(! defined $mxsize_opt) { 
+    # use --mxsize=512 for models > 2000 (currently only LSU) and --mxsize=128 for all other models 
+    $mxsize_opt = ($cm->{cmHeader}->{clen} >= 2000) ? 512 : 128; 
+  }
 
   # are we going to ignore the SM methods? If not, then we will use the -E or -T
   # from that line. We checked for this above during option processing/checking.
