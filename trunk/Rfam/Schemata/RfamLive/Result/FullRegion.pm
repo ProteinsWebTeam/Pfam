@@ -180,6 +180,6 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p1M0NCKOQoUpTdhB7vaYCA
 
 
-__PACKAGE__->set_primary_key('rfam_acc', 'rfamseq_acc');
+__PACKAGE__->set_primary_key('rfam_acc', 'rfamseq_acc','seq_start','seq_end','evalue_score');
 
 1;
