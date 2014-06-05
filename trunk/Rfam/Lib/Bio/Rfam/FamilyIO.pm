@@ -2142,7 +2142,6 @@ sub writeCM {
              : code for this subroutine is for storing the taxonomic 
              : strings in such a way that enables us to find the desired
              : prefix level and for finding that prefix level. 
-             : prefix level as well as for actually finding it. 
              :
              : Once the desired prefix level is found, the remainder
              : of the subroutine outputs a sorted list of the taxonomic
@@ -2238,10 +2237,10 @@ sub taxinfoForHits {
         $cur_evalue = $infoHHR->{$name}{"evalue"};
         #@elA = split(" ", $taxstr);
         @elA = split(";", $taxstr);
-        # remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
-        for($i = 0; $i < scalar(@elA); $i++) { 
-          $elA[$i] =~ s/\.$//;
-        }
+        ## remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
+        #for($i = 0; $i < scalar(@elA); $i++) { 
+         # $elA[$i] =~ s/\.$//;
+        #}
         $parent_level = scalar(@elA);
         $prv_prefix = "";
         $prefix     = "";
@@ -2391,10 +2390,6 @@ sub taxinfoForHits {
     push(@pA, $prefix);
     $i++;
     my @tmpA = split(";", $prefix);
-    # remove trailing '.' on all elements, so "Proteobacteria." and "Proteobacteria" become equivalent
-    for(my $z = 0; $z < scalar(@tmpA); $z++) { 
-      $tmpA[$z] =~ s/\.$//;
-    }
     $ntokA[$i] = scalar(@tmpA);
     if($ntokA[$i] > $x_ntok) { 
       for($j = $x_ntok; $j < $ntokA[$i]; $j++) { 
