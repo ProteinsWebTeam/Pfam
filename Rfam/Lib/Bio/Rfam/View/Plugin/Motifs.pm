@@ -1,10 +1,11 @@
-package Bio::Rfam::View::Plugin::SecondaryStructure;
+package Bio::Rfam::View::Plugin::Motifs;
 
 use Data::Dumper;
 use Moose;
 with 'MooseX::Role::Pluggable::Plugin';
 use IO::File;
-
+use Bio::Rfam::MotifMatch;
+use Bio::Rfam::MotifIO;
 
 has foo => (
   is  => 'rw',
@@ -13,18 +14,7 @@ has foo => (
 
 sub process {
   my $self = shift;
- # print 'Work on this ' . $self->parent->family->SEED->path . "\n";
-
   $self->findMotifs;
-}
-
-
-#Make coloured base pair diagrams
-#
-sub makeBling {
-	my ($self) = @_;
-	my $rfamdb = $self->parent->config->rfamlive;
-	my $rfam_acc = $self->parent->family->DESC->AC;
 }
 
 
@@ -44,7 +34,7 @@ sub findMotifs {
 	# Set/make locations 
         my $location    = "/nfs/production/xfam/rfam";
 	my $results_loc = "$location/MOTIFS/results/$rfam_acc";
-        File::path::make_path($results_loc);
+        File::Path::make_path($results_loc);
         my $SEED        = "$results_loc/SEED";
         my $CMdb	= "$location/MOTIFS/cmdb/CM";        
 
@@ -58,33 +48,36 @@ sub findMotifs {
         my $idf              = 0.9;
 
         # Perform filtering, calculate weights & generate an array of seq ids that pass filter
-        my ($filtSEED, $weights, $sum)=stockholm2filteredSTK($seed_loc,$idf,$seed_loc);
+        my ($filtSEED, $weights, $sum)=stockholm2filteredSTK($SEED,$idf,$results_loc);
         my $filtSeqIDs = "$results_loc/filtSeqIDs";
         my @filtSeqIDs=stockholm2SeqIDs($filtSeqIDs, $filtSEED);
-        unlink ($filtSeqIDs)
-        
-        # Create an array containing the accession of each motif in the database
-        my @allMotifs;
+       
+        # Create an array and a hash containing the accession and label respectivly of each motif in the database
+        my (@allMotifs, %motifLabels, %taken);
         my @completeMotResultSet = $rfamdb->resultset('Motif')->all();
-        foreach my $mot (@completeMotResultSet) {
-          my $motif_acc = $mot->get_column('motif_acc');
-        push(@allMotifs, $motif_acc);
+        foreach my $mot_rs (@completeMotResultSet) {
+          my $motif_acc   = $mot_rs->get_column('motif_acc');
+          my $motif_id    = $mot_rs->get_column('motif_id');
+          $motifLabels{$motif_acc} = assign_motif_label($motif_id,\%taken) if not defined $motifLabels{$motif_acc};
+          $taken{$motifLabels{$motif_acc}}=1;
+          push(@allMotifs, $motif_acc);
         }
- 
+
         # Run cmscan on the SEED
-        my $cmscanOpts  = "--cpu 4 --max --toponly --verbose --cut_ga --tblout $results_loc/TBL -o $results_loc/cmscan"; 
+        my $cmscanOpts  = " --cpu 4 --max --toponly --verbose --cut_ga --tblout $results_loc/TBL -o $results_loc/cmscan "; 
         my $infernal    = $self->parent->config->infernalPath;
         my $command     = $infernal . "cmscan";
-        my @args = ($command, $cmscanOpts, $CMdb, $SEED);
-        system(@args) == 0 
-          or die "System @args failed: $?";
+        my $arg = $command . $cmscanOpts .  $CMdb ." ". $SEED;
+        system($arg) == 0 
+          or die "System $arg failed: $?";
         
         # Parse the TBL, and calculate statistics on those seq ids which make up the filtered SEED
-        @filteredMoitfMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, @all_motifs, @filtSeqIDs);
+        my $TBL = "$results_loc/TBL";
+        my @filteredMoitfMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, \@allMotifs, \@filtSeqIDs,$rfamdb);
 
         # Perform Calculations on filtered matches and print the results to filtered outlist
-        my $filtMotifHash = motifMatchCalcs(@filteredMoitfMatches)
-        printMotifOutlist(%filtMotifHash, "filt.outlist", $results_loc);
+        my %filtMotifHash = motifMatchCalcs(\@filteredMoitfMatches, \@completeMotResultSet, $filtSEED);
+        printMotifOutlist(\%filtMotifHash, "filt.outlist", $results_loc, $rfam_acc);
         
         # Create a list of motifs that fufill the heuristic criteria for accepting matches
         my @acceptedMotifs;
@@ -98,77 +91,71 @@ sub findMotifs {
         my $allSeqIDs = "$results_loc/allSeqIDs";
         my @allSeqIDs = stockholm2SeqIDs($allSeqIDs, $SEED); 
         unlink($allSeqIDs);
-        @acceptedMoitfMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, @acceptedMotifs, @allSeqIDs);
+        my @acceptedMotifMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, \@acceptedMotifs, \@allSeqIDs, $rfamdb);
 
         # Calculate statistics, print summary and send allowed matches into RfamLive
-        my $acceptedMotifHash = motifMatchCalcs(@acceptedMoitfMatches)
-        printMotifOutlist(%acceptedMotifHash, "allow.outlist", $results_loc);
+        my %acceptedMotifHash = motifMatchCalcs(\@acceptedMotifMatches, \@completeMotResultSet, $SEED);
+        printMotifOutlist(\%acceptedMotifHash, "allow.outlist", $results_loc, $rfam_acc);
 
         foreach my $motifMatchObj (@acceptedMotifMatches) {
           my $guard = $rfamdb->txn_scope_guard;
           $rfamdb->resultset('MotifMatch')->find_or_createFromMotifMatchObj($motifMatchObj);
           $guard->commit;
-
-        # Calculate statistics, print summary of ALL matches (EVERY motif vs EVERY seq)
-        @completeMoitfMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, @allMotifs, @allSeqIDs);
-        my $completeMotifHash = motifMatchCalcs(@completeMoitfMatches)
-        printMotifOutlist(%completeMotifHash, "complete.outlist", $results_loc);
-
-        # Create a hash of motif labels (chars) for the seed markup (eg tetraloop = t)
-        my (%motifLabels, %taken)
-        foreach my $mot (@completeMotResultSet) {
-          my $labMotifAcc = $mot->get_column('motif_acc');
-          my $labMotifId  = $mot->get_column('motif_id');   
-          $motifLabels{%labMotifId} = assign_motif_label($labMotifId,\%taken) if not defined $motifLabels{$labMotifId};
         }
  
+        # Calculate statistics, print summary of ALL matches (no filters/min matches etc - EVERY motif vs EVERY seq)
+        my @completeMoitfMatches = parseTBL2MotifMatchObj($TBL,$rfam_acc, \@allMotifs,\@allSeqIDs, $rfamdb);
+        my %completeMotifHash = motifMatchCalcs(\@completeMoitfMatches, \@completeMotResultSet, $SEED);
+        printMotifOutlist(\%completeMotifHash, "complete.outlist", $results_loc, $rfam_acc);
+ 
         # Create an array of hashes for the markup
-        my %f2=matchObjects2hash(@acceptedMotifMatches);
+        my %f2=matchObjects2hash(\@acceptedMotifMatches, \%motifLabels);
 
         # Markup the seed alignment with the accepted motifs
-        markup($seed, /$f2, @acceptedMotifs, %motifLabels, %completeMotifHash, $dir);
+        markup($SEED, \%f2, \@acceptedMotifs, \%motifLabels, \%completeMotifHash, $results_loc);
 
 }       
 
 #---------------------------------------------------------------------------------------
 # Perform calculations on an array of match objects, return a hash containing the results
 sub motifMatchCalcs {
-  my @motifMatchObjects = @_; 
+  my ($motifMatchObjects, $completeMotifResultSet, $stockholm) = @_; 
+
+  my ($weights, $sum) = stockholm2weights($stockholm);
+  my $num_seq = stockholmSeqStats($stockholm); 
 
   my %motifHash;
-  my @completeMotResultSet = $rfamdb->resultset('Motif')->all();
-  foreach my $mot (@completeMotResultSet) {
+  foreach my $mot (@$completeMotifResultSet) {
     my $motif_acc = $mot->get_column('motif_acc');
-    $motifsHash{$motif_acc} = { NUM_HITS => 0, FREQ_HITS => 0, SUM_BITS => 0, AVG_W_BITS => 0, MOTIF_ID => $mot->get_column('motif_id')};
+    $motifHash{$motif_acc} = { NUM_HITS => 0, FREQ_HITS => 0, SUM_BITS => 0, AVG_W_BITS => 0, MOTIF_ID => $mot->get_column('motif_id')};
+  }
   
-  foreach $motifMatchObj (@motifMatchObjects) {
-    my $motif_acc = = $motifMatchObj->MOTIF_ACC;
-    $motifHash{$TBL_motif_acc}->{NUM_HITS}+=1;
- 
-    $motifHash{motif_acc}->{SUM_BITS}+=sprintf("%.3f",$motifMatchObj->BIT_SCORE);
-
-    my $seq_id = $motifMatchObj->RFAMSEQ_ID
+  foreach my $motifMatchObj (@$motifMatchObjects) {
+    my $motif_acc = $motifMatchObj->MOTIF_ACC;
+    $motifHash{$motif_acc}->{NUM_HITS}+=1;
+    $motifHash{$motif_acc}->{SUM_BITS}+=sprintf("%.3f",$motifMatchObj->BIT_SCORE);
+    my $seq_id = $motifMatchObj->RFAMSEQ_ID;
     my $seq_weight;
     if (defined $weights->{$seq_id}) {
       $seq_weight = $weights->{$seq_id};
     }
     else { $seq_weight = 1.0 }
     if ($sum == 0) { $sum = 1.0}
-
     my $avg_w_bits=sprintf("%.3f",(($seq_weight*$motifMatchObj->BIT_SCORE)/$sum));
     $motifHash{$motif_acc}->{AVG_W_BITS}+=sprintf("%.3f",$avg_w_bits);
   }
   
   foreach my $motif (keys %motifHash) {
     my $numHits = ($motifHash{$motif}->{NUM_HITS}); 
-    my $freq=$num_hits/$num_seq;
+    my $freq=$numHits/$num_seq;
     $motifHash{$motif}->{FREQ_HITS}=sprintf("%.3f",$freq);
-
-  return $motifHash;
+  }
+  return %motifHash;
 }
 #----------------------------------------------------------------------------------------
+# Create a file containing a table with statistics of the motif matches 
 sub printMotifOutlist {
-  my (%motifsHash, $outlistFname, $outlistDir) = @_;
+  my ($motifsHash, $outlistFname, $outlistDir,$rfam_acc) = @_;
 
   my $outlist = "$outlistDir/$outlistFname";
 
@@ -182,14 +169,14 @@ sub printMotifOutlist {
                              "sum bits", 
                              "average weighted bits");
   
-  foreach my $motif (keys %motifsHash) {
-    if ($motifsHash{$motif}->{NUM_HITS} >= 1) {
+  foreach my $motif (keys %$motifsHash) {
+    if ($motifsHash->{$motif}->{NUM_HITS} >= 1) {
       printf $outlistHandle (  "%-12s %-12s %12s %15s %20s %25s\n", 
                                $rfam_acc, $motif, 
-                               $motifsHash{$motif}->{NUM_HITS}, 
-                               $motifsHash{$motif}->{FREQ_HITS}, 
-                               $motifsHash{$motif}->{SUM_BITS}, 
-                               $motifsHash{$motif}->{W_SUM_BITS});
+                               $motifsHash->{$motif}->{NUM_HITS}, 
+                               $motifsHash->{$motif}->{FREQ_HITS}, 
+                               $motifsHash->{$motif}->{SUM_BITS}, 
+                               $motifsHash->{$motif}->{AVG_W_BITS});
     }
   }
 close $outlistHandle;
@@ -199,15 +186,15 @@ close $outlistHandle;
 #----------------------------------------------------------------------------------------
 # Parse the TBL out to an array of match objects
 sub parseTBL2MotifMatchObj{
-  my ($TBL, $rfam_acc, @motifs, @seqids) = @_;
+  my ($TBL, $rfam_acc, $motifs, $seqids, $rfamlive) = @_;
   my @MotifMatchObjs;
   
-  open(TBL, "grep -v ^'#' $TBL | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $TBL\n[$!]";
+  open(TBL, "grep -v ^'#' $TBL | sort -nrk 15 | ") or die "FATAL: could not open pipe for reading $TBL\n[$!]";
 
-  while (my $tblline = <$TBL>) {
+  while (my $tblline = <TBL>) {
     my @tblA = split(/\s+/, $tblline);
     my (   $motif_name, 
-           $qName, 
+           $rfamseq_id, 
            $CMstart, 
            $CMend, 
            $qStart, 
@@ -217,21 +204,25 @@ sub parseTBL2MotifMatchObj{
            $bits, 
            $evalue ) = ($tblA[0], $tblA[2], $tblA[5], $tblA[6], $tblA[7], $tblA[8], $tblA[9], $tblA[10], $tblA[14], $tblA[15]); 
   
-    my $motif_acc_rs = $rfamlive->resultset('Motif')->search({ motif_id => $motif_id });
+    my $motif_acc_rs = $rfamlive->resultset('Motif')->search({ motif_id => $motif_name });
     my $new_motif_acc = $motif_acc_rs->get_column('motif_acc')->single(); 
 
-    if ($new_motif_acc ~~ @motifs && $qName ~~ @seqids) {
+    if (grep {$_ eq $new_motif_acc} @$motifs) {
+     if (grep {$_ eq $rfamseq_id} @$seqids) {
     
       # Split rfamseq id into acc, start and stop
       my ($rfamseq_acc, $rfamseq_start, $rfamseq_stop);
       if ($rfamseq_id =~ /(\S+.\d)\/(\d+)-(\d+)/) {
-        $rfamseq_acc, $rfamseq_start, $rfamseq_stop = $1, $2, $3;
+        $rfamseq_acc    = $1; 
+        $rfamseq_start  = $2;
+        $rfamseq_stop   = $3;
       }
 
       # Create the match object
       my $motifMatchObj = Bio::Rfam::MotifMatch->new;
       $motifMatchObj->MOTIF_ACC($new_motif_acc);
       $motifMatchObj->RFAM_ACC($rfam_acc);
+      $motifMatchObj->RFAMSEQ_ID($rfamseq_id);
       $motifMatchObj->RFAMSEQ_ACC($rfamseq_acc);
       $motifMatchObj->RFAMSEQ_START($rfamseq_start);
       $motifMatchObj->RFAMSEQ_STOP($rfamseq_stop);
@@ -242,11 +233,11 @@ sub parseTBL2MotifMatchObj{
       $motifMatchObj->E_VALUE($evalue);
       $motifMatchObj->BIT_SCORE($bits);
 
-      push(@aMotifMatchObjs, $motifMatchObj)
-
+      push(@MotifMatchObjs, $motifMatchObj);
       }
     }
-  return (@MotifMatchObjs);
+  }
+  return @MotifMatchObjs;
 }
 
 #-------------------------------------------------------------------------------------------
@@ -268,10 +259,10 @@ sub assign_motif_label {
 # which is not easy to decifer, however it does function.
 
 sub matchObjects2hash {
-  my @arrayMatchObjs = @_; 
+  my ($arrayMatchObjs, $motifLabels) = @_; 
  
   my %f2;
-  foreach my $motifMatchObj (@arrayMatchObjs) {
+  foreach my $motifMatchObj (@$arrayMatchObjs) {
     my $motifMatchSeqId = $motifMatchObj->RFAMSEQ_ID;
     
     my $seqid       = $motifMatchSeqId;
@@ -281,7 +272,7 @@ sub matchObjects2hash {
     my $score       = $motifMatchObj->BIT_SCORE;
     my $evalue      = $motifMatchObj->E_VALUE;
     my $f_motif_acc = $motifMatchObj->MOTIF_ACC;
-    my $label       = $motifLabels{$f_motif_acc};
+    my $label       = $motifLabels->{$f_motif_acc};
 
     if( $end < $start ) {
       ( $start, $end ) = ( $end, $start );
@@ -305,13 +296,14 @@ sub matchObjects2hash {
 #----------------------------------------------------------------------------------------
 # Markup the seed with the accepted motifs - adapted from Pauls markup in rmfam_scan.pl
 sub markup {
-  my ($seed, $features, @acceptedMotifs, %motifLabels, %motifHash, $dir) = @_;
+  my ($seed, $features, $acceptedMotifs, $motifLabels, $motifHash, $dir) = @_;
   
-  my (@seqCoords2alnCoords, %positions2seqid, %seqid2positions, %motifLines, %motiffedSeqLineNumbers, $cnt=0, $firstSeqLine);
+  my (@seqCoords2alnCoords, %positions2seqid, %seqid2positions, %motifLines, %motiffedSeqLineNumbers, $firstSeqLine);
+  my $cnt = 0;
 
   my $alnLength = compute_length_of_alignment($seed);
-  open (F, "esl-reformat -ru --mingap pfam $seed | ") or die "FATAL: could not open pipe for reading $STK\n[$!]"; 
-  my @stk =<F>
+  open (F, "esl-reformat -ru --mingap pfam $seed | ") or die "FATAL: could not open pipe for reading $seed\n[$!]"; 
+  my @stk =<F>;
 
   foreach my $stk (@stk){
     if($stk=~/^(\S+)\s+\S+$/){
@@ -358,7 +350,7 @@ sub markup {
         $motifLines{$seqid}[$mtCnt] = '.' x $alnLength if not defined $motifLines{$seqid}[$mtCnt];
         for(my $mpos=$start-1; $mpos<$end; $mpos++){
           my $aCoord = $seqCoords2alnCoords[$mpos];
-          substr($motifLines{$seqid}[$mtCnt],$aCoord,1)=$char;
+         substr($motifLines{$seqid}[$mtCnt],$aCoord,1)=$char;
         }
         $fpos++;
       }
@@ -372,8 +364,8 @@ sub markup {
   for(my $ii=0; $ii<scalar(@stk); $ii++){
     if ($ii == $firstSeqLine-1){
       foreach my $l (sort {$motifLabels->{$a} cmp $motifLabels->{$b}} keys %{$motifLabels}){
-        if ($l ~~ @acceptedMotifs){
-          my $labMotifID = $motifHash{$l}->{MOTIF_ID};
+        if (grep { $l eq $_} @$acceptedMotifs){
+          my $labMotifID = $motifHash->{$l}->{MOTIF_ID};
           printf $fileh "#=GF MT.%s   %s   %s\n", $motifLabels->{$l}, $l, $labMotifID; 
         }
       }
@@ -392,7 +384,7 @@ sub markup {
   unlink($outFile);
 }
 
-} 
+ 
 #-----------------------------------------------------------------------------------------
 sub overlap {
   my($x1, $y1, $x2, $y2) = @_;
@@ -406,11 +398,10 @@ sub overlap {
 #-----------------------------------------------------------------------------------------
 sub stockholm2filteredSTK {
     my ($infile,$idf,$fam_dir) = @_;
-    system "esl-weight -f --idf $idf $infile > $fam_dir"."filtered.SEED"
-	and die "FATAL: failed to run [esl-weight -f --idf $idf $infile > $fam_dir"."filtered.SEED";
-    my ($weights,$sum) = stockholm2weights("$fam_dir"."filtered.SEED"); 
-    
-    return ("$fam_dir"."filtered.SEED",$weights,$sum);
+    my $filtSTK = "$fam_dir"."/filtered.SEED";
+    system ("esl-weight -f --idf $idf $infile > $filtSTK") == 0 or die "FATAL: failed to run [esl-weight -f --idf $idf $infile > $filtSTK]";
+    my ($weights,$sum) = stockholm2weights($filtSTK); 
+    return ($filtSTK,$weights,$sum);
 }
 #-----------------------------------------------------------------------------------------
 sub stockholm2weights {
@@ -448,9 +439,10 @@ sub stockholm2SeqIDs{
            chomp($line);
            push(@seqIDs, $line);
   }
+  return @seqIDs; 
 }
 #-----------------------------------------------------------------------------------------
-sub compute_length_of_aligment {    
+sub compute_length_of_alignment {    
   my $file = shift;
   my $alnLength;
   open(ALI,"esl-alistat --rna $file |") or die "FATAL: could not open [esl-seqalistat $file] pipe:[$!]";
