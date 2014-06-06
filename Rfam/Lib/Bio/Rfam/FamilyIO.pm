@@ -2586,8 +2586,9 @@ sub taxinfoForHits {
       my $new_prefix = $period_prefix;
       $new_prefix =~ s/\.$//; 
       if(exists $toprintH{$new_prefix}) { # only collapse those which have a match without the trailing '.' that we're also printing
+        my $delete_flag = 0;
         foreach $group (@{$groupOAR}) { 
-          if(exists($pfix_ctHH{$group}{$period_prefix})) { 
+          if(exists($pfix_ctHH{$group}{$period_prefix}) && exists($pfix_ctHH{$group}{$new_prefix})) { 
             # collapse
             $pfix_ctHH{$group}{$new_prefix} += $pfix_ctHH{$group}{$period_prefix};
             if($pfix_minEexpHH{$group}{$period_prefix} < $pfix_minEexpHH{$group}{$new_prefix}) { 
@@ -2599,13 +2600,13 @@ sub taxinfoForHits {
             delete $pfix_levelHH{$group}{$period_prefix};
             delete $pfix_minEexpHH{$group}{$period_prefix};
             delete $pfix_minEHH{$group}{$period_prefix};
+            $delete_flag = 1;
           }
         }
-        delete $toprintH{$period_prefix};
+        if($delete_flag) { delete $toprintH{$period_prefix}; }
       }
     }
   }
-
 
   # Now, that period-ending prefixes have been collapsed, 
   # go back through and determine the index of the first unique token
