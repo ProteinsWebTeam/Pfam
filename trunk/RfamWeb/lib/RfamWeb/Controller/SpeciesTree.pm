@@ -222,7 +222,7 @@ sub alignment : Local {
   # we got a nicely formatted Stockholm alignment; make it a plain text download
   $c->res->content_type( 'text/plain' );
   $c->res->headers->header( 'Content-disposition' => 'attachment; ' .
-                            'filename=selected_sequence_accessions.txt' );
+                            'filename=selected_sequence_alignment.stockholm' );
   
   $c->res->body( $output );
 }
