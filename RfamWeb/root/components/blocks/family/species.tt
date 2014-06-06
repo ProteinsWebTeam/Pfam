@@ -95,6 +95,24 @@ sharedRequirements.js.push( "faces/optimer-bold-normal.js" );
   <script type="text/javascript">
     // <![CDATA[
 
+    [%# these are URLs for the various actions that might be carried out on 
+      # the species trees, both sunburst and YUI tree -%]
+
+    // the URL for storing the list of selected IDs 
+    var selectStoreURI = "[% stUri %]/store_ids";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequences as an alignment - Rfam specific
+    var selectRfamAlignmentURI = "[% stUri %]/alignment";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequence accessions
+    var selectAccessionsURI = "[% stUri %]/accessions";
+
+    // the URL to visit when the user selects nodes and wants to download the 
+    // selected sequences in FASTA format
+    var selectFastaURI = "[% stUri %]/sequences";
+
     var treeData = [% rfam.rfam_species_trees.json_string || "{}" %],
         YUITreeLoaded = false,
         speciesTreeTabView,
