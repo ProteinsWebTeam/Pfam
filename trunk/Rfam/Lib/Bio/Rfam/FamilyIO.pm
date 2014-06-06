@@ -2420,16 +2420,26 @@ sub taxinfoForHits {
       if(exists $toprintH{$new_prefix}) { # only collapse those which have a match without the trailing '.' that we're also printing
         my $delete_flag = 0;
         foreach $group (@{$groupOAR}) { 
-          if(exists($pfix_ctHH{$group}{$period_prefix}) && exists($pfix_ctHH{$group}{$new_prefix})) { 
-            # collapse
-            $pfix_ctHH{$group}{$new_prefix} += $pfix_ctHH{$group}{$period_prefix};
-            if($pfix_minEexpHH{$group}{$period_prefix} < $pfix_minEexpHH{$group}{$new_prefix}) { 
+          if(exists($pfix_ctHH{$group}{$period_prefix})) { 
+            if(exists($pfix_ctHH{$group}{$new_prefix})) { 
+              # collapse
+              $pfix_ctHH{$group}{$new_prefix} += $pfix_ctHH{$group}{$period_prefix};
+              if($pfix_minEexpHH{$group}{$period_prefix} < $pfix_minEexpHH{$group}{$new_prefix}) { 
+                $pfix_minEexpHH{$group}{$new_prefix} = $pfix_minEexpHH{$group}{$period_prefix};
+                $pfix_minEHH{$group}{$new_prefix}    = $pfix_minEHH{$group}{$period_prefix};
+              }
+            }
+            else { # no $new_prefix match exists FOR THIS $group, create one
+              $pfix_ctHH{$group}{$new_prefix}      = $pfix_ctHH{$group}{$period_prefix};
               $pfix_minEexpHH{$group}{$new_prefix} = $pfix_minEexpHH{$group}{$period_prefix};
               $pfix_minEHH{$group}{$new_prefix}    = $pfix_minEHH{$group}{$period_prefix};
+              $pfix_levelHH{$group}{$new_prefix}   = $pfix_levelHH{$group}{$period_prefix};
+              $pfix_plevelHH{$group}{$new_prefix}  = $pfix_plevelHH{$group}{$period_prefix};
             }
             # delete $period_prefix
             delete $pfix_ctHH{$group}{$period_prefix};
             delete $pfix_levelHH{$group}{$period_prefix};
+            delete $pfix_plevelHH{$group}{$period_prefix};
             delete $pfix_minEexpHH{$group}{$period_prefix};
             delete $pfix_minEHH{$group}{$period_prefix};
             $delete_flag = 1;
