@@ -1915,6 +1915,211 @@ sub _commentLineForOutlistOrSpecies {
 
 #-------------------------------------------------------------------------------
 
+=head2 writeAnnotatedCM
+
+  Title    : writeAnnotatedCM
+  Incept   : EPN, Wed May 28 09:20:28 2014/swb Friday 6th June 2014
+  Usage    : Bio::Rfam::Family::CM::writeCM($cm, $do_append, $outfile)
+  Function : Output a CM to a file. Based on EPN's writeCM, now adds name and cutoffs
+  Args     : $self:       Bio::Rfam::FamilyIO object
+           : $cm:         Bio::Rfam::Family::CM object
+           : $outfile:    file to print CM to, created or overwritten if $do_append is '0', 
+           :              else created or appended to if $do_append is '1'.
+           : $do_append:  '1' to append to file $outfile if it exists, '0' to overwrite it.
+  Returns  : void
+  Dies     : If $outfile is not defined, or if somehow we have some E-value stat lines but not all of them.
+
+=cut
+
+sub writeAnnotatedCM { 
+	my ( $self, $cm, $familyObj, $outfile, $do_append) = @_;
+	unless ( $cm->isa('Bio::Rfam::Family::CM') ) {
+    confess("ERROR, writeCM, you did not pass in a Bio::Rfam::Family::CM object");
+  }
+  if(! defined $outfile) { die "ERROR in writeCM(), $outfile is not defined."; }
+  if(! defined $do_append) { $do_append = 0; }
+
+  # contract check: make sure we either have all E-value stats or none
+  my $i_am_calibrated = 0;
+  my $have_ecmlc = (exists $cm->{cmHeader}->{ecmlc}) ? 1 : 0;
+  my $have_ecmgc = (exists $cm->{cmHeader}->{ecmgc}) ? 1 : 0;
+  my $have_ecmli = (exists $cm->{cmHeader}->{ecmli}) ? 1 : 0;
+  my $have_ecmgi = (exists $cm->{cmHeader}->{ecmgi}) ? 1 : 0;
+  if   ($have_ecmlc + $have_ecmgc + $have_ecmli + $have_ecmgi == 4) { $i_am_calibrated = 1; }
+  elsif($have_ecmlc + $have_ecmgc + $have_ecmli + $have_ecmgi != 0) { die "ERROR, some but not all E-value stats are valid in the CM"; }
+
+  if((! $do_append) || (! -e $outfile)) { 
+    open(OUT, ">" . $outfile) || die "ERROR unable to open $outfile for writing."; 
+  }
+  else {
+    open(OUT, ">>" . $outfile) || die "ERROR unable to open $outfile for appending."; 
+  }
+
+  # print CM header, in a specific order, this is consistent with Infernal 1.1: infernal-1.1/src/cm_file.c::cm_file_WriteASCII
+  # and with Bio::Rfam::FamilyIO::_parseCMHeader().
+  #
+  # Example: 
+  #
+  #INFERNAL1/a [1.1rc2 | December 2012]
+  #NAME     SEED
+  #ACC      RF99999
+  #DESC     An RNA
+  #STATES   269
+  #NODES    66
+  #CLEN     85
+  #W        103
+  #ALPH     RNA
+  #RF       no
+  #CONS     yes
+  #MAP      yes
+  #DATE     Fri Jan 25 17:21:03 2013
+  #COM      [1] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmbuild test.cm.justbuild RF00014/SEED
+  #
+  #
+  # most values are stored without the first token (e.g. 'NAME'), the first line ('version') is the exception.
+  print  OUT ($cm->{cmHeader}->{version} . "\n");
+  printf OUT ("NAME     %s\n", $familyObj->{DESC}->{AC});
+  if(exists $cm->{cmHeader}->{acc})  { printf OUT ("ACC      %s\n", $cm->{cmHeader}->{acc}); }
+  if(exists $cm->{cmHeader}->{desc}) { printf OUT ("DESC     %s\n", $cm->{cmHeader}->{desc}); }
+  printf OUT ("STATES   %d\n", $cm->{cmHeader}->{states});
+  printf OUT ("NODES    %d\n", $cm->{cmHeader}->{nodes});
+  printf OUT ("CLEN     %d\n", $cm->{cmHeader}->{clen});
+  printf OUT ("W        %d\n", $cm->{cmHeader}->{w});
+  printf OUT ("ALPH     %s\n", $cm->{cmHeader}->{alpha});
+  printf OUT ("RF       %s\n", ($cm->{cmHeader}->{rf}   == 1) ? "yes" : "no");
+  printf OUT ("CONS     %s\n", ($cm->{cmHeader}->{cons} == 1) ? "yes" : "no");
+  printf OUT ("MAP      %s\n", ($cm->{cmHeader}->{map}  == 1) ? "yes" : "no");
+  if(exists $cm->{cmHeader}->{date}) { printf OUT ("DATE     %s\n", $cm->{cmHeader}->{date}); }
+  if(exists $cm->{cmHeader}->{com})  { 
+    for(my $i = 0; $i < scalar(@{$cm->{cmHeader}->{com}}); $i++) { 
+      printf OUT ("COM      %s %s\n", "[" . ($i+1) . "]", $cm->{cmHeader}->{com}->[$i]); 
+    }
+  }
+  #PBEGIN   0.05
+  #PEND     0.05
+  #WBETA    1e-07
+  #QDBBETA1 1e-07
+  #QDBBETA2 1e-15
+  #N2OMEGA  1.52588e-05
+  #N3OMEGA  1.52588e-05
+  #ELSELF   -0.08926734
+  #NSEQ     5
+  #EFFN     1.245117
+  #CKSUM    3944183696
+  #NULL     0.000  0.000  0.000  0.000 
+  #GA       29.00
+  #TC       29.10
+  #NC       28.50
+  #EFP7GF   -7.2971 0.71888
+  #CM
+  printf OUT ("PBEGIN   %g\n",   $cm->{cmHeader}->{pbegin});
+  printf OUT ("PEND     %g\n",   $cm->{cmHeader}->{pend});
+  printf OUT ("WBETA    %g\n",   $cm->{cmHeader}->{wbeta});
+  printf OUT ("QDBBETA1 %g\n",   $cm->{cmHeader}->{qdbbeta1});
+  printf OUT ("QDBBETA2 %g\n",   $cm->{cmHeader}->{qdbbeta2});
+  printf OUT ("N2OMEGA  %6g\n",  $cm->{cmHeader}->{n2omega});
+  printf OUT ("N3OMEGA  %6g\n",  $cm->{cmHeader}->{n3omega});
+  printf OUT ("ELSELF   %.8f\n", $cm->{cmHeader}->{elself});
+  printf OUT ("NSEQ     %d\n",   $cm->{cmHeader}->{nSeq});
+  printf OUT ("EFFN     %f\n",   $cm->{cmHeader}->{effn});
+  if(exists $cm->{cmHeader}->{cksum}) { printf OUT ("CKSUM    %u\n",   $cm->{cmHeader}->{cksum}); } # unsigned 32-bit 
+  printf OUT ("NULL     %s\n",   $cm->{cmHeader}->{null});
+  if(exists $familyObj->{DESC}->{CUTGA})  { printf OUT ("GA       %.2f\n", $familyObj->{DESC}->{CUTGA}); }
+  if(exists $familyObj->{DESC}->{CUTNC})  { printf OUT ("TC       %.2f\n", $familyObj->{DESC}->{CUTNC}); }
+  if(exists $familyObj->{DESC}->{CUTTC})  { printf OUT ("NC       %.2f\n", $familyObj->{DESC}->{CUTTC}); }
+  
+ 
+
+  printf OUT ("EFP7GF   %.4f %.5f\n",  $cm->{cmHeader}->{efp7gf}->[0], $cm->{cmHeader}->{efp7gf}->[1]);
+  
+  #ECMLC    0.62369    -8.95393     0.81613     1600000      531557  0.002258
+  #ECMGC    0.42792   -14.49103    -3.20105     1600000       50144  0.007977
+  #ECMLI    0.53383    -8.38474     2.25076     1600000      350673  0.003422
+  #ECMGI    0.47628    -9.31019     0.57693     1600000       44378  0.009013    
+  if($i_am_calibrated) { # we defined this when we entered the subroutine 
+    foreach my $rowlabel ("ecmlc", "ecmgc", "ecmli", "ecmgi") { 
+      printf OUT ("%s    %.5f  %10.5f  %10.5f  %10.0f  %10d  %.6f\n", 
+                  uc($rowlabel), 
+                  $cm->{cmHeader}->{$rowlabel}->[0], 
+                  $cm->{cmHeader}->{$rowlabel}->[1], 
+                  $cm->{cmHeader}->{$rowlabel}->[2], 
+                  $cm->{cmHeader}->{$rowlabel}->[3], 
+                  $cm->{cmHeader}->{$rowlabel}->[4], 
+                  $cm->{cmHeader}->{$rowlabel}->[5]);
+    }
+  }
+  # done with cmHeader
+
+  # print CM body, none of these values will have changed from when the CM was input (purposefully no functions exist to modify them)
+  foreach my $line (@{$cm->{cmBody}}) { 
+    print OUT $line;
+  }
+
+  # print HMM filter header:
+  #HMMER3/f [i1.1rc2 | December 2012]
+  #NAME  SEED
+  #ACC   RF99999
+  #DESC  An RNA
+  #LENG  85
+  #MAXL  177
+  #ALPH  RNA
+  #RF    no
+  #MM    no
+  #CONS  yes
+  #CS    yes
+  #MAP   yes
+  #DATE  Fri Jan 25 17:21:03 2013
+  #COM   [1] /Users/finnr/Work/Projects/Rfam/Infernal/infernal-1.1rc2/src/cmbuild test.cm.justbuild RF00014/SEED
+  #NSEQ  5
+  #EFFN  2.250977
+  #CKSUM 3944183696
+  #STATS LOCAL MSV       -9.1751  0.71888
+  #STATS LOCAL VITERBI   -9.6795  0.71888
+  #STATS LOCAL FORWARD   -3.3562  0.71888
+
+  # most values are stored without the first token (e.g. 'NAME'), the first line ('version') is the exception.
+  print  OUT ($cm->{hmmHeader}->{version} . "\n");
+  printf OUT ("NAME  %s\n", $cm->{hmmHeader}->{name});
+  if(exists $cm->{hmmHeader}->{acc})  { printf OUT ("ACC   %s\n", $cm->{hmmHeader}->{acc}); }
+  if(exists $cm->{hmmHeader}->{desc}) { printf OUT ("DESC  %s\n", $cm->{hmmHeader}->{desc}); }
+  printf OUT ("LENG  %d\n", $cm->{hmmHeader}->{length});
+  printf OUT ("MAXL  %d\n", $cm->{hmmHeader}->{maxl});
+  printf OUT ("ALPH  %s\n", $cm->{hmmHeader}->{alpha});
+  printf OUT ("RF    %s\n", ($cm->{hmmHeader}->{rf}   == 1) ? "yes" : "no");
+  printf OUT ("MM    %s\n", ($cm->{hmmHeader}->{mm}   == 1) ? "yes" : "no");
+  printf OUT ("CONS  %s\n", ($cm->{hmmHeader}->{cons} == 1) ? "yes" : "no");
+  printf OUT ("CS    %s\n", ($cm->{hmmHeader}->{cs}   == 1) ? "yes" : "no");
+  printf OUT ("MAP   %s\n", ($cm->{hmmHeader}->{map}  == 1) ? "yes" : "no");
+  if(exists $cm->{hmmHeader}->{date}) { printf OUT ("DATE  %s\n", $cm->{hmmHeader}->{date}); }
+  if(exists $cm->{hmmHeader}->{com})  { 
+    for(my $i = 0; $i < scalar(@{$cm->{hmmHeader}->{com}}); $i++) { 
+      printf OUT ("COM   %s %s\n", "[" . ($i+1) . "]", $cm->{hmmHeader}->{com}->[$i]); 
+    }
+  }
+  printf OUT ("NSEQ  %d\n",   $cm->{hmmHeader}->{nSeq});
+  printf OUT ("EFFN  %f\n",   $cm->{hmmHeader}->{effn});
+  if(exists $cm->{hmmHeader}->{cksum}) { printf OUT ("CKSUM %u\n",   $cm->{hmmHeader}->{cksum}); } # unsigned 32-bit 
+  if(exists $cm->{hmmHeader}->{hitGA}) { printf OUT ("GA    %.2f\n", $cm->{hmmHeader}->{hitGA}); }
+  if(exists $cm->{hmmHeader}->{hitTC}) { printf OUT ("TC    %.2f\n", $cm->{hmmHeader}->{hitTC}); }
+  if(exists $cm->{hmmHeader}->{hitNC}) { printf OUT ("NC    %.2f\n", $cm->{hmmHeader}->{hitNC}); }
+  printf OUT ("STATS LOCAL MSV      %8.4f %8.5f\n",  $cm->{hmmHeader}->{msvStats}->{mu},      $cm->{hmmHeader}->{msvStats}->{lambda});
+  printf OUT ("STATS LOCAL VITERBI  %8.4f %8.5f\n",  $cm->{hmmHeader}->{viterbiStats}->{mu},  $cm->{hmmHeader}->{viterbiStats}->{lambda});
+  printf OUT ("STATS LOCAL FORWARD  %8.4f %8.5f\n",  $cm->{hmmHeader}->{forwardStats}->{tau}, $cm->{hmmHeader}->{forwardStats}->{lambda});
+
+  # HMM body
+  # print CM body, none of these values will have changed from when the CM was input (purposefully no functions exist to modify them)
+  foreach my $line (@{$cm->{hmmBody}}) { 
+    print OUT $line;
+  }
+
+  close(OUT);
+  return;
+}
+
+
+
+#-------------------------------------------------------------------------------
+
 =head2 writeCM
 
   Title    : writeCM
@@ -1933,8 +2138,7 @@ sub _commentLineForOutlistOrSpecies {
 
 sub writeCM { 
   my ( $self, $cm, $outfile, $do_append) = @_;
-
-  unless ( $cm->isa('Bio::Rfam::Family::CM') ) {
+	unless ( $cm->isa('Bio::Rfam::Family::CM') ) {
     confess("ERROR, writeCM, you did not pass in a Bio::Rfam::Family::CM object");
   }
   if(! defined $outfile) { die "ERROR in writeCM(), $outfile is not defined."; }
@@ -2028,6 +2232,9 @@ sub writeCM {
   if(exists $cm->{cmHeader}->{hitGA})  { printf OUT ("GA       %.2f\n", $cm->{cmHeader}->{hitGA}); }
   if(exists $cm->{cmHeader}->{hitTC})  { printf OUT ("TC       %.2f\n", $cm->{cmHeader}->{hitTC}); }
   if(exists $cm->{cmHeader}->{hitNC})  { printf OUT ("NC       %.2f\n", $cm->{cmHeader}->{hitNC}); }
+  
+ 
+
   printf OUT ("EFP7GF   %.4f %.5f\n",  $cm->{cmHeader}->{efp7gf}->[0], $cm->{cmHeader}->{efp7gf}->[1]);
   
   #ECMLC    0.62369    -8.95393     0.81613     1600000      531557  0.002258
