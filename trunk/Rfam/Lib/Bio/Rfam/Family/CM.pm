@@ -4,7 +4,7 @@ MODULENAME - a module that
 
 =cut
 
-package Bio::Rfam::Family::CM;
+package Bio::Rfam::Motif::CM;
 
 =head1 DESCRIPTION
 
@@ -76,6 +76,9 @@ has 'is_calibrated' => (
   required => 1,
   default => 0
 );
+<<<<<<< .mine
+1;
+=======
 
 #-------------------------------------------------------------------------------
 
@@ -223,3 +226,4 @@ sub setNC {
 #-------------------------------------------------------------------------------
 
 1;
+>>>>>>> .r8249

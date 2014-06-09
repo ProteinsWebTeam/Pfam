@@ -1,10 +1,10 @@
 =head1 NAME
 
-Bio::Rfam::Family::MSA - a module that reads in a Rfam SEED or ALIGN file.
+Bio::Rfam::Motif::MSA - a module that reads in a Motif SEED or ALIGN file.
 
 =cut
 
-package Bio::Rfam::Family::MSA;
+package Bio::Rfam::Motif::MSA;
 
 =head1 DESCRIPTION
 
@@ -81,7 +81,7 @@ sub seqToSpeciesNames {
     #ncbi_id              548
     #}
     
-    #Idaelly we would use the taxid as the hash key and not
+    #Ideally we would use the taxid as the hash key and not
     #do this every time, but we can not due to subsp etc.
 
     if(!exists($seenSpecies{$row->{align_display_name}})){

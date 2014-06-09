@@ -7,11 +7,11 @@
 #
 =head1 NAME
 
-Bio::Rfam::Family::DESC - An object to represent a DESC file
+Bio::Rfam::Motif::DESC - An object to represent a Motif DESC file
 
 =cut
 
-package Bio::Rfam::Family::DESC;
+package Bio::Rfam::Motif::DESC;
 
 =head1 DESCRIPTION
 
@@ -56,7 +56,6 @@ use Moose;
 use Bio::Rfam::Types ':all';
 use Moose::Util::TypeConstraints;
 
-#use Bio::Rfam::Types qw(RfamAcc RfamId RfamDesc RfamAuthor RfamClanAcc hmmCutOff RfamRef faslseDiscoveryRate);
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -65,19 +64,16 @@ use Moose::Util::TypeConstraints;
 
 has 'AC' => (
   is        => 'rw',
-  isa       => RfamAcc,
   required  => 0
 );
 
 has 'ID' => (
   is        => 'rw',
-  isa       => RfamId,
   required  => 0 
 );  
 
 has 'DE' => (
   is        => 'ro',
-  isa       => RfamDesc,
   required  => 0
 );
 
