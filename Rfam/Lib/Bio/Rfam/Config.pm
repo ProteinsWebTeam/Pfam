@@ -6,10 +6,10 @@ use warnings;
 use Config::General;
 use Catalyst::Utils;
 use Data::Printer;
+use Carp;
 
 use RfamLive;
 use Bio::Rfam::SeqDB;
-
 
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 
