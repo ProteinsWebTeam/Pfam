@@ -501,7 +501,7 @@ td.notes {
 
 body.tool {
   padding: 80px 2px 2px 2px;
-  background: #FFF url(/static/images/about_back.png) left top no-repeat; 
+  background: #FFF url(/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg) 1em 1em no-repeat; 
   color: #15538e;
 }
 
