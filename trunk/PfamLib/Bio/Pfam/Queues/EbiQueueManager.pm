@@ -18,8 +18,9 @@ use Mail::Send;
 use Parallel::ForkManager;
 use Try::Tiny;
 use IPC::Cmd qw( run );
-use IPC::Open3;
-use IO::Handle;
+# use IPC::Open3;
+# use IO::Handle;
+use Text::Wrap qw( wrap );
 
 use WebUser;
 use Bio::Pfam::EbiRestClient;
@@ -332,7 +333,7 @@ sub _submit_batch_job {
     };
     if ( $@ ) {
       $self->_log->logwarn( 'there was a problem submitting a chunk for job '
-                            . $job->job_id );
+                            . $job->job_id . ": $@" );
       $error_message = 'There was a problem queueing one of your sequences.';
 
       last CHUNK;
@@ -576,19 +577,11 @@ sub _check_running_jobs {
   JOB: foreach my $job ( @jobs ) {
     my $job_id = $job->job_id;
 
-    my $results;
     if ( $self->_queue_spec->{synchronisation} eq 'async' ) {
-      $results = $self->_handle_batch_job( $job );
+      $self->_handle_batch_job( $job );
     }
     else {
-      $results = $self->_handle_interactive_job( $job );
-    }
-
-    if ( $results ) {
-      $self->_log->debug( "stored results for job $job_id" );
-    }
-    else {
-      $self->_log->debug( "no results (yet?) for job $job_id" );
+      $self->_handle_interactive_job( $job );
     }
   }
 }
@@ -627,7 +620,8 @@ sub _handle_batch_job {
 
     $self->_handle_running_chunks( $running_chunks_rs );
 
-    my $still_running = $all_chunks_rs->search( { status => 'RUN' } );
+    my $still_running = $all_chunks_rs->search( { status => 'RUN' } )
+                                      ->count;
 
     $self->_log->debug( "still $still_running chunks running" );
 
@@ -637,23 +631,44 @@ sub _handle_batch_job {
   }
 
   $self->_log->debug( "all chunks complete for batch job $job_id" );
-  # TODO not taking into account failed chunks
 
-  my $results = $self->_assemble_chunk_results( $all_chunks_rs, $job );
+  my $failed_chunks = $all_chunks_rs->search( { status => 'FAIL' } );
+
+  if ( my $num_failed = $failed_chunks->count ) { 
+    # there were failed chunks; mail an error message
+
+    $self->_log->debug( "found $num_failed failed chunks; marking job as failed" );
+
+    # format the error message that comes back from the job itself
+    my $error_message = $failed_chunks->first->job_stream->stderr ||
+                        'There was a problem searching one or more of your sequences';
+    chomp $error_message;
+    
+    # update the row describing the parent search, flagging it as failed
+    $job->update( { status => 'FAIL',
+                    closed => \'NOW()' } );
+    $job->job_stream->update( { stderr => $error_message } );
+
+    # mail error message
+    $self->_mail_error_message( $job, $error_message );
+  }
+  else {
+    # no errors; mail the results
+
+    my $results = $self->_assemble_chunk_results( $all_chunks_rs, $job );
+
+    # update the row describing the parent search, flagging it as done
+    $job->update( { status => 'DONE',
+                    closed => \'NOW()' } );
+    $job->job_stream->update( { stdout => $results } );
+
+    # mail results
+    $self->_mail_batch_results( $job, $results )
+      if $results;
+  }
 
   # since all chunks are done, delete the rows from the DB
   $all_chunks_rs->delete;
-
-  # update the row describing the parent search, flagging it as done
-  $job->update( { status => 'DONE',
-                  closed => \'NOW()' } );
-  $job->job_stream->update( { stdout => $results } );
-
-  # mail results
-  $self->_mail_batch_results( $job, $results )
-    if $results;
-
-  return $results;
 }
 
 #-------------------------------------------------------------------------------
@@ -696,8 +711,16 @@ sub _handle_running_chunks {
 
       $self->_log->debug( "marked chunk $ebi_id as DONE" );
     }
-    # TODO need to look for failed chunks. We need to re-submit a failed
-    # chunk to the web service again, which will be a pain
+    elsif ( $chunk_status eq 'FAILURE' ) {
+      
+      my $error_msg = $self->_rc->error_msg( $ebi_id );
+
+      $chunk->update( { status => 'FAIL',
+                        closed => \'NOW()' } );
+      $chunk->job_stream->update( { stderr => $error_msg } );
+
+      $self->_log->debug( "marked chunk $ebi_id as FAIL: $error_msg" );
+    }
 
     $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
   }
