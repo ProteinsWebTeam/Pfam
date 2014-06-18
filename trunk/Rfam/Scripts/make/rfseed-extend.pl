@@ -99,7 +99,7 @@ if (! defined $user || length($user) == 0) {
 my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
                                     'SEED' => {
-                                               fileLocation => "SEED",
+                                               fileLocation => $inseed,
                                                aliType      => 'seed',
                                                forceText    => 1
                                               },
@@ -124,21 +124,31 @@ if(! defined $n3) { $n3 = 0; }
 my $allgap5 = Bio::Rfam::Utils::monocharacterString(".", $n5);
 my $allgap3 = Bio::Rfam::Utils::monocharacterString(".", $n3);
 
-# by default we list user, date, pwd, family, etc.
-# and information for any command line flags set by
-# the user. This block should stay consistent with 
-# the GetOptions() call above, and with the help()
-# subroutine.
-my $cwidth = 70;
-Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, 1);
+# output preamble: user, date, location, etc.
+# first, determine maximum column width for pretty formatting
+my @opt_lhsA = ();
+my @opt_rhsA = ();
 
-if($do_trim)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# trimming seed alignment, rather than extending: ",            "yes [-t]"),      1); }
-else                  { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# extending seed alignment, rather than trimming: ",            "yes [default]"), 1); }
-if($inseed ne "SEED") { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# input alignment in file: ",                                   "$inseed [-i]"),  1); }
-if(defined $n5)       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of residues/columns to extend/trim in 5' direction: ", "$n5 [-5]"),      1); }
-if(defined $n3)       { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# number of residues/columns to extend/trim in 3' direction: ", "$n3 [-3]"),      1); }
-if($do_list)          { Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf ("%-*s%s\n", $cwidth, "# read subset of sequence names to extend from: ",              "$listfile [-l]"),1); }
-Bio::Rfam::Utils::log_output_divider($logFH, 1, $dwidth);
+if($do_trim)           { push(@opt_lhsA, "# trimming seed alignment, rather than extending: ");            push(@opt_rhsA, "yes [-t]"); }
+else                   { push(@opt_lhsA, "# extending seed alignment, rather than trimming: ");            push(@opt_rhsA, "yes [default]"); }
+if($inseed ne "SEED")  { push(@opt_lhsA, "# input alignment in file: ");                                   push(@opt_rhsA, "$inseed [-i]"); }
+if($outseed ne "SEED") { push(@opt_lhsA, "# output alignment to file: ");                                  push(@opt_rhsA, "$outseed [-o]"); }
+if(defined $n5)        { push(@opt_lhsA, "# number of residues/columns to extend/trim in 5' direction: "); push(@opt_rhsA, "$n5 [-5]"); }
+if(defined $n3)        { push(@opt_lhsA, "# number of residues/columns to extend/trim in 3' direction: "); push(@opt_rhsA, "$n3 [-3]"); }
+if($do_list)           { push(@opt_lhsA, "# read subset of sequence names to extend from: ");              push(@opt_rhsA, "$listfile [-l]"); }
+
+my $nopt = scalar(@opt_lhsA);
+my $cwidth = ($nopt > 0) ? Bio::Rfam::Utils::maxLenStringInArray(\@opt_lhsA, $nopt) : 0;
+if($cwidth < 14) { $cwidth = 14; } ; # max length of lhs string in log_output_preamble
+$cwidth++; # one extra space
+
+# now we have column width output preamble
+Bio::Rfam::Utils::log_output_preamble($logFH, $cwidth, $user, $config, $desc, $do_stdout);
+# and report options enabled by the user
+for(my $z = 0; $z < $nopt; $z++) { 
+  Bio::Rfam::Utils::printToFileAndOrStdout($logFH, sprintf("%-*s%s\n", $cwidth, $opt_lhsA[$z], $opt_rhsA[$z]), $do_stdout);
+}
+Bio::Rfam::Utils::log_output_divider($logFH, $do_stdout);
 
 my $oalen = $oseedmsa->alen;
 my $nseedmsa = undef; # will become new MSA
