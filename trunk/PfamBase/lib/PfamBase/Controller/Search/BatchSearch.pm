@@ -169,20 +169,6 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # store the header line here unchecked; we'll validate it in a moment.
-      #
-      # we work with a shortened header line because hmmpfam only considers the 
-      # first 63 characters and we need to hash on the string that hmmpfam
-      # provides when we come to look at the output in the active site code in 
-      # pfam_scan.pl
-
-      # if ( length $raw_header > 60 ) {
-      #   $header = substr $raw_header, 0, 60;
-      # }
-      # else {
-      #   $header = $raw_header;
-      # } 
-
       # check for the following illegal characters: \ ! and *
       if ( m/[\\\!\*]/ ) {
         $c->stash->{searchError} = 
@@ -196,11 +182,14 @@ sub parse_upload : Private {
       }
 
       # check that we haven't already seen this (possibly truncated) header line
-      if ( defined $header_lines{$header} ) {
+      $header =~ m/^(.*?)\s/;
+      my $header_id = $1;
+
+      if ( defined $header_lines{$header_id} ) {
         $c->stash->{searchError} = 
-            'Your file appears to contain duplicate sequences. The header on '
-          . "line $line_num was also found on line $header_lines{$header}. "
-          . 'Please make sure that your file contains only unique header lines. '
+            'Your file appears to contain duplicate sequences. The ID on '
+          . "line $line_num was also found on line $header_lines{$header_id}. "
+          . 'Please make sure that your file contains only unique header IDs. '
           . 'See the notes for more information about this restriction.';
 
         $c->log->debug( "Search::BatchSearch::parse_upload: duplicate header on line $line_num" )
@@ -210,7 +199,7 @@ sub parse_upload : Private {
       }
 
       # not a duplicate header, so store it
-      $header_lines{$header} = $line_num;
+      $header_lines{$header_id} = $line_num;
 
       # check that the total number of sequences doesn't exceed some limit
       if ( $seq_count++ > $this->{maxNumSeqs} ) {
