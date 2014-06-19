@@ -59,7 +59,7 @@ results for submitted jobs.
     my $status = $erc->status( $job_id );
 
     # if done...
-    my $results = $erc->results( $job_id );
+    my $results = $erc->result( $job_id );
 
 =cut
 
