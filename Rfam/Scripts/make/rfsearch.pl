@@ -797,7 +797,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   $rev_searchopts  = $searchopts . $rev_Zopt;
   $searchopts     .= $Zopt;
   # and finally, add the --mxsize opt, added relatively close to 12.0 release (after nearly all families were done, to deal with LSU (EPN, Fri May 30 14:53:47 2014))
-  $searchopts     .= " --mxsize $mxsize_opt"; 
+  $searchopts     .= " --mxsize $mxsize_opt "; 
 
   $searchopts     .= $extra_searchopts;
   $rev_searchopts .= $extra_searchopts;
