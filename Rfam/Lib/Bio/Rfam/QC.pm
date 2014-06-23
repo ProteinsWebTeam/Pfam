@@ -624,9 +624,9 @@ sub checkClanFixedFields {
 
   $error = 0;
   if ( scalar(@diff) ) {
-    $error =1;
+    $error = 1;
     warn "Detected the following differences between the memberships\n";
-    my %newMem = map { $_ => 1 } @{$newClanObj->MEMB};
+    my %newMem = map { $_ => 1 } @{$newClanObj->DESC->MEMB};
     foreach my $d (@diff) {
       print STDERR defined( $newMem{$d} )
         ? "$d is not in the old membership\n"
