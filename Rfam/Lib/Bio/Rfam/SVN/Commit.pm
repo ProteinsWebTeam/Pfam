@@ -453,9 +453,6 @@ sub moveFamily {
 
   my @updated_files = $self->updated();
   foreach my $f (@updated_files) {
-    # TODO I'm fairly sure this regex is terminally broken. It needs to start
-    # TODO with ".*?", otherwise it will match any file, and therefore the test
-    # TODO will always pass
     if ( $f !~ m|(.*/Families/\S+/DESC)$| ) {
       $self->{logger}->warn( 'tried to move a family with updated files; throwing an error' );
       confess( "Trying to move a family with updated files (other than the DESC file)\n");
