@@ -8,6 +8,7 @@ with 'MooseX::Role::Pluggable::Plugin';
 use IO::Compress::Gzip qw(gzip $GzipError);
 use Bio::Easel::MSA;
 use File::Slurp;
+use File::Path;
 use SVG;
 use SVG::Parser;
 
@@ -78,7 +79,8 @@ sub makeBling {
   my $rfamdb = $self->parent->config->rfamlive;
   my $rfam_acc = $self->parent->family->DESC->AC;
 
-  my $location = "/nfs/nobackup2/xfam/rfam";
+  my $location = "/nfs/nobackup2/xfam/rfam/$rfam_acc";
+  File::Path::make_path($location);
   my $seed_loc = "$location/$rfam_acc";
   my $RNAplot_img = "$location/$rfam_acc"."_ss.svg";
   my $RNAplot = "$location/rnaplot";  
@@ -121,16 +123,6 @@ sub makeBling {
   use IPC::Run qw(run);
   my @cmd2 = ("/nfs/production/xfam/rfam/software/bin/RNAplot", "-o", "svg");
   run \@cmd2, '<', $RNAplot;
-
-  #my $pid = open2($RNAplot_img, $RNAplot, "/nfs/production/xfam/rfam/software/bin/RNAplot -o svg");
-
-  #waitpid( $pid, 0 );
-  #my $child_exit_status = $? >> 8;
-
-  #my @RNAplotArgs = ("/nfs/production/xfam/rfam/software/bin/RNAplot", "-o svg", "< /nfs/nobackup2/xfam/rfam/rnaplot");
-  #system(@RNAplotArgs) == 0 or die "system @RNAplotArgs failed: $?";
-
-  #system("/nfs/production/xfam/rfam/software/bin/RNAplot -o svg </nfs/nobackup2/xfam/rfam/rnaplot");
 
   unless(-e $RNAplot_img) {
     die ("Error in creating original RNA SVG image \n")
@@ -243,13 +235,13 @@ sub makeBling {
   my $covariationSVGobj = annotateSVG($RNAplot_img, \%covariationColour, $covariationLegend);
   my $entropySVGobj = annotateSVG($RNAplot_img, \%SeqEntropyColour, $seqEntropyLegend);
 
-  # Save the SVG images to disk
+  # Save the SVG images to disk as SVGs and PNGs
   my ($conservationSVGhandle, $fcbpSVGhandle, $covariationSVGhandle, $entropySVGhandle);
-  
+ 
   open ($conservationSVGhandle, '>', $conservationSVG) or die ("Unable to open $conservationSVGhandle");
   print $conservationSVGhandle $conservationSVGobj;
   close ($conservationSVGhandle) or die ("Unable to close $conservationSVGhandle");
- 
+
   open ($fcbpSVGhandle, '>', $fcbpSVG) or die ("Unable to open $fcbpSVG");
   print $fcbpSVGhandle $fcbpSVGobj;
   close ($fcbpSVGhandle) or die ("Unable to close $fcbpSVGhandle");
@@ -331,17 +323,20 @@ sub annotateSVG {
   my $parser=new SVG::Parser();
   my $svg=$parser->parse($svg_text);
 
- # Navigate the DOM and create references to relevent places in the DOM
- my $seqElements = $svg->getElementByID("seq");
- my $outlineElements = $svg->getElementByID("outline");
- my $pairsElements = $svg->getElementByID("pairs");
- my $seqElementParent=$seqElements->getParentElement();
- my @children = $seqElements->getChildren();
-
+  use Data::Dumper;
+   
+  # Navigate the DOM and create references to relevent places in the DOM
+  my $seqElements = $svg->getElementByID("seq");
+  my $outlineElements = $svg->getElementByID("outline");
+  my $pairsElements = $svg->getElementByID("pairs");
+  my $seqElementParent=$seqElements->getParentElement();
+  my @children = $seqElements->getChildren();
+  my $SVGfirstChild=$svg->getFirstChild();
+  my @scriptElements = $SVGfirstChild->getElements("script");
+  my $scriptElement = $scriptElements[0];
+  
   # Change with width & height of the SVG to allow addition of the legend
   # The default from RNAplot is 452 x 452  so we increase it to 500 x 600
-  use Data::Dumper;
-  my $SVGfirstChild=$svg->getFirstChild(); 
   my $SVGwidth  = "600";
   my $SVGheight = "550";
   $SVGwidth     = $SVGfirstChild->setAttribute('width',$SVGwidth);
@@ -357,7 +352,7 @@ sub annotateSVG {
   $transformAttribute =~ s/translate\(-?\d+.\d+,-?\d+.\d+\)/translate($xTranslate,$yTranslate)/;
   $transformAttribute = $seqElementParent->setAttribute('transform', $transformAttribute); 
  
-  # Deference the annotation hash
+  # Dereference the annotation hash
   my %annotationColour = %$annotationHash;
  
   # Change the stroke width of the lines
@@ -371,11 +366,35 @@ sub annotateSVG {
   my %seqPosHash;
   my $pos = 0;
   foreach my $child (@children) {
-    my $xCoord = ($child->getAttribute("x"));
-    my $yCoord = ($child->getAttribute("y"));
+    my $xCoord = ($child->getAttribute("x")+1);
+    my $yCoord = ($child->getAttribute("y")-1);
     %seqPosHash = addSeqPosObj(\%seqPosHash,$pos,$xCoord,$yCoord);
     $pos++;
   }
+
+  # Add 5' and 3' labels
+  my $fiveCoordx  = ($seqPosHash{0}->{'X'})+4;
+  my $fiveCoordy  = ($seqPosHash{0}->{'Y'})-15;
+  my $threeCoordx = ($seqPosHash{$pos-1}->{'X'})+4;
+  my $threeCoordy = ($seqPosHash{$pos-1}->{'Y'})-15;
+  
+  my $fivePrime = $seqElements->text(
+                                 id     => 'fivePrime',
+                                 x      => $fiveCoordx,
+                                 y      => $fiveCoordy,
+                                 style  => { 'font-family'  => "Arial,Helvetica",
+                                             'font-size'    => "10px",
+                                             'text-ancor'   => "middle",
+                                             'fill'         => "dimgrey" } )->cdata("5'");
+ 
+  my $threePrime = $seqElements->text(
+                                 id     => 'threePrime',
+                                 x      => $threeCoordx,
+                                 y      => $threeCoordy,
+                                 style  => { 'font-family'  => "Arial,Helvetica",
+                                             'font-size'    => "10px",
+                                             'text-ancor'   => "middle",
+                                             'fill'         => "dimgrey" } )->cdata("3'");
 
   # Create a new SVG group object which will contain the annotation circles
   my $tmpSVGObj = SVG->new;
@@ -387,7 +406,7 @@ sub annotateSVG {
     unless ($annotationColour{$key}  eq  '-') {
       $tag = $circleElementsGroup->circle(   cx   =>   $seqPosHash{$key}->{'X'},
                                              cy   =>   $seqPosHash{$key}->{'Y'},
-                                             r    =>   8,
+                                             r    =>   7,
                                              style=>   { 'fill-opacity'=> 1,
                                                          'fill'=>"rgb($annotationColour{$key})"});
     }
@@ -397,6 +416,40 @@ sub annotateSVG {
   $seqElementParent->insertBefore($circleElementsGroup, $outlineElements);
   $SVGfirstChild->insertBefore($legendElements, $seqElementParent);
 
+  # Remove the old script element
+  $SVGfirstChild->removeChild($scriptElement);
+
+  # Add the new script element
+  my $newScriptElement=$svg->script(-type=>'text/ecmascript');
+  $newScriptElement->CDATA(qq|
+        var shown = 1;
+        function click() {
+             var seq = document.getElementById("seq");
+             var lines = document.getElementById("outline");
+             var pairs = document.getElementById("pairs");         
+   
+             if (shown==1) {
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: hidden");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+
+               shown = 2;
+             } else if (shown==2) {
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+
+               shown = 3;
+             } else if (shown==3) { 
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible"); 
+               shown = 1;
+             }
+         }
+  |);
+
+ 
   # Generate the annotated SVG file
   my $outputSVG = $svg->xmlify();
   
