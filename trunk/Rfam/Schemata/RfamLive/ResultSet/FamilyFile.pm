@@ -25,14 +25,23 @@ sub uploadFilesFromFamilyObj{
   my $compressedSeed = Compress::Zlib::memGzip( $seed )
     or carp( "Cannot compress seed: $gzerrno\n" );
   
-  my $tblout = read_file( $familyObj->TBLOUT->fileLocation, err_mode => 'carp'  );
-  my $compressedTbl = Compress::Zlib::memGzip( $tblout )
-    or carp( "Cannot compress tblout: $gzerrno\n" );
-  
-  my $result = $self->create({ rfam_acc => $familyObj->DESC->AC,
-                               seed     => $compressedSeed,
-                               cm       => $compressedCm,
-			       tblout   => '' });
+  # the largest TBLOUT files are way too big to go in, so we're just going to omit them
+  # jgt 20140623 EBI
+ 
+  my $result = $self->create( {
+    rfam_acc => $familyObj->DESC->AC,
+    seed     => $compressedSeed,
+    cm       => $compressedCm,
+  } );
+
+  # my $tblout = read_file( $familyObj->TBLOUT->fileLocation, err_mode => 'carp'  );
+  # my $compressedTbl = Compress::Zlib::memGzip( $tblout )
+  #   or carp( "Cannot compress tblout: $gzerrno\n" );
+  # 
+  # my $result = $self->create({ rfam_acc => $familyObj->DESC->AC,
+  #                              seed     => $compressedSeed,
+  #                              cm       => $compressedCm,
+  #                              tblout   => '' });
 
   #We can not load the large families into the database 
   #as the tblout exceeds the max_allowed_packet size. 

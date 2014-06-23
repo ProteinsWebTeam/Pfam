@@ -40,11 +40,6 @@ __PACKAGE__->table("_family_file");
   data_type: 'longblob'
   is_nullable: 0
 
-=head2 tblout
-
-  data_type: 'longblob'
-  is_nullable: 0
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -53,8 +48,6 @@ __PACKAGE__->add_columns(
   "seed",
   { data_type => "longblob", is_nullable => 0 },
   "cm",
-  { data_type => "longblob", is_nullable => 0 },
-  "tblout",
   { data_type => "longblob", is_nullable => 0 },
 );
 
@@ -98,14 +91,6 @@ sub unzipped_seed {
   my $seed = Compress::Zlib::memGunzip($compressed) or 
     carp( "Failed to uncompress seed: $gzerrno");
   return $seed;
-}
-
-sub unzipped_tblout {
-  my $self = shift;
-  my $compressed = $self->tblout;
-  my $tblout = Compress::Zlib::memGunzip($compressed) or 
-    carp( "Failed to uncompress tblout: $gzerrno");
-  return $tblout;
 }
 
 1;
