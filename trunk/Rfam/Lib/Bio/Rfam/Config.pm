@@ -177,10 +177,52 @@ sub mandatoryFiles {
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  my @files = sort{ $self->{'_config'}->{files}->{family}->{$a} <=> 
-                      $self->{'_config'}->{files}->{family}->{$b}} 
-                    keys (%{ $self->{'_config'}->{files}->{family} });
-  return \@files;
+
+  return $self->{_config}->{files}->{family_file};
+}
+
+
+=head2 excluded_files
+
+  Title    : excluded_files
+  Usage    : my $files_to_exclude_from_DB_commit = $config->excluded_files;
+  Function : Returns a list of file names that should be added to SVN but
+           : not to the "_family_files" table by the pre-commit step
+  Args     : None, readonly defined in the config
+  Returns  : Ref to array of strings containing filenames.
+  
+=cut
+
+sub excluded_files {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  my %excluded_files = map { $_ => 1 } @{ $self->{'_config'}->{files}->{excluded_file} };
+
+  return \%excluded_files;
+}
+
+
+=head2 timestamp_ordered_files
+
+  Title    : timestampOrderedFiles
+  Usage    : my $files_to_fix_timestamp_on = $config->timestamp_ordered_files;
+  Function : Returns a list of file names that need to have their timestamps
+           : reset after being written out as part of the SVN transaction
+  Args     : None, readonly defined in the config
+  Returns  : Ref to array of strings containing filenames.
+  
+=cut
+
+sub timestamp_ordered_files {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{'_config'}->{files}->{timestamp_ordered_file};
 }
 
 
