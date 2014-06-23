@@ -171,7 +171,7 @@ sub _commitEntry {
     $rfamdb->resultset('Family')->createFamilyFromObj($familyObj, $row->auto_wiki);
   }
   else {
-    $self->{logger}->debug( 'family exists; updatingcreating from object' );
+    $self->{logger}->debug( 'family exists; updating from object' );
     $rfamdb->resultset('Family')->updateFamilyFromObj($familyObj, $row->auto_wiki);
   }
   $self->{logger}->debug( 'family creation/update complete' );
@@ -382,29 +382,41 @@ sub _getEntryObjFromTrans {
   my $dir = File::Temp->newdir();
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
   my $params;
-  foreach my $f ( @{ $self->{config}->mandatoryFiles } ) {
-    $self->{logger}->debug( "writing '$f' to disk..." );
-    print STDERR "Catting $f\n";
-    my $fh;
-    my @file = $self->cat("$path/$f");
-    open( $fh, ">$dir/$family/$f" ) or die "Could not open $dir/$f";
-    foreach (@file) {
-      print $fh "$_\n";
+
+  my $excluded_files = $self->{config}->excluded_files;
+
+  FILE: foreach my $file ( @{ $self->{config}->mandatoryFiles } ) {
+
+    my $file_path = "$dir/$family/$file";
+
+    if ( $excluded_files->{$file} ) {
+      $self->{logger}->debug( "'$file' is flagged as excluded from check-in; substituting for empty file" );
+      open( EMPTY_FILE, '>', $file_path )
+        or $self->{logger}->logdie( "ERROR: couldn't open '$file_path' for writing empty file: $!" );
+      close EMPTY_FILE;
     }
-    close($fh);
+    else {
+      $self->{logger}->debug( "'svn cat'ting '$file' to disk..." );
+      my @file = $self->cat("$path/$file");
+      open( my $fh, '>', $file_path ) 
+        or $self->{logger}->logdie( "ERROR: couldn't open '$file_path' for 'svn cat': $!" );
+
+      foreach ( @file ) {
+        print $fh "$_\n";
+      }
+
+      close $fh;
+    }
   }
   $self->{logger}->debug( 'wrote all files from SVN transaction to disk' );
 
-  #Fix timestamps.....
-  foreach my $file (
-    qw(SEED HMM OUTPUT DFAMOUT OUPUT.rev DFAMOUT.rev scores ALIGN DESC))
-  {
-    next unless ( -e "$dir/$family/$file" );
-
-    #Fudge the access time and modification times
-    my ( $atime, $mtime );
-    $atime = $mtime = time;
-    utime $atime, $mtime, "$dir/$family/$file";
+  # fix the timestamps for newly written files, ordering them according to 
+  # their order in the config
+  foreach my $file ( @{ $self->{config}->timestamp_ordered_files } ) {
+    my $file_path = "$dir/$family/$file";
+    next unless -e $file_path;
+    my $now = time;
+    utime $now, $now, $file_path;
   }
   $self->{logger}->debug( 'fixed timestamps for new files' );
 
@@ -441,6 +453,9 @@ sub moveFamily {
 
   my @updated_files = $self->updated();
   foreach my $f (@updated_files) {
+    # TODO I'm fairly sure this regex is terminally broken. It needs to start
+    # TODO with ".*?", otherwise it will match any file, and therefore the test
+    # TODO will always pass
     if ( $f !~ m|(.*/Families/\S+/DESC)$| ) {
       $self->{logger}->warn( 'tried to move a family with updated files; throwing an error' );
       confess( "Trying to move a family with updated files (other than the DESC file)\n");
