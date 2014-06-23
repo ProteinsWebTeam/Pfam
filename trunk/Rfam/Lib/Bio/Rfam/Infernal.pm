@@ -140,6 +140,7 @@ sub cmcalibrate_wrapper {
            : $submitExStr:  extra string to add to qsub/bsub command
            : $queue:        queue to submit to, "" for default
            : $do_locally:   '1' to run locally, else run on cluster
+           : $gbPerThread:  number of Gb of memory to request per thread
   Returns  : void
   Dies     : if cmsearch command fails
 
@@ -168,6 +169,8 @@ sub cmsearch_wrapper {
            : $submitExStr:  extra string to add to qsub/bsub command
            : $queue:        queue to submit to, "" for default
            : $do_locally:   '1' to run locally, else run on cluster
+           : $do_locally:   '1' to run locally, else run on cluster
+           : $gbPerThread:  number of Gb of memory to request per thread
   Returns  : void
   Dies     : if cmsearch command fails
 
@@ -196,15 +199,17 @@ sub cmscan_wrapper {
            : $submitExStr:  extra string to add to qsub/bsub command
            : $queue:        queue to submit to, "" for default
            : $do_locally:   '1' to run locally, else run on cluster
+           : $gbPerThread:  number of Gb of memory to request per thread
   Returns  : void
   Dies     : if cmsearch/cmscan command fails
 
 =cut
 
 sub cmsearch_or_cmscan_wrapper { 
-  my ($program, $config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue, $do_locally) = @_;
+  my ($program, $config, $jobname, $options, $cmPath, $seqfilePath, $outPath, $errPath, $submitExStr, $queue, $do_locally, $gbPerThread) = @_;
   my $cpus;
   if(! defined $outPath || $outPath eq "") { $outPath = "/dev/null"; }
+  if(! defined $gbPerThread || $gbPerThread eq "") { $gbPerThread = 3.0; }
 
   # contract check: $program must be cmsearch or cmscan, $options must include --tblout and --cpu
   if($program ne "cmsearch" && $program ne "cmscan") { 
@@ -226,7 +231,7 @@ sub cmsearch_or_cmscan_wrapper {
   }
   else { # submit to cluster
     my $ncpu = ($cpus == 0) ? 1 : $cpus; # --cpu 0 actually means 'use 1 CPU'
-    my $requiredMb = $ncpu * 3 * 1000.0; # ~3 Gb per thread
+    my $requiredMb = $ncpu * $gbPerThread * 1000.; # 
     Bio::Rfam::Utils::submit_nonmpi_job($config->location, $config->infernalPath . "$program $options $cmPath $seqfilePath > $outPath", $jobname, $errPath, $ncpu, $requiredMb, $submitExStr, $queue);
   }
 

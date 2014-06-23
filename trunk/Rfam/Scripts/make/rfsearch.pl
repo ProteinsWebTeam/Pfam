@@ -824,6 +824,7 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
   my @rev_errOA    = (); # names of error files for reversed searches
 
   submit_cmsearch_jobs($config, $ndbfiles, "s.",  $searchopts, $cmfile, \@dbfileA, \@jobnameA, \@tblOA, \@cmsOA, \@errOA, $ssopt_str, $q_opt);
+  exit 0;
   if($rev_ndbfiles > 0) { 
     submit_cmsearch_jobs($config, $rev_ndbfiles, "rs.", $rev_searchopts, $cmfile, \@rev_dbfileA, \@rev_jobnameA, \@rev_tblOA, \@rev_cmsOA, \@rev_errOA, $ssopt_str, $q_opt);
   }
@@ -987,13 +988,21 @@ sub submit_cmsearch_jobs {
   my ($config, $ndbfiles, $prefix, $searchopts, $cmfile, $dbfileAR, $jobnameAR, $tblOAR, $cmsOAR, $errOAR, $ssopt_str, $q_opt) = @_;
   my ($idx, $file_idx, $dbfile);
 
+  # determine Gb of memory we need per thread based on $searchopts, if it contains '--mxsize <d>' with <d> > 500
+  # use 8Gb, otherwise use 3gb. This step wasimplemented this to deal with Eukaryotic LSU, which requires more 
+  # than 3Gb per thread
+  my $gbPerThread = 3.0;
+  if($searchopts =~ /\-\-mxsize\s+(\d+)/) { 
+    if($1 > 500) { $gbPerThread = 8.0; }
+  }
+
   for($idx = 0; $idx < $ndbfiles; $idx++) { 
     $file_idx = $idx + 1; # off-by-one w.r.t $idx, because database file names are 1..$ndbfiles, not 1..$ndbfiles-1
     $jobnameAR->[$idx] = $prefix . "$$.$file_idx";  
     $tblOAR->[$idx]    = $prefix . "$$.$file_idx.tbl";
     $cmsOAR->[$idx]    = $prefix . "$$.$file_idx.cmsearch";
     $errOAR->[$idx]    = $prefix . "$$.$file_idx.err";
-    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt, 0);  
+    Bio::Rfam::Infernal::cmsearch_wrapper($config, $jobnameAR->[$idx], "--tblout " . $tblOAR->[$idx] . " " . $searchopts, $cmfile, $dbfileAR->[$idx], $cmsOAR->[$idx], $errOAR->[$idx], $ssopt_str, $q_opt, 0, $gbPerThread);  
   }
 }
 
