@@ -110,11 +110,22 @@ eval {
     
     #Move the entry
     my $dest = $tmpDir->dirname;
+    chdir $dest 
+      or die "ERROR: could not change into dir '$dest': $!";
+    my $file_path = '.default' . $$ . 'rclnewmove';
+    open( M, '>', $file_path )
+      or die "ERROR: could not open '$file_path': $!";
+    print M "Moving from pending to main repository.";
+    close M;
+    print STDERR $clan->clan_acc . "\n";
+    $client->addRCLNEWMOVELog;
+    $client->moveNewClan( $clan_id, $clan->clan_acc );
+
     #Now checkout and automatically add the accession to the DESC file
-    open( M, ">.default" . $$ . "rclnewmove" )
-      or die "Could not open $dest/.default" . $$ . "rclnewmove:$!";
+    open( M, '>', $file_path )
+      or die "ERROR: could not open '$file_path' to write accession log: $!";
     print M "Automatically adding accession.";
-    close(M);
+    close M;
     $client->addRCLNEWMOVELog;
     #Now checkout and add the accession to the DESC file!
     $client->checkoutClan( $clan->clan_acc, $dest );
