@@ -83,6 +83,13 @@ has '_queue_spec' => (
   isa => 'HashRef',
 );
 
+# convenience slot for the jobs-per-cycle config value
+has '_jobs_per_cycle' => (
+  is => 'rw',
+  isa => 'HashRef',
+  default => sub { { submission => 10, results => 50 } },
+);
+
 # what type of job this queue manager is responsible for
 has '_job_type' => (
   is => 'rw',
@@ -114,11 +121,15 @@ sub BUILD {
         . join( ', ', keys %known_queues ) . "\n"
     unless $known_queues{$self->queue};
 
-  # as a convenience, retrieve the queue specification from the configuration,
-  # based on the queue name that we get from arguments. Also store the job
-  # type directly
+  # as a convenience: retrieve the queue specification from the configuration,
+  # based on the queue name that we get from arguments; store the job
+  # type directly; get the job_per_cycle setting
   $self->_queue_spec( $queue_config->{$self->queue} );
   $self->_job_type( $self->_queue_spec->{job_type} );
+  $self->_jobs_per_cycle( {
+    submission => $self->config->{search}->{jobs_per_submission_cycle},
+    results    => $self->config->{search}->{jobs_per_results_cycle},
+  } );
 
   # set up the REST client
   $self->_rc->base_url( $self->_queue_spec->{base_url} )
@@ -198,7 +209,11 @@ sub _enqueue_pending_jobs {
   $self->_log->info( 'found ' . scalar @jobs . ' pending jobs' )
     if scalar @jobs;
 
-  JOB: foreach my $job ( @jobs ) {
+  my $job_number = 0;
+  JOB: foreach my $job ( @jobs[ 0 .. ( $self->_jobs_per_cycle->{submission} - 1 ) ] ) {
+    # since we're asking for an array slice, we might get undef for $job when
+    # the number of running jobs is less than the number of jobs-per-cycle
+    next unless defined $job;
 
     # these are the options specified by the user who submitted the search.
     # We need to catch a potential exception from "from_json", because
@@ -263,7 +278,7 @@ sub _enqueue_pending_jobs {
         $job->job_stream->update ( { stderr => $_ } );
 
         $self->_log->warn( 'failed to submit interactive job ' . $job->job_id
-                           . '; added error to job_stream' );
+                           . "; added error to job_stream: $error_message" );
       }
       else {
         $job->update( { status => 'RUN',
@@ -278,6 +293,10 @@ sub _enqueue_pending_jobs {
       $self->_run_local_job( $job );
     }
 
+    $job_number++;
+    if ( $job_number >= $self->_jobs_per_cycle->{submission} ) {
+      $self->_log->debug( 'reached jobs-per-cycle limit (' . $self->_jobs_per_cycle->{submission} . ')' );
+    }
   }
 
 }
@@ -336,6 +355,7 @@ sub _submit_batch_job {
                             . $job->job_id . ": $@" );
       $error_message = 'There was a problem queueing one of your sequences.';
 
+      $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
       last CHUNK;
     }
 
@@ -357,6 +377,7 @@ sub _submit_batch_job {
                             . $job->job_id );
       $error_message = 'There was a problem recording the details of your search.';
 
+      $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
       last CHUNK;
     }
 
@@ -370,6 +391,7 @@ sub _submit_batch_job {
                             . $job->job_id );
       $error_message = 'There was a problem storing one of your sequences.';
 
+      $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
       last CHUNK;
     }
 
@@ -560,6 +582,8 @@ sub _submit_interactive_job {
   }
 
   $self->_log->debug( "submitted search; internal EBI job ID: $ebi_id" );
+
+  return;
 }
 
 #-------------------------------------------------------------------------------
@@ -574,7 +598,12 @@ sub _check_running_jobs {
   $self->_log->info( 'found ' . scalar @jobs . ' running jobs' )
     if scalar @jobs;
 
-  JOB: foreach my $job ( @jobs ) {
+  my $job_number = 0;
+  JOB: foreach my $job ( @jobs[ 0 .. ( $self->_jobs_per_cycle->{results} - 1 ) ] ) {
+    # since we're asking for an array slice, we might get undef for $job when
+    # the number of running jobs is less than the number of jobs-per-cycle
+    next unless defined $job;
+
     my $job_id = $job->job_id;
 
     if ( $self->_queue_spec->{synchronisation} eq 'async' ) {
@@ -582,6 +611,11 @@ sub _check_running_jobs {
     }
     else {
       $self->_handle_interactive_job( $job );
+    }
+
+    $job_number++;
+    if ( $job_number >= $self->_jobs_per_cycle->{results} ) {
+      $self->_log->debug( 'reached jobs-per-cycle limit (' . $self->_jobs_per_cycle->{results} . ')' );
     }
   }
 }
