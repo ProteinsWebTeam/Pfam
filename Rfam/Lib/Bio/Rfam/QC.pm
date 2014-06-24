@@ -612,8 +612,11 @@ sub checkClanFixedFields {
   }
   
   #Now compare the membership of the old and new to check that nobody has change it here.
+  my $old_members = defined $oldClanObj->DESC->MEMB ? $oldClanObj->DESC->MEMB : [];
+  my $new_members = defined $newClanObj->DESC->MEMB ? $newClanObj->DESC->MEMB : [];
+
   my %count;
-  foreach my $m ( @{$oldClanObj->DESC->MEMB}, @{$newClanObj->DESC->MEMB} ) {
+  foreach my $m ( @{$old_members}, @{$new_members} ) {
     $count{$m}++;
   }
 
@@ -626,7 +629,7 @@ sub checkClanFixedFields {
   if ( scalar(@diff) ) {
     $error = 1;
     warn "Detected the following differences between the memberships\n";
-    my %newMem = map { $_ => 1 } @{$newClanObj->DESC->MEMB};
+    my %newMem = map { $_ => 1 } @{$new_members};
     foreach my $d (@diff) {
       print STDERR defined( $newMem{$d} )
         ? "$d is not in the old membership\n"
