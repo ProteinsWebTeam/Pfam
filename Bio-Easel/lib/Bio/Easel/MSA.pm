@@ -482,10 +482,10 @@ sub get_ss_cons_dot_parantheses {
   if(! $self->has_ss_cons()) { croak "Trying to fetch SS_cons from MSA but it does not exist"; }
   my $ss_cons = _c_get_ss_cons( $self->{esl_msa} );
   # convert all basepairs to '(' and ')'
-  $ss_cons =~ tr/[\<\>\[\]\{\}]/[\(\)\(\)\(\)]/; 
+  $ss_cons =~ tr/\<\>\[\]\{\}/\(\)\(\)\(\)/; 
   # convert all single stranded positions (everything but '(' and ')') to '.'
   $ss_cons =~ s/[^\(\)]/\./g;
-  
+ 
   return $ss_cons;
 }
 
