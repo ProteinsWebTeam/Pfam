@@ -1624,7 +1624,7 @@ sub optional {
 
   if(!exists($override->{missing})){
     if(defined($oldFamily)){
-      my ($found, $missing) = compareOldAndNew($newFamily, $oldFamily);
+      my ($found, $missing) = compareOldAndNew($oldFamily, $newFamily);
       if(scalar(@$missing)){
       	print("Do you want to continue regardless? [y/n]  ");
       	my $reply = <STDIN>;
