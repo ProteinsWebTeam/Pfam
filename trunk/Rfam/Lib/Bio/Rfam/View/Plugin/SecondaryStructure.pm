@@ -12,6 +12,9 @@ use File::Path;
 use SVG;
 use SVG::Parser;
 
+use Bio::Rfam::FamilyIO;
+use Bio::Rfam::Utils;
+
 has foo => (
   is  => 'rw',
   isa => 'Int'
@@ -31,7 +34,7 @@ sub makeRchie {
 	
 	my $rfamdb = $self->parent->config->rfamlive;
 	my $rfam_acc = $self->parent->family->DESC->AC;
-	
+
 	my $location = "/nfs/nobackup2/xfam/rfam";
 	my $seed_loc = "$location/$rfam_acc";
 	my $rchie_img = "$location/$rfam_acc.rchie.png";
@@ -74,21 +77,27 @@ sub makeRchie {
 }
 
 sub makeBling {
-  my ($self) = @_;;
-
+  my ($self) = @_;
+  
+  my $config = $self->parent->config;
   my $rfamdb = $self->parent->config->rfamlive;
   my $rfam_acc = $self->parent->family->DESC->AC;
 
-  my $location = "/nfs/nobackup2/xfam/rfam/$rfam_acc";
+  my $location = "/homes/evan/public_html/ss_images/$rfam_acc";
   File::Path::make_path($location);
-  my $seed_loc = "$location/$rfam_acc";
+  my $seed_loc = "$location/$rfam_acc.SEED";
+  my $CM_loc = "$location/$rfam_acc.CM";
   my $RNAplot_img = "$location/$rfam_acc"."_ss.svg";
+  my $RNAplot_img_maxCM = "$location/$rfam_acc.maxcm_ss.svg"; 
   my $RNAplot = "$location/rnaplot";  
+  my $RNAplot_maxCM = "$location/rnaplot_maxCM";
 
   my $conservationSVG = "$location/$rfam_acc.conservation.svg";
   my $covariationSVG = "$location/$rfam_acc.covariation.svg";
   my $entropySVG = "$location/$rfam_acc.entropy.svg";
   my $fcbpSVG = "$location/$rfam_acc.fcbp.svg"; 
+  my $normalSVG = "$location/$rfam_acc.normal.svg"; 
+  my $maxCMparseSVG = "$location/$rfam_acc.maxcm.svg";
 
   # This is simply to get around a 'not digitized' error that easel is giving
   my $msa = $self->parent->family->SEED;
@@ -104,15 +113,32 @@ sub makeBling {
   # Retrieve the Consensus RNA Secondary Structure
   my $SScons = $msa->get_ss_cons_dot_parantheses();
 
+  # Write the CM file from the database
+  Bio::Rfam::FamilyIO->writeCM($self->parent->family->CM, $CM_loc);
+
   # Create a hash of positions that form basepairs for generating specific bp images
   my $i=0;
+  my $j=0;
+  my @jArray;
   my %bpHash;
   foreach my $bpPos (split //, $SScons) {
-    if($bpPos eq '.') {$bpHash{$i}=0}
-    else {$bpHash{$i}=1};
-    $i++;
+    if($bpPos eq '.') {
+      $bpHash{$i}=0;
+      push (@jArray, $j);
+    }
+    elsif ($bpPos eq '(') { 
+      $bpHash{$i}=1;
+      $j++;
+      push (@jArray, $j);
+    }
+    elsif ($bpPos eq ')') {
+      $bpHash{$i}=1;
+      push (@jArray, $j);
+      $j--;     
+   }
+   $i++;
   }
-
+  
   # Create the base unannotated SS Image with RNAplot
   open(my $fh, ">", "$RNAplot" ) or die "$RNAplot";
   print $fh (">$rfam_acc\n$MIS\n$SScons\n"); 
@@ -153,7 +179,7 @@ sub makeBling {
   # 3) Covariation
   # 4) Sequence Entropy
   # 5) Maximum parse of the covariance model
-  # 6) Normal (A different colour for each stem loop)
+  # 6) Normal (A different colour for each perfect stem)
   # 7) Motifs
 
   my $rgbColourNumber;
@@ -201,7 +227,7 @@ sub makeBling {
 
   # Image 4: Sequence Entropy 
   my @SeqEntropy = $msa->Bio::Easel::MSA::pos_entropy();
-  my $maxEntropy = 0.0;
+  my $maxEntropy = 0.001;
   my %SeqEntropyColour;
   foreach my $SeqEntValue (@SeqEntropy) {
     $maxEntropy = $SeqEntValue if( $maxEntropy < $SeqEntValue);
@@ -214,10 +240,130 @@ sub makeBling {
   } 
 
   # Image 5: Maximum Parse of CM Model
-  # !TODO!
+  my $cmemitPath = $config->infernalPath . "cmemit";
+  my $cmalignPath = $config->infernalPath . "cmalign";
+  my $out_tfile = "$location/$rfam_acc.tfile";
+  my $clen = $self->parent->family->CM->cmHeader->{clen};  #consensus length of the CM 
+  my @escAR = ();
+  my @cseqAR = ();
+  my $cpos;
+
+  Bio::Rfam::Utils::run_local_command("$cmemitPath -c $CM_loc | cmalign --notrunc -g --tfile $out_tfile $CM_loc - > /dev/null");
+
+  open(IN, $out_tfile) || die "ERROR unable to open $out_tfile for reading";
+
+  for($cpos = 0; $cpos < $clen; $cpos++) {
+    $escAR[$cpos]  = "";
+    $cseqAR[$cpos] = "";
+  }
+
+  while(my $line = <IN>) {
+    if($line =~ m/^\s+\d+\s+\d+/) {
+      $line =~ s/^\s+//;
+      my @elA = split(/\s+/, $line);
+      my ($emitl, $emitr, $state, $esc) = ($elA[1], $elA[2], $elA[3], $elA[9]);
+      my ($lchar, $rchar, $lpos, $rpos) = ("", "", -1, -1);
+      if ($emitl =~ m/^(\d+)([A-Z])/) {
+        $lpos = $1; $lchar = $2;
+      }
+      if ($emitr =~ m/^(\d+)([A-Z])/) {
+        $rpos = $1; $rchar = $2;
+      }
+      if ($lchar ne "") {
+        if ($state !~ m/ML/ && $state !~ m/MP/) {
+          die "ERROR, unexpected left  emission in trace file: $line";
+        }
+        $escAR[$lpos-1]  = ($state =~ m/MP/) ? $esc/2. : $esc; # split MP scores over both positions by dividing by 2
+        $cseqAR[$lpos-1] = $lchar;
+      }
+      if ($rchar ne "") {
+        if($state !~ m/MR/ && $state !~ m/MP/) {
+          die "ERROR, unexpected right emission in trace file: $line";
+        }
+      $escAR[$rpos-1]  = ($state =~ m/MP/) ? $esc/2. : $esc; # split MP scores over both positions by dividing by 2
+      $cseqAR[$rpos-1] = $rchar;
+      }
+    }
+  }
+
+  my %maxCMparseColour;
+  my $maxMaxCMparseValue = 0.0; 
+  for($cpos = 0; $cpos < $clen; $cpos++) {
+    if($escAR[$cpos]  eq "") { 
+      die "ERROR, did not fill esc for consensus position $cpos"; 
+    }
+    if($cseqAR[$cpos] eq "") { 
+      die "ERROR, did not fill cseq for consensus position $cpos"; 
+    }
+    if($escAR[$cpos] > $maxMaxCMparseValue) {
+      $maxMaxCMparseValue = ($escAR[$cpos]);
+    }
+  }
+
+  for($cpos = 0; $cpos < $clen; $cpos++) {
+    $rgbColourNumber = sprintf("%.0f", ($escAR[$cpos]/$maxMaxCMparseValue)*37);
+    $maxCMparseColour{$cpos}= $colours{$rgbColourNumber};
+  }
+
+  unlink $out_tfile;  
+  
+  my $maxCMletters = join("",@cseqAR);
+  open(my $maxcm_fh, ">", "$RNAplot_maxCM" ) or die "$RNAplot_maxCM";
+  print $maxcm_fh (">$rfam_acc.maxcm\n$maxCMletters\n$SScons\n");
+  close $maxcm_fh;
+
+  chdir($location);
+
+  run \@cmd2, '<', $RNAplot_maxCM; 
+
+  unless(-e $RNAplot_img_maxCM) {
+    die ("Error in creating original RNA SVG image \n")
+  }
 
   # Image 6: Normal Blocks
-  # !TODO!
+  my %normalColourHash;
+  $i = 0;
+  my $block = 0;
+  my $blockColour;
+  foreach $j (@jArray) {
+    if ($bpHash{$i} == 1) {
+      $k = 0;
+      foreach my $l (@jArray) {
+        if ($k > $i && $l == $j && $bpHash{$k} == 1) {
+          unless (defined $normalColourHash{$i} || defined $normalColourHash{$k}) {
+            # We have found a base pairing match
+            if (defined $normalColourHash{$i-1} &&  defined $normalColourHash{$k+1}) {
+              if ($normalColourHash{$i-1} eq $normalColourHash{$k+1}){
+                # Continue the same colour as we are on the same stem
+                $blockColour = $colours{(38-$block)};
+                $normalColourHash{$i} = $blockColour;
+                $normalColourHash{$k} = $blockColour;
+              }
+              else {
+                # New colour as we are on a new stem              
+                $block++;
+                $blockColour = $colours{(38-$block)};
+                $normalColourHash{$i} = $blockColour;
+                $normalColourHash{$k} = $blockColour;
+              }
+             }
+            else {
+              # New colour as we are on a new stem
+              $block++;
+              $blockColour = $colours{(38-$block)};
+              $normalColourHash{$i} = $blockColour;
+              $normalColourHash{$k} = $blockColour;
+            }
+          }       
+        }
+        else {$k++}
+      }
+    }
+    else {
+      $normalColourHash{$i} = '-';
+    }
+  $i++;
+  }
 
   # Image 7: Motif Blocks
   # !TODO!
@@ -227,16 +373,18 @@ sub makeBling {
   my $fcbpLegend = SVGLegend('Frac. Canonical BPs',0,1,\%colours);
   my $covariationLegend = SVGLegend('Covariation',-2,2,\%colours);
   my $seqEntropyLegend = SVGLegend('Relative Entropy',0,$maxEntropy,\%colours);
-
+  my $maxCMlegend = SVGLegend('Max. CM Parse',0,$maxMaxCMparseValue,\%colours);
 
   # Generate the SVG images
   my $conservationSVGobj = annotateSVG($RNAplot_img, \%conservationColour, $conservationLegend);
   my $fcbpSVGobj = annotateSVG($RNAplot_img, \%fcbpColour, $fcbpLegend);
   my $covariationSVGobj = annotateSVG($RNAplot_img, \%covariationColour, $covariationLegend);
   my $entropySVGobj = annotateSVG($RNAplot_img, \%SeqEntropyColour, $seqEntropyLegend);
+  my $normalSVGobj = annotateSVG($RNAplot_img, \%normalColourHash);
+  my $maxCMparseSVGobj = annotateSVG($RNAplot_img_maxCM, \%maxCMparseColour, $maxCMlegend);
 
-  # Save the SVG images to disk as SVGs and PNGs
-  my ($conservationSVGhandle, $fcbpSVGhandle, $covariationSVGhandle, $entropySVGhandle);
+  # Save the SVG images to disk as SVGs
+  my ($conservationSVGhandle, $fcbpSVGhandle, $covariationSVGhandle, $entropySVGhandle, $normalSVGhandle, $maxCMSVGhandle);
  
   open ($conservationSVGhandle, '>', $conservationSVG) or die ("Unable to open $conservationSVGhandle");
   print $conservationSVGhandle $conservationSVGobj;
@@ -253,10 +401,24 @@ sub makeBling {
   open ($entropySVGhandle, '>', $entropySVG) or die ("Unable to open $entropySVGhandle");
   print $entropySVGhandle $entropySVGobj;
   close ($entropySVGhandle) or die ("Unable to close $entropySVGhandle");
+
+  open ($normalSVGhandle, '>', $normalSVG) or die ("Unable to open $normalSVGhandle");
+  print $normalSVGhandle $normalSVGobj;
+  close ($normalSVGhandle) or die ("Unable to close $normalSVGhandle");
   
+  open ($maxCMSVGhandle, '>', $maxCMparseSVG) or die ("Unable to open $maxCMSVGhandle");
+  print $maxCMSVGhandle $maxCMparseSVGobj;
+  close ($maxCMSVGhandle) or die ("Unable to close $maxCMSVGhandle");
+
   # Put the SVG images in the database
  
-  # Unlink the file
+  # Clean up the temp files
+  unlink($RNAplot_img);
+  unlink($RNAplot_img_maxCM);
+  unlink($RNAplot);
+  unlink($RNAplot_maxCM);
+  unlink($seed_loc);
+  unlink($CM_loc);
 
 }
  
@@ -317,14 +479,15 @@ sub annotateSVG {
   my ($svgFile, $annotationHash, $SVGlegend) = @_;
   
   # Create a reference to the legend group
-  my $legendElements = $SVGlegend->getElementByID("legendElements");
-
+  my $legendElements;
+  if (defined $SVGlegend) { 
+    $legendElements = $SVGlegend->getElementByID("legendElements");
+  }
+  
   my $svg_text=read_file($svgFile);
   my $parser=new SVG::Parser();
   my $svg=$parser->parse($svg_text);
 
-  use Data::Dumper;
-   
   # Navigate the DOM and create references to relevent places in the DOM
   my $seqElements = $svg->getElementByID("seq");
   my $outlineElements = $svg->getElementByID("outline");
@@ -337,7 +500,7 @@ sub annotateSVG {
   
   # Change with width & height of the SVG to allow addition of the legend
   # The default from RNAplot is 452 x 452  so we increase it to 500 x 600
-  my $SVGwidth  = "600";
+  my $SVGwidth  = "700";
   my $SVGheight = "550";
   $SVGwidth     = $SVGfirstChild->setAttribute('width',$SVGwidth);
   $SVGheight    = $SVGfirstChild->setAttribute('height',$SVGheight);
@@ -414,7 +577,10 @@ sub annotateSVG {
   
   # Place the groups in the correct position within the SVG DOM
   $seqElementParent->insertBefore($circleElementsGroup, $outlineElements);
-  $SVGfirstChild->insertBefore($legendElements, $seqElementParent);
+  
+  if (defined $SVGlegend) {
+    $SVGfirstChild->insertBefore($legendElements, $seqElementParent);
+  }
 
   # Remove the old script element
   $SVGfirstChild->removeChild($scriptElement);
@@ -449,7 +615,10 @@ sub annotateSVG {
          }
   |);
 
- 
+  my $onclickRect = $SVGfirstChild->getFirstChild();
+  $onclickRect->setAttribute('width', '700');
+  $onclickRect->setAttribute('height', '550');
+
   # Generate the annotated SVG file
   my $outputSVG = $svg->xmlify();
   
