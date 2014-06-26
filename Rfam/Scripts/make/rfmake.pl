@@ -1134,9 +1134,9 @@ Options:    -t <f> : set threshold as <f> bits
             -hmmonly : rfsearch.pl was run with -hmmonly
 
 	    OPTIONS RELATED TO OUTPUT 'comparison' FILE:
-	    -oldcompare <s>   : create comparison file by comparing with old dir <s>
-	    -curcompare <s>   : create comparison file by comparing with current (not old) dir <s>
-            -forcecompare <s> : prefix all comparison files with <s>
+	    -oldcompare <s> : create comparison file by comparing with old dir <s>
+	    -curcompare <s> : create comparison file by comparing with current (not old) dir <s>
+            -forcecompare   : force a comparison [default: exit in error if 'comparison' file already exists]
 
 	    OTHER:
 	    -dirty       leave temporary files, do not clean up
