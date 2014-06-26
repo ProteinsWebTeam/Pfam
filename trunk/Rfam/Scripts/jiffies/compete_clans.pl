@@ -57,7 +57,7 @@ for my $clan (@clans_to_update) {
 }
 
 for my $clan (keys %clans) {
-	my $start_family = shift @{$clans{$clan}};
+	my $start_family = @{$clans{$clan}}[0];
 	print "* Checking clan $clan\n";
 	my $familyIO = Bio::Rfam::FamilyIO->new;
 	my $familyObj = $familyIO->loadRfamFromSVN($start_family, $client);
