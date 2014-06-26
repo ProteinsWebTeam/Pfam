@@ -1,0 +1,266 @@
+# STOCKHOLM 1.0
+
+#=GF AC   RF00504
+#=GF ID   Glycine
+#=GF DE   Glycine riboswitch
+#=GF PI   gcvT
+#=GF AU   Moxon SJ
+#=GF SE   Barrick JE, Breaker RR
+#=GF SS   Predicted; Barrick JE, Breaker RR
+#=GF GA   22.00
+#=GF TC   22.04
+#=GF NC   21.98
+#=GF TP   Cis-reg; riboswitch;
+#=GF BM   cmbuild  -F CM SEED; cmcalibrate --mpi -s 1 CM
+#=GF BM   cmsearch  -Z 274931 -E 1000000  --toponly  CM SEQDB
+#=GF DR   SO:0000035 SO:riboswitch
+#=GF DR   GO:0006545 GO:glycine biosynthetic process
+#=GF RN   [1]
+#=GF RM   15472076
+#=GF RT   A glycine-dependent riboswitch that uses cooperative binding to
+#=GF RT   control gene expression.
+#=GF RA   Mandal M, Lee M, Barrick JE, Weinberg Z, Emilsson GM, Ruzzo WL,
+#=GF RA   Breaker RR;
+#=GF RL   Science 2004;306:275-279.
+#=GF CC   This family represents the bacterial glycine riboswitch. Glycine
+#=GF CC   riboswitches usually consist of two metabolite-binding aptamers
+#=GF CC   domains with similar structures in tandem. The aptamers
+#=GF CC   cooperatively bind glycine to regulate the expression of
+#=GF CC   downstream genes. In Bacillus subtilis, this riboswitch is found
+#=GF CC   upstream of the gcvT operon which controls glycine
+#=GF CC   degradation. It is thought that when glycine is in excess it will
+#=GF CC   bind to both aptamers to activate these genes and facilitate
+#=GF CC   glycine degradation [1].
+#=GF WK   http://en.wikipedia.org/wiki/Glycine_riboswitch
+#=GF SQ   44
+
+BX842577.1/344457-344587               .....UGCCU.CUGGAAAGCGGUGGC..............GACCCCUGGC
+BX842577.1/344356-344453               CGCUCUAGUG.CGGGAGAGUUCUGUGGCUG..........CCAGC.....
+AE000516.2/79275-79185                 UGACGCGAUG.UGGGAGAA.CCUCC...............AUGUC.....
+BX842572.1/79202-79095                 .....CAACU.CUGGAGACAGGGACG..............GUCGCACCGA
+AJ301559.2/6878-7012                   UUCGACAACU.CUGGAAAGUGGUGGGA.............GCACC.....
+AJ301559.2/6784-6876                   CGCCUGCGCG...GGAGAGUUCCGAGGC............AUCCAGU...
+AE016822.1/1714518-1714420             GAGGCCGAUG.CGGGAGAGCUGCGGG..............GGAGAACCCG
+AL939123.1/278145-278052               UGAAUCCGCG.CGGGAGAGUCCCCGG...............CCGCG....
+AL939108.1/255442-255325               .....UCACU.CUGGAAAGCAGGGCGGGU...........GUCGACGGCU
+AL939123.1/278050-277936               .....CACAU.CUGAAAAGCGGACCGCC............CCCGACGG..
+AL939108.1/255539-255444               UGACCCCGCG.CGGGAGAGUCCUCCGGAC...........AUCAC.....
+D84432.1/169999-170100                 AUGACAGCAA.GGGGAGAGACCUGACC.............GAAAACCUCG
+AE017355.1/2242962-2242862             AUGAACCAUU.CAGGAGAA.GGUC................UAUU......
+AE017355.1/2242861-2242742             GGACGAAUCU.CUGGAGAGACUCCCUCUCGCU........UUAAAUAGCG
+AL591978.1/212840-212931               GUGAAUGUAA.GCAGAGAGACUGC................GAAAA.....
+AL596168.1/161626-161717               GUGAAUGUAA.ACAGAGAGACUG.................UGAAA.....
+AJ312125.1/453-315                     AGACGAUACU.CUGGAGAGACCA.................UAUA......
+AJ312125.1/523-454                     AUGAAGGUGG.CAGGAGAGACCC..................AUGA.....
+AE008691.1/313165-313055               AUGAAGAUAG.CGAGAGAUUAUCUUCC.............AUAAAUG...
+AE008691.1/1826408-1826312             AUGAAGAAUG.CGGGAGAGACCC.................UAACC.....
+AE008691.1/1826306-1826220             .....AUAUC.CCGGAAAG.CCUC................UAAA......
+AL766849.1/65640-65772                 AGACGGACUU.CUGGAGAGACCUA................UAAGUAGCAA
+AL766849.1/65560-65639                 UGACGUCAUU.CAGGAGAAGAAAG................UUAGA.....
+CP000919.1/381215-381303               GGACGGAACU.CUGGAGAGACC..................GUAAA.....
+CP000262.1/1070832-1070913             UGAUGUCAUG.CAGGAGA..AGAA................UUUA......
+BX897699.1/1435970-1435876             .....UUUUG.CGGGAGAGUGCAGGC..............UGCAAGUUUU
+BX897699.1/1435871-1435783             .....CAGAU.CUGGAAAGUCGG.................GAGG......
+BX572605.1/160757-160849               CGACUGACAU.CUGGAAAGAGACCCUGCCGGGC.......GAUCCCGGGA
+BX572605.1/160670-160756               CUAAGUCGCGUCGGGAGAGAUCGGCC..............GCAA......
+AE014292.2/713320-713218               UAAGACAACU.CUGGAAAGUCGGGGG...............CAAC.....
+AL591688.1/1674990-1674906             CGACCUCGUU..GGGAGAAACCGG................UUCGA.....
+BX640439.1/206443-206535               ACGCAUGUCG.CGGGAGAGAGCGGCCG.............AUUGC.....
+BX640445.1/160210-160126               ACGUGCAGUU.CGGGAGAGACCGU................CCAGC.....
+BX640445.1/160122-160016               .....AACAU.CUGGAGAGUGGCGCGCG............GUAC......
+CR522870.1/1448704-1448793             .....AGCCU.CUGGAGAGUCUC.................AUUAU.....
+CR522870.1/1448610-1448703             AUGAACAUAG.CAGGAGAGAUUUU................UCCCAUGGCA
+BX950851.1/2645129-2645034             UUGAAGCCAA.CUGGAGAGAGGUUGC..............GAUGC.....
+BX950851.1/2645260-2645133             CCGCUCCUCG.CAGGAGAGAGGGCGUGUACUCCAGCAUACUUCAAGCUAC
+AE004439.1/116056-116172               .....AACCC.UUGGAGAGAGCCG................UUAUAUUAAA
+CR543861.1/1990073-1989965             .....AUAAU.CUGGAGAGAAGUAUU..............UCAAA.....
+CR543861.1/1990167-1990077             AUGAUUAUUG.CAGGAGAGAUAUUCU..............UGCAA.....
+CR378670.1/15794-15904                 .....AGCCU.CUGGAGAGACCCG................UUAAA.....
+AE008922.1/1299977-1299896             GUAACACGGU..GGGAGAA.GCGGC...............ACUG......
+AE008923.1/1392465-1392356             .....CAACU.CUGGAGAGACCGGCC..............GAUG......
+#=GC SS_cons                           .....<<<<<.<<<......<<<<..........................
+
+BX842577.1/344457-344587               GGUC.......................CUCACC.CGCCGAUGGGGAAA.G
+BX842577.1/344356-344453               ...........................UACGGA.CGCCGAAGGAGCAAUA
+AE000516.2/79275-79185                 .............................GAGG.CGCCGUAGGAGCAA.U
+BX842572.1/79202-79095                 CC.........................GUGCCU.GACCGAAGGUGUAGAG
+AJ301559.2/6878-7012                   .............................CACC.CGCCCAAGGGGAAA.G
+AJ301559.2/6784-6876                   ...........................CUCGGA.CGCCGAAGGAGCAAUA
+AE016822.1/1714518-1714420             ...........................CCCGCGGCACCGAAGGAGCAA.U
+AL939123.1/278145-278052               ...........................CCGGGG.CGCCGAAGGAGCAA.G
+AL939108.1/255442-255325               UC.........................CGCUCU.CACCGACGGUGAAA.G
+AL939123.1/278050-277936               ...........................CGGUCC.CACCCAAGGUGCAA.G
+AL939108.1/255539-255444               ...........................CGGAGG.CGCCGAAGGAGCAA.A
+D84432.1/169999-170100                 GGA........................UACAGG.CGCCGAAGGAGCAA.A
+AE017355.1/2242962-2242862             .............................GAUC.UACCGACGGGGCAA.A
+AE017355.1/2242861-2242742             UAGAGGAA...................AACGAG.CACCGAAGGAGCAAAU
+AL591978.1/212840-212931               .............................GCAG.CGCCGACGGGGAAA.G
+AL596168.1/161626-161717               ...........................AG.CAG.CGCCGACGGGGAAA.G
+AJ312125.1/453-315                     ..............................AGG.CACCGAAGGAGCAA.A
+AJ312125.1/523-454                     ............................G.GGG.CGCCGAAGAAGUAA..
+AE008691.1/313165-313055               ...........................GAAGAU.AGCCGAAGGGGAAA.U
+AE008691.1/1826408-1826312             ..............................GGG.CGCCGAAGGAGCAA.G
+AE008691.1/1826306-1826220             .............................GAGG.CACCGAAGGAGCAA.U
+AL766849.1/65640-65772                 CAUCUUUGUAUUGACACCAAGAUGUGCUCUAGG.CGCCGAAGGGGCAA.G
+AL766849.1/65560-65639                 .............................CUUU.CGCCGAAGGAAUUA..
+CP000919.1/381215-381303               ...............................GG.CACCGAAGGGGCAA.G
+CP000262.1/1070832-1070913             .............................UUUU.CGCCGAAGGAGUUA..
+BX897699.1/1435970-1435876             UGG........................GUCUGC.CGCCGAAGGGGAAA.A
+BX897699.1/1435871-1435783             ...........................GG.CCG.CGCCGAAGGUGUAA.G
+BX572605.1/160757-160849               ...........................CGGGUC.CGCCGACGGGAUAA..
+BX572605.1/160670-160756               ...........................GGCCGG.CGCCGAAGGAGCAA.C
+AE014292.2/713320-713218               .............................UCCG.CGCCGAAGGUGUAA.G
+AL591688.1/1674990-1674906             ............................UCCGG.UGCCGAAGGAGCAA.C
+BX640439.1/206443-206535               ...........................GGCUGC.CGCCGAAGGCGCAA.U
+BX640445.1/160210-160126               ...........................GGACGG.CGCCGACGGAGCAA.C
+BX640445.1/160122-160016               ...........................GGCGCC.CACCGAAGGGGAU..C
+CR522870.1/1448704-1448793             ..............................GGG.CACCGAAGGAGCAA.G
+CR522870.1/1448610-1448703             GUACGGAUGG.................GGAAGG.CACCGAAGAAGUAA..
+BX950851.1/2645129-2645034             .............................AACC.CACCGAAGGGGCAA.G
+BX950851.1/2645260-2645133             AUGUACGUUGGCAUAAAGUAUA.....ACGCUC.CGCCGAAGGCGCAA.A
+AE004439.1/116056-116172               AAGAGAUAA..................AACGGC.CGCCGAAGGCGCAA.A
+CR543861.1/1990073-1989965             ...........................AAUACU.CACCGAAGGGGAUG.G
+CR543861.1/1990167-1990077             ...........................AGGAUA.CGCCGAAGGAGCAA.C
+CR378670.1/15794-15904                 ............................UCGGG.CGCCGAAGGAGCAA.G
+AE008922.1/1299977-1299896             .............................CCGC.UGCCGAAGGCGCAA.C
+AE008923.1/1392465-1392356             .............................CCGG.CGCCGAAGGGGCAC.G
+#=GC SS_cons                           .............................>>>>..<<<<<..<<<....<
+
+BX842577.1/344457-344587               GCGAUU.............................CACC.......UGAC
+BX842577.1/344356-344453               CCUC...............................UCC............
+AE000516.2/79275-79185                 CUCCU..............................CCCC...........
+BX842572.1/79202-79095                 CGGC...............................GCCA...........
+AJ301559.2/6878-7012                   GUGCCGGU...........................GCGC..GCAUGUCAG
+AJ301559.2/6784-6876                   CCUC...............................CCC............
+AE016822.1/1714518-1714420             CCUC...............................CCC............
+AL939123.1/278145-278052               UCCC...............................UCCC...........
+AL939108.1/255442-255325               CCGGGCAGAGC........................UCCA...........
+AL939123.1/278050-277936               CCCUGA.............................UCGC.......CGUA
+AL939108.1/255539-255444               UCCU...............................CCCC...........
+D84432.1/169999-170100                 CU.................................GCGG...........
+AE017355.1/2242962-2242862             AAGUUGUUAACC.......................GACU...........
+AE017355.1/2242861-2242742             CCGC...............................UACU...........
+AL591978.1/212840-212931               CAUA...............................UAUU...........
+AL596168.1/161626-161717               CAUAAG.............................UUAU...........
+AJ312125.1/453-315                     UUUAAUUGAGAUCUUUAUAUAAAUAAAAAAGCUCAUCCC....UUUUUUA
+AJ312125.1/523-454                     ..................................................
+AE008691.1/313165-313055               ACAAAG.............................GCCC...........
+AE008691.1/1826408-1826312             CGGGUAUAUGGCCUGUAU.................ACUC...........
+AE008691.1/1826306-1826220             UCUUCUAU...........................AAAG...........
+AL766849.1/65640-65772                 AAGAGUAAAACAA......................CUCC...........
+AL766849.1/65560-65639                 ..................................................
+CP000919.1/381215-381303               GCAG...............................GCAA...........
+CP000262.1/1070832-1070913             ..................................................
+BX897699.1/1435970-1435876             UA.................................GCCC...........
+BX897699.1/1435871-1435783             CGAA...............................AACU...........
+BX572605.1/160757-160849               ..................................................
+BX572605.1/160670-160756               CG.................................CCCC...........
+AE014292.2/713320-713218               UAUGGCUUUAUAUAUA...................GCCA...........
+AL591688.1/1674990-1674906             CG.................................CCCC...........
+BX640439.1/206443-206535               UC.................................GCCC...........
+BX640445.1/160210-160126               CA.................................CCCC...........
+BX640445.1/160122-160016               CCUG...............................GCGC.......GUUU
+CR522870.1/1448704-1448793             CCAGCGUGUA.........................GCUG...........
+CR522870.1/1448610-1448703             ..................................................
+BX950851.1/2645129-2645034             CAGC...............................UCUG...........
+BX950851.1/2645260-2645133             C..................................UCCC...........
+AE004439.1/116056-116172               AAGA...............................GCGG.........UU
+CR543861.1/1990073-1989965             UACG...............................UAGA.....UUUAUG
+CR543861.1/1990167-1990077             G..................................ACCC...........
+CR378670.1/15794-15904                 CUUU...............................CCUUUUUGCUGUUUU
+AE008922.1/1299977-1299896             A..................................GCCC...........
+AE008923.1/1392465-1392356             AAACGCAGGCAG.......................GCCA.........CG
+#=GC SS_cons                           <.................................................
+
+BX842577.1/344457-344587               GGUGGACAGAGUCGCCGAAUCUCUCAGGCGCCUGGCGUGCAGGU..GAA.
+BX842577.1/344356-344453               ..............GUCAACCUCUCAGGC...............ACCCG.
+AE000516.2/79275-79185                 ..............GAGAAUCUCUCAGGC...............CCAAG.
+BX842572.1/79202-79095                 ..UGAUGCGACGCCGC.AGACUCUCAGGU...............UUCAG.
+AJ301559.2/6878-7012                   CGCGCCGUGUUCUACCGAAUCUCUCAGGCGCACGCGUCAGCGAGCACAC.
+AJ301559.2/6784-6876                   ..............GUCAAUCUCUCAGGC...............ACACG.
+AE016822.1/1714518-1714420             ..............GACAAUCUCUCAGGU...............ACGCG.
+AL939123.1/278145-278052               ..............UUGAAUCUCUCAGGC...............ACCGU.
+AL939108.1/255442-255325               ...GGGCUCGCCCGGUGAAGCUCUCAGGU..............UGAGAU.
+AL939123.1/278050-277936               CUCCGGUGGCCGUGGCGAACCUCUCAGGU..............UCCGAU.
+AL939108.1/255539-255444               ..............GG.AAUCUCUCAGGC...............UCACG.
+D84432.1/169999-170100                 .............AGUGAAUCUCUCAGGC...............AAAAG.
+AE017355.1/2242962-2242862             ..............UUGAAACUCUCAGGU........CUUGUUUACAAG.
+AE017355.1/2242861-2242742             ........AUAGCGGAUAAUCUCUCAGGU...............AAAAG.
+AL591978.1/212840-212931               ............AUGUGAAACUCUCAGGC...............AAAAG.
+AL596168.1/161626-161717               ..............GUGAAACUCUCAGGC...............AAAAG.
+AJ312125.1/453-315                     GAUCAAGCGAUUAAAUGAAUCUCUCAGGU...............AAAAG.
+AJ312125.1/523-454                     ..................AGCUUUCAGGC..............U..UAG.
+AE008691.1/313165-313055               ..GCCAAGCCUUUGUAGAAGCUCUCAGGC...............GGCAG.
+AE008691.1/1826408-1826312             ..............GUGAAACUCUCAGGC...............AAAAG.
+AE008691.1/1826306-1826220             ..............AAGAAUCUCUCAGGU...............AAACA.
+AL766849.1/65640-65772                 ..............UCCAAUCUCUCAGGC...............AAAAG.
+AL766849.1/65560-65639                 ..................CACUCUCAGGU........GUCUUAAGACAG.
+CP000919.1/381215-381303               ...........CUGCUCAAACUCUCAGGU...............AAAAG.
+CP000262.1/1070832-1070913             ..................UACUCUCAGGU...GUUCAGUUUUUGAACGG.
+BX897699.1/1435970-1435876             ..............GU.AAUCUCUCAGGC............UCU..AAG.
+BX897699.1/1435871-1435783             ........UUUUUCGCGAGUCUCUCAGGU..............U..UGU.
+BX572605.1/160757-160849               ..................UGCUCUCAGGC...............ACAGC.
+BX572605.1/160670-160756               ..............GG.AAACUCUCAGGC...............AAACG.
+AE014292.2/713320-713218               .............UGCGAGUCUCUCAGGC..............C..UGA.
+AL591688.1/1674990-1674906             ..............GG.AAACUCUCAGGC...............CAAAG.
+BX640439.1/206443-206535               ..............GG.AAUCGCUCAGGU..............AACCCA.
+BX640445.1/160210-160126               ..............GG.AAACUCUCAGGC...............AAAAG.
+BX640445.1/160122-160016               GCAGCGGCGCACGGGUGAAGCUCUCAGGU...............AAAUG.
+CR522870.1/1448704-1448793             ..............GUGAACCUCUCAGGU...............ACAAGG
+CR522870.1/1448610-1448703             ..................AUCUUUCAGGU...............CAAAG.
+BX950851.1/2645129-2645034             ..........CUGCGU.AAACUCUCAGGU..............AAAGCG.
+BX950851.1/2645260-2645133             ..............AU.AAUCGCUCAGGC..............UACCCU.
+AE004439.1/116056-116172               AAUUUUUCCGUUUUUUCAAACGCUCAGGC...............AAAAG.
+CR543861.1/1990073-1989965             GAAAUCUAUAGCUACCGAAGCUCUCAGGU...............ACCCU.
+CR543861.1/1990167-1990077             ..............CGGAAACUCUCAGGC...............AGAAG.
+CR378670.1/15794-15904                 AACAUGCAUGGAAAGUGAAACUCUCAGGC...............AAAAG.
+AE008922.1/1299977-1299896             ...............GUAAUCGCUCAGGC..............C..CGA.
+AE008923.1/1392465-1392356             CGCCAGGCCGCGUUUUUAAACUCUCAGGC...............AAAAG.
+#=GC SS_cons                           ..............>>....>>>>>.>>>.....................
+
+BX842577.1/344457-344587               GACAGAGGGAGAGGG
+BX842577.1/344356-344453               GACCGCGCGAGACUA
+AE000516.2/79275-79185                 CACCACACCGCCGAG
+BX842572.1/79202-79095                 GACAGAGCGGGGAGG
+AJ301559.2/6878-7012                   GACAGAGGGGGAGGA
+AJ301559.2/6784-6876                   GAC...GCGUGUGGG
+AE016822.1/1714518-1714420             UACCGCAUCGGACUG
+AL939123.1/278145-278052               UACCGCGCGGGCGAG
+AL939108.1/255442-255325               GACAGAGGGGGAGGC
+AL939123.1/278050-277936               GACAGAUGGGGAGGA
+AL939108.1/255539-255444               UACCGCACGGACGAG
+D84432.1/169999-170100                 AACUCUUGCUCGACG
+AE017355.1/2242962-2242862             UA..GAACUGCAUGG
+AE017355.1/2242861-2242742             GACAGAGACAAGCGA
+AL591978.1/212840-212931               GAUGUUUACGGGACG
+AL596168.1/161626-161717               GAUGUUUACGGGACG
+AJ312125.1/453-315                     GACAGAGAACUGAAU
+AJ312125.1/523-454                     GACUGUCAUCA....
+AE008691.1/313165-313055               GAUCGCUAUCGGAUA
+AE008691.1/1826408-1826312             GACCGCAUUC.....
+AE008691.1/1826306-1826220             GACGGGGGAAUAAAA
+AL766849.1/65640-65772                 GACAGAAGCUAAAAG
+AL766849.1/65560-65639                 GACUGAUUGAC....
+CP000919.1/381215-381303               GACAGAGCUAGGAUA
+CP000262.1/1070832-1070913             GACUGUUUGAU....
+BX897699.1/1435970-1435876             GACCGUAAAAGAAGA
+BX897699.1/1435871-1435783             AACAGAGGGGUGCAG
+BX572605.1/160757-160849               GACAGAUGGGGCUCG
+BX572605.1/160670-160756               GACCGCGCGGC....
+AE014292.2/713320-713218               GACAGAGGGGCACGA
+AL591688.1/1674990-1674906             GACC.AGCAAGGUG.
+BX640439.1/206443-206535               UACCGCGACUGCAUC
+BX640445.1/160210-160126               GACCGACCUGC....
+BX640445.1/160122-160016               GACAGAUGGGGUUGC
+CR522870.1/1448704-1448793             GACAGAGUGUAGCAG
+CR522870.1/1448610-1448703             GACUGCUAUGGGACG
+BX950851.1/2645129-2645034             GACAGAGGGAGUGGC
+BX950851.1/2645260-2645133             AACUGCGAAUU....
+AE004439.1/116056-116172               GACAGGGGCAACAAG
+CR543861.1/1990073-1989965             GACAGAUGGGGCAAC
+CR543861.1/1990167-1990077             GACUGUAAUAAUCGA
+CR378670.1/15794-15904                 GACAGAGGAGAUAAG
+AE008922.1/1299977-1299896             UACC.AUCUUCAACA
+AE008923.1/1392465-1392356             GACAGAGGGGCGCGA
+#=GC SS_cons                           ..>>>>>>>>.....
+//
