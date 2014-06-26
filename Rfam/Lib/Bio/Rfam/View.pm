@@ -4,22 +4,13 @@ use strict;
 use warnings;
 use Carp;
 use Moose;
-use Bio::Rfam::Family;
-use Bio::Rfam::FamilyIO;
 use Moose::Util::TypeConstraints;
 
-with 'MooseX::Role::Pluggable';
+use Bio::Rfam::Family;
+use Bio::Rfam::FamilyIO;
+use Bio::Rfam::MooseTypes;
 
-coerce 'Bio::Rfam::Family',
-  from 'Str',
-    via {
-      if($_ !~ /^RF\d+$/){
-        return;
-      }
-      my $io = Bio::Rfam::FamilyIO->new;
-      my $family = $io->loadRfamFromRDB($_);
-      return $family;
-    };
+with 'MooseX::Role::Pluggable';
 
 has config => (
   is  => 'ro',
@@ -40,7 +31,6 @@ has family => (
   coerce => 1
 );
 
-
 has job => (
   is  => 'rw',
   isa => 'Object'
@@ -60,7 +50,7 @@ sub example_method_on_view_object {
 
 sub startJob {
   my ($self) = @_;
-  
+
   if(!defined($self->job)){
     my $jobRow = $self->config
                        ->rfamlive
