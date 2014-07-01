@@ -819,7 +819,11 @@ sub _assemble_chunk_results {
     $footer   .= join "\n", @rows;
 
     foreach my $chunk ( @chunks ) {
-      $results .= join( "\n", grep( !/^#/, split( /\n/, $chunk->job_stream->stdout ) ) );
+      my $stdout = $chunk->job_stream->stdout;
+      next unless defined $stdout;
+      my $result = join( "\n", grep( !/^#/, split( /\n/, $stdout ) ) );
+      next unless $result;
+      $results .= "$result\n";
     }
     $results .= $footer;
 
