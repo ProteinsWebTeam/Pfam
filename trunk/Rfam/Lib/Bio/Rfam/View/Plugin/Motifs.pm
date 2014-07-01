@@ -6,6 +6,9 @@ with 'MooseX::Role::Pluggable::Plugin';
 use IO::File;
 use Bio::Rfam::MotifMatch;
 use Bio::Rfam::MotifIO;
+use File::Slurp;
+use SVG;
+use SVG::Parser;
 
 has foo => (
   is  => 'rw',
@@ -32,11 +35,11 @@ sub findMotifs {
         }
 	
 	# Set/make locations 
-        my $location    = "/nfs/production/xfam/rfam";
-	my $results_loc = "$location/MOTIFS/results/$rfam_acc";
+        my $location    = "/homes/evan/public_html/motifs";
+	my $results_loc = "$location/$rfam_acc";
         File::Path::make_path($results_loc);
         my $SEED        = "$results_loc/SEED";
-        my $CMdb	= "$location/MOTIFS/cmdb/CM";        
+        my $CMdb	= "/nfs/production/xfam/rfam/MOTIFS/cmdb/CM";        
 
         # Write the seed to file
 	my $msa = $self->parent->family->SEED;
@@ -62,6 +65,7 @@ sub findMotifs {
           $taken{$motifLabels{$motif_acc}}=1;
           push(@allMotifs, $motif_acc);
         }
+        my %revMotifLabels = reverse %motifLabels;
 
         # Run cmscan on the SEED
         my $cmscanOpts  = " --cpu 4 --max --toponly --verbose --cut_ga --tblout $results_loc/TBL -o $results_loc/cmscan "; 
@@ -114,7 +118,327 @@ sub findMotifs {
         # Markup the seed alignment with the accepted motifs
         markup($SEED, \%f2, \@acceptedMotifs, \%motifLabels, \%completeMotifHash, $results_loc);
 
-}       
+        my $anno_msa = Bio::Easel::MSA->new({ fileLocation => "$results_loc/annotated.SEED" });
+        $anno_msa->remove_rf_gap_columns();
+
+        $anno_msa->write_msa("$results_loc/gapless.annotation");
+
+        my $alnLength = $anno_msa->alen(); 
+     
+        # Create a hash of the positions where each motif matches in the gapless SEED
+        my %motifCoords;
+        my @annotationArray; 
+        foreach my $motifID (@acceptedMotifs) {
+          my $motifLabelFromID = $motifLabels{$motifID};
+          @annotationArray = ();
+          @annotationArray = (0) x $alnLength;
+          $motifCoords{$motifLabelFromID}=[@annotationArray];
+        }
+
+        open(F, "$results_loc/gapless.annotation") or die "FATAL: could not open $results_loc/gapless.annotation \n[$!]";
+        while (my $w = <F>) {
+          if($w=~/(#=GR\s[A-Za-z0-9\-.\/]+\s+MT.\d+\s+)([0-9a-zA-Z.]+)/i) {
+            my $annotationString = $2;
+            my $counter = 0;
+            my @annotation_chars = split //, $annotationString;
+            foreach my $annotation_char (@annotation_chars) {
+              unless ($annotation_char eq '.') {
+                $motifCoords{$annotation_char}->[$counter] += 1;
+              } 
+            $counter++;
+            }
+          }
+        }
+
+        # Generate the unannotated SS image
+        my $MIS = $anno_msa->most_informative_sequence();
+        my $SScons = $anno_msa->get_ss_cons_dot_parantheses();
+        my $RNAplot = "$results_loc/rnaplot";
+        my $RNAplot_img = "$results_loc/$rfam_acc"."_ss.svg"; 
+        open(my $fh, ">", "$RNAplot" ) or die "$RNAplot";
+        print $fh (">$rfam_acc\n$MIS\n$SScons\n");
+        close $fh;
+
+        chdir($results_loc);
+
+        use IPC::Run qw(run);
+        my @cmd2 = ("/nfs/production/xfam/rfam/software/bin/RNAplot", "-o", "svg");
+        run \@cmd2, '<', $RNAplot;
+
+        unless(-e $RNAplot_img) {
+          die ("Error in creating original RNA SVG image \n")
+        }
+
+        # Assign a colour for each motif at each position which represents the fraction 
+        # of sequences at that postion which contain the motif
+        
+        my %colours =     ( 1  => "255,0,255",   2  => "219,0,255",   3  => "184,0,255",
+                            4  => "148,0,255",   5  => "113,0,255",   6  => "77,0,255",
+                            7  => "42,0,255",    8  => "7,0,255",     9  => "0,28,255",
+                           10 => "0,63,255",    11 => "0,99,255",    12 => "0,134,255",
+                           13 => "0,169,255",   14 => "0,205,255",   15 => "0,240,255",
+                           16 => "0,255,240",   17 => "0,255,198",   18 => "0,255,162",
+                           19 => "0,255,127",   20 => "0,255,92",    21 => "0,255,56",
+                           22 => "0,255,21",    23 => "0,255,0",     24 => "14,255,0",
+                           25 => "49,255,0",    26 => "84,255,0",    27 => "120,255,0",
+                           28 => "155,255,0",   29 => "191,255,0",   30 => "226,255,0",
+                           31 => "255,247,0",   32 => "255,212,0",   33 => "255,177,0",
+                           34 => "255,141,0",   35 => "255,105,0",   36 => "255,70,0",
+                           37 => "255,0,0");
+        
+        my $numSeqs = $anno_msa->nseq();
+        my $annotationArrayRef;
+        my $fractionValue;
+        my $colourValue;
+        foreach my $coords (keys %motifCoords) {
+          my $motifAccession = $revMotifLabels{$coords};
+          my $counter = 0;
+          $annotationArrayRef = $motifCoords{$coords};
+          my @annotationAR = @$annotationArrayRef;
+          my %fractionSeqPosWithMotif;
+          my %colourSeqPosWithMotif;  
+          foreach my $posValue (@annotationAR) {
+            $fractionValue = ($posValue/$numSeqs);
+            $colourValue = $colours{int((($fractionValue*36.0)+1)+0.5)};
+            $fractionSeqPosWithMotif{$counter}=$fractionValue;
+            if ($fractionValue == 0) {
+              $colourSeqPosWithMotif{$counter}='-';
+            }
+            else {
+              $colourSeqPosWithMotif{$counter}=$colourValue;
+            }
+            $counter++;
+          }
+          # Create the individual motif images
+          my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours);
+          my $motifSVGobj = annotateSVG($RNAplot_img, \%colourSeqPosWithMotif,$motifSVGlegend);
+          my $motifHandle;
+          open ($motifHandle, '>', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
+          print $motifHandle $motifSVGobj;
+          close ($motifHandle) or die ("Unable to close $motifHandle");   
+          
+      }
+
+}
+
+
+##############
+
+sub SVGLegend {
+  my ($legend_name,$min_value,$max_value,$colours) = @_;
+
+  $max_value = sprintf("%.2f", $max_value);
+  $min_value = sprintf("%.2f", $min_value);
+
+  my $tmpLegendObj = SVG->new;
+  my $legendElementsGroup=$tmpLegendObj->group(id        => 'legendElements',
+                                               transform => 'translate(25,500)');
+  my $legendTitle = $legendElementsGroup->text(
+                                                id     => 'legendTitle',
+                                                x      => 71,
+                                                y      => 27,
+                                                style  => { 'font-family'  => "Arial,Helvetica",
+                                                            'font-size'    => "14px",
+                                                            'text-anchor'  => "middle",
+                                                            'fill'         => "dimgrey" } )->cdata($legend_name);
+  my $leftLegendNumber = $legendElementsGroup->text(
+                                                id     => 'leftLegendNumber',
+                                                x      => 0,
+                                                y      => -2,
+                                                style  => { 'font-family'  => "Arial,Helvetica",
+                                                            'font-size'    => "14px",
+                                                            'text-anchor'  => "left",
+                                                            'fill'         => "dimgrey" } )->cdata($min_value);
+  my $rightLegendNumber = $legendElementsGroup->text(
+                                                id     => 'rightLegendNumber',
+                                                x      => 122,
+                                                y      => -2,
+                                                style  => { 'font-family'  => "Arial,Helvetica",
+                                                            'font-size'    => "14px",
+                                                            'text-anchor'  => "left",
+                                                            'fill'         => "dimgrey" } )->cdata($max_value);
+  my $legendBox = $legendElementsGroup->group(id => 'legendBoxElements',
+                                              x  =>  0,
+                                              y  =>  0 );
+
+
+  my $xPos = 0;
+  my $yPos = 0;
+
+  my @colourKeys = keys % {$colours};
+  foreach my $colourKey (sort {$a<=>$b} @colourKeys) {
+    $legendBox->rectangle(  x     =>  $xPos,
+                            y     =>  $yPos,
+                            width =>  4,
+                            height => 15,
+                            style => { 'fill' => "rgb(".$ {$colours} {$colourKey}.")" } ) ;
+    $xPos = $xPos + 4;
+  }
+  return $tmpLegendObj;
+}
+
+# Subroutine for annotating an image given the SVG image and an annotation hash
+sub annotateSVG {
+  my ($svgFile, $annotationHash, $SVGlegend) = @_;
+
+  # Create a reference to the legend group
+  my $legendElements;
+  if (defined $SVGlegend) {
+    $legendElements = $SVGlegend->getElementByID("legendElements");
+  }
+
+  my $svg_text=read_file($svgFile);
+  my $parser=new SVG::Parser();
+  my $svg=$parser->parse($svg_text);
+
+  # Navigate the DOM and create references to relevent places in the DOM
+  my $seqElements = $svg->getElementByID("seq");
+  my $outlineElements = $svg->getElementByID("outline");
+  my $pairsElements = $svg->getElementByID("pairs");
+  my $seqElementParent=$seqElements->getParentElement();
+  my @children = $seqElements->getChildren();
+  my $SVGfirstChild=$svg->getFirstChild();
+  my @scriptElements = $SVGfirstChild->getElements("script");
+  my $scriptElement = $scriptElements[0];
+
+  # Change with width & height of the SVG to allow addition of the legend
+  # The default from RNAplot is 452 x 452  so we increase it to 500 x 600
+  my $SVGwidth  = "700";
+  my $SVGheight = "550";
+  $SVGwidth     = $SVGfirstChild->setAttribute('width',$SVGwidth);
+  $SVGheight    = $SVGfirstChild->setAttribute('height',$SVGheight);
+
+  # Move the image over to allow space for the legend 
+  my $transformAttribute=$seqElementParent->getAttribute('transform');
+  $transformAttribute =~ /translate\((-?\d+.\d+),(-?\d+.\d+)\)/;
+  my $xTranslate = $1;
+  my $yTranslate = $2;
+  $xTranslate = $xTranslate + 100;
+  $yTranslate = $yTranslate + 25;
+  $transformAttribute =~ s/translate\(-?\d+.\d+,-?\d+.\d+\)/translate($xTranslate,$yTranslate)/;
+  $transformAttribute = $seqElementParent->setAttribute('transform', $transformAttribute);
+
+
+  # Dereference the annotation hash
+  my %annotationColour = %$annotationHash;
+
+  # Change the stroke width of the lines
+  $outlineElements->setAttribute('style', 'fill: none; stroke: black; stroke-width: 0.75');
+  $pairsElements->setAttribute('style', 'fill: none; stroke: black; stroke-width: 0.75');
+  
+  # Change the font of the nucleotides
+  $seqElements->setAttribute('style','font-family: Arial,Helvetica');
+
+  # Create a hash of the Coordinates
+  my %seqPosHash;
+  my $pos = 0;
+  foreach my $child (@children) {
+    my $xCoord = ($child->getAttribute("x")+1);
+    my $yCoord = ($child->getAttribute("y")-1);
+    %seqPosHash = addSeqPosObj(\%seqPosHash,$pos,$xCoord,$yCoord);
+    $pos++;
+  }
+
+  # Add 5' and 3' labels
+  my $fiveCoordx  = ($seqPosHash{0}->{'X'})+4;
+  my $fiveCoordy  = ($seqPosHash{0}->{'Y'})-15;
+  my $threeCoordx = ($seqPosHash{$pos-1}->{'X'})+4;
+  my $threeCoordy = ($seqPosHash{$pos-1}->{'Y'})-15;
+
+  my $fivePrime = $seqElements->text(
+                                 id     => 'fivePrime',
+                                 x      => $fiveCoordx,
+                                 y      => $fiveCoordy,
+                                 style  => { 'font-family'  => "Arial,Helvetica",
+                                             'font-size'    => "10px",
+                                             'text-anchor'  => "middle",
+                                             'fill'         => "dimgrey" } )->cdata("5'");
+
+  my $threePrime = $seqElements->text(
+                                 id     => 'threePrime',
+                                 x      => $threeCoordx,
+                                 y      => $threeCoordy,
+                                 style  => { 'font-family'  => "Arial,Helvetica",
+                                             'font-size'    => "10px",
+                                             'text-anchor'  => "middle",
+                                             'fill'         => "dimgrey" } )->cdata("3'");
+
+  # Create a new SVG group object which will contain the annotation circles
+  my $tmpSVGObj = SVG->new;
+  my $circleElementsGroup=$tmpSVGObj->group(id => 'circleElements');
+
+  # Add the annotation element for each position
+  my $tag;
+  foreach my $key (sort {$a<=>$b} keys %seqPosHash) {
+    unless ($annotationColour{$key}  eq  '-') {
+      $tag = $circleElementsGroup->circle(   cx     =>   $seqPosHash{$key}->{'X'},
+                                             cy     =>   $seqPosHash{$key}->{'Y'},
+                                             r      =>   7,
+                                             style=>   { 'fill-opacity'=> 1,
+                                                         'fill'=>"rgb($annotationColour{$key})"});
+    }
+  }
+
+
+  # Place the groups in the correct position within the SVG DOM
+  $seqElementParent->insertBefore($circleElementsGroup, $outlineElements);
+  
+  if (defined $SVGlegend) {
+    $SVGfirstChild->insertBefore($legendElements, $seqElementParent);
+  }
+
+  # Remove the old script element
+  $SVGfirstChild->removeChild($scriptElement);
+
+  # Add the new script element
+  my $newScriptElement=$svg->script(-type=>'text/ecmascript');
+  $newScriptElement->CDATA(qq|
+        var shown = 1;
+        function click() {
+             var seq = document.getElementById("seq");
+             var lines = document.getElementById("outline");
+             var pairs = document.getElementById("pairs");         
+   
+             if (shown==1) {
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: hidden");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+
+               shown = 2;
+             } else if (shown==2) {
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+
+               shown = 3;
+             } else if (shown==3) { 
+               seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+               lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+               pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible"); 
+               shown = 1;
+             }
+         }
+  |);
+
+  my $onclickRect = $SVGfirstChild->getFirstChild();
+  $onclickRect->setAttribute('width', '700');
+  $onclickRect->setAttribute('height', '550');
+
+  my $svgXML = $svg->xmlify();
+
+return $svgXML;
+}
+
+#---------------------------------------------------------------------------
+# Subroutine for adding coordinates to the coordinate hash 
+sub addSeqPosObj {
+  my ($seqPosHashRef,$position,$xCoord,$yCoord)  = @_;
+  $seqPosHashRef->{$position} = {
+    X      =>  $xCoord,
+    Y      =>  $yCoord };
+ return %$seqPosHashRef;
+}
+
 
 #---------------------------------------------------------------------------------------
 # Perform calculations on an array of match objects, return a hash containing the results
