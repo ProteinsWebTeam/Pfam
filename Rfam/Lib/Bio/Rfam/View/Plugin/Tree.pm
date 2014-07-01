@@ -14,7 +14,7 @@ has foo => (
 
 sub process {
   my $self = shift;
-  $self->makeSeedTrees;
+  #$self->makeSeedTrees;
 }
 
 #Make phylogenetic tree for seed
