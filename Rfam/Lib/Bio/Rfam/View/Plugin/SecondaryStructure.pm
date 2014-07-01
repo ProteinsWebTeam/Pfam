@@ -24,7 +24,7 @@ sub process {
   my $self = shift;
   # print 'Work on this ' . $self->parent->family->SEED->path . "\n";
   
-  #$self->makeRchie;
+  $self->makeRchie;
   $self->makeBling;
 }
 
@@ -82,6 +82,7 @@ sub makeBling {
   my $config = $self->parent->config;
   my $rfamdb = $self->parent->config->rfamlive;
   my $rfam_acc = $self->parent->family->DESC->AC;
+  print "Running SS Images View Pligin on family $rfam_acc \n";
 
   my $location = "/homes/evan/public_html/ss_images/$rfam_acc";
   File::Path::make_path($location);
@@ -180,7 +181,6 @@ sub makeBling {
   # 4) Sequence Entropy
   # 5) Maximum parse of the covariance model
   # 6) Normal (A different colour for each perfect stem)
-  # 7) Motifs
 
   my $rgbColourNumber;
   my $k;
@@ -332,25 +332,26 @@ sub makeBling {
         if ($k > $i && $l == $j && $bpHash{$k} == 1) {
           unless (defined $normalColourHash{$i} || defined $normalColourHash{$k}) {
             # We have found a base pairing match
+            if ($block == 37) {$block=$block+2};
             if (defined $normalColourHash{$i-1} &&  defined $normalColourHash{$k+1}) {
               if ($normalColourHash{$i-1} eq $normalColourHash{$k+1}){
                 # Continue the same colour as we are on the same stem
-                $blockColour = $colours{(38-$block)};
+                $blockColour = $colours{((76-$block)%38)};
                 $normalColourHash{$i} = $blockColour;
                 $normalColourHash{$k} = $blockColour;
               }
               else {
                 # New colour as we are on a new stem              
                 $block++;
-                $blockColour = $colours{(38-$block)};
+                $blockColour = $colours{((76-$block)%38)};
                 $normalColourHash{$i} = $blockColour;
                 $normalColourHash{$k} = $blockColour;
-              }
+               }
              }
             else {
               # New colour as we are on a new stem
               $block++;
-              $blockColour = $colours{(38-$block)};
+              $blockColour = $colours{((76-$block)%38)};
               $normalColourHash{$i} = $blockColour;
               $normalColourHash{$k} = $blockColour;
             }
@@ -364,9 +365,6 @@ sub makeBling {
     }
   $i++;
   }
-
-  # Image 7: Motif Blocks
-  # !TODO!
 
   # Generate the image legends
   my $conservationLegend = SVGLegend('Sequence Conservation',0,1,\%colours);
@@ -621,7 +619,7 @@ sub annotateSVG {
 
   # Generate the annotated SVG file
   my $outputSVG = $svg->xmlify();
-  
+
 return $outputSVG;
 }
 
