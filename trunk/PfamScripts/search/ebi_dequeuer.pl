@@ -24,7 +24,7 @@ Log::Log4perl->init( \$logger_conf );
 
 my $log = get_logger();
 
-$log->level($DEBUG) if $ENV{DEQUEUER_DEBUG};
+$log->level($DEBUG) if $ENV{DEBUG_DEQUEUER};
 
 #-------------------------------------------------------------------------------
 # which queue are we running here ?
@@ -45,7 +45,9 @@ $log->info( "starting queue '$queue'" );
 
 my $eqm = Bio::Pfam::Queues::EbiQueueManager->new( config => $config, queue => $queue );
 
-$eqm->daemonise unless $ENV{DEQUEUER_DEBUG};
+# daemonising breaks the interaction with the Daemon::Control-based scripts
+# that we're using with init. Only daemonise if explicitly asked to.
+$eqm->daemonise if $ENV{BG_DEQUEUER};
  
 $eqm->start_polling;
 
