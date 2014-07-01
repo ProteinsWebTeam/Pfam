@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 Bio::Rfam::SVN::Commit - a module that commits to the Rfam SVN 
@@ -32,6 +31,7 @@ use Carp;
 
 use Bio::Rfam::Config;
 use Bio::Rfam::FamilyIO;
+use Bio::Rfam::MotifIO;
 use Bio::Rfam::ClanIO;
 use Bio::Rfam::QC;
 use Data::Printer;
@@ -634,6 +634,38 @@ sub allowCommit {
   }
 }
 
+sub commitMotif {
+  my ($self, $motifObj) = @_;
+  
+  my $rfamdb = $self->{config}->rfamlive;
+  
+  #Need to put a transaction around this block
+  my $guard = $rfamdb->txn_scope_guard;  
+  
+  # Regardless of the way that we have come in to this part,
+  # create or update the database with the DESC file information.
+   
+  my $mot = $rfamdb->resultset('Motif')->find( { motif_acc => $motifObj->DESC->AC } );
+  
+  if ($mot) {
+  # Update the motif entry in the database   
+    print "Entry in the database found. Updating the Motif Entry.\n";
+    $rfamdb->resultset('Motif')->updateMotifFromObj($motifObj);
+  }
+  
+  else {
+  # Create a new entry in the database
+    print "New entry to be added to database.\n";
+    $rfamdb->resultset('Motif')->createMotifFromObj($motifObj);
+  }
+  
+  $rfamdb->resultset('LiteratureReference')->find_or_createFromMotifObj( $motifObj );
+  #$rfamdb->resultset('DatabaseLink')->find_or_createFromMotifObj( $motifObj );  
+  
+  #Finish the transaction.
+  $guard->commit;
+}
+
 sub commitClan {
   my ($self) = @_;
 
@@ -647,7 +679,6 @@ sub commitClan {
   $self->_commitClan($clanObj);
 
 }
-
 
 sub moveClan {
   my ( $self ) = @_;
