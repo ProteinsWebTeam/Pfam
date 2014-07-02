@@ -20,7 +20,8 @@ sub mapPDB {
 	#Those with modified bases have been excluded.
 	#Documentation on Confluence as to how to produce this fasta file.
 	#
-	my $PDB_fasta = '/nfs/production/xfam/rfam/CURATION/PDB/pdb_trimmed_noillegals.fa';	
+	my $PDB_fasta = '/nfs/production/xfam/rfam/RELEASE_FILES/RFAM_12/PDB_RFAM12.fa';
+	#my $PDB_fasta = '/nfs/production/xfam/rfam/CURATION/PDB/pdb_trimmed_noillegals.fa';	
 	my $config = $self->parent->config;
 	my $client = Bio::Rfam::SVN::Client->new({config => $config});
 	my $familyIO = Bio::Rfam::FamilyIO->new;	
@@ -47,7 +48,11 @@ sub mapPDB {
 	#
 	my $cm_file = "/tmp/$prefix.CM";
 	my $cm = $familyObj->CM;
-    $familyIO->writeAnnotatedCM($cm, $familyObj,$cm_file);
+
+    #$familyIO->writeAnnotatedCM($cm, $familyObj,$cm_file,0);
+    $familyIO->writeAnnotatedCM( $familyObj,$cm_file,0);
+    
+	#$familyIO->writeCM($cm, $cm_file);
 	
 	# cmpress the CM and run the cmscan job:
 	#
@@ -55,7 +60,7 @@ sub mapPDB {
 	system ($cmpress) ;
 	my $cmscan_cmd = "cmscan -o  $out --tblout $tblout --cut_ga $cm_file $PDB_fasta >>$logfile";
 	system ( $cmscan_cmd) ;
- 	unlink glob "/tmp/$prefix.CM.*";	
+ 	unlink glob "/tmp/$prefix.CM*";	
 	#Array to store our PDB matches in:
 	my @pdbs;
 
