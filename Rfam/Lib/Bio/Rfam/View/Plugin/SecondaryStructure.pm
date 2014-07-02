@@ -381,8 +381,14 @@ sub makeBling {
   my $normalSVGobj = annotateSVG($RNAplot_img, \%normalColourHash);
   my $maxCMparseSVGobj = annotateSVG($RNAplot_img_maxCM, \%maxCMparseColour, $maxCMlegend);
 
-  # Save the SVG images to disk as SVGs
+  # Save the SVG images to disk as SVG, gzip and then place in database
   my ($conservationSVGhandle, $fcbpSVGhandle, $covariationSVGhandle, $entropySVGhandle, $normalSVGhandle, $maxCMSVGhandle);
+  my @handleArray = ([$conservationSVG,'cons'],
+                     [$fcbpSVG,'fcbp'],
+                     [$covariationSVG,'cov'],
+                     [$entropySVG,'ent'],
+                     [$normalSVG,'norm'],
+                     [$maxCMparseSVG,'maxcm']);
  
   open ($conservationSVGhandle, '>', $conservationSVG) or die ("Unable to open $conservationSVGhandle");
   print $conservationSVGhandle $conservationSVGobj;
@@ -408,8 +414,29 @@ sub makeBling {
   print $maxCMSVGhandle $maxCMparseSVGobj;
   close ($maxCMSVGhandle) or die ("Unable to close $maxCMSVGhandle");
 
-  # Put the SVG images in the database
- 
+  # Insert the SVG images in the database
+  foreach my $imageHandleRef (@handleArray) {
+    my $fileGzipped;
+    gzip $imageHandleRef->[0] => \$fileGzipped;
+    my $resultset = $rfamdb->resultset('SecondaryStructureImage')->find(   
+                                                                   {rfam_acc => $rfam_acc,
+                                                                    type => $imageHandleRef->[1]},
+                                                                   {key => 'acc_and_type'});
+    if (!$resultset) {
+      $rfamdb->resultset('SecondaryStructureImage')->create({
+                                rfam_acc => $rfam_acc,
+                                type => $imageHandleRef->[1],
+                                image => $fileGzipped
+                        });
+    } 
+    else {$rfamdb->resultset('SecondaryStructureImage')->update({
+                                rfam_acc => $rfam_acc,
+                                type => $imageHandleRef->[1],
+                                image => $fileGzipped}
+                        );
+    }
+  }
+
   # Clean up the temp files
   unlink($RNAplot_img);
   unlink($RNAplot_img_maxCM);
