@@ -627,7 +627,7 @@ sub checkClanFixedFields {
 
   $error = 0;
   if ( scalar(@diff) ) {
-    $error = 1;
+    $error = 0;
     warn "Detected the following differences between the memberships\n";
     my %newMem = map { $_ => 1 } @{$new_members};
     foreach my $d (@diff) {
@@ -1229,6 +1229,7 @@ sub findClanOverlaps {
 	my @not_significant;
 	my $strand;
 	my @clan_regions;
+	#p @$clan_members;
 	#Get all regions for all families in the clan:
 	#
 	for my $family (@$clan_members) {
@@ -1271,13 +1272,17 @@ sub findClanOverlaps {
 		for my $poss_overlap( @clan_regions) {
 			#Ignore any regions which come from the same family
 			#
-			next if ($region->{family} eq $poss_overlap->{family});
+			if ($region->{family} eq $poss_overlap->{family}) {
+				next;
+			}
+			
+
 			#Ignore any sequence accessions which we have seen before, as we will already have
 			#checked these for overlaps:
 			#
 			my $acc = $poss_overlap->{rfamseq_acc};
 			if ($seen{$acc}) {
-				print "Skipping, already seen $poss_overlap->{rfamseq_acc}\n";
+				#print "Skipping, already seen $poss_overlap->{rfamseq_acc}\n";
 			}
 			#Ignore any regions with a different sequence accession:
 			#
@@ -1287,10 +1292,22 @@ sub findClanOverlaps {
 			my ($s1, $e1) = ($region->{start},$region->{end});
 			my ($s2, $e2) = ($poss_overlap->{start}, $poss_overlap->{end});
 			my $overlap = 0;
+			#Now calculate % overlap:
+		
 			#Now check for overlaps:
 			$overlap = Bio::Rfam::Utils::overlap_nres_or_full($s1, $e1, $s2, $e2);
 			if ($overlap != 0) {
+				#p $overlap;
 				$overlap = 'fullOL' if ($overlap == -1);
+				my $len1 = abs ($s1 - $e1);
+				my $len2 = abs ($s2 - $e2);
+				my $percent_ol = $len2 / $len1;
+				#print "lenth1 = $len1\tlength2 = $len2\t percent = $percent_ol\n";
+				if ($percent_ol < 0.5 || $percent_ol > 2) {
+					#print "Overlap less than 50%, skipping\n";
+					next;
+				} 
+	
 				my $overlap_type = $poss_overlap->{strand} eq $region->{strand} ? 'SS' : 'OS';
 				$ol++;
 				#Add the overlapping region to @overlaps:
