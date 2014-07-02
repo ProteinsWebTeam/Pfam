@@ -71,6 +71,21 @@ __PACKAGE__->set_primary_key("pmid");
 
 =head1 RELATIONS
 
+=head2 motif_literature_references
+
+Type: has_many
+
+Related object: L<RfamLive::Result::MotifLiterature>
+
+=cut
+
+__PACKAGE__->has_many(
+  "motif_literature_references",
+  "RfamLive::Result::MotifLiterature",
+  { "foreign.pmid" => "self.pmid" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 clan_literature_references
 
 Type: has_many
