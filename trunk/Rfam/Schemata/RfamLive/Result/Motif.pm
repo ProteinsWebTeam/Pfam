@@ -32,7 +32,7 @@ __PACKAGE__->table("motif");
 =head2 motif_id
 
   data_type: 'varchar'
-  is_nullable: 0
+  is_nullable: 1
   size: 40
 
 =head2 description
@@ -158,7 +158,7 @@ __PACKAGE__->add_columns(
   "motif_acc",
   { data_type => "varchar", is_nullable => 0, size => 7 },
   "motif_id",
-  { data_type => "varchar", is_nullable => 0, size => 40 },
+  { data_type => "varchar", is_nullable => 1, size => 40 },
   "description",
   { data_type => "varchar", is_nullable => 1, size => 75 },
   "author",
@@ -222,21 +222,22 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("motif_acc");
 
-=head1 UNIQUE CONSTRAINTS
+=head1 RELATIONS
 
-=head2 C<motif_id_UNIQUE>
+=head2 motif_family_stats
 
-=over 4
+Type: has_many
 
-=item * L</motif_id>
-
-=back
+Related object: L<RfamLive::Result::MotifFamilyStat>
 
 =cut
 
-__PACKAGE__->add_unique_constraint("motif_id_UNIQUE", ["motif_id"]);
-
-=head1 RELATIONS
+__PACKAGE__->has_many(
+  "motif_family_stats",
+  "RfamLive::Result::MotifFamilyStat",
+  { "foreign.motif_acc" => "self.motif_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
 
 =head2 motif_literatures
 
@@ -284,8 +285,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2014-05-21 14:32:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wa0RxbL6V7o0bWdAfgFw6A
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-02 08:33:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4jdC4SlsvEzuScvqkccEbw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

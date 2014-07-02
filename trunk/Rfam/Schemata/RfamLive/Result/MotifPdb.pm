@@ -33,7 +33,6 @@ __PACKAGE__->table("motif_pdb");
 =head2 pdb_id
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 0
   size: 4
 
@@ -65,7 +64,7 @@ __PACKAGE__->add_columns(
   "motif_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "pdb_id",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 4 },
+  { data_type => "varchar", is_nullable => 0, size => 4 },
   "chain",
   { data_type => "varchar", is_nullable => 0, size => 4 },
   "pdb_seq",
@@ -76,7 +75,9 @@ __PACKAGE__->add_columns(
   { data_type => "mediumint", is_nullable => 1 },
 );
 
-=head1 PRIMARY KEY
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<Composite Unique>
 
 =over 4
 
@@ -88,7 +89,7 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key("motif_acc", "pdb_id");
+__PACKAGE__->add_unique_constraint("Composite Unique", ["motif_acc", "pdb_id"]);
 
 =head1 RELATIONS
 
@@ -107,24 +108,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
 
-=head2 pdb
 
-Type: belongs_to
-
-Related object: L<RfamLive::Result::Pdb>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "pdb",
-  "RfamLive::Result::Pdb",
-  { pdb_id => "pdb_id" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2014-05-21 14:32:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sDCafmXd+kFbqAa1bZmVHw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-02 08:33:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XxVd3GUZcYxbzC0sk4JgCw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
