@@ -28,9 +28,11 @@ sub competeClan {
 	my $rfamdb = $self->parent->config->rfamlive;
 	my $familyObj = $self->parent->family;
 	my $rfam_acc = $self->parent->family->DESC->AC;
-   	my $clan_rs = $rfamdb->resultset('ClanMembership')->find({rfam_acc => $rfam_acc});
+	my $clan_rs = $rfamdb->resultset('ClanMembership')->find({rfam_acc => $rfam_acc});
+	return if (!$clan_rs);
 	my $clan_acc = $clan_rs->clan_acc->clan_acc;
-    my $clan_rfam_rs = $rfamdb->resultset('ClanMembership')->search({clan_acc => $clan_acc});
+    
+	my $clan_rfam_rs = $rfamdb->resultset('ClanMembership')->search({clan_acc => $clan_acc});
     while (my $row = $clan_rfam_rs->next) {
 		#p $row->rfam_acc->rfam_acc;
 		my $clan_member = $row->rfam_acc->rfam_acc;
