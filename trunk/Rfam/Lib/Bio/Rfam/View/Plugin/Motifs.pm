@@ -6,6 +6,7 @@ with 'MooseX::Role::Pluggable::Plugin';
 use IO::File;
 use Bio::Rfam::MotifMatch;
 use Bio::Rfam::MotifIO;
+use RfamLive;
 use File::Slurp;
 use SVG;
 use SVG::Parser;
@@ -216,9 +217,43 @@ sub findMotifs {
           open ($motifHandle, '>', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
           print $motifHandle $motifSVGobj;
           close ($motifHandle) or die ("Unable to close $motifHandle");   
-          
       }
 
+      # Add the summary statistics (allow.outlist) to the database
+      foreach my $motifHashKey (keys %acceptedMotifHash) {
+        my $numHits   = $acceptedMotifHash{$motifHashKey}{NUM_HITS};
+        my $freqHits  = $acceptedMotifHash{$motifHashKey}{FREQ_HITS};
+        my $sumBits   = $acceptedMotifHash{$motifHashKey}{SUM_BITS};
+        my $avgWBits  = $acceptedMotifHash{$motifHashKey}{AVG_W_BITS};
+        my $motifAcc  = $motifHashKey;
+        if ($numHits > 0) {
+          print "|$numHits|$freqHits|$sumBits|$avgWBits|$motifAcc|\n";
+          my $resultset = $rfamdb->resultset('MotifFamilyStat')->find(
+			 					{rfam_acc => $rfam_acc,
+                                                                 motif_acc => $motifAcc,
+                                                                 num_hits => $numHits,
+                                                                 frac_hits => $freqHits,
+                                                                 sum_bits => $sumBits,
+                                                                 avg_weight_bits => $avgWBits});
+          if (!$resultset) {
+                 $rfamdb->resultset('MotifFamilyStat')->create(
+                                                                {rfam_acc => $rfam_acc,
+                                                                 motif_acc => $motifAcc,
+                                                                 num_hits => $numHits,
+                                                                 frac_hits => $freqHits,
+                                                                 sum_bits => $sumBits,
+                                                                 avg_weight_bits => $avgWBits});
+          } 
+          else { $rfamdb->resultset('MotifFamilyStat')->update(
+                                                                {rfam_acc => $rfam_acc,
+                                                                 motif_acc => $motifAcc,
+                                                                 num_hits => $numHits,
+                                                                 frac_hits => $freqHits,
+                                                                 sum_bits => $sumBits,
+                                                                 avg_weight_bits => $avgWBits});
+          }
+        }
+      }
 }
 
 
@@ -302,7 +337,7 @@ sub annotateSVG {
   my $scriptElement = $scriptElements[0];
 
   # Change with width & height of the SVG to allow addition of the legend
-  # The default from RNAplot is 452 x 452  so we increase it to 500 x 600
+  # The default from RNAplot is 452 x 452  so we increase it to 700 x 550
   my $SVGwidth  = "700";
   my $SVGheight = "550";
   $SVGwidth     = $SVGfirstChild->setAttribute('width',$SVGwidth);
