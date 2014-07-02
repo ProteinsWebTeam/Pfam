@@ -41,18 +41,18 @@ __PACKAGE__->table("motif_matches");
 
   data_type: 'varchar'
   is_foreign_key: 1
-  is_nullable: 0
+  is_nullable: 1
   size: 20
 
 =head2 rfamseq_start
 
   data_type: 'bigint'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 rfamseq_stop
 
   data_type: 'bigint'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 query_start
 
@@ -94,11 +94,11 @@ __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "rfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 20 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 1, size => 20 },
   "rfamseq_start",
-  { data_type => "bigint", is_nullable => 0 },
+  { data_type => "bigint", is_nullable => 1 },
   "rfamseq_stop",
-  { data_type => "bigint", is_nullable => 0 },
+  { data_type => "bigint", is_nullable => 1 },
   "query_start",
   { data_type => "integer", is_nullable => 1 },
   "query_stop",
@@ -113,7 +113,9 @@ __PACKAGE__->add_columns(
   { data_type => "double precision", is_nullable => 1, size => [7, 2] },
 );
 
-=head1 PRIMARY KEY
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<Composite Unique>
 
 =over 4
 
@@ -131,12 +133,15 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->set_primary_key(
-  "motif_acc",
-  "rfam_acc",
-  "rfamseq_acc",
-  "rfamseq_start",
-  "rfamseq_stop",
+__PACKAGE__->add_unique_constraint(
+  "Composite Unique",
+  [
+    "motif_acc",
+    "rfam_acc",
+    "rfamseq_acc",
+    "rfamseq_start",
+    "rfamseq_stop",
+  ],
 );
 
 =head1 RELATIONS
@@ -183,12 +188,17 @@ __PACKAGE__->belongs_to(
   "rfamseq_acc",
   "RfamLive::Result::SeedRegion",
   { rfamseq_acc => "rfamseq_acc" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "CASCADE",
+    on_update     => "CASCADE",
+  },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2014-05-21 14:32:18
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:r7AMhXbxNPWwjEu7yC7vQw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-02 08:33:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mb1DFky930aU1+I3tKxLnw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
