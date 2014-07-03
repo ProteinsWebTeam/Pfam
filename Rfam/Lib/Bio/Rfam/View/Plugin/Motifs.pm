@@ -15,7 +15,7 @@ has foo => (
   is  => 'rw',
   isa => 'Int'
 );
-
+ 
 sub process {
   my $self = shift;
   $self->findMotifs;
@@ -211,7 +211,8 @@ sub findMotifs {
             $counter++;
           }
           # Create the individual motif images
-          my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours);
+          my $motifLegendLabel = $acceptedMotifHash{$motifAccession}->{MOTIF_ID};
+          my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours,$motifLegendLabel);
           my $motifSVGobj = annotateSVG($RNAplot_img, \%colourSeqPosWithMotif,$motifSVGlegend);
           my $motifHandle;
           open ($motifHandle, '>', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
@@ -222,36 +223,19 @@ sub findMotifs {
       # Add the summary statistics (allow.outlist) to the database
       foreach my $motifHashKey (keys %acceptedMotifHash) {
         my $numHits   = $acceptedMotifHash{$motifHashKey}{NUM_HITS};
-        my $freqHits  = $acceptedMotifHash{$motifHashKey}{FREQ_HITS};
-        my $sumBits   = $acceptedMotifHash{$motifHashKey}{SUM_BITS};
-        my $avgWBits  = $acceptedMotifHash{$motifHashKey}{AVG_W_BITS};
+        my $freqHits  = sprintf("%.3f", $acceptedMotifHash{$motifHashKey}{FREQ_HITS});
+        my $sumBits   = sprintf("%.3f", $acceptedMotifHash{$motifHashKey}{SUM_BITS});
+        my $avgWBits  = sprintf("%.3f", $acceptedMotifHash{$motifHashKey}{AVG_W_BITS});
         my $motifAcc  = $motifHashKey;
         if ($numHits > 0) {
-          print "|$numHits|$freqHits|$sumBits|$avgWBits|$motifAcc|\n";
-          my $resultset = $rfamdb->resultset('MotifFamilyStat')->find(
+          my $resultset = $rfamdb->resultset('MotifFamilyStat')->update_or_create(
 			 					{rfam_acc => $rfam_acc,
                                                                  motif_acc => $motifAcc,
                                                                  num_hits => $numHits,
                                                                  frac_hits => $freqHits,
                                                                  sum_bits => $sumBits,
                                                                  avg_weight_bits => $avgWBits});
-          if (!$resultset) {
-                 $rfamdb->resultset('MotifFamilyStat')->create(
-                                                                {rfam_acc => $rfam_acc,
-                                                                 motif_acc => $motifAcc,
-                                                                 num_hits => $numHits,
-                                                                 frac_hits => $freqHits,
-                                                                 sum_bits => $sumBits,
-                                                                 avg_weight_bits => $avgWBits});
-          } 
-          else { $rfamdb->resultset('MotifFamilyStat')->update(
-                                                                {rfam_acc => $rfam_acc,
-                                                                 motif_acc => $motifAcc,
-                                                                 num_hits => $numHits,
-                                                                 frac_hits => $freqHits,
-                                                                 sum_bits => $sumBits,
-                                                                 avg_weight_bits => $avgWBits});
-          }
+
         }
       }
 }
@@ -260,7 +244,7 @@ sub findMotifs {
 ##############
 
 sub SVGLegend {
-  my ($legend_name,$min_value,$max_value,$colours) = @_;
+  my ($legend_name,$min_value,$max_value,$colours,$motif_id) = @_;
 
   $max_value = sprintf("%.2f", $max_value);
   $min_value = sprintf("%.2f", $min_value);
@@ -297,9 +281,17 @@ sub SVGLegend {
                                               y  =>  0 );
 
 
+  my $motifID = $legendElementsGroup->text(
+                                                id     => 'motifID',
+                                                x      => 500,
+                                                y      => 27,
+                                                style  => { 'font-family'  => "Arial,Helvetica",
+                                                            'font-size'    => "20px",
+                                                            'text-anchor'  => "middle",
+                                                            'fill'         => "dimgrey" } )->cdata($motif_id);
   my $xPos = 0;
   my $yPos = 0;
-
+ 
   my @colourKeys = keys % {$colours};
   foreach my $colourKey (sort {$a<=>$b} @colourKeys) {
     $legendBox->rectangle(  x     =>  $xPos,
