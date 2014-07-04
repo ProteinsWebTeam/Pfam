@@ -426,4 +426,23 @@ sub ignorableQC {
   
 }
 
+=head2 binLocation
+
+  Title    : binLocation
+  Usage    : $config->binLocation
+  Function : Returns the bin directory
+  Args     : None - read only operator
+  Returns  : string containing path  
+  
+=cut
+
+sub binLocation {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{binLocation};
+}
+
+
 1;
