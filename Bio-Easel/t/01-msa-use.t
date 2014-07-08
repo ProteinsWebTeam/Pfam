@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 151;
+use Test::More tests => 157;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -24,6 +24,7 @@ my ($avg_pid, $min_pid, $min_idx, $max_pid, $max_idx);
 my @keepmeA;
 my @usemeA;
 my @orderA;
+my $rawmsa;
 
 # first test new without a forcetext value
 $msa1 = Bio::Easel::MSA->new({
@@ -452,6 +453,12 @@ for($mode = 0; $mode <= 1; $mode++) {
   $msa1->set_ss_cons($ss_cons_str);
   is($msa1->get_ss_cons(), $ss_cons_str, "set_ss_cons() seems to be working");
   is($msa1->get_ss_cons_dot_parantheses(), $ss_cons_str_dp, "get_ss_cons_dot_parantheses() seems to be working");
+
+  # get_ss_cons_ct
+  my @ctA = $msa1->get_ss_cons_ct();
+  is($ctA[0],  0,  "get_ss_cons_ct() seems to be working (1 of 3)");
+  is($ctA[1],  28, "get_ss_cons_ct() seems to be working (2 of 3)");
+  is($ctA[11], 18, "get_ss_cons_ct() seems to be working (3 of 3)");
 
   ################################################
   # capitalize_based_on_rf
