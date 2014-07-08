@@ -349,13 +349,19 @@ char *_c_get_ss_cons (ESL_MSA *msa)
  * Synopsis:  Sets msa->ss_cons
  * Returns:   void
  */
-void _c_set_ss_cons (ESL_MSA *msa, char *ss_cons_str)
+void _c_set_ss_cons (ESL_MSA *msa, char *ss_cons_str, int do_full_wuss)
 {
+  int status;
   int ss_cons_len = strlen(ss_cons_str);
   if(ss_cons_len != msa->alen) croak("_c_set_ss_cons() trying to set SS_cons with string of incorrect length");
   if(msa->ss_cons) free(msa->ss_cons);
 
   esl_strdup(ss_cons_str, ss_cons_len, &(msa->ss_cons));
+  if(do_full_wuss) { 
+    if((status = esl_wuss_full(msa->ss_cons, msa->ss_cons)) != eslOK) { 
+      croak("_c_set_ss_cons() problem converting SS_cons to full WUSS notation"); 
+    }
+  }
   return;
 }   
 
@@ -377,6 +383,51 @@ void _c_set_blank_ss_cons (ESL_MSA *msa)
   }
   msa->ss_cons[msa->alen] = '\0';
 
+  return;
+
+ ERROR: 
+  croak("out of memory");
+  return; /* NEVER REACHED */
+}
+
+/* Function:  _c_get_ss_cons_ct()
+ * Incept:    EPN, Mon Jul  7 09:34:01 2014
+ * Synopsis:  Return a 'CT' array describing the consensus secondary structure
+ *            for the alignment.
+ * Args:      msa: the alignment
+ * Returns:   a ct[] array, [1..alen]:
+ *            ct[i] is the position that position 'i' pairs to
+ *                  or '0' if position 'i' is unpaired.
+ * Dies:      with croak, if we can't make a CT array for some reason
+ */
+void _c_get_ss_cons_ct (ESL_MSA *msa)
+{
+  Inline_Stack_Vars;
+
+  int status;
+  int *ct;
+  int apos;
+
+  if(msa->ss_cons == NULL) { 
+    croak("ERROR in _c_get_ss_cons_ct(), msa has no SS_cons annotation");
+  }
+
+  /* allocate 'ct' */
+  ESL_ALLOC(ct, sizeof(int) * (msa->alen+1));
+
+  if((status = esl_wuss2ct(msa->ss_cons, msa->alen, ct)) != eslOK) { 
+    croak("ERROR in _c_get_ss_cons_ct(), problem converting SS_cons to CT array"); 
+  }
+
+  /* calculate sequence conservation, and fill return array */
+  Inline_Stack_Reset;
+  for(apos = 0; apos <= msa->alen; apos++) { 
+    Inline_Stack_Push(newSViv(ct[apos])); 
+  }
+  Inline_Stack_Done;
+  Inline_Stack_Return(msa->alen+1);
+
+  if(ct) free(ct);
   return;
 
  ERROR: 
@@ -592,6 +643,32 @@ SV *_c_get_sqstring_aligned(ESL_MSA *msa, int seqidx)
   free(seqstring);
 
   return seqstringSV;
+
+ ERROR: 
+  croak("out of memory");
+  return NULL;
+}
+
+/* Function:  _c_get_ppstring_aligned()
+ * Incept:    EPN, Mon Jul  7 09:20:03 2014
+ * Purpose:   Return aligned PP annotation for sequence <seqidx>.
+ * Returns:   PP annotation for aligned sequence <seqidx>.
+ */
+SV *_c_get_ppstring_aligned(ESL_MSA *msa, int seqidx)
+{
+  int status;
+  SV *ppstringSV;  /* SV version of msa->ax[->seq */
+  char *ppstring;
+
+  if(_c_check_ppidx(msa, seqidx) == 0) { croak("no PP annotation for sequence"); }
+
+  ESL_ALLOC(ppstring, sizeof(char) * (msa->alen + 1));
+  if((status = esl_strdup(msa->pp[seqidx], msa->alen, &ppstring)) != eslOK) croak("failed to duplicate text aligned posterior probability annotation");
+
+  ppstringSV = newSVpv(ppstring, msa->alen);
+  free(ppstring);
+
+  return ppstringSV;
 
  ERROR: 
   croak("out of memory");
@@ -2056,6 +2133,18 @@ char *_c_get_gf(ESL_MSA *msa, int idx)
 {
   if(idx >= msa->ngf) croak("ERROR, _c_get_gf(), asking for GF annotation %d, but only %d exist.", idx+1, msa->ngf); 
   return msa->gf[idx];
+}
+
+/* Function:  _c_check_ppidx()
+ * Incept:    EPN, Mon Jul  7 09:15:48 2014
+ * Synposis:  Return '1' if sequence <idx> has PP annotation in the MSA, else return '0';
+ */
+int _c_check_ppidx(ESL_MSA *msa, int idx)
+{
+  if(msa->pp      == NULL)        return 0;
+  if(idx < 0 || idx >= msa->nseq) return 0;
+  if(msa->pp[idx] == NULL)        return 0;
+  return 1;
 }
 
 /* Function:  _c_most_informative_sequence()

@@ -491,6 +491,31 @@ sub get_ss_cons_dot_parantheses {
 
 #-------------------------------------------------------------------------------
 
+=head2 get_ss_cons_ct
+
+  Title    : get_ss_cons_ct
+  Incept   : EPN, Mon Jul  7 09:41:58 2014
+  Usage    : $msaObject->get_ss_cons_ct()
+  Function : Returns a 'CT' array describing the consensus secondary structure
+           : of an msa.
+  Args     : msa
+  Returns  : a 'CT' array, msa->alen+1 elements
+           : ct[i] is the position that 'i' basepairs to, else '0' [1..alen] (NOT 0..alen-1)
+
+=cut
+
+sub get_ss_cons_ct {
+  my ( $self ) = @_;
+
+   $self->_check_msa();
+  if(! $self->has_ss_cons()) { croak "Trying to get a CT array for a SS_cons from MSA but SS_cons does not exist"; }
+  my @ctA = _c_get_ss_cons_ct($self->{esl_msa});
+
+  return @ctA;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 set_ss_cons
 
   Title    : set_ss_cons
@@ -508,7 +533,29 @@ sub set_ss_cons {
 
   $self->_check_msa();
   if(length($ss_cons_str) != $self->alen) { croak "Trying to set SS_cons with string of incorrect length"; }
-  return _c_set_ss_cons( $self->{esl_msa}, $ss_cons_str );
+  return _c_set_ss_cons( $self->{esl_msa}, $ss_cons_str, 0 );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 set_ss_cons_wuss
+
+  Title    : set_ss_cons_wuss
+  Incept   : EPN, Mon Jul  7 11:12:23 2014
+  Usage    : $msaObject->set_ss_cons_wuss()
+  Function : Sets msa->ss_cons given a string and convert it to full WUSS annotation.
+  Args     : $ss_cons_str: string that will become msa->ss_cons
+  Returns  : void
+  Dies     : if length($ss_cons_str) != msa->alen, or there is a problem converting to full WUSS
+
+=cut
+
+sub set_ss_cons_wuss { 
+  my ( $self, $ss_cons_str ) = @_;
+
+  $self->_check_msa();
+  if(length($ss_cons_str) != $self->alen) { croak "Trying to set SS_cons with string of incorrect length"; }
+  return _c_set_ss_cons( $self->{esl_msa}, $ss_cons_str, 1 );
 }
 
 #-------------------------------------------------------------------------------
@@ -898,7 +945,7 @@ sub average_id {
 
   Title    : get_sqstring_aligned
   Incept   : EPN, Fri May 24 11:02:21 2013
-  Usage    : $msaObject->get_sq_aligned()
+  Usage    : $msaObject->get_sqstring_aligned()
   Function : Return an aligned sequence from an MSA.
   Args     : index of sequence you want
   Returns  : aligned sequence index idx
@@ -911,6 +958,28 @@ sub get_sqstring_aligned {
   $self->_check_msa();
   $self->_check_sqidx($idx);
   return _c_get_sqstring_aligned( $self->{esl_msa}, $idx );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_ppstring_aligned
+
+  Title    : get_ppstring_aligned
+  Incept   : EPN, Mon Jul  7 09:12:09 2014
+  Usage    : $msaObject->get_ppstring_aligned()
+  Function : Return an aligned posterior probability annotation for a seq from an MSA.
+  Args     : index of sequence you want PP annotation
+  Returns  : aligned posterior probability annotation for sequence index idx
+
+=cut
+
+sub get_ppstring_aligned {
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  $self->_check_sqidx($idx);
+  $self->_check_ppidx($idx);
+  return _c_get_ppstring_aligned( $self->{esl_msa}, $idx );
 }
 
 #-------------------------------------------------------------------------------
@@ -2353,7 +2422,7 @@ sub _check_msa {
 
 =head2 _check_sqidx
 
-  Title    : _check_seqidx
+  Title    : _check_sqidx
   Incept   : EPN, Sat Feb  2 13:46:08 2013
   Usage    : $msaObject->_check_sqidx($idx)
   Function : Check if $idx is in range 0..nseq-1,
@@ -2370,6 +2439,34 @@ sub _check_sqidx {
   my $nseq = $self->nseq;
   if ( $idx < 0 || $idx >= $nseq ) {
     croak (sprintf("invalid sequence index %d (must be [0..%d])", $idx, $nseq));
+  }
+  return;
+}
+#-------------------------------------------------------------------------------
+
+=head2 _check_ppidx
+
+  Title    : _check_ppidx
+  Incept   : EPN, Mon Jul  7 09:14:06 2014
+  Usage    : $msaObject->_check_ppidx($idx)
+  Function : Check if $idx is in range 0..nseq-1,
+           : and that the MSA has PP annoation for $idx
+  Args     : $idx
+  Returns  : void
+  Dies     : via croak if no PP annotation exists for sequence $idx
+
+=cut
+
+sub _check_ppidx {
+  my ( $self, $idx ) = @_;
+
+  $self->_check_msa();
+  my $nseq = $self->nseq;
+  if ( $idx < 0 || $idx >= $nseq ) {
+    croak (sprintf("invalid sequence index %d (must be [0..%d])", $idx, $nseq));
+  }
+  if(_c_check_ppidx($self->{esl_msa}, $idx) == 0) { 
+    croak (sprintf("no PP annotation for sequence index %d", $idx));
   }
   return;
 }
