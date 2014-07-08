@@ -376,33 +376,31 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  [%# uncomment to add an advance warning of maintenance downtime
+  [% # uncomment to add an advance warning of maintenance downtime %]
   <hr />
 
   <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#F0E8E6;border:1px solid #621700;padding:1em">
-    <h2>Sanger Institute IT Shutdown</h2>
+    <h2>Emergency network maintenance</h2>
+    <h3>08 July 2014 22.00 - 02.00 (BST)</h3>
     <p> 
-      Between 12.30pm Friday 21 October and 10.00am Monday 24 October (BST) the 
-      Sanger Institute data-centre will be offline, during the first stage of  
-      the installation of a new combined heat and power system. During this
-      shutdown, the Rfam website at WTSI will be unavailable.
+      Due to essential emergency work on the EBI network, some parts of the
+      Rfam website may be unavailable for a period of 4 hours between 22.00
+      today, 8th July 2014, and 02.00 tomorrow, Wednesday 9th July 2014. 
     </p>
     <p> 
-      You can read more about the planned work on the main 
-      <a class="ext" href="http://www.sanger.ac.uk/about/press/2011/111012-datacentre.html">
-        Sanger website</a>.
+      The maintenance work is likely to impact the submission of sequence
+      search jobs primarily. Interactive sequence searches may be unavailable,
+      along with the submission of batch searches. Any batch jobs that were
+      submitted before the maintenance window will not be affected and you
+      should receive results as normal. Finally, the generation of alignments
+      of selected sequences in the sunburst tool may be disrupted during the
+      work.
     </p>
     <p> 
-      While this Rfam site is offline, you may want to use the Rfam site at
-      <a class="ext" href="http://rfam.janelia.org/">Janelia Farm, USA</a>. 
-      Please bear in mind, however, that this site has not been updated to
-      the most recent Rfam release, 10.1, and is still serving release 10.0.
-    </ul>
-    <p> 
-      We apologise for any inconvenience.
+      Please accept our apologies for any inconvenience.
     </p>
   </div>
-  # end of maintenance message %]
+  [% # end of maintenance message %]
 
   <div id="posts" class="announcements" style="display: none">
     <hr />
