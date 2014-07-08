@@ -11,7 +11,8 @@ use Bio::Rfam::SS;
 use Bio::Rfam::MooseTypes qw( Stockholm RfamAcc );
 
 #-------------------------------------------------------------------------------
-# configure logging
+#- configure logging -----------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 BEGIN {
   my $logger_conf = q(
@@ -22,7 +23,7 @@ BEGIN {
     log4perl.appender.Screen.layout.ConversionPattern = %d %M:%L %p: %m%n
   );
 
-  Log::Log4perl->init( \$logger_conf );
+  Log::Log4perl->init_once( \$logger_conf );
 }
 
 has '_log' => (
