@@ -342,7 +342,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  [% # uncomment to add an advance warning of a maintenance shutdown %]
+  [%# uncomment to add an advance warning of a maintenance shutdown
   <hr />
 
   <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#E7EDF3;border:1px solid #074987;padding:1em">
@@ -366,7 +366,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       Please accept our apologies for any inconvenience.
     </p>
   </div>
-  [% # end of maintenance method %]
+  # end of maintenance method %]
 
   <div id="posts" class="announcements" style="display: none">
     <hr />
