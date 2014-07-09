@@ -57,7 +57,8 @@ sub makeRchie {
 
         my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
                                                                     {rfam_acc => $rfam_acc,
-                                                                     type => 'rchie'},
+                                                                     type => 'rchie',
+                                                                     image => $fileGzipped},
                                                                     {key => 'acc_and_type'});
 	
 	unlink($seed_loc);
@@ -407,8 +408,9 @@ sub makeBling {
     gzip $imageHandleRef->[0] => \$fileGzipped;
     my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
                                                                     {rfam_acc => $rfam_acc,
-                                                                     type => $imageHandleRef->[1]},
-                                                                    {key => 'acc_and_type'});
+                                                                     type => $imageHandleRef->[1],
+                                                                     image => $fileGzipped},
+                                                                     {key => 'acc_and_type'});
 
   }
 

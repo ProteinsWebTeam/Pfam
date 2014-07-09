@@ -1,15 +1,21 @@
 package Bio::Rfam::View::Plugin::Motifs;
 
-use Data::Dumper;
 use Moose;
 with 'MooseX::Role::Pluggable::Plugin';
+
 use IO::File;
+use File::Path;
+use File::Slurp;
+use Cwd;
+
 use Bio::Rfam::MotifMatch;
 use Bio::Rfam::MotifIO;
 use RfamLive;
-use File::Slurp;
+
 use SVG;
 use SVG::Parser;
+
+use IO::Compress::Gzip qw(gzip $GzipError);
 
 has foo => (
   is  => 'rw',
@@ -28,6 +34,7 @@ sub findMotifs {
 	
 	my $rfamdb      = $self->parent->config->rfamlive;
 	my $rfam_acc    = $self->parent->family->DESC->AC;
+        my $originalCWD = cwd;
 
         # Confirm the family exists in the database
         my $famRow = $rfamdb->resultset('Family')->find( { rfam_acc => $rfam_acc } );
@@ -36,7 +43,7 @@ sub findMotifs {
         }
 	
 	# Set/make locations 
-        my $location    = "/homes/evan/public_html/motifs";
+        my $location    = "/tmp/motifs";
 	my $results_loc = "$location/$rfam_acc";
         File::Path::make_path($results_loc);
         my $SEED        = "$results_loc/SEED";
@@ -200,6 +207,8 @@ sub findMotifs {
           my %colourSeqPosWithMotif;  
           foreach my $posValue (@annotationAR) {
             $fractionValue = ($posValue/$numSeqs);
+            if ($fractionValue > 1.0) {$fractionValue = 1.0};
+            if ($fractionValue < 0.0) {$fractionValue = 0.0}; 
             $colourValue = $colours{int((($fractionValue*36.0)+1)+0.5)};
             $fractionSeqPosWithMotif{$counter}=$fractionValue;
             if ($fractionValue == 0) {
@@ -210,14 +219,24 @@ sub findMotifs {
             }
             $counter++;
           }
-          # Create the individual motif images
+          # Create the individual motif images, zip them and store them in the database
           my $motifLegendLabel = $acceptedMotifHash{$motifAccession}->{MOTIF_ID};
           my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours,$motifLegendLabel);
           my $motifSVGobj = annotateSVG($RNAplot_img, \%colourSeqPosWithMotif,$motifSVGlegend);
           my $motifHandle;
           open ($motifHandle, '>', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
           print $motifHandle $motifSVGobj;
-          close ($motifHandle) or die ("Unable to close $motifHandle");   
+          close ($motifHandle) or die ("Unable to close $motifHandle");
+          my $fileGzipped;
+          
+          open ($motifHandle, '<', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
+          gzip $motifHandle => \$fileGzipped;
+          my $imageResultset= $rfamdb->resultset('MotifSecondaryStructureImage')->update_or_create(
+                                                                    {rfam_acc => $rfam_acc,
+                                                                     motif_acc => $motifAccession,
+                                                                     image => $fileGzipped});
+
+          close ($motifHandle) or die ("Unable to close $motifHandle");
       }
 
       # Add the summary statistics (allow.outlist) to the database
@@ -238,6 +257,10 @@ sub findMotifs {
 
         }
       }
+
+      # Unlink the tmp directory after results have been inserted into the database
+      chdir $originalCWD;
+      File::Path::remove_tree($location);
 }
 
 
@@ -283,8 +306,8 @@ sub SVGLegend {
 
   my $motifID = $legendElementsGroup->text(
                                                 id     => 'motifID',
-                                                x      => 500,
-                                                y      => 27,
+                                                x      => 550,
+                                                y      => 15,
                                                 style  => { 'font-family'  => "Arial,Helvetica",
                                                             'font-size'    => "20px",
                                                             'text-anchor'  => "middle",
@@ -595,7 +618,7 @@ sub parseTBL2MotifMatchObj{
 # Assign labels to each motif to be used in markup of the SEED
 sub assign_motif_label {
   my ($motif_id, $taken)=@_;
-  my @chars = qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y Z a b c d e f g h i j k l m n o p q r s t u v w x y z 1 2 3 4 5 6 7 8 9 0);
+  my @chars = ("A".."Z","a".."z","0".."9");
   my @motif_ids = split(//,$motif_id);
 
   foreach my $c (@motif_ids,@chars) {

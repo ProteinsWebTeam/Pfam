@@ -45,6 +45,7 @@ Should be ENUM list
 
 =cut
 
+
 __PACKAGE__->add_columns(
   "rfam_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
@@ -99,6 +100,6 @@ __PACKAGE__->add_unique_constraint(
 );
 
 #__PACKAGE__->set_primary_key(__PACKAGE__->columns);
-__PACKAGE__->set_primary_key('rfam_acc');
+__PACKAGE__->set_primary_key('rfam_acc','type');
 
 1;
