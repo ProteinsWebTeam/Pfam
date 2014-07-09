@@ -113,6 +113,7 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-07-02 08:33:40
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Yd5Be4ND9yzTF7tzaPomYA
 
+__PACKAGE__->set_primary_key('rfam_acc','motif_acc');
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
