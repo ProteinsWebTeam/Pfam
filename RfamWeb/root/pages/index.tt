@@ -376,7 +376,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  [% # uncomment to add an advance warning of maintenance downtime %]
+  [%# uncomment to add an advance warning of maintenance downtime
   <hr />
 
   <div id="maintenanceMsg" style="width:80%;margin:0 auto;background:#F0E8E6;border:1px solid #621700;padding:1em">
@@ -400,7 +400,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       Please accept our apologies for any inconvenience.
     </p>
   </div>
-  [% # end of maintenance message %]
+  # end of maintenance message %]
 
   <div id="posts" class="announcements" style="display: none">
     <hr />
