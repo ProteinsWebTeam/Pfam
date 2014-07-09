@@ -138,9 +138,16 @@ sub build {
   $self->_log->info( "building sunburst for $rfam_acc" );
 
   # get the list of seed sequences
-  $self->_seed_sth->execute( $rfam_acc );
+  my $rows = $self->schema->storage->dbh_do(
+    sub {
+      my ( $storage, $dbh, $sth, $rfam_acc ) = @_;
+      $dbh->selectall_arrayref($sth, undef, $rfam_acc);
+    },
+    $self->_seed_sth, $rfam_acc
+  );
+
   my %seedSeqs;
-  foreach my $rRef ( @{ $self->_seed_sth->fetchall_arrayref } ) {
+  foreach my $rRef ( @$rows ) {
     $seedSeqs{ $rRef->[0] }++;
   }
 
@@ -150,11 +157,18 @@ sub build {
   my $counter = 1;
 
   #----------------------------------------
- 
+
   # build the list of unclassified levels
 
-  $self->_unclassified_sth->execute( $rfam_acc );
-  foreach my $rRef ( @{ $self->_unclassified_sth->fetchall_arrayref }){
+  $rows = $self->schema->storage->dbh_do(
+    sub {
+      my ( $storage, $dbh, $sth, $rfam_acc ) = @_;
+      $dbh->selectall_arrayref($sth, undef, $rfam_acc);
+    },
+    $self->_unclassified_sth, $rfam_acc
+  );
+
+  foreach my $rRef (@$rows ) {
     $self->_log->debug( dump($rRef) );
     my $thisBranch;
     $thisBranch->{sequence} = {
@@ -241,9 +255,15 @@ sub build {
   #----------------------------------------
 
   # build the full tree
+  $rows = $self->schema->storage->dbh_do(
+    sub {
+      my ( $storage, $dbh, $sth, $rfam_acc ) = @_;
+      $dbh->selectall_arrayref($sth, undef, $rfam_acc);
+    },
+    $self->_full_sth, $rfam_acc
+  );
 
-  $self->_full_sth->execute( $rfam_acc );
-  foreach my $rRef ( @{ $self->_full_sth->fetchall_arrayref } ) {
+  foreach my $rRef ( @$rows ) {
     $self->_log->debug( "rRef: ", dump($rRef) );
 
     my $thisBranch;
@@ -265,8 +285,17 @@ sub build {
     $seenTaxIds{ $rRef->[5] }++;
 
     $self->_log->debug( "looking up $rRef->[1]" );
-    $self->_tax_sth->execute( $rRef->[1] );
-    my $rHashRef = $self->_tax_sth->fetchrow_hashref;
+
+    my $rHashRef = $self->schema->storage->dbh_do(
+      sub {
+        my ( $storage, $dbh, $sth, $ncbi_id ) = @_;
+        $dbh->selectrow_hashref($sth, undef, $ncbi_id);
+      },
+      $self->_tax_sth, $rRef->[1]
+    );
+
+    # $self->_tax_sth->execute( $rRef->[1] );
+    # my $rHashRef = $self->_tax_sth->fetchrow_hashref;
     $self->_log->debug( "rHashRef: ", dump($rHashRef) );
 
     my $atRoot = 0;
@@ -278,8 +307,17 @@ sub build {
         $thisBranch->{ $rHashRef->{rank} } = { node => $rHashRef->{level},
                                                taxid => $rHashRef->{ncbi_id} };
       }
-      $self->_tax_sth->execute( $rHashRef->{parent} );
-      $rHashRef = $self->_tax_sth->fetchrow_hashref;
+
+      $rHashRef = $self->schema->storage->dbh_do(
+        sub {
+          my ( $storage, $dbh, $sth, $ncbi_id ) = @_;
+          $dbh->selectrow_hashref($sth, undef, $ncbi_id);
+        },
+        $self->_tax_sth, $rHashRef->{parent}
+      );
+
+      # $self->_tax_sth->execute( $rHashRef->{parent} );
+      # $rHashRef = $self->_tax_sth->fetchrow_hashref;
       $self->_log->debug( dump($rHashRef) );
     }
 
@@ -372,8 +410,22 @@ sub build {
   my $json_string = $self->_json->encode( $rootedTree );
 
   $self->_log->debug( 'inserting JSON string into DB' );
-  $self->_insert_sth->execute( $rfam_acc, $json_string, 'rfamseq' ); 
-  # TODO the third value needs to be set programmatically, rather than being hard coded
+
+  my $insert_query = q[ INSERT INTO sunburst VALUES( ?, ?, ? ) ];
+
+  my $num_rows_changed = $self->schema->storage->dbh_do(
+    sub {
+      my ( $storage, $dbh, $sql, @args ) = @_;
+      $dbh->do( $sql, undef, @args );
+    },
+    $insert_query, $rfam_acc, $json_string, 'rfamseq'
+  );
+  # TODO the type parameter needs to be set programmatically, rather than being hard coded
+  
+  unless ( $num_rows_changed == 1 ) {
+    $self->_log->logdie( "ERROR: changed $num_rows_changed rows changed when inserting " .
+                         'sunburst; should be == 1' );
+  }
 
   $self->_log->info( "done with family '$rfam_acc'" );
 }
