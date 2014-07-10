@@ -92,7 +92,7 @@ sub read_fasta {
 	Function: Takes array of sequences and aligns
 	       	: $method = clustal , T_coffee, MAFFT, hmmt
 	Returns : array of aligned sequences
-	Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file,$pdb,$chain)
+	Usage   : &create_alignment($bin_dir, \@sequence,\@description,$method,$fasta_file)
 
 =cut
 
@@ -202,16 +202,15 @@ sub create_alignment {
 =head2 print_alignment
 
 	Title	: print_alignment
-	Function: Prints aligned sequences
+	Function: Prints aligned sequences in stockholm format
 	Returns : 
-	Usage   : print_alignment(@\description,\@aligned_sequence)
+	Usage   : print_alignment(\%alignmenthash,$method,$bin)
 
 =cut
 
 sub print_alignment {
 
-  my $hash   = shift @_;
-  my $method = shift;
+    my ($hash, $method, $bin)=@_;
 
   # first pass to get the longest id
   my $idlength = 1;
@@ -224,28 +223,15 @@ sub print_alignment {
   my $line;
   my ( $key, $value );
 
-  if ( $method eq "mask" ) {
+  open (FILE, ">tmp$$.out") or die "Can't open tmp$$.out $!";
 
-    #need to trim alignment
-
-    open( FILE, ">tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
     while ( ( $key, $value ) = each( %{$hash} ) ) {
-      $line = sprintf( "%-" . $idlength . "s %s \n", $key, $value );
-      print FILE "$line";
+	print FILE sprintf("%-" . $idlength . "s %s \n", $key, $value);
     }
-    close FILE;
-    open( FILE, "tmp$$.mul" ) or die "Can't open tmp$$.mul $!";
-    &trim_align( \*FILE, 99 );
-    close FILE;
-    unlink "tmp$$.mul";
-  }
-
-  else {
-    while ( ( $key, $value ) = each( %{$hash} ) ) {
-      print sprintf( "%-" . $idlength . "s %s \n", $key, $value );
-    }
-  }
-
+  close (FILE);
+#reformat
+     system("$bin/esl-reformat stockholm tmp$$.out") and die "Can't reformat $!";
+  unlink "tmp$$.out";
   return;
 }
 
