@@ -54,12 +54,20 @@ sub makeRchie {
 	}
 	my $fileGzipped;
 	gzip $rchie_img => \$fileGzipped;
+		
+		my $resultset = $rfamdb->resultset('SecondaryStructureImage')->find_or_create( 
+			{rfam_acc => $rfam_acc,
+			 type => 'rchie'},
+			{key => 'acc_and_type'});
+		$resultset->update({ image => $fileGzipped,
+							 type => 'rchie'},
+							{key => 'acc_and_type'});
 
-        my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
-                                                                    {rfam_acc => $rfam_acc,
-                                                                     type => 'rchie',
-                                                                     image => $fileGzipped},
-                                                                    {key => 'acc_and_type'});
+       # my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
+        #                                                            {rfam_acc => $rfam_acc,
+         #                                                            type => 'rchie',
+          #                                                           image => $fileGzipped},
+           #                                                         {key => 'acc_and_type'});
 	
 	unlink($seed_loc);
 	unlink($rchie_img);
@@ -406,11 +414,20 @@ sub makeBling {
   foreach my $imageHandleRef (@handleArray) {
     my $fileGzipped;
     gzip $imageHandleRef->[0] => \$fileGzipped;
-    my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
-                                                                    {rfam_acc => $rfam_acc,
-                                                                     type => $imageHandleRef->[1],
-                                                                     image => $fileGzipped},
-                                                                     {key => 'acc_and_type'});
+
+	my $resultset = $rfamdb->resultset('SecondaryStructureImage')->find_or_create(
+																{ rfam_acc => $rfam_acc,
+																  type => $imageHandleRef->[1]},
+																{ key => 'acc_and_type'});
+	$resultset->update( {image => $fileGzipped,
+						type => $imageHandleRef->[1]},
+						{key => 'acc_and_type'});
+
+#    my $resultset= $rfamdb->resultset('SecondaryStructureImage')->update_or_create(
+ #                                                                   {rfam_acc => $rfam_acc,
+  #                                                                   type => $imageHandleRef->[1],
+   #                                                                  image => $fileGzipped},
+    #                                                                 {key => 'acc_and_type'});
 
   }
 
