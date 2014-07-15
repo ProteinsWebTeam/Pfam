@@ -79,4 +79,11 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+__PACKAGE__->set_primary_key('rfam_acc', 'type');
+
+__PACKAGE__->add_unique_constraint(
+	rfam_acc_and_type => [qw(rfam_acc type)],
+	);
+
+
 1;
