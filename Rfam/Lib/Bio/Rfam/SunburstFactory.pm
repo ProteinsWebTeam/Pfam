@@ -10,7 +10,7 @@ use RfamLive;
 use DBI;
 use JSON;
 use Getopt::Long;
-
+use Data::Printer;
 use Data::Dump qw(dump);
 
 #-------------------------------------------------------------------------------
@@ -410,22 +410,13 @@ sub build {
   my $json_string = $self->_json->encode( $rootedTree );
 
   $self->_log->debug( 'inserting JSON string into DB' );
-
-  my $insert_query = q[ INSERT INTO sunburst VALUES( ?, ?, ? ) ];
-
-  my $num_rows_changed = $self->schema->storage->dbh_do(
-    sub {
-      my ( $storage, $dbh, $sql, @args ) = @_;
-      $dbh->do( $sql, undef, @args );
-    },
-    $insert_query, $rfam_acc, $json_string, 'rfamseq'
-  );
-  # TODO the type parameter needs to be set programmatically, rather than being hard coded
+  my $rfamdb = $self->schema;
+  my $sunRow = $rfamdb->resultset('Sunburst')->update_or_create({rfam_acc => $rfam_acc,
+															  type => 'rfamseq',
+															  data => $json_string},
+															 {key => 'rfam_acc_and_type'});
   
-  unless ( $num_rows_changed == 1 ) {
-    $self->_log->logdie( "ERROR: changed $num_rows_changed rows changed when inserting " .
-                         'sunburst; should be == 1' );
-  }
+
 
   $self->_log->info( "done with family '$rfam_acc'" );
 }
