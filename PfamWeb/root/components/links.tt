@@ -144,7 +144,7 @@ BLOCK buildLink;
     [%- CASE "HOMSTRAD" -%]
 <a class="ext" href="http://tardis.nibio.go.jp/cgi-bin/homstrad/homstrad.cgi?family=[% id %]">[% id %]</a>
     [%- CASE "interpro" -%]
-<a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
+<a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% id %]">[% id %]</a>
     [%- CASE "LOAD" -%]
 <a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
     [%- CASE "MEROPS" -%]

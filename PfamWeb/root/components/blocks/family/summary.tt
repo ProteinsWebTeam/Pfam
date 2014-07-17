@@ -308,7 +308,7 @@ PROCESS components/links.tt; %]
           [%- IF pfam.interpro %]
             <h1 id="interproTitle">
               InterPro entry 
-              <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
+              <a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
             </h1>
             [% # THIS IS A HACK ! the database entry for the interpro abstract appears
                # to contain <p> tags...
