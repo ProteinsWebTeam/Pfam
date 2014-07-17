@@ -50,7 +50,7 @@ my $tax_url = 'http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=';
 my %db_xref_urls = (
   CAZY       => 'http://www.cazy.org/%s.html',
   EC         => 'http://expasy.org/enzyme/%s',
-  INTERPRO   => 'http://www.ebi.ac.uk/interpro/IEntry?ac=%s',
+  INTERPRO   => 'http://www.ebi.ac.uk/interpro/entry/%s',
   PROSITEDOC => 'http://expasy.org/prosite/%s',
   SWISSPROT  => 'http://www.uniprot.org/uniprot/%s',
 );
