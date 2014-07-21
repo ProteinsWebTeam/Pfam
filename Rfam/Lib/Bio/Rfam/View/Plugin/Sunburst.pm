@@ -53,7 +53,9 @@ sub process {
   my $self = shift;
 
   # the accession of the family for which we're going to build a sunburst
+  # and the sequence database
   my $rfam_acc = $self->parent->family->DESC->AC;
+  my $seq_db   = $self->parent->seqdb;
 
   # a connection to the database where we're going to store the sunburst
   my $schema = $self->_config->rfamlive;
@@ -62,7 +64,7 @@ sub process {
   my $sunburst_factory = Bio::Rfam::SunburstFactory->new( schema => $schema );
 
   $self->_log->debug( "building a sunburst JSON string for family $rfam_acc" );
-  $sunburst_factory->build( $rfam_acc );
+  $sunburst_factory->build( $rfam_acc, $seq_db );
 }
 
 #-------------------------------------------------------------------------------
