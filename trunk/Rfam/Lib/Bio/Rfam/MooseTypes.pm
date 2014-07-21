@@ -11,6 +11,7 @@ use Scalar::Util qw( openhandle );
 use Try::Tiny;
 
 use Bio::Rfam::Family;
+use Bio::Rfam::FamilyIO;
 
 #-------------------------------------------------------------------------------
 
