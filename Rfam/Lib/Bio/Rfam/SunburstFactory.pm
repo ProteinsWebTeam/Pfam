@@ -127,15 +127,15 @@ sub BUILD {
 
 =head2 build
 
-Builds the sunburst. Takes a single argument, the Rfam accession for the
-family.
+Builds the sunburst. Takes two arguments, the Rfam accession for the
+family and the name of the sequence database used.
 
 =cut
 
 sub build {
-  my ( $self, $rfam_acc ) = @_;
+  my ( $self, $rfam_acc, $seq_db ) = @_;
 
-  $self->_log->info( "building sunburst for $rfam_acc" );
+  $self->_log->info( "building sunburst for $rfam_acc, seq DB $seq_db" );
 
   # get the list of seed sequences
   my $rows = $self->schema->storage->dbh_do(
@@ -411,12 +411,10 @@ sub build {
 
   $self->_log->debug( 'inserting JSON string into DB' );
   my $rfamdb = $self->schema;
-  my $sunRow = $rfamdb->resultset('Sunburst')->update_or_create({rfam_acc => $rfam_acc,
-															  type => 'rfamseq',
-															  data => $json_string},
-															 {key => 'rfam_acc_and_type'});
-  
-
+  $rfamdb->resultset('Sunburst')->update_or_create( { rfam_acc => $rfam_acc,
+                                                      type     => $seq_db,
+                                                      data     => $json_string },
+                                                    { key => 'primary' } );
 
   $self->_log->info( "done with family '$rfam_acc'" );
 }
