@@ -441,7 +441,7 @@ sub binLocation {
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  return $self->{binLocation};
+  return $self->{'_config'}->{binaries}->{binLocation};
 }
 
 
