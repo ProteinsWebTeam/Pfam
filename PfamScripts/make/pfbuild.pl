@@ -12,6 +12,7 @@ use File::stat;
 use Data::UUID;
 use POSIX qw(ceil);
 
+use lib "/nfs/nobackup2/xfam/ilavidas/pfam_SVNtrunk/trunk/PfamLib/";
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::HMM::HMMResultsIO;
@@ -124,6 +125,25 @@ sub main {
         $db_location = $config->pfamseqLoc . "/$db";
       }
     }
+  }
+  elsif ( $db eq "refprot" )
+  {
+      if ( $dbsize and $dbsize ne $config->refprot_dbsize )
+      {
+          warn "\n***** Using effective database size [$dbsize] that is different to refprot sequence db [" . $config->refprot_dbsize . "] *****\n\n";
+      }
+      else
+      {
+          $dbsize = $config->refprot_dbsize;
+      }
+      if ( $config->location eq 'WTSI' )
+      {
+          $db_location = $config->pfamseqLustreLoc . "/$db";
+      }
+      else
+      {
+          $db_location = $config->refprotLoc . "/$db";
+      }
   }
   elsif ( $db eq "ncbi" ) {
     if ( $dbsize and $dbsize ne $config->ncbi_dbsize ) {
@@ -684,7 +704,7 @@ Options that influence hmmbuild:
 
 Options that influence hmmsearch:
 
-  -db <x>     : Specify which database to search against (choose pfamseq||metaseq||ncbi, default is pfamseq)
+  -db <x>     : Specify which database to search against (choose pfamseq||refprot||metaseq||ncbi, default is pfamseq)
 
   General wrapping options:
   -local      : Run the hmmsearch on the local machine rather than submitting 

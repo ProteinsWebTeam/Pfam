@@ -205,6 +205,24 @@ sub pfamseqLoc {
   return $self->{pfamseq}->{location};
 }
 
+=head2 refprotLoc
+
+  Title    : refprotLoc
+  Usage    : $config->refprotLoc
+  Function : Returns the location of the reference proteomes
+  Args     : None - read only operator
+  Returns  : string containing path to references proteomes    
+  
+=cut
+
+sub refprotLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{refprot}->{location};
+}
+
 =head2 ncbiLoc
 
   Title    : ncbiLoc
@@ -443,6 +461,24 @@ sub totalRes {
     warn "Passed variable to ro config\n";
   }
   return $self->{pfamseq}->{totalRes};
+}
+
+=head2 refprot_dbsize
+
+  Title    : refprot_dbsize
+  Usage    : $config->refprot_dbsize
+  Function : Returns the number of sequences in reference proteomes
+  Args     : None - read only operator
+  Returns  : integer    
+  
+=cut
+
+sub refprot_dbsize {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{refprot}->{dbsize};
 }
 
 =head2 ncbi_dbsize
