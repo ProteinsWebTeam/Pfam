@@ -229,7 +229,10 @@ sub timestamp_ordered_files {
 sub rfamlive {
   my $self = shift;
   
-  return undef if($self->location ne 'EBI');
+  if($self->location ne 'JFRC' && 
+     $self->location ne 'EBI') { 
+    return undef; 
+  }
   
   if(!$self->{'schema'}){
     my $dbiParams = {
