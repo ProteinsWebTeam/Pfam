@@ -660,7 +660,7 @@ sub commitMotif {
   }
   
   $rfamdb->resultset('LiteratureReference')->find_or_createFromMotifObj( $motifObj );
-  #$rfamdb->resultset('DatabaseLink')->find_or_createFromMotifObj( $motifObj );  
+  $rfamdb->resultset('MotifPdb')->updateOrCreateMotifPDBReferences( $motifObj );  
   
   #Finish the transaction.
   $guard->commit;
