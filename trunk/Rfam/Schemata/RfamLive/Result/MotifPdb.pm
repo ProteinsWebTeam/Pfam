@@ -39,21 +39,15 @@ __PACKAGE__->table("motif_pdb");
 =head2 chain
 
   data_type: 'varchar'
-  is_nullable: 0
+  is_nullable: 1
   size: 4
 
-=head2 pdb_seq
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 6
-
-=head2 pdb_res_start
+=head2 pdb_start
 
   data_type: 'mediumint'
   is_nullable: 1
 
-=head2 pdb_res_end
+=head2 pdb_end
 
   data_type: 'mediumint'
   is_nullable: 1
@@ -66,12 +60,10 @@ __PACKAGE__->add_columns(
   "pdb_id",
   { data_type => "varchar", is_nullable => 0, size => 4 },
   "chain",
-  { data_type => "varchar", is_nullable => 0, size => 4 },
-  "pdb_seq",
-  { data_type => "varchar", is_nullable => 1, size => 6 },
-  "pdb_res_start",
+  { data_type => "varchar", is_nullable => 1, size => 4 },
+  "pdb_start",
   { data_type => "mediumint", is_nullable => 1 },
-  "pdb_res_end",
+  "pdb_end",
   { data_type => "mediumint", is_nullable => 1 },
 );
 
