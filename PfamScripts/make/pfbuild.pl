@@ -12,7 +12,6 @@ use File::stat;
 use Data::UUID;
 use POSIX qw(ceil);
 
-use lib "/nfs/nobackup2/xfam/ilavidas/pfam_SVNtrunk/trunk/PfamLib/";
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::HMM::HMMResultsIO;
