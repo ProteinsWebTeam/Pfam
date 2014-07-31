@@ -5,6 +5,7 @@ use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
+use Data::UUID;
 
 use Bio::Rfam::Config;
 use Bio::Rfam::View;
@@ -17,19 +18,28 @@ use RfamJobs;
 #-------------------------------------------------------------------------------
 # handle options
 
-my ( $job_uuid, $rfam_acc, $help );
+my ( $job_uuid, $rfam_acc, $no_db, $help );
 GetOptions( 'id=s'     => \$job_uuid,
             'family=s' => \$rfam_acc,
+            'nodb'     => \$no_db,
             'help|?'   => \$help )
   or die "ERROR: there was a problem with your command line arguments\n";
 
 pod2usage( -exitval => 1, -verbose => 2 ) if $help;
 
-die "ERROR: you must specify both a job UUID (-id) and a family accession (-f)\n"
-  unless ( defined $job_uuid and defined $rfam_acc );
+if ( $no_db ) {
+  $job_uuid ||= Data::UUID->new->create_str;
+}
+else {
+  die "ERROR: you must specify a job UUID (-id) unless you specify no DB (-nodb)\n"
+    unless ( defined $job_uuid and defined $rfam_acc );
 
-die "ERROR: not a valid UUID ($job_uuid)\n"
-  unless ( $job_uuid =~ m/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i );
+  die "ERROR: not a valid UUID ($job_uuid)\n"
+    unless ( $job_uuid =~ m/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i );
+}
+
+die "ERROR: you must specify a family accession (-f)\n"
+  unless defined $rfam_acc;
 
 die "ERROR: not a valid Rfam family accession ($rfam_acc)\n"
   unless ( $rfam_acc =~ m/^RF\d{5}$/i );
@@ -48,27 +58,30 @@ my $config  = Bio::Rfam::Config->new;
 # update its status before and after running the plugins. It's also a good
 # validation for the UUID, so we'll check it before trying to run anything.
 
-my $db_params = $config->config->{Model}->{RfamJobs};
-my $dsn = 'dbi:' . $db_params->{driver} . ':'
-          . $db_params->{database} . ':'
-          . $db_params->{host} . ':'
-          . $db_params->{port};
+my $job;
+unless ( $no_db ) {
+  my $db_params = $config->config->{Model}->{RfamJobs};
+  my $dsn = 'dbi:' . $db_params->{driver} . ':'
+            . $db_params->{database} . ':'
+            . $db_params->{host} . ':'
+            . $db_params->{port};
 
-my $rfam_jobs = RfamJobs->connect(
-  $dsn,
-  $db_params->{user},
-  $db_params->{password}
-);
+  my $rfam_jobs = RfamJobs->connect(
+    $dsn,
+    $db_params->{user},
+    $db_params->{password}
+  );
 
-die "couldn't connect to the 'rfam_jobs' tracking database\n"
-  unless $rfam_jobs;
+  die "couldn't connect to the 'rfam_jobs' tracking database\n"
+    unless $rfam_jobs;
 
-my $job = $rfam_jobs->resultset('JobHistory')
-                    ->search( { job_id => $job_uuid } )
-                    ->single;
+  $job = $rfam_jobs->resultset('JobHistory')
+                   ->search( { job_id => $job_uuid } )
+                   ->single;
 
-die "couldn't find a row for this job (job ID $job_uuid) in the tracking table"
-  unless $job;
+  die "couldn't find a row for this job (job ID $job_uuid) in the tracking table"
+    unless $job;
+}
                          
 #-------------------------------------------------------------------------------
 # call the plugins
@@ -85,13 +98,16 @@ foreach my $plugin_set ( @ARGV ) {
     seqdb     => 'rfamseq'
   } );
 
-  $job->run;
+  $job->run unless $no_db;
 
   foreach my $plugin ( @{ $view->plugin_list } ) {
     $plugin->process;
+    # TODO could wrap the call to "process" in a try/catch and store the
+    # message from the exception in the tracking DB, along with the name of the
+    # plugin that failed
   }
 
-  $job->done;
+  $job->done unless $no_db;
 
   # (the $job row object has methods "run", "fail" and "done, which set the
   # status for that row and update the "closed" time stamp too. See
@@ -143,7 +159,7 @@ in the same view process run, add both to the command line arguments:
 
   rfam_family_view.pl -id 5EF780FE-2D0E-11E3-8C47-A34D104C94EC -f RF00504 rfamseq genome
 
-=head1 REQUIRED OPTIONS
+=head1 OPTIONS
 
 =over 8
 
@@ -154,6 +170,14 @@ the UUID for the given job, e.g. C<5EF780FE-2D0E-11E3-8C47-A34D104C94EC>
 =item B<-family>
 
 the Rfam family accession, e.g. C<RF005004>
+
+=item B<-nodb>
+
+flag to tell the script not to try to record job details like start and end
+time in the tracking database. If you specify B<-no_db>, the UUID is optional.
+If you don't supply a UUID for the job, the script will generate one, though it
+will be used only for creating a temporary directory on the farm node, not for
+tracking the job in the database.
 
 =item B<--help | -h | -?>
 
