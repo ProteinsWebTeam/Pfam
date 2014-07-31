@@ -1934,15 +1934,14 @@ sub _commentLineForOutlistOrSpecies {
 
 sub writeAnnotatedCM { 
   my ( $self, $familyObj, $outfile, $do_append) = @_;
-
   my $cm   = $familyObj->{CM};
-  my $desc = $familyObj->{DESC};
+  my $desc = $familyObj->DESC;
 
-  if(exists $desc->{ID})     { $cm->setName     ($desc->{ID});    } else { die "ERROR in writeAnnotatedCM(), no ID in DESC object"; }
-  if(exists $desc->{ACC})    { $cm->setAccession($desc->{ACC});   } else { die "ERROR in writeAnnotatedCM(), no ACC in DESC object"; }
-  if(exists $desc->{CUTGA})  { $cm->setGA       ($desc->{CUTGA}); } else { die "ERROR in writeAnnotatedCM(), no GA cutoff in DESC object"; }
-  if(exists $desc->{CUTNC})  { $cm->setNC       ($desc->{CUTNC}); } else { die "ERROR in writeAnnotatedCM(), no NC cutoff in DESC object"; }
-  if(exists $desc->{CUTTC})  { $cm->setTC       ($desc->{CUTTC}); } else { die "ERROR in writeAnnotatedCM(), no TC cutoff in DESC object"; }
+  if ($desc->ID)     { $cm->setName($desc->{ID});    } else { die "ERROR in writeAnnotatedCM(), no ID in DESC object"; }
+  if( $desc->{AC})    { $cm->setAccession($desc->{AC});   } else { die "ERROR in writeAnnotatedCM(), no ACC in DESC object"; }
+  if( $desc->{CUTGA})  { $cm->setGA       ($desc->{CUTGA}); } else { die "ERROR in writeAnnotatedCM(), no GA cutoff in DESC object"; }
+  if( $desc->{CUTNC})  { $cm->setNC       ($desc->{CUTNC}); } else { die "ERROR in writeAnnotatedCM(), no NC cutoff in DESC object"; }
+  if( $desc->{CUTTC})  { $cm->setTC       ($desc->{CUTTC}); } else { die "ERROR in writeAnnotatedCM(), no TC cutoff in DESC object"; }
   
   $self->writeCM($cm, $outfile, $do_append);
   return;
