@@ -23,7 +23,7 @@ sub mapPDB {
 	my $PDB_fasta = '/nfs/production/xfam/rfam/RELEASE_FILES/RFAM_12/PDB_RFAM12.fa';
 	#my $PDB_fasta = '/nfs/production/xfam/rfam/CURATION/PDB/pdb_trimmed_noillegals.fa';	
 	my $config = $self->parent->config;
-	my $client = Bio::Rfam::SVN::Client->new({config => $config});
+	# my $client = Bio::Rfam::SVN::Client->new({config => $config});
 	my $familyIO = Bio::Rfam::FamilyIO->new;	
 	my $familyObj = $self->parent->family;
 	my $rfam_acc = $familyObj->DESC->AC;
@@ -56,10 +56,16 @@ sub mapPDB {
 	
 	# cmpress the CM and run the cmscan job:
 	#
-	my $cmpress = "cmpress -F $cm_file";
-	system ($cmpress) ;
-	my $cmscan_cmd = "cmscan -o  $out --tblout $tblout --cut_ga $cm_file $PDB_fasta >>$logfile";
-	system ( $cmscan_cmd) ;
+	my $cmpress = $config->infernalPath . "cmpress -F $cm_file";
+        my $cmscan  = $config->infernalPath . 'cmscan';
+
+	system ($cmpress) == 0
+          or die 'ERROR: failed to run cmpress';
+
+	my $cmscan_cmd = "$cmscan -o  $out --tblout $tblout --cut_ga $cm_file $PDB_fasta >>$logfile";
+	system ( $cmscan_cmd) == 0
+          or die 'ERROR: failed to run cmscan';
+
  	unlink glob "/tmp/$prefix.CM*";	
 	#Array to store our PDB matches in:
 	my @pdbs;
