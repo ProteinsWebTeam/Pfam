@@ -244,7 +244,7 @@ sub makeBling {
   my @cseqAR = ();
   my $cpos;
 
-  Bio::Rfam::Utils::run_local_command("$cmemitPath -c $CM_loc | cmalign --notrunc -g --tfile $out_tfile $CM_loc - > /dev/null");
+  Bio::Rfam::Utils::run_local_command("$cmemitPath -c $CM_loc | $cmalignPath --notrunc -g --tfile $out_tfile $CM_loc - > /dev/null");
 
   open(IN, $out_tfile) || die "ERROR unable to open $out_tfile for reading";
 
