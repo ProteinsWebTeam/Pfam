@@ -393,9 +393,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
            The Pfam protein families database</a>: 
       </span>
       <span class="authors">
-        M. Punta, P.C. Coggill, R.Y. Eberhardt, J. Mistry, J. Tate, C. Boursnell, 
-        N. Pang, K. Forslund, G. Ceric, J. Clements, A. Heger, L. Holm, E.L.L. Sonnhammer, 
-        S.R. Eddy, A. Bateman, R.D. Finn 
+        R.D. Finn, A. Bateman, J. Clements, P. Coggill, R.Y. Eberhardt, 
+        S.R. Eddy, A. Heger, K. Hetherington, L. Holm, J. Mistry, 
+        E.L.L. Sonnhammer, J. Tate, M. Punta
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
