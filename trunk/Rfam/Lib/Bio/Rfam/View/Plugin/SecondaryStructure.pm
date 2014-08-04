@@ -31,8 +31,10 @@ sub process {
 
 sub makeRchie {
 	my ($self) = @_;
+
+        my $config = $self->parent->config;
 	
-	my $rfamdb = $self->parent->config->rfamlive;
+	my $rfamdb = $config->rfamlive;
 	my $rfam_acc = $self->parent->family->DESC->AC;
 
 	my $location = "/nfs/nobackup2/xfam/rfam";
@@ -46,7 +48,9 @@ sub makeRchie {
 		croak ("Failed to find entry in the Family table for $rfam_acc.");
 	}
 
-	my $Rchie_cmd = "stockholm2Arc.R $seed_loc $rchie_img 2> $location/$$.err";
+        my $r_script = $config->config->{binaries} . '/stockholm2Arc.R';
+
+	my $Rchie_cmd = "$r_script $seed_loc $rchie_img 2> $location/$$.err";
 	print "Making arc diagram for $rfam_acc\n";
 	system ($Rchie_cmd);
 	if ($? == -1) {
