@@ -1,4 +1,4 @@
-package RfamDB::ResultSet::SeedRegion;
+package RfamLive::ResultSet::SeedRegion;
 
 use strict;
 use warnings;

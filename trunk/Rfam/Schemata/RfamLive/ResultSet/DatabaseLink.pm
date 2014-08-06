@@ -1,4 +1,4 @@
-package RfamDB::ResultSet::DatabaseLink;
+package RfamLive::ResultSet::DatabaseLink;
 
 use strict;
 use warnings;

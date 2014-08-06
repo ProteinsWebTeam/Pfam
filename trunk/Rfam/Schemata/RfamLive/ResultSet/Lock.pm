@@ -1,4 +1,4 @@
-package RfamDB::ResultSet::Lock;
+package RfamLive::ResultSet::Lock;
 
 use strict;
 use warnings;
