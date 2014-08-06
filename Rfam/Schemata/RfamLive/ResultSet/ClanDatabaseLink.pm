@@ -1,4 +1,4 @@
-package RfamDB::ResultSet::ClanDatabaseLink;
+package RfamLive::ResultSet::ClanDatabaseLink;
 
 use strict;
 use warnings;

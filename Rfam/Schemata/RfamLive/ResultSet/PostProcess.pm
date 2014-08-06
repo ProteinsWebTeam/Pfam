@@ -1,4 +1,4 @@
-package RfamDB::ResultSet::PostProcess;
+package RfamLive::ResultSet::PostProcess;
 
 use strict;
 use warnings;
