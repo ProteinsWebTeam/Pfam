@@ -81,7 +81,7 @@ sub begin : Private {
   $c->stash->{entryType} = 'R';
   
   # retrieve the family data
-  my $rs = $c->model('RfamDB::Rfam')
+  my $rs = $c->model('RfamDB::Family')
              ->search( [ { rfam_acc => $entry },
                          { rfam_id  => $entry } ] );
   my $rfam = $rs->first if defined $rs;
@@ -165,10 +165,10 @@ sub alignment : Local {
   my @sequences;
   my $input = "# STOCKHOLM 1.0\n";
   ACCESSION: foreach my $accession ( @$accession_list ) {
-    my @regions = $c->model('RfamDB::RfamRegFull')
-                             ->search( { auto_rfam   => $c->stash->{rfam}->auto_rfam,
+    my @regions = $c->model('RfamDB::FullRegion')
+                             ->search( { rfam_acc    => $c->stash->{acc},
                                          rfamseq_acc => $accession },
-                                       { prefetch => 'auto_rfamseq' } );
+                                       { prefetch => 'rfamseq_acc' } );
 
     unless ( scalar @regions ) {
       $c->log->warn( "SpeciesTree::alignment: no sequences for |$accession|" )
@@ -188,6 +188,7 @@ sub alignment : Local {
     }
 
   }
+  # TODO these two fields are gone from the family table in release 12.0
   $input .= '#=GC SS_cons ' . $c->stash->{rfam}->reference_structure . "\n"; 
   $input .= '#=GC RF ' . $c->stash->{rfam}->reference_sequence . "\n";
   $input .= "//\n";
@@ -260,11 +261,11 @@ sub buildTree : Private {
   foreach my $region ( @{ $c->stash->{regions} } ) {
 
     # first, get the species information
-    my $species = $region->auto_rfamseq->ncbi_id->species;
+    my $species = $region->rfamseq_acc->ncbi->species;
     $species =~ s/^(\s+)//g; # trim leading whitespace
 
     # next, the taxonomy above the species
-    my $tax = $region->auto_rfamseq->ncbi_id->tax_string;
+    my $tax = $region->rfamseq_acc->ncbi->tax_string;
     $tax =~ s/\s+//g;
     my @tax = split m/\;/, $tax;
 
@@ -276,7 +277,7 @@ sub buildTree : Private {
     $maxDepth = scalar @tax if scalar @tax > $maxDepth;
 
     # build a hash to describe this branch
-    my $speciesData = { acc     => $region->auto_rfamseq->rfamseq_acc,
+    my $speciesData = { acc     => $region->get_column('rfamseq_acc'),
                         species => $species,
                         tax     => \@tax };
 
@@ -305,11 +306,11 @@ sub getDataByType : Private {
   my( $this, $c ) = @_;
   
   # get the species information for the full alignment
-  my @regions = $c->model('RfamDB::RfamRegFull')
-                  ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam },
-                            { join     => [ { 'auto_rfamseq' => 'ncbi_id' },
-                                            'auto_rfam' ],
-                              prefetch => [ 'auto_rfamseq' ] } );
+  my @regions = $c->model('RfamDB::FullRegion')
+                  ->search( { 'me.rfam_acc' => $c->stash->{acc} },
+                            { join     => [ { 'rfamseq_acc' => 'ncbi' },
+                                            'rfam_acc' ],
+                              prefetch => [ 'rfamseq_acc' ] } );
 
   $c->stash->{regions} = \@regions;
 
@@ -317,8 +318,8 @@ sub getDataByType : Private {
                   . scalar @regions . '| full regions' ) if $c->debug;
 
   # get the species information for the seed alignment
-  my @resultsSeed = $c->model('RfamDB::RfamRegSeed')
-                      ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam } );
+  my @resultsSeed = $c->model('RfamDB::SeedRegion')
+                      ->search( { rfam_acc => $c->stash->{acc} } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
                 
@@ -326,7 +327,7 @@ sub getDataByType : Private {
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
-    $inSeed{ $region->auto_rfamseq->rfamseq_acc }++;
+    $inSeed{ $region->get_column('rfamseq_acc') }++;
   }
 
   $c->stash->{inSeed}  = \%inSeed;  

@@ -102,7 +102,7 @@ sub varna : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # get the gzip compressed JSON string for the structure annotation
-  my $rs = $c->stash->{db}->resultset('SecondaryStructureImages')
+  my $rs = $c->stash->{db}->resultset('SecondaryStructureImage')
              ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
                        type      => 'ss' } );
 
@@ -197,8 +197,8 @@ sub image : Chained( 'family' )
     $c->log->debug( 'Family::Methods::image: failed to retrieve image from cache; going to DB' )
       if $c->debug;
 
-    my $rs = $c->stash->{db}->resultset('SecondaryStructureImages')
-               ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+    my $rs = $c->stash->{db}->resultset('SecondaryStructureImage')
+               ->find( { rfam_acc => $c->stash->{acc},
                          type      => $image_type } );
 
     unless ( defined $rs and
@@ -207,7 +207,12 @@ sub image : Chained( 'family' )
       return;
     }
 
-    $image = $rs->image;
+    $image = Compress::Zlib::memGunzip( $rs->image );
+    unless ( $image ) {
+      $c->log->debug( "Family::Methods::image: couldn't uncompress image: $Compress::Zlib::gzerrno" );
+      $c->detach( 'no_alignment' );
+      return;
+    }
 
     $c->cache->set( $cache_key, $image ) unless $ENV{NO_CACHE}
   }
@@ -215,7 +220,7 @@ sub image : Chained( 'family' )
   # cache the template output for one week
   $c->cache_page( 604800 );
 
-  $c->res->content_type( 'image/png' );
+  $c->res->content_type( 'image/svg+xml' );
   $c->res->body( $image );
 }
 

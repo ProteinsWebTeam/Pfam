@@ -69,7 +69,7 @@ before 'auto' => sub {
   my $releaseData;
   eval {
     # stash some details of the Pfam release
-    $releaseData = $c->model( 'RfamDB::Version' )
+    $releaseData = $c->model('RfamDB::Version')
                      ->find( {} );
   };
   if ( $@ ) {
