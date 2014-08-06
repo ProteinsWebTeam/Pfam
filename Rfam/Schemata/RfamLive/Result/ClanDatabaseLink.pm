@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::ClanDatabaseLink;
+package RfamDB::Result::ClanDatabaseLink;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::ClanDatabaseLink
+RfamDB::Result::ClanDatabaseLink
 
 =cut
 
@@ -71,13 +71,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Clan>
+Related object: L<RfamDB::Result::Clan>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "clan_acc",
-  "RfamLive::Result::Clan",
+  "RfamDB::Result::Clan",
   { clan_acc => "clan_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

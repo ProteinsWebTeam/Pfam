@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Feature;
+package RfamDB::Result::Feature;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Feature
+RfamDB::Result::Feature
 
 =cut
 
@@ -111,13 +111,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Rfamseq>
+Related object: L<RfamDB::Result::Rfamseq>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfamseq_acc",
-  "RfamLive::Result::Rfamseq",
+  "RfamDB::Result::Rfamseq",
   { rfamseq_acc => "rfamseq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

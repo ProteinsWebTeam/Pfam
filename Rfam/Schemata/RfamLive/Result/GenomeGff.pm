@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::GenomeGff;
+package RfamDB::Result::GenomeGff;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::GenomeGff
+RfamDB::Result::GenomeGff
 
 =cut
 
@@ -50,13 +50,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Genome>
+Related object: L<RfamDB::Result::Genome>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "genome_acc",
-  "RfamLive::Result::Genome",
+  "RfamDB::Result::Genome",
   { genome_acc => "genome_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

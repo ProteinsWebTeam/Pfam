@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Sunburst;
+package RfamDB::Result::Sunburst;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Sunburst
+RfamDB::Result::Sunburst
 
 =cut
 
@@ -62,13 +62,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Family>
+Related object: L<RfamDB::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamLive::Result::Family",
+  "RfamDB::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );

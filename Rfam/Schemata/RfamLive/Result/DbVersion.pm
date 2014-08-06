@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::DbVersion;
+package RfamDB::Result::DbVersion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::DbVersion
+RfamDB::Result::DbVersion
 
 =cut
 

@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::MotifLiterature;
+package RfamDB::Result::MotifLiterature;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::MotifLiterature
+RfamDB::Result::MotifLiterature
 
 =cut
 
@@ -83,13 +83,13 @@ __PACKAGE__->add_unique_constraint("Composite Unique", ["motif_acc", "pmid", "or
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Motif>
+Related object: L<RfamDB::Result::Motif>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "motif_acc",
-  "RfamLive::Result::Motif",
+  "RfamDB::Result::Motif",
   { motif_acc => "motif_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -98,13 +98,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::LiteratureReference>
+Related object: L<RfamDB::Result::LiteratureReference>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pmid",
-  "RfamLive::Result::LiteratureReference",
+  "RfamDB::Result::LiteratureReference",
   { pmid => "pmid" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );

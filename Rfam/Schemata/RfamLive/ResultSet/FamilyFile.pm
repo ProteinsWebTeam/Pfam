@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::FamilyFile;
+package RfamDB::ResultSet::FamilyFile;
 
 use strict;
 use warnings;

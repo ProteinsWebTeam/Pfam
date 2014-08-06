@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Family;
+package RfamDB::Result::Family;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Family
+RfamDB::Result::Family
 
 =cut
 
@@ -319,13 +319,13 @@ __PACKAGE__->set_primary_key("rfam_acc");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::AlignmentAndTree>
+Related object: L<RfamDB::Result::AlignmentAndTree>
 
 =cut
 
 __PACKAGE__->has_many(
   "alignments_and_tree",
-  "RfamLive::Result::AlignmentAndTree",
+  "RfamDB::Result::AlignmentAndTree",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -334,13 +334,13 @@ __PACKAGE__->has_many(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Wikitext>
+Related object: L<RfamDB::Result::Wikitext>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "auto_wiki",
-  "RfamLive::Result::Wikitext",
+  "RfamDB::Result::Wikitext",
   { auto_wiki => "auto_wiki" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
@@ -349,13 +349,13 @@ __PACKAGE__->belongs_to(
 
 Type: might_have
 
-Related object: L<RfamLive::Result::ClanMembership>
+Related object: L<RfamDB::Result::ClanMembership>
 
 =cut
 
 __PACKAGE__->might_have(
   "clan_membership",
-  "RfamLive::Result::ClanMembership",
+  "RfamDB::Result::ClanMembership",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -364,13 +364,13 @@ __PACKAGE__->might_have(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::DatabaseLink>
+Related object: L<RfamDB::Result::DatabaseLink>
 
 =cut
 
 __PACKAGE__->has_many(
   "database_links",
-  "RfamLive::Result::DatabaseLink",
+  "RfamDB::Result::DatabaseLink",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -379,13 +379,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FamilyLong>
+Related object: L<RfamDB::Result::FamilyLong>
 
 =cut
 
 __PACKAGE__->has_many(
   "families_long",
-  "RfamLive::Result::FamilyLong",
+  "RfamDB::Result::FamilyLong",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -394,13 +394,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FamilyFile>
+Related object: L<RfamDB::Result::FamilyFile>
 
 =cut
 
 __PACKAGE__->has_many(
   "family_files",
-  "RfamLive::Result::FamilyFile",
+  "RfamDB::Result::FamilyFile",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -409,13 +409,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FamilyLiteratureReference>
+Related object: L<RfamDB::Result::FamilyLiteratureReference>
 
 =cut
 
 __PACKAGE__->has_many(
   "family_literature_references",
-  "RfamLive::Result::FamilyLiteratureReference",
+  "RfamDB::Result::FamilyLiteratureReference",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -424,13 +424,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FamilyNcbi>
+Related object: L<RfamDB::Result::FamilyNcbi>
 
 =cut
 
 __PACKAGE__->has_many(
   "family_ncbis",
-  "RfamLive::Result::FamilyNcbi",
+  "RfamDB::Result::FamilyNcbi",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -439,13 +439,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FullRegion>
+Related object: L<RfamDB::Result::FullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "full_regions",
-  "RfamLive::Result::FullRegion",
+  "RfamDB::Result::FullRegion",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -454,13 +454,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::GenomeFullRegion>
+Related object: L<RfamDB::Result::GenomeFullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "genome_full_regions",
-  "RfamLive::Result::GenomeFullRegion",
+  "RfamDB::Result::GenomeFullRegion",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -469,13 +469,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::HtmlAlignment>
+Related object: L<RfamDB::Result::HtmlAlignment>
 
 =cut
 
 __PACKAGE__->has_many(
   "html_alignments",
-  "RfamLive::Result::HtmlAlignment",
+  "RfamDB::Result::HtmlAlignment",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -484,13 +484,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MatchAndFasta>
+Related object: L<RfamDB::Result::MatchAndFasta>
 
 =cut
 
 __PACKAGE__->has_many(
   "matches_and_fasta",
-  "RfamLive::Result::MatchAndFasta",
+  "RfamDB::Result::MatchAndFasta",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -499,13 +499,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::OverlapMembership>
+Related object: L<RfamDB::Result::OverlapMembership>
 
 =cut
 
 __PACKAGE__->has_many(
   "overlap_memberships",
-  "RfamLive::Result::OverlapMembership",
+  "RfamDB::Result::OverlapMembership",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -514,13 +514,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::PdbRfamReg>
+Related object: L<RfamDB::Result::PdbRfamReg>
 
 =cut
 
 __PACKAGE__->has_many(
   "pdb_rfam_regs",
-  "RfamLive::Result::PdbRfamReg",
+  "RfamDB::Result::PdbRfamReg",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -529,13 +529,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::PostProcess>
+Related object: L<RfamDB::Result::PostProcess>
 
 =cut
 
 __PACKAGE__->has_many(
   "post_processes",
-  "RfamLive::Result::PostProcess",
+  "RfamDB::Result::PostProcess",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -544,13 +544,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::ProcessedData>
+Related object: L<RfamDB::Result::ProcessedData>
 
 =cut
 
 __PACKAGE__->has_many(
   "processed_datas",
-  "RfamLive::Result::ProcessedData",
+  "RfamDB::Result::ProcessedData",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -559,13 +559,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::RefseqFullRegion>
+Related object: L<RfamDB::Result::RefseqFullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "refseq_full_regions",
-  "RfamLive::Result::RefseqFullRegion",
+  "RfamDB::Result::RefseqFullRegion",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -574,13 +574,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::SecondaryStructureImage>
+Related object: L<RfamDB::Result::SecondaryStructureImage>
 
 =cut
 
 __PACKAGE__->has_many(
   "secondary_structure_images",
-  "RfamLive::Result::SecondaryStructureImage",
+  "RfamDB::Result::SecondaryStructureImage",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -589,13 +589,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::SeedRegion>
+Related object: L<RfamDB::Result::SeedRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "seed_regions",
-  "RfamLive::Result::SeedRegion",
+  "RfamDB::Result::SeedRegion",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -604,13 +604,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::Sunburst>
+Related object: L<RfamDB::Result::Sunburst>
 
 =cut
 
 __PACKAGE__->has_many(
   "sunbursts",
-  "RfamLive::Result::Sunburst",
+  "RfamDB::Result::Sunburst",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

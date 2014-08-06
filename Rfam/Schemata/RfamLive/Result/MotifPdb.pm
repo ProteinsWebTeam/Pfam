@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::MotifPdb;
+package RfamDB::Result::MotifPdb;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::MotifPdb
+RfamDB::Result::MotifPdb
 
 =cut
 
@@ -89,13 +89,13 @@ __PACKAGE__->add_unique_constraint("Composite Unique", ["motif_acc", "pdb_id"]);
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Motif>
+Related object: L<RfamDB::Result::Motif>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "motif_acc",
-  "RfamLive::Result::Motif",
+  "RfamDB::Result::Motif",
   { motif_acc => "motif_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );

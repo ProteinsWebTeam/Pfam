@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Keyword;
+package RfamDB::Result::Keyword;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Keyword
+RfamDB::Result::Keyword
 
 =cut
 
