@@ -28,45 +28,13 @@ USE String;
     <h1>Sequences</h1>
   </div>
   <div class="blockContent">
-
-    <div id="sequencesTabs" class="nestedTabs yui-navset">
-
-      <ul id="sequencesTabsNav" class="yui-nav">
-        <li class="selected">
-          <a href="#sequencesTab" id="sequencesTabLabel">Rfamseq <span class="loading"></span></a>
-        </li>
-        <li>
-          <a href="#yuiTreeTab" id="refseqTabLabel">Refseq <span class="loading"></span></a>
-        </li> 
-      </ul>
-      
-      <div class="yui-content">
-  
-        <!-- start of rfamseq sequences tab -->
-
-        <div id="sequencesTab"></div>
-
-        <!-- end of rfamseq sequences tab -->
-
-        <!-- start of refseq sequences tab -->
-
-        <div id="refseqTab">
-          There are no refseq regions for this family.
-        </div>
-
-        <!-- end of refseq sequences tab -->
-
-      </div> [%# end of "yui-content" %]
-      
-    </div> [%# end of "sequencesTabs" %]
-
+    <div id="sequencesTab"></div>
   </div>
 
   <script type="text/javascript">
     // <![CDATA[
 
     document.observe( "dom:loaded", function() {
-
       var su = new Ajax.Updater(
         "sequencesTab",
         "[% c.uri_for('/family', acc, 'sequences') %]",
@@ -75,18 +43,6 @@ USE String;
           evalScripts: true
         }
       );
-
-      var rsu = new Ajax.Updater(
-        "refseqTab",
-        "[% c.uri_for('/family', acc, 'refseq') %]",
-        {
-          method: "get",
-          evalScripts: true
-        }
-      );
-
-      var sequencesTabView = new YAHOO.widget.TabView("sequencesTabs");
-
     } );
 
     // ]]>

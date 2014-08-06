@@ -137,8 +137,6 @@ USE Number.Format( THOUSANDS_SEP = "," );
       } );
     }
 
-    $("sequencesTabLabel").update( "Rfamseq ([% tabLabel %])" );
-
     var lb = new Lightbox();
 
     // ]]>
