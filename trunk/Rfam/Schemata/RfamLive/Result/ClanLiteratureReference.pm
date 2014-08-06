@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::ClanLiteratureReference;
+package RfamLive::Result::ClanLiteratureReference;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::ClanLiteratureReference
+RfamLive::Result::ClanLiteratureReference
 
 =cut
 
@@ -65,13 +65,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Clan>
+Related object: L<RfamLive::Result::Clan>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "clan_acc",
-  "RfamDB::Result::Clan",
+  "RfamLive::Result::Clan",
   { clan_acc => "clan_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -80,13 +80,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::LiteratureReference>
+Related object: L<RfamLive::Result::LiteratureReference>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pmid",
-  "RfamDB::Result::LiteratureReference",
+  "RfamLive::Result::LiteratureReference",
   { pmid => "pmid" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

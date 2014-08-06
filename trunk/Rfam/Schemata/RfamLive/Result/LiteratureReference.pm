@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::LiteratureReference;
+package RfamLive::Result::LiteratureReference;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::LiteratureReference
+RfamLive::Result::LiteratureReference
 
 =cut
 
@@ -75,13 +75,13 @@ __PACKAGE__->set_primary_key("pmid");
 
 Type: has_many
 
-Related object: L<RfamDB::Result::MotifLiterature>
+Related object: L<RfamLive::Result::MotifLiterature>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_literature_references",
-  "RfamDB::Result::MotifLiterature",
+  "RfamLive::Result::MotifLiterature",
   { "foreign.pmid" => "self.pmid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -90,13 +90,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::ClanLiteratureReference>
+Related object: L<RfamLive::Result::ClanLiteratureReference>
 
 =cut
 
 __PACKAGE__->has_many(
   "clan_literature_references",
-  "RfamDB::Result::ClanLiteratureReference",
+  "RfamLive::Result::ClanLiteratureReference",
   { "foreign.pmid" => "self.pmid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -105,13 +105,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::FamilyLiteratureReference>
+Related object: L<RfamLive::Result::FamilyLiteratureReference>
 
 =cut
 
 __PACKAGE__->has_many(
   "family_literature_references",
-  "RfamDB::Result::FamilyLiteratureReference",
+  "RfamLive::Result::FamilyLiteratureReference",
   { "foreign.pmid" => "self.pmid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

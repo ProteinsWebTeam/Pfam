@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::FullRegion;
+package RfamLive::Result::FullRegion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::FullRegion
+RfamLive::Result::FullRegion
 
 =cut
 
@@ -149,13 +149,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -164,13 +164,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Rfamseq>
+Related object: L<RfamLive::Result::Rfamseq>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfamseq_acc",
-  "RfamDB::Result::Rfamseq",
+  "RfamLive::Result::Rfamseq",
   { rfamseq_acc => "rfamseq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

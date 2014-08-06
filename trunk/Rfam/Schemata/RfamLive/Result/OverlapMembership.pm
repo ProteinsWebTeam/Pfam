@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::OverlapMembership;
+package RfamLive::Result::OverlapMembership;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::OverlapMembership
+RfamLive::Result::OverlapMembership
 
 =cut
 
@@ -51,13 +51,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Overlap>
+Related object: L<RfamLive::Result::Overlap>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "auto_overlap",
-  "RfamDB::Result::Overlap",
+  "RfamLive::Result::Overlap",
   { auto_overlap => "auto_overlap" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -66,13 +66,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::GenomeEntry;
+package RfamLive::Result::GenomeEntry;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::GenomeEntry
+RfamLive::Result::GenomeEntry
 
 =cut
 

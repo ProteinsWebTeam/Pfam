@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::MotifMatch;
+package RfamLive::Result::MotifMatch;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::MotifMatch
+RfamLive::Result::MotifMatch
 
 =cut
 
@@ -150,13 +150,13 @@ __PACKAGE__->add_unique_constraint(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Motif>
+Related object: L<RfamLive::Result::Motif>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "motif_acc",
-  "RfamDB::Result::Motif",
+  "RfamLive::Result::Motif",
   { motif_acc => "motif_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -165,13 +165,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -180,13 +180,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::SeedRegion>
+Related object: L<RfamLive::Result::SeedRegion>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfamseq_acc",
-  "RfamDB::Result::SeedRegion",
+  "RfamLive::Result::SeedRegion",
   { rfamseq_acc => "rfamseq_acc" },
   {
     is_deferrable => 1,

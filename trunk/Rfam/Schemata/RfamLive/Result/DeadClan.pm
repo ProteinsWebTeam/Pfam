@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::DeadClan;
+package RfamLive::Result::DeadClan;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::DeadClan
+RfamLive::Result::DeadClan
 
 =cut
 

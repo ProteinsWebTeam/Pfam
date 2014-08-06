@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::Wikitext;
+package RfamLive::Result::Wikitext;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::Wikitext
+RfamLive::Result::Wikitext
 
 =cut
 
@@ -82,13 +82,13 @@ __PACKAGE__->add_unique_constraint("title_UNIQUE", ["title"]);
 
 Type: has_many
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->has_many(
   "families",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { "foreign.auto_wiki" => "self.auto_wiki" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

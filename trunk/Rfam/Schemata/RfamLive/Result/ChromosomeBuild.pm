@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::ChromosomeBuild;
+package RfamLive::Result::ChromosomeBuild;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::ChromosomeBuild
+RfamLive::Result::ChromosomeBuild
 
 =cut
 

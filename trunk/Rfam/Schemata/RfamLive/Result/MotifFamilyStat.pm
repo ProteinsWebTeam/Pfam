@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::MotifFamilyStat;
+package RfamLive::Result::MotifFamilyStat;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::MotifFamilyStat
+RfamLive::Result::MotifFamilyStat
 
 =cut
 
@@ -83,13 +83,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Motif>
+Related object: L<RfamLive::Result::Motif>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "motif_acc",
-  "RfamDB::Result::Motif",
+  "RfamLive::Result::Motif",
   { motif_acc => "motif_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
@@ -98,13 +98,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "CASCADE" },
 );
