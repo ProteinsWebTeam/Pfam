@@ -28,6 +28,7 @@ use namespace::autoclean;
 use MIME::Base64;
 use JSON;
 use Data::Dump qw( dump );
+use Compress::Zlib;
 use Text::Wrap qw( $columns wrap );
 
 $Text::Wrap::columns = 60;
@@ -93,17 +94,17 @@ sub auto : Private {
   }
 
   # should we use the live or release databases ?
-  if ( $c->req->param('live') ) {
-    $c->log->debug( 'Family::begin: using "live" database' )
-      if $c->debug;
-    $c->stash->{live} = 1;
-    $c->stash->{db} = $c->model('RfamLive');
-  }
-  else {
+  # if ( $c->req->param('live') ) {
+  #   $c->log->debug( 'Family::begin: using "live" database' )
+  #     if $c->debug;
+  #   $c->stash->{live} = 1;
+  #   $c->stash->{db} = $c->model('RfamLive');
+  # }
+  # else {
     $c->log->debug( 'Family::begin: using "release" database' )
       if $c->debug;
     $c->stash->{db} = $c->model('RfamDB');
-  }
+  # }
 
   # 'auto' has to return true or the dispatch short-circuits straight to 'end'
   return 1;
@@ -199,15 +200,15 @@ sub family_page_GET_html : Private {
   #---------------------------------------
 
   # add the clan details, if any
-  my $clan = $c->stash->{db}->resultset('Clans')
-               ->search( { 'clan_memberships.auto_rfam' => $c->stash->{rfam}->auto_rfam },
+  my $clan = $c->stash->{db}->resultset('Clan')
+               ->search( { rfam_acc => $c->stash->{acc} },
                          { prefetch => [ qw(clan_memberships) ] } )
                ->first;
 
   if ( $clan ) {
     my $members = $c->stash->{db}->resultset('ClanMembership')
-                    ->search( { auto_clan => $clan->auto_clan },
-                              { join => [ 'auto_rfam' ],
+                    ->search( { clan_acc => $clan->clan_acc },
+                              { join => [ 'rfam_acc' ],
                                 order_by => [ 'rfam_id' ] } );
     
     if ( $clan and defined $clan->clan_acc ) {
@@ -232,7 +233,7 @@ sub family_page_GET_html : Private {
   $c->log->debug( 'Family::family_page: emitting HTML' )
     if $c->debug;
 
-  $c->cache_page( 43200 ); # cache for 12 hours
+  $c->cache_page( 43200 ) unless $ENV{NO_CACHE}; # cache for 12 hours
   
   $c->stash->{pageType} = 'family';
   $c->stash->{template} = 'pages/layout.tt';
@@ -387,22 +388,6 @@ sub sequences : Chained( 'family' )
 }
 
 #-------------------------------------------------------------------------------
-
-=head2 refseq
-
-=cut
-
-sub refseq : Chained( 'family' )
-             PathPart( 'refseq' )
-             Args( 0 ) {
-  my ( $this, $c ) = @_;
-
-  $c->stash->{template} = "components/blocks/family/refseq_tab.tt";
-
-  $c->forward('get_refseq_data');
-}
-
-#-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -418,7 +403,7 @@ sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
   # check for a family
-  my $rfam = $c->stash->{db}->resultset('Rfam')
+  my $rfam = $c->stash->{db}->resultset('Family')
                ->search( [ { rfam_acc => $entry },
                            { rfam_id  => $entry } ] )
                ->single;
@@ -464,7 +449,7 @@ sub get_summary_data : Private {
 
   # number of structures known for the domain
   my $rs = $c->stash->{db}->resultset('PdbRfamReg')
-             ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
+             ->search( { rfam_acc => $c->stash->{acc} },
                        {} );
 
   $summaryData->{numStructures} = $rs->count;
@@ -479,50 +464,16 @@ sub get_summary_data : Private {
 
   # get tree curation data. Limit retrieved columns to avoid pulling down
   # alignments and tree data until we really need them.
-  my $full_tree_data = $c->stash->{db}->resultset( 'AlignmentsAndTrees' )
-                         ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
-                                   type      => 'full' },
+  my $seed_tree_data = $c->stash->{db}->resultset( 'AlignmentAndTree' )
+                         ->find( { rfam_acc => $c->stash->{acc},
+                                   type     => 'seed' },
                                  { columns => [ qw{ type 
                                                     treemethod 
                                                     average_length 
                                                     percent_id 
-                                                    number_of_sequences 
-                                                    most_unrelated_pair } ] } );
+                                                    number_of_sequences } ] } );
 
-  my $seed_tree_data = $c->stash->{db}->resultset( 'AlignmentsAndTrees' )
-                         ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
-                                   type      => 'seed' },
-                                 { columns => [ qw{ type 
-                                                    treemethod 
-                                                    average_length 
-                                                    percent_id 
-                                                    number_of_sequences 
-                                                    most_unrelated_pair } ] } );
-
-  $c->stash->{alignment_info}->{full} = $full_tree_data;
   $c->stash->{alignment_info}->{seed} = $seed_tree_data;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_refseq_data : Private
-
-Retrieves refseq data for the family.
-
-=cut
-
-sub get_refseq_data : Private {
-  my ( $this, $c ) = @_;
-  
-  $c->stash->{refseqRegions} = 
-    $c->stash->{db}->resultset('RfamRefseq')
-      ->search( { rfam_acc => $c->stash->{acc} },
-                { order_by => [ 'bits_score DESC' ] } );
-
-  $c->stash->{limits} = $this->{regionsLimits};
-
-  $c->log->debug( 'Family::get_refseq_data: added refseq regions to stash' ) 
-    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -540,20 +491,20 @@ sub get_regions_data : Private {
                   . $c->stash->{rfam}->num_full . '| regions' ) if $c->debug;
 
   $c->stash->{region_rs} = 
-    $c->stash->{db}->resultset('RfamRegFull')
-      ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
-                { join      => { 'auto_rfamseq' => 'ncbi_id' },
-                  '+select' => [ qw( auto_rfamseq.rfamseq_acc
-                                     auto_rfamseq.description
-                                     ncbi_id.species
-                                     ncbi_id.ncbi_id
-                                     auto_rfamseq.length ) ],
+    $c->stash->{db}->resultset('FullRegion')
+      ->search( { rfam_acc => $c->stash->{acc} },
+                { join      => { 'rfamseq_acc' => 'ncbi' },
+                  '+select' => [ qw( rfamseq_acc.rfamseq_acc
+                                     rfamseq_acc.description
+                                     ncbi.species
+                                     ncbi.ncbi_id
+                                     rfamseq_acc.length ) ],
                   '+as'     => [ qw( rfamseq_acc
                                      description
                                      species
                                      ncbi_taxid
                                      length ) ],
-                  order_by  => [ 'bits_score DESC' ] } );
+                  order_by  => [ 'bit_score DESC' ] } );
                                             
   $c->stash->{limits}  = $this->{refseqRegionsLimits};
 
@@ -572,11 +523,11 @@ Retrieves the wikipedia content, if any, for this family.
 sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
 
-  my $article = $c->model('WebUser::ArticleMapping')
+  my $rs = $c->model('WebUser::ArticleMapping')
                   ->search( { accession => $c->stash->{acc} },
                             { join     => [ 'wikitext' ],
-                              prefetch => [ 'wikitext' ] } )
-                  ->next;
+                              prefetch => [ 'wikitext' ] } );
+  my $article = $rs->next;
   
   return unless ( $article and $article->wikitext );
 

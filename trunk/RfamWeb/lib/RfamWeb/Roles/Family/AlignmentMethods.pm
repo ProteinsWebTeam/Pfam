@@ -25,7 +25,6 @@ use MooseX::MethodAttributes::Role;
 use namespace::autoclean;
 
 use MIME::Base64;
-use Compress::Zlib;
 use File::Temp qw( tempfile );
 
 # this is really ugly, but it makes sense to have this image easily to hand.
@@ -766,7 +765,7 @@ sub get_gzipped_alignment : Private {
       if $c->debug;
 
     # failed to get a cached version; retrieve the alignment from the DB
-    my $rs = $c->stash->{rfam}->search_related( 'alignments_and_trees',
+    my $rs = $c->stash->{rfam}->search_related( 'alignments_and_tree',
                                                 { type => $aln_type },
                                                 { columns => [ 'alignment' ] } );
 

@@ -102,14 +102,14 @@ sub guess_family : Private {
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' )
     if $c->debug;
   
-  my @rs = $c->model('RfamDB::Rfam')
+  my @rs = $c->model('RfamDB::Family')
              ->search( [ { rfam_acc => $entry },
                          { rfam_id  => $entry } ] );
 
   return 'family' if scalar @rs;
   
   # see if this could be a dead family
-  my $dead = $c->model('RfamDB::DeadFamilies')
+  my $dead = $c->model('RfamDB::DeadFamily')
                ->find( { rfam_acc => $entry },
                        { columns => [ 'rfam_acc' ] } );
   # (We define the list of columns specifically, so that we avoid a mismatch 
@@ -133,7 +133,7 @@ sub guess_clan : Private {
   $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
     if $c->debug;
   
-  my @rs = $c->model('RfamDB::Clans')
+  my @rs = $c->model('RfamDB::Clan')
              ->search( [ { clan_acc => $entry },
                          { clan_id  => $entry } ] );
 

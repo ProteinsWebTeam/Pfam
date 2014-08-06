@@ -481,9 +481,9 @@ sub get_tree_data : Private {
       if $c->debug;  
 
     # retrieve the tree from the DB
-    my $rs = $c->stash->{db}->resultset('AlignmentsAndTrees')
-               ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam,
-                           type      => $c->stash->{alnType} },
+    my $rs = $c->stash->{db}->resultset('AlignmentAndTree')
+               ->search( { rfam_acc => $c->stash->{acc},
+                           type     => $c->stash->{alnType} },
                          { columns => [ 'tree' ] } );
     my $row = $rs->first;
 

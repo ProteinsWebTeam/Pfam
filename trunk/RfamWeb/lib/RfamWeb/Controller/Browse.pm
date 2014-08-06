@@ -116,13 +116,13 @@ sub browse_clans_list : Chained( 'browse_clans' )
   $c->log->debug( 'Browse::browse_clans_list: building full list of clans' )
     if $c->debug;
 
-  my @res = $c->model('RfamDB::Clans')
+  my @res = $c->model('RfamDB::Clan')
               ->search( {},
                         { prefetch  => [ 'clan_memberships' ],
-                          '+select' => [ { count => 'clan_memberships.auto_rfam' } ],
+                          '+select' => [ { count => 'clan_memberships.rfam_acc' } ],
                           '+as'     => [ 'num_families' ],
-                          group_by  => [ 'clan_memberships.auto_clan' ],
-                          order_by  => [ 'clan_id ASC' ] } );
+                          group_by  => [ 'clan_memberships.clan_acc' ],
+                          order_by  => [ 'id ASC' ] } );
 
   $c->log->debug( 'Browse::browse_clans_list: found ' . scalar @res
                   . ' clans' ) if $c->debug;
@@ -270,9 +270,9 @@ sub browse_all_families : Chained( 'browse_families' )
   # we need the "active_letters" data structure
   $c->forward( 'build_active_letters' );
   
-  my @rs = $c->model('RfamDB::Rfam')
-             ->search( { 'alignments_and_trees.type' => 'seed' },
-                       { prefetch => 'alignments_and_trees',
+  my @rs = $c->model('RfamDB::Family')
+             ->search( { 'alignments_and_tree.type' => 'seed' },
+                       { prefetch => 'alignments_and_tree',
                          order_by => 'rfam_id' }
                      )->all;
 
@@ -307,12 +307,12 @@ sub browse_families_by_letter : Chained( 'browse_families' )
       if $c->debug;
   
     my @rs = $c->model( 'RfamDB::PdbRfamReg' )
-               ->search( { 'alignments_and_trees.type' => 'seed' },
-                         { prefetch => { 'auto_rfam' => 'alignments_and_trees' },
-                           '+select'=> [ { count => 'auto_rfam.auto_rfam' } ],
+               ->search( { 'alignments_and_tree.type' => 'seed' },
+                         { prefetch => { 'rfam_acc' => 'alignments_and_tree' },
+                           '+select'=> [ { count => 'rfam_acc.rfam_acc' } ],
                            '+as'    => [ 'num_structures' ],
-                           group_by => [ 'auto_rfam.rfam_id' ],
-                           order_by => 'auto_rfam.rfam_id' } );
+                           group_by => [ 'rfam_acc.rfam_id' ],
+                           order_by => 'rfam_acc.rfam_id' } );
     
     $c->stash->{families} = \@rs;
     $c->stash->{template} = 'pages/browse/structures.tt';
@@ -322,9 +322,9 @@ sub browse_families_by_letter : Chained( 'browse_families' )
     $c->log->debug( 'Browse::browse_families_by_letter: showing top 20 largest families' )
       if $c->debug;
 
-    my @rs = $c->model('RfamDB::Rfam')
-               ->search( { 'alignments_and_trees.type' => 'seed' },
-                         { prefetch => 'alignments_and_trees',
+    my @rs = $c->model('RfamDB::Family')
+               ->search( { 'alignments_and_tree.type' => 'seed' },
+                         { prefetch => 'alignments_and_tree',
                            rows     => 20,
                            page     => 1,
                            order_by => 'num_full DESC' }
@@ -371,10 +371,10 @@ sub browse_families_range : Chained( 'browse_families' )
   # table is likely to contain only on the order of thousands of rows (unless 
   # something drastic happens), we should be okay. 
 
-  my @families = $c->model('RfamDB::Rfam')
+  my @families = $c->model('RfamDB::Family')
                    ->search( { 'SUBSTRING(rfam_id,1,1)'  => { 'IN', [ $from .. $to ] },
-                               'alignments_and_trees.type' => 'seed' },
-                             { prefetch => [ 'alignments_and_trees' ],
+                               'alignments_and_tree.type' => 'seed' },
+                             { prefetch => [ 'alignments_and_tree' ],
                                order_by => 'rfam_id' } );        
 
   $c->log->debug( 'Browse::browse_families_range: found |' . scalar @families
@@ -472,7 +472,7 @@ sub build_active_letters : Private {
     
     # get a list of all families and join to pdb_rfam_reg, so that we can find
     # those families for which there's a 3-D structure
-    my @families = $c->model( 'RfamDB::Rfam' )
+    my @families = $c->model( 'RfamDB::Family' )
                      ->search( {},
                                { prefetch => [ 'pdb_rfam_regs' ] } );
                               
@@ -488,11 +488,11 @@ sub build_active_letters : Private {
     #----------------------------------------
 
     # clans
-    my @clans = $c->model('RfamDB::Clans')
+    my @clans = $c->model('RfamDB::Clan')
                   ->search();
 
     foreach my $clan ( @clans ) {
-      $first_letter = uc( substr( $clan->clan_id, 0, 1 ) );
+      $first_letter = uc( substr( $clan->id, 0, 1 ) );
       $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
       $active_letters->{clans}->{$first_letter} = 1;
     }
@@ -500,7 +500,7 @@ sub build_active_letters : Private {
     #----------------------------------------
 
     # genomes
-    my @genomes = $c->model('RfamDB::GenomeSummary')
+    my @genomes = $c->model('RfamDB::Genome')
                     ->search( {}, {} );
 
     foreach my $genome ( @genomes ) {

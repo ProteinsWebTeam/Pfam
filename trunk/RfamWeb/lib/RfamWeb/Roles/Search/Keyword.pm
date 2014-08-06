@@ -84,7 +84,7 @@ sub process_pdb : Private {
   # my $results = $c->model('RfamDB::PdbRfamReg')
   #                 ->search( { pdb_id => $c->stash->{terms} },
   #                           { join => [ 'auto_rfam' ] } );
-  my $results = $c->model('RfamDB::RfamKeywords')
+  my $results = $c->model('RfamDB::Keywords')
                   ->search( {},
                             {} )
                   ->search_literal( 'MATCH( pdb_mappings ) ' .
