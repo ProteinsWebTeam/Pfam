@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Pdb;
+package RfamDB::Result::Pdb;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Pdb
+RfamDB::Result::Pdb
 
 =cut
 
@@ -103,13 +103,13 @@ __PACKAGE__->set_primary_key("pdb_id");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::PdbRfamReg>
+Related object: L<RfamDB::Result::PdbRfamReg>
 
 =cut
 
 __PACKAGE__->has_many(
   "pdb_rfam_regs",
-  "RfamLive::Result::PdbRfamReg",
+  "RfamDB::Result::PdbRfamReg",
   { "foreign.pdb_id" => "self.pdb_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -118,13 +118,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::PdbSequence>
+Related object: L<RfamDB::Result::PdbSequence>
 
 =cut
 
 __PACKAGE__->has_many(
   "pdb_sequences",
-  "RfamLive::Result::PdbSequence",
+  "RfamDB::Result::PdbSequence",
   { "foreign.pdb_id" => "self.pdb_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

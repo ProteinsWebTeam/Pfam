@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::Rfamseq;
+package RfamDB::ResultSet::Rfamseq;
 
 use strict;
 use warnings;

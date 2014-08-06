@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Overlap;
+package RfamDB::Result::Overlap;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Overlap
+RfamDB::Result::Overlap
 
 =cut
 
@@ -84,13 +84,13 @@ __PACKAGE__->set_primary_key("auto_overlap");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::OverlapMembership>
+Related object: L<RfamDB::Result::OverlapMembership>
 
 =cut
 
 __PACKAGE__->has_many(
   "overlap_memberships",
-  "RfamLive::Result::OverlapMembership",
+  "RfamDB::Result::OverlapMembership",
   { "foreign.auto_overlap" => "self.auto_overlap" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

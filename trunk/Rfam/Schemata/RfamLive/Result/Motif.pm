@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Motif;
+package RfamDB::Result::Motif;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Motif
+RfamDB::Result::Motif
 
 =cut
 
@@ -228,13 +228,13 @@ __PACKAGE__->set_primary_key("motif_acc");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifFamilyStat>
+Related object: L<RfamDB::Result::MotifFamilyStat>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_family_stats",
-  "RfamLive::Result::MotifFamilyStat",
+  "RfamDB::Result::MotifFamilyStat",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -243,13 +243,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifLiterature>
+Related object: L<RfamDB::Result::MotifLiterature>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_literatures",
-  "RfamLive::Result::MotifLiterature",
+  "RfamDB::Result::MotifLiterature",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -258,13 +258,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifMatch>
+Related object: L<RfamDB::Result::MotifMatch>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_matches",
-  "RfamLive::Result::MotifMatch",
+  "RfamDB::Result::MotifMatch",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -273,13 +273,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifPdb>
+Related object: L<RfamDB::Result::MotifPdb>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_pdbs",
-  "RfamLive::Result::MotifPdb",
+  "RfamDB::Result::MotifPdb",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

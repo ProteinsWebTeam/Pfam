@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Taxonomy;
+package RfamDB::Result::Taxonomy;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Taxonomy
+RfamDB::Result::Taxonomy
 
 =cut
 
@@ -92,13 +92,13 @@ __PACKAGE__->set_primary_key("ncbi_id");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::FamilyNcbi>
+Related object: L<RfamDB::Result::FamilyNcbi>
 
 =cut
 
 __PACKAGE__->has_many(
   "family_ncbis",
-  "RfamLive::Result::FamilyNcbi",
+  "RfamDB::Result::FamilyNcbi",
   { "foreign.ncbi_id" => "self.ncbi_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -107,13 +107,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::Rfamseq>
+Related object: L<RfamDB::Result::Rfamseq>
 
 =cut
 
 __PACKAGE__->has_many(
   "rfamseqs",
-  "RfamLive::Result::Rfamseq",
+  "RfamDB::Result::Rfamseq",
   { "foreign.ncbi_id" => "self.ncbi_id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::Clan;
+package RfamDB::ResultSet::Clan;
 
 use strict;
 use warnings;

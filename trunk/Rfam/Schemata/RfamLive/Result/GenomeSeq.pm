@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::GenomeSeq;
+package RfamDB::Result::GenomeSeq;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::GenomeSeq
+RfamDB::Result::GenomeSeq
 
 =cut
 
@@ -63,13 +63,13 @@ __PACKAGE__->set_primary_key("seq_acc");
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Genome>
+Related object: L<RfamDB::Result::Genome>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "genome_acc",
-  "RfamLive::Result::Genome",
+  "RfamDB::Result::Genome",
   { genome_acc => "genome_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -78,13 +78,13 @@ __PACKAGE__->belongs_to(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::GenomeFullRegion>
+Related object: L<RfamDB::Result::GenomeFullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "genome_full_regions",
-  "RfamLive::Result::GenomeFullRegion",
+  "RfamDB::Result::GenomeFullRegion",
   { "foreign.seq_acc" => "self.seq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

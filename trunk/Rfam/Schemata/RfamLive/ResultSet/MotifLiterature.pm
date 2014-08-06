@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::MotifLiterature;
+package RfamDB::ResultSet::MotifLiterature;
 
 use strict;
 use warnings;

@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::LiteratureReference;
+package RfamDB::ResultSet::LiteratureReference;
 
 use strict;
 use warnings;

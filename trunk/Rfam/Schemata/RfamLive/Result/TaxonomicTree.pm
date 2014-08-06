@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::TaxonomicTree;
+package RfamDB::Result::TaxonomicTree;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::TaxonomicTree
+RfamDB::Result::TaxonomicTree
 
 =cut
 

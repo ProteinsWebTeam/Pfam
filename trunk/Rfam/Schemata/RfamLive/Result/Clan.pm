@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::Clan;
+package RfamDB::Result::Clan;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::Clan
+RfamDB::Result::Clan
 
 =cut
 
@@ -115,13 +115,13 @@ __PACKAGE__->set_primary_key("clan_acc");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::ClanDatabaseLink>
+Related object: L<RfamDB::Result::ClanDatabaseLink>
 
 =cut
 
 __PACKAGE__->has_many(
   "clan_database_links",
-  "RfamLive::Result::ClanDatabaseLink",
+  "RfamDB::Result::ClanDatabaseLink",
   { "foreign.clan_acc" => "self.clan_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -130,13 +130,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::ClanLiteratureReference>
+Related object: L<RfamDB::Result::ClanLiteratureReference>
 
 =cut
 
 __PACKAGE__->has_many(
   "clan_literature_references",
-  "RfamLive::Result::ClanLiteratureReference",
+  "RfamDB::Result::ClanLiteratureReference",
   { "foreign.clan_acc" => "self.clan_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -145,13 +145,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::ClanMembership>
+Related object: L<RfamDB::Result::ClanMembership>
 
 =cut
 
 __PACKAGE__->has_many(
   "clan_memberships",
-  "RfamLive::Result::ClanMembership",
+  "RfamDB::Result::ClanMembership",
   { "foreign.clan_acc" => "self.clan_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

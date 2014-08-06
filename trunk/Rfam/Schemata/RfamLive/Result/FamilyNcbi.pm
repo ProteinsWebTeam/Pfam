@@ -1,12 +1,12 @@
 use utf8;
-package RfamLive::Result::FamilyNcbi;
+package RfamDB::Result::FamilyNcbi;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamLive::Result::FamilyNcbi
+RfamDB::Result::FamilyNcbi
 
 =cut
 
@@ -67,13 +67,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Taxonomy>
+Related object: L<RfamDB::Result::Taxonomy>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "ncbi",
-  "RfamLive::Result::Taxonomy",
+  "RfamDB::Result::Taxonomy",
   { ncbi_id => "ncbi_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -82,13 +82,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamLive::Result::Family>
+Related object: L<RfamDB::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamLive::Result::Family",
+  "RfamDB::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
