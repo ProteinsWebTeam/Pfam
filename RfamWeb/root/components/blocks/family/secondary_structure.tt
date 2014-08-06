@@ -35,9 +35,6 @@ labels = [
            { type  => 'norm',
              short => 'norm',
              long  => 'Normal' },
-           { type  => 'rchie',
-             short => 'rchie<span id="rchieNew">New</span>',
-             long  => 'R-chie' },
          ];
 %]
 
@@ -188,24 +185,29 @@ labels = [
     </p>
 
     <ul id="ssImageTabs" class="controlTabList">
-[% FOREACH hash IN labels -%]
-      <li><a href="#[% hash.type %]Image"
-             title="[% hash.long %]">[% hash.short %]</a></li>
-[% END -%]
+      [% FOREACH hash IN labels -%]
+        <li><a href="#[% hash.type %]Image"
+               title="[% hash.long %]">[% hash.short %]</a></li>
+      [% END -%]
+      <li><a href="#rchieImage"
+             title="R-chie">rchie</a></li>
     </ul>
 
-[% FOREACH hash IN labels -%]
-    <div id="[% hash.type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
+    [% FOREACH hash IN labels -%]
+      <div id="[% hash.type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
+           class="controlTab ssImage"></div>
+    [% END -%]
+
+    <div id="rchieImage" style="display: none"
          class="controlTab ssImage">
-      [% IF hash.type == "rchie" -%]
       <p>
         Move your mouse over the image to show details and click to show full image.
       </p>
-      [%- END %]
+
       <img alt="" 
-           id="ss_[% hash.type %]"
-           src="[% c.uri_for( '/family', acc, 'image', hash.type ) | html -%]" />
-      [%- IF hash.type == "rchie" %]
+           id="ss_rchie"
+           src="[% c.uri_for( '/family', acc, 'image', 'rchie' ) | html -%]" />
+
       <div id="rchieKey">
         <ul>
           <li class="label">Arc colours</li>
@@ -222,12 +224,65 @@ labels = [
           <li><span class="ambiguous">&nbsp;</span>Ambiguous</li>
         </ul>
       </div>
-      [%- END %]
     </div>
-[% END -%]
 
     <script type="text/javascript">
       // <![CDATA[
+
+      [%# this is a hack. We've changed to generating the images as SVGs, but if
+        # there's no SVG, we fall back on showing a PNG with a message to that
+        # effect. If there is an SVG, we can just drop it into the page and hope
+        # for the best. If it's a PNG, we need to wrap it up as an <img> and give
+        # it the URL for the image that we just loaded. %]
+
+      var shown = 1;
+      function click() {
+           var seq = document.getElementById("seq");
+           var lines = document.getElementById("outline");
+           var pairs = document.getElementById("pairs");         
+           if (shown==1) {
+             seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: hidden");
+             lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+             pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+             shown = 2;
+           } else if (shown==2) {
+             seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+             pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+             lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: hidden");
+
+             shown = 3;
+           } else if (shown==3) { 
+             seq.setAttribute("style", "font-family: Arial,Helvetica; visibility: visible");
+             lines.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible");
+             pairs.setAttribute("style", "fill: none; stroke: black; stroke-width: 0.75; visibility: visible"); 
+             shown = 1;
+           }
+      }
+
+      document.observe("dom:loaded",function() {
+
+        $w("[% FOREACH hash IN labels; hash.type _ ' '; END %]").each( function( type ) {
+          new Ajax.Request( 
+            "[% c.uri_for( '/family', acc, 'image' ) | html %]/" + type, 
+            {
+              method: 'get',
+              onSuccess: function(response) {
+                var ct = response.getHeader('Content-Type');
+                var parent = $(type + "Image");
+                if ( ct == "image/svg+xml") {
+                  parent.update( response.responseText );
+                } else {
+                  parent.update( '<img alt="" id="ss_' + type + '" src="[% c.uri_for( '/family', acc, 'image' ) %]/' + type + '" />' );
+                }
+              },
+              onFailure: function(response) {
+   
+              }
+            }
+          );
+        } );
+
+      } );
 
       var ssImageTabsController,
           zoomEnabled = false;

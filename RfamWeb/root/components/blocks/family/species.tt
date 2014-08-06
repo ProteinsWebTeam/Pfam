@@ -113,7 +113,7 @@ sharedRequirements.js.push( "faces/optimer-bold-normal.js" );
     // selected sequences in FASTA format
     var selectFastaURI = "[% stUri %]/sequences";
 
-    var treeData = [% rfam.rfam_species_trees.json_string || "{}" %],
+    var treeData = [% rfam.sunbursts.data || "{}" %],
         YUITreeLoaded = false,
         speciesTreeTabView,
         sunburst,

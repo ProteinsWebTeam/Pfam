@@ -72,87 +72,41 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
 
     <div id="treeInfo">
 
-      <ul id="alignmentTabs" class="controlTabList">
-        <li><a href="#seed_trees">Seed</a></li>
-        <li><a href="#full_trees">Full</a></li>  
-      </ul>
-      
-      <div id="seed_trees"
-           class="controlTab controlTabContent">
-
-        <form action="#"
-              class="switcher">
-          <div>
-            [%- treeMethod = rfam.search_related( 'alignments_and_trees', { type => 'seed' } ).treemethod;
-            IF treeMethod %]
-            <p>
-              This tree was built using the 
-              <em>[% treeMethod %]</em>
-              method.
-            </p>
-            [%- END %]
-            <span>Label the trees using </span>
-            <label for="seed_species">
-              <input type="radio" 
-                     name="seed_tree" 
-                     id="seed_species"
-                     checked="checked" />
-              species names
-            </label>
-            or
-            <label for="seed_acc">
-              <input type="radio" 
-                     name="seed_tree" 
-                     id="seed_acc" />
-              accessions.
-            </label>
-          </div>
-        </form>
-      
-        <div class="treeHolder" id="seed_species_tree"></div>
-        <div class="treeHolder" id="seed_acc_tree" style="display: none"></div>
-
-      </div>
-
-      <div id="full_trees"
-           class="controlTab controlTabContent"
-           style="display: none">
-
-        <form action="#"
-              class="switcher">
-          <div>
-            <p>
-              This tree was built using the 
-              <em>[% rfam.search_related('alignments_and_trees',{type=>'full'}).treemethod %]</em>
-              method.
-            </p>
-            <span>Label the trees using </span>
-            <label for="full_species">
-              <input type="radio" 
-                     name="full_tree" 
-                     id="full_species"
-                     checked="checked" />
-              species names
-            </label>
-            or
-            <label for="full_acc">
-              <input type="radio" 
-                     name="full_tree" 
-                     id="full_acc" />
-              accessions.
-            </label>
-          </div>
-        </form>
-      
-        <div class="treeHolder" id="full_species_tree"></div>
-        <div class="treeHolder" id="full_acc_tree" style="display: none"></div>
-        
-      </div>
+      <form action="#"
+            class="switcher">
+        <div>
+          [%- treeMethod = rfam.search_related( 'alignments_and_tree', { type => 'seed' } ).treemethod;
+          IF treeMethod %]
+          <p>
+            This tree was built using the 
+            <em>[% treeMethod %]</em>
+            method.
+          </p>
+          [%- END %]
+          <span>Label the trees using </span>
+          <label for="seed_species">
+            <input type="radio" 
+                   name="seed_tree" 
+                   id="seed_species"
+                   checked="checked" />
+            species names
+          </label>
+          or
+          <label for="seed_acc">
+            <input type="radio" 
+                   name="seed_tree" 
+                   id="seed_acc" />
+            accessions.
+          </label>
+        </div>
+      </form>
+    
+      <div class="treeHolder" id="seed_species_tree"></div>
+      <div class="treeHolder" id="seed_acc_tree" style="display: none"></div>
 
       <p>
         <strong>Note:</strong> You can also download the data files for the
         <a href="[% c.uri_for( '/family', acc, 'tree/seed' ) | html %]">seed</a> or the
-        <a href="[% c.uri_for( '/family', acc, 'tree/full' ) | html %]">full</a>
         trees.
       </p>
 
@@ -177,38 +131,29 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       var loaded_trees = 4;
       document.observe( "dom:loaded", function() {
 
-        ["seed","full"].each( function( alnType ) {
-    
-          // submit AJAX requests for each of the label types
-          ["species","acc"].each( function(label) {
-    
-            var ajaxUri = "[% c.uri_for( '/family', acc, 'tree/' ) %]" + alnType 
-                          + "/label/" + label
-                          + "/map";
-            var r = new Ajax.Request(
-              ajaxUri,
-              { method:     "get",
-                onSuccess: function( oResponse ) {
-                  $(alnType+"_"+label+"_tree").update( oResponse.responseText );
-                },
-                onFailure: function( oResponse ) {
-                  $("treeInfo").hide();
-                  $("treeMissing").show();
-                }
+        // submit AJAX requests for each of the label types
+        ["species","acc"].each( function(label) {
+  
+          var ajaxUri = "[% c.uri_for( '/family', acc, 'tree', 'seed' ) %]"
+                        + "/label/" + label
+                        + "/map";
+          var r = new Ajax.Request(
+            ajaxUri,
+            { method:     "get",
+              onSuccess: function( oResponse ) {
+                $("seed_"+label+"_tree").update( oResponse.responseText );
+              },
+              onFailure: function( oResponse ) {
+                $("treeInfo").hide();
+                $("treeMissing").show();
               }
-            );
-            
-          } ); // end of "each label"
+            }
+          );
           
-        } ); // end of "each alignment type"
-      
+        } ); // end of "each label"
+        
       } ); // end of onload function
       
-      // add the tab controller
-      var alignmentTabsController = new Control.Tabs( "alignmentTabs", 
-                                                      { defaultTab: "seed_trees" } );
-
-
       // a function to switch the visible tree. We walk up the DOM from the 
       // clicked form element, then select the tree divs below that node
       var switcher = function( e ) {
@@ -220,7 +165,6 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       $$("form.switcher").each( function(f) {
         f.observe( "change", switcher );
       } );
-
 
       // somewhere to store the node information for the map areas
       var areas = new Hash();
