@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::Rfamseq;
+package RfamLive::Result::Rfamseq;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::Rfamseq
+RfamLive::Result::Rfamseq
 
 =cut
 
@@ -162,13 +162,13 @@ __PACKAGE__->set_primary_key("rfamseq_acc");
 
 Type: has_many
 
-Related object: L<RfamDB::Result::Feature>
+Related object: L<RfamLive::Result::Feature>
 
 =cut
 
 __PACKAGE__->has_many(
   "features",
-  "RfamDB::Result::Feature",
+  "RfamLive::Result::Feature",
   { "foreign.rfamseq_acc" => "self.rfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -177,13 +177,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::FullRegion>
+Related object: L<RfamLive::Result::FullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "full_regions",
-  "RfamDB::Result::FullRegion",
+  "RfamLive::Result::FullRegion",
   { "foreign.rfamseq_acc" => "self.rfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -192,13 +192,13 @@ __PACKAGE__->has_many(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Taxonomy>
+Related object: L<RfamLive::Result::Taxonomy>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "ncbi",
-  "RfamDB::Result::Taxonomy",
+  "RfamLive::Result::Taxonomy",
   { ncbi_id => "ncbi_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -207,13 +207,13 @@ __PACKAGE__->belongs_to(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::PdbRfamReg>
+Related object: L<RfamLive::Result::PdbRfamReg>
 
 =cut
 
 __PACKAGE__->has_many(
   "pdb_rfam_regs",
-  "RfamDB::Result::PdbRfamReg",
+  "RfamLive::Result::PdbRfamReg",
   { "foreign.rfamseq_acc" => "self.rfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -222,13 +222,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::SeedRegion>
+Related object: L<RfamLive::Result::SeedRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "seed_regions",
-  "RfamDB::Result::SeedRegion",
+  "RfamLive::Result::SeedRegion",
   { "foreign.rfamseq_acc" => "self.rfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::Refseq;
+package RfamLive::Result::Refseq;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::Refseq
+RfamLive::Result::Refseq
 
 =cut
 
@@ -75,13 +75,13 @@ __PACKAGE__->set_primary_key("refseq_acc");
 
 Type: has_many
 
-Related object: L<RfamDB::Result::RefseqFullRegion>
+Related object: L<RfamLive::Result::RefseqFullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "refseq_full_regions",
-  "RfamDB::Result::RefseqFullRegion",
+  "RfamLive::Result::RefseqFullRegion",
   { "foreign.refseq_acc" => "self.refseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

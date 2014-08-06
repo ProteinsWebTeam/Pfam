@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::GenomeFullRegion;
+package RfamLive::Result::GenomeFullRegion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::GenomeFullRegion
+RfamLive::Result::GenomeFullRegion
 
 =cut
 
@@ -136,13 +136,13 @@ __PACKAGE__->add_columns(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Genome>
+Related object: L<RfamLive::Result::Genome>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "genome_acc",
-  "RfamDB::Result::Genome",
+  "RfamLive::Result::Genome",
   { genome_acc => "genome_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -151,13 +151,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -166,13 +166,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::GenomeSeq>
+Related object: L<RfamLive::Result::GenomeSeq>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "seq_acc",
-  "RfamDB::Result::GenomeSeq",
+  "RfamLive::Result::GenomeSeq",
   { seq_acc => "seq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );

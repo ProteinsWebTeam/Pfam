@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::Genome;
+package RfamLive::Result::Genome;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::Genome
+RfamLive::Result::Genome
 
 =cut
 
@@ -127,13 +127,13 @@ __PACKAGE__->set_primary_key("genome_acc");
 
 Type: has_many
 
-Related object: L<RfamDB::Result::GenomeFullRegion>
+Related object: L<RfamLive::Result::GenomeFullRegion>
 
 =cut
 
 __PACKAGE__->has_many(
   "genome_full_regions",
-  "RfamDB::Result::GenomeFullRegion",
+  "RfamLive::Result::GenomeFullRegion",
   { "foreign.genome_acc" => "self.genome_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -142,13 +142,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::GenomeGff>
+Related object: L<RfamLive::Result::GenomeGff>
 
 =cut
 
 __PACKAGE__->has_many(
   "genome_gffs",
-  "RfamDB::Result::GenomeGff",
+  "RfamLive::Result::GenomeGff",
   { "foreign.genome_acc" => "self.genome_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -157,13 +157,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::GenomeSeq>
+Related object: L<RfamLive::Result::GenomeSeq>
 
 =cut
 
 __PACKAGE__->has_many(
   "genome_seqs",
-  "RfamDB::Result::GenomeSeq",
+  "RfamLive::Result::GenomeSeq",
   { "foreign.genome_acc" => "self.genome_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

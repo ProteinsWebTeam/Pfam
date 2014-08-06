@@ -1,12 +1,12 @@
 use utf8;
-package RfamDB::Result::PdbRfamReg;
+package RfamLive::Result::PdbRfamReg;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-RfamDB::Result::PdbRfamReg
+RfamLive::Result::PdbRfamReg
 
 =cut
 
@@ -154,13 +154,13 @@ __PACKAGE__->set_primary_key("auto_pdb_reg");
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Pdb>
+Related object: L<RfamLive::Result::Pdb>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pdb",
-  "RfamDB::Result::Pdb",
+  "RfamLive::Result::Pdb",
   { pdb_id => "pdb_id" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -169,13 +169,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::PdbSequence>
+Related object: L<RfamLive::Result::PdbSequence>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pdb_seq",
-  "RfamDB::Result::PdbSequence",
+  "RfamLive::Result::PdbSequence",
   { pdb_seq => "pdb_seq" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -184,13 +184,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Family>
+Related object: L<RfamLive::Result::Family>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfam_acc",
-  "RfamDB::Result::Family",
+  "RfamLive::Result::Family",
   { rfam_acc => "rfam_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
@@ -199,13 +199,13 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<RfamDB::Result::Rfamseq>
+Related object: L<RfamLive::Result::Rfamseq>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "rfamseq_acc",
-  "RfamDB::Result::Rfamseq",
+  "RfamLive::Result::Rfamseq",
   { rfamseq_acc => "rfamseq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
