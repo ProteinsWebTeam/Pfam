@@ -100,7 +100,6 @@ sub create_alignment {
 
   my ( $bin, $sequence, $description, $method, $fasta_file) = @_;
 
-
   # Create fasta file
   open( TMP, ">tmp$$" ) or die "Couldn't open fh to tmp$$ $!";;
   for ( my $i=0; $i< @$sequence; $i++) {
@@ -202,7 +201,7 @@ sub create_alignment {
 =head2 print_alignment
 
 	Title	: print_alignment
-	Function: Prints aligned sequences in stockholm format
+	Function: Prints aligned sequences in stockholm format to STDERR
 	Returns : 
 	Usage   : print_alignment(\%alignmenthash,$method,$bin)
 
@@ -233,6 +232,42 @@ sub print_alignment {
      system("$bin/esl-reformat stockholm tmp$$.out") and die "Can't reformat $!";
   unlink "tmp$$.out";
   return;
+}
+
+=head2 save_alignment
+
+	Title	: save_alignment
+	Function: Prints aligned sequences in stockholm format to a file
+	Returns : 
+	Usage   : save_alignment(\%alignmenthash,$method,$bin,$outfile)
+
+=cut
+
+sub save_alignment {
+
+    my ($hash, $method, $bin, $outfile)=@_;
+  # first pass to get the longest id
+  my $idlength = 1;
+  foreach my $a ( keys %{$hash} ) {
+    if ( ( length $a ) > $idlength ) {
+      $idlength = length($a);
+    }
+  }
+
+  my $line;
+  my ( $key, $value );
+
+  open (FILE, ">tmp$$.out") or die "Can't open tmp$$.out $!";
+
+    while ( ( $key, $value ) = each( %{$hash} ) ) {
+	print FILE sprintf("%-" . $idlength . "s %s \n", $key, $value);
+    }
+  close (FILE);
+#reformat
+    system("$bin/esl-reformat stockholm tmp$$.out > $outfile") and die "Can't reformat $!";
+    unlink "tmp$$.out";
+    return;
+
 }
 
 1;
