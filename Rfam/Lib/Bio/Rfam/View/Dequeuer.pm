@@ -79,10 +79,10 @@ has '_schema' => (
       $db_params->{password}
     );
   },
-  trigger => sub { $_->_jobs_db( $_->_schema->resultset('RfamJobs') ) },
+  trigger => sub { $_->_jobs_table( $_->_schema->resultset('RfamJobs') ) },
 );
 
-has '_jobs_db' => (
+has '_jobs_table' => (
   is  => 'rw',
   isa => 'DBIx::Class::ResultSet',
 );
@@ -162,8 +162,7 @@ sub start_polling {
     sleep $delay;
 
     # look for pending jobs in the tracking table
-    my $jobs = $self->_schema
-                    ->resultset('JobHistory')
+    my $jobs = $self->_jobs_table
                     ->get_pending_jobs( $self->job_type );
 
     if ( $self->_log->is_debug ) {
@@ -335,16 +334,19 @@ sub _submit_lsf_job {
   my $memory_resource = 'rusage[mem=' . $job_spec->{memory} . ']';
   $self->_log->debug( "memory resource string: |$memory_resource|" );
 
+  my $tmp_resource = 'rusage[tmp=' . $job_spec->{tmp_space} . ']';
+  $self->_log->debug( "tmp space resource string: |$tmp_resource|" );
+
   $self->_log->debug( "submitting LSF job" );
 
   my $lsf_id = LSF::Job->submit(
     -o => $log_file,
     -q => $job_spec->{lsf_queue},
     -R => $memory_resource,
+    -R => $tmp_resource,
     -M => $job_spec->{memory},
     $lsf_command
   );
-  # my $lsf_id = 123456;
   
   return $lsf_id;
 }
