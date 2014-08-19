@@ -106,7 +106,6 @@ sub getMatchList{
 
 sub regionsByRfamseqAcc {
   my ($self, $rfamseqAcc, $flipCoos) = @_;
-  
   my $rs = $self->search({ 'me.rfamseq_acc' => $rfamseqAcc },
                          { result_class => 'DBIx::Class::ResultClass::HashRefInflator'});
   
@@ -117,6 +116,30 @@ sub regionsByRfamseqAcc {
                      $rowHashRef->{seq_start},
                      $rowHashRef->{seq_end},
                      $rowHashRef->{seq_start} > $rowHashRef->{seq_end} ? -1 : 1 ]);
+  }
+  return \@regions;
+}
+
+sub allRegionInfo {
+  my ($self, $rfamseqAcc, $flipCoos) = @_;
+  
+  my $rs = $self->search({ 'me.rfamseq_acc' => $rfamseqAcc },
+                         { result_class => 'DBIx::Class::ResultClass::HashRefInflator'});
+  
+  my @regions;
+  while(my $rowHashRef = $rs->next){
+    push(@regions, [ $rowHashRef->{rfamseq_acc},
+                     $rowHashRef->{rfam_acc},
+                     $rowHashRef->{seq_start},
+                     $rowHashRef->{seq_end},
+                     $rowHashRef->{seq_start} > $rowHashRef->{seq_end} ? -1 : 1 ,
+					 $rowHashRef->{bit_score},
+					 $rowHashRef->{evalue_score},
+					 $rowHashRef->{cm_start},
+					 $rowHashRef->{cm_end},
+					 $rowHashRef->{truncated},
+					 $rowHashRef->{type}]
+					 );
   }
   return \@regions;
 }

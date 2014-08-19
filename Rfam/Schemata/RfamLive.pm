@@ -125,4 +125,35 @@ sub prepare_seqaccToSpeciesTaxStringAndID {
   return( $sth );
 }
 
+=head2 prepare_nseFamilyToBitscore
+
+  Title    : prepare_nseFamilyToBitscore
+  Incept   : SWB, Tues 19 August 2014
+  Useage   : $rfamdb->prepare_nseFamilyToBitscore()
+  Function : Returns a DBI statement handle for executing queries. This statement has
+           : four bind values: rfam_acc, rfamseq_acc, seq_start, seq_end
+  Args     : none
+  Returns  : DBI statement handle
+
+=cut
+
+sub prepare_nseFamilyToBitscore {
+  my ($self) = @_;
+
+  my $dbh = $self->storage->dbh;
+  my $sth = $dbh->prepare("SELECT sr.rfam_acc, sr.rfamseq_acc, sr.seq_start, sr.seq_end, fr.bit_score 
+                          FROM seed_region sr 
+                          JOIN full_region fr 
+                          ON (sr.rfam_acc = fr.rfam_acc 
+                          AND sr.rfamseq_acc =fr.rfamseq_acc 
+                          AND sr.seq_start = fr.seq_start
+                          AND sr.seq_end = fr.seq_end) 
+                          WHERE sr.rfam_acc = ?
+                          AND sr.rfamseq_acc = ?
+                          AND sr.seq_start = ?
+                          AND sr.seq_end = ?");
+
+  return ($sth);
+}
+
 1;
