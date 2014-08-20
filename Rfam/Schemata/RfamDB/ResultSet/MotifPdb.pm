@@ -1,4 +1,4 @@
-package RfamLive::ResultSet::MotifPdb;
+package RfamDB::ResultSet::MotifPdb;
 
 use strict;
 use warnings;
