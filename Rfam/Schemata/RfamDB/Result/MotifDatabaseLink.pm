@@ -10,7 +10,7 @@ RfamDB::Result::MotifDatabaseLink
 
 =cut
 
-use stDB;
+use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
