@@ -11,14 +11,18 @@ use Getopt::Long;
 my $usage  = "usage:  perl seed2desc.pl [OPTIONS] <input seed file>\n\n";
 $usage .= "\tOPTIONS:\n";
 $usage .= "\t\t-t <x>: set bit score threshold to <x> in SM line\n";
-$usage .= "\t\t-e <x>: set E-value   threshold to <x> in SM line\n\n";
+$usage .= "\t\t-e <x>: set E-value   threshold to <x> in SM line\n";
+$usage .= "\t\t-acc_opt <string>: Set the accession, eg RF01234\n\n";
 
 
+my $acc = undef;                # option to specify the accession
 my $e_opt = undef;              # cmsearch E-value to use, defined by GetOptions, if -e
 my $t_opt = undef;              # cmsearch bit score cutoff to use, defined by GetOptions, if -t
 
-my $options_okay = &GetOptions("e=s",       => \$e_opt,
-                               "t=s",       => \$t_opt);
+my $options_okay = &GetOptions("e=s"       => \$e_opt,
+                               "t=s"       => \$t_opt,
+                               "acc_opt=s" => \$acc);
+
 my $exit_early = 0;
 if(! $options_okay) { 
   printf("ERROR, unrecognized option;\n\n"); 
@@ -30,6 +34,10 @@ if($exit_early) {
   exit 0;
 }
                                
+if (defined ($acc)){
+  printf("%-5s%s\n", "AC", $acc);
+}
+
 while(my $line = <>) { 
   # example:
   #=GF NC 28.5

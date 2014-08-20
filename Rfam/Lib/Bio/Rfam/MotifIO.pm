@@ -246,7 +246,12 @@ sub _parseCMHeader {
       $objHash->{states} = $1;
     } elsif (/NODES\s+(\d+)/) {
       $objHash->{nodes} = $1;
-    } elsif (my ($length) = $_ =~ /^CLEN\s+(\d+)/) {
+    } elsif (/COM[\s+\S+]+cmbuild\s+(.+)/) {
+      $objHash->{cmbuild} = $1;
+    } elsif (/COM[\s+\S+]+cmcalibrate\s+(.+)/) {
+      $objHash->{cmcalibrate} = $1;
+    }
+      elsif (my ($length) = $_ =~ /^CLEN\s+(\d+)/) {
       $objHash->{clen} = $length;
     } elsif (/^W\s+(\d+)$/) {
       $objHash->{w} = $1;
@@ -604,7 +609,12 @@ sub parseDESC {
       }
       $params{$1} = $2;
       next;
-    }elsif( $file[$i] =~ /^DE\s{3}(.*)$/){
+    }
+    elsif ( $file[$i] =~ /^(WK)\s{3}(.*)$/ ) {
+      $params{"WIKI"} = $2;
+      next;
+    }
+    elsif( $file[$i] =~ /^DE\s{3}(.*)$/){
       if ( exists( $params{DE} ) ) {
         croak("Found second DE line, only expecting one\n");
       }
@@ -793,36 +803,6 @@ sub parseDESC {
     } elsif ( $file[$i] =~ /^\*\*\s{3}(.*)$/ ) {
       $params{private} .= " " if ( $params{private} );
       $params{private} .= $1;
-    } elsif ( $file[$i] =~ /^WK\s{3}(\S+)$/ ) {
-      my $page = $1;
-      if ( $page =~ /^http.*\/(\S+)/ ) {
-
-        #TODO - supress warn, if we can remove URL. Page title sufficient.
-        carp( "$page going to be set to $1\n" );
-        $page = $1;
-      }
-      my @bits;
-      push(@bits, $page);
-      if($page =~ /\/$/){ #Multi line article!
-        foreach ( my $j = $i+1 ; $j <= $#file ; $j++ ) {
-          if($file[$j] =~ /^WK\s{3}(\S+)$/){
-            my $nextBitOfPage = $1;
-            push(@bits, $nextBitOfPage);
-            $page .= $nextBitOfPage;
-            if($nextBitOfPage !~ /\/$/){
-              $i = $j;
-              last;
-            }
-          }
-        }
-      }
-      
-      $page =~ s/\///g; #Remove all / from the line.....
-      if ( defined( $params{"WIKI"} ) ) {
-        $params{"WIKI"}->{$page} = \@bits;
-      } else {
-        $params{"WIKI"} = { $page => \@bits };
-      }
     } elsif ( $file[$i] =~ /^CC\s{3}(.*)$/ ) {
       my $cc = $1;
       
@@ -986,11 +966,15 @@ sub parseDESC {
 
           #MIR; MI0001007;
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (URL); ([^;\s]*);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR\s+(URL);\s?([^;\s]*);?$/ ) {
           
           #URL; http://www.someRNAresource.org/987654321/page.html
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        } elsif ( $file[$i] =~ /^DR   (RFAM); (RF\d+);?$/ ) {
+        } elsif ( $file[$i] =~ /^DR\s+(http:)\/\/([^;\s]*);?$/ ) {
+          my $weblink = "http://".$2;
+          #http://www.someRNAresource.org/987654321/page.html
+          push( @{ $params{DBREFS} }, { db_id => 'URL', db_link => $weblink } );
+        } elsif ( $file[$i] =~ /DR\s+(RFAM)[;:]\s?(RF\d+);?$/ ) {
 
           #RFAM; RF00001
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );

@@ -134,14 +134,15 @@ has 'CL' => (
 
 
 has 'TP' => (
-  is        => 'ro',
+  is        => 'rw',
   isa       => 'Str',
   required  => 0
 );
 
 has 'WIKI' => (
-  is        => 'ro',
-  isa       => 'HashRef'
+  is        => 'rw',
+  isa       => 'Str',
+  required  => 0
 );
 
 has 'REFS' => (

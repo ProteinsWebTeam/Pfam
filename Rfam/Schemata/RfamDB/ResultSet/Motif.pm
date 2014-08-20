@@ -30,16 +30,18 @@ sub updateMotifFromObj {
   $mot->motif_id( $motifObj->DESC->ID );
   $mot->description( $motifObj->DESC->DE );
   $mot->author( $motifObj->DESC->AU );
-  $mot->seed_source( $motifObj->DESC->SE );
+  $mot->seed_source( $motifObj->DESC->SS );
   $mot->gathering_cutoff( $motifObj->DESC->CUTGA );
   $mot->trusted_cutoff( $motifObj->DESC->CUTTC );
   $mot->noise_cutoff( $motifObj->DESC->CUTNC );
  
-  $mot->cmbuild( $motifObj->DESC->BM );
-  $mot->cmcalibrate( $motifObj->DESC->CB );
-  
+  $mot->cmbuild( $motifObj->CM->cmHeader->{cmbuild} );
+  $mot->cmcalibrate( $motifObj->CM->cmHeader->{cmcalibrate} );
+ 
   $mot->type( $motifObj->DESC->TP );
-  
+
+  $mot->wiki( $motifObj->DESC->WIKI );
+ 
   $mot->ecmli_lambda( $motifObj->CM->cmHeader->{ecmli}->[0] );
   $mot->ecmli_mu( $motifObj->CM->cmHeader->{ecmli}->[1] );
   $mot->ecmli_cal_db( $motifObj->CM->cmHeader->{ecmli}->[3] );
@@ -71,7 +73,7 @@ sub createMotifFromObj {
   if ($mot) {
     croak('The motif was found in the database. Something has gone wrong.');
   }
-  
+ 
   my $dt = DateTime->now( time_zone  => 'Europe/London');
     $self->create(
       {
@@ -84,10 +86,11 @@ sub createMotifFromObj {
         gathering_cutoff    => $motifObj->DESC->CUTGA,
         trusted_cutoff      => $motifObj->DESC->CUTTC,
         noise_cutoff        => $motifObj->DESC->CUTNC,
-        cmbuild             => $motifObj->DESC->BM,
-        cmcalibrate         => $motifObj->DESC->CB,
+        cmbuild             => $motifObj->CM->cmHeader->{cmbuild},
+        cmcalibrate         => $motifObj->CM->cmHeader->{cmcalibrate},
         type                => $motifObj->DESC->TP,
-
+        wiki                => $motifObj->DESC->WIKI, 
+   
         ecmli_lambda    => $motifObj->CM->cmHeader->{ecmli}->[0],
         ecmli_mu        => $motifObj->CM->cmHeader->{ecmli}->[1],
         ecmli_cal_db    => $motifObj->CM->cmHeader->{ecmli}->[3],

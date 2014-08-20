@@ -621,6 +621,7 @@ sub addFamily {
 
   #Repository location of where to put new families
   my $url = $self->newFamilyLocation;
+  print "$url\n";
 
   #Generate a new tempdir
   my $dir  = File::Temp->newdir();
