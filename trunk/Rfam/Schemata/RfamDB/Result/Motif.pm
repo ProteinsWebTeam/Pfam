@@ -139,6 +139,12 @@ __PACKAGE__->table("motif");
   is_nullable: 1
   size: [10,5]
 
+=head2 wiki
+
+  data_type: 'varchar'
+  is nullable: 1
+  size: 80
+
 =head2 created
 
   data_type: 'datetime'
@@ -195,6 +201,8 @@ __PACKAGE__->add_columns(
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
   "hmm_lambda",
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "wiki",
+  { data_type => "varchar", is_nullable => 1, size => 80 }, 
   "created",
   {
     data_type => "datetime",

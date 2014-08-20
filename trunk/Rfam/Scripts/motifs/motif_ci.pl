@@ -7,6 +7,7 @@ use warnings;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
+use List::Util qw( min max );
 
 use Bio::Rfam::Config;
 use Bio::Rfam::MotifIO;
@@ -37,7 +38,7 @@ my $alignments_dir = "$motif_local"."/RMfam/alignments/";
 # Check if we are fetching and parsing the git
 unless (defined $nogit) {
   print "Retrieving Motifs from Git\n";
-  getFromGit($pwd,$git_local,$motif_local);
+  #getFromGit($pwd,$git_local,$motif_local);
   gitParse($pwd,$alignments_dir);
 }
 else {
@@ -75,6 +76,19 @@ sub getFromGit {
 sub gitParse {
   my ($pwd, $alignments_dir) = @_;  
   opendir (DIR, $alignments_dir) or die "Unable to find alignments directory $alignments_dir\n";
+  
+  # Determine the max RM accession in the database
+  my $rfamdb = Bio::Rfam::SVN::Commit->new->{config}->rfamlive;
+  my @accesions;
+  my @motif_entries = $rfamdb->resultset('Motif')->all();  
+  foreach my $entry(@motif_entries){
+    my $entry_acc = $entry->get_column('motif_acc'); 
+    $entry_acc =~ /(RM)(\d+)/;
+    my $accesion_num = $2;
+    push (@accesions, $accesion_num);
+  }  
+  my $max_accession = max @accesions;
+
   while (my $motif = readdir(DIR)) {
     unless ($motif =~ m/^\./) {
   
@@ -82,25 +96,48 @@ sub gitParse {
     my $SEED = "$alignments_dir"."$motif"."/SEED";
     my $CM = "$alignments_dir"."$motif"."/CM";  
   
-    my $motif_acc;
+    my $motif_id;
     open my $SEED_file, "<", $SEED or die "Can't open $SEED\n";
     while (my $line = <$SEED_file>) {
-      if ($line =~ /(#=GF AC\s+)(\S+)/) {
-        $motif_acc=$2;
+      if ($line =~ /(#=GF ID\s+)(\S+)/) {
+        $motif_id=$2;
       }
     }
 
+    # Look up the databases for a motif ID. If the ID is there, then use the assigned accession. If not, use the next 
+    # free accession with the format RMXXXXX.
+
+    my $motif_acc;
+    my $rfamdb = Bio::Rfam::SVN::Commit->new->{config}->rfamlive;
+    my $mot = $rfamdb->resultset('Motif')->find( { motif_id => $motif_id } );
+
+    if ($mot) { 
+      # We have found an entry with this id. Use the accession in the database
+      $motif_acc = $mot->get_column('motif_acc');
+      $motif_acc =~ /(RM)(\d+)/;
+      if ($2 > $max_accession) {
+        $max_accession = $2;
+      }
+    }
+    else {
+      # Find the the highest RM accession either in the database or run in this script  
+      my $next_number = sprintf("%05d",($max_accession+1));
+      $motif_acc = "RM".$next_number;
+      $max_accession = $next_number; 
+    }  
+  
     my $newDESC = "$pwd"."/$motif_acc"."/DESC";
     my $newSEED = "$pwd"."/$motif_acc"."/SEED";
     my $newCM = "$pwd"."/$motif_acc"."/CM";
 
-    # Change to "perl /nfs/production/xfam/rfam/production_software/rfam_production/Rfam/Scripts/jiffies/seed2desc.pl $SEED > $newDESC" once updated on the rfam_production side.
     chdir ($pwd);
     if (!(-d "$pwd"."/$motif_acc")) {
       system ("mkdir $motif_acc"); 
     }
-    system ("perl /homes/evan/Rfam/Scripts/jiffies/seed2desc.pl $SEED > $newDESC");
-    
+    system ("perl /homes/evan/Rfam/Scripts/jiffies/seed2desc.pl -acc=$motif_acc $SEED > $newDESC");
+  
+    print "Creating DESC for motif $motif_id with accession $motif_acc \n";    
+
     # Copy the SEED and CM file over to new motif working directory
     system ("cp $SEED $newSEED");
     system ("cp $CM $newCM");
@@ -130,20 +167,21 @@ while (my $motif = readdir(DIR)) {
 
 #---------------------------------------------------------------------------
 # Cat then compress the Motif CMs together with cmpress to create a Motif CMdb 
-my $CMs="";
-opendir (DIR, $pwd) or die "Unable to find motifs directory $pwd\n";
-while (my $motif = readdir(DIR)) {
-  unless ($motif =~ m/^\./) {
-  $CMs="$CMs"."$pwd"."/$motif"."/CM ";
-  }
-} 
+#my $CMs="";
+#opendir (DIR, $pwd) or die "Unable to find motifs directory $pwd\n";
+#while (my $motif = readdir(DIR)) {
+#  unless ($motif =~ m/^\./) {
+#  $CMs="$CMs"."$pwd"."/$motif"."/CM ";
+#  }
+#} 
 
-print "Concatenating the CM files ...\n";
-system("cat $CMs > $motif_local/cmdb/CM");
-print "Running cmpress to compress the CMs into a CMdb\n"; 
-system("cmpress -F $motif_local/cmdb/CM");
+#print "Concatenating the CM files ...\n";
+#system("cat $CMs > $motif_local/cmdb/CM");
+#print "Running cmpress to compress the CMs into a CMdb\n"; 
+#system("cmpress -F $motif_local/cmdb/CM");
 
 #--------------------------------------------------------------------------------- 
+
 
 
 

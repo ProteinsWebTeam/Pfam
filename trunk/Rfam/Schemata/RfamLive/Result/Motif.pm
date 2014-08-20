@@ -6,7 +6,7 @@ package RfamLive::Result::Motif;
 
 =head1 NAME
 
-RfamLive::Result::Motif
+RfamDB::Result::Motif
 
 =cut
 
@@ -139,6 +139,12 @@ __PACKAGE__->table("motif");
   is_nullable: 1
   size: [10,5]
 
+=head2 wiki
+
+  data_type: 'varchar'
+  is nullable: 1
+  size: 80
+
 =head2 created
 
   data_type: 'datetime'
@@ -195,6 +201,8 @@ __PACKAGE__->add_columns(
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
   "hmm_lambda",
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
+  "wiki",
+  { data_type => "varchar", is_nullable => 1, size => 80 }, 
   "created",
   {
     data_type => "datetime",
@@ -228,13 +236,13 @@ __PACKAGE__->set_primary_key("motif_acc");
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifFamilyStat>
+Related object: L<RfamDB::Result::MotifFamilyStat>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_family_stats",
-  "RfamLive::Result::MotifFamilyStat",
+  "RfamDB::Result::MotifFamilyStat",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -243,13 +251,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifLiterature>
+Related object: L<RfamDB::Result::MotifLiterature>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_literatures",
-  "RfamLive::Result::MotifLiterature",
+  "RfamDB::Result::MotifLiterature",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -258,13 +266,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifMatch>
+Related object: L<RfamDB::Result::MotifMatch>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_matches",
-  "RfamLive::Result::MotifMatch",
+  "RfamDB::Result::MotifMatch",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -273,13 +281,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamLive::Result::MotifPdb>
+Related object: L<RfamDB::Result::MotifPdb>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_pdbs",
-  "RfamLive::Result::MotifPdb",
+  "RfamDB::Result::MotifPdb",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

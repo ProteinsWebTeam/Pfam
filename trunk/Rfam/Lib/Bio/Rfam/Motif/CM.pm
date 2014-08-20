@@ -63,7 +63,6 @@ has 'rawcm' => (
   required  => 1
 );
 
-
 has 'match_pair_node' => (
   is  => 'ro',
   isa => 'Bool',
@@ -150,6 +149,37 @@ sub setDescription {
 
   return;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 setCMbuild
+
+  Title    : setCMbuild
+
+=cut
+
+sub setCMbuild {
+  my ( $self, $cmbuild) = @_;
+
+  $self->{cmHeader}->{cmbuild}  = $cmbuild;
+  return;
+}
+
+#-----------------------------------------------------------------------------
+
+=head2 setCMcalibrate
+
+  Title    : setCMcalibrate
+
+=cut
+
+sub setCMcalibrate {
+  my ( $self, $cmcalibrate) = @_;
+
+  $self->{cmHeader}->{cmcalibrate}  = $cmcalibrate;
+  return;
+}
+
 
 #-------------------------------------------------------------------------------
 
