@@ -6,7 +6,7 @@ package RfamLive::Result::Motif;
 
 =head1 NAME
 
-RfamDB::Result::Motif
+RfamLive::Result::Motif
 
 =cut
 
@@ -84,6 +84,24 @@ __PACKAGE__->table("motif");
   data_type: 'varchar'
   is_nullable: 1
   size: 50
+
+=head2 num_seed
+
+  data_type: 'bigint'
+  is_nullable: 1
+  size: 20
+
+=head2 average_id
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [5,2]
+
+=head2 average_sqlen
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [7,2]
 
 =head2 ecmli_lambda
 
@@ -183,6 +201,12 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 50 },
+  "num_seed",
+  { data_type => "bigint", is_nullable => 1, size => 20 },
+  "average_id",
+  { data_type => "double precision", is_nullable => 1, size => [5, 2] },
+  "average_sqlen",
+  { data_type => "double precision", is_nullable => 1, size => [7, 2] },
   "ecmli_lambda",
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
   "ecmli_mu",
@@ -236,13 +260,13 @@ __PACKAGE__->set_primary_key("motif_acc");
 
 Type: has_many
 
-Related object: L<RfamDB::Result::MotifFamilyStat>
+Related object: L<RfamLive::Result::MotifFamilyStat>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_family_stats",
-  "RfamDB::Result::MotifFamilyStat",
+  "RfamLive::Result::MotifFamilyStat",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -251,13 +275,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::MotifLiterature>
+Related object: L<RfamLive::Result::MotifLiterature>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_literatures",
-  "RfamDB::Result::MotifLiterature",
+  "RfamLive::Result::MotifLiterature",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -266,13 +290,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::MotifMatch>
+Related object: L<RfamLive::Result::MotifMatch>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_matches",
-  "RfamDB::Result::MotifMatch",
+  "RfamLive::Result::MotifMatch",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -281,13 +305,13 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::MotifPdb>
+Related object: L<RfamLive::Result::MotifPdb>
 
 =cut
 
 __PACKAGE__->has_many(
   "motif_pdbs",
-  "RfamDB::Result::MotifPdb",
+  "RfamLive::Result::MotifPdb",
   { "foreign.motif_acc" => "self.motif_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

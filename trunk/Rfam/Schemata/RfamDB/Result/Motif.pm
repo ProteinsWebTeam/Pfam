@@ -85,6 +85,24 @@ __PACKAGE__->table("motif");
   is_nullable: 1
   size: 50
 
+=head2 num_seed
+
+  data_type: 'bigint'
+  is_nullable: 1
+  size: 20
+
+=head2 average_id
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [5,2]
+
+=head2 average_sqlen
+
+  data_type: 'double precision'
+  is_nullable: 1
+  size: [7,2]
+
 =head2 ecmli_lambda
 
   data_type: 'double precision'
@@ -183,6 +201,12 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 50 },
+  "num_seed",
+  { data_type => "bigint", is_nullable => 1, size => 20 },
+  "average_id",
+  { data_type => "double precision", is_nullable => 1, size => [5, 2] },
+  "average_sqlen",
+  { data_type => "double precision", is_nullable => 1, size => [7, 2] },
   "ecmli_lambda",
   { data_type => "double precision", is_nullable => 1, size => [10, 5] },
   "ecmli_mu",
