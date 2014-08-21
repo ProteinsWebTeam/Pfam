@@ -256,6 +256,23 @@ __PACKAGE__->set_primary_key("motif_acc");
 
 =head1 RELATIONS
 
+
+=head2 motif_database_links
+
+Type: has_many
+
+Related object: L<RfamLive::Result::MotifDatabaseLink>
+
+=cut
+
+__PACKAGE__->has_many(
+  "motif_database_links",
+  "RfamLive::Result::MotifDatabaseLink",
+  { "foreign.motif_acc" => "self.motif_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
 =head2 motif_family_stats
 
 Type: has_many
