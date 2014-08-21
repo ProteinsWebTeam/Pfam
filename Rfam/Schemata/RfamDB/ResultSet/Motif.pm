@@ -34,14 +34,13 @@ sub updateMotifFromObj {
   $mot->gathering_cutoff( $motifObj->DESC->CUTGA );
   $mot->trusted_cutoff( $motifObj->DESC->CUTTC );
   $mot->noise_cutoff( $motifObj->DESC->CUTNC );
- 
   $mot->cmbuild( $motifObj->CM->cmHeader->{cmbuild} );
   $mot->cmcalibrate( $motifObj->CM->cmHeader->{cmcalibrate} );
- 
   $mot->type( $motifObj->DESC->TP );
-
   $mot->wiki( $motifObj->DESC->WIKI );
- 
+  $mot->num_seed( $motifObj->SEED->nseq );
+  $mot->average_id( $motifObj->SEED->average_id );
+  $mot->average_sqlen( $motifObj->SEED->average_sqlen ); 
   $mot->ecmli_lambda( $motifObj->CM->cmHeader->{ecmli}->[0] );
   $mot->ecmli_mu( $motifObj->CM->cmHeader->{ecmli}->[1] );
   $mot->ecmli_cal_db( $motifObj->CM->cmHeader->{ecmli}->[3] );
@@ -90,7 +89,11 @@ sub createMotifFromObj {
         cmcalibrate         => $motifObj->CM->cmHeader->{cmcalibrate},
         type                => $motifObj->DESC->TP,
         wiki                => $motifObj->DESC->WIKI, 
-   
+       
+        num_seed            => $motifObj->SEED->nseq,
+        average_id          => $motifObj->SEED->average_id,
+        average_sqlen       => $motifObj->SEED->average_sqlen, 
+
         ecmli_lambda    => $motifObj->CM->cmHeader->{ecmli}->[0],
         ecmli_mu        => $motifObj->CM->cmHeader->{ecmli}->[1],
         ecmli_cal_db    => $motifObj->CM->cmHeader->{ecmli}->[3],
