@@ -413,30 +413,32 @@ Bio::Rfam::Utils::log_output_progress_column_headings($logFH, "per-stage progres
 ###########################################################################################################
 # Preliminary check: verify that all sequences in the SEED derive from the database we're about to search #
 ###########################################################################################################
-my $name2lookup;
-my $nwarnings = 0;
-my $fetch_sqfile;
-$fetch_sqfile = Bio::Easel::SqFile->new({
-  fileLocation => $dbconfig->{"fetchPath"}
-});
-for(my $i = 0; $i < $msa->nseq; $i++) { 
-  my $sqname = $msa->get_sqname($i);
-  my($is_nse, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($sqname);
-  $name2lookup = ($is_nse) ? $name : $sqname;
-  my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name2lookup);
-  if($sqlen == -1) { # sequence not in database
-    Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup not in database\n"); 
-    $nwarnings++;
-  }
-  elsif($sqlen != 0) { # we have a valid sequence length
-    if($start > $sqlen || $end > $sqlen) { # sequence in database but not long enough to cover $start-$end
-      Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup exists in database but seq length is $sqlen\n");
-      $nwarnings++;
+if((defined $dbconfig) && (defined $dbconfig->{"fetchPath"})) { 
+  my $name2lookup;
+  my $nwarnings = 0;
+  my $fetch_sqfile;
+  $fetch_sqfile = Bio::Easel::SqFile->new({
+    fileLocation => $dbconfig->{"fetchPath"}
+  });
+  for(my $i = 0; $i < $msa->nseq; $i++) { 
+    my $sqname = $msa->get_sqname($i);
+    my($is_nse, $name, $start, $end, $str) = Bio::Rfam::Utils::nse_breakdown($sqname);
+    $name2lookup = ($is_nse) ? $name : $sqname;
+    my $sqlen = $fetch_sqfile->fetch_seq_length_given_name($name2lookup);
+    if($sqlen == -1) { # sequence not in database
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup not in database\n"); 
+        $nwarnings++;
+      }
+    elsif($sqlen != 0) { # we have a valid sequence length
+      if($start > $sqlen || $end > $sqlen) { # sequence in database but not long enough to cover $start-$end
+        Bio::Rfam::Utils::printToFileAndStderr($logFH, "! WARNING: SEED sequence $sqname: $name2lookup exists in database but seq length is $sqlen\n");
+          $nwarnings++;
+        }
     }
   }
-}
-if($nwarnings > 0 && (! $relax_about_seed)) { 
-  die "ERROR: at least 1 sequence in SEED does not derive from database (permit this with -relax)\ndatabase file: $fetch_sqfile->{path}"; 
+  if($nwarnings > 0 && (! $relax_about_seed)) { 
+    die "ERROR: at least 1 sequence in SEED does not derive from database (permit this with -relax)\ndatabase file: $fetch_sqfile->{path}"; 
+  }
 }
 
 ##############
