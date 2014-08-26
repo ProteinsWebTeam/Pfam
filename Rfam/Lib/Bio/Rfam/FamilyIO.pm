@@ -3082,8 +3082,10 @@ sub writeHitComparison {
   my %oldolH; # key: group ("SEED" or "FULL"), value number of old hits that overlap >= 1 new hit
   # first recast infoHHR into newHHA
   foreach my $group ("SEED", "FULL") { 
-    $nlostH{$group}   = 0;  # number of hits lost (in old results but not new results)
-    $nnewH{$group}    = 0;  # number of new hits  (in new results but not old results)
+    $oldctH{$group} = 0;
+    $newctH{$group} = 0;
+    $nlostH{$group} = 0;  # number of hits lost (in old results but not new results)
+    $nnewH{$group}  = 0;  # number of new hits  (in new results but not old results)
     $newolH{$group} = 0;  # number of new hits that overlap with an old hit 
     $oldolH{$group} = 0;  # number of old hits that overlap with a  new hit 
     foreach my $nse (@{$groupOHAR->{$group}}) { 
@@ -3256,12 +3258,12 @@ sub writeHitComparison {
   printf COMP ("#\n");
   printf COMP ("# %8s  %7s  %7s\n", "", "SEED", "FULL");
   printf COMP ("# %8s  %7s  %7s\n", "", "=======", "=======");
-  printf COMP ("%-10s  %7d  %7d\n", "old-total",  $oldctH{"SEED"},   $oldctH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "new-total",  $newctH{"SEED"},   $newctH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "old-both",   $oldolH{"SEED"},   $oldolH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "new-both",   $newolH{"SEED"},   $newolH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "old-unique", $nlostH{"SEED"},   $nlostH{"FULL"});
-  printf COMP ("%-10s  %7d  %7d\n", "new-unique", $nnewH{"SEED"},    $nnewH{"FULL"}); 
+  printf COMP ("%-10s  %7d  %7d\n", "old-total",  $oldctH{"SEED"}, $oldctH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-total",  $newctH{"SEED"}, $newctH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "old-both",   $oldolH{"SEED"}, $oldolH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-both",   $newolH{"SEED"}, $newolH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "old-unique", $nlostH{"SEED"}, $nlostH{"FULL"});
+  printf COMP ("%-10s  %7d  %7d\n", "new-unique", $nnewH{"SEED"},  $nnewH{"FULL"}); 
   printf COMP ("#\n");
   printf COMP ("# \'old-total\':  total number of old hits in SEED and FULL\n");
   printf COMP ("# \'new-total\':  total number of new hits in SEED and FULL\n");

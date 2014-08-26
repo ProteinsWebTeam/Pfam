@@ -51,8 +51,11 @@ my $bitmin      = $df_bitmin;   # with -r, minimum bitscore to include in "OTHER
 my $seed        = $df_seed;     # RNG seed, set with -seed <n>, only relevant if -r used
 my @cmosA       = ();           # extra single - cmalign options (e.g. -g)
 my @cmodA       = ();           # extra double - cmalign options (e.g. --cyk)
+# non-Rfamseq related search options
+my $do_altdb    = 0;            # set to true with -altdb, search was NOT against RFAMSEQ
+my $Z_opt       = undef;        # set with -Z, required and only works if -altdb used
 # taxinfo related options
-my $no_taxinfo  = 0;            # TRUE to NOT create taxinfo file
+my $no_taxinfo  = 0;            # TRUE to NOT create taxinfo file (required with -altdb)
 my $df_n2print = 5;             # target number of SEED taxonomy prefixes to print (-n2print)
 my $n2print = $df_n2print;      # target number of SEED taxonomy prefixes to print (-n2print)
 my $l2print = 0;                # print all unique prefixes of length <n> 
@@ -93,6 +96,8 @@ my $options_okay =
                  "dbchoice=s"   => \$dbchoice, #TODO: dbchoice should be read from DESC->SM
                  "cmos=s@"      => \@cmosA,
                  "cmod=s@"      => \@cmodA,
+                 "altdb"        => \$do_altdb,
+                 "Z=s"          => \$Z_opt,
                  "notaxinfo"    => \$no_taxinfo,
                  "n2print=n"    => \$n2print,
                  "l2print=n"    => \$l2print,
@@ -127,6 +132,15 @@ if (! defined $user || length($user) == 0) {
   die "FATAL: failed to run [getpwuid($<)]!\n[$!]";
 }
 
+# check for incompatible options
+if($do_altdb) { 
+  if(! defined $Z_opt) { die "ERROR -altdb requires the -Z option also be used."; }
+  if(! $no_taxinfo)    { die "ERROR -altdb requires the -notaxinfo option also be used."; }
+}
+if(defined $Z_opt) { 
+  if(! $do_altdb) { die "ERROR -Z only works in combination with -altdb."; }
+}
+
 # setup variables 
 my $io     = Bio::Rfam::FamilyIO->new;
 my $famObj = Bio::Rfam::Family->new(
@@ -147,10 +161,20 @@ my $id   = $desc->ID;
 my $acc  = $desc->AC;
 
 # setup dbfile 
-my $dbconfig       = $config->seqdbConfig($dbchoice);
-my $fetchfile      = $dbconfig->{"fetchPath"};
-my $Z              = $dbconfig->{"dbSize"};
-my $can_do_taxinfo = $dbconfig->{"haveTax"};
+my $dbconfig       = undef;
+my $fetchfile      = undef;     
+my $Z              = undef;
+my $can_do_taxinfo = 0;
+if(! $do_altdb) { 
+  $dbconfig = $config->seqdbConfig($dbchoice); 
+  $fetchfile      = $dbconfig->{"fetchPath"};
+  $Z              = $dbconfig->{"dbSize"};
+  $can_do_taxinfo = $dbconfig->{"haveTax"};
+}
+else { 
+  $Z = $Z_opt;
+}
+if(! defined $Z) { die "ERROR setting the database size parameter (Z)"; }
 
 # ============================================
 # 
@@ -322,6 +346,7 @@ if($do_taxinfo || $do_oldcomp || $do_curcomp) {
   $io->parseOutlistAndSpecies("outlist", "species", $emax, $ga_bitsc, "", 0, \%infoHH, \@nameOA, \%groupOHA);
 }  
 if($do_align || $do_repalign || $do_oldcomp) { 
+  if(! defined $fetchfile) { die "ERROR: no fetchfile is defined, coding error..."; }
   # open sequence file for fetching seqs
   $fetch_sqfile = Bio::Easel::SqFile->new({
     fileLocation => $fetchfile,
@@ -453,7 +478,7 @@ if(-e "DESC.$$") {
 my $description = sprintf("%s%s%s", 
     ($famObj->DESC->CUTTC == $orig_tc_bitsc)   ? " TC" : "", 
     ($famObj->DESC->CUTGA == $orig_ga_bitsc)   ? " GA" : "", 
-    ($famObj->DESC->CUTNC == $orig_nc_bitsc)     ? " NC" : "");
+    ($famObj->DESC->CUTNC == $orig_nc_bitsc)   ? " NC" : "");
 if($description ne "") { $description = "family description file (updated:$description)"; }
 else                   { $description = "family description file (unchanged)"; }
 Bio::Rfam::Utils::log_output_file_summary($logFH, "DESC", $description, $do_stdout);
@@ -521,19 +546,19 @@ sub set_nc_and_tc {
   if ($tc eq "undefined") { 
     if($do_forcethr) { 
       $tc = $ga + 0.5; 
-      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits above GA exist, but -force enabled so TC set as %s bits (GA + 0.5)\n", $tc));
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits above GA exist, but -forcethr used so TC set as %s bits (GA + 0.5)\n", $tc));
     }
     else { 
-      die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold";
+      die "ERROR, unable to set TC threshold, GA set too high (no hits above GA).\nRerun rfmake.pl with lower bit-score threshold (or with -forcethr)";
     }
   }    
   if ($nc eq "undefined") { 
     if($do_forcethr) { 
       $nc = $ga - 0.5; 
-      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits below GA exist, but -force enabled so NC set as %s bits (GA - 0.5)\n", $nc));
+      Bio::Rfam::Utils::printToFileAndStderr($logFH, sprintf ("! WARNING: no hits below GA exist, but -forcethr used so NC set as %s bits (GA - 0.5)\n", $nc));
     }
     else { 
-      die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold";
+      die "ERROR, unable to set NC threshold, GA set too low (no hits below GA).\nRerun rfmake.pl with higher bit-score threshold (or with -forcethr)";
     }
   }
 
@@ -1123,6 +1148,10 @@ Options:    -t <f> : set threshold as <f> bits
 	    -cmos <str> : add extra arbitrary option to cmalign with '-<str>'. (Infernal 1.1, only option is '-g')
             -cmod <str> : add extra arbitrary options to cmalign with '--<str>'. For multiple options use multiple
 	                  -cmod lines. Eg. '-cmod cyk -cmod sub' will run cmalign with --cyk and --sub.
+
+            OPTIONS RELATED TO PROCESSING RESULTS ON NON-RFAMSEQ SEARCH (e.g. genome search)
+            -altdb      : search was not run against RFAMSEQ (requires -Z and -notaxinfo)
+            -Z <f>      : (required with -altdb) specify search space size as <f> Mb
 
 	    OPTIONS RELATED TO OUTPUT 'taxinfo' FILE:
 	    -notaxinfo   : do not create taxinfo file
