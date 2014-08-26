@@ -1256,7 +1256,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             -dbchoice <s> : set sequence database to search as <s> ('rfamseq', 'testrfamseq')
             -dbfile <s>   : set sequence database to search as file <s>
             -dbdir <s>    : set sequence database to search as all '.fa' and '.fa.gz' suffixed files in dir <s>
-            -dblist <s>   : set sequence database to search as all files listed in dir <s>
+            -dblist <s>   : set sequence database to search as all files listed in file <s>
             -noZ          : with -dbdir or -dblist, do not set database size, E-values will pertain to per-file searches
             -Z <f>        : set database size as <f>
             

@@ -1426,7 +1426,7 @@ sub writeTbloutDependentFiles {
   # parse TBLOUT
   my @outAA = (); # we'll fill these with data for outlist
   my @spcAA = (); # we'll fill these with data for species
-  my $have_all_tax_info = 1; # set to FALSE if we fail to find a 
+  my $have_all_tax_info = 1; # set to FALSE if we fail to find a tax string
   $nlines = 0;
   open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
   while ($tblline = <TBL>) {
@@ -1587,9 +1587,7 @@ sub writeTbloutDependentFiles {
   close(RINc);
 
   # run R script, if we have tax info for ALL hits 
-  if($have_all_tax_info) { 
-    Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
-  }
+  Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
   # Remove the plot_outlist.Rout, rin.dat, and rinc.dat files, 
   # These are really only relevant if the R command failed
   # (returned non-zero status), in which case run_local_command() 
@@ -1597,8 +1595,10 @@ sub writeTbloutDependentFiles {
   if(-e "plot_outlist.Rout") { unlink "plot_outlist.Rout"; } 
   if(-e "rin.dat")           { unlink "rin.dat"; }
   if(-e "rinc.dat")          { unlink "rinc.dat"; }
-  if(! -e "outlist.pdf")     { die "ERROR outlist.pdf not created"; }
-  if(! -e "species.pdf")     { die "ERROR species.pdf not created"; }
+  if($have_all_tax_info) { 
+    if(! -e "outlist.pdf")     { die "ERROR outlist.pdf not created"; }
+    if(! -e "species.pdf")     { die "ERROR species.pdf not created"; }
+  }
   return;
 }
 
