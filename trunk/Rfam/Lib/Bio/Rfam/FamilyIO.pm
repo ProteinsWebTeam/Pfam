@@ -1384,7 +1384,7 @@ sub writeTbloutDependentFiles {
   my $tblline;
   my $rev_evalue = "";
   my $chunksize = 100;
-  my $nlines = 0;
+  my $nlines_cur = 0;
   if(-s $rtblI) { 
     my @rev_outAA = (); # we'll fill this with data for revoutlist
     my @rev_spcAA = (); # we'll fill this with data for revspecies
@@ -1397,9 +1397,9 @@ sub writeTbloutDependentFiles {
       # determine if this reverse hit overlaps with any positive hits
       my $overlap_str = _outlist_species_get_overlap_string(\%tbloutHA, $name, $start, $end, $bits, 1); # '1' says this is a reversed hit
 
-      push(@{$rev_outAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
-      push(@{$rev_spcAA[$nlines]}, ($bits, $evalue, "REV", $name, $overlap_str, $ncbiId, $species, $taxString));
-      $nlines++;
+      push(@{$rev_outAA[$nlines_cur]}, ($bits, $evalue, "REV", $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
+      push(@{$rev_spcAA[$nlines_cur]}, ($bits, $evalue, "REV", $name, $overlap_str, $ncbiId, $species, $taxString));
+      $nlines_cur++;
       # TODO?: change so top scoring rev hit that does not overlap with any other hits is marked up, not just top rev hit
       #         if($overlap_str eq "-" && $rev_evalue eq "") { # first hit that does not overlap with a true hit of higher value
       if($rev_evalue eq "") { # first hit 
@@ -1407,15 +1407,15 @@ sub writeTbloutDependentFiles {
         open($revoutFH, "> $revoutO") || die "FATAL: failed to open $revoutO\n[$!]\n";   
         open($revspcFH, "> $revspcO") || die "FATAL: failed to open $revspcO\n[$!]\n";   
       }
-      if($nlines % $chunksize == 0) { 
+      if($nlines_cur % $chunksize == 0) { 
         writeOutlistOrSpeciesChunk($revoutFH, \@rev_outAA, 1);
         writeOutlistOrSpeciesChunk($revspcFH, \@rev_spcAA, 0);
         @rev_outAA = ();
         @rev_spcAA = ();
-        $nlines = 0;
+        $nlines_cur = 0;
       }
     }
-    if ($nlines > 0) { 
+    if ($nlines_cur > 0) { 
       writeOutlistOrSpeciesChunk($revoutFH, \@rev_outAA, 1);
       writeOutlistOrSpeciesChunk($revspcFH, \@rev_spcAA, 0);
     }
@@ -1426,8 +1426,10 @@ sub writeTbloutDependentFiles {
   # parse TBLOUT
   my @outAA = (); # we'll fill these with data for outlist
   my @spcAA = (); # we'll fill these with data for species
-  my $have_all_tax_info = 1; # set to FALSE if we fail to find a tax string
-  $nlines = 0;
+  my $have_all_tax_info   = 1;  # set to FALSE if we fail to find a tax string
+  my $zero_hits_above_thr = 1;  # set to FALSE if we have >= 1 hit above thr
+  $nlines_cur = 0;
+  my $nlines_tot = 0;
   open(TBL, "grep -v ^'#' $tblI | sort -nrk 15 | ") || croak "FATAL: could not open pipe for reading $tblI\n[$!]";
   while ($tblline = <TBL>) {
     my ($bits, $evalue, $name, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description, $ncbiId, $species, $taxString, $got_tax) = 
@@ -1465,52 +1467,53 @@ sub writeTbloutDependentFiles {
     }
 
     # print out threshold line if nec
-    if ( $bits < $ga && $ga<=$prv_bits) {
+    if (($bits < $ga) && ($ga <= $prv_bits)) {
       $outline = _commentLineForOutlistOrSpecies (" CURRENT THRESHOLD: $ga BITS ");
-      push(@{$outAA[$nlines]}, ($outline));
-      push(@{$spcAA[$nlines]}, ($outline));
+      push(@{$outAA[$nlines_cur]}, ($outline));
+      push(@{$spcAA[$nlines_cur]}, ($outline));
       printf RIN  "%0.2f\tTHRESH\t.\n", $ga;
       $printed_thresh=1;
-      $nlines++;
+      $nlines_cur++;
     }
     if ( $rev_evalue ne "" && $evalue > $rev_evalue && $prv_evalue <= $rev_evalue) {
       $outline = _commentLineForOutlistOrSpecies(" BEST REVERSED HIT E-VALUE: $rev_evalue ");
-      push(@{$outAA[$nlines]}, ($outline));
-      push(@{$spcAA[$nlines]}, ($outline));
-      $nlines++;
+      push(@{$outAA[$nlines_cur]}, ($outline));
+      push(@{$spcAA[$nlines_cur]}, ($outline));
+      $nlines_cur++;
     }
     $prv_bits = $bits;
     $prv_evalue = $evalue;
 
-    push(@{$outAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
-    push(@{$spcAA[$nlines]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $ncbiId, $species, $taxString));
-    $nlines++;
-    if($nlines % $chunksize == 0) { 
+    push(@{$outAA[$nlines_cur]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $start, $end, $strand, $qstart, $qend, $trunc, $shortSpecies, $description));
+    push(@{$spcAA[$nlines_cur]}, ($bits, $evalue, $seqLabel, $name, $overlap_str, $ncbiId, $species, $taxString));
+    $nlines_cur++;
+    if($nlines_cur % $chunksize == 0) { 
       writeOutlistOrSpeciesChunk($outFH, \@outAA, 1);
       writeOutlistOrSpeciesChunk($spcFH, \@spcAA, 0);
       @outAA = ();
       @spcAA = ();
-      $nlines = 0;
+      $nlines_cur = 0;
     }
     printf RIN  "%0.2f\t%0.6s\t$domainKingdom\n", $bits, $seqLabel;
+    $nlines_tot++;
   } # closes 'while($tblline = <TBL>)'
 
-  # If we have any sequences 
+  # if we haven't printed the threshold yet, do it
   if (! defined $printed_thresh) {
     $outline = _commentLineForOutlistOrSpecies(" CURRENT THRESHOLD: $ga BITS ");
-    push(@{$outAA[$nlines]}, ($outline));
-    push(@{$spcAA[$nlines]}, ($outline));
+    push(@{$outAA[$nlines_cur]}, ($outline));
+    push(@{$spcAA[$nlines_cur]}, ($outline));
     printf RIN "%0.2f\tTHRESH\t\.\n", $ga;
-    $nlines++;
+    $nlines_cur++;
   }
   if ($rev_evalue eq "") { 
     if(-e $rtblI) { $outline = _commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO HITS FOUND IN REVERSED DB) "); }
     else          { $outline = _commentLineForOutlistOrSpecies(" NO REVERSED HITS (NO REVERSED SEARCH PERFORMED) "); }
-    push(@{$outAA[$nlines]}, ($outline));
-    push(@{$spcAA[$nlines]}, ($outline));
-    $nlines++;
+    push(@{$outAA[$nlines_cur]}, ($outline));
+    push(@{$spcAA[$nlines_cur]}, ($outline));
+    $nlines_cur++;
   }
-  if ($nlines > 0) { 
+  if ($nlines_cur > 0) { 
     writeOutlistOrSpeciesChunk($outFH, \@outAA, 1);
     writeOutlistOrSpeciesChunk($spcFH, \@spcAA, 0);
   }
@@ -1586,8 +1589,10 @@ sub writeTbloutDependentFiles {
   close(RIN);
   close(RINc);
 
-  # run R script, if we have tax info for ALL hits 
-  Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
+  # run R script, if we have any hits
+  if($nlines_tot > 0) { 
+    Bio::Rfam::Utils::run_local_command("R CMD BATCH --no-save $RPlotScriptPath");
+  }
   # Remove the plot_outlist.Rout, rin.dat, and rinc.dat files, 
   # These are really only relevant if the R command failed
   # (returned non-zero status), in which case run_local_command() 
@@ -1595,7 +1600,7 @@ sub writeTbloutDependentFiles {
   if(-e "plot_outlist.Rout") { unlink "plot_outlist.Rout"; } 
   if(-e "rin.dat")           { unlink "rin.dat"; }
   if(-e "rinc.dat")          { unlink "rinc.dat"; }
-  if($have_all_tax_info) { 
+  if(($have_all_tax_info) && ($nlines_tot > 0)) { 
     if(! -e "outlist.pdf")     { die "ERROR outlist.pdf not created"; }
     if(! -e "species.pdf")     { die "ERROR species.pdf not created"; }
   }
