@@ -953,7 +953,8 @@ my $ideal_build_secs     = 0;
 my $ideal_calibrate_secs = 0;
 my $ideal_search_secs    = 0;
 my $ideal_tot_wall_secs  = 0;
-my $tot_ncpus_cmsearch = $ncpus_cmsearch * ($ndbfiles + $rev_ndbfiles);
+my $ncpus_cmsearch_act   = ($ncpus_cmsearch == 0) ? 1 : $ncpus_cmsearch; # deal with --cpu 0 (that's really 1 CPU)
+my $tot_ncpus_cmsearch   = $ncpus_cmsearch_act * ($ndbfiles + $rev_ndbfiles);
 
 if($did_build) { 
   $ideal_build_secs = $build_elp_secs / 1.; 
