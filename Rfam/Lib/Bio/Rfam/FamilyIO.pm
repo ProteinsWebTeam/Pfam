@@ -1,4 +1,3 @@
-
 =head1 NAME
 
 Bio::Rfam::FamilyIO - a module that enables access to the Rfam SVN
@@ -3478,16 +3477,21 @@ sub validate_outlist_format {
     # 93.2  5.3e-16      FULL  AAPY01617272.1        -      690      825    +       1   106     no  Tupaia_belangeri_(north..[37347]   Tupaia belangeri cont1.617271, whole genome shotgun sequence.
     my $line = <IN>;
     my $passed = 0;
-    while($line =~ m/^\#/) { $line = <IN>; }
-    chomp $line;
-    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\d+\s+\d+\s+[\-+]\s+\d+\s+\d+\s+\S+\s+\S+\s+/) { 
-      $passed = 1;
+    while((defined $line) && ($line =~ m/^\#/)) { $line = <IN>; }
+    if(defined $line) { 
+      chomp $line;
+      if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\d+\s+\d+\s+[\-+]\s+\d+\s+\d+\s+\S+\s+\S+\s+/) { 
+        $passed = 1;
+      }
+      else { 
+        die "ERROR unable to validate outlist format (first non-comment line invalid); rerun rfmake.pl"; 
+      }
+      if(! $passed) { 
+        die "ERROR unable to validate outlist format (no non-comment lines found!); rerun rfmake.pl"; 
+      }
     }
-    else { 
-      die "ERROR unable to validate outlist format (first non-comment line invalid); rerun rfmake.pl"; 
-    }
-    if(! $passed) { 
-      die "ERROR unable to validate outlist format (no non-comment lines found!); rerun rfmake.pl"; 
+    else { # no hits in outlist, we allow this, because it can happen
+      ;
     }
   }
 
@@ -3537,16 +3541,21 @@ sub validate_species_format {
     # 93.2  5.3e-16      FULL  AAPY01617272.1        -   37347  Tupaia belangeri (northern tree shrew)                      Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia; Eutheria; Euarchontoglires; Scandentia; Tupaiidae; Tupaia.
     my $line = <IN>;
     my $passed = 0;
-    while($line =~ m/^\#/) { $line = <IN>; }
-    chomp $line;
-    if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\S+.+  .*$/) { 
-      $passed = 1;
+    while((defined $line) && ($line =~ m/^\#/)) { $line = <IN>; }
+    if(defined $line) { 
+      chomp $line;
+      if($line =~ m/^\s*\-?\d*\.\d\s+\S+\s+\w+\s+\S+\s+\S+\s+\S+.+  .*$/) { 
+        $passed = 1;
+      }
+      else { 
+        die "ERROR unable to validate species format (first non-comment line invalid); rerun rfmake.pl"; 
+      }
+      if(! $passed) { 
+        die "ERROR unable to validate species format (no non-comment lines found!); rerun rfmake.pl"; 
+      }
     }
-    else { 
-      die "ERROR unable to validate species format (first non-comment line invalid); rerun rfmake.pl"; 
-    }
-    if(! $passed) { 
-      die "ERROR unable to validate species format (no non-comment lines found!); rerun rfmake.pl"; 
+    else { # no hits in species, we allow this, because it can happen
+      ;
     }
   }
 
