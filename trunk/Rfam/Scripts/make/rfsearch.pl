@@ -586,7 +586,10 @@ if($do_calibrate) {
                                                                    $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
+  my @errnameA = ("$calibrate_errO"); 
+  #$calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
+                                                                #sprintf("[$ncpus_cmcalibrate procs, should take ~%.0f minute(s)]", $predicted_minutes), -1, $do_stdout);
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster_light($config->location, $user, \@jobnameA, \@outnameA, \@errnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
                                                                 sprintf("[$ncpus_cmcalibrate procs, should take ~%.0f minute(s)]", $predicted_minutes), -1, $do_stdout);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
@@ -838,7 +841,8 @@ if ((! $only_build) && ((! $no_search) || ($allow_no_desc))) {
     push(@all_errOA,    @rev_errOA);
   }
   # wait for cluster jobs to finish
-  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH, "", -1, $do_stdout);
+  #$search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@all_jobnameA, \@all_tblOA, "# [ok]", "cmsearch", $logFH, "", -1, $do_stdout);
+  $search_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster_light($config->location, $user, \@all_jobnameA, \@all_tblOA, \@all_errOA, "# [ok]", "cmsearch", $logFH, "", -1, $do_stdout);
   $search_wall_secs     = time() - $search_start_time;
   
   # concatenate files (no need to validate output, we already did that in wait_for_cluster())
