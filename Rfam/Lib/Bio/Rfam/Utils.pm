@@ -104,7 +104,7 @@ sub submit_nonmpi_job {
   }
 
   # actually submit job
-  print STDERR ("submit cmd: $submit_cmd\n");
+  #print STDERR ("submit cmd: $submit_cmd\n");
   system($submit_cmd);
   if($? != 0) { die "Non-MPI submission command $submit_cmd failed"; }
 
@@ -184,6 +184,10 @@ sub submit_mpi_job {
              : file includes the string $success_string. If $max_minutes
              : is defined and != -1, we will die if all jobs fail to 
              : successfully complete within $max_minutes minutes. 
+             :
+             : See an alternative function that serves the same purpose:
+             : 'wait_for_cluster_light' but that uses the expensive
+             : 'qstat' or 'bjobs' calls less frequently.
              : 
              : Ways to return or die:
              : (1) Returns if all jobs finish and all jobs output files 
@@ -239,8 +243,8 @@ sub wait_for_cluster {
     die "ERROR in wait_for_cluster, unrecognized location: $location"; 
   }
 
-  my $sleep_nsecs = 5;  # we'll call qstat/bjobs every 5 seconds
-  my $print_freq  = 12; # print update every 12 loop iterations (about every 12*$sleep_nsecs seconds)
+  my $sleep_nsecs = 60;  # we'll call qstat/bjobs every 5 seconds
+  my $print_freq  = 1; # print update every $print_freq loop iterations (about every $print_freq*$sleep_nsecs seconds)
   my @ininfoA = ();
   my @successA = ();
   my @infoA  = ();
@@ -338,6 +342,272 @@ sub wait_for_cluster {
   
   return $max_wait_secs;
   # The only way we'll get here is if all jobs are finished (not in queue) 
+  # and have $success_string in output file, if not, we'll have die'd earlier
+}
+
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+
+=head2 wait_for_cluster_light
+
+    Title    : wait_for_cluster_light
+    Incept   : EPN, Sat Mar 30 07:01:24 2013
+    Usage    : wait_for_cluster_light($jobnameAR, $outnameAR, $success_string, $program, $outFH, $max_minutes)
+    Function : Waits for specific job(s) to finish running on cluster
+             : and verifies their output. 
+             : The job names are listed in $jobnameAR. Each
+             : job will produce an output file listed in @{$outnameAR}
+             : and an stderr error file listed in @{$errnameAR}. 
+             : This function (the '_light' version) determines which jobs
+             : are finished mostly using the existence of error files and
+             : by looking for the success string in those error files
+             : and tries to use expensive 'qstat' or 'bjobs' calls infrequently.
+             : The non-light version (wait_for_cluster()) calls 'qstat'/'bjobs'
+             : once every minute.
+             :
+             : If $max_minutes is defined and != -1, we will die if all jobs 
+             : fail to successfully complete within $max_minutes minutes. 
+             : 
+             : Ways to return or die:
+             : (1) Returns if all jobs finish and all jobs output files 
+             :     contain $success_string string. This is only way to 
+             :     return successfully.
+             : (2) Dies if $success_string ne "" and any job finishes 
+             :     and its output file does not contain at least 1 line
+             :     that *begins with* $success_string. 
+             : (3) Dies if $max_minutes is defined and != -1, and any
+             :     job takes longer than $max_minutes to complete.
+             :
+    Args     : $location:       location, e.g. "JFRC" or "EBI"
+             : $username:       username the cluster jobs belong to
+             : $jobnameAR:      ref to array of list of job names on cluster
+             : $outnameAR:      ref to array of list of output file names, one per job
+             : $errnameAR:      ref to array of list of err file names, one per job
+             : $success_string: string expected to exist in each output file 
+             : $program:        name of program running, if "": do not print updates
+             : $outFH:          output file handle for updates, if "" only print to STDOUT
+             : $extra_note:     extra information to output with progress, "" for none
+             : $max_minutes:    max number of minutes to wait, -1 for no limit
+             : $do_stdout:      1 to print updates to stdout, 0 not to
+             :
+    Returns  : Maximum number of seconds any job spent waiting in queue, rounded down to 
+             : nearest 10 seconds.
+    Dies     : Cases (2) or (3) listed in "Function" section above.
+
+=cut
+
+sub wait_for_cluster_light { 
+  my ($location, $username, $jobnameAR, $outnameAR, $errnameAR, $success_string, $program, $outFH, $extra_note, $max_minutes, $do_stdout) = @_;
+
+  my $start_time = time();
+  
+  my $n = scalar(@{$jobnameAR});
+  my $i;
+  if($extra_note ne "") { $extra_note = "  " . $extra_note; }
+
+  # sanity check
+  if(scalar(@{$outnameAR}) != $n) { die "wait_for_cluster_light(), internal error, number of elements in jobnameAR and outnameAR differ"; }
+  if(scalar(@{$errnameAR}) != $n) { die "wait_for_cluster_light(), internal error, number of elements in jobnameAR and errnameAR differ"; }
+
+  # modify username > 7 characters and job names > 10 characters if we're at EBI, because bjobs truncates these
+  if($location eq "EBI") { 
+    if(length($username) > 7) { 
+      $username = substr($username, 0, 7); # bjobs at EBI only prints first 7 letters of username
+    }
+    for($i = 0; $i < $n; $i++) { 
+      if(length($jobnameAR->[$i]) > 10) { # NOTE: THIS WILL CHANGE THE VALUES IN THE ACTUAL ARRAY jobnameAR POINTS TO!
+        $jobnameAR->[$i] = "*" . substr($jobnameAR->[$i], -9);
+      }
+    }
+  }
+  elsif($location ne "JFRC") { 
+    die "ERROR in wait_for_cluster_light, unrecognized location: $location"; 
+  }
+
+  my $sleep_nsecs = 30;  # we'll look at file system every 30 seconds
+  my $print_freq  = 2; # print update every 2 loop iterations (about every 2*$sleep_nsecs seconds)
+  my $nwait_thresh = 10; # we'll only check cluster with 'qstat' once every 5 minutes
+  my @ininfoA = ();
+  my @infoA  = ();
+  my @elA    = ();
+  my $max_wait_secs = 0;
+  my ($minutes_elapsed, $line, $uname, $jobname, $status);
+  sleep(2);
+
+  my $ncycle     = 0; # number of cycles waited since last cluster check
+  my $ncycle_tot = 0; # total number of cycles waited
+  my $ncluster_check = 0; # number of times we've used 'qstat' or 'bjobs'
+  my $do_cluster_check = 0; # should we use 'qstat' or 'bjobs' this cycle?
+  my @successA = ();   # [0..$n-1]: '1' if job is finished (tail of its output file contains $success_string) else '0'
+  my @runningA  = ();  # [0..$n-1]: '1' if job is running (its error file does exist), else '0'
+  my @waitingA  = ();  # [0..$n-1]: '1' if job is waiting (its error does not exists), else '0'
+  my @finishedA  = (); # [0..$n-1]: '1' if job does not exist in the queue and so should be finished (revealed by 'qstat' or 'bjobs'), else '0'
+  for($i = 0; $i < $n; $i++) { 
+    $finishedA[$i] = 0;
+    $successA[$i] = 0;
+    $runningA[$i] = 0;
+    $waitingA[$i] = 1;
+  }
+  my $nsuccess = 0;
+  my $nrunning = 0;
+  my $nwaiting = $n;
+  while($nsuccess != $n) { 
+    # determine if we should check the cluster using 'qstat/bjobs' to determine
+    # which jobs are no longer in the queue, these should've all finished
+    # successfully
+    $do_cluster_check = 0;
+    sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
+    if(($ncycle == $ncycle_thresh) || # we've reached the threshold of number of times to wait before checking cluster, do it
+       (($ncluster_check == 0) && ($ncycle > 0) && ($nwaiting == 0)) # we haven't checked the cluster at all yet, and all jobs appear to be running, do it
+    { 
+      $do_cluster_check = 1;
+    }
+
+    #################################################
+    # CLUSTER CHECK BLOCK
+    if($do_cluster_check) { 
+      #printf STDERR ("IN CLUSTER CHECK BLOCK\n");
+      #printf ("IN CLUSTER CHECK BLOCK\n");
+      $ncycle = 0; # reset to 0
+      $ncluster_check++;
+      if   ($location eq "JFRC") { @infoA = split("\n", `qstat`); }
+      elsif($location eq "EBI")  { @infoA = split("\n", `bjobs`); }
+      for($i = 0; $i < $n; $i++) { $ininfoA[$i] = 0; } 
+      foreach $line (@infoA) { 
+        if($line =~ m/^\s*\d+\s+/) { 
+          $line =~ s/^\s*//;
+          @elA = split(/\s+/, $line);
+          if($location eq "JFRC") { 
+            #1232075 4.79167 QLOGIN     davisf       r     03/25/2013 14:24:11 f02.q@f02u09.int.janelia.org                                      8        
+            # 396183 10.25000 QLOGIN     nawrockie    r     07/26/2013 10:10:41 new.q@h02u19.int.janelia.org                                      1        
+            # 565685 0.00000 c.25858    nawrockie    qw    08/01/2013 15:18:55                                                                  81        
+            ($jobname, $uname, $status) = ($elA[2], $elA[3], $elA[4]);
+          }
+          elsif($location eq "EBI") { 
+            # jobid   uname   status queue     sub node    run node    job name   date     
+            # 5134531 vitor   RUN   research-r ebi-004     ebi5-037    *lection.R Apr 29 18:00
+            # 4422939 stauch  PEND  research-r ebi-001                 *ay[16992] Apr 26 12:56
+            ($uname, $status) = ($elA[1], $elA[2]);
+            if($status eq "RUN") { $jobname = $elA[6]; }
+            else                 { $jobname = $elA[5]; }
+            #print STDERR ("uname: $uname status: $status; jobname: $jobname\n");
+          }
+          #printf("\tjobname: $jobname uname: $uname status: $status\n");
+          if($uname ne $username) { die "wait_for_cluster_light(), internal error, uname mismatch ($uname ne $username)"; }
+          # look through our list of jobs and see if this one matches
+          for($i = 0; $i < $n; $i++) { 
+            #printf("\t\tsuccess: %d\tininfo: %d\tmatch: %d\n", $successA[$i], $ininfoA[$i], ($jobnameAR->[$i] eq $jobname) ? 1 : 0);
+            if((! $successA[$i]) &&              # job didn't successfully complete already 
+               (! $ininfoA[$i]) &&               # we didn't already find this job in the queue
+               ($jobnameAR->[$i] eq $jobname)) { # jobname match
+              $ininfoA[$i] = 1; 
+              # check if job is in error status, if it is, then exit
+              if (($location eq "JFRC") && ($status =~ m/E/))                       { die "wait_for_cluster_light(), internal error, qstat shows Error status: $line"; }
+              if (($location eq "EBI")  && ($status ne "RUN" && $status ne "PEND")) { die "wait_for_cluster_light(), internal error, bjobs shows non-\"RUN\" and non-\"PEND\" status: $line"; }
+            }
+          }
+        }
+      }
+      # for any job not still in the queue, it should have successfully finished
+      for($i = 0; $i < $n; $i++) {
+        $finishedA[$i] = ($ininfoA[$i] == 0) ? 1 : 0; 
+      }
+    } # end of 'if($do_cluster_check)'
+    # END OF CLUSTER CHECK BLOCK
+    #################################################
+
+    # now go through each job and check whether its error and output files exist, for those jobs
+    # that our most recent cluster check revealed should be finished (true if $finishedA[$i] is '1')
+    # make sure they finished successfully
+    for($i = 0; $i < $n; $i++) { 
+      # sanity check
+      if(($runningA[$i] + $waitingA[$i] + $successA[$i]) != 1) { 
+        die "wait_for_cluster_light() internal error, job $i runningA[$i]: $runningA[$i], waitingA[$i]: $waitingA[$i], successA[$i]: $successA[$i] (exactly 1 of these should be 1 and the others 0)";
+      }
+      if($successA[$i] == 0) { 
+        # if err file exists
+        #    if output file exists
+        #       if success string exists: then JOB FINISHED SUCCESSFULLY
+        #       else: JOB IS RUNNING OR FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
+        #    else: JOB IS RUNNING FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
+        # else JOB IS WAITING OR FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
+        #
+        if(-e $errnameAR->[$i]) { 
+          if(-e $outnameAR->[$i]) { 
+            if(-s $outnameAR->[$i]) { 
+              # check for success string in tail output
+              my $tail= `tail $outnameAR->[$i]`;
+              foreach $line (split ('\n', $tail)) { 
+                if($line =~ m/\Q$success_string/) {
+                  $successA[$i] = 1; 
+                  $nsuccess++;
+                  if($runningA[$i] == 1) { $runningA[$i] = 0; $nrunning--; }
+                  if($waitingA[$i] == 1) { $waitingA[$i] = 0; $nwaiting--; }
+                  #printf("\tjob %2d finished successfully!\n", $i);
+                  last;
+                }
+              }
+              if($successA[$i] == 0) { # we didn't find the success string, did our cluster check reveal this job should be finished?
+                if($finishedA[$i] == 1) { 
+                  die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file $outnameAR->[$i] does not contain: $success_string\n"; 
+                }
+              }
+            } #end of 'if(-s $outnameAR->[$i])'
+            else { # $outfile exists but is empty, job is running or failed
+              if($finishedA[$i] == 1) { 
+                die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file is empty\n";
+              }
+              elsif($runningA[$i] == 0) { 
+                $runningA[$i] = 1; 
+                $nrunning++;
+                if($waitingA[$i] == 1) { $waitingA[$i] = 0; $nwaiting--; }
+              }
+            }
+          } # end of 'if(-e $outnameAR->[$i])'
+          else { # outfile doesn't exist, but errfile does, job is running or failed
+            if($finishedA[$i] == 1) { 
+              die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file does not exist\n";
+            }
+            elsif($runningA[$i] == 0) { 
+              $runningA[$i] = 1; 
+              $nrunning++;
+              if($waitingA[$i] == 1) { $waitingA[$i] = 0; $nwaiting--; } 
+            }
+          }
+        } # end of 'if(-e $errnameAR->[$i])'
+        else { # err file doesn't exist yet, job is waiting (or failed)
+          if($finishedA[$i] == 1) { 
+            die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output ERROR file does not exist\n";
+          }
+          elsif($waitingA[$i] != 1) { 
+            die "wait_for_cluster_light() internal error 2, job $i runningA[$i]: $runningA[$i], waitingA[$i]: $waitingA[$i], successA[$i]: $successA[$i] (exactly 1 of these should be 1 and the others 0)";
+          }
+        }
+      }
+    } # end of 'for($i = 0; $i < $n; $i++)'
+
+    if($nwaiting > 0) { $max_wait_secs = time() - $start_time; } 
+    $minutes_elapsed = (time() - $start_time) / 60;
+    if($program ne "") { 
+      if($nsuccess == $n || $ncycle_tot % $print_freq == 0) { 
+        my $outstr = sprintf("  %-15s  %-10s  %10s  %10s  %10s  %10s%s\n", $program, "cluster", $nsuccess, $nrunning, $nwaiting, Bio::Rfam::Utils::format_time_string(time() - $start_time), $extra_note);
+        $extra_note = ""; # only print this once 
+        if($do_stdout) { print STDOUT $outstr; }
+        if($outFH ne "") { print $outFH $outstr; }
+      }
+    }
+    if(defined $max_minutes && $max_minutes != -1 && $minutes_elapsed > $max_minutes) { die "wait_for_cluster_light(), reached maximum time limit of $max_minutes minutes, exiting."; }
+    # now wait for a while before reexamining
+    if($nsuccess != $n) { 
+      sleep($sleep_nsecs); 
+      $ncycle++;
+      $ncycle_tot++;
+    }
+  }
+
+  return $max_wait_secs;
+  # The only way we'll get here is if all jobs are finished 
   # and have $success_string in output file, if not, we'll have die'd earlier
 }
 
