@@ -427,7 +427,6 @@ sub wait_for_cluster_light {
 
   my $sleep_nsecs = 30;  # we'll look at file system every 30 seconds
   my $print_freq  = 2; # print update every 2 loop iterations (about every 2*$sleep_nsecs seconds)
-  my $nwait_thresh = 10; # we'll only check cluster with 'qstat' once every 5 minutes
   my @ininfoA = ();
   my @infoA  = ();
   my @elA    = ();
@@ -437,6 +436,7 @@ sub wait_for_cluster_light {
 
   my $ncycle     = 0; # number of cycles waited since last cluster check
   my $ncycle_tot = 0; # total number of cycles waited
+  my $ncycle_thresh = 10; # we'll only check cluster with 'qstat' once every 5 minutes
   my $ncluster_check = 0; # number of times we've used 'qstat' or 'bjobs'
   my $do_cluster_check = 0; # should we use 'qstat' or 'bjobs' this cycle?
   my @successA = ();   # [0..$n-1]: '1' if job is finished (tail of its output file contains $success_string) else '0'
@@ -458,8 +458,8 @@ sub wait_for_cluster_light {
     # successfully
     $do_cluster_check = 0;
     sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
-    if(($ncycle == $ncycle_thresh) || # we've reached the threshold of number of times to wait before checking cluster, do it
-       (($ncluster_check == 0) && ($ncycle > 0) && ($nwaiting == 0)) # we haven't checked the cluster at all yet, and all jobs appear to be running, do it
+    if((($ncycle == $ncycle_thresh) && ($nrunning > 0)) || # we've reached the threshold of number of times to wait before checking cluster and at least some jobs are not waiting, do it
+       (($ncluster_check == 0) && ($ncycle > 0) && ($nwaiting == 0))) # we haven't checked the cluster at all yet, and all jobs appear to be running, do it
     { 
       $do_cluster_check = 1;
     }
