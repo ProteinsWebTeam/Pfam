@@ -298,7 +298,7 @@ sub build_html {
   # alignment but not in the database. We'll reset it here so that we're
   # not double-counting if "build_html" is called twice. It's actually
   # incremented in "_format_block_html"
-  $self->_missing_sequences->reset_ms_counter;
+  $self->reset_ms_counter;
 
   my @ss_str = split //, $self->ss->get_infernal_string;
   $self->_log->debug( 'found ' . scalar @ss_str . ' columns in SS consensus' );
