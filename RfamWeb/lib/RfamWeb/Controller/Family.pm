@@ -228,6 +228,14 @@ sub family_page_GET_html : Private {
     if $c->debug;
   $c->forward( 'get_wikipedia' );
 
+  $c->log->debug( 'Family::family_page: adding references info' )
+    if $c->debug;
+  $c->forward( 'get_references' );
+
+  $c->log->debug( 'Family::family_page: adding motif matches info' )
+    if $c->debug;
+  $c->forward( 'get_motif_matches' );
+
   #---------------------------------------
 
   $c->log->debug( 'Family::family_page: emitting HTML' )
@@ -448,10 +456,7 @@ sub get_summary_data : Private {
   $summaryData->{numSequences} = $c->stash->{rfam}->num_full;
 
   # number of structures known for the domain
-  my $rs = $c->stash->{db}->resultset('PdbRfamReg')
-             ->search( { rfam_acc => $c->stash->{acc} },
-                       {} );
-
+  my $rs = $c->model('RfamDB::PdbFullRegion')->search( { rfam_acc => $c->stash->{acc} },{});
   $summaryData->{numStructures} = $rs->count;
 
   # Number of species
@@ -531,14 +536,51 @@ sub get_wikipedia : Private {
   
   return unless ( $article and $article->wikitext );
 
-  # $c->log->debug( 'Family::get_wikipedia: got wiki title: |'
-  #                 . $article->title . '|' )
-  #   if $c->debug;
-
   $c->stash->{article} = $article;
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 get_references : Private
+
+Retrieves the literature references content, if any, for this family.
+
+=cut
+
+sub get_references : Private {
+  my ( $this, $c ) = @_;
+
+  my $rs = $c->model('RfamDB::LiteratureReference')
+                  ->search( { 'family_literature_references.rfam_acc' => $c->stash->{acc} },
+                            { join     => 'family_literature_references',
+                              order_by => 'family_literature_references.order_added' }
+  );
+
+  $c->stash->{family_literature} = $rs;
+
+}
+#-------------------------------------------------------------------------------
+
+=head2 get_motif_matches : Private
+
+Retrieves the motifs which match the family, if any
+
+=cut
+
+sub get_motif_matches : Private {
+  my ( $this, $c ) = @_;
+
+  my $rs = $c->model('RfamDB::MotifFamilyStat')
+                  ->search( { 'rfam_acc' => $c->stash->{acc} },
+  );
+
+  $c->stash->{family_matches} = $rs;
+
+}
+
+
+#-------------------------------------------------------------------------------
+
 
 =head2 build_fasta : Private
 

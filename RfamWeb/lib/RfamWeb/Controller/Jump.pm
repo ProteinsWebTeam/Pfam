@@ -33,12 +33,14 @@ my %action_types= (
   clan     => 'guess_clan',
   genome   => 'guess_genome',
   sequence => 'guess_sequence',
+  motif    => 'guess_motif'
 );
 my @available_actions = qw( 
   guess_family
   guess_clan
   guess_genome
   guess_sequence
+  guess_motif
 );
 
 #-------------------------------------------------------------------------------
@@ -135,7 +137,7 @@ sub guess_clan : Private {
   
   my @rs = $c->model('RfamDB::Clan')
              ->search( [ { clan_acc => $entry },
-                         { clan_id  => $entry } ] );
+                         { id  => $entry } ] );
 
   return 'clan' if scalar @rs;
 }
@@ -174,7 +176,7 @@ sub guess_genome : Private {
   $c->log->debug( 'Search::Jump::guess_genome: looking for a genome...' )
     if $c->debug;
   
-  my @rs = $c->model('RfamDB::GenomeEntry')
+  my @rs = $c->model('RfamDB::Genome')
              ->search( [ { genome_acc => $entry },
                          { ensembl_id => $entry },
                          { ncbi_id    => $entry } ] );
@@ -184,6 +186,27 @@ sub guess_genome : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 guess_motif : Private
+
+Look for a motif entry.
+
+=cut
+
+sub guess_motif : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_motif: looking for a motif...' )
+    if $c->debug;
+
+  my @rs = $c->model('RfamDB::Motif')
+             ->search( [ { motif_acc => $entry },
+                         { motif_id => $entry } ] );
+
+  return 'motif' if scalar @rs;
+}
+
+
+#-------------------------------------------------------------------------------
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>

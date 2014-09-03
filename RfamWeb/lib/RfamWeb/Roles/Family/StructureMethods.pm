@@ -46,20 +46,10 @@ sub structures_GET : Private {
   $c->log->debug( 'Family::structures: showing structures that map to ' . $c->stash->{acc} )
     if $c->debug;
 
-  my @mapping = $c->stash->{db}->resultset('PdbRfamReg')
-                  ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
-                            {} );
 
-  unless ( scalar @mapping ) {
-    $c->log->debug( 'Family::structures: no rows found; returning 204 NO CONTENT' )
-      if $c->debug;
+  my $rs = $c->model('RfamDB::PdbFullRegion')->search( { rfam_acc => $c->stash->{acc} },{});
 
-    $this->status_no_content( $c );
-
-    return;
-  }
-
-  $c->stash->{rfamMaps} = \@mapping;
+  $c->stash->{family_structures} = $rs;
 
   # when specifically requested, or when the client will accept any format
   # ("*/*"), render as HTML
@@ -70,6 +60,8 @@ sub structures_GET : Private {
     # for anything other than HTML, we need to serialise a data structure
     $c->log->debug( 'Family::structures: converting DBIC rows to perl data structure for serialisation' )
       if $c->debug;
+
+    my @mapping;
 
     # load rows into a regular perl data structure
     foreach my $row ( @mapping ) {
