@@ -136,9 +136,9 @@ has '_missing_sequences' => (
   isa     => 'Int',
   default => 0,
   handles => {
-    inc_counter   => 'inc',
-    dec_counter   => 'dec',
-    reset_counter => 'reset',
+    inc_ms_counter   => 'inc',
+    dec_ms_counter   => 'dec',
+    reset_ms_counter => 'reset',
   }
 );
 
@@ -298,7 +298,7 @@ sub build_html {
   # alignment but not in the database. We'll reset it here so that we're
   # not double-counting if "build_html" is called twice. It's actually
   # incremented in "_format_block_html"
-  $self->_missing_sequences->reset_counter;
+  $self->_missing_sequences->reset_ms_counter;
 
   my @ss_str = split //, $self->ss->get_infernal_string;
   $self->_log->debug( 'found ' . scalar @ss_str . ' columns in SS consensus' );
@@ -417,7 +417,7 @@ sub _format_block_html {
                           ->first;
     unless ( defined $rs and defined $rs->rfamseq_acc ) {
       $self->_log->warn( "WARNING: sequence $rfamseq_acc is not found in the database" );
-      $self->_missing_sequences->inc_counter;
+      $self->inc_ms_counter;
       next ROW;
     }
     my $species   = $rs->rfamseq_acc->ncbi->species;
