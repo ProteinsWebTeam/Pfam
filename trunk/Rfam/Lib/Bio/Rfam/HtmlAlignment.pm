@@ -130,6 +130,18 @@ has '_css_classes' => (
   },
 );
 
+has '_missing_sequences' => (
+  traits  => ['Counter'],
+  is      => 'ro',
+  isa     => 'Int',
+  default => 0,
+  handles => {
+    inc_counter   => 'inc',
+    dec_counter   => 'dec',
+    reset_counter => 'reset',
+  }
+);
+
 #-------------------------------------------------------------------------------
 #- methods ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -282,6 +294,12 @@ HTML blocks in the object. Retrieve them using L<blocks>:
 sub build_html {
   my $self = shift;
 
+  # we have a counter that keeps track of sequences that are found in the
+  # alignment but not in the database. We'll reset it here so that we're
+  # not double-counting if "build_html" is called twice. It's actually
+  # incremented in "_format_block_html"
+  $self->_missing_sequences->reset;
+
   my @ss_str = split //, $self->ss->get_infernal_string;
   $self->_log->debug( 'found ' . scalar @ss_str . ' columns in SS consensus' );
 
@@ -364,6 +382,10 @@ sub build_html {
     $self->add_block($block_data);
 
     my $block_html = $self->_format_block_html($block_data);
+    if ( $self->_missing_sequences > 0 ) {
+      $self->_log->warn( 'WARNING: found ' . $self->_missing_sequences 
+                         . ' missing sequences (found in alignment but not DB)' );
+    }
     $self->add_html_block($block_html);
   }
 }
@@ -379,7 +401,7 @@ sub _format_block_html {
 
   my $ena_view = 'http://www.ebi.ac.uk/ena/data/view';
 
-  for ( my $i = 0; $i < scalar @{$block->{labels}}; $i++ ) {
+  ROW: for ( my $i = 0; $i < scalar @{$block->{labels}}; $i++ ) {
     my $label = $block->{labels}->[$i];
     my $seq   = $block->{sequences}->[$i];
     my $oe    = $i % 2 ? 'odd' : 'even'; 
@@ -393,6 +415,11 @@ sub _format_block_html {
                                       rfam_acc    => $self->rfam_acc },
                                     { join => [ {'rfamseq_acc' => 'ncbi' } ] } )
                           ->first;
+    unless ( defined $rs and defined $rs->rfamseq_acc ) {
+      $self->_log->warn( "WARNING: sequence $rfamseq_acc is not found in the database" );
+      $self->_missing_sequences->inc;
+      next ROW;
+    }
     my $species   = $rs->rfamseq_acc->ncbi->species;
     my $bit_score = $rs->bit_score;
     my $seq_start = $rs->seq_start;
