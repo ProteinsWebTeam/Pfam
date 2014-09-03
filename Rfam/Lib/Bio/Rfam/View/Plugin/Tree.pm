@@ -30,7 +30,8 @@ sub makeSeedTrees {
 	my $location = "/nfs/nobackup2/xfam/rfam";
 	my $seedfile = "$location/$rfam_acc";
 	my $tree = "$location/$rfam_acc.outtree";
-	my $taxtree = "$location/$rfam_acc.taxtree";
+	my $bittree = "$location/$rfam_acc.bittree";
+        my $taxtree = "$location/$rfam_acc.taxtree";
 
 #Get SEED file, and check the family exists in the database:
 	my $msa = $self->parent->family->SEED;
@@ -53,10 +54,11 @@ sub makeSeedTrees {
 #labelled with the species names to generate a tree, as FastTree can't cope with non-unique sequence names, so we convert
 #the sequence accession tree:
 #
-	specifyTree($msa, $rfamdb ,$tree,$taxtree);	
-	
+	addBitscoreToTree($msa, $rfamdb, $tree,$bittree, $rfam_acc);
+        specifyTree($msa, $rfamdb ,$bittree,$taxtree);	
+        	
 	my ($fileGzipped,$taxGzipped);
-	gzip $tree => \$fileGzipped;
+	gzip $bittree => \$fileGzipped;
 	gzip $taxtree => \$taxGzipped;
 
 #Update the database:
@@ -69,7 +71,8 @@ sub makeSeedTrees {
 		{key => 'rfam_acc_and_type'}
 		);
 	$row->update( { tree => $fileGzipped,
-					type => 'seed',},
+					type => 'seed',
+                                        treemethod => 'fasttree',},
 					{key => 'rfam_acc_and_type'});
 
 	my $taxrow = $rfamdb->resultset('AlignmentAndTree')->find_or_create(
@@ -81,7 +84,8 @@ sub makeSeedTrees {
 		);
 	
 	$taxrow->update( { tree => $taxGzipped,
-					type => 'seedTax',},
+					type => 'seedTax',
+                                        treemethod => 'fasttree',},
 					{key => 'rfam_acc_and_type'}
 				);
 
@@ -89,50 +93,75 @@ sub makeSeedTrees {
 #
 	unlink($seedfile);
 	unlink($tree);
-	unlink($taxtree);
+#	unlink($taxtree);
+#        unlink($bittree);
 }
 #This bit of code is based on Eric's seqToSpeciesNames. Needed as FastTree won't allow non-unique names in a tree
 
+sub addBitscoreToTree {
+        my ($self, $rfamdb, $tree, $bittree,$family) =@_;
+        my %nseToBitscore;
+        for (my $i = 0; $i < $self->nseq; $i++) {
+                my $nse = $self->get_sqname($i);
+                my ($is_nse, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
+                if (! $is_nse) {die "ERROR $nse not in name/start-end format:"}
+                my $sth = $rfamdb->prepare_nseFamilyToBitscore;
+                $sth->execute($family, $name, $start, $end);
+                my $row = $sth->fetchrow_hashref;
+                $row->{'nse'} = $nse;
+                $nseToBitscore{$nse} = $row->{'bit_score'};
+        }
+        open (TREE, "<$tree") or croak ("Can't open tree file...this is VERY BAD!\n");
+        my @ar = <TREE>;
+        my $t = join ("", @ar);
+        foreach my $k (keys %nseToBitscore) {
+                $t =~ s/($k)/$nseToBitscore{$k}_$1/g;
+        }
+        open (BITTREE, ">>$bittree");
+        print BITTREE "$t\n";
+        close (BITTREE);
+}
 sub specifyTree {
-	my ($self, $rfamdb, $tree,$taxtree) = @_;
-	my %seenSpecies;
-	my %accToSpecies;
+        my ($self, $rfamdb, $bittree,$taxtree) = @_;
+        my %seenSpecies;
+        my %accToSpecies;
 
-#Get sequence identifiers from the seed and query the database for the species (align_display_name)	
+#Get sequence identifiers from the seed and query the database for the species (align_display_name)     
 
-	my $sth = $rfamdb->prepare_seqaccToTaxon;
-	for( my $i = 0; $i < $self->nseq; $i++){
-		 my $nse = $self->get_sqname($i);
+        my $sth = $rfamdb->prepare_seqaccToTaxon;
+        for( my $i = 0; $i < $self->nseq; $i++){
+                 my $nse = $self->get_sqname($i);
+        my ($is_nse, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
+        if(! $is_nse) { die "ERROR $nse not in name/start-end format"; }
+        
+        $sth->execute($name);
+        my $row = $sth->fetchrow_hashref;
+        if(!exists($seenSpecies{$row->{align_display_name}})){
+                $seenSpecies{$row->{align_display_name}} = 1;
+        }
+        my $speciesName = $row->{align_display_name}.'.'.$seenSpecies{$row->{align_display_name}};
+        
+        $accToSpecies{$nse} = $speciesName;
+        $seenSpecies{$row->{align_display_name}}++;
+        }
+        
 
-	my ($is_nse, $name, $start, $end) = Bio::Rfam::Utils::nse_breakdown($nse);
-	if(! $is_nse) { die "ERROR $nse not in name/start-end format"; }
-	
-	$sth->execute($name);
-	my $row = $sth->fetchrow_hashref;
-	if(!exists($seenSpecies{$row->{align_display_name}})){
-		$seenSpecies{$row->{align_display_name}} = 1;
-	}
-	my $speciesName = $row->{align_display_name}.'.'.$seenSpecies{$row->{align_display_name}};
-	
-	$accToSpecies{$name} = $speciesName;
-	$seenSpecies{$row->{align_display_name}}++;
-	}
 
 #Now get the original tree and replace all the accessions with the species:
 
-	open(TREE, "$tree") or croak ("Can't open tree file to convert seqs to species...this is not good!\n");
-	my @ar =<TREE>;
-	my $t = join("", @ar);
-	foreach my $k (keys %accToSpecies){
-        $t =~ s/$k/$accToSpecies{$k}/g;
+        open(BITTREE, "<$bittree") or croak ("Can't open tree file to convert seqs to species...this is not good!\n");
+        my @ar =<BITTREE>;
+        my $t = join("", @ar);
+        foreach my $k (keys %accToSpecies){
+        $t =~ s/($k)/$1_$accToSpecies{$k}/g;
     }
-	open(TAXTREE, ">>$taxtree");
-	print TAXTREE "$t\n";
+        open(TAXTREE, ">$taxtree");
+        print TAXTREE "$t\n";
+        close TAXTREE;
 }
 
 
 
-1;
 1;
 
 
