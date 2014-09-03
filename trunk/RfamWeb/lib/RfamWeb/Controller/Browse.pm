@@ -74,6 +74,58 @@ sub browse : Global {
   $c->stash->{template} ||= 'pages/browse/index.tt';
 }
 
+
+#-------------------------------------------------------------------------------
+#- motifs  ---------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 browse_motifs : Chained PathPart CaptureArgs
+
+Retrieves the list of motifs from the DB and stashes them for the template.
+
+=cut
+
+sub browse_motifs : Chained( '/' )
+                   PathPart( 'motifs' )
+                   CaptureArgs( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Browse::browse_motifs: building a list of motifs' )
+    if $c->debug;
+
+  $c->stash->{template} = 'pages/browse/motifs.tt';
+}
+
+
+#----------------------------------------------------------------------------
+
+=head2 browse_motifs_list : Chained PathPart Args
+  
+Retrieves the full list of motifs from the DB and stashes them for the 
+template.
+  
+=cut
+
+sub browse_motifs_list : Chained( 'browse_motifs' )
+                        PathPart( '' )
+                        Args( 0 ) {
+  my ( $this, $c ) = @_;
+
+  $c->forward( 'build_active_letters' );
+
+  $c->log->debug( 'Browse::browse_motifs_list: building full list of motifs' )
+    if $c->debug;
+
+  my @res = $c->model('RfamDB::Motif')
+              ->search();
+
+  $c->log->debug( 'Browse::browse_motifs_list: found ' . scalar @res
+                  . ' motifs' ) if $c->debug;
+
+  # stash the results for the template
+  $c->stash->{motifs} = \@res if scalar @res;
+}   
+
 #-------------------------------------------------------------------------------
 #- clans -----------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -495,6 +547,18 @@ sub build_active_letters : Private {
       $first_letter = uc( substr( $clan->id, 0, 1 ) );
       $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
       $active_letters->{clans}->{$first_letter} = 1;
+    }
+
+    #----------------------------------------
+
+    # motifs
+    my @motifs = $c->model('RfamDB::Motif')
+                  ->search();
+
+    foreach my $motif ( @motifs ) {
+      $first_letter = uc( substr( $motif->motif_id, 0, 1 ) );
+      $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
+      $active_letters->{motifs}->{$first_letter} = 1;
     }
 
     #----------------------------------------

@@ -1,13 +1,13 @@
 
 [%
-# clans.tt
+# motifs.tt
 # jt6 20100323 WTSI
 # 
-# build a "browse" page for clans
+# build a "browse" page for motifs
 #
 # $Id$
 
-META title = "Browse Rfam clans";
+META title = "Browse Rfam motifs";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
@@ -24,21 +24,21 @@ pages = [ "0 - 9" ];
 CALL pages.import( [ "A" .. "Z" ] );
 
 # shortcuts for URIs
-clanURI = c.uri_for( "/clan" );
+motifURI = c.uri_for( "/motif" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 
                    pageList=pages
-                   activeLetters=active_letters.clans
+                   activeLetters=active_letters.motifs
                    pageURI = "#";
 %]
 
 <!-- start browse page -->
 
-<h1 class="pageHeader">Browse Rfam clans</h1>
+<h1 class="pageHeader">Browse Rfam motifs</h1>
 
 <p class="browseSummary">
-  Rfam has a total of <strong>[% clans.size %]</strong> clans. 
+  Rfam has a total of <strong>[% motifs.size %]</strong> motifs. 
   The table may be sorted by clicking on the column titles, or restored to the 
   original order <span class="link" id="sortLink">here</span>. 
   Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
@@ -48,36 +48,34 @@ pageList = PROCESS "components/pageList.tt",
 
 <table class="details browse" 
        id="browseTable"
-       summary="Browse Pfam clans">
+       summary="Browse Pfam motifs">
   <thead class="sortIndicator dark">
     <tr class="caption">
       <th id="indexCol" class="rowNum">Original order</th>
-      <th>ID</th>
+      <th>Motif ID</th>
       <th>Accession</th>
-      <th>Number of<br />families</th>
       <th>Description</th>
     </tr>
   </thead>
   <tbody>
   [% first = "";
-  FOREACH clan IN clans;
-    IF clan.id.match('^\d');
+  FOREACH motif IN motifs;
+    IF motif.motif_id.match('^\d');
       initialLetter = "0 - 9";
     ELSE;
-	    initialLetter = clan.id.split("").first | upper;
+	    initialLetter = motif.motif_id.split("").first | upper;
     END %]
     <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
       <td class="rowNum">[% loop.index %]</td>
   	  <td>
         <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
            id="[% initialLetter %]"[% first = initialLetter | upper %][% END %] 
-           href="[% clanURI; '/'; clan.clan_acc %]">
-          [% clan.id %]</a>
+           href="[% motifURI; '/'; motif.motif_acc %]">
+          [% motif.motif_id %]</a>
       </td>
-      <td><a href="[% clanURI; '/'; clan.clan_acc %]">[% clan.clan_acc %]</a></td>
-      <td>[% clan.get_column("num_families") %]</td>
-      <td>[% clan.clan_description %]</td>
-    </tr>
+      <td><a href="[% motifURI; '/'; motif.motif_acc %]">[% motif.motif_acc %]</a></td>
+      <td>[% motif.description %]</td>
+      </tr>
   [% END # of FOREACH %]
   </tbody>
 </table>

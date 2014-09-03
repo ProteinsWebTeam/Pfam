@@ -29,8 +29,8 @@ alphabet = [ "A" .. "Z" ];
   <h2>Browse Rfam</h2>
   
   <p>
-    You can use the links below to find lists of families, clans, genomes, or
-    families that have a three-dimensional structure associated with them. You
+    You can use the links below to find lists of families, clans, genomes, motifs
+    or families that have a three-dimensional structure associated with them. You
     can also list the Wikipedia articles that are referenced by Rfam families.
   </p>
   <table summary="Browse the Rfam database">
@@ -92,6 +92,25 @@ alphabet = [ "A" .. "Z" ];
         </td>
       </tr>
       
+      <tr>
+        <td class="type">MOTIFS</td>
+        <td class="links">
+          [% num = "0 - 9";
+          IF active_letters.motifs.$num -%]
+            <a href="[% c.uri_for( '/motifs#0' ) %]">0 - 9</a>
+          [% ELSE -%]
+            <span class="inactive">0 - 9</span>
+          [% END;
+          FOREACH letter IN alphabet;
+            IF active_letters.motifs.$letter -%]
+              <a href='[% c.uri_for( "/motifs#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
+        </td>
+      </tr>
+
       <tr>
         <td class="type">FAMILIES WITH<br />STRUCTURES</td>
         <td class="links">

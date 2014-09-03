@@ -1,34 +1,54 @@
 [%
-# structuresTab.tt
-# jt6 20060424 WTSI
+# structures.tt
+# jt6 20081208 WTSI
 #
-# build a table showing the mapping between UniProt accession and PDB regions
+# the structures tab for the motif section
 #
-# $Id: structureTab.tt,v 1.4 2009-01-06 12:10:01 jt6 Exp $
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
 
-USE dumper;
-USE String;
-META naked = 1;
-
+PROCESS "components/require.tt";
 sharedRequirements.js.push( "tablekit.js" );
+
 sharedRequirements.js.push(  "lightbox2.js" );
 sharedRequirements.css.push( "lightbox2.css" );
--%]
 
-     <table id="structuresTable" class="details">
+#-------------------------------------------------------------------------------
+
+USE Number.Format( THOUSANDS_SEP = "," );
+USE String;
+%]
+
+<!-- start structures block -->
+
+<div class="block" id="motifStructuresBlock">
+  <div class="handle">
+    <h1>Structures</h1>
+  </div>
+  <div class="blockContent">
+    <div id="motifStructuresTab">
+    
+    <p>
+    There are <strong>[% motif_structures.count %]</strong> PDB entires which have been used to build the motif model.
+    <br><br>
+    The table of results below may be sorted by clicking on the column titles, or
+    restored to the original order <span class="link" id="sortLink">here</span>.
+    </p>
+
+   [% IF motif_structures.count %]
+     <table summary="Motif Structures"
+         id="motifStructuresTable"
+         class="details">
       <thead class="sortIndicator">
         <tr>
           <th id="indexCol" class="rowNum">Original order</th>
           <th>PDB ID</th>
           <th>PDB chain ID</th>
           <th>PDB Residues</th>
-          <th>Bit score</th>
-          <th>View</th>
         </tr>
       </thead>
       <tbody>
-
-        [% WHILE (pdb = family_structures.next) ; %]
+        [% WHILE (pdb = motif_structures.next) ; %]
           <tr class="[% loop.parity %]">
             <td class="rowNum">[% loop.index %]</td>
             <td>
@@ -38,19 +58,17 @@ sharedRequirements.css.push( "lightbox2.css" );
             [% pdb.pdb_id %] </a></td>
             <td>[% pdb.chain %]</td>
             <td>[% pdb.pdb_start %] - [% pdb.pdb_end %]</td>
-            <td>[% pdb.bit_score %]</td>
-            <td> <a href="[% c.uri_for( '/structure', pdb.pdb_id, 'av' ) %]"
-                   onclick="popUp(this.href,'console',800,800,'avWin');return false;">
-                   AstexViewer</a></td>
         </tr>
         [% END %]
     </tbody>
   </table>
 
+  [% END %]
+
   <script type="text/javascript">
     // <![CDATA[
 
-    var sorter = new TableKit( "structuresTable",
+    var sorter = new TableKit( "motifStructuresTable",
                                {
                                  editable: false,
                                  resizable: false,
@@ -73,7 +91,13 @@ sharedRequirements.css.push( "lightbox2.css" );
     // ]]>
   </script>
 
-  </tbody>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- end sequences block --> 
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.

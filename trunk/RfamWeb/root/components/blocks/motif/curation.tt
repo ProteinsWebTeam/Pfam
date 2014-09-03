@@ -2,7 +2,7 @@
 # curation.tt
 # jt6 20080314 WTSI
 #
-# the curation details for the family section
+# the curation details for the curation section
 #
 # $Id: curation.tt,v 1.7 2009-06-10 10:46:17 jt6 Exp $
 
@@ -20,14 +20,14 @@ USE Number.Format( THOUSANDS_SEP = "," );
 
 <!-- start curation block -->
 
-<div class="block" id="curationBlock">
+<div class="block" id="motifCurationBlock">
   <div class="handle">
-    <h1>Curation and family details</h1>
+    <h1>Curation and motif details</h1>
   </div>
   <div class="blockContent">
 
     <p>
-      This section shows the detailed information about the Rfam family.
+      This section shows the detailed information about the Rfam motif.
       We're happy to receive updated or improved alignments for new or 
       existing families. 
       <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
@@ -43,26 +43,27 @@ USE Number.Format( THOUSANDS_SEP = "," );
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Seed source</td>
           <td class="data">
-              [% rfam.seed_source %]
+              [% motif_curation.seed_source %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Structure source</td>
           <td class="data">
-              [% rfam.structure_source %]
+            [% IF motif_curation.structure_source.defined; motif_curation.structure_source | format( "%5.1f" );
+            ELSE %]N/A[% END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Type</td>
           <td class="data">
-              [% rfam.type %]
+              [% motif_curation.type %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Author</td>
-          <td class="data">[% rfam.author %]</td>
+          <td class="data">[% motif_curation.author %]</td>
         </tr>
-  	    <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+          <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
   	      <td class="label">Alignment details</td>
   	      <td class="data">
   	        <table class="details" summary="Alignment details">
@@ -76,31 +77,18 @@ USE Number.Format( THOUSANDS_SEP = "," );
   	          </thead>
   	          <tbody>
   	            <tr class="even">
-                  <td class="label">full</td>
-                  <td>[% rfam.num_full | format_number %]</td>
-                  [%- IF alignment_info.full %]
-                    <td>[% alignment_info.full.average_length %]</td>
-                    <td>[% alignment_info.full.percent_id %]</td>
-                  [%- ELSE %]
-                    <td colspan="2" class="inactive">no full alignment</td>
-                  [%- END %]
-  	            </tr>
-  	            <tr class="odd">
-  	              <td class="label">seed</td>
-                  <td>[% rfam.num_seed | format_number %]</td>
-                  [%- IF alignment_info.seed %]
-                    <td>[% alignment_info.seed.average_length %]</td>
-                    <td>[% alignment_info.seed.percent_id %]</td>
-                  [%- ELSE %]
-                    <td colspan="2" class="inactive">no seed alignment</td>
-                  [%- END %]
+                  <td class="label">seed</td>
+                  <td>[% motif.num_seed | format_number %]</td>
+                    <td>[% motif.average_sqlen %]</td>
+                    <td>[% motif.average_id * 100%]</td>
   	            </tr>
   	          </tbody>
   	        </table>
   	      </td>
   	    </tr>
-  	  </tbody>
-  	</table>
+
+      </tbody>
+    </table>
 
     <h2>Model information</h2>
 
@@ -109,47 +97,39 @@ USE Number.Format( THOUSANDS_SEP = "," );
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Build commands</td>
           <td class="data">
-            <div>[% rfam.cmbuild %]</div>
-            <div>[% rfam.cmcalibrate %]</div>
-          </td>
-        </tr>
-        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-          <td class="label">Search command</td>
-          <td class="data">
-            <div>[% rfam.cmsearch %]</div>
+            <div>cmbuild [% motif.cmbuild %]</div>
+            <div>cmcalibrate [% motif.cmcalibrate %]</div>
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Gathering cutoff</td>
           <td class="data">
-            [% rfam.gathering_cutoff | format( "%5.1f" ) %]
+            [% IF motif_curation.gathering_cutoff.defined; motif_curation.gathering_cutoff | format( "%5.1f" );
+            ELSE %]N/A[% END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Trusted cutoff</td>
           <td class="data">
-            [% rfam.trusted_cutoff | format( "%5.1f" ) %]
+           [% IF motif_curation.trusted_cutoff.defined; motif_curation.trusted_cutoff | format( "%5.1f" );
+           ELSE %]N/A[% END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Noise cutoff</td>
           <td class="data">
-            [% rfam.noise_cutoff | format( "%5.1f" ) %]
+          [% IF motif_curation.noise_cutoff.defined; motif_curation.noise_cutoff | format( "%5.1f" );
+           ELSE %]N/A[% END %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Covariance model</td>
-          <td class="data">
-            [% FOREACH cm IN rfam.rfam_cms %]
-            <a href="[% c.uri_for( '/family', acc, 'cm', cm.version ) | html %]">
-              Download</a> the CM built using Infernal version 
-            [% cm.version %]
-            <br />
-            [% END %]
+          <td class="data">Download the Infernal CM for the motif here
           </td>
         </tr>
       </tbody>
     </table>
+
   </div>
 </div>
 

@@ -152,9 +152,9 @@ sub av : Chained( 'structure' )
   $c->log->debug( 'Structure::av: showing av for ' . $c->stash->{pdb_id} )
     if $c->debug;
 
-  my @rs = $c->model('RfamDB::PdbRfamReg')
+  my @rs = $c->model('RfamDB::PdbFullRegion')
              ->search( { pdb_id => $c->stash->{pdb_id} },
-                       { prefetch => [ qw( auto_rfam ) ],
+                       { prefetch => [ qw( rfam_acc ) ],
                          order_by => 'chain ASC' } );
   if ( @rs ) {
     $c->log->debug( 'Structure::av: found ' . scalar @rs . ' mappings' )

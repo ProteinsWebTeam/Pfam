@@ -91,7 +91,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
                    class="seqIcon"
                    alt="ENA graphic" /></a>
           </td>
-          <td>[% region.bits_score %]</td>
+          <td>[% region.bit_score %]</td>
           <td>[% region.type %]</td>
           <td>[% region.seq_start | format_number %]</td>
           <td>[% region.seq_end   | format_number %]</td>
