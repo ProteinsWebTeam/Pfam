@@ -535,6 +535,8 @@ sub wait_for_cluster_light {
         #
         if(-e $errnameAR->[$i]) { 
           if(-e $outnameAR->[$i]) { 
+            # if the job is supposedly finished, but the output file is still empty, give it 2 minutes to finish creating the file
+            if((! -s $outnameAR->[$i]) && ($finishedA[$i] == 1)) { sleep(120); }
             if(-s $outnameAR->[$i]) { 
               # check for success string in tail output
               my $tail= `tail $outnameAR->[$i]`;
