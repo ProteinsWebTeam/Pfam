@@ -1,4 +1,3 @@
-
 [%
 # phylo.tt
 # jt6 20060515 WTSI
@@ -134,7 +133,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
         // submit AJAX requests for each of the label types
         ["species","acc"].each( function(label) {
   
-          var ajaxUri = "[% c.uri_for( '/family', acc, 'tree', 'seed' ) %]"
+          var ajaxUri = "[% c.uri_for( '/family', acc, 'tree' ) %]"
                         + "/label/" + label
                         + "/map";
           var r = new Ajax.Request(
@@ -172,11 +171,11 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       // parse the node name into the components that we can use to build the 
       // tooltip contents
       //
-      // 104.02_AC135465.23/41412-41522_Medicago_truncatula_barrel_medic
-      // score_accession.version/start-end_species
-      //   0       1        2      3    4    5
+      // 64.70_AJ241847.1/281-334_Peach_latent_mosaic_vir..[12894].18
+      // score_accession.version/start-end_species[taxId]
+      //   1       2        3      4    5    6       7
       var regexp = new RegExp();
-      regexp.compile( "^(\\d+\\.\\d+)_(\\w+)\\.(\\d+)\\/(\\d+)\\-(\\d+)\\_(.*)$" );
+      regexp.compile( "^(\\d+\\.\\d+)_(\\w+)\\.(\\d+)\\/(\\d+)\\-(\\d+)\\_(.*?)\\|(\\d+)\\|.*$" );
 
       // this is a template for the HTML that we'll use to build the tip
       var tipTemplate = new Template( '<div id="tipContents" \
@@ -188,11 +187,21 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
     <dd>#{start} - #{end}</dd> \
     <dt>Score:</dt> \
     <dd>#{score}</dd> \
-    <dt>Species:</dt> \
+    <dt>ENA entry:</dt> \
     <dd> \
       <a class="ext" \
          href="http://www.ebi.ac.uk/ena/data/view/#{acc}"> \
+        #{acc}</a></dd> \
+    <dt>Species:</dt> \
+    <dd> \
+      <a class="ext" \
+         href="http://www.ebi.ac.uk/ena/data/view/Taxon:#{taxId}"> \
         #{species}</a></dd> \
+    <dt>NCBI tax ID:</dt> \
+    <dd> \
+      <a class="ext" \
+         href="http://www.ebi.ac.uk/ena/data/view/Taxon:#{taxId}"> \
+        #{taxId}</a></dd> \
   </dl> \
 </div> ' );
 
@@ -228,7 +237,8 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
                         version: matches[3],
                         start:   matches[4],
                         end:     matches[5],
-                        species: matches[6].gsub("_"," ") };
+                        species: matches[6].gsub("_"," "),
+                        taxId:   matches[7] };
         var tipContents = tipTemplate.evaluate( values );
 
         // two new divs that will be placed over the top of the target area and
