@@ -540,8 +540,8 @@ sub wait_for_cluster_light {
               # we wait 5 seconds per 1 minute we've been running, with min of 60 second wait, and max of 10 minutes
               # it would be better to base this on running time instead of time since we entered this function but I don't have access to that.
               my $secs2sleep = ((time() - $start_time) / 60.) * 5.; 
-              $secs2sleep = ($secs2sleep > 600.) ? $max_time : $secs2sleep;
-              $secs2sleep = ($secs2sleep < 60.)  ? $min_time : $secs2sleep;
+              $secs2sleep = ($secs2sleep > 600.) ? 600. : $secs2sleep;
+              $secs2sleep = ($secs2sleep < 60.)  ? 60.  : $secs2sleep;
               sleep($secs2sleep); 
             }
             if(-s $outnameAR->[$i]) { 
