@@ -28,23 +28,15 @@ use treefam::nhx_plot;
 
 #-------------------------------------------------------------------------------
 
-=head2 tree : Chained('family') PathPart('tree') CaptureArgs(1)
+=head2 tree : Chained('family') PathPart('tree') CaptureArgs(0)
 
-Mid-point in a chain for handling trees for a family. Requires "seed" or "full"
-as the first argument.
+Mid-point in a chain for handling trees for a family.
 
 =cut
 
 sub tree : Chained( 'family' )
            PathPart( 'tree' )
-           CaptureArgs( 1 ) {
-  my ( $this, $c, $aln_type ) = @_;
-  
-  $c->stash->{alnType} = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
-
-  $c->log->debug( 'Family::tree: looking for tree type ' . $c->stash->{alnType} )
-    if $c->debug;
-}
+           CaptureArgs( 0 ) { }
 
 #-------------------------------------------------------------------------------
 
@@ -59,9 +51,6 @@ sub tree_data : Chained( 'tree' )
                 Args( 0 ) {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Family::tree_data: returning ' . $c->stash->{alnType} . ' tree' )
-    if $c->debug;
-
   # stash the raw tree data
   $c->forward( 'get_tree_data' );
 
@@ -80,7 +69,7 @@ sub tree_data : Chained( 'tree' )
   $c->log->debug( 'Family::tree_data: tree data: |' . $c->stash->{treeData} . '|' )
     if $c->debug;
 
-  my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
+  my $filename = $c->stash->{acc} . '.nhx';
   $c->res->content_type( 'text/plain' );
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   $c->res->body( $c->stash->{treeData} );
@@ -100,15 +89,12 @@ sub old_tree_dl : Path( '/family/tree/download' ) {
   $c->log->debug( 'Family::old_tree_dl: redirecting to "tree_data"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
-
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 
-                                  'tree',  $aln_type ) );
+                                  'tree' ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -127,8 +113,8 @@ sub tree_labels : Chained( 'tree' )
   
   $c->stash->{label} = ( $label || '' ) eq 'species' ? 'species' : 'acc';
 
-  $c->log->debug( 'Family::tree_labels: labelling ' . $c->stash->{alnType} 
-                  . ' tree with ' . $c->stash->{label} . ' labels' )
+  $c->log->debug( 'Family::tree_labels: labelling tree with ' 
+                  . $c->stash->{label} . ' labels' )
     if $c->debug;
 
   # stash the tree object
@@ -206,17 +192,15 @@ sub old_tree_map : Path( '/family/tree' ) {
   $c->log->debug( 'Family::old_tree_map: redirecting to "tree_map"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
   my $label    = ( $c->req->param('label')   || '' ) eq 'species' ? 'species' : 'acc';
 
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{label};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 
-                                  'tree',  $aln_type, 
+                                  'tree',
                                   'label', $label, 
                                   'map',   $c->req->params ) );
 }
@@ -294,17 +278,15 @@ sub old_tree_image : Path( '/family/tree/image' ) {
   $c->log->debug( 'Family::old_tree_image: redirecting to "tree_image"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed'    ? 'seed'    : 'full';
   my $label    = ( $c->req->param('label')   || '' ) eq 'species' ? 'species' : 'acc';
 
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{label};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry},
-                                  'tree',  $aln_type, 
+                                  'tree',
                                   'label', $label, 
                                   'image', $c->req->params ) );
 }
@@ -331,8 +313,7 @@ sub get_tree : Private {
     $c->log->debug( 'Family::get_tree: no tree data or hit a previous error' )
       if $c->debug;
 
-    $c->stash->{rest}->{error} ||= 'We could not extract the ' . $c->stash->{alnType} 
-                                   . 'tree for ' . $c->stash->{acc};
+    $c->stash->{rest}->{error} ||= 'We could not extract the tree for ' . $c->stash->{acc};
 
     return;
   }
@@ -397,7 +378,6 @@ sub build_labelled_tree : Private {
   
   my $cache_key = 'tree_' 
                   . $c->stash->{acc} 
-                  . $c->stash->{alnType}
                   . $use_species_labels;
   my $tree = $c->cache->get( $cache_key );
   
@@ -412,6 +392,11 @@ sub build_labelled_tree : Private {
     # get a new tree object...
     $tree = treefam::nhx_plot->new( -width => 600,
                                     -skip  => 14 );
+
+    # the tree string uses "[]" to delimit tax ID, but the treefam tree parser
+    # treats brackets as some feature of a tree. We'll hack the data to avoid
+    # that special treatment by replacing them in the NHX string
+    $c->stash->{treeData} =~ tr/[]/||/;
   
     # parse the data
     eval {
@@ -437,7 +422,8 @@ sub build_labelled_tree : Private {
       $node->{L} = $node->{N};
   
       # rebuild the label, converting underscores to spaces as we pass
-      if ( $node->{N} =~ m/^(\d+\.\d+)_(\w+\.?\d*)\/(\d+)\-(\d+)\_(.*)$/ ) {
+      # 64.70_AJ241847.1/281-334_Peach_latent_mosaic_vir..[12894].18
+      if ( $node->{N} =~ m/^(\d+\.\d+)?_(\w+\.?\d*)\/(\d+)\-(\d+)\_(.*)\|(\d+)\|.*$/ ) {
         $node->{N} = $use_species_labels ? $5 : "$2/$3-$4";
         $node->{N} =~ s/_/ /g;
       }
@@ -468,8 +454,7 @@ sub get_tree_data : Private {
 
   # see if we can extract the pre-built tree object from cache
   my $cacheKey = 'treeData' 
-                 . $c->stash->{acc}
-                 . $c->stash->{alnType};
+                 . $c->stash->{acc};
   my $tree_data = $c->cache->get( $cacheKey );
   
   if ( defined $tree_data ) {
@@ -483,7 +468,7 @@ sub get_tree_data : Private {
     # retrieve the tree from the DB
     my $rs = $c->stash->{db}->resultset('AlignmentAndTree')
                ->search( { rfam_acc => $c->stash->{acc},
-                           type     => $c->stash->{alnType} },
+                           type     => 'seedTax' },
                          { columns => [ 'tree' ] } );
     my $row = $rs->first;
 
