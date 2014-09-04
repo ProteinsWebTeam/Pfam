@@ -221,7 +221,7 @@ sub findMotifs {
           }
           # Create the individual motif images, zip them and store them in the database
           my $motifLegendLabel = $acceptedMotifHash{$motifAccession}->{MOTIF_ID};
-          my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours,$motifLegendLabel);
+          my $motifSVGlegend = SVGLegend("Frac. Seed Seq. with Motif", 0, 1, \%colours,$motifLegendLabel,$rfam_acc);
           my $motifSVGobj = annotateSVG($RNAplot_img, \%colourSeqPosWithMotif,$motifSVGlegend);
           my $motifHandle;
           open ($motifHandle, '>', "$results_loc/$rfam_acc.$motifAccession.svg") or die ("Unable to open $motifHandle");
@@ -267,7 +267,7 @@ sub findMotifs {
 ##############
 
 sub SVGLegend {
-  my ($legend_name,$min_value,$max_value,$colours,$motif_id) = @_;
+  my ($legend_name,$min_value,$max_value,$colours,$motif_id,$family_id) = @_;
 
   $max_value = sprintf("%.2f", $max_value);
   $min_value = sprintf("%.2f", $min_value);
@@ -309,9 +309,20 @@ sub SVGLegend {
                                                 x      => 550,
                                                 y      => 15,
                                                 style  => { 'font-family'  => "Arial,Helvetica",
-                                                            'font-size'    => "20px",
+                                                            'font-size'    => "18px",
                                                             'text-anchor'  => "middle",
                                                             'fill'         => "dimgrey" } )->cdata($motif_id);
+  
+  my $familyID = $legendElementsGroup->text(
+                                                id     => 'familyID',
+                                                x      => 550,
+                                                y      => -10,
+                                                style  => { 'font-family'  => "Arial,Helvetica",
+                                                            'font-size'    => "18px",
+                                                            'text-anchor'  => "middle",
+                                                            'fill'         => "dimgrey" } )->cdata($family_id);
+
+
   my $xPos = 0;
   my $yPos = 0;
  
@@ -499,16 +510,25 @@ sub motifMatchCalcs {
   my $num_seq = stockholmSeqStats($stockholm); 
 
   my %motifHash;
+  my %seqIDHash;
   foreach my $mot (@$completeMotifResultSet) {
     my $motif_acc = $mot->get_column('motif_acc');
     $motifHash{$motif_acc} = { NUM_HITS => 0, FREQ_HITS => 0, SUM_BITS => 0, AVG_W_BITS => 0, MOTIF_ID => $mot->get_column('motif_id')};
+    $seqIDHash{$motif_acc} = {};
   }
   
+
   foreach my $motifMatchObj (@$motifMatchObjects) {
-    my $motif_acc = $motifMatchObj->MOTIF_ACC;
-    $motifHash{$motif_acc}->{NUM_HITS}+=1;
-    $motifHash{$motif_acc}->{SUM_BITS}+=sprintf("%.3f",$motifMatchObj->BIT_SCORE);
     my $seq_id = $motifMatchObj->RFAMSEQ_ID;
+    my $motif_acc = $motifMatchObj->MOTIF_ACC;
+    print "Match between $motif_acc and $seq_id \n";
+    unless (defined $seqIDHash{$motif_acc}{$seq_id}) {$seqIDHash{$motif_acc}{$seq_id}=0;}
+    if (!$seqIDHash{$motif_acc}{$seq_id}==1) {
+      $motifHash{$motif_acc}->{NUM_HITS}+=1;
+      $seqIDHash{$motif_acc}{$seq_id}=1;
+    }
+
+    $motifHash{$motif_acc}->{SUM_BITS}+=sprintf("%.3f",$motifMatchObj->BIT_SCORE);
     my $seq_weight;
     if (defined $weights->{$seq_id}) {
       $seq_weight = $weights->{$seq_id};
