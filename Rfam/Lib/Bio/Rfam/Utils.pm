@@ -465,8 +465,6 @@ sub wait_for_cluster_light {
     #################################################
     # CLUSTER CHECK BLOCK
     if($do_cluster_check) { 
-      #printf STDERR ("IN CLUSTER CHECK BLOCK\n");
-      #printf ("IN CLUSTER CHECK BLOCK\n");
       $ncycle = 0; # reset to 0
       $ncluster_check++;
       if   ($location eq "JFRC") { @infoA = split("\n", `qstat`); }
