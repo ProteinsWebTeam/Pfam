@@ -347,8 +347,6 @@ sub wait_for_cluster {
 
 #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-
 =head2 wait_for_cluster_light
 
     Title    : wait_for_cluster_light
@@ -529,21 +527,24 @@ sub wait_for_cluster_light {
         # if err file exists
         #    if output file exists
         #       if success string exists: then JOB FINISHED SUCCESSFULLY
-        #       else: JOB IS RUNNING OR FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
-        #    else: JOB IS RUNNING FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
-        # else JOB IS WAITING OR FAILED (check with finishedA filled in CLUSTER CHECK BLOCK)
+        #       else: JOB IS RUNNING OR FAILED (check by consulting finishedA filled in CLUSTER CHECK BLOCK)
+        #    else: JOB IS RUNNING FAILED (check by consulting finishedA filled in CLUSTER CHECK BLOCK)
+        # else JOB IS WAITING OR FAILED (check by consulting finishedA filled in CLUSTER CHECK BLOCK)
         #
         if(-e $errnameAR->[$i]) { 
-          if(-e $outnameAR->[$i]) { 
-            if((! -s $outnameAR->[$i]) && ($finishedA[$i] == 1)) { 
-              # if the job is supposedly finished, but the output file is still empty, give it some time to finish creating the file,
-              # we wait 5 seconds per 1 minute we've been running, with min of 60 second wait, and max of 10 minutes
-              # it would be better to base this on running time instead of time since we entered this function but I don't have access to that.
-              my $secs2sleep = ((time() - $start_time) / 60.) * 5.; 
-              $secs2sleep = ($secs2sleep > 600.) ? 600. : $secs2sleep;
-              $secs2sleep = ($secs2sleep < 60.)  ? 60.  : $secs2sleep;
-              sleep($secs2sleep); 
+          # First check for the following rare case: 
+          # finishedA[$i] is 1 (qstat/bjobs indicated the job is finished (no longer in queue))
+          # but the expected output file either does not exist or is empty. If this happens, we wait 
+          # up to 10 minutes for it to appear, to guard against the real possibility that the file 
+          # is currently being written to but isn't visible to the file system yet).
+          if($finishedA[$i] && (! -s $outnameAR->[$i])) {
+            my $nsleep = 0;
+            while((! -s $outnameAR->[$i]) && ($nsleep < 10)) { 
+              sleep(60.);
+              $nsleep++;
             }
+          }
+          if(-e $outnameAR->[$i]) { 
             if(-s $outnameAR->[$i]) { 
               # check for success string in tail output
               my $tail= `tail $outnameAR->[$i]`;
@@ -559,13 +560,13 @@ sub wait_for_cluster_light {
               }
               if($successA[$i] == 0) { # we didn't find the success string, did our cluster check reveal this job should be finished?
                 if($finishedA[$i] == 1) { 
-                  die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file $outnameAR->[$i] does not contain: $success_string\n"; 
+                  die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but tail of expected output file $outnameAR->[$i] does not contain: $success_string\n"; 
                 }
               }
             } #end of 'if(-s $outnameAR->[$i])'
             else { # $outfile exists but is empty, job is running or failed
               if($finishedA[$i] == 1) { 
-                die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file is empty\n";
+                die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file $outnameAR->[$i] is empty\n";
               }
               elsif($runningA[$i] == 0) { 
                 $runningA[$i] = 1; 
