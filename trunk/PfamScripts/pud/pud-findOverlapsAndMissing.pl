@@ -126,8 +126,8 @@ sub getRegions
 {
     my ( $families, $posOverlaps, $familiesData ) = @_;
 
-    # if refprot flag is used, then load all reference proteomes sequence accessions
-    my %refprotAccs;    # hash for storing the version of each sequence accession
+    # if all flag is used, then skip filtering out non reference proteomes regions
+    my %refprotAccs;    # hash for storing all reference proteomes sequence accessions
     unless ($all)
     {
         my $refprotFile = $config->refprotLoc . "/refprot";
