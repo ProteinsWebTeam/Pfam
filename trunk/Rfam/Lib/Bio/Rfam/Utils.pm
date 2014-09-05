@@ -455,7 +455,6 @@ sub wait_for_cluster_light {
     # which jobs are no longer in the queue, these should've all finished
     # successfully
     $do_cluster_check = 0;
-    sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
     if((($ncycle == $ncycle_thresh) && ($nrunning > 0)) || # we've reached the threshold of number of times to wait before checking cluster and at least some jobs are not waiting, do it
        (($ncluster_check == 0) && ($ncycle > 0) && ($nwaiting == 0))) # we haven't checked the cluster at all yet, and all jobs appear to be running, do it
     { 
@@ -467,6 +466,7 @@ sub wait_for_cluster_light {
     if($do_cluster_check) { 
       $ncycle = 0; # reset to 0
       $ncluster_check++;
+      sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
       if   ($location eq "JFRC") { @infoA = split("\n", `qstat`); }
       elsif($location eq "EBI")  { @infoA = split("\n", `bjobs`); }
       for($i = 0; $i < $n; $i++) { $ininfoA[$i] = 0; } 
