@@ -464,9 +464,9 @@ sub wait_for_cluster_light {
     #################################################
     # CLUSTER CHECK BLOCK
     if($do_cluster_check) { 
+      sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
       $ncycle = 0; # reset to 0
       $ncluster_check++;
-      sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
       if   ($location eq "JFRC") { @infoA = split("\n", `qstat`); }
       elsif($location eq "EBI")  { @infoA = split("\n", `bjobs`); }
       for($i = 0; $i < $n; $i++) { $ininfoA[$i] = 0; } 
@@ -560,9 +560,9 @@ sub wait_for_cluster_light {
                     last;
                   }
                 }
+                $ncheck++;
                 if($successA[$i] == 0) { # didn't find $success_string
                   sleep(60.);
-                  $ncheck++;
                 }
               }
               if($successA[$i] == 0) { # we didn't find the $success_string in the output
