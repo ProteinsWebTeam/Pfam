@@ -161,7 +161,7 @@ has 'CUTNC' => (
 
 has 'TP' => (
   is        => 'ro',
-  isa       =>  enum( [ qw( Family Domain Repeat Motif ) ]),
+  isa       =>  enum( [ qw( Family Domain Repeat Motif Disordered ) ]),
   required  => 1
 );
 

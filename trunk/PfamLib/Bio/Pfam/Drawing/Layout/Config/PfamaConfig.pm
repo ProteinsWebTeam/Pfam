@@ -147,7 +147,7 @@ sub _setEdges{
       $region->startStyle( 'straight' );
       $region->endStyle( 'straight' );
     }   
-  }elsif($region->metadata->type eq 'Repeat' or $region->metadata->type eq 'Motif'){
+  }elsif($region->metadata->type eq 'Repeat' or $region->metadata->type eq 'Motif' or $region->metadata->type eq 'Disordered'){
     $region->startStyle( 'straight' );
     $region->endStyle( 'straight' );
   }else{
