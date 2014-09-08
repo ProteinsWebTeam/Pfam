@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 # build the interpo and gene_ontology tables in pfam_live
 # jt6 20111209 WTSI
@@ -172,8 +172,8 @@ IP_ID: foreach my $node ( $root->findnodes('/interprodb/interpro') ) {
 
   # if this abstract maps to a Pfam-A family, insert it
   PFAM_ACC: foreach my $pfam_acc ( @$pfam_accessions ) {
-    my $row = $schema->resultset('Pfama')
-                     ->search( { pfama_acc => $pfam_acc },
+    my $row = $schema->resultset('PfamA')
+                     ->search( { 'me.pfama_acc' => $pfam_acc },
                                { join     => [ qw( interpros gene_ontologies ) ] } )
                      ->first;
 
@@ -185,7 +185,7 @@ IP_ID: foreach my $node ( $root->findnodes('/interprodb/interpro') ) {
       interpro_id => $interpro_id,
       abstract    => $abstract 
     },
-    { key => 'auto_ip_unq' } );
+    { key => 'pfama_ip_unq' } ); #possible changes needed for mySQL / schema update
     if ( $rv ) {
       $log->info( "inserted '$interpro_id' abstract for '$pfam_acc'" );
     }
@@ -207,7 +207,7 @@ IP_ID: foreach my $node ( $root->findnodes('/interprodb/interpro') ) {
           term  => $term,
           category => $category
         },
-        { key => 'auto_go_unq' } );
+        { key => 'pfama_go_unq' } ); 
 
         if ( $rv ) {
           $log->info( "inserted GO term '$term', category '$category', ID '$go_id' for '$pfam_acc'" );

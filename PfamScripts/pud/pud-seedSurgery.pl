@@ -67,17 +67,17 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 $logger->info('Getting list of families that need to be updated.');
 
 my $pfamSth = $dbh->prepare(
-  'select auto_pfamA, pfamA_acc from  pfamA a 
+  'select pfamA_acc from  pfamA a 
 where num_seed != (
-select count(auto_pfamA) from pfamA_reg_seed s where a.auto_pfamA=s.auto_pfamA)'
-);
+select count(pfamA_acc) from pfamA_reg_seed s where a.pfamA_acc=s.pfamA_acc)'
+); #mySQL statement updated for new db schema
 
 $pfamSth->execute or $logger->logdie( $dbh->errstr );
 my $res = $pfamSth->fetchall_arrayref;
 
 my %pfamA;
 foreach my $r (@$res) {
-  $pfamA{ $r->[1] } = $r->[0];
+  $pfamA{ $r->[0] } = 1; #update due to changes to mySQL statement for new schema, now key=acc, val = 1 instead of key = acc, val = auto_pfamA
 }
 $logger->info("Finished getting list of Pfam families");
 
@@ -89,8 +89,8 @@ my $seqSth =
 
 my $seedSth = $dbh->prepare(
   "select distinct pfamseq_acc from pfamseq s, pfamA_reg_seed r 
-where s.auto_pfamseq=r.auto_pfamseq and auto_pfamA=?"
-) or die $dbh->errstr;
+where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc=?"
+) or die $dbh->errstr; #mySQL statement changed due to new db schema
 
 #-------------------------------------------------------------------------------
 #Get all secondary accessions
@@ -98,8 +98,8 @@ $logger->info("Getting secondary accessions");
 
 my $secSth = $dbh->prepare(
 "select pfamseq_acc, seq_version, secondary_acc, md5 from pfamseq, secondary_pfamseq_acc 
-where pfamseq.auto_pfamseq = secondary_pfamseq_acc.auto_pfamseq"
-) or die $dbh->errstr;
+where pfamseq.pfamseq_acc = secondary_pfamseq_acc.pfamseq_acc"
+) or die $dbh->errstr; #mySQL query updated to to db schema change
 
 $secSth->execute or $dbh->errstr;
 
@@ -131,7 +131,7 @@ FAM:
 foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
   $logger->debug("$fam needs seed surgery");
 
-  $seedSth->execute( $pfamA{$fam} ) or die $dbh->errstr;
+  $seedSth->execute( $pfamA ) or die $dbh->errstr; #mySQL statement changed due to db schema - now execute on $pfamA which is PfamA_acc rather than the auto_pfamA
   my $seedSeqs = $seedSth->fetchall_arrayref;
   my $seedSeqsHash;
   foreach my $r (@$seedSeqs) {

@@ -73,6 +73,7 @@ $logger->info('Extracting ncbi data');
 my $tar = Archive::Tar->new;
 $tar->read( $config->localDbsLoc . '/ncbi/taxdump.tar.gz' );
 $tar->extract_file( 'nodes.dmp', $config->localDbsLoc . '/ncbi/nodes.dmp' );
+$tar->extract_file( 'names.dmp', $config->localDbsLoc . '/ncbi/names.dmp' );
 
 #-------------------------------------------------------------------------------
 # Build up all the ncbi nodes. Read into a hash array

@@ -9,17 +9,13 @@ use File::Copy;
 use Getopt::Long;
 use Digest::MD5 qw(md5_hex);
 use Text::Wrap;
+use Mail::Mailer;
 
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
 
 $Text::Wrap::columns = 60;
-
-
-#Set UniProtKB location
-my $uniprot_url = "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete";
-
 
 my($statusdir, $pfamseq_dir);
 
@@ -43,6 +39,56 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
+#set uniprot location
+my $uniprot_location = $config->uniprotPrivateLoc;
+
+#Email to see if it is safe to update sequence db
+unless (-e "$statusdir/maileduniprot.txt"){
+    open( FH, "> $statusdir/maileduniprot.txt" ) or die "Can not write to file $statusdir/maileuniprotd.txt";
+    close(FH);
+    $logger->info("Sending email to UniProt production team\n");
+
+my $message = <<EOF;
+Dear UniProt Production Team,
+
+The Pfam team have just begun a sequence update. 
+
+Before we continue with our sequence update we would like to check with you that you are not currently copying data over to the following files:
+$uniprot_location/uniprot_trembl.dat.gz
+$uniprot_location/uniprot_sprot.dat.gz
+
+Please can you reply to this email and let us know if data is currently being copied to these files.
+
+Many thanks
+
+The Pfam Team
+
+EOF
+
+	my $user = $ENV{USER};
+
+    my %header = (
+	To => 'ruthe@ebi.ac.uk',
+	From => $user . '@ebi.ac.uk',
+	Subject => 'UniProt pre-release data'
+	);
+
+    my $mailer = Mail::Mailer->new;
+    $mailer -> open( \%header );
+    print $mailer $message or $logger->logdie("Failed to email UniProt production\n");
+    $mailer->close;
+
+#check if reply has been recieved from uniprot?
+    print "Has a reply been recieved from UniProt? Please enter Y/N:\n";
+    my $reply = <STDIN>;
+    chomp $reply;
+    my $lc_reply = lc($reply);
+    if ( $lc_reply ne "y") {
+	$logger->logdie("No reply has been recieved from UniProt. Exiting.\n");
+    }
+
+}
+
 
 #First make a file of old pfamseq accs and md5s
 if(-s "$statusdir/old_pfamseq.md5") {
@@ -50,7 +96,7 @@ if(-s "$statusdir/old_pfamseq.md5") {
 }
 else {
     $logger->info("Making a file of accessions and md5s from old pfamseq, this will be used during seed surgery\n");
-    my $st_md5 = $dbh->prepare("select pfamseq_acc, md5 from pfamseq, pfamA_reg_seed where pfamseq.auto_pfamseq = pfamA_reg_seed.auto_pfamseq");
+    my $st_md5 = $dbh->prepare("select pfamseq.pfamseq_acc, md5 from pfamseq, pfamA_reg_seed where pfamseq.pfamseq_acc = pfamA_reg_seed.pfamseq_acc"); #mySQL statement updated for new schema
     $st_md5->execute() or $logger->logdie("Couldn't select pfamseq_acc and md5 from pfamseq table ".$st_md5->errstr."\n");
     
     my $md5_data = $st_md5->fetchall_arrayref;
@@ -67,13 +113,14 @@ chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_
 
 
 
-#Get reldate.txt from EBI ftp site
+#Get reldate.txt from UniProt ftp directory
 if(-s "reldate.txt") {
     $logger->debug("Already downloaded\n");
 }
 else {
-    $logger->debug("Downloading reldate.txt from ebi ftp site\n");
-    system ("wget $uniprot_url/reldate.txt") and $logger->logdie("Couldn't obtain reldate.txt from EBI:[$!]\n")
+    $logger->debug("Downloading reldate.txt from uniprot ftp directory\n");
+    #RDF do not uses a system call but use File::Copy
+    copy("$uniprot_location/reldate.txt", "reldate.txt") or $logger->logdie("Could not copy reldate.txt [$!]\n");
 }
 
 
@@ -96,9 +143,9 @@ else {
     unless(defined($trembl_rel) and defined($swiss_prot_rel)){
       $logger->logdie("Faied to get release information for reldate.txt.");  
     }
-    my $st_version = $dbh->prepare("update VERSION set swiss_prot_version = \"$swiss_prot_rel\"");
+    my $st_version = $dbh->prepare("update version set swiss_prot_version = \"$swiss_prot_rel\"");
     $st_version->execute() or $logger->logdie("Failed to update version table with swiss prot version ". $st_version->errstr."\n");
-    my $st_version2 = $dbh->prepare("update VERSION set trembl_version = \"$trembl_rel\"");
+    my $st_version2 = $dbh->prepare("update version set trembl_version = \"$trembl_rel\"");
     $st_version2->execute() or $logger->logdie("Failed to update version table with trembl version ". $st_version2->errstr."\n");
 
     system("touch $statusdir/updated_version") and $logger->logdie("Couldn't touch $statusdir/updated_version:[$!]\n");
@@ -108,18 +155,20 @@ else {
 
 #Get UniProtKB from EBI ftp site 
 my @files = qw(uniprot_sprot.dat uniprot_trembl.dat);
+
 foreach my $file (@files) {
     if(-s "$file.gz") {
 	$logger->debug("Already downloaded $file.gz");
     } 
     else {
 	$logger->debug("Downloading $file.gz from EBI ftp site\n");
-	system ("wget $uniprot_url/$file.gz") and $logger->logdie("Couldn't download $file.gz from EBI:[$!]\n");
+	copy("$uniprot_location/$file.gz", "$file.gz") or $logger->logdie("Could not copy $file.gz [$!]\n");
 	$logger->logdie("Couldn't download $file.gz from EBI:[$!]\n") unless(-s "$file.gz");
     }
 }
 
 
+#$logger->logdie("Check that NcbiTaxonomy has been populated, then remove this line!");
 #Retrieve data from files
 my $num_seq;
 if(-e "$statusdir/parsed_uniprotkb") { 
@@ -148,10 +197,17 @@ else {
 	
 	$/= "//\n";
 	open(FH, "gunzip -c $file.gz |") or $logger->logdie("Failed to gunzip $file.gz:[$!]\n");
+
+#adding counts for debugging
+	my $count1=0;
+	my $count2=0;
+
 	while(<FH>) {
 	    
 	    my @entry = split(/\n/, $_);
-	    
+   
+#count for debugging
+ 	$count1++;
 	my %record;
 	    foreach my $line (@entry) {
 		if( $line =~ /^AC\s+(\S+);(.+)?/) {
@@ -281,6 +337,16 @@ else {
 		    $record{'NON_CONS'}=1;
 		    last; # We don't do non consecutive   
 		}
+		elsif ($line =~ /^KW.+Complete\sproteome.+Reference\sproteome/){ #KW line contains complete and reference
+		    $record{'Complete_proteome'}=1;
+		    $record{'Reference_proteome'}=1;
+		}
+		elsif( $line =~ /^KW.+Reference\sproteome/){ #is it from a reference proteome?
+		    $record{'Reference_proteome'}=1;
+		}
+		elsif ($line =~ /^KW.+Complete\sproteome/){ #is it from a complete proteome?
+		    $record{'Complete_proteome'}=1;
+		}
 		
 	    } 
 	    
@@ -330,16 +396,36 @@ else {
 	    else {
 		$is_frag = 0;
 	    }
+
+	    my $complete;
+	    my $reference;
+	    if($record{'Reference_proteome'}) {
+		$reference = 1;
+	    } 
+	    else {
+		$reference = 0;
+	    }
+
+	    if($record{'Complete_proteome'}) {
+		$complete = 1;
+	    } 
+	    else {
+		$complete = 0;
 	    
-	    print PFAMSEQ "$record{'ID'}\t$record{'AC'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\t\\N\n";
+	    }
+	    #This will be uploaded into the tmp_pfamseq table.
+	    print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t$reference\t$complete\t\\N\n";
 	    
+#count for debugging
+	$count2++;
 	    
 	    if(exists($record{'SEC_AC'})) {
 		foreach my $sec_acc (@{$record{'SEC_AC'}}) {
 		    print SEC_ACC "$record{'AC'}\t$sec_acc\n";
 		}
 	    }
-	    
+
+####need to parse out evidence tags here###	    
 	    if($record{'AS'}) {
 		foreach my $residue (keys %{$record{'AS'}}) {
 		    if( lc($record{'AS'}{$residue}) =~ /(potential|probable|similarity)/) {
@@ -352,7 +438,7 @@ else {
 		}
 	    }
 	    
-	    
+####need to parse out evidence tags here###	    
 	    if($record{'ME'}) {
 		foreach my $residue (keys %{$record{'ME'}}) {
 		    if( lc($record{'ME'}{$residue}) =~ /(potential|probable|similarity)/) {
@@ -374,6 +460,9 @@ else {
 	    $num_seq++;
 	    
 	}
+#print counts for debugging
+        $logger->info("$count1 entries parsing, $count2 entries added to .dat file\n");
+
     }
 
     close FASTA;
@@ -383,6 +472,7 @@ else {
     close SEC_ACC;
 
     system("touch $statusdir/parsed_uniprotkb") and $logger->logdie("Couldn't touch $statusdir/parsed_uniprotkb:[$!]\n");
+
 }
 
 
@@ -406,7 +496,8 @@ else {
     system ("esl-sfetch --index pfamseq") and $logger->logdie("Couldn't make easel indices for pfamseq:[$!]");
     system("touch $statusdir/made_easel_indices") and $logger->logdie("Couldn't touch $statusdir/made_easel_indices:[$!]\n");
 }
-										 
+
+
 if(-e "$statusdir/made_ncbi_indices") {
     $logger->debug("Already made NCBI indices for pfamseq\n");
 }
@@ -425,10 +516,10 @@ else {
   $logger->info("Creating table tmp_pfamseq\n");
   
   $dbh->do("drop table if exists tmp_pfamseq");
-
+ 
   my $st = $dbh->prepare("create table tmp_pfamseq (\
-  pfamseq_id varchar(12) NOT NULL,\
-  pfamseq_acc varchar(6) NOT NULL,\
+  pfamseq_acc varchar(10) NOT NULL,\
+  pfamseq_id varchar(16) NOT NULL,\
   seq_version tinyint(4) NOT NULL,\
   crc64 varchar(16) NOT NULL,\
   md5 varchar(32) NOT NULL,\
@@ -443,15 +534,17 @@ else {
   created datetime default NULL,\
   ncbi_taxid int(10) unsigned default '0',\
   genome_seq tinyint(1) default '0',\
-  auto_architecture int(10) default NULL,\
+  ref_proteome tinyint(1) default '0',\
+  complete_proteome tinyint(1) default '0',\
   treefam_acc varchar(8) default NULL,\
   PRIMARY KEY  (pfamseq_acc),\
-  KEY pfamseq_acc_version (pfamseq_acc,seq_version) ) ENGINE=InnoDB");
+  KEY pfamseq_acc_version (pfamseq_acc,seq_version) ) ENGINE=InnoDB"); #mySQL statement updated for new schema - complete and reference proteome added
 
   $st->execute() or $logger->logdie("Failed to create table ".$st->errstr."\n");
   system("touch $statusdir/created_tmp_pfamseq") and $logger->logdie("Couldn't touch $statusdir/created_tmp_pfamseq:[$!]\n"); 
 
 }
+
 
 my $cwd = getcwd;
 my $tmp = "/tmp";
@@ -463,13 +556,12 @@ if ( -e "$statusdir/uploaded_pfamseq" ) {
 else {
   $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
     my $sth = $dbh->prepare(
-    'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  _loadTable( $dbh, "$cwd/pfamseq.dat", $sth, 18 );
+    'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); #mySQL statement updated for new schema
+  _loadTable( $dbh, "$cwd/pfamseq.dat", $sth, 19 ); #updated to work with mySQL statement for new schema incl reference proteome field
 
   system("touch $statusdir/uploaded_pfamseq")
     and $logger->logdie("Couldn't touch $statusdir/uploaded_pfamseq:[$!]\n");
 }
-
 
 
 #Delete obsolete data from pfamseq
@@ -484,25 +576,25 @@ else {
 }
 
 
-#Update changed data to pfamseq
+#Update changed data to pfamseq ###added complete and reference proteome flags to update here ####
 if(-e "$statusdir/update_pfamseq_changed") {
     $logger->info("Already updated pfamseq with changed data\n");
 }
 else {
     $logger->info("Updating pfamseq with changed data\n");
-    my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid  where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc");
+    my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid, pfamseq.ref_proteome = tmp_pfamseq.ref_proteome, pfamseq.complete_proteome = tmp_pfamseq.complete_proteome where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc"); 
     $changed_pfamseq->execute() or $logger->logdie("Failed to update pfamseq with changed data ".$changed_pfamseq->errstr."\n");
     system("touch $statusdir/update_pfamseq_changed") and $logger->logdie("Couldn't touch $statusdir/update_pfamseq_changed:[$!]\n"); 
 }
 
 
-#Insert new data to pfamseq
+#Insert new data to pfamseq ####added complete and reference proteome flags here ####
 if(-e "$statusdir/pfamseq_new") {
     $logger->info("Already updated pfamseq with new data\n");
 }
 else {
     $logger->info("Updating pfamseq with new data\n");
-    my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
+    my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid, pfamseq.ref_proteome, pfamseq.complete_proteome) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid, tmp_pfamseq.ref_proteome, tmp_pfamseq.complete_proteome from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
     $pfamseq_new->execute() or $logger->logdie("Failed to update pfamseq with new data ".$pfamseq_new->errstr."\n");
     system("touch $statusdir/pfamseq_new") and $logger->logdie("Couldn't touch $statusdir/pfamseq_new:[$!]\n"); 
 }
@@ -543,20 +635,6 @@ else {
     }
 }
 
-my %acc2auto;
-
-
-#Transform active site and metal ion binding data
-if(-e "active_site_metal.auto.dat") {
-    $logger->info("Already transformed active_site_metal.dat file\n");
-}
-else {
-    $logger->info("Transforming active_site_metal.dat file\n");
-    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("active_site_metal.dat", "active_site_metal.auto.dat", \%acc2auto, $dbh);
-}
-
-
 #Delete old active site and metal ion binding data
 if(-e "$statusdir/delete_active_metal") {
     $logger->info("Already deleted old active site and metal ion binding data from pfamseq_markup\n");
@@ -576,26 +654,12 @@ if ( -e "$statusdir/upload_active_metal" ) {
 }
 else {
   $logger->info(
-    "Uploading $cwd/active_site_metal.auto.dat to pfamseq_markup\n");
+    "Uploading $cwd/active_site_metal.dat to pfamseq_markup\n"); #changed logger message to reflect change to file name used for new mySQL statement / shchema
   my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?)');
-  _loadTable( $dbh, "$cwd/active_site_metal.auto.dat", $sth, 4 );
+  _loadTable( $dbh, "$cwd/active_site_metal.dat", $sth, 4 ); #updated to work with new mySQL statement for new schema above - use active_site_metal.dat now instead of active_site_metal.auto.dat
   system("touch $statusdir/upload_active_metal")
     and $logger->logdie("Couldn't touch $statusdir/upload_active_metal:[$!]\n");
 }
-
-
-#Transform disulphide bond binding data
-if(-e "$statusdir/upload_disulphide") {
-    $logger->info("Already transformed disulpide.dat file\n");
-}
-else {
-    $logger->info("Transforming disulpide.dat file\n");
-    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("disulphide.dat", "disulphide.auto.dat", \%acc2auto, $dbh);
-}
-
-
-
 
 #Delete old disulphide bond data
 if(-e "$statusdir/delete_disulphide") {
@@ -614,22 +678,24 @@ if ( -e "$statusdir/upload_disulphide" ) {
   $logger->info("Already uploaded $cwd/disulphide.dat to pfamseq_disulphide\n");
 }
 else {
-  $logger->info("Uploading $cwd/disulphide.auto.dat to pfamseq_disulphide\n");
+  $logger->info("Uploading $cwd/disulphide.dat to pfamseq_disulphide\n"); #changed logger message for mySQL / schema changes
   #There are 3 rows in the the pfamseq_disulphide
   my $sth = $dbh->prepare('INSERT into pfamseq_disulphide VALUES (?,?,?)');
-  _loadTable( $dbh, "$cwd/disulphide.auto.dat", $sth, 3 );
+  _loadTable( $dbh, "$cwd/disulphide.dat", $sth, 3 ); #changed as mySQL insert statement now uses disulphide.dat instead of disulphide_auto.dat
+    system("touch $statusdir/upload_disulphide") and $logger->logdie("Couldn't touch $statusdir/upload_disulphide:[$!]\n"); 
 }
 
-
-#Transform secondary acc data
-if(-e "$statusdir/upload_secondary_acc") {
-    $logger->info("Already transformed secondary_acc.dat file\n");
-}
-else {
-    $logger->info("Transforming secondary accession data\n");
-    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-    acc2auto("secondary_acc.dat", "secondary_acc.auto.dat", \%acc2auto, $dbh);
-}
+#the step below doesn't seem to be needed - hashed out for now but should be removed if nothing breaks
+#Transform secondary acc data  
+#if(-e "$statusdir/upload_secondary_acc") {
+#    $logger->info("Already transformed secondary_acc.dat file\n");
+#}
+#else {
+#    $logger->info("Transforming secondary accession data\n");
+#    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
+#    #RDF - Do we need this step???
+#    acc2auto("secondary_acc.dat", "secondary_acc.auto.dat", \%acc2auto, $dbh);
+#}
 
 
 #Delete old secondary accession data
@@ -649,10 +715,10 @@ if(-e "$statusdir/upload_secondary_acc") {
     $logger->info("Already uploading $cwd/secondary_acc.dat to secondary_pfamseq_acc\n");
 }
 else {
-    $logger->info("Uploading $cwd/secondary_acc.auto.dat to secondary_pfamseq_acc\n");
+    $logger->info("Uploading $cwd/secondary_acc.dat to secondary_pfamseq_acc\n"); #changed file name to reflect file used for mySQL insert for new db schema
     #There are 2 columsn in the the secondary_pfamseq_acc table
     my $sth = $dbh->prepare('INSERT INTO secondary_pfamseq_acc VALUES (?,?)');
-    _loadTable($dbh, "$cwd/secondary_acc.auto.dat", $sth, 2);
+    _loadTable($dbh, "$cwd/secondary_acc.dat", $sth, 2); #changed file uploaded from secondary_acc.auto.dat for mySQL insert statement for new schema
     system("touch $statusdir/upload_secondary_acc") and $logger->logdie("Couldn't touch $statusdir/upload_secondary_acc:[$!]\n");
 }
 
@@ -669,7 +735,6 @@ else {
 }
 
 $logger->info("All the data from the new UniProtKB has been uploaded to the rdb\n");
-
 
 #Copy pfamseq to nfs
 if(-e "$statusdir/copied_pfamseq") {

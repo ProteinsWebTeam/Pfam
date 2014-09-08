@@ -219,12 +219,12 @@ sub getPfamseqAccs {
   
   #In teory could have prepared this earlier! However, the script has checkpoint files
   #so can recover.
-  my $st = $dbh->prepare("select auto_pfamseq, pfamseq_acc from pfamseq");
+  my $st = $dbh->prepare("select pfamseq_acc from pfamseq"); #mySQL statement updated for new schema
   $st->execute() or $logger->logdie("Couldn't select pfamseq_acc from pfamseq table ".$st->errstr."\n");
   my $data = $st->fetchall_arrayref;
   my %pfamseq;
   foreach (@$data){
-    $pfamseq{$_->[1]} = $_->[0];
+    $pfamseq{$_->[0]} = 1; #updated as the mySQL statement above only searches for pfamseq_acc now so can't populate hash with pfamseq_acc keys and auto_pfamseq values
   }
 
   return \%pfamseq;
@@ -302,7 +302,7 @@ sub getUniProtMapping {
 sub extractAndParse {
   my ($file, $dbh) = @_;
   
-  my $sth = $dbh->prepare("select pfamseq_acc, auto_pfamseq from pfamseq where pfamseq_acc = ?");
+  my $sth = $dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc = ?"); #mySQL statement updated for new db schema - I assume this is needed as a check the acc exists?
   my($accs);
   
   my ($fh, $filename) = tempfile();
@@ -337,7 +337,7 @@ sub extractAndParse {
           unless($accs->{$uni->getAttribute('dbAccessionId')}){
             $sth->execute($uni->getAttribute('dbAccessionId'));
             my $row = $sth->fetchrow_arrayref;
-            $accs->{$row->[0]} = $row->[1];
+            $accs->{$row->[0]} = 1; #mySQL query that is updated above due to schema change only gives one row of results, so can no longer have key as pfamseq_acc and value as auto_pfamseq so changed value to 1.
           }
         } 
 
@@ -352,11 +352,11 @@ sub extractAndParse {
               ( defined($ss) ?  $ss->string_value : '\N' )."\t"; #dssp_code
         if($uni and $accs->{$uni->getAttribute('dbAccessionId')}){
           print $fh $uni->getAttribute('dbAccessionId')."\t". #pfamseq_acc
-                $accs->{$uni->getAttribute('dbAccessionId')}."\t". #auto_pfamseq  
+              #  $accs->{$uni->getAttribute('dbAccessionId')}."\t". #auto_pfamseq  #now hashed out as mySQL query for new db schema no longer contains auto_pfamseq
                 $uni->getAttribute('dbResName')."\t". #pfamseq residue
                 $uni->getAttribute('dbResNum')."\n"; # resiude number
         }else{
-          print $fh '\N'."\t".'\N'."\t".'\N'."\t".'\N'."\n";
+          print $fh '\N'."\t".'\N'."\t".'\N'."\n";  #one fewer column in file due to changed mySQL statement / db schema
         }
       }
     }
@@ -374,10 +374,9 @@ sub extractAndParse {
                                                             observed, 
                                                             dssp_code, 
                                                             pfamseq_acc, 
-                                                            auto_pfamseq, 
                                                             pfamseq_res, 
                                                             pfamseq_seq_number) 
-                                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)" );
-  _loadTable($dbh, $filename, $resSth, 12);
+                                       VALUES (?,?,?,?,?,?,?,?,?,?,?)" ); #mySQL statement updated to remove auto_pfamseq field and corresponsing ? due to db schema changes
+  _loadTable($dbh, $filename, $resSth, 11); #changed as only 11 columns populated with new mySQL statement / new db schema
   
 }

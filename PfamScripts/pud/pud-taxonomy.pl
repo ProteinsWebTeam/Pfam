@@ -54,7 +54,7 @@ usage() and exit if $help;
               
 #-------------------------------------------------------------------------------
 # Build up all the ncbi nodes. Read into a hash array
-$logger->info('Parsing ncbi data (nodes.dmp)');
+$logger->info('Parsing ncbi data (names.dmp)');
 
 my %names;
 my %minNames;

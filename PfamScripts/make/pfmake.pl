@@ -11,6 +11,10 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::SeqFetch;
 
+#added in a remove file - this is just to keep track of families which have run
+if (-e ".file"){
+    system ("rm .file");
+}
 
 main( @ARGV ) unless caller(  );
 
