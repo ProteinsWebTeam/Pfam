@@ -534,11 +534,11 @@ sub wait_for_cluster_light {
           # First check for the following rare case: 
           # finishedA[$i] is 1 (qstat/bjobs indicated the job is finished (no longer in queue))
           # but the expected output file either does not exist or is empty. If this happens, we wait 
-          # up to 10 minutes for it to appear, to guard against the real possibility that the file 
+          # up to 20 minutes for it to appear, to guard against the real possibility that the file 
           # is currently being written to but isn't visible to the file system yet).
           if($finishedA[$i] && (! -s $outnameAR->[$i])) {
             my $nsleep = 0;
-            while((! -s $outnameAR->[$i]) && ($nsleep < 10)) { 
+            while((! -s $outnameAR->[$i]) && ($nsleep < 20)) { 
               sleep(60.);
               $nsleep++;
             }
@@ -548,7 +548,7 @@ sub wait_for_cluster_light {
               # check for success string in tail output, if it's not there and $finishedA[$i] is 1 (qstat/bjobs indicated this job should be finished) 
               # then wait a minute and check again (up to 10 times) 
               my $ncheck = 0;
-              while(($ncheck == 0) || ($finishedA[$i] == 1 && $ncheck < 10 && $successA[$i] == 0)) { # if finishedA[$i] is 1, we'll stay in this loop until we've found the $success_string or checked for it 10 times
+              while(($ncheck == 0) || ($finishedA[$i] == 1 && $ncheck < 20 && $successA[$i] == 0)) { # if finishedA[$i] is 1, we'll stay in this loop until we've found the $success_string or checked for it 10 times
                 my $tail= `tail $outnameAR->[$i]`;
                 foreach $line (split ('\n', $tail)) { 
                   if($line =~ m/\Q$success_string/) {
@@ -566,7 +566,7 @@ sub wait_for_cluster_light {
                 }
               }
               if($successA[$i] == 0) { # we didn't find the $success_string in the output
-                if($finishedA[$i] == 1) { # if our cluster check revealed this job should be finished, then we waited 10 minutes and it still didn't have success, so die
+                if($finishedA[$i] == 1) { # if our cluster check revealed this job should be finished, then we waited 20 minutes and it still didn't have success, so die
                   die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but tail of expected output file $outnameAR->[$i] does not contain: $success_string\n"; 
                 }
               }
