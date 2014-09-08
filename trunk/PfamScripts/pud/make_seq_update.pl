@@ -151,8 +151,8 @@ The Pfam Release Committee
 EOF
 
   my %header = (
-    To      => 'pfam@sanger.ac.uk',
-    From    => $user . '@sanger.ac.uk',
+    To      => ['rdf@ebi.ac.uk', 'ruthe@ebi.ac.uk'],
+    From    => $user . '@ebi.ac.uk',
     Subject => 'Release message'
   );
   my $mailer = Mail::Mailer->new;
@@ -219,7 +219,7 @@ unless ( -e "$statusdir/antifam_pfamseq" ) {
   $logger->info("Removing antifam matches from pfamseq");
   system(
 "pud-removeAntiFamMatches.pl -status_dir $statusdir -pfamseq_dir $pfamseqdir$newrelease_num"
-  ) and $logger->logdie("Failed to run pud-update_pfamseq.pl:[$!]");
+  ) and $logger->logdie("Failed to run pud-removeAntiFamMatches.pl:[$!]");
   $logger->info("Updated pfamseq based on antifam matches.");
   system("touch $statusdir/antifam_pfamseq")
     and $logger->logdie("Could not touch $statusdir/antifam_pfamseq");
@@ -241,43 +241,7 @@ else {
   $logger->info("Already updated ncbi sequence database");
 }
 
-#-------------------------------------------------------------------------------
-#Download proteomes - take about 15 minutes
-if ( !-e "$statusdir/downloaded_proteomes" ) {
-  my $num = $newrelease_num . ".0";
-
-  $logger->info("Downloading proteomes\n");
-
-  # This is a dumping ground for all proteomes.
-  my $dir = $config->localDbsLoc . "/proteome/Release" . $num;
-  if ( !-d "$dir" ) {
-    mkdir( "$dir", 0777 ) or die "Cannot make dir $dir";
-  }
-  system("pud-getProteome.pl $dir")
-    and $logger->logdie("Downloading proteomes failed:[$!]");
-  system("touch $statusdir/downloaded_proteomes")
-    and $logger->logdie(
-    die "couldn't touch $statusdir/downloaded_proteomes:[$!]" );
-  $logger->info("Downloaded proteome data");
-}
-else {
-  $logger->info("Already downloaded proteomes");
-}
-
-#Upload proteomes
-unless ( -e "$statusdir/uploaded_proteomes" ) {
-  my $num = $newrelease_num . ".0";
-  $logger->info("Uploading proteomes");
-  system("pud-proteomeUpload.pl -rel $num")
-    and $logger->logdie("Failed to run |pud-proteomeUpload.pl -rel $num|:[$!]");
-  $logger->info("Finished uploading proteomes");
-  system("touch $statusdir/uploaded_proteomes")
-    and
-    $logger->logdie( die "couldn't touch $statusdir/uploaded_proteomes:[$!]" );
-}
-else {
-  $logger->info("Already uploaded proteomes");
-}
+########proteomes stuff was here - moved to below seed surgery for now
 
 #-------------------------------------------------------------------------------
 #Update metaseq!(takes 0 mins )
@@ -317,27 +281,6 @@ else {
 }
 
 #-------------------------------------------------------------------------------
-#Update the interactions table!(takes 0 mins )
-
-#At the moment there is not iPfam, so we are not going to have to do anything
-$logger->warn('Until iPfam is resurrected, there is nothing to do.');
-
-#-------------------------------------------------------------------------------
-#Update the pdb data
-# This took 2.5 without the upload (done manaually afterwards) - takes about another 2 hours to upload
-unless ( -e "$statusdir/done_update_pdb" ) {
-  $logger->info("Preparing to fetch all the latest pdb data.");
-  system("pud-getPdbDataFromSifts.pl $statusdir")
-    and $logger->logdie("Failed to run pud-getPdbDataFromSifts.pl:[$!]");
-  $logger->info("Updated pdb data");
-  system("touch $statusdir/done_update_pdb")
-    and $logger->logdie("Failed to touch $statusdir/done_update_pdb");
-}
-else {
-  $logger->info("Already done pdb upload\n");
-}
-
-#-------------------------------------------------------------------------------
 #Calculate the other regions - This takes about 5 hours to calculate....Hmm we may want to fork here (rdf)
 unless ( -e "$statusdir/done_other_reg_update" ) {
   $logger->info("Updating other_reg table");
@@ -350,7 +293,6 @@ unless ( -e "$statusdir/done_other_reg_update" ) {
 else {
   $logger->info("Already done other_reg upload\n");
 }
-
 
 #Make the shuffled/reversed sequence database.
 if ( -e "$statusdir/shuffled_pfamseq" ) {
@@ -375,6 +317,7 @@ else {
     or $logger->logdie("Failed to change directory to $pwd");
 }
 
+
 #Index pfamseq sequence database.
 if ( -e "$statusdir/index_pfamseq" ) {
   $logger->info("Already made index for pfamseq!");
@@ -394,6 +337,31 @@ else {
   chdir("$pwd")
     or $logger->logdie("Failed to change directory to $pwd");
 }
+
+$logger->logdie("now need iPfam and PDB stuff fixed\n");
+
+#-------------------------------------------------------------------------------
+#Update the interactions table!(takes 0 mins )
+
+#At the moment there is not iPfam, so we are not going to have to do anything
+$logger->warn('Until iPfam is resurrected, there is nothing to do.');
+
+#-------------------------------------------------------------------------------
+$logger->logdie("need to change PDB stuff here\n");
+#Update the pdb data
+# This took 2.5 without the upload (done manaually afterwards) - takes about another 2 hours to upload
+unless ( -e "$statusdir/done_update_pdb" ) {
+  $logger->info("Preparing to fetch all the latest pdb data.");
+  system("pud-getPdbDataFromSifts.pl $statusdir")
+    and $logger->logdie("Failed to run pud-getPdbDataFromSifts.pl:[$!]");
+  $logger->info("Updated pdb data");
+  system("touch $statusdir/done_update_pdb")
+    and $logger->logdie("Failed to touch $statusdir/done_update_pdb");
+}
+else {
+  $logger->info("Already done pdb upload\n");
+}
+
 
 #------------------------------
 #Lock and load!!!!
@@ -625,6 +593,9 @@ else {
 
 #-------------------------------------------------------------------------------
 
+
+
+
 #Unlock the database
 # Unlock the database at this point ready for check ins
 if ( !-e "$statusdir/database_unlocked" ) {
@@ -701,6 +672,46 @@ $logger->info(
 # BREAKING HERE UNTIL SURGERY HAS BEEN COMPLETED
 #-------------------------------------------------------------------------------
 #Assuming all surgery has been performed and families moved back into families dir.
+
+$logger->logdie("Proteome section moved to below seed surgery for now\nMay have issues due to complete/ref proteomes being taken from uniprot internal data but this coming from release date\nProteome section should have been completed by previous steps");
+#-------------------------------------------------------------------------------
+#Download proteomes - take about 15 minutes
+if ( !-e "$statusdir/downloaded_proteomes" ) {
+  my $num = $newrelease_num . ".0";
+
+  $logger->info("Downloading proteomes\n");
+
+  # This is a dumping ground for all proteomes.
+  my $dir = $config->localDbsLoc . "/proteome/Release" . $num;
+  if ( !-d "$dir" ) {
+    mkdir( "$dir", 0777 ) or die "Cannot make dir $dir";
+  }
+  system("pud-getProteome.pl $dir")
+    and $logger->logdie("Downloading proteomes failed:[$!]");
+  system("touch $statusdir/downloaded_proteomes")
+    and $logger->logdie(
+    die "couldn't touch $statusdir/downloaded_proteomes:[$!]" );
+  $logger->info("Downloaded proteome data");
+}
+else {
+  $logger->info("Already downloaded proteomes");
+}
+
+#Upload proteomes
+unless ( -e "$statusdir/uploaded_proteomes" ) {
+  my $num = $newrelease_num . ".0";
+  $logger->info("Uploading proteomes");
+  system("pud-proteomeUpload.pl -rel $num")
+    and $logger->logdie("Failed to run |pud-proteomeUpload.pl -rel $num|:[$!]");
+  $logger->info("Finished uploading proteomes");
+  system("touch $statusdir/uploaded_proteomes")
+    and
+    $logger->logdie( die "couldn't touch $statusdir/uploaded_proteomes:[$!]" );
+}
+else {
+  $logger->info("Already uploaded proteomes");
+}
+#--------------------------------------------------------------------------------
 
 #Check all families have built - list failures. Do not proceed until failure = 0
 

@@ -35,6 +35,13 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh    = $pfamDB->getSchema->storage->dbh;
 
+#does the RP local database directory exist? If not make one
+unless ( -d $config->localDbsLoc . '/RP' ) {
+  mkdir( $config->localDbsLoc . '/RP' )
+    or die "Could not make the directory "
+    . $config->localDbsLoc
+    . "/RP because: [$!]\n";
+}
 
 #Move to the RP local database directory;
 my $pwd = getcwd;

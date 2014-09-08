@@ -11,6 +11,7 @@ use Net::SCP;
 use Getopt::Long;
 use File::Touch;
 use Data::Printer;
+use Data::Dumper;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
@@ -135,20 +136,20 @@ unless ( -e "$statusdir/otherReg/doneFarm" ) {
   #Set up the job and copy the files over;
   $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue}
-      . " -R \"select[mem>4000] rusage[mem=4000]\" -M 4000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
+      . " -R \"select[mem>4000] rusage[mem=4000]\" -M 2000000 -o $statusdir/otherReg/$uuid.log  -JotherRegs\"[1-$n]\" " );
  
   #Change into the directory containing the shattered pfamseq files
   $fh->print("cd $pfamseqDir/otherReg\n");
 
 #To calculate these other regions
-#seg
+#segmasker (replaces seg)
 #ncoils - This needs the environment variable COILSDIR to be set. Done via cshrc.pfam
 #phobius
 #iupred - This needs the environment variable IUPred_PATH to be set. Done via cshrc.pfam
  
   $fh->print(
     "ncoils -f < pfamseq.\$\{LSB_JOBINDEX\} > ncoils.\$\{LSB_JOBINDEX\}\n");
-  $fh->print("seg pfamseq.\$\{LSB_JOBINDEX\} -l > seg.\$\{LSB_JOBINDEX\}\n");
+  $fh->print("segmasker -in pfamseq.\$\{LSB_JOBINDEX\} -out seg.\$\{LSB_JOBINDEX\}\n");
   $fh->print(
     "phobius.pl pfamseq.\$\{LSB_JOBINDEX\} > phobius.\$\{LSB_JOBINDEX\}\n");
   $fh->print(
@@ -209,6 +210,7 @@ for ( my $i = 1 ; $i <= $n ; $i++ ) {
   
   system("touch $statusdir/otherReg/doneFarmCheck");
 }
+
 #-------------------------------------------------------------------------------
 #Join and upload
 
@@ -224,14 +226,14 @@ if(-e "$orDir/allOtherReg.dat"){
     or $logger->logdie("Could not open allOtherReg.dat");
 
   for ( my $m = 1 ; $m <= $n ; $m++ ) {
-    my $pfamseq = getAutos($m, $orDir, $dbh);
-  
-    foreach my $f (keys %subs) {
-      $logger->info("Parsing $f.$m");
-      $subs{$f}( $orDir, "$f.$m", $fhOut, $pfamseq );
-    }
+#    my $pfamseq = getAutos($m, $orDir, $dbh);
+      foreach my $f (keys %subs) {
+	  $logger->info("Parsing $f.$m");
+	  $subs{$f}( $orDir, "$f.$m", $fhOut );
+      }
   }
 }
+
 
 #-------------------------------------------------------------------------------
 #Copy file to the mysql instance so that it can be uploaded
@@ -248,24 +250,29 @@ if(-e "$statusdir/otherReg/doneUpload"){
   $logger->info('preparing to upload the file');
   $dbh->do("delete from other_reg");
 
-  my $sthInsert = $dbh->prepare("INSERT INTO other_reg (auto_pfamseq, 
+  my $sthInsert = $dbh->prepare("INSERT INTO other_reg (pfamseq_acc, 
                                                 seq_start, 
                                                 seq_end, 
                                                 type_id, 
                                                 source_id, 
                                                 score, 
-                                                orientation) VALUES ( ?,?,?,?,?,?,?)");
+                                                orientation) VALUES ( ?,?,?,?,?,?,?)"); #mySQL statement updated due to db schema change - replaced auto_pfamseq with pfamseq_acc
 
   _loadTable($dbh, "$orDir/allOtherReg.dat" , $sthInsert, 7);
+
+  system("touch $statusdir/otherReg/doneUpload");
+
 }
+
 #-------------------------------------------------------------------------------
 #Subroutines that parse each file type......
 #
 
+#getAutos *****no longer used*****
 sub getAutos {
   my ($m, $orDir, $dbh) = @_;  
-  my $sth = $dbh->prepare("select auto_pfamseq from pfamseq where pfamseq_acc=?") or
-          $logger->logdie("Error preparing statement:". $dbh->errstr);
+  my $sth = $dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc=?") or
+          $logger->logdie("Error preparing statement:". $dbh->errstr); #updated mySQL statement for db schema change - I assume this should still be used as a sanity check
   
   my $pfamseq = {};
   open(P, "<", $orDir."/pfamseq.".$m) or $logger->logdie("Failed to open $orDir/pfamseq.$m :[$!]");
@@ -282,17 +289,16 @@ sub getAutos {
 
 
 sub parseNcoils {
-  my ( $dir, $file, $fh, $pfamseq_autos ) = @_;
-
+    my ($dir, $file, $fh) = @_;
   #print STDERR scalar(@{$coilsAR})."$dir, $file\n";
 
   $/ = "\n>";
-  open( COILS, "$dir/$file" ) || die "Could not open $dir/$file:[$!]\n";
+  open( COILS, "$dir/$file" ) or $logger->logdie("Could not open $dir/$file:[$!]\n");
   while (<COILS>) {
     chomp;
     my @entry = split( /\n/, $_ );
     if (@entry) {
-      my $acc = $1 if ( $entry[0] =~ /^>?(\S{6})\.\d+/ );
+      my $acc = $1 if ( $entry[0] =~ /^>?(\S{6,10})\.\d+/ );
       my $seq = join( "", @entry[ 1 .. $#entry ] );
       if ( !$acc || !$seq ) {
         warn "Could not find id or entry for $_\n";
@@ -300,7 +306,7 @@ sub parseNcoils {
       else {
 
         #print STDERR "Finding coil\n";
-        &findCoils( $$pfamseq_autos{$acc}, $seq, $fh );
+	  &findCoils( $acc, $seq, $fh );
       }
     }
 
@@ -310,7 +316,7 @@ sub parseNcoils {
 }
 
 sub findCoils {
-  my ( $acc_auto, $seq, $fh ) = @_;
+  my ( $acc, $seq, $fh ) = @_;
   my $start;
   my $end;
   my $prev = -1;
@@ -325,108 +331,109 @@ sub findCoils {
       if ($start) {
 
         #print "\t$acc_auto\t$start\t$end\tcoiled_coil\tncoils\t\t\n";
-        print $fh "\\N\t$acc_auto\t$start\t$end\tcoiled_coil\tncoils\t\\N\t\\N\n";
+        print $fh "\\N\t$acc\t$start\t$end\tcoiled_coil\tncoils\t\\N\t\\N\n";
       }
       $start = $x_pos;
     }
     $prev = $x_pos;
   }
   if ($start) {
-    print $fh "\\N\t$acc_auto\t$start\t$prev\tcoiled_coil\tncoils\t\\N\t\\N\n";
+    print $fh "\\N\t$acc\t$start\t$prev\tcoiled_coil\tncoils\t\\N\t\\N\n";
   }
 }
 
 sub parseSeg {
-  my ( $dir, $file, $fh, $pfamseq_autos ) = @_;
-  open( SEG, "$dir/$file" ) || die "Could not open $dir/$file:[$!]\n";
-  while (<SEG>) {
-    if (/^>(\S+)\.\d+\((\d+)\-(\d+)\)\s+complexity=(\S+)/) {
-      my $acc   = $1;
-      my $start = $2;
-      my $end   = $3;
-      my $score = $4;
-      print $fh
-"\\N\t$$pfamseq_autos{$acc}\t$start\t$end\tlow_complexity\tseg\t$score\t\\N\n";
+    my ( $dir, $file, $fh ) = @_;
+#split on \n>
+    $/ = "\n>";
+    open ( SEG, "$dir/$file" ) or $logger->logdie("Could not open $dir/$file:[$!]\n");
+    while (<SEG>) {
+	my @entry = split( /\n/, $_ );
+#parse out acc
+	my $acc;
+	if ($entry[0] =~ /(\w{6,10})\.\d+/){
+	    $acc = $1;
+	} else {
+	    print "parseSeg: can't parse acc\n"
+	}
+	foreach my $line (@entry){
+	    if ($line =~/\w{6,10}\.\d+/){
+		next;
+	    }
+	    if ($line =~/^(\d+)\s+-\s+(\d+)/){
+		my $start = $1;
+		my $end = $2;
+		print $fh "\\N\t$acc\t$start\t$end\tlow_complexity\tsegmasker\t\\N\t\\N\n";
+	    } 
+
+	}
+
     }
-  }
-  close(SEG);
+    close (SEG);
 }
 
 sub parsePhobius {
-  my ( $dir, $phobius_file, $fh, $pfamseq_auto ) = @_;
-  open( PHOB, "$dir/$phobius_file" )
-    || die "Could not open $dir/$phobius_file:[$!]\n";
+    my ( $dir, $phobius_file, $fh ) = @_;
+#split on //\n
+    $/ = "//\n";
+    open( PHOB, "$dir/$phobius_file" ) or $logger->logdie("Could not open $dir/$phobius_file:[$!]\n");
+    while (<PHOB>){
+	my @entry = split( /\n/, $_ );
+#parse out acc
+	my $acc;
+	if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
+	    $acc = $1;
+	} else {
+	    print "parsePhobius: can't parse acc\n"
+	}
+	foreach my $line (@entry){
+	    if ($line =~/ID\s+\w{6,10}\.\d+/){
+		next;
+	    }
+	    if ($line =~ /^FT\s+SIGNAL\s+(\d+)\s+(\d+)/){
+		my $start = $1;
+		my $end   = $2;
+		print $fh "\\N\t" . $acc . "\t$start\t$end\tsig_p\tPhobius\t\\N\t\\N\n";
+	    } elsif ($line =~ /^FT\s+TRANSMEM\s+(\d+)\s+(\d+)/){
+		my $start = $1;
+		my $end   = $2;
+		print $fh "\\N\t" . $acc . "\t$start\t$end\ttransmembrane\tPhobius\t\\N\t\\N\n";
+	    }
+	}
 
-  my ($acc);
-  my $last_membrane = 0;
-  while (<PHOB>) {
-    if (/^ID\s+(\S+)\.\d+/) {
-      $acc = $1;
-      unless ( exists( $pfamseq_auto->{$acc} ) ) {
-        $logger->logdie("$acc is not in the pfamseq mapping!");
-      }
-      
     }
-    elsif (/^FT\s+SIGNAL\s+(\d+)\s+(\d+)/) {
-      my $start = $1;
-      my $end   = $2;
-      print $fh "\\N\t"
-        . $pfamseq_auto->{$acc}
-        . "\t$start\t$end\tsig_p\tPhobius\t\\N\t\\N\n";
-    }
-    elsif (/^FT\s+TRANSMEM\s+(\d+)\s+(\d+)/) {
-      my $start = $1;
-      my $end   = $2;
-      print $fh
-        "\\N\t".$pfamseq_auto->{$acc}."\t$start\t$end\ttransmembrane\tPhobius\t\\N\t\\N\n";
-    }
-    elsif (/^\/\//) {
-      $acc = "";
-    }
-  }
+    close (PHOB);
 }
 
 sub parseIupred {
-  my ( $dir, $iupred_file, $fh, $pfamseq_auto ) = @_;
+    my ( $dir, $iupred_file, $fh, $pfamseq_auto ) = @_;
+#split on // and new line
+    $/ = "//\n";
+    open( DIS, "<", $iupred_file )  or $logger->logdie("Failed to open $iupred_file for reading:[$!]");
+    while (<DIS>) {
+	my @entry_c = split( /\n/, $_ );
+#get rid of comments
+	my @entry = grep {!/^#/} @entry_c;
+	my $acc;
+	if ($entry[0] =~ /ID\s+(\w{6,10})\.\d+/){
+	    $acc = $1;
+	} else {
+	    print "parseIupred: can't parse acc\n";
+	}
+	foreach my $line (@entry){
+	    if ($line =~/ID\s+\w{6,10}\.\d+/){
+		next;
+	    }
+ 	    if ($line =~ /^FT\s+IUPred\s+(\d+)\s+(\d+)/){
+		my $start = $1;
+		my $end = $2;
+		print $fh "\\N\t" . $acc . "\t$start\t$end\tdisorder\tIUPred\t\\N\t\\N\n";
+	    }
+	}
 
-  open( DIS, "<", $iupred_file )
-    or $logger->logdie("Failed to open $iupred_file for reading:[$!]");
-
-  my ($acc);
-
-  #Need to parse something like this:
-
-  #ID Q6GZX3.1
-  #FT  IUPred     218     224  DISORDERED
-  #FT  IUPred     261     298  DISORDERED
-  #//
-
-  while (<DIS>) {
-    if (/^ID\s+(\S+)\.\d+/) {
-      $acc = $1;
-      unless ( exists( $pfamseq_auto->{$acc} ) ) {
-        $logger->logdie("$acc is not in the pfamseq mapping!");
-      }
     }
-    elsif (/^FT\s+IUPred\s+(\d+)\s+(\d+)/) {
-      my $start = $1;
-      my $end   = $2;
-      print $fh "\\N\t"
-        . $pfamseq_auto->{$acc}
-        . "\t$start\t$end\tdisorder\tIUPred\t\\N\t\\N\n";
-    }
-    elsif (/^\/\//) {
-      $acc = "";
-    }
-    elsif (/^#/) {
 
-      #comment block
-      next;
-    }
-    else {
-      $logger->logdie("Failed to parse line, $_");
-    }
-  }
+    close (DIS);
 }
 
 sub _loadTable {

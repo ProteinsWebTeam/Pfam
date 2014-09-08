@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/bin/env perl
 
 # populate the interpro and gene_ontology tables in the Pfam database,
 # given a list of Pfam accessions from the database and a set of data

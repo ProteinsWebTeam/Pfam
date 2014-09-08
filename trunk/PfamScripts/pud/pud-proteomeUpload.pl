@@ -76,7 +76,7 @@ $dbh->do('update pfamseq s set genome_seq = 0');
 $logger->info("Getting pfamseq accessions/auto_pfamseq");
 
 my $seqSth =
-     $dbh->prepare("select auto_pfamseq from pfamseq where pfamseq_acc = ?")
+     $dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc = ?") #mySQL statement updated for db schema change
   or $logger->logdie( 'select prepare failed:' . $dbh->errstr );
 
 #-------------------------------------------------------------------------------
@@ -146,11 +146,11 @@ foreach my $file ( keys %ncbi_codes ) {
 }
 
 $dbh->do(
-'update complete_proteomes c set total_aa_length = (select sum(length) from pfamseq s, proteome_pfamseq p where s.auto_pfamseq=p.auto_pfamseq and p.auto_proteome=c.auto_proteome)'
-);
+'update complete_proteomes c set total_aa_length = (select sum(length) from pfamseq s, proteome_pfamseq p where s.pfamseq_acc=p.pfamseq_acc and p.ncbi_taxid=c.ncbi_taxid)'   
+);  #mySQL statement updated for new db schema - assumed ncbi_taxid is new primary key for complete_proteomes
 $dbh->do(
-'update pfamseq s, proteome_pfamseq p set genome_seq = 1 where  s.auto_pfamseq=p.auto_pfamseq'
-);
+'update pfamseq s, proteome_pfamseq p set genome_seq = 1 where  s.pfamseq_acc=p.pfamseq_acc'
+); #mySQL statement updated for new schema
 
 sub process_proteome {
   my ( $ncbi_code, $ncbi_species, $group, $storeAccRef, $seqSth ) = @_;
@@ -163,7 +163,7 @@ sub process_proteome {
     }
   );
 
-  my $autoProteome = $r->auto_proteome;
+  my $autoProteome = $r->auto_proteome; #will need changing to give ncbi taxID due to mySQL / schema change
   my $count        = 0;
   my @insertThis;
   foreach my $gs ( keys %{$storeAccRef} ) {
@@ -178,7 +178,7 @@ sub process_proteome {
     }
   }
 
-  $dbh->do( "INSERT INTO proteome_pfamseq (auto_proteome, auto_pfamseq) VALUES "
+  $dbh->do( "INSERT INTO proteome_pfamseq (ncbi_taxid, pfamseq_acc) VALUES " #mySQL statement updated for nw db schema - assuming ncbi_taxid is used as promary key in complete_proteomes now
       . join( ",", @insertThis ) );
   $r->update( { total_genome_proteins => $count } );
 }

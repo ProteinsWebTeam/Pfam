@@ -13,9 +13,6 @@ use File::Copy;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
-my $antiFamURL =
-  "ftp://ftp.sanger.ac.uk/pub/databases/Pfam/AntiFam/current/AntiFam.tar.gz";
-
 my ( $statusdir, $pfamseq_dir );
 
 #Start up the logger
@@ -44,45 +41,48 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
-#Fetch the antifam file using LWP, we may have in internally...
-my $ua          = LWP::UserAgent->new;
-my $antiFamFile = 'AntiFam.tar.gz';
-my $response    = $ua->mirror( $antiFamURL, $antiFamFile );
-if ( $response->is_success ) {
-  $logger->info("Successfully download $antiFamFile.");
-}
-elsif ( $response->code == HTTP::Status::RC_NOT_MODIFIED ) {
-  $logger->info("File $antiFamFile: up-to-date.");
-}
-else {
-  $logger->logdie( 'Failed, got '
-      . $response->status_line . ' for '
-      . $response->request->uri
-      . "." );
-}
-
-my $output = 'AntiFam.tar';
-
-#gunzip $antiFamFile => $output or die "gunzip failed: $GunzipError\n";
-my $tar = Archive::Tar->new;
-$tar->read($antiFamFile);
-
-#Now extract the release information
-$tar->extract('relnotes') if ( !-e 'relnotes' );
-
-#Exract the HMM out of the file.
-$tar->extract('AntiFam.hmm') if ( !-e 'AntiFam.hmm' );
+#Copy over AntiFam hmms and relnotes
+my $antifamdir = $config->antifamLoc;
+copy ("$antifamdir/AntiFam.hmm","AntiFam.hmm") or $logger->logdie("Could not copy AntiFam.hmm [$!]\n");
+copy ("$antifamdir/relnotes","relnotes") or $logger->logdie("Could not copy relnotes [$!]\n");
 
 #Now run pfamseq against antifam.....
 if ( -e 'matches' ) {
   $logger->info("Looks like antifam search has already been run!");
 }
 else {
-  $logger->info( "Running antifam against pfamseq. "
-      . "In the future, this may need to be run on the farm." );
+    $logger->info( "Running antifam against pfamseq. ");
+#run AntiFam on the farm
+    my $fh         = IO::File->new();
 
-  system("hmmsearch --cpu 8 --cut_ga --tblout matches AntiFam.hmm pfamseq")
-    and $logger->logdie("Failed to run hmmsearch with antifam/pfamseq.");
+    $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
+    $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm pfamseq\n"); 
+    $fh->close; 
+#have jobs finished?
+    if (-e "$statusdir/finishedantifam"){
+	$logger->info("Already checked AntiFam search has finished\n");
+    } else {
+	my $fin = 0;
+	while (!$fin){
+	    open( FH, "bjobs -Jantifam|" );
+	    my $jobs;
+	    while (<FH>){
+		if (/^\d+/){
+		    $jobs++;
+		}
+	    }
+	    close FH;
+	    if ($jobs){
+		$logger->info("AntiFam search still running - checking again in 10 minutes\n");
+		sleep(600);
+	    } else {
+		$fin = 1;
+		open( FH, "> $statusdir/finishedantifam" ) or die "Can not write to file $statusdir/finishedantifam.txt";
+		close(FH);
+	    }
+	}
+    }
+
 }
 
 open( M, "<", "matches" ) or $logger->logdie("Failed to open matches");
@@ -162,7 +162,7 @@ else {
 
 if ( !-e "$statusdir/updated_pfamseq_antifam" ) {
 
-  #Delete sequecnes from the databases.
+  #Delete sequecnes from the databases. 
   my $sthPfamseq = $dbh->prepare(
     "SELECT pfamseq_id, 
                                        pfamseq_acc, 
@@ -265,9 +265,10 @@ else {
   unlink("pfamseq.ssi") or $logger->logdie("Failed to unlink pfamseq.ssi");
   }
   touch("$statusdir/verified_and_moved_pfamseq")
-    and $logger->logdie("Could not touch $statusdir/check_pfamseq_size:[$!]");  
+    or $logger->logdie("Could not touch $statusdir/verified_and_moved_pfamseq:[$!]");  
   $logger->info("Verified modified pfamseq");
 }
+
 
 #Make NCBI and WU-blast indices
 if ( -e "$statusdir/made_easel_indices2" ) {
