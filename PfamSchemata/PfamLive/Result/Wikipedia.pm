@@ -1,45 +1,109 @@
+use utf8;
 package PfamLive::Result::Wikipedia;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamLive::Result::Wikipedia
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<wikipedia>
+
+=cut
+
 __PACKAGE__->table("wikipedia");
+
+=head1 ACCESSORS
+
+=head2 auto_wiki
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_auto_increment: 1
+  is_nullable: 0
+
+=head2 title
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 wikitext
+
+  data_type: 'longtext'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "auto_wiki",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
-  "title",
-  { data_type => "TINYTEXT", default_value => "", is_nullable => 0, size => 255 },
-  "wikitext",
   {
-    data_type => "LONGTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 4294967295,
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
   },
+  "title",
+  { data_type => "tinytext", is_nullable => 0 },
+  "wikitext",
+  { data_type => "longtext", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</auto_wiki>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("auto_wiki");
-__PACKAGE__->add_unique_constraint("UQ_wikipedia_1", ["title"]);
+
+=head1 RELATIONS
+
+=head2 clan_wikis
+
+Type: has_many
+
+Related object: L<PfamLive::Result::ClanWiki>
+
+=cut
+
 __PACKAGE__->has_many(
   "clan_wikis",
   "PfamLive::Result::ClanWiki",
   { "foreign.auto_wiki" => "self.auto_wiki" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
+
+=head2 pfam_a_wikis
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAWiki>
+
+=cut
+
 __PACKAGE__->has_many(
-  "pfama_wikis",
-  "PfamLive::Result::PfamaWiki",
+  "pfam_a_wikis",
+  "PfamLive::Result::PfamAWiki",
   { "foreign.auto_wiki" => "self.auto_wiki" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-03-23 10:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZwxUU71nu+CBkf344DLdeQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jLDUj/0Gqx69oOcn1cBZtg
 
 
-__PACKAGE__->many_to_many(
-  'pfams' => 'pfama_wikis', 'auto_pfama'
-);
- 
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
