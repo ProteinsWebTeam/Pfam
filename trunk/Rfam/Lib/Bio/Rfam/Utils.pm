@@ -584,7 +584,7 @@ sub wait_for_cluster_light {
           } # end of 'if(-e $outnameAR->[$i])'
           else { # outfile doesn't exist, but errfile does, job is running or failed
             if($finishedA[$i] == 1) { 
-              die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file does not exist\n";
+              die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output file $outnameAR->[$i] does not exist\n";
             }
             elsif($runningA[$i] == 0) { 
               $runningA[$i] = 1; 
@@ -595,7 +595,7 @@ sub wait_for_cluster_light {
         } # end of 'if(-e $errnameAR->[$i])'
         else { # err file doesn't exist yet, job is waiting (or failed)
           if($finishedA[$i] == 1) { 
-            die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output ERROR file does not exist\n";
+            die "wait_for_cluster_light() job $i finished according to qstat/bjobs, but expected output ERROR file $errnameAR->[$i] does not exist\n";
           }
           elsif($waitingA[$i] != 1) { 
             die "wait_for_cluster_light() internal error 2, job $i runningA[$i]: $runningA[$i], waitingA[$i]: $waitingA[$i], successA[$i]: $successA[$i] (exactly 1 of these should be 1 and the others 0)";
