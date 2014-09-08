@@ -1,69 +1,102 @@
+use utf8;
 package PfamLive::Result::ReleasedPfamVersion;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamLive::Result::ReleasedPfamVersion
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<released_pfam_version>
+
+=cut
+
 __PACKAGE__->table("released_pfam_version");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 seed
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 align
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 desc_file
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 hmm
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 version
+
+  data_type: 'smallint'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "seed",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 32,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 32 },
   "align",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 32,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 32 },
   "desc_file",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 32,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 32 },
   "hmm",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 32,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 32 },
   "version",
-  {
-    data_type => "SMALLINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 5,
-  },
+  { data_type => "smallint", is_nullable => 1 },
 );
-__PACKAGE__->set_primary_key("auto_pfama");
+
+=head1 RELATIONS
+
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::PfamA>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamLive::Result::Pfama",
-  { auto_pfama => "auto_pfama" },
+  "pfama_acc",
+  "PfamLive::Result::PfamA",
+  { pfama_acc => "pfama_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i3kocVIdTC1G7crDl1ZVBw
-__PACKAGE__->has_one( pfama =>  'PfamLive::Result::Pfama',
-                      { 'foreign.auto_pfama'  => 'self.auto_pfama' },
-                                            { proxy => [ qw( auto_pfama 
-                                                             pfama_acc
-                                                             pfama_id ) ] } );
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ln9R9Xft0EAlzIoWlpAKsQ
 
 
-
-
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

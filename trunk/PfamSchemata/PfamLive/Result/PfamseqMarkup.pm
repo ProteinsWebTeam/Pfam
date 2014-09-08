@@ -1,66 +1,113 @@
+use utf8;
 package PfamLive::Result::PfamseqMarkup;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamLive::Result::PfamseqMarkup
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamseq_markup>
+
+=cut
+
 __PACKAGE__->table("pfamseq_markup");
+
+=head1 ACCESSORS
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 auto_markup
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 residue
+
+  data_type: 'mediumint'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 annotation
+
+  data_type: 'text'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "auto_markup",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 3 },
-  "residue",
-  { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
-  "annotation",
   {
-    data_type => "TEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 65535,
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
   },
+  "residue",
+  {
+    data_type => "mediumint",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
+  "annotation",
+  { data_type => "text", is_nullable => 1 },
 );
-__PACKAGE__->belongs_to(
-  "auto_pfamseq",
-  "PfamLive::Result::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
-);
+
+=head1 RELATIONS
+
+=head2 auto_markup
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::MarkupKey>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "auto_markup",
   "PfamLive::Result::MarkupKey",
   { auto_markup => "auto_markup" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::Pfamseq>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pfamseq_acc",
+  "PfamLive::Result::Pfamseq",
+  { pfamseq_acc => "pfamseq_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZVfL/BvVO+PL4UHj6B9wfg
-
-__PACKAGE__->set_primary_key( qw/auto_pfamseq auto_markup residue/ );
-
-__PACKAGE__->has_one( "pfamseqs" =>  'PfamLive::Result::Pfamseq',
-                      { 'foreign.auto_pfamseq'  => 'self.auto_pfamseq' },
-		      { cascade_delete => 0 } );
-                                        
-
-__PACKAGE__->might_have(  "pfama_reg_full_significants" => 'PfamLive::Result::PfamaRegFullSignificant',
-			{ 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-		      { cascade_delete => 0 } );
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DdpaTfmescx/flcQZyiz+g
 
 
-__PACKAGE__->might_have(  "pfamb_regs" => 'PfamLive::Result::PfambReg',
-			{ 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-		      { cascade_delete => 0 } );
-
-__PACKAGE__->has_one( "markup" => 'PfamLive::Result::MarkupKey',
-                      { 'foreign.auto_markup'  => 'self.auto_markup' },
-		                  { cascade_delete => 0,
-		                    proxy     => [qw(label)] } );
-                      
-__PACKAGE__->has_one( "pfamseq" => 'PfamLive::Result::Pfamseq',
-                      { 'foreign.auto_pfamseq'  => 'self.auto_pfamseq' },
-		                  { cascade_delete => 0,
-		                    proxy     => [qw(pfamseq_id pfamseq_acc sequence)] } );
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
