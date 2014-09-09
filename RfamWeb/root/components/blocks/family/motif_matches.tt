@@ -25,18 +25,53 @@ USE String;
 
 <div class="block" id="motifsBlock">
   <div class="handle">
-    <h1>Sequences</h1>
+    <h1>Motif matches</h1>
   </div>
   <div class="blockContent">
     <div id="matchesTab">
     
     <p>
     There are <strong>[% family_matches.count %]</strong> motifs which match this family.
-
-    The table of results below may be sorted by clicking on the column titles, or
-    restored to the original order <span class="link" id="sortLink">here</span>.
+    </p>
+    
+    <p>
+      This section shows the motifs which have match for this family.
+      <span onclick="reveal( this, 'motifNotes', false, true );"
+            class="moreLink">
+        More...</span>
     </p>
 
+    <div id="motifNotes" style="display: none">
+      <p>
+        Motifs in this context are defined as recurring RNA sequence and/or secondary
+        structure found within larger structures that can be modelled by
+        either a covariance model or a profile HMM. The motifs models come from 
+        release 0.3 of the RMfam database available at http://github.com/ppgardne/RMfam.
+      </p>
+      <p>
+        To annotate families with the motif models, GSC (Gerstein/Sonnhammer/Chothia tree weights) filtered SEED sequences from each family were
+        searched with motif CM models using Infernal v1.1. Families which had 2 or more sequences
+        that scored above the model gathering threshold, and where more than 10% of sequnences in the SEED match
+        were annotated for the given motif. 
+      <p>
+        <strong>Number of Hits</strong>: the number of seqeunces in the SEED which form a match with the motif model.
+      </p>
+
+      <p>
+        <strong>Fraction of Hits</strong>: the fraction of sequences in the SEED which form a match with the motif model.
+      </p>
+
+      <p>
+        <strong>Average Sum Bits</strong>: the weighted sum of the bit scores for the macthes between the motif and the family, normalised with the total weight. 
+      
+      </p>
+
+      <p>
+        <strong>Image</strong>: this plot illustrates where on the consensus secodary structure of the family, does matches between seed sequences and the motif models        occur.
+      </p>
+
+   </div>
+   
    [% IF family_matches.count %]
      <table summary="Family Matches"
          id="familyMatchesTable"
@@ -63,13 +98,15 @@ USE String;
             <td>[% match.num_hits %]</td>
             <td>[% match.frac_hits %]</td>
             <td>[% match.avg_weight_bits %]</td>
-            <td> <a href="[% matchURI %]"
-               data-lightbox="[% matchURI %]"
-               data-title="[% matchTitle %]">
+            <td>
+              <a href="[% matchURI %]"
+                    rel="lightbox[mots]="
+                    title="[% matchTitle %]">
               <img src="/static/images/seq_icon.png"
                    class="seqIcon"
-                   alt="ENA graphic" /></a>
-        </tr>
+                   alt="Match Image" /></a>
+            </td>
+          </tr>
         [% END %]
     </tbody>
   </table>
@@ -93,11 +130,6 @@ USE String;
                                  }
                                } );
 
-    if ( $("sortLink") ) {
-      $("sortLink").observe( "click", function() {
-        sorter.sort(0);
-      } );
-    }
 
     // ]]>
   </script>

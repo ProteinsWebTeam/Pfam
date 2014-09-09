@@ -1,0 +1,165 @@
+[%
+# alignments.tt
+# jt6 20060411 WTSI
+#
+# block showing the motifs alignment.
+#
+# $Id: align.tt,v 1.6 2009-05-06 11:51:01 jd7 Exp $
+
+USE Number.Format( THOUSANDS_SEP = "," );
+
+alignmentUri = c.uri_for( '/motif', acc, 'alignment' );
+
+%]
+
+<!-- start align block -->
+
+<div class="block" id="alignBlock">
+  <div class="handle">
+    <h1>Alignments</h1>
+  </div>
+  <div class="blockContent">
+
+    <div id="alignmentActiveContent">
+
+      <p>
+        There are various ways to view or download the sequence alignments that
+        we store. You can use a sequence viewer to look at either the seed or
+        full alignment for the family, or you can look at a plain text version
+        of the sequence in a variety of different formats.
+        <span onclick="reveal( this, 'alignmentsNotes', false, true );"
+              class="moreLink">
+          More...</span>
+      </p>
+      <div id="alignmentsNotes" style="display: none">
+
+        <h3>Alignment labels</h3>
+        <p>
+          We generate alignments with two types of labels for sequence. The 
+          default labels give the species name for each sequence, but you can
+          also choose to label each sequence with the sequence identifier and the
+          start/end coordinates for the region.
+        </p>
+        
+        <h3>Viewing</h3>
+        <p>
+          You can choose from three different sequence viewers:
+        </p>
+        <dl>
+          <dt>
+            <a class="ext" href="http://www.jalview.org/">jalview</a>
+          </dt>
+          <dd>
+            a Java applet developed at the University of Dundee. You will
+            need <a class="ext" href="http://java.sun.com/">Java</a> installed
+            before running jalview
+          </dd>
+          <dt>
+            HTML
+          </dt>
+          <dd>
+            an HTML page showing the alignment in blocks. We do not store
+            separate alignments with species or &quot;name/start-end&quot; labels,
+            but you can switch between these different labels within the block
+            viewer
+          </dd>
+        </dl>
+        <h3>Downloading</h3>
+        <p>
+          You can download (or view in your browser) a text representation of a
+          Rfam alignment in various formats:
+        </p>
+        <ul>
+          <li>Stockholm</li>
+          <li>Pfam</li>
+          <li>Gapped FASTA</li>
+          <li>Ungapped FASTA</li>
+        </ul>
+        <hr />
+      </div>
+
+      <h2>Formatting options</h2>
+
+      <p>
+        You can view or download Rfam alignments in several formats. Check either 
+        the &quot;download&quot; button, to save the formatted alignment, or 
+        &quot;view&quot;, to see it in your browser window, and click 
+        &quot;Generate&quot;. 
+      </p>
+          
+      <form id="optionsForm"
+            action="[% alignmentUri %]" 
+            method="get">
+        <div>
+          <input type="hidden" name="acc" value="[% acc %]" />
+          [% oe = 0 %]
+          <table class="details alignOpts" summary="Alignment formatting options">
+            <tbody>
+              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+                <td class="label">Alignment format:</td>
+                <td>
+                  <span class="button">
+                    <select name="format" id="format">
+                      <option value="stockholm" selected="selected">Stockholm</option>
+                      <option value="pfam">Pfam</option>
+                      <option value="fasta">FASTA (gapped)</option>
+                      <option value="fastau">FASTA (UNgapped)</option>
+                    </select>
+                  </span>
+                </td>
+              </tr>
+              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+                <td class="label">Download/view:</td>
+                <td>
+                  <span class="button">
+                    <input type="radio" name="download" id="downloadD" value="1" checked="checked" />
+                    <label for="downloadD">Download</label>
+                  </span>
+                  <span class="button">
+                    <input type="radio" name="download" id="downloadV" value="0" />
+                    <label for="downloadV">View</label>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>    
+      
+          <input type="submit" value="Generate" />
+      
+        </div>
+      </form>
+
+    <h2>Submit a new alignment</h2>
+
+    <p>
+      We're happy receive updated seed alignments for new or existing motifs.
+      <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
+        Submit</a> your new alignment and we'll take a look.
+    </p>
+
+    </div>[%# end of "alignmentActiveContent" %]
+
+  </div>
+
+</div>
+
+<!-- end of align block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -126,7 +126,7 @@ sub validate_accession {
   $field->add_error( 'Must supply a family accession unless this is a new family' )
     unless $field->value;
   $field->add_error( 'Not a valid Rfam family accession' )
-    unless $field->value =~ m/^RF\d{5}$/i;
+    unless $field->value =~ m/^R[FM]\d{5}$/i;
 }
 
 #---------------------------------------
