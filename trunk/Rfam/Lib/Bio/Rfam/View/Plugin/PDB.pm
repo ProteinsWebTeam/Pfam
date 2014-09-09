@@ -28,6 +28,8 @@ sub mapPDB {
 	my $familyObj = $self->parent->family;
 	my $rfam_acc = $familyObj->DESC->AC;
 	my $prefix = "$rfam_acc.XXXX";
+        my @hex_colour = qw(1fc01f c00f0f bdc000 c008ae 00bac0 8484c0 93c090 c0af92 8e2511 f29242 8585e6 ff87fa 008700 454545 0003c0 ebeb30 ff87a4 0064f4);
+
 
 	# Generate a bunch of temporary files for the cmscan job:
 	#
@@ -77,6 +79,7 @@ sub mapPDB {
 		next if ($line =~ /^#/);
 		my @result = split (/\s+/, $line);
 		my ($pdb_id, $chain) = split(/_/, $result[2]);
+                my $colour = $hex_colour[rand @hex_colour];
 		push @pdbs, {rfam_acc => $rfam_acc,
 					pdb_id =>$pdb_id,
 					chain => $chain,
@@ -85,7 +88,8 @@ sub mapPDB {
 					bit_score => $result[14],
 					evalue_score => $result[15],
 					cm_start => $result[5],
-					cm_end => $result[6] };	
+					cm_end => $result[6],
+                                        hex_colour => $colour };
 	} 
 	my $resultset = $rfamdb->resultset('PdbFullRegion')->search({rfam_acc => $rfam_acc});
  	
@@ -95,7 +99,8 @@ sub mapPDB {
 	
 	#Load new PDB hits into DB:	
 	for my $hit (@pdbs) {
-		$resultset->create( {rfam_acc =>$hit->{rfam_acc},
+	        p $hit;
+        	$resultset->create( {rfam_acc =>$hit->{rfam_acc},
 							pdb_id => $hit->{pdb_id},
 							chain => $hit->{chain},
 							pdb_start => $hit->{pdb_start},
@@ -103,7 +108,8 @@ sub mapPDB {
 							bit_score => $hit->{bit_score},
 							evalue_score => $hit->{evalue_score},
 							cm_start => $hit->{cm_start},
-							cm_end => $hit->{cm_end}
+							cm_end => $hit->{cm_end},
+                                                        hex_colour => $hit->{hex_colour}
 							});
 	}
 
