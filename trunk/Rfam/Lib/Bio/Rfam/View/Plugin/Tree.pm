@@ -151,8 +151,11 @@ sub specifyTree {
 
         open(BITTREE, "<$bittree") or croak ("Can't open tree file to convert seqs to species...this is not good!\n");
         my @ar =<BITTREE>;
+        close BITTREE;
         my $t = join("", @ar);
         foreach my $k (keys %accToSpecies){
+        $accToSpecies{$k} =~ s/\(/{/g;
+        $accToSpecies{$k} =~ s/\)/}/g;
         $t =~ s/($k)/$1_$accToSpecies{$k}/g;
     }
         open(TAXTREE, ">$taxtree");
