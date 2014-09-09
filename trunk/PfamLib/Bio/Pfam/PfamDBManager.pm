@@ -794,22 +794,22 @@ sub getNestedDomain {
     $self->getSchema->resultset("Pfama")->find( { pfama_acc => $acc } );
 
   my @nestedFams;
-  if ( $pfam and $pfam->auto_pfama ) {
+  if ( $pfam and $pfam->pfama_acc ) {
 
-    #Now search Nested domains in either auto_pfamA or nests_auto_pfama
+    #Now search Nested domains in either pfamA_acc or nests_pfama_acc
     my @results = $self->getSchema->resultset("NestedDomains")->search(
       [
-        { nests_auto_pfama => $pfam->auto_pfama },
-        { auto_pfama       => $pfam->auto_pfama }
+        { nests_pfama_acc => $pfam->pfama_acc },
+        { pfama_acc       => $pfam->pfama_acc }
       ]
     );
 
     #Now store the other pfamA_acc
     foreach my $r (@results) {
-      if ( $r->auto_pfama->auto_pfama ne $pfam->auto_pfama ) {
+      if ( $r->pfama_acc->pfama_acc ne $pfam->pfama_acc ) {
         my $npfam =
           $self->getSchema->resultset("Pfama")
-          ->find( { auto_pfama => $r->auto_pfama->auto_pfama } );
+          ->find( { pfama_acc => $r->pfama_acc->pfama_acc } );
         if ($npfam) {
           push( @nestedFams, $npfam->pfama_acc );
         }
@@ -817,7 +817,7 @@ sub getNestedDomain {
       else {
         my $npfam =
           $self->getSchema->resultset("Pfama")
-          ->find( { auto_pfama => $r->nests_auto_pfama } );
+          ->find( { pfama_acc => $r->nests_pfama_acc } );
         push( @nestedFams, $npfam->pfama_acc );
       }
     }
