@@ -90,6 +90,53 @@ sub image : Chained( 'motif' )
 
 #-------------------------------------------------------------------------------
 
+=head2 cm : Local
+
+Serves the CM file for this motif.
+
+=cut
+
+sub cm : Chained( 'motif' )
+         PathPart( 'cm' )
+         Args() {
+  my ( $this, $c) = @_;
+
+ # set the template that will show any error messages, in cases when the
+ # client requests XML or HTML. Default to an HTML error message
+
+  $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
+                        ? 'rest/motif/error_xml.tt'
+                        : 'components/blocks/motif/error.tt';
+
+  my $rs;
+  $c->log->debug( 'Motif::Methods::cm: looking for latest CM' ) if $c->debug;
+  $rs = $c->stash->{db}->resultset('MotifFile')
+               ->search( { motif_acc => $c->stash->{acc} }, {} );
+
+  my $gzipped_cm = $rs->first->cm;
+  unless ( defined $rs and $gzipped_cm) {
+    $c->log->debug( 'Motif::Methods::cm:: failed to retrieve a CM' ) if $c->debug;
+    $this->status_not_found( $c, message => 'Could not find a covariance model' );
+    return;
+  }
+
+  my $cm = Compress::Zlib::memGunzip( $gzipped_cm );
+
+  unless ( defined $cm ) {
+    $c->log->debug( 'Motif::Methods::cm:: failed to uncompress CM' ) if $c->debug;
+    $c->res->status(500);
+  }
+
+  my $filename = $c->stash->{acc} . '.cm';
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $cm );
+}
+
+
+#-------------------------------------------------------------------------------
+
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>

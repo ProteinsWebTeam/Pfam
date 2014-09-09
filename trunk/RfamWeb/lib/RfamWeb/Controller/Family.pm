@@ -571,7 +571,7 @@ sub get_motif_matches : Private {
   my ( $this, $c ) = @_;
 
   my $rs = $c->model('RfamDB::MotifFamilyStat')
-                  ->search( { 'rfam_acc' => $c->stash->{acc} },
+                  ->search( { 'rfam_acc' => $c->stash->{acc} }, { order_by => { -asc => 'motif_acc' }}
   );
 
   $c->stash->{family_matches} = $rs;

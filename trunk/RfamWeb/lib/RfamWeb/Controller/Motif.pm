@@ -33,7 +33,8 @@ BEGIN {
 }
 
 with 'PfamBase::Roles::Section' => { -excludes => 'section' },
-     'RfamWeb::Roles::Motif::Methods';
+     'RfamWeb::Roles::Motif::Methods',
+     'RfamWeb::Roles::Motif::AlignmentMethods';
 
 # set the name of the section
 __PACKAGE__->config( SECTION => 'motif' );
@@ -245,6 +246,11 @@ sub get_summary_data : Private {
   my ( $this, $c ) = @_;
 
   my $summaryData = {};
+  
+  my $rs = $c->model('RfamDB::MotifPdb')->search( { motif_acc => $c->stash->{acc} },{});
+  $summaryData->{numStructures} = $rs->count;
+
+  $c->stash->{summaryData} = $summaryData;
 
 }
 
@@ -328,7 +334,7 @@ sub get_matches : Private {
   my ( $this, $c ) = @_;
 
   my $rs = $c->model('RfamDB::MotifFamilyStat')
-                  ->search( { 'motif_acc' => $c->stash->{acc} },
+                  ->search( { 'motif_acc' => $c->stash->{acc} }, { order_by => { -asc => 'rfam_acc' }}
   );
 
   $c->stash->{motif_matches} = $rs;

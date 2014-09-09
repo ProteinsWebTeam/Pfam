@@ -124,7 +124,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Covariance model</td>
-          <td class="data">Download the Infernal CM for the motif here
+          <td class="data">Download the Infernal CM for the motif <a href="[% c.uri_for( '/motif', acc, 'cm') | html %]"> here </a>
           </td>
         </tr>
       </tbody>
