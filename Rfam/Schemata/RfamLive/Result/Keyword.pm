@@ -1,116 +1,52 @@
-use utf8;
 package RfamLive::Result::Keyword;
-
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
-=head1 NAME
-
-RfamLive::Result::Keyword
-
-=cut
 
 use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<keywords>
-
-=cut
-
 __PACKAGE__->table("keywords");
-
-=head1 ACCESSORS
-
-=head2 auto_rfam_keywords
-
-  data_type: 'integer'
-  is_auto_increment: 1
-  is_nullable: 0
-
-=head2 rfam_acc
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 7
-
-=head2 rfam_id
-
-  data_type: 'varchar'
-  is_nullable: 1
-  size: 40
-
-=head2 description
-
-  data_type: 'varchar'
-  default_value: 'NULL'
-  is_nullable: 1
-  size: 100
-
-=head2 rfam_general
-
-  data_type: 'longtext'
-  is_nullable: 1
-
-=head2 literature
-
-  data_type: 'longtext'
-  is_nullable: 1
-
-=head2 wiki
-
-  data_type: 'longtext'
-  is_nullable: 1
-
-=head2 auto_rfam
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_nullable: 0
-
-=cut
-
 __PACKAGE__->add_columns(
-  "auto_rfam_keywords",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
   "rfam_acc",
-  { data_type => "varchar", is_nullable => 1, size => 7 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 7 },
   "rfam_id",
-  { data_type => "varchar", is_nullable => 1, size => 40 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 40, },
   "description",
-  {
-    data_type => "varchar",
-    default_value => "NULL",
-    is_nullable => 1,
-    size => 100,
-  },
+  { data_type => "VARCHAR", default_value => "NULL", is_nullable => 1, size => 100, },
   "rfam_general",
-  { data_type => "longtext", is_nullable => 1 },
+  { data_type => "LONGTEXT", default_value => undef, is_nullable => 1, size => 4294967295, },
   "literature",
-  { data_type => "longtext", is_nullable => 1 },
+  { data_type => "LONGTEXT", default_value => undef, is_nullable => 1, size => 4294967295, },
   "wiki",
-  { data_type => "longtext", is_nullable => 1 },
-  "auto_rfam",
-  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 0 },
+  { data_type => "LONGTEXT", default_value => undef, is_nullable => 1, size => 4294967295, },
+  "pdb_mappings",
+  { data_type => "LONGTEXT", default_value => undef, is_nullable => 1, size => 4294967295, },
+  "clan_info",
+  { data_type => "LONGTEXT", default_value => undef, is_nullable => 1, size => 4294967295, },
 );
 
-=head1 PRIMARY KEY
+__PACKAGE__->set_primary_key("rfam_acc");
 
-=over 4
+__PACKAGE__->belongs_to(
+  "rfam_acc",
+  "RfamLive::Result::Family",
+  { rfam_acc => "rfam_acc" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
 
-=item * L</auto_rfam_keywords>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("auto_rfam_keywords");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UUhz2GXZngM5Ea4fHDndiw
-
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
+
+__END__
+
+CREATE TABLE `keywords` (
+  `rfam_acc` varchar(7) NOT NULL DEFAULT '',
+  `rfam_id` varchar(40) DEFAULT NULL,
+  `description` varchar(100) DEFAULT 'NULL',
+  `rfam_general` longtext,
+  `literature` longtext,
+  `wiki` longtext,
+  `pdb_mappings` longtext,
+  `clan_info` longtext,
+  PRIMARY KEY (`rfam_acc`),
+  FULLTEXT KEY `rfam_kw_idx` (`description`,`rfam_general`,`literature`,`wiki`,`pdb_mappings`,`clan_info`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8§rfam_acc
