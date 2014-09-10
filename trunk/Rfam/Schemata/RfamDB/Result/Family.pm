@@ -624,13 +624,28 @@ __PACKAGE__->has_many(
 
 Type: has_many
 
-Related object: L<RfamDB::Result::PdbRfamReg>
+Related object: L<RfamDB::Result::PdbFullReg>
 
 =cut
 
 __PACKAGE__->has_many(
   "pdb_full_regs",
   "RfamDB::Result::PdbFullRegion",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 annotate_file
+
+Type: has_one
+
+Related object: L<RfamDB::Result::AnnotatedFile>
+
+=cut
+
+__PACKAGE__->has_one(
+  "annotated_file",
+  "RfamDB::Result::AnnotatedFile",
   { "foreign.rfam_acc" => "self.rfam_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
