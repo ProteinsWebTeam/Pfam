@@ -11,6 +11,9 @@
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
+
+sharedRequirements.css.push( "wp.css" );
+
 #-------------------------------------------------------------------------------
 
 USE Number.Format( THOUSANDS_SEP = "," );
@@ -36,7 +39,7 @@ PROCESS components/links.tt;
     <p>
       The Rfam group coordinates the annotation of Rfam families in  
       <a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA">
-        Wikipedia</a>. This family is described by a Wikipedia entry entitled  
+        Wikipedia</a>. This motif is described by a Wikipedia entry entitled  
       <strong>[% title %]</strong>.
       You can see the Wikipedia page for this family 
       <a href="http://en.wikipedia.org/w/index.php?title=[% normalizedTitle %]"

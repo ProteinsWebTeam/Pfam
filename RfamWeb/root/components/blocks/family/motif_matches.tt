@@ -8,6 +8,7 @@
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
+RETURN UNLESS family_matches.count;
 
 PROCESS "components/require.tt";
 sharedRequirements.js.push( "tablekit.js" );
@@ -19,6 +20,7 @@ sharedRequirements.css.push( "lightbox2.css" );
 
 USE Number.Format( THOUSANDS_SEP = "," );
 USE String;
+
 %]
 
 <!-- start sequences block -->
@@ -35,7 +37,7 @@ USE String;
     </p>
     
     <p>
-      This section shows the motifs which have match for this family.
+      This section shows the Rfam motifs that match sequences within the seed alignment of this family.
       <span onclick="reveal( this, 'motifNotes', false, true );"
             class="moreLink">
         More...</span>
@@ -43,31 +45,26 @@ USE String;
 
     <div id="motifNotes" style="display: none">
       <p>
-        Motifs in this context are defined as recurring RNA sequence and/or secondary
-        structure found within larger structures that can be modelled by
-        either a covariance model or a profile HMM. The motifs models come from 
-        release 0.3 of the RMfam database available at http://github.com/ppgardne/RMfam.
+      Motifs in this context are defined as recurring RNA sequences and/or secondary structures found within larger structures that can be modeled by either a covariance model (CM) or a profile HMM. The motifs models come from release 0.3 of the RMfam database available at http://github.com/ppgardne/RMfam.
       </p>
       <p>
-        To annotate families with the motif models, GSC (Gerstein/Sonnhammer/Chothia tree weights) filtered SEED sequences from each family were
-        searched with motif CM models using Infernal v1.1. Families which had 2 or more sequences
-        that scored above the model gathering threshold, and where more than 10% of sequnences in the SEED match
-        were annotated for the given motif. 
-      <p>
-        <strong>Number of Hits</strong>: the number of seqeunces in the SEED which form a match with the motif model.
+      To annotate the family with a motif model, the seed sequence was first filtered using GSC (Gerstein/Sonnhammer/Chothia) tree weights with a 0.9 fraction identity cut-off. The filtered seed was then scanned using Infernal cmscan (v1.1) with a concatenated CM file containing each of the motifs. Significance of hits between a seed sequence and the CM was based on a gathering threshold that was individually set for each motif. Only motifs where more than two and at least 10% of seed sequences scored higher than the gathering threshold were included for the next stage of processing. These subsets of motifs were then rescanned against the entire (non-filtered) seed to generate matches.
       </p>
-
-      <p>
-        <strong>Fraction of Hits</strong>: the fraction of sequences in the SEED which form a match with the motif model.
-      </p>
-
-      <p>
-        <strong>Average Sum Bits</strong>: the weighted sum of the bit scores for the macthes between the motif and the family, normalised with the total weight. 
       
+      <p>
+      <strong>Number of Hits</strong>: the number of sequences in the family seed that score above the gathering threshold from motif.
       </p>
 
       <p>
-        <strong>Image</strong>: this plot illustrates where on the consensus secodary structure of the family, does matches between seed sequences and the motif models        occur.
+      <strong>Fraction of Hits</strong>: the fraction of sequences in the family seed that score above the gathering threshold from motif.
+      </p>
+
+      <p>
+     <strong>Average Sum Bits</strong>: the average sum of the bit scores of matches between the motif and the family seed sequence, normalized by the GSC weight for that sequence. 
+      </p>
+
+      <p>
+      <strong>Image</strong>: plot illustrating where on the consensus secondary structure matches occur between seed sequences and the motif model.
       </p>
 
    </div>
