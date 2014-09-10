@@ -9,6 +9,8 @@
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
+RETURN UNLESS motif_matches.count;
+
 PROCESS "components/require.tt";
 sharedRequirements.js.push( "tablekit.js" );
 
@@ -25,17 +27,43 @@ USE String;
 
 <div class="block" id="motifFamiliesBlock">
   <div class="handle">
-    <h1>Sequences</h1>
+    <h1>Family matches</h1>
   </div>
   <div class="blockContent">
     <div id="matchesTab">
     
     <p>
     There are <strong>[% motif_matches.count %]</strong> Rfam families which match this motif.
-
-    The table of results below may be sorted by clicking on the column titles, or
-    restored to the original order <span class="link" id="sortLink">here</span>.
     </p>
+
+    
+    <p>
+      This section shows the families which have been anotated with this motif.
+      <span onclick="reveal( this, 'motifNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+
+    <div id="motifNotes" style="display: none">
+      <p>To annotate the family with a motif model, the seed sequence was first filtered using GSC (Gerstein/Sonnhammer/Chothia) tree weights with a 0.9 fraction identity cut-off. The filtered seed was then scanned using Infernal cmscan (v1.1) with a concatenated CM file containing each of the motifs. Significance of hits between a seed sequence and the CM was based on a gathering threshold that was individually set for each motif. Only motifs where more than two and at least 10% of seed sequences scored higher than the gathering threshold were included for the next stage of processing. These subsets of motifs were then rescanned against the entire (non-filtered) seed to generate matches.</p>
+
+      <p>
+      <strong>Number of Hits</strong>: the number of sequences in the family seed that score above the gathering threshold from motif.
+      </p>
+
+      <p>
+      <strong>Fraction of Hits</strong>: the fraction of sequences in the family seed that score above the gathering threshold from motif.
+      </p>
+
+      <p>
+     <strong>Average Sum Bits</strong>: the average sum of the bit scores of matches between the motif and the family seed sequence, normalized by the GSC weight for that sequence.
+      </p>
+
+      <p>
+      <strong>Image</strong>: plot illustrating where on the consensus secondary structure matches occur between seed sequences and the motif model.
+      </p>
+    </div>
+
 
    [% IF motif_matches.count %]
      <table summary="Motif Matches"
@@ -64,11 +92,12 @@ USE String;
             <td>[% match.frac_hits %]</td>
             <td>[% match.avg_weight_bits %]</td>
             <td> <a href="[% matchURI %]"
-               data-lightbox="[% matchURI %]"
-               data-title="[% matchTitle %]">
+                    rel="lightbox[mots]="
+                    title="[% matchTitle %]">
               <img src="/static/images/seq_icon.png"
                    class="seqIcon"
-                   alt="ENA graphic" /></a>
+                   alt="Match Image" /></a>
+            </td>       
         </tr>
         [% END %]
     </tbody>
@@ -85,6 +114,7 @@ USE String;
                                  resizable: false,
                                  rowEvenClass: "even",
                                  rowOddClass: "odd",
+                                 defaultSortDirection: "1",
                                  stripe: true,
                                  observers: {
                                    onSortStart: function( table, event ) {
@@ -93,11 +123,8 @@ USE String;
                                  }
                                } );
 
-    if ( $("sortLink") ) {
-      $("sortLink").observe( "click", function() {
-        sorter.sort(0);
-      } );
-    }
+
+    var lb = new Lightbox();
 
     // ]]>
   </script>

@@ -26,7 +26,7 @@ $Id$
 use Moose;
 use namespace::autoclean;
 use LWP::Simple;
-#use Bio::Pfam::Wiki::Scraper;
+use Bio::Pfam::Wiki::Scraper;
 
 BEGIN {
   extends 'Catalyst::Controller';
@@ -170,7 +170,7 @@ sub motif_page : Chained( 'motif' )
 
   $c->log->debug( 'Motif::motif_page: adding wikipedia info' ) 
     if $c->debug;
-#  $c->forward( 'get_wikipedia' );
+  $c->forward( 'get_wikipedia' );
   
   $c->log->debug( 'Motif::motif_page: adding literature info' )
     if $c->debug;
@@ -267,15 +267,16 @@ sub get_wikipedia : Private {
   my ( $this, $c ) = @_;
 
   my $scraper = new Bio::Pfam::Wiki::Scraper;
- 
-  #$scraper->{wiki_root} = 'http://en.wikipedia.org/w/index.php?action=raw&title=';  
+  
+  my $rs = $c->model('RfamDB::Motif')->search( { motif_acc => $c->stash->{acc} },{})->first;
 
-   my $wikitext = $scraper->scrape('Tetraloop');
+  my $wiki= $rs->wiki;
 
-   return unless ( $wikitext );
+  my $wikitext = $scraper->scrape($wiki);
 
-   $c->stash->{wikitext} = $wikitext;
+  return unless ( $wikitext );
 
+  $c->stash->{wikitext} = $wikitext;
 } 
 
 

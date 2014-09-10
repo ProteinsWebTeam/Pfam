@@ -556,6 +556,11 @@ sub get_references : Private {
                               order_by => 'family_literature_references.order_added' }
   );
 
+  my $match_count = $rs->count;
+
+  if ($match_count > 0) {$c->stash->{motif_count} = 1}
+  else {$c->stash->{motif_count} = 0}
+
   $c->stash->{family_literature} = $rs;
 
 }
