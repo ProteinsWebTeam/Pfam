@@ -98,7 +98,7 @@ system("sreformat stockholm SEED > _SEED.sto") and
   die "Failed to run sreformat on SEED:[$!]\n";
 system($config->hmmer3bin."/hmmbuild -o /dev/null -O _SEED.rf _HMM _SEED.sto") and
   die;
-system('sreformat --pfam -u stockholm _SEED.rf > _SEED.rf.sto') and die;
+system('esl-reformat --replace "~:." -u pfam _SEED.rf > _SEED.rf.sto') and die;
 
 
 
