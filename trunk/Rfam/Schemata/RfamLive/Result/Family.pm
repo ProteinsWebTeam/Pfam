@@ -635,6 +635,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 annotate_file
+
+Type: has_one
+
+Related object: L<RfamDB::Result::AnnotatedFile>
+
+=cut
+
+__PACKAGE__->has_one(
+  "annotated_file",
+  "RfamLive::Result::AnnotatedFile",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 keywords
 
 Type: might_have
