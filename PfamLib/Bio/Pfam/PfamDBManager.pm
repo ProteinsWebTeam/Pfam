@@ -791,7 +791,7 @@ sub getNestedDomain {
 
   #Look to see if the family exists
   my $pfam =
-    $self->getSchema->resultset("Pfama")->find( { pfama_acc => $acc } );
+    $self->getSchema->resultset("PfamA")->find( { pfama_acc => $acc } );
 
   my @nestedFams;
   if ( $pfam and $pfam->pfama_acc ) {
@@ -808,7 +808,7 @@ sub getNestedDomain {
     foreach my $r (@results) {
       if ( $r->pfama_acc->pfama_acc ne $pfam->pfama_acc ) {
         my $npfam =
-          $self->getSchema->resultset("Pfama")
+          $self->getSchema->resultset("PfamA")
           ->find( { pfama_acc => $r->pfama_acc->pfama_acc } );
         if ($npfam) {
           push( @nestedFams, $npfam->pfama_acc );
@@ -816,7 +816,7 @@ sub getNestedDomain {
       }
       else {
         my $npfam =
-          $self->getSchema->resultset("Pfama")
+          $self->getSchema->resultset("PfamA")
           ->find( { pfama_acc => $r->nests_pfama_acc } );
         push( @nestedFams, $npfam->pfama_acc );
       }
