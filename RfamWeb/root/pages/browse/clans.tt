@@ -76,7 +76,7 @@ pageList = PROCESS "components/pageList.tt",
       </td>
       <td><a href="[% clanURI; '/'; clan.clan_acc %]">[% clan.clan_acc %]</a></td>
       <td>[% clan.get_column("num_families") %]</td>
-      <td>[% clan.clan_description %]</td>
+      <td>[% clan.description %]</td>
     </tr>
   [% END # of FOREACH %]
   </tbody>

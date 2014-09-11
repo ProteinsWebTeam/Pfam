@@ -140,12 +140,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Covariance model</td>
           <td class="data">
-            [% FOREACH cm IN rfam.rfam_cms %]
-            <a href="[% c.uri_for( '/family', acc, 'cm', cm.version ) | html %]">
-              Download</a> the CM built using Infernal version 
-            [% cm.version %]
-            <br />
-            [% END %]
+            <a href="[% c.uri_for( '/family', acc, 'cm' ) | html %]">Download</a> 
           </td>
         </tr>
       </tbody>

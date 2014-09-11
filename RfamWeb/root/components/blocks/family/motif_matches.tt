@@ -6,6 +6,8 @@
 #
 # $Id: sequences.tt,v 1.3 2009-10-08 16:01:48 jt6 Exp $
 
+RETURN UNLESS family_matches.count;
+
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 RETURN UNLESS family_matches.count;

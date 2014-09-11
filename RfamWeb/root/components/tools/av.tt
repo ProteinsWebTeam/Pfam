@@ -53,7 +53,7 @@ FOREACH m IN mapping;
   NEXT UNLESS m.hex_colour;
 
   # add an "exclude" selection command for this region
-  CALL unassigned.append( "exclude residue ${m.pdb_res_start} to ${ m.pdb_res_end }" );
+  CALL unassigned.append( "exclude residue ${m.pdb_start} to ${ m.pdb_end }" );
   CALL unassigned.append( " and chain '${m.chain}'" ) IF m.chain;
   CALL unassigned.append( "; " );
   
@@ -61,16 +61,16 @@ FOREACH m IN mapping;
   # label is stuffed into the mapping hash, so that we can use it later when
   # building the key table at the bottom of the [age 
   m.surfLabel = String.new( m.chain );
-  CALL m.surfLabel.append( m.pdb_res_start, m.pdb_res_end ) -%]
+  CALL m.surfLabel.append( m.pdb_start, m.pdb_end ) -%]
   
   color 
     '0x[% m.hex_colour ? m.hex_colour : "red" %]' 
-    residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
+    residue [% m.pdb_start %] to [% m.pdb_end %]
     [% IF m.chain %]and chain '[% m.chain %]'[% END %];
   surface -solid true
     surface_[% m.surfLabel %]
     '0x[% m.hex_colour ? m.hex_colour : "red" %]'
-    residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
+    residue [% m.pdb_start %] to [% m.pdb_end %]
     [% IF m.chain %]and chain '[% m.chain %]'[% END %];
   object 
     surface_[% m.surfLabel %]
@@ -231,21 +231,21 @@ hideButton = "${imageUri}/hideButton.png";
     FOREACH m IN mapping %]
     <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-      <td>[% m.pdb_res_start %]</td>
-      <td>[% m.pdb_res_end %]</td>
+      <td>[% m.pdb_start %]</td>
+      <td>[% m.pdb_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/sequence", m.rfamseq_acc ) %]" 
+        <a href="[% c.uri_for( '/sequence', m.rfamseq_acc ) %]" 
            onclick="opener.location=this.href;return false;">[% m.rfamseq_acc %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", id=m.auto_rfam.rfam_id ) %]"
+        <a href="[% c.uri_for( '/family', m.rfam_acc.rfam_id ) %]"
           onclick="opener.location=this.href;return false;">
-          [% m.auto_rfam.rfam_id %]</a>
-        (<a href="[% c.uri_for( "/family", acc=m.auto_rfam.rfam_acc ) %]" 
+          [% m.rfam_acc.rfam_id %]</a>
+        (<a href="[% c.uri_for( '/family', m.rfam_acc.rfam_acc ) %]" 
           onclick="opener.location=this.href;return false;">
-          [% m.auto_rfam.rfam_acc %]</a>)
+          [% m.rfam_acc.rfam_acc %]</a>)
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
       <td>

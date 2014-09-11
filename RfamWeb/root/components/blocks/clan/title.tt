@@ -7,9 +7,9 @@
 # $Id$
 
 IF titleType == "tab" -%]
-<h1>Clan: <em>[% clan.clan_id %]</em> ([% clan.clan_acc %])</h1>
+<h1>Clan: <em>[% clan.id %]</em> ([% clan.clan_acc %])</h1>
 [% ELSIF titleType == "page" -%]
-Clan: [% clan.clan_id %] ([% clan.clan_acc %])
+Clan: [% clan.id %] ([% clan.clan_acc %])
 [% END -%]
 
 [%#

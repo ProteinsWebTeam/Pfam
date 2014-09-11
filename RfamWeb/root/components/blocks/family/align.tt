@@ -9,19 +9,6 @@
 USE Number.Format( THOUSANDS_SEP = "," );
 
 alignmentUri = c.uri_for( '/family', acc, 'alignment' );
-
-one = 0;
-both = 0;
-neither = 0;
-
-IF ( ( alignment_info.seed AND NOT alignment_info.full ) OR
-     ( alignment_info.full AND NOT alignment_info.seed ) );
-  one = 1;
-ELSIF ( alignment_info.seed AND alignment_info.full );
-  both = 1;
-ELSE;
-  neither = 1;
-END;
 %]
 
 <!-- start align block -->
@@ -32,43 +19,22 @@ END;
   </div>
   <div class="blockContent">
 
-    [%- IF neither %]
-      <p id="noAlignmentsNotes"
-         style="display: none">
-        Alignments for this family are not available through the website. This
-        is most likely due to the alignments being too large to manipulate through
-        the site. You may still be able to download the data for some of the very
-        largest families from our
-        <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/misc">FTP area</a>.
-      </p>
-
-      <hr />
-    [%- END %]
-
     <div id="alignmentActiveContent">
 
       <p>
-        There are various ways to view or download the sequence alignments that
-        we store. You can use a sequence viewer to look at either the seed or
-        full alignment for the family, or you can look at a plain text version
-        of the sequence in a variety of different formats.
+        There are various ways to view or download the seed alignments that we
+        store. You can use a sequence viewer to look at them, or you can look
+        at a plain text version of the sequence in a variety of different
+        formats.
         <span onclick="reveal( this, 'alignmentsNotes', false, true );"
               class="moreLink">
           More...</span>
       </p>
       <div id="alignmentsNotes" style="display: none">
-
-        <h3>Alignment labels</h3>
-        <p>
-          We generate alignments with two types of labels for sequence. The 
-          default labels give the species name for each sequence, but you can
-          also choose to label each sequence with the sequence identifier and the
-          start/end coordinates for the region.
-        </p>
         
         <h3>Viewing</h3>
         <p>
-          You can choose from three different sequence viewers:
+          You can choose from two different sequence viewers:
         </p>
         <dl>
           <dt>
@@ -91,7 +57,7 @@ END;
         </dl>
         <h3>Downloading</h3>
         <p>
-          You can download (or view in your browser) a text representation of a
+          You can download (or view in your browser) a text representation of an
           Rfam alignment in various formats:
         </p>
         <ul>
@@ -121,43 +87,6 @@ END;
           <table class="details alignOpts" summary="Alignment display options">
             <tbody>
               <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Alignment:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" 
-                           [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="viewerTypeS"
-                           value="seed" 
-                           checked="checked" />
-                    <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
-                           for="viewerTypeS">Seed ([% rfam.num_seed | format_number %])</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" 
-                           [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="viewerTypeF" 
-                           value="full" />
-                    <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
-                           for="viewerTypeF">Full ([% rfam.num_full | format_number %])</label>
-                  </span>
-                </td>
-              </tr>
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Label format:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" name="nseLabels" id="viewSpeciesLabels" value="0" checked="checked" />
-                    <label for="viewSpeciesLabels">Species labels</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" name="nseLabels" id="viewNseLabels" value="1" />
-                    <label for="viewNseLabels">Name/start-end</label>
-                  </span>
-                </td>
-              </tr>
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
                 <td class="label">Viewer:</td>
                 <td>
                   <span class="button">
@@ -166,8 +95,6 @@ END;
                       <option value="html">HTML</option>
                     </select>
                   </span>
-                  [%# this is a bit naughty... just pad this row to double the width %]
-                  <span>&nbsp;</span>
                 </td>
               </tr>
             </tbody>
@@ -196,52 +123,6 @@ END;
           [% oe = 0 %]
           <table class="details alignOpts" summary="Alignment formatting options">
             <tbody>
-              [% IF entryType != 'B' %]
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Alignment:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio"
-                           [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="typeS" 
-                           value="seed" 
-                           checked="checked" />
-                    <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
-                           for="typeS">Seed ([% rfam.num_seed | format_number %])</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" 
-                           [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="typeF" 
-                           value="full" />
-                    <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
-                           for="typeF">Full ([% rfam.num_full | format_number %])</label>
-                  </span>
-                </td>
-              </tr>
-              [% END %]
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Label format:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" 
-                           name="nseLabels" 
-                           id="formatSpeciesLabels" 
-                           value="0" 
-                           checked="checked" />
-                    <label for="formatSpeciesLabels">Species labels</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" 
-                           name="nseLabels" 
-                           id="formatNseLabels" 
-                           value="1" />
-                    <label for="formatNseLabels">Name/start-end</label>
-                  </span>
-                </td>
-              </tr>
               <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
                 <td class="label">Alignment format:</td>
                 <td>
@@ -276,195 +157,53 @@ END;
         </div>
       </form>
 
-      <h2>Download options</h2>
+      <h2>Download</h2>
 
       <p id="dlOptionsNotes">
-        Very large alignments can often cause problems for the formatting
-        tool above. If you find that downloading or viewing a large alignment is
-        problematic, you can also download a 
+        <a href="[% alignmentUri %]/stockholm?gzip=1&amp;download=1">Download</a> a 
         <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
         Stockholm-format file containing the 
-        <a href="[% alignmentUri %]/seed/stockholm?gzip=1&amp;download=1">
-          seed</a> or 
-        <a href="[% alignmentUri %]/full/stockholm?gzip=1&amp;download=1">
-        full</a> alignment for this family. Both 
-        <a href="[% alignmentUri %]/seed/stockholm?gzip=1&amp;download=1&amp;nseLabels=1">
-          seed</a> and
-        <a href="[% alignmentUri %]/full/stockholm?gzip=1&amp;download=1&amp;nseLabels=1">
-        full</a> alignments are also available with &quot;name/start-end&quot; 
-        rather than species name labels. You may find
+        <a href="[% alignmentUri %]/stockholm?gzip=1&amp;download=1">
+          seed</a> alignment for this family. You may find
         <a class="ext" href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee">
           RALEE</a> useful when viewing sequence alignments.
       </p>
 
-      <p id="cantDlNotes" 
-         style="display: none">
-        The alignments for this family are not available. This could be due to problems
-        building or storing the alignments during the release, or because they are
-        simply too large to manipulate.
+      <h2>Submit a new alignment</h2>
+
+      <p>
+        We're happy receive updated seed alignments for new or existing families.
+        <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
+          Submit</a> your new alignment and we'll take a look.
       </p>
-
-      <form id="downloadForm"
-            action="[% alignmentUri %]"
-            method="get">
-        <div>
-          
-          [% oe = 0 %]
-          <table class="details alignOpts" summary="Download options">
-            <tbody>
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Alignment:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" 
-                           [% UNLESS alignment_info.seed -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="dlTypeS" 
-                           value="seed" 
-                           checked="checked" />
-                    <label [% UNLESS alignment_info.seed -%]class="inactive"[% END -%]
-                           for="dlTypeS">Seed ([% rfam.num_seed | format_number %])</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio"
-                           [% UNLESS alignment_info.full -%]disabled="disabled"[% END -%]
-                           name="alnType" 
-                           id="dlTypeF" 
-                           value="full" />
-                    <label [% UNLESS alignment_info.full -%]class="inactive"[% END -%]
-                           for="dlTypeF">Full ([% rfam.num_full | format_number %])</label>
-                  </span>
-                </td>
-              </tr>
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Label format:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" name="nseLabels" id="dlSpeciesLabels" value="0" checked="checked" />
-                    <label for="dlSpeciesLabels">Species labels</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" name="nseLabels" id="dlNseLabels" value="1" />
-                    <label for="dlNseLabels">Name/start-end</label>
-                  </span>
-                </td>
-              </tr>
-              <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-                <td class="label">Alignment style:</td>
-                <td>
-                  <span class="button">
-                    <input type="radio" name="cs" id="dlStyleCSS" value="0" checked="checked" />
-                    <label for="dlStyleCSS">Raw</label>
-                  </span>
-                  <span class="button">
-                    <input type="radio" name="cs" id="dlStyleCSF" value="1" />
-                    <label for="dlStyleCSF">Colorstock</label>
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-    
-          <input type="button" value="View" id="downloadFormSubmit" />
-    
-        </div>
-      </form>
-
-    <h2>Submit a new alignment</h2>
-
-    <p>
-      We're happy receive updated seed alignments for new or existing families.
-      <a href="[% c.uri_for('/submit_alignment', { accession = acc, prefill = 1 } ) | html %]">
-        Submit</a> your new alignment and we'll take a look.
-    </p>
 
     </div>[%# end of "alignmentActiveContent" %]
 
-  	<script type="text/javascript">
+    <script type="text/javascript">
       // <![CDATA[
-
-      [%- IF neither %]
-
-      $w("viewerForm optionsForm downloadForm").each(Form.disable);
-
-      $("noAlignmentsNotes").show();
-
-      $("alignmentActiveContent")
-        .descendants()
-        .invoke( "addClassName", "inactive" )
-
-      $("alignmentActiveContent")
-        .select("a")
-        .each( function(el) { 
-          var newEl = new Element( "span", { "class": "link inactive" } ).update( el.innerHTML );
-          el.replace( newEl );
-        } );
-
-      [%- ELSE %]
-
-      // wire up observers for the "view" form
-      $("viewer").observe("change", function() {
-        $("viewerForm").select("[name=nseLabels]").each( function(input) {
-          if ( $F("viewer") == "html" ) {
-            input.disable()
-                 .next("label")
-                 .addClassName("inactive");
-          } else {
-            input.enable()
-                 .next("label")
-                 .removeClassName("inactive");
-          }
-        } )
-      } );
 
       // although the form action for the "view" form looks like it will 
       // download the alignment, in fact we catch the submission here and 
       // decide, based on the form values, which URL to go to next.
       $("viewerFormSubmit").observe( "click", function() {
         if ( $F("viewer") == "jalview" ) {
-          url = "[% alignmentUri %]/" +
-                ( $("viewerTypeS").checked ? "seed" : "full" ) + 
-                "/jalview?nseLabels=" + 
-                ( $("viewNseLabels").checked ? 1 : 0 );
+          url = "[% alignmentUri %]/jalview";
           popUp( url, 'console', 800, 800, 'jalviewWin' );
         } else if ( $F("viewer") == "html" ) {
-          url = "[% alignmentUri %]/" +
-                ( $("viewerTypeS").checked ? "seed" : "full" ) +
-                "/html";
+          url = "[% alignmentUri %]/html";
           popUp( url, 'console', 800, 800, 'viewerWin' );
         }
         return false;
       } );
 
       // observers for the download form
-      $("downloadFormSubmit").observe( "click", function() {
-        url = "[% alignmentUri %]/" + 
-              ( $("dlTypeS").checked    ? "seed/"        : "full/" ) +
-              ( $("dlStyleCSF").checked ? "colorstock?" : "stockholm?" ) +
-              Form.serialize("downloadForm");
-        document.location = url;
-      } );
-
-      $("dlStyleCSS").observe("change", function() {
-        if ( $("dlStyleCSS").checked == true ) {
-          $("downloadForm").select("[name=nseLabels]").each( function(input) {
-            input.enable()
-                 .next("label")
-                 .removeClassName("inactive");
-          } )
-        }
-      } );
-      $("dlStyleCSF").observe("change", function() {
-        if ( $("dlStyleCSF").checked == true ) {
-          $("downloadForm").select("[name=nseLabels]").each( function(input) {
-            input.disable()
-                 .next("label")
-                 .addClassName("inactive");
-          } )
-        }
-      } );
-
-      [%- END; # of "IF one OR both" %]
+      //$("downloadFormSubmit").observe( "click", function() {
+        //url = "[% alignmentUri %]/" + 
+              //( $("dlTypeS").checked    ? "seed/"        : "full/" ) +
+              //( $("dlStyleCSF").checked ? "colorstock?" : "stockholm?" ) +
+              //Form.serialize("downloadForm");
+        //document.location = url;
+      //} );
 
       // ]]>
     </script>

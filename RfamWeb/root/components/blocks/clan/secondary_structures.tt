@@ -38,9 +38,9 @@ requirements.js.push( "ssswitcher.js" );
       // <![CDATA[
 
       var members = [
-        [% FOREACH rfam IN members.sort("rfam_id") -%]
-          { acc: "[% rfam.rfam_acc %]",
-            id:  "[% rfam.rfam_id %]"   }[% ", " UNLESS loop.last %]
+        [% FOREACH member IN clanMembers.sort("id") -%]
+          { acc: "[% member.rfam_acc.rfam_acc %]",
+            id:  "[% member.rfam_acc.rfam_id %]"   }[% ", " UNLESS loop.last %]
         [% END -%]
       ];
 

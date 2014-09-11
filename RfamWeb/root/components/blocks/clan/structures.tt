@@ -11,6 +11,8 @@ RETURN UNLESS summaryData.numStructures;
 
 PROCESS "components/require.tt";
 
+sharedRequirements.js.push( "tablekit.js" );
+
 #-------------------------------------------------------------------------------
 -%]
 
@@ -32,10 +34,10 @@ PROCESS "components/require.tt";
       structures that are available for that sequence.
     </p>
 
-  	<div id="clanStructureTabHolder">
-    	<p id="cstrucph" class="loading">
-      Loading structure mapping...
-     </p>	
+    <div id="clanStructureTabHolder">
+      <p id="cstrucph" class="loading">
+        Loading structure mapping...
+      </p>
     </div>
 
   </div>
