@@ -116,10 +116,10 @@ sub getClanDataByPfam {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
     $result = $self->getSchema->resultset("ClanMembership")->find(
-      { "auto_pfama.pfama_acc" => $family },
+      { "pfama_acc.pfama_acc" => $family },
       {
-        join     => [qw/auto_pfama auto_clan/],
-        prefetch => [qw/auto_clan/]
+        join     => [qw/pfama_acc clan_acc/],
+        prefetch => [qw/clan_acc/]
       }
     );
 
@@ -130,10 +130,10 @@ sub getClanDataByPfam {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
     $result = $self->getSchema->resultset("ClanMembership")->find(
-      { "auto_pfama.pfama_id" => $family },
+      { "pfama_acc.pfama_id" => $family },
       {
-        join     => [qw( auto_pfama auto_clan)],
-        prefetch => [qw( auto_clan )]
+        join     => [qw( pfama_acc clan_acc)],
+        prefetch => [qw( clan_acc )]
       }
     );
 
