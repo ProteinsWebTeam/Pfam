@@ -41,16 +41,16 @@ our $VERSION = '0.1';
 #- configure logging -----------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-BEGIN {
-  my $logger_conf = q(
-    log4perl.logger                   = WARN, Screen
-    log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
-    log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
-    log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
-  );
-
-  Log::Log4perl->init( \$logger_conf );
-}
+# BEGIN {
+#   my $logger_conf = q(
+#     log4perl.logger                   = WARN, Screen
+#     log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
+#     log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
+#     log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
+#   );
+# 
+#   Log::Log4perl->init_once( \$logger_conf );
+# }
 
 has 'logger' => (
   is      => 'ro',
