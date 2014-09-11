@@ -14,7 +14,7 @@ IF titleType == "tab" -%]
   <h2>Description: <em>[% motif.description %]</em></h2>
 </div>
 [% ELSIF titleType == "page" -%]
-Moitf: [% motif.motif_id %] ([% motif.motif_acc %])
+Motif: [% motif.motif_id %] ([% motif.motif_acc %])
 [% END -%]
 
 [%#
