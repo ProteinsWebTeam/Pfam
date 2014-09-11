@@ -59,7 +59,7 @@ sharedRequirements.js.push( "tablekit.js" );
     We found <strong>[% results.size %]</strong> unique 
     result[% results.size > 1 ? "s" : "" %] for your query 
     (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
-    sections of the database.
+    section[% "s" IF hitPlugins > 1 %] of the database.
     [% IF lookupHit %]
       Your query also appears to be a match for Rfam entry
       <strong>
@@ -110,12 +110,12 @@ sharedRequirements.js.push( "tablekit.js" );
     </thead>
     <tbody>
       [% FOREACH row IN results;
-         acc = row.dbObj.rfam_acc;
+         acc = row.dbObj.get_column('rfam_acc');
          id  = row.dbObj.rfam_id %]
-      <tr class="[% loop.index % 2 ? "odd" : "even" %][% lookupHit.rfam_id == id ? " highlight" : "" %]">
+      <tr class="[% loop.parity %][% lookupHit.rfam_id == id ? " highlight" : "" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
-        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
+        <td><a href="[% c.uri_for( '/family', acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.uri_for( '/family', id ) %]">[% id %]</a></td>
         <td class="desc">[% row.dbObj.description %]</td>
         [% FOREACH pluginName IN pluginsArray;
           IF pluginHits.$pluginName;

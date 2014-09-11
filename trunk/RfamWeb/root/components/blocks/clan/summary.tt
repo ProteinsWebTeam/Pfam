@@ -1,4 +1,3 @@
-
 [%
 # summary.tt
 # jt6 20060424 WTSI
@@ -25,24 +24,13 @@ USE Number.Format( THOUSANDS_SEP = "," );
 PROCESS components/links.tt;
 
 membershipList = BLOCK;
-  total = 0;
-  size = 0;
-  members = [];
-  
-  # can't sort the contents of "clan.clan_memberships" directly. Convert the 
-  # list into rows from the rfam table first
-  FOREACH member IN clan.clan_memberships;
-    members.push( member.auto_rfam );
-  END;
-  FOREACH rfam IN members.sort( "rfam_id" ); -%]
+  FOREACH member IN clanMembers.sort('id') -%]
     <span class="listItem">
-      <a title="[% rfam.rfam_acc %]"
-         href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">
-        [% rfam.rfam_id %]</a>
+      <a title="[% member.rfam_acc.rfam_acc %]"
+         href="[% c.uri_for( '/family', member.rfam_acc.rfam_acc ) %]">
+        [% member.rfam_acc.rfam_id %]</a>
     </span>
-    [% total = total + rfam.num_full;
-    size = size + 1;
-  END;
+  [% END;
 END; -%]
 
 <!-- start clan summary block -->
@@ -58,13 +46,13 @@ END; -%]
          class="pdbImageFragment"
          style="display: none">&nbsp;</div>
 
-    <h1>[% clan.clan_description %]</h1>
+    <h1>[% clan.description %]</h1>
 
-    <p>[% clan.clan_comment %]</p>
+    <p>[% clan.comment %]</p>
 
-    <p>This clan contains <strong>[% size %]</strong> families and
+    <p>This clan contains <strong>[% clanMembers.size %]</strong> families and
       the total number of sequence regions in the clan is <strong>
-        [% total | format_number %]</strong>.</p>
+        [% total_seqs | format_number %]</strong>.</p>
 
     [% IF clan.clan_literature_references.size %]
       <h2>Literature references</h2>
@@ -79,8 +67,8 @@ END; -%]
            FOREACH refNum IN litRefs.keys.nsort;
              ref = litRefs.$refNum; -%]
           <li>
-            [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
-            <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.medline %]">[% ref.auto_lit.medline %]</a>
+            [% ref.pmid.author %], [% ref.pmid.journal %]: [% ref.pmid.title %]
+            <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid.pmid %]">[% ref.pmid.pmid %]</a>
           </li>
         [% END %]
       </ol>
@@ -88,7 +76,7 @@ END; -%]
 
     <h2>Members</h2>
 
-    <p>This clan contains the following [% size %] member families:</p>
+    <p>This clan contains the following [% clanMembers.size %] member families:</p>
 
     [% membershipList %]
 
@@ -96,34 +84,6 @@ END; -%]
     PROCESS buildLinksTable type="clan" -%]
 
   </div>
-
-  [% # for loading the example structure image we use the call to the family
-     # controller, rather than having a separate one %]
-
-  <script type="text/javascript">
-    // <![CDATA[
-
-/*
-    document.observe( "dom:loaded", function() {
-      var r = new Ajax.Updater( 
-        "siph",
-        "[% c.uri_for( '/family/structures', members.first.rfam_acc ) %]",
-        {
-          evalScripts: true,
-          onSuccess: function() {
-            $("siph").show();
-          },
-          on204: function() {
-            // capture the 204 so that we don't end up showing an empty box... 
-          }
-        }
-      );
-    } );
-*/
-
-    // ]]>
-  </script>
-
 </div>
 
 <!-- end clan summary block -->

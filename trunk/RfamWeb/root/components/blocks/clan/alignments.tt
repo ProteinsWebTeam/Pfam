@@ -1,4 +1,3 @@
-
 [%
 # alignments.tt
 # jt6 20060424 WTSI
@@ -8,13 +7,9 @@
 USE Number.Format( THOUSANDS_SEP = "," );
 
 # calculate the percentages for the table 
-totalFam = 0;
 totalSeq = 0;
-rfams = [];
-FOREACH rfam IN clan.clan_memberships;
-	totalFam = totalFam + 1;
-	totalSeq = totalSeq + rfam.auto_rfam.num_full;
-	rfams.push( rfam.auto_rfam );
+FOREACH member IN clanMembers;
+	totalSeq = totalSeq + member.rfam_acc.num_full;
 END;
 
 # a block to start the table. There may be two tables, placed side by side, if 
@@ -46,17 +41,17 @@ tableFooter = BLOCK -%]
 
     <p>
       The table below shows the number of occurrences of each family throughout
-      the sequence database.
-      In brackets beside each number is the percentage of the total number of 
-      sequence hits for the clan that are represented by this family. The 
-      rightmost column provides a link to the alignments tab for each family.
+      the sequence database. In brackets beside each number is the percentage
+      of the total number of sequence hits for the clan that are represented by
+      this family. The rightmost column provides a link to the alignments tab
+      for each family.
     </p>
 
     [% # work out if we're going to split the table in two. If we are, work out how long
        # each column can get and wrap each in a div that will float it left  
     maxLength = "";
-    IF clan.clan_memberships.size > constants.tableLength;
-      maxLength = clan.clan_memberships.size / 2 -%]
+    IF clanMember.count > constants.tableLength;
+      maxLength = clanMember.count / 2 -%]
       <div class="floatLeft">
     [%- END;
     
@@ -66,7 +61,8 @@ tableFooter = BLOCK -%]
     # and build the body
     oe = 0;
     split = 0;
-    FOREACH rfam IN rfams.nsort("num_full").reverse;
+    FOREACH member IN clanMembers.nsort("num_full").reverse;
+      rfam = member.rfam_acc;
     
       IF NOT split AND maxLength AND loop.index > maxLength -%]
         <tr class="continuation">
@@ -92,7 +88,7 @@ tableFooter = BLOCK -%]
         </td>
         <td>[% rfam.num_full | format_number %] ([% percentS %]%)</td>
         <td>
-          <a href="[% c.uri_for( '/family', rfam.rfam_id, { tab = "alignBlock" } ) | html %]">View</a>
+          <a href="[% c.uri_for( '/family', rfam.rfam_id, { tab = 'alignBlock' } ) | html %]">View</a>
         </td>
       </tr>
     
@@ -102,7 +98,7 @@ tableFooter = BLOCK -%]
     </table>
           
     [% # do we close the float div ?
-    IF clan.clan_memberships.size > constants.tableLength -%]
+    IF clanMembers.count > constants.tableLength -%]
       </div>
     [%- END -%]
 

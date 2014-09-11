@@ -12,13 +12,13 @@ META naked = 1;
 
 pageContent = BLOCK;
 
-title = "Jalview: $alnType alignment for $acc";
+title = "Jalview: seed alignment for $acc";
 
-alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType/fasta" );
+alignmentURI = c.uri_for( "/family/$acc/alignment/fasta" );
 -%]
 
 <h1>
-  View [% alnType %] alignment for <em>[% acc %]</em> using <a class="ext" href="http://www.jalview.org/">Jalview</a>
+  View seed alignment for <em>[% acc %]</em> using <a class="ext" href="http://www.jalview.org/">Jalview</a>
 </h1>
 
 <div class="jalview">
@@ -26,7 +26,7 @@ alignmentURI = c.uri_for( "/family/$acc/alignment/$alnType/fasta" );
           width="780" 
           height="550"
           archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
-    <param name="file" value="[% c.uri_for( "/family/$acc/alignment/$alnType/fasta", { 'nseLabels' => nseLabels } ) %]" />
+    <param name="file" value="[% c.uri_for( "/family/$acc/alignment/fasta", { 'nseLabels' => nseLabels } ) %]" />
     <param name="defaultColour" value="Taylor" />
     <param name="linkLabel_1" value="UniProt" />
     <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
