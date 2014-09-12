@@ -234,14 +234,14 @@ sub getPfamData {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
     $familyData =
-      $self->getSchema->resultset("Pfama")->find( { "pfama_acc" => $family } );
+      $self->getSchema->resultset("PfamA")->find( { "pfama_acc" => $family } );
 
   }
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
     $familyData =
-      $self->getSchema->resultset("Pfama")->find( { "pfama_id" => $family } );
+      $self->getSchema->resultset("PfamA")->find( { "pfama_id" => $family } );
   }
   else {
     cluck("$family does not look like a family accession or id");
