@@ -627,6 +627,26 @@ sub pfamjobs {
   
 }
 
+=head2 ipfamlive 
+
+  Title    : ipfamlive
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
+
+sub ipfamlive {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  
+  return $self->{Model}->{iPfamlive};  
+  
+}
+
 =head2 pfamOldRelAdmin 
 
   Title    : pfamOldRelAdmin
