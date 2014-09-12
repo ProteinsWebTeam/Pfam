@@ -45,7 +45,7 @@ USE String;
     </p>
 
     <div id="motifNotes" style="display: none">
-      <p>To annotate the family with a motif model, the seed sequence was first filtered using GSC (Gerstein/Sonnhammer/Chothia) tree weights with a 0.9 fraction identity cut-off. The filtered seed was then scanned using Infernal cmscan (v1.1) with a concatenated CM file containing each of the motifs. Significance of hits between a seed sequence and the CM was based on a gathering threshold that was individually set for each motif. Only motifs where more than two and at least 10% of seed sequences scored higher than the gathering threshold were included for the next stage of processing. These subsets of motifs were then rescanned against the entire (non-filtered) seed to generate matches.</p>
+      <p>To annotate the family with a motif model, the seed sequence was first filtered using a 0.9 fraction identity cut-off. The filtered seed was then scanned using Infernal cmscan (v1.1) with a concatenated CM file containing each of the motifs. Significance of hits between a seed sequence and the CM was based on a gathering threshold that was individually set for each motif. Only motifs where more than two and at least 10% of seed sequences scored higher than the gathering threshold were included for the next stage of processing. These subsets of motifs were then rescanned against the entire (non-filtered) seed to generate matches.</p>
 
       <p>
       <strong>Number of Hits</strong>: the number of sequences in the family seed that score above the gathering threshold from motif.
@@ -56,7 +56,7 @@ USE String;
       </p>
 
       <p>
-     <strong>Average Sum Bits</strong>: the average sum of the bit scores of matches between the motif and the family seed sequence, normalized by the GSC weight for that sequence.
+     <strong>Sum of Bits</strong>: the sum of the bit scores of matches between the motif and the family seed sequence.
       </p>
 
       <p>
@@ -76,7 +76,7 @@ USE String;
           <th>Family Description</th>
           <th>Number of Hits</th>
           <th>Fraction of Hits</th>
-          <th>Average Sum Bits</th>
+          <th>Sum of Bits</th>
           <th>Image</th>
         </tr>
       </thead>
@@ -90,7 +90,7 @@ USE String;
             <td>[% match.rfam_acc.description %]</td>
             <td>[% match.num_hits %]</td>
             <td>[% match.frac_hits %]</td>
-            <td>[% match.avg_weight_bits %]</td>
+            <td>[% match.sum_bits  | format('%.01f') %]</td>
             <td> <a href="[% matchURI %]"
                     rel="lightbox[mots]="
                     title="[% matchTitle %]">
