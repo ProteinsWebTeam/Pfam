@@ -57,15 +57,6 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       length of the RNA, so searching larger models quickly become infeasible 
       without significant compute resources. 
     </p>
-    <p>
-      A currently unsupported Perl script, 
-      <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">
-        rfam_scan.pl</a>, which uses BLAST to increase search speed,
-         can be downloaded from
-      <a class="ext" href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/tools/">
-        here</a>. This script is currently being updated to support Infernal 
-      version 1.0.
-    </p>
 
     <h3>2. Specificity</h3>
 
