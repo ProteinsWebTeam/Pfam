@@ -340,7 +340,7 @@ why is the model truncated from published blah
     <p>
       From the family summary page, go to the "Alignments" tab on the left
       side panel. The alignments tab will give you multiple drop down
-      options on how to either view or download the sequences for this
+      options on how to either view or download the seed sequences for this
       family, in an aligned or fasta format. The formatting options allow you
       to select which type of format you would prefer.
     </p>
@@ -356,9 +356,16 @@ why is the model truncated from published blah
       href="http://en.wikipedia.org/wiki/Stockholm_format">Wikipedia</a>.
     </p>    
     <p>
+      As of release 12.0, we no longer provide full alignments for automatic
+      download. You can generate them using the Sunbursts feature for sequences
+      of your choice (for families with full alignments containing less than
+      1000 sequences), or generate them yourself by downloading the covariance
+      model and using the Infernal suite of software.
+    </p>
+    <p>
       If you are interested retrieving alignments for multiple families, you 
-      can download all our seed and full alignments in Stockholm format 
-      flat-files from our <a class="ext"
+      can download all our seed alignments in Stockholm format 
+      flat-files, and the covariance models used to generate them, from our <a class="ext"
       href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>

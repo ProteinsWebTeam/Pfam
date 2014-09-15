@@ -289,42 +289,7 @@
     
     <hr />
 
-    <h2><a name="browsegenomes">Browse genome annotations</a></h2> 
-
-    <p>
-      The genome browsing index enables you to obtain a list of all the
-      Rfam families that have been annotated on a particular genome sequence. 
-      To find out which genomes we annotate, you should read our
-      Genome Annotation section. Essentially, if a species has a completed
-      genome sequence or a WGS genome assembly in the EMBL nucleotide
-      database, we will have collated all the Rfam annotations to this genome
-      sequence and you can access them here.
-    </p>
-    <p>
-      You can use the indices to browse the alphabetical list of
-      all genomes by species names. However, if you are only interested in
-      the genomes of a particular kingdom, you can use the alphabetical lists
-      to view only the species for the kingdom of interest. The letter indices
-      will take you to the appropriate place in the species lists, but you 
-      should note that you can still move up and down the alphabetical list, 
-      simply by scrolling the page. You can also use the quick links at the top 
-      of the table to jump to another letter in the alphabet.
-    </p>
-    <p>
-      Note that the species lists can be sorted simply by clicking on the column
-      headers, allowing you to order the data by criteria such as
-      number of Rfam annotations or genome size.
-    </p>
-    <p>
-      You should also note that, if your species of interest is not in the
-      genomes list, this does not necessarily mean we do not have any Rfam
-      annotations to this species. It simply means we do not have a complete
-      genome sequence for this species to map our Rfam families
-      to. You should use the taxonomy search explained above to identify
-      any annotations for your species of interest.
-    </p>
-
-  </div> 
+      </div> 
 </div>
 
 <!-- end getStarted block -->
@@ -332,7 +297,7 @@
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Authors: Sarah Burge, (swb@ebi.ac.uk),Rob Finn (rdf@ebi.ac.uk), John Tate (jgt@ebi.ac.uk), 
 Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
