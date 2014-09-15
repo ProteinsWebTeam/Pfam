@@ -72,6 +72,10 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-31 10:52:01
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bCRNX4sYvVEGgEFpOUB0CQ
 
+__PACKAGE__->add_column(
+  "full",
+  { data_type => "longblob", is_nullable => 1 }
+);
 
 __PACKAGE__->set_primary_key('rfam_acc');
 
