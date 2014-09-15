@@ -149,35 +149,7 @@
       </dd>
     </dl>
 
-    <h2>Distributions of bit scores</h2>
-
-    <p>
-      These images are not available in the flatfile release and are provided 
-      in the website to allow the users a quick visual guide to the range of 
-      scores we obtained when searching the model against rfamseq. Our curators 
-      use this distribution when curating the gathering cutoff value for the 
-      family. 
-    </p>
-    <p>
-      The upper panel shows the score distribution for all of the hits to the 
-      covariance model. The hits are coloured blue if the hit overlaps a seed 
-      sequence, otherwise they are in red.
-    </p>
-    <p>
-      The lower panel shows score distributions for those sequences where the 
-      associated descriptions match family terms, such as "mir-422", or 
-      forbidden terms, such as "repeat", "repetitive", "pseudogene" and 
-      "transpos", shown in light blue and pink respectively. Note that 
-      sequences that match both are counted twice here.
-    </p>
-    <p>
-      The truncated distributions are useful when the number of low scoring 
-      hits is several orders of magnitude more than the high scoring hits. 
-      The x-axis is truncated at the left side of the distribution, thereby 
-      removing the bulk of the low scoring hits. 
-    </p>
-
-  </div>
+      </div>
 </div>
 
 <!-- end curation block -->

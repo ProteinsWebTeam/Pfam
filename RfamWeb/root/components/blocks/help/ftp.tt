@@ -67,27 +67,6 @@
        Annotated seed alignments in STOCKHOLM format
       </dd>
       <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full.gz">
-          Rfam.full.gz</a>
-      </dt>
-      <dd>
-       Annotated full alignments in STOCKHOLM format
-      </dd>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.fasta.gz">
-          Rfam.fasta.gz</a>
-      </dt>
-      <dd>
-        Fasta sequences of Rfam members filtered to &lt;90% identity
-      </dd>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.qc">
-          Rfam.qc</a>
-      </dt>
-      <dd>
-        Sequence and structure measures for each family
-      </dd>
-      <dt>
         <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed_tree.tar.gz">
           Rfam.seed_tree.tar.gz</a>
       </dt>
@@ -95,60 +74,15 @@
         Annotated tree files for each seed alignment [tarbomb]
       </dd>
       <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full_tree.tar.gz">
-          Rfam.full_tree.tar.gz</a>
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full_region.gz">
+          Rfam.full_region.gz</a>
       </dt>
       <dd>
-        Annotated tree files for each full alignment [tarbomb]
+        List of sequence regions making up the full family membership for each family
       </dd>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/Rfam.thr.gz">
-          Rfam.thr.gz</a>
-      </dt>
-      <dd>
-        Family gathering threshold information
-      </dd>
-    </dl>
+          </dl>
   
-    <h3>Genome annotations</h3>
-    
-    <dl>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/genome.gff3.tar.gz">
-          genome.gff3.tar.gz</a>
-      </dt>
-      <dd>
-        Rfam annotations to completed genomes and chromosomes in GFF3 format
-      </dd>
-    </dl>
-  
-    <h3>Other </h3>
-  
-    <dl>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc4-cm.tar.gz">
-          infernal-1.0rc4-cm.tar.gz</a>
-      </dt>
-      <dd>
-        Calibrated CMs for Infernal 1.0rc4. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
-      </dd>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc5-cm.tar.gz">
-          infernal-1.0rc5-cm.tar.gz</a>
-      </dt>
-      <dd>
-        Calibrated CMs for Infernal 1.0rc5. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
-      </dd>
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/rfam2embl_crossrefs.txt.gz">
-          rfam2embl_crossrefs.txt.gz</a>
-      </dt>
-      <dd>
-        Cross reference of Rfam family accessions and IDs with EMBL sequence accessions
-      </dd>
-    </dl>
-  
-    <h3> Rfam database dumps</h3>
+        <h3> Rfam database dumps</h3>
   
     <dl>
       <dt>

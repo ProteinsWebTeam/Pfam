@@ -241,7 +241,13 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       information</span> pages for details of bit scores and gathering 
       thresholds.    
     </p>
-
+    <p> 
+    As of Rfam 12.0, we no longer automatically generate full alignments for
+    each Rfam family. You can use our Sunbursts (under the Species tab) to
+    generate alignments for the sequences of your choice for families with full
+    alignments of less than 1000 sequences, or you may download the Rfam CM and
+    generate your own alignments.  
+    </p>
     <h3>Family annotation</h3>
 
     <p>
@@ -256,36 +262,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
     <h3>Phylogenetic trees</h3>
 
-    <h4>Fewer than 64 sequences</h4>
-
     <p>
-      It order to save computational resources, we compute accurate maximum
-      likelihood trees only for alignments containing fewer than 64
-      sequences. For this we use <a class="ext"
-        href="http://selab.janelia.org/software.html">ERATE</a>.
+      All our phylogenetic trees are now generated using <a class="ext"
+      href="http://www.microbesonline.org/fasttree/">fasttree</a>.
     </p>
     
-    <h4>More than 64 sequences</h4>
-    
-    <p>
-      For alignments containing more than 64 sequences, we use the
-      neighbour-joining method implemented in <a class="ext"
-        href="http://evolution.genetics.washington.edu/phylip.html">
-          PHYLIP</a> with default parameters. 
-    </p>
-    
-    <h4>More than 1024 sequences</h4>
-    
-    <p>
-      Alignments containing more than 1024 sequences are filtered based 
-      upon sequence identity, i.e. one member of a pair of highly similar
-      sequences is removed from the alignment, this operation is performed
-      iteratively for the entire alignment for a gradually decreasing
-      identity threshold until the total number of sequences in the
-      remaining alignment is less than 1024. The tree is then generated from
-      this remaining alignment using PHYLIP.
-    </p>
-
   </div>
 </div>
 
@@ -294,7 +275,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Authors: Sarah Burge (swb@ebi.ac.uk), Rob Finn (rdf@ebi.ac.uk), John Tate (jgt@ebi.ac.uk), 
 Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
