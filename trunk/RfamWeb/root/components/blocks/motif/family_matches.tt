@@ -1,15 +1,15 @@
 [%
 # family_matches.tt
-# jt6 20081208 WTSI
+# evan 20140915 EBI
 #
 # the family matches tab for the motif section
 #
 # $Id: sequences.tt,v 1.3 2009-10-08 16:01:48 jt6 Exp $
 
+RETURN UNLESS motif_matches.count;
+
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
-
-RETURN UNLESS motif_matches.count;
 
 PROCESS "components/require.tt";
 sharedRequirements.js.push( "tablekit.js" );
@@ -23,7 +23,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
 USE String;
 %]
 
-<!-- start sequences block -->
+<!-- start family matches block -->
 
 <div class="block" id="motifFamiliesBlock">
   <div class="handle">
@@ -32,110 +32,123 @@ USE String;
   <div class="blockContent">
     <div id="matchesTab">
     
-    <p>
-    There are <strong>[% motif_matches.count %]</strong> Rfam families which match this motif.
-    </p>
-
-    
-    <p>
-      This section shows the families which have been anotated with this motif.
-      <span onclick="reveal( this, 'motifNotes', false, true );"
-            class="moreLink">
-        More...</span>
-    </p>
-
-    <div id="motifNotes" style="display: none">
-      <p>To annotate the family with a motif model, the seed sequence was first filtered using a 0.9 fraction identity cut-off. The filtered seed was then scanned using Infernal cmscan (v1.1) with a concatenated CM file containing each of the motifs. Significance of hits between a seed sequence and the CM was based on a gathering threshold that was individually set for each motif. Only motifs where more than two and at least 10% of seed sequences scored higher than the gathering threshold were included for the next stage of processing. These subsets of motifs were then rescanned against the entire (non-filtered) seed to generate matches.</p>
-
       <p>
-      <strong>Number of Hits</strong>: the number of sequences in the family seed that score above the gathering threshold from motif.
-      </p>
-
-      <p>
-      <strong>Fraction of Hits</strong>: the fraction of sequences in the family seed that score above the gathering threshold from motif.
-      </p>
-
-      <p>
-     <strong>Sum of Bits</strong>: the sum of the bit scores of matches between the motif and the family seed sequence.
-      </p>
-
-      <p>
-      <strong>Image</strong>: plot illustrating where on the consensus secondary structure matches occur between seed sequences and the motif model.
-      </p>
-    </div>
-
-
-   [% IF motif_matches.count %]
-     <table summary="Motif Matches"
-         id="motifMatchesTable"
-         class="details">
-      <thead class="sortIndicator">
-        <tr>
-          <th id="indexCol" class="rowNum">Original order</th>
-          <th>Family Accession</th>
-          <th>Family Description</th>
-          <th>Number of Hits</th>
-          <th>Fraction of Hits</th>
-          <th>Sum of Bits</th>
-          <th>Image</th>
-        </tr>
-      </thead>
-      <tbody>
-        [% WHILE (match = motif_matches.next) ; 
-             matchURI = c.uri_for( '/motif', acc, 'image', match.rfam_acc.rfam_acc)
-             matchTitle = example %]
-          <tr class="[% loop.parity %]">
-            <td class="rowNum">[% loop.index %]</td>
-            <td><a href="[% c.uri_for( '/family', match.rfam_acc.rfam_acc ) %]">[% match.rfam_acc.rfam_acc %]</a></td>
-            <td>[% match.rfam_acc.description %]</td>
-            <td>[% match.num_hits %]</td>
-            <td>[% match.frac_hits %]</td>
-            <td>[% match.sum_bits  | format('%.01f') %]</td>
-            <td> <a href="[% matchURI %]"
-                    rel="lightbox[mots]="
-                    title="[% matchTitle %]">
-              <img src="/static/images/seq_icon.png"
-                   class="seqIcon"
-                   alt="Match Image" /></a>
-            </td>       
-        </tr>
+        [% IF motif_matches.count > 1 %]
+        There are <strong>[% motif_matches.count %]</strong> Rfam families which match this motif.
+        [% ELSE %]
+        There is <strong>1</strong> Rfam family which matches this motif.
         [% END %]
-    </tbody>
-  </table>
+      </p>
+      
+      <p>
+        This section shows the families which have been anotated with this motif.
+        <span onclick="reveal( this, 'motifNotes', false, true );"
+              class="moreLink">
+          More...</span>
+      </p>
 
-  [% END %]
+      <div id="motifNotes" style="display: none">
+        <p>
+          To annotate the family with a motif model, the seed sequence was first
+          filtered using a 0.9 fraction identity cut-off. The filtered seed was
+          then scanned using Infernal cmscan (v1.1) with a concatenated CM file
+          containing each of the motifs. Significance of hits between a seed
+          sequence and the CM was based on a gathering threshold that was
+          individually set for each motif. Only motifs where more than two and at
+          least 10% of seed sequences scored higher than the gathering threshold
+          were included for the next stage of processing. These subsets of motifs
+          were then rescanned against the entire (non-filtered) seed to generate
+          matches.
+        </p>
 
-  <script type="text/javascript">
-    // <![CDATA[
+        <p>
+          <strong>Number of Hits</strong>: the number of sequences in the family
+          seed that score above the gathering threshold from motif.
+        </p>
 
-    var sorter = new TableKit( "motifMatchesTable",
-                               {
-                                 editable: false,
-                                 resizable: false,
-                                 rowEvenClass: "even",
-                                 rowOddClass: "odd",
-                                 defaultSortDirection: "1",
-                                 stripe: true,
-                                 observers: {
-                                   onSortStart: function( table, event ) {
-                                     table.down("thead").removeClassName("sortIndicator");
-                                   }
-                                 }
-                               } );
+        <p>
+          <strong>Fraction of Hits</strong>: the fraction of sequences in the
+          family seed that score above the gathering threshold from motif.
+        </p>
 
+        <p>
+         <strong>Sum of Bits</strong>: the sum of the bit scores of matches
+         between the motif and the family seed sequence.
+        </p>
 
-    var lb = new Lightbox();
+        <p>
+          <strong>Image</strong>: plot illustrating where on the consensus
+          secondary structure matches occur between seed sequences and the motif
+          model.
+        </p>
+      </div>
 
-    // ]]>
-  </script>
+      <table summary="Motif Matches"
+             id="motifMatchesTable"
+             class="details">
+        <thead class="sortIndicator">
+          <tr>
+            <th id="indexCol" class="rowNum">Original order</th>
+            <th>Family Accession</th>
+            <th>Family Description</th>
+            <th>Number of Hits</th>
+            <th>Fraction of Hits</th>
+            <th>Sum of Bits</th>
+            <th>Image</th>
+          </tr>
+        </thead>
+        <tbody>
+          [% WHILE (match = motif_matches.next) ; 
+               matchURI = c.uri_for( '/motif', acc, 'image', match.rfam_acc.rfam_acc)
+               matchTitle = example %]
+            <tr class="[% loop.parity %]">
+              <td class="rowNum">[% loop.index %]</td>
+              <td><a href="[% c.uri_for( '/family', match.rfam_acc.rfam_acc ) %]">[% match.rfam_acc.rfam_acc %]</a></td>
+              <td>[% match.rfam_acc.description %]</td>
+              <td>[% match.num_hits %]</td>
+              <td>[% match.frac_hits %]</td>
+              <td>[% match.sum_bits  | format('%.01f') %]</td>
+              <td> <a href="[% matchURI %]"
+                      rel="lightbox[mots]"
+                      title="[% matchTitle %]">
+                <img src="/static/images/seq_icon.png"
+                     class="seqIcon"
+                     alt="Match Image" /></a>
+              </td>       
+          </tr>
+          [% END %]
+        </tbody>
+      </table>
 
+      <script type="text/javascript">
+        // <![CDATA[
+
+        var sorter = new TableKit( "motifMatchesTable",
+                                   {
+                                     editable: false,
+                                     resizable: false,
+                                     rowEvenClass: "even",
+                                     rowOddClass: "odd",
+                                     defaultSortDirection: "1",
+                                     stripe: true,
+                                     observers: {
+                                       onSortStart: function( table, event ) {
+                                         table.down("thead").removeClassName("sortIndicator");
+                                       }
+                                     }
+                                   } );
+
+        var lb = new Lightbox();
+
+        // ]]>
+      </script>
 
     </div>
   </div>
 </div>
 
 
-<!-- end sequences block --> 
+<!-- end family matches block --> 
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.
