@@ -81,10 +81,7 @@ sub process_pdb : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_pdb: querying PDB ID' )
     if $c->debug;
 
-  # my $results = $c->model('RfamDB::PdbRfamReg')
-  #                 ->search( { pdb_id => $c->stash->{terms} },
-  #                           { join => [ 'auto_rfam' ] } );
-  my $results = $c->model('RfamDB::Keywords')
+  my $results = $c->model('RfamDB::Keyword')
                   ->search( {},
                             {} )
                   ->search_literal( 'MATCH( pdb_mappings ) ' .
@@ -111,7 +108,7 @@ sub process_wikipedia : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_wikipedia: text querying Rfam wikipedia annotations' )
     if $c->debug;
 
-  my $results = $c->model('RfamDB::RfamKeywords')
+  my $results = $c->model('RfamDB::Keyword')
                   ->search( {},
                             {} )
                   ->search_literal( 'MATCH( wiki ) ' .
@@ -140,7 +137,7 @@ sub process_rfam : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_rfam: text querying Rfam-specific data using: |' .
                   $c->stash->{terms} . '|' ) if $c->debug;
 
-  my $m = $c->model('RfamDB::RfamKeywords');
+  my $m = $c->model('RfamDB::Keyword');
 
   # do a full blown query...
   my $results =
@@ -172,7 +169,7 @@ sub process_literature : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_literature: text querying Rfam literature' )
     if $c->debug;
 
-  my $m = $c->model('RfamDB::RfamKeywords');
+  my $m = $c->model('RfamDB::Keyword');
 
   # do a full blown query...
   my $results =
@@ -204,7 +201,7 @@ sub process_clan : Private {
   $c->log->debug( 'Roles::Search::Keyword::process_clan: text querying Rfam clan' )
     if $c->debug;
 
-  my $m = $c->model('RfamDB::RfamKeywords');
+  my $m = $c->model('RfamDB::Keyword');
 
   # do a full blown query...
   my $results =
@@ -229,7 +226,7 @@ or accession.
 sub lookup_term : Private {
   my ( $this, $c ) = @_;
 
-   my $rs = $c->model('RfamDB::Rfam')
+   my $rs = $c->model('RfamDB::Family')
               ->search( [ { rfam_acc => $c->stash->{rawQueryTerms} },
                           { rfam_id  => $c->stash->{rawQueryTerms} } ] );
 
@@ -243,16 +240,7 @@ sub lookup_term : Private {
 
 =head2 merge
 
-Merges results from plugins. Merging requires that each row of the C<ResultSet>
-has access to an Rfam accession. We'll try to get it using
-
-  $rs->rfam_acc
-
-or
-
-  $rs->auto_rfam->rfam_acc
-
-but if neither method works, the row is skipped.
+Merges results from plugins. 
 
 =cut
 
@@ -267,7 +255,7 @@ sub merge : Private {
 
       # first try accessing the accession on the table row directly
       eval {
-        $acc = $row->rfam_acc;
+        $acc = $row->get_column('rfam_acc');
       };
       if ( $@ ) {
         $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
@@ -280,29 +268,6 @@ sub merge : Private {
         $hit->{dbObj} = $row;
         last TRY;
       }
-
-      # we couldn't find the accession on the row itself, so try walking down one
-      # possible relationship, "auto_rfam", and see if that gets us to another
-      # table, which hopefully does store the details of the Rfam family
-      #
-      # This is all a bit convoluted, but it means that we shouldn't need to add
-      # proxy columns indiscriminately throughout the model, just so that text
-      # searching can work
-      eval {
-        $acc = $row->auto_rfam->rfam_acc;
-      };
-      if ( $@ ) {
-        $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
-                       . " \$row->auto_rfam->rfam_acc for plugin |$pluginName|: $@" )
-          if $c->debug;
-      }
-
-      if ( defined $acc ) {
-        $hit = $c->stash->{results}->{$acc} ||= {};
-        $hit->{dbObj} = $row->auto_rfam;
-        # last TRY;
-      }
-
     }
 
     $hit->{query}->{$pluginName} = 1;
