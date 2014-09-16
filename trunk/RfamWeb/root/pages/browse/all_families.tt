@@ -58,8 +58,6 @@ pageList = PROCESS "components/pageList.tt"
       <th>Type</th>
       <th>Seed</th>
       <th>Full</th>
-      <th>Average length</th>
-      <th>Sequence<br />identity (%)</th>
       <th>Description</th>
     </tr>
   </thead>
@@ -85,8 +83,6 @@ pageList = PROCESS "components/pageList.tt"
         <td>[% rfam.type %]</td>
         <td>[% rfam.num_seed | format_number %]</td>
         <td>[% rfam.num_full | format_number %]</td>
-        <td>[% rfam.alignments_and_trees.average_length %]</td>
-        <td>[% rfam.alignments_and_trees.percent_id %]</td>
         <td class="left">[% rfam.description | html %]</td>
       </tr>
     [% END -%]
