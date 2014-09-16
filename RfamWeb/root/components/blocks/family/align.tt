@@ -72,7 +72,7 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
       <h2>View options</h2>
 
       <p>
-        You can view Rfam alignments in your browser in various ways. Choose the
+        You can view Rfam seed alignments in your browser in various ways. Choose the
         viewer that you want to use and click the &quot;View&quot; button to 
         show the alignment in a pop-up window.
       </p>
@@ -108,7 +108,7 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
       <h2>Formatting options</h2>
 
       <p>
-        You can view or download Rfam alignments in several formats. Check either 
+        You can view or download Rfam seed alignments in several formats. Check either 
         the &quot;download&quot; button, to save the formatted alignment, or 
         &quot;view&quot;, to see it in your browser window, and click 
         &quot;Generate&quot;. 
