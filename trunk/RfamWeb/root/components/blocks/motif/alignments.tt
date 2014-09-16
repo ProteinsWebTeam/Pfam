@@ -129,8 +129,6 @@ alignmentUri = c.uri_for( '/motif', acc, 'alignment' );
         </div>
       </form>
 
-    <h2>Submit a new alignment</h2>
-
     </div>[%# end of "alignmentActiveContent" %]
 
   </div>
