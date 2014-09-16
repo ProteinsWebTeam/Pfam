@@ -108,21 +108,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
             ELSE %]N/A[% END %]
           </td>
         </tr>
-        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-          <td class="label">Trusted cutoff</td>
-          <td class="data">
-           [% IF motif_curation.trusted_cutoff.defined; motif_curation.trusted_cutoff | format( "%5.1f" );
-           ELSE %]N/A[% END %]
-          </td>
-        </tr>
-        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-          <td class="label">Noise cutoff</td>
-          <td class="data">
-          [% IF motif_curation.noise_cutoff.defined; motif_curation.noise_cutoff | format( "%5.1f" );
-           ELSE %]N/A[% END %]
-          </td>
-        </tr>
-        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+       <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Covariance model</td>
           <td class="data">Download the Infernal CM for the motif <a href="[% c.uri_for( '/motif', acc, 'cm') | html %]"> here </a>
           </td>
