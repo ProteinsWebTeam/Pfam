@@ -64,12 +64,6 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <dd>A curated alignment containing a small set of representative sequences 
         and a consensus secondary structure annotation</dd>
       
-      <dt>Full alignment</dt>
-      <dd>An alignment of all homologous sequences in rfamseq, our underlying 
-        sequence database, that are identified as being members of the family. 
-        Full alignments are generated using <a class="ext"
-          href="http://infernal.janelia.org/">Infernal</a></dd>
-        
       <dt>Sequences</dt>
       <dd>Information about sequences in the family, including bit score, seed
         and full alignments, region coordinates, sequence description from 
