@@ -90,6 +90,26 @@ alphabet = [ "A" .. "Z" ];
         </td>
       </tr>
 
+      <tr>
+        <td class="type">FAMILIES WITH<br />STRUCTURES</td>
+        <td class="links">
+          [% num = "0 - 9";
+          IF active_letters.families_with_structures.$num -%]
+            <a href="[% c.uri_for( '/families/with_structure#0' ) %]">0 - 9</a>
+          [% ELSE -%]
+            <span class="inactive">0 - 9</span>
+          [% END;
+          FOREACH letter IN alphabet;
+            IF active_letters.families_with_structures.$letter -%]
+              <a href='[% c.uri_for( "/families/with_structure#$letter" ) %]'>[% letter %]</a>
+            [% ELSE -%]
+              <span class="inactive">[% letter %]</span>
+            [%- END;
+          END -%]
+        </td>
+      </tr>
+     
+    
     </tbody>
   </table>  
   
