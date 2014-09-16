@@ -97,8 +97,9 @@ USE Number.Format( THOUSANDS_SEP = "," );
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Build commands</td>
           <td class="data">
-            <div>cmbuild [% motif.cmbuild %]</div>
-            <div>cmcalibrate [% motif.cmcalibrate %]</div>
+            [%# the regexes used to get rid of the paths here are likely to be fragile... %]
+            <div>cmbuild [% motif.cmbuild.replace( '\w+\/', '' ).replace( '/', '' ) %]</div>
+            <div>cmcalibrate [% motif.cmcalibrate.replace( '\w+\/', '' ).replace( '/', '' ) %]</div>
           </td>
         </tr>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
@@ -108,7 +109,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
             ELSE %]N/A[% END %]
           </td>
         </tr>
-       <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Covariance model</td>
           <td class="data">Download the Infernal CM for the motif <a href="[% c.uri_for( '/motif', acc, 'cm') | html %]"> here </a>
           </td>
