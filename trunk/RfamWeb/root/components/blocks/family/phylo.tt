@@ -104,8 +104,8 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       <div class="treeHolder" id="seed_acc_tree" style="display: none"></div>
 
       <p>
-        <strong>Note:</strong> You can also download the data files for the
-        <a href="[% c.uri_for( '/family', acc, 'tree/seed' ) | html %]">seed</a>.
+        <strong>Note:</strong> You can also download the data file for the
+        <a href="[% c.uri_for( '/family', acc, 'tree/seed' ) | html %]">seed tree</a>.
       </p>
 
     </div>
