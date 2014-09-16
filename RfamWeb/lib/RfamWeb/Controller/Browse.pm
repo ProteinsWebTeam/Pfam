@@ -358,10 +358,10 @@ sub browse_families_by_letter : Chained( 'browse_families' )
     $c->log->debug( 'Browse::browse_families_by_letter: building a list of families with structures' )
       if $c->debug;
   
-    my @rs = $c->model( 'RfamDB::PdbRfamReg' )
+    my @rs = $c->model( 'RfamDB::PdbFullRegion' )
                ->search( { 'alignments_and_tree.type' => 'seed' },
                          { prefetch => { 'rfam_acc' => 'alignments_and_tree' },
-                           '+select'=> [ { count => 'rfam_acc.rfam_acc' } ],
+                           '+select'=> [ { count => 'rfam_acc.rfam_id' } ],
                            '+as'    => [ 'num_structures' ],
                            group_by => [ 'rfam_acc.rfam_id' ],
                            order_by => 'rfam_acc.rfam_id' } );
@@ -522,11 +522,11 @@ sub build_active_letters : Private {
 
     #----------------------------------------
     
-    # get a list of all families and join to pdb_rfam_reg, so that we can find
+    # get a list of all families and join to pdb_full_reg, so that we can find
     # those families for which there's a 3-D structure
     my @families = $c->model( 'RfamDB::Family' )
                      ->search( {},
-                               { prefetch => [ 'pdb_rfam_regs' ] } );
+                               { prefetch => [ 'pdb_full_regs' ] } );
                               
     my $first_letter;
     foreach my $family ( @families ) {
@@ -534,7 +534,7 @@ sub build_active_letters : Private {
       $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
       $active_letters->{families}->{$first_letter} = 1;
       $active_letters->{families_with_structures}->{$first_letter} = 1
-        if $family->pdb_rfam_regs->count;
+        if $family->pdb_full_regs->count;
     }
 
     #----------------------------------------

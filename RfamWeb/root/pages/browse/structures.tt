@@ -34,7 +34,7 @@ tableBody = BLOCK;
 
   first = "";
   FOREACH rfam IN families;
-    initialLetter = rfam.auto_rfam.rfam_id.split("").first | upper;
+    initialLetter = rfam.rfam_acc.rfam_id.split("").first | upper;
     IF initialLetter.match('\d');
       initialLetter = "0 - 9";
     END;
@@ -42,22 +42,20 @@ tableBody = BLOCK;
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td class="rowNum">[% loop.index %]</td>
       <td>
-        <a href="[% c.uri_for( '/family', rfam.auto_rfam.rfam_acc ) %]"
+        <a href="[% c.uri_for( '/family', rfam.rfam_acc.rfam_acc ) %]"
            [%- IF initialLetter != first -%]
              name="[% initialLetter %]"
              [%- first = initialLetter | upper;
-           END %]>[% rfam.auto_rfam.rfam_id %]</a>
+           END %]>[% rfam.rfam_acc.rfam_id %]</a>
       </td>
       <td>
-        <a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.auto_rfam.rfam_acc %]</a>
+        <a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.rfam_acc.rfam_acc %]</a>
       </td>
-      <td>[% rfam.auto_rfam.type %]</td>
-      <td>[% rfam.auto_rfam.num_seed | format_number %]</td>
-      <td>[% rfam.auto_rfam.num_full | format_number %]</td>
-      <td>[% rfam.auto_rfam.alignments_and_trees.average_length %]</td>
-      <td>[% rfam.auto_rfam.alignments_and_trees.percent_id %]</td>
+      <td>[% rfam.rfam_acc.type %]</td>
+      <td>[% rfam.rfam_acc.num_seed | format_number %]</td>
+      <td>[% rfam.rfam_acc.num_full | format_number %]</td>
       <td>[% rfam.get_column("num_structures") %]</td>
-      <td class="left">[% rfam.auto_rfam.description | html %]</td>
+      <td class="left">[% rfam.rfam_acc.description | html %]</td>
     </tr>
   [% END;
 
@@ -95,8 +93,6 @@ pageList = PROCESS "components/pageList.tt",
       <th>Type</th>
       <th>Seed</th>
       <th>Full</th>
-      <th>Average length</th>
-      <th>Sequence<br />identity (%)</th>
       <th>Number of structures</th>
       <th>Description</th>
     </tr>
