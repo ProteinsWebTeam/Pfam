@@ -15,7 +15,7 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
 
 <div class="block" id="alignBlock">
   <div class="handle">
-    <h1>Alignments</h1>
+    <h1>Alignment</h1>
   </div>
   <div class="blockContent">
 
@@ -49,7 +49,7 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
             HTML
           </dt>
           <dd>
-            an HTML page showing the alignment in blocks. We do not store
+            an HTML page showing the seed alignment in blocks. We do not store
             separate alignments with species or &quot;name/start-end&quot; labels,
             but you can switch between these different labels within the block
             viewer
@@ -58,7 +58,7 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
         <h3>Downloading</h3>
         <p>
           You can download (or view in your browser) a text representation of an
-          Rfam alignment in various formats:
+          Rfam seed alignment in various formats:
         </p>
         <ul>
           <li>Stockholm</li>
@@ -72,9 +72,9 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
       <h2>View options</h2>
 
       <p>
-        You can view Rfam seed alignments in your browser in various ways. Choose the
-        viewer that you want to use and click the &quot;View&quot; button to 
-        show the alignment in a pop-up window.
+        You can view Rfam seed alignments in your browser in various ways.
+        Choose the viewer that you want to use and click the &quot;View&quot;
+        button to show the alignment in a pop-up window.
       </p>
 
       <form id="viewerForm"
@@ -108,10 +108,10 @@ alignmentUri = c.uri_for( '/family', acc, 'alignment' );
       <h2>Formatting options</h2>
 
       <p>
-        You can view or download Rfam seed alignments in several formats. Check either 
-        the &quot;download&quot; button, to save the formatted alignment, or 
-        &quot;view&quot;, to see it in your browser window, and click 
-        &quot;Generate&quot;. 
+        You can view or download Rfam seed alignments in several formats. Check
+        either the &quot;download&quot; button, to save the formatted
+        alignment, or &quot;view&quot;, to see it in your browser window, and
+        click &quot;Generate&quot;. 
       </p>
           
       <form id="optionsForm"

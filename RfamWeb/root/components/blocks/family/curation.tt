@@ -36,10 +36,10 @@ USE Number.Format( THOUSANDS_SEP = "," );
 
     <h2>Curation</h2>
 
-  	[% oe = 0 %]
+    [% oe = 0 %]
 
     <table class="layout" summary="Curation information for this family">
-  	  <tbody>
+      <tbody>
         <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Seed source</td>
           <td class="data">
@@ -62,45 +62,31 @@ USE Number.Format( THOUSANDS_SEP = "," );
           <td class="label">Author</td>
           <td class="data">[% rfam.author %]</td>
         </tr>
-  	    <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
-  	      <td class="label">Alignment details</td>
-  	      <td class="data">
-  	        <table class="details" summary="Alignment details">
-  	          <thead>
-  	            <tr>
-  	              <th>Alignment</th>
-  	              <th>Number of<br />sequences</th>
-  	              <th>Average length</th>
-  	              <th>Sequence<br />identity (%)</th>
-  	            </tr>
-  	          </thead>
-  	          <tbody>
-  	            <tr class="even">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+          <td class="label">Alignment details</td>
+          <td class="data">
+            <table class="details" summary="Alignment details">
+              <thead>
+                <tr>
+                  <th>Alignment</th>
+                  <th>Number of<br />sequences</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="even">
                   <td class="label">full</td>
                   <td>[% rfam.num_full | format_number %]</td>
-                  [%- IF alignment_info.full %]
-                    <td>[% alignment_info.full.average_length %]</td>
-                    <td>[% alignment_info.full.percent_id %]</td>
-                  [%- ELSE %]
-                    <td colspan="2" class="inactive">no full alignment</td>
-                  [%- END %]
-  	            </tr>
-  	            <tr class="odd">
-  	              <td class="label">seed</td>
+                </tr>
+                <tr class="odd">
+                  <td class="label">seed</td>
                   <td>[% rfam.num_seed | format_number %]</td>
-                  [%- IF alignment_info.seed %]
-                    <td>[% alignment_info.seed.average_length %]</td>
-                    <td>[% alignment_info.seed.percent_id %]</td>
-                  [%- ELSE %]
-                    <td colspan="2" class="inactive">no seed alignment</td>
-                  [%- END %]
-  	            </tr>
-  	          </tbody>
-  	        </table>
-  	      </td>
-  	    </tr>
-  	  </tbody>
-  	</table>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <h2>Model information</h2>
 
