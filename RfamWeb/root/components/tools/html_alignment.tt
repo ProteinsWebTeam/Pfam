@@ -26,8 +26,8 @@ title = "Seed sequence alignment for " _ acc;
 BLOCK pageList -%]
 <ul class="pageList">
   [% IF current_block_num > 0 %]
-    <li><a title="First page" href="[% c.uri_for( '/family/alignment/html', acc => acc, block => 0 ) | html %]">&laquo;</a></li>
-    <li><a title="Previous page" href="[% c.uri_for( '/family/alignment/html', acc => acc, block => current_block_num - 1 ) | html %]">&lsaquo;</a></li>
+    <li><a title="First page" href="[% c.uri_for( '/family/', acc, '/alignment/html', block => 0 ) | html %]">&laquo;</a></li>
+    <li><a title="Previous page" href="[% c.uri_for( '/family/,', acc, '/alignment/html', block => current_block_num - 1 ) | html %]">&lsaquo;</a></li>
   [% ELSE %]
     <li class="inactive">&laquo;</li>
     <li class="inactive">&lsaquo;</li>
@@ -40,8 +40,8 @@ BLOCK pageList -%]
     [% END %]
   [% END %]
   [% IF current_block_num < last_block_num %]
-    <li><a title="Next page" href="[% c.uri_for( '/family/alignment/html', acc => acc, block => current_block_num + 1 ) | html %]">&rsaquo;</a></li>
-    <li><a title="Last page" href="[% c.uri_for( '/family/alignment/html', acc => acc, block => last_block_num ) | html %]">&raquo;</a></li>
+    <li><a title="Next page" href="[% c.uri_for( '/family/', acc, '/alignment/html', block => current_block_num + 1 ) | html %]">&rsaquo;</a></li>
+    <li><a title="Last page" href="[% c.uri_for( '/family/', acc, '/alignment/html', block => last_block_num ) | html %]">&raquo;</a></li>
   [% ELSE %]
     <li class="inactive">&rsaquo;</li>
     <li class="inactive">&raquo;</li>
