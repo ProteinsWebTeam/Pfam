@@ -220,7 +220,7 @@ sub image : Chained( 'family' )
   # cache the template output for one week
   $c->cache_page( 604800 );
 
-  $c->res->content_type( 'image/svg+xml' );
+  $c->res->content_type( $image_type eq 'rchie' ? 'image/png' : 'image/svg+xml' );
   $c->res->body( $image );
 }
 
@@ -258,53 +258,30 @@ Serves the CM file for this family.
 
 sub cm : Chained( 'family' )
          PathPart( 'cm' )
-         Args() {
-  my ( $this, $c, $version ) = @_;
-  
+         Args( 0 ) {
+  my ( $this, $c ) = @_;
+
   # set the template that will show any error messages, in cases when the
   # client requests XML or HTML. Default to an HTML error message
   $c->stash->{template} = ( ( $c->req->accepted_content_types->[0] || '' ) eq 'text/xml' )
                         ? 'rest/family/error_xml.tt'
                         : 'components/blocks/family/error.tt';
 
-  my $rs;
-  if ( defined $version and
-       $version =~ m/^\d+\.\d+$/ ) {
-    $c->log->debug( "Family::Methods::cm: looking for CM built with infernal v. |$version| ")
-      if $c->debug;
-    $rs = $c->stash->{rfam}->search_related( 'rfam_cms',
-                                             { version => $version } );
-  }
-  else {
-    $c->log->debug( 'Family::Methods::cm: looking for latest CM' ) if $c->debug;  
-    $rs = $c->stash->{rfam}->search_related( 'rfam_cms',
-                                             {},
-                                             { order_by => 'version DESC' } );
-  }
+  $c->log->debug( 'Family::Methods::cm: returning compressed CM' )
+    if $c->debug;
+  my $cm = $c->stash->{rfam}->annotated_file->unzipped_cm;
 
-  my $gzipped_cm;
-  unless ( defined $rs and $rs and
-           $gzipped_cm = $rs->first->cm ) {
-    $c->log->debug( 'Family::Methods::cm:: failed to retrieve a CM' )
-      if $c->debug;
-
-    $this->status_not_found( $c, message => 'Could not find a covariance model built with that version of infernal.' );
-
-    return;
-  }
-  
-  my $cm = Compress::Zlib::memGunzip( $gzipped_cm );
   unless ( defined $cm ) {
-    $c->log->debug( 'Family::Methods::cm:: failed to uncompress CM' )
+    $c->log->debug( 'Family::Methods::cm: failed to retrieve CM' )
       if $c->debug;
 
     $c->res->status(500); # Internal server error
-    $c->stash->{rest}->{error} = 'We could not uncompress the covariance model file.';
+    $c->stash->{rest}->{error} = "We could not return the covariance model file.";
 
     return;
   }
 
-  # cache the template output for one week
+  # cache the output for one week
   $c->cache_page( 604800 );
 
   my $filename = $c->stash->{acc} . '.cm';

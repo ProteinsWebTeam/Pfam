@@ -590,91 +590,33 @@ sub get_motif_matches : Private {
 =head2 build_fasta : Private
 
 Builds a FASTA-format sequence file containing the region sequences for the
-supplied accessions. This is used by the "required" by the L<SunburstMethods>
-role.
+supplied accessions. This is "required" by the L<SunburstMethods> role.
 
-Takes two arguments: ref to an array with the list of
-accessions; boolean specifying whether or not to "pretty print" the sequences
-by wrapping at 60 characters per line.
+Takes one argument, a reference to a list of accessions to retrieve.
 
 =cut
 
 sub build_fasta : Private {
-  my ( $this, $c, $accessions, $pretty ) = @_;
-
-  $c->log->debug( 'Family::build_fasta: wrapping sequence lines' )
-    if ( $c->debug and $pretty );
+  my ( $this, $c, $accessions ) = @_;
 
   my $fasta = '';
   foreach ( @$accessions ) {
-    next unless m/^\w+$/;
-    my $rs = $c->model( 'RfamDB::SeqInfo' )
+    next unless m/^[\w\.]+$/;
+    my $rs = $c->model( 'RfamDB::FullRegion' )
                ->search( { rfamseq_acc => $_,
                            rfam_acc    => $c->stash->{acc} },
-                         { columns => [ qw( rfamseq_acc_v
+                         { columns => [ qw( rfamseq_acc
                                             seq_start 
-                                            seq_end 
-                                            sequence
-                                            description ) ] } );
+                                            seq_end ) ] } );
     while ( my $row = $rs->next ) {
-      my $header = '>' . 
-                   $row->rfamseq_acc_v . '/' .
-                   $row->seq_start . '-' . $row->seq_end . ' ' .
-                   $row->description;
-      my $sequence = uc $row->sequence;
-      $sequence =~ s/[-.]//g;
-      $sequence = wrap( '', '', $sequence ) if $pretty;
-
-      $fasta .= "$header\n$sequence\n";
+      $fasta .= '>' . 
+                $row->get_column('rfamseq_acc') . '/' .
+                $row->seq_start . '-' . $row->seq_end . "\n";
     }
   }
 
   return $fasta;
 }
-
-# this version of the "build_fasta" method uses a three-table join to get 
-# everything it needs. That should, in principle, be slower than getting it all
-# from a single table (shouldn't it ?).
-# sub old_build_fasta : Private {
-#   my ( $this, $c, $accessions, $pretty ) = @_;
-# 
-#   $c->log->debug( 'Family::SunburstMethods::build_fasta: wrapping sequence lines' )
-#     if ( $c->debug and $pretty );
-# 
-#   my $sequences = '';
-#   foreach my $acc ( split m/,/, $accessions ) {
-#     next unless $acc =~ m/^\w+$/;
-#     my $rs = $c->model( 'RfamDB::RfamRegFull' )
-#                ->search( { 'auto_rfamseq.rfamseq_acc' => $acc },
-#                          { join     => [ qw( auto_rfam auto_rfamseq ) ],
-#                            select   => [ qw( auto_rfamseq.rfamseq_acc 
-#                                              auto_rfamseq.version 
-#                                              seq_start 
-#                                              seq_end 
-#                                              sequence
-#                                              auto_rfamseq.description ) ],
-#                            as       => [ qw( rfamseq_acc 
-#                                              version 
-#                                              seq_start 
-#                                              seq_end 
-#                                              sequence
-#                                              description ) ] } );
-#     while ( my $row = $rs->next ) {
-#       my $header = '>' . 
-#                    $row->get_column('rfamseq_acc') . '.' . $row->get_column('version') . '/' .
-#                    $row->seq_start . '-' . $row->seq_end . ' ' .
-#                    $row->get_column('description');
-#       my $sequence = $row->sequence;
-#       $sequence =~ s/[-.]//g;
-#       $sequence = wrap( '', '', $sequence ) if $c->debug;
-#       # TODO should the sequence be forced to upper case ?
-# 
-#       $sequences .= "$header\n$sequence\n";
-#     }
-#   }
-# 
-#   return $sequences;
-# }
 
 #-------------------------------------------------------------------------------  
 

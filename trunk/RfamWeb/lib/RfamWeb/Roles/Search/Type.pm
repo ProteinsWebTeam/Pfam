@@ -75,7 +75,7 @@ sub type_search : Chained( 'search' )
     return;
   }
 
-  my @hits = $c->model('RfamDB::Rfam')
+  my @hits = $c->model('RfamDB::Family')
                ->search( { type => { 'IN', \@paths } },
                          {} );
 

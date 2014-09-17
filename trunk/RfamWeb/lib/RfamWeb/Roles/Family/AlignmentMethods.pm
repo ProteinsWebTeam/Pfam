@@ -141,18 +141,17 @@ my %supported_formats = (
 
 Catches alignment requests with no alignment type (seed or full) and no format
 specified. Defaults to Stockholm-format seed alignment. Still respects some
-params, "alnType" and "format".
+params, such as "format".
 
 =cut 
 
-sub alignment_default: Chained( 'family' ) 
-                       PathPart( 'alignment' )
-                       Args( 0 ) {
+sub alignment_default : Chained( 'family' ) 
+                        PathPart( 'alignment' )
+                        Args( 0 ) {
   my ( $this, $c ) = @_;
 
-  # seed or full ?
-  # $c->stash->{alnType} = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full'; 
-  $c->stash->{alnType} = ( $c->req->param('alnType') || '' ) eq 'full' ? 'full' : 'seed'; 
+  # we only have seed alignments, labelled with taxonomy data...
+  $c->stash->{alnType} = 'seed'; 
 
   # format ?
   my $output_format = $this->{default_output_format};
@@ -161,7 +160,7 @@ sub alignment_default: Chained( 'family' )
     $output_format = $c->req->param('format');
   }
 
-  $c->forward( 'alignment',        [ $c->stash->{alnType} ] );
+  $c->forward( 'alignment' );
   $c->forward( 'alignment_format', [ $output_format ] );
 }
 
@@ -172,14 +171,6 @@ sub alignment_default: Chained( 'family' )
 Mid-point in a chain for handling alignments. Captures various parameters:
 
 =over
-
-=item alnType
-
-alignment type
-
-=item nseLabels
-
-use "name/start-end" to label sequences ? default is to use species names
 
 =item download
 
@@ -195,19 +186,16 @@ should the output alignment be gzip-compressed ?
 
 sub alignment : Chained( 'family' )
                 PathPart( 'alignment' )
-                CaptureArgs( 1 ) {
+                CaptureArgs( 0 ) {
   my ( $this, $c, $aln_type ) = @_;
 
   # which alignment, what type of labels, view or download, and should we gzip
   # the output, if that makes sense for the specified format ?
-  $c->stash->{alnType}    = ( $aln_type || '' ) eq 'seed' ? 'seed' : 'full'; 
-  $c->stash->{nseLabels}  = ( $c->req->param('nseLabels') || 0 ) ? 1 : 0;
+  $c->stash->{alnType}    = 'seed'; # we only have seed alignments, labelled with taxonomy
   $c->stash->{download}   = ( $c->req->param('download')  || 0 ) ? 1 : 0;
   $c->stash->{gzip}       = ( $c->req->param('gzip')      || 0 ) ? 1 : 0;
 
   if ( $c->debug ) {
-    $c->log->debug( 'Family::alignment: which alignment type ?      ' . $c->stash->{alnType} );
-    $c->log->debug( 'Family::alignment: use name/start-end labels ? ' . $c->stash->{nseLabels} );
     $c->log->debug( 'Family::alignment: download rather than view ? ' . $c->stash->{download} );
     $c->log->debug( 'Family::alignment: gzipped output ?            ' . $c->stash->{gzip} );
   }
@@ -226,6 +214,9 @@ sub alignment_format_default : Chained( 'alignment' )
                                PathPart( '' )
                                Args( 0 ) {
   my ( $this, $c ) = @_;
+
+  $c->log->debug( 'AlignmentMethods::alignment_default: no format found' )
+    if $c->debug;
 
   $c->forward( 'alignment_format', [ 'stockholm' ] );
 }
@@ -324,7 +315,7 @@ sub alignment_format_GET {
 
     $c->stash->{output_alignment} = $c->stash->{gzipped_alignment};
     $c->stash->{is_gzipped}       = 1;
-    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.colorstock.html';
+    $c->stash->{filename}         = $c->stash->{acc} . '.colorstock.html';
     # $c->stash->{gzip}             = 1; # force colorstock to be gzipped
   }
 
@@ -401,16 +392,13 @@ sub old_jalview : Path( '/family/alignment/jalview' ) {
   $c->log->debug( 'Family::old_jalview: redirecting to "jalview"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
-
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{viewer};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                     $aln_type, 'jalview', $c->req->params ) );
+                     'jalview', $c->req->params ) );
 }
 
 #---------------------------------------
@@ -427,16 +415,13 @@ sub old_html : Path( '/family/alignment/html' ) {
   $c->log->debug( 'Family::old_html: redirecting to "html"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
-
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{viewer};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                     $aln_type, 'html', $c->req->params ) );
+                     'html', $c->req->params ) );
 }
 
 #---------------------------------------
@@ -453,18 +438,16 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
   $c->log->debug( 'Family::old_gzipped: redirecting to "gzipped"' )
     if $c->debug;
 
-  my $aln_type   = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
   my $colorstock = ( $c->req->param('cs') || 0 ) ? 1 : 0;
 
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{cs};
 
   if ( $colorstock ) {
     $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                       $aln_type, 'colorstock', $c->req->params ) );
+                       'colorstock', $c->req->params ) );
   }
   else {
     # firkle with the params. Need to add "gzip=1" to make sure the output 
@@ -472,7 +455,7 @@ sub old_gzipped : Path( '/family/alignment/download/gzipped' ) {
     my $params = { %{ $c->req->params }, 'gzip' => 1 };
 
     $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                       $aln_type, 'stockholm', $params ) );
+                       'stockholm', $params ) );
   }
 }
 
@@ -490,8 +473,6 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   $c->log->debug( 'Family::old_format: redirecting to "format"' )
     if $c->debug;
 
-  my $aln_type = ( $c->req->param('alnType') || '' ) eq 'seed' ? 'seed' : 'full';
-
   my $output_format = $this->{default_output_format};
   if ( defined $c->req->param('format') and
        exists $supported_formats{ $c->req->param('format') || '' } ) {
@@ -501,11 +482,10 @@ sub old_format : Path( '/family/alignment/download/format' ) {
   delete $c->req->params->{id};
   delete $c->req->params->{acc};
   delete $c->req->params->{entry};
-  delete $c->req->params->{alnType};
   delete $c->req->params->{format};
 
   $c->res->redirect( $c->uri_for( '/family', $c->stash->{param_entry}, 'alignment', 
-                     $aln_type, $output_format, $c->req->params ) );
+                     $output_format, $c->req->params ) );
 }
 
 #-------------------------------------------------------------------------------
@@ -604,7 +584,7 @@ sub format : Private {
 
     $c->stash->{output_alignment} = $c->stash->{gzipped_alignment};
     $c->stash->{is_gzipped}       = 1;
-    $c->stash->{filename}         = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.stockholm.txt';
+    $c->stash->{filename}         = $c->stash->{acc} . '.stockholm.txt';
   }
   else {
 
@@ -644,7 +624,7 @@ sub format : Private {
     # stick the output of esl-reformat back together and we're done
     $c->stash->{output_alignment} = join '', <OUTPUT>;
     $c->stash->{is_gzipped}       = 0;
-    $c->stash->{filename}         = $c->stash->{acc} . '.' . $c->stash->{alnType} . ".$output_format.txt";
+    $c->stash->{filename}         = $c->stash->{acc} . ".$output_format.txt";
 
     # tidy up
     close OUTPUT;
@@ -695,7 +675,7 @@ sub get_html_alignment : Private {
 
   # get all of the blocks  
   my @rs = $c->stash->{rfam}->search_related( 'html_alignments',
-                                              { type => $c->stash->{alnType} } );
+                                              { type => 'seed' } );
 
   unless ( scalar @rs ) {
     $c->log->debug( 'Family::get_html_alignment: failed to retrieve an alignment block' )
@@ -746,14 +726,8 @@ compressed. Caches the gzipped alignment too, if caching is enabled.
 sub get_gzipped_alignment : Private {
   my ( $this, $c ) = @_;
 
-  my $aln_type = $c->stash->{alnType} . ( $c->stash->{nseLabels} ? '' : 'Tax' );
-  $c->log->debug( "Family::get_gzipped_alignment: setting alignment type to |$aln_type|" )
-    if $c->debug;
-  
   # first try the cache...
-  my $cacheKey = 'gzipped_alignment'
-                 . $c->stash->{acc}
-                 . $aln_type;
+  my $cacheKey = 'gzipped_alignment' . $c->stash->{acc};
   my $gzipped_alignment = $c->cache->get( $cacheKey );
 
   if ( defined $gzipped_alignment ) {
@@ -765,29 +739,14 @@ sub get_gzipped_alignment : Private {
       if $c->debug;
 
     # failed to get a cached version; retrieve the alignment from the DB
-    my $rs = $c->stash->{rfam}->search_related( 'alignments_and_tree',
-                                                { type => $aln_type },
-                                                { columns => [ 'alignment' ] } );
+    $gzipped_alignment = $c->stash->{rfam}->annotated_file->seed;
 
     # make sure the query returned something
-    my $alignment_row;
-    unless ( defined $rs and
-             $alignment_row = $rs->first ) {
+    unless ( defined $gzipped_alignment ) {
       $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve a row' )
         if $c->debug;
 
       $c->stash->{rest}->{error} = 'There was a problem retrieving the alignment data for '
-                                   . $c->stash->{acc};
-
-      return;
-    }
-
-    # make sure we can get the alignment out of the returned row
-    unless ( $gzipped_alignment = $alignment_row->alignment ) {
-      $c->log->debug( 'Family::get_gzipped_alignment: failed to retrieve an alignment' )
-        if $c->debug;
-
-      $c->stash->{rest}->{error} = 'There was a problem uncompressing the alignment data for '
                                    . $c->stash->{acc};
 
       return;
@@ -814,14 +773,10 @@ it, still compressed. Caches the gzipped alignment too, if caching is enabled.
 sub get_colorstock_alignment : Private {
   my ( $this, $c ) = @_;
 
-  my $alnType = $c->stash->{alnType} . 'Colorstock';
-  $c->log->debug( "Family::get_colorstock_alignment: setting alignment type to |$alnType|" )
-    if $c->debug;
-  
   # first try the cache...
   my $cache_key = 'gzipped_alignment'
-                  . $c->stash->{acc}
-                  . $alnType;
+                  . $c->stash->{acc};
+
   my $gzipped_alignment = $c->cache->get( $cache_key );
   
   if ( defined $gzipped_alignment ) {
@@ -834,7 +789,7 @@ sub get_colorstock_alignment : Private {
 
     # failed to get a cached version; retrieve the alignment from the DB
     my $rs = $c->stash->{rfam}->search_related( 'html_alignments',
-                                                { type => $alnType },
+                                                { type => 'seed' },
                                                 { columns => [ 'html' ] } );
 
     # make sure the query returned something

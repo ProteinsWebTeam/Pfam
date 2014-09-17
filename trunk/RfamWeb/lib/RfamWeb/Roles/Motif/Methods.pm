@@ -73,7 +73,8 @@ sub image : Chained( 'motif' )
 
     $image = Compress::Zlib::memGunzip( $rs->image );
     unless ( $image ) {
-      $c->log->debug( "Motif::Methods::image: couldn't uncompress image: $Compress::Zlib::gzerrno" );
+      $c->log->debug( "Motif::Methods::image: couldn't uncompress image: $Compress::Zlib::gzerrno" )
+        if $c->debug;
       $c->detach( 'no_alignment' );
       return;
     }
