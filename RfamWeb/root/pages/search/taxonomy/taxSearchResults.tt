@@ -26,11 +26,12 @@ IF taxSearchError %]
 
 [% ELSE;
 
-  IF families.keys.size -%]
+  num_hits = families.keys.size;
+  IF num_hits %]
 
     <p id="taxSearchResultsSummary">
-      We found <strong>[% families.keys.size %]</strong> families matching your
-      criteria:
+      We found <strong>[% num_hits %]</strong> [% num_hits == 1 ? "family" : "families" %]
+      matching your criteria:
     </p>
     
     [% PROCESS pages/search/taxonomy/resultsTable.tt;
