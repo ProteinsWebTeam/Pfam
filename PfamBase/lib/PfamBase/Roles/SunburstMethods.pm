@@ -27,6 +27,7 @@ use namespace::autoclean;
 use Data::Dump qw( dump );
 use Data::UUID;
 use Try::Tiny;
+use JSON;
 
 requires 'build_fasta';
 
@@ -281,9 +282,12 @@ sub align : Chained( 'sunburst' )
 # those sequences to be aligned to the CM
 
 sub align_POST {
-  my ( $this, $c, $jobId ) = @_;
+  my ( $this, $c, $jobId, $fasta ) = @_;
 
   ( $c->stash->{jobId} ) = $jobId =~ m/^([A-F0-9]{8}\-([A-F0-9]{4}\-){3}[A-F0-9]{12})$/i;
+
+  # should we output the final alignment in fasta ?
+  $c->stash->{generate_fasta} = ( defined $fasta and $fasta ) ? 1 : 0;
 
   unless ( $c->stash->{jobId} ) {
     $c->log->debug( 'SunburstMethods::align_POST: bad job id' )
@@ -317,7 +321,7 @@ sub align_POST {
     if $c->debug;
 
   # convert the list of accessions into a FASTA-format file
-  $c->stash->{fasta} = $c->forward( 'build_fasta', [ $accessions, 0 ] );
+  $c->stash->{accessions_fasta} = $c->forward( 'build_fasta', [ $accessions, 0 ] );
 
   # the "queue_alignment_job" method will set the response status and body
   # for both successful and unsuccessful submissions
@@ -446,7 +450,7 @@ sub store_accessions : Private {
 
   # crudely validate the accessions
   foreach ( @$accessions_list ) {
-    next if m/^(\w+)$/;
+    next if m/^([\w\.]+)$/;
     $c->log->debug( "SunburstMethods::store_accessions: not a valid accession ($_)" )
       if $c->debug;
     $c->stash->{errorMsg} = 'Not a valid accessions list';
@@ -633,7 +637,7 @@ sub enqueue_alignment : Private {
 
   # set the options. For the alignment job we need to pass in the family 
   # accession, so that the dequeuer can find the family CM.
-  my $opts = $c->stash->{acc};
+  my $opts = to_json( { acc => $c->stash->{acc}, fasta => $c->stash->{generate_fasta} } );
 
   # guesstimate the time it will take to build the alignment
   my $estimated_time = 0; # TODO see if we can find a sensible formula for this
@@ -650,7 +654,7 @@ sub enqueue_alignment : Private {
 
     my $job_stream = $c->model('WebUser::JobStream')
                        ->create( { id    => $job_history->id,
-                                   stdin => $c->stash->{fasta} || q() } );
+                                   stdin => $c->stash->{accessions_fasta} || q() } );
 
     # check the submission time with a separate query
     my $history_row = $c->model( 'WebUser::JobHistory' )
@@ -703,7 +707,7 @@ sub queue_alignment : Private {
 
   my $job_stream = $c->model('WebUser::JobStream')
                      ->create( { id    => $job_history->id,
-                                 stdin => $c->stash->{fasta} || q() } );
+                                 stdin => $c->stash->{accessions_fasta} || q() } );
 
   # check the submission time with a separate query
   my $history_row = $c->model( 'WebUser::JobHistory' )
