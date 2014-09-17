@@ -25,15 +25,14 @@ USE String;
   <tbody>
   [%
   unformatted = String.new; 
-  FOREACH family IN families.keys.sort;
-    acc  = family;
-    id   = families.$family.rfam_id;
-    desc = families.$family.description;
-    CALL unformatted.append( acc _ "\t" _ id _ "\n" );
-    familyUri = c.uri_for( "/family", { acc => acc } ) -%]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+  FOREACH rfam_acc IN families.keys.sort;
+    id   = families.$rfam_acc.rfam_id;
+    desc = families.$rfam_acc.description;
+    CALL unformatted.append( rfam_acc _ "\t" _ id _ "\n" );
+    familyUri = c.uri_for( "/family", rfam_acc ) -%]
+    <tr class="[% loop.parity %]">
       <td>
-        <a href="[% familyUri %]">[% acc %]</a>
+        <a href="[% familyUri %]">[% rfam_acc %]</a>
       </td>
       <td>
         <a href="[% familyUri %]">[% id %]</a>
