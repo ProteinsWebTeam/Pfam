@@ -242,9 +242,9 @@ sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
   # check for a family
-  my $rs = $c->model('RfamDB::Clans')
+  my $rs = $c->model('RfamDB::Clan')
              ->search( [ { clan_acc => $entry },
-                         { clan_id  => $entry } ] );
+                         { id  => $entry } ] );
   
   my $clan = $rs->first if defined $rs;
   
@@ -264,11 +264,16 @@ sub get_data : Private {
   $c->stash->{entryType}  = 'C';
 
   # set up the pointers to the clan data in the stash
-#  my @rs = $c->model('RfamDB::ClanMembership')
-#             ->search( { auto_clan => $clan->auto_clan },
-#                       { join      => [ 'auto_rfam' ],
-#                         prefetch  => [ 'auto_rfam' ] } );
-#  $c->stash->{clanMembers} = \@rs;
+  my @rs = $c->model('RfamDB::ClanMembership')
+             ->search( { clan_acc => $clan->clan_acc },
+                       { join      => [ 'rfam_acc' ],
+                         prefetch  => [ 'rfam_acc' ] } );
+  $c->stash->{clanMembers} = \@rs;
+
+  $c->stash->{total_seqs} = 0;
+  foreach my $member ( @rs ) {
+    $c->stash->{total_seqs} += $member->rfam_acc->num_full;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -292,8 +297,9 @@ sub get_summary_data : Private {
 
   # number of structures known for the domain
   my $rs = $c->model('RfamDB::ClanMembership')
-             ->search( { auto_clan => $c->stash->{clan}->auto_clan },
-                       { join => 'pdb_rfam_reg' } );
+             ->search( { clan_acc => $c->stash->{acc},
+                         pdb_id   => { '!=', undef } },
+                       { join => [ 'pdb_full_regs' ] } );
   $summary_data->{numStructures} = $rs->count;
 
   # Number of species
@@ -317,30 +323,10 @@ Retrieves the structure mappings for this clan.
 sub get_mapping : Private {
   my( $this, $c ) = @_;
 
-   my @mapping = $c->model('RfamDB::ClanMembership')
-                   ->search( { auto_clan => $c->stash->{clan}->auto_clan },
-                             { select   => [ qw( rfamseq.rfamseq_acc
-                                                 auto_rfam.rfam_id
-                                                 auto_rfam.rfam_acc
-                                                 pdb_rfam_reg.seq_start
-                                                 pdb_rfam_reg.seq_end
-                                                 pdb_rfam_reg.pdb_id
-                                                 pdb_rfam_reg.chain
-                                                 pdb_rfam_reg.pdb_res_start
-                                                 pdb_rfam_reg.pdb_res_end ) ],
-                               as       => [ qw( rfamseq_acc
-                                                 rfam_id
-                                                 rfam_acc
-                                                 rfam_start_res
-                                                 rfam_end_res
-                                                 pdb_id
-                                                 chain
-                                                 pdb_start_res
-                                                 pdb_end_res ) ],
-                               prefetch => { pdb_rfam_reg => [ qw( auto_rfam
-                                                                   rfamseq ) ] }
-                             }
-                           );
+  my @mapping = $c->model('RfamDB::PdbFullRegion')
+                  ->search( { 'clan_membership.clan_acc' => $c->stash->{acc},
+                              'me.rfam_acc' => { '!=', undef } },
+                            { join => [ 'clan_membership' ] } );
 
   $c->stash->{rfamMaps} = \@mapping;
 }

@@ -701,11 +701,11 @@ sub getFamilyCount : Private {
     my @rs = $c->model('RfamDB::TaxonomyWebsearch')
                ->search( { lft => { '>=' => $range->[0] },
                            rgt => { '<=' => $range->[1] } },
-                         { join     => [ 'rfam_ncbi' ],
-                           select   => [ 'rfam_ncbi.rfam_acc', 
-                                         { count => 'rfam_ncbi.rfam_acc' } ],
+                         { join     => [ 'family_ncbi' ],
+                           select   => [ 'family_ncbi.rfam_acc', 
+                                         { count => 'family_ncbi.rfam_acc' } ],
                            as       => [ 'rfam_acc', 'count' ],
-                           group_by => [ 'rfam_ncbi.rfam_acc' ],
+                           group_by => [ 'family_ncbi.rfam_acc' ],
                          } );
 
     foreach ( @rs ) {
@@ -818,15 +818,15 @@ sub getFamiliesForTerm : Private {
     $c->log->debug( 'Search::Taxonomy::getFamiliesForTerm: failed to retrieve families from cache; going to DB' )
       if $c->debug;
 
-    my @rs = $c->model('RfamDB::RfamNcbi')
-               ->search( { 'tax.lft'    => { '>=' => $range->[0] },
-                           'tax.rgt'    => { '<=' => $range->[1] } },
+    my @rs = $c->model('RfamDB::FamilyNcbi')
+               ->search( { 'tax.lft' => { '>=' => $range->[0] },
+                           'tax.rgt' => { '<=' => $range->[1] } },
                          { join     => [ 'tax' ],
                            prefetch => [ 'tax' ] }
                        );
   
     # map the Pfam-A accession to a hash with other information for the family
-    my %res = map{ $_->rfam_acc => $familyInfo->{$_->rfam_acc} } @rs;
+    my %res = map{ $_->get_column('rfam_acc') => $familyInfo->{$_->get_column('rfam_acc')} } @rs;
 
     $c->log->debug( 'Search::Taxonomy::getFamiliesForSpecies: found |'
                     . scalar( keys %res ) . '| families' )
@@ -868,10 +868,9 @@ sub getFamilyInfo : Private {
     $c->log->debug( 'Search::Taxonomy::getFamilyInfo: failed to retrieve family info from cache; going to DB' )
       if $c->debug;
 
-    my @rs = $c->model('RfamDB::Rfam')
+    my @rs = $c->model('RfamDB::Family')
                ->search( {},
-                         { select => [ qw( rfam_acc rfam_id description ) ] }
-                       );
+                         { select => [ qw( rfam_acc rfam_id description ) ] } );
 
     my %familyInfo = map { $_->rfam_acc => { rfam_acc   => $_->rfam_acc,
                                              rfam_id    => $_->rfam_id,
