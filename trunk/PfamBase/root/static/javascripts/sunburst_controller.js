@@ -240,7 +240,7 @@ var SunburstController = Class.create( {
   
   _storeSequences: function( endpoint ) {
 
-    var accessions, accessionsString, r, callback;
+    var accessions, accessionsString, r, fasta;
 
     if ( this._alignmentDisabled ) {
       // console.debug( "SunburstController._storeSequences: too many sequences; done" );
@@ -267,12 +267,9 @@ var SunburstController = Class.create( {
     // get rid of any error messages that we might have
     $("sunburstErrors").hide();
 
-    // store the list of accessions. Depending which "endpoint" was specified
-    // as an argument to this method, we'll choose a different "onSuccess"
-    // callback
-    callback = ( endpoint == this._FASTA )
-             ? this._generateFasta
-             : this._alignSequences;
+    // store the list of accessions. We pass a flag to the callback to tell it 
+    // whether to generate the alignment as Stockholm or FASTA.
+    fasta = ( endpoint == this._FASTA ) ? 1 : 0;
 
     r = new Ajax.Request( 
       this._baseURL + "/sunburst/accessions",
@@ -280,7 +277,7 @@ var SunburstController = Class.create( {
         method: "post",
         postBody: accessionsString,
         contentType: "application/json",
-        onSuccess: callback.bind(this),
+        onSuccess: this._alignSequences.bind(this, fasta),
         onFailure: this._storeFailure.bind(this)
       }
     );
@@ -310,7 +307,7 @@ var SunburstController = Class.create( {
   //- methods for aligning stored sequences ------------------------------------
   //----------------------------------------------------------------------------
 
-  _alignSequences: function( response ) {
+  _alignSequences: function( generateFasta, response ) {
 
     $("sunburstSpinner").update( "Aligning sequences&hellip;" );
     setTimeout( this._resetSpinner.bind(this), 2000 );
@@ -325,7 +322,7 @@ var SunburstController = Class.create( {
     } else {
       // Rfam just hands back the alignment
       r = new Ajax.Request( 
-        '/family/' + acc + '/sunburst/alignment/' + jobId,
+        '/family/' + acc + '/sunburst/alignment/' + jobId + ( generateFasta ? '/fasta' : '' ),
         {
           method: "post",
           contentType: "application/json",
@@ -399,28 +396,6 @@ var SunburstController = Class.create( {
     $("sunburstErrors").update( "There was a problem aligning your sequences" )
                        .show();
   },
-
-  //----------------------------------------------------------------------------
-  //- methods for retrieving sequences as a FASTA file -------------------------
-  //----------------------------------------------------------------------------
-
-  _generateFasta: function( response ) {
-    // console.debug( "SunburstController._generateFasta: accessions stored; retrieving FASTA file" );
-
-    var jobId = response.responseJSON.jobId,
-        acc   = response.responseJSON.acc,
-        w,
-        fastaBuilderURI = '/family/' + acc + '/sunburst/fasta/' + jobId;
-        // TODO need to pass in this URL somehow, rather than assuming a location
-
-    $("sunburstSpinner").update( "Saving FASTA file&hellip;" );
-    setTimeout( this._resetSpinner.bind(this), 2000 );
-
-    // console.debug( 'SunburstController._generateFasta: setting window.location = "%s"',
-    //                fastaBuilderURI );
-
-    w = window.open( fastaBuilderURI, "_blank", "width=300,height=300" );
-  }
 
   //----------------------------------------------------------------------------
 
