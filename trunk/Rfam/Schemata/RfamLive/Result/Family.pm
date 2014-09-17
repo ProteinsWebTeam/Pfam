@@ -635,7 +635,7 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 annotate_file
+=head2 annotated_file
 
 Type: has_one
 
