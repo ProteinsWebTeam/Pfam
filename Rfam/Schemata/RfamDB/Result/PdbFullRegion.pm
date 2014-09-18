@@ -146,6 +146,13 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xDRCWgEPyZ8hMvlEsjbk5A
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 __PACKAGE__->set_primary_key('rfam_acc');
+
+__PACKAGE__->belongs_to(
+  "clan_membership",
+  "RfamDB::Result::ClanMembership",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;

@@ -98,5 +98,19 @@ __PACKAGE__->belongs_to(
 
 __PACKAGE__->set_primary_key('rfam_acc','clan_acc');
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+=head2 pdb_full_regs
+
+Type: has_many
+
+Related object: L<RfamDB::Result::PdbFullReg>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pdb_full_regs",
+  "RfamDB::Result::PdbFullRegion",
+  { "foreign.rfam_acc" => "self.rfam_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;
