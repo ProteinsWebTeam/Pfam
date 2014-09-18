@@ -270,9 +270,9 @@ sub get_wikipedia : Private {
   
   my $rs = $c->model('RfamDB::Motif')->search( { motif_acc => $c->stash->{acc} },{})->first;
 
-  my $wiki= $rs->wiki;
+  $c->stash->{wiki_title} = $rs->wiki;
 
-  my $wikitext = $scraper->scrape($wiki);
+  my $wikitext = $scraper->scrape( $c->stash->{wiki_title} );
 
   return unless ( $wikitext );
 
