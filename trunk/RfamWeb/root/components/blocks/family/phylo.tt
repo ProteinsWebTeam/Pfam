@@ -105,7 +105,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
 
       <p>
         <strong>Note:</strong> You can also download the data file for the
-        <a href="[% c.uri_for( '/family', acc, 'tree/seed' ) | html %]">seed tree</a>.
+        <a href="[% c.uri_for( '/family', acc, 'tree' ) | html %]">seed tree</a>.
       </p>
 
     </div>
