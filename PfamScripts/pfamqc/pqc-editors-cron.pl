@@ -40,7 +40,7 @@ my $yesterday = $today->clone;
 $yesterday->subtract( days => 1 );
 
 # get the list of families that were created in the last 24 hours
-my $new_families_rs = $pfam_live_schema->resultset('Pfama')
+my $new_families_rs = $pfam_live_schema->resultset('PfamA')
                                        ->search( { created => { '>=', $yesterday } }, {} );
 
 # check which new families were deposited by untrusted curators
