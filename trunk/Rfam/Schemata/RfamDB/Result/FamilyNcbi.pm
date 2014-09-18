@@ -98,5 +98,19 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EAAZfPQ7u9ZXvVvGOdRwNg
 
 
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
+=head2 tax
+
+Type: belongs_to
+
+Related object: L<RfamDB::Result::TaxonomyWebsearch>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "tax",
+  "RfamDB::Result::TaxonomyWebsearch",
+  { ncbi_id => "ncbi_id" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
+);
+
 1;
