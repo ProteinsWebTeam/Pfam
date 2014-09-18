@@ -30,8 +30,6 @@ __PACKAGE__->table("rfamseq");
   is_nullable: 0
   size: 20
 
-This should be 
-
 =head2 accession
 
   data_type: 'varchar'
