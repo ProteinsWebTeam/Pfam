@@ -1,9 +1,8 @@
-
 [%
 # summary.tt
 # jt6 20060424 WTSI
 # 
-# build the summary block for clans
+# build the summary block for motifs
 #
 # $Id: summary.tt,v 1.24 2009-12-07 22:31:41 jt6 Exp $
 
@@ -16,11 +15,12 @@ sharedRequirements.css.push( "wp.css" );
 
 #-------------------------------------------------------------------------------
 
+normalizedTitle=wiki_title|html;
+prettyTitle=wiki_title.replace('_',' ');
+
 USE Number.Format( THOUSANDS_SEP = "," );
 PROCESS components/links.tt;
-
 -%]
-
 
 <!-- start motif summary block -->
 
@@ -37,13 +37,11 @@ PROCESS components/links.tt;
         <span class="btn-inner">Edit Wikipedia article</span></a>
     </h1>
     <p>
-      The Rfam group coordinates the annotation of Rfam families in  
+      The Rfam group coordinates the annotation of Rfam data in  
       <a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA">
         Wikipedia</a>. This motif is described by a Wikipedia entry entitled  
-      <strong>[% title %]</strong>.
-      You can see the Wikipedia page for this family 
       <a href="http://en.wikipedia.org/w/index.php?title=[% normalizedTitle %]"
-         class="ext">here</a>
+         class="ext">[% prettyTitle %]</a>
       [%- UNLESS wikitext %]
       but we are unable to retrieve the article content at this time
       [%- END %].
