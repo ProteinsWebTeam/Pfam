@@ -125,7 +125,7 @@ my $sthTaxDepth = $dbh->prepare( "SELECT level, lft, rgt from taxonomy
                                   AND level!='NULL' 
                                   ORDER BY rgt-lft DESC") or die $dbh->errstr();
 
-my $sthMinMax   = $dbh->prepare("SELECT min(lft), max(rgt), count(auto_pfamseq) 
+my $sthMinMax   = $dbh->prepare("SELECT min(lft), max(rgt), count(pfamseq_acc) 
                                             FROM  $table r, pfamseq s, taxonomy t 
                                             WHERE s.pfamseq_acc=r.pfamseq_acc 
                                             AND t.ncbi_taxid=s.ncbi_taxid 
