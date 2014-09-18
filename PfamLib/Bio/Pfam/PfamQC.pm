@@ -850,10 +850,10 @@ sub family_overlaps_with_db {
       $$ignore_ref{$n}++;
 
       my $clan = $pfamDB->getClanDataByPfam($n);
-      if ( $clan and $clan->auto_clan->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
+      if ( $clan and $clan->clan_acc->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
         }
       }
     }
@@ -863,10 +863,10 @@ sub family_overlaps_with_db {
     foreach my $nesting ( @{ $famObj->DESC->NESTS } ) {
       $$ignore_ref{ $nesting->{dom} }++;
       my $clan = $pfamDB->getClanDataByPfam( $nesting->{dom} );
-      if ( $clan and $clan->auto_clan->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
+      if ( $clan and $clan->clan_acc->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
         }
       }
     }
@@ -878,19 +878,19 @@ sub family_overlaps_with_db {
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
       my $nestedRef =
-        $pfamDB->getNestedDomain( $fam->auto_pfama->pfama_acc );
+        $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
 
       if ($nestedRef) {
         foreach my $n (@$nestedRef) {
           $$ignore_ref{$n}++;
 
           my $clan = $pfamDB->getClanDataByPfam($n);
-          if ( $clan and $clan->auto_clan->clan_acc ) {
-            my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
+          if ( $clan and $clan->clan_acc->clan_acc ) {
+            my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+              $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
             }
           }
         }
