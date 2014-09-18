@@ -473,10 +473,22 @@ sub _run_local_job {
       return;
     };
 
+    my $job_options;
+    try {
+      $job_options = from_json( $job->options );
+    }
+    catch {
+      $self->_log->debug( 'job options is not a JSON string' );
+    };
+    $job_options ||= {};
+
     $command =
-         'esl-afetch ' . $self->_queue_spec->{data_dir} . '/Rfam.full ' . $job->options
+         'esl-afetch ' . $self->_queue_spec->{data_dir} . '/Rfam.full ' . $job_options->{acc}
     . " | esl-alimanip --informat stockholm --seq-k $tmp_file - "
     . ' | esl-alimask --informat stockholm -g --gapthresh 0.9999999 - ';
+
+    $command .= '| esl-reformat --informat stockholm fasta -'
+      if $job_options->{fasta};
   }
 
   $self->_log->debug( "running command: |$command|" );
