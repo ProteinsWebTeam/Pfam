@@ -672,7 +672,7 @@ sub get_id_acc_mapping : Private {
     $c->log->debug( 'Search::get_id_acc_mapping: failed to retrieve ID-to-acc mapping from cache; going to DB' )
       if $c->debug;
 
-    my @families = $c->model( 'RfamDB::Rfam' )
+    my @families = $c->model( 'RfamDB::Family' )
                      ->search( {},
                                { columns => [ qw( rfam_acc rfam_id ) ] } );
 
