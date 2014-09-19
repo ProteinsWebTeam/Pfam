@@ -38,7 +38,6 @@ END;
       total = 0;
       members = [];
       
-      CALL c.log.debug( "got " _ clan_members.size _ " members in clan" );
       WHILE ( member = clan_members.next ) %]
         <span class="listItem">
           [% IF member.auto_rfam.rfam_acc == rfam.rfam_acc;
