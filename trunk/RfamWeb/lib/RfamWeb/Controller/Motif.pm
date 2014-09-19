@@ -74,8 +74,10 @@ sub begin : Private {
     ( $c->stash->{param_entry} ) = $tainted_entry =~ m/^([\w\._-]+)$/;
   }
 
-  $c->stash->{db} = $c->model('RfamDB');
+  # tell the layout template to disable the summary icons
+  $c->stash->{iconsDisabled} = 1;
 
+  $c->stash->{db} = $c->model('RfamDB');
 }
 
 #-------------------------------------------------------------------------------
