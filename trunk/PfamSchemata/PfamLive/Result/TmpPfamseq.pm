@@ -23,17 +23,17 @@ __PACKAGE__->table("tmp_pfamseq");
 
 =head1 ACCESSORS
 
-=head2 pfamseq_id
-
-  data_type: 'varchar'
-  is_nullable: 0
-  size: 12
-
 =head2 pfamseq_acc
 
   data_type: 'varchar'
   is_nullable: 0
   size: 10
+
+=head2 pfamseq_id
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 16
 
 =head2 seq_version
 
@@ -115,9 +115,16 @@ __PACKAGE__->table("tmp_pfamseq");
   default_value: 0
   is_nullable: 1
 
-=head2 auto_architecture
+=head2 ref_proteome
 
-  data_type: 'integer'
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 complete_proteome
+
+  data_type: 'tinyint'
+  default_value: 0
   is_nullable: 1
 
 =head2 treefam_acc
@@ -129,10 +136,10 @@ __PACKAGE__->table("tmp_pfamseq");
 =cut
 
 __PACKAGE__->add_columns(
-  "pfamseq_id",
-  { data_type => "varchar", is_nullable => 0, size => 12 },
   "pfamseq_acc",
   { data_type => "varchar", is_nullable => 0, size => 10 },
+  "pfamseq_id",
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_version",
   { data_type => "tinyint", is_nullable => 0 },
   "crc64",
@@ -175,8 +182,10 @@ __PACKAGE__->add_columns(
   },
   "genome_seq",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "auto_architecture",
-  { data_type => "integer", is_nullable => 1 },
+  "ref_proteome",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "complete_proteome",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "treefam_acc",
   { data_type => "varchar", is_nullable => 1, size => 8 },
 );
@@ -194,8 +203,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("pfamseq_acc");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9YRMeRTIqcW2FJt2MXGDjw
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8E9bntsHgVneq4og9Aw5sA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

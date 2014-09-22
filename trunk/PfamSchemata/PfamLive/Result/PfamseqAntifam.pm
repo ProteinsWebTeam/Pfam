@@ -33,7 +33,7 @@ __PACKAGE__->table("pfamseq_antifam");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 12
+  size: 16
 
 =head2 seq_version
 
@@ -115,7 +115,7 @@ __PACKAGE__->add_columns(
   "pfamseq_acc",
   { data_type => "varchar", is_nullable => 0, size => 10 },
   "pfamseq_id",
-  { data_type => "varchar", is_nullable => 0, size => 12 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_version",
   { data_type => "tinyint", is_nullable => 0 },
   "crc64",
@@ -180,8 +180,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PBcJSNs2MkRO5PIfAmKeHQ
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:F8vgYtual/0gbgo2ungQ3g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -51,7 +51,7 @@ __PACKAGE__->table("seq_info");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 10
+  size: 16
 
 =head2 seq_description
 
@@ -75,7 +75,7 @@ __PACKAGE__->add_columns(
   "pfamseq_id",
   { data_type => "varchar", is_nullable => 0, size => 12 },
   "pfamseq_acc",
-  { data_type => "varchar", is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_description",
   { data_type => "text", is_nullable => 0 },
   "species",
@@ -83,8 +83,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:dbo9IVJpxIMCRDHdtZoqyg
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L8OILJgCosxZm66ruvRbEQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
