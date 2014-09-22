@@ -38,7 +38,7 @@ if($input =~ /^\S{6}$/) { #Does input look like a sequence acc
   print STDERR "Looking up sequence accession: $input\n\n";
 
   #Query db for Pfam-A info
-  my $st = $dbh->prepare("select pfamA_acc, pfamA_id, seq_start, seq_end, sequence_bits_score, domain_bits_score, length from pfamA a join pfamA_reg_full_significant r on a.auto_pfamA=r.auto_pfamA join pfamseq s on r.auto_pfamseq=s.auto_pfamseq where pfamseq_acc='$input' and in_full=1 order by seq_start") or die "Failed to prepare statement:".$dbh->errstr."\n";
+  my $st = $dbh->prepare("select a.pfamA_acc, pfamA_id, seq_start, seq_end, sequence_bits_score, domain_bits_score, length from pfamA a join pfamA_reg_full_significant r on a.pfamA_acc=r.pfamA_acc join pfamseq s on r.pfamseq_acc=s.pfamseq_acc where s.pfamseq_acc='$input' and in_full=1 order by seq_start") or die "Failed to prepare statement:".$dbh->errstr."\n";
   
   $st->execute() or die "Couldn't execute statement ".$st->errstr."\n";
   
@@ -83,7 +83,7 @@ elsif ($input =~ /^\S{4}$/) { #Does sequence look like a pdb id
   print STDERR "Looking up pdb id: $input\n\n";
   
   #Query db for Pfam-A info
-  my $st = $dbh->prepare("select pfamA_acc, pfamA_id, pfamseq_acc, d.chain, r.seq_start, r.seq_end, pdb_res_start, pdb_res_end, sequence_bits_score, domain_bits_score, length from pfamA a join pfamA_reg_full_significant r on a.auto_pfamA=r.auto_pfamA join pfamseq s on r.auto_pfamseq=s.auto_pfamseq join pdb_pfamA_reg d on s.auto_pfamseq=d.auto_pfamseq and a.auto_pfamA=d.auto_pfamA where d.pdb_id='$input' and in_full=1 order by chain, seq_start") or die "Failed to prepare statement:".$dbh->errstr."\n";
+  my $st = $dbh->prepare("select a.pfamA_acc, pfamA_id, s.pfamseq_acc, d.chain, r.seq_start, r.seq_end, pdb_res_start, pdb_res_end, sequence_bits_score, domain_bits_score, length from pfamA a join pfamA_reg_full_significant r on a.pfamA_acc=r.pfamA_acc join pfamseq s on r.pfamseq_acc=s.pfamseq_acc join pdb_pfamA_reg d on s.pfamseq_acc=d.pfamseq_acc and a.pfamA_acc=d.pfamA_acc where d.pdb_id='$input' and in_full=1 order by chain, seq_start") or die "Failed to prepare statement:".$dbh->errstr."\n";
 
   #my $st = $dbh->prepare("select pfamA_acc, pfamA_id, pfamseq_acc, chain, r.seq_start, r.seq_end, pdb_res_start, pdb_res_end, sequence_bits_score, domain_bits_score, length from pfamA a, pfamA_reg_full_significant r, pfamseq s, pdb_pfamA_reg d where a.auto_pfamA=r.auto_pfamA and r.auto_pfamseq=s.auto_pfamseq and s.auto_pfamseq=d.auto_pfamseq and a.auto_pfamA=d.auto_pfamA and pdb_id='$input' and in_full=1 order by chain, seq_start") or die "Failed to prepare statement:".$dbh->errstr."\n";
 
