@@ -749,6 +749,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 pfam_a_ligands
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamALigand>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_ligands",
+  "PfamLive::Result::PfamALigand",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 pfam_a_literature_references
 
 Type: has_many
@@ -899,9 +914,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 ligands
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xyZJ5KyH8PwPTdU+a9tWJw
+Type: many_to_many
+
+Composing rels: L</pfam_a_ligands> -> ligand
+
+=cut
+
+__PACKAGE__->many_to_many("ligands", "pfam_a_ligands", "ligand");
+
+
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7gcmqRTyG33egZREhYxbzA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

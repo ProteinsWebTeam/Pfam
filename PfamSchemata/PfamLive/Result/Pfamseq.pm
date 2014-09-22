@@ -33,7 +33,7 @@ __PACKAGE__->table("pfamseq");
 
   data_type: 'varchar'
   is_nullable: 0
-  size: 12
+  size: 16
 
 =head2 seq_version
 
@@ -108,7 +108,6 @@ __PACKAGE__->table("pfamseq");
   data_type: 'integer'
   default_value: 0
   extra: {unsigned => 1}
-  is_foreign_key: 1
   is_nullable: 0
 
 =head2 genome_seq
@@ -158,13 +157,19 @@ __PACKAGE__->table("pfamseq");
   default_value: 0
   is_nullable: 1
 
+=head2 complete_proteome
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
   "pfamseq_acc",
   { data_type => "varchar", is_nullable => 0, size => 10 },
   "pfamseq_id",
-  { data_type => "varchar", is_nullable => 0, size => 12 },
+  { data_type => "varchar", is_nullable => 0, size => 16 },
   "seq_version",
   { data_type => "tinyint", is_nullable => 0 },
   "crc64",
@@ -203,7 +208,6 @@ __PACKAGE__->add_columns(
     data_type => "integer",
     default_value => 0,
     extra => { unsigned => 1 },
-    is_foreign_key => 1,
     is_nullable => 0,
   },
   "genome_seq",
@@ -221,6 +225,8 @@ __PACKAGE__->add_columns(
   "rp75",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "ref_proteome",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "complete_proteome",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
@@ -266,21 +272,6 @@ __PACKAGE__->belongs_to(
   "PfamLive::Result::Evidence",
   { evidence => "evidence" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
-);
-
-=head2 ncbi_taxid
-
-Type: belongs_to
-
-Related object: L<PfamLive::Result::NcbiTaxonomy>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "ncbi_taxid",
-  "PfamLive::Result::NcbiTaxonomy",
-  { ncbi_taxid => "ncbi_taxid" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 =head2 nested_locations
@@ -509,8 +500,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ApEAZ949eLp1cN3NYVNU3w
+# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RNKEO1/inp37RFqqPOd+ig
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
