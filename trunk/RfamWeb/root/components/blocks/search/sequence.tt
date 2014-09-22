@@ -66,14 +66,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         form.
       </p>
 
-      <h3>Search methodology</h3>
-      <p>
-        The query sequence is scanned against a library of Rfam sequences using 
-        WU-BLAST, with an E-value threshold of 1.0. Any matches to this are then 
-        scanned against the corresponding covariance model using the 
-        hand-curated threshold for that family.
-      </p>      
-
       <hr />
     </div>
 
