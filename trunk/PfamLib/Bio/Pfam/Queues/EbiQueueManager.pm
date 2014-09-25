@@ -395,6 +395,9 @@ sub _submit_batch_job {
       last CHUNK;
     }
 
+    $self->_log->debug( 'sleeping for ' . $self->_queue_spec->{submission_delay} . ' seconds' );
+    sleep ( $self->_queue_spec->{submission_delay} || 1 );
+
     $pfm->finish unless $ENV{SINGLE_THREADED_DEQUEUER};
   }
   $pfm->wait_all_children unless $ENV{SINGLE_THREADED_DEQUEUER};
