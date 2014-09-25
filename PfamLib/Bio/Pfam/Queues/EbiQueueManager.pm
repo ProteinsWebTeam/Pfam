@@ -319,7 +319,7 @@ sub _submit_batch_job {
   }
 
   $search_options->{format} = 'txt';
-  $search_options->{email}  = 'xfam@ebi.ac.uk';
+  $search_options->{email}  = $self->_queue_spec->{submission_email} || 'xfam@ebi.ac.uk';
 
   my $chunks = $self->_split_batch_file( $job );
 
@@ -577,6 +577,7 @@ sub _submit_interactive_job {
   $self->_log->debug( "sequence to search: $sequence" );
 
   $search_options->{sequence} = $sequence;
+  $search_options->{email}    = $self->_queue_spec->{submission_email} || 'xfam@ebi.ac.uk';
   $search_options->{format}   = $self->_queue_spec->{output_format}
     if defined $self->_queue_spec->{output_format};
 
