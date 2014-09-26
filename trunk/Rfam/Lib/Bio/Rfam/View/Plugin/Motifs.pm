@@ -43,7 +43,7 @@ sub findMotifs {
         }
 	
 	# Set/make locations 
-        my $location    = "/tmp/motifs";
+        my $location    = "/homes/evan/motifs_results";
 	my $results_loc = "$location/$rfam_acc";
         File::Path::make_path($results_loc);
         my $SEED        = "$results_loc/SEED";
@@ -131,6 +131,8 @@ sub findMotifs {
 
         $anno_msa->write_msa("$results_loc/gapless.annotation");
 
+        system("esl-alimanip --outformat pfam $results_loc/gapless.annotation > $results_loc/gaplessAnnotationPfam");
+
         my $alnLength = $anno_msa->alen(); 
      
         # Create a hash of the positions where each motif matches in the gapless SEED
@@ -143,7 +145,9 @@ sub findMotifs {
           $motifCoords{$motifLabelFromID}=[@annotationArray];
         }
 
-        open(F, "$results_loc/gapless.annotation") or die "FATAL: could not open $results_loc/gapless.annotation \n[$!]";
+        
+
+        open(F, "$results_loc/gaplessAnnotationPfam") or die "FATAL: could not open $results_loc/gaplessAnnotationPfam \n[$!]";
         while (my $w = <F>) {
           if($w=~/(#=GR\s[A-Za-z0-9\-.\/]+\s+MT.\d+\s+)([0-9a-zA-Z.]+)/i) {
             my $annotationString = $2;
@@ -156,7 +160,7 @@ sub findMotifs {
             $counter++;
             }
           }
-        }
+        } 
 
         # Generate the unannotated SS image
         my $MIS = $anno_msa->most_informative_sequence();
@@ -259,8 +263,8 @@ sub findMotifs {
       }
 
       # Unlink the tmp directory after results have been inserted into the database
-      chdir $originalCWD;
-      File::Path::remove_tree($location);
+     #chdir $originalCWD;
+     #File::Path::remove_tree($location);
 }
 
 
