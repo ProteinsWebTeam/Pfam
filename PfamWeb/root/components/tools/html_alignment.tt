@@ -47,7 +47,7 @@ title = String.new( type _ ( heatmap ? " heatmap " : " sequence " ) _ "alignment
     <dt class="y">&nbsp;</dt>
     <dd>Proline (P)</dd>
     <dt class="b">&nbsp;</dt>
-    <dd>Small or hydrophobic (A,V,L,I,M,F,W)</dd>
+    <dd>Small or hydrophobic (C,A,V,L,I,M,F,W)</dd>
     <dt class="g">&nbsp;</dt>
     <dd>Hydroxyl or amine amino acids (S,T,N,Q)</dd>
     <dt class="r">&nbsp;</dt>
