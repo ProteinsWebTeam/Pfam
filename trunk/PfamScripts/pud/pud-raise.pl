@@ -6,6 +6,7 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Date::Object;
 use Date::Calc qw[Add_Delta_Days Today];
 use Getopt::Long;
+use File::Copy;
 
 #The algorithm
 #Take two overlapping families and check if overlap still exists.
@@ -71,7 +72,7 @@ $month = "0" . $month if($month !~ /\d\d/);  #Add 0 in front of month if single 
 
 #First look for a file with todays data
 my $date_of_file = $year.$month.$day;
-my $file1 = "$status_dir/$date_of_file" . "overlaps.overlaps";
+my $file1 = "$status_dir/$date_of_file" . "overlaps.overlaps.filtered";
 my $file2 = "$status_dir/$date_of_file" . "overlaps.familyOverlaps";
 
 #If overlaps file with todays date doesn't exist, look for most recent file
@@ -86,11 +87,11 @@ until(-s $file1 and -s $file2) {
 
   my $date_of_file = $year.$month.$day;
   
-  $file1 = "$status_dir/$date_of_file" . "overlaps.overlaps";
+  $file1 = "$status_dir/$date_of_file" . "overlaps.overlaps.filtered";
   $file2 = "$status_dir/$date_of_file" . "overlaps.familyOverlaps";
 
   $c++;
-  die "Can't locate overlaps file and familyOverlaps file, no overlaps file has been created in the last 10 days" if($c eq 10);
+  die "Can't locate overlaps.filtered file and familyOverlaps file, no overlaps file has been created in the last 10 days" if($c eq 10);
 }
 print "Using these files:\n$file1\n$file2\n";
 
@@ -386,6 +387,8 @@ sub resolve {
     print STDERR "Resolving $fam:$overlap_fam [$seq] overlap by raising threshold from $ga to $new_thresh and losing $diff/$old domain(s) (keeping $prop % of orignal ALIGN)\n";
     
     chdir "$families_dir/$fam" or die "Couldn't chdir into $families_dir/$fam $!\n";
+#copy DESC file before pfmake just in case of problems
+    copy ("DESC", "DESC_b4_raise") or die "Cannot copy DESC\n";
     system("pfmake.pl -t $new_thresh") and die "\'pfmake.pl -t $new_thresh\' failed to run\n";
     
     $$count++;
