@@ -60,17 +60,7 @@ my $config  = Bio::Rfam::Config->new;
 
 my $job;
 unless ( $no_db ) {
-  my $db_params = $config->config->{Model}->{RfamJobs};
-  my $dsn = 'dbi:' . $db_params->{driver} . ':'
-            . $db_params->{database} . ':'
-            . $db_params->{host} . ':'
-            . $db_params->{port};
-
-  my $rfam_jobs = RfamJobs->connect(
-    $dsn,
-    $db_params->{user},
-    $db_params->{password}
-  );
+  my $rfam_jobs = $config->rfamjobs;
 
   die "couldn't connect to the 'rfam_jobs' tracking database\n"
     unless $rfam_jobs;
