@@ -11,6 +11,7 @@ use File::Slurp;
 use File::Path;
 use SVG;
 use SVG::Parser;
+use File::Temp qw( tempdir );
 
 use Bio::Rfam::FamilyIO;
 use Bio::Rfam::Utils;
@@ -37,7 +38,7 @@ sub makeRchie {
 	my $rfamdb = $config->rfamlive;
 	my $rfam_acc = $self->parent->family->DESC->AC;
 
-	my $location = "/nfs/nobackup2/xfam/rfam";
+	my $location = tempdir( CLEANUP => 1 );
 	my $seed_loc = "$location/$rfam_acc";
 	my $rchie_img = "$location/$rfam_acc.rchie.png";
 	my $msa = $self->parent->family->SEED;
@@ -73,8 +74,6 @@ sub makeRchie {
           #                                                           image => $fileGzipped},
            #                                                         {key => 'acc_and_type'});
 	
-	unlink($seed_loc);
-	unlink($rchie_img);
 }
 
 sub makeBling {
