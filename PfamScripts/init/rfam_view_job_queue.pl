@@ -27,6 +27,7 @@ my @PERL5LIB = (
 
 # and this is setting up the environment that's passed onto the dequeuer itself
 $ENV{PERL5LIB}       = join ':', @PERL5LIB;
+$ENV{PFAM_CONFIG}    = '/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf';
 $ENV{RFAM_CONFIG}    = '/nfs/production/xfam/rfam/production_software/rfam_production/Rfam/Conf/rfam.conf';
 
 my $options = {
