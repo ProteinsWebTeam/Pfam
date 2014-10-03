@@ -8,7 +8,7 @@ use base 'DBIx::Class::Core';
 __PACKAGE__->table("keywords");
 __PACKAGE__->add_columns(
   "rfam_acc",
-  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 7 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 0, size => 7 },
   "rfam_id",
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 40, },
   "description",
