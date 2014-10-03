@@ -28,16 +28,21 @@ my $log = get_logger;
 #-------------------------------------------------------------------------------
 # process command line options
 
-my ( $daemonise, $help );
-GetOptions( 'daemonise' => \$daemonise,
-            'verbose'   => sub { $log->level( $DEBUG ) },
-            'help|?'    => \$help )
+my ( $view_set, $job_type, $daemonise, $help );
+GetOptions( 'job_type=s' => \$job_type,
+            'view_set=s' => \$view_set,
+            'daemonise'  => \$daemonise,
+            'verbose'    => sub { $log->level( $DEBUG ) },
+            'help|?'     => \$help )
   or pod2usage( -exitval => 1, -verbose => 1, -output => \*STDERR );
 
 pod2usage( -verbose => 2, -output => \*STDERR ) if $help;
 
-my $job_type = shift
-  or $log->logdie( 'ERROR: you must supply a job type' );
+$log->logdie( 'ERROR: you must supply a job type' )
+ unless defined $job_type;
+
+$log->logdie( 'ERROR: you must supply the name of a view plugin set to run' )
+ unless defined $view_set;
 
 #-------------------------------------------------------------------------------
 # main
@@ -45,6 +50,7 @@ my $job_type = shift
 my $config = Bio::Rfam::Config->new;
 
 my $job_dequeuer = Bio::Rfam::View::Dequeuer->new( job_type => $job_type,
+                                                   view_set => $view_set,
                                                    config   => $config );
 
 if ( $daemonise ) {
@@ -80,14 +86,17 @@ Once a job is submitted, the dequeuer goes back to polling the database; it
 does not attempt to keep track of the progress or status of jobs once they have
 been submitted.
 
-=head1 ARGUMENTS
-
-Takes a single argument, giving the type of view process to run. Must be either
-B<family> or B<clan>. 
-
 =head1 OPTIONS
 
 =over 8
+
+=item B<--jobtype | -j> [REQUIRED]
+
+the type of view process to run. Must be either B<family> or B<clan>. 
+
+=item B<--viewset | -v> [REQUIRED]
+
+the name of a set of view plugins to run
 
 =item B<--daemonise | -d>
 
