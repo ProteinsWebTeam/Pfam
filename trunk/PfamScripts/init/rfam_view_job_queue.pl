@@ -39,7 +39,7 @@ my $options = {
   program      => "$RFAM_INIT_DIR/Rfam/Scripts/view/job_dequeuer.pl",
   program_args => [ qw( -j family -view family ) ],
 
-  pid_file     => "$INIT_DIR/run/rfam_view_job_queue.pid",
+  pid_file     => "$PFAM_INIT_DIR/run/rfam_view_job_queue.pid",
 
   fork         => 2,
   user         => 'xfm_adm',
