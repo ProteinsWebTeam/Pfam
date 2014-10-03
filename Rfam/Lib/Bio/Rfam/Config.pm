@@ -9,6 +9,7 @@ use Data::Printer;
 use Carp;
 
 use RfamLive;
+use RfamJobs;
 use Bio::Rfam::SeqDB;
 
 our $VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
@@ -256,12 +257,45 @@ sub rfamlive {
     };
     if ($@) {
       croak("Failed to get schema for database:"
-        . $dbiParams>{'database'}
+        . $dbiParams->{'database'}
         . ". Error:[$@]\n" );
     };
   }
   
   return($self->{'schema'});
+}
+
+sub rfamjobs {
+  my $self = shift;
+  
+  return $self->{rfamjobs_schema} if defined $self->{rfamjobs_schema};
+
+  my $dbiParams = {
+    user     => $self->{_config}->{Model}->{RfamJobs}->{user},
+    host     => $self->{_config}->{Model}->{RfamJobs}->{host},
+    port     => $self->{_config}->{Model}->{RfamJobs}->{port},
+    database => $self->{_config}->{Model}->{RfamJobs}->{database},
+    password => $self->{_config}->{Model}->{RfamJobs}->{password},
+    driver   => 'mysql',
+    @_,
+  };
+
+  eval {
+    $self->{rfamjobs_schema} =
+      RfamJobs->connect( 'dbi:'
+        . $dbiParams->{driver} . ':'
+        . $dbiParams->{database} . ':'
+        . $dbiParams->{host} . ':'
+        . $dbiParams->{port},
+        $dbiParams->{user}, $dbiParams->{password}, $dbiParams );
+  };
+  if ($@) {
+    croak('Failed to get schema for database:'
+      . $dbiParams->{database}
+      . ". Error:[$@]\n" );
+  }
+  
+  return $self->{rfamjobs_schema};
 }
 
 sub rfamseqObj {
