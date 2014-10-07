@@ -848,5 +848,29 @@ sub fontDir {
   return $self->{fontDir} || '/usr/share/X11/fonts/TTF';
 }
 
+sub sequenceOverlapRule 
+{
+  my $self = shift;
+
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{overlap_rule}->{sequence_overlap};
+}
+
+sub familyOverlapRule 
+{
+  my $self = shift;
+
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+
+  return $self->{overlap_rule}->{family_overlap};
+}
+
 
 1;
