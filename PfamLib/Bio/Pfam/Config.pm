@@ -852,7 +852,6 @@ sub sequenceOverlapRule
 {
   my $self = shift;
 
-  my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
@@ -864,7 +863,6 @@ sub familyOverlapRule
 {
   my $self = shift;
 
-  my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
