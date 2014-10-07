@@ -41,7 +41,7 @@ USE String;
       </p>
       
       <p>
-        This section shows the families which have been anotated with this motif.
+        This section shows the families which have been annotated with this motif.
         <span onclick="reveal( this, 'motifNotes', false, true );"
               class="moreLink">
           More...</span>
