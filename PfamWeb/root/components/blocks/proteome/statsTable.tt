@@ -20,7 +20,7 @@ IF c.req.param('full') OR statsData.size < 500;
   data = statsData %]
   <p>
     Showing all <strong>[% statsData.size %]</strong> domains.
-    You can <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/proteomes/[% taxId %].tsv.gz">
+    You can <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/proteomes/[% taxId %].tsv.gz">
       download</a> a list of all regions for this proteome from our FTP site.
   </p>
 [% ELSE;
@@ -30,7 +30,7 @@ IF c.req.param('full') OR statsData.size < 500;
       This table shows the first <strong>500</strong> Pfam domains, but you
       can <span class="link" id="loadFullTable">
         see all <strong>[% statsData.size %]</strong> domains</span>. 
-      You can <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/proteomes/[% taxId %].tsv.gz">
+      You can <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/proteomes/[% taxId %].tsv.gz">
         download</a> a list of all regions for this proteome from our FTP site.
     </p>
     <p class="small">

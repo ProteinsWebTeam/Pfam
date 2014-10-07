@@ -39,7 +39,7 @@ END;
     <div id="intNotes" style="display: none">
       <p>
         We determine these interactions using 
-        <a href="http://www.sanger.ac.uk/Software/Pfam/iPfam"><em>i</em>Pfam</a>, 
+        <a href="http://ipfam.org/"><em>i</em>Pfam</a>, 
         which considers the interactions between residues in three-dimensional 
         protein structures and maps those interactions back to Pfam families. 
         You can find more information about the <em>i</em>Pfam algorithm in  
