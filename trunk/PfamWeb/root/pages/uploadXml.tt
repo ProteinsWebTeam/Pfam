@@ -103,10 +103,10 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
   <div id="xmlFragment" style="display: none">
     <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot;
+&lt;image xmlns=&quot;http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
-                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot;
+       xsi:schemaLocation=&quot;http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd
+                           http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd&quot;
        format=&quot;png&quot; 
        layout=&quot;continuous&quot; 
        scale_x=&quot;0.5&quot; 

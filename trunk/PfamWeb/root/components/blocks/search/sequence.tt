@@ -33,7 +33,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         Sequence searches have been <strong>disabled</strong> in the
         configuration of this website. You can still perform searches using the
         main 
-        <a class="ext" href="http://pfam.sanger.ac.uk/search/">Pfam website</a>.
+        <a class="ext" href="[% c.uri_for( '/search' ) %]">Pfam website</a>.
       </div>
     [%- END %]
     <p>

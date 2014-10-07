@@ -32,7 +32,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <div class="warningBox">
         Batch searches have been <strong>disabled</strong> in the configuration
         of this website. You can still perform searches using the main 
-        <a class="ext" href="http://pfam.sanger.ac.uk/search#tabview=tab1">
+        <a class="ext" href="[% c.uri_for( '/search#tabview=tab1' ) %]">
           Pfam website</a>.
       </div>
     [%- END %]

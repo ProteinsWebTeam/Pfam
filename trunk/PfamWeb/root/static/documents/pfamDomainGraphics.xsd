@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
-    targetNamespace="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
+    xmlns="http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd"
+    targetNamespace="http://pfam.xfam.org/static/documents/pfamDomainGraphics.xsd"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="0.1">
     <xs:element name="image">
         <xs:complexType>

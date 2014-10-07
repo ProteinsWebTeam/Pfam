@@ -17,11 +17,11 @@
     You should have received a copy of the GNU General Public License along with
     this program. If not, see <http://www.gnu.org/licenses/>.
 -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://pfam.sanger.ac.uk/"
-    targetNamespace="http://pfam.sanger.ac.uk/" elementFormDefault="qualified"
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://pfam.xfam.org/"
+    targetNamespace="http://pfam.xfam.org/" elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
-    <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+    <xs:include schemaLocation="http://pfam.xfam.org/static/documents/schemas/types.xsd" />
 
     <xs:element name="pfam">
         <xs:annotation>
