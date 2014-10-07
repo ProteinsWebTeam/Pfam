@@ -214,8 +214,7 @@ PROCESS components/links.tt; %]
               href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>, but
               we have not yet assigned a Wikipedia article to this family. If
               you think that a particular Wikipedia article provides good
-              annotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
-                let us know</a>.
+              annotation, please <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">let us know</a>.
             </p>
           </div>
         [%- END %]
