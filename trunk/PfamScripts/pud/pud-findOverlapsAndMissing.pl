@@ -19,6 +19,9 @@ use warnings;
 use Log::Log4perl qw(:easy);
 use Cwd;
 use Data::Dumper;
+
+use Bio::Range;
+
 use Date::Object;
 use Getopt::Long;
 use Storable;
@@ -31,31 +34,30 @@ my $logger = get_logger();
 
 #-------------------------------------------------------------------------------
 # Get the Pfam Config and check all is well.
-  my $config = Bio::Pfam::Config->new;
+my $config = Bio::Pfam::Config->new;
 
-  unless ($config) {
+unless ($config)
+{
     die
-"Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
-  }
-  unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
-    warn "Unkown location.....things will probably break\n";
-  }
-  unless ( -d $config->hmmer3bin ) {
-    die "Could not find the HMMER3 bin directory," . $config->hmmer3bin . "\n";
-  }
+      "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
+}
+
 
 #-------------------------------------------------------------------------------
 
 my $no_compete;    # Use this option to not do the clan competition step
-my ( $statusdir, $clans, $clan2fam, $fast, $oldOverlaps, $families, $ciFamilies, $all );
+my ( $statusdir, $clans, $clan2fam, $fast, $oldOverlaps, $families, $ciFamilies, $all, $noFilter );
 
-GetOptions( 'fast'        => \$fast,
-            'previous'    => \$oldOverlaps,
-            'no_compete!' => \$no_compete,
-            'statusdir=s' => \$statusdir,
-            'datadir=s'   => \$families,
-            'checked=s'   => \$ciFamilies,
-            'all'         => \$all
+GetOptions(
+    'fast'        => \$fast,
+    'previous'    => \$oldOverlaps,
+    'no_compete!' => \$no_compete,
+    'statusdir=s' => \$statusdir,
+    'datadir=s'   => \$families,
+    'checked=s'   => \$ciFamilies,
+    'all' => \$all,  # By default, the script checks for overlaps among sequences that belong to the reference proteomes
+                     # Use -all if you want to check against the whole pfamseq
+    'no_filter' => \$noFilter,    # Do not apply filter rules for auto-resolving overlaps
           ) or $logger->logdie("Invalid options passed in!\n");
 
 if ($fast)
@@ -97,6 +99,7 @@ if ( $fast and -e $statusdir . "/family.dat" )
 my $date       = new Date::Object( time() );
 my $filePrefix = $date->year . $date->month . $date->day . "overlaps";
 my $nestClans  = 1;
+my $overlapLength;
 
 #Retrieve DESC data from all of the possible overlapping families.
 getDescData( $familiesData, $posOverlaps );
@@ -120,6 +123,15 @@ getRegions( $families, $posOverlaps, $familiesData );
 #Now see if there are any overlaps between these regions.
 checkForOverlap($familiesData);
 
+#Filter the overlaps according to the auto-resolve paramaters found inside the config file
+unless ($noFilter)
+{
+    my $lengthLimit = $config->sequenceOverlapRule;
+    my $numberLimit = $config->familyOverlapRule;
+
+    filterOverlaps( $lengthLimit, $numberLimit );
+}
+
 #-------------------------------------------------------------------------------
 
 sub getRegions
@@ -132,7 +144,7 @@ sub getRegions
     {
         my $refprotFile = $config->refprotLoc . "/refprot";
 
-        open( REFPROT, $refprotFile) or die("can not open file $refprotFile, $!");
+        open( REFPROT, $refprotFile ) or die("can not open file $refprotFile, $!");
 
         print "Reading reference proteomes sequence accessions...\n";
 
@@ -158,7 +170,7 @@ sub getRegions
         {
             if (/(\S+)\/(\d+)\-(\d+)/)
             {
-                if (!$all)
+                if ( !$all )
                 {
                     if ( $refprotAccs{$1} )
                     {
@@ -181,7 +193,7 @@ sub getRegions
         {
             if (/(\S+)\s+(\S+)\/(\d+\-\d+)\s+(\d+)\-(\d+)/)
             {
-                if (!$all)
+                if ( !$all )
                 {
                     if ( $refprotAccs{$2} )
                     {
@@ -374,13 +386,13 @@ sub checkRegions
                             elsif ( $score_i < $score_j )
                             {
 
-                        #print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
+#print "I $score_i lt J $score_j Making $regions->[$i]->{acc} $protein/$regions->[$i]->{start}-$regions->[$i]->{end} skip!\n";
                                 $regions->[$i]->{skip} = 1;
                             }
                             else
                             {
 
-                        #print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
+#print "I $score_i gt J $score_j Making $regions->[$j]->{acc} $protein/$regions->[$j]->{start}-$regions->[$j]->{end} skip!\n";
                                 $regions->[$j]->{skip} = 1;
                             }
                         }
@@ -529,7 +541,6 @@ sub checkRegions
                 $overlaps->{ $regions->[$i]->{acc} }->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
                 $overlaps->{ $regions->[$j]->{acc} }->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
 
-                #}
 
             }
             elsif (    $regions->[$i]->{start} <= $regions->[$j]->{end}
@@ -559,10 +570,12 @@ sub checkRegions
                 print OVERLAPS $string;
                 $overlaps->{ $regions->[$i]->{acc} }->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
                 $overlaps->{ $regions->[$j]->{acc} }->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
+
             }
             elsif (    $regions->[$i]->{start} >= $regions->[$j]->{start}
                     && $regions->[$i]->{end} <= $regions->[$j]->{end} )
             {
+
 
                 my $string
                   = "(3) In "
@@ -587,8 +600,185 @@ sub checkRegions
                 print OVERLAPS $string;
                 $overlaps->{ $regions->[$i]->{acc} }->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
                 $overlaps->{ $regions->[$j]->{acc} }->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
+
             }
         }
     }
+}
+
+sub filterOverlaps
+{
+    print STDERR "Filtering overlaps\n";
+
+    my ( $lengthLimit, $numberLimit ) = @_;
+
+# Filter the overlaps according to the auto-resolve paramaters found inside the config file
+#
+# Calculate for each family the number of overlaps whose length is less than 20% of the lowest scoring matching region length
+
+    my ( $familyA,     $familyB,     $regionA,           $regionB,       $scoreA,
+         $scoreB,      $lengthA,     $lengthB,           $overlapLength, $temp_length,
+         $overlapPerc, $temp_family, %resolvedPerFamily, $familySize,    $numberPerc,
+       );
+
+    open( OVERLAPS, "$statusdir/$filePrefix.overlaps" ) || die "Could not open overlap file: $!";
+
+    while (<OVERLAPS>)
+    {
+        if ((  $_
+               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+            )
+            and ( $_ !~ /SEED.*SEED/ )
+           )
+        {
+            $familyA = $1;
+            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
+            $scoreA  = $5 ne "**" ? $5 : 100000;
+            $lengthA = $regionA->length;
+
+            $familyB = $6;
+            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
+            $scoreB  = $10 ne "**" ? $10 : 100000;
+            $lengthB = $regionB->length;
+
+            $overlapLength = $regionA->intersection($regionB)->length;
+
+            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
+            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
+
+            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
+
+            if ( $overlapPerc < $lengthLimit )
+            {
+                $resolvedPerFamily{$temp_family}++;
+            }
+
+        }
+    }
+
+    close OVERLAPS;
+
+    # Re-read the same file and print the overlaps that satisfy our restrictions in a new output file.
+
+    open( OVERLAPS, "$statusdir/$filePrefix.overlaps" ) || die "Could not open overlap file: $!";
+    open( OF, ">$statusdir/$filePrefix.overlaps.filtered" )
+      || die "Could not write the overlaps.filtered file: $!";
+
+    while (<OVERLAPS>)
+    {
+        if ((  $_
+               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+            )
+            and ( $_ !~ /SEED.*SEED/ )
+           )
+        {
+            $familyA = $1;
+            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
+            $scoreA  = $5 ne "**" ? $5 : 100000;
+            $lengthA = $regionA->length;
+
+            $familyB = $6;
+            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
+            $scoreB  = $10 ne "**" ? $10 : 100000;
+            $lengthB = $regionB->length;
+
+            $overlapLength = $regionA->intersection($regionB)->length;
+
+            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
+            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
+
+            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
+
+            $familySize = $familiesData->{$temp_family}->{align};
+
+
+            if ( $resolvedPerFamily{$temp_family} )
+            {
+                $numberPerc = sprintf( "%.4f", $resolvedPerFamily{$temp_family} / $familySize * 100 );
+
+                unless ( $overlapPerc < $lengthLimit and $numberPerc < $numberLimit )
+                {
+                    # print OF "RESOLVE:\t$overlapPerc\t$numberPerc\t" . $_;
+
+                    # print OUT "$overlapPerc\t$numberPerc\n";
+                    print OF $_;
+                }
+            }
+            else
+            {
+                print OF $_;
+            }
+        }
+        else
+        {
+            print OF $_;    # This should print the SEED .. SEED overlaps
+        }
+    }
+
+    close OVERLAPS;
+    close OF;
+
+    # Write out family summary for all filtered overlaps
+    my ( %overlapsPerFamily, %familiesPerFamily, @temp, $temp_string );
+
+    open( OF, "$statusdir/$filePrefix.overlaps.filtered" );
+    while (<OF>)
+    {
+        if (/(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+           )
+        {
+            $familyA = $1;
+            $familyB = $6;
+
+            $overlapsPerFamily{$familyA}++;
+            $overlapsPerFamily{$familyB}++;
+
+            if ( !$familiesPerFamily{$familyA} )
+            {
+                $familiesPerFamily{$familyA} .= $familyB . ";";
+            }
+            elsif ( index( $familiesPerFamily{$familyA}, $familyB ) == -1 )
+            {
+                $familiesPerFamily{$familyA} .= $familyB . ";";
+            }
+
+            if ( !$familiesPerFamily{$familyB} )
+            {
+                $familiesPerFamily{$familyB} .= $familyA . ";";
+            }
+            elsif ( index( $familiesPerFamily{$familyB}, $familyA ) == -1 )
+            {
+                $familiesPerFamily{$familyB} .= $familyA . ";";
+            }
+        }
+    }
+
+    close OF;
+
+    open( OFS, ">$statusdir/$filePrefix.familyOverlaps.filtered" );
+    printf( OFS "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n", "acc", "id", "NoSeed", "NoFull", "NoOverlaps", "OverlapFams" );
+
+    foreach my $family ( keys %overlapsPerFamily )
+    {
+        undef @temp;
+        undef $temp_string;
+        @temp = split(/;/, $familiesPerFamily{$family});
+        
+        foreach my $temp (@temp)
+        {
+            $temp_string .= $temp . ":" . $familiesData->{$temp}->{id} . ",";
+        } 
+        
+        printf( OFS "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n",
+                $family,
+                $familiesData->{$family}->{id},
+                $familiesData->{$family}->{seed},
+                $familiesData->{$family}->{align},
+                $overlapsPerFamily{$family},
+                $temp_string );
+    }
+
+    close OFS;
+
 }
 
