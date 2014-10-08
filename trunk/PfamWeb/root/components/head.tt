@@ -11,16 +11,7 @@
 # use uri_for to get the root for the static directory
 staticUri = c.uri_for( "/static" );
 sharedUri = c.uri_for( "/shared" );
-
-# these first meta tags are google webmasters verification tags. They are here
-# so that google can verify that we control the websites and we can control,
-# to some extent, how the googlebot indexes them.
-
-# pfam.sanger.ac.uk -%]
-<meta name="verify-v1" content="GjV+z5lf7mSCShhAOJZh1UW8J+iiCgWmbxIFg2GkG0Q=" />
-
-[%- # pfam.sbc.su.se -%]
-<meta name="verify-v1" content="FA9AR+bh3BmS05vcSp0mbiAB80DgELEAkFvu4q9ViC8=" />
+-%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
