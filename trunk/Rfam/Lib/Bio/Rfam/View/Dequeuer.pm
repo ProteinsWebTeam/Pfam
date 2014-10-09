@@ -155,16 +155,16 @@ Starts the object polling for jobs of the specified type. The polling loop
 run indefinitely. The polling interval should be specified in the configuration,
 as in:
 
- <job_dequeuer>
+ <view_process_job_dequeuer>
    polling_interval 2
- </job_dequeuer>
+ </view_process_job_dequeuer>
 
 =cut
 
 sub start_polling {
   my ( $self ) = shift;
 
-  my $delay = $self->_config->{job_dequeuer}->{polling_interval} || 2;
+  my $delay = $self->_config->{view_process_job_dequeuer}->{polling_interval} || 2;
   $self->_log->info( "starting submission loop for '" . $self->job_type .
                      "' jobs, with $delay second polling interval" );
 
@@ -227,7 +227,7 @@ as an interactive, foreground process.
 sub daemonise {
   my $self = shift;
 
-  my $lock_dir = $self->_config->{job_dequeuer}->{lock_dir};
+  my $lock_dir = $self->_config->{view_process_job_dequeuer}->{lock_dir};
   my( $pid_file, $dir, $suffix ) = fileparse($0);
   $pid_file = "${lock_dir}/${pid_file}.pid";
 
@@ -274,10 +274,10 @@ sub _build_job_spec {
   # submission command later. We need to add to it the resource requirements,
   # which is done below
   my $job_spec = {
-    tmp_dir    => $self->_config->{job_dequeuer}->{tmp_dir},
-    tmp_space  => $self->_config->{job_dequeuer}->{tmp_space},
-    lsf_queue  => $self->_config->{job_dequeuer}->{lsf_queue},
-    lsf_user   => $self->_config->{job_dequeuer}->{lsf_user},
+    tmp_dir    => $self->_config->{view_process_job_dequeuer}->{tmp_dir},
+    tmp_space  => $self->_config->{view_process_job_dequeuer}->{tmp_space},
+    lsf_queue  => $self->_config->{view_process_job_dequeuer}->{lsf_queue},
+    lsf_user   => $self->_config->{view_process_job_dequeuer}->{lsf_user},
     job_id     => $job->job_id,
     entity_acc => $job->entity_acc,
     memory     => 1_000, # Mbytes; defaults to 4Gb on the farm
@@ -328,7 +328,7 @@ sub _submit_lsf_job {
                     . $job_spec->{job_id};
   $self->_log->debug( "LSF working directory: $working_dir" );
 
-  my $view_script = $self->_config->{job_dequeuer}->{view_script}->{ $self->job_type };
+  my $view_script = $self->_config->{view_process_job_dequeuer}->{view_script}->{ $self->job_type };
   $self->_log->debug( "view script: |$view_script|" );
 
   my $view_command =   $view_script
