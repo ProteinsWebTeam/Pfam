@@ -30,7 +30,7 @@ my $log = get_logger;
 
 my ( $view_set, $job_type, $daemonise, $help );
 GetOptions( 'job_type=s' => \$job_type,
-            'view_set=s' => \$view_set,
+            'viewset=s'  => \$view_set,
             'daemonise'  => \$daemonise,
             'verbose'    => sub { $log->level( $DEBUG ) },
             'help|?'     => \$help )
@@ -90,23 +90,23 @@ been submitted.
 
 =over 8
 
-=item B<--jobtype | -j> [REQUIRED]
+=item B<-jobtype | -j> [REQUIRED]
 
 the type of view process to run. Must be either B<family> or B<clan>. 
 
-=item B<--viewset | -v> [REQUIRED]
+=item B<-viewset> [REQUIRED]
 
 the name of a set of view plugins to run
 
-=item B<--daemonise | -d>
+=item B<-daemonise | -d>
 
 run the dequeuer as a daemon [default: run interactively]
 
-=item B<--verbose | -v>
+=item B<-verbose>
 
 show debug messages
 
-=item B<--help | -h | -?>
+=item B<-help | -h | -?>
 
 print this help text
 
