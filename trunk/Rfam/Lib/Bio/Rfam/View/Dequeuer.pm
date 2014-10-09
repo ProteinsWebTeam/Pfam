@@ -340,7 +340,7 @@ sub _submit_lsf_job {
   my $lsf_command =   "mkdir -p $working_dir"
                     . " && cd $working_dir"
                     . " && $view_command";
-                    # . " && rm -rf $working_dir";
+                    . " && rm -rf $working_dir";
   $self->_log->debug( "LSF command: |$lsf_command|" );
 
   my $log_file =   $job_spec->{tmp_dir} . '/' 
