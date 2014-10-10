@@ -41,7 +41,7 @@ USE String;
       </p>
       
       <p>
-        This section shows the families which have been annotated with this motif.
+        This section shows the families which have been annotated with this motif.  Users should be aware that the motifs are structural constructs and do not necessarily conform to taxonomic boundaries in the way that Rfam families do.
         <span onclick="reveal( this, 'motifNotes', false, true );"
               class="moreLink">
           More...</span>
