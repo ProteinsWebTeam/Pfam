@@ -37,7 +37,7 @@ USE String;
       </p>
       
       <p>
-        This section shows the Rfam motifs that match sequences within the seed alignment of this family.
+        This section shows the Rfam motifs that match sequences within the seed alignment of this family. Users should be aware that the motifs are structural constructs and do not necessarily conform to taxonomic boundaries in the way that Rfam families do.
         <span onclick="reveal( this, 'motifNotes', false, true );"
               class="moreLink">
           More...</span>
