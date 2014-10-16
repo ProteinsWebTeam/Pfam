@@ -28,10 +28,9 @@ my $log = get_logger;
 #-------------------------------------------------------------------------------
 # process command line options
 
-my ( $config_file, $job_type, $view_set, $daemonise, $help );
-GetOptions( 'config=s'   => \$config_file,
-            'job_type=s' => \$job_type,
-            'viewset=s'  => \$view_set,
+my ( $view_set, $job_type, $daemonise, $help );
+GetOptions( 'job_type=s' => \$job_type,
+            'view_set=s' => \$view_set,
             'daemonise'  => \$daemonise,
             'verbose'    => sub { $log->level( $DEBUG ) },
             'help|?'     => \$help )
@@ -45,13 +44,10 @@ $log->logdie( 'ERROR: you must supply a job type' )
 $log->logdie( 'ERROR: you must supply the name of a view plugin set to run' )
  unless defined $view_set;
 
-$log->logdie( 'ERROR: you must supply the name of an Rfam configuration file' )
- unless ( defined $config_file and -f $config_file );
-
 #-------------------------------------------------------------------------------
 # main
 
-my $config = Bio::Rfam::Config->new( $config_file );;
+my $config = Bio::Rfam::Config->new;
 
 my $job_dequeuer = Bio::Rfam::View::Dequeuer->new( job_type => $job_type,
                                                    view_set => $view_set,
@@ -78,7 +74,7 @@ job_dequeuer.pl - poll for and submit Rfam view process jobs
 
 =head1 SYNOPSIS
 
-  job_dequeuer.pl [-d] [-verbose] -c rfam.conf -j family -viewset family
+  job_dequeuer.pl -d -v family
 
 =head1 DESCRIPTION
 
@@ -94,27 +90,23 @@ been submitted.
 
 =over 8
 
-=item B<-config | -c> <viewset name> [REQUIRED]
-
-the path to the configuration file
-
-=item B<-jobtype | -j> <job type> [REQUIRED]
+=item B<--jobtype | -j> [REQUIRED]
 
 the type of view process to run. Must be either B<family> or B<clan>. 
 
-=item B<-viewset> <viewset name> [REQUIRED]
+=item B<--viewset | -v> [REQUIRED]
 
 the name of a set of view plugins to run
 
-=item B<-daemonise | -d>
+=item B<--daemonise | -d>
 
 run the dequeuer as a daemon [default: run interactively]
 
-=item B<-verbose>
+=item B<--verbose | -v>
 
 show debug messages
 
-=item B<-help | -h | -?>
+=item B<--help | -h | -?>
 
 print this help text
 
@@ -127,7 +119,7 @@ F</tmp/job_dequeuer.pl.pid>.
 
 The script obtains its configuration from the C<Bio::Rfam::Config> module, 
 which reads the location of the Apache-style configuration file from the 
-specified configuration file.
+C<RFAM_CONFIG> environment variable.
 
 =head1 SEE ALSO
 
