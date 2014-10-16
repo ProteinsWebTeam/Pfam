@@ -78,7 +78,7 @@ job_dequeuer.pl - poll for and submit Rfam view process jobs
 
 =head1 SYNOPSIS
 
-  job_dequeuer.pl -d -v family
+  job_dequeuer.pl [-d] [-verbose] -c rfam.conf -j family -viewset family
 
 =head1 DESCRIPTION
 
@@ -94,11 +94,15 @@ been submitted.
 
 =over 8
 
-=item B<-jobtype | -j> [REQUIRED]
+=item B<-config | -c> <viewset name> [REQUIRED]
+
+the path to the configuration file
+
+=item B<-jobtype | -j> <job type> [REQUIRED]
 
 the type of view process to run. Must be either B<family> or B<clan>. 
 
-=item B<-viewset> [REQUIRED]
+=item B<-viewset> <viewset name> [REQUIRED]
 
 the name of a set of view plugins to run
 
@@ -123,7 +127,7 @@ F</tmp/job_dequeuer.pl.pid>.
 
 The script obtains its configuration from the C<Bio::Rfam::Config> module, 
 which reads the location of the Apache-style configuration file from the 
-C<RFAM_CONFIG> environment variable.
+specified configuration file.
 
 =head1 SEE ALSO
 
