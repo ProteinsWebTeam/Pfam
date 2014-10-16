@@ -43,7 +43,7 @@ sub findMotifs {
         }
 	
 	# Set/make locations 
-        my $location    = "/homes/evan/motifs_results";
+        my $location    = "/gpfs/nobackup/xfam/rfam/motifs_results";
 	my $results_loc = "$location/$rfam_acc";
         File::Path::make_path($results_loc);
         my $SEED        = "$results_loc/SEED";
