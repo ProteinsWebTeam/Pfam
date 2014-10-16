@@ -28,8 +28,9 @@ my $log = get_logger;
 #-------------------------------------------------------------------------------
 # process command line options
 
-my ( $view_set, $job_type, $daemonise, $help );
-GetOptions( 'job_type=s' => \$job_type,
+my ( $config_file, $job_type, $view_set, $daemonise, $help );
+GetOptions( 'config=s'   => \$config_file,
+            'job_type=s' => \$job_type,
             'viewset=s'  => \$view_set,
             'daemonise'  => \$daemonise,
             'verbose'    => sub { $log->level( $DEBUG ) },
@@ -44,10 +45,13 @@ $log->logdie( 'ERROR: you must supply a job type' )
 $log->logdie( 'ERROR: you must supply the name of a view plugin set to run' )
  unless defined $view_set;
 
+$log->logdie( 'ERROR: you must supply the name of an Rfam configuration file' )
+ unless ( defined $config_file and -f $config_file );
+
 #-------------------------------------------------------------------------------
 # main
 
-my $config = Bio::Rfam::Config->new;
+my $config = Bio::Rfam::Config->new( $config_file );;
 
 my $job_dequeuer = Bio::Rfam::View::Dequeuer->new( job_type => $job_type,
                                                    view_set => $view_set,
