@@ -5,6 +5,7 @@ with 'MooseX::Role::Pluggable::Plugin';
 
 use IO::File;
 use File::Path;
+use File::Temp qw( tempdir );
 use File::Slurp;
 use Cwd;
 
@@ -43,9 +44,9 @@ sub findMotifs {
         }
 	
 	# Set/make locations 
-        my $location    = "/gpfs/nobackup/xfam/rfam/motifs_results";
-	my $results_loc = "$location/$rfam_acc";
-        File::Path::make_path($results_loc);
+	my $tempdir     = File::Temp->newdir;
+	my $results_loc = $tempdir->dirname . "/$rfam_acc";
+	File::Path::make_path( $results_loc );
         my $SEED        = "$results_loc/SEED";
         my $CMdb	= "/nfs/production/xfam/rfam/MOTIFS/cmdb/CM";        
 
@@ -262,9 +263,8 @@ sub findMotifs {
         }
       }
 
-      # Unlink the tmp directory after results have been inserted into the database
-     #chdir $originalCWD;
-     #File::Path::remove_tree($location);
+     # let File::Temp unlink the tmp directory after results have been inserted into the database
+     chdir $originalCWD;
 }
 
 
