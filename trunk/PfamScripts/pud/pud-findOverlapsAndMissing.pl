@@ -209,6 +209,7 @@ sub getRegions
             }
         }
         close(S);
+	#print STDERR "$fDir\n";
     }
 }
 
@@ -640,8 +641,9 @@ sub filterOverlaps
             $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
             $scoreB  = $10 ne "**" ? $10 : 100000;
             $lengthB = $regionB->length;
-
-            $overlapLength = $regionA->intersection($regionB)->length;
+	   
+            my ($s, $e, $d) = $regionA->intersection($regionB);
+            $overlapLength = ($e - $s) + 1;
 
             $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
             $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
@@ -682,7 +684,9 @@ sub filterOverlaps
             $scoreB  = $10 ne "**" ? $10 : 100000;
             $lengthB = $regionB->length;
 
-            $overlapLength = $regionA->intersection($regionB)->length;
+            #$overlapLength = $regionA->intersection($regionB)->length;
+            my ($s, $e, $d) = $regionA->intersection($regionB);
+            $overlapLength = ($e - $s) + 1;
 
             $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
             $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
