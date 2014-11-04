@@ -453,7 +453,7 @@ sub getSignalPeptideRegion {
     my ($self, $regions_hash) = @_;
     
     my $dbh = $self->getSchema->storage->dbh;
-    my $sth = $dbh->prepare("select seq_start, seq_end from other_reg o join pfamseq s on o.pfamseq_acc=s.pfamseq_acc where type_id=\"sig_p\" and pfamseq_acc=?"
+    my $sth = $dbh->prepare("select seq_start, seq_end from other_reg o join pfamseq s on o.pfamseq_acc=s.pfamseq_acc where type_id=\"sig_p\" and s.pfamseq_acc=?"
   ) or confess $dbh->errstr;
 
     my %overlap;
