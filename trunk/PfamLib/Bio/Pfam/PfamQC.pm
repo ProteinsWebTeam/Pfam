@@ -22,10 +22,10 @@ use warnings;
 
 use File::Copy;
 
-# use Bio::Pfam::Config;
-# use Bio::Pfam::AlignPfam;
-# use Bio::Pfam::SeqFetch;
-# use Bio::Pfam::FamilyIO;
+use Bio::Pfam::Config;
+use Bio::Pfam::AlignPfam;
+use Bio::Pfam::SeqFetch;
+use Bio::Pfam::FamilyIO;
 use Carp;
 use Data::Dumper;
 use Cwd;
