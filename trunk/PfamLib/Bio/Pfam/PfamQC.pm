@@ -22,10 +22,10 @@ use warnings;
 
 use File::Copy;
 
-use Bio::Pfam::Config;
-use Bio::Pfam::AlignPfam;
-use Bio::Pfam::SeqFetch;
-use Bio::Pfam::FamilyIO;
+# use Bio::Pfam::Config;
+# use Bio::Pfam::AlignPfam;
+# use Bio::Pfam::SeqFetch;
+# use Bio::Pfam::FamilyIO;
 use Carp;
 use Data::Dumper;
 use Cwd;
@@ -835,7 +835,7 @@ sub family_overlaps_with_signal_peptide {
 =cut
 
 sub family_overlaps_with_db {
-  my ( $family, $ignore_ref, $endpoints_opt, $pfamDB, $famObj, $compete ) = @_;
+  my ( $family, $ignore_ref, $endpoints_opt, $pfamDB, $famObj, $compete, $all ) = @_;
   my ( %ignore, @overlaps );
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
@@ -850,10 +850,10 @@ sub family_overlaps_with_db {
       $$ignore_ref{$n}++;
 
       my $clan = $pfamDB->getClanDataByPfam($n);
-      if ( $clan and $clan->clan_acc->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
+      if ( $clan and $clan->auto_clan->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
         }
       }
     }
@@ -863,10 +863,10 @@ sub family_overlaps_with_db {
     foreach my $nesting ( @{ $famObj->DESC->NESTS } ) {
       $$ignore_ref{ $nesting->{dom} }++;
       my $clan = $pfamDB->getClanDataByPfam( $nesting->{dom} );
-      if ( $clan and $clan->clan_acc->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
+      if ( $clan and $clan->auto_clan->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
         }
       }
     }
@@ -878,19 +878,19 @@ sub family_overlaps_with_db {
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+      $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
       my $nestedRef =
-        $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
+        $pfamDB->getNestedDomain( $fam->auto_pfama->pfama_acc );
 
       if ($nestedRef) {
         foreach my $n (@$nestedRef) {
           $$ignore_ref{$n}++;
 
           my $clan = $pfamDB->getClanDataByPfam($n);
-          if ( $clan and $clan->clan_acc->clan_acc ) {
-            my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
+          if ( $clan and $clan->auto_clan->clan_acc ) {
+            my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+              $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
             }
           }
         }
@@ -911,14 +911,50 @@ sub family_overlaps_with_db {
   #Now pull out all of the regions
   my %regions;
 
+  # Add only regions that belong to  reference proteomes sequences.
+  # If you want to disable this, use $all when calling this subroutine.
+  my %refprotAccs;    # hash for storing all reference proteomes sequence accessions
+
+  unless ($all) {
+
+    print "Reference proteomes only\n";
+      my $refprotFile = $CONFIG->refprotLoc . "/refprot";
+
+      open( REFPROT, $refprotFile ) or die("can not open file $refprotFile, $!");
+
+      while (<REFPROT>)
+      {
+          if ( $_ =~ /^>(\S+)\.\S+/ )
+          {
+              $refprotAccs{$1} = 1;
+          }
+      }
+
+      close REFPROT;
+
+    }
+
   #First from the SEED
   foreach my $seq ( $famObj->SEED->each_seq ) {
+
+
     my $id;
+
+
     if ( $seq->id =~ /(\S+)\.\d+/ ) {
       $id = $1;
     }
     else {
       $id = $seq->id;
+    }
+
+    if (!$all) # if the $all parameter is not used
+    {
+      if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
+        {
+          next; # do nothing and simply move to the next sequence accession
+          print "$id skipped\n";
+        }
     }
 
     #print $seq->id."\t".$id."\n";
@@ -943,6 +979,17 @@ sub family_overlaps_with_db {
     else {
       $id = $seq;
     }
+
+    if (!$all) # if the $all parameter is not used
+    {
+      if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
+        {
+          next; # do nothing and simply move to the next sequence accession
+          print "$id skipped\n";
+        }
+    }
+
+
     foreach my $fullReg ( @{ $famObj->scores->regions->{$seq} } ) {
       push @{ $regions{$id} },
         {
