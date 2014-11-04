@@ -483,7 +483,7 @@ sub getOverlapingFullPfamRegions {
   my $sth = $dbh->prepare(
 "select distinct seq_start, seq_end, a.pfamA_acc, pfamA_id from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc= ? and
   ((? >= r.ali_start and ? <= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
-  and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ? and in_full=1"
+  and s.pfamseq_acc=r.pfamseq_acc and r.pfamA_acc=a.pfamA_acc and a.pfamA_acc != ? and in_full=1"
   ) or confess $dbh->errstr;
 
   foreach my $seqAcc ( keys %{$regionsHash} ) {
