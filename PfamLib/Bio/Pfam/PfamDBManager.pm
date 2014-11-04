@@ -797,7 +797,7 @@ sub getNestedDomain {
   if ( $pfam and $pfam->pfama_acc ) {
 
     #Now search Nested domains in either pfamA_acc or nests_pfama_acc
-    my @results = $self->getSchema->resultset("NestedDomains")->search(
+    my @results = $self->getSchema->resultset("NestedDomain")->search(
       [
         { nests_pfama_acc => $pfam->pfama_acc },
         { pfama_acc       => $pfam->pfama_acc }
