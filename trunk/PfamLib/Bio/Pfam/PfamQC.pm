@@ -917,7 +917,7 @@ sub family_overlaps_with_db {
 
   unless ($all) {
 
-    print "Reference proteomes only\n";
+    print "Reporting overlaps only for sequences that belong to reference proteomes\n";
       my $refprotFile = $CONFIG->refprotLoc . "/refprot";
 
       open( REFPROT, $refprotFile ) or die("can not open file $refprotFile, $!");
@@ -955,6 +955,10 @@ sub family_overlaps_with_db {
           next; # do nothing and simply move to the next sequence accession
           print "$id skipped\n";
         }
+        else
+        {
+          print "$id ok\n";
+        }
     }
 
     #print $seq->id."\t".$id."\n";
@@ -986,6 +990,10 @@ sub family_overlaps_with_db {
         {
           next; # do nothing and simply move to the next sequence accession
           print "$id skipped\n";
+        }
+        else
+        {
+          print "$id ok\n";
         }
     }
 
