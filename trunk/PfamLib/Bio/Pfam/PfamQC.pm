@@ -952,8 +952,8 @@ sub family_overlaps_with_db {
     {
       if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
         {
-          next; # do nothing and simply move to the next sequence accession
           print "$id skipped\n";
+          next; # do nothing and simply move to the next sequence accession
         }
         else
         {
@@ -988,8 +988,8 @@ sub family_overlaps_with_db {
     {
       if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
         {
-          next; # do nothing and simply move to the next sequence accession
           print "$id skipped\n";
+          next; # do nothing and simply move to the next sequence accession
         }
         else
         {
