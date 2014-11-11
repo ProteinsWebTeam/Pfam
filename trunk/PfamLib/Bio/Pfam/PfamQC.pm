@@ -26,6 +26,8 @@ use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::SeqFetch;
 use Bio::Pfam::FamilyIO;
+use Bio::Pfam::PfamLiveDBManager;
+use Bio::Range;
 use Carp;
 use Data::Dumper;
 use Cwd;
@@ -915,7 +917,7 @@ sub family_overlaps_with_db {
   # If you want to disable this, use $all when calling this subroutine.
   my %refprotAccs;    # hash for storing all reference proteomes sequence accessions
 
-  unless ($all) {
+  unless (defined $all) {
 
     print "Reporting overlaps only for sequences that belong to reference proteomes\n";
       my $refprotFile = $CONFIG->refprotLoc . "/refprot";
@@ -948,17 +950,17 @@ sub family_overlaps_with_db {
       $id = $seq->id;
     }
 
-    if (!$all) # if the $all parameter is not used
+    if (! (defined $all)) # if the $all parameter is not used
     {
       if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
         {
-          print "$id skipped\n";
+          # print "$id skipped\n";
           next; # do nothing and simply move to the next sequence accession
         }
-        else
-        {
-          print "$id ok\n";
-        }
+        # else
+        # {
+        #   print "$id ok\n";
+        # }
     }
 
     #print $seq->id."\t".$id."\n";
@@ -984,17 +986,17 @@ sub family_overlaps_with_db {
       $id = $seq;
     }
 
-    if (!$all) # if the $all parameter is not used
+    if (! (defined $all)) # if the $all parameter is not used
     {
       if (! $refprotAccs{$id}) # and the sequence accession is not present in reference proteomes
         {
-          print "$id skipped\n";
+          # print "$id skipped\n";
           next; # do nothing and simply move to the next sequence accession
         }
-        else
-        {
-          print "$id ok\n";
-        }
+        # else
+        # {
+        #   print "$id ok\n";
+        # }
     }
 
 
@@ -1020,6 +1022,7 @@ sub family_overlaps_with_db {
     $pfamoutRegions = $famObj->PFAMOUT->eachHMMSeq;  
   }
 
+  my @overlapLines; # array for keeping printed overlap lines
   my $numOverlaps = 0;
   my %seen;
 
@@ -1060,12 +1063,29 @@ sub family_overlaps_with_db {
 
         next if ( $seen{$line} );
         $seen{$line}++;
-        $numOverlaps++;
-        print STDERR $line;
-        print $LOG $line if $LOG;
+        
+        if (defined $all) # if there is no filtering steps print the overlap lines now
+        {
+          $numOverlaps++;
+          print STDERR $line;
+          print $LOG $line if $LOG;
+        }
+        else # else keep printed line in the appropriate array for the filtering step
+        {
+          push (@overlapLines, $line); 
+        }
       }
     }
   }
+
+  unless (defined $all)
+  {
+    my $lengthLimit = $CONFIG->sequenceOverlapRule;
+    my $numberLimit = $CONFIG->familyOverlapRule;
+
+    $numOverlaps = filterOverlaps($lengthLimit, $numberLimit, @overlapLines);
+  }
+
   close $LOG if ($LOG);
 
   my $sOverlaps = seedIntOverlaps($famObj);
@@ -1077,6 +1097,130 @@ sub family_overlaps_with_db {
   else {
     return 0;
   }
+}
+
+#------------------------------------------------------------------------------
+sub filterOverlaps
+{
+    my ( $lengthLimit, $numberLimit, @overlapLines ) = @_;
+
+    # Get the Pfam Config
+    my $config = Bio::Pfam::Config->new;
+
+    # Filter the overlaps according to the auto-resolve paramaters found inside the config file
+    #
+    # Calculate for each family the number of overlaps whose length is less than 20% ($lengthLimit) of the lowest scoring matching region length
+
+    my ( $familyA,           $familyB,     $regionA,     $regionB,
+         $scoreA,            $scoreB,      $lengthA,     $lengthB,
+         $overlapLength,     $temp_length, $overlapPerc, $temp_family,
+         %resolvedPerFamily, $familySize,  $numberPerc,  $numOverlaps
+   );
+
+
+    foreach my $overlapLine (@overlapLines)
+    {
+        if ((  $overlapLine
+               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+            )
+            and ( $overlapLine !~ /SEED.*SEED/ )
+           )
+        {
+            $familyA = $1;
+            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
+            $scoreA  = $5 ne "**" ? $5 : 100000;
+            $lengthA = $regionA->length;
+
+            $familyB = $6;
+            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
+            $scoreB  = $10 ne "**" ? $10 : 100000;
+            $lengthB = $regionB->length;
+
+            # $overlapLength = $regionA->intersection($regionB)->length;
+            my ($s, $e, $d) = $regionA->intersection($regionB);
+            $overlapLength = ($e - $s) + 1;
+
+            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
+            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
+
+            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
+
+            if ( $overlapPerc < $lengthLimit )
+            {
+                $resolvedPerFamily{$temp_family}++;
+            }
+
+        }
+    }
+
+    # Re-read the same file and print the overlaps that satisfy our restrictions.
+    $numOverlaps = 0;
+
+    foreach my $overlapLine (@overlapLines)
+    {
+        if ((  $overlapLine
+               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+            )
+            and ( $overlapLine !~ /SEED.*SEED/ )
+           )
+        {
+            $familyA = $1;
+            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
+            $scoreA  = $5 ne "**" ? $5 : 100000;
+            $lengthA = $regionA->length;
+
+            $familyB = $6;
+            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
+            $scoreB  = $10 ne "**" ? $10 : 100000;
+            $lengthB = $regionB->length;
+
+            # $overlapLength = $regionA->intersection($regionB)->length;
+            my ($s, $e, $d) = $regionA->intersection($regionB);
+            $overlapLength = ($e - $s) + 1;
+
+            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
+            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
+
+            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
+
+
+            # $familySize = $familiesData->{$temp_family}->{align};
+            
+            # Get family size using the live db schema
+
+            my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+            
+            my $rs = $pfamDB->getSchema->resultset('PfamA')
+              ->search( { 'pfama_acc' => $temp_family }, { select => 'num_full' } );
+
+            $familySize = $rs->next->num_full;
+
+
+            if ( $resolvedPerFamily{$temp_family} )
+            {
+                $numberPerc = sprintf( "%.4f", $resolvedPerFamily{$temp_family} / $familySize * 100 );
+
+                unless ( $overlapPerc < $lengthLimit and $numberPerc < $numberLimit )
+                {
+                    $numOverlaps++;
+                    print STDERR $overlapLine;
+                }
+            }
+            else
+            {
+                $numOverlaps++;
+                print STDERR $overlapLine;
+            }
+        }
+        else
+        {
+            $numOverlaps++;
+            print STDERR $overlapLine;    # This should print the SEED .. SEED overlaps
+        }
+    }
+
+  return $numOverlaps;
+   
 }
 
 #------------------------------------------------------------------------------
