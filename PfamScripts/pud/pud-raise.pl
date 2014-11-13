@@ -388,7 +388,7 @@ sub resolve {
     
     chdir "$families_dir/$fam" or die "Couldn't chdir into $families_dir/$fam $!\n";
 #copy DESC file before pfmake just in case of problems
-    copy ("DESC", "DESC_b4_raise") or die "Cannot copy DESC\n";
+    copy ("DESC", "DESC_b4_raise") or die "Cannot copy DESC in $fam\n";
     system("pfmake.pl -t $new_thresh") and die "\'pfmake.pl -t $new_thresh\' failed to run\n";
     
     $$count++;
