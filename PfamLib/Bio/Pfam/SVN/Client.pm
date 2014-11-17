@@ -448,6 +448,36 @@ sub checkoutAllFamilies {
   }
 }
 
+
+sub exportFamily {
+  my ( $self, $family, $dest ) = @_;
+  my $url = $self->familyLocation . "/" . $family;
+
+  eval {
+    $self->{txn}
+      ->export( $url, $dest, $self->revision ? $self->revision : 'HEAD', 1 );
+  };
+
+  if ($@) {
+    confess("Failed to export out family, $family:[$@]\n");
+  }
+}
+
+
+sub exportClan {
+  my ( $self, $clan, $dest ) = @_;
+  my $url      = $self->clanLocation . "/" . $clan;
+  eval {
+    $self->{txn}
+      ->export( $url, $dest, $self->revision ? $self->revision : 'HEAD',
+      1 );
+  };
+
+  if ($@) {
+    confess("Failed to check out clan, $clan, at $dest from $url:[$@]\n");
+  }
+}
+
 sub checkoutClan {
   my ( $self, $clan, $dest ) = @_;
   my $url      = $self->clanLocation . "/" . $clan;
