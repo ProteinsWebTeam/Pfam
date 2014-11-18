@@ -341,7 +341,7 @@ export PATH=$ENV{PATH}
 REPOS="\$1"
 REV="\$2"
 
-pre-commit.pl -rev "$REV" -repos "$REPOS" || exit 1
+pre-commit.pl -rev "\$REV" -repos "\$REPOS" || exit 1
 
 EOF
 close(F);
@@ -359,7 +359,7 @@ export PERL5LIB=$ENV{PERL5LIB}
 export PATH=$ENV{PATH}
 REPOS="\$1"
 REV="\$2"
-post-commit.pl -rev "$REV" -repos "$REPOS" || exit 1
+post-commit.pl -rev "\$REV" -repos "\$REPOS" || exit 1
 
 EOF
 close(F);
