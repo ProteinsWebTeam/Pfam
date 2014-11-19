@@ -7,6 +7,8 @@ use Log::Log4perl qw(:easy);
 use DateTime;
 use Data::Printer;
 use File::Path qw(make_path remove_tree);
+use Cwd qw(abs_path);
+use Config::General qw(SaveConfig);
 
 #The aim of this script is to generate a mini-pfam infrasturcture, based on a few families.
 #The following will be performed:
@@ -23,19 +25,24 @@ Log::Log4perl->easy_init($DEBUG);
 my $logger = get_logger();
 
 #Get the user options
-my ( @families, @clans, $dir, $number, $outdir );
+my ( @families, @clans, $number, $outdir, $help );
 
 &GetOptions(
-  "dir=s"          => \$dir,
   "outdir=s"       => \$outdir,
   "family=s"       => \@families,
   "clan=s"         => \@clans,
-  "num_families=i" => \$number,
+  "num_fam=i"      => \$number,
+  "h|help"         => \$help,
   )
-  or $logger->logdie("Invalid option!");
+  or $logger->logdie("Invalid option! Run $0 -help");
 
 $number = 10 unless ($number);
 
+if(!$outdir){
+  $logger->logdie("No output directory specified");
+}else{
+  $outdir = abs_path($outdir);
+}
 #Now we have the clans and families defined by the user,
 #get the list of families.
 
@@ -61,7 +68,7 @@ foreach my $f (@families) {
   }
 }
 
-#check the clan is vlaod and get the membership
+#check the clan is valid and get the membership
 foreach my $c (@clans) {
   my @clanDbMemb =
     $pfamDB->getSchema->resultset('ClanMembership')
@@ -101,7 +108,7 @@ $logger->info( "Building pfam based on:" . join( ", ", @families ) );
 my $client = Bio::Pfam::SVN::Client->new;
 
 #Temporary directory where we are going to put clean copies of families and clans
-my $dest = "/tmp/mini_pfam$$/trunk";
+my $dest = "$outdir/mini_pfam$$/trunk";
 foreach my $d (qw(Families Clans FamiliesPending ClansPending)) {
   make_path( $dest . '/' . $d );
 }
@@ -131,13 +138,13 @@ foreach my $clan (@clans) {
 #Now generate a SVN repository and check it out.
 my $dt     = DateTime->now;
 my $dbName = 'pfam_test_' . $dt->ymd("_");
-make_path("/tmp/$dbName/repos");
-make_path("/tmp/$dbName/checkout");
-make_path("/tmp/$dbName/Conf");
-system("svnadmin create /tmp/$dbName/repos")
+make_path("$outdir/$dbName/repos");
+make_path("$outdir/$dbName/checkout");
+make_path("$outdir/$dbName/Conf");
+system("svnadmin create $outdir/$dbName/repos")
   and die "Failed to create empty SVN repository\n";
-system("svn import -q -m 'test db import' $dest file:///tmp/$dbName/repos");
-system("svn co -q file:///tmp/$dbName/repos /tmp/$dbName/checkout");
+system("svn import -q -m 'test db import' $dest file://$outdir/$dbName/repos");
+system("svn co -q file://$outdir/$dbName/repos $outdir/$dbName/checkout");
 remove_tree($dest);
 
 # Now build a corresponding MySQL database!
@@ -145,7 +152,7 @@ remove_tree($dest);
 my %newConnectParams = %{ $config->pfamliveAdmin };
 my $newConnectParams = \%newConnectParams;
 
-$newConnectParams->{database} = 'pfam_test_' . $dt->ymd("_");
+$newConnectParams->{database} = $dbName;
 
 $logger->info("Generating Schema.");
 
@@ -316,26 +323,25 @@ foreach
 
 #Now we have the database and the repository, we need to put the hooks in place
 #read in and then write out with new mysql and svn parameters.
-#my ($conf) = $ENV{PFAM_CONFIG} =~ m/([\d\w\/\-\.]+)/;
-#my $c      = new Config::General($conf);
-#my %ac     = $c->getall;
-
-#$c->("newrcfile", \%ac);
+my ($conf) = $ENV{PFAM_CONFIG} =~ m/([\d\w\/\-\.]+)/;
+my $c      = new Config::General($conf);
+my %ac     = $c->getall;
 
 #Find the path of this script and modify to the svnhooks
+$ac{Model}->{Pfamlive}->{database} = $newConnectParams->{database};
+$ac{svnRepos} = "file://$outdir/$dbName/repos";
+SaveConfig("$outdir/$dbName/Conf/$dbName.config", \%ac);
 
 
 
-#database   pfam_live
-#svnRepos         https://xfamsvn.ebi.ac.uk/svn/pfam/
-my $hookdir = "/tmp/$dbName/repos/hooks";
-my $prc = "$hookdir/pre-commit.sh";
+my $hookdir = "$outdir/$dbName/repos/hooks";
+my $prc = "$hookdir/pre-commit";
 open(F,">", $prc);
 
 #print out the shell script of the commit hook;
 print F<<EOF;
 #!/bin/sh
-export PFAM_CONFIG=/somewherenew
+export PFAM_CONFIG=$outdir/$dbName/Conf/$dbName.config
 export PERL5LIB=$ENV{PERL5LIB}
 export PATH=$ENV{PATH}
 REPOS="\$1"
@@ -348,13 +354,13 @@ close(F);
 chmod( 0755, $prc );
 
 
-my $pc = "$hookdir/post-commit.sh";
+my $pc = "$hookdir/post-commit";
 open(F,">", $pc) or die "Could not open $pc:[$!]\n";
 
 #print out the shell script of the commit hook;
 print F<<EOF;
 #!/bin/sh
-export PFAM_CONFIG=/somewherenew
+export PFAM_CONFIG=$outdir/$dbName/Conf/$dbName.config
 export PERL5LIB=$ENV{PERL5LIB}
 export PATH=$ENV{PATH}
 REPOS="\$1"
@@ -364,3 +370,25 @@ post-commit.pl -rev "\$REV" -repos "\$REPOS" || exit 1
 EOF
 close(F);
 chmod( 0755, $pc );
+
+
+
+sub help {
+
+print<<EOF;
+
+usage: $0 <options>
+
+Options -
+  outdir      : The location where the test files will be placed.
+  num_fam     : The numbers of families you want in the test repository.
+  family      : Name of a family that you want to include, us repeatedly for multiple entries.
+  clan        : Name of a clan that you want to include, us repeatedly for multiple entries.
+  help        : print this message.
+
+e.g. $0 -num_fam 10 -family PF00001 -family PF00002 -clan CL0003 -outdir test
+
+
+EOF
+
+}
