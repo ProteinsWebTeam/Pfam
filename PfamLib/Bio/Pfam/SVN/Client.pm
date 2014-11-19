@@ -452,10 +452,10 @@ sub checkoutAllFamilies {
 sub exportFamily {
   my ( $self, $family, $dest ) = @_;
   my $url = $self->familyLocation . "/" . $family;
-
+  chop($dest) if($dest =~ /\S+\/$/);
   eval {
     $self->{txn}
-      ->export( $url, $dest, $self->revision ? $self->revision : 'HEAD', 1 );
+      ->export( $url, $dest, undef, 1 );
   };
 
   if ($@) {
