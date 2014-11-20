@@ -363,7 +363,7 @@ export PATH=$script:$ENV{PATH}
 REPOS="\$1"
 REV="\$2"
 
-pre-commit.pl -rev "\$REV" -txn "\$REPOS" || exit 1
+pre-commit.pl -txn "\$REV" -repos "\$REPOS" || exit 1
 
 EOF
 close(F);
