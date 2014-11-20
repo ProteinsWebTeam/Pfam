@@ -234,7 +234,7 @@ sub checkFamilyExists {
       my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
       my @dead =
-        $pfamDB->getSchema->resultset("DeadFamilies")
+        $pfamDB->getSchema->resultset("DeadFamily")
         ->search( { pfama_acc => $family } );
       foreach my $dead (@dead) {
 
