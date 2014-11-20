@@ -50,7 +50,6 @@ use warnings;
 use File::Temp;
 use Try::Tiny;
 use Carp;
-use Redis;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::FamilyIO;
@@ -82,10 +81,6 @@ sub new {
   }
 
   $self->{config} = Bio::Pfam::Config->new;
-
-  my $redis_server = $self->{config}->{redisHost} . ':' . $self->{config}->{redisPort};
-  
-  $self->{redis} = Redis->new( server => $redis_server );
   $self->{view}  = Bio::Pfam::ViewProcess->new;
   
   return bless($self, $class);  
@@ -119,7 +114,7 @@ sub commitFamily {
   
 
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-    $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{redis});
+    $familyIO->updatePfamARegions($famObj, $pfamDB);
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
   }
@@ -158,7 +153,7 @@ sub commitNewFamily {
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
   $familyIO->updatePfamAInRDB($famObj, $pfamDB, 1, $author);
-  $familyIO->updatePfamARegions($famObj, $pfamDB, $self->{redis});
+  $familyIO->updatePfamARegions($famObj, $pfamDB);
   $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 1);
   $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 1);  
 
