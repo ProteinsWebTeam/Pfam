@@ -36,10 +36,14 @@ my ( @families, @clans, $number, $outdir, $help );
   )
   or $logger->logdie("Invalid option! Run $0 -help");
 
+if($help){
+  help();
+}
 $number = 10 unless ($number);
 
 if(!$outdir){
-  $logger->logdie("No output directory specified");
+  $logger->warn("No output directory specified");
+  help();
 }else{
   $outdir = abs_path($outdir);
 }
@@ -152,7 +156,8 @@ remove_tree($dest);
 my %newConnectParams = %{ $config->pfamliveAdmin };
 my $newConnectParams = \%newConnectParams;
 
-$newConnectParams->{database} = $dbName;
+my $username = getpwuid( $< );
+$newConnectParams->{database} = $dbName.'_'.$username;
 
 $logger->info("Generating Schema.");
 
@@ -178,6 +183,8 @@ system( "mysql -u "
     . $newConnectParams->{port} . " "
     . $newConnectParams->{database}
     . " < /tmp/schema.dmp" );
+
+unlink("/tmp/schema.dmp");
 
 #Construct a temporary table to so that we can join against.
 $logger->info("Building temporary table.");
@@ -329,10 +336,19 @@ my %ac     = $c->getall;
 
 #Find the path of this script and modify to the svnhooks
 $ac{Model}->{Pfamlive}->{database} = $newConnectParams->{database};
-$ac{svnRepos} = "file://$outdir/$dbName/repos";
+$ac{svnRepos} = "file://$outdir/$dbName/repos/";
+$ac{svnFamilies} = "Families";
+$ac{svnClans}       =  "Clans";
+$ac{svnSequence}    =  "Sequences";
+$ac{svnNewClans}    =  "ClansPending";
+$ac{svnNewFamilies} =  "FamiliesPending";
+
 SaveConfig("$outdir/$dbName/Conf/$dbName.config", \%ac);
 
 
+my @bits = split('/', abs_path($0));
+my $script = join('/', @bits[0..($#bits-2)], 'svnhooks');
+$logger->info("Note that the path for the pre-commit code is: $script");
 
 my $hookdir = "$outdir/$dbName/repos/hooks";
 my $prc = "$hookdir/pre-commit";
@@ -343,7 +359,7 @@ print F<<EOF;
 #!/bin/sh
 export PFAM_CONFIG=$outdir/$dbName/Conf/$dbName.config
 export PERL5LIB=$ENV{PERL5LIB}
-export PATH=$ENV{PATH}
+export PATH=$script:$ENV{PATH}
 REPOS="\$1"
 REV="\$2"
 
@@ -362,7 +378,7 @@ print F<<EOF;
 #!/bin/sh
 export PFAM_CONFIG=$outdir/$dbName/Conf/$dbName.config
 export PERL5LIB=$ENV{PERL5LIB}
-export PATH=$ENV{PATH}
+export PATH=$script:$ENV{PATH}
 REPOS="\$1"
 REV="\$2"
 post-commit.pl -rev "\$REV" -repos "\$REPOS" || exit 1
@@ -391,4 +407,5 @@ e.g. $0 -num_fam 10 -family PF00001 -family PF00002 -clan CL0003 -outdir test
 
 EOF
 
+exit;
 }
