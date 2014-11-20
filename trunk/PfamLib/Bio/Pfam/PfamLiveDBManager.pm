@@ -214,10 +214,10 @@ sub updatePfamA {
   }
 
   my $pfamA =
-    $self->getSchema->resultset('Pfama')
+    $self->getSchema->resultset('PfamA')
     ->find( { pfamA_acc => $famObj->DESC->AC } );
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::PfamA') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
   }
 
