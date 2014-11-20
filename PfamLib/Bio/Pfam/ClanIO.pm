@@ -142,7 +142,7 @@ sub loadClanFromRDB {
 
   my @memberAcc;
   foreach my $m ( @{$membership} ) {
-    push( @memberAcc, $m->auto_pfama->pfama_acc );
+    push( @memberAcc, $m->pfama_acc->pfama_acc );
   }
 
   $params->{DESC}->{MEMB} = \@memberAcc;

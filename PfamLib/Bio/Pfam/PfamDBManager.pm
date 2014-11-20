@@ -157,14 +157,14 @@ sub getClanData {
     carp("Looking up information for $clan. I think this is an accession")
       if $self->{'debug'};
     $clanData =
-      $self->getSchema->resultset("Clans")->find( { "clan_acc" => $clan } );
+      $self->getSchema->resultset("Clan")->find( { "clan_acc" => $clan } );
 
   }
   elsif ( $clan =~ /\S{1,16}/ ) {
     carp("Looking up information for $clan. I think this is an id")
       if $self->{'debug'};
     $clanData =
-      $self->getSchema->resultset("Clans")->find( { "clan_id" => $clan } );
+      $self->getSchema->resultset("Clan")->find( { "clan_id" => $clan } );
   }
   else {
     cluck("$clan does not look like a clan accession or id");
