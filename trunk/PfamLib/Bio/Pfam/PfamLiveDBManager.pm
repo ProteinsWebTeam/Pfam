@@ -253,7 +253,6 @@ sub updatePfamA {
   $pfamA->num_full( $famObj->scores->numRegions );
   $pfamA->updated( DateTime::Format::MySQL->format_datetime( DateTime->now ) );
 
-  $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
 
   if ( $famObj->DESC->CL ) {
@@ -689,31 +688,11 @@ sub updatePfamAWikipedia {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
-#-------------------------------------------------------------------------------
-#Get the index for the pfamA family
-
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
 
 #-------------------------------------------------------------------------------
 #Add the page to the wikipedia table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('PfamaWiki')->search( { auto_pfamA => $auto } )
+  $self->getSchema->resultset('PfamAWiki')->search( { pfama_acc => $famObj->DESC->AC } )
     ->delete;
   if ( $famObj->DESC->WIKI and ref( $famObj->DESC->WIKI ) eq 'HASH' ) {
     foreach my $page ( keys %{ $famObj->DESC->WIKI } ) {
@@ -725,9 +704,9 @@ sub updatePfamAWikipedia {
         confess( "Failed to find or create row for wiki page" . $page . "\n" );
       }
 
-      $self->getSchema->resultset('PfamaWiki')->find_or_create(
+      $self->getSchema->resultset('PfamAWiki')->find_or_create(
         {
-          auto_pfama => $auto,
+          pfama_acc  => $famObj->DESC->AC,
           auto_wiki  => $wiki->auto_wiki
         }
       );
@@ -746,31 +725,10 @@ sub updatePfamALitRefs {
   }
 
 #-------------------------------------------------------------------------------
-#Get the index for the pfamA family
-
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-#-------------------------------------------------------------------------------
 #Add the references to the literature reference table if it is not there.
 #Then added the information pfamA_literature_reference table.
   $self->getSchema->resultset('PfamaLiteratureReferences')
-    ->search( { auto_pfamA => $auto } )->delete;
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
   if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
     foreach my $ref ( @{ $famObj->DESC->REFS } ) {
       my $dbRef =
@@ -785,9 +743,9 @@ sub updatePfamALitRefs {
       unless ( $dbRef->auto_lit ) {
         confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
       }
-      $self->getSchema->resultset('PfamaLiteratureReferences')->create(
+      $self->getSchema->resultset('PfamALiteratureReferences')->create(
         {
-          auto_pfama  => $auto,
+          pfama_acc   => $famObj->DESC->AC,
           auto_lit    => $dbRef,
           comment     => $ref->{RC} ? $ref->{RC} : '',
           order_added => $ref->{RN}
@@ -820,34 +778,13 @@ sub updatePfamADbXrefs {
   }
 
 #-------------------------------------------------------------------------------
-#Get the index for the pfamA family
-
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-#-------------------------------------------------------------------------------
-  $self->getSchema->resultset('PfamaDatabaseLinks')
-    ->search( { auto_pfamA => $auto } )->delete;
+  $self->getSchema->resultset('PfamADatabaseLinks')
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
   if ( $famObj->DESC->DBREFS and ref( $famObj->DESC->DBREFS ) eq 'ARRAY' ) {
     foreach my $dbLink ( @{ $famObj->DESC->DBREFS } ) {
-      $self->getSchema->resultset('PfamaDatabaseLinks')->create(
+      $self->getSchema->resultset('PfamADatabaseLinks')->create(
         {
-          auto_pfama   => $auto,
+          pfama_acc    => $famObj->DESC->AC,
           db_id        => $dbLink->{db_id},
           comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
           db_link      => $dbLink->{db_link},
@@ -1360,17 +1297,16 @@ sub resetClanCompeteFlag {
   my ( $self, $clan ) = @_;
 
   my $clanData;
-  if ( $clan =~ /^(\d+)$/ ) {
+  if ( $clan =~ /^CL(\d{4})$/ ) {
 
     #Looks like an auto incremeneted key
-    my $clanData =
-      $self->getSchema->resultset("Clans")->find( { "auto_clan" => $clan } );
-  }
-  else {
+    $clanData =
+      $self->getSchema->resultset("Clan")->find( { "clan_acc" => $clan } );
+  } else {
     $clanData = $self->getClanData($clan);
   }
 
-  unless ( $clanData->isa('PfamLive::Result::Clans') ) {
+  unless ( $clanData->isa('PfamLive::Result::Clan') ) {
     croak("Failed to get a clan row object for $clan");
   }
 
