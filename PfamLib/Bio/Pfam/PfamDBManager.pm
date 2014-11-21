@@ -70,7 +70,7 @@ sub id2acc {
 sub acc2id {
   my ( $self, $acc ) = @_;
   my $result =
-    $self->getSchema->resultset("Pfama")->find( { "pfama_acc" => $acc } );
+    $self->getSchema->resultset("PfamA")->find( { "pfama_acc" => $acc } );
   if ( $result && $result->pfama_id ) {
     return ( $result->pfama_id );
   }
@@ -79,7 +79,7 @@ sub acc2id {
 sub clanId2Acc {
   my ( $self, $id ) = @_;
   my $result =
-  $self->getSchema->resultset("Clans")->find( { "clan_id" => $id } );
+  $self->getSchema->resultset("Clan")->find( { "clan_id" => $id } );
   if ( $result && $result->clan_acc ) {
     return ( $result->clan_acc );
   }
@@ -88,7 +88,7 @@ sub clanId2Acc {
 sub clanAcc2Id {
   my ( $self, $acc ) = @_;
   my $result =
-    $self->getSchema->resultset("Pfama")->find( { "clan_acc" => $acc } );
+    $self->getSchema->resultset("PfamA")->find( { "clan_acc" => $acc } );
   if ( $result && $result->clan_id ) {
     return ( $result->clan_id );
   }
@@ -217,13 +217,13 @@ sub getClanMembership {
 
 sub getAllClanData {
   my ($self) = shift;
-  my @clanData = $self->getSchema->resultset("Clans")->search();
+  my @clanData = $self->getSchema->resultset("Clan")->search();
   return \@clanData;
 }
 
 sub getAllDeadClanData {
   my ($self) = shift;
-  my @deadClanData = $self->getSchema->resultset("DeadClans")->search();
+  my @deadClanData = $self->getSchema->resultset("DeadClan")->search();
   return \@deadClanData;
 }
 
@@ -257,7 +257,7 @@ sub getAllPfamFamilyData {
   my ($self) = @_;
   my @familyData;
   carp("Looking up information for all families.") if $self->{'debug'};
-  @familyData = $self->getSchema->resultset("Pfama")->search();
+  @familyData = $self->getSchema->resultset("PfamA")->search();
 
   if (@familyData) {
     carp("Found family data") if $self->{'debug'};
@@ -273,7 +273,7 @@ sub getAllDeadFamilyData {
   my ($self) = @_;
   my @familyData;
   carp("Looking up information for all dead families.") if $self->{'debug'};
-  @familyData = $self->getSchema->resultset("DeadFamilies")->search();
+  @familyData = $self->getSchema->resultset("DeadFamily")->search();
 
   if (@familyData) {
     carp("Found dead family data") if $self->{'debug'};
@@ -289,7 +289,7 @@ sub getAllPfamFamilyDataLike {
   my ($self, $term) = @_;
   my @familyData;
   carp("Looking up information for all families with and id like .") if $self->{'debug'};
-  @familyData = $self->getSchema->resultset("Pfama")->search( { pfama_id => { 'like' => $term } });
+  @familyData = $self->getSchema->resultset("PfamA")->search( { pfama_id => { 'like' => $term } });
 
   if (@familyData) {
     carp("Found family data") if $self->{'debug'};
@@ -304,7 +304,7 @@ sub getPfamInterPro {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfama")->search(
+    $familyData = $self->getSchema->resultset("PfamA")->search(
       { "pfamA_acc" => $family },
       {
         join     => qw( interpros )
@@ -315,7 +315,7 @@ sub getPfamInterPro {
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfama")->search(
+    $familyData = $self->getSchema->resultset("PfamA")->search(
       { "pfamA_id" => $family },
       {
         join     => qw( interpros )
@@ -338,7 +338,7 @@ sub getPfamGO {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    @familyGO = $self->getSchema->resultset("Pfama")->search(
+    @familyGO = $self->getSchema->resultset("PfamA")->search(
       { "pfamA_acc" => $family },
       {
         join     => qw( gene_ontologies ),
@@ -349,7 +349,7 @@ sub getPfamGO {
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    @familyGO = $self->getSchema->resultset("Pfama")->search(
+    @familyGO = $self->getSchema->resultset("PfamA")->search(
       { "pfamA_id" => $family },
       {
         join     => qw( gene_ontologies ),
@@ -373,7 +373,7 @@ sub getNSEInFull {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
     @familyNSE =
-      $self->getSchema->resultset("PfamA_reg_full_significant")->search(
+      $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
         "pfamA.pfamA_acc" => $family,
         "in_full"         => 1
@@ -389,7 +389,7 @@ sub getNSEInFull {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
     @familyNSE =
-      $self->getSchema->resultset("PfamA_reg_full_significant")->search(
+      $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
         "pfamA.pfamA_id" => $family,
         "in_full"        => 1
@@ -417,7 +417,7 @@ sub getNSEseed {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    @familyNSE = $self->getSchema->resultset("PfamA_reg_seed")->search(
+    @familyNSE = $self->getSchema->resultset("PfamARegSeed")->search(
       { "pfamA.pfamA_acc" => $family },
       {
         join     => [qw( pfamA pfamseq )],
@@ -429,7 +429,7 @@ sub getNSEseed {
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    @familyNSE = $self->getSchema->resultset("PfamA_reg_seed")->search(
+    @familyNSE = $self->getSchema->resultset("PfamARegSeed")->search(
       { "pfamA.pfamA_id" => $family },
       {
         join     => [qw( pfamA pfamseq )],
@@ -745,7 +745,7 @@ sub getAllSecondaryAccs {
   my @SecAccData;
   carp("Looking up secondary acc information for all pfamseq.")
     if $self->{'debug'};
-  @SecAccData = $self->getSchema->resultset("Secondary_pfamseq_acc")->search();
+  @SecAccData = $self->getSchema->resultset("SecondaryPfamseqAcc")->search();
 
   if (@SecAccData) {
     carp("Found family data") if $self->{'debug'};
@@ -829,7 +829,7 @@ sub getNestedDomain {
 
 sub getAllNestedDomains {
   my ( $self ) = @_;  
-  my @results = $self->getSchema->resultset("NestedDomains")->search({});
+  my @results = $self->getSchema->resultset("NestedDomain")->search({});
   
   return(\@results);
 }
@@ -919,7 +919,7 @@ sub getPfambRegForSeq {
     carp("Looking up information for $seq. I think this is an accession")
       if $self->{'debug'};
     @pfamBRegions =
-      $self->getSchema->resultset("PfambReg")->search(
+      $self->getSchema->resultset("PfamBReg")->search(
       {
         "pfamseq_acc.pfamseq_acc" => $seq,
       },
@@ -938,7 +938,7 @@ sub getScoopData {
   $score = $score || '0.0';
   # PfamA relationship based on SCOOP
   my @ataSCOOP = $self->getSchema
-                       ->resultset('Pfama2pfamaScoopResults')
+                       ->resultset('PfamA2pfamAScoop')
                          ->search( { -and => [
                                   -or => [
                                     "pfamA1.pfamA_acc" => $famDataObj->pfamA_acc,
