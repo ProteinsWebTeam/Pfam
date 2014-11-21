@@ -856,7 +856,7 @@ sub family_overlaps_with_db {
       if ( $clan and $clan->clan_acc->clan_acc ) {
         my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
+          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
         }
       }
     }
@@ -869,7 +869,7 @@ sub family_overlaps_with_db {
       if ( $clan and $clan->clan_acc->clan_acc ) {
         my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
+          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
         }
       }
     }
@@ -881,9 +881,9 @@ sub family_overlaps_with_db {
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
+      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
       my $nestedRef =
-        $pfamDB->getNestedDomain( $fam->pfamA_acc->pfamA_acc );
+        $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
 
       if ($nestedRef) {
         foreach my $n (@$nestedRef) {
@@ -893,7 +893,7 @@ sub family_overlaps_with_db {
           if ( $clan and $clan->clan_acc->clan_acc ) {
             my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
+              $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
             }
           }
         }
