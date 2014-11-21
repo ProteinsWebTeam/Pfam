@@ -263,7 +263,7 @@ sub createPfamA {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
-  my $pfamA = $self->getSchema->resultset('Pfama')->create(
+  my $pfamA = $self->getSchema->resultset('PfamA')->create(
     {
       pfama_acc      => $famObj->DESC->AC,
       pfama_id       => $famObj->DESC->ID,
@@ -341,7 +341,7 @@ sub deletePfamA {
     ->delete;
 
   #Now make the dead_families entry
-  $self->getSchema->resultset('DeadFamilies')->create(
+  $self->getSchema->resultset('DeadFamily')->create(
     {
       pfama_id   => $pfamA->pfama_id,
       pfama_acc  => $pfamA->pfama_acc,
@@ -373,7 +373,7 @@ sub deleteClan {
   $clan->delete;
 
   #Now make the dead_clans entry
-  $self->getSchema->resultset('DeadClans')->create(
+  $self->getSchema->resultset('DeadClan')->create(
     {
       clan_id          => $clan->clan_id,
       clan_acc         => $clan->clan_acc,
@@ -415,7 +415,7 @@ sub updatePfamARegSeed {
 #  }
 
   #Delete all the seed regions
-  $self->getSchema->resultset('PfamaRegSeed')
+  $self->getSchema->resultset('PfamARegSeed')
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
   #Determing all surrogate keys for the sequences in the SEED alignment
@@ -467,7 +467,7 @@ sub updatePfamARegSeed {
     );
   }
 
-  $self->getSchema->resultset('PfamaRegSeed')->populate( \@rows );
+  $self->getSchema->resultset('PfamARegSeed')->populate( \@rows );
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
@@ -526,13 +526,13 @@ sub updatePfamARegFull {
 #Now delete all regions in the two tables
 
 #The pdb region has a FK to pfamA_reg_full_significant so this need be deleted first.
-  $self->getSchema->resultset('PdbPfamaReg')->search( { pfama_acc => $famObj->DESC->AC } )
+  $self->getSchema->resultset('PdbPfamAReg')->search( { pfama_acc => $famObj->DESC->AC } )
     ->delete;
 
-  $self->getSchema->resultset('PfamaRegFullSignificant')
+  $self->getSchema->resultset('PfamARegFullSignificant')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
-  $self->getSchema->resultset('PfamaRegFullInsignificant')
+  $self->getSchema->resultset('PfamARegFullInsignificant')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
 #-------------------------------------------------------------------------------
@@ -550,9 +550,9 @@ sub updatePfamARegFull {
     }
   }
 
-  $self->getSchema->resultset("PfamaRegFullSignificant")
+  $self->getSchema->resultset("PfamARegFullSignificant")
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
-  $self->getSchema->resultset("PfamaRegFullInsignificant")
+  $self->getSchema->resultset("PfamARegFullInsignificant")
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
 
@@ -651,20 +651,20 @@ sub updatePfamARegFull {
       }
     }
     if ( scalar(@insignificant) > 1000 ) {
-      $self->getSchema->resultset("PfamaRegFullInsignificant")
+      $self->getSchema->resultset("PfamARegFullInsignificant")
         ->populate( \@insignificant );
       @insignificant = ();
     }
     if ( scalar(@significant) > 1000 ) {
-      $self->getSchema->resultset("PfamaRegFullSignificant")
+      $self->getSchema->resultset("PfamARegFullSignificant")
         ->populate( \@significant );
       @significant = ();
     }
 
   }
-  $self->getSchema->resultset("PfamaRegFullInsignificant")
+  $self->getSchema->resultset("PfamARegFullInsignificant")
     ->populate( \@insignificant );
-  $self->getSchema->resultset("PfamaRegFullSignificant")
+  $self->getSchema->resultset("PfamARegFullSignificant")
     ->populate( \@significant );
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 
@@ -720,12 +720,12 @@ sub updatePfamALitRefs {
 #-------------------------------------------------------------------------------
 #Add the references to the literature reference table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('PfamaLiteratureReferences')
+  $self->getSchema->resultset('PfamALiteratureReference')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
   if ( $famObj->DESC->REFS and ref( $famObj->DESC->REFS ) eq 'ARRAY' ) {
     foreach my $ref ( @{ $famObj->DESC->REFS } ) {
       my $dbRef =
-        $self->getSchema->resultset('LiteratureReferences')->find_or_create(
+        $self->getSchema->resultset('LiteratureReference')->find_or_create(
         {
           pmid    => $ref->{RM},
           title   => $ref->{RT} ? $ref->{RT} : '',
@@ -736,7 +736,7 @@ sub updatePfamALitRefs {
       unless ( $dbRef->auto_lit ) {
         confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
       }
-      $self->getSchema->resultset('PfamALiteratureReferences')->create(
+      $self->getSchema->resultset('PfamALiteratureReference')->create(
         {
           pfama_acc   => $famObj->DESC->AC,
           auto_lit    => $dbRef,
@@ -771,11 +771,11 @@ sub updatePfamADbXrefs {
   }
 
 #-------------------------------------------------------------------------------
-  $self->getSchema->resultset('PfamADatabaseLinks')
+  $self->getSchema->resultset('PfamADatabaseLink')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
   if ( $famObj->DESC->DBREFS and ref( $famObj->DESC->DBREFS ) eq 'ARRAY' ) {
     foreach my $dbLink ( @{ $famObj->DESC->DBREFS } ) {
-      $self->getSchema->resultset('PfamADatabaseLinks')->create(
+      $self->getSchema->resultset('PfamADatabaseLink')->create(
         {
           pfama_acc    => $famObj->DESC->AC,
           db_id        => $dbLink->{db_id},
@@ -833,10 +833,10 @@ sub updatePfamANested {
 #    }
 #  }
 
-  $self->getSchema->resultset('NestedDomains')
+  $self->getSchema->resultset('NestedDomain')
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
-  $self->getSchema->resultset('NestedLocations')
+  $self->getSchema->resultset('NestedLocation')
     ->search( { pfamA_acc => $famObj->DESC-AC } )->delete;
 
   if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
@@ -867,14 +867,14 @@ sub updatePfamANested {
           'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
       }
 
-      $self->getSchema->resultset('NestedDomains')->create(
+      $self->getSchema->resultset('NestedDomain')->create(
         {
           pfamA_acc       => $famObj->DESC->AC,
           nests_pfamA_acc => $otherPfamA->pfamA_acc
         }
       );
 
-      $self->getSchema->resultset('NestedLocations')->create(
+      $self->getSchema->resultset('NestedLocation')->create(
         {
           pfamA_acc         => $famObj->DESC->AC,
           nested_pfamA_acc  => $otherPfamA->pfamA_acc,
@@ -920,7 +920,7 @@ sub updateEdits {
 #    }
 #  }
 
-  $self->getSchema->resultset('Edits')->search( { pfamA_acc => $famObj->DESC->AC } )
+  $self->getSchema->resultset('Edit')->search( { pfamA_acc => $famObj->DESC->AC } )
     ->delete;
 
   if ( $famObj->DESC->EDITS and ref( $famObj->DESC->EDITS ) eq 'ARRAY' ) {
@@ -945,7 +945,7 @@ sub updateEdits {
         and $n->{newFrom} >= 1
         and $n->{newTo} > 1 )
       {
-        $self->getSchema->resultset('Edits')->create(
+        $self->getSchema->resultset('Edit')->create(
           {
             pfamA_acc     => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
@@ -958,7 +958,7 @@ sub updateEdits {
         );
       }
       else {
-        $self->getSchema->resultset('Edits')->create(
+        $self->getSchema->resultset('Edit')->create(
           {
             pfamA_acc      => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
@@ -1053,7 +1053,7 @@ sub uploadAlignmentAndTrees {
 #    }
 #  }
 
-  $self->getSchema->resultset('AlignmentsAndTree')->update_or_create(
+  $self->getSchema->resultset('AlignmentAndTree')->update_or_create(
     {
       pfamA_acc => $famObj->DESC->AC,
       alignment  => Compress::Zlib::memGzip($string),
@@ -1095,11 +1095,11 @@ sub updateClanDbXrefs {
 #  }
 
 #-------------------------------------------------------------------------------
-  $self->getSchema->resultset('ClanDatabaseLinks')
+  $self->getSchema->resultset('ClanDatabaseLink')
     ->search( { clan_acc => $clanObj->DESC->AC } )->delete;
 
   foreach my $dbLink ( @{ $clanObj->DESC->DBREFS } ) {
-    $self->getSchema->resultset('ClanDatabaseLinks')->create(
+    $self->getSchema->resultset('ClanDatabaseLink')->create(
       {
         clan_acc     => $clanObj->DESC->AC,
         db_id        => $dbLink->{db_id},
@@ -1202,7 +1202,7 @@ sub updateClanLitRefs {
 #-------------------------------------------------------------------------------
 #Add the references to the literature reference table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('ClanLitRefs')->search( { clan_acc => $clanObj->DESC->AC } )
+  $self->getSchema->resultset('ClanLitRef')->search( { clan_acc => $clanObj->DESC->AC } )
     ->delete;
 
   foreach my $ref ( @{ $clanObj->DESC->REFS } ) {
@@ -1218,7 +1218,7 @@ sub updateClanLitRefs {
     unless ( $dbRef->auto_lit ) {
       confess( "Failed to find references for pmid " . $ref->{RM} . "\n" );
     }
-    $self->getSchema->resultset('ClanLitRefs')->create(
+    $self->getSchema->resultset('ClanLitRef')->create(
       {
         clan_acc    => $clanObj->DESC->AC,
         auto_lit    => $dbRef,
