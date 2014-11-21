@@ -1274,7 +1274,7 @@ sub resetInFull {
 
   my @regions =
     $self->getSchema->resultset('PfamARegFullSignificant')
-    ->search( { pfama_acc => $pfama_acc } );
+    ->search( { pfamA_acc => $pfama_acc } );
 
   foreach my $r (@regions) {
     $r->update( { in_full => 1 } );
