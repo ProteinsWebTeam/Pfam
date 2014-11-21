@@ -853,10 +853,10 @@ sub family_overlaps_with_db {
       $$ignore_ref{$n}++;
 
       my $clan = $pfamDB->getClanDataByPfam($n);
-      if ( $clan and $clan->auto_clan->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
+      if ( $clan and $clan->clan_acc->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
         }
       }
     }
@@ -866,10 +866,10 @@ sub family_overlaps_with_db {
     foreach my $nesting ( @{ $famObj->DESC->NESTS } ) {
       $$ignore_ref{ $nesting->{dom} }++;
       my $clan = $pfamDB->getClanDataByPfam( $nesting->{dom} );
-      if ( $clan and $clan->auto_clan->clan_acc ) {
-        my $clanMem = $pfamDB->getClanMembership( $clan->auto_clan->clan_acc );
+      if ( $clan and $clan->clan_acc->clan_acc ) {
+        my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
         }
       }
     }
@@ -881,9 +881,9 @@ sub family_overlaps_with_db {
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+      $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
       my $nestedRef =
-        $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
+        $pfamDB->getNestedDomain( $fam->pfamA_acc->pfamA_acc );
 
       if ($nestedRef) {
         foreach my $n (@$nestedRef) {
@@ -893,7 +893,7 @@ sub family_overlaps_with_db {
           if ( $clan and $clan->clan_acc->clan_acc ) {
             my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+              $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
             }
           }
         }
@@ -2035,7 +2035,7 @@ sub _compete {
     my $otherClanAcc;
     my $cRS = $pfamDB->getClanDataByPfam($overRegion->{family});
     if($cRS){
-      $otherClanAcc = $cRS->auto_clan->clan_acc;
+      $otherClanAcc = $cRS->clan_acc->clan_acc;
     }
     if($otherClanAcc and $otherClanAcc =~ /CL\d{4}/){
       #Need to get the E-value for the other sequence
