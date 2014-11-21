@@ -190,7 +190,7 @@ sub createClan {
       clan_author      => $clanObj->DESC->AU,
       deposited_by     => $depositor,
       clan_comment => defined( $clanObj->DESC->CC ) ? $clanObj->DESC->CC : '',
-      created      => \'NOW()\',
+      created      => \'NOW()',
       competed     => 0
     }
   );
@@ -291,7 +291,7 @@ sub createPfamA {
       model_length   => $famObj->HMM->length,
       num_seed       => $famObj->SEED->num_sequences,
       num_full       => $famObj->scores->numRegions,
-      created        => \'NOW()\',
+      created        => \'NOW()',
     }
   );
 
@@ -348,7 +348,7 @@ sub deletePfamA {
       comment    => $comment,
       forward_to => $forward,
       user       => $user,
-      killed     => \'NOW()\',
+      killed     => \'NOW()',
       title      => $wiki_page
     }
   );
@@ -382,7 +382,7 @@ sub deleteClan {
       comment          => $comment,
       forward_to       => $forward,
       user             => $user,
-      killed           => \'NOW()\'
+      killed           => \'NOW()'
     }
   );
 
@@ -837,7 +837,7 @@ sub updatePfamANested {
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
   $self->getSchema->resultset('NestedLocation')
-    ->search( { pfamA_acc => $famObj->DESC-AC } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
   if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
     foreach my $n ( @{ $famObj->DESC->NESTS } ) {
