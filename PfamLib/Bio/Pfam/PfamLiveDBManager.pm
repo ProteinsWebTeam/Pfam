@@ -433,47 +433,11 @@ sub updatePfamARegFull {
   }
 
 #-------------------------------------------------------------------------------
-#Get the index for the pfamA family
 
-#TODO - get rid of this
-#not needed
-#  my $auto;
-#  if ( $famObj->rdb->{auto} ) {
-#    $auto = $famObj->rdb->{auto};
-#  }
-#  else {
-#    my $pfamA =
-#      $self->getSchema->resultset('Pfama')
-#      ->find( { pfamA_id => $famObj->DESC->ID } );
-#
-#    if ( $pfamA->pfama_id ) {
-#      $auto = $pfamA->auto_pfama;
-#      $famObj->rdb->{auto} = $auto;
-#    }
-#    else {
-#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-#    }
-#  }
-
-#-------------------------------------------------------------------------------
+#TODO - check if %seqacc2auto is needed
   my %seqacc2auto;
   my @seqs;
-  #foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
-  #  my $key = $seq->name;
-  #  my $value;
-  #  eval{
-  #    $value = $redis->get($key); 
-  #  };
-  #  if($@){
-  #    confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
-  #  }
-    
-  #  if(!$value){
-  #    confess("Failed to get auto mapping for sequence: $key\n");
-  #  }
-  #  #This is exploding the size!!!!
-  #  #$seqacc2auto{ $key } = $value;
-  #}
+
 #-------------------------------------------------------------------------------
 #Now delete all regions in the two tables
 
@@ -516,25 +480,6 @@ sub updatePfamARegFull {
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
     next unless ($seq);
 
-#TODO remove this
-    #Get the auto number for this sequenceq->name;
-#    my $sauto;
-#    eval{
-#      $sauto = $redis->get($seq->name); 
-#    };
-#    if($@){
-#      confess("Failed to get auto mapping [".$seq->name."] from redis as redis threw an error:\n\n$@");
-#    }
-#
-#    if (!$sauto){
-#
-#      confess( "Failed to find entry in pfamseq for "
-#          . $seq->name . "."
-#          . $seq->seq_version
-#          . "\n" );
-#    }
-
-    #
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
       foreach my $u ( @{ $seq->hmmUnits } ) {
 
@@ -543,7 +488,7 @@ sub updatePfamARegFull {
           push(
             @significant,
             {
-              pfamA_acc   => $famObj->DESC->AC,
+              pfama_acc   => $famObj->DESC->AC,
               pfamseq_acc => $seq->name,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
@@ -566,7 +511,7 @@ sub updatePfamARegFull {
           push(
             @insignificant,
             {
-              pfamA_acc             => $famObj->DESC->AC,
+              pfama_acc             => $famObj->DESC->AC,
               pfamseq_acc           => $seq->name,
               seq_start             => $u->envFrom,
               seq_end               => $u->envTo,
@@ -588,7 +533,7 @@ sub updatePfamARegFull {
         push(
           @insignificant,
           {
-            pfamA_acc             => $famObj->DESC->AC,
+            pfama_acc             => $famObj->DESC->AC,
             pfamseq_acc           => $seq->name,
             seq_start             => $u->envFrom,
             seq_end               => $u->envTo,
@@ -958,7 +903,7 @@ sub uploadPfamAHMM {
 
   $self->getSchema->resultset('PfamAHmm')->update_or_create(
     {
-      pfamA_acc => $famObj->DESC->AC,
+      pfama_acc => $famObj->DESC->AC,
       hmm        => $hmmString
     }
   );
