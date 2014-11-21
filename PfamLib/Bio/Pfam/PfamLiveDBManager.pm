@@ -410,8 +410,8 @@ sub updatePfamARegSeed {
     push(
       @rows,
       {
-        pfamseq_acc => $seq->acc,
-        pfamA_acc   => $famObj->DESC->AC,
+        pfamseq_acc => $seq->id,
+        pfama_acc   => $famObj->DESC->AC,
         seq_start    => $seq->start,
         seq_end      => $seq->end
       }
