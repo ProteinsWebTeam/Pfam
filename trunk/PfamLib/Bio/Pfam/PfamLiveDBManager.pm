@@ -325,7 +325,7 @@ sub deletePfamA {
 
   my $pfamA =
     $self->getSchema->resultset('PfamA')->search( { pfama_acc => $family },
-    { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
+    { join => [ { pfam_a_wikis => 'auto_wiki' } ] } )->single;
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Result::PfamA') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
