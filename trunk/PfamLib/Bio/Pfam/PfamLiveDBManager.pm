@@ -389,31 +389,11 @@ sub deleteClan {
 }
 
 sub updatePfamARegSeed {
-  my ( $self, $famObj, $redis) = @_;
+  my ( $self, $famObj) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
-
-  #Determing the family surrogate key - not needed
-#  my $auto;
-#  if ( $famObj->rdb->{auto} ) {
-#    $auto = $famObj->rdb->{auto};
-#  }
-# else {
-#    my $pfamA =
-#      $self->getSchema->resultset('Pfama')
-#      ->find( { pfamA_id => $famObj->DESC->ID } );
-#
-#    if ( $pfamA->pfama_id ) {
-#      $auto = $pfamA->auto_pfama;
-#      $famObj->rdb->{auto} = $auto;
-#    }
-#    else {
-#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-#    }
-#  }
-
   #Delete all the seed regions
   $self->getSchema->resultset('PfamARegSeed')
     ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
@@ -424,42 +404,13 @@ sub updatePfamARegSeed {
 
   #Get all the sequences that we need to work on
   my @seqs;
-  foreach my $seq ( $famObj->SEED->each_seq ) {
-    my $value;
-    my $key = $seq->id . "." . $seq->seq_version;
-    eval{
-      $value = $redis->get($key); 
-    };
-    if($@){
-      confess("Failed to get auto mapping [$key] from redis as redis threw an error:\n\n$@");
-    }
-    
-    if(!$value){
-      confess("Failed to get auto mapping for sequence: $key\n");
-    }
-    
-    $seqacc2auto{ $key } = $value;
-  }
-
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
   my @rows;
   foreach my $seq ( $famObj->SEED->each_seq ) {
-    my $sauto;
-    if ( $seqacc2auto{ $seq->id . "." . $seq->seq_version } ) {
-      #If we have not mapped them, then something has gone wrong!!!
-      $sauto = $seqacc2auto{ $seq->id . "." . $seq->seq_version };
-    }
-    else {
-
-      confess( "Failed to find entry in pfamseq for "
-          . $seq->id . "."
-          . $seq->seq_version
-          . "\n" );
-    }
     push(
       @rows,
       {
-        pfamseq_acc => $sauto,
+        pfamseq_acc => $seq->acc,
         pfamA_acc   => $famObj->DESC->AC,
         seq_start    => $seq->start,
         seq_end      => $seq->end
