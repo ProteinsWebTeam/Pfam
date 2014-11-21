@@ -576,8 +576,8 @@ sub findLowerEvalueRegion {
                                WHERE  pfamseq_acc= ? 
                                AND seq_start = ? 
                                AND seq_end = ?
-                               AND s.auto_pfamseq=r.auto_pfamseq 
-                               AND r.auto_pfamA=a.auto_pfamA
+                               AND s.pfamseq_acc=r.pfamseq_acc 
+                               AND r.pfamA_acc=a.pfamA_acc
                                AND pfamA_acc = ?");
     $sthE->execute($seqAcc, $region->{from}, $region->{to}, $region->{family});
     my $row = $sthE->fetchrow_arrayref;
@@ -592,7 +592,7 @@ sub findLowerEvalueRegion {
   
   my $sthO = $dbh->prepare("SELECT domain_evalue_score FROM 
                               pfamA a, 
-                              clans c, 
+                              clan c, 
                               clan_membership m, 
                               pfamA_reg_full_significant r, 
                               pfamseq s 
@@ -600,12 +600,12 @@ sub findLowerEvalueRegion {
                             ((? >= r.seq_start and ? <= r.seq_end) or 
                             ( ? >= r.seq_start and ? <= r.seq_end) or 
                             ( ? < r.seq_start and ? >r.seq_end)) and
-                            s.auto_pfamseq=r.auto_pfamseq and 
-                            r.auto_pfamA=a.auto_pfamA and 
+                            s.pfamseq_acc=r.pfamseq_acc and 
+                            r.pfamA_acc=a.pfamA_acc and 
                             pfamA_acc != ? and
                             clan_acc = ? and
-                            c.auto_clan = m.auto_clan and
-                            m.auto_pfamA = r.auto_pfamA") or confess $dbh->errstr;
+                            c.clan_acc = m.clan_acc and
+                            m.pfamA_acc = r.pfamA_acc") or confess $dbh->errstr;
  
   $sthO->execute($seqAcc, $region->{from}, $region->{from}, 
                  $region->{to}, $region->{to}, 
@@ -632,12 +632,12 @@ sub getPfamRegionsForSeq {
     @pfamRegions =
       $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
-        "auto_pfamseq.pfamseq_acc" => $seq,
+        "pfamseq_acc.pfamseq_acc" => $seq,
         "in_full"             => 1
       },
       {
-        join     => [qw( auto_pfama auto_pfamseq )],
-        prefetch => [qw( auto_pfama auto_pfamseq )],
+        join     => [qw( pfamA_acc pfamseq_acc )],
+        prefetch => [qw( pfamA_acc pfamseq_acc )],
         order_by => 'seq_start'
       }
       );
@@ -649,12 +649,12 @@ sub getPfamRegionsForSeq {
     @pfamRegions =
       $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
-        "auto_pfamseq.pfamseq_id" => $seq,
+        "pfamseq_acc.pfamseq_id" => $seq,
         "in_full"            => 1
       },
       {
-        join     => [qw( auto_pfama auto_pfamseq )],
-        prefetch => [qw( auto_pfama auto_pfamseq )]
+        join     => [qw( pfamA_acc pfamseq_acc )],
+        prefetch => [qw( pfamA_acc pfamseq_acc )]
       }
       );
 
@@ -699,7 +699,7 @@ sub getAllPfamseqAccsIds {
   carp("Looking up information for all sequences.") if $self->{'debug'};
   @pfamseqData =
     $self->getSchema->resultset("Pfamseq")
-    ->search( {}, { select => [qw(auto_pfamseq pfamseq_acc pfamseq_id)] } );
+    ->search( {}, { select => [qw(pfamseq_acc pfamseq_id)] } ); #removed first item from this array (auto_pfamseq) - may cause problems if scripts calling this method expect a 3 item array in return
 
   if (@pfamseqData) {
     carp("Found sequence data") if $self->{'debug'};
@@ -771,20 +771,22 @@ sub getAllPdbData {
   }
 }
 
-sub getPfamARegFullByAuto {
-  my ( $self, $auto_pfamA_reg_full ) = @_;
-  my $result =
-    $self->getSchema->resultset("PfamaRegFullSignificant")
-    ->find( { "auto_pfamA_reg_full" => $auto_pfamA_reg_full, in_full => 1 } );
-  if ($result) {
-    return ($result);
-  }
+#probably not needed any more.....
 
-  carp(
-"Did not find region in pfamA_reg_full with auto_pfamA_reg_full '$auto_pfamA_reg_full'\n"
-  ) if $self->{'debug'};
-
-}
+#sub getPfamARegFullByAuto {
+#  my ( $self, $auto_pfamA_reg_full ) = @_;
+#  my $result =
+#    $self->getSchema->resultset("PfamaRegFullSignificant")
+#    ->find( { "auto_pfamA_reg_full" => $auto_pfamA_reg_full, in_full => 1 } );
+#  if ($result) {
+#    return ($result);
+#  }
+#
+#  carp(
+#"Did not find region in pfamA_reg_full with auto_pfamA_reg_full '$auto_pfamA_reg_full'\n"
+#  ) if $self->{'debug'};
+#
+#}
 
 sub getNestedDomain {
   my ( $self, $acc ) = @_;
@@ -837,7 +839,7 @@ sub getAllNestedDomains {
 sub getRegs {
   my( $self, $pfamseq) = @_;
   
-  my @results = $self->getSchema->resultset("OtherReg")->search({ auto_pfamseq => $pfamseq});  
+  my @results = $self->getSchema->resultset("OtherReg")->search({ pfamseq_acc => $pfamseq});  
   return \@results;
   
 }
@@ -845,7 +847,7 @@ sub getRegs {
 sub getOtherRegs {
   my( $self, $pfamseq) = @_;
   
-  my @results = $self->getSchema->resultset("OtherReg")->search({ auto_pfamseq => $pfamseq});  
+  my @results = $self->getSchema->resultset("OtherReg")->search({ pfamseq_acc => $pfamseq});  
   return \@results;
   
 }
@@ -859,10 +861,10 @@ sub getContextRegionsForSeq {
     @pfamContextRegions =
       $self->getSchema->resultset("ContextPfamRegions")->search(
       {
-        "auto_pfamseq.pfamseq_acc" => $seq,
+        "pfamseq_acc.pfamseq_acc" => $seq,
       },
       {
-        join     => [qw( pfama auto_pfamseq )],
+        join     => [qw( pfama pfamseq_acc )],
         prefetch => [qw( pfama )]
       }
       );
@@ -900,10 +902,10 @@ sub getDisulphidesForSeq {
     @markups =
       $self->getSchema->resultset("PfamseqDisulphide")->search(
       {
-        "auto_pfamseq.pfamseq_acc" => $seq,
+        "pfamseq_acc.pfamseq_acc" => $seq,
       },
       {
-        join     => [qw( auto_pfamseq )]
+        join     => [qw( pfamseq_acc )]
       }
       );
   }
@@ -919,10 +921,10 @@ sub getPfambRegForSeq {
     @pfamBRegions =
       $self->getSchema->resultset("PfambReg")->search(
       {
-        "auto_pfamseq.pfamseq_acc" => $seq,
+        "pfamseq_acc.pfamseq_acc" => $seq,
       },
       {
-        join     => [qw( pfamb auto_pfamseq )],
+        join     => [qw( pfamb pfamseq_acc )],
         prefetch => [qw( pfamb )]
       }
       );
@@ -939,25 +941,25 @@ sub getScoopData {
                        ->resultset('Pfama2pfamaScoopResults')
                          ->search( { -and => [
                                   -or => [
-                                    "pfamA1.auto_pfama" => $famDataObj->auto_pfama,
-                                    "pfamA2.auto_pfama" => $famDataObj->auto_pfama,
+                                    "pfamA1.pfamA_acc" => $famDataObj->pfamA_acc,
+                                    "pfamA2.pfamA_acc" => $famDataObj->pfamA_acc,
                                   ],
                                score       => { '>', $score } ]
                                },
                              { join        => { 'pfamA1' => {
-                                                    'clan_memberships' => 'auto_clan' },
+                                                    'clan_memberships' => 'clan_acc' },
                                                 'pfamA2' => {
-                                                    'clan_memberships' => 'auto_clan' },
+                                                    'clan_memberships' => 'clan_acc' },
                                                   },
                                 #[ qw( pfamA1 pfamA2 ) ],
                                select      => [ qw( pfamA1.pfama_id 
                                                     pfamA2.pfama_id
                                                     pfamA1.pfama_acc
                                                     pfamA2.pfama_acc
-                                                    auto_clan.clan_acc
-                                                    auto_clan.clan_id
-                                                    auto_clan_2.clan_acc
-                                                    auto_clan_2.clan_id
+                                                    clan_acc.clan_acc
+                                                    clan_acc.clan_id
+                                                    clan_acc_2.clan_acc
+                                                    clan_acc_2.clan_id
                                                     score ) ],
                                as          => [ qw( l_pfama_id
                                                     r_pfama_id
