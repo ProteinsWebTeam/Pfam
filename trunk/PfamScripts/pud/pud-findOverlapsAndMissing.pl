@@ -28,6 +28,7 @@ use Storable;
 
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Config;
+use Bio::Pfam::PfamLiveDBManager;
 
 #Start up the logger
 my $logger = get_logger();
@@ -41,7 +42,6 @@ unless ($config)
     die
       "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
 }
-
 
 #-------------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ if ( $fast and -e $statusdir . "/family.dat" )
 }
 
 #Some initial set up things.
+my $pfamDB     = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $date       = new Date::Object( time() );
 my $filePrefix = $date->year . $date->month . $date->day . "overlaps";
 my $nestClans  = 1;
@@ -139,25 +140,6 @@ sub getRegions
     my ( $families, $posOverlaps, $familiesData ) = @_;
 
     # if all flag is used, then skip filtering out non reference proteomes regions
-    my %refprotAccs;    # hash for storing all reference proteomes sequence accessions
-    unless ($all)
-    {
-        my $refprotFile = $config->refprotLoc . "/refprot";
-
-        open( REFPROT, $refprotFile ) or die("can not open file $refprotFile, $!");
-
-        print "Reading reference proteomes sequence accessions...\n";
-
-        while (<REFPROT>)
-        {
-            if ( $_ =~ /^>(\S+\.\S+)/ )
-            {
-                $refprotAccs{$1} = 1;
-            }
-        }
-
-        close REFPROT;
-    }
 
     open( R, ">$statusdir/$filePrefix.allRegions.txt" )
       or die "Could not open $statusdir/$filePrefix.allRegions.txt\n";
@@ -168,11 +150,27 @@ sub getRegions
         open( S, "$families/$fDir/SEED" );
         while (<S>)
         {
-            if (/(\S+)\/(\d+)\-(\d+)/)
+            if (/(\w+).?\S*\/(\d+)\-(\d+)/)
             {
                 if ( !$all )
                 {
-                    if ( $refprotAccs{$1} )
+                    my $rs = $pfamDB->getSchema->resultset('Pfamseq')
+                      ->search( { 'pfamseq_acc' => $1 }, { select => 'ref_proteome' } );
+
+                    my $isInRefProt;
+
+                    if ( $rs != 0 )
+                    {
+                        $isInRefProt = $rs->next->ref_proteome;
+                    }
+                    else
+                    {
+                        print STDERR
+                          "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
+                        next;
+                    }
+
+                    if ( $isInRefProt == 1 )
                     {
                         $familiesData->{$fDir}->{seed}++;
                         print R "$1\t$2\t$3\t$fDir\t$id\tSEED\t**\n";
@@ -191,11 +189,27 @@ sub getRegions
           or warn "Could not open scores file $fDir\n";
         while (<S>)
         {
-            if (/(\S+)\s+(\S+)\/(\d+\-\d+)\s+(\d+)\-(\d+)/)
+            if (/(\S+)\s+(\w+).?\S*\/(\d+\-\d+)\s+(\d+)\-(\d+)/)
             {
                 if ( !$all )
                 {
-                    if ( $refprotAccs{$2} )
+                    my $rs = $pfamDB->getSchema->resultset('Pfamseq')
+                      ->search( { 'pfamseq_acc' => $2 }, { select => 'ref_proteome' } );
+
+                    my $isInRefProt;
+
+                    if ( $rs != 0 )
+                    {
+                        $isInRefProt = $rs->next->ref_proteome;
+                    }
+                    else
+                    {
+                        print STDERR
+                          "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
+                        next;
+                    }
+
+                    if ( $isInRefProt == 1 )
                     {
                         print R "$2\t$4\t$5\t$fDir\t$id\tALIGN\t$1\n";
                         $familiesData->{$fDir}->{align}++;
@@ -542,7 +556,6 @@ sub checkRegions
                 $overlaps->{ $regions->[$i]->{acc} }->{ $regions->[$j]->{acc} . ":" . $regions->[$j]->{fam} }++;
                 $overlaps->{ $regions->[$j]->{acc} }->{ $regions->[$i]->{acc} . ":" . $regions->[$i]->{fam} }++;
 
-
             }
             elsif (    $regions->[$i]->{start} <= $regions->[$j]->{end}
                     && $regions->[$i]->{end} >= $regions->[$j]->{end} )
@@ -576,7 +589,6 @@ sub checkRegions
             elsif (    $regions->[$i]->{start} >= $regions->[$j]->{start}
                     && $regions->[$i]->{end} <= $regions->[$j]->{end} )
             {
-
 
                 my $string
                   = "(3) In "
@@ -695,7 +707,6 @@ sub filterOverlaps
 
             $familySize = $familiesData->{$temp_family}->{align};
 
-
             if ( $resolvedPerFamily{$temp_family} )
             {
                 $numberPerc = sprintf( "%.4f", $resolvedPerFamily{$temp_family} / $familySize * 100 );
@@ -766,20 +777,19 @@ sub filterOverlaps
     {
         undef @temp;
         undef $temp_string;
-        @temp = split(/;/, $familiesPerFamily{$family});
-        
+        @temp = split( /;/, $familiesPerFamily{$family} );
+
         foreach my $temp (@temp)
         {
             $temp_string .= $temp . ":" . $familiesData->{$temp}->{id} . ",";
-        } 
-        
+        }
+
         printf( OFS "%-7s\t%-20s\t%-8s\t%-8s\t%-8s\t%s\n",
                 $family,
                 $familiesData->{$family}->{id},
                 $familiesData->{$family}->{seed},
                 $familiesData->{$family}->{align},
-                $overlapsPerFamily{$family},
-                $temp_string );
+                $overlapsPerFamily{$family}, $temp_string );
     }
 
     close OFS;
