@@ -931,32 +931,29 @@ sub family_overlaps_with_db {
     else {
       $id = $seq->id;
     }
-    my $rs = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
-	my $isInRefProt;    
-	if ($rs != 0)
-	{
-		$isInRefProt = $rs->next->ref_proteome;
-	}
-	else
-	{
-		print STDERR "Warning: Sequence $id is not found in Pfam live\n";
-		next;
-	}
 
-    if (! (defined $all)) # if the $all parameter is not used
+    if ( !( defined $all ) )    # if the $all parameter is not used
     {
-      if ($isInRefProt == 0) # and the sequence accession is not present in reference proteomes
-        {
-          # print "$id skipped\n";
-          next; # do nothing and simply move to the next sequence accession
-        }
-        # else
-        # {
-          # print "$id ok\n";
-        # }
-    }
+        my $rs
+          = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
 
-    #print $seq->id."\t".$id."\n";
+        my $isInRefProt;
+
+        if ( $rs != 0 )
+        {
+            $isInRefProt = $rs->next->ref_proteome;
+        }
+        else
+        {
+            print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
+            next;
+        }
+
+        if ( $isInRefProt == 0 )    # and the sequence is not present in reference proteomes
+        {
+            next;                   # do nothing and simply move to the next sequence accession
+        }
+    }
 
     push @{ $regions{$id} },
       {
@@ -979,29 +976,29 @@ sub family_overlaps_with_db {
       $id = $seq;
     }
 
-    my $rs = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
-    my $isInRefProt;
-	if ($rs != 0)
-	{
-		$isInRefProt = $rs->next->ref_proteome;
-	}
-	else
-	{
-		print STDERR "Warning: Sequence $id is not found in Pfam live\n";
-		next;
-	}
-    if (! (defined $all)) # if the $all parameter is not used
+    if ( !( defined $all ) )    # if the $all parameter is not used
     {
-      if ($isInRefProt == 0) # and the sequence accession is not present in reference proteomes
+        my $rs
+          = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
+        
+        my $isInRefProt;
+
+        if ( $rs != 0 )
         {
-          # print "$id skipped\n";
-          next; # do nothing and simply move to the next sequence accession
+            $isInRefProt = $rs->next->ref_proteome;
         }
-        # else
-        # {
-        #   print "$id ok\n";
-        # }
+        else
+        {
+            print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
+            next;
+        }
+        if ( $isInRefProt == 0 )    # and the sequence accession is not present in reference proteomes
+        {
+            next;                   # do nothing and simply move to the next sequence accession
+        }
     }
+
+
 
 
     foreach my $fullReg ( @{ $famObj->scores->regions->{$seq} } ) {
@@ -1082,10 +1079,12 @@ sub family_overlaps_with_db {
     }
   }
 
+  my $config = Bio::Pfam::Config->new;
+
   unless (defined $noFilter)
   {
-    my $lengthLimit = $CONFIG->sequenceOverlapRule;
-    my $numberLimit = $CONFIG->familyOverlapRule;
+    my $lengthLimit = $config->sequenceOverlapRule;
+    my $numberLimit = $config->familyOverlapRule;
     warn "Filtering overlaps\n";
 
     $numOverlaps = filterOverlaps($lengthLimit, $numberLimit, @overlapLines);
