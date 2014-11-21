@@ -295,7 +295,7 @@ sub createPfamA {
     }
   );
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::PfamA') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
   }
 
