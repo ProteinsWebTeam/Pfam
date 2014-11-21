@@ -155,7 +155,8 @@ sub initiateViewProcess {
     $self->initiateClanViewProcess( $famObj->DESC->CL, $name);
   }
   else {
-    $self->initiateFamilyViewProcess( $famObj, $name );
+#TODO - put the line below back again, only removed for debugging
+#    $self->initiateFamilyViewProcess( $famObj, $name ); 
   }
 }
 
