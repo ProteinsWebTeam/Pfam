@@ -815,39 +815,39 @@ sub updatePfamANested {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
+ # my $auto;
+ # if ( $famObj->rdb->{auto} ) {
+ #   $auto = $famObj->rdb->{auto};
+ # }
+ # else {
+ #   my $pfamA =
+ #     $self->getSchema->resultset('Pfama')
+ #     ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
   $self->getSchema->resultset('NestedDomains')
-    ->search( { auto_pfamA => $auto } )->delete;
+    ->search( { pfamA_acc => $famObj->DESCC->AC } )->delete;
 
   $self->getSchema->resultset('NestedLocations')
-    ->search( { auto_pfamA => $auto } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC-AC } )->delete;
 
   if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
     foreach my $n ( @{ $famObj->DESC->NESTS } ) {
       my $otherPfamA =
-        $self->getSchema->resultset('Pfama')
+        $self->getSchema->resultset('PfamA')
         ->find( { pfamA_acc => $n->{dom} } );
 
       my $otherAuto;
-      if ( $otherPfamA->pfama_id ) {
-        $otherAuto = $otherPfamA->auto_pfama;
+      if ( $otherPfamA->pfamA_id ) {
+        $otherAuto = $otherPfamA->pfamA_acc;
       }
       else {
         confess( "Did not find an mysql entry for " . $n->{dom} . "\n" );
@@ -862,28 +862,26 @@ sub updatePfamANested {
         }
       );
 
-      unless ( $seq and $seq->auto_pfamseq ) {
+      unless ( $seq and $seq->pfamseq_acc ) {
         confess(
           'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
       }
 
       $self->getSchema->resultset('NestedDomains')->create(
         {
-          auto_pfama       => $auto,
-          nests_auto_pfama => $otherAuto
+          pfamA_acc       => $famObj->DESC->AC,
+          nests_pfamA_acc => $otherPfamA->pfamA_acc
         }
       );
 
       $self->getSchema->resultset('NestedLocations')->create(
         {
-          auto_pfama        => $auto,
-          nested_auto_pfama => $otherAuto,
-          nested_pfama_acc  => $otherPfamA->pfama_acc,
+          pfamA_acc         => $famObj->DESC->AC,
+          nested_pfamA_acc  => $otherPfamA->pfamA_acc,
           pfamseq_acc       => $seq->pfamseq_acc,
           seq_version       => $seq->seq_version,
           seq_start         => $n->{from},
           seq_end           => $n->{to},
-          auto_pfamseq      => $seq->auto_pfamseq
         }
       );
     }
