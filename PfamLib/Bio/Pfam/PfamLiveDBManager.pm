@@ -834,7 +834,7 @@ sub updatePfamANested {
 #  }
 
   $self->getSchema->resultset('NestedDomains')
-    ->search( { pfamA_acc => $famObj->DESCC->AC } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
   $self->getSchema->resultset('NestedLocations')
     ->search( { pfamA_acc => $famObj->DESC-AC } )->delete;
@@ -902,25 +902,25 @@ sub updateEdits {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+#  else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-  $self->getSchema->resultset('Edits')->search( { auto_pfama => $auto } )
+  $self->getSchema->resultset('Edits')->search( { pfamA_acc => $famObj->DESC->AC } )
     ->delete;
 
   if ( $famObj->DESC->EDITS and ref( $famObj->DESC->EDITS ) eq 'ARRAY' ) {
@@ -935,7 +935,7 @@ sub updateEdits {
         }
       );
 
-      unless ( $seq and $seq->auto_pfamseq ) {
+      unless ( $seq and $seq->pfamseq_acc ) {
         confess(
           'Could not find sequence ' . $n->{seq} . ' in the pfamseq table' );
       }
@@ -947,8 +947,7 @@ sub updateEdits {
       {
         $self->getSchema->resultset('Edits')->create(
           {
-            auto_pfama     => $auto,
-            auto_pfamseq   => $seq->auto_pfamseq,
+            pfamA_acc     => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
             seq_version    => $seq->seq_version,
             original_start => $n->{oldFrom},
@@ -961,8 +960,7 @@ sub updateEdits {
       else {
         $self->getSchema->resultset('Edits')->create(
           {
-            auto_pfama     => $auto,
-            auto_pfamseq   => $seq->auto_pfamseq,
+            pfamA_acc      => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
             seq_version    => $seq->seq_version,
             original_start => $n->{oldFrom},
