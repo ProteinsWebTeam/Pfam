@@ -27,11 +27,11 @@ use Bio::Easel::MSA;
 use Bio::Easel::SqFile;
 use Bio::Easel::Random;
 
-my $rdb_host = "mysql-rfam-stage";
+my $rdb_host = "mysql-rfam-live";
 my $rdb_driver = "mysql";
-my $rdb_user = "rfamro";
-my $rdb_pass = "";
-my $rdb_port= "4409";
+my $rdb_user = "admin";
+my $rdb_pass = "b67QoVNe";
+my $rdb_port= "4445";
 my $rdb_name = "rfam_live";
 # Create a connection to the database.
 my $rfdbh = DBI->connect(
@@ -40,13 +40,18 @@ my $rfdbh = DBI->connect(
 	RaiseError => 1
 	}    );
     
- my $query = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.type like 'Gene%' group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score ;); 
-	
+my $query1 = qq(select rfam_acc from family;);
+
+my $query2 = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.type like 'Gene%' and f.rfam_acc = ? and fr.is_significant="1" group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score ;);
+
 #my $query = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.rfam_acc =  'RF01888' group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score ;); 
 	
-my $sthQuery = $rfdbh->prepare($query);#
+my $sthQuery1 = $rfdbh->prepare($query1);
+my $sthQuery2 = $rfdbh->prepare($query2);#
 
-$sthQuery->execute();
+#$sthQuery->execute();
+
+my %families;
               
 my %classes = (
 	"Gene; rRNA;" => "rRNA",                    
@@ -93,14 +98,26 @@ my %class_exceptions = (
 );
 print "RFAM_ACC\tRFAM_ID\tRNA_TYPE\tncRNA_CLASS\tALIGNMENT\tDESCRIPTION\tNCBI_ID\tSEQACC\tSEQ_START\tSEQ_END\tBITSCORE\tDBXREFS\tPMIDS\n";
 
-my $res = $sthQuery->fetchall_arrayref;
-for my $result (@$res) {
+#my $accn = "RF02391";
+
+$sthQuery1->execute();
+my $res1 = $sthQuery1->fetchall_arrayref;
+foreach my $row1 (@$res1){
+    $families{$row1->[0]}=1;
+}
+
+foreach my $accn (keys %families){
+
+    $sthQuery2->execute($accn);
+
+    my $res = $sthQuery2->fetchall_arrayref;
+    for my $result (@$res) {
 	my ($rfam_acc, $rfam_id, $rfam_type, $align_type, $rfam_description, $ncbi_id, $seq_acc, $seq_start, $seq_end, $bits, $dbxref,$pmids) = @$result;
 	my $insdc_type = ($types{$rfam_type}) ? $types{$rfam_type} :"ncRNA";
 	my $insdc_class = ($class_exceptions{$rfam_acc}) ? $class_exceptions{$rfam_acc} : $classes{$rfam_type};
 	
 	
 	print "$rfam_acc\t$rfam_id\t$insdc_type\t$insdc_class\t$align_type\t$rfam_description\t$ncbi_id\t$seq_acc\t$seq_start\t$seq_end\t$bits\t$dbxref\t$pmids\n";
+    }
 }
-
 
