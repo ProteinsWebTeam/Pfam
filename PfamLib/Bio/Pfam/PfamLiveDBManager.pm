@@ -1124,28 +1124,28 @@ sub updateClanWikipedia {
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
-  my $auto;
-  if ( $clanObj->rdb->{auto} ) {
-    $auto = $clanObj->rdb->{auto};
-  }
-  else {
-    my $clan =
-      $self->getSchema->resultset('Clans')
-      ->find( { clan_acc => $clanObj->DESC->AC } );
-
-    if ( $clan->clan_id ) {
-      $auto = $clan->auto_pfama;
-      $clanObj->rdb( { auto => $clan->auto_clan } );
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
-    }
-  }
+#  my $auto;
+#  if ( $clanObj->rdb->{auto} ) {
+#    $auto = $clanObj->rdb->{auto};
+#  }
+#  else {
+#    my $clan =
+#      $self->getSchema->resultset('Clans')
+#      ->find( { clan_acc => $clanObj->DESC->AC } );
+#
+#    if ( $clan->clan_id ) {
+#      $auto = $clan->auto_pfama;
+#      $clanObj->rdb( { auto => $clan->auto_clan } );
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+#    }
+#  }
 
 #-------------------------------------------------------------------------------
 #Add the page to the wikipedia table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('ClanWiki')->search( { auto_clan => $auto } )
+  $self->getSchema->resultset('ClanWiki')->search( { clan_acc => $clanObj->DESC->AC } )
     ->delete;
 
   if ( $clanObj->DESC->WIKI and ref( $clanObj->DESC->WIKI ) eq 'HASH' ) {
@@ -1160,7 +1160,7 @@ sub updateClanWikipedia {
 
       $self->getSchema->resultset('ClanWiki')->create(
         {
-          auto_clan => $auto,
+          clan_acc => $clanObj->DESC->AC,
           auto_wiki => $wiki->auto_wiki
         }
       );
@@ -1181,33 +1181,33 @@ sub updateClanLitRefs {
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
-  my $auto;
-  if ( $clanObj->rdb->{auto} ) {
-    $auto = $clanObj->rdb->{auto};
-  }
-  else {
-    my $clan =
-      $self->getSchema->resultset('Clans')
-      ->find( { clan_acc => $clanObj->DESC->AC } );
-
-    if ( $clan->clan_id ) {
-      $auto = $clan->auto_pfama;
-      $clanObj->rdb( { auto => $clan->auto_clan } );
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
-    }
-  }
+#  my $auto;
+#  if ( $clanObj->rdb->{auto} ) {
+#    $auto = $clanObj->rdb->{auto};
+#  }
+#  else {
+#    my $clan =
+#      $self->getSchema->resultset('Clans')
+#      ->find( { clan_acc => $clanObj->DESC->AC } );
+#
+#    if ( $clan->clan_id ) {
+#      $auto = $clan->auto_pfama;
+#      $clanObj->rdb( { auto => $clan->auto_clan } );
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+#    }
+#  }
 
 #-------------------------------------------------------------------------------
 #Add the references to the literature reference table if it is not there.
 #Then added the information pfamA_literature_reference table.
-  $self->getSchema->resultset('ClanLitRefs')->search( { auto_clan => $auto } )
+  $self->getSchema->resultset('ClanLitRefs')->search( { clan_acc => $clanObj->DESC->AC } )
     ->delete;
 
   foreach my $ref ( @{ $clanObj->DESC->REFS } ) {
     my $dbRef =
-      $self->getSchema->resultset('LiteratureReferences')->find_or_create(
+      $self->getSchema->resultset('LiteratureReference')->find_or_create(
       {
         pmid    => $ref->{RM},
         title   => $ref->{RT} ? $ref->{RT} : '',
@@ -1220,7 +1220,7 @@ sub updateClanLitRefs {
     }
     $self->getSchema->resultset('ClanLitRefs')->create(
       {
-        auto_clan   => $auto,
+        clan_acc    => $clanObj->DESC->AC,
         auto_lit    => $dbRef,
         comment     => $ref->{RC} ? $ref->{RC} : '',
         order_added => $ref->{RN}
@@ -1242,27 +1242,27 @@ sub uploadPfamAInternal {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+#  else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-  $self->getSchema->resultset('PfamaInternal')->update_or_create(
+  $self->getSchema->resultset('PfamAInternal')->update_or_create(
     {
-      auto_pfama => $auto,
+      pfama_acc => $famObj->DESC->AC,
       seed => defined($seedString) ? Compress::Zlib::memGzip($seedString) : '',
       full => defined($fullString) ? Compress::Zlib::memGzip($fullString) : '',
     }
@@ -1270,11 +1270,11 @@ sub uploadPfamAInternal {
 }
 
 sub resetInFull {
-  my ( $self, $auto ) = @_;
+  my ( $self, $pfama_acc ) = @_;
 
   my @regions =
-    $self->getSchema->resultset('PfamaRegFullSignificant')
-    ->search( { auto_pfama => $auto } );
+    $self->getSchema->resultset('PfamARegFullSignificant')
+    ->search( { pfama_acc => $pfama_acc } );
 
   foreach my $r (@regions) {
     $r->update( { in_full => 1 } );
