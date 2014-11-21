@@ -985,27 +985,27 @@ sub uploadPfamAHMM {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+#  else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-  $self->getSchema->resultset('PfamaHmm')->update_or_create(
+  $self->getSchema->resultset('PfamAHmm')->update_or_create(
     {
-      auto_pfama => $auto,
+      pfamA_acc => $famObj->DESC->AC,
       hmm        => $hmmString
     }
   );
@@ -1035,27 +1035,27 @@ sub uploadAlignmentAndTrees {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+#  else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
-
-  $self->getSchema->resultset('AlignmentsAndTrees')->update_or_create(
+  $self->getSchema->resultset('AlignmentsAndTree')->update_or_create(
     {
-      auto_pfama => $auto,
+      pfamA_acc => $famObj->DESC->AC,
       alignment  => Compress::Zlib::memGzip($string),
       type       => $type
     }
@@ -1076,32 +1076,32 @@ sub updateClanDbXrefs {
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
-  my $auto;
-  if ( $clanObj->rdb->{auto} ) {
-    $auto = $clanObj->rdb->{auto};
-  }
-  else {
-    my $clan =
-      $self->getSchema->resultset('Clans')
-      ->find( { clan_acc => $clanObj->DESC->AC } );
-
-    if ( $clan->clan_id ) {
-      $auto = $clan->auto_pfama;
-      $clanObj->rdb( { auto => $clan->auto_clan } );
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
-    }
-  }
+#  my $auto;
+#  if ( $clanObj->rdb->{auto} ) {
+#    $auto = $clanObj->rdb->{auto};
+#  }
+#  else {
+#    my $clan =
+#      $self->getSchema->resultset('Clan')
+#      ->find( { clan_acc => $clanObj->DESC->AC } );
+#
+#    if ( $clan->clan_id ) {
+#      $auto = $clan->auto_pfama;
+#      $clanObj->rdb( { auto => $clan->auto_clan } );
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+#    }
+#  }
 
 #-------------------------------------------------------------------------------
   $self->getSchema->resultset('ClanDatabaseLinks')
-    ->search( { auto_clan => $auto } )->delete;
+    ->search( { clan_acc => $clanObj->DESC->AC } )->delete;
 
   foreach my $dbLink ( @{ $clanObj->DESC->DBREFS } ) {
     $self->getSchema->resultset('ClanDatabaseLinks')->create(
       {
-        auto_clan    => $auto,
+        clan_acc     => $clanObj->DESC->AC,
         db_id        => $dbLink->{db_id},
         comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
         db_link      => $dbLink->{db_link},
