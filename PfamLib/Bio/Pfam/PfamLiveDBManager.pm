@@ -58,19 +58,19 @@ sub getClanLockData {
   my $lockData;
   if ( $clan =~ /CL\d{4}/ ) {
     $lockData = $self->getSchema->resultset("ClanLocks")->find(
-      { "auto_clan.clan_acc" => $clan },
+      { "clan_acc.clan_acc" => $clan },
       {
-        join     => [qw/auto_clan/],
-        prefetch => [qw/auto_clan/]
+        join     => [qw/clan_acc/],
+        prefetch => [qw/clan_acc/]
       }
     );
   }
   elsif ( $clan =~ /\S{1,16}/ ) {
     $self->getSchema->resultset->find(
-      { "auto_clan.clan_id" => $clan },
+      { "clan_acc.clan_id" => $clan },
       {
-        join     => [qw/auto_clan/],
-        prefetch => [qw/auto_clan/]
+        join     => [qw/clan_acc/],
+        prefetch => [qw/clan_acc/]
       }
     );
   }
@@ -85,39 +85,39 @@ sub getClanLockData {
 # Specific insert/update methods should go here
 #
 sub updateClanMembership {
-  my ( $self, $autoClan, $autoPfamA ) = @_;
+  my ( $self, $clan, $pfamA ) = @_;
   my ($result);
   carp(
-    "Updating clan membership with auto_clan: $autoClan, auto_pfamA: $autoPfamA"
+    "Updating clan membership with clan: $clan, pfamA: $pfamA"
   ) if ( $self->{'debug'} );
-  if ( $autoClan && $autoPfamA ) {
+  if ( $clan && $pfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find_or_create(
       {
-        auto_clan  => $autoClan,
-        auto_pfama => $autoPfamA
+        clan_acc  => $clan,
+        pfamA_acc => $pfamA
       },
       { key => 'clanMembConst' }
     );
   }
   else {
     cluck(
-      "Can not update clan_membership without both auto_pfamA and auto_clan!");
+      "Can not update clan_membership without both pfamA and clan!");
   }
   return ($result);
 }
 
 sub removeFamilyFromClanMembership {
-  my ( $self, $autoClan, $autoPfamA ) = @_;
+  my ( $self, $clan, $pfamA ) = @_;
   my ($result);
   carp(
-    "Removing family from clan membership: $autoClan, auto_pfamA: $autoPfamA")
+    "Removing family from clan membership: $clan, pfamA: $pfamA")
     if ( $self->{'debug'} );
 
-  if ( $autoClan && $autoPfamA ) {
+  if ( $clan && $pfamA ) {
     $result = $self->getSchema->resultset('ClanMembership')->find(
       {
-        auto_clan  => $autoClan,
-        auto_pfamA => $autoPfamA
+        clan_acc  => $clan,
+        pfamA_acc => $pfamA
       }
     )->delete;
 
@@ -126,24 +126,24 @@ sub removeFamilyFromClanMembership {
   }
   else {
     cluck(
-"Can not remove family from clan_membership without both auto_pfamA and auto_clan!"
+"Can not remove family from clan_membership without both pfamA and clan!"
     );
   }
   return ($result);
 }
 
 sub removeClan {
-  my ( $self, $autoClan ) = @_;
+  my ( $self, $clan ) = @_;
 
   my $result;
-  if ($autoClan) {
+  if ($clan) {
     $result =
-      $self->getSchema->resultset('Clans')->find( { auto_clan => $autoClan } )
+      $self->getSchema->resultset('Clan')->find( { clan_acc => $clan } )
       ->delete;
   }
   else {
     cluck(
-"Can not remove family from clan_membership without both auto_pfamA and auto_clan!"
+"Can not remove family from clan_membership without both pfamA_acc and clan_acc!"
     );
   }
   return ($result);
@@ -158,7 +158,7 @@ sub updateClan {
   }
 
   my $clan =
-    $self->getSchema->resultset('Clans')
+    $self->getSchema->resultset('Clan')
     ->find( { clan_acc => $clanObj->DESC->AC } );
   $clan->update(
     {
@@ -172,8 +172,6 @@ sub updateClan {
     }
   );
 
-  #Add the auto number to the clan Obj.
-  $clanObj->rdb( { auto => $clan->auto_clan } );
 }
 
 sub createClan {
@@ -183,7 +181,7 @@ sub createClan {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
 
-  my $clan = $self->getSchema->resultset('Clans')->create(
+  my $clan = $self->getSchema->resultset('Clan')->create(
     {
       clan_acc    => $clanObj->DESC->AC,
       clan_id     => $clanObj->DESC->ID,
@@ -192,7 +190,7 @@ sub createClan {
       clan_author      => $clanObj->DESC->AU,
       deposited_by     => $depositor,
       clan_comment => defined( $clanObj->DESC->CC ) ? $clanObj->DESC->CC : '',
-      created      => \'NOW()',
+      created      => \'NOW()\',
       competed     => 0
     }
   );
@@ -200,9 +198,6 @@ sub createClan {
   unless ( $clan and $clan->isa('PfamLive::Result::Clans') ) {
     confess( 'Failed to get row for ' . $clanObj->DESC->ID . "....." );
   }
-
-  #Add the auto number to the clan Obj.
-  $clanObj->rdb( { auto => $clan->auto_clan } );
 
 }
 
@@ -296,16 +291,13 @@ sub createPfamA {
       model_length   => $famObj->HMM->length,
       num_seed       => $famObj->SEED->num_sequences,
       num_full       => $famObj->scores->numRegions,
-      created        => \'NOW()',
+      created        => \'NOW()\',
     }
   );
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
   }
-
-  #Add the auto number to the famObj.
-  $famObj->rdb( { auto => $pfamA->auto_pfama } );
 
   #If the family is part of a
   if ( $famObj->DESC->CL ) {
@@ -332,10 +324,10 @@ sub deletePfamA {
   my ( $self, $family, $comment, $forward, $user ) = @_;
 
   my $pfamA =
-    $self->getSchema->resultset('Pfama')->search( { pfama_acc => $family },
+    $self->getSchema->resultset('PfamA')->search( { pfama_acc => $family },
     { join => [ { pfama_wikis => 'auto_wiki' } ] } )->single;
 
-  unless ( $pfamA and $pfamA->isa('PfamLive::Result::Pfama') ) {
+  unless ( $pfamA and $pfamA->isa('PfamLive::Result::PfamA') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
 
@@ -345,7 +337,7 @@ sub deletePfamA {
     last;
   }
 
-  $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } )
+  $self->getSchema->resultset('PfamA')->find( { pfama_acc => $family } )
     ->delete;
 
   #Now make the dead_families entry
@@ -356,7 +348,7 @@ sub deletePfamA {
       comment    => $comment,
       forward_to => $forward,
       user       => $user,
-      killed     => \'NOW()',
+      killed     => \'NOW()\',
       title      => $wiki_page
     }
   );
@@ -366,16 +358,16 @@ sub deletePfamA {
 sub deleteClan {
   my ( $self, $clanAcc, $comment, $forward, $user ) = @_;
   my $clan =
-    $self->getSchema->resultset('Clans')->find( { clan_acc => $clanAcc } );
+    $self->getSchema->resultset('Clan')->find( { clan_acc => $clanAcc } );
 
-  unless ( $clan and $clan->isa('PfamLive::Result::Clans') ) {
+  unless ( $clan and $clan->isa('PfamLive::Result::Clan') ) {
     confess( 'Failed to get row for ' . $clanAcc . "( Got $clan )....." );
   }
   my $clanMembership = $self->getClanMembership($clanAcc);
 
   my $memberString;
   foreach my $mem (@$clanMembership) {
-    $memberString .= $mem->auto_pfama->pfama_acc . " ";
+    $memberString .= $mem->pfama_acc->pfama_acc . " ";
   }
 
   $clan->delete;
@@ -390,7 +382,7 @@ sub deleteClan {
       comment          => $comment,
       forward_to       => $forward,
       user             => $user,
-      killed           => \'NOW()'
+      killed           => \'NOW()\'
     }
   );
 
@@ -403,28 +395,28 @@ sub updatePfamARegSeed {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
-  #Determing the family surrogate key
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
+  #Determing the family surrogate key - not needed
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+# else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
   #Delete all the seed regions
   $self->getSchema->resultset('PfamaRegSeed')
-    ->search( { auto_pfama => $auto } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
 
   #Determing all surrogate keys for the sequences in the SEED alignment
   #which are stored in a nosql database - Redis.
@@ -467,8 +459,8 @@ sub updatePfamARegSeed {
     push(
       @rows,
       {
-        auto_pfamseq => $sauto,
-        auto_pfama   => $auto,
+        pfamseq_acc => $sauto,
+        pfamA_acc   => $famObj->DESC->AC,
         seq_start    => $seq->start,
         seq_end      => $seq->end
       }
@@ -492,23 +484,24 @@ sub updatePfamARegFull {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
-  my $auto;
-  if ( $famObj->rdb->{auto} ) {
-    $auto = $famObj->rdb->{auto};
-  }
-  else {
-    my $pfamA =
-      $self->getSchema->resultset('Pfama')
-      ->find( { pfamA_id => $famObj->DESC->ID } );
-
-    if ( $pfamA->pfama_id ) {
-      $auto = $pfamA->auto_pfama;
-      $famObj->rdb->{auto} = $auto;
-    }
-    else {
-      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-    }
-  }
+#not needed
+#  my $auto;
+#  if ( $famObj->rdb->{auto} ) {
+#    $auto = $famObj->rdb->{auto};
+#  }
+#  else {
+#    my $pfamA =
+#      $self->getSchema->resultset('Pfama')
+#      ->find( { pfamA_id => $famObj->DESC->ID } );
+#
+#    if ( $pfamA->pfama_id ) {
+#      $auto = $pfamA->auto_pfama;
+#      $famObj->rdb->{auto} = $auto;
+#    }
+#    else {
+#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+#    }
+#  }
 
 #-------------------------------------------------------------------------------
   my %seqacc2auto;
@@ -533,14 +526,14 @@ sub updatePfamARegFull {
 #Now delete all regions in the two tables
 
 #The pdb region has a FK to pfamA_reg_full_significant so this need be deleted first.
-  $self->getSchema->resultset('PdbPfamaReg')->search( { auto_pfama => $auto } )
+  $self->getSchema->resultset('PdbPfamaReg')->search( { pfama_acc => $famObj->DESC->AC } )
     ->delete;
 
   $self->getSchema->resultset('PfamaRegFullSignificant')
-    ->search( { auto_pfama => $auto } )->delete;
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
   $self->getSchema->resultset('PfamaRegFullInsignificant')
-    ->search( { auto_pfama => $auto } )->delete;
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
 #-------------------------------------------------------------------------------
 
@@ -558,9 +551,9 @@ sub updatePfamARegFull {
   }
 
   $self->getSchema->resultset("PfamaRegFullSignificant")
-    ->search( { auto_pfamA => $auto } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
   $self->getSchema->resultset("PfamaRegFullInsignificant")
-    ->search( { auto_pfamA => $auto } )->delete;
+    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
 
 #-------------------------------------------------------------------------------
@@ -597,8 +590,8 @@ sub updatePfamARegFull {
           push(
             @significant,
             {
-              auto_pfama   => $auto,
-              auto_pfamseq => $sauto,
+              pfamA_acc   => $famObj->DESC->AC,
+              pfamseq_acc => $sauto,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
               ali_start    => $u->seqFrom,
@@ -620,8 +613,8 @@ sub updatePfamARegFull {
           push(
             @insignificant,
             {
-              auto_pfama            => $auto,
-              auto_pfamseq          => $sauto,
+              pfamA_acc             => $famObj->DESC->AC,
+              pfamseq_acc           => $sauto,
               seq_start             => $u->envFrom,
               seq_end               => $u->envTo,
               model_start           => $u->hmmFrom,
@@ -642,8 +635,8 @@ sub updatePfamARegFull {
         push(
           @insignificant,
           {
-            auto_pfama            => $auto,
-            auto_pfamseq          => $sauto,
+            pfamA_acc             => $famObj->DESC->AC,
+            pfamseq_acc           => $sauto,
             seq_start             => $u->envFrom,
             seq_end               => $u->envTo,
             model_start           => $u->hmmFrom,
