@@ -435,6 +435,7 @@ sub updatePfamARegFull {
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
+#TODO - get rid of this
 #not needed
 #  my $auto;
 #  if ( $famObj->rdb->{auto} ) {
@@ -515,22 +516,23 @@ sub updatePfamARegFull {
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
     next unless ($seq);
 
+#TODO remove this
     #Get the auto number for this sequenceq->name;
-    my $sauto;
-    eval{
-      $sauto = $redis->get($seq->name); 
-    };
-    if($@){
-      confess("Failed to get auto mapping [".$seq->name."] from redis as redis threw an error:\n\n$@");
-    }
-
-    if (!$sauto){
-
-      confess( "Failed to find entry in pfamseq for "
-          . $seq->name . "."
-          . $seq->seq_version
-          . "\n" );
-    }
+#    my $sauto;
+#    eval{
+#      $sauto = $redis->get($seq->name); 
+#    };
+#    if($@){
+#      confess("Failed to get auto mapping [".$seq->name."] from redis as redis threw an error:\n\n$@");
+#    }
+#
+#    if (!$sauto){
+#
+#      confess( "Failed to find entry in pfamseq for "
+#          . $seq->name . "."
+#          . $seq->seq_version
+#          . "\n" );
+#    }
 
     #
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
@@ -542,7 +544,7 @@ sub updatePfamARegFull {
             @significant,
             {
               pfamA_acc   => $famObj->DESC->AC,
-              pfamseq_acc => $sauto,
+              pfamseq_acc => $seq->name,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
               ali_start    => $u->seqFrom,
@@ -565,7 +567,7 @@ sub updatePfamARegFull {
             @insignificant,
             {
               pfamA_acc             => $famObj->DESC->AC,
-              pfamseq_acc           => $sauto,
+              pfamseq_acc           => $seq->name,
               seq_start             => $u->envFrom,
               seq_end               => $u->envTo,
               model_start           => $u->hmmFrom,
@@ -587,7 +589,7 @@ sub updatePfamARegFull {
           @insignificant,
           {
             pfamA_acc             => $famObj->DESC->AC,
-            pfamseq_acc           => $sauto,
+            pfamseq_acc           => $seq->name,
             seq_start             => $u->envFrom,
             seq_end               => $u->envTo,
             model_start           => $u->hmmFrom,
