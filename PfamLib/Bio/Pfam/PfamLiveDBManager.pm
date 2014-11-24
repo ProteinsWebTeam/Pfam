@@ -117,7 +117,7 @@ sub removeFamilyFromClanMembership {
     $result = $self->getSchema->resultset('ClanMembership')->find(
       {
         clan_acc  => $clan,
-        pfamA_acc => $pfamA
+        pfama_acc => $pfamA
       }
     )->delete;
 
