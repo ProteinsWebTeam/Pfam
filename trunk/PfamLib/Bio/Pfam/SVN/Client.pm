@@ -467,6 +467,7 @@ sub exportFamily {
 sub exportClan {
   my ( $self, $clan, $dest ) = @_;
   my $url      = $self->clanLocation . "/" . $clan;
+  chop($dest) if($dest =~ /\S+\/$/);
   eval {
     $self->{txn}
       ->export( $url, $dest, $self->revision ? $self->revision : 'HEAD',
