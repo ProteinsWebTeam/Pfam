@@ -576,7 +576,7 @@ sub updateClanMembership{
   my $clanRow = $pfamDB->getClanData($clan);
   #Start the transation
   my $guard = $pfamDB->getSchema->txn_scope_guard;
-  $pfamDB->updateClanMembership($clanRow->auto_clan, $pfamRow->auto_pfama);
+  $pfamDB->updateClanMembership($clanRow->clan_acc, $pfamRow->pfama_acc);
   $guard->commit;
 }
 
@@ -586,7 +586,7 @@ sub removeFamilyFromClanMembership{
   my $clanRow = $pfamDB->getClanData($clan);
   #Start the transation
   my $guard = $pfamDB->getSchema->txn_scope_guard;
-  $pfamDB->removeFamilyFromClanMembership($clanRow->auto_clan, $pfamRow->auto_pfama);
+  $pfamDB->removeFamilyFromClanMembership($clanRow->clan_acc, $pfamRow->pfama_acc);
   $guard->commit;
 }
 
