@@ -96,7 +96,6 @@ sub updateClanMembership {
         clan_acc  => $clan,
         pfama_acc => $pfamA
       },
-      { key => 'clanMembConst' }
     );
   }
   else {
