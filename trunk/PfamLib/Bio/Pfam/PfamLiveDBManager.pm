@@ -94,7 +94,7 @@ sub updateClanMembership {
     $result = $self->getSchema->resultset('ClanMembership')->find_or_create(
       {
         clan_acc  => $clan,
-        pfamA_acc => $pfamA
+        pfama_acc => $pfamA
       },
       { key => 'clanMembConst' }
     );
@@ -324,18 +324,19 @@ sub deletePfamA {
   my ( $self, $family, $comment, $forward, $user ) = @_;
 
   my $pfamA =
-    $self->getSchema->resultset('PfamA')->search( { pfama_acc => $family },
+    $self->getSchema->resultset('PfamA')->search( { 'me.pfama_acc' => $family },
     { join => [ { pfam_a_wikis => 'auto_wiki' } ] } )->single;
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Result::PfamA') ) {
     confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
 
+#TODO - fix and reinstate this
   my $wiki_page;    #Store wiki link as need this for the website
-  foreach my $article ( $pfamA->articles ) {
-    $wiki_page = $article->title;
-    last;
-  }
+#  foreach my $article ( $pfamA->articles ) {
+#    $wiki_page = $article->title;
+#    last;
+#  }
 
   $self->getSchema->resultset('PfamA')->find( { pfama_acc => $family } )
     ->delete;
