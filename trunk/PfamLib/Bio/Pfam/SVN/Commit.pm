@@ -111,12 +111,15 @@ sub commitFamily {
   
     #Perform QC on the family
     $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
-  
 
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
+
     $familyIO->updatePfamARegions($famObj, $pfamDB);
+
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
+
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
+
   }
   $guard->commit;
    
@@ -424,7 +427,7 @@ sub moveFamily {
 
   my @updated_files = $self->updated();
   foreach my $f (@updated_files){
-    if( $f !~ m|(.*/Families/\S+/DESC)$|){
+     if( $f !~ m|(.*Families/\S+/DESC)$|){
       confess("Trying to move a family with updated files (other than the DESC file)\n"); 
     }
   }
