@@ -194,7 +194,7 @@ sub createClan {
     }
   );
 
-  unless ( $clan and $clan->isa('PfamLive::Result::Clans') ) {
+  unless ( $clan and $clan->isa('PfamLive::Result::Clan') ) {
     confess( 'Failed to get row for ' . $clanObj->DESC->ID . "....." );
   }
 
