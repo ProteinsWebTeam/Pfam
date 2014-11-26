@@ -109,6 +109,14 @@ my $clanIO = Bio::Pfam::ClanIO->new;
 my $clanObj = $clanIO->loadClanFromSVN( $clan, $client );
 
 #-------------------------------------------------------------------------------
+#now check that there are no members in the clan (MB lines)
+if ($clanObj->DESC->MEMB){
+    my @members =  @{$clanObj->DESC->MEMB};
+    my $memberlist = join(' ', @members);
+    die "\nERROR: This clan cannot be killed as it still has the following members:\n$memberlist\n\n";
+}
+
+#-------------------------------------------------------------------------------
 # Get a comment as to why the clan has been
 # killed unless the comment was supplied as a commandline argument.
 #
