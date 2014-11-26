@@ -805,7 +805,7 @@ sub getNestedDomain {
         { pfama_acc       => $pfam->pfama_acc }
       ]
     );
-
+ 
     #Now store the other pfamA_acc
     foreach my $r (@results) {
       if ( $r->pfama_acc->pfama_acc ne $pfam->pfama_acc ) {
@@ -817,10 +817,16 @@ sub getNestedDomain {
         }
       }
       else {
-        my $npfam =
-          $self->getSchema->resultset("PfamA")
-          ->find( { pfama_acc => $r->nests_pfama_acc } );
-        push( @nestedFams, $npfam->pfama_acc );
+
+#TODO - this is hashed out as it caused check in to fail - @nested families should contain accs. Remove this when all testing done
+#        my $npfam =
+#          $self->getSchema->resultset("PfamA")
+#          ->find( { pfama_acc => $r->nests_pfama_acc } );
+
+#        push( @nestedFams, $npfam->pfama_acc );
+
+	my $npfam = $r->nests_pfama_acc->pfama_acc;
+        push( @nestedFams, $npfam);
       }
     }
   }
