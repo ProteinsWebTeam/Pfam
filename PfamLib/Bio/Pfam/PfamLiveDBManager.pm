@@ -337,6 +337,7 @@ sub deletePfamA {
 #    last;
 #  }
 
+
   $self->getSchema->resultset('PfamA')->find( { pfama_acc => $family } )
     ->delete;
 
@@ -732,20 +733,20 @@ sub updatePfamANested {
 #  }
 
   $self->getSchema->resultset('NestedDomain')
-    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
   $self->getSchema->resultset('NestedLocation')
-    ->search( { pfamA_acc => $famObj->DESC->AC } )->delete;
+    ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
   if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
     foreach my $n ( @{ $famObj->DESC->NESTS } ) {
       my $otherPfamA =
         $self->getSchema->resultset('PfamA')
-        ->find( { pfamA_acc => $n->{dom} } );
+        ->find( { pfama_acc => $n->{dom} } );
 
       my $otherAuto;
-      if ( $otherPfamA->pfamA_id ) {
-        $otherAuto = $otherPfamA->pfamA_acc;
+      if ( $otherPfamA->pfama_id ) {
+        $otherAuto = $otherPfamA->pfama_acc;
       }
       else {
         confess( "Did not find an mysql entry for " . $n->{dom} . "\n" );
@@ -767,15 +768,15 @@ sub updatePfamANested {
 
       $self->getSchema->resultset('NestedDomain')->create(
         {
-          pfamA_acc       => $famObj->DESC->AC,
-          nests_pfamA_acc => $otherPfamA->pfamA_acc
+          pfama_acc       => $famObj->DESC->AC,
+          nests_pfama_acc => $otherPfamA->pfama_acc
         }
       );
 
       $self->getSchema->resultset('NestedLocation')->create(
         {
-          pfamA_acc         => $famObj->DESC->AC,
-          nested_pfamA_acc  => $otherPfamA->pfamA_acc,
+          pfama_acc         => $famObj->DESC->AC,
+          nested_pfama_acc  => $otherPfamA->pfama_acc,
           pfamseq_acc       => $seq->pfamseq_acc,
           seq_version       => $seq->seq_version,
           seq_start         => $n->{from},
