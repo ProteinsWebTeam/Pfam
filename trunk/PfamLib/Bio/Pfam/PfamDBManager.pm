@@ -806,6 +806,7 @@ sub getNestedDomain {
       ]
     );
  
+
     #Now store the other pfamA_acc
     foreach my $r (@results) {
       if ( $r->pfama_acc->pfama_acc ne $pfam->pfama_acc ) {
