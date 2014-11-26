@@ -393,7 +393,7 @@ sub moveClan {
 
   my @updated_files = $self->updated();
   foreach my $f (@updated_files){
-    if( $f !~ m|(.*/Clans/\S+/CLANDESC)$|){
+    if( $f !~ m|(.*Clans/\S+/CLANDESC)$|){
       confess("Trying to move a clan with updated files (other than the CLANDESC file)\n"); 
     }
   }
