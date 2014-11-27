@@ -740,18 +740,10 @@ sub updatePfamANested {
 
   if ( $famObj->DESC->NESTS and ref( $famObj->DESC->NESTS ) eq 'ARRAY' ) {
     foreach my $n ( @{ $famObj->DESC->NESTS } ) {
+
       my $otherPfamA =
         $self->getSchema->resultset('PfamA')
         ->find( { pfama_acc => $n->{dom} } );
-
-#TODO remove this if nothing breaks
-#      my $otherAuto;
-#      if ( $otherPfamA->pfama_id ) {
-#        $otherAuto = $otherPfamA->pfama_acc;
-#      }
-#      else {
-#        confess( "Did not find an mysql entry for " . $n->{dom} . "\n" );
-#      }
 
       #Now look up the sequence
       my ( $seqAcc, $version ) = $n->{seq} =~ /(\S+)\.(\d+)/;
