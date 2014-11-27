@@ -339,8 +339,10 @@ unless ($ignore) {
       exit(1);
     }
 
-    unless ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $upFamObj ) ) {
-      exit;
+    if ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $upFamObj ) ) {
+      print STDERR "SEED alignment is not ragged\n";
+    } else {
+	print STDERR "SEED alignment is ragged\n";
     }
 
     #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
