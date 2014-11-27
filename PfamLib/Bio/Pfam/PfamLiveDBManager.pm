@@ -711,27 +711,6 @@ sub updatePfamANested {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
-#-------------------------------------------------------------------------------
-#Get the index for the pfamA family
-
- # my $auto;
- # if ( $famObj->rdb->{auto} ) {
- #   $auto = $famObj->rdb->{auto};
- # }
- # else {
- #   my $pfamA =
- #     $self->getSchema->resultset('Pfama')
- #     ->find( { pfamA_id => $famObj->DESC->ID } );
-#
-#    if ( $pfamA->pfama_id ) {
-#      $auto = $pfamA->auto_pfama;
-#      $famObj->rdb->{auto} = $auto;
-#    }
-#    else {
-#      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
-#    }
-#  }
-
   $self->getSchema->resultset('NestedDomain')
     ->search( { pfama_acc => $famObj->DESC->AC } )->delete;
 
@@ -791,6 +770,7 @@ sub updateEdits {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
+#TODO - remove the following commented out code if updateEdits works
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
@@ -874,6 +854,7 @@ sub uploadPfamAHMM {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
@@ -924,6 +905,7 @@ sub uploadAlignmentAndTrees {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
@@ -965,6 +947,7 @@ sub updateClanDbXrefs {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
@@ -1013,6 +996,7 @@ sub updateClanWikipedia {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
@@ -1070,6 +1054,7 @@ sub updateClanLitRefs {
     confess("Did not get a Bio::Pfam::Clan::Clan object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the clan
 
@@ -1131,6 +1116,7 @@ sub uploadPfamAInternal {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
   }
 
+#TODO - remove the following commented out code if nothing breaks
 #-------------------------------------------------------------------------------
 #Get the index for the pfamA family
 
