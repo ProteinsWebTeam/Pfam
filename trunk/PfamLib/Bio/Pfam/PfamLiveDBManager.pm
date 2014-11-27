@@ -484,8 +484,9 @@ sub updatePfamARegFull {
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
       foreach my $u ( @{ $seq->hmmUnits } ) {
 
+	    my $namelong = $seq->name;
 	    my $name;
-	    if ($seq->name =~/(\S+)\.\d+/){
+	    if ($namelong =~/(\S+)\.\d+/){
 		$name = $1;
 	    } 
         #Is it significant dom?
