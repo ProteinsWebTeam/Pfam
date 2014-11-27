@@ -489,6 +489,7 @@ sub updatePfamARegFull {
 	    if ($namelong =~/(\S+)\.\d+/){
 		$name = $1;
 	    } 
+	    die "$name*********\n";
         #Is it significant dom?
         if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
 
