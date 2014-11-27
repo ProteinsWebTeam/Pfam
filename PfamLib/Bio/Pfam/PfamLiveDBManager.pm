@@ -484,12 +484,12 @@ sub updatePfamARegFull {
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
       foreach my $u ( @{ $seq->hmmUnits } ) {
 
-        #Is it significant dom?
-        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
 	    my $name;
 	    if ($seq->name =~/(\S+)\.\d+/){
 		$name = $1;
 	    } 
+        #Is it significant dom?
+        if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
 
           push(
             @significant,
