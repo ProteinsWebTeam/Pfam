@@ -481,15 +481,15 @@ sub updatePfamARegFull {
   foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
     next unless ($seq);
 
+	    my $nameversion = $seq->name;
+	    my $name;
+	    if ($nameversion =~/(\S+)\.\d+/){
+		$name = $1;
+	    } 
+
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
       foreach my $u ( @{ $seq->hmmUnits } ) {
 
-	    my $namelong = $seq->name;
-	    my $name;
-	    if ($namelong =~/(\S+)\.\d+/){
-		$name = $1;
-	    } 
-	    die "$name*********\n";
         #Is it significant dom?
         if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
 
@@ -542,7 +542,7 @@ sub updatePfamARegFull {
           @insignificant,
           {
             pfama_acc             => $famObj->DESC->AC,
-            pfamseq_acc           => $seq->name,
+            pfamseq_acc           => $name,
             seq_start             => $u->envFrom,
             seq_end               => $u->envTo,
             model_start           => $u->hmmFrom,
