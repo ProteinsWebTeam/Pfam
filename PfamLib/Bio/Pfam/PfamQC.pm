@@ -666,7 +666,7 @@ sub nonRaggedSeed {
 
   if ( ( $bad_n > 0.5 ) || ( $bad_c > 0.5 ) ) {
     $error = 1;
-    print STDERR "\n*** ERROR: SEED alignment is ragged ***\n\n";
+    print STDERR "\n*** WARNING: SEED alignment is ragged ***\n\n";
     printf STDERR "%7s\t%7s\n", "N-term", "C-term";
     printf STDERR "%5.2f\t%5.2f\n", $bad_n, $bad_c;
   }
