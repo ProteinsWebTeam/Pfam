@@ -486,11 +486,16 @@ sub updatePfamARegFull {
 
         #Is it significant dom?
         if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+	    my $name;
+	    if ($seq->name =~/(\S+)\.\d+/){
+		$name = $1;
+	    } 
+
           push(
             @significant,
             {
               pfama_acc   => $famObj->DESC->AC,
-              pfamseq_acc => $seq->name,
+              pfamseq_acc => $name,
               seq_start    => $u->envFrom,
               seq_end      => $u->envTo,
               ali_start    => $u->seqFrom,
@@ -513,7 +518,7 @@ sub updatePfamARegFull {
             @insignificant,
             {
               pfama_acc             => $famObj->DESC->AC,
-              pfamseq_acc           => $seq->name,
+              pfamseq_acc           => $name,
               seq_start             => $u->envFrom,
               seq_end               => $u->envTo,
               model_start           => $u->hmmFrom,
