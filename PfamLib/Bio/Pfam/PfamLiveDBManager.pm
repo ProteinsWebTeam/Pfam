@@ -485,7 +485,9 @@ sub updatePfamARegFull {
 	    my $name;
 	    if ($nameversion =~/(\S+)\.\d+/){
 		$name = $1;
-	    } 
+	    } else {
+		$name = $nameversion;
+	    }
 
     if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
       foreach my $u ( @{ $seq->hmmUnits } ) {
