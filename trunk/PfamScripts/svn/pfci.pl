@@ -291,7 +291,8 @@ if ($onlydesc) {
 unless ($ignore) {
 
 #Regardless of whether we are just checking in a DESC or the complete set of family files.
-  Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
+#TODO - reinstate spelling check after release
+#  Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
   unless ($onlydesc) {
 
