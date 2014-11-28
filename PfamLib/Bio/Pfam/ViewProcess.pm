@@ -156,7 +156,7 @@ sub initiateViewProcess {
   }
   else {
 #TODO - put the line below back again, only removed for debugging
-#    $self->initiateFamilyViewProcess( $famObj, $name ); 
+    $self->initiateFamilyViewProcess( $famObj, $name ); 
   }
 }
 
@@ -170,67 +170,67 @@ sub initiateClanViewProcess {
 #Look for any existing clan jobs!
 #-------------------------------------------------------------------------------
 # Now clear out any existing jobs for that family.
-#  my @jobs = $self->jobdb->getSchema->resultset('JobHistory')->search(
-#    {
-#      entity_acc => $clanAcc,
-#      -and       => [
-#        status => { '!=' => 'DONE' },
-#        status => { '!=' => 'KILL' }
-#      ],
-#    }
-#  );
-#
-#  if ( scalar(@jobs) ) {
-#    foreach my $job (@jobs) {
-#      if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
-#
-#        #$self->killJob( $job->lsf_id );
-#      }
-#      $job->update(
-#        {
-#          status => 'KILL',
-#          closed => \'NOW()'
-#        }
-#      );
-#    }
-#  }
-#
-#  my $clan      = $self->pfamdb->getClanData($clanAcc);
-#  my $clanMembs = $self->pfamdb->getClanMembership($clanAcc);
-#
-#  foreach my $memb (@$clanMembs) {
-#
-#    #Now look for any families belonging to that jobs.
-#    #print "*** $memb ***\n";
-#    $self->killFamilyJob( $memb->auto_pfama->pfama_acc);
-#  }
-#
-#  #Add the clan job to the pfam_jobs database.
-#   my $guard = $self->jobdb->getSchema->txn_scope_guard;
-#    eval{
-#    my $r = $self->jobdb->getSchema->resultset('JobHistory')->create(
-#      {
-#        status     => 'PEND',
-#        job_id     => $uid,
-#        entity_acc => $clan->clan_acc,
-#        entity_id  => $clan->clan_id,
-#        job_type   => 'clan',
-#        options    => '',
-#        opened     => \'NOW()',
-#        user_id    => $name
-#      }
-#    );
-#
-#    my $s = $self->jobdb->getSchema->resultset('JobStream')->create(
-#      {
-#        id     => $r->id,
-#        stdin  => '',
-#        stdout => '',
-#        stderr => ''
-#      }
-#    );
-#    $guard->commit;
-#  };
+  my @jobs = $self->jobdb->getSchema->resultset('JobHistory')->search(
+    {
+      entity_acc => $clanAcc,
+      -and       => [
+        status => { '!=' => 'DONE' },
+        status => { '!=' => 'KILL' }
+      ],
+    }
+  );
+
+  if ( scalar(@jobs) ) {
+    foreach my $job (@jobs) {
+      if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
+
+        #$self->killJob( $job->lsf_id );
+      }
+      $job->update(
+        {
+         status => 'KILL',
+          closed => \'NOW()'
+        }
+      );
+    }
+  }
+
+  my $clan      = $self->pfamdb->getClanData($clanAcc);
+  my $clanMembs = $self->pfamdb->getClanMembership($clanAcc);
+
+  foreach my $memb (@$clanMembs) {
+
+    #Now look for any families belonging to that jobs.
+    #print "*** $memb ***\n";
+    $self->killFamilyJob( $memb->pfama_acc->pfama_acc);
+  }
+
+  #Add the clan job to the pfam_jobs database.
+   my $guard = $self->jobdb->getSchema->txn_scope_guard;
+    eval{
+    my $r = $self->jobdb->getSchema->resultset('JobHistory')->create(
+      {
+        status     => 'PEND',
+        job_id     => $uid,
+        entity_acc => $clan->clan_acc,
+        entity_id  => $clan->clan_id,
+        job_type   => 'clan',
+        options    => '',
+        opened     => \'NOW()',
+        user_id    => $name
+      }
+    );
+
+    my $s = $self->jobdb->getSchema->resultset('JobStream')->create(
+      {
+        id     => $r->id,
+        stdin  => '',
+        stdout => '',
+        stderr => ''
+      }
+    );
+    $guard->commit;
+  };
 
   if ($@) {
     die "Failed during 'clan view' job submission transaction!: [$@]\n";
