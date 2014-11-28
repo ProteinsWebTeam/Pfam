@@ -326,12 +326,13 @@ unless ($ignore) {
       print(
 "$0: your family seems to be missing members compared to the DBN copy\n(see $family/missing). Please inspect loss of members.\n"
       );
-      print("Do you want to continue regardless? [y/n]  ");
-      my $reply = <STDIN>;
-      chomp $reply;
-      if ( $reply ne "y" ) {
-        exit(1);
-      }
+#TODO put the prompt below back in after release
+ #     print("Do you want to continue regardless? [y/n]  ");
+ #     my $reply = <STDIN>;
+ #     chomp $reply;
+ #     if ( $reply ne "y" ) {
+ #       exit(1);
+ #     }
     }
 
     #pqc-check $family
