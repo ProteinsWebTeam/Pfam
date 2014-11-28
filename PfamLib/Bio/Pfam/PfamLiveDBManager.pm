@@ -828,7 +828,7 @@ sub updateEdits {
       {
         $self->getSchema->resultset('Edit')->create(
           {
-            pfamA_acc     => $famObj->DESC->AC,
+            pfama_acc     => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
             seq_version    => $seq->seq_version,
             original_start => $n->{oldFrom},
@@ -841,7 +841,7 @@ sub updateEdits {
       else {
         $self->getSchema->resultset('Edit')->create(
           {
-            pfamA_acc      => $famObj->DESC->AC,
+            pfama_acc      => $famObj->DESC->AC,
             pfamseq_acc    => $seq->pfamseq_acc,
             seq_version    => $seq->seq_version,
             original_start => $n->{oldFrom},
