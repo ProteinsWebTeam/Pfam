@@ -108,7 +108,7 @@ sub loadPfamAFromLocalFile {
 sub loadPfamAFromSVN {
   my ( $self, $family, $client ) = @_;
 
-  my $dir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
   mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
 
   foreach my $f ( @{ $self->{config}->mandatoryFamilyFiles } ) {
