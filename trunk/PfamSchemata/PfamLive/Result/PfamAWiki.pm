@@ -80,12 +80,12 @@ __PACKAGE__->belongs_to(
   "pfama_acc",
   "PfamLive::Result::PfamA",
   { pfama_acc => "pfama_acc" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aiLf+6+GdKiuMRnvDoppIA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2014-12-05 15:05:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OBNNug4P7m5hvnLRIl+wig
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

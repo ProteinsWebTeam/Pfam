@@ -66,7 +66,7 @@ __PACKAGE__->table("pfamA");
 =head2 type
 
   data_type: 'enum'
-  extra: {list => ["Family","Domain","Repeat","Motif"]}
+  extra: {list => ["Family","Domain","Repeat","Motif","Disordered","Coiled-coil"]}
   is_nullable: 0
 
 =head2 comment
@@ -301,7 +301,16 @@ __PACKAGE__->add_columns(
   "type",
   {
     data_type => "enum",
-    extra => { list => ["Family", "Domain", "Repeat", "Motif"] },
+    extra => {
+      list => [
+        "Family",
+        "Domain",
+        "Repeat",
+        "Motif",
+        "Disordered",
+        "Coiled-coil",
+      ],
+    },
     is_nullable => 0,
   },
   "comment",
@@ -925,8 +934,8 @@ Composing rels: L</pfam_a_ligands> -> ligand
 __PACKAGE__->many_to_many("ligands", "pfam_a_ligands", "ligand");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7gcmqRTyG33egZREhYxbzA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2014-12-05 15:05:07
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Kru3gvYaVShR+VXpPz1MjQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
