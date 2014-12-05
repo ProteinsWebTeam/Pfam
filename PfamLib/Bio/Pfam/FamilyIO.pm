@@ -747,13 +747,16 @@ sub uploadPfamAAligns {
   }
 
   #Read the FULL alignment into a string
-  open( FULL, "$dir/$family/ALIGN" )
-    or die "Could not open $dir/$family/ALIGN:[$!]\n";
+   system("gzip -c $dir/$family/ALIGN > $dir/$family/ALIGN.gz");
+  open( FULL, "$dir/$family/ALIGN.gz" )
+    or die "Could not open $dir/$family/ALIGN.gz:[$!]\n";
   my $full = join '', <FULL>;
   close FULL;
+  
 
   #Read the SEED alignment into a string;
-  open( SEED, "$dir/$family/SEED" )
+  system("gzip -c $dir/$family/SEED > $dir/$family/SEED.gz");
+  open( SEED, "$dir/$family/SEED.gz" )
     or die "Could not open $dir/$family/SEED:[$!]\n";
   my $seed = join '', <SEED>;
   close SEED;

@@ -1150,8 +1150,8 @@ sub uploadPfamAInternal {
   $self->getSchema->resultset('PfamAInternal')->update_or_create(
     {
       pfama_acc => $famObj->DESC->AC,
-      seed => defined($seedString) ? Compress::Zlib::memGzip($seedString) : '',
-      full => defined($fullString) ? Compress::Zlib::memGzip($fullString) : '',
+      seed => defined($seedString) ? $seedString : '',
+      full => defined($fullString) ? $fullString : '',
     }
   );
 }
