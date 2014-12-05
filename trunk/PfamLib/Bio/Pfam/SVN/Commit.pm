@@ -101,7 +101,9 @@ sub commitFamily {
 
 #TODO remove file creation and all prints to this file
 #file for debug
-  open (FILE, ">/tmp/File_checkin_track") or die "can't open file";
+  open (FILE, ">/tmp/File_checkin_commit_track_PF00005.$$") or die "can't open file";
+#TODO remove
+print FILE "start " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
 
  
   my $author = $self->author;
@@ -109,7 +111,7 @@ sub commitFamily {
   my $familyIO = Bio::Pfam::FamilyIO->new;
 
 #print to tmp
-  print FILE "make fam object " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
+ print FILE "make fam object " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
   
   my ($famObj, $family, $dir);
   my @updated = $self->updated();
@@ -123,7 +125,7 @@ sub commitFamily {
 
 #print to tmp
   print FILE "get fam object " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-  
+   
     #Perform QC on the family
     $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
 
