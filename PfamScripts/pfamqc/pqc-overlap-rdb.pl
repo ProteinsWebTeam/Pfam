@@ -8,17 +8,20 @@ use Getopt::Long;
 use Cwd;
 
 use Bio::Pfam::Config;
+use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( @ignore, $help, $compete, $no_sigP );
+my ( @ignore, $help, $compete, $no_sigP, $all, $noFilter );
 
-&GetOptions(
-  "i=s@"               => \@ignore,
-  "help"               => \$help,
-  "compete"            => \$compete,
-  "no_sigP"	       => \$no_sigP
-) or die "Incorrect option passed in\n"; 
+&GetOptions( "i=s@"     => \@ignore,
+             "help"     => \$help,
+             "compete"  => \$compete,
+             "no_sigP"  => \$no_sigP,
+             "all"      => \$all,
+             "no_filter" => \$noFilter
+           ) or die "Incorrect option passed in\n";
+
 
 my $family = shift;
 
@@ -69,9 +72,8 @@ if( !-w "$pwd/$family" ) {
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
-
 my $overlaps =
-  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete );
+  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete, $all, $noFilter );
   warn "$family: found $overlaps external overlaps\n";
 
 unless($no_sigP) {
@@ -109,6 +111,8 @@ Addional options:
   -i <family_name>       :Ignore this family (-i can occur multiple times)
   -compete               :Compete family before checking for overlaps
   -no_sigP               :Do not check whether family overlaps with signal peptide
+  -all                   :Report overlaps for all sequences and not reference proteomes only
+  -noFilter              :Do not filter overlaps
 
 
 EOF
