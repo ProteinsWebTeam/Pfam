@@ -856,7 +856,7 @@ sub family_overlaps_with_db {
       if ( $clan and $clan->clan_acc->clan_acc ) {
         my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
         }
       }
     }
@@ -869,7 +869,7 @@ sub family_overlaps_with_db {
       if ( $clan and $clan->clan_acc->clan_acc ) {
         my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
         foreach my $fam (@$clanMem) {
-          $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+          $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
         }
       }
     }
@@ -893,7 +893,7 @@ sub family_overlaps_with_db {
           if ( $clan and $clan->clan_acc->clan_acc ) {
             my $clanMem = $pfamDB->getClanMembership( $clan->clan_acc->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+              $$ignore_ref{ $fam->pfamA_acc->pfamA_acc }++;
             }
           }
         }
@@ -1087,7 +1087,7 @@ sub family_overlaps_with_db {
     my $numberLimit = $config->familyOverlapRule;
     warn "Filtering overlaps\n";
 
-    $numOverlaps = filterOverlaps($lengthLimit, $numberLimit, @overlapLines);
+    $numOverlaps = filterOverlaps($family, $lengthLimit, $numberLimit, @overlapLines);
   }
 
   close $LOG if ($LOG);
@@ -1106,7 +1106,7 @@ sub family_overlaps_with_db {
 #------------------------------------------------------------------------------
 sub filterOverlaps
 {
-    my ( $lengthLimit, $numberLimit, @overlapLines ) = @_;
+    my ( $family, $lengthLimit, $numberLimit, @overlapLines ) = @_;
 
     # Get the Pfam Config
     my $config = Bio::Pfam::Config->new;
@@ -1114,12 +1114,19 @@ sub filterOverlaps
     # Filter the overlaps according to the auto-resolve paramaters found inside the config file
     #
     # Calculate for each family the number of overlaps whose length is less than 20% ($lengthLimit) of the lowest scoring matching region length
-
     my ( $familyA,           $familyB,     $regionA,     $regionB,
          $scoreA,            $scoreB,      $lengthA,     $lengthB,
          $overlapLength,     $temp_length, $overlapPerc, $temp_family,
          %resolvedPerFamily, $familySize,  $numberPerc,  $numOverlaps
    );
+
+    my $LOG;
+    if ( -d $family )
+    {
+        open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
+    }
+
+
 
 
     foreach my $overlapLine (@overlapLines)
@@ -1199,7 +1206,6 @@ sub filterOverlaps
 
             $familySize = $rs->next->num_full;
 
-
             if ( $resolvedPerFamily{$temp_family} )
             {
                 $numberPerc = sprintf( "%.4f", $resolvedPerFamily{$temp_family} / $familySize * 100 );
@@ -1208,20 +1214,25 @@ sub filterOverlaps
                 {
                     $numOverlaps++;
                     print STDERR $overlapLine;
+                    print $LOG $overlapLine if $LOG;
                 }
             }
             else
             {
                 $numOverlaps++;
                 print STDERR $overlapLine;
+                print $LOG $overlapLine if $LOG;
             }
         }
         else
         {
             $numOverlaps++;
             print STDERR $overlapLine;    # This should print the SEED .. SEED overlaps
+            print $LOG $overlapLine if $LOG;
         }
     }
+
+  close $LOG if ($LOG);
 
   return $numOverlaps;
    
