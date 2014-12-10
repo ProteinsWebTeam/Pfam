@@ -2668,8 +2668,8 @@ sub getAllFiles {
   my ( $self ) = @_;
 
   my $row =
-    $self->pfamdb->getSchema->resultset('PfamaInternal')
-    ->find( { auto_pfama => $self->pfam->auto_pfama } );
+    $self->pfamdb->getSchema->resultset('PfamAInternal')
+    ->find( { pfama_acc => $self->pfam->pfama_acc } );
 
   eval{
     $row->msas_uncompressed;
@@ -2678,8 +2678,8 @@ sub getAllFiles {
     $self->mailUserAndFail( "Failed to uncompress all files: $@" );
   }
   my $hmm =
-    $self->pfamdb->getSchema->resultset('PfamaHmm')
-    ->find( { auto_pfama => $self->pfam->auto_pfama } );
+    $self->pfamdb->getSchema->resultset('PfamAHmm')
+    ->find( { pfama_acc => $self->pfam->pfama_acc } );
 
   open( H, ">HMM" )
     or $self->mailUserAndFail( "Could not open HMM:[$!]\n" );
