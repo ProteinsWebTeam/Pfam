@@ -2722,14 +2722,14 @@ sub getGFAnnotations {
 
   #Get database Xrefs for entries
   my @xRefs =
-    $self->pfamdb->getSchema->resultset('PfamaDatabaseLinks')
-    ->search( { auto_pfama => $self->pfam->auto_pfama } );
+    $self->pfamdb->getSchema->resultset('PfamADatabaseLink')
+    ->search( { pfama_acc => $self->pfam->pfama_acc } );
   $self->logger->debug( "Got " . scalar(@xRefs) . " database cross-references" );
 
   #Get database literature references
   my @litRefs =
-    $self->pfamdb->getSchema->resultset('PfamaLiteratureReferences')->search(
-    { auto_pfama => $self->pfam->auto_pfama },
+    $self->pfamdb->getSchema->resultset('PfamALiteratureReference')->search(
+    { pfama_acc => $self->pfam->pfama_acc },
     {
       join     => [qw(literature)],
       order_by => 'order_added ASC',
@@ -2746,8 +2746,8 @@ sub getGFAnnotations {
   my $clan = $self->getClanData;
 
   #Need to put WK lines in here!
-  my @wiki = $self->pfamdb->getSchema->resultset('PfamaWiki')->search(
-    { auto_pfama => $self->pfam->auto_pfama },
+  my @wiki = $self->pfamdb->getSchema->resultset('PfamAWiki')->search(
+    { pfama_acc => $self->pfam->pfama_acc },
     {
       join     => qw(auto_wiki),
       prefetch => qw(auto_wiki)
@@ -2758,7 +2758,7 @@ sub getGFAnnotations {
   #Add this special case of database cross reference
   my @interpro =
     $self->pfamdb->getSchema->resultset('Interpro')
-    ->search( { auto_pfama => $self->pfam->auto_pfama } );
+    ->search( { pfama_acc => $self->pfam->pfama_acc } );
 
   $annotations{xrefs}    = \@xRefs;
   $annotations{lrefs}    = \@litRefs;
