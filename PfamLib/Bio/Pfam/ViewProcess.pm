@@ -2659,6 +2659,7 @@ sub resetStats {
                          number_rp35 => '0',
                          number_rp55 => '0',
                          number_rp75 => '0',
+			 number_ref_proteome => '0',
   } );  
   
 }
