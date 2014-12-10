@@ -2627,7 +2627,7 @@ sub getPfamObj {
 
   # Get the information about the family
   my $pfam =
-    $self->pfamdb->getSchema->resultset('Pfama')
+    $self->pfamdb->getSchema->resultset('PfamA')
     ->find( { pfama_acc => $self->job->entity_acc } );
 
   unless ( $pfam and $pfam->pfama_acc ) {
