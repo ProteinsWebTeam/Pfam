@@ -1970,8 +1970,8 @@ sub getNestedLocations {
   my ( $self ) = @_;
 
   my @rows =
-    $self->pfamdb->getSchema->resultset('NestedLocations')
-    ->search( { auto_pfamA => $self->pfam->auto_pfama } );
+    $self->pfamdb->getSchema->resultset('NestedLocation')
+    ->search( { pfama_acc => $self->pfam->pfama_acc } );
   my @nests;
   foreach my $r (@rows) {
     push( @nests, $r->pfamseq_acc . "/" . $r->seq_start . "-" . $r->seq_end );
@@ -1983,14 +1983,15 @@ sub getClanData {
   my ( $self ) = @_;
 
   my $row =
-    $self->pfamdb->getSchema->resultset('Clans')
-    ->find( { 'clan_memberships.auto_pfamA' => $self->pfam->auto_pfama },
+    $self->pfamdb->getSchema->resultset('Clan')
+    ->find( { 'clan_memberships.pfama_acc' => $self->pfam->pfama_acc },
     { join => [qw( clan_memberships )] } );
 
   if ( $row and $row->clan_acc ) {
     return ( $row->clan_acc );
   }
 }
+    $self->pfamdb->getSchema->resultset('Pfam
 
 sub write_stockholm_file {
   my ( $self, $filename, $aln, $GFAnn) = @_;
