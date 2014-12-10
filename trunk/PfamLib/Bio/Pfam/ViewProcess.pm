@@ -1921,7 +1921,7 @@ sub versionFiles {
   my $currentVersions =
     $self->pfamdb->getSchema->resultset('CurrentPfamVersion')->update_or_create(
     {
-      auto_pfama => $self->pfam->auto_pfama,
+      pfama_acc => $self->pfam->pfama_acc,
       seed       => $fileCheckSums{SEED},
       align      => $fileCheckSums{ALIGN},
       desc_file  => $fileCheckSums{DESC} ? $fileCheckSums{DESC} : '',
@@ -1932,10 +1932,10 @@ sub versionFiles {
   #Get the release versions
   my $releasedVersions =
     $self->pfamdb->getSchema->resultset('ReleasedPfamVersion')
-    ->find( { auto_pfama => $self->pfam->auto_pfama } );
+    ->find( { pfama_acc => $self->pfam->pfama_acc } );
 
   my ( $thisVersion, $changeStatus );
-  if ( $releasedVersions and $releasedVersions->auto_pfama ) {
+  if ( $releasedVersions and $releasedVersions->pfama_acc ) {
     $changeStatus = 'NOCHANGE';
 
     #If the release version are different, then we need to add them to the
