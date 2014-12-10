@@ -117,7 +117,7 @@ sub initiateActiveSiteObj {
   my ($self, $GFAnn) = @_;
   my $asp;
     $asp = Bio::Pfam::Active_site::as_align->new(
-        -auto      => $self->pfam->auto_pfama,
+        -auto      => $self->pfam->pfama_acc,
       -database  => $self->pfamdb,
       -nested    => $GFAnn->{nestA}
     );
@@ -1991,7 +1991,6 @@ sub getClanData {
     return ( $row->clan_acc );
   }
 }
-    $self->pfamdb->getSchema->resultset('Pfam
 
 sub write_stockholm_file {
   my ( $self, $filename, $aln, $GFAnn) = @_;
