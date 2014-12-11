@@ -1002,19 +1002,19 @@ sub checkflat {
 sub pfamProteomes {
   my ( $self ) = @_;
   $self->logger->debug("Deleting proteome information");
-  $self->pfamdb->getSchema->resultset('ProteomeRegions')
-    ->search( { auto_pfama => $self->pfam->auto_pfama } )->delete;
+  $self->pfamdb->getSchema->resultset('ProteomeRegion')
+    ->search( { pfama_acc => $self->pfam->pfama_acc } )->delete;
 
   $self->logger->debug("Updating the proteome information");
 
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
   $dbh->do(
-"INSERT INTO proteome_regions (auto_proteome, auto_pfamseq, auto_pfamA, count) "
-      . "SELECT c.auto_proteome, p.auto_pfamseq, r.auto_pfamA, count(*) FROM "
+"INSERT INTO proteome_regions (auto_proteome, pfamseq_acc, pfamA_acc, count) "
+      . "SELECT c.auto_proteome, p.pfamseq_acc, r.pfamA_acc, count(*) FROM "
       . "pfamA_reg_full_significant r,  proteome_pfamseq p, complete_proteomes c "
-      . "WHERE r.auto_pfamseq=p.auto_pfamseq AND in_full=1 AND c.auto_proteome=p.auto_proteome AND auto_pfamA="
-      . $self->pfam->auto_pfama
-      . " GROUP BY r.auto_pfamseq" )
+      . "WHERE r.pfamseq_acc=p.pfamseq_acc AND in_full=1 AND c.auto_proteome=p.auto_proteome AND pfamA_acc="
+      . $self->pfam->pfama_acc
+      . " GROUP BY r.pfamseq_acc" )
     or $self->mailUserAndFail(
     "Failed to update the proteome data for "
       . $self->pfam->pfama_acc
