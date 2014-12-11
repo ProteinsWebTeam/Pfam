@@ -99,20 +99,9 @@ sub view {
 sub commitFamily {
   my ( $self, $pfamDB, $msg ) = @_;
 
-#TODO remove file creation and all prints to this file
-#file for debug
-  open (FILE, ">/tmp/File_checkin_commit_track_PF07960.$$") or die "can't open file";
-#TODO remove
-print FILE "start " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-
- 
   my $author = $self->author;
   #Make an object to respresent the family based on the SVN transcation
   my $familyIO = Bio::Pfam::FamilyIO->new;
-
-#print to tmp
- print FILE "make fam object " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-  
   my ($famObj, $family, $dir);
   my @updated = $self->updated();
   
@@ -123,41 +112,16 @@ print FILE "start " . DateTime::Format::MySQL->format_datetime( DateTime->now ) 
   }else{
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
 
-#print to tmp
-  print FILE "get fam object " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-   
     #Perform QC on the family
     $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, $msg);
-
-#print to tmp
-  print FILE "qc fam " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-
     $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
-
-#print to tmp
-  print FILE "update in rdb " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-
     $familyIO->updatePfamARegions($famObj, $pfamDB);
-
-#print to tmp
-  print FILE "update pfama regions " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-
     $familyIO->uploadPfamAHMM($famObj, $pfamDB, $dir, 0);
-
-#print to tmp
-  print FILE "upload hmm " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-
     $familyIO->uploadPfamAAligns($famObj, $pfamDB, $dir, 0);
-
-#print to tmp
-  print FILE "upload align " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
 
   }
   $guard->commit;
 
-#print to tmp
-  print FILE "commit " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-   
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
     $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
@@ -165,10 +129,6 @@ print FILE "start " . DateTime::Format::MySQL->format_datetime( DateTime->now ) 
     #If we have not died, then we should be good to go! 
    $self->view->initiateViewProcess($famObj, $author);
   }
-
-#print to tmp
-  print FILE "view process " . DateTime::Format::MySQL->format_datetime( DateTime->now ) . "\n";
-  close FILE;
 
 }
 
@@ -190,7 +150,6 @@ sub commitNewFamily {
   #Now perform the QC steps.....
   $self->_qualityControlFamily($famObj, $dir, $family, $pfamDB, "", 1);
   #Need to check the sequences.....
-#TODO 
   
   #Okay, if we get to here, then we should be okay!
   #Now upload the family to Pfam  
