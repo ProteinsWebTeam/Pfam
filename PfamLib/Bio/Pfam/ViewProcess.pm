@@ -431,7 +431,7 @@ sub mailUserAndFail {
   if ( $self->job->user_id ) {
 
     my %header = (
-      To      => $self->job->user_id . '@sanger.ac.uk',
+      To      => $self->job->user_id . '@ebi.ac.uk',
       Cc      => $self->config->view_process_admin,
       From    => $self->config->view_process_admin,
       Subject => 'Error in view process for ' . $self->job->entity_id
@@ -607,7 +607,7 @@ sub _getFullRegions {
    my $regs = $self->pfamdb
                     ->getSchema
                       ->resultset('Pfamseq')
-                        ->search({'pfama_reg_full_significants.auto_pfama' => $self->pfam->auto_pfama,
+                        ->search({'pfama_reg_full_significants.pfama_acc' => $self->pfam->pfama_acc,
                                   'pfama_reg_full_significants.in_full' => 1,                },
                                  { prefetch => 'pfama_reg_full_significants' });
 
@@ -655,7 +655,7 @@ sub _getSeedRegions {
   return ( \%regs );
 }
 
-sub _verifyFullRegions {
+sub _FullRegions {
   my ( $self, $regs, $a ) = @_;
   my ($ali);
 
@@ -946,8 +946,8 @@ sub addSecondaryStructure {
       }
       #$self->logger->debug(p($map));
       #Delete all auto_pfamAs
-      $self->pfamdb->getSchema->resultset('PdbPfamaReg')
-        ->search( { auto_pfamA => $self->pfam->auto_pfama } )->delete;
+      $self->pfamdb->getSchema->resultset('PdbPfamAReg')
+        ->search( { pfama_acc => $self->pfam->pfama_acc } )->delete;
 
       #Add the pdbmap data to pdb_pfamA_reg
       my %autoPdbs;
@@ -957,12 +957,12 @@ sub addSecondaryStructure {
             #"Inserting row into PdbPfamaReg " . $regs->{$nse}->auto_pfama );
 
           #Now reinsert
-          $self->pfamdb->getSchema->resultset('PdbPfamaReg')->create(
+          $self->pfamdb->getSchema->resultset('PdbPfamAReg')->create(
             {
               auto_pfama_reg_full => $regs->{$nse}->{dom}->auto_pfama_reg_full,
               pdb_id              => $pdbReg->{pdb_id},
-              auto_pfama          => $regs->{$nse}->{dom}->auto_pfama,
-              auto_pfamseq        => $regs->{$nse}->{dom}->auto_pfamseq,
+              pfama_acc          => $regs->{$nse}->{dom}->pfama_acc,
+              pfamseq_acc        => $regs->{$nse}->{dom}->pfamseq_acc,
               chain               => $pdbReg->{chain},
               pdb_res_start       => $pdbReg->{pdb_start},
               pdb_start_icode     => $pdbReg->{pdb_start_icode},
@@ -1292,9 +1292,9 @@ sub _generateCigarString {
 sub _getDsspData {
   my ( $self, $type ) = @_;
   
-  my $autoPfamA = $self->pfam->auto_pfama;
+  my $pfamA = $self->pfam->pfama_acc;
   $self->logger->debug(
-    "Going to fetch Secondary structure information for auto_pfamA $autoPfamA"
+    "Going to fetch Secondary structure information for pfamA $pfamA"
   );
 
 
@@ -1302,7 +1302,7 @@ sub _getDsspData {
   if ( $type eq 'full' ) {
     @dssp = $self->pfamdb->getSchema->resultset("PdbResidueData")->search(
       {
-        "pfamA_reg_full_significant.auto_pfama" => $autoPfamA,
+        "pfamA_reg_full_significant.pfama_acc" => $pfamA,
         "pfamA_reg_full_significant.in_full"    => 1,
         observed                          => 1
       },
@@ -1321,7 +1321,7 @@ sub _getDsspData {
   elsif ( $type eq 'seed' ) {
     @dssp = $self->pfamdb->getSchema->resultset("PdbResidueData")->search(
       {
-        "pfamA_reg_seed.auto_pfama" => $autoPfamA,
+        "pfamA_reg_seed.pfama_acc" => $pfamA,
         observed              => 1
       },
       {
@@ -1719,9 +1719,9 @@ sub makeNonRedundantFasta {
     or $self->mailUserAndFail( 
     "Failed to gzip family.fa:[$!]" );
   my $familyFA = join( "", <GZFA> );
-  $self->pfamdb->getSchema->resultset('PfamaFasta')->update_or_create(
+  $self->pfamdb->getSchema->resultset('PfamAFasta')->update_or_create(
     {
-      auto_pfama   => $self->pfam->auto_pfama,
+      pfama_acc   => $self->pfam->pfama_acc,
       fasta        => $familyFA,
       nr_threshold => $identity
     },
@@ -1757,9 +1757,9 @@ sub makeHTMLAlign {
       "Failed to gzip $filename.pp:[$!]" );
     my $pp = join( "", <GZPP> );
 
-    $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->update_or_create(
+    $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create(
       {
-        auto_pfama => $self->pfam->auto_pfama,
+        pfama_acc => $self->pfam->pfama_acc,
         type       => $type,
         post       => $pp
       },
@@ -1768,9 +1768,9 @@ sub makeHTMLAlign {
 
   }
 
-  $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->update_or_create(
+  $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create(
     {
-      auto_pfama => $self->pfam->auto_pfama,
+      pfama_acc => $self->pfam->pfama_acc,
       type       => $type,
       jtml       => $align
     },
@@ -1795,9 +1795,9 @@ sub makePPAlign {
       "Failed to gzip $filename.pp:[$!]" );
     my $pp = join( "", <GZPP> );
 
-    $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->update_or_create(
+    $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create(
       {
-        auto_pfama => $self->pfam->auto_pfama,
+        pfama_acc => $self->pfam->pfama_acc,
         type       => $type,
         post       => $pp
       },
@@ -1831,9 +1831,9 @@ sub uploadTreesAndAlign {
   $self->logger->debug("Uploading $type trees and alignments");
 
   #Do this is steps.  Two reasons, better error tracking and more memory efficient
-  my $row = $self->pfamdb->getSchema->resultset('AlignmentsAndTrees')->find_or_create(
+  my $row = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find_or_create(
     {
-      auto_pfama => $self->pfam->auto_pfama,
+      pfama_acc => $self->pfam->pfama_acc,
       type       => $type
     },
     { key => 'UQ_alignments_and_trees_1' }
