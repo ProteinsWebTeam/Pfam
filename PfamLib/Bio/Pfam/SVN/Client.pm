@@ -55,6 +55,10 @@ use File::Copy;
 use File::Temp;
 use Data::Dump qw(dump);
 
+#use date::time for debug for big fams
+use DateTime;
+use DateTime::Format::MySQL;
+
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 #-------------------------------------------------------------------------------
@@ -575,6 +579,7 @@ sub commitFamily {
   foreach my $file ( @{ $self->{config}->mandatoryFamilyFiles } ) {
     push(@files, "$family/$file");
   }
+
   eval { $cinfo = $self->{txn}->commit( \@files, 1); };
 
   if ($@) {
