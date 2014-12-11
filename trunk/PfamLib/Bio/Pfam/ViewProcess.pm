@@ -1029,8 +1029,8 @@ sub pfamTaxDepth {
 #-------------------------------------------------------------------------------
 #Now update the taxomonic depth/range information
   $self->logger->debug("Deleting tax depth information");
-  $self->pfamdb->getSchema->resultset('PfamaTaxDepth')
-    ->search( { auto_pfama => $self->pfam->auto_pfama } )->delete;
+  $self->pfamdb->getSchema->resultset('PfamATaxDepth')
+    ->search( { pfama_acc => $self->pfam->pfama_acc } )->delete;
 
   $self->logger->debug("Fetching taxonomic roots");
 
@@ -1048,8 +1048,8 @@ sub pfamTaxDepth {
   #Now populate it;
   $dbh->do(
 "INSERT INTO $table SELECT distinct s.pfamseq_acc from pfamseq s, pfamA_reg_full_significant r
-            WHERE in_full=1 AND r.auto_pfamseq=s.auto_pfamseq and r.auto_pfamA="
-      . $self->pfam->auto_pfama
+            WHERE in_full=1 AND r.pfamseq_acc=s.pfamseq_acc and r.pfamA_acc="
+      . $self->pfam->pfama_acc
     )
     or $dbh->errstr;
 
@@ -1069,7 +1069,7 @@ sub pfamTaxDepth {
   ) or die $dbh->errstr();
 
   my $sthMinMax = $dbh->prepare(
-    "SELECT min(lft), max(rgt), count(auto_pfamseq) 
+    "SELECT min(lft), max(rgt), count(pfamseq_acc) 
                                             FROM  $table r, pfamseq s, taxonomy t 
                                             WHERE s.pfamseq_acc=r.pfamseq_acc 
                                             AND t.ncbi_taxid=s.ncbi_taxid 
