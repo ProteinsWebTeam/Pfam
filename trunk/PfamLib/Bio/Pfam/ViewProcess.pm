@@ -2267,18 +2267,18 @@ sub makeSpeciesJsonString {
   #List of seed sequences
   my $seedSth =
     $dbh->prepare(
-"select pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.auto_pfamseq=r.auto_pfamseq and auto_pfamA= ?"
+"select pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ?"
     );
   my $fullSth =
     $dbh->prepare(
-"select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.auto_pfamseq) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.auto_pfamseq=r.auto_pfamseq and auto_pfamA= ? and in_full =1 and t.species!=\'NULL\' group by s.auto_pfamseq"
+"select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ? and in_full =1 and t.species!=\'NULL\' group by s.pfamseq_acc"
     );
   my $taxFSth =
     $dbh->prepare(
     "select parent, minimal, level, rank from taxonomy where ncbi_taxid=?");
   my $unclassSth =
     $dbh->prepare(
-q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.auto_pfamseq = r.auto_pfamseq AND auto_pfamA = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.auto_pfamseq ]
+q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.pfamseq_acc = r.pfamseq_acc AND pfamA_acc = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.pfamseq_acc ]
     );
 
 #-------------------------------------------------------------------------------
@@ -2296,7 +2296,7 @@ q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxi
     'Unclassified sequence' => 'sequence',
   );
 
-  $seedSth->execute($self->pfam->auto_pfama);
+  $seedSth->execute($self->pfam->pfama_acc);
   my %seedSeqs;
   foreach my $rRef ( @{ $seedSth->fetchall_arrayref } ) {
 
@@ -2312,7 +2312,7 @@ q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxi
 
   # build the list of unclassified levels
 
-  $unclassSth->execute($self->pfam->auto_pfama);
+  $unclassSth->execute($self->pfam->pfama_acc);
   foreach my $rRef ( @{ $unclassSth->fetchall_arrayref } ) {
     my $thisBranch;
     $thisBranch->{sequence} = {
@@ -2394,7 +2394,7 @@ q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxi
 
   # build the full tree
 
-  $fullSth->execute($self->pfam->auto_pfama);
+  $fullSth->execute($self->pfam->pfama_acc);
   foreach my $rRef ( @{ $fullSth->fetchall_arrayref } ) {
 
     my $thisBranch;
@@ -2516,9 +2516,9 @@ q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.auto_pfamseq), s.ncbi_taxi
 
   my $json_string = $json->encode($rootedTree);
 
-  $self->pfamdb->getSchema->resultset('PfamaSpeciesTree')->update_or_create(
+  $self->pfamdb->getSchema->resultset('PfamASpeciesTree')->update_or_create(
     {
-      auto_pfama  => $self->pfam->auto_pfama,
+      pfama_acc  => $self->pfam->pfama_acc,
       json_string => $json_string
     }
   );
