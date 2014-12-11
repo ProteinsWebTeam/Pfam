@@ -1176,9 +1176,9 @@ sub processHMMs {
   open( HMM, "HMM.ann" ) or die;
   my $hmm = join( "", <HMM> );
   close(HMM);
-  $self->pfamdb->getSchema->resultset('PfamaHmm')->update_or_create(
+  $self->pfamdb->getSchema->resultset('PfamAHmm')->update_or_create(
     {
-      auto_pfama => $pfam->auto_pfama,
+      pfama_acc => $pfam->pfama_acc,
       hmm        => $hmm
     }
   );
@@ -1229,9 +1229,9 @@ sub _makeHMMLogo {
   close(LOGO);
 
   #Now upload this logo into the RDB.
-  $self->pfamdb->getSchema->resultset('PfamaHmm')->update_or_create(
+  $self->pfamdb->getSchema->resultset('PfamAHmm')->update_or_create(
     {
-      auto_pfama => $self->pfam->auto_pfama,
+      pfama_acc => $self->pfam->pfama_acc,
       logo       => $hmmLogo
     }
   );
