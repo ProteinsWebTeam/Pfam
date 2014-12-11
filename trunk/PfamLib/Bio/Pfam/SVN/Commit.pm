@@ -371,15 +371,16 @@ sub _qualityControlFamily {
     #clan
      
   }  
-  
-  if(defined($msg) and $msg !~ /Release \S+ update/){
-    my $compete = 1;
-    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
-    warn "$family: found $overlaps overlaps\n";
-    if ($overlaps) {
-      confess("Found overlaps\n");
-    }
-  }
+
+#TODO - re-enable this check  
+#  if(defined($msg) and $msg !~ /Release \S+ update/){
+#    my $compete = 1;
+#    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete );
+#    warn "$family: found $overlaps overlaps\n";
+#    if ($overlaps) {
+#      confess("Found overlaps\n");
+#    }
+#  }
 }
 
 sub moveClan {
