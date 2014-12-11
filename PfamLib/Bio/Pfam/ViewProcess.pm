@@ -634,7 +634,7 @@ sub _getSeedRegions {
   my $regs = $self->pfamdb
                     ->getSchema
                       ->resultset('Pfamseq')
-                        ->search({'pfama_reg_seeds.auto_pfama' => $self->pfam->auto_pfama,
+                        ->search({'pfama_reg_seeds.pfama_acc' => $self->pfam->pfama_acc,
                                                   },
                                                             { prefetch => 'pfama_reg_seeds' });
 
