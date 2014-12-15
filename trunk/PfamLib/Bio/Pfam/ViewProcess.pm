@@ -607,13 +607,13 @@ sub _getFullRegions {
    my $regs = $self->pfamdb
                     ->getSchema
                       ->resultset('Pfamseq')
-                        ->search({'pfama_reg_full_significants.pfama_acc' => $self->pfam->pfama_acc,
-                                  'pfama_reg_full_significants.in_full' => 1,                },
-                                 { prefetch => 'pfama_reg_full_significants' });
+                        ->search({'pfam_a_reg_full_significants.pfama_acc' => $self->pfam->pfama_acc,
+                                  'pfam_a_reg_full_significants.in_full' => 1,                },
+                                 { prefetch => 'pfam_a_reg_full_significants' });
 
   my %regs;
   while(my $row = $regs->next){
-    my @doms = $row->pfama_reg_full_significants;
+    my @doms = $row->pfam_a_reg_full_significants;
     foreach my $dom (@doms){
       my $data = $row->get_column_data;
       $data->{dom} = $dom;
