@@ -44,13 +44,13 @@ sub new {
   my $args = ( ref $args[0] eq 'HASH' ) ? shift @args : { @args };
 
 
-  croak "FATAL - no auto number passed\n" unless( $args->{-auto} || $args->{-AUTO});
+  croak "FATAL - no pfama_acc passed\n" unless( $args->{-pfama_acc} || $args->{-PFAMA_ACC});
   croak "FATAL - no database object passed\n" unless( $args->{-database} || $args->{-DATABASE});
 
 
   $self->{alignment} = $args->{-alignment} || $args->{-ALIGNMENT};
   $self->{seed} = $args->{-seed} || $args->{-SEED};
-  $self->{auto} = $args->{-auto} || $args->{-AUTO};
+  $self->{pfama_acc} = $args->{-pfama_acc} || $args->{-PFAMA_ACC};
   $self->{nested} = $args->{-nested} || $args->{-NESTED};
   $self->{database} = $args->{-database} || $args->{-DATABASE};
 
@@ -96,7 +96,7 @@ sub full {
 
     #To replace the above with explicit SQL.
     my $dbh = $self->{database}->getSchema->storage->dbh;
-    $dbh->do("select m.* from pfamseq_markup m inner join  pfamA_reg_full_significant r where auto_markup=2 and m.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=".$self->{auto}.";");
+    $dbh->do("select m.* from pfamseq_markup m inner join  pfamA_reg_full_significant r where auto_markup=2 and m.pfamseq_acc=r.pfamseq_acc and r.pfamA_acc='".$self->{pfama_acc}."';");
     
     #Delete old active site alignment
     #my $old_aln = $self->{database}->getSchema->resultset('ActiveSiteAlignments')->find( {"auto_pfamA" => $self->{auto} });
@@ -105,14 +105,14 @@ sub full {
     #}
 
     #And again, replace with explicit SQL - one of these two queries were following the entry and deleting the entry!
-    $dbh->do("delete from _active_site_alignments where auto_pfamA=".$self->{auto}.";");
+    $dbh->do("delete from _active_site_alignments where pfamA_acc='".$self->{pfama_acc}."';");
 
     
 
     #Retrieve experimental and swiss prot predicted active sites for sequences in pfamA family
     my @as_data = $self->{database}->getSchema
 	->resultset('Pfamseq')
-	->search( { auto_pfama => $self->{auto},
+	->search( { pfama_acc => $self->{pfama_acc},
 		    auto_markup => [qw( 1 3 )],
 		    in_full => 1 },
 		  { select  => [ qw (pfamseq_acc pfamseq_id pfamseq_markups.residue pfamseq_markups.auto_markup ) ],
@@ -149,7 +149,7 @@ sub full {
 
 	$self->{database}->getSchema
 	    ->resultset('ActiveSiteAlignments')
-	    ->update_or_create( {auto_pfama => $self->{auto},
+	    ->update_or_create( {pfama_acc => $self->{pfama_acc},
 				 alignment => $db_as_alignment,
 				 as_residues => $self->{_as_res_pos} });
 	unlink "/tmp/as_aln.$$";
@@ -640,11 +640,11 @@ sub _add_pred_as {
 	       $seq1->add_SeqFeature($pred_feat);  
 	       push(@{$self->{_pfamAS}->{$seq1->id}}, $actual_pos);
 
-	       my $auto_pfamseq = $self->id2acc($seq1->id);
+	       my $pfamseq_acc = $self->id2acc($seq1->id);
 
 	       $self->{database}->getSchema
 		   ->resultset('PfamseqMarkup')
-		   ->update_or_create( {auto_pfamseq => $auto_pfamseq,
+		   ->update_or_create( {pfamseq_acc => $pfamseq_acc,
 					auto_markup => "2",
 					residue => $actual_pos });
 
@@ -732,11 +732,11 @@ sub _expand_as {
                                                                     -tag => { position => $actual_pos} );
 
                         $seq1->add_SeqFeature($feat);                      
-			my $auto_pfamseq = $self->id2acc($seq1->id);
+			my $pfamseq = $self->id2acc($seq1->id);
 
 			$self->{database}->getSchema
 			    ->resultset('PfamseqMarkup')
-			    ->update_or_create( {auto_pfamseq => $auto_pfamseq,
+			    ->update_or_create( {pfamseq_acc => $pfamseq,
 						 auto_markup => "2",
 						 residue => $actual_pos });
                        
