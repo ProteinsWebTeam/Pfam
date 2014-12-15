@@ -503,6 +503,8 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RNKEO1/inp37RFqqPOd+ig
 
+__PACKAGE__->load_components(qw/ Result::ColumnData /);
+__PACKAGE__->register_relationships_column_data();
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
