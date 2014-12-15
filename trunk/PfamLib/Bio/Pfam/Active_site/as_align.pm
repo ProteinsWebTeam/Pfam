@@ -117,7 +117,7 @@ sub full {
 		    in_full => 1 },
 		  { select  => [ qw (pfamseq_acc pfamseq_id pfamseq_markups.residue pfamseq_markups.auto_markup ) ],
 		    as      => [qw(pfamseq_acc pfamseq_id residue auto_markup )],
-		    join    => [ qw ( pfama_reg_full_significants pfamseq_markups )] });
+		    join    => [ qw ( pfam_a_reg_full_significants pfamseq_markups )] });
     
     
     foreach my $as (@as_data){
