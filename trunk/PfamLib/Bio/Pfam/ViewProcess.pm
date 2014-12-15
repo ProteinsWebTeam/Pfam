@@ -2608,14 +2608,15 @@ sub getJob {
   $self->logger->debug("Got job databse object");
 
   if ( $self->options->{famId} ) {
-    if ( $self->options->{famId} ne $job->entity_id ) {
-      $self->mailPfam( "Failed to run view process for "
-          . $self->options->{famId}
+    
+      if ( $self->options->{famId} ne $job->entity_id ) {
+	  $self->mailPfam( "Failed to run view process for "
+	  . $self->options->{famId}
           . "Miss-match between family id ("
           . $job->entity_id
-          . " and the information contained in the database for "
-          . $self->options->{uid} );
-    }
+     	  . " and the information contained in the database for "
+     	  . $self->options->{uid} );
+      } 
   }
   
   #Now add it to the object
@@ -2731,9 +2732,9 @@ sub getGFAnnotations {
     $self->pfamdb->getSchema->resultset('PfamALiteratureReference')->search(
     { pfama_acc => $self->pfam->pfama_acc },
     {
-      join     => [qw(literature)],
+      join     => [qw(auto_lit)],
       order_by => 'order_added ASC',
-      prefecth => [qw(literature)]
+      prefetch => [qw(auto_lit)]
     }
     );
   $self->logger->debug( "Got " . scalar(@litRefs) . " literature references" );
