@@ -1305,12 +1305,12 @@ sub _getDsspData {
   if ( $type eq 'full' ) {
     @dssp = $self->pfamdb->getSchema->resultset("PdbResidueData")->search(
       {
-        "pfamA_reg_full_significant.pfama_acc" => $pfamA,
-        "pfamA_reg_full_significant.in_full"    => 1,
+        "pfam_a_reg_full_significants.pfama_acc" => $pfamA,
+        "pfam_a_reg_full_significants.in_full"    => 1,
         observed                          => 1
       },
       {
-        join   => [qw( pfamA_reg_full_significant )],
+        join   => [qw( pfam_a_reg_full_significants )],
         select => [
           qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number pdb_insert_code dssp_code)
         ],
