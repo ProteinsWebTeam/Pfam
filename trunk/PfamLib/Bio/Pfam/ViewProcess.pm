@@ -625,7 +625,7 @@ sub _getFullRegions {
      }
   }
 
-  return ( \%regs );
+	return ( \%regs );
 }
 
 sub _getSeedRegions {
@@ -714,6 +714,21 @@ sub _verifySeedRegions {
     $self->mailUserAndFail(
           "Missmatch between number of regions in PfamA table (num_seed),"
         . " number of regions from PfamA_reg_seed and/or alignment on disk" );
+  }
+}
+
+sub _verifyFullRegions {
+  my ( $self, $regs, $ali ) = @_;
+
+  my @regs = keys(%$regs);
+
+  #QC check
+  if ( ( $ali->num_sequences != $self->pfam->num_full )
+    or ( $ali->num_sequences != scalar(@regs) ) )
+  {
+    $self->mailUserAndFail(
+          "Missmatch between number of regions in PfamA table (num_seed),"
+        . " number of regions from PfamA_reg_full and/or alignment on disk" );
   }
 }
 
