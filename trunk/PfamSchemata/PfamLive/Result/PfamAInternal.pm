@@ -137,7 +137,8 @@ sub msas_uncompressed {
  
   #Seed is always small, so do in memory.
   open(S, '>', 'SEED') or die "Failed to open SEED for writing:[$!]\n";
-  print S Compress::Zlib::memGunzip($self->seed) or warn "Failed to uncompress hits: $gzerrno";
+#  print S Compress::Zlib::memGunzip($self->seed) or warn "Failed to uncompress hits: $gzerrno";
+  print S Compress::Zlib::memGunzip($self->seed) or warn "Failed to uncompress SEED:[$!]\n";
   close(S);
 
 } 
