@@ -16,6 +16,7 @@ use Text::Wrap;
 use JSON;
 use Data::Printer;
 use File::Touch;
+use DDP;
 
 #Need the version from github https://github.com/DaGaMs/Logomat
 use HMM::Profile;
@@ -485,6 +486,8 @@ sub processALIGN {
 
 #-------------------------------------------------------------------------------
 #Adding annotations.
+#TODO remove print below (debugging)
+#print "Ali: " . p($ali);
 
   #Predict active site residues
   $self->logger->debug("Going to add active site data to FULL");
@@ -655,7 +658,7 @@ sub _getSeedRegions {
   return ( \%regs );
 }
 
-sub _FullRegions {
+sub _verifyFullRegions {
   my ( $self, $regs, $a ) = @_;
   my ($ali);
 
@@ -714,21 +717,6 @@ sub _verifySeedRegions {
     $self->mailUserAndFail(
           "Missmatch between number of regions in PfamA table (num_seed),"
         . " number of regions from PfamA_reg_seed and/or alignment on disk" );
-  }
-}
-
-sub _verifyFullRegions {
-  my ( $self, $regs, $ali ) = @_;
-
-  my @regs = keys(%$regs);
-
-  #QC check
-  if ( ( $ali->num_sequences != $self->pfam->num_full )
-    or ( $ali->num_sequences != scalar(@regs) ) )
-  {
-    $self->mailUserAndFail(
-          "Missmatch between number of regions in PfamA table (num_full),"
-        . " number of regions from PfamA_reg_full and/or alignment on disk" );
   }
 }
 
