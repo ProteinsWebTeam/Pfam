@@ -117,7 +117,7 @@ sub initiateActiveSiteObj {
   my ($self, $GFAnn) = @_;
   my $asp;
     $asp = Bio::Pfam::Active_site::as_align->new(
-        -auto      => $self->pfam->pfama_acc,
+        -pfama_acc      => $self->pfam->pfama_acc,
       -database  => $self->pfamdb,
       -nested    => $GFAnn->{nestA}
     );
@@ -727,7 +727,7 @@ sub _verifyFullRegions {
     or ( $ali->num_sequences != scalar(@regs) ) )
   {
     $self->mailUserAndFail(
-          "Missmatch between number of regions in PfamA table (num_seed),"
+          "Missmatch between number of regions in PfamA table (num_full),"
         . " number of regions from PfamA_reg_full and/or alignment on disk" );
   }
 }
