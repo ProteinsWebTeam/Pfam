@@ -122,6 +122,27 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nWR7R3aEmzgLA3VEK4Kd8Q
 
+sub msas_uncompressed {
+  my $self = shift;
+
+  #open(A, '>', 'ALIGN') or die "Failed to open ALIGN:[$!]\n";
+  #print A Compress::Zlib::memGunzip($self->full) or warn "Failed to uncompress hits: $gzerrno";
+  #close(A);
+  
+   
+  open(A, '>', 'ALIGN.gz') or die "Failed to open ALIGN:[$!]\n";
+  print A $self->full;
+  close(A);
+  system("gunzip ALIGN.gz") and die "Failed to uncompress ALIGN!\n";
+ 
+  #Seed is always small, so do in memory.
+  open(S, '>', 'SEED') or die "Failed to open SEED for writing:[$!]\n";
+  print S Compress::Zlib::memGunzip($self->seed) or warn "Failed to uncompress hits: $gzerrno";
+  close(S);
+
+} 
+
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
