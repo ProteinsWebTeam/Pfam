@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Cwd;
+use File::Temp;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamQC;
@@ -27,7 +28,8 @@ $client->checkFamilyExists($family);
 my $pwd          = getcwd();
 my $familyIO     = Bio::Pfam::FamilyIO->new;
 my $localFamObj  = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
-my $remoteFamObj = $familyIO->loadPfamAFromSVN($family, $client);
+my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
+my $remoteFamObj = $familyIO->loadPfamAFromSVN($family, $dir, $client);
 
 my $success = Bio::Pfam::PfamQC::noMissing($localFamObj, $remoteFamObj, $family);
 
