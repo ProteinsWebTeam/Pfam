@@ -1015,9 +1015,9 @@ sub pfamProteomes {
 "INSERT INTO proteome_regions (auto_proteome, pfamseq_acc, pfamA_acc, count) "
       . "SELECT c.auto_proteome, p.pfamseq_acc, r.pfamA_acc, count(*) FROM "
       . "pfamA_reg_full_significant r,  proteome_pfamseq p, complete_proteomes c "
-      . "WHERE r.pfamseq_acc=p.pfamseq_acc AND in_full=1 AND c.auto_proteome=p.auto_proteome AND pfamA_acc="
+      . "WHERE r.pfamseq_acc=p.pfamseq_acc AND in_full=1 AND c.auto_proteome=p.auto_proteome AND pfamA_acc='"
       . $self->pfam->pfama_acc
-      . " GROUP BY r.pfamseq_acc" )
+      . "' GROUP BY r.pfamseq_acc" )
     or $self->mailUserAndFail(
     "Failed to update the proteome data for "
       . $self->pfam->pfama_acc
@@ -1044,15 +1044,15 @@ sub pfamTaxDepth {
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
   my $table     = "_taxDist$$";    #Keep the table name for later use.
   my $statement =
-      "create temporary table $table ( `pfamseq_acc` varchar(6) NOT NULL,"
+      "create temporary table $table ( `pfamseq_acc` varchar(10) NOT NULL,"
     . "PRIMARY KEY (pfamseq_acc) )";
   $dbh->do($statement) or die $dbh->errstr;
 
   #Now populate it;
   $dbh->do(
 "INSERT INTO $table SELECT distinct s.pfamseq_acc from pfamseq s, pfamA_reg_full_significant r
-            WHERE in_full=1 AND r.pfamseq_acc=s.pfamseq_acc and r.pfamA_acc="
-      . $self->pfam->pfama_acc
+            WHERE in_full=1 AND r.pfamseq_acc=s.pfamseq_acc and r.pfamA_acc='"
+      . $self->pfam->pfama_acc . "'"
     )
     or $dbh->errstr;
 
