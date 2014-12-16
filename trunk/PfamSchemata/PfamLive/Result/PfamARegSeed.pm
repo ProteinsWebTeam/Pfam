@@ -111,6 +111,12 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FJKQfkhPX7Pzy195HKeE7w
 
+__PACKAGE__->add_unique_constraint(
+ 	"pfamA_reg_seed_reg_idx",
+ 	["pfama_acc", "pfamseq_acc", "seq_start", "seq_end"],
+ 	);
+
+__PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start", "seq_end");
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
