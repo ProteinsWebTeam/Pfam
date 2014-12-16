@@ -107,7 +107,8 @@ if ( $forward and $forward !~ /^PF\d{5}/ ) {
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkFamilyExists($family);
 my $familyIO = Bio::Pfam::FamilyIO->new;
-my $famObj = $familyIO->loadPfamAFromSVN( $family, $client );
+my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
+my $famObj = $familyIO->loadPfamAFromSVN( $family, $dir, $client );
 
 #-------------------------------------------------------------------------------
 # This bit is based on the old pfkill. Get a comment as to why the family has been
