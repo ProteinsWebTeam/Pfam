@@ -9,6 +9,7 @@ use warnings;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
+use File::Temp;
 
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::FamilyIO;
@@ -113,7 +114,8 @@ unless($onlydesc){
 }
 $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded local copy $family through middleware\n";
-$oldFamObj = $familyIO->loadPfamAFromSVN( $family, $client );
+my $dir = File::Temp->newdir( 'CLEANUP' => 1 );
+$oldFamObj = $familyIO->loadPfamAFromSVN( $family, $dir, $client );
 print STDERR "Successfully loaded SVN copy of $family through middleware\n";
 
 #-------------------------------------------------------------------------------
