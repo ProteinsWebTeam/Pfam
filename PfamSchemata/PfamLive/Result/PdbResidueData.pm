@@ -153,5 +153,8 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->might_have( pfam_a_reg_full_significants => "PfamLive::Result::PfamARegFullSignificant",
  { "foreign.pfamseq_acc" => "self.pfamseq_acc"});
 
+__PACKAGE__->might_have( pfam_a_reg_seeds => "PfamLive::Result::PfamARegSeed",
+ 	{ "foreign.pfamseq_acc" => "self.pfamseq_acc"});
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
