@@ -118,6 +118,7 @@ sub loadPfamAFromSVN {
   }
   my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn' );
   return $famObj;
+
 }
 
 sub parseScores {
