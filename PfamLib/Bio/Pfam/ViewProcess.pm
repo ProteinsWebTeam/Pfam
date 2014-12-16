@@ -655,7 +655,6 @@ sub _getSeedRegions {
      }
   }
   
-p(%regs);
   return ( \%regs );
 }
 
@@ -1325,11 +1324,11 @@ sub _getDsspData {
   elsif ( $type eq 'seed' ) {
     @dssp = $self->pfamdb->getSchema->resultset("PdbResidueData")->search(
       {
-        "pfamA_reg_seed.pfama_acc" => $pfamA,
+        "pfam_a_reg_seeds.pfama_acc" => $pfamA,
         observed              => 1
       },
       {
-        join   => [qw( pfamA_reg_seed )],
+        join   => [qw( pfam_a_reg_seeds )],
         select => [
           qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number pdb_insert_code dssp_code)
         ],
@@ -2271,18 +2270,18 @@ sub makeSpeciesJsonString {
   #List of seed sequences
   my $seedSth =
     $dbh->prepare(
-"select pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ?"
+"select s.pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ?"
     );
   my $fullSth =
     $dbh->prepare(
-"select t.species, parent, minimal, rank, pfamseq_acc, t.ncbi_taxid, count(s.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ? and in_full =1 and t.species!=\'NULL\' group by s.pfamseq_acc"
+"select t.species, parent, minimal, rank, s.pfamseq_acc, t.ncbi_taxid, count(s.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ? and in_full =1 and t.species!=\'NULL\' group by s.pfamseq_acc"
     );
   my $taxFSth =
     $dbh->prepare(
     "select parent, minimal, level, rank from taxonomy where ncbi_taxid=?");
   my $unclassSth =
     $dbh->prepare(
-q[ SELECT s.species, s.taxonomy, pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.pfamseq_acc = r.pfamseq_acc AND pfamA_acc = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.pfamseq_acc ]
+q[ SELECT s.species, s.taxonomy, s.pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.pfamseq_acc = r.pfamseq_acc AND pfamA_acc = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.pfamseq_acc ]
     );
 
 #-------------------------------------------------------------------------------
