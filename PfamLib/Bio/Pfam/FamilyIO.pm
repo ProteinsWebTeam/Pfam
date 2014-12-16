@@ -106,17 +106,17 @@ sub loadPfamAFromLocalFile {
 }
 
 sub loadPfamAFromSVN {
-  my ( $self, $family, $dir, $client ) = @_;
+  my ( $self, $family, $famdir, $client ) = @_;
 
-  mkdir("$dir/$family") or confess("Could not make $dir/$family:[$!]");
+  mkdir("$famdir/$family") or confess("Could not make $famdir/$family:[$!]");
 
   foreach my $f ( @{ $self->{config}->mandatoryFamilyFiles } ) {
     my $fh;
-    open( $fh, ">$dir/$family/$f" ) or die "Could not open $dir/$f";
+    open( $fh, ">$famdir/$family/$f" ) or die "Could not open $famdir/$f";
     $client->catFile( $family, $f, $fh );
     close($fh);
   }
-  my $famObj = $self->loadPfamAFromLocalFile( $family, $dir, 'svn' );
+  my $famObj = $self->loadPfamAFromLocalFile( $family, $famdir, 'svn' );
   return $famObj;
 
 }
