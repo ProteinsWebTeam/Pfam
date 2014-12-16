@@ -637,13 +637,13 @@ sub _getSeedRegions {
   my $regs = $self->pfamdb
                     ->getSchema
                       ->resultset('Pfamseq')
-                        ->search({'pfama_reg_seeds.pfama_acc' => $self->pfam->pfama_acc,
+                        ->search({'pfam_a_reg_seeds.pfama_acc' => $self->pfam->pfama_acc,
                                                   },
-                                                            { prefetch => 'pfama_reg_seeds' });
+                                                            { prefetch => 'pfam_a_reg_seeds' });
 
   my %regs;
   while(my $row = $regs->next){
-    my @doms = $row->pfama_reg_seeds;
+    my @doms = $row->pfam_a_reg_seeds;
     foreach my $dom (@doms){
       my $data = $row->get_column_data;
       $data->{dom} = $dom;
@@ -655,6 +655,7 @@ sub _getSeedRegions {
      }
   }
   
+p(%regs);
   return ( \%regs );
 }
 
