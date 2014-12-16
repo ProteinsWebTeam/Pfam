@@ -269,10 +269,10 @@ $view->logger->debug("Initiating view process for family members");
 # Set of family view processes 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 foreach my $fam (@$clanMemAcc){
-  
+  my $dir = File::Temp->newdir( 'CLEANUP' => 1 ); 
   my $famObj;
   eval{
-    $famObj = $familyIO->loadPfamAFromSVN($fam, $client, 1);
+    $famObj = $familyIO->loadPfamAFromSVN($fam, $dir, $client, 1);
   };
   if($@){
     $view->mailUserAndFail( "makeclanview: Failed to $fam:[$!]" );  
