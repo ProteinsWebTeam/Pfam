@@ -2124,18 +2124,18 @@ sub writeGFAnnotationBlock {
 
   #Add the reference
   foreach my $ref ( @{ $GFAnn->{lrefs} } ) {
-    if ( $ref->pmid ) {
+    if ( $ref->auto_lit->pmid ) {
       if ( ( $ref->comment ) && ( $ref->comment ne "NULL" ) ) {
         print $annfile wrap( "#=GF RC   ", "#=GF RC   ", $ref->comment );
         print $annfile "\n";
       }
       print $annfile "#=GF RN   [" . $ref->order_added . "]\n";
-      print $annfile "#=GF RM   " . $ref->pmid . "\n";
-      print $annfile wrap( "#=GF RT   ", "#=GF RT   ", $ref->title );
+      print $annfile "#=GF RM   " . $ref->auto_lit->pmid . "\n";
+      print $annfile wrap( "#=GF RT   ", "#=GF RT   ", $ref->auto_lit->title );
       print $annfile "\n";
-      print $annfile wrap( "#=GF RA   ", "#=GF RA   ", $ref->author );
+      print $annfile wrap( "#=GF RA   ", "#=GF RA   ", $ref->auto_lit->author );
       print $annfile "\n";
-      print $annfile "#=GF RL   " . $ref->journal . "\n";
+      print $annfile "#=GF RL   " . $ref->auto_lit->journal . "\n";
     }
   }
 
