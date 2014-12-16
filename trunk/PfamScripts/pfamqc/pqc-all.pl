@@ -92,6 +92,9 @@ unless ( $famObj->DESC->ID  and $famObj->DESC->ID =~ /\S+/   ) {
 
 }
 
+#directory for svn family object
+my $dir = File::Temp->newdir( 'CLEANUP' => 1 ); 
+
 if ( $famObj->DESC->AC ) {
   $isNew = 0;
   
@@ -99,8 +102,8 @@ if ( $famObj->DESC->AC ) {
   
   #Check that the family exists in the repository
   $client->checkFamilyExists($famObj->DESC->AC); 
-  
-  $svnFamObj= $familyIO->loadPfamAFromSVN($famObj->DESC->AC, $client);
+ 
+  $svnFamObj= $familyIO->loadPfamAFromSVN($famObj->DESC->AC, $dir, $client);
   
   unless(defined($svnFamObj) and $svnFamObj->isa('Bio::Pfam::Family::PfamA')){
     die "$0: Failed to load family from SVN $svnFamObj\n";  
