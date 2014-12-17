@@ -1183,7 +1183,7 @@ sub processHMMs {
     {
       pfama_acc => $pfam->pfama_acc,
       hmm        => $hmm
-    }
+    }, { key => 'pfamA_acc' }
   );
 
   #Now make and generate the HMM logo
@@ -1236,7 +1236,7 @@ sub _makeHMMLogo {
     {
       pfama_acc => $self->pfam->pfama_acc,
       logo       => $hmmLogo
-    }
+    }, { key => 'pfamA_acc' }
   );
   return;
 }
