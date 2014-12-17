@@ -1929,7 +1929,7 @@ sub versionFiles {
       align      => $fileCheckSums{ALIGN},
       desc_file  => $fileCheckSums{DESC} ? $fileCheckSums{DESC} : '',
       hmm        => $fileCheckSums{HMM},
-    }
+    }, { key => "pfamA_acc" }
     );
 
   #Get the release versions
