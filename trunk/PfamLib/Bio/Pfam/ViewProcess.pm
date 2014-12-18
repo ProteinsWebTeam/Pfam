@@ -1060,7 +1060,7 @@ sub pfamTaxDepth {
 #Now grab the different taxonomic ranges;
   my $ranges =
     $dbh->selectall_arrayref(
-    'select lft, rgt, level from taxonomy where parent="root"')
+    'select lft, rgt, level from taxonomy where parent="1"')
     or die $dbh->errstr;
 
 #Now loop over the tax ranges and perform a look-up on each if there is an overlap
@@ -1072,7 +1072,7 @@ sub pfamTaxDepth {
   ) or die $dbh->errstr();
 
   my $sthMinMax = $dbh->prepare(
-    "SELECT min(lft), max(rgt), count(pfamseq_acc) 
+    "SELECT min(lft), max(rgt), count(s.pfamseq_acc) 
                                             FROM  $table r, pfamseq s, taxonomy t 
                                             WHERE s.pfamseq_acc=r.pfamseq_acc 
                                             AND t.ncbi_taxid=s.ncbi_taxid 
