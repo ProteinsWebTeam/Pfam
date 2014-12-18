@@ -1038,7 +1038,9 @@ sub pfamTaxDepth {
   $self->logger->debug("Fetching taxonomic roots");
 
   my @ranges =
-    $self->pfamdb->getSchema->resultset('Taxonomy')->search( { parent => 'root' } );
+    $self->pfamdb->getSchema->resultset('Taxonomy')->search( { parent => '1' } );
+
+p(@ranges);
 
   #Generate a temporary table in the same fashion as before.
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
