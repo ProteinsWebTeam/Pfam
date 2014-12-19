@@ -17,6 +17,7 @@ use JSON;
 use Data::Printer;
 use File::Touch;
 use DDP;
+use Bio::HMM::Logo;
 
 #Need the version from github https://github.com/DaGaMs/Logomat
 use HMM::Profile;
@@ -1195,45 +1196,31 @@ sub processHMMs {
 }
 
 sub _makeHMMLogo {
-  my ( $self, $file) = @_;
+  	my ( $self, $file) = @_;
 
-  $self->logger->debug("Making logo HMM");
-  return;
-  my $logo = HMM::Profile->new( -hmmerfile => $file )
-    or $self->mailUserAndFail( "Failed in making HMM logo, couldn't open $file!\n" );
-  my $outfile     = "hmmLogo.png";
-  my $graph_title = $logo->name();
-  my $ysize       = 400;
-  my $xsize       = $logo->length() * 34;
-  my $greyscale   = 0;
+	$self->logger->debug("Making HMM logo");
 
-  #Now go and make the logos
-  $self->logger->debug("Drawing Logo...");
-  $logo->draw_logo(
-    -file           => $outfile,
-    -xsize          => $xsize,
-    -ysize          => $ysize,
-    -x_title        => 'Position',
-    -y_title        => 'Contribution',
-    -graph_title    => $graph_title,
-    -greyscale      => $greyscale,
-    -height_logodds => 1,
-    -regular_font   => $self->config->fontDir . '/arial.ttf',
-    -bold_font      => $self->config->fontDir . '/arialbd.ttf'
-    )
-    || $self->mailUserAndFail("Error writing logo $file!\n");
+#create an hmm logo object
+	my $logo = Bio::HMM::Logo->new({ hmmfile => $file });
 
-  $self->logger->debug("Finished drawing Logo...");
-  unless ( -s "hmmLogo.png" ) {
-    $self->mailUserAndFail( "Failed in making HMM logo, no hmmLogo.png file" );
-  }
+#create static version of logo and save to disk
+	my $logo_png = $logo->as_png();
+	open my $image, '>', 'hmmLogo.png'
+		or die "Can't open hmmLogo.png to write";
 
-  open( LOGO, "hmmLogo.png" )
-    or $self->mailUserAndFail( "Failed to open hmmLogo.png file:[$!]" );
-  my $hmmLogo = join( "", <LOGO> );
-  close(LOGO);
+	binmode $image;
+	print $image $logo_png;
+	close $image;
 
   #Now upload this logo into the RDB.
+  #
+  	$self->logger->debug("Uploading HMM logo to the database");
+
+	open( LOGO, "hmmLogo.png" )
+		or $self->mailUserAndFail( "Failed to open hmmLogo.png file:[$!]" );
+	my $hmmLogo = join( "", <LOGO> );
+	close(LOGO);
+
   $self->pfamdb->getSchema->resultset('PfamAHmm')->update_or_create(
     {
       pfama_acc => $self->pfam->pfama_acc,
