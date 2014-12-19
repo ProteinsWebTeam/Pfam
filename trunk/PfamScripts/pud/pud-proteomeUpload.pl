@@ -155,7 +155,7 @@ $dbh->do(
 sub process_proteome {
   my ( $ncbi_code, $ncbi_species, $group, $storeAccRef, $seqSth ) = @_;
 
-  my $r = $pfamDB->getSchema->resultset('CompleteProteomes')->find_or_create(
+  my $r = $pfamDB->getSchema->resultset('CompleteProteome')->find_or_create(
     {
       ncbi_taxid => $ncbi_code,
       species    => $ncbi_species,
@@ -163,7 +163,7 @@ sub process_proteome {
     }
   );
 
-  my $autoProteome = $r->auto_proteome; #will need changing to give ncbi taxID due to mySQL / schema change
+  my $autoProteome = $r->auto_proteome;
   my $count        = 0;
   my @insertThis;
   foreach my $gs ( keys %{$storeAccRef} ) {
@@ -171,15 +171,17 @@ sub process_proteome {
     my $rowRef = $seqSth->fetchrow_arrayref;
     if ( defined($rowRef) ) {
       $count++;
-      push( @insertThis, '(' . $autoProteome . ', ' . $rowRef->[0] . ')' );
+	push(@insertThis, $autoProteome);
+	push (@insertThis, $rowRef->[0]);
     }
     else {
       $logger->debug( $gs . " is not in pfamseq" );
     }
   }
+   if ($insertThis[0]){
+ 	 $dbh->do( "INSERT INTO proteome_pfamseq (auto_proteome, pfamseq_acc) VALUES ( $insertThis[0], \"$insertThis[1]\" )"); 
+	 $r->update( { total_genome_proteins => $count } );
+	 }
 
-  $dbh->do( "INSERT INTO proteome_pfamseq (ncbi_taxid, pfamseq_acc) VALUES " #mySQL statement updated for nw db schema - assuming ncbi_taxid is used as promary key in complete_proteomes now
-      . join( ",", @insertThis ) );
-  $r->update( { total_genome_proteins => $count } );
 }
 
