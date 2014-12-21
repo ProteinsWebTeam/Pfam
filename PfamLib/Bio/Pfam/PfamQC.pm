@@ -917,6 +917,72 @@ sub family_overlaps_with_db {
   # Adding only regions that belong to  reference proteomes sequences.
   # If you want to disable this, use $all when calling this subroutine.
 
+  if ($all)
+  {
+	print STDERR "Checking overlaps for all sequences\n";
+  }
+  else
+  {
+	print STDERR "Checking overlaps for sequences that belong to reference proteomes only\n";
+  }
+
+
+  # Find for all sequence accessions if they belong to reference proteomes or not
+  my %isInRefProt;
+  if ( !( defined $all ) )    # if the $all parameter is not used
+  {
+	my $config = Bio::Pfam::Config->new;
+	my @tempAccs = keys %{ $famObj->scores->regions };
+	  #temporary
+          my $dbh = DBI->connect( "dbi:mysql:database="
+                              . $config->pfamlive->{database}
+                              . ";host="
+                              . $config->pfamlive->{host}
+                              . ";port="
+                              . $config->pfamlive->{port},
+                            $config->pfamlive->{adminuser},
+                            $config->pfamlive->{adminpassword},
+				{AutoCommit => 0}
+                          ) || die "Could not connect to database: $DBI::errstr";
+    
+   my $query
+      = "CREATE TABLE `pfam_live`.`tempAccs` (
+  `pfamseq_acc` VARCHAR(10) NOT NULL,
+  PRIMARY KEY (`pfamseq_acc`),
+  CONSTRAINT `fk_tempAccs_1`
+    FOREIGN KEY (`pfamseq_acc`)
+    REFERENCES `pfam_live`.`pfamseq` (`pfamseq_acc`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);";
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or die "Can't execute statement: $DBI::errstr";
+
+    $query = "insert into tempAccs(pfamseq_acc) values (?)";
+	$sth=$dbh->prepare($query);
+
+	foreach my $tempAcc (@tempAccs)
+	{
+		($tempAcc) = split (/\./, $tempAcc);
+		$sth->execute($tempAcc) or die "Can't execute statement: $DBI::errstr";
+	}
+    
+   $query = "select tempAccs.pfamseq_acc, pfamseq.ref_proteome  from tempAccs join pfamseq on tempAccs.pfamseq_acc = pfamseq.pfamseq_acc";
+	$sth=$dbh->prepare($query);
+	$sth->execute() or die "Can't execute statement: $DBI::errstr";
+	my ($acc,$refprot);
+	$sth->bind_columns(\$acc, \$refprot);
+
+	while ($sth->fetch())
+	{
+		$isInRefProt{$acc}=$refprot;
+}
+	
+	$query = "drop table tempAccs";
+	$sth=$dbh->prepare($query);
+	$sth->execute() or die "Can't execute statement: $DBI::errstr";
+	$dbh->rollback();
+	$dbh->disconnect();
+  }
 
   #First from the SEED
   foreach my $seq ( $famObj->SEED->each_seq ) {
@@ -931,25 +997,16 @@ sub family_overlaps_with_db {
     else {
       $id = $seq->id;
     }
-
     if ( !( defined $all ) )    # if the $all parameter is not used
     {
-        my $rs
-          = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
 
-        my $isInRefProt;
-
-        if ( $rs != 0 )
-        {
-            $isInRefProt = $rs->next->ref_proteome;
-        }
-        else
+        if ( ! (exists $isInRefProt{$id}) )
         {
             print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
             next;
         }
 
-        if ( $isInRefProt == 0 )    # and the sequence is not present in reference proteomes
+        if ( $isInRefProt{$id} == 0 )    # and the sequence is not present in reference proteomes
         {
             next;                   # do nothing and simply move to the next sequence accession
         }
@@ -978,21 +1035,13 @@ sub family_overlaps_with_db {
 
     if ( !( defined $all ) )    # if the $all parameter is not used
     {
-        my $rs
-          = $pfamDB->getSchema->resultset('Pfamseq')->search( { 'pfamseq_acc' => $id }, { select => 'ref_proteome' } );
-        
-        my $isInRefProt;
-
-        if ( $rs != 0 )
-        {
-            $isInRefProt = $rs->next->ref_proteome;
-        }
-        else
+        if ( ! (exists $isInRefProt{$id}) )
         {
             print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
             next;
         }
-        if ( $isInRefProt == 0 )    # and the sequence accession is not present in reference proteomes
+        
+	if ( $isInRefProt{$id} == 0 )    # and the sequence accession is not present in reference proteomes
         {
             next;                   # do nothing and simply move to the next sequence accession
         }
@@ -1087,7 +1136,7 @@ sub family_overlaps_with_db {
     my $numberLimit = $config->familyOverlapRule;
     warn "Filtering overlaps\n";
 
-    $numOverlaps = filterOverlaps($family, $lengthLimit, $numberLimit, @overlapLines);
+    $numOverlaps = filterOverlaps($family, $lengthLimit, $numberLimit, $famObj, @overlapLines);
   }
 
   close $LOG if ($LOG);
@@ -1104,21 +1153,22 @@ sub family_overlaps_with_db {
 }
 
 #------------------------------------------------------------------------------
-sub filterOverlaps
+sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)
 {
-    my ( $family, $lengthLimit, $numberLimit, @overlapLines ) = @_;
+    my ( $family, $lengthLimit, $numberLimit, $famObj, @overlapLines ) = @_;
 
     # Get the Pfam Config
     my $config = Bio::Pfam::Config->new;
 
-    # Filter the overlaps according to the auto-resolve paramaters found inside the config file
-    #
-    # Calculate for each family the number of overlaps whose length is less than 20% ($lengthLimit) of the lowest scoring matching region length
-    my ( $familyA,           $familyB,     $regionA,     $regionB,
-         $scoreA,            $scoreB,      $lengthA,     $lengthB,
-         $overlapLength,     $temp_length, $overlapPerc, $temp_family,
-         %resolvedPerFamily, $familySize,  $numberPerc,  $numOverlaps
-   );
+# Filter the overlaps according to the auto-resolve paramaters found inside the config file
+#
+# Calculate for each family the number of overlaps whose length is less than 20% ($lengthLimit) of the lowest scoring matching region length
+    my ( $familyA,     $familyB,     $regionA,          $regionB,       $scoreA,
+         $scoreB,      $lengthA,     $lengthB,          $overlapLength, $temp_length,
+         $overlapPerc, $temp_family, %allowedPerFamily, $familySize,    $numberPerc,
+         $numOverlaps, %regions,     $pfamDB,           $rs,            $numAllowedOverlaps,
+         $overlapLine
+       );
 
     my $LOG;
     if ( -d $family )
@@ -1126,117 +1176,164 @@ sub filterOverlaps
         open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
     }
 
+    $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
+    #temporary
+    my $dbh = DBI->connect( "dbi:mysql:database="
+                              . $config->pfamlive->{database}
+                              . ";host="
+                              . $config->pfamlive->{host}
+                              . ";port="
+                              . $config->pfamlive->{port},
+                            $config->pfamlive->{adminuser},
+                            $config->pfamlive->{adminpassword}
+                          ) || die "Could not connect to database: $DBI::errstr";
 
+    my $query
+      = "select domain_bits_score from pfamA_reg_full_significant where pfamA_acc=? and pfamseq_acc=? and seq_start=? and seq_end=?";
+    my $sth = $dbh->prepare($query);
 
-    foreach my $overlapLine (@overlapLines)
-    {
-        if ((  $overlapLine
-               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
-            )
-            and ( $overlapLine !~ /SEED.*SEED/ )
-           )
-        {
-            $familyA = $1;
-            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
-            $scoreA  = $5 ne "**" ? $5 : 100000;
-            $lengthA = $regionA->length;
+    %regions = %{ $famObj->scores->regions };
 
-            $familyB = $6;
-            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
-            $scoreB  = $10 ne "**" ? $10 : 100000;
-            $lengthB = $regionB->length;
+#    print scalar @overlapLines . " overlaps about to be checked\n";  #delete
+#    my $cnt = 1; #delete
 
-            # $overlapLength = $regionA->intersection($regionB)->length;
-            my ($s, $e, $d) = $regionA->intersection($regionB);
-            $overlapLength = ($e - $s) + 1;
-
-            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
-            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
-
-            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
-
-            if ( $overlapPerc < $lengthLimit )
-            {
-                $resolvedPerFamily{$temp_family}++;
-            }
-
-        }
-    }
-
-    # Re-read the same file and print the overlaps that satisfy our restrictions.
-    $numOverlaps = 0;
+	$numAllowedOverlaps = 0;
 
     foreach my $overlapLine (@overlapLines)
     {
         if ((  $overlapLine
-               =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+               =~ /\[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)/
             )
             and ( $overlapLine !~ /SEED.*SEED/ )
            )
         {
-            $familyA = $1;
-            $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
-            $scoreA  = $5 ne "**" ? $5 : 100000;
-            $lengthA = $regionA->length;
+#            print "Ov " . $cnt++ . " : "; #delete
 
-            $familyB = $6;
-            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
-            $scoreB  = $10 ne "**" ? $10 : 100000;
-            $lengthB = $regionB->length;
+            my $seqAcc = $1;
+            my $seqAccVersion;
 
-            # $overlapLength = $regionA->intersection($regionB)->length;
-            my ($s, $e, $d) = $regionA->intersection($regionB);
-            $overlapLength = ($e - $s) + 1;
-
-            $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
-            $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
-
-            $overlapPerc = sprintf( "%.2f", $overlapLength / $temp_length * 100 );
-
-
-            # $familySize = $familiesData->{$temp_family}->{align};
-            
-            # Get family size using the live db schema
-
-            my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-            
-            my $rs = $pfamDB->getSchema->resultset('PfamA')
-              ->search( { 'pfama_acc' => $temp_family }, { select => 'num_full' } );
-
-            $familySize = $rs->next->num_full;
-
-            if ( $resolvedPerFamily{$temp_family} )
+            #add sequence version to accession
+            foreach my $key ( keys %regions )
             {
-                $numberPerc = sprintf( "%.4f", $resolvedPerFamily{$temp_family} / $familySize * 100 );
-
-                unless ( $overlapPerc < $lengthLimit and $numberPerc < $numberLimit )
+                if ( $key =~ /$seqAcc/ )
                 {
-                    $numOverlaps++;
-                    print STDERR $overlapLine;
-                    print $LOG $overlapLine if $LOG;
+                    $seqAccVersion = $key;
+                    last;
                 }
             }
-            else
+
+            $familyA = $3;
+            $regionA = new Bio::Range( -start => $4, -end => $5, -strand => +1 );
+
+            # get score from scores file
+	foreach my $region ( @{ $regions{$seqAccVersion} } )
+            {
+                if ( $region->{aliStart} == $4 && $region->{aliEnd} == $5 )
+                {
+                    $scoreA = $region->{score};
+                   # last;
+                }
+            }
+ #           print "scoreA: " . $scoreA . " (local) "; #delete
+
+            $familyB = $7;
+            $regionB = new Bio::Range( -start => $8, -end => $9, -strand => +1 );
+
+           #get score from pfam_live database
+           # $rs = $pfamDB->getSchema->resultset('PfamARegFullInsignificant')->search( { 'pfamseq_acc' => $seqAcc,
+           #                                                                             'pfama_acc'   => $familyB,
+           #                                                                             'seq_start'   => $8,
+           #                                                                             'seq_end'     => $9
+           #                                                                           },
+           #                                                                           { select => 'domain_bits_score' }
+           #                                                                         );
+           # $scoreB = $rs->next->domain_bits_score;
+
+            #temporary
+            my $rc = $sth->execute( $familyB, $seqAcc, $8, $9 ) or die "Can't execute statement: $DBI::errstr";
+            $scoreB = $sth->fetchrow_array() and $sth->finish();
+  #          print "scoreB: " . $scoreB . " (from db) "; #delete
+
+            $lengthA = $regionA->length;
+            $lengthB = $regionB->length;
+
+            # $overlapLength = $regionA->intersection($regionB)->length;
+            my ( $s, $e, $d ) = $regionA->intersection($regionB);
+            $overlapLength = ( $e - $s ) + 1;
+
+            # if the lowest scoring region doesn't belong to the local family skip to the next overlap line
+            if ( $scoreA > $scoreB )
+            {
+   #             print "skipped\n"; #delete
+		next;
+            }
+
+            # $temp_length = $scoreA >= $scoreB ? $lengthB : $lengthA;
+            # $temp_family = $scoreA >= $scoreB ? $familyB : $familyA;
+            $overlapPerc = sprintf( "%.2f", $overlapLength / $lengthA * 100 );
+#		 print "ovLength: " . $overlapLength . " seqLength: " . $lengthA; #delete
+
+            if ( $overlapPerc < $lengthLimit )  # overlaps that are allowed, because the overlap length is less than 20%
+            {
+ #               print " overlapPerc: " . $overlapPerc . " allowed\n";    #delete
+                $allowedPerFamily{$overlapLine} = 1;
+                $numAllowedOverlaps++;
+            }
+            else    # overlaps that should not be allowed (and have to be resolved manually)
+            {
+  #              print " overlapPerc: " . $overlapPerc . " not allowed\n";    #delete
+                $allowedPerFamily{$overlapLine} = 0;
+            }
+
+
+        }
+  #      else #delete
+   #     {
+   #       print "WHATS THIS: " . $overlapLine;
+    #    }
+    }
+
+    # Get family size from scores file
+    $familySize  = $famObj->scores->numRegions;
+    $numOverlaps = 0;
+    #delete
+ #   print "allOver/famSize= " . $numAllowedOverlaps . "/" . $familySize . "=" . $numAllowedOverlaps / $familySize ."\n"; 
+    # if the number of allowed overlaps is lower than 1% of the family size
+    if ( ($numAllowedOverlaps / $familySize) * 100 < $numberLimit )
+    {
+  #      print "allowing overlaps\n"; #delete
+        foreach $overlapLine (@overlapLines)    # go through all the overlaps
+        {
+            if (              # and print those who should not be allowed
+                  !( exists $allowedPerFamily{$overlapLine} ) or $allowedPerFamily{$overlapLine} == 0)
             {
                 $numOverlaps++;
                 print STDERR $overlapLine;
                 print $LOG $overlapLine if $LOG;
             }
         }
-        else
+  #      print "Final number of remaining overlaps: " . $numOverlaps ."\n"; #delete
+    }
+    else    # if the number of allowed overlaps is higher than (or equal to) 1% of the family size
+    {
+ #       print "NOT allowing overlaps\n"; #delete
+        foreach $overlapLine (@overlapLines)    # print all overlaps
         {
             $numOverlaps++;
-            print STDERR $overlapLine;    # This should print the SEED .. SEED overlaps
+            print STDERR $overlapLine;
             print $LOG $overlapLine if $LOG;
         }
+ #       print "Final number of remaining overlaps: " . $numOverlaps ."\n"; #delete
     }
 
-  close $LOG if ($LOG);
+    close $LOG if ($LOG);
 
-  return $numOverlaps;
-   
+    return $numOverlaps;
+
 }
+
+
 
 #------------------------------------------------------------------------------
 sub seedIntOverlaps{
