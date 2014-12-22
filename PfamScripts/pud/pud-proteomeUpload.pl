@@ -171,15 +171,15 @@ sub process_proteome {
     my $rowRef = $seqSth->fetchrow_arrayref;
     if ( defined($rowRef) ) {
       $count++;
-	push(@insertThis, $autoProteome);
-	push (@insertThis, $rowRef->[0]);
+      push( @insertThis, '(' . $autoProteome . ', "' . $rowRef->[0] . '")' );
     }
     else {
       $logger->debug( $gs . " is not in pfamseq" );
     }
   }
    if ($insertThis[0]){
- 	 $dbh->do( "INSERT INTO proteome_pfamseq (auto_proteome, pfamseq_acc) VALUES ( $insertThis[0], \"$insertThis[1]\" )"); 
+	 $dbh->do( "INSERT INTO proteome_pfamseq (auto_proteome, pfamseq_acc) VALUES "
+	 . join( ",", @insertThis ) );
 	 $r->update( { total_genome_proteins => $count } );
 	 }
 
