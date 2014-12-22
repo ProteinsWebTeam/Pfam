@@ -146,7 +146,7 @@ foreach my $file ( keys %ncbi_codes ) {
 }
 
 $dbh->do(
-'update complete_proteomes c set total_aa_length = (select sum(length) from pfamseq s, proteome_pfamseq p where s.pfamseq_acc=p.pfamseq_acc and p.ncbi_taxid=c.ncbi_taxid)'   
+'update complete_proteomes c set total_aa_length = (select sum(length) from pfamseq s, proteome_pfamseq p where s.pfamseq_acc=p.pfamseq_acc and p.auto_proteome=c.auto_proteome)'   
 );  #mySQL statement updated for new db schema - assumed ncbi_taxid is new primary key for complete_proteomes
 $dbh->do(
 'update pfamseq s, proteome_pfamseq p set genome_seq = 1 where  s.pfamseq_acc=p.pfamseq_acc'
