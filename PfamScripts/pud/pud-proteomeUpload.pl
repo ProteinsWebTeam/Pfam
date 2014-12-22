@@ -127,7 +127,7 @@ foreach my $file ( keys %ncbi_codes ) {
       || die "Counld not open file, $dir/$file.fasta:[$!]\n";
     my ( $acc, $id );
     while (<FILE>) {
-      if ( $_ =~ /\>\S{2}\|(\S{6})[\-\d]{0,2}\|(\S+)/ ) {
+      if ( $_ =~ /\>\S{2}\|(\S{6,10})[\-\d]{0,2}\|(\S+)/ ) {
         $acc = $1;
         $store_acc{$acc}++;
       }
@@ -147,7 +147,7 @@ foreach my $file ( keys %ncbi_codes ) {
 
 $dbh->do(
 'update complete_proteomes c set total_aa_length = (select sum(length) from pfamseq s, proteome_pfamseq p where s.pfamseq_acc=p.pfamseq_acc and p.auto_proteome=c.auto_proteome)'   
-);  #mySQL statement updated for new db schema - assumed ncbi_taxid is new primary key for complete_proteomes
+);  #not convinced that this will give the right answers
 $dbh->do(
 'update pfamseq s, proteome_pfamseq p set genome_seq = 1 where  s.pfamseq_acc=p.pfamseq_acc'
 ); #mySQL statement updated for new schema
