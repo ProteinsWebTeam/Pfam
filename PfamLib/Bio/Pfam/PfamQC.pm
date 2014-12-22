@@ -1132,11 +1132,9 @@ sub family_overlaps_with_db {
 
   unless (defined $noFilter)
   {
-    my $lengthLimit = $config->sequenceOverlapRule;
-    my $numberLimit = $config->familyOverlapRule;
     warn "Filtering overlaps\n";
 
-    $numOverlaps = filterOverlaps($family, $lengthLimit, $numberLimit, $famObj, @overlapLines);
+    $numOverlaps = filterOverlaps($family, $famObj, @overlapLines);
   }
 
   close $LOG if ($LOG);
@@ -1155,13 +1153,17 @@ sub family_overlaps_with_db {
 #------------------------------------------------------------------------------
 sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)
 {
-    my ( $family, $lengthLimit, $numberLimit, $famObj, @overlapLines ) = @_;
+    my ( $family, $famObj, @overlapLines ) = @_;
 
     # Get the Pfam Config
     my $config = Bio::Pfam::Config->new;
 
 # Filter the overlaps according to the auto-resolve paramaters found inside the config file
 #
+    my $lengthLimit = $config->sequenceOverlapRule;
+    my $numberLimit = $config->familyOverlapRule;
+
+
 # Calculate for each family the number of overlaps whose length is less than 20% ($lengthLimit) of the lowest scoring matching region length
     my ( $familyA,     $familyB,     $regionA,          $regionB,       $scoreA,
          $scoreB,      $lengthA,     $lengthB,          $overlapLength, $temp_length,
