@@ -73,7 +73,7 @@ sub competeClan {
 
   #Get the clan information
   my $clan =
-    $db->getSchema->resultset("Clans")->find( { clan_acc => $clan_acc } );
+    $db->getSchema->resultset("Clan")->find( { clan_acc => $clan_acc } );
   
   #*******************************************************************
   #NOTE! Really, really important that the seq_start/seq_end remain at
@@ -82,36 +82,36 @@ sub competeClan {
   #*******************************************************************
 
   my $sthSeedRegs =
-    $dbh->prepare( "select s.auto_pfamA, auto_pfamseq, seq_start,"
+    $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, seq_start,"
       . " seq_end from pfamA_reg_seed s, clan_membership c"
-      . " where c.auto_pfamA=s.auto_pfamA and auto_clan="
-      . $clan->auto_clan );
+      . " where c.pfamA_acc=s.pfamA_acc and clan_acc="
+      . $clan->clan_acc );
   $sthSeedRegs->execute;
   my %clanSeed;
   foreach my $row ( @{ $sthSeedRegs->fetchall_arrayref } ) {
-    push(@{$clanSeed{ $row->[1] }}, $row);    #keyed off auto_pfamseq
+    push(@{$clanSeed{ $row->[1] }}, $row);    #keyed off pfamseq_acc
   }
 
   #Get nested data for clan
   my $sthNest =
-    $dbh->prepare( "select n.auto_pfamA, nested_auto_pfamA from "
+    $dbh->prepare( "select n.pfamA_acc, nested_pfamA_acc from "
       . "nested_locations n, clan_membership c where "
-      . "c.auto_pfamA=n.auto_pfamA and auto_clan="
-      . $clan->auto_clan );
+      . "c.pfamA_acc=n.pfamA_acc and clan_acc="
+      . $clan->clan_acc );
   $sthNest->execute;
   my %nested;
   foreach my $row ( @{ $sthNest->fetchall_arrayref } ) {
-    $nested{ $row->[0] }{ $row->[1] } = 1;    #keyed off auto_pfamA
+    $nested{ $row->[0] }{ $row->[1] } = 1;    #keyed off pfamA_acc
   }
 
   #Get all full data for clan
   my $sthFullRegs =
-    $dbh->prepare( "select s.auto_pfamA, auto_pfamseq, ali_start, "
+    $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, ali_start, "
       . "ali_end, domain_evalue_score, in_full, auto_pfamA_reg_full from "
       . "pfamA_reg_full_significant s, clan_membership c where "
-      . "c.auto_pfamA=s.auto_pfamA and auto_clan="
-      . $clan->auto_clan
-      . " order by auto_pfamseq, domain_evalue_score" );
+      . "c.pfamA_acc=s.pfamA_acc and clan_acc="
+      . $clan->clan_acc
+      . " order by pfamseq_acc, domain_evalue_score" );
   $sthFullRegs->execute;
 
   my $updateSth =
@@ -165,7 +165,7 @@ sub competeClan {
   $clan->update( { competed => 1 } );
   my $clanMembership = $db->getClanMembership($clan_acc);
   foreach my $mem (@$clanMembership) {
-    $mem->auto_pfama->update( { updated => \'NOW()' } );
+    $mem->pfama_acc->update( { updated => \'NOW()' } );
   }
 }
 
@@ -296,7 +296,7 @@ sub uncompeteClan {
       warn "Failed to get pfam row for $fam\n";
     }
 
-    $db->resetInFull( $pfam->auto_pfama );
+    $db->resetInFull( $pfam->pfama_acc );
   }
 
 }
