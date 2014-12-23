@@ -312,7 +312,7 @@ sub checkClanExists {
     if ( $config and $config->location eq 'EBI' ) {
       my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
       my @dead =
-        $pfamDB->getSchema->resultset("DeadClans")
+        $pfamDB->getSchema->resultset("DeadClan")
         ->search( { clan_acc => $clan } );
       foreach my $dead (@dead) {
         print "$clan ("
