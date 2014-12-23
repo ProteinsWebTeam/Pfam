@@ -102,8 +102,8 @@ my $clanMemRef = $view->pfamdb->getClanMembership($clanAcc);
 my $clanMemAcc;
 my %clanMemAccAutoMap;
 foreach my $mem (@$clanMemRef) {
-  push( @$clanMemAcc, $mem->auto_pfama->pfama_acc );
-  $clanMemAccAutoMap{ $mem->auto_pfama->pfama_acc } = $mem->auto_pfama;
+  push( @$clanMemAcc, $mem->pfama_acc->pfama_acc );
+  $clanMemAccAutoMap{ $mem->pfama_acc->pfama_acc } = $mem->pfama_acc;
 }
 
 # Give a clan we want to first compete all of the members within that clan.
@@ -125,8 +125,8 @@ foreach my $fam (@$clanMemAcc) {
   my ($hmmObj);
   eval {
     my $hmm =
-      $view->pfamdb->getSchema->resultset('PfamaHmm')
-      ->find( { auto_pfama => $clanMemAccAutoMap{$fam} } );
+      $view->pfamdb->getSchema->resultset('PfamAHmm')
+      ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
     $hmmObj = $hmmio->readHMM( $hmm->hmm );
   };
   if ($@) {
@@ -145,8 +145,8 @@ foreach my $fam (@$clanMemAcc) {
   close(H);
 
   my $align =
-    $view->pfamdb->getSchema->resultset('PfamaInternal')
-    ->find( { auto_pfama => $clanMemAccAutoMap{$fam} } );
+    $view->pfamdb->getSchema->resultset('PfamAInternal')
+    ->find( { pfama_acc => $clanMemAccAutoMap{$fam} } );
 
   open( S, ">seed.$fam" );
   print S Compress::Zlib::memGunzip( $align->seed )
@@ -169,7 +169,7 @@ my $noStruct = 0;
 
 $view->logger->debug("Calculating the number of sequences");
 #No Seqs
-my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
+my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
   { join => [qw(clan_membership)],
     columns => [ qw( auto_pfamA_reg_full ) ],
     distinct => 1 } );
@@ -184,9 +184,9 @@ my $noSeqs = $noSeqsRS->count;
 
 #Get list of unique species
 $view->logger->debug("Calculating the number of species");
-my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-  { join => [qw(auto_pfamseq clan_membership)],
-    columns => [ qw(auto_pfamseq.ncbi_taxid) ],
+my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
+  { join => [qw(pfamseq_acc clan_membership)],
+    columns => [ qw(pfamseq_acc.ncbi_taxid) ],
     distinct => 1 } );
 my $noSpecies = $noSpeciesRS->count;
 
@@ -203,7 +203,7 @@ close(C);
 
 my $clanDescCksum = md5_hex(join("", @clandesc));
 
-my $relClanVersion = $view->pfamdb->getSchema->resultset('ReleasedClanVersion')->find({auto_clan => $clanData->auto_clan});
+my $relClanVersion = $view->pfamdb->getSchema->resultset('ReleasedClanVersion')->find({clan_acc => $clanData->clan_acc});
 
 my $version;
 if($relClanVersion){
@@ -244,8 +244,8 @@ my $clanDescZip = join("", <STO>);
 close(STO);
 
 $view->pfamdb->getSchema
-        ->resultset('ClanAlignmentsAndRelationships')
-          ->update_or_create({ auto_clan => $clanData->auto_clan,
+        ->resultset('ClanAlignmentAndRelationship')
+          ->update_or_create({ clan_acc => $clanData->clan_acc,
                                stockholm => $clanDescZip,
                                alignment => undef,
                                image_map => undef,
@@ -258,9 +258,9 @@ $view->logger->debug("Going to run hhsearch for clan members");
 my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $view );
 
 $view->logger->debug("Making clan alignment");
-makeAlign( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->auto_clan );
+makeAlign( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
 $view->logger->debug("Making clan relationship diagram");
-makeGraph( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->auto_clan );
+makeGraph( $hhScores, $clanMemRef, $clanAcc, $view, $clanData->clan_acc );
 }
 
 #-------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ sub runHHsearch {
 }
 
 sub makeGraph {
-  my ( $hhScores, $clanMemRef, $clanAcc, $view, $auto_clan ) = @_;
+  my ( $hhScores, $clanMemRef, $clanAcc, $view, $clanacn ) = @_;
 
   # The first line of the table is a list of member names
   my @table;
@@ -337,11 +337,11 @@ sub makeGraph {
   my @accs;
 
   for ( my $x = 0 ; $x < scalar(@$clanMemRef) ; $x++ ) {
-    my $xAcc = $$clanMemRef[$x]->auto_pfama->pfama_acc;
+    my $xAcc = $$clanMemRef[$x]->pfama_acc->pfama_acc;
     push( @accs,  $xAcc );
-    push( @names, $$clanMemRef[$x]->auto_pfama->pfama_id );
+    push( @names, $$clanMemRef[$x]->pfama_acc->pfama_id );
     for ( my $y = 0 ; $y < scalar(@$clanMemRef) ; $y++ ) {
-      my $yAcc = $$clanMemRef[$y]->auto_pfama->pfama_acc;
+      my $yAcc = $$clanMemRef[$y]->pfama_acc->pfama_acc;
       if ( defined( $hhScores->{$xAcc}->{$yAcc} ) ) {
         $table[$x]->[$y] = $hhScores->{$xAcc}->{$yAcc};
       }
@@ -399,10 +399,10 @@ sub makeGraph {
   }
   close(PNG);
 
-  $view->pfamdb->getSchema->resultset('ClanAlignmentsAndRelationships')
+  $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      auto_clan    => $auto_clan,
+      clan_acc    => $clanacn,
       image_map    => $clanIM,
       relationship => $clanImage
     }
@@ -411,7 +411,7 @@ sub makeGraph {
 }
 
 sub makeAlign {
-  my ( $hhScoresRef, $clanMemRef, $clanAcc, $view, $auto_clan ) = @_;
+  my ( $hhScoresRef, $clanMemRef, $clanAcc, $view, $clanacn ) = @_;
 
   my %families_in_align;
   my %hhScores;
@@ -525,15 +525,15 @@ sub makeAlign {
   $view->logger->debug("Finished building clan alignment for $clanAcc");
 
   #Need to Swap accs for ids;
-  $view->logger->debug("Getting regions for clan [$auto_clan]");
+  $view->logger->debug("Getting regions for clan [$clanacn]");
   my @regs = $view->pfamdb->getSchema
-	 ->resultset('PfamaRegSeed')
-	   ->search( { 'clan_membership.auto_clan' => $auto_clan },
-		    { join       => [ qw (auto_pfamseq clan_membership) ],
-		      prefetch   => [ qw (auto_pfamseq) ] });                              
+	 ->resultset('PfamARegSeed')
+	   ->search( { 'clan_membership.clan_acc' => $clanacn },
+		    { join       => [ qw (pfamseq_acc clan_membership) ],
+		      prefetch   => [ qw (pfamseq_acc) ] });                              
  
   
-  my %regs = map {$_->auto_pfamseq->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
+  my %regs = map {$_->pfamseq_acc->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
   
   $view->logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
   system("consensus.pl -method clustal -file $clanAcc.sto > $clanAcc.con")
@@ -567,7 +567,7 @@ sub makeAlign {
        $view->logger->debug("Failed to find nse for $thisNse");
        $view->mailUserAndFail( "makeclanview: Failed to find nse for $thisNse" ); 
       }
-      my $accVerSE = $regs{$thisNse}->auto_pfamseq->pfamseq_acc.".".$regs{$thisNse}->auto_pfamseq->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
+      my $accVerSE = $regs{$thisNse}->pfamseq_acc->pfamseq_acc.".".$regs{$thisNse}->pfamseq_acc->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
       
       unless(defined($famBlockColour{ $nse{$accVerSE} })){
         #Keyed of family accession
@@ -592,7 +592,7 @@ sub makeAlign {
       }
       $currentDiv=$div;
       print CALI "<span class=\"nse\">";
-      print CALI $regs{$thisNse}->auto_pfamseq->pfamseq_id."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
+      print CALI $regs{$thisNse}->pfamseq_acc->pfamseq_id."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
     }else{
       print CALI $_;  
     }   
@@ -604,10 +604,10 @@ sub makeAlign {
   open(ALI, "gzip -c $clanAcc.withFamBlock.html |") 
     or $view->mailUserAndFail( "makeclanview: Failed to gzip clan alignment" );
   my $align = join("", <ALI>);
-  $view->pfamdb->getSchema->resultset('ClanAlignmentsAndRelationships')
+  $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      auto_clan    => $auto_clan,
+      clan_acc    => $clanacn,
       alignment    => $align
     }
     );
