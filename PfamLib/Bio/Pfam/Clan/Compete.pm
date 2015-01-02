@@ -84,8 +84,9 @@ sub competeClan {
   my $sthSeedRegs =
     $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, seq_start,"
       . " seq_end from pfamA_reg_seed s, clan_membership c"
-      . " where c.pfamA_acc=s.pfamA_acc and clan_acc="
-      . $clan->clan_acc );
+      . " where c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
+      . $clan->clan_acc 
+	. "\'");
   $sthSeedRegs->execute;
   my %clanSeed;
   foreach my $row ( @{ $sthSeedRegs->fetchall_arrayref } ) {
@@ -96,8 +97,9 @@ sub competeClan {
   my $sthNest =
     $dbh->prepare( "select n.pfamA_acc, nested_pfamA_acc from "
       . "nested_locations n, clan_membership c where "
-      . "c.pfamA_acc=n.pfamA_acc and clan_acc="
-      . $clan->clan_acc );
+      . "c.pfamA_acc=n.pfamA_acc and clan_acc=\'"
+      . $clan->clan_acc 
+	. "\'");
   $sthNest->execute;
   my %nested;
   foreach my $row ( @{ $sthNest->fetchall_arrayref } ) {
@@ -109,8 +111,9 @@ sub competeClan {
     $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, ali_start, "
       . "ali_end, domain_evalue_score, in_full, auto_pfamA_reg_full from "
       . "pfamA_reg_full_significant s, clan_membership c where "
-      . "c.pfamA_acc=s.pfamA_acc and clan_acc="
+      . "c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
       . $clan->clan_acc
+	. "\'"
       . " order by pfamseq_acc, domain_evalue_score" );
   $sthFullRegs->execute;
 
