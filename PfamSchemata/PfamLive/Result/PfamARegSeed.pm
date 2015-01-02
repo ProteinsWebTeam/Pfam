@@ -118,5 +118,9 @@ __PACKAGE__->add_unique_constraint(
 
 __PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start", "seq_end");
 
+__PACKAGE__->might_have(
+	"clan_membership" => 'PfamLive::Result::ClanMembership',
+	{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
