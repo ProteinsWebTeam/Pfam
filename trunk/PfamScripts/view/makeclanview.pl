@@ -628,7 +628,7 @@ sub help {
 
   print <<EOF;
 
-usage: $0 -clan <clan accession> -uid <unique id>
+usage: $0 -clan <clan accession> -id <unique id>
 
 #-------------------------------------------------------------------------------
 clan accession : Expected to be in the format CL0001
