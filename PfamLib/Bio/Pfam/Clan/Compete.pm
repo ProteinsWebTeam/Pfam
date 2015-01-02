@@ -127,7 +127,7 @@ sub competeClan {
   my $count = 0;
   $dbh->{AutoCommit} = 0;
   while ( my @row = $sthFullRegs->fetchrow_array ) {
-    if ( defined($currentPfamseq) and $currentPfamseq != $row[1] ) {
+    if ( defined($currentPfamseq) and $currentPfamseq ne $row[1] ) {
       my $loseRef = _competeSequence( \@seqRegions, \%clanSeed, \%nested );
       #Loop over and set any region that is out competed to be in_full=0, based 
       #on the region index;      
