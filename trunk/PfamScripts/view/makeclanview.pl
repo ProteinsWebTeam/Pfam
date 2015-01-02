@@ -243,9 +243,10 @@ open( STO, "gzip -c CLANDESC.sto|" );
 my $clanDescZip = join("", <STO>);
 close(STO);
 
+#TODO rename clan_can_acc in statement below to clan_acc when column renamed in db
 $view->pfamdb->getSchema
         ->resultset('ClanAlignmentAndRelationship')
-          ->update_or_create({ clan_acc => $clanData->clan_acc,
+          ->update_or_create({ clan_clan_acc => $clanData->clan_acc,
                                stockholm => $clanDescZip,
                                alignment => undef,
                                image_map => undef,
