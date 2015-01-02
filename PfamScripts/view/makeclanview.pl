@@ -400,10 +400,11 @@ sub makeGraph {
   }
   close(PNG);
 
+#TODO revert clan_clan_acc to clan_acc below when db column name updated
   $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      clan_acc    => $clanacn,
+      clan_clan_acc    => $clanacn,
       image_map    => $clanIM,
       relationship => $clanImage
     }
@@ -605,10 +606,11 @@ sub makeAlign {
   open(ALI, "gzip -c $clanAcc.withFamBlock.html |") 
     or $view->mailUserAndFail( "makeclanview: Failed to gzip clan alignment" );
   my $align = join("", <ALI>);
+#TODO revert clan_clan_acc to clan_acc below when db column name updated
   $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      clan_acc    => $clanacn,
+      clan_clan_acc    => $clanacn,
       alignment    => $align
     }
     );
