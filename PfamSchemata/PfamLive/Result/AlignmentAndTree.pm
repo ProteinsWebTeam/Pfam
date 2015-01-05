@@ -54,7 +54,7 @@ __PACKAGE__->table("alignment_and_tree");
 
   data_type: 'enum'
   extra: {list => ["full","rp15","rp35","rp55","rp75","seed","meta","ncbi"]}
-  is_nullable: 1
+  is_nullable: 0
 
 =cut
 
@@ -75,7 +75,7 @@ __PACKAGE__->add_columns(
     extra => {
       list => ["full", "rp15", "rp35", "rp55", "rp75", "seed", "meta", "ncbi"],
     },
-    is_nullable => 1,
+    is_nullable => 0,
   },
 );
 
@@ -97,8 +97,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:06ry8/yuHIi+Opai3lhIMA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-05 16:35:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xnRAfn/J5OrS10JzBdIfgw
 
 __PACKAGE__->add_unique_constraint("UQ_alignments_and_trees_1", ["pfama_acc", "type"]);
 
