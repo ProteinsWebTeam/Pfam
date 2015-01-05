@@ -86,7 +86,7 @@ print @seed;
 sub clan {
   my ($ref, $dbh) = @_;
 
-  my $st = $dbh->prepare("select pfamA_id, clan_acc from pfamA p left join clan_membership m on p.auto_pfamA=m.auto_pfamA left join clans c on m.auto_clan=c.auto_clan") or die "Failed to prepare statement:".$dbh->errstr."\n";
+  my $st = $dbh->prepare("select pfamA_id, c.clan_acc from pfamA p left join clan_membership m on p.pfamA_acc=m.pfamA_acc left join clan c on m.clan_acc=c.clan_acc") or die "Failed to prepare statement:".$dbh->errstr."\n";
 
   $st->execute() or die "Couldn't execute statement ".$st->errstr."\n";;
 
