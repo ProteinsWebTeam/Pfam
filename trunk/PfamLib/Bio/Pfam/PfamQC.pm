@@ -1476,7 +1476,7 @@ sub noMissing {
  Title    : noFragsInSeed
  Usage    : Bio::Pfam::PfamQC::noFragsInSeed($family)
  Function : Does exactly what you expect.  It identifies if there are any fragments in the SEED
-            file.  Also makes sure there is more than one sequence in the SEED.
+            file.  
  Returns  : 1 if there are errors, 0 if the SEED is fine
  Args     : family id
 
@@ -1501,12 +1501,6 @@ sub noFragsInSeed {
   }
 
   my $error = 0;
-
-  if ( $famObj->SEED->num_sequences <= 1 ) {
-    print STDERR
-"\n--- Only 1 sequence in the seed.  Your seed should contain more than one sequence! ---\n\n";
-    $error = 1;
-  }
 
   open( FRAG, ">$family/seedFrag" )
     or confess("Could not open $family/seedFrag:[$!]");
