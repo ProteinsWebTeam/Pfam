@@ -573,7 +573,7 @@ sub findLowerEvalueRegion {
                                       pfamA a, 
                                       pfamA_reg_full_significant r,
                                       pfamseq s
-                               WHERE  pfamseq_acc= ? 
+                               WHERE  r.pfamseq_acc= ? 
                                AND seq_start = ? 
                                AND seq_end = ?
                                AND s.pfamseq_acc=r.pfamseq_acc 
