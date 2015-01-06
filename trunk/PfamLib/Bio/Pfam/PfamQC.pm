@@ -946,14 +946,7 @@ sub family_overlaps_with_db {
                           ) || die "Could not connect to database: $DBI::errstr";
     
    my $query
-      = "CREATE TABLE `pfam_live`.`tempAccs` (
-  `pfamseq_acc` VARCHAR(10) NOT NULL,
-  PRIMARY KEY (`pfamseq_acc`),
-  CONSTRAINT `fk_tempAccs_1`
-    FOREIGN KEY (`pfamseq_acc`)
-    REFERENCES `pfam_live`.`pfamseq` (`pfamseq_acc`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION);";
+      = "CREATE TEMPORARY TABLE pfam_live.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";
     my $sth = $dbh->prepare($query);
     $sth->execute() or die "Can't execute statement: $DBI::errstr";
 
@@ -1849,7 +1842,11 @@ sub checkCLANDESCSpell {
   close TMP;
 
   # Start ispell session on file
-  system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
+  # system("ispell --dont-validate-words -W 0 -w 0123456789 -p$dictionary tmp.$$");
+  my $cwd = cwd;
+  my ( $dictionary_file, $path_to_dictionary, $suffix ) = fileparse( $dictionary );
+  system("cd $path_to_dictionary && aspell --dont-validate-words -W 0 -p${dictionary_file}${suffix} check $cwd/tmp.$$") == 0
+    or warn "WARNING: couldn't run spell checker: $!";
 
   # Now need to put changes back into DESC file
   my ( %editedline, $line_number );
