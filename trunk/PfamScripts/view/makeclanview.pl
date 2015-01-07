@@ -246,7 +246,7 @@ close(STO);
 #TODO rename clan_can_acc in statement below to clan_acc when column renamed in db
 $view->pfamdb->getSchema
         ->resultset('ClanAlignmentAndRelationship')
-          ->update_or_create({ clan_clan_acc => $clanData->clan_acc,
+          ->update_or_create({ clan_acc => $clanData->clan_acc,
                                stockholm => $clanDescZip,
                                alignment => undef,
                                image_map => undef,
@@ -400,11 +400,10 @@ sub makeGraph {
   }
   close(PNG);
 
-#TODO revert clan_clan_acc to clan_acc below when db column name updated
   $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      clan_clan_acc    => $clanacn,
+      clan_acc    => $clanacn,
       image_map    => $clanIM,
       relationship => $clanImage
     }
@@ -606,11 +605,10 @@ sub makeAlign {
   open(ALI, "gzip -c $clanAcc.withFamBlock.html |") 
     or $view->mailUserAndFail( "makeclanview: Failed to gzip clan alignment" );
   my $align = join("", <ALI>);
-#TODO revert clan_clan_acc to clan_acc below when db column name updated
   $view->pfamdb->getSchema->resultset('ClanAlignmentAndRelationship')
     ->update_or_create(
     {
-      clan_clan_acc    => $clanacn,
+      clan_acc    => $clanacn,
       alignment    => $align
     }
     );
