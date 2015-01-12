@@ -958,15 +958,15 @@ sub addSecondaryStructure {
       foreach my $nse ( keys %$map ) {
         foreach my $pdbReg ( @{ $map->{$nse} } ) {
           
-            #"Inserting row into PdbPfamaReg " . $regs->{$nse}->auto_pfama );
+		    #"Inserting row into PdbPfamaReg " . $regs->{$nse}->auto_pfama );
 
           #Now reinsert
           $self->pfamdb->getSchema->resultset('PdbPfamAReg')->create(
             {
               auto_pfama_reg_full => $regs->{$nse}->{dom}->auto_pfama_reg_full,
               pdb_id              => $pdbReg->{pdb_id},
-              pfama_acc          => $regs->{$nse}->{dom}->pfama_acc,
-              pfamseq_acc        => $regs->{$nse}->{dom}->pfamseq_acc,
+              pfama_acc          => $regs->{$nse}->{dom}->pfama_acc->pfama_acc,
+              pfamseq_acc        => $regs->{$nse}->{dom}->pfamseq_acc->pfamseq_acc,
               chain               => $pdbReg->{chain},
               pdb_res_start       => $pdbReg->{pdb_start},
               pdb_start_icode     => $pdbReg->{pdb_start_icode},
@@ -1040,8 +1040,6 @@ sub pfamTaxDepth {
 
   my @ranges =
     $self->pfamdb->getSchema->resultset('Taxonomy')->search( { parent => '1' } );
-
-p(@ranges);
 
   #Generate a temporary table in the same fashion as before.
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
