@@ -274,7 +274,7 @@ sub checkFamilyExists {
 
 sub checkNewFamilyDoesNotExists {
   my ( $self, $family ) = @_;
-  print STDERR "Checking family |$family| does not exist\n"; 
+  print STDERR "Checking family |$family| does not exist in FamiliesPending\n"; 
   my $url     = $self->newFamilyLocation . "/" . $family;
   my $codeRef = sub {
     my ( $path, $info, $pool ) = @_;
