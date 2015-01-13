@@ -253,8 +253,8 @@ unless ( -e "$statusdir/uploaded_reprentative_proteomes" ) {
     and $logger->logdie(
 "Failed to run |pud-getRepresentativeProteomes.pl -statusdir $statusdir|:[$!]"
     );
-  $logger->info("Finished uploading reprentative proteomes");
-  system("touch $statusdir/uploaded_reprentative_proteomes")
+  $logger->info("Finished uploading representative proteomes");
+  system("touch $statusdir/uploaded_representative_proteomes")
     and
     $logger->logdie( die "couldn't touch $statusdir/uploaded_proteomes:[$!]" );
 }
@@ -346,21 +346,25 @@ $logger->logdie("now need iPfam and PDB stuff fixed\n");
 #At the moment there is not iPfam, so we are not going to have to do anything
 $logger->warn('Until iPfam is resurrected, there is nothing to do.');
 
-#-------------------------------------------------------------------------------
-$logger->logdie("need to change PDB stuff here\n");
-#Update the pdb data
-# This took 2.5 without the upload (done manaually afterwards) - takes about another 2 hours to upload
+#new PDB code to fetch data for and populate pdb and pdb_residue_data tables
+#this is prone to falling over due to database timeouts in pdb_residue_data if any other large queries are running on the same db host
+#if this happens use finish_pdbs.pl with the id of the last pdb entry that was being worked on by this script:
+#finish_pdbs.pl PDBID 
+#then touch the done_update_pdb file and continue
+
 unless ( -e "$statusdir/done_update_pdb" ) {
-  $logger->info("Preparing to fetch all the latest pdb data.");
-  system("pud-getPdbDataFromSifts.pl $statusdir")
-    and $logger->logdie("Failed to run pud-getPdbDataFromSifts.pl:[$!]");
-  $logger->info("Updated pdb data");
-  system("touch $statusdir/done_update_pdb")
-    and $logger->logdie("Failed to touch $statusdir/done_update_pdb");
-}
-else {
+    $logger->info("Preparing to fetch all the latest pdb data.");
+    system("pud-getPdbDataAndMapping.pl") 
+	and $logger->logdie ("Failed to run pud-getPdbDataAndMapping.pl");
+    $logger->info("Updated pdb data");
+    system("touch $statusdir/done_update_pdb")
+	and $logger->logdie("Failed to touch $statusdir/done_update_pdb");
+} else {
   $logger->info("Already done pdb upload\n");
 }
+
+
+#-------------------------------------------------------------------------------
 
 
 #------------------------------
