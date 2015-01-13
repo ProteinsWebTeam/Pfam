@@ -72,8 +72,15 @@ if( !-w "$pwd/$family" ) {
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
+#Need admin access to db (for creating temporary table) if 
+my $pfamDBAdmin;
+unless($noFilter) {
+  my $connectParams = $config->pfamliveAdmin;
+  $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
+}
+
 my $overlaps =
-  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete, $all, $noFilter );
+  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete, $all, $noFilter, $pfamDBAdmin );
   warn "$family: found $overlaps external overlaps\n";
 
 unless($no_sigP) {
