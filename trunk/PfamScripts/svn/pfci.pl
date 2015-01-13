@@ -309,9 +309,14 @@ unless ($ignore) {
 
       #Need to populate the ignore hash with clan and nesting data......
 
+      #Need to pass $pfamDBAdmin to family_overlaps_with_db so can create temporary table
+      my $connectParams = $config->pfamliveAdmin;
+      my $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
+    
       my $overlaps =
         &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef,
-        $pfamDB, $upFamObj );
+						     $pfamDB, $upFamObj, undef, undef, undef, $pfamDBAdmin );
+ 
       if ($overlaps) {
         print "Looks like your family contains overlaps.\n";
         exit(1);
