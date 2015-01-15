@@ -1247,7 +1247,6 @@ sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|
           print STDERR "Couldn't parse this line: [$overlapLine]";
         }
     }
-    $dbh->disconnect();
     
     # Get family size from scores file
     my $familySize  = $famObj->scores->numRegions;
