@@ -33,7 +33,7 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 #Report all Pfam-A matches for sequence acc or pdb id
-if($input =~ /^\S{6}$/) { #Does input look like a sequence acc
+if($input =~ /^\S{6,10}$/) { #Does input look like a sequence acc
 
   print STDERR "Looking up sequence accession: $input\n\n";
 
