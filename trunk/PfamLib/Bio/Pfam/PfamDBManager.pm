@@ -596,14 +596,14 @@ sub findLowerEvalueRegion {
                               clan_membership m, 
                               pfamA_reg_full_significant r, 
                               pfamseq s 
-                            WHERE  pfamseq_acc= ? AND
+                            WHERE  s.pfamseq_acc= ? AND
                             ((? >= r.seq_start and ? <= r.seq_end) or 
                             ( ? >= r.seq_start and ? <= r.seq_end) or 
                             ( ? < r.seq_start and ? >r.seq_end)) and
                             s.pfamseq_acc=r.pfamseq_acc and 
                             r.pfamA_acc=a.pfamA_acc and 
-                            pfamA_acc != ? and
-                            clan_acc = ? and
+                            r.pfamA_acc != ? and
+                            m.clan_acc = ? and
                             c.clan_acc = m.clan_acc and
                             m.pfamA_acc = r.pfamA_acc") or confess $dbh->errstr;
  
