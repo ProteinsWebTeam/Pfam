@@ -951,21 +951,10 @@ sub family_overlaps_with_db {
       $tempAccs{$seq->id}=1;
     }
 
-    #my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
-    #my $db_name=$config->{Model}->{Pfamlive}->{database};
-    my $db_name="pfam_live";
-    my $dbh = DBI->connect( "dbi:mysql:database="
-                              . $config->pfamlive->{database}
-                              . ";host="
-                              . $config->pfamlive->{host}
-                              . ";port="
-                              . $config->pfamlive->{port},
-                            $config->pfamlive->{adminuser},
-                            $config->pfamlive->{adminpassword},
-                                {AutoCommit => 0}
-                          ) || die "Could not connect to database: $DBI::errstr";
+    my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
+    my $db_name=$config->{Model}->{Pfamlive}->{database};
 
-    my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";
+    my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";	 
     my $sth = $dbh->prepare($query);
     $sth->execute() or die "Can't execute statement: $DBI::errstr";
     
