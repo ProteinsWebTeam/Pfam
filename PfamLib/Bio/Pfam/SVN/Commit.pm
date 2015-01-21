@@ -374,7 +374,11 @@ sub _qualityControlFamily {
 
   if(defined($msg) and $msg !~ /Release \S+ update/){
     my $compete = 1;
-    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete  );
+ 
+    #Need to pass $pfamDBAdmin to family_overlaps_with_db so can create temporary table
+    my $connectParams = $self->{config}->pfamliveAdmin;
+    my $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
+    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete, undef, undef, $pfamDBAdmin  );
     warn "$family: found $overlaps overlaps\n";
     if ($overlaps) {
       confess("Found overlaps\n");
