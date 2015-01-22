@@ -554,7 +554,7 @@ sub makeRPAligns {
   my ( $self, $aliIds, $regs, $GFAnn ) = @_;
 
   #p($aliIds);
-  my @rplevels = qw(rp15 rp35 rp55 rp75);
+  my @rplevels = qw(rp15 rp35 rp55 rp75 ref_proteome);
   my $counts;
   foreach my $l (@rplevels) {
     $counts->{'number_'.$l} =0;
@@ -1811,7 +1811,9 @@ sub uploadTreesAndAlign {
     or ( $type eq 'rp55' )
     or ( $type eq 'rp75' )
     or ( $type eq 'ncbi' )
-    or ( $type eq 'meta' ) )
+    or ( $type eq 'meta' ) 
+    or ( $type eq 'ref_proteome' )
+    )
   {
     $self->mailUserAndFail( 
 "Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta', 'ncbi' or 'rp15-75'"
@@ -1964,7 +1966,7 @@ sub getNestedLocations {
     ->search( { pfama_acc => $self->pfam->pfama_acc } );
   my @nests;
   foreach my $r (@rows) {
-    push( @nests, $r->pfamseq_acc . "/" . $r->seq_start . "-" . $r->seq_end );
+    push( @nests, $r->pfamseq_acc->pfamseq_acc . "/" . $r->seq_start . "-" . $r->seq_end );
   }
   return ( \@rows, \@nests );
 }
@@ -2100,8 +2102,8 @@ sub writeGFAnnotationBlock {
     and scalar( @{ $GFAnn->{nestL} } ) )
   {
     foreach my $n ( @{ $GFAnn->{nestL} } ) {
-      print $annfile "#=GF NE   ", $n->nested_pfama_acc, ";\n";
-      print $annfile "#=GF NL   ", $n->pfamseq_acc;
+      print $annfile "#=GF NE   ", $n->nested_pfama_acc->pfama_acc, ";\n";
+      print $annfile "#=GF NL   ", $n->pfamseq_acc->pfamseq_acc;
       if ( $n->seq_version and $n->seq_version =~ /\d+/ ) {
         print $annfile "." . $n->seq_version;
       }
