@@ -1038,52 +1038,63 @@ sub pfamTaxDepth {
 
   $self->logger->debug("Fetching taxonomic roots");
 
-  my @ranges =
-    $self->pfamdb->getSchema->resultset('Taxonomy')->search( { parent => '1' } );
+my $dbh = $self->pfamdb->getSchema->storage->dbh;
+
+#Now grab the different taxonomic ranges - want to exclude root
+#two queries - first for non-cellular organisms, second for cellular then combine the two
+  my $ranges =
+    $dbh->selectall_arrayref(
+    'select lft, rgt, level from taxonomy where parent="1" and level !="root" and level !="cellular organisms" and level != "Viroids";')
+    or die $dbh->errstr;
+
+  my $ranges_cell =
+    $dbh->selectall_arrayref(
+    'select lft, rgt, level from taxonomy where parent="131567";')
+    or die $dbh->errstr;
+
+push (@$ranges, @$ranges_cell);
 
   #Generate a temporary table in the same fashion as before.
-  my $dbh = $self->pfamdb->getSchema->storage->dbh;
-  my $table     = "_taxDist$$";    #Keep the table name for later use.
+  my $table     = "_taxDist$$";    #Keep the table name for later use. 
+  $self->logger->debug("Creating temporary table $table");     
+
   my $statement =
-      "create temporary table $table ( `pfamseq_acc` varchar(10) NOT NULL,"
+      "create temporary table $table ( 
+      `pfamseq_acc` varchar(10) NOT NULL, `ncbi_taxid` int(10) unsigned, "
     . "PRIMARY KEY (pfamseq_acc) )";
+
   $dbh->do($statement) or die $dbh->errstr;
 
   #Now populate it;
   $dbh->do(
-"INSERT INTO $table SELECT distinct s.pfamseq_acc from pfamseq s, pfamA_reg_full_significant r
+"INSERT INTO $table SELECT distinct s.pfamseq_acc, s.ncbi_taxid from pfamseq s, pfamA_reg_full_significant r
             WHERE in_full=1 AND r.pfamseq_acc=s.pfamseq_acc and r.pfamA_acc='"
       . $self->pfam->pfama_acc . "'"
     )
     or $dbh->errstr;
 
 #-------------------------------------------------------------------------------
-#Now grab the different taxonomic ranges;
-  my $ranges =
-    $dbh->selectall_arrayref(
-    'select lft, rgt, level from taxonomy where parent="1"')
-    or die $dbh->errstr;
 
 #Now loop over the tax ranges and perform a look-up on each if there is an overlap
   my $sthTaxDepth = $dbh->prepare(
-    "SELECT level, lft, rgt from taxonomy 
+    "SELECT level, ncbi_taxid, lft, rgt from taxonomy 
                                     WHERE lft<= ? and rgt>= ?
                                     AND level!='NULL' 
                                     ORDER BY rgt-lft DESC"
   ) or die $dbh->errstr();
 
   my $sthMinMax = $dbh->prepare(
-    "SELECT min(lft), max(rgt), count(s.pfamseq_acc) 
-                                            FROM  $table r, pfamseq s, taxonomy t 
-                                            WHERE s.pfamseq_acc=r.pfamseq_acc 
-                                            AND t.ncbi_taxid=s.ncbi_taxid 
-                                            AND t.ncbi_taxid!=0 
+    "SELECT min(lft), max(rgt), count(r.pfamseq_acc) 
+                                            FROM  $table r, taxonomy t 
+                                            WHERE t.ncbi_taxid!=0 
+					    AND t.ncbi_taxid = r.ncbi_taxid
                                             AND lft >= ?
                                             AND rgt <= ?"
   ) or die $dbh->errstr();
-  my ( %depth, %count );
-  foreach my $r (@$ranges) {
 
+ my ( %depth, %count, %ids );
+  foreach my $r (@$ranges) {
+print "Query $r->[2]\n";
     #Test to see if it falls in range
     #Now get the max/min range for the family based on the temp table.
     $sthMinMax->execute( $r->[0], $r->[1] );
@@ -1092,16 +1103,31 @@ sub pfamTaxDepth {
     next unless ( $min and $max );
     $sthTaxDepth->execute( $min, $max );
     foreach my $tax ( @{ $sthTaxDepth->fetchall_arrayref } ) {
-      $depth{ $r->[2] } .= $tax->[0] . ";";
+      $depth { $r->[2] } = $tax->[0];
+      $ids{ $r->[2] } = $tax->[1];
     }
     $count{ $r->[2] } = $count;
   }
   $sthTaxDepth->finish;
   $sthMinMax->finish;
   
-  use DDP;
-  p(%depth);
-  p(%count);
+#now populate the tax depth table
+
+print "Loading taxDepth\n";
+
+	foreach my $tax (keys %depth){
+		$self->pfamdb->getSchema->resultset('PfamATaxDepth')->create(
+			{
+			pfama_acc => $self->pfam->pfama_acc,
+			root => $tax,
+			count => $count{$tax},
+			common=> $depth{$tax},
+			ncbi_taxid => $ids{$tax}
+			}
+
+		);
+	}
+
   
 }
 
@@ -1922,6 +1948,7 @@ sub versionFiles {
     );
 
   #Get the release versions
+
   my $releasedVersions =
     $self->pfamdb->getSchema->resultset('ReleasedPfamVersion')
     ->find( { pfama_acc => $self->pfam->pfama_acc } );
@@ -1954,8 +1981,7 @@ sub versionFiles {
     {
       version       => $thisVersion,
       change_status => $changeStatus
-    }
-  );
+    })
 }
 
 sub getNestedLocations {
