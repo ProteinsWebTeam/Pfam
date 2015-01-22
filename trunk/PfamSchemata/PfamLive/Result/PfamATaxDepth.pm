@@ -46,6 +46,11 @@ __PACKAGE__->table("pfamA_tax_depth");
   data_type: 'text'
   is_nullable: 0
 
+=head2 ncbi_taxid
+
+  data_type: 'integer'
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -57,6 +62,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 0 },
   "common",
   { data_type => "text", is_nullable => 0 },
+  "ncbi_taxid",
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 RELATIONS
@@ -77,8 +84,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:phl+S4Jyyu3GBhgWWyWbtQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-22 14:54:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nofLwoHN1YmkcveGxgkmUw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
