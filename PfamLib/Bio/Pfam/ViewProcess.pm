@@ -1042,17 +1042,22 @@ my $dbh = $self->pfamdb->getSchema->storage->dbh;
 
 #Now grab the different taxonomic ranges - want to exclude root
 #two queries - first for non-cellular organisms, second for cellular then combine the two
-  my $ranges =
-    $dbh->selectall_arrayref(
-    'select lft, rgt, level from taxonomy where parent="1" and level !="root" and level !="cellular organisms" and level != "Viroids";')
-    or die $dbh->errstr;
+#  my $ranges =
+#    $dbh->selectall_arrayref(
+#    'select lft, rgt, level from taxonomy where parent="1" and level !="root" and level !="cellular organisms" and level != "Viroids";')
+#    or die $dbh->errstr;
 
-  my $ranges_cell =
-    $dbh->selectall_arrayref(
-    'select lft, rgt, level from taxonomy where parent="131567";')
-    or die $dbh->errstr;
+#  my $ranges_cell =
+#    $dbh->selectall_arrayref(
+#    'select lft, rgt, level from taxonomy where parent="131567";')
+#    or die $dbh->errstr;
 
-push (@$ranges, @$ranges_cell);
+#push (@$ranges, @$ranges_cell);
+
+my $ranges = $dbh->selectall_arrayref('(SELECT lft, rgt, level from taxonomy WHERE parent="1" AND level !="root" AND level !="cellular organisms" AND level != "Viroids")
+ UNION (select lft, rgt, level from taxonomy WHERE parent="131567");') or die $dbh->errstr;
+
+#p($ranges);
 
   #Generate a temporary table in the same fashion as before.
   my $table     = "_taxDist$$";    #Keep the table name for later use. 
@@ -1092,9 +1097,9 @@ push (@$ranges, @$ranges_cell);
                                             AND rgt <= ?"
   ) or die $dbh->errstr();
 
- my ( %depth, %count, %ids );
+my %taxdepth;
   foreach my $r (@$ranges) {
-print "Query $r->[2]\n";
+  print "Querying $r->[2]\n";
     #Test to see if it falls in range
     #Now get the max/min range for the family based on the temp table.
     $sthMinMax->execute( $r->[0], $r->[1] );
@@ -1102,27 +1107,28 @@ print "Query $r->[2]\n";
 
     next unless ( $min and $max );
     $sthTaxDepth->execute( $min, $max );
-    foreach my $tax ( @{ $sthTaxDepth->fetchall_arrayref } ) {
-      $depth { $r->[2] } = $tax->[0];
-      $ids{ $r->[2] } = $tax->[1];
-    }
-    $count{ $r->[2] } = $count;
+    my $arrayref_tax = $sthTaxDepth->fetchall_arrayref;
+    my $rows =  $sthTaxDepth->rows;
+    $taxdepth{$r->[2]}{'common'}=$arrayref_tax->[$rows-1]->[0];
+    $taxdepth{$r->[2]}{'id'}=$arrayref_tax->[$rows-1]->[1];
+    $taxdepth{$r->[2]}{'count'}=$count;    
   }
   $sthTaxDepth->finish;
   $sthMinMax->finish;
+
   
 #now populate the tax depth table
 
 print "Loading taxDepth\n";
 
-	foreach my $tax (keys %depth){
+	foreach my $tax (keys %taxdepth){
 		$self->pfamdb->getSchema->resultset('PfamATaxDepth')->create(
 			{
 			pfama_acc => $self->pfam->pfama_acc,
 			root => $tax,
-			count => $count{$tax},
-			common=> $depth{$tax},
-			ncbi_taxid => $ids{$tax}
+			count => $taxdepth{$tax}{'count'},
+			common=> $taxdepth{$tax}{'common'},
+			ncbi_taxid => $taxdepth{$tax}{'id'}
 			}
 
 		);
