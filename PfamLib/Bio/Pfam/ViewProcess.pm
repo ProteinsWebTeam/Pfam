@@ -1947,8 +1947,39 @@ sub versionFiles {
     }, { key => "pfamA_acc" }
     );
 
-  #Get the release versions
+#TODO - remove the hack beneath for future releases
+#for pfam28.0 the released version table is not yet populated so need to look up released version in 27
+#this will be inefficient as I don't want to modify $self to include a connection to 27. Need to populate table so it 
+#can be queried below.
+	use DBI;
+	my $host27 = "mysql-xfam-dev";
+	my $driver27 = "mysql";
+	my $user27 = "pfamro";
+	my $port27= "4423";
+	my $db27 = "pfam_27_0";
+	my $pfam27 = DBI->connect( "dbi:mysql:$db27:$host27:$port27",$user27  ) or die "Cannot connect to pfam27\n";
+	my $st27 = $pfam27->prepare("select a.version, v.seed, v.align, v.hmm from current_pfam_version as v, pfamA as a where v.auto_pfamA = a.auto_pfamA and pfamA_acc = ?");
+	$st27->execute($self->pfam->pfama_acc );
+	my $array_ref27 = $st27->fetchall_arrayref();
+#p( $array_ref27->[0]->[1]);i
+	if ($array_ref27->[0]->[0]){
+	print "populating released version table\n";
+		$self->pfamdb->getSchema->resultset('ReleasedPfamVersion')->update_or_create(
+		{
+		pfama_acc =>  $self->pfam->pfama_acc,
+		seed => $array_ref27->[0]->[1],
+		align => $array_ref27->[0]->[2],
+		hmm => $array_ref27->[0]->[3],
+		desc_file => 0,
+		version => $array_ref27->[0]->[0]
+		}	
+		);
+	} else {
+		print "no released version data to populate\n";
+	}
+#end of block to remove
 
+  #Get the release versions
   my $releasedVersions =
     $self->pfamdb->getSchema->resultset('ReleasedPfamVersion')
     ->find( { pfama_acc => $self->pfam->pfama_acc } );
