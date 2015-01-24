@@ -464,6 +464,7 @@ sub wait_for_cluster_light {
     #################################################
     # CLUSTER CHECK BLOCK
     if($do_cluster_check) { 
+      #printf("checking the cluster with qstat/bjobs\n");
       sleep(rand(30)); # randomize wait time here, so all jobs started at same time don't run qstat/bjobs at exact same time
       $ncycle = 0; # reset to 0
       $ncluster_check++;
@@ -498,6 +499,7 @@ sub wait_for_cluster_light {
                (! $ininfoA[$i]) &&               # we didn't already find this job in the queue
                ($jobnameAR->[$i] eq $jobname)) { # jobname match
               $ininfoA[$i] = 1; 
+              $i = $n;
               # check if job is in error status, if it is, then exit
               if (($location eq "JFRC") && ($status =~ m/E/))                       { die "wait_for_cluster_light(), internal error, qstat shows Error status: $line"; }
               if (($location eq "EBI")  && ($status ne "RUN" && $status ne "PEND")) { die "wait_for_cluster_light(), internal error, bjobs shows non-\"RUN\" and non-\"PEND\" status: $line"; }
