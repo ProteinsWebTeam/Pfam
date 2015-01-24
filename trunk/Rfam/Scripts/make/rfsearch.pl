@@ -38,6 +38,7 @@ my $relax_about_seed = 0;       # TRUE to allow SEED sequences to not be in the 
 # calibration related options
 my $force_calibrate = 0;        # TRUE to force calibration
 my $ncpus_cmcalibrate;          # number of CPUs for cmcalibrate call
+my $calibrate_nompi = 0;        # TRUE to calibrate without MPI
 # search related options
 my $no_search = 0;              # TRUE to skip search
 my $no_rev_search = 0;          # TRUE to skip reversed search
@@ -88,6 +89,7 @@ my $options_okay =
                  "relax"      => \$relax_about_seed,
                  "c"          => \$force_calibrate,
                  "ccpu=s"     => \$ncpus_cmcalibrate,
+                 "cnompi"     => \$calibrate_nompi,
                  "e=s",       => \$e_opt,
                  "t=s",       => \$t_opt,
                  "cut_ga",    => \$do_cutga,
@@ -340,6 +342,7 @@ if($do_enone)                  { push(@opt_lhsA, "# pass --enone to cmbuild: ");
 if($ignore_bm)                 { push(@opt_lhsA, "# ignore DESC's BM line: ");              push(@opt_rhsA, "yes [-ignorebm]"); }
 if($relax_about_seed)          { push(@opt_lhsA, "# allowing SEED seqs not in database: "); push(@opt_rhsA, "yes [-relax]"); }
 if($force_calibrate)           { push(@opt_lhsA, "# force cmcalibrate step: ");             push(@opt_rhsA, "yes [-c]"); }
+if($calibrate_nompi)           { push(@opt_lhsA, "# threaded calibration, not MPI: ");      push(@opt_rhsA, "yes [-cnompi]"); }
 if(defined $ncpus_cmcalibrate) { push(@opt_lhsA, "# num processors for MPI cmcalibrate: "); push(@opt_rhsA, "$ncpus_cmcalibrate [-ccpu]"); }
 if(defined $e_opt)             { push(@opt_lhsA, "# E-value cutoff: ");                     push(@opt_rhsA, $e_opt . " [-e]"); }
 if(defined $t_opt)             { push(@opt_lhsA, "# bit score cutoff: ");                   push(@opt_rhsA, $t_opt . " [-t]"); }
@@ -565,7 +568,7 @@ my $calibrate_max_wait_secs = 0;
 my $calibrateO     = "c.$$.out"; # cmcalibrate output file
 my $calibrate_errO = "c.$$.err"; # error output
 my $did_calibrate = 0;
-if(! defined $ncpus_cmcalibrate) { $ncpus_cmcalibrate = 81; }
+if(! defined $ncpus_cmcalibrate) { $ncpus_cmcalibrate = ($calibrate_nompi) ? 8 : 81; }
 my $do_calibrate = 
     (! $only_build) &&         # -onlybuild NOT enabled
     (! $do_hmmonly) &&         # -hmmonly NOT enabled
@@ -577,19 +580,21 @@ if($do_calibrate) {
   my $calibrate_start_time = time();
 #  Calibration prediction time not currently used, since we can't accurately predict search time anyway
   my $predicted_minutes = Bio::Rfam::Infernal::cmcalibrate_wrapper($config, 
-                                                                  "c.$$",               # job name
-                                                                   "",                  # options for cmcalibrate, NOTE: we don't allow ANY 
-                                                                   "CM",                # path to CM file
-                                                                   $calibrateO,         # path to output file 
-                                                                   $calibrate_errO,     # path to error output file 
-                                                                   $ncpus_cmcalibrate,  # number of processors
-                                                                   $q_opt);             # queue to use, "" for default, ignored if location eq "EBI"
+                                                                  "c.$$",                 # job name
+                                                                   "",                    # options for cmcalibrate, NOTE: we don't allow ANY 
+                                                                   "CM",                  # path to CM file
+                                                                   $calibrateO,           # path to output file 
+                                                                   $calibrate_errO,       # path to error output file 
+                                                                   $ncpus_cmcalibrate,    # number of processors
+                                                                   $q_opt,                # queue to use, "" for default, ignored if location eq "EBI"
+                                                                   (! $calibrate_nompi)); # use MPI? 
   my @jobnameA = ("c.$$");
   my @outnameA = ("c.$$.out");
   my @errnameA = ("$calibrate_errO"); 
   #$calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster($config->location, $user, \@jobnameA, \@outnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
                                                                 #sprintf("[$ncpus_cmcalibrate procs, should take ~%.0f minute(s)]", $predicted_minutes), -1, $do_stdout);
-  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster_light($config->location, $user, \@jobnameA, \@outnameA, \@errnameA, "[ok]", "cmcalibrate-mpi", $logFH, 
+  my $cmcalibrate_string = ($calibrate_nompi) ? "cmcalibrate-thr" : "cmcalibrate-mpi";
+  $calibrate_max_wait_secs = Bio::Rfam::Utils::wait_for_cluster_light($config->location, $user, \@jobnameA, \@outnameA, \@errnameA, "[ok]", $cmcalibrate_string, $logFH, 
                                                                 sprintf("[$ncpus_cmcalibrate procs, should take ~%.0f minute(s)]", $predicted_minutes), -1, $do_stdout);
   Bio::Rfam::Utils::checkStderrFile($config->location, $calibrate_errO);
   # if we get here, err file was empty, so we keep going
@@ -995,7 +1000,7 @@ sub submit_cmsearch_jobs {
   my ($idx, $file_idx, $dbfile);
 
   # determine Gb of memory we need per thread based on $searchopts, if it contains '--mxsize <d>' with <d> > 500
-  # use 8Gb, otherwise use 3gb. This step wasimplemented this to deal with Eukaryotic LSU, which requires more 
+  # use 8Gb, otherwise use 3gb. This step was implemented this to deal with Eukaryotic LSU, which requires more 
   # than 3Gb per thread
   my $gbPerThread = 3.0;
   if($searchopts =~ /\-\-mxsize\s+(\d+)/) { 
@@ -1245,6 +1250,7 @@ Options:    OPTIONS RELATED TO BUILD STEP (cmbuild):
             OPTIONS RELATED TO CALIBRATION STEP (cmcalibrate):
 	    -c         : always run cmcalibrate (default: only run if 'CM' is not calibrated)
             -ccpu <n>  : set number of CPUs for MPI cmcalibrate job to <n>
+            -cnompi    : run threaded cmcalibrate, not MPI
 
             OPTIONS RELATED TO SEARCH STEP (cmsearch):
             -e <f>      : set cmsearch E-value threshold as <f>

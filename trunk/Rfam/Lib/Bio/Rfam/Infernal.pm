@@ -81,13 +81,14 @@ sub cmbuild_wrapper {
            : $errPath: path to error output file, must be defined
            : $nproc:   number of CPUs to use, if undefined $CMCALIBRATE_NCPU is used
            : $queue:   queue to submit to, "" for default, ignored if location eq 'EBI'
+           : $doMPI:   TRUE to run using MPI, FALSE not to
   Returns  : Predicted number of minutes the calibration should take.
   Dies     : if any command fails, including prediction or cluster submission
 
 =cut
 
 sub cmcalibrate_wrapper {
-  my ($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc, $queue) = @_;
+  my ($config, $jobname, $options, $cmPath, $outPath, $errPath, $nproc, $queue, $doMPI) = @_;
   
   # ensure $cmPath exists
   if (! -e $cmPath) { die "CM file $cmPath does not exist"; }
@@ -116,8 +117,14 @@ sub cmcalibrate_wrapper {
   unlink $forecast_out;
   
   # submit MPI job
-  Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmcalibratePath --mpi $cmPath > $outPath", $jobname, $errPath, $nproc, $queue);
-
+  if($doMPI) { 
+    Bio::Rfam::Utils::submit_mpi_job($config->location, "$cmcalibratePath --mpi $cmPath > $outPath", $jobname, $errPath, $nproc, $queue); 
+  }
+  else { 
+    my $gbPerThread = 3.0;
+    my $requiredMb = $nproc * $gbPerThread * 1000.; 
+    Bio::Rfam::Utils::submit_nonmpi_job($config->location, "$cmcalibratePath --cpu $nproc $cmPath > $outPath", $jobname, $errPath, $nproc, $requiredMb, undef, $queue); 
+  }
   return ($predicted_seconds / 60);
 }
 
