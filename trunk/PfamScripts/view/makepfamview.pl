@@ -22,6 +22,7 @@ The view files which are made are as follows:
 #Core Perl Modules
 use strict;
 use warnings;
+use DDP;
 
 use Bio::Pfam::ViewProcess;
 
