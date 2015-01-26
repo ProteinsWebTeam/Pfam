@@ -272,7 +272,8 @@ $view->pfamdb->getSchema
                                stockholm => $clanDescZip,
                                alignment => undef,
                                image_map => undef,
-                               relationship => undef });
+                               relationship => undef }, { key => 'clan_acc' }
+			    );
 
 #-------------------------------------------------------------------------------
 # Make clan alignment and relationship images
@@ -428,7 +429,8 @@ sub makeGraph {
       clan_acc    => $clanacn,
       image_map    => $clanIM,
       relationship => $clanImage
-    }
+    }, { key => 'clan_acc' }
+
     );
 
 }
@@ -632,7 +634,8 @@ sub makeAlign {
     {
       clan_acc    => $clanacn,
       alignment    => $align
-    }
+    }, { key => 'clan_acc' }
+
     );
 
 }
