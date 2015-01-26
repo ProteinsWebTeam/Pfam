@@ -176,11 +176,11 @@ my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->s
 my $noSeqs = $noSeqsRS->count;
 
 #No Interactions - nothing is done with this at the moment....
-#$view->logger->debug("Calculating the number of interactions");
-#my $noIntRS = $view->pfamdb->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
-#  { join => [qw(clan_membership interactions)],
-#    columns => [ qw( interactions.auto_pfamA_A interactions.auto_pfamA_B ) ] } );
-#my $noInt = $noIntRS->count;
+$view->logger->debug("Calculating the number of interactions");
+my $noIntRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
+  { join => [qw(clan_membership interactions)],
+    columns => [ qw( interactions.pfamA_acc_A interactions.pfamA_acc_B ) ] } );
+my $noInt = $noIntRS->count;
 
 #Get list of unique species
 $view->logger->debug("Calculating the number of species");
@@ -200,6 +200,29 @@ open(C, "CLANDESC") or die;
 my @clandesc = <C>;
 close(C);
 #Version the clan as we do for families.
+
+#TODO - remove hack below - this takes the version from rel27 and populates the released_clans with it - clandesc md5 not taken into account as this wasn't present in 27
+#setting desc_file as 1 as this is what it was in 27 - should be an md5, can't be null
+use DBI;
+my $host27 = "mysql-xfam-dev";
+my $driver27 = "mysql";
+my $user27 = "pfamro";
+my $port27= "4423";
+my $db27 = "pfam_27_0";
+my $pfam27 = DBI->connect( "dbi:mysql:$db27:$host27:$port27",$user27  ) or die "Cannot connect to pfam27\n";
+my $st27 = $pfam27->prepare("select v.version from released_clan_version v, clans c where v.auto_clan = c.auto_clan and clan_acc = ?");
+$st27->execute($clanAcc);
+my $array_ref27 = $st27->fetchall_arrayref();
+if ($array_ref27->[0]->[0]){
+	$view->pfamdb->getSchema->resultset('ReleasedClanVersion')->update_or_create(
+		{
+		clan_acc => $clanAcc,
+		desc_file => 1,
+		version => $array_ref27->[0]->[0]
+		}
+	);
+}
+#end of hack to remove
 
 my $clanDescCksum = md5_hex(join("", @clandesc));
 
@@ -243,7 +266,6 @@ open( STO, "gzip -c CLANDESC.sto|" );
 my $clanDescZip = join("", <STO>);
 close(STO);
 
-#TODO rename clan_can_acc in statement below to clan_acc when column renamed in db
 $view->pfamdb->getSchema
         ->resultset('ClanAlignmentAndRelationship')
           ->update_or_create({ clan_acc => $clanData->clan_acc,
