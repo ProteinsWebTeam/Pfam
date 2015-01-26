@@ -254,5 +254,9 @@ __PACKAGE__->might_have(
 	"clan_membership" => 'PfamLive::Result::ClanMembership',
  	{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
 
+__PACKAGE__->might_have(
+	"interactions" => 'PfamLive::Result::PfamAInteraction',
+	{ 'foreign.pfama_acc_a' => 'self.pfama_acc' } );
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
