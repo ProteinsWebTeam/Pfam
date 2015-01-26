@@ -132,6 +132,7 @@ while (1) {
           -q => $queue,
           -R => $resource,
           -M => $memory,
+	  -g => '/Pfamview',
           "$mkAndCdToTmp && $cmd"
         );
 
