@@ -20,6 +20,7 @@ use warnings;
 use Bio::SeqFeature::Generic;
 use Bio::Pfam::AlignPfam;
 use Carp;
+use DDP;
 
 
 
@@ -148,7 +149,7 @@ sub full {
 	close GZPP; 
 
 	$self->{database}->getSchema
-	    ->resultset('ActiveSiteAlignments')
+	    ->resultset('ActiveSiteAlignment')
 	    ->update_or_create( {pfama_acc => $self->{pfama_acc},
 				 alignment => $db_as_alignment,
 				 as_residues => $self->{_as_res_pos} });
@@ -350,6 +351,7 @@ sub _locate_as {
 
 
   my $flag2;
+
   foreach my $seq ($self->{alignment}->each_seq) {
       my %already;
       my $flag;
@@ -918,7 +920,7 @@ sub id2acc {
       $result =$self->{database}->getSchema->resultset("Pfamseq")->find( { "pfamseq_id" => $acc } );
   }
 
-  return ( $result->auto_pfamseq );
+  return ( $result->pfamseq_acc );
 
 }
 
