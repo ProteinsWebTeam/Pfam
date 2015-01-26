@@ -86,6 +86,8 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-05 16:35:20
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:co6cz3nN48s1bYPfdmGoqg
 
+__PACKAGE__->set_primary_key("clan_acc");
+__PACKAGE__->add_unique_constraint("clan_acc", ["clan_acc"]);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
