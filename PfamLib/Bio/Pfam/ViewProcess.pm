@@ -432,12 +432,21 @@ sub mailUserAndFail {
 
   if ( $self->job->user_id ) {
 
+#changed to ruthe only for now
+#    my %header = (
+#      To      => $self->job->user_id . '@ebi.ac.uk',
+#      Cc      => $self->config->view_process_admin,
+#      From    => $self->config->view_process_admin,
+#      Subject => 'Error in view process for ' . $self->job->entity_id
+ #   );
+
     my %header = (
-      To      => $self->job->user_id . '@ebi.ac.uk',
+      To      => 'ruthe@ebi.ac.uk',
       Cc      => $self->config->view_process_admin,
       From    => $self->config->view_process_admin,
       Subject => 'Error in view process for ' . $self->job->entity_id
     );
+
 
     my $mailer = Mail::Mailer->new;
     $mailer->open( \%header );
@@ -1099,7 +1108,7 @@ my $ranges = $dbh->selectall_arrayref('(SELECT lft, rgt, level from taxonomy WHE
 
 my %taxdepth;
   foreach my $r (@$ranges) {
-  print "Querying $r->[2]\n";
+  $self->logger->debug("Querying $r->[2]\n");
     #Test to see if it falls in range
     #Now get the max/min range for the family based on the temp table.
     $sthMinMax->execute( $r->[0], $r->[1] );
