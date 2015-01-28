@@ -65,8 +65,8 @@ LINE: while(<>) {
 	/^\#=GF\s+TC\s{3}-?\d+\.{1}\d{2}\s{1}-?\d+\.{1}\d{2}\;$/ && do {$hash{'TC'}++; next; };
 	/^\#=GF\s+NC\s{3}(-?\d+\.{1}\d{2}\s{1}-?\d+\.{1}\d{2}|undefined undefined)\;$/ && do {$hash{'NC'}++; next; };
 
-	## Can be one of four types
-	/^\#=GF\s+TP\s{3}(Domain|Family|Repeat|Motif)$/ && do {$hash{'TP'}++; next; };
+	## Can be one of six types
+	/^\#=GF\s+TP\s{3}(Domain|Family|Repeat|Motif|Coiled-coil|Disordered)$/ && do {$hash{'TP'}++; next; };
 
   /^\#=GF\s+WK\s{3}(.*)$/ && do { $hash{'WK'}++; next; };
 	## Can be one of three options
