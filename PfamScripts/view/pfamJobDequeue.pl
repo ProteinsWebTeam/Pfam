@@ -120,9 +120,16 @@ while (1) {
       if ($cmd) {
 
         #Now set up the lsf requirements
+        #
+        #delete directory if it already exists
+
+	my $dir = $tmpDir .'/'.$user.'/'.$ref->{'job_id'};
+	if (-d $dir){
+		system("rm -rf $dir") and die "Cannot delete $dir\n";
+	}
         
         
-        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$user.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
+        my $mkAndCdToTmp = 'mkdir -p '. $dir .'/'. $ref->{'entity_id'}. 
         ' && cd '.$tmpDir .'/'. $user.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
         
         $DEBUG && print STDERR "$mkAndCdToTmp && $cmd";
