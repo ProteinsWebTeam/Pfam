@@ -130,7 +130,7 @@ while (1) {
         
         
         my $mkAndCdToTmp = 'mkdir -p '. $dir .'/'. $ref->{'entity_id'}. 
-        ' && cd '.$tmpDir .'/'. $user.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
+        ' && cd '.$dir .'/'. $ref->{'entity_id'};
         
         $DEBUG && print STDERR "$mkAndCdToTmp && $cmd";
 
