@@ -229,6 +229,19 @@ else {
 }
 
 #-------------------------------------------------------------------------------
+#Create pfamseq fasta, easel indexes and copy over to NFS
+unless ( -e "$statusdir/pfamseq_fasta"){
+
+    $logger->info("making pfamseq fasta file");
+    system ("pud-update_pfamseq.pl -status_dir $statusdir -pfamseq_dir $pfamseqdir$newrelease_num") and  $logger->logdie("Failed to run pud-update_pfamseq.pl:[$!]");
+    system("touch $statusdir/pfamseq_fasta")
+	and $logger->logdie("Could not touch $statusdir/pfamseq_fasta");
+
+} else {
+  $logger->info("Already updated pfamseq fasta file.");
+}
+
+#-------------------------------------------------------------------------------
 ## get GenPept from NCBI - takes about 1 hour to download. 12 hours to upload
 unless ( -e "$statusdir/ncbi" ) {
   system("pud-ncbi.pl -version $newrelease_num")
