@@ -33,7 +33,7 @@ my $idbh    = $ipfamDB->getSchema->storage->dbh;
 #-------------------------------------------------------------------------------
 # Retrieve all protein families accessions from pfam_live database
 my %pfamAccs;    # Hash for storing the retrieved pfam accessions
-print "Get accessions...";
+# print "Get accessions...";
 
 my $rs = $pfamDB->getSchema->resultset('PfamA')->search(
     {
@@ -45,7 +45,7 @@ while ( my $family = $rs->next )
 {
     $pfamAccs{ $family->pfama_acc } = 1;
 }
-print "done\n";
+# print "done\n";
 
 #-------------------------------------------------------------------------------
 # Transfer data from iPfam database to Pfam live database
@@ -127,8 +127,8 @@ eval {
         }
     }
 
-    $logger->info("Transfer successful. Commiting changes to database");
     print "done\n";
+    $logger->info("Transfer successful. Commiting changes to database");
     $dbh->commit();
 };
 
