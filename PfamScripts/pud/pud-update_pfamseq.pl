@@ -184,7 +184,6 @@ else {
     }
 
 
-    open(FASTA, ">pfamseq") or  $logger->logdie("Failed to open filehandle:[$!]\n");
     open(PFAMSEQ, ">pfamseq.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
     open(DISULPHIDE, ">disulphide.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
     open(ACT_METAL, ">active_site_metal.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
@@ -386,9 +385,6 @@ else {
 	    
 	    chop $record{'OS'} if($record{'OS'} =~ /\.$/); #Remove trailing '.'
 	    
-	    print FASTA ">$record{'AC'}" . "." . $record{'SEQ_VER'} . " $record{'ID'} $description\n";
-	    print FASTA wrap("", "", $record{'SEQ'}) ."\n";
-	    
 	    my $is_frag;
 	    if($record{'DE_FLAG'}) {
 		$is_frag = 1;
@@ -465,7 +461,6 @@ else {
 
     }
 
-    close FASTA;
     close DISULPHIDE;
     close ACT_METAL;
     close PFAMSEQ; 
@@ -486,27 +481,6 @@ else {
     print DBSIZE "$num_seq";
     close DBSIZE;
 }
-
-#Make NCBI and WU-blast indices
-if(-e "$statusdir/made_easel_indices") {
-    $logger->debug("Already made easel indices for pfamseq\n");
-} 
-else {
-    $logger->debug("Making easel indices for pfamseq\n");
-    system ("esl-sfetch --index pfamseq") and $logger->logdie("Couldn't make easel indices for pfamseq:[$!]");
-    system("touch $statusdir/made_easel_indices") and $logger->logdie("Couldn't touch $statusdir/made_easel_indices:[$!]\n");
-}
-
-
-if(-e "$statusdir/made_ncbi_indices") {
-    $logger->debug("Already made NCBI indices for pfamseq\n");
-}
-else {
-    $logger->debug("Making NCBI indices for pfamseq\n");
-    system ("formatdb -p T -i pfamseq") and $logger->logdie("Couldn't make NCBI-blast indices for pfamseq:[$!]");
-    system("touch $statusdir/made_ncbi_indices") and $logger->logdie("Couldn't touch $statusdir/made_ncbi_indices:[$!]\n");
-}
- 
 
 #Make tmp_pfamseq table in rdb
 if(-e "$statusdir/created_tmp_pfamseq") {
@@ -735,36 +709,6 @@ else {
 }
 
 $logger->info("All the data from the new UniProtKB has been uploaded to the rdb\n");
-
-#Copy pfamseq to nfs
-if(-e "$statusdir/copied_pfamseq") {
-    $logger->info("Already copied pfamseq to nfs directory\n");
-}
-else {
-    $logger->info("Copying pfamseq to nfs directory\n");
-    my $pfamseq_nfs = $config->{pfamseq}->{location};
-
-    unlink glob("$pfamseq_nfs/*") or $logger->logdie("Problem deleting files in $pfamseq_nfs\n");
-    my @pfamseq_files = qw(pfamseq pfamseq.pal pfamseq.ssi);
-    open(PAL, "pfamseq.pal") or $logger->logdie("Could not open pfamseq.pal:[$!]");
-    while(<PAL>){
-      if(/^DBLIST\s+(.*)/){
-        my $l = $1; #$l contains the list of virtual databases;
-        foreach my $bit (split(/\s+/, $l)){
-          foreach my $ext (qw(phr pin psq)){
-            push(@pfamseq_files, $bit.".".$ext);
-          }
-        }
-      }
-    }
-    close(PAL);
-
-    foreach my $f (@pfamseq_files) {
-        $logger->debug("Copying $f");
-        copy($f, $pfamseq_nfs."/".$f) or $logger->logdie("Copy $f to $pfamseq_nfs failed: $!");
-    }
-    system("touch $statusdir/copied_pfamseq") and $logger->logdie("Couldn't touch $statusdir/copied_pfamseq");
-}
 
 
 #Change PFAM_CONFIG
