@@ -11,6 +11,7 @@ use Log::Log4perl qw(:easy);
 use Archive::Tar;
 use File::Touch;
 use File::Copy;
+use Bio::Pfam::Config;
 
 my ( $statusdir, $pfamseq_dir );
 
