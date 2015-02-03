@@ -27,6 +27,8 @@ use Bio::Pfam::Queues::IntQueue;
 
 our $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
 
+my $group;
+
 # Get a new queue stub
 my $qsout = Bio::Pfam::Queues::IntQueue->new();
 
@@ -55,6 +57,8 @@ while (1) {
 
     #Step 2 - Build up the resource requirements!
     if ( $ref->{'job_type'} eq "family" ) {
+
+	$group = '/Pfamview';
 
       #Build up the command here to run the view process!
       #Depending on the size of the family, dictates where the job should be scheduled to!
@@ -96,6 +100,7 @@ while (1) {
 
     } #end of job type = family
     elsif ( $ref->{'job_type'} eq 'clan' ) {
+	$group = '/Pfamclanview';
       #Repeat steps 2 and 3 if we have a clan view process to run.  
 
       #Step 2 - build up the LSF resource requirements
@@ -139,7 +144,7 @@ while (1) {
           -q => $queue,
           -R => $resource,
           -M => $memory,
-	  -g => '/Pfamview',
+	  -g => $group,
           "$mkAndCdToTmp && $cmd"
         );
 
