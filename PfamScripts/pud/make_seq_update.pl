@@ -356,8 +356,16 @@ $logger->logdie("now need iPfam and PDB stuff fixed\n");
 #-------------------------------------------------------------------------------
 #Update the interactions table!(takes 0 mins )
 
-#At the moment there is not iPfam, so we are not going to have to do anything
-$logger->warn('Until iPfam is resurrected, there is nothing to do.');
+unless ( -e "$statusdir/done_update_interactions" ) {
+    $logger->info("Preparing to fetch all the latest iPfam data.");
+    system("pud-iPfam2Pfam.pl") 
+  and $logger->logdie ("Failed to run pud-iPfam2Pfam.pl");
+    $logger->info("Updated interactions data");
+    system("touch $statusdir/done_update_interactions")
+  and $logger->logdie("Failed to touch $statusdir/done_update_interactions");
+} else {
+  $logger->info("Already done interactions upload\n");
+}
 
 #new PDB code to fetch data for and populate pdb and pdb_residue_data tables
 #this is prone to falling over due to database timeouts in pdb_residue_data if any other large queries are running on the same db host
