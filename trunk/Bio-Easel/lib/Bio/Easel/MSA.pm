@@ -443,6 +443,47 @@ sub set_rf {
 
 #-------------------------------------------------------------------------------
 
+=head2 set_gc
+
+  Title    : set_gc
+  Incept   : RDF, Tue Feb 04 14:54:20 2014
+  Usage    : $msaObject->set_gc()
+  Function : Sets msa->gc given a tag and stringstring.
+  Args     : $gcstr: string that will become GC
+  Returns  : void
+  Dies     : if length($gcstr) != msa->alen
+
+=cut
+
+sub set_gc { 
+  my ( $self, $tag, $gcstr ) = @_;
+
+  $self->_check_msa();
+  if(length($gcstr) != $self->alen) { croak "Trying to set GC with string of incorrect length"; }
+  return _c_set_gc( $self->{esl_msa}, $tag, $gcstr );
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 get_gc
+
+  Title    : get_gc
+  Incept   : RDF, Tue Feb 04 14:54:20 2014
+  Usage    : $msaObject->get_gc()
+  Function : Gets msa->gc given a tag.
+  Args     : $gctag: matching the tag name
+  Returns  : gc string;
+
+=cut
+
+sub get_gc { 
+  my ( $self, $tag) = @_;
+
+  $self->_check_msa();
+  return _c_get_gc( $self->{esl_msa}, $tag );
+}
+
 =head2 get_ss_cons
 
   Title    : get_ss_cons
