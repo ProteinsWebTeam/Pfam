@@ -332,6 +332,37 @@ void _c_set_rf (ESL_MSA *msa, char *rfstr)
   return;
 }   
 
+/* Function:  _c_set_gc()
+ * Incept:    RDF, Tue Feb 4 14:27:35 2015
+ * Synopsis:  Sets msa->set_gct
+ * Returns:   void
+ */
+void _c_set_gc (ESL_MSA *msa, char *tag, char *gcstr)
+{
+  int gclen = strlen(gcstr);
+  if(gclen != msa->alen) croak("_c_set_gc() trying to set GC with string of incorrect length");
+  esl_AppendGC(msa, tag, gcstr);
+  return;
+}   
+
+char *_c_get_gc(ESL_MSA *msa, char *tag){
+  
+  //Find the index of the tag.
+  int i;
+  for (i = 0; i < msa->ngc; i++) 
+    if( strcmp(msa->gc_tag[i], tag) == 0 ) break;
+ 
+  croak( "index is %s, %d, %s", tag, i, msa->gc[0][0] ); 
+  if(i) return "Y";
+  else   return "N";
+}
+
+
+/* Function:  _c_get_ss_cons()
+ * Incept:    EPN, Fri May 24 09:58:32 2013
+ * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
+ *            Caller should have used _c_has_ss_cons to verify it exists.
+ * Returns:   msa->ss_cons()
 /* Function:  _c_get_ss_cons()
  * Incept:    EPN, Fri May 24 09:58:32 2013
  * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
