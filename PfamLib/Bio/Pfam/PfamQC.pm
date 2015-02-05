@@ -1122,7 +1122,7 @@ sub family_overlaps_with_db {
   unless (defined $noFilter)
   {
     warn "Filtering overlaps\n";
-    $numOverlaps = filterOverlaps($family, $famObj, \@overlapLines, $pfamDB);
+    $numOverlaps = filterOverlaps($family, $famObj, \@overlapLines, $pfamDB->getSchema->storage->dbh);
   }
 
   close $LOG if ($LOG);
@@ -1141,7 +1141,7 @@ sub family_overlaps_with_db {
 #------------------------------------------------------------------------------
 sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)
 {
-    my ( $family, $famObj, $overlapArray, $pfamDB ) = @_;
+    my ( $family, $famObj, $overlapArray, $dbh ) = @_;
 
     # Get the Pfam Config
     my $config = Bio::Pfam::Config->new;
@@ -1157,7 +1157,6 @@ sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|
     }
 
     #Setup query for getting bit score for regionB
-    my $dbh = $pfamDB->getSchema->storage->dbh;
     my $query = "select domain_bits_score from pfamA_reg_full_significant where pfamA_acc=? and pfamseq_acc=? and seq_start=? and seq_end=?";
     my $sth = $dbh->prepare($query);
 
