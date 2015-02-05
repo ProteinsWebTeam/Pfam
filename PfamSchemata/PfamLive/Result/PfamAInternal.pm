@@ -122,6 +122,9 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nWR7R3aEmzgLA3VEK4Kd8Q
 
+__PACKAGE__->set_primary_key("pfama_acc");
+__PACKAGE__->add_unique_constraint("pfamA_acc", ["pfama_acc"]);
+
 sub msas_uncompressed {
   my $self = shift;
 
