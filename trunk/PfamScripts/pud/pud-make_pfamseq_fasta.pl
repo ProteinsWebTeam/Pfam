@@ -28,7 +28,7 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
   "status_dir=s"  => \$statusdir,
   "pfamseq_dir=s" => \$pfamseq_dir
   )
-  or $logger->logdie("Invalid option!\n");
+  or $logger->logdie("Invalid option!");
 
 unless ( $statusdir and -e $statusdir ) {
   help();
@@ -51,6 +51,7 @@ while(<DB>){
 }
 
 #get sequences from pfamseq
+#if this is too slow/fails it could be worth trying a smaller offset or sending it to the farm with plenty of memory
 my $offset = 0;
 my $n = 1;
 my $total = 0;
@@ -63,7 +64,7 @@ while ($total < $dbsize){
 
     my $array_ref = $st->fetchall_arrayref();
     open (FA, ">pfamseq") or $logger->logdie("Cannot open pfamseq file to write");
-    $logger->debug("Fetching results...\n");
+    $logger->debug("Fetching results...");
     foreach my $row (@$array_ref) {
 
 	print FA ">" . $row->[0] . "." . $row->[1] . " " . $row->[2] . " " . $row->[3] . "\n" . $row->[4] . "\n";
@@ -72,7 +73,7 @@ while ($total < $dbsize){
     $offset = $offset + 1000000;
     $total = $total + $rowno;
     $n++;
-    $logger->debug("$total rows retrieved\n");
+    $logger->debug("$total rows retrieved");
 }
 $dbh->disconnect;
 
@@ -91,7 +92,7 @@ if(-e "$statusdir/esl-indexes") {
 if ("$statusdir/moved_pfamseq"){
     $logger->debug("Already moved pfamseq to nfs");
 } else {
-    $logger->info("Copying pfamseq to nfs directory\n");
+    $logger->info("Copying pfamseq to nfs directory");
     my $pfamseq_nfs = $config->{pfamseq}->{location};
 
     unlink glob("$pfamseq_nfs/*") or $logger->logdie("Problem deleting files in $pfamseq_nfs");
@@ -116,6 +117,12 @@ if ("$statusdir/moved_pfamseq"){
     }
     system("touch $statusdir/moved_pfamseq") and $logger->logdie("Couldn't touch $statusdir/moved_pfmaseq:[$!]\n");
 }
+
+#update DBSIZE file
+move ("DSIZE", "DBSIZE_preantifam") or die "Cannot move file\n";
+open (DBSIZENEW, ">DBSIZE") or die "Cannot open new DBSIZE file to write\n";
+print DBSIZENEW "$total\n";
+close DBSIZENEW;
 
 sub help{
 
