@@ -1,0 +1,32 @@
+ID   STAS
+AC   PF01740
+PI   SpoIIAA; 
+DE   STAS domain
+AU   Bateman A
+SE   [2]
+GA   21.90 21.90;
+TC   21.90 21.90;
+NC   21.80 21.80;
+BM   hmmbuild  -o /dev/null HMM SEED
+SM   hmmsearch -Z 80369284 -E 1000 --cpu 4 HMM pfamseq
+TP   Domain
+CL   CL0502
+RN   [1]
+RM   9560229
+RT   Solution structure of SpoIIAA, a phosphorylatable component of the
+RT   system that regulates transcription factor sigmaF of Bacillus
+RT   subtilis.
+RA   Kovacs H, Comfort D, Lord M, Campbell ID, Yudkin MD;
+RL   Proc Natl Acad Sci U S A 1998;95:5067-5071.
+RN   [2]
+RM   10662676
+RT   The STAS domain - a link between anion transporters and
+RT   antisigma-factor antagonists
+RA   Aravind L, Koonin EV;
+RL   CurrBiol 2000;10:53-55.
+DR   SCOP; 1auz; fa;
+DR   HOMSTRAD; STAS;
+CC   The STAS (after Sulphate Transporter and AntiSigma factor antagonist)
+CC   domain is found in the C terminal region of Sulphate transporters and
+CC   bacterial antisigma factor antagonists. It has been suggested that
+CC   this domain may have a general NTP binding function [2].
