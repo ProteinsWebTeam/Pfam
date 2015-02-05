@@ -1152,7 +1152,7 @@ sub uploadPfamAInternal {
       pfama_acc => $famObj->DESC->AC,
       seed => defined($seedString) ? $seedString : '',
       full => defined($fullString) ? $fullString : '',
-    }
+    } , { key => 'pfamA_acc' }
   );
 }
 
