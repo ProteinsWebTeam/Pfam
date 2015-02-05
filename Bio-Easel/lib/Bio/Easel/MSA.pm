@@ -443,47 +443,6 @@ sub set_rf {
 
 #-------------------------------------------------------------------------------
 
-=head2 set_gc
-
-  Title    : set_gc
-  Incept   : RDF, Tue Feb 04 14:54:20 2014
-  Usage    : $msaObject->set_gc()
-  Function : Sets msa->gc given a tag and stringstring.
-  Args     : $gcstr: string that will become GC
-  Returns  : void
-  Dies     : if length($gcstr) != msa->alen
-
-=cut
-
-sub set_gc { 
-  my ( $self, $tag, $gcstr ) = @_;
-
-  $self->_check_msa();
-  if(length($gcstr) != $self->alen) { croak "Trying to set GC with string of incorrect length"; }
-  return _c_set_gc( $self->{esl_msa}, $tag, $gcstr );
-}
-
-
-#-------------------------------------------------------------------------------
-
-=head2 get_gc
-
-  Title    : get_gc
-  Incept   : RDF, Tue Feb 04 14:54:20 2014
-  Usage    : $msaObject->get_gc()
-  Function : Gets msa->gc given a tag.
-  Args     : $gctag: matching the tag name
-  Returns  : gc string;
-
-=cut
-
-sub get_gc { 
-  my ( $self, $tag) = @_;
-
-  $self->_check_msa();
-  return _c_get_gc( $self->{esl_msa}, $tag );
-}
-
 =head2 get_ss_cons
 
   Title    : get_ss_cons
@@ -1222,6 +1181,40 @@ sub addGS {
 
 #-------------------------------------------------------------------------------
 
+=head2 addGC
+
+  Title    : addGC
+  Incept   : EPN, Wed Feb  4 10:54:27 2015
+  Usage    : $msaObject->addGC($tag, $annAR)
+  Function : Add GC annotation to an ESL_MSA with
+           : tag <$tag> and column annotation in 
+           : the array referenced by <$annAR>
+  Args     : $tag: name of GC annotation (e.g. SS_cons)
+           : $annAR: ref to array of per-column annotation
+           :         must be same size as alignment length.
+  Returns  : void
+
+=cut
+
+sub addGC {
+  my ( $self, $tag, $annAR ) = @_;
+
+  # contract checks
+  if((! defined $annAR) || (scalar(@{$annAR}) != $self->alen)) { croak "ERROR: unable to add GC annotation because it is empty or the wrong length"; }
+  $self->_check_msa();
+
+  # create the annotation string
+  my $annstr = "";
+  foreach my $el (@{$annAR}) { $annstr .= $el; }
+
+  # add it
+  my $status = _c_addGC( $self->{esl_msa}, $tag, $annstr);
+  if ( $status != $ESLOK ) { croak "ERROR: unable to add GC annotation"; }
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 addGC_identity
 
   Title    : addGC_identity
@@ -1245,6 +1238,139 @@ sub addGC_identity {
   my $status = _c_addGC_identity( $self->{esl_msa}, $use_res );
   if ( $status != $ESLOK ) { croak "ERROR: unable to add GC ID annotation"; }
   return;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getGC_given_tag
+
+  Title    : getGC_given_tag
+  Incept   : EPN, Wed Feb  4 14:51:03 2015
+  Usage    : $msaObject->getGC_given_tag($tag)
+  Function : Return GC annotation named <tag> of an ESL_MSA
+           : as a string.
+  Args     : $tag:    name of GC annotation
+  Returns  : $annstr: GC annotation, as a string.
+
+=cut
+
+sub getGC_given_tag {
+  my ( $self, $tag ) = @_;
+
+  $self->_check_msa();
+  if(! (_c_hasGC( $self->{esl_msa}, $tag ))) { croak("trying to get GC annotation $tag that does not exist"); }
+  return _c_getGC_given_tag( $self->{esl_msa}, $tag );
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 getGC_given_idx
+
+  Title    : getGC_given_idx
+  Incept   : EPN, Wed Feb  4 20:56:31 2015
+  Usage    : $msaObject->getGC_given_idx($tagidx)
+  Function : Return GC annotation of idx <tagidx> of an ESL_MSA
+           : as a string.
+  Args     : $tagidx: idx of GC annotation
+  Returns  : $annstr: GC annotation, as a string.
+
+=cut
+
+sub getGC_given_idx {
+  my ( $self, $tagidx ) = @_;
+
+  $self->_check_msa();
+  if($tagidx >= $self->getGC_number) { croak("trying to get GC annotation for tag idx $tagidx that does not exist"); }
+  return _c_getGC_given_idx( $self->{esl_msa}, $tagidx );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 hasGC
+
+  Title    : hasGC
+  Incept   : EPN, Wed Feb  4 15:28:23 2015
+  Usage    : $msaObject->hasGC($tag)
+  Function : Return '1' if GC annotation named <tag> exists,
+           : else return '0'.
+  Args     : $tag:    name of GC annotation (e.g. SS_cons)
+  Returns  : '1' if it exists, else '0'
+
+=cut
+
+sub hasGC {
+  my ( $self, $tag ) = @_;
+
+  $self->_check_msa();
+  return (_c_hasGC( $self->{esl_msa}, $tag ));
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getGC_number
+
+  Title    : getGC_number
+  Incept   : EPN, Wed Feb  4 17:37:44 2015
+  Usage    : $msaObject->getGC_number()
+  Function : Return number of GC annotations available.
+  Args     : none
+  Returns  : number of GC annotations stored in MSA
+             (not including SS_cons, SA_cons, PP_cons, RF
+              and MM, which are stored in a special way
+              (not in msa->gc))
+
+=cut
+
+sub getGC_number {
+  my ( $self, $tag ) = @_;
+
+  $self->_check_msa();
+  return (_c_getGC_number( $self->{esl_msa}));
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 getGC_tag
+
+  Title    : getGC_tag
+  Incept   : EPN, Wed Feb  4 14:51:03 2015
+  Usage    : $msaObject->getGC_tag($tagidx)
+  Function : Return GC tag of idx <tagidx> as a string
+  Args     : $tagidx: idx of tag you want
+  Returns  : $tag: string
+
+=cut
+
+sub getGC_tag {
+  my ( $self, $tagidx ) = @_;
+
+  $self->_check_msa();
+  if($tagidx >= $self->getGC_number) { croak("trying to get GC tag idx $tagidx that does not exist"); }
+  return _c_getGC_tag( $self->{esl_msa}, $tagidx );
+}
+
+
+#-------------------------------------------------------------------------------
+
+=head2 getGC_tagidx
+
+  Title    : getGC_tagidx
+  Incept   : EPN, Wed Feb  4 21:03:49 2015
+  Usage    : $msaObject->getGC_tagidx($tag)
+  Function : Return the idx of GC annotation with tag <tag>.
+  Args     : $tag: tag of annotation you want idx of
+  Returns  : $tagidx: idx of GC annotation
+  Dies     : if annotation with tag $tag does not exist.
+=cut
+
+sub getGC_tagidx {
+  my ( $self, $tag ) = @_;
+
+  $self->_check_msa();
+  if(! $self->hasGC($tag)) { croak("trying to get idx of tag $tag that does not exist"); }
+  return _c_getGC_tagidx( $self->{esl_msa}, $tag );
 }
 
 #-------------------------------------------------------------------------------

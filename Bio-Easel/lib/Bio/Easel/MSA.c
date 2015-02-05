@@ -313,7 +313,7 @@ int _c_has_ss_cons (ESL_MSA *msa)
  */
 char *_c_get_rf (ESL_MSA *msa)
 {
-  if(msa->rf == NULL) esl_fatal("_c_get_rf, but RF is NULL");
+  if(msa->rf == NULL) croak("_c_get_rf, but RF is NULL");
   return msa->rf;
 }
 
@@ -332,37 +332,6 @@ void _c_set_rf (ESL_MSA *msa, char *rfstr)
   return;
 }   
 
-/* Function:  _c_set_gc()
- * Incept:    RDF, Tue Feb 4 14:27:35 2015
- * Synopsis:  Sets msa->set_gct
- * Returns:   void
- */
-void _c_set_gc (ESL_MSA *msa, char *tag, char *gcstr)
-{
-  int gclen = strlen(gcstr);
-  if(gclen != msa->alen) croak("_c_set_gc() trying to set GC with string of incorrect length");
-  esl_AppendGC(msa, tag, gcstr);
-  return;
-}   
-
-char *_c_get_gc(ESL_MSA *msa, char *tag){
-  
-  //Find the index of the tag.
-  int i;
-  for (i = 0; i < msa->ngc; i++) 
-    if( strcmp(msa->gc_tag[i], tag) == 0 ) break;
- 
-  croak( "index is %s, %d, %s", tag, i, msa->gc[0][0] ); 
-  if(i) return "Y";
-  else   return "N";
-}
-
-
-/* Function:  _c_get_ss_cons()
- * Incept:    EPN, Fri May 24 09:58:32 2013
- * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
- *            Caller should have used _c_has_ss_cons to verify it exists.
- * Returns:   msa->ss_cons()
 /* Function:  _c_get_ss_cons()
  * Incept:    EPN, Fri May 24 09:58:32 2013
  * Synopsis:  Returns msa->ss_cons if non-NULL, else dies.
@@ -371,7 +340,7 @@ char *_c_get_gc(ESL_MSA *msa, char *tag){
  */
 char *_c_get_ss_cons (ESL_MSA *msa)
 {
-  if(msa->ss_cons == NULL) esl_fatal("_c_get_ss_cons, but SS_cons is NULL");
+  if(msa->ss_cons == NULL) croak("_c_get_ss_cons, but SS_cons is NULL");
   return msa->ss_cons;
 }
 
@@ -830,6 +799,18 @@ int _c_addGF(ESL_MSA *msa, char *tag, char *value)
   return status;
 }
 
+/* Function:  _c_addGC()
+ * Incept:    EPN, Wed Feb  4 11:00:17 2015
+ * Purpose:   Add GC annotation to MSA.
+ * Returns:   eslOK on success, ! eslOK on failure.
+ */
+int _c_addGC(ESL_MSA *msa, char *tag, char *value)
+{
+  int    status;
+  status = esl_msa_AppendGC(msa, tag, value);
+  return status;
+}
+
 /* Function:  _c_addGS()
  * Incept:    EPN, Sat Feb  2 14:48:47 2013
  * Purpose:   Add GS annotation to a sequence in a MSA.
@@ -919,6 +900,112 @@ int _c_addGC_identity(ESL_MSA *msa, int use_res)
   if(id) free(id);
   return status; 
 }
+
+/* Function:  _c_hasGC
+ * Incept:    EPN, Wed Feb  4 15:07:26 2015
+ * Synopsis:  Returns '1' if a msa has GC annotation with the tag <tag>,
+ *            else returns '0'.
+ */
+int _c_hasGC (ESL_MSA *msa, char *tag)
+{
+  int status;
+  int tagidx;
+
+  if(strcmp(tag, "SS_cons") == 0) return _c_has_ss_cons(msa);
+  if(strcmp(tag, "RF")      == 0) return _c_has_rf(msa);
+
+  if(strcmp(tag, "SA_cons") == 0) { return (msa->sa_cons == NULL) ? 0 : 1; }
+  if(strcmp(tag, "PP_cons") == 0) { return (msa->pp_cons == NULL) ? 0 : 1; }
+  if(strcmp(tag, "MM")      == 0) { return (msa->mm      == NULL) ? 0 : 1; }
+  /* not a parsed tag, search for it */
+  /* get tagidx for this GC tag */
+  if(msa->ngc > 0) { 
+    status = esl_keyhash_Lookup(msa->gc_idx, tag, -1, &tagidx);
+    return (status == eslOK) ? 1 : 0;
+  }
+  else { 
+    return 0;
+  }   
+}
+
+/* Function:  _c_getGC_given_tag
+ * Incept:    EPN, Fri May 24 09:58:32 2013
+ * Synopsis:  Returns the GC annotation pertaining to tag <tag>.
+ * Returns:   the GC annotation with tag <tag> as a string
+ */
+char *_c_getGC_given_tag (ESL_MSA *msa, char *tag)
+{
+  int status;
+  int tagidx;
+
+  if(! (_c_hasGC(msa, tag))) croak("_c_getGC, no such annotation exists");
+  if(strcmp(tag, "SS_cons") == 0) return _c_get_ss_cons(msa);
+  if(strcmp(tag, "RF")      == 0) return _c_get_rf(msa);
+  /* we've already verified it exists with the _c_hasGC call, hence
+   * the lack of checks for NULL below */
+  if(strcmp(tag, "SA_cons") == 0) return msa->sa_cons;
+  if(strcmp(tag, "PP_cons") == 0) return msa->pp_cons;
+  if(strcmp(tag, "MM")      == 0) return msa->mm;
+
+  /* not a parsed tag, search for it */
+  /* get tagidx for this GC tag. existing tag: <ngc; new: == ngc. */
+  status = esl_keyhash_Lookup(msa->gc_idx, tag, -1, &tagidx);
+  if (status != eslOK) croak("_c_getGC unexpected error, tag %s seems to exist but it does not", tag);
+  return msa->gc[tagidx];
+}
+
+/* Function:  _c_getGC_given_idx
+ * Incept:    EPN, Wed Feb  4 20:51:34 2015
+ * Synopsis:  Returns the GC annotation of idx <tagidx>.
+ * Returns:   the GC annotation of idx <tagidx>
+ */
+char *_c_getGC_given_idx (ESL_MSA *msa, int tagidx)
+{
+  if(tagidx >= msa->ngc) croak("_c_getGC_given_idx, no such tagidx exists");
+  return msa->gc[tagidx];
+}
+
+/* Function:  _c_getGC_number
+ * Incept:    EPN, Wed Feb  4 17:40:34 2015
+ * Synopsis:  Return number of GC tag annotations in msa (msa->ngc).
+ * Returns:   msa->ngc
+ */
+int _c_getGC_number (ESL_MSA *msa)
+{
+  return msa->ngc;
+}
+
+/* Function:  _c_getGC_tag
+ * Incept:    EPN, Wed Feb  4 17:41:30 2015
+ * Synopsis:  Return tag number <idx> of GC annotation, or die if it
+ *            doesn't exist.
+ * Returns:   msa->gc_tag[idx];
+ */
+char *_c_getGC_tag (ESL_MSA *msa, int tagidx)
+{
+  if(tagidx >= msa->ngc) croak("_c_getGC_tag, no such tagidx exists");
+  return(msa->gc_tag[tagidx]);
+}
+
+/* Function:  _c_getGC_tagidx
+ * Incept:    EPN, Wed Feb  4 21:06:24 2015
+ * Synopsis:  Return tag idx of GC annotation with tag <tag>
+ * Returns:   idx of GC annotation with tag <tag>
+ * Dies:      if the idx does not exist
+ */
+int _c_getGC_tagidx (ESL_MSA *msa, char *tag)
+{
+  int status;
+  int tagidx;
+
+  if(msa->ngc > 0) { 
+    status = esl_keyhash_Lookup(msa->gc_idx, tag, -1, &tagidx);
+    if(status == eslOK) return tagidx;
+  }
+  
+  croak("_c_getGC_tagidx, no such tag exists");
+  return -1; /* never reached */
+}   
 
 /* Function:  _c_weight_GSC()
  * Incept:    EPN, Fri May 24 10:40:00 2013
