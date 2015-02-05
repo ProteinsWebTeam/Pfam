@@ -124,6 +124,8 @@ open (DBSIZENEW, ">DBSIZE") or die "Cannot open new DBSIZE file to write\n";
 print DBSIZENEW "$total\n";
 close DBSIZENEW;
 
+chdir($pwd);
+
 sub help{
 
 print STDERR << "EOF";
