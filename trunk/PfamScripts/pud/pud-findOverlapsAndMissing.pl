@@ -150,7 +150,7 @@ sub getRegions
         open( S, "$families/$fDir/SEED" );
         while (<S>)
         {
-            if (/(\w+).?\S*\/(\d+)\-(\d+)/)
+            if (/(\w+)\.?\S*\/(\d+)\-(\d+)/)
             {
                 if ( !$all )
                 {
@@ -739,7 +739,7 @@ sub filterOverlaps
     open( OF, "$statusdir/$filePrefix.overlaps.filtered" );
     while (<OF>)
     {
-        if (/(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
+        if (/(PF\d{5}).*:\s(\w+)\.?\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\w+)\.?\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/
            )
         {
             $familyA = $1;
