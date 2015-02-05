@@ -112,53 +112,6 @@ while (<M>) {
   $antifamMap{ $row[0] }->{acc} = $row[3];
   $antifamMap{ $row[0] }->{id}  = $row[3];
 }
-my $num_seq = 0;
-unless ( -e "$statusdir/made_pfamseq_antifam" ) {
-
-  #Remove sequences that are matched, re-write pfamseq.
-  open( P, "<", "pfamseq" ) or $logger->logdie("Could not open pfamseq:[$!]\n");
-  open( S, ">", "pfamseq.antifam" )
-    or $logger->logdie("Could not open pfamseq.antifam:[$!]\n");
-
-  my $ok = 1;
-
-  while (<P>) {
-    if (/^>(\S+)/) {
-      $ok = exists( $seqsToDel{$1} ) ? 0 : 1;
-      if ($ok) {
-        $num_seq++;
-      }
-      else {
-        $logger->info("Excluding $1");
-        $seqsToDel{$1} = 1;
-      }
-    }
-    print S $_ if ($ok);
-  }
-  close(P);
-  close(S);
-
-  #Make DBSIZE file
-
-  $logger->debug("Making DBSIZE file\n");
-  open( DBSIZE, ">DBSIZE" )
-    or $logger->logdie("Couldn't open filehandle to DBSIZE:[$!]\n");
-  print DBSIZE "$num_seq";
-  close DBSIZE;
-  touch("$statusdir/made_pfamseq_antifam");
-}
-else {
-  open( DBSIZE, "<", "DBSIZE" )
-    or $logger->logdie("Could not open DBSIZE for reading:[$!]");
-  while (<DBSIZE>) {
-    chomp;
-    $num_seq = $_;
-    last;
-  }
-  close(DBSIZE);
-
-  $logger->info("Already made pfamseq antifam\n");
-}
 
 if ( !-e "$statusdir/updated_pfamseq_antifam" ) {
 
@@ -237,59 +190,4 @@ else {
   $logger->info("Already updated pfamseq_antifam\n");
 }
 
-if(-e "$statusdir/verified_and_moved_pfamseq"){
-  $logger->info("Already verified modified pfamseq");
-}else{
-  my $pfamseq_qc = $dbh->prepare("select count(*) from pfamseq");
-
-$pfamseq_qc->execute
-  or $logger->logdie(
-  "Failed to query pfamseq for size of pfamseq " . $pfamseq_qc->errstr . "\n" );
-
-my $rdb_size = $pfamseq_qc->fetchrow;
-
-if ( $rdb_size != $num_seq ) {
-  $logger->logdie(
-"Mis-match between [$rdb_size] sequences in rdb, and $num_seq sequences in the antifam pfamseq fasta file\n"
-  );
-}
-else {
-  #Move pfamseq sideways
-  move("pfamseq", "pfamseq.preantifam")
-    or $logger->logdie("Failed to move pfamseq to pfamseq.preantifam");
- 
-  #Move pfamseq.antifam to pfamseq
-   move("pfamseq.antifam", "pfamseq")
-    or $logger->logdie("Failed to move pfamseq.antifam to pfamseq");
-  #unlink the ssi
-  unlink("pfamseq.ssi") or $logger->logdie("Failed to unlink pfamseq.ssi");
-  }
-  touch("$statusdir/verified_and_moved_pfamseq")
-    or $logger->logdie("Could not touch $statusdir/verified_and_moved_pfamseq:[$!]");  
-  $logger->info("Verified modified pfamseq");
-}
-
-
-#Make NCBI and WU-blast indices
-if ( -e "$statusdir/made_easel_indices2" ) {
-  $logger->debug("Already made easel indices for pfamseq\n");
-}
-else {
-  $logger->debug("Making easel indices for pfamseq\n");
-  system("esl-sfetch --index pfamseq")
-    and $logger->logdie("Couldn't make easel indices for pfamseq:[$!]");
-  system("touch $statusdir/made_easel_indices2")
-    and $logger->logdie("Couldn't touch $statusdir/made_easel_indices:[$!]\n");
-}
-
-if ( -e "$statusdir/made_ncbi_indices2" ) {
-  $logger->debug("Already made NCBI indices for pfamseq\n");
-}
-else {
-  $logger->debug("Making NCBI indices for pfamseq\n");
-  system("formatdb -p T -i pfamseq")
-    and $logger->logdie("Couldn't make NCBI-blast indices for pfamseq:[$!]");
-  system("touch $statusdir/made_ncbi_indices2")
-    and $logger->logdie("Couldn't touch $statusdir/made_ncbi_indices:[$!]\n");
-}
 chdir($pwd);
