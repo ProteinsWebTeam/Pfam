@@ -74,7 +74,7 @@ print STDERR "Successfully loaded $family through middleware\n";
 
 #Need admin access to db (for creating temporary table) if 
 my $pfamDBAdmin;
-unless($noFilter) {
+unless($all) {
   my $connectParams = $config->pfamliveAdmin;
   $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
 }
@@ -119,7 +119,7 @@ Addional options:
   -compete               :Compete family before checking for overlaps
   -no_sigP               :Do not check whether family overlaps with signal peptide
   -all                   :Report overlaps for all sequences and not reference proteomes only
-  -noFilter              :Do not filter overlaps
+  -no_filter             :Do not filter overlaps
 
 
 EOF
