@@ -1044,8 +1044,11 @@ sub family_overlaps_with_db {
     foreach my $fullReg ( @{ $famObj->scores->regions->{$seq} } ) {
       push @{ $regions{$id} },
         {
-        from      => $fullReg->{aliStart},
-        to        => $fullReg->{aliEnd},
+	ali_from  => $fullReg->{aliStart},
+	ali_to    => $fullReg->{aliEnd},
+        from      => $fullReg->{start},
+	to        => $fullReg->{end},
+	score     => $fullReg->{score}, 
         family    => ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
         family_id => ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" ),
         ali       => 'FULL'
@@ -1085,23 +1088,24 @@ sub family_overlaps_with_db {
           next REGION;  
          }
         }
-        
-        my $line =
-            "Sequence [" 
-          . $seqAcc
-          . "] overlap "
-          . $region->{family_id} . " "
-          . $region->{family} . "/"
-          . $region->{from} . "-"
-          . $region->{to} . " "
-          . $region->{ali}
-          . " with "
-          . $overRegion->{family_id} . " "
-          . $overRegion->{family} . "/"
-          . $overRegion->{from} . "-"
-          . $overRegion->{to} . " "
-          . $overRegion->{ali} . "\n";
 
+	my $line;
+	if($region->{ali} eq 'SEED') {
+	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{from}."-".$region->{to}." ".$region->{ali}." with ";
+	}
+	else {
+	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." (".
+	    $region->{family}."/".$region->{from}."-".$region->{to}.", ".$region->{score}." bits) ".$region->{ali}." with ";
+	}
+
+	if($overRegion->{ali} eq 'SEED') {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
+	}
+	else {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
+	    .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
+	}
+	
         next if ( $seen{$line} );
         $seen{$line}++;
         
@@ -1122,7 +1126,7 @@ sub family_overlaps_with_db {
   unless (defined $noFilter)
   {
     warn "Filtering overlaps\n";
-    $numOverlaps = filterOverlaps($family, $famObj, \@overlapLines, $pfamDB->getSchema->storage->dbh);
+    $numOverlaps = filterOverlaps($family, $famObj, \@overlapLines);
   }
 
   close $LOG if ($LOG);
@@ -1141,7 +1145,7 @@ sub family_overlaps_with_db {
 #------------------------------------------------------------------------------
 sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)
 {
-    my ( $family, $famObj, $overlapArray, $dbh ) = @_;
+    my ( $family, $famObj, $overlapArray) = @_;
 
     # Get the Pfam Config
     my $config = Bio::Pfam::Config->new;
@@ -1156,10 +1160,6 @@ sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|
       open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
     }
 
-    #Setup query for getting bit score for regionB
-    my $query = "select domain_bits_score from pfamA_reg_full_significant where pfamA_acc=? and pfamseq_acc=? and seq_start=? and seq_end=?";
-    my $sth = $dbh->prepare($query);
-
     my %regions = %{ $famObj->scores->regions };
 
     #Loop through the overlaps and sort into SEED overlaps, short overlaps and long overlaps
@@ -1173,67 +1173,45 @@ sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|
 	print STDERR "$overlapLine";
 	print $LOG "$overlapLine" if($LOG);
       }
-      elsif ($overlapLine =~ /\[(\w+)\]\soverlap\s\S+\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s\S+\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)/) {
-
-	    my ($seqAcc, $familyA, $st1, $en1, $familyB, $st2, $en2) = ($1, $2, $3, $4, $5, $6, $7, $8);
-            my $seqAccVersion;
-
-            #add sequence version to accession
-            foreach my $key ( keys %regions ) {
-	      if ( $key =~ /$seqAcc/ ) {
-                    $seqAccVersion = $key;
-                    last;
-                }
-            }
-	    unless($seqAccVersion) {
-	      die "Couldn't find version for $seqAcc\n";
-	    }
-	    
-            my $regionA = new Bio::Range( -start => $st1, -end => $en1, -strand => +1 );
-
-            # get score from scores file
-	    my $scoreA;
-	    foreach my $region ( @{ $regions{$seqAccVersion} } )
-            {
-	      if ( $region->{aliStart} == $st1 && $region->{aliEnd} == $en1 )
-                {
-		  $scoreA = $region->{score};
-		  last;
-                }
-	    }
-	    unless($scoreA) {
-	      die "Couldn't find score for $familyA $seqAccVersion/$st1-$en1\n";
-	    }
-
-            my $regionB = new Bio::Range( -start => $st2, -end => $en2, -strand => +1 );
-
-            #get score for regionB from database
-            $sth->execute( $familyB, $seqAcc, $st2, $en2 ) or die "Can't execute statement: $DBI::errstr";
-            my $scoreB = $sth->fetchrow_array() and $sth->finish();
-	    die "Couldn't find score in db for $familyB $seqAcc/$st2-$en2" unless($scoreB);
-
-            my ( $s, $e, $d ) = $regionA->intersection($regionB);
-            my $overlapLength = ( $e - $s ) + 1;
-
-            # if the lowest scoring region doesn't belong to the local family skip to the next overlap line
-            if ( $scoreA > $scoreB ) #Potentially this could introduce lots of overlaps for familyB, but we don't care too much about this
-            {
-		next;
-            }
-
-            my $overlapPerc = $overlapLength / $regionA->length * 100 ;
-
-            if ( $overlapPerc < $lengthLimit ) { # Short overlaps that are allowed, because the overlap length is less than $lengthLimit residues
-	      $shortOverlaps{$overlapLine}=1;
-            }
-            else  {  # Long overlaps that should not be allowed (and have to be resolved manually)
-	      $longOverlaps{$overlapLine}=1;
-            }
-        }
-        else
-        {
-          print STDERR "Couldn't parse this line: [$overlapLine]";
-        }
+      #Sequence [F1RZS8] overlap ShortName newFam/62-117 (newFam/60-117, 101.2 bits) FULL with Daxx PF03344/63-157 (PF03344/60-158, 159.80 bits) FULL
+      elsif ($overlapLine =~ /^Sequence \[(\w+)\] overlap \S+\s(\S+)\/(\d+)\-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL with \S+ (\S+)\/(\d+)-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL/) {
+	my ($seqAcc, $familyA, $ali_st1, $ali_en1, $scoreA, $familyB, $ali_st2, $ali_en2, $scoreB) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+	my $seqAccVersion;
+	
+	#add sequence version to accession
+	foreach my $key ( keys %regions ) {
+	  if ( $key =~ /$seqAcc/ ) {
+	    $seqAccVersion = $key;
+	    last;
+	  }
+	}
+	unless($seqAccVersion) {
+	  die "Couldn't find version for $seqAcc\n";
+	}
+	
+	my $regionA = new Bio::Range( -start => $ali_st1, -end => $ali_en1, -strand => +1 );	
+      	my $regionB = new Bio::Range( -start => $ali_st2, -end => $ali_en2, -strand => +1 );
+	
+	my ( $s, $e, $d ) = $regionA->intersection($regionB);
+	my $overlapLength = ( $e - $s ) + 1;
+	
+	# if the lowest scoring region doesn't belong to the local family skip to the next overlap line
+	if ( $scoreA > $scoreB ) {#Potentially this could introduce lots of overlaps for familyB, but we don't care too much about this
+	  next;
+	}
+	
+	my $overlapPerc = $overlapLength / $regionA->length * 100 ;
+	
+	if ( $overlapPerc < $lengthLimit ) { # Short overlaps that are allowed, because the overlap length is less than $lengthLimit residues
+	  $shortOverlaps{$overlapLine}=1;
+	}
+	else  {  # Long overlaps that should not be allowed (and have to be resolved manually)
+	  $longOverlaps{$overlapLine}=1;
+	}
+      }
+      else {
+	print STDERR "Couldn't parse this line: $overlapLine";
+      }
     }
     
     # Get family size from scores file
@@ -2064,7 +2042,6 @@ sub _compete {
     
     my ($acc, $version) = $seq->name =~ /(\S+)\.(\d+)/;
     if($acc eq $seqAcc){
-      print STDERR "Comparing $seqAcc to ".$seq->name."\n";
       #Now find the region - we are screwed if it has ED lines
       foreach my $u ( @{ $seq->hmmUnits } ) {
           print STDERR  $u->seqFrom." ".$region->{from}." ".$u->seqTo." ".$region->{to}."\n";
