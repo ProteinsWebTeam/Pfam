@@ -481,30 +481,46 @@ sub getOverlapingFullPfamRegions {
 
   my $dbh = $self->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
-"select distinct seq_start, seq_end, a.pfamA_acc, pfamA_id from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc= ? and
-  ((? >= r.ali_start and ? <= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
-  and s.pfamseq_acc=r.pfamseq_acc and r.pfamA_acc=a.pfamA_acc and a.pfamA_acc != ? and in_full=1"
+"select distinct seq_start, seq_end, ali_start, ali_end, domain_bits_score, a.pfamA_acc, pfamA_id from pfamA a, pfamA_reg_full_significant r where r.pfamseq_acc=? and
+  ((? >= r.ali_start and ? <= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end)) and
+  r.pfamA_acc=a.pfamA_acc and a.pfamA_acc != ? and in_full=1"
   ) or confess $dbh->errstr;
 
   foreach my $seqAcc ( keys %{$regionsHash} ) {
     my %seen;
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
-      next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
-      $seen{$region->{from}.":".$region->{to}.":".$region->{ali}}++;
-      $sth->execute(
-        $seqAcc,       $region->{from}, $region->{from},
-        $region->{to}, $region->{to},   $region->{from},
-        $region->{to}, $region->{family}
-      );
+
+      #Use start, ends for seed, and alignment co-ordinates for full
+      my ($st, $en);
+      if($region->{ali} eq "SEED") {
+	$st=$region->{from};
+	$en=$region->{to};
+      }
+      else {
+	$st=$region->{ali_from};
+	$en=$region->{ali_to};
+      }
+      unless($st and $en) {
+	die "$seqAcc ". $region->{ali} . " has no start/end\n";
+      }
+      
+      next if($seen{"$st:$en:".$region->{ali}});
+      $seen{"$st:$en:".$region->{ali}}++;
+
+
+      $sth->execute($seqAcc, $st, $st, $en, $en, $st, $en, $region->{family});
       foreach my $row ( @{ $sth->fetchall_arrayref } ) {
         push(
           @{ $region->{overlap} },
           {
-            from      => $row->[0],
-            to        => $row->[1],
-            family    => $row->[2],
-            family_id => $row->[3],
-            ali       => 'FULL'
+	   from      => $row->[0],
+	   to        => $row->[1],
+	   ali_from  => $row->[2],
+	   ali_to    => $row->[3],
+	   score     => $row->[4],
+	   family    => $row->[5],
+	   family_id => $row->[6],
+	   ali       => 'FULL'
           }
         );
       }
@@ -523,21 +539,33 @@ sub getOverlapingSeedPfamRegions {
 
   my $dbh = $self->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
-"select distinct seq_start, seq_end, a.pfamA_acc, pfamA_id from pfamA a, pfamA_reg_seed r, pfamseq s where s.pfamseq_acc= ? and
+"select distinct seq_start, seq_end, a.pfamA_acc, pfamA_id from pfamA a, pfamA_reg_seed r where r.pfamseq_acc=? and
   ((? >= r.seq_start and ? <= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
-  and s.pfamseq_acc=r.pfamseq_acc and r.pfamA_acc=a.pfamA_acc and a.pfamA_acc != ?"
+  and r.pfamA_acc=a.pfamA_acc and a.pfamA_acc != ?"
   ) or confess $dbh->errstr;
 
   foreach my $seqAcc ( keys %{$regionsHash} ) {
     my %seen;
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
-      next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
-      $seen{$region->{from}.":".$region->{to}.":".$region->{ali} }++;
-      $sth->execute(
-        $seqAcc,       $region->{from}, $region->{from},
-        $region->{to}, $region->{to},   $region->{from},
-        $region->{to}, $region->{family}
-      );
+
+      #Use start, ends for seed, and alignment co-ordinates for full
+      my ($st, $en);
+      if($region->{ali} eq "SEED") {
+	$st=$region->{from};
+	$en=$region->{to};
+      }
+      else {
+	$st=$region->{ali_from};
+	$en=$region->{ali_to};
+      }
+      unless($st and $en) {
+	die "$seqAcc ". $region->{ali} . " has no start/end\n";
+      }
+      
+      next if($seen{"$st:$en:".$region->{ali}});
+      $seen{"$st:$en:".$region->{ali} }++;
+
+      $sth->execute($seqAcc, $st, $st, $en, $en, $st, $en, $region->{family});
       my $foundOverlap = 0;
       foreach my $row ( @{ $sth->fetchall_arrayref } ) {
         push(
