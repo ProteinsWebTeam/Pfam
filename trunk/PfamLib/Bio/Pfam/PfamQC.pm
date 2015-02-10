@@ -1143,7 +1143,7 @@ sub family_overlaps_with_db {
 }
 
 #------------------------------------------------------------------------------
-sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|SEED)\swith\s(\S+)\s(\S+)\/(\d+)\-(\d+)
+sub filterOverlaps   
 {
     my ( $family, $famObj, $overlapArray) = @_;
 
@@ -1151,7 +1151,7 @@ sub filterOverlaps    # \[(\w+)\]\soverlap\s(\S+)\s(\S+)\/(\d+)\-(\d+)\s(?:FULL|
     my $config = Bio::Pfam::Config->new;
 
     # Filter the overlaps according to the auto-resolve paramaters found inside the config file
-    my $lengthLimit = $config->sequenceOverlapRule; #Number of residues overlap permitted in lowest scoring region
+    my $lengthLimit = $config->sequenceOverlapRule; #Proportion of lowest scoring match length that is allowed to overlap
     my $numberLimit = $config->familyOverlapRule; #% of ALIGN regions allowed to overlap
 
     my $LOG;
