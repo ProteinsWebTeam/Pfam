@@ -618,22 +618,20 @@ sub findLowerEvalueRegion {
                               pfamA a, 
                               clan c, 
                               clan_membership m, 
-                              pfamA_reg_full_significant r, 
-                              pfamseq s 
-                            WHERE  s.pfamseq_acc= ? AND
-                            ((? >= r.seq_start and ? <= r.seq_end) or 
-                            ( ? >= r.seq_start and ? <= r.seq_end) or 
-                            ( ? < r.seq_start and ? >r.seq_end)) and
-                            s.pfamseq_acc=r.pfamseq_acc and 
+                              pfamA_reg_full_significant r
+                            WHERE  pfamseq_acc= ? AND
+                            ((? >= r.ali_start and ? <= r.ali_end) or 
+                            ( ? >= r.ali_start and ? <= r.ali_end) or 
+                            ( ? < r.ali_start and ? >r.ali_end)) and
                             r.pfamA_acc=a.pfamA_acc and 
                             r.pfamA_acc != ? and
                             m.clan_acc = ? and
                             c.clan_acc = m.clan_acc and
                             m.pfamA_acc = r.pfamA_acc") or confess $dbh->errstr;
  
-  $sthO->execute($seqAcc, $region->{from}, $region->{from}, 
-                 $region->{to}, $region->{to}, 
-                 $region->{from}, $region->{to}, $region->{family}, $clanAcc );
+  $sthO->execute($seqAcc, $region->{ali_from}, $region->{ali_from}, 
+                 $region->{ali_to}, $region->{ali_to}, 
+                 $region->{ali_from}, $region->{ali_to}, $region->{family}, $clanAcc );
 
   my $regBetter = 0 ;  
   foreach my $row ( @{ $sthO->fetchall_arrayref } ) {
