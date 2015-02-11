@@ -2044,11 +2044,9 @@ sub _compete {
     if($acc eq $seqAcc){
       #Now find the region - we are screwed if it has ED lines
       foreach my $u ( @{ $seq->hmmUnits } ) {
-          print STDERR  $u->seqFrom." ".$region->{from}." ".$u->seqTo." ".$region->{to}."\n";
-          if($u->seqFrom == $region->{from} and $u->seqTo == $region->{to}){
+          if($u->seqFrom == $region->{ali_from} and $u->seqTo == $region->{ali_to}){
             #Right, we have found the overlaping regions  
             $thisEvalue = $u->evalue;
-            print STDERR $thisEvalue;
             last;
           }
       }
@@ -2057,9 +2055,9 @@ sub _compete {
   }
   
   unless($thisEvalue){
-    die "Could not find sequence region!\n";  
+    die "Could not find evalue for sequence region $seqAcc/".$region->{ali_from}."-".$region->{ali_to}."\n";  
   }
-  
+
   #Is this family part of a clan? If it is, then get all the clan regions.
   if($clanAcc and $clanAcc =~ /CL\d{4}/){
     #Look up to see if there are any regions in the database with an E-value
@@ -2071,7 +2069,7 @@ sub _compete {
   }
   
   unless( $skip == 1 ) {
-    if($overRegion->{align} eq 'FULL'){
+    if($overRegion->{ali} eq 'FULL'){
       #Okay, now inspect the overlaping region.
     my $otherClanAcc;
     my $cRS = $pfamDB->getClanDataByPfam($overRegion->{family});
