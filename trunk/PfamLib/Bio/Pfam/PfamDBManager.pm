@@ -594,26 +594,22 @@ sub findLowerEvalueRegion {
        
   
   my $dbh = $self->getSchema->storage->dbh;
-  
+
   unless($evalue){
-    print STDERR "Performing look up to find evalue of other family\n";
     my $sthE = $dbh->prepare("SELECT domain_evalue_score FROM 
                                       pfamA a, 
-                                      pfamA_reg_full_significant r,
-                                      pfamseq s
-                               WHERE  r.pfamseq_acc= ? 
+                                      pfamA_reg_full_significant r
+                               WHERE  pfamseq_acc= ? 
                                AND seq_start = ? 
                                AND seq_end = ?
-                               AND s.pfamseq_acc=r.pfamseq_acc 
                                AND r.pfamA_acc=a.pfamA_acc
-                               AND pfamA_acc = ?");
+                               AND r.pfamA_acc = ?");
     $sthE->execute($seqAcc, $region->{from}, $region->{to}, $region->{family});
     my $row = $sthE->fetchrow_arrayref;
     unless(defined( $row ) and $row->[0]){
       die "Failed to get evalue for $seqAcc\n";  
     }
     $evalue = $row->[0];
-    print STDERR "$evalue\n";
   }
   
   
