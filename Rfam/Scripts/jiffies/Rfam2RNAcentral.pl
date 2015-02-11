@@ -13,8 +13,6 @@ use File::Basename;
 use Getopt::Long;
 use Config::General;
 use Data::Dumper;
-#use lib "/homes/swb/bin/Working/GenomeScan";
-#use lib "/homes/swb/bin/Modules";
 use DBI;
 use Bio::SeqFeature::Generic;
 use Bio::Rfam::Config;
@@ -27,29 +25,19 @@ use Bio::Easel::MSA;
 use Bio::Easel::SqFile;
 use Bio::Easel::Random;
 
-my $rdb_host = "mysql-rfam-live";
-my $rdb_driver = "mysql";
-my $rdb_user = "admin";
-my $rdb_pass = "b67QoVNe";
-my $rdb_port= "4445";
-my $rdb_name = "rfam_live";
-# Create a connection to the database.
-my $rfdbh = DBI->connect(
-	"dbi:mysql:$rdb_name:$rdb_host:$rdb_port",$rdb_user, $rdb_pass, {
-	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	RaiseError => 1
-	}    );
-    
+my $config = Bio::Rfam::Config->new;
+#my $rfamdb = $config->rfamlive;  #use this when converting query to DBIx class
+my $schema = $config->rfamlive;
+my $rfdbh    = $schema->storage->dbh;
+
 my $query1 = qq(select rfam_acc from family;);
 
-my $query2 = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.type like 'Gene%' and f.rfam_acc = ? and fr.is_significant="1" group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score ;);
+my $query2 = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.type like 'Gene%' and f.rfam_acc = ? and fr.is_significant="1" group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score;);
 
 #my $query = qq( select rfam_acc, rfam_id, f.type, fr.type, f.description, rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score, group_concat(distinct concat(dl.db_id,":",dl.db_link)) as dbxrefs, group_concat(distinct concat("PMID:",fl.pmid)) as PMIDS from family f join full_region fr using (rfam_acc) join rfamseq rs using (rfamseq_acc) join database_link dl using (rfam_acc) join family_literature_reference fl using (rfam_acc) where f.rfam_acc =  'RF01888' group by rfam_acc, rfam_id, f.type, fr.type, f.description,rs.ncbi_id, fr.rfamseq_acc, fr.seq_start, fr.seq_end, fr.bit_score ;); 
 	
 my $sthQuery1 = $rfdbh->prepare($query1);
 my $sthQuery2 = $rfdbh->prepare($query2);#
-
-#$sthQuery->execute();
 
 my %families;
               
@@ -98,7 +86,6 @@ my %class_exceptions = (
 );
 print "RFAM_ACC\tRFAM_ID\tRNA_TYPE\tncRNA_CLASS\tALIGNMENT\tDESCRIPTION\tNCBI_ID\tSEQACC\tSEQ_START\tSEQ_END\tBITSCORE\tDBXREFS\tPMIDS\n";
 
-#my $accn = "RF02391";
 
 $sthQuery1->execute();
 my $res1 = $sthQuery1->fetchall_arrayref;
