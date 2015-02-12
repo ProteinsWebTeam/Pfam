@@ -169,26 +169,28 @@ my $noStruct = 0;
 
 $view->logger->debug("Calculating the number of sequences");
 #No Seqs
-my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
-  { join => [qw(clan_membership)],
-    columns => [ qw( auto_pfamA_reg_full ) ],
-    distinct => 1 } );
-my $noSeqs = $noSeqsRS->count;
+#my $noSeqsRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
+#  { join => [qw(clan_membership)],
+#    columns => [ qw( auto_pfamA_reg_full ) ],
+#    distinct => 1 } );
+#my $noSeqs = $noSeqsRS->count;
+my $noSeqs = 0;
 
 #No Interactions - nothing is done with this at the moment....
-$view->logger->debug("Calculating the number of interactions");
-my $noIntRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
-  { join => [qw(clan_membership interactions)],
-    columns => [ qw( interactions.pfamA_acc_A interactions.pfamA_acc_B ) ] } );
-my $noInt = $noIntRS->count;
+#$view->logger->debug("Calculating the number of interactions");
+#my $noIntRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
+#  { join => [qw(clan_membership interactions)],
+#    columns => [ qw( interactions.pfamA_acc_A interactions.pfamA_acc_B ) ] } );
+#my $noInt = $noIntRS->count;
 
 #Get list of unique species
-$view->logger->debug("Calculating the number of species");
-my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
-  { join => [qw(pfamseq_acc clan_membership)],
-    columns => [ qw(pfamseq_acc.ncbi_taxid) ],
-    distinct => 1 } );
-my $noSpecies = $noSpeciesRS->count;
+#$view->logger->debug("Calculating the number of species");
+#my $noSpeciesRS = $view->pfamdb->getSchema->resultset('PfamARegFullSignificant')->search( {'clan_membership.clan_acc' => $clanData->clan_acc, in_full => 1},
+#  { join => [qw(pfamseq_acc clan_membership)],
+#    columns => [ qw(pfamseq_acc.ncbi_taxid) ],
+#    distinct => 1 } );
+#my $noSpecies = $noSpeciesRS->count;
+my $noSpecies = 0;
 
 
 #-------------------------------------------------------------------------------
