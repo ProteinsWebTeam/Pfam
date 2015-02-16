@@ -314,18 +314,18 @@ sub updateAllClanArchitectures {
                           ->getSchema
                             ->resultset('ClanMembership')
                               ->search( {},
-                                        { columns  => [qw(me.auto_clan)],
+                                        { columns  => [qw(me.clan_acc)],
                                           distinct => 1 });
   $self->_clanArchitecture(\@clanMembers);
 }
 
 sub updateClanArchitectures {
-  my ($self, $autoPfamAs) = @_;
+  my ($self, $pfamAs) = @_;
   my @clanMembers = $self->pfamdb
                           ->getSchema
                             ->resultset('ClanMembership')
-                              ->search( { 'auto_pfama' => [ @$autoPfamAs ] },
-                                        {  columns     => [qw(me.auto_clan)],
+                              ->search( { 'pfama_acc' => [ @$pfamAs ] },
+                                        {  columns     => [qw(me.clan_acc)],
                                            distinct    => 1 });
   $self->_clanArchitecture(\@clanMembers);
 }
