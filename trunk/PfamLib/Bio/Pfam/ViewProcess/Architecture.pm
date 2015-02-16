@@ -366,11 +366,11 @@ sub submitToFarm {
   my $chunkSize = ceil($max/$noJobs);
   
   #Now submit the jobs
-  my $queue = 'normal';
-  my $resource = "-M2500000 -R'select[mem>2500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=2500]'";
+  my $queue = 'production-rh6';
+  my $resource = "rusage[mem=2500000]";
   my $memory = 2500000;  
   my $fh = IO::File->new();
-  $fh->open( "| bsub -q $queue  ".$resource." -o ".
+  $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
   $fh->print( "makeArchitecture.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
