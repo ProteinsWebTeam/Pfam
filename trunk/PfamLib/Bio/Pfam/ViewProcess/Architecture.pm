@@ -196,13 +196,13 @@ sub updateAllArchitecture {
   
   
    $dbh->do(
-        "REPLACE INTO pfamA_architecture (auto_pfamA, auto_architecture) "
-      . " SELECT DISTINCT r.auto_pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
-      . " WHERE s.auto_pfamseq=r.auto_pfamseq AND in_full=1"
+        "REPLACE INTO pfamA_architecture (pfamA_acc, auto_architecture) "
+      . " SELECT DISTINCT r.pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
+      . " WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1"
     );
   
   #Now update the counts.
-  $dbh->do( "UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.auto_pfamA=a.auto_pfamA)");
+  $dbh->do( "UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.pfamA_acc=a.pfamA_acc)");
 }
 
 
@@ -370,7 +370,7 @@ sub submitToFarm {
   my $resource = "rusage[mem=2500000]";
   my $memory = 2500000;  
   my $fh = IO::File->new();
-  $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
+  $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
   $fh->print( "makeArchitecture.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
