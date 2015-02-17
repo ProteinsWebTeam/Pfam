@@ -335,26 +335,26 @@ sub _clanArchitecture {
   
   my $dbh = $self->pfamdb->getSchema->storage->dbh;  
   my $clanArchSth = $dbh->prepare(
- "INSERT INTO clan_architecture (auto_clan, auto_architecture) ".
- " SELECT DISTINCT c.auto_clan, auto_architecture from clan_membership c, pfamA_reg_full_significant r, pfamseq s ".
- " WHERE s.auto_pfamseq=r.auto_pfamseq AND c.auto_pfamA=r.auto_pfamA AND in_full=1 AND c.auto_clan= ? ");
+ "INSERT INTO clan_architecture (clan_acc, auto_architecture) ".
+ " SELECT DISTINCT c.clan_acc, auto_architecture from clan_membership c, pfamA_reg_full_significant r, pfamseq s ".
+ " WHERE s.pfamseq_acc=r.pfamseq_acc AND c.pfamA_acc=r.pfamA_acc AND in_full=1 AND c.clan_acc= ? ");
 
   my $clanUpdateNumArch = $dbh->prepare(
   "UPDATE clans c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a ".
-  " WHERE c.auto_clan=a.auto_clan) where c.auto_clan= ? ");
+  " WHERE c.clan_acc=a.clan_acc) where c.clan_acc= ? ");
   
   my $clanUpdateNumStructures = $dbh->prepare(
   "UPDATE clans c SET number_structures = (SELECT SUM(number_structures) ".
-  "FROM clan_membership m , pfamA a WHERE m.auto_pfamA=a.auto_pfamA AND auto_clan=c.auto_clan) ".
-  "WHERE c.auto_clan=?;");
+  "FROM clan_membership m , pfamA a WHERE m.pfamA_acc=a.pfamA_acc AND clan_acc=c.clan_acc) ".
+  "WHERE c.clan_acc=?;");
 
   #Update the number of pdb_regions and arch in the clan table!
   foreach my $c (@$clans){
-    my $auto_clan = $c->auto_clan->auto_clan;
-    $self->pfamdb->getSchema->resultset('ClanArchitecture')->search({ auto_clan => $auto_clan })->delete;
-    $clanArchSth->execute($auto_clan);
-    $clanUpdateNumArch->execute($auto_clan);
-    $clanUpdateNumStructures->execute($auto_clan);
+    my $clan_acc = $c->clan_acc->clan_acc;
+    $self->pfamdb->getSchema->resultset('ClanArchitecture')->search({ clan_acc => $clan_acc })->delete;
+    $clanArchSth->execute($clan_acc);
+    $clanUpdateNumArch->execute($clan_acc);
+    $clanUpdateNumStructures->execute($clan_acc);
   }
 }
 
