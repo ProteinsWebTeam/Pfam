@@ -974,7 +974,7 @@ sub writeScoresFile {
   #Print the domains to the scores file
   foreach my $u ( sort { $b->bits <=> $a->bits } @sigUnits ) {
     print $fh
-      sprintf( "%.1f %s/%s-%s %s-%s\n", $u->bits, $u->name, $u->envFrom, $u->envTo, $u->seqFrom, $u->seqTo );
+      sprintf( "%.1f %s/%s-%s %s-%s %s\n", $u->bits, $u->name, $u->envFrom, $u->envTo, $u->seqFrom, $u->seqTo, $u->evalue );
   }
   close($fh);
 
