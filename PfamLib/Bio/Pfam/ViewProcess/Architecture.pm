@@ -55,7 +55,7 @@ sub updateSingleFamily {
   my $pfamA  = $self->pfamdb->getPfamData($self->options->{acc});
   my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
     {
-      "pfama_reg_full_significants.auto_pfamA" => $pfamA->auto_pfama,
+      "pfama_reg_full_significants.pfamA_acc" => $pfamA->pfama_acc,
       "pfama_reg_full_significants.in_full"    => 1
     },
     { join => [qw(pfama_reg_full_significants)] }
@@ -99,29 +99,29 @@ sub updateSingleFamily {
   die;
 #This takes ages and needs to be reworked!!!!
   my $pfamArchSth = $dbh->prepare(
-        "REPLACE INTO pfamA_architecture (auto_pfamA, auto_architecture) "
-      . " SELECT DISTINCT r.auto_pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
-      . " WHERE s.auto_pfamseq=r.auto_pfamseq AND in_full=1 AND auto_pfamA= ? "
+        "REPLACE INTO pfamA_architecture (pfamA_acc, auto_architecture) "
+      . " SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
+      . " WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 AND pfamA_acc= ? "
     )
     or $self->logger->logdie(
     "Failed to prepare statment to update pfamA_architectures:"
       . $dbh->errstr );
 
   my $deleteArchSth =
-    $dbh->prepare("DELETE FROM pfamA_architecture where auto_pfamA=?");
+    $dbh->prepare("DELETE FROM pfamA_architecture where pfamA_acc=?");
 
   foreach my $seq (@seqsRS) {
     my @r =
-      $self->pfamdb->getSchema->resultset("PfamaRegFullSignificant")
-      ->search( { auto_pfamseq => $seq->auto_pfamseq, in_full => 1 } );
+      $self->pfamdb->getSchema->resultset("PfamARegFullSignificant")
+      ->search( { pfamseq_acc => $seq->pfamseq_acc, in_full => 1 } );
     if (@r) {
       foreach my $d (@r) {
-        unless ( exists( $pfamAs{ $d->auto_pfama } ) ) {
+        unless ( exists( $pfamAs{ $d->pfama_acc } ) ) {
           $self->logger->debug(
             "Updaing architecture for " . $d->pfama_id . "," . $d->in_full );
-          $deleteArchSth->execute( $d->auto_pfama );
-          $pfamArchSth->execute( $d->auto_pfama );
-          $pfamAs{ $d->auto_pfama }++;
+          $deleteArchSth->execute( $d->pfama_acc );
+          $pfamArchSth->execute( $d->pfama_acc );
+          $pfamAs{ $d->pfama_acc }++;
         }
       }
     }
@@ -131,7 +131,7 @@ sub updateSingleFamily {
 "UPDATE architecture a SET no_seqs = (select count(*) from pfamseq s where s.auto_architecture=a.auto_architecture)"
   );
   $dbh->do(
-"UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.auto_pfamA=a.auto_pfamA)"
+"UPDATE pfamA a set number_archs=(select count(*) from pfamA_architecture p where p.pfamA_acc=a.pfamA_acc)"
   );
 }
 
