@@ -139,7 +139,7 @@ sub parseScores {
   my $noHits = 0;
   my %regions;
   foreach my $line (@file) {
-    if ( $line =~ /^(\S+)\s+(\S+)\/(\d+)\-(\d+)\s+(\d+)\-(\d+)/ ) {
+    if ( $line =~ /^(\S+)\s+(\S+)\/(\d+)\-(\d+)\s+(\d+)\-(\d+)\s+(\S+)?/ ) {  #$7 is the evalue, initially keep optional (new scores files will have it, old ones won't)
       push(
         @{ $regions{$2} },
         {
@@ -147,7 +147,8 @@ sub parseScores {
           end      => $4,
           score    => $1,
           aliStart => $5,
-          aliEnd   => $6,
+	  aliEnd   => $6,
+	  evalue   => $7
         }
       );
       $noHits++;
