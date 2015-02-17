@@ -69,7 +69,7 @@ sub updateSingleFamily {
   }
   
   $self->debug(p(%oldArchs));
-  $self->updateArchiectures( \@seqsRS );
+  $self->updateArchitectures( \@seqsRS );
 
   foreach my $auto_arch ( keys(%oldArchs) ) {
     my $arch = $self->pfamdb->getSchema->resultset('Architecture')->find($auto_arch);
@@ -158,12 +158,12 @@ sub updateSeqRange {
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
         my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
       {
-        'me.auto_pfamseq' =>
+        'me.pfamseq_acc' =>
           [ -and => { '>=', $currentSeq }, { '<=', $nextCurrentSeq } ]
       }
     );
     $currentSeq = $nextCurrentSeq;
-    $self->updateArchiectures( \@seqsRS );
+    $self->updateArchitectures( \@seqsRS );
     $self->pfamdb->getSchema->txn_commit;
   }
   #Note if you change the file name, fix the submit to farm
@@ -227,7 +227,7 @@ sub updateCountsForCached {
   }
 }
 
-sub updateArchiectures {
+sub updateArchitectures {
   my ( $self, $modSeqsRef) = @_;
 
   my $pfamDB = $self->pfamdb;
