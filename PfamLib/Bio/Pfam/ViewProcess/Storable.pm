@@ -73,7 +73,7 @@ sub updateSeqRange {
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
         my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
       {
-        'me.auto_pfamseq' =>
+        'me.pfamseq_acc' =>
           [ -and => { '>=', $currentSeq }, { '<=', $nextCurrentSeq } ]
       }
     );
@@ -93,7 +93,7 @@ sub updateSingleFamily {
   my $pfamA  = $self->pfamdb->getPfamData($self->options->{acc});
   my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
     {
-      "pfama_reg_full_significants.auto_pfamA" => $pfamA->auto_pfama,
+      "pfama_reg_full_significants.pfamA_acc" => $pfamA->pfama_acc,
       "pfama_reg_full_significants.in_full"    => 1
     },
     { join => [qw(pfama_reg_full_significants)] }
@@ -113,9 +113,9 @@ sub updateStorables {
   my $nestings;
   foreach my $n ( @{ $self->pfamdb->getAllNestedDomains } ) {
     my $npfamA =
-      $self->pfamdb->getSchema->resultset('Pfama')->find( { auto_pfama => $n->nests_auto_pfama } )
+      $self->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $n->nests_pfama_acc } )
       ->pfama_acc;
-    my $pfamA = $n->auto_pfama->pfama_acc;
+    my $pfamA = $n->pfama_acc->pfama_acc;
     $nestings->{$pfamA}->{$npfamA}++;
   }
   foreach my $seq (@$modSeqsRef) {
@@ -261,7 +261,7 @@ sub updateStorables {
 #-------------------------------------------------------------------------------
 #Motifs
 #transmembrane regions etc
-    my $otherRegRef = $self->pfamdb->getOtherRegs( $seq->auto_pfamseq );
+    my $otherRegRef = $self->pfamdb->getOtherRegs( $seq->pfamseq_acc );
     foreach my $motif (@$otherRegRef) {
       #$self->logger->debug("Found other region");
       push(
@@ -289,7 +289,7 @@ sub updateStorables {
         if ( $motif->orientation and $motif->orientation > 0 );
     }
 
-   
+#TODO - is this still needed?  
       my $pfambRegRef = $self->pfamdb->getPfambRegForSeq( $seq->pfamseq_acc );
       foreach my $motif (@$pfambRegRef) {
         $self->logger->debug("Found Pfam-B region");
@@ -422,7 +422,7 @@ sub updateStorables {
 
     $self->pfamdb->getSchema->resultset('PfamAnnseq')->update_or_create(
       {
-        auto_pfamseq    => $seq->auto_pfamseq,
+        pfamseq_acc    => $seq->pfamseq_acc,
         annseq_storable => $str
       }
     );
