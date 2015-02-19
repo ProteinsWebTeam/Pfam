@@ -17,7 +17,7 @@ my $storableView = Bio::Pfam::ViewProcess::Storable->new;
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
-my $noPfama = $view->pfamdb->getSchema->resultset('Pfama')->search({})->count;
+my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
 my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
 $version->update({ number_families => $noPfama }) 
   if($version->number_families != $noPfama);
@@ -113,9 +113,9 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
       #Update the proteome_architecture, then update the stats
       $protDbh->do("DELETE FROM proteome_architecture");
       $protDbh->do("INSERT INTO proteome_architecture ".
-                      "SELECT p.auto_proteome, s.auto_architecture, s.auto_pfamseq, count(s.auto_pfamseq) ".
+                      "SELECT p.auto_proteome, s.auto_architecture, s.pfamseq_acc, count(s.pfamseq_acc) ".
                       "FROM proteome_pfamseq p, pfamseq s ".
-                      "WHERE s.auto_pfamseq=p.auto_pfamseq ".
+                      "WHERE s.pfamseq_acc=p.pfamseq_acc ".
                       "GROUP BY auto_architecture, auto_proteome");
       
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
@@ -129,12 +129,12 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
                    "WHERE r.auto_proteome=c.auto_proteome)");
       
       $protDbh->do("UPDATE complete_proteomes c ".
-                    "SET num_proteins= ( SELECT count( distinct r.auto_pfamseq) ".
+                    "SET num_proteins= ( SELECT count( distinct r.pfamseq_acc) ".
                     "FROM proteome_regions r ".
                     "WHERE r.auto_proteome=c.auto_proteome)") ;
                     
       $protDbh->do("UPDATE complete_proteomes c SET total_seqs_covered = ( ".
-                    "SELECT count( distinct r.auto_pfamseq) FROM proteome_regions r ".
+                    "SELECT count( distinct r.pfamseq_acc) FROM proteome_regions r ".
                     "WHERE r.auto_proteome=c.auto_proteome)") ;
       $protDbh->do("UPDATE complete_proteomes SET ".
                     "sequence_coverage = ((total_seqs_covered/total_genome_proteins)*100)");
@@ -142,13 +142,13 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
                     "SET total_aa_length=( ".
                     "SELECT sum(length) ".
                     "FROM proteome_pfamseq p , pfamseq s ".
-                    "WHERE s.auto_pfamseq=p.auto_pfamseq ".
+                    "WHERE s.pfamseq_acc=p.pfamseq_acc ".
                     "AND p.auto_proteome=c.auto_proteome)");
                     
       $protDbh->do("UPDATE complete_proteomes c SET total_aa_covered=( ".
                     "SELECT sum(seq_end - seq_start + 1) ".
                     "FROM proteome_pfamseq p, pfamA_reg_full_significant s ".
-                    "WHERE s.auto_pfamseq=p.auto_pfamseq ". 
+                    "WHERE s.pfamseq_acc=p.pfamseq_acc ". 
                     "AND p.auto_proteome=c.auto_proteome and in_full=1)");
                     
       $protDbh->do("UPDATE complete_proteomes ".
