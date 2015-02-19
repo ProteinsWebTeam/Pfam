@@ -135,7 +135,7 @@ sub setColours {
    
    #Now get the region information for this pdb
     my @regions =
-      $self->pfamdb->getSchema->resultset('PdbPfamaReg')
+      $self->pfamdb->getSchema->resultset('PdbPfamAReg')
       ->search( { pdb_id => $pdb },
       { order_by => 'chain, pdb_res_start ASC' } );
 
@@ -203,7 +203,7 @@ sub makeImages {
 
     #Now get the region information for this pdb
     my @regions =
-      $self->pfamdb->getSchema->resultset('PdbPfamaReg')
+      $self->pfamdb->getSchema->resultset('PdbPfamAReg')
       ->search( { pdb_id => $pdb },
       { order_by => 'chain, pdb_res_start ASC' } );
 
@@ -273,11 +273,11 @@ sub submitToFarm {
   my $chunkSize = ceil($rs->count/$noJobs);
   
   #Now submit the jobs
-  my $queue = 'normal';
-  my $resource = "-M7500000 -R'select[mem>7500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=7500]'";
+  my $queue = 'production-rh6';
+  my $resource = "rusage[mem=2500000]";
   my $memory = 7500000;
   my $fh = IO::File->new();
-  $fh->open( "| bsub -q $queue  ".$resource." -o ".
+  $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
               $self->options->{statusdir}."/pdb.\%J.\%I.log  -JPDBImg\"[1-$noJobs]\"");
   $fh->print( "makePdbImages.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
@@ -403,7 +403,7 @@ sub _munge_molauto {
   REGION:
     foreach my $domain (@$regionsRef) {
       $self->logger->debug(
-        $domain->auto_pfama->auto_pfama,
+        $domain->pfama_acc->pfama_acc,
         "/" . $domain->pdb_res_start . "-" . $domain->pdb_res_end,
         " to $start-$end"
       );
@@ -711,20 +711,20 @@ sub assignColour {
 
   my $colour;
   if (  $pfamaConfig->assignedColours
-    and $pfamaConfig->assignedColours->{ $domain->auto_pfama->auto_pfama } )
+    and $pfamaConfig->assignedColours->{ $domain-pfama_acc->pfama_acc } )
   {
     $colour =
-      $pfamaConfig->assignedColours->{ $domain->auto_pfama->auto_pfama };
+      $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc };
   }
   elsif ( $pfamaConfig->preDeterminedColours->[ $pfamaConfig->colourIndex ] ) {
     $colour =
       Convert::Color->new( 'rgb8:'
         . $pfamaConfig->preDeterminedColours->[ $pfamaConfig->colourIndex ] );
     $pfamaConfig->assignedColours
-      ? $pfamaConfig->assignedColours->{ $domain->auto_pfama->auto_pfama } =
+      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc } =
       $colour
       : $pfamaConfig->assignedColours(
-      { $domain->auto_pfama->auto_pfama => $colour } );
+      { $domain->pfama_acc->pfama_acc => $colour } );
     $pfamaConfig->colourIndex( $pfamaConfig->colourIndex + 1 );
   }
   else {
@@ -744,10 +744,10 @@ sub assignColour {
     }
     $colour = Convert::Color->new( 'rgb8:' . $hex[0] . $hex[1] . $hex[2] );
     $pfamaConfig->assignedColours
-      ? $pfamaConfig->assignedColours->{ $domain->auto_pfama->auto_pfama } =
+      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc } =
       $colour
       : $pfamaConfig->assignedColours(
-      { $domain->auto_pfama->auto_pfama => $colour } );
+      { $domain->pfama_acc->pfama_acc => $colour } );
   }
   $domain->update( { hex_colour => $colour->as_rgb8->hex } );
 }
