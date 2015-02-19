@@ -79,12 +79,12 @@ sub makeHHMFromFile {
 sub makeHHMFromAcc {
   my ($self, $acc) = @_;
  
-  my $a = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $acc});
+  my $a = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
   unless($a and defined($a->pfama_acc)){
     $self->logger->warn("Could not find accession $acc in the database.");
   }
   $self->logger->debug("Working on ".$a->pfama_acc."\n");
-  $self->_getSEED($a->auto_pfama);
+  $self->_getSEED($a->pfama_acc);
   my $hhm = $self->makeHHMFromFile("SEED", $acc);
   return($hhm);
 }  
@@ -126,10 +126,10 @@ sub makeHHLib {
     my $tempDir = tempdir( CLEANUP => 0 );
     my $newHmmLib = $tempDir."/Pfam-A.hhm";
 
-    my @pfamAs = $self->pfamdb->getSchema->resultset('Pfama')->search({});
+    my @pfamAs = $self->pfamdb->getSchema->resultset('PfamA')->search({});
     foreach my $a (@pfamAs){
       $self->logger->debug("Working on ".$a->pfama_acc."\n");
-      my $row = $self->pfamdb->getSchema->resultset('PfamaInternal')->find( { auto_pfama => $a->auto_pfama } );
+      my $row = $self->pfamdb->getSchema->resultset('PfamAInternal')->find( { pfama_acc => $a->pfama_acc } );
       $row->seed_uncompressed($tempDir);
       $self->_buildHMM($tempDir."/SEED", 
                        $a->pfama_acc, 
@@ -149,12 +149,12 @@ sub makeHHLib {
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
-  my $rs = $self->pfamdb->getSchema->resultset('Pfama')->search({});
+  my $rs = $self->pfamdb->getSchema->resultset('PfamA')->search({});
   my $chunkSize = ceil($rs->count/$noJobs);
   
   #Now submit the jobs
-  my $queue = 'normal';
-  my $resource = "-M3500000 -R'select[mem>3500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=3500]'";
+  my $queue = 'production-rh6';
+  my $resource = "-M 3500000 -R  rusage[mem=3500000]'";
   my $memory = 3500000;  
   my $fh = IO::File->new();
 
@@ -185,7 +185,7 @@ sub searchRange {
   if($chunk and $chunkSize ) {
     $self->logger->debug("Calculating PfamA paging");
 
-    my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
+    my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
       {},
       {
       page => 1,
@@ -218,7 +218,7 @@ sub searchRange {
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
     $self->logger->debug("Working on ".$a->pfama_acc);
-    $self->_getSEED($a->auto_pfama);
+    $self->_getSEED($a->pfama_acc);
     my $results = $self->makeHHMFromFileAndSearch("SEED", $a->pfama_acc);
     if($self->upload){
       $self->uploadResult($results, $a);
@@ -315,15 +315,15 @@ sub processOptions {
 sub uploadResult {
   my ($self, $file, $pfamRow) = @_;
   
-  if(!$pfamRow or !$pfamRow->auto_pfama){
+  if(!$pfamRow or !$pfamRow->pfama_acc){
     $self->logger->logdie("did not get a pfama dbix row passed in");
   }
   open(R, '<', $file) or $self->logger->logdie("Could not open $file:[$!]");
   
   #Delete all regions belonging to this row.
   $self->logger->debug("Deleting rows for ".$pfamRow->pfama_acc);
-  $self->pfamdb->getSchema->resultset('Pfama2pfamaHhsearchResults')
-                  ->search({auto_pfama1 => $pfamRow->auto_pfama})->delete;
+  $self->pfamdb->getSchema->resultset('PfamA2pfamAHhsearch')
+                  ->search({pfama_acc_1 => $pfamRow->pfama_acc})->delete;
   
   my @rows;
   
@@ -342,10 +342,10 @@ sub uploadResult {
       next if($pfam_acc eq $pfamRow->pfama_acc); #Do not stor self self matches
       my $evalue   = $r[4];
       if($evalue <= $self->evalThres){
-        my $b = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $pfam_acc});
+        my $b = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $pfam_acc});
         if($b and $b->pfama_acc){
-          push(@rows, { auto_pfama1 => $pfamRow->auto_pfama,
-                        auto_pfama2 => $b->auto_pfama,
+          push(@rows, { pfama_acc_1 => $pfamRow->pfama_acc,
+                        pfama_acc_2 => $b->pfama_acc,
                         evalue      => $evalue });
         }
       }
@@ -354,15 +354,15 @@ sub uploadResult {
   }
   close(R);
   if(scalar(@rows)){
-    $self->pfamdb->getSchema->resultset('Pfama2pfamaHhsearchResults')->populate(\@rows);
+    $self->pfamdb->getSchema->resultset('PfamA2pfamAHhsearch')->populate(\@rows);
   }
 }
 
 
 sub _getSEED {
-  my ($self, $auto) = @_;
+  my ($self, $pfama_acc) = @_;
   
-  my $row = $self->pfamdb->getSchema->resultset('PfamaInternal')->find( { auto_pfama => $auto } );
+  my $row = $self->pfamdb->getSchema->resultset('PfamAInternal')->find( { pfama_acc => $pfama_acc } );
   $row->seed_uncompressed();
   
 }
