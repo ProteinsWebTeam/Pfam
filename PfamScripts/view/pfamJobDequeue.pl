@@ -104,8 +104,8 @@ while (1) {
       #Repeat steps 2 and 3 if we have a clan view process to run.  
 
       #Step 2 - build up the LSF resource requirements
-      $memory = '10000';
-      $resource = "rusage[mem=10000]"; 
+      $memory = '24000';
+      $resource = "rusage[mem=24000]"; 
       $tmpDir   = $qsout->tmpDir;
 
       #Step 3 - Build up the command that we want to run
