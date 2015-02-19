@@ -72,14 +72,14 @@ sub BUILD {
 sub getPfamData {
   my ($self) = @_;
 
-  my @pfamA = $self->pfamdb->getSchema->resultset('Pfama')->search( {}, );
+  my @pfamA = $self->pfamdb->getSchema->resultset('PfamA')->search( {}, );
 
   my $pfamA;
   foreach my $row (@pfamA) {
-    $pfamA->{ $row->auto_pfama }->{pfamA_acc}    = $row->pfama_acc;
-    $pfamA->{ $row->auto_pfama }->{pfamA_id}     = $row->pfama_id;
-    $pfamA->{ $row->auto_pfama }->{model_length} = $row->model_length;
-    $pfamA->{ $row->auto_pfama }->{type}         = $row->type;
+    $pfamA->{ $row->pfama_acc }->{pfamA_acc}    = $row->pfama_acc;
+    $pfamA->{ $row->pfama_acc }->{pfamA_id}     = $row->pfama_id;
+    $pfamA->{ $row->pfama_acc }->{model_length} = $row->model_length;
+    $pfamA->{ $row->pfama_acc }->{type}         = $row->type;
   }
 
   $self->pfamA($pfamA);
@@ -95,21 +95,21 @@ sub getClanData {
   my @clan = $self->pfamdb->getSchema->resultset("ClanMembership")->search(
     {},
     {
-      join     => [qw/auto_clan/],
-      prefetch => [qw/auto_clan/]
+      join     => [qw/clan_acc/],
+      prefetch => [qw/clan_acc/]
     }
   );
 
   #Add clans to hash
   my $clan;
   foreach my $row (@clan) {
-    $clan->{ $row->auto_pfama->auto_pfama } = $row->auto_clan->clan_acc;
+    $clan->{ $row->pfama_acc->pfama_acc } = $row->clan_acc->clan_acc;
   }
 
   #Add No_clan to hash for pfamA with no clan
-  foreach my $auto_pfamA ( keys %{ $self->pfamA } ) {
-    unless ( exists( $clan->{$auto_pfamA} ) ) {
-      $clan->{$auto_pfamA} = "No_clan";
+  foreach my $pfamA_acn ( keys %{ $self->pfamA } ) {
+    unless ( exists( $clan->{$pfamA_acn} ) ) {
+      $clan->{$pfamA_acn} = "No_clan";
     }
   }
   $self->clanMap($clan);
@@ -128,21 +128,20 @@ sub makeTSV {
                                          ali_end, 
                                          seq_start, 
                                          seq_end, 
-                                         auto_pfamA, 
+                                         pfamA_acc, 
                                          model_start, 
                                          model_end, 
                                          domain_bits_score, 
                                          domain_evalue_score 
-                                   FROM pfamseq
-                                   LEFT JOIN  pfamA_reg_full_significant reg ON pfamseq.auto_pfamseq=reg.auto_pfamseq 
-                                   LEFT JOIN proteome_pfamseq ON proteome_pfamseq.auto_pfamseq=pfamseq.auto_pfamseq 
+                                   FROM pfamA_reg_full_significant
+                                   LEFT JOIN proteome_pfamseq ON proteome_pfamseq.pfamseq_acc=pfamA_reg_full_significant.pfamseq_acc
                                    WHERE auto_proteome = ? 
                                    AND in_full=1"
   ) or $self->logger->logdie( "Failed to prepare statement:" . $dbh->errstr );
 
   #Go through each sequence for the taxid and get Pfam-A regions
   my $proteome =
-    $self->pfamdb->getSchema->resultset('CompleteProteomes')
+    $self->pfamdb->getSchema->resultset('CompleteProteome')
     ->find( { ncbi_taxid => $ncbi_taxid } );
 
   #Set up filehandle for printing
@@ -182,7 +181,7 @@ sub makeTSV {
   foreach my $domain (@$pfamA_domains) {
     my (
       $pfamseq_acc, $ali_start, $ali_end,
-      $seq_start,   $seq_end,   $auto_pfamA,
+      $seq_start,   $seq_end,   $pfamA_acc,
       $model_start, $model_end, $domain_bits_score,
       $domain_evalue_score
       )
@@ -197,15 +196,15 @@ sub makeTSV {
       $ali_end,
       $seq_start,
       $seq_end,
-      $pfamA->{$auto_pfamA}->{pfamA_acc},
-      $pfamA->{$auto_pfamA}->{pfamA_id},
-      $pfamA->{$auto_pfamA}->{type},
+      $pfamA->{$pfamA_acc}->{pfamA_acc},
+      $pfamA->{$pfamA_acc}->{pfamA_id},
+      $pfamA->{$pfamA_acc}->{type},
       $model_start,
       $model_end,
-      $pfamA->{$auto_pfamA}->{model_length},
+      $pfamA->{$pfamA_acc}->{model_length},
       $domain_bits_score,
       $domain_evalue_score,
-      $clan->{$auto_pfamA} );
+      $clan->{$pfamA_acc} );
     print OUT "$line\n";
 
   }
@@ -221,12 +220,12 @@ sub makeTSV {
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
-  my $rs = $self->pfamdb->getSchema->resultset('CompleteProteomes')->search({});
+  my $rs = $self->pfamdb->getSchema->resultset('CompleteProteome')->search({});
   my $chunkSize = ceil($rs->count/$noJobs);
   
   #Now submit the jobs
-  my $queue = 'normal';
-  my $resource = "-M3500000 -R'select[mem>3500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=3500]'";
+  my $queue = 'production-rh6';
+  my $resource = "-M3500000 -R rusage[mem=3500000]'";
   my $memory = 3500000;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
@@ -253,7 +252,7 @@ sub proteomeRange {
       $self->logger->debug("Calculating proteome paging");
 
       my $proteomesAll =
-        $self->pfamdb->getSchema->resultset('CompleteProteomes')->search(
+        $self->pfamdb->getSchema->resultset('CompleteProteome')->search(
         {},
         {
           page => 1,
