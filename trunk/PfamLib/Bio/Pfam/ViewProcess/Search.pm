@@ -58,12 +58,12 @@ sub search {
   unless(-d $tmpdir){
     $self->logger->logdie("Failed to get a temporary directory.");
   }
-  my $pfam = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $acc});
+  my $pfam = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
   unless($pfam){
     $self->logger->logdie("Failed to get a Pfam row for $acc.");
   }
   #Get the stockholm markup HMM, we need this as it has the GAs
-  my $result = $self->pfamdb->getSchema->resultset('PfamaHmm')->find({ auto_pfama => $pfam->auto_pfama});
+  my $result = $self->pfamdb->getSchema->resultset('PfamAHmm')->find({ pfama_acc => $pfam->pfama_acc});
   $result->getHMMAsFile( $acc.".hmm", $tmpdir );
   #Now perform the search
   my $database = $self->config->{$self->database}->{location}.'/'.$self->database;
@@ -88,7 +88,7 @@ sub search {
     #Due to a slight annoyance, strip off the trailing .ann
     $self->uploadTreesAndAlign($filename, $self->databaseToTag->{$self->database});
     #This may seem a bit of a waste, but I have modified 
-    $pfam = $self->pfamdb->getSchema->resultset('Pfama')->find({pfama_acc => $acc});
+    $pfam = $self->pfamdb->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
     $pfam->$field($noSeqs);
     $pfam->update;
   }
@@ -199,15 +199,13 @@ sub submitToFarm {
     #Now submit the jobs, determinig roughly how much memory we are going to use.
     my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
     $memory_gb  += 1; #Add another Gig for the alignment overhead.
-    my $queue = 'long'; #searches may go over 8 hours. 
-    my $memory_mb=$memory_gb*1000;
-    my $memory_kb=$memory_mb*1000;
-    my ($options, $resource);
+    my $queue = 'production-rh6'; #searches may go over 8 hours. 
+    my $memory_kb=$memory_gb*1000000;
+    my $resource = " -M $memory_kb -R rusage[mem=$memory_kb]";
+
+    my $options;
     if($self->upload){
-      $resource = " -M$memory_kb -R'span[hosts=1] select[mem>$memory_mb && mypfamlive2<500] rusage[mypfamlive2=10:mem=$memory_mb]'";
       $options .= ' -upload ';
-    }else{
-      $resource = " -M$memory_kb -R'span[hosts=1] select[mem>$memory_mb] rusage[mem=$memory_mb]'"
     }
     
     $resource .= " -n ".$self->cpus;
@@ -221,7 +219,7 @@ sub submitToFarm {
     $options .= " -statusdir ".$self->options->{statusdir};
     
     my $fh = IO::File->new();
-    $fh->open( "| bsub -G pfam-grp -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
+    $fh->open( "| bsub -G /Pfamview -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
     $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
@@ -246,7 +244,7 @@ sub searchRange {
   if($chunk and $chunkSize ) {
     $self->logger->debug("Calculating PfamA paging");
 
-    my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
+    my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
       {},
       {
       page => 1,
