@@ -22,16 +22,19 @@ sub runScoop {
   my $statusdir = $self->options->{statusdir};
   if(!$self->statusCheck("sigReg.txt")){
     $self->logger->info('Getting significant regions');
+ #if the step below is really slow could try the following as a system command
+ #mysql -h mysql-pfam-live -u <user> -p<passwd> -P 4430 pfam_live --quick -e “select blah from blah" > output.txt   
     $dbh->do(
-      "SELECT auto_pfamseq, auto_pfamA seq_start, seq_end, domain_evalue_score "
+      "SELECT pfamseq_acc, pfamA_acc seq_start, seq_end, domain_evalue_score "
     . "INTO OUTFILE '/tmp/sigReg.txt' FROM pfamA_reg_full_significant" );
     $scp->get('/tmp/sigReg.txt', $statusdir.'/sigReg.txt')
   }
   
   if(!$self->statusCheck("insigReg.txt")){
     $self->logger->info('Getting insignificant regions');
+#see above for alternative if the step below is too slow
     $dbh->do(
-      "SELECT auto_pfamseq, auto_pfamA seq_start, seq_end, domain_evalue_score "
+      "SELECT pfamseq_acc, pfamA_acc seq_start, seq_end, domain_evalue_score "
     . "INTO OUTFILE '/tmp/insigReg.txt' FROM pfamA_reg_full_insignificant" );
     $scp->get('/tmp/insigReg.txt', $statusdir.'/insigReg.txt')
   }
