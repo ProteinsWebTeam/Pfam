@@ -171,7 +171,7 @@ eval{
       %{ $connect }
     );
     
-    my $clan = $pfamDB->getSchema->resultset('DeadClans')->find({ clan_acc => $clanAcc}); 
+    my $clan = $pfamDB->getSchema->resultset('DeadClan')->find({ clan_acc => $clanAcc}); 
     
     my @clanMembership = split(/\s+/, $clan->clan_membership);
     
