@@ -9,7 +9,7 @@ use Cwd;
 use File::Copy;
 use File::Rsync;
 use File::stat;
-use Data::UUID;
+
 
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
@@ -47,7 +47,7 @@ sub main {
 #Deal with the command line options
   my (
     $noIts,   $fasta,   $seqDB, $check, $incT,      $incE,
-    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $copy, $gzip, $memory
+    $incDomT, $incDomE, $help,  $noOverlap, $local, $acc, $gzip, $memory
   );
 
   Getopt::Long::Configure('no_ignore_case');
@@ -61,7 +61,6 @@ sub main {
     "T=s"       => \$incT,
     "noOverlap" => \$noOverlap,
     "local"     => \$local,
-    "copy"      => \$copy,
     "acc=s"     => \$acc,
     "gzip"      => \$gzip,
     "M=i"       => \$memory,	      
@@ -147,12 +146,10 @@ sub main {
     die "Memory must not be > 20 (unit is Gb)\n";
   }
 
-
-
-
   #$check is true if the user requested the checkpoint files
   #$c contains the name of the checkpoint files
-  my $c = "$$.chkpnt"; #Use $c later for writing PFAMOUT file
+  #Use $c later for writing PFAMOUT file
+  my $c;
   if ($check) {
       $optCmds{'--chkali'} = $check;
       $optCmds{'--chkhmm'} = $check;
@@ -160,8 +157,9 @@ sub main {
   }
   else {
     warn "\n***** Checkpoint has been turned off. *****\n\n"; #We'll still going to run with check pointing, but we won't copy checkpointing files back
+    $c="chkpnt";
     $optCmds{'--chkali'} = $c;
-    $optCmds{'--chkhmm'} = $c;
+    $optCmds{'--chkhmm'} = $c;  
   }
   
 
@@ -177,9 +175,8 @@ sub main {
 
 
   unless ($noOverlap) {
-    if ( $seqDB !~ m|/pfamseq$| ) {
-      warn
-"$seqDB does not look like it is pfamseq.  Switching off overlap check\n";
+    unless ( $seqDB =~ m|/pfamseq$| or $seqDB =~ m|/refprot$| ) {
+      warn "$seqDB does not look like it is pfamseq or refprot.  Switching off overlap check\n";
       $noOverlap = 1;
     }
   }
@@ -190,7 +187,6 @@ sub main {
 #/software/pfam/src/hmmer-3.0b2/bin/jackhmmer -A JALIGN -o output fa /nfs/pfam_nfs/pfam/pfamseq/pfamseq
 #run with default of   --notextw
 
-  #Run two other options by default
 
   $optCmds{'-A'}        = 'JALIGN';
   $optCmds{'-o'}        = 'JOUT';
@@ -199,19 +195,6 @@ sub main {
 
   if ($local) {
     runJackhmmer( $config, \%optCmds, $fasta, $seqDB );
-    
-    #Check for overlaps....
-    unless ( $noOverlap and -s "JALIGN" ) {
-      checkOverlap($pfamDB, "JALIGN");
-    }
-    #Check for overlaps in checkpoint alignments
-    if($check and !$noOverlap) {
-      for(my $i=1; $i<=$noIts; $i++) {
-	my $aln_file = "$check-$i.sto";
-	next unless(-s $aln_file);
-	checkOverlap($pfamDB, $aln_file);
-      }
-    }
 
     #Write PFAMOUT style file
     writePFAMOUT($check, $c);
@@ -246,9 +229,20 @@ sub main {
       }
     }
 
+    #Check for overlaps....
+    unless ( $noOverlap ) {
+      checkOverlap($pfamDB, "align");
+      if($check) {  #Check for overlaps in checkpoint alignments
+	for(my $i=1; $i<=$noIts; $i++) {
+	  my $aln_file = "$check-$i.align";
+	  next unless(-s $aln_file);
+	  checkOverlap($pfamDB, $aln_file);
+	}
+      }
+    }
 
     unless($check) {
-	unlink glob("$c*");
+      unlink glob("$c*");
     }
     if($gzip) {
 	system("gzip JALIGN") and die "Failed to run gzip on JALIGN, $!";
@@ -259,7 +253,7 @@ sub main {
 
   }
   else {
-    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $copy, $memory );
+    farmJackhmmer( $config, \%optCmds, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $memory );
   }
 
 }
@@ -267,32 +261,28 @@ sub main {
 sub checkOverlap {
   my ($pfamDB, $aln) = @_;
 
+  my (%regions);
+ 
   open( A, $aln )  or die "Could not open $aln:[$!]\n";
-  open( T, ">$$.tmp" ) or die;
   while (<A>) {
-    if ( $_ !~ /^#/ and $_ =~ /\S+/ ) {
-      print T $_;
+    next if(/^#/ or /\/\//);
+    if(/(\S+)\/(\d+)-(\d+)/) { #Alignments contain alignment co-ordinates
+      my ($acc, $st, $en) = ($1, $2, $3);
+      if($acc =~ /(\S+)\.\d+/) {
+	$acc=$1;
+      }
+      
+      push(@{ $regions{ $acc } }, 
+	   {
+	    ali_from  => $st,   
+	    ali_to    => $en,
+	    family    => 'NEW',
+	    ali       => 'JALIGN',
+	    family_id => 'NEW' });
     }
   }
   close(A);
-  close(T);
-  open( T, "$$.tmp" ) or die;
-
-  my $align = Bio::Pfam::AlignPfam->new;
-
-  $align->read_Pfam( \*T );
-
-  my %regions;
-  foreach my $seq ( $align->each_seq ) {
-    push @{ $regions{ $seq->id } },
-      {
-      from      => $seq->start,
-      to        => $seq->end,
-      family    => ("NEW"),
-      ali       => 'JALIGN',
-      family_id => ("NEW")
-      };
-  }
+  
 
   my %overlaps;
   $pfamDB->getOverlapingFullPfamRegions( \%regions, \%overlaps );
@@ -304,11 +294,11 @@ sub checkOverlap {
   #Now print out any overlaps that should not be ignored
   my $LOG;
   my $overlap_file;
-  if($aln eq "JALIGN") {
+  if($aln eq "align") {
     $overlap_file = "overlap";
   }
   else {
-    if($aln =~ /(\S+)\.sto/) {
+    if($aln =~ /(\S+)\.align/) {
       $overlap_file = "$1.overlap";
     }
     else {
@@ -319,36 +309,27 @@ sub checkOverlap {
 
   foreach my $seqAcc ( keys %overlaps ) {
     foreach
-      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )
-    {
+      my $region ( sort { $a->{ali_from} <=> $b->{ali_from} } @{ $overlaps{$seqAcc} } ) {
       foreach my $overRegion ( @{ $region->{overlap} } ) {
-        my $line =
-            "Sequence [" 
-          . $seqAcc
-          . "] overlap "
-          . $region->{family_id} . " "
-          . $region->{family} . "/"
-          . $region->{from} . "-"
-          . $region->{to} . " "
-          . $region->{ali}
-          . " with "
-          . $overRegion->{family_id} . " "
-          . $overRegion->{family} . "/"
-          . $overRegion->{from} . "-"
-          . $overRegion->{to} . " "
-          . $overRegion->{ali} . "\n";
+	my $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." ".$region->{ali}." with ";
+       
+	if($overRegion->{ali} eq 'SEED') {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
+	}
+	else {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
+	    .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
+	}
 
         next if ( $seen{$line} );
         $seen{$line}++;
         $numOverlaps++;
-        print STDERR $line;
+       
         print $LOG $line if $LOG;
       }
     }
   }
   close $LOG if ($LOG);
-  close T;
-  unlink("$$.tmp");
 }
 
 sub runJackhmmer {
@@ -366,13 +347,14 @@ sub runJackhmmer {
   while ( my ( $opt, $param ) = each %$optionalCmds ) {
     $cmd .= "$opt $param ";
   }
+  
   $cmd .= "$fasta $seqDB";
-
+  #print STDERR "Running this command: |$cmd|\n";
   system($cmd) and die "Failed to run jackhmmer:[$!]\n";
 }
 
 sub farmJackhmmer {
-  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $gzip, $check, $c,  $copyFiles, $memory ) = @_;
+  my ( $config, $optCmdsRef, $fasta, $seqDB, $noOverlap, $gzip, $check, $c, $memory ) = @_;
 
   unless ( -e $fasta ) {
     die "FATAL: Could not find fasta file, $fasta\n";
@@ -391,39 +373,6 @@ sub farmJackhmmer {
     die "Failed to get a farm configuration file\n";
   }
 
-  #Need does it look like the sequence database in on a farm disk?
-
-  #mkdir on the lustre disk and copy our files there
-  my $ug   = new Data::UUID;
-  my $uuid = $ug->to_string( $ug->create() );
-  my $user = $ENV{USER};
-
-  #Make the director
-  mkdir( $farmConfig->{lsf}->{scratch} . "/$user/$uuid" )
-    or die "Failed to make a directory on the farm users space, "
-    . $farmConfig->{lsf}->{scratch}
-    . "/$user/$uuid: [$!]";
-
-
-  my $fasta_name=$fasta;
-
-  if($fasta =~ /\S+\/(\S+)$/) {  #Need to do this if the full path to fasta file is specified
-    $fasta_name=$1;
-  }
-
-
-  copy( $fasta, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta_name" )
-    or die "Failed to copy fasta to scratch space:[$!]";
-
-  $fasta = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$fasta_name";
-
-#  unless ( $seqDB =~ m|^/nfs/pfam_nfs| ) {
-#    warn
-#"Going to copy sequence database to scratch, this may slow things down a bit!\n";
-#    copy( $seqDB, $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB" )
-#      or die "Failed to copy SEED to scratch space:[$!]";
-#    $seqDB = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$seqDB";
-#  }
 
 #Okay, things should be in the right place for working on.
 #Build up the command we want to run.  We want to run this same script, but with the local option.
@@ -468,34 +417,25 @@ sub farmJackhmmer {
 
   if($config->location eq 'WTSI') { #Sanger farm requires the group to be specified in bsub commands
     $fh->open( "| bsub -q "
-      . $farmConfig->{lsf}->{queue} . " -o "
-      . $farmConfig->{lsf}->{scratch}
-      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
+      . $farmConfig->{lsf}->{queue} . " -o $$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb -G pfam-grp" );
   }
   elsif($config->location eq 'EBI') { # EBI memory requirement is specified in Mb
     $fh->open( "| bsub -q " . $farmConfig->{lsf}->{queue} . 
-                     " -o " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid/$$.log" .
+                     " -o $$.log" .
                      " -Jjackhmmer$$ " .
                      " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " . 
-                     " -M $memory_mb" );
+                     " -M $memory_mb" ); 
   }
   else {
     $fh->open( "| bsub -q "
-      . $farmConfig->{lsf}->{queue} . " -o "
-      . $farmConfig->{lsf}->{scratch}
-      . "/$user/$uuid/$$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
+      . $farmConfig->{lsf}->{queue} . " -o $$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
   }
-
-  if($copyFiles){
-    $fh->print( "cd " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
-  }else{
-    $fh->print( "cd $pwd \n" );
-  }
+  
   #Execute the command we have built up.
+  $fh->print( "cd $pwd \n" );
   $fh->print("$cmd\n");
 
   #Write a PFAMOUT style file
-  my $jout_file = $farmConfig->{lsf}->{scratch} . "/$user/$uuid/JOUT";
   $fh->print("pfjbuild_pfamout.pl JOUT $c\n");
   $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > align \n"); #Create an ALIGN file
     
@@ -508,30 +448,6 @@ sub farmJackhmmer {
   unless($check) {
       $fh->print("rm -fr $c* \n");
   }
-
-
-  #Bring back all of the files.
-  if($copyFiles){
-      if($gzip) {
-	  $fh->print("/usr/bin/scp JALIGN.gz $phost:$pwd/JALIGN.gz\n");	 
-	  $fh->print("/usr/bin/scp JOUT.gz $phost:$pwd/JOUT.gz\n");
-      }
-      else {
-	  $fh->print("/usr/bin/scp JALIGN $phost:$pwd/JALIGN\n");
-	  $fh->print("/usr/bin/scp JOUT $phost:$pwd/JOUT\n");
-      }
-   
-    $fh->print("/usr/bin/scp overlap $phost:$pwd/overlap\n") unless ($noOverlap);
-    $fh->print("/usr/bin/scp align $phost:$pwd/align\n");
-    $fh->print("/usr/bin/scp $check\* $phost:$pwd/. \n") if($check);
-
-    $fh->print("/usr/bin/scp HMM $phost:$pwd/HMM\n");
-    $fh->print("/usr/bin/scp PFAMOUT $phost:$pwd/PFAMOUT\n");
-    $fh->print("/usr/bin/scp DESC $phost:$pwd/DESC\n");
-  }
-  
-  #Now clean up after ourselves on the farm
-  $fh->print( "rm -fr " . $farmConfig->{lsf}->{scratch} . "/$user/$uuid \n" );
   $fh->close();
 
 }
@@ -544,7 +460,7 @@ sub writePFAMOUT {
     my ($check, $c) = @_;  
                            
     #Write results of final iteration to file
-    my ($header, $header_complete, $flag);
+    my ($header, $header_complete, $flag, $itNum);
     my $outfile = "JOUT.final";
     open(JOUT, "JOUT") or die "Couldn't open JOUT $!";
     while(<JOUT>) {
@@ -556,6 +472,7 @@ sub writePFAMOUT {
 	    elsif(/^Query\:/) {
 		$header .= "\n$_";
 		$header_complete=1;
+		$itNum++;
 	    }
 		  
 	}
