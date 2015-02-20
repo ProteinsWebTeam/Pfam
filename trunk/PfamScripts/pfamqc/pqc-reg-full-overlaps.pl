@@ -10,7 +10,8 @@ use Bio::Pfam::Config;
 #Clans are competed before checking for overlaps
 #Overlaps are only reported for reference proteome sequences
 #Overlaps are filtered according to parameters in config file
-#Output is to STDOUT and format is:
+#The script will dump the regions from pfamA_reg_full_significant in the cwd
+#Output is a file called overlaps in the cwd and format is:
 #L: Sequence [G3W0U7] overlap LRRNT PF01462/29-57 (PF01462/28-57, 23.40 bits) FULL with LRR_8 PF13855/45-94 (PF13855/42-94, 30.30 bits) FULL
 #S: (2/54, 3.7%) Sequence [G3W0U7] overlap LRRNT PF01462/29-57 (PF01462/28-57, 23.40 bits) FULL with LRR_8 PF13855/56-94 (PF13855/50-94, 30.30 bits) FULL
 #L = long overlap
@@ -20,9 +21,10 @@ use Bio::Pfam::Config;
 #Going to write some files in cwd, make sure we don't overwrite anything
 my $regFull="regFull.dat";
 my $sortedRegFull="sortedRegFull.dat";
-#if(-s $regFull or -s $sortedRegFull) {
-#  die "$regFull and/or $sortedRegFull already exists";
-#}
+my $outfile = "overlaps";
+if(-s $regFull or -s $sortedRegFull or -s $outfile) {
+  die "$regFull and/or $sortedRegFull and/or $outfile already exists in cwd";
+}
 
 #Get db connection
 my $config = Bio::Pfam::Config->new;
@@ -48,7 +50,7 @@ $sth1->finish;
 
 #Get all regions from pfamA_reg_full_significant
 print STDERR "Getting regions from pfamA_reg_full_significant\n";
-my $command = "mysql -h ".$pfamDBAdmin->{host}." -u ".$pfamDBAdmin->{user}." -p". $pfamDBAdmin->{password}." -P ".$pfamDBAdmin->{port}." ".$pfamDBAdmin->{database}." --quick -e \"select pfamA_acc, pfamseq_acc, seq_star##t, seq_end, ali_start, ali_end, domain_bits_score, domain_evalue_score from pfamA_reg_full_significant\" > $regFull";
+my $command = "mysql -h ".$pfamDBAdmin->{host}." -u ".$pfamDBAdmin->{user}." -p". $pfamDBAdmin->{password}." -P ".$pfamDBAdmin->{port}." ".$pfamDBAdmin->{database}." --quick -e \"select pfamA_acc, pfamseq_acc, seq_start, seq_end, ali_start, ali_end, domain_bits_score, domain_evalue_score from pfamA_reg_full_significant\" > $regFull";
 system("$command");
 die "Failed to get regions from the database" unless(-s $regFull);
 
@@ -131,11 +133,12 @@ findOverlaps(\@regions, $seqAcc, \%clan, \%nested, \%shortOverlaps, \%longOverla
 print STDERR "Read all regions and calculated the overlaps\n";
 
 #Now go through all families and print overlaps
+open(OUT, ">$outfile") or die "Couldn't open fh to $outfile, $!";
 my (%shortOverlapFam, %longOverlapFam);
 my $sth2=$dbh->prepare("select count(*) from pfamA_reg_full_significant where pfamA_acc=?"); #Query for total regions in family
 foreach my $pfamA (sort keys %longOverlaps) {
   foreach my $overlap (keys %{$longOverlaps{$pfamA}}) {
-    print "L: $overlap\n";
+    print OUT "L: $overlap\n";
     $longOverlapFam{$pfamA}=1;
   }
 
@@ -149,7 +152,7 @@ foreach my $pfamA (sort keys %longOverlaps) {
   if($propShortOverlaps >= $numberLimit) {
     $propShortOverlaps = sprintf("%.1f", $propShortOverlaps);
     foreach my $overlap (keys %{$shortOverlaps{$pfamA}}) {
-      print "S: ($numShortOverlaps/$famSize, $propShortOverlaps"."%) $overlap\n";
+      print OUT "S: ($numShortOverlaps/$famSize, $propShortOverlaps"."%) $overlap\n";
       $shortOverlapFam{$pfamA}=1;
     }
   }    
@@ -166,7 +169,7 @@ foreach my $pfamA (sort keys %shortOverlaps) {
   if($propShortOverlaps >= $numberLimit) {
     $propShortOverlaps = sprintf("%.1f", $propShortOverlaps);
     foreach my $overlap (keys %{$shortOverlaps{$pfamA}}) {
-      print "S: ($numShortOverlaps/$famSize, $propShortOverlaps" ."%) $overlap\n";
+      print OUT "S: ($numShortOverlaps/$famSize, $propShortOverlaps" ."%) $overlap\n";
       $shortOverlapFam{$pfamA}=1;
     }
   }    
@@ -176,7 +179,9 @@ $dbh->disconnect();
 
 my $totLongOvFams=keys %longOverlapFam;
 my $totShortOvFams=keys %shortOverlapFam;
-print "$totLongOvFams families have long overlaps\n$totShortOvFams families have short overlaps\n";
+print STDERR "$totLongOvFams families have long overlaps\n$totShortOvFams families have short overlaps\n";
+print OUT "$totLongOvFams families have long overlaps\n$totShortOvFams families have short overlaps\n";
+close OUT;
 
 sub findOverlaps {
   my ($regions, $acc, $clan, $nested, $shortOverlaps, $longOverlaps, $lengthLimit) = @_;
