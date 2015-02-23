@@ -2584,7 +2584,7 @@ q[ SELECT s.species, s.taxonomy, s.pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_tax
     {
       pfama_acc  => $self->pfam->pfama_acc,
       json_string => $json_string
-    }
+    }, { key => 'pfamA_acc' }
   );
 }
 
