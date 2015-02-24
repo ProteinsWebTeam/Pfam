@@ -42,14 +42,27 @@ my (%regions, %overlaps);
 while(<UPLOAD>){
   print STDERR "$_\n";
   if( my ($align, $seqId, $start, $end, $acc, $id) = 
-        $_ =~ /^(FULL|SEED)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})/){
-  push(@{$regions{$seqId}}, {  
+      $_ =~ /^(FULL|SEED)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})/){
+
+    if($align eq 'SEED') {
+      push(@{$regions{$seqId}}, {  
         from      => $start,
         to        => $end,
         family    => $acc,
         family_id => $id,
         ali       => $align
-        });
+				});
+
+    }
+    else {
+      push(@{$regions{$seqId}}, {  
+        ali_from      => $start,
+        ali_to        => $end,
+        family    => $acc,
+        family_id => $id,
+        ali       => $align
+				});
+    }
   }else{
     bail('Uploaded file contains unrecognised format');
   }
