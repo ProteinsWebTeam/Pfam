@@ -7,6 +7,8 @@ use Bio::Pfam::ViewProcess;
 use Bio::Pfam::ViewProcess::Architecture;
 use Bio::Pfam::ViewProcess::Storable;
 use Bio::Pfam::ViewProcess::Scoop;
+use Bio::Pfam::ViewProcess::PdbImage;
+use Bio::Pfam::ViewProcess::Search;
 
 #-------------------------------------------------------------------------------
 
@@ -14,6 +16,12 @@ use Bio::Pfam::ViewProcess::Scoop;
 my $view = Bio::Pfam::ViewProcess->new;
 my $archView = Bio::Pfam::ViewProcess::Architecture->new;
 my $storableView = Bio::Pfam::ViewProcess::Storable->new;
+my $pdbImageView = Bio::Pfam::PdbImage->new;
+my $searchView = Bio::Pfam::Search->new;
+my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
+my $proteomeView = Bio::Pfam::ViewProcess::Proteome->new;
+my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
+
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
@@ -83,7 +91,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 #All of these steps are affected whether one family is changed or all as they
 #involve all by all comparisons. 
 #run scoop
-my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
   if(! $scoopView->statusCheck('doneScoop')){
     exit;
     #Grab the regions from the database and perform the SCOOP analysis
@@ -94,7 +101,6 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
   }
 
   #run HHsearch
-  my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
   if(! $hhsearchView->statusCheck('doneHHsearch')){
     $hhsearchView->options->{newlib} = 1;
     $hhsearchView->makeHHLib;
@@ -104,7 +110,6 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
   }
 
   #Proteome data.....
-  my $proteomeView = Bio::Pfam::ViewProcess::Proteome->new;
   if(! $proteomeView->statusCheck('doneProteome')){
     my $protDbh = $proteomeView->pfamdb->getSchema->storage;
     if(! $proteomeView->statusCheck('updateProteomeArch')){
@@ -188,7 +193,7 @@ my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
     #
     $proteomeView->touchStatus('doneProteomeTSV');
   }
-}
+#}
 
 
 #-------------------------------------------------------------------------------
