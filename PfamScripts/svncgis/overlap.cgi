@@ -53,8 +53,8 @@ while(<UPLOAD>){
                               });
     
   }
-  elsif(/^(FULL)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})\s+(\S+)/){
-    my ($align, $seqId, $ali_start, $ali_end, $start, $end, $acc, $id, $score) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+  elsif(/^(FULL)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})\s+(\S+)\s+(\S+)/){
+    my ($align, $seqId, $ali_start, $ali_end, $start, $end, $acc, $id, $score, $evalue) = ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
     push(@{$regions{$seqId}}, {                  
                                from      => $start,
                                to        => $end,
@@ -63,7 +63,8 @@ while(<UPLOAD>){
                                family    => $acc,
                                family_id => $id,
                                ali       => $align,
-                               score     => $score
+                               score     => $score,
+			       evalue    => $evalue
                               });
     
   }
