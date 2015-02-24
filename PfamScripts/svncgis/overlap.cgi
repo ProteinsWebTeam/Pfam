@@ -41,29 +41,33 @@ my (%regions, %overlaps);
 
 while(<UPLOAD>){
   print STDERR "$_\n";
-  if( my ($align, $seqId, $start, $end, $acc, $id) = 
-      $_ =~ /^(FULL|SEED)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})/){
-
-    if($align eq 'SEED') {
-      push(@{$regions{$seqId}}, {  
-        from      => $start,
-        to        => $end,
-        family    => $acc,
-        family_id => $id,
-        ali       => $align
-				});
-
-    }
-    else {
-      push(@{$regions{$seqId}}, {  
-        ali_from      => $start,
-        ali_to        => $end,
-        family    => $acc,
-        family_id => $id,
-        ali       => $align
-				});
-    }
-  }else{
+  if(/^(SEED)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})/){
+    my ($align, $seqId, $start, $end, $acc, $id) = ($1, $2, $3, $4, $5, $6);
+    
+    push(@{$regions{$seqId}}, {  
+                               from      => $start,
+                               to        => $end,
+                               family    => $acc,
+                               family_id => $id,
+                               ali       => $align
+                              });
+    
+  }
+  elsif(/^(FULL)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})\s+(\S+)/){
+    my ($align, $seqId, $ali_start, $ali_end, $start, $end, $acc, $id, $score) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+    push(@{$regions{$seqId}}, {                  
+                               from      => $start,
+                               to        => $end,
+                               ali_from  => $ali_start,
+                               ali_to    => $ali_end,
+                               family    => $acc,
+                               family_id => $id,
+                               ali       => $align,
+                               score     => $score
+                              });
+    
+  }
+  else{
     bail('Uploaded file contains unrecognised format');
   }
 }
@@ -138,25 +142,26 @@ foreach my $iFam (keys %{$ignore_ref}){
 $numberOverlaps = 0;
   foreach my $seqAcc ( keys %overlaps ) {
     foreach
-      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )
-    {
+      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )  {
       foreach my $overRegion ( @{ $region->{overlap} } ) {
         next if ( $$ignore_ref{ $overRegion->{family} } );
-        my $line =
-            "Sequence [" 
-          . $seqAcc
-          . "] overlap "
-          . $region->{family_id} . " "
-          . $region->{family} . "/"
-          . $region->{from} . "-"
-          . $region->{to} . " "
-          . $region->{ali}
-          . " with "
-          . $overRegion->{family_id} . " "
-          . $overRegion->{family} . "/"
-          . $overRegion->{from} . "-"
-          . $overRegion->{to} . " "
-          . $overRegion->{ali} . "\n";
+
+	my $line;
+ 	if($region->{ali} eq 'SEED') {
+	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{from}."-".$region->{to}." ".$region->{ali}." with ";
+	}
+	else {
+	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." (".
+	    $region->{family}."/".$region->{from}."-".$region->{to}.", ".$region->{score}." bits) ".$region->{ali}." with ";
+	}
+
+	if($overRegion->{ali} eq 'SEED') {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
+	}
+	else {
+	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
+	    .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
+	}
 
         next if ( $seen{$line} );
         $seen{$line}++;
