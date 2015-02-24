@@ -262,7 +262,8 @@ sub getRegions {
 	  $fullReg->{end},
 	 ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
 	 ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" ),
-	  $fullReg->{score}
+	 $fullReg->{score},
+	 $fullReg->{evalue}
         )
       );
       print $fh $string . "\n";
