@@ -7,16 +7,16 @@
 # Last Modified: $Date$
 
 #This needs to be configured in apache ideally, but it works and so I am going with this......
-use lib '/pfam/home/code/PfamLib';
-use lib '/pfam/home/code/PfamSchemata';
-use lib '/pfam/home/perl/share/perl/5.10.1';
-use lib '/pfam/home/perl/lib/perl/5.10.1';
-use lib '/pfam/home/perl/lib/perl/5.10';
-use lib '/pfam/home/perl/lib/perl5';
+use lib '/nfs/production/xfam/pfam/software/Modules/PfamLib';
+use lib '/nfs/production/xfam/pfam/software/Modules/PfamSchemata';
+use lib '/nfs/production/xfam/pfam/Bio-HMM-Logo-master/blib/arch';
+use lib '/nfs/production/xfam/pfam/Bio-HMM-Logo-master/blib/lib';
+use lib '/nfs/production/xfam/pfam/perl5/lib/perl5';
+use lib '/nfs/production/xfam/pfam/perl5/lib/perl5/x86_64-linux-thread-multi';
 
 use strict;
 use warnings;
-
+$ENV{'PFAM_CONFIG'} = '/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf';  
 use CGI;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
