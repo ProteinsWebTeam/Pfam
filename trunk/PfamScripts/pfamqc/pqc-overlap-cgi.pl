@@ -147,7 +147,7 @@ $ua->timeout(600);
 
 # Pass request to the user agent and get a response back
 my $res = $ua->request(
-  POST 'https://pfamsvn.sanger.ac.uk/cgi-bin/overlap.cgi',
+  POST 'https://xfamsvn.ebi.ac.uk/cgi-bin/overlap.cgi',
   Content_Type => 'form-data',
   Content      => [
     file   => [$filename],
@@ -258,8 +258,11 @@ sub getRegions {
           $id,
           $fullReg->{aliStart},
           $fullReg->{aliEnd},
-          ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
-          ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" )
+	  $fullReg->{start},
+	  $fullReg->{end},
+	 ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
+	 ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" ),
+	  $fullReg->{score}
         )
       );
       print $fh $string . "\n";
