@@ -952,7 +952,7 @@ sub family_overlaps_with_db {
     }
 
     my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
-    my $db_name=$config->{Model}->{Pfamlive}->{database};
+    my $db_name = $pfamDBAdmin->{database};
 
     my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";	 
     my $sth = $dbh->prepare($query);
@@ -1137,6 +1137,108 @@ sub family_overlaps_with_db {
   else {
     return 0;
   }
+}
+
+=head2 findOverlapsDb
+
+ Title    : findOverlapsDb
+ Usage    : &PfamQC::findOverlapsDb($regionObj, \@ignore, $all, $pfamDBAdmin, $clan, $compete)
+ Function : Checks that the regions object contains no overlaps to data in 
+            the RDB. Similar to the family_overlaps_with_db subroutine above, but takes regions object as an argument rather than 
+            populating the regions object within the sub
+ Returns  : number of overlaps, array of overlap lines
+ Args     : regions object reference, reference to an array of families to ignore, all flag (whether to check all proteins or only ref prot proteins),
+            pfam db (admin user) object, clan, compete flag
+
+=cut
+
+sub findOverlapsDb {
+  my ($allRegions, $ignore_ref, $all, $pfamDBAdmin, $clan, $compete) = (@_);
+
+  my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
+  my $db_name=$pfamDBAdmin->{database};
+
+  my ($regions);
+  if($all) {
+    $regions=$allRegions;
+  }
+  else {
+    my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";      
+    my $sth = $dbh->prepare($query);
+    $sth->execute() or die "Can't execute statement: $DBI::errstr";
+    
+    $query = "insert into tempAccs(pfamseq_acc) values (?)";
+    $sth=$dbh->prepare($query);
+    
+    foreach my $tempAcc (keys %{$allRegions}) {
+      $sth->execute($tempAcc) or die "Can't execute statement: $DBI::errstr";
+    }
+    
+    $query = "select tempAccs.pfamseq_acc, pfamseq.ref_proteome from tempAccs join pfamseq on tempAccs.pfamseq_acc = pfamseq.pfamseq_acc";
+    $sth=$dbh->prepare($query);
+    $sth->execute() or die "Can't execute statement: $DBI::errstr";
+    my ($acc,$refprot);
+    $sth->bind_columns(\$acc, \$refprot);
+    
+    while ($sth->fetch()) {
+      $regions->{$acc}=$allRegions->{$acc} if($refprot==1);  #Populate regions hash with array refs from allRegions hash for refprot seq only
+    }
+    
+    $query = "drop table tempAccs";
+    $sth=$dbh->prepare($query);
+    $sth->execute() or die "Can't execute statement: $DBI::errstr";
+    $dbh->disconnect();
+  }
+  
+  my %overlaps;
+ 
+  $pfamDBAdmin->getOverlapingFullPfamRegions( $regions, \%overlaps );
+  $pfamDBAdmin->getOverlapingSeedPfamRegions( $regions, \%overlaps );
+
+  my (@overlapLines, %seen);
+  my $numOverlaps = 0;
+  foreach my $seqAcc ( keys %overlaps ) {
+    foreach
+      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )
+      {
+	
+      REGION:
+	foreach my $overRegion ( @{ $region->{overlap} } ) {
+	  next if ( $ignore_ref->{ $overRegion->{family} } );
+	  if($region->{ali} eq 'FULL' and $compete){
+	    if(_compete($seqAcc, $region, $overRegion, $pfamDBAdmin, $clan)){
+	      next REGION;  
+	    }
+	  }
+	  
+	  my $line;
+	  if($region->{ali} eq 'SEED') {
+	    $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{from}."-".$region->{to}." ".$region->{ali}." with ";
+	  }
+	  else {
+	    $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." (".
+	      $region->{family}."/".$region->{from}."-".$region->{to}.", ".$region->{score}." bits) ".$region->{ali}." with ";
+	  }
+	  
+	  if($overRegion->{ali} eq 'SEED') {
+	    $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
+	  }
+	  else {
+	    $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
+            .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
+	  }
+	  
+	  next if ( $seen{$line} );
+	  $seen{$line}++;
+	  
+
+	  $numOverlaps++;
+	  push (@overlapLines, $line); 
+	}
+      }
+  }
+  
+  return($numOverlaps, \@overlapLines);
 }
 
 
