@@ -383,7 +383,7 @@ sub submitToFarm {
 
 sub processOptions {
   my ( $self ) = @_;
-  my ($statusDir, $acc, $help, $chunk, $chunkSize );
+  my ($statusDir, $acc, $help, $chunk, $chunkSize, $all);
   my $options = {};
 
   my @opts = @ARGV;
@@ -394,6 +394,7 @@ sub processOptions {
     "acc=s"       => \$acc,
     "chunk=i"     => \$chunk,
     "chunkSize=i" => \$chunkSize,
+    "all"         => \$all,
     "h|help"      => \$help
   );
 
