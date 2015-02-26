@@ -9,17 +9,34 @@ use Bio::Pfam::ViewProcess::Storable;
 use Bio::Pfam::ViewProcess::Scoop;
 use Bio::Pfam::ViewProcess::PdbImage;
 use Bio::Pfam::ViewProcess::Search;
+use Bio::Pfam::ViewProcess::Proteome;
+use Bio::Pfam::ViewProcess::HHsearch;
+use Log::Log4perl qw(:easy);
+
+#-------------------------------------------------------------------------------
+#get the logger
+
+Log::Log4perl->easy_init($DEBUG);
+my $logger = get_logger();
 
 #-------------------------------------------------------------------------------
 
 #Lets get a new Pfam view object
+$logger->debug("Initialising ViewProcess");
 my $view = Bio::Pfam::ViewProcess->new;
+$logger->debug("Initialising View/Architecture");
 my $archView = Bio::Pfam::ViewProcess::Architecture->new;
+$logger->debug("Initialising View/Storable");
 my $storableView = Bio::Pfam::ViewProcess::Storable->new;
-my $pdbImageView = Bio::Pfam::PdbImage->new;
-my $searchView = Bio::Pfam::Search->new;
+$logger->debug("Initialising View/PdbImage");
+my $pdbImageView = Bio::Pfam::ViewProcess::PdbImage->new;
+$logger->debug("Initialising View/Search");
+my $searchView = Bio::Pfam::ViewProcess::Search->new;
+$logger->debug("Initialising View/Scoop");
 my $scoopView = Bio::Pfam::ViewProcess::Scoop->new;
+$logger->debug("Initialising View/Proteome");
 my $proteomeView = Bio::Pfam::ViewProcess::Proteome->new;
+$logger->debug("Initialising View/HHsearch");
 my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 
 #-------------------------------------------------------------------------------
