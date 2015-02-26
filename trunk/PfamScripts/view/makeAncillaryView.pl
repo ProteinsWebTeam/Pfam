@@ -45,7 +45,7 @@ my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
 my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
 $version->update({ number_families => $noPfama }) 
-  if($version->number_families != $noPfama);
+  if(!$version->number_families || ($version->number_families != $noPfama));
 
 if(exists($archView->options->{acc}) and $archView->options->{acc}){
   #Do it for a single family
