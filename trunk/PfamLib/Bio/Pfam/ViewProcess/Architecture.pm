@@ -156,12 +156,11 @@ sub updateSeqRange {
     my $nextCurrentSeq =
       ( $currentSeq + 1000 ) > $rangeTo ? $rangeTo : $currentSeq + 1000;
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
-        my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
-      {
-        'me.pfamseq_acc' =>
-          [ -and => { '>=', $currentSeq }, { '<=', $nextCurrentSeq } ]
-      }
+    my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
+        {}, { rows => $chunkSize, page => $chunk}     
     );
+    #p(@seqsRS);
+
     $currentSeq = $nextCurrentSeq;
     $self->updateArchitectures( \@seqsRS );
     $self->pfamdb->getSchema->txn_commit;
@@ -197,7 +196,7 @@ sub updateAllArchitecture {
   
    $dbh->do(
         "REPLACE INTO pfamA_architecture (pfamA_acc, auto_architecture) "
-      . " SELECT DISTINCT r.pfamA, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
+      . " SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s "
       . " WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1"
     );
   
@@ -233,7 +232,7 @@ sub updateArchitectures {
   my $pfamDB = $self->pfamdb;
   foreach my $seq (@$modSeqsRef) {
 
-    #$logger->debug("Working on sequence:".$seq->pfamseq_acc);
+      #$self->logger->debug("Working on sequence:".$seq->pfamseq_acc);
     #PfamA region statement
     my $pfamaRegionsRef = $pfamDB->getPfamRegionsForSeq( $seq->pfamseq_acc );
     unless ($pfamaRegionsRef) {
@@ -367,8 +366,8 @@ sub submitToFarm {
   
 #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "rusage[mem=25000]";
-  my $memory = 25000;  
+  my $resource = "rusage[mem=2500]";
+  my $memory = 2500;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
