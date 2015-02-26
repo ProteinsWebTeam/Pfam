@@ -651,15 +651,13 @@ sub getPfamRegionsForSeq {
   if ( $seq =~ /\S{6}/ ) {
     carp("Looking up information for $seq. I think this is an accession")
       if $self->{'debug'};
-    @pfamRegions =
+          @pfamRegions =
       $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
-        "pfamseq_acc.pfamseq_acc" => $seq,
+        "pfamseq_acc" => $seq,
         "in_full"             => 1
       },
       {
-        join     => [qw( pfamA_acc pfamseq_acc )],
-        prefetch => [qw( pfamA_acc pfamseq_acc )],
         order_by => 'seq_start'
       }
       );
