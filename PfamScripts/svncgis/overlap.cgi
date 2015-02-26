@@ -40,7 +40,7 @@ open ( UPLOAD, $tmp_file )
 my (%regions, %overlaps);
 
 while(<UPLOAD>){
-  print STDERR "$_\n";
+  print STDERR $_;
   if(/^(SEED)\s+(\S+)\s+(\d+)\s+(\d+)\s+(\S+)\s+([A-Za-z0-9\_\-]{0,16})/){
     my ($align, $seqId, $start, $end, $acc, $id) = ($1, $2, $3, $4, $5, $6);
     
@@ -94,10 +94,10 @@ while($nest){
   my $acc = substr($nest,0,7,"");
   $$ignore_ref{ $acc }++;
   my $clanO = $pfamDB->getClanDataByPfam( $acc );
-  if ( $clanO and $clanO->auto_clan->clan_acc ) {
-    my $clanMem = $pfamDB->getClanMembership( $clanO->auto_clan->clan_acc );
+  if ( $clanO and $clanO->clan_acc->clan_acc ) {
+    my $clanMem = $pfamDB->getClanMembership( $clanO->clan_acc->clan_acc );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
     }
   }  
 } 
@@ -107,19 +107,19 @@ while($nest){
 if($clan){
   my $clanMem = $pfamDB->getClanMembership( $clan );
     foreach my $fam (@$clanMem) {
-      $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+      $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
       my $nestedRef =
-        $pfamDB->getNestedDomain( $fam->auto_pfama->pfama_acc );
+        $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
 
       if ($nestedRef) {
         foreach my $n (@$nestedRef) {
           $$ignore_ref{$n}++;
 
           my $clanO = $pfamDB->getClanDataByPfam($n);
-          if ( $clanO and $clanO->auto_clan->clan_acc ) {
-            my $clanMem = $pfamDB->getClanMembership( $clanO->auto_clan->clan_acc );
+          if ( $clanO and $clanO->clan_acc->clan_acc ) {
+            my $clanMem = $pfamDB->getClanMembership( $clanO->clan_acc->clan_acc );
             foreach my $fam (@$clanMem) {
-              $$ignore_ref{ $fam->auto_pfama->pfama_acc }++;
+              $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
             }
           }
         }
