@@ -652,7 +652,7 @@ sub getPfamRegionsForSeq {
     carp("Looking up information for $seq. I think this is an accession")
       if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
+      $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
         "pfamseq_acc.pfamseq_acc" => $seq,
         "in_full"             => 1
@@ -669,7 +669,7 @@ sub getPfamRegionsForSeq {
     carp("Looking up Pfam information for $seq. I think this is a seq id")
       if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
+      $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
         "pfamseq_acc.pfamseq_id" => $seq,
         "in_full"            => 1
@@ -686,7 +686,7 @@ sub getPfamRegionsForSeq {
       "Looking up Pfam information for $seq. I think this is a seq MD5 checksum"
     ) if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
+      $self->getSchema->resultset("PfamARegFullSignificant")->search(
       {
         "pfamseq.pfamseq_md5" => $seq,
         "in_full"             => 1
