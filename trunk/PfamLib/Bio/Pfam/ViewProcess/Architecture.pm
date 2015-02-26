@@ -362,10 +362,10 @@ sub submitToFarm {
   my ($self, $noJobs) = @_;
   
   my $rs = $self->pfamdb->getSchema->resultset('Pfamseq')->search({});
-  my $max = $rs->get_column('auto_pfamseq')->max;
-  my $chunkSize = ceil($max/$noJobs);
+  my $count = $rs->count;
+  my $chunkSize = ceil($count/$noJobs);
   
-  #Now submit the jobs
+#Now submit the jobs
   my $queue = 'production-rh6';
   my $resource = "rusage[mem=2500000]";
   my $memory = 2500000;  
