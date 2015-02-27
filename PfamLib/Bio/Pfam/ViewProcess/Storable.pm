@@ -25,13 +25,13 @@ sub submitToFarm {
   my ($self, $noJobs) = @_;
   
   my $rs = $self->pfamdb->getSchema->resultset('Pfamseq')->search({});
-  my $max = $rs->get_column('pfamseq_acc')->max;
-  my $chunkSize = ceil($max/$noJobs);
+  my $count = $rs->count;
+  my $chunkSize = ceil($count/$noJobs);
   
   #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "rusage[mem=2500000]";
-  my $memory = 2500000;  
+  my $resource = "rusage[mem=2500]";
+  my $memory = 2500;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
               $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%70\"");
@@ -40,7 +40,8 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    #TODO - set sleep time back to 600 after testing
+    sleep(60);
   }
 }
 
