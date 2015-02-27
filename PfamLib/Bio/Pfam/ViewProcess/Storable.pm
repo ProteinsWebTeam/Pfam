@@ -14,6 +14,7 @@ use Bio::Pfam::Sequence::Region;
 use Bio::Pfam::Sequence::Motif;
 use Bio::Pfam::Sequence::Markup;
 use Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
+use DDP;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -72,12 +73,11 @@ sub updateSeqRange {
     my $nextCurrentSeq =
       ( $currentSeq + 3000 ) > $rangeTo ? $rangeTo : $currentSeq + 3000;
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
+
         my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
-      {
-        'me.pfamseq_acc' =>
-          [ -and => { '>=', $currentSeq }, { '<=', $nextCurrentSeq } ]
-      }
+        {}, { rows => $chunkSize, page => $chunk}     
     );
+
     $self->updateStorables( \@seqsRS );
     $self->pfamdb->getSchema->txn_commit;
     print S "$nextCurrentSeq\n";
