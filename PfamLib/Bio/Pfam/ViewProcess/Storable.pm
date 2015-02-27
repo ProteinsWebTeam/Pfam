@@ -231,33 +231,34 @@ sub updateStorables {
       }
     }
   }
-    #Context regions
-    my $contextRegRef = $self->pfamdb->getContextRegionsForSeq( $seq->pfamseq_acc );
-    foreach my $region (@$contextRegRef) {
-      $self->logger->debug( $region->pfama_acc . "/"
-          . $region->seq_start . "-"
-          . $region->seq_end );
-      push(
-        @regions,
-        Bio::Pfam::Sequence::Region->new(
-          {
-            start    => $region->seq_start,
-            end      => $region->seq_end,
-            metadata => Bio::Pfam::Sequence::MetaData->new(
-              {
-                accession   => $region->pfama_acc,
-                identifier  => $region->pfama_id,
-                description => $region->description,
-                score       => $region->domain_score,
-                database    => 'pfam',
-                type        => 'context'
-              }
-            ),
-            type => 'context'
-          }
-        )
-      );
-    }
+  #TODO - section below hashed out as table doesn't exist - double check that we don't need this before deleting it
+  #Context regions
+#    my $contextRegRef = $self->pfamdb->getContextRegionsForSeq( $seq->pfamseq_acc );
+#    foreach my $region (@$contextRegRef) {
+#      $self->logger->debug( $region->pfama_acc . "/"
+#          . $region->seq_start . "-"
+#          . $region->seq_end );
+#      push(
+#        @regions,
+#        Bio::Pfam::Sequence::Region->new(
+#          {
+#            start    => $region->seq_start,
+#            end      => $region->seq_end,
+#            metadata => Bio::Pfam::Sequence::MetaData->new(
+#              {
+#                accession   => $region->pfama_acc,
+#                identifier  => $region->pfama_id,
+#                description => $region->description,
+#                score       => $region->domain_score,
+#                database    => 'pfam',
+#                type        => 'context'
+#              }
+#            ),
+#            type => 'context'
+#          }
+#        )
+#      );
+#    }
 
 #-------------------------------------------------------------------------------
 #Motifs
@@ -290,31 +291,31 @@ sub updateStorables {
         if ( $motif->orientation and $motif->orientation > 0 );
     }
 
-#TODO - is this still needed?  
-      my $pfambRegRef = $self->pfamdb->getPfambRegForSeq( $seq->pfamseq_acc );
-      foreach my $motif (@$pfambRegRef) {
-        $self->logger->debug("Found Pfam-B region");
-        push(
-          @motifs,
-          Bio::Pfam::Sequence::Motif->new(
-            {
-              start    => $motif->seq_start,
-              end      => $motif->seq_end,
-              type     => 'pfamb',
-              metadata => Bio::Pfam::Sequence::MetaData->new(
-                {
-                  database   => 'pfam',
-                  identifier => $motif->pfamb_id,
-                  accession  => $motif->pfamb_acc,
-                  start      => $motif->seq_start,
-                  end        => $motif->seq_end,
-                  type       => 'Pfam-B'
-                }
-              ),
-            }
-          )
-        );
-      }
+#TODO - is this still needed? hashed out for now 
+#      my $pfambRegRef = $self->pfamdb->getPfambRegForSeq( $seq->pfamseq_acc );
+#      foreach my $motif (@$pfambRegRef) {
+#        $self->logger->debug("Found Pfam-B region");
+#        push(
+#          @motifs,
+#          Bio::Pfam::Sequence::Motif->new(
+#            {
+#              start    => $motif->seq_start,
+#              end      => $motif->seq_end,
+#              type     => 'pfamb',
+#              metadata => Bio::Pfam::Sequence::MetaData->new(
+#                {
+#                  database   => 'pfam',
+#                  identifier => $motif->pfamb_id,
+#                  accession  => $motif->pfamb_acc,
+#                  start      => $motif->seq_start,
+#                  end        => $motif->seq_end,
+#                  type       => 'Pfam-B'
+#                }
+#              ),
+#            }
+#          )
+#        );
+#      }
 
 #-------------------------------------------------------------------------------
 #Markups
