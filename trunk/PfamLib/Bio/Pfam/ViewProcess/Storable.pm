@@ -77,7 +77,6 @@ sub updateSeqRange {
         my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
         {}, { rows => $chunkSize, page => $chunk}     
     );
-
     $self->updateStorables( \@seqsRS );
     $self->pfamdb->getSchema->txn_commit;
     print S "$nextCurrentSeq\n";
@@ -120,6 +119,7 @@ sub updateStorables {
     $nestings->{$pfamA}->{$npfamA}++;
   }
   foreach my $seq (@$modSeqsRef) {
+      p($seq->pfamseq_acc);
       my ( @markups, @motifs, @regions );
     #PfamA region statement
     my $pfamaRegionsRef = $self->pfamdb->getPfamRegionsForSeq( $seq->pfamseq_acc );
@@ -141,13 +141,13 @@ sub updateStorables {
             aliEnd      => $region->ali_end,
             modelStart  => $region->model_start,
             modelEnd    => $region->model_end,
-            modelLength => $region->model_length,
+            modelLength => $region->pfama_acc->model_length,
             metadata    => Bio::Pfam::Sequence::MetaData->new(
               {
-                accession   => $region->pfama_acc,
-                identifier  => $region->pfama_id,
-                type        => $region->type,
-                description => $region->description,
+                accession   => $region->pfama_acc->pfama_acc,
+                identifier  => $region->pfama_acc->pfama_id,
+                type        => $region->pfama_acc->type,
+                description => $region->pfama_acc->description,
                 score       => $region->domain_evalue_score,
                 scoreName   => 'e-value',
                 start       => $region->seq_start,
@@ -402,7 +402,7 @@ sub updateStorables {
     my $meta = Bio::Pfam::Sequence::MetaData->new(
       {
         organism    => $seq->species,
-        taxid       => $seq->ncbi_taxid->ncbi_taxid,
+        taxid       => $seq->ncbi_taxid,
         accession   => $seq->pfamseq_acc,
         identifier  => $seq->pfamseq_id,
         description => $seq->description,
