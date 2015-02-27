@@ -232,7 +232,7 @@ sub updateArchitectures {
   my $pfamDB = $self->pfamdb;
   foreach my $seq (@$modSeqsRef) {
 
-      #$self->logger->debug("Working on sequence:".$seq->pfamseq_acc);
+      $self->logger->debug("Working on sequence:".$seq->pfamseq_acc);
     #PfamA region statement
     my $pfamaRegionsRef = $pfamDB->getPfamRegionsForSeq( $seq->pfamseq_acc );
     unless ($pfamaRegionsRef) {
@@ -240,7 +240,7 @@ sub updateArchitectures {
       next;
     }
 
-    #$self->logger->debug("Got regions for sequence");
+    $self->logger->debug("Got regions for sequence");
     #Detterming the architecture....Also add kristoffers bit about domain order!
     my @archStringAcc;
     my @archStringId;
@@ -249,11 +249,10 @@ sub updateArchitectures {
       my $region ( sort { $a->seq_start <=> $b->seq_start } @$pfamaRegionsRef )
     {
       $region->update( { domain_order => $domOrder } );
-      push( @archStringAcc, $region->pfama_acc );
-      push( @archStringId,  $region->pfama_id );
+      push( @archStringAcc, $region->pfama_acc->pfama_acc );
+      push( @archStringId,  $region->pfama_acc->pfama_id );
       $domOrder++;
     }
-
     my $arch;
     my $archStringAcc = join( ' ', @archStringAcc );
     if ( $self->cachedRef->{$archStringAcc} ) {
