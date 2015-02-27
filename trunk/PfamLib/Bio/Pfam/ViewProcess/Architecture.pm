@@ -231,7 +231,6 @@ sub updateArchitectures {
 
   my $pfamDB = $self->pfamdb;
   foreach my $seq (@$modSeqsRef) {
-
       $self->logger->debug("Working on sequence:".$seq->pfamseq_acc);
     #PfamA region statement
     my $pfamaRegionsRef = $pfamDB->getPfamRegionsForSeq( $seq->pfamseq_acc );
@@ -269,11 +268,11 @@ sub updateArchitectures {
         #is the type example a fragment?
         my $archSeq =
           $pfamDB->getSchema->resultset('Pfamseq')
-          ->find( { auto_pfamseq => $arch->type_example } );
+          ->find( { pfamseq_acc => $arch->type_example } );
         if ( !defined($archSeq) or $archSeq->is_fragment ) {
 
           #Yes, replace type example
-          $arch = $arch->update( { type_example => $seq->auto_pfamseq } );
+          $arch = $arch->update( { type_example => $seq->pfamseq_acc } );
         }
 
         #if so update it the type example
@@ -295,7 +294,7 @@ sub updateArchitectures {
         }
       );
       if ( !defined( $arch->type_example ) or $arch->type_example == 0 ) {
-        $arch->update( { type_example => $seq->auto_pfamseq } );
+        $arch->update( { type_example => $seq->pfamseq_acc } );
       }
       $pfamDB->getSchema->txn_begin;
 
