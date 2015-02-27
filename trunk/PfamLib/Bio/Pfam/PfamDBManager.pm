@@ -10,6 +10,7 @@ use warnings;
 use PfamDB;
 use Data::Dumper;
 use Carp;
+use DDP;
 
 sub new {
   my $caller    = shift;
@@ -906,14 +907,10 @@ sub getMarkupForSeq {
   if ( $seq =~ /\S{6}/ ) {
     carp("Looking up information for $seq. I think this is an accession")
       if $self->{'debug'};
-    @markups =
+          @markups =
       $self->getSchema->resultset("PfamseqMarkup")->search(
       {
-        "pfamseq.pfamseq_acc" => $seq,
-      },
-      {
-        join     => [qw( markup pfamseq )],
-        prefetch => [qw( markup pfamseq )]
+        pfamseq_acc => $seq,
       }
       );
   }
