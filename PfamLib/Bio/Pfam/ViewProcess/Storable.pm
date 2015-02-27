@@ -128,7 +128,7 @@ sub updateStorables {
 
       #for ( my $i = 0 ; $i < 2 ; $i++ ) {
       my $region = $pfamaRegionsRef->[$i];
-      $self->logger->debug( $region->pfama_acc . "/"
+      $self->logger->debug( $region->pfama_acc->pfama_acc . "/"
           . $region->seq_start . "-"
           . $region->seq_end );
       push(
@@ -371,18 +371,17 @@ sub updateStorables {
       $self->logger->debug("Found markup");
       my $ann = $markup->label;
       $ann .= ( $markup->annotation ? ':' . $markup->annotation : '' );
-
       push(
         @markups,
         Bio::Pfam::Sequence::Markup->new(
           {
             start    => $markup->residue,
-            residue  => substr( $seq->sequence, $markup->residue - 1, 1 ),
+            residue  => substr( $seq->get_column('sequence'), $markup->residue - 1, 1 ),
             type     => $markup->label,
             metadata => Bio::Pfam::Sequence::MetaData->new(
               {
                 start       => $markup->residue,
-                description => substr( $seq->sequence, $markup->residue - 1, 1 )
+                description => substr( $seq->get_column('sequence'), $markup->residue - 1, 1 )
                   . " "
                   . $ann,
                 database => (
