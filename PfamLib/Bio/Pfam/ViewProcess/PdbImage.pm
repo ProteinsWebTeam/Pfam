@@ -4,14 +4,15 @@ use strict;
 use warnings;
 use File::Temp qw( tempdir );
 use File::Path qw(remove_tree);
+use File::Copy;
 use Cwd;
 use POSIX qw( ceil );
 use Getopt::Long;
 use Log::Log4perl qw(:easy);
 use Moose;
 use Moose::Util::TypeConstraints;
-
-use Bio::Pfam::Pfetch;
+use DDP;
+#use Bio::Pfam::Pfetch;
 use Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
@@ -167,7 +168,7 @@ sub makeImages {
     }
   }
   
-  my $pfetch = Bio::Pfam::Pfetch->new;
+  my $pdbdatadir = '/ebi/ftp//pub/databases/pdb/data/structures/all/pdb/';
   my $pwd = getcwd;
   
   foreach my $pdbRow (@$pdbs) {
@@ -181,22 +182,14 @@ sub makeImages {
 
     # Fetch the pdb file
     $self->logger->debug("Fetching $pdb");
-    open( P, ">$tempDir/$pdb.pdb" )
-      or $self->logger->logdie("Could not open $tempDir/$pdb.pdb fro writing:[$!]");
-
-    my $file = $pfetch->retrieve( { '--new_pdb' => lc($pdb) } )
-      or $self->logger->logdie("Failed to run pfetch because:[$!]");
-    if ($file) {
-      foreach my $l (@$file) {
-        print P $l;
-      }
-      close(P);
+    my $pdbgz = $pdbdatadir . "pdb" . lc($pdb) . ".ent.gz";
+    my $pdbgzcopy = $tempDir . "/" . $pdb . ".gz";
+#if the pdb file exists in the $pdbdatadir then fetch it and unzip
+    if (-e $pdbgz){
+        copy($pdbgz, $pdbgzcopy) or die "Cannot copy $pdbgz\n";
+        system("gunzip $pdbgzcopy") and die "Cannot gunzip $pdbgzcopy";
     }
-
-    unless ( -s "$tempDir/$pdb.pdb" ) {
-      system("wget -O ".$tempDir."/$pdb.pdb http://www.rcsb.org/pdb/files/$pdb.pdb");
-    }
-    unless ( -s "$tempDir/$pdb.pdb" ){
+    unless ( -s "$tempDir/$pdb" ){
       print S "$pdb\tfailed to fetch\n";
       next;
     }
@@ -284,7 +277,7 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    sleep(60);
   }
 }
 
@@ -292,7 +285,7 @@ sub submitToFarm {
 
 sub _read_molauto {
   my ( $self, $pdb, $tempDir ) = @_;
-  open( IN, "molauto $tempDir/$pdb.pdb |" )
+  open( IN, "molauto $tempDir/$pdb |" )
     || warn "Could not open pipe on molauto output for $pdb.in\n";
   my ( @ligands, @ions, $nucleotides, @markup_line );
   while (<IN>) {
