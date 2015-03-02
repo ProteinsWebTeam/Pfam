@@ -188,8 +188,9 @@ sub makeImages {
     if (-e $pdbgz){
         copy($pdbgz, $pdbgzcopy) or die "Cannot copy $pdbgz\n";
         system("gunzip $pdbgzcopy") and die "Cannot gunzip $pdbgzcopy";
+        move("$tempDir/$pdb","$tempDir/$pdb.pdb") or die "Can't rename $tempDir/$pdb\n";
     }
-    unless ( -s "$tempDir/$pdb" ){
+    unless ( -s "$tempDir/$pdb.pdb" ){
       print S "$pdb\tfailed to fetch\n";
       next;
     }
@@ -285,7 +286,8 @@ sub submitToFarm {
 
 sub _read_molauto {
   my ( $self, $pdb, $tempDir ) = @_;
-  open( IN, "molauto $tempDir/$pdb |" )
+  
+  open( IN, "molauto $tempDir/$pdb.pdb |" )
     || warn "Could not open pipe on molauto output for $pdb.in\n";
   my ( @ligands, @ions, $nucleotides, @markup_line );
   while (<IN>) {
@@ -396,7 +398,7 @@ sub _munge_molauto {
   REGION:
     foreach my $domain (@$regionsRef) {
       $self->logger->debug(
-        $domain->pfama_acc->pfama_acc,
+        $domain->pfama_acc,
         "/" . $domain->pdb_res_start . "-" . $domain->pdb_res_end,
         " to $start-$end"
       );
@@ -630,7 +632,7 @@ sub _produce_render_file {
   my ($self, $pdb, $tempDir) = @_;
   chdir($tempDir);
   my $error;
-  system("molscript -in pov$pdb.in -y -out pov$pdb.out")
+  system("molscript -in pov$pdb.in -out pov$pdb.out")
     and ( $self->logger->warn("failed to render for $pdb") and $error = 1 );
 
   if ($error) {
@@ -701,23 +703,23 @@ sub _construct_line {
 
 sub assignColour {
   my ( $self, $pfamaConfig, $domain ) = @_;
-
+  
   my $colour;
   if (  $pfamaConfig->assignedColours
-    and $pfamaConfig->assignedColours->{ $domain-pfama_acc->pfama_acc } )
+    and $pfamaConfig->assignedColours->{ $domain->pfama_acc } )
   {
     $colour =
-      $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc };
+      $pfamaConfig->assignedColours->{ $domain->pfama_acc };
   }
   elsif ( $pfamaConfig->preDeterminedColours->[ $pfamaConfig->colourIndex ] ) {
     $colour =
       Convert::Color->new( 'rgb8:'
         . $pfamaConfig->preDeterminedColours->[ $pfamaConfig->colourIndex ] );
     $pfamaConfig->assignedColours
-      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc } =
+      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc } =
       $colour
       : $pfamaConfig->assignedColours(
-      { $domain->pfama_acc->pfama_acc => $colour } );
+      { $domain->pfama_acc => $colour } );
     $pfamaConfig->colourIndex( $pfamaConfig->colourIndex + 1 );
   }
   else {
@@ -737,10 +739,10 @@ sub assignColour {
     }
     $colour = Convert::Color->new( 'rgb8:' . $hex[0] . $hex[1] . $hex[2] );
     $pfamaConfig->assignedColours
-      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc->pfama_acc } =
+      ? $pfamaConfig->assignedColours->{ $domain->pfama_acc } =
       $colour
       : $pfamaConfig->assignedColours(
-      { $domain->pfama_acc->pfama_acc => $colour } );
+      { $domain->pfama_acc => $colour } );
   }
   $domain->update( { hex_colour => $colour->as_rgb8->hex } );
 }
