@@ -274,8 +274,8 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "rusage[mem=2500000]";
-  my $memory = 7500000;
+  my $resource = "rusage[mem=2500]";
+  my $memory = 2500;
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
               $self->options->{statusdir}."/pdb.\%J.\%I.log  -JPDBImg\"[1-$noJobs]\"");
