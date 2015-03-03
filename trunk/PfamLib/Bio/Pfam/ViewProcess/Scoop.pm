@@ -56,12 +56,12 @@ sub runScoop {
     $self->touchStatus("runScoop");
    }
   
-  $self->pfamdb->getSchema->resultset('Pfama2pfamaScoopResults')->delete;
+  $self->pfamdb->getSchema->resultset('PfamA2pfamAScoop')->delete;
 
-#TODO - rewrite the following 2 lines - hashed out as dbas recommend not putting files on mysql server  
+#TODO - rewrite the following 3 lines - hashed out as dbas recommend not putting files on mysql server  
 #  $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
 #    or $self->logger->logdie("Failed to scp results file to instance:". $scp->{errstr});
-  $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
+#  $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
 }
 
 sub scoop {
