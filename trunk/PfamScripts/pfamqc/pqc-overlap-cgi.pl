@@ -165,7 +165,7 @@ if ( $res->is_success ) {
   open( O, ">$pwd/$family/overlap" ) or die "Could not open $pwd/$family/overlap for writing:[$!]\n";
  
   foreach my $l (split(/\n/, $res->content)){
-    if($l !~ /^Ignoring/){
+    if($l =~ /^Sequence/) { 
       $overlaps++; 
       print O "$l\n" 
     }  
@@ -176,7 +176,7 @@ if ( $res->is_success ) {
   my $sOverlaps = Bio::Pfam::PfamQC::seedIntOverlaps($famObj);
   $overlaps += $sOverlaps;
 
-  print "Found $overlaps overlaps\n";
+  print "Found $overlaps external overlaps\n";
 
 }
 else {
@@ -271,3 +271,4 @@ sub getRegions {
   }
   close($fh);
 }
+
