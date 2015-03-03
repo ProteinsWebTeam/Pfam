@@ -1156,7 +1156,7 @@ sub findOverlapsDb {
   my ($allRegions, $ignore_ref, $all, $pfamDBAdmin, $clan, $compete) = (@_);
 
   my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
-  my $db_name=$pfamDBAdmin->{database};
+  my $db_name = $pfamDBAdmin->{database};
 
   my ($regions);
   if($all) {
@@ -1187,7 +1187,6 @@ sub findOverlapsDb {
     $query = "drop table tempAccs";
     $sth=$dbh->prepare($query);
     $sth->execute() or die "Can't execute statement: $DBI::errstr";
-    $dbh->disconnect();
   }
   
   my %overlaps;
@@ -1199,7 +1198,7 @@ sub findOverlapsDb {
   my $numOverlaps = 0;
   foreach my $seqAcc ( keys %overlaps ) {
     foreach
-      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )
+      my $region ( sort { $a->{ali_from} <=> $b->{ali_from} } @{ $overlaps{$seqAcc} } )
       {
 	
       REGION:
@@ -1214,6 +1213,9 @@ sub findOverlapsDb {
 	  my $line;
 	  if($region->{ali} eq 'SEED') {
 	    $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{from}."-".$region->{to}." ".$region->{ali}." with ";
+	  }
+	  elsif(!$region->{from}) { #For jackmmer searches, $region->{from}, $region->{to} and $region->{bits} are not populated
+	    $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." ".$region->{ali}." with ";
 	  }
 	  else {
 	    $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." (".
@@ -1230,14 +1232,13 @@ sub findOverlapsDb {
 	  
 	  next if ( $seen{$line} );
 	  $seen{$line}++;
-	  
 
 	  $numOverlaps++;
 	  push (@overlapLines, $line); 
 	}
       }
   }
-  
+
   return($numOverlaps, \@overlapLines);
 }
 
@@ -2196,4 +2197,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
