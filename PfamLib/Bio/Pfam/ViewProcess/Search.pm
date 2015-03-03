@@ -33,15 +33,14 @@ has 'database' => (
 has 'databaseList' => (
   is => 'ro',
   isa     => 'ArrayRef',
-  default => sub{ [ qw( metaseq ncbi pfamseq )] },
+  default => sub{ [ qw( metaseq ncbi )] },
 );
 
 has 'databaseToTag' => (
   is => 'ro',
   isa     => 'HashRef',
   default => sub{ { metaseq => 'meta',
-                    ncbi    => 'ncbi',
-                    pfamseq => 'full' } },
+                    ncbi    => 'ncbi' } },
 );
 
 has 'cpus' => (
@@ -55,6 +54,9 @@ sub search {
   if(!defined($tmpdir)){
     $tmpdir = tempdir( CLEANUP => 1 );
   }
+
+  p($tmpdir);
+  p($self->{database});
   unless(-d $tmpdir){
     $self->logger->logdie("Failed to get a temporary directory.");
   }
@@ -226,10 +228,10 @@ sub submitToFarm {
     $options .= " -statusdir ".$self->options->{statusdir};
 
     my $fh = IO::File->new();
-    print " bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log";
-    print " performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
-    exit;
-    $fh->open( "| bsub -G $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
+    # print " bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log";
+    #print " performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
+    #exit;
+    $fh->open( "| bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
     $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
