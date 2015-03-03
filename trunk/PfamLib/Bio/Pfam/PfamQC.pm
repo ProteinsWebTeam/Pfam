@@ -1123,7 +1123,7 @@ sub family_overlaps_with_db {
   unless (defined $noFilter)
   {
     warn "Filtering overlaps\n";
-    $numOverlaps = filterOverlaps($family, $famObj, \@overlapLines);
+    $numOverlaps = filterOverlaps($family, $famObj->scores->numRegions, \@overlapLines, "1");
   }
 
   close $LOG if ($LOG);
@@ -1153,11 +1153,11 @@ sub family_overlaps_with_db {
 =cut
 
 sub findOverlapsDb {
-  my ($allRegions, $ignore_ref, $all, $pfamDBAdmin, $clan, $compete) = (@_);
+  my ($allRegions, $ignore_ref, $all, $pfamDBAdmin, $clan, $compete, $filter, $numFull) = (@_);
 
   my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
   my $db_name = $pfamDBAdmin->{database};
-
+  
   my ($regions);
   if($all) {
     $regions=$allRegions;
@@ -1197,9 +1197,7 @@ sub findOverlapsDb {
   my (@overlapLines, %seen);
   my $numOverlaps = 0;
   foreach my $seqAcc ( keys %overlaps ) {
-    foreach
-      my $region ( sort { $a->{ali_from} <=> $b->{ali_from} } @{ $overlaps{$seqAcc} } )
-      {
+    foreach my $region ( sort { $a->{ali_from} <=> $b->{ali_from} } @{ $overlaps{$seqAcc} } ) {
 	
       REGION:
 	foreach my $overRegion ( @{ $region->{overlap} } ) {
@@ -1239,133 +1237,178 @@ sub findOverlapsDb {
       }
   }
 
-  return($numOverlaps, \@overlapLines);
+  if($filter) {
+    #Get family name
+    my $family;
+    foreach my $acc (keys %{$regions}) {
+      foreach my $reg (@{$regions->{$acc}}) {
+	$family = $reg->{family};
+	last;
+      }
+    }
+    die "Couldn't get family accession from regions object\n" unless($family);
+    my ($numOverlaps, $filteredOverlapLines, $summary) = filterOverlaps($family, $numFull, \@overlapLines, "");
+    return($numOverlaps, $filteredOverlapLines, $summary);
+  }
+  else {
+    return($numOverlaps, \@overlapLines);
+  }
 }
 
 
 #------------------------------------------------------------------------------
-sub filterOverlaps   
-{
-    my ( $family, $famObj, $overlapArray) = @_;
-
-    # Get the Pfam Config
-    my $config = Bio::Pfam::Config->new;
-
-    # Filter the overlaps according to the auto-resolve paramaters found inside the config file
-    my $lengthLimit = $config->sequenceOverlapRule; #Proportion of lowest scoring match length that is allowed to overlap
-    my $numberLimit = $config->familyOverlapRule; #% of ALIGN regions allowed to overlap
-
-    my $LOG;
-    if ( -d $family )
-    {
-      open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
-    }
-
-    my %regions = %{ $famObj->scores->regions };
-
-    #Loop through the overlaps and sort into SEED overlaps, short overlaps and long overlaps
-    my $seedOverlaps=0;
-    my (%shortOverlaps, %longOverlaps); #These hashes will contain ALIGN region overlaps, apart from those where familyA has the higher bit score
-    foreach my $overlapLine (@$overlapArray) {
-      next unless($overlapLine =~ /.+/); #Ignore blank lines
-      if($overlapLine =~ /SEED/) {
-	print STDERR "SEED overlaps:\n" unless($seedOverlaps);
-	$seedOverlaps++;
-	print STDERR "$overlapLine";
+sub filterOverlaps {
+  my ( $family, $familySize, $overlapArray, $print) = @_;
+  
+  # Get the Pfam Config
+  my $config = Bio::Pfam::Config->new;
+  
+  # Filter the overlaps according to the auto-resolve paramaters found inside the config file
+  my $lengthLimit = $config->sequenceOverlapRule; #Proportion of lowest scoring match length that is allowed to overlap
+  my $numberLimit = $config->familyOverlapRule; #% of ALIGN regions allowed to overlap
+  
+  my $LOG;
+  if ($print and -d $family ) {
+    open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
+  }
+  
+  my @filteredOverlapLines;
+  
+  #Loop through the overlaps and sort into SEED overlaps, short overlaps and long overlaps
+  my $seedOverlaps=0;
+  my (%shortOverlaps, %longOverlaps); #These hashes will contain ALIGN region overlaps, apart from those where familyA has the higher bit score
+  foreach my $overlapLine (@$overlapArray) {
+    next unless($overlapLine =~ /.+/); #Ignore blank lines
+    my $header = "SEED overlaps:\n";
+    if($overlapLine =~ /SEED/) {
+      if($print) {
+	print STDERR $header unless($seedOverlaps);
+	print STDERR "$overlapLine" if($print);
 	print $LOG "$overlapLine" if($LOG);
       }
-      #Sequence [F1RZS8] overlap ShortName newFam/62-117 (newFam/60-117, 101.2 bits) FULL with Daxx PF03344/63-157 (PF03344/60-158, 159.80 bits) FULL
-      elsif ($overlapLine =~ /^Sequence \[(\w+)\] overlap \S+\s(\S+)\/(\d+)\-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL with \S+ (\S+)\/(\d+)-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL/) {
-	my ($seqAcc, $familyA, $ali_st1, $ali_en1, $scoreA, $familyB, $ali_st2, $ali_en2, $scoreB) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
-	my $seqAccVersion;
-	
-	#add sequence version to accession
-	foreach my $key ( keys %regions ) {
-	  if ( $key =~ /$seqAcc/ ) {
-	    $seqAccVersion = $key;
-	    last;
-	  }
-	}
-	unless($seqAccVersion) {
-	  die "Couldn't find version for $seqAcc\n";
-	}
-	
-	my $regionA = new Bio::Range( -start => $ali_st1, -end => $ali_en1, -strand => +1 );	
-      	my $regionB = new Bio::Range( -start => $ali_st2, -end => $ali_en2, -strand => +1 );
-	
-	my ( $s, $e, $d ) = $regionA->intersection($regionB);
-	my $overlapLength = ( $e - $s ) + 1;
-	
-	# if the lowest scoring region doesn't belong to the local family skip to the next overlap line
-	if ( $scoreA > $scoreB ) {#Potentially this could introduce lots of overlaps for familyB, but we don't care too much about this
-	  next;
-	}
-	
-	my $overlapPerc = $overlapLength / $regionA->length * 100 ;
-	
-	if ( $overlapPerc < $lengthLimit ) { # Short overlaps that are allowed, because the overlap length is less than $lengthLimit residues
-	  $shortOverlaps{$overlapLine}=1;
-	}
-	else  {  # Long overlaps that should not be allowed (and have to be resolved manually)
-	  $longOverlaps{$overlapLine}=1;
-	}
-      }
       else {
-	print STDERR "Couldn't parse this line: $overlapLine";
+	push(@filteredOverlapLines, $header) unless($seedOverlaps);
+	push(@filteredOverlapLines, $overlapLine);
+      }
+      $seedOverlaps++;
+    }
+    #Sequence [F1RZS8] overlap ShortName newFam/62-117 (newFam/60-117, 101.2 bits) FULL with Daxx PF03344/63-157 (PF03344/60-158, 159.80 bits) FULL
+    elsif ($overlapLine =~ /^Sequence \[(\w+)\] overlap \S+\s(\S+)\/(\d+)\-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL with \S+ (\S+)\/(\d+)-(\d+) \(\S+\/\d+-\d+, (\S+) bits\) FULL/) {
+      my ($seqAcc, $familyA, $ali_st1, $ali_en1, $scoreA, $familyB, $ali_st2, $ali_en2, $scoreB) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+      
+      my $regionA = new Bio::Range( -start => $ali_st1, -end => $ali_en1, -strand => +1 );	
+      my $regionB = new Bio::Range( -start => $ali_st2, -end => $ali_en2, -strand => +1 );
+      
+      my ( $s, $e, $d ) = $regionA->intersection($regionB);
+      my $overlapLength = ( $e - $s ) + 1;
+      
+      # if the lowest scoring region doesn't belong to the local family skip to the next overlap line
+      if ( $scoreA > $scoreB ) {#Potentially this could introduce lots of overlaps for familyB, but we don't care too much about this
+	next;
+      }
+      
+      my $overlapPerc = $overlapLength / $regionA->length * 100 ;
+      
+      if ( $overlapPerc < $lengthLimit ) { # Short overlaps that are allowed, because the overlap length is less than $lengthLimit residues
+	$shortOverlaps{$overlapLine}=1;
+      }
+      else  {  # Long overlaps that should not be allowed (and have to be resolved manually)
+	$longOverlaps{$overlapLine}=1;
       }
     }
+    else {
+      print STDERR "Couldn't parse this line: $overlapLine";
+    }
+  }
+  
+  my $shortOverlaps=scalar(keys(%shortOverlaps));
+  my $longOverlaps=scalar(keys(%longOverlaps));
+  my $percOverlap = ($shortOverlaps / $familySize) * 100;
+  $percOverlap = sprintf("%.1f", $percOverlap);  #One decimal point should be enough to report
+  
+  #Count total overlaps
+  my $numOverlaps=0;
+  $numOverlaps+=$seedOverlaps;
+  
+  
+  # See if the number of short overlaps is lower than 1% of the family size
+  if($percOverlap >= $numberLimit ) { #If % $shortOverlaps >= than that allowed then need to report them
+    my $header = "Short overlaps:\n";
+    if($print) {
+      print STDERR $header;
+    }
+    else {
+      push(@filteredOverlapLines, $header);
+    }
     
-    # Get family size from scores file
-    my $familySize  = $famObj->scores->numRegions;
-
-    my $shortOverlaps=scalar(keys(%shortOverlaps));
-    my $longOverlaps=scalar(keys(%longOverlaps));
-    my $percOverlap = ($shortOverlaps / $familySize) * 100;
-    $percOverlap = sprintf("%.1f", $percOverlap);  #One decimal point should be enough to report
-
-    #Count total overlaps
-    my $numOverlaps=0;
-    $numOverlaps+=$seedOverlaps;
-
-    
-    # See if the number of short overlaps is lower than 1% of the family size
-    if($percOverlap >= $numberLimit ) { #If % $shortOverlaps >= than that allowed then need to report them
-      print STDERR "Short overlaps:\n";
-
-      foreach my $overlap (keys %shortOverlaps) {
+    foreach my $overlap (keys %shortOverlaps) {
+      if($print) {
 	print STDERR $overlap;
 	print $LOG $overlap if $LOG;
       }
-      $numOverlaps+=$shortOverlaps;
+      else {
+	push (@filteredOverlapLines, $overlap);
+      }
     }
-
-    #Long overlaps are not permitted so need to report them
-    print STDERR "Long overlaps:\n" if($longOverlaps);
-    foreach my $overlap (keys %longOverlaps) {
-      print STDERR $overlap;
-      print $LOG $overlap if $LOG;
-    }
-    $numOverlaps+=$longOverlaps;
-    close $LOG if ($LOG);
-
-    #Summarise the data
-    print STDERR "$family: there are $seedOverlaps seed overlaps\n" if($seedOverlaps);
-    if($percOverlap ==0) {
-     #Nothing to report
-    }
-    elsif($percOverlap >= $numberLimit ) {
-      print STDERR "$family: $percOverlap". "% ($shortOverlaps/$familySize) of regions in ALIGN have short overlaps, only <$numberLimit". "% are permitted (short means <$lengthLimit". "% of their length)\n";
+    $numOverlaps+=$shortOverlaps;
+  }
+  
+  #Long overlaps are not permitted so need to report them
+  if($longOverlaps) {
+    my $header = "Long overlaps:\n";
+    if($print) {
+      print STDERR $header;
     }
     else {
-      print STDERR "$family: $percOverlap". "% ($shortOverlaps/$familySize) of regions in ALIGN have short overlaps, these are permitted (short means <$lengthLimit". "% of their length)\n";
+      push(@filteredOverlapLines, $header);
     }
     
-    if($longOverlaps) {
-      print STDERR "$family: $longOverlaps/$familySize regions in ALIGN have long overlaps, these are not permitted (long means >=$lengthLimit" . "% of their length, long overlaps are not permitted).\n";
+    foreach my $overlap (keys %longOverlaps) {
+      if($print) {
+	print STDERR $overlap;
+	print $LOG $overlap if $LOG;
+      }
+      else {
+      	push (@filteredOverlapLines, $overlap);
+      }
     }
-    
-    return $numOverlaps;
+    $numOverlaps+=$longOverlaps;
+  }
+  close $LOG if ($LOG);
+  
+  #Summarise the data
+  my $summary;
+  if($seedOverlaps) {
+    my $line = "$family: there are $seedOverlaps seed overlaps\n";
+    print STDERR $line if($print);
+    $summary .= $line;
+  }
+  if($percOverlap ==0) {
+    #Nothing to report
+  }
+  elsif($percOverlap >= $numberLimit ) {
+    my $line ="$family: $percOverlap". "% ($shortOverlaps/$familySize) of regions in ALIGN have short overlaps, only <$numberLimit". "% are permitted (short means <$lengthLimit". "% of their length)\n";
+    print STDERR $line if($print);
+    $summary .= $line;
+  }
+  else {
+    my $line = "$family: $percOverlap". "% ($shortOverlaps/$familySize) of regions in ALIGN have short overlaps, these are permitted (short means <$lengthLimit". "% of their length)\n";
+    print STDERR $line if($print);
+    $summary .= $line;
+  }
+  
+  if($longOverlaps) {
+    my $line = "$family: $longOverlaps/$familySize regions in ALIGN have long overlaps, these are not permitted (long means >=$lengthLimit" . "% of their length, long overlaps are not permitted).\n";
+    print STDERR $line if($print);
+    $summary .= $line;
+  }
 
+  if($print) {
+    return ($numOverlaps);
+  }
+  else {
+    return ($numOverlaps, \@filteredOverlapLines, $summary);
+  }
 }
 
 
