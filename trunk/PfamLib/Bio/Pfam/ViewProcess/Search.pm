@@ -227,7 +227,7 @@ sub submitToFarm {
 
     my $fh = IO::File->new();
     $fh->open( "| bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
-    $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
+    $fh->print( "performOtherSeqDBSearch.pl $options -upload -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
   
