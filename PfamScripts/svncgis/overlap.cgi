@@ -20,6 +20,7 @@ $ENV{'PFAM_CONFIG'} = '/nfs/production/xfam/pfam/software/Conf/pfam_svn.conf';
 use CGI;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
+use Bio::Pfam::PfamQC;
 
 my $q = CGI->new;
 
@@ -74,13 +75,9 @@ while(<UPLOAD>){
 }
 close UPLOAD;
 
-
 my $config = Bio::Pfam::Config->new;
-my $connect = $config->pfamlive;
-
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
-  %{ $connect }
-  );
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(%{ $config->pfamlive });
+my $pfamDBAdmin = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 my $ignore_ref;
 #User defined ignores
@@ -127,53 +124,19 @@ if($clan){
     }
 }
 
-#Query the database for all overlaps.
-$pfamDB->getOverlapingFullPfamRegions( \%regions, \%overlaps );
-$pfamDB->getOverlapingSeedPfamRegions( \%regions, \%overlaps );
-
-my(%seen, $numberOverlaps, $allLines);
-
 #Record which families have been ignored during this overlap check.
+my $allLines;
 foreach my $iFam (keys %{$ignore_ref}){
   $allLines .= "Ignoring $iFam\n";
-} 
+}
 
-#Now iterate through all overlaps and ignore any overlap that is permitted by the
-#ignore hash.
-$numberOverlaps = 0;
-  foreach my $seqAcc ( keys %overlaps ) {
-    foreach
-      my $region ( sort { $a->{from} <=> $b->{from} } @{ $overlaps{$seqAcc} } )  {
-      foreach my $overRegion ( @{ $region->{overlap} } ) {
-        next if ( $$ignore_ref{ $overRegion->{family} } );
+#Find overlaps
+my ($numOverlaps, $overlapArray) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, $clan, 1);
 
-	my $line;
- 	if($region->{ali} eq 'SEED') {
-	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{from}."-".$region->{to}." ".$region->{ali}." with ";
-	}
-	else {
-	  $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." (".
-	    $region->{family}."/".$region->{from}."-".$region->{to}.", ".$region->{score}." bits) ".$region->{ali}." with ";
-	}
-
-	if($overRegion->{ali} eq 'SEED') {
-	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
-	}
-	else {
-	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
-	    .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
-	}
-
-        next if ( $seen{$line} );
-        $seen{$line}++;
-        $numberOverlaps++;
-        $allLines .= $line;
-      }
-    }
-  }
-
-#Now return the overlaps
+#Now return the ignore lines and overlap lines
+$allLines .= join("", @{$overlapArray});
 print $q->header(), $allLines;
+
 
 exit;
 
