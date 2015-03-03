@@ -7,6 +7,7 @@ use Moose;
 use Moose::Util::TypeConstraints;
 use Bio::SCOOP::Region;
 use Bio::SCOOP::RegionSet;
+use DDP;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -18,25 +19,23 @@ sub runScoop {
   my ( $self ) = @_;
   
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
-  my $scp = Net::SCP->new( { "host"=> $self->config->{pfamlive}->{host} } );
+#  my $scp = Net::SCP->new( { "host"=> $self->config->{Model}->{Pfamlive}->{host} } );
   my $statusdir = $self->options->{statusdir};
+  my $user =  $self->config->{Model}->{Pfamlive}->{user};
+  my $pass =  $self->config->{Model}->{Pfamlive}->{password};
+  my $port =  $self->config->{Model}->{Pfamlive}->{port};
+  my $host =  $self->config->{Model}->{Pfamlive}->{host};
+  my $pfamdb = $self->config->{Model}->{Pfamlive}->{database};
   if(!$self->statusCheck("sigReg.txt")){
     $self->logger->info('Getting significant regions');
- #if the step below is really slow could try the following as a system command
- #mysql -h mysql-pfam-live -u <user> -p<passwd> -P 4430 pfam_live --quick -e “select blah from blah" > output.txt   
-    $dbh->do(
-      "SELECT pfamseq_acc, pfamA_acc seq_start, seq_end, domain_evalue_score "
-    . "INTO OUTFILE '/tmp/sigReg.txt' FROM pfamA_reg_full_significant" );
-    $scp->get('/tmp/sigReg.txt', $statusdir.'/sigReg.txt')
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_significant\" > $statusdir/sigReg.txt";
+    system($cmd) and die "Could not execute statement $cmd\n";
   }
   
   if(!$self->statusCheck("insigReg.txt")){
     $self->logger->info('Getting insignificant regions');
-#see above for alternative if the step below is too slow
-    $dbh->do(
-      "SELECT pfamseq_acc, pfamA_acc seq_start, seq_end, domain_evalue_score "
-    . "INTO OUTFILE '/tmp/insigReg.txt' FROM pfamA_reg_full_insignificant" );
-    $scp->get('/tmp/insigReg.txt', $statusdir.'/insigReg.txt')
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_insignificant\" > $statusdir/insigReg.txt";
+    system($cmd) and die "Could not execute statement $cmd\n";
   }
   
   #Now sort the regions
@@ -59,8 +58,9 @@ sub runScoop {
   
   $self->pfamdb->getSchema->resultset('Pfama2pfamaScoopResults')->delete;
 
-  $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
-    or $self->logger->logdie("Failed to scp results file to instance:". $scp->{errstr});
+#TODO - rewrite the following 2 lines - hashed out as dbas recommend not putting files on mysql server  
+#  $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
+#    or $self->logger->logdie("Failed to scp results file to instance:". $scp->{errstr});
   $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
 }
 
