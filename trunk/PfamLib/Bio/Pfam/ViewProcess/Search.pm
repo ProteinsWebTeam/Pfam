@@ -163,15 +163,21 @@ sub processOptions {
   }
   
   $options->{acc}       = $acc;
-  $options->{dbs}       = \@dbs;
   $options->{statusdir} = $statusDir;
   $options->{tmpdir}    = $tmpdir;
   $options->{chunk}     = $chunk;
   $options->{chunkSize} = $chunkSize;
   $options->{all}       = $all;
+#if all is specified than all dbs are searched, otherwise only those in @dbs
+  if ($all){
+    $options->{dbs} = $self->databaseList;
+  } else {
+    $options->{dbs}       = \@dbs;
+  }
   
   $self->options($options);
-}
+} #end of sub processOptions
+
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
@@ -219,25 +225,9 @@ sub submitToFarm {
     }
     $options .= " -statusdir ".$self->options->{statusdir};
 
-#add databases to search to options
-    if ($self->options->{all}){
-    #search all dbs
-        foreach my $db (@{$self->databaseList}){
-           $options .= " -db $db";
-        }
-    }  elsif ($self->options->{dbs}){
-        foreach my $db(@{$self->options->{dbs}}){
-#could add a warning (and die) for any invalid db            
-            $options .= " -db $db";
-        }
-    } else {
-#lack of -all or -db should have already resulted in an error - but just in case....        
-         $self->logger->logdie("You need to specifiy one or more databases to search");
-    }
-    
     my $fh = IO::File->new();
     print " bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log";
-    print "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
+    print " performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
     exit;
     $fh->open( "| bsub -G $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
     $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
