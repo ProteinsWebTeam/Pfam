@@ -38,7 +38,7 @@ my ($nest) = $q->param('nest') =~ /^([PF\d+]*)$/;
 open ( UPLOAD, $tmp_file )
   or bail( 'failed to open temporary file' );
 #my $upload = join '', <UPLOAD>;
-my (%regions, %overlaps);
+my (%regions, %overlaps, $numFull);
 
 while(<UPLOAD>){
   print STDERR $_;
@@ -67,6 +67,7 @@ while(<UPLOAD>){
                                score     => $score,
 			       evalue    => $evalue
                               });
+    $numFull++;
     
   }
   else{
@@ -129,12 +130,15 @@ my $allLines;
 foreach my $iFam (keys %{$ignore_ref}){
   $allLines .= "Ignoring $iFam\n";
 }
+$allLines .= "Checking overlaps for sequences that belong to reference proteomes only\n";
+$allLines .= "Filtering overlaps\n";
 
 #Find overlaps
-my ($numOverlaps, $overlapArray) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, $clan, 1);
+my ($numOverlaps, $overlapArray, $summary) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, $clan, 1, 1, $numFull);
 
 #Now return the ignore lines and overlap lines
 $allLines .= join("", @{$overlapArray});
+$allLines .= $summary;
 print $q->header(), $allLines;
 
 
