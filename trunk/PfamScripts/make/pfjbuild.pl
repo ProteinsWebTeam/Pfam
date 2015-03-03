@@ -17,6 +17,7 @@ use Bio::Pfam::HMM::HMMResultsIO;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::SeqFetch;
+use Bio::Pfam::PfamQC;
 
 main(@ARGV) unless caller();
 
@@ -100,20 +101,18 @@ sub main {
   }
   
   unless($fasta and -s $fasta) {
-      warn "\n***** You need to specify a valid fasta file or a UniProt accession! *****\n\n";
+      warn "\n***** You need to specify a valid fasta file or a UniProt accession! *****\n";
       $help = 1;
   }
 
   if ( !$incE and !$incDomT and !$incT ) {
-    warn
-"\n***** Neither e-value or bit score threshold specified, setting to 0.001 *****\n\n";
+    warn "\n***** Neither e-value or bit score threshold specified, setting to 0.001 *****\n";
     $incE = 0.001;
   }
 
   if ($incE) {
     if ( $incDomT or $incT ) {
-      warn
-"\n***** You can not specify a bit score threshold and an E-value threshold *****\n\n";
+      warn"\n***** You can not specify a bit score threshold and an E-value threshold *****\n";
       $help = 1;
     }
     else {
@@ -133,8 +132,7 @@ sub main {
   }
 
   if ( $incT and !$incDomT ) {
-    warn
-"\n****** You need to specifiy both a sequence and domain bits score threshold *****\n\n";
+    warn "\n****** You need to specifiy both a sequence and domain bits score threshold *****\n";
     $help = 1;
 
   }
@@ -156,13 +154,15 @@ sub main {
       $c = $check;
   }
   else {
-    warn "\n***** Checkpoint has been turned off. *****\n\n"; #We'll still going to run with check pointing, but we won't copy checkpointing files back
+    warn "\n***** Checkpoint has been turned off. *****\n"; #We'll still going to run with check pointing, but will delete files later
     $c="chkpnt";
     $optCmds{'--chkali'} = $c;
     $optCmds{'--chkhmm'} = $c;  
   }
   
-
+  unless($noOverlap) {
+    warn "\n***** Overlap check has been switched on for reference proteome sequences. Note they will NOT be filtered according to the config file.\n";
+  }
 
   unless ($seqDB) {
       if($config->location eq 'WTSI') {
@@ -228,15 +228,16 @@ sub main {
 	close A;
       }
     }
-
+    
     #Check for overlaps....
     unless ( $noOverlap ) {
-      checkOverlap($pfamDB, "align");
+      my $pfamDBAdmin = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
+      checkOverlap($pfamDBAdmin, "align");
       if($check) {  #Check for overlaps in checkpoint alignments
 	for(my $i=1; $i<=$noIts; $i++) {
 	  my $aln_file = "$check-$i.align";
 	  next unless(-s $aln_file);
-	  checkOverlap($pfamDB, $aln_file);
+	  checkOverlap($pfamDBAdmin, $aln_file);
 	}
       }
     }
@@ -244,6 +245,7 @@ sub main {
     unless($check) {
       unlink glob("$c*");
     }
+
     if($gzip) {
 	system("gzip JALIGN") and die "Failed to run gzip on JALIGN, $!";
 	system("gzip JOUT") and die "Failed to run gzip on JOUT, $!";
@@ -259,7 +261,7 @@ sub main {
 }
 
 sub checkOverlap {
-  my ($pfamDB, $aln) = @_;
+   my ($pfamDBAdmin, $aln) = @_;
 
   my (%regions);
  
@@ -274,7 +276,7 @@ sub checkOverlap {
       
       push(@{ $regions{ $acc } }, 
 	   {
-	    ali_from  => $st,   
+ 	    ali_from  => $st,   
 	    ali_to    => $en,
 	    family    => 'NEW',
 	    ali       => 'JALIGN',
@@ -282,14 +284,9 @@ sub checkOverlap {
     }
   }
   close(A);
-  
 
-  my %overlaps;
-  $pfamDB->getOverlapingFullPfamRegions( \%regions, \%overlaps );
-  $pfamDB->getOverlapingSeedPfamRegions( \%regions, \%overlaps );
-
-  my $numOverlaps = 0;
-  my %seen;
+  my $ignore_ref;
+  my ($numOverlaps, $overlapArray) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, "", 1);
 
   #Now print out any overlaps that should not be ignored
   my $LOG;
@@ -306,30 +303,8 @@ sub checkOverlap {
     }
   }
   open( $LOG, ">$overlap_file" ) or die "Can't open overlap file $overlap_file, $!\n";
-
-  foreach my $seqAcc ( keys %overlaps ) {
-    foreach
-      my $region ( sort { $a->{ali_from} <=> $b->{ali_from} } @{ $overlaps{$seqAcc} } ) {
-      foreach my $overRegion ( @{ $region->{overlap} } ) {
-	my $line ="Sequence [". $seqAcc."] overlap ".$region->{family_id}." ".$region->{family}."/".$region->{ali_from}."-".$region->{ali_to}." ".$region->{ali}." with ";
-       
-	if($overRegion->{ali} eq 'SEED') {
-	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}." ".$overRegion->{ali}."\n";
-	}
-	else {
-	  $line .=$overRegion->{family_id}." ".$overRegion->{family}."/".$overRegion->{ali_from}."-".$overRegion->{ali_to}." (".$overRegion->{family}."/".$overRegion->{from}."-".$overRegion->{to}
-	    .", ".$overRegion->{score}." bits) ".$overRegion->{ali}."\n";
-	}
-
-        next if ( $seen{$line} );
-        $seen{$line}++;
-        $numOverlaps++;
-       
-        print $LOG $line if $LOG;
-      }
-    }
-  }
-  close $LOG if ($LOG);
+  print $LOG @{$overlapArray};
+  close $LOG;
 }
 
 sub runJackhmmer {
