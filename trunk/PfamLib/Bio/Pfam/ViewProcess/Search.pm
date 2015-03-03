@@ -175,11 +175,11 @@ sub processOptions {
 sub submitToFarm {
   my ($self, $noJobs) = @_;
   
-  my $rs = $self->pfamdb->getSchema->resultset('Pfama')->search({});
+  my $rs = $self->pfamdb->getSchema->resultset('PfamA')->search({});
   my $chunkSize = ceil($rs->count/$noJobs);
   
   $self->logger->debug("Calculating PfamA paging");
-  my $pfamAll = $self->pfamdb->getSchema->resultset('Pfama')->search(
+  my $pfamAll = $self->pfamdb->getSchema->resultset('PfamA')->search(
       {},
       {
       page => 1,
@@ -200,8 +200,9 @@ sub submitToFarm {
     my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
     $memory_gb  += 1; #Add another Gig for the alignment overhead.
     my $queue = 'production-rh6'; #searches may go over 8 hours. 
-    my $memory_kb=$memory_gb*1000000;
-    my $resource = " -M $memory_kb -R rusage[mem=$memory_kb]";
+    my $group = '/Pfamview';
+    my $memory_mb=$memory_gb*1000;
+    my $resource = " -M $memory_mb -R rusage[mem=$memory_mb]";
 
     my $options;
     if($self->upload){
@@ -217,9 +218,28 @@ sub submitToFarm {
       $options .= ' -dir '.$self->options->{dir};
     }
     $options .= " -statusdir ".$self->options->{statusdir};
+
+#add databases to search to options
+    if ($self->options->{all}){
+    #search all dbs
+        foreach my $db (@{$self->databaseList}){
+           $options .= " -db $db";
+        }
+    }  elsif ($self->options->{dbs}){
+        foreach my $db(@{$self->options->{dbs}}){
+#could add a warning (and die) for any invalid db            
+            $options .= " -db $db";
+        }
+    } else {
+#lack of -all or -db should have already resulted in an error - but just in case....        
+         $self->logger->logdie("You need to specifiy one or more databases to search");
+    }
     
     my $fh = IO::File->new();
-    $fh->open( "| bsub -G /Pfamview -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
+    print " bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log";
+    print "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
+    exit;
+    $fh->open( "| bsub -G $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
     $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
@@ -227,7 +247,7 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    sleep(60);
   }
 }
 
