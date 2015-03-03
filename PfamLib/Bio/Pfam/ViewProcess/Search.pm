@@ -55,8 +55,6 @@ sub search {
     $tmpdir = tempdir( CLEANUP => 1 );
   }
 
-  p($tmpdir);
-  p($self->{database});
   unless(-d $tmpdir){
     $self->logger->logdie("Failed to get a temporary directory.");
   }
@@ -228,17 +226,15 @@ sub submitToFarm {
     $options .= " -statusdir ".$self->options->{statusdir};
 
     my $fh = IO::File->new();
-    # print " bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log";
-    #print " performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n";
-    #exit;
     $fh->open( "| bsub -g $group -q $queue  ".$resource." -o ".$self->options->{statusdir}."/search.$i.log");
     $fh->print( "performOtherSeqDBSearch.pl $options -chunk $i  -chunkSize $chunkSize\n");
     $fh->close;
   }
   
   $self->logger->debug("Status is:".$self->statusFile."\n");
-  while(! $self->statusCheck($self->statusFile, $noJobs)){
+  while(! $self->statusCheck($self->statusFile, $pager->last_page)){
     $self->logger->info('Waiting for jobs to complete.');
+    #TODO - set sleep time back to 600 after testing
     sleep(60);
   }
 }
