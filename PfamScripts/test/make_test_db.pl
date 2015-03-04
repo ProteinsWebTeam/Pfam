@@ -269,6 +269,21 @@ my $marSth =
     . $connectParams->{database}
     . ".pfamseq_markup where pfamseq_acc=?" );
 
+####proteomes 
+$logger->info("Inserting proteome related data.");
+my $proseqSth = 
+    $dbhNew->prepare("replace proteome_pfamseq select * from "
+     . $connectParams->{database}   
+    . ".proteome_pfamseq where pfamseq_acc=?" );
+my $proregSth = 
+    $dbhNew->prepare("replace proteome_regions select * from "
+     . $connectParams->{database}   
+    . ".proteome_regions where pfamseq_acc=?" );
+
+my $comproSth =
+    $dbhNew->prepare("replace complete_proteomes select c.* from "
+     . $connectParams->{database}   
+    . ".complete_proteomes c, proteome_pfamseq p where c.auto_proteome = p.auto_proteome and p.pfamseq_acc=?" );
 
 
 my $commitPoint = 10000;
@@ -289,6 +304,10 @@ foreach my $table (
     $othSth->execute( $d->[0] );
     $disSth->execute( $d->[0] );
     $marSth->execute( $d->[0] );
+    $proseqSth->execute( $d->[0] );
+    $proregSth->execute( $d->[0] );
+    $comproSth->execute( $d->[0] );
+
   }
   $autoSeq->finish;
   $count++;
