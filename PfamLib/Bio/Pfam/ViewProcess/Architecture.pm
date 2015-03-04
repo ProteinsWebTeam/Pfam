@@ -365,8 +365,9 @@ sub submitToFarm {
   my $queue = 'production-rh6';
   my $resource = "rusage[mem=2500]";
   my $memory = 2500;  
+  my $group = '/Pfamview';
   my $fh = IO::File->new();
-  $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
+  $fh->open( "| bsub -q $queue -M $memory -R $resource -g $group -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
   $fh->print( "makeArchitecture.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
   $fh->close;
@@ -380,7 +381,7 @@ sub submitToFarm {
 
 sub processOptions {
   my ( $self ) = @_;
-  my ($statusDir, $acc, $help, $chunk, $chunkSize, $all, $upload);
+  my ($statusDir, $acc, $help, $chunk, $chunkSize, $all);
   my $options = {};
 
   my @opts = @ARGV;
@@ -393,7 +394,6 @@ sub processOptions {
     "chunkSize=i" => \$chunkSize,
     "all"         => \$all,
     "h|help"      => \$help,
-    "upload"      => \$upload
   );
 
   if ($help) {
