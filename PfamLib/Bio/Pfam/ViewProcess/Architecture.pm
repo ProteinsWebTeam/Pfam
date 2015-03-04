@@ -159,7 +159,6 @@ sub updateSeqRange {
     my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
         {}, { rows => $chunkSize, page => $chunk}     
     );
-    #p(@seqsRS);
 
     $currentSeq = $nextCurrentSeq;
     $self->updateArchitectures( \@seqsRS );
@@ -374,13 +373,14 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    #TODO set the sleep back to 600 after testing
+    sleep(60);
   }
 }
 
 sub processOptions {
   my ( $self ) = @_;
-  my ($statusDir, $acc, $help, $chunk, $chunkSize, $all);
+  my ($statusDir, $acc, $help, $chunk, $chunkSize, $all, $upload);
   my $options = {};
 
   my @opts = @ARGV;
@@ -392,7 +392,8 @@ sub processOptions {
     "chunk=i"     => \$chunk,
     "chunkSize=i" => \$chunkSize,
     "all"         => \$all,
-    "h|help"      => \$help
+    "h|help"      => \$help,
+    "upload"      => \$upload
   );
 
   if ($help) {
