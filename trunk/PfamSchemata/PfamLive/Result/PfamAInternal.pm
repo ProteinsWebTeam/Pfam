@@ -131,7 +131,6 @@ sub msas_uncompressed {
   #open(A, '>', 'ALIGN') or die "Failed to open ALIGN:[$!]\n";
   #print A Compress::Zlib::memGunzip($self->full) or warn "Failed to uncompress hits: $gzerrno";
   #close(A);
-  
    
   open(A, '>', 'ALIGN.gz') or die "Failed to open ALIGN:[$!]\n";
   print A $self->full;
@@ -146,7 +145,27 @@ sub msas_uncompressed {
 
 } 
 
-
+sub seed_uncompressed {
+    my ($self, $path) = @_;
+    $path = "." unless($path);
+    open( S, ">", "$path/SEED" ) or die "Could not open $path/SEED:[$!]\n" ;
+    print S Compress::Zlib::memGunzip( $self->seed );
+    close S;
+    unless ( -e "$path/SEED" and -s "$path/SEED" ) {
+        die "Failed to generate SEED alignment";
+    }
+}
+ 	
+sub full_uncompressed {
+    my ($self, $path) = @_;
+    $path = "." unless($path);
+    open( A, ">", "$path/ALIGN") or die "Could not open $path/ALIGN:[$!]\n";
+    print A Compress::Zlib::memGunzip( $self->full );
+    close A;
+    unless ( -e "$path/ALIGN" and -s "$path/ALIGN" ) {
+        die "Failed to generate ALIGN alignment";
+    }
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
