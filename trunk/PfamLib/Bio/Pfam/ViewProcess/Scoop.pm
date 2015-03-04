@@ -8,6 +8,7 @@ use Moose::Util::TypeConstraints;
 use Bio::SCOOP::Region;
 use Bio::SCOOP::RegionSet;
 use DDP;
+use File::Slurp;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -58,10 +59,20 @@ sub runScoop {
   
   $self->pfamdb->getSchema->resultset('PfamA2pfamAScoop')->delete;
 
-#TODO - rewrite the following 3 lines - hashed out as dbas recommend not putting files on mysql server  
-#  $scp->put( $statusdir."/scoopRes.4upload.txt", "/tmp/scoopRes.4upload.txt" )
-#    or $self->logger->logdie("Failed to scp results file to instance:". $scp->{errstr});
-#  $dbh->do("LOAD DATA INFILE '/tmp/scoopRes.4upload.txt' INTO TABLE pfamA2pfamA_scoop_results");
+  #upload results to database
+  my @results = read_file("$statusdir/scoopRes.4upload.txt");
+  foreach my $line (@results){
+      my @data = split(/\s+/, $line);
+      $self->pfamdb->getSchema->resultset('PfamA2pfamAScoop')->update_or_create(
+          {
+              pfama_acc_1 => $data[0],
+              pfama_acc_2 => $data[1],
+              score => $data[2]
+
+          }
+      );
+  }
+
 }
 
 sub scoop {
