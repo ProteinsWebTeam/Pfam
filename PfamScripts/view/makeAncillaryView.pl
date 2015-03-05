@@ -42,11 +42,13 @@ my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
+$logger->debug("Updating version table");
 my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
 my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
 $version->update({ number_families => $noPfama }) 
   if(!$version->number_families || ($version->number_families != $noPfama));
 
+$logger->debug("Calculating architectures");
 if(exists($archView->options->{acc}) and $archView->options->{acc}){
   #Do it for a single family
  p($archView->options);
@@ -54,6 +56,10 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   #Do it for a set of families
 }else{
   #Do it for the whole database
+
+#-------------------------------------------------------------------------------
+# Calculate architectures
+
   $archView->logger->info("Calculating architectures for the whole database");
   #Start off with the architecture stuff.
   if(! $archView->statusCheck('doneArch')){
@@ -67,9 +73,10 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $archView->updateAllArchitecture;
     $archView->touchStatus('doneArch');
   }
-  
+
   #Update clan architectures
   if(! $archView->statusCheck('doneClanArch')){
+    $logger->debug("Updating clan architectures"); 
     #Determine the list of clans affected by the updated families
     $archView->updateAllClanArchitectures;
     $archView->touchStatus('doneClanArch');
@@ -77,31 +84,31 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
   #Now make the storables.
   if(! $storableView->statusCheck('doneStorables')){
-    #Submit the architecture calulcations to the farm. This will not return until
+    $logger->debug("Making storables"); 
+    #Submit the storables to the farm. This will not return until
     #all jobs have completed.
     $storableView->submitToFarm(300);
-    #Reset all of the counts in the architecture table and pfamA table
     $storableView->touchStatus('doneStorables');
   }
   
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
-    #Submit the architecture calulcations to the farm. This will not return until
+    $logger->debug("Making structure images"); 
+#Submit the pdb image creation to the farm. This will not return until
     #all jobs have completed.
     $pdbImageView->submitToFarm(150);
-    #Reset all of the counts in the architecture table and pfamA table
     $pdbImageView->touchStatus('donePdbImages');
   }
   
   #Now make run the models against the 'other' sequence databases
   if(! $searchView->statusCheck('doneOtherSearches')){
-    #Submit the architecture calulcations to the farm. This will not return until
+    $logger->debug("Running other searches"); 
+    #Submit the database searches to the farm. This will not return until
     #all jobs have completed.
     $searchView->submitToFarm(75);
-    #Reset all of the counts in the architecture table and pfamA table
     $searchView->touchStatus('doneOtherSearches');
   }
-}
+} #end of if exists $archView
  
  
  
@@ -109,8 +116,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 #involve all by all comparisons. 
 #run scoop
   if(! $scoopView->statusCheck('doneScoop')){
-    exit;
     #Grab the regions from the database and perform the SCOOP analysis
+    $logger->debug("Performing SCOOP analysis"); 
     $scoopView->runScoop;
     $scoopView->touchStatus('doneScoop')
   }else{
@@ -119,6 +126,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
   #run HHsearch
   if(! $hhsearchView->statusCheck('doneHHsearch')){
+    $logger->debug("Running HHsearch"); 
     $hhsearchView->options->{newlib} = 1;
     $hhsearchView->makeHHLib;
     $hhsearchView->upload(1);
@@ -126,9 +134,12 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $hhsearchView->touchStatus('doneHHsearch')
   }
 
-  #Proteome data.....
+  
+#Proteome data.....
   if(! $proteomeView->statusCheck('doneProteome')){
-    my $protDbh = $proteomeView->pfamdb->getSchema->storage;
+    $logger->debug("Updating proteome data"); 
+    my $protDbh = $proteomeView->pfamdb->getSchema->storage->dbh;
+    
     if(! $proteomeView->statusCheck('updateProteomeArch')){
       $protDbh->do("set FOREIGN_KEY_CHECKS=0");
     
@@ -143,7 +154,37 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
       $proteomeView->touchStatus('updateProteomeArch');
     }
+   
+    #not all complete_proteomes are represented in proteome_regions
+    #select all auto_proteomes in proteome_regions and put in a hash
+    #select count number of regions and add to hash 
+    #select count distinct pfamseq and add to hash
+    #total_seqs_covered and num_proteins are the same - and were in pfam27 - so no need for 2 queries ###there is an error in pfam27 - what exactly should be in each column?
+    my %complete_proteomes_data;
     
+    my $st_a = $protDbh->prepare("select distinct auto_proteome from proteome_regions") or die "Cannot prepare statement $!\n";
+    my $st_reg = $protDbh->prepare("select sum(count) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    my $st_prot = $protDbh->prepare("select count(distinct pfamseq_acc) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
+
+    $st_a->execute() or die "Cannot execute statement $!\n";
+    my $arrayref_a = $st_a->fetchall_arrayref;
+    foreach my $row_a (@$arrayref_a){
+        $complete_proteomes_data{$row_a->[0]}=1;
+    }
+
+   foreach my $autoprot (keys %complete_proteomes_data){
+        $st_reg->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
+        $st_prot->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
+        my $arrayref_r = $st_reg->fetchall_arrayref;
+        my $arrayref_p = $st_prot->fetchall_arrayref;
+        $complete_proteomes_data{$autoprot}={
+            'num_total_regions' => $arrayref_r->[0]->[0],
+            'num_proteins' => $arrayref_p->[0]->[0]
+            }
+   }
+p(%complete_proteomes_data);
+ 
+#   exit; 
     if(! $proteomeView->statusCheck('updateProteomeStats')){
       $protDbh->do("UPDATE complete_proteomes c ".
                    "SET num_total_regions = ( ".
@@ -158,6 +199,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       $protDbh->do("UPDATE complete_proteomes c SET total_seqs_covered = ( ".
                     "SELECT count( distinct r.pfamseq_acc) FROM proteome_regions r ".
                     "WHERE r.auto_proteome=c.auto_proteome)") ;
+
       $protDbh->do("UPDATE complete_proteomes SET ".
                     "sequence_coverage = ((total_seqs_covered/total_genome_proteins)*100)");
       $protDbh->do("UPDATE complete_proteomes c ".
@@ -180,7 +222,8 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       
       $proteomeView->touchStatus('updateProteomeStats');
     }
-    
+ 
+    #no need to do this as grouping calculated at sequence update time   
     if(! $proteomeView->statusCheck('updateProteomeGrp')){
       my @rs = $proteomeView->pfamdb
                               ->getSchema
@@ -205,6 +248,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   }
   
   if(! $proteomeView->statusCheck('doneProteomeTSV')){
+    $logger->debug("Creating proteome TSV files"); 
     #Each proteome to be searched
     $proteomeView->submitToFarm(75);
     #
