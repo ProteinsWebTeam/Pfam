@@ -82,6 +82,7 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
+__PACKAGE__->set_primary_key('rfam_acc');
 
 # Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-23 13:50:01
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wXX43BsozVjs3gM+jLtJBA
