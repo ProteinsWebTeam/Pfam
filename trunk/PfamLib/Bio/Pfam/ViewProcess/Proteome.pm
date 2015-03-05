@@ -225,9 +225,10 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "-M3500000 -R rusage[mem=3500000]'";
-  my $memory = 3500000;  
+  my $resource = "-M3500 -R rusage[mem=3500]";
+  my $memory = 3500;  
   my $fh = IO::File->new();
+
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
               $self->options->{statusdir}."/protTSV.\%J.\%I.log  -JprotTSV\"[1-$noJobs]\"");
   $fh->print( "makeProteomeTSV.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize ".
@@ -237,7 +238,8 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    #TODO - change sleep back to 600 when testing done
+    sleep(60);
   }
 }
 
