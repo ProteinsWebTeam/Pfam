@@ -336,11 +336,11 @@ sub _clanArchitecture {
  " WHERE s.pfamseq_acc=r.pfamseq_acc AND c.pfamA_acc=r.pfamA_acc AND in_full=1 AND c.clan_acc= ? ");
 
   my $clanUpdateNumArch = $dbh->prepare(
-  "UPDATE clans c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a ".
+  "UPDATE clan c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a ".
   " WHERE c.clan_acc=a.clan_acc) where c.clan_acc= ? ");
   
   my $clanUpdateNumStructures = $dbh->prepare(
-  "UPDATE clans c SET number_structures = (SELECT SUM(number_structures) ".
+  "UPDATE clan c SET number_structures = (SELECT SUM(number_structures) ".
   "FROM clan_membership m , pfamA a WHERE m.pfamA_acc=a.pfamA_acc AND clan_acc=c.clan_acc) ".
   "WHERE c.clan_acc=?;");
 
