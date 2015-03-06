@@ -154,17 +154,24 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
       $proteomeView->touchStatus('updateProteomeArch');
     }
-   
+
     #not all complete_proteomes are represented in proteome_regions
-    #select all auto_proteomes in proteome_regions and put in a hash
-    #select count number of regions and add to hash 
-    #select count distinct pfamseq and add to hash
-    #total_seqs_covered and num_proteins are the same - and were in pfam27 - so no need for 2 queries ###there is an error in pfam27 - what exactly should be in each column?
+    #select all auto_proteomes in proteome_regions
+    #select count number of regions
+    #select count distinct pfamseq 
     my %complete_proteomes_data;
     
     my $st_a = $protDbh->prepare("select distinct auto_proteome from proteome_regions") or die "Cannot prepare statement $!\n";
+    #total regions
     my $st_reg = $protDbh->prepare("select sum(count) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
-    my $st_prot = $protDbh->prepare("select count(distinct pfamseq_acc) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    #number proteins (will be equal to total_genome_proteins)
+    my $st_prot = $protDbh->prepare("select count(*) from pfamseq p, complete_proteomes c where c.ncbi_taxid = p.ncbi_taxid and auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    #total_seqs_covered - ie disinct proteins that have a region
+    my $st_seqs_covered = $protDbh->prepare("select count(distinct pfamseq_acc) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    #amino acids covered
+    my $st_aa_covered = $protDbh->prepare("SELECT sum(seq_end - seq_start + 1) FROM proteome_pfamseq p, pfamA_reg_full_significant s WHERE s.pfamseq_acc=p.pfamseq_acc and in_full=1 and p.auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    #total amino acids
+    my $st_aa_tot = $protDbh->prepare("select total_aa_length from complete_proteomes where auto_proteome =?") or die "Cannot prepare statement $!\n";
 
     $st_a->execute() or die "Cannot execute statement $!\n";
     my $arrayref_a = $st_a->fetchall_arrayref;
@@ -175,76 +182,36 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
    foreach my $autoprot (keys %complete_proteomes_data){
         $st_reg->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
         $st_prot->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
+        $st_seqs_covered->execute($autoprot) or die "Can't execute statement for $autoprot $!\n";
+        $st_aa_covered->execute($autoprot) or die "Can't execute statement for $autoprot $!\n";
+        $st_aa_tot->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
         my $arrayref_r = $st_reg->fetchall_arrayref;
         my $arrayref_p = $st_prot->fetchall_arrayref;
-        $complete_proteomes_data{$autoprot}={
-            'num_total_regions' => $arrayref_r->[0]->[0],
-            'num_proteins' => $arrayref_p->[0]->[0]
-            }
-   }
-p(%complete_proteomes_data);
- 
-#   exit; 
-    if(! $proteomeView->statusCheck('updateProteomeStats')){
-      $protDbh->do("UPDATE complete_proteomes c ".
-                   "SET num_total_regions = ( ".
-                   "SELECT sum(count) FROM proteome_regions r ".
-                   "WHERE r.auto_proteome=c.auto_proteome)");
-      
-      $protDbh->do("UPDATE complete_proteomes c ".
-                    "SET num_proteins= ( SELECT count( distinct r.pfamseq_acc) ".
-                    "FROM proteome_regions r ".
-                    "WHERE r.auto_proteome=c.auto_proteome)") ;
-                    
-      $protDbh->do("UPDATE complete_proteomes c SET total_seqs_covered = ( ".
-                    "SELECT count( distinct r.pfamseq_acc) FROM proteome_regions r ".
-                    "WHERE r.auto_proteome=c.auto_proteome)") ;
+        my $arrayref_s = $st_seqs_covered->fetchall_arrayref;
+        my $arrayref_a = $st_aa_covered->fetchall_arrayref;
+        my $arrayref_t = $st_aa_tot->fetchall_arrayref;
+        my $seq_coverage = 0;
+        if ($arrayref_p->[0]->[0] > 0 && $arrayref_s->[0]->[0]){
+            $seq_coverage = 100*($arrayref_s->[0]->[0]/$arrayref_p->[0]->[0]);
+        }
+        my $aa_coverage = 0;
+        if ($arrayref_t->[0]->[0] > 0 && $arrayref_a->[0]->[0]){
+            $aa_coverage = 100*($arrayref_a->[0]->[0]/$arrayref_t->[0]->[0]);  
+        }
 
-      $protDbh->do("UPDATE complete_proteomes SET ".
-                    "sequence_coverage = ((total_seqs_covered/total_genome_proteins)*100)");
-      $protDbh->do("UPDATE complete_proteomes c ".
-                    "SET total_aa_length=( ".
-                    "SELECT sum(length) ".
-                    "FROM proteome_pfamseq p , pfamseq s ".
-                    "WHERE s.pfamseq_acc=p.pfamseq_acc ".
-                    "AND p.auto_proteome=c.auto_proteome)");
-                    
-      $protDbh->do("UPDATE complete_proteomes c SET total_aa_covered=( ".
-                    "SELECT sum(seq_end - seq_start + 1) ".
-                    "FROM proteome_pfamseq p, pfamA_reg_full_significant s ".
-                    "WHERE s.pfamseq_acc=p.pfamseq_acc ". 
-                    "AND p.auto_proteome=c.auto_proteome and in_full=1)");
-                    
-      $protDbh->do("UPDATE complete_proteomes ".
-                   "SET residue_coverage = ((total_aa_covered/total_aa_length)*100)");
-      
-      $protDbh->do("DELETE FROM complete_proteomes WHERE num_proteins=0");
-      
-      $proteomeView->touchStatus('updateProteomeStats');
-    }
- 
-    #no need to do this as grouping calculated at sequence update time   
-    if(! $proteomeView->statusCheck('updateProteomeGrp')){
-      my @rs = $proteomeView->pfamdb
-                              ->getSchema
-                                ->resultset('Taxonomy')
-                                  ->search({ rank => 'superkingdom' });
-      my $sth = $protDbh->prepare("UPDATE complete_proteomes c, taxonomy t ".
-                                    "SET grouping=? ".
-                                    "WHERE c.ncbi_taxid=t.ncbi_taxid and t.lft> ? and t.rgt< ? ");
-      foreach my $row (@rs){
-        $sth->execute($row->level, $row->lft, $row->rgt);
+        $proteomeView->pfamdb->getSchema->resultset('CompleteProteome')->update_or_create(
+            {
+                auto_proteome => $autoprot,
+                num_total_regions => $arrayref_r->[0]->[0],
+                num_proteins => $arrayref_p->[0]->[0],
+                total_seqs_covered => $arrayref_s->[0]->[0],
+                sequence_coverage => $seq_coverage,
+                total_aa_covered => $arrayref_a->[0]->[0],
+                residue_coverage => $aa_coverage
+            }
+        );
       }
-      my $rs = $proteomeView->pfamdb
-                              ->getSchema
-                                ->resultset('Taxonomy')
-                                  ->search({ grouping => 'NULL' });
-      if($rs->count > 0){
-        $proteomeView->logger->logdie("Some complete_proteomes have grouping of null!");
-      }
-      $proteomeView->touchStatus('updateProteomeGrp');
-    }
-    $proteomeView->touchStatus('doneProteome');
+     $proteomeView->touchStatus('doneProteome');
   }
   
   if(! $proteomeView->statusCheck('doneProteomeTSV')){
