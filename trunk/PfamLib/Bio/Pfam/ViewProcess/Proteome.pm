@@ -123,7 +123,7 @@ sub makeTSV {
 
   #Set up query for retrieving domain info from pfamA_reg_full_significant
   my $st_regions = $dbh->prepare(
-    "SELECT pfamseq_acc, 
+    "SELECT r.pfamseq_acc, 
                                          ali_start, 
                                          ali_end, 
                                          seq_start, 
@@ -133,8 +133,8 @@ sub makeTSV {
                                          model_end, 
                                          domain_bits_score, 
                                          domain_evalue_score 
-                                   FROM pfamA_reg_full_significant
-                                   LEFT JOIN proteome_pfamseq ON proteome_pfamseq.pfamseq_acc=pfamA_reg_full_significant.pfamseq_acc
+                                   FROM pfamA_reg_full_significant as r
+                                   LEFT JOIN proteome_pfamseq as p ON p.pfamseq_acc=r.pfamseq_acc
                                    WHERE auto_proteome = ? 
                                    AND in_full=1"
   ) or $self->logger->logdie( "Failed to prepare statement:" . $dbh->errstr );
@@ -145,7 +145,9 @@ sub makeTSV {
     ->find( { ncbi_taxid => $ncbi_taxid } );
 
   #Set up filehandle for printing
+
   my $outfile = $self->options->{releasedir} . "/proteomes/" . $ncbi_taxid . ".tsv";
+  p($outfile);
   if ( -s "$outfile.gz" ) {
     $self->logger->info(
       "Already done ncbi taxid $ncbi_taxid '" . $proteome->species . "'" );
