@@ -119,7 +119,6 @@ sub updateStorables {
     $nestings->{$pfamA}->{$npfamA}++;
   }
   foreach my $seq (@$modSeqsRef) {
-      p($seq->pfamseq_acc);
       my ( @markups, @motifs, @regions );
     #PfamA region statement
     my $pfamaRegionsRef = $self->pfamdb->getPfamRegionsForSeq( $seq->pfamseq_acc );

@@ -154,14 +154,13 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "-M 3500000 -R  rusage[mem=3500000]'";
-  my $memory = 3500000;  
+  my $resource = "-M 3500 -R  rusage[mem=3500]";
+  my $memory = 3500;  
   my $fh = IO::File->new();
 
   my $options = '';
   $options .= ' -upload ' if ($self->upload);
-  $options .= " -evalue ".$self->evalThres;;
-
+  $options .= " -evalue ".$self->evalThres;
   $fh->open( "| bsub -q $queue  ".$resource." -o ".
               $self->options->{statusdir}."/hhsearch.\%J.\%I.log  -JHHsearch\"[1-$noJobs]\"");
   $fh->print( "performHHsearch.pl $options -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
@@ -169,7 +168,8 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    #TODO - change sleep back to 600 when testing all done
+    sleep(60);
   }
 }
 
@@ -337,6 +337,7 @@ sub uploadResult {
 #  1 PF10000                        100.0 2.2E-43 1.8E-47  216.0   0.0   72    1-72      1-72  (72)
 #  2 PF00717                         78.9     0.2 1.6E-05   26.5   0.0   16   12-27      5-20  (70)
 #  3 PF09866                         64.0    0.79 6.5E-05   23.6   0.0   14   17-30      1-14  (42)
+
       my @r = split(/\s+/, $_);
       my $pfam_acc = $r[2];
       next if($pfam_acc eq $pfamRow->pfama_acc); #Do not stor self self matches
