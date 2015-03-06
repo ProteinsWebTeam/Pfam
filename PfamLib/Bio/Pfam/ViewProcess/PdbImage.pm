@@ -632,7 +632,7 @@ sub _produce_render_file {
   my ($self, $pdb, $tempDir) = @_;
   chdir($tempDir);
   my $error;
-  system("molscript -in pov$pdb.in -out pov$pdb.out")
+  system("molscript -povray -y < pov$pdb.in > pov$pdb.out")
     and ( $self->logger->warn("failed to render for $pdb") and $error = 1 );
 
   if ($error) {
@@ -648,9 +648,17 @@ sub _produce_render_file {
 
 sub _render_image {
   my ($self, $pdb, $tempDir) = @_;
+
+  p($tempDir);
   chdir($tempDir);
  
   #Finally make the png image
+  print "povray +Ipov" 
+      . $pdb
+      . ".out +O"
+      . $tempDir . "/"
+      . $pdb
+      . ".png +W640 +H640 -D +UA +FN +A0.5\n";
   system( "povray +Ipov" 
       . $pdb
       . ".out +O"
@@ -665,7 +673,6 @@ sub _render_image {
       . $pdb
       . ".sml.png +W200 +H200 -D +UA +FN +A0.5" ) == 0
     or warn "Error generating small image for $pdb";
-
   my ( $smlpng, $bigpng );
   open( PNG, "$tempDir/$pdb.png" );
   while (<PNG>) {
