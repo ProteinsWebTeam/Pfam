@@ -240,8 +240,7 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    #TODO - change sleep back to 600 when testing done
-    sleep(60);
+    sleep(600);
   }
 }
 
