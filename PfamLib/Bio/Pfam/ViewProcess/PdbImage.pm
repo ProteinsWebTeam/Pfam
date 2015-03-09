@@ -268,8 +268,8 @@ sub submitToFarm {
   
   #Now submit the jobs
   my $queue = 'production-rh6';
-  my $resource = "rusage[mem=2500]";
-  my $memory = 2500;
+  my $resource = "rusage[mem=7500]";
+  my $memory = 7500;
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue -M $memory -R $resource -o ".
               $self->options->{statusdir}."/pdb.\%J.\%I.log  -JPDBImg\"[1-$noJobs]\"");
@@ -278,7 +278,7 @@ sub submitToFarm {
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(60);
+    sleep(600);
   }
 }
 
