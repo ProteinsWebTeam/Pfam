@@ -155,12 +155,14 @@ sub updateSeqRange {
     $self->pfamdb->getSchema->txn_begin;
     my $nextCurrentSeq =
       ( $currentSeq + 1000 ) > $rangeTo ? $rangeTo : $currentSeq + 1000;
+      $nextCurrentSeq = $nextCurrentSeq - 1;
+    my $offset = $currentSeq -1;
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
-    my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
-        {}, { rows => $chunkSize, page => $chunk}     
+        my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
+        {}, { rows => 1000, offset => $offset}     
     );
 
-    $currentSeq = $nextCurrentSeq;
+    $currentSeq = $nextCurrentSeq +1;
     $self->updateArchitectures( \@seqsRS );
     $self->pfamdb->getSchema->txn_commit;
   }
