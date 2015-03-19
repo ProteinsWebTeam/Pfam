@@ -187,31 +187,35 @@ $logger->info("Got relnotes and userman");
 
 my ( $numSeqs, $numRes );
 
-if ( -e $logDir . "/pfamseqSize" ) {
-  open( S, $logDir . "/pfamseqSize" )
-    or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
-  while (<S>) {
-    $numSeqs = $1 if (/sequences\: (\d+)/);
-    $numRes  = $1 if (/residues\: (\d+)/);
-  }
-  close(S);
-  $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
-}
-
-foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
-  unless ( -s "$thisRelDir/$f.gz" ) {
-    if ( $f eq 'pfamseq' ) {
-      ( $numSeqs, $numRes ) = checkPfamseqSize( $updateDir, $pfamDB );
-      open( N, ">" . $logDir . "/pfamseqSize" )
-        or die "Could not open $logDir/pfamseqSize:[$!]";
-      print N "sequences: $numSeqs\n";
-      print N "residues: $numRes\n";
-      close(N);
-
+unless ( -e "$logDir/checkedseqsize" ){
+    if ( -e $logDir . "/pfamseqSize" ) {
+     open( S, $logDir . "/pfamseqSize" )
+      or $logger->logdie("Could not open $logDir./pfamseqSize:[$!]");
+     while (<S>) {
+      $numSeqs = $1 if (/sequences\: (\d+)/);
+     $numRes  = $1 if (/residues\: (\d+)/);
+     }
+    close(S);
+    $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
     }
-    $logger->info("Fetching the the sequence files");
-    getPfamseqFiles( $thisRelDir, $updateDir );
-  }
+
+    foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
+     unless ( -s "$thisRelDir/$f.gz" ) {
+      if ( $f eq 'pfamseq' ) {
+       ( $numSeqs, $numRes ) = checkPfamseqSize( $updateDir, $pfamDB );
+          open( N, ">" . $logDir . "/pfamseqSize" )
+           or die "Could not open $logDir/pfamseqSize:[$!]";
+         print N "sequences: $numSeqs\n";
+         print N "residues: $numRes\n";
+          close(N);
+
+     }
+     $logger->info("Fetching the the sequence files");
+     getPfamseqFiles( $thisRelDir, $updateDir );
+     }
+    }
+
+    touch("$logDir/checkedseqsize");
 }
 
 #unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
