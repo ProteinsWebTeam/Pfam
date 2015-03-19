@@ -692,7 +692,7 @@ sub getTxtFiles {
       $logger->debug("Fetching $f\n");
       my $req =
         HTTP::Request->new(
-        GET => "ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/$f" );
+        GET => "ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/$f" );
       my $res = $ua->request($req);
 
       # Check the outcome of the response
