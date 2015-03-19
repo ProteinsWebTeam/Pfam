@@ -226,19 +226,19 @@ unless ( -e "$logDir/checkedA" ) {
   }
 }
 
-unless ( -s "$thisRelDir/Pfam-B" and -s "$thisRelDir/Pfam-B.fasta" ) {
-  $logger->logdie(
-"Cannot find the Pfam-B files (Pfam-B and Pfam-B.fasta), which should be in the update directoru\n"
-  );
-}
+#unless ( -s "$thisRelDir/Pfam-B" and -s "$thisRelDir/Pfam-B.fasta" ) {
+#  $logger->logdie(
+#"Cannot find the Pfam-B files (Pfam-B and Pfam-B.fasta), which should be in the update directoru\n"
+#  );
+#}
 
-unless ( -e "$logDir/checkedB" ) {
-  foreach my $f ("$thisRelDir/Pfam-B") {
-    $logger->info("Checking format of $f");
-    checkflat_b($f);
-    touch("$logDir/checkedB");
-  }
-}
+#unless ( -e "$logDir/checkedB" ) {
+#  foreach my $f ("$thisRelDir/Pfam-B") {
+#    $logger->info("Checking format of $f");
+#    checkflat_b($f);
+#    touch("$logDir/checkedB");
+#  }
+#}
 
 #Make the stats for the release
 unless ( -s "$thisRelDir/stats.txt" ) {
@@ -325,17 +325,18 @@ unless ( -s "$thisRelDir/diff" ) {
 }
 $logger->info("Made diff file.");
 
-unless ( -s "$thisRelDir/Pfam-B.hmm" ) {
-  $logger->info("Making Pfam-B.hmm");
-  &makePfamBHmms("$thisRelDir");
-}
-
-$logger->info("Made Pfam-B.hmm and Pfam-B.hmm.dat");
+#unless ( -s "$thisRelDir/Pfam-B.hmm" ) {
+#  $logger->info("Making Pfam-B.hmm");
+#  &makePfamBHmms("$thisRelDir");
+#}
+#
+#$logger->info("Made Pfam-B.hmm and Pfam-B.hmm.dat");
 
 my $pwd = cwd;
 
 #Index the fasta files!
-foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
+#foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
+my $f = 'Pfam-A.fasta';
   unless ( -s "$thisRelDir/$f.00.phr" or -s "$thisRelDir/$f.phr" ) {
     chdir("$thisRelDir")
       || $logger->logdie("Could not change into $thisRelDir:[$!]");
@@ -345,7 +346,7 @@ foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
     chdir("$pwd") || $logger->logdie("Could not change into $pwd:[$!]");
   }
   $logger->info("Indexed $f");
-}
+#}
 
 #Make the Pfam-C file......
 unless ( -s "$thisRelDir/Pfam-C" ) {
@@ -367,7 +368,7 @@ unless ( -e "$logDir/updatedClans" ) {
     "Error updating clan architecture counts: " . $dbh->errstr );
   $logger->info("Updating number of structures");
   $dbh->do(
-"UPDATE clans c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.auto_clan=c.auto_clan and m.auto_pfamA=r.auto_pfamA);"
+"UPDATE clans c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.auto_clan=c.auto_clan and m.pfamA_acc=r.pfamA_acc);"
     )
     or
     $logger->logdie( "Error updating clan structure counts: " . $dbh->errstr );
@@ -409,7 +410,7 @@ $logger->info("Made site search xml");
 unless ( -e "$thisRelDir/pdbmap" ) {
   $logger->info("Making pdbmap");
   $dbh->do(
-'select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a, pfamseq s where s.auto_pfamseq=r.auto_pfamseq and a.auto_pfamA=r.auto_pfamA into outfile "/tmp/pdbmap"'
+'select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(a.pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a and a.pfamA_acc=r.pfamA_acc into outfile "/tmp/pdbmap"'
   ) or $logger->logdie( "Failed to make pdbmap:" . $dbh->errstr );
   system(
     "scp " . $config->pfamliveAdmin->{host} . ":/tmp/pdbmap " . $thisRelDir )
@@ -432,9 +433,9 @@ unless ( -e "$thisRelDir/Pfam.version" ) {
 
 unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   $logger->info("Making Pfam-A.regions.tsv");
-  $dbh->do( "select pfamseq_acc, seq_version, crc64, md5, pfamA_acc,"
+  $dbh->do( "select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc,"
       . " seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s "
-      . " where s.auto_pfamseq=r.auto_pfamseq and a.auto_pfamA=r.auto_pfamA and in_full=1"
+      . " where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1"
       . "  into outfile '/tmp/Pfam-A.regions.$$.tsv'" )
     or $logger->logdie( "Failed to make Pfam-A.regions.tsv:" . $dbh->errstr );
   system( "scp "
@@ -448,7 +449,7 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
   $logger->info("Making Pfam-A.clans.tsv");
   $dbh->do( "select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
-      . " from pfamA a  left join clan_membership m on a.auto_pfamA=m.auto_pfamA "
+      . " from pfamA a  left join clan_membership m on a.pfamA_acc=m.pfamA_acc "
       . "left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/Pfam-A.clans.$$.tsv'"
   ) or $logger->logdie( "Failied to  make PfamA-.clans.tsv:" . $dbh->errstr );
   system( "scp "
@@ -562,12 +563,12 @@ sub makePfamAScanFile {
     or $logger->logdie("Could not open $releasedir/Pfam-A.scan.dat:[$!]");
 
   my @AllFamData =
-    $pfamDB->getSchema->resultset("Pfama")
+    $pfamDB->getSchema->resultset("PfamA")
     ->search( undef, { order_by => \'me.pfama_id ASC' } );
 
-  my %auto2id;
+  my %acc2id;
   foreach my $fam (@AllFamData) {
-    $auto2id{ $fam->auto_pfama } = $fam->pfama_id;
+    $acc2id{ $fam->pfama_acc } = $fam->pfama_id;
   }
 
   foreach my $fam (@AllFamData) {
@@ -582,16 +583,16 @@ sub makePfamAScanFile {
     print PFAMSCAN "#=GF ML   " . $fam->model_length . "\n";
 
     my @nested =
-      $pfamDB->getSchema->resultset("NestedLocations")
-      ->search( { "auto_pfama" => $fam->auto_pfama } );
+      $pfamDB->getSchema->resultset("NestedLocation")
+      ->search( { "pfama_acc" => $fam->pfama_acc } );
 
     foreach my $n (@nested) {
-      my $nested_id = $auto2id{ $n->nested_auto_pfama };
+      my $nested_id = $acc2id{ $n->nested_pfama_acc };
       print PFAMSCAN "#=GF NE   $nested_id\n";
     }
 
     my $clan = $pfamDB->getSchema->resultset("ClanMembership")->find(
-      { auto_pfama => $fam->auto_pfama },
+      { pfama_acc => $fam->pfama_acc },
       {
         join     => [qw/auto_clan/],
         prefetch => [qw/auto_clan/]
@@ -609,7 +610,7 @@ sub makeActiveSiteDat {
   my ( $releaseDir, $pfamDB ) = @_;
 
   my @allData =
-    $pfamDB->getSchema->resultset("ActiveSiteAlignments")
+    $pfamDB->getSchema->resultset("ActiveSiteAlignment")
     ->search( {}, { join => [qw(pfama)] } );
 
   my $file = $releaseDir . "/active_site.dat";
@@ -758,7 +759,7 @@ sub makePfamAFlat {
 
   #Get a list of all families
   my @families =
-    $pfamDB->getSchema->resultset('Pfama')
+    $pfamDB->getSchema->resultset('PfamA')
     ->search( {}, { order_by => 'pfama_id ASC' } );
   $logger->info(
     "There will be " . scalar(@families) . " families in this release" );
@@ -767,7 +768,7 @@ sub makePfamAFlat {
   makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
   makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
   makePfamAHMMs( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.hmm");
-  foreach my $level (qw(rp15 rp35 rp55 rp75)) {
+  foreach my $level (qw(rp15 rp35 rp55 rp75 ref_proteome)) {
     makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
   }
   makePfamANcbi( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.ncbi");
@@ -796,20 +797,20 @@ sub makePfamAFlatSeed {
 #How many regions do we expect according to pfamA_reg_seed, pfamA and the number so sequences in the
 #file.
     my $seedCount =
-      $pfamDB->getSchema->resultset('PfamaRegSeed')
-      ->search( { auto_pfama => $family->auto_pfama } );
+      $pfamDB->getSchema->resultset('PfamARegSeed')
+      ->search( { pfama_acc => $family->pfama_acc } );
     $logger->info( "Getting seed files for " . $family->pfama_id );
 
 #------------------------------------------------------------------------------------
     ## THE SEED ALIGNMENT ##
-    my $row = $pfamDB->getSchema->resultset('AlignmentsAndTrees')->find(
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         type       => 'seed'
       }
     );
 
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
 
       #$acc, $type, $row, $outfile, $exptCount, $dbCount
       my $stoErrors =
@@ -982,9 +983,9 @@ sub makePfamAFlatFull {
 
     #Get the number of expected regions from pfamA_reg_full
     my $fullCount =
-      $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search(
+      $pfamDB->getSchema->resultset('PfamARegFullSignificant')->search(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         in_full    => 1
       }
       );
@@ -992,14 +993,14 @@ sub makePfamAFlatFull {
 
 #------------------------------------------------------------------------------------
     ## THE FULL ALIGNMENT ##
-    my $row = $pfamDB->getSchema->resultset('AlignmentsAndTrees')->find(
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         type       => 'full'
       }
     );
 
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
 
       #$acc, $type, $row, $outfile, $exptCount, $dbCount
       my $stoErrors =
@@ -1057,11 +1058,11 @@ sub makePfamAFasta {
 
     #Get the fasta file
     my $row =
-      $pfamDB->getSchema->resultset('PfamaFasta')
-      ->find( { auto_pfama => $family->auto_pfama } );
+      $pfamDB->getSchema->resultset('PfamAFasta')
+      ->find( { pfama_acc => $family->pfama_acc } );
 
     #Check we have a row.
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
       $logger->info("Checking FASTA file");
       my $fa = Compress::Zlib::memGunzip( $row->fasta );
 
@@ -1110,11 +1111,11 @@ sub makePfamAHMMs {
 
     #Grab the hmm row
     my $row =
-      $pfamDB->getSchema->resultset('PfamaHmm')
-      ->find( { auto_pfama => $family->auto_pfama } );
+      $pfamDB->getSchema->resultset('PfamAHmm')
+      ->find( { pfama_acc => $family->pfama_acc } );
 
     #Check that we have found a row
-    unless ( $row and $row->auto_pfama ) {
+    unless ( $row and $row->pfama_acc ) {
       $logger->logdie( "Could not find the row in the pfamA_HMM_ls table for "
           . $family->pfama_id );
     }
@@ -1158,14 +1159,14 @@ sub makePfamAFlatRP {
 
 #------------------------------------------------------------------------------------
     ## THE FULL ALIGNMENT ##
-    my $row = $pfamDB->getSchema->resultset('AlignmentsAndTrees')->find(
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         type       => $level
       }
     );
 
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
 
       #$acc, $type, $row, $outfile, $exptCount, $dbCount
       my $stoErrors =
@@ -1220,14 +1221,14 @@ sub makePfamAMeta {
     next
       if ( !defined( $family->number_meta ) or $family->number_meta == 0 );
 
-    my $row = $pfamDB->getSchema->resultset('AlignmentsAndTrees')->find(
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         type       => 'meta'
       }
     );
 
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
 
       #Okay, looks like we have an alignment
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
@@ -1275,14 +1276,14 @@ my ( $thisRelDir, $pfamDB, $families ) = @_;
     next
       if ( !defined( $family->number_ncbi ) or $family->number_ncbi == 0 );
 
-    my $row = $pfamDB->getSchema->resultset('AlignmentsAndTrees')->find(
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
       {
-        auto_pfama => $family->auto_pfama,
+        pfama_acc => $family->pfama_acc,
         type       => 'ncbi'
       }
     );
 
-    if ( $row and $row->auto_pfama ) {
+    if ( $row and $row->pfama_acc ) {
 
       #Okay, looks like we have an alignment
       my $ali = Compress::Zlib::memGunzip( $row->alignment );
@@ -1344,24 +1345,24 @@ sub checkflat {
 ##########################################################
 # Checks flatfile format, exits at first sign of trouble #
 ##########################################################
-sub checkflat_b {
-  my $file = shift;
-  $logger->info("Checking format for $file");
-  my $error;
-  open( F, "checkflat_pfamB.pl $file |" )
-    or $logger->logdie("Failed to run checkflat_pfamB.pl:[$!]");
-  while (<F>) {
-    if (/\S+/) {
-      $logger->warn("ERROR with $file:[$_]");
-      $error = 1;
-    }
-  }
-  close F;
-
-  if ($error) {
-    $logger->logdie("Error in $file.");
-  }
-}
+#sub checkflat_b {
+#  my $file = shift;
+#  $logger->info("Checking format for $file");
+#  my $error;
+#  open( F, "checkflat_pfamB.pl $file |" )
+#    or $logger->logdie("Failed to run checkflat_pfamB.pl:[$!]");
+#  while (<F>) {
+#    if (/\S+/) {
+#      $logger->warn("ERROR with $file:[$_]");
+#      $error = 1;
+#    }
+#  }
+#  close F;
+#
+#  if ($error) {
+#    $logger->logdie("Error in $file.");
+# }
+#}
 ##################
 # Make swisspfam #
 ##################
@@ -1480,108 +1481,108 @@ sub make_ftp {
   #TODO copy whole dir tree to the ftp site.
 }
 
-sub makePfamBHmms {
-  my ($dir) = @_;
-
-  unless ( $dir and -d $dir ) {
-    $logger->logdie("Could not find the releases directory");
-  }
-
-  $logger->debug("Making Pfam-B.hmm");
-
-  unless ( $dir . "/Pfam-B" ) {
-    $logger->logdie("Could not find the Pfam-B hmms");
-  }
-
-  open( B, $dir . "/Pfam-B" )
-    or $logger->logdie("Could not open Pfam-B:[$!]");
-
-  #open( B2, ">" . $dir . "/Pfam-B.top20000" )
-  #  or $logger->logdie("Could not open Pfam-B.top20000:[$!]");
-
-  #$/ = "//";
-  #while (<B>) {
-  #  print B2 $_;
-  #  if (/#=GF ID   Pfam-B_(\d+)/) {
-  #    if ( $1 == 20000 ) {
-  #      print B2 "\n";
-  #      close(B2);
-  #      last;
-  #    }
-  #  }
-  #}
-  close(B);
-
-  #$/ = "\n";
-
-  #system($config->hmmer3bin."/hmmbuild $dir/Pfam-B.hmm.a $dir/Pfam-B.top20000")
-  # and $logger->logdie("Failed to run hmmbuild:[$!]");
-
-  $logger->debug("Making Pfam-B.hmm.dat");
-
-  unless ( $dir . "/Pfam-B.hmm" ) {
-    $logger->logdie("Could not find the Pfam-B hmms");
-  }
-
-  open( S, ">" . $dir . "/Pfam-B.hmm.dat" )
-    or $logger->logdie(
-    "Could not open the scan data dir in the release directory:[$!]");
-
-  open( H, $dir . "/Pfam-B.hmm" )
-    or $logger->logdie(
-    "Could not open the hmm file in the release directory:[$!]");
-
-  my @data;
-  $/ = "//";
-  while (<H>) {
-
-    $/ = "\n";
-    my @f = split( /\n/, $_ );
-
-    #NAME  Pfam-B_1
-    #ACC   PB000001
-    #LENG  251
-    my ( $name, $acc, $length );
-    foreach my $l (@f) {
-      if ( $l =~ /^NAME\s+(\S+)/ ) {
-        $name = $1;
-      }
-      elsif ( $l =~ /^ACC\s+(\S+)/ ) {
-        $acc = $1;
-      }
-      elsif ( $l =~ /LENG\s+(\d+)/ ) {
-        $length = $1;
-        last;
-      }
-    }
-    if ($name) {
-      push( @data, { name => $name, acc => $acc, leng => $length } );
-    }
-    $/ = "//";
-  }
-
-  $/ = "\n";
-  foreach my $d (@data) {
-    print S "# STOCKHOLM 1.0\n";
-    print S "#=GF ID   " . $d->{name} . "\n";
-    print S "#=GF AC   " . $d->{acc} . "\n";
-    print S "#=GF ML   " . $d->{leng} . "\n";
-    print S "//\n";
-  }
-
-  close(S);
-
-  #Press and convert the files.
-  $logger->debug("Making Pfam-B.hmm.bin");
-
-  system( $config->hmmer3bin . "/hmmpress -f $dir/Pfam-B.hmm" )
-    and $logger->logdie("Failed to run hmmpress:[$!]");
-
-  system( $config->hmmer3bin
-      . "/hmmconvert -b $dir/Pfam-B.hmm > $dir/Pfam-B.hmm.bin " )
-    and $logger->logdie("Failed to run hmmconvert:[$!]");
-
-}
+#sub makePfamBHmms {
+#  my ($dir) = @_;
+#
+#  unless ( $dir and -d $dir ) {
+#    $logger->logdie("Could not find the releases directory");
+#  }
+#
+#  $logger->debug("Making Pfam-B.hmm");
+#
+#  unless ( $dir . "/Pfam-B" ) {
+#    $logger->logdie("Could not find the Pfam-B hmms");
+#  }
+#
+#  open( B, $dir . "/Pfam-B" )
+#    or $logger->logdie("Could not open Pfam-B:[$!]");
+#
+#  #open( B2, ">" . $dir . "/Pfam-B.top20000" )
+#  #  or $logger->logdie("Could not open Pfam-B.top20000:[$!]");
+#
+#  #$/ = "//";
+#  #while (<B>) {
+#  #  print B2 $_;
+#  #  if (/#=GF ID   Pfam-B_(\d+)/) {
+#  #    if ( $1 == 20000 ) {
+#  #      print B2 "\n";
+#  #      close(B2);
+#  #      last;
+#  #    }
+#  #  }
+#  #}
+#  close(B);
+#
+#  #$/ = "\n";
+#
+#  #system($config->hmmer3bin."/hmmbuild $dir/Pfam-B.hmm.a $dir/Pfam-B.top20000")
+#  # and $logger->logdie("Failed to run hmmbuild:[$!]");
+#
+#  $logger->debug("Making Pfam-B.hmm.dat");
+#
+#  unless ( $dir . "/Pfam-B.hmm" ) {
+#    $logger->logdie("Could not find the Pfam-B hmms");
+#  }
+#
+#  open( S, ">" . $dir . "/Pfam-B.hmm.dat" )
+#    or $logger->logdie(
+#    "Could not open the scan data dir in the release directory:[$!]");
+#
+#  open( H, $dir . "/Pfam-B.hmm" )
+#    or $logger->logdie(
+#    "Could not open the hmm file in the release directory:[$!]");
+#
+#  my @data;
+#  $/ = "//";
+#  while (<H>) {
+#
+#    $/ = "\n";
+#    my @f = split( /\n/, $_ );
+#
+#    #NAME  Pfam-B_1
+#    #ACC   PB000001
+#    #LENG  251
+#    my ( $name, $acc, $length );
+#    foreach my $l (@f) {
+#      if ( $l =~ /^NAME\s+(\S+)/ ) {
+#        $name = $1;
+#      }
+#      elsif ( $l =~ /^ACC\s+(\S+)/ ) {
+#        $acc = $1;
+#      }
+#      elsif ( $l =~ /LENG\s+(\d+)/ ) {
+#        $length = $1;
+#        last;
+#      }
+#    }
+#    if ($name) {
+#      push( @data, { name => $name, acc => $acc, leng => $length } );
+#    }
+#    $/ = "//";
+#  }
+#
+#  $/ = "\n";
+#  foreach my $d (@data) {
+#    print S "# STOCKHOLM 1.0\n";
+#    print S "#=GF ID   " . $d->{name} . "\n";
+#    print S "#=GF AC   " . $d->{acc} . "\n";
+#    print S "#=GF ML   " . $d->{leng} . "\n";
+#    print S "//\n";
+#  }
+#
+#  close(S);
+#
+#  #Press and convert the files.
+#  $logger->debug("Making Pfam-B.hmm.bin");
+#
+#  system( $config->hmmer3bin . "/hmmpress -f $dir/Pfam-B.hmm" )
+#    and $logger->logdie("Failed to run hmmpress:[$!]");
+#
+#  system( $config->hmmer3bin
+#      . "/hmmconvert -b $dir/Pfam-B.hmm > $dir/Pfam-B.hmm.bin " )
+#    and $logger->logdie("Failed to run hmmconvert:[$!]");
+#
+#}
 
 sub help {
   print <<EOF;
