@@ -10,6 +10,7 @@ use LWP::UserAgent;
 use Log::Log4perl qw(:easy);
 use DateTime;
 use File::Touch;
+use DDP;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamJobsDBManager;
@@ -1192,7 +1193,13 @@ sub makePfamAFlatRP {
       );
     }
 
+    my $num = $family->$col;
+
     if ( $family->$col <= 5000 ) {
+
+        #TODO - 2 lines below added to solve cases where num full > 5000 but num in rp alignment <5000 so no html align at present - may need removing along with end of block } below.
+        my $length = length(Compress::Zlib::memGunzip( $row->jtml ) );
+        if ($length){
 
       unless ( length( Compress::Zlib::memGunzip( $row->jtml ) ) > 10 ) {
         $logger->warn('The html file has no size');
@@ -1206,6 +1213,7 @@ sub makePfamAFlatRP {
         );
       }
     }
+    } #end of if $length
 
   }
   close($PFAMARP);
