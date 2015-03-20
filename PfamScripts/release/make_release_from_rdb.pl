@@ -617,7 +617,7 @@ sub makeActiveSiteDat {
 
   my @allData =
     $pfamDB->getSchema->resultset("ActiveSiteAlignment")
-    ->search( {}, { join => [qw(pfama)] } );
+    ->search( {}, { join => [qw(pfama_acc)] } );
 
   my $file = $releaseDir . "/active_site.dat";
   open( FH, ">$file" ) or die "Couldn't open $file $!";
