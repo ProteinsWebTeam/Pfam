@@ -58,15 +58,15 @@ print STDERR "done\n";
 print STDERR "Retrieving data from current_pfam_version...";
 my @current = $pfamDB->getSchema
                       ->resultset('CurrentPfamVersion')
-                      ->search({}, join => 'auto_pfama');
+                      ->search({}, join => 'pfama_acc');
 my (%current, %pfamA);;
 foreach my $row (@current) {
-    $current{$row->get_column('auto_pfama')}{'seed'}=$row->seed;
-    $current{$row->get_column('auto_pfama')}{'align'}=$row->align;
-    $current{$row->get_column('auto_pfama')}{'desc'}=$row->desc_file;
-    $current{$row->get_column('auto_pfama')}{'hmm'}=$row->hmm;
-    $current{$row->get_column('auto_pfama')}{'pfamA_id'}=$row->pfama_id;
-    $current{$row->get_column('auto_pfama')}{'pfamA_acc'}=$row->pfama_acc .".". $row->version;
+    $current{$row->get_column('pfama_acc')}{'seed'}=$row->seed;
+    $current{$row->get_column('pfama_acc')}{'align'}=$row->align;
+    $current{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
+    $current{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
+    $current{$row->get_column('pfama_acc')}{'pfamA_id'}=$row->pfama_id;
+    $current{$row->get_column('pfama_acc')}{'pfamA_acc'}=$row->pfama_acc .".". $row->version;
     $pfamA{$row->pfama_acc}= $row->pfama_id;
 }
 print STDERR "done\n";
@@ -78,10 +78,10 @@ my @released = $pfamDB->getSchema
                       ->search({},);
 my %released;
 foreach my $row (@released) {
-    $released{$row->get_column('auto_pfama')}{'seed'}=$row->seed;
-    $released{$row->get_column('auto_pfama')}{'align'}=$row->align;
-    $released{$row->get_column('auto_pfama')}{'desc'}=$row->desc_file;
-    $released{$row->get_column('auto_pfama')}{'hmm'}=$row->hmm;
+    $released{$row->get_column('pfama_acc')}{'seed'}=$row->seed;
+    $released{$row->get_column('pfama_acc')}{'align'}=$row->align;
+    $released{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
+    $released{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
 }
 foreach my $auto (keys %current) {
 
@@ -128,6 +128,8 @@ foreach my $pfamA (keys %old) {
 }
 print STDERR "done\n";
 
+print "!!!!!!!!!!!!!!\n\n";
+
 exit;
 
 print STDERR "Deleting old data from released_pfam_version...";
@@ -138,7 +140,7 @@ print STDERR "done\n";
 
 
 print STDERR "Downloading data from current_pfam_version...";
-my $download = $dbh->prepare("select c.auto_pfamA, seed, align, desc_file, hmm, version into outfile '/tmp/current.dat' from pfamA as a, current_pfam_version as c where a.auto_pfamA = c.auto_pfamA");
+my $download = $dbh->prepare("select c.pfamA_acc, seed, align, desc_file, hmm, version into outfile '/tmp/current.dat' from pfamA as a, current_pfam_version as c where a.pfamA_acc = c.apfamA_acc");
 $download->execute() or die "Failed download from current_pfam_data ".$download->errstr."\n";
 print STDERR "done\n";
 
