@@ -246,6 +246,10 @@ unless ( -e "$logDir/checkedA" ) {
 #}
 
 #Make the stats for the release
+
+#TODO - remove the two lines below - is a fudge to use on test db
+#$numSeqs = 80369284;
+#$numRes = 13400254486;
 unless ( -s "$thisRelDir/stats.txt" ) {
   unless ( $numSeqs and $numRes ) {
     $logger->logdie(
@@ -546,10 +550,10 @@ sub makeStats {
   my ( $releasedir, $num_seqs, $num_res ) = @_;
   $logger->info("Making stats.\n");
   system(
-"flatfile_stats.pl $releasedir/Pfam-A.full $releasedir/Pfam-B $num_seqs $num_res > $releasedir/stats.txt"
+"flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt"
     )
     and $logger->logdie(
-"Failed to run flatfile_stats.pl $releasedir/Pfam-A.full $releasedir/Pfam-B:[$!]"
+"Failed to run flatfile_stats.pl $releasedir/Pfam-A.full[$!]"
     );
   if ( -s "$releasedir/stats.txt" ) {
     $logger->info("Made stats");
@@ -598,13 +602,10 @@ sub makePfamAScanFile {
 
     my $clan = $pfamDB->getSchema->resultset("ClanMembership")->find(
       { pfama_acc => $fam->pfama_acc },
-      {
-        join     => [qw/auto_clan/],
-        prefetch => [qw/auto_clan/]
-      }
     );
+    
     if ($clan) {
-      print PFAMSCAN "#=GF CL   " . $clan->auto_clan->clan_acc . "\n";
+      print PFAMSCAN "#=GF CL   " . $clan->clan_acc->clan_acc . "\n";
     }
     print PFAMSCAN "//\n";
   }
