@@ -19,7 +19,7 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
 
 my @dead = $pfamDB->getSchema
-                      ->resultset('DeadFamilies')
+                      ->resultset('DeadFamily')
                       ->search({},);
 
 foreach my $row (@dead) {
