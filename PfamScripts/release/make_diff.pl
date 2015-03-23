@@ -9,6 +9,7 @@ use warnings;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Getopt::Long;
+use DDP;
 
 
 my $config = Bio::Pfam::Config->new;
@@ -57,17 +58,18 @@ print STDERR "done\n";
 
 print STDERR "Retrieving data from current_pfam_version...";
 my @current = $pfamDB->getSchema
-                      ->resultset('CurrentPfamVersion')
-                      ->search({}, join => 'pfama_acc');
-my (%current, %pfamA);;
+                      ->resultset('CurrentPfamVersion') 
+                      ->search({}, {join => 'pfama_acc'});
+my (%current, %pfamA);
 foreach my $row (@current) {
     $current{$row->get_column('pfama_acc')}{'seed'}=$row->seed;
     $current{$row->get_column('pfama_acc')}{'align'}=$row->align;
     $current{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
     $current{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
-    $current{$row->get_column('pfama_acc')}{'pfamA_id'}=$row->pfama_id;
-    $current{$row->get_column('pfama_acc')}{'pfamA_acc'}=$row->pfama_acc .".". $row->version;
-    $pfamA{$row->pfama_acc}= $row->pfama_id;
+    $current{$row->get_column('pfama_acc')}{'pfamA_id'}=$row->pfama_acc->pfama_id;
+    $current{$row->get_column('pfama_acc')}{'pfamA_acc'}=$row->pfama_acc .".". $row->pfama_acc->version;
+    $pfamA{$row->pfama_acc->pfama_acc}= $row->pfama_acc->pfama_id;
+
 }
 print STDERR "done\n";
 
@@ -104,10 +106,8 @@ foreach my $auto (keys %current) {
 	    $c = "NOCHANGE";
 	}
 	print sprintf ("%2s  %-11s  %-17s  %-30s \n", "FI", $current{$auto}{'pfamA_acc'}, $current{$auto}{'pfamA_id'}, $c);
-
     }
 }
-
 
 
 foreach my $auto (keys %current) {
@@ -128,9 +128,7 @@ foreach my $pfamA (keys %old) {
 }
 print STDERR "done\n";
 
-print "!!!!!!!!!!!!!!\n\n";
-
-exit;
+#exit;
 
 print STDERR "Deleting old data from released_pfam_version...";
 my $dbh = $pfamDB->getSchema->storage->dbh;
@@ -139,13 +137,7 @@ $delete->execute() or die "Failed to delete old data from released_pfam_version 
 print STDERR "done\n";
 
 
-print STDERR "Downloading data from current_pfam_version...";
-my $download = $dbh->prepare("select c.pfamA_acc, seed, align, desc_file, hmm, version into outfile '/tmp/current.dat' from pfamA as a, current_pfam_version as c where a.pfamA_acc = c.apfamA_acc");
-$download->execute() or die "Failed download from current_pfam_data ".$download->errstr."\n";
+print STDERR "Updating released_pfam_version\n";
+my $update = $dbh->prepare("INSERT INTO released_pfam_version \(pfamA_acc, seed, align, desc_file, hmm, version\) SELECT c.pfamA_acc, seed, align, desc_file, hmm, version FROM pfamA as a, current_pfam_version as c WHERE a.pfamA_acc = c.pfamA_acc") or die "Can't prepare statement\n";
+$update->execute() or die "Failed to update released_pfam_version\n".$update->errstr."\n";
 print STDERR "done\n";
-
-
-print STERR "Uploading data to released_pfam_data\n";
-my $upload = $dbh->prepare("load data infile '/tmp/current.dat' into table released_pfam_versions");
-$upload->execute() or die "Failed to upload data into released_pfam_data ".$upload->errstr."\n";
-print STERR "done\n";
