@@ -390,6 +390,7 @@ unless ( -e "$logDir/updatedClans" ) {
 }
 $logger->info("Updated clans table");
 
+#sections below hashed out as ncbi and metaseq tables don't exist so these can't be run
 #unless ( -s "$thisRelDir/metaseq.stats" ) {
 #  $logger->info("Caclculating metaseq coverage stats");
 #  chdir("$thisRelDir")
@@ -420,12 +421,25 @@ $logger->info("Made site search xml");
 
 unless ( -e "$thisRelDir/pdbmap" ) {
   $logger->info("Making pdbmap");
-  $dbh->do(
-'select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(a.pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a and a.pfamA_acc=r.pfamA_acc into outfile "/tmp/pdbmap"'
-  ) or $logger->logdie( "Failed to make pdbmap:" . $dbh->errstr );
-  system(
-    "scp " . $config->pfamliveAdmin->{host} . ":/tmp/pdbmap " . $thisRelDir )
-    and $logger->logdie("Failed to run scp.");
+
+#print "select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc";
+#exit;
+  my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
+  $stpdb->execute() or die "Can't executre statement\n";
+  my $arrayref = $stpdb->fetchall_arrayref();
+#  p($arrayref);
+#  exit;
+    open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
+   foreach my$row (@$arrayref){
+       print PDBFILE $row->[0] . $row->[1] . $row->[2] . $row->[3] . $row->[4] . $row->[5] . $row->[6] . "\n";
+   }
+   close PDBFILE;
+#  $dbh->do(
+#'select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(a.pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a and a.pfamA_acc=r.pfamA_acc into outfile "/tmp/pdbmap"'
+#  ) or $logger->logdie( "Failed to make pdbmap:" . $dbh->errstr );
+#  system(
+#    "scp " . $config->pfamliveAdmin->{host} . ":/tmp/pdbmap " . $thisRelDir )
+#    and $logger->logdie("Failed to run scp.");
 }
 
 unless ( -e "$thisRelDir/Pfam.version" ) {
