@@ -422,24 +422,14 @@ $logger->info("Made site search xml");
 unless ( -e "$thisRelDir/pdbmap" ) {
   $logger->info("Making pdbmap");
 
-#print "select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc";
-#exit;
   my $stpdb= $dbh->prepare("select concat\(pdb_id, \";\"\), concat\(chain, \";\"\), concat\(pdb_res_start, pdb_start_icode, \"-\", pdb_res_end, pdb_end_icode, \";\"\), concat\(pfamA_id, \";\"\), concat\(a.pfamA_acc, \";\"\), concat\(pfamseq_acc, \";\"\), concat\(seq_start, \"-\", seq_end, \";\"\) from pdb_pfamA_reg r, pfamA a where a.pfamA_acc=r.pfamA_acc") or die "Can't prepare statement\n";
   $stpdb->execute() or die "Can't executre statement\n";
   my $arrayref = $stpdb->fetchall_arrayref();
-#  p($arrayref);
-#  exit;
     open (PDBFILE, ">$thisRelDir/pdbmap") or die "Can't open file to write\n";
    foreach my$row (@$arrayref){
-       print PDBFILE $row->[0] . $row->[1] . $row->[2] . $row->[3] . $row->[4] . $row->[5] . $row->[6] . "\n";
+       print PDBFILE $row->[0] . "\t" . $row->[1] . "\t" . $row->[2] . "\t" . $row->[3] . "\t" . $row->[4] . "\t" . $row->[5] . "\t" . $row->[6] . "\n";
    }
    close PDBFILE;
-#  $dbh->do(
-#'select concat(pdb_id, ";"), concat(chain, ";"), concat(pdb_res_start, pdb_start_icode, "-", pdb_res_end, pdb_end_icode, ";"), concat(pfamA_id, ";"), concat(a.pfamA_acc, ";"), concat(pfamseq_acc, ";"), concat(seq_start, "-", seq_end, ";") from pdb_pfamA_reg r, pfamA a and a.pfamA_acc=r.pfamA_acc into outfile "/tmp/pdbmap"'
-#  ) or $logger->logdie( "Failed to make pdbmap:" . $dbh->errstr );
-#  system(
-#    "scp " . $config->pfamliveAdmin->{host} . ":/tmp/pdbmap " . $thisRelDir )
-#    and $logger->logdie("Failed to run scp.");
 }
 
 unless ( -e "$thisRelDir/Pfam.version" ) {
@@ -458,17 +448,14 @@ unless ( -e "$thisRelDir/Pfam.version" ) {
 
 unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   $logger->info("Making Pfam-A.regions.tsv");
-  $dbh->do( "select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc,"
-      . " seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s "
-      . " where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1"
-      . "  into outfile '/tmp/Pfam-A.regions.$$.tsv'" )
-    or $logger->logdie( "Failed to make Pfam-A.regions.tsv:" . $dbh->errstr );
-  system( "scp "
-      . $config->pfamliveAdmin->{host}
-      . ":/tmp/Pfam-A.regions.$$.tsv "
-      . $thisRelDir
-      . "/Pfam-A.regions.tsv" )
-    and $logger->logdie("Failed to run scp.");
+ p($pfamDB);
+  my $host = $pfamDB->{host};
+  my $user = $pfamDB->{user};
+  my $password = $pfamDB->{password};
+  my $port = $pfamDB->{port};
+  my $db = $pfamDB->{database};
+  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc, seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
+ system($cmd) and die "Couldn't execute $cmd\n"; 
 }
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
