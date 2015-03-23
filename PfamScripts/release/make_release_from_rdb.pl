@@ -469,16 +469,6 @@ unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
    }
    close CLFILE;
 
-#  $dbh->do( "select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
-#      . " from pfamA a  left join clan_membership m on a.pfamA_acc=m.pfamA_acc "
-#      . "left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/Pfam-A.clans.$$.tsv'"
-#  ) or $logger->logdie( "Failied to  make PfamA-.clans.tsv:" . $dbh->errstr );
-#  system( "scp "
-#      . $config->pfamliveAdmin->{host}
-#      . ":/tmp/Pfam-A.clans.$$.tsv "
-#      . $thisRelDir
-#      . "/Pfam-A.clans.tsv" )
-#    and $logger->logdie("Failed to run scp.");
 }
 
 unless ( -s "$thisRelDir/swisspfam" ) {
@@ -1409,8 +1399,9 @@ sub makeSwissPfam {
     "Going to needlessly waste some more time and run swisspfam_start_ends.pl"
   );
   system(
-"swisspfam_start_ends.pl $pfamseqdir/pfamseq.len $releasedir/Pfam-A.full $releasedir/Pfam-B > $releasedir/sw-pf"
+"swisspfam_start_ends.pl $pfamseqdir/pfamseq.len $releasedir/Pfam-A.full > $releasedir/sw-pf"
   ) and $logger->logdie("Failed to run swusspfam_start_ends.pl\n");
+
 
   if ( !-s "$releasedir/sw-pf" ) {
     $logger->logdie( "No $releasedir/sw-pf file made!\n", 'die' );
@@ -1437,10 +1428,6 @@ sub make_ftp {
   my @list = qw(
     active_site.dat
     diff
-    metapfam
-    metaseq
-    ncbi
-    ncbipfam
     pdbmap
     Pfam-A.dead
     Pfam-A.fasta
@@ -1450,10 +1437,6 @@ sub make_ftp {
     Pfam-A.hmm.dat
     Pfam-A.hmm
     Pfam-A.seed
-    Pfam-B.fasta
-    Pfam-B
-    Pfam-B.hmm.dat
-    Pfam-B.hmm
     Pfam-C
     pfamseq
     relnotes.txt
