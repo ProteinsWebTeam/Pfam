@@ -448,7 +448,6 @@ unless ( -e "$thisRelDir/Pfam.version" ) {
 
 unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   $logger->info("Making Pfam-A.regions.tsv");
- p($pfamDB);
   my $host = $pfamDB->{host};
   my $user = $pfamDB->{user};
   my $password = $pfamDB->{password};
@@ -460,16 +459,26 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
   $logger->info("Making Pfam-A.clans.tsv");
-  $dbh->do( "select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
-      . " from pfamA a  left join clan_membership m on a.pfamA_acc=m.pfamA_acc "
-      . "left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/Pfam-A.clans.$$.tsv'"
-  ) or $logger->logdie( "Failied to  make PfamA-.clans.tsv:" . $dbh->errstr );
-  system( "scp "
-      . $config->pfamliveAdmin->{host}
-      . ":/tmp/Pfam-A.clans.$$.tsv "
-      . $thisRelDir
-      . "/Pfam-A.clans.tsv" )
-    and $logger->logdie("Failed to run scp.");
+
+  my $stcl = $dbh->prepare("select a.pfamA_acc, m.clan_acc, clan_id, pfamA_id, description from pfamA a left join clan_membership m on a.pfamA_acc=m.pfamA_acc left join clan c on m.clan_acc=c.clan_acc ") or die "Can't prepare statement\n";
+    $stcl->execute() or die "Can't executre statement\n";
+  my $arrayref = $stcl->fetchall_arrayref();
+    open (CLFILE, ">$thisRelDir/Pfam-A.clans.tsv") or die "Can't open file to write\n";
+   foreach my$row (@$arrayref){
+       print CLFILE $row->[0] . "\t" . $row->[1] . "\t" . $row->[2] . "\t" . $row->[3] . "\t" . $row->[4] . "\n";
+   }
+   close CLFILE;
+
+#  $dbh->do( "select pfamA_acc, clan_acc, clan_id, pfamA_id, description"
+#      . " from pfamA a  left join clan_membership m on a.pfamA_acc=m.pfamA_acc "
+#      . "left join clans c on m.auto_clan=c.auto_clan into outfile '/tmp/Pfam-A.clans.$$.tsv'"
+#  ) or $logger->logdie( "Failied to  make PfamA-.clans.tsv:" . $dbh->errstr );
+#  system( "scp "
+#      . $config->pfamliveAdmin->{host}
+#      . ":/tmp/Pfam-A.clans.$$.tsv "
+#      . $thisRelDir
+#      . "/Pfam-A.clans.tsv" )
+#    and $logger->logdie("Failed to run scp.");
 }
 
 unless ( -s "$thisRelDir/swisspfam" ) {
