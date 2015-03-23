@@ -328,6 +328,8 @@ unless ( -s "$thisRelDir/diff" ) {
   $logger->info("Making diff file");
   my $archive = $config->archiveLoc;
   $archive .= "/$old_major.$old_point/diff.gz";
+#  print "make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff";
+#  exit;
   system(
 "make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff"
   ) and $logger->logdie("Could not run make_diff.pl:[$!]");
@@ -371,13 +373,13 @@ unless ( -e "$logDir/updatedClans" ) {
   $logger->info("Updating clan information");
   $logger->info("Updating number if architectures");
   $dbh->do(
-"UPDATE clans c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a  WHERE c.auto_clan=a.auto_clan);"
+"UPDATE clan c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a  WHERE c.clan_acc=a.clan_acc);"
     )
     or $logger->logdie(
     "Error updating clan architecture counts: " . $dbh->errstr );
   $logger->info("Updating number of structures");
   $dbh->do(
-"UPDATE clans c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.auto_clan=c.auto_clan and m.pfamA_acc=r.pfamA_acc);"
+"UPDATE clan c SET number_structures =( select count(DISTINCT pdb_id, chain) from pdb_pfamA_reg r, clan_membership m where m.clan_acc=c.clan_acc and m.pfamA_acc=r.pfamA_acc);"
     )
     or
     $logger->logdie( "Error updating clan structure counts: " . $dbh->errstr );
@@ -388,23 +390,23 @@ unless ( -e "$logDir/updatedClans" ) {
 }
 $logger->info("Updated clans table");
 
-unless ( -s "$thisRelDir/metaseq.stats" ) {
-  $logger->info("Caclculating metaseq coverage stats");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
-  system("calculate_coverage.pl -meta > metaseq.stats ")
-    and $logger->logdie("Could not run calculate coverage:[$!]");
-  chdir($pwd);
-}
-
-unless ( -s "$thisRelDir/ncbi.stats" ) {
-  $logger->info("Caclculating ncbi coverage stats");
-  chdir("$thisRelDir")
-    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
-  system("calculate_coverage.pl -ncbi > ncbi.stats ")
-    and $logger->logdie("Could not run calculate coverage:[$!]");
-  chdir($pwd);
-}
+#unless ( -s "$thisRelDir/metaseq.stats" ) {
+#  $logger->info("Caclculating metaseq coverage stats");
+#  chdir("$thisRelDir")
+#    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+#  system("calculate_coverage.pl -meta > metaseq.stats ")
+#    and $logger->logdie("Could not run calculate coverage:[$!]");
+#  chdir($pwd);
+#}
+#
+#unless ( -s "$thisRelDir/ncbi.stats" ) {
+#  $logger->info("Caclculating ncbi coverage stats");
+#  chdir("$thisRelDir")
+#    or $logger->logdie("Could not chdir into $thisRelDir:[$!]");
+#  system("calculate_coverage.pl -ncbi > ncbi.stats ")
+#    and $logger->logdie("Could not run calculate coverage:[$!]");
+#  chdir($pwd);
+#}
 
 unless ( -e "$thisRelDir/PfamFamily.xml.gz" ) {
   $logger->info("Making site search xml");
