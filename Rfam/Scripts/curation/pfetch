@@ -1,0 +1,175 @@
+#!/usr/bin/perl
+############################################
+# PFETCH CLIENT
+# Tony Cox 13-08-2002
+# 15-Jan-07 (hrh) transition to cbi3
+# Altered to use web frontend pfetch.sanger.ac.uk
+############################################
+
+use strict;
+use IO::Socket;
+use Getopt::Long;
+use Sys::Hostname;
+
+unless ($ARGV[0]) {
+  $ARGV[0] = '-h';
+}
+
+select(STDOUT);
+$| = 1;
+my $HOSTNAME = hostname();
+my $DEBUG    = 0;
+my $VERSION  = 5.10;
+my @TMP      = @ARGV;        # save a copy of ARGV...
+my %opt      = ();
+
+my $PORT = 22400;
+my $HOST = "pfetch.sanger.ac.uk";    # zeus front end load balancer
+
+my $ET_PORT = 22200;                 # for pfetch external trace server on seq1s
+my $ET_HOST = "172.17.77.16";        # connecting to the external trace archive on seq1s
+
+my $IT_PORT = 22100;                 # for pfetch internal trace server on seq1s
+my $IT_HOST = "172.17.77.16";        # connecting to the internal trace server on seq1s
+
+&Getopt::Long::config('no_ignore_case', 'bundling');
+my $res = &GetOptions(
+  \%opt,
+  'd=s',                             # DB index
+  's=i',                             # start
+  'e=i',                             # end
+  'a:f',                             # EMBL archive
+  'A',                               # EMBL archive
+  'D',                               # DE line (description)
+  'F',                               # file display
+
+  # Result modification options
+  'l',                               # length
+  'q',                               # plain sequence (quick)
+  'r',                               # revcomp the sequence
+  'n=s',                             # set this name for result
+  'C',                               # set case of DNA result
+  'head=i',
+  'tail=i',
+  'ends',
+
+  # Utility options
+  'client=s',                        # name of requesting client
+  'md5',                             # MD5 hexdigest of sequence
+  'V',                               # version
+  'v',                               # verbose
+  'S',                               # status
+  'i',                               # interactive client shell
+  'h|H',                             # help
+
+  # Ensembl options
+  'listasm',                         # list available assemblies
+  'assembly|asm=s',                  # use this assembly
+  'repeatmask',                      # mask chr gp dna sequences
+
+  # PDB options
+  'pdb',                             # pdb file retrieval     (old file format, pre 01-Aug-07)
+  'dssp',                            # dssp calculations     (based on old file format, pre 01-Aug-07)
+  'old_pdb',                         # pdb file retrieval     (old file format, pre 01-Aug-07)
+  'old_dssp',                        # dssp calculations     (based on old file format, pre 01-Aug-07)
+  'new_pdb',                         # pdb file retrieval
+  'new_dssp',                        # dssp calculations
+  ## External Trace Archive option
+  't',                               # using trace archive server for a traceid
+  'Q',                               # quality id
+  'c',                               # clip trace
+  'seq',
+  'fastq',
+  'qual',
+  'info',
+
+  #    'clip',
+  'scf',
+  'ztr',
+  'tar',
+  'nogz-scf',
+  ## Internal Trace Repository options
+  'T',                               # use internal trace repository
+  'status',                          # trace status
+  'clip:s',                          # quality/vector clip traces
+  'G|group:s',                       # fetch sequences by group ID
+  'glist:s',                         # fetch trace ID list by group ID
+  'gstatus:s',                       # fetch group status
+  'N',                               # fetch count by group ID
+
+);
+
+if ($res != 1) {
+  die "[Pfetch error] bad or missing parameter. (-h for help).\n";
+}
+
+if ($opt{'client'}) {
+  push(@TMP, "--client $opt{'client'}");
+}
+else {
+  push(@TMP, "--client $HOSTNAME");
+}
+
+$SIG{ALRM} = sub {print "Server timeout\n"; exit;};
+
+if ($opt{'i'}) {
+  print "Sorry, the interactive version of pfetch is no longer supported\n";
+  exit;
+}
+else {
+  my $request = join(' ', @TMP);
+  alarm(300);
+  my $s;
+  $s = create_socket();
+  print $s "$request\n";
+  while (<$s>) {
+    my $line = $_;
+    print $line;
+  }
+  close($s);
+}
+
+1;
+
+######################################################################################
+sub create_socket {
+  my $s;
+  my $server;
+  print "HOSTNAME:$HOSTNAME\n" if ($DEBUG);
+  if ($opt{'T'}) {
+    $HOST = $IT_HOST;
+    $PORT = $IT_PORT;
+    print STDERR "Warning: fetching from internal trace server....\n" if ($DEBUG);
+  }
+  elsif ($opt{'t'}) {
+    $HOST = $ET_HOST;
+    $PORT = $ET_PORT;
+    print STDERR "Warning: fetching from external trace server....\n" if ($DEBUG);
+  }
+  elsif ($opt{'A'} || defined $opt{'a'}) {    # 'a' will be give a zero value if no argument!!
+    print STDERR "Warning: fetching from EMBL archive server....\n" if ($DEBUG);
+  }
+  else {
+    print STDERR "Warning: fetching a non-trace....\n" if ($DEBUG);
+  }
+
+  $s = IO::Socket::INET->new(
+    PeerAddr => $HOST,
+    PeerPort => $PORT,
+    Proto    => 'tcp',
+    Type     => SOCK_STREAM,
+    Timeout  => 10,
+  );
+  $server = $HOST;
+  if ($s) {
+    $s->autoflush(1);
+    $server = $HOST;
+  }
+  else {
+    print STDERR "Warning: pfetch server on $server unreachable.\n" if ($DEBUG);
+  }
+
+  unless ($s) {die "No available pfetch servers!\n";}
+  print "Connected to $server\n" if ($DEBUG);
+  return ($s);
+}
