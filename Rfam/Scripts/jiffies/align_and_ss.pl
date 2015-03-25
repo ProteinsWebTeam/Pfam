@@ -70,7 +70,7 @@ foreach my $alimeth (keys %align_meth){
     foreach my $ssmeth (keys %ss_meth){
 	my $outfile_ss = $dir . $infile . "_" . $align_meth{$alimeth} . "_" . $ss_meth{$ssmeth} . ".sto";
 	print STDERR "\tPredicting structure with $ss_meth{$ssmeth}....\n";
-	system ("/nfs/production/xfam/rfam/production_software/rfam_production/Rfam/Scripts/jiffies/predict_ss.pl -infile $outfile_ali -outfile $outfile_ss -$ssmeth") and die "Cannot predict secondary structure for $outfile_ali with $ssmeth$!\n";
+	system ("/nfs/production/xfam/rfam/production_software/rfam_production/Rfam/Scripts/curation/predict_ss.pl -infile $outfile_ali -outfile $outfile_ss -$ssmeth") and die "Cannot predict secondary structure for $outfile_ali with $ssmeth$!\n";
     }
 
 }
