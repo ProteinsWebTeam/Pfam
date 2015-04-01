@@ -1185,7 +1185,20 @@ sub checkOverlaps {
     die "Did not get passed in a Bio::Rfam::Family object\n";
   }
 
-  my $rfamdb = $config->rfamlive;
+    my $rfamdb = $config->rfamlive;
+
+
+#is the family part of a clan?
+    if ($familyObj->DESC->CL) {
+        my $clan = $familyObj->DESC->CL;
+#get clan membership and add members to ignore hash        
+        my @rs = $rfamdb->resultset('ClanMembership')->search( { clan_acc => $clan });
+        foreach my $row (@rs){
+            my $rfam_acc = $row->rfam_acc->rfam_acc;
+            $ignore->{$rfam_acc}=1;
+        }
+    }  
+
   open(my $OVERLAP, '>', "$famPath/overlap") 
     or die "Could not open $famPath/overlap:[$!]\n";
 
