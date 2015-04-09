@@ -15,6 +15,8 @@ use Bio::Pfam::Sequence::Motif;
 use Bio::Pfam::Sequence::Markup;
 use Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
 use DDP;
+use Cwd;
+use File::Slurp;
 
 extends 'Bio::Pfam::ViewProcess::Architecture';
 
@@ -23,11 +25,32 @@ has '+statusFile' => (
 );
 
 sub submitToFarm {
-  my ($self, $noJobs) = @_;
-  
-  my $rs = $self->pfamdb->getSchema->resultset('Pfamseq')->search({});
-  my $count = $rs->count;
-  my $chunkSize = ceil($count/$noJobs);
+  my ($self) = @_;
+ 
+#first get database dump and split it if it doesn't already exist
+  my $dbh = $self->pfamdb->getSchema->storage->dbh; 
+  my $host = $self->pfamdb->{host};
+  my $user = $self->pfamdb->{user};
+  my $pass = $self->pfamdb->{password};
+  my $port = $self->pfamdb->{port};
+  my $db = $self->pfamdb->{database};
+  unless (-s "pfamseq_dump_store"){
+  $self->logger->debug("Getting pfamseq data from database");
+  my $cmd = "mysql -h $host -u $user -p$pass -P $port $db --quick -e \"select pfamseq_acc, pfamseq_id, sequence, species, ncbi_taxid, description, length from pfamseq\" > pfamseq_dump_store";
+  system($cmd) and $self->logger->logdie("Could not obtain data from pfamseq");
+  system("split -d -l 1000000 pfamseq_dump_store pfamseq_dump_store_") and $self->logger->logdie("Could not split pfamseq_dump_store");
+  }
+
+  #get number of jobs
+  my $dir = getcwd;
+  my $noJobs = 0;
+  my @files = read_dir($dir);
+  foreach my $file (@files){
+    if ( $file =~ /pfamseq_dump_store_\d+/ ){
+        $noJobs++;
+    }
+  }
+  $self->logger->debug("Submitting $noJobs storable farm jobs");
   
   #Now submit the jobs
   my $queue = 'production-rh6';
@@ -35,58 +58,62 @@ sub submitToFarm {
   my $memory = 2500;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
-              $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%70\"");
-  $fh->print( "makeStorables.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -statusdir ".$self->options->{statusdir}."\n");
+              $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%41\"");
+  $fh->print( "makeStorables.pl -chunk \$\{LSB_JOBINDEX\} -statusdir ".$self->options->{statusdir}."\n");
+
   $fh->close;
   $self->logger->debug("Status is:".$self->statusFile."\n");
   while(! $self->statusCheck($self->statusFile, $noJobs)){
     $self->logger->info('Waiting for jobs to complete.');
-    sleep(600);
+    sleep(60);
   }
 }
 
 sub updateSeqRange {
   my( $self ) = @_;
   my $chunk = $self->options->{chunk};
-  my $chunkSize = $self->options->{chunkSize};
-  $self->touchStatus($self->statusFile.".$chunk");
-  open(S, '+<', $self->options->{statusdir}.'/'.$self->statusFile.".$chunk") or 
-      $self->logger->logdie("Could not open status file:[$!]"); 
-  my $rangeFrom = ( ( $chunk - 1 ) * $chunkSize ) + 1;
-  while(<S>){
-    chomp;
-    if(/\d+/ and ($rangeFrom < $_)){
-        $rangeFrom = $_;
+
+  #if chunk <10 need to add a zero so correct input file is found, also files start at 0 not 1 so decrement chunk size
+  $chunk--;
+  if ($chunk < 10){
+    $chunk = 0 . $chunk;
+  }
+
+  #parse file
+  my %pfamseq;
+  my $file = 'pfamseq_dump_store_' . $chunk;
+  $self->logger->debug("Working on file $file");
+  my @lines = read_file($file);
+
+ foreach my $line (@lines){
+    my @data = split(/\t+/, $line);
+    my $seq = $data[0];
+ #skip header (applies to first file only)
+    if ($seq eq 'pfamseq_acc'){
+        next;
     }
+    my $acc = $data[0];
+    my $id = $data[1];
+    my $sequence = $data[2];
+    my $species = $data[3];
+    my $taxid = $data[4];
+    my $de = $data[5];
+    my $len = $data[6];
+    $pfamseq{$acc}{'id'}=$id;
+    $pfamseq{$acc}{'seq'}=$sequence;
+    $pfamseq{$acc}{'species'}=$species;
+    $pfamseq{$acc}{'taxid'}=$taxid;
+    $pfamseq{$acc}{'description'}=$de;
+    $pfamseq{$acc}{'length'}=$len;
+
   }
-  
-  my $rangeTo   = ( ($chunk) * $chunkSize );
-  $self->logger->debug(
-    "Building storables in the range of $rangeFrom to $rangeTo.");
-  
-#-------------------------------------------------------------------------------
 
-  my $currentSeq = $rangeFrom;
-  while ( $currentSeq < $rangeTo ) {
-    $self->pfamdb->getSchema->txn_begin;
-    my $nextCurrentSeq =
-      ( $currentSeq + 3000 ) > $rangeTo ? $rangeTo : $currentSeq + 3000;
-    $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
 
-        my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
-        {}, { rows => $chunkSize, page => $chunk}     
-    );
-    $self->updateStorables( \@seqsRS );
-    $self->pfamdb->getSchema->txn_commit;
-    print S "$nextCurrentSeq\n";
-    $currentSeq = $nextCurrentSeq;
-    
-  }
-  print S "$rangeTo\n";
-  close(S);
-  $self->touchStatus($self->statusFile.".$chunk.done");
-}
+    $self->updateStorables( \%pfamseq );
+    $self->touchStatus($self->statusFile.".$chunk.done");
+} #end of update sequence range
 
+#TODO - this will no longer work as updateStorables expects a hash containing all the data from pfamseq
 sub updateSingleFamily {
   my($self) = @_;
   my $pfamA  = $self->pfamdb->getPfamData($self->options->{acc});
@@ -108,23 +135,31 @@ sub updateSingleFamily {
 sub updateStorables {
   my ( $self, $modSeqsRef) = @_;
 
-
   my $nestings;
   foreach my $n ( @{ $self->pfamdb->getAllNestedDomains } ) {
     my $npfamA =
-      $self->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $n->nests_pfama_acc } )
+      $self->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $n->nests_pfama_acc->pfama_acc } )
       ->pfama_acc;
+
     my $pfamA = $n->pfama_acc->pfama_acc;
     $nestings->{$pfamA}->{$npfamA}++;
   }
-  foreach my $seq (@$modSeqsRef) {
+  foreach my $acc (keys %$modSeqsRef){
+      my $id = $modSeqsRef->{$acc}{'id'};
+      my $sequence = $modSeqsRef->{$acc}{'seq'};
+      my $species = $modSeqsRef->{$acc}{'species'};
+      my $taxid = $modSeqsRef->{$acc}{'taxid'};
+      my $description = $modSeqsRef->{$acc}{'description'};
+      my $length = $modSeqsRef->{$acc}{'length'};
+      chomp $length;
       my ( @markups, @motifs, @regions );
+
     #PfamA region statement
-    my $pfamaRegionsRef = $self->pfamdb->getPfamRegionsForSeq( $seq->pfamseq_acc );
+    my $pfamaRegionsRef = $self->pfamdb->getPfamRegionsForSeq( $acc );
+
     if(defined($pfamaRegionsRef) and ref($pfamaRegionsRef) eq 'ARRAY'){
     for ( my $i = 0 ; $i < scalar @$pfamaRegionsRef ; $i++ ) {
 
-      #for ( my $i = 0 ; $i < 2 ; $i++ ) {
       my $region = $pfamaRegionsRef->[$i];
       $self->logger->debug( $region->pfama_acc->pfama_acc . "/"
           . $region->seq_start . "-"
@@ -229,39 +264,11 @@ sub updateStorables {
       }
     }
   }
-  #TODO - section below hashed out as table doesn't exist - double check that we don't need this before deleting it
-  #Context regions
-#    my $contextRegRef = $self->pfamdb->getContextRegionsForSeq( $seq->pfamseq_acc );
-#    foreach my $region (@$contextRegRef) {
-#      $self->logger->debug( $region->pfama_acc . "/"
-#          . $region->seq_start . "-"
-#          . $region->seq_end );
-#      push(
-#        @regions,
-#        Bio::Pfam::Sequence::Region->new(
-#          {
-#            start    => $region->seq_start,
-#            end      => $region->seq_end,
-#            metadata => Bio::Pfam::Sequence::MetaData->new(
-#              {
-#                accession   => $region->pfama_acc,
-#                identifier  => $region->pfama_id,
-#                description => $region->description,
-#                score       => $region->domain_score,
-#                database    => 'pfam',
-#                type        => 'context'
-#              }
-#            ),
-#            type => 'context'
-#          }
-#        )
-#      );
-#    }
-
 #-------------------------------------------------------------------------------
 #Motifs
 #transmembrane regions etc
-    my $otherRegRef = $self->pfamdb->getOtherRegs( $seq->pfamseq_acc );
+    my $otherRegRef = $self->pfamdb->getOtherRegs( $acc );
+
     foreach my $motif (@$otherRegRef) {
       #$self->logger->debug("Found other region");
       push(
@@ -289,37 +296,11 @@ sub updateStorables {
         if ( $motif->orientation and $motif->orientation > 0 );
     }
 
-#TODO - is this still needed? hashed out for now 
-#      my $pfambRegRef = $self->pfamdb->getPfambRegForSeq( $seq->pfamseq_acc );
-#      foreach my $motif (@$pfambRegRef) {
-#        $self->logger->debug("Found Pfam-B region");
-#        push(
-#          @motifs,
-#          Bio::Pfam::Sequence::Motif->new(
-#            {
-#              start    => $motif->seq_start,
-#              end      => $motif->seq_end,
-#              type     => 'pfamb',
-#              metadata => Bio::Pfam::Sequence::MetaData->new(
-#                {
-#                  database   => 'pfam',
-#                  identifier => $motif->pfamb_id,
-#                  accession  => $motif->pfamb_acc,
-#                  start      => $motif->seq_start,
-#                  end        => $motif->seq_end,
-#                  type       => 'Pfam-B'
-#                }
-#              ),
-#            }
-#          )
-#        );
-#      }
-
 #-------------------------------------------------------------------------------
 #Markups
 
     #disulphides
-    my $disulphideRef = $self->pfamdb->getDisulphidesForSeq( $seq->pfamseq_acc );
+    my $disulphideRef = $self->pfamdb->getDisulphidesForSeq( $acc );
     foreach my $ds (@$disulphideRef) {
       $self->logger->debug("Found disulphide");
       if ( $ds->bond_end ) {
@@ -364,7 +345,7 @@ sub updateStorables {
     }
 
     #    #add active site residues + others
-    my $markupRef = $self->pfamdb->getMarkupForSeq( $seq->pfamseq_acc );
+    my $markupRef = $self->pfamdb->getMarkupForSeq( $acc );
     foreach my $markup (@$markupRef) {
       $self->logger->debug("Found markup");
       my $ann = $markup->label;
@@ -374,12 +355,12 @@ sub updateStorables {
         Bio::Pfam::Sequence::Markup->new(
           {
             start    => $markup->residue,
-            residue  => substr( $seq->get_column('sequence'), $markup->residue - 1, 1 ),
+            residue  => substr( $sequence, $markup->residue - 1, 1 ),
             type     => $markup->label,
             metadata => Bio::Pfam::Sequence::MetaData->new(
               {
                 start       => $markup->residue,
-                description => substr( $seq->get_column('sequence'), $markup->residue - 1, 1 )
+                description => substr( $sequence, $markup->residue - 1, 1 )
                   . " "
                   . $ann,
                 database => (
@@ -398,11 +379,11 @@ sub updateStorables {
 #Sequence
     my $meta = Bio::Pfam::Sequence::MetaData->new(
       {
-        organism    => $seq->species,
-        taxid       => $seq->ncbi_taxid,
-        accession   => $seq->pfamseq_acc,
-        identifier  => $seq->pfamseq_id,
-        description => $seq->description,
+        organism    => $species,
+        taxid       => $taxid,
+        accession   => $acc,
+        identifier  => $id,
+        description => $description,
         database    => 'uniprot'
       }
     );
@@ -410,7 +391,7 @@ sub updateStorables {
     my $seqObj = Bio::Pfam::Sequence->new(
       {
         metadata => $meta,
-        length   => $seq->length,
+        length   => $length,
         regions  => \@regions,
         motifs   => \@motifs,
         markups  => \@markups,
@@ -421,7 +402,7 @@ sub updateStorables {
 
     $self->pfamdb->getSchema->resultset('PfamAnnseq')->update_or_create(
       {
-        pfamseq_acc    => $seq->pfamseq_acc,
+        pfamseq_acc    => $acc,
         annseq_storable => $str
       }
     );
