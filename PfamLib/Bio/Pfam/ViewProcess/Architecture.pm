@@ -158,6 +158,9 @@ sub updateSeqRange {
       $nextCurrentSeq = $nextCurrentSeq - 1;
     my $offset = $currentSeq -1;
     $self->logger->debug("Working on $currentSeq to $nextCurrentSeq");
+
+    #this fetches too many rows as the last batch should not be 1000, it should be smaller 
+    #this does mean calculations will be performed more than once for some sequences but this is probably not an issue.
         my @seqsRS = $self->pfamdb->getSchema->resultset('Pfamseq')->search(
         {}, { rows => 1000, offset => $offset}     
     );
@@ -334,8 +337,7 @@ sub _clanArchitecture {
   my $dbh = $self->pfamdb->getSchema->storage->dbh;  
   my $clanArchSth = $dbh->prepare(
  "INSERT INTO clan_architecture (clan_acc, auto_architecture) ".
- " SELECT DISTINCT c.clan_acc, auto_architecture from clan_membership c, pfamA_reg_full_significant r, pfamseq s ".
- " WHERE s.pfamseq_acc=r.pfamseq_acc AND c.pfamA_acc=r.pfamA_acc AND in_full=1 AND c.clan_acc= ? ");
+ " select distinct clan_acc, auto_architecture from clan_membership c, pfamA_architecture p where p.pfamA_acc = c.pfamA_acc and c.clan_acc = ? ");
 
   my $clanUpdateNumArch = $dbh->prepare(
   "UPDATE clan c SET number_archs = (SELECT COUNT(DISTINCT auto_architecture) FROM clan_architecture a ".
