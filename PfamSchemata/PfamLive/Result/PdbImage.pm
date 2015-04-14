@@ -73,5 +73,8 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LxQvoBoxn9si+eR7FxzOLA
 
 
+__PACKAGE__->set_primary_key("pdb_id");
+__PACKAGE__->add_unique_constraint("pdb_id", ["pdb_id"]);
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
