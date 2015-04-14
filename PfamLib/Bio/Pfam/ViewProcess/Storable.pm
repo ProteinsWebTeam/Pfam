@@ -144,6 +144,9 @@ sub updateStorables {
     my $pfamA = $n->pfama_acc->pfama_acc;
     $nestings->{$pfamA}->{$npfamA}++;
   }
+
+  #TODO to rescue it - make a seen hash - pfamseq_accs in pfam_annseq and only do the following unless in seen
+
   foreach my $acc (keys %$modSeqsRef){
       my $id = $modSeqsRef->{$acc}{'id'};
       my $sequence = $modSeqsRef->{$acc}{'seq'};
@@ -406,6 +409,6 @@ sub updateStorables {
         annseq_storable => $str
       }
     );
-  }
+  }#end of loop through each seq
 }
 1;
