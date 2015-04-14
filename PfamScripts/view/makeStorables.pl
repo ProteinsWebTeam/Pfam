@@ -10,8 +10,7 @@ my $view = Bio::Pfam::ViewProcess::Storable->new;
 if ( exists($view->options->{acc}) and defined($view->options->{acc})  ) {
   $view->logger->info("Calculating storables for ".$view->options->{acc});
   $view->updateSingleFamily;
-}elsif(exists($view->options->{chunk}) and exists($view->options->{chunkSize})
-  and defined($view->options->{chunk}) and defined($view->options->{chunkSize}) ){
+}elsif(exists($view->options->{chunk}) and defined($view->options->{chunk}) ){
   $view->updateSeqRange;
 }else{
   die "Incorrect options passed in, try running with --help"; 
