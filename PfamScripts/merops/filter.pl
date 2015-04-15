@@ -149,17 +149,17 @@ foreach my $fam (@families)  {
 
     next if(/^#/);
     my @line = split(/\s+/, $_);
-    my ($hmmer_acc, $evalue, $hmmer_st, $hmmer_en) = ($line[0],$line[12],$line[17],$line[18]);
+    my ($hmmer_acc, $evalue, $hmmer_st, $hmmer_en) = ($line[0],$line[12],$line[19],$line[20]);
     
     my $hmmer_acc_se = "$hmmer_acc/$hmmer_st-$hmmer_en";
 
     if(exists($checkEvalue{$hmmer_acc_se})) {
       $checkEvalue{$hmmer_acc_se}=1;
       if($evalue <= 0.01) {
-	print HOMOLOGUES $alignment{$hmmer_acc_se};
+	      print HOMOLOGUES $alignment{$hmmer_acc_se};
       } 
       else {
-	print ADDITIONAL $alignment{$hmmer_acc_se};
+	      print ADDITIONAL $alignment{$hmmer_acc_se};
       }
     }
   }
