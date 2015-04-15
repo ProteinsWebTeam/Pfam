@@ -26,7 +26,10 @@ my $dbh = DBI->connect("dbi:mysql:database=merops;host=mysql-merops-curation:por
 #Set up queries for family and subfamily levels
 my $st_family = $dbh->prepare("SELECT Name, MERNO, PU, Features.AC, Features.AT, Features.ML, Features.MT, TXMerno FROM Features LEFT JOIN Families ON Features.MERNUM = TXMerno WHERE Features.Family = ? and SeqID=?");   
 my $st_subfamily = $dbh->prepare("SELECT Name, MERNO, PU, Features.AC, Features.AT, Features.ML, Features.MT, TXMerno FROM Features LEFT JOIN Subfamilies ON Features.MERNUM = TXMerno WHERE Features.Subfamily = ? and SeqID=?");
- 
+
+#hmmer bin directory
+my $hmmerBin="/nfs/production/xfam/users/jaina/merops/bin/"; 
+
 #Go through each family and filter based match length and presence of active sites
 foreach my $fam (@families)  {
   print STDERR "Doing $fam\n";
@@ -165,7 +168,7 @@ foreach my $fam (@families)  {
   close HOMOLOGUES;
 
   #Reformat homologue alignment into aligned fasta format
-  system("esl-reformat -o $fam/homologues.afa --gapsym=- afa $fam/homologues.aln"); #Change gap symbol to '-' (raxml requires this)
+  system("$hmmerBin/esl-reformat -o $fam/homologues.afa --gapsym=- afa $fam/homologues.aln"); #Change gap symbol to '-' (raxml requires this)
 
 }
 
