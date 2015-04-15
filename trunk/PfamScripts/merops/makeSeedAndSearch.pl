@@ -18,8 +18,11 @@ my $st_subfam=$dbh->prepare("select domain.code,sequence.sequence_id,start,end,s
 my $st_fam=$dbh->prepare("select domain.code,sequence.sequence_id,start,end,sequence from domain,sequence,code where domain.sequence_id=sequence.sequence_id and domain.code=code.code and holotype='Yes' and code.family=?");
 
 #merops_search location
-my $merops_search = "/nfs/production/xfam/users/jaina/merops/scripts/meropsSearch.pl";
+my $merops_search = "/nfs/production/xfam/pfam/software/Scripts/PfamScripts/merops/meropsSearch.pl";
 die "No $merops_search" unless(-s $merops_search);
+
+#hmmer bin directory
+my $hmmerBin="/nfs/production/xfam/users/jaina/merops/bin";
 
 #Go through each family and make nr seed alignments
 opendir(DIR, $alignmentDir) or die "Couldn't opendir $alignmentDir, $!";
@@ -36,7 +39,7 @@ foreach my $dir (sort grep {  /^\S+\.aln/ } readdir(DIR))  {
     chdir($fam) or die "Couldn't chdir into $fam, $!";
 
     #Reformat the clustal alignment that contains seq from each phyla into pfam format
-    system("esl-reformat --informat clustal pfam $alignmentDir/$fam.aln > seed.tmp") and die "Couldn't run 'esl-reformat --informat clustal afa $alignmentDir/$fam.aln > seed.tmp', $!";
+    system("$hmmerBin/esl-reformat --informat clustal pfam $alignmentDir/$fam.aln > seed.tmp") and die "Couldn't run '$hmmerBin/esl-reformat --informat clustal afa $alignmentDir/$fam.aln > seed.tmp', $!";
     die "Failed to make seed.tmp for $fam" unless(-s "seed.tmp");
  
     #Add co-ordinates to the alignment and remove gaps, then print fasta
