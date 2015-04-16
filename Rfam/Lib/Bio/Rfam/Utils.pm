@@ -94,9 +94,10 @@ sub submit_nonmpi_job {
     if(defined $ncpu && $ncpu > 1) { $batch_opt = "-pe batch $ncpu"; }
     $submit_cmd = "qsub ";
     if(defined $exStr && $exStr ne "") { $submit_cmd .= "$exStr "; }
-    # set -l option specifying a queue, use '-q new.q' unless $queue is defined
+    # set -l option specifying a queue
     if(defined $queue && $queue ne "") { $submit_cmd .= "-l $queue=true "; }
-    else                               { $submit_cmd .= "-q new.q "; }
+#    else                               { $submit_cmd .= "-q new.q "; }
+    else                               { $submit_cmd .= ""; }
     $submit_cmd .= " -N $jobname -o /dev/null -e $errPath $batch_opt -b y -cwd -V \"$cmd\" > /dev/null"; 
   }
   else { 
