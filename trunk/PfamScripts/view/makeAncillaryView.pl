@@ -42,11 +42,17 @@ my $hhsearchView = Bio::Pfam::ViewProcess::HHsearch->new;
 #-------------------------------------------------------------------------------
 # Now update the VERSION table with the number of PfamA
 
-$logger->debug("Updating version table");
-my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
-my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
-$version->update({ number_families => $noPfama }) 
-  if(!$version->number_families || ($version->number_families != $noPfama));
+
+
+if(! $archView->statusCheck('doneVersion')){
+    $logger->debug("Updating version table");
+    my $noPfama = $view->pfamdb->getSchema->resultset('PfamA')->search({})->count;
+    my $version = $view->pfamdb->getSchema->resultset('Version')->find({});
+    $version->update({ number_families => $noPfama }) 
+    if(!$version->number_families || ($version->number_families != $noPfama));
+    $archView->touchStatus('doneVersion');
+
+  }
 
 $logger->debug("Calculating architectures");
 if(exists($archView->options->{acc}) and $archView->options->{acc}){
@@ -63,15 +69,16 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   $archView->logger->info("Calculating architectures for the whole database");
   #Start off with the architecture stuff.
   if(! $archView->statusCheck('doneArch')){
-    #Clear out all of the old data.
-    $archView->clearAllArchitecture;
-    
-    #Submit the architecture calulcations to the farm. This will not return until
-    #all jobs have completed.
-    $archView->submitToFarm(300);
-    #Reset all of the counts in the architecture table and pfamA table
-    $archView->updateAllArchitecture;
-    $archView->touchStatus('doneArch');
+
+      $archView->clearAllArchitecture;
+
+      #WORK IN REWRITTEN ARCH STUFF HERE
+      system("make_Architecture_new_part1.pl") and die $logger->logdie("Can't run make_Architecture_new_part1.pl");
+      #TODO need a proper check for farm jobs that are running
+      $logger->logdie("Wait for all jobs to be run before setting off next stage");
+      system("make_Architecture_new_part3.pl") and die $logger->logdie("Can't run make_Architecture_new_part3.pl");
+
+      $archView->touchStatus('doneArch');
   }
 
   #Update clan architectures
@@ -82,14 +89,16 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $archView->touchStatus('doneClanArch');
   }
 
+
   #Now make the storables.
   if(! $storableView->statusCheck('doneStorables')){
     $logger->debug("Making storables"); 
     #Submit the storables to the farm. This will not return until
     #all jobs have completed.
-    $storableView->submitToFarm(300);
+    $storableView->submitToFarm;
     $storableView->touchStatus('doneStorables');
   }
+
   
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
@@ -99,7 +108,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $pdbImageView->submitToFarm(150);
     $pdbImageView->touchStatus('donePdbImages');
   }
-  
+
   #Now make run the models against the 'other' sequence databases
   if(! $searchView->statusCheck('doneOtherSearches')){
     $logger->debug("Running other searches"); 
@@ -109,7 +118,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $searchView->touchStatus('doneOtherSearches');
   }
 } #end of if exists $archView
- 
  
  
 #All of these steps are affected whether one family is changed or all as they
@@ -145,14 +153,23 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     
       #Update the proteome_architecture, then update the stats
       $protDbh->do("DELETE FROM proteome_architecture");
-      $protDbh->do("INSERT INTO proteome_architecture ".
-                      "SELECT p.auto_proteome, s.auto_architecture, s.pfamseq_acc, count(s.pfamseq_acc) ".
-                      "FROM proteome_pfamseq p, pfamseq s ".
-                      "WHERE s.pfamseq_acc=p.pfamseq_acc ".
-                      "GROUP BY auto_architecture, auto_proteome");
-      
+      my $st_pa1 = $protDbh->prepare("SELECT p.auto_proteome, s.auto_architecture, s.pfamseq_acc, count(s.pfamseq_acc) FROM proteome_pfamseq p, pfamseq s WHERE s.pfamseq_acc=p.pfamseq_acc GROUP BY auto_architecture, auto_proteome") or $logger->logdie("Cannot prepare statement");
+      my $st_pa2 = $protDbh->prepare("INSERT INTO proteome_architecture (auto_proteome, auto_architecture, type_example, no_seqs) VALUES (?, ?, ?, ?)") or $logger->logdie("Cannot prepare statement");
+      $st_pa1->execute;
+      my $arrayref_pa = $st_pa1->fetchall_arrayref();
+      foreach my $row_pa (@$arrayref_pa){
+          my $auto_prot = $row_pa->[0];
+          my $auto_arch = $row_pa->[1];
+          my $acc = $row_pa->[2];
+          my $count = $row_pa->[3];
+          if ($auto_arch){
+            $st_pa2->execute($auto_prot, $auto_arch, $acc, $count)or $logger->logdie("Cannot insert into proteome_architecture"); 
+          }
+      }
+
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
       $proteomeView->touchStatus('updateProteomeArch');
+      $logger->logdie("prot arch");
     }
 
     #not all complete_proteomes are represented in proteome_regions
