@@ -178,7 +178,8 @@ sub makeImages {
     if ( $self->blacklist->{$pdb} ){
       print S "$pdb\tblacklist\n";
     }
-    my $tempDir = tempdir( CLEANUP => 0 );
+    
+    my $tempDir = tempdir( CLEANUP => 1 );
 
     # Fetch the pdb file
     $self->logger->debug("Fetching $pdb");
