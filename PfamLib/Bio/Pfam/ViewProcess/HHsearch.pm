@@ -123,7 +123,7 @@ sub makeHHLib {
   }
   if($self->options->{newlib}){
     $self->logger->debug("Going to make a new hhm formated HMM library");
-    my $tempDir = tempdir( CLEANUP => 0 );
+    my $tempDir = tempdir( CLEANUP => 1 );
     my $newHmmLib = $tempDir."/Pfam-A.hhm";
 
     my @pfamAs = $self->pfamdb->getSchema->resultset('PfamA')->search({});
@@ -212,7 +212,7 @@ sub searchRange {
     }
   }
   my $filenameRes = $self->options->{statusdir}."/$filename.res";
-  my $tempDir = tempdir( CLEANUP => 0 );
+  my $tempDir = tempdir( CLEANUP => 1 );
   chdir($tempDir);
   foreach my $a (@pfamA){
     next if(exists($done{$a->pfama_acc}));
