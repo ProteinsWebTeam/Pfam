@@ -279,7 +279,7 @@ sub searchRange {
     }
   }
   if(!$self->options->{tmpdir}){
-    my $tempDir = tempdir( CLEANUP => 0 );
+    my $tempDir = tempdir( CLEANUP => 1 );
     $self->options->{tmpdir} = $tempDir;
   }
   foreach my $a (@pfamA){
