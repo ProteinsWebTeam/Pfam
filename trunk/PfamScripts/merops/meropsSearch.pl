@@ -11,7 +11,7 @@ my $cpu = 4;
 my $seqDB="/nfs/production/xfam/users/jaina/merops/db/uniprot_trembl_sprot.fasta";
 my $queue="production-rh6";
 my $memory_mb=4000;
-my $evalue=0.1;
+my $evalue=0.01;
 my $dom_se_script="/nfs/production/xfam/pfam/software/Scripts/PfamScripts/merops/dom_se.pl";
 
 #Run hmmbuild
