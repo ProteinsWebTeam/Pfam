@@ -51,7 +51,7 @@ sub runScoop {
    if(!$self->statusCheck("runScoop")){
     open( my $upload, '>', $statusdir."/scoopRes.4upload.txt" )
       or $self->logger->logdie("Failed to open file $statusdir/scoopRes.4upload.txt:[$!]");
-    
+    $self->logger->debug("Running scoop"); 
     $self->scoop($statusdir."/allRegSort.txt", $upload, $statusdir);
     close($upload);
     $self->touchStatus("runScoop");
