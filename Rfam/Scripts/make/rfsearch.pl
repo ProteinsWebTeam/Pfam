@@ -152,11 +152,18 @@ if((! defined $dbfile) && # -dbfile not set
 }
 
 # deal with -nodesc option and check for DESC file
-if($allow_no_desc) { # user wants us to allow no DESC file
+# deal with -nodesc option and check for DESC file
+my $created_desc = 0;  # set to '1' if we create a DESC belowif($allow_no_desc) { # user wants us to allow no DESC file
+if($allow_no_desc || $do_noss) { # user wants us to allow no DESC file, or -noss set
   # make sure there isn't one
-  if(-s "DESC")         { die "ERROR, -nodesc enabled, but a DESC file exists."; }
-  if(! $do_update_desc) { die "ERROR, you can only create a DESC (-nodesc) if you're searching rfamseq\nOtherwise BM, CB, and SM would be invalid in new DESC"; }
-  $io->writeEmptyDESC();
+  if($allow_no_desc) { 
+    if(-s "DESC")         { die "ERROR, -nodesc enabled, but a DESC file exists."; }
+    if(! $do_update_desc) { die "ERROR, you can only create a DESC (-nodesc) if you're searching rfamseq\nOtherwise BM, CB, and SM would be invalid in new DESC"; }
+  }
+  if(! -s "DESC") { 
+    $io->writeEmptyDESC();
+    $created_desc = 1; 
+  }
 }
 elsif(! -s "DESC") { 
   die "ERROR, no DESC file. If you want to create one, use the -nodesc option\n";
@@ -199,12 +206,15 @@ if ((defined $t_opt) && ($do_cutga))      { die "ERROR you can't use both -t and
 # the build step (and not wait til the search step) so we exit early and don't waste 
 # the user's time.
 # if a threshold already exists in SM (-E or -T) and rfsearch.pl -e or -t was used without -ignoresm, then die
-my $desc_searchopts  = strip_default_options_from_sm($desc->{'SM'});
+my $desc_searchopts = undef;
 my $t_sm = undef;
 my $e_sm = undef;
-if($desc_searchopts =~/\s*\-T\s+(\S+)\s+/) { $t_sm = $1; }
-if($desc_searchopts =~/\s*\-E\s+(\S+)\s+/) { $e_sm = $1; }
-if(defined $t_sm && defined $e_sm) { die "ERROR, DESC SM has both -T and -E!"; }
+if(defined $desc->{'SM'}) { 
+  $desc_searchopts = strip_default_options_from_sm($desc->{'SM'});
+  if($desc_searchopts =~/\s*\-T\s+(\S+)\s+/) { $t_sm = $1; }
+  if($desc_searchopts =~/\s*\-E\s+(\S+)\s+/) { $e_sm = $1; }
+  if(defined $t_sm && defined $e_sm) { die "ERROR, DESC SM has both -T and -E!"; }
+}
 
 if(! $ignore_sm) { 
   if(defined $e_opt) { 
@@ -223,7 +233,9 @@ if(! $ignore_sm) {
 # if a threshold DOES NOT exist in SM (-E or -T), then user MUST use -t, -e or -cut_ga
 if((! defined $t_sm) && (! defined $e_sm)) { 
   if((! defined $e_opt) && (! defined $t_opt) && (! $do_cutga)) { 
-    die "ERROR, no threshold set in SM, you must use one of: -t, -e, or -cut_ga"; 
+    if(! $do_noss) { # special exception: we don't do a search in this case
+      die "ERROR, no threshold set in SM, you must use one of: -t, -e, or -cut_ga"; 
+    }
   }
 }
 # make sure that user didn't specify -T, -E, --cut_ga, --cut_tc, --cut_nc with -cmos or -cmod
@@ -252,6 +264,7 @@ if ($do_noss) { # -noss: rewrite SEED's SS_cons as blank
   if(-e "SEED") { copy("SEED", "SEED.$$"); }
   $msa->set_blank_ss_cons;
   $msa->write_msa("SEED");
+  if($created_desc) { unlink "DESC"; } # remove the blank DESC we created so we could run in special -noss mode
   # TODO: update this so, we read SEED back in and keep going, instead of exiting
   Bio::Rfam::Utils::log_output_file_summary_column_headings($logFH, $do_stdout);
   Bio::Rfam::Utils::log_output_file_summary($logFH, "SEED.$$", "copy of old SEED file from before this rfsearch", $do_stdout);
