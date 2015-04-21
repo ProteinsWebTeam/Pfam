@@ -89,15 +89,15 @@ foreach my $fam (@families)  {
 
   printActSites(\%asPattern, $fam, "$fam/activeSite.dat");
 
+  #All sequences in alignment ('ALIGN') have an evalue of <=0.01
   #Filter sequences based on match length
   #If active site data - filter on whether seq contains active site pattern
-  #If no active site data - filter on evalue of 0.01
   #Sequences that do not pass filters go into a file called additionalHits
   #Sequences that pass filter go into a file called homologues
   open(ADDITIONAL, ">$fam/additionalHits") or die "Couldn't open fh to $fam/additionalHits, $!";
   open(HOMOLOGUES, ">$fam/homologues.aln") or die "Couldn't open fh to $fam/homologues.aln, $!";
 
-  #Print seed sequences to homologues 
+  #Print seed sequences to homologues file
   foreach my $acc_se (keys %seed) {
     print HOMOLOGUES $seed{$acc_se};
   }
@@ -134,7 +134,6 @@ foreach my $fam (@families)  {
     }
     else {
       #It's passed the length filter, and there is no active site data
-      #Let's print domains that have E-value <=0.01 to homologues file
       print HOMOLOGUES $alignment{$acc_se}
     }
   }
