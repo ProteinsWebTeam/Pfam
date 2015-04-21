@@ -135,35 +135,9 @@ foreach my $fam (@families)  {
     else {
       #It's passed the length filter, and there is no active site data
       #Let's print domains that have E-value <=0.01 to homologues file
-      
-      $checkEvalue{$acc_se}=$alignment{$acc_se};
+      print HOMOLOGUES $alignment{$acc_se}
     }
   }
- 
-  open(HMMSEARCH, "$fam/hmmsearchTbl") or die "Couldn't open fh to $fam/hmmsearchTbl, $!";
-  while(<HMMSEARCH>) {
-    # #                                                                            --- full sequence --- -------------- this domain -------------   hmm coord   ali coord   env coord
-    # # target name        accession   tlen query name           accession   qlen   E-value  score  bias   #  of  c-Evalue  i-Evalue  score  bias  from    to  from    to  from    to  acc description of target
-    # #------------------- ---------- ----- -------------------- ---------- ----- --------- ------ ----- --- --- --------- --------- ------ ----- ----- ----- ----- ----- ----- ----- ---- ---------------------
-    # G3SV03.1             -            209 SEED                 -            170   2.8e-87  300.5   0.5   1   1   2.6e-92   3.3e-87  300.2   0.5     1   170    42   209    42   209 0.98 G3SV03_LOXAF Uncharacterized protein
-
-    next if(/^#/);
-    my @line = split(/\s+/, $_);
-    my ($hmmer_acc, $evalue, $hmmer_st, $hmmer_en) = ($line[0],$line[12],$line[19],$line[20]);
-    
-    my $hmmer_acc_se = "$hmmer_acc/$hmmer_st-$hmmer_en";
-
-    if(exists($checkEvalue{$hmmer_acc_se})) {
-      $checkEvalue{$hmmer_acc_se}=1;
-      if($evalue <= 0.01) {
-	      print HOMOLOGUES $alignment{$hmmer_acc_se};
-      } 
-      else {
-	      print ADDITIONAL $alignment{$hmmer_acc_se};
-      }
-    }
-  }
-  close HMMSEARCH;
   close ADDITIONAL;
   close HOMOLOGUES;
 
