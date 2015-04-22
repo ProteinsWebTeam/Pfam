@@ -54,12 +54,12 @@ sub structures : Chained( 'family' )
 
   # retrieve the PDB entries for this family
   my @regions;
-  if ( defined $c->stash->{pfam}->auto_pfama ) {
-    $c->log->debug( 'Family::structures: got an auto_pfama: '
-                    . $c->stash->{pfam}->auto_pfama ) if $c->debug;
+  if ( defined $c->stash->{pfam}->pfama_acc ) {
+    $c->log->debug( 'Family::structures: got an pfama_acc: '
+                    . $c->stash->{pfam}->pfama_acc ) if $c->debug;
     @regions = $c->model('PfamDB::PdbPfamaReg')
-                 ->search( { 'me.auto_pfama' => $c->stash->{pfam}->auto_pfama },
-                           { prefetch => [ qw( pdb_id pdb_image auto_pfama ) ] } );
+                 ->search( { 'me.pfama_acc' => $c->stash->{pfam}->pfama_acc },
+                           { prefetch => [ qw( pdb_id pdb_image pfama_acc ) ] } );
     $c->log->debug( 'Family::structures: got ' 
                     . scalar @regions . ' regions' ) if $c->debug;
   }
@@ -77,7 +77,7 @@ sub structures : Chained( 'family' )
   foreach my $region ( @regions ) {
     my $id = $region->pdb_id->pdb_id;
     $pdb_unique->{$id} = $region;
-    $colours->{$id}->{$region->hex_colour} = $region->auto_pfama->pfama_id
+    $colours->{$id}->{$region->hex_colour} = $region->pfama_acc->pfama_id
       if $region->hex_colour;
   }
 
@@ -137,9 +137,9 @@ sub mapping : Chained( 'family' )
     if $c->debug;
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                            { join       => [ qw( pdb_id auto_pfamseq ) ],
-                              columns    => [ qw( auto_pfamseq.pfamseq_id
+                  ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc },
+                            { join       => [ qw( pdb_id pfamseq_acc ) ],
+                              columns    => [ qw( pfamseq_acc.pfamseq_id
                                                   seq_start
                                                   seq_end
                                                   pdb_id.pdb_id

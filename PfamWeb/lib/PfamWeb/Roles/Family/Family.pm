@@ -287,7 +287,7 @@ sub family_page : Chained( 'family' )
 
     # add the clan details, if any
     my $clans = $c->model('PfamDB::ClanMembership')
-                          ->search( { 'auto_pfama' => $c->stash->{pfam}->auto_pfama },
+                          ->search( { 'pfama_acc' => $c->stash->{pfam}->pfama_acc },
                                     { join     => [ qw(auto_clan) ],
                                       prefetch => [ qw(auto_clan) ] } )->first;
     
@@ -492,7 +492,7 @@ sub hmm : Chained( 'family' )
       if $c->debug;
      
     my $rs = $c->model('PfamDB::PfamaHmm')
-               ->find( $c->stash->{pfam}->auto_pfama );
+               ->find( $c->stash->{pfam}->pfama_acc );
 
     unless ( $rs ) {
       $c->log->warn( 'Family::FamilyActions::hmm: failed to find row' )
@@ -738,12 +738,12 @@ sub structures : Chained( 'family' )
 
   # retrieve the PDB entries for this family
   my @regions;
-  if ( defined $c->stash->{pfam}->auto_pfama ) {
-    $c->log->debug( 'Family::structures: got an auto_pfama: '
-                    . $c->stash->{pfam}->auto_pfama ) if $c->debug;
+  if ( defined $c->stash->{pfam}->pfama_acc ) {
+    $c->log->debug( 'Family::structures: got an pfama_acc: '
+                    . $c->stash->{pfam}->pfama_acc ) if $c->debug;
     @regions = $c->model('PfamDB::PdbPfamaReg')
-                 ->search( { 'me.auto_pfama' => $c->stash->{pfam}->auto_pfama },
-                           { prefetch => [ qw( pdb_id pdb_image auto_pfama ) ] } );
+                 ->search( { 'me.pfama_acc' => $c->stash->{pfam}->pfama_acc },
+                           { prefetch => [ qw( pdb_id pdb_image pfama_acc ) ] } );
     $c->log->debug( 'Family::structures: got ' 
                     . scalar @regions . ' regions' ) if $c->debug;
   }
@@ -761,7 +761,7 @@ sub structures : Chained( 'family' )
   foreach my $region ( @regions ) {
     my $id = $region->pdb_id->pdb_id;
     $pdb_unique->{$id} = $region;
-    $colours->{$id}->{$region->hex_colour} = $region->auto_pfama->pfama_id;
+    $colours->{$id}->{$region->hex_colour} = $region->pfama_acc->pfama_id;
   }
 
   $c->stash->{pdb_unique} = $pdb_unique;
@@ -820,9 +820,9 @@ sub mapping : Chained( 'family' )
     if $c->debug;
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                            { join       => [ qw( pdb_id auto_pfamseq ) ],
-                              columns    => [ qw( auto_pfamseq.pfamseq_id
+                  ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc },
+                            { join       => [ qw( pdb_id pfamseq_acc ) ],
+                              columns    => [ qw( pfamseq_acc.pfamseq_id
                                                   seq_start
                                                   seq_end
                                                   pdb_id.pdb_id
@@ -1135,12 +1135,12 @@ sub gzipped : Chained( 'alignment' )
 
     # build the alignment file
     my $rs = $c->model('PfamDB::PfamaRegFullSignificant')
-               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+               ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                            in_full    => 1 },
-                         { prefetch => [ qw( auto_pfamseq ) ],
-                           columns  => [ qw( auto_pfamseq.pfamseq_id 
-                                             auto_pfamseq.pfamseq_acc
-                                             auto_pfamseq.sequence ) ] } );
+                         { prefetch => [ qw( pfamseq_acc ) ],
+                           columns  => [ qw( pfamseq_acc.pfamseq_id 
+                                             pfamseq_acc.pfamseq_acc
+                                             pfamseq_acc.sequence ) ] } );
     my $sequences = '';
     while ( my $seq_row = $rs->next ) {
       $Text::Wrap::columns = 60;
@@ -1156,8 +1156,8 @@ sub gzipped : Chained( 'alignment' )
   }
   else {
     # retrieve the alignment
-     my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+     my $rs = $c->model('PfamDB::AlignmentAndTree')
+                ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                             type       => $c->stash->{alnType} },
                           { columns    => [ qw( alignment ) ] } )
                 ->single();
@@ -1413,8 +1413,8 @@ sub html : Chained( 'alignment' )
       if $c->debug;  
 
     # retrieve the HTML from the DB
-    my $row = $c->model('PfamDB::AlignmentsAndTrees')
-                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+    my $row = $c->model('PfamDB::AlignmentAndTree')
+                ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                             type       => $c->stash->{alnType} },
                            { columns    => [ qw( jtml ) ] } )
                 ->single;
@@ -1515,8 +1515,8 @@ sub heatmap : Chained( 'alignment' )
       if $c->debug;  
 
     # retrieve the HTML from the DB
-    my $row = $c->model('PfamDB::AlignmentsAndTrees')
-                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+    my $row = $c->model('PfamDB::AlignmentAndTree')
+                ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                             type       => 'full' }, 
                           { columns    => [ qw( post ) ] } )
                 ->single;
@@ -1866,7 +1866,7 @@ sub get_data : Private {
                        { join     => [ { clan_memberships => 'auto_clan' },
                                        "interpros", 
                                        "pfama_species_trees" ], } );
-                         # prefetch => [ qw( interpros pfama_species_trees ) ] } );
+                          prefetch => [ qw( interpros pfama_species_trees ) ] } );
 
   my $pfam = $rs->first if defined $rs;
 
@@ -1958,10 +1958,10 @@ sub get_summary_data : Private {
   $summaryData->{numSpecies} = $c->stash->{pfam}->number_species;
 
   # number of interactions
-  my $auto_pfamA = $c->stash->{pfam}->auto_pfama;
+  my $pfama_acc = $c->stash->{pfam}->pfama_acc;
   my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->search( { auto_pfama_a => $auto_pfamA },
-                       { select => [ { count => 'auto_pfama_a' } ],
+             ->search( { pfama_acc_a => $pfama_acc },
+                       { select => [ { count => 'pfama_acc_a' } ],
                          as     => [ qw( numInts ) ] } )
              ->first;
   $summaryData->{numInt} = $rs->get_column( 'numInts' );
@@ -1988,8 +1988,7 @@ sub get_db_xrefs : Private {
 
   # Interpro
   my $i = $c->model('PfamDB::Interpro')
-            ->find( $c->stash->{pfam}->auto_pfama, 
-                    { key => 'UQ_interpro_1' } );
+            ->find( $c->stash->{pfam}->pfama_acc );
 
   push @{ $xRefs->{interpro} }, $i if defined $i;
 
@@ -2374,7 +2373,7 @@ sub get_tree_data : Private {
       if $c->debug;  
 
     # retrieve the tree from the DB
-    my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+    my $rs = $c->model('PfamDB::AlignmentAndTree')
                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
                            type       => $c->stash->{alnType} } );
 
@@ -2484,7 +2483,7 @@ sub get_alignment_from_db : Private {
       if $c->debug;
 
     # retrieve the alignment from the DB
-    my $row = $c->model('PfamDB::AlignmentsAndTrees')
+    my $row = $c->model('PfamDB::AlignmentAndTree')
                 ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
                             type       => $c->stash->{alnType} },
                           { columns    => [ qw( alignment ) ] } )

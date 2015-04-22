@@ -143,7 +143,7 @@ sub view : Local {
 
   # mark up the alignments in HTML  
   my @markedUpAlignments;
-  for ( my $i = 0; $i < length @{ $alignments->{rawAlignments} }; $i++ ) {
+  for ( my $i = 0; $i < scalar( @{ $alignments->{rawAlignments} } ); $i++ ) {
     my $alignment = $alignments->{rawAlignments}->[$i];
     my $consensus = $alignments->{consensus}->[$i];
     push @markedUpAlignments,

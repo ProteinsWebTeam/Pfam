@@ -253,7 +253,7 @@ sub retrieve_list_from_db : Private {
     # the families list by accession by default
     my $order = $c->stash->{output_pfamalyzer} ? 'clan_id' : 'clan_acc';
 
-    @rs = $c->model('PfamDB::Clans')
+    @rs = $c->model('PfamDB::Clan')
             ->search( {}, 
                       { order_by => [ $order ] } );
   }

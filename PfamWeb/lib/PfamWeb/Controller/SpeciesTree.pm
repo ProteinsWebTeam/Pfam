@@ -86,7 +86,7 @@ sub begin : Private {
                     . $c->stash->{acc} . '|' )
       if $c->debug;
 
-    $c->stash->{entry} = $c->model('PfamDB::Clans')
+    $c->stash->{entry} = $c->model('PfamDB::Clan')
                            ->find( { clan_acc => $c->stash->{acc} } );
   }
 
@@ -409,7 +409,7 @@ sub getFamilyData : Private {
   my $pfamA = $c->model('PfamDB::Pfama')->find({pfama_acc => $c->stash->{acc}});
   
   my @regions = $c->model('PfamDB::Pfamseq')
-                  ->search( { 'pfama_reg_full_significants.auto_pfama' => $pfamA->auto_pfama,
+                  ->search( { 'pfama_reg_full_significants.pfama_acc' => $pfamA->pfama_acc,
                               'pfama_reg_full_significants.in_full'         => 1 },
                             { join              => [ qw( pfama_reg_full_significants ) ]} );
 
@@ -420,7 +420,7 @@ sub getFamilyData : Private {
 
   # get the species information for the seed alignment
   my @resultsSeed = $c->model('PfamDB::Pfamseq')
-                      ->search( { 'pfama_reg_seeds.auto_pfama' => $pfamA->auto_pfama },
+                      ->search( { 'pfama_reg_seeds.pfama_acc' => $pfamA->pfama_acc },
                                 { join                         => [ qw( pfama_reg_seeds ) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
@@ -452,8 +452,7 @@ sub getClanData : Private {
   # This probably could be done in one query, but this is going to be quicker
   # (I think...)
   my @clan_members = $c->model('PfamDB::ClanMembership')
-                        ->search( { 'auto_clan.clan_acc' => $c->stash->{acc} },
-                                  { join                 => [ qw( auto_clan ) ] } );
+                        ->search( { 'clan_acc' => $c->stash->{acc} }  );
 
   $c->log->debug( 'SpeciesTree::getClanData: found ' . scalar( @clan_members )
                   . ' clan members' ) if $c->debug;
@@ -461,7 +460,7 @@ sub getClanData : Private {
   my ( @allRegions, @regions );
   foreach my $clan_member ( @clan_members ) {
     @regions = $c->model('PfamDB::Pfamseq')
-                 ->search( { 'pfama_reg_full_significants.auto_pfama' => $clan_member->auto_pfama->auto_pfama,
+                 ->search( { 'pfama_reg_full_significants.pfama_acc' => $clan_member->pfama_acc->pfama_acc,
                              'pfama_reg_full_significants.in_full'    => 1 },
                            { join              => [ qw( pfama_reg_full_significants ) ] } );
 

@@ -11,7 +11,6 @@
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-
 #-------------------------------------------------------------------------------
 
 -%]
@@ -29,6 +28,7 @@ PROCESS "components/require.tt";
       sequence is stored in the Pfam database and updated with each new Pfam 
       release, but this means that the sequence we store may differ from that 
       stored by UniProt.
+      
     </p>
     [% oe = 0 %]
 

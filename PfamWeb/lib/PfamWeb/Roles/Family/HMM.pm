@@ -184,7 +184,7 @@ sub hmm : Chained( 'family' )
       if $c->debug;
      
     my $rs = $c->model('PfamDB::PfamaHmm')
-               ->find( $c->stash->{pfam}->auto_pfama );
+               ->find( $c->stash->{pfam}->pfama_acc );
 
     unless ( $rs ) {
       $c->log->warn( 'Family::FamilyActions::hmm: failed to find row' )
@@ -275,7 +275,7 @@ sub get_logo : Private {
       if $c->debug;
     
     my $rs = $c->model('PfamDB::PfamaHmm')
-               ->find( $c->stash->{pfam}->auto_pfama );
+               ->find( $c->stash->{pfam}->pfama_acc );
     $logo = $rs->logo;
 
     unless ( defined $logo ) {

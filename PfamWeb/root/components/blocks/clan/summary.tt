@@ -46,7 +46,7 @@ membershipList = BLOCK;
   # can't sort the contents of "clan.clan_memberships" directly. Convert the 
   # list into rows from the pfamA table first
   FOREACH member IN clan.clan_memberships;
-    members.push( member.auto_pfama );
+    members.push( member.pfama_acc );
   END;
   FOREACH pfam IN members.sort( "pfama_id" ); -%]
     <span class="listItem">
