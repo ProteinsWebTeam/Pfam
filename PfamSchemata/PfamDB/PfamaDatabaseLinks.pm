@@ -1,53 +1,85 @@
+use utf8;
 package PfamDB::PfamaDatabaseLinks;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamaDatabaseLinks
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamA_database_links>
+
+=cut
+
 __PACKAGE__->table("pfamA_database_links");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 db_id
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 comment
+
+  data_type: 'tinytext'
+  is_nullable: 1
+
+=head2 db_link
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 other_params
+
+  data_type: 'tinytext'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "db_id",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 0 },
   "comment",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 1 },
   "db_link",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 0 },
   "other_params",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-);
-__PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
+  { data_type => "tinytext", is_nullable => 1 },
 );
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ht1wS5jfVETJXr1LACja2g
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:N8rEMUDY3dLKMrWb92b5MA
 
 
 =head1 COPYRIGHT

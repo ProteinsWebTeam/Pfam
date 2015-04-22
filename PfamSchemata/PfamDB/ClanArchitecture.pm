@@ -1,28 +1,87 @@
+use utf8;
 package PfamDB::ClanArchitecture;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::ClanArchitecture
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<clan_architecture>
+
+=cut
+
 __PACKAGE__->table("clan_architecture");
+
+=head1 ACCESSORS
+
+=head2 clan_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 6
+
+=head2 auto_architecture
+
+  data_type: 'bigint'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_clan",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 4 },
+  "clan_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 6 },
   "auto_architecture",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  {
+    data_type => "bigint",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
 );
-__PACKAGE__->belongs_to("auto_clan", "PfamDB::Clans", { auto_clan => "auto_clan" });
+
+=head1 RELATIONS
+
+=head2 auto_architecture
+
+Type: belongs_to
+
+Related object: L<PfamDB::Architecture>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "auto_architecture",
   "PfamDB::Architecture",
   { auto_architecture => "auto_architecture" },
 );
 
+=head2 clan_acc
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XMIrh3L75HOxD5AKL5z0vA
+Type: belongs_to
+
+Related object: L<PfamDB::Clan>
+
+=cut
+
+__PACKAGE__->belongs_to("clan_acc", "PfamDB::Clan", { clan_acc => "clan_acc" });
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B1clktPV8Qr0k2xeCuUHjA
 
 
 =head1 COPYRIGHT

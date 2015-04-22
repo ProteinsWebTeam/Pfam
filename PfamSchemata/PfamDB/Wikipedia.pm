@@ -1,41 +1,108 @@
+use utf8;
 package PfamDB::Wikipedia;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::Wikipedia
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<wikipedia>
+
+=cut
+
 __PACKAGE__->table("wikipedia");
+
+=head1 ACCESSORS
+
+=head2 auto_wiki
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_auto_increment: 1
+  is_nullable: 0
+
+=head2 title
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 wikitext
+
+  data_type: 'longtext'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "auto_wiki",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
-  "title",
-  { data_type => "TINYTEXT", default_value => "", is_nullable => 0, size => 255 },
-  "wikitext",
   {
-    data_type => "LONGTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 4294967295,
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
   },
+  "title",
+  { data_type => "tinytext", is_nullable => 0 },
+  "wikitext",
+  { data_type => "longtext", is_nullable => 1 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</auto_wiki>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("auto_wiki");
-__PACKAGE__->add_unique_constraint("UQ_wikipedia_1", ["title"]);
+
+=head1 RELATIONS
+
+=head2 clan_wikis
+
+Type: has_many
+
+Related object: L<PfamDB::ClanWiki>
+
+=cut
+
 __PACKAGE__->has_many(
   "clan_wikis",
   "PfamDB::ClanWiki",
   { "foreign.auto_wiki" => "self.auto_wiki" },
+  undef,
 );
+
+=head2 pfama_wikis
+
+Type: has_many
+
+Related object: L<PfamDB::PfamaWiki>
+
+=cut
+
 __PACKAGE__->has_many(
   "pfama_wikis",
   "PfamDB::PfamaWiki",
   { "foreign.auto_wiki" => "self.auto_wiki" },
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2010-03-23 10:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZwxUU71nu+CBkf344DLdeQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gyUMgmMQixLRODCTJDdoCw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

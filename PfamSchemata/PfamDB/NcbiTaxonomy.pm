@@ -1,60 +1,124 @@
+use utf8;
 package PfamDB::NcbiTaxonomy;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::NcbiTaxonomy
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<ncbi_taxonomy>
+
+=cut
+
 __PACKAGE__->table("ncbi_taxonomy");
+
+=head1 ACCESSORS
+
+=head2 ncbi_taxid
+
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 species
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 100
+
+=head2 taxonomy
+
+  data_type: 'mediumtext'
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
   "ncbi_taxid",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  {
+    data_type => "integer",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
   "species",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 100,
-  },
+  { data_type => "varchar", is_nullable => 0, size => 100 },
   "taxonomy",
-  {
-    data_type => "MEDIUMTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 16777215,
-  },
+  { data_type => "mediumtext", is_nullable => 0 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</ncbi_taxid>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("ncbi_taxid");
-__PACKAGE__->has_many(
-  "complete_proteomes",
-  "PfamDB::CompleteProteomes",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
-);
+
+=head1 RELATIONS
+
+=head2 pfama_ncbis
+
+Type: has_many
+
+Related object: L<PfamDB::PfamaNcbi>
+
+=cut
+
 __PACKAGE__->has_many(
   "pfama_ncbis",
   "PfamDB::PfamaNcbi",
   { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  undef,
 );
+
+=head2 pfamseq_antifams
+
+Type: has_many
+
+Related object: L<PfamDB::PfamseqAntifam>
+
+=cut
+
 __PACKAGE__->has_many(
-  "pfamseqs",
-  "PfamDB::Pfamseq",
+  "pfamseq_antifams",
+  "PfamDB::PfamseqAntifam",
   { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  undef,
 );
+
+=head2 pfamseq_ncbis
+
+Type: has_many
+
+Related object: L<PfamDB::PfamseqNcbi>
+
+=cut
+
 __PACKAGE__->has_many(
   "pfamseq_ncbis",
   "PfamDB::PfamseqNcbi",
   { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
-);
-__PACKAGE__->has_many(
-  "taxonomies",
-  "PfamDB::Taxonomy",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MoDHs5Xa0ROZJmOAUoay3w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PqV8TfxBscWGvQvYkllrbw
 
 
 =head1 COPYRIGHT

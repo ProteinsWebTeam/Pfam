@@ -1,33 +1,87 @@
+use utf8;
 package PfamDB::MarkupKey;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::MarkupKey
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<markup_key>
+
+=cut
+
 __PACKAGE__->table("markup_key");
+
+=head1 ACCESSORS
+
+=head2 auto_markup
+
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 label
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 50
+
+=cut
+
 __PACKAGE__->add_columns(
   "auto_markup",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 3 },
-  "label",
   {
-    data_type => "VARCHAR",
-    default_value => undef,
+    data_type => "integer",
+    default_value => 0,
+    extra => { unsigned => 1 },
     is_nullable => 0,
-    size => 35,
   },
+  "label",
+  { data_type => "varchar", is_nullable => 1, size => 50 },
 );
+
+=head1 PRIMARY KEY
+
+=over 4
+
+=item * L</auto_markup>
+
+=back
+
+=cut
+
 __PACKAGE__->set_primary_key("auto_markup");
+
+=head1 RELATIONS
+
+=head2 pfamseq_markups
+
+Type: has_many
+
+Related object: L<PfamDB::PfamseqMarkup>
+
+=cut
+
 __PACKAGE__->has_many(
   "pfamseq_markups",
   "PfamDB::PfamseqMarkup",
   { "foreign.auto_markup" => "self.auto_markup" },
+  undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OFAinX8ugLyBWSmZKr0V0w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J/2i8wfLNfzQ6KOnOiMptw
 
 
 =head1 COPYRIGHT

@@ -1,36 +1,72 @@
+use utf8;
 package PfamDB::PfamAnnseq;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamAnnseq
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfam_annseq>
+
+=cut
+
 __PACKAGE__->table("pfam_annseq");
+
+=head1 ACCESSORS
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 annseq_storable
+
+  data_type: 'mediumblob'
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "annseq_storable",
-  {
-    data_type => "MEDIUMBLOB",
-    default_value => undef,
-    is_nullable => 0,
-    size => 16777215,
-  },
+  { data_type => "mediumblob", is_nullable => 0 },
 );
+
+=head1 RELATIONS
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfamseq>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfamseq",
+  "pfamseq_acc",
   "PfamDB::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:cKJ85pYcAglwUa+TdXZ7iQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:y1reQiuOlTiDNDPUvpLApA
 
 
-__PACKAGE__->add_unique_constraint( 'UQ_pfam_annseq_1', [ 'auto_pfamseq' ] );
-__PACKAGE__->set_primary_key( 'auto_pfamseq' );
+#__PACKAGE__->add_unique_constraint( 'UQ_pfam_annseq_1', [ 'auto_pfamseq' ] );
+#__PACKAGE__->set_primary_key( 'auto_pfamseq' );
 
 =head1 COPYRIGHT
 

@@ -1,22 +1,89 @@
+use utf8;
 package PfamDB::ProteomePfamseq;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::ProteomePfamseq
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<proteome_pfamseq>
+
+=cut
+
 __PACKAGE__->table("proteome_pfamseq");
+
+=head1 ACCESSORS
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 auto_proteome
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "auto_proteome",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
+);
+
+=head1 RELATIONS
+
+=head2 auto_proteome
+
+Type: belongs_to
+
+Related object: L<PfamDB::CompleteProteomes>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "auto_proteome",
+  "PfamDB::CompleteProteomes",
+  { auto_proteome => "auto_proteome" },
+);
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfamseq>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "pfamseq_acc",
+  "PfamDB::Pfamseq",
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-20 12:44:49
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3hIzTRLcYunl5wsnS6wNqQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HGbWnWLdghVlUKxcCj2OAA
 
 
 =head1 COPYRIGHT

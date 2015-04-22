@@ -1,12 +1,12 @@
 use utf8;
-package PfamDB::ClanWiki;
+package PfamDB::ReleasedClanVersion;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-PfamDB::ClanWiki
+PfamDB::ReleasedClanVersion
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<clan_wiki>
+=head1 TABLE: C<released_clan_version>
 
 =cut
 
-__PACKAGE__->table("clan_wiki");
+__PACKAGE__->table("released_clan_version");
 
 =head1 ACCESSORS
 
@@ -30,38 +30,29 @@ __PACKAGE__->table("clan_wiki");
   is_nullable: 0
   size: 6
 
-=head2 auto_wiki
+=head2 desc_file
 
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_foreign_key: 1
+  data_type: 'varchar'
   is_nullable: 0
+  size: 32
+
+=head2 version
+
+  data_type: 'smallint'
+  is_nullable: 1
 
 =cut
 
 __PACKAGE__->add_columns(
   "clan_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 6 },
-  "auto_wiki",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  "desc_file",
+  { data_type => "varchar", is_nullable => 0, size => 32 },
+  "version",
+  { data_type => "smallint", is_nullable => 1 },
 );
 
 =head1 RELATIONS
-
-=head2 auto_wiki
-
-Type: belongs_to
-
-Related object: L<PfamDB::Wikipedia>
-
-=cut
-
-__PACKAGE__->belongs_to("auto_wiki", "PfamDB::Wikipedia", { auto_wiki => "auto_wiki" });
 
 =head2 clan_acc
 
@@ -75,8 +66,8 @@ __PACKAGE__->belongs_to("clan_acc", "PfamDB::Clan", { clan_acc => "clan_acc" });
 
 
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jwatfjFp9U9cbVg80fGvPw
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FiRbY2HFrFN4rAymAWte/Q
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

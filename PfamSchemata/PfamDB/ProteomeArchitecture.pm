@@ -1,58 +1,112 @@
+use utf8;
 package PfamDB::ProteomeArchitecture;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::ProteomeArchitecture
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<proteome_architecture>
+
+=cut
+
 __PACKAGE__->table("proteome_architecture");
+
+=head1 ACCESSORS
+
+=head2 auto_proteome
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 auto_architecture
+
+  data_type: 'bigint'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 type_example
+
+  data_type: 'varchar'
+  default_value: 0
+  is_nullable: 0
+  size: 10
+
+=head2 no_seqs
+
+  data_type: 'integer'
+  default_value: 0
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
   "auto_proteome",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  {
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
   "auto_architecture",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
- "type_example",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  {
+    data_type => "bigint",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
+  },
+  "type_example",
+  { data_type => "varchar", default_value => 0, is_nullable => 0, size => 10 },
   "no_seqs",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 8 },
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
-__PACKAGE__->belongs_to(
-  "auto_proteome",
-  "PfamDB::CompleteProteomes",
-  { auto_proteome => "auto_proteome" },
-);
+
+=head1 RELATIONS
+
+=head2 auto_architecture
+
+Type: belongs_to
+
+Related object: L<PfamDB::Architecture>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "auto_architecture",
   "PfamDB::Architecture",
   { auto_architecture => "auto_architecture" },
 );
-__PACKAGE__->has_one( 
-  "storable",
-  "PfamDB::PfamAnnseq",
-  { "foreign.auto_pfamseq" => "self.type_example" },
-);
 
-=head1 COPYRIGHT
+=head2 auto_proteome
 
-Copyright (c) 2007: Genome Research Ltd.
+Type: belongs_to
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+Related object: L<PfamDB::CompleteProteomes>
 
 =cut
 
+__PACKAGE__->belongs_to(
+  "auto_proteome",
+  "PfamDB::CompleteProteomes",
+  { auto_proteome => "auto_proteome" },
+);
 
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w7CLzloAMGss6pfW7hNFKw
+
+
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

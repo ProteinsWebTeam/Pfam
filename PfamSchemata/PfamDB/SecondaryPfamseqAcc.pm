@@ -1,27 +1,69 @@
+use utf8;
 package PfamDB::SecondaryPfamseqAcc;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::SecondaryPfamseqAcc
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<secondary_pfamseq_acc>
+
+=cut
+
 __PACKAGE__->table("secondary_pfamseq_acc");
+
+=head1 ACCESSORS
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 secondary_acc
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 10
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "secondary_acc",
-  { data_type => "VARCHAR", default_value => undef, is_nullable => 0, size => 6 },
+  { data_type => "varchar", is_nullable => 0, size => 10 },
 );
+
+=head1 RELATIONS
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfamseq>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfamseq",
+  "pfamseq_acc",
   "PfamDB::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rsNzLHmrpvvFqZTmtOaM1g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:he3Q/4aJ0n3ShQ4A0GiVaw
 
 
 =head1 COPYRIGHT
