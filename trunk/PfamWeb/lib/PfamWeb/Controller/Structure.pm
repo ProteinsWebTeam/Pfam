@@ -186,10 +186,10 @@ sub get_summary_data : Private {
     # number of species should be one, but get the species for the sequences
     $rs = $c->model('PfamDB::PdbResidueData')
             ->search( { pdb_id => $id },
-                      { join     => [ 'pfamseqs' ],
+                      { join     => [ 'pfamseq_acc' ],
                         select   => [
                                       {
-                                        count => [ { distinct => [ 'pfamseqs.species' ] } ]
+                                        count => [ { distinct => [ 'pfamseq_acc.species' ] } ]
                                       }
                                     ],
                         as       => [ 'numSpecies' ] } )
@@ -199,10 +199,10 @@ sub get_summary_data : Private {
     # number architectures
     $rs = $c->model('PfamDB::PdbResidueData')
             ->search( { pdb_id => $id },
-                      { join     => [ 'pfamseqs' ],
+                        { join     => [ 'pfamseq_acc' ],
                         select   => [
                                       {
-                                       count => [ { distinct => [ 'pfamseqs.auto_architecture' ] } ]
+                                       count => [ { distinct => [ 'pfamseq_acc.auto_architecture' ] } ]
                                       }
                                     ],
                         as       => [ 'numArch' ] } )
@@ -251,7 +251,7 @@ sub add_mapping : Private {
   my @unpMap = $c->model('PfamDB::PdbPfamaReg')
                  ->search( { pdb_id          => $c->stash->{pdb}->pdb_id, 
                              'pdb_res_start' => \'!= pdb_res_end' },
-                           { prefetch => [ qw( auto_pfama auto_pfamseq ) ],
+                           { prefetch => [ qw( pfama_acc pfamseq_acc ) ],
                              order_by => 'chain ASC' } );
 
   $c->log->debug( 'Structure::add_mapping: found ' . scalar @unpMap . ' mappings' )
@@ -266,7 +266,7 @@ sub add_mapping : Private {
     # TODO Need to think more about the consequences of setting null
     # chain ID to " "...
   
-    $chains->{$row->auto_pfamseq->pfamseq_id}->{$chain} = '';
+    $chains->{$row->pfamseq_acc->pfamseq_id}->{$chain} = '';
   }
   $c->stash->{chainsMapping} = $chains;
 

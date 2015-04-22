@@ -17,7 +17,7 @@ rowHash = {};
 
 FOREACH pdbMap IN pfamMaps;
 
-  rowKey = pdbMap.auto_pfamseq.pfamseq_id                       # seqKey
+  rowKey = pdbMap.pfamseq_acc.pfamseq_id                       # seqKey
            _ "_" _ pdbMap.seq_start _ pdbMap.seq_end            # resKey
            _ "_" _ pdbMap.pdb_id.pdb_id                         # pdbKey
            _ "_" _ pdbMap.chain                                 # chainKey
@@ -26,7 +26,7 @@ FOREACH pdbMap IN pfamMaps;
   NEXT IF rowHash.${rowKey};
   rowHash.${rowKey} = 1;
 
-  seqKey = pdbMap.auto_pfamseq.pfamseq_id;
+  seqKey = pdbMap.pfamseq_acc.pfamseq_id;
   IF ! mapping.$seqKey;
     mapping.$seqKey = {};
   END;

@@ -135,12 +135,6 @@ sub guess_family : Private {
     return 'family';
   }
   
-  # or a Pfam-B accession ?
-  my @rs = $c->model('PfamDB::Pfamb')
-          ->search( [ { pfamb_acc => $entry },
-                      { pfamb_id  => $entry } ] );      
-
-  return 'pfamb' if scalar @rs;
 }
 
 #-------------------------------------------------------------------------------
@@ -175,7 +169,7 @@ sub guess_other_family : Private {
   }
 
   # see if this could be a dead family
-  my @rs = $c->model('PfamDB::DeadFamilies')
+  my @rs = $c->model('PfamDB::DeadFamily')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ] );
 
@@ -216,8 +210,8 @@ sub guess_sequence : Private {
   # see if it's a secondary accession; a bit gnarly...
   return 'protein' if $c->model('PfamDB::SecondaryPfamseqAcc')
                         ->search( { secondary_acc => $1 },
-                                  { join =>     [ qw( auto_pfamseq ) ],
-                                    prefetch => [ qw( auto_pfamseq ) ] } )
+                                  { join =>     [ qw( pfamseq_acc ) ],
+                                    prefetch => [ qw( pfamseq_acc ) ] } )
                         ->first;
   
   # an NCBI GI number ?
@@ -260,7 +254,7 @@ sub guess_clan : Private {
   # no point worrying about whether we can match to a regex for clan accession,
   # since we'd end up doing essentially this query whether $entry looks like
   # an accession or not
-  my @rs = $c->model('PfamDB::Clans')
+  my @rs = $c->model('PfamDB::Clan')
              ->search( [ { clan_acc => $entry },
                          { clan_id  => $entry } ] );
   return 'clan' if scalar @rs;

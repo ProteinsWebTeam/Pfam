@@ -681,9 +681,9 @@ sub getFamilyCount : Private {
                            rgt => { '<=' => $range->[1] } },
                          { join     => [ 'pfama_ncbi' ],
                            select   => [ 'pfama_ncbi.pfama_acc', 
-                                         { count => 'pfama_ncbi.auto_pfamA' } ],
+                                         { count => 'pfama_ncbi.pfama_acc' } ],
                            as       => [ 'pfama_acc', 'count' ],
-                           group_by => [ 'pfama_ncbi.auto_pfama' ],
+                           group_by => [ 'pfama_ncbi.pfama_acc' ],
                          } );
 
     foreach ( @rs ) {

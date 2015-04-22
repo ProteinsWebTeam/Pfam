@@ -181,7 +181,7 @@ Retrieves data for the clans browse page.
 sub browse_clans : Path( '/clan/browse' ) {
   my ( $this, $c ) = @_;
 
-  my @res = $c->model('PfamDB::Clans')
+  my @res = $c->model('PfamDB::Clan')
               ->search( { },
                         { order_by => 'clan_id ASC' } );
 

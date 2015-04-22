@@ -42,7 +42,7 @@ use warnings;
 
 use base qw/Catalyst::Model::DBIC::Schema/;
 
-use Bio::Das::Lite;
+#use Bio::Das::Lite;
 
 #-------------------------------------------------------------------------------
 

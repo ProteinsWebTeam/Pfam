@@ -306,8 +306,8 @@ sub get_tree_data : Private {
       if $c->debug;  
 
     # retrieve the tree from the DB
-    my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+    my $rs = $c->model('PfamDB::AlignmentAndTree')
+               ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                            type       => $c->stash->{alnType} } );
 
     return unless defined $rs;

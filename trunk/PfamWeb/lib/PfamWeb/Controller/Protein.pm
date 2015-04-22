@@ -243,7 +243,6 @@ sub protein_end : Chained( 'protein' )
       $c->forward('get_annseq');
       $c->forward('get_mapping');
       $c->forward('get_summary_data');
-      $c->forward('get_das_sources');
     }
   }
 
@@ -334,11 +333,11 @@ sub get_data : Private {
 
   # look for the entry itself
   $c->stash->{pfamseq} = $c->model('PfamDB::Pfamseq')
-                           ->search( [ { pfamseq_acc => $entry },
+                           ->search( [ { 'me.pfamseq_acc' => $entry },
                                        { pfamseq_id  => $entry } ], 
                                      { prefetch => [ qw( annseqs ) ] } )
                            ->single;
-                           
+  
   unless ( defined $c->stash->{pfamseq} ) {
     $c->log->debug( "Protein::get_data: no such entry |$entry|; checking as a secondary accession" )
       if $c->debug;
@@ -346,7 +345,7 @@ sub get_data : Private {
     # see if this is really a secondary accession
     $c->stash->{secondary} = $c->model('PfamDB::SecondaryPfamseqAcc')
                                ->search( { secondary_acc => $entry },
-                                         { prefetch      => [ qw( auto_pfamseq ) ] } )
+                                         { prefetch      => [ qw( pfamseq_acc ) ] } )
                                ->single;
 
     # set a flag to show that we got a secondary accession, so that the 
@@ -354,7 +353,7 @@ sub get_data : Private {
     if ( $c->stash->{secondary} ) {
       $c->log->debug( "Protein::get_data: '$entry' looks like a secondary accession" )
         if $c->debug;
-      $c->stash->{pfamseq} = $c->stash->{secondary}->auto_pfamseq;
+      $c->stash->{pfamseq} = $c->stash->{secondary}->pfamseq_acc;
       $c->stash->{from_secondary_acc} = $entry;
     }
   }
@@ -440,84 +439,6 @@ sub get_annseq : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 get_das_sources : Private
-
-Retrieves DAS sources with the appropriate object type and coordinate system.
-
-=cut
-
-sub get_das_sources : Private {
-  my( $this, $c) = @_;
-  
-  my @das_sources = $c->model('WebUser::Feature_das_sources')
-                      ->search( {},
-                                { prefetch => [ 'alignment_sources_to' ] } );
-
-  my $dl = $c->model('PfamDB')
-             ->getDasLite;
-
-  my $base_type  = 'Protein Sequence';
-  my $base_coord = 'UniProt';
-
-  my $align_matches;
-  my $kept_sources = {};
-  
-  my $seen_sources = {};
-  FEATURE: foreach my $f ( @das_sources ) {
-
-    if ( $f->sequence_type eq $base_type and 
-         $f->system        eq $base_coord ) {
-      push @{ $kept_sources->{$f->sequence_type}->{$f->system} }, $f
-        if not $seen_sources->{$f->server_id};
-      $seen_sources->{$f->server_id} = 1;
-
-      next FEATURE;
-    }
-
-    ALN: foreach my $a ( $f->alignment_sources_to ) {
-
-      next ALN unless defined $a;
-      next ALN unless ( $a->from_type   eq $base_type and 
-                        $a->from_system eq $base_coord );
-
-      # find out if we have any alignments for this object type and co-ord system.
-      unless ( defined $align_matches->{$f->sequence_type}->{$f->system} ) {
-        $dl->dsn( [$a->url] );
-        my ( undef, $alignments ) = each %{ $dl->alignment( { 'query' => $c->stash->{pfamseq}->pfamseq_acc } ) };
-        if ( ref $alignments eq 'ARRAY' and scalar @{$alignments} ) {
-          $align_matches->{$f->sequence_type}->{$f->system} = 1;
-        }
-        else {
-          $align_matches->{$f->sequence_type}->{$f->system} = 0;
-        }
-      }
-      
-      push @{ $kept_sources->{$f->sequence_type}->{$f->system} }, $f 
-        if $align_matches->{$f->sequence_type}->{$f->system};
-      next FEATURE;
-    }
-
-  }
-
-  my @kept_sources_list = ();
-  my @types = _sortWithPref( $base_type, keys %{ $kept_sources } );
-  foreach my $type (@types) {
-    my @systems = _sortWithPref( $base_coord, keys %{ $kept_sources->{$type} } );
-    foreach my $system (@systems) {
-      my $id = $type.'_'.$system;
-      $id =~ s/\s+/_/g;
-      push @kept_sources_list, { type    => $type, 
-                                 system  => $system, 
-                                 servers => $kept_sources->{$type}->{$system}, 
-                                 id      => $id };
-    }
-  }
-
-  $c->stash->{dasSourcesRs} = \@kept_sources_list; 
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 get_mapping : Private
 
 Gets the structure-to-sequence-to-family mapping.
@@ -533,10 +454,10 @@ sub get_mapping : Private {
   #     ... where pdb_res_start != pdb_res_end and ...
   
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                  ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
                               'pdb_res_start'             => \'!= pdb_res_end' },
-                            { prefetch => [ qw( auto_pfama
-                                                auto_pfamseq
+                            { prefetch => [ qw( pfama_acc
+                                                pfamseq_acc
                                                 pdb_id ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
@@ -588,26 +509,22 @@ sub get_summary_data : Private {
   $c->stash->{summaryData} = \%summaryData;
 
   my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
-                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                        ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
                                     in_full => 1 },
-                                  { prefetch => [ qw( auto_pfama pfamseq ) ] } );
-
-  my @pfamb_regions = $c->model('PfamDB::PfambReg')
-                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                                  { prefetch => [ 'auto_pfamb' ] } );
+                                  { prefetch => [ qw( pfama_acc pfamseq_acc ) ] } );
 
   my @other_regions = $c->model('PfamDB::OtherReg')
-                        ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                        ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc },
                                   {} );
 
   my $regions;
-  foreach my $region ( @pfama_regions, @pfamb_regions, @other_regions ) {
+  foreach my $region ( @pfama_regions, @other_regions ) {
     push @{ $regions->{ $region->seq_start } }, $region;
   }
 
   $c->stash->{regions} = $regions;
 
-  my $ncbi_taxid = $c->stash->{pfamseq}->ncbi_taxid->ncbi_taxid;
+  my $ncbi_taxid = $c->stash->{pfamseq}->ncbi_taxid;
 
   my $cp = $c->model('PfamDB::CompleteProteomes')
              ->find( { ncbi_taxid => $ncbi_taxid } );

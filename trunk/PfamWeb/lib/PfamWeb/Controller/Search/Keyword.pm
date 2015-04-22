@@ -67,7 +67,7 @@ has access to a Pfam-A accession. We'll try to get it using
 
 or 
 
-  $rs->auto_pfama->pfama_acc
+  $rs->pfama_acc->pfama_acc
 
 but if neither method works, the row is skipped.
 
@@ -106,18 +106,18 @@ sub merge : Private {
       # proxy columns indiscriminately throughout the model, just so that text
       # searching can work
       eval {
-        $acc = $row->auto_pfama->pfama_acc;
+        $acc = $row->pfama_acc->pfama_acc;
       };
       if ( $@ ) {
         # $c->log->debug( 'Search::Keyword::merge: caught an exception when trying '
-        #               . " \$row->auto_pfama->pfama_acc for plugin |$pluginName|: $@" )
+        #               . " \$row->pfama_acc->pfama_acc for plugin |$pluginName|: $@" )
         #  if $c->debug;
 
       }
 
       if ( defined $acc ) {
         $hit = $c->stash->{results}->{$acc} ||= {};
-        $hit->{dbObj} = $row->auto_pfama;
+        $hit->{dbObj} = $row->pfama_acc;
         last TRY;
       }
 

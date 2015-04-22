@@ -102,7 +102,7 @@ sub begin : Private {
     $c->log->debug( 'Annotate::begin: found a clan entry' )
       if $c->debug;
 
-    my $clan = $c->model('PfamDB::Clans')->find( { clan_acc => $1 } )
+    my $clan = $c->model('PfamDB::Clan')->find( { clan_acc => $1 } )
       if defined $1;
 
     $c->stash->{type} = 'C';

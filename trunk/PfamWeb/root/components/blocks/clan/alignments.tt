@@ -11,8 +11,8 @@ totalSeq = 0;
 pfams = [];
 FOREACH pfam IN clanMembers;
 	totalFam = totalFam + 1;
-	totalSeq = totalSeq + pfam.auto_pfama.num_full;
-	pfams.push( pfam.auto_pfama );
+	totalSeq = totalSeq + pfam.pfama_acc.num_full;
+	pfams.push( pfam.pfama_acc );
 END;
 
 # a block to start the table. There may be two tables, placed side by side, if 

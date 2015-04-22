@@ -216,8 +216,8 @@ sub alignment : Chained( 'clan' )
       if $c->debug;  
 
     # retrieve the HTML from the DB
-    my $row = $c->model('PfamDB::ClanAlignmentsAndRelationships')
-                ->search( { auto_clan => $c->stash->{clan}->auto_clan } )
+    my $row = $c->model('PfamDB::ClanAlignmentAndRelationship')
+                ->search( { clan_acc => $c->stash->{clan}->clan_acc } )
                 ->single;
   
     # final check...
@@ -408,7 +408,7 @@ first argument.
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
-  my $rs = $c->model('PfamDB::Clans')
+  my $rs = $c->model('PfamDB::Clan')
              ->search( [ { clan_acc => $entry }, 
                          { clan_id  => $entry } ] );
 
@@ -426,9 +426,9 @@ sub get_data : Private {
   
   # set up the pointers to the clan data in the stash
   my @rs = $c->model('PfamDB::ClanMembership')
-             ->search( { auto_clan => $clan->auto_clan },
-                       { join      => [ 'auto_pfama' ],
-                         prefetch  => [ 'auto_pfama' ] } );
+             ->search( { clan_acc => $clan->clan_acc },
+                       { join      => [ 'pfama_acc' ],
+                         prefetch  => [ 'pfama_acc' ] } );
   $c->stash->{clanMembers} = \@rs;
 
   # only add extra data to the stash if we're actually going to use it later
@@ -455,8 +455,6 @@ sub get_summary_data : Private {
 
   my %summaryData;
 
-  # get the auto number - should be quicker to use
-  my $autoClan = $c->stash->{clan}->auto_clan;
 
   # number of sequences
   $summaryData{numSequences} = $c->stash->{clan}->number_sequences;
@@ -466,14 +464,14 @@ sub get_summary_data : Private {
 
   # number of interactions
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { 'clan_membership.auto_clan' => $c->stash->{clan}->auto_clan },
-                                 { join     => [ qw( auto_pfama_a 
-                                                     auto_pfama_b 
+                       ->search( { 'clan_membership.clan_acc' => $c->stash->{clan}->clan_acc },
+                                 { join     => [ qw( pfama_acc_a 
+                                                     pfama_acc_b 
                                                      clan_membership ) ],
-                                   select   => [ qw( auto_pfama_a.pfama_id 
-                                                     auto_pfama_a.pfama_acc
-                                                     auto_pfama_b.pfama_id 
-                                                     auto_pfama_b.pfama_acc ) ],
+                                   select   => [ qw( pfama_acc_a.pfama_id 
+                                                     pfama_acc_a.pfama_acc
+                                                     pfama_acc_b.pfama_id 
+                                                     pfama_acc_b.pfama_acc ) ],
                                    as       => [ qw( pfamA_A_id 
                                                      pfamA_A_acc
                                                      pfamA_B_id 
@@ -489,7 +487,7 @@ sub get_summary_data : Private {
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { 'clan_members.auto_clan' => $c->stash->{clan}->auto_clan },
+                  ->search( { 'clan_members.clan_acc' => $c->stash->{clan}->clan_acc },
                             { join      => [ qw( clan_members ) ]} );
 
   my %pdb_unique = map {$_->pdb_id->pdb_id => 1} @mapping;
@@ -516,7 +514,7 @@ sub get_xrefs : Private {
   my( $this, $c ) = @_;
 
   my @refs = $c->model('PfamDB::ClanDatabaseLinks')
-              ->search( { auto_clan => $c->stash->{clan}->auto_clan } );
+              ->search( { clan_acc => $c->stash->{clan}->clan_acc} );
 
   my %xRefs;
   foreach ( @refs ) {
@@ -539,10 +537,10 @@ sub get_mapping : Private {
   my( $this, $c ) = @_;
 
    my @mapping = $c->model('PfamDB::ClanMembership')
-                   ->search( { auto_clan => $c->stash->{clan}->auto_clan },
-                             { select => [ qw( auto_pfamseq.pfamseq_id
-                                               auto_pfama.pfama_id
-                                               auto_pfama.pfama_acc
+                   ->search( { clan_acc => $c->stash->{clan}->clan_acc },
+                             { select => [ qw( pfamseq_acc.pfamseq_id
+                                               pfama_acc.pfama_id
+                                               pfama_acc.pfama_acc
                                                pdb_pfama_reg.seq_start
                                                pdb_pfama_reg.seq_end
                                                pdb_pfama_reg.pdb_id
@@ -558,8 +556,8 @@ sub get_mapping : Private {
                                                chain
                                                pdb_start_res
                                                pdb_end_res ) ],
-                               join   => { pdb_pfama_reg => [ qw( auto_pfama
-                                                                  auto_pfamseq ) ] }
+                               join   => { pdb_pfama_reg => [ qw( pfama_acc
+                                                                  pfamseq_acc ) ] }
                              }
                            );
 
@@ -593,8 +591,8 @@ sub get_diagram : Private {
                     . 'and map from cache; going to DB' )
       if $c->debug;
 
-    my $row = $c->model('PfamDB::ClanAlignmentsAndRelationships')
-                ->search( { auto_clan => $c->stash->{clan}->auto_clan }, {} )
+    my $row = $c->model('PfamDB::ClanAlignmentAndRelationship')
+                ->search( { clan_acc => $c->stash->{clan}->clan_acc }, {} )
                 ->single;
   
     # check we actually retrieved a row

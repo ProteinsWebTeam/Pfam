@@ -169,6 +169,8 @@ MIME type and serialiser to do the right thing.
 sub end : Private {
   my ( $this, $c ) = @_;
 
+  use DDP;
+  p($c->error);
   if ( scalar @{ $c->error } ) {
     $c->log->debug( 'Family::end: caught an error; setting error template and serialising' )
       if $c->debug;
@@ -304,7 +306,7 @@ sub family_page : Chained( 'family' )
 
   # GO data
   my @goTerms = $c->model('PfamDB::GeneOntology')
-                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama } );
+                  ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc } );
 
   $c->stash->{goTerms} = \@goTerms;
 
@@ -383,13 +385,15 @@ sub family_page : Chained( 'family' )
 
     # add the clan details, if any
     my $clans = $c->model('PfamDB::ClanMembership')
-                          ->search( { 'auto_pfama' => $c->stash->{pfam}->auto_pfama },
-                                    { join     => [ qw(auto_clan) ],
-                                      prefetch => [ qw(auto_clan) ] } )->first;
-    
-    if ( $clans and defined $clans->auto_clan->clan_acc ) {
+                          ->search( { 'pfama_acc' => $c->stash->{pfam}->pfama_acc },
+                                    { #join     => [ qw(clan) ],
+                                      prefetch => [ qw(clan) ] } )->first;
+   
+    use DDP;
+    p($clans);
+    if ( $clans and defined $clans->clan_acc->clan_acc ) {
       $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
-      $c->stash->{clan} = $clans->auto_clan;
+      $c->stash->{clan} = $clans->clan_acc;
     }
     
     $c->forward( 'get_summary_data' );
@@ -470,12 +474,12 @@ sub get_data : Private {
   
   # check for a Pfam-A
   my $rs = $c->model('PfamDB::Pfama')
-             ->search( [ { pfama_acc => $entry },
-                         { pfama_id  => $entry } ],
-                       { join     => [ { clan_memberships => 'auto_clan' },
+             ->search( [ { 'me.pfama_acc' => $entry },
+                         { 'me.pfama_id'  => $entry } ],
+                       { join     => [ { clan_memberships => 'clan_acc' },
                                        "interpros", 
-                                       "pfama_species_trees" ], } );
-                         # prefetch => [ qw( interpros pfama_species_trees ) ] } );
+                                       "pfama_species_trees2" ],
+                          prefetch => [ qw( interpros pfama_species_trees2 ) ] } );
 
   my $pfam = $rs->first if defined $rs;
 
@@ -564,10 +568,10 @@ sub get_summary_data : Private {
   $summaryData->{numSpecies} = $c->stash->{pfam}->number_species;
 
   # number of interactions
-  my $auto_pfamA = $c->stash->{pfam}->auto_pfama;
+  my $pfamA_acc = $c->stash->{pfam}->pfama_acc;
   my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->search( { auto_pfama_a => $auto_pfamA },
-                       { select => [ { count => 'auto_pfama_a' } ],
+             ->search( { pfama_acc_a => $pfamA_acc },
+                       { select => [ { count => 'pfama_acc_a' } ],
                          as     => [ qw( numInts ) ] } )
              ->first;
   $summaryData->{numInt} = $rs->get_column( 'numInts' );
@@ -594,8 +598,7 @@ sub get_db_xrefs : Private {
 
   # Interpro
   my $i = $c->model('PfamDB::Interpro')
-            ->find( $c->stash->{pfam}->auto_pfama, 
-                    { key => 'UQ_interpro_1' } );
+            ->find( $c->stash->{pfam}->pfama_acc );
 
   push @{ $xRefs->{interpro} }, $i if defined $i;
 
@@ -605,14 +608,14 @@ sub get_db_xrefs : Private {
 
 
   # PfamA relationship based on SCOOP
-  my @ataSCOOP = $c->model('PfamDB::Pfama2pfamaScoopResults')
-                   ->search( { auto_pfama1 => $c->stash->{pfam}->auto_pfama,
+  my @ataSCOOP = $c->model('PfamDB::Pfama2pfamaScoop')
+                   ->search( { pfama_acc_1 => $c->stash->{pfam}->pfama_acc,
                                score       => { '>', 50.0 } },
-                             { join        => [ qw( pfamA1 pfamA2 ) ],
-                               select      => [ qw( pfamA1.pfama_id 
-                                                    pfamA2.pfama_id
-                                                    pfamA1.pfama_acc
-                                                    pfamA2.pfama_acc
+                             { join        => [ qw( pfama_acc_1 pfama_acc_2 ) ],
+                               select      => [ qw( pfama_acc_1.pfama_id 
+                                                    pfama_acc_2.pfama_id
+                                                    pfama_acc_1.pfama_acc
+                                                    pfama_acc_2.pfama_acc
                                                     score ) ],
                                as          => [ qw( l_pfama_id
                                                     r_pfama_id
@@ -639,20 +642,20 @@ sub get_db_xrefs : Private {
   }
 
   # PfamA to PfamA links based on HHsearch
-  my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearchResults')
-                 ->search( { 'auto_pfama1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
-                           { join     => [ qw( auto_pfama1 auto_pfama2 ) ],
-                             select   => [ qw( auto_pfama1.pfama_id 
-                                               auto_pfama1.pfama_acc
-                                               auto_pfama2.pfama_id 
-                                               auto_pfama2.pfama_acc 
+  my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearch')
+                 ->search( { 'pfama_acc_1' => $c->stash->{pfam}->pfama_acc },
+                           { join     => [ qw( pfama_acc_1 pfama_acc_2 ) ],
+                             select   => [ qw( pfama_acc_1.pfama_id 
+                                               pfama_acc_1.pfama_acc
+                                               pfama_acc_2.pfama_id 
+                                               pfama_acc_2.pfama_acc 
                                                evalue ) ],
                              as       => [ qw( l_pfama_id 
                                                l_pfama_acc 
                                                r_pfama_id 
                                                r_pfama_acc 
                                                evalue ) ],
-                             order_by => 'auto_pfama2.auto_pfama ASC'
+                             order_by => 'pfama_acc_2.pfama_acc ASC'
                            } );
                            
   $xRefs->{atoaHH} = [];
@@ -678,9 +681,9 @@ sub get_interactions : Private {
   my ( $this, $c ) = @_;
   
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfama },
-                                 { join     => [ qw( auto_pfama_b ) ],
-                                   prefetch => [ qw( auto_pfama_b ) ] } );
+                       ->search( { pfama_acc_a => $c->stash->{pfam}->pfama_acc },
+                                 { join     => [ qw( pfama_acc_a ) ],
+                                   prefetch => [ qw( pfama_acc_b ) ] } );
 
   $c->stash->{interactions} = \@interactions;
 }

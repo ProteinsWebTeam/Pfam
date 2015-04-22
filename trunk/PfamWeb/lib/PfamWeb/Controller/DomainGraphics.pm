@@ -97,23 +97,6 @@ sub begin : Private {
       $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
 
     }
-    elsif ( $tainted_entry =~ m/^(PB\d{6})$/i ) {
-
-      # pfam B
-      $c->stash->{acc}  = $1;
-
-      # we'll need the auto number for the pfam B later so retrieve it now
-      my $pfam = $c->model('PfamDB::Pfamb')
-                   ->find( { pfamb_acc => $1 } );
-      $c->stash->{autoPfamB} = $pfam->auto_pfamb;
-
-      $c->log->debug( 'DomainGraphics::begin: found Pfam B accession |'
-                      . $c->stash->{acc} . '| (auto number '
-                      . $c->stash->{autoPfamB} . ')' ) if $c->debug;
-
-      $c->forward( 'get_pfamB_data' );
-
-    }
     elsif ( $tainted_entry =~ m/^(CL\d{4})$/i ) {
 
       # looks like a clan
@@ -121,9 +104,9 @@ sub begin : Private {
       $c->log->debug( 'DomainGraphics::begin: found Clan accession |'
                       . $c->stash->{acc} . '|' ) if $c->debug;
 
-      my $clan = $c->model('PfamDB::Clans')
+      my $clan = $c->model('PfamDB::Clan')
                    ->find( { clan_acc => $1 } );
-      $c->stash->{autoClan} = $clan->auto_clan;
+      $c->stash->{clan_acc} = $clan->clan_acc;
 
       $c->forward( 'get_clan_data' );
     }
@@ -378,7 +361,7 @@ sub get_family_data : Private {
   my ( $this, $c ) = @_;
 
   $c->stash->{pfam} = $c->model('PfamDB::Pfama')
-                        ->find( { pfama_acc => $c->stash->{acc} } );
+                        ->find( { 'me.pfama_acc' => $c->stash->{acc} } );
 
   # decide if we're showing the individual architectures or all sequences
   # for a particular architecture
@@ -400,8 +383,8 @@ sub get_family_data : Private {
       if $c->debug;
 
     @rows = $c->model('PfamDB::PfamaArchitecture')
-              ->search( { pfama_acc => $c->stash->{acc} },
-                        { prefetch => [ 'auto_pfama', { auto_architecture => 'storable' } ],
+              ->search( { 'me.pfama_acc' => $c->stash->{acc} },
+                        { prefetch => [ 'pfama_acc', { auto_architecture => 'storable' } ],
                           order_by => 'auto_architecture.no_seqs DESC' } );
   }
 
@@ -482,224 +465,6 @@ sub get_family_data : Private {
   # set a flag to make sure we don't try to load family data twice
   $c->stash->{data_loaded} = 1;
 }
-   
-#-------------------------------------------------------------------------------
-
-=head2 get_pfamB_data : Private
-
-Retrieves architecture or sequence information pertaining to the specified
-Pfam-B.
-
-=cut
-
-sub get_pfamB_data : Private {
-  my ( $this, $c ) = @_;
-
-  if ( $c->stash->{auto_arch} ) {
-    $c->log->debug( 'DomainGraphics::get_pfamB_data: retrieving Pfam-B data using auto_arch '
-                    . $c->stash->{auto_arch} ) if $c->debug;
-    $c->forward( 'get_pfamB_with_arch' );
-  }
-  else {
-    $c->log->debug( 'DomainGraphics::get_pfamB_data: retrieving Pfam-B data for all architectures' )
-      if $c->debug;
-    $c->forward( 'get_pfamB_no_arch' );
-  }
-}
-
-#-------------------------------------------------------------------------------
-
-sub get_pfamB_with_arch : Private {
-  my ( $this, $c ) = @_;
-
-  my ( @rows, @seqs, %seen_arch, %arch_store, %seqInfo, @ids );
-
-  # first, retrieve the data from the DB...
-
-  # we want to see all of the sequences with a given architecture
-
-  # as a special case, Pfam Bs can have arch = "nopfama", which signifies that
-  # we want architectures even if they don't have PfamA families on them
-  if ( $c->stash->{auto_arch} eq 'nopfama' ) {
-
-    # retrieve all sequences for this PfamB, regardless of whether they have
-    # a PfamA in their architecture
-    @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { auto_pfamb        => $c->stash->{autoPfamB},
-                          auto_architecture => 0 },
-                        { prefetch => [ qw( pfamb_regs pfam_annseqs ) ] } );
-  }
-  else {
-
-    # we've got a real auto_architecture, so retrieve sequences with that
-    # just that specific architecture
-    @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { auto_pfamb        => $c->stash->{autoPfamB},
-                          auto_architecture => $c->stash->{auto_arch} },
-                        { prefetch => [ qw( pfamb_regs pfam_annseqs ) ] } );
-  }
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_with_arch: retrieved ' . scalar @rows
-                  . ' sequences with auto_arch ' . $c->stash->{auto_arch} )
-    if $c->debug;
-
-  #----------------------------------------
-
-  # how many architectures ?
-  $c->stash->{numRows} = scalar @rows;
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_with_arch: found |' . $c->stash->{numRows} . '| rows' )
-    if $c->debug;
-
-  # work out the range for the architectures that we actually want to return
-  $c->forward( 'calculateRange' );
-
-  #----------------------------------------
-
-  # now walk through the sequences/architectures that we retrieved, thaw the
-  # storables and decide where to get the extra metadata that we need for the 
-  # tooltips
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_with_arch: thawing architectures for all sequences' )
-    if $c->debug;
-
-  foreach my $arch ( @rows ) {
-
-    my $id = $arch->pfamseq_id;
-
-    my $seq = thaw( $arch->annseqs->annseq_storable );
-    push @seqs, $seq;
-    push @ids, $seq->metadata->identifier;
-
-    if ( $c->req->param('arch') =~ /^nopfama$/i ) {
-      $seqInfo{$id}{arch}      = 'no Pfam-A domains';
-      $seqInfo{$id}{auto_arch} = 'nopfama';
-      $seqInfo{$id}{num}       = $seen_arch{nopfama} ;
-    }
-    else {
-      my @domains = split /\~/, $arch->auto_architecture->architecture;
-      $seqInfo{$id}{arch}      = \@domains;
-      $seqInfo{$id}{auto_arch} = $arch->get_column('auto_architecture');
-      $seqInfo{$id}{num}       = $seen_arch{$arch->get_column('auto_architecture')} ;
-    }
-
-    $seqInfo{$id}{desc}    = $arch->description;
-    $seqInfo{$id}{species} = $arch->species;
-    $seqInfo{$id}{length}  = $arch->length;
-  }
-
-  # and finally sort the sequences according to the number of
-  # sequences that have a given architecture
-  @seqs = sort { $seqInfo{$b->metadata->identifier}{num} <=> $seqInfo{$a->metadata->identifier}{num} } @seqs;
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_with_arch: ended up with |'
-                  . scalar @seqs . '| storables' ) if $c->debug;
-
-  $c->stash->{numSeqs} = scalar @seqs;
-
-  $c->stash->{seqs}    = \@seqs;
-  $c->stash->{ids}     = \@ids;
-  $c->stash->{seqInfo} = \%seqInfo;
-}
-
-#-------------------------------------------------------------------------------
-
-sub get_pfamB_no_arch : Private {
-  my ( $this, $c ) = @_;
-
-  # we want to see the unique architectures containing this domain
-  $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: no auto_arch; retrieving all sequences with autoPfamB '
-                  . $c->stash->{autoPfamB} ) if $c->debug;
-
-  my @all_archs = $c->model('PfamDB::Pfamseq')
-                    ->search( { auto_pfamb => $c->stash->{autoPfamB} },
-                              { prefetch => [ qw( pfamb_regs pfam_annseqs ) ] } );
-
-  # grab the unique architectures
-  my ( @rows, %seen_arch, %arch_store );
-  foreach my $arch ( @all_archs ) {
-
-    my $aa = $arch->get_column('auto_architecture')
-             ? $arch->get_column('auto_architecture')
-             : 'nopfama';
-
-    if ( not $seen_arch{$aa} ) {
-      push @rows, $arch;
-      $arch_store{ $arch->pfamseq_id } = $arch;
-    }
-    $seen_arch{$aa}++;
-  }
-
-  #----------------------------------------
-
-  # how many architectures did we find ?
-  $c->stash->{numRows} = scalar @rows;
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: found |' 
-                  . $c->stash->{numRows} . '| architectures' ) if $c->debug;
-
-  # work out the range for the architectures that we actually want to return
-  $c->forward( 'calculateRange' );
-
-  #----------------------------------------
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: generating mapping for the architectures' )
-    if $c->debug;
-
-  my ( @seqs, %seqInfo, @ids );
-  foreach my $seq ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
-
-    push @seqs, thaw( $seq->annseqs->annseq_storable );
-
-    my $id = $seq->pfamseq_id;
-    push @ids, $id;
-
-    my $aa = $arch_store{$id}->get_column('auto_architecture')
-             ? $arch_store{$id}->get_column('auto_architecture')
-             : 'nopfama';
-
-    $c->log->debug( "DomainGraphics::get_pfamB_no_arch: checking |$id|, architecture |$aa|" )
-      if $c->debug;
-
-    if ( $aa =~ /^(\d+)$/ ) {
-
-      $c->log->debug( "DomainGraphics::get_pfamB_no_arch: found architecture |$1|: " 
-                      . $arch_store{$id}->auto_architecture->architecture )
-        if $c->debug;
-
-      my @domains = split /\~/, $arch_store{$id}->auto_architecture->architecture;
-      $seqInfo{$id}{arch}      = \@domains;
-      $seqInfo{$id}{num}       = $seen_arch{$aa} ;
-      $seqInfo{$id}{auto_arch} = $aa;
-    }
-    else {
-
-      $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: no PfamA domains' )
-        if $c->debug;
-      $seqInfo{$id}{arch}      = 'no Pfam-A domains';
-      $seqInfo{$id}{auto_arch} = 'nopfama';
-      $seqInfo{$id}{num}       = $seen_arch{nopfama};
-    }
-    
-    $seqInfo{$id}{desc}    = $seq->description;
-    $seqInfo{$id}{species} = $seq->species;
-    $seqInfo{$id}{length}  = $seq->length;
-  }
-
-  # and finally sort the sequences according to the number of
-  # sequences that have a given architecture
-  @seqs = sort { $seqInfo{$b->metadata->identifier}{num} <=> $seqInfo{$a->metadata->identifier}{num} } @seqs;
-
-  $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: ended up with |'
-                  . scalar @seqs . '| storables' ) if $c->debug;
-
-  $c->stash->{numSeqs} = scalar @seqs;
-
-  $c->stash->{seqs}    = \@seqs;
-  $c->stash->{ids}     = \@ids;
-  $c->stash->{seqInfo} = \%seqInfo;
-}
-
 #-------------------------------------------------------------------------------
 
 =head2 get_clan_data : Private
@@ -730,8 +495,8 @@ sub get_clan_data : Private {
       if $c->debug;
 
     @rows = $c->model('PfamDB::ClanArchitecture')
-              ->search( { 'me.auto_clan' => $c->stash->{autoClan} },
-                        { prefetch  => [ qw( auto_clan auto_architecture ) ],
+              ->search( { 'me.clan_acc' => $c->stash->{clan_acc} },
+                        { prefetch  => [ qw( clan_acc auto_architecture ) ],
                           order_by  => 'auto_architecture.no_seqs DESC' } );
   }
 
