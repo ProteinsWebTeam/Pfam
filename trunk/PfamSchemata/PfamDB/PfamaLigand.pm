@@ -1,12 +1,12 @@
 use utf8;
-package PfamDB::PfamaWiki;
+package PfamDB::PfamaLigand;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 =head1 NAME
 
-PfamDB::PfamaWiki
+PfamDB::PfamaLigand
 
 =cut
 
@@ -15,11 +15,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<pfamA_wiki>
+=head1 TABLE: C<pfamA_ligand>
 
 =cut
 
-__PACKAGE__->table("pfamA_wiki");
+__PACKAGE__->table("pfamA_ligand");
 
 =head1 ACCESSORS
 
@@ -30,38 +30,47 @@ __PACKAGE__->table("pfamA_wiki");
   is_nullable: 0
   size: 7
 
-=head2 auto_wiki
+=head2 ligand_id
 
-  data_type: 'integer'
-  extra: {unsigned => 1}
+  data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
+  size: 3
 
 =cut
 
 __PACKAGE__->add_columns(
   "pfama_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "auto_wiki",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
+  "ligand_id",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 3 },
 );
 
-=head1 RELATIONS
+=head1 PRIMARY KEY
 
-=head2 auto_wiki
+=over 4
 
-Type: belongs_to
+=item * L</pfama_acc>
 
-Related object: L<PfamDB::Wikipedia>
+=item * L</ligand_id>
+
+=back
 
 =cut
 
-__PACKAGE__->belongs_to("auto_wiki", "PfamDB::Wikipedia", { auto_wiki => "auto_wiki" });
+__PACKAGE__->set_primary_key("pfama_acc", "ligand_id");
+
+=head1 RELATIONS
+
+=head2 ligand_id
+
+Type: belongs_to
+
+Related object: L<PfamDB::Ligand>
+
+=cut
+
+__PACKAGE__->belongs_to("ligand_id", "PfamDB::Ligand", { ligand_id => "ligand_id" });
 
 =head2 pfama_acc
 
@@ -75,8 +84,8 @@ __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc"
 
 
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:I/4387pRTbHwyITANx9o7A
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:woxz9AHHojvKPEbd1iIs3A
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,4 +1,8 @@
+use utf8;
 package PfamDB;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
 
 use strict;
 use warnings;
@@ -8,8 +12,8 @@ use base 'DBIx::Class::Schema';
 __PACKAGE__->load_classes;
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-02-09 17:07:27
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BAJtYvZWLoAxUrFlGxKm6w
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3HRNaXzY1+RcWUM0BdtpdA
 
 
 =head1 COPYRIGHT

@@ -1,37 +1,73 @@
+use utf8;
 package PfamDB::PfamaFasta;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamaFasta
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamA_fasta>
+
+=cut
+
 __PACKAGE__->table("pfamA_fasta");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 fasta
+
+  data_type: 'longblob'
+  is_nullable: 1
+
+=head2 nr_threshold
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "fasta",
-  {
-    data_type => "LONGBLOB",
-    default_value => undef,
-    is_nullable => 1,
-    size => 4294967295,
-  },
+  { data_type => "longblob", is_nullable => 1 },
   "nr_threshold",
-  { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 3 },
-);
-__PACKAGE__->add_unique_constraint("UQ_pfamA_fasta_1", ["auto_pfama"]);
-__PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
+  { data_type => "tinyint", is_nullable => 1 },
 );
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UwGxESgGxgWTI9QuZ62JBg
+=head2 pfama_acc
 
-__PACKAGE__->set_primary_key('auto_pfama');
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:T7pIdRMqqO4DfVCEqhhtCA
+
+#__PACKAGE__->set_primary_key('auto_pfama');
 
 =head1 COPYRIGHT
 

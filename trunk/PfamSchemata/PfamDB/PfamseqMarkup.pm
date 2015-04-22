@@ -1,65 +1,134 @@
+use utf8;
 package PfamDB::PfamseqMarkup;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamseqMarkup
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamseq_markup>
+
+=cut
+
 __PACKAGE__->table("pfamseq_markup");
+
+=head1 ACCESSORS
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 auto_markup
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 residue
+
+  data_type: 'mediumint'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 annotation
+
+  data_type: 'text'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "auto_markup",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 3 },
-  "residue",
-  { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
-  "annotation",
   {
-    data_type => "TEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 65535,
+    data_type => "integer",
+    extra => { unsigned => 1 },
+    is_foreign_key => 1,
+    is_nullable => 0,
   },
+  "residue",
+  {
+    data_type => "mediumint",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
+  "annotation",
+  { data_type => "text", is_nullable => 1 },
 );
-__PACKAGE__->belongs_to(
-  "auto_pfamseq",
-  "PfamDB::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
-);
+
+=head1 RELATIONS
+
+=head2 auto_markup
+
+Type: belongs_to
+
+Related object: L<PfamDB::MarkupKey>
+
+=cut
+
 __PACKAGE__->belongs_to(
   "auto_markup",
   "PfamDB::MarkupKey",
   { auto_markup => "auto_markup" },
 );
 
+=head2 pfamseq_acc
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZVfL/BvVO+PL4UHj6B9wfg
+Type: belongs_to
 
+Related object: L<PfamDB::Pfamseq>
 
-__PACKAGE__->set_primary_key( qw/auto_pfamseq auto_markup residue/ );
+=cut
 
-__PACKAGE__->has_one(
-  'pfamseqs',
-  'PfamDB::Pfamseq',
-  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-  { cascade_delete => 0 }
+__PACKAGE__->belongs_to(
+  "pfamseq_acc",
+  "PfamDB::Pfamseq",
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
-__PACKAGE__->might_have(
-  'pfama_reg_full_significants',
-  'PfamDB::PfamaRegFullSignificant',
-  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-  { cascade_delete => 0 }
-);
 
-__PACKAGE__->might_have(
-  'pfamb_regs',
-  'PfamDB::PfambReg',
-  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-  { cascade_delete => 0 }
-);
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZiJG80QOLrqibLUSfA0ywg
+
+
+__PACKAGE__->set_primary_key( qw/pfamseq_acc auto_markup residue/ );
+
+#__PACKAGE__->has_one(
+#  'pfamseqs',
+#  'PfamDB::Pfamseq',
+#  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
+#  { cascade_delete => 0 }
+#);
+
+#__PACKAGE__->might_have(
+#  'pfama_reg_full_significants',
+#  'PfamDB::PfamaRegFullSignificant',
+#  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
+#  { cascade_delete => 0 }
+#);
+
+#__PACKAGE__->might_have(
+#  'pfamb_regs',
+#  'PfamDB::PfambReg',
+#  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
+#  { cascade_delete => 0 }
+#);
 
 =head1 COPYRIGHT
 

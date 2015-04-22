@@ -1,46 +1,77 @@
+use utf8;
 package PfamDB::Interpro;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::Interpro
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<interpro>
+
+=cut
+
 __PACKAGE__->table("interpro");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 interpro_id
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 abstract
+
+  data_type: 'longtext'
+  is_nullable: 0
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "interpro_id",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 0 },
   "abstract",
-  {
-    data_type => "LONGTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 4294967295,
-  },
-);
-__PACKAGE__->add_unique_constraint("UQ_interpro_1", ["auto_pfama"]);
-__PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
+  { data_type => "longtext", is_nullable => 0 },
 );
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:lI3rC1SwrkXzLdm5LNyuDA
+=head2 pfama_acc
 
-__PACKAGE__->add_unique_constraint( 
-  auto_ip_unq => [ qw( auto_pfama interpro_id ) ] 
-); 
+Type: belongs_to
 
-__PACKAGE__->set_primary_key( 'auto_pfama' );
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Hl72BzCOEZXs2/iObrAyrw
+
+#__PACKAGE__->add_unique_constraint( 
+#  auto_ip_unq => [ qw( pfama_acc interpro_id ) ] 
+#); 
+
+__PACKAGE__->set_primary_key( 'pfama_acc' );
 
 
 =head1 COPYRIGHT

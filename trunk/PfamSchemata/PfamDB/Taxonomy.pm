@@ -1,57 +1,111 @@
+use utf8;
 package PfamDB::Taxonomy;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::Taxonomy
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<taxonomy>
+
+=cut
+
 __PACKAGE__->table("taxonomy");
+
+=head1 ACCESSORS
+
+=head2 ncbi_taxid
+
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 1
+
+=head2 species
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 100
+
+=head2 taxonomy
+
+  data_type: 'mediumtext'
+  is_nullable: 1
+
+=head2 lft
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 rgt
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 parent
+
+  data_type: 'integer'
+  extra: {unsigned => 1}
+  is_nullable: 1
+
+=head2 level
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 200
+
+=head2 minimal
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 rank
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 100
+
+=cut
+
 __PACKAGE__->add_columns(
   "ncbi_taxid",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  {
+    data_type => "integer",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 1,
+  },
   "species",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 100,
-  },
+  { data_type => "varchar", is_nullable => 1, size => 100 },
   "taxonomy",
-  {
-    data_type => "MEDIUMTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
+  { data_type => "mediumtext", is_nullable => 1 },
   "lft",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "integer", is_nullable => 1 },
   "rgt",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "integer", is_nullable => 1 },
   "parent",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 100,
-  },
+  { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "level",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 100,
-  },
-);
-__PACKAGE__->belongs_to(
-  "ncbi_taxid",
-  "PfamDB::NcbiTaxonomy",
-  { ncbi_taxid => "ncbi_taxid" },
+  { data_type => "varchar", is_nullable => 1, size => 200 },
+  "minimal",
+  { data_type => "tinyint", default_value => 0, is_nullable => 0 },
+  "rank",
+  { data_type => "varchar", is_nullable => 1, size => 100 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qsqa114ln2YRhFU0SMRhMQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qaELWqynSSsQaMkxSJrc0g
 
 __PACKAGE__->has_one(
   "pfama_ncbi",

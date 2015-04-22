@@ -1,35 +1,71 @@
+use utf8;
 package PfamDB::PdbImage;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PdbImage
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pdb_image>
+
+=cut
+
 __PACKAGE__->table("pdb_image");
+
+=head1 ACCESSORS
+
+=head2 pdb_id
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 5
+
+=head2 pdb_image
+
+  data_type: 'longblob'
+  is_nullable: 1
+
+=head2 pdb_image_sml
+
+  data_type: 'mediumblob'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
   "pdb_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 5 },
   "pdb_image",
-  {
-    data_type => "MEDIUMBLOB",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
+  { data_type => "longblob", is_nullable => 1 },
   "pdb_image_sml",
-  {
-    data_type => "BLOB",
-    default_value => undef,
-    is_nullable => 1,
-    size => 65535,
-  },
+  { data_type => "mediumblob", is_nullable => 1 },
 );
+
+=head1 RELATIONS
+
+=head2 pdb_id
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pdb>
+
+=cut
+
 __PACKAGE__->belongs_to("pdb_id", "PfamDB::Pdb", { pdb_id => "pdb_id" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2009-08-18 18:25:15
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7fAhgX4Ele+8Vrb4qAn5/w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eea5uisVUiNHLgfa0zDzpw
 
 
 __PACKAGE__->set_primary_key("pdb_id");

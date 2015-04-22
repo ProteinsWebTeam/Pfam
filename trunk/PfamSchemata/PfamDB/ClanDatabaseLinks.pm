@@ -1,51 +1,87 @@
+use utf8;
 package PfamDB::ClanDatabaseLinks;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::ClanDatabaseLinks
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<clan_database_links>
+
+=cut
+
 __PACKAGE__->table("clan_database_links");
+
+=head1 ACCESSORS
+
+=head2 clan_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 6
+
+=head2 db_id
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 comment
+
+  data_type: 'tinytext'
+  is_nullable: 1
+
+=head2 db_link
+
+  data_type: 'tinytext'
+  is_nullable: 0
+
+=head2 other_params
+
+  data_type: 'tinytext'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_clan",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 4 },
+  "clan_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 6 },
   "db_id",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 0 },
   "comment",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 1 },
   "db_link",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 0 },
   "other_params",
-  {
-    data_type => "TINYTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
+  { data_type => "tinytext", is_nullable => 1 },
 );
-__PACKAGE__->belongs_to("auto_clan", "PfamDB::Clans", { auto_clan => "auto_clan" });
+
+=head1 RELATIONS
+
+=head2 clan_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Clan>
+
+=cut
+
+__PACKAGE__->belongs_to("clan_acc", "PfamDB::Clan", { clan_acc => "clan_acc" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:J3Lv14/WLZ9bz+8VS7EbhA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mHF9UGZ2eSBu69gwZg1b8w
 
-__PACKAGE__->set_primary_key("auto_clan");
+#__PACKAGE__->set_primary_key("auto_clan");
 
 =head1 COPYRIGHT
 

@@ -1,34 +1,88 @@
+use utf8;
 package PfamDB::PfamaInteractions;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamaInteractions
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamA_interactions>
+
+=cut
+
 __PACKAGE__->table("pfamA_interactions");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc_a
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 pfama_acc_b
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama_a",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
-  "auto_pfama_b",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
+  "pfama_acc_a",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
+  "pfama_acc_b",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
 );
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:do6T35QdwsMj5EIok8v9kw
+=head2 pfama_acc_a
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc_a", "PfamDB::Pfama", { pfama_acc => "pfama_acc_a" });
+
+=head2 pfama_acc_b
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc_b", "PfamDB::Pfama", { pfama_acc => "pfama_acc_b" });
 
 
-__PACKAGE__->has_one( auto_pfama_a => 'PfamDB::Pfama',
-                      { 'foreign.auto_pfama'  => 'self.auto_pfama_a' },
-                      { proxy =>  [ qw( pfama_id pfama_acc ) ] } );
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NQsutgot/Do4wJ3BeGisFA
 
-__PACKAGE__->has_one( auto_pfama_b => 'PfamDB::Pfama',
-                      { 'foreign.auto_pfama'  => 'self.auto_pfama_b' },
-                      { proxy => [ qw( pfama_id pfama_acc ) ] } );
+
+#__PACKAGE__->has_one( pfamA1 => 'PfamDB::Pfama',
+#                      { 'foreign.auto_pfama'  => 'self.auto_pfama_a' },
+#                      { proxy =>  [ qw( pfama_id pfama_acc ) ] } );
+
+#__PACKAGE__->has_one( pfamA2 => 'PfamDB::Pfama',
+#                      { 'foreign.auto_pfama'  => 'self.auto_pfama_b' },
+#                      { proxy => [ qw( pfama_id pfama_acc ) ] } );
 
 __PACKAGE__->might_have( clan_membership => 'PfamDB::ClanMembership',
-                         { 'foreign.auto_pfama' => 'self.auto_pfama_a' } );
+                         { 'foreign.pfama_acc' => 'self.pfama_acc_a' } );
 
 
 =head1 COPYRIGHT

@@ -1,74 +1,124 @@
+use utf8;
 package PfamDB::PfamaRegSeed;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamaRegSeed
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamA_reg_seed>
+
+=cut
+
 __PACKAGE__->table("pfamA_reg_seed");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 seq_start
+
+  data_type: 'mediumint'
+  default_value: 0
+  is_nullable: 0
+
+=head2 seq_end
+
+  data_type: 'mediumint'
+  is_nullable: 0
+
+=head2 cigar
+
+  data_type: 'text'
+  is_nullable: 1
+
+=head2 tree_order
+
+  data_type: 'mediumint'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
-  "auto_pfamseq",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
+  "pfamseq_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "seq_start",
-  { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
+  { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
-  {
-    data_type => "MEDIUMINT",
-    default_value => undef,
-    is_nullable => 0,
-    size => 8,
-  },
+  { data_type => "mediumint", is_nullable => 0 },
   "cigar",
-  {
-    data_type => "TEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 65535,
-  },
+  { data_type => "text", is_nullable => 1 },
   "tree_order",
-  {
-    data_type => "MEDIUMINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 9,
-  },
+  { data_type => "mediumint", is_nullable => 1 },
 );
-__PACKAGE__->add_unique_constraint(
-  "pfamA_reg_seed_reg_idx",
-  ["auto_pfama", "auto_pfamseq", "seq_start", "seq_end"],
-);
+
+=head1 RELATIONS
+
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfamseq>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
-);
-__PACKAGE__->belongs_to(
-  "auto_pfamseq",
+  "pfamseq_acc",
   "PfamDB::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p7pgogJbzXN6B35w0Ra+nw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0Om4dBe0HZ1L3whpi29pPg
 
 #Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfama", "auto_pfamseq", "seq_start");
+__PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start");
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
-          { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-                    { proxy => [ qw ( pfamseq_acc pfamseq_id seq_version auto_pfamseq) ] } );
+          { "foreign.pfamseq_acc"  => "self.pfamseq_acc" },
+                    { proxy => [ qw ( pfamseq_acc pfamseq_id seq_version) ] } );
 
 __PACKAGE__->has_one( "pfama" => "PfamDB::Pfama",
-                    { "foreign.auto_pfama" => "self.auto_pfama"},
+                    { "foreign.pfama_acc" => "self.pfama_acc"},
                       { proxy => [qw(pfama_id pfama_acc)]});
 
 __PACKAGE__->might_have(
   "clan_membership" => 'PfamDB::ClanMembership',
-			{ 'foreign.auto_pfama' => 'self.auto_pfama' } );
+			{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
 
 
 

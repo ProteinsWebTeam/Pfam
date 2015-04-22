@@ -1,40 +1,73 @@
+use utf8;
 package PfamDB::PfamaHmm;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::PfamaHmm
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<pfamA_HMM>
+
+=cut
+
 __PACKAGE__->table("pfamA_HMM");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 hmm
+
+  data_type: 'mediumblob'
+  is_nullable: 1
+
+=head2 logo
+
+  data_type: 'mediumblob'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "hmm",
-  {
-    data_type => "MEDIUMBLOB",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
+  { data_type => "mediumblob", is_nullable => 1 },
   "logo",
-  {
-    data_type => "MEDIUMBLOB",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
-);
-__PACKAGE__->belongs_to(
-  "auto_pfama",
-  "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
+  { data_type => "mediumblob", is_nullable => 1 },
 );
 
+=head1 RELATIONS
 
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZjiKVrRdqOcEOe1EVE9Krg
-__PACKAGE__->set_primary_key("auto_pfama");
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/7QuMdQKdo9VbguVlR/5Lg
+
+__PACKAGE__->set_primary_key("pfama_acc");
 
 =head1 COPYRIGHT
 

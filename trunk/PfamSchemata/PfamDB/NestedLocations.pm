@@ -1,60 +1,124 @@
+use utf8;
 package PfamDB::NestedLocations;
+
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
+=head1 NAME
+
+PfamDB::NestedLocations
+
+=cut
 
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("Core");
+=head1 TABLE: C<nested_locations>
+
+=cut
+
 __PACKAGE__->table("nested_locations");
+
+=head1 ACCESSORS
+
+=head2 pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 nested_pfama_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 7
+
+=head2 pfamseq_acc
+
+  data_type: 'varchar'
+  is_foreign_key: 1
+  is_nullable: 0
+  size: 10
+
+=head2 seq_version
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
+=head2 seq_start
+
+  data_type: 'mediumint'
+  is_nullable: 1
+
+=head2 seq_end
+
+  data_type: 'mediumint'
+  is_nullable: 1
+
+=cut
+
 __PACKAGE__->add_columns(
-  "auto_pfama",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 5 },
-  "nested_auto_pfama",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 5 },
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "nested_pfama_acc",
-  { data_type => "VARCHAR", default_value => undef, is_nullable => 0, size => 7 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "pfamseq_acc",
-  { data_type => "VARCHAR", default_value => undef, is_nullable => 0, size => 6 },
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
   "seq_version",
-  { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 4 },
+  { data_type => "tinyint", is_nullable => 1 },
   "seq_start",
-  {
-    data_type => "MEDIUMINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 8,
-  },
+  { data_type => "mediumint", is_nullable => 1 },
   "seq_end",
-  {
-    data_type => "MEDIUMINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 8,
-  },
-  "auto_pfamseq",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  { data_type => "mediumint", is_nullable => 1 },
 );
+
+=head1 RELATIONS
+
+=head2 nested_pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfama",
+  "nested_pfama_acc",
   "PfamDB::Pfama",
-  { auto_pfama => "auto_pfama" },
+  { pfama_acc => "nested_pfama_acc" },
 );
+
+=head2 pfama_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfama>
+
+=cut
+
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
+
+=head2 pfamseq_acc
+
+Type: belongs_to
+
+Related object: L<PfamDB::Pfamseq>
+
+=cut
+
 __PACKAGE__->belongs_to(
-  "auto_pfamseq",
+  "pfamseq_acc",
   "PfamDB::Pfamseq",
-  { auto_pfamseq => "auto_pfamseq" },
+  { pfamseq_acc => "pfamseq_acc" },
 );
 
-__PACKAGE__->might_have(
-  "clan_membership" => 'PfamDB::ClanMembership',
-			{ 'foreign.auto_pfama' => 'self.auto_pfama' } );
 
-
-
-
-# Created by DBIx::Class::Schema::Loader v0.04005 @ 2009-01-17 10:09:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ba+nSWA8RN4XuJHsxb1tag
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wqBEaRHri4nIX9Ls9GmzAw
 
 
 =head1 COPYRIGHT
