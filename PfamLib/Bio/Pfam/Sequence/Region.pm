@@ -9,16 +9,15 @@ use Moose::Util::TypeConstraints qw(enum);
 
 extends 'Bio::Pfam::Sequence::Feature';
 
-enum 'Style' => qw( curved jagged straight arrow );
 
 
 has 'startStyle' => (
-  isa => 'Style',
+  isa => enum([qw(curved jagged straight arrow )]),
   is  => 'rw',
 ); 
 
 has 'endStyle' => (
-  isa => 'Style',
+  isa => enum([qw(curved jagged straight arrow )]),
   is  => 'rw'
 );
 

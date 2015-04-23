@@ -16,7 +16,7 @@ subtype 'ColourStr' => as 'Str' => where { $_ =~ /^\#[0-9A-F]{6}$/i } =>
 
 subtype 'jsFeatureBoolean'
   => as 'Object'
-  => where { $_ eq 'true' or $_ eq 'false' }
+  => where { $_ eq '1' or $_ eq '0' }
   => message { "$_ does not look like javascript boolean [true/false]\n"};
 
 subtype 'jsInt'
