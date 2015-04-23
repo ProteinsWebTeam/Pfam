@@ -307,5 +307,17 @@ sub lookForActSite {
       return $match;
     }
   }
+
+  unless(keys %$asPattern) {  #Catch cases where there is no active site data, and it is one of the families that has HEXXH metal binding motif
+    if($fam eq "M69" or $fam eq "M76" or $fam eq "M98") {
+      $match=1;
+      my $sequenceNoGaps = $sequence;
+      $sequenceNoGaps =~ s/\-//g;
+      $sequenceNoGaps =~ s/\.//g;
+      unless($sequenceNoGaps =~ /HE\w\wH/) {
+	$match=0;
+      }
+    }
+  }
   return $match;
 }
