@@ -227,7 +227,7 @@ sub resolveExternalRegionOverlaps {
         if ( $reg1->start <= $reg2->start && $reg1->end >= $reg2->end ) {
 
           #reg1 completely covers region;
-          $reg2->display(0);
+          $reg2->display('false');
         }
         elsif ( $reg2->start <= $reg1->start && $reg2->end >= $reg1->end ) {
 
@@ -254,7 +254,7 @@ sub resolveExternalRegionOverlaps {
 
           #Reset the end of the N-terminal regions
           $reg2a->end( $reg1->start - 1 );
-          $reg2a->display(0) if ( $reg2a->end == $reg2a->start );
+          $reg2a->display('false') if ( $reg2a->end == $reg2a->start );
 
           #Reset the start of the C-terminal regions
           $reg2->start( $reg1->end + 1 );
@@ -278,7 +278,7 @@ sub resolveExternalRegionOverlaps {
             and $reg2->modelEnd );
         }
 
-        $reg2->display(0) if ( $reg2->end <= $reg2->start );
+        $reg2->display('false') if ( $reg2->end <= $reg2->start );
       }
     }
   }
