@@ -169,7 +169,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
       $proteomeView->touchStatus('updateProteomeArch');
-      $logger->logdie("prot arch");
     }
 
     #not all complete_proteomes are represented in proteome_regions
@@ -240,6 +239,36 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   }
 #}
 
+#update Treefam mapping in pfamseq
+if(! $view->statusCheck('doneTreefamUpdate')){
+    $logger->debug("Updating treeFam mappings in pfamseq");
+
+    my $dbh = $view->pfamdb->getSchema->storage->dbh;
+
+    $logger->debug("Parsing Treefam file");
+    my $treefam_mapping = '/nfs/public/rw/xfam/treefam/live/root/static/download/uniprotACC2treefam.txt';
+    my @data = read_file($treefam_mapping);
+    my %mapping;
+    foreach my$line (@data){
+        my @accns = split(/\s+/,$line);
+        if ($accns[0] =~ /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/){
+            $mapping{$accns[0]}=$accns[1];
+        }
+    }
+    $logger->debug("Remving old TreeFam mappings from pfamseq");
+    my $stt1 = $dbh->prepare("update pfamseq set treefam_acc = \'NULL\'") or die("Can't prepare statement: $dbh->errstr");
+    $stt1->execute;
+
+    $logger->debug("Updating pfamseq with new TreeFam mappings");
+    my $stt2 = $dbh->prepare("update pfamseq set treefam_acc = ? where pfamseq_acc = ?") or die("Can't prepare statement: $dbh->errstr");
+
+    foreach my $acc (keys %mapping){
+        my $treefam = $mapping{$acc};
+        $stt2->execute($treefam, $acc);
+    }
+
+    $view->touchStatus('doneTreefamUpdate');
+}
 
 #-------------------------------------------------------------------------------
 #Find when this job was last run
