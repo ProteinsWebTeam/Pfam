@@ -4,12 +4,22 @@ use strict;
 use warnings;
 use Getopt::Long;
 
-my $family;
-GetOptions("family=s" => \$family);
+my ($family, $all);
+GetOptions("family=s" => \$family,
+                "all" => \$all);
+
+#Check input options are sensible              
+unless($family or $all) {
+  die "Need to specify family (-family <fam>) to run on a single family, or all (-all) to run on all families in cwd\n";
+}
+if($family and $all) {
+  die "Can't use -family and -all options together\n";
+}
 
 my $memory_mb=2000;
 my $makeTree="/nfs/production/xfam/pfam/software/Scripts/PfamScripts/merops/makeTree.pl";
 
+#Create array of families to work on
 my @families;
 if($family) {
   push(@families, $family);

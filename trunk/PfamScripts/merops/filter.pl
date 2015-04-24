@@ -6,9 +6,19 @@ use DBI;
 use Bio::LocatableSeq;
 use Getopt::Long;
 
-my $family;
-GetOptions("family=s" => \$family);
+my ($family, $all);
+GetOptions("family=s" => \$family,
+                "all" => \$all);
 
+#Check input options are sensible              
+unless($family or $all) {
+  die "Need to specify family (-family <fam>) to run on a single family, or all (-all) to run on all families in cwd\n";
+}
+if($family and $all) {
+  die "Can't use -family and -all options together\n";
+}
+
+#Create array of families to work on
 my @families;
 if($family) {
   push(@families, $family);
@@ -18,7 +28,6 @@ else {
   opendir(DIR, $dir) or die "Couldn't directory open '$dir', $!";
   @families = sort grep { ! /^\./ } readdir(DIR);
 }
-
 
 #Get a db connection
 my $dbh = DBI->connect("dbi:mysql:database=merops;host=mysql-merops-curation:port=4408", "admin", "gCox9MH5");
@@ -45,8 +54,8 @@ foreach my $fam (@families)  {
       my ($acc_se, $acc, $start, $end, $seq)=($1, $2, $3, $4, $5);
 
       #Store a shorter version of sprot and trembl accession
-      #sp|Q9XEC4|APA3_ARATH/70-508
-      #tr|A0A067GI16|A0A067GI16_CITSI/72-514
+      #sp|Q9XEC4|APA3_ARATH/70-508 becomes Q9XEC4/70-508
+      #tr|A0A067GI16|A0A067GI16_CITSI/72-514 becomes A0A067GI16/72-514
       #Use the shortened version for printing alignments later
       my $short_acc;
       if($acc_se =~ /[tr|sp]\|(\S+)\|\S+/) {
@@ -67,7 +76,7 @@ foreach my $fam (@families)  {
 	  getActSites($seqObj, $st_subfamily, $fam, $acc, $acc_se, \%uniquePattern, \%asPattern, $start, $end);
 	}
 	else { #It's a family
-	  getActSites($seqObj, $st_family, $fam, $acc, $acc_se, \%uniquePattern, \%asPattern, $start, $end);
+ 	  getActSites($seqObj, $st_family, $fam, $acc, $acc_se, \%uniquePattern, \%asPattern, $start, $end);
 	}
 	$seed{$acc_se}=$short_acc."$seq\n";
       }
