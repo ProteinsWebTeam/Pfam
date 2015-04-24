@@ -13,7 +13,7 @@ use Bio::Pfam::PfamLiveDBManager;
 $| = 1;
 
 my $config = Bio::Pfam::Config->new;
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 
 my $pfama_flat=shift;
