@@ -247,9 +247,9 @@ unless ( -e "$logDir/checkedA" ) {
 
 #Make the stats for the release
 
-#TODO - remove the two lines below - is a fudge to use on test db
-#$numSeqs = 80369284;
-#$numRes = 13400254486;
+#TODO - remove the two lines below - is a fudge to use after script has died
+$numSeqs = 80358880;
+$numRes = 25384165462;
 unless ( -s "$thisRelDir/stats.txt" ) {
   unless ( $numSeqs and $numRes ) {
     $logger->logdie(
@@ -257,7 +257,7 @@ unless ( -s "$thisRelDir/stats.txt" ) {
   }
   makeStats( "$thisRelDir", $numSeqs, $numRes );
 }
-$logger->info("Maded stats!");
+$logger->info("Made stats!");
 
 #Make the indexes HMMs
 unless ( -e "$logDir/checkedA.hmm" ) {
@@ -625,7 +625,8 @@ sub makeActiveSiteDat {
   open( FH, ">$file" ) or die "Couldn't open $file $!";
 
   foreach my $row (@allData) {
-    my $id = $row->pfama_id;
+    
+    my $id = $row->pfama_acc->pfama_id;
     print FH "ID  $id\n";
 
     my @residues = split( /, /, $row->get_column('as_residues') );
