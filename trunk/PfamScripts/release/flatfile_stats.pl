@@ -17,17 +17,12 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 
 my $pfama_flat=shift;
-#my $pfamb_flat=shift;
 my $pfamseq_sequences=shift;
 my $pfamseq_residues=shift;
 
 unless($pfama_flat and -s $pfama_flat){ 
   die "Please specify the location of the Pfam-A file.\n";
 }
-
-#unless($pfamb_flat and -s $pfamb_flat){ 
-#  die "Please specify the location of the Pfam-B file.\n";
-#}
 
 unless( $pfamseq_sequences and $pfamseq_sequences =~ /^\d+$/){ 
   die "Please specify the number of sequences in pfamseq.\n";
@@ -55,21 +50,16 @@ my ($db,
     %pfamb_id);
 
 open (A, "$pfama_flat") || die"Can't open $pfama_flat\n";
-#open (B, "$pfamb_flat") || die"Can't open $pfamb_flat\n";
-
 
 while (<A>){
     if (/\#=GF\s+ID\s+(\S+)/) {
 	$pfamAfamilies++;
-#	$A2Blinks = 0;
 	next;
     }
     elsif (/\#=GF\s+DR\s+PFAMB/) {
-#	$A2Blinks++;
 	next;
     }
     elsif (/^\/\//) {
-#	$A2Blinknums{ $A2Blinks }++;
 	next;
     }
     elsif (/^(\S+)\/(\d+)-(\d+)/){
@@ -135,69 +125,14 @@ foreach my $id_a (keys %pfama_id)
 
 $all_residues = $pfama_residues;
 
-
-
-#while (<B>){
-#    if (/\#=GF\s+ID\s+(\S+)/) {
-#	$pfamBfamilies++;
-#	$B2Alinks = 0;
-#	next;
-#    }
-#    elsif (/\#=GF\s+DR\s+PFAMA/) {
-#	$B2Alinks++;
-#	next;
-#    }
-#    elsif (/^\/\//) {
-#	$B2Alinknums{ $B2Alinks }++;
-#	next;
-#    }
-#    elsif (/^(\S+)\/(\d+)-(\d+)\s+(\S+)/){
-#	$id = $1;
-#	$residues = $3-$2+1;   # Number of residues
-#	$pfamb_residues += $residues;
-#	if (defined( $all_id{$id})) {
-#	    if ($all_id{$id} eq "A") {
-#		$all_id{$id} = "Both";
-#	    }
-#	}
-#	else {
-#	    $all_id{$id} = "B";
-#	}
-#
-#    }
-#}
-#close (B);
-
-#$all_residues += $pfamb_residues;
-
-
-# Now calculate some sequecne coverage figures
-
 my (%count, $nm);
 foreach $nm (keys %all_id) {
     $count{ $all_id{$nm} }++;
 }
 
 $pfama_only_seqs = $count{"A"};
-#$pfamb_only_seqs = $count{"B"};
-#$both_a_and_b_seqs = $count{"Both"};
-#$all_sequences = $pfama_only_seqs + $pfamb_only_seqs + $both_a_and_b_seqs;
-#$all_sequences = $pfama_only_seqs;
-#$pfama_sequences = $pfama_only_seqs + $both_a_and_b_seqs;
-#$pfamb_sequences = $pfamb_only_seqs + $both_a_and_b_seqs;
-
-my $pfama_seq_cov =  sprintf("%.2f", $pfama_sequences/$pfamseq_sequences*100);
+my $pfama_seq_cov =  sprintf("%.2f", $pfama_only_seqs/$pfamseq_sequences*100);
 my $pfama_res_cov = sprintf("%.2f", $pfama_residues/$pfamseq_residues*100);
-
-#my $pfamb_seq_cov = sprintf("%.2f", $pfamb_sequences/$pfamseq_sequences*100);
-#my $pfamb_res_cov = sprintf("%.2f", $pfamb_residues/$pfamseq_residues*100);
-
-#my $total_seq_cov = sprintf("%.2f", $all_sequences/$pfamseq_sequences*100);
-#my $total_res_cov = sprintf("%.2f", $all_residues/$pfamseq_residues*100);
-
-#my $pfamb_add_seq_cov = sprintf("%.2f", $total_seq_cov - $pfama_seq_cov); 
-#my $pfamb_add_res_cov = sprintf("%.2f", $total_res_cov - $pfama_res_cov); 
-
 
 # Now calculate coverages
 
@@ -209,42 +144,9 @@ print "\npfamseq:\n\tResidues = $pfamseq_residues\n\tSequences = $pfamseq_sequen
 print "Pfam-A\n======\n\n";
 print "\tNumber of families = $pfamAfamilies\n";
 print "\tResidues = $pfama_residues\n";
-print "\tSequences = $pfama_sequences (with Pfam-A domains only = $pfama_only_seqs)\n";
+print "\tSequences = $pfama_only_sequences\n";
 print "\tPercent pfamseq residues =",$pfama_res_cov,"\n";
 print "\tPercent Pfamseq sequences =",$pfama_seq_cov,"\n\n";
-
-#print "Pfam-B\n======\n\n";
-#print "\tNumber of families: $pfamBfamilies\n";
-#print "\tResidues: $pfamb_residues\n";
-#print "\tSequences: $pfamb_sequences (with Pfam-B domains only = $pfamb_only_seqs)\n";
-#print "\tPercent Pfamseq residues =",$pfamb_res_cov,"\n";
-#print "\tPercent Pfamseq sequences =",$pfamb_seq_cov,"\n";
-#print "\tPercent Pfamseq residues additional =",$pfamb_add_res_cov,"\n";
-#print "\tPercent Pfamseq sequences additional =",$pfamb_add_seq_cov,"\n\n";
-
-
-
-#print "Combined stats\n===============\n\n";
-#print "\tResidues: $all_residues\n";
-#print "\tSequences: $all_sequences (with both Pfam-A and Pfam-B domains = $both_a_and_b_seqs)\n";
-#print "\tPercent Pfamseq residues =",$total_res_cov,"\n";
-#print "\tPercent Pfamseq sequences =",$total_seq_cov,"\n";
-
-#print "\n\nLinks from Pfam-B to Pfam-A\n";
-#print "---------------------------\n";
-
-#foreach my $item (sort { $a <=> $b } keys %B2Alinknums) {
-#    print "Number of families with $item Pfam-A links: $B2Alinknums{$item}\n";
-#}
-
-#print "\nLinks from Pfam-A to Pfam-B\n";
-#print "---------------------------\n";
-
-#foreach my $item (sort { $a <=> $b } keys %A2Blinknums) {
-#   print "Number of families with $item Pfam-B links: $A2Blinknums{$item}\n";
-#}
-
-
 
 my $version = $pfamDB->getSchema->resultset('Version')->search()->first;
 $version->update({ pfama_coverage => sprintf("%.1f", $pfama_seq_cov),
