@@ -328,8 +328,6 @@ unless ( -s "$thisRelDir/diff" ) {
   $logger->info("Making diff file");
   my $archive = $config->archiveLoc;
   $archive .= "/$old_major.$old_point/diff.gz";
-#  print "make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff";
-#  exit;
   system(
 "make_diff.pl -file $archive -old_rel $old_major -new_rel $major > $thisRelDir/diff"
   ) and $logger->logdie("Could not run make_diff.pl:[$!]");
@@ -453,7 +451,9 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   my $password = $pfamDB->{password};
   my $port = $pfamDB->{port};
   my $db = $pfamDB->{database};
-  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc, seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
+#  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc, seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
+  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
+
  system($cmd) and die "Couldn't execute $cmd\n"; 
 }
 
