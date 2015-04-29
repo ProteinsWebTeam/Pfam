@@ -451,10 +451,58 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   my $password = $pfamDB->{password};
   my $port = $pfamDB->{port};
   my $db = $pfamDB->{database};
-#  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, a.pfamA_acc, seq_start, seq_end from pfamA a, pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and a.pfamA_acc=r.pfamA_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
-  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select s.pfamseq_acc, seq_version, crc64, md5, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and in_full=1\" > $thisRelDir/Pfam-A.regions.tsv";
+  my $cmd = "mysql -h $host -u $user -p$password -P $port $db --quick -e \"select pfamseq_acc, pfamA_acc, seq_start, seq_end from pfamA_reg_full_significant where in_full=1\" > regions";
+  system($cmd) and $logger->logdie("Couldn't execute $cmd"); 
+  #split regions file
+  system("split -d -l 1000000 regions regions_") and $logger->logdie("Could not split regions file");
+  my $dir = getcwd;
+  my %filenames;
+  my @files = read_dir($dir);
+  foreach my $file (@files){
+    if ( $file =~ /regions_(\d+)/ ){
+        $filenames{$1}=1;
+    }
+  }
 
- system($cmd) and die "Couldn't execute $cmd\n"; 
+  #submit jobs to farm
+  foreach my $number (keys %filenames){
+      my $fh         = IO::File->new();
+       $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000 -Jregions") or $logger->logdie("Couldn't open file handle [$!]\n");
+       $fh->print( "get_regions.pl -num $number\n"); 
+       $fh->close;        
+  }
+  #have jobs finished?
+    if (-e "$logDir/finishedregions"){
+	$logger->info("Already checked regions farm jobs have finished\n");
+    } else {
+	    my $fin = 0;
+    	while (!$fin){
+	        open( FH, "bjobs -Jregions|" );
+	        my $jobs;
+	        while (<FH>){
+		    if (/^\d+/){
+		        $jobs++;
+		    }
+	        }
+	        close FH;
+	        if ($jobs){
+		        $logger->info("Regions farm jobs still running - checking again in 10 minutes\n");
+		        sleep(600);
+	        } else {
+		        $fin = 1;
+		        open( FH, "> $logDir/finishedregions" ) or $logger->logdie("Can not write to file");
+		        close(FH);
+	        }
+	    }
+    }
+
+    #once jobs have finished - create the Pfam-A.regions.tsv file by concatenating the outputs and adding a header
+    open (REGIONS, ">$thisRelDir/Pfam-A.regions.tsv") or $logger->logdie("Can't open file to write");
+    print REGIONS "pfamseq_acc\tseq_version\tcrc64\tmd5\tpfamA_acc\tseq_start\tseq_end\n";
+    close (REGIONS);
+
+    system("cat regionsout_* >> $thisRelDir/Pfam-A.regions.tsv") and $logger->logdie("Failed to concatenate regions files");
+
 }
 
 unless ( -e "$thisRelDir/Pfam-A.clans.tsv" ) {
@@ -475,6 +523,7 @@ unless ( -s "$thisRelDir/swisspfam" ) {
   $logger->info("Going to make swisspfam\n");
   makeSwissPfam( $thisRelDir, $updateDir );
 }
+
 
 # TODO Swisspfam style file fpr meta and ncbi
 
