@@ -553,7 +553,7 @@ unless ( -s "$thisRelDir/swisspfam" ) {
 
 #Dump the database.
 # TODO - refactor make_ftp
-unless ( -d "$thisRelDir/ftpa" ) {
+unless ( -d "$thisRelDir/ftp" ) {
   make_ftp( $thisRelDir, $logger );
 }
 
