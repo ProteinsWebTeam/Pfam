@@ -219,9 +219,9 @@ unless ( -e "$logDir/checkedseqsize" ){
     touch("$logDir/checkedseqsize");
 }
 
-#unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
-makePfamAFlat( $thisRelDir, $pfamDB );
-#}
+unless ( -s "$thisRelDir/Pfam-A.full" and -s "$thisRelDir/Pfam-A.seed" ) {
+    makePfamAFlat( $thisRelDir, $pfamDB );
+}
 
 unless ( -e "$logDir/checkedA" ) {
   foreach my $f ( "$thisRelDir/Pfam-A.seed", "$thisRelDir/Pfam-A.full" ) {
@@ -231,25 +231,9 @@ unless ( -e "$logDir/checkedA" ) {
   }
 }
 
-#unless ( -s "$thisRelDir/Pfam-B" and -s "$thisRelDir/Pfam-B.fasta" ) {
-#  $logger->logdie(
-#"Cannot find the Pfam-B files (Pfam-B and Pfam-B.fasta), which should be in the update directoru\n"
-#  );
-#}
-
-#unless ( -e "$logDir/checkedB" ) {
-#  foreach my $f ("$thisRelDir/Pfam-B") {
-#    $logger->info("Checking format of $f");
-#    checkflat_b($f);
-#    touch("$logDir/checkedB");
-#  }
-#}
 
 #Make the stats for the release
 
-#TODO - remove the two lines below - is a fudge to use after script has died
-$numSeqs = 80358880;
-$numRes = 25384165462;
 unless ( -s "$thisRelDir/stats.txt" ) {
   unless ( $numSeqs and $numRes ) {
     $logger->logdie(
@@ -334,17 +318,9 @@ unless ( -s "$thisRelDir/diff" ) {
 }
 $logger->info("Made diff file.");
 
-#unless ( -s "$thisRelDir/Pfam-B.hmm" ) {
-#  $logger->info("Making Pfam-B.hmm");
-#  &makePfamBHmms("$thisRelDir");
-#}
-#
-#$logger->info("Made Pfam-B.hmm and Pfam-B.hmm.dat");
-
 my $pwd = cwd;
 
 #Index the fasta files!
-#foreach my $f (qw(Pfam-A.fasta Pfam-B.fasta)) {
 my $f = 'Pfam-A.fasta';
   unless ( -s "$thisRelDir/$f.00.phr" or -s "$thisRelDir/$f.phr" ) {
     chdir("$thisRelDir")
@@ -355,7 +331,6 @@ my $f = 'Pfam-A.fasta';
     chdir("$pwd") || $logger->logdie("Could not change into $pwd:[$!]");
   }
   $logger->info("Indexed $f");
-#}
 
 #Make the Pfam-C file......
 unless ( -s "$thisRelDir/Pfam-C" ) {
@@ -1407,27 +1382,6 @@ sub checkflat {
     $logger->logdie("Error in $file");
   }
 }
-##########################################################
-# Checks flatfile format, exits at first sign of trouble #
-##########################################################
-#sub checkflat_b {
-#  my $file = shift;
-#  $logger->info("Checking format for $file");
-#  my $error;
-#  open( F, "checkflat_pfamB.pl $file |" )
-#    or $logger->logdie("Failed to run checkflat_pfamB.pl:[$!]");
-#  while (<F>) {
-#    if (/\S+/) {
-#      $logger->warn("ERROR with $file:[$_]");
-#      $error = 1;
-#    }
-#  }
-#  close F;
-#
-#  if ($error) {
-#    $logger->logdie("Error in $file.");
-# }
-#}
 ##################
 # Make swisspfam #
 ##################
@@ -1539,108 +1493,6 @@ sub make_ftp {
   #TODO copy whole dir tree to the ftp site.
 }
 
-#sub makePfamBHmms {
-#  my ($dir) = @_;
-#
-#  unless ( $dir and -d $dir ) {
-#    $logger->logdie("Could not find the releases directory");
-#  }
-#
-#  $logger->debug("Making Pfam-B.hmm");
-#
-#  unless ( $dir . "/Pfam-B" ) {
-#    $logger->logdie("Could not find the Pfam-B hmms");
-#  }
-#
-#  open( B, $dir . "/Pfam-B" )
-#    or $logger->logdie("Could not open Pfam-B:[$!]");
-#
-#  #open( B2, ">" . $dir . "/Pfam-B.top20000" )
-#  #  or $logger->logdie("Could not open Pfam-B.top20000:[$!]");
-#
-#  #$/ = "//";
-#  #while (<B>) {
-#  #  print B2 $_;
-#  #  if (/#=GF ID   Pfam-B_(\d+)/) {
-#  #    if ( $1 == 20000 ) {
-#  #      print B2 "\n";
-#  #      close(B2);
-#  #      last;
-#  #    }
-#  #  }
-#  #}
-#  close(B);
-#
-#  #$/ = "\n";
-#
-#  #system($config->hmmer3bin."/hmmbuild $dir/Pfam-B.hmm.a $dir/Pfam-B.top20000")
-#  # and $logger->logdie("Failed to run hmmbuild:[$!]");
-#
-#  $logger->debug("Making Pfam-B.hmm.dat");
-#
-#  unless ( $dir . "/Pfam-B.hmm" ) {
-#    $logger->logdie("Could not find the Pfam-B hmms");
-#  }
-#
-#  open( S, ">" . $dir . "/Pfam-B.hmm.dat" )
-#    or $logger->logdie(
-#    "Could not open the scan data dir in the release directory:[$!]");
-#
-#  open( H, $dir . "/Pfam-B.hmm" )
-#    or $logger->logdie(
-#    "Could not open the hmm file in the release directory:[$!]");
-#
-#  my @data;
-#  $/ = "//";
-#  while (<H>) {
-#
-#    $/ = "\n";
-#    my @f = split( /\n/, $_ );
-#
-#    #NAME  Pfam-B_1
-#    #ACC   PB000001
-#    #LENG  251
-#    my ( $name, $acc, $length );
-#    foreach my $l (@f) {
-#      if ( $l =~ /^NAME\s+(\S+)/ ) {
-#        $name = $1;
-#      }
-#      elsif ( $l =~ /^ACC\s+(\S+)/ ) {
-#        $acc = $1;
-#      }
-#      elsif ( $l =~ /LENG\s+(\d+)/ ) {
-#        $length = $1;
-#        last;
-#      }
-#    }
-#    if ($name) {
-#      push( @data, { name => $name, acc => $acc, leng => $length } );
-#    }
-#    $/ = "//";
-#  }
-#
-#  $/ = "\n";
-#  foreach my $d (@data) {
-#    print S "# STOCKHOLM 1.0\n";
-#    print S "#=GF ID   " . $d->{name} . "\n";
-#    print S "#=GF AC   " . $d->{acc} . "\n";
-#    print S "#=GF ML   " . $d->{leng} . "\n";
-#    print S "//\n";
-#  }
-#
-#  close(S);
-#
-#  #Press and convert the files.
-#  $logger->debug("Making Pfam-B.hmm.bin");
-#
-#  system( $config->hmmer3bin . "/hmmpress -f $dir/Pfam-B.hmm" )
-#    and $logger->logdie("Failed to run hmmpress:[$!]");
-#
-#  system( $config->hmmer3bin
-#      . "/hmmconvert -b $dir/Pfam-B.hmm > $dir/Pfam-B.hmm.bin " )
-#    and $logger->logdie("Failed to run hmmconvert:[$!]");
-#
-#}
 
 sub help {
   print <<EOF;
