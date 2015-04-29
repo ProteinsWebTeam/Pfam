@@ -74,11 +74,33 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
       #WORK IN REWRITTEN ARCH STUFF HERE
       system("make_Architecture_new_part1.pl") and die $logger->logdie("Can't run make_Architecture_new_part1.pl");
-      #TODO need a proper check for farm jobs that are running
-      $logger->logdie("Wait for all jobs to be run before setting off next stage");
-      system("make_Architecture_new_part3.pl") and die $logger->logdie("Can't run make_Architecture_new_part3.pl");
+        
+#have jobs finished?
+        if (! $archView->statusCheck('doneArchJobs')){
+	        $logger->info("Already checked architectures farm jobs have finished\n");
+        } else {
+	        my $fin = 0;
+    	    while (!$fin){
+	            open( FH, "bjobs -Jarch|" );
+	            my $jobs;
+	            while (<FH>){
+		            if (/^\d+/){
+		                $jobs++;
+		            }
+	            }
+	            close FH;
+	            if ($jobs){
+		            $logger->info("Architectures farm jobs still running - checking again in 10 minutes\n");
+		            sleep(600);
+	            } else {
+		            $fin = 1;
+                    $archView->touchStatus('doneArchJobs');
+	            }
+	        }
+        }
+        system("make_Architecture_new_part3.pl") and die $logger->logdie("Can't run make_Architecture_new_part3.pl");
 
-      $archView->touchStatus('doneArch');
+        $archView->touchStatus('doneArch');
   }
 
   #Update clan architectures
