@@ -176,7 +176,7 @@ if ( $res->is_success ) {
   my $sOverlaps = Bio::Pfam::PfamQC::seedIntOverlaps($famObj);
   $overlaps += $sOverlaps;
 
-  print "Found $overlaps external overlaps\n";
+  print "Found $overlaps overlaps\n";
 
 }
 else {
