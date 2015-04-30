@@ -1434,7 +1434,7 @@ sub seedIntOverlaps{
       {
 
         printf STDERR (
-          "Internal overlap of %s/%d-%d to %s/%d-%d\n",
+          "Internal SEED overlap of %s/%d-%d to %s/%d-%d\n",
           $seq->id,   $seq->start,   $seq->end,
           $other->id, $other->start, $other->end
         );
