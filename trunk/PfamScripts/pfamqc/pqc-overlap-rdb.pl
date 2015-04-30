@@ -81,7 +81,7 @@ unless($all) {
 
 my $overlaps =
   &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete, $all, $noFilter, $pfamDBAdmin );
-  warn "$family: found $overlaps external overlaps\n";
+  warn "$family: found $overlaps overlaps\n";
 
 unless($no_sigP) {
   my $signal_peptide_overlap = &Bio::Pfam::PfamQC::family_overlaps_with_signal_peptide($family, $famObj, $pfamDB);
