@@ -211,7 +211,7 @@ sub pfamseqLoc {
   Usage    : $config->refprotLoc
   Function : Returns the location of the reference proteomes
   Args     : None - read only operator
-  Returns  : string containing path to references proteomes    
+  Returns  : string containing path to reference proteomes    
   
 =cut
 
@@ -221,6 +221,24 @@ sub refprotLoc {
     warn "Passed variable to ro config\n";
   }
   return $self->{refprot}->{location};
+}
+
+=head2 refprotliveLoc
+
+  Title    : refprotliveLoc
+  Usage    : $config->refprotliveLoc
+  Function : Returns the location of the live reference proteome set
+  Args     : None - read only operator
+  Returns  : string containing path to live reference proteomes set    
+  
+=cut
+
+sub refprotliveLoc {
+  my $self = shift;
+  if ( $#_ >= 0 ) {
+    warn "Passed variable to ro config\n";
+  }
+  return $self->{refprotlive}->{location};
 }
 
 =head2 ncbiLoc
@@ -855,7 +873,8 @@ sub sequenceOverlapRule
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-
+my $value =  $self->{overlap_rule}->{sequence_overlap};
+print "\n\n$value\n\n";
   return $self->{overlap_rule}->{sequence_overlap};
 }
 
