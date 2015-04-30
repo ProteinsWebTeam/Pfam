@@ -236,7 +236,7 @@ sub writePFAMOUT {
 # Sequence scores
 # ---------------
 #
-# name      description                                   bits      evalue   n   exp  bias  
+# name           description                                   bits      evalue   n   exp  bias  
  
 HEAD
 
@@ -247,7 +247,7 @@ HEAD
     my ($desc) = /^(.{1,42})/;
     $desc = uc($desc);
     printf $fh (
-      "%-10s  %-42s %8.1f  %9s %3d %5.1f %5.1f\n",
+      "%-15s  %-42s %8.1f  %9s %3d %5.1f %5.1f\n",
       $seq->name,
       $desc,
       $seq->bits,
@@ -263,7 +263,7 @@ HEAD
 # Domain scores
 # -------------
 #
-# name      env-st  env-en  ali-st  ali-en  hmm-st  hmm-en   bits      evalue    hit   bias
+# name           env-st  env-en  ali-st  ali-en  hmm-st  hmm-en   bits     evalue    hit   bias
 #
 
 HEAD
@@ -272,7 +272,7 @@ HEAD
     
     
     printf $fh (
-      "%-10s  %6d  %6d  %6d  %6d  %6s  %6s %6.1f  %9s %6d %6.1f\n",
+      "%-15s  %6d  %6d  %6d  %6d  %6s  %6s %6.1f  %9s %6d %6.1f\n",
       $dom->name,
       $dom->envFrom,
       $dom->envTo,
