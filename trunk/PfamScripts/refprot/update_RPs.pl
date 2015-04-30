@@ -41,7 +41,7 @@ my $data = $res->content;
 my @list = split(/\n/, $data);
 
 #set all current_ref_prot to 0 (0 should be default, not null)
-$logger->debug("Setting all current_ref_prot to 0");
+$logger->debug("Setting all _live_ref_prot to 0");
 my $stup = $dbh->prepare("update pfamseq set _live_ref_proteome = 0") or $logger->logdie("Can't prepare statement: $dbh->errstr");
 $stup->execute() or die "Couldn't update _live_ref_proteome to 0\n";
 
