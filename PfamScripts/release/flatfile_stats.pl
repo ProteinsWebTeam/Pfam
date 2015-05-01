@@ -144,7 +144,7 @@ print "\npfamseq:\n\tResidues = $pfamseq_residues\n\tSequences = $pfamseq_sequen
 print "Pfam-A\n======\n\n";
 print "\tNumber of families = $pfamAfamilies\n";
 print "\tResidues = $pfama_residues\n";
-print "\tSequences = $pfama_only_sequences\n";
+print "\tSequences = $pfama_only_seqs\n";
 print "\tPercent pfamseq residues =",$pfama_res_cov,"\n";
 print "\tPercent Pfamseq sequences =",$pfama_seq_cov,"\n\n";
 
