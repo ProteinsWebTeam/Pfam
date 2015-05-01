@@ -1425,6 +1425,10 @@ sub make_ftp {
     $logger->logdie("Could not make ftp directory!");
   }
 
+  if ( !-d "$releasedir/ftp/proteomes"){
+      system("cp -pr $relDir/proteomes $releasedir/ftp/proteomes") and $logger->logdie("Failed to copy proteomes directory");
+  }
+
   if ( !-e "$releasedir/trees.tgz" ) {
     system("tar zcf $releasedir/trees.tgz $releasedir/trees")
       and $logger->logdie("Failed to tgz trees directory");
@@ -1432,6 +1436,8 @@ sub make_ftp {
   my @list = qw(
     active_site.dat
     diff
+    metaseq
+    ncbi
     pdbmap
     Pfam-A.dead
     Pfam-A.fasta
@@ -1441,6 +1447,11 @@ sub make_ftp {
     Pfam-A.hmm.dat
     Pfam-A.hmm
     Pfam-A.seed
+    Pfam-A.rp15
+    Pfam-A.rp35
+    Pfam-A.rp55
+    Pfam-A.rp75
+    Pfam-A.ref_proteome
     Pfam-C
     pfamseq
     relnotes.txt
