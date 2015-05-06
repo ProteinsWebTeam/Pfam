@@ -60,23 +60,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       Markov models (HMMs).
     </p>
     <p>
-      There are two levels of quality to Pfam families: Pfam-A and Pfam-B. 
-      <em>Pfam-A</em> entries are derived from the underlying sequence database, 
-      known as <em>Pfamseq</em>, which is built from the most recent release of 
-      UniProtKB at a given time-point. Each Pfam-A family consists of a curated 
+      Each Pfam family, often referred to as a Pfam-A entry, consists of a curated 
       seed alignment containing a small set of representative members of the 
       family, profile hidden Markov models (profile HMMs) built from the seed 
       alignment, and an automatically generated full alignment, which contains 
       all detectable protein sequences belonging to the family, as defined by 
       profile HMM searches of primary sequence databases.
-    </p>
-    <p>
-      <em>Pfam-B</em> families are un-annotated and of lower quality as they 
-      are generated automatically from the non-redundant clusters of the latest 
-      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
-        class="ext">ADDA</a> release. Although of lower quality, Pfam-B 
-      families can be useful for identifying functionally conserved regions when 
-      no Pfam-A entries are found.
     </p>
     <p>
       Pfam entries are classified in one of four ways:

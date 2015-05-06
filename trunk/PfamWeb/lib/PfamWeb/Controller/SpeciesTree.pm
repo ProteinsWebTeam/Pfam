@@ -447,18 +447,18 @@ of those families, to get all species in that family.
 
 sub getClanData : Private {
   my ( $this, $c ) = @_;
-  
   # get the species information for the full alignment for each clan member. 
   # This probably could be done in one query, but this is going to be quicker
   # (I think...)
   my @clan_members = $c->model('PfamDB::ClanMembership')
-                        ->search( { 'clan_acc' => $c->stash->{acc} }  );
+                        ->search( { 'clan_acc' => $c->stash->{acc} }, {prefetch => 'pfama_acc'} );
 
   $c->log->debug( 'SpeciesTree::getClanData: found ' . scalar( @clan_members )
                   . ' clan members' ) if $c->debug;
 
   my ( @allRegions, @regions );
   foreach my $clan_member ( @clan_members ) {
+    
     @regions = $c->model('PfamDB::Pfamseq')
                  ->search( { 'pfama_reg_full_significants.pfama_acc' => $clan_member->pfama_acc->pfama_acc,
                              'pfama_reg_full_significants.in_full'    => 1 },

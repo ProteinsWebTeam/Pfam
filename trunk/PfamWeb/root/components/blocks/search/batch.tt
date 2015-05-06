@@ -233,15 +233,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
   
         <div class="row">
-          <label for="searchBs">Search for PfamBs</label>
-          <input class="radio"
-                 type="checkbox" 
-                 name="searchBs" 
-                 id="batchSearchBs" 
-                 value="1" />
-        </div>
-
-        <div class="row">
           <label for="pEmail">Email address</label>
           <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
         </div>

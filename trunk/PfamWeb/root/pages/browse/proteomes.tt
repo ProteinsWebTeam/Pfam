@@ -53,11 +53,12 @@ pageList = PROCESS "components/pageList.tt",
   <tbody>
   [% first = "";
   FOREACH proteome IN browse;
+    NEXT UNLESS proteome.total_genome_proteins > 0;
     initialLetter = proteome.species.split("").first | lower %]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
   	  <td>
         <a class="species" 
-           href="[% proteomeURI %]?taxId=[% proteome.ncbi_taxid.ncbi_taxid %]"
+           href="[% proteomeURI %]?taxId=[% proteome.ncbi_taxid_data.ncbi_taxid %]"
            [%- IF initialLetter != first -%]
              name="[% initialLetter %]"
              [%- first = initialLetter | lower;

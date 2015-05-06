@@ -430,7 +430,7 @@ sub get_data : Private {
                        { join      => [ 'pfama_acc' ],
                          prefetch  => [ 'pfama_acc' ] } );
   $c->stash->{clanMembers} = \@rs;
-
+  
   # only add extra data to the stash if we're actually going to use it later
   unless ( $c->stash->{output_xml} or
            $c->stash->{output_pfamalyzer} ) {
@@ -464,10 +464,12 @@ sub get_summary_data : Private {
 
   # number of interactions
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { 'clan_membership.clan_acc' => $c->stash->{clan}->clan_acc },
+                       ->search( [{'clan_membership_a.clan_acc' => $c->stash->{clan}->clan_acc },
+                                  {'clan_membership_b.clan_acc' => $c->stash->{clan}->clan_acc }],      
                                  { join     => [ qw( pfama_acc_a 
                                                      pfama_acc_b 
-                                                     clan_membership ) ],
+                                                     clan_membership_a
+                                                     clan_membership_b) ],
                                    select   => [ qw( pfama_acc_a.pfama_id 
                                                      pfama_acc_a.pfama_acc
                                                      pfama_acc_b.pfama_id 
@@ -475,7 +477,9 @@ sub get_summary_data : Private {
                                    as       => [ qw( pfamA_A_id 
                                                      pfamA_A_acc
                                                      pfamA_B_id 
-                                                     pfamA_B_acc ) ] } );
+                                                     pfamA_B_acc ) ],
+                                  order_by  => [qw(pfama_acc_a.pfama_id pfama_acc_b.pfama_id)] } );
+
   # stash this for later...
   $c->stash->{interactions} = \@interactions;
 
@@ -488,7 +492,8 @@ sub get_summary_data : Private {
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { 'clan_members.clan_acc' => $c->stash->{clan}->clan_acc },
-                            { join      => [ qw( clan_members ) ]} );
+                            { join      => [ qw( clan_members pdb_id pfama_acc ) ],
+                              prefetch => [ qw( pdb_id pfama_acc) ] } );
 
   my %pdb_unique = map {$_->pdb_id->pdb_id => 1} @mapping;
   $c->log->debug( 'Clan::get_summary_data: got ' . scalar(@mapping) . ' pdb mappings' )

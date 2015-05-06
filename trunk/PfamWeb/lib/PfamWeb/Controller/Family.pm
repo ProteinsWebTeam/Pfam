@@ -384,16 +384,20 @@ sub family_page : Chained( 'family' )
     $c->log->debug( 'Family::family_page: adding extra family info' ) if $c->debug;
 
     # add the clan details, if any
-    my $clans = $c->model('PfamDB::ClanMembership')
+    my $clan = $c->model('PfamDB::ClanMembership')
                           ->search( { 'pfama_acc' => $c->stash->{pfam}->pfama_acc },
-                                    { #join     => [ qw(clan) ],
-                                      prefetch => [ qw(clan) ] } )->first;
-   
-    use DDP;
-    p($clans);
-    if ( $clans and defined $clans->clan_acc->clan_acc ) {
-      $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
-      $c->stash->{clan} = $clans->clan_acc;
+                                    {  prefetch   => 'clan_acc' })->first;
+
+
+    if($clan){
+
+        $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
+        $c->stash->{clan} = $clan->clan_acc;
+        my @clanMembers = $c->model('PfamDB::ClanMembership')
+                              ->search( {'clan_acc' => $clan->clan_acc->clan_acc },
+                                        { prefetch => [qw(pfama_acc) ] });
+                                    
+        $c->stash->{clanMembers} = \@clanMembers;
     }
     
     $c->forward( 'get_summary_data' );
@@ -497,7 +501,7 @@ sub get_data : Private {
   # check for a dead Pfam-A
   
   if ( not $pfam ) {
-    $pfam = $c->model('PfamDB::DeadFamilies')
+    $pfam = $c->model('PfamDB::DeadFamily')
               ->search( [ { pfama_acc => $entry },
                           { pfama_id  => $entry } ] )
               ->single;
@@ -570,7 +574,7 @@ sub get_summary_data : Private {
   # number of interactions
   my $pfamA_acc = $c->stash->{pfam}->pfama_acc;
   my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->search( { pfama_acc_a => $pfamA_acc },
+             ->search( [ { pfama_acc_a => $pfamA_acc }, {pfama_acc_b => $pfamA_acc} ],
                        { select => [ { count => 'pfama_acc_a' } ],
                          as     => [ qw( numInts ) ] } )
              ->first;
@@ -601,6 +605,7 @@ sub get_db_xrefs : Private {
             ->find( $c->stash->{pfam}->pfama_acc );
 
   push @{ $xRefs->{interpro} }, $i if defined $i;
+
 
   # PDB
   $xRefs->{pdb} = keys %{ $c->stash->{pdbUnique} }
@@ -681,9 +686,8 @@ sub get_interactions : Private {
   my ( $this, $c ) = @_;
   
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { pfama_acc_a => $c->stash->{pfam}->pfama_acc },
-                                 { join     => [ qw( pfama_acc_a ) ],
-                                   prefetch => [ qw( pfama_acc_b ) ] } );
+                       ->search( [{ pfama_acc_a => $c->stash->{pfam}->pfama_acc }, {pfama_acc_b => $c->stash->{pfam}->pfama_acc}],
+                                 { prefetch => [ qw( pfama_acc_a pfama_acc_b ) ] } );
 
   $c->stash->{interactions} = \@interactions;
 }

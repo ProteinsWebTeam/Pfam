@@ -126,18 +126,18 @@ END;
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", m.auto_pfamseq.pfamseq_id ) %]" 
-           onclick="opener.location=this.href;return false;">[% m.auto_pfamseq.pfamseq_id %]</a>
+        <a href="[% c.uri_for( "/protein", m.pfamseq_acc.pfamseq_id ) %]" 
+           onclick="opener.location=this.href;return false;">[% m.pfamseq_acc.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", m.auto_pfama.pfama_id ) %]"
+        <a href="[% c.uri_for( "/family", m.pfama_acc.pfama_id ) %]"
           onclick="opener.location=this.href;return false;">
-          [% m.auto_pfama.pfama_id %]</a>
-        (<a href="[% c.uri_for( "/family", m.auto_pfama.pfama_acc ) %]" 
+          [% m.pfama_acc.pfama_id %]</a>
+        (<a href="[% c.uri_for( "/family", m.pfama_acc.pfama_acc ) %]" 
             onclick="opener.location=this.href;return false;">
-          [% m.auto_pfama.pfama_acc %]</a>)
+          [% m.pfama_acc.pfama_acc %]</a>)
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
     </tr>

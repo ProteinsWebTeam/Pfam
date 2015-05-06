@@ -254,7 +254,7 @@ sub query : Local {
               ->search( { pfama_id => $domain [$i] } );
                            
         while ($p = $rs->next) {
-            $pfdomain [$i] = $p->auto_pfama;
+            $pfdomain [$i] = $p->pfama_acc
       }
     }
   }
@@ -270,7 +270,7 @@ sub query : Local {
       push (@froms, "pfamA_reg_full_significant ".$columnname [$i]);
       push (@wheres, $columnname [$i].".in_full = 1");
     }
-    push (@wheres, $columnname [$i].".auto_pfamseq = p1.auto_pfamseq"); # this should do the bizarre
+    push (@wheres, $columnname [$i].".pfamseq_acc = p1.pfamseq_acc"); # this should do the bizarre
   }
 
 #  $statement .= " WHERE p1.auto_pfamseq= ". $columnname[$j] .".auto_pfamseq AND " ;
@@ -293,7 +293,7 @@ sub query : Local {
 
         $ci = $pfdomain [$i];
         $ci =~ s/Clan_//g;
-        $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
+        $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
 
         $sth=$dbh->prepare ($command); 
         $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
@@ -302,10 +302,10 @@ sub query : Local {
           push (@ds, $row [0]);
         }  
              
-        $tempStatement = $columnname [$i].".auto_pfamA IN (";
+        $tempStatement = $columnname [$i].".pfamA_acc IN (";
       
         foreach $d (@ds) {
-          $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
+          $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
     
           $sth = $dbh->prepare ($command); 
           $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
@@ -318,7 +318,7 @@ sub query : Local {
         push (@wheres, $tempStatement);
       } 
       else {
-        push (@wheres, $columnname [$i].".auto_pfamA=".$pfdomain [$i]);
+        push (@wheres, $columnname [$i].".pfamA_acc=\"".$pfdomain [$i]."\"");
       }
     }
   }
@@ -370,7 +370,7 @@ sub query : Local {
             push (@wheres, $tempStatement);
           } 
           else {
-            push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
+            push (@wheres, $columnname [$i].".pfamA_acc<>\"$pfdomain[$i]\"");
   
           }
         }
@@ -410,7 +410,7 @@ sub query : Local {
         }
         if ($columnflag [$i] eq 1) {
           if ($pfdomain [$i] =~ /^Clan_/) {
-            $ci = $pfdomain [$i];
+            $ci = $pfdomain[$i];
             $ci =~ s/Clan_//g;
             $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
             $sth = $dbh->prepare ($command); 

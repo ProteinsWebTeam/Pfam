@@ -43,9 +43,9 @@ sub get_mapping : Path {
     if $c->debug;
   
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { 'auto_pfamseq.ncbi_taxid' => $c->stash->{taxId},
-                              'auto_pfamseq.genome_seq' => 1 },
-                            { prefetch => [ qw( auto_pfamseq pdb_id ) ] } );
+                  ->search( { 'pfamseq_acc.ncbi_taxid' => $c->stash->{taxId},
+                              'pfamseq_acc.genome_seq' => 1 },
+                            { prefetch => [ qw( pfamseq_acc pdb_id ) ] } );
     
   $c->stash->{pfamMaps} = \@mapping;
 

@@ -234,11 +234,12 @@ sub retrieve_list_from_db : Private {
       # that bug, we join to clan_membership here and then let the template trigger
       # a look-up of clan_acc in the clans table. Nasty, but hey, at least we cache the
       # result...
-
+      print STDERR "HERE\n";  
       @rs = $c->model('PfamDB::Pfama')
               ->search( {},
                         { columns  => [ qw( pfama_id pfama_acc ) ],
-                          prefetch => [ { member => 'clan' } ],
+                          join     => [ { clan_memberships => 'clan' } ],
+                          prefetch => [ { clan_memberships => 'clan' } ],
                           order_by => [ 'pfama_id' ] } );
     }
     else {

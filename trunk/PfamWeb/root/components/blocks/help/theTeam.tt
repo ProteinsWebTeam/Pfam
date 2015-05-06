@@ -15,7 +15,7 @@
   </div>
   <div class="blockContent">
     <p>
-      Pfam is maintained by an international consortium of researchers that has 
+      Pfam is the product from an international consortium of researchers that has 
       been borne out of its original development by Erik Sonnhammer, Sean Eddy 
       and Richard Durbin. The current list of consortium members, their institutes 
       and primary roles are listed below.
@@ -26,17 +26,16 @@
     <ul>
       <li>Alex Bateman - EMBL-EBI Protein cluster head</li>
       <li>Rob Finn - Protein Families team leader</li>
-      <li>Marco Punta - Pfam project leader</li>
       <li>Penny Coggill - Pfam database annotator</li>
-      <li>Ruth Eberhardt - Pfam database annotator</li>
+      <li>Ruth Eberhardt - Pfam database developer and annotator</li>
       <li>Jaina Mistry - Pfam developer</li>
-      <li>John Tate - Web developer</li>
+      <li>Fabian Schreiber - Web developer</li>
+      <li>Matloob Qureshi - Web developer</li>
     </ul>
     
-    <h3>Janelia Farm Research Campus, USA</h3>
+    <h3>Janelia Farm Campus, USA</h3>
   
     <ul>
-      <li>Jody Clements - Web developer</li>
       <li>Sean Eddy - Founding developer and author of HMMER software</li>
     </ul>
     
@@ -76,6 +75,7 @@
       <li>Matthew Bashton</li>
       <li>Ewan Birney</li>
       <li>Lorenzo Cerrutti</li>
+      <li>Jody Clements</li>
       <li>Lachlan Coin</li>
       <li>Richard Durbin</li>
       <li>Matthew Fenech</li>
@@ -90,9 +90,11 @@
       <li>William Mifsud</li>
       <li>Simon Moxon</li>
       <li>Joanne Pollington</li>
+      <li>Marco Punta</li>
       <li>Stephen-John Sammut</li>
       <li>Benjamin Schuster-B&ouml;ckler</li>
       <li>David Studholme</li>
+      <li>John Tate</li>
       <li>Benjamin Vella-Briffa</li>
       <li>Corin Yeats</li>
       <li>Arthur Wuster</li>

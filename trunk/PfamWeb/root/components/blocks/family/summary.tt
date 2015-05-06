@@ -59,7 +59,7 @@ PROCESS components/links.tt; %]
         <!-- pf -->
         <li[% IF ( NOT hasWikiArticles ) OR ( is_duf AND article.title == "Domain_of_unknown_function" ) %] class="selected"[% END %]><a href="#pfamContent">Pfam</a></li>
         <!-- ip -->
-        <li[% ' class="disabled"' UNLESS pfam.interpro %]>
+        <li[% ' class="disabled"' UNLESS pfam.interpros %]>
           <a href="#interproContent">InterPro</a>
         </li>
    <!-- <li><a href="#topsanContent">TopSan</a></li> -->
@@ -304,14 +304,14 @@ PROCESS components/links.tt; %]
             <a class="ext" href="http://www.ebi.ac.uk/interpro/">InterPro</a> database.
           </p>
 
-          [%- IF pfam.interpro %]
+          [%- IF pfam.interpros %]
             <h1 id="interproTitle">
               InterPro entry 
-              <a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
+              <a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% pfam.interpros.interpro_id %]">[% pfam.interpros.interpro_id %]</a>
             </h1>
             [% # THIS IS A HACK ! the database entry for the interpro abstract appears
                # to contain <p> tags...
-            pfam.interpro.abstract;
+            pfam.interpros.abstract;
 
             IF goTerms.size -%]
 

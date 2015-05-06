@@ -6,7 +6,7 @@
 #
 # $Id: treefam.tt,v 1.5 2008-05-16 15:30:34 jt6 Exp $
 
-RETURN UNLESS pfamseq.treefam_acc;
+RETURN UNLESS pfamseq.treefam_acc and pfamseq.treefam_acc!='NULL';
 -%]
 
 <!-- start treefam block -->

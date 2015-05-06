@@ -288,12 +288,12 @@ sub family_page : Chained( 'family' )
     # add the clan details, if any
     my $clans = $c->model('PfamDB::ClanMembership')
                           ->search( { 'pfama_acc' => $c->stash->{pfam}->pfama_acc },
-                                    { join     => [ qw(auto_clan) ],
-                                      prefetch => [ qw(auto_clan) ] } )->first;
+                                    { join     => [ qw(clan_acc) ],
+                                      prefetch => [ qw(clan_acc) ] } )->first;
     
-    if ( $clans and defined $clans->auto_clan->clan_acc ) {
+    if ( $clans and defined $clans->clan_acc->clan_acc ) {
       $c->log->debug( 'Family::family_page: adding clan info' ) if $c->debug;
-      $c->stash->{clan} = $clans->auto_clan;
+      $c->stash->{clan} = $clans->clan_acc->clan_acc;
     }
     
     $c->forward( 'get_summary_data' );
@@ -1887,7 +1887,7 @@ sub get_data : Private {
   # check for a dead Pfam-A
   
   if ( not $pfam ) {
-    $pfam = $c->model('PfamDB::DeadFamilies')
+    $pfam = $c->model('PfamDB::DeadFamily')
               ->search( [ { pfama_acc => $entry },
                           { pfama_id  => $entry } ] )
               ->single;

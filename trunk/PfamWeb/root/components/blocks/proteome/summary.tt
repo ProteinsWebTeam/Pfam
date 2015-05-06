@@ -33,11 +33,11 @@ oe = 0;
     <p>
       This section gives details of the Pfam domains that are found on 
       the completed proteome of
-      <a href="http://www.ebi.ac.uk/integr8/QuickSearch.do?action=doOrgSearch&amp;organismName=[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]"
+      <a href="http://www.uniprot.org/proteomes/?query=organism_id:[% proteomeSpecies.ncbi_taxid_data.ncbi_taxid %]"
          class="ext"><em>[% proteomeSpecies.species %]</em></a>.
-      You can see details of the proteome in 
-      <a class="ext" href="http://www.uniprot.org/taxonomy/[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">UniProt</a> or at
-      <a class="ext" href="http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]">
+      You can see details of the organism in 
+      <a class="ext" href="http://www.uniprot.org/taxonomy/[% proteomeSpecies.ncbi_taxid_data.ncbi_taxid %]">UniProt</a> or at
+      <a class="ext" href="http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=[% proteomeSpecies.ncbi_taxid_data.ncbi_taxid %]">
         <acronym title="National Center for Biotechnology Information">NCBI</acronym></a>.
     </p>
 
@@ -80,11 +80,11 @@ oe = 0;
   <script type="text/javascript">
     // <![CDATA[
 
-    [% IF proteomeSpecies.ncbi_taxid.taxonomy -%]
+    [% IF proteomeSpecies.ncbi_taxid_data.taxonomy -%]
     try {
       var tree = new YAHOO.widget.TreeView("lineage"); 
       var parent = tree.getRoot();
-      [% FOREACH node_name IN proteomeSpecies.ncbi_taxid.taxonomy.split(';');
+      [% FOREACH node_name IN proteomeSpecies.ncbi_taxid_data.taxonomy.split(';');
         node_id = "node" _ node_name.replace( '\W', '' ); %]
         var [% node_id %]Node = new YAHOO.widget.TextNode( 
           { label: "[% node_name %]",
@@ -95,7 +95,7 @@ oe = 0;
       [%- END %]
       tree.draw();
     } catch( e ) {
-      $("lineage").update("[% proteomeSpecies.ncbi_taxid.taxonomy %]");
+      $("lineage").update("[% proteomeSpecies.ncbi_taxid_data.taxonomy %]");
     }
     [% ELSE -%]
       $("lineage").appendChild(
