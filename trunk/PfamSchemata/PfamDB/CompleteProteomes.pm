@@ -287,6 +287,13 @@ __PACKAGE__->has_many(
 );
 
 
+__PACKAGE__->has_one(
+  "ncbi_taxid_data",
+  "PfamDB::Taxonomy",
+  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+  undef,
+);
+
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4ZRdPryQjcr63efzdiNW1g
 

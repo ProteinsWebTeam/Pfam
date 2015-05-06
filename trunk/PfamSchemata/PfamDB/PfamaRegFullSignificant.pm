@@ -258,6 +258,7 @@ __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                                        taxonomy
                                        ncbi_taxid 
                                        sequence
+                                       is_fragment
                                        updated
                                        created ) ] }
 );

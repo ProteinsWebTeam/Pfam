@@ -145,5 +145,13 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hO9yrzICkPfu/SwII99suA
 
 
+__PACKAGE__->might_have(
+  "pfamseqMarkup",
+  "PfamDB::PfamseqMarkup",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc"},
+  undef
+    
+);
+
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -136,8 +136,8 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->has_many(
   "regions",
   "PfamDB::PfamaRegFullSignificant",
-  { "foreign.auto_pfamseq" => "self.auto_pfamseq",
-    "foreign.auto_pfama"   => "self.auto_pfama" },
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc",
+    "foreign.pfama_acc"   => "self.pfama_acc" },
 );
 
 

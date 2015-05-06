@@ -81,7 +81,7 @@ __PACKAGE__->belongs_to("clan_acc", "PfamDB::Clan", { clan_acc => "clan_acc" });
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mHF9UGZ2eSBu69gwZg1b8w
 
-#__PACKAGE__->set_primary_key("auto_clan");
+__PACKAGE__->add_unique_constraint('uniq_link', [ "clan_acc", "db_id", "db_link" ]);
 
 =head1 COPYRIGHT
 
