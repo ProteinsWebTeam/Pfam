@@ -93,6 +93,13 @@ __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc"
 
 #__PACKAGE__->set_primary_key('ncbi_taxid', 'auto_pfama');
 
+
+__PACKAGE__->has_one(
+  "taxonomy",
+  "PfamDB::Taxonomy",
+    { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
+    undef);
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.

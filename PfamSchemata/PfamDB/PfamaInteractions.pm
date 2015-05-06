@@ -81,9 +81,11 @@ __PACKAGE__->belongs_to("pfama_acc_b", "PfamDB::Pfama", { pfama_acc => "pfama_ac
 #                      { 'foreign.auto_pfama'  => 'self.auto_pfama_b' },
 #                      { proxy => [ qw( pfama_id pfama_acc ) ] } );
 
-__PACKAGE__->might_have( clan_membership => 'PfamDB::ClanMembership',
+__PACKAGE__->might_have( clan_membership_a => 'PfamDB::ClanMembership',
                          { 'foreign.pfama_acc' => 'self.pfama_acc_a' } );
 
+__PACKAGE__->might_have( clan_membership_b => 'PfamDB::ClanMembership',
+                         { 'foreign.pfama_acc' => 'self.pfama_acc_b' } );
 
 =head1 COPYRIGHT
 
