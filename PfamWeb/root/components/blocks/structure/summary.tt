@@ -55,7 +55,7 @@ oe    = 0;
   </div>
   <div class="blockContent">
 
-    [% IF pdb.pdb_image %]
+    [% IF pdb.pdb_images %]
       <div class="pdbImageFragment">
         <a href="[% c.uri_for( '/structure/getimage', { id = pdbId } ) %]" 
            rel="lightbox" 

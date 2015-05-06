@@ -19,8 +19,6 @@
       <p>Contents:</p>
       <ol id="questionSelector">
         <li><a class="link" rel="whatispfam">What is Pfam ?</a></li>
-        <li><a class="link" rel="diffs">What is the difference between Pfam-A and 
-          Pfam-B families ?</a></li>
         <li><a class="link" rel="family">What is on a Pfam-A family page ?</a></li>
         <li><a class="link" rel="clan">What is a clan ?</a></li>
         <li><a class="link" rel="clanBuilding">What criteria do you use for putting families<br />
@@ -62,60 +60,6 @@
       'Keyword Search' box on the top right hand corner of most website pages, or by
       pasting the family identifier or accession into the 'JUMP TO' box that is 
       present on most pages in the site.
-    </p>
-    <p><a class="link" rel="faqTop">back to top</a></p>
-  
-    <h3><a name="diffs">What is the difference between Pfam-A and Pfam-B 
-    families ?</a></h3>
-  
-    <p>
-      There are two levels of quality to Pfam families: Pfam-A and Pfam-B.
-    </p>
-  
-    <p>
-      <strong>Pfam-A</strong> entries are derived from the underlying sequence
-      database, known as <em>Pfamseq</em>, which is built from the most recent
-      release of <a class="ext" href="http://www.uniprot.org/">UniProtKB</a> at a
-      given time-point. For each Pfam-A family we build a single curated profile
-      hidden Markov model (profile HMM) from the <em>seed</em> alignment (a small
-      set of representative members of the family) using the HMMER3 software, and
-      search this against Pfamseq to provide an automatically generated
-      <em>full</em> alignment. All sequences that score above the cut-off
-      threshold value determined for that family are included in the full
-      alignment, which should then contain all detectable protein sequences
-      belonging to that family.
-    </p>
-    <p>
-      We also search our Pfam-A HMMs against NCBI Genpept and a set of
-      metagenomic sequences, and these alignments are available from the
-      'Alignments' tab of the Pfam-A family page. As the seed alignments have
-      been manually checked for quality by a Pfam curator Pfam-A matches are very
-      unlikely to be false matches. Pfam-A families also carry a summary
-      annotation and links to other databases
-    </p>
-    <p>
-      To complement the Pfam-A families, we automatically generate
-      <strong>Pfam-B</strong> families using the <a class="ext"
-      href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html">
-      ADDA</a> database. Pfam-B families have no associated annotation or
-      literature reference and are of much lower quality than Pfam-A families, as
-      their alignments have not been manually checked by a Pfam curator. Pfam-B
-      families are formed by taking alignments of sequence segments from ADDA
-      and removing any Pfam-A residues from them. Some Pfam-B families are
-      composed of low complexity regions and may not reflect true relationships
-      and we therefore we recommend you verify that sequences in a Pfam-B family
-      are related by using other methods, such as BLAST.
-    </p>
-    <p>
-      Since Pfam 24.0, we have built HMMs for the first (and largest) 20,000
-      Pfam-B families. Using the Pfam website, users are able to perform a
-      single-sequence or batch search against both the Pfam-A and Pfam-B HMMs. 
-    </p>
-    <p>
-      All families in Pfam are non-overlapping, such that no amino acid belongs
-      to more than one family/domain. At each Pfam release we search all our
-      models against an updated version of UniProt and NCBI Genpept, and
-      regenerate our Pfam-B families using the most recent version of ADDA. 
     </p>
     <p><a class="link" rel="faqTop">back to top</a></p>
   

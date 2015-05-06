@@ -49,7 +49,7 @@ sub viewer : Path {
 
     # all this crap is to avoid warnings when we try to build a hash
     # key using a chain ID that is not defined...
-    $ap    = ( defined $map->auto_pfamseq->auto_pfamseq ) ? $map->auto_pfamseq->auto_pfamseq : '';
+    $ap    = ( defined $map->pfamseq_acc->pfamseq_acc ) ? $map->pfamseq_acc->pfamseq_acc : '';
     $chain = ( defined $map->chain ) ? $map->chain : ''; # NOTE: could have a chain '0'
   
     $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" )
@@ -58,7 +58,7 @@ sub viewer : Path {
     next if $seenChainAutoPfamseq{$ap.$chain};
   
     my @markups = $c->model('PfamDB::PdbResidueData')
-                    ->search( { 'pfamseqMarkup.auto_pfamseq' => $ap,
+                    ->search( { 'pfamseqMarkup.pfamseq_acc' => $ap,
                                 chain                        => $chain,
                                 pdb_id                       => $c->stash->{pdbId} },
                               { prefetch                     => [ 'pfamseqMarkup' ] } );

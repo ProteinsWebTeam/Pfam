@@ -46,7 +46,7 @@ RETURN UNLESS mapping.size;
     # collect the unique uniprot IDs
     unpIds = {};
     FOREACH m IN mapping;
-      unp = m.auto_pfamseq.pfamseq_id;
+      unp = m.pfamseq_acc.pfamseq_id;
       unpIds.$unp = m ;
     END;
     unpIdList = unpIds.keys.join(",");

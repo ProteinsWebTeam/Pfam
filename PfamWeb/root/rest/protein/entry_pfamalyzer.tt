@@ -22,27 +22,26 @@ FOREACH pfamseq_acc IN regions_iterator;
   pfamseq.length      _ "	" _
   pfamseq.species     _ "	" _
   pfamseq.taxonomy    _ "	" _
-  pfamseq.pfamseq.is_fragment; %]
+  pfamseq.is_fragment; %]
 [% FOREACH region IN regions.$pfamseq_acc;
-    IF region.pfama_id;
+    IF region.pfama_acc.pfama_id;
       "A	" _
-      region.pfama_id  _ "	" _
-      region.pfama_acc _ "	" _
+      region.pfama_acc.pfama_id  _ "	" _
+      region.pfama_acc.pfama_acc _ "	" _
       region.seq_start _ "	" _
       region.seq_end;
       UNLESS ( loop.last AND regions_iterator.last ) %]
 [% END;
     ELSIF region.auto_pfamb.pfamb_id;
-      "B	" _
-      region.auto_pfamb.pfamb_id  _ "	" _
-      region.auto_pfamb.pfamb_acc _ "	" _
-      region.seq_start _ "	" _
+      "B " _
+      region.auto_pfamb.pfamb_id  _ "  " _
+      region.auto_pfamb.pfamb_acc _ "  " _
+      region.seq_start _ " " _
       region.seq_end;
       UNLESS ( loop.last AND regions_iterator.last ) %]
 [% END;
-    END; # of "IF pfama or pfamb"
+    END; # of "IF pfama or pfamb"    
   END; # of "FOREACH region"
-
 END; # of "FOREACH pfamseq_acc"
 
 # Copyright (c) 2011: Genome Research Ltd.

@@ -183,7 +183,9 @@ sub browse_clans : Path( '/clan/browse' ) {
 
   my @res = $c->model('PfamDB::Clan')
               ->search( { },
-                        { order_by => 'clan_id ASC' } );
+                        { #join => 'clan_database_links',
+                          order_by => 'me.clan_id ASC',
+                          prefetch => 'clan_database_links'} );
 
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
@@ -205,7 +207,7 @@ sub browse_proteomes : Path( '/proteome/browse' ) {
 
   my @res = $c->model('PfamDB::CompleteProteomes')
               ->search( {},
-                        { prefetch => [ qw( ncbi_taxid ) ],
+                        { prefetch => [ qw( ncbi_taxid_data ) ],
                           order_by => 'me.species ASC' } );
 
   # stash the results for the template

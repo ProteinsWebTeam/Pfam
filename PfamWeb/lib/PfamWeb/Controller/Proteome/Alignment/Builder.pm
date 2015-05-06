@@ -148,7 +148,7 @@ sub get_sequences : Private {
   
   my @regions = $c->model('PfamDB::ProteomeRegions')
                   ->search( { 'auto_proteome.ncbi_taxid' => $c->stash->{taxId},
-                              'me.auto_pfama'            => $c->stash->{pfam}->auto_pfama },
+                              'me.pfamA_acc'            => $c->stash->{pfam}->pfama_acc },
                             { join       => [ 'auto_proteome', { regions => 'pfamseq' } ],
                               prefetch   => [ 'auto_proteome', { regions => 'pfamseq' } ] } );
 

@@ -93,10 +93,15 @@ sub begin : Private {
     $c->stash->{pfamAcc} = $1;
     $c->stash->{pfam} = $c->model('PfamDB::Pfama')
                           ->find( { pfama_acc => $1 } );
+  
+    my @seqs = qw(D7PD39);
+    $c->stash->{seqs} = \@seqs;
   }
 
+  
   # Note: I'm no longer sure what this last DB lookup is for...
   # jt6 20081219 WTSI
+  # Looks like it comes from domain graphics....
 }
 
 #-------------------------------------------------------------------------------
@@ -146,14 +151,14 @@ sub get_data : Private {
   
   my $rs = $c->model('PfamDB::CompleteProteomes')
              ->find( { ncbi_taxid => $entry },
-                     { prefetch => [ 'ncbi_taxid' ] } );
+                     { prefetch => [ 'ncbi_taxid_data' ] } );
   
   unless ( defined $rs ) {
     $c->stash->{errorMsg} = 'No valid NCBI taxonomy ID found';
     return;
   }
 
-  $c->stash->{taxId} = $rs->ncbi_taxid->ncbi_taxid;
+  $c->stash->{taxId} = $rs->ncbi_taxid_data->ncbi_taxid;
   
   $c->log->debug( 'Proteome::get_data: got a proteome entry' ) if $c->debug;
   $c->stash->{proteomeSpecies} = $rs;
@@ -208,8 +213,8 @@ sub get_summary_data : Private {
 
   # number of structures
   $rs = $c->model( 'PfamDB::PdbPfamaReg' )
-          ->find( { 'auto_pfamseq.ncbi_taxid' => $c->stash->{taxId},
-                    'auto_pfamseq.genome_seq' => 1 },
+          ->find( { 'pfamseq_acc.ncbi_taxid' => $c->stash->{taxId},
+                    'pfamseq_acc.genome_seq' => 1 },
                     { select => [
                                   {
                                     count => [
@@ -218,7 +223,7 @@ sub get_summary_data : Private {
                                   }
                                 ],
                       as     => [ 'numPdb' ],
-                      join   => [ 'auto_pfamseq' ] } );
+                      join   => [ 'pfamseq_acc' ] } );
 
   $summaryData{numStructures}  = $rs->get_column( 'numPdb' );
 
@@ -252,20 +257,18 @@ sub get_stats : Private {
 
   my @rs = $c->model('PfamDB::ProteomeRegions')
              ->search( { auto_proteome => $c->stash->{proteomeSpecies}->auto_proteome },
-                       { join      => [ qw( auto_pfama ) ],
-                         select    => [ qw( auto_pfama.pfama_id
-                                            auto_pfama.pfama_acc
-                                            auto_pfama.description
-                                            me.auto_pfama ), 
-                                        { count => 'auto_pfamseq' }, 
+                       { join      => [ qw( pfama_acc ) ],
+                         select    => [ qw( pfama_acc.pfama_id
+                                            pfama_acc.pfama_acc
+                                            pfama_acc.description ), 
+                                        { count => 'pfamseq_acc' }, 
                                         { sum   => 'me.count' } ],
                          as        => [ qw( pfama_id 
                                             pfama_acc 
                                             description 
-                                            auto_pfama 
                                             numberSeqs 
                                             numberRegs ) ],
-                         group_by => [ qw( me.auto_pfama ) ],
+                         group_by => [ qw( me.pfama_acc ) ],
                          order_by => \'sum(me.count) DESC', 
                          #prefetch => [ qw( pfam ) ]
                        }

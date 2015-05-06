@@ -17,16 +17,16 @@
 
     <h3>Contact Pfam</h3>
     <p>
-      You can contact us in various ways. Each of the Pfam consortium sites 
-      provides a contact email address, which you can find at the bottom
-      of every page. You can use this address to contact the specific Pfam 
+      You can contact us in various ways.  At the end of every page, you
+      can find a contact email address. Use this email address to contact 
+      the Pfam team with a specific query or problem. 
       group.
     </p>      
     <p>
-      We also run a central 
+      We run a central 
       <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#097;&#109;&#045;&#104;&#101;&#108;&#112;&#064;&#101;&#098;&#105;&#046;&#097;&#099;&#046;&#117;&#107;">helpdesk</a>,
       which handles annotation comments, data enquiries and general problems 
-      with the Pfam websites. We use a request tracking system to monitor emails 
+      with the Pfam database and websites. We use a request tracking system to monitor emails 
       to the helpdesk, so you should receive an automated response to your 
       email, letting you know that the system has logged your mail and notified 
       us of its arrival.

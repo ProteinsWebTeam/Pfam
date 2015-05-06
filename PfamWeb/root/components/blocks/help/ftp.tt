@@ -126,42 +126,6 @@
       </dd>
   
       <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.fasta.gz">
-          Pfam-B.fasta.gz</a>
-      </dt>
-      <dd>
-        A 90% non-redundant set of fasta formatted sequence for each
-        Pfam-B family.  The sequences are only the regions hit by the
-        model and not full length protein sequences.
-      </dd>
-  
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
-          Pfam-B.gz</a>
-      </dt>
-      <dd>
-        Automatically generated alignments of sequence clusters in SWISSPROT
-        and TrEMBL that are not modelled in the curated part of Pfam
-      </dd>
-  
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.gz">
-          Pfam-B.hmm.gz</a>
-      </dt>
-      <dd>
-        The Pfam HMM library for Pfam-B families. <strong>Note</strong> that we build HMMs
-        for only the largest 20,000 Pfam-Bs. 
-      </dd>
-  
-      <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-B.hmm.dat.gz">
-          Pfam-B.hmm.dat.gz</a>
-      </dt>
-      <dd>
-        A data file containng information about each of the 20,000 Pfam-B HMMs.
-      </dd>
-  
-      <dt>
         <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
           Pfam-C.gz</a>
       </dt>

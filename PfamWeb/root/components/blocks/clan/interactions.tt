@@ -60,9 +60,9 @@ END;
         </tr>
       </thead>
       <tbody>
-        [% USE aIter = iterator( intHash.keys );
+        [% USE aIter = iterator( intHash.keys.sort );
         FOREACH a IN aIter;
-          FOREACH b IN intHash.$a %]
+          FOREACH b IN intHash.$a.sort %]
             <tr class="[% aIter.index % 2 ? "odd" : "even" %]">
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">

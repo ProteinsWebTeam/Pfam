@@ -144,9 +144,6 @@
     <ul>
       <li>Pfam A accession, e.g. PF02171</li>
       <li>Pfam A identifier, e.g. piwi</li>
-      <li>Pfam B accession, e.g. PB000001</li>
-      <li>Pfam B identifier, e.g. Pfam-B_1</li>
-      <li>UniProt sequence accession, e.g. P00789</li>
       <li>UniProt sequence ID, e.g. CANX_CHICK</li>
       <li>NCBI &quot;GI&quot; number, e.g. 113594566</li>
       <li>NCBI secondary accession, e.g. BAF18440.1</li>
@@ -171,7 +168,7 @@
     
     <p>
       Every page in the Pfam site includes a search box in the page header.
-      You can use this to find Pfam A families which match a particular keyword.
+      You can use this to find Pfam-A families which match a particular keyword.
       The search includes several different areas of the Pfam database:
     </p>
     <ul>
@@ -182,7 +179,7 @@
       <li>InterPro entry abstracts</li>
     </ul>
     <p>
-      Each Pfam A entry is listed only once in the results table, although it
+      Each Pfam-A entry is listed only once in the results table, although it
       might have been found in more than one area of the database.
     </p>      
 

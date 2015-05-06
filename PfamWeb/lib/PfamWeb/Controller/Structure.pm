@@ -97,8 +97,8 @@ sub begin : Private {
   }
  
   my $pdb = $c->model('PfamDB::Pdb')
-              ->search( { pdb_id => $entry } )
-              ->single;
+              ->search( { 'me.pdb_id' => $entry }, { prefetch => 'pdb_images'} )
+              ->first;
 
   # we're done here unless there's an entry specified
   unless( defined $pdb ) {

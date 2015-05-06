@@ -58,19 +58,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         into their function.
       </p>
       <p>
-        There are two components to Pfam: Pfam-A and Pfam-B. <em>Pfam-A</em> 
-        entries are high quality, manually curated families. Although these 
-        Pfam-A entries cover a large proportion of the sequences in the
-        underlying sequence database, in order to give a more comprehensive 
-        coverage of known proteins we also generate a supplement using the 
-        <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
-          class="ext">ADDA</a>
-        database. These automatically generated entries are called 
-        <em>Pfam-B</em>. Although of lower quality, Pfam-B families can be
-        useful for identifying functionally conserved regions when no Pfam-A 
-        entries are found.
-      </p>
-      <p>
         Pfam also generates higher-level groupings of related families, known as
         <em>clans</em>. A clan is a collection of Pfam-A entries which are
         related by similarity of sequence, structure or profile-HMM.
@@ -150,7 +137,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <div>
         <input type="hidden"
                name="seqOpts"
-               value="both" />
+               value="" />
         <input type="hidden"
                name="ga"
                value="0" />

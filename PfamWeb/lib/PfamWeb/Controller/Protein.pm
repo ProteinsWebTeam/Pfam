@@ -215,18 +215,14 @@ sub protein_end : Chained( 'protein' )
 
     # get the Pfam-A and Pfam-B regions on this sequence
     my @pfamA_regions = $c->model('PfamDB::PfamaRegFullSignificant')
-                          ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq,
+                          ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
                                       in_full      => 1 },
-                                    { prefetch => [ 'pfama' ],
+                                    { prefetch => [ 'pfama_acc', 'pfamseq' ],
                                       order_by => [ 'seq_start' ] } );
 
-    my @pfamB_regions = $c->model('PfamDB::PfambReg')
-                          ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
-                                    { prefetch => [ 'auto_pfamb' ],
-                                      order_by => [ 'seq_start' ] } );
 
     my $regions;
-    foreach my $region ( @pfamA_regions, @pfamB_regions ) {
+    foreach my $region ( @pfamA_regions ) {
       push @{ $regions->{ $region->pfamseq_acc } }, $region;
     }
 
@@ -291,22 +287,16 @@ sub proteins : Chained( 'protein' )
 
   # get the Pfam-A and Pfam-B regions on this sequence
   my @pfamA_regions = $c->model('PfamDB::PfamaRegFullSignificant')
-                        ->search( { pfamseq_acc => \@accs,
+                        ->search( { 'me.pfamseq_acc' => \@accs,
                                     in_full      => 1 },
-                                  { prefetch => [ qw( pfamseq pfama ) ],
+                                  { 
+                                    prefetch => [ qw( pfamseq pfama_acc ) ],
                                     order_by => [ qw( seq_start ) ] } );
 
-  my @pfamB_regions = $c->model('PfamDB::PfambReg')
-                        ->search( { pfamseq_acc => \@accs },
-                                  { prefetch => [ qw( auto_pfamseq auto_pfamb ) ],
-                                    order_by => [ qw( seq_start ) ] } );
 
   my $regions;
   foreach my $region ( @pfamA_regions ) {
     push @{ $regions->{ $region->pfamseq_acc } }, $region;
-  }
-  foreach my $region ( @pfamB_regions ) {
-    push @{ $regions->{ $region->auto_pfamseq->pfamseq_acc } }, $region;
   }
 
   $c->stash->{regions} = $regions;
@@ -382,24 +372,15 @@ sub get_regions : Private {
   $c->log->debug( 'Protein::get_regions: adding region info' ) if $c->debug;
   
   my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
-             ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+             ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
                          in_full           => 1 },
-                       { prefetch => [ qw( auto_pfama ) ] } );
+                       { prefetch => [ qw( pfama_acc ) ] } );
   $c->stash->{pfama_regions} = \@pfama_regions;
 
   $c->log->debug( 'Protein::get_regions: found ' 
                   . scalar( @{ $c->stash->{pfama_regions} } ) . ' Pfam-A hits' )
     if $c->debug;
-  
-  # add Pfam-B regions
-  my @pfamb_regions = $c->model('PfamDB::PfambReg')
-          ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                    { prefetch => [ qw( auto_pfamb ) ] } );
-  $c->stash->{pfamb_regions} = \@pfamb_regions; 
 
-  $c->log->debug( 'Protein::get_regions: found ' 
-                  . scalar( @{ $c->stash->{pfamb_regions} } ) . ' Pfam-B hits' )
-    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -505,7 +486,7 @@ sub get_summary_data : Private {
   #                  as             => [ qw( numInts ) ] } );
 
   #$summaryData{numInt} = $rs->get_column( 'numInts' );
-  $summaryData{numInt} = 0;
+  #$summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
   my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')

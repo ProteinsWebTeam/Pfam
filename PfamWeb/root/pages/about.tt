@@ -24,17 +24,15 @@ META fullPage = 1;
   <p>
     Pfam is freely available under the
     <a class="ext" href="http://creativecommons.org/publicdomain/zero/1.0/">
-      Creative Commons Zero</a> (&quot;CC0&quot;) licence. We comply with the 
-    <a class="ext" href="http://www.sanger.ac.uk/datasharing/">data sharing guidelines</a>
-    of the Wellcome Trust Sanger Institute.
+      Creative Commons Zero</a> (&quot;CC0&quot;) licence. 
   </p>
   <p> 
-    Pfam is powered by the <a class="ext" href="http://hmmer.janelia.org/">HMMER3</a>
+    Pfam is powered by the <a class="ext" href="http://hmmer.org/">HMMER3</a>
     package written by 
     <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
       Sean Eddy and his group</a> at the 
     <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Farm Research Campus</a>, and built by the 
+      Howard Hughes Janelia Research Campus</a>, and built by the 
     <a class="ext" href="http://xfam.org/">Xfam consortium</a>.
   </p>
   <table id="logos">

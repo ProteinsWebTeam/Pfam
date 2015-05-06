@@ -160,22 +160,6 @@
       the entry's full alignment.
     </p>
 
-    <h3><a name="glos_pfamb">Pfam-B</a></h3>
-    
-    <p>
-      An automatically generated alignment which is formed by taking a cluster
-      of sequences from the 
-      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
-          class="ext">ADDA</a> database and removing Pfam-A residues from
-      them. Since Pfam-B families are automatically generated, we recommend that
-      you verify that the sequences in a Pfam-B family are related, using other
-      methods such as BLAST. For Pfam 24.0, we have made HMMs for the first
-      (and therefore largest) 20,000 Pfam-B familes. Users can search their
-      sequences against the Pfam-B HMMs in addition to the Pfam-A HMMs when
-      performing both single-sequence searches and batch searches on the
-      website.
-    </p>
-
     <h3><a name="glos_pp">Posterior probability</a></h3>
     
     <p>

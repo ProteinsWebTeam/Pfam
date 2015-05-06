@@ -59,9 +59,9 @@ oe = 0;
             [% m.auto_pfamseq.pfamseq_id %]</a></td>
           <td>[% m.seq_start %]</td>
           <td>[% m.seq_end %]</td>
-          [% familyUri = c.uri_for( "/family", m.auto_pfama.pfama_acc ) -%]
-          <td><a href="[% familyUri %]">[% m.auto_pfama.pfama_id %]</a> 
-            (<a href="[% familyUri %]">[% m.auto_pfama.pfama_acc %]</a>)</td>
+          [% familyUri = c.uri_for( "/family", m.pfama_acc.pfama_acc ) -%]
+          <td><a href="[% familyUri %]">[% m.pfama_acc.pfama_id %]</a> 
+            (<a href="[% familyUri %]">[% m.pfama_acc.pfama_acc %]</a>)</td>
         </tr>
       [% END %]
       </tbody>

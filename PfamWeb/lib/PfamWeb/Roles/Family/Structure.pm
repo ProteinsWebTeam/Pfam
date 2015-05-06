@@ -54,7 +54,7 @@ sub structures : Chained( 'family' )
 
   # retrieve the PDB entries for this family
   my @regions;
-  if ( defined $c->stash->{pfam}->pfama_acc ) {
+  if ( defined $c->stash->{pfam} and $c->stash->{pfam}->pfama_acc ) {
     $c->log->debug( 'Family::structures: got an pfama_acc: '
                     . $c->stash->{pfam}->pfama_acc ) if $c->debug;
     @regions = $c->model('PfamDB::PdbPfamaReg')

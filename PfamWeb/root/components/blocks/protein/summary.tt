@@ -69,7 +69,7 @@ oe = 0;
         <td class="label">Source organism:</td>
           <td class="data">
             [%- IF pfamseq.ncbi_taxid;
-              ncbi_taxid = pfamseq.ncbi_taxid.ncbi_taxid %]
+              ncbi_taxid = pfamseq.ncbi_taxid %]
               <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
                 [% pfamseq.species %]</a> 
               [%- IF ncbi_taxid != "0" %]
@@ -153,33 +153,18 @@ oe = 0;
       <tbody> [%- 
       FOREACH seq_start IN regions.keys.nsort;
         FOREACH row IN regions.$seq_start;
-          IF row.auto_pfama %]
+          IF row.pfama_acc %]
             <tr class="[% loop.odd ? 'odd' : 'even' %]">
-              <td class="pfama_[% row.auto_pfama.pfama_acc %]">Pfam A</td>
-              <td><a href="[% c.uri_for( '/family', row.auto_pfama.pfama_id ) %]">[% row.auto_pfama.pfama_id %]</a></td>
+              <td class="pfama_[% row.pfama_acc.pfama_acc %]">Pfam</td>
+              <td><a href="[% c.uri_for( '/family', row.pfama_acc.pfama_id ) %]">[% row.pfama_acc.pfama_id %]</a></td>
               <td>[% row.seq_start %]</td>
               <td>[% row.seq_end %]</td>
-              <td class="sh" style="display: none">[% row.auto_pfama.sequence_ga %]</td>
-              <td class="sh" style="display: none">[% row.auto_pfama.domain_ga %]</td>
+              <td class="sh" style="display: none">[% row.pfama_acc.sequence_ga %]</td>
+              <td class="sh" style="display: none">[% row.pfama_acc.domain_ga %]</td>
               <td class="sh" style="display: none">[% row.sequence_bits_score %]</td>
               <td class="sh" style="display: none">[% row.domain_bits_score %]</td>
               <td class="sh" style="display: none">[% row.sequence_evalue_score %]</td>
               <td class="sh" style="display: none">[% row.domain_evalue_score %]</td>
-            </tr>
-          [%- ELSIF row.auto_pfamb;
-            pfamb = row.auto_pfamb;
-            pfamb_id = pfamb.pfamb_id %]
-            <tr class="[% loop.odd ? 'odd' : 'even' %]">
-              <td class="domain">Pfam B</td>
-              <td><a href="[% c.uri_for( '/pfamb', pfamb_id ) %]">[% pfamb_id %]</a></td>
-              <td>[% row.seq_start %]</td>
-              <td>[% row.seq_end %]</td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
-              <td class="sh" style="display: none"><span class="inactive">n/a</span></td>
             </tr>
           [%- ELSE %]
             <tr class="[% loop.odd ? 'odd' : 'even' %]">

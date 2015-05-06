@@ -662,23 +662,7 @@ ITFQNGTIRQVNGRIEESR</pre>
           <td>0 | 1</td> 
           <td>1</td> 
         </tr>
-        <tr class="even">
-          <td>searchBs</td>
-          <td class="left">do search for Pfam-B hits</td>
-          <td>0 | 1</td>
-          <td>0</td>
-          <td rowspan="2" class="left notes">
-            setting &quot;skipAs=0&quot; implies &quot;searchBs=1&quot;; you 
-            must search for at least one type of family
-          </td>
-        </tr>
         <tr class="odd">
-          <td>skipAs</td>
-          <td class="left">don&#39;t search for Pfam-A hits</td>
-          <td>0 | 1</td>
-          <td>0</td>
-        </tr>
-        <tr class="even">
           <td>seq</td>
           <td class="left">protein sequence</td> 
           <td>valid sequence characters</td> 

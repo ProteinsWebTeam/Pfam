@@ -25,7 +25,7 @@ oe = 0;
 
       # can't sort the contents of "clan.clan_memberships" directly. Convert the 
       # list into rows from the pfamA table first
-      FOREACH member IN clan.clan_memberships;
+      FOREACH member IN clanMembers;
         members.push( member.pfama_acc );
       END;
       FOREACH member IN members.sort("pfama_id") %]

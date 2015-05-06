@@ -37,7 +37,6 @@ labels = {
     SCOP       = "SCOP"
     scoop      = "SCOOP"
     SMART      = "SMART"
-    SYSTERS    = "SYSTERS"
     TC         = "Transporter classification"
     URL        = "External sites"
    };
@@ -66,7 +65,6 @@ external = [
     "PSEUDOFAM",
     "SCOP",
     "SMART",
-    "SYSTERS",
     "TC",
     "URL"
 ];
@@ -177,8 +175,6 @@ BLOCK buildLink;
 <a class="ext" href="http://www.uniprot.org/entry/[% id %]">[% id %]</a>
     [%- CASE "SMART" -%]
 <a class="ext" href="http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=dummy&amp;DOMAIN=[% id %]">[% id %]</a>
-    [%- CASE "SYSTERS" -%]
-<a class="ext" href="http://systers.molgen.mpg.de/cgi-bin/nph-fetchcluster.pl?PFAM=[% id %]">[% id %]</a>
     [%- CASE "TC" -%]
 <a class="ext" href="http://www.tcdb.org/tcdb/index.php?tc=[% id %]">[% id %]</a>
     [%- CASE "URL" -%]
@@ -287,7 +283,6 @@ BLOCK externalLinks;
       IF entryType == "A";
         IF db == "FUNSHIFT" OR 
            db == "PANDIT"   OR 
-           db == "SYSTERS"  OR
            db == "PSEUDOFAM" -%]
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
           <td class="label">[% 
@@ -298,10 +293,7 @@ BLOCK externalLinks;
             [%- END -%]
           </td>
           <td>
-            [%- IF db == "SYSTERS";
-              PROCESS buildLink type=db 
-                                id=xrefs.entryId;
-            ELSIF db == "PSEUDOFAM";
+            [%- IF db == "PSEUDOFAM";
               PROCESS buildLink type=db 
                                 id=acc;
             ELSE;

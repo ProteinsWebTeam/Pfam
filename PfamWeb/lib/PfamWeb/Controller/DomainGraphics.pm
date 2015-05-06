@@ -65,8 +65,12 @@ sub begin : Private {
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $entry_arg              ||
+                      $c->req->param('taxId') ||
                       '';
 
+
+  use DDP;
+  p($c->req->param('pfamAcc'));
   # if we were supplied with an auto_architecture, we need to put a
   # note in the stash to show that this is a post-load, so that we can
   # adjust what gets generated in the TT and stuffed into the existing
@@ -79,7 +83,6 @@ sub begin : Private {
   }
 
   #----------------------------------------
-
   # or do we have an accession ?
   if ( $tainted_entry ) {
 
@@ -112,7 +115,6 @@ sub begin : Private {
     }
     elsif ( $tainted_entry =~ m/^(\d+)$/ ){
       # looks like an NCBI tax ID
-
       $c->log->debug( 'DomainGraphics::begin: found NCBI tax ID' )
         if $c->debug;
       $c->stash->{taxId} = $1;
@@ -123,9 +125,11 @@ sub begin : Private {
       if( defined $c->req->param('pfamAcc') and
           $c->req->param('pfamAcc')=~ m/(PF\d{5})(\.\d+)?$/ ) {
         $c->stash->{acc} = $1;
-        $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
+        #Is something breaks....look further into this. I have commented out the forward line.
+        $c->stash->{pfam} = $c->model('PfamDB::Pfama')
+                        ->find( { 'me.pfama_acc' => $c->stash->{acc} } );
+        #$c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
       }
-
       # retrieve the data for we need regarding the specified proteome. This
       # action will decide for itself which exact query to run...
       $c->forward( 'get_proteome_data' );
@@ -377,14 +381,13 @@ sub get_family_data : Private {
                         { prefetch => [ qw( auto_architecture annseqs ) ] } );
   }
   else {
-
     # we want to see the unique architectures containing this domain
     $c->log->debug( 'DomainGraphics::get_family_data: getting unique architectures' )
       if $c->debug;
 
     @rows = $c->model('PfamDB::PfamaArchitecture')
               ->search( { 'me.pfama_acc' => $c->stash->{acc} },
-                        { prefetch => [ 'pfama_acc', { auto_architecture => 'storable' } ],
+                        { prefetch => [ 'pfama_acc', { auto_architecture => [qw(storable type_example)] } ],
                           order_by => 'auto_architecture.no_seqs DESC' } );
   }
 
@@ -496,7 +499,7 @@ sub get_clan_data : Private {
 
     @rows = $c->model('PfamDB::ClanArchitecture')
               ->search( { 'me.clan_acc' => $c->stash->{clan_acc} },
-                        { prefetch  => [ qw( clan_acc auto_architecture ) ],
+                        { prefetch  => [ 'clan_acc',  {auto_architecture=> [qw(type_example storable)]} ],
                           order_by  => 'auto_architecture.no_seqs DESC' } );
   }
 
@@ -645,7 +648,6 @@ Retrieves the sequences for the specified proteome.
 
 sub get_proteome_data : Private {
   my ( $this, $c ) = @_;
-
   # get each of the sequences in turn...
   $c->log->debug( 'DomainGraphics::get_proteome_data: getting sequence for |'
                   . $c->stash->{taxId} . '|' ) if $c->debug;
@@ -666,6 +668,7 @@ sub get_proteome_data : Private {
                   . $c->stash->{taxId} . " to auto_proteome: $auto_proteome" )
     if $c->debug;
 
+
   my @rows;
   if ( $c->stash->{auto_arch} ) {
 
@@ -684,20 +687,20 @@ sub get_proteome_data : Private {
                                              annseq_storable  ) ] } );
   }
   elsif ( $c->stash->{acc} ) {
-
+    
     $c->log->debug( 'DomainGraphics::get_proteome_data: got a pfamAcc: '
                     . $c->stash->{acc} ) if $c->debug;
 
     @rows = $c->model('PfamDB::Pfamseq')
               ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome,
-                          'proteome_regions.auto_pfama'     => $c->stash->{pfam}->auto_pfama },
+                          'proteome_regions.pfama_acc'     => $c->stash->{pfam}->pfama_acc },
                         { join      => [ qw( proteome_regions
                                              proteome_pfamseqs
                                              annseqs ) ],
-                          select    => [ { distinct => [ 'me.auto_pfamseq' ] } ,
+                          select    => [ { distinct => [ 'me.pfamseq_acc' ] } ,
                                          qw( pfamseq_id
                                              annseqs.annseq_storable ) ],
-                          as        => [ qw( auto_pfamseq 
+                          as        => [ qw( pfamseq_acc 
                                              pfamseq_id
                                              annseq_storable ) ] } );
   }
@@ -708,8 +711,8 @@ sub get_proteome_data : Private {
 
     @rows = $c->model('PfamDB::ProteomeArchitecture')
               ->search( { auto_proteome => $auto_proteome },
-                        { join   => [ { storable => 'auto_pfamseq' }, 'auto_architecture' ],
-                          select => [ qw( auto_pfamseq.pfamseq_id
+                        { join   => [ { auto_architecture => [ qw(type_example storable)]}],
+                          select => [ qw( type_example.pfamseq_id
                                           storable.annseq_storable
                                           auto_architecture.architecture
                                           me.auto_architecture
@@ -720,20 +723,6 @@ sub get_proteome_data : Private {
                                           auto_architecture
                                           numberSeqs ) ],
                           order_by => 'me.no_seqs DESC' } );
-
-    # @rows = $c->model('PfamDB::ProteomeArchitecture')
-    #           ->search( { auto_proteome => $auto_proteome },
-    #                     { join   => [ { auto_architecture => { storable => 'auto_pfamseq' } } ],
-    #                       select => [ qw( pfamseq_id
-    #                                       storable.annseq_storable
-    #                                       auto_architecture.architecture
-    #                                       me.auto_architecture
-    #                                       me.no_seqs ) ],
-    #                       as     => [ qw( pfamseq_id
-    #                                       annseq_storable
-    #                                       architecture
-    #                                       auto_architecture
-    #                                       numberSeqs ) ] } );
 
     # this is the query we're aiming for (join order is important):
     #   SELECT s.pfamseq_id,
@@ -770,7 +759,7 @@ sub get_proteome_data : Private {
     my $id = $row->get_column('pfamseq_id');
 
     unless ( $c->stash->{auto_arch} or 
-            (exists($c->stash->{pfam}) and $c->stash->{pfam}->auto_pfama ) ) {
+            (exists($c->stash->{pfam}) and $c->stash->{pfam}->pfama_acc ) ) {
 
       my @domains = split /\~/, $row->auto_architecture->architecture;
 

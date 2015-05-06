@@ -50,14 +50,14 @@ sub get_image : Path {
     return;
   }
 
-  if ( $c->stash->{pdb}->pdb_image->pdb_image_sml ) {
+  if ( $c->stash->{pdb}->pdb_images ) {
   	$c->res->content_type( 'image/gif' );
   	if ( defined $c->req->param('size') and
   	     $c->req->param('size') eq 's' ) {
-  	  $c->res->body( $c->stash->{pdb}->pdb_image->pdb_image_sml );
+  	  $c->res->body( $c->stash->{pdb}->pdb_images->first->pdb_image_sml );
   	}
   	else {
-  	  $c->res->body( $c->stash->{pdb}->pdb_image->pdb_image );
+  	  $c->res->body( $c->stash->{pdb}->pdb_images->pdb_image );
   	}
   }
   else {

@@ -39,11 +39,17 @@ RETURN UNLESS summaryData.numInt;
     </div>
 
     
-    [%FOREACH interaction IN interactions.sort( pfama_id ) %]
-      <span class="listItem">
-        <a href="[% c.uri_for( "/family", interaction.pfama_acc ) %]">
-          [% interaction.pfama_id %]</a>
-      </span>
+    [%FOREACH interaction IN interactions.sort( pfama_acc_b.pfama_id ) %]
+      <span class="listItem"> 
+        [% IF interaction.pfama_acc_a.pfama_acc == pfam.pfama_acc %]
+        <a href="[% c.uri_for( "/family", interaction.pfama_acc_b.pfama_acc ) %]">
+          [% interaction.pfama_acc_b.pfama_id %]</a>
+        </span>
+        [% ELSE %]
+          <a href="[% c.uri_for( "/family", interaction.pfama_acc_a.pfama_acc ) %]">
+            [% interaction.pfama_acc_a.pfama_id %]</a>
+          </span>
+        [% END %]
     [% END %]
 
   </div>
