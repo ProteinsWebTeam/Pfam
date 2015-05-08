@@ -57,7 +57,7 @@ sub get_image : Path {
   	  $c->res->body( $c->stash->{pdb}->pdb_images->first->pdb_image_sml );
   	}
   	else {
-  	  $c->res->body( $c->stash->{pdb}->pdb_images->pdb_image );
+  	  $c->res->body( $c->stash->{pdb}->pdb_images->first->pdb_image );
   	}
   }
   else {
