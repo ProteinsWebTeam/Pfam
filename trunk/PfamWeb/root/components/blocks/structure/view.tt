@@ -43,18 +43,18 @@ imagesUri = c.uri_for( "/static/images" );
       </p>
 
       <div style="float: right">
-        <a href="http://www.astex-therapeutics.com/AstexViewer/index.php">
+        <a href="http://openastexviewer.net/web/">
           <img src="[% imagesUri %]/astexlogo.jpg"
-               alt="AstexViewer" /></a>
+               alt="OpenAstexViewer" /></a>
       </div>
       <h3>
-        <a href="http://www.astex-therapeutics.com/AstexViewer/index.php" 
-           class="ext">AstexViewer</a>
+        <a href="http://openastexviewer.net/web/" 
+           class="ext">OpenAstexViewer</a>
       </h3>
       <p>
         Another Java applet, developed by 
-        <a class="ext" href="http://www.astextherapeutics.com/">
-          Astex Therapeutics</a>. It has sophisticated three dimensional
+        <a class="ext" href="http://openastexviewer.net/web/">
+        Mike Hartshorn whilst at Astex Therapeutics Ltd</a>. It has sophisticated three dimensional
         graphics capabilities, such as the ability to render transparent
         surfaces.
       </p>
@@ -72,7 +72,7 @@ imagesUri = c.uri_for( "/static/images" );
       </li>
       <li>
         <a onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-           href="[% c.uri_for( "/structure/viewer", { viewer = "av", id = pdbId } ) | html %]">AstexViewer</a>
+           href="[% c.uri_for( "/structure/viewer", { viewer = "av", id = pdbId } ) | html %]">OpenAstexViewer</a>
       </li>
     </ul>
 

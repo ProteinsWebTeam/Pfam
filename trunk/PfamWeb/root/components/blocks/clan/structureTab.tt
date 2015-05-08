@@ -152,7 +152,7 @@ END -%]
                        Jmol</a>  
                     <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
-                       AstexViewer</a>  
+                       OpenAstexViewer</a>  
                   </td>
                 </tr>
               [%- END; # of pdbResKey
