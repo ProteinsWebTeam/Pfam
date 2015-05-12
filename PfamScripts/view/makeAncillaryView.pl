@@ -12,6 +12,7 @@ use Bio::Pfam::ViewProcess::Search;
 use Bio::Pfam::ViewProcess::Proteome;
 use Bio::Pfam::ViewProcess::HHsearch;
 use Log::Log4perl qw(:easy);
+use Cwd;
 
 #-------------------------------------------------------------------------------
 #get the logger
@@ -291,6 +292,88 @@ if(! $view->statusCheck('doneTreefamUpdate')){
 
     $view->touchStatus('doneTreefamUpdate');
 }
+
+#populate pfamA_ncbi table
+#dump pfama_acc and pfamseq_acc from pfamA_reg_full_significant
+my $dir = getcwd;
+my $dumpfile = $dir . "/pfam_reg_dump";
+unless ( -s $dumpfile){
+    $logger->debug("Getting pfamseq accessions from database");
+    my $pfamDB = $view->pfamdb;
+    my $host = $pfamDB->{host};
+    my $user = $pfamDB->{user};
+    my $pass = $pfamDB->{password};
+    my $port = $pfamDB->{port};
+    my $db = $pfamDB->{database};
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port $db --quick -e \"select pfamA_acc, pfamseq_acc from pfamA_reg_full_significant where in_full = 1\" > $dumpfile";
+    system($cmd) and $logger->logdie("Could not obtain pfamA_acc/pfamseq_acc from database");
+}
+
+#submit jobs to calculate and populate pfamA_ncbi
+if (! $view->statusCheck('done pfamA_ncbi')){
+
+    my $dbh = $view->pfamdb->getSchema->storage->dbh;
+
+    $logger->debug("Deleting from pfamA_ncbi");
+    my $stdel = $dbh->prepare("delete from pfamA_ncbi") or die "Can't prepare statement: $dbh->errstr";
+    $stdel->execute();
+
+    $logger->debug("Obtaining Pfam accessions");
+    my %pfam_acc;
+    my $st = $dbh->prepare("select pfamA_acc from pfamA") or die "Can't prepare statement: $dbh->errstr";
+    $st->execute();
+    my $arrayref = $st->fetchall_arrayref();
+    foreach my $row (@$arrayref){
+        $pfam_acc{$row->[0]}=1;
+    }
+
+    $logger->debug("Submitting pfamA_ncbi farm jobs");
+
+    foreach my $acc (keys %pfam_acc){
+    #bsub the next bit using job group pfamview
+
+        my $queue = 'production-rh6';
+        my $resource = "rusage[mem=25000]";
+        my $memory = 25000;  
+        my $fh = IO::File->new();
+        my $group = '/Pfamview';
+        my $cmd = "pfama_ncbi.pl -acc $acc -file $dumpfile";
+        my $log = "$acc" . "pfama_ncbilog";
+
+        $fh->open( "| bsub -q $queue -M $memory -R $resource -g $group -o $log -Jpfamancbi");
+        $fh->print($cmd . "\n");
+        $fh->close;
+    }
+    
+        #have jobs finished?
+    if (-e "finished_pfama_ncbi"){
+	    $logger->info("Already checked pfamA_ncbi jobs have finished\n");
+    } else {
+	    my $fin = 0;
+	    while (!$fin){
+	        open( FH, "bjobs -Jpfamancbi|" );
+	        my $jobs;
+	        while (<FH>){
+		        if (/^\d+/){
+		            $jobs++;
+		        }
+	        }
+	        close FH;
+	        if ($jobs){
+		        $logger->info("pfamA_ncbi jobs still running - checking again in 10 minutes\n");
+		        sleep(600);
+	        } else {
+		        $fin = 1;
+		        open( FH, "> finished_pfama_ncbi" ) or die "Can not write to file finished_pfama_ncbi";
+		        close(FH);
+	        }
+	    }
+    }
+
+    $view->touchStatus('done pfamA_ncbi');
+}
+
+
 
 #-------------------------------------------------------------------------------
 #Find when this job was last run
