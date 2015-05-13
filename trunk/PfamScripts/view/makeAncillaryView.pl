@@ -204,7 +204,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     #total regions
     my $st_reg = $protDbh->prepare("select sum(count) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
     #number proteins (will be equal to total_genome_proteins)
-    my $st_prot = $protDbh->prepare("select count(*) from pfamseq p, complete_proteomes c where c.ncbi_taxid = p.ncbi_taxid and auto_proteome = ?") or die "Cannot prepare statement $!\n";
+    my $st_prot = $protDbh->prepare("select total_genome_proteins from complete_proteomes where auto_proteome = ?") or die "Cannot prepare statement $!\n";
     #total_seqs_covered - ie disinct proteins that have a region
     my $st_seqs_covered = $protDbh->prepare("select count(distinct pfamseq_acc) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
     #amino acids covered
