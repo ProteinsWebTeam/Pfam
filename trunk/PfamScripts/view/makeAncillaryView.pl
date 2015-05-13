@@ -333,8 +333,8 @@ if (! $view->statusCheck('done pfamA_ncbi')){
     #bsub the next bit using job group pfamview
 
         my $queue = 'production-rh6';
-        my $resource = "rusage[mem=25000]";
-        my $memory = 25000;  
+        my $resource = "rusage[mem=1000]";
+        my $memory = 1000;  
         my $fh = IO::File->new();
         my $group = '/Pfamview';
         my $cmd = "pfama_ncbi.pl -acc $acc -file $dumpfile";
