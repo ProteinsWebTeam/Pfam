@@ -42,6 +42,7 @@ $u->update_all;
 my $num_checked    = $u->num_checked;
 my $num_updated    = $u->num_updated;
 my $num_redirected = $u->num_redirected;
+my $num_approved = $u->num_auto_approved;
 
 if ( $num_redirected ) {
   print STDERR "\n";
@@ -62,7 +63,7 @@ if ( $num_redirected ) {
 }
 
 my $now = DateTime->now;
-print STDERR "$now: updated last revision IDs for $num_updated out of $num_checked checked articles. Found $num_redirected redirected article(s).\n";
+print STDERR "$now: updated last revision IDs for $num_updated out of $num_checked checked articles. Found $num_redirected redirected article(s) Approved $num_approved article(s).\n";
 
 # if given in the configuration, append a snippet of text to the output. This is
 # to allow URLs, etc., to be added to the cron output
