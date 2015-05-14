@@ -30,8 +30,11 @@ most recent wikipedia revision number for the specified wikipedia articles.
 =cut
 
 use Moose;
+use MooseX::ClassAttribute;
 use Log::Log4perl;
 use MediaWiki::Bot;
+use Time::Piece;
+use Time::Seconds;
 
 our $VERSION = '0.1';
  
@@ -41,7 +44,7 @@ our $VERSION = '0.1';
 
 BEGIN {
   my $logger_conf = q(
-    log4perl.logger                   = INFO, Screen
+    log4perl.logger                   = DEBUG, Screen
     log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
     log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
     log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
@@ -122,6 +125,13 @@ has 'num_redirected' => (
   writer  => '_set_num_redirected',
 );
 
+has 'num_auto_approved' => (
+  is      => 'rw',
+  isa     => 'Int',
+  default => 0,
+  writer  => '_set_num_auto_approved',
+);
+
 # DBIC connection to wiki_approve DB
 has 'schema' => (
   is       => 'ro',
@@ -139,6 +149,16 @@ has 'redirected_articles' => (
 	is       => 'ro',
   isa      => 'ArrayRef[Str]',
   default  => sub { [] },
+);
+
+has 'LAST_EDIT_CUTOFF' => (
+	is => 'ro',
+	default => 2
+);
+
+has 'AUTO_USER' => (
+	is => 'ro',
+	default => "auto"
 );
 
 #-------------------------------------------------------------------------------
@@ -227,7 +247,7 @@ sub update {
 =head2 _update
 
 Updates the revision IDs for the list of wikipedia articles found in 
-C<_articles>.
+C<_articles>. Also auto-approves revisions based on the rules in _auto_approve
 
 =cut
 
@@ -264,14 +284,16 @@ sub _update {
   # for each row, get the last revision number and update the database,
   # if necessary
 
-  my $num_checked    = 0;
-  my $num_updated    = 0;
-  my $num_redirected = 0;
+  my $num_checked    	= 0;
+  my $num_updated    	= 0;
+  my $num_redirected 	= 0;
+  my $num_auto_approved = 0;
 
   foreach my $article ( @articles ) {
 		sleep 1;
     $num_checked++;
-    my $latest_revid = $this->_get_last_revid( $article->title );
+    my $latest_edit = $this->_get_last_edit( $article->title );
+    my $latest_revid = $latest_edit->{'revid'};
 
     if ( my $redirects = $article->get_redirects ) {
       push @{ $this->redirected_articles }, @$redirects;
@@ -290,23 +312,50 @@ sub _update {
       $article->update( { wikipedia_revision => $latest_revid } );
 			push @{ $this->updated_articles }, $article->title;
       $num_updated++;
-    }
+    };
+    $num_auto_approved +=1 if ($this->_auto_approve($article, $latest_edit));
   }
 
   $this->_set_num_checked( $num_checked );
   $this->_set_num_updated( $num_updated );
   $this->_set_num_redirected( $num_redirected );
+  $this->_set_num_auto_approved( $num_auto_approved );
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 _get_last_revid
+=head2 _update
 
-Returns the revision ID of the last edit to the specified page.
+Updates the approval state for articles where the latest revision was over over 48 hours ago
 
 =cut
 
-sub _get_last_revid {
+sub _auto_approve{
+	my($this, $article, $latest_edit) = @_;
+	my $approved = 0;
+	my $edit_date = Time::Piece->strptime($latest_edit->{'timestamp_date'}, "%Y-%m-%d");
+	
+	#date objects may need to be moved out of this method for efficiency
+    my $now_date = 	Time::Piece->new();
+    my $cutoff_date = $now_date - ($this->LAST_EDIT_CUTOFF * ONE_DAY);
+    if ($edit_date < $cutoff_date) {
+		$this->logger->debug("Auto approving ".$article->title." ");
+		$article->update( { approved_revision => $latest_edit->{'revid'}, approved_by => $this->AUTO_USER } );
+		$approved = 1;
+	}
+		
+	return $approved;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _get_last_edit
+
+Returns data for the last edit to the specified page.
+
+=cut
+
+sub _get_last_edit {
   my ( $this, $title ) = @_;
   $this->logger->debug( "getting wikipedia version for |$title|" );
 
@@ -319,7 +368,7 @@ sub _get_last_revid {
   my $last_revision = $history[0]->{revid};
   $this->logger->debug( "last revision of '$title' was |$last_revision|" );
 
-  return $last_revision;
+  return $history[0];
 }
 
 #-------------------------------------------------------------------------------
@@ -331,11 +380,13 @@ __PACKAGE__->meta->make_immutable;
 
 =head1 AUTHOR
 
+Matloob Qureshi C<maq@ebi.ac.uk>
+
 John Tate, C<jt6@sanger.ac.uk>
 
 Paul Gardner, C<pg5@sanger.ac.uk>
 
-Rob Finn, C<rdf@sanger.ac.uk>
+Rob Finn, C<rdf@ebi.ac.uk>
 
 =head1 COPYRIGHT
 

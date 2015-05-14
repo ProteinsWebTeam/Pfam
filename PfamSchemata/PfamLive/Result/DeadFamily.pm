@@ -114,4 +114,21 @@ __PACKAGE__->add_unique_constraint("pfamA_acc", ["pfama_acc"]);
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+=head2 pfam_a_wikis
+
+Type: has_many
+
+Related object: L<PfamLive::Result::PfamAWiki>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pfam_a_wikis",
+  "PfamLive::Result::PfamAWiki",
+  { "foreign.pfamA_acc" => "self.pfamA_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
 1;

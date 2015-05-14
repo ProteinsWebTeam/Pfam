@@ -107,14 +107,13 @@ $log->logdie( "ERROR: couldn't connect to one or more databases" )
   unless ( $wa_schema and $pfam_schema and $rfam_schema );
 
 #-------------------------------------------------------------------------------
-
 # get the Pfam article titles from the live database
 my @live_articles =
-  $pfam_schema->resultset('Pfama')
-              ->search( { 'auto_wiki.title' => { '!=' => undef } },
-                        { prefetch => { 'pfama_wikis' => 'auto_wiki' },
-                          select   => [ qw( pfama_acc auto_wiki.title ) ],
-                          as       => [ qw( acc       title ) ] } );
+  $pfam_schema->resultset('PfamAWiki')
+				->search( 	{ 'title' => {'!=' => undef}},
+							{ 	prefetch => 'auto_wiki',
+								select   => [ qw(pfama_acc auto_wiki.title ) ],
+								as       => [ qw( acc 				title ) ] });
 
 $log->info( 'got ' . scalar @live_articles . ' articles for live Pfam-As' ); 
 
@@ -122,10 +121,10 @@ $log->info( 'got ' . scalar @live_articles . ' articles for live Pfam-As' );
 # time. We'll retrieve those titles from "dead_families" and use the in the 
 # mapping unless there's a "forward_to" for the family instead
 my @dead_titles =
-  $pfam_schema->resultset('DeadFamilies')
+  $pfam_schema->resultset('DeadFamily')
               ->search( { title => { '!=' => undef } },
                         { select => [ qw( pfama_acc title ) ],
-                          as     => [ qw( acc       title ) ] } );
+                          as     => [ qw( acc title ) ] } );
 
 $log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' ); 
 
@@ -136,10 +135,10 @@ $log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_famili
 # corresponding to the forwarded-to family, and then joins that to "pfamA_wiki"
 # and then onto "wikipedia" to get the article title
 my @dead_articles = 
-  $pfam_schema->resultset('Pfama')
+  $pfam_schema->resultset('DeadFamily')
               ->search( { 'auto_wiki.title' => { '!=' => undef } },
-                        { join     => [ 'from_dead', { pfama_wikis => 'auto_wiki' } ],
-                          select   => [ qw( from_dead.pfama_acc auto_wiki.title ) ],
+                        { join     =>  {'pfam_a_wikis', 'auto_wiki'},
+                          select   => [ qw( pfam_a_wikis.pfama_acc auto_wiki.title ) ],
                           as       => [ qw( acc                 title ) ] } );
 
 $log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via pfam' ); 
@@ -163,11 +162,12 @@ foreach my $acc ( keys %pfam_map ) {
 
   $log->debug( "deleting mapping(s) for Pfam entry '$acc'" );
   my $rv = $wa_schema->resultset('ArticleMapping')
-                     ->search( { accession => $acc } )
-                     ->delete;
-  
-  $log->logwarn( "warning: failed to delete old mapping for '$acc'" )
-    unless $rv > 0;
+                     ->search( { accession => $acc } );
+  if($rv->count) {
+	my $deleted = $rv->delete;
+  	$log->logwarn( "warning: failed to delete old mapping for '$acc'" )
+    	unless $deleted;	  	
+  }
 
   $log->debug( "checking Pfam entry '$acc'" );
   foreach my $title ( @$titles ) {
