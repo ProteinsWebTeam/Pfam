@@ -89,7 +89,7 @@ sub build_index {
 }
 
 sub build_go_index {
-  my $results = $schemata->resultset('GeneOntology')->search({}, {prefetch => 'auto_pfama'} );
+  my $results = $schemata->resultset('GeneOntology')->search({}, {prefetch => 'pfama_acc'} );
   build_index({
     path    => $outdir . '/go',
     results => $results,
@@ -97,9 +97,9 @@ sub build_go_index {
     fields  => [ 'id', 'accession', 'term', 'go_id', 'description' ],
     mapping => sub {
       return {
-        id          => $_[0]->auto_pfama->pfama_id,
-        accession   => $_[0]->auto_pfama->pfama_acc,
-        description => $_[0]->auto_pfama->description,
+        id          => $_[0]->pfama_acc->pfama_id,
+        accession   => $_[0]->pfama_acc->pfama_acc,
+        description => $_[0]->pfama_acc->description,
         go_id       => $_[0]->go_id,
         term        => $_[0]->term,
       }
@@ -109,7 +109,7 @@ sub build_go_index {
 }
 
 sub build_pfama_index {
-  my $results = $schemata->resultset('Pfama')->search();
+  my $results = $schemata->resultset('PfamA')->search();
   build_index({
     path    => $outdir . '/pfama',
     results => $results,
@@ -160,14 +160,14 @@ sub build_pdb_index {
   my $sthRegions =
     $dbh->prepare( "SELECT DISTINCT p.pdb_id, keywords, title   "
       . "FROM pdb_pfamA_reg r, pdb p "
-      . "WHERE auto_pfamA=? AND p.pdb_id=r.pdb_id" );
+      . "WHERE pfamA_acc=? AND p.pdb_id=r.pdb_id" );
 
   #Now work out the range of accessions
-  my @pfams = $schemata->resultset('Pfama')->search( {} );
+  my @pfams = $schemata->resultset('PfamA')->search( {} );
 
   foreach my $p (@pfams) {
     next if ( !$p->number_structures or $p->number_structures == 0 );
-    $sthRegions->execute( $p->auto_pfama );
+    $sthRegions->execute( $p->pfama_acc );
     my $allPdbs = $sthRegions->fetchall_arrayref;
     my ( %title, %keyword, %acc );
     foreach my $row (@$allPdbs) {
@@ -217,7 +217,7 @@ sub build_pdb_index {
 }
 
 sub build_interpro_index {
-  my $results = $schemata->resultset('Interpro')->search({}, {'prefetch' => 'auto_pfama'});
+  my $results = $schemata->resultset('Interpro')->search({}, {'prefetch' => 'pfama_acc'});
 
   build_index({
     path    => $outdir . '/interpro',
@@ -226,9 +226,9 @@ sub build_interpro_index {
     fields  => [ 'id', 'abstract', 'accession', 'description' ],
     mapping => sub {
       return {
-        id          => $_[0]->auto_pfama->pfama_id,
-        accession   => $_[0]->auto_pfama->pfama_acc,
-        description => $_[0]->auto_pfama->description,
+        id          => $_[0]->pfama_acc->pfama_id,
+        accession   => $_[0]->pfama_acc->pfama_acc,
+        description => $_[0]->pfama_acc->description,
         abstract    => $_[0]->abstract,
       }
     },
@@ -278,7 +278,7 @@ sub build_seqinfo_index {
       $file =~ s/.res.kw$/.res.sp/;
       my $species = read_file($file);
       # fetch id and description from the database
-      my $pfama = $schemata->resultset('Pfama')->search({pfama_acc => $acc})->first();
+      my $pfama = $schemata->resultset('PfamA')->search({pfama_acc => $acc})->first();
 
       $indexer->add_doc({
         id              => $pfama->pfama_id,
