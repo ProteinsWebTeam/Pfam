@@ -39,11 +39,11 @@ elsif ( $chunk and $chunkSize ) {
   my $sthRegions =
     $dbh->prepare( "SELECT DISTINCT s.description, species "
       . "FROM pfamA_reg_full_significant r, pfamseq s "
-      . "WHERE s.auto_pfamseq=r.auto_pfamseq "
-      . "AND in_full=1 AND auto_pfamA=?" );
+      . "WHERE s.pfamseq_acc=r.pfamseq_acc "
+      . "AND in_full=1 AND pfamA_acc=?" );
 
   #Now work out the range of accessions
-  my $pfamAll = $pfamdb->getSchema->resultset('Pfama')->search(
+  my $pfamAll = $pfamdb->getSchema->resultset('PfamA')->search(
     {},
     {
       order_by => 'pfama_id',
@@ -60,7 +60,7 @@ elsif ( $chunk and $chunkSize ) {
     print STDERR "Working on " . $p->pfama_acc . "\n";
     next if ( -s $datadir . "/" . $p->pfama_acc . ".res.kw" );
 
-    $sthRegions->execute( $p->auto_pfama );
+    $sthRegions->execute( $p->pfama_acc );
     my $allSeqs = $sthRegions->fetchall_arrayref;
     my ( %words, %species );
     foreach my $row (@$allSeqs) {
@@ -93,14 +93,12 @@ elsif ( $chunk and $chunkSize ) {
 sub submitToFarm {
   my ( $pfamdb, $noJobs, $datadir ) = @_;
 
-  my $rs = $pfamdb->getSchema->resultset('Pfama')->search( {} );
+  my $rs = $pfamdb->getSchema->resultset('PfamA')->search( {} );
   my $chunkSize = ceil( $rs->count / $noJobs );
 
   #Now submit the jobs
-  my $queue = 'normal';
-  my $resource =
-"-M3500000 -R'select[mem>3500 && mypfamlive2<500] rusage[mypfamlive2=10:mem=3500]'";
-  my $memory = 3500000;
+  my $queue = 'production-rh6';
+  my $resource = "-M3500 -R rusage[mem=3500]";
   my $fh     = IO::File->new();
 
   $fh->open( "| bsub -q $queue  "
@@ -108,7 +106,7 @@ sub submitToFarm {
       . $datadir
       . "/seqinfo.\%J.\%I.log  -Jseqinfo\"[1-$noJobs]\"" );
   $fh->print(
-"makeSeqInfo.pl -chunk \$\{LSB_JOBINDEX\} -chunkSize $chunkSize -dir $datadir\n"
+"makeSeqInfo.pl -chunk \$\{LSB_JOBINDEX\} -size $chunkSize -dir $datadir\n"
   );
   $fh->close;
 }
