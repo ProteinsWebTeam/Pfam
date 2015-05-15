@@ -529,8 +529,55 @@ unless ( -s "$thisRelDir/swisspfam" ) {
 #Dump the database.
 # TODO - refactor make_ftp
 unless ( -d "$thisRelDir/ftp" ) {
-  make_ftp( $thisRelDir, $logger );
+    $logger->info("Making ftp files");  
+    make_ftp( $thisRelDir, $logger );
 }
+
+
+#make keyword indices
+
+unless ( -d "$thisRelDir/SeqInfo" ){
+    $logger->info("Making SeqInfo");
+    my $seqinfo_dir = $thisRelDir . "/SeqInfo";
+    mkdir($seqinfo_dir);
+    system("makeSeqInfo.pl -all -dir $seqinfo_dir") and $logger->logdie("Could not run makeSeqInfo.pl");
+    #check farm jobs are complete
+        if (-e "$seqinfo_dir/finished_seqinfo"){
+	    $logger->info("Already checked pfamA_ncbi jobs have finished\n");
+    } else {
+	    my $fin = 0;
+	    while (!$fin){
+	        open( FH, "bjobs -Jseqinfo|" );
+	        my $jobs;
+	        while (<FH>){
+		        if (/^\d+/){
+		            $jobs++;
+		        }
+	        }
+	        close FH;
+	        if ($jobs){
+		        $logger->info("seqinfo jobs still running - checking again in 10 minutes\n");
+		        sleep(600);
+	        } else {
+		        $fin = 1;
+		        open( FH, "> $seqinfo_dir/finished_seqinfo" ) or die "Can not write to file finished_seqinfo";
+		        close(FH);
+	        }
+	    }
+    }
+
+}
+
+unless (-d "$thisRelDir/KW_indices"){
+    $logger->info("Making keyword indices");
+    my $index_dir = $thisRelDir . "/KW_indices";
+    my $seqinfo_dir = $thisRelDir . "/SeqInfo";
+    mkdir($index_dir);
+    system("makeIndexes.pl -seq_files $seqinfo_dir -output $index_dir") and $logger->logdie("Could not run makeIndexes.pl");
+}
+
+
+###################################################################################################################
 
 sub checkPfamseqSize {
   my ( $pfamseqdir, $pfamDB ) = @_;
