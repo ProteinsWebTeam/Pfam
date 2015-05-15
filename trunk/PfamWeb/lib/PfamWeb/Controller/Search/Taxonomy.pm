@@ -350,7 +350,7 @@ sub suggest : Local {
   # perform a database look-up for the LAST species name in the search string, 
   # if there is one at this point
 
-  my( $rawSpecies, @speciesSuggestions );
+  my( $rawSpecies, %speciesSuggestions );
   my $lastTerm = $c->stash->{terms}->[-1] || '';
   
   # trap terms that are junk and only suggest for real ones
@@ -365,21 +365,23 @@ sub suggest : Local {
 
     # collect the list of matching species names    
     my @species = $c->model('PfamDB::Taxonomy')
-                    ->search_like( { species => "$rawSpecies%" } );
+                    ->search( { species => { '-like' => "$rawSpecies%" } } );
+                    # ->search_like( { species => "$rawSpecies%" } );
     foreach ( @species ) {
-      push @speciesSuggestions, $_->species;
+      $speciesSuggestions{ $_->species } = 1;
     }
                  
     # collect the list of matching levels, which are distinct from the actual
     # species name    
     my @levels  = $c->model('PfamDB::Taxonomy')
-                    ->search_like( { level => "$rawSpecies%" } );
+                    ->search( { level => { '-like' => "$rawSpecies%" } } );
+                    # ->search_like( { level => "$rawSpecies%" } );
     foreach ( @levels ) {
-      push @speciesSuggestions, $_->level;
+      $speciesSuggestions{ $_->level } = 1;
     }
   
     $c->log->debug( 'Search::Taxonomy::suggest: found a total of |'
-                    . scalar @speciesSuggestions . "| suggestions for |$rawSpecies|" )
+                    . scalar( keys %speciesSuggestions ) . "| suggestions for |$rawSpecies|" )
       if $c->debug;
   
   } else {
@@ -423,7 +425,7 @@ sub suggest : Local {
     # build the list of suggestions based on the suggestions for the current
     # word
     SUGGESTION: 
-    foreach my $suggestion ( sort @speciesSuggestions ) {
+    foreach my $suggestion ( sort( keys %speciesSuggestions ) ) {
       push @searchSuggestions, $suggestionLine . $suggestion;
       if( $i >= $limit - 1 ) {
         $limited = 1;
@@ -964,8 +966,11 @@ sub get_range : Private {
   $c->log->debug( "Search::Taxonomy::get_range: looking up term: |$term|" )
     if $c->debug;
 
-  my $rs = $c->model('PfamDB::Taxonomy')
-          ->find( { species => $term } );  
+  my $rs = $c->model('PfamDB::Taxonomy')->find( { species => $term } );  
+
+  if ( ! $rs ) {
+    $rs = $c->model('PfamDB::Taxonomy')->find( { level => $term } );
+  }
   
   # return "0" by default, as this is what $c->forward will enforce anyway
   my $rv = 0;
