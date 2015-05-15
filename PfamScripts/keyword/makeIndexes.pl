@@ -109,7 +109,7 @@ sub build_go_index {
 }
 
 sub build_pfama_index {
-  my $results = $schemata->resultset('PfamA')->search();
+  my $results = $schemata->resultset('Pfama')->search();
   build_index({
     path    => $outdir . '/pfama',
     results => $results,
@@ -163,7 +163,7 @@ sub build_pdb_index {
       . "WHERE pfamA_acc=? AND p.pdb_id=r.pdb_id" );
 
   #Now work out the range of accessions
-  my @pfams = $schemata->resultset('PfamA')->search( {} );
+  my @pfams = $schemata->resultset('Pfama')->search( {} );
 
   foreach my $p (@pfams) {
     next if ( !$p->number_structures or $p->number_structures == 0 );
@@ -278,7 +278,7 @@ sub build_seqinfo_index {
       $file =~ s/.res.kw$/.res.sp/;
       my $species = read_file($file);
       # fetch id and description from the database
-      my $pfama = $schemata->resultset('PfamA')->search({pfama_acc => $acc})->first();
+      my $pfama = $schemata->resultset('Pfama')->search({pfama_acc => $acc})->first();
 
       $indexer->add_doc({
         id              => $pfama->pfama_id,
