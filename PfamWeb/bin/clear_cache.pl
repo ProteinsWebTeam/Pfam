@@ -24,13 +24,26 @@ use Getopt::Std;
 
 use Cache::Memcached;
 
-my @development = qw( web-pfam1:11211 );
-my @production  = qw( web-pfam1:11211 
-                      web-pfam2:11211
-                      web-pfam3:11211
-                      web-rfam1:11211 
-                      web-rfam2:11211
-                      web-rfam3:11211 );
+my @development = qw( 
+  ves-ebi-b5.ebi.ac.uk:11211
+  ves-ebi-b7.ebi.ac.uk:11211
+  ves-ebi-b8.ebi.ac.uk:11211
+);
+my @production = qw(
+  ves-hx-b5.ebi.ac.uk:11211
+  ves-hx-b7.ebi.ac.uk:11211
+  ves-hx-b8.ebi.ac.uk:11211
+  ves-oy-b5.ebi.ac.uk:11211
+  ves-oy-b6.ebi.ac.uk:11211
+  ves-oy-b7.ebi.ac.uk:11211
+  ves-oy-b8.ebi.ac.uk:11211
+  ves-oy-b9.ebi.ac.uk:11211
+  ves-pg-b5.ebi.ac.uk:11211
+  ves-pg-b6.ebi.ac.uk:11211
+  ves-pg-b7.ebi.ac.uk:11211
+  ves-pg-b8.ebi.ac.uk:11211
+  ves-pg-b9.ebi.ac.uk:11211
+);
 
 my %options;
 getopt( 'adpqh', \%options ) or usage();
