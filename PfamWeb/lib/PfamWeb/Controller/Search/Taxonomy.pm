@@ -799,7 +799,9 @@ sub get_families_for_term : Private {
     my @rs = $c->model('PfamDB::PfamaNcbi')
                ->search( { 'taxonomy.lft' => { '>=' => $range->[0] },
                            'taxonomy.rgt' => { '<=' => $range->[1] } },
-                         { prefetch => [qw(taxonomy)] }
+                         { select   => [ 'pfama_acc' ],
+                           as       => [ 'pfama_acc' ],
+                           join     => [ qw(taxonomy) ] }
                        );
   
     $c->log->debug( 'Search::Taxonomy::get_families_for_term: found |'
@@ -807,7 +809,7 @@ sub get_families_for_term : Private {
       if $c->debug;
 
     # map the Pfam-A accession to a hash with other information for the family
-    my %res = map{ $_->pfama_acc->pfama_acc => $familyInfo->{$_->pfama_acc->pfama_acc} } @rs;
+    my %res = map{ $_->get_column('pfama_acc') => $familyInfo->{$_->get_column('pfama_acc')} } @rs;
 
     $c->log->debug( 'Search::Taxonomy::get_families_for_term: found |'
                     . scalar( keys %res ) . '| families' )
