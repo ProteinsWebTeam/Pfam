@@ -167,8 +167,27 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
               protein sequences is <strong>[% maxProteinSeqLength %]</strong> residues.
             </span>
           </div>
+	  <div class="row" 
+               id="proteinTooShort"
+               style="display: none">
+            <span class="label blankLabel">&nbsp;</span>
+            <span class="warning">
+              <strong>WARNING:</strong> your sequence is too short. The minimum for 
+              protein sequences is <strong>[% minProteinSeqLength %]</strong> residues.
+            </span>
+          </div>
+
 
           <div class="row" 
+               id="dnaTooShort"
+               style="display: none">
+            <span class="label blankLabel">&nbsp;</span>
+            <span class="warning">
+              <strong>WARNING:</strong> your sequence is too short. The minimum for 
+              DNA sequences is <strong>[% minDnaSeqLength %]</strong> nucleotides.
+            </span>
+          </div>          
+	<div class="row" 
                id="dnaTooLong"
                style="display: none">
             <span class="label blankLabel">&nbsp;</span>
@@ -294,7 +313,11 @@ belong to the full alignment of a Pfam entry.",
                   $("psControlsLabel").show();
                   if ( pastedSequence.length > [% maxDnaSeqLength %] ) {
                     $("dnaTooLong").show();
-                  } else {
+                  } 
+		  else if ( pastedSequence.length < [% minDnaSeqLength %] ) {
+                    $("dnaTooShort").show();
+                  } 
+		else {
                     $("dnaTooLong").hide();
                   }
                 } else {
@@ -303,7 +326,12 @@ belong to the full alignment of a Pfam entry.",
                   $("psControlsLabel").hide();
                   if ( pastedSequence.length > [% maxProteinSeqLength %] ) {
                     $("proteinTooLong").show();
-                  } else {
+                  } 
+                  else if ( pastedSequence.length < [% minProteinSeqLength %] ) {
+                    $("proteinTooShort").show();
+                  } 
+	
+		else {
                     $("proteinTooLong").hide();
                   }
                 }
