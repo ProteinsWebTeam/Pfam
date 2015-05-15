@@ -328,6 +328,18 @@ sub validate_input : Private {
       
     return 0;
   }
+  # check it's not too long
+    $c->log->debug( 'Search::Dna::validate_input: check length curr: '.length $c->req->param('seq').' <'.$this->{minDnaSeqLength} );
+  if ( length $c->req->param('seq') < $this->{minDnaSeqLength} ) {
+    $c->stash->{searchError} =
+      'Your sequence was too short. We can only accept DNA sequences of >  '. $this->{minDnaSeqLength} / 1000 . 'kb.';
+
+    $c->log->debug( 'Search::Dna::validate_input: sequence too short; returning to form' )
+      if $c->debug;
+      
+    return 0;
+  }
+
 
   # email address
   if ( Email::Valid->address( -address => $c->req->param('email') ) ) {
