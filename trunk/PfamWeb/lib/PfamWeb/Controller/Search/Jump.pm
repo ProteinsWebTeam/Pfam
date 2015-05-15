@@ -193,11 +193,12 @@ sub guess_sequence : Private {
     
   # how about a sequence entry ?
   my $found;
-  if ( $entry =~ m/^([A-Z]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
+  if ( $entry =~ m/^([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})(\.\d+)?$/i ) {
   
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
   }
+
   # TODO why wouldn't we just combine these two (^ and v) queries ?
 
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
@@ -316,7 +317,10 @@ sub guess_gi : Private {
   
   $c->log->debug( 'Search::Jump::guess_gi: looking for a gi...' )
     if $c->debug;
-
+    use DDP;
+ p($this->{sfetchBinary});
+ p($this->{ncbiSeqFile});
+ p($entry);
   my $rv = system( $this->{sfetchBinary}, $this->{ncbiSeqFile}, $entry ) == 0;
   return 'ncbiseq' if $rv;
 }
