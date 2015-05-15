@@ -61,9 +61,15 @@ ELSE;
     <!-- end of footer -->
 
     [% # close the wrapper div if this is a tab layout page
-    UNLESS template.fullPage %]</div>[% END;
+    UNLESS template.fullPage %]</div>[% END %]
 
-    IF c.config.site;
+    <script type="text/javascript">
+      // <![CDATA[
+      Event.observe( window, 'load', addHoverListeners, false );
+      // ]]>
+    </script>
+
+    [% IF c.config.site;
       TRY;
         PROCESS "components/footer_${c.config.site}.tt";
       CATCH file;
@@ -76,12 +82,6 @@ ELSE;
         CALL c.log.error( "wrapper.tt: couldn't find a generic page footer" );
       END;
     END -%]
-
-    <script type="text/javascript">
-      // <![CDATA[
-      Event.observe( window, 'load', addHoverListeners, false );
-      // ]]>
-    </script>
 
   </body>
 
