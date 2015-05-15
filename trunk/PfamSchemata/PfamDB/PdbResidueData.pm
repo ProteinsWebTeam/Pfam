@@ -153,5 +153,12 @@ __PACKAGE__->might_have(
     
 );
 
+
+__PACKAGE__->might_have(
+  "pfamseqMarkup2",
+  "PfamDB::PfamseqMarkup",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc", "foreign.residue" => "self.pfamseq_seq_number"},
+  undef
+);
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
