@@ -762,6 +762,16 @@ sub validate_protein_seq : Private {
       if $c->debug;
 
     return 0;
+	}
+    if ( $length < $this->{minProteinSeqLength} ) {
+    $c->stash->{seqSearchError} = 
+      'Your sequence is too short. The minimum length of search sequences is ' .
+      $this->{minProteinSeqLength} . '. Please try again with a longer sequence';
+
+    $c->log->debug( 'Search::Sequence::validate_protein_seq: sequence is too short; failed' )
+      if $c->debug;
+
+    return 0;
   }
 
   # check that the sequence string contains only letters. Bail if it has 
@@ -827,16 +837,25 @@ sub validate_dna_seq : Private {
   $c->stash->{user_options}->{dna} = 1;
 
   # check it's not too long
-  if ( length $c->req->param('seq') > 80_000 ) {
+  if ( length $c->req->param('seq') > 25_000 ) {
     $c->stash->{seqSearchError} =
-      'Your sequence was too long. We can only accept DNA sequences upto 80kb.';
+      'Your sequence was too long. We can only accept DNA sequences upto 25kb.';
 
     $c->log->debug( 'Search::Sequence::validate_dna_seq: sequence too long; returning to form' )
       if $c->debug;
       
     return 0;
   }
+ # check it's not too long
+  if ( length $c->req->param('seq') < 30 ) {
+    $c->stash->{seqSearchError} =
+      'Your sequence was too short. We can only accept DNA sequences with > 30 nucleotides.';
 
+    $c->log->debug( 'Search::Sequence::validate_dna_seq: sequence too short; returning to form' )
+      if $c->debug;
+      
+    return 0;
+  }
   # tidy up the sequence and make sure it's only got the valid DNA characters
   my @seqs = split /\n/, $c->req->param('seq');
   shift @seqs if $seqs[0] =~ m/^\>/;
@@ -1011,6 +1030,16 @@ sub parse_sequence : Private {
       $this->{maxProteinSeqLength} . '. Please try again with a shorter sequence';
 
     $c->log->debug( 'Search::Sequence::parse_sequence: sequence is too long; failed' )
+      if $c->debug;
+
+    return 0;
+  }
+ if ( $length < $this->{minProteinSeqLength} ) {
+    $c->stash->{seqSearchError} = 
+      'Your sequence is too short. The minimum length of search sequences is ' .
+      $this->{minProteinSeqLength} . '. Please try again with a longer sequence';
+
+    $c->log->debug( 'Search::Sequence::parse_sequence: sequence is too short; failed' )
       if $c->debug;
 
     return 0;
