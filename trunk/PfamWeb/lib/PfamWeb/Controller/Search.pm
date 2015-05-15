@@ -77,7 +77,7 @@ sub auto : Private {
   }
   
   # copy searchable sequence limits from config to stash
-  $c->stash->{$_} = $this->{$_} for qw( maxProteinSeqLength maxDnaSeqLength );
+  $c->stash->{$_} = $this->{$_} for qw( maxProteinSeqLength maxDnaSeqLength minProteinSeqLength minDnaSeqLength );
 
   return 1;
 }
