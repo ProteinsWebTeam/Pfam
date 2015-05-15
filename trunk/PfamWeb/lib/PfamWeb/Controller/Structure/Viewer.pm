@@ -58,10 +58,11 @@ sub viewer : Path {
     next if $seenChainAutoPfamseq{$ap.$chain};
   
     my @markups = $c->model('PfamDB::PdbResidueData')
-                    ->search( { 'pfamseqMarkup.pfamseq_acc' => $ap,
+                    ->search( { 'pfamseqMarkup2.pfamseq_acc' => $ap,
                                 chain                        => $chain,
                                 pdb_id                       => $c->stash->{pdbId} },
-                              { prefetch                     => [ 'pfamseqMarkup' ] } );
+                              { 
+                                prefetch                     => [ 'pfamseqMarkup2' ] } );
     $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
                     . ' markups for mapping to ' . $ap )
       if $c->debug;
