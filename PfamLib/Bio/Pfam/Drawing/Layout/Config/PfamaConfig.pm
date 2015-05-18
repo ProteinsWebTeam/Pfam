@@ -147,11 +147,12 @@ sub _setEdges{
       $region->startStyle( 'straight' );
       $region->endStyle( 'straight' );
     }   
-  }elsif($region->metadata->type eq 'Repeat' or $region->metadata->type eq 'Motif' or $region->metadata->type eq 'Disordered'){
+  }elsif($region->metadata->type eq 'Repeat' or $region->metadata->type eq 'Motif' 
+            or $region->metadata->type eq 'Disordered' or $region->metadata->type eq 'Coiled-coil' ){
     $region->startStyle( 'straight' );
     $region->endStyle( 'straight' );
   }else{
-    die "Unkown pfama metadata type\n";  
+    die "Unkown pfama metadata type ".$region->metadata->type."\n";  
   } 
 }
 
