@@ -25,7 +25,7 @@ sub search {
   my $query_parser = Lucy::Search::QueryParser->new(
     schema => $searcher->get_schema,
     default_boolop => 'AND',
-    fields => ['term', 'go_id'],
+    fields => ['term', 'go_id', 'description'],
   );
 
   $args{query} = $query_parser->parse($args{query});
