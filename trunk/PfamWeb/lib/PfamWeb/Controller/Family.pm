@@ -874,15 +874,16 @@ sub build_fasta : Private {
   foreach ( @$accessions ) {
     next unless m/^\w+$/;
     my $rs = $c->model( 'PfamDB::PfamaRegFullSignificant' )
-               ->search( { 'auto_pfamseq.pfamseq_acc' => $_,
+               ->search( { 'me.pfamseq_acc' => $_,
+                           'me.pfamA_acc' => $c->stash->{pfam}->pfama_acc,
                            in_full                    => 1 },
-                         { join     => [ qw( auto_pfama auto_pfamseq ) ],
-                           select   => [ qw( auto_pfamseq.pfamseq_acc 
-                                             auto_pfamseq.seq_version 
+                         { join     => [ qw( pfama_acc pfamseq_acc ) ],
+                           select   => [ qw( me.pfamseq_acc 
+                                             pfamseq_acc.seq_version 
                                              seq_start 
                                              seq_end 
-                                             auto_pfamseq.sequence
-                                             auto_pfamseq.description ) ],
+                                             pfamseq_acc.sequence
+                                             pfamseq_acc.description ) ],
                            as       => [ qw( pfamseq_acc 
                                              version 
                                              seq_start 
