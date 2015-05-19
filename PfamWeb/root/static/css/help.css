@@ -206,11 +206,11 @@ ul.mirrors {
 dl.sitesList dt {
   text-align: right;
   float: left;
-  width: 8em;
+  width: 25em;
 }
 
 dl.sitesList dd {
-  margin-left: 8.2em;
+  margin-left: 25.2em;
 }
 
 /* ---------------------------------------- */
