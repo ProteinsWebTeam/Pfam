@@ -118,8 +118,8 @@ sub get_data : Private {
   # run it...
   my @architectures = $c->model('PfamDB::Architecture')
                         ->search( {},
-                                  { join     => [ qw( storable ) ],
-                                    prefetch => [ qw( storable ) ],
+                                  { join     => [ qw( type_example storable ) ],
+                                    prefetch => [ qw( type_example storable ) ],
                                     order_by => "no_seqs DESC" } )
                         ->search_literal( 'MATCH( architecture_acc ) ' .
                                           'AGAINST( ? IN BOOLEAN MODE )',
