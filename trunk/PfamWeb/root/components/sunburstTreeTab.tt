@@ -287,8 +287,7 @@
   document.observe("dom:loaded", function() {
 
     var r = new Ajax.Request( 
-      "[% entryType == 'A' ? c.uri_for( '/family', acc, 'sunburst', 'json' )
-                           : c.uri_for( '/pfamb',  acc, 'sunburst', 'json' ) %]",
+      "[% c.uri_for( '/family', acc, 'sunburst', 'json' ) %]",
       {
         method: "get",
         onSuccess: function( response ) {
