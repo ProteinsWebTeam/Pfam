@@ -179,9 +179,11 @@ var SunburstController = Class.create( {
       this._toggleTools( "sunburstControlsToggle", "sunburstControlsContent" );
     }.bind(this) );
   
+    
     // a switch to store and then align sequences
     $("sunburstAlignSelectionSwitch").observe( "click", this._storeSequences.bind( this, this._ALIGN ) );
     $("sunburstDLSelectionSwitch").observe(    "click", this._storeSequences.bind( this, this._FASTA ) );
+
 
     // a switch to clear the current selection
     $("sunburstClearSelection").observe( "click", function() {
@@ -239,7 +241,6 @@ var SunburstController = Class.create( {
   //----------------------------------------------------------------------------
   
   _storeSequences: function( endpoint ) {
-
     var accessions, accessionsString, r, fasta;
 
     if ( this._alignmentDisabled ) {
@@ -270,6 +271,7 @@ var SunburstController = Class.create( {
     // store the list of accessions. We pass a flag to the callback to tell it 
     // whether to generate the alignment as Stockholm or FASTA.
     fasta = ( endpoint == this._FASTA ) ? 1 : 0;
+    console.debug("Endpoint is " + endpoint + " and fasta is set to" + fasta);  
 
     r = new Ajax.Request( 
       this._baseURL + "/sunburst/accessions",
@@ -315,10 +317,21 @@ var SunburstController = Class.create( {
     var jobId = response.responseJSON.jobId,
         acc   = response.responseJSON.acc,
         r;
+    
+    console.debug("GenerateFasta set to:" + generateFasta );
         
     if ( this._db == "pfam" ) {
       // Pfam shows the alignment in a pfamviewer window
-      popUp( '/family/' + acc + '/alignment/build/?jobId=' + jobId, 'console', 800, 800, 'selectedSeqsWin' );
+      if(generateFasta == 1){
+        console.debug("Go generate fasta");
+        popUp( '/family/' + acc + '/sunburst/fasta/' + jobId, 'console', 800, 800, 'selectedSeqsWin' );
+      }else{
+        console.debug("Go generate the alignment");
+        popUp( '/family/' + acc + '/alignment/build/?jobId=' + jobId, 'console', 800, 800, 'selectedSeqsWin' );
+      }
+      //popUp( '/family/' + acc + '/alignment/build/?jobId=' + jobId, 'console', 800, 800, 'selectedSeqsWin' );
+      //console.debug("FASTA set to:" + this._FASTA + "| ALIGN set to: " + this._ALIGN + "HERE!!!!");
+      
     } else {
       // Rfam just hands back the alignment
       r = new Ajax.Request( 
