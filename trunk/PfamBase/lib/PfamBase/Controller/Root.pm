@@ -101,6 +101,7 @@ sub announcements : Local {
 
   # retrieve the blog content
   my $ua = LWP::UserAgent->new;
+  $ua->ssl_opts(verify_hostname => 0);
   $ua->timeout(10);
   $ua->env_proxy;
 
