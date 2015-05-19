@@ -56,8 +56,8 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     </p>
     <p>
       The Pfam database is a large collection of protein domain families.
-      Each family is represented by multiple sequence alignments and hidden 
-      Markov models (HMMs).
+      Each family is represented by multiple sequence alignments and a hidden 
+      Markov model (HMMs).
     </p>
     <p>
       Each Pfam family, often referred to as a Pfam-A entry, consists of a curated 
@@ -80,6 +80,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         structure when multiple copies are present</dd>
       <dt>Motifs:</dt>
       <dd>A short unit found outside globular domains</dd>
+      <dt>Coiled-Coil:</dt>
+      <dd>Regions that predominantly contain coiled-coil motifs, regions
+        that typically contain alpha-helices that are coiled together in bundles of 2-7.</dd>
+      <dt>Disordered:</dt>
+      <dd>Regions that are conserved, yet are either shown or predicted to
+        contain bias sequence composition and/or are intrinsically disordered (non-globular).</dd>
     </dl>
     <p>
       Related Pfam entries are grouped together into <em>clans</em>; the 
