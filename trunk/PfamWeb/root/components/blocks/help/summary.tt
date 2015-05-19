@@ -80,7 +80,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         structure when multiple copies are present</dd>
       <dt>Motifs:</dt>
       <dd>A short unit found outside globular domains</dd>
-      <dt>Coiled-Coil:</dt>
+      <dt>CoiledCoil:</dt>
       <dd>Regions that predominantly contain coiled-coil motifs, regions
         that typically contain alpha-helices that are coiled together in bundles of 2-7.</dd>
       <dt>Disordered:</dt>
