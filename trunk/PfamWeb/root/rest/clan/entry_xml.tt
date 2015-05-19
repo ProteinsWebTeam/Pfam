@@ -17,7 +17,7 @@ totalFam = 0;
 totalSeq = 0;
 FOREACH pfam IN clanMembers 
   totalFam = totalFam + 1;
-  totalSeq = totalSeq + pfam.auto_pfama.num_full;
+  totalSeq = totalSeq + pfam.pfama_acc.num_full;
 END -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam clan [% clan.clan_acc %] ([% clan.clan_id %]), generated: [% date.format %] -->
@@ -40,9 +40,9 @@ END -%]
     </comment>
     <members>
 [% FOREACH pfam IN clanMembers;
-  percent = ( pfam.auto_pfama.num_full / totalSeq ) * 100;
+  percent = ( pfam.pfama_acc.num_full / totalSeq ) * 100;
   percentS = String.new(percent).format("%.1f") -%]
-      <pfamA accession="[% pfam.auto_pfama.pfama_acc %]" id="[% pfam.auto_pfama.pfama_id %]" num_occurrences="[% pfam.auto_pfama.num_full %]" percentage_hits="[% percentS %]" />
+      <pfamA accession="[% pfam.pfama_acc.pfama_acc %]" id="[% pfam.pfama_acc.pfama_id %]" num_occurrences="[% pfam.pfama_acc.num_full %]" percentage_hits="[% percentS %]" />
 [% END -%]
     </members>
   </entry>

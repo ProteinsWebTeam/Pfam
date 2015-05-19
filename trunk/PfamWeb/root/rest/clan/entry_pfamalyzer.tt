@@ -12,7 +12,6 @@ META naked = 1;
 comment = clan.clan_comment.remove('\n');
 
 "ID:"_
-clan.auto_clan        _ "	" _
 clan.clan_acc         _ "	" _
 clan.clan_description _ "	" _
 clan.clan_author      _ "	" _
@@ -30,8 +29,8 @@ FOREACH ref IN clan.clan_database_links;
 
 FOREACH member IN clanMembers;
   "ME:" _
-  member.auto_pfama.pfama_acc _ "	" _
-  member.auto_pfama.pfama_id;
+  member.pfama_acc.pfama_acc _ "	" _
+  member.pfama_acc.pfama_id;
   UNLESS loop.last %]
 [% END;
 END; 

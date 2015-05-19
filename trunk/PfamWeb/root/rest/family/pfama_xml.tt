@@ -33,7 +33,7 @@ baseUri = "http://pfam.xfam.org/";
 ]]>
     </comment>
 [% END;
-clanRow = pfam.clan_memberships.auto_clan;
+clanRow = pfam.clan_memberships.clan_acc;
 IF clanRow -%]
     <clan_membership clan_acc="[% clanRow.clan_acc %]" clan_id="[% clanRow.clan_id %]" />
 [% END;
