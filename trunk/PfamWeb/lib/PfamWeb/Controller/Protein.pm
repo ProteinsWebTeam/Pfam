@@ -137,6 +137,7 @@ sub protein : Chained( '/' )
   
   # strip off sequence versions, if present
   $entry =~ s/^(.{6})\.\d+$/$1/;
+  $entry =~ s/^(.{10})\.\d+$/$1/;
 
   $c->log->debug( "Protein::begin: looking up sequence '$entry'" )
     if $c->debug;
