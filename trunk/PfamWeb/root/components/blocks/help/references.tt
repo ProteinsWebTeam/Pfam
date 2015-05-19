@@ -195,6 +195,20 @@
     </div>
 
     <h3>Book Chapters on Pfam</h3>
+    
+    <div class="citation">
+      <span class="title">
+        Identifying Protein Domains with the Pfam Database
+      </span>
+      <span class="authors">
+        P. Coggill, R.D. Finn, A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Current protocols in bioinformatics</span>
+        &nbsp;Chapter 2, Unit 2.5 (2008)&nbsp;doi&nbsp;10.1002/0471250953.bi0205s23
+      </span>
+    </div>
+
 
     <div class="citation">
       <span class="title">
