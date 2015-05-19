@@ -32,14 +32,6 @@ FOREACH pfamseq_acc IN regions_iterator;
       region.seq_end;
       UNLESS ( loop.last AND regions_iterator.last ) %]
 [% END;
-    ELSIF region.auto_pfamb.pfamb_id;
-      "B " _
-      region.auto_pfamb.pfamb_id  _ "  " _
-      region.auto_pfamb.pfamb_acc _ "  " _
-      region.seq_start _ " " _
-      region.seq_end;
-      UNLESS ( loop.last AND regions_iterator.last ) %]
-[% END;
     END; # of "IF pfama or pfamb"    
   END; # of "FOREACH region"
 END; # of "FOREACH pfamseq_acc"

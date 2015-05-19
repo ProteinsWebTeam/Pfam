@@ -131,7 +131,7 @@ oe    = 0;
   	      <td class="data">
             [% collectedSpecies = {};
               FOREACH m IN mapping;
-                collectedSpecies.${m.auto_pfamseq.get_column('species')} = m.auto_pfamseq.ncbi_taxid.ncbi_taxid;
+                collectedSpecies.${m.pfamseq_acc.get_column('species')} = m.pfamseq_acc.ncbi_taxid.ncbi_taxid;
               END;
               IF collectedSpecies.keys.size;
                 FOREACH species IN collectedSpecies.keys %]

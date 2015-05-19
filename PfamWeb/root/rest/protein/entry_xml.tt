@@ -33,13 +33,8 @@ baseUri = "http://pfam.xfam.org/";
 [% IF pfama_regions.size OR pfamb_regions.size -%]
     <matches>
 [% FOREACH region IN pfama_regions -%]
-      <match accession="[% region.auto_pfama.pfama_acc %]" id="[% region.auto_pfama.pfama_id %]" type="Pfam-A">
+      <match accession="[% region.pfama_acc.pfama_acc %]" id="[% region.pfama_acc.pfama_id %]" type="Pfam-A">
         <location start="[% region.seq_start %]" end="[% region.seq_end %]" ali_start="[% region.ali_start %]" ali_end="[% region.ali_end %]" hmm_start="[% region.model_start %]" hmm_end="[% region.model_end %]" evalue="[% region.domain_evalue_score %]" bitscore="[% region.domain_bits_score %]" />
-      </match>
-[% END;
-FOREACH region IN pfamb_regions -%]
-      <match accession="[% region.auto_pfamb.pfamb_acc %]" id="[% region.auto_pfamb.pfamb_id %]" type="Pfam-B">
-        <location start="[% region.seq_start %]" end="[% region.seq_end %]" />
       </match>
 [% END -%]
     </matches>
