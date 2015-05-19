@@ -193,7 +193,7 @@ sub guess_sequence : Private {
     
   # how about a sequence entry ?
   my $found;
-  if ( $entry =~ m/^([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})(\.\d+)?$/i ) {
+  if ( $entry =~ m/^(([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}))(\.\d+)?$/i ) {
   
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
