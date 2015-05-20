@@ -384,28 +384,6 @@ var Results = Class.create( {
       
     }
     
-    if ( bHits !== undefined && bHits.total > 0 ) {
-
-      if ( aHits !== undefined && aHits.total > 0 ) {
-        s += " and ";
-      } else {
-        s += " but we did find ";
-      }      
-      s += "<strong>" + bHits.total + "</strong> Pfam-B match" +
-           ( bHits.total > 1 ? "es" : "" ) + ".";
-      
-    } else if ( bHits !== undefined && ! ( bHits.total > 0 ) ) {
-      
-      if ( aHits !== undefined && aHits.total > 0 ) {
-        s += " but we did not find any Pfam-B matches.";
-      } else if ( aHits !== undefined && ! ( aHits.total > 0 ) ) {
-        s += " nor any Pfam-B matches.";
-      }
-      
-    } else {
-      s += ". You did not choose to search for Pfam-B matches.";
-    }
-    
     if ( this._config.options.ga !== undefined ) {
       s += " Because you chose to show only hits that score above the " +
            "gathering threshold, there are no <em>in</em>significant " +
