@@ -112,8 +112,8 @@ family = c.uri_for( "/family" );
     <h2>Pfam-A</h2>
 
     <p>
-      The high quality, curated <em>Pfam-A</em> domains are classified into one of four 
-      different types: <em>family, domain, repeat</em> and <em>motif</em> 
+      The high quality, curated <em>Pfam-A</em> domains are classified into one of six 
+      different types: <em>family, domain, coiled-coil, disordered, repeat</em> and <em>motif</em> 
       (<a href="[% c.uri_for( "/help", { tab = "helpSummaryBlock" } ) %]">more details</a>). 
       These different classification types are rendered slightly differently.
     </p>
@@ -490,7 +490,7 @@ family = c.uri_for( "/family" );
       globular domains within the protein.
     </p>
     <p>
-      Within Pfam, we use <a class="ext" href="http://helix.nih.gov/docs/gcg/seg.html">SEG</a>
+      Within Pfam, we use <strong>SEG</strong>
       to calculate low complexity regions in Pfam. The presence of a low 
       complexity region is indicated by a cyan rectangle.
     </p>
@@ -534,7 +534,7 @@ family = c.uri_for( "/family" );
           Bioinformatical approaches to characterize intrinsically
           disordered/unstructured proteins.</a>
       </span>
-      <span class="authors">Z. Dosztányi, B. Mészáros, I. Simon</span>
+      <span class="authors">Z. Dosztanyi, B. Msszaros, I. Simon</span>
       <span class="ref">
         <span class="jrnl">Brief Bioinform</span>&nbsp;(2010)&nbsp;11:225-43
       </span>
@@ -545,7 +545,7 @@ family = c.uri_for( "/family" );
           IUPred: web server for the prediction of intrinsically unstructured
           regions of proteins based on estimated energy content.</a>
       </span>
-      <span class="authors">Z. Dosztányi, V. Csizmok, P. Tompa, I. Simon</span>
+      <span class="authors">Z. Dosztanyi, V. Csizmok, P. Tompa, I. Simon</span>
       <span class="ref">
         <span class="jrnl">Bioinformatics</span>&nbsp;(2005)&nbsp;21:3433-3434
       </span>
