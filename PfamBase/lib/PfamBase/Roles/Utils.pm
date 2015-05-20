@@ -65,7 +65,7 @@ sub get_sequences : Private {
   foreach my $seqAcc ( @$accession_list ) {
     my @rows = $c->model('PfamDB::PfamaRegFullSignificant')
                  ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
-                             auto_pfama            => $pfam->auto_pfama,
+                             pfama_acc             => $pfam->pfama_acc,
                              in_full               => 1 },
                            { prefetch              => [ qw( pfamseq ) ] } );
     $c->stash->{numRows} = scalar @rows;
