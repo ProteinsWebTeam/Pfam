@@ -136,7 +136,7 @@ sub get_data : Private {
   # parse the FASTA header to get the secondary accession and description
   my $header = shift @ncbiseq;
   $c->stash->{sequence} = join '', @ncbiseq;
-  chomp $c->stash->{sequence};
+  $c->stash->{sequence} =~ s/\n//g;
 
   ( $c->stash->{secondary_acc}, $c->stash->{desc} ) = 
     ( $header =~ m/^>\s*\d+\s+ref\|(.*?)\s+(.*)/ );

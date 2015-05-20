@@ -136,7 +136,7 @@ sub get_data : Private {
   # parse the FASTA header to get the secondary accession and description
   my $header = shift @metaseq;
   $c->stash->{sequence} = join '', @metaseq;
-  chomp $c->stash->{sequence};
+  $c->stash->{sequence} =~ s/\n//g;
 
   ( $c->stash->{desc} ) = $header =~ m/^>\d+\s+\'(.*?)\'/;
 
