@@ -242,8 +242,8 @@
   
   	<p>
       Pfam pre-calculates the domain compositions and architectures for all 
-      the proteomes present in 
-      <a class="ext" href="http://www.ebi.ac.uk/integr8/">Integr8</a>.  To
+      the proteomes present in our snapshot of 
+      <a class="ext" href="http://www.uniprot.org/proteomes/">UniProt proteomes</a>.  To
       see the list of proteomes, click on the 'browse' link at the top of the
       Pfam website, and click on a letter of the alphabet in the 'proteomes'
       section. By clicking on a particular organism, you will be be able to
