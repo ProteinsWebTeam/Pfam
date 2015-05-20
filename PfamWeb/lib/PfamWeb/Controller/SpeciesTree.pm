@@ -353,11 +353,7 @@ sub getDataByType : Private {
 
 Retrieves or calculates the number of species in the entry. For Pfam-As and 
 clans we can look this up directly in the DB but for Pfam-B we actually have
-to count it up.
-
-Again, for Pfam-Bs, since we need to get all regions here, we'll stash them
-and they can be used if we go ahead and build the tree, rather than repeating
-the query in the C<getData> methods.
+to count it up. - not any more.
 
 =cut
 
@@ -368,23 +364,7 @@ sub countSpecies : Private {
   # main table, via the "entry" that was put in the stash by C<begin>, but
   # for Pfam-Bs we'll actually have to count the number of species
 
-  if ( $c->stash->{entryType} eq 'B' ) {
-    
-    my @regions = $c->model('PfamDB::Pfamseq')
-                    ->search( { 'pfamb_regs.auto_pfamb' => $c->stash->{entry}->auto_pfamb },
-                              { prefetch   => [ qw( pfamb_regs ) ] } );
-
-    # as we're retrieving them here anyway, stash the regions, so we don't need
-    # to get them again later
-    $c->stash->{regions} = \@regions;
-
-    my %species_unique = map {$_->species => 1} @regions;
-    $c->stash->{numSpecies} = scalar( keys %species_unique );
-
-  }
-  else {
-    $c->stash->{numSpecies} = $c->stash->{entry}->number_species;
-  }
+  $c->stash->{numSpecies} = $c->stash->{entry}->number_species;
 
   $c->log->debug( 'SpeciesTree::countSpecies: numSpecies: |'
                   . $c->stash->{numSpecies} . '|' )
@@ -440,7 +420,7 @@ sub getFamilyData : Private {
 =head2 getClanData : Private
 
 Retrieves species data for the specified clan. This requires us to look up 
-the auto_pfamA numbers for each of the Pfam-As in the clan and then, for each
+the pfam-A accession numbers for each of the Pfam-As in the clan and then, for each
 of those families, to get all species in that family.
 
 =cut

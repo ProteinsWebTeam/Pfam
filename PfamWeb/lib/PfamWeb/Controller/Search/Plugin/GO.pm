@@ -39,7 +39,7 @@ $Id: GO.pm,v 1.8 2009-12-08 13:50:05 jt6 Exp $
 #FROM   pfamA AS p,
 #       gene_ontology AS go
 #WHERE  p.pfamA_acc = ?
-#AND    p.auto_pfamA = go.auto_pfamA
+#AND    p.pfamA_acc = go.pfamA_acc
 
 use strict;
 use warnings;

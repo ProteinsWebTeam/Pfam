@@ -475,19 +475,6 @@ sub get_summary_data : Private {
 
   $summaryData{numStructures} = scalar keys %pdb_ids;
 
-  # number of interactions
-  # TODO Has interactions
-  #$rs = $c->model('PfamDB::Interactions')
-  #        ->find( { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
-  #                { select         => [
-  #                                      {
-  #                                        count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
-  #                                     }
-  #                                    ],
-  #                  as             => [ qw( numInts ) ] } );
-
-  #$summaryData{numInt} = $rs->get_column( 'numInts' );
-  #$summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
   my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')

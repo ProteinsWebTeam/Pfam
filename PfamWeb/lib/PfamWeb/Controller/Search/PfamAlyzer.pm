@@ -345,7 +345,7 @@ sub query : Local {
             $ci = $pfdomain [$i];
             $ci =~ s/Clan_//g;
 
-            $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
+            $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
             $sth = $dbh->prepare ($command); 
             $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
             @ds = ();
@@ -354,10 +354,10 @@ sub query : Local {
               push (@ds, $row [0]);
             }  
       
-            $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
+            $tempStatement = $columnname [$i] . ".pfamA_acc NOT IN (";
       
             foreach $d (@ds) {
-              $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
+              $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
     
               $sth = $dbh->prepare($command); 
               $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
@@ -412,7 +412,7 @@ sub query : Local {
           if ($pfdomain [$i] =~ /^Clan_/) {
             $ci = $pfdomain[$i];
             $ci =~ s/Clan_//g;
-            $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
+            $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
             $sth = $dbh->prepare ($command); 
             $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
             @ds = ();
@@ -420,10 +420,10 @@ sub query : Local {
               push (@ds, $row [0]);
             }  
       
-            $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
+            $tempStatement = $columnname [$i] . ".pfamA_acc NOT IN (";
       
             foreach $d (@ds) {
-              $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
+              $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
     
               $sth=$dbh->prepare ($command); 
               $rv=$sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
@@ -437,7 +437,7 @@ sub query : Local {
             push (@wheres, $tempStatement);
           } 
           else {
-            push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
+            push (@wheres, $columnname [$i].".pfamA_acc<>$pfdomain[$i]");
           }
         }
         if ($min [$i] ne -1) {
@@ -460,7 +460,7 @@ sub query : Local {
       }
 
       if ($min [$number] ne -1 || $max [$number] ne -1) {
-        push (@wheres, "p1.auto_pfamseq=".$columnname [$number - 1].".auto_pfamseq"); 
+        push (@wheres, "p1.pfamseq_acc=".$columnname [$number - 1].".pfamseq_acc"); 
         if ($min [$number] ne -1) {
           push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order >= $min[$number]"); 
         }
@@ -489,7 +489,7 @@ sub query : Local {
           $ci = $domain [$i];
           $ci =~ s/Clan_//g;
 
-          $command = "SELECT m.auto_pfamA FROM clan_membership m, clans c WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
+          $command = "SELECT m.pfamA_acc FROM clan_membership m, clans c WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
           $sth=$dbh->prepare ($command); 
           $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
         
@@ -508,7 +508,7 @@ sub query : Local {
     $nonotdomain = @notdomain;
 
     if ($nonotdomain ne 0) {
-      $tempStatement = $columnname[$j] . ".auto_pfamseq NOT IN (SELECT DISTINCT auto_pfamseq FROM pfamA_reg WHERE auto_pfamA IN (";
+      $tempStatement = $columnname[$j] . ".pfamseq_acc NOT IN (SELECT DISTINCT pfamseq_acc FROM pfamA_reg WHERE pfamA_acc IN (";
       for ($m = 0; $m < $nonotdomain; $m++) {
         $tempStatement .= $notdomain[$m] . ", ";
       }

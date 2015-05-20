@@ -1863,7 +1863,7 @@ sub get_data : Private {
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ],
-                       { join     => [ { clan_memberships => 'auto_clan' },
+                       { join     => [ { clan_memberships => 'clan_acc' },
                                        "interpros", 
                                        "pfama_species_trees" ], } );
                           prefetch => [ qw( interpros pfama_species_trees ) ] } );
@@ -1999,7 +1999,7 @@ sub get_db_xrefs : Private {
 
   # PfamA relationship based on SCOOP
   my @ataSCOOP = $c->model('PfamDB::Pfama2pfamaScoopResults')
-                   ->search( { auto_pfama1 => $c->stash->{pfam}->auto_pfama,
+                   ->search( { pfama_acc_1 => $c->stash->{pfam}->pfama_acc,
                                score       => { '>', 50.0 } },
                              { join        => [ qw( pfamA1 pfamA2 ) ],
                                select      => [ qw( pfamA1.pfama_id 
@@ -2033,19 +2033,19 @@ sub get_db_xrefs : Private {
 
   # PfamA to PfamA links based on HHsearch
   my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearchResults')
-                 ->search( { 'auto_pfama1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
-                           { join     => [ qw( auto_pfama1 auto_pfama2 ) ],
-                             select   => [ qw( auto_pfama1.pfama_id 
-                                               auto_pfama1.pfama_acc
-                                               auto_pfama2.pfama_id 
-                                               auto_pfama2.pfama_acc 
+                 ->search( { 'pfama_acc_1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
+                           { join     => [ qw( pfama_acc_1 pfama_acc_2 ) ],
+                             select   => [ qw( pfama_acc_1.pfama_id 
+                                               pfama_acc_1.pfama_acc
+                                               pfama_acc_2.pfama_id 
+                                               pfama_acc_2.pfama_acc 
                                                evalue ) ],
                              as       => [ qw( l_pfama_id 
                                                l_pfama_acc 
                                                r_pfama_id 
                                                r_pfama_acc 
                                                evalue ) ],
-                             order_by => 'auto_pfama2.auto_pfama ASC'
+                             order_by => 'pfama_acc_2.pfam_acc_2 ASC'
                            } );
                            
   $xRefs->{atoaHH} = [];
@@ -2071,7 +2071,7 @@ sub get_go_data : Private {
   my ( $this, $c ) = @_;
 
   my @goTerms = $c->model('PfamDB::GeneOntology')
-                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama } );
+                  ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc } );
 
   $c->stash->{goTerms} = \@goTerms;
 }
@@ -2088,9 +2088,9 @@ sub get_interactions : Private {
   my ( $this, $c ) = @_;
   
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfama },
-                                 { join     => [ qw( auto_pfama_b ) ],
-                                   prefetch => [ qw( auto_pfama_b ) ] } );
+                       ->search( { pfama_acc_a => $c->stash->{pfam}->pfama_acc },
+                                 { join     => [ qw( pfama_acc_b ) ],
+                                   prefetch => [ qw( pfama_acc_b ) ] } );
 
   $c->stash->{interactions} = \@interactions;
 }
@@ -2277,7 +2277,7 @@ sub get_logo : Private {
       if $c->debug;
     
     my $rs = $c->model('PfamDB::PfamaHmm')
-               ->find( $c->stash->{pfam}->auto_pfama );
+               ->find( $c->stash->{pfam}->pfama_acc );
     $logo = $rs->logo;
 
     unless ( defined $logo ) {
@@ -2374,7 +2374,7 @@ sub get_tree_data : Private {
 
     # retrieve the tree from the DB
     my $rs = $c->model('PfamDB::AlignmentAndTree')
-               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+               ->search( { pfama_acc  => $c->stash->{pfam}->pfama_acc,
                            type       => $c->stash->{alnType} } );
 
     return unless defined $rs;
@@ -2484,7 +2484,7 @@ sub get_alignment_from_db : Private {
 
     # retrieve the alignment from the DB
     my $row = $c->model('PfamDB::AlignmentAndTree')
-                ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                ->search( { pfama_acc  => $c->stash->{pfam}->pfama_acc,
                             type       => $c->stash->{alnType} },
                           { columns    => [ qw( alignment ) ] } )
                 ->single;
