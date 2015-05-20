@@ -731,8 +731,8 @@ sub get_proteome_data : Private {
     #          pa.no_seqs
     #   FROM   proteome_architecture pa 
     #   JOIN   architecture a  ON  pa.auto_architecture =   a.auto_architecture 
-    #   JOIN   pfam_annseq pas ON  pa.type_example      = pas.auto_pfamseq
-    #   JOIN   pfamseq s       ON   s.auto_pfamseq      = pa.type_example
+    #   JOIN   pfam_annseq pas ON  pa.type_example      = pas.pfamseq_acc
+    #   JOIN   pfamseq s       ON   s.pfamseq_acc       = pa.type_example
     #   WHERE  auto_proteome = ?;
   }
 

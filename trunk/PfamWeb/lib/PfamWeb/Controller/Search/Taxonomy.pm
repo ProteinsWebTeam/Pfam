@@ -733,9 +733,9 @@ sub getAllFamilyCount : Private {
     my @rs = $c->model('PfamDB::PfamaNcbi')
                ->search( {},
                          { select   => [ 'pfama_acc', 
-                                         { count => 'auto_pfama' } ],
+                                         { count => 'pfama_acc' } ],
                            as       => [ 'pfama_acc', 'count' ],
-                           group_by => [ 'me.auto_pfama' ],
+                           group_by => [ 'me.pfama_acc' ],
                          } );
   
     # hash the results

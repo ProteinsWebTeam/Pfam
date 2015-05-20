@@ -52,7 +52,7 @@ sub viewer : Path {
     $ap    = ( defined $map->pfamseq_acc->pfamseq_acc ) ? $map->pfamseq_acc->pfamseq_acc : '';
     $chain = ( defined $map->chain ) ? $map->chain : ''; # NOTE: could have a chain '0'
   
-    $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" )
+    $c->log->debug( "Structure::Viewer::viewer: pfamseq_acc, chain: |$ap|$chain|" )
       if $c->debug;
   
     next if $seenChainAutoPfamseq{$ap.$chain};
