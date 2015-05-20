@@ -19,7 +19,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 #-------------------------------------------------------------------------------
 
 %]
-
+[% DEFAULT
+    minDnaSeqLength = 30
+    minProteinSeqLength   = 10 
+%]
 <!-- start sequence search block -->
 
 <div class="block" id="searchSequenceBlock">
