@@ -1344,9 +1344,8 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
 
     <p>
       At each Pfam release, we download the proteome set from the <a class="ext"
-      href="http://www.ebi.ac.uk/integr8/EBI-Integr8-HomePage.do">Integr8</a>
-      resource. The species and NCBI taxonomy IDs for all of the proteomes in our
-      Integr8 proteome set can be found in the <span
+      href="http://www.uniprot.org/proteomes/">UniProtKB</a>. The species and 
+      NCBI taxonomy IDs for all of the proteomes in our proteome set can be found in the <span
       class="table">complete_proteomes</span> table, along with some statistics
       about the number of families and coverage. The tables in this section allow
       you to retrieve domain information about a particular species, or to
