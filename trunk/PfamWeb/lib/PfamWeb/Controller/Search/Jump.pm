@@ -317,10 +317,6 @@ sub guess_gi : Private {
   
   $c->log->debug( 'Search::Jump::guess_gi: looking for a gi...' )
     if $c->debug;
-    use DDP;
- p($this->{sfetchBinary});
- p($this->{ncbiSeqFile});
- p($entry);
   my $rv = system( $this->{sfetchBinary}, $this->{ncbiSeqFile}, $entry ) == 0;
   return 'ncbiseq' if $rv;
 }
