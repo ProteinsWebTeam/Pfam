@@ -28,6 +28,8 @@ my @development = qw(
   ves-ebi-b5.ebi.ac.uk:11211
   ves-ebi-b7.ebi.ac.uk:11211
   ves-ebi-b8.ebi.ac.uk:11211
+  ves-hx-b5.ebi.ac.uk:11211
+  ves-hx-b7.ebi.ac.uk:11211
 );
 my @production = qw(
   ves-hx-b5.ebi.ac.uk:11211
