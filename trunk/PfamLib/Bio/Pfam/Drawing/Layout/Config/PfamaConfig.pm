@@ -132,13 +132,13 @@ sub _setEdges{
   #A small image does not have ends, so we do not need to set them
   if($region->metadata->type eq 'Family' or $region->metadata->type eq 'Domain'){
     if($region->end - $region->start > 50){
-      if($region->modelStart == 1){
+      if($region->modelStart <= 5){
         $region->startStyle( 'curved' );
       }else{
         $region->startStyle( 'jagged' );  
       }
     
-      if($region->modelEnd == $region->modelLength){
+      if($region->modelEnd >= $region->modelLength - 5 ){
         $region->endStyle( 'curved' );
       }else{
         $region->endStyle( 'jagged' );  
