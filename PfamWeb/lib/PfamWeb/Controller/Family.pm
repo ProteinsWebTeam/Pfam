@@ -169,8 +169,6 @@ MIME type and serialiser to do the right thing.
 sub end : Private {
   my ( $this, $c ) = @_;
 
-  use DDP;
-  p($c->error);
   if ( scalar @{ $c->error } ) {
     $c->log->debug( 'Family::end: caught an error; setting error template and serialising' )
       if $c->debug;

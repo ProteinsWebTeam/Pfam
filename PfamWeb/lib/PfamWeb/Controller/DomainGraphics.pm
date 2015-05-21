@@ -69,8 +69,6 @@ sub begin : Private {
                       '';
 
 
-  use DDP;
-  p($c->req->param('pfamAcc'));
   # if we were supplied with an auto_architecture, we need to put a
   # note in the stash to show that this is a post-load, so that we can
   # adjust what gets generated in the TT and stuffed into the existing
