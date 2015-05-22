@@ -39,8 +39,8 @@ help() if $help;
 help() unless ( $dir and $fasta ); # required options
 
 my $pfamA;
-if ( $only_pfamB ) {
-  die qq(FATAL: can't use pfamB and only_pfamB option together) if $pfamB;
+if ( $only_pfamB or $pfamB ) {
+  die qq(FATAL: As of release 28.0, Pfam no longer produces Pfam-B. The -pfamB and -only_pfamB options are now obsolete.\n);
   $pfamB=1;
 }
 else {
@@ -171,9 +171,6 @@ Additonal options:
   -e_dom <n>        : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
   -b_seq <n>        : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
   -b_dom <n>        : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
-  -pfamB            : search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
-                      in addition to searching Pfam-A HMMs
-  -only_pfamB       : search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
   -as               : predict active site residues for Pfam-A matches
   -json [pretty]    : write results in JSON format. If the optional value "pretty" is given,
                       the JSON output will be formatted using the "pretty" option in the JSON
@@ -184,10 +181,6 @@ Additonal options:
                       and produce no individual ORFs, or "orf", to report only ORFs with length greater 
                       than 20. If "-translate" is used without a "mode" value, the default is to 
                       report ORFs (default no translation)
-
-  * Please note that the Pfam-B HMMs are of much lower quality than
-    Pfam-A HMMs, and matches to Pfam-B families should always be treated
-    cautiously.
 
   For more help, check the perldoc:
 
@@ -240,14 +233,6 @@ Sequence bits score cut-off [default: use Pfam GA cutoff]
 
 Domain bits score cut-off [default: use Pfam GA cutoff]
 
-=item B<-pfamB>
-
-Search against Pfam-B HMMs [default: false]
-
-=item B<-only_pfamB>
-
-Search against Pfam-B HMMs only [default: false]
-
 =item B<-clan_overlap>
 
 Allow sequences in different clans to overlap [default: false]
@@ -293,7 +278,7 @@ C<pfam_scan.pl> is a script for searching one or more protein sequences against 
 library of HMMs from Pfam. It requires a local copy of the Pfam data files, which 
 can be obtained from the Pfam FTP area:
 
-  ftp://ftp.sanger.ac.uk/pub/database/Pfam/current_release/
+  ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/
 
 You must also have the HMMER3 binaries installed and their locations given by your
 C<PATH> environment variable. You can download the HMMER3 package at:
@@ -304,19 +289,15 @@ C<PATH> environment variable. You can download the HMMER3 package at:
 
 The output format is:
 <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>
+Example output (-as option):
 
-Example output (with -pfamB, -as options):
-
-  Q5NEL3.1      2    224      2    227 PB013481  Pfam-B_13481      Pfam-B     1   184   226    358.5  1.4e-107  NA NA
   O65039.1     38     93     38     93 PF08246   Inhibitor_I29     Domain     1    58    58     45.9   2.8e-12   1 No_clan
   O65039.1    126    342    126    342 PF00112   Peptidase_C1      Domain     1   216   216    296.0   1.1e-88   1 CL0125   predicted_active_site[150,285,307]
 
 Most of these values are derived from the output of I<hmmscan> (see HMMER3
 documentation for details). The significance value is 1 if the bit score for a
 hit is greater than or equal to the curated gathering threshold for the
-matching family, 0 otherwise. Pfam-B hits are always assigned a significance
-value of "NA", since Pfam-B families do not have curated thresholds and the
-value is therefore meaningless. 
+matching family, 0 otherwise. 
 
 =head1 REFERENCES
 
@@ -327,7 +308,7 @@ the Pfam database." BMC Bioinformatics. 2007;8:298. PMID:17688688.
 
 =head1 AUTHORS
 
-Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Jaina Mistry (jaina@ebi.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 =cut
 
@@ -335,7 +316,7 @@ Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 Copyright (c) 2009: Genome Research Ltd.
 
-Authors: Jaina Mistry (jm14@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Jaina Mistry (jaina@ebi.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
