@@ -308,7 +308,7 @@ the Pfam database." BMC Bioinformatics. 2007;8:298. PMID:17688688.
 
 =head1 AUTHORS
 
-Jaina Mistry (jaina@ebi.ac.uk), John Tate (jt6@sanger.ac.uk)
+Jaina Mistry (jaina@ebi.ac.uk), Rob Finn (rdf@ebi.ac.uk)
 
 =cut
 
@@ -316,7 +316,7 @@ Jaina Mistry (jaina@ebi.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 Copyright (c) 2009: Genome Research Ltd.
 
-Authors: Jaina Mistry (jaina@ebi.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Jaina Mistry (jaina@ebi.ac.uk), rdf (rdf@ebi.ac.uk)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
