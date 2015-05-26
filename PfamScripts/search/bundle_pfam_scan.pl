@@ -6,15 +6,20 @@ use strict;
 use warnings;
 use File::Path;
 use File::Copy;
+use Getopt::Long;
 
-my $pfam_scan_root = "/software/pfam/Scripts/PfamScripts/search";
-my $modules_root = "/software/pfam/Modules/PfamLib/";
-my $directory = "PfamScan";
+#Get input dir
+my ($pfam_scan_root, $modules_root);
+GetOptions('script=s' => \$pfam_scan_root,
+              'lib=s' => \$modules_root);
+
+#Check dirs/files exist 
 my $script = "pfam_scan.pl";
+unless($modules_root and -d $modules_root and -s "$pfam_scan_root/$script") {
+  die "Need to specify directory location of pfam_scan.pl, and directory location of Pfam modules\nE.g. $0 -script /nfs/production/xfam/pfam/software/Scripts/PfamScripts/search/ -lib /nfs/production/xfam/pfam/software/Modules/PfamLib/\n";
+}
 
-print STDERR "pfam_scan.pl will be copied from $pfam_scan_root\n";
-print STDERR "Modules will be copied from $modules_root\n\n\n"; 
-
+my $directory = "PfamScan";
 
 #Make PfamScan directory
 unless(-d $directory) {
@@ -62,16 +67,14 @@ sub copy_files {
     my ($root, $dir, $files) = @_;
 
     unless(-d $dir) {
-	mkpath([$dir, '.'], 1, 0777); 
+      mkpath([$dir, '.'], 1, 0777); 
     } 
     
     foreach my $file (@$files) {
+      my $file1 = "$root/$dir/$file";
+      my $file2 = "$dir/$file";
 
-	my $file1 = "$root/$dir/$file";
-	my $file2 = "$dir/$file";
-
-	copy($file1, $file2) or die "Copying $file1 to $file2 failed, $!";
-
+      copy($file1, $file2) or die "Copying $file1 to $file2 failed, $!";
     }
 }
 
