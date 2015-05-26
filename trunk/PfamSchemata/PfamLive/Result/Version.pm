@@ -55,19 +55,7 @@ __PACKAGE__->table("version");
   is_nullable: 1
   size: [4,1]
 
-=head2 pfamb_additional_coverage
-
-  data_type: 'float'
-  is_nullable: 1
-  size: [4,1]
-
 =head2 pfama_residue_coverage
-
-  data_type: 'float'
-  is_nullable: 1
-  size: [4,1]
-
-=head2 pfamb_additional_residue_coverage
 
   data_type: 'float'
   is_nullable: 1
@@ -93,11 +81,7 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "pfama_coverage",
   { data_type => "float", is_nullable => 1, size => [4, 1] },
-  "pfamb_additional_coverage",
-  { data_type => "float", is_nullable => 1, size => [4, 1] },
   "pfama_residue_coverage",
-  { data_type => "float", is_nullable => 1, size => [4, 1] },
-  "pfamb_additional_residue_coverage",
   { data_type => "float", is_nullable => 1, size => [4, 1] },
   "number_families",
   { data_type => "integer", is_nullable => 1 },
