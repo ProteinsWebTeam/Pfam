@@ -304,21 +304,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pdb_pfam_b_regs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PdbPfamBReg>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_pfam_b_regs",
-  "PfamLive::Result::PdbPfamBReg",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pdb_residue_datas
 
 Type: has_many
@@ -390,21 +375,6 @@ Related object: L<PfamLive::Result::PfamAnnseq>
 __PACKAGE__->has_many(
   "pfam_annseqs",
   "PfamLive::Result::PfamAnnseq",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 pfam_b_regs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamBReg>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfam_b_regs",
-  "PfamLive::Result::PfamBReg",
   { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -500,9 +470,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RNKEO1/inp37RFqqPOd+ig
-
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-26 11:59:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6JhlPdfrhFEB8FzaA9zE0A
 __PACKAGE__->load_components(qw/ Result::ColumnData /);
 __PACKAGE__->register_relationships_column_data();
 
