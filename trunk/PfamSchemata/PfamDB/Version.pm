@@ -55,19 +55,7 @@ __PACKAGE__->table("version");
   is_nullable: 1
   size: [4,1]
 
-=head2 pfamb_additional_coverage
-
-  data_type: 'float'
-  is_nullable: 1
-  size: [4,1]
-
 =head2 pfama_residue_coverage
-
-  data_type: 'float'
-  is_nullable: 1
-  size: [4,1]
-
-=head2 pfamb_additional_residue_coverage
 
   data_type: 'float'
   is_nullable: 1
@@ -93,19 +81,15 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "pfama_coverage",
   { data_type => "float", is_nullable => 1, size => [4, 1] },
-  "pfamb_additional_coverage",
-  { data_type => "float", is_nullable => 1, size => [4, 1] },
   "pfama_residue_coverage",
-  { data_type => "float", is_nullable => 1, size => [4, 1] },
-  "pfamb_additional_residue_coverage",
   { data_type => "float", is_nullable => 1, size => [4, 1] },
   "number_families",
   { data_type => "integer", is_nullable => 1 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:d9HYvTr14H2I5PtnknrSmA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-26 09:37:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PjX5E/bKYOMgmp58Cua37A
 
 __PACKAGE__->set_primary_key( qw/pfam_release swiss_prot_version trembl_version hmmer_version/);
 
