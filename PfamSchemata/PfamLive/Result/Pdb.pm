@@ -129,21 +129,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pdb_pfam_b_regs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PdbPfamBReg>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_pfam_b_regs",
-  "PfamLive::Result::PdbPfamBReg",
-  { "foreign.pdb_id" => "self.pdb_id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pdb_residue_datas
 
 Type: has_many
@@ -160,8 +145,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WmwK+MqDJlOSxFmwWtR1BQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-26 11:59:58
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MXv4zXYPS7fTglxLv3HKDA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
