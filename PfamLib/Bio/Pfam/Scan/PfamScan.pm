@@ -526,8 +526,8 @@ sub _build_header {
 # Copyright (c) 2009 Genome Research Ltd\n# Freely distributed under the GNU 
 # General Public License
 #
-# Authors: Jaina Mistry (jm14\@sanger.ac.uk), John Tate (jt6\@sanger.ac.uk), 
-#          Rob Finn (rdf\@sanger.ac.uk)
+# Authors: Jaina Mistry (jaina\@ebi.ac.uk), 
+#          Rob Finn (rdf\@ebi.ac.uk)
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
