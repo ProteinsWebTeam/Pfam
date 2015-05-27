@@ -123,13 +123,6 @@ __PACKAGE__->set_primary_key( qw/pfamseq_acc auto_markup residue/ );
 #  { cascade_delete => 0 }
 #);
 
-#__PACKAGE__->might_have(
-#  'pfamb_regs',
-#  'PfamDB::PfambReg',
-#  { 'foreign.auto_pfamseq' => 'self.auto_pfamseq' },
-#  { cascade_delete => 0 }
-#);
-
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
