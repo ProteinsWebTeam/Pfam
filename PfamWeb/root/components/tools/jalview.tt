@@ -31,13 +31,13 @@ END;
           width="780" 
           height="550"
           archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+    <param name="permissions" value="sandbox" />
     <param name="file" value="[% alignmentURI | html %]" />
     <param name="defaultColour" value="Clustal" />
     <param name="linkLabel_1" value="UniProt" />
     <param name="linkUrl_1" value="http://www.uniprot.org/uniprot/$SEQUENCE_ID$" />
     <param name="linkLabel_2" value="Pfam sequence page" />
     <param name="linkUrl_2" value="[% c.uri_for( '/protein/$SEQUENCE_ID$' ) %]" />
-    <param name="database" value="pfamseq" />
     <param name="embedded" value="true" /> 
     <param name="nojmol" value="true" />
   </applet>
