@@ -90,7 +90,8 @@ $log->debug( 'connected to web_user' ) if $wu_conf;
 
 my @rows = $wa_schema->resultset("Wikipedia")
 				->search(
-					{	-or => [{"pfam_status" => "active"}, {"rfam_status" => "active"}]},
+					{	-or => [{"pfam_status" => "active"}, {"rfam_status" => "active"}],
+					},
 					{ 	select => ["title", "approved_revision"] }
 				);
 $log->debug("Found ".(@rows)." hits");
@@ -135,18 +136,18 @@ foreach my $row (@rows) {
        	$wikitext_row->update( { approved_revision => $rev,
                    				 text              => $content } );
         $numUpdated++;
+		sleep $scrape_loop_delay;
 	}
-    sleep $scrape_loop_delay;
        
     #add title to pfam accession mapping
-    my $pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
-	unless ($pfam_hits->count() == 1) {
-		$log->error("WARNING: Unexpected number of pfam matches to '$title' (".$pfam_hits->count().")");
+    my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
+	$log->debug("Updating ".@pfam_hits." matching $title");
+	foreach my $pfam_hit (@pfam_hits) {
+		my $pfam_acc = $pfam_hit->accession;
+		$log->debug("Matched Pfam = $pfam_acc to $title");
+		$wu_schema->resultset("ArticleMapping")->find_or_create({accession => $pfam_acc, title => $title});
 	}
-	my $pfam_acc = $pfam_hits->first()->accession;
-	$log->debug("Matched Pfam = $pfam_acc to $title");
-	$wu_schema->resultset("ArticleMapping")->create({accession => $pfam_acc, title => $title});
-       
+	   
     $numRows++;
 }
 print STDERR "scraped new content for $numUpdated out of $numRows articles\n";
