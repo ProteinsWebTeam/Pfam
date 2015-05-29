@@ -665,4 +665,32 @@ __PACKAGE__->might_have(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 from_dead
+
+Type: belongs_to
+
+Related object L<RfamDB::Result::DeadFamily>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  'from_dead',
+  'RfamDB::Result::DeadFamily',
+  { 'foreign.rfam_acc' => 'self.rfam_acc' }
+);
+
+=head2 article
+
+Type: belongs_to
+
+Related object L<RfamDB::Result::Wikitext>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  'article',
+  'RfamDB::Result::Wikitext',
+  { 'foreign.auto_wiki' => 'self.auto_wiki' }
+);
+
 1;

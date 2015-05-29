@@ -187,7 +187,7 @@ $log->info( 'done with Pfam entries/articles' );
 
 # get the Rfam article titles from the live database
 @live_articles = 
-  $rfam_schema->resultset('Rfam')
+  $rfam_schema->resultset('Family')
               ->search( undef,
                         { prefetch => 'auto_wiki',
                           select   => [ qw( rfam_acc auto_wiki.title ) ],
@@ -203,7 +203,7 @@ $log->info( 'got ' . scalar @live_articles . ' articles for live Rfams' );
 # see if there are any dead families which have a title directly in the
 # dead_families table
 @dead_titles =
-  $rfam_schema->resultset('DeadFamilies')
+  $rfam_schema->resultset('DeadFamily')
               ->search( { title => { '!=' => undef } },
                         { select => [ qw( rfam_acc title ) ],
                           as     => [ qw( acc      title ) ] } );
@@ -213,7 +213,7 @@ $log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_famili
 # get the articles that map to the family that a dead family forwards to... if 
 # that makes any sense...
 @dead_articles = 
-  $rfam_schema->resultset('Rfam')
+  $rfam_schema->resultset('Family')
               ->search( undef,
                         { prefetch => [ qw( from_dead article ) ],
                           select   => [ qw( from_dead.rfam_acc article.title ) ],
