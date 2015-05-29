@@ -338,7 +338,7 @@ sub _auto_approve{
 	#date objects may need to be moved out of this method for efficiency
     my $now_date = 	Time::Piece->new();
     my $cutoff_date = $now_date - ($this->LAST_EDIT_CUTOFF * ONE_DAY);
-    if ($edit_date < $cutoff_date) {
+    if ($edit_date < $cutoff_date and $article->wikipedia_revision != $article->approved_revision) {
 		$this->logger->debug("Auto approving ".$article->title." ");
 		$article->update( { approved_revision => $latest_edit->{'revid'}, approved_by => $this->AUTO_USER } );
 		$approved = 1;
