@@ -654,7 +654,7 @@ sub onlyASCII {
   
   foreach my $line ($desc->ID, $desc->DE, $desc->CC){
     if($line =~ /[^[:ascii:]]/){ 
-      warn "$line matches non ascii characters"; 
+      warn "ERROR: The following line matches non ascii characters\n\n$line\n\n"; 
     }
   }
 
