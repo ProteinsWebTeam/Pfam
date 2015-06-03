@@ -62,6 +62,12 @@ sub passesAllFormatChecks {
     warn "|$family|: your family identifier contains disallowed characters\n";
   }
 
+  unless( &onlyASCII( $famObj->DESC )) {
+    $error = 1;
+    warn "|$family|: desc file contains illegal characters\n";
+  }
+
+
   unless($ignoreTime){
     unless ( &checkFamilyFiles( $family, $famObj ) ) {
       $error = 1;
@@ -625,6 +631,38 @@ sub nameFormatIsOK {
   }
   else {
     warn "Your Pfam name contains invalid characters and/or is too long\n";
+    return 0;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 onlyASCII
+
+ Title    : onlyASCII
+ Usage    : &PfamQC::onlyASCII($desc)
+ Function : Checks the format of the DESC object supplied
+ Returns  : 1 if all is OK, 0 if not
+ Args     : DESC object
+
+=cut
+
+sub onlyASCII {
+  my $desc = shift;
+
+  my $chars = 0;
+  
+  foreach my $line ($desc->ID, $desc->DE, $desc->CC){
+    if($line =~ /[^[:ascii:]]/){ 
+      warn "$line matches non ascii characters"; 
+    }
+  }
+
+  if ( $chars == 0 ) {
+    return 1;
+  }
+  else {
+    warn "Your Pfam DESC file contains invalid characters\n";
     return 0;
   }
 }
