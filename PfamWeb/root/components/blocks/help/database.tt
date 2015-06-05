@@ -21,7 +21,7 @@
         <li><a class="link" rel="version">VERSION table</a></li>
         <li><a class="link" rel="domain">Domain information</a></li>
         <li><a class="link" rel="pfamseq">Pfamseq</a></li>
-        <li><a class="link" rel="pfamb">Pfam-B</a></li>
+        <li><a class="link" rel="other">Other regions</a></li>
         <li><a class="link" rel="architecture">Architecture</a></li>
         <li><a class="link" rel="annotation">Annotation information</a></li>
         <li><a class="link" rel="clanData">Clans</a></li>
@@ -317,7 +317,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <hr />
 
-    <h2><a name="pfamb">Pfam-B, other sequence regions, active site and disulphide bond 
+    <h2><a name="other">Other sequence regions, active site and disulphide bond 
       information for a sequence</a></h2>
 
     <img class="tables"
