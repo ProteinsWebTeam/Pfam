@@ -16,7 +16,7 @@
     <div class="cleaner"><!-- empty --></div>
   </div>
 
-  <div id="sunburstControlsContent" style="display: none">
+  <div id="sunburstControlsContent">
     <!-- sub-tree markup will go here -->
     <div id="weightWrapper"
          class="sunburstControlPanel">
@@ -39,7 +39,7 @@
       <div id="sliderSmallScale">Small</div>
       <div id="sliderLargeScale">Large</div>
       <div id="sliderScale" class="slider">
-        <div class="handle"></div>
+        <div class="handle" style="height:21;width:20"></div>
       </div>
     </div>
     [%- imgs = c.uri_for("/shared/images/sunburst_colours") %]
