@@ -13,19 +13,19 @@ use File::Copy;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 
-my ( $statusdir, $pfamseq_dir );
+my ( $status_dir, $pfamseq_dir );
 
 #Start up the logger
 Log::Log4perl->easy_init();
 my $logger = get_logger();
 
 &GetOptions(
-  "status_dir=s"  => \$statusdir,
+  "status_dir=s"  => \$status_dir,
   "pfamseq_dir=s" => \$pfamseq_dir
-  )
+)
   or $logger->logdie("Invalid option!\n");
 
-unless ( $statusdir and -e $statusdir ) {
+unless ( $status_dir and -e $status_dir ) {
   help();
 }
 unless ( $pfamseq_dir and -e $pfamseq_dir ) {
@@ -51,38 +51,38 @@ if ( -e 'matches' ) {
   $logger->info("Looks like antifam search has already been run!");
 }
 else {
-    $logger->info( "Running antifam against pfamseq. ");
+  $logger->info( "Running antifam against pfamseq. ");
 #run AntiFam on the farm
-    my $fh         = IO::File->new();
+  my $fh         = IO::File->new();
 
-    $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
-    $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm pfamseq\n"); 
-    $fh->close; 
+  $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
+  $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm pfamseq\n"); 
+  $fh->close;
+  chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd [$!]");
 #have jobs finished?
-    if (-e "$statusdir/finishedantifam"){
-	$logger->info("Already checked AntiFam search has finished\n");
-    } else {
-	my $fin = 0;
-	while (!$fin){
-	    open( FH, "bjobs -Jantifam|" );
-	    my $jobs;
-	    while (<FH>){
-		if (/^\d+/){
-		    $jobs++;
-		}
-	    }
-	    close FH;
-	    if ($jobs){
-		$logger->info("AntiFam search still running - checking again in 10 minutes\n");
-		sleep(600);
-	    } else {
-		$fin = 1;
-		open( FH, "> $statusdir/finishedantifam" ) or die "Can not write to file $statusdir/finishedantifam.txt";
-		close(FH);
-	    }
-	}
+  if (-e "$status_dir/finishedantifam"){
+    $logger->info("Already checked AntiFam search has finished\n");
+  } else {
+    my $fin = 0;
+    while (!$fin){
+      open( FH, "bjobs -Jantifam|" );
+      my $jobs;
+      while (<FH>){
+        if (/^\d+/){
+          $jobs++;
+        }
+      }
+      close FH;
+      if ($jobs){
+        $logger->info("AntiFam search still running - checking again in 10 minutes\n");
+        sleep(600);
+      } else {
+        $fin = 1;
+        touch("$status_dir/finishedantifam");
+      }
     }
-
+  }
+  chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
 }
 
 open( M, "<", "matches" ) or $logger->logdie("Failed to open matches");
@@ -112,43 +112,50 @@ while (<M>) {
   $antifamMap{ $row[0] }->{acc} = $row[3];
   $antifamMap{ $row[0] }->{id}  = $row[3];
 }
+my $antifamSeq=0;
+$antifamSeq=keys %seqsToDel;
 
-if ( !-e "$statusdir/updated_pfamseq_antifam" ) {
+$logger->info("Going to delete sequences currently in the pfamseq_antifam table");
+my $stDelAntiSeq=$dbh->prepare("delete from pfamseq_antifam");
+$stDelAntiSeq->execute() or $logger->logdie( $dbh->errstr );
+
+$logger->info("$antifamSeq sequences in pfamseq match antifam, going to delete them from the pfamseq table and add them to the pfamseq_antifam table");
+if ( !-e "$status_dir/updated_pfamseq_antifam" ) {
 
   #Delete sequecnes from the databases. 
   my $sthPfamseq = $dbh->prepare(
     "SELECT pfamseq_id, 
-                                       pfamseq_acc, 
-                                       seq_version, 
-                                       crc64, 
-                                       md5, 
-                                       description, 
-                                       evidence, 
-                                       length, 
-                                       species, 
-                                       taxonomy, 
-                                       is_fragment, 
-                                       sequence, 
-                                       ncbi_taxid 
-                                       FROM pfamseq WHERE pfamseq_acc=?"
+    pfamseq_acc, 
+    seq_version, 
+    crc64, 
+    md5, 
+    description, 
+    evidence, 
+    length, 
+    species, 
+    taxonomy, 
+    is_fragment, 
+    sequence, 
+    ncbi_taxid 
+    FROM pfamseq WHERE pfamseq_acc=?"
   );
 
   my $sthPfamseqAntifam = $dbh->prepare(
     "INSERT INTO pfamseq_antifam (pfamseq_id, 
-                                                            pfamseq_acc, 
-                                                            seq_version, 
-                                                            crc64, 
-                                                            md5, 
-                                                            description, 
-                                                            evidence, 
-                                                            length, 
-                                                            species, 
-                                                            taxonomy, 
-                                                            is_fragment, 
-                                                            sequence, 
-                                                            ncbi_taxid, 
-                                                            antifam_acc, 
-                                                            antifam_id ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    pfamseq_acc, 
+    seq_version, 
+    crc64, 
+    md5, 
+    description, 
+    evidence, 
+    length, 
+    species, 
+    taxonomy, 
+    is_fragment, 
+    sequence, 
+    ncbi_taxid, 
+    antifam_acc, 
+    antifam_id ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
   );
 
   my $sthDel = $dbh->prepare("DELETE FROM pfamseq WHERE pfamseq_acc=?");
@@ -156,38 +163,72 @@ if ( !-e "$statusdir/updated_pfamseq_antifam" ) {
   $dbh->begin_work;
   my $c = 0;
   while ( my ( $key, $value ) = each %seqsToDel ) {
-      #Get the data we need into pfamseq_antifam
-      my ( $acc, $version ) = split( /\./, $key );
-      $sthPfamseq->execute($acc) or $logger->logdie( $dbh->errstr );
-      my $data = $sthPfamseq->fetchrow_arrayref;
-      unless ( defined($data) and ref($data) eq 'ARRAY' ) {
-        $logger->logdie("failed to find sequence data for $acc");
-      }
-      my $newData;
-      foreach (@$data){
-        push(@$newData, $_);  
-      }
-      #Now push on the antifam data
-      push( @$newData, $antifamMap{$key}->{acc}, $antifamMap{$key}->{id} );
+    #Get the data we need into pfamseq_antifam
+    my ( $acc, $version ) = split( /\./, $key );
+    $sthPfamseq->execute($acc) or $logger->logdie( $dbh->errstr );
+    my $data = $sthPfamseq->fetchrow_arrayref;
+    unless ( defined($data) and ref($data) eq 'ARRAY' ) {
+      $logger->logdie("failed to find sequence data for $acc");
+    }
+    my $newData;
+    foreach (@$data){
+      push(@$newData, $_);  
+    }
+    #Now push on the antifam data
+    push( @$newData, $antifamMap{$key}->{acc}, $antifamMap{$key}->{id} );
 
-      #Add the data to the antifam table
-      $sthPfamseqAntifam->execute(@$newData) or $logger->logdie( $dbh->errstr );
+    #Add the data to the antifam table
+    $sthPfamseqAntifam->execute(@$newData) or $logger->logdie( $dbh->errstr );
 
-      #Now detele the row from pfamseq.
-      $sthDel->execute($acc) or $logger->logdie( $dbh->errstr );
+    #Now detele the row from pfamseq.
+    $sthDel->execute($acc) or $logger->logdie( $dbh->errstr );
 
-      $c++;
-      if ( $c == 500 ) {
-        $dbh->commit or $logger->logdie( $dbh->errstr );
-        $dbh->begin_work;
-        $c = 0;
-      }
+    $c++;
+    if ( $c == 500 ) {
+      $dbh->commit or $logger->logdie( $dbh->errstr );
+      $dbh->begin_work;
+      $c = 0;
+    }
   }
   $dbh->commit or $logger->logdie( $dbh->errstr );
-  touch("$statusdir/updated_pfamseq_antifam");
+  chdir($pwd) or $logger->logdie("Couldn't chdir to $pwd [$!]");
+  touch("$status_dir/updated_pfamseq_antifam");
 }
 else {
   $logger->info("Already updated pfamseq_antifam\n");
 }
 
-chdir($pwd);
+#Check pfamseq and antifam tables have the correct number of entries
+my $sthP = $dbh->prepare("select count(*) from pfamseq");
+$sthP->execute();
+my $pfamseqRdb=0;
+$pfamseqRdb=$sthP->fetchrow();
+my $sthA= $dbh->prepare("select count(*) from pfamseq_antifam");
+$sthA->execute();
+my $antifamRdb=0;
+$antifamRdb=$sthA->fetchrow();
+my $dbsize;
+open(FH, "$pfamseq_dir/DBSIZE") or $logger->logdie("Couldn't open fh to DBSIZE [$!]");
+while(<FH>) {
+  if(/(\d+)/) {
+    $dbsize=$1;
+  }
+}
+close FH;
+unless($dbsize) {
+  $logger->logdie("Couldn't obtain db size from $pfamseq_dir/DBSIZE");
+}
+
+my $expPfamseqSeq=$dbsize-$antifamSeq;
+if($expPfamseqSeq==$pfamseqRdb) {
+  $logger->info("The pfamseq table has had $antifamSeq sequences removed, and now contains $pfamseqRdb sequences");
+}
+else {
+  $logger->logdie("The Pfamseq table does not have the expected number of sequences (should be $dbsize-$antifamSeq=$expPfamseqSeq");
+}
+if($antifamSeq==$antifamRdb) {
+  $logger->info("The pfamseq_antifam table contains $antifamSeq sequences");
+}
+else {
+  $logger->logdie("The pfamseq_antfam table contins $antifamRdb sequences, but should contain $antifamSeq sequences");
+}
