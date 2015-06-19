@@ -197,8 +197,10 @@ EOF
 sub makeALIGN {
   my ($config, $fasta) = @_;  
   
+  unlink("ALIGN", "ALIGN.sto"); #Remove old ALIGN files
   unless(-s $fasta){
-    warn "The fasta file has zero size:[$!]\n"; 
+    warn "The fasta file has zero size\n";
+    system("touch ALIGN"); #Make an empty ALIGN file
     exit;
   }
 
