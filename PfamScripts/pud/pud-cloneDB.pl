@@ -65,12 +65,36 @@ if ($data) {
                     _lock clan_database_links clan_lit_refs clan_membership clan_wiki
                     dead_clan dead_family pfamA_database_links pfamA_literature_references
                     pfamA_wiki current_pfam_version nested_domains version);
+    @tables = qw(pfamA);
 
     foreach my $table (@tables) {
-        my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass pfam_release);
-        my $res = `$command`;
-        if ($?) {
-	    die qq(Failure to copy table $table: $res);
+        if (my @matched_cols = columns_matched($table)) {
+            my $col_str = join(",", @matched_cols);
+            my $sth = $dbh->prepare(qq{insert into pfam_release.pfamA ($col_str) select $col_str from pfam_live.pfamA});
+            $sth->execute;
+        } else {
+            my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass pfam_release);
+            my $res = `$command`;
+            if ($?) {
+	        die qq(Failure to copy table $table: $res);
+            }
         }
+    }
+}
+
+sub columns_matched
+{
+    my ($table) = @_;
+
+    my %columns_live = map { $_->[0], 1 } @{ $dbh->selectall_arrayref(qq(SELECT column_name from information_schema.columns where table_schema = "pfam_live" and table_name = "$table")) };
+    my %columns_rel = map { $_->[0], 1 } @{ $dbh->selectall_arrayref(qq(SELECT column_name from information_schema.columns where table_schema = "pfam_release" and table_name = "$table")) };
+    my %matched;
+    foreach my $col (keys %columns_live) {
+        $matched{$col} = 1 if exists $columns_rel{$col};
+    }
+    if (scalar (keys %columns_live) eq scalar(keys %columns_rel)) {
+        return ();
+    } else {
+        return keys %matched;
     }
 }
