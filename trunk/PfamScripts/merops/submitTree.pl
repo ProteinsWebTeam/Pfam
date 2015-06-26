@@ -35,7 +35,7 @@ foreach my $fam (@families) {
   if(-d $fam) {
     print STDERR "$fam\n";
     chdir($fam) or die "Couldn't chdir into $fam, $!";
-    system("bsub -q production-rh6 -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o tree.log -J$fam '$makeTree -family $family'");
+    system("bsub -q production-rh6 -R \"rusage[mem=$memory_mb]\" -M $memory_mb -o tree.log -J$fam '$makeTree -family $fam'");
     chdir("../") or die "Couldn't chdir up from $fam, $!";
   }
 } 
