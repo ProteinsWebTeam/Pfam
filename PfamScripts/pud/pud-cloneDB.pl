@@ -1,5 +1,11 @@
 #!/usr/bin/env perl
 
+# Clone a pfam live database to [pfam_release]
+# Usage
+#   pud-cloneDB.pl -schema (create database and copy schema)
+#   pud-cloneDB.pl -data   (copy data only)
+# Split to allow manual patches to the schema (TODO - add this to avoid a manual step)
+
 use strict;
 use Getopt::Long;
 use Bio::Pfam::Config;
