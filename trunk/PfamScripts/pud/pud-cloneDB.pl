@@ -13,10 +13,11 @@ use Bio::Pfam::PfamLiveDBManager;
 
 # use Log::Log4perl qw(:easy); # do we want this?
 
-my ($schema, $data);
+my ($schema, $data, $check);
 
 GetOptions("schema" => \$schema,
-           "data" =>   \$data);
+           "data" =>   \$data,
+           "check" =>  \$check);
 
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
@@ -24,6 +25,8 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 
 my ($host, $user, $pass, $port, $live_dbname) = map { $config->pfamlive->{$_} } qw(host adminuser adminpassword port database);
 my $clone_dbname = 'pfam_release';
+
+my $check_error;
 
 if ($schema) {
 
@@ -70,7 +73,7 @@ if ($data) {
         if (my @matched_cols = columns_matched($table)) {
             my $col_str = join(",", @matched_cols);
             my $sth = $dbh->prepare(qq{insert into pfam_release.$table ($col_str) select $col_str from pfam_live.$table});
-            $sth->execute;
+            $sth->execute or die qq(Failure to copy $table);
         } else {
             my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass pfam_release);
             my $res = `$command`;
@@ -80,6 +83,27 @@ if ($data) {
         }
     }
 }
+
+if ($check) {
+    my @tables = qw(pfamA evidence markup_key wikipedia pfamseq clan literature_reference
+                    _lock clan_database_links clan_lit_ref clan_membership clan_wiki
+                    dead_clan dead_family pfamA_database_links pfamA_literature_reference
+                    pfamA_wiki current_pfam_version nested_domains version);
+
+    foreach my $table (@tables) {
+        print "Table $table: ";
+        my $live_rows = $dbh->selectall_arrayref(qq(select count(*) from pfam_live.$table))->[0]->[0];
+        my $release_rows = $dbh->selectall_arrayref(qq(select count(*) from pfam_release.$table))->[0]->[0];
+        if ($live_rows == $release_rows) {
+            print "OK [$live_rows]\n";
+        } else {
+            print "ERROR [$live_rows / $release_rows]\n";
+            $check_error++;
+        }
+    }
+}
+
+exit(1) if $check && $check_error; # In case we want this to be run in shell and test for success
 
 sub columns_matched
 {
