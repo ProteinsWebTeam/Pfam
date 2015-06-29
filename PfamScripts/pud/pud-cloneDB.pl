@@ -65,12 +65,11 @@ if ($data) {
                     _lock clan_database_links clan_lit_refs clan_membership clan_wiki
                     dead_clan dead_family pfamA_database_links pfamA_literature_references
                     pfamA_wiki current_pfam_version nested_domains version);
-    @tables = qw(pfamA);
 
     foreach my $table (@tables) {
         if (my @matched_cols = columns_matched($table)) {
             my $col_str = join(",", @matched_cols);
-            my $sth = $dbh->prepare(qq{insert into pfam_release.pfamA ($col_str) select $col_str from pfam_live.pfamA});
+            my $sth = $dbh->prepare(qq{insert into pfam_release.$table ($col_str) select $col_str from pfam_live.$table});
             $sth->execute;
         } else {
             my $command = qq(mysqldump -h$host -P$port -u$user -p$pass pfam_live $table | mysql -h$host -P$port -u$user -p$pass pfam_release);
