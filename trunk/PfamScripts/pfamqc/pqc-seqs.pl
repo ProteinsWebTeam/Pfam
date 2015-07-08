@@ -6,6 +6,7 @@ use Cwd;
 use Getopt::Long;
 
 use Bio::Pfam::PfamQC;
+use Bio::Pfam::Config;
 
 my ($help);
 
@@ -23,7 +24,13 @@ my $pwd = getcwd;
 my $familyIO = Bio::Pfam::FamilyIO->new;
 my $famObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 
-unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj ) ) {
+my $config = Bio::Pfam::Config->new;
+my $pfamDB;
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
+  my $connect = $config->pfamlive;
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
   print "$family contains sequence errors.  You should rebuild this family.\n";
   exit(1);
 }
