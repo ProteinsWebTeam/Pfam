@@ -215,6 +215,10 @@ sub updatePfamA {
     confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
   }
 
+  if($famObj->seedcheck eq 'unchecked') {
+    confess('Failed to perform seed check for family');
+  }
+
   #In the results set object, update all of the fields from the DESC object
   $pfamA->pfama_acc( $famObj->DESC->AC );
   $pfamA->pfama_id( $famObj->DESC->ID );
@@ -232,6 +236,9 @@ sub updatePfamA {
   $pfamA->searchmethod( $famObj->DESC->SM );
   $pfamA->comment( $famObj->DESC->CC );
   $pfamA->previous_id( $famObj->DESC->PI ? $famObj->DESC->PI : '' );
+
+  #Update rp_seed (whether seed is on reference proteomes)
+  $pfamA->rp_seed($famObj->seedcheck eq 'pfamseq' ? 1 : 0);
 
   #Now update the HMM stuff;
   $pfamA->msv_mu( $famObj->HMM->msvStats->{mu} );
@@ -291,6 +298,7 @@ sub createPfamA {
       num_seed       => $famObj->SEED->num_sequences,
       num_full       => $famObj->scores->numRegions,
       created        => \'NOW()',
+      rp_seed        => $famObj->seedcheck eq 'pfamseq' ? 1 : 0
     }
   );
 
