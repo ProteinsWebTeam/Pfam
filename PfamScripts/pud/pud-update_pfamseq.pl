@@ -98,7 +98,7 @@ if(-s "$status_dir/old_pfamseq.md5") {
 }
 else {
   $logger->info("Making a file of accessions and md5s from old pfamseq, this will be used during seed surgery\n");
-  my $st_md5 = $dbh->prepare("select pfamseq.pfamseq_acc, md5 from pfamseq, pfamA_reg_seed where pfamseq.pfamseq_acc = pfamA_reg_seed.pfamseq_acc"); #mySQL statement updated for new schema
+  my $st_md5 = $dbh->prepare("select pfamseq.pfamseq_acc, pfamseq.md5 from pfamseq, pfamA_reg_seed where pfamseq.pfamseq_acc = pfamA_reg_seed.pfamseq_acc"); #mySQL statement updated for new schema
   $st_md5->execute() or $logger->logdie("Couldn't select pfamseq_acc and md5 from pfamseq table ".$st_md5->errstr."\n");
 
   my $md5_data = $st_md5->fetchall_arrayref;
@@ -111,15 +111,13 @@ else {
 }
 
 
-chdir($pfamseq_dir) or $logger->logdie("Couldn't change directory into $pfamseq_dir $!\n");
-
 #Get reldate.txt from UniProt ftp directory
-if(-s "reldate.txt") {
+if(-s "reldateRP.txt") {
   $logger->debug("Already copied reldate.txt\n");
 }
 else {
   $logger->debug("Copying reldate.txt from uniprot\n");
-  copy("$uniprot_location/reldate.txt", "reldate.txt") or $logger->logdie("Could not copy reldate.txt [$!]\n");
+  copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldateRP.txt") or $logger->logdie("Could not copy reldate.txt [$!]\n");
 }
 
 if(-e "$status_dir/updated_reference_proteome_version") { 
@@ -128,7 +126,7 @@ if(-e "$status_dir/updated_reference_proteome_version") {
 else {
   $logger->debug("Updating rdb with refprot version\n");
   my ($swiss_prot_rel, $trembl_rel);
-  open(REL, "reldate.txt") or  $logger->logdie("Couldn't open reldate.txt");
+  open(REL, "$pfamseq_dir/reldateRP.txt") or  $logger->logdie("Couldn't open reldateRP.txt");
   while(<REL>) {
     if(/Swiss-Prot Release\s+(\S+)/) {
       $swiss_prot_rel = $1;
@@ -187,7 +185,6 @@ else {
   open(DISULPHIDE, ">disulphide.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
   open(ACT_METAL, ">active_site_metal.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
   open(SEC_ACC, ">secondary_acc.dat") or  $logger->logdie("Failed to open filehandle:[$!]\n");
-
 
   foreach my $file (@files) { 
 
@@ -410,7 +407,7 @@ else {
       }
       #This will be uploaded into the tmp_pfamseq table.
       print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\n";
-
+      
 #count for debugging
       $count2++;
 
@@ -471,13 +468,13 @@ else {
 }
 
 
-#Make DBSIZE_preAntifam file
-if(-s "$pfamseq_dir/DBSIZE_preAntifam") {
-  $logger->debug("Already made DBSIZE_preAntifam file\n");
+#Make DBSIZE_pfamseq_preAntifam file
+if(-s "$pfamseq_dir/DBSIZE_pfamseq_preAntifam") {
+  $logger->debug("Already made DBSIZE_pfamseq_preAntifam file\n");
 }
 else {
-  $logger->debug("Making DBSIZE_preAntifam file\n");
-  open(DBSIZE, ">$pfamseq_dir/DBSIZE_preAntifam") or $logger->logdie("Couldn't open filehandle to DBSIZE_preAntifam:[$!]\n");
+  $logger->debug("Making DBSIZE_pfamseq_preAntifam file\n");
+  open(DBSIZE, ">$pfamseq_dir/DBSIZE_pfamseq_preAntifam") or $logger->logdie("Couldn't open filehandle to DBSIZE_pfamseq_preAntifam:[$!]\n");
   print DBSIZE "$num_seq";
   close DBSIZE;
 }
@@ -535,7 +532,7 @@ if(-e "$status_dir/delete_pfamseq_obsolete") {
   $logger->info("Already deleted sequences in pfamseq that have been deleted from UniProtKB, or have changed in sequence version\n");
 }
 else {
-  $logger->info("Deleting sequences in pfamseq that have been deleted from UniProtKB, or have changed in sequence version\n");
+  $logger->info("Deleting sequences in pfamseq that have been deleted from reference proteomes, or have changed in sequence version\n");
   my $delete_pfamseq = $dbh->prepare("delete pfamseq.* from pfamseq left join tmp_pfamseq on pfamseq.pfamseq_acc=tmp_pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version and pfamseq.md5=tmp_pfamseq.md5 and pfamseq.crc64=tmp_pfamseq.crc64 where tmp_pfamseq.pfamseq_acc is null");
   $delete_pfamseq->execute() or $logger->logdie("Failed to delete rows from pfamseq table ".$delete_pfamseq->errstr."\n");
   system("touch $status_dir/delete_pfamseq_obsolete") and $logger->logdie("Couldn't touch $status_dir/delete_pfamseq_obsolete:[$!]\n"); 
@@ -569,7 +566,7 @@ else {
 #Check pfamseq in rdb is the correct size;
 my $dbsize;
 if(-e "$status_dir/check_pfamseq_size") {
-  open(DB, "$pfamseq_dir/DBSIZE_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_preAntifam:[$!]\n");
+  open(DB, "$pfamseq_dir/DBSIZE_pfamseq_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_pfamseq_preAntifam:[$!]\n");
   while(<DB>){
     ($dbsize) = $_ =~/(\S+)/;
     last;
@@ -579,7 +576,7 @@ if(-e "$status_dir/check_pfamseq_size") {
 }
 else {
   $logger->info("Checking the number of sequences in rdb is the same as in the pfamseq fasta file\n");
-  open(DB, "$pfamseq_dir/DBSIZE_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_preAntifam:[$!]\n");
+  open(DB, "$pfamseq_dir/DBSIZE_pfamseq_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_pfamseq_preAntifam:[$!]\n");
   while(<DB>){
     ($dbsize) = $_ =~/(\S+)/;
     last;
@@ -605,7 +602,7 @@ if(-e "$status_dir/delete_active_metal") {
 }
 else {
   $logger->info("Deleting old active site and metal ion binding data from pfamseq_markup\n");
-  my $delete_act_metal = $dbh->prepare("delete from pfamseq_markup");
+  my $delete_act_metal = $dbh->prepare("truncate pfamseq_markup");
   $delete_act_metal->execute() or $logger->logdie("Failed to delete old data from pfamseq_markup ".$delete_act_metal->errstr."\n");
   system("touch $status_dir/delete_active_metal") and $logger->logdie("Couldn't touch $status_dir/delete_active_metal:[$!]\n"); 
 }
@@ -614,13 +611,13 @@ else {
 #Upload new active site and metal ion binding data
 if ( -e "$status_dir/upload_active_metal" ) {
   $logger->info(
-    "Already uploaded $cwd/active_site_metal.dat to pfamseq_markup\n");
+    "Already uploaded $cwd/$pfamseq_dir/active_site_metal.dat to pfamseq_markup\n");
 }
 else {
   $logger->info(
-    "Uploading $cwd/active_site_metal.dat to pfamseq_markup\n"); #changed logger message to reflect change to file name used for new mySQL statement / shchema
+    "Uploading $cwd/$pfamseq_dir/active_site_metal.dat to pfamseq_markup\n"); #changed logger message to reflect change to file name used for new mySQL statement / shchema
   my $sth = $dbh->prepare('INSERT into pfamseq_markup VALUES (?,?,?,?)');
-  _loadTable( $dbh, "$cwd/active_site_metal.dat", $sth, 4 ); #updated to work with new mySQL statement for new schema above - use active_site_metal.dat now instead of active_site_metal.auto.dat
+  _loadTable( $dbh, "$cwd/$pfamseq_dir/active_site_metal.dat", $sth, 4 ); #updated to work with new mySQL statement for new schema above - use active_site_metal.dat now instead of active_site_metal.auto.dat
   system("touch $status_dir/upload_active_metal")
     and $logger->logdie("Couldn't touch $status_dir/upload_active_metal:[$!]\n");
 }
@@ -631,7 +628,7 @@ if(-e "$status_dir/delete_disulphide") {
 }
 else {
   $logger->info("Deleting old disulphide bond data\n");
-  my $delete_disulphide = $dbh->prepare("delete from pfamseq_disulphide");
+  my $delete_disulphide = $dbh->prepare("truncate pfamseq_disulphide");
   $delete_disulphide->execute() or $logger->logdie("Failed to delete old data from pfamseq_disulphide ".$delete_disulphide->errstr."\n");
   system("touch $status_dir/delete_disulphide") and $logger->logdie("Couldn't touch $status_dir/delete_disulphide:[$!]\n"); 
 }
@@ -639,27 +636,15 @@ else {
 
 #Upload new disulphide bond data
 if ( -e "$status_dir/upload_disulphide" ) {
-  $logger->info("Already uploaded $cwd/disulphide.dat to pfamseq_disulphide\n");
+  $logger->info("Already uploaded $cwd/$pfamseq_dir/disulphide.dat to pfamseq_disulphide\n");
 }
 else {
-  $logger->info("Uploading $cwd/disulphide.dat to pfamseq_disulphide\n"); #changed logger message for mySQL / schema changes
+  $logger->info("Uploading $cwd/$pfamseq_dir/disulphide.dat to pfamseq_disulphide\n"); #changed logger message for mySQL / schema changes
   #There are 3 rows in the the pfamseq_disulphide
   my $sth = $dbh->prepare('INSERT into pfamseq_disulphide VALUES (?,?,?)');
-  _loadTable( $dbh, "$cwd/disulphide.dat", $sth, 3 ); #changed as mySQL insert statement now uses disulphide.dat instead of disulphide_auto.dat
+  _loadTable( $dbh, "$cwd/$pfamseq_dir/disulphide.dat", $sth, 3 ); #changed as mySQL insert statement now uses disulphide.dat instead of disulphide_auto.dat
   system("touch $status_dir/upload_disulphide") and $logger->logdie("Couldn't touch $status_dir/upload_disulphide:[$!]\n"); 
 }
-
-#the step below doesn't seem to be needed - hashed out for now but should be removed if nothing breaks
-#Transform secondary acc data  
-#if(-e "$status_dir/upload_secondary_acc") {
-#    $logger->info("Already transformed secondary_acc.dat file\n");
-#}
-#else {
-#    $logger->info("Transforming secondary accession data\n");
-#    #acc2auto_mapping(\%acc2auto) unless(scalar keys %acc2auto);
-#    #RDF - Do we need this step???
-#    acc2auto("secondary_acc.dat", "secondary_acc.auto.dat", \%acc2auto, $dbh);
-#}
 
 
 #Delete old secondary accession data
@@ -668,7 +653,7 @@ if(-e "$status_dir/delete_secondary_acc") {
 }
 else {
   $logger->info("Deleting old secondary accession data\n");
-  my $delete_sec_acc = $dbh->prepare("delete from secondary_pfamseq_acc");
+  my $delete_sec_acc = $dbh->prepare("truncate secondary_pfamseq_acc");
   $delete_sec_acc->execute() or $logger->logdie("Failed to delete old data from secondary_pfamseq_acc ".$delete_sec_acc->errstr."\n");
   system("touch $status_dir/delete_secondary_acc") and $logger->logdie("Couldn't touch $status_dir/delete_secondary_acc:[$!]\n"); 
 }
@@ -679,10 +664,10 @@ if(-e "$status_dir/upload_secondary_acc") {
   $logger->info("Already uploading $cwd/secondary_acc.dat to secondary_pfamseq_acc\n");
 }
 else {
-  $logger->info("Uploading $cwd/secondary_acc.dat to secondary_pfamseq_acc\n"); #changed file name to reflect file used for mySQL insert for new db schema
+  $logger->info("Uploading $cwd/$pfamseq_dir/secondary_acc.dat to secondary_pfamseq_acc\n"); #changed file name to reflect file used for mySQL insert for new db schema
   #There are 2 columsn in the the secondary_pfamseq_acc table
   my $sth = $dbh->prepare('INSERT INTO secondary_pfamseq_acc VALUES (?,?)');
-  _loadTable($dbh, "$cwd/secondary_acc.dat", $sth, 2); #changed file uploaded from secondary_acc.auto.dat for mySQL insert statement for new schema
+  _loadTable($dbh, "$cwd/$pfamseq_dir/secondary_acc.dat", $sth, 2); #changed file uploaded from secondary_acc.auto.dat for mySQL insert statement for new schema
   system("touch $status_dir/upload_secondary_acc") and $logger->logdie("Couldn't touch $status_dir/upload_secondary_acc:[$!]\n");
 }
 
@@ -693,48 +678,10 @@ if(-e "$status_dir/delete_active_site_alignments") {
 }
 else {
   $logger->info("Deleting old active site alignments\n");
-  my $as_aln = $dbh->prepare("delete from _active_site_alignments");
+  my $as_aln = $dbh->prepare("truncate _active_site_alignments");
   $as_aln->execute() or $logger->logdie("Failed to delete old data from _active_site_alignments");
   system("touch $status_dir/delete_active_site_alignments") and $logger->logdie("Couldn't touch $status_dir/delete_active_site_alignments:[$!]\n"); 
 }
-
-
-#Change PFAM_CONFIG
-if(-e "$status_dir/changed_pfam_config") {
-  $logger->info("Already changed pfam config file\n");
-}
-else {
-  $logger->info("Changing pfam config file\n");
-
-  my $c = new Config::General($ENV{PFAM_CONFIG}); 
-  my %ac = $c->getall; 
-
-  my $pfam_config = $ENV{PFAM_CONFIG};
-  move($pfam_config, "$pfam_config.old") or $logger->logdie("Could not move config file");;
-  $ac{pfamseq}->{dbsize} = $dbsize; 
-
-  SaveConfig($pfam_config, \%ac);
-
-  my $newConfig;
-  eval { 
-    $newConfig = Bio::Pfam::Config->new; 
-
-  };
-  if($@) { 
-    $logger->logdie("Problem modifying the pfam_config ($pfam_config) file");
-  }
-  $config = $newConfig;
-
-  system("touch $status_dir/changed_pfam_config") and $logger->logdie("Couldn't touch $status_dir/changed_pfam_config:[$!]\n"); 
-}
-
-
-
-
-
-
-
-
 
 sub _crc64 {
   my $text = shift;
@@ -878,7 +825,7 @@ obsolete data from pfamseq, and updates any changed sequences,
 and finally uploads new sequences to pfamseq.  
 
 The script also updates the active site data, metal binding data and
-disulphide bond data. The script generates a DBSIZE_preAntifam file
+disulphide bond data. The script generates a DBSIZE_pfamseq_preAntifam file
 in the pfamseq_dir.
 
 Usage:
