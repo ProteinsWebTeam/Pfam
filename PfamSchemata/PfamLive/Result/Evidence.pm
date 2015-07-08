@@ -72,9 +72,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 uniprots
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6heDz3cNO2yT93UBiHxEMg
+Type: has_many
+
+Related object: L<PfamLive::Result::Uniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "uniprots",
+  "PfamLive::Result::Uniprot",
+  { "foreign.evidence" => "self.evidence" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-24 10:28:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5wK8NwHcPD0Y70zgkKvBCw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
