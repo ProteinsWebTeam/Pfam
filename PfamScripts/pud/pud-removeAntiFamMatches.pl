@@ -51,13 +51,14 @@ if ( -e 'matches' ) {
   $logger->info("Looks like antifam search has already been run!");
 }
 else {
-  $logger->info( "Running antifam against pfamseq. ");
+  $logger->info( "Running antifam against uniprot.fasta ");
 #run AntiFam on the farm
   my $fh         = IO::File->new();
 
   $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
-  $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm pfamseq\n"); 
+  $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm uniprot.fasta\n"); 
   $fh->close;
+print STDERR "Exiting here\n"; exit;
   chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd [$!]");
 #have jobs finished?
   if (-e "$status_dir/finishedantifam"){
@@ -115,17 +116,18 @@ while (<M>) {
 my $antifamSeq=0;
 $antifamSeq=keys %seqsToDel;
 
-$logger->info("Going to delete sequences currently in the pfamseq_antifam table");
-my $stDelAntiSeq=$dbh->prepare("delete from pfamseq_antifam");
-$stDelAntiSeq->execute() or $logger->logdie( $dbh->errstr );
-
-$logger->info("$antifamSeq sequences in pfamseq match antifam, going to delete them from the pfamseq table and add them to the pfamseq_antifam table");
+$logger->info("$antifamSeq sequences in uniprot match antifam, going to delete them from the uniprot and pfamseq tables and add them to the pfamseq_antifam table");
 if ( !-e "$status_dir/updated_pfamseq_antifam" ) {
 
+  $logger->info("Going to delete sequences currently in the pfamseq_antifam table");
+  my $stDelAntiSeq=$dbh->prepare("delete from pfamseq_antifam");
+  $stDelAntiSeq->execute() or $logger->logdie( $dbh->errstr );
+
+
   #Delete sequecnes from the databases. 
-  my $sthPfamseq = $dbh->prepare(
-    "SELECT pfamseq_id, 
-    pfamseq_acc, 
+  my $sthUniProt = $dbh->prepare(
+    "SELECT uniprot_id, 
+    uniprot_acc, 
     seq_version, 
     crc64, 
     md5, 
@@ -137,7 +139,7 @@ if ( !-e "$status_dir/updated_pfamseq_antifam" ) {
     is_fragment, 
     sequence, 
     ncbi_taxid 
-    FROM pfamseq WHERE pfamseq_acc=?"
+    FROM uniprot WHERE uniprot_acc=?"
   );
 
   my $sthPfamseqAntifam = $dbh->prepare(
@@ -158,15 +160,16 @@ if ( !-e "$status_dir/updated_pfamseq_antifam" ) {
     antifam_id ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
   );
 
-  my $sthDel = $dbh->prepare("DELETE FROM pfamseq WHERE pfamseq_acc=?");
+  my $sthDelPfamseq = $dbh->prepare("DELETE FROM pfamseq WHERE pfamseq_acc=?");
+  my $sthDelUniProt = $dbh->prepare("DELETE FROM uniprot WHERE uniprot_acc=?");
 
   $dbh->begin_work;
   my $c = 0;
   while ( my ( $key, $value ) = each %seqsToDel ) {
     #Get the data we need into pfamseq_antifam
     my ( $acc, $version ) = split( /\./, $key );
-    $sthPfamseq->execute($acc) or $logger->logdie( $dbh->errstr );
-    my $data = $sthPfamseq->fetchrow_arrayref;
+    $sthUniProt->execute($acc) or $logger->logdie( $dbh->errstr );
+    my $data = $sthUniProt->fetchrow_arrayref;
     unless ( defined($data) and ref($data) eq 'ARRAY' ) {
       $logger->logdie("failed to find sequence data for $acc");
     }
@@ -180,9 +183,10 @@ if ( !-e "$status_dir/updated_pfamseq_antifam" ) {
     #Add the data to the antifam table
     $sthPfamseqAntifam->execute(@$newData) or $logger->logdie( $dbh->errstr );
 
-    #Now detele the row from pfamseq.
-    $sthDel->execute($acc) or $logger->logdie( $dbh->errstr );
-
+    #Now detele the row from pfamseq and uniprot
+    $sthDelPfamseq->execute($acc) or $logger->logdie( $dbh->errstr );
+    $sthDelUniProt->execute($acc) or $logger->logdie( $dbh->errstr );
+    
     $c++;
     if ( $c == 500 ) {
       $dbh->commit or $logger->logdie( $dbh->errstr );
@@ -198,33 +202,34 @@ else {
   $logger->info("Already updated pfamseq_antifam\n");
 }
 
-#Check pfamseq and antifam tables have the correct number of entries
-my $sthP = $dbh->prepare("select count(*) from pfamseq");
-$sthP->execute();
-my $pfamseqRdb=0;
-$pfamseqRdb=$sthP->fetchrow();
+#Check uniprot and antifam tables have the correct number of entries
+my $sthU = $dbh->prepare("select count(*) from uniprot");
+$sthU->execute();
+my $uniprotRdb=0;
+$uniprotRdb=$sthU->fetchrow();
 my $sthA= $dbh->prepare("select count(*) from pfamseq_antifam");
 $sthA->execute();
 my $antifamRdb=0;
 $antifamRdb=$sthA->fetchrow();
-my $dbsize;
-open(FH, "$pfamseq_dir/DBSIZE") or $logger->logdie("Couldn't open fh to DBSIZE [$!]");
+my $uniprotPreAntifam;
+open(FH, "$pfamseq_dir/DBSIZE_uniprot_preAntifam") or $logger->logdie("Couldn't open fh to DBSIZE_uniprot_preAntifam [$!]");
 while(<FH>) {
   if(/(\d+)/) {
-    $dbsize=$1;
+    $uniprotPreAntifam=$1;
   }
 }
 close FH;
-unless($dbsize) {
-  $logger->logdie("Couldn't obtain db size from $pfamseq_dir/DBSIZE");
+
+unless($uniprotPreAntifam) {
+  $logger->logdie("Couldn't obtain db size from $pfamseq_dir/DBSIZE_uniprot_preAntifam");
 }
 
-my $expPfamseqSeq=$dbsize-$antifamSeq;
-if($expPfamseqSeq==$pfamseqRdb) {
-  $logger->info("The pfamseq table has had $antifamSeq sequences removed, and now contains $pfamseqRdb sequences");
+my $expUniprotSeq=$uniprotPreAntifam-$antifamSeq;
+if($expUniprotSeq==$uniprotRdb) {
+  $logger->info("The uniprot table has had $antifamSeq sequences removed, and now contains $uniprotRdb sequences");
 }
 else {
-  $logger->logdie("The Pfamseq table does not have the expected number of sequences (should be $dbsize-$antifamSeq=$expPfamseqSeq");
+  $logger->logdie("The Uniprot table does not have the expected number of sequences (should be $uniprotPreAntifam-$antifamSeq=$expUniprotSeq");
 }
 if($antifamSeq==$antifamRdb) {
   $logger->info("The pfamseq_antifam table contains $antifamSeq sequences");
@@ -232,3 +237,20 @@ if($antifamSeq==$antifamRdb) {
 else {
   $logger->logdie("The pfamseq_antfam table contins $antifamRdb sequences, but should contain $antifamSeq sequences");
 }
+
+#Print the number of pfamseq sequences that have been removed
+my $pfamseqPreAntifam;
+open(FH, "$pfamseq_dir/DBSIZE_pfamseq_preAntifam") or $logger->logdie("Couldn't open fh to DBSIZE_pfamseq_preAntifam [$!]");
+while(<FH>) {
+  if(/(\d+)/) {
+    $pfamseqPreAntifam=$1;
+  }
+}
+close FH;
+
+my $sthP = $dbh->prepare("select count(*) from pfamseq");
+$sthP->execute();
+my $pfamseqRdb=0;
+$pfamseqRdb=$sthP->fetchrow();
+my $pfamseqDeleted=$pfamseqPreAntifam-$pfamseqRdb;
+$logger->info("The pfamseq table has had $pfamseqDeleted sequences removed, and now contains $pfamseqRdb sequences");
