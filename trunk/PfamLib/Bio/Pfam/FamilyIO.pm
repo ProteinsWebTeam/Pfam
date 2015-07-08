@@ -83,17 +83,30 @@ sub loadPfamAFromLocalFile {
 
   my %params;
   foreach my $f ( @{ $self->{config}->mandatoryFamilyFiles } ) {
-    unless ( -s "$dir/$family/$f" ) {
-      confess("Could not find $dir/$family/$f\n");
+
+
+    #Check files exist
+    if($f eq "scores" or $f eq "ALIGN") {
+      unless(-e "$dir/$family/$f") {#Going to allow empty scores and ALIGN files
+        confess("Could not find $dir/$family/$f\n");
+      }
+    }
+    else {
+      unless ( -s "$dir/$family/$f" ) {
+        confess("Could not find $dir/$family/$f\n");
+      }
     }
 
+    #Populate %params with fh or filepaths for each file
     if($f ne 'ALIGN'){
       my $fh;
       open( $fh, "$dir/$family/$f" )
         or confess("Could not open $dir/$family/$f:[$!]");
       $params{$f} = $fh;
     }else{
-      $params{$f}= "$dir/$family/$f";
+      if(-s "$dir/$family/$f") {
+        $params{$f}= "$dir/$family/$f";
+      }
     }
   }
 
@@ -627,6 +640,10 @@ sub updatePfamAInRDB {
 
   unless ( $pfamDB and $pfamDB->isa('Bio::Pfam::PfamLiveDBManager') ) {
     confess("Did not get a Bio::Pfam::PfamLiveDBManager object");
+  }
+
+  if($famObj->seedcheck eq 'unchecked') {
+    confess('Failed to perform seed check for family');
   }
 
   if ($isNew) {
