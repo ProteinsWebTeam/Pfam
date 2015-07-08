@@ -1,4 +1,4 @@
-#
+ 
 # PfamQC - an attempt to bring all the pfam quality control
 # measures into one place
 #
@@ -101,21 +101,23 @@ sub passesAllFormatChecks {
 
   # check seed alignment
   foreach my $aln (qw(SEED ALIGN)) {
+    next if($aln eq "ALIGN" and -z "$family/$aln"); #ALIGN0 ALIGN can be empty for families that do not have any reference proteome matches
     if ( !&mulFormatIsOK( $aln, $family ) ) {
       warn "$family: Bad format for $aln!\n";
       $error = 1;
     }
   }
 
-  if ( !&moreInSEEDthanALIGN($famObj) ) {
-    warn "$family: You have more sequences in SEED than ALIGN\n";
-    $error = 1;
-  }
-
-  if ( !&compareAlignToScores($famObj) ) {
-    warn
-    "$family: You have a different number of matches in scores and ALIGN files\n";
-    $error = 1;
+  unless(-z "$family/ALIGN") { #ALIGN0 Skip these checks if ALIGN is empty
+    if ( !&moreInSEEDthanALIGN($famObj) ) {
+      warn "$family: You have more sequences in SEED than ALIGN\n";
+      $error = 1;
+    }
+    if ( !&compareAlignToScores($famObj) ) {
+      warn
+      "$family: You have a different number of matches in scores and ALIGN files\n";
+      $error = 1;
+    }
   }
 
   if ($error) {
@@ -502,6 +504,7 @@ sub compareAlignToScores {
 
 sub moreInSEEDthanALIGN {
   my $famObj = shift;
+
   if ( $famObj->SEED->num_sequences > $famObj->ALIGN->num_sequences ) {
     return 0;
   }
@@ -598,7 +601,7 @@ sub mulFormatIsOK {
     }
   }
 
-  if ( !$seen ) {
+  if ( !$seen ) { 
     warn "$family: empty alignment\n";
     $error = 1;
   }
@@ -725,7 +728,7 @@ sub nonRaggedSeed {
 =head2 sequenceChecker
 
  Title    : sequenceChecker
- Usage    : PfamQC::sequenceChecher($familyObject)
+ Usage    : PfamQC::sequenceChecher($family, $familyObject, $pfamDB)
  Function : Checks the sequences in the SEED and ALIGN are valid.
  Returns  : 1 if there are errors, 0 if the SEED is fine
  Args     : A Bio::Pfam::Family::PfamA object 
@@ -733,7 +736,7 @@ sub nonRaggedSeed {
 =cut
 
 sub sequenceChecker {
-  my ( $family, $famObj ) = @_;
+  my ( $family, $famObj, $pfamDB ) = @_;
 
   unless ($famObj) {
     confess("Undefined family object passed");
@@ -747,39 +750,111 @@ sub sequenceChecker {
   my %allseqs;
   my $count = 0;
 
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $sth_pfamseq=$dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc = ? and seq_version = ?") or die "Failed to prepare statement:".$dbh->errstr."\n";
+  my $sth_uniprot=$dbh->prepare("select uniprot_acc from uniprot where uniprot_acc = ? and seq_version = ?") or die "Failed to prepare statement:".$dbh->errstr."\n"; 
+  my $sth_rp_seed=$dbh->prepare("select rp_seed from pfamA where pfamA_acc='$family'");
+  $sth_rp_seed->execute() or die "Couldn't execute statement ".$sth_rp_seed->errstr."\n";  
+  my $rp_seed=$sth_rp_seed->fetchrow;
+  
+  my ($notInPfamseqCount, $inUniprotCount) = (0, 0);
   foreach my $aln (qw(SEED ALIGN)) {
     if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfamLite'){
+
       foreach my $seq (@{$famObj->$aln->all_nse_with_seq}){
-        Bio::Pfam::SeqFetch::addSeqToVerify( $seq->[0],
-          $seq->[1], 
-          $seq->[2], 
-          $seq->[3], 
-          \%allseqs ); 
-        $count++;
+        my $notInPfamseq;
+        #Check whether seed seq are in pfamseq
+        #If seed seq is not in pfamseq set, it must be in the current uniprot set to be valid
+        if($aln eq "SEED") {
+          my ($seq_acc, $seq_version);
+          if($seq->[0] =~ /(\S+)\.(\d+)/) {
+            ($seq_acc, $seq_version) = ($1, $2);
+          }
+          else {
+            die "Couldn't parse accession number from $seq->[0]";
+          }
+
+          $sth_pfamseq->execute($seq_acc, $seq_version) or die "Couldn't execute statement ".$sth_pfamseq->errstr."\n";
+          my $pfamseq = $sth_pfamseq->fetchrow;
+          unless($pfamseq) {
+            $notInPfamseq=1;
+            $notInPfamseqCount++;
+            $sth_uniprot->execute($seq_acc, $seq_version) or die "Couldn't execute statement ".$sth_uniprot->errstr."\n";           
+            my $uniprot = $sth_uniprot->fetchrow;
+            if($uniprot) {
+              $inUniprotCount++;
+            }
+            else {
+              print STDERR $seq->id . ".$seq_version is in SEED but not in the pfamseq or uniprot set in the rdb\n";
+            }
+          }
+        }
+
+        unless($notInPfamseq) {
+          Bio::Pfam::SeqFetch::addSeqToVerify( $seq->[0], $seq->[1], $seq->[2], $seq->[3], \%allseqs ); 
+          $count++;
+        }
       }
     }elsif(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
       foreach my $seq ( $famObj->$aln->each_seq ) {
-        $count++;
-        my $str_ali = uc( $seq->seq() );
-        $str_ali =~ s/[.-]//g;
-        my $seqName = $seq->id;
-        if($seq->version){
-          $seqName .= ".".$seq->version;
+        my $notInPfamseq;
+        if($aln eq "SEED") {
+          $sth_pfamseq->execute($seq->id, $seq->version) or die "Couldn't execute statement ".$sth_pfamseq->errstr."\n";
+          my $pfamseq = $sth_pfamseq->fetchrow;
+          unless($pfamseq) {
+            $notInPfamseq=1;
+            $notInPfamseqCount++;
+            $sth_uniprot->execute($seq->id, $seq->version) or die "Couldn't execute statement ".$sth_uniprot->errstr."\n";     
+            my $uniprot = $sth_uniprot->fetchrow;
+            if($uniprot) {
+              $inUniprotCount++;
+            }    
+            else {
+              print STDERR $seq->id . "." . $seq->version . " is in SEED but not in the pfamseq or uniprot set in the rdb\n";
+            }    
+          }    
         }
-        Bio::Pfam::SeqFetch::addSeqToVerify( $seqName,
-          $seq->start, $seq->end, $str_ali, \%allseqs );
+
+        unless($notInPfamseq) {  
+          $count++;
+          my $str_ali = uc( $seq->seq() );
+          $str_ali =~ s/[.-]//g;
+          my $seqName = $seq->id;
+          if($seq->version){
+            $seqName .= ".".$seq->version;
+          }
+          Bio::Pfam::SeqFetch::addSeqToVerify( $seqName, $seq->start, $seq->end, $str_ali, \%allseqs );
+        }
       }
     }
   }
+  my $verified_seq = Bio::Pfam::SeqFetch::verifySeqs( \%allseqs, $CONFIG->pfamseqLoc . "/pfamseq" );
 
-  my $verified_seq = Bio::Pfam::SeqFetch::verifySeqs( \%allseqs,
-    $CONFIG->pfamseqLoc . "/pfamseq" );
+  #Update seedcheck
+  if($notInPfamseqCount) {
+    if($notInPfamseqCount == $inUniprotCount) { #All sequences not in pfamseq are in the uniprot table
+      $famObj->seedcheck('pfamseqplus');
+    }
+  }
+  else {
+    $famObj->seedcheck('pfamseq');
+  }
 
-  if ( $verified_seq == $count ) {
-    print STDERR "\n--- All sequences match the pfamseq database ---\n\n";
+
+  if($notInPfamseqCount) {
+    print STDERR "\n--- Some seed sequences are not in reference proteomes ---\n\n";
+  }
+
+  if ( $verified_seq == $count and $notInPfamseqCount == $inUniprotCount) { #... and all sequences not in pfamseq are in the uniprot table
+    print STDERR "\n--- All sequences are in the database ---\n\n";
   }
   else {
     print STDERR "\n*** ERROR: mismatch of sequences in family ***\n\n";
+    $error = 1;
+  }
+
+  if($rp_seed and $notInPfamseqCount) {
+    print STDERR "\n*** ERROR: SEED alignment for $family used to be on reference proteomes, but now is not ***\n\n";
     $error = 1;
   }
 
@@ -815,6 +890,10 @@ sub family_overlaps_with_signal_peptide {
 
 
   foreach my $aln (qw(SEED ALIGN)){
+    if($aln eq "ALIGN" and !$famObj->ALIGN) { # ALIGN0 This is not populated for families that do not have any reference proteome matches
+      next;
+    }
+    
     my(%regions);
     if(ref($famObj->$aln) eq 'Bio::Pfam::AlignPfam'){
       foreach my $seq ($famObj->$aln->each_seq) {
@@ -846,7 +925,7 @@ sub family_overlaps_with_signal_peptide {
         }
       }
     }else{
-      die "Unkown alignment type!\n";
+      die "Unknown alignment type!\n";
     }
     my $overlap_hash = $pfamDB->getSignalPeptideRegion(\%regions);
 
@@ -867,25 +946,27 @@ sub family_overlaps_with_signal_peptide {
 =head2 family_overlaps_with_db
 
  Title    : family_overlaps_with_db
- Usage    : &PfamQC::family_overlaps_with_db("family_id", \@ignore, 1, $pfamDB, $famObj, $compete, $all, $noFilter, $pfamDBAdmin)
+ Usage    : &PfamQC::family_overlaps_with_db("family_id", \@ignore, $pfamDB, $famObj, $compete, $noFilter)
  Function : Checks that the alignment contains no overlaps to data in 
             the RDB, and prints any overlaps to STDERR
  Returns  : number of overlaps
- Args     : family_id, reference to an array of families to ignore, 
-            optional flag to calculate end points, pfam db object, family object, compete flag, all flag (whether to check all proteins or only ref prot proteins),
-            no Filter flag (whether to filter overlaps according to long and short), pfam db (admin user) object
+ Args     : family_id, reference to an array of families to ignore, pfam db object, family object, compete flag, 
+            no Filter flag (whether to filter overlaps according to long and short)
 
 =cut
 
 sub family_overlaps_with_db {
-  my ( $family, $ignore_ref, $endpoints_opt, $pfamDB, $famObj, $compete, $all, $noFilter, $pfamDBAdmin ) = @_;
+  my ( $family, $ignore_ref, $pfamDB, $famObj, $compete, $noFilter) = @_;
   my ( %ignore, @overlaps );
-
-  #$endpoints_opt appears to be an obsolete option (jaina)  
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("$family: Did not get a family object passed in.....\n");
   }
+
+  unless($famObj->scores->numRegions) { #If empty ALIGN file, no need to filter overaps as SEED overlaps cannot be filtered
+     $noFilter=1;
+   }
+
 
   #This could be nested in another domain, so we need to check!
   my $nestedRef = $pfamDB->getNestedDomain( $famObj->DESC->AC );
@@ -953,108 +1034,37 @@ sub family_overlaps_with_db {
 #    $ignore{$ignore} = 1;
   }
 
-  #Now pull out all of the regions
+  #Overlaps will be checked for in all regions added to this hash
   my %regions;
 
-  # Adding only regions that belong to  reference proteomes sequences.
-  # If you want to disable this, use $all when calling this subroutine.
+  #Query to check whether sequences are in pfamseq
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $query = "select pfamseq_acc from pfamseq where pfamseq_acc = ? and seq_version=?";
+  my $sth=$dbh->prepare($query);
 
-  if ($all)
-  {
-    print STDERR "Checking overlaps for all sequences\n";
-  }
-  else
-  {
-    print STDERR "Checking overlaps for sequences that belong to reference proteomes only\n";
-  }
-
-
-  # Find for all sequence accessions if they belong to reference proteomes or not
-  my %isInRefProt;
-  unless($all) {
-    my $config = Bio::Pfam::Config->new;
-    #First get all sequence accessions for ALIGN
-    my @tempAccs = keys %{ $famObj->scores->regions };
-
-    #Remove sequence version and store in hash to prevent duplicates
-    my %tempAccs;
-    foreach my $accVersion (@tempAccs) {
-      my ($acc, $version) = split (/\./, $accVersion);
-      $tempAccs{$acc}=1;
-    }
-
-    #Add seed sequences to hash. 
-    my @seedAccs = $famObj->SEED->each_seq; #Seed accs in @seedAccs do not contain version numbers 
-    foreach my $seq (@seedAccs) {
-      $tempAccs{$seq->id}=1;
-    }
-
-    my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
-    my $db_name = $pfamDBAdmin->{database};
-
-    my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";	 
-    my $sth = $dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
-
-    $query = "insert into tempAccs(pfamseq_acc) values (?)";
-    $sth=$dbh->prepare($query);
-
-    foreach my $tempAcc (keys %tempAccs) {
-      $sth->execute($tempAcc) or die "Can't execute statement: $DBI::errstr";
-    }
-
-    $query = "select tempAccs.pfamseq_acc, pfamseq.ref_proteome  from tempAccs join pfamseq on tempAccs.pfamseq_acc = pfamseq.pfamseq_acc";
-    $sth=$dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
-    my ($acc,$refprot);
-    $sth->bind_columns(\$acc, \$refprot);
-
-    while ($sth->fetch()) {
-      $isInRefProt{$acc}=$refprot;
-    }
-
-    $query = "drop table tempAccs";
-    $sth=$dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
-    $dbh->disconnect();
-  }
-
-  #First from the SEED
+  #Go through seed sequences, check if they are in pfamseq, if they are add to regions hash
+  #If seed sequence is not in pfamseq (ie not in reference proteomes), then we don't need to check for overlaps in that seq
   foreach my $seq ( $famObj->SEED->each_seq ) {
-
-    my $id;
-    if ( $seq->id =~ /(\S+)\.\d+/ ) {
-      $id = $1;
-    }
-    else {
-      $id = $seq->id;
-    }
-    unless ($all)    # if the $all parameter is not used
-    {
-
-      if ( ! (exists $isInRefProt{$id}) )
+    $sth->execute($seq->id, $seq->version) or die "Can't execute statement: $DBI::errstr";
+    my $refprot = $sth->fetchrow;
+    if($refprot) { 
+      push @{ $regions{$seq->id} },
       {
-        print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
-        next;
-      }
-
-      if ( $isInRefProt{$id} == 0 )    # and the sequence is not present in reference proteomes
-      {
-        next;                   # do nothing and simply move to the next sequence accession
-      }
+        from      => $seq->start,
+        to        => $seq->end,
+        family    => ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
+        ali       => 'SEED',
+        family_id => ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" )
+      };
     }
-
-    push @{ $regions{$id} },
-    {
-      from      => $seq->start,
-      to        => $seq->end,
-      family    => ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
-      ali       => 'SEED',
-      family_id => ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" )
-    };
   }
+  $sth->finish();
+  #$dbh->disconnect();
+
+
 
 #Then for the full, use the scores file as this contains tha alignment co-ordinates.
+#All sequences in ALIGN will be in pfamseq, so don't need to check as we did for SEED
 #We now allow overlaps between envelopes.
   foreach my $seq ( keys %{ $famObj->scores->regions } ) {
     my $id;
@@ -1063,20 +1073,6 @@ sub family_overlaps_with_db {
     }
     else {
       $id = $seq;
-    }
-
-    unless($all)    # if the $all parameter is not used, then only consider ref prot sequences
-    {
-      if ( ! (exists $isInRefProt{$id}) )
-      {
-        print STDERR "Warning: Sequence $id not found in Pfam live, can not check if it belongs to reference proteomes\n";
-        next;
-      }
-
-      if ( $isInRefProt{$id} == 0 )    # and the sequence accession is not present in reference proteomes
-      {
-        next;                   # do nothing and simply move to the next sequence accession
-      }
     }
 
     foreach my $fullReg ( @{ $famObj->scores->regions->{$seq} } ) {
@@ -1104,7 +1100,7 @@ sub family_overlaps_with_db {
   my $numOverlaps = 0;
   my %seen;
 
-  #Now print out any overlaps that should not be ignored
+#Now print out any overlaps that should not be ignored
   my $LOG;
   if ( -d $family ) {
     open( $LOG, ">$family/overlap" ) or die "Can't open $family/overlap file\n";
@@ -1180,57 +1176,36 @@ sub family_overlaps_with_db {
 =head2 findOverlapsDb
 
  Title    : findOverlapsDb
- Usage    : &PfamQC::findOverlapsDb($regionObj, \@ignore, $all, $pfamDBAdmin, $clan, $compete)
+ Usage    : &PfamQC::findOverlapsDb($regionObj, \@ignore, $pfamDB, $clan, $compete, $filter, $numFull)
  Function : Checks that the regions object contains no overlaps to data in 
             the RDB. Similar to the family_overlaps_with_db subroutine above, but takes regions object as an argument rather than 
             populating the regions object within the sub
  Returns  : number of overlaps, array of overlap lines
- Args     : regions object reference, reference to an array of families to ignore, all flag (whether to check all proteins or only ref prot proteins),
-            pfam db (admin user) object, clan, compete flag
+ Args     : regions object reference, reference to an array of families to ignore, pfamDB object, clan, compete flag, filter flag, numFull
 
 =cut
 
 sub findOverlapsDb {
-  my ($allRegions, $ignore_ref, $all, $pfamDBAdmin, $clan, $compete, $filter, $numFull) = (@_);
+  my ($allRegions, $ignore_ref, $pfamDB, $clan, $compete, $filter, $numFull) = (@_);
 
-  my $dbh = $pfamDBAdmin->getSchema->storage->dbh;
-  my $db_name = $pfamDBAdmin->{database};
+
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $query = "select pfamseq_acc from pfamseq where pfamseq_acc = ?";
+  my $sth=$dbh->prepare($query);
 
   my ($regions);
-  if($all) {
-    $regions=$allRegions;
-  }
-  else {
-    my $query = "CREATE TEMPORARY TABLE $db_name.tempAccs ( pfamseq_acc VARCHAR(10) NOT NULL,   PRIMARY KEY (pfamseq_acc));";      
-    my $sth = $dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
-
-    $query = "insert into tempAccs(pfamseq_acc) values (?)";
-    $sth=$dbh->prepare($query);
-
-    foreach my $tempAcc (keys %{$allRegions}) {
-      $sth->execute($tempAcc) or die "Can't execute statement: $DBI::errstr";
+  foreach my $acc (keys %{$allRegions}) { 
+    #If sequence is not in pfamseq (ie not in reference proteomes), then we don't need to check for overlaps in that seq
+    $sth->execute($acc) or die "Can't execute statement: $DBI::errstr";
+    my $pfamseq = $sth->fetchrow;
+    if($pfamseq) {
+      $regions->{$acc}=$allRegions->{$acc};
     }
-
-    $query = "select tempAccs.pfamseq_acc, pfamseq.ref_proteome from tempAccs join pfamseq on tempAccs.pfamseq_acc = pfamseq.pfamseq_acc";
-    $sth=$dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
-    my ($acc,$refprot);
-    $sth->bind_columns(\$acc, \$refprot);
-
-    while ($sth->fetch()) {
-      $regions->{$acc}=$allRegions->{$acc} if($refprot==1);  #Populate regions hash with array refs from allRegions hash for refprot seq only
-    }
-
-    $query = "drop table tempAccs";
-    $sth=$dbh->prepare($query);
-    $sth->execute() or die "Can't execute statement: $DBI::errstr";
   }
-
   my %overlaps;
 
-  $pfamDBAdmin->getOverlapingFullPfamRegions( $regions, \%overlaps );
-  $pfamDBAdmin->getOverlapingSeedPfamRegions( $regions, \%overlaps );
+  $pfamDB->getOverlapingFullPfamRegions( $regions, \%overlaps );
+  $pfamDB->getOverlapingSeedPfamRegions( $regions, \%overlaps );
 
   my (@overlapLines, %seen);
   my $numOverlaps = 0;
@@ -1241,7 +1216,7 @@ sub findOverlapsDb {
       foreach my $overRegion ( @{ $region->{overlap} } ) {
         next if ( $ignore_ref->{ $overRegion->{family} } );
         if($region->{ali} eq 'FULL' and $compete){
-          if(_compete($seqAcc, $region, $overRegion, $pfamDBAdmin, $clan)){
+          if(_compete($seqAcc, $region, $overRegion, $pfamDB, $clan)){
             next REGION;  
           }
         }
@@ -1514,6 +1489,9 @@ sub noMissing {
       push(@allnewseqs, $seq->id) if($seq->id ne $previous_id);
       $previous_id = $seq->id;
     }
+  }
+  elsif(!$newFamObj->ALIGN) {
+    # ALIGN0 This is not populated for families that do not have any reference proteome matches
   }else{
     die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
   }
@@ -1527,7 +1505,10 @@ sub noMissing {
       push(@alloldseqs, $seq->id) if($seq->id ne $previous_id);
       $previous_id = $seq->id;
     }
-  }else{
+  }
+  elsif(!$newFamObj->ALIGN) {
+    # ALIGN0 This is not populated for families that do not have any reference proteome matches
+  } else{
     die "Did not get a Bio::Pfam::AlignPfamLite or Bio::Pfam::AlignPfam object\n";  
   }
 
@@ -2252,6 +2233,43 @@ sub _compete {
     }
   }
   return($skip);
+}
+
+=head2 seedOnReferenceProteome
+
+  Title    : seedOnReferenceProteome
+  Usage    : seedOnReferenceProteome($family, $famObj, $pfamDB) 
+  Function : Checks whether all sequences in the SEED are in the current reference proteomes set
+             in the database, populates $famObj->seedcheck
+  Args     : pfamA_acc, Bio::Pfam::Family::PfamA, pfamDB object
+  Returns  : nothing
+
+
+=cut
+
+sub seedOnReferenceProteome {
+
+  my ($family, $famObj, $pfamDB) = @_;
+
+  unless ( $famObj->isa("Bio::Pfam::Family::PfamA") ) {
+    confess("A Bio::Pfam::Family::PfamA object was not passed in");
+  }
+
+  #Query to check whether entry is in pfamseq
+  my $dbh = $pfamDB->getSchema->storage->dbh;
+  my $query = "select pfamseq_acc from pfamseq where pfamseq_acc = ? and seq_version=?";
+  my $sth=$dbh->prepare($query);
+
+  foreach my $seq ( $famObj->SEED->each_seq ) {
+    $sth->execute($seq->id, $seq->version) or die "Couldn't execute statement ".$sth->errstr."\n";
+    unless ($sth->fetchrow) {
+      $famObj->seedcheck('pfamseqplus');
+      return;
+    }
+  }
+  
+  #If we get to here then seed must be on pfamseq;
+  $famObj->seedcheck('pfamseq');
 }
 
 
