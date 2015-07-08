@@ -128,48 +128,6 @@ __PACKAGE__->table("pfamseq");
   is_nullable: 1
   size: 8
 
-=head2 rp15
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp35
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp55
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp75
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 ref_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 complete_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 _live_ref_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -223,20 +181,6 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "treefam_acc",
   { data_type => "varchar", is_nullable => 1, size => 8 },
-  "rp15",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp35",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp55",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp75",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "ref_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "complete_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "_live_ref_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -253,6 +197,21 @@ __PACKAGE__->set_primary_key("pfamseq_acc");
 
 =head1 RELATIONS
 
+=head2 edits
+
+Type: has_many
+
+Related object: L<PfamLive::Result::Edit>
+
+=cut
+
+__PACKAGE__->has_many(
+  "edits",
+  "PfamLive::Result::Edit",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 evidence
 
 Type: belongs_to
@@ -266,6 +225,36 @@ __PACKAGE__->belongs_to(
   "PfamLive::Result::Evidence",
   { evidence => "evidence" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 nested_locations
+
+Type: has_many
+
+Related object: L<PfamLive::Result::NestedLocation>
+
+=cut
+
+__PACKAGE__->has_many(
+  "nested_locations",
+  "PfamLive::Result::NestedLocation",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 other_regs
+
+Type: has_many
+
+Related object: L<PfamLive::Result::OtherReg>
+
+=cut
+
+__PACKAGE__->has_many(
+  "other_regs",
+  "PfamLive::Result::OtherReg",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
 );
 
 =head2 pdb_residue_datas
@@ -309,21 +298,6 @@ Related object: L<PfamLive::Result::PfamARegFullSignificant>
 __PACKAGE__->has_many(
   "pfam_a_reg_full_significants",
   "PfamLive::Result::PfamARegFullSignificant",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 pfam_a_reg_seeds
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamARegSeed>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfam_a_reg_seeds",
-  "PfamLive::Result::PfamARegSeed",
   { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -434,8 +408,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-27 10:42:42
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ddwLo0jNUHM/aSyRMW20+w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 11:51:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zi/rQuJadZ4zEULIhYx+rw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
