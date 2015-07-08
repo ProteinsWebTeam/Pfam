@@ -33,7 +33,6 @@ __PACKAGE__->table("pfamA_reg_seed");
 =head2 pfamseq_acc
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 0
   size: 10
 
@@ -58,13 +57,30 @@ __PACKAGE__->table("pfamA_reg_seed");
   data_type: 'mediumint'
   is_nullable: 1
 
+=head2 seq_version
+
+  data_type: 'tinyint'
+  is_nullable: 0
+
+=head2 md5
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 source
+
+  data_type: 'enum'
+  extra: {list => ["pfamseq","uniprot"]}
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
   "pfama_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "pfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 0, size => 10 },
   "seq_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
@@ -73,6 +89,16 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "tree_order",
   { data_type => "mediumint", is_nullable => 1 },
+  "seq_version",
+  { data_type => "tinyint", is_nullable => 0 },
+  "md5",
+  { data_type => "varchar", is_nullable => 0, size => 32 },
+  "source",
+  {
+    data_type => "enum",
+    extra => { list => ["pfamseq", "uniprot"] },
+    is_nullable => 0,
+  },
 );
 
 =head1 RELATIONS
@@ -92,24 +118,9 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
-=head2 pfamseq_acc
 
-Type: belongs_to
-
-Related object: L<PfamLive::Result::Pfamseq>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "pfamseq_acc",
-  "PfamLive::Result::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
-  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:FJKQfkhPX7Pzy195HKeE7w
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:55:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qXKKYRJ4Dc/yRX/9bo64ow
 
 __PACKAGE__->add_unique_constraint(
  	"pfamA_reg_seed_reg_idx",
