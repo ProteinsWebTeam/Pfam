@@ -280,6 +280,12 @@ has 'source' => (
   isa   => enum ([ qw(database file svn commit) ]),
 );
 
+has 'seedcheck' => (
+  is => 'rw',
+  isa => enum([ qw(unchecked ignore pfamseq pfamseqplus) ]),
+  default => 'unchecked'
+);
+
 has 'rdb' => (
   is => 'rw',
   isa => 'HashRef'
