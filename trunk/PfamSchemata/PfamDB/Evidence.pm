@@ -72,9 +72,24 @@ __PACKAGE__->has_many(
   undef,
 );
 
+=head2 uniprots
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Rk8zUmTZbyb4lTLTU5LHCQ
+Type: has_many
+
+Related object: L<PfamDB::Uniprot>
+
+=cut
+
+__PACKAGE__->has_many(
+  "uniprots",
+  "PfamDB::Uniprot",
+  { "foreign.evidence" => "self.evidence" },
+  undef,
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-25 11:22:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YFdxWsqh8FohxJeuwaLv2g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
