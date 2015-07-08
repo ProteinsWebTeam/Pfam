@@ -107,7 +107,8 @@ sub commitFamily {
   
   my $guard = $pfamDB->getSchema->txn_scope_guard;
   if(scalar(@updated) == 1 and $updated[0] eq 'DESC'){
-     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
+    $famObj->seedcheck('ignore'); #Set to ignore so this field doesn't get updated
+    ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
      $familyIO->updatePfamAInRDB($famObj, $pfamDB, 0);
   }else{
     ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
@@ -121,7 +122,7 @@ sub commitFamily {
 
   }
   $guard->commit;
-
+  
   #If this family is part of a clan, we need to compete it
   if($famObj->DESC->CL and $famObj->DESC->CL =~ /\CL\d+/){
     $self->view->initiateClanViewProcess($famObj->DESC->CL, $author);
@@ -335,14 +336,17 @@ sub _qualityControlFamily {
   if($famObj->DESC->EDITS){
     $famObj->PFAMOUT->applyEdits( $famObj->DESC->EDITS ) if( $famObj->DESC->EDITS ); 
   }
-  
+
+  #Populate seedcheck if unchecked
+  if($famObj->seedcheck eq 'unchecked') {
+    Bio::Pfam::PfamQC::seedOnReferenceProteome($family, $famObj, $pfamDB);
+  }
+
   #Now find out what this family is _allowed_ to overlap with
   my %ignore; 
   
   #See if this family is part of a clan!
   if($famObj->DESC->CL){
-    
-    my %ignore;
     
     unless($famObj->DESC->CL =~ /CL\d{4}/){
       confess("Got a clan cross reference, but accession is in the wrong format\n");  
@@ -374,11 +378,7 @@ sub _qualityControlFamily {
 
   if(defined($msg) and $msg !~ /Release \S+ update/){
     my $compete = 1;
- 
-    #Need to pass $pfamDBAdmin to family_overlaps_with_db so can create temporary table
-    my $connectParams = $self->{config}->pfamliveAdmin;
-    my $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
-    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family,\%ignore , undef, $pfamDB, $famObj, $compete, undef, undef, $pfamDBAdmin  );
+    my $overlaps = Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete, undef );
     warn "$family: found $overlaps overlaps\n";
     if ($overlaps) {
       confess("Found overlaps\n");
