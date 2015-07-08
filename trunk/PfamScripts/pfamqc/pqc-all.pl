@@ -156,9 +156,10 @@ if ( $famObj->DESC->CL ) {
 }
 
 #If we are at sanger, perform an overlap check against the database.
+my $pfamDB;
 if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
   my $connect = $config->pfamlive;
-  my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
   #Find out if family is in rdb
   my $rdb_family = $pfamDB->getPfamData($family);
@@ -166,13 +167,8 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
 
   #Need to populate the ignore hash with clan and nesting data......
 
-  #Need to pass $pfamDBAdmin to family_overlaps_with_db so can create temporary table
-  my $connectParams = $config->pfamliveAdmin;
-  my $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
-  
   my $overlaps =
-    &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef,
-						 $pfamDB, $famObj, undef, undef, undef, $pfamDBAdmin );
+    &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, undef, undef);
   
   if ($overlaps) {
     print "$0: Looks like your family contains overlaps.\n";
@@ -190,7 +186,7 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
 
 Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
-unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj ) ) {
+unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
   print "$0: $family contains errors.  You should rebuild this family.\n";
   exit(1);
 }
