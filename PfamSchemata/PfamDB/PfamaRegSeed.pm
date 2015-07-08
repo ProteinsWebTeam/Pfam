@@ -33,7 +33,6 @@ __PACKAGE__->table("pfamA_reg_seed");
 =head2 pfamseq_acc
 
   data_type: 'varchar'
-  is_foreign_key: 1
   is_nullable: 0
   size: 10
 
@@ -58,13 +57,30 @@ __PACKAGE__->table("pfamA_reg_seed");
   data_type: 'mediumint'
   is_nullable: 1
 
+=head2 seq_version
+
+  data_type: 'tinyint'
+  is_nullable: 0
+
+=head2 md5
+
+  data_type: 'varchar'
+  is_nullable: 0
+  size: 32
+
+=head2 source
+
+  data_type: 'enum'
+  extra: {list => ["pfamseq","uniprot"]}
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
   "pfama_acc",
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "pfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
+  { data_type => "varchar", is_nullable => 0, size => 10 },
   "seq_start",
   { data_type => "mediumint", default_value => 0, is_nullable => 0 },
   "seq_end",
@@ -73,6 +89,16 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "tree_order",
   { data_type => "mediumint", is_nullable => 1 },
+  "seq_version",
+  { data_type => "tinyint", is_nullable => 0 },
+  "md5",
+  { data_type => "varchar", is_nullable => 0, size => 32 },
+  "source",
+  {
+    data_type => "enum",
+    extra => { list => ["pfamseq", "uniprot"] },
+    is_nullable => 0,
+  },
 );
 
 =head1 RELATIONS
@@ -87,23 +113,9 @@ Related object: L<PfamDB::Pfama>
 
 __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
 
-=head2 pfamseq_acc
 
-Type: belongs_to
-
-Related object: L<PfamDB::Pfamseq>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "pfamseq_acc",
-  "PfamDB::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0Om4dBe0HZ1L3whpi29pPg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:37:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TLPQ6J85FvJvX2kITFrG3Q
 
 #Now set up the primary keys/contraints
 __PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start");
