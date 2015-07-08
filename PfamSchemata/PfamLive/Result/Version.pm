@@ -44,6 +44,11 @@ __PACKAGE__->table("version");
   data_type: 'tinytext'
   is_nullable: 1
 
+=head2 reference_proteome_version
+
+  data_type: 'tinytext'
+  is_nullable: 1
+
 =head2 hmmer_version
 
   data_type: 'tinytext'
@@ -77,6 +82,8 @@ __PACKAGE__->add_columns(
   { data_type => "tinytext", is_nullable => 1 },
   "trembl_version",
   { data_type => "tinytext", is_nullable => 1 },
+  "reference_proteome_version",
+  { data_type => "tinytext", is_nullable => 1 },
   "hmmer_version",
   { data_type => "tinytext", is_nullable => 1 },
   "pfama_coverage",
@@ -88,8 +95,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-05-26 11:59:58
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hxGDDkrxVBwlDQbPr6fuSg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-24 10:28:21
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3eMlpUTBVCsFKENSXxdiig
 __PACKAGE__->set_primary_key( qw/pfam_release swiss_prot_version trembl_version hmmer_version/);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
