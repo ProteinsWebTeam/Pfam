@@ -128,48 +128,6 @@ __PACKAGE__->table("pfamseq");
   is_nullable: 1
   size: 8
 
-=head2 rp15
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp35
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp55
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 rp75
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 ref_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 complete_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
-=head2 _live_ref_proteome
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -223,20 +181,6 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "treefam_acc",
   { data_type => "varchar", is_nullable => 1, size => 8 },
-  "rp15",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp35",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp55",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "rp75",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "ref_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "complete_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
-  "_live_ref_proteome",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -368,21 +312,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pfama_reg_seeds
-
-Type: has_many
-
-Related object: L<PfamDB::PfamaRegSeed>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfama_reg_seeds",
-  "PfamDB::PfamaRegSeed",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  undef,
-);
-
 =head2 pfamseq_disulphides
 
 Type: has_many
@@ -474,8 +403,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z8MrHMy18ZuI6Dj3Rh1k1g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 11:24:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pTOht1hL+lQTE6GNjULUcQ
 
 
 #__PACKAGE__->has_many(
