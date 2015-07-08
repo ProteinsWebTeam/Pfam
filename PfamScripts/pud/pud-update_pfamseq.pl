@@ -92,25 +92,6 @@ my $uniprot_location = $config->uniprotPrivateLoc;
 #}
 
 
-#First make a file of old pfamseq accs and md5s
-if(-s "$status_dir/old_pfamseq.md5") {
-  $logger->info("Already made a file of accessions and md5s from old pfamseq, this will be used during seed surgery\n");
-}
-else {
-  $logger->info("Making a file of accessions and md5s from old pfamseq, this will be used during seed surgery\n");
-  my $st_md5 = $dbh->prepare("select pfamseq.pfamseq_acc, pfamseq.md5 from pfamseq, pfamA_reg_seed where pfamseq.pfamseq_acc = pfamA_reg_seed.pfamseq_acc"); #mySQL statement updated for new schema
-  $st_md5->execute() or $logger->logdie("Couldn't select pfamseq_acc and md5 from pfamseq table ".$st_md5->errstr."\n");
-
-  my $md5_data = $st_md5->fetchall_arrayref;
-  open(MD5, "> $status_dir/old_pfamseq.md5") or $logger->logdie("Couldn't open filehandle $!\n");
-  foreach my $row (@$md5_data) {
-    print MD5 "$row->[0]\t$row->[1]\n";
-  }
-  close MD5;
-
-}
-
-
 #Get reldate.txt from UniProt ftp directory
 if(-s "reldateRP.txt") {
   $logger->debug("Already copied reldate.txt\n");
