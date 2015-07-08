@@ -583,7 +583,7 @@ if(-e "$status_dir/delete_active_metal") {
 }
 else {
   $logger->info("Deleting old active site and metal ion binding data from pfamseq_markup\n");
-  my $delete_act_metal = $dbh->prepare("truncate pfamseq_markup");
+  my $delete_act_metal = $dbh->prepare("delete from pfamseq_markup");
   $delete_act_metal->execute() or $logger->logdie("Failed to delete old data from pfamseq_markup ".$delete_act_metal->errstr."\n");
   system("touch $status_dir/delete_active_metal") and $logger->logdie("Couldn't touch $status_dir/delete_active_metal:[$!]\n"); 
 }
@@ -609,7 +609,7 @@ if(-e "$status_dir/delete_disulphide") {
 }
 else {
   $logger->info("Deleting old disulphide bond data\n");
-  my $delete_disulphide = $dbh->prepare("truncate pfamseq_disulphide");
+  my $delete_disulphide = $dbh->prepare("delete from pfamseq_disulphide");
   $delete_disulphide->execute() or $logger->logdie("Failed to delete old data from pfamseq_disulphide ".$delete_disulphide->errstr."\n");
   system("touch $status_dir/delete_disulphide") and $logger->logdie("Couldn't touch $status_dir/delete_disulphide:[$!]\n"); 
 }
@@ -634,7 +634,7 @@ if(-e "$status_dir/delete_secondary_acc") {
 }
 else {
   $logger->info("Deleting old secondary accession data\n");
-  my $delete_sec_acc = $dbh->prepare("truncate secondary_pfamseq_acc");
+  my $delete_sec_acc = $dbh->prepare("delete from secondary_pfamseq_acc");
   $delete_sec_acc->execute() or $logger->logdie("Failed to delete old data from secondary_pfamseq_acc ".$delete_sec_acc->errstr."\n");
   system("touch $status_dir/delete_secondary_acc") and $logger->logdie("Couldn't touch $status_dir/delete_secondary_acc:[$!]\n"); 
 }
@@ -659,7 +659,7 @@ if(-e "$status_dir/delete_active_site_alignments") {
 }
 else {
   $logger->info("Deleting old active site alignments\n");
-  my $as_aln = $dbh->prepare("truncate _active_site_alignments");
+  my $as_aln = $dbh->prepare("delete from _active_site_alignments");
   $as_aln->execute() or $logger->logdie("Failed to delete old data from _active_site_alignments");
   system("touch $status_dir/delete_active_site_alignments") and $logger->logdie("Couldn't touch $status_dir/delete_active_site_alignments:[$!]\n"); 
 }
