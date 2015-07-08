@@ -93,13 +93,22 @@ if ( !Bio::Pfam::PfamQC::checkFamilyFiles($family) ) {
   exit(1);
 }
 
-#
+
 #-------------------------------------------------------------------------------
 # Load the family from disk and svn through the middleware
 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 my $newFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
 print STDERR "Successfully loaded $family through middleware\n";
+
+
+#-------------------------------------------------------------------------------
+#Check ALIGN files has size, (qc checks allow existing families with no reference
+#proteome matches to have an empty ALIGN file, but new families should have an
+#non-empty ALIGN file)
+unless(-s "$family/ALIGN") {
+  die "$family/ALIGN file has no size. You should rebuild this family\n";
+}
 
 #------------------------------------------------------------------------------------
 #Check user has filled in all the fields in DESC file
@@ -158,11 +167,11 @@ $client->checkNewFamilyDoesNotExists( $newFamObj->DESC->ID );
 
 #These are more sanity checks
 unless ($ignore) {
-
+  my $pfamDB;
   #If we are at sanger, perform an overlap check against the database.
   if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
     my $connect = $config->pfamlive;
-    my $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+    $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
     #Find out if family is in rdb
     my $rdb_family = $pfamDB->getPfamData($family);
@@ -170,12 +179,8 @@ unless ($ignore) {
 
     #Need to populate the ignore hash with clan and nesting data......
 
-    #Need to pass $pfamDBAdmin to family_overlaps_with_db so can create temporary table
-    my $connectParams = $config->pfamliveAdmin;
-    my $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
     my $overlaps =
-      &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef,
-                                                   $pfamDB, $newFamObj, undef, undef, undef, $pfamDBAdmin ); 
+      &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $newFamObj, undef, undef); 
  
     if ($overlaps) {
       print "Looks like your family contains overlaps.\n";
@@ -185,7 +190,7 @@ unless ($ignore) {
 
   Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
-  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj ) ) {
+  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) {
     print "pfnew: $family contains errors.  You should rebuild this family.\n";
     exit(1);
   }
