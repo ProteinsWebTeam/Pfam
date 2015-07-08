@@ -47,7 +47,7 @@ else {
   copy("$uniprot_location/reldate.txt", "$pfamseq_dir/reldate.txt") or $logger->logdie("Could not copy $uniprot_location/reldate.txt to $pfamseq_dir [$!]\n");
 }
 
-
+#Update swiss prot and tremble version in the db
 if(-e "$status_dir/updated_uniprot_version") { 
   $logger->debug("Already updated rdb with swiss prot and trembl version\n");
 } 
@@ -75,23 +75,6 @@ else {
   system("touch $status_dir/updated_uniprot_version") and $logger->logdie("Couldn't touch $status_dir/updated_version:[$!]\n");
 }
 
-
-##First make a file of old uniprot accs and md5s
-#if(-s "$status_dir/old_uniprot.md5") {
-#  $logger->info("Already made a file of accessions and md5s from old uniprot, this will be used during seed surgery\n");
-#}
-#else {
-#  $logger->info("Making a file of accessions and md5s from old uniprot, this will be used during seed surgery\n");
-#  my $st_md5 = $dbh->prepare("select uniprot.uniprot_acc, md5 from uniprot, pfamA_reg_seed where uniprot.uniprot_acc = pfamA_reg_seed.uniprot_acc"); #mySQL statement updated for new schema
-#  $st_md5->execute() or $logger->logdie("Couldn't select uniprot_acc and md5 from uniprot table ".$st_md5->errstr."\n");
-#
-#  my $md5_data = $st_md5->fetchall_arrayref;
-#  open(MD5, "> $status_dir/old_uniprot.md5") or $logger->logdie("Couldn't open filehandle to $status_dir/old_uniprot.md5 $!\n");
-#  foreach my $row (@$md5_data) {
-#    print MD5 "$row->[0]\t$row->[1]\n";
-#  }
-#  close MD5;
-#}
 
 #Get copy of latest uniprot
 my @files = qw(uniprot_sprot.dat uniprot_trembl.dat);
@@ -121,7 +104,8 @@ else {
   foreach my $row (@result) {
     $rdb_taxonomy{$row->ncbi_taxid}=1;
   }
-  open(UNIPROT, ">$pfamseq_dir/uniprot.dat") or  $logger->logdie("Failed to open filehandle to $pfamseq_dir/uniprot.dat:[$!]\n");
+  open(UNIPROT, ">$pfamseq_dir/uniprot.dat") or  $logger->logdie("Failed to open filehandle to $pfamseq_dir/uniprot.dat:[$!]");
+  open(FASTA, ">$pfamseq_dir/uniprot.fasta") or $logger->logdie("Failed to open filehandle to $pfamseq_dir/uniprot.fasta:[$!]");
   foreach my $file (@files) { 
 
     $logger->debug("Parsing $file\n");
@@ -275,7 +259,8 @@ else {
 
       }
       print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t$reference\n";
-
+      print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
+      
       #count for debugging
       $count2++;
 
@@ -288,11 +273,22 @@ else {
   }
 
   close UNIPROT; 
+  close FASTA;
 
   system("touch $status_dir/parsed_uniprotkb") and $logger->logdie("Couldn't touch $status_dir/parsed_uniprotkb:[$!]\n");
 
 }
 
+#Make DBSIZE_uniprot_preAntifam file
+if(-s "$pfamseq_dir/DBSIZE_uniprot_preAntifam") {
+  $logger->debug("Already made DBSIZE_uniprot_preAntifam file\n");
+}
+else {
+  $logger->debug("Making DBSIZE_uniprot_preAntifam file\n");
+  open(DBSIZE, ">$pfamseq_dir/DBSIZE_uniprot_preAntifam") or $logger->logdie("Couldn't open filehandle to DBSIZE_uniprot_preAntifam:[$!]\n");
+  print DBSIZE "$num_seq";
+  close DBSIZE;
+}
 
 #Upload to uniprot table
 if ( -e "$status_dir/uploaded_uniprot" ) { 
@@ -302,7 +298,7 @@ else {
 
   #Delete old uniprot data
   $logger->info("Deleting old data from uniprot table");
-  my $sth_delete = $dbh->prepare("delete from uniprot");
+  my $sth_delete = $dbh->prepare("truncate uniprot");
   $sth_delete->execute() or $logger->logdie("Failed to delete old data from uniprot ".$sth_delete->errstr."\n");
 
 
@@ -312,6 +308,40 @@ else {
 
   system("touch $status_dir/uploaded_uniprot")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_uniprot:[$!]\n");
+}
+
+
+#Check uniprot in rdb is the correct size;
+my $dbsize;
+if(-e "$status_dir/check_uniprot_size") {
+  open(DB, "$pfamseq_dir/DBSIZE_uniprot_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_uniprot_preAntifam:[$!]\n");
+  while(<DB>){
+    ($dbsize) = $_ =~/(\S+)/;
+    last;
+  }   
+  close(DB);
+  $logger->info("Already checked the number of sequences [$dbsize] in rdb is the same as in the DBSIZE_uniprot_preAntifam file\n");
+}
+else {
+  $logger->info("Checking the number of sequences in rdb is the same as in the DBSIZE_uniprot_preAntifam file\n");
+  open(DB, "$pfamseq_dir/DBSIZE_uniprot_preAntifam") or $logger->logdie("Could not open $pfamseq_dir/DBSIZE_uniprot_preAntifam:[$!]\n");
+  while(<DB>){
+    ($dbsize) = $_ =~/(\S+)/;
+    last;
+  }   
+  close(DB);
+
+  my $pfamseq_qc = $dbh->prepare("select count(*) from uniprot");
+
+  $pfamseq_qc->execute or $logger->logdie("Failed to query uniprot table for size of uniprot ".$pfamseq_qc->errstr."\n");
+
+  my $rdb_size = $pfamseq_qc->fetchrow;
+
+  unless($rdb_size == $dbsize) {
+    $logger->logdie("Mis-match between [$rdb_size] sequences in rdb, and $dbsize sequences in the uniprot fasta file\n");
+  }else{
+    system("touch $status_dir/check_uniprot_size") and $logger->logdie("Could not touch $status_dir/check_uniprot_size:[$!]");
+  }   
 }
 
 
