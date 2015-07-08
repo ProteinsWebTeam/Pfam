@@ -18,7 +18,6 @@ my ( @ignore, $help, $compete, $no_sigP, $all, $noFilter );
              "help"     => \$help,
              "compete"  => \$compete,
              "no_sigP"  => \$no_sigP,
-             "all"      => \$all,
              "no_filter" => \$noFilter
            ) or die "Incorrect option passed in\n";
 
@@ -72,15 +71,8 @@ if( !-w "$pwd/$family" ) {
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
-#Need admin access to db (for creating temporary table) if 
-my $pfamDBAdmin;
-unless($all) {
-  my $connectParams = $config->pfamliveAdmin;
-  $pfamDBAdmin   = Bio::Pfam::PfamLiveDBManager->new( %{$connectParams} );
-}
-
 my $overlaps =
-  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef, $pfamDB, $famObj, $compete, $all, $noFilter, $pfamDBAdmin );
+  &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, $pfamDB, $famObj, $compete,  $noFilter );
   warn "$family: found $overlaps overlaps\n";
 
 unless($no_sigP) {
@@ -118,7 +110,6 @@ Addional options:
   -i <family_name>       :Ignore this family (-i can occur multiple times)
   -compete               :Compete family before checking for overlaps
   -no_sigP               :Do not check whether family overlaps with signal peptide
-  -all                   :Report overlaps for all sequences and not reference proteomes only
   -no_filter             :Do not filter overlaps
 
 
