@@ -72,7 +72,18 @@ else {
   $dbh->disconnect;
 }
 
+#Make DBSIZE file
 my $dbsize=$total;
+if(-s "$pfamseq_dir/DBSIZE") {
+  $logger->debug("Already created $pfamseq_dir/DBSIZE file");
+}
+else {
+  $logger->debug("Creating $pfamseq_dir/DBSIZE file");
+  open(DBSIZE, ">$pfamseq_dir/DBSIZE") or die "Couldn't open fh to $pfamseq_dir/DBSIZE, $!";
+  print DBSIZE "$dbsize";
+  close DBSIZE;
+}
+
 
 #Make easel indexes
 if(-e "$status_dir/esl-indexes") { 
@@ -91,7 +102,7 @@ if($move) {
     $logger->debug("Already moved pfamseq to nfs");
   } 
   else {
-    $logger->info("Copying pfamseq to nfs directory");
+    $logger->info("Going to delete old pfamseq and copy the new one to nfs directory");
     my $pfamseq_nfs = $config->{pfamseq}->{location};
 
     my @pfamseq_files = qw(pfamseq pfamseq.ssi);
@@ -99,6 +110,9 @@ if($move) {
     foreach my $f (@pfamseq_files) {
       $logger->debug("Deleting old $f from $pfamseq_nfs");  
       unlink("$pfamseq_nfs/$f");
+    }
+
+    foreach my $f (@pfamseq_files) {
       $logger->debug("Copying new $f to $pfamseq_nfs");
       copy("$pfamseq_dir/$f", "$pfamseq_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $pfamseq_nfs failed: $!");
     }
