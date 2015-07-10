@@ -64,9 +64,6 @@ unless ( -d "$pfamseqDir/otherReg" ) {
   mkdir("$pfamseqDir/otherReg")
     or $logger->logdie("Could not make directory $pfamseqDir/otherReg: [$!]");
 }
-chdir("$pfamseqDir/otherReg")
-  or
-  $logger->logdie("Could not change into directory $pfamseqDir/otherReg: [$!]");
 
 #-------------------------------------------------------------------------------
 #Open and spit pfamseq into bits;
@@ -93,8 +90,8 @@ unless ( -e "$statusdir/otherReg/doneSplit" ) {
   $logger->debug(
     "Going to split pfamseq into $split files containing $bit sequences");
 
-  open( B, ">pfamseq.$n" )
-    or $logger->logdie("Could not open pfamseq.$n:[$!]\n");
+  open( B, ">$pfamseqDir/otherReg/pfamseq.$n" )
+    or $logger->logdie("Could not open $pfamseqDir/otherReg/pfamseq.$n:[$!]\n");
   open( P, "$pfamseqDir/pfamseq" )
     or $logger->logdie("Could not open $pfamseqDir/pfamseq:[$!]\n");
 
@@ -106,7 +103,7 @@ unless ( -e "$statusdir/otherReg/doneSplit" ) {
         close(B);
         $n++;
         $c = 0;
-        open( B, ">pfamseq.$n" );
+        open( B, ">$pfamseqDir/otherReg/pfamseq.$n" );
       }
     }
     print B $_;
@@ -116,7 +113,7 @@ unless ( -e "$statusdir/otherReg/doneSplit" ) {
   $logger->info("Made $n files");
   touch("$statusdir/otherReg/doneSplit");
 }else{
-  my @files = glob("pfamseq.*");
+  my @files = glob("$pfamseqDir/otherReg/pfamseq.*");
   $n = scalar(@files); 
 }
 $logger->info("There are $n files to process!");
