@@ -106,7 +106,7 @@ my $config = Bio::Pfam::Config->new;
 #system ("seq_get.pl -l list -d ".$config->pfamseqLoc."/pfamseq -nodesc > FA") and die "Failed to run seq_get.pl";        
 open(F, ">FA.whole") or die "Could not open FA.whole for writing :[$!]\n";
 
-Bio::Pfam::SeqFetch::fetchSeqs(\%seqs,$config->pfamseqLoc."/pfamseq", \*F); 
+Bio::Pfam::SeqFetch::fetchSeqs(\%seqs,$config->pfamseqLoc."/uniprot", \*F); 
 close(F);
 
 
