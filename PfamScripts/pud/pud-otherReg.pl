@@ -406,7 +406,7 @@ sub parseIupred {
     my ( $dir, $iupred_file, $fh, $pfamseq_auto ) = @_;
 #split on // and new line
     $/ = "//\n";
-    open( DIS, "<", $iupred_file )  or $logger->logdie("Failed to open $iupred_file for reading:[$!]");
+    open( DIS, "<", "$dir/$iupred_file" )  or $logger->logdie("Failed to open $dir/$iupred_file for reading:[$!]");
     while (<DIS>) {
 	my @entry_c = split( /\n/, $_ );
 #get rid of comments
