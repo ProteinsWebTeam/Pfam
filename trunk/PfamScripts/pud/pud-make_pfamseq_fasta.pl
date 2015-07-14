@@ -160,11 +160,7 @@ sub help{
 This script creates a fasta file from the sequences in the pfamseq
 table in the database. There is an option to move the pfamseq fasta
 file to the production location in the Pfam config file, and update 
-the config file with the database size. If you are removing Anifam
-matches from the pfamseq table, you will need to run this script twice,
-once to create a fasta file to run the Antifam HMMs against, and once to
-create a fasta file once the Antifam sequences have been removed from
-the pfamseq table.
+the config file with the database size. 
 
 Usage:
 
