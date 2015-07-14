@@ -25,8 +25,8 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 my ($status_dir, $pfamseq_dir, $move);
 &GetOptions(
   "status_dir=s"  => \$status_dir,
-  "pfamseq_dir=s" => \$pfamseq_dir);
-
+  "pfamseq_dir=s" => \$pfamseq_dir,
+  "move"          => \$move);
 unless ( $status_dir and -e $status_dir ) {
   help();
 }
@@ -82,13 +82,70 @@ if(-e "$status_dir/esl-indexes_uniprot") {
   system("touch $status_dir/esl-indexes_uniprot") and $logger->logdie("Couldn't touch $status_dir/esl-indexes_uniprot:[$!]\n");
 }
 
+my $dbsize=$total;
+
+#Copy uniprot to production location
+if($move) { 
+  if (-e "$status_dir/moved_uniprot"){
+    $logger->debug("Already moved uniprot to nfs");
+  } 
+  else {
+    $logger->info("Going to delete old uniprot and copy the new one to nfs directory");
+    my $uniprot_nfs = $config->{uniprot}->{location};
+
+    my @uniprot_files = qw(uniprot uniprot.ssi);
+
+    foreach my $f (@uniprot_files) {
+      $logger->debug("Deleting old $f from $uniprot_nfs");  
+      unlink("$uniprot_nfs/$f");
+    }
+
+    foreach my $f (@uniprot_files) {
+      $logger->debug("Copying new $f to $uniprot_nfs");
+      copy("$pfamseq_dir/$f", "$uniprot_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $uniprot_nfs failed: $!");
+    }
+    system("touch $status_dir/moved_uniprot") and $logger->logdie("Couldn't touch $status_dir/moved_uniprot:[$!]\n");
+  }
+
+  #Change PFAM_CONFIG
+  if(-e "$status_dir/changed_uniprot_config") {
+    $logger->info("Already changed database size in Pfam config file\n");
+  }
+  else {
+    $logger->info("Updating database size in Pfam config file\n");
+
+    my $c = new Config::General($ENV{PFAM_CONFIG}); 
+    my %ac = $c->getall; 
+
+    my $pfam_config = $ENV{PFAM_CONFIG};
+    move($pfam_config, "$pfam_config.old") or $logger->logdie("Could not move config file");;
+    $ac{uniprot}->{dbsize} = $dbsize; 
+
+    SaveConfig($pfam_config, \%ac);
+
+    my $newConfig;
+    eval { 
+      $newConfig = Bio::Pfam::Config->new; 
+
+    };  
+    if($@) { 
+      $logger->logdie("Problem modifying the pfam_config ($pfam_config) file");
+    }
+    $config = $newConfig;
+
+    system("touch $status_dir/changed_uniprot_config") and $logger->logdie("Couldn't touch $status_dir/changed_uniprot_config:[$!]\n"); 
+  }
+}
+
 
 sub help{
 
   print STDERR << "EOF";
 
 This script creates a fasta file from the sequences in the uniprot
-table in the database.
+table in the database. There is an option to move the uniprot fasta
+file to the production location in the Pfam config file, and update 
+the config file with the database size. 
 
 Usage:
 
@@ -96,6 +153,8 @@ Usage:
 
 Options
   -help  :Prints this help message
+  -move  :Move the pfamseq uniprot file to the production location,
+          and update the database size in Pfam config file
 
 Both the status directory and pfamseq_directory must already exist.
 pfamseq_dir is the directory where the pfamseq fasta file will be
