@@ -229,6 +229,7 @@ if(-e "$orDir/allOtherReg.dat"){
 	  $subs{$f}( $orDir, "$f.$m", $fhOut );
       }
   }
+  close $fhOut;
 }
 
 
