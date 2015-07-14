@@ -481,22 +481,22 @@ sub totalRes {
   return $self->{pfamseq}->{totalRes};
 }
 
-=head2 refprot_dbsize
+=head2 uniprot_dbsize
 
-  Title    : refprot_dbsize
-  Usage    : $config->refprot_dbsize
-  Function : Returns the number of sequences in reference proteomes
+  Title    : uniprot_dbsize
+  Usage    : $config->uniprot_dbsize
+  Function : Returns the number of sequences in uniprot
   Args     : None - read only operator
   Returns  : integer    
   
 =cut
 
-sub refprot_dbsize {
+sub uniprot_dbsize {
   my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  return $self->{refprot}->{dbsize};
+  return $self->{uniprot}->{dbsize};
 }
 
 =head2 ncbi_dbsize
