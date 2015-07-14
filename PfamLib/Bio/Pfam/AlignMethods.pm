@@ -441,13 +441,14 @@ sub extend_alignment {
 
   my $fa_file = "FA.whole.$$";
 
+  my $original=0;
   open(F, ">$fa_file") or die "Could not open $fa_file for writing :[$!]\n";
   while (<ALIGN>) {
     if (/^(\S+)\/(\d+)-(\d+)\s+(\S+)/) {
         my ($acc, $start, $end) = ($1, $2, $3);
 
 	push(@{$nse{$acc}}, { start => $start, end => $end} );
-	
+  $original++;	
 	push(@{ $seqList{$acc} }, { whole => 1 });
     }
     elsif(/^\/\//) {
@@ -458,7 +459,6 @@ sub extend_alignment {
     }
   }
 
-  my $original = keys %seqList;
   my $retrieved =  Bio::Pfam::SeqFetch::fetchSeqs(\%seqList,$db_arg, \*F);
   close F;
 
