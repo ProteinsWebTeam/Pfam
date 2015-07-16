@@ -252,21 +252,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pdb_residue_datas
-
-Type: has_many
-
-Related object: L<PfamDB::PdbResidueData>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_residue_datas",
-  "PfamDB::PdbResidueData",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  undef,
-);
-
 =head2 pfam_annseqs
 
 Type: has_many
@@ -403,8 +388,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 11:24:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pTOht1hL+lQTE6GNjULUcQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:30:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RA/t6+WEzRYSARrknxMiig
 
 
 #__PACKAGE__->has_many(
