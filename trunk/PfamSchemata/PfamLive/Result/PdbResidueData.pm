@@ -135,20 +135,20 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<PfamLive::Result::Pfamseq>
+Related object: L<PfamLive::Result::Uniprot>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pfamseq_acc",
-  "PfamLive::Result::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
+  "PfamLive::Result::Uniprot",
+  { uniprot_acc => "pfamseq_acc" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9xe1hFhfREWFjn7vjCqjAw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:31:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H6GzVOojp8pLC+BWZMfGBg
 
 __PACKAGE__->might_have( pfam_a_reg_full_significants => "PfamLive::Result::PfamARegFullSignificant",
  { "foreign.pfamseq_acc" => "self.pfamseq_acc"});
