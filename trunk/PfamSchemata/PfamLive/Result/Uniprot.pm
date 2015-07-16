@@ -196,9 +196,24 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 pdb_residue_datas
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 11:51:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:caIpXsSem5yS1O761To3rg
+Type: has_many
+
+Related object: L<PfamLive::Result::PdbResidueData>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pdb_residue_datas",
+  "PfamLive::Result::PdbResidueData",
+  { "foreign.pfamseq_acc" => "self.uniprot_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:31:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IdnWRppcBm8No3ax0uul4Q
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
