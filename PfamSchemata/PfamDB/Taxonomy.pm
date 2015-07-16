@@ -107,14 +107,6 @@ __PACKAGE__->add_columns(
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qaELWqynSSsQaMkxSJrc0g
 
-__PACKAGE__->has_one(
-  "pfama_ncbi",
-  "PfamDB::PfamaNcbi",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
-);
-
-__PACKAGE__->set_primary_key("ncbi_taxid");
-
 
 
 =head1 COPYRIGHT
