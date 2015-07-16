@@ -17,13 +17,15 @@ sub loadPdbResidueData {
   my $count = 0;
   my @row;
 
-#loop through the data array and put into a hash in the row array
+  #Prepare query to check if seq is in uniprot
+  my $sth = $dbh->prepare("select uniprot_acc from uniprot where uniprot_acc=?");
+	
+  foreach my $residue (@$data){
 
-	foreach my $residue (@$data){
-
-#check that pfamseq_acc exists as some in pdb are not in pfam
-		my $pfamseq_acc = $dbh->getSchema->resultset('Pfamseq')->find( { 'pfamseq_acc' => $residue->[8] } );
-		unless ($pfamseq_acc){next;};
+    #Only add data for seq that are in the uniprot table
+    $sth->execute($residue->[8]) or die "Couldn't execute statement ".$sth->errstr."\n";
+		my $uniprot_acc = $sth->fetchrow();
+    unless ($uniprot_acc){next;};
 
 		push (@row, {
 			pdb_id => $residue->[0],
@@ -39,12 +41,12 @@ sub loadPdbResidueData {
 			pfamseq_seq_number => $residue->[10]
 		} );
 		$count++;
-    		next if(scalar(@row) < 10000);
+    next if(scalar(@row) < 10000);
 #when the row array reaches 10,000 populate the db
-   	 	$self->populate(\@row);
-    		@row = ();
-	}
- 	 $self->populate(\@row);
+    $self->populate(\@row);
+    @row = ();
+  }
+  $self->populate(\@row);
 
 }
 
