@@ -30,14 +30,14 @@ my $tbl_ary_refe = $sthe->fetchall_arrayref;
 $sthe->finish();
 
 foreach my $row_e (@$tbl_ary_refe){
-	$pdbs{$row_e->[0]}=1;
+  $pdbs{$row_e->[0]}=1;
 }
 
 #p(%pdbs);
 
 #to get data for pdb table (title, date etc)
 my $sthp = $dbh->prepare(
-"select id, title, resolution, keywords,to_char(pdb_rev_date, 'yyyy-mm-dd') from entry where id = ?"
+  "select id, title, resolution, keywords,to_char(pdb_rev_date, 'yyyy-mm-dd') from entry where id = ?"
 );
 #get authors for pdb entry
 my $stha = $dbh->prepare("select name, ordinal from audit_author where entry_id = ? order by ordinal");
@@ -47,41 +47,41 @@ my $sthm = $dbh->prepare("select method from exptl b where entry_id= ? ");
 
 print "Fetching data to populate pdb table\n";
 foreach my $pdb (keys %pdbs){
-	$sthp->execute($pdb);
-	$stha->execute($pdb);
-	$sthm->execute($pdb);
+  $sthp->execute($pdb);
+  $stha->execute($pdb);
+  $sthm->execute($pdb);
 
-	my $tbl_ary_ref_p = $sthp->fetchall_arrayref;
+  my $tbl_ary_ref_p = $sthp->fetchall_arrayref;
 #p($tbl_ary_ref_p->[0][1]);
-	my $tbl_ary_ref_a = $stha->fetchall_arrayref;
-	my $names = '';
-	my $count = 0;
-	foreach my $row_a (@$tbl_ary_ref_a){
-		if ($count == 0){
-			$names = $row_a->[0];
-			$count ++;
-		} else {
-			$names = $names . ", " . $row_a->[0];
-		}
-	}
+  my $tbl_ary_ref_a = $stha->fetchall_arrayref;
+  my $names = '';
+  my $count = 0;
+  foreach my $row_a (@$tbl_ary_ref_a){
+    if ($count == 0){
+      $names = $row_a->[0];
+      $count ++;
+    } else {
+      $names = $names . ", " . $row_a->[0];
+    }
+  }
 
-	my $tbl_ary_ref_m = $sthm->fetchall_arrayref;
-	my $methods = '';
-	my $count2 = 0;
-	foreach my $row_m (@$tbl_ary_ref_m){
-		if ($count2 == 0){
-		$methods = $row_m->[0];
-		$count2++;
-		} else {
-		$methods = $methods . ", " .  $row_m->[0];
-		}
-	}
+  my $tbl_ary_ref_m = $sthm->fetchall_arrayref;
+  my $methods = '';
+  my $count2 = 0;
+  foreach my $row_m (@$tbl_ary_ref_m){
+    if ($count2 == 0){
+      $methods = $row_m->[0];
+      $count2++;
+    } else {
+      $methods = $methods . ", " .  $row_m->[0];
+    }
+  }
 
-	my @data = ($tbl_ary_ref_p->[0][1], $tbl_ary_ref_p->[0][2], $tbl_ary_ref_p->[0][3], $tbl_ary_ref_p->[0][4], $names, $methods);
+  my @data = ($tbl_ary_ref_p->[0][1], $tbl_ary_ref_p->[0][2], $tbl_ary_ref_p->[0][3], $tbl_ary_ref_p->[0][4], $names, $methods);
 #p(@data);
-	$pdbs{$pdb}=\@data;
-	$stha->finish;
-	$sthp->finish;
+  $pdbs{$pdb}=\@data;
+  $stha->finish;
+  $sthp->finish;
 }
 
 #p(%pdbs);
@@ -94,56 +94,56 @@ foreach my $id (keys %pdbs){
 #print "$pdbs{$id}->[3]\n";
 
 #p($pdbs{$id}->[0]);
-	my $guard = $pfamDB->getSchema->txn_scope_guard;
-	my $r = $pfamDB->getSchema->resultset('Pdb')->update_or_create(
-	{
-		pdb_id => uc($id),
-		keywords => $pdbs{$id}->[2],
-		title => $pdbs{$id}->[0],
-		date => $pdbs{$id}->[3],
-		resolution => $pdbs{$id}->[1],
-		method => $pdbs{$id}->[5],
-		author => $pdbs{$id}->[4]
-	}
-	);
-	$guard->commit;
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
+  my $r = $pfamDB->getSchema->resultset('Pdb')->update_or_create(
+    {
+      pdb_id => uc($id),
+      keywords => $pdbs{$id}->[2],
+      title => $pdbs{$id}->[0],
+      date => $pdbs{$id}->[3],
+      resolution => $pdbs{$id}->[1],
+      method => $pdbs{$id}->[5],
+      author => $pdbs{$id}->[4]
+    }
+  );
+  $guard->commit;
 }
 
 #exit;
 
 #to get residue data
 my $sthr = $dbh->prepare("select
- a.entry_id,
- a.auth_asym_id,
- a.pdb_seq_id,
- a.chem_comp_id,
- a.auth_seq_id,
- a.auth_seq_id_ins_code,
- a.observed,
- b.dssp_symbol,
- a.accession,
- a.unp_one_letter_code,
- a.unp_seq_id
-from
- sifts_xref_residue a
-left join
- ss_monomer_property b
-on
- a.entry_id = b.entry_id AND
- a.struct_asym_id = b.struct_asym_id AND
- a.pdb_seq_id = b.residue_id
-where
- a.entry_id = ?");
+  a.entry_id,
+  a.auth_asym_id,
+  a.pdb_seq_id,
+  a.chem_comp_id,
+  a.auth_seq_id,
+  a.auth_seq_id_ins_code,
+  a.observed,
+  b.dssp_symbol,
+  a.accession,
+  a.unp_one_letter_code,
+  a.unp_seq_id
+  from
+  sifts_xref_residue a
+  left join
+  ss_monomer_property b
+  on
+  a.entry_id = b.entry_id AND
+  a.struct_asym_id = b.struct_asym_id AND
+  a.pdb_seq_id = b.residue_id
+  where
+  a.entry_id = ?");
 
 foreach my $pdbid (keys %pdbs){
 
-	print "Deleting old PDB residue information for $pdbid\n";
-	$pfamDB->getSchema->resultset('PdbResidueData')->search( { 'pdb_id' => uc($pdbid) } )->delete;
+  print "Deleting old PDB residue information for $pdbid\n";
+  $pfamDB->getSchema->resultset('PdbResidueData')->search( { 'pdb_id' => uc($pdbid) } )->delete;
 
-	print "Searching for PDB residue data for $pdbid\n";
-	$sthr->execute($pdbid);
+  print "Searching for PDB residue data for $pdbid\n";
+  $sthr->execute($pdbid);
 
-	my $tbl_ary_ref = $sthr->fetchall_arrayref;
+  my $tbl_ary_ref = $sthr->fetchall_arrayref;
 
 #make some changes to this array ref to populate the db
 #need to change observed (Y/N) into an integer (1/0)
@@ -151,35 +151,35 @@ foreach my $pdbid (keys %pdbs){
 #can only populate where pfamseq_acc is not NULL and also there pfamseq_acc is found in pfamseq
 #make these changes directly into the array ref
 
-	foreach my $row (@$tbl_ary_ref){
+  foreach my $row (@$tbl_ary_ref){
 
-		if ($row->[6] eq "Y"){
-			$row->[6] = 1;
-		} elsif ($row->[6] eq "N"){
-			$row->[6] = 0;
-		}
-		my $ins;
-		unless ($row->[5] =~ /\w+/){
-			$row->[5] = $ins;
-		}
+    if ($row->[6] eq "Y"){
+      $row->[6] = 1;
+    } elsif ($row->[6] eq "N"){
+      $row->[6] = 0;
+    }
+    my $ins;
+    unless ($row->[5] =~ /\w+/){
+      $row->[5] = $ins;
+    }
 #uppercase pdbid
-		$row->[0] = uc($row->[0]);
-	
-	}
+    $row->[0] = uc($row->[0]);
+
+  }
 
 
-my $guard = $pfamDB->getSchema->txn_scope_guard;
+  my $guard = $pfamDB->getSchema->txn_scope_guard;
 
-print "commiting to database\n";
+  print "commiting to database\n";
 
-$pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $pfamDB);
+  $pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $pfamDB);
 
 
-$guard->commit;
+  $guard->commit;
 
 #exit;
 
-	$sthr->finish;
+  $sthr->finish;
 } #end of loop through pdb ids to query for residue data
 
 $dbh->disconnect;
