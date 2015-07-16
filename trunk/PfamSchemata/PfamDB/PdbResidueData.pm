@@ -130,19 +130,19 @@ __PACKAGE__->belongs_to("pdb_id", "PfamDB::Pdb", { pdb_id => "pdb_id" });
 
 Type: belongs_to
 
-Related object: L<PfamDB::Pfamseq>
+Related object: L<PfamDB::Uniprot>
 
 =cut
 
 __PACKAGE__->belongs_to(
   "pfamseq_acc",
-  "PfamDB::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
+  "PfamDB::Uniprot",
+  { uniprot_acc => "pfamseq_acc" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hO9yrzICkPfu/SwII99suA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-16 09:43:46
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i7zmMW0WLxefz2pEsdKN8w
 
 
 __PACKAGE__->might_have(
