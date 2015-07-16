@@ -257,21 +257,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pdb_residue_datas
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PdbResidueData>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_residue_datas",
-  "PfamLive::Result::PdbResidueData",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pfam_a_reg_full_insignificants
 
 Type: has_many
@@ -408,8 +393,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 11:51:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zi/rQuJadZ4zEULIhYx+rw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:31:39
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4cQ+F6dCtx2PpbX2aYgopg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
