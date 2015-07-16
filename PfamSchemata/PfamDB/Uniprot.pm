@@ -191,9 +191,24 @@ Related object: L<PfamDB::Evidence>
 
 __PACKAGE__->belongs_to("evidence", "PfamDB::Evidence", { evidence => "evidence" });
 
+=head2 pdb_residue_datas
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-06-30 09:52:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:nfgf3BrGxplle29Ara5exQ
+Type: has_many
+
+Related object: L<PfamDB::PdbResidueData>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pdb_residue_datas",
+  "PfamDB::PdbResidueData",
+  { "foreign.pfamseq_acc" => "self.uniprot_acc" },
+  undef,
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:30:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/sQ4zpf5VYccSKB5V7MIbA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
