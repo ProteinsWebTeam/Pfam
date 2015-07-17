@@ -414,13 +414,15 @@ sub updatePfamARegSeed {
   #Get all the sequences that we need to work on
   my @seqs;
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=0');
+
+  my $pfamA_acc=$famObj->DESC->AC;
   my @rows;
   foreach my $seq ( $famObj->SEED->each_seq ) {
     push(
       @rows,
       {
         pfamseq_acc => $seq->id,
-        pfama_acc   => $famObj->DESC->AC,
+        pfama_acc   => $pfamA_acc,
         seq_start    => $seq->start,
         seq_end      => $seq->end
       }
@@ -428,6 +430,18 @@ sub updatePfamARegSeed {
   }
 
   $self->getSchema->resultset('PfamARegSeed')->populate( \@rows );
+
+  #Now populate seq_version, md5 and source
+  my $dbh=$self->getSchema->storage->dbh;
+
+  #Join pfamA_reg_seed to pfamseq and populate seq_version, md5 and source for sequences in pfamseq
+  my $pfamseq_sth=$dbh->prepare("update pfamA_reg_seed inner join pfamseq on pfamA_reg_seed.pfamseq_acc = pfamseq.pfamseq_acc set pfamA_reg_seed.seq_version = pfamseq.seq_version, pfamA_reg_seed.md5 = pfamseq.md5, pfamA_reg_seed.source='pfamseq' where pfamA_acc='$pfamA_acc'");
+  $pfamseq_sth->execute() or die "Couldn't execute statement ".$pfamseq_sth->errstr."\n";
+
+  #Then join pfamA_reg_seed to uniprot and populate seq_version, md5 and source for the sequences not in pfamseq
+  my $uniprot_sth=$dbh->prepare("update pfamA_reg_seed inner join uniprot on pfamA_reg_seed.pfamseq_acc = uniprot.uniprot_acc set pfamA_reg_seed.seq_version = uniprot.seq_version, pfamA_reg_seed.md5 = uniprot.md5, pfamA_reg_seed.source='uniprot' where pfamA_acc='$pfamA_acc' and source is null");
+  $uniprot_sth->execute() or die "Couldn't execute statement ".$uniprot_sth->errstr."\n";
+
   $self->getSchema->storage->dbh->do('SET foreign_key_checks=1');
 }
 
