@@ -11,10 +11,14 @@ my $config = Bio::Pfam::Config->new;
 
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $schema = $pfamDB->getSchema;
+my $dbh_pfam = $pfamDB->getSchema->storage->dbh;
+
 
 $ENV{TNS_ADMIN}='/ebi/msd/software/common/tns_admin';
 
-my $dbh = DBI->connect("dbi:Oracle:pdbe_main_production", "search_pfam", "search_pfam55");
+#Switch to commented out line once the pfam_search account is set up
+my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_interpro", "search_interpro55");
+#my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_pfam", "search_pfam55");
 
 my %pdbs;
 
@@ -23,17 +27,11 @@ my $sthe = $dbh->prepare("select id from entry");
 print "Fetching pdb ids\n";
 $sthe->execute();
 my $tbl_ary_refe = $sthe->fetchall_arrayref;
-#print $#{$tbl_ary_refe}."\n";
-#p($tbl_ary_refe);
-#my $rows = $sthe->rows;
-#print $rows . "\n";
 $sthe->finish();
 
 foreach my $row_e (@$tbl_ary_refe){
   $pdbs{$row_e->[0]}=1;
 }
-
-#p(%pdbs);
 
 #to get data for pdb table (title, date etc)
 my $sthp = $dbh->prepare(
@@ -52,7 +50,6 @@ foreach my $pdb (keys %pdbs){
   $sthm->execute($pdb);
 
   my $tbl_ary_ref_p = $sthp->fetchall_arrayref;
-#p($tbl_ary_ref_p->[0][1]);
   my $tbl_ary_ref_a = $stha->fetchall_arrayref;
   my $names = '';
   my $count = 0;
@@ -78,22 +75,18 @@ foreach my $pdb (keys %pdbs){
   }
 
   my @data = ($tbl_ary_ref_p->[0][1], $tbl_ary_ref_p->[0][2], $tbl_ary_ref_p->[0][3], $tbl_ary_ref_p->[0][4], $names, $methods);
-#p(@data);
+  
   $pdbs{$pdb}=\@data;
   $stha->finish;
   $sthp->finish;
 }
 
-#p(%pdbs);
-#exit;
 
 #NOW POPULATE pdb table
 print "Populating pdb table\n";
 
 foreach my $id (keys %pdbs){
-#print "$pdbs{$id}->[3]\n";
 
-#p($pdbs{$id}->[0]);
   my $guard = $pfamDB->getSchema->txn_scope_guard;
   my $r = $pfamDB->getSchema->resultset('Pdb')->update_or_create(
     {
@@ -109,7 +102,6 @@ foreach my $id (keys %pdbs){
   $guard->commit;
 }
 
-#exit;
 
 #to get residue data
 my $sthr = $dbh->prepare("select
@@ -148,7 +140,7 @@ foreach my $pdbid (keys %pdbs){
 #make some changes to this array ref to populate the db
 #need to change observed (Y/N) into an integer (1/0)
 #fix insert code so null is displayed when there is no insert code
-#can only populate where pfamseq_acc is not NULL and also there pfamseq_acc is found in pfamseq
+#can only populate where pfamseq_acc is not NULL and also the pfamseq_acc is found in pfamseq/uniprot table - done in loadPdbResidueData
 #make these changes directly into the array ref
 
   foreach my $row (@$tbl_ary_ref){
@@ -172,14 +164,13 @@ foreach my $pdbid (keys %pdbs){
 
   print "commiting to database\n";
 
-  $pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $pfamDB);
+  $pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $dbh_pfam);
 
 
   $guard->commit;
 
-#exit;
 
-  $sthr->finish;
+  #$sthr->finish;
 } #end of loop through pdb ids to query for residue data
-
+$sthr->finish;
 $dbh->disconnect;
