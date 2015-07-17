@@ -60,19 +60,19 @@ __PACKAGE__->table("pfamA_reg_seed");
 =head2 seq_version
 
   data_type: 'tinyint'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 md5
 
   data_type: 'varchar'
-  is_nullable: 0
+  is_nullable: 1
   size: 32
 
 =head2 source
 
   data_type: 'enum'
   extra: {list => ["pfamseq","uniprot"]}
-  is_nullable: 0
+  is_nullable: 1
 
 =cut
 
@@ -90,14 +90,14 @@ __PACKAGE__->add_columns(
   "tree_order",
   { data_type => "mediumint", is_nullable => 1 },
   "seq_version",
-  { data_type => "tinyint", is_nullable => 0 },
+  { data_type => "tinyint", is_nullable => 1 },
   "md5",
-  { data_type => "varchar", is_nullable => 0, size => 32 },
+  { data_type => "varchar", is_nullable => 1, size => 32 },
   "source",
   {
     data_type => "enum",
     extra => { list => ["pfamseq", "uniprot"] },
-    is_nullable => 0,
+    is_nullable => 1,
   },
 );
 
@@ -119,8 +119,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:55:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qXKKYRJ4Dc/yRX/9bo64ow
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-17 10:51:29
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S6kOyAPhetkbp3ONzsKVaA
 
 __PACKAGE__->add_unique_constraint(
  	"pfamA_reg_seed_reg_idx",
