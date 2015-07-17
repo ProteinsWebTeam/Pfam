@@ -27,6 +27,7 @@ GetOptions(
   "md5file=s"  => \$oldSeedSeqMd5s
 );
 
+
 help() if ($help);
 
 my $config = Bio::Pfam::Config->new;
@@ -66,40 +67,40 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 # Which families need surgery?
 $logger->info('Getting list of families that need to be updated.');
 
-my $pfamSth = $dbh->prepare(
+my $pfamASth = $dbh->prepare(
   'select pfamA_acc from  pfamA a 
 where num_seed != (
 select count(pfamA_acc) from pfamA_reg_seed s where a.pfamA_acc=s.pfamA_acc)'
-); #mySQL statement updated for new db schema
+); 
 
-$pfamSth->execute or $logger->logdie( $dbh->errstr );
-my $res = $pfamSth->fetchall_arrayref;
+$pfamASth->execute or $logger->logdie( $dbh->errstr );
+my $res = $pfamASth->fetchall_arrayref;
 
 my %pfamA;
 foreach my $r (@$res) {
-  $pfamA{ $r->[0] } = 1; #update due to changes to mySQL statement for new schema, now key=acc, val = 1 instead of key = acc, val = auto_pfamA
+  $pfamA{ $r->[0] } = 1;
 }
 $logger->info("Finished getting list of Pfam families");
 
 #-------------------------------------------------------------------------------
-#Prepare the statemnet that we use to get the sequence information
-my $seqSth =
+#Prepare the statement that we use to get the sequence information
+my $pfamseqSth =
   $dbh->prepare("select pfamseq_acc, seq_version, sequence from pfamseq where pfamseq_acc = ?")
   or die $dbh->errstr;
 
-my $seedSth = $dbh->prepare(
-  "select distinct pfamseq_acc from pfamseq s, pfamA_reg_seed r 
-where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc=?"
-) or die $dbh->errstr; #mySQL statement changed due to new db schema
+my $pfamseqSeedSth = $dbh->prepare(
+  "select distinct s.pfamseq_acc from pfamseq s, pfamA_reg_seed r 
+where s.pfamseq_acc=r.pfamseq_acc and s.md5=r.md5 and pfamA_acc=?"
+) or die $dbh->errstr; 
 
 #-------------------------------------------------------------------------------
 #Get all secondary accessions
 $logger->info("Getting secondary accessions");
 
 my $secSth = $dbh->prepare(
-"select pfamseq_acc, seq_version, secondary_acc, md5 from pfamseq, secondary_pfamseq_acc 
+"select pfamseq.pfamseq_acc, seq_version, secondary_acc, md5 from pfamseq, secondary_pfamseq_acc 
 where pfamseq.pfamseq_acc = secondary_pfamseq_acc.pfamseq_acc"
-) or die $dbh->errstr; #mySQL query updated to to db schema change
+) or die $dbh->errstr;
 
 $secSth->execute or $dbh->errstr;
 
@@ -114,16 +115,29 @@ $logger->info("Finished secondary accession query");
 
 #-------------------------------------------------------------------------------
 #Get a list of new pfamseq Accessions and their md5 chechsums.
-$logger->info("Preparing (new) pfamseq md5 lookup");
+$logger->info("Preparing the pfamseq and uniprot queries");
 
-my $newSeqSth =
+my $newSeqSthPfamseq =
   $dbh->prepare("select pfamseq_acc, seq_version from pfamseq where md5 = ?")
   or die $dbh->errstr;
 
 
-$logger->info("Finished getting (new) pfamseq accessions");
-
 #-------------------------------------------------------------------------------
+#Uniprot queries
+my $uniprotSth = $dbh->prepare("select uniprot_acc, seq_version, sequence from uniprot where uniprot_acc = ?") or $logger->logdie($dbh->errstr);
+my $newSeqSthUniprot = $dbh->prepare("select uniprot_acc, seq_version from uniprot where md5 = ?") or $logger->logdie($dbh->errstr);
+my $uniprotSeedSth = $dbh->prepare("select distinct uniprot_acc from uniprot u, pfamA_reg_seed p where p.pfamseq_acc=u.uniprot_acc and p.md5=u.md5 and pfamA_acc=?");
+
+$logger->info("Getting list of families that have mixed seeds");
+#Get list of families that have mixed seeds
+my $rpSeed = $dbh->prepare("select pfamA_acc from pfamA where rp_seed=0");
+$rpSeed->execute() or die "Couldn't execute statement ".$rpSeed->errstr."\n";
+my (%mixedSeed, $pfamA_acc);
+$rpSeed->bind_columns(\$pfamA_acc);
+while ($rpSeed->fetch()) {
+  $mixedSeed{$pfamA_acc}=1;
+}
+
 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 
@@ -131,11 +145,20 @@ FAM:
 foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
   $logger->debug("$fam needs seed surgery");
 
-  $seedSth->execute( $pfamA ) or die $dbh->errstr; #mySQL statement changed due to db schema - now execute on $pfamA which is PfamA_acc rather than the auto_pfamA
-  my $seedSeqs = $seedSth->fetchall_arrayref;
-  my $seedSeqsHash;
-  foreach my $r (@$seedSeqs) {
-    $seedSeqsHash->{ $r->[0] }++;
+  #Get hash of seed seqs that have the same md5 in pfamA_reg_seed and pfamseq
+  $pfamseqSeedSth->execute( $fam ) or die $dbh->errstr; 
+  my $seedSeqsPfamseq = $pfamseqSeedSth->fetchall_arrayref;
+  my $seedSeqsPfamseqHash;
+  foreach my $r (@$seedSeqsPfamseq) {
+    $seedSeqsPfamseqHash->{ $r->[0] }++;
+  }
+
+  #Get hash of seed seqs that have the same md5 in pfamA_reg_seed and uniprot;
+  $uniprotSeedSth->execute( $fam ) or die $dbh->errstr;
+  my $seedSeqsUniprot = $uniprotSeedSth->fetchall_arrayref;
+  my $seedSeqsUniprotHash;
+  foreach my $r (@$seedSeqsUniprot) {
+    $seedSeqsUniprotHash->{ $r->[0] }++;
   }
 
   if ( -d $surgeryDir . '/' . $fam ) {
@@ -174,17 +197,20 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
   my $newseed   = Bio::Pfam::AlignPfam->new;
   my $finalseed = Bio::Pfam::AlignPfam->new;
 
+  my $mixedSeed=0;
+  $mixedSeed=1 if(exists($mixedSeed{$fam}));
+
   #Find out which sequnces have changed in the alignment.
   my $needHMMAlign =
-    verifySeedSeqs( $oldseed, $newseed, $seedSeqsHash, $newSeqSth, $oldMd5s,
-    $secAccs, $descObj );
+    verifySeedSeqs( $oldseed, $newseed, $seedSeqsPfamseqHash, $newSeqSthPfamseq, $oldMd5s,
+    $secAccs, $descObj, $seedSeqsUniprotHash, $newSeqSthUniprot, $mixedSeed );
 
   #Those where the sequence has changed, the sequences need to aligned back
   appendNewSequences( $newseed, $finalseed ) if ($needHMMAlign);
 
   #Write out the new seed alignment
   open( NS, ">SEED" ) or $logger->logdie( "Could not open SEED:[$!]" );
-  if ( $needHMMAlign and ( $finalseed->no_sequences > 1 ) ) {
+  if ( $needHMMAlign and ( $finalseed->num_sequences > 1 ) ) {
     my $no_gaps = $finalseed->allgaps_columns_removed;
     $no_gaps->write_Pfam( \*NS );
   }
@@ -205,17 +231,24 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
 #-------------------------------------------------------------------------------
 #Move those families that do not need surgery (as only names have changes into the non-surgery directory.
   if ( !$needHMMAlign and !defined( $descObj->NESTS ) ) {
-    chdir($surgeryDir);
-    $logger->debug("Moving $fam to $famDir");
-    system( "mv $surgeryDir/$fam $famDir" )
-      and $logger->logdie("Failed to move $fam dir into $famDir");
+    if(-s "$surgeryDir/$fam/SEED") {
+      chdir($surgeryDir);
+      $logger->debug("Moving $fam to $famDir");
+      system( "mv $surgeryDir/$fam $famDir" ) and $logger->logdie("Failed to move $fam dir into $famDir");
+    }
+    else { #Seed is empty so move it to a separate dir
+      $logger->debug("$fam has no sequences left in SEED, moving to $surgeryDir/noSEED");
+      unless(-d "$surgeryDir/noSEED") {
+        mkdir("$surgeryDir/noSEED", 0755) or $logger->logdie("Cannot mkdir ../CHECKED_IN $!");
+      }
+      system("mv $surgeryDir/$fam $surgeryDir/noSEED") and $logger->logdie("Failed to move $fam dir into $surgeryDir/noSEED");
+    }
   }
 }
 
 sub verifySeedSeqs {
-  my ( $oldseed, $newseed, $seedSeqHash, 
-  $newSeqsSth,  $oldMd5s, $secAccs,
-    $descObj ) = @_;
+  my ( $oldseed, $newseed, $seedSeqPfamseqHash, $newPfamseqSth,  $oldMd5s, $secAccs, $descObj, 
+  $seedSeqsUniprotHash, $newUniprotSth, $mixedSeed) = @_;
   my $needHMMAlign = 0;
 
   my $nse;    #List of nse....
@@ -224,21 +257,19 @@ sub verifySeedSeqs {
   open( LOG, ">seed_surgery.log" )
     || $logger->logdie( "Failed to open seed_surgery.log file:[$!]");
 
-  #Go through each sequence and see if it is still in pfamseq.
   foreach my $seq ( $oldseed->each_seq ) {
 
-    my ( $newsubseq, $deleted, $realign, $md5Map );
+    #Find seq in pfamseq with same md5
+    my ( $newsubseq, $deleted, $realign, $pfamseqMd5Map );
     if($oldMd5s->{ $seq->id }){
-      #Perform a quick lookup to get the data;
-      $newSeqsSth->execute($oldMd5s->{ $seq->id });
-      $md5Map = $newSeqsSth->fetchrow_arrayref;  
+      $newPfamseqSth->execute($oldMd5s->{ $seq->id });
+      $pfamseqMd5Map = $newPfamseqSth->fetchrow_arrayref;  
     }
 
 
-    #Check that sequence is still in pfamseq;
-    if ( $seedSeqHash->{ $seq->id } ) {
-      $logger->debug($seq->id." unchanged");
-      #This sequence is still okay so add to the hash
+    #Check that sequence with same md5 is still in pfamseq;
+    if ( $seedSeqPfamseqHash->{ $seq->id } ) {
+      $logger->debug($seq->id." unchanged in pfamseq");
       $newsubseq = Bio::Pfam::SeqPfam->new(
         '-seq'     => $seq->seq,
         '-id'      => $seq->id,
@@ -250,9 +281,9 @@ sub verifySeedSeqs {
       );
 
     } #Look to see if there is a sequence that is the same based on MD5 checksum.
-    elsif ( $oldMd5s->{ $seq->id } and defined($md5Map) ) {
-      my $newAcc = $md5Map->[0];
-      my $newVer = $md5Map->[1];
+    elsif ( $oldMd5s->{ $seq->id } and defined($pfamseqMd5Map) ) {
+      my $newAcc = $pfamseqMd5Map->[0];
+      my $newVer = $pfamseqMd5Map->[1];
 
       $newsubseq = Bio::Pfam::SeqPfam->new(
         '-seq'     => $seq->seq,
@@ -263,7 +294,7 @@ sub verifySeedSeqs {
         '-type'    => 'aligned',
         '-names'   => { 'acc' => $newAcc }
       );
-      $logger->debug($seq->id." changed accession");
+      $logger->debug($seq->id." changed accession in pfamseq");
       
     }
     elsif ( $secAccs->{ $seq->id } ) {
@@ -281,51 +312,84 @@ sub verifySeedSeqs {
           '-type'    => 'aligned',
           '-names'   => { 'acc' => $secAccs->{ $seq->id }->{acc} }
         );
-        $logger->debug($seq->id." changed accession");
+        $logger->debug($seq->id." changed accession in pfamseq");
       
-      }    #Sequence is different, going to align
+      }
       else {
-        
-        print LOG "Differnet MD5s, going to perform SW alignment with "
-          . $secAccs->{ $seq->id }->{acc} . "\n";
-        $seqSth->execute( $secAccs->{ $seq->id }->{acc} );
-        my $row = $seqSth->fetchrow_arrayref;
-        if ( !$row ) {
-          print LOG "Failed to fetch seqeuence "
-            . $secAccs->{ $seq->id }->{acc} . "\n";
-          $logger->debug($seq->id." deleted");
-            
+        if($mixedSeed) { #If mixed seed and sec acc have diff md5 then look in uniprot table for same md5
+          $newsubseq=lookInUniprot($seq, $seedSeqsUniprotHash, $newSeqSthUniprot, $oldMd5s);
         }
-        else {
-          replaceSequence( $seq->seq, $row, $nse );
-          $needHMMAlign++;
-          $realign = $row->[0] . "." . $row->[1];
-          $logger->debug($seq->id." replaced by updated sequence");
-      
+        if(!$newsubseq) { #If not a mixed seed, or failed to find in uniprot, try and align with changed sec acc
+        
+          print LOG "Different MD5s, going to perform SW alignment with "
+          . $secAccs->{ $seq->id }->{acc} . " from pfamseq\n";
+          $pfamseqSth->execute( $secAccs->{ $seq->id }->{acc} );
+          my $row = $pfamseqSth->fetchrow_arrayref;
+          if ( !$row ) {
+            print LOG "Failed to fetch seqeuence "
+            . $secAccs->{ $seq->id }->{acc} . "\n";
+            $logger->debug($seq->id." deleted");
+            $deleted++;
+          }
+          else {
+            replaceSequence( $seq->seq, $row, $nse );
+            $needHMMAlign++;
+            $realign = $row->[0] . "." . $row->[1];
+            $logger->debug($seq->id." replaced by updated pfamseq sequence");
+          }
         }
       }
     }    #Look to see if the version has been incremented
     else {
-      $seqSth->execute( $seq->id );
-      my $row = $seqSth->fetchrow_arrayref;
-      if ( !$row ) {
-        print LOG "Failed to find replacement seqeuence for "
+      if($mixedSeed) { #If mixed seed, look in uniprot for same md5 first
+        $newsubseq=lookInUniprot($seq, $seedSeqsUniprotHash, $newSeqSthUniprot, $oldMd5s);
+      }        
+      if(!$newsubseq) {  #If not a mixed seed, or failed to find in uniprot, try and align updated seqeunce
+
+        $pfamseqSth->execute( $seq->id );
+        my $row = $pfamseqSth->fetchrow_arrayref;
+        if ( !$row ) {
+          print LOG "Failed to find replacement seqeuence for "
           . $seq->id
           . ", must be deleted\n";
-        $logger->debug($seq->id." deleted");
-          
-        $deleted++;
+          $logger->debug($seq->id." deleted");
+
+          $deleted++;
+        }
+        else {
+          print LOG "Sequence change - Performing SW for " . $seq->id . "\n";
+          replaceSequence( $seq->seq, $row, $nse );
+          $logger->debug($seq->id." replaced by updated uniprot sequence");
+          $needHMMAlign++;
+          $realign = $row->[0] . "." . $row->[1];
+        }
       }
+    }
+    
+    if(!$newsubseq and $mixedSeed) { #Finally, if we get here, look for updated seq in uniprot and align
+    
+      $uniprotSth->execute( $seq->id );
+
+      my $row = $uniprotSth->fetchrow_arrayref;
+      if ( !$row ) { 
+        print LOG "Failed to find replacement seqeuence for "
+        . $seq->id
+        . " in uniprot, must be deleted\n";
+        $logger->debug($seq->id." deleted");
+
+        $deleted++;
+      }   
       else {
         print LOG "Sequence change - Performing SW for " . $seq->id . "\n";
         replaceSequence( $seq->seq, $row, $nse );
-        $logger->debug($seq->id." replaced by updated sequence");
+        $logger->debug($seq->id." replaced by updated uniprot sequence");
         $needHMMAlign++;
         $realign = $row->[0] . "." . $row->[1];
-      }
+      }   
     }
 
-  #Now add the new sequence object to the newseed unless it already contains it.
+
+    #Now add the new sequence object to the newseed unless it already contains it.
     if ($newsubseq) {
       my $uid =
           $newsubseq->id . "."
@@ -372,7 +436,6 @@ sub verifySeedSeqs {
 }
 
 #-------------------------------------------------------------------------------
-#In theory nothing needs changing.
 
 sub replaceSequence {
   my ( $oldseq, $newSeqRowRef, $nse ) = @_;
@@ -434,7 +497,6 @@ sub replaceSequence {
 }
 
 #-------------------------------------------------------------------------------
-#In theory nothing needs changing.
 
 sub appendNewSequences {
   my ( $ali1, $ali2 ) = @_;
@@ -472,6 +534,52 @@ $config->hmmer2bin."/hmmalign -q --withali SEED.moretoadd -o SEED.addedmore HMM.
     $logger->warn("Failed to make new SEED");
   }
 
+}
+
+
+sub lookInUniprot {
+  my ($seq, $seedSeqsUniprotHash, $newSeqSthUniprot, $oldMd5s) = @_;
+
+  my ($uniprotMd5Map);
+
+  if ( $seedSeqsUniprotHash->{ $seq->id } ) { #Seq is unchanged in uniprot
+    $logger->debug($seq->id." unchanged in uniprot");
+    #This sequence is still okay so add to the hash
+    my $newseq = Bio::Pfam::SeqPfam->new(
+      '-seq'     => $seq->seq,
+      '-id'      => $seq->id,
+      '-version' => $seq->seq_version,
+      '-start'   => $seq->start,
+      '-end'     => $seq->end,
+      '-type'    => 'aligned',
+      '-names'   => { 'acc' => $seq->accession_number() }
+    );
+    return($newseq);
+  }
+  elsif($oldMd5s->{ $seq->id }){  #Look to see if there is a seq in uniprot with the same md5 as the old one
+      $newSeqSthUniprot->execute($oldMd5s->{ $seq->id });
+      $uniprotMd5Map = $newSeqSthUniprot->fetchrow_arrayref;
+    
+      if (defined($uniprotMd5Map) ) {
+        my $newAcc = $uniprotMd5Map->[0];
+        my $newVer = $uniprotMd5Map->[1];
+
+        my $newseq = Bio::Pfam::SeqPfam->new(
+          '-seq'     => $seq->seq,
+          '-id'      => $newAcc,
+          '-version' => $newVer,
+          '-start'   => $seq->start,
+          '-end'     => $seq->end,
+          '-type'    => 'aligned',
+          '-names'   => { 'acc' => $newAcc }
+       );
+       $logger->debug($seq->id." changed accession in uniprot");
+       return($newseq); 
+     }
+   } 
+   else {
+     return 0;
+   }
 }
 
 sub help {
