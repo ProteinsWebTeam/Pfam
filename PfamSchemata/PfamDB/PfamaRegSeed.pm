@@ -60,19 +60,19 @@ __PACKAGE__->table("pfamA_reg_seed");
 =head2 seq_version
 
   data_type: 'tinyint'
-  is_nullable: 0
+  is_nullable: 1
 
 =head2 md5
 
   data_type: 'varchar'
-  is_nullable: 0
+  is_nullable: 1
   size: 32
 
 =head2 source
 
   data_type: 'enum'
   extra: {list => ["pfamseq","uniprot"]}
-  is_nullable: 0
+  is_nullable: 1
 
 =cut
 
@@ -90,14 +90,14 @@ __PACKAGE__->add_columns(
   "tree_order",
   { data_type => "mediumint", is_nullable => 1 },
   "seq_version",
-  { data_type => "tinyint", is_nullable => 0 },
+  { data_type => "tinyint", is_nullable => 1 },
   "md5",
-  { data_type => "varchar", is_nullable => 0, size => 32 },
+  { data_type => "varchar", is_nullable => 1, size => 32 },
   "source",
   {
     data_type => "enum",
     extra => { list => ["pfamseq", "uniprot"] },
-    is_nullable => 0,
+    is_nullable => 1,
   },
 );
 
@@ -114,8 +114,8 @@ Related object: L<PfamDB::Pfama>
 __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:37:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TLPQ6J85FvJvX2kITFrG3Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-17 10:50:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:HWmoAj1hOpYZSuRpZMp+yA
 
 #Now set up the primary keys/contraints
 __PACKAGE__->set_primary_key("pfama_acc", "pfamseq_acc", "seq_start");
