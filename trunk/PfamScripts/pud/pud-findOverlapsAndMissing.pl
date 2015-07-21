@@ -32,7 +32,6 @@ use Storable;
 
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::Config;
-use Bio::Pfam::PfamLiveDBManager;
 
 #Start up the logger
 my $logger = get_logger();
@@ -91,7 +90,6 @@ if ( $fast and -e $statusdir . "/family.dat" ) {
 }
 
 #Some initial set up things.
-my $pfamDB     = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 my $date       = new Date::Object( time() );
 my $filePrefix = $date->year . $date->month . $date->day . "overlaps";
 my $nestClans  = 1;
