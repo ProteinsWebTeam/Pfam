@@ -465,7 +465,7 @@ sub filterOverlaps {
   open( OVERLAPS, "$statusdir/$filePrefix.overlaps" ) || die "Could not open overlap file: $!";
 
   while (<OVERLAPS>) {
-    if (( $_ =~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/)
+    if (( $_ =~ /(PF\d{5}).*:\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\)/)
         and ( $_ !~ /SEED.*SEED/ )) {
       $familyA = $1;
       $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
@@ -501,7 +501,7 @@ sub filterOverlaps {
   || die "Could not write the overlaps.filtered file: $!";
 
   while (<OVERLAPS>) {
-    if (( $_=~ /(PF\d{5}).*:\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\.\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/)
+    if (( $_=~ /(PF\d{5}).*:\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\)/)
         and ( $_ !~ /SEED.*SEED/ )) {
       $familyA = $1;
       $regionA = new Bio::Range( -start => $3, -end => $4, -strand => +1 );
@@ -551,7 +551,7 @@ sub filterOverlaps {
 
   open( OF, "$statusdir/$filePrefix.overlaps.filtered" );
   while (<OF>) {
-    if (/(PF\d{5}).*:\s(\w+)\.?\d*\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\w+)\.?\d*\/(\d+)-(\d+)\s\((\S+)\sbits\)/) {
+    if (/(PF\d{5}).*:\s(\w+)\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\w+)\/(\d+)-(\d+)\s\((\S+)\sbits\)/) {
       $familyA = $1;
       $familyB = $6;
 
