@@ -306,9 +306,12 @@ sub checkRegions {
         next REGION;
       }
 
-      if (     $clans->{ $regions->[$i]->{acc} } and $clans->{ $regions->[$j]->{acc} } ) {
-        if ( $clans->{ $regions->[$i]->{acc} } eq $clans->{ $regions->[$j]->{acc} } ) {
-          next REGION;
+      #Ignore if regions are in same clan (unless it is a seed-seed overlap)
+      unless($regions->[$i]->{evalue} eq "**" and $regions->[$j]->{evalue} eq "**") {
+        if ( $clans->{ $regions->[$i]->{acc} } and $clans->{ $regions->[$j]->{acc} } ) {
+          if ( $clans->{ $regions->[$i]->{acc} } eq $clans->{ $regions->[$j]->{acc} } ) {
+            next REGION;
+          }
         }
       }
 
@@ -491,9 +494,8 @@ sub filterOverlaps {
 
     }
   }
-
   close OVERLAPS;
-
+  
   # Re-read the same file and print the overlaps that satisfy our restrictions in a new output file.
 
   open( OVERLAPS, "$statusdir/$filePrefix.overlaps" ) || die "Could not open overlap file: $!";
