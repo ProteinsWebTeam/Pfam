@@ -873,8 +873,7 @@ sub sequenceOverlapRule
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-my $value =  $self->{overlap_rule}->{sequence_overlap};
-print "\n\n$value\n\n";
+  my $value =  $self->{overlap_rule}->{sequence_overlap};
   return $self->{overlap_rule}->{sequence_overlap};
 }
 
