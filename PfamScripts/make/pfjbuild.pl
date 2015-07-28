@@ -29,7 +29,7 @@ sub main {
 
   unless ($config) {
     die
-"Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
+    "Failed to obtain a Pfam Config object, check that the environment variable PFAM_CONFIG is set and the file is there!\n";
   }
   unless ( $config->location eq 'WTSI' or $config->location eq 'JFRC' or $config->location eq 'EBI' ) {
     warn "Unknown location... things will probably break\n";
@@ -73,36 +73,36 @@ sub main {
   unless ($noIts) {
     $noIts = 5;
   }    
-  
+
   $optCmds{'-N'} = $noIts;
 
   die "Can't specify both accession and fasta file on the command line\n" if($fasta and $acc);
 
   if($acc) {
-      my %seq;
-      push(@{ $seq{$acc} }, { whole => 1 });
-      open(FASTA, ">$acc.fasta") or die "Could not open $acc.fasta for writing, $!\n";
-      my $seq_fetch = Bio::Pfam::SeqFetch::fetchSeqs(\%seq,$config->pfamseqLoc."/pfamseq", \*FASTA);
-      unless($seq_fetch) {
-	  print STDERR "Couldn't find $acc in pfamseq, going to pfetch the sequence\n";
-	  open(PFETCH, "pfetch $acc |") or die "Couldn't open fh to pfetch $acc $!\n";
-	  while(<PFETCH>) {
-	      if(/no match/) {
-		  die "Couldn't find $acc using pfetch\n";
-	      }
-	      else {
-		  print FASTA $_;
-	      }
-	  }
-	  close PFETCH;
-       }
-      close FASTA;
-      $fasta = "$acc.fasta";
+    my %seq;
+    push(@{ $seq{$acc} }, { whole => 1 });
+    open(FASTA, ">$acc.fasta") or die "Could not open $acc.fasta for writing, $!\n";
+    my $seq_fetch = Bio::Pfam::SeqFetch::fetchSeqs(\%seq,$config->pfamseqLoc."/pfamseq", \*FASTA);
+    unless($seq_fetch) {
+      print STDERR "Couldn't find $acc in pfamseq, going to pfetch the sequence\n";
+      open(PFETCH, "pfetch $acc |") or die "Couldn't open fh to pfetch $acc $!\n";
+      while(<PFETCH>) {
+        if(/no match/) {
+          die "Couldn't find $acc using pfetch\n";
+        }
+        else {
+          print FASTA $_;
+        }
+      }
+      close PFETCH;
+    }
+    close FASTA;
+    $fasta = "$acc.fasta";
   }
-  
+
   unless($fasta and -s $fasta) {
-      warn "\n***** You need to specify a valid fasta file or a UniProt accession! *****\n";
-      $help = 1;
+    warn "\n***** You need to specify a valid fasta file or a UniProt accession! *****\n";
+    $help = 1;
   }
 
   if ( !$incE and !$incDomT and !$incT ) {
@@ -149,9 +149,9 @@ sub main {
   #Use $c later for writing PFAMOUT file
   my $c;
   if ($check) {
-      $optCmds{'--chkali'} = $check;
-      $optCmds{'--chkhmm'} = $check;
-      $c = $check;
+    $optCmds{'--chkali'} = $check;
+    $optCmds{'--chkhmm'} = $check;
+    $c = $check;
   }
   else {
     warn "\n***** Checkpoint has been turned off. *****\n"; #We'll still going to run with check pointing, but will delete files later
@@ -159,24 +159,25 @@ sub main {
     $optCmds{'--chkali'} = $c;
     $optCmds{'--chkhmm'} = $c;  
   }
-  
-  unless($noOverlap) {
-    warn "\n***** Overlap check has been switched on for reference proteome sequences. Note they will NOT be filtered according to the config file.\n";
-  }
+
 
   unless ($seqDB) {
-      if($config->location eq 'WTSI') {
-	  $seqDB = $config->pfamseqLustreLoc."/pfamseq";
-      }
-      else {
-	  $seqDB = $config->pfamseqLoc . "/pfamseq";
-      }
+    if($config->location eq 'WTSI') {
+      $seqDB = $config->pfamseqLustreLoc."/pfamseq";
+    }
+    else {
+      $seqDB = $config->pfamseqLoc . "/pfamseq";
+    }
   }
 
 
   unless ($noOverlap) {
-    unless ( $seqDB =~ m|/pfamseq$| or $seqDB =~ m|/refprot$| ) {
-      warn "$seqDB does not look like it is pfamseq or refprot.  Switching off overlap check\n";
+    if( $seqDB =~ m|/pfamseq$|  ) {
+      warn "\n***** Overlap check has been switched on. Overlaps will NOT be filtered according to the config file.\n";
+
+    }
+    else {
+      warn "$seqDB does not look like it is pfamseq.  Switching off overlap check\n";
       $noOverlap = 1;
     }
   }
@@ -205,8 +206,8 @@ sub main {
     open(ALIGN, ">align") or die "Couldn't open file 'align' for writing $!";
 
     while(<JALIGN>) {
-	next if(/^\#/ or /^\s*$/ or m|//|);
-	print ALIGN $_;
+      next if(/^\#/ or /^\s*$/ or m|//|);
+      print ALIGN $_;
     }
     close JALIGN;
     close ALIGN;
@@ -214,31 +215,30 @@ sub main {
     #Make pseudo ALIGN files for checkpoint alignments
     if($check) {
       for(my $i=1; $i<=$noIts; $i++) {
-	my $a = "$check-$i";
-	my $aln_file = "$a.sto";
-	next unless(-s $aln_file);
-	open(ALN, $aln_file) or die "Couldn't open $aln_file, $!";
-	open(A, ">$a.align") or die "Couldn't open file '$a.align' for writing $!";
-	
-	while(<ALN>) {
-	  next if(/^\#/ or /^\s*$/ or m|//|);
-	  print A $_;
-	}
-	close ALIGN;
-	close A;
+        my $a = "$check-$i";
+        my $aln_file = "$a.sto";
+        next unless(-s $aln_file);
+        open(ALN, $aln_file) or die "Couldn't open $aln_file, $!";
+        open(A, ">$a.align") or die "Couldn't open file '$a.align' for writing $!";
+
+        while(<ALN>) {
+          next if(/^\#/ or /^\s*$/ or m|//|);
+          print A $_;
+        }
+        close ALIGN;
+        close A;
       }
     }
-    
+
     #Check for overlaps....
     unless ( $noOverlap ) {
-      my $pfamDBAdmin = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
-      checkOverlap($pfamDBAdmin, "align");
+      checkOverlap($pfamDB, "align");
       if($check) {  #Check for overlaps in checkpoint alignments
-	for(my $i=1; $i<=$noIts; $i++) {
-	  my $aln_file = "$check-$i.align";
-	  next unless(-s $aln_file);
-	  checkOverlap($pfamDBAdmin, $aln_file);
-	}
+        for(my $i=1; $i<=$noIts; $i++) {
+          my $aln_file = "$check-$i.align";
+          next unless(-s $aln_file);
+          checkOverlap($pfamDB, $aln_file);
+        }
       }
     }
 
@@ -247,8 +247,8 @@ sub main {
     }
 
     if($gzip) {
-	system("gzip JALIGN") and die "Failed to run gzip on JALIGN, $!";
-	system("gzip JOUT") and die "Failed to run gzip on JOUT, $!";
+      system("gzip JALIGN") and die "Failed to run gzip on JALIGN, $!";
+      system("gzip JOUT") and die "Failed to run gzip on JOUT, $!";
     }
     unlink("JOUT.final");
 
@@ -261,32 +261,32 @@ sub main {
 }
 
 sub checkOverlap {
-   my ($pfamDBAdmin, $aln) = @_;
+  my ($pfamDB, $aln) = @_;
 
   my (%regions);
- 
+
   open( A, $aln )  or die "Could not open $aln:[$!]\n";
   while (<A>) {
     next if(/^#/ or /\/\//);
     if(/(\S+)\/(\d+)-(\d+)/) { #Alignments contain alignment co-ordinates
       my ($acc, $st, $en) = ($1, $2, $3);
       if($acc =~ /(\S+)\.\d+/) {
-	$acc=$1;
+        $acc=$1;
       }
-      
+
       push(@{ $regions{ $acc } }, 
-	   {
- 	    ali_from  => $st,   
-	    ali_to    => $en,
-	    family    => 'NEW',
-	    ali       => 'JALIGN',
-	    family_id => 'NEW' });
+        {
+          ali_from  => $st,   
+          ali_to    => $en,
+          family    => 'NEW',
+          ali       => 'JALIGN',
+          family_id => 'NEW' });
     }
   }
   close(A);
 
   my $ignore_ref;
-  my ($numOverlaps, $overlapArray) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, "", 1);
+  my ($numOverlaps, $overlapArray) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, $pfamDB, "", "", "", "");
 
   #Now print out any overlaps that should not be ignored
   my $LOG;
@@ -322,7 +322,7 @@ sub runJackhmmer {
   while ( my ( $opt, $param ) = each %$optionalCmds ) {
     $cmd .= "$opt $param ";
   }
-  
+
   $cmd .= "$fasta $seqDB";
   #print STDERR "Running this command: |$cmd|\n";
   system($cmd) and die "Failed to run jackhmmer:[$!]\n";
@@ -396,16 +396,16 @@ sub farmJackhmmer {
   }
   elsif($config->location eq 'EBI') { # EBI memory requirement is specified in Mb
     $fh->open( "| bsub -q " . $farmConfig->{lsf}->{queue} . 
-                     " -o $$.log" .
-                     " -Jjackhmmer$$ " .
-                     " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " . 
-                     " -M $memory_mb" ); 
+      " -o $$.log" .
+      " -Jjackhmmer$$ " .
+      " -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" " . 
+      " -M $memory_mb" ); 
   }
   else {
     $fh->open( "| bsub -q "
       . $farmConfig->{lsf}->{queue} . " -o $$.log -Jjackhmmer$$ -R \"select[mem>$memory_mb] rusage[mem=$memory_mb]\" -M $memory_kb" );
   }
-  
+
   #Execute the command we have built up.
   $fh->print( "cd $pwd \n" );
   $fh->print("$cmd\n");
@@ -413,15 +413,15 @@ sub farmJackhmmer {
   #Write a PFAMOUT style file
   $fh->print("pfjbuild_pfamout.pl JOUT $c\n");
   $fh->print("grep \"^[A-Za-z0-9]\" JALIGN > align \n"); #Create an ALIGN file
-    
+
   if($gzip) {
-      $fh->print("gzip JALIGN\n");
-      $fh->print("gzip JOUT\n");
+    $fh->print("gzip JALIGN\n");
+    $fh->print("gzip JOUT\n");
   }  
 
   $fh->print("rm -fr JOUT.final\n");
   unless($check) {
-      $fh->print("rm -fr $c* \n");
+    $fh->print("rm -fr $c* \n");
   }
   $fh->close();
 
@@ -429,71 +429,71 @@ sub farmJackhmmer {
 
 
 sub writePFAMOUT {
-    #This subroutine is virtually identical to the pfjbuild_pfamout.pl script.  
-    #Should really put it in a module.
+  #This subroutine is virtually identical to the pfjbuild_pfamout.pl script.  
+  #Should really put it in a module.
 
-    my ($check, $c) = @_;  
-                           
-    #Write results of final iteration to file
-    my ($header, $header_complete, $flag, $itNum);
-    my $outfile = "JOUT.final";
-    open(JOUT, "JOUT") or die "Couldn't open JOUT $!";
-    while(<JOUT>) {
-	#Store header info
-	if(!$header_complete) {
-	    if(/^\#/) {
-		$header .= $_;
-	    }
-	    elsif(/^Query\:/) {
-		$header .= "\n$_";
-		$header_complete=1;
-		$itNum++;
-	    }
-		  
-	}
-	elsif(/^Description\:/) { #Not all files will have a description line
-	  $header .= "$_\n";
-	}
-	#Print header and results for this iteration, overwriting any previous iterations
-	elsif(/^Scores for complete sequences/) {
-	    open(OUT, ">$outfile") or die "Couldn't open $outfile for writing $!";
-	    print OUT $header;
-	    print OUT $_;
-	    $flag=1;
-	}
-	elsif($flag) {
-	    print OUT $_;
-	}
-    }
-    close OUT;
-    
-    #Create PFAMOUT style result file
-    my $hmmRes = Bio::Pfam::HMM::HMMResultsIO->new;
-    my $result =  $hmmRes->parseHMMER3($outfile);
-    $hmmRes->writePFAMOUT($result);
-    
-    #Create DESC if there isn't one already
-    unless(-s 'DESC'){
-	my $io = Bio::Pfam::FamilyIO->new;
-	$io->writeEmptyDESC;
-    }
+  my ($check, $c) = @_;  
 
-    my @list = glob("*.hmm");
-    
-    
-    my $max=0;
-    foreach my $file (@list) {
-	if($file =~ /$c\-(\d+)\.hmm/) {
-	    $max = $1 if($1 > $max);
-	}
-    }
-    
-    my $hmm_file = $c . "-" . $max . ".hmm";
-    copy($hmm_file, "HMM") or die "Couldn't copy $hmm_file to HMM $!";    
+  #Write results of final iteration to file
+  my ($header, $header_complete, $flag, $itNum);
+  my $outfile = "JOUT.final";
+  open(JOUT, "JOUT") or die "Couldn't open JOUT $!";
+  while(<JOUT>) {
+    #Store header info
+    if(!$header_complete) {
+      if(/^\#/) {
+        $header .= $_;
+      }
+      elsif(/^Query\:/) {
+        $header .= "\n$_";
+        $header_complete=1;
+        $itNum++;
+      }
 
-    unless($check) {
-	unlink glob("$c*");
     }
+    elsif(/^Description\:/) { #Not all files will have a description line
+      $header .= "$_\n";
+    }
+    #Print header and results for this iteration, overwriting any previous iterations
+    elsif(/^Scores for complete sequences/) {
+      open(OUT, ">$outfile") or die "Couldn't open $outfile for writing $!";
+      print OUT $header;
+      print OUT $_;
+      $flag=1;
+    }
+    elsif($flag) {
+      print OUT $_;
+    }
+  }
+  close OUT;
+
+  #Create PFAMOUT style result file
+  my $hmmRes = Bio::Pfam::HMM::HMMResultsIO->new;
+  my $result =  $hmmRes->parseHMMER3($outfile);
+  $hmmRes->writePFAMOUT($result);
+
+  #Create DESC if there isn't one already
+  unless(-s 'DESC'){
+    my $io = Bio::Pfam::FamilyIO->new;
+    $io->writeEmptyDESC;
+  }
+
+  my @list = glob("*.hmm");
+
+
+  my $max=0;
+  foreach my $file (@list) {
+    if($file =~ /$c\-(\d+)\.hmm/) {
+      $max = $1 if($1 > $max);
+    }
+  }
+
+  my $hmm_file = $c . "-" . $max . ".hmm";
+  copy($hmm_file, "HMM") or die "Couldn't copy $hmm_file to HMM $!";    
+
+  unless($check) {
+    unlink glob("$c*");
+  }
 
 }
 
@@ -502,7 +502,7 @@ sub help {
   print <<EOF;
 
 usage: $0 -fa <fasta file> -db <sequence db>  or $0 -acc <accession> -db <sequence db>
- 
+
 The alignment in written into the file JALIGN and the list of hits into JOUT.
 A PFAMOUT file is produced for the hits in the final iteration.
 An 'align' file is written which contains the alignment in the JALIGN file without 
