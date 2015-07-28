@@ -125,15 +125,15 @@ sub main {
       }
     }
   }
-  elsif ( $db eq "refprot" )
+  elsif ( $db eq "uniprot" )
   {
-      if ( $dbsize and $dbsize ne $config->refprot_dbsize )
+      if ( $dbsize and $dbsize ne $config->uniprot_dbsize )
       {
-          warn "\n***** Using effective database size [$dbsize] that is different to refprot sequence db [" . $config->refprot_dbsize . "] *****\n\n";
+          warn "\n***** Using effective database size [$dbsize] that is different to uniprot sequence db [" . $config->uniprot_dbsize . "] *****\n\n";
       }
       else
       {
-          $dbsize = $config->refprot_dbsize;
+          $dbsize = $config->uniprot_dbsize;
       }
       if ( $config->location eq 'WTSI' )
       {
@@ -141,7 +141,7 @@ sub main {
       }
       else
       {
-          $db_location = $config->refprotLoc . "/$db";
+          $db_location = $config->uniprotLoc . "/$db";
       }
   }
   elsif ( $db eq "ncbi" ) {
@@ -703,7 +703,7 @@ Options that influence hmmbuild:
 
 Options that influence hmmsearch:
 
-  -db <x>     : Specify which database to search against (choose pfamseq||refprot||metaseq||ncbi, default is pfamseq)
+  -db <x>     : Specify which database to search against (choose pfamseq||uniprot||metaseq||ncbi, default is pfamseq)
 
   General wrapping options:
   -local      : Run the hmmsearch on the local machine rather than submitting 
@@ -751,7 +751,7 @@ And Finally:
               : it will use a default threshold of 10e-2.
   -makeEval   : Will run pfmake with the specified evalue cut-off   
   -removeBadEd: Will run pfmake with -removeBadEd option (need to use this option in conjuction with -withpfmake option)
-  -M <int>    : Amount of memory in Gb to request (this option is only for Sanger farm)
+  -M <int>    : Amount of memory in Gb to request (this option is only for EBI farm)
   
 EOF
 
