@@ -205,41 +205,24 @@ sub pfamseqLoc {
   return $self->{pfamseq}->{location};
 }
 
-=head2 refprotLoc
+=head2 uniprotLoc
 
-  Title    : refprotLoc
-  Usage    : $config->refprotLoc
-  Function : Returns the location of the reference proteomes
+  Title    : uniprotLoc
+  Usage    : $config->uniprotLoc
+  Function : Returns the location of uniprot
   Args     : None - read only operator
-  Returns  : string containing path to reference proteomes    
+  Returns  : string containing path to uniprot    
   
 =cut
 
-sub refprotLoc {
+sub uniprotLoc {
   my $self = shift;
   if ( $#_ >= 0 ) {
     warn "Passed variable to ro config\n";
   }
-  return $self->{refprot}->{location};
+  return $self->{uniprot}->{location};
 }
 
-=head2 refprotliveLoc
-
-  Title    : refprotliveLoc
-  Usage    : $config->refprotliveLoc
-  Function : Returns the location of the live reference proteome set
-  Args     : None - read only operator
-  Returns  : string containing path to live reference proteomes set    
-  
-=cut
-
-sub refprotliveLoc {
-  my $self = shift;
-  if ( $#_ >= 0 ) {
-    warn "Passed variable to ro config\n";
-  }
-  return $self->{refprotlive}->{location};
-}
 
 =head2 ncbiLoc
 
