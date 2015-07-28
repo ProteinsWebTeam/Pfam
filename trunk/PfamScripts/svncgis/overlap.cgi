@@ -78,7 +78,6 @@ close UPLOAD;
 
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(%{ $config->pfamlive });
-my $pfamDBAdmin = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 my $ignore_ref;
 #User defined ignores
@@ -134,7 +133,7 @@ $allLines .= "Checking overlaps for sequences that belong to reference proteomes
 $allLines .= "Filtering overlaps\n";
 
 #Find overlaps
-my ($numOverlaps, $overlapArray, $summary) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, "", $pfamDBAdmin, $clan, 1, 1, $numFull);
+my ($numOverlaps, $overlapArray, $summary) = &Bio::Pfam::PfamQC::findOverlapsDb(\%regions, $ignore_ref, $pfamDB, $clan, 1, 1, $numFull);
 
 #Now return the ignore lines and overlap lines
 $allLines .= join("", @{$overlapArray});
