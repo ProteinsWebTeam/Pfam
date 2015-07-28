@@ -1187,22 +1187,8 @@ sub family_overlaps_with_db {
 =cut
 
 sub findOverlapsDb {
-  my ($allRegions, $ignore_ref, $pfamDB, $clan, $compete, $filter, $numFull) = (@_);
+  my ($regions, $ignore_ref, $pfamDB, $clan, $compete, $filter, $numFull) = (@_);
 
-
-  my $dbh = $pfamDB->getSchema->storage->dbh;
-  my $query = "select pfamseq_acc from pfamseq where pfamseq_acc = ?";
-  my $sth=$dbh->prepare($query);
-
-  my ($regions);
-  foreach my $acc (keys %{$allRegions}) { 
-    #If sequence is not in pfamseq (ie not in reference proteomes), then we don't need to check for overlaps in that seq
-    $sth->execute($acc) or die "Can't execute statement: $DBI::errstr";
-    my $pfamseq = $sth->fetchrow;
-    if($pfamseq) {
-      $regions->{$acc}=$allRegions->{$acc};
-    }
-  }
   my %overlaps;
 
   $pfamDB->getOverlapingFullPfamRegions( $regions, \%overlaps );
