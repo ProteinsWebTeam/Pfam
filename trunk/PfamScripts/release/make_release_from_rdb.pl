@@ -669,7 +669,7 @@ sub makePfamAScanFile {
       ->search( { "pfama_acc" => $fam->pfama_acc } );
 
     foreach my $n (@nested) {
-      my $nested_id = $acc2id{ $n->nested_pfama_acc };
+      my $nested_id = $acc2id{ $n->nested_pfama_acc->pfama_acc };
       print PFAMSCAN "#=GF NE   $nested_id\n";
     }
 
