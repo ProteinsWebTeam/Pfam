@@ -1038,34 +1038,21 @@ sub family_overlaps_with_db {
   #Overlaps will be checked for in all regions added to this hash
   my %regions;
 
-  #Query to check whether sequences are in pfamseq
-  my $dbh = $pfamDB->getSchema->storage->dbh;
-  my $query = "select pfamseq_acc from pfamseq where pfamseq_acc = ? and seq_version=?";
-  my $sth=$dbh->prepare($query);
-
-  #Go through seed sequences, check if they are in pfamseq, if they are add to regions hash
-  #If seed sequence is not in pfamseq (ie not in reference proteomes), then we don't need to check for overlaps in that seq
+  #Go through seed sequences
   foreach my $seq ( $famObj->SEED->each_seq ) {
-    $sth->execute($seq->id, $seq->version) or die "Can't execute statement: $DBI::errstr";
-    my $refprot = $sth->fetchrow;
-    if($refprot) { 
-      push @{ $regions{$seq->id} },
-      {
-        from      => $seq->start,
-        to        => $seq->end,
-        family    => ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
-        ali       => 'SEED',
-        family_id => ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" )
-      };
-    }
+    push @{ $regions{$seq->id} },
+    {
+      from      => $seq->start,
+      to        => $seq->end,
+      family    => ( $famObj->DESC->AC ? $famObj->DESC->AC : $family ),
+      ali       => 'SEED',
+      family_id => ( $famObj->DESC->ID ? $famObj->DESC->ID : "NEW" )
+    };
   }
-  $sth->finish();
-  #$dbh->disconnect();
-
 
 
 #Then for the full, use the scores file as this contains tha alignment co-ordinates.
-#All sequences in ALIGN will be in pfamseq, so don't need to check as we did for SEED
+#All sequences in ALIGN will be in pfamseq
 #We now allow overlaps between envelopes.
   foreach my $seq ( keys %{ $famObj->scores->regions } ) {
     my $id;
