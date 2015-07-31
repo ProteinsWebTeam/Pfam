@@ -27,7 +27,9 @@ my $dbhp = $pfamDB->getSchema->storage->dbh;
 
 $ENV{TNS_ADMIN}='/ebi/msd/software/common/tns_admin';
 
-my $dbh = DBI->connect("dbi:Oracle:pdbe_main_production", "search_pfam", "search_pfam55");
+#Switch to commented out line once the pfam_search account is set up
+my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_interpro", "search_interpro55");
+#my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_pfam", "search_pfam55");
 
 my %done;
 my %todo;
@@ -64,7 +66,6 @@ foreach my $row1 (@$arrayref1){
 	$done{$row1->[0]}=1;
 }
 
-#p(%done);
 #remove the half done id - 3mvn - if it is in the hash
 
 if ($done{$last}){
@@ -82,11 +83,6 @@ my $id = $row2->[0];
 	}
 }
 
-#p(%todo);
-#my $n1 = keys %done;
-#my $n2 = keys %todo;
-
-#print "$n1 $n2\n";
 
 #for each entry in the todo hash populate residue data
 
@@ -103,7 +99,7 @@ foreach my $pdbid (keys %todo){
 #make some changes to this array ref to populate the db
 #need to change observed (Y/N) into an integer (1/0)
 #fix insert code so null is displayed when there is no insert code
-#can only populate where pfamseq_acc is not NULL and also there pfamseq_acc is found in pfamseq
+#can only populate where pfamseq_acc is not NULL and also the pfamseq_acc is found in pfamseq/uniprot table - done in loadPdbResidueData
 #make these changes directly into the array ref
 
 	foreach my $row (@$tbl_ary_ref){
@@ -127,7 +123,7 @@ foreach my $pdbid (keys %todo){
 
 	print "commiting to database\n";
 
-	$pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $pfamDB);
+	$pfamDB->getSchema->resultset('PdbResidueData')->loadPdbResidueData($tbl_ary_ref, $dbhp);
 
 
 	$guard->commit;
