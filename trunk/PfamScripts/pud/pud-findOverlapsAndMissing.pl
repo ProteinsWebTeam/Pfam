@@ -138,7 +138,7 @@ sub getRegions {
     my $id = $familiesData->{$fDir}->{id};
     open( SEED, "$families/$fDir/SEED" );
     while (<SEED>) {
-      if (/(\w+)\.?\S*\/(\d+)\-(\d+)/) {
+      if (/(\w+\.?\S*)\/(\d+)\-(\d+)/) {
         $familiesData->{$fDir}->{seed}++;
         print R "$1\t$2\t$3\t$fDir\t$id\tSEED\t**\t**\n";
       }
@@ -148,7 +148,7 @@ sub getRegions {
     open( SCORES, "$families/$fDir/scores" )
       or warn "Could not open scores file $fDir\n";
     while (<SCORES>) {
-      if (/(\S+)\s+(\w+).?\S*\/(\d+\-\d+)\s+(\d+)\-(\d+)\s+(\S+)/) {
+      if (/(\S+)\s+(\w+.?\S*)\/(\d+\-\d+)\s+(\d+)\-(\d+)\s+(\S+)/) {
         print R "$2\t$4\t$5\t$fDir\t$id\tALIGN\t$1\t$6\n";
         $familiesData->{$fDir}->{align}++;
       }
@@ -553,7 +553,7 @@ sub filterOverlaps {
 
   open( OF, "$statusdir/$filePrefix.overlaps.filtered" );
   while (<OF>) {
-    if (/(PF\d{5}).*:\s(\w+)\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\w+)\/(\d+)-(\d+)\s\((\S+)\sbits\)/) {
+    if (/(PF\d{5}).*:\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\).*(PF\d{5}).*\s(\S+)\/(\d+)-(\d+)\s\((\S+)\sbits\)/) {
       $familyA = $1;
       $familyB = $6;
 
