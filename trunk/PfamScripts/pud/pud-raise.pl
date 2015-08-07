@@ -331,7 +331,7 @@ sub check_align {
 
   open(ALIGN, "$families_dir/$fam/ALIGN") or print STDERR "Couldn't open $families_dir/$fam/ALIGN $!";
   while(<ALIGN>){
-    if(/^$seq\.\d+\/(\d+)\-(\d+)/) {
+    if(/^$seq\/(\d+)\-(\d+)/) {
       if( ($1 <= $st and $2 >= $en) ) {
         $align=1;
         last;
