@@ -326,7 +326,7 @@ sub _qualityControlFamily {
   
  #Perform all of the format checks
   my $ignoreTimestamps = 1;
-  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family", $isNew, $ignoreTimestamps )){
+  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, "$dir/$family", $isNew, $ignoreTimestamps, $pfamDB)){
     exit(1); 
   }
   
