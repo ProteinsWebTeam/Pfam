@@ -38,7 +38,7 @@ my $CONFIG = Bio::Pfam::Config->new;
 =head2 passesAllFormatChecks
 
  Title    : passesAllFormatChecks
- Usage    : &PfamQC::passesAllFormatChecks(familyObject, directoryName, inNewFlag)
+ Usage    : &PfamQC::passesAllFormatChecks(familyObject, directoryName, isNewFlag, ignoreTime, pfamDB)
  Function : Runs all format check routines from this module,
             and warns about any errors
  Returns  : 1 if all is OK, 0 if not
@@ -47,7 +47,7 @@ my $CONFIG = Bio::Pfam::Config->new;
 =cut
 
 sub passesAllFormatChecks {
-  my ( $famObj, $family, $isNew, $ignoreTime ) = @_;
+  my ( $famObj, $family, $isNew, $ignoreTime, $pfamDB ) = @_;
 
   # check directory exists
   if ( !-d "$family" ) {
@@ -109,7 +109,7 @@ sub passesAllFormatChecks {
   }
 
   unless(-z "$family/ALIGN") { #ALIGN0 Skip these checks if ALIGN is empty
-    if ( !&moreInSEEDthanALIGN($famObj) ) {
+    if ( !&moreInSEEDthanALIGN($famObj, $pfamDB) ) {
       warn "$family: You have more sequences in SEED than ALIGN\n";
       $error = 1;
     }
@@ -503,10 +503,31 @@ sub compareAlignToScores {
 =cut
 
 sub moreInSEEDthanALIGN {
-  my $famObj = shift;
+  my ($famObj, $pfamDB) = @_;;
 
   if ( $famObj->SEED->num_sequences > $famObj->ALIGN->num_sequences ) {
-    return 0;
+
+    if($pfamDB) {#Compare number of refprot seq in SEED to ALIGN
+      my $dbh = $pfamDB->getSchema->storage->dbh;
+      my $sth=$dbh->prepare("select pfamseq_acc from pfamseq where pfamseq_acc=?");
+      my $numRPSeqSeed=0;
+      foreach my $seq ($famObj->SEED->each_seq) { 
+        $sth->execute($seq->id) or die "Couldn't execute statement ".$sth->errstr."\n";
+        my $inPfamseq=$sth->fetchrow;
+        if($inPfamseq) {
+          $numRPSeqSeed++;
+        }
+      }
+      if($numRPSeqSeed > $famObj->ALIGN->num_sequences) {
+        return 0;
+      }
+      else {
+        return 1;
+      }
+    }
+    else {
+      return 0;
+    }
   }
   else {
     return 1;
