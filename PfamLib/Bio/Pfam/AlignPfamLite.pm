@@ -79,7 +79,7 @@ sub new {
         if(/Alignment number\:\s+(\d+)/){
           confess("File contains more than one alignment!\n") if($1 != 1);  
         }elsif(/Number of sequences\:\s+(\d+)/){
-          confess("File contains less than two sequences!\n") if($1 < 2);
+          confess("File contains less than one sequence!\n") if($1 < 1);
           $self->{no_seqs} = $1; 
         }elsif(/Alignment length\:\s+(\d+)/){ 
           $self->{length} = $1;
