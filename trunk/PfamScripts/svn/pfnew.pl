@@ -165,13 +165,20 @@ $client->checkNewFamilyDoesNotExists( $newFamObj->DESC->ID );
 
 #-------------------------------------------------------------------------------
 
+#Get pfamDB object, use this for various qc checks
+my $pfamDB; 
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) { 
+  my $connect = $config->pfamlive;
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
+
+
 #These are more sanity checks
 unless ($ignore) {
-  my $pfamDB;
+  
   #If we are at sanger, perform an overlap check against the database.
   if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
-    my $connect = $config->pfamlive;
-    $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
     #Find out if family is in rdb
     my $rdb_family = $pfamDB->getPfamData($family);
@@ -209,7 +216,7 @@ unless ($ignore) {
 }
 
 #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family ) ) {
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family, undef, undef, $pfamDB ) ) {
   exit(1);
 }
 
