@@ -359,7 +359,7 @@ unless ($ignore) {
     }
 
     #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-    unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family ) ) {
+    unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $upFamObj, $family, undef, undef, $pfamDB ) ) {
       exit(1);
     }
   }
