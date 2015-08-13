@@ -215,7 +215,7 @@ unless($isNew){
 $verbose and print STDERR "$0: SEED does not apeear to be ragged\n";
 
 #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
-unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $famObj, $family ) ) {
+unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $famObj, $family, undef, undef, $pfamDB ) ) {
   exit(1);
 }
 
