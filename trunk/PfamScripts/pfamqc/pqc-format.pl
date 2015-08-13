@@ -9,6 +9,7 @@ use Cwd;
 
 use Bio::Pfam::PfamQC;
 use Bio::Pfam::FamilyIO;
+use Bio::Pfam::Config;
 
 my $family = shift;
 chomp($family);
@@ -42,6 +43,14 @@ if( !Bio::Pfam::PfamQC::checkFamilyFiles( $family) ){
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
 print STDERR "Successfully loaded $family through middleware\n";
 
-unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, $family)){
+
+my $pfamDB;
+my $config = Bio::Pfam::Config->new;
+if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
+  my $connect = $config->pfamlive;
+  $pfamDB  = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
+}
+
+unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, $family, undef, undef, $pfamDB)){
     exit(1); 
 }
