@@ -339,7 +339,7 @@ sub _qualityControlFamily {
 
   #Populate seedcheck if unchecked
   if($famObj->seedcheck eq 'unchecked') {
-    Bio::Pfam::PfamQC::seedOnReferenceProteome($family, $famObj, $pfamDB);
+    Bio::Pfam::PfamQC::seedOnReferenceProteome($famObj, $pfamDB);
   }
 
   #Now find out what this family is _allowed_ to overlap with
@@ -446,7 +446,13 @@ sub moveFamily {
   
   my $familyIO = Bio::Pfam::FamilyIO->new;
   my ($famObj, $family, $dir) = $self->_getFamilyObjFromTrans($familyIO, 0);
-  
+
+  #Ensure seedcheck is populated
+  if($famObj->seedcheck eq 'unchecked') {
+    Bio::Pfam::PfamQC::seedOnReferenceProteome($famObj, $pfamDB);
+  }
+
+
   #Start the transation
   my $guard = $pfamDB->getSchema->txn_scope_guard;
   $familyIO->movePfamAInRDB($famObj, $pfamDB);
