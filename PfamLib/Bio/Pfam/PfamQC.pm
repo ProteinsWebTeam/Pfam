@@ -2233,10 +2233,10 @@ sub _compete {
 =head2 seedOnReferenceProteome
 
   Title    : seedOnReferenceProteome
-  Usage    : seedOnReferenceProteome($family, $famObj, $pfamDB) 
+  Usage    : seedOnReferenceProteome($famObj, $pfamDB) 
   Function : Checks whether all sequences in the SEED are in the current reference proteomes set
              in the database, populates $famObj->seedcheck
-  Args     : pfamA_acc, Bio::Pfam::Family::PfamA, pfamDB object
+  Args     : Bio::Pfam::Family::PfamA, pfamDB object
   Returns  : nothing
 
 
@@ -2244,7 +2244,7 @@ sub _compete {
 
 sub seedOnReferenceProteome {
 
-  my ($family, $famObj, $pfamDB) = @_;
+  my ($famObj, $pfamDB) = @_;
 
   unless ( $famObj->isa("Bio::Pfam::Family::PfamA") ) {
     confess("A Bio::Pfam::Family::PfamA object was not passed in");
