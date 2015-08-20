@@ -161,16 +161,16 @@ sub _databaseEntry {
   
   my $fh = $self->_filehandle;
   
-  print $fh '<entry id="'.  encode_entities($entry->{id}).'" acc="'. encode_entities($entry->{acc}).'">';
+  print $fh '<entry id="'.  encode_entities($entry->{id}, qw("&<>)).'" acc="'. encode_entities($entry->{acc}, qw("&<>)).'">';
   
   foreach my $key (qw(name description authors)){ 
-    print $fh "<$key>".encode_entities($entry->{$key})."</$key>" if($entry->{$key});
+    print $fh "<$key>".encode_entities($entry->{$key}, qw("&<>))."</$key>" if($entry->{$key});
   }
  
   if($entry->{dates} and ref($entry->{dates}) eq 'HASH' ){
     print $fh '<dates>';
     while(my ($key, $value) = each (%{$entry->{dates}})){
-      print $fh '<date type="'.$key.'" value="'.encode_entities($value).'"/>';  
+      print $fh '<date type="'.$key.'" value="'.encode_entities($value, qw("&<>)).'"/>' if $value;
     }
     print $fh '</dates>'; 
   }
@@ -178,7 +178,7 @@ sub _databaseEntry {
   if($entry->{addFields}){
     print $fh '<additional_fields>';
       while( my($field, $value) = each( %{$entry->{addFields}})){
-        print $fh '<field name="'.$field.'">'.encode_entities($value).'</field>';
+        print $fh '<field name="'.$field.'">'.encode_entities($value, qw("&<>)).'</field>' if $value;
       }
     print $fh '</additional_fields>';
   }
