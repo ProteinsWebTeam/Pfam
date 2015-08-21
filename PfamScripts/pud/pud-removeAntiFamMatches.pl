@@ -111,7 +111,7 @@ while (<M>) {
   next if ( $row[17] == 0 );
   $seqsToDel{ $row[0] }         = 0;
   $antifamMap{ $row[0] }->{acc} = $row[3];
-  $antifamMap{ $row[0] }->{id}  = $row[3];
+  $antifamMap{ $row[0] }->{id}  = $row[2];
 }
 my $antifamSeq=0;
 $antifamSeq=keys %seqsToDel;
