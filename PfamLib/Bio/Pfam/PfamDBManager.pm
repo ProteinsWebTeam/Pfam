@@ -306,7 +306,10 @@ sub getPfamInterPro {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
     $familyData = $self->getSchema->resultset("PfamA")->search(
-      { "pfamA_acc" => $family },
+# SCP - we shouldn't have to do this - DBIx should handle joins
+# Regenerated the Perl mapping and this was still an issue; to be revisited
+#     { "pfamA_acc" => $family },
+      { $self->getSchema->resultset("PfamA")->current_source_alias . ".pfamA_acc" => $family },
       {
         join     => qw( interpros )
       }
@@ -340,7 +343,9 @@ sub getPfamGO {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
     @familyGO = $self->getSchema->resultset("PfamA")->search(
-      { "pfamA_acc" => $family },
+# SCP - ditto comment above
+#     { "pfamA_acc" => $family },
+      { $self->getSchema->resultset("PfamA")->current_source_alias . ".pfamA_acc" => $family },
       {
         join     => qw( gene_ontologies ),
       }
