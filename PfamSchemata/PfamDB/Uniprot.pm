@@ -116,6 +116,12 @@ __PACKAGE__->table("uniprot");
   default_value: 0
   is_nullable: 1
 
+=head2 complete_proteome
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -165,6 +171,8 @@ __PACKAGE__->add_columns(
   },
   "ref_proteome",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "complete_proteome",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -207,8 +215,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:30:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/sQ4zpf5VYccSKB5V7MIbA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-02 16:48:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IDfV1mwBCF/gYBviGfofrA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
