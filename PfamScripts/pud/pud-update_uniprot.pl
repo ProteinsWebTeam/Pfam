@@ -258,7 +258,7 @@ else {
         $complete = 0;
 
       }
-      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t$reference\n";
+      print UNIPROT "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t$reference\t$complete\n";
       print FASTA ">$record{'AC'}.$record{'SEQ_VER'} $record{'ID'} $description\n$record{'SEQ'}\n";
       
       #count for debugging
@@ -303,8 +303,8 @@ else {
 
 
   $logger->info("Uploading $pfamseq_dir/uniprot.dat to database\n");
-  my $sth = $dbh->prepare('INSERT into uniprot VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-  _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 16 );  
+  my $sth = $dbh->prepare('INSERT into uniprot VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+  _loadTable( $dbh, "$pfamseq_dir/uniprot.dat", $sth, 17 );  
 
   system("touch $status_dir/uploaded_uniprot")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_uniprot:[$!]\n");
