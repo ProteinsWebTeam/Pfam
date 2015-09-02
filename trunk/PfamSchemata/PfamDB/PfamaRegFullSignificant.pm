@@ -127,11 +127,6 @@ __PACKAGE__->table("pfamA_reg_full_significant");
   data_type: 'mediumint'
   is_nullable: 1
 
-=head2 domain_oder
-
-  data_type: 'tinyint'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -184,8 +179,6 @@ __PACKAGE__->add_columns(
   { data_type => "mediumint", is_nullable => 1 },
   "domain_order",
   { data_type => "mediumint", is_nullable => 1 },
-  "domain_oder",
-  { data_type => "tinyint", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -242,8 +235,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:z0E/IKK9jG68GqsXZTz54g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-02 16:48:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DrhbxnhUdUZ8rOvCR482Zw
 
 __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                       { 'foreign.pfamseq_acc'  => 'self.pfamseq_acc' },
