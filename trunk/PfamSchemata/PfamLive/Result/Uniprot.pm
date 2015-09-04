@@ -219,9 +219,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 uniprot_reg_fulls
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-02 16:48:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GePpcWGBkzzCdVDZBwZtMQ
+Type: has_many
+
+Related object: L<PfamLive::Result::UniprotRegFull>
+
+=cut
+
+__PACKAGE__->has_many(
+  "uniprot_reg_fulls",
+  "PfamLive::Result::UniprotRegFull",
+  { "foreign.uniprot_acc" => "self.uniprot_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:55:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:28yj80jVGMns39VskSsyxQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
