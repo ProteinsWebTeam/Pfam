@@ -902,6 +902,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 uniprot_reg_fulls
+
+Type: has_many
+
+Related object: L<PfamLive::Result::UniprotRegFull>
+
+=cut
+
+__PACKAGE__->has_many(
+  "uniprot_reg_fulls",
+  "PfamLive::Result::UniprotRegFull",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 ligands
 
 Type: many_to_many
@@ -913,8 +928,8 @@ Composing rels: L</pfam_a_ligands> -> ligand
 __PACKAGE__->many_to_many("ligands", "pfam_a_ligands", "ligand");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:55:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:S8YHvsK3BXY8LyaslE+ozQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:55:04
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G1JdnDQMDiEFNWux3e9V3A
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
