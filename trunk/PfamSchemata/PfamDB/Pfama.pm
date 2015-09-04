@@ -902,6 +902,21 @@ __PACKAGE__->has_many(
   undef,
 );
 
+=head2 uniprot_reg_fulls
+
+Type: has_many
+
+Related object: L<PfamDB::UniprotRegFull>
+
+=cut
+
+__PACKAGE__->has_many(
+  "uniprot_reg_fulls",
+  "PfamDB::UniprotRegFull",
+  { "foreign.pfama_acc" => "self.pfama_acc" },
+  undef,
+);
+
 =head2 ligand_ids
 
 Type: many_to_many
@@ -913,8 +928,8 @@ Composing rels: L</pfama_ligands> -> ligand_id
 __PACKAGE__->many_to_many("ligand_ids", "pfama_ligands", "ligand_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-08 11:37:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BoenfMrWISw39rwHJmKkBA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:54:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JEl1IlNHaDJGh859E5fIAA
 
 
 
