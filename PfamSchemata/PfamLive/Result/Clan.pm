@@ -111,6 +111,11 @@ __PACKAGE__->table("clan");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 uniprot_competed
+
+  data_type: 'tinyint'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -157,6 +162,8 @@ __PACKAGE__->add_columns(
   "number_sequences",
   { data_type => "integer", extra => { unsigned => 1 }, is_nullable => 1 },
   "competed",
+  { data_type => "tinyint", is_nullable => 1 },
+  "uniprot_competed",
   { data_type => "tinyint", is_nullable => 1 },
 );
 
@@ -294,8 +301,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-01-05 16:35:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KfzK9dItNM/gw7YSZbWI2Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-08 12:51:45
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iSBLooJzJVC4i4xcXMENCA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
