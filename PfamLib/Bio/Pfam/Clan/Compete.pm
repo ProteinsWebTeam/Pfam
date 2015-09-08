@@ -32,17 +32,17 @@ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
- 
+
 =cut
 
 use strict;
@@ -73,8 +73,8 @@ sub competeClan {
 
   #Get the clan information
   my $clan =
-    $db->getSchema->resultset("Clan")->find( { clan_acc => $clan_acc } );
-  
+  $db->getSchema->resultset("Clan")->find( { clan_acc => $clan_acc } );
+
   #*******************************************************************
   #NOTE! Really, really important that the seq_start/seq_end remain at
   #poisitons in query for SEED regions and FULL regions - otherwise the
@@ -82,11 +82,11 @@ sub competeClan {
   #*******************************************************************
 
   my $sthSeedRegs =
-    $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, seq_start,"
-      . " seq_end from pfamA_reg_seed s, clan_membership c"
-      . " where c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
-      . $clan->clan_acc 
-	. "\'");
+  $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, seq_start,"
+    . " seq_end from pfamA_reg_seed s, clan_membership c"
+    . " where c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc 
+    . "\'");
   $sthSeedRegs->execute;
   my %clanSeed;
   foreach my $row ( @{ $sthSeedRegs->fetchall_arrayref } ) {
@@ -95,11 +95,11 @@ sub competeClan {
 
   #Get nested data for clan
   my $sthNest =
-    $dbh->prepare( "select n.pfamA_acc, nested_pfamA_acc from "
-      . "nested_locations n, clan_membership c where "
-      . "c.pfamA_acc=n.pfamA_acc and clan_acc=\'"
-      . $clan->clan_acc 
-	. "\'");
+  $dbh->prepare( "select n.pfamA_acc, nested_pfamA_acc from "
+    . "nested_locations n, clan_membership c where "
+    . "c.pfamA_acc=n.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc 
+    . "\'");
   $sthNest->execute;
   my %nested;
   foreach my $row ( @{ $sthNest->fetchall_arrayref } ) {
@@ -108,19 +108,19 @@ sub competeClan {
 
   #Get all full data for clan
   my $sthFullRegs =
-    $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, ali_start, "
-      . "ali_end, domain_evalue_score, in_full, auto_pfamA_reg_full from "
-      . "pfamA_reg_full_significant s, clan_membership c where "
-      . "c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
-      . $clan->clan_acc
-	. "\'"
-      . " order by pfamseq_acc, domain_evalue_score" );
+  $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, ali_start, "
+    . "ali_end, domain_evalue_score, in_full, auto_pfamA_reg_full from "
+    . "pfamA_reg_full_significant s, clan_membership c where "
+    . "c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc
+    . "\'"
+    . " order by pfamseq_acc, domain_evalue_score" );
   $sthFullRegs->execute;
 
   my $updateSth =
-    $dbh->prepare(
-"update pfamA_reg_full_significant set in_full=? where auto_pfamA_reg_full=?"
-    );
+  $dbh->prepare(
+    "update pfamA_reg_full_significant set in_full=? where auto_pfamA_reg_full=?"
+  );
 
   my @seqRegions;
   my $currentPfamseq;
@@ -138,8 +138,8 @@ sub competeClan {
         }else{
           $updateSth->execute( 1, $region->[6] );
         }
-    }
-      
+      }
+
       @seqRegions = ();
       if ( $count > 1000 ) {
         $dbh->commit;
@@ -152,15 +152,15 @@ sub competeClan {
   }
 
   my $loseRef = _competeSequence(\@seqRegions, \%clanSeed, \%nested, $updateSth );
-   foreach my $region ( @seqRegions ) {
-        if(exists($loseRef->{ $region->[6] })){
-          #update pfamA_reg_full_significant, in_full=0 based on index
-          $updateSth->execute( 0, $region->[6] );
-        }else{
-          $updateSth->execute( 1, $region->[6] );
-        }
+  foreach my $region ( @seqRegions ) {
+    if(exists($loseRef->{ $region->[6] })){
+      #update pfamA_reg_full_significant, in_full=0 based on index
+      $updateSth->execute( 0, $region->[6] );
+    }else{
+      $updateSth->execute( 1, $region->[6] );
     }
-    
+  }
+
   $dbh->commit;
   $dbh->{AutoCommit} = 1;
 
@@ -181,8 +181,8 @@ sub _competeSequence {
 #Now go through all the sequence regions in clan and identify those that need to be removed
   foreach my $region1 ( @{$seqRegionsRef} ) {
     #Each regions should be an array ref of:
-    #auto_pfamA, 0
-    #auto_pfamseq,1
+    #pfamA_acc, 0
+    #pfamseq_acc,1
     #ali_start,2
     #ali_end, 3
     #domain_evalue_score,4
@@ -190,7 +190,7 @@ sub _competeSequence {
     #auto_pfamA_reg_full, 6
 
     my $overlap = "";
-    
+
     #Identify any seed overlaps
     if ( defined($clanSeedRef) and exists( $clanSeedRef->{ $region1->[1] } ) ) {
       foreach my $seed_region (  @{ $clanSeedRef->{ $region1->[1] } } ) {
@@ -207,20 +207,20 @@ sub _competeSequence {
           }
 
           if (
-                 $nestedRef->{ $region1->[0] }->{ $seed_region->[0] }
+            $nestedRef->{ $region1->[0] }->{ $seed_region->[0] }
               or $nestedRef->{ $seed_region->[0] }->{ $region1->[0] }
-            
-            )
+
+          )
           {
             $overlap = 0;
             next;
           }
-          
+
           if ($overlap == 1){
             $lose{ $region1->[6] } = 1;
             last; #We do not need check any more seed regions  
           }
-          
+
         }
       }
     }
@@ -237,13 +237,13 @@ sub _competeSequence {
       #Allow overlaps within the same family
       next if ( $region1->[0] eq $region2->[0] );
       next if ( exists( $lose{ $region2->[6] } ) );
-      
+
       #Are these two domains allowed to nest within the clans?
       next if (
-                 $nestedRef->{ $region1->[0] }->{ $region2->[0] }
-              or $nestedRef->{ $region2->[0] }->{ $region1->[0] }
-            );
-      
+        $nestedRef->{ $region1->[0] }->{ $region2->[0] }
+          or $nestedRef->{ $region2->[0] }->{ $region1->[0] }
+      );
+
       my $overlap = _overlap( $region1, $region2 );
       next unless ($overlap);
 
@@ -272,7 +272,7 @@ sub _competeSequence {
       }
     }
   }
-      
+
   return(\%lose);
 
 }
@@ -287,7 +287,7 @@ sub _competeSequence {
   Args     : clan accession, array references containing a list of Pfam accessions that 
            : are members of the clan, a Bio::Pfam::PfamLiveDBManager objects
   Returns  : Nothing
-  
+
 =cut
 
 sub uncompeteClan {
@@ -323,14 +323,14 @@ sub _overlap {
 
   if (
     (
-          $region1->[2] >= $region2->[2]
-      and $region1->[2] <= $region2->[3]
+      $region1->[2] >= $region2->[2]
+        and $region1->[2] <= $region2->[3]
     )
-    or (  $region1->[3] >= $region2->[2]
-      and $region1->[3] <= $region2->[3] )
-    or (  $region1->[2] <= $region2->[2]
-      and $region1->[3] >= $region2->[3] )
-    )
+      or (  $region1->[3] >= $region2->[2]
+        and $region1->[3] <= $region2->[3] )
+      or (  $region1->[2] <= $region2->[2]
+        and $region1->[3] >= $region2->[3] )
+  )
   {
 
     $overlap = 1;
