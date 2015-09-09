@@ -339,4 +339,122 @@ sub _overlap {
   return $overlap;
 }
 
+=head2 competeClanUniprot
+
+ Title   : competeClanUniprot
+ Usage   : competeClanUniprot($clan_acc, $db_object)
+ Function: Competes a clan using uniprot sequences
+ Returns : Nothing
+ Args    : clan accession, Bio::Pfam::PfamLiveDBManager object
+
+
+=cut
+
+sub competeClanUniprot {
+  my ( $clan_acc, $db ) = @_;
+  my $dbh = $db->getSchema->storage->dbh;
+
+  #Get the clan information
+  my $clan =
+  $db->getSchema->resultset("Clan")->find( { clan_acc => $clan_acc } );
+
+  #*******************************************************************
+  #NOTE! Really, really important that the seq_start/seq_end remain at
+  #poisitons in query for SEED regions and FULL regions - otherwise the
+  #overlap call will explode!!!!!
+  #*******************************************************************
+
+  my $sthSeedRegs =
+  $dbh->prepare( "select s.pfamA_acc, pfamseq_acc, seq_start,"
+    . " seq_end from pfamA_reg_seed s, clan_membership c"
+    . " where c.pfamA_acc=s.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc 
+    . "\'");
+  $sthSeedRegs->execute;
+  my %clanSeed;
+  foreach my $row ( @{ $sthSeedRegs->fetchall_arrayref } ) {
+    push(@{$clanSeed{ $row->[1] }}, $row);    #keyed off pfamseq_acc
+  }
+
+  #Get nested data for clan
+  my $sthNest =
+  $dbh->prepare( "select n.pfamA_acc, nested_pfamA_acc from "
+    . "nested_locations n, clan_membership c where "
+    . "c.pfamA_acc=n.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc 
+    . "\'");
+  $sthNest->execute;
+  my %nested;
+  foreach my $row ( @{ $sthNest->fetchall_arrayref } ) {
+    $nested{ $row->[0] }{ $row->[1] } = 1;    #keyed off pfamA_acc
+  }
+
+  #Get all full data for clan
+  my $sthFullRegs =
+  $dbh->prepare( "select u.pfamA_acc, uniprot_acc, ali_start, "
+    . "ali_end, domain_evalue_score, in_full, auto_uniprot_reg_full from "
+    . "uniprot_reg_full u, clan_membership c where "
+    . "c.pfamA_acc=u.pfamA_acc and clan_acc=\'"
+    . $clan->clan_acc
+    . "\'"
+    . " order by uniprot_acc, domain_evalue_score" );
+  $sthFullRegs->execute;
+
+  my $updateSth =
+  $dbh->prepare(
+    "update uniprot_reg_full set in_full=? where auto_uniprot_reg_full=?"
+  );
+
+  my @seqRegions;
+  my $currentUniprot;
+  my $count = 0;
+  $dbh->{AutoCommit} = 0;
+  while ( my @row = $sthFullRegs->fetchrow_array ) {
+    if ( defined($currentUniprot) and $currentUniprot ne $row[1] ) {
+      my $loseRef = _competeSequence( \@seqRegions, \%clanSeed, \%nested );
+      #Loop over and set any region that is out competed to be in_full=0, based 
+      #on the region index;      
+      foreach my $region ( @seqRegions ) {
+        if(exists($loseRef->{ $region->[6] })){
+          #update uniprot_reg_full, in_full=0 based on index
+          $updateSth->execute( 0, $region->[6] );
+        }else{
+          $updateSth->execute( 1, $region->[6] );
+        }
+      }
+
+      @seqRegions = ();
+      if ( $count > 1000 ) {
+        $dbh->commit;
+        $count=0;
+      }
+    }
+    $count++;
+    $currentUniprot = $row[1];
+    push( @seqRegions, \@row );
+  }
+
+  my $loseRef = _competeSequence(\@seqRegions, \%clanSeed, \%nested, $updateSth );
+  foreach my $region ( @seqRegions ) {
+    if(exists($loseRef->{ $region->[6] })){
+      #update uniprot_reg_ful, in_full=0 based on index
+      $updateSth->execute( 0, $region->[6] );
+    }else{
+      $updateSth->execute( 1, $region->[6] );
+    }
+  }
+
+  $dbh->commit;
+  $dbh->{AutoCommit} = 1;
+
+  #Update competed flag in clans table
+  $clan->update( { uniprot_competed => 1 } );
+  
+  #my $clanMembership = $db->getClanMembership($clan_acc);
+  #foreach my $mem (@$clanMembership) {
+  #  $mem->pfama_acc->update( { updated => \'NOW()' } );
+  #}
+}
+
+
 1;
