@@ -30,7 +30,7 @@ __PACKAGE__->table("pdb_pfamA_reg");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 auto_pfama_reg_full
+=head2 auto_uniprot_reg_full
 
   data_type: 'integer'
   default_value: 0
@@ -117,7 +117,7 @@ __PACKAGE__->add_columns(
     is_auto_increment => 1,
     is_nullable => 0,
   },
-  "auto_pfama_reg_full",
+  "auto_uniprot_reg_full",
   {
     data_type => "integer",
     default_value => 0,
@@ -173,18 +173,18 @@ __PACKAGE__->set_primary_key("auto_pdb_reg");
 
 =head1 RELATIONS
 
-=head2 auto_pfama_reg_full
+=head2 auto_uniprot_reg_full
 
 Type: belongs_to
 
-Related object: L<PfamLive::Result::PfamARegFullSignificant>
+Related object: L<PfamLive::Result::UniprotRegFull>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "auto_pfama_reg_full",
-  "PfamLive::Result::PfamARegFullSignificant",
-  { auto_pfama_reg_full => "auto_pfama_reg_full" },
+  "auto_uniprot_reg_full",
+  "PfamLive::Result::UniprotRegFull",
+  { auto_uniprot_reg_full => "auto_uniprot_reg_full" },
   { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
@@ -204,8 +204,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:n03+T3ASmN0p91UpsZO9xQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:24:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:YbY5v6CrgD+Bpyjqwc94Lg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
