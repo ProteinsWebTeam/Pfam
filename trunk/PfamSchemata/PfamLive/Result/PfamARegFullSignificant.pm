@@ -195,21 +195,6 @@ __PACKAGE__->set_primary_key("auto_pfama_reg_full");
 
 =head1 RELATIONS
 
-=head2 pdb_pfam_a_regs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PdbPfamAReg>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_pfam_a_regs",
-  "PfamLive::Result::PdbPfamAReg",
-  { "foreign.auto_pfama_reg_full" => "self.auto_pfama_reg_full" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pfama_acc
 
 Type: belongs_to
@@ -241,8 +226,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-02 16:48:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:C3RFgnE8JqcOkcIbDFqUJQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:24:24
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:VIcoK2IybpaeHMlYrq+vuw
 __PACKAGE__->might_have(
 	"clan_membership" => 'PfamLive::Result::ClanMembership',
  	{ 'foreign.pfama_acc' => 'self.pfama_acc' } );
