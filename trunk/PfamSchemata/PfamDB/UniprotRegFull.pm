@@ -174,6 +174,21 @@ __PACKAGE__->set_primary_key("auto_uniprot_reg_full");
 
 =head1 RELATIONS
 
+=head2 pdb_pfama_regs
+
+Type: has_many
+
+Related object: L<PfamDB::PdbPfamaReg>
+
+=cut
+
+__PACKAGE__->has_many(
+  "pdb_pfama_regs",
+  "PfamDB::PdbPfamaReg",
+  { "foreign.auto_uniprot_reg_full" => "self.auto_uniprot_reg_full" },
+  undef,
+);
+
 =head2 pfama_acc
 
 Type: belongs_to
@@ -199,8 +214,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:54:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p5U9v0KHFZdrWnU8bdkDRQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:23:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qiZ8Vu6ZYZB5tj1hBuY8nw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

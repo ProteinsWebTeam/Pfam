@@ -195,21 +195,6 @@ __PACKAGE__->set_primary_key("auto_pfama_reg_full");
 
 =head1 RELATIONS
 
-=head2 pdb_pfama_regs
-
-Type: has_many
-
-Related object: L<PfamDB::PdbPfamaReg>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pdb_pfama_regs",
-  "PfamDB::PdbPfamaReg",
-  { "foreign.auto_pfama_reg_full" => "self.auto_pfama_reg_full" },
-  undef,
-);
-
 =head2 pfama_acc
 
 Type: belongs_to
@@ -235,8 +220,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-02 16:48:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DrhbxnhUdUZ8rOvCR482Zw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-22 11:23:35
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gR1/JIiSFQ3l8DbfQ7Bptg
 
 __PACKAGE__->has_one( pfamseq =>  'PfamDB::Pfamseq',
                       { 'foreign.pfamseq_acc'  => 'self.pfamseq_acc' },
