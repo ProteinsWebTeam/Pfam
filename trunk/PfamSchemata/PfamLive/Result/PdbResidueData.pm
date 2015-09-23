@@ -150,8 +150,8 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:31:39
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H6GzVOojp8pLC+BWZMfGBg
 
-__PACKAGE__->might_have( pfam_a_reg_full_significants => "PfamLive::Result::PfamARegFullSignificant",
- { "foreign.pfamseq_acc" => "self.pfamseq_acc"});
+__PACKAGE__->might_have( uniprot_reg_full => "PfamLive::Result::UniprotRegFull",
+ { "foreign.uniprot_acc" => "self.pfamseq_acc"});
 
 __PACKAGE__->might_have( pfam_a_reg_seeds => "PfamLive::Result::PfamARegSeed",
  	{ "foreign.pfamseq_acc" => "self.pfamseq_acc"});
