@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-#Script to submit pdb_pfamA_reg.pl jobs to farm
+#Script to submit pdbPfamAReg.pl jobs to farm
 #Can be run on all families (-all), or on a single family (-pfamA <pfamA_acc>)
 #The script estimates how much memory to request on the farm (currently 3gb)
 #A handful (<10 for uniprot29) will fail because insufficient memory was requested
@@ -43,9 +43,6 @@ else {
   @pfamA=$pfamDB->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
 }
 
-my $pdb_pfamA_script = "pdb_pfamA_reg.pl";
-
-
 #Create group pdbPfamA and use this to limit number of running jobs to 100
 system("bgadd -L 100 /pdbPfamA");
 my $group='/pdbPfamA';
@@ -62,5 +59,5 @@ foreach my $pfamA (@pfamA) {
 
   #Submit to farm
   print STDERR "$pfamA_acc\n";
-  system("bsub -q production-rh6 -J$pfamA_acc -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$pdb_pfamA_script -pfamA $pfamA_acc'");
+  system("bsub -q production-rh6 -J$pfamA_acc -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group 'pdbPfamAReg.pl -pfamA $pfamA_acc'");
 }
