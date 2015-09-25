@@ -32,7 +32,6 @@ if($all and $memory_gb) {
 #Get database connection
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
-my $scriptDir = "/nfs/production/xfam/pfam/software/Scripts/";
 
 #Create array of families to work on
 my @pfamA;
@@ -43,7 +42,7 @@ else {
   @pfamA=$pfamDB->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
 }
 
-my $uniprot_search = "$scriptDir/PfamScripts/view/performUniprotSearch.pl";
+my $uniprot_search = "performUniprotSearch.pl";
 
 my $cpu=4;
 
