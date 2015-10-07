@@ -206,7 +206,7 @@ sub submitToFarm {
     my $memory_gb = ceil(($max * 40000 * 48 * $self->cpus)/1000000000); 
     $memory_gb  += 1; #Add another Gig for the alignment overhead.
     my $queue = 'production-rh6'; #searches may go over 8 hours. 
-    my $group = '/Pfamview';
+    my $group = '/PfamView';
     my $memory_mb=$memory_gb*1000;
     my $resource = " -M $memory_mb -R rusage[mem=$memory_mb]";
 
