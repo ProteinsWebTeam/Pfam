@@ -369,7 +369,7 @@ sub submitToFarm {
   my $queue = 'production-rh6';
   my $resource = "rusage[mem=2500]";
   my $memory = 2500;  
-  my $group = '/Pfamview';
+  my $group = '/PfamView';
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue -M $memory -R $resource -g $group -o ".
               $self->options->{statusdir}."/arch.\%J.\%I.log  -Jarch\"[1-$noJobs]%70\"");
