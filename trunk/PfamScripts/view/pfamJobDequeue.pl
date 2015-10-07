@@ -58,7 +58,7 @@ while (1) {
     #Step 2 - Build up the resource requirements!
     if ( $ref->{'job_type'} eq "family" ) {
 
-	$group = '/Pfamview';
+	$group = '/PfamView';
 
       #Build up the command here to run the view process!
       #Depending on the size of the family, dictates where the job should be scheduled to!
@@ -100,7 +100,7 @@ while (1) {
 
     } #end of job type = family
     elsif ( $ref->{'job_type'} eq 'clan' ) {
-	$group = '/Pfamclanview';
+	$group = '/PfamClanview';
       #Repeat steps 2 and 3 if we have a clan view process to run.  
 
       #Step 2 - build up the LSF resource requirements
