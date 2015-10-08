@@ -552,7 +552,6 @@ sub addUniprotGF {
   my $filename="uniprot";
   open(ALN, ">$filename") or $self->logger->logdie("Couldn't open $filename, $!");
   foreach my $line (@alignment) {
-    print STDERR "[$line]\n";
     unless($line =~ /^#/ or $line =~ /^\/\//) { #The alignment might have the GF annoation already added, if so, just remove and add again
       print ALN "$line\n";
     }
