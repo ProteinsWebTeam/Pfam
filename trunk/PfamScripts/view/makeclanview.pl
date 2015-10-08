@@ -509,11 +509,17 @@ sub makeAlign {
   my @regs = $view->pfamdb->getSchema
 	 ->resultset('PfamARegSeed')
 	   ->search( { 'clan_membership.clan_acc' => $clanacn },
-		    { join       => [ qw (pfamseq_acc clan_membership) ],
-		      prefetch   => [ qw (pfamseq_acc) ] });                              
+		    { join       => [ qw (clan_membership) ] });
  
-  
-  my %regs = map {$_->pfamseq_acc->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
+  #Get sequence ids and add to array
+  #Look in uniprot table as seed may be from a mixture of pfamseq and uniprot tables, and uniprot has all of pfamseq in it
+  foreach my $reg (@regs) {
+    my $rs=$view->pfamdb->getSchema->resultset('Uniprot')->find( { uniprot_acc => $reg->pfamseq_acc });
+    $reg->{pfamseq_id}=$rs->uniprot_id;
+  }
+
+
+  my %regs = map {$_->pfamseq_acc."/".$_->seq_start."-".$_->seq_end => $_ } @regs;
   
   $view->logger->debug("Making HTML aligment for clan alignment $clanAcc.sto");
   system("consensus.pl -method clustal -file $clanAcc.sto > $clanAcc.con")
@@ -547,7 +553,7 @@ sub makeAlign {
        $view->logger->debug("Failed to find nse for $thisNse");
        $view->mailUserAndFail( "makeclanview: Failed to find nse for $thisNse" ); 
       }
-      my $accVerSE = $regs{$thisNse}->pfamseq_acc->pfamseq_acc.".".$regs{$thisNse}->pfamseq_acc->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
+      my $accVerSE = $regs{$thisNse}->pfamseq_acc.".".$regs{$thisNse}->seq_version."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end;
       
       unless(defined($famBlockColour{ $nse{$accVerSE} })){
         #Keyed of family accession
@@ -572,7 +578,7 @@ sub makeAlign {
       }
       $currentDiv=$div;
       print CALI "<span class=\"nse\">";
-      print CALI $regs{$thisNse}->pfamseq_acc->pfamseq_id."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
+      print CALI $regs{$thisNse}->{pfamseq_id}."/".$regs{$thisNse}->seq_start."-".$regs{$thisNse}->seq_end."$theRest</div>\n";     
     }else{
       print CALI $_;  
     }   
