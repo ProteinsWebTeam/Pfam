@@ -692,8 +692,15 @@ sub _getSeedRegions {
   my %regs;
   foreach my $row (@seed) {
     my $pfamseq = $self->pfamdb->getSchema->resultset('Pfamseq')->find({ pfamseq_acc => $row->pfamseq_acc });
+ 
+    unless($pfamseq) {
+      $pfamseq = $self->pfamdb->getSchema->resultset('Uniprot')->find({ uniprot => $row->pfamseq_acc });
+    }
+
     my $data = $pfamseq->get_column_data;
+
     $data->{dom}=$row;
+
     $regs{ $row->pfamseq_acc.".".$row->seq_version."/".$row->seq_start."-".$row->seq_end }=$data;
   }
 
