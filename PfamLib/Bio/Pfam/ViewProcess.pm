@@ -547,28 +547,35 @@ sub addUniprotGF {
   my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
   my $alignment = Compress::Zlib::memGunzip($rs->alignment) ;
 
+  my @alignment=split(/\n/, $alignment);
+
   my $filename="uniprot";
   open(ALN, ">$filename") or $self->logger->logdie("Couldn't open $filename, $!");
-  print ALN $alignment;
+  foreach my $line (@alignment) {
+    print STDERR "[$line]\n";
+    unless($line =~ /^#/ or $line =~ /^\/\//) { #The alignment might have the GF annoation already added, if so, just remove and add again
+      print ALN "$line\n";
+    }
+  }
   close ALN;
 
-   my $GFAnn = $self->getGFAnnotations();
-   $self->writeAnnotateAlignment($filename, $GFAnn);
+  my $GFAnn = $self->getGFAnnotations();
+  $self->writeAnnotateAlignment($filename, $GFAnn);
    
-   $filename.=".ann";
-   my $aln;
-   open(ALN, $filename) or $self->logger->logdie("Couldn't open $filename, $!");
-   while(<ALN>) {
+  $filename.=".ann";
+  my $aln;
+  open(ALN, $filename) or $self->logger->logdie("Couldn't open $filename, $!");
+  while(<ALN>) {
     $aln.=$_;
-   }
-   close ALN;
+  }  
+  close ALN;
 
-   $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create({
-       pfama_acc => $pfamA_acc,
-       alignment  => Compress::Zlib::memGzip($aln),
-       type       => 'uniprot'
-     }
-   );  
+  $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create({
+      pfama_acc => $pfamA_acc,
+      alignment  => Compress::Zlib::memGzip($aln),
+      type       => 'uniprot'
+    }
+  );
 }
 
 sub _align2cigar {
