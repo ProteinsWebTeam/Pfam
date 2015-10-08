@@ -694,7 +694,7 @@ sub _getSeedRegions {
     my $pfamseq = $self->pfamdb->getSchema->resultset('Pfamseq')->find({ pfamseq_acc => $row->pfamseq_acc });
  
     unless($pfamseq) {
-      $pfamseq = $self->pfamdb->getSchema->resultset('Uniprot')->find({ uniprot => $row->pfamseq_acc });
+      $pfamseq = $self->pfamdb->getSchema->resultset('Uniprot')->find({ uniprot_acc => $row->pfamseq_acc });
     }
 
     my $data = $pfamseq->get_column_data;
