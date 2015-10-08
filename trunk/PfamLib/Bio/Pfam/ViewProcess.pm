@@ -5,11 +5,9 @@ use warnings;
 use Data::UUID;
 use Mail::Mailer;
 use Getopt::Long qw(GetOptionsFromArray);
-use Mail::Mailer;
 use Log::Log4perl qw(:easy);
 use Data::Dumper;
 use Data::Dump;
-use Data::UUID;
 use Digest::MD5 qw(md5_hex);
 use Cwd;
 use Text::Wrap;
@@ -18,6 +16,8 @@ use Data::Printer;
 use File::Touch;
 use DDP;
 use Bio::HMM::Logo;
+use Bio::Annotation::Collection;
+use Compress::Zlib;
 
 #Need the version from github https://github.com/DaGaMs/Logomat
 use HMM::Profile;
@@ -33,6 +33,7 @@ use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
+use Bio::Pfam::ViewProcess::Search;
 
 $Text::Wrap::unexpand = 0;
 $Text::Wrap::columns = 75;
@@ -208,8 +209,8 @@ sub initiateClanViewProcess {
   }
 
   #Add the clan job to the pfam_jobs database.
-   my $guard = $self->jobdb->getSchema->txn_scope_guard;
-    eval{
+  my $guard = $self->jobdb->getSchema->txn_scope_guard;
+  eval{
     my $r = $self->jobdb->getSchema->resultset('JobHistory')->create(
       {
         status     => 'PEND',
@@ -498,8 +499,11 @@ sub processALIGN {
   #By default, the ids are actually accesions. This swaps them over.
   my $aliIds = $self->_alignAcc2id( $ali, $regs );
 
+  #Populate pdb_pfamA_reg using data from pdb_residue_data for family
+  $self->pdbPfamAReg();
+  
   #Add secondary structure strings
-  my ($ssStrings) = $self->addSecondaryStructure( $type, $aliIds, $regs);
+  my ($ssStrings) = $self->addSecondaryStructure( $aliIds, $type );
 
   #This will caclulcate the consenus at 60% and add the secondary structure consensus
   $self->addConsensuses( $aliIds, $type, $ssStrings, $filename );
@@ -524,10 +528,47 @@ sub processALIGN {
   $self->logger->debug("Making fasta file for $filename");
   $self->makeNonRedundantFasta;
 
-  $self->makeRPAligns( $aliIds, $regs, $GFAnn );
+  #No longer make RP alignments
+  #$self->makeRPAligns( $aliIds, $regs, $GFAnn );
 
   #Upload the alignments (stockholm and html) and tree into the database
   $self->uploadTreesAndAlign( $filename, $type );
+
+  #Add GF annoations to uniprot alignments
+  $self->addUniprotGF();
+}
+
+
+sub addUniprotGF {
+  my ($self) = @_;
+
+  my $pfamA_acc = $self->pfam->pfama_acc;
+
+  my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
+  my $alignment = Compress::Zlib::memGunzip($rs->alignment) ;
+
+  my $filename="uniprot";
+  open(ALN, ">$filename") or $self->logger->logdie("Couldn't open $filename, $!");
+  print ALN $alignment;
+  close ALN;
+
+   my $GFAnn = $self->getGFAnnotations();
+   $self->writeAnnotateAlignment($filename, $GFAnn);
+   
+   $filename.=".ann";
+   my $aln;
+   open(ALN, $filename) or $self->logger->logdie("Couldn't open $filename, $!");
+   while(<ALN>) {
+    $aln.=$_;
+   }
+   close ALN;
+
+   $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create({
+       pfama_acc => $pfamA_acc,
+       alignment  => Compress::Zlib::memGzip($aln),
+       type       => 'uniprot'
+     }
+   );  
 }
 
 sub _align2cigar {
@@ -636,27 +677,20 @@ sub _getFullRegions {
 sub _getSeedRegions {
   my ( $self ) = @_;
   $self->logger->debug("Getting sequences identifiers for SEED");
-  my $regs = $self->pfamdb
+  
+  
+  my @seed = $self->pfamdb
                     ->getSchema
-                      ->resultset('Pfamseq')
-                        ->search({'pfam_a_reg_seeds.pfama_acc' => $self->pfam->pfama_acc,
-                                                  },
-                                                            { prefetch => 'pfam_a_reg_seeds' });
+                    ->resultset('PfamARegSeed')->search({ pfamA_acc => $self->pfam->pfama_acc });
 
   my %regs;
-  while(my $row = $regs->next){
-    my @doms = $row->pfam_a_reg_seeds;
-    foreach my $dom (@doms){
-      my $data = $row->get_column_data;
-      $data->{dom} = $dom;
-      $regs{ $row->pfamseq_acc . "."
-             .$row->seq_version . "/"
-             .$dom->seq_start . "-"
-                    . $dom->seq_end 
-                      } = $data;
-     }
+  foreach my $row (@seed) {
+    my $pfamseq = $self->pfamdb->getSchema->resultset('Pfamseq')->find({ pfamseq_acc => $row->pfamseq_acc });
+    my $data = $pfamseq->get_column_data;
+    $data->{dom}=$row;
+    $regs{ $row->pfamseq_acc.".".$row->seq_version."/".$row->seq_start."-".$row->seq_end }=$data;
   }
-  
+
   return ( \%regs );
 }
 
@@ -897,7 +931,7 @@ sub processSEED {
   my $aliIds = $self->_alignAcc2id( $ali, $regs, $type );
 
   my $ssStrings =
-    $self->addSecondaryStructure( $type, $aliIds, $regs );
+    $self->addSecondaryStructure( $aliIds, $type );
 
 #This will caclulcate the consenus at 60% and add the secondary structure consensus
   $self->addConsensuses( $aliIds, $type, $ssStrings, $filename );
@@ -925,64 +959,268 @@ sub processSEED {
 }
 
 sub addSecondaryStructure {
-  my ( $self, $type, $aliIds, $regs ) = @_;
+  my ($self, $aln, $type) = @_;
 
-  my $ssStrings;
-  #Add the secondary structure
+  my $pfamA_acc = $self->pfam->pfama_acc;
+  my $dbh = $self->pfamdb->getSchema->storage->dbh;
+
   $self->logger->debug("Adding secondary structure data to $type");
-  
-  #First, get the secondary structure data from the database
-  my ($dsspDataRef) =
-    $self->_getDsspData( $type );
-  if ( $dsspDataRef and scalar( keys(%$dsspDataRef) ) ) {
-    $self->logger->debug("Found some SS data");
 
-    #Now add this to the alignment
-    my($noStructures, $map);
-    ( $noStructures, $map, $ssStrings ) =
-      $self->markupAlignWithSS( $aliIds, $dsspDataRef );
+  #Get data from pdb_pfamA_reg table
+  my @pdbPfamA = $self->pfamdb->getSchema->resultset("PdbPfamAReg")->search( { "pfama_acc" => $pfamA_acc } );
 
-   
-    if ( $type eq "full" ) {
-      if ($noStructures) {
-        $self->pfam->update( { number_structures => $noStructures } );
-      }else{
-        $self->pfam->update( { number_structures => 0 } );
+  my (%pdb, %pfamseqPdb);
+  foreach my $pdbPfamA (@pdbPfamA) {
+
+    push(@{$pdb{$pdbPfamA->pfamseq_acc}}, { pdb_id => $pdbPfamA->pdb_id, chain => $pdbPfamA->chain, seq_start => $pdbPfamA->seq_start, seq_end => $pdbPfamA->seq_end, pdb_res_start => $pdbPfamA->pdb_res_start,
+        pdb_res_end => $pdbPfamA->pdb_res_end, pdb_start_icode => $pdbPfamA->pdb_start_icode, pdb_end_icode => $pdbPfamA->pdb_end_icode });
+
+    my $pdbid_chain=$pdbPfamA->pdb_id."_".$pdbPfamA->chain;
+    $pfamseqPdb{$pdbPfamA->pfamseq_acc}{$pdbid_chain}=1;
+  }
+
+  #Set up query for getting dssp_code from pdb_residue_data
+  my $sth=$dbh->prepare("select pfamseq_seq_number, dssp_code from pdb_residue_data where pfamseq_acc=? and pdb_id=? and chain=? and pfamseq_seq_number >= ? and pfamseq_seq_number <= ?");
+
+  #Loop through each sequence and store ss info
+  my @allSsStrings;
+  foreach my $seq ( $aln->each_seq() ) {
+    my $pfamseq_acc=$seq->acc;
+
+    #Get ss data for the sequence into a hash
+    my %ssData;
+    my %ss;
+    foreach my $pdb_mapping (@{$pdb{$pfamseq_acc}}) {
+
+      my $pdbid_chain=$pdb_mapping->{pdb_id}."_".$pdb_mapping->{chain}; 
+
+      $ss{$pdbid_chain}{start}=$pdb_mapping->{pdb_res_start};
+      $ss{$pdbid_chain}{end}=$pdb_mapping->{pdb_res_end};
+
+      ($ss{$pdbid_chain}{icode_start}, $ss{$pdbid_chain}{icode_end}) = ("", "");
+
+      if($pdb_mapping->{start_icode}) {
+        $ss{$pdbid_chain}{icode_start}=$pdb_mapping->{start_icode};
       }
-      #$self->logger->debug(p($map));
-      #Delete all auto_pfamAs
-      $self->pfamdb->getSchema->resultset('PdbPfamAReg')
-        ->search( { pfama_acc => $self->pfam->pfama_acc } )->delete;
+      if($pdb_mapping->{end_icode}) {
+        $ss{$pdbid_chain}{icode_end}=$pdb_mapping->{end_icode};
+      }
 
-      #Add the pdbmap data to pdb_pfamA_reg
-      my %autoPdbs;
-      foreach my $nse ( keys %$map ) {
-        foreach my $pdbReg ( @{ $map->{$nse} } ) {
-          
-		    #"Inserting row into PdbPfamaReg " . $regs->{$nse}->auto_pfama );
+      $sth->execute($pfamseq_acc, $pdb_mapping->{pdb_id}, $pdb_mapping->{chain}, $pdb_mapping->{seq_start}, $pdb_mapping->{seq_end}) or die "Couldn't execute statement ".$sth->errstr."\n";
+      my ($pfamseq_num, $dssp_code);
+      $sth->bind_columns(\$pfamseq_num, \$dssp_code);
 
-          #Now reinsert
-          $self->pfamdb->getSchema->resultset('PdbPfamAReg')->create(
-            {
-              auto_pfama_reg_full => $regs->{$nse}->{dom}->auto_pfama_reg_full,
-              pdb_id              => $pdbReg->{pdb_id},
-              pfama_acc          => $regs->{$nse}->{dom}->pfama_acc->pfama_acc,
-              pfamseq_acc        => $regs->{$nse}->{dom}->pfamseq_acc->pfamseq_acc,
-              chain               => $pdbReg->{chain},
-              pdb_res_start       => $pdbReg->{pdb_start},
-              pdb_start_icode     => $pdbReg->{pdb_start_icode},
-              pdb_res_end         => $pdbReg->{pdb_end},
-              pdb_end_icode       => $pdbReg->{pdb_end_icode},
-              seq_start           => $pdbReg->{seq_start},
-              seq_end             => $pdbReg->{seq_end},
-            }
-          );
+      while ($sth->fetch()) {
+        $ssData{$pdbid_chain}{$pfamseq_num}=$dssp_code;
+      }
+    }
+
+    #Then go through each position and store ss
+    my @ali   = split( //, $seq->seq );
+    my $res_number=$seq->start;
+    foreach my $res (@ali) {
+      foreach my $pdbid_chain (keys %{$pfamseqPdb{$pfamseq_acc}}) {
+        if ( $res eq "." or $res eq "-" ) {
+          $ss{$pdbid_chain}{ssString}.=$res;
         }
+        elsif(exists($ssData{$pdbid_chain}{$res_number})) {
+          if($ssData{$pdbid_chain}{$res_number} and $ssData{$pdbid_chain}{$res_number} =~ /\S+/) {
+            $ss{$pdbid_chain}{ssString}.=$ssData{$pdbid_chain}{$res_number};
+          }
+          else {
+            $ss{$pdbid_chain}{ssString}.="-";
+          }
+        }
+        else {
+          #If not then put an X for undef
+          $ss{$pdbid_chain}{ssString} .= "X";
+        }
+      }
+      $res_number++;
+    }
+
+    my @ssForMerging;
+
+    #Remove any strings that lack SS
+    foreach my $pdb_chain ( keys %ss ) {
+
+      # T,S,B,E,H,G,I
+      if ( $ss{$pdb_chain}{ssString} ) {
+        delete $ss{$pdb_chain}
+        unless ( $ss{$pdb_chain}{ssString} =~ /[TSBEHGI]/ );
+      }
+      else {
+        delete $ss{$pdb_chain};
+      }
+
+      #If we do not delete the hash add it to the
+      if ( $ss{$pdb_chain} ) {
+        push( @ssForMerging, $ss{$pdb_chain}{ssString} );
+        my ( $pdb, $chain ) = split( /_/, $pdb_chain );
+        $chain = "" if ( !$chain );
+
+        #Put the mapping in to the alignment
+        my $link = Bio::Annotation::DBLink->new();
+        $link->database("PDB");
+        $link->primary_id( $pdb . " " . $chain );
+        $link->optional_id( $ss{$pdb_chain}{start}
+          . $ss{$pdb_chain}{icode_start} . "-"
+          . $ss{$pdb_chain}{end}
+          . $ss{$pdb_chain}{icode_end}
+          . ";" );
+        $seq->annotation( Bio::Annotation::Collection->new() )
+        unless ( $seq->annotation );
+        $seq->annotation->add_Annotation( 'dblink', $link );
+      }
+    }
+
+  #Add anything pdbs we have here as an Xref.
+    #Compress multiple SS to consenus
+    #print Dumper(@ssForMerging);
+    if ( scalar(@ssForMerging) ) {
+      my $consensus;
+      if ( scalar(@ssForMerging) > 1 ) {
+        $consensus = $self->secStrucConsensus( \@ssForMerging );
+      }
+      else {
+        $consensus = $ssForMerging[0];
+      }
+      push( @allSsStrings, $consensus );
+      $seq->sec_struct(
+        Bio::Pfam::OtherRegion->new(
+          '-seq_id'  => $seq->acc,
+          '-from'    => $seq->start,
+          '-to'      => $seq->end,
+          '-type'    => "sec_struct",
+          '-display' => $consensus,
+          '-source'  => 'Pfam'
+        )
+      );
+    }
+  }
+
+  return (\@allSsStrings);
+
+}
+
+sub pdbPfamAReg {
+  my ($self) = @_;
+
+  $self->logger->debug("Going to populate pdb_pfamA_reg table");
+  my $pfamA_acc = $self->pfam->pfama_acc;
+
+  #Get all pdb residue data for the sequences in the family
+  my $pdbData;
+  my @pdbResult = $self->pfamdb->getSchema->resultset("PdbResidueData")->search(
+    {
+      "uniprot_reg_full.pfama_acc" => $pfamA_acc,
+      "uniprot_reg_full.in_full"    => 1,
+      observed                          => 1
+    },
+    {
+      join   => [qw(uniprot_reg_full)],
+      select => [  qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number pdb_insert_code) ],
+      as => [ qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number pdb_insert_code)]
+    }
+  );
+
+  #Go through and store data in $pdbData
+  foreach my $row (@pdbResult) {
+    #Sometimes there is >1 pdb_insert_code for a single uniprot reside, so let's take the first one
+    unless ( $pdbData->{ $row->get_column('pfamseq_acc') }->{ $row->get_column('pfamseq_seq_number') }->{ $row->get_column('pdb_id') . "_" . $row->get_column('chain') } ) {
+      my $pdb_number_icode=$row->get_column('pdb_seq_number');
+      if($row->get_column('pdb_insert_code')) {
+        $pdb_number_icode.=$row->get_column('pdb_insert_code');
+      }
+      $pdbData->{ $row->get_column('pfamseq_acc') }->{ $row->get_column('pfamseq_seq_number') }->{ $row->get_column('pdb_id') . "_" . $row->get_column('chain') } = $pdb_number_icode;
+    }
+  }
+
+
+  #Go though each sequence in the family, and map to any pdb data
+  my @famRegions=$self->pfamdb->getSchema->resultset("UniprotRegFull")->search({ pfamA_acc => $pfamA_acc });
+  my @upload;
+  foreach my $region (@famRegions) {
+    my $uniprot_acc=$region->uniprot_acc->uniprot_acc;
+
+    #Get all pdbid_chains that map to this sequence
+    my %uniqueMaps;
+    foreach my $pos ( keys %{ $pdbData->{ $uniprot_acc } } ) {
+      foreach my $pdb_chain ( keys %{$pdbData->{$uniprot_acc}->{$pos}} ) {
+        $uniqueMaps{$pdb_chain} = 1;
+      }       
+    }
+ 
+    #Find the pdb region, if any, that maps to the pfamA
+    my ($pdb_res_start, $pdb_start_icode, $pdb_res_end, $pdb_end_icode, $seq_start, $seq_end);
+    foreach my $pdb_chain (keys %uniqueMaps) {
+      for(my $i=$region->seq_start; $i<=$region->seq_end; $i++) {
+        if($pdbData->{$uniprot_acc}->{$i}->{$pdb_chain}) {
+          if($pdb_res_start) {
+            #If we get here it means the pdb structure does not cover the whole pfamA region
+            my $pdb_seq_number_icode=$pdbData->{$uniprot_acc}->{$i}->{$pdb_chain};
+            ($pdb_res_end, $pdb_end_icode) = ("", "");
+            ($pdb_res_end, $pdb_end_icode) = $pdb_seq_number_icode =~ /(\S?\d+)(\w+)?/; #eg 0, 0A, -5, -5A, 10, 10A
+            die "Couldn't extract pdb_res_end from [$pdb_seq_number_icode]\n" unless(defined($pdb_res_end));
+            $seq_end=$i;
+          }
+          else {
+            #We have a start pdb residue
+            my $pdb_seq_number_icode=$pdbData->{$uniprot_acc}->{$i}->{$pdb_chain};
+            ($pdb_res_start, $pdb_start_icode) = $pdb_seq_number_icode =~ /(\S?\d+)(\w+)?/;
+            die "Couldn't extract pdb_res_start from [$pdb_seq_number_icode]\n" unless(defined($pdb_res_start));
+            $seq_start=$i;
+
+            #See if pfamA region end maps to a pdb residue, if it does we can exit the loop
+            if($pdbData->{$uniprot_acc}->{$region->seq_end}->{$pdb_chain}) {
+              my $pdb_seq_number_icode2=$pdbData->{$uniprot_acc}->{$region->seq_end}->{$pdb_chain};
+              ($pdb_res_end, $pdb_end_icode) = $pdb_seq_number_icode2 =~ /(\S?\d+)(\w+)?/; #eg 0, 0A, -5, -5A, 10, 10A
+              die "Couldn't extract pdb_res_end from [$pdb_seq_number_icode2]\n" unless(defined($pdb_res_end));
+              $seq_end=$region->seq_end;
+              last;
+            }
+          }
+        }
+      }
+
+      if($pdb_res_start and $pdb_res_end) {
+        my ($pdb_id, $chain) = $pdb_chain =~ /(\S+)_(\S+)?/;
+        push(@upload, {
+            auto_uniprot_reg_full => $region->auto_uniprot_reg_full,
+            pdb_id              => $pdb_id,
+            pfama_acc           => $pfamA_acc,
+            pfamseq_acc         => $uniprot_acc,
+            chain               => $chain,
+            pdb_res_start       => $pdb_res_start,
+            pdb_start_icode     => $pdb_start_icode,
+            pdb_res_end         => $pdb_res_end,
+            pdb_end_icode       => $pdb_end_icode,
+            seq_start           => $seq_start,
+            seq_end             => $seq_end,
+          });
       }
     }
   }
-  return($ssStrings);
+
+  my $pfam=$self->pfamdb->getSchema->resultset("PfamA")->find( { pfama_acc => $pfamA_acc } );
+  if(@upload) {
+    my $u = @upload;
+    $self->logger->debug("Uploading $u rows into pdb_pfamA_reg table");
+    $pfam->update( { number_structures => $u } );
+  }
+  else {
+    $self->logger->debug("No structural data to upload to pdb_pfamA_reg table");
+    $pfam->update( { number_structures => 0 } );
+  }
+  #Delete old regions if any
+  $self->pfamdb->getSchema->resultset('PdbPfamAReg')->search( { pfama_acc => $pfamA_acc} )->delete;
+
+  #Upload new ones
+  $self->pfamdb->getSchema->resultset("PdbPfamAReg")->populate(\@upload);
+
+
 }
+
 
 sub checkflat {
   my ( $self, $filename ) = @_;
@@ -2064,7 +2302,8 @@ sub writeAnnotateAlignment {
   my ($self, $filename, $GFAnn) = @_;
   
   my $alignData = {};
-  
+  my $noSeqs=0;
+
   open(F, '<', $filename) or $self->logger->logdie("Could not open $filename:[$!]");
   while(<F>){
     if(/^STOCKHOLM 1.0/){
@@ -2073,6 +2312,7 @@ sub writeAnnotateAlignment {
       next;
     }elsif(/^#=GS/){
       push(@{ $alignData->{GS} }, $_);
+      $noSeqs++;
     }elsif(/^#=GR.*PP\s+\S+$/){
       next;
     }elsif(/^$/){
@@ -2086,8 +2326,8 @@ sub writeAnnotateAlignment {
   }
 
   $self->write_stockholm_file($filename, $alignData, $GFAnn);
-  #$filename .= ".ann";
-  return($filename, scalar( @{$alignData->{GS}} ));
+  #$filename .= ".ann"; 
+  return($filename, $noSeqs);
 }
 
 
@@ -2216,6 +2456,7 @@ sub consensus_line {
 sub make_tree {
 
   my ( $self, $filename, $regs, $pfamseq ) = @_;
+
 
   #Double check this still works
   open( TREE, "esl-reformat --informat selex afa $filename | FastTree -fastest -nj -boot 100 |" )
@@ -2680,11 +2921,6 @@ sub resetStats {
                          seed_consensus => '',
                          full_consensus => '',
                          number_shuffled_hits => '0',
-                         number_rp15 => '0',
-                         number_rp35 => '0',
-                         number_rp55 => '0',
-                         number_rp75 => '0',
-			 number_ref_proteome => '0',
   } );  
   
 }
@@ -2732,7 +2968,7 @@ sub cleanUp {
     return;  
   }
   $self->logger->debug("cleaning up");
-  my @files = glob("ALIGN* SEED* HMM* family.fa*  hmmLogo.png*");
+  my @files = glob("ALIGN* SEED* HMM* family.fa*  hmmLogo.png* uniprot*");
 
   foreach my $f (@files){
     unlink($f) or $self->mailUserAndFail("Could not remove file, $f");  
