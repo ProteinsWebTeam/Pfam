@@ -336,7 +336,7 @@ if (! $view->statusCheck('done pfamA_ncbi')){
         my $resource = "rusage[mem=1000]";
         my $memory = 1000;  
         my $fh = IO::File->new();
-        my $group = '/PfamView';
+        my $group = '/PfamViewGroup';
         my $cmd = "pfama_ncbi.pl -acc $acc -file $dumpfile";
         my $log = "$acc" . "pfama_ncbilog";
 

@@ -58,7 +58,7 @@ while (1) {
     #Step 2 - Build up the resource requirements!
     if ( $ref->{'job_type'} eq "family" ) {
 
-	$group = '/PfamView';
+	$group = '/PfamViewGroup';
 
       #Build up the command here to run the view process!
       #Depending on the size of the family, dictates where the job should be scheduled to!

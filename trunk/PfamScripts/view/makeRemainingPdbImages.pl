@@ -85,7 +85,7 @@ foreach my $id (keys %noimage){
     my $dir = $statusdir . "/" . $id;
     system("mkdir $dir") and $logger->logdie("Couldn't make directory $dir");
     my $mem = '24000';
-    my $grp = "/PfamView";
+    my $grp = "/PfamViewGroup";
     my $queue = "production-rh6";
     my $out = $dir . "/$id.out";
     my $cmd = "bsub -q $queue -M $mem -g $grp -o $out \"makePdbImages.pl -acc $id -statusdir $dir\"";
