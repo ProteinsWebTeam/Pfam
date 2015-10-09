@@ -33,7 +33,6 @@ use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 use Bio::Pfam::ViewProcess::Consensus;
-use Bio::Pfam::ViewProcess::Search;
 
 $Text::Wrap::unexpand = 0;
 $Text::Wrap::columns = 75;
@@ -693,14 +692,20 @@ sub _getSeedRegions {
   foreach my $row (@seed) {
     my $pfamseq = $self->pfamdb->getSchema->resultset('Pfamseq')->find({ pfamseq_acc => $row->pfamseq_acc });
  
+    my $u;
     unless($pfamseq) {
       $pfamseq = $self->pfamdb->getSchema->resultset('Uniprot')->find({ uniprot_acc => $row->pfamseq_acc });
+      $u=1;
     }
 
     my $data = $pfamseq->get_column_data;
 
     $data->{dom}=$row;
-
+    
+    if($u) { #The fields pfamseq_acc and pfamseq_id do not exist in the uniprot table, so lets populate them
+      $data->{pfamseq_acc}=$data->{uniprot_acc};
+      $data->{pfamseq_id}=$data->{uniprot_id};
+    }
     $regs{ $row->pfamseq_acc.".".$row->seq_version."/".$row->seq_start."-".$row->seq_end }=$data;
   }
 
