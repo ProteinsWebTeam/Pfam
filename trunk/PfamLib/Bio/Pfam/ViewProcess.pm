@@ -2970,6 +2970,8 @@ sub getAllFiles {
 #are in the cwd.
   foreach my $f (qw(ALIGN SEED HMM)) {
     unless ( -e $f and -s $f ) {
+      next if($f eq "ALIGN" and -e $f and $self->{noALIGN});
+
       $self->mailUserAndFail(
         "View process failed as $f was not present\n" );
     }
