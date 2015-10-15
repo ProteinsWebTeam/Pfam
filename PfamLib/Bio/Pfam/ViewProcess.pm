@@ -484,6 +484,13 @@ sub processALIGN {
 #rudimentary QC and more importantly, exchange accessions for ids in the alignment
 
   my $regs = $self->_getFullRegions();
+
+  unless(keys %$regs) { #A handful of families will have no regions left after clan competition
+    $self->logger->debug("No regions in ALIGN file to process");
+    $self->pfam->update( { num_full => 0 });
+    return;
+  }
+
   my $ali =  $self->_verifyFullRegions( $regs, $a );
 
 #-------------------------------------------------------------------------------
