@@ -55,7 +55,7 @@ sub submitToFarm {
   #Now submit the jobs
   my $queue = 'production-rh6';
   my $resource = "rusage[mem=2500]";
-  my $memory = 2500;  
+  my $memory = 4000;  
   my $fh = IO::File->new();
   $fh->open( "| bsub -q $queue  -M $memory -R $resource -o ".
               $self->options->{statusdir}."/store.\%J.\%I.log  -JStore\"[1-$noJobs]%41\"");
