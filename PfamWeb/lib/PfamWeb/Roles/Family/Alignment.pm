@@ -23,6 +23,8 @@ $Id$
 use MooseX::MethodAttributes::Role;
 use namespace::autoclean;
 
+use utf8;
+
 use Text::Wrap;
 use Bio::Pfam::AlignPfam;
 use JSON;
@@ -47,8 +49,8 @@ sub alignment : Chained( 'family' )
   my ( $this, $c, $aln_type ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->stash->{alnType} = 'seed';
 
   if ( defined $aln_type and
@@ -65,7 +67,7 @@ sub alignment : Chained( 'family' )
 =head2 alignment_link : Chained
 
 An endpoint for the /family/ACC/alignment chain that doesn't need the alignment
-type specified. 
+type specified.
 
 =cut
 
@@ -87,8 +89,8 @@ sub raw_alignment : Chained( 'alignment' )
 	my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
 
@@ -101,7 +103,7 @@ sub raw_alignment : Chained( 'alignment' )
 =head2 gzipped : Local
 
 Returns a gzip-compressed file with the full or seed alignment for the specified
-family. 
+family.
 
 =cut
 
@@ -111,8 +113,8 @@ sub gzipped : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   my ( $alignment, $filename );
 
   if ( $c->stash->{alnType} eq 'long' ) {
@@ -123,16 +125,17 @@ sub gzipped : Chained( 'alignment' )
     my $rs = $c->model('PfamDB::PfamaRegFullSignificant')
                ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
                            in_full    => 1 },
-                         { join     => [ qw( pfamseq_acc ) ],
-                           prefetch => [ qw( pfamseq_acc ) ],
-                           columns  => [ qw( pfamseq_acc.pfamseq_id 
-                                             pfamseq_acc.pfamseq_acc
-                                             pfmaseq_acc.sequence ) ] } );
+                         { join     => [ qw( pfamseq ) ],
+                           prefetch => [ qw( pfamseq ) ],
+                           columns  => [ qw( pfamseq.pfamseq_id
+                                             pfamseq.pfamseq_acc
+                                             pfamseq.sequence ) ] } );
     my $sequences = '';
     while ( my $seq_row = $rs->next ) {
       $Text::Wrap::columns = 60;
-      $sequences .= '>' . $seq_row->pfamseq_acc->pfamseq_id . ' (' . $seq_row->pfamseq_acc->pfamseq_acc . ")\n";
-      $sequences .= wrap( '', '', $seq_row->pfamseq_acc->sequence ) . "\n";
+      $sequences .= '>' . $seq_row->pfamseq->pfamseq_id
+                        . ' (' . $seq_row->pfamseq->pfamseq_acc . ")\n";
+      $sequences .= wrap( '', '', $seq_row->pfamseq->sequence ) . "\n";
     }
 
     # compress it
@@ -158,16 +161,16 @@ sub gzipped : Chained( 'alignment' )
   unless ( defined $alignment ) {
     $c->log->warn( 'Family::gzipped: failed to retrieve alignment for '
                     . $c->stash->{acc} ) if $c->debug;
-      
-    $c->res->status( 204 ); # "no content"
-    
-    return;
-  } 
 
-  # set the filename on the HTTP headers, so that the browser will offer to 
+    $c->res->status( 204 ); # "no content"
+
+    return;
+  }
+
+  # set the filename on the HTTP headers, so that the browser will offer to
   # download and save it
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
-  
+
   # ... and dump it straight to the response
   $c->res->content_type( 'application/x-gzip' );
   $c->res->body( $alignment );
@@ -177,9 +180,9 @@ sub gzipped : Chained( 'alignment' )
 
 =head2 old_gzipped : Path
 
-This is used by the form in the Pfam family page. The form is currently 
+This is used by the form in the Pfam family page. The form is currently
 submitted by the browser directly, so there's no javascript to intervene
-and convert the parameters into URL arguments. This action will accept 
+and convert the parameters into URL arguments. This action will accept
 the parameters and redirect to the Chained action above.
 
 =cut
@@ -245,15 +248,15 @@ sub format : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the alignment
   $c->forward( 'get_alignment_from_db' );
 
   # we need the alignment as an array ref, so...
   my @alignment = split /\n/, $c->stash->{alignment};
   $c->stash->{alignment_rows} = \@alignment;
-  
+
   $c->log->debug( 'Family::format: got '
                   . scalar @alignment . ' rows in alignment' ) if $c->debug;
 
@@ -283,7 +286,7 @@ sub format : Chained( 'alignment' )
   if ( $c->req->param('gaps') ) {
     $c->log->debug( 'Family::format: handling gaps parameter' )
       if $c->debug;
-      
+
     if ( $c->req->param('gaps') =~ m/^n\w*/ ) {
       $pfamaln->map_chars('-', '');
       $pfamaln->map_chars('\.', '');
@@ -339,7 +342,7 @@ sub format : Chained( 'alignment' )
       if $c->debug;
 
     my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType}. '.txt';
-  
+
     $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   }
 
@@ -352,9 +355,9 @@ sub format : Chained( 'alignment' )
 
 =head2 old_format : Path
 
-This is used by the form in the Pfam family page. The form is currently 
+This is used by the form in the Pfam family page. The form is currently
 submitted by the browser directly, so there's no javascript to intervene
-and convert the parameters into URL arguments. This action will accept 
+and convert the parameters into URL arguments. This action will accept
 the parameters and redirect to the Chained action above.
 
 =cut
@@ -382,7 +385,7 @@ sub old_format : Path( '/family/alignment/download/format' ) {
 
 =head2 html : Chained
 
-Retrieves the HTML alignment and dumps it to the response. We first try to 
+Retrieves the HTML alignment and dumps it to the response. We first try to
 extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 =cut
@@ -393,13 +396,13 @@ sub html : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
-  
+
   my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
-  
+
   my $jtml = $c->cache->get( $cacheKey );
   if ( defined $jtml ) {
     $c->log->debug( 'Family::html: extracted HTML from cache' )
@@ -407,7 +410,7 @@ sub html : Chained( 'alignment' )
   }
   else {
     $c->log->debug( 'Family::html: failed to extract HTML from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the HTML from the DB
     my $row = $c->model('PfamDB::AlignmentAndTree')
@@ -415,12 +418,12 @@ sub html : Chained( 'alignment' )
                             type       => $c->stash->{alnType} },
                            { columns    => [ qw( jtml ) ] } )
                 ->single;
-  
+
     # final check...
     unless ( $row and
              defined $row->jtml ) {
       $c->log->debug( 'Family::html: failed to retrieve JTML' )
-        if $c->debug;  
+        if $c->debug;
 
       $c->stash->{errorMsg} = 'We do not have the HTML alignment for '
                               . $c->stash->{acc};
@@ -442,7 +445,7 @@ sub html : Chained( 'alignment' )
 
   # stash the HTML
   $c->stash->{html_alignment} = $jtml;
-  
+
 }
 
 #---------------------------------------
@@ -477,8 +480,8 @@ sub old_html : Path( '/family/alignment/download/html' ) {
 
 =head2 heatmap : Chained
 
-Retrieves the HTML "heatmap" coloured alignment and dumps it to the response. 
-We first try to extract the HTML from the cache or, if that fails, we retrieve 
+Retrieves the HTML "heatmap" coloured alignment and dumps it to the response.
+We first try to extract the HTML from the cache or, if that fails, we retrieve
 it from the DB.
 
 =cut
@@ -491,12 +494,12 @@ sub heatmap : Chained( 'alignment' )
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
   $c->stash->{heatmap}  = 1; # flag that this is a heatmap rather than a regular alignment
-  
+
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   my $cacheKey = 'heatmap' . $c->stash->{acc};
-  
+
   my $hm = $c->cache->get( $cacheKey );
   if ( defined $hm ) {
     $c->log->debug( 'Family::heatmap: extracted HTML from cache' )
@@ -504,20 +507,20 @@ sub heatmap : Chained( 'alignment' )
   }
   else {
     $c->log->debug( 'Family::heatmap: failed to extract HTML from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the HTML from the DB
     my $row = $c->model('PfamDB::AlignmentAndTree')
                 ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc,
-                            type       => $c->stash->{alnType} }, 
+                            type       => $c->stash->{alnType} },
                           { columns    => [ qw( post ) ] } )
                 ->single;
-  
+
     unless ( $row and
              defined $row->post ) {
       $c->log->debug( 'Family::heatmap: failed to retrieve heatmap for ' . $c->stash->{alnType} )
-        if $c->debug;  
-      $c->stash->{errorMsg} = 'We do not have the ' . $c->stash->{alnType} 
+        if $c->debug;
+      $c->stash->{errorMsg} = 'We do not have the ' . $c->stash->{alnType}
                               . ' heatmap alignment for ' . $c->stash->{acc};
       return;
     }
@@ -536,7 +539,7 @@ sub heatmap : Chained( 'alignment' )
   }
 
   # stash the HTML
-  $c->stash->{html_alignment} = $hm;  
+  $c->stash->{html_alignment} = $hm;
 }
 
 #---------------------------------------
@@ -566,7 +569,7 @@ sub old_heatmap : Path( '/family/alignment/download/heatmap' ) {
 
 This is the way into the JalView alignment viewer applet.
 
-Hands straight off to a template that generates a "tool" page containing the 
+Hands straight off to a template that generates a "tool" page containing the
 JalView applet.
 
 =cut
@@ -577,8 +580,8 @@ sub jalview : Chained( 'alignment' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->stash->{template} = 'components/tools/jalview.tt';
 }
 
@@ -621,8 +624,8 @@ sub dasviewer : Chained( 'alignment' )
   my ( $self, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # build a "title" string, which will be used as the heading for the
   # alignment tool window
   my $title = 'Pfam ' . $c->stash->{alnType} . ' alignment for '
@@ -633,8 +636,8 @@ sub dasviewer : Chained( 'alignment' )
                  ? $c->stash->{pfam}->num_seed
                  : $c->stash->{pfam}->num_full;
 
-  my $das_source = $c->stash->{ alnType } eq 'seed' 
-                 ? 'Pfam_Seed_Alignments' 
+  my $das_source = $c->stash->{ alnType } eq 'seed'
+                 ? 'Pfam_Seed_Alignments'
                  : 'Pfam_Full_Alignments' ;
 
   $c->log->debug( 'Family::dasviewer: setting up for get_das_alignment' )
@@ -693,15 +696,15 @@ the species_collection table, rather than the job that we run to align them.
 sub build : Chained( 'alignment_link' )
             PathPart( 'build' )
             CaptureArgs( 0 ) { }
-  
+
 sub build_alignment_from_selection : Chained( 'build' )
                                      PathPart( '' )
                                      Args( 0 ) {
   my ( $this, $c ) = @_;
-  
+
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::build: checking for sequences' )
     if $c->debug;
 
@@ -724,9 +727,9 @@ sub build_alignment_from_selection : Chained( 'build' )
   }
 
   # retrieve the sequences
-  $c->stash->{fasta} = $c->forward( '/utils/get_sequences', 
+  $c->stash->{fasta} = $c->forward( '/utils/get_sequences',
                                     [ $collection_id, $c->stash->{pfam} ] );
-  
+
   # make sure we got something...
   unless ( length $c->stash->{fasta} ) {
     $c->log->debug( 'Family::build: failed to get a FASTA sequence' )
@@ -742,13 +745,13 @@ sub build_alignment_from_selection : Chained( 'build' )
   # and see if we managed it...
   if ( $submissionStatus < 0 ) {
     $c->log->debug( 'Family::build: problem with submission; returning error page' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   }
   else {
     $c->log->debug( 'Family::build: alignment job submitted; polling' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
 }
@@ -788,21 +791,21 @@ sub view : Chained( 'alignment_link' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the job results
   my ( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
-  
+
   unless ( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::view: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
-  }   
+  }
 
-  # count the number of rows in the alignment. The raw alignment includes 
+  # count the number of rows in the alignment. The raw alignment includes
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
@@ -845,7 +848,7 @@ sub old_view : Path( '/family/alignment/builder/view' ) {
 
 =head2 save_built_alignment : Chained('build') PathPart('download') Args(0)
 
-Retrieves the sequence alignment that we generated and serves it, raw, in the 
+Retrieves the sequence alignment that we generated and serves it, raw, in the
 response body.
 
 =cut
@@ -856,19 +859,19 @@ sub save_built_alignment : Chained( 'build' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # retrieve the job results
   my ( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
-  
+
   unless ( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::save_built_alignment: no results found' )
       if $c->debug;
     $c->res->status( 404 ); # Not found
     $c->res->body( 'No sequence alignment found.' );
     return;
-  }   
+  }
 
   $c->log->debug( 'Family::save_built_alignment: returning raw alignment' )
     if $c->debug;
@@ -904,9 +907,9 @@ sub get_das_alignment : Private {
             : $this->{urls}->{full};
 
   if ( $c->debug ) {
-    $c->log->debug( 'Family::get_das_alignment: dsn:  |' . $dsn . '|' ); 
-    $c->log->debug( 'Family::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' ); 
-    $c->log->debug( 'Family::get_das_alignment: rows: |' . $c->stash->{rows} . '|' ); 
+    $c->log->debug( 'Family::get_das_alignment: dsn:  |' . $dsn . '|' );
+    $c->log->debug( 'Family::get_das_alignment: acc:  |' . $c->stash->{acc} . '|' );
+    $c->log->debug( 'Family::get_das_alignment: rows: |' . $c->stash->{rows} . '|' );
   }
 
   # retrieve the DasLite client from the base model class and hand it the DSN
@@ -916,8 +919,8 @@ sub get_das_alignment : Private {
   # put the rows specification into the right format for DAS
   my $rows = $c->stash->{rows}->[0] . '-' . $c->stash->{rows}->[1];
 
-  # retrieve the raw alignment fragment and associated features via DAS and 
-  # generate the consensus sequence 
+  # retrieve the raw alignment fragment and associated features via DAS and
+  # generate the consensus sequence
 
   # retrieve the raw alignment from the DAS source
   my $raw_alignment  = $dl->alignment( { query => $c->stash->{acc},
@@ -926,16 +929,16 @@ sub get_das_alignment : Private {
   # build the marked-up alignment
   my ( $alignment, $alignment_lengths ) = reconstruct_alignment( $raw_alignment );
 
-  # retrieve the features  
+  # retrieve the features
   my $features_hash = $dl->features( $c->stash->{acc} );
 
   my ( $source, $features ) = each %$features_hash;
-  my $label = $features->[0]->{feature_label};  
- 
+  my $label = $features->[0]->{feature_label};
+
   # build the consensus string
   my $consensus = [ Bio::Pfam::ColourAlign::parseConsensus( $label ) ];
-  
-  # stash the arrays of alignments, alignment lengths and consensus strings  
+
+  # stash the arrays of alignments, alignment lengths and consensus strings
   $c->stash->{alignments}->{rawAlignments} = $alignment;
   $c->stash->{alignments}->{lengths}       = $alignment_lengths;
   $c->stash->{alignments}->{consensus}     = $consensus;
@@ -994,7 +997,7 @@ sub get_alignment_from_db : Private {
                               . $c->stash->{acc};
       return;
     }
-  
+
     # cache the raw alignment
     $c->cache->set( $cacheKey, $alignment ) unless $ENV{NO_CACHE};
   }
@@ -1011,7 +1014,7 @@ sub get_alignment_from_db : Private {
 =head2 getAlignment : Private
 
 Builds an alignment of selected sequences. The set of sequences is identified
-by a job ID that's used by the L<JobManager> to retrieve them from the DB. 
+by a job ID that's used by the L<JobManager> to retrieve them from the DB.
 
 =cut
 
@@ -1030,7 +1033,7 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
-  }   
+  }
 
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
@@ -1039,25 +1042,25 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
-  }   
+  }
 
   # $c->log->debug( 'Family::getAlignment: job results: |'
   #                 . $c->stash->{results}->{$jobId}->{rawData} . '|' );
 
   # the rawData is just a string containing the alignment lines
   my @alignmentRows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
-  
+
   # the consensus string is the last row of the alignment
   my $consensusString = pop @alignmentRows;
   $consensusString =~ s/^ConSeq\s+(\S+)$/$1/;
-  
+
   # take a slice of that array, based on the "rows" setting from PfamViewer.
   # Rows are numbered from 1, not zero, so we need to offset the row values
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
   # $c->log->debug( 'Family::getAlignment: showing rows |'
   #                 . "$from| to |$to|" );
-  
+
   my %alignment;
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
@@ -1065,10 +1068,10 @@ sub getAlignment : Private {
     $alignment{$1} = $2;
     $length++;
   }
-  
+
   # parse the consensus string
   my $consensus = Bio::Pfam::ColourAlign::parseConsensus( $consensusString );
- 
+
   # stash everything
   $c->stash->{alignments}->{rawAlignments} = [ \%alignment ];
   $c->stash->{alignments}->{lengths}       = [ $length ];
@@ -1084,16 +1087,16 @@ Queues the job that will actually generate the sequence alignment.
 =cut
 
 sub queueAlignment : Private {
-  my($this, $c) = @_; 
+  my($this, $c) = @_;
 
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
   # set the options
-  my $opts = '-acc ' . $c->stash->{acc} . '.' . $c->stash->{pfam}->version; 
+  my $opts = '-acc ' . $c->stash->{acc} . '.' . $c->stash->{pfam}->version;
 
   # guesstimate the time it will take to build the alignment
-  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) ); 
+  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) );
 
   # add this job to the tracking tables
   my $jobHistory = $c->model('WebUser::JobHistory')
@@ -1137,9 +1140,9 @@ sub queueAlignment : Private {
                   dump( $jobStatus ) ) if $c->debug;
   $c->log->debug( 'Family::queueAlignment: submitted job '
                   . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
-                  
+
   return 0;
-} 
+}
 
 #-------------------------------------------------------------------------------
 #- regular perl methods (not actions) ------------------------------------------
@@ -1160,20 +1163,20 @@ sub reconstruct_alignment {
   my ( @alignments, @alignmentLengths );
 
   for ( my $i = 0; $i < scalar( @$aliData ); $i++ ) {
-    my %aliObjects = 
+    my %aliObjects =
       map{ $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
-  
+
     push @alignmentLengths, $aliData->[$i]->{alignment_max};
-  
+
     foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
                              @{$aliData->[$i]->{block} } ) {
       my %ali;
       foreach my $bseqRef (@{ $block->{segment} } ) {
-  
-        my $key = $bseqRef->{segment_intObjectId} . '/' . 
-                  $bseqRef->{segment_start}       . '-' . 
+
+        my $key = $bseqRef->{segment_intObjectId} . '/' .
+                  $bseqRef->{segment_start}       . '-' .
                   $bseqRef->{segment_end};
-    
+
         $ali{$key} = get_alignment_string($bseqRef, \%aliObjects);
       }
       push @alignments, \%ali;
@@ -1260,4 +1263,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
