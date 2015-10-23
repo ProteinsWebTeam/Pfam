@@ -138,6 +138,11 @@ foreach my $fam (@$clanMemAcc) {
   $hmmObj->name($fam);
   $hmmObj->accession($fam);
 
+  #Set the description to undefined (if defined it goes into the hhsearch results
+  #output and screws up reg ex that reads in the hhsearch results)
+  #The HMM description will be defined if the view process has already been run
+  $hmmObj->description("");
+  
   #Write to disk
   open( H, ">HMM.$fam" )
     or $view->mailUserAndFail( "makeclanview: Could not open HMM.$fam :[$!]\n" );
