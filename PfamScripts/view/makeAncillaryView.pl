@@ -282,12 +282,23 @@ if(! $view->statusCheck('doneTreefamUpdate')){
     my $stt1 = $dbh->prepare("update pfamseq set treefam_acc = \'NULL\'") or die("Can't prepare statement: $dbh->errstr");
     $stt1->execute;
 
-    $logger->debug("Updating pfamseq with new TreeFam mappings");
+
+    $logger->debug("Removing old TreeFam mappings from uniprot");
+    my $stt1a = $dbh->prepare("update uniprot set treefam_acc = \'NULL\'") or die("Can't prepare statement: $dbh->errstr");
+    $stt1a->execute;
+
+
+    $logger->debug("Updating pfamseq and uniprot with new TreeFam mappings");
     my $stt2 = $dbh->prepare("update pfamseq set treefam_acc = ? where pfamseq_acc = ?") or die("Can't prepare statement: $dbh->errstr");
+
+    my $stt2a = $dbh->prepare("update uniprot set treefam_acc = ? where uniprot_acc = ?") or die("Can't prepare statement: $dbh->errstr");
+
+
 
     foreach my $acc (keys %mapping){
         my $treefam = $mapping{$acc};
         $stt2->execute($treefam, $acc);
+        $stt2a->execute($treefam, $acc);
     }
 
     $view->touchStatus('doneTreefamUpdate');
