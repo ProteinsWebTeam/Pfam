@@ -488,7 +488,13 @@ SV * _c_nres_ssi(ESL_SQFILE *sqfp) {
     else if(status == eslENOTFOUND) croak("there is no sequence %d\n", i);
     else if(status == eslEFORMAT)   croak("error fetching sequence num %d, something wrong with SSI index?\n", i);
     else if(status != eslOK)        croak("error fetching sequence num %d\n", i);
-    if(L == 0)                      croak("error fetching sequence num %d, seq length unknown\n", i);
+    /* EPN, Fri Nov  6 08:44:29 2015: we allow length 0 sequences, NCBI commonly puts them in as some type 
+     *                                of sequence divider for separating assembly projects, for example.
+     *                                I'm leaving the following line of code here though commented out
+     *                                in case it causes some unforeseen issue in the future and having it
+     *                                here commented out lends some clue.
+     * if(L == 0)                      croak("error fetching sequence num %d, seq length unknown\n", i); 
+     */
     nres += L;
   }
   /* convert nres to a string to return (so we don't overflow an int or a long) */
