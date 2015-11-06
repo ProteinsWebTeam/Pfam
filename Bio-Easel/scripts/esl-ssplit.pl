@@ -85,6 +85,7 @@ if($do_nfiles) {
 }
 if($do_nres) { 
   $tot_nres = $sqfile->nres_ssi();
+  if($tot_nres == 0) { die "ERROR 0 residues read in sequence file."; }
   $nres_per = int($tot_nres / $nfiles);
   if($tot_nres % $nfiles != 0) { $nres_per++; }
 }
@@ -104,6 +105,9 @@ if(! $do_nres) { # simple case: fetch and output $nseq_per seqs at a time
   }
 }
 else { # complex case: $do_nres is TRUE, we need to keep track of sequence lengths output
+  # do a check to see if we can get the length of all sequences, if not it's probably because 
+  # there are some that are length 0, which causes problems with the indexing...
+
   while($nseq_remaining > 0) { 
     $cur_nres = 0;
     my $cur_file = $outfile_dir . $outfile_root. "." . $fctr;
