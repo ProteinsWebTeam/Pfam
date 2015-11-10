@@ -67,7 +67,7 @@ foreach my $row (@current) {
     $current{$row->get_column('pfama_acc')}{'desc'}=$row->desc_file;
     $current{$row->get_column('pfama_acc')}{'hmm'}=$row->hmm;
     $current{$row->get_column('pfama_acc')}{'pfamA_id'}=$row->pfama_acc->pfama_id;
-    $current{$row->get_column('pfama_acc')}{'pfamA_acc'}=$row->pfama_acc .".". $row->pfama_acc->version;
+    $current{$row->get_column('pfama_acc')}{'pfamA_acc'}=$row->pfama_acc->pfama_acc .".". $row->pfama_acc->version;
     $pfamA{$row->pfama_acc->pfama_acc}= $row->pfama_acc->pfama_id;
 
 }
