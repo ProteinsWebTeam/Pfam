@@ -1163,7 +1163,7 @@ sub pdbPfamAReg {
 
 
   #Go though each sequence in the family, and map to any pdb data
-  my @famRegions=$self->pfamdb->getSchema->resultset("UniprotRegFull")->search({ pfamA_acc => $pfamA_acc });
+  my @famRegions=$self->pfamdb->getSchema->resultset("UniprotRegFull")->search({ pfamA_acc => $pfamA_acc, in_full => 1 });
   my @upload;
   foreach my $region (@famRegions) {
     my $uniprot_acc=$region->uniprot_acc->uniprot_acc;
@@ -1177,8 +1177,8 @@ sub pdbPfamAReg {
     }
  
     #Find the pdb region, if any, that maps to the pfamA
-    my ($pdb_res_start, $pdb_start_icode, $pdb_res_end, $pdb_end_icode, $seq_start, $seq_end);
     foreach my $pdb_chain (keys %uniqueMaps) {
+      my ($pdb_res_start, $pdb_start_icode, $pdb_res_end, $pdb_end_icode, $seq_start, $seq_end);
       for(my $i=$region->seq_start; $i<=$region->seq_end; $i++) {
         if($pdbData->{$uniprot_acc}->{$i}->{$pdb_chain}) {
           if($pdb_res_start) {
