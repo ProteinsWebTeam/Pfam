@@ -534,8 +534,8 @@ sub processALIGN {
   $self->logger->debug("Making fasta file for $filename");
   $self->makeNonRedundantFasta;
 
-  #No longer make RP alignments
-  #$self->makeRPAligns( $aliIds, $regs, $GFAnn );
+  #Make RP alignments
+  $self->makeRPAligns( $aliIds, $regs, $GFAnn );
 
   #Upload the alignments (stockholm and html) and tree into the database
   $self->uploadTreesAndAlign( $filename, $type );
@@ -2946,6 +2946,10 @@ sub resetStats {
                          seed_consensus => '',
                          full_consensus => '',
                          number_shuffled_hits => '0',
+                         number_rp15 => '0',
+                         number_rp35 => '0',
+                         number_rp55 => '0',
+                         number_rp75 => '0'
   } );  
   
 }
