@@ -23,13 +23,6 @@ __PACKAGE__->table("proteome_architecture");
 
 =head1 ACCESSORS
 
-=head2 auto_proteome
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 auto_architecture
 
   data_type: 'bigint'
@@ -50,16 +43,16 @@ __PACKAGE__->table("proteome_architecture");
   default_value: 0
   is_nullable: 0
 
+=head2 ncbi_taxid
+
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
 =cut
 
 __PACKAGE__->add_columns(
-  "auto_proteome",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_foreign_key => 1,
-    is_nullable => 0,
-  },
   "auto_architecture",
   {
     data_type => "bigint",
@@ -71,6 +64,13 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", default_value => 0, is_nullable => 0, size => 10 },
   "no_seqs",
   { data_type => "integer", default_value => 0, is_nullable => 0 },
+  "ncbi_taxid",
+  {
+    data_type => "integer",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
 );
 
 =head1 RELATIONS
@@ -89,23 +89,9 @@ __PACKAGE__->belongs_to(
   { auto_architecture => "auto_architecture" },
 );
 
-=head2 auto_proteome
 
-Type: belongs_to
-
-Related object: L<PfamDB::CompleteProteomes>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "auto_proteome",
-  "PfamDB::CompleteProteomes",
-  { auto_proteome => "auto_proteome" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w7CLzloAMGss6pfW7hNFKw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s0QTDL+RIjJ6KJGyncX51g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
