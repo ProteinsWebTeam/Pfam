@@ -36,10 +36,10 @@
 
     <p>
       The Pfam MySQL database contains all of the data accessible via the
-      website. The database currently consists of 67 tables. Below is some
+      website. The database currently consists of 65 tables. Below is some
       basic documentation on the schema layout and how smaller numbers of
       tables can be put together to enable access to a subset of the data. At
-      the time of writing, between releases 27.0 and 28.0, the fields within
+      the time of writing, between releases 28.0 and 29.0, the fields within
       the tables and the results of queries are correct. The data within the
       tables will change with each release. Although we do not anticipate any
       major changes to the database, we reserve the right to make changes with
@@ -101,26 +101,40 @@
 
     <p>
       Two of the central tables in the Pfam database are <span
-        class="table">pfamseq</span>, which contains the UniProtKB sequence database,
-      and <span class="table">pfamA</span>, which contains information about the
-      Pfam-A families. Most of the other tables in the database link to one or both
-      of these tables, either directly or indirectly.
+      class="table">pfamseq</span>, which contains UniProtKB reference
+      proteomes and <span class="table">pfamA</span>, which contains information 
+      about the Pfam-A families. Most of the other tables in the database 
+      link to one or both of these tables, either directly or indirectly.
+      Note that prior to Pfam 29.0, the pfamseq table contained the whole of 
+      UniProtKB. From Pfam 29.0, this table contains only the reference proteome 
+      portion of UniProtKB. The full alignments in Pfam are based on 
+      the sequences in the <span class="table">pfamseq</span> table.
     </p>
     <p>
       The table <span class="table">pfamA_reg_seed</span> contains the Pfam
-      regions that are present in a seed alignment, and the <span class="table">
-        pfamA_reg_full_significant</span> table contains all of the sequence 
-      regions that match the HMM and score above the curated threshold, i.e. are 
-      significant matches, for each family. There is also a table named 
-      <span class="table">pfamA_reg_full_insignificant</span> which contains, as 
-      the name suggests, all the insignificant matches for each family.
+      regions that are present in a seed alignment. All sequences in 
+      <span class="table">pfamA_reg_seed</span> are in the <span class="table">
+      pfamseq</span> table or the class="table">uniprot</span> table (the 
+      <span class="table">uniprot</span> table contains all the sequences in UniProtKB). 
+      The <span class="table">pfamA_reg_full_significant</span> table contains all 
+      of the sequence regions from the pfamseq table that match the HMM and score above the curated 
+      threshold, i.e. are significant matches, for each family. There is also a 
+      table named <span class="table">pfamA_reg_full_insignificant</span> which 
+      contains, as the name suggests, all the insignificant matches for each family.
       Insignificant matches are those which match the HMM with an E-value less than
-      1000, but score below the curated bit score threshold for each family.
+      1000, but score below the curated bit score threshold for each family. 
     </p>
     <p>
-      The table <span class="table">pfamA_reg_full_significant</span> contains a 
-      column called 'in_full'. The matches that are present in the full alignment 
-      for a Pfam family have this column set to 1, while those that are not present 
+      In addition to providing matches to the sequences in the <span class="table">
+      pfamseq</span> table, we also provide the significant matches for the sequences
+      in the uniprot table. These can be found in the table <span class="table">
+      uniprot_reg_full</span>.
+    </p>
+    <p>
+      The tables <span class="table">pfamA_reg_full_significant</span> and
+      <span class="table">uniprot_reg_full</span> contain a column called 
+      'in_full'. The matches that are present in the full alignment for a 
+      Pfam family have this column set to 1, while those that are not present 
       in the full alignment have the 'in_full' column set to 0. A significant 
       match will only be excluded from the full alignment (in_full = 0) if it 
       matches a family that belongs to a clan, and the match overlaps with 
@@ -152,7 +166,7 @@
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the domains for UniProtKB protein sequence 'VAV_HUMAN'
+      Give me all of the domains for sequence 'VAV_HUMAN'
     </fieldset>
 
     <fieldset class="sql">
@@ -192,7 +206,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
     
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the UniProtKB sequences in the <strong>full</strong> alignment 
+      Give me all the sequences in the <strong>full</strong> alignment 
       for the family 'B12D'
     </fieldset>
 
@@ -226,7 +240,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the UniProtKB sequences in the <strong>seed</strong> alignment 
+      Give me all the sequences in the <strong>seed</strong> alignment 
       for the family 'B12D'
     </fieldset>
     
@@ -283,7 +297,8 @@ mysql> SELECT   pfamA.pfamA_acc, \
     <p>
       The <span class="table">evidence</span> table contains the UniProtKB evidence
       code key that is used in the <span class="column">evidence</span> field in the
-      <span class="table">pfamseq</span> table.
+      <span class="table">pfamseq</span> and <span class="table">uniprot</span> 
+      tables.
     </p>
 
     <p>
@@ -294,7 +309,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the secondary accession(s) for the UniProtKB sequence 'P15455'
+      Give me the secondary accession(s) for the sequence 'P15455'
     </fieldset>
 
     <fieldset class="sql">
@@ -317,20 +332,17 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <hr />
 
-    <h2><a name="other">Other sequence regions, active site and disulphide bond 
-      information for a sequence</a></h2>
+    <h2><a name="other">Other regions</a></h2>
 
     <img class="tables"
          alt="Other regions, sites, disulphides"
          src="[% c.uri_for( "/static/images/help/db_schema/other_regions.png" ) %]" />
 
     <p>
-      These tables contain sequence specific information about the
-      sequences in the <a class="ext" 
-        href="http://www.uniprot.org/help/uniprotkb/">UniProtKB</a>
-      database. The <span class="table">other_regions</span> table
-      contains coiled coil, low complexity, signal peptide, transmembrane and
-      disordered regionsi data. The <span class="table">pfamseq_markup</span> table 
+      These tables contain sequence specific information about
+      the reference proteome sequences. The <span class="table">other_regions</span>
+      table contains coiled coil, low complexity, signal peptide, transmembrane and
+      disordered regions data. The <span class="table">pfamseq_markup</span> table 
       contains active site information which is taken from the UniProtKB 
       feature table. Additional active site residues are predicted by Pfam 
       based on conserved residues in a Pfam alignment. The 
@@ -341,7 +353,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the transmembrane, signal-peptide, coiled-coils, 
-      low-complexity and disorder information for the UniProtKB sequnce 'VAV_HUMAN'
+      low-complexity and disorder information for the sequence 'VAV_HUMAN'
     </fieldset>
 
     <fieldset class="sql">
@@ -371,7 +383,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the active site information for UniProtKB sequence 'Q22CX9'
+      Give me all of the active site information for sequence 'F7PG13'
     </fieldset>
 
     <fieldset class="sql">
@@ -384,21 +396,22 @@ mysql> SELECT   pfamA.pfamA_acc, \
               markup_key \
        WHERE  pfamseq.pfamseq_acc = pfamseq_markup.pfamseq_acc \
        AND    pfamseq_markup.auto_markup = markup_key.auto_markup \
-       AND    pfamseq.pfamseq_acc = 'Q10L43';
+       AND    pfamseq.pfamseq_acc = 'F7PG13';
 +-------------+--------------+---------+----------------------------+
-
 | pfamseq_acc | pfamseq_id   | residue | label                      |
 +-------------+--------------+---------+----------------------------+
-| Q10L43      | Q10L43_ORYSJ |    1889 | Pfam predicted active site |
-| Q10L43      | Q10L43_ORYSJ |    1836 | Pfam predicted active site |
-| Q10L43      | Q10L43_ORYSJ |    1819 | Pfam predicted active site |
+| F7PG13      | F7PG13_9EURY |      92 | Active site                |
+| F7PG13      | F7PG13_9EURY |     248 | Pfam predicted active site |
+| F7PG13      | F7PG13_9EURY |     283 | Metal ion binding          |
+| F7PG13      | F7PG13_9EURY |     280 | Metal ion binding          |
+| F7PG13      | F7PG13_9EURY |     278 | Metal ion binding          |
 +-------------+--------------+---------+----------------------------+</pre>
     </fieldset>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the residues involved in disulphide bonds in the UniProtKB 
-      sequence 'P98092'
+      Give me all the residues involved in disulphide bonds in the sequence
+      'Q43495'
     </fieldset>
 
     <fieldset class="sql">
@@ -441,8 +454,7 @@ mysql> SELECT   pfamA.pfamA_acc, \
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the architectures and UniProtKB protein sequences for the 
-      family 'Dehyd-heme_bind'
+      Give me all of the architectures and sequences for the family 'Dehyd-heme_bind'
     </fieldset>
       
     <fieldset class="sql">
@@ -1036,7 +1048,11 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
       between PDB residues and UniProtKB sequence residues, which is not a
       trivial task. We store the residue-by-residue mapping that is provided by
       the <a class="ext" href="http://www.ebi.ac.uk/pdbe/">PDBe</a> group in
-      the <span class="table">pdb_residue_data</span> table.
+      the <span class="table">pdb_residue_data</span> table. Note that the
+      pdb_pfamA_reg table is based on seqeunces in the  <span class="table"
+      >uniprot</span> table, and not the  <span class="table">pfamseq</span> 
+      table. This is to maximise the number of structures that can be mapped 
+      to each Pfam entry.
     </p>
 
     <fieldset class="query">
@@ -1118,37 +1134,36 @@ clan_description: Xylose isomerase-like TIM barrel superfamily
          src="[% c.uri_for( "/static/images/help/db_schema/proteome.png" ) %]" />
 
     <p>
-      At each Pfam release, we download the proteome set from the <a class="ext"
-      href="http://www.uniprot.org/proteomes/">UniProtKB</a>. The species and 
-      NCBI taxonomy IDs for all of the proteomes in our proteome set can be found in the <span
-      class="table">complete_proteomes</span> table, along with some statistics
-      about the number of families and coverage. The tables in this section allow
-      you to retrieve domain information about a particular species, or to
-      retrieve all of the species which contain a particular Pfam domain.  
+      As of Pfam 29.0, all sequences in the <span class="table">pfamseq</span>
+      table belong to a reference proteome, and therefore a complete proteome. 
+      Prior to Pfam 29.0 this was not the case. The <span class="table">
+      complete_proteomes</span> table contains statistics about the number of
+      families and coverage. The tables in this section allow you to retrieve 
+      domain information about a particular species, or to retrieve all of the 
+      species which contain a particular Pfam domain.  
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the Pfam summary for the human (Homo sapiens) proteome
+      Give me the Pfam summary for the human (Homo sapiens, ncbi taxid 9606) proteome
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT * FROM complete_proteomes WHERE species = "Homo sapiens" \G
+      <pre>mysql> SELECT * FROM complete_proteomes WHERE ncbi_taxid=9606
 
-        auto_proteome: 3153
            ncbi_taxid: 9606
-              species: Homo sapiens
+              species: Homo sapiens (Human)
              grouping: Eukaryota
  num_distinct_regions: 0
-    num_total_regions: 81995
-         num_proteins: 63449
+    num_total_regions: 93089
+         num_proteins: 69682
     sequence_coverage: 70
      residue_coverage: 44
-total_genome_proteins: 63449
-      total_aa_length: 20818748
-     total_aa_covered: 9234374
-   total_seqs_covered: 44663</pre>
+total_genome_proteins: 69682
+      total_aa_length: 23542137
+     total_aa_covered: 10345679
+   total_seqs_covered: 49101</pre>
     </fieldset>
 
     <fieldset class="query">
@@ -1158,28 +1173,22 @@ total_genome_proteins: 63449
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre> mysql> SELECT   pfamA.pfamA_acc, \
-                 pfamA_id, \
-                 description, \
-                 SUM(count) \
-        FROM     complete_proteomes, \
-                 proteome_regions, \
-                 pfamA \
-        WHERE    complete_proteomes.ncbi_taxid = 3702 \
-        AND      proteome_regions.pfamA_acc = pfamA.pfamA_acc \
-        AND      proteome_regions.auto_proteome = complete_proteomes.auto_proteome \
-        GROUP BY proteome_regions.pfamA_acc;
+      <pre> mysql> SELECT r.pfamA_acc, pfamA_id, description, sum(number_domains) \
+        FROM     pfamA p, proteome_regions r \
+        WHERE    p.pfamA_acc=r.pfamA_acc \
+        AND      ncbi_taxid=3702 \
+        GROUP BY r.pfamA_acc;
 
-+-----------+-------------+-----------------------------------------------------------------+------------+
-| pfamA_acc | pfamA_id    | description                                                     | SUM(count) |
-+-----------+-------------+-----------------------------------------------------------------+------------+
-| PF00004   | AAA         | ATPase family associated with various cellular activities (AAA) |        142 |
-| PF00005   | ABC_tran    | ABC transporter                                                 |        197 |
-| PF00006   | ATP-synt_ab | ATP synthase alpha/beta family, nucleotide-binding domain       |         12 |
-| PF00009   | GTP_EFTU    | Elongation factor Tu GTP binding domain                         |         40 |
-| PF00010   | HLH         | Helix-loop-helix DNA-binding domain                             |        148 |
-| PF00011   | HSP20       | Hsp20/alpha crystallin family                                   |         27 |
-| PF00012   | HSP70       | Hsp70 protein                                                   |         25 |
++-----------+---------------+-----------------------------------------------------------------+---------------------+
+| pfamA_acc | pfamA_id      | description                                                     | sum(number_domains) |
++-----------+---------------+-----------------------------------------------------------------+---------------------+
+| PF00004   | AAA           | ATPase family associated with various cellular activities (AAA) |                 143 |
+| PF00005   | ABC_tran      | ABC transporter                                                 |                 197 |
+| PF00006   | ATP-synt_ab   | ATP synthase alpha/beta family, nucleotide-binding domain       |                  12 |
+| PF00009   | GTP_EFTU      | Elongation factor Tu GTP binding domain                         |                  40 |
+| PF00010   | HLH           | Helix-loop-helix DNA-binding domain                             |                 148 |
+| PF00011   | HSP20         | Hsp20/alpha crystallin family                                   |                  27 |
+| PF00012   | HSP70         | Hsp70 protein                                                   |                  25 |
 ...</pre>
     </fieldset>
     
@@ -1191,7 +1200,7 @@ total_genome_proteins: 63449
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the UniProtKB protein sequences for the species 
+      Give me all of the protein sequences for the species 
       'Arabidopsis thaliana' 
     </fieldset>
       
@@ -1215,7 +1224,7 @@ total_genome_proteins: 63449
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the UniProtKB protein sequences from the species 
+      Give me all of the protein sequences from the species 
       'Arabidopsis thaliana' that belong to Pfam-A domain 
       'PF00106'
     </fieldset>
@@ -1224,9 +1233,9 @@ total_genome_proteins: 63449
       <legend>SQL</legend>
       <pre>mysql> SELECT pfamseq.pfamseq_acc \
        FROM   pfamseq, \
-              pfamA \
+              pfamA_reg_full_significant \
        WHERE  ncbi_taxid = '3702' \
-       AND    pfamseq.pfamseq_acc = pfamA.pfamseq_acc \
+       AND    pfamseq.pfamseq_acc = pfamA_reg_full_signficiant.pfamseq_acc \
        AND    pfamA_acc = 'PF00106';
 
 +-------------+
@@ -1241,38 +1250,7 @@ total_genome_proteins: 63449
 | Q0WMN4      |
 ...</pre>
     </fieldset>
-
-    <fieldset class="query">
-      <legend>Example query</legend>
-      Give me all of the UniProtKB protein sequences for the species 'Gallus gallus'
-    </fieldset>
-      
-    <fieldset class="sql">
-      <legend>SQL</legend>
-      <pre>mysql> SELECT pfamseq_id, \
-              pfamseq.pfamseq_acc FROM pfamseq, \
-              proteome_pfamseq, \
-              complete_proteomes\
-       WHERE  complete_proteomes.species = "Gallus gallus" \
-       AND    pfamseq.pfamseq_acc = proteome_pfamseq.pfamseq_acc \
-       AND    proteome_pfamseq.auto_proteome =complete_proteomes.auto_proteome;
-
-+--------------+-------------+
-| pfamseq_id   | pfamseq_acc |
-+--------------+-------------+
-| Q788U5_CHICK | Q788U5      |
-| Q5ZHK8_CHICK | Q5ZHK8      |
-| Q7T1N6_CHICK | Q7T1N6      |
-| Q9DEG1_CHICK | Q9DEG1      |
-| PRTG_CHICK   | Q589G5      |
-| B5BSF2_CHICK | B5BSF2      |
-| Q8QGR9_CHICK | Q8QGR9      |
-| CLLD6_CHICK  | Q5ZHV7      |
-| Q5ZK24_CHICK | Q5ZK24      |
-| HXC8_CHICK   | Q9YH13      |
-...</pre>
-    </fieldset>
-
+    
     <p><a class="link" rel="dbTop">back to top</a></p>
 
     <hr />
@@ -1322,7 +1300,7 @@ total_genome_proteins: 63449
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all pf the Pfam-A families that have a HHsearch E-value score of
+      Give me all of the Pfam-A families that have a HHsearch E-value score of
       less than 0.01 when compared with the family 'AAA'
     </fieldset>
       
@@ -1364,14 +1342,15 @@ total_genome_proteins: 63449
          src="[% c.uri_for( "/static/images/help/db_schema/alignments_and_trees.png" ) %]" />
 
     <p>
-      The seed, full, NCBI and metaseq alignments are all stored as gzipped
-      files in the database, as is the HMM for each family. Note that the NCBI
-      and metaseq alignments may contain overlapping matches to Pfam-A families
-      that belong to the same clan, however, the UniprotKB alignments (seed and
-      full) will not. This is because we have performed a clan filtering step
-      on the UniProtKB data such that where there are overlapping Pfam-A
-      matches within a clan, only the lowest E-value scoring match is included
-      in the full alignment.
+      The seed, full, UniProtKB, NCBI, representative proteome and metaseq 
+      alignments are all stored as gzipped files in the database, as is 
+      the HMM for each family. Note that the NCBI and metaseq alignments 
+      may contain overlapping matches to Pfam-A families that belong to the 
+      same clan, however, the UniprotKB alignments (seed, full, uniprot and
+      representative proteome sets) will not. This is because we have performed
+      a clan filtering step on the UniProtKB data such that where there 
+      are overlapping Pfam-A matches within a clan, only the lowest E-value 
+      scoring match is included in the full alignment.
     </p>
 
     <p><a class="link" rel="dbTop">back to top</a></p>
@@ -1384,7 +1363,7 @@ total_genome_proteins: 63449
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Rob Finn (rdf@ebi.ac.uk), Jaina Mistry (jaina@ebi.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
