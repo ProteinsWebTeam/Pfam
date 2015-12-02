@@ -23,28 +23,28 @@ __PACKAGE__->table("proteome_regions");
 
 =head1 ACCESSORS
 
-=head2 auto_proteome
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_foreign_key: 1
-  is_nullable: 0
-
-=head2 pfamseq_acc
+=head2 pfama_acc
 
   data_type: 'varchar'
   is_foreign_key: 1
   is_nullable: 0
   size: 10
 
-=head2 pfama_acc
+=head2 ncbi_taxid
 
-  data_type: 'varchar'
-  is_foreign_key: 1
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
   is_nullable: 0
-  size: 7
 
-=head2 count
+=head2 number_domains
+
+  data_type: 'integer'
+  default_value: 0
+  extra: {unsigned => 1}
+  is_nullable: 0
+
+=head2 number_sequences
 
   data_type: 'integer'
   default_value: 0
@@ -54,18 +54,23 @@ __PACKAGE__->table("proteome_regions");
 =cut
 
 __PACKAGE__->add_columns(
-  "auto_proteome",
+  "pfama_acc",
+  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
+  "ncbi_taxid",
   {
     data_type => "integer",
+    default_value => 0,
     extra => { unsigned => 1 },
-    is_foreign_key => 1,
     is_nullable => 0,
   },
-  "pfamseq_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 10 },
-  "pfama_acc",
-  { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
-  "count",
+  "number_domains",
+  {
+    data_type => "integer",
+    default_value => 0,
+    extra => { unsigned => 1 },
+    is_nullable => 0,
+  },
+  "number_sequences",
   {
     data_type => "integer",
     default_value => 0,
@@ -75,34 +80,6 @@ __PACKAGE__->add_columns(
 );
 
 =head1 RELATIONS
-
-=head2 auto_proteome
-
-Type: belongs_to
-
-Related object: L<PfamDB::CompleteProteomes>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "auto_proteome",
-  "PfamDB::CompleteProteomes",
-  { auto_proteome => "auto_proteome" },
-);
-
-=head2 auto_proteome_2
-
-Type: belongs_to
-
-Related object: L<PfamDB::CompleteProteomes>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "auto_proteome_2",
-  "PfamDB::CompleteProteomes",
-  { auto_proteome => "auto_proteome" },
-);
 
 =head2 pfama_acc
 
@@ -114,23 +91,9 @@ Related object: L<PfamDB::Pfama>
 
 __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", { pfama_acc => "pfama_acc" });
 
-=head2 pfamseq_acc
 
-Type: belongs_to
-
-Related object: L<PfamDB::Pfamseq>
-
-=cut
-
-__PACKAGE__->belongs_to(
-  "pfamseq_acc",
-  "PfamDB::Pfamseq",
-  { pfamseq_acc => "pfamseq_acc" },
-);
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tf+KT7vv8VjEnNJROGZicQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fbYl404O2LE3MugROxm5Cg
 
 
 __PACKAGE__->has_many(
