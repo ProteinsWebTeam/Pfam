@@ -122,6 +122,36 @@ __PACKAGE__->table("uniprot");
   default_value: 0
   is_nullable: 1
 
+=head2 treefam_acc
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 8
+
+=head2 rp15
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 rp35
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 rp55
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
+=head2 rp75
+
+  data_type: 'tinyint'
+  default_value: 0
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -172,6 +202,16 @@ __PACKAGE__->add_columns(
   "ref_proteome",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "complete_proteome",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "treefam_acc",
+  { data_type => "varchar", is_nullable => 1, size => 8 },
+  "rp15",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "rp35",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "rp55",
+  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
+  "rp75",
   { data_type => "tinyint", default_value => 0, is_nullable => 1 },
 );
 
@@ -235,8 +275,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:55:04
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:28yj80jVGMns39VskSsyxQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZmE1sJNqUkQCn22panMomg
 
 __PACKAGE__->load_components(qw/ Result::ColumnData /);
 __PACKAGE__->register_relationships_column_data();
