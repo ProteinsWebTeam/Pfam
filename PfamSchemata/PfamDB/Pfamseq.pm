@@ -342,36 +342,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 proteome_pfamseqs
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomePfamseq>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_pfamseqs",
-  "PfamDB::ProteomePfamseq",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  undef,
-);
-
-=head2 proteome_regions
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomeRegions>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_regions",
-  "PfamDB::ProteomeRegions",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  undef,
-);
-
 =head2 secondary_pfamseq_accs
 
 Type: has_many
@@ -388,8 +358,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:30:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RA/t6+WEzRYSARrknxMiig
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QBeCsMyeds5V4OyFWeliHg
 
 
 #__PACKAGE__->has_many(
