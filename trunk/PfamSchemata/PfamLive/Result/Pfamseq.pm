@@ -347,36 +347,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 proteome_pfamseqs
-
-Type: has_many
-
-Related object: L<PfamLive::Result::ProteomePfamseq>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_pfamseqs",
-  "PfamLive::Result::ProteomePfamseq",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 proteome_regions
-
-Type: has_many
-
-Related object: L<PfamLive::Result::ProteomeRegion>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_regions",
-  "PfamLive::Result::ProteomeRegion",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 secondary_pfamseq_accs
 
 Type: has_many
@@ -393,8 +363,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-07-15 15:31:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4cQ+F6dCtx2PpbX2aYgopg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7I8vpIw+CJ0DLy/dipHdtQ
 
 __PACKAGE__->load_components(qw/ Result::ColumnData /);
 __PACKAGE__->register_relationships_column_data();
