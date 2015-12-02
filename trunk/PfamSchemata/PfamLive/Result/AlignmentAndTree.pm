@@ -53,7 +53,7 @@ __PACKAGE__->table("alignment_and_tree");
 =head2 type
 
   data_type: 'enum'
-  extra: {list => ["full","seed","meta","ncbi","uniprot"]}
+  extra: {list => ["full","seed","meta","ncbi","uniprot","rp15","rp35","rp55","rp75"]}
   is_nullable: 0
 
 =cut
@@ -72,7 +72,19 @@ __PACKAGE__->add_columns(
   "type",
   {
     data_type => "enum",
-    extra => { list => ["full", "seed", "meta", "ncbi", "uniprot"] },
+    extra => {
+      list => [
+        "full",
+        "seed",
+        "meta",
+        "ncbi",
+        "uniprot",
+        "rp15",
+        "rp35",
+        "rp55",
+        "rp75",
+      ],
+    },
     is_nullable => 0,
   },
 );
@@ -95,8 +107,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-03 14:51:22
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wkFd64mHA106cZAgdd56vQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rC5fAdZx+dHsxgASKTxTcA
 
 __PACKAGE__->add_unique_constraint("UQ_alignments_and_trees_1", ["pfama_acc", "type"]);
 
