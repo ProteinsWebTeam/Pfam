@@ -25,7 +25,7 @@ __PACKAGE__->table("architecture");
 
 =head2 auto_architecture
 
-  data_type: 'integer'
+  data_type: 'bigint'
   extra: {unsigned => 1}
   is_auto_increment: 1
   is_nullable: 0
@@ -58,7 +58,7 @@ __PACKAGE__->table("architecture");
 __PACKAGE__->add_columns(
   "auto_architecture",
   {
-    data_type => "integer",
+    data_type => "bigint",
     extra => { unsigned => 1 },
     is_auto_increment => 1,
     is_nullable => 0,
@@ -133,8 +133,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+2NlFNk0dO0xHmlog1Bs/Q
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:D+JRx2kqIydm3TSkb49wHg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
