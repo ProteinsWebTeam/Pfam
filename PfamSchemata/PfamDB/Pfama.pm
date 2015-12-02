@@ -261,6 +261,26 @@ __PACKAGE__->table("pfamA");
   data_type: 'tinyint'
   is_nullable: 1
 
+=head2 number_rp15
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 number_rp35
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 number_rp55
+
+  data_type: 'integer'
+  is_nullable: 1
+
+=head2 number_rp75
+
+  data_type: 'integer'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -377,6 +397,14 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_nullable => 1 },
   "rp_seed",
   { data_type => "tinyint", is_nullable => 1 },
+  "number_rp15",
+  { data_type => "integer", is_nullable => 1 },
+  "number_rp35",
+  { data_type => "integer", is_nullable => 1 },
+  "number_rp55",
+  { data_type => "integer", is_nullable => 1 },
+  "number_rp75",
+  { data_type => "integer", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -928,8 +956,8 @@ Composing rels: L</pfama_ligands> -> ligand_id
 __PACKAGE__->many_to_many("ligand_ids", "pfama_ligands", "ligand_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-04 15:54:40
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JEl1IlNHaDJGh859E5fIAA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uuI5+dlTmIt+1eo8xTKM/A
 
 
 
