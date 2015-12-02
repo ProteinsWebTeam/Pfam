@@ -32,7 +32,7 @@ __PACKAGE__->table("pfamA_architecture");
 
 =head2 auto_architecture
 
-  data_type: 'integer'
+  data_type: 'bigint'
   default_value: 0
   extra: {unsigned => 1}
   is_foreign_key: 1
@@ -45,7 +45,7 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_foreign_key => 1, is_nullable => 0, size => 7 },
   "auto_architecture",
   {
-    data_type => "integer",
+    data_type => "bigint",
     default_value => 0,
     extra => { unsigned => 1 },
     is_foreign_key => 1,
@@ -86,8 +86,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8DDflLmw62kPqzUnErNISA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tZE5QaLSjCavSAEaCFKp+g
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
