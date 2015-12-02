@@ -27,6 +27,7 @@ __PACKAGE__->table("architecture");
 
   data_type: 'bigint'
   extra: {unsigned => 1}
+  is_auto_increment: 1
   is_nullable: 0
 
 =head2 architecture
@@ -56,7 +57,12 @@ __PACKAGE__->table("architecture");
 
 __PACKAGE__->add_columns(
   "auto_architecture",
-  { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 0 },
+  {
+    data_type => "bigint",
+    extra => { unsigned => 1 },
+    is_auto_increment => 1,
+    is_nullable => 0,
+  },
   "architecture",
   { data_type => "text", is_nullable => 1 },
   "type_example",
@@ -127,8 +133,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UNJM7KbTC9Flfjkfrh4QQg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i9B6i6gr7T1UApmucXHJjw
 
 
 __PACKAGE__->has_one( 
