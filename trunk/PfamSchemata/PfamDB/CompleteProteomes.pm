@@ -23,13 +23,6 @@ __PACKAGE__->table("complete_proteomes");
 
 =head1 ACCESSORS
 
-=head2 auto_proteome
-
-  data_type: 'integer'
-  extra: {unsigned => 1}
-  is_auto_increment: 1
-  is_nullable: 0
-
 =head2 ncbi_taxid
 
   data_type: 'integer'
@@ -115,13 +108,6 @@ __PACKAGE__->table("complete_proteomes");
 =cut
 
 __PACKAGE__->add_columns(
-  "auto_proteome",
-  {
-    data_type => "integer",
-    extra => { unsigned => 1 },
-    is_auto_increment => 1,
-    is_nullable => 0,
-  },
   "ncbi_taxid",
   {
     data_type => "integer",
@@ -198,18 +184,6 @@ __PACKAGE__->add_columns(
   },
 );
 
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</auto_proteome>
-
-=back
-
-=cut
-
-__PACKAGE__->set_primary_key("auto_proteome");
-
 =head1 UNIQUE CONSTRAINTS
 
 =head2 C<ncbi_taxid>
@@ -224,78 +198,9 @@ __PACKAGE__->set_primary_key("auto_proteome");
 
 __PACKAGE__->add_unique_constraint("ncbi_taxid", ["ncbi_taxid"]);
 
-=head1 RELATIONS
 
-=head2 proteome_architectures
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomeArchitecture>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_architectures",
-  "PfamDB::ProteomeArchitecture",
-  { "foreign.auto_proteome" => "self.auto_proteome" },
-  undef,
-);
-
-=head2 proteome_pfamseqs
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomePfamseq>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_pfamseqs",
-  "PfamDB::ProteomePfamseq",
-  { "foreign.auto_proteome" => "self.auto_proteome" },
-  undef,
-);
-
-=head2 proteome_regions_auto_proteomes
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomeRegions>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_regions_auto_proteomes",
-  "PfamDB::ProteomeRegions",
-  { "foreign.auto_proteome" => "self.auto_proteome" },
-  undef,
-);
-
-=head2 proteome_regions_auto_proteomes_2s
-
-Type: has_many
-
-Related object: L<PfamDB::ProteomeRegions>
-
-=cut
-
-__PACKAGE__->has_many(
-  "proteome_regions_auto_proteomes_2s",
-  "PfamDB::ProteomeRegions",
-  { "foreign.auto_proteome" => "self.auto_proteome" },
-  undef,
-);
-
-
-__PACKAGE__->has_one(
-  "ncbi_taxid_data",
-  "PfamDB::Taxonomy",
-  { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
-  undef,
-);
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4ZRdPryQjcr63efzdiNW1g
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vc/ir6Ox3xT+4393ZGhRBg
 
 
 =head1 COPYRIGHT
