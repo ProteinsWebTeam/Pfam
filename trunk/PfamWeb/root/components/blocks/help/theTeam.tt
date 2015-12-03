@@ -24,16 +24,21 @@
     <h3>European Bioinformatics Institute (EMBL-EBI), UK</h3>
   
     <ul>
-      <li>Alex Bateman - EMBL-EBI Protein cluster head</li>
-      <li>Rob Finn - Protein Families team leader</li>
-      <li>Penny Coggill - Pfam database annotator</li>
-      <li>Ruth Eberhardt - Pfam database developer and annotator</li>
-      <li>Jaina Mistry - Pfam developer</li>
-      <li>Fabian Schreiber - Web developer</li>
-      <li>Matloob Qureshi - Web developer</li>
+      <li>Rob Finn - Team leader</li>
+      <li>Alex Mitchell - Curator, lead</li>
+      <li>Amaia Sangrador-Vegas - Curator</li>
+      <li>Simon Potter - Developer, Lead</li>
+      <li>Jaina Mistry - Developer</li>
+      <li>Matloob Qureshi - Web developer, Lead</li>
+      <li>Gustavo Salazar - Web developer</li>
+      <li>Aurélien Luciani - Web developer</li>
+    </ul>
+    <br />
+    <ul>
+      <li>Alex Bateman - EMBL-EBI Protein and Protein Families cluster head</li>
     </ul>
     
-    <h3>Janelia Farm Campus, USA</h3>
+    <h3>Harvard University, USA</h3>
   
     <ul>
       <li>Sean Eddy - Founding developer and author of HMMER software</li>
@@ -74,9 +79,11 @@
       <li>Lorenzo Cerrutti</li>
       <li>Yuanyuan Chang</li>
       <li>Jody Clements</li>
+      <li>Penny Coggill</li>
       <li>Lachlan Coin</li>
       <li>Robson De Souza</li>
       <li>Richard Durbin</li>
+      <li>Penny Coggill</li>
       <li>Kyle Ellrott</li>
       <li>Matthew Fenech</li>
       <li>Kristoffer Forslund</li>
