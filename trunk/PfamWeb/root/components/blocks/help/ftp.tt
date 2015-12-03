@@ -80,11 +80,21 @@
       </dt>
       <dd>
         The full alignments of the curated families, searched against
-        pfamseq/UniProt.
+        pfamseq/UniProtKB reference proteomes (prior to Pfam 29.0,
+        this file contained matches against the whole of UniProtKB).
       </dd>
-  
+ 
       <dt>
-        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.metagenomcis.gz">
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.uniprot.gz">
+          Pfam-A.full.uniprot.gz</a>
+      </dt>
+      <dd>
+        The full alignments of the curated families, searched against
+        UniProtKB.
+      </dd>
+
+      <dt>
+        <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.metagenomics.gz">
           Pfam-A.full.metagenomcis.gz</a>
       </dt>
       <dd>
