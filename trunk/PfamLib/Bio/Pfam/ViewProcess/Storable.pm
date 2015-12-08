@@ -164,7 +164,7 @@ sub updateStorables {
     for ( my $i = 0 ; $i < scalar @$pfamaRegionsRef ; $i++ ) {
 
       my $region = $pfamaRegionsRef->[$i];
-      $self->logger->debug( $region->pfama_acc->pfama_acc . "/"
+      $self->logger->debug( $region->pfama_acc->pfama_acc . " $acc/"
           . $region->seq_start . "-"
           . $region->seq_end );
       push(
@@ -200,14 +200,14 @@ sub updateStorables {
       
 
       for ( my $j = ( $i + 1 ) ; $j < scalar(@$pfamaRegionsRef) ; $j++ ) {
-        next unless ( $nestings->{ $region->pfama_acc } );
+        next unless ( $nestings->{ $region->pfama_acc->pfama_acc } );
         if (
               defined( $pfamaRegionsRef->[$j] )
           and $pfamaRegionsRef->[$j]->seq_start >= $regions[$#regions]->start
           and $pfamaRegionsRef->[$j]->seq_end <= $regions[$#regions]->end
           and defined(
-            $nestings->{ $region->pfama_acc }
-              ->{ $pfamaRegionsRef->[$j]->pfama_acc }
+            $nestings->{ $region->pfama_acc->pfama_acc }
+              ->{ $pfamaRegionsRef->[$j]->pfama_acc->pfama_acc }
           )
           )
         {
@@ -225,13 +225,13 @@ sub updateStorables {
                 aliEnd      => $region->ali_end,
                 modelStart  => $region->model_start,
                 modelEnd    => $region->model_end,
-                modelLength => $region->model_length,
+                modelLength => $region->pfama_acc->model_length,
                 metadata    => Bio::Pfam::Sequence::MetaData->new(
                   {
-                    accession   => $region->pfama_acc,
-                    identifier  => $region->pfama_id,
-                    type        => $region->type,
-                    description => $region->description,
+                    accession   => $region->pfama_acc->pfama_acc,
+                    identifier  => $region->pfama_acc->pfama_id,
+                    type        => $region->pfama_acc->type,
+                    description => $region->pfama_acc->description,
                     score       => $region->domain_evalue_score,
                     scoreName   => 'e-value',
                     start       => $region->seq_start,
