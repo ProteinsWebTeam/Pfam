@@ -66,7 +66,7 @@ __PACKAGE__->belongs_to(
 
 
 #__PACKAGE__->add_unique_constraint( 'UQ_pfam_annseq_1', [ 'auto_pfamseq' ] );
-#__PACKAGE__->set_primary_key( 'auto_pfamseq' );
+__PACKAGE__->set_primary_key( 'pfamseq_acc' );
 
 =head1 COPYRIGHT
 
