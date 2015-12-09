@@ -145,6 +145,9 @@ sub updateStorables {
     $nestings->{$pfamA}->{$npfamA}++;
   }
 
+  my $dbh = $self->pfamdb->getSchema->storage->dbh;
+  my $delete_sth=$dbh->prepare("delete from pfam_annseq where pfamseq_acc=?");
+
   #TODO to rescue it - make a seen hash - pfamseq_accs in pfam_annseq and only do the following unless in seen
 
   foreach my $acc (keys %$modSeqsRef){
@@ -403,6 +406,8 @@ sub updateStorables {
 
     my $str = nfreeze($seqObj);
 
+    $delete_sth->execute($acc) or $self->logger->logdie("Couldn't execute statement ".$delete_sth->errstr);
+      
     $self->pfamdb->getSchema->resultset('PfamAnnseq')->update_or_create(
       {
         pfamseq_acc    => $acc,
