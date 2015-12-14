@@ -18,6 +18,7 @@ $Id: Jump.pm,v 1.23 2009-12-08 17:11:28 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -49,12 +50,12 @@ to that particular type of entry, e.g. "family", "protein", etc.
 
 sub guess : Private {
   my ( $this, $c, $entry, $entry_type ) = @_;
-  
+
   $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
     if $c->debug;
-    
+
   my %action_types = ( family    => [ 'guess_family',  'guess_other_family' ],
-                       protein   => [ 'guess_sequence', 'guess_gi', 'guess_meta' ],
+                       protein   => [ 'guess_sequence', 'guess_uniprot', 'guess_gi', 'guess_meta' ],
                        clan      => [ 'guess_clan' ],
                        structure => [ 'guess_structure' ], );
 #                       proteome  => [ 'guess_proteome' ] );
@@ -64,6 +65,7 @@ sub guess : Private {
                               guess_structure
                               guess_other_family
                               guess_sequence
+                              guess_uniprot
                               guess_gi
                               guess_meta );
 #                              guess_proteome
@@ -102,39 +104,39 @@ sub guess_family : Private {
 
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
-  
-  # first, since it's cheaper to evaluate a regex than to go to the database, 
+
+  # first, since it's cheaper to evaluate a regex than to go to the database,
   # see if it's a Pfam-A accession with a version number
   if ( $entry =~ m/^(PF\d{5})(\.\d+)?$/ ) {
     my $rs = $c->model('PfamDB::Pfama')
                ->search( { pfama_acc => $1 } )
                ->first;
-               
-    if ( $rs and 
+
+    if ( $rs and
          ( uc( $rs->pfama_acc ) eq $1 ) ) {
-      $c->log->debug( 'Search::Jump::guess_family: accession, possibly with version number: ' 
+      $c->log->debug( 'Search::Jump::guess_family: accession, possibly with version number: '
                       . $rs->pfama_acc . ' eq ' . $1 )
         if $c->debug;
       return 'family';
     }
   }
-  
+
   # next, check the database to see if it's a Pfam-A family accession or ID
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
                          { pfama_id  => $entry } ] )
              ->first;
-             
-  if ( $rs and 
+
+  if ( $rs and
        ( uc( $rs->pfama_id )  eq $entry or
          uc( $rs->pfama_acc ) eq $entry ) ) {
-    $c->log->debug( 'Search::Jump::guess_family: ' 
-                    . $rs->pfama_id  . ' eq ' . $entry . ' or ' 
+    $c->log->debug( 'Search::Jump::guess_family: '
+                    . $rs->pfama_id  . ' eq ' . $entry . ' or '
                     . $rs->pfama_acc . ' eq ' . $entry )
       if $c->debug;
     return 'family';
   }
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -151,13 +153,13 @@ sub guess_other_family : Private {
 
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
-  
+
   # a previous family ID ?
   my $prev = $c->model('PfamDB::Pfama')
                ->find( { previous_id => { like => "%$entry%" } } );
-              
+
   # make sure the entry matches a whole ID, rather than just part of one
-  # i.e. make sure that "6" doesn't match "DUF456" 
+  # i.e. make sure that "6" doesn't match "DUF456"
   if ( $prev ) {
     my $previous_id = $prev->previous_id;
     if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/i ) { # same pattern used in Family.pm
@@ -187,14 +189,14 @@ and metaseq accessions/IDs, as well as NCBI GIs.
 
 sub guess_sequence : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
     if $c->debug;
-    
+
   # how about a sequence entry ?
   my $found;
   if ( $entry =~ m/^(([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}))(\.\d+)?$/i ) {
-  
+
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
   }
@@ -203,28 +205,28 @@ sub guess_sequence : Private {
 
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
   if ( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
-  
+
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_id => $1 } );
   }
-  
+
   # see if it's a secondary accession; a bit gnarly...
   return 'protein' if $c->model('PfamDB::SecondaryPfamseqAcc')
                         ->search( { secondary_acc => $1 },
                                   { join =>     [ qw( pfamseq_acc ) ],
                                     prefetch => [ qw( pfamseq_acc ) ] } )
                         ->first;
-  
+
   # an NCBI GI number ?
   # if ( $entry =~ m/^(gi)?(\d+)$/i ) {
-  # 
+  #
   #   return 'ncbiseq' if $c->model('PfamDB::NcbiSeq')
   #                         ->find( { gi => $2 } );
   # }
-  
+
   # a metaseq ID or accession ?
   # my @rs = $c->model('PfamDB::Metaseq')
-  #            ->search( [ { metaseq_acc => $entry }, 
+  #            ->search( [ { metaseq_acc => $entry },
   #                        { metaseq_id  => $entry } ] );
   # return 'metaseq' if scalar @rs;
 
@@ -240,6 +242,42 @@ sub guess_sequence : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 guess_uniprot : Private
+
+Look for a sequence with the specified accession or ID that hasn't been found in
+the reference sequences. We check for UniProt and metaseq accessions/IDs.
+
+=cut
+
+sub guess_uniprot : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_uniprot: looking for a UniProt...' )
+    if $c->debug;
+
+  # how about a sequence entry ?
+  my $found;
+  if ( $entry =~ m/^(([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}))(\.\d+)?$/i ) {
+    if ($c->model('PfamDB::UniProt')->find( { uniprot_acc => $1 })){
+        $c->stash->{uniprot} = 1;
+        return 'protein';
+    }
+  }
+
+  # TODO why wouldn't we just combine these two (^ and v) queries ?
+
+  # see if it's a protein sequence ID (e.g. CANX_CHICK)
+  if ( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
+
+    if ($c->model('PfamDB::UniProt')->find( { uniprot_id => $1 })){
+        $c->stash->{uniprot} = 1;
+        return 'protein';
+    }
+  }
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 guess_clan : Private
 
 Look for a Pfam clan with the specified accession or ID.
@@ -248,10 +286,10 @@ Look for a Pfam clan with the specified accession or ID.
 
 sub guess_clan : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
     if $c->debug;
-    
+
   # no point worrying about whether we can match to a regex for clan accession,
   # since we'd end up doing essentially this query whether $entry looks like
   # an accession or not
@@ -259,7 +297,7 @@ sub guess_clan : Private {
              ->search( [ { clan_acc => $entry },
                          { clan_id  => $entry } ] );
   return 'clan' if scalar @rs;
-}  
+}
 
 #-------------------------------------------------------------------------------
 
@@ -271,10 +309,10 @@ Look for a PDB structure with the specified ID.
 
 sub guess_structure : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_structure: looking for a structure...' )
     if $c->debug;
-    
+
   # maybe a structure ?
   if ( $entry =~ m/^([0-9][A-Za-z0-9]{3})$/i ) {
     return 'structure' if $c->model('PfamDB::Pdb')
@@ -292,14 +330,14 @@ Look for a proteome with the specified species name.
 
 sub guess_proteome : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
     if $c->debug;
 
   my @rs = $c->model( 'PfamDB::ProteomeSpecies' )
              ->search( [ { species   => $entry },
                          { ncbi_code => $entry } ] );
-  
+
   # a proteome ID ?
   return 'proteome' if scalar @rs;
 }
@@ -314,7 +352,7 @@ Look for a sequence with the specified GI number.
 
 sub guess_gi : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_gi: looking for a gi...' )
     if $c->debug;
   my $rv = system( $this->{sfetchBinary}, $this->{ncbiSeqFile}, $entry ) == 0;
@@ -331,7 +369,7 @@ Look for a metagenomics sequence with the specified ID.
 
 sub guess_meta : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   $c->log->debug( 'Search::Jump::guess_meta: looking for a metagenomics sequence...' )
     if $c->debug;
 

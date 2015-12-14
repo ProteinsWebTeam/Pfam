@@ -24,6 +24,7 @@ $Id: Domain.pm,v 1.6 2008-05-16 15:29:28 jt6 Exp $
 
 # TODO: complete this...
 
+use utf8;
 use strict;
 use warnings;
 
@@ -122,4 +123,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

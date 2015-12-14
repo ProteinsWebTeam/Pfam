@@ -21,6 +21,7 @@ $Id: Alignment.pm,v 1.5 2008-10-23 15:32:17 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -32,7 +33,7 @@ use base 'PfamWeb::Controller::Proteome';
 
 =head2 getAlignment : Private
 
-Retrieves a sequence alignment from the job results table and formats the 
+Retrieves a sequence alignment from the job results table and formats the
 alignment ready to be marked up and displayed.
 
 =cut
@@ -52,7 +53,7 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
-  }   
+  }
 
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
@@ -61,24 +62,24 @@ sub getAlignment : Private {
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
-  }   
+  }
 
 #  $c->log->debug( 'Family::Alignment::Builder:getAlignment: job results: |'
 #                  . $c->stash->{results}->{$jobId}->{rawData} . '|' );
 
   # the rawData is just a string containing the alignment lines
   my @alignmentRows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
-  
+
   # the consensus string is the last row of the alignment
   my $consensusString = pop @alignmentRows;
-  
+
   # take a slice of that array, based on the "rows" setting from PfamViewer.
   # Rows are numbered from 1, not zero, so we need to offset the row values
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
   $c->log->debug( 'Proteome::Alignment::getAlignment: showing rows |'
                   . "$from| to |$to|" ) if $c->debug;
-  
+
   my %alignment;
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
@@ -86,12 +87,12 @@ sub getAlignment : Private {
     if ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
       $alignment{$1} = $2;
       $length++;
-    }  
+    }
   }
-  
+
   # parse the consensus string
   my $consensus = Bio::Pfam::ColourAlign::parseConsensus( $consensusString );
- 
+
   # stash everything
   $c->stash->{alignments}->{rawAlignments} = [ \%alignment ];
   $c->stash->{alignments}->{lengths}       = [ $length ];
@@ -128,4 +129,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

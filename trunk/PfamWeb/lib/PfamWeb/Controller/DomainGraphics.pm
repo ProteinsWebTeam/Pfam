@@ -32,6 +32,7 @@ $Id: DomainGraphics.pm,v 1.34 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -76,8 +77,9 @@ sub begin : Private {
   if ( defined $c->req->param('arch') and
        $c->req->param('arch') =~ m/^(\d+|nopfama)$/ ) {
     $c->stash->{auto_arch} = $1;
-    $c->log->debug( 'DomainGraphics::begin: got a real auto_arch: |' 
+    $c->log->debug( 'DomainGraphics::begin: got a real auto_arch: |'
       . $c->stash->{auto_arch} . '|') if $c->debug;
+      $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
   }
 
   #----------------------------------------
@@ -185,14 +187,14 @@ sequences for an architecture, we hand off to one of two separate templates.
 
 sub domain_graphics : Path {
   my ( $this, $c ) = @_;
-  
+
   # set up the layout manager and hand it the sequences
   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
   my $pfama = $lm->_getRegionConfigurator('Pfama');
   my $pfamb = $lm->_getRegionConfigurator('Pfamb');
-  # TODO see if we can cache these things on the object, rather than 
+  # TODO see if we can cache these things on the object, rather than
   # regenerating them for every request
-  
+
   # see if we've been handed a hash containing colours that were originally
   # assigned by the layout manager
   if ( $c->req->param('ac') ) {
@@ -212,13 +214,13 @@ sub domain_graphics : Path {
       # before generating the new layout
       my $colours_json = uri_unescape( $c->req->param('ac') );
       my $colours = from_json( $colours_json );
-      
+
       my ( $pfama_colours, $pfamb_colours );
       # Note that we're not validating the colours here, because they're going
       # to be passed to the Moose objects, which all have strict type checking
       # in place. Any broken data will cause an exception when the Moose object
       # tries to use the data.
-      
+
       # split the colours into Pfam-A and Pfam-B colours
       foreach ( keys %$colours ) {
         if ( m/^(PF\d{5})$/ ) {
@@ -228,7 +230,7 @@ sub domain_graphics : Path {
           $pfamb_colours->{$1} = $colours->{$1};
         }
       }
-  
+
       # and pre-assign the colours to the respective configurators
       if ( $pfama_colours ) {
         $pfama->assignedColours( $pfama_colours );
@@ -240,7 +242,7 @@ sub domain_graphics : Path {
       }
     }
   }
-  
+
   # let the layout manager build the domain graphics definition from the
   # sequence objects
   $lm->layoutSequences( $c->stash->{seqs} );
@@ -396,8 +398,8 @@ sub get_family_data : Private {
   $c->stash->{numSeqs} = 0;
   map { $c->stash->{numSeqs} += $_->auto_architecture->no_seqs } @rows;
 
-  $c->log->debug( 'DomainGraphics::get_family_data: found |' 
-                  . $c->stash->{numRows} . '| rows, with a total of |' 
+  $c->log->debug( 'DomainGraphics::get_family_data: found |'
+                  . $c->stash->{numRows} . '| rows, with a total of |'
                   . $c->stash->{numSeqs} . '| sequences' )
     if $c->debug;
 
@@ -433,8 +435,8 @@ sub get_family_data : Private {
       $seq = $row->auto_architecture->type_example;
     }
 
-    # stash the sequence IDs for the type example in an array, so that we can 
-    # access them in the right order in the TT, i.e. ordered by number of 
+    # stash the sequence IDs for the type example in an array, so that we can
+    # access them in the right order in the TT, i.e. ordered by number of
     # sequences with the given architecture)
     my $pfamseq_id = $seq->pfamseq_id;
     push @ids, $pfamseq_id;
@@ -449,7 +451,7 @@ sub get_family_data : Private {
     # store a mapping between the sequence and the auto_architecture
     $seqInfo{$pfamseq_id}{auto_arch} = $row->get_column('auto_architecture');
 
-    # store the sequence description, species name and length of each 
+    # store the sequence description, species name and length of each
     # individual sequence
     $seqInfo{$pfamseq_id}{desc}    = $seq->description;
     $seqInfo{$pfamseq_id}{species} = $seq->species;
@@ -462,7 +464,7 @@ sub get_family_data : Private {
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{ids}     = \@ids;
   $c->stash->{seqInfo} = \%seqInfo;
-  
+
   # set a flag to make sure we don't try to load family data twice
   $c->stash->{data_loaded} = 1;
 }
@@ -504,7 +506,7 @@ sub get_clan_data : Private {
   # how many architectures/sequences ?
   $c->stash->{numRows} = scalar @rows;
 
-  $c->log->debug( 'DomainGraphics::get_clan_data: found |' 
+  $c->log->debug( 'DomainGraphics::get_clan_data: found |'
                   . $c->stash->{numRows} . '| rows' ) if $c->debug;
 
   # work out the range for the architectures that we actually want to return
@@ -575,8 +577,8 @@ sub get_selected_seqs : Private {
 
     push @seqs, thaw( $seq->annseqs->annseq_storable );
 
-    # stash the sequence IDs for the type example in an array, so that we can 
-    # access them in the right order in the TT, i.e. ordered by number of 
+    # stash the sequence IDs for the type example in an array, so that we can
+    # access them in the right order in the TT, i.e. ordered by number of
     # sequences with the given architecture)
     my $id = $seq->pfamseq_id;
     $c->log->debug( "DomainGraphics::get_selected_seqs: row sequence ID: |$id|" )
@@ -586,13 +588,13 @@ sub get_selected_seqs : Private {
     my $aa = $seq->get_column('auto_architecture')
              ? $seq->get_column('auto_architecture')
              : 'nopfama';
-             
+
     $c->log->debug( "DomainGraphics::get_selected_seqs: checking |$id|, architecture |$aa|" )
       if $c->debug;
 
     if ( $aa =~ /^(\d+)$/ ) {
 
-      $c->log->debug( "DomainGraphics::get_selected_seqs: found architecture |$1|: " 
+      $c->log->debug( "DomainGraphics::get_selected_seqs: found architecture |$1|: "
                       . $seq->auto_architecture->architecture )
         if $c->debug;
 
@@ -621,7 +623,7 @@ sub get_selected_seqs : Private {
 #    # store a mapping between the sequence and the auto_architecture
 #    $seqInfo{$id}{auto_arch} = $seq->auto_architecture->auto_architecture;
 
-    # store the sequence description, species name and length of each 
+    # store the sequence description, species name and length of each
     # individual sequence
     $seqInfo{$id}{desc}    = $seq->description;
     $seqInfo{$id}{species} = $seq->species;
@@ -654,16 +656,15 @@ sub get_proteome_data : Private {
   # the tax ID isn't
   my $rs = $c->model('PfamDB::CompleteProteomes')
              ->find( { ncbi_taxid => $c->stash->{taxId} } );
-  
-  my $auto_proteome = $rs->auto_proteome;
-  unless ( defined $auto_proteome ) {
-    $c->log->debug( 'DomainGraphics::get_proteome_data: no auto_proteome found' )
+
+  unless ( defined $rs->species ) {
+    $c->log->debug( 'DomainGraphics::get_proteome_data: no species found' )
       if $c->debug;
     return;
   }
 
-  $c->log->debug( 'DomainGraphics::get_proteome_data: mapped tax ID ' 
-                  . $c->stash->{taxId} . " to auto_proteome: $auto_proteome" )
+  $c->log->debug( 'DomainGraphics::get_proteome_data: mapped tax ID '
+                  . $c->stash->{taxId} . " to proteome: $rs->species" )
     if $c->debug;
 
 
@@ -674,31 +675,29 @@ sub get_proteome_data : Private {
                     . $c->stash->{auto_arch} ) if $c->debug;
 
     @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome,
-                          genome_seq                        => 1,
-                          auto_architecture => $c->stash->{auto_arch} },
-                        { join      => [ qw( proteome_pfamseqs
-                                             annseqs ) ],
+              ->search( { 'me.ncbi_taxid' => $rs->ncbi_taxid,
+                          'me.auto_architecture' => $c->stash->{auto_arch} },
+                        { join      => [ qw( annseqs ) ],
                           select    => [ qw( pfamseq_id
                                              annseqs.annseq_storable ) ],
                           as        => [ qw( pfamseq_id
                                              annseq_storable  ) ] } );
   }
   elsif ( $c->stash->{acc} ) {
-    
+
     $c->log->debug( 'DomainGraphics::get_proteome_data: got a pfamAcc: '
                     . $c->stash->{acc} ) if $c->debug;
 
     @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { 'proteome_pfamseqs.auto_proteome' => $auto_proteome,
-                          'proteome_regions.pfama_acc'     => $c->stash->{pfam}->pfama_acc },
-                        { join      => [ qw( proteome_regions
-                                             proteome_pfamseqs
+              ->search( { 'me.ncbi_taxid' => $rs->ncbi_taxid,
+                          'in_full'    => 1,
+                          'pfama_reg_full_significants.pfama_acc'     => $c->stash->{pfam}->pfama_acc },
+                        { join      => [ qw( pfama_reg_full_significants
                                              annseqs ) ],
                           select    => [ { distinct => [ 'me.pfamseq_acc' ] } ,
                                          qw( pfamseq_id
                                              annseqs.annseq_storable ) ],
-                          as        => [ qw( pfamseq_acc 
+                          as        => [ qw( pfamseq_acc
                                              pfamseq_id
                                              annseq_storable ) ] } );
   }
@@ -708,7 +707,7 @@ sub get_proteome_data : Private {
       if $c->debug;
 
     @rows = $c->model('PfamDB::ProteomeArchitecture')
-              ->search( { auto_proteome => $auto_proteome },
+              ->search( { 'me.ncbi_taxid' => $rs->ncbi_taxid },
                         { join   => [ { auto_architecture => [ qw(type_example storable)]}],
                           select => [ qw( type_example.pfamseq_id
                                           storable.annseq_storable
@@ -720,15 +719,17 @@ sub get_proteome_data : Private {
                                           architecture
                                           auto_architecture
                                           numberSeqs ) ],
-                          order_by => 'me.no_seqs DESC' } );
+                          order_by => 'me.no_seqs DESC',
+                          rows     => 500 } );
+
 
     # this is the query we're aiming for (join order is important):
     #   SELECT s.pfamseq_id,
     #          a.architecture,
     #          length( pas.annseq_storable ),
     #          pa.no_seqs
-    #   FROM   proteome_architecture pa 
-    #   JOIN   architecture a  ON  pa.auto_architecture =   a.auto_architecture 
+    #   FROM   proteome_architecture pa
+    #   JOIN   architecture a  ON  pa.auto_architecture =   a.auto_architecture
     #   JOIN   pfam_annseq pas ON  pa.type_example      = pas.pfamseq_acc
     #   JOIN   pfamseq s       ON   s.pfamseq_acc       = pa.type_example
     #   WHERE  auto_proteome = ?;
@@ -756,10 +757,10 @@ sub get_proteome_data : Private {
 
     my $id = $row->get_column('pfamseq_id');
 
-    unless ( $c->stash->{auto_arch} or 
+    unless ( $c->stash->{auto_arch} or
             (exists($c->stash->{pfam}) and $c->stash->{pfam}->pfama_acc ) ) {
 
-      my @domains = split /\~/, $row->auto_architecture->architecture;
+      my @domains = split /\~/, $row->get_column('architecture');
 
       $seqInfo{$id}{arch}      = \@domains;
       $seqInfo{$id}{auto_arch} = $row->get_column('auto_architecture');

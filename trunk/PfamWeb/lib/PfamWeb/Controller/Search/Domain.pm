@@ -20,6 +20,7 @@ $Id: Domain.pm,v 1.8 2009-12-07 22:25:42 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -51,23 +52,23 @@ sub domain_search : Path {
   unless ( $c->forward( 'get_data' ) ) {
     $c->log->debug( 'Search::Domain::domain_search: problem getting data' )
         if $c->debug;
-    
+
     $c->res->body( $c->stash->{errorMessage}
-                   || 'There was a problem running your query.' ); 
-   
-    return; 
+                   || 'There was a problem running your query.' );
+
+    return;
   }
 
   unless ( $c->forward( 'build_layout' ) ) {
     $c->log->debug( 'Search::Domain::domain_search: problem getting data' )
         if $c->debug;
-    
+
     $c->res->body( $c->stash->{errorMessage}
-                   || 'There was a problem running your query.' ); 
-   
-    return; 
+                   || 'There was a problem running your query.' );
+
+    return;
   }
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -82,11 +83,11 @@ Parse the lists of domains, generate a query term and run the query.
 
 sub get_data : Private {
   my ( $this, $c ) = @_;
-  
+
   # collect the search terms, modifying them to suit the fulltext query syntax
   my $list = '';
   if ( defined $c->req->param( 'have' ) ) {
-    $c->log->debug( 'Search::Domain::domain_search: must have:     |' 
+    $c->log->debug( 'Search::Domain::domain_search: must have:     |'
                     . $c->req->param('have') . '|' ) if $c->debug;
     foreach ( split /\s+/, $c->req->param('have') ) {
       next unless /(PF\d{5})/;
@@ -94,7 +95,7 @@ sub get_data : Private {
     }
   }
   if ( defined $c->req->param( 'not' ) ) {
-    $c->log->debug( 'Search::Domain::domain_search: must not have: |' 
+    $c->log->debug( 'Search::Domain::domain_search: must not have: |'
                     . $c->req->param('not') . '|' )
       if $c->debug;
     foreach ( split /\s+/, $c->req->param('not') ) {
@@ -107,12 +108,12 @@ sub get_data : Private {
     if $c->debug;
 
   unless ( $list ) {
-    $c->log->debug( "Search::Domain::get_data: no query terms" ) 
+    $c->log->debug( "Search::Domain::get_data: no query terms" )
         if $c->debug;
 
     $c->stash->{errorMessage} = 'You did not supply any query terms';
-    
-    return 0; 
+
+    return 0;
   }
 
   # run it...
@@ -143,23 +144,23 @@ sub get_data : Private {
         if $c->debug;
 
     $c->stash->{errorMessage} = 'There were no sequences with the specified architecture';
-    
+
     return 0;
   }
 
-  # if there are too many results, bail and let the TT just display the 
-  # text summary, plus an admonishment to the user to restrict their search 
+  # if there are too many results, bail and let the TT just display the
+  # text summary, plus an admonishment to the user to restrict their search
   # a bit
   if ( $c->stash->{numRows} > 500 ) {
     $c->log->debug( 'Search::Domain::get_data: too many sequences: ' . $c->stash->{numRows} )
         if $c->debug;
 
     $c->stash->{errorMessage} = 'Your query returned too many sequences';
-    
+
     return 0;
   }
-  
-  # build the data structure that we need to describe the domain graphics  
+
+  # build the data structure that we need to describe the domain graphics
   my ( @seqs, %seqInfo, @ids );
   foreach my $row ( @architectures ) {
 
@@ -170,8 +171,8 @@ sub get_data : Private {
     # we're looking at all sequences, so we want just the type example
     my $seq = $row->type_example;
 
-    # stash the sequence IDs for the type example in an array, so that we can 
-    # access them in the right order in the TT, i.e. ordered by number of 
+    # stash the sequence IDs for the type example in an array, so that we can
+    # access them in the right order in the TT, i.e. ordered by number of
     # sequences with the given architecture)
     my $pfamseq_id = $seq->pfamseq_id;
     push @ids, $pfamseq_id;
@@ -186,7 +187,7 @@ sub get_data : Private {
     # store a mapping between the sequence and the auto_architecture
     $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture;
 
-    # store the sequence description, species name and length of each 
+    # store the sequence description, species name and length of each
     # individual sequence
     $seqInfo{$pfamseq_id}{desc}    = $seq->description;
     $seqInfo{$pfamseq_id}{species} = $seq->species;
@@ -199,7 +200,7 @@ sub get_data : Private {
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{ids}     = \@ids;
   $c->stash->{seqInfo} = \%seqInfo;
-  
+
   return $c->stash->{numRows};
 }
 
@@ -217,7 +218,7 @@ sub build_layout : Private {
   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
   my $pfama = $lm->_getRegionConfigurator('Pfama');
   my $pfamb = $lm->_getRegionConfigurator('Pfamb');
-  
+
   if ( $c->req->param('ac') ) {
 
     # detaint the param by trying to decode it as JSON
@@ -235,13 +236,13 @@ sub build_layout : Private {
       # before generating the new layout
       my $colours_json = uri_unescape( $c->req->param('ac') );
       my $colours = from_json( $colours_json );
-      
+
       my ( $pfama_colours, $pfamb_colours );
       # Note that we're not validating the colours here, because they're going
       # to be passed to the Moose objects, which all have strict type checking
       # in place. Any broken data will cause an exception when the Moose object
       # tries to use the data.
-      
+
       # split the colours into Pfam-A and Pfam-B colours
       foreach ( keys %$colours ) {
         if ( m/^(PF\d{5})$/ ) {
@@ -251,12 +252,12 @@ sub build_layout : Private {
           $pfamb_colours->{$1} = $colours->{$1};
         }
       }
-  
-      $c->log->debug( 'Search::Domain::build_layout: pfama_colours: ' 
+
+      $c->log->debug( 'Search::Domain::build_layout: pfama_colours: '
                       . dump( $pfama_colours ) ) if $c->debug;
-      $c->log->debug( 'Search::Domain::build_layout: pfamb_colours: ' 
+      $c->log->debug( 'Search::Domain::build_layout: pfamb_colours: '
                       . dump( $pfamb_colours ) ) if $c->debug;
-      
+
       # and pre-assign the colours to the respective configurators
       if ( $pfama_colours ) {
         $pfama->assignedColours( $pfama_colours );
@@ -268,14 +269,14 @@ sub build_layout : Private {
       }
     }
   }
-  
+
   # let the layout manager build the domain graphics definition from the
   # sequence objects
   $lm->layoutSequences( $c->stash->{seqs} );
 
-  $c->log->debug( 'Search::Domain::build_layout: pfama->assignedColours: ' 
+  $c->log->debug( 'Search::Domain::build_layout: pfama->assignedColours: '
                   . dump( $pfama->assignedColours ) ) if $c->debug;
-  $c->log->debug( 'Search::Domain::build_layout: pfamb->assignedColours: ' 
+  $c->log->debug( 'Search::Domain::build_layout: pfamb->assignedColours: '
                   . dump( $pfamb->assignedColours ) ) if $c->debug;
 
   # configure the JSON object to correctly stringify the layout manager output
@@ -304,12 +305,12 @@ sub build_layout : Private {
     }
 
     $c->stash->{assignedColours} = $json->encode( $valid_colours );
-    
-    $c->log->debug( 'Search::Domain::build_layout: assigned colours: ' 
+
+    $c->log->debug( 'Search::Domain::build_layout: assigned colours: '
                     . dump( $c->stash->{assignedColours} ) )
       if $c->debug;
   }
-  
+
   return 1;
 }
 

@@ -20,6 +20,7 @@ $Id: Store.pm,v 1.4 2009-03-20 15:56:41 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -48,7 +49,7 @@ sub auto : Private {
     $c->log->error( 'Store::auto: failed to "require" the CouchDB interface module' );
     return 0;
   }
-  
+
   return 1;
 }
 
@@ -62,7 +63,7 @@ Description...
 
 sub image : Local {
   my ( $this, $c, $document_id ) = @_;
-  
+
   $c->log->debug( 'Store::image: retrieving an image from the store' )
     if $c->debug;
 
@@ -78,27 +79,27 @@ sub image : Local {
     if $c->debug;
 
   $c->forward( 'get', [ $document_id, 'image' ] );
-  
+
   if ( $c->stash->{getErrorMsg} ) {
-    $c->log->debug( 'Store::image: problem retrieving image: |' 
+    $c->log->debug( 'Store::image: problem retrieving image: |'
                     . $c->stash->{getErrorMsg} . '|' ) if $c->debug;
     $c->res->status( 500 );
     $c->res->body( $c->stash->{getErrorMsg} );
     return;
   }
-  
+
   $c->log->debug( 'Store::image: successfully retrieved image' )
     if $c->debug;
-    
+
   my $image = decode_base64( $c->stash->{item} );
   unless ( $image ) {
-    $c->log->debug( 'Store::image: failed to decode image' ) 
+    $c->log->debug( 'Store::image: failed to decode image' )
       if $c->debug;
     $c->res->status( 500 );
     $c->res->body( 'Failed to decode image' );
     return;
   }
-  
+
   $c->res->content_type( 'image/png' );
   $c->res->body( $image );
 }
@@ -108,8 +109,8 @@ sub image : Local {
 #-------------------------------------------------------------------------------
 
 =head2 get : Private
-  
-Retrieves an item from the store. Note that there is no validation of the 
+
+Retrieves an item from the store. Note that there is no validation of the
 document ID or key here; calling methods should detaint anything that comes
 from users.
 
@@ -120,10 +121,10 @@ sub get : Private {
 
   # get a handle on the CouchDB server
   my $cdb = Net::CouchDb->new( uri => $ENV{PFAM_DOMAIN_IMAGES_STORE} );
-  
+
   # show debug from CouchDB only if we're debugging in catalyst...
   #$cdb->debug( 1 ) if $c->debug;
-  
+
   # get a handle on the CouchDB database
   my $db = $cdb->db( 'pfam_images' );
   unless ( defined $db ) {
@@ -134,10 +135,10 @@ sub get : Private {
 
     return;
   }
-  
-  # retrieve the Net::CouchDB::Document 
+
+  # retrieve the Net::CouchDB::Document
   my $document = $db->get( $document_id );
-  
+
   # get the requested item from the Document
   my $item = $document->$key;
   unless ( defined $item ) {

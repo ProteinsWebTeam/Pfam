@@ -21,6 +21,7 @@ $Id: Section.pm,v 1.19 2008-05-16 15:29:28 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -28,11 +29,11 @@ use base 'PfamBase::Controller::Section';
 
 #-------------------------------------------------------------------------------
 
-=head1 METHODS 
+=head1 METHODS
 
 =head2 default : Path
 
-A stub method to capture requests using the controller name. 
+A stub method to capture requests using the controller name.
 
 =cut
 

@@ -68,7 +68,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       profile HMM searches of primary sequence databases.
     </p>
     <p>
-      Pfam entries are classified in one of four ways:
+      Pfam entries are classified in one of six ways:
     </p>
     <dl>
       <dt>Family:</dt>

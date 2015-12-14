@@ -36,7 +36,7 @@ $Id: Seq_info.pm,v 1.7 2009-10-07 12:00:53 jt6 Exp $
 #        description AS descr
 # FROM   seq_info
 # WHERE  MATCH( seq_description, species ) AGAINST( ? IN BOOLEAN MODE );
-
+use utf8;
 use strict;
 use warnings;
 

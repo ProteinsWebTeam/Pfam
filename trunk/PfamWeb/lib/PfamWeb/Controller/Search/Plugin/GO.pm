@@ -41,6 +41,7 @@ $Id: GO.pm,v 1.8 2009-12-08 13:50:05 jt6 Exp $
 #WHERE  p.pfamA_acc = ?
 #AND    p.pfamA_acc = go.pfamA_acc
 
+use utf8;
 use strict;
 use warnings;
 

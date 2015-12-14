@@ -22,6 +22,7 @@ $Id: Root.pm,v 1.30 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -33,7 +34,7 @@ use base 'PfamBase::Controller::Root';
 
 =head2 auto : Private
 
-Adds the Pfam version data to the stash, so that it's accessible 
+Adds the Pfam version data to the stash, so that it's accessible
 throughout the site.
 
 =cut
@@ -56,8 +57,8 @@ sub auto : Private {
     return 0;
   }
 
-  # see if we can get a DB ResultSet from the VERSION table, which is 
-  # effectively a test of whether we can connect to the DB. If we can't, 
+  # see if we can get a DB ResultSet from the VERSION table, which is
+  # effectively a test of whether we can connect to the DB. If we can't,
   # set the template to point to a page that will apologise and let the "end"
   # actin do its stuff
   eval {
@@ -72,7 +73,7 @@ sub auto : Private {
     # break out of the processing chain now and go straight to the "end" action
     return 0;
   }
-  
+
   # call the "auto" method on the super-class, which will do the work of
   # picking the correct tab for us
   return $c->SUPER::auto( @_ );
@@ -103,7 +104,7 @@ sub index : Private {
 
 =head2 blocked : Path
 
-Displays a message telling the user that their access has been blocked for 
+Displays a message telling the user that their access has been blocked for
 potentially abusive usage.
 
 =cut
@@ -123,8 +124,8 @@ sub blocked : Global {
 REQUEST BLOCKED
 
 We have detected excessive or potentially abusive usage of the Pfam website
-from your IP address ($ip). Access to this section of the site is 
-currently blocked for all users of that address. 
+from your IP address ($ip). Access to this section of the site is
+currently blocked for all users of that address.
 
 Please return to the home page and contact the Pfam helpdesk as soon as
 possible, using the email address at the bottom of the page.

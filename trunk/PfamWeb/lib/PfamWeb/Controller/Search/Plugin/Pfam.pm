@@ -47,7 +47,7 @@ $Id: Pfam.pm,v 1.13 2009-12-08 13:50:05 jt6 Exp $
 # FROM   pfamA
 # WHERE  MATCH( pfamA_acc, pfamA_id, description, comment, previous_id )
 # AGAINST( ? IN BOOLEAN MODE )
-
+use utf8;
 use strict;
 use warnings;
 

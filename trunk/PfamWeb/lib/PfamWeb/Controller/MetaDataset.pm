@@ -19,6 +19,7 @@ $Id: MetaDataset.pm,v 1.2 2008-05-22 09:52:42 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -39,7 +40,7 @@ Description...
 
 sub begin : Private {
   my ( $this, $c, $entry_arg ) = @_;
-  
+
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
@@ -49,7 +50,7 @@ sub begin : Private {
   my $tainted_entry = $c->req->param('entry') ||
                       $entry_arg              ||
                       '';
-  
+
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w-]+)$/;
@@ -62,7 +63,7 @@ sub begin : Private {
     $c->stash->{errorMsg} = 'Invalid metaseq dataset name';
     return;
   }
-  
+
   # now try to retrieve all the relevant data for that entry
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 }
@@ -79,20 +80,20 @@ Retrieves the data for the specified metaseq dataset.
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   my $rs = $c->model('Metagenomics_refs')
              ->find( { source => $entry } );
-             
+
   if ( not defined $rs ) {
     $c->log->debug( "MetaDataset::get_data: no such source '$entry'" )
       if $c->debug;
     return;
   }
-  
+
   $c->log->debug( "MetaDataset::get_data: found source '$entry'" )
     if $c->debug;
 
-  $c->stash->{entry} = $rs;  
+  $c->stash->{entry} = $rs;
 }
 
 #-------------------------------------------------------------------------------

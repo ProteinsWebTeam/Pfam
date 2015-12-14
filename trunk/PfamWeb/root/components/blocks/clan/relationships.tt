@@ -32,29 +32,26 @@
       </p>
       <p>
         The E-value for each pair of closely or partially related families
-        is shown next to the line linking the families. Clicking on the 
+        is shown next to the line linking the families. <!--Clicking on the 
         E-value will take you to the pairwise 
         <a href="http://www.sanger.ac.uk/Software/analysis/logomat-p/"
-           class="ext">HMM-logo</a> for that relationship.
+           class="ext">HMM-logo</a> for that relationship. -->
         You can see the information regarding a Pfam family by clicking
         on the family box.
       </p>
       <hr />
     </div>
 
-    [% IF relationshipImage.defined AND relationshipImageMap.defined %]
-      <img id="clanImage"
-           src="[% c.uri_for( '/clan/' _ acc _ '/relationship_image' ) %]"
-           alt=""
-           usemap="#clanMap" />
-  	  <map name="clanMap" id="clanMap">
-        [% relationshipImageMap %]
-      </map>
-    [% ELSE -%]
-      <p>
-        We could not retrieve a family relationship diagram for this clan.
-      </p>    
-    [% END -%]    
+    <div id="clan_network" class="box"></div>
+	<link href="/static/clanviewer/bundle.css" rel="stylesheet">
+	<script src="/static/clanviewer/clanviewer.js"></script>
+    <script type="text/javascript">
+        var app = require("clanviewer");
+        var instance = new app({el: "#clan_network"});
+        d3.json("/skeleton/api/clans/[% clan.clan_acc %]/?format=json", function(error, data) {
+            instance.paint(data);
+        });
+    </script>
 
   </div>
 

@@ -100,7 +100,7 @@ oe    = 0;
           <td class="label">Experiment type:</td>
           <td class="data">
             [% IF pdb.method == "other" %]
-            <span class="model">Other</span>
+            <span class="model">Other |[% pdb.method %]|</span>
             [% ELSE;
               SWITCH pdb.method;
                 CASE "x-ray";
@@ -110,7 +110,7 @@ oe    = 0;
                 CASE "em";
                   "EM";
                 CASE;
-                  "Other";
+                  pdb.method;
                END;
             END;
             IF pdb.resolution AND pdb.resolution > 0 %], resolution [% pdb.resolution %]&Aring;[% END %]
@@ -136,7 +136,7 @@ oe    = 0;
               IF collectedSpecies.keys.size;
                 FOREACH species IN collectedSpecies.keys %]
                 <em><a href="http://www.ebi.ac.uk/newt/display?search=[% collectedSpecies.${species} %]">
-                  [% String.new(species).trim.chop; ", " UNLESS loop.last %]</a></em>
+                  [% String.new(species).trim; ", " UNLESS loop.last %]</a></em>
                 [% END;
               ELSE %]
               <span class="inactive">n/a</span>
@@ -203,6 +203,13 @@ oe    = 0;
           <td class="label"><acronym title="Structural Classifcation of Proteins">SCOP</acronym></td>
           <td>
             <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+          <td class="label"><acronym title="Evolutionary Classification of Protein Domains">ECOD</acronym></td>
+          <td>
+            <a href="http://prodata.swmed.edu/ecod/complete/search?kw=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>

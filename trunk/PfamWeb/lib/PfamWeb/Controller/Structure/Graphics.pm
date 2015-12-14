@@ -24,6 +24,7 @@ $Id: Graphics.pm,v 1.10 2009-10-07 12:07:19 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -92,13 +93,13 @@ sub graphics : Path {
   foreach my $id ( @{ $c->stash->{idList} } ) {
     $c->log->debug( "Structure::Graphics::graphics: looking for |$id|" )
       if $c->debug;
-  
+
   	# retrieve the Storable with the data for this sequence
   	my $pfamseq = $c->model('PfamDB::Pfamseq')
   	                ->search( { pfamseq_id => $id },
                               { prefetch => [ 'annseqs' ] } )
                     ->first;
-   
+
    	# thaw it out and stash it
    	push @seqs, thaw( $pfamseq->annseqs->annseq_storable ) if defined $pfamseq;
    }
@@ -131,7 +132,7 @@ sub graphics : Path {
   	# each key in %chains_mapping is a uniprot ID, pointing to an anonymous
   	# hash that has the PDB chain ID as keys and '' as values
   	$chains = join ', ', sort keys %{ $c->stash->{chainsMapping}->{$unp} };
-  	
+
   	$chains_to_unp->{$chains} = $unp;
   }
 
@@ -141,7 +142,7 @@ sub graphics : Path {
   # foreach my $image ( $imageset->each_image ) {
   # 	$unp = $image->image_name;
   # 	$unpToImage{$unp} = $image;
-  # 
+  #
   # 	# while we're iterating over all images, print them...
   # 	$image->print_image;
   # }

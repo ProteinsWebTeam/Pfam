@@ -26,6 +26,7 @@ $Id: GetImage.pm,v 1.17 2009-09-04 09:56:28 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -37,7 +38,7 @@ use base 'PfamWeb::Controller::Structure';
 
 =head2 get_image : Path
 
-Serves the image for the specified PDB entryentry. Redirects to a blank image 
+Serves the image for the specified PDB entryentry. Redirects to a blank image
 if no image is found for this entry.
 
 =cut

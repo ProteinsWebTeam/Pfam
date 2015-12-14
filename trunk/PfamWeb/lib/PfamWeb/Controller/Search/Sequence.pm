@@ -34,6 +34,7 @@ $Id: Sequence.pm,v 1.40 2009-10-28 11:56:58 jt6 Exp $
 
 # TODO: make this use C::C::REST !
 
+use utf8;
 use strict;
 use warnings;
 
@@ -89,7 +90,7 @@ sub auto : Private {
 =head2 search : Path
 
 Queues a sequence search job and redirects to a page that polls the server for
-results. 
+results.
 
 =cut
 
@@ -98,7 +99,7 @@ sub search : Path {
 
   $c->stash->{pageType} = 'search';
   $c->stash->{template} = 'pages/layout.tt';
-  
+
   $c->log->debug( 'Search::Sequence::search: set template to layout' )
     if $c->debug;
 
@@ -148,7 +149,7 @@ sub search : Path {
 
 =head2 results : Local
 
-Builds a page that will hold the results of the search(es). 
+Builds a page that will hold the results of the search(es).
 
 =cut
 
@@ -160,7 +161,7 @@ sub results : Local {
                $arg                    ||
                '';
 
-  # decide which template to use. Both of these templates will handle showing 
+  # decide which template to use. Both of these templates will handle showing
   # an error message, in case something goes wrong when submitting the search
   if ( $c->stash->{output_xml} || '' ) {
     $c->log->debug( 'Search::Sequence::results: returning polling page as XML' )
@@ -200,7 +201,7 @@ sub results : Local {
       if $c->debug;
     $c->stash->{template} = 'pages/search/sequence/results.tt';
   }
-  
+
   $c->log->debug( 'Search::Sequence::results: loading results page' )
     if $c->debug;
 
@@ -233,11 +234,11 @@ Returns the HTML table containing the results of the specified job(s).
 sub resultset : Local {
   my ( $this, $c, $arg ) = @_;
 
-  # start by setting the template that we'll use to render error messages if 
+  # start by setting the template that we'll use to render error messages if
   # the request asks for HTML. We'll reset the template name once we've made
   # sure that the job was successful
   $c->stash->{template} = 'pages/search/sequence/error.tt';
-  
+
   # TODO fix up this template to make it return a simple error message
 
   # retrieve job details
@@ -271,7 +272,7 @@ sub resultset : Local {
 
     return;
   }
-  
+
   $c->log->debug( 'Search::Sequence::resultset: got a valid job ID and retrieved results' )
     if $c->debug;
 
@@ -283,7 +284,7 @@ sub resultset : Local {
 
     if ( $status eq 'PEND' or
          $status eq 'RUN' ) {
-      $c->log->debug( 'Search::Sequence::resultset: one or more jobs (' 
+      $c->log->debug( 'Search::Sequence::resultset: one or more jobs ('
                       . $job->id . ') is not yet complete' )
         if $c->debug;
 
@@ -309,50 +310,50 @@ sub resultset : Local {
 
       return;
     }
-    
+
     # check for the job being put on HOLD
     if ( $status eq 'HOLD' ) {
       $c->log->debug( 'Search::Sequence::resultset: job is on hold' )
         if $c->debug;
 
       $c->res->status( '503' ); # 'Service unavailable'
-      $c->stash->{rest} = { error => "Job $jobId ($job_type) is on hold" }; 
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) is on hold" };
 
       return;
     }
-    
+
     # check for the job being flagged as deleted
     if ( $status eq 'DEL' ) {
       $c->log->debug( 'Search::Sequence::resultset: job has been deleted' )
         if $c->debug;
 
       $c->res->status( '410' ); # 'Gone'
-      $c->stash->{rest} = { error => "Job $jobId ($job_type) has been deleted" }; 
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) has been deleted" };
 
       return;
     }
-    
-    # anything other than DONE probably means that the job failed to 
+
+    # anything other than DONE probably means that the job failed to
     # complete successfully
     if ( $status ne 'DONE' ) {
       $c->log->debug( 'Search::Sequence::resultset: job failed in a strange and unusual fashion' )
         if $c->debug;
-      
+
       $c->res->status( '500' ); # 'Internal server error'
       $c->stash->{rest} = { error => "Job $jobId ($job_type) failed with an unknown error" };
-      
+
       return;
     }
- 
+
   } # end of "foreach my $job"
 
   #----------------------------------------
-  
+
   # all parts of the job completed successfully !
   $c->log->debug( 'Search::Sequence::resultset: all jobs completed; setting template' )
     if $c->debug;
 
-  # decide which template to use. All of these templates will handle showing 
+  # decide which template to use. All of these templates will handle showing
   # an error message, in case something goes wrong when submitting the search
   if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Search::Sequence::results: returning result set as XML' )
@@ -382,7 +383,7 @@ sub resultset : Local {
   # build the domain graphics description
   $c->forward( 'layout_dg' ) unless $c->stash->{data}->{altoutput};
 
-  # put a reference to the results data structure in the "rest" slot in the 
+  # put a reference to the results data structure in the "rest" slot in the
   # stash, which is where the serialisers will be looking for it
   $c->stash->{rest} = $c->stash->{results}->{$jobId}->{hits};
   # TODO figure out where this should really be...
@@ -494,7 +495,7 @@ sub get_seq_type : Private {
   print $seq_file substr( $c->stash->{data}->{seq}, 0, 500 );
 
   $seq_file->close;
-  
+
   $c->log->debug( 'Search::Sequence::get_seq_type: esl-seqstat command: '
                   . $this->{seqstatBinary} . ' ' . $seq_file->filename . ' |')
     if $c->debug;
@@ -506,7 +507,7 @@ sub get_seq_type : Private {
       if $c->debug;
     return -1;
   }
-  
+
   my $type;
   while ( <SEQSTAT> ) {
     next unless m/^Alphabet type:\s+(.*)/;
@@ -540,7 +541,7 @@ sub get_seq_type : Private {
   $c->log->debug( "Search::Sequence::get_seq_type: detected sequence type: $type" )
     if $c->debug;
 
-  $c->stash->{sequence_type} = $type eq 'amino' 
+  $c->stash->{sequence_type} = $type eq 'amino'
                              ? 'protein'
                              : 'dna';
   return 1;
@@ -573,7 +574,7 @@ sub get_job_details : Private {
 
     return 0;
   }
-  
+
   # make sure it's valid
   unless ( $jobId =~ s/^([A-F0-9\-]{36})$/$1/i ) {
     $c->log->debug( 'Search::Sequence::get_job_details: bad job ID' )
@@ -583,17 +584,17 @@ sub get_job_details : Private {
 
     return 0;
   }
-  
+
   # we got an ID and it's valid; stash it and try to retrieve results
   $c->stash->{jobId} = $jobId;
-  
+
   $c->log->debug( "Search::Sequence::get_job_details: checking job ID |$jobId|" )
     if $c->debug;
 
   # get the raw database objects for the results
   $c->forward( 'JobManager', 'retrieve_result_rows', [ $jobId  ] );
 
-  #   
+  #
   $c->forward( 'handle_options' );
 
   return 1;
@@ -605,7 +606,7 @@ sub get_job_details : Private {
 
 Decides if the input sequence is protein or DNA and validates it accordingly.
 Returns true is it's a valid sequence, false otherwise. If the sequence is
-not valid, the stash key seqSearchError is populated with a sensible error 
+not valid, the stash key seqSearchError is populated with a sensible error
 message.
 
 =cut
@@ -617,9 +618,9 @@ sub validate_input : Private {
 
   # somewhere to stash the user options
   $c->stash->{user_options} = {};
-  
+
   # should we use the gathering threshold ?
-  if ( defined $c->req->param('ga') and 
+  if ( defined $c->req->param('ga') and
        $c->req->param('ga') ) {
     $c->log->debug( 'Search::Sequence::validate_input: using ga' )
       if $c->debug;
@@ -640,7 +641,7 @@ sub validate_input : Private {
 
       return 0;
     }
-    
+
     # secondly, it has to be positive...
     unless ( $c->req->param('evalue') > 0 ) {
       $c->stash->{seqSearchError} = 'The E-value must be a positive number. '
@@ -669,7 +670,7 @@ sub validate_input : Private {
       if $c->debug;
     $c->stash->{user_options}->{evalue} = $c->req->param('evalue');
   }
-  
+
   # search for Pfam-Bs ?
   $c->stash->{user_options}->{searchBs} = ( defined $c->req->param('searchBs') and
                                             $c->req->param('searchBs') );
@@ -677,13 +678,13 @@ sub validate_input : Private {
   # should we search for Pfam-As or just skip them and search only Pfam-Bs ?
   if ( defined $c->req->param('skipAs') and
        $c->req->param('skipAs') ) {
-    
+
     $c->log->debug( 'Search::Sequence::validate_input: skipping Pfam-A search' )
       if $c->debug;
-    
+
     # flag up the fact that we want to skip Pfam-A searches
     $c->stash->{user_options}->{skipAs} = 1;
-    
+
     # and force a search for Pfam-Bs
     $c->stash->{user_options}->{searchBs} = 1;
   }
@@ -727,13 +728,13 @@ sub validate_input : Private {
 =head2 validate_protein_seq : Private
 
 Validate the form input. Returns 1 if all input validated, 0 otherwise.
-Error messages are returned in the stash as "seqSearchError". 
+Error messages are returned in the stash as "seqSearchError".
 
 =cut
 
 sub validate_protein_seq : Private {
   my ( $this, $c ) = @_;
-  
+
   # make sure we actually have a sequence...
   unless ( $c->stash->{data}->{seq} and $c->stash->{data}->{seq} ne '' ) {
     $c->stash->{seqSearchError} = 'You did not supply an amino-acid sequence.';
@@ -743,7 +744,7 @@ sub validate_protein_seq : Private {
 
     return 0;
   }
-  
+
   $c->stash->{user_options}->{dna} = 0;
 
   # handle various line endings. No need to worry about \n, since we got rid of
@@ -754,7 +755,7 @@ sub validate_protein_seq : Private {
   # check the length of the sequence at this point. If it's too long, bail
   my $length = length $seq;
   if ( $length > $this->{maxProteinSeqLength} ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence is too long. The maximum length of search sequences is ' .
       $this->{maxProteinSeqLength} . '. Please try again with a shorter sequence';
 
@@ -764,7 +765,7 @@ sub validate_protein_seq : Private {
     return 0;
 	}
     if ( $length < $this->{minProteinSeqLength} ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence is too short. The minimum length of search sequences is ' .
       $this->{minProteinSeqLength} . '. Please try again with a longer sequence';
 
@@ -774,11 +775,11 @@ sub validate_protein_seq : Private {
     return 0;
   }
 
-  # check that the sequence string contains only letters. Bail if it has 
+  # check that the sequence string contains only letters. Bail if it has
   # anything else in it
   if ( $seq =~ m/[^ABCDEFGHIJKLMNOPQRSTUVWXYZ\*]/g ) {
-    $c->stash->{seqSearchError} = 'Invalid sequence; illegal character at position ' 
-      . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 ) 
+    $c->stash->{seqSearchError} = 'Invalid sequence; illegal character at position '
+      . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 )
       . '&quot;). Please try again with a valid amino-acid sequence';
 
     $c->log->debug( 'Search::Sequence::validate_protein_seq: sequence contains illegal characters; failed' )
@@ -788,15 +789,15 @@ sub validate_protein_seq : Private {
   }
 
   # we need to make sure that the sequence is really protein and not, as we
-  # commonly get, a bloody great DNA sequence. Count the number of potential 
+  # commonly get, a bloody great DNA sequence. Count the number of potential
   # nucleotides in the sequence and see what proportion of the total sequence
   # that makes
   my ( $nucleotide_count ) = $seq =~ tr/ATCGU/ATCGU/;
-  
+
   # if the sequence is more than 100 residues (or bases) and is more than
   # 95% nucleotides, there's a problem
   if ( $length > 100 and $nucleotide_count / $length > 0.95 ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence does not look like protein. Please upload a protein sequence';
 
     $c->log->debug( "Search::Sequence::validate_protein_seq: sequence doesn't look like protein; failed" )
@@ -807,7 +808,7 @@ sub validate_protein_seq : Private {
 
   # passed all checks; stuff the sequence into the stash
   $c->stash->{input} = $seq;
-  
+
   return 1;
 }
 
@@ -822,7 +823,7 @@ Validate the form input. Error messages are returned in the stash as
 
 sub validate_dna_seq : Private {
   my( $this, $c ) = @_;
-  
+
   # make sure we got a parameter first
   unless ( defined $c->req->param('seq') ) {
     $c->stash->{seqSearchError} =
@@ -843,7 +844,7 @@ sub validate_dna_seq : Private {
 
     $c->log->debug( 'Search::Sequence::validate_dna_seq: sequence too long; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
  # check it's not too long
@@ -853,7 +854,7 @@ sub validate_dna_seq : Private {
 
     $c->log->debug( 'Search::Sequence::validate_dna_seq: sequence too short; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
   # tidy up the sequence and make sure it's only got the valid DNA characters
@@ -861,26 +862,26 @@ sub validate_dna_seq : Private {
   shift @seqs if $seqs[0] =~ m/^\>/;
   my $seq = uc( join '', @seqs );
   $seq =~ s/[\s\r\n]+//g;
-  
+
   unless ( $seq =~ m/^[ACGTRYKMSWBDHVN]+$/ ) {
     $c->stash->{seqSearchError} =
       'No valid DNA sequence found. Please enter a valid sequence and try again.';
 
     $c->log->debug( 'Search::Sequence::validate_dna_seq: invalid DNA sequence; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
 
-  # store the valid sequence. Up until this point there was no need to have it 
-  # in the stash, since it might have been invalid. Now that it's validated, 
+  # store the valid sequence. Up until this point there was no need to have it
+  # in the stash, since it might have been invalid. Now that it's validated,
   # however, we actually need it
   $c->log->debug( "Search::Sequence::validate_dna_seq: sequence looks ok: |$seq|" )
     if $c->debug;
-    
-  # passed ! 
+
+  # passed !
   $c->stash->{input} = $seq;
- 
+
   return 1;
 }
 
@@ -889,111 +890,111 @@ sub validate_dna_seq : Private {
 =head2 validate_input : Private
 
 Validate the form input. Returns 1 if all input validated, 0 otherwise.
-Error messages are returned in the stash as "searchError". 
+Error messages are returned in the stash as "searchError".
 
 =cut
 
 # sub validate_input : Private {
 #   my ( $this, $c ) = @_;
-#   
+#
 #   # parse and validate the sequence itself
 #   unless ( $c->forward('parse_sequence') ) {
-# 
+#
 #     # the parse_sequence method will put the sequence into the stash if it
 #     # passes validation, but if the sequence looks like DNA or if it's
-#     # too long, we also get an error message in the stash. So, we only set 
+#     # too long, we also get an error message in the stash. So, we only set
 #     # a general error message here if we don't already have one
 #     $c->stash->{searchError} ||= 'Invalid sequence. Please try again with a valid amino-acid sequence.';
-# 
+#
 #     $c->log->debug( 'Search::Sequence::validate_input: sequence parsing failed' )
 #       if $c->debug;
-# 
+#
 #     return 0;
 #   }
-# 
+#
 #   # somewhere to stash the user options
 #   $c->stash->{user_options} = {};
-#   
+#
 #   # should we use the gathering threshold ?
-#   if ( defined $c->req->param('ga') and 
+#   if ( defined $c->req->param('ga') and
 #        $c->req->param('ga') ) {
 #     $c->log->debug( 'Search::Sequence::validate_input: using ga' )
 #       if $c->debug;
 #     $c->stash->{user_options}->{ga} = 1;
 #   }
-# 
+#
 #   # or should we use an E-value ?
 #   elsif ( defined $c->req->param('evalue') ) {
 #     $c->log->debug( 'Search::Sequence::sequence_search: got an evalue' )
 #       if $c->debug;
-# 
+#
 #     # firstly, it has to be a number
 #     unless ( looks_like_number( $c->req->param('evalue') ) ) {
 #       $c->stash->{searchError} = 'The E-value must be a valid positive number <= 10.0.';
-# 
+#
 #       $c->log->debug( 'Search::Sequence::validate_input: bad evalue (NaN); returning to form' )
 #         if $c->debug;
-# 
+#
 #       return 0;
 #     }
-#     
+#
 #     # secondly, it has to be positive...
 #     unless ( $c->req->param('evalue') > 0 ) {
 #       $c->stash->{searchError} = 'The E-value must be a positive number. '
 #                                  . 'Negative E-values values are meaningless.';
-# 
+#
 #       $c->log->debug( 'Search::Sequence::validate_input: bad evalue (-ve); returning to form' )
 #         if $c->debug;
-# 
+#
 #       return 0;
 #     }
-# 
+#
 #     # thirdly and finally, it has to be less than 10.0
 #     unless ( $c->req->param('evalue') <= 10.0 ) {
 #       $c->stash->{searchError} = 'The E-value must be <= 10.0. Large E-values '
 #                                  . 'result in large numbers of meaningless Pfam '
 #                                  . 'hits and cause severe problems for our '
 #                                  . 'search system.';
-# 
+#
 #       $c->log->debug( 'Search::Sequence::validate_input: bad evalue ( > 10.0 ); returning to form' )
 #         if $c->debug;
-# 
+#
 #       return 0;
 #     }
-# 
+#
 #     $c->log->debug( 'Search::Sequence::validate_input: evalue looks like a positive number <= 10.0; stashing' )
 #       if $c->debug;
 #     $c->stash->{user_options}->{evalue} = $c->req->param('evalue');
-# 
+#
 #   }
-#   
+#
 #   # search for Pfam-Bs ?
 #   $c->stash->{user_options}->{searchBs} = ( defined $c->req->param('searchBs') and
 #                                             $c->req->param('searchBs') );
-# 
+#
 #   # should we search for Pfam-As or just skip them and search only Pfam-Bs ?
 #   if ( defined $c->req->param('skipAs') and
 #        $c->req->param('skipAs') ) {
-#     
+#
 #     $c->log->debug( 'Search::Sequence::validate_input: skipping Pfam-A search' )
 #       if $c->debug;
-#     
+#
 #     # flag up the fact that we want to skip Pfam-A searches
 #     $c->stash->{user_options}->{skipAs} = 1;
-#     
+#
 #     # and force a search for Pfam-Bs
 #     $c->stash->{user_options}->{searchBs} = 1;
 #   }
-# 
-#   return 1;  
+#
+#   return 1;
 # }
 
 #-------------------------------------------------------------------------------
 
 =head2 parse_sequence : Private
 
-Parses the sequence supplied by the CGI parameter "seq". Drops the sequence 
-into the stash if it passed validation. Sets an error message in the stash if 
+Parses the sequence supplied by the CGI parameter "seq". Drops the sequence
+into the stash if it passed validation. Sets an error message in the stash if
 there was a specific problem.
 
 =cut
@@ -1010,7 +1011,7 @@ sub parse_sequence : Private {
 
     return 0;
   }
-  
+
   # break the string into individual lines and get rid of any FASTA header lines
   # before recombining
   # my @seqs = split /\n/, $c->req->param('seq');
@@ -1025,7 +1026,7 @@ sub parse_sequence : Private {
   # check the length of the sequence at this point. If it's too long, bail
   my $length = length $seq;
   if ( $length > $this->{maxProteinSeqLength} ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence is too long. The maximum length of search sequences is ' .
       $this->{maxProteinSeqLength} . '. Please try again with a shorter sequence';
 
@@ -1035,7 +1036,7 @@ sub parse_sequence : Private {
     return 0;
   }
  if ( $length < $this->{minProteinSeqLength} ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence is too short. The minimum length of search sequences is ' .
       $this->{minProteinSeqLength} . '. Please try again with a longer sequence';
 
@@ -1045,11 +1046,11 @@ sub parse_sequence : Private {
     return 0;
   }
 
-  # check that the sequence string contains only letters. Bail if it has 
+  # check that the sequence string contains only letters. Bail if it has
   # anything else in it
   if ( $seq =~ m/[^ABCDEFGHIJKLMNOPQRSTUVWXYZ\*]/g ) {
-    $c->stash->{seqSearchError} = 'Invalid sequence; illegal character at position ' 
-      . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 ) 
+    $c->stash->{seqSearchError} = 'Invalid sequence; illegal character at position '
+      . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 )
       . '&quot;). Please try again with a valid amino-acid sequence';
 
     $c->log->debug( 'Search::Sequence::parse_sequence: sequence contains illegal characters; failed' )
@@ -1059,15 +1060,15 @@ sub parse_sequence : Private {
   }
 
   # we need to make sure that the sequence is really protein and not, as we
-  # commonly get, a bloody great DNA sequence. Count the number of potential 
+  # commonly get, a bloody great DNA sequence. Count the number of potential
   # nucleotides in the sequence and see what proportion of the total sequence
   # that makes
   my ( $nucleotide_count ) = $seq =~ tr/ATCGU/ATCGU/;
-  
+
   # if the sequence is more than 100 residues (or bases) and is more than
   # 95% nucleotides, there's a problem
   if ( $length > 100 and $nucleotide_count / $length > 0.95 ) {
-    $c->stash->{seqSearchError} = 
+    $c->stash->{seqSearchError} =
       'Your sequence does not look like protein. Please upload a protein sequence';
 
     $c->log->debug( "Search::Sequence::parse_sequence: sequence doesn't look like protein; failed" )
@@ -1078,7 +1079,7 @@ sub parse_sequence : Private {
 
   # passed all checks; stuff the sequence into the stash
   $c->stash->{input} = $seq;
-  
+
   return 1;
 }
 
@@ -1094,7 +1095,7 @@ to another queue.
 
 sub queue_protein_search : Private {
   my ( $this, $c ) = @_;
-  
+
   # first, check there's room on the queue
   my $rv = $c->forward('check_queue');
   unless ( $rv ) {
@@ -1105,18 +1106,18 @@ sub queue_protein_search : Private {
 
     return 0;
   }
-  
+
   # ok. There's room on the queue, so we can submit the jobs. Generate a UUID for the job
   $c->stash->{jobId} = Data::UUID->new()->create_str();
   $c->log->debug( 'Search::Sequence::queue_protein_search: generated job ID: |'
                   . $c->stash->{jobId} . '|' ) if $c->debug;
-  
+
   #----------------------------------------
 
   # keep track of queued jobs
   my $queued = 0;
 
-  # submit a Pfam-A job, unless we've been asked to skip it  
+  # submit a Pfam-A job, unless we've been asked to skip it
   if ( not $c->stash->{user_options}->{skipAs} ) {
 
     # set the job type
@@ -1124,7 +1125,7 @@ sub queue_protein_search : Private {
 
     # convert the options hash into JSON
     $c->stash->{options} = to_json( $c->stash->{user_options} );
-    
+
     # submit the search and make sure that operation was a success
     $rv = $c->forward('queue_search_transaction');
     unless ( $rv ) {
@@ -1134,25 +1135,25 @@ sub queue_protein_search : Private {
         if $c->debug;
 
       return 0;
-    } 
+    }
 
     $c->log->debug( 'Search::Sequence::queue_protein_search: successfully queued Pfam-A search' )
       if $c->debug;
 
     $queued++;
-  } 
-  
+  }
+
   #----------------------------------------
 
   # submit a Pfam-B job, if we've been asked to run one
   if ( $c->stash->{user_options}->{searchBs} ) {
-    
+
     # set the job type
     $c->stash->{job_type} = 'B';
 
     # for Pfam-Bs, there are no options.
     $c->stash->{options} = '{}';
-    
+
     # submit the search and make sure that operation was a success
     my $rv = $c->forward('queue_search_transaction');
     unless ( $rv ) {
@@ -1162,26 +1163,26 @@ sub queue_protein_search : Private {
         if $c->debug;
 
       return 0;
-    } 
+    }
 
     $c->log->debug( 'Search::Sequence::queue_protein_search: successfully queued Pfam-B search' )
       if $c->debug;
 
     $queued++;
   }
-  
+
   #----------------------------------------
 
   # make sure we have at least one job...
   unless ( $queued ) {
     $c->stash->{seqSearchError} = 'You must run at least one type of search.';
-    
+
     $c->log->warn( 'Search::Sequence::queue_protein_search: no searches submitted' )
       if $c->debug;
-      
+
     return 0;
   }
-  
+
   return 1;
 }
 
@@ -1196,7 +1197,7 @@ submits each frame as a separate protein sequence search.
 
 sub queue_dna_search : Private {
   my ( $this, $c ) = @_;
-  
+
   # first, check there's room on the queue
   my $rv = $c->forward('check_queue');
   unless ( $rv ) {
@@ -1207,7 +1208,7 @@ sub queue_dna_search : Private {
 
     return 0;
   }
-  
+
   # translate sequence
   $rv = $c->forward('translate_dna');
   unless ( $rv ) {
@@ -1228,7 +1229,7 @@ sub queue_dna_search : Private {
 
   # this will be the UUID for both the DNA and the protein search rows
   $c->stash->{jobId} = Data::UUID->new()->create_str();
-  
+
   # first, add the raw DNA sequence the queue, but with its status set to "DONE",
   # so that the dequeuers don't try to execute it. This row is simply to give us
   # somewhere to store the untranslated sequence
@@ -1243,8 +1244,8 @@ sub queue_dna_search : Private {
       if $c->debug;
 
     return 0;
-  } 
-  
+  }
+
   # now queue the separate protein searches
 
   # keep track of how many we successfully queue
@@ -1269,7 +1270,7 @@ sub queue_dna_search : Private {
       unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
 
       return 0;
-    } 
+    }
 
     $c->stash->{input} = join '', <FRAME>;
     close FRAME;
@@ -1291,14 +1292,14 @@ sub queue_dna_search : Private {
       unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
 
       return 0;
-    } 
+    }
 
     $c->log->debug( "Search::Sequence::queue_dna_search: successfully queued search for frame $i" )
       if $c->debug;
 
     $queued++;
-  } 
-  
+  }
+
   #----------------------------------------
 
   unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
@@ -1315,7 +1316,7 @@ sub queue_dna_search : Private {
   }
 
   unlink( $c->stash->{translated_fasta} . $_ ) for ( '', 0..5 );
-  
+
   return 1;
 }
 
@@ -1335,20 +1336,19 @@ sub check_queue : Private {
 
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->search( { -and => [ { status => 'PEND' },
-                                    -or => [ { job_type => 'A' },
-                                             { job_type => 'B' } ] ] },
+                                   { job_type => 'A' } ] },
                        { select => [ { count => 'status' } ],
                          as     => [ 'numberPending' ] } )
              ->single;
-  
+
   $c->stash->{number_pending} = $rs->get_column( 'numberPending' );
-  
-  $c->log->debug( 'Search::Sequence::check_queue: |' . 
+
+  $c->log->debug( 'Search::Sequence::check_queue: |' .
                   $c->stash->{number_pending} . '| jobs pending' ) if $c->debug;
-  
+
   if ( $c->stash->{number_pending} >= $this->{pendingLimit} ) {
-    $c->stash->{seqSearchError} = 
-      'There are currently too many jobs in the sequence search queue. ' . 
+    $c->stash->{seqSearchError} =
+      'There are currently too many jobs in the sequence search queue. ' .
       'Please try again in a little while.';
 
     # TODO send an email to the admins about the full queue
@@ -1358,7 +1358,7 @@ sub check_queue : Private {
 
     return 0;
   }
-  
+
   return 1;
 }
 
@@ -1374,7 +1374,7 @@ to another queue.
 
 # sub queue_seq_search : Private {
 #   my ( $this, $c ) = @_;
-#   
+#
 #   # first, check there's room on the queue
 #   my $rs = $c->model( 'WebUser::JobHistory' )
 #              ->search( { -and => [ { status => 'PEND' },
@@ -1383,99 +1383,99 @@ to another queue.
 #                        { select => [ { count => 'status' } ],
 #                          as     => [ 'numberPending' ] } )
 #              ->single;
-#   
+#
 #   $c->stash->{number_pending} = $rs->get_column( 'numberPending' );
-#   
-#   $c->log->debug( 'Search::Sequence::queue_seq_search: |' . 
+#
+#   $c->log->debug( 'Search::Sequence::queue_seq_search: |' .
 #                   $c->stash->{number_pending} . '| jobs pending' ) if $c->debug;
-#   
+#
 #   if ( $c->stash->{number_pending} >= $this->{pendingLimit} ) {
-#     $c->stash->{searchError} = 
-#       'There are currently too many jobs in the sequence search queue. ' . 
+#     $c->stash->{searchError} =
+#       'There are currently too many jobs in the sequence search queue. ' .
 #       'Please try again in a little while.';
-# 
+#
 #     # TODO send an email to the admins about the full queue
-# 
+#
 #     $c->log->debug( 'Search::Sequence::queue_seq_search: too many Pfam jobs in queue ('
 #                     . $c->stash->{number_pending} . ')' ) if $c->debug;
-# 
+#
 #     return 0;
 #   }
-#   
+#
 #   # ok. There's room on the queue, so we can submit the jobs. Generate a UUID for the job
 #   $c->stash->{jobId} = Data::UUID->new()->create_str();
 #   $c->log->debug( 'Search::Sequence::queue_seq_search: generated job ID: |'
 #                   . $c->stash->{jobId} . '|' ) if $c->debug;
-#   
+#
 #   #----------------------------------------
-# 
+#
 #   # keep track of queued jobs
 #   my $queued = 0;
-# 
-#   # submit a Pfam-A job, unless we've been asked to skip it  
+#
+#   # submit a Pfam-A job, unless we've been asked to skip it
 #   if ( not $c->stash->{user_options}->{skipAs} ) {
-# 
+#
 #     # set the job type
 #     $c->stash->{job_type} = 'A';
-# 
+#
 #     # convert the options hash into JSON
 #     $c->stash->{options} = to_json( $c->stash->{user_options} );
-#     
+#
 #     # submit the search and make sure that operation was a success
 #     unless ( $c->forward( 'queue_search_transaction' ) ) {
 #       $c->stash->{searchError} ||= 'There was a problem queuing your Pfam-A search.';
-# 
+#
 #       $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-A search' )
 #         if $c->debug;
-# 
+#
 #       return 0;
-#     } 
-# 
+#     }
+#
 #     $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-A search' )
 #       if $c->debug;
-# 
+#
 #     $queued++;
-#   } 
-#   
+#   }
+#
 #   #----------------------------------------
-# 
+#
 #   # submit a Pfam-B job, if we've been asked to run one
 #   if ( $c->stash->{user_options}->{searchBs} ) {
-#     
+#
 #     # set the job type
 #     $c->stash->{job_type} = 'B';
-# 
+#
 #     # for Pfam-Bs, there are no options.
 #     $c->stash->{options} = '{}';
-#     
+#
 #     # submit the search and make sure that operation was a success
 #     unless ( $c->forward( 'queue_search_transaction' ) ) {
 #       $c->stash->{searchError} ||= 'There was a problem queuing your Pfam-B search.';
-# 
+#
 #       $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-B search' )
 #         if $c->debug;
-# 
+#
 #       return 0;
-#     } 
-# 
+#     }
+#
 #     $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-B search' )
 #       if $c->debug;
-# 
+#
 #     $queued++;
 #   }
-#   
+#
 #   #----------------------------------------
-# 
+#
 #   # make sure we have at least one job...
 #   unless ( $queued ) {
 #     $c->stash->{searchError} = 'You must run at least one type of search.';
-#     
+#
 #     $c->log->warn( 'Search::Sequence::queue_seq_search: no searches submitted' )
 #       if $c->debug;
-#       
+#
 #     return 0;
 #   }
-#   
+#
 #   return 1;
 # }
 
@@ -1483,8 +1483,8 @@ to another queue.
 
 =head2 handle_results : Private
 
-Parse the results and filter based on the the users defined parameters. The 
-parsed results are put in a very generic format so that they can then be used 
+Parse the results and filter based on the the users defined parameters. The
+parsed results are put in a very generic format so that they can then be used
 for generating the results tables and graphics.
 
 =cut
@@ -1504,11 +1504,11 @@ sub handle_results : Private {
     if ( $@ ) {
       die "error retrieving Pfam-$job_type results: $@";
     }
-    
-    $c->log->debug( 'Search::Sequence::handle_results: got ' . scalar @$results 
+
+    $c->log->debug( 'Search::Sequence::handle_results: got ' . scalar @$results
                     . " Pfam-$job_type results" )
       if $c->debug;
-    
+
     $jobs->{hits}->{$job_type} = $results;
 
     $c->log->debug( 'Search::Sequence::handle_results: ' . dump( $results ) )
@@ -1519,7 +1519,7 @@ sub handle_results : Private {
   $c->log->debug( 'Search::Sequence::handle_results: stashed hits for '
                   . scalar( keys %{ $jobs->{hits} } ) . ' jobs' )
     if $c->debug;
-    
+
   # we also need to add the options to the stash, so that we can render
   # them in the template that builds the results page
   $c->forward( 'handle_options' );
@@ -1668,7 +1668,7 @@ sub layout_dg : Private {
     length  => length( $seq ),
     regions => \@regions,
     motifs  => \@motifs,
-    markups => \@markups 
+    markups => \@markups
   } );
   # $c->log->debug( 'Search::Sequence::layout_dg: sequence object: '
   #                 . dump( $sequence ) ) if $c->debug;
@@ -1683,7 +1683,7 @@ sub layout_dg : Private {
   $json->convert_blessed;
 
   $c->stash->{dg_layout} = $json->encode( $sequences );
-  # $c->log->debug( "Search::Sequence::layout_dg: JSON sequence object: |$json_layout|" ) 
+  # $c->log->debug( "Search::Sequence::layout_dg: JSON sequence object: |$json_layout|" )
   #   if $c->debug;
 
 } # end of "sub layout_dg"
@@ -1692,7 +1692,7 @@ sub layout_dg : Private {
 
 =head2 translate_dna : Private
 
-Translates the DNA sequence in C<$c->stash->{seq_file}> into protein using the 
+Translates the DNA sequence in C<$c->stash->{seq_file}> into protein using the
 external binary C<translate>.
 
 =cut
@@ -1707,7 +1707,7 @@ sub translate_dna : Private {
   # turn sequence into a FASTA file...
   print $seq_file ">user_seq\n";
   print $seq_file $c->stash->{data}->{seq};
-  
+
   # output filename
   $c->stash->{translated_fasta} = $c->stash->{seq_file}->filename . '.translated';
 
@@ -1726,7 +1726,7 @@ sub translate_dna : Private {
 
     return 0;
   }
-   
+
   close IN;
   close OUT;
 
@@ -1763,8 +1763,8 @@ files for the six frames.
 sub split_sequence_file : Private {
   my ( $this, $c ) = @_;
 
-  # split translated protein file into six separate files. We should be able to run 
-  # this using IPC::Run but I can't get the escaping syntax right for the pattern, so 
+  # split translated protein file into six separate files. We should be able to run
+  # this using IPC::Run but I can't get the escaping syntax right for the pattern, so
   # we'll take the easy route and use "system". I hit the same escaping problems with
   # system if we use the list rather than scalar approach, hence...
   my $csplit_cmd = join ' ', (
@@ -1785,7 +1785,7 @@ sub split_sequence_file : Private {
 
     return 0;
   }
-   
+
   return 1;
 }
 

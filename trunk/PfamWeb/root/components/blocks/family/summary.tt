@@ -1,13 +1,13 @@
 [%
 # summary.tt
 # jt6 20060406 WTSI
-# 
+#
 # build the summary block for families
 #
 # $Id: summary.tt,v 1.51 2010-01-07 13:54:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -25,7 +25,7 @@ hasWikiArticles = articles.size ? 1 : 0;
 
 # process the template that defines the blocks that do various things with
 # database links. We use it later to convert IDs in the Pfam comment and to
-# build tables of database links 
+# build tables of database links
 PROCESS components/links.tt; %]
 
 <!-- start summary block -->
@@ -74,11 +74,11 @@ PROCESS components/links.tt; %]
             <div id="wpContent[% loop.index %]">
 
               <p>
-                This is the Wikipedia entry entitled  
+                This is the Wikipedia entry entitled
                 &quot;<a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">[% article.title.replace( "_", " " ) | html %]</a>&quot;.
                 <!--
-                The Pfam group coordinates the annotation of Pfam families in  
-                <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>. 
+                The Pfam group coordinates the annotation of Pfam families in
+                <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>.
                 -->
                 <span onclick="reveal( this, 'wikiNotes', false, true );"
                       class="moreLink">
@@ -100,7 +100,7 @@ PROCESS components/links.tt; %]
                   Wikipedia. We currently download new content on a nightly
                   basis.
                 </p>
-                
+
                 <h2>Does Pfam agree with the content of the Wikipedia entry ?</h2>
 
                 <p>
@@ -115,9 +115,9 @@ PROCESS components/links.tt; %]
                   guarantee the accuracy of the information on the Wikipedia
                   page.
                 </p>
-                
+
                 <h2>Editing Wikipedia articles</h2>
-                
+
                 <h3>Before you edit for the first time</h3>
 
                 <p>
@@ -163,29 +163,29 @@ PROCESS components/links.tt; %]
                   with other users. If your IP address has previously been
                   blocked (due to being flagged as a source of 'vandalism')
                   your edits will also be blocked. You can find more
-                  information on this and creating a 
+                  information on this and creating a
                   <a class="ext"
                   href="http://en.wikipedia.org/wiki/Wikipedia:Why_create_an_account">
                     user account</a> at Wikipedia.
-                </p>      
+                </p>
                 <p>
-                  If you have problems editing a particular page, contact us at 
+                  If you have problems editing a particular page, contact us at
                   <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
                     &#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>
                   and we will try to help.
                 </p>
-                
+
                 <h2>Contact us</h2>
-                
+
                 <p>
-                  The community annotation is a new facility of the Pfam web site. If you 
-                  have problems editing or experience problems with these pages please 
+                  The community annotation is a new facility of the Pfam web site. If you
+                  have problems editing or experience problems with these pages please
                   <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
                     contact us</a>.
                 </p>
 
                 <hr />
-              
+
               </div>
 
               <div class="wpData">
@@ -198,9 +198,9 @@ PROCESS components/links.tt; %]
                 [% article.wikitext.text %]
               </div>
               <p id="wpLicense">
-                This page is based on a 
+                This page is based on a
                 <a class="ext" href="http://en.wikipedia.org/w/index.php?title=[% article.title | uri %]">
-                  Wikipedia article</a>. The text is available under the 
+                  Wikipedia article</a>. The text is available under the
                 <a class="ext" href="http://creativecommons.org/licenses/by-sa/3.0/">
                   Creative Commons Attribution/Share-Alike License</a>.
               </p>
@@ -208,7 +208,7 @@ PROCESS components/links.tt; %]
           [% END;
         ELSE -%]
           <div id="wpContent">
-            <p> 
+            <p>
               The Pfam group coordinates the annotation of Pfam families in  <a
               class="ext"
               href="http://en.wikipedia.org/wiki/Main_Page">Wikipedia</a>, but
@@ -218,18 +218,18 @@ PROCESS components/links.tt; %]
             </p>
           </div>
         [%- END %]
-        
+
         <!-- ============================================================== -->
 
         <div id="pfamContent" class="pfamData">
 
           <p>
             [% IF is_duf -%]
-              &quot;DUF&quot; families are annotated with the 
+              &quot;DUF&quot; families are annotated with the
               <a class="ext" href="http://en.wikipedia.org/w/index.php?title=Domain_of_unknown_function">
                 Domain of unknown function</a> Wikipedia article. This is a general
-              article, with no specific information about individual Pfam DUFs. If 
-              you have information about this particular DUF, please let us know 
+              article, with no specific information about individual Pfam DUFs. If
+              you have information about this particular DUF, please let us know
               using the &quot;Add annotation&quot; button below.
             [% ELSE -%]
               This tab holds the annotation information that is stored in the Pfam
@@ -246,8 +246,8 @@ PROCESS components/links.tt; %]
 
           <h1>
             [% pfam.description %]
-            <a id="addAnnotationButton" 
-               class="btn go" 
+            <a id="addAnnotationButton"
+               class="btn go"
                href="[% c.uri_for( '/annotate', { acc => pfam.pfama_acc } ) %]">
               <span class="btn-inner">Provide feedback</span></a>
           </h1>
@@ -257,15 +257,15 @@ PROCESS components/links.tt; %]
           [%- ELSE %]
           <p class="inactive">No Pfam abstract.</p>
           [%- END %]
-        
+
           [%- IF pfam.pfama_literature_references.size %]
             <h2>Literature references</h2>
-        
+
             <ol>
             [% # hash the literature references on "order_added"... I'm sure we should be able to do
                # this with a simple "sort", but it's screwing up somewhere...
             litRefs = {};
-            FOREACH ref IN pfam.pfama_literature_references; 
+            FOREACH ref IN pfam.pfama_literature_references;
               litRefs.${ref.order_added} = ref;
             END;
             FOREACH refNum IN litRefs.keys.nsort;
@@ -275,22 +275,22 @@ PROCESS components/links.tt; %]
                 <p>
                   [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
                   <a name="ref[% refNum %]"
-                     class="ext" 
+                     class="ext"
                      href="http://www.ncbi.nlm.nih.gov/pubmed/[% pmid %]">
                     PUBMED:[% pmid %]</a>
                   <a name="epmc[% refNum %]"
-                     class="ext" 
+                     class="ext"
                      href="http://europepmc.org/abstract/MED/[% pmid %]">
                     EPMC:[% pmid %]</a>
                 </p>
               </li>
             [%- END %]
             </ol>
-        
+
             <hr class="short"/>
           [% END %]
 
-          [% # add the tables showing internal and external database links 
+          [% # add the tables showing internal and external database links
           PROCESS buildLinksTable; -%]
 
         </div> [%# end of "pfamContent" %]
@@ -300,13 +300,13 @@ PROCESS components/links.tt; %]
         <div class="interproData">
 
           <p>
-            This tab holds annotation information from the 
+            This tab holds annotation information from the
             <a class="ext" href="http://www.ebi.ac.uk/interpro/">InterPro</a> database.
           </p>
 
           [%- IF pfam.interpros %]
             <h1 id="interproTitle">
-              InterPro entry 
+              InterPro entry
               <a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% pfam.interpros.interpro_id %]">[% pfam.interpros.interpro_id %]</a>
             </h1>
             [% # THIS IS A HACK ! the database entry for the interpro abstract appears
@@ -319,11 +319,11 @@ PROCESS components/links.tt; %]
 
               <p>
                 The mapping between Pfam and Gene Ontology is provided by InterPro.
-                If you use this data please 
+                If you use this data please
                 <a class="ext" href="http://www.ebi.ac.uk/interpro/references.html">cite</a> InterPro.
               </p>
 
-              [% categories = { 
+              [% categories = {
                 function  => { label   => "Molecular function",
                                goTerms => [] },
                 process   => { label   => "Biological process",
@@ -333,9 +333,9 @@ PROCESS components/links.tt; %]
               };
 
               FOREACH goTerm IN goTerms;
-                categories.${goTerm.category}.goTerms.push( goTerm ); 
+                categories.${goTerm.category}.goTerms.push( goTerm );
               END -%]
-              
+
               <table class="details links" summary="Gene ontology data">
                 <tbody>
                 [% FOREACH categoryName IN categories.keys.sort;
@@ -357,7 +357,7 @@ PROCESS components/links.tt; %]
                 END -%]
                 </tbody>
               </table>
-              
+
             [%- END; # of "if goTerms"
 
           ELSE %]
@@ -375,7 +375,7 @@ PROCESS components/links.tt; %]
         </div> -->
 
       </div> [%# end of "yui-content" %]
-     
+
     </div> [%# end of "#contentTabs" %]
 
   </div> [%# end of "blockContent" %]
@@ -408,10 +408,10 @@ PROCESS components/links.tt; %]
 
       [%- IF summaryData.numStructures;
         # set up the AJAX call to load the structure image %]
-        var r = new Ajax.Updater( 
-          "siph", 
+        var r = new Ajax.Updater(
+          "siph",
           "[% c.uri_for( '/family/' _ acc _ '/structures' ) %]",
-          { 
+          {
             evalScripts: true,
             method: 'get',
             onSuccess: function( response ) {

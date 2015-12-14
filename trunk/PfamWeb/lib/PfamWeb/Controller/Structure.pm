@@ -35,6 +35,7 @@ $Id: Structure.pm,v 1.22 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -73,10 +74,10 @@ sub begin : Private {
   $c->cache_page( 604800 );
 
   # get a handle on the entry and detaint it
-  my $tainted_entry = $c->req->param('acc')   ||  
-                      $c->req->param('id')    ||  
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
                       $c->req->param('entry') ||
-                      $entry_arg              ||  
+                      $entry_arg              ||
                       '';
 
   # when called from the AstexViewer tool window, the GetPdbFile method
@@ -85,17 +86,17 @@ sub begin : Private {
   # a real file. Here we'll just trim off the ".pdb" suffix before trying
   # to detaint
   $tainted_entry =~ s/^(.*?)\.pdb$/$1/;
-  
+
   my $entry;
-  if ( $tainted_entry ) { 
+  if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([0-9][A-Z0-9]{3})$/i;
-    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
+    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID'
       unless defined $entry;
   }
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
- 
+
   my $pdb = $c->model('PfamDB::Pdb')
               ->search( { 'me.pdb_id' => $entry }, { prefetch => 'pdb_images'} )
               ->first;
@@ -106,21 +107,21 @@ sub begin : Private {
     # see if this was an internal link and, if so, report it
     my $b = $c->req->base;
     if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
-  
+
       # report the error as a broken internal link
       $c->error( q|Found a broken internal link; no valid PDB ID |
                  . qq|("$entry") in "| . $c->req->referer . q|"| );
       $c->forward( '/reportError' );
-  
+
       $c->clear_errors;
     }
-  
+
     $c->stash->{errorMsg} = 'No valid PDB ID';
-  
+
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
     $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$entry|" );
-  
+
     return;
   }
 
@@ -131,14 +132,14 @@ sub begin : Private {
   $c->stash->{pdb}   = $pdb;
   $c->stash->{pdbId} = lc $entry;
 
-  # get the icon summary data, but only if we're in this top-level class, 
+  # get the icon summary data, but only if we're in this top-level class,
   # i.e. the one that generates the structure page rather than the sub-classes
   # that build page components
   if( ref $this eq 'PfamWeb::Controller::Structure' ) {
     $c->forward( 'get_summary_data' );
   }
-  
-  # add the mapping between structure, sequence and family. We need this for 
+
+  # add the mapping between structure, sequence and family. We need this for
   # more or less all of the sub-classes, so always do this
   $c->forward( 'add_mapping' );
 
@@ -161,7 +162,7 @@ sub get_summary_data : Private {
 
   my $cache_key = "${id}_summary";
   my $summary = $c->cache->get( $cache_key );
-  if ( defined $summary ) { 
+  if ( defined $summary ) {
     $c->log->debug( 'Structure::get_summary_data: retrieved summary from cache' )
       if $c->debug;
   }
@@ -182,7 +183,7 @@ sub get_summary_data : Private {
                            as       => [ 'numChains' ] } )
                ->single;
     $summary->{numSequences} = $rs->get_column( 'numChains' );
-  
+
     # number of species should be one, but get the species for the sequences
     $rs = $c->model('PfamDB::PdbResidueData')
             ->search( { pdb_id => $id },
@@ -195,14 +196,14 @@ sub get_summary_data : Private {
                         as       => [ 'numSpecies' ] } )
             ->single;
     $summary->{numSpecies} = $rs->get_column( 'numSpecies' );
-  
+
     # number architectures
     $rs = $c->model('PfamDB::PdbResidueData')
             ->search( { pdb_id => $id },
                         { join     => [ 'pfamseq_acc' ],
                         select   => [
                                       {
-                                       count => [ { distinct => [ 'pfamseq_acc.auto_architecture' ] } ]
+                                       count => [ { distinct => [ 'pfamseq_acc' ] } ]
                                       }
                                     ],
                         as       => [ 'numArch' ] } )
@@ -220,7 +221,7 @@ sub get_summary_data : Private {
     #                  as       => [ qw( numInts ) ] } );
     #$summaryData{numInt} = $rs->get_column( 'numInts' );
     $summary->{numInt} = 0;
-  
+
     # number of structures is one
     $summary->{numStructures} = 1;
 
@@ -249,10 +250,10 @@ sub add_mapping : Private {
 
   # add the structure-to-UniProt mapping to the stash
   my @unpMap = $c->model('PfamDB::PdbPfamaReg')
-                 ->search( { pdb_id          => $c->stash->{pdb}->pdb_id, 
+                 ->search( { pdb_id          => $c->stash->{pdb}->pdb_id,
                              'pdb_res_start' => \'!= pdb_res_end' },
                            { prefetch => [ qw( pfama_acc pfamseq_acc ) ],
-                             order_by => 'chain ASC' } );
+                             order_by => 'chain, seq_start ASC' } );
 
   $c->log->debug( 'Structure::add_mapping: found ' . scalar @unpMap . ' mappings' )
     if $c->debug;
@@ -265,7 +266,7 @@ sub add_mapping : Private {
     $chain = ( defined $row->chain ) ? $row->chain : ' ';
     # TODO Need to think more about the consequences of setting null
     # chain ID to " "...
-  
+
     $chains->{$row->pfamseq_acc->pfamseq_id}->{$chain} = '';
   }
   $c->stash->{chainsMapping} = $chains;

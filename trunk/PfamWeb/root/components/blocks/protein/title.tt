@@ -6,13 +6,29 @@
 # build the tab title for the protein pages
 #
 # $Id: title.tt,v 1.5 2008-05-16 15:30:35 jt6 Exp $
+
+seq_acc = '';
+IF ( pfamseq.pfamseq_acc );
+  seq_acc = pfamseq.pfamseq_acc;
+ELSE;
+  seq_acc = pfamseq.uniprot_acc;
+END;
+
+seq_id = '';
+IF ( pfamseq.pfamseq_id );
+  seq_id = pfamseq.pfamseq_id;
+ELSE;
+  seq_id = pfamseq.uniprot_id;
+END;
+
 %]
 
 [% IF titleType == "tab" %]
-<h1>Protein: <em>[% pfamseq.pfamseq_id %]</em> ([% pfamseq.pfamseq_acc %])</h1>
+  <h1>Protein: <em>[% seq_id %]</em> ([% seq_acc %])</h1>
 [% ELSIF titleType == "page" %]
-Protein: [% pfamseq.pfamseq_id %] ([% pfamseq.pfamseq_acc %])
+  Protein: [% seq_id %] ([% seq_acc %])
 [% END %]
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 

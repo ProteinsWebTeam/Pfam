@@ -20,6 +20,7 @@ $Id: PfamWeb.pm,v 1.56 2010-01-19 09:45:09 jt6 Exp $
 
 =cut
 
+use utf8;
 use Moose;
 use namespace::autoclean;
 
@@ -58,11 +59,10 @@ __PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 # read the configuration, configure the application and load these
 # catalyst plugins
 __PACKAGE__->setup( qw( HTML::Widget
-                        Unicode
                         Static::Simple) );
 
-# use Log4perl for logging to a separate log file. We need to set up the 
-# l4p output using a config file, which we specify in the main server 
+# use Log4perl for logging to a separate log file. We need to set up the
+# l4p output using a config file, which we specify in the main server
 # config.
 __PACKAGE__->log( Log::Log4perl::Catalyst->new( __PACKAGE__->config->{l4p_config} ) );
 
@@ -96,4 +96,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
