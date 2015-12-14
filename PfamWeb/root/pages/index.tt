@@ -37,7 +37,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       release_date = String.new( "00:00:00 " );
       CALL release_date.append( d.2, ":", d.1, ":", d.0 ); %]
       <h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
-        [% relData.number_families %] families)</h2>
+        [% relData.number_families %] entries)</h2>
     [% ELSE %]
       <h2>Pfam - Protein Families Database</h2>
     [% END %]
@@ -45,6 +45,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       The Pfam database is a large collection of protein 
       families, each represented by <em>multiple sequence alignments</em>
       and <em>hidden Markov models (HMMs)</em>.
+
       <span onclick="reveal( this, 'pfamNotes', false, true )"
             class="link moreLink">
         More...</span>
@@ -58,10 +59,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         into their function.
       </p>
       <p>
-        Pfam also generates higher-level groupings of related families, known as
-        <em>clans</em>. A clan is a collection of Pfam-A entries which are
+        Pfam also generates higher-level groupings of related entries, known as
+        <em>clans</em>. A clan is a collection of Pfam entries which are
         related by similarity of sequence, structure or profile-HMM.
       </p>
+      <p>The data presented for each entry is based on the 
+      <a class="ext" href="http://www.uniprot.org/help/reference_proteome">UniProt Reference Proteomes</a>
+      but information on individual UniProtKB sequecnes can still be found by entrying the protein accession. 
+      Pfam <i>full</i> alignments are available from searching a variety of databases, either to provide 
+      different accessions (e.g. all UniProt and NCBI GI) or different levels of redundancy.
     </div>
   </div>
 
@@ -77,7 +83,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <ul>
       <li class="link currentLink" onclick="switchPanel(this,'help')">QUICK LINKS</li>
       <li class="link" onclick="switchPanel(this,'protein')">SEQUENCE SEARCH</li>
-      <li class="link" onclick="switchPanel(this,'family')">VIEW A PFAM FAMILY</li>
+      <li class="link" onclick="switchPanel(this,'family')">VIEW A PFAM ENTRY</li>
       <li class="link" onclick="switchPanel(this,'clan')">VIEW A CLAN</li>
       <li class="link" onclick="switchPanel(this,'sequence')">VIEW A SEQUENCE</li>
       <li class="link" onclick="switchPanel(this,'structure')">VIEW A STRUCTURE</li>
@@ -91,8 +97,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <h3>You can find data in Pfam in various ways...</h3>
     <ul>
       <li>Analyze your protein sequence for Pfam matches</li>
-      <li>View Pfam family annotation and alignments</li>
-      <li>See groups of related families</li>
+      <li>View Pfam annotation and alignments</li>
+      <li>See groups of related entries</li>
       <li>Look at the domain organisation of a protein sequence</li>
       <li>Find the domains on a PDB structure</li>
       <li>Query Pfam by keywords</li>
@@ -116,7 +122,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                  class="jumpError"></div>
             <p class="small nlh">
               Enter any type of accession or ID to jump to the page
-              for a Pfam family or clan, UniProt sequence, PDB structure, etc.
+              for a Pfam entry or clan, UniProt sequence, PDB structure, etc.
             </p>
           </div>
         </form>
@@ -129,7 +135,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   <div id="protein" class="panel" style="display: none">
     <h3>Analyze your protein sequence for Pfam matches</h3>
     <p>
-      Paste your protein sequence here to find matching Pfam families.
+      Paste your protein sequence here to find matching Pfam entries.
     </p>
     <form action="[% searchBase %]/sequence"
           method="post"
@@ -166,9 +172,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   </div>
 
   <div id="family" class="panel" style="display: none">
-    <h3>View Pfam family annotation and alignments</h3>
-    <p>Enter a family identifier (e.g.&nbsp;<em>Piwi</em>) or accession 
-    (e.g.&nbsp;<em>PF02171</em>) to see all data for that family.</p>
+    <h3>View Pfam annotation and alignments</h3>
+    <p>Enter a entry identifier (e.g.&nbsp;<em>Piwi</em>) or accession 
+    (e.g.&nbsp;<em>PF02171</em>) to see all data for that entry.</p>
     <form action="[% jumpUri %]"
           id="familyForm"
           onsubmit="return jump(this);">

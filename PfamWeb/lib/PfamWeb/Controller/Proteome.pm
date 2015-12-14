@@ -20,6 +20,7 @@ $Id: Proteome.pm,v 1.14 2009-10-07 10:30:24 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -34,7 +35,7 @@ __PACKAGE__->config( SECTION => 'proteome' );
 
 =head2 begin : Private
 
-Tries to extract an NCBI taxonomy ID from the parameters and retrieves the 
+Tries to extract an NCBI taxonomy ID from the parameters and retrieves the
 details of the proteome with that tax ID.
 
 =cut
@@ -48,12 +49,12 @@ sub begin : Private {
   if ( defined $c->req->param('output') and
        $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');    
+    $c->res->content_type('text/xml');
 
     # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
     $c->res->header( 'Access-Control-Allow-Origin' => '*' );
   }
-  
+
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('id')        ||
                       $c->req->param('taxId')     ||
@@ -62,11 +63,11 @@ sub begin : Private {
                       $entry_arg                  ||
                       '';
 
-  # we're only accepting an NCBI tax ID  
+  # we're only accepting an NCBI tax ID
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^(\d+)$/;
-    $c->stash->{errorMsg} = 'Invalid NCBI taxonomy ID' 
+    $c->stash->{errorMsg} = 'Invalid NCBI taxonomy ID'
       unless defined $entry;
   }
   else {
@@ -77,13 +78,13 @@ sub begin : Private {
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 
   # this controller could be handed a parameter "pfamAcc", which is a Pfam-A
-  # accession. We steer clear of using the standard parameter "acc" because 
+  # accession. We steer clear of using the standard parameter "acc" because
   # that's used interchangably throughout the app to represent an accession for
   # whatever type of entity we're dealing with, from Pfam-A to clan to sequence.
-  # In this case that would imply at "acc" represents a proteome, but in fact 
+  # In this case that would imply at "acc" represents a proteome, but in fact
   # that's represented in the parameter "taxId", hence the use of "pfamAcc"
   # instead...
-  
+
   if ( defined $c->req->param('pfamAcc') and
        $c->req->param('pfamAcc') =~ m/^(PF\d{5})$/ ) {
 
@@ -93,12 +94,12 @@ sub begin : Private {
     $c->stash->{pfamAcc} = $1;
     $c->stash->{pfam} = $c->model('PfamDB::Pfama')
                           ->find( { pfama_acc => $1 } );
-  
+
     my @seqs = qw(D7PD39);
     $c->stash->{seqs} = \@seqs;
   }
 
-  
+
   # Note: I'm no longer sure what this last DB lookup is for...
   # jt6 20081219 WTSI
   # Looks like it comes from domain graphics....
@@ -110,15 +111,15 @@ sub begin : Private {
 
 =head2 stats : Local
 
-Builds a table showing the domain composition of the proteome. Intended to be 
+Builds a table showing the domain composition of the proteome. Intended to be
 called via AJAX and builds a page B<fragment>.
 
 =cut
 
 sub stats : Local {
   my( $this, $c ) = @_;
-  
-  $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';  
+
+  $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -132,7 +133,7 @@ Pfam-A domain.
 
 sub graphics : Local {
   my( $this, $c ) = @_;
-  
+
   $c->stash->{template} = 'components/blocks/proteome/graphicsTool.tt';
 }
 
@@ -148,31 +149,31 @@ Retrieve data for this proteome.
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   my $rs = $c->model('PfamDB::CompleteProteomes')
              ->find( { ncbi_taxid => $entry },
                      { prefetch => [ 'ncbi_taxid_data' ] } );
-  
+
   unless ( defined $rs ) {
     $c->stash->{errorMsg} = 'No valid NCBI taxonomy ID found';
     return;
   }
 
   $c->stash->{taxId} = $rs->ncbi_taxid_data->ncbi_taxid;
-  
+
   $c->log->debug( 'Proteome::get_data: got a proteome entry' ) if $c->debug;
   $c->stash->{proteomeSpecies} = $rs;
-  
+
   # only add extra data to the stash if we're actually going to use it later
-  if ( not $c->stash->{output_xml} and 
+  if ( not $c->stash->{output_xml} and
        ref $this eq 'PfamWeb::Controller::Proteome' ) {
-    
+
     $c->log->debug( 'Proteome::get_data: adding extra info' ) if $c->debug;
-    
+
     $c->forward('get_summary_data');
     $c->forward('get_stats');
   }
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -191,8 +192,7 @@ sub get_summary_data : Private {
 
   # number of architectures
   my $rs = $c->model( 'PfamDB::Pfamseq' )
-             ->find( { ncbi_taxid => $c->stash->{taxId},
-                       genome_seq => 1 },
+             ->find( { ncbi_taxid => $c->stash->{taxId} },
                      { select     => [
                                        {
                                          count => [
@@ -213,8 +213,7 @@ sub get_summary_data : Private {
 
   # number of structures
   $rs = $c->model( 'PfamDB::PdbPfamaReg' )
-          ->find( { 'pfamseq_acc.ncbi_taxid' => $c->stash->{taxId},
-                    'pfamseq_acc.genome_seq' => 1 },
+          ->find( { 'pfamseq_acc.ncbi_taxid' => $c->stash->{taxId} },
                     { select => [
                                   {
                                     count => [
@@ -256,20 +255,20 @@ sub get_stats : Private {
     if $c->debug;
 
   my @rs = $c->model('PfamDB::ProteomeRegions')
-             ->search( { auto_proteome => $c->stash->{proteomeSpecies}->auto_proteome },
+             ->search( { ncbi_taxid => $c->stash->{proteomeSpecies}->ncbi_taxid },
                        { join      => [ qw( pfama_acc ) ],
                          select    => [ qw( pfama_acc.pfama_id
                                             pfama_acc.pfama_acc
-                                            pfama_acc.description ), 
-                                        { count => 'pfamseq_acc' }, 
-                                        { sum   => 'me.count' } ],
-                         as        => [ qw( pfama_id 
-                                            pfama_acc 
-                                            description 
-                                            numberSeqs 
+                                            pfama_acc.description ),
+                                        { sum => 'me.number_sequences' },
+                                        { sum   => 'me.number_domains' } ],
+                         as        => [ qw( pfama_id
+                                            pfama_acc
+                                            description
+                                            numberSeqs
                                             numberRegs ) ],
                          group_by => [ qw( me.pfama_acc ) ],
-                         order_by => \'sum(me.count) DESC', 
+                         order_by => \'sum(me.number_domains) DESC',
                          #prefetch => [ qw( pfam ) ]
                        }
                      );
@@ -308,4 +307,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

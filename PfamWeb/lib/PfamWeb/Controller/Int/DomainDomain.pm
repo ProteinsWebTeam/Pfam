@@ -23,6 +23,7 @@ $Id: DomainDomain.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
 
 package PfamWeb::Controller::Int::DomainDomain;
 
+use utf8;
 use strict;
 use warnings;
 

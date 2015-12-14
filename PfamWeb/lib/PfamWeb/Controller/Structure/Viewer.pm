@@ -24,6 +24,7 @@ $Id: Viewer.pm,v 1.13 2009-10-07 12:07:59 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -51,22 +52,22 @@ sub viewer : Path {
     # key using a chain ID that is not defined...
     $ap    = ( defined $map->pfamseq_acc->pfamseq_acc ) ? $map->pfamseq_acc->pfamseq_acc : '';
     $chain = ( defined $map->chain ) ? $map->chain : ''; # NOTE: could have a chain '0'
-  
+
     $c->log->debug( "Structure::Viewer::viewer: pfamseq_acc, chain: |$ap|$chain|" )
       if $c->debug;
-  
+
     next if $seenChainAutoPfamseq{$ap.$chain};
-  
+
     my @markups = $c->model('PfamDB::PdbResidueData')
-                    ->search( { 'pfamseqMarkup2.pfamseq_acc' => $ap,
+                    ->search( { 'pfamseqMarkup.pfamseq_acc' => $ap,
                                 chain                        => $chain,
                                 pdb_id                       => $c->stash->{pdbId} },
-                              { 
-                                prefetch                     => [ 'pfamseqMarkup2' ] } );
+                              {
+                                prefetch                     => [ 'pfamseqMarkup' ] } );
     $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
                     . ' markups for mapping to ' . $ap )
       if $c->debug;
-  
+
     $seenChainAutoPfamseq{$ap.$chain}++;
     push @allMarkups, @markups;
   }

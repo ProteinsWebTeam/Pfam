@@ -28,6 +28,7 @@ $Id: Clan.pm,v 1.26 2009-10-07 10:18:44 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -51,32 +52,32 @@ sub begin : Private {
   my( $this, $c, $entry_arg ) = @_;
 
   # cache page for 12 hours
-  $c->cache_page( 43200 ); 
-  
+  $c->cache_page( 43200 );
+
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
   if ( defined $c->req->param('output') ) {
     if ( $c->req->param('output') eq 'xml' ) {
       $c->stash->{output_xml} = 1;
-      $c->res->content_type('text/xml');    
+      $c->res->content_type('text/xml');
 
       # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
       $c->res->header( 'Access-Control-Allow-Origin' => '*' );
     }
     elsif ( $c->req->param( 'output' ) eq 'pfamalyzer' ) {
       $c->stash->{output_pfamalyzer} = 1;
-      $c->res->content_type('text/plain');    
+      $c->res->content_type('text/plain');
     }
   }
-  
+
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
                       $entry_arg              ||
                       '';
-  
+
   if ( $tainted_entry ) {
     $c->log->debug( 'Clan::begin: got a tainted entry' )
       if $c->debug;
@@ -89,7 +90,7 @@ sub begin : Private {
 
 =head2 clan : Chained
 
-Main action in the chain. Takes the clan ID or accession and gets the row 
+Main action in the chain. Takes the clan ID or accession and gets the row
 in the clan table.
 
 =cut
@@ -104,13 +105,13 @@ sub clan : Chained( '/' )
                       '';
 
   # although these next checks might fail and end up putting an error message
-  # into the stash, we don't "return", because we might want to process the 
+  # into the stash, we don't "return", because we might want to process the
   # error message using a template that returns XML rather than simply HTML
-  
+
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
-    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
+    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID'
       unless defined $entry;
   }
   else {
@@ -118,7 +119,7 @@ sub clan : Chained( '/' )
   }
 
   return unless defined $entry;
-  
+
   # retrieve data for the entry
   $c->forward( 'get_data', [ $entry ] );
 }
@@ -174,13 +175,13 @@ sub clan_end : Chained( 'clan' )
     }
   }
   elsif( $c->stash->{output_pfamalyzer} ) {
-    $c->log->debug( 'Clan::clan_end: emitting text for PfamAlyzer' ) 
+    $c->log->debug( 'Clan::clan_end: emitting text for PfamAlyzer' )
       if $c->debug;
 
     $c->stash->{template} = 'rest/clan/entry_pfamalyzer.tt';
   }
   else {
-    $c->log->debug( 'Clan::clan_end: emitting HTML' ) 
+    $c->log->debug( 'Clan::clan_end: emitting HTML' )
       if $c->debug;
   }
 }
@@ -191,7 +192,7 @@ sub clan_end : Chained( 'clan' )
 
 =head2 alignment : Local
 
-Retrieves the HTML alignment and dumps it to the response. We first try to 
+Retrieves the HTML alignment and dumps it to the response. We first try to
 extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 =cut
@@ -203,9 +204,9 @@ sub alignment : Chained( 'clan' )
 
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
-  
+
   my $cache_key = 'clanjtml' . $c->stash->{acc};
-  
+
   my $jtml = $c->cache->get( $cache_key );
   if ( defined $jtml ) {
     $c->log->debug( 'Clan::alignment: extracted HTML from cache' )
@@ -213,17 +214,17 @@ sub alignment : Chained( 'clan' )
   }
   else {
     $c->log->debug( 'Clan::alignment: failed to extract HTML from cache; going to DB' )
-      if $c->debug;  
+      if $c->debug;
 
     # retrieve the HTML from the DB
     my $row = $c->model('PfamDB::ClanAlignmentAndRelationship')
                 ->search( { clan_acc => $c->stash->{clan}->clan_acc } )
                 ->single;
-  
+
     # final check...
     unless ( defined $row->alignment ) {
       $c->log->debug( 'Clan::alignment: failed to retrieve JTML' )
-        if $c->debug;  
+        if $c->debug;
 
       $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                               . $c->stash->{acc};
@@ -245,7 +246,7 @@ sub alignment : Chained( 'clan' )
 
   # stash the HTML
   $c->stash->{html_alignment} = $jtml;
-  
+
 }
 
 #---------------------------------------
@@ -315,13 +316,13 @@ sub old_structures : Path( '/clan/structures' ) {
 
 =head2 desc : Chained
 
-Returns the description of the clan. If the "output=pfamalyzer" parameter is 
+Returns the description of the clan. If the "output=pfamalyzer" parameter is
 set, returns a longer string specifically for the PfamAlyzer applet.
 
 =cut
 
 sub desc : Chained( 'clan' )
-           PathPart( 'desc' ) 
+           PathPart( 'desc' )
            Args( 0 ) {
   my ( $this, $c ) = @_;
 
@@ -331,9 +332,9 @@ sub desc : Chained( 'clan' )
 
     if ( $c->stash->{output_pfamalyzer} ) {
       $c->res->body(
-        $c->stash->{clan}->clan_acc         . "\t" . 
-        $c->stash->{clan}->clan_author      . "\t" . 
-        $c->stash->{clan}->clan_description . "\t" . 
+        $c->stash->{clan}->clan_acc         . "\t" .
+        $c->stash->{clan}->clan_author      . "\t" .
+        $c->stash->{clan}->clan_description . "\t" .
         $c->stash->{clan}->clan_comment
       );
     }
@@ -359,10 +360,10 @@ sub image : Chained('clan')
             PathPart('relationship_image')
             Args(0) {
   my( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Clan::image: serving clan relationship image' )
     if $c->debug;
-  
+
   if( defined $c->stash->{relationshipImage} ) {
     $c->res->content_type( 'image/gif' );
     $c->res->body( $c->stash->{relationshipImage} );
@@ -407,30 +408,30 @@ first argument.
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   my $rs = $c->model('PfamDB::Clan')
-             ->search( [ { clan_acc => $entry }, 
+             ->search( [ { clan_acc => $entry },
                          { clan_id  => $entry } ] );
 
   my $clan = $rs->first if defined $rs;
-  
+
   unless ( defined $clan ) {
     $c->stash->{errorMsg} = 'No valid clan accession or ID';
     return;
   }
-  
+
   $c->log->debug( 'Clan::get_data: got a clan' ) if $c->debug;
   $c->stash->{clan}      = $clan;
   $c->stash->{entryType} = 'C';
   $c->stash->{acc}       = $clan->clan_acc;
-  
+
   # set up the pointers to the clan data in the stash
   my @rs = $c->model('PfamDB::ClanMembership')
              ->search( { clan_acc => $clan->clan_acc },
                        { join      => [ 'pfama_acc' ],
                          prefetch  => [ 'pfama_acc' ] } );
   $c->stash->{clanMembers} = \@rs;
-  
+
   # only add extra data to the stash if we're actually going to use it later
   unless ( $c->stash->{output_xml} or
            $c->stash->{output_pfamalyzer} ) {
@@ -465,18 +466,18 @@ sub get_summary_data : Private {
   # number of interactions
   my @interactions = $c->model('PfamDB::PfamaInteractions')
                        ->search( [{'clan_membership_a.clan_acc' => $c->stash->{clan}->clan_acc },
-                                  {'clan_membership_b.clan_acc' => $c->stash->{clan}->clan_acc }],      
-                                 { join     => [ qw( pfama_acc_a 
-                                                     pfama_acc_b 
+                                  {'clan_membership_b.clan_acc' => $c->stash->{clan}->clan_acc }],
+                                 { join     => [ qw( pfama_acc_a
+                                                     pfama_acc_b
                                                      clan_membership_a
                                                      clan_membership_b) ],
-                                   select   => [ qw( pfama_acc_a.pfama_id 
+                                   select   => [ qw( pfama_acc_a.pfama_id
                                                      pfama_acc_a.pfama_acc
-                                                     pfama_acc_b.pfama_id 
+                                                     pfama_acc_b.pfama_id
                                                      pfama_acc_b.pfama_acc ) ],
-                                   as       => [ qw( pfamA_A_id 
+                                   as       => [ qw( pfamA_A_id
                                                      pfamA_A_acc
-                                                     pfamA_B_id 
+                                                     pfamA_B_id
                                                      pfamA_B_acc ) ],
                                   order_by  => [qw(pfama_acc_a.pfama_id pfama_acc_b.pfama_id)] } );
 
@@ -486,7 +487,7 @@ sub get_summary_data : Private {
   $summaryData{numInt} = scalar @interactions;
   $c->log->debug( 'Clan::get_summary_data: got ' . $summaryData{numInt} . ' interactions' )
     if $c->debug;
-  
+
   # number of structures known for the domain
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
 
@@ -511,7 +512,7 @@ sub get_summary_data : Private {
 
 =head2 get_xrefs : Private
 
-Retrieves database cross-references. 
+Retrieves database cross-references.
 
 =cut
 
@@ -525,7 +526,7 @@ sub get_xrefs : Private {
   foreach ( @refs ) {
     push @{ $xRefs{$_->db_id} }, $_;
   }
- 
+
   $c->stash->{xrefs} = \%xRefs;
 
 }
@@ -534,7 +535,7 @@ sub get_xrefs : Private {
 
 =head2 get_mapping : Private
 
-Retrieves the structure mappings for this clan. 
+Retrieves the structure mappings for this clan.
 
 =cut
 
@@ -573,8 +574,8 @@ sub get_mapping : Private {
 
 =head2 get_diagram : Private
 
-Retrieves the two components of the clan relationship diagram from the DB, 
-namely the image showing the relationship and the HTML snippet with the 
+Retrieves the two components of the clan relationship diagram from the DB,
+namely the image showing the relationship and the HTML snippet with the
 image map.
 
 =cut
@@ -587,7 +588,7 @@ sub get_diagram : Private {
   my $image = $c->cache->get( $cacheKeyRoot . 'image' );
   my $map   = $c->cache->get( $cacheKeyRoot . 'map' );
 
-  if ( defined $image and defined $map ) { 
+  if ( defined $image and defined $map ) {
     $c->log->debug( 'Clan::Relationship::get_diagram: extracted image and map from cache' )
       if $c->debug;
   }
@@ -599,22 +600,22 @@ sub get_diagram : Private {
     my $row = $c->model('PfamDB::ClanAlignmentAndRelationship')
                 ->search( { clan_acc => $c->stash->{clan}->clan_acc }, {} )
                 ->single;
-  
+
     # check we actually retrieved a row
     unless ( defined $row and defined $row->relationship ) {
       $c->log->warn( 'Clan::get_diagram: could not retrieve the relationship data for '
                      . $c->stash->{acc} );
       return;
     }
-  
+
     # we'll need both the image and the image map HTML uncompressed
     $image = Compress::Zlib::memGunzip( $row->relationship );
-    unless ( defined $image ) {  
+    unless ( defined $image ) {
       $c->log->warn( 'Clan::get_diagram: could not extract the relationship image for '
                      . $c->stash->{acc} );
       return;
     }
-  
+
     $map = Compress::Zlib::memGunzip( $row->image_map );
     unless ( defined $map ) {
       $c->log->warn( 'Clan::get_diagram: could not extract the relationship image map for '

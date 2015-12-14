@@ -6,7 +6,7 @@
 
 =head1 NAME
 
-PfamWeb::Controller::Structure::Annotations - controller for 
+PfamWeb::Controller::Structure::Annotations - controller for
 handling various types of annotation for structures
 
 =cut
@@ -22,6 +22,7 @@ $Id: Annotations.pm,v 1.3 2009-11-05 11:09:49 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -45,35 +46,35 @@ Returns any references for this structure that can be found in BioLit.
 
 sub references : Local {
   my ( $this, $c ) = @_;
-  
-  my $biolit = Bio::Lit->new( entry_type => 'pdb', 
+
+  my $biolit = Bio::Lit->new( entry_type => 'pdb',
                               id         => uc( $c->stash->{pdbId} ) );
-  
+
   my $cache_key = 'articles_' . $c->stash->{pdbId};
-  my $articles = $c->cache->get( $cache_key ); 
-  
+  my $articles = $c->cache->get( $cache_key );
+
   if ( defined $articles ) {
     $c->log->debug( 'Structure::references: retrieved articles list from cache' )
-      if $c->debug;  
+      if $c->debug;
   }
   else {
     $c->log->debug( 'Structure::references: no articles in cache; retrieving from BioLit' )
-      if $c->debug;  
+      if $c->debug;
 
     $articles = $biolit->articles;
     if ( scalar( @$articles ) ) {
       $c->log->debug( 'Structure::references: caching list of articles' )
-        if $c->debug;  
+        if $c->debug;
       $c->cache->set( $cache_key, $articles ) unless $ENV{NO_CACHE};
     }
     else {
       $c->log->debug( 'Structure::references: no articles retrieved; nothing to cache' )
-        if $c->debug;  
+        if $c->debug;
     }
   }
-  
+
   $c->stash->{articles} = $articles;
-  
+
   $c->log->debug( 'Structure::references: found ' . scalar @$articles . ' articles' )
       if $c->debug;
 
@@ -106,7 +107,7 @@ sub topsan : Local {
 
     # use our custom ExtScrubber module to clean up the HTML that we retrieve
     # from TopSan
-    my $scrubber = new ExtScrubber( 
+    my $scrubber = new ExtScrubber(
       allow   => [ qw( div span a p br hr table tbody tr td strong img em
                        ul ol dl li dt dd ) ],
       comment => 1,
@@ -155,7 +156,7 @@ sub topsan : Local {
         if $c->debug;
 
       #--------------------------------------
-      
+
       # was the query successful ?
       my $topsan_xml;
       if ( $response->is_success ) {
@@ -168,13 +169,13 @@ sub topsan : Local {
           if $c->debug;
 
         last TEST;
-      } 
+      }
 
       $c->log->debug( 'Structure::Annotations::topsan: topsan XML: ', $topsan_xml )
         if $c->debug;
 
       #--------------------------------------
-      
+
       # can we parse the XML into a perl data structure ?
       my $data;
       eval {
@@ -190,10 +191,10 @@ sub topsan : Local {
       }
 
       #--------------------------------------
-      
+
       $c->log->debug( 'Structure::Annotations::topsan: data structure from XML: ', dump( $data ) )
         if $c->debug;
-        
+
       # scrub the HTML portion of the data structure
       my $text;
       if ( ref $data ) {
@@ -208,10 +209,10 @@ sub topsan : Local {
         # no error message; we just drop off the bottom of the test block
 
         last TEST;
-      } 
-        
+      }
+
       #--------------------------------------
-      
+
       # did scrubbing the HTML yield anything at all ?
       unless ( defined $text ) {
         $c->log->debug( 'Structure::Annotations::topsan: failed to find the text annotation in the XML data structure' )
@@ -225,9 +226,9 @@ sub topsan : Local {
 
       # by this point, we really should have some text...
       $topsan_data->{text} = $text;
-      
+
       #--------------------------------------
-      
+
       # see if we can get an image URL from the perl data structure too
       my $img = $data->{protein}->{image}->{href};
       if ( defined $img ) {
@@ -242,7 +243,7 @@ sub topsan : Local {
       }
 
       #--------------------------------------
-      
+
       # look for the URL for the annotation
       my $href = $data->{protein}->{href};
       if ( defined $href ) {
@@ -260,11 +261,11 @@ sub topsan : Local {
         if $c->debug;
 
       $c->cache->set( $cache_key, $topsan_data ) unless $ENV{NO_CACHE};
-      
+
     } # end of block "TEST"
-    
+
   }
-  
+
   $c->stash->{topsanData} = $topsan_data;
   $c->stash->{template}   = 'components/blocks/structure/topsan.tt';
 }
@@ -279,7 +280,7 @@ sub topsan : Local {
 
 =head2 package ExtScrubber
 
-This is a package that wraps up the L<HTML::Scrubber> module and augments the 
+This is a package that wraps up the L<HTML::Scrubber> module and augments the
 C<_validate> method to make sure that a link has the attribute "class='ext'".
 
 

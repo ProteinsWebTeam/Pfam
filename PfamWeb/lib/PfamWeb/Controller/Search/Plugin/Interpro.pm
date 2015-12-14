@@ -32,6 +32,7 @@ $Id: Interpro.pm,v 1.8 2009-12-08 13:53:21 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 

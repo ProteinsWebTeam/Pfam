@@ -22,6 +22,7 @@ $Id: Help.pm,v 1.11 2009-10-28 14:01:00 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -59,7 +60,7 @@ sub begin : Private {
 
 Displays an "about" page.
 
-=cut 
+=cut
 
 sub about : Global {
   my ( $this, $c ) = @_;
@@ -76,7 +77,7 @@ sub about : Global {
 
 Displays a page with an example showing how to use the domain graphics library.
 
-=cut 
+=cut
 
 sub domain_graphics_example : Path('/help/domain_graphics_example.html') {
   my ( $this, $c ) = @_;

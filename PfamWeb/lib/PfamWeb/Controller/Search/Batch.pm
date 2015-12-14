@@ -22,6 +22,7 @@ $Id: Batch.pm,v 1.17 2009-10-07 12:02:06 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -39,7 +40,7 @@ use base qw( PfamBase::Controller::Search::BatchSearch
 
 =head2 search : Path
 
-Executes a protein sequence batch search. 
+Executes a protein sequence batch search.
 
 =cut
 
@@ -56,21 +57,21 @@ sub search : Path {
 
   # build the command to run
   # $c->stash->{options}  = '';
-  # $c->stash->{options} .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
+  # $c->stash->{options} .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and
   #                                                                   $c->stash->{batchOpts} ne 'bothNoMerge' );
   # $c->stash->{options} .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
   # $c->stash->{options} .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
   # $c->stash->{options} .=  q( --overlap )                       if( $c->stash->{showOverlap} );
-  
-  # finally, before we actually run the search, check we didn't do it recently 
+
+  # finally, before we actually run the search, check we didn't do it recently
   unless ( $c->forward( 'check_unique' ) ) {
     $c->stash->{batchSearchError } = $c->stash->{searchError};
     return;
   }
-  
+
   # generate a job ID
   $c->stash->{jobId} = Data::UUID->new()->create_str();
-  
+
   # set the queue
   $c->stash->{job_type} = 'batch';
 
@@ -88,13 +89,13 @@ sub search : Path {
   #----------------------------------------
 
   # if we get to here then the job was submitted successfully. Before handing
-  # off to the template, set a refresh URI that will be picked up by head.tt 
+  # off to the template, set a refresh URI that will be picked up by head.tt
   # and used in a meta refresh element
   $c->stash->{refreshUri}   = $c->uri_for( '/search' );
   $c->stash->{refreshDelay} = 30;
-  
+
   $c->log->debug( 'Search::Batch::search: protein batch search submitted' )
-    if $c->debug; 
+    if $c->debug;
   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
 }
 
@@ -105,7 +106,7 @@ sub search : Path {
 =head2 validate_input : Private
 
 Validate the form input. Returns 1 if all input validated, 0 otherwise.
-Error messages are returned in the stash as "searchError". 
+Error messages are returned in the stash as "searchError".
 
 =cut
 
@@ -115,16 +116,16 @@ sub validate_input : Private {
   $c->stash->{user_options} = {};
 
   # do the quick checks first...
-  
+
   # if we have an E-value, we'll use that, otherwise we'll use the gathering
   # threshold
   if ( defined $c->req->param( 'ga' ) and $c->req->param( 'ga' ) ) {
     $c->stash->{user_options}->{ga} = 1;
-  } 
+  }
   else {
 
     # check that the E-value is valid
-    if ( defined $c->req->param( 'evalue' ) and 
+    if ( defined $c->req->param( 'evalue' ) and
          looks_like_number( $c->req->param( 'evalue' ) ) and
          $c->req->param('evalue') > 0 ) {
       $c->stash->{user_options}->{evalue} = $c->req->param( 'evalue' );
@@ -134,14 +135,14 @@ sub validate_input : Private {
 
       $c->log->debug( 'Search::Batch::validate_input: bad evalue; returning to form' )
         if $c->debug;
-        
+
       return 0;
     }
   }
 
   # email address
   if ( Email::Valid->address( -address => $c->req->param('email') ) ) {
-    $c->stash->{email} = $c->req->param('email'); 
+    $c->stash->{email} = $c->req->param('email');
     # Note: this is not a "user_option" ! Needs to be dropped into it's own column in
     # the job_history table
   }
@@ -150,9 +151,9 @@ sub validate_input : Private {
 
     $c->log->debug( 'Search::Batch::validate_input: bad email address; returning to form' )
       if $c->debug;
-    
+
     return 0;
-  }  
+  }
 
   # search for Pfam-Bs ?
   $c->stash->{user_options}->{searchBs} = ( defined $c->req->param('searchBs') and
@@ -161,13 +162,13 @@ sub validate_input : Private {
   # should we search for Pfam-As or just skip them and search only Pfam-Bs ?
   if ( defined $c->req->param('skipAs') and
        $c->req->param('skipAs') ) {
-    
+
     $c->log->debug( 'Search::Batch::validate_input: skipping Pfam-A search' )
       if $c->debug;
-    
+
     # flag up the fact that we want to skip Pfam-A searches
     $c->stash->{user_options}->{skipAs} = 1;
-    
+
     # and force a search for Pfam-Bs
     $c->stash->{user_options}->{searchBs} = 1;
   }
@@ -180,14 +181,14 @@ sub validate_input : Private {
 
     $c->log->debug( 'Search::Batch::validate_input: bad FASTA file; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
 
   # passed !
   $c->log->debug( 'Search::Batch::validate_input: input parameters all validated' )
     if $c->debug;
-    
+
   $c->log->debug( 'Search::Batch::validate_input: user_options: ', dump( $c->stash->{user_options} ) )
     if $c->debug;
 

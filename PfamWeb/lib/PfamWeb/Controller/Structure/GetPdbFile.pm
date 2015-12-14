@@ -25,6 +25,7 @@ $Id: GetPdbFile.pm,v 1.9 2008-07-28 13:54:52 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -57,19 +58,19 @@ sub getPdbFile : Path {
     $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieving |'
                     . $c->stash->{pdbId} . '| from remote site' )
       if $c->debug;
-  
+
     # right now we're just forwarding to the only method for retrieving a
     # PDB file, which gets it from a URL using LWP::Simple. Ideally we should
-    # be checking the configuration to see if there's a local copy of the 
+    # be checking the configuration to see if there's a local copy of the
     # PDB and retrieving a file directly from there, if possible.
     # TODO check for a local PDB mirror
     $c->forward( 'getPdbFileFromUrl' );
-  
+
     # cache it
     $c->cache->set( $cacheKey, $c->stash->{pdbFile} ) unless $ENV{NO_CACHE};
 
   }
-  
+
   return unless defined $c->stash->{pdbFile};
 
   my $filename = 'pdb' . $c->stash->{pdbId} . '.ent';
@@ -99,7 +100,7 @@ sub getPdbFileFromUrl : Private {
   return unless defined $pdbFile;
 
   # and stash it
-  $c->stash->{pdbFile} = $pdbFile;  
+  $c->stash->{pdbFile} = $pdbFile;
 }
 
 #-------------------------------------------------------------------------------

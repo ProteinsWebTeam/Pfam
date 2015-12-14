@@ -21,6 +21,7 @@ $Id: PfamGraphicsTools.pm,v 1.9 2009-03-20 15:56:08 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 

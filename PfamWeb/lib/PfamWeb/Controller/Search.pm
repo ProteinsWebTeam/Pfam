@@ -22,10 +22,11 @@ $Id: Search.pm,v 1.26 2008-10-22 15:41:20 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
-# need to use Module::Pluggable here, otherwise the Search plugins don't 
+# need to use Module::Pluggable here, otherwise the Search plugins don't
 # get correctly registered
 use Module::Pluggable;
 
@@ -50,32 +51,32 @@ sub auto : Private {
 
   # see if we should pre-fill the sequence field, based on the sequence that
   # was handed to us by the referring site
-  
+
   # detaint it, naturally, and accept only sequences that are shorter than some
   # limit, which is set in the config
-  if ( defined $c->req->param('preseq') and 
+  if ( defined $c->req->param('preseq') and
        $c->req->param('preseq') =~ m/^([A-Za-z]+)$/ and
        length( $1 ) < $this->{maxPrefillLength} ) {
-    
+
     $c->log->debug( 'Search::auto: found a sequence with which to pre-fill the search form' )
       if $c->debug;
 
-    # stash it and let the template stuff the value into the form    
+    # stash it and let the template stuff the value into the form
     $c->stash->{preseq} = $1;
   }
 
   # check if the preseq should be handled as DNA rather than protein
-  if ( defined $c->req->param('dnapreseq') and 
+  if ( defined $c->req->param('dnapreseq') and
        $c->req->param('dnapreseq') =~ m/^([A-Za-z\>\_\-\s\d]+)$/ and
        length( $1 ) < $this->{maxPrefillLength} ) {
-    
+
     $c->log->debug( 'Search::auto: found a DNA sequence with which to pre-fill the search form' )
       if $c->debug;
 
-    # stash it and let the template stuff the value into the form    
+    # stash it and let the template stuff the value into the form
     $c->stash->{dnapreseq} = $1;
   }
-  
+
   # copy searchable sequence limits from config to stash
   $c->stash->{$_} = $this->{$_} for qw( maxProteinSeqLength maxDnaSeqLength minProteinSeqLength minDnaSeqLength );
 

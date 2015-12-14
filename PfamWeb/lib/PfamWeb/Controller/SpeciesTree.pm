@@ -15,8 +15,8 @@ package PfamWeb::Controller::SpeciesTree;
 
 =head1 DESCRIPTION
 
-This controller subclasses its namesake in PfamBase, to generate either an 
-interactive or a text representation of the species tree for a Pfam-A, a Pfam-B 
+This controller subclasses its namesake in PfamBase, to generate either an
+interactive or a text representation of the species tree for a Pfam-A, a Pfam-B
 or a clan.
 
 Generates a B<page fragment>.
@@ -25,6 +25,7 @@ $Id: SpeciesTree.pm,v 1.26 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -46,7 +47,7 @@ sub begin : Private {
 
   # do we have an accession ?
   return unless $c->req->param('acc');
-  
+
   $c->cache_page( 604800 );
 
   # yes; what type of accession is it ?
@@ -55,7 +56,7 @@ sub begin : Private {
     # pfam A
     $c->stash->{acc}  = $1;
     $c->stash->{entryType} = 'A';
-    $c->log->debug( 'SpeciesTree::begin: found Pfam A accession |' 
+    $c->log->debug( 'SpeciesTree::begin: found Pfam A accession |'
                     . $c->stash->{acc} . '|' )
       if $c->debug;
 
@@ -71,7 +72,7 @@ sub begin : Private {
     $c->stash->{entryType} = 'B';
     $c->log->debug( 'SpeciesTree::begin: found Pfam B accession |'
                     . $c->stash->{acc} . '|' )
-      if $c->debug;      
+      if $c->debug;
 
     $c->stash->{entry} = $c->model('PfamDB::Pfamb')
                            ->find( { pfamb_acc => $c->stash->{acc} } );
@@ -90,10 +91,10 @@ sub begin : Private {
                            ->find( { clan_acc => $c->stash->{acc} } );
   }
 
-  # make sure we actually got a VALID accession  
+  # make sure we actually got a VALID accession
   unless ( $c->stash->{acc} and $c->stash->{entry} ) {
     $c->stash->{errorMsg} = 'No valid accession specified';
-    return;    
+    return;
   }
 
   # see if we should override the "too many species" check
@@ -102,7 +103,7 @@ sub begin : Private {
   # see if we're serving to Internet Exploder...
   $c->stash->{isIE} = ( defined $c->req->param('ie') and
                         $c->req->param('ie') eq 'true' ) ? 1 : 0;
-  
+
   $c->log->debug( 'SpeciesTree::begin: isIE: |' . $c->stash->{isIE} . '|' )
     if $c->debug;
 }
@@ -121,13 +122,13 @@ sub auto : Private {
   my ( $this, $c ) = @_;
 
   # see if we can get the release version, but make sure it's empty otherwise
-  $c->stash->{release_data} = ''; 
+  $c->stash->{release_data} = '';
 
   if ( $c->stash->{relData}->pfam_release ) {
     $c->stash->{release_data} = '# Generated from Pfam version ' .
                                 $c->stash->{relData}->pfam_release . "\n";
   }
-  
+
   return 1;
 }
 
@@ -145,10 +146,10 @@ happens is a little convoluted:
 
 =over 4
 
-=item 
+=item
 
 When the "generate graphics" link is clicked in the main page, which contains
-the species tree with some nodes selected, we run a javascript snippet that 
+the species tree with some nodes selected, we run a javascript snippet that
 collects the selected sequence accessions.
 
 =item
@@ -158,7 +159,7 @@ a "job ID" that identifies that list of accessions.
 
 =item
 
-The javascript builds a URL that points to this action, including the job ID 
+The javascript builds a URL that points to this action, including the job ID
 parameter.
 
 =item
@@ -170,7 +171,7 @@ the contents of the pop-up window.
 =item
 
 The template contains javascript that submits a further AJAX request, this time
-to the DomainGraphics controller, which again retrieves the list of sequence 
+to the DomainGraphics controller, which again retrieves the list of sequence
 accessions and builds a domain graphic for each one.
 
 =back
@@ -200,7 +201,7 @@ sub graphics : Local {
 
   $c->stash->{jobId}           = $jobId;
   $c->stash->{selectedSeqAccs} = $accession_list;
-  
+
   $c->log->debug( 'SpeciesTree::graphics: rendering selected seqs as graphics' )
     if $c->debug;
   $c->stash->{template} = 'components/tools/seqViewGraphic.tt';
@@ -217,7 +218,7 @@ formatted text file.
 
 sub sequences : Local {
   my( $this, $c ) = @_;
-  
+
   # validate the UUID
   my $jobId = $c->req->param('jobId');
   unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
@@ -227,9 +228,9 @@ sub sequences : Local {
   }
 
   # retrieve the sequences
-  my $fasta = $c->forward( '/utils/get_sequences', 
+  my $fasta = $c->forward( '/utils/get_sequences',
                            [ $jobId, $c->stash->{entry} ] );
-  
+
   # make sure we got something...
   unless( length $fasta ) {
     $c->log->debug( 'SpeciesTree::sequences: failed to get a FASTA sequence' )
@@ -251,7 +252,7 @@ sub sequences : Local {
 
   # the accessions themselves
   $output .= $fasta;
-  
+
   $c->res->body( $output );
 }
 
@@ -262,27 +263,27 @@ sub sequences : Local {
 =head2 buildTree : Private
 
 Builds an in-memory representation of the species tree, by walking recursively
-down the branches found for each region in turn. The "raw" tree is dropped into 
+down the branches found for each region in turn. The "raw" tree is dropped into
 the stash.
 
 =cut
 
 sub buildTree : Private {
   my ( $this, $c ) = @_;
-  
+
   # get the species data for whatever entry we're dealing with
   $c->forward('getData');
 
   # check that we got data. The getData method will bomb out if the entry hits
-  # the limits that are set in the config, provided the "loadTree" flag isn't 
+  # the limits that are set in the config, provided the "loadTree" flag isn't
   # set in the stash
   return unless $c->stash->{regions};
-  
+
   $c->log->debug( 'SpeciesTree::buildTree: got '
                   . scalar @{$c->stash->{regions}} .' regions from sub-class' )
     if $c->debug;
 
-  # we've got data; let's build the tree  
+  # we've got data; let's build the tree
   my $tree     = {};
   my $maxDepth = 0;
   foreach my $region ( @{ $c->stash->{regions} } ) {
@@ -310,11 +311,11 @@ sub buildTree : Private {
 
     # flag the node if it's in the seed alignment
     $speciesData->{inSeed}++ if $c->stash->{inSeed}->{ $speciesData->{acc} };
-    
+
     # add this branch to the tree
     $this->addBranch( $tree, $speciesData );
   }
-  
+
   # store the final depth of the tree
   $tree->{maxTreeDepth} = $maxDepth;
 
@@ -326,7 +327,7 @@ sub buildTree : Private {
 =head2 getData : Private
 
 Forwards straight to the appropriate method for the type of entry that we're
-working with, be it Pfam-A, Pfam-B or clan. This is the point at which we 
+working with, be it Pfam-A, Pfam-B or clan. This is the point at which we
 decide whether the entry has too many species to attempt building the tree. The
 actual data are retrieved only if we don't hit up against the limits that are
 specified in the config.
@@ -344,14 +345,14 @@ sub getDataByType : Private {
   }
   # (we don't need to forward to a method to retrieve Pfam-B data, since we have
   # already retrieved that when we had to count the number of species)
-  
+
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 countSpecies : Private
 
-Retrieves or calculates the number of species in the entry. For Pfam-As and 
+Retrieves or calculates the number of species in the entry. For Pfam-As and
 clans we can look this up directly in the DB but for Pfam-B we actually have
 to count it up. - not any more.
 
@@ -360,7 +361,7 @@ to count it up. - not any more.
 sub countSpecies : Private {
   my ( $this, $c ) = @_;
 
-  # for Pfam-As or clans we can just look up the number of species in the 
+  # for Pfam-As or clans we can just look up the number of species in the
   # main table, via the "entry" that was put in the stash by C<begin>, but
   # for Pfam-Bs we'll actually have to count the number of species
 
@@ -383,11 +384,11 @@ as the Pfam-A sequences themselves.
 
 sub getFamilyData : Private {
   my( $this, $c ) = @_;
-  
+
   # get the species information for the full alignment
-  
+
   my $pfamA = $c->model('PfamDB::Pfama')->find({pfama_acc => $c->stash->{acc}});
-  
+
   my @regions = $c->model('PfamDB::Pfamseq')
                   ->search( { 'pfama_reg_full_significants.pfama_acc' => $pfamA->pfama_acc,
                               'pfama_reg_full_significants.in_full'         => 1 },
@@ -404,22 +405,22 @@ sub getFamilyData : Private {
                                 { join                         => [ qw( pfama_reg_seeds ) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
-                
-  # hash the seed info so we can easily look up whether a sequence is 
+
+  # hash the seed info so we can easily look up whether a sequence is
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
     $inSeed{ $region->pfamseq_acc }++;
   }
 
-  $c->stash->{inSeed}  = \%inSeed;  
+  $c->stash->{inSeed}  = \%inSeed;
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 getClanData : Private
 
-Retrieves species data for the specified clan. This requires us to look up 
+Retrieves species data for the specified clan. This requires us to look up
 the pfam-A accession numbers for each of the Pfam-As in the clan and then, for each
 of those families, to get all species in that family.
 
@@ -427,7 +428,7 @@ of those families, to get all species in that family.
 
 sub getClanData : Private {
   my ( $this, $c ) = @_;
-  # get the species information for the full alignment for each clan member. 
+  # get the species information for the full alignment for each clan member.
   # This probably could be done in one query, but this is going to be quicker
   # (I think...)
   my @clan_members = $c->model('PfamDB::ClanMembership')
@@ -438,7 +439,7 @@ sub getClanData : Private {
 
   my ( @allRegions, @regions );
   foreach my $clan_member ( @clan_members ) {
-    
+
     @regions = $c->model('PfamDB::Pfamseq')
                  ->search( { 'pfama_reg_full_significants.pfama_acc' => $clan_member->pfama_acc->pfama_acc,
                              'pfama_reg_full_significants.in_full'    => 1 },
@@ -449,7 +450,7 @@ sub getClanData : Private {
 
   $c->log->debug( 'SpeciesTree::getClanData: found ' . scalar( @regions )
                   . ' regions' ) if $c->debug;
-  
+
   $c->stash->{regions} = \@allRegions;
 }
 
@@ -483,4 +484,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

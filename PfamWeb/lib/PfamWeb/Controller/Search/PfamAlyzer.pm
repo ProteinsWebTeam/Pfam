@@ -20,6 +20,7 @@ $Id$
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -38,7 +39,7 @@ a very simple one.
 
 sub startup : Local {
   my ( $this, $c ) = @_;
-  
+
   $c->res->content_type( 'text/plain' );
   $c->res->body( 'startup notice' );
 }
@@ -53,7 +54,7 @@ The PfamAlyzer help page.
 
 sub help : Local {
   my ( $this, $c ) = @_;
-  
+
   $c->stash->{template} = 'pages/pfamalyzer.tt';
 }
 
@@ -145,7 +146,7 @@ sub query : Local {
 
   my @domain;
   my $number = $number_of_boxes;
-  
+
   my $unit;
   my @pfdomain;
 
@@ -158,7 +159,7 @@ sub query : Local {
   }
   my $order;
   if (! ($c->req->param ('toggle_order') eq "on")) {  # No order
-    $order = 0; 
+    $order = 0;
   }
   else {
     $order = 1;
@@ -166,79 +167,79 @@ sub query : Local {
 
   for ($n = 1; $n <= $number_of_boxes; $n++) {
     $key_thing = "domain".$n;
-  
+
     if ($c->req->param ($key_thing) ne "-Ignore-") {
       if ($n == 1) {
-        if ($c->req->param ('N_term_min') ne "") { 
+        if ($c->req->param ('N_term_min') ne "") {
           $min [$domains] = abs (int ($c->req->param ('N_term_min')));
-        } 
+        }
         else {
-        
+
           $min [$domains] = - 1;
         }
         if ($c->req->param ('N_term_max') ne "") {
           $max [$domains] = abs (int ($c->req->param ('N_term_max')));
-        } 
+        }
         else {
           $max [$domains] = - 1;
         }
-  
-      } 
-    
+
+      }
+
       else {
-    
-        if ($c->req->param ('min'.($n - 1)) ne "" && $void eq 0) { 
+
+        if ($c->req->param ('min'.($n - 1)) ne "" && $void eq 0) {
           $min [$domains] = abs (int ($c->req->param ('min'.($n - 1))));
-        } 
+        }
         else {
           $min [$domains] = - 1;
         }
         if ($c->req->param ('max'.($n - 1)) ne "" && $void eq 0) {
           $max [$domains] = abs (int ($c->req->param ('max'.($n - 1))));
-        } 
-  
+        }
+
         else {
           $max [$domains] = - 1;
         }
       }
-      if (($c->req->param ($key_thing) =~ /^Not\s(.+)$/)) { 
+      if (($c->req->param ($key_thing) =~ /^Not\s(.+)$/)) {
         $domain [$domains] = $1;
         $columnname [$domains] = "domain".$domains;
         $columnflag [$domains] = 1;
-        $notin = 1;    
-      } 
-      else {   
+        $notin = 1;
+      }
+      else {
         $domain [$domains] = $c->req->param ($key_thing);
         $columnname [$domains] = "domain".$domains;
         $columnflag [$domains] = 0;
         $only_not_selected = 0;
       }
       $domains++;
-      $void = 0; 
-    } 
+      $void = 0;
+    }
     else {
       $void = 1;
     }
   }
 
-  if ($c->req->param ('C_term_min') ne "") { 
-    $min [$domains] = abs (int ($c->req->param ('C_term_min'))); 
-  } 
-  else { 
-    $min [$domains] = - 1; 
+  if ($c->req->param ('C_term_min') ne "") {
+    $min [$domains] = abs (int ($c->req->param ('C_term_min')));
+  }
+  else {
+    $min [$domains] = - 1;
   }
   if ($c->req->param ('C_term_max') ne "") {
-    $max [$domains]= abs (int ($c->req->param ('C_term_max'))); 
-  } 
-  else { 
-    $max [$domains] = - 1; 
+    $max [$domains]= abs (int ($c->req->param ('C_term_max')));
   }
-  if ($c->req->param ('toggle_order') eq "on") {  
-    if ($c->req->param ('unit') eq "aa") { 
-      $unit = "aa"; 
-    } 
-    else { 
-      $unit = "domains"; 
+  else {
+    $max [$domains] = - 1;
+  }
+  if ($c->req->param ('toggle_order') eq "on") {
+    if ($c->req->param ('unit') eq "aa") {
+      $unit = "aa";
+    }
+    else {
+      $unit = "domains";
     }
   }
 
@@ -248,11 +249,11 @@ sub query : Local {
   for (my $i = 0; $i < @domain; $i++) {
     if ($domain [$i] =~ /^Clan_/) {
       $pfdomain [$i] = $domain [$i];
-    } 
+    }
     else {
       $rs = $c->model('PfamDB::Pfama')
               ->search( { pfama_id => $domain [$i] } );
-                           
+
         while ($p = $rs->next) {
             $pfdomain [$i] = $p->pfama_acc
       }
@@ -295,28 +296,28 @@ sub query : Local {
         $ci =~ s/Clan_//g;
         $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
 
-        $sth=$dbh->prepare ($command); 
+        $sth=$dbh->prepare ($command);
         $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
         @ds = ();
-        while (@row = $sth->fetchrow_array) { 
+        while (@row = $sth->fetchrow_array) {
           push (@ds, $row [0]);
-        }  
-             
+        }
+
         $tempStatement = $columnname [$i].".pfamA_acc IN (";
-      
+
         foreach $d (@ds) {
           $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
-    
-          $sth = $dbh->prepare ($command); 
+
+          $sth = $dbh->prepare ($command);
           $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-    
+
           @row = $sth->fetchrow_array;
-    
+
           $tempStatement .= $row [0].", ";
         }
-        $tempStatement =~ s/, $/\)/; 
+        $tempStatement =~ s/, $/\)/;
         push (@wheres, $tempStatement);
-      } 
+      }
       else {
         push (@wheres, $columnname [$i].".pfamA_acc=\"".$pfdomain [$i]."\"");
       }
@@ -346,32 +347,32 @@ sub query : Local {
             $ci =~ s/Clan_//g;
 
             $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
-            $sth = $dbh->prepare ($command); 
+            $sth = $dbh->prepare ($command);
             $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
             @ds = ();
-            while (@row = $sth->fetchrow_array) { 
-  
+            while (@row = $sth->fetchrow_array) {
+
               push (@ds, $row [0]);
-            }  
-      
+            }
+
             $tempStatement = $columnname [$i] . ".pfamA_acc NOT IN (";
-      
+
             foreach $d (@ds) {
               $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
-    
-              $sth = $dbh->prepare($command); 
+
+              $sth = $dbh->prepare($command);
               $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-    
+
               @row = $sth->fetchrow_array;
-    
+
               $tempStatement .= $row[0].", ";
             }
-            $tempStatement =~ s/, $/\)/; 
+            $tempStatement =~ s/, $/\)/;
             push (@wheres, $tempStatement);
-          } 
+          }
           else {
             push (@wheres, $columnname [$i].".pfamA_acc<>\"$pfdomain[$i]\"");
-  
+
           }
         }
         if ($min [$i] ne -1) {
@@ -379,7 +380,7 @@ sub query : Local {
             push (@wheres, $columnname [$i].".seq_start >= $min[$i]");
           }
           else {
-          
+
             push (@wheres, $columnname [$i].".seq_end - ".$columnname [$i - 1].".seq_end >= $min[$i]");
           }
         }
@@ -389,18 +390,18 @@ sub query : Local {
           }
           else {
             push (@wheres, $columnname [$i].".seq_start - ".$columnname [$i - 1].".seq_end <= $max[$i]");
-  
+
           }
         }
       }
       if ($min [$number] ne -1 || $max [$number] ne -1) {
         if ($min [$number] ne -1) {
-          push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end >= $min[$number]"); 
+          push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end >= $min[$number]");
         }
         if ($min [$number] ne - 1) {
-          push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end <= $max[$number]"); 
+          push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end <= $max[$number]");
         }
-    
+
       }
     }
     else {
@@ -413,29 +414,29 @@ sub query : Local {
             $ci = $pfdomain[$i];
             $ci =~ s/Clan_//g;
             $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
-            $sth = $dbh->prepare ($command); 
+            $sth = $dbh->prepare ($command);
             $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
             @ds = ();
-            while (@row = $sth->fetchrow_array) { 
+            while (@row = $sth->fetchrow_array) {
               push (@ds, $row [0]);
-            }  
-      
+            }
+
             $tempStatement = $columnname [$i] . ".pfamA_acc NOT IN (";
-      
+
             foreach $d (@ds) {
               $command = "SELECT pfamA_acc FROM pfamA WHERE pfamA_acc='".$d."'";
-    
-              $sth=$dbh->prepare ($command); 
+
+              $sth=$dbh->prepare ($command);
               $rv=$sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-    
+
               @row=$sth->fetchrow_array;
-    
+
               $tempStatement .= $row [0] . ", ";
-  
+
             }
-            $tempStatement =~ s/, $/\)/; 
+            $tempStatement =~ s/, $/\)/;
             push (@wheres, $tempStatement);
-          } 
+          }
           else {
             push (@wheres, $columnname [$i].".pfamA_acc<>$pfdomain[$i]");
           }
@@ -445,7 +446,7 @@ sub query : Local {
             push (@wheres, $columnname [$i].".domain_order >=".($min [$i] + 1));
           }
           else {
-          
+
             push (@wheres, $columnname [$i].".domain_order - ".$columnname [$i - 1].".domain_order >=".($min [$i] + 1));
           }
         }
@@ -460,12 +461,12 @@ sub query : Local {
       }
 
       if ($min [$number] ne -1 || $max [$number] ne -1) {
-        push (@wheres, "p1.pfamseq_acc=".$columnname [$number - 1].".pfamseq_acc"); 
+        push (@wheres, "p1.pfamseq_acc=".$columnname [$number - 1].".pfamseq_acc");
         if ($min [$number] ne -1) {
-          push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order >= $min[$number]"); 
+          push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order >= $min[$number]");
         }
         if ($max [$number] ne -1) {
-          push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order <= $max[$number]"); 
+          push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order <= $max[$number]");
         }
       }
     }
@@ -490,15 +491,15 @@ sub query : Local {
           $ci =~ s/Clan_//g;
 
           $command = "SELECT m.pfamA_acc FROM clan_membership m, clans c WHERE a.pfamA_acc=m.pfamA_acc AND m.clan_acc=c.clan_acc AND c.clan_id='".$ci."'";
-          $sth=$dbh->prepare ($command); 
+          $sth=$dbh->prepare ($command);
           $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-        
-          while (@row=$sth->fetchrow_array) { 
+
+          while (@row=$sth->fetchrow_array) {
             push (@notdomain, $row[0]);
-      
-          }  
-        
-        } 
+
+          }
+
+        }
         else {
           push (@notdomain, $pfdomain [$i]);
         }
@@ -517,7 +518,7 @@ sub query : Local {
       push (@wheres, $tempStatement);
     }
   }
-  
+
   if ($subtaxa ne "ALL") {
       # QUICK FIX HERE!
       my $taxa;
@@ -527,17 +528,17 @@ sub query : Local {
       }
       my $taxString = "(".join (" OR ", @taxChecks).")";
       push (@wheres, $taxString);
-    
+
   }
-   
+
   my $statement = "SELECT DISTINCT p1.pfamseq_acc FROM pfamseq p1, ".join (", ", @froms)." WHERE ".join (" AND ", @wheres)." LIMIT ".$max_list;
-  $sth = $dbh->prepare ($statement); 
+  $sth = $dbh->prepare ($statement);
   $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-  while (@row = $sth->fetchrow_array) { 
-    push (@rows, $row[0]); 
-  
-  }  
- 
+  while (@row = $sth->fetchrow_array) {
+    push (@rows, $row[0]);
+
+  }
+
   foreach $name (@rows) {
     $name  =~ s/\.[0-9]*//;
     $output = $output.$name."\n";
@@ -546,28 +547,28 @@ sub query : Local {
       last;
     }
   }
-  # $dbh->disconnect; 
+  # $dbh->disconnect;
   $c->res->content_type ('text/plain');
   $c->response->body( $output );
   if ($output eq "") {
       $c->res->status (204);
-  } 
+  }
 }
 
 # sub query : Local {
-# 
+#
 #   my ($self, $c) = @_;
-# 
+#
 #   # my @connects = $c->model ('PfamDB')->storage->connect_info ();
 #   # my $dbh = DBI->connect (@{$connects [0]});
-# 
+#
 #   my $dbh = $c->model ('PfamDB')->storage->dbh;
-# 
+#
 #   my $numgen = 7;
-# 
+#
 #   my @froms = ();
 #   my @wheres = ();
-# 
+#
 #   my @ds;
 #   my $d;
 #   my $command;
@@ -579,7 +580,7 @@ sub query : Local {
 #   my @notdomains;
 #   my $nonotdomain;
 #   my $name;
-# 
+#
 #   unless ( defined $c->req->param('number_of_boxes') and
 #            $c->req->param('number_of_boxes') =~ m/^(\d+)$/ ) {
 #     $c->res->status( 400 ); # "bad request"
@@ -587,7 +588,7 @@ sub query : Local {
 #     return;
 #   }
 #   my $number_of_boxes = $1;
-# 
+#
 #   unless ( defined $c->req->param('subtaxa') and
 #            $c->req->param('subtaxa') =~ m/^\s*([\w,]+)\s*$/ ) {
 #     $c->res->status( 400 ); # "bad request"
@@ -595,25 +596,25 @@ sub query : Local {
 #     return;
 #   }
 #   my $subtaxa = $1;
-# 
+#
 #   my $text_switch = 0;
-# 
+#
 #   my $only_not_selected = 1;
 #   my $domains = 0;
 #   my $void = 0;
 #   my $notin = 1;
-# 
+#
 #   my @min;
 #   my @max;
 #   my @columnname;
 #   my @columnflag;
-# 
+#
 #   my $count_displayed;
 #   my @rows;
-# 
+#
 #   my $rs;
 #   my $p;
-# 
+#
 #   my $k;
 #   my $m;
 #   my $n;
@@ -621,14 +622,14 @@ sub query : Local {
 #   my $i;
 #   my $j;
 #   my @notdomain;
-# 
+#
 #   my @domain;
 #   my $number = $number_of_boxes;
-#   
+#
 #   my $unit;
 #   my @pfdomain;
-# 
-# 
+#
+#
 #   my $max_list = 10000;
 #   if ( defined $c->req->param('max_list') and
 #        $c->req->param('max_list') ne 'No limit' ) {
@@ -636,96 +637,96 @@ sub query : Local {
 #       $max_list = $1;
 #     }
 #   }
-# 
+#
 #   my $order = 0;
 #   if ( defined $c->req->param('toggle_order') and
 #        $c->req->param('toggle_order') eq 'on' ) {
 #     $order = 1;
 #   }
-# 
+#
 #   for ($n = 1; $n <= $number_of_boxes; $n++) {
 #     $key_thing = "domain".$n;
-#   
+#
 #     if ( defined $c->req->param($key_thing) and
 #          $c->req->param ($key_thing) ne "-Ignore-") {
 #       if ($n == 1) {
-#         if ($c->req->param ('N_term_min')) { 
+#         if ($c->req->param ('N_term_min')) {
 #           $min [$domains] = abs (int ($c->req->param ('N_term_min')));
-#         } 
+#         }
 #         else {
-#         
+#
 #           $min [$domains] = - 1;
 #         }
 #         if ($c->req->param ('N_term_max')) {
 #           $max [$domains] = abs (int ($c->req->param ('N_term_max')));
-#         } 
+#         }
 #         else {
 #           $max [$domains] = - 1;
 #         }
-#   
-#       } 
-#     
+#
+#       }
+#
 #       else {
-#     
+#
 #         if (defined $c->req->param ('min'.($n - 1)) and
-#             $c->req->param ('min'.($n - 1)) ne "" && $void eq 0) { 
+#             $c->req->param ('min'.($n - 1)) ne "" && $void eq 0) {
 #           $min [$domains] = abs (int ($c->req->param ('min'.($n - 1))));
-#         } 
+#         }
 #         else {
 #           $min [$domains] = - 1;
 #         }
 #         if (defined $c->req->param ('max'.($n - 1)) and
 #             $c->req->param ('max'.($n - 1)) ne "" && $void eq 0) {
 #           $max [$domains] = abs (int ($c->req->param ('max'.($n - 1))));
-#         } 
-#   
+#         }
+#
 #         else {
 #           $max [$domains] = - 1;
 #         }
 #       }
 #       if (defined ($c->req->param ($key_thing) and
-#           $c->req->param ($key_thing) =~ /^Not\s(.+)$/)) { 
+#           $c->req->param ($key_thing) =~ /^Not\s(.+)$/)) {
 #         $domain [$domains] = $1;
 #         $columnname [$domains] = "domain".$domains;
 #         $columnflag [$domains] = 1;
-#         $notin = 1;    
-#       } 
-#       else {   
+#         $notin = 1;
+#       }
+#       else {
 #         $domain [$domains] = $c->req->param ($key_thing);
 #         $columnname [$domains] = "domain".$domains;
 #         $columnflag [$domains] = 0;
 #         $only_not_selected = 0;
 #       }
 #       $domains++;
-#       $void = 0; 
-#     } 
+#       $void = 0;
+#     }
 #     else {
 #       $void = 1;
 #     }
 #   }
-# 
-#   if ($c->req->param ('C_term_min')) { 
-#     $min [$domains] = abs (int ($c->req->param ('C_term_min'))); 
-#   } 
-#   else { 
-#     $min [$domains] = - 1; 
+#
+#   if ($c->req->param ('C_term_min')) {
+#     $min [$domains] = abs (int ($c->req->param ('C_term_min')));
+#   }
+#   else {
+#     $min [$domains] = - 1;
 #   }
 #   if ($c->req->param ('C_term_max')) {
-#     $max [$domains]= abs (int ($c->req->param ('C_term_max'))); 
-#   } 
-#   else { 
-#     $max [$domains] = - 1; 
+#     $max [$domains]= abs (int ($c->req->param ('C_term_max')));
+#   }
+#   else {
+#     $max [$domains] = - 1;
 #   }
 #   if (defined $c->req->param ('toggle_order') and
-#       $c->req->param ('toggle_order') eq "on") {  
-#     if ($c->req->param ('unit') eq "aa") { 
-#       $unit = "aa"; 
-#     } 
-#     else { 
-#       $unit = "domains"; 
+#       $c->req->param ('toggle_order') eq "on") {
+#     if ($c->req->param ('unit') eq "aa") {
+#       $unit = "aa";
+#     }
+#     else {
+#       $unit = "domains";
 #     }
 #   }
-# 
+#
 #   if (defined $c->req->param ('toggle_verbose') and
 #       $c->req->param ('toggle_verbose') eq "on") {
 #     $text_switch = 2;
@@ -733,25 +734,25 @@ sub query : Local {
 #   for (my $i = 0; $i < @domain; $i++) {
 #     if ($domain [$i] =~ /^Clan_/) {
 #       $pfdomain [$i] = $domain [$i];
-#     } 
+#     }
 #     else {
 #       $rs = $c->model('PfamDB::Pfama')
 #               ->search( { pfama_id => $domain [$i] } );
-#                            
+#
 #         while ($p = $rs->next) {
 #             $pfdomain [$i] = $p->auto_pfama;
 #       }
 #     }
 #   }
 #   $count_displayed = 0;
-# 
+#
 #   $j = 0;
 #   while ( defined $columnflag[$j] and
 #           ( $columnflag[$j] != 0 && $columnflag[$j] != 5 ) and
 #           $j < $number ) {
 #     $j++;
 #   }
-# 
+#
 #   for ($i = 0; $i < $number; $i++) {
 #     if ($order eq 1 || $columnflag [$i] eq 0) {
 #       push (@froms, "pfamA_reg_full_significant ".$columnname [$i]);
@@ -759,7 +760,7 @@ sub query : Local {
 #     }
 #     push (@wheres, $columnname [$i].".auto_pfamseq = p1.auto_pfamseq"); # this should do the bizarre
 #   }
-# 
+#
 # #  $statement .= " WHERE p1.auto_pfamseq= ". $columnname[$j] .".auto_pfamseq AND " ;
 # #  $statement .= "p1.domains >= $number AND ";
 # #  $lastdomain = $j;
@@ -769,96 +770,96 @@ sub query : Local {
 # #      $lastdomain = $i;
 # #    }
 # #  }
-# 
+#
 # # bizarre above
-# 
+#
 #   for ($i = 0; $i < $number; $i++) {
-# 
+#
 #     if ($columnflag [$i] eq 0) {
-# 
+#
 #       if ($pfdomain [$i] =~ /^Clan_/) {
-# 
+#
 #         $ci = $pfdomain [$i];
 #         $ci =~ s/Clan_//g;
 #         $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-# 
-#         $sth=$dbh->prepare ($command); 
+#
+#         $sth=$dbh->prepare ($command);
 #         $rv = $sth->execute or die 'Cannot get list of clan members';
 #         @ds = ();
-#         while (@row = $sth->fetchrow_array) { 
+#         while (@row = $sth->fetchrow_array) {
 #           push (@ds, $row [0]);
-#         }  
-#              
+#         }
+#
 #         $tempStatement = $columnname [$i].".auto_pfamA IN (";
-#       
+#
 #         foreach $d (@ds) {
 #           $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
-#     
-#           $sth = $dbh->prepare ($command); 
+#
+#           $sth = $dbh->prepare ($command);
 #           $rv = $sth->execute or die 'Cannot get list of families';
-#     
+#
 #           @row = $sth->fetchrow_array;
-#     
+#
 #           $tempStatement .= $row [0].", ";
 #         }
-#         $tempStatement =~ s/, $/\)/; 
+#         $tempStatement =~ s/, $/\)/;
 #         push (@wheres, $tempStatement);
-#       } 
+#       }
 #       else {
 #         push (@wheres, $columnname [$i].".auto_pfamA=".$pfdomain [$i]);
 #       }
 #     }
 #   }
-# 
+#
 #   if ($order eq 1) {
-# 
+#
 #     if ($unit eq "aa") {
-# 
+#
 #       for ($i = 0; $i < $number; $i++) {
-# 
+#
 #         if ($i + 1 < $number) {
-# 
+#
 #           push (@wheres, $columnname [$i].".seq_end < " .$columnname [$i + 1].".seq_start");
 # #          push (@wheres, $columnname [$i].".domainorder < " .$columnname [$i + 1].".domainorder");
-# 
+#
 #           # assume overlap-free here
-# 
+#
 #         }
-# 
+#
 #         if ($columnflag [$i] eq 1) {
-# 
+#
 #           if ($pfdomain [$i] =~ /^Clan_/) {
-# 
+#
 #             $ci = $pfdomain [$i];
 #             $ci =~ s/Clan_//g;
-# 
+#
 #             $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#             $sth = $dbh->prepare ($command); 
+#             $sth = $dbh->prepare ($command);
 #             $rv = $sth->execute or die 'Cannot get clan membership';
 #             @ds = ();
-#             while (@row = $sth->fetchrow_array) { 
-#   
+#             while (@row = $sth->fetchrow_array) {
+#
 #               push (@ds, $row [0]);
-#             }  
-#       
+#             }
+#
 #             $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
-#       
+#
 #             foreach $d (@ds) {
 #               $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
-#     
-#               $sth = $dbh->prepare($command); 
+#
+#               $sth = $dbh->prepare($command);
 #               $rv = $sth->execute or die 'Cannot get list of families in clan';
-#     
+#
 #               @row = $sth->fetchrow_array;
-#     
+#
 #               $tempStatement .= $row[0].", ";
 #             }
-#             $tempStatement =~ s/, $/\)/; 
+#             $tempStatement =~ s/, $/\)/;
 #             push (@wheres, $tempStatement);
-#           } 
+#           }
 #           else {
 #             push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
-#   
+#
 #           }
 #         }
 #         if ($min [$i] ne -1) {
@@ -866,7 +867,7 @@ sub query : Local {
 #             push (@wheres, $columnname [$i].".seq_start >= $min[$i]");
 #           }
 #           else {
-#           
+#
 #             push (@wheres, $columnname [$i].".seq_end - ".$columnname [$i - 1].".seq_end >= $min[$i]");
 #           }
 #         }
@@ -876,18 +877,18 @@ sub query : Local {
 #           }
 #           else {
 #             push (@wheres, $columnname [$i].".seq_start - ".$columnname [$i - 1].".seq_end <= $max[$i]");
-#   
+#
 #           }
 #         }
 #       }
 #       if ($min [$number] ne -1 || $max [$number] ne -1) {
 #         if ($min [$number] ne -1) {
-#           push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end >= $min[$number]"); 
+#           push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end >= $min[$number]");
 #         }
 #         if ($min [$number] ne - 1) {
-#           push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end <= $max[$number]"); 
+#           push (@wheres, "p1.length - ".$columnname [$number - 1].".seq_end <= $max[$number]");
 #         }
-#     
+#
 #       }
 #     }
 #     else {
@@ -901,29 +902,29 @@ sub query : Local {
 #               $ci = $pfdomain [$i];
 #               $ci =~ s/Clan_//g;
 #               $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#               $sth = $dbh->prepare ($command); 
+#               $sth = $dbh->prepare ($command);
 #               $rv = $sth->execute or die 'Cannot retrieve clan membership';
 #               @ds = ();
-#               while (@row = $sth->fetchrow_array) { 
+#               while (@row = $sth->fetchrow_array) {
 #                 push (@ds, $row [0]);
-#               }  
-#         
+#               }
+#
 #               $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
-#         
+#
 #               foreach $d (@ds) {
 #                 $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
-#       
-#                 $sth=$dbh->prepare ($command); 
+#
+#                 $sth=$dbh->prepare ($command);
 #                 $rv=$sth->execute or die 'Cannot retrieve family list';
-#       
+#
 #                 @row=$sth->fetchrow_array;
-#       
+#
 #                 $tempStatement .= $row [0] . ", ";
-#     
+#
 #               }
-#               $tempStatement =~ s/, $/\)/; 
+#               $tempStatement =~ s/, $/\)/;
 #               push (@wheres, $tempStatement);
-#             } 
+#             }
 #             else {
 #               push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
 #             }
@@ -934,7 +935,7 @@ sub query : Local {
 #             push (@wheres, $columnname [$i].".domain_order >=".($min [$i] + 1));
 #           }
 #           else {
-#           
+#
 #             push (@wheres, $columnname [$i].".domain_order - ".$columnname [$i - 1].".domain_order >=".($min [$i] + 1));
 #           }
 #         }
@@ -947,14 +948,14 @@ sub query : Local {
 #           }
 #         }
 #       }
-# 
+#
 #       if ($min [$number] ne -1 || $max [$number] ne -1) {
-#         push (@wheres, "p1.auto_pfamseq=".$columnname [$number - 1].".auto_pfamseq"); 
+#         push (@wheres, "p1.auto_pfamseq=".$columnname [$number - 1].".auto_pfamseq");
 #         if ($min [$number] ne -1) {
-#           push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order >= $min[$number]"); 
+#           push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order >= $min[$number]");
 #         }
 #         if ($max [$number] ne -1) {
-#           push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order <= $max[$number]"); 
+#           push (@wheres, "p1.domains - ".$columnname [$number - 1].".domain_order <= $max[$number]");
 #         }
 #       }
 #     }
@@ -972,30 +973,30 @@ sub query : Local {
 #         }
 #       }
 #       elsif ($columnflag [$i] eq 1) {
-# 
+#
 #         if ($pfdomain [$i] =~ /^Clan_/) {
-# 
+#
 #           $ci = $domain [$i];
 #           $ci =~ s/Clan_//g;
-# 
+#
 #           $command = "SELECT m.auto_pfamA FROM clan_membership m, clans c WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#           $sth=$dbh->prepare ($command); 
+#           $sth=$dbh->prepare ($command);
 #           $rv = $sth->execute or die 'Cannot retrieve list of clan members';
-#         
-#           while (@row=$sth->fetchrow_array) { 
+#
+#           while (@row=$sth->fetchrow_array) {
 #             push (@notdomain, $row[0]);
-#       
-#           }  
-#         
-#         } 
+#
+#           }
+#
+#         }
 #         else {
 #           push (@notdomain, $pfdomain [$i]);
 #         }
 #       }
 #     }
-# 
+#
 #     $nonotdomain = @notdomain;
-# 
+#
 #     if ($nonotdomain ne 0) {
 #       $tempStatement = $columnname[$j] . ".auto_pfamseq NOT IN (SELECT DISTINCT auto_pfamseq FROM pfamA_reg WHERE auto_pfamA IN (";
 #       for ($m = 0; $m < $nonotdomain; $m++) {
@@ -1006,7 +1007,7 @@ sub query : Local {
 #       push (@wheres, $tempStatement);
 #     }
 #   }
-#   
+#
 #   if ($subtaxa ne "ALL") {
 #       # QUICK FIX HERE!
 #       my $taxa;
@@ -1016,19 +1017,19 @@ sub query : Local {
 #       }
 #       my $taxString = "(".join (" OR ", @taxChecks).")";
 #       push (@wheres, $taxString);
-#     
+#
 #   }
-#    
+#
 #   my $statement = "SELECT DISTINCT p1.pfamseq_acc FROM pfamseq p1, ".join (", ", @froms)." WHERE ".join (" AND ", @wheres)." LIMIT ".$max_list;
 #   $c->log->debug( "PfamAlzyer query: |$statement|" )
 #     if $c->debug;
-#   $sth = $dbh->prepare ($statement); 
+#   $sth = $dbh->prepare ($statement);
 #   $rv = $sth->execute or die 'Cannot get list of sequences';
-#   while (@row = $sth->fetchrow_array) { 
-#     push (@rows, $row[0]); 
-#   
-#   }  
-#  
+#   while (@row = $sth->fetchrow_array) {
+#     push (@rows, $row[0]);
+#
+#   }
+#
 #   my $output;
 #   foreach $name (@rows) {
 #     $name  =~ s/\.[0-9]*//;
@@ -1038,12 +1039,12 @@ sub query : Local {
 #       last;
 #     }
 #   }
-#   # $dbh->disconnect; 
+#   # $dbh->disconnect;
 #   $c->res->content_type ('text/plain');
 #   $c->response->body( $output );
 #   if ($output eq "") {
 #       $c->res->status (204);
-#   } 
+#   }
 # }
 
 # started cleaning up the search method but it's a bit intricate and it'll take
@@ -1051,16 +1052,16 @@ sub query : Local {
 
 # sub new_search : Local {
 #   my ( $this, $c ) = @_;
-#   
+#
 #   # get a raw database handle
 #   my $dbh = $c->model('PfamDB')
 #               ->storage
 #               ->dbh;
-# 
+#
 #   #---------------------------------------
-# 
+#
 #   # validate params
-# 
+#
 #   unless ( defined $c->req->param('number_of_boxes') and
 #            $c->req->param('number_of_boxes') =~ m/^(\d+)$/ ) {
 #     $c->res->status( 400 ); # "bad request"
@@ -1068,7 +1069,7 @@ sub query : Local {
 #     return;
 #   }
 #   my $num_boxes = $1;
-# 
+#
 #   unless ( defined $c->req->param('subtaxa') and
 #            $c->req->param('subtaxa') =~ m/^\s*([\w,]+)\s*$/ ) {
 #     $c->res->status( 400 ); # "bad request"
@@ -1076,7 +1077,7 @@ sub query : Local {
 #     return;
 #   }
 #   my $subtaxa = $1;
-# 
+#
 #   my $max_list = 10000;
 #   if ( defined $c->req->param('max_list') and
 #        $c->req->param('max_list') ne 'No limit' ) {
@@ -1084,131 +1085,131 @@ sub query : Local {
 #       $max_list = $1;
 #     }
 #   }
-# 
+#
 #   my $order = 0;
 #   if ( defined $c->req->param('toggle_order') and
 #        $c->req->param('toggle_order') eq 'on' ) {
 #     $order = 1;
 #   }
-# 
+#
 #   my $domains = 0;
 #   my $void = 0;
 #   my $notin = 1;
 #   my ( @min, @max, @domain, @columnname, @columnflag, );
 #   foreach my $n ( 1 .. $num_boxes ) {
 #     my $key = "domain$n";
-#   
+#
 #     if ( defined $c->req->param($key) and
 #          $c->req->param($key) eq '-Ignore-' ) {
 #       $void = 1;
 #     }
 #     else {
-# 
+#
 #       if ( $n == 1 ) {
-# 
+#
 #         $min[$domains] = -1;
-#         if ( defined $c->req->param ('N_term_min') 
-#              and $c->req->param('N_term_min' =~ m/^(\d+)$/ ) ) { 
+#         if ( defined $c->req->param ('N_term_min')
+#              and $c->req->param('N_term_min' =~ m/^(\d+)$/ ) ) {
 #           $min[$domains] = abs( int($1) );
-#         } 
-# 
+#         }
+#
 #         $max[$domains] = -1;
 #         if ( defined $c->req->param ('N_term_max') and
 #              $c->req->param('N_term_max') =~ m/^(\d+)$/ ) {
 #           $max[$domains] = abs( int($1) );
-#         } 
-# 
-#       } 
+#         }
+#
+#       }
 #       else {
-#     
+#
 #         $min[$domains] = -1;
 #         if ( defined $c->req->param( 'min' . ( $n - 1 ) ) and
 #              $c->req->param( 'min' . ( $n - 1 ) ) =~ m/^(\d+)$/ and
-#              not $void ) { 
+#              not $void ) {
 #           $min[$domains] = abs( int($1) );
 #         }
-# 
+#
 #         $max[$domains] = -1;
 #         if ( defined $c->req->param( 'max' . ( $n - 1 ) ) and
 #              $c->req->param( 'max' . ( $n - 1 ) ) =~ m/^(\d+)$/ and
 #              not $void eq 0) {
 #           $max[$domains] = abs( int($1) );
-#         } 
-# 
+#         }
+#
 #       }
-# 
-#       if ( ( $c->req->param($key) =~ m/^Not\s(.+)$/ ) ) { 
+#
+#       if ( ( $c->req->param($key) =~ m/^Not\s(.+)$/ ) ) {
 #         $domain[$domains] = $1;
 #         $columnname[$domains] = "domain$domains";
 #         $columnflag[$domains] = 1;
 #         $notin = 1;
-#       } 
-#       else {   
+#       }
+#       else {
 #         $domain[$domains] = $c->req->param($key);
 #         $columnname [$domains] = "domain$domains";
 #         $columnflag [$domains] = 0;
 #       }
-# 
+#
 #       $domains++;
-#       $void = 0; 
+#       $void = 0;
 #     }
 #   }
-# 
-#   $min[$domains] = -1; 
+#
+#   $min[$domains] = -1;
 #   if ( defined $c->req->param('C_term_min') and
-#        $c->req->param ('C_term_min') =~ m/^(\d+)$/ ) { 
-#     $min[$domains] = abs( int($1) ); 
-#   } 
-# 
-#   $max[$domains] = -1; 
+#        $c->req->param ('C_term_min') =~ m/^(\d+)$/ ) {
+#     $min[$domains] = abs( int($1) );
+#   }
+#
+#   $max[$domains] = -1;
 #   if ( defined $c->req->param('C_term_max') and
 #        $c->req->param('C_term_max') =~ m/^(\d+)$/ ) {
-#     $max[$domains] = abs( int($1) ); 
-#   } 
-# 
-#   
+#     $max[$domains] = abs( int($1) );
+#   }
+#
+#
 #   my $unit = 'domains';
 #   if ( defined $c->req->param('toggle_order') and
-#        $c->req->param('toggle_order') eq 'on' ) {  
-# 
+#        $c->req->param('toggle_order') eq 'on' ) {
+#
 #     if ( defined $c->req->param('unit') and
-#          $c->req->param('unit') eq 'aa') { 
-#       $unit = 'aa'; 
-#     } 
-# 
+#          $c->req->param('unit') eq 'aa') {
+#       $unit = 'aa';
+#     }
+#
 #   }
-# 
+#
 #   my $text_switch = 0;
 #   if ( defined $c->req->param('toggle_verbose') and
 #        $c->req->param('toggle_verbose') eq 'on' ) {
 #     $text_switch = 2;
 #   }
-# 
+#
 #   #---------------------------------------
-# 
+#
 #   # build query string
-# 
+#
 #   # get the auto_pfamA numbers for the specified families, or
 #   # pass the clan ID straight through and worry about it later
 #   my @pfdomain;
 #   for ( my $i = 0; $i < @domain; $i++ ) {
 #     if ( $domain[$i] =~ /^Clan_/ ) {
 #       $pfdomain[$i] = $domain[$i];
-#     } 
+#     }
 #     else {
 #       $pfdomain[$i] = $c->model('PfamDB::Pfama')
 #                         ->find( { pfama_id => $domain[$i] } )
 #                         ->auto_pfama;
 #     }
 #   }
-# 
+#
 #   # God knows; interpret some magical flags
 #   my $j = 0;
 #   while ( ( $columnflag[$j] != 0 and $columnflag[$j] != 5 ) and
 #           $j < $num_boxes ) {
 #     $j++;
 #   }
-#   
+#
 #   my ( @froms, @wheres );
 #   for ( my $i = 0; $i < $num_boxes; $i++ ) {
 #     if ( $order == 1 or
@@ -1218,82 +1219,82 @@ sub query : Local {
 #     }
 #     push @wheres, $columnname[$i] . '.auto_pfamseq = p1.auto_pfamseq';
 #   }
-# 
+#
 #   for ( my $i = 0; $i < $num_boxes; $i++ ) {
-# 
+#
 #     if ( $columnflag[$i] == 0 ) {
-# 
+#
 #       # if we're looking for clan members, convert the clan ID into a list
 #       # of Pfam-A families
 #       if ( $pfdomain[$i] =~ /^Clan_/ ) {
-# 
+#
 #         my ( $clan_id ) = $pfdomain[$i] =~ m/^Clan_(.*)/;
-# 
+#
 #         my @rs = $c->model('PfamDB::Clan')
 #                    ->search( { clan_id => $clan_id },
 #                              { prefetch => [ qw( auto_pfama auto_clan ) ],
 #                                select   => [ qw( auto_pfama ) ] } );
-#         
+#
 #         my $tempStatement = $columnname[$i] . '.auto_pfamA IN (';
-#         
+#
 #         foreach my $pfam ( @rs ) {
 #           $tempStatement .= $pfam->auto_pfama . ', ';
 #         }
-# 
+#
 #         $tempStatement =~ s/ ,$/\)/;
 #         push @wheres, $tempStatement;
-#       } 
+#       }
 #       else {
 #         push @wheres, $columnname[$i] . '.auto_pfamA=' . $pfdomain[$i];
 #       }
 #     }
 #   }
-# 
+#
 #   if ( $order eq 1 ) {
-# 
+#
 #     if ( $unit eq "aa" ) {
-# 
+#
 #       for ( my $i = 0; $i < $num_boxes; $i++) {
-# 
+#
 #         if ($i + 1 < $num_boxes) {
-# 
+#
 #           push (@wheres, $columnname [$i].".seq_end < " .$columnname [$i + 1].".seq_start");
 #         }
-# 
+#
 #         if ($columnflag [$i] eq 1) {
-# 
+#
 #           if ($pfdomain [$i] =~ /^Clan_/) {
-# 
+#
 #             my $ci = $pfdomain [$i];
 #             $ci =~ s/Clan_//g;
-# 
+#
 #             my $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#             my $sth = $dbh->prepare ($command); 
+#             my $sth = $dbh->prepare ($command);
 #             my $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
 #              my @ds = ();
-#             while (my @row = $sth->fetchrow_array) { 
-#   
+#             while (my @row = $sth->fetchrow_array) {
+#
 #               push (@ds, $row [0]);
-#             }  
-#       
+#             }
+#
 #             my $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
-#       
+#
 #             foreach my $d (@ds) {
 #               my $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
-#     
-#               $sth = $dbh->prepare($command); 
+#
+#               $sth = $dbh->prepare($command);
 #               my $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-#     
+#
 #               my @row = $sth->fetchrow_array;
-#     
+#
 #               $tempStatement .= $row[0].", ";
 #             }
-#             $tempStatement =~ s/, $/\)/; 
+#             $tempStatement =~ s/, $/\)/;
 #             push (@wheres, $tempStatement);
-#           } 
+#           }
 #           else {
 #             push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
-#   
+#
 #           }
 #         }
 #         if ($min [$i] ne -1) {
@@ -1301,7 +1302,7 @@ sub query : Local {
 #             push (@wheres, $columnname [$i].".seq_start >= $min[$i]");
 #           }
 #           else {
-#           
+#
 #             push (@wheres, $columnname [$i].".seq_end - ".$columnname [$i - 1].".seq_end >= $min[$i]");
 #           }
 #         }
@@ -1311,18 +1312,18 @@ sub query : Local {
 #           }
 #           else {
 #             push (@wheres, $columnname [$i].".seq_start - ".$columnname [$i - 1].".seq_end <= $max[$i]");
-#   
+#
 #           }
 #         }
 #       }
 #       if ($min [$num_boxes] ne -1 || $max [$num_boxes] ne -1) {
 #         if ($min [$num_boxes] ne -1) {
-#           push (@wheres, "p1.length - ".$columnname [$num_boxes - 1].".seq_end >= $min[$num_boxes]"); 
+#           push (@wheres, "p1.length - ".$columnname [$num_boxes - 1].".seq_end >= $min[$num_boxes]");
 #         }
 #         if ($min [$num_boxes] ne - 1) {
-#           push (@wheres, "p1.length - ".$columnname [$num_boxes - 1].".seq_end <= $max[$num_boxes]"); 
+#           push (@wheres, "p1.length - ".$columnname [$num_boxes - 1].".seq_end <= $max[$num_boxes]");
 #         }
-#     
+#
 #       }
 #     }
 #     else {
@@ -1335,29 +1336,29 @@ sub query : Local {
 #             my $ci = $pfdomain [$i];
 #             $ci =~ s/Clan_//g;
 #             my $command = "SELECT a.pfamA_acc FROM clan_membership m, clans c, pfamA a WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#             my $sth = $dbh->prepare ($command); 
+#             my $sth = $dbh->prepare ($command);
 #             my $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
 #             my @ds = ();
-#             while (my @row = $sth->fetchrow_array) { 
+#             while (my @row = $sth->fetchrow_array) {
 #               push (@ds, $row [0]);
-#             }  
-#       
+#             }
+#
 #             my $tempStatement = $columnname [$i] . ".auto_pfamA NOT IN (";
-#       
+#
 #             foreach my $d (@ds) {
 #               $command = "SELECT auto_pfamA FROM pfamA WHERE pfamA_acc='".$d."'";
-#     
-#               $sth=$dbh->prepare ($command); 
+#
+#               $sth=$dbh->prepare ($command);
 #               $rv=$sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-#     
+#
 #               my @row=$sth->fetchrow_array;
-#     
+#
 #               $tempStatement .= $row [0] . ", ";
-#   
+#
 #             }
-#             $tempStatement =~ s/, $/\)/; 
+#             $tempStatement =~ s/, $/\)/;
 #             push (@wheres, $tempStatement);
-#           } 
+#           }
 #           else {
 #             push (@wheres, $columnname [$i].".auto_pfamA<>$pfdomain[$i]");
 #           }
@@ -1367,7 +1368,7 @@ sub query : Local {
 #             push (@wheres, $columnname [$i].".domain_order >=".($min [$i] + 1));
 #           }
 #           else {
-#           
+#
 #             push (@wheres, $columnname [$i].".domain_order - ".$columnname [$i - 1].".domain_order >=".($min [$i] + 1));
 #           }
 #         }
@@ -1380,14 +1381,14 @@ sub query : Local {
 #           }
 #         }
 #       }
-# 
+#
 #       if ($min [$num_boxes] ne -1 || $max [$num_boxes] ne -1) {
-#         push (@wheres, "p1.auto_pfamseq=".$columnname [$num_boxes - 1].".auto_pfamseq"); 
+#         push (@wheres, "p1.auto_pfamseq=".$columnname [$num_boxes - 1].".auto_pfamseq");
 #         if ($min [$num_boxes] ne -1) {
-#           push (@wheres, "p1.domains - ".$columnname [$num_boxes - 1].".domain_order >= $min[$num_boxes]"); 
+#           push (@wheres, "p1.domains - ".$columnname [$num_boxes - 1].".domain_order >= $min[$num_boxes]");
 #         }
 #         if ($max [$num_boxes] ne -1) {
-#           push (@wheres, "p1.domains - ".$columnname [$num_boxes - 1].".domain_order <= $max[$num_boxes]"); 
+#           push (@wheres, "p1.domains - ".$columnname [$num_boxes - 1].".domain_order <= $max[$num_boxes]");
 #         }
 #       }
 #     }
@@ -1405,30 +1406,30 @@ sub query : Local {
 #         }
 #       }
 #       elsif ($columnflag [$i] eq 1) {
-# 
+#
 #         if ($pfdomain [$i] =~ /^Clan_/) {
-# 
+#
 #           my $ci = $domain [$i];
 #           $ci =~ s/Clan_//g;
-# 
+#
 #           my $command = "SELECT m.auto_pfamA FROM clan_membership m, clans c WHERE a.auto_pfamA=m.auto_pfamA AND m.auto_clan=c.auto_clan AND c.clan_id='".$ci."'";
-#           my $sth=$dbh->prepare ($command); 
+#           my $sth=$dbh->prepare ($command);
 #           my $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
-#         
-#           while (my @row=$sth->fetchrow_array) { 
+#
+#           while (my @row=$sth->fetchrow_array) {
 #             push (@notdomain, $row[0]);
-#       
-#           }  
-#         
-#         } 
+#
+#           }
+#
+#         }
 #         else {
 #           push (@notdomain, $pfdomain [$i]);
 #         }
 #       }
 #     }
-# 
+#
 #     my $nonotdomain = @notdomain;
-# 
+#
 #     if ($nonotdomain ne 0) {
 #       my $tempStatement = $columnname[$j] . ".auto_pfamseq NOT IN (SELECT DISTINCT auto_pfamseq FROM pfamA_reg WHERE auto_pfamA IN (";
 #       for (my $m = 0; $m < $nonotdomain; $m++) {
@@ -1439,7 +1440,7 @@ sub query : Local {
 #       push (@wheres, $tempStatement);
 #     }
 #   }
-#   
+#
 #   if ($subtaxa ne "ALL") {
 #       # QUICK FIX HERE!
 #       my $taxa;
@@ -1449,17 +1450,17 @@ sub query : Local {
 #       }
 #       my $taxString = "(".join (" OR ", @taxChecks).")";
 #       push (@wheres, $taxString);
-#     
+#
 #   }
-#    
+#
 #   my $statement = "SELECT DISTINCT p1.pfamseq_acc FROM pfamseq p1, ".join (", ", @froms)." WHERE ".join (" AND ", @wheres)." LIMIT ".$max_list;
-#   my $sth = $dbh->prepare ($statement); 
+#   my $sth = $dbh->prepare ($statement);
 #   my $rv = $sth->execute or print "\nCannot execute. Says: ".$sth->errstr."\n";
 #   my @rows;
-#   while (my @row = $sth->fetchrow_array) { 
-#     push (@rows, $row[0]); 
-#   }  
-#  
+#   while (my @row = $sth->fetchrow_array) {
+#     push (@rows, $row[0]);
+#   }
+#
 #   my $count_displayed = 0;
 #   my $output;
 #   foreach my $name (@rows) {
@@ -1474,7 +1475,7 @@ sub query : Local {
 #   $c->response->body( $output );
 #   if ($output eq "") {
 #       $c->res->status (204);
-#   } 
+#   }
 # }
 
 #-------------------------------------------------------------------------------

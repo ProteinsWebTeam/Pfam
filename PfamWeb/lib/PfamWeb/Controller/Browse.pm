@@ -22,6 +22,7 @@ $Id: Browse.pm,v 1.12 2009-10-27 13:40:05 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -65,7 +66,7 @@ sub browse : Global {
 
 =head2 browse_families : Path
 
-Retrieves data for the specified set of families. We check the value of the 
+Retrieves data for the specified set of families. We check the value of the
 "browse" parameter for some special values, as well as initial letters:
 
 =over
@@ -76,7 +77,7 @@ show the families whose ID starts with a number
 
 =item top twenty
 
-show the top twenty largest families (in terms of sequences in the full 
+show the top twenty largest families (in terms of sequences in the full
 alignment)
 
 =item new (default)
@@ -133,7 +134,7 @@ sub browse_families : Path( '/family/browse' ) {
       $c->log->debug( "Browse::browse_families: browsing for a character: |$char|" )
         if $c->debug;
       $c->stash->{char} = uc $char;
-  
+
       # run the query to get back all families starting with the
       # specified letter, ordered by ID
       @res = $c->model('PfamDB::Pfama')
@@ -142,12 +143,12 @@ sub browse_families : Path( '/family/browse' ) {
     }
     else {
 
-      # either "new" specified, or no starting letter specified, so default 
+      # either "new" specified, or no starting letter specified, so default
       # to new families anyway
       $c->log->debug( 'Browse::browse_families: browsing new entries' )
         if $c->debug;
       $c->stash->{char} = 'new';
-  
+
       @res = $c->model('PfamDB::Pfama')
                ->search( { change_status => 'NEW' },
                          { order_by => 'pfama_id ASC' } );
@@ -221,7 +222,7 @@ sub browse_proteomes : Path( '/proteome/browse' ) {
 
 =head2 browseMetaseq : Path
 
-Retrieves the list of metaseq datasets from the DB and stashes them for the 
+Retrieves the list of metaseq datasets from the DB and stashes them for the
 template.
 
 =cut

@@ -35,7 +35,7 @@ the PDB ID.
 $Id: Pdb.pm,v 1.9 2009-12-08 13:50:05 jt6 Exp $
 
 =cut
-
+use utf8;
 use strict;
 use warnings;
 

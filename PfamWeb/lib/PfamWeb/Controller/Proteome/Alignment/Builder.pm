@@ -21,8 +21,9 @@ $Id: Builder.pm,v 1.9 2008-11-25 14:54:27 jt6 Exp $
 
 =cut
 
-# TODO there's way too much overlap with Family::Alignment::Builder 
+# TODO there's way too much overlap with Family::Alignment::Builder
 
+use utf8;
 use strict;
 use warnings;
 
@@ -50,13 +51,13 @@ Builds a sequence alignment from the specified sequences.
 
 sub build : Path {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Proteome::Alignment::Builder::build: checking for sequences' )
     if $c->debug;
 
   # retrieve the sequences
   $c->forward( 'get_sequences' );
-  
+
   # make sure we got something...
   unless ( exists $c->stash->{fasta} and length $c->stash->{fasta} ) {
     $c->log->debug( 'Proteome::Alignment::Builder::build: failed to get a FASTA sequence' )
@@ -72,12 +73,12 @@ sub build : Path {
   # and see if we managed it...
   if( $submissionStatus < 0 ) {
     $c->log->debug( 'Proteome::Alignment::Builder::build: problem with submission; returning error page' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   } else {
     $c->log->debug( 'Proteome::Alignment::Builder::build: alignment job submitted; polling' )
-      if $c->debug; 
+      if $c->debug;
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
 }
@@ -96,16 +97,16 @@ sub view : Local {
   # retrieve the job results
   my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
-  
+
   unless( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Proteome::Alignment::Builder::view: no results found' )
       if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
-  }   
+  }
 
-  # count the number of rows in the alignment. The raw alignment includes 
+  # count the number of rows in the alignment. The raw alignment includes
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
@@ -113,12 +114,12 @@ sub view : Local {
     if $c->debug;
 
   # configure the viewer...
-  
+
   # a pretty title...
-  my $title = 'Alignment for ' . $c->stash->{proteomeSpecies}->species 
+  my $title = 'Alignment for ' . $c->stash->{proteomeSpecies}->species
               . ' sequences with Pfam domain ' . $c->stash->{pfam}->pfama_id
               . '(' . $c->stash->{pfam}->pfama_acc . ')';
-  
+
   $c->stash->{params} = { source             => 'species',
                           pfamAcc            => $c->stash->{pfam}->pfama_acc,
                           taxId              => $c->stash->{taxId},
@@ -145,14 +146,14 @@ into the stash as a single FASTA-format string.
 
 sub get_sequences : Private {
   my( $this, $c ) = @_;
-  
+
   my @regions = $c->model('PfamDB::ProteomeRegions')
                   ->search( { 'auto_proteome.ncbi_taxid' => $c->stash->{taxId},
                               'me.pfamA_acc'            => $c->stash->{pfam}->pfama_acc },
                             { join       => [ 'auto_proteome', { regions => 'pfamseq' } ],
                               prefetch   => [ 'auto_proteome', { regions => 'pfamseq' } ] } );
 
-  $c->log->debug( 'Proteome::Alignment::Builder: found |' 
+  $c->log->debug( 'Proteome::Alignment::Builder: found |'
                   . scalar @regions . '| sequences for this taxId / family' )
     if $c->debug;
 
@@ -161,9 +162,9 @@ sub get_sequences : Private {
   foreach my $regions ( @regions ) {
 
     push @{ $c->stash->{selectedSeqAccs} }, $regions->regions->first->pfamseq_acc;
-      
+
     # there could be multiple regions for a given combination of family and
-    # sequence, so we need to loop over the list of regions from the 
+    # sequence, so we need to loop over the list of regions from the
     # ProteomeRegions table
     foreach my $region ( $regions->regions->all ) {
       $c->stash->{fasta} .= '>'.$region->pfamseq_acc.'/'.$region->seq_start.'-'.$region->seq_end."\n";
@@ -188,16 +189,16 @@ Queues the job that will actually generate the sequence alignment.
 =cut
 
 sub queue_alignment : Private {
-  my ($this, $c) = @_; 
+  my ($this, $c) = @_;
 
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
   # set the options
-  my $opts = '-acc ' . $c->stash->{pfam}->pfama_acc . '.' . $c->stash->{pfam}->version; 
+  my $opts = '-acc ' . $c->stash->{pfam}->pfama_acc . '.' . $c->stash->{pfam}->version;
 
   # guesstimate the time it will take to build the alignment
-  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) ); 
+  my $estimatedTime = int( 1 + ( $c->stash->{numRows} / 100 ) );
 
   # add this job to the tracking tables
   my $jobHistory = $c->model('WebUser::JobHistory')
@@ -244,7 +245,7 @@ sub queue_alignment : Private {
                   . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
 
   return 0;
-} 
+}
 
 #-------------------------------------------------------------------------------
 

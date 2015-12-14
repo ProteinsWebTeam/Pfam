@@ -14,12 +14,13 @@ package PfamWeb::Controller::Utils;
 
 =head1 DESCRIPTION
 
-These are a few actions that can be used in various places around the code. 
+These are a few actions that can be used in various places around the code.
 
 $Id: Utils.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -48,7 +49,7 @@ work. The ID should be checked before calling this action.
 
 sub retrieve_ids : Private {
   my( $this, $c, $job_id ) = @_;
-  
+
   # retrieve the IDs/accessions for that job ID
   my $rs = $c->model('WebUser::Species_collection')
              ->find( $job_id );
@@ -85,23 +86,23 @@ and returns those sequences as a fasta-format file.
 
 sub get_sequences : Private {
   my( $this, $c, $job_id, $pfam ) = @_;
-  
+
   # retrieve the accessions for that job ID
   my $accession_list = $c->forward( '/utils/retrieve_ids', [ $job_id ] );
   unless( $accession_list ) {
     $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
     return;
   }
-  
-  $c->log->debug( 'Utils::get_sequences: found |' 
+
+  $c->log->debug( 'Utils::get_sequences: found |'
                   . scalar @$accession_list . '| valid sequence accessions' )
     if $c->debug;
   $c->stash->{selectedSeqAccs} = $accession_list;
 
   # get each of the sequences in turn and turn them into FASTA format
   # (note that we take the auto-number for the family from "$c->stash->{entry}"
-  # because the begin method on SpeciesTree can handle Pfam-As, Pfam-Bs and 
-  # clans, so "entry" is more appropriate than "pfam", which we usually use.) 
+  # because the begin method on SpeciesTree can handle Pfam-As, Pfam-Bs and
+  # clans, so "entry" is more appropriate than "pfam", which we usually use.)
   my $fasta = '';
   foreach my $seqAcc ( @$accession_list ) {
     my @rows = $c->model('PfamDB::PfamaRegFullSignificant')
@@ -116,7 +117,7 @@ sub get_sequences : Private {
 
     foreach my $r (@rows){
       $fasta .= '>'.$r->pfamseq_acc.'/'.$r->seq_start.'-'.$r->seq_end."\n";
-      $fasta .= wrap( '', '', 
+      $fasta .= wrap( '', '',
                       substr( $r->sequence,
                               $r->seq_start - 1,
                               $r->seq_end - $r->seq_start + 1 )."\n" );

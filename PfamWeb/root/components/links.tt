@@ -16,18 +16,14 @@ USE String;
 # external links tables
 labels = {
     atoaHH     = "Similarity to PfamA using HHSearch"
-    atobPRODOM = "Similarity to PfamB PRODOM"
-    btoaPRODOM = "Similarity to PfamA PRODOM"
     CATH       = "CATH"
     CAZY       = "CAZY"
     COGS       = "COGS"
     FUNSHIFT   = "FUNSHIFT"
     HOMSTRAD   = "HOMSTRAD"
     interpro   = "InterPro"
-    LOAD       = "LOAD"
     MEROPS     = "MEROPS"
     MIM        = "MIM"
-    PANDIT     = "PANDIT"
     pdb        = "PDB entries"
     PRINTS     = "PRINTS"
     PRODOM     = "PRODOM"
@@ -46,23 +42,18 @@ labels = {
 internal = [
     "scoop",
     "atoaHH",
-    "atobPRODOM",
-    "btoaPRODOM",
 ]
 external = [
     "CATH",
     "CAZY",    
     "COGS",      
     "HOMSTRAD",  
-    "LOAD",
     "MEROPS",
     "MIM",
-    "PANDIT",
     "PRINTS",
     "PRODOM",
     "PROSITE",
     "PROSITE_PROFILE",
-    "PSEUDOFAM",
     "SCOP",
     "SMART",
     "TC",
@@ -143,8 +134,6 @@ BLOCK buildLink;
 <a class="ext" href="http://tardis.nibio.go.jp/cgi-bin/homstrad/homstrad.cgi?family=[% id %]">[% id %]</a>
     [%- CASE "interpro" -%]
 <a class="ext" href="http://www.ebi.ac.uk/interpro/entry/[% id %]">[% id %]</a>
-    [%- CASE "LOAD" -%]
-<a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
     [%- CASE "MEROPS" -%]
 <a class="ext" href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
     [%- CASE "MIM" -%]

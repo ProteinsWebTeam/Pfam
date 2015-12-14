@@ -299,7 +299,7 @@ sub family_page : Chained( 'family' )
     $c->forward( 'get_summary_data' );
     $c->forward( 'get_db_xrefs' );
     $c->forward( 'get_interactions' );
-    $c->forward( 'get_pseudofam' );
+    #$c->forward( 'get_pseudofam' );
     $c->forward( 'get_wikipedia' );
 
     return;

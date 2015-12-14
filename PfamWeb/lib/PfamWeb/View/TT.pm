@@ -18,13 +18,15 @@ An empty view class. Everything clever is handled by the controllers or the
 templates themselves.
 
 =cut
-
+use utf8;
 use strict;
 use warnings;
 
 use base 'Catalyst::View::TT';
 
 use Template;
+
+__PACKAGE__->config( {ENCODING  => 'utf-8'} );
 
 $Template::Directive::WHILE_MAX = 10000;
 

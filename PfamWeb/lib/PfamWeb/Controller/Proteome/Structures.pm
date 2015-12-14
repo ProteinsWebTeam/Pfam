@@ -14,13 +14,14 @@ package PfamWeb::Controller::Proteome::Structures;
 
 =head1 DESCRIPTION
 
-Controller to build the mapping between sequence and structure for the 
+Controller to build the mapping between sequence and structure for the
 proteome section
 
 $Id: Structures.pm,v 1.5 2009-10-07 10:40:14 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -38,20 +39,20 @@ Just gets the data items for the structure mapping table.
 
 sub get_mapping : Path {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Proteome::get_mapping: getting structure mapping...' )
     if $c->debug;
-  
+
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { 'pfamseq_acc.ncbi_taxid' => $c->stash->{taxId},
                               'pfamseq_acc.genome_seq' => 1 },
                             { prefetch => [ qw( pfamseq_acc pdb_id ) ] } );
-    
+
   $c->stash->{pfamMaps} = \@mapping;
 
   # NB ! Handing off to a family template
   $c->stash->{template} = 'components/blocks/family/structureTab.tt';
-  
+
   # cache the template output for one week
   #$c->cache_page( 604800 );
 }
@@ -85,4 +86,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-

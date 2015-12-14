@@ -22,6 +22,7 @@ $Id: Keyword.pm,v 1.9 2009-12-07 22:26:06 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -47,7 +48,7 @@ sub lookup_term : Private {
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $c->stash->{rawQueryTerms} },
                          { pfama_id  => $c->stash->{rawQueryTerms} } ] );
-  
+
   # we're going to assume that there's only one hit here... we're in
   # trouble if there's more than one, certainly
   my $hit = $rs->next;
@@ -65,7 +66,7 @@ has access to a Pfam-A accession. We'll try to get it using
 
   $rs->pfama_acc
 
-or 
+or
 
   $rs->pfama_acc->pfama_acc
 

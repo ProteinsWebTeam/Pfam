@@ -20,6 +20,7 @@ $Id: Dna.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -32,7 +33,7 @@ use Storable qw( thaw );
 use Data::Dump qw(dump);
 
 use base qw( PfamBase::Controller::Search::BatchSearch
-             PfamWeb::Controller::Search ); 
+             PfamWeb::Controller::Search );
 
 #-------------------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ sub results : Local {
   my ( $this, $c, $arg ) = @_;
 
   my $job_id = $c->req->param('jobId') ||
-               $arg || 
+               $arg ||
                '';
 
   $c->stash->{template} = 'pages/search/dna/results.tt';
@@ -78,7 +79,7 @@ sub results : Local {
 
     return;
   }
-  
+
   # stash the DNA sequence for the template
   $c->stash->{sequences} = [ map { $_->stdin} @jobs ];
 
@@ -92,7 +93,7 @@ sub resultset : Local {
   my ( $this, $c, $arg ) = @_;
 
   my $job_id = $c->req->param('jobId') ||
-               $arg || 
+               $arg ||
                '';
 
   unless ( $job_id =~ m/^([A-F0-9\-]{36})$/i ) {
@@ -129,7 +130,7 @@ sub resultset : Local {
 
   $c->stash->{json}->{jobId}    = $job_id;
   $c->stash->{json}->{sequence} = $jobs[0]->stdin;
-  
+
   JOB: foreach my $job ( @jobs ) {
     my $status = $job->status;
     my $options = from_json( $job->options || '{}' );
@@ -156,12 +157,12 @@ sub resultset : Local {
       }
 
       $c->stash->{json}->{results}->[$frame]->{hits}    = $results;
-      $c->stash->{json}->{results}->[$frame]->{graphic} = 
+      $c->stash->{json}->{results}->[$frame]->{graphic} =
         $c->forward( 'layout_dg', [ $results ] );
     }
   }
 
-  $c->log->debug( 'Search::Dna::results: found ' 
+  $c->log->debug( 'Search::Dna::results: found '
                   . scalar @{ $c->stash->{json}->{results} } . ' frame jobs' )
     if $c->debug;
 
@@ -172,7 +173,7 @@ sub resultset : Local {
 
 sub resulttable : Local {
   my ( $this, $c, $job_id, $frame ) = @_;
-  
+
   $c->stash->{template} = 'pages/search/dna/results_table.tt';
 
   unless ( $job_id =~ m/^([A-F0-9\-]{36})$/i ) {
@@ -249,43 +250,43 @@ sub resulttable : Local {
 
 # sub search : Path {
 #   my( $this, $c ) = @_;
-# 
+#
 #   # validate the input
 #   unless ( $c->forward( 'validate_input' ) ) {
 #     $c->stash->{dnaSearchError } = $c->stash->{searchError};
 #     return;
 #   }
-#   
+#
 #   #----------------------------------------
-#   
+#
 #   # no options for a DNA search
 #   $c->stash->{options} = '';
-#   
+#
 #   # before we actually run the search, check we didn't do it recently
 #   unless ( $c->forward( 'check_unique' ) ) {
 #     $c->stash->{dnaSearchError } = $c->stash->{searchError};
 #     return;
 #   }
-# 
+#
 #   # generate a job ID
 #   $c->stash->{jobId} = Data::UUID->new()->create_str();
-# 
+#
 #   # set the queue
 #   $c->stash->{job_type} = 'dna';
-# 
+#
 #   # and submit the job...
 #   unless ( $c->forward( 'queue_search_transaction' ) ) {
 #     $c->stash->{dnaSearchError } = $c->stash->{searchError};
 #     return;
 #   }
-#   
+#
 #   #----------------------------------------
-#   
-#   # set a refresh URI that will be picked up by head.tt and used in a 
+#
+#   # set a refresh URI that will be picked up by head.tt and used in a
 #   # meta refresh element
 #   $c->stash->{refreshUri}   = $c->uri_for( '/search' );
 #   $c->stash->{refreshDelay} = 30;
-# 
+#
 #   $c->log->debug( 'Search::Dna::search: batch dna search submitted' )
 #     if $c->debug;
 #   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
@@ -304,7 +305,7 @@ Validate the form input. Error messages are returned in the stash as
 
 sub validate_input : Private {
   my( $this, $c ) = @_;
-  
+
   # the sequence itself
 
   # make sure we got a parameter first
@@ -325,7 +326,7 @@ sub validate_input : Private {
 
     $c->log->debug( 'Search::Dna::validate_input: sequence too long; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
   # check it's not too long
@@ -336,7 +337,7 @@ sub validate_input : Private {
 
     $c->log->debug( 'Search::Dna::validate_input: sequence too short; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
 
@@ -350,38 +351,38 @@ sub validate_input : Private {
 
     $c->log->debug( 'Search::Dna::validate_input: bad email address; returning to form' )
       if $c->debug;
-      
+
     return 0;
-  }  
+  }
 
   # tidy up the sequence and make sure it's only got the valid DNA characters
   my @seqs = split /\n/, $c->req->param('seq');
   shift @seqs if $seqs[0] =~ m/^\>/;
   my $seq = uc( join '', @seqs );
   $seq =~ s/[\s\r\n]+//g;
-  
+
   unless ( $seq =~ m/^[ACGTRYKMSWBDHVN]+$/ ) {
     $c->stash->{searchError} =
       'No valid sequence found. Please enter a valid DNA sequence and try again.';
 
     $c->log->debug( 'Search::Dna::validate_input: invalid DNA sequence; returning to form' )
       if $c->debug;
-      
+
     return 0;
   }
 
-  # store the valid sequence. Up until this point there was no need to have it 
-  # in the stash, since it might have been invalid. Now that it's validated, 
+  # store the valid sequence. Up until this point there was no need to have it
+  # in the stash, since it might have been invalid. Now that it's validated,
   # however, we actually need it
   $c->log->debug( "Search::Dna::validate_input: sequence looks ok: |$seq|" )
     if $c->debug;
-    
+
   $c->stash->{input} = $seq;
- 
-  # passed ! 
+
+  # passed !
   $c->log->debug( 'Search::Dna::validate_input: input parameters all validated' )
     if $c->debug;
-  
+
   return 1;
 }
 
@@ -456,7 +457,7 @@ sub layout_dg : Private {
     length  => length( $seq ),
     regions => \@regions,
     motifs  => [],
-    markups => \@markups 
+    markups => \@markups
   } );
 
   $c->log->debug( 'Search::Dna::layout_dg: sequence object: '

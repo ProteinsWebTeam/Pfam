@@ -1,7 +1,7 @@
 [%
 # summary.tt
 # jt6 20060427 WTSI
-# 
+#
 # build the summary block for proteins
 #
 # $Id: summary.tt,v 1.32 2009-12-07 22:33:46 jt6 Exp $
@@ -9,7 +9,7 @@
 USE String;
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -25,7 +25,7 @@ sharedRequirements.js.push( "tablekit.js" );
 # if canvas is implemented before trying to inject itself
 requirements.js.push( "excanvas.js" );
 
-# need to load the canvas.text.js file before trying to load the font file, 
+# need to load the canvas.text.js file before trying to load the font file,
 # otherwise it bails with an error about "face.glyphs is undefined"
 requirements.jsIe.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
 requirements.jsIe.push( "faces/optimer-bold-normal.js" );
@@ -37,6 +37,21 @@ requirements.js.push( "domain_graphics.js" );
 
 # a row counter
 oe = 0;
+
+seq_acc = '';
+IF ( pfamseq.pfamseq_acc );
+  seq_acc = pfamseq.pfamseq_acc;
+ELSE;
+  seq_acc = pfamseq.uniprot_acc;
+END;
+
+seq_id = '';
+IF ( pfamseq.pfamseq_id );
+  seq_id = pfamseq.pfamseq_id;
+ELSE;
+  seq_id = pfamseq.uniprot_id;
+END;
+
 -%]
 
 <!-- start protein summary block -->
@@ -46,14 +61,14 @@ oe = 0;
     <h1>Summary</h1>
   </div>
   <div class="blockContent">
-    
+
     <p>
-      This is the summary of UniProt entry 
-      <a href="http://www.uniprot.org/entry/[% pfamseq.pfamseq_acc %]"
-         class="ext">[% pfamseq.pfamseq_id %]</a>
-      (<a href="http://www.uniprot.org/entry/[% pfamseq.pfamseq_acc %]"
-          class="ext">[% pfamseq.pfamseq_acc %]</a>)[%
-      IF from_secondary_acc -%] (via secondary accession <strong>[% from_secondary_acc %]</strong>)[% END %].
+      This is the summary of UniProt entry
+      <a href="http://www.uniprot.org/entry/[% seq_id %]"
+         class="ext">[% seq_id %]</a>
+      (<a href="http://www.uniprot.org/entry/[% seq_acc %]"
+          class="ext">[% seq_acc %]</a>)[%
+      IF from_secondary_acc -%] (via secondary accession <strong>[% from_secondary_acc %]</strong>)[% END %][% seq_source %].
 
     </p>
 
@@ -71,9 +86,9 @@ oe = 0;
             [%- IF pfamseq.ncbi_taxid;
               ncbi_taxid = pfamseq.ncbi_taxid %]
               <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
-                [% pfamseq.species %]</a> 
+                [% pfamseq.species %]</a>
               [%- IF ncbi_taxid != "0" %]
-                (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
+                (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID
                 <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
                   [% ncbi_taxid %]</a>)
               [% END -%]
@@ -82,7 +97,7 @@ oe = 0;
                 <a href="[% c.uri_for( '/proteome', ncbi_taxid ) %]">
                   View</a> Pfam proteome data.
               [%- END;
-            ELSE;  
+            ELSE;
               pfamseq.species;
             END %]
           </td>
@@ -93,24 +108,33 @@ oe = 0;
             [% pfamseq.length %] amino acids
           </td>
         </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Reference Proteome:</td>
+          <td class="data">
+            [% IF ( pfamseq.pfamseq_acc ) %]
+              <img src="[% c.uri_for('/static/images/tick_18.png') %]" alt="&#10003;" />
+            [% ELSE %]
+              <img src="[% c.uri_for('/static/images/cross_18.png') %]" alt="x" />
+            [% END %]
+          </td>
+        </tr>
       </tbody>
     </table>
     <p class="small">
       <strong>Please note:</strong> when we start each new Pfam data release,
-      we take a copy of the UniProt sequence database. This snapshot of 
-      UniProt forms the basis of the overview that you see here. It is 
-      important to note that, although some UniProt entries may be removed 
-      <em>after</em> a Pfam release, these entries will not be removed from 
+      we take a copy of the UniProt sequence database. This snapshot of
+      UniProt forms the basis of the overview that you see here. It is
+      important to note that, although some UniProt entries may be removed
+      <em>after</em> a Pfam release, these entries will not be removed from
       Pfam until the <em>next</em> Pfam data release.
     </p>
 
     <h2>Pfam domains</h2>
-
     <div id="pgdesc" style="display: none">
       <p>
-        This image shows the arrangement of the Pfam domains that we found on 
-        this sequence. Clicking on a domain will take you to the page describing 
-        that Pfam entry. The table below gives the domain boundaries for each of 
+        This image shows the arrangement of the Pfam domains that we found on
+        this sequence. Clicking on a domain will take you to the page describing
+        that Pfam entry. The table below gives the domain boundaries for each of
         the domains.
         <span onclick="reveal( this, 'domainTableNotes', false, true );"
               class="moreLink">
@@ -119,7 +143,7 @@ oe = 0;
     </div>
     <div id="domainTableNotes" style="display: none">
       <p>
-        E-values are based on searching the Pfam-A family against UniProtKB 
+        E-values are based on searching the Pfam-A family against UniProtKB
         <a class="ext" href="ftp://ftp.uniprot.org/pub/databases/uniprot/previous_releases/release-[% relData.swiss_prot_version %]/knowledgebase/">
           [% relData.swiss_prot_version %]</a> using hmmsearch.
       </p>
@@ -150,7 +174,7 @@ oe = 0;
           <th class="sh" style="display: none">Domain</th>
         </tr>
       </thead>
-      <tbody> [%- 
+      <tbody> [%-
       FOREACH seq_start IN regions.keys.nsort;
         FOREACH row IN regions.$seq_start;
           IF row.pfama_acc %]
@@ -185,7 +209,7 @@ oe = 0;
       </tbody>
     </table>
     <p>
-      <span id="showScores" class="link">Show</span> or 
+      <span id="showScores" class="link">Show</span> or
       <span id="hideScores" class="link">hide</span> domain scores.
     </p>
 
@@ -239,7 +263,7 @@ oe = 0;
                                    rowOddClass:  "odd",
                                    stripe:       true,
                                    observers: {
-                                     onSortStart: function( table, event ) { 
+                                     onSortStart: function( table, event ) {
                                        table.down("thead").removeClassName("sortIndicator");
                                      }
                                    }
@@ -248,13 +272,17 @@ oe = 0;
       */
 
       document.observe( "dom:loaded", function() {
-        $("showScores").observe( "click", function() { $$(".sh").invoke( "show" ) } );
-        $("hideScores").observe( "click", function() { $$(".sh").invoke( "hide" ) } );
+        $("showScores").observe( "click", function() {
+          $$(".sh").invoke( "show" );
+        } );
+        $("hideScores").observe( "click", function() {
+          $$(".sh").invoke( "hide" )
+        } );
       } );
 
       // ]]>
     </script>
-    
+
   </div> <!-- end of "blockContent" -->
 </div>
 

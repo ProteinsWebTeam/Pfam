@@ -22,6 +22,7 @@ $Id: Grid.pm,v 1.3 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -46,10 +47,10 @@ Description...
 
 sub grid : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::grid: rendering grid page' )
     if $c->debug;
-  
+
   my $template = 'pages/prototype_grid.tt';
   if ( defined $c->req->param('grid') and
        exists $GRIDS->{ $c->req->param('grid') } ) {
@@ -61,9 +62,9 @@ sub grid : Global {
     $c->log->warn( 'Grid::grid: not a known grid; using default' )
       if $c->debug;
   }
-  
+
   $c->stash->{template} = $template;
-    
+
   #$c->stash->{template} = 'pages/yui_grid.tt';
   #$c->stash->{template} = 'pages/prototype_grid.tt';
   #$c->stash->{template} = 'pages/rico_grid.tt';
@@ -80,26 +81,26 @@ Description...
 
 sub ext_grid_data : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::ext_grid_data: returning sequence information' )
     if $c->debug;
-  
+
   my $start   = $c->req->param('start') || 0;
   my $limit   = $c->req->param('limit') || 100;
   my $order   = $c->req->param('dir')   || 'ASC';
   my $sortcol = ( $c->req->param('sort')  eq 'acc_field' )
                 ? 'pfamseq_acc'
                 : 'sequence';
-  
+
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {},
-                       { order_by => "$sortcol $order" } 
+                       { order_by => "$sortcol $order" }
                      );
-             
+
   $c->log->debug( 'Grid::ext_grid_data: found ' . $rs->count() . ' rows' )
     if $c->debug;
 
-  my $data = { 
+  my $data = {
     response => {
       value => {
         version => 1,
@@ -107,17 +108,17 @@ sub ext_grid_data : Global {
         items   => []
       }
     }
-  };  
-  
+  };
+
   my $slice = $rs->slice( $start, $start + $limit );
   $c->log->debug( 'Grid::ext_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
-  
+
   my $i = 0;
   foreach my $row ( $slice->all ) {
-    push @{ $data->{response}->{value}->{items} }, 
+    push @{ $data->{response}->{value}->{items} },
       { id        => $i++,
-        acc_field => $row->pfamseq_acc, 
+        acc_field => $row->pfamseq_acc,
         seq_field => '<span class="alignment">' . $row->sequence . '</span>' };
   }
 
@@ -139,38 +140,38 @@ sub ext_grid_data : Global {
 
 sub rico_grid_data : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::rico_grid_data: returning sequence information' )
     if $c->debug;
-  
+
   my $offset    = $c->req->param('offset')    || 0;
   my $page_size = $c->req->param('page_size') || 100;
-  
+
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
-             
+
   $c->log->debug( 'Grid::rico_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
   $c->log->debug( 'Grid::rico_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
-  
+
   my $i = 0;
   my $rows = [];
   foreach my $row ( $slice->all ) {
     push @{$rows}, [ $i++,
-                     $row->pfamseq_acc, 
+                     $row->pfamseq_acc,
                      '<span class="alignment">' . $row->sequence . '</span>' ];
   }
 
-  my $data = { 
+  my $data = {
     update_ui => 'true',
     offset    => $offset,
     rowCount  => $rs->count,
     rows      => $rows
   };
-  
+
   $c->res->content_type( 'application/json' );
   $c->res->body( to_json( $data ) );
 }
@@ -179,29 +180,29 @@ sub rico_grid_data : Global {
 
 sub prototype_grid_data : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::prototype_grid_data: returning sequence information' )
     if $c->debug;
-  
+
   my $offset    = $c->req->param('offset')    || 0;
   my $page_size = $c->req->param('page_size') || 100;
-  
+
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
-             
+
   $c->log->debug( 'Grid::prototype_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
   $c->log->debug( 'Grid::prototype_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
-  
+
   my $i = $offset;
   my $rows = [];
   foreach my $row ( $slice->all ) {
-    push @{$rows}, { 
+    push @{$rows}, {
       index => $i++,
-      acc   => $row->pfamseq_acc, 
+      acc   => $row->pfamseq_acc,
       seq   => $row->sequence
     };
   }
@@ -212,10 +213,10 @@ sub prototype_grid_data : Global {
     rowcount  => $page_size,
     rows      => $rows
   };
-  
+
   $c->stash->{data} = $data;
 
-  $c->res->content_type( 'text/xml' );  
+  $c->res->content_type( 'text/xml' );
   $c->stash->{template} = 'pages/prototype_slice.tt';
 }
 
@@ -223,26 +224,26 @@ sub prototype_grid_data : Global {
 
 sub prototype_json_data : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::prototype_json_data: returning sequence information' )
     if $c->debug;
-  
+
   my $offset    = $c->req->param('offset')    || 0;
   my $page_size = $c->req->param('page_size') || 100;
-  
+
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {},
                        { page => int( $offset / $page_size ),
                          rows => $page_size } );
-             
+
   my $i = $offset;
   my $rows = [];
   my $max_length = 0;
   foreach my $row ( $rs->all ) {
     my $seq = $row->sequence;
-    push @{$rows}, { 
+    push @{$rows}, {
       index => $i++,
-      acc   => $row->pfamseq_acc, 
+      acc   => $row->pfamseq_acc,
       seq   => $seq
     };
     $max_length = length( $seq ) if length( $seq ) > $max_length;
@@ -254,7 +255,7 @@ sub prototype_json_data : Global {
     maxLength => $max_length,
     rowCount  => $page_size,
   };
-  
+
   $c->stash->{json} = $data;
 }
 
@@ -278,29 +279,29 @@ sub end : Private {
 
 sub yui_grid_data : Global {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Grid::yui_grid_data: returning sequence information' )
     if $c->debug;
-  
+
   my $offset    = $c->req->param('offset')    || 0;
   my $page_size = $c->req->param('page_size') || 100;
-  
+
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
-             
+
   $c->log->debug( 'Grid::yui_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
   $c->log->debug( 'Grid::yui_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
-  
+
   my $i = $offset;
   my $rows = [];
   foreach my $row ( $slice->all ) {
-    push @{$rows}, { 
+    push @{$rows}, {
       index => $i++,
-      acc   => $row->pfamseq_acc, 
+      acc   => $row->pfamseq_acc,
       seq   => $row->sequence
     };
   }
@@ -313,7 +314,7 @@ sub yui_grid_data : Global {
       rows      => $rows
     }
   };
-  
+
   $c->res->content_type( 'application/json' );
   $c->res->body( to_json( $data ) );
 }

@@ -21,6 +21,7 @@ $Id: Metaseq.pm,v 1.7 2010-01-13 14:44:53 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -49,12 +50,12 @@ sub begin : Private {
   if ( defined $c->req->param('output') and
        $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');    
+    $c->res->content_type('text/xml');
 
     # enable CORS (see http://www.w3.org/wiki/CORS_Enabled)
     $c->res->header( 'Access-Control-Allow-Origin' => '*' );
   }
-  
+
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
@@ -63,15 +64,15 @@ sub begin : Private {
                       '';
 
   # although these next checks might fail and end up putting an error message
-  # into the stash, we don't "return", because we might want to process the 
+  # into the stash, we don't "return", because we might want to process the
   # error message using a template that returns XML rather than simply HTML
   # (XML output not yet implemented for metaseq data
   # jt6 20080603 WTSI.)
-  
+
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
-    $c->stash->{errorMsg} = 'Invalid metaseq accession or ID' 
+    $c->stash->{errorMsg} = 'Invalid metaseq accession or ID'
       unless defined $entry;
   }
   else {
@@ -102,7 +103,7 @@ Retrieves data for the given metagenomics identifier.
 
 sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
-  
+
   # use "esl-sfetch" to try to retrieve a sequence from the NCBI sequence
   # file
   my $opened = open( META, join ' ', ( $this->{sfetchBinary}, $this->{metaSeqFile}, $entry, '|' ) );
@@ -115,10 +116,10 @@ sub get_data : Private {
 
     return;
   }
-    
+
   my @metaseq = <META>;
   close META;
- 
+
   unless ( scalar @metaseq ) {
     $c->log->debug( 'Metaseq::get_data: no sequence found with given ID' )
       if $c->debug;
@@ -127,7 +128,7 @@ sub get_data : Private {
 
     return;
   }
-  
+
   $c->log->debug( 'Metaseq::get_data: got a metaseq entry' )
     if $c->debug;
 
