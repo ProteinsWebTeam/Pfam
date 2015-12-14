@@ -22,6 +22,7 @@ $Id: Help.pm,v 1.4 2010-01-19 09:58:19 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 

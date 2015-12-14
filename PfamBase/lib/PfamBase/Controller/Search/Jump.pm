@@ -14,8 +14,8 @@ package PfamBase::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-This is the base class for "jump" searching classes in specific applications. 
-The sub-classes must provide, at a minimum, a private C<guess> method, which 
+This is the base class for "jump" searching classes in specific applications.
+The sub-classes must provide, at a minimum, a private C<guess> method, which
 should:
 
 =over 4
@@ -27,12 +27,13 @@ should:
 =item return the action
 
 If the L<jump> method finds that the L<forward> returns undef, it returns
-an error message saying that the guess failed. 
+an error message saying that the guess failed.
 
 $Id: Jump.pm,v 1.8 2009-11-05 15:30:39 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -46,8 +47,8 @@ use base 'PfamBase::Controller::Search';
 
 =head2 jump : Path
 
-Tries to find the URL for the specified entry accession or ID. If the 
-"entryType" parameter is specified and if the value is found in the 
+Tries to find the URL for the specified entry accession or ID. If the
+"entryType" parameter is specified and if the value is found in the
 configuration, we look only for that particualr type of entry. If no "entryType"
 is specified, we'll look for any type.
 
@@ -55,7 +56,7 @@ is specified, we'll look for any type.
 
 sub jump : Path {
   my( $this, $c ) = @_;
-  
+
   # de-taint the entry ID or accession
   my ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
   $entry ||= '';
@@ -75,14 +76,14 @@ sub jump : Path {
 
   # now we know we have an entry. See if the caller specified the type of that
   # entry. If it did, we don't bother trying to guess the type, but just
-  # redirect straight to the appropriate URL 
+  # redirect straight to the appropriate URL
   my $entry_type;
   if( $c->req->param('type') ) {
     $entry_type = $this->{jumpTargets}->{ $c->req->param('type') };
     $c->log->debug( 'Search::Jump::jump: looking for entry type: |'
                     . ( $entry_type || '' ) . '|' ) if $c->debug
   }
-  
+
   # let's guess !
   my $action = $c->forward( 'guess', [ $entry, $entry_type ] );
 
@@ -98,7 +99,7 @@ sub jump : Path {
     # "look up" and entry or guess the type
     $c->stash->{error} = $entry_type ? 'Entry not found' : "Couldn't guess entry";
   }
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -106,10 +107,10 @@ sub jump : Path {
 =head2 end : Private
 
 Returns either a text/plain response with the guessed URL in the body, or an
-error response (status 400) with the error message in the body. 
+error response (status 400) with the error message in the body.
 
-If the C<redirect> parameter is set to 1, rather than simply returning the URL 
-or an error message, we set the redirect header and the user is redirected 
+If the C<redirect> parameter is set to 1, rather than simply returning the URL
+or an error message, we set the redirect header and the user is redirected
 straight to the guessed URL or, if we couldn't guess a URL, to the index page.
 
 =cut
@@ -118,7 +119,7 @@ sub end : Private {
   my ( $this, $c ) = @_;
 
   $c->res->content_type( 'text/plain' );
-  
+
   if( $c->stash->{error} ) {
 
     if ( $c->req->param('redirect') ) {
@@ -133,7 +134,7 @@ sub end : Private {
 
   }
   else {
-    
+
     if ( defined $c->req->param('redirect') and
          $c->req->param('redirect') == 1 ) {
       $c->log->debug( 'Search::Jump::end: redirect parameter set; redirecting to guessed URL' )
@@ -145,7 +146,7 @@ sub end : Private {
     }
 
   }
-  
+
 }
 
 #-------------------------------------------------------------------------------

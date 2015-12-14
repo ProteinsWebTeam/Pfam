@@ -20,6 +20,7 @@ $Id: JobManager.pm,v 1.8 2009-10-07 14:18:35 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -65,12 +66,12 @@ sub checkStatus : Local {
     $c->detach( 'returnStatus' );
   }
 
-  # finally, check the real status 
+  # finally, check the real status
   my %statusValues = ( PEND => 1,
                        RUN  => 1,
                        DONE => 1,
                        FAIL => 1 );
-                       
+
   if( $statusValues{ $jobHistory->status } ) {
     $c->log->debug( 'JobManager::checkStatus: job status is: |'
                     . $jobHistory->status . '|' )  if $c->debug;
@@ -169,16 +170,16 @@ sub retrieveResults : Private {
 
   $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" )
     if $c->debug;
-  
+
   # job ID *looks* valid; try looking for that job
   my $job = $c->model( 'WebUser::JobHistory' )
               ->find( { job_id => $jobId },
                       { join     => [ qw( job_stream ) ],
                         prefetch => [ qw( job_stream ) ] } );
-  
+
   # bail unless it exists
   return unless defined $job;
-  
+
   # retrieve the results of the job and stash them
   $c->stash->{results}->{$jobId}->{job}          = $job;
   $c->stash->{results}->{$jobId}->{status}       = $job->status;
@@ -216,19 +217,19 @@ sub retrieve_result_rows : Private {
 
   $c->log->debug( "JobManager::retrieve_result_rows: looking up details for job ID: |$jobId|" )
     if $c->debug;
-  
+
   # job ID *looks* valid; try looking for that job
   my @jobs = $c->model( 'WebUser::JobHistory' )
                ->search( { job_id => $jobId },
                          { prefetch => [ qw( job_stream ) ] } );
-  
+
   # bail unless one or more matching jobs exists
   return unless scalar @jobs;
-  
+
   # retrieve the results of the jobs and stash them
   $c->stash->{results}->{$jobId}->{rows} = \@jobs;
 
-  # my $job_data = { 
+  # my $job_data = {
   #   job     => $job,
   #   status  => $job->status,
   #   rawData => $job->stdout,
@@ -241,7 +242,7 @@ sub retrieve_result_rows : Private {
   # converting it back to a perl data structure, but handle the possibility
   # the the options were set by a job from the old (now Rfam only) search
   # system. If we get an exception when trying to convert from JSON, we just
-  # ignore it, since the options were set by a search system that isn't 
+  # ignore it, since the options were set by a search system that isn't
   # planning to use the user_options anyway
   # eval {
   #   $c->stash->{results}->{$jobId}->{user_options} = from_json( $job->options );

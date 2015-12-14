@@ -6,7 +6,7 @@
 
 =head1 NAME
 
-PfamBase::Controller::Search::InteractiveSearch - parent class for interactive 
+PfamBase::Controller::Search::InteractiveSearch - parent class for interactive
 searches
 
 =cut
@@ -21,6 +21,7 @@ $Id: InteractiveSearch.pm,v 1.5 2009-06-09 13:59:33 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 

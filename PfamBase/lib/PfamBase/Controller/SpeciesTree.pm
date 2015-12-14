@@ -19,31 +19,31 @@ This is the base controller for generating interactive or text represenations
 of a species tree. It's intended to be sub-classed to add methods that are
 specific to the site that uses it (currently designed to be Pfam or Rfam).
 
-There are limits, set in the configuration, which affect whether the tree is 
+There are limits, set in the configuration, which affect whether the tree is
 actually generated.
 
 =over 4
 
-=item 
+=item
 
-small trees (numSpecies < allowInteractiveLimit) are generated as 
+small trees (numSpecies < allowInteractiveLimit) are generated as
 interactive trees without complaint
 
-=item 
+=item
 
-medium trees (numSpecies < denyInteractiveLimit) can be time consuming 
-to generate as interactive trees, so we refuse to generate them unless we have 
+medium trees (numSpecies < denyInteractiveLimit) can be time consuming
+to generate as interactive trees, so we refuse to generate them unless we have
 a flag set in the request
 
-=item 
+=item
 
-large trees (numSpecies < denyAllLimit) are too big for the interactive 
-view, so we refuse to generate the interactive tree but will generate a text 
+large trees (numSpecies < denyAllLimit) are too big for the interactive
+view, so we refuse to generate the interactive tree but will generate a text
 representation
 
-=item 
+=item
 
-very large trees (numSpecies > denyAllLimit) can't be touched, so we 
+very large trees (numSpecies > denyAllLimit) can't be touched, so we
 refuse to generate either interactive or text trees
 
 =back
@@ -54,6 +54,7 @@ $Id: SpeciesTree.pm,v 1.3 2008-10-23 15:29:47 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -70,7 +71,7 @@ use base 'Catalyst::Controller';
 =head2 end : ActionClass
 
 Renders the tree. If there's a text representation of the tree in the stash,
-it's returned directly in the response. If not, we hand off to the view to 
+it's returned directly in the response. If not, we hand off to the view to
 render whatever template was previously specified in the stash.
 
 =cut
@@ -78,7 +79,7 @@ render whatever template was previously specified in the stash.
 sub end : ActionClass( 'RenderView' ) {
   my( $this, $c ) = @_;
 
-  if( not $c->stash->{isIE} and 
+  if( not $c->stash->{isIE} and
       defined $c->stash->{textTree} ) {
 
     $c->log->debug( 'SpeciesTree::end: NOT in IE and we got a text tree' )
@@ -88,10 +89,10 @@ sub end : ActionClass( 'RenderView' ) {
     $c->res->content_type( 'text/plain' );
     $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
                               . $c->stash->{acc} . '_tree.txt' );
-  
+
     $c->res->body( $c->stash->{textTree} );
   }
-  
+
   # hand off to the template
   $c->stash->{template} ||= 'components/speciesTree.tt';
 
@@ -112,17 +113,17 @@ raw information:
 
 =over 4
 
-=item 
+=item
 
-If everything goes well, we hand back the ID as a simple, plain text string. 
+If everything goes well, we hand back the ID as a simple, plain text string.
 
-=item 
+=item
 
-If the sequence list has illegal characters we set the response status to 
-400 and set the body to "Bad request", although we don't really expect it to 
+If the sequence list has illegal characters we set the response status to
+400 and set the body to "Bad request", although we don't really expect it to
 be used.
 
-=item 
+=item
 
 If there's a problem adding the row to the DB, we set the response status
 to 500 and put "Failed" into the response body.
@@ -137,9 +138,9 @@ domain graphics.
 
 sub store_ids : Local {
   my( $this, $c ) = @_;
-  
-  my $id_list = uri_unescape( $c->req->param('ids') ); 
-  
+
+  my $id_list = uri_unescape( $c->req->param('ids') );
+
   unless( $id_list =~ m/^([\w]{6,13}\s+)+$/ ) {
     $c->log->debug( 'SpeciesTree::store_ids: not a valid ID string' )
       if $c->debug;
@@ -148,17 +149,17 @@ sub store_ids : Local {
     $c->res->status( 400 );
     return;
   }
-  
+
   $c->log->debug( 'SpeciesTree::store_ids: got some valid ids' ) if $c->debug;
-  
+
   # build an ID for this set of IDs
   my $job_id = Data::UUID->new()->create_str();
-  
+
   # add it to the DB
   my $row;
   eval {
-    # we use "update_or_create" because we don't really care if this ID has 
-    # been used before; it's not important enough to spend time making sure 
+    # we use "update_or_create" because we don't really care if this ID has
+    # been used before; it's not important enough to spend time making sure
     # it's unique
     $row = $c->model('WebUser::Species_collection')
              ->update_or_create( { job_id => $job_id,
@@ -174,10 +175,10 @@ sub store_ids : Local {
     return;
   }
 
-  # the row was successfully added to the table. Hand back the job ID as the 
+  # the row was successfully added to the table. Hand back the job ID as the
   # response
   $c->res->body( $job_id );
-  $c->res->content_type( 'text/plain' );    
+  $c->res->content_type( 'text/plain' );
 
 }
 
@@ -200,7 +201,7 @@ sub interactive : Local {
   # point to the template that will generate the javascript that
   # builds the tree in the client
   $c->stash->{template} = 'components/speciesTree.tt';
-  
+
   # cache the output of the template for one week
   #$c->cache_page( 604800 );
 }
@@ -252,8 +253,8 @@ sub text : Local {
     $c->forward('buildTree');
 
     # did we build a tree ? If the entry has too many species, the getData
-    # method will refuse to retrieve the raw data, even after we've set the 
-    # "loadTree" flag, so we don't find anything in the stash 
+    # method will refuse to retrieve the raw data, even after we've set the
+    # "loadTree" flag, so we don't find anything in the stash
     if( $c->stash->{rawTree} ) {
 
       # yes; convert the tree to plain text
@@ -266,7 +267,7 @@ sub text : Local {
       else {
         $this->convertToText( $c->stash->{rawTree}, \$treeBody );
       }
-      
+
       # add a couple of header lines
       $textTree = '# Species tree for ' . $c->stash->{acc} . "\n";
       $textTree .= $c->stash->{release_data};
@@ -278,7 +279,7 @@ sub text : Local {
     # cache the text tree
     $c->cache->set( $cacheKey, $textTree ) unless $ENV{NO_CACHE};
   }
-  
+
   $c->stash->{textTree} = $textTree;
 }
 
@@ -286,14 +287,14 @@ sub text : Local {
 
 =head2 accessions : Local
 
-Returns the sequence accessions from selected nodes in the species tree as a 
+Returns the sequence accessions from selected nodes in the species tree as a
 plain text file.
 
 =cut
 
 sub accessions : Local {
   my( $this, $c ) = @_;
-  
+
   # validate the UUID
   my $jobId = $c->req->param('jobId');
   unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
@@ -333,7 +334,7 @@ sub accessions : Local {
 
   # the accessions themselves
   $output .= join "\n", @$accession_list;
-  
+
   $c->res->body( $output );
 }
 
@@ -347,7 +348,7 @@ Retrieves a count of the number of species and, based on that number, decides
 whether we can generate the interactive tree, the text tree, or no tree at all.
 If we do want to generate a tree, we forward to a method (which must be supplied
 by the sub-classing controller) that will retrieve data according to the type
-of entry that we're dealing with, be it some sort of Pfam entry or an Rfam 
+of entry that we're dealing with, be it some sort of Pfam entry or an Rfam
 entry.
 
 =cut
@@ -389,11 +390,11 @@ sub getData : Private {
       if $c->debug;
   }
   else {
-  
-    # having made sure there aren't too many families, we'll go ahead and 
+
+    # having made sure there aren't too many families, we'll go ahead and
     # retrieve the data
     $c->forward( 'getDataByType' );
-  }  
+  }
 
 }
 
@@ -405,7 +406,7 @@ sub getData : Private {
 
 Add a new branch to the tree.
 
-Not a Catalyst controller. Called as a regular method because it's called 
+Not a Catalyst controller. Called as a regular method because it's called
 recursively when building the tree.
 
 =cut
@@ -419,14 +420,14 @@ sub addBranch {
     # count the number of unique sequences
     # count the number of unique species
     # count the number of regions
-    # flag this node if it's in the seed   
+    # flag this node if it's in the seed
 
     $tree->{branches}->{$node}->{sequences}->{ $branch->{acc}     }++;
     $tree->{branches}->{$node}->{species  }->{ $branch->{species} }++;
-    $tree->{branches}->{$node}->{frequency}++; 
+    $tree->{branches}->{$node}->{frequency}++;
     $tree->{branches}->{$node}->{inSeed   }++
       if ( $branch->{inSeed} and $node eq $branch->{species} );
- 
+
     # carry on down the tree
     $this->addBranch( $tree->{branches}->{$node}, $branch );
   }
@@ -438,7 +439,7 @@ sub addBranch {
 
 Walks the tree and generates a plain-text representation.
 
-Not a Catalyst controller. Called as a regular method because it's called 
+Not a Catalyst controller. Called as a regular method because it's called
 recursively when walking the tree.
 
 =cut
@@ -449,7 +450,7 @@ sub convertToText {
   # add an increment, either a bar or whitespace
   $indent .= ( not $flag1 and $flag2 ) ? '|  ' : '   ';
 
-  # we're done unless there are more branches to walk down 
+  # we're done unless there are more branches to walk down
   my @keys = keys %{ $tree->{branches} };
   if( my $numNodes = scalar @keys ) {
 
@@ -465,11 +466,11 @@ sub convertToText {
         # yes; add this node and then keep going down
         $flag2 = $nodeCount eq $numNodes ? 0 : 1;
         $$ptrOutput .= $node . ' (' . $tree->{branches}->{$node}->{frequency} . ")\n";
-                       
-        $this->convertToText( $tree->{branches}->{$node}, 
-                              $ptrOutput, 
-                              $indent, 
-                              $flag1, 
+
+        $this->convertToText( $tree->{branches}->{$node},
+                              $ptrOutput,
+                              $indent,
+                              $flag1,
                               $flag2 );
 
       } else {
@@ -487,7 +488,7 @@ sub convertToText {
 
 Walks the tree and generates a plain-text representation.
 
-Not a Catalyst controller. Called as a regular method because it's called 
+Not a Catalyst controller. Called as a regular method because it's called
 recursively when walking the tree.
 
 =cut
@@ -499,7 +500,7 @@ sub convertToPnh {
   #$indent .= ( not $flag1 and $flag2 ) ? '|  ' : '   ';
   $indent .= '  ';
 
-  # we're done unless there are more branches to walk down 
+  # we're done unless there are more branches to walk down
   my @keys = keys %{ $tree->{branches} };
   if( my $numNodes = scalar @keys ) {
 
@@ -518,18 +519,18 @@ sub convertToPnh {
       if( $tree->{branches}->{$node}->{branches} ) {
         # yes; add this node and then keep going down
         $flag2 = $nodeCount eq $numNodes ? 0 : 1;
-        
+
         $$ptrOutput .= "(\n";
 
-        $this->convertToPnh( $tree->{branches}->{$node}, 
-                             $ptrOutput, 
-                             $indent, 
-                             $flag1, 
+        $this->convertToPnh( $tree->{branches}->{$node},
+                             $ptrOutput,
+                             $indent,
+                             $flag1,
                              $flag2 );
 
         $$ptrOutput .= $indent . ") ";
         $$ptrOutput .= $node_text . ':' . $tree->{branches}->{$node}->{frequency} . "\n";
-      } 
+      }
 
       # no; just add this node
       else {

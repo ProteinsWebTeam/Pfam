@@ -2,7 +2,7 @@
 [%
 # layout.tt
 # jt6 20060406 WTSI
-# 
+#
 # build a tab-layout page
 #
 # $Id: layout.tt,v 1.11 2009-11-12 15:50:10 jt6 Exp $
@@ -11,14 +11,14 @@ USE String;
 USE date;
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
 requirements.css.push( "tab_layout.css" );
 requirements.cssIe.push( "tab_layout_ie.css" );
 
-# get the CSS for the curved corners from the application-specific area, so 
+# get the CSS for the curved corners from the application-specific area, so
 # that we can have differently coloured backgrounds in each of the websites
 #requirements.css.push( "cb.css" );
 
@@ -26,7 +26,7 @@ requirements.cssIe.push( "tab_layout_ie.css" );
 # a BLOCK that will generate a sidebar tab
 
 BLOCK generateTab; -%]
-  <li id="[% blockName %]Selector" 
+  <li id="[% blockName %]Selector"
       class="[% IF index == 1; 'selected'; END; IF NOT active; ' disabled'; END %]">
     <a href="#[% blockName %]">[% blockTitle %]</a>
   </li>
@@ -48,13 +48,13 @@ FOREACH block IN layouts.${pageType}.blocks;
   blockTitle = block.values.first;
 
   # build the contents of the tab, if it's active
-  
+
   # if we're in debug mode, just try to render the file, without a safety net,
   # so that we can see where the template breaks (if it breaks at all)
 
   # a bit dangerous. If we happen to leave debugging on in the live server, we
   # expose all sorts of stuff when we hit an error.
-  # jt6 20071212 WTSI. 
+  # jt6 20071212 WTSI.
   IF c.debug;
     CALL c.log.debug( "layout.tt: processing '$blockFile'" );
     pageOutput = PROCESS $blockFile;
@@ -63,7 +63,7 @@ FOREACH block IN layouts.${pageType}.blocks;
       CALL pageContent.append( pageOutput );
     ELSE;
       # there was no content from the block template, meaning that the block
-      # should be disabled. However, we still need a placeholder div in the 
+      # should be disabled. However, we still need a placeholder div in the
       # body of the page, otherwise TabView gets confused
       CALL pageContent.append( "<div><!-- disabled --></div>" );
     END;
@@ -115,8 +115,8 @@ PROCESS components/icons.tt;
   %]
 </div>
 
-<div id="loadingComponents" 
-     class="loading" 
+<div id="loadingComponents"
+     class="loading"
      style="display: none">
   Loading page components<span id="loadingComponentsCount"></span>&hellip;
 </div>
@@ -138,16 +138,16 @@ PROCESS components/icons.tt;
     [%-# add curved corners, where needed -%]
     // var cb = new CurvedBorders();
 
-    [%-# add the various behaviours to the page -%] 
+    [%-# add the various behaviours to the page -%]
     tabPage = new TabPage();
   } );
-  
+
   // ]]>
-</script> 
+</script>
 
 [%-#--------------------------------------
    #
-   # build the mark up for the page proper. Everything is classed appropriately for the 
+   # build the mark up for the page proper. Everything is classed appropriately for the
    # YUI components -%]
 
 <div id="wrap">

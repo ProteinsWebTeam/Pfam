@@ -20,6 +20,7 @@ $Id: Search.pm,v 1.9 2009-09-04 13:55:20 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -43,10 +44,10 @@ sub begin : Private {
 
   # tell the navbar where we are
   $c->stash->{nav} = 'search';
-  
+
   # tell the layout template to disable the summary icons
   $c->stash->{iconsDisabled} = 1;
-  
+
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
@@ -67,12 +68,12 @@ the stash and returns 1 if the submission is successful, returns 0 otherwise.
 
 sub queue_search_transaction : Private {
   my ( $this, $c ) = @_;
-  
+
   # set up an anonymous code block to define a transaction. We want to make sure
-  # that we can add a row to both tables before we know that this job has been 
+  # that we can add a row to both tables before we know that this job has been
   # successfully queued
 
-  # somewhere to stuff the rows from the job_history and job_stream tables, 
+  # somewhere to stuff the rows from the job_history and job_stream tables,
   # if we get them
   my ( $job_history, $job_stream );
 
@@ -88,37 +89,37 @@ sub queue_search_transaction : Private {
                                  estimated_time => $c->stash->{estimated_time},
                                  opened         => \'NOW()',
                                  status         => $c->stash->{queued_status} || 'PEND',
-                                 email          => $c->stash->{email} } );  
-    
+                                 email          => $c->stash->{email} } );
+
     die 'error: failed to add job_history row' unless defined $job_history;
-    
+
     $c->log->debug( 'Search::queue_search_transaction: added row to job_history' )
       if $c->debug;
-    
+
     # and to the input/output table
     $job_stream = $c->model( 'WebUser::JobStream' )
                     ->create( { id    => $job_history->id,
                                 stdin => $c->stash->{input} || q() } );
-    
+
     die 'error: failed to add job_stream row' unless defined $job_stream;
-    
+
     $c->log->debug( 'Search::queue_search_transaction: added row to job_stream' )
       if $c->debug;
-    
+
     # check the submission time with a separate query. We need to do this so
     # that we get the "opened" time that is inserted by the database engine. The
     # job_history object that we have doesn't contain that at this point
     my $history_row = $c->model( 'WebUser::JobHistory' )
                         ->find( { id => $job_history->id } );
-    
+
     die "error: couldn't retrieve job history row" unless defined $history_row;
-    
+
     $c->log->debug( 'Search::queue_search_transaction: job opened: |'
                     . $history_row->opened . '|' ) if $c->debug;
-    
-    return $history_row; # return from anonymous transaction sub 
+
+    return $history_row; # return from anonymous transaction sub
   };
-  
+
   # execute the transaction
   my $history_row;
   eval {
@@ -130,13 +131,13 @@ sub queue_search_transaction : Private {
     $c->log->error( "Search::queue_search_transaction: error in transaction: |$@|" )
       if $c->debug;
 
-    # if the first query worked, we should have a row from the job_history 
+    # if the first query worked, we should have a row from the job_history
     # table, which we can modify to set the job status to "FAIL"
     if ( defined $job_history ) {
-      
+
       # set the status on the object...
       $job_history->status('FAIL');
-      
+
       # .. and see if we can actually update that row in the DB
       if ( $job_history->update ) {
         $c->log->debug( 'Search::queue_search_transaction: successfully rolled back job_history' )
@@ -150,7 +151,7 @@ sub queue_search_transaction : Private {
 
     return 0;
   }
- 
+
   $c->stash->{history_row} = $history_row;
 
   return 1;

@@ -20,6 +20,7 @@ $Id: BatchSearch.pm,v 1.5 2009-10-07 14:20:24 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -33,9 +34,9 @@ use base 'PfamBase::Controller::Search';
 
 =head2 check_unique : Private
 
-Queries the web_user database to check if the current sequence has been 
+Queries the web_user database to check if the current sequence has been
 submitted by this user, with the same search options, within the last "n" hours,
-where n is set in the configuration. If this is a duplicate search, we 
+where n is set in the configuration. If this is a duplicate search, we
 return 1, otherwise 0;
 
 =cut
@@ -53,16 +54,16 @@ sub check_unique : Private {
                      { join => [ 'job_stream' ] } );
 
   if ( $rs->count() > 0 ) {
-    $c->stash->{searchError} = 
+    $c->stash->{searchError} =
       "You have submitted exactly this search within the last $n hours. Please try not to submit duplicate searches.";
 
-    $c->log->debug( 'Search::BatchSearch::check_unique: found ' . $rs->count() 
+    $c->log->debug( 'Search::BatchSearch::check_unique: found ' . $rs->count()
                     . " identical searches within the last $n hours" )
       if $c->debug;
 
     return 0;
   }
-  
+
   return 1;
 }
 
@@ -79,10 +80,10 @@ failure will be returned in the stash, with the key "searchError".
 sub parse_upload : Private {
   my ( $this, $c ) = @_;
 
-  # check that we can get an Catalyst::Request::Upload object from the request 
+  # check that we can get an Catalyst::Request::Upload object from the request
   my $u;
   unless ( $u = $c->req->upload('batchSeq') ) {
-    $c->stash->{searchError} = 
+    $c->stash->{searchError} =
       'You did not supply a valid FASTA format file. Please try again.';
 
     $c->log->warn( 'Search::BatchSearch::parse_upload: no "batchSeq" parameter found or content empty' )
@@ -90,7 +91,7 @@ sub parse_upload : Private {
 
     return 0;
   }
-  
+
   # check that the Upload object returns us a filehandle
   my $fh;
   unless ( $fh = $u->fh ) {
@@ -111,9 +112,9 @@ sub parse_upload : Private {
   my %header_lines;        # line numbers for sequence headers
   my %short_header_lines;  # header lines shortened to 60 characters
   my %sequences;           # the sequence strings
-  
+
   while ( <$fh> ) {
-    
+
     # keep track of the number of lines in the file. Increment before ignoring
     # blank lines though, so that we get the right line count for error
     # messages
@@ -121,15 +122,15 @@ sub parse_upload : Private {
 
     # don't bother storing blank lines in the DB
     next if m/^\s*$/;
-    
+
     #----------------------------------------
 
     # check we're not exceeding the maximum total number of lines
     if ( $line_num > $this->{maxNumLines} ) {
-      $c->stash->{searchError} = 
+      $c->stash->{searchError} =
           'Your sequence file is too long. The server currently allows a maximum of '
         . $this->{maxNumLines} . ' in a single upload. Please split your sequences '
-        . 'across several shorter files and submit them individually.'; 
+        . 'across several shorter files and submit them individually.';
 
       $c->log->debug( 'Search::BatchSearch::parse_upload: file is too long (>'
                       . $this->{maxNumLines} . ')' ) if $c->debug;
@@ -146,7 +147,7 @@ sub parse_upload : Private {
 
       # check that the header text doesn't start with a space...
       if ( $header =~ m/^\s+/ ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             "You cannot have whitespace after the '>'. Please check that your file "
           . "conforms to the FASTA file format specification.";
 
@@ -156,10 +157,10 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # check that the header has some content... Yes, we've had a user 
+      # check that the header has some content... Yes, we've had a user
       # submit sequence files with empty header lines.
       unless ( length $header ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             'You cannot have blank header lines. Please make sure that any line '
           . "starting with '>' has content.";
 
@@ -171,8 +172,8 @@ sub parse_upload : Private {
 
       # check for the following illegal characters: \ ! and *
       if ( m/[\\\!\*]/ ) {
-        $c->stash->{searchError} = 
-            "We found an illegal character in the header on line $line_num " 
+        $c->stash->{searchError} =
+            "We found an illegal character in the header on line $line_num "
           . 'of your input file. Please check the file format and try again.';
 
         $c->log->debug( 'Search::BatchSearch::parse_upload: illegal character in header; bailing' )
@@ -186,7 +187,7 @@ sub parse_upload : Private {
       my $header_id = $1;
 
       if ( defined $header_lines{$header_id} ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             'Your file appears to contain duplicate sequences. The ID on '
           . "line $line_num was also found on line $header_lines{$header_id}. "
           . 'Please make sure that your file contains only unique header IDs. '
@@ -203,7 +204,7 @@ sub parse_upload : Private {
 
       # check that the total number of sequences doesn't exceed some limit
       if ( $seq_count++ > $this->{maxNumSeqs} ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             'There are too many sequences in your file. The server currently '
           . 'allows a maximum of ' . $this->{maxNumSeqs} . ' sequences in a '
           . 'single file. Please split your sequences into multiple files and '
@@ -215,22 +216,22 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # strip both new line and carriage return, leaving spaces alone. We do 
+      # strip both new line and carriage return, leaving spaces alone. We do
       # this last, rather than first as with sequence lines
       s/[\r\n]//g;
     }
-    
+
     # done checking header lines; look at sequence lines
     else {
 
       # strip new line, carriage return and *space characters*
       s/[\r\n\s]//g;
-    
+
       # regular sequence line
-      my $regex_string = $this->{sequenceValidationRegex};      
+      my $regex_string = $this->{sequenceValidationRegex};
       my $regex = qr/$regex_string/i;
       unless ( m/$regex/ ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             "We found an illegal character in the sequence on line $line_num "
           . 'of your input file. Please check the file format and try again.';
 
@@ -243,7 +244,7 @@ sub parse_upload : Private {
       # make sure that $header is set. If it's not set, the sequence wasn't in
       # FASTA format and we need to admonish the user...
       unless ( defined $header and $header ne '' ) {
-        $c->stash->{searchError} = 
+        $c->stash->{searchError} =
             'Your uploaded file does not appear to be in FASTA format. Please '
           . 'check the file format and try again.';
 
@@ -253,11 +254,11 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # OK. Now we're looking at a valid sequence line; store the cleaned-up 
+      # OK. Now we're looking at a valid sequence line; store the cleaned-up
       # contents of the line, so that we can perform more checks later
       $sequences{$header} .= $_;
     }
-    
+
     # this line was valid; add it to the input, along with a newline. This is
     # actual input that will be put into the database
     $c->stash->{input} .= $_ . "\n";
@@ -273,7 +274,7 @@ sub parse_upload : Private {
 
   # make sure we actually got some sequences
   unless ( scalar keys %sequences ) {
-    $c->stash->{searchError} = 
+    $c->stash->{searchError} =
         'We could not find any valid sequences in the uploaded file. Please '
       . 'check the file format and try again.';
 
@@ -285,7 +286,7 @@ sub parse_upload : Private {
 
   # make sure we got the same number of headers as sequences
   if ( scalar( keys %sequences ) != $seq_count ) {
-    $c->stash->{searchError} = 
+    $c->stash->{searchError} =
         "The file contained $seq_count headers but " . scalar( keys %sequences )
       . ' sequences. Please check the file format and try again.';
 
@@ -309,11 +310,11 @@ sub parse_upload : Private {
     if ( length $seq > $this->{maxNumResidues} ) {
       $c->stash->{searchError} =
           "The sequence starting on line $header_lines{$header} is too long. "
-        . 'The server currently allows a maximum of ' . $this->{maxNumResidues} 
+        . 'The server currently allows a maximum of ' . $this->{maxNumResidues}
         . ' characters per sequence. Please make sure that your sequences are shorter '
         . 'than ' . $this->{maxNumResidues} . ' and try again.';
 
-      $c->log->debug( 'Search::BatchSearch::parse_upload: too many characters in sequence (>' 
+      $c->log->debug( 'Search::BatchSearch::parse_upload: too many characters in sequence (>'
                       . $this->{maxNumResidues} . '); bailing' ) if $c->debug;
 
       return 0;
@@ -324,11 +325,11 @@ sub parse_upload : Private {
       $c->stash->{searchError} =
           "The sequence starting on line $header_lines{$header} is too short. "
         . 'The server currently requires sequences to be a minimum of '
-        . $this->{minNumResidues} 
+        . $this->{minNumResidues}
         . ' characters in length. Please make sure that your sequences are longer '
         . 'than ' . $this->{minNumResidues} . ' and try again.';
 
-      $c->log->debug( 'Search::BatchSearch::parse_upload: not enough characters in sequence (<' 
+      $c->log->debug( 'Search::BatchSearch::parse_upload: not enough characters in sequence (<'
                       . $this->{minNumResidues} . '); bailing' ) if $c->debug;
 
       return 0;
@@ -341,14 +342,14 @@ sub parse_upload : Private {
       next unless m/[A-Z]/i;
       $frequency{$_}++;
     }
-    
-    # check that we have a reasonable number of different residue types in the 
-    # sequence. If there are too few residue types, flag the sequence as 
+
+    # check that we have a reasonable number of different residue types in the
+    # sequence. If there are too few residue types, flag the sequence as
     # suspicious
     my $num_residue_types = scalar( keys %frequency );
     $c->log->debug( "Search::BatchSearch::parse_upload: found |$num_residue_types| "
                     . 'different residue types' ) if $c->debug;
-                    
+
     if ( $num_residue_types < $this->{minNumResidueTypes} ) {
       $c->stash->{searchError} =
           qq(The sequence starting at line $header_lines{$header} does not look )
@@ -357,9 +358,9 @@ sub parse_upload : Private {
         .  q(helpdesk at the address below and we will be happy to take a look.);
 
       $c->log->debug( 'Search::BatchSearch::parse_upload: not enough sequence variation; found '
-        . "$num_residue_types different residue types (<" 
+        . "$num_residue_types different residue types (<"
         . $this->{minNumResidueTypes} . '); bailing' ) if $c->debug;
-      
+
       return 0;
     }
 
@@ -387,23 +388,23 @@ sub check_sequence : Private {
     next unless m/[A-Z]/i;
     $frequency{$_}++;
   }
-  
-  # check we have a reasonable number of different residue types in the 
+
+  # check we have a reasonable number of different residue types in the
   # sequence
   my $N = scalar( keys %frequency );
   $c->log->debug( "Search::Batch::check_sequence: found |$N| different residue types" )
     if $c->debug;
   if( $N < $this->{minNumResidueTypes} ) {
     $c->log->debug( 'Search::Batch::check_sequence: not enough sequence variation; found '
-      . $N . ' different residue types (<' 
+      . $N . ' different residue types (<'
       . $this->{minNumResidueTypes} . ' residue types); bailing' ) if $c->debug;
     return;
   }
-  
+
   # check we have a sensible distribution of residues
 
-  # for each residue type found in a sequence, we record the number of 
-  # occurrences. We then calculate the mean number of occurrences for all 
+  # for each residue type found in a sequence, we record the number of
+  # occurrences. We then calculate the mean number of occurrences for all
   # residue types, and the standard deviation for each type from that mean.
   # If the occurrence count for a residue type is greater than one standard
   # deviation from the mean, we flag it
@@ -427,7 +428,7 @@ sub check_sequence : Private {
   $sd = sqrt( $sd / ( $N - 1 ) );
   $c->log->debug( "Search::Batch::check_sequence: standard deviation: |$sd|" )
     if $c->debug;
-  
+
   my $low_deviations = 0;
   foreach ( keys %frequency ) {
     my $diff = abs( $frequency{$_} - $mean );
@@ -437,7 +438,7 @@ sub check_sequence : Private {
       $low_deviations++;
     }
   }
-  
+
   if( $low_deviations > 10 ) {
     $c->log->debug( "Search::Batch::check_sequence: too many low deviations ($low_deviations > 10" )
       if $c->debug;
