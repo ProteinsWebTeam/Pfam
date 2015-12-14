@@ -14,13 +14,14 @@ package PfamBase::Controller::Root;
 
 =head1 DESCRIPTION
 
-This is the base class for the Xfam website catalyst applications. It's 
+This is the base class for the Xfam website catalyst applications. It's
 intended to be sub-classed to build the specific site Root.pm classes.
 
 $Id: Root.pm,v 1.14 2010-01-19 09:59:09 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -94,10 +95,10 @@ sub announcements : Local {
 
   # see if there's a "hide" cookie
   my $cookie = $c->req->cookie("hide_posts");
-  
+
   #----------------------------------------
-  
-  my $entries;  
+
+  my $entries;
 
   # retrieve the blog content
   my $ua = LWP::UserAgent->new;
@@ -123,7 +124,7 @@ sub announcements : Local {
     return;
   }
 
-  # check the timestamp on each entry and decide if we should show it or not  
+  # check the timestamp on each entry and decide if we should show it or not
   foreach my $entry ( $feed->entries ) {
     my $issued = $entry->issued->epoch;
 
@@ -131,7 +132,7 @@ sub announcements : Local {
       # $c->log->debug( "Root::announcements: cookie shows timestamp "
       #                 . $cookie->value . '; entry issued at '
       #                 . $issued ) if $c->debug;
-      
+
       if ( $issued > $cookie->value ) {
         # $c->log->debug( "Root::announcements: post is newer than cookie; showing" )
         #   if $c->debug;
@@ -141,9 +142,9 @@ sub announcements : Local {
       #   $c->log->debug( "Root::announcements: cookie is newer than post; NOT showing" )
       #     if $c->debug;
       # }
-      
+
     }
-    else { 
+    else {
       # $c->log->debug( "Root::announcements: no $type cookie found; adding post "
       #                 . $entry->id )
       #   if $c->debug;
@@ -151,27 +152,27 @@ sub announcements : Local {
     }
 
   }
-   
+
   #----------------------------------------
 
   my $i = 0;
   foreach my $issued ( reverse sort keys %$entries ) {
     my $entry = $entries->{$issued};
-    
+
     $c->log->debug( "Root::announcements: adding post $i" )
       if $c->debug;
-    
+
     # TODO should make the maximum number of posts into a configuration value
-    if ( $i >= 3 ) { 
+    if ( $i >= 3 ) {
       $c->log->debug( "Root::announcements: reached limit for posts" )
         if $c->debug;
       last;
     }
 
-    $c->stash->{entries}->{$issued} = $entry; 
+    $c->stash->{entries}->{$issued} = $entry;
     $i++;
   }
-  
+
   if ( scalar keys %$entries ) {
     $c->log->debug( "Root::announcements: found some posts; handing off to template" )
       if $c->debug;
@@ -182,7 +183,7 @@ sub announcements : Local {
       if $c->debug;
     $c->res->status( 204 );
   }
-    
+
 }
 
 #-------------------------------------------------------------------------------
@@ -269,8 +270,8 @@ sub reportError : Private {
   foreach my $e ( @{$c->error} ) {
 
     $c->log->error( "PfamBase::reportError: reporting a site error: |$e|" );
-    # see if we can access the table at all - basically, see if the DB is up 
-    my $rs; 
+    # see if we can access the table at all - basically, see if the DB is up
+    my $rs;
     eval {
       $rs = $el->find( { message => $e } );
     };
@@ -279,7 +280,7 @@ sub reportError : Private {
       $c->log->error( "PfamBase::reportError: couldn't create a error log; "
                       . "couldn't read error table: $@" );
     }
-  
+
     # if we can get a ResultSet, try to add a message
     if ( $rs ) {
 
@@ -296,7 +297,7 @@ sub reportError : Private {
     }
     else {
 
-      # no log message like this has been registered so far; add the row 
+      # no log message like this has been registered so far; add the row
       eval {
         $el->create( { message => $e,
                        num     => 1,
@@ -318,17 +319,17 @@ sub reportError : Private {
 =head2 robots : Path
 
 Serve a "robots.txt" file. We try to retrieve the file from the configuration
-and fall back onto a restrictive generic version that just disallows all robots 
+and fall back onto a restrictive generic version that just disallows all robots
 to all URLs.
 
 =cut
 
 sub robots : Path( '/robots.txt' ) {
   my( $this, $c ) = @_;
-  
+
   # try to get the file from config
   my $r = $c->config->{robots};
-  
+
   # fall back on a generic, restrictive version
   $r ||= <<'EOF_default_robots';
 User-agent: *
@@ -350,7 +351,7 @@ Redirect requests for "favicon.ico" to the actual file.
 
 sub favicon : Path( '/favicon.ico' ) {
   my ( $this, $c ) = @_;
-  
+
   # set the status to 301 "Moved permanently" too.
   $c->res->redirect( $c->uri_for( '/static/images/favicon.png' ), 301 );
 }
@@ -359,7 +360,7 @@ sub favicon : Path( '/favicon.ico' ) {
 
 =head2 end : Private
 
-Renders the index page for the site by default, but the default template can be 
+Renders the index page for the site by default, but the default template can be
 overridden by setting it in an action (eg for a 404 template). Patterned on
 the "end" method from the DefaultEnd plugin.
 
@@ -367,20 +368,20 @@ the "end" method from the DefaultEnd plugin.
 
 sub end : Private {
   my( $this, $c ) = @_;
-  
+
   # were there any errors ? If so, render the error page into the response
   if( scalar @{ $c->error } ) {
     $c->log->warn( 'Root::end: found some errors from previous methods' )
       if $c->debug;
     $c->stash->{errorMsg} = $c->error;
     $c->stash->{template} = 'pages/error.tt';
-    
+
     # make sure the error page isn't cached
     $c->res->header( 'Pragma'        => 'no-cache' );
     $c->res->header( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
     $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
                                         'post-check=0, pre-check=0, max-age=0' );
-    
+
     $c->forward( $c->view('TT') );
     $c->clear_errors;
   }

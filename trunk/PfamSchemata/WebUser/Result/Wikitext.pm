@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
     default_value => undef,
     is_nullable => 1,
     size => 4294967295,
-  },  
+  },
   "approved_revision",
   { data_type => "INT", default_value => 0, is_nullable => 1, size => 10 },
 );
@@ -29,6 +29,5 @@ CREATE TABLE `wikitext` (
   `title` tinytext NOT NULL,
   `text` longtext character set utf8,
   `approved_revision` int(10) unsigned default '0',
-  PRIMARY KEY  (`title`(256))
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
+  PRIMARY KEY  (`title`(255))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

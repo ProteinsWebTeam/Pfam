@@ -24,6 +24,7 @@ $Id: Section.pm,v 1.5 2009-09-04 13:55:40 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -41,11 +42,11 @@ of URL to get here:
 
 =over
 
-=item http://pfam.sanger.ac.uk/family?entry=piwi 
+=item http://pfam.sanger.ac.uk/family?entry=piwi
 
 =item http://pfam.sanger.ac.uk/family/piwi
 
-=back 
+=back
 
 =cut
 
@@ -75,7 +76,7 @@ sub end : ActionClass( 'RenderView' ) {
     $c->clear_errors if $e =~ /$Catalyst::DETACH/;
   }
 
-  # and having made sure that we're not just being "detached", check for 
+  # and having made sure that we're not just being "detached", check for
   # real errors now
   if ( scalar @{ $c->error } ) {
     $c->log->debug( 'found errors' )
@@ -96,7 +97,7 @@ sub end : ActionClass( 'RenderView' ) {
     $c->log->debug( 'found error message' )
       if $c->debug;
 
-  	# there was an error with user input, e.g. bad ID or accession. Check the 
+  	# there was an error with user input, e.g. bad ID or accession. Check the
   	# config for the location of the error template file
   	$c->stash->{template} ||= 'components/blocks/' . $this->{SECTION} . '/error.tt';
   }

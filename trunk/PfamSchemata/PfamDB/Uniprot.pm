@@ -270,9 +270,13 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ju5pWDCyvWrpDs1Xvg0NbQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-11-26 17:06:18
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aEwlySrl/E5q0vWz6B2Gmg
 
+__PACKAGE__->add_columns(
+  "sequence",
+  { data_type => "blob", is_nullable => 0 },
+);
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

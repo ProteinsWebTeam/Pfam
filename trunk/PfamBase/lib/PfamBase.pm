@@ -22,6 +22,7 @@ $Id: PfamBase.pm,v 1.3 2010-01-19 09:57:49 jt6 Exp $
 
 =cut
 
+use utf8;
 use Moose;
 use namespace::autoclean;
 
@@ -54,7 +55,7 @@ of wild cards in the robots.txt urls.
 =cut
 
 __PACKAGE__->config( 'Plugin::ConfigLoader' => {
-    driver => { 
+    driver => {
        General => { -IncludeRelative  => 1,
                     -UseApacheInclude => 1,
                     -CComments        => 0 }

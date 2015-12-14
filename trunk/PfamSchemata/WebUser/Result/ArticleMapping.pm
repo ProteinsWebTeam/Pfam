@@ -34,6 +34,5 @@ that column.
 CREATE TABLE `article_mapping` (
   `accession` varchar(7) NOT NULL,
   `title` tinytext NOT NULL,
-  PRIMARY KEY  (`accession`,`title`(256))
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
-
+  PRIMARY KEY  (`accession`,`title`(255))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

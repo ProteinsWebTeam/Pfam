@@ -22,6 +22,7 @@ $Id: Keyword.pm,v 1.9 2009-12-07 22:26:06 jt6 Exp $
 
 =cut
 
+use utf8;
 use strict;
 use warnings;
 
@@ -40,7 +41,7 @@ Forwards immediately to the L<run_searches> action to run the text searches.
 sub text_search : Path : Args(0) {
   my ( $this, $c ) = @_;
 
-  # if there's no query parameter, we're done here; drop straight to the 
+  # if there's no query parameter, we're done here; drop straight to the
   # template that will render the search forms
   unless ( $c->req->param('query') ) {
     $c->stash->{kwSearchError} = 'You did not supply a query term.';
@@ -74,7 +75,7 @@ sub text_search : Path : Args(0) {
     return;
   }
 
-  $c->log->debug( 'Search::Keyword::text_search: running query with: |' 
+  $c->log->debug( 'Search::Keyword::text_search: running query with: |'
                   . $terms . '|' ) if $c->debug;
 
   # stash the de-tainted terms so we can safely display them later
@@ -144,7 +145,7 @@ sub run_searches : Private {
 
     # keep track of the order of the configured plugins. Store the
     # list forwards and backwards, since we'll use it both ways,
-    # and drop them (and their descriptions) into a hash too, for 
+    # and drop them (and their descriptions) into a hash too, for
     # easy look-up
     push    @{ $c->stash->{pluginsArray} },         $pluginName;
     unshift @{ $c->stash->{pluginsArrayReversed} }, $pluginName;
@@ -221,8 +222,8 @@ sub run_searches : Private {
 
   #----------------------------------------
 
-  # do a quick look-up to see if the search term matches a Pfam ID or 
-  # accession, but first check if there are multiple "words" in the query 
+  # do a quick look-up to see if the search term matches a Pfam ID or
+  # accession, but first check if there are multiple "words" in the query
   # term, because if there are, this can't be a unique ID or accession
   $c->forward( 'lookup_term' )
     unless $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/;
