@@ -728,6 +728,7 @@ sub _drawUniProt : Private {
 
     #previous region is a container region and current is nested
     if (defined $containerRegion
+        && defined $nestingRegions{$currRegion->pfama_acc->pfama_acc}
         && $nestingRegions{$currRegion->pfama_acc->pfama_acc} eq $containerRegion->pfama_acc->pfama_acc
         && $currRegion->seq_start >= $containerRegion->seq_start
         && $currRegion->seq_end <= $containerRegion->seq_end) {
