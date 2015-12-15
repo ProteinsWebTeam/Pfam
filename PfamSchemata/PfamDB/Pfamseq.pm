@@ -380,7 +380,7 @@ __PACKAGE__->has_one(
 #  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
 #);
 
-# this relationship needs to have the same name as the one that links 
+# this relationship needs to have the same name as the one that links
 # PfamaArchitecture to Architecture
 __PACKAGE__->belongs_to(
   "auto_architecture",
@@ -392,6 +392,12 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->add_columns(
   "sequence",
   { data_type => "blob", is_nullable => 0 },
+);
+
+__PACKAGE__->has_many(
+  "pfama_reg_seeds",
+  "PfamDB::PfamaRegSeed",
+  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
 );
 
 =head1 COPYRIGHT
