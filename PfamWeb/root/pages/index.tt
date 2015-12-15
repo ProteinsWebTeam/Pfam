@@ -65,14 +65,14 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       </p>
       <p>The data presented for each entry is based on the
       <a class="ext" href="http://www.uniprot.org/help/reference_proteome">UniProt Reference Proteomes</a>
-      but information on individual UniProtKB sequences can still be found by entrying the protein accession.
+      but information on individual UniProtKB sequences can still be found by entering the protein accession.
       Pfam <i>full</i> alignments are available from searching a variety of databases, either to provide
       different accessions (e.g. all UniProt and NCBI GI) or different levels of redundancy.
     </div>
   </div>
 
   <hr />
- 
+
    [% # URI shortcuts
    helpBase   = c.uri_for( "/help" );
    searchBase = c.uri_for( "/search" );
