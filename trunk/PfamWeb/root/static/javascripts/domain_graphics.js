@@ -995,6 +995,8 @@ var PfamGraphic = Class.create( {
             } else {
               url = activeArea.href;
             }
+            // Ugly hack, to be removed eventually
+            url = url.replace(/\/+/g, '/').replace(':/', '://');
 
             activeCanvas.setStyle( { cursor: "pointer" } );
             window.status = url;
@@ -1096,6 +1098,8 @@ var PfamGraphic = Class.create( {
       } else {
         url = activeArea.href;
       }
+      // Ugly hack, to be removed eventually
+      url = url.replace(/\/+/g, '/').replace(':/', '://');
 
       if ( e.isMiddleClick() ) {
         window.open( url );
