@@ -123,8 +123,6 @@ LINE: while(<>) {
 			next if (/\#=GF\s+DR\s{3}MEROPS;\s{1}[A-Z]\S+;$/);
 		}elsif($db eq "URL"){
 			next if (/\#=GF\s+DR\s{3}URL;\s{1}http:\/\/\S+;$/);
-		}elsif($db eq "LOAD"){
-			next if (/\#=GF\s+DR\s{3}LOAD;\s{1}\S+;$/);
 		}elsif($db eq "INTERPRO"){
 			next if (/\#=GF\s+DR\s{3}INTERPRO;\s{1}IPR\d{6};$/);
 		}
