@@ -110,12 +110,6 @@ __PACKAGE__->table("pfamseq");
   extra: {unsigned => 1}
   is_nullable: 0
 
-=head2 genome_seq
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
-
 =head2 auto_architecture
 
   data_type: 'bigint'
@@ -175,8 +169,6 @@ __PACKAGE__->add_columns(
     extra => { unsigned => 1 },
     is_nullable => 0,
   },
-  "genome_seq",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "auto_architecture",
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "treefam_acc",
@@ -363,8 +355,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:31:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7I8vpIw+CJ0DLy/dipHdtQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-01-13 11:22:17
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aTZ1k4S1FS3xdNInNreuvg
 
 __PACKAGE__->load_components(qw/ Result::ColumnData /);
 __PACKAGE__->register_relationships_column_data();
