@@ -1,4 +1,4 @@
-[% 
+[%
 # entry_xml.tt
 # jt6 20071123 WTSI
 #
@@ -20,9 +20,9 @@ baseUri = "http://pfam.xfam.org/";
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/protein.xsd"
-      release="[% relData.pfam_release %]" 
+      release="[% relData.pfam_release %]"
       release_date="[% relData.pfam_release_date %]">
-  <entry entry_type="sequence" db="uniprot" db_release="[% relData.swiss_prot_version %]" accession="[% pfamseq.pfamseq_acc %]" id="[% pfamseq.pfamseq_id %]">
+  <entry entry_type="sequence" db="uniprot" db_release="[% relData.swiss_prot_version %]" accession="[% pfamseq.pfamseq_acc ? pfamseq.pfamseq_acc : pfamseq.uniprot_acc %]" id="[% pfamseq.pfamseq_id ? pfamseq.pfamseq_id : pfamseq.uniprot_id %]">
     <description>
 <![CDATA[
 [% pfamseq.description | html %]
