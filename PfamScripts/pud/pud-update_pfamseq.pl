@@ -93,7 +93,7 @@ my $uniprot_location = $config->uniprotPrivateLoc;
 
 
 #Get reldate.txt from UniProt ftp directory
-if(-s "reldateRP.txt") {
+if(-s "$pfamseq_dir/reldateRP.txt") {
   $logger->debug("Already copied reldate.txt\n");
 }
 else {
@@ -102,7 +102,7 @@ else {
 }
 
 if(-e "$status_dir/updated_reference_proteome_version") { 
-  $logger->debug("Already updated rdb with referenct proteome version\n");
+  $logger->debug("Already updated rdb with reference proteome version\n");
 } 
 else {
   $logger->debug("Updating rdb with refprot version\n");
@@ -171,7 +171,7 @@ else {
 
     $logger->debug("Parsing $file\n");
 
-    $/= "//\n";
+    local $/= "//\n";
     open(FH, "gunzip -c $file |") or $logger->logdie("Failed to gunzip $file:[$!]\n");
 
 #adding counts for debugging
@@ -387,7 +387,7 @@ else {
 
       }
       #This will be uploaded into the tmp_pfamseq table.
-      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\n";
+      print PFAMSEQ "$record{'AC'}\t$record{'ID'}\t$record{'SEQ_VER'}\t$record{'CRC64'}\t$record{'MD5'}\t$description\t$record{'PE'}\t$record{'SEQ_LEN'}\t$record{'OS'}\t$record{'OC'}\t$is_frag\t$record{'SEQ'}\t\\N\t\\N\t$record{'NCBI_TAX'}\t\\N\t\\N\n";
       
 #count for debugging
       $count2++;
@@ -460,6 +460,9 @@ else {
   close DBSIZE;
 }
 
+
+$dbh = $pfamDB->getSchema->storage->dbh; #Do this again as connection will drop 
+
 #Make tmp_pfamseq table in rdb
 if(-e "$status_dir/created_tmp_pfamseq") {
   $logger->info("Already created table tmp_pfamseq\n");
@@ -485,6 +488,8 @@ else {
     updated timestamp NOT NULL default CURRENT_TIMESTAMP,\
     created datetime default NULL,\
     ncbi_taxid int(10) unsigned default '0',\
+    auto_architecture bigint(11) unsigned DEFAULT NULL, \
+    treefam_acc varchar(8) DEFAULT NULL, \
     PRIMARY KEY  (pfamseq_acc),\
     KEY pfamseq_acc_version (pfamseq_acc,seq_version) ) ENGINE=InnoDB");
 
@@ -496,12 +501,12 @@ else {
 
 #Upload pfamseq data to temporary table
 if ( -e "$status_dir/uploaded_pfamseq" ) {
-  $logger->info("Already uploaded $cwd/pfamseq.dat to tmp_pfamseq\n");
+  $logger->info("Already uploaded $cwd/$pfamseq_dir/pfamseq.dat to tmp_pfamseq\n");
 }
 else {
-  $logger->info("Uploading $cwd/pfamseq.dat to tmp_pfamseq\n");
-  my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); #mySQL statement updated for new schema
-  _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 15 ); 
+  $logger->info("Uploading $cwd/$pfamseq_dir/pfamseq.dat to tmp_pfamseq\n");
+  my $sth = $dbh->prepare( 'INSERT into tmp_pfamseq VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'); #mySQL statement updated for new schema
+  _loadTable( $dbh, "$cwd/$pfamseq_dir/pfamseq.dat", $sth, 17 ); 
 
   system("touch $status_dir/uploaded_pfamseq")
     and $logger->logdie("Couldn't touch $status_dir/uploaded_pfamseq:[$!]\n");
@@ -526,7 +531,7 @@ if(-e "$status_dir/update_pfamseq_changed") {
 }
 else {
   $logger->info("Updating pfamseq with changed data\n");
-  my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc"); 
+  my $changed_pfamseq = $dbh->prepare("update pfamseq, tmp_pfamseq set pfamseq.pfamseq_id = tmp_pfamseq.pfamseq_id, pfamseq.description = tmp_pfamseq.description, pfamseq.evidence = tmp_pfamseq.evidence,  pfamseq.species = tmp_pfamseq.species, pfamseq.taxonomy=tmp_pfamseq.taxonomy, pfamseq.is_fragment = tmp_pfamseq.is_fragment, pfamseq.updated = NOW(), pfamseq.ncbi_taxid = tmp_pfamseq.ncbi_taxid, pfamseq.auto_architecture=tmp_pfamseq.auto_architecture, pfamseq.treefam_acc=tmp_pfamseq.treefam_acc where tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc"); 
   $changed_pfamseq->execute() or $logger->logdie("Failed to update pfamseq with changed data ".$changed_pfamseq->errstr."\n");
   system("touch $status_dir/update_pfamseq_changed") and $logger->logdie("Couldn't touch $status_dir/update_pfamseq_changed:[$!]\n"); 
 }
@@ -538,11 +543,10 @@ if(-e "$status_dir/pfamseq_new") {
 }
 else {
   $logger->info("Updating pfamseq with new data\n");
-  my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
+  my $pfamseq_new = $dbh->prepare("insert into pfamseq (pfamseq.pfamseq_id, pfamseq.pfamseq_acc, pfamseq.seq_version, pfamseq.crc64, pfamseq.md5, pfamseq.description, pfamseq.evidence, pfamseq.length, pfamseq.species, pfamseq.taxonomy, pfamseq.is_fragment, pfamseq.sequence, pfamseq.created, pfamseq.ncbi_taxid, pfamseq.auto_architecture, pfamseq.treefam_acc) (select tmp_pfamseq.pfamseq_id, tmp_pfamseq.pfamseq_acc, tmp_pfamseq.seq_version, tmp_pfamseq.crc64, tmp_pfamseq.md5, tmp_pfamseq.description, tmp_pfamseq.evidence, tmp_pfamseq.length, tmp_pfamseq.species, tmp_pfamseq.taxonomy, tmp_pfamseq.is_fragment, tmp_pfamseq.sequence, tmp_pfamseq.created, tmp_pfamseq.ncbi_taxid, tmp_pfamseq.auto_architecture, tmp_pfamseq.treefam_acc from tmp_pfamseq left join pfamseq on tmp_pfamseq.pfamseq_acc=pfamseq.pfamseq_acc and tmp_pfamseq.seq_version=pfamseq.seq_version where pfamseq.pfamseq_acc is null)");
   $pfamseq_new->execute() or $logger->logdie("Failed to update pfamseq with new data ".$pfamseq_new->errstr."\n");
   system("touch $status_dir/pfamseq_new") and $logger->logdie("Couldn't touch $status_dir/pfamseq_new:[$!]\n"); 
 }
-
 
 #Check pfamseq in rdb is the correct size;
 my $dbsize;
