@@ -429,9 +429,6 @@ sub parseCLANDESC {
         elsif ( $file[$i] =~ /^DR   (MEROPS); (\S+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (LOAD); (\S+);$/ ) {
-          push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }
         elsif ( $file[$i] =~ /^DR   (CAZY); ((GH_|GT_|CBM_|PL_|CE_)\d+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
