@@ -5,11 +5,11 @@
    Stylesheet with generally applicable rules for the whole site.
 
    $Id: pfam.css,v 1.85 2009-10-29 14:40:18 jt6 Exp $
-   
+
    Copyright (c) 2007: Genome Research Ltd.
-   
+
    Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-   
+
    This is free software; you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
    Foundation; either version 2 of the License, or (at your option) any later
@@ -22,8 +22,8 @@
 
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
-    
-*/   
+
+*/
 
 /* global or widely used classes */
 
@@ -172,7 +172,7 @@ div.pfamLogoHolder { /* right */
   left: -250px;
 }
 
-/* we need the right "column" to be the same width as the left in order to 
+/* we need the right "column" to be the same width as the left in order to
  * centre the navbar, but then we need to push the contents of the right column
  * back right to account for that */
 /* div.pfamLogoHolder a.button { */
@@ -224,7 +224,7 @@ img.h3PfamLogo {
   text-align: center;
 }
 
-#navbar li { 
+#navbar li {
   display: inline;
   letter-spacing: 2px;
 }
@@ -234,12 +234,12 @@ img.h3PfamLogo {
   font-weight: bold;
 }
 
-#navbar a { 
+#navbar a {
   text-decoration: none;
   color: #105a94;
 }
 
-#navbar a.here { 
+#navbar a.here {
   color: #666;
 }
 
@@ -343,7 +343,7 @@ div.jumpSpinner {
 
 /* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
-   when the page contains tabs, so add a separate style for that which 
+   when the page contains tabs, so add a separate style for that which
    adds the background image, etc. */
 
 #siteFooter {
@@ -370,7 +370,7 @@ div.jumpSpinner {
 
 #siteFooter p.spaced,
 #footer p.spaced {
-  letter-spacing: 3px;  
+  letter-spacing: 3px;
 }
 
 /* the footer for tab-layout templates */
@@ -408,7 +408,7 @@ div.errorReport p.message {
 /* ---------------------------------------- */
 /* "details" table. Used in various places */
 
-table.details {  
+table.details {
   margin: 0;
   padding: 0;
   border-spacing: 1px;
@@ -450,7 +450,7 @@ td.stripeHover {
  * table.details tr.odd {
  *   background: #CCC;
  * }
- * 
+ *
  * table.details tr.even {
  *   background: #DDD;
  * }
@@ -501,7 +501,7 @@ td.notes {
 
 body.tool {
   padding: 80px 2px 2px 2px;
-  background: #FFF url(/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg) 1em 1em no-repeat; 
+  background: #FFF url(/shared/images/EMBL_EBI_logo_180pixels_RGB.jpg) 1em 1em no-repeat;
   color: #15538e;
 }
 
@@ -621,7 +621,7 @@ div.pfamBSearch .progressBar {
 .key .gradBot {
   font-weight: bold;
   color: #FFF;
-  background: #C00000;  
+  background: #C00000;
   padding: 0 0.2em;
 }
 
@@ -958,7 +958,7 @@ div.citation span.title {
   font-style: italic;
 }
 div.citation span.ref {
-  display: block;  
+  display: block;
   padding: 0.2em 0;
 }
 div.citation span.jrnl {
@@ -986,7 +986,7 @@ div.citation span.jrnl {
   width: 200px;
   height: 70px;
   left: 0;
-  position: relative;  
+  position: relative;
 }
 
 #dbdPfamLogo {
@@ -994,7 +994,7 @@ div.citation span.jrnl {
   width: 200px;
   height: 70px;
   right: 0;
-  position: relative;  
+  position: relative;
 }
 
 /* ======================================== */
@@ -1105,8 +1105,15 @@ div.blockContent #treeTools {
   line-height: 1.6em;
 }
 
-#logos {
-  width: 100%;
+.logos {
+  margin: 1em 0;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-justify-content: space-around;
+      -ms-flex-pack: distribute;
+          justify-content: space-around;
 }
 
 /* ======================================== */
@@ -1144,4 +1151,3 @@ a.btn:hover {
     color-stop(0.5, rgb(87,145,199))
   );
 }
-
