@@ -440,9 +440,6 @@ sub parseDESC {
         elsif ( $file[$i] =~ /^DR   (MEROPS); (\S\d+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
-        elsif ( $file[$i] =~ /^DR   (LOAD); (\S+);$/ ) {
-          push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
-        }
         elsif ( $file[$i] =~ /^DR   (CAZY); ((GH|GT|CBM|PL|CE)\d+);$/ ) {
           push( @{ $params{DBREFS} }, { db_id => $1, db_link => $2 } );
         }
