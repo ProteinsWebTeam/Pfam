@@ -12,51 +12,56 @@ META fullPage = 1;
 <div id="about">
 
   <h1>About Pfam</h1>
-  
+
   <p>
-    Pfam version [% relData.pfam_release %] was produced at the 
+    Pfam version [% relData.pfam_release %] was produced at the
     <a class="ext"
-      href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a> 
+      href="https://www.ebi.ac.uk/">European Bioinformatics Institute</a>
     using a sequence database called <em>Pfamseq</em>, which is based on
-    <a class="ext" href="http://www.uniprot.org/">UniProt</a> release 
+    <a class="ext" href="http://www.uniprot.org/">UniProt</a> release
     [% relData.swiss_prot_version %].
   </p>
   <p>
     Pfam is freely available under the
-    <a class="ext" href="http://creativecommons.org/publicdomain/zero/1.0/">
-      Creative Commons Zero</a> (&quot;CC0&quot;) licence. 
+    <a class="ext" href="https://creativecommons.org/publicdomain/zero/1.0/">
+      Creative Commons Zero</a> (&quot;CC0&quot;) licence.
   </p>
-  <p> 
+  <p>
     Pfam is powered by the <a class="ext" href="http://hmmer.org/">HMMER3</a>
-    package written by 
-    <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
-      Sean Eddy and his group</a> at the 
-    <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
-      Howard Hughes Janelia Research Campus</a>, and built by the 
+    package written by
+    <a class="ext" href="http://eddylab.org/">
+      Sean Eddy and his group</a> at
+    <a class="ext" href="https://www.hhmi.org/">
+      HMMI</a>/
+    <a class="ext" href="https://www.mcb.harvard.edu/mcb/home/">
+      Harvard University</a>, and built by the
     <a class="ext" href="http://xfam.org/">Xfam consortium</a>.
   </p>
-  <table id="logos">
-    <tbody>
-      <tr>
-        <td>
-          <a href="http://www.ebi.ac.uk/">
-            <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.png') %]" alt="EMBL-EBI"></img></a>
-        </td>
-        <td>
-          <a href="http://janelia.hhmi.org/">
-            <img src="[% c.uri_for('/static/images/site_logos/janelia_logo.png') %]" alt="JFRC"></img></a>
-        </td>
-        <td>
-          <a href="http://www.sanger.ac.uk/">
-            <img src="[% c.uri_for('/static/images/site_logos/sanger_logo.png') %]" alt="WTSI"></img></a>
-        </td>
-        <td>
-          <a href="https://www.sbc.su.se/">
-            <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC"></img></a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div>
+    <div class="logos">
+        <a href="https://www.ebi.ac.uk/">
+          <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.jpg') %]" alt="EMBL-EBI">
+        </a>
+        <a href="https://www.mcb.harvard.edu/mcb/home/">
+          <img src="[% c.uri_for('/static/images/site_logos/harvard_logo.png') %]" alt="Harvard University">
+        </a>
+        <a href="https://www.sbc.su.se/">
+          <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
+        </a>
+    </div>
+    <div>Support from:</div>
+    <div class="logos">
+        <a href="http://www.bbsrc.ac.uk/">
+          <img src="[% c.uri_for('/static/images/site_logos/bbsrc_logo.jpg') %]" alt="BBSRC">
+        </a>
+        <a href="http://www.wellcome.ac.uk/">
+          <img src="[% c.uri_for('/static/images/site_logos/wt_logo.jpg') %]" alt="Wellcome Trust">
+        </a>
+        <a href="https://www.hhmi.org/">
+          <img src="[% c.uri_for('/static/images/site_logos/hhmi_logo.jpg') %]" alt="HHMI">
+        </a>
+    </div>
+  </div>
 </div>
 
 [%#
