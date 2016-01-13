@@ -398,10 +398,18 @@ sub get_regions : Private {
 
   $c->log->debug( 'Protein::get_regions: adding region info' ) if $c->debug;
 
-  my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
-             ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
-                         in_full           => 1 },
-                       { prefetch => [ qw( pfama_acc ) ] } );
+  my @pfama_regions;
+  if (defined $c->stash->{uniprot}) {
+    @pfama_regions = $c->model('PfamDB::UniprotRegFull')
+               ->search( { 'me.uniprot_acc' => $c->stash->{pfamseq}->uniprot_acc,
+                           in_full           => 1 },
+                         { prefetch => [ qw( pfama_acc ) ] } );
+  } else {
+    @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+               ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->pfamseq_acc,
+                           in_full           => 1 },
+                         { prefetch => [ qw( pfama_acc ) ] } );
+  }
   $c->stash->{pfama_regions} = \@pfama_regions;
 
   $c->log->debug( 'Protein::get_regions: found '
@@ -615,12 +623,8 @@ sub get_summary_data_uniprot : Private {
                        ->search( { 'me.uniprot_acc' => $c->stash->{pfamseq}->uniprot_acc,
                                    in_full => 1 },
                                  { prefetch => [ qw( uniprot_acc uniprot_acc ) ] } );
-  my @other_regions = $c->model('PfamDB::OtherReg')
-                        ->search( { 'me.pfamseq_acc' => $c->stash->{pfamseq}->uniprot_acc },
-                                 {} );
-
   my $regions;
-  foreach my $region ( @pfama_regions, @other_regions ) {
+  foreach my $region ( @pfama_regions ) {
    push @{ $regions->{ $region->seq_start } }, $region;
   }
 
