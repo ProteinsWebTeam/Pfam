@@ -37,31 +37,83 @@ META fullPage = 1;
       Harvard University</a>, and built by the
     <a class="ext" href="http://xfam.org/">Xfam consortium</a>.
   </p>
-  <div>
-    <div class="logos">
-        <a href="https://www.ebi.ac.uk/">
-          <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.jpg') %]" alt="EMBL-EBI">
-        </a>
-        <a href="https://www.mcb.harvard.edu/mcb/home/">
-          <img src="[% c.uri_for('/static/images/site_logos/harvard_logo.png') %]" alt="Harvard University">
-        </a>
-        <a href="https://www.sbc.su.se/">
-          <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
-        </a>
-    </div>
-    <div>Support from:</div>
-    <div class="logos">
-        <a href="http://www.bbsrc.ac.uk/">
-          <img src="[% c.uri_for('/static/images/site_logos/bbsrc_logo.jpg') %]" alt="BBSRC">
-        </a>
-        <a href="http://www.wellcome.ac.uk/">
-          <img src="[% c.uri_for('/static/images/site_logos/wt_logo.jpg') %]" alt="Wellcome Trust">
-        </a>
-        <a href="https://www.hhmi.org/">
-          <img src="[% c.uri_for('/static/images/site_logos/hhmi_logo.jpg') %]" alt="HHMI">
-        </a>
-    </div>
+  <div class="logos">
+      <a href="https://www.ebi.ac.uk/">
+        <img src="[% c.uri_for('/static/images/site_logos/embl_ebi_logo.jpg') %]" alt="EMBL-EBI">
+      </a>
+      <a href="https://www.mcb.harvard.edu/mcb/home/">
+        <img src="[% c.uri_for('/static/images/site_logos/harvard_logo.png') %]" alt="Harvard University">
+      </a>
+      <a href="https://www.sbc.su.se/">
+        <img src="[% c.uri_for('/static/images/site_logos/sbc_logo.png') %]" alt="SBC">
+      </a>
   </div>
+  <ul class="funding">Pfam is supported by the following organisations:
+    <li>
+      <div>
+        <a href="http://www.embl.org/">
+          <img
+            src="[% c.uri_for('/static/images/site_logos/embl_logo.png') %]"
+            alt="EMBL-EBI"
+          >
+        </a>
+      </div>
+      <div>
+        EMBL is EMBL-EBI's parent organisation. It provides core funding
+        (staff, space, equipment) for Pfam.
+      </div>
+    </li>
+    <li>
+      <div>
+        <a href="http://www.wellcome.ac.uk/">
+          <img
+            src="[% c.uri_for('/static/images/site_logos/wt_logo.jpg') %]"
+            alt="Wellcome Trust"
+          >
+        </a>
+      </div>
+      <div>
+        The Wellcome Trust has supported Pfam since the database inception,
+        via core funding when based at the Wellcome Trust Sanger Institute.
+        As well as providing and maintaining the campus on which the EMBL-EBI
+        is located, the Wellcome Trust also now provides significant funding
+        for Pfam (grant 108433/Z/15/Z). The current grant runs from October
+        2015 to September 2020.
+      </div>
+    </li>
+    <li>
+      <div>
+        <a href="http://www.bbsrc.ac.uk/">
+          <img
+            src="[% c.uri_for('/static/images/site_logos/bbsrc_logo.jpg') %]"
+            alt="BBSRC"
+          >
+        </a>
+      </div>
+      <div>
+        BBSRC currently supports Pfam activities via the grants
+        (BB/L024136/1 and BB/N00521X/1).
+      </div>
+    </li>
+    <li>
+      <div>
+        <a href="https://www.hhmi.org/">
+          <img
+            src="[% c.uri_for('/static/images/site_logos/hhmi_logo.jpg') %]"
+            alt="HHMI"
+          >
+        </a>
+      </div>
+      <div>
+        The Howard Hughes Medical Institute funds support the Eddy group.
+      </div>
+    </li>
+  </ul>
+  <p>
+    Many organisations have supported Pfam activities in the past.
+    For more information, please contact the
+    <a href="mailto:pfam-help@ebi.ac.uk">Pfam helpdesk</a>
+  </p>
 </div>
 
 [%#
