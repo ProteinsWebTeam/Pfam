@@ -1105,8 +1105,12 @@ div.blockContent #treeTools {
   line-height: 1.6em;
 }
 
-.logos {
-  margin: 1em 0;
+ul.funding {
+  padding: 0;
+}
+
+ul.funding > li, .logos {
+  list-style: none;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1114,6 +1118,19 @@ div.blockContent #treeTools {
   -webkit-justify-content: space-around;
       -ms-flex-pack: distribute;
           justify-content: space-around;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  margin: 1em 0;
+}
+
+ul.funding > li > div {
+  width: 50%;
+}
+
+ul.funding > li > div:first-child {
+  text-align: center;
 }
 
 /* ======================================== */
