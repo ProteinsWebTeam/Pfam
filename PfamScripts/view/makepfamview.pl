@@ -44,14 +44,6 @@ $view->cleanUp();
 #-------------------------------------------------------------------------------
 #Now we have start the work
 $view->getPfamObj;
-
-#If family has no hits, no need to process the ALIGN file
-my $pfamA=$view->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $view->pfam->pfama_acc  } );
-if($pfamA->num_full == 0) {
-  $view->logger->debug("Will not process ALIGN file as it contains no hits");
-  $view->{noALIGN}=1;
-}
-
 $view->getAllFiles;
 $view->resetStats;
 #Run a md5 checksum on the "raw" files and compared to the release versions......!
@@ -63,7 +55,7 @@ my $GFAnn = $view->getGFAnnotations;
 
 #Active site prediction object
 $view->initiateActiveSiteObj($GFAnn);
-$view->processALIGN( $GFAnn ) unless($view->{noALIGN});
+$view->processALIGN( $GFAnn );
 $view->processSEED( $GFAnn );
 $view->processHMMs( );
 #-------------------------------------------------------------------------------
