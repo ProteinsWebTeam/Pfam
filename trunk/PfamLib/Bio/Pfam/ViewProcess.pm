@@ -478,6 +478,19 @@ sub processALIGN {
   my $filename = 'ALIGN';
   my $type     = 'full';
 
+  #Check to see if family has members
+  my $pfamA=$self->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $self->pfam->pfama_acc  } );
+  if($pfamA->num_full == 0) {
+    $self->logger->debug("Will not process ALIGN file as it contains no hits");
+    $self->{noALIGN}=1;
+
+    #Add GF annotation to uniprot alignment, and make RP alignments    
+    $self->addUniprotGF($GFAnn);
+    $self->makeRPAligns();
+    return;
+  }
+
+
   my $a = $self->readAlignment($filename);
 
 #Get all of the region information from the database. This will allows to performs some
@@ -488,6 +501,10 @@ sub processALIGN {
   unless(keys %$regs) { #A handful of families will have no regions left after clan competition
     $self->logger->debug("No regions in ALIGN file to process");
     $self->pfam->update( { num_full => 0 });
+    
+    #Add GF annotation to uniprot alignment, and make RP alignments    
+    $self->addUniprotGF($GFAnn);
+    $self->makeRPAligns();
     return;
   }
 
@@ -534,19 +551,20 @@ sub processALIGN {
   $self->logger->debug("Making fasta file for $filename");
   $self->makeNonRedundantFasta;
 
-  #Make RP alignments
-  $self->makeRPAligns( $aliIds, $regs, $GFAnn );
-
   #Upload the alignments (stockholm and html) and tree into the database
   $self->uploadTreesAndAlign( $filename, $type );
 
   #Add GF annoations to uniprot alignments
-  $self->addUniprotGF();
+  $self->addUniprotGF($GFAnn);
+
+  #Make RP alignments (this is now done using the uniprot alignments)
+  #addUniprotGF must be run before making the RP alignments
+  $self->makeRPAligns(); 
 }
 
 
 sub addUniprotGF {
-  my ($self) = @_;
+  my ($self, $GFAnn) = @_;
 
   my $pfamA_acc = $self->pfam->pfama_acc;
 
@@ -555,32 +573,43 @@ sub addUniprotGF {
 
   my @alignment=split(/\n/, $alignment);
 
-  my $filename="uniprot";
-  open(ALN, ">$filename") or $self->logger->logdie("Couldn't open $filename, $!");
+  my $uniprot_aln="uniprotAln";
+  my $noSeqs;
+  open(ALN, ">$uniprot_aln") or $self->logger->logdie("Couldn't open $uniprot_aln, $!");
   foreach my $line (@alignment) {
     unless($line =~ /^#/ or $line =~ /^\/\//) { #The alignment might have the GF annoation already added, if so, just remove and add again
       print ALN "$line\n";
+      $noSeqs++;
     }
   }
   close ALN;
 
-  my $GFAnn = $self->getGFAnnotations();
-  $self->writeAnnotateAlignment($filename, $GFAnn);
+  $self->writeAnnotateAlignment($uniprot_aln, $GFAnn);
    
-  $filename.=".ann";
-  my $aln;
-  open(ALN, $filename) or $self->logger->logdie("Couldn't open $filename, $!");
+  #Add #=GF SQ line to alignment
+  rename($uniprot_aln, "uniprot");
+  $uniprot_aln.=".ann";
+  my $filename="uniprot";
+  my ($aln, $flag);
+  open(ALN, $uniprot_aln) or $self->logger->logdie("Couldn't open $uniprot_aln, $!");
+  open(UNIPROT, ">$filename.ann") or $self->logger->logdie("Couldn't open $filename.ann, $!");
   while(<ALN>) {
-    $aln.=$_;
+    unless(/^#/) {
+      unless($flag) {
+        print UNIPROT "#=GF SQ   $noSeqs\n";
+        $flag=1;
+      }
+    }
+    print UNIPROT $_;
   }  
   close ALN;
+  close UNIPROT;
+  unlink $uniprot_aln;
+   
 
-  $self->pfamdb->getSchema->resultset('AlignmentAndTree')->update_or_create({
-      pfama_acc => $pfamA_acc,
-      alignment  => Compress::Zlib::memGzip($aln),
-      type       => 'uniprot'
-    }
-  );
+  #Upload alignment
+  $self->uploadTreesAndAlign($filename, 'uniprot');
+
 }
 
 sub _align2cigar {
@@ -605,58 +634,85 @@ sub _align2cigar {
 }
 
 sub makeRPAligns {
-  my ( $self, $aliIds, $regs, $GFAnn ) = @_;
+  my ($self) = @_;
 
-  #p($aliIds);
-  my @rplevels = qw(rp15 rp35 rp55 rp75 ref_proteome);
-  my $counts;
-  foreach my $l (@rplevels) {
-    $counts->{'number_'.$l} =0;
-    my $rpali = Bio::Pfam::AlignPfam->new();
-    my @ssStrings;
-    $self->logger->debug("Working on level $l");
-    foreach my $seq ( $aliIds->each_seq ) {
-      my $key =
-          $seq->acc . "."
-        . $seq->seq_version . "/"
-        . $seq->start . "-"
-        . $seq->end;
-      if ( exists( $regs->{$key} ) and $regs->{$key}->{$l} ) {
-        $rpali->add_seq($seq);
-        if ( $seq->sec_struct ) {
-          push( @ssStrings, $seq->sec_struct->display );
-        }
+  my $pfamA_acc = $self->pfam->pfama_acc;
+
+  #Find out which seq are in RP15/35/55/75
+  my $uniprot_reg = $self->pfamdb->getSchema->resultset('Uniprot')
+  ->search({'uniprot_reg_fulls.pfama_acc' => $pfamA_acc,
+      'uniprot_reg_fulls.in_full' => 1},
+    { prefetch => 'uniprot_reg_fulls' });
+
+
+  my @rp_levels = qw(rp15 rp35 rp55 rp75);
+  my $rp;
+  while(my $row = $uniprot_reg->next){
+    foreach my $rp_level (@rp_levels) { 
+      if($row->$rp_level) { 
+        $rp->{$rp_level}->{$row->uniprot_acc}=1;
       }
     }
-    $counts->{'number_'.$l} = $rpali->num_sequences;
-    #IT is feasible that no sequences in the family are in RP.
-    next if($rpali->num_sequences == 0);
-    my $filename = "ALIGN.$l";
-  
-#Secondary Structure from RPs
-#This will caclulcate the consenus at 60% and add the secondary structure consensus
-    $self->addConsensuses( $rpali, $l, \@ssStrings, $filename );
-
-    #Write out the annotated file.
-    $self->logger->debug("Making stockholm file for $filename");
-    #TODO - remove all gaps. Memory footprint too high to use bioperl as it
-    #with duplicate the alignment. Looked into eseal, but that it has a bug
-    #rdf 26/09/2012
-    $self->write_stockholm_file( $filename, $rpali, $GFAnn );
-    # system($self->config->hmmer3binDev."/esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
-    system("esl-reformat --informat stockholm --mingap pfam $filename.ann > $filename.ann.nogap")
-      and $self->mailUserAndFail("Problem running esl-reformat to remove gaps.");
-    rename("$filename.ann.nogap", "$filename.ann") or $self->mailUserAndFail("Failed to rename RP nogap alignment"); 
-     
-    if ( $aliIds->num_sequences <= 5000 ) {
-      $self->makeHTMLAlign( $filename, 80, $l );
-    }
-    $self->uploadTreesAndAlign($filename, $l );
   }
 
- #Now update number in rp full alignments.
- $self->pfam->update($counts); 
+  #Get the uniprot alignemnt for the family
+  my $rs = $self->pfamdb->getSchema->resultset('AlignmentAndTree')->find( { type => 'uniprot', pfama_acc => $pfamA_acc } );
+  my $alignment = Compress::Zlib::memGunzip($rs->alignment);
+  my @alignment = split(/\n/, $alignment);
+
+
+  my ($upload, $aln, $noSeqs);
+
+  #Create the rp alignments, and upload to db
+  foreach my $rp_level (@rp_levels) {
+    $self->logger->debug("Working on level $rp_level");
+    my ($upload, $aln, $noSeqs);
+    foreach my $row (@alignment) {
+      if($row =~ /^#/) {
+        unless($row =~ /#=GF SQ/) {
+          $upload.="$row\n";
+        }
+      }
+      elsif($row =~ /^(\S+)\.\d+\/\d+-\d+/) {
+        my $acc=$1;
+        if(exists($rp->{$rp_level}->{$acc})) {
+          $noSeqs++;
+          $aln.="$row\n";
+        }
+      }
+      elsif($row =~ /^\/\//) {
+        $aln.="$row\n";
+      }
+      else {
+        $self->logger->logdie("Unrecognised line in uniprot alignment for $pfamA_acc:[$row]"); 
+      }
+    }
+    unless($noSeqs) {
+      $self->logger->debug("No sequences in $rp_level alignment");
+      next;
+    }
+
+    $upload.="#=GF SQ   $noSeqs\n";
+    $upload.=$aln;
+
+    open(RP, ">$pfamA_acc.$rp_level.gaps") or $self->logger->logdie("Couldn't open fh to $pfamA_acc.$rp_level.gaps, $!");
+    print RP $upload;
+    close RP;
+
+    #Remove all gap columns. Sometimes esl-sfetch adds a blank line under the GF annotation, so use awk to remove it
+    my $filename="ALIGN.$rp_level";
+    system("esl-reformat --informat stockholm --mingap pfam $pfamA_acc.$rp_level.gaps | awk 'NF != 0' > $filename.ann") and $self->logger->logdie("Problem running esl-reformat to remove gaps, $!");
+    unlink("$pfamA_acc.$rp_level.gaps");
+
+    #Upload alignment
+    $self->uploadTreesAndAlign($filename, $rp_level );
+
+    #Update number in rp full alignments.
+    my $number_rp_level="number_".$rp_level;  
+    $self->pfam->update( { $number_rp_level => $noSeqs }); 
+  }
 }
+
 
 sub _getFullRegions {
   my ( $self ) = @_;
@@ -2108,11 +2164,11 @@ sub uploadTreesAndAlign {
     or ( $type eq 'rp75' )
     or ( $type eq 'ncbi' )
     or ( $type eq 'meta' ) 
-    or ( $type eq 'ref_proteome' )
+    or ( $type eq 'uniprot' )
     )
   {
     $self->mailUserAndFail( 
-"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta', 'ncbi' or 'rp15-75'"
+"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta', 'ncbi' or 'uniprot' or 'rp15-75'"
     );
   }
 
