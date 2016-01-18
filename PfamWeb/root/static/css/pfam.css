@@ -1111,6 +1111,7 @@ ul.funding {
 
 ul.funding > li, .logos {
   list-style: none;
+  min-height: 5em;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1126,10 +1127,11 @@ ul.funding > li, .logos {
 }
 
 ul.funding > li > div {
-  width: 50%;
+  width: 70%;
 }
 
 ul.funding > li > div:first-child {
+  width: 30%;
   text-align: center;
 }
 
