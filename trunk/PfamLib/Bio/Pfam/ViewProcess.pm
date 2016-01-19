@@ -1325,26 +1325,21 @@ sub checkflat {
 #update the proteome information
 sub pfamProteomes {
   my ( $self ) = @_;
+
+  my $pfamA_acc=$self->pfam->pfama_acc;
   $self->logger->debug("Deleting proteome information");
   $self->pfamdb->getSchema->resultset('ProteomeRegion')
-    ->search( { pfama_acc => $self->pfam->pfama_acc } )->delete;
+    ->search( { pfama_acc => $pfamA_acc } )->delete;
 
   $self->logger->debug("Updating the proteome information");
 
   my $dbh = $self->pfamdb->getSchema->storage->dbh;
-  $dbh->do(
-"INSERT INTO proteome_regions (auto_proteome, pfamseq_acc, pfamA_acc, count) "
-      . "SELECT c.auto_proteome, p.pfamseq_acc, r.pfamA_acc, count(*) FROM "
-      . "pfamA_reg_full_significant r,  proteome_pfamseq p, complete_proteomes c "
-      . "WHERE r.pfamseq_acc=p.pfamseq_acc AND in_full=1 AND c.auto_proteome=p.auto_proteome AND pfamA_acc='"
-      . $self->pfam->pfama_acc
-      . "' GROUP BY r.pfamseq_acc" )
-    or $self->mailUserAndFail(
-    "Failed to update the proteome data for "
-      . $self->pfam->pfama_acc
-      . " because: "
-      . $dbh->errstr
-    );
+  $dbh->do("INSERT INTO proteome_regions (pfamA_acc, ncbi_taxid, number_domains, number_sequences) ".
+            "SELECT r.pfamA_acc, ncbi_taxid, count(auto_pfamA_reg_full), count(distinct r.pfamseq_acc) ". 
+            "FROM pfamA_reg_full_significant r, pfamseq s ".
+            "WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 and pfamA_acc='$pfamA_acc' group by ncbi_taxid")
+   or $self->mailUserAndFail("Failed to update the proteome data for $pfamA_acc because: ". $dbh->errstr);
+
 }
 
 sub pfamTaxDepth {
