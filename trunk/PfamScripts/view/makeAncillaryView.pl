@@ -176,81 +176,86 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     
       #Update the proteome_architecture, then update the stats
       $protDbh->do("DELETE FROM proteome_architecture");
-      my $st_pa1 = $protDbh->prepare("SELECT p.auto_proteome, s.auto_architecture, s.pfamseq_acc, count(s.pfamseq_acc) FROM proteome_pfamseq p, pfamseq s WHERE s.pfamseq_acc=p.pfamseq_acc GROUP BY auto_architecture, auto_proteome") or $logger->logdie("Cannot prepare statement");
-      my $st_pa2 = $protDbh->prepare("INSERT INTO proteome_architecture (auto_proteome, auto_architecture, type_example, no_seqs) VALUES (?, ?, ?, ?)") or $logger->logdie("Cannot prepare statement");
-      $st_pa1->execute;
-      my $arrayref_pa = $st_pa1->fetchall_arrayref();
-      foreach my $row_pa (@$arrayref_pa){
-          my $auto_prot = $row_pa->[0];
-          my $auto_arch = $row_pa->[1];
-          my $acc = $row_pa->[2];
-          my $count = $row_pa->[3];
-          if ($auto_arch){
-            $st_pa2->execute($auto_prot, $auto_arch, $acc, $count)or $logger->logdie("Cannot insert into proteome_architecture"); 
-          }
-      }
+      my $st_pa = $protDbh->prepare("insert into proteome_architecture (type_example, ncbi_taxid, auto_architecture, no_seqs) select pfamseq_acc, ncbi_taxid, auto_architecture, count(auto_architecture) from pfamseq where auto_architecture>0 group by ncbi_taxid, auto_architecture") or $logger->logdie("Cannot prepare statement, $!");
+        
+      $st_pa->execute() or $logger->logdie("Cannot insert into proteome_architecture".$st_pa->errstr);
 
       $protDbh->do("set FOREIGN_KEY_CHECKS=1");
       $proteomeView->touchStatus('updateProteomeArch');
     }
 
-    #not all complete_proteomes are represented in proteome_regions
-    #select all auto_proteomes in proteome_regions
-    #select count number of regions
-    #select count distinct pfamseq 
-    my %complete_proteomes_data;
-    
-    my $st_a = $protDbh->prepare("select distinct auto_proteome from proteome_regions") or die "Cannot prepare statement $!\n";
-    #total regions
-    my $st_reg = $protDbh->prepare("select sum(count) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
-    #number proteins (will be equal to total_genome_proteins)
-    my $st_prot = $protDbh->prepare("select total_genome_proteins from complete_proteomes where auto_proteome = ?") or die "Cannot prepare statement $!\n";
-    #total_seqs_covered - ie disinct proteins that have a region
-    my $st_seqs_covered = $protDbh->prepare("select count(distinct pfamseq_acc) from proteome_regions where auto_proteome = ?") or die "Cannot prepare statement $!\n";
-    #amino acids covered
-    my $st_aa_covered = $protDbh->prepare("SELECT sum(seq_end - seq_start + 1) FROM proteome_pfamseq p, pfamA_reg_full_significant s WHERE s.pfamseq_acc=p.pfamseq_acc and in_full=1 and p.auto_proteome = ?") or die "Cannot prepare statement $!\n";
-    #total amino acids
-    my $st_aa_tot = $protDbh->prepare("select total_aa_length from complete_proteomes where auto_proteome =?") or die "Cannot prepare statement $!\n";
+    #Delete old data, if any
+    $logger->debug("Deleting from complete_proteomes");
+    my $st_proteome_delete = $protDbh->prepare("delete from complete_proteomes") or $logger->logdie("Can't prepare statement: ".$protDbh->errstr);
+    $st_proteome_delete->execute() or $logger->logdie("Couldn't execute statement ".$st_proteome_delete->errstr);
 
-    $st_a->execute() or die "Cannot execute statement $!\n";
-    my $arrayref_a = $st_a->fetchall_arrayref;
-    foreach my $row_a (@$arrayref_a){
-        $complete_proteomes_data{$row_a->[0]}=1;
+    #Insert species, ncbi_taxid, num_proteins, total_aa_length from pfamseq
+    $logger->debug("Inserting into complete_proteomes");
+    my $st_proteome = $protDbh->prepare("insert into complete_proteomes (species, ncbi_taxid, num_proteins, total_genome_proteins, total_aa_length) select species, ncbi_taxid, count(pfamseq_acc), count(pfamseq_acc), sum(length) from pfamseq group by ncbi_taxid");
+    $st_proteome->execute or $logger->logdie("Couldn't execute statement ".$st_proteome->errstr);
+
+    my $st_proteome_taxid=$protDbh->prepare("select ncbi_taxid from complete_proteomes");
+    $st_proteome_taxid->execute() or $logger->logdie("Couldn't execute statement ".$st_proteome_taxid->errstr);
+
+    my ($ncbi_taxid);
+    $st_proteome_taxid->bind_columns(\$ncbi_taxid);
+
+    #Set up queries to update other fields in complete_proteomes
+    my $st_proteome_taxonomy = $protDbh->prepare("select taxonomy from pfamseq where ncbi_taxid=? limit 1");
+    my $st_proteome_dom = $protDbh->prepare("select sum(number_domains) from proteome_regions where ncbi_taxid=?");
+    my $st_proteome_seqs = $protDbh->prepare("select count(distinct r.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq p where p.pfamseq_acc=r.pfamseq_acc and ncbi_taxid=?");
+    my $st_proteome_res = $protDbh->prepare("select sum(seq_end - seq_start+1) from pfamA_reg_full_significant r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and in_full=1 and ncbi_taxid=?");
+
+    while ($st_proteome_taxid->fetch()) {
+
+      next unless($ncbi_taxid);
+      $logger->debug("Updating ncbi_taxid $ncbi_taxid");;
+
+      #Get grouping info from taxonomy string 
+      $st_proteome_taxonomy->execute($ncbi_taxid) or $logger->logdie("Couldn't execute statement ".$st_proteome_taxonomy->errstr);
+      my $taxonomy=$st_proteome_taxonomy->fetchrow;
+
+      my $grouping;
+      if($taxonomy =~ /^(\S+);\s/) {
+        $grouping = $1;
+      }
+      else {
+        $logger->logdie("Couldn't extract grouping from '$taxonomy'");
+      }
+
+      #Get number of domains
+      $st_proteome_dom->execute($ncbi_taxid) or $logger->logdie("Couldn't execute statement ".$st_proteome_dom->errstr);
+      my $num_total_regions=$st_proteome_dom->fetchrow;
+
+      #Get total sequences covered
+      $st_proteome_seqs->execute($ncbi_taxid) or $logger->logdie("Couldn't execute statement ".$st_proteome_seqs->errstr);
+      my $total_seqs_covered=$st_proteome_seqs->fetchrow;
+
+      #Get total residues covered
+      $st_proteome_res->execute($ncbi_taxid) or  $logger->logdie("Couldn't execute statement ".$st_proteome_res->errstr);
+      my $total_aa_covered=$st_proteome_res->fetchrow;
+
+      #Upload to database
+      $proteomeView->pfamdb->getSchema->resultset('CompleteProteome')->update_or_create(
+        {
+          ncbi_taxid => $ncbi_taxid,
+          grouping => $grouping,
+          num_total_regions => $num_total_regions,
+          total_seqs_covered => $total_seqs_covered,
+          total_aa_covered => $total_aa_covered
+        }
+      );
     }
 
-   foreach my $autoprot (keys %complete_proteomes_data){
-        $st_reg->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
-        $st_prot->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
-        $st_seqs_covered->execute($autoprot) or die "Can't execute statement for $autoprot $!\n";
-        $st_aa_covered->execute($autoprot) or die "Can't execute statement for $autoprot $!\n";
-        $st_aa_tot->execute($autoprot) or die "Can't execute statement for $autoprot $!\n"; 
-        my $arrayref_r = $st_reg->fetchall_arrayref;
-        my $arrayref_p = $st_prot->fetchall_arrayref;
-        my $arrayref_s = $st_seqs_covered->fetchall_arrayref;
-        my $arrayref_a = $st_aa_covered->fetchall_arrayref;
-        my $arrayref_t = $st_aa_tot->fetchall_arrayref;
-        my $seq_coverage = 0;
-        if ($arrayref_p->[0]->[0] > 0 && $arrayref_s->[0]->[0]){
-            $seq_coverage = 100*($arrayref_s->[0]->[0]/$arrayref_p->[0]->[0]);
-        }
-        my $aa_coverage = 0;
-        if ($arrayref_t->[0]->[0] > 0 && $arrayref_a->[0]->[0]){
-            $aa_coverage = 100*($arrayref_a->[0]->[0]/$arrayref_t->[0]->[0]);  
-        }
+    #Calculate sequence and residue coverage for each proteome
+    $logger->debug("Updating coverage in complete_proteomes");
+    my $st_proteome_seq_cov = $protDbh->prepare("update complete_proteomes set sequence_coverage = ( (total_seqs_covered/num_proteins)*100 )");
+    $st_proteome_seq_cov->execute() or $logger->logdie("Couldn't execute statement ".$st_proteome_seq_cov->errstr);       
 
-        $proteomeView->pfamdb->getSchema->resultset('CompleteProteome')->update_or_create(
-            {
-                auto_proteome => $autoprot,
-                num_total_regions => $arrayref_r->[0]->[0],
-                num_proteins => $arrayref_p->[0]->[0],
-                total_seqs_covered => $arrayref_s->[0]->[0],
-                sequence_coverage => $seq_coverage,
-                total_aa_covered => $arrayref_a->[0]->[0],
-                residue_coverage => $aa_coverage
-            }
-        );
-      }
-     $proteomeView->touchStatus('doneProteome');
+    my $st_proteome_res_cov = $protDbh->prepare("update complete_proteomes set residue_coverage = ( (total_aa_covered/ total_aa_length)*100 )");
+    $st_proteome_res_cov->execute() or $logger->logdie("Couldn't execute statement ".$st_proteome_res_cov->errstr);       
+
+    $proteomeView->touchStatus('doneProteome');
   }
   
   if(! $proteomeView->statusCheck('doneProteomeTSV')){
