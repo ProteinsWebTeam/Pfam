@@ -386,9 +386,9 @@ requirements.cssIeAll.push( "index_all_ie.css" );
            The Pfam protein families database: towards a more sustainable future</a>:
       </span>
       <span class="authors">
-        R.D. Finn, P. Coggill, R.Y. Eberhardt, S.R. Eddy, J. Mistry,
-        A.L. Mitchell, S.C. Potter, M. Punta, M. Qureshi, A. Sangrador-Vegas,
-        G.A. Salazar, J. Tate, A. Bateman
+        R.D.&nbsp;Finn, P.&nbsp;Coggill, R.Y.&nbsp;Eberhardt, S.R.&nbsp;Eddy, J.&nbsp;Mistry,
+        A.L.&nbsp;Mitchell, S.C.&nbsp;Potter, M.&nbsp;Punta, M.&nbsp;Qureshi, A.&nbsp;Sangrador-Vegas,
+        G.A.&nbsp;Salazar, J.&nbsp;Tate, A.&nbsp;Bateman
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2016)
