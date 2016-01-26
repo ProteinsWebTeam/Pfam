@@ -382,17 +382,17 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div class="citation">
       <span class="title">
         <a class="ext"
-           href="http://nar.oxfordjournals.org/content/42/D1/D222.long">
-           The Pfam protein families database</a>:
+           href="https://nar.oxfordjournals.org/content/44/D1/D279.long">
+           The Pfam protein families database: towards a more sustainable future</a>:
       </span>
       <span class="authors">
-        R.D. Finn, A. Bateman, J. Clements, P. Coggill, R.Y. Eberhardt,
-        S.R. Eddy, A. Heger, K. Hetherington, L. Holm, J. Mistry,
-        E.L.L. Sonnhammer, J. Tate, M. Punta
+        R.D. Finn, P. Coggill, R.Y. Eberhardt, S.R. Eddy, J. Mistry,
+        A.L. Mitchell, S.C. Potter, M. Punta, M. Qureshi, A. Sangrador-Vegas,
+        G.A. Salazar, J. Tate, A. Bateman
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
-        &nbsp;Database Issue 42:D222-D230
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2016)
+        &nbsp;Database Issue 44:D279-D285
       </span>
     </div>
   </div>

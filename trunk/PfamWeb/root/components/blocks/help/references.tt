@@ -1,7 +1,7 @@
 [%
 # scores.tt
 # rdf 20060926 WTSI
-# 
+#
 # build the references block for the help pages
 #
 # $Id: references.tt,v 1.7 2008-11-03 13:16:37 jt6 Exp $
@@ -16,29 +16,46 @@
   <div class="blockContent">
 
     <h3>Pfam References</h3>
-  
+
     <div class="citation">
       <span class="title">
-        <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/42/D1/D222.long">
-           The Pfam protein families database</a>: 
+        <a class="ext"
+           href="https://nar.oxfordjournals.org/content/44/D1/D279.long">
+           The Pfam protein families database: towards a more sustainable future</a>: 
       </span>
       <span class="authors">
-        R.D. Finn, A. Bateman, J. Clements, P. Coggill, R.Y. Eberhardt, 
-        S.R. Eddy, A. Heger, K. Hetherington, L. Holm, J. Mistry, 
-        E.L.L. Sonnhammer, J. Tate, M. Punta
+        R.D. Finn, P. Coggill, R.Y. Eberhardt, S.R. Eddy, J. Mistry,
+        A.L. Mitchell, S.C. Potter, M. Punta, M. Qureshi, A. Sangrador-Vegas,
+        G.A. Salazar, J. Tate, A. Bateman
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
-        &nbsp;Database Issue 42:D222-D230 
+        &nbsp;Database Issue 44:D279-D285
       </span>
     </div>
 
     <div class="citation">
       <span class="title">
-        <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/40/D1/D290.full">
-           The Pfam protein families database</a>: 
+        <a class="ext"
+           href="https://nar.oxfordjournals.org/content/42/D1/D222.long">
+           The Pfam protein families database</a>:
+      </span>
+      <span class="authors">
+        R.D. Finn, A. Bateman, J. Clements, P. Coggill, R.Y. Eberhardt,
+        S.R. Eddy, A. Heger, K. Hetherington, L. Holm, J. Mistry,
+        E.L.L. Sonnhammer, J. Tate, M. Punta
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
+        &nbsp;Database Issue 42:D222-D230
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext"
+           href="https://nar.oxfordjournals.org/content/40/D1/D290.full">
+           The Pfam protein families database</a>:
       </span>
       <span class="authors">
         M. Punta, P.C. Coggill, R.Y. Eberhardt, J. Mistry, J. Tate, C. Boursnell,
@@ -47,19 +64,19 @@
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2012)
-        &nbsp;Database Issue 40:D290-D301 
+        &nbsp;Database Issue 40:D290-D301
       </span>
     </div>
 
     <div class="citation">
       <span class="title">
-        <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/38/suppl_1/D211">
-          The Pfam protein families database</a>: 
+        <a class="ext"
+           href="https://nar.oxfordjournals.org/cgi/content/full/38/suppl_1/D211">
+          The Pfam protein families database</a>:
       </span>
       <span class="authors">
         R.D. Finn, J. Mistry, J. Tate, P. Coggill, A. Heger, J.E. Pollington,
-        O.L. Gavin, P. Gunesekaran, G. Ceric, K. Forslund, L. Holm, E.L. 
+        O.L. Gavin, P. Gunesekaran, G. Ceric, K. Forslund, L. Holm, E.L.
         Sonnhammer, S.R. Eddy, A. Bateman
       </span>
       <span class="ref">
@@ -70,12 +87,12 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
-          The Pfam protein families database</a>: 
+        <a class="ext"
+           href="https://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
+          The Pfam protein families database</a>:
       </span>
       <span class="authors">
-        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz, 
+        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz,
         G. Ceric, K. Forslund, S.R. Eddy, E.L. Sonnhammer and A. Bateman
       </span>
       <span class="ref">
@@ -83,15 +100,15 @@
         &nbsp;Database Issue 36:D281-D288
       </span>
     </div>
-  
+
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
-          Pfam: clans, web tools and services</a>: 
+        <a class="ext" href="https://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
+          Pfam: clans, web tools and services</a>:
       </span>
       <span class="authors">
-        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
-        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
+        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones,
+        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin,
         S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
       </span>
       <span class="ref">
@@ -99,12 +116,12 @@
         &nbsp;Database Issue 34:D247-D51
       </span>
     </div>
-  
+
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/12668763">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="https://www.ncbi.nlm.nih.gov/pubmed/12668763">
+          Enhanced protein domain discovery by using language modeling techniques from
+          speech recognition</a>:
       </span>
       <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
       <span class="ref">
@@ -114,12 +131,12 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext" href="https://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138">
+          The Pfam Protein Families Database</a>:
       </span>
       <span class="authors">
-        A. Bateman, L. Coin, R. Durbin, R.D. Finn, V. Hollich, 
-        S. Griffiths-Jones, A. Khanna, M. Marshall, S. Moxon, E.L.L. Sonnhammer, 
+        A. Bateman, L. Coin, R. Durbin, R.D. Finn, V. Hollich,
+        S. Griffiths-Jones, A. Khanna, M. Marshall, S. Moxon, E.L.L. Sonnhammer,
         D.J. Studholme, C. Yeats and S.R. Eddy
       </span>
       <span class="ref">
@@ -129,11 +146,11 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/short/30/1/276">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext" href="https://nar.oxfordjournals.org/cgi/content/short/30/1/276">
+          The Pfam Protein Families Database</a>:
       </span>
       <span class="authors">
-        A. Bateman, E. Birney, L. Cerruti, R. Durbin, L. Etwiller, S.R. Eddy, 
+        A. Bateman, E. Birney, L. Cerruti, R. Durbin, L. Etwiller, S.R. Eddy,
         S. Griffiths-Jones, K.L. Howe, M. Marshall and E.L. Sonnhammer
       </span>
       <span class="ref">
@@ -143,11 +160,11 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/28/1/263">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext" href="https://nar.oxfordjournals.org/cgi/content/full/28/1/263">
+          The Pfam Protein Families Database</a>:
       </span>
       <span class="authors">
-        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, K.L. Howe and 
+        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, K.L. Howe and
         E.L. Sonnhammer
       </span>
       <span class="ref">
@@ -157,8 +174,8 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/27/1/260">
-          Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>: 
+        <a class="ext" href="https://nar.oxfordjournals.org/cgi/content/full/27/1/260">
+          Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>:
       </span>
       <span class="authors">
         A. Bateman, E. Birney, R. Durbin, S.R. Eddy, R.D. Finn and E.L.L. Sonnhammer
@@ -170,11 +187,11 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/26/1/320">
-          Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>: 
+        <a class="ext" href="https://nar.oxfordjournals.org/cgi/content/full/26/1/320">
+          Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>:
       </span>
       <span class="authors">
-        E.L.L. Sonnhammer, S.R. Eddy, E. Birney, A. Bateman and R. Durbin 
+        E.L.L. Sonnhammer, S.R. Eddy, E. Birney, A. Bateman and R. Durbin
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1998)&nbsp;26:320-322
@@ -183,11 +200,11 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/9223186">
-          Pfam: a comprehensive database of protein families based on seed alignments</a>: 
+        <a class="ext" href="https://www.ncbi.nlm.nih.gov/pubmed/9223186">
+          Pfam: a comprehensive database of protein families based on seed alignments</a>:
       </span>
       <span class="authors">
-        E.L.L. Sonnhammer, S.R. Eddy and R. Durbin 
+        E.L.L. Sonnhammer, S.R. Eddy and R. Durbin
       </span>
       <span class="ref">
         <span class="jrnl">Proteins</span>&nbsp;(1997)&nbsp;28:405-420
@@ -195,7 +212,7 @@
     </div>
 
     <h3>Book Chapters on Pfam</h3>
-    
+
     <div class="citation">
       <span class="title">
         Identifying Protein Domains with the Pfam Database
@@ -212,7 +229,7 @@
 
     <div class="citation">
       <span class="title">
-        Pfam: the protein families database 
+        Pfam: the protein families database
       </span>
       <span class="authors">
         R.D. Finn (eds M.J. Dunn, L.B. Jorde, P.F.R. Little, S. Subramaniam)
@@ -225,7 +242,7 @@
 
     <div class="citation">
       <span class="title">
-        Identifying protein domains with the Pfam database 
+        Identifying protein domains with the Pfam database
       </span>
       <span class="authors">
         R.D. Finn, A. Bateman and S. Griffiths-Jones
