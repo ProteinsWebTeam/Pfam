@@ -34,7 +34,7 @@ if ($schema) {
         die "Already have a database named $clone_dbname";
     }
 
-    my $command = qq(create database $clone_dbname);
+    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'create database $clone_dbname'";
     my $res = `$command`;
     if ($?) {
         die qq(Failure to import schema from $live_dbname to $clone_dbname: $res);
@@ -49,7 +49,7 @@ if ($schema) {
         die qq(Failure to import schema from $live_dbname to $clone_dbname: $res);
     }
 
-    my $command = qq(alter table pfam_release.pfamseq drop foreign key FK_pfamseq_1);
+    my $command = "mysql -h$host -P$port -u$user -p$pass $live_dbname -e 'alter table pfam_release.pfamseq drop foreign key fk_pfamseq_evidence1'";
     my $res = `$command`;
     if ($?) {
         die qq(Failure to drop keys on pfamseq: $res);
