@@ -2532,11 +2532,9 @@ void _c_pos_covariation(ESL_MSA *msa)
 {
   Inline_Stack_Vars;
 
-  int     status;           /* error status */
   int     apos;             /* counter over alignment positions */
   int    *rposA   = NULL;   /* [0..apos..msa->alen-1]: right position for basepair with left half position of 'i', else -1 if 'i' is not left half of a pair (i always < j) */
   double *covA    = NULL;   /* [0..apos..msa->alen-1]: covariation per basepair */
-  float   seqwt = 0.;       /* weight of current sequence, always 1.0 if use_weights == FALSE */
 
   if(! (msa->flags & eslMSA_DIGITAL)) croak("_c_pos_covariation() contract violation, MSA is not digitized");
 
@@ -2720,6 +2718,71 @@ void _c_pos_conservation(ESL_MSA *msa, int use_weights)
   }
   if(consA)  free(consA);
   croak("ERROR: _c_pos_conservation(), out of memory");
+  return;
+}
+    
+/* Function:  _c_remove_gap_rf_basepairs()
+ * Incept:    EPN, Fri Jan 29 16:27:32 2016
+ * Synposis:  Remove any basepair (i,j) in msa->ss_cons for which 
+ *            one or both of i and j are gaps in msa->rf.
+ *            Works with pseudoknots. Convert SS_cons to 
+ *            full WUSS format if <do_wussify> is 1
+ * Dies:      If msa does not have RF or SS_cons annotation or msa->ss_cons is not consistent.
+ */
+void _c_remove_gap_rf_basepairs(ESL_MSA *msa, int do_wussify)
+{
+  int   status;
+  int   apos, opos;               /* alignment positions */
+  int  *i_am_rf          = NULL;  /* [1..msa->alen] i_am_rf[apos] = 1 if position apos is not a gap, else it's 0 */
+  int  *msa_ct           = NULL;  /* [1..msa->alen] msa_ct[apos] = x; x==0 if apos is unpaired, x==opos if apos is paired to opos in msa->ss_cons */
+
+  if(msa->rf      == NULL) croak("ERROR, _c_remove_gap_rf_basepairs() RF annotation does not exist"); 
+  if(msa->ss_cons == NULL) croak("ERROR, _c_remove_gap_rf_basepairs() SS_cons annotation does not exist"); 
+
+  ESL_ALLOC(i_am_rf, sizeof(int) * (msa->alen+1));
+  esl_vec_ISet(i_am_rf, (msa->alen+1), 0);
+
+  /* allocated msa_ct */
+  ESL_ALLOC(msa_ct, sizeof(int) * (msa->alen+1));
+
+  for (apos = 0; apos < msa->alen; apos++) {
+    i_am_rf[(apos+1)] = (strchr("-_.~", msa->rf[apos]) == NULL) ? 1 : 0;
+  }
+
+  /* get CT array that describes all basepairs (including pknots) in the ss_cons (ct array is 1..alen, not 0..alen-1 */
+  status = esl_wuss2ct(msa->ss_cons, msa->alen, msa_ct);
+  if(status == eslESYNTAX) croak("in _c_remove_gap_rf_basepairs msa->ss_cons is not valid (structure not consistent)");
+  if(status == eslEMEM)    croak("Out of memory");
+  for(apos = 1; apos <= msa->alen; apos++) { 
+    if(msa_ct[apos] != 0) { 
+      opos = msa_ct[apos];
+      if((! i_am_rf[apos]) || (! i_am_rf[opos])) { 
+        /* one or both apos and opos are gaps in RF, remove this pair */
+        msa->ss_cons[apos-1] = '.';
+        msa->ss_cons[opos-1] = '.';
+      }
+    }
+  }
+  
+  if(do_wussify) { 
+    esl_wuss_full(msa->ss_cons, msa->ss_cons);
+    /* and for each gap RF column, make it a '.' in the SS_cons */
+    for(apos = 1; apos <= msa->alen; apos++) { 
+      if(! i_am_rf[apos]) { 
+        msa->ss_cons[(apos-1)] = '.';
+      }
+    }
+  }
+
+  if(i_am_rf != NULL) free(i_am_rf); 
+  if(msa_ct  != NULL) free(msa_ct);
+  return;
+
+ ERROR:
+  if(i_am_rf != NULL) free(i_am_rf); 
+  if(msa_ct  != NULL) free(msa_ct);
+  croak("Out of memory");
+
   return;
 }
     

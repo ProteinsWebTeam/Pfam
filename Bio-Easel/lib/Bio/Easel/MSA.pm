@@ -2538,6 +2538,31 @@ sub pos_conservation
 
 #-------------------------------------------------------------------------------
 
+=head2 remove_gap_rf_basepairs
+
+  Title     : remove_gap_rf_basepairs
+  Incept    : EPN, Fri Jan 29 16:19:17 2016
+  Usage     : $msaObject->remove_gap_rf_basepairs
+  Function  : Remove any basepair (i,j) (by setting both positions to a '.')
+            : in MSA->SS_cons for which exactly one or both of 
+            : i and j maps to a gap in the RF annotation.
+            : This works with pseudoknots. 
+  Args      : $do_wussify: '1' to convert SS_cons to full WUSS notation after removing gap-RF basepairs, '0' not to
+  Returns   : void, msa->ss_cons is updated 
+  Dies      : if msa->ss_cons is inconsistent
+=cut
+
+sub remove_gap_rf_basepairs
+{
+  my ($self, $do_wussify) = @_;
+
+  _c_remove_gap_rf_basepairs($self->{esl_msa}, $do_wussify);
+
+  return;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 DESTROY
 
   Title    : DESTROY
