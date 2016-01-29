@@ -1,6 +1,6 @@
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 157;
+use Test::More tests => 165;
 
 BEGIN {
     use_ok( 'Bio::Easel::MSA' ) || print "Bail out!\n";
@@ -11,11 +11,12 @@ BEGIN {
 # and again reading the MSA in text mode - that's what the big for  #
 # loop is for.                                                      #
 #####################################################################
-my $alnfile     = "./t/data/test.sto";
-my $rfamfile    = "./t/data/RF00014-seed.sto";
-my $rf_alnfile  = "./t/data/test.rf.sto";
-my $rf_alnfile2 = "./t/data/test2.rf.sto";
-my $gap_alnfile = "./t/data/test-gap.sto";
+my $alnfile       = "./t/data/test.sto";
+my $rfamfile      = "./t/data/RF00014-seed.sto";
+my $rf_alnfile    = "./t/data/test.rf.sto";
+my $rf_alnfile2   = "./t/data/test2.rf.sto";
+my $pknot_alnfile = "./t/data/test.pknot.rf.sto";
+my $gap_alnfile   = "./t/data/test-gap.sto";
 my ($msa1, $msa2);
 my ($path, $nseq, $sqname, $sqidx, $any_gaps, $len, $avglen, $outfile, $id, $checksum, $format, $is_digitized);
 my ($line, $line1, $line2, $mode, $msa_str, $trash);
@@ -488,10 +489,12 @@ for($mode = 0; $mode <= 1; $mode++) {
   }
   if(defined $msa1) { undef $msa1; }
 
+  #################################
   # test column_subset_rename_nse
   @usemeA = ();
   $msa1 = Bio::Easel::MSA->new({
       fileLocation => $rfamfile, 
+      forceText    => $mode,
   });
   isa_ok($msa1, "Bio::Easel::MSA");
   $alen = $msa1->alen;
@@ -519,5 +522,28 @@ for($mode = 0; $mode <= 1; $mode++) {
   is($sqname, "CP000857.1/1802197-1802273", "column_subset_rename_nse() renamed sequence 4 properly.");
   $sqname = $msa1->get_sqname(4);
   is($sqname, "CP001383.1/2080781-2080702", "column_subset_rename_nse() renamed sequence 5 properly.");
+
+  if(defined $msa1) { undef $msa1; }
+
+  ################################################
+  # remove_gap_rf_basepairs
+  $msa1 = Bio::Easel::MSA->new({
+      fileLocation => $pknot_alnfile, 
+      forceText    => $mode,
+  });
+  isa_ok($msa1, "Bio::Easel::MSA");
+
+  $ss_cons_str = "(::(((_AA_)-)):<<-<aa__.>>>)";
+  is($msa1->get_ss_cons(), $ss_cons_str, "$pknot_alnfile is in sync with tests");
+
+  $msa1->remove_gap_rf_basepairs(0); # 0 says 'do not WUSSify'
+  $ss_cons_str = ".::(((_A._)-)):<<-<.a__.>>>.";
+  is($msa1->get_ss_cons(), $ss_cons_str, "remove_gap_rf_basepairs seems to be working without WUSSifying");
+
+  $msa1->remove_gap_rf_basepairs(1); # 1 says 'do WUSSify'
+  $ss_cons_str = ".::<<<_A__>->>:<<-<.a__.>>>.";
+  is($msa1->get_ss_cons(), $ss_cons_str, "remove_gap_rf_basepairs seems to be working with WUSSifying");
+
+  if(defined $msa1) { undef $msa1; }
 }
   
