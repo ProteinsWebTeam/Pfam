@@ -975,7 +975,7 @@ my $ideal_build_secs     = 0;
 my $ideal_calibrate_secs = 0;
 my $ideal_search_secs    = 0;
 my $ideal_tot_wall_secs  = 0;
-my $ncpus_cmsearch_act   = ($ncpus_cmsearch == 0) ? 1 : $ncpus_cmsearch; # deal with --cpu 0 (that's really 1 CPU)
+my $ncpus_cmsearch_act   = ((! defined $ncpus_cmsearch) || ($ncpus_cmsearch == 0)) ? 1 : $ncpus_cmsearch; # deal with --cpu 0 (that's really 1 CPU)
 my $tot_ncpus_cmsearch   = $ncpus_cmsearch_act * ($ndbfiles + $rev_ndbfiles);
 
 if($did_build) { 
@@ -1050,12 +1050,40 @@ sub strip_default_options_from_sm {
 }
 
 ######################################################################
-
-# add_rf_and_ss_cons_given_cmalign_mapali_output():
-# Given an original SEED alignment ($orig_infile) used to build a CM, and an alignment
-# output from cmalign --mapali ($cmalign_mapali_infile) with a single extra sequence other
-# than the original SEED, add RF and SS_cons annotation to the original SEED alignment 
-# and save it as $outfile.
+#
+# add_rf_and_ss_cons_given_cmalign_mapali_output(): 
+#
+# Given an original SEED alignment ($orig_infile) used to build a CM,
+# and an alignment output from cmalign --mapali
+# ($cmalign_mapali_infile) with a single extra sequence other than the
+# original SEED, add RF and SS_cons annotation to the original SEED
+# alignment and save it as $outfile.
+#
+# The motivation behind doing this is that we want the final output
+# SEED to be similar for all families in the following ways:
+#    - full WUSS annotation for the secondary structure 
+#    - GC RF annotation as defined by infernal's cmbuild (upper/lowercase
+#      for more/less conserved) 
+#    - pseudoknots from input SEED, if they exist
+#    - usable with cmalign --mapali
+# AND we want the output SEED to be as similar as possible to the
+# input SEED with respect to the alignment. 
+#
+# However, if we just use the cmbuild -O output alignment then
+# we are only guaranteed to have the output SEED alignment
+# match the input SEED alignment in match (nongap RF) positions,
+# because inserts may have moved around. This function maintains
+# the inserted residues in the original positions they were in 
+# in the original SEED, which I think is important so that the
+# original author of the input SEED does not get upset because
+# we changed their alignment in the insert positions.
+# 
+# Note that we cannot guarantee that the secondary structure
+# annotation is identical in the input and output alignments.  All
+# basepairs (i,j) for which i and/or j are insert columns will be
+# lost. Pseudoknots (k,l) will be preserved though (another reason we
+# need this function) unless k or l is an insert position.
+# 
 sub add_rf_and_ss_cons_given_cmalign_mapali_output {
 
   my ($orig_infile, $cmalign_mapali_infile, $outfile, $clen) = @_;
@@ -1097,14 +1125,16 @@ sub add_rf_and_ss_cons_given_cmalign_mapali_output {
   my $new_rf       = $new_seed->get_rf();
   my @new_rfA      = split("", $new_rf);
   
-  my $new_ss_cons  = $new_seed->get_ss_cons();
-  my @new_ss_consA = split("", $new_ss_cons);
-  
-  my $cpos         = 0;
-  my $new_apos     = 0;
-  my $orig_apos    = 0;
-  my $orig_rf      = "";
-  my $orig_ss_cons = "";
+  my $cpos           = 0;
+  my $new_apos       = 0;
+  my $orig_apos      = 0;
+  my $output_rf      = "";
+
+  my @orig_cpos2apos_mapA = (); # [1..$clen] alignment position [1..$orig_seed->alen] in $orig_seed that corresponds to consensus position $cpos
+  my @new_cpos2apos_mapA  = (); # [1..$clen] alignment position [1..$new_seed->alen] in $new_seed that corresponds to consensus position $cpos
+  $orig_cpos2apos_mapA[0] = 0; # cpos of 0 is invalid
+  $new_cpos2apos_mapA[0]  = 0; # cpos of 0 is invalid
+
   while(($new_apos < $new_alen) && ($cpos < $clen)) { 
     while($new_rfA[$new_apos] !~ m/[a-zA-Z]/) { 
       $new_apos++;
@@ -1122,13 +1152,14 @@ sub add_rf_and_ss_cons_given_cmalign_mapali_output {
       $orig_col =~ s/[^A-Za-z]/-/g; # translate non-alphacharacters to Infernal consensus gap char: '-'
       if($orig_col eq $new_col) { 
         $found_match = 1; 
+        $orig_cpos2apos_mapA[$cpos] = $orig_apos+1;
+        $new_cpos2apos_mapA[$cpos]  = $new_apos+1;
         # printf("\tfound match new:orig $new_apos:$orig_apos\n"); 
-        $orig_rf      .= "$new_rfA[$new_apos]";
-        $orig_ss_cons .= "$new_ss_consA[$new_apos]";
+        # copy cmbuild -O output RF character
+        $output_rf .= "$new_rfA[$new_apos]";
       }
       else { 
-        $orig_rf      .= ".";
-        $orig_ss_cons .= ".";
+        $output_rf .= ".";
       }
       $orig_apos++;
     }
@@ -1136,10 +1167,35 @@ sub add_rf_and_ss_cons_given_cmalign_mapali_output {
     if((! $found_match) && ($orig_apos == $orig_alen)) { die "ERROR unable to find match for consensus position $cpos"; }
   }
   # we've reached clen, deal with possibility of inserts after final cpos
-  while(length($orig_rf) < $orig_alen) { $orig_rf .= "."; $orig_ss_cons .= "."; }
+  while(length($output_rf) < $orig_alen) { $output_rf .= "."; } 
 
-  $orig_seed->set_rf($orig_rf);
-  $orig_seed->set_ss_cons($orig_ss_cons);
+  $orig_seed->set_rf($output_rf);
+
+  # now remove any basepairs (i,j) for which RF is a gap in i or j, and WUSSify the remaining structure
+  # this will preserve pseudoknots (k,l) for which both k and l are nongap RF positions (but will remove
+  # all others)
+  $orig_seed->remove_gap_rf_basepairs(0);
+
+  # an annoying (but necessary) step: copy the SS_cons from the $new_seed at all nongap RF positions that are NOT pseudoknots
+  # we wouldn't have to do this if Easel could reproduce exactly the SS_cons that infernal outputs, but it can't (the rules
+  # for defining the WUSS structure are subtly different), so we painstakingly copy all nongap RF positions that are not
+  # pseudoknots in orig_seed's SS_cons
+  my @orig_ss_consA = split("", $orig_seed->get_ss_cons());
+  my $new_ss_cons  = $new_seed->get_ss_cons();
+  my @new_ss_consA = split("", $new_ss_cons);
+  for($cpos = 1; $cpos <= $clen; $cpos++) { 
+    $orig_apos = $orig_cpos2apos_mapA[$cpos];
+    $new_apos  = $new_cpos2apos_mapA[$cpos];
+    if($orig_ss_consA[($orig_apos-1)] !~ m/[A-Za-z]/) { 
+      $orig_ss_consA[($orig_apos-1)] = $new_ss_consA[($new_apos-1)];
+    }
+  }
+  my $output_sscons = "";
+  for($orig_apos = 0; $orig_apos < $orig_alen; $orig_apos++) { 
+    $output_sscons .= $orig_ss_consA[$orig_apos];
+  }
+  $orig_seed->set_ss_cons($output_sscons);
+
   $orig_seed->capitalize_based_on_rf();
   
   $orig_seed->write_msa($outfile);
