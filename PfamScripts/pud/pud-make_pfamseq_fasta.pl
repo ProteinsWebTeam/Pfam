@@ -22,19 +22,27 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
+
+
 #User options
-my ($status_dir, $pfamseq_dir, $move);
+my ($status_dir, $pfamseq_dir, $rel_num, $move, $update_config, $help);
 &GetOptions(
+  "help"          => \$help,
   "status_dir=s"  => \$status_dir,
   "pfamseq_dir=s" => \$pfamseq_dir,
-  "move"          => \$move);
+  "rel=i"         => \$rel_num,
+  "update_config" => \$update_config);
 
-unless ( $status_dir and -e $status_dir ) {
+if($help) {
   help();
 }
-unless ( $pfamseq_dir and -e $pfamseq_dir ) {
+unless ( $status_dir and -e $status_dir and $rel_num) {
   help();
 }
+unless ( $pfamseq_dir and -e $pfamseq_dir and $rel_num) {
+  help();
+}
+
 my $cwd = getcwd();
 
 
@@ -69,7 +77,6 @@ else {
     $logger->debug("$total rows retrieved");
   }
   close FA;
-  $dbh->disconnect;
 }
 
 #Make DBSIZE file
@@ -97,29 +104,27 @@ if(-e "$status_dir/esl-indexes") {
 }
 
 #Copy pfamseq to production location
-if($move) { 
-  if (-e "$status_dir/moved_pfamseq"){
-    $logger->debug("Already moved pfamseq to nfs");
-  } 
-  else {
-    $logger->info("Going to delete old pfamseq and copy the new one to nfs directory");
-    my $pfamseq_nfs = $config->{pfamseq}->{location};
+if (-e "$status_dir/moved_pfamseq"){
+  $logger->debug("Already moved pfamseq to nfs");
+} 
+else {
+  my $pfamseq_nfs = $config->{pfamseq}->{location};
+  $pfamseq_nfs.=$rel_num;
+  $logger->info("Going to copy pfamseq to $pfamseq_nfs");
 
-    my @pfamseq_files = qw(pfamseq pfamseq.ssi);
-
-    foreach my $f (@pfamseq_files) {
-      $logger->debug("Deleting old $f from $pfamseq_nfs");  
-      unlink("$pfamseq_nfs/$f");
-    }
-
-    foreach my $f (@pfamseq_files) {
-      $logger->debug("Copying new $f to $pfamseq_nfs");
-      copy("$pfamseq_dir/$f", "$pfamseq_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $pfamseq_nfs failed: $!");
-    }
-    system("touch $status_dir/moved_pfamseq") and $logger->logdie("Couldn't touch $status_dir/moved_pfamseq:[$!]\n");
+  unless(-d $pfamseq_nfs) {
+    mkdir($pfamseq_nfs, 0775) or $logger->logdie("Couldn't mkdir $pfamseq_nfs, $!");
   }
 
-  #Change PFAM_CONFIG
+
+  foreach my $f ( qw(pfamseq pfamseq.ssi) ) {
+    $logger->debug("Copying new $f to $pfamseq_nfs");
+    copy("$pfamseq_dir/$f", "$pfamseq_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $pfamseq_nfs failed: $!");
+  }
+  system("touch $status_dir/moved_pfamseq") and $logger->logdie("Couldn't touch $status_dir/moved_pfamseq:[$!]\n");
+}
+
+if($update_config) {
   if(-e "$status_dir/changed_pfam_config") {
     $logger->info("Already changed database size in Pfam config file\n");
   }
@@ -147,34 +152,33 @@ if($move) {
 
     system("touch $status_dir/changed_pfam_config") and $logger->logdie("Couldn't touch $status_dir/changed_pfam_config:[$!]\n"); 
   }
-
-
 }
 
 
 
 sub help{
-
+  my $loc=$config->{pfamseq}->{location};
   print STDERR << "EOF";
 
 This script creates a fasta file from the sequences in the pfamseq
-table in the database. There is an option to move the pfamseq fasta
-file to the production location in the Pfam config file, and update 
-the config file with the database size. 
+table in the database. It also copies the pfamseq fasta
+file to the production location in the Pfam config file. Optionally
+it can update the config file with the database size. 
 
 Usage:
 
-  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir>
+  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir> -rel 29
 
 Options
-  -help  :Prints this help message
-  -move  :Move the pfamseq fasta file to the production location,
-          and update the database size in Pfam config file
+  -help           :Prints this help message
+  -update_config  :Update the database size in Pfam config file
 
 Both the status directory and pfamseq_directory must already exist.
 pfamseq_dir is the directory where the pfamseq fasta file will be
 generated. The status directory is where a log of the progress of 
-the script is recorded.
+the script is recorded. The -rel flag is mandatory. A copy of the 
+pfamseq fasta file will be copied to $loc<rel_num>
 
 EOF
+ exit;
 }
