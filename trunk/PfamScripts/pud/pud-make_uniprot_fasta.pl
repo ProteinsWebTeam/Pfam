@@ -22,11 +22,20 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 #User options
-my ($status_dir, $pfamseq_dir, $move);
+my ($status_dir, $pfamseq_dir, $rel_num, $move, $update_config, $help);
 &GetOptions(
+  "help"          => \$help,
   "status_dir=s"  => \$status_dir,
   "pfamseq_dir=s" => \$pfamseq_dir,
-  "move"          => \$move);
+  "rel=i"         => \$rel_num,
+  "update_config" => \$update_config);
+
+if($help) {
+  help();
+}
+unless($rel_num) {
+  help();
+}
 unless ( $status_dir and -e $status_dir ) {
   help();
 }
@@ -37,7 +46,6 @@ my $cwd = getcwd();
 
 
 #Create fasta file from uniprot table
-#if this is too slow/fails it could be worth trying a smaller offset or sending it to the farm with plenty of memory
 my $total=0;
 if(-s "$pfamseq_dir/uniprot") {
   $logger->debug("Already made uniprot fasta file");
@@ -47,29 +55,22 @@ if(-s "$pfamseq_dir/uniprot") {
 }
 else {
   $logger->debug("Going to make fasta file from uniprot table");
-  my $offset = 0;
-  my $n = 1;
+  my $uniprot_file="uniprot.$$";
+  my $command = "mysql -h ".$pfamDB->{host}." -u ".$pfamDB->{user}." -p". $pfamDB->{password}." -P ".$pfamDB->{port}." ".$pfamDB->{database}." --quick -e 'select uniprot_acc, seq_version, uniprot_id, description, sequence from uniprot' > $uniprot_file";
+  system("$command") and $logger->logdie ("Couldn't run mysql command [$command], $!");
+  open(UNIPROT, $uniprot_file) or $logger->logdie ("Couldn't open $uniprot_file, $!");
   open (FA, ">$pfamseq_dir/uniprot") or $logger->logdie("Cannot open $pfamseq_dir/uniprot file to write");
-  while (1){
-    $logger->debug("Querying uniprot table in database.... chunk $n offset $offset ");
-    my $st = $dbh->prepare("select uniprot_acc, seq_version, uniprot_id, description, sequence from uniprot limit 1000000 offset $offset") or $logger->logdie("Failed to prepare statement:".$dbh->errstr);
-    $st->execute() or $logger->logdie("Couldn't execute statement ".$st->errstr);
-    my $rowno = $st->rows;
-    last unless($rowno);
-    my $array_ref = $st->fetchall_arrayref();
-    $logger->debug("Fetching results...");
-    foreach my $row (@$array_ref) {
-      print FA ">" . $row->[0] . "." . $row->[1] . " " . $row->[2] . " " . $row->[3] . "\n" . $row->[4] . "\n";
-    }
-    $offset += 1000000;
-    $total += $rowno;
-    $n++;
-    $logger->debug("$total rows retrieved");
+  while(<UNIPROT>) {
+    next if(/^uniprot_acc/); #Skip header
+    chomp;
+    my ($uniprot_acc, $seq_version, $uniprot_id, $desc, $sequence) = split(/\t/, $_);
+    print FA ">$uniprot_acc.$seq_version $uniprot_id $desc\n$sequence\n";
+    $total++;
   }
   close FA;
-  $dbh->disconnect;
+  close UNIPROT;
+  unlink($uniprot_file);
 }
-
 
 #Make easel indexes
 if(-e "$status_dir/esl-indexes_uniprot") { 
@@ -85,29 +86,27 @@ if(-e "$status_dir/esl-indexes_uniprot") {
 my $dbsize=$total;
 
 #Copy uniprot to production location
-if($move) { 
-  if (-e "$status_dir/moved_uniprot"){
-    $logger->debug("Already moved uniprot to nfs");
-  } 
-  else {
-    $logger->info("Going to delete old uniprot and copy the new one to nfs directory");
-    my $uniprot_nfs = $config->{uniprot}->{location};
+if (-e "$status_dir/moved_uniprot"){
+  $logger->debug("Already moved uniprot to nfs");
+} 
+else {
+  my $uniprot_nfs = $config->{uniprot}->{location};
+  $uniprot_nfs.=$rel_num;
 
-    my @uniprot_files = qw(uniprot uniprot.ssi);
+  $logger->info("Going to copy uniprot to $uniprot_nfs");
 
-    foreach my $f (@uniprot_files) {
-      $logger->debug("Deleting old $f from $uniprot_nfs");  
-      unlink("$uniprot_nfs/$f");
-    }
-
-    foreach my $f (@uniprot_files) {
-      $logger->debug("Copying new $f to $uniprot_nfs");
-      copy("$pfamseq_dir/$f", "$uniprot_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $uniprot_nfs failed: $!");
-    }
-    system("touch $status_dir/moved_uniprot") and $logger->logdie("Couldn't touch $status_dir/moved_uniprot:[$!]\n");
+  unless(-d $uniprot_nfs) {
+    mkdir($uniprot_nfs, 0775) or $logger->logdie("Couldn't mkdir $uniprot_nfs, $!");
   }
 
-  #Change PFAM_CONFIG
+  foreach my $f ( qw(uniprot uniprot.ssi) ) {
+    $logger->debug("Copying new $f to $uniprot_nfs");
+    copy("$pfamseq_dir/$f", "$uniprot_nfs/$f") or $logger->logdie("Copy $pfamseq_dir/$f to $uniprot_nfs failed: $!");
+  }
+  system("touch $status_dir/moved_uniprot") and $logger->logdie("Couldn't touch $status_dir/moved_uniprot:[$!]\n");
+}
+
+if($update_config) {
   if(-e "$status_dir/changed_uniprot_config") {
     $logger->info("Already changed database size in Pfam config file\n");
   }
@@ -140,26 +139,28 @@ if($move) {
 
 sub help{
 
+  my $loc=$config->{uniprot}->{location};
   print STDERR << "EOF";
 
 This script creates a fasta file from the sequences in the uniprot
-table in the database. There is an option to move the uniprot fasta
-file to the production location in the Pfam config file, and update 
-the config file with the database size. 
+table in the database. It also copies the uniprot fasta
+file to the production location in the Pfam config file. Optionally
+it can update the config file with the database size. 
 
 Usage:
 
-  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir>
+  $0 -status_dir <status_dir> -pfamseq_dir <pfamseq_dir> -rel 29
 
 Options
-  -help  :Prints this help message
-  -move  :Move the pfamseq uniprot file to the production location,
-          and update the database size in Pfam config file
+  -help           :Prints this help message
+  -update_config  :Update the database size in Pfam config file
 
 Both the status directory and pfamseq_directory must already exist.
-pfamseq_dir is the directory where the pfamseq fasta file will be
+pfamseq_dir is the directory where the uniprot fasta file will be
 generated. The status directory is where a log of the progress of 
-the script is recorded.
+the script is recorded. The -rel flag is mandatory. A copy of the 
+pfamseq fasta file will be copied to $loc<rel_num>.
 
 EOF
+  exit;
 }
