@@ -58,7 +58,7 @@ else {
   $fh->open( "| bsub -q production-rh6 -R \"select[mem>2000] rusage[mem=2000]\" -M 2000000 -o runantifam.log -Jantifam") or $logger->logdie("Couldn't open file handle [$!]\n");
   $fh->print( "hmmsearch --cpu 8 --noali --cut_ga --tblout matches AntiFam.hmm uniprot.fasta\n"); 
   $fh->close;
-print STDERR "Exiting here\n"; exit;
+#print STDERR "Exiting here\n"; exit;
   chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd [$!]");
 #have jobs finished?
   if (-e "$status_dir/finishedantifam"){
