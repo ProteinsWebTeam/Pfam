@@ -67,7 +67,7 @@ if ($data) {
     my @tables = qw(pfamA evidence markup_key wikipedia pfamseq clan literature_reference
                     _lock clan_database_links clan_lit_ref clan_membership clan_wiki
                     dead_clan dead_family pfamA_database_links pfamA_literature_reference
-                    pfamA_wiki current_pfam_version nested_domains version);
+                    pfamA_wiki current_pfam_version nested_domains version pfamA_reg_seed);
 
     foreach my $table (@tables) {
         if (my @matched_cols = columns_matched($table)) {
@@ -88,7 +88,7 @@ if ($check) {
     my @tables = qw(pfamA evidence markup_key wikipedia pfamseq clan literature_reference
                     _lock clan_database_links clan_lit_ref clan_membership clan_wiki
                     dead_clan dead_family pfamA_database_links pfamA_literature_reference
-                    pfamA_wiki current_pfam_version nested_domains version);
+                    pfamA_wiki current_pfam_version nested_domains version pfamA_reg_seed);
 
     foreach my $table (@tables) {
         print "Table $table: ";
