@@ -2611,12 +2611,10 @@ sub makeSpeciesJsonString {
 "select s.pfamseq_acc from pfamA_reg_seed r, pfamseq s where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ?"
     );
   my $fullSth =
-    $dbh->prepare(
-"select t.species, parent, minimal, rank, s.pfamseq_acc, t.ncbi_taxid, count(s.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ? and in_full =1 and t.species!=\'NULL\' group by s.pfamseq_acc"
-    );
+    $dbh->prepare("select t.species, parent, minimal, rank, s.pfamseq_acc, t.ncbi_taxid, count(s.pfamseq_acc) from pfamA_reg_full_significant r, pfamseq s left join taxonomy t on t.ncbi_taxid=s.ncbi_taxid where s.pfamseq_acc=r.pfamseq_acc and pfamA_acc= ? and in_full =1 and (t.species!=\'NULL\' or t.rank='no rank' or t.rank='subspecies') group by s.pfamseq_acc");
+
   my $taxFSth =
-    $dbh->prepare(
-    "select parent, minimal, level, rank from taxonomy where ncbi_taxid=?");
+    $dbh->prepare("select species, parent, minimal, level, rank from taxonomy where ncbi_taxid=?");
   my $unclassSth =
     $dbh->prepare(
 q[ SELECT s.species, s.taxonomy, s.pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_taxid FROM pfamA_reg_full_significant r, pfamseq s LEFT JOIN taxonomy t ON t.ncbi_taxid = s.ncbi_taxid WHERE s.pfamseq_acc = r.pfamseq_acc AND pfamA_acc = ? AND in_full=1 AND t.ncbi_taxid IS null GROUP BY s.pfamseq_acc ]
@@ -2738,29 +2736,62 @@ q[ SELECT s.species, s.taxonomy, s.pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_tax
   $fullSth->execute($self->pfam->pfama_acc);
   foreach my $rRef ( @{ $fullSth->fetchall_arrayref } ) {
 
+    my ($qSpecies, $qParent, $qMinimal, $qRank, $qPfamseq_acc, $qNcbiTax, $qPfamseqCount) = ($rRef->[0], $rRef->[1], $rRef->[2], $rRef->[3], $rRef->[4], $rRef->[5], $rRef->[6]);
+
     my $thisBranch;
     $thisBranch->{sequence} = {
-      seqAcc     => $rRef->[4],
-      seedSeq    => ( defined( $seedSeqs{ $rRef->[4] } ) ? 1 : 0 ),
-      numDomains => $rRef->[6]
+      seqAcc     => $qPfamseq_acc,
+      seedSeq    => ( defined( $seedSeqs{ $qPfamseq_acc } ) ? 1 : 0 ),
+      numDomains => $qPfamseqCount
     };
 
-    $thisBranch->{ $rRef->[3] } = {
-      node  => $rRef->[0],
-      taxid => $rRef->[5]
+    #If it has no rank or its a subspecies, see if parent node is the species
+    #If parent is species, capture info for species, if not check grandparent
+    #This is to catch nodes below species that were previously being missed
+    if($qRank eq "no rank" or $qRank eq "subspecies") {
+      $taxFSth->execute( $qParent );
+      my $pNoRank = $taxFSth->fetchrow_hashref;
+      if($pNoRank->{rank} eq 'species') {
+        $qSpecies=$pNoRank->{species};
+        $qParent=$pNoRank->{parent};
+        $qMinimal=$pNoRank->{minimal};
+        $qRank=$pNoRank->{rank};
+        $qNcbiTax=$qParent;
+      }
+      else {
+        #Go up one more level, ~5% of proteomes in Pfam 29 had a taxid whose grandparent is species
+        $taxFSth->execute( $pNoRank->{parent} );
+        my $pNoRank2 = $taxFSth->fetchrow_hashref;
+        if($pNoRank2->{rank} eq 'species') {
+          $qSpecies=$pNoRank2->{species};
+          $qParent=$pNoRank2->{parent};
+          $qMinimal=$pNoRank2->{minimal};
+          $qRank=$pNoRank2->{rank};
+          $qNcbiTax=$pNoRank->{parent};
+        }
+        else {
+          next; #Give up
+        }
+      }
+    }
+
+
+    $thisBranch->{ $qRank } = {
+      node  => $qSpecies,
+      taxid => $qNcbiTax
     };
 
     my $speciesCounter = 0;
-    unless ( $seenTaxIds{ $rRef->[5] } ) {
+    unless ( $seenTaxIds{ $qNcbiTax } ) {
       $speciesCounter = 1;
     }
-    $seenTaxIds{ $rRef->[5] }++;
+    $seenTaxIds{ $qNcbiTax }++;
 
     my $atRoot = 0;
 
     #print "Looking up ".$rRef->[1]."\n";
 
-    $taxFSth->execute( $rRef->[1] );
+    $taxFSth->execute( $qParent );
     my $rHashRef = $taxFSth->fetchrow_hashref;
 
     until ($atRoot) {
@@ -2830,7 +2861,7 @@ q[ SELECT s.species, s.taxonomy, s.pfamseq_acc, COUNT(s.pfamseq_acc), s.ncbi_tax
       $node->{id} = $unique++;
       $node->{numSequences}++;
       $node->{numSpecies} += $speciesCounter;
-      $node->{numDomains} += $rRef->[6];
+      $node->{numDomains} += $qPfamseqCount;
 
       $previousNode = $node;
     }
