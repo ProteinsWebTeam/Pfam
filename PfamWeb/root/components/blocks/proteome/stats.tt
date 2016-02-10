@@ -1,7 +1,7 @@
 [%
 # stats.tt
 # jt6 20060821 WTSI
-# 
+#
 # build the domain composition block for the proteome pages
 #
 # $Id: stats.tt,v 1.11 2009-11-02 15:40:24 jt6 Exp $
@@ -16,7 +16,7 @@ oe = 0;
     <h1>Domain composition</h1>
   </div>
   <div class="blockContent">
-    
+
     <p>
       This section shows the composition of this proteome, in terms of the Pfam
       domains which are found on its constituent sequences.
@@ -27,7 +27,7 @@ oe = 0;
     <div id="statsNotes" style="display: none">
       <p>
        Each row of the table shows a Pfam domain that was found on one
-       or more of the sequences from this proteome. The two data columns show:       
+       or more of the sequences from this proteome. The two data columns show:
       </p>
       <dl>
         <dt>
@@ -35,31 +35,31 @@ oe = 0;
         </dt>
         <dd>
           the number of distinct protein sequences from this proteome that are
-          found to have the given Pfam domain present 
+          found to have the given Pfam domain present
         </dd>
         <dt>
           <em>occurrences</em>
         </dt>
         <dd>
-          the number of times that the Pfam domain occurs throughout this 
+          the number of times that the Pfam domain occurs throughout this
           proteome
         </dd>
       </dl>
       <p>
         Finally, the &#39;View graphics&#39; and &#39;View alignment&#39;
         columns allow you to view the sequences for a given domain either
-        as a set of Pfam graphics, one per sequence, or as a sequence alignment. 
-        The domain graphics and sequence alignment are shown in a separate 
+        as a set of Pfam graphics, one per sequence, or as a sequence alignment.
+        The domain graphics and sequence alignment are shown in a separate
         browser window.
       </p>
 
       <hr />
     </div>
-    
+
     <div id="statsTableDiv">
       <p class="loading">Loading domain composition table...</p>
     </div>
-    
+
     <script type="text/javascript">
       // <![CDATA[
 
@@ -74,9 +74,36 @@ oe = 0;
             onFailure: function( oResponse ) {
               $("statsTableDiv")
                 .update( "There was a problem loading the statistics table." );
+            },
+            onComplete: function() {
+              $("loadFullTable").observe( "click", function() {
+
+                // first, hide the switch and show the spinner
+                $( "loadSwitch").hide();
+
+                // then show the spinner
+                $("spinner").show();
+
+                // and finally make the AJAX call
+                var r = new Ajax.Updater(
+                  "statsTableDiv",
+                  "[% c.uri_for( '/proteome/stats' ) %]",
+                  {
+                    method:     "get",
+                    parameters: { taxId: "[% taxId %]",
+                                  full:  1 },
+                    onFailure:  function( oResponse ) {
+                      $("statsTableDiv")
+                        .update( "There was a problem loading the statistics table." );
+                    }
+                  }
+                );
+
+              } );
             }
           }
         );
+
       } );
 
       // ]]>

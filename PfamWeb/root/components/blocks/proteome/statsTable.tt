@@ -2,7 +2,7 @@
 [%
 # statsTable.tt
 # jt6 20060821 WTSI
-# 
+#
 # builds the statistics table for the proteome statistics tab. This template
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
@@ -29,7 +29,7 @@ IF c.req.param('full') OR statsData.size < 500;
     <p>
       This table shows the first <strong>500</strong> Pfam domains, but you
       can <span class="link" id="loadFullTable">
-        see all <strong>[% statsData.size %]</strong> domains</span>. 
+        see all <strong>[% statsData.size %]</strong> domains</span>.
       You can <a href="ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/proteomes/[% taxId %].tsv.gz">
         download</a> a list of all regions for this proteome from our FTP site.
     </p>
@@ -44,7 +44,7 @@ IF c.req.param('full') OR statsData.size < 500;
 [% END %]
 
 <table id="statsTable"
-       class="details" 
+       class="details"
        summary="Domain statistics for this proteome">
   <thead>
     <tr>
@@ -102,21 +102,21 @@ IF c.req.param('full') OR statsData.size < 500;
         e.stop();
       } );
     } );
-  
-    if ( $("loadFullTable") ) {
+
+    if ( $("loadFullTable") || true ) {
       $("loadFullTable").observe( "click", function() {
 
         // first, hide the switch and show the spinner
         $( "loadSwitch").hide();
-        
+
         // then show the spinner
         $("spinner").show();
-        
+
         // and finally make the AJAX call
-        var r = new Ajax.Updater( 
+        var r = new Ajax.Updater(
           "statsTableDiv",
           "[% c.uri_for( '/proteome/stats' ) %]",
-          { 
+          {
             method:     "get",
             parameters: { taxId: "[% taxId %]",
                           full:  1 },
@@ -126,12 +126,12 @@ IF c.req.param('full') OR statsData.size < 500;
             }
           }
         );
-        
+
       } );
     }
 
   } );
-  
+
   // ]]>
 </script>
 [%#
