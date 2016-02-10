@@ -2,7 +2,7 @@
 # sunburstTreeTab.tt
 # jt6 20110328 WTSI
 #
-# template for generating the sunburst species tree. This should be called 
+# template for generating the sunburst species tree. This should be called
 # from a tab template using PROCESS.
 #
 # $Id$
@@ -12,7 +12,7 @@
 
   <div id="sunburstControlsHeader">
     <h3>Sunburst controls</h3>
-    <span id="sunburstControlsToggle">Show</span>
+    <span id="sunburstControlsToggle">Hide</span>
     <div class="cleaner"><!-- empty --></div>
   </div>
 
@@ -95,7 +95,7 @@
          [% 'style="display: none"' IF entryType != 'A' %]
          class="sunburstControlPanel">
       <h3>Selections</h3>
-      <form action="[% c.req.uri %]" 
+      <form action="[% c.req.uri %]"
             id="retrieveSelectedSeqs"
             method="post">
         <div>
@@ -141,8 +141,8 @@
 <div id="sunburstTreeDesc">
   <p>
     This visualisation provides a simple graphical representation of
-    the distribution of this family across species. You can find the 
-    original interactive tree in the 
+    the distribution of this family across species. You can find the
+    original interactive tree in the
     <span class="link" onclick="speciesTreeTabView.selectTab(1)">
       adjacent tab</span>.
     <span onclick="reveal( this, 'sunburstNotes', false, true );"
@@ -174,7 +174,7 @@
       controls.
     </p>
     <p>
-      In order to reduce the complexity of the representation, we 
+      In order to reduce the complexity of the representation, we
       reduce the number of taxonomic levels that we show. We consider
       only the following eight major taxonomic levels:
     </p>
@@ -205,7 +205,7 @@
       show a summary of the lineage of the currently highlighed node.
       If you pause over an arc, a tooltip will be shown, giving the
       name of the taxonomic level in the title and a summary of the
-      number of sequences and species below that node in the tree. 
+      number of sequences and species below that node in the tree.
     </p>
 
     <h2>Anomalies in the taxonomy tree</h2>
@@ -227,7 +227,7 @@
     </p>
 
     <h3>Unmapped species names</h3>
-    
+
     <p>
       The tree is built by looking at each sequence in the full
       alignment for the family. We take the name of the species given
@@ -285,19 +285,35 @@
       treeData;
 
   document.observe("dom:loaded", function() {
+    var handleFailure = function(errorMessage) {
+      var sunburst = document.getElementById("sunburst");
+      var controls = document.getElementById("sunburstControls");
+      sunburst.innerText = errorMessage || "There was a problem";
+      controls.style.display = "none";
+    }
 
-    var r = new Ajax.Request( 
+    var r = new Ajax.Request(
       "[% c.uri_for( '/family', acc, 'sunburst', 'json' ) %]",
       {
         method: "get",
         onSuccess: function( response ) {
           treeData = response.responseJSON;
-          sunburstController = new SunburstController( "[% c.req.uri %]", treeData, "pfam" );
-          $("sunburstControlsContent").show();
-          $("sunburstControlsToggle").update("Hide");
+          if (treeData.children.length === 0) {
+            handleFailure(
+              "There are no data about this family for this sunburst"
+            );
+          } else {
+            sunburstController = new SunburstController(
+              "[% c.req.uri %]",
+              treeData,
+              "pfam"
+            );
+          }
         },
-        onFailure: function( response ) {
-          $("sunburst").update( "There was a problem retrieving the sunburst date for this family." );
+        onFailure: function() {
+          handleFailure(
+            "There was a problem retrieving the sunburst data for this family"
+          );
         }
       }
     );
@@ -306,4 +322,3 @@
 
   // ]]>
 </script>
-
