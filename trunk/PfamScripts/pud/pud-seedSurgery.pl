@@ -143,6 +143,11 @@ my $familyIO = Bio::Pfam::FamilyIO->new;
 
 FAM:
 foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
+
+  if(-d "$surgeryDir/$fam" or -e "$famDir/$fam/seed_surgery.log") {
+    $logger->debug("$fam already undergone surgery");
+    next;
+  }
   $logger->debug("$fam needs seed surgery");
 
   #Get hash of seed seqs that have the same md5 in pfamA_reg_seed and pfamseq
@@ -159,10 +164,6 @@ foreach my $fam ( sort { $a cmp $b } keys %pfamA ) {
   my $seedSeqsUniprotHash;
   foreach my $r (@$seedSeqsUniprot) {
     $seedSeqsUniprotHash->{ $r->[0] }++;
-  }
-
-  if ( -d $surgeryDir . '/' . $fam ) {
-    $logger->warn("$fam looks like it is already undergoing surgery");
   }
 
   unless ( -d $famDir . '/' . $fam ){
