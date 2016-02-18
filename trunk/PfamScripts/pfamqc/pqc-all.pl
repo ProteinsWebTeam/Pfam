@@ -181,15 +181,15 @@ if ( $config->location eq 'WTSI' or $config->location eq 'EBI' ) {
     print "$0: There are $signal_peptide_overlap->{total} signal peptide overlaps, $signal_peptide_overlap->{seed} in SEED and $signal_peptide_overlap->{align} in ALIGN\n";
     exit(1);
   }
-  
+
+  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
+    print "$0: $family contains errors.  You should rebuild this family.\n";
+    exit(1);
+  }
 }
 
 Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
-unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $famObj, $pfamDB ) ) {
-  print "$0: $family contains errors.  You should rebuild this family.\n";
-  exit(1);
-}
 
 $verbose and  print STDERR "Looks like you sequences will be okay\n";
 
