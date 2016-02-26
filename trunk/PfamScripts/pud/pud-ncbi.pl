@@ -33,8 +33,6 @@ unless($version){
 
 # get the config file for the pfam.
 my $config = Bio::Pfam::Config->new;
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin });
-my $dbh = $pfamDB->getSchema->storage->dbh;
 
 my $NCBI_PATH = 'ftp://ftp.ncbi.nih.gov/ncbi-asn1';
 my $store_dir = $config->localDbsLoc."/ncbi" || $logger->logdie( "cant get the localDbsLoc from the config file;");
@@ -45,6 +43,9 @@ my $pfamseqNcbiFile = $pfamseqDir.'/ncbi';
 my $pfamseqNcbiFileIdx = $pfamseqNcbiFile.'.ssi';
 
 $logger->debug( "Production-Location :$production_location |nfs-location: $nfs_location ");
+unless(-d $pfamseqDir) {
+  mkdir($pfamseqDir, 0755) or $logger->logdie("Couldn't mkdir $pfamseqDir, $!");
+}
 
 $logger->info( "Downloading file release number.....[ $store_dir]");
 getstore( $NCBI_PATH."/GB_Release_Number","$store_dir/GB_Release_Number" ) 
