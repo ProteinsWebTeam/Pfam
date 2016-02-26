@@ -16,7 +16,6 @@ my $dbh_pfam = $pfamDB->getSchema->storage->dbh;
 
 $ENV{TNS_ADMIN}='/ebi/msd/software/common/tns_admin';
 
-#Switch to commented out line once the pfam_search account is set up
 my $dbh = DBI->connect("dbi:Oracle:pdbe_live", "search_pfam", "search_pfam55");
 
 my %pdbs;
