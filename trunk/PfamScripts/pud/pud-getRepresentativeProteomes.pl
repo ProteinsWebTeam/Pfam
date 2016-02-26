@@ -1,7 +1,7 @@
 #!/usr/bin/env perl 
 #
-# Script to fetch the RP sequence listing from PIR and update pfamseq
-# with the relevant data.
+# Script to fetch the RP sequence listing from PIR and update uniprot
+# table with the relevant data.
 #
 use strict;
 use warnings;
@@ -36,113 +36,115 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh    = $pfamDB->getSchema->storage->dbh;
 
 #does the RP local database directory exist? If not make one
-unless ( -d $config->localDbsLoc . '/RP' ) {
-  mkdir( $config->localDbsLoc . '/RP' )
-    or die "Could not make the directory "
-    . $config->localDbsLoc
-    . "/RP because: [$!]\n";
+my $store_dir = $config->localDbsLoc . '/RP';
+unless ( -d $store_dir ) {
+  mkdir($store_dir)
+    or die "Could not make the directory '$store_dir' because: [$!]\n";
 }
 
 #Move to the RP local database directory;
 my $pwd = getcwd;
-my $store_dir = $config->localDbsLoc."/RP";
 chdir($store_dir) or $logger->logdie("Failed to change into $store_dir");
 
 
 #These are the different RP levels that are made available via PIR by default.
 my @levels = qw(15 35 55 75);
 
-#The following update statements.  Note, that when a sequences appears in RP15, the
-#most redundant version, then according to the RP definitions, it is in the the 
-#less redundant versions.  Thus, we can reduce some of the updates. 
-my %updateStatements = ( 15 =>  "UPDATE pfamseq SET rp15=1, rp35=1, rp55=1, rp75=1 WHERE pfamseq_acc = ?",
-                         35 =>  "UPDATE pfamseq SET rp35=1, rp55=1, rp75=1 WHERE pfamseq_acc = ?", 
-                         55 =>  "UPDATE pfamseq SET rp55=1, rp75=1 WHERE pfamseq_acc = ?",
-                         75 =>  "UPDATE pfamseq SET rp75=1 WHERE pfamseq_acc=?");
 
-#Set all flags to be zero - this is possibly a slight waste as they should all
-#be zero, but only takes about 15 minutes to run this double check.
-if(-e "$statusdir/restPfamseqRP"){
-  $logger->info("Already reset pfamseq RP flags.");
-}else{
-  $logger->info("Resetting pfamseq RP flag.");
-  $dbh->do("UPDATE pfamseq SET rp15=0, rp35=0, rp55=0, rp75=0");
-  touch("$statusdir/restPfamseqRP");
+#Copy pir data across
+foreach my $level (@levels) {
+  my $file = "rp-seqs-".$level.".fasta.gz";
+  if(-s "$statusdir/copiedRP".$level) {
+    $logger->debug("Already copied $file.gz");
+  }
+  else {
+    $logger->debug("Copying $file from ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/");
+    copy($config->uniprotPrivateLoc."/internal/rps_fromPIR/$file", "$store_dir/$file") or $logger->logdie("Could not copy ".$config->uniprotPrivateLoc."/internal/rps_fromPIR/$file to $store_dir [$!]");
+    chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!"); 
+    touch("$statusdir/copiedRP$level");
+    chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
+  }
 }
 
-my $agent = LWP::UserAgent->new;
-$agent->env_proxy;
 
-#Build up the path to something that looks like this.
-#http://pir.georgetown.edu/rps/data/rp_seq_blast_db/current/15/rp-seqs-15.txt
-my $baseURL = "http://pir.georgetown.edu/rps/data/rp_seq_blast_db/current";
+#The following update statements.  Note, that when a sequences appears in RP15, the
+#most redundant version, then according to the RP definitions, it is in the
+#less redundant versions.  Thus, we can reduce some of the updates. 
+my %updateStatements = ( 15 =>  "UPDATE uniprot SET rp15=1, rp35=1, rp55=1, rp75=1 WHERE uniprot_acc = ?",
+  35 =>  "UPDATE uniprot SET rp35=1, rp55=1, rp75=1 WHERE uniprot_acc = ?", 
+  55 =>  "UPDATE uniprot SET rp55=1, rp75=1 WHERE uniprot_acc = ?",
+  75 =>  "UPDATE uniprot SET rp75=1 WHERE uniprot_acc=?");
+
+#Set all flags to be zero - this is possibly a slight waste as they should all
+#be zero, but only takes <1 hour to run this double check.
+if(-e "$statusdir/resetUniprotRP"){
+  $logger->info("Already reset uniprot RP flags.");
+}else{
+  $logger->info("Resetting uniprot RP flag.");
+  $dbh->do("UPDATE uniprot SET rp15=0, rp35=0, rp55=0, rp75=0");
+  chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!"); 
+  touch("$statusdir/resetUniProtRP");
+  chdir($store_dir) or $logger->logdie("Couldn't chdir into $store_dir, $!");
+}
 
 my %seen;
 foreach my $l (@levels){
   #Have we already processed this level?
-  if( -e "$statusdir/setPfamseqRP$l"){
-    $logger->info("Already set pfamseq RP flags for $l.");
+  chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!");
+  if( -e "$statusdir/setUniprotRP$l"){
+    $logger->info("Already set uniprot RP flags for $l.");
   }else{
-    
-    $logger->info("Going to set pfamseq RP flags for $l.");
+    chdir($store_dir) or $logger->logdie("Couldn't chdir into $pwd, $!");
+    $logger->info("Going to set uniprot RP flags for $l.");
     #Prepare the appropriate update statement.
     my $sth = $dbh->prepare($updateStatements{$l});
-    
-    #Finish off the URL
-    my $url = $baseURL."/$l/rp-seqs-$l.txt";
-    my $file = "rp-seqs-$l.txt";
-    
-    #Download the file
-    my $response = $agent->mirror($url, $file);
-    if ($response->is_success) {
-      my $date = sprintf("%4d-%02d-%02d", HTTP::Date::parse_date($response->header('Last-Modified')));
-      $logger->info("File $file: downloaded PIR $file ($date)");
-    } elsif ($response->code == HTTP::Status::RC_NOT_MODIFIED) {
-      $logger->info("File $file: up-to-date\n");
-    } else {
-      $logger->logdie( 'Failed, got ' . $response->status_line .
-        ' for ' . $response->request->uri );
-    }
-    
+
+    #Define the filename
+    my $file = "rp-seqs-$l.fasta.gz";
+
+
     #Read in the list of sequence accessions, which currently do not contian the version.
-    open(F, "<", $file) or $logger->logdie("Could not open $file for reading :[$!]");
+    open(F, "gunzip -c $store_dir/$file |") or $logger->logdie("Could not open $file for reading :[$!]");
     #Perform commits in blocks of 2000.
     $dbh->begin_work;
     my $c = 0;
     while(<F>){
-      chomp;
-      unless(exists($seen{$_})){
-        $sth->execute($_);
-        $c++;
-        $seen{$_}++; 
-      }
-      if($c == 2000){
-        $dbh->commit;
-        $dbh->begin_work;
-        $c = 0;  
+      if(/^>(\S+)/) {
+        my $acc=$1;
+        unless(exists($seen{$acc})){
+          $sth->execute($acc);
+          $c++;
+          $seen{$acc}++; 
+        }
+        if($c == 2000){
+          $dbh->commit;
+          $dbh->begin_work;
+          $c = 0;  
+        }
       }
     }
     close(F);
     $dbh->commit;
-    touch("$statusdir/setPfamseqRP$l");
+    chdir($pwd) or $logger->logdie("Couldn't chdir into $pwd, $!");
+    touch("$statusdir/setUniprotRP$l");
+    chdir($store_dir) or $logger->logdie("Couldn't chdir into $pwd, $!");
   }
 }
 
 
 sub help {
 
-print <<EOF;
+  print <<EOF;
 
 Usage: $0 -statusdir <release_status_dir>
 
 
-Function: Script to fetch the RP sequence listing from PIR and update pfamseq 
-with the relevant data.  Columns rp15, rp35, rp55 and rp75 will be set to 1
-if the sequence accession matches. PIR releases are linked to UniProt, so 
-they should be in sync.....
+Function: Script to fetch the RP sequence listing from uniprot and update the
+uniprot table with the relevant data.  Columns rp15, rp35, rp55 and rp75 will 
+be set to 1 if the sequence accession matches.
 
 
 EOF
 
- exit(1); 
+  exit(1); 
 }
