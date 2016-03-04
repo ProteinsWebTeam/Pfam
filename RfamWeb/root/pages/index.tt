@@ -425,17 +425,16 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     </p>
     <div class="citation">
       <span class="title">
-        <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/early/2012/11/02/nar.gks1005.long">
-          Rfam 11.0: 10 years of RNA families.</a>
+        <a class="ext"
+          href="http://nar.oxfordjournals.org/content/43/D1/D130">
+          Rfam 12.0: updates to the RNA families database.</a>
       </span>
       <span class="authors">
-        S.W. Burge, J. Daub, R. Eberhardt, J. Tate, L. Barquist, E.P. Nawrocki, S.R. Eddy, 
-        P.P. Gardner, A. Bateman.
+        Eric P. Nawrocki, Sarah W. Burge, Alex Bateman, Jennifer Daub, Ruth Y. Eberhardt, Sean R. Eddy, Evan W. Floden, Paul P. Gardner, Thomas A. Jones, John Tate and Robert D. Finn
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2012)
-        &nbsp;doi: 10.1093/nar/gks1005
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
+        &nbsp;10.1093/nar/gku1063
       </span>
     </div>
   </div>
