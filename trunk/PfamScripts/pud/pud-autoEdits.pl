@@ -23,7 +23,7 @@ if($help){
   &help;
 }
 
-my $maxBits = 20;
+my $maxBits = 30;
 if(!$percentage or $percentage <= 0 or $percentage > 1){
   warn "Percantage overlap needs to be between 0 and 1\n";
   &help;
@@ -104,7 +104,7 @@ close(O);
 #print Dumper(%seedOverlaps);
 
 open(NOT, ">notResolved.$$.txt") or die "Couldn't open fh to notResolved.$$.txt, $!";
-
+my $canResolve=0;
 open(O, $file) or die "Could not open $file:[$!]\n";
 while(<O>){
   my($seq1, $seq2, $s1, $s2, $e1, $e2, $l1, $l2, $fam1, $fam2, $ali1, $ali2, $index, $bits1, $bits2);
@@ -148,6 +148,7 @@ while(<O>){
 	  print NOT "Can't resolve (seed overlap), skipping\n";
 	}else{
 	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+    $canResolve++;
 	  push(@{ $fixes{$fam1} }, { seq   => $seq1,
 				     from  => $s1,
 				     to    => $e1,
@@ -175,6 +176,7 @@ while(<O>){
 	  }
 	  else {
 	    print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+      $canResolve++;
 	    push(@{ $fixes{$fam2} }, {  seq   => $seq2,
 					from  => $s2,
 					to    => $e2,
@@ -184,6 +186,7 @@ while(<O>){
 	  }
 	}else{
 	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+    $canResolve++;
 	  push(@{ $fixes{$fam1} }, { seq   => $seq1,
 				     from  => $s1,
 				     to    => $e1,
@@ -212,6 +215,7 @@ while(<O>){
 	}
 	else {
 	  print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+    $canResolve++;
 	  push(@{ $fixes{$fam2} }, {  seq   => $seq2,
                                     from  => $s2,
                                     to    => $e2,
@@ -221,6 +225,7 @@ while(<O>){
 	}
       }else{
 	print "I can fix this overlap $fam1:$seq1/$s1-$e1 $fam2:$seq2/$s2-$e2\n";
+  $canResolve++;
 	push(@{ $fixes{$fam1} }, { seq   => $seq1,
 				   from  => $s1,
 				   to    => $e1,
@@ -240,6 +245,7 @@ while(<O>){
   }
 }
 close NOT;
+print STDERR "$canResolve overlaps can be resolved\n";
 
 my $noOverlaps;
 open(E, ">edits.$$.txt") or die "Could not open edits:[$!]\n";
