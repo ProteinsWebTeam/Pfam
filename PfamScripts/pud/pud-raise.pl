@@ -25,19 +25,22 @@ my $perc_thresh;    #Only allow threshold changes which result in keeping $perc_
 
 my ($status_dir,$families_dir,$help);
 
-#These are the default parameters, use these unless user says otherwise
-$allowed_loss = "25" unless($allowed_loss);
-$bits_threshold = "30" unless($bits_threshold);
-$num_overlaps = "20" unless($num_overlaps);
-$perc_thresh = 90; 
 
 GetOptions( 'status_dir=s'     => \$status_dir,
   'family_dir=s'     => \$families_dir,
   'loss=i'           => \$allowed_loss,
   'bits_threshold=i' => \$bits_threshold,
   'num_overlaps=i'   => \$num_overlaps,
+  'perc_thresh=i'    => \$perc_thresh,
   'h'                => \$help,
   'help'             => \$help);
+
+#These are the default parameters, use these unless user says otherwise
+$allowed_loss = "25" unless($allowed_loss);
+$bits_threshold = "30" unless($bits_threshold);
+$num_overlaps = "20" unless($num_overlaps);
+$perc_thresh = 90 unless($perc_thresh);
+
 
 if (! $status_dir){
   warn "You need to specify a status directory (which contains the overlap files)\n";
@@ -52,6 +55,10 @@ if (! $families_dir){
 
 if($help) {
   help();
+}
+if($perc_thresh >= 100 or $perc_thresh <75) {
+  print STDERR "Your percentage threshold doesn't seem sensible, please check";
+  exit;
 }
 
 
@@ -375,6 +382,7 @@ sub resolve {
       }
     }
   }
+  return 0 unless($old and $new);
 
   my $diff = $old-$new;
 
@@ -421,6 +429,8 @@ Addional options:
                         less that 'bits_threshold' (default 30)
   -num_overlaps <n>   : Work on families with less than 'num_overlaps' 
                         overlaps (default 20)
+  -perc_thresh <n>    : Allow a maximum of 'perc_thresh' % of members to 
+                        be lost (default 90%)
 
 EOF
   exit;
