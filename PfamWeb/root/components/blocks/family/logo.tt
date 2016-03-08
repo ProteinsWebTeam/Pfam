@@ -20,7 +20,7 @@
       quick overview of the properties of an HMM in a graphical form. You can 
       see a more detailed description of HMM logos and find out how you can 
       interpret them
-      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/logomat-m/help.shtml">
+      <a class="ext" href="http://www.biomedcentral.com/1471-2105/15/7/">
         here</a>.
       <span onclick="reveal( this, 'logoNotes', false, true );"
             class="moreLink">
