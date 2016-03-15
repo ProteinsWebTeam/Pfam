@@ -144,16 +144,17 @@ foreach my $overlap (@overlapArray) {
 my $fam1_short=@fam1_short;
 my $propO=($fam1_short/$fam1_size)*100;
 if($propO >= $config->familyOverlapRule)  {
-  foreach my $overlap (@fam1_short) {
-    print "$overlap\n";
+  foreach my $ov (@fam1_short) {
+    print "$ov\n";
     $overlap=1;
   }
 }
+
 my $fam2_short=@fam2_short;
 $propO=($fam2_short/$fam2_size)*100;
 if($propO >= $config->familyOverlapRule)  {
-  foreach my $overlap (@fam2_short) {
-    print "$overlap\n";
+  foreach my $ov (@fam2_short) {
+    print "$ov\n";
     $overlap=1;
   } 
 } 
