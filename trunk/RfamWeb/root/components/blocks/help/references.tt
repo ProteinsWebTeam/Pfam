@@ -28,8 +28,23 @@
 
     <div class="citation">
       <span class="title">
+        <a class="ext"
+          href="http://nar.oxfordjournals.org/content/43/D1/D130">
+          Rfam 12.0: updates to the RNA families database.</a>
+      </span>
+      <span class="authors">
+        Eric P. Nawrocki, Sarah W. Burge, Alex Bateman, Jennifer Daub, Ruth Y. Eberhardt, Sean R. Eddy, Evan W. Floden, Paul P. Gardner, Thomas A. Jones, John Tate and Robert D. Finn
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2014)
+        &nbsp;10.1093/nar/gku1063
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/early/2012/11/02/nar.gks1005.long">
+           href="http://nar.oxfordjournals.org/content/41/D1/D226">
           Rfam 11.0: 10 years of RNA families.</a>
       </span>
       <span class="authors">
@@ -45,7 +60,7 @@
     <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/content/early/2010/11/08/nar.gkq1129">
+           href="http://nar.oxfordjournals.org/content/39/suppl_1/D141">
           Rfam: Wikipedia, clans and the “decimal” release</a>
       </span>
       <span class="authors">
@@ -127,8 +142,53 @@
 
     <div class="citation">
       <span class="title">
+        <a class="ext"
+          href="http://www.ncbi.nlm.nih.gov/pubmed/24639160">
+          Annotating functional RNAs in genomes using Infernal.</a>
+      </span>
+      <span class="authors">
+        E.P. Nawrocki
+      </span>
+      <span class="ref">
+        <span class="jrnl" >Methods Mol Biol</span>
+        &nbsp;(2014)&nbsp;1097:163-97
+       </span>
+    </div>
+
+     <div class="citation">
+      <span class="title">
+        <a class="ext"
+          href="http://www.ncbi.nlm.nih.gov/pubmed/24008419">
+          Infernal 1.1: 100-fold Faster RNA Homology Searches.</a>
+      </span>
+      <span class="authors">
+         E. P. Nawrocki, S. R. Eddy
+      </span>
+      <span class="ref">
+        <span class="jrnl" >Bioinformatics</span>
+        &nbsp;(2013)&nbsp;29:2933-2935
+       </span>
+    </div>
+
+     <div class="citation">
+      <span class="title">
+        <a class="ext"
+          href="http://www.ncbi.nlm.nih.gov/pubmed/23722291">
+          Computational Identification of Functional RNA Homologs in Metagenomic Data.</a>
+      </span>
+      <span class="authors">
+        E. P. Nawrocki, S. R. Eddy
+      </span>
+      <span class="ref">
+        <span class="jrnl" >RNA Biol</span>
+        &nbsp;(2013)&nbsp;10:1170-1179, 2013
+       </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
         <a class="ext" 
-          href="http://selab.janelia.org/publications.html">
+          href="http://www.ncbi.nlm.nih.gov/pubmed/19307242">
           Infernal 1.0: Inference of RNA Alignments.</a> 
       </span>
       <span class="authors">
@@ -143,7 +203,7 @@
     <div class="citation">
       <span class="title">
         <a class="ext" 
-          href="http://selab.janelia.org/publications.html">
+          href="http://www.ncbi.nlm.nih.gov/pubmed/19304875">
           Local RNA Structure Alignment With Incomplete Sequence.</a> 
       </span>
       <span class="authors">
