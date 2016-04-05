@@ -317,11 +317,11 @@ unless ($ignore) {
         print "Looks like your family contains overlaps.\n";
         exit(1);
       }
-    }
 
-    unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB ) ) {
-      print "pfci: $family contains errors.  You should rebuild this family.\n";
-      exit(1);
+      unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj, $pfamDB ) ) { 
+        print "pfci: $family contains errors.  You should rebuild this family.\n";
+        exit(1);
+      } 
     }
 
     if(-z "$family/ALIGN") {
