@@ -12,18 +12,20 @@ use POSIX qw(ceil);
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Getopt::Long;
+use DDP;
 
 #Get user options and check they are sensible
-my ($all, $acc, $memory_gb);
+my ($all, $acc, $clan, $memory_gb);
 GetOptions('all' => \$all,
   'pfamA=s'  => \$acc,
+  'clan=s' => \$clan,
   'M=i'  => \$memory_gb);
 
-unless($all or $acc) {
-  die "Need to specify whether to do all families (-all) or a single family (-pfamA <pfamA_acc>)\n";
+unless($all or $acc or $clan) {
+  die "Need to specify whether to do all families (-all), a single family (-pfamA <pfamA_acc>) or a single clan (-clan <clan_acc>)\n";
 }
-if($all and $acc) {
-  die "Can't use -all and -acc option together\n";
+if( ($all and $acc) or ($all and $clan) or ($acc and $clan)) {
+  die "Can only choose one of -all, -acc and -clan\n";
 }
 if($all and $memory_gb) {
   die "Can't use -all and -M option together\n";
@@ -34,34 +36,85 @@ my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 
 #Create array of families to work on
-my @pfamA;
 if($all) {
-  @pfamA=$pfamDB->getSchema->resultset('PfamA')->search();
-}
-else {
-  @pfamA=$pfamDB->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
-}
+  #First do the clan families
+  my @clanData = $pfamDB->getSchema->resultset("ClanMembership")->search();
 
-my $uniprot_search = "performUniprotSearch.pl";
-
-my $cpu=4;
-
-#Create group Uniprotview and use this to limit number of running jobs to 100
-system("bgadd -L 100 /Uniprotview");
-my $group='/Uniprotview';
-
-#Loop through each pfamA and run searches
-foreach my $pfamA (@pfamA) {
-  my $pfamA_acc=$pfamA->pfama_acc;
-
-  #Estimate memory if not specified by user
-  unless($memory_gb) {
-    $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
-    $memory_gb++; 
+  my %clan_pfamA;
+  my %clan_family;
+  foreach my $c (@clanData) { 
+    $clan_family{$c->pfama_acc->pfama_acc}=1;
+    my $family = $pfamDB->getSchema->resultset('PfamA')->find({ pfama_acc => $c->pfama_acc->pfama_acc});
+    push(@{$clan_pfamA{$c->clan_acc->clan_acc}}, $family);
   }
-  my $memory_mb=$memory_gb*1000;  
+  foreach my $clan (sort keys %clan_pfamA) {
+    uniprotSearch($clan_pfamA{$clan}, $clan);
+  }
 
-  #Submit to farm
-  print STDERR "$pfamA_acc\n";
-  system("bsub -q production-rh6 -J$pfamA_acc -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
+
+  #Then the non-clan families
+  my @pfamA;
+  my @all_pfamA=$pfamDB->getSchema->resultset('PfamA')->search();
+  foreach my $p (@all_pfamA) {
+    unless(exists($clan_family{$p->pfama_acc})) {
+      push(@pfamA, $p);
+    }
+  }
+  uniprotSearch(\@pfamA);
+
+}
+elsif($clan) {
+  my @clanData = $pfamDB->getSchema->resultset("ClanMembership")->search({"clan_acc" => $clan});
+
+  my @clan_pfamA;
+  foreach my $c (@clanData) { 
+    my $family = $pfamDB->getSchema->resultset('PfamA')->find({ pfama_acc => $c->pfama_acc->pfama_acc});
+    push(@clan_pfamA, $family);
+  }
+  uniprotSearch(\@clan_pfamA, $clan);
+}
+elsif($acc) {
+  my @pfamA=$pfamDB->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
+  uniprotSearch(\@pfamA);
+}
+
+sub uniprotSearch {
+
+  my ($families, $clan_acc) = @_;
+
+  my ($job_name, $num_clan, $clan_group);
+  if($clan_acc) {
+    $job_name="uniprot_".$clan_acc;
+    $num_clan=@$families;
+    $clan_group='/Competeclan';
+  }
+
+  my $uniprot_search = "performUniprotSearch.pl";
+  my $group='/Uniprotview';
+
+  #Loop through each pfamA and run searches
+  foreach my $pfamA (@$families) {
+    my $pfamA_acc=$pfamA->pfama_acc;
+
+    unless($clan_acc) {
+      $job_name=$pfamA_acc;
+    }
+
+    #Estimate memory if not specified by user
+    unless($memory_gb) {
+      my $cpu=4;
+      $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
+      $memory_gb++; 
+    }
+    my $memory_mb=$memory_gb*1000;  
+
+    #Submit to farm
+    print STDERR "$pfamA_acc\n";
+    system("bsub -q production-rh6 -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
+  }
+
+  if($clan_acc) {
+    my $clan_name="compete_".$clan_acc;
+    system("bsub -q production-rh6 -J$clan_name -o $clan_acc.log -M 5000 -R \"rusage[mem=5000]\" -g $clan_group -w 'done($job_name)' 'competeUniprotClan.pl -clan $clan_acc'"); 
+  }
 }
