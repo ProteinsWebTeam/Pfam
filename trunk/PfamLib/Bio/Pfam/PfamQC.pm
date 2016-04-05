@@ -993,7 +993,6 @@ sub family_overlaps_with_db {
   #This could be nested in another domain, so we need to check!
   my $nestedRef = $pfamDB->getNestedDomain( $famObj->DESC->AC );
 
-
   if ($nestedRef) {
     foreach my $n (@$nestedRef) {
       $$ignore_ref{$n}++;
@@ -1021,12 +1020,14 @@ sub family_overlaps_with_db {
     }
   }
 
+  my %clanFam;
   if ( $famObj->DESC->CL ) {
 
     #Okay, we have a family that is part of a clan
     my $clanMem = $pfamDB->getClanMembership( $famObj->DESC->CL );
     foreach my $fam (@$clanMem) {
       $$ignore_ref{ $fam->pfama_acc->pfama_acc }++;
+      $clanFam{$fam->pfama_acc->pfama_acc}=1;
       my $nestedRef =
       $pfamDB->getNestedDomain( $fam->pfama_acc->pfama_acc );
 
@@ -1121,7 +1122,12 @@ sub family_overlaps_with_db {
 
       REGION:
       foreach my $overRegion ( @{ $region->{overlap} } ) {
-        next if ( $$ignore_ref{ $overRegion->{family} } );
+        
+        #Skip if it's in the ignore hash, unless it's an overlap between two SEED alignments within a clan
+        if ( $ignore_ref->{ $overRegion->{family} } ) {
+          next unless (exists($clanFam{$overRegion->{family}}) and $region->{ali} eq "SEED" and $overRegion->{ali} eq "SEED");
+        }
+
         if($region->{ali} eq 'FULL' and $compete){
 
           if(_compete($seqAcc, $region, $overRegion, $pfamDB, $famObj->DESC->CL)){
@@ -1202,6 +1208,15 @@ sub findOverlapsDb {
   $pfamDB->getOverlapingFullPfamRegions( $regions, \%overlaps );
   $pfamDB->getOverlapingSeedPfamRegions( $regions, \%overlaps );
 
+  my %clanFam;
+  if($clan) {
+    my $clanMem = $pfamDB->getClanMembership($clan);
+    foreach my $fam (@$clanMem) {
+      $clanFam{$fam->pfama_acc->pfama_acc}=1;
+    }
+  }
+
+
   my (@overlapLines, %seen);
   my $numOverlaps = 0;
   foreach my $seqAcc ( keys %overlaps ) {
@@ -1209,7 +1224,11 @@ sub findOverlapsDb {
 
       REGION:
       foreach my $overRegion ( @{ $region->{overlap} } ) {
-        next if ( $ignore_ref->{ $overRegion->{family} } );
+        #Skip if it's in the ignore hash, unless it's an overlap between two SEED alignments within a clan
+        if ( $ignore_ref->{ $overRegion->{family} } ) {
+          next unless (exists($clanFam{$overRegion->{family}}) and $region->{ali} eq "SEED" and $overRegion->{ali} eq "SEED");
+        }
+
         if($region->{ali} eq 'FULL' and $compete){
           if(_compete($seqAcc, $region, $overRegion, $pfamDB, $clan)){
             next REGION;  
