@@ -193,14 +193,15 @@ unless ($ignore) {
       print "Looks like your family contains overlaps.\n";
       exit(1);
     }
+
+    unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) { 
+      print "pfnew: $family contains errors.  You should rebuild this family.\n";
+      exit(1);
+    }
   }
 
   Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
-  unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj, $pfamDB ) ) {
-    print "pfnew: $family contains errors.  You should rebuild this family.\n";
-    exit(1);
-  }
 
   #pqc-check $family
   unless ( Bio::Pfam::PfamQC::noFragsInSeed( $family, $newFamObj ) ) {
