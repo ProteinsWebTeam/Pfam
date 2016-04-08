@@ -1086,38 +1086,35 @@ sub addSecondaryStructure {
       if($pdb_mapping->{end_icode}) {
         $ss{$pdbid_chain}{icode_end}=$pdb_mapping->{end_icode};
       }
-
       $sth->execute($pfamseq_acc, $pdb_mapping->{pdb_id}, $pdb_mapping->{chain}, $pdb_mapping->{seq_start}, $pdb_mapping->{seq_end}) or die "Couldn't execute statement ".$sth->errstr."\n";
       my ($pfamseq_num, $dssp_code);
       $sth->bind_columns(\$pfamseq_num, \$dssp_code);
 
       while ($sth->fetch()) {
+        $dssp_code = "-" unless($dssp_code);
         $ssData{$pdbid_chain}{$pfamseq_num}=$dssp_code;
       }
     }
-
+    
     #Then go through each position and store ss
     my @ali   = split( //, $seq->seq );
-    my $res_number=$seq->start;
-    foreach my $res (@ali) {
-      foreach my $pdbid_chain (keys %{$pfamseqPdb{$pfamseq_acc}}) {
-        if ( $res eq "." or $res eq "-" ) {
-          $ss{$pdbid_chain}{ssString}.=$res;
+    my $res_number=$seq->start; 
+    for(my $i=0; $i<@ali; $i++) {
+      foreach my $pdbid_chain (keys %ssData) {
+        if ( $ali[$i] eq "." or $ali[$i] eq "-" ) {
+          $ss{$pdbid_chain}{ssString}.=$ali[$i];
         }
-        elsif(exists($ssData{$pdbid_chain}{$res_number})) {
-          if($ssData{$pdbid_chain}{$res_number} and $ssData{$pdbid_chain}{$res_number} =~ /\S+/) {
-            $ss{$pdbid_chain}{ssString}.=$ssData{$pdbid_chain}{$res_number};
-          }
-          else {
-            $ss{$pdbid_chain}{ssString}.="-";
-          }
-        }
+        elsif($ssData{$pdbid_chain}{$res_number}) {
+          $ss{$pdbid_chain}{ssString}.=$ssData{$pdbid_chain}{$res_number};  
+        }    
         else {
           #If not then put an X for undef
-          $ss{$pdbid_chain}{ssString} .= "X";
+          $ss{$pdbid_chain}{ssString} .= "X"; 
         }
+      }    
+      unless($ali[$i] eq "." or $ali[$i] eq "-") {
+        $res_number++;
       }
-      $res_number++;
     }
 
     my @ssForMerging;
@@ -1134,7 +1131,7 @@ sub addSecondaryStructure {
         delete $ss{$pdb_chain};
       }
 
-      #If we do not delete the hash add it to the
+      #If we do not delete the hash add it to the array
       if ( $ss{$pdb_chain} ) {
         push( @ssForMerging, $ss{$pdb_chain}{ssString} );
         my ( $pdb, $chain ) = split( /_/, $pdb_chain );
@@ -1155,7 +1152,7 @@ sub addSecondaryStructure {
       }
     }
 
-  #Add anything pdbs we have here as an Xref.
+    #Add anything pdbs we have here as an Xref.
     #Compress multiple SS to consenus
     #print Dumper(@ssForMerging);
     if ( scalar(@ssForMerging) ) {
@@ -1179,7 +1176,7 @@ sub addSecondaryStructure {
       );
     }
   }
-
+   
   return (\@allSsStrings);
 
 }
@@ -1434,7 +1431,7 @@ my %taxdepth;
   
 #now populate the tax depth table
 
-print "Loading taxDepth\n";
+  $self->logger->debug("Loading taxDepth\n");
 
 	foreach my $tax (keys %taxdepth){
 		$self->pfamdb->getSchema->resultset('PfamATaxDepth')->create(
