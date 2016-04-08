@@ -146,4 +146,29 @@ sub start {
                   opened => \'NOW()' });
 }
 
+
+sub run {
+  my $self = shift;
+   $self->update( {
+     status  => 'RUN',
+     opened => \'NOW()'
+   } );
+}
+
+sub done {
+  my $self = shift;
+  $self->update( {
+    status  => 'DONE',
+    closed => \'NOW()'
+  } );
+}
+
+sub failure {
+  my $self = shift;
+  $self->update( {
+    status  => 'FAIL',
+    closed => \'NOW()'
+  } );
+}
+
 1;
