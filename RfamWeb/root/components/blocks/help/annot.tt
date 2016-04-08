@@ -29,23 +29,15 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       check that the following resources do not provide the annotation for you:
     </p>
     <ol>
-      <li><a href="[% c.uri_for('/genome/browse') %]">Rfam genomes</a></li>
-      <li><a class="ext" href="http://www.ebi.ac.uk/GenomeReviews/">Genome Reviews</a></li>
-      <li><a class="ext" href="http://www.ensembl.org/index.html">ENSEMBL Genomes</a></li>
+      <li><a class="ext" href="http://www.ensembl.org">Ensembl</a></li>
+      <li><a class="ext" href="http://ensemblgenomes.org/">Ensembl Genomes</a></li>      
       <li><a class="ext" href="http://www.genome.ucsc.edu/">UCSC Genome Browser</a></li>
-      <li><a class="ext" href="http://www.ncrna.org">www.ncrna.org</a></li>
-      <li><a class="ext" href="http://srnamap.mbc.nctu.edu.tw/">sRNAMap</a></li>
     </ol>
     <p>
       The Rfam library of covariance models can be used to search sequences
       (including whole genomes) for homologues to known non-coding RNAs, in
       conjunction with the <a class="ext" 
-        href="http://infernal.janelia.org/">Infernal</a> software. We 
-      pre-calculate Rfam hits to a large number of complete genomes. These 
-      results are presented <a href="[% c.uri_for('/genome/browse') %]">
-        here</a>. This approach seems to work well for prokaryotic genomes but 
-      there are some important drawbacks to the approach for larger genomes,
-      particularly vertebrates.
+        href="http://eddylab.org/infernal/">Infernal</a> software.
     </p>
 
     <h3>1. Compute</h3>
