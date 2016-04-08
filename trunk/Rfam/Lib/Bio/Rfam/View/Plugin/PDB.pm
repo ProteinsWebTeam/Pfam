@@ -6,6 +6,7 @@ with 'MooseX::Role::Pluggable::Plugin';
 use Data::Printer;
 use Carp;
 use File::Temp;
+use Try::Tiny;
 sub process{
 	my $self = shift;
 	$self->mapPDB;
@@ -13,6 +14,8 @@ sub process{
 #
 
 sub mapPDB {
+	
+	
 
 	my ($self) = @_;	
 	#Sorry Rob, a hardcoded path. Need to put this someplace more permanent.
@@ -20,9 +23,10 @@ sub mapPDB {
 	#Those with modified bases have been excluded.
 	#Documentation on Confluence as to how to produce this fasta file.
 	#
-	my $PDB_fasta = '/nfs/production/xfam/rfam/RELEASE_FILES/RFAM_12/PDB_RFAM12.fa';
-	#my $PDB_fasta = '/nfs/production/xfam/rfam/CURATION/PDB/pdb_trimmed_noillegals.fa';	
-	my $config = $self->parent->config;
+	#my $PDB_fasta = '/nfs/production/xfam/rfam/RELEASE_FILES/RFAM_12/PDB_RFAM12.fa';
+	my $PDB_fasta = '/nfs/production/xfam/rfam/RELEASE_FILES/RFAM_12_1/PDB_RFAM12_1.fa';
+        #my $PDB_fasta = '/nfs/production/xfam/rfam/CURATION/PDB/pdb_trimmed_noillegals.fa';	
+ 	my $config = $self->parent->config;
 	# my $client = Bio::Rfam::SVN::Client->new({config => $config});
 	my $familyIO = Bio::Rfam::FamilyIO->new;	
 	my $familyObj = $self->parent->family;
@@ -30,6 +34,7 @@ sub mapPDB {
 	my $prefix = "$rfam_acc.XXXX";
         my @hex_colour = qw(1fc01f c00f0f bdc000 c008ae 00bac0 8484c0 93c090 c0af92 8e2511 f29242 8585e6 ff87fa 008700 454545 0003c0 ebeb30 ff87a4 0064f4);
 
+	try{
 
 	# Generate a bunch of temporary files for the cmscan job:
 	#
@@ -112,6 +117,10 @@ sub mapPDB {
                                                         hex_colour => $hit->{hex_colour}
 							});
 	}
+}
+catch{
+	unlink glob "/tmp/$prefix.CM*";
+};
 
 } 
 	
