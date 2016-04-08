@@ -17,30 +17,26 @@
     <p>
       The Rfam database is curated and maintained at the <a class="ext" 
         href="http://www.ebi.ac.uk/">European Bioinformatics Institute</a>. 
-      The resource is a collaboration with researchers at <a class="ext" 
-        href="http://rfam.janelia.org/">Janelia Farm</a>, Maryland, VA, USA,
-      and the <a class="ext" href="http://www.ls.manchester.ac.uk/">
-        University of Manchester</a>, UK. The current list of consortium 
-      members, their institutes and primary role is listed below.
+      The resource is a collaboration with researchers from <a class="ext" 
+        href="http://eddylab.org/">Sean Eddy's lab</a> at Harvard University, USA.
     </p>  
   
-    <h3>European Bioinformatics Institute (UK)</h3>
+    <h3>European Bioinformatics Institute</h3>
   
     <ul>
       <li>Alex Bateman - EMBL-EBI cluster head</li>
       <li>Rob Finn - team lead</li>
-      <li>Sarah Burge - Rfam project leader</li>
-      <li>Ruth Eberhardt - curator</li>
-      <li>Evan Floden - bioinformatician</li>
-      <li>John Tate - web developer</li>
+      <li>Anton Petrov - Rfam project leader</li>
+      <li>Ioanna Kalvari - bioinformatician</li>
+      <li>Joanna Argasinska - curator</li>
     </ul>
     
-    <h3>Janelia Farm Research Center (USA)</h3>
+    <h3>Collaborators</h3>
   
     <ul>
-      <li>Sean Eddy - coordinator of Rfam-USA, founding developer and 
+      <li>Sean Eddy (Harvard University) - founding developer and 
         author of Infernal software</li>
-      <li>Eric Nawrocki - developer of Infernal software</li>  
+      <li>Eric Nawrocki (NCBI) - developer of Infernal software</li>  
     </ul>
     
     <h3>Previous contributors</h3>
@@ -48,6 +44,10 @@
     <ul>
        <li>Sam Griffiths-Jones - founding Rfam project leader</li>
        <li>Paul Gardner - former Rfam project leader</li>
+       <li>Sarah Burge - former Rfam project leader</li>
+       <li>Ruth Eberhardt</li>
+       <li>Evan Floden</li>
+       <li>John Tate</li>
        <li>Jennifer Daub</li>
        <li>Ben Moore</li>
        <li>Mhairi Marshall</li>
