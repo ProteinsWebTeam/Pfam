@@ -30,6 +30,9 @@ else {
 }
 my $db = $config->uniprotLoc . "/uniprot"; 
 
+my $st_initialise_num_uniprot = $dbh->prepare("update pfamA set number_uniprot=0 where pfamA_acc='$pfamA_acc'");
+$st_initialise_num_uniprot->execute() or die "Failed to set number_uniprot to 0 in pfamA table ". $st_initialise_num_uniprot->errstr."\n";
+
 chdir($pfamA_acc) or die "Couldn't chdir into $pfamA_acc, $!";
 
 #Get a copy of the HMM
