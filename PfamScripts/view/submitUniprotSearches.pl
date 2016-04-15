@@ -31,6 +31,17 @@ if($all and $memory_gb) {
   die "Can't use -all and -M option together\n";
 }
 
+#Some families need more memory that is estimated by this script, so hard code them to request 16gb memory on farm
+my @big = qw(PF00005 PF00069 PF00083 PF00106 PF00115 PF00501 PF07679);
+my %memory;
+foreach my $f (@big) {
+  $memory{$f}=16;
+}
+#If user has defined how much memory to use, add this to hash
+if($memory_gb) {
+  $memory{$acc}=$memory_gb;
+}
+
 #Get database connection
 my $config = Bio::Pfam::Config->new;
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
@@ -48,7 +59,7 @@ if($all) {
     push(@{$clan_pfamA{$c->clan_acc->clan_acc}}, $family);
   }
   foreach my $clan (sort keys %clan_pfamA) {
-    uniprotSearch($clan_pfamA{$clan}, $clan);
+    uniprotSearch($clan_pfamA{$clan}, $clan, \%memory); #$clan_pfamA{$clan} is an array ref
   }
 
 
@@ -60,7 +71,7 @@ if($all) {
       push(@pfamA, $p);
     }
   }
-  uniprotSearch(\@pfamA);
+  uniprotSearch(\@pfamA, "", \%memory);
 
 }
 elsif($clan) {
@@ -71,16 +82,16 @@ elsif($clan) {
     my $family = $pfamDB->getSchema->resultset('PfamA')->find({ pfama_acc => $c->pfama_acc->pfama_acc});
     push(@clan_pfamA, $family);
   }
-  uniprotSearch(\@clan_pfamA, $clan);
+  uniprotSearch(\@clan_pfamA, $clan, \%memory);
 }
 elsif($acc) {
   my @pfamA=$pfamDB->getSchema->resultset('PfamA')->find({pfama_acc => $acc});
-  uniprotSearch(\@pfamA);
+  uniprotSearch(\@pfamA, "", \%memory);
 }
 
 sub uniprotSearch {
 
-  my ($families, $clan_acc) = @_;
+  my ($families, $clan_acc, $memory) = @_;
 
   my ($job_name, $num_clan, $clan_group);
   if($clan_acc) {
@@ -100,14 +111,17 @@ sub uniprotSearch {
       $job_name=$pfamA_acc;
     }
 
-    #Estimate memory if not specified by user
-    unless($memory_gb) {
+    #Estimate memory if not already defined
+    if($memory->{$pfamA_acc}) {
+      $memory_gb=$memory{$pfamA_acc};
+    }
+    else {
       my $cpu=4;
       $memory_gb = ceil(($pfamA->model_length * 40000 * 48 * $cpu)/1000000000);
       $memory_gb++; 
     }
     my $memory_mb=$memory_gb*1000;  
-
+    
     #Submit to farm
     print STDERR "$pfamA_acc\n";
     system("bsub -q production-rh6 -J$job_name -o $pfamA_acc.log -M $memory_mb -R \"rusage[mem=$memory_mb]\" -g $group '$uniprot_search $pfamA_acc'");
