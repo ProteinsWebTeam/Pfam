@@ -1,5 +1,5 @@
-#!env perl
-
+#!/usr/bin/env perl
+#
 # a script to populate the "rfam_keywords" table in the Rfam database. The 
 # table needs to pre-exist. It needs to look something like this:
 #
@@ -41,8 +41,8 @@ my $rl_dsn = 'dbi:mysql'
 my $rl = RfamLive->connect( $rl_dsn, $rl_params->{user}, $rl_params->{password} );
 
 # and a webuser connection
-my $pfam_config = Bio::Pfam::Config->new;
-my $wu_params = $pfam_config->{Model}->{WebUser};
+#my $pfam_config = Bio::Pfam::Config->new;
+my $wu_params = $rfam_config->config->{Model}->{WebUser};
 
 my $wu_dsn = 'dbi:mysql'
              . ':host='     . $wu_params->{host}
