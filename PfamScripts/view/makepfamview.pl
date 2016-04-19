@@ -44,6 +44,14 @@ $view->cleanUp();
 #-------------------------------------------------------------------------------
 #Now we have start the work
 $view->getPfamObj;
+
+#Check whether family has hits (need to know this later when checking if ALIGN file has size)
+my $pfamA=$view->pfamdb->getSchema->resultset('PfamA')->find( { pfama_acc => $view->pfam->pfama_acc  } );
+if($pfamA->num_full == 0) {
+  $view->logger->debug("Family has no hits in pfamseq");
+  $view->{noALIGN}=1;
+}
+
 $view->getAllFiles;
 $view->resetStats;
 #Run a md5 checksum on the "raw" files and compared to the release versions......!
