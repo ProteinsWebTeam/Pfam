@@ -13,7 +13,7 @@ use File::Path qw(remove_tree);
 use Compress::Zlib;
 use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
-
+use File::Path;
 
 my $pfamA_acc=shift;
 die "No pfamA_acc specified" unless($pfamA_acc);
@@ -23,11 +23,10 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamliveAdmin } );
 my $dbh = $pfamDB->getSchema->storage->dbh;
 
 if(-d $pfamA_acc) {
-  die "$pfamA_acc directory already exists\n";
+  rmtree($pfamA_acc) or die "Couldn't remove $pfamA_acc directory, $!";
 } 
-else {
-  mkdir($pfamA_acc, 0775)
-}
+mkdir($pfamA_acc, 0775);
+
 my $db = $config->uniprotLoc . "/uniprot"; 
 
 my $st_initialise_num_uniprot = $dbh->prepare("update pfamA set number_uniprot=0 where pfamA_acc='$pfamA_acc'");
