@@ -32,9 +32,9 @@ if($all and $memory_gb) {
 }
 
 #Some families need more memory that is estimated by this script, so hard code them to request 16gb memory on farm
-my @big = qw(PF00005 PF00069 PF00083 PF00106 PF00115 PF00501 PF07679);
+my @extra_mem = qw(PF00004 PF00005 PF00069 PF00078 PF00083 PF00106 PF00115 PF00501 PF00512 PF00528 PF01370 PF01926 PF02518 PF07679 PF07690 PF07714 PF08659 PF13561);
 my %memory;
-foreach my $f (@big) {
+foreach my $f (@extra_mem) {
   $memory{$f}=16;
 }
 #If user has defined how much memory to use, add this to hash
