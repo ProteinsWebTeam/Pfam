@@ -1,13 +1,13 @@
 [%
 # batch.tt
 # jt6 20070419 WTSI
-# 
+#
 # build the batch search block
 #
 # $Id: batch.tt,v 1.15 2009-12-16 14:55:39 jt6 Exp $
 
 #-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
+# specify required stylesheets and javascript files
 
 PROCESS "components/require.tt";
 
@@ -31,51 +31,51 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     [%- IF c.config.disable_sequence_searches %]
       <div class="warningBox">
         Batch searches have been <strong>disabled</strong> in the configuration
-        of this website. You can still perform searches using the main 
+        of this website. You can still perform searches using the main
         <a class="ext" href="[% c.uri_for( '/search#tabview=tab1' ) %]">
           Pfam website</a>.
       </div>
     [%- END %]
     <p>
-      Upload a FASTA-format file containing multiple protein sequences to be 
-      searched for matching Pfam families. Results of the search will be 
-      returned to you at the email address that you specify. Please check the 
-      <span onclick="reveal($('batchNotesSwitch'),'batchNotes',false, true)" 
+      Upload a FASTA-format file containing multiple protein sequences to be
+      searched for matching Pfam families. Results of the search will be
+      returned to you at the email address that you specify. Please check the
+      <span onclick="reveal($('batchNotesSwitch'),'batchNotes',false, true)"
             class="link">notes</span>
       below for the restrictions on uploaded sequence files.
       <span id="batchNotesSwitch"
-            class="moreLink" 
+            class="moreLink"
             onclick="reveal(this,'batchNotes',false, true);">More...</span>
     </p>
 
     <div id="batchNotes" style="display: none">
 
       <h2>File contents</h2>
-      
+
       <p>
         We accept only <strong>protein sequences</strong> and your uploaded file
-        must conform to a fairly strict interpretation of the 
+        must conform to a fairly strict interpretation of the
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
-          FASTA file format</a>. 
-        We apply the following checks to the format of uploaded sequence files. 
+          FASTA file format</a>.
+        We apply the following checks to the format of uploaded sequence files.
         Files that do not conform to the following rules will be rejected by
         the server
       </p>
 
       <h3>File contents</h3>
-      
+
       <p>
-        Files must contain only header lines and sequence lines. Header lines, 
-        which begin with &quot;&gt;&quot;, can be used to describe the sequence 
-        that follows. There is no fixed format for header lines but we restrict 
-        the characters that are allowed. If your header lines contain any of the 
+        Files must contain only header lines and sequence lines. Header lines,
+        which begin with &quot;&gt;&quot;, can be used to describe the sequence
+        that follows. There is no fixed format for header lines but we restrict
+        the characters that are allowed. If your header lines contain any of the
         following characters, your file will be rejected:
       </p>
       <strong><code>; \ ! *</code></strong>
       <p>
-        Note that we explicitly include the semi-colon (;) in the list of 
-        forbidden characters, although this may be used to denote comments in 
-        some versions of the FASTA-format. Please do not use comments in the 
+        Note that we explicitly include the semi-colon (;) in the list of
+        forbidden characters, although this may be used to denote comments in
+        some versions of the FASTA-format. Please do not use comments in the
         FASTA files that you upload here.
       </p>
 
@@ -84,8 +84,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <p>
         Batch searches are run using our <strong>pfam_scan.pl</strong> script,
         which uses programs from the HMMER suite. These treat the first
-        &quot;word&quot; on the header line as the ID for a sequence. 
-      </p> 
+        &quot;word&quot; on the header line as the ID for a sequence.
+      </p>
       <p>
         The ID is taken to be the characters after the initial &quot;&gt;&quot;
         and before the first whitespace character. The sequence IDs must be
@@ -96,61 +96,61 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         Header rows must not have any whitespace between the &quot;&gt;&quot;
         and the remainder of the header row. Header rows must also have
         content; files with blank header lines will not be accepted.
-      </p> 
+      </p>
 
       <h3>Sequence symbols</h3>
 
       <p>
-        Your sequence should be a <strong>valid protein sequence</strong>. As 
-        such, the sequence line should contain only amino-acid symbols, i.e. 
-        capital letters excluding &quot;J&quot;. In the context of a Pfam 
-        search gaps and translation stops have little meaning and should not 
-        normally be used, but we do accept &quot;-&quot; or &quot;*&quot; to 
+        Your sequence should be a <strong>valid protein sequence</strong>. As
+        such, the sequence line should contain only amino-acid symbols, i.e.
+        capital letters excluding &quot;J&quot;. In the context of a Pfam
+        search gaps and translation stops have little meaning and should not
+        normally be used, but we do accept &quot;-&quot; or &quot;*&quot; to
         denote gaps and translation stops respectively. Nucleotide sequences
         are not considered valid and will be rejected.
       </p>
 
       <h2>Service limits</h2>
-      
+
       <p>
-        Searches run on a &quot;compute farm&quot; with a limited number of 
+        Searches run on a &quot;compute farm&quot; with a limited number of
         &quot;slots&quot;. Each search takes one slot and once all slots are
-        in use, new jobs wait in a queue for the next slot to become free. In 
-        order to prevent large jobs occupying slots for very long periods, 
-        which can impact the availability of the system for other users, we 
-        place a number of restrictions on the size of job that we will accept. 
+        in use, new jobs wait in a queue for the next slot to become free. In
+        order to prevent large jobs occupying slots for very long periods,
+        which can impact the availability of the system for other users, we
+        place a number of restrictions on the size of job that we will accept.
       </p>
 
       <h3>File size</h3>
-        
+
       <p>
-        Files must have fewer than<strong> 500,000</strong> lines and fewer than 
-        <strong>5000</strong> sequences.  
+        Files must have fewer than<strong> 500,000</strong> lines and fewer than
+        <strong>5000</strong> sequences.
       </p>
 
       <h3>Sequence length</h3>
-      
+
       <p>
         Each sequence must be between <strong>6</strong> and <strong>20000</strong>
         amino-acids in length.
       </p>
-      
+
       <h3>Sequence variation</h3>
-      
+
       <p>
-        We use heuristics to check that a sequence has a reasonable level of 
+        We use heuristics to check that a sequence has a reasonable level of
         variation, in order to prevent large strings of identical sequence or
-        a large number of duplicate residues being searched. If you find that 
-        you cannot submit a valid sequence because of this restriction, please 
+        a large number of duplicate residues being searched. If you find that
+        you cannot submit a valid sequence because of this restriction, please
         let us know.
       </p>
 
       <h2>E-value limit</h2>
-      
+
       <p>
         If you specify an E-value cut-off for your search, that E-value must
         be a positive number.
-      </p>  
+      </p>
 
       <hr />
     </div>
@@ -164,27 +164,28 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
       [% END %]
 
-      <form method="post" 
+      <form method="post"
             id="proteinBatchSearchForm"
             action="[% c.uri_for( "/search/batch" ) %]"
-            enctype="multipart/form-data">
-    
+            enctype="multipart/form-data"
+            style="overflow: auto;">
+
         <div class="row">
           <label for="batchSeq">Sequences file</label>
-          <input type="file" 
+          <input type="file"
                  size="20"
                  name="batchSeq"
                  id="batchSeq" />
         </div>
-  
+
         <div class="row">
           <span class="label">Cut-off</span>
           <label for="batchGaButton" class="subLabel">
             <input class="radio"
-                   type="radio" 
-                   name="ga" 
-                   id="batchGaButton" 
-                   value="1" 
+                   type="radio"
+                   name="ga"
+                   id="batchGaButton"
+                   value="1"
                    onclick="$('batchEvalue').disable()" />
             <span id="batchGaLabel">Gathering threshold</span>
           </label>
@@ -193,10 +194,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           // <![CDATA[
 
           document.observe( "dom:loaded", function() {
-            var t = new Tip( "batchGaLabel", 
+            var t = new Tip( "batchGaLabel",
   "The gathering threshold is assigned by a curator when the family is \
   built. This is the minimum score a sequence must attain in order to \
-  belong to the full alignment of a Pfam entry.", 
+  belong to the full alignment of a Pfam entry.",
               {
                 title: "Gathering threshold",
                 style: "pfam",
@@ -212,31 +213,31 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           <span class="label blankLabel">Cut-off</span>
           <label for="batchEButton" class="subLabel">
             <input class="radio"
-                   type="radio" 
-                   name="ga" 
-                   id="batchEButton" 
+                   type="radio"
+                   name="ga"
+                   id="batchEButton"
                    value="0"
-                   checked="checked" 
+                   checked="checked"
                    onclick="$('batchEvalue').enable()" />
             Use E-value
           </label>
         </div>
-        
+
         <div class="row">
           <label for="batchEvalue">E-value</label>
-          <input type="text" 
-                 size="10" 
-                 maxlength="10" 
-                 value="1.0" 
-                 name="evalue" 
+          <input type="text"
+                 size="10"
+                 maxlength="10"
+                 value="1.0"
+                 name="evalue"
                  id="batchEvalue" />
         </div>
-  
+
         <div class="row">
           <label for="pEmail">Email address</label>
           <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
         </div>
-  
+
         <div class="row">
           <label class="blankLabel">Submit</label>
           <input class="submit"  type="submit" name="submit" value="Submit" />
@@ -244,7 +245,88 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
 
       </form>
-      
+    </div>
+
+    <div id="batchCheck" style="">
+      <p>Already submitted a batch search? Check its status here.</p>
+      <p>Job ID:
+        <input
+          type="text"
+          placeholder="ADABEC68-703F-48C4-BEC7-07F1AB965FBB"
+          pattern="[0-9a-fA-F]{8}\-([0-9a-fA-F]{4}\-){3}[0-9a-fA-F]{12}"
+        >
+      </p>
+      <div class="message loading">
+        Information loading...
+      </div>
+      <div class="message problem error">
+        Sorry, there was an error while fetching information. It might be because your job does not exist or because of a network problem.
+      </div>
+      <div class="message hold warning">
+        This job has been put on hold. If you want more information please contact us with your job ID.
+      </div>
+      <div class="message run">
+        This job is currently running. The results should arrive soon.
+      </div>
+      <div class="message pend">
+        This job is in the waiting queue.
+        It will start being processed, there is no need to submit it again.
+      </div>
+      <div class="message fail error">
+        Sorry, there was an error while processing this job.
+        <a class="link" onclick="reveal($('batchNotesSwitch'), 'batchNotes', false, true);">Please check</a>
+        that you submitted a valid job.
+        If your are sure that you did and want more information please contact us with your job ID.
+      </div>
+    </div>
+    <script type="text/javascript">
+    (function() {
+      if (!window.fetch) return;
+    })();
+      var container = document.getElementById('batchCheck');
+      var input = container.querySelector('input');
+      var messages = [].slice.call(container.querySelectorAll('.message'));
+      var displayMessage = function(m) {
+        messages.forEach(function(message) {
+          if (m && message.classList.contains(m)) {
+            message.style.display = 'block';
+          } else {
+            message.style.display = '';
+          }
+        });
+      }
+      input.addEventListener('input', function(e) {
+        var jobID = e.target.value;
+        if (!jobID || !e.target.validity || !e.target.validity.valid) {
+          displayMessage();
+          return;
+        };
+        fetch(location.origin + '/search/sequence/resultset/' + jobID)
+          .then(function(r) {return r.text()})
+          .then(function(m) {
+            if (input.value !== jobID) return;
+            if (/^(RUN|PEND|HOLD|FAIL)$/i.test(m)) {
+              displayMessage(m.toLowerCase());
+            } else {
+              throw new Error();
+            }
+          })
+          .catch(function() {
+            if (input.value !== jobID) return;
+            displayMessage('problem');
+          });
+        displayMessage('loading');
+      });
+    </script>
+
+    <div id="hmmerBlock">
+      <p>
+        Have you tried running your searches through
+        <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer</a>?
+      </p>
+      <p>
+        <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer</a> is what we use behind the scenes to run our searches.
+      </p>
     </div>
   </div>
 
@@ -257,7 +339,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     [% END %]
     // ]]>
   </script>
-
 </div>
 
 <!-- end batch search block -->
