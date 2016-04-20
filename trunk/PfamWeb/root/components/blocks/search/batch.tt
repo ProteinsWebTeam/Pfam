@@ -192,7 +192,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
         <script type="text/javascript">
           // <![CDATA[
-
           document.observe( "dom:loaded", function() {
             var t = new Tip( "batchGaLabel",
   "The gathering threshold is assigned by a curator when the family is \
@@ -205,7 +204,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                 width: "30em"
             } );
           } );
-
           // ]]>
         </script>
 
@@ -240,20 +238,21 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label class="blankLabel">Submit</label>
-          <input class="submit"  type="submit" name="submit" value="Submit" />
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+          <input class="submit" type="submit" name="submit" value="Submit" />
+          <input class="reset" type="reset" name="reset" value="Reset" />
         </div>
 
       </form>
     </div>
 
-    <div id="batchCheck" style="">
+    <div id="batchCheck">
       <p>Already submitted a batch search? Check its status here.</p>
       <p>Job ID:
         <input
           type="text"
           placeholder="ADABEC68-703F-48C4-BEC7-07F1AB965FBB"
           pattern="[0-9a-fA-F]{8}\-([0-9a-fA-F]{4}\-){3}[0-9a-fA-F]{12}"
+          size=37
         >
       </p>
       <div class="message loading" style="border: none;">
@@ -306,10 +305,15 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           .then(function(m) {
             if (input.value !== jobID) return;
             if (/^(RUN|PEND|HOLD|FAIL)$/i.test(m)) {
-              displayMessage(m.toLowerCase());
-            } else {
-              throw new Error();
+              return displayMessage(m.toLowerCase());
             }
+            if (m.indexOf('is on hold') !== -1) {
+              return displayMessage('hold');
+            }
+            if (m.indexOf('failed to complete') !== -1) {
+              return displayMessage('fail');
+            }
+            throw new Error();
           })
           .catch(function() {
             if (input.value !== jobID) return;

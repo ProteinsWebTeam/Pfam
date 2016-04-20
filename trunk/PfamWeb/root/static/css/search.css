@@ -328,10 +328,6 @@ table.pageList span.letter {
   font-weight: normal;
 }
 
-#batchCheck input {
-  width: 25em;
-}
-
 #batchCheck input:focus:invalid {
   border-color: red;
 }
