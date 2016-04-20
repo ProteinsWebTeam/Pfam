@@ -265,10 +265,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <div class="message hold warning">
         This job has been put on hold. If you want more information please contact us with your job ID.
       </div>
-      <div class="message run">
+      <div class="message run ok">
         This job is currently running. The results should arrive soon.
       </div>
-      <div class="message pend">
+      <div class="message pend ok">
         This job is in the waiting queue.
         It will start being processed, there is no need to submit it again.
       </div>

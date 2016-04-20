@@ -317,13 +317,14 @@ table.pageList span.letter {
 }
 
 #batchCheck > .message.ok {
-  border: green;
+  border-color: green;
   background: #CEC;
 }
 
 #batchCheck > .message.warning {
-  border: yellow;
+  border-color: yellow;
   background: lightyellow;
+  font-weight: normal;
 }
 
 #batchCheck input {
