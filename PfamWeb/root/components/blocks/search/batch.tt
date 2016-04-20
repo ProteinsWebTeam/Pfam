@@ -256,7 +256,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           pattern="[0-9a-fA-F]{8}\-([0-9a-fA-F]{4}\-){3}[0-9a-fA-F]{12}"
         >
       </p>
-      <div class="message loading">
+      <div class="message loading" style="border: none;">
         Information loading...
       </div>
       <div class="message problem error">
