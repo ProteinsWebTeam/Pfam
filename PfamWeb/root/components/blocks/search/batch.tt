@@ -325,7 +325,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan" target="_blank">Hmmer</a>?
       </p>
       <p>
-        <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer</a> is what we use behind the scenes to run our searches.
+        <a href="https://www.ebi.ac.uk/Tools/hmmer" target="_blank">Hmmer</a> is what we use behind the scenes to run your searches.
       </p>
     </div>
   </div>
