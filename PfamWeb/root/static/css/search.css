@@ -314,6 +314,7 @@ table.pageList span.letter {
   display: none;
   width: auto;
   margin: auto;
+  border: solid 1px gray;
 }
 
 #batchCheck > .message.ok {
