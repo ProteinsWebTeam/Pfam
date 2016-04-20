@@ -5,11 +5,11 @@
    Stylesheet for the search pages, both the forms and the result pages.
 
    $Id: search.css,v 1.9 2009-10-28 14:13:19 jt6 Exp $
-   
+
    Copyright (c) 2007: Genome Research Ltd.
-   
+
    Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-   
+
    This is free software; you can redistribute it and/or modify it under
    the terms of the GNU General Public License as published by the Free Software
    Foundation; either version 2 of the License, or (at your option) any later
@@ -22,8 +22,8 @@
 
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
-    
-*/   
+
+*/
 
 /* ---------------------------------------- */
 /* error messages */
@@ -304,3 +304,32 @@ table.pageList span.letter {
   padding-left: 1em;
 }
 
+#batchCheck, #hmmerBlock {
+  border: solid 1px #074987;
+  margin: 1em;
+  padding: 0.5em;
+}
+
+#batchCheck > .message {
+  display: none;
+  width: auto;
+  margin: auto;
+}
+
+#batchCheck > .message.ok {
+  border: green;
+  background: #CEC;
+}
+
+#batchCheck > .message.warning {
+  border: yellow;
+  background: lightyellow;
+}
+
+#batchCheck input {
+  width: 25em;
+}
+
+#batchCheck input:focus:invalid {
+  border-color: red;
+}
