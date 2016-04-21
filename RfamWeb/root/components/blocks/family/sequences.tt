@@ -36,7 +36,9 @@ USE String;
 
     document.observe( "dom:loaded", function() {
       var su = new Ajax.Updater(
-        "sequencesTab",
+        { 
+          success: "sequencesTab", // where to insert data on success
+        },
         "[% c.uri_for('/family', acc, 'sequences') %]",
         {
           method: "get",
