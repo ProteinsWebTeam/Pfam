@@ -44,14 +44,14 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       </p>
       <div class="citation">
         <span class="title">
-          <a name="phylo_ref_1">[1]</a> <a class="ext" href="http://selab.janelia.org/publications.html">
+          <a name="phylo_ref_1">[1]</a> <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/18787703">
             Probabilistic phylogenetic inference with insertions and deletions</a>:
         </span>
         <span class="authors">
           E. Rivas, S.R. Eddy
         </span>
         <span class="ref">
-          <span class="jrnl">In press</span>&nbsp;(2008)
+          <span class="jrnl">PLoS Comput Biol</span>&nbsp;(2008)
         </span>
       </div>
       <div class="citation">
