@@ -2273,6 +2273,7 @@ sub versionFiles {
   my ( $thisVersion, $changeStatus );
   if ( $releasedVersions and $releasedVersions->pfama_acc ) {
     $changeStatus = 'NOCHANGE';
+    $thisVersion=$releasedVersions->version;
 
     #If the release version are different, then we need to add them to the
     if ( $releasedVersions->hmm ne $currentVersions->hmm ) {
