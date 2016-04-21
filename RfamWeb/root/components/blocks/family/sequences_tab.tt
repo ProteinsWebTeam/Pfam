@@ -36,7 +36,7 @@ USE Number.Format( THOUSANDS_SEP = "," );
   [% END %]
 </p>
 
-[% IF region_rs.count %]
+[% IF rfam.num_full > 0 %]
   <table summary="Rfam regions"
          id="regionsTable"
          class="details">
