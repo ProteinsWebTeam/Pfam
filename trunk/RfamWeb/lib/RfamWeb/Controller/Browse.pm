@@ -563,18 +563,6 @@ sub build_active_letters : Private {
 
     #----------------------------------------
 
-    # genomes
-    my @genomes = $c->model('RfamDB::Genome')
-                    ->search( {}, {} );
-
-    foreach my $genome ( @genomes ) {
-      $first_letter = uc( substr( $genome->species, 0, 1 ) );
-      $first_letter = '0 - 9' if $first_letter =~ m/^\d+$/;
-      $active_letters->{genomes}->{$first_letter} = 1;
-    }
-
-    #----------------------------------------
-
     # articles
     my $articles_cache_key = 'article_mapping';
     my $article_mapping_and_letters = $c->cache->get( $articles_cache_key );
