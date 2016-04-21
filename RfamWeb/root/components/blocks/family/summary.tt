@@ -40,12 +40,12 @@ END;
       
       WHILE ( member = clan_members.next ) %]
         <span class="listItem">
-          [% IF member.auto_rfam.rfam_acc == rfam.rfam_acc;
-            member.auto_rfam.rfam_id;
+          [% IF member.rfam_acc.rfam_acc == rfam.rfam_acc;
+            member.rfam_acc.rfam_id;
             ELSE %]
-            <a title="[% member.auto_rfam.rfam_acc %]"
-              href="[% c.uri_for( '/family', member.auto_rfam.rfam_acc ) %]">
-              [% member.auto_rfam.rfam_id %]</a>
+            <a title="[% member.rfam_acc.rfam_acc %]"
+              href="[% c.uri_for( '/family', member.rfam_acc.rfam_acc ) %]">
+              [% member.rfam_acc.rfam_id %]</a>
           [% END %]
         </span>
         [% total = total + 1;
