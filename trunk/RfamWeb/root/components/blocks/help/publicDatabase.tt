@@ -1,0 +1,52 @@
+[%
+# publicDatabase.tt
+# 
+# Describe the  pages
+#
+%]
+
+<!-- start publicDatabase block -->
+
+<div class="block" id="helpPublicDatabaseBlock">
+  <div class="handle">
+    <h1>Public MySQL Database</h1>
+  </div>
+  
+  <div class="blockContent">    
+    <p>
+      Rfam provides a public read-only MySQL database containing the latest version of Rfam data. 
+    </p>
+
+    <p>
+      To get connection details and view example SQL queries please visit
+      <a href="http://rfam.github.io/docs/">http://rfam.github.io/docs/</a>.
+    </p>
+    
+    <a href="http://rfam.github.io/docs/">
+      <img src="[% c.uri_for('/static/images/core-schema.png') %]"
+         alt="Rfam main database tables"/>
+    </a>
+  </div>
+</div>
+
+<!-- end summary block -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Sarah Burge (swb@ebi.ac.uk), Rob Finn (rdf@ebi.ac.uk), John Tate (jgt@ebi.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
