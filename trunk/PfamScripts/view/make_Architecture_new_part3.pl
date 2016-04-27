@@ -104,17 +104,12 @@ unless ($file){
     my $port = $pfamDB->{port};
     my $db = $pfamDB->{database};
     my $archfile = "PFAMA_ARCH_DUMP";
-    my $cmd = "mysql -h $host -u $user -p$pass -P $port $db --quick -e \"SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 \" > $archfile";
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port $db --skip-column-names --quick -e \"SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 \" > $archfile";
     system($cmd) and die "Could not obtain auto_architectures from database";
     $logger->debug("Uploading to pfamA_architecture");
 
-#remove header line
-    my @archlines = read_file($archfile);
-    shift(@archlines);
-    my $archfile_upload = "PFAMA_ARCH_DUMP_upload";
-
     my $sta = $dbh->prepare("INSERT into PfamA_architecture (pfamA_acc, auto_architecture) VALUES (?, ?)") or $logger->logdie("Cannot prepare statement");
-    _loadTable( $dbh, $archfile_upload, $sts, 2 );
+    _loadTable( $dbh, $archfile, $sta, 2 );
 
 
     $logger->debug("Calcuating number_archs for each Pfam");
