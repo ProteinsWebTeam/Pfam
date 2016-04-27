@@ -404,11 +404,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 
   <div id="posts" class="announcements" style="display: none">
     <hr />
-    <span onclick="hideThis('posts');" 
-          class="closer"
-          style="float: right; cursor: pointer">Hide this</span>
-    <h2>Recent Rfam <a class="ext" href="http://xfam.wordpress.com/tag/rfam/">
-      blog</a> posts</h2>
+    <h2>Recent Rfam blog posts</h2>
   </div>
   
   <hr />
@@ -546,28 +542,20 @@ GAAGGGCGUCGUCAGUACUAUAGUGGGUGACCAUAUGGGAAUACGACGUGCUGUAGCUU";
       }
     } );
   } );
-  
-  // load the latest blog posts
-  document.observe( "dom:loaded", function() {
-    var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
-      { 
-        method:     'get',
-        parameters: { type: "posts" },
-        on204:      function( oResponse ) {
-          $("restore").show();
-        },
-        // for the benefit of IE, we need to check for an out-and-out
-        // failure, as well 204 status
-        onFailure:  function( oResponse ) {
-          $("restore").show();
-        },
-        onSuccess:  function( oResponse ) {
-          $("posts").insert( oResponse.responseText );
-          $("posts").show();
-        }
-      }
-    );
-  } );
+
+  jQuery(function() {
+    jQuery.get('https://crossorigin.me/https://xfam.wordpress.com/tag/rfam/feed/', function(data){
+      var html = jQuery('<div>');
+      jQuery(data).find('item').slice(0,3).each(function(){
+        title = jQuery(this).find('title').html();
+        content = jQuery(this).find('description').text();
+        link = jQuery(this).find('link').text();
+        html.append('<h3><a class="ext" href="' + link + '">'+ title + '</a></h3>')
+            .append('<p>' + content + '</p>');
+      });
+      jQuery('#posts').append(html).show();
+    });
+  });
 
   // ]]>
 </script>
