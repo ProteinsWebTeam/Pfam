@@ -76,10 +76,11 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       #WORK IN REWRITTEN ARCH STUFF HERE
       system("make_Architecture_new_part1.pl") and die $logger->logdie("Can't run make_Architecture_new_part1.pl");
         
-#have jobs finished?
-        if (! $archView->statusCheck('doneArchJobs')){
+        #have jobs finished?
+        if ($archView->statusCheck('doneArchJobs')){
 	        $logger->info("Already checked architectures farm jobs have finished\n");
         } else {
+          sleep(600);
 	        my $fin = 0;
     	    while (!$fin){
 	            open( FH, "bjobs -Jarch|" );
@@ -95,7 +96,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 		            sleep(600);
 	            } else {
 		            $fin = 1;
-                    $archView->touchStatus('doneArchJobs');
+                $archView->touchStatus('doneArchJobs');
 	            }
 	        }
         }
@@ -121,12 +122,11 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $storableView->submitToFarm;
     $storableView->touchStatus('doneStorables');
   }
-
   
   #Now make the structure images
   if(! $pdbImageView->statusCheck('donePdbImages')){
     $logger->debug("Making structure images"); 
-#Submit the pdb image creation to the farm. This will not return until
+    #Submit the pdb image creation to the farm. This will not return until
     #all jobs have completed.
     $pdbImageView->submitToFarm(150);
     $pdbImageView->touchStatus('donePdbImages');
