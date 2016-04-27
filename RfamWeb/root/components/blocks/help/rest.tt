@@ -74,6 +74,12 @@ sharedRequirements.css.push( "help.css" );
       Programming Interface</a> (API) allows users to write scripts or programs to
       access data, rather than having to rely on a browser to view a site.
     </p>
+    
+    <p>
+      You can also access the data using a
+      <a href="http://rfam.github.io/docs/">public MySQL database</a>
+      that contains the latest Rfam release.
+    </p>
 
     <hr />
     
