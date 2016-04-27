@@ -108,12 +108,10 @@
             Click on a node to select that node and its sub-tree.
           </p>
           <p>
-            <span id="sunburstAlignSelectionSwitch"
-                  class="link">Align</span> selected sequences to CM
+            <span id="sunburstAlignSelectionSwitch"></span>
           </p>
           <p>
-            <span id="sunburstDLSelectionSwitch"
-                  class="link">Generate</span> a FASTA-format file
+            <span id="sunburstDLSelectionSwitch"></span>
           </p>
           <p>
             <span id="sunburstClearSelection"
