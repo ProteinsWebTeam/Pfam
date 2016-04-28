@@ -209,7 +209,8 @@ __PACKAGE__->might_have(
 );
 
 __PACKAGE__->belongs_to("pfamseq_acc", "PfamDB::Pfamseq", {pfamseq_acc => "pfamseq_acc"});
- __PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", {pfama_acc => "pfama_acc"});
+__PACKAGE__->belongs_to("uniprot_acc", "PfamDB::Uniprot", {"foreign.uniprot_acc" => "self.pfamseq_acc"});
+__PACKAGE__->belongs_to("pfama_acc", "PfamDB::Pfama", {pfama_acc => "pfama_acc"});
 
 __PACKAGE__->might_have(
   "clan_members",

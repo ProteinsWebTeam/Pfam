@@ -40,8 +40,8 @@ sub structures : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   # see if we were handed a valid PDB ID and, if so, just stash it
   if ( defined $c->req->param('pdbId') and
        $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
@@ -60,7 +60,7 @@ sub structures : Chained( 'family' )
     @regions = $c->model('PfamDB::PdbPfamaReg')
                  ->search( { 'me.pfama_acc' => $c->stash->{pfam}->pfama_acc },
                            { prefetch => [ qw( pdb_id pdb_image pfama_acc ) ] } );
-    $c->log->debug( 'Family::structures: got ' 
+    $c->log->debug( 'Family::structures: got '
                     . scalar @regions . ' regions' ) if $c->debug;
   }
 
@@ -104,7 +104,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_structures : Path( '/family/structures' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family::old_structures: redirecting to "structures"' )
     if $c->debug;
 
@@ -130,23 +130,26 @@ sub mapping : Chained( 'family' )
   my ( $this, $c ) = @_;
 
   # cache page for 1 week
-  $c->cache_page( 604800 ); 
-  
+  $c->cache_page( 604800 );
+
   $c->log->debug( 'Family::FamilyActions::mapping: acc: |'
                   . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' )
     if $c->debug;
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { pfama_acc => $c->stash->{pfam}->pfama_acc },
-                            { join       => [ qw( pdb_id pfamseq_acc ) ],
-                              columns    => [ qw( pfamseq_acc.pfamseq_id
-                                                  seq_start
-                                                  seq_end
-                                                  pdb_id.pdb_id
-                                                  chain
-                                                  pdb_res_start
-                                                  pdb_res_end ) ] } );
+                            { join      => [ qw( pdb_id uniprot_acc ) ],
+                              columns   => [ qw( uniprot_acc.uniprot_id
+                                                 seq_start
+                                                 seq_end
+                                                 pdb_id.pdb_id
+                                                 chain
+                                                 pdb_res_start
+                                                 pdb_res_end ) ] } );
 
+  # my @mapping;
+  $c->log->debug( '!!!' . scalar @mapping . '!!!' ) if $c->debug;
+  # sleep 5;
   $c->stash->{pfamMaps} = \@mapping;
   $c->log->debug( 'Family::FamilyActions::mapping: found |' . scalar @mapping . '| rows' )
     if $c->debug;
@@ -154,12 +157,12 @@ sub mapping : Chained( 'family' )
   unless ( scalar @mapping ) {
     $c->log->debug( 'Family::FamilyActions::mapping: no rows; returning 204' )
       if $c->debug;
-      
+
     $c->res->status( 204 );
-    
+
     return;
   }
-  
+
   if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Family::FamilyActions::mapping: emitting XML' ) if $c->debug;
     $c->stash->{template} = 'rest/family/structures_xml.tt';
@@ -183,7 +186,7 @@ Deprecated. Stub to redirect to chained action.
 
 sub old_mapping : Path( '/family/structures/mapping' ) {
   my ( $this, $c ) = @_;
-  
+
   $c->log->debug( 'Family::FamilyActions::old_mapping: redirecting to "mapping"' )
     if $c->debug;
 
@@ -224,4 +227,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
