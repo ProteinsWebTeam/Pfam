@@ -29,13 +29,13 @@ sub runScoop {
   my $pfamdb = $self->config->{Model}->{Pfamlive}->{database};
   if(!$self->statusCheck("sigReg.txt")){
     $self->logger->info('Getting significant regions');
-    my $cmd = "mysql -h $host -u $user -p$pass -P $port $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_significant\" > $statusdir/sigReg.txt";
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port --skip-column-names $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_significant\" > $statusdir/sigReg.txt";
     system($cmd) and die "Could not execute statement $cmd\n";
   }
   
   if(!$self->statusCheck("insigReg.txt")){
     $self->logger->info('Getting insignificant regions');
-    my $cmd = "mysql -h $host -u $user -p$pass -P $port $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_insignificant\" > $statusdir/insigReg.txt";
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port --skip-column-names $pfamdb --quick -e \"SELECT pfamseq_acc, pfamA_acc, seq_start, seq_end, domain_evalue_score FROM pfamA_reg_full_insignificant\" > $statusdir/insigReg.txt";
     system($cmd) and die "Could not execute statement $cmd\n";
   }
   
