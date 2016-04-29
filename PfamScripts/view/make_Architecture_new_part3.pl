@@ -104,7 +104,7 @@ unless ($file){
     my $port = $pfamDB->{port};
     my $db = $pfamDB->{database};
     my $archfile = "PFAMA_ARCH_DUMP";
-    my $cmd = "mysql -h $host -u $user -p$pass -P $port $db --skip-column-names --quick -e \"SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 \" > $archfile";
+    my $cmd = "mysql -h $host -u $user -p$pass -P $port --skip-column-names $db --quick -e \"SELECT DISTINCT r.pfamA_acc, auto_architecture FROM pfamA_reg_full_significant r, pfamseq s WHERE s.pfamseq_acc=r.pfamseq_acc AND in_full=1 \" > $archfile";
     system($cmd) and die "Could not obtain auto_architectures from database";
     $logger->debug("Uploading to pfamA_architecture");
 
