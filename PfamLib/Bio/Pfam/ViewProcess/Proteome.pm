@@ -166,8 +166,15 @@ sub makeTSV {
   my $pfamA_domains = $st_regions->fetchall_arrayref();
 
   #Print header
-  print OUT "#Pfam-A regions from Pfam version "
-    . $self->release
+  my $database_name = $self->pfamdb->{database};
+  my $pfam_release_number;
+  if($database_name =~ /pfam_(\d+)_(\d+)/) {
+    $pfam_release_number = "$1.$2";
+  }
+  else {
+    $self->logger->logdie("Couldn't extract pfam version from $database_name");
+  }
+  print OUT "#Pfam-A regions from Pfam version $pfam_release_number"
     . " for ncbi taxid $ncbi_taxid '"
     . $proteome->species . "'\n";
   print OUT "#Total number of proteins in proteome: "
