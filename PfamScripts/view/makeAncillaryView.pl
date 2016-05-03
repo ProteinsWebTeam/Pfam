@@ -53,9 +53,11 @@ if(! $archView->statusCheck('doneVersion')){
     if(!$version->number_families || ($version->number_families != $noPfama));
     $archView->touchStatus('doneVersion');
 
-  }
+}
+else {
+  $logger->debug("Done version table update");
+}
 
-$logger->debug("Calculating architectures");
 if(exists($archView->options->{acc}) and $archView->options->{acc}){
   #Do it for a single family
  p($archView->options);
@@ -67,10 +69,9 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 #-------------------------------------------------------------------------------
 # Calculate architectures
 
-  $archView->logger->info("Calculating architectures for the whole database");
   #Start off with the architecture stuff.
   if(! $archView->statusCheck('doneArch')){
-
+      $archView->logger->info("Calculating architectures for the whole database");
       $archView->clearAllArchitecture;
 
       #WORK IN REWRITTEN ARCH STUFF HERE
@@ -104,6 +105,9 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
 
         $archView->touchStatus('doneArch');
   }
+  else {
+    $archView->logger->info("Done architectures");
+  }
 
   #Update clan architectures
   if(! $archView->statusCheck('doneClanArch')){
@@ -111,6 +115,9 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     #Determine the list of clans affected by the updated families
     $archView->updateAllClanArchitectures;
     $archView->touchStatus('doneClanArch');
+  }
+  else {
+    $logger->debug("Done clan architectures");
   }
 
 
@@ -154,7 +161,6 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
   }else{
     $scoopView->logger->info('Done Scoop');
   }
-
   #run HHsearch
   if(! $hhsearchView->statusCheck('doneHHsearch')){
     $logger->debug("Running HHsearch"); 
@@ -164,8 +170,10 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     $hhsearchView->submitToFarm(100);
     $hhsearchView->touchStatus('doneHHsearch')
   }
+  else {
+    $hhsearchView->logger->info('Done HHsearch');
+  }
 
-  
 #Proteome data.....
   if(! $proteomeView->statusCheck('doneProteome')){
     $logger->debug("Updating proteome data"); 
@@ -216,7 +224,7 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       my $taxonomy=$st_proteome_taxonomy->fetchrow;
 
       my $grouping;
-      if($taxonomy =~ /^(\S+);\s/) {
+      if($taxonomy =~ /^(\S+);\s/ or $taxonomy =~ /^(\S+)\./) {
         $grouping = $1;
       }
       else {
@@ -226,14 +234,17 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
       #Get number of domains
       $st_proteome_dom->execute($ncbi_taxid) or $logger->logdie("Couldn't execute statement ".$st_proteome_dom->errstr);
       my $num_total_regions=$st_proteome_dom->fetchrow;
+      $num_total_regions=0 unless($num_total_regions);
 
       #Get total sequences covered
       $st_proteome_seqs->execute($ncbi_taxid) or $logger->logdie("Couldn't execute statement ".$st_proteome_seqs->errstr);
       my $total_seqs_covered=$st_proteome_seqs->fetchrow;
+      $total_seqs_covered=0 unless($total_seqs_covered);
 
       #Get total residues covered
       $st_proteome_res->execute($ncbi_taxid) or  $logger->logdie("Couldn't execute statement ".$st_proteome_res->errstr);
       my $total_aa_covered=$st_proteome_res->fetchrow;
+      $total_aa_covered=0 unless($total_aa_covered);
 
       #Upload to database
       $proteomeView->pfamdb->getSchema->resultset('CompleteProteome')->update_or_create(
@@ -265,25 +276,29 @@ if(exists($archView->options->{acc}) and $archView->options->{acc}){
     #
     $proteomeView->touchStatus('doneProteomeTSV');
   }
+  else {
+    $logger->info('Done protome TSV files');
+  }
 #}
 
-#update Treefam mapping in pfamseq
-if(! $view->statusCheck('doneTreefamUpdate')){
-    $logger->debug("Updating treeFam mappings in pfamseq");
+
+if(! $proteomeView->statusCheck('doneTreefamUpdate')){ #Use proteomeView object to access statusCheck subroutine
+    $logger->debug("Updating TreeFam mappings in pfamseq and uniprot tables");
 
     my $dbh = $view->pfamdb->getSchema->storage->dbh;
 
-    $logger->debug("Parsing Treefam file");
+    $logger->debug("Parsing TreeFam file");
     my $treefam_mapping = '/nfs/public/rw/xfam/treefam/live/root/static/download/uniprotACC2treefam.txt';
-    my @data = read_file($treefam_mapping);
+    open(TREEFAM, $treefam_mapping) or $logger->logdie("Couldn't open fh to $treefam_mapping, $!");
     my %mapping;
-    foreach my$line (@data){
-        my @accns = split(/\s+/,$line);
+    while(<TREEFAM>) {
+        my @accns = split(/\s+/,$_);
         if ($accns[0] =~ /[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}/){
             $mapping{$accns[0]}=$accns[1];
         }
     }
-    $logger->debug("Remving old TreeFam mappings from pfamseq");
+    close TREEFAM;
+    $logger->debug("Removing old TreeFam mappings from pfamseq");
     my $stt1 = $dbh->prepare("update pfamseq set treefam_acc = \'NULL\'") or die("Can't prepare statement: $dbh->errstr");
     $stt1->execute;
 
@@ -306,7 +321,7 @@ if(! $view->statusCheck('doneTreefamUpdate')){
         $stt2a->execute($treefam, $acc);
     }
 
-    $view->touchStatus('doneTreefamUpdate');
+    $proteomeView->touchStatus('doneTreefamUpdate');
 }
 
 #populate pfamA_ncbi table
@@ -326,7 +341,7 @@ unless ( -s $dumpfile){
 }
 
 #submit jobs to calculate and populate pfamA_ncbi
-if (! $view->statusCheck('done pfamA_ncbi')){
+if (! $proteomeView->statusCheck('done pfamA_ncbi')){
 
     my $dbh = $view->pfamdb->getSchema->storage->dbh;
 
@@ -386,7 +401,7 @@ if (! $view->statusCheck('done pfamA_ncbi')){
 	    }
     }
 
-    $view->touchStatus('done pfamA_ncbi');
+    $proteomeView->touchStatus('done pfamA_ncbi');
 }
 
 
