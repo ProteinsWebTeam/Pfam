@@ -134,8 +134,8 @@ sub makeTSV {
                                          domain_bits_score, 
                                          domain_evalue_score 
                                    FROM pfamA_reg_full_significant as r
-                                   LEFT JOIN proteome_pfamseq as p ON p.pfamseq_acc=r.pfamseq_acc
-                                   WHERE auto_proteome = ? 
+                                   LEFT JOIN pfamseq as p ON p.pfamseq_acc=r.pfamseq_acc
+                                   WHERE ncbi_taxid = ? 
                                    AND in_full=1"
   ) or $self->logger->logdie( "Failed to prepare statement:" . $dbh->errstr );
 
@@ -160,7 +160,7 @@ sub makeTSV {
   $self->logger->info( "Retrieving domains for ncbi taxid $ncbi_taxid '"
       . $proteome->species
       . "'" );
-  $st_regions->execute( $proteome->auto_proteome )
+  $st_regions->execute( $ncbi_taxid )
     or $self->logger->logdie(
     "Couldn't execute statement " . $st_regions->errstr );
   my $pfamA_domains = $st_regions->fetchall_arrayref();
@@ -224,7 +224,7 @@ sub submitToFarm {
   
   my $rs = $self->pfamdb->getSchema->resultset('CompleteProteome')->search({});
   my $chunkSize = ceil($rs->count/$noJobs);
-  
+ 
   #Now submit the jobs
   my $queue = 'production-rh6';
   my $resource = "-M3500 -R rusage[mem=3500]";
