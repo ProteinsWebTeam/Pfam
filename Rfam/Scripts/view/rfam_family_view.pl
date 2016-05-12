@@ -6,14 +6,20 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Data::UUID;
+use Try::Tiny;
 
 use Bio::Rfam::Config;
 use Bio::Rfam::View;
-use RfamJobs;
+
+use RfamLive;
+# use RfamJobs;
 
 # this script should generally be submitted to the farm, using a command
 # something like this:
 # mkdir -p /tmp/rfamprod/5EF780FE-2D0E-11E3-8C47-A34D104C94EC/RF00504 && cd /tmp/rfamprod/5EF780FE-2D0E-11E3-8C47-A34D104C94EC/RF00504 && rfam_family_view.pl -id 5EF780FE-2D0E-11E3-8C47-A34D104C94EC -family RF00504 && rm -rf /tmp/rfamprod/5EF780FE-2D0E-11E3-8C47-A34D104C94EC/RF00504
+
+# This script has been modified for Rfam Release 12.1 to use _post_process table
+# from rfamlive
 
 #-------------------------------------------------------------------------------
 # handle options
@@ -54,54 +60,88 @@ die "ERROR: you must specify at least one plugin set\n"
 
 my $config  = Bio::Rfam::Config->new;
 
-# we need to get the row in the job_history table for this job, so that we can
+# we need to get the row in the pos_process table for this job, so that we can
 # update its status before and after running the plugins. It's also a good
 # validation for the UUID, so we'll check it before trying to run anything.
 
 my $job;
-unless ( $no_db ) {
-  my $rfam_jobs = $config->rfamjobs;
+# unless ( $no_db ) {
+my $rfam_jobs = $config->rfamlive;
 
-  die "couldn't connect to the 'rfam_jobs' tracking database\n"
-    unless $rfam_jobs;
+die "couldn't connect to the 'rfam_live' tracking database\n"
+  unless $rfam_jobs;
 
-  $job = $rfam_jobs->resultset('JobHistory')
-                   ->search( { job_id => $job_uuid } )
-                   ->single;
+$job = $rfam_jobs->resultset('PostProcess')
+                 ->search( { rfam_acc => $rfam_acc, #new line
+                             uuid => $job_uuid
+                             #status => 'PEND' 
+                             } )
+                 ->single; #make sure this is a single row...??
+                 
 
-  die "couldn't find a row for this job (job ID $job_uuid) in the tracking table"
-    unless $job;
-}
+
+die "couldn't find a row for this job (job ID $job_uuid) in the tracking table"
+  unless $job;
+# }
                          
 #-------------------------------------------------------------------------------
 # call the plugins
 
 foreach my $plugin_set ( @ARGV ) {
-
+  print "\nPlugin Sets: $plugin_set\n";
+  try{
   my $plugins = $config->viewPluginSets( $plugin_set );
-
+  print "test\n";
+  print "Plugins:\n$plugins\n";
+  print "Config: $config\n";
+  print "Rfam_acc: $rfam_acc\n";
+  print "Job uuid: $job_uuid\n";
+ 
   my $view = Bio::Rfam::View->new ( {
     plugins   => $plugins,
     config    => $config,
     family    => $rfam_acc,
     job_uuid  => $job_uuid,
+    #job => $job,
     seqdb     => 'rfamseq'
   } );
 
-  $job->run unless $no_db;
+  print "\nView object: $view\n";
+  print "bp1\n";
+
+  $job->run; # unless $no_db; #modified PostProcess.pm in RfamLive ResultSet 
+  
+
+  print "bp2\n";
+
 
   foreach my $plugin ( @{ $view->plugin_list } ) {
-    $plugin->process;
+    print $plugin;
+    #move try catch at this point
+    $plugin->process; #call the subroutine to process the plugin
+    print "bp3\n";
     # TODO could wrap the call to "process" in a try/catch and store the
     # message from the exception in the tracking DB, along with the name of the
     # plugin that failed
   }
-
-  $job->done unless $no_db;
+  print "bp3.1\n";
+  #marked as DONE if all plugins execute successfully
+  $job->done; # unless $no_db; #this one will now work after modifying the 
+  #PostProcess.pm in RfamLive ResultSet
+  print "bp4\n";
 
   # (the $job row object has methods "run", "fail" and "done, which set the
   # status for that row and update the "closed" time stamp too. See
-  # RfamJobs/Result/JobHistory.pm.)
+  # RfamJobs/Result/JobHistory.pm.) 
+  # modified PostProcess.pm file to include those too.. currently modified under 
+  # result set and may need to move those to result/PostProcess.pm
+}
+catch{
+   print "bp5\n";
+   #print "Failed on: $p_var\n";
+   $job->failure; #this will set the job status to 'FAIL' upon failure
+};
+print "bp6\n";
 }
 
 exit;
