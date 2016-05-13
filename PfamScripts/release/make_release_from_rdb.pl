@@ -162,6 +162,7 @@ if ( $version->pfam_release ne "$major.$point" ) {
       pfam_release       => "$major.$point",
       pfam_release_date  => $ymd,
       hmmer_version      => $hmmerVersion,
+      reference_proteome_version => $sqV, #RP version will be same as sprot version
       swiss_prot_version => $sqV,
       trembl_version     => $trV
     }
@@ -200,7 +201,7 @@ unless ( -e "$logDir/checkedseqsize" ){
     $logger->info("Got pfamseq size (residues): $numSeqs, ($numRes)");
     }
 
-    foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
+    foreach my $f (qw(pfamseq uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
      unless ( -s "$thisRelDir/$f.gz" ) {
       if ( $f eq 'pfamseq' ) {
        ( $numSeqs, $numRes ) = checkPfamseqSize( $updateDir, $pfamDB );
@@ -212,7 +213,7 @@ unless ( -e "$logDir/checkedseqsize" ){
 
      }
      $logger->info("Fetching the the sequence files");
-     getPfamseqFiles( $thisRelDir, $updateDir );
+     getPfamseqFiles( $thisRelDir, $updateDir, $config );
      }
     }
 
@@ -432,7 +433,11 @@ unless ( -e "$thisRelDir/Pfam-A.regions.tsv" ) {
   system("split -d -l 1000000 regions regions_") and $logger->logdie("Could not split regions file");
   my $dir = getcwd;
   my %filenames;
-  my @files = read_dir($dir);
+
+  opendir(DIR, $dir) or $logger->logdie("Couldn't open $dir $!");
+  my @files = readdir(DIR);
+  closedir(DIR);
+  
   foreach my $file (@files){
     if ( $file =~ /regions_(\d+)/ ){
         $filenames{$1}=1;
@@ -622,12 +627,7 @@ sub checkPfamseqSize {
 sub makeStats {
   my ( $releasedir, $num_seqs, $num_res ) = @_;
   $logger->info("Making stats.\n");
-  system(
-"flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt"
-    )
-    and $logger->logdie(
-"Failed to run flatfile_stats.pl $releasedir/Pfam-A.full[$!]"
-    );
+  system("flatfile_stats.pl $releasedir/Pfam-A.full $num_seqs $num_res > $releasedir/stats.txt");
   if ( -s "$releasedir/stats.txt" ) {
     $logger->info("Made stats");
   }
@@ -792,24 +792,28 @@ sub getTxtFiles {
 }
 
 sub getPfamseqFiles {
-  my ( $relDir, $pfamseqDir ) = @_;
+  my ( $relDir, $pfamseqDir, $config ) = @_;
 
-  foreach my $f (qw(pfamseq uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi))
-  {
+  foreach my $f (qw(pfamseq uniprot uniprot uniprot_reference_proteomes.dat uniprot_sprot.dat uniprot_trembl.dat metaseq ncbi)) {
     unless ( -s "$relDir/$f.gz" ) {
+      $logger->info("Copying $f");
       if ( -s "$pfamseqDir/$f.gz" ) {
-        copy( "$pfamseqDir/$f.gz", "$relDir/$f.gz" )
-          || $logger->logdie(
-          "Could not copy $f from $pfamseqDir to $relDir:[$!]");
+        copy( "$pfamseqDir/$f.gz", "$relDir/$f.gz" )  || $logger->logdie( "Could not copy $f from $pfamseqDir to $relDir:[$!]");
         next;
       }
-
-      unless ( -s "$pfamseqDir/$f" ) {
+      elsif( -s "$pfamseqDir/$f" ) {
+        copy( "$pfamseqDir/$f", "$relDir/$f" )  || $logger->logdie("Could not copy $f from $pfamseqDir to $relDir:[$!]");
+      }
+      elsif($f eq "metaseq") {
+        copy($config->metaseqLoc."/$f", "$relDir/$f") || $logger->logdie("Could not copy $f from ".$config->metaseqLoc." to $relDir:[$!]");
+      }
+      elsif($f eq "ncbi") {
+        copy($config->ncbiLoc."/$f", "$relDir/$f") || $logger->logdie("Could not copy $f from ".$config->ncbiLoc." to $relDir:[$!]");
+      }
+      else {
         $logger->logdie("Could not find $f in $pfamseqDir!");
       }
-      copy( "$pfamseqDir/$f", "$relDir/$f" )
-        || $logger->logdie(
-        "Could not copy $f from $pfamseqDir to $relDir:[$!]");
+      
       my $pwd = getcwd;
       $logger->debug("Present working directory is:$pwd");
       chdir($relDir) or $logger->logdie("Could not cd to $relDir:[$!]");
@@ -848,9 +852,10 @@ sub makePfamAFlat {
   makePfamAFlatFull( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full") ;
   makePfamAFasta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.fasta");
   makePfamAHMMs( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.hmm");
-  foreach my $level (qw(rp15 rp35 rp55 rp75 ref_proteome)) {
+  foreach my $level (qw(rp15 rp35 rp55 rp75)) {
     makePfamAFlatRP( $thisRelDir, $pfamDB, \@families, $level ) unless(-e "$thisRelDir/Pfam-A.$level");
   }
+  makePfamAUniprot( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.uniprot");
   makePfamANcbi( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.ncbi");
   makePfamAMeta( $thisRelDir, $pfamDB, \@families ) unless(-e "$thisRelDir/Pfam-A.full.metagenomics");
 }
@@ -948,7 +953,7 @@ sub makePfamAFlatSeed {
     }
 
     #Write the SEED alignment and tree files to disk!
-    open( SEEDTREE, ">$treedir" . $family->pfama_acc . ".tree" )
+    open( SEEDTREE, ">$treedir/" . $family->pfama_acc . ".tree" )
       || $logger->logdie("Error opening file");
     print SEEDTREE $sTree;
     close(SEEDTREE);
@@ -1061,6 +1066,12 @@ sub makePfamAFlatFull {
   my (@errors);
   foreach my $family (@$families) {
 
+    #If it has no members, don't add to file
+    if($family->num_full == 0 ) {
+      $logger->info($family->pfama_id." has no members in full");
+      next;
+    }
+
     #Get the number of expected regions from pfamA_reg_full
     my $fullCount =
       $pfamDB->getSchema->resultset('PfamARegFullSignificant')->search(
@@ -1135,6 +1146,7 @@ sub makePfamAFasta {
 
   #For each family
   foreach my $family (@$families) {
+    next if($family->num_full ==0);
 
     #Get the fasta file
     my $row =
@@ -1267,29 +1279,6 @@ sub makePfamAFlatRP {
         }
       );
     }
-
-    my $num = $family->$col;
-
-    if ( $family->$col <= 5000 ) {
-
-        #TODO - 2 lines below added to solve cases where num full > 5000 but num in rp alignment <5000 so no html align at present - may need removing along with end of block } below.
-        my $length = length(Compress::Zlib::memGunzip( $row->jtml ) );
-        if ($length){
-
-      unless ( length( Compress::Zlib::memGunzip( $row->jtml ) ) > 10 ) {
-        $logger->warn('The html file has no size');
-        push(
-          @errors,
-          {
-            family  => $family->pfama_acc,
-            file    => $level.'HTML',
-            message => 'Inappropriate size'
-          }
-        );
-      }
-    }
-    } #end of if $length
-
   }
   close($PFAMARP);
   errors(\@errors);
@@ -1350,6 +1339,61 @@ sub makePfamAMeta {
   close(PFAMAMETA);
   errors( \@errors );
 }
+
+sub makePfamAUniprot {
+  my ( $thisRelDir, $pfamDB, $families ) = @_;
+
+  my @errors;
+  open( PFAMAUNIPROT, ">$thisRelDir/Pfam-A.full.uniprot" )
+    || $logger->logdie("Could not open Pfam-A.full.uniprot");
+
+  $logger->info("Checking Uniprot files");
+  foreach my $family (@$families) {
+
+    my $row = $pfamDB->getSchema->resultset('AlignmentAndTree')->find(
+      {    
+        pfama_acc => $family->pfama_acc,
+        type       => 'uniprot'
+      }    
+    );   
+
+    if ( $row and $row->pfama_acc ) {
+
+      #Okay, looks like we have an alignment
+      my $ali = Compress::Zlib::memGunzip( $row->alignment );
+      if ( length($ali) > 10 ) {
+        print PFAMAUNIPROT $ali;
+      }    
+      else {
+        $logger->warn("Uniprot ali has incorrect size");
+        push(
+          @errors,
+          {    
+            family  => $family->pfama_acc,
+            file    => 'uniprotAli',
+            message => 'No size'
+          }    
+        );   
+      }    
+
+    }    
+    else {
+      $logger->warn("Failed to get Uniprot row");
+      push(
+        @errors,
+        {    
+          family  => $family->pfama_acc,
+          file    => 'uinprotAli',
+          message => 'No row from database'
+        }    
+      );   
+    }    
+  }
+  close(PFAMAUNIPROT);
+  errors( \@errors );
+}
+
+
 
 sub makePfamANcbi {
 my ( $thisRelDir, $pfamDB, $families ) = @_;
@@ -1472,9 +1516,9 @@ sub make_ftp {
     $logger->logdie("Could not make ftp directory!");
   }
 
-  if ( !-d "$releasedir/ftp/proteomes"){
-      system("cp -pr $relDir/proteomes $releasedir/ftp/proteomes") and $logger->logdie("Failed to copy proteomes directory");
-  }
+  #if ( !-d "$releasedir/ftp/proteomes"){
+  #    system("cp -pr $relDir/proteomes $releasedir/ftp/proteomes") and $logger->logdie("Failed to copy proteomes directory");
+  #}
 
   if ( !-e "$releasedir/trees.tgz" ) {
     system("tar zcf $releasedir/trees.tgz $releasedir/trees")
@@ -1489,6 +1533,7 @@ sub make_ftp {
     Pfam-A.dead
     Pfam-A.fasta
     Pfam-A.full
+    Pfam-A.full.uniprot
     Pfam-A.full.metagenomics
     Pfam-A.full.ncbi
     Pfam-A.hmm.dat
@@ -1498,11 +1543,12 @@ sub make_ftp {
     Pfam-A.rp35
     Pfam-A.rp55
     Pfam-A.rp75
-    Pfam-A.ref_proteome
     Pfam-C
     pfamseq
     relnotes.txt
     swisspfam
+    uniprot
+    uniprot_reference_proteomes.dat
     uniprot_sprot.dat
     uniprot_trembl.dat
     userman.txt
