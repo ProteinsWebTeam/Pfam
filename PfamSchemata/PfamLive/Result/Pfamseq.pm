@@ -108,6 +108,7 @@ __PACKAGE__->table("pfamseq");
   data_type: 'integer'
   default_value: 0
   extra: {unsigned => 1}
+  is_foreign_key: 1
   is_nullable: 0
 
 =head2 auto_architecture
@@ -167,6 +168,7 @@ __PACKAGE__->add_columns(
     data_type => "integer",
     default_value => 0,
     extra => { unsigned => 1 },
+    is_foreign_key => 1,
     is_nullable => 0,
   },
   "auto_architecture",
@@ -217,6 +219,21 @@ __PACKAGE__->belongs_to(
   "PfamLive::Result::Evidence",
   { evidence => "evidence" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
+
+=head2 ncbi_taxid
+
+Type: belongs_to
+
+Related object: L<PfamLive::Result::NcbiTaxonomy>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "ncbi_taxid",
+  "PfamLive::Result::NcbiTaxonomy",
+  { ncbi_taxid => "ncbi_taxid" },
+  { is_deferrable => 1, on_delete => "CASCADE", on_update => "NO ACTION" },
 );
 
 =head2 nested_locations
@@ -324,21 +341,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pfamseq_ncbis
-
-Type: has_many
-
-Related object: L<PfamLive::Result::PfamseqNcbi>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfamseq_ncbis",
-  "PfamLive::Result::PfamseqNcbi",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 secondary_pfamseq_accs
 
 Type: has_many
@@ -355,8 +357,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-01-13 11:22:17
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aTZ1k4S1FS3xdNInNreuvg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:14FxtWHWuA5CplrSCC2uEw
 
 __PACKAGE__->load_components(qw/ Result::ColumnData /);
 __PACKAGE__->register_relationships_column_data();
