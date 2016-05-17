@@ -70,21 +70,6 @@ __PACKAGE__->set_primary_key("auto_wiki");
 
 =head1 RELATIONS
 
-=head2 clan_wikis
-
-Type: has_many
-
-Related object: L<PfamLive::Result::ClanWiki>
-
-=cut
-
-__PACKAGE__->has_many(
-  "clan_wikis",
-  "PfamLive::Result::ClanWiki",
-  { "foreign.auto_wiki" => "self.auto_wiki" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 pfam_a_wikis
 
 Type: has_many
@@ -101,8 +86,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-05-19 08:45:26
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:jLDUj/0Gqx69oOcn1cBZtg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:14
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fBBHGv/uJADeAYiu5tQkeA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
