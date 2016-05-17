@@ -270,21 +270,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 clan_wikis
-
-Type: has_many
-
-Related object: L<PfamLive::Result::ClanWiki>
-
-=cut
-
-__PACKAGE__->has_many(
-  "clan_wikis",
-  "PfamLive::Result::ClanWiki",
-  { "foreign.clan_acc" => "self.clan_acc" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 =head2 released_clan_versions
 
 Type: has_many
@@ -301,8 +286,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-08 12:51:45
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iSBLooJzJVC4i4xcXMENCA
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ah7HIjfhllbLB813wAW5IQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
