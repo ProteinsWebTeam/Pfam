@@ -101,24 +101,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 pfamseq_ncbis
+=head2 pfamseqs
 
 Type: has_many
 
-Related object: L<PfamLive::Result::PfamseqNcbi>
+Related object: L<PfamLive::Result::Pfamseq>
 
 =cut
 
 __PACKAGE__->has_many(
-  "pfamseq_ncbis",
-  "PfamLive::Result::PfamseqNcbi",
+  "pfamseqs",
+  "PfamLive::Result::Pfamseq",
   { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07039 @ 2014-09-22 17:06:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uNCKNuaJYxGMPgzTmvf7nw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 16:00:13
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:tVkm/KtgO8nP8B3XCMjUJw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
