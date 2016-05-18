@@ -101,24 +101,24 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pfamseq_ncbis
+=head2 pfamseqs
 
 Type: has_many
 
-Related object: L<PfamDB::PfamseqNcbi>
+Related object: L<PfamDB::Pfamseq>
 
 =cut
 
 __PACKAGE__->has_many(
-  "pfamseq_ncbis",
-  "PfamDB::PfamseqNcbi",
+  "pfamseqs",
+  "PfamDB::Pfamseq",
   { "foreign.ncbi_taxid" => "self.ncbi_taxid" },
   undef,
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:PqV8TfxBscWGvQvYkllrbw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zteBcbuSbHHluDDgu4nXCQ
 
 
 =head1 COPYRIGHT
