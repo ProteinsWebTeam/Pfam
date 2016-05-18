@@ -70,21 +70,6 @@ __PACKAGE__->set_primary_key("auto_wiki");
 
 =head1 RELATIONS
 
-=head2 clan_wikis
-
-Type: has_many
-
-Related object: L<PfamDB::ClanWiki>
-
-=cut
-
-__PACKAGE__->has_many(
-  "clan_wikis",
-  "PfamDB::ClanWiki",
-  { "foreign.auto_wiki" => "self.auto_wiki" },
-  undef,
-);
-
 =head2 pfama_wikis
 
 Type: has_many
@@ -101,8 +86,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-04-22 10:42:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gyUMgmMQixLRODCTJDdoCw
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9vTvz0vlAlJHg31TYpZ5NA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
