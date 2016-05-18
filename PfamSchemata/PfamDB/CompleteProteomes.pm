@@ -184,9 +184,7 @@ __PACKAGE__->add_columns(
   },
 );
 
-=head1 UNIQUE CONSTRAINTS
-
-=head2 C<ncbi_taxid>
+=head1 PRIMARY KEY
 
 =over 4
 
@@ -196,11 +194,11 @@ __PACKAGE__->add_columns(
 
 =cut
 
-__PACKAGE__->add_unique_constraint("ncbi_taxid", ["ncbi_taxid"]);
+__PACKAGE__->set_primary_key("ncbi_taxid");
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Vc/ir6Ox3xT+4393ZGhRBg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1H6D/ApnUknRP47NVasZ8w
 
 __PACKAGE__->has_one(
   "ncbi_taxid_data",
