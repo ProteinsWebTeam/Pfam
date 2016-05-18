@@ -765,21 +765,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pfama_ligands
-
-Type: has_many
-
-Related object: L<PfamDB::PfamaLigand>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfama_ligands",
-  "PfamDB::PfamaLigand",
-  { "foreign.pfama_acc" => "self.pfama_acc" },
-  undef,
-);
-
 =head2 pfama_literature_references
 
 Type: has_many
@@ -945,19 +930,9 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 ligand_ids
 
-Type: many_to_many
-
-Composing rels: L</pfama_ligands> -> ligand_id
-
-=cut
-
-__PACKAGE__->many_to_many("ligand_ids", "pfama_ligands", "ligand_id");
-
-
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:50
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uuI5+dlTmIt+1eo8xTKM/A
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qqBFb9XGri1/aAT3VC8DEA
 
 
 
