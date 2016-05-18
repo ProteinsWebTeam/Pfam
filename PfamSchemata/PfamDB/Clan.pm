@@ -270,21 +270,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 clan_wikis
-
-Type: has_many
-
-Related object: L<PfamDB::ClanWiki>
-
-=cut
-
-__PACKAGE__->has_many(
-  "clan_wikis",
-  "PfamDB::ClanWiki",
-  { "foreign.clan_acc" => "self.clan_acc" },
-  undef,
-);
-
 =head2 released_clan_versions
 
 Type: has_many
@@ -301,8 +286,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-09-08 12:51:14
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+3bCetc4++qdScQLikBkmQ
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CKuhfiOKzg6D3wodIoYxKQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
