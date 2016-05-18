@@ -108,13 +108,8 @@ __PACKAGE__->table("pfamseq");
   data_type: 'integer'
   default_value: 0
   extra: {unsigned => 1}
+  is_foreign_key: 1
   is_nullable: 0
-
-=head2 genome_seq
-
-  data_type: 'tinyint'
-  default_value: 0
-  is_nullable: 1
 
 =head2 auto_architecture
 
@@ -173,10 +168,9 @@ __PACKAGE__->add_columns(
     data_type => "integer",
     default_value => 0,
     extra => { unsigned => 1 },
+    is_foreign_key => 1,
     is_nullable => 0,
   },
-  "genome_seq",
-  { data_type => "tinyint", default_value => 0, is_nullable => 1 },
   "auto_architecture",
   { data_type => "bigint", extra => { unsigned => 1 }, is_nullable => 1 },
   "treefam_acc",
@@ -221,6 +215,20 @@ Related object: L<PfamDB::Evidence>
 =cut
 
 __PACKAGE__->belongs_to("evidence", "PfamDB::Evidence", { evidence => "evidence" });
+
+=head2 ncbi_taxid
+
+Type: belongs_to
+
+Related object: L<PfamDB::NcbiTaxonomy>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "ncbi_taxid",
+  "PfamDB::NcbiTaxonomy",
+  { ncbi_taxid => "ncbi_taxid" },
+);
 
 =head2 nested_locations
 
@@ -327,21 +335,6 @@ __PACKAGE__->has_many(
   undef,
 );
 
-=head2 pfamseq_ncbis
-
-Type: has_many
-
-Related object: L<PfamDB::PfamseqNcbi>
-
-=cut
-
-__PACKAGE__->has_many(
-  "pfamseq_ncbis",
-  "PfamDB::PfamseqNcbi",
-  { "foreign.pfamseq_acc" => "self.pfamseq_acc" },
-  undef,
-);
-
 =head2 secondary_pfamseq_accs
 
 Type: has_many
@@ -358,8 +351,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07042 @ 2015-12-02 12:30:51
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QBeCsMyeds5V4OyFWeliHg
+# Created by DBIx::Class::Schema::Loader v0.07042 @ 2016-05-17 15:56:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:TgBRhAMleYdNgv5TQUj5wA
 
 
 #__PACKAGE__->has_many(
