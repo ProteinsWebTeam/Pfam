@@ -17,6 +17,7 @@ sharedUri = c.uri_for( "/shared" );
 
 [%- # add a meaningful description, for the benefit of search engines -%]
 <meta name="Description" content="Pfam is a large collection of protein families, represented by multiple sequence alignments and hidden Markov models (HMMs)" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 [% # if the stash contains a value for "refreshUri", we'll add a
    # refresh header to redirect after the default delay of 5 seconds
