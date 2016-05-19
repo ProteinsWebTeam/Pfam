@@ -17,6 +17,7 @@ sharedUri = c.uri_for( "/shared" );
 
 [%- # add a meaningful description, for the benefit of search engines -%]
 <meta name="Description" content="Pfam is a large collection of protein families, represented by multiple sequence alignments and hidden Markov models (HMMs)" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 [% # if the stash contains a value for "refreshUri", we'll add a
    # refresh header to redirect after the default delay of 5 seconds
@@ -27,9 +28,9 @@ IF refreshUri != "";
 [% END -%]
 
 <!-- ====================================================================== -->
-<!-- make the site RSS feed discoverable --> 
+<!-- make the site RSS feed discoverable -->
 
-<link href="http://xfam.wordpress.com/tag/pfam/feed/" 
+<link href="http://xfam.wordpress.com/tag/pfam/feed/"
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
@@ -38,12 +39,12 @@ IF refreshUri != "";
 <!-- third-party javascript libraries
 
      we are now loading third-party libraries from remote sites. We get
-     prototype and scriptaculous from googleapis and the YUI components 
+     prototype and scriptaculous from googleapis and the YUI components
      for tree viewing directly from yahoo
---> 
+-->
 
 <!-- prototype / scriptaculous -->
-<!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js"></script> --> 
+<!-- <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js"></script> -->
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/prototype/1.7.0/prototype.js"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js"></script>
 
@@ -59,7 +60,7 @@ IF refreshUri != "";
 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/utilities/utilities.js"></script>
 
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
@@ -98,10 +99,10 @@ PROCESS "components/load_requirements.tt" -%]
 <!-- ====================================================================== -->
 <!-- set the favicon -->
 
-<link rel="shortcut icon" 
-      type="image/png" 
+<link rel="shortcut icon"
+      type="image/png"
       href="[% staticUri %]/images/favicon.png" />
-      
+
 <!-- ====================================================================== -->
 
 <!-- google analytics -->
@@ -114,6 +115,23 @@ PROCESS "components/load_requirements.tt" -%]
   ga('create', 'UA-50480748-2', 'xfam.org');
   ga('send', 'pageview');
 
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "Organization",
+    "url": "http://pfam.xfam.org/",
+    "logo": "http://pfam.xfam.org/static/images/pfam_logo.gif"
+  }
+</script>
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org",
+    "@type": "WebSite",
+    "name": "Pfam",
+    "url": "http://pfam.xfam.org/"
+  }
 </script>
 
 <!-- ====================================================================== -->
