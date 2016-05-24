@@ -283,7 +283,7 @@ can be obtained from the Pfam FTP area:
 You must also have the HMMER3 binaries installed and their locations given by your
 C<PATH> environment variable. You can download the HMMER3 package at:
 
-  ftp://selab.janelia.org/pub/software/hmmer3/
+  http://hmmer.org/download.html
 
 =head1 OUTPUT
 

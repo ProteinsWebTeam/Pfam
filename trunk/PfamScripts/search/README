@@ -88,7 +88,7 @@ Download Pfam data files
 ========================
 
 You will need to download the following files from the Pfam ftp site 
-(ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/):
+(ftp://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/):
 
 Pfam-A.hmm
 Pfam-A.hmm.dat  
