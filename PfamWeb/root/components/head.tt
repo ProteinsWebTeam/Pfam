@@ -11,6 +11,7 @@
 # use uri_for to get the root for the static directory
 staticUri = c.uri_for( "/static" );
 sharedUri = c.uri_for( "/shared" );
+rootURI = c.uri_for( "/" ) | remove('/$');
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -116,12 +117,19 @@ PROCESS "components/load_requirements.tt" -%]
 
 </script>
 
+<!--[% rootURI %]-->
+[% IF c.req.path == "" %]
+<link rel="canonical" href="[% rootURI %]" />
 <script type="application/ld+json">
   {
     "@context": "http://schema.org",
     "@type": "Organization",
-    "url": "http://pfam.xfam.org/",
-    "logo": "http://pfam.xfam.org/static/images/pfam_logo.gif"
+    "name": "Pfam",
+    "url": "[% rootURI %]",
+    "logo": "[% rootURI %]/static/images/pfam_logo.gif",
+    "sameAs": [
+      "https://twitter.com/Xfam_EBI"
+    ]
   }
 </script>
 <script type="application/ld+json">
@@ -129,9 +137,15 @@ PROCESS "components/load_requirements.tt" -%]
     "@context": "http://schema.org",
     "@type": "WebSite",
     "name": "Pfam",
-    "url": "http://pfam.xfam.org/"
+    "url": "[% rootURI %]",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "[% rootURI %]/search/keyword?query={keyword}",
+      "query-input": "required name=keyword"
+    }
   }
 </script>
+[% END %]
 
 <!-- ====================================================================== -->
 
