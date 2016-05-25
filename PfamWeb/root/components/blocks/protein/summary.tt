@@ -84,7 +84,7 @@ END;
         <td class="label">Source organism:</td>
           <td class="data">
             [%- IF pfamseq.ncbi_taxid;
-              ncbi_taxid = pfamseq.ncbi_taxid %]
+              ncbi_taxid = pfamseq.ncbi_taxid.ncbi_taxid %]
               <a class="ext" href="http://www.uniprot.org/taxonomy/[% ncbi_taxid %]">
                 [% pfamseq.species %]</a>
               [%- IF ncbi_taxid != "0" %]
