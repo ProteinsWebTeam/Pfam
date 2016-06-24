@@ -1,0 +1,66 @@
+[%
+# entry_xml.tt
+# jt6 20100906 WTSI
+#
+# template for serialising clan data to XML format
+#
+# $Id$
+
+USE date;
+USE String;
+
+META naked = 1;
+
+baseUri = "http://pfam.xfam.org/";
+
+totalFam = 0;
+totalSeq = 0;
+FOREACH pfam IN clanMembers
+  totalFam = totalFam + 1;
+  totalSeq = totalSeq + pfam.pfama_acc.num_full;
+END -%]
+{
+  "clan_acc": "[% clan.clan_acc %]",
+  "clan_id": "[% clan.clan_id %]",
+  "members": [
+    [% FOREACH pfam IN clanMembers;
+      percent = ( pfam.pfama_acc.num_full / totalSeq ) * 100;
+      percentS = String.new(percent).format("%.1f") -%]
+    {
+      "pfama_acc": "[% pfam.pfama_acc.pfama_acc %]",
+      "pfama_id": "[% pfam.pfama_acc.pfama_id %]",
+      "num_full": [% pfam.pfama_acc.num_full %],
+      "link": "http://pfam.xfam.org/family/[% pfam.pfama_acc.pfama_acc %]",
+      "percentage_hits": [% percentS %]
+    }[%- "," IF not loop.last %]
+    [% END -%]
+
+  ],
+
+  "relationships": [
+  [% FOREACH relationship IN clanRelationships; -%]
+   {
+       "pfama_acc_1": "[% relationship.pfama_acc_1.pfama_acc %]",
+       "pfama_acc_2": "[% relationship.pfama_acc_2.pfama_acc %]",
+       "evalue": [% relationship.evalue %]
+   }[%- "," IF not loop.last %]  [% END -%]
+  ]
+}
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

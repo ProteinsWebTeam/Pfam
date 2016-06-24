@@ -25,15 +25,15 @@
         Relationships between families in a clan are determined using
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/pubmed/15531603">
           HHsearch</a>. Families are deemed to be closely
-        related if their E-value is less than 10<sup>-3</sup> and these 
+        related if their E-value is less than 10<sup>-3</sup> and these
         relationships are shown with a solid line. Less closely related
         family pairs, with an E-value of between 10<sup>-3</sup> and
         10<sup>-1</sup>, are shown with a dashed line.
       </p>
       <p>
         The E-value for each pair of closely or partially related families
-        is shown next to the line linking the families. <!--Clicking on the 
-        E-value will take you to the pairwise 
+        is shown next to the line linking the families. <!--Clicking on the
+        E-value will take you to the pairwise
         <a href="http://www.sanger.ac.uk/Software/analysis/logomat-p/"
            class="ext">HMM-logo</a> for that relationship. -->
         You can see the information regarding a Pfam family by clicking
@@ -48,7 +48,7 @@
     <script type="text/javascript">
         var app = require("clanviewer");
         var instance = new app({el: "#clan_network"});
-        d3.json("/skeleton/api/clans/[% clan.clan_acc %]/?format=json", function(error, data) {
+        d3.json("/clan/[% clan.clan_acc %]?output=json", function(error, data) {
             instance.paint(data);
         });
     </script>
