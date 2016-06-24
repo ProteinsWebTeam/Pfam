@@ -69,6 +69,10 @@ sub begin : Private {
       $c->stash->{output_pfamalyzer} = 1;
       $c->res->content_type('text/plain');
     }
+    elsif ( $c->req->param( 'output' ) eq 'json' ) {
+      $c->stash->{output_json} = 1;
+      $c->res->content_type('application/json');
+    }
   }
 
   # get a handle on the entry and detaint it
@@ -179,6 +183,21 @@ sub clan_end : Chained( 'clan' )
       if $c->debug;
 
     $c->stash->{template} = 'rest/clan/entry_pfamalyzer.tt';
+  }
+  elsif( $c->stash->{output_json} ) {
+    $c->log->debug( 'Clan::clan_end: emitting JSON' )
+      if $c->debug;
+      # if there was an error...
+      if ( $c->stash->{errorMsg} ) {
+        $c->log->debug( 'Clan::clan_end: there was an error: |' .
+                        $c->stash->{errorMsg} . '|' ) if $c->debug;
+        $c->stash->{template} = 'rest/clan/error_json.tt';
+        return;
+      }
+      else {
+        $c->stash->{template} = 'rest/clan/entry_json.tt';
+      }
+
   }
   else {
     $c->log->debug( 'Clan::clan_end: emitting HTML' )
@@ -432,8 +451,22 @@ sub get_data : Private {
                          prefetch  => [ 'pfama_acc' ] } );
   $c->stash->{clanMembers} = \@rs;
 
+  my $subquery = $c->model('PfamDB::ClanMembership')
+                   ->search( { clan_acc => $clan->clan_acc },
+                             { join      => [ 'pfama_acc' ],
+                               prefetch  => [ 'pfama_acc' ] } );
+  # set up the pointers to the relationships between clan members
+  my @rs2 = $c->model('PfamDB::Pfama2pfamaHhsearch')
+              ->search(
+                -and => [
+                  { 'pfama_acc_1' => { -in => $subquery->get_column('pfama_acc')->as_query } },
+                  { 'pfama_acc_2' => { -in => $subquery->get_column('pfama_acc')->as_query } }
+                ],
+              );
+  $c->stash->{clanRelationships} = \@rs2;
+
   # only add extra data to the stash if we're actually going to use it later
-  unless ( $c->stash->{output_xml} or
+  unless ( $c->stash->{output_xml} or $c->stash->{output_json} or
            $c->stash->{output_pfamalyzer} ) {
     if ( ref $this eq 'PfamWeb::Controller::Clan' ) {
       $c->forward( 'get_summary_data' );
