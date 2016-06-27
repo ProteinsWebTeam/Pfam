@@ -24,7 +24,7 @@ package Bio::Pfam::Wiki::Updater;
 
 =head1 DESCRIPTION
 
-This is a simple class to update the wiki_approve database table with the 
+This is a simple class to update the wiki_approve database table with the
 most recent wikipedia revision number for the specified wikipedia articles.
 
 =cut
@@ -37,7 +37,7 @@ use Time::Piece;
 use Time::Seconds;
 
 our $VERSION = '0.1';
- 
+
 #-------------------------------------------------------------------------------
 #- configure logging -----------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ has 'logger' => (
   is      => 'ro',
   isa     => 'Log::Log4perl::Logger',
   lazy    => 1,
-  default => sub { 
+  default => sub {
     my $this = shift;
     return Log::Log4perl->get_logger( ref $this );
   }
@@ -76,12 +76,12 @@ C<update> or C<update_all>.
 
 =head2 num_updated
 
-Returns the number of wikipedia entries whose revision ID was updated in the 
+Returns the number of wikipedia entries whose revision ID was updated in the
 database during the most recent C<update> or C<update_all>.
 
 =head2 num_redirected
 
-Returns the number of wikipedia entries in the most recent C<update> or 
+Returns the number of wikipedia entries in the most recent C<update> or
 C<update_all> which have been redirected. Retrieve the list of redirects
 using L<redirected_articles>.
 
@@ -97,7 +97,7 @@ Returns a reference to an array containing the titles of updated articles.
 =head2 redirected_articles
 
 Returns a reference to an array containing the titles of redirected articles.
-Each element of the array is a hash, with keys "from" and "to", giving the 
+Each element of the array is a hash, with keys "from" and "to", giving the
 titles of the article redirected from and to, and "row" giving a reference
 to the DBIC row object for the article.
 
@@ -235,7 +235,7 @@ sub update {
 
   $this->logger->logdie( 'must specify one or more wikipedia article titles' )
     unless @_;
-  
+
   $this->_articles( @_ );
   $this->_update;
 }
@@ -246,7 +246,7 @@ sub update {
 
 =head2 _update
 
-Updates the revision IDs for the list of wikipedia articles found in 
+Updates the revision IDs for the list of wikipedia articles found in
 C<_articles>. Also auto-approves revisions based on the rules in _auto_approve
 
 =cut
@@ -295,10 +295,16 @@ sub _update {
     my $latest_edit = $this->_get_last_edit( $article->title );
     my $latest_revid = $latest_edit->{'revid'};
 
-    if ( my $redirects = $article->get_redirects ) {
-      push @{ $this->redirected_articles }, @$redirects;
-      $num_redirected++;
+    eval {
+      if ( my $redirects = $article->get_redirects ) {
+        push @{ $this->redirected_articles }, @$redirects;
+        $num_redirected++;
+      }
+    };
+    if ($@) {
+      $this->logger->error("Failed during redirection of: ".$article->title);
     }
+
 
     next unless ( defined $latest_revid and $latest_revid =~ m/^\d+$/ );
 
@@ -306,8 +312,8 @@ sub _update {
       $this->logger->debug( 'wikipedia table already has most recent revid for |'
                             . $article->title . '|' );
     }
-    else { 
-      $this->logger->debug( 'updating wikipedia version for |' . $article->title 
+    else {
+      $this->logger->debug( 'updating wikipedia version for |' . $article->title
                             . "| to |$latest_revid|" );
       $article->update( { wikipedia_revision => $latest_revid } );
 			push @{ $this->updated_articles }, $article->title;
@@ -334,7 +340,7 @@ sub _auto_approve{
 	my($this, $article, $latest_edit) = @_;
 	my $approved = 0;
 	my $edit_date = Time::Piece->strptime($latest_edit->{'timestamp_date'}, "%Y-%m-%d");
-	
+
 	#date objects may need to be moved out of this method for efficiency
     my $now_date = 	Time::Piece->new();
     my $cutoff_date = $now_date - ($this->LAST_EDIT_CUTOFF * ONE_DAY);
@@ -343,7 +349,7 @@ sub _auto_approve{
 		$article->update( { approved_revision => $latest_edit->{'revid'}, approved_by => $this->AUTO_USER } );
 		$approved = 1;
 	}
-		
+
 	return $approved;
 }
 
@@ -392,7 +398,7 @@ Rob Finn, C<rdf@ebi.ac.uk>
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), 
+Authors: Rob Finn (rdf@sanger.ac.uk),
          Paul Gardner, (pg5@sanger.ac.uk),
          John Tate (jt6@sanger.ac.uk)
 
@@ -412,4 +418,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
