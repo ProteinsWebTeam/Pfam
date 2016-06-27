@@ -4,9 +4,9 @@
 #
 # Firstly, it updates the mapping between Pfam/Rfam entries and wikipedia
 # articles. For each database, the script retrieves the article titles that are
-# associated with each family. For accessions with new mappings, the old 
+# associated with each family. For accessions with new mappings, the old
 # mapping is delete and the new one is added to the "wiki_approve.article_mapping"
-# table. 
+# table.
 #
 # Secondly, the script updates the list of wikipedia articles in the
 # "wiki_approve.wikipedia". That table is used by the WikiApprove web
@@ -75,29 +75,29 @@ my $rfam_conf = $config{RfamLive};
 #-------------------------------------------------------------------------------
 
 # get all of the database connections that we'll need
-my $wa_schema = 
-  WikiApprove->connect( 
-    "dbi:mysql:$wa_conf->{db_name}:$wa_conf->{db_host}:$wa_conf->{db_port}", 
+my $wa_schema =
+  WikiApprove->connect(
+    "dbi:mysql:$wa_conf->{db_name}:$wa_conf->{db_host}:$wa_conf->{db_port}",
     $wa_conf->{username},
     $wa_conf->{password}
   );
 
 $log->debug( 'connected to wiki_approve' ) if $wa_schema;
 
-my $pfam_schema = 
-  PfamLive->connect( 
-    "dbi:mysql:$pfam_conf->{db_name}:$pfam_conf->{db_host}:$pfam_conf->{db_port}", 
+my $pfam_schema =
+  PfamLive->connect(
+    "dbi:mysql:$pfam_conf->{db_name}:$pfam_conf->{db_host}:$pfam_conf->{db_port}",
     $pfam_conf->{username},
-    $pfam_conf->{password} 
+    $pfam_conf->{password}
   );
 
 $log->debug( 'connected to pfam_live' ) if $pfam_schema;
 
-my $rfam_schema = 
+my $rfam_schema =
   RfamDB->connect(
-    "dbi:mysql:$rfam_conf->{db_name}:$rfam_conf->{db_host}:$rfam_conf->{db_port}", 
+    "dbi:mysql:$rfam_conf->{db_name}:$rfam_conf->{db_host}:$rfam_conf->{db_port}",
     $rfam_conf->{username},
-    $rfam_conf->{password} 
+    $rfam_conf->{password}
   );
 
 $log->debug( 'connected to rfam_live' ) if $rfam_schema;
@@ -115,10 +115,10 @@ my @live_articles =
 								select   => [ qw(pfama_acc auto_wiki.title ) ],
 								as       => [ qw( acc 				title ) ] });
 
-$log->info( 'got ' . scalar @live_articles . ' articles for live Pfam-As' ); 
+$log->info( 'got ' . scalar @live_articles . ' articles for live Pfam-As' );
 
 # when a family is killed we store the title that it maps to at that point in
-# time. We'll retrieve those titles from "dead_families" and use the in the 
+# time. We'll retrieve those titles from "dead_families" and use the in the
 # mapping unless there's a "forward_to" for the family instead
 my @dead_titles =
   $pfam_schema->resultset('DeadFamily')
@@ -126,7 +126,7 @@ my @dead_titles =
                         { select => [ qw( pfama_acc title ) ],
                           as     => [ qw( acc title ) ] } );
 
-$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' ); 
+$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' );
 
 # when we make a release and then kill a family, the dead family is still
 # available via the website. In that case we still want to show the wp article,
@@ -134,18 +134,18 @@ $log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_famili
 # gnarly query joins "pfamA" to "dead_families" to get the row from "pfamA"
 # corresponding to the forwarded-to family, and then joins that to "pfamA_wiki"
 # and then onto "wikipedia" to get the article title
-my @dead_articles = 
+my @dead_articles =
   $pfam_schema->resultset('DeadFamily')
               ->search( { 'auto_wiki.title' => { '!=' => undef } },
                         { join     =>  {'pfam_a_wikis', 'auto_wiki'},
                           select   => [ qw( pfam_a_wikis.pfama_acc auto_wiki.title ) ],
                           as       => [ qw( acc                 title ) ] } );
 
-$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via pfam' ); 
+$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via pfam' );
 
 # hash the new Pfam mapping. Remove each acc in the new mapping from the old one
 my %pfam_map;
-foreach ( @live_articles, @dead_titles, @dead_articles ) { 
+foreach ( @live_articles, @dead_titles, @dead_articles ) {
   my $acc   = $_->get_column('acc');
   my $title = $_->get_column('title');
   push @{ $pfam_map{$acc} }, $title;
@@ -157,7 +157,12 @@ foreach ( @live_articles, @dead_titles, @dead_articles ) {
 
 # update the wikipedia and article_mapping tables with the new Pfam data
 
-foreach my $acc ( keys %pfam_map ) { 
+# clear the table and repopulate it. This ensures that families which have been
+# have had wikipedia mapping removed are correctly updated
+$log->info("Deleting all existing article mappings");
+$wa_schema->resultset('ArticleMapping')->delete_all();
+
+foreach my $acc ( keys %pfam_map ) {
   my $titles = $pfam_map{$acc};
 
   $log->debug( "deleting mapping(s) for Pfam entry '$acc'" );
@@ -166,7 +171,7 @@ foreach my $acc ( keys %pfam_map ) {
   if($rv->count) {
 	my $deleted = $rv->delete;
   	$log->logwarn( "warning: failed to delete old mapping for '$acc'" )
-    	unless $deleted;	  	
+    	unless $deleted;
   }
 
   $log->debug( "checking Pfam entry '$acc'" );
@@ -186,13 +191,13 @@ $log->info( 'done with Pfam entries/articles' );
 #-------------------------------------------------------------------------------
 
 # get the Rfam article titles from the live database
-@live_articles = 
+@live_articles =
   $rfam_schema->resultset('Family')
               ->search( undef,
                         { prefetch => 'auto_wiki',
                           select   => [ qw( rfam_acc auto_wiki.title ) ],
                           as       => [ qw( acc      title ) ] } );
-# Note: because we're using RfamDB as a wrapper for the rfam_live database, there's 
+# Note: because we're using RfamDB as a wrapper for the rfam_live database, there's
 # a mismatch between the table and the table definition. Specifically, the "cmsearch"
 # column doesn't exist in the table in rfam_live, but it's listed in the wrapper. By
 # using the "columns" attribute on the search, we can restrict the columns that are
@@ -208,18 +213,18 @@ $log->info( 'got ' . scalar @live_articles . ' articles for live Rfams' );
                         { select => [ qw( rfam_acc title ) ],
                           as     => [ qw( acc      title ) ] } );
 
-$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' ); 
+$log->info( 'got ' . scalar @dead_titles . ' articles with titles in dead_families' );
 
-# get the articles that map to the family that a dead family forwards to... if 
+# get the articles that map to the family that a dead family forwards to... if
 # that makes any sense...
-@dead_articles = 
+@dead_articles =
   $rfam_schema->resultset('Family')
               ->search( undef,
                         { prefetch => [ qw( from_dead article ) ],
                           select   => [ qw( from_dead.rfam_acc article.title ) ],
                           as       => [ qw( acc                title ) ] } );
 
-$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via rfam' ); 
+$log->info( 'got ' . scalar @dead_articles . ' articles by mapping from dead_families via rfam' );
 
 my %rfam_map;
 foreach ( @live_articles, @dead_titles, @dead_articles ) {
@@ -230,7 +235,7 @@ foreach ( @live_articles, @dead_titles, @dead_articles ) {
 
 #-------------------------------------------------------------------------------
 
-foreach my $acc ( keys %rfam_map ) { 
+foreach my $acc ( keys %rfam_map ) {
   my $titles = $rfam_map{$acc};
 
   foreach my $title ( @$titles ) {
@@ -257,9 +262,9 @@ exit;
 #-------------------------------------------------------------------------------
 
 # adds a row to the "article_mapping" table with the specified accession, title
-# and "db" values, and a corresponding row to "wikipedia". All rows in the 
+# and "db" values, and a corresponding row to "wikipedia". All rows in the
 # "article_mapping" table with the given accession are deleted before an attempt
-# to add the new ones. If the delete fails, a warning is issues. If inserting 
+# to add the new ones. If the delete fails, a warning is issues. If inserting
 # into either "article_mapping" or "wikipedia" fails, an exception is thrown.
 
 sub add_row {
@@ -273,15 +278,14 @@ sub add_row {
                                   db        => $db },
                                 { key => 'primary' } )
     or die "error: failed to add mapping for '$acc' --> '$title'";
-                                    
+
   $wa_schema->resultset('Wikipedia')
             ->update_or_create( { title       => $title,
                                   approved_by => 'new',
-                                  pfam_status => $db eq 'pfam' ? 'active' : 'inactive', 
+                                  pfam_status => $db eq 'pfam' ? 'active' : 'inactive',
                                   rfam_status => $db eq 'rfam' ? 'active' : 'inactive' },
                                 { key => 'primary' } )
   or die "error: failed to add wikipedia row for '$acc', '$title'";
 }
 
 #-------------------------------------------------------------------------------
-
