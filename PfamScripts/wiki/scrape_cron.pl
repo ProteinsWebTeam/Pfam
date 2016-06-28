@@ -101,6 +101,11 @@ $log->debug("Found ".(@rows)." hits");
 # that have changed
 my $numRows    = 0;
 my $numUpdated = 0;
+
+#clear the article mapping table in order to prevent familes that no longer
+#have wikipedia links continuing to be present in the mapping table
+$wu_schema->resultset("ArticleMapping")->delete_all();
+
 foreach my $row (@rows) {
 	my $title = $row->title();
 	my $rev = $row->approved_revision();
@@ -139,10 +144,6 @@ foreach my $row (@rows) {
         $numUpdated++;
 		sleep $scrape_loop_delay;
 	}
-
-  #clear the article mapping table in order to prevent familes that no longer
-  #have wikipedia links continuing to be present in the mapping table
-  $wu_schema->resultset("ArticleMapping")->delete_all();
 
   #add title to pfam accession mapping
   my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
