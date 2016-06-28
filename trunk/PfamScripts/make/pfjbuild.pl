@@ -501,7 +501,7 @@ sub help {
 
   print <<EOF;
 
-usage: $0 -fa <fasta file> -db <sequence db>  or $0 -acc <accession> -db <sequence db>
+usage: $0 -fa <fasta file> or $0 -acc <accession>
 
 The alignment in written into the file JALIGN and the list of hits into JOUT.
 A PFAMOUT file is produced for the hits in the final iteration.
@@ -527,7 +527,7 @@ or
 Script Options
 -fa <fa_file> : The name of the fasta file that you want to run Jackhmmer on.
 -acc <acc>    : Accession of protein you want to run Jackhmmer on
--noOverlap    : Script 
+-noOverlap    : Do not check for overlaps
 -local        : Run script on local machine
 -gzip         : Gzips the JOUT and JALIGN files, this option is useful if you are running
                 a large number of pfjbuilds and are conscious of disk space
