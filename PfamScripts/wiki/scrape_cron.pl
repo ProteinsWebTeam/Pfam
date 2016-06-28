@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# This script connects to the wiki_approve database the list of current approved revision IDs for 
+# This script connects to the wiki_approve database the list of current approved revision IDs for
 # wikipedia articles and scrapes the content for the approved revisions,
 # depositing the content into the "wikitext" table.
 #
@@ -19,7 +19,7 @@ use WebUser;
 use Data::Dump qw(dump);
 
 # the script needs to be able to find a table wrapper for the "wikitext"
-# table in the "web_user" database. Add the appropriate DBIC schema 
+# table in the "web_user" database. Add the appropriate DBIC schema
 # description to PERL5LIB
 
 #-------------------------------------------------------------------------------
@@ -66,9 +66,9 @@ my $scrape_loop_delay = $config{scrape_loop_delay};
 #-------------------------------------------------------------------------------
 
 # get all of the database connections that we'll need
-my $wa_schema = 
-  WikiApprove->connect( 
-    "dbi:mysql:$wa_conf->{db_name}:$wa_conf->{db_host}:$wa_conf->{db_port}", 
+my $wa_schema =
+  WikiApprove->connect(
+    "dbi:mysql:$wa_conf->{db_name}:$wa_conf->{db_host}:$wa_conf->{db_port}",
     $wa_conf->{username},
     $wa_conf->{password}
   );
@@ -76,9 +76,9 @@ my $wa_schema =
 $log->debug( 'connected to wiki_approve' ) if $wa_schema;
 
 # get all of the database connections that we'll need
-my $wu_schema = 
-  WebUser->connect( 
-    "dbi:mysql:$wu_conf->{db_name}:$wu_conf->{db_host}:$wu_conf->{db_port}", 
+my $wu_schema =
+  WebUser->connect(
+    "dbi:mysql:$wu_conf->{db_name}:$wu_conf->{db_host}:$wu_conf->{db_port}",
     $wu_conf->{username},
     $wu_conf->{password},
     { mysql_enable_utf8 => 1 }
@@ -104,9 +104,9 @@ my $numUpdated = 0;
 foreach my $row (@rows) {
 	my $title = $row->title();
 	my $rev = $row->approved_revision();
-	
+
 	$log->debug("Checking article $title:$rev");
-	
+
 	unless ( $rev =~ m/^\d+$/ ) {
     	$log->error("WARNING: Invalid revision number for '$title' ($rev)");
     	next;
@@ -115,14 +115,14 @@ foreach my $row (@rows) {
   		$log->error("unapproved article: '$title'; content will not be scraped until the article has been approved");
    		next;
  	}
- 	
+
 	# get the DBIC Row for that article. If there is no row for the article, it
 	# means it's new to the approval process, and will presumably get an approved
 	# revision number in the next round of approvals. We add a new row with the
 	# default revision number of 0 in that case.
 	my $wikitext_row = $wu_schema->resultset('Wikitext')
 	              ->find_or_create( { title => $title } );
-	
+
 	# make sure the row object in memory matches the row in the database. We need
 	# to do this to make sure that a new row, which will be created by the DB
 	# with an approved_revision of 0, is correctly populated before we try the
@@ -130,7 +130,7 @@ foreach my $row (@rows) {
 	$wikitext_row->discard_changes;
 	my $approved_revision = $wikitext_row->approved_revision;
 	$log->debug("Current revision=$approved_revision Approved revision=$rev");
-       		
+
 	if ( defined $approved_revision and $approved_revision != $rev ) {
 		$log->debug("Fetching $rev for $title");
        	my $content = $scraper->scrape( $title, $rev );
@@ -139,17 +139,20 @@ foreach my $row (@rows) {
         $numUpdated++;
 		sleep $scrape_loop_delay;
 	}
-       
-    #add title to pfam accession mapping
-    my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
+
+  #clear the article mapping table in order to prevent familes that no longer
+  #have wikipedia links continuing to be present in the mapping table
+  $wu_schema->resultset("ArticleMapping")->delete_all();
+
+  #add title to pfam accession mapping
+  my @pfam_hits = $wa_schema->resultset("ArticleMapping")->search({title => $title}, {select => "accession"});
 	$log->debug("Updating ".@pfam_hits." matching $title");
 	foreach my $pfam_hit (@pfam_hits) {
 		my $pfam_acc = $pfam_hit->accession;
 		$log->debug("Matched Pfam = $pfam_acc to $title");
 		$wu_schema->resultset("ArticleMapping")->find_or_create({accession => $pfam_acc, title => $title});
 	}
-	   
-    $numRows++;
+
+  $numRows++;
 }
 print STDERR "scraped new content for $numUpdated out of $numRows articles\n";
-
