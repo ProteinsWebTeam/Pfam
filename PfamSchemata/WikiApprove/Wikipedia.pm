@@ -104,7 +104,7 @@ has '_mw_api' => (
   is      => 'ro',
   isa     => 'MediaWiki::API',
   lazy    => 1,
-  default => sub { 
+  default => sub {
     return MediaWiki::API->new( { api_url => 'http://en.wikipedia.org/w/api.php' } );
   }
 );
@@ -123,7 +123,7 @@ sub _get_article_history {
   my $this = shift;
 
   # from reading the source of MW::Bot, we should be able to do this:
-  #   my @history_list = $this->_mw_bot->get_history( $this->title, 
+  #   my @history_list = $this->_mw_bot->get_history( $this->title,
   #                                                   50,
   #                                                   $this->approved_revision,
   #                                                   'newer' );
@@ -144,7 +144,7 @@ sub _get_article_history {
 
   unless ( $response ) {
     croak "Error retrieving revision history for '" . $this->title . "' using API: "
-          . $this->_mw_api->{error}->{details} 
+          . $this->_mw_api->{error}->{details}
           . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
     return;
   }
@@ -235,7 +235,7 @@ sub last_update_user {
 
 #-------------------------------------------------------------------------------
 
-# returns the comment that was given when the article was last updated in 
+# returns the comment that was given when the article was last updated in
 # wikipedia
 
 sub update_comment {
@@ -253,7 +253,7 @@ sub update_approval {
   die "not a valid revision ID ($revid)"
     if ( defined $revid and $revid !~ m/^\d+$/ );
 
-  $this->update( { 
+  $this->update( {
     approved_revision => $revid,
     approved_by      => $approved_by,
     updated          => $updated || \'NOW()',
@@ -264,7 +264,7 @@ sub update_approval {
 
 # for an article that is redirected, this method returns an array containing
 # a series of hashes, each with the keys "from" and "to", giving the titles of
-# the article redirected from and to, and "row" giving a reference to this 
+# the article redirected from and to, and "row" giving a reference to this
 # object. Returns undef for articles that are not redirected.
 
 sub get_redirects {
@@ -277,9 +277,16 @@ sub get_redirects {
   } );
 
   unless ( $response ) {
-    croak 'Error retrieving redirects for ' . $this->title . ' using API: '
-          . $this->_mw_api->{error}->{details} 
-          . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
+    #croak 'Error retrieving redirects for ' . $this->title . ' using API: '
+    #      . $this->_mw_api->{error}->{details}
+    #      . ' (error code ' . $this->_mw_api->{error}->{code} . ')';
+    if ($this->_mw_api->{error}->{code}) {
+      croak $this->_mw_api->{error}->{code} ;
+    } else {
+      croak "Unkown error";
+    }
+
+
     return;
   }
 
@@ -287,7 +294,7 @@ sub get_redirects {
   if ( $response->{query}->{redirects} ) {
     foreach my $redirect ( @{ $response->{query}->{redirects} } ) {
       $redirect->{row} = $this;
-      push @{ $redirects }, $redirect; 
+      push @{ $redirects }, $redirect;
     }
   }
   else {
@@ -318,4 +325,3 @@ CREATE TABLE `wikipedia` (
   `rfam_status` enum('active','inactive','pending') NOT NULL default 'pending',
   PRIMARY KEY  (`title`(256))
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-

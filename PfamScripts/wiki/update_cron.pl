@@ -17,17 +17,41 @@ use Config::General;
 use WikiApprove;
 use Bio::Pfam::Wiki::Updater;
 use DateTime;
+use Log::Log4perl qw(get_logger :levels);
+
+#-------------------------------------------------------------------------------
+# set up logging
+my $logger_conf = q(
+  log4perl.logger                   = INFO, Screen
+  log4perl.appender.Screen          = Log::Log4perl::Appender::Screen
+  log4perl.appender.Screen.layout   = Log::Log4perl::Layout::PatternLayout
+  log4perl.appender.Screen.layout.ConversionPattern = %M:%L %p: %m%n
+);
+
+Log::Log4perl->init( \$logger_conf );
+
+my $log = get_logger();
+#-------------------------------------------------------------------------------
+
+# handle the command-line options
+my $config_file = 'conf/wiki.conf';
+my $verbosity = 0;
+GetOptions ( 'config=s' => \$config_file,
+             'v+'       => \$verbosity );
+
+# increase the amount of logging by one level for each "v" switch added
+$log->more_logging(1) while $verbosity-- > 0;
 
 # find the config file
-my $config_file = 'conf/wiki.conf';
-GetOptions( 'config=s' => \$config_file );
-die "ERROR: couldn't read config from '$config_file': $!"
+$log->logdie( "ERROR: couldn't read config from '$config_file': $!" )
   unless -e $config_file;
+
+#-------------------------------------------------------------------------------
 
 # get the DB connection parameters
 my $cg = Config::General->new($config_file);
 my %config = $cg->getall;
-die "ERROR: failed to extract and configuration from '$config_file'"
+$log->logdie( "ERROR: failed to extract and configuration from '$config_file'" )
   unless keys %$cg;
 my $conf = $config{WikiApprove};
 
@@ -45,28 +69,30 @@ my $num_redirected = $u->num_redirected;
 my $num_approved = $u->num_auto_approved;
 
 if ( $num_redirected ) {
-  print STDERR "\n";
   foreach my $redirect ( @{ $u->redirected_articles } ) {
-    print STDERR q(") . $redirect->{from} . q(" has been redirected to ") 
-                 . $redirect->{to} . q(");
-    my @mappings =  $redirect->{row}->article_mappings; 
+    my @mappings =  $redirect->{row}->article_mappings;
     if ( scalar @mappings ) {
-      print STDERR ', used by ';
-      print STDERR ucfirst $_->db . ' ' . $_->accession . ' ' for @mappings;
+      $log->warn(  q(") . $redirect->{from}
+                    . q(" has been redirected to ")
+                    . $redirect->{to} . q(")
+                    . ', used by '
+                    . ucfirst $_->db . ' '
+                    . $_->accession . ' ') for @mappings;
+    } else {
+      $log->warn(  q(") . $redirect->{from}
+                    . q(" has been redirected to ")
+                    . $redirect->{to} . q(")
+                    . " NOT USED" );
     }
-    else {
-      print STDERR ", NOT USED";
-    }
-    print STDERR "\n";
   }
-  print STDERR "\n";
 }
 
 my $now = DateTime->now;
-print STDERR "$now: updated last revision IDs for $num_updated out of $num_checked checked articles. Found $num_redirected redirected article(s) Approved $num_approved article(s).\n";
+$log->info( "$now: updated last revision IDs for $num_updated "
+              ."out of $num_checked checked articles. "
+              ."Found $num_redirected redirected article(s) "
+              ."Approved $num_approved article(s).");
 
 # if given in the configuration, append a snippet of text to the output. This is
 # to allow URLs, etc., to be added to the cron output
-print STDERR "\n", $config{update_email_message}, "\n"
-  if $config{update_email_message};
-
+$log->info($config{update_email_message}) if $config{update_email_message};
