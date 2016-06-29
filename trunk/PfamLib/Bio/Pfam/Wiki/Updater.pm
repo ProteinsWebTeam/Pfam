@@ -367,7 +367,7 @@ sub _get_last_edit {
 
   my @history = $this->_mw_bot->get_history( $title, 1 );
   unless ( @history ) {
-    print STDERR "Failed to retrieve history for wikipedia article '$title'\n";
+    $this->logger->error("Failed to retrieve history for wikipedia article '$title'");
     return;
   }
 
