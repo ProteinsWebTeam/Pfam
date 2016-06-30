@@ -32,7 +32,6 @@ open(LIST, "mysql -h $host -u $user -p$password -P $port --skip-column-names $da
 while(<LIST>) {
   chomp $_;
   my $table = $_;
-  next if($table =~ /alignment_and_tree/);
   next if($table =~ /^_/);  #Ignore tables that start with '_'
 
   $logger->info("Doing $table");
