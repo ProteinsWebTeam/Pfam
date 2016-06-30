@@ -560,6 +560,9 @@ sub processALIGN {
   #Make RP alignments (this is now done using the uniprot alignments)
   #addUniprotGF must be run before making the RP alignments
   $self->makeRPAligns(); 
+
+  #Populate pfamA_ncbi_uniprot table
+  $self->pfamA_ncbi_uniprot();
 }
 
 
@@ -3196,6 +3199,27 @@ sub touchStatus {
   push(@files, $self->options->{statusdir}."/".$file);
   touch(@files);
 }
+
+sub pfamA_ncbi_uniprot {
+  my ($self) = @_;
+
+  $self->logger->info("Updating pfamA_ncbi_uniprot table");
+  my $pfamA_acc=$self->pfam->pfama_acc;
+
+  my $dbh = $self->pfamdb->getSchema->storage->dbh;
+  
+  #Delete old regions if any
+  my $st_delete = $dbh->prepare("delete from pfamA_ncbi_uniprot where pfamA_acc='$pfamA_acc'");
+  $st_delete->execute() or $self->logger->logdie("Failed to delete $pfamA_acc from pfamA_ncbi_uniprot ".$st_delete->errstr);
+
+  #Populate pfamA_ncbi_uniprot
+  my $st_upload = $dbh->prepare("insert into pfamA_ncbi_uniprot (pfamA_acc, pfamA_id, ncbi_taxid) select r.pfamA_acc, pfamA_id, ncbi_taxid from uniprot_reg_full r, uniprot u, pfamA where u.uniprot_acc = r.uniprot_acc and r.pfamA_acc = pfamA.pfamA_acc and pfamA.pfamA_acc='$pfamA_acc' and in_full=1 group by ncbi_taxid");
+  $st_upload->execute() or $self->logger->logdie("Failed to update pfamA_ncbi_uniprot table for $pfamA_acc ".$st_upload->errstr);
+
+}
+
+
+
 
 =head1 AUTHOR
 
