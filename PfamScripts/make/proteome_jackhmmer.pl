@@ -21,23 +21,23 @@ my ($ncbi_tax, $max_jobs, $help);
 
 
 &GetOptions( "ncbi_tax=s" => \$ncbi_tax,
-             "max_jobs=i" => \$max_jobs,
-	           "help" => \$help);
+  "max_jobs=i" => \$max_jobs,
+  "help" => \$help);
 
 
 unless($ncbi_tax) {
-    print STDERR "Need to specify tax id ($0 -ncbi_tax <ncbi_taxid>)\n";
-    &help();
+  print STDERR "Need to specify tax id ($0 -ncbi_tax <ncbi_taxid>)\n";
+  &help();
 
 }
 
 if($max_jobs) {
-    unless($max_jobs >0) {
-	$logger->logdie("max_jobs needs to be a number greater than 0");
-    }
+  unless($max_jobs >0) {
+    $logger->logdie("max_jobs needs to be a number greater than 0");
+  }
 }
 else {
-    $max_jobs = 200;
+  $max_jobs = 200;
 }
 
 open(SUMMARY, ">$ncbi_tax.txt") or die "Couldn't open fh to $ncbi_tax.txt, $!";
@@ -50,14 +50,14 @@ my $dbh = $pfamDB->getSchema->storage->dbh;
 
 
 #Get species and auto_proteome number
-my $st_tax = $dbh->prepare("select species, auto_proteome from complete_proteomes where ncbi_taxid = '$ncbi_tax'");
+my $st_tax = $dbh->prepare("select species from complete_proteomes where ncbi_taxid = '$ncbi_tax'");
 
-$st_tax->execute or $logger->logdie("Couldn't select species and auto_protoeme from complete_proteomes where ncbi_taxid = '$ncbi_tax' ".$st_tax->errstr."\n");
- 
-my ($species, $auto_proteome) = $st_tax->fetchrow;
+$st_tax->execute or $logger->logdie("Couldn't execute statement ".$st_tax->errstr."\n");
 
-unless($species and $auto_proteome) {
-    $logger->logdie("Couldn't find the ncbi taxid |$ncbi_tax| in the database"); 
+my ($species) = $st_tax->fetchrow;
+
+unless($species) {
+  $logger->logdie("Couldn't find the ncbi taxid |$ncbi_tax| in the database"); 
 }
 
 $logger->info("Species name for NCBI taxid $ncbi_tax is '$species'");
@@ -66,54 +66,48 @@ print SUMMARY "Species name for NCBI taxid $ncbi_tax is '$species'\n";
 
 
 #Find out which ones have a Pfam-A match
-my $st2 = $dbh->prepare("select auto_pfamseq from proteome_regions where auto_proteome = $auto_proteome");
-$st2->execute() or $logger->logdie("Couldn't select auto_pfamseq from proteome_regions where auto_proteome = $auto_proteome ". $st2->errstr."\n");
+my $st2 = $dbh->prepare("select p.pfamseq_acc from pfamseq p, pfamA_reg_full_significant r where p.pfamseq_acc=r.pfamseq_acc and in_full=1 and ncbi_taxid=$ncbi_tax");
+$st2->execute() or $logger->logdie("Couldn't execute statement ". $st2->errstr."\n");
 
 my $pfamA_data = $st2->fetchall_arrayref;
 my %pfamA_proteins;
 foreach my $row(@$pfamA_data) { 
-    $pfamA_proteins{$row->[0]}=1;
+  $pfamA_proteins{$row->[0]}=1;
 }
 my $pfamA_count = keys %pfamA_proteins;
 
 
-
-
 #Get total number of proteins in proteome
-my $st3 = $dbh->prepare("select proteome_pfamseq.auto_pfamseq, pfamseq_acc, seq_version, description, sequence from pfamseq, proteome_pfamseq where pfamseq.auto_pfamseq = proteome_pfamseq.auto_pfamseq and auto_proteome = $auto_proteome");
-$st3->execute() or die $logger->logdie("Couldn't select proteome_pfamseq.auto_pfamseq, pfamseq_acc, seq_version, description, sequence from pfamseq, proteome_pfamseq where pfamseq.auto_pfamseq = proteome_pfamseq.auto_pfamseq and auto_proteome = $auto_proteome " . $st3->errstr."\n");
+my $st3 = $dbh->prepare("select pfamseq_acc, seq_version, description, sequence from pfamseq where ncbi_taxid=$ncbi_tax");
+$st3->execute() or die $logger->logdie("Couldn't execute statement ".$st3->errstr."\n");
 
 my $all_data = $st3->fetchall_arrayref;
-my %all_proteins;
-my %no_pfamA;
+my $protein_count=0;
 my %fasta;
 foreach my $row(@$all_data) { 
-    my ($auto_pfamseq, $pfamseq_acc, $seq_version, $desc, $sequence) = ($row->[0], $row->[1], $row->[2], $row->[3], $row->[4]);
+  my ($pfamseq_acc, $seq_version, $desc, $sequence) = ($row->[0], $row->[1], $row->[2], $row->[3]);
 
-    $all_proteins{$auto_pfamseq}=1;
+  $protein_count++;
 
-    unless(exists($pfamA_proteins{$auto_pfamseq})) {
-	$no_pfamA{$auto_pfamseq}= $pfamseq_acc;
-	$fasta{$auto_pfamseq}= ">$pfamseq_acc" . "." . "$seq_version $desc\n$sequence";
-    }
+  unless(exists($pfamA_proteins{$pfamseq_acc})) {
+    $fasta{$pfamseq_acc}= ">$pfamseq_acc" . "." . "$seq_version $desc\n$sequence";
+  }
 }
 
 
-my $count = keys %all_proteins;
+$logger->info("$protein_count proteins in proteome");
+print SUMMARY "$protein_count proteins in proteome\n";
+my $percentage1 = ($pfamA_count/$protein_count)*100;
+$percentage1 = sprintf("%.1f", $percentage1);
 
-$logger->info("$count proteins in proteome");
-print SUMMARY "$count proteins in proteome\n";
-my $percentage1 = ($pfamA_count/$count)*100;
-$percentage1 = sprintf("%.2f", $percentage1);
+my $no_pfamA = $protein_count - $pfamA_count;
+my $percentage2 = ($no_pfamA/$protein_count)*100;
+$percentage2 = sprintf("%.1f", $percentage2);
 
-my $no_pfamA = $count - $pfamA_count;
-my $percentage2 = ($no_pfamA/$count)*100;
-$percentage2 = sprintf("%.2f", $percentage2);
-
-$logger->info("$pfamA_count ($percentage1\%) proteins match a Pfam-A domain");
-print SUMMARY "$pfamA_count ($percentage1\%) proteins match a Pfam-A domain\n";
-$logger->info("$no_pfamA ($percentage2\%) proteins do not match a Pfam-A domain");
-print SUMMARY "$no_pfamA ($percentage2\%) proteins do not match a Pfam-A domain\n";
+$logger->info("$pfamA_count/$protein_count ($percentage1\%) proteins have a match to a Pfam-A domain");
+print SUMMARY "$pfamA_count/$protein_count ($percentage1\%) proteins have a match to a Pfam-A domain\n";
+$logger->info("$no_pfamA/$protein_count ($percentage2\%) proteins do not match a Pfam-A domain");
+print SUMMARY "$no_pfamA/$protein_count ($percentage2\%) proteins do not match a Pfam-A domain\n";
 
 $logger->info("Going to run jackhmmer (N=3) on each of the proteins that do not match a Pfam-A");
 print SUMMARY "Going to run jackhmmer (N=3) on each of the proteins that do not match a Pfam-A\n";
@@ -122,74 +116,72 @@ close SUMMARY;
 $logger->info("The maximum number of jobs submitted to the farm at any one time will be $max_jobs\n");
 
 unless(-d "Jackhmmer") {
-    mkdir("Jackhmmer", 0755) or $logger->logdie("Couldn't mkdir Jackhmmer, $!");
+  mkdir("Jackhmmer", 0755) or $logger->logdie("Couldn't mkdir Jackhmmer, $!");
 }
 chdir("Jackhmmer") or $logger->logdie("Couldn't chdir into 'Jackhmmer', $!");
 
 my $n = $max_jobs;
 my $jobs_submitted=0;
 
-foreach my $auto (keys %no_pfamA) {
+foreach my $acc (keys %fasta) {
 
-	my $acc = $no_pfamA{$auto};
-	
-	mkdir($acc, 0755) or $logger->logdie("Couldn't mkdir $acc, $!");
-	chdir($acc) or $logger->logdie("Couldn't chdir into $acc, $!");
-	
-	open(FH, ">seq.fasta") or $logger->die("Couldn't open fh to seq.fasta, $!");
-	print FH $fasta{$auto};
-	close FH;
-	
-	system("pfjbuild -N 3 -fa seq.fasta -gzip") and $logger->logdie("Failed to run jackhmmer on $acc, $!");
-	$jobs_submitted++;
-	chdir("../") or $logger->logdie("Couldn't chdir up a dir from $acc, $!");
+  mkdir($acc, 0755) or $logger->logdie("Couldn't mkdir $acc, $!");
+  chdir($acc) or $logger->logdie("Couldn't chdir into $acc, $!");
 
-	if($jobs_submitted == $no_pfamA) { #All jobs are submitted, exit loop
-	    $logger->info("All jobs submitted to the farm");
-	    last;
-	}
+  open(FH, ">seq.fasta") or $logger->die("Couldn't open fh to seq.fasta, $!");
+  print FH $fasta{$acc};
+  close FH;
 
-	$n--;
-	while($n<=0) { #See how many jobs are running/pending, and how many more we should submit
-	    sleep 30; #Give time for last submitted job to appear on 'bjobs'
+  system("pfjbuild -N 3 -fa seq.fasta -chk chk -gzip") and $logger->logdie("Failed to run jackhmmer on $acc, $!");
+  $jobs_submitted++;
+  chdir("../") or $logger->logdie("Couldn't chdir up a dir from $acc, $!");
 
-	    my $farm_jobs = count_bjobs();
-	  
-	    $n = $max_jobs - $farm_jobs;
-	    if($n<=0) { 
-		$logger->info("You have $farm_jobs jobs on the farm, waiting for some of the jobs to finish before submitting more");
-		sleep 120;
-	    }
-	    else {
-		$logger->info("You have $farm_jobs jobs on the farm, submitting another $n job(s)");
-	    }
-	}
+  if($jobs_submitted == $no_pfamA) { #All jobs are submitted, exit loop
+    $logger->info("All jobs submitted to the farm");
+    last;
+  }
+
+  $n--;
+  while($n<=0) { #See how many jobs are running/pending, and how many more we should submit
+    sleep 30; #Give time for last submitted job to appear on 'bjobs'
+
+    my $farm_jobs = count_bjobs();
+
+    $n = $max_jobs - $farm_jobs;
+    if($n<=0) { 
+      $logger->info("You have $farm_jobs jobs on the farm, waiting for some of the jobs to finish before submitting more");
+      sleep 120;
+    }
+    else {
+      $logger->info("You have $farm_jobs jobs on the farm, submitting another $n job(s)");
+    }
+  }
 }
 
 
 
 sub count_bjobs {
-    my $run=0;
+  my $run=0;
 
-    my $flag;
+  my $flag;
 
-    open(BJOBS, "bjobs |") or $logger->logdie("Couldn't open fh to bjobs $!");
-    while(<BJOBS>) {
-	next if(/^No unfinished job found/);
-	if(/^JOBID/) {
-	    $flag=1;
-	}
-
-	$run++;
+  open(BJOBS, "bjobs |") or $logger->logdie("Couldn't open fh to bjobs $!");
+  while(<BJOBS>) {
+    next if(/^No unfinished job found/);
+    if(/^JOBID/) {
+      $flag=1;
     }
-    close BJOBS;
 
-    if($run and !$flag) {
-	$logger->info("LSF looks like it is not working, going to wait before submitting more jobs");
-	$run = 100000; #Big number prevents more jobs being submitted
-    }
-    
-    return($run);
+    $run++;
+  }
+  close BJOBS;
+
+  if($run and !$flag) {
+    $logger->info("LSF looks like it is not working, going to wait before submitting more jobs");
+    $run = 100000; #Big number prevents more jobs being submitted
+  }
+
+  return($run);
 }
 
 
@@ -197,7 +189,7 @@ sub count_bjobs {
 
 sub help {
 
-print STDERR << "EOF";
+  print STDERR << "EOF";
 
 This program runs jackhmmer on all proteins in a proteome that do not
 have a match to a Pfam-A family.  It outputs a file in the cwd
@@ -216,12 +208,12 @@ Options:
                (Default 200)
 
 
-After this script has been run, you should run proteome_summary.pl to
+After this script has been run, you should run jackhmmer_summary.pl to
 get a summary of how many new sequences will be added to Pfam, and how
 many overlaps there are to Pfam-A families.
 
 EOF
 
-exit (0);
+  exit (0);
 
 }
